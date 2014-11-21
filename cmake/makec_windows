@@ -1,0 +1,4 @@
+#!/bin/bash
+mkdir ./build_windows_qt
+cd ./build_windows_qt
+cmake ../$(dirname $(dirname $0)) -DCMAKE_INSTALL_PREFIX=`pwd` -DCMAKE_BUILD_TYPE=Debug -DEXTRA_LIBS="wsock32 -lwinmm -lws2_32 -liphlpapi"

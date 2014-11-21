@@ -1,0 +1,4 @@
+#!/bin/bash
+mkdir ./build_macos
+cd ./build_macos
+cmake ../$(dirname $(dirname $0)) -DCMAKE_INSTALL_PREFIX=`pwd` -DCMAKE_BUILD_TYPE=Debug

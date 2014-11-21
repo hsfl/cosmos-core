@@ -1,0 +1,4 @@
+#!/bin/bash
+mkdir ./build_arm
+cd ./build_arm
+cmake ../$(dirname $(dirname $0)) -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain_arm -DCMAKE_INSTALL_PREFIX=~/work/hawaiisat-1/FlightImage/flight_software -DCMAKE_BUILD_TYPE=Debug

@@ -1,0 +1,17 @@
+#!/bin/bash
+cd $(dirname $0)/..
+export keepwd=`pwd`
+cd $keepwd/cmake
+svn up
+cd $keepwd/device
+svn up
+cd $keepwd/agents
+svn up
+cd $keepwd/gs
+svn up
+cd $keepwd/otb
+svn up
+cd $keepwd/support
+svn up
+cd $keepwd/testbed
+svn up
