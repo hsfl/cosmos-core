@@ -1,5 +1,5 @@
 
-Welcome to COSMOS 1.0 (r3819)
+Welcome to COSMOS 0.99 (r3819)
 =============================
 
 The Comprehensive Open-architecture Space Missions Operations System (COSMOS)
