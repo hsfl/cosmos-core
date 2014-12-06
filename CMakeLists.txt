@@ -7,7 +7,7 @@ set(PROJECT_NAME                COSMOS_CORE)
 # define what libraries you want to compile
 set(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_DEVICES              ON)         #ON/OFF
-set(BUILD_COSMOS_CORE_THIRDPARTY_EIGEN     ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_THIRDPARTY_EIGEN     OFF)          #ON/OFF
 set(BUILD_COSMOS_CORE_THIRDPARTY_ZLIB     ON)          #ON/OFF
 set(BUILD_COSMOS_PROJECT_USER              OFF)         #ON/OFF
 
@@ -97,10 +97,10 @@ IF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
     set(LINK_LIBRARY_COSMOS_CORE_ZLIB zlib )
 ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
 
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
-	message("Building eigen")
-    add_subdirectory(${CORE}/libraries/thirdparty/Eigen ${CORE}/build/${OS_FOLDER}/libraries/thirdparty/Eigen)
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
+#IF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
+#	message("Building eigen")
+#    add_subdirectory(${CORE}/libraries/thirdparty/Eigen ${CORE}/build/${OS_FOLDER}/libraries/thirdparty/Eigen)
+#ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
 
 IF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
 	message("Building user")
