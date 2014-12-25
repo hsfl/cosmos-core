@@ -4,7 +4,7 @@
 
 #include "agentlib.h"
 #include "jsonlib.h"
-#include "nodelib.h"
+#include "jsonlib.h"
 #include <errno.h>
 #include <unistd.h>
 

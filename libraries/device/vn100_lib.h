@@ -15,7 +15,7 @@
 
 #include "configCosmos.h"
 #include "cssl_lib.h"
-#include "nodelib.h"
+#include "jsonlib.h"
 
 #define VN100_BAUD 115200
 #define VN100_BITS 8

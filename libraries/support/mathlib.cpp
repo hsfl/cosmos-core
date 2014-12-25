@@ -4786,24 +4786,28 @@ std::istream& operator >> (std::istream& in, qfirst& a)
 }
 
 lsfit::lsfit()
+	: element_cnt(10), order(2), resolution(0.)
 {
-	lsfit(10, 2, 0.);
+//	lsfit(10, 2, 0.);
 	//	printf("lsfit()\n");
 }
 
 lsfit::lsfit(uint16_t cnt)
+	: element_cnt(cnt), order(2), resolution(0.)
 {
-	lsfit(cnt, 2, 0.);
+//	lsfit(cnt, 2, 0.);
 	//	printf("lsfit(%u)\n",cnt);
 }
 
 lsfit::lsfit(uint16_t cnt, uint16_t ord)
+	: element_cnt(cnt), order(ord), resolution(0.)
 {
-	lsfit(cnt, ord, 0.);
+//	lsfit(cnt, ord, 0.);
 	//	printf("lsfit(%u %u)\n",cnt,ord);
 }
 
 lsfit::lsfit(uint16_t cnt, uint16_t ord, double res)
+	: element_cnt(cnt), order(ord), resolution(res)
 {
 	if (ord)
 	{

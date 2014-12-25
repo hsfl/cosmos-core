@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 					printf("[%d]",pretn);
 					break;
 				}
-				printf("%s:[%s:%s][%s:%s](%u)\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), message.size());
+				printf("%s:[%s:%s][%s:%s](%lu)\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), message.size());
 				if (!strcmp(channel,"all"))
 				{
 					printf("%s\n",message.c_str());

@@ -9,6 +9,6 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 add_library(CosmosSupport STATIC ${SOURCES} ${INCLUDES})
 
-install(TARGETS CosmosSupport DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include)
+install(TARGETS CosmosSupport DESTINATION ${MY_LIBS})
+install(FILES ${INCLUDES} DESTINATION ${MY_INCLUDES})
 

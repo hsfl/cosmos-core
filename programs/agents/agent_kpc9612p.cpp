@@ -285,7 +285,7 @@ void tcv_read_loop()
 				{
 					tun_fifo.push(buffer);
 					tun_fifo_check.notify_one();
-					printf("Buffer: [%u,%u] %f\n", rxr_handle.frame.size, buffer.size(), 86400.*(currentmjd(0.)-lastin));
+					printf("Buffer: [%u,%lu] %f\n", rxr_handle.frame.size, buffer.size(), 86400.*(currentmjd(0.)-lastin));
 					lastin = currentmjd(0.);
 //					for (uint16_t i=0; i<(rxr_handle.frame.size<150?rxr_handle.frame.size:150); ++i)
 //					{
@@ -309,7 +309,7 @@ void tcv_read_loop()
 			}
 			else
 			{
-				printf("Beacon: [%d,%u,%u] %f\n", iretn, rxr_handle.frame.size, buffer.size(), 86400.*(currentmjd(0.)-lastbeacon));
+				printf("Beacon: [%d,%u,%lu] %f\n", iretn, rxr_handle.frame.size, buffer.size(), 86400.*(currentmjd(0.)-lastbeacon));
 				lastbeacon = currentmjd(0.);
 //				string str(buffer.begin(), buffer.end());
 //				cout << "\t" << str << endl;

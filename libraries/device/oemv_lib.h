@@ -14,7 +14,7 @@
 
 #include "configCosmos.h"
 #include "cssl_lib.h"
-#include "nodelib.h"
+#include "jsonlib.h"
 
 #define OEMV_BAUD 9600
 #define OEMV_BITS 8

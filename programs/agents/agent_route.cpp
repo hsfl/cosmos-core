@@ -22,15 +22,15 @@ int main(int argc, char *argv[])
 
 	// Preload the information about the interfaces
 	uint32_t addr_out[AGENTMAXIF];
-	uint32_t addr_to[AGENTMAXIF];
+//	uint32_t addr_to[AGENTMAXIF];
 	for (uint16_t i=0; i<cdata->agent[0].ifcnt; ++i)
 	{
 #ifdef COSMOS_WIN_OS
 		addr_out[i] = uint32from((uint8_t *)&cdata->agent[0].pub[i].caddr.sin_addr.S_un.S_addr, ORDER_NETWORK);
-		addr_to[i] = uint32from((uint8_t *)&cdata->agent[0].pub[i].baddr.sin_addr.S_un.S_addr, ORDER_NETWORK);
+//		addr_to[i] = uint32from((uint8_t *)&cdata->agent[0].pub[i].baddr.sin_addr.S_un.S_addr, ORDER_NETWORK);
 #else
 		addr_out[i] = uint32from((uint8_t *)&cdata->agent[0].pub[i].caddr.sin_addr.s_addr, ORDER_NETWORK);
-		addr_to[i] = uint32from((uint8_t *)&cdata->agent[0].pub[i].baddr.sin_addr.s_addr, ORDER_NETWORK);
+//		addr_to[i] = uint32from((uint8_t *)&cdata->agent[0].pub[i].baddr.sin_addr.s_addr, ORDER_NETWORK);
 #endif
 	}
 

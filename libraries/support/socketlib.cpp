@@ -5,7 +5,7 @@
 /*! Open a UDP socket and configure it for the specified use. Various
 flags are set, and the socket is bound, if necessary. Support is
 provided for the extra steps necessary for MS Windows.
-    \param channel Pointer to ::agent_channel holding final configuration.
+	\param channel Pointer to ::socket_channel holding final configuration.
     \param address Destination address
     \param port Source port. If zero, automatically assigned.
     \param role Publish, subscribe, communicate.
@@ -35,10 +35,26 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
     }
 #endif
 
-    if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,0)) <0)
-    {
-        return (-errno);
-    }
+	switch (ntype)
+	{
+	case SOCKET_TYPE_BROADCAST:
+	case SOCKET_TYPE_MULTICAST:
+		{
+			if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) <0)
+			{
+				return (-errno);
+			}
+		}
+		break;
+	case SOCKET_TYPE_TCP:
+		{
+			if ((channel->cudp = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) <0)
+			{
+				return (-errno);
+			}
+		}
+		break;
+	}
 
     if (blocking == SOCKET_NONBLOCKING)
     {
@@ -94,13 +110,39 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
             return (-errno);
         }
 
-        channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
-        if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
-        {
-            CLOSE_SOCKET(channel->cudp);
-            channel->cudp = -errno;
-            return (-errno);
-        }
+		switch (ntype)
+		{
+		case SOCKET_TYPE_BROADCAST:
+		case SOCKET_TYPE_MULTICAST:
+			{
+				channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+				if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
+				{
+					CLOSE_SOCKET(channel->cudp);
+					channel->cudp = -errno;
+					return (-errno);
+				}
+			}
+			break;
+		case SOCKET_TYPE_TCP:
+			{
+#ifndef COSMOS_WIN_OS
+				inet_pton(AF_INET,address,&channel->caddr.sin_addr);
+#else
+				sslen = sizeof(ss);
+				WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+				channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+#endif
+				channel->cport = port;
+				if (connect(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0 && errno != EINPROGRESS)
+				{
+					CLOSE_SOCKET(channel->cudp);
+					channel->cudp = -errno;
+					return (-errno);
+				}
+			}
+			break;
+		}
 
         // If we bound to port 0, then find out what our assigned port is.
         if (!port)
@@ -131,8 +173,6 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
                 return (-errno);
             }
         }
-
-
         break;
     case SOCKET_JABBER:
         switch (ntype)
@@ -341,4 +381,27 @@ int32_t socket_blocking(socket_channel *channel, bool blocking)
 #endif
 	}
 	return (iretn);
+}
+
+//! Close socket
+/*! Close down open socket connectiom.
+	\param channel Pointer to ::socket_channel holding final configuration.
+ * \return Zero or negative error.
+ */
+int32_t socket_close(socket_channel *channel)
+{
+	int32_t iretn = 0;
+
+#ifdef COSMOS_WIN_OS
+		if (closesocket(channel->cudp) < 0)
+		{
+			iretn = -WSAGetLastError();
+		}
+#else
+		if (close(channel->cudp) < 0)
+		{
+			iretn = -errno;
+		}
+#endif
+	return iretn;
 }

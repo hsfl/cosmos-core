@@ -103,7 +103,7 @@ int myagent()
 #ifdef COSMOS_LINUX_OS
 		FILE *fp;
 		fp = fopen("/proc/meminfo","r");
-		fscanf(fp,"MemTotal: %u kB\nMemFree: %f",&cdata->devspec.cpu[0]->maxmem,&cdata->devspec.cpu[0]->mem);
+		fscanf(fp,"MemTotal: %f kB\nMemFree: %f",&cdata->devspec.cpu[0]->maxmem,&cdata->devspec.cpu[0]->mem);
 		fclose(fp);
 		fp = fopen("/proc/loadavg","r");
 		fscanf(fp,"%f",&cdata->devspec.cpu[0]->load);

@@ -14,8 +14,8 @@
  */
 
 #include <stdio.h>
-//#include <iostream>
-//using namespace std;
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * Include file for users of JPEG library.
@@ -386,7 +386,7 @@ read_JPEG_file (char * filename, int image_width, int image_height, JSAMPLE *ima
       (void) jpeg_read_scanlines(&cinfo, buffer, 1);
     /* Assume put_scanline_someplace wants a pointer and sample count. */
     //put_scanline_someplace(buffer[0], row_stride);
-      memcpy(image_buffer, buffer[0], row_stride);
+	  memcpy((void *)image_buffer, (const void *)buffer[0], row_stride);
     image_buffer += row_stride;
   }
 

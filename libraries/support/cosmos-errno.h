@@ -176,6 +176,8 @@
 #define SOCKET_ERROR_OPEN_CONNECT  -487
 #define SOCKET_ERROR_CLOSE  -488
 
+#define TRIMBLE_ERROR_CS -491
+
 #define GENERAL_OK                        0     /* everything is all right */
 #define GENERAL_ERROR_NOSIGNAL         -501     /* there's no free signal */
 #define GENERAL_ERROR_NOTSTARTED       -502     /* uninitialized error */

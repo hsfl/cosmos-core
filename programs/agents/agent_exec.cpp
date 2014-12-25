@@ -2,6 +2,7 @@
 
 #include "agentlib.h"
 #include "jsonlib.h"
+#include "convertlib.h"
 #include "datalib.h"
 
 /*! \file agent_exec.cpp
@@ -226,7 +227,7 @@ int32_t request_reopen(char* request, char* output, void *cdata)
 
 int32_t request_get_queue_size(char *request, char* response, void *cdata)
 {
-	sprintf(response,"%u", cmd_queue.get_size());
+	sprintf(response,"%lu", cmd_queue.get_size());
 	return 0;
 }
 

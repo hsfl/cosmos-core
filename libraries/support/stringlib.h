@@ -11,10 +11,10 @@
 
 #include "configCosmos.h"
 
-#include "mathlib.h"
+//#include "mathlib.h"
 
 //#include <sys/types.h>
-#include <math.h>
+//#include <math.h>
 #include <errno.h>
 
 //! \ingroup stringlib

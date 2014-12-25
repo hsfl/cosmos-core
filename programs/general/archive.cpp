@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
 						if (tbytes)
 						{
-							printf("Success: %s: %u\n", newpath.c_str(), tbytes);
+							printf("Success: %s: %lu\n", newpath.c_str(), tbytes);
 						}
 						else
 						{

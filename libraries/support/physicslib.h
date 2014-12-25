@@ -59,7 +59,6 @@
 #include "nrlmsise-00.h"
 #include "convertlib.h"
 #include "demlib.h"
-#include "nodedef.h"
 #include "physicsdef.h"
 #include "jsondef.h"
 

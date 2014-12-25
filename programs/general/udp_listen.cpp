@@ -27,6 +27,7 @@ using namespace std;
 
 #include "agentlib.h"
 #include "jsonlib.h"
+#include "convertlib.h"
 
 
 #define BUFSIZE 10000

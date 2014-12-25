@@ -42,8 +42,10 @@
 #define SOCKET_TYPE_BROADCAST 2
 //! Agent socket using Unicast UDP
 #define SOCKET_TYPE_UDP 2
+//! Agent socket using Unicast TCP
+#define SOCKET_TYPE_TCP 3
 //! Agent socket using Broadcast CSP
-#define SOCKET_TYPE_CSP 3
+#define SOCKET_TYPE_CSP 4
 
 //! Blocking Agent
 #define SOCKET_BLOCKING true
@@ -121,6 +123,7 @@ uint16_t socket_calc_udp_checksum(vector<uint8_t> packet);
 int32_t socket_check_udp_checksum(vector<uint8_t> packet);
 int32_t socket_set_udp_checksum(vector<uint8_t>& packet);
 int32_t socket_blocking(socket_channel *channel, bool blocking);
+int32_t socket_close(socket_channel *channel);
 
 //! @}
 

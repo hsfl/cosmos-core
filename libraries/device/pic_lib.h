@@ -17,7 +17,7 @@
 
 #include "configCosmos.h"
 #include "cssl_lib.h"
-#include "nodelib.h"
+#include "jsonlib.h"
 
 #define PIC_BAUD 9600
 #define PIC_BITS 8

@@ -1,5 +1,9 @@
 #--------------------------------------------------------------------
 # user config variables
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # Linux specific code
+    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}" CACHE PATH "Linux install path")
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # define the project name
 set(PROJECT_NAME                COSMOS_CORE)
@@ -7,7 +11,7 @@ set(PROJECT_NAME                COSMOS_CORE)
 # define what libraries you want to compile
 set(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_DEVICES              ON)         #ON/OFF
-set(BUILD_COSMOS_CORE_THIRDPARTY_EIGEN     OFF)          #ON/OFF
+set(BUILD_COSMOS_CORE_THIRDPARTY_JPEG     ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_THIRDPARTY_ZLIB     ON)          #ON/OFF
 set(BUILD_COSMOS_PROJECT_USER              OFF)         #ON/OFF
 
@@ -23,6 +27,7 @@ set(CMAKE_BUILD_TYPE Debug) # Release or Debug
 # comment
 set(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
 cmake_minimum_required(VERSION 2.6)
+
 project(${PROJECT_NAME})
 
 Option(BUILD_GPROF "Build for Profiling" OFF)
@@ -50,6 +55,9 @@ set(COSMOS_CORE_THIRDPARTY ${CORE}/libraries/thirdparty)
 set(COSMOS_CORE_DEVICE ${CORE}/libraries/device)
 set(COSMOS_CORE_SUPPORT ${CORE}/libraries/support)
 set(COSMOS_PROJECT_USER ${CMAKE_SOURCE_DIR})
+#SET(MY_INCLUDES "include")
+#SET(MY_LIBS "lib")
+#SET(MY_BINS "bin")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
@@ -60,8 +68,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		SET(OS_FOLDER "arm")
 		set(CMAKE_TOOLCHAIN_FILE "${COSMOS_CORE_SOURCE_DIR}/cmake/toolchain_arm")
 	else()
-		SET(OS_FOLDER "linux")
-	endif()
+                SET(OS_FOLDER "linux")
+        endif()
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -97,10 +105,11 @@ IF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
     set(LINK_LIBRARY_COSMOS_CORE_ZLIB zlib )
 ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
 
-#IF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
-#	message("Building eigen")
-#    add_subdirectory(${CORE}/libraries/thirdparty/Eigen ${CORE}/build/${OS_FOLDER}/libraries/thirdparty/Eigen)
-#ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
+IF(${BUILD_COSMOS_CORE_THIRDPARTY_JPEG} MATCHES "ON")
+	message("Building jpeg")
+    add_subdirectory(${CORE}/libraries/thirdparty/jpeg ${CORE}/build/${OS_FOLDER}/libraries/thirdparty/jpeg)
+    set(LINK_LIBRARY_COSMOS_CORE_JPEG jpeg )
+ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_JPEG} MATCHES "ON")
 
 IF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
 	message("Building user")

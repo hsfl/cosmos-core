@@ -126,6 +126,8 @@ using namespace std;
 #define ORDER_BIGENDIAN 0
 //! PowerPC byte order
 #define ORDER_PPC ORDER_BIGENDIAN
+//! Motorola byte order
+#define ORDER_MOTOROLA ORDER_BIGENDIAN
 //! Little Endian byte order
 #define ORDER_LITTLEENDIAN 1
 //! Intel byte order
@@ -776,7 +778,7 @@ private:
 	uint32_t order;
 	// base level subtracted from independent variable before fitting
 	double basex;
-	// Of size ememnt_cnt
+	// Of size element_cnt
 	deque<fitelement> var;
 
 	vector< vector<double> > parms;
@@ -794,7 +796,7 @@ public:
 	lsfit();
 	lsfit(uint16_t element_cnt);
 	lsfit(uint16_t element_cnt, uint16_t ord);
-	lsfit(uint16_t element_cnt, uint16_t ord, double res);
+	lsfit(uint16_t cnt, uint16_t ord, double res);
 	void update(double x, double y);
 	void update(double x, rvector y);
 	void update(double x, quaternion y);

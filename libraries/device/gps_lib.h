@@ -14,7 +14,7 @@
 
 #include "configCosmos.h"
 #include "cssl_lib.h"
-#include "nodelib.h"
+#include "jsonlib.h"
 
 #define GPS_BAUD 9600
 #define GPS_BITS 8

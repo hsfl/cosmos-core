@@ -19,25 +19,12 @@
 //! Directories are defined for storage of general use information, as
 //! well as information specific to each Node. Separate directories are
 //! also defined for Incoming data, Outgoing data, and Archival data.
-//!
-//! At the highest level is a top level directory, "cosmosroot". This
-//! directory can be discovered by the software, if it is within 4
-//! levels above the current directory. It can also be set through use
-//! of the environment variable, "COSMOS_ROOTDIR". Within "cosmosroot"
-//! is a directory named "Resources", for any general use data, and a
-//! directory named "Nodes", for and Node specific data.
-//!
-//! "resources" contains directories of files for use in different
-//! aspects of COSMOS. The directory "general" contains files of
-//! coefficients used for the various models used in COSMOS simulations.
-//! The directory "logo" contains any special images used by COSMOS
-//! software. The directory "mapping" contains all the DEM's and
-//! ancillary files used by the \ref demlib. Finally. the directory "qt"
-//! contains files, such as UI forms, used by the various Qt based Tools
-//! withing COSMOS.
-//!
-//! "nodes" contains all data specific to each Node. Within "nodes", there is a
-//! directory named after each Node.
+//! The top level directory of this Node information is defined as the
+//! "nodebase". "nodebase" contains all data specific to each Node. Within
+//! "nodes", there is a directory named after each Node. This directory
+//! can be discovered automatically by the software if it is within 4 levels
+//! above the current directory, or if an environment variable, "NODEBASE",
+//! is set. The environment variable takes precedence.
 //!
 //! Within each Node directory is a
 //! set of initialization files covering different aspects of the Node, as well as sub-directories
@@ -55,6 +42,21 @@
 //! Each nodes sub-directories contain sub-directories of their own for each Agent. The "data"
 //! directories Agent directories are further subdivided by first
 //! year, then day.
+//!
+//! Resources for COSMOS are stored in a second heirarchy of directories.
+//! The highest level is a top level directory, "cosmosbase". This
+//! directory can also be discovered by the software, if it is within 4
+//! levels above the current directory. It can also be set through use
+//! of the environment variable, "COSMOSBASE".
+//!
+//! "cosmosbase" contains directories of files for use in different
+//! aspects of COSMOS. The directory "general" contains files of
+//! coefficients used for the various models used in COSMOS simulations.
+//! The directory "logo" contains any special images used by COSMOS
+//! software. The directory "mapping" contains all the DEM's and
+//! ancillary files used by the \ref demlib. Finally. the directory "qt"
+//! contains files, such as UI forms, used by the various Qt based Tools
+//! withing COSMOS.
 //!
 //! The functions in this library support path discovery and creation, the automatic generation
 //! of standard names, and the automatic creation of log files.
@@ -87,9 +89,11 @@ string data_type_path(string node, string location, string agent, double mjd, st
 string data_extra_type_path(string node, string location, string agent, double mjd, string extra, string type);
 string data_name_path(string node, string location, string agent, double mjd, string name);
 bool data_exists(string& path);
-void set_rootdir(string name);
+void set_cosmosbase(string name);
+string get_cosmosbase();
+void set_nodebase(string name);
+string get_nodebase();
 string get_resdir();
-string get_rootdir();
 string get_nodedir();
 string get_cnodedir(const char* node);
 string set_cnodedir(const char* node);

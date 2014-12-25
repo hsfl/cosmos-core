@@ -4,7 +4,7 @@
 
 #include "datalib.h"
 #include "agentlib.h"
-#include "nodelib.h"
+#include "jsonlib.h"
 #include "jsonlib.h"
 #include "zlib/zlib.h"
 
@@ -21,8 +21,10 @@
 
 //static vector<cosmosstruc> nodes;
 
+//! Path to project Node directory
+string nodebase;
 //! Path to COSMOS Root directory
-string rootdir;
+string cosmosbase;
 //! Path to COSMOS Resource directory
 string resdir;
 //! Path to COSMOS Nodes directory
@@ -236,13 +238,13 @@ int32_t data_list_nodes(vector<string>& nodes)
 	string tnode;
 	struct stat statbuf;
 
-	rootd=get_rootdir();
+	rootd=get_nodebase();
 	if (rootd.empty())
 	{
 		return (NODE_ERROR_ROOTDIR);
 	}
 
-	dtemp = rootd + "/nodes";
+	dtemp = rootd;
 	if ((jdp=opendir(dtemp.c_str())) != NULL)
 	{
 		while ((td=readdir(jdp)) != NULL)
@@ -272,7 +274,7 @@ int32_t data_get_nodes(vector<cosmosstruc> &node)
 	struct dirent *td;
 	cosmosstruc *tnode;
 
-	rootd=get_rootdir();
+	rootd=get_nodebase();
 	if (rootd.empty())
 	{
 		return (NODE_ERROR_ROOTDIR);
@@ -283,7 +285,7 @@ int32_t data_get_nodes(vector<cosmosstruc> &node)
 		return (NODE_ERROR_NODE);
 	}
 
-	dtemp = rootd + "/nodes";
+	dtemp = rootd;
 	if ((jdp=opendir(dtemp.c_str())) != NULL)
 	{
 		while ((td=readdir(jdp)) != NULL)
@@ -371,7 +373,7 @@ string data_base_path(string node, string location, string agent)
 
 //	printf("Node: %s Location: %s Agent: %s\n", node.c_str(), location.c_str(), agent.c_str());
 
-	tpath = get_rootdir();
+	tpath = get_nodebase();
 	tpath += "/nodes/" + node;
 
 	if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
@@ -403,7 +405,7 @@ string data_base_path(string node, string location)
 	string tpath;
 	string path;
 
-	tpath = get_rootdir();
+	tpath = get_nodebase();
 	tpath += "/nodes/" + node;
 
 	if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
@@ -424,7 +426,7 @@ string data_base_path(string node)
 	string tpath;
 	string path;
 
-	tpath = get_rootdir();
+	tpath = get_nodebase();
 	tpath += "/nodes/" + node;
 
 	if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
@@ -622,53 +624,95 @@ FILE *data_open(string path, char *mode)
  * are stored.
 	\param name Absolute or relative pathname of directory.
 */
-void set_rootdir(string name)
+void set_cosmosbase(string name)
 {
-	rootdir = name;
+	cosmosbase = name;
 }
 
-//! Get Root Directory
+//! Get COSMOS Base Directory
 /*! Get the internal variable that points to where all COSMOS files are
  * stored.
  * \return Pointer to character string containing path to Root, otherwise NULL.
 */
-string get_rootdir()
+string get_cosmosbase()
 {
 	string troot;
 	string dir1;
 	int i;
 	struct stat sbuf;
 
-	if (rootdir.empty())
+	if (cosmosbase.empty())
 	{
-		char *croot = getenv("COSMOS_ROOTDIR");
+		char *croot = getenv("COSMOSBASE");
 		if (croot != NULL)
 		{
-			rootdir = croot;
+			cosmosbase = croot;
 		}
 		else
 		{
-			troot = "../cosmosroot";
+			troot = "../cosmosbase";
 			for (i=0; i<6; i++)
 			{
-				dir1 = troot + "/nodes";
+				dir1 = troot;
 				if (stat(dir1.c_str(),&sbuf) == 0)
 				{
-					rootdir = troot;
+					cosmosbase = troot;
 					break;
 				}
 				troot = "../" + troot;
 			}
 		}
 
-		if (!rootdir.empty())
+		if (!cosmosbase.empty())
 		{
-			resdir = rootdir + "/resources";
-			nodedir = rootdir + "/nodes";
+			resdir = cosmosbase;
 		}
 	}
 
-	return (rootdir);
+	return (cosmosbase);
+}
+
+//! Get COSMOS Base Directory
+/*! Get the internal variable that points to where all COSMOS files are
+ * stored.
+ * \return Pointer to character string containing path to Root, otherwise NULL.
+*/
+string get_nodebase()
+{
+	string troot;
+	string dir1;
+	int i;
+	struct stat sbuf;
+
+	if (nodebase.empty())
+	{
+		char *croot = getenv("NODEBASE");
+		if (croot != NULL)
+		{
+			nodebase = croot;
+		}
+		else
+		{
+			troot = "../nodebase";
+			for (i=0; i<6; i++)
+			{
+				dir1 = troot;
+				if (stat(dir1.c_str(),&sbuf) == 0)
+				{
+					nodebase = troot;
+					break;
+				}
+				troot = "../" + troot;
+			}
+		}
+
+		if (!nodebase.empty())
+		{
+			nodedir = nodebase;
+		}
+	}
+
+	return (nodebase);
 }
 
 //! Set Resource Directory
@@ -690,7 +734,7 @@ string get_resdir()
 {
 
 	if (resdir.empty())
-		get_rootdir();
+		get_cosmosbase();
 
 	return (resdir);
 }
@@ -703,7 +747,7 @@ string get_resdir()
 string get_nodedir()
 {
 	if (nodedir.empty())
-		get_rootdir();
+		get_nodebase();
 
 	return (nodedir);
 }
@@ -716,7 +760,7 @@ string get_nodedir()
 string get_cnodedir(const char *name)
 {
 	if (nodedir.empty())
-		get_rootdir();
+		get_nodebase();
 
 	return (set_cnodedir(name));
 }
@@ -732,7 +776,7 @@ string set_cnodedir(const char *node)
 	struct stat sbuf;
 
 	if (nodedir.empty())
-		get_rootdir();
+		get_nodebase();
 
 	cnodedir = nodedir + "/" + node;
 	if (stat(cnodedir.c_str(),&sbuf) != 0)

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "agentlib.h"
 #include "jsonlib.h"
-#include "nodelib.h"
+#include "jsonlib.h"
 
 char request[AGENTMAXBUFFER], output[AGENTMAXBUFFER];
 cosmosstruc *cdata;
