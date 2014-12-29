@@ -67,13 +67,10 @@
 //#include "demlib.h"
 #include "geomag.h"
 
-//#include <sys/types.h>
-#include <sys/time.h>
 #include <fcntl.h>
 #include <math.h>
 #include <time.h>
 #include <errno.h>
-#include <unistd.h>
 #include <cstring>
 
 //! \ingroup convertlib

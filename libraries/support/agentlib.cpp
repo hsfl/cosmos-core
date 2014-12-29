@@ -2,13 +2,13 @@
 	\brief Agent support functions
 */
 
+#include "configCosmos.h"
+
 #include "agentlib.h"
 #include "jsonlib.h"
 #include "jsonlib.h"
 #include <errno.h>
-#include <unistd.h>
 
-#include "configCosmos.h"
 
 #ifndef _SIZEOF_ADDR_IFREQ
 #define _SIZEOF_ADDR_IFREQ sizeof
