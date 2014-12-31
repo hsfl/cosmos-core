@@ -1,7 +1,7 @@
 Welcome to COSMOS 1.0-alpha
 ============================
 
-COSMOS is the Comprehensive Open-architecture Space Missions 
+COSMOS is the Comprehensive Open-architecture Solution for Mission
 Operations System, a software framework with source code for 
 space mission operations, simulation and flight software.
 
@@ -10,7 +10,7 @@ http://www.cosmos-project.org/
 
 Quick-start:
 
-1) install the latest Qt version (currently Qt5.3) from 
+1) install the latest Qt version (currently Qt5.4) from 
 http://www.qt.io/download-open-source/
 
 2) download the COSMOS-core software directly from

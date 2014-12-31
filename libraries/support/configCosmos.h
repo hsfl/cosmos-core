@@ -7,11 +7,11 @@
 
 //! \ingroup defs
 //! \defgroup defs_macros Special COSMOS macros
+// --------------------- FOR ALL PLATFORMS ------------------------------
 #define _USE_MATH_DEFINES
 #include <climits>
 #include <csignal>
 #include <cstdint>
-#include <cinttypes>
 #include <cstdio>
 #include <cstddef>
 #include <cstdlib>
@@ -21,7 +21,11 @@
 #include <condition_variable>
 #include <mutex>
 //#include <sys/types.h>
+#ifdef _MSC_BUILD
+#include <io.h> // replaces in someways unistd for windows
+#else
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 
 #include "cosmos-errno.h"
@@ -35,6 +39,7 @@
 // To check the OS Pre-defined Compiler Macros go to
 // http://sourceforge.net/p/predef/wiki/OperatingSystems/
 
+// --------------------- LINUX ------------------------------------
 // linux definition can be UNIX or __unix__ or LINUX or __linux__.
 // For GCC on Linux: __GNUC__
 #ifdef __linux__
@@ -54,8 +59,10 @@
 #include <sys/types.h>
 #include <sys/vfs.h>
 #include <sys/ioctl.h>
+#include <sys/time.h>
 #endif
 
+// --------------------- WINDOWS ------------------------------------
 // for c++x0 WIN32 is not defined, use _WIN32 (with underscore)
 // For MingW on Windows: #ifdef __MINGW32__
 // Windows (x64 and x86)
@@ -73,15 +80,29 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
+
+#include <windows.h>
+#include <winsock2.h>
+
+//#ifdef __MINGW32__
 #include <winsock2.h>
 #include <iphlpapi.h>
 #include <ws2tcpip.h>
-#include <windows.h>
+//#endif
+//#include <windows.h>
 #include <mmsystem.h>
+
+#ifdef __MINGW32__
 #include <pthread.h>
-#include <io.h>
+#include <sys/time.h>
 #endif
 
+#include <thread>
+#include <io.h>
+
+#endif
+
+// --------------------- MAC ------------------------------------
 // For Mac OS: #ifdef __APPLE__
 #ifdef __MACH__
 //! \addtogroup defs_macros
@@ -98,11 +119,12 @@
 #include <arpa/inet.h>
 #include <sys/select.h>
 #include <sys/types.h>
-
+#include <sys/time.h>
 #include <sys/param.h>
 #include <sys/mount.h>
 #endif
 
+// --------------------- CYGWIN ------------------------------------
 #ifdef __CYGWIN__
 //! \addtogroup defs_macros
 //! @{
@@ -118,7 +140,7 @@
 #include <arpa/inet.h>
 #include <sys/select.h>
 #include <sys/types.h>
-
+#include <sys/time.h>
 #include <sys/vfs.h>
 #endif // COSMOS_CYGWIN_OS
 

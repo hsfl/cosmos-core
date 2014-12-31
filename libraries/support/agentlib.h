@@ -55,8 +55,6 @@
 #include <sys/select.h>
 #endif
 
-#include <sys/time.h>
-
 using namespace std;
 
 //! \ingroup agentlib

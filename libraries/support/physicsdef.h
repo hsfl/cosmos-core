@@ -9,12 +9,10 @@
 
 #include "convertdef.h"
 
-#include <sys/types.h>
 #include <fcntl.h>
 #include <math.h>
 #include <time.h>
 #include <errno.h>
-#include <unistd.h>
 
 //! \ingroup physicslib
 //! \defgroup physicslib_constants Physics constants

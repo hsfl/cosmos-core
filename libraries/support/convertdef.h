@@ -14,17 +14,16 @@
 #include "timelib.h"
 #include "memlib.h"
 
-//#include <sys/types.h>
-#include <sys/time.h>
 #include <math.h>
 #include <time.h>
 #include <errno.h>
-#include <unistd.h>
 #include <cstring>
-
 #include <iostream>
-
 using namespace std;
+
+#ifndef _MSC_BUILD
+#include <sys/time.h>
+#endif
 
 //! \ingroup convertlib
 //! \defgroup convertlib_constants Coordinate conversion constants
