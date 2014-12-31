@@ -24,3 +24,4 @@ talking to each other.
 For more detailed instructions to get started with COSMOS
 please read the GET-STARTED-WITH-COSMOS.txt inside the 
 documentation folder.
+
