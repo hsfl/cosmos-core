@@ -151,10 +151,10 @@ void mean2icrs(double ep0, rmatrix *pm);
 void mean2mean(double ep0, double ep1, rmatrix *pm);
 void geoc2topo(gvector gs, rvector geoc, rvector *topo);
 void topo2azel(rvector tpos, float *az, float *el);
-int lines2eci(double mjd, vector<linestruc> tle, cartpos *eci);
-int line2eci(double mjd, linestruc tle, cartpos *eci);
-linestruc get_line(uint16_t index, vector<linestruc> tle);
-int32_t load_lines(char *fname, vector<linestruc>& tle);
+int lines2eci(double mjd, vector<tlestruc> tle, cartpos *eci);
+int line2eci(double mjd, tlestruc tle, cartpos *eci);
+tlestruc get_line(uint16_t index, vector<tlestruc> tle);
+int32_t load_lines(char *fname, vector<tlestruc>& tle);
 int32_t load_stk(char *filename, stkstruc *stkdata);
 int stk2eci(double utc, stkstruc *stk, cartpos *eci);
 

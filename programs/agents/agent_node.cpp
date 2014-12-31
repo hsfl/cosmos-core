@@ -375,7 +375,7 @@ int32_t request_loadmjd(char *request, char* response, void *cdata)
 */
 int32_t request_counts(char *, char* response, void *cdata)
 {
-	sprintf(response,"%lu %lu %lu %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),((cosmosstruc *)cdata)->node.target_cnt);
+	sprintf(response,"%" PRIu32 " %" PRIu32 " %" PRIu32 " %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),((cosmosstruc *)cdata)->node.target_cnt);
 	return 0;
 }
 

@@ -5,7 +5,7 @@
 #include "convertlib.h"
 
 uint16_t tlecount;
-//linestruc tle[MAXTLE];
+//tlestruc tle[MAXTLE];
 
 static void *jplephem = NULL;
 
@@ -2332,7 +2332,7 @@ void topo2azel(rvector tpos, float *az, float *el)
 	\param lines Vector of TLE's.
 	\param eci Pointer to ::cartpos in ECI frame.
 	*/
-int lines2eci(double utc, vector<linestruc>lines, cartpos *eci)
+int lines2eci(double utc, vector<tlestruc>lines, cartpos *eci)
 {
 	static uint16_t lindex=0;
 	int32_t iretn;
@@ -2358,10 +2358,10 @@ int lines2eci(double utc, vector<linestruc>lines, cartpos *eci)
 /**
 * Convert a Two Line Element into a location at the specified time.
 * @param utc Specified time as Modified Julian Date
-* @param line Two Line Element, given as pointer to a ::linestruc
+* @param line Two Line Element, given as pointer to a ::tlestruc
 * @param eci Converted location, given as pointer to a ::cartpos
 */
-int line2eci(double utc, linestruc tle, cartpos *eci)
+int line2eci(double utc, tlestruc tle, cartpos *eci)
 {
 	//	rmatrix pm = {{{{0.}}}};
 	//	static int lsnumber=-99;
@@ -2606,16 +2606,16 @@ int line2eci(double utc, linestruc tle, cartpos *eci)
 }
 
 //! Get TLE from array of TLE's
-/*! Return the indexed entry from an array of ::linestruc. If the
+/*! Return the indexed entry from an array of ::tlestruc. If the
  * index is larger than the size of the array, an empty TLE with time
  * set to zero is returned.
 	\param index Index into the array.
 	\param lines Array of TLE's.
 	\return Indexed TLE.
 	*/
-linestruc get_line(uint16_t index, vector<linestruc> lines)
+tlestruc get_line(uint16_t index, vector<tlestruc> lines)
 {
-	linestruc ttle;
+	tlestruc ttle;
 
 	if (lines.size() <= 0 || index >= lines.size())
 	{
@@ -2632,10 +2632,10 @@ linestruc get_line(uint16_t index, vector<linestruc> lines)
 /*!
 * Load Two Line Element file into array of TLE's
 * \param fname Name of file containing elements
-* \param lines Array of ::linestruc structures to contain elements
+* \param lines Array of ::tlestruc structures to contain elements
 * \return A ::int32_t indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines(char *fname, vector<linestruc>& lines)
+int32_t load_lines(char *fname, vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -2643,7 +2643,7 @@ int32_t load_lines(char *fname, vector<linestruc>& lines)
 	int32_t bdragm, bdrage, ecc;
 	char ibuf[81], tlename[81];
 	int i;
-	linestruc tle;
+	tlestruc tle;
 
 	if ((fdes=fopen(fname,"r")) == NULL)
 		return (-1);
@@ -2756,7 +2756,7 @@ int32_t load_stk(char *filename, stkstruc *stkdata)
 /**
 * Convert a set of STK data into a location at the specified time.
 * @param utc Specified time as Modified Julian Date
-* @param line Two Line Element, given as pointer to a ::linestruc
+* @param line Two Line Element, given as pointer to a ::tlestruc
 * @param eci Converted locition, given as pointer to a ::cartpos
 */
 //! ECI from STK data

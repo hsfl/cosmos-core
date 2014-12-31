@@ -11,16 +11,16 @@
 #include <climits>
 #include <csignal>
 #include <cstdint>
+#include <cinttypes>
 #include <cstdio>
 #include <cstddef>
 #include <cstdlib>
-#include <cinttypes>
 #include <cerrno>
 #include <cstring>
 #include <string>
 #include <condition_variable>
 #include <mutex>
-#include <sys/types.h>
+//#include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -44,7 +44,7 @@
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
 #define COSMOS_SLEEP(sec) usleep((uint32_t)(sec*1e6)) // this allows decimal seconds
 #define CLOSE_SOCKET(socket) close(socket)
-#define COSMOS_MKDIR(dtemp) mkdir((char *)dtemp,00777)
+#define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp,mode)
 //! @}
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -66,7 +66,7 @@
 #define COSMOS_USLEEP(usec) Sleep((uint32_t)usec/1000)
 #define COSMOS_SLEEP(sec) Sleep((uint32_t)(sec*1000))
 #define CLOSE_SOCKET(socket) closesocket(socket)
-#define COSMOS_MKDIR(dtemp) mkdir((char *)dtemp)
+#define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp)
 //! @}
 //#define NTDDI_VERSION 0x06010000
 //#define _WIN32_WINNT 0x0601
@@ -90,7 +90,7 @@
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
 #define COSMOS_SLEEP(sec) sleep((uint32_t)sec)
 #define CLOSE_SOCKET(socket) close(socket)
-#define COSMOS_MKDIR(dtemp) mkdir((char *)dtemp,00777)
+#define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp, mode)
 //! @}
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -110,7 +110,7 @@
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
 #define COSMOS_SLEEP(sec) sleep((uint32_t)sec)
 #define CLOSE_SOCKET(socket) close(socket)
-#define COSMOS_MKDIR(dtemp) mkdir((char *)dtemp,00777)
+#define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp,mode)
 //! @}
 #include <sys/socket.h>
 #include <netinet/in.h>

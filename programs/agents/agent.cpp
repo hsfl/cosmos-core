@@ -110,7 +110,8 @@ int main(int argc, char *argv[])
 		{
 			if ((pretn=agent_poll(cdata, message,  AGENT_MESSAGE_ALL, 1)) > 0)
 			{
-				json_clear_cosmosstruc(JSON_MAP_DYNAMIC,cdata);
+				json_clear_cosmosstruc(JSON_GROUP_NODE,cdata);
+				json_clear_cosmosstruc(JSON_GROUP_DEVICE,cdata);
 				string utc = json_extract_namedobject(message.c_str(), "agent_utc");
 				string node = json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"));
 				string proc = json_extract_namedobject(message.c_str(), "agent_proc");
@@ -131,7 +132,7 @@ int main(int argc, char *argv[])
 					printf("[%d]",pretn);
 					break;
 				}
-				printf("%s:[%s:%s][%s:%s](%lu)\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), message.size());
+				printf("%s:[%s:%s][%s:%s](%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), message.size());
 				if (!strcmp(channel,"all"))
 				{
 					printf("%s\n",message.c_str());

@@ -39,7 +39,7 @@ string cnodedir;
 //! \defgroup datalib_functions Data Management support functions
 //! @{
 
-void log_write(char *node, int type, double utc, const char *record)
+void log_write(string node, int type, double utc, const char *record)
 {
 	FILE *fout;
 	string path;
@@ -374,13 +374,13 @@ string data_base_path(string node, string location, string agent)
 //	printf("Node: %s Location: %s Agent: %s\n", node.c_str(), location.c_str(), agent.c_str());
 
 	tpath = get_nodebase();
-	tpath += "/nodes/" + node;
+	tpath += "/" + node;
 
-	if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
+	if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 	{
 
 		tpath += "/" + location;
-		if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
+		if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 		{
 			if (agent.empty())
 			{
@@ -389,7 +389,7 @@ string data_base_path(string node, string location, string agent)
 			else
 			{
 				tpath += "/" + agent;
-				if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
+				if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 				{
 					path = tpath;
 				}
@@ -406,13 +406,13 @@ string data_base_path(string node, string location)
 	string path;
 
 	tpath = get_nodebase();
-	tpath += "/nodes/" + node;
+	tpath += "/" + node;
 
-	if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
+	if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 	{
 
 		tpath += "/" + location;
-		if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
+		if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 		{
 			path = tpath;
 		}
@@ -427,9 +427,9 @@ string data_base_path(string node)
 	string path;
 
 	tpath = get_nodebase();
-	tpath += "/nodes/" + node;
+	tpath += "/" + node;
 
-	if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
+	if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 	{
 
 		path = tpath;
@@ -464,11 +464,11 @@ string data_archive_path(string node, string location, string agent, double mjd)
 		mjd2ymd(mjd,&year,&month,&day,&jday);
 		sprintf(ntemp, "/%04d", year);
 		tpath += ntemp;
-		if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
+		if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 		{
 			sprintf(ntemp, "/%03d", (int32_t)jday);
 			tpath += ntemp;
-			if (COSMOS_MKDIR(tpath.c_str()) == 0 || errno == EEXIST)
+			if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 			{
 				path = tpath;
 			}
@@ -650,7 +650,7 @@ string get_cosmosbase()
 		}
 		else
 		{
-			troot = "../cosmosbase";
+			troot = "../resources";
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;
@@ -757,7 +757,7 @@ string get_nodedir()
  * stored for the current Node.
  * \return Pointer to character string containing path to Node, otherwise NULL.
 */
-string get_cnodedir(const char *name)
+string get_cnodedir(string name)
 {
 	if (nodedir.empty())
 		get_nodebase();
@@ -771,7 +771,7 @@ string get_cnodedir(const char *name)
  * \param node Name of current Node
  * \return Pointer to character string containing path to Node, otherwise NULL.
 */
-string set_cnodedir(const char *node)
+string set_cnodedir(string node)
 {
 	struct stat sbuf;
 
@@ -861,9 +861,9 @@ int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &eve
 //! Find last day in archive
 /*! Searches through data archives for this Node to find most recent
  * day for which data is available. This is then stored in lastday.
- \return MJD of last day in archive.
+ \return MJD of last day in archive, or zero.
 */
-double findlastday(char *name)
+double findlastday(string name)
 {
 	DIR *jdp;
 	struct dirent *td;
@@ -938,7 +938,7 @@ double findlastday(char *name)
  * day for which data is available. This is then stored in firstday.
  \return MJD of last day in archive.
 */
-double findfirstday(char *name)
+double findfirstday(string name)
 {
 	DIR *jdp;
 	struct dirent *td;

@@ -179,7 +179,7 @@ int32_t agent_start(cosmosstruc *cdata)
 	\param usectimeo Blocking read timeout in micro seconds.
 	\return Pointer to ::cosmosstruc to be used for all other calls, otherwise NULL.
 */
-cosmosstruc *agent_setup_client(int ntype, const char *node, uint32_t usectimeo)
+cosmosstruc *agent_setup_client(int ntype, string node, uint32_t usectimeo)
 {
 	int32_t iretn;
 	cosmosstruc *cdata;
@@ -191,13 +191,16 @@ cosmosstruc *agent_setup_client(int ntype, const char *node, uint32_t usectimeo)
 	}
 
 	//! Next, set up node.
-	if (node != NULL && (iretn=node_init(node, cdata)))
+	if (!node.empty() && (iretn=node_init(node, cdata)))
 	{
 		json_destroy(cdata);
 		return (NULL);
 	}
 
-	if (node == NULL) strcpy(cdata->node.name,"null");
+	if (node.empty())
+	{
+		strcpy(cdata->node.name,"null");
+	}
 
 	// Establish subscribe channel
 	iretn = agent_subscribe(cdata, ntype, (char *)AGENTMCAST, AGENTSENDPORT, usectimeo);
@@ -223,7 +226,7 @@ cosmosstruc *agent_setup_client(int ntype, const char *node, uint32_t usectimeo)
 	return (cdata);
 }
 
-cosmosstruc *agent_setup_client(int ntype, const char *node)
+cosmosstruc *agent_setup_client(int ntype, string node)
 {
 	cosmosstruc *cdata;
 
@@ -249,7 +252,7 @@ cosmosstruc *agent_setup_client(int ntype, const char *node)
 	\param bsize Size of transfer buffer.
 	\return Pointer to ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc *agent_setup_server(int ntype, const char *node, const char *name, double bprd, int32_t port, uint32_t bsize)
+cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize)
 {
 	return (agent_setup_server(ntype, node, name, bprd, port, bsize, AGENT_SINGLE));
 }
@@ -269,7 +272,7 @@ cosmosstruc *agent_setup_server(int ntype, const char *node, const char *name, d
 	\param multiflag Boolean for whether to start multiple copies.
 	\return Pointer to ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc *agent_setup_server(int ntype, const char *node, const char *name, double bprd, int32_t port, uint32_t bsize, bool multiflag)
+cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag)
 {
 	cosmosstruc *cdata;
 
@@ -302,7 +305,7 @@ cosmosstruc *agent_setup_server(int ntype, const char *node, const char *name, d
 	\param multiflag Boolean for whether to start multiple copies.
 	\return Pointer to ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc* agent_setup_server(cosmosstruc* cdata, const char *name, double bprd, int32_t port, uint32_t bsize, bool multiflag)
+cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag)
 {
 	int32_t iretn;
 	char tname[COSMOS_MAX_NAME];
@@ -310,16 +313,16 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, const char *name, double bpr
 	//! Next, check if this Agent is already running
 	if (!multiflag)
 	{
-		if (strlen(cdata->node.name)>COSMOS_MAX_NAME || strlen(name)>COSMOS_MAX_NAME || agent_get_server(cdata, cdata->node.name, name, 4, (beatstruc *)NULL))
+		if (strlen(cdata->node.name)>COSMOS_MAX_NAME || name.size()>COSMOS_MAX_NAME || agent_get_server(cdata, cdata->node.name, name, 4, (beatstruc *)NULL))
 		{
 			json_destroy(cdata);
 			return (NULL);
 		}
-		strcpy(tname,name);
+		strcpy(tname,name.c_str());
 	}
 	else
 	{
-		if (strlen(cdata->node.name)>COSMOS_MAX_NAME-4 || strlen(name)>COSMOS_MAX_NAME-4)
+		if (strlen(cdata->node.name)>COSMOS_MAX_NAME-4 || name.size()>COSMOS_MAX_NAME-4)
 		{
 			json_destroy(cdata);
 			return (NULL);
@@ -328,7 +331,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, const char *name, double bpr
 		uint32_t i=0;
 		do
 		{
-			sprintf(tname,"%s_%03d",name,i);
+			sprintf(tname,"%s_%03d",name.c_str(),i);
 			if (!agent_get_server(cdata, cdata->node.name, tname, 4, (beatstruc *)NULL))
 			{
 				break;
@@ -396,6 +399,17 @@ int32_t agent_shutdown_server(cosmosstruc *cdata)
 	agent_unpublish(cdata);
 	json_destroy(cdata);
 	return 0;
+}
+
+//! Shutdown client gracefully
+/*! Closes an open network connections and frees up memory so that
+ * you can setup again as a different Node.
+ * \param cdata Pointer to ::cosmosstruc to use.
+ */
+int32_t agent_shutdown_client(cosmosstruc *cdata)
+{
+	agent_unsubscribe(cdata);
+	json_destroy(cdata);
 }
 
 //! Check if we're supposed to be running
@@ -485,7 +499,7 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, 
 	\param rbeat pointer to a location to store the heartbeat
 	\return 1 if found, otherwise 0, or an error number
 */
-int32_t agent_get_server(cosmosstruc *cdata, const char *node, const char *name, float waitsec, beatstruc *rbeat)
+int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float waitsec, beatstruc *rbeat)
 {
 	beatstruc cbeat;
 	struct timeval tv, ltv;
@@ -503,7 +517,7 @@ int32_t agent_get_server(cosmosstruc *cdata, const char *node, const char *name,
 		if (cbeat.utc != 0.)
 		{
 
-			if (!strcmp(cbeat.proc,name) && !strcmp(cbeat.node,node))
+			if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
 			{
 				if (rbeat != NULL)
 					*rbeat = cbeat;

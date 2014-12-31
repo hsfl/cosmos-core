@@ -1146,7 +1146,7 @@ int32_t myrecvfrom(string type, agent_channel channel, vector<PACKET_BYTE>& buf,
 
 void debug_packet(vector<PACKET_BYTE> buf, string type)
 {
-	printf("[%.15g %s (%lu)] ", currentmjd(), type.c_str(), buf.size());
+	printf("[%.15g %s (%" PRIu32 ")] ", currentmjd(), type.c_str(), buf.size());
 	switch (buf[0] & 0x0f)
 	{
 	case PACKET_METADATA:
@@ -1306,7 +1306,7 @@ int32_t read_meta(tx_progress& tx)
 		tx.file_info.push_back(progress_info);
 	} while(!file_name.eof());
 	file_name.close();
-	printf("read_meta: %s tx_id: %u chunks: %lu\n", (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+	printf("read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
 
 	// fix any overlaps and count total bytes
 	merge_chunks_overlap(tx);

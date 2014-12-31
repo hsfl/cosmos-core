@@ -295,7 +295,7 @@ return 0;
 	\return 0 if successful
 */
 
-int microstrain_delta_angle_velocity(int handle, rvector *deltaa, rvector *deltav)
+int microstrain_delta_angle_geocv(int handle, rvector *deltaa, rvector *deltav)
 {
 int32_t iretn;
 

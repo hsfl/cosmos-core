@@ -1175,10 +1175,10 @@ void simulate_hardware(cosmosstruc *cdata, locstruc *loc)
 	for (i=0; i<cdata->devspec.gps_cnt; i++)
 	{
 		cdata->devspec.gps[i]->utc = loc->utc;
-		cdata->devspec.gps[i]->position = loc->pos.geoc.s;
-		cdata->devspec.gps[i]->position_sd = rv_one(5., 5., 5.);
-		cdata->devspec.gps[i]->velocity = loc->pos.geoc.v;
-		cdata->devspec.gps[i]->velocity_sd = rv_one();
+		cdata->devspec.gps[i]->geocs = loc->pos.geoc.s;
+		cdata->devspec.gps[i]->dgeocs = rv_one(5., 5., 5.);
+		cdata->devspec.gps[i]->geocv = loc->pos.geoc.v;
+		cdata->devspec.gps[i]->dgeocv = rv_one();
 	}
 	
 	for (i=0; i<cdata->devspec.ssen_cnt; i++)
@@ -2962,7 +2962,7 @@ void gauss_jackson_propagate(cosmosstruc *cdata, double tomjd)
 int orbit_init(int32_t mode,double dt,double utc,char *ofile,cosmosstruc *cdata)
 {
 	int32_t iretn;
-	linestruc tline;
+	tlestruc tline;
 
 	// Munge time step to fit local granularity
 	dt = 86400.*((utc + dt/86400.)-utc);

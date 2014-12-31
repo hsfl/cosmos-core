@@ -163,7 +163,7 @@ int microstrain_get_size(int handle);
 uint8_t *microstrain_get_data(int handle);
 int microstrain_raw_accel_rate(int handle, rvector *accel, rvector *rate);
 int microstrain_accel_rate(int handle, rvector *accel, rvector *rate);
-int microstrain_delta_angle_velocity(int handle, rvector *deltaa, rvector *deltav);
+int microstrain_delta_angle_geocv(int handle, rvector *deltaa, rvector *deltav);
 int microstrain_orientation(int handle, rmatrix *matrix);
 int microstrain_orientation_update(int handle, rmatrix *matrix);
 int microstrain_magfield(int handle, rvector *field);

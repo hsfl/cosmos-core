@@ -211,11 +211,11 @@ int main(int argc, char *argv[])
 			{
 			mjd = (int)currentmjd(0.) + hour / 24. + min / 1400. + sec / 86400. + hsec / 8640000.;;
 			cdata->devspec.gps[0]->utc = cdata->node.loc.utc = cdata->node.loc.pos.geod.utc = mjd;
-			cdata->devspec.gps[0]->position = cdata->node.loc.pos.geoc.s;
+			cdata->devspec.gps[0]->geocs = cdata->node.loc.pos.geoc.s;
 			cdata->node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
 			cdata->node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);
 			cdata->node.loc.pos.geod.s.h = alt;
-			cdata->devspec.gps[0]->velocity = rv_zero();
+			cdata->devspec.gps[0]->geocv = rv_zero();
 
 			cdata->node.loc.pos.geod.v.lat = 0.;
 			cdata->node.loc.pos.geod.v.lon = 0.;
