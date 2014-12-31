@@ -1,0 +1,88 @@
+/*! \mainpage COSMOS Core Software
+ *
+ * \section intro_sec Introduction
+ *
+ * This is the documentation for the core API for the COSMOS project. In it you will find
+ * descriptions of all the
+ * basic support functions necessary to make COSMOS work, as well as the most useful
+ * Agent and support Programs.
+ *
+ * The code is broadly divided into programs and libraries. These are further divided
+ * in the following manner:
+ *
+ * Programs:
+ * - agents: Agent code
+ * - device_test: Device specific test programs
+ * - general: Programs of general utility
+ * - testbed: Programs for performing specific tests, or demonstrating functionality
+ *
+ * \ref libraries :
+ * - device: Device support libraries
+ * - support: COSMOS support libraries
+ * 
+ *
+ * \section install_sec Installation
+ *
+ * \subsection step1 Step 1: Opening the box
+ *
+ * etc...
+ */
+
+//! \defgroup programs
+//! COSMOS Programs.
+//!
+//! All the programs available in the COSMOS Core. These are broken into the following categories:
+//! - \ref agents
+//! - \ref general
+//! - \ref testing
+
+//! \ingroup programs
+//! \defgroup agents Agent programs
+//! Agent programs.
+//!
+//! In COSMOS, Agent programs provide persistent programmatic control. They
+//! can be communicated with in a standardized manner, allowing general user
+//! programs to interact with the COSMOS bus.
+
+//! \ingroup programs
+//! \defgroup general General purpose programs
+//! General programs.
+//!
+//! These programs provide general purpose utility. They will generally run
+//! only briefly and then return a result.
+
+//! \ingroup programs
+//! \defgroup testing Test programs
+//! Test programs.
+//!
+//! These programs are all for testing, or demonstration purposes.
+
+ /*! \defgroup libraries API libraries
+ * @{
+ * The COSMOS API libraries contain all the functions necessary to support COSMOS. They
+ * are broadly divide into general support libraries and specific device libraries. The
+ * support libraries include:
+ * - \ref agentlib
+ * - \ref controllib
+ * - \ref convertlib
+ * - \ref datalib
+ * - \ref demlib
+ * - \ref geomag
+ * - \ref jpleph
+ * - \ref jsonlib
+ * - \ref mathlib
+ * - \ref nodelib
+ * - \ref nrlmsise
+ * - \ref physicslib
+ * - \ref sliplib
+ * - \ref stringlib
+ * - \ref timelib
+ * - \ref transferlib
+ * @}
+ */
+
+//! \ingroup libraries
+//! \defgroup devices Device Libraries
+
+//! \ingroup libraries
+//! \defgroup support Support Libraries

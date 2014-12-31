@@ -1,0 +1,2 @@
+#!/bin/bash
+sshpass -p '' rsync -avu -e ssh $1 user@$2:/path/to/remote/folder 

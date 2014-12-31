@@ -1,0 +1,45 @@
+Install COSMOS on Windows
+=========================
+
+The COSMOS software has been tested with the following
+Qt5.4
+Mingw 4.9
+
+
+Getting Started
+--------------
+1) install the latest Qt version for Windows from 
+http://www.qt.io/download-open-source/
+
+select Mingw as your main compiler, you may also choose
+to select MSVC as an alternative compiler but there may 
+be some compatibility issues with COSMOS
+
+2) Download COSMOS-core source code
+
+-- using a git client such as Tortoise Git for win.
+if you are planning on contributing to the project using a 
+client may be the easiest alternative
+
+-- using the command line
+$ git clone https://<yourusername>@bitbucket.org/cosmos/core.git
+
+
+Cross-compiling on Windows for ARM
+----------------------------------
+please read the file: install-arm.txt
+
+MOST
+----
+3) Open the MOST.pro file in QT Creator
+4) On the Target Setup dialog
+	- open the details for the Desktop Build
+	- Check the Shadow Build
+	- Check either the debug or release (or both) configurations
+5) IMPORTANT! 
+	- Click on the Projects icon (on the left)
+	- Build Steps -> Add Build Step -> Make
+	- Make Arguments: add 'install'
+	- This installs the necessary files to run MOST from the shadow 
+	build directory
+5) Hit Run!

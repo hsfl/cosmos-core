@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ ${PWD##*/} == 'arm' ] ; then
+echo "Configuring ARM"
+cmake $1 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cmake/toolchain_arm -DBUILD_ARM=ON ../..
+else
+echo "Configuring Intel"
+cmake $1 -DCMAKE_BUILD_TYPE=Debug ../..
+fi
