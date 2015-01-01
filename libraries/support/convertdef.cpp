@@ -3,16 +3,10 @@
 #include "mathlib.h"
 #include "jpleph.h"
 #include "timelib.h"
-#include "memlib.h"
 
-//#include <sys/types.h>
-#include <sys/time.h>
-#include <math.h>
-#include <time.h>
-#include <errno.h>
-#include <unistd.h>
+#include <cmath>
+#include <ctime>
 #include <cstring>
-
 #include <iostream>
 
 using namespace std;

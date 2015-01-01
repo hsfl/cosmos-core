@@ -6,6 +6,16 @@
 #include "jsonlib.h"
 #include "zlib/zlib.h"
 
+#include <stdio.h>
+//#ifdef COSMOS_WIN_BUILD_MSVC
+//#include <filesystem> // it is being proposed for standardization for C++
+//#elif
+#include <dirent.h>
+//#endif
+#include <sys/stat.h>
+#include <iostream>
+#include <fstream>
+
 //! \ingroup datalib
 //! \defgroup datalib_statics Static variables for Data functions.
 //! @{
@@ -25,6 +35,10 @@ string cnodedir;
 
 //! @}
 
+// MSVC lacks these POSIX macros and other compilers may too:
+#ifndef S_ISDIR
+# define S_ISDIR(ST_MODE) (((ST_MODE) & _S_IFMT) == _S_IFDIR)
+#endif
 
 //! \ingroup datalib
 //! \defgroup datalib_functions Data Management support functions
@@ -648,7 +662,7 @@ FILE *data_open(string path, char *mode)
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 				if (mkdir(dtemp,00777))
 #else
-				if (mkdir(dtemp))
+                if (COSMOS_MKDIR(dtemp))
 #endif
 				{
 					if (errno != EEXIST)
@@ -690,7 +704,7 @@ string get_cosmosresources()
 
 	if (cosmosresources.empty())
 	{
-		char *croot = getenv("COSMOSRESOURCES");
+        char *croot = getenv("COSMOSRESOURCES");
 		if (croot != NULL)
 		{
 			cosmosresources = croot;
@@ -733,14 +747,14 @@ string get_cosmosnodes()
 
 	if (cosmosnodes.empty())
 	{
-		char *croot = getenv("COSMOSNODES");
+        char *croot = getenv("COSMOSNODES");
 		if (croot != NULL)
 		{
 			cosmosnodes = croot;
 		}
 		else
 		{
-			troot = "../nodes";
+            troot = "../nodes";
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;

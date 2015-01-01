@@ -12,6 +12,5 @@ QMAKE_CXXFLAGS += -std=c++0x -pthread
 
 include( $$COSMOS/core/qt/cosmos.pri )
 
-#HEADERS +=
-SOURCES += $$COSMOS_CORE/programs/testbed/request_examples/agent_001.cpp
-#SOURCES += $$COSMOS_CORE/programs/agents/agent_soh.cpp
+SOURCES += agent_001.cpp
+

@@ -65,7 +65,7 @@ void geomag_front(gvector pos, double time, rvector *comp)
 	static float alt,  dec, dip, ti, gv, bx, by, bz;
 
 	// this reads the coefficients, specify path if neccessary
-	itime = 5. * (int)(time/5.);
+    itime = 5 * (int)(time/5.);
 	sprintf(fname, "%s/general/wmm_%04d.cof", get_resdir().c_str(), itime);
 	/*
 	if (time < 2010.)

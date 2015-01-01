@@ -25,6 +25,6 @@ SOURCES += $$COSMOS_CORE/programs/agents/agent.cpp
 TARGET = agent
 #TARGET_EXT = .exe
 
-target1.file = $$OUT_PWD/agent.exe
-target1.path = C:/acstb/cosmos/bin
-INSTALLS    += target1
+#target1.file = $$OUT_PWD/agent.exe
+#target1.path = C:/acstb/cosmos/bin
+#INSTALLS    += target1

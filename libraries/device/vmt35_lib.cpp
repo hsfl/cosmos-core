@@ -539,7 +539,7 @@ int32_t vmt35_set_moments(vmt35_handle *handle, rvector mom, float npoly[3][7], 
 	{
 		handle->telem.dac[i] = 10000;
 	}
-//>> please explain
+//?? please explain
 	do
 	{
 		for (uint16_t i=0; i<3; ++i)

@@ -7,6 +7,11 @@
 
 //! \ingroup defs
 //! \defgroup defs_macros Special COSMOS macros
+//!
+
+// for MSVC
+#define _CRT_SECURE_NO_DEPRECATE
+
 // --------------------- FOR ALL PLATFORMS ------------------------------
 #define _USE_MATH_DEFINES
 #include <climits>
@@ -21,7 +26,6 @@
 #include <string>
 #include <condition_variable>
 #include <mutex>
-//#include <sys/types.h>
 #ifdef _MSC_BUILD
 #include <io.h> // replaces in someways unistd for windows
 #else
@@ -70,6 +74,19 @@
 #ifdef _WIN32 // Defined for both 32-bit and 64-bit environments 1
 //! \addtogroup defs_macros
 //! @{
+//!
+//! // if we're compiling with MSVC
+#ifdef _MSC_BUILD
+#define COSMOS_WIN_BUILD_MSVC
+#endif
+
+#ifdef _MSC_BUILD
+#include <direct.h>
+#define COSMOS_MKDIR(dtemp) _mkdir((char *)dtemp)
+#else
+#define COSMOS_MKDIR(dtemp) mkdir((char *)dtemp)
+#endif
+
 #define COSMOS_WIN_OS
 #define COSMOS_USLEEP(usec) Sleep((uint32_t)usec/1000)
 #define COSMOS_SLEEP(sec) Sleep((uint32_t)(sec*1000))
@@ -100,6 +117,7 @@
 
 #include <thread>
 #include <io.h>
+#include <process.h>
 
 #endif
 
