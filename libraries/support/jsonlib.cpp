@@ -1,6 +1,8 @@
 /*! \file jsonlib.c
 	\brief JSON support source file
 */
+
+#include "configCosmos.h"
 #include "jsonlib.h"
 #include "convertlib.h"
 
@@ -2070,7 +2072,9 @@ jsonentry *json_entry_of_ptr(uint8_t *ptr, cosmosstruc *cdata)
 	else
 	{
 		offset = -1;
-		offset = std::numeric_limits<std::ptrdiff_t>::max();
+        //#undef max;
+        offset = (std::numeric_limits<std::ptrdiff_t>::max)();
+
 	}
 	if (offset < 0 && (offset=(uint8_t *)ptr - (uint8_t *)&(cdata->node)) > 0 && offset < (ptrdiff_t)sizeof(agentstruc))
 	{

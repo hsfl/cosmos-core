@@ -10,20 +10,15 @@
 #include "configCosmos.h"
 
 #include "mathlib.h"
-#include "jpleph.h"
-#include "timelib.h"
-#include "memlib.h"
+//#include "jpleph.h"
+//#include "timelib.h"
 
-#include <math.h>
-#include <time.h>
-#include <errno.h>
+#include <cmath>
+#include <ctime>
+#include <cerrno>
 #include <cstring>
 #include <iostream>
 using namespace std;
-
-#ifndef _MSC_BUILD
-#include <sys/time.h>
-#endif
 
 //! \ingroup convertlib
 //! \defgroup convertlib_constants Coordinate conversion constants

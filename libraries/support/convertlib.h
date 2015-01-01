@@ -62,15 +62,14 @@
 #include "mathlib.h"
 #include "jpleph.h"
 #include "timelib.h"
-#include "memlib.h"
 #include "convertdef.h"
 //#include "demlib.h"
 #include "geomag.h"
 
 #include <fcntl.h>
-#include <math.h>
-#include <time.h>
-#include <errno.h>
+#include <cmath>
+#include <ctime>
+#include <cerrno>
 #include <cstring>
 
 //! \ingroup convertlib

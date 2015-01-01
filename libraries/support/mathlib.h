@@ -75,16 +75,15 @@
 //! quaternion, and then use an equation that expects Scalar Last.
 
 #include "configCosmos.h"
+#include "cosmos-errno.h"
 
-#include <math.h>
+#include <cmath>
 #include <stdlib.h>
 #include <cstring>
-#include "cosmos-errno.h"
-#include "memlib.h"
 #include <iostream>
 #include <iomanip>
-
 #include <vector>
+#include <stdio.h>
 
 using namespace std;
 
@@ -373,9 +372,9 @@ typedef union
  * The DCM class uses this struct as default
 */
 struct basisOrthonormal{
-    cvector i = {1,0,0};
-    cvector j = {0,1,0};
-    cvector k = {0,0,1};
+    cvector i; // = {1,0,0}
+    cvector j; // = {0,1,0}
+    cvector k; // = {0,0,1};
 };
 
 //! Testing Row Vector Class

@@ -3,7 +3,7 @@
 */
 
 #include "timelib.h"
-#include "convertlib.h"
+
 
 //extern char resdir[MAXDIR];
 
@@ -23,6 +23,7 @@ static uint32_t iersbase=0;
 double leaps[MAXLEAPS] =
 {41370.,41498.,41682.,42047.,42412.,42777.,43143.,43508.,43873.,44238.,44785.,45150.,45515.,46246.,47160.,47891.,48256.,48803.,49168.,49533.,50082.,50629.,51178.,53735.,54831.,56108.};
 
+
 //! \addtogroup timelib_functions
 //! @{
 
@@ -35,19 +36,15 @@ double leaps[MAXLEAPS] =
 double currentmjd(double offset)
 {
     struct timeval mytime;
-    //	struct tm *mytm;
-    //	time_t thetime;
     double mjd;
 
+#ifndef COSMOS_WIN_BUILD_MSVC
     gettimeofday(&mytime, NULL);
-    /*
-    thetime = mytime.tv_sec;
-    mytm = gmtime(&thetime);
-    mjd = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
-    mjd += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + mytime.tv_usec / 1000000.) / 60.) / 60.) / 24.);
-    */
     mjd = unix2utc(mytime);
-
+#else
+    TimeUtils tu;
+    mjd = tu.secondsSinceEpoch();
+#endif
     return mjd+offset;
 }
 
@@ -89,16 +86,16 @@ struct timeval utc2unix(double utc)
     mjd2ymd(utc, &unixtm.tm_year, &unixtm.tm_mon, &day, &doy);
     unixtm.tm_year -= 1900;
     unixtm.tm_mon -= 1;
-    unixtm.tm_mday = day;
+    unixtm.tm_mday = (int)day;
     fd = fmod(utc, 1.);
-    unixtm.tm_hour = fd * 24.;
+    unixtm.tm_hour = (int)(fd * 24.);
     fd -= unixtm.tm_hour / 24.;
-    unixtm.tm_min = fd * 1440.;
+    unixtm.tm_min = int(fd * 1440.);
     fd -= unixtm.tm_min / 1440.;
-    unixtm.tm_sec = fd * 86400.;
+    unixtm.tm_sec = (int)(fd * 86400.);
     fd -= unixtm.tm_sec / 86400.;
     unixtime.tv_sec = mktime(&unixtm);
-    unixtime.tv_usec = fd * 1000000.;
+    unixtime.tv_usec = (int)(fd * 1000000.);
 
     return unixtime;
 }
@@ -966,166 +963,6 @@ cvector polar_motion(double mjd)
 }
 
 
-// -------------------------------------------------------------------
-// ElapsedTime class
-// Example use:
-// ElapsedTime ep;
-// ep.tic();
-// //do something
-// ep.toc();
-// ep.printElapsedTime();
-
-
-//!  Timeval subtraction
-/*! Determines the difference between two timeval structures
-     \param x,y timeval structure with members long int tv_sec, tv_usec
-     \param result timeval structure difference between x and y
-     \return 1 if result is negative
-*/
-
-int ElapsedTime::timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y)
-{
-    /* Perform the carry for the later subtraction by updating y. */
-    if (x->tv_usec < y->tv_usec)
-    {
-        int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
-        y->tv_usec -= 1000000 * nsec;
-        y->tv_sec += nsec;
-    }
-    if (x->tv_usec - y->tv_usec > 1000000)
-    {
-        int nsec = (y->tv_usec - x->tv_usec) / 1000000;
-        y->tv_usec += 1000000 * nsec;
-        y->tv_sec -= nsec;
-    }
-
-    /* Compute the time remaining to wait.
-     tv_usec is certainly positive. */
-    result->tv_sec = x->tv_sec - y->tv_sec;
-    result->tv_usec = x->tv_usec - y->tv_usec;
-
-    /* Return 1 if result is negative. */
-    return x->tv_sec < y->tv_sec;
-}
-
-
-// new function
-// combines toc and print, this simplifies the calling of functions
-void ElapsedTime::printElapsedTime()
-{
-    if (print){
-        char buffer[50];
-        sprintf(buffer,"Elapsed Time: %.6f s",elapsedTime);
-        cout << buffer << endl;
-    }
-}
-
-void ElapsedTime::printElapsedTime(string text)
-{
-    if (print){
-        //toc();
-        char buffer[50];
-        sprintf(buffer,"Elapsed Time (%s): %.6f s",text.c_str(),elapsedTime);
-        cout << buffer << endl;
-    }
-}
-
-
-//! Elapsed time
-/*! Calculates the difference in milliseconds between two timeval structures
-     \param a,b timeval structure with members long int tv_sec, tv_usec
-     \param dif timeval structure difference between a and b
-     \return elapsed time in milliseconds
-     Example use without using the class:
-        struct timeval first, last;
-        struct timezone x;
-        float timeDiff;
-        gettimeofday(&first, &x); //Get the initial time
-        // do something
-        gettimeofday(&last, &x); //Get the final time
-        printf("Elapsed time: %f milliseconds\n", timeDiff);
-*/
-// old plain c
-double ElapsedTime::getElapsedTimeMiliSeconds()
-{
-    struct timeval dif;
-
-    // Subtract the timevals
-    timeval_subtract(&dif,&time1,&time2);
-
-    // Calculate and return difference in milliseconds
-    return -dif.tv_sec*1000.0-dif.tv_usec/1000.0;
-}
-
-double ElapsedTime::getElapsedTime()
-{
-    // return elapsed time in seconds (instead of miliseconds)
-    // old plain c
-    return getElapsedTimeMiliSeconds()/1000.;
-
-    // new with c++11
-    // On windows using MinGw32 it does not get better than 1ms
-    //using namespace std::chrono;
-    //duration<double> time_span = duration_cast<duration<double>>(time2 - time1);
-    //return time_span.count();
-    //return 0;
-}
-
-
-// equivalent to matlab to start a stopwatch timer
-void ElapsedTime::tic(){
-
-    //Get the start time
-    gettimeofday(&time1, &x); //Get the initial time
-
-    // new way with c++11
-    //using namespace std::chrono;
-    //time1 = high_resolution_clock::now();
-
-}
-
-// equivalent to matlab to stop a stopwatch timer
-double ElapsedTime::toc(){
-
-    //Get the final time
-    gettimeofday(&time2, &x); //Get the final time
-
-    // On windows using MinGw32 it does not get better than 1ms
-    // new c++11
-    //using namespace std::chrono;
-    //time2 = high_resolution_clock::now();
-
-    elapsedTime = getElapsedTime();
-    printElapsedTime();
-
-    return elapsedTime;
-}
-
-
-// equivalent to matlab to stop a stopwatch timer
-//double ElapsedTime::toc(bool print_flag){
-
-//    print = print_flag;
-//    toc();
-
-//    return elapsedTime;
-//}
-
-double ElapsedTime::toc(string text){
-
-    bool temp_flag = print;
-    // don't print the default message
-    print = false;
-    toc();
-    print = temp_flag;
-
-    // print the text
-    printElapsedTime(text);
-
-    return elapsedTime;
-}
-
-
 
 //! ISO 8601 version of time
 /*! Represent the given UTC as an extended calendar format ISO 8601
@@ -1296,7 +1133,6 @@ double  mjd2jd(double mjd){
 double  jd2mjd(double jd) {
     return JD2MJD(jd);
 }
-
 
 
 //! @}

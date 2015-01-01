@@ -1644,10 +1644,10 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc *cdata)
 
 	pos_accel(cdata,&cdata->node.loc);
     // Initialize hardware,
-    // >>is this only for simulation?
+    // ?? is this only for simulation?
     initialize_hardware(cdata,&cdata->node.loc);
 
-    // >> check
+    // ?? check
     att_accel(cdata,&cdata->node.loc);
 //	groundstations(cdata,&cdata->node.loc);
 

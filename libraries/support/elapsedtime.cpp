@@ -77,25 +77,14 @@ double ElapsedTime::getElapsedTime()
 // equivalent to matlab to start a stopwatch timer
 void ElapsedTime::tic(){
 
-    //Get the start time
-    //gettimeofday(&time1, &x); //Get the initial time
-
-    // new way with c++11
-    time1 = chrono::steady_clock::now();
+    start();
 
 }
 
 // equivalent to matlab to stop a stopwatch timer
 double ElapsedTime::toc(){
 
-    //Get the final time
-    //gettimeofday(&time2, &x); //Get the final time
-
-    // On windows using MinGw32 it does not get better than 1ms
-    // new c++11
-    time2 = chrono::steady_clock::now();
-
-    elapsedTime = getElapsedTime();
+    stop();
     printElapsedTime();
 
     return elapsedTime;
@@ -113,11 +102,7 @@ double ElapsedTime::toc(){
 
 double ElapsedTime::toc(string text){
 
-    bool temp_flag = print;
-    // don't print the default message
-    print = false;
-    toc();
-    print = temp_flag;
+    stop();
 
     // print the text
     printElapsedTime(text);
@@ -127,11 +112,22 @@ double ElapsedTime::toc(string text){
 
 
 void ElapsedTime::start(){
-    tic();
+    //Get the start time
+    //gettimeofday(&time1, &x); //Get the initial time
+
+    // new way with c++11
+    time1 = chrono::steady_clock::now();
 }
 
 void ElapsedTime::stop(){
-    toc();
+    //Get the final time
+    //gettimeofday(&time2, &x); //Get the final time
+
+    // On windows using MinGw32 it does not get better than 1ms
+    // new c++11
+    time2 = chrono::steady_clock::now();
+
+    elapsedTime = getElapsedTime();
 }
 
 // -------------OLD Code

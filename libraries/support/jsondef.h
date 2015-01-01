@@ -1192,7 +1192,7 @@ typedef struct
 	float disk;
 	float mem;
 	float load;
-	// >> number of reboots
+    // ?? add number of reboots
 	uint32_t boot_count;
 } cpustruc;
 

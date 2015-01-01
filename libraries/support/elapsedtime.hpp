@@ -1,10 +1,14 @@
-// >> remove ElapsedTime from timelib.h and use this one instead
+// ?? remove ElapsedTime from timelib.h and use this one instead
 
 // just for the old code for timeval, deprecated
 //#if defined(_MSC_VER) && (_MSC_VER >= 1020)
 //#include <winsock.h>
 //#endif
 
+#ifndef ELAPSED_TIME
+#define ELAPSED_TIME
+
+#include "configCosmos.h"
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -56,3 +60,5 @@ public:
 //    int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
 //    float elapsed_time(struct timeval a,struct timeval b);
 //};
+
+#endif

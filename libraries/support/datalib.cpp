@@ -9,8 +9,11 @@
 #include "zlib/zlib.h"
 
 #include <stdio.h>
+//#ifdef COSMOS_WIN_BUILD_MSVC
+//#include <filesystem> // it is being proposed for standardization for C++
+//#elif
 #include <dirent.h>
-#include <unistd.h>
+//#endif
 #include <sys/stat.h>
 #include <iostream>
 #include <fstream>
@@ -34,6 +37,10 @@ string cnodedir;
 
 //! @}
 
+// MSVC lacks these POSIX macros and other compilers may too:
+#ifndef S_ISDIR
+# define S_ISDIR(ST_MODE) (((ST_MODE) & _S_IFMT) == _S_IFDIR)
+#endif
 
 //! \ingroup datalib
 //! \defgroup datalib_functions Data Management support functions
@@ -601,7 +608,7 @@ FILE *data_open(string path, char *mode)
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 				if (mkdir(dtemp,00777))
 #else
-				if (mkdir(dtemp))
+                if (COSMOS_MKDIR(dtemp))
 #endif
 				{
 					if (errno != EEXIST)
@@ -643,14 +650,14 @@ string get_cosmosbase()
 
 	if (cosmosbase.empty())
 	{
-		char *croot = getenv("COSMOSBASE");
+        char *croot = getenv("COSMOSRESOURCES");
 		if (croot != NULL)
 		{
 			cosmosbase = croot;
 		}
 		else
 		{
-			troot = "../cosmosbase";
+            troot = "../resources";
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;
@@ -686,14 +693,14 @@ string get_nodebase()
 
 	if (nodebase.empty())
 	{
-		char *croot = getenv("NODEBASE");
+        char *croot = getenv("COSMOSNODES");
 		if (croot != NULL)
 		{
 			nodebase = croot;
 		}
 		else
 		{
-			troot = "../nodebase";
+            troot = "../nodes";
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;

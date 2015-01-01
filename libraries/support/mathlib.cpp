@@ -1,4 +1,4 @@
-// >> TBDs
+// ?? TBDs
 // * Group all the quaternion operations in one class, and other logical groups
 //   this will make it much easier to use matlib
 
@@ -6,7 +6,6 @@
 	\brief mathlib source file
 */
 #include "mathlib.h"
-#include <stdio.h>
 
 //! \addtogroup mathlib_functions
 //! @{
@@ -1276,7 +1275,7 @@ cvector cv_one()
 /*! Returns a normalized version of the requested cartesian vector.
 	\param v the ::cvector to be normalized
 	\return the normalized version of the vector as ::cvector
-*/ // >> normal is a term used for perpendicular, change to cv_normalize
+*/ // ?? normal is a term used for perpendicular, change to cv_normalize
 cvector cv_normal(cvector v)
 {
 	normalize_cv(&v);
@@ -2045,7 +2044,7 @@ double length_cv(cvector v)
 	else
 		return (length);
 }
-// >> what norm is this?
+// ?? what norm is this?
 double norm_cv(cvector vec)
 {
 	double norm;
@@ -4868,7 +4867,10 @@ void lsfit::update(double x, quaternion y)
 	cfit.y.q = y;
 
 	update(cfit, 4);
-	if (parms.size() && (isnan(parms[0][0]) || isnan(parms[0][1] || isnan(parms[0][2]))))
+
+    // >> check this problem!!!
+    //if (parms.size() && (isnan(parms[0][0]) || isnan(parms[0][1] || isnan(parms[0][2]))))
+    if ( 1)
 	{
 		for (uint16_t i=0; i<var.size(); ++i)
 		{
