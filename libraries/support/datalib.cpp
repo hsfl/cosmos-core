@@ -3,17 +3,8 @@
 */
 
 #include "datalib.h"
-#include "agentlib.h"
-#include "jsonlib.h"
 #include "jsonlib.h"
 #include "zlib/zlib.h"
-
-#include <stdio.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <iostream>
-#include <fstream>
 
 //! \ingroup datalib
 //! \defgroup datalib_statics Static variables for Data functions.
@@ -22,9 +13,9 @@
 //static vector<cosmosstruc> nodes;
 
 //! Path to project Node directory
-string nodebase;
+string cosmosnodes;
 //! Path to COSMOS Root directory
-string cosmosbase;
+string cosmosresources;
 //! Path to COSMOS Resource directory
 string resdir;
 //! Path to COSMOS Nodes directory
@@ -138,6 +129,62 @@ void log_move(string node, string agent)
 		remove(oldpath.c_str());
 	}
 }
+
+//! Get a list of files in a Node archive.
+/*! Genereate a list of archived files for the indicated Node, Agent, and UTC.
+ * The result is returned as a vector of ::filestruc, one entry for each file found.
+ * \param node Node to search.
+ * \param agent Subdirectory of location to search.
+ * \param utc Date in archive as MJD.
+ * \return A C++ vector of ::filestruc. Zero size if no files are found.
+ */
+vector<filestruc> data_list_archive(string node, string agent, double utc)
+{
+	vector<filestruc> files;
+
+	string dtemp;
+	DIR *jdp;
+	struct dirent *td;
+	filestruc tf;
+
+	tf.node = node;
+	tf.agent = agent;
+	dtemp = data_archive_path(node, agent, utc);
+	if ((jdp=opendir(dtemp.c_str())) != NULL)
+	{
+		while ((td=readdir(jdp)) != NULL)
+		{
+			if (td->d_name[0] != '.')
+			{
+				tf.name = td->d_name;
+				tf.path = dtemp + "/" + tf.name;
+				struct stat st;
+				stat(tf.path.c_str(), &st);
+				tf.size = st.st_size;
+				if (S_ISDIR(st.st_mode))
+				{
+					tf.type = "directory";
+				}
+				else
+				{
+					for (uint16_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
+					{
+						if (td->d_name[i] == '.')
+						{
+							tf.type = &td->d_name[i+1];
+							break;
+						}
+					}
+				}
+				files.push_back(tf);
+			}
+		}
+		closedir(jdp);
+	}
+	return files;
+}
+
+
 //! Get list of files in a Node, directly.
 /*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
  * and Agent. The result is returned as a vector of ::filestruc, one entry for each file found.
@@ -238,7 +285,7 @@ int32_t data_list_nodes(vector<string>& nodes)
 	string tnode;
 	struct stat statbuf;
 
-	rootd=get_nodebase();
+	rootd=get_cosmosnodes();
 	if (rootd.empty())
 	{
 		return (NODE_ERROR_ROOTDIR);
@@ -274,7 +321,7 @@ int32_t data_get_nodes(vector<cosmosstruc> &node)
 	struct dirent *td;
 	cosmosstruc *tnode;
 
-	rootd=get_nodebase();
+	rootd=get_cosmosnodes();
 	if (rootd.empty())
 	{
 		return (NODE_ERROR_ROOTDIR);
@@ -373,7 +420,7 @@ string data_base_path(string node, string location, string agent)
 
 //	printf("Node: %s Location: %s Agent: %s\n", node.c_str(), location.c_str(), agent.c_str());
 
-	tpath = get_nodebase();
+	tpath = get_cosmosnodes();
 	tpath += "/" + node;
 
 	if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
@@ -405,7 +452,7 @@ string data_base_path(string node, string location)
 	string tpath;
 	string path;
 
-	tpath = get_nodebase();
+	tpath = get_cosmosnodes();
 	tpath += "/" + node;
 
 	if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
@@ -426,7 +473,7 @@ string data_base_path(string node)
 	string tpath;
 	string path;
 
-	tpath = get_nodebase();
+	tpath = get_cosmosnodes();
 	tpath += "/" + node;
 
 	if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
@@ -438,9 +485,9 @@ string data_base_path(string node)
 
 }
 
-string data_archive_path(string node, string location, string agent, double mjd, string filename)
+string data_archive_path(string node, string agent, double mjd, string filename)
 {
-	string path = data_archive_path(node, location, agent, mjd);
+	string path = data_archive_path(node, agent, mjd);
 	if (!path.empty())
 	{
 
@@ -450,13 +497,13 @@ string data_archive_path(string node, string location, string agent, double mjd,
 
 }
 
-string data_archive_path(string node, string location, string agent, double mjd)
+string data_archive_path(string node, string agent, double mjd)
 {
 	string tpath;
 	char ntemp[COSMOS_MAX_NAME];
 	string path;
 
-	tpath = data_base_path(node, location, agent);
+	tpath = data_base_path(node, "data", agent);
 	if (!tpath.empty())
 	{
 		int year, month;
@@ -540,7 +587,7 @@ string data_name_path(string node, string location, string agent, double mjd, st
 
 	if (location == "data")
 	{
-		tpath = data_archive_path(node, location, agent, mjd);
+		tpath = data_archive_path(node, agent, mjd);
 	}
 	else
 	{
@@ -624,9 +671,9 @@ FILE *data_open(string path, char *mode)
  * are stored.
 	\param name Absolute or relative pathname of directory.
 */
-void set_cosmosbase(string name)
+void set_cosmosresources(string name)
 {
-	cosmosbase = name;
+	cosmosresources = name;
 }
 
 //! Get COSMOS Base Directory
@@ -634,19 +681,19 @@ void set_cosmosbase(string name)
  * stored.
  * \return Pointer to character string containing path to Root, otherwise NULL.
 */
-string get_cosmosbase()
+string get_cosmosresources()
 {
 	string troot;
 	string dir1;
 	int i;
 	struct stat sbuf;
 
-	if (cosmosbase.empty())
+	if (cosmosresources.empty())
 	{
-		char *croot = getenv("COSMOSBASE");
+		char *croot = getenv("COSMOSRESOURCES");
 		if (croot != NULL)
 		{
-			cosmosbase = croot;
+			cosmosresources = croot;
 		}
 		else
 		{
@@ -656,20 +703,20 @@ string get_cosmosbase()
 				dir1 = troot;
 				if (stat(dir1.c_str(),&sbuf) == 0)
 				{
-					cosmosbase = troot;
+					cosmosresources = troot;
 					break;
 				}
 				troot = "../" + troot;
 			}
 		}
 
-		if (!cosmosbase.empty())
+		if (!cosmosresources.empty())
 		{
-			resdir = cosmosbase;
+			resdir = cosmosresources;
 		}
 	}
 
-	return (cosmosbase);
+	return (cosmosresources);
 }
 
 //! Get COSMOS Base Directory
@@ -677,42 +724,42 @@ string get_cosmosbase()
  * stored.
  * \return Pointer to character string containing path to Root, otherwise NULL.
 */
-string get_nodebase()
+string get_cosmosnodes()
 {
 	string troot;
 	string dir1;
 	int i;
 	struct stat sbuf;
 
-	if (nodebase.empty())
+	if (cosmosnodes.empty())
 	{
-		char *croot = getenv("NODEBASE");
+		char *croot = getenv("COSMOSNODES");
 		if (croot != NULL)
 		{
-			nodebase = croot;
+			cosmosnodes = croot;
 		}
 		else
 		{
-			troot = "../nodebase";
+			troot = "../nodes";
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;
 				if (stat(dir1.c_str(),&sbuf) == 0)
 				{
-					nodebase = troot;
+					cosmosnodes = troot;
 					break;
 				}
 				troot = "../" + troot;
 			}
 		}
 
-		if (!nodebase.empty())
+		if (!cosmosnodes.empty())
 		{
-			nodedir = nodebase;
+			nodedir = cosmosnodes;
 		}
 	}
 
-	return (nodebase);
+	return (cosmosnodes);
 }
 
 //! Set Resource Directory
@@ -734,7 +781,7 @@ string get_resdir()
 {
 
 	if (resdir.empty())
-		get_cosmosbase();
+		get_cosmosresources();
 
 	return (resdir);
 }
@@ -747,7 +794,7 @@ string get_resdir()
 string get_nodedir()
 {
 	if (nodedir.empty())
-		get_nodebase();
+		get_cosmosnodes();
 
 	return (nodedir);
 }
@@ -760,7 +807,7 @@ string get_nodedir()
 string get_cnodedir(string name)
 {
 	if (nodedir.empty())
-		get_nodebase();
+		get_cosmosnodes();
 
 	return (set_cnodedir(name));
 }
@@ -776,7 +823,7 @@ string set_cnodedir(string node)
 	struct stat sbuf;
 
 	if (nodedir.empty())
-		get_nodebase();
+		get_cosmosnodes();
 
 	cnodedir = nodedir + "/" + node;
 	if (stat(cnodedir.c_str(),&sbuf) != 0)

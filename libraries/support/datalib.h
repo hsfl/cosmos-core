@@ -6,6 +6,13 @@
 #include "datadef.h"
 #include "jsondef.h"
 
+#include <stdio.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <iostream>
+#include <fstream>
+
 /*! \file datalib.h
 *	\brief Data Management header file
 */
@@ -20,7 +27,7 @@
 //! well as information specific to each Node. Separate directories are
 //! also defined for Incoming data, Outgoing data, and Archival data.
 //! The top level directory of this Node information is defined as the
-//! "nodebase". "nodebase" contains all data specific to each Node. Within
+//! "cosmosnodes". "cosmosnodes" contains all data specific to each Node. Within
 //! "nodes", there is a directory named after each Node. This directory
 //! can be discovered automatically by the software if it is within 4 levels
 //! above the current directory, or if an environment variable, "NODEBASE",
@@ -44,12 +51,12 @@
 //! year, then day.
 //!
 //! Resources for COSMOS are stored in a second heirarchy of directories.
-//! The highest level is a top level directory, "cosmosbase". This
+//! The highest level is a top level directory, "cosmosresources". This
 //! directory can also be discovered by the software, if it is within 4
 //! levels above the current directory. It can also be set through use
 //! of the environment variable, "COSMOSBASE".
 //!
-//! "cosmosbase" contains directories of files for use in different
+//! "cosmosresources" contains directories of files for use in different
 //! aspects of COSMOS. The directory "general" contains files of
 //! coefficients used for the various models used in COSMOS simulations.
 //! The directory "logo" contains any special images used by COSMOS
@@ -75,6 +82,7 @@ int32_t data_get_nodes(vector<cosmosstruc> &data);
 vector<string> data_list_nodes();
 int32_t data_list_nodes(vector<string>& nodes);
 vector<filestruc> data_list_files(string node, string location, string agent);
+vector<filestruc> data_list_archive(string node, string agent, double utc);
 int32_t data_list_files(string node, string location, string agent, vector<filestruc>& files);
 FILE* data_open(string path, char* mode);
 string data_name(string node, double mjd, string extra, string type);
@@ -83,16 +91,16 @@ string data_base_path(string node);
 string data_base_path(string node, string location);
 string data_base_path(string node, string location, string agent);
 string data_base_path(string node, string location, string agent, string filename);
-string data_archive_path(string node, string location, string agent, double mjd);
-string data_archive_path(string node, string location, string agent, double mjd, string filename);
+string data_archive_path(string node, string agent, double mjd);
+string data_archive_path(string node, string agent, double mjd, string filename);
 string data_type_path(string node, string location, string agent, double mjd, string type);
 string data_extra_type_path(string node, string location, string agent, double mjd, string extra, string type);
 string data_name_path(string node, string location, string agent, double mjd, string name);
 bool data_exists(string& path);
-void set_cosmosbase(string name);
-string get_cosmosbase();
-void set_nodebase(string name);
-string get_nodebase();
+void set_cosmosresources(string name);
+string get_cosmosresources();
+void set_cosmosnodes(string name);
+string get_cosmosnodes();
 string get_resdir();
 string get_nodedir();
 string get_cnodedir(string node);

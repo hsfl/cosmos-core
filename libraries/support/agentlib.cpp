@@ -410,6 +410,7 @@ int32_t agent_shutdown_client(cosmosstruc *cdata)
 {
 	agent_unsubscribe(cdata);
 	json_destroy(cdata);
+	return 0;
 }
 
 //! Check if we're supposed to be running

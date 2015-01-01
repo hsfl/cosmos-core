@@ -976,154 +976,154 @@ cvector polar_motion(double mjd)
 // ep.printElapsedTime();
 
 
-//!  Timeval subtraction
-/*! Determines the difference between two timeval structures
-     \param x,y timeval structure with members long int tv_sec, tv_usec
-     \param result timeval structure difference between x and y
-     \return 1 if result is negative
-*/
+////!  Timeval subtraction
+///*! Determines the difference between two timeval structures
+//     \param x,y timeval structure with members long int tv_sec, tv_usec
+//     \param result timeval structure difference between x and y
+//     \return 1 if result is negative
+//*/
 
-int ElapsedTime::timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y)
-{
-    /* Perform the carry for the later subtraction by updating y. */
-    if (x->tv_usec < y->tv_usec)
-    {
-        int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
-        y->tv_usec -= 1000000 * nsec;
-        y->tv_sec += nsec;
-    }
-    if (x->tv_usec - y->tv_usec > 1000000)
-    {
-        int nsec = (y->tv_usec - x->tv_usec) / 1000000;
-        y->tv_usec += 1000000 * nsec;
-        y->tv_sec -= nsec;
-    }
+//int ElapsedTime::timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y)
+//{
+//    /* Perform the carry for the later subtraction by updating y. */
+//    if (x->tv_usec < y->tv_usec)
+//    {
+//        int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
+//        y->tv_usec -= 1000000 * nsec;
+//        y->tv_sec += nsec;
+//    }
+//    if (x->tv_usec - y->tv_usec > 1000000)
+//    {
+//        int nsec = (y->tv_usec - x->tv_usec) / 1000000;
+//        y->tv_usec += 1000000 * nsec;
+//        y->tv_sec -= nsec;
+//    }
 
-    /* Compute the time remaining to wait.
-     tv_usec is certainly positive. */
-    result->tv_sec = x->tv_sec - y->tv_sec;
-    result->tv_usec = x->tv_usec - y->tv_usec;
+//    /* Compute the time remaining to wait.
+//     tv_usec is certainly positive. */
+//    result->tv_sec = x->tv_sec - y->tv_sec;
+//    result->tv_usec = x->tv_usec - y->tv_usec;
 
-    /* Return 1 if result is negative. */
-    return x->tv_sec < y->tv_sec;
-}
-
-
-// new function
-// combines toc and print, this simplifies the calling of functions
-void ElapsedTime::printElapsedTime()
-{
-    if (print){
-        char buffer[50];
-        sprintf(buffer,"Elapsed Time: %.6f s",elapsedTime);
-        cout << buffer << endl;
-    }
-}
-
-void ElapsedTime::printElapsedTime(string text)
-{
-    if (print){
-        //toc();
-        char buffer[50];
-        sprintf(buffer,"Elapsed Time (%s): %.6f s",text.c_str(),elapsedTime);
-        cout << buffer << endl;
-    }
-}
+//    /* Return 1 if result is negative. */
+//    return x->tv_sec < y->tv_sec;
+//}
 
 
-//! Elapsed time
-/*! Calculates the difference in milliseconds between two timeval structures
-     \param a,b timeval structure with members long int tv_sec, tv_usec
-     \param dif timeval structure difference between a and b
-     \return elapsed time in milliseconds
-     Example use without using the class:
-        struct timeval first, last;
-        struct timezone x;
-        float timeDiff;
-        gettimeofday(&first, &x); //Get the initial time
-        // do something
-        gettimeofday(&last, &x); //Get the final time
-        printf("Elapsed time: %f milliseconds\n", timeDiff);
-*/
-// old plain c
-double ElapsedTime::getElapsedTimeMiliSeconds()
-{
-    struct timeval dif;
+//// new function
+//// combines toc and print, this simplifies the calling of functions
+//void ElapsedTime::printElapsedTime()
+//{
+//    if (print){
+//        char buffer[50];
+//        sprintf(buffer,"Elapsed Time: %.6f s",elapsedTime);
+//        cout << buffer << endl;
+//    }
+//}
 
-    // Subtract the timevals
-    timeval_subtract(&dif,&time1,&time2);
-
-    // Calculate and return difference in milliseconds
-    return -dif.tv_sec*1000.0-dif.tv_usec/1000.0;
-}
-
-double ElapsedTime::getElapsedTime()
-{
-    // return elapsed time in seconds (instead of miliseconds)
-    // old plain c
-    return getElapsedTimeMiliSeconds()/1000.;
-
-    // new with c++11
-    // On windows using MinGw32 it does not get better than 1ms
-    //using namespace std::chrono;
-    //duration<double> time_span = duration_cast<duration<double>>(time2 - time1);
-    //return time_span.count();
-    //return 0;
-}
+//void ElapsedTime::printElapsedTime(string text)
+//{
+//    if (print){
+//        //toc();
+//        char buffer[50];
+//        sprintf(buffer,"Elapsed Time (%s): %.6f s",text.c_str(),elapsedTime);
+//        cout << buffer << endl;
+//    }
+//}
 
 
-// equivalent to matlab to start a stopwatch timer
-void ElapsedTime::tic(){
+////! Elapsed time
+///*! Calculates the difference in milliseconds between two timeval structures
+//     \param a,b timeval structure with members long int tv_sec, tv_usec
+//     \param dif timeval structure difference between a and b
+//     \return elapsed time in milliseconds
+//     Example use without using the class:
+//        struct timeval first, last;
+//        struct timezone x;
+//        float timeDiff;
+//        gettimeofday(&first, &x); //Get the initial time
+//        // do something
+//        gettimeofday(&last, &x); //Get the final time
+//        printf("Elapsed time: %f milliseconds\n", timeDiff);
+//*/
+//// old plain c
+//double ElapsedTime::getElapsedTimeMiliSeconds()
+//{
+//    struct timeval dif;
 
-    //Get the start time
-    gettimeofday(&time1, &x); //Get the initial time
+//    // Subtract the timevals
+//    timeval_subtract(&dif,&time1,&time2);
 
-    // new way with c++11
-    //using namespace std::chrono;
-    //time1 = high_resolution_clock::now();
+//    // Calculate and return difference in milliseconds
+//    return -dif.tv_sec*1000.0-dif.tv_usec/1000.0;
+//}
 
-}
+//double ElapsedTime::getElapsedTime()
+//{
+//    // return elapsed time in seconds (instead of miliseconds)
+//    // old plain c
+//    return getElapsedTimeMiliSeconds()/1000.;
 
-// equivalent to matlab to stop a stopwatch timer
-double ElapsedTime::toc(){
-
-    //Get the final time
-    gettimeofday(&time2, &x); //Get the final time
-
-    // On windows using MinGw32 it does not get better than 1ms
-    // new c++11
-    //using namespace std::chrono;
-    //time2 = high_resolution_clock::now();
-
-    elapsedTime = getElapsedTime();
-    printElapsedTime();
-
-    return elapsedTime;
-}
+//    // new with c++11
+//    // On windows using MinGw32 it does not get better than 1ms
+//    //using namespace std::chrono;
+//    //duration<double> time_span = duration_cast<duration<double>>(time2 - time1);
+//    //return time_span.count();
+//    //return 0;
+//}
 
 
-// equivalent to matlab to stop a stopwatch timer
-//double ElapsedTime::toc(bool print_flag){
+//// equivalent to matlab to start a stopwatch timer
+//void ElapsedTime::tic(){
 
-//    print = print_flag;
-//    toc();
+//    //Get the start time
+//    gettimeofday(&time1, &x); //Get the initial time
+
+//    // new way with c++11
+//    //using namespace std::chrono;
+//    //time1 = high_resolution_clock::now();
+
+//}
+
+//// equivalent to matlab to stop a stopwatch timer
+//double ElapsedTime::toc(){
+
+//    //Get the final time
+//    gettimeofday(&time2, &x); //Get the final time
+
+//    // On windows using MinGw32 it does not get better than 1ms
+//    // new c++11
+//    //using namespace std::chrono;
+//    //time2 = high_resolution_clock::now();
+
+//    elapsedTime = getElapsedTime();
+//    printElapsedTime();
 
 //    return elapsedTime;
 //}
 
-double ElapsedTime::toc(string text){
 
-    bool temp_flag = print;
-    // don't print the default message
-    print = false;
-    toc();
-    print = temp_flag;
+//// equivalent to matlab to stop a stopwatch timer
+////double ElapsedTime::toc(bool print_flag){
 
-    // print the text
-    printElapsedTime(text);
+////    print = print_flag;
+////    toc();
 
-    return elapsedTime;
-}
+////    return elapsedTime;
+////}
+
+//double ElapsedTime::toc(string text){
+
+//    bool temp_flag = print;
+//    // don't print the default message
+//    print = false;
+//    toc();
+//    print = temp_flag;
+
+//    // print the text
+//    printElapsedTime(text);
+
+//    return elapsedTime;
+//}
 
 
 
