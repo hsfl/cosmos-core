@@ -117,7 +117,11 @@ enum
 	//! ::userstruc
 	JSON_GROUP_USER,
 	//! ::portstruc
-	JSON_GROUP_PORT
+	JSON_GROUP_PORT,
+	//! ::glossarystruc
+	JSON_GROUP_GLOSSARY,
+	//! ::tlestruc
+	JSON_GROUP_TLE
 	};
 
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
@@ -341,8 +345,6 @@ enum
 #define JSON_MAP_STATIC 7
 //! ::cosmosstruc_d part of ::cosmosstruc
 #define JSON_MAP_DYNAMIC 8
-//! Extra value added to Dynamic offsets to distinguis them from Static offsets
-//#define JSON_MAP_DYNAMIC_OFFSET 1000000L
 
 //! Maximum AGENT transfer buffer size
 #define AGENTMAXBUFFER 60000
@@ -1227,18 +1229,19 @@ typedef struct
 	double utc;
 	//! Connection information for device.
 	uint16_t portidx;
-
-	rvector position;
-
-	rvector velocity;
-
-	rvector position_sd;
-
-	rvector velocity_sd;
-
-	//! Geographic position: longitude, latitude, altitude
-	gvector geo;
-
+	//! Geocentric position
+	rvector geocs;
+	//! Geocentric velocity
+	rvector geocv;
+	//! Geocentric position error
+	rvector dgeocs;
+	//! Geocentric velocity error
+	rvector dgeocv;
+	//! Geodetic position: longitude, latitude, altitude
+	gvector geods;
+	//! Geodetic velocity
+	gvector geodv;
+	//! GPS heading
 	float heading;
 	//! number of satellites used by GPS receiver
 	uint16_t n_sats_used;
@@ -2157,7 +2160,7 @@ typedef struct
 	//! Array of units: first level is for type, second level is for variant.
 	vector<vector<unitstruc> > unit;
 	//! Array of Two Line Elements
-	vector<linestruc> tle;
+	vector<tlestruc> tle;
 } cosmosstruc;
 
 //! @}

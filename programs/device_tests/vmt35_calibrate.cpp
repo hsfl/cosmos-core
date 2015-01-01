@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 				trow.invalidcount = vmt35handle.telem.invalidcount;
 				trow.errorcount = terror;
 				rows.push_back(trow);
-				fprintf(stderr,"%lu %8f\t",rows.size(),trow.mom);
+				fprintf(stderr,"%" PRIu32 " %8f\t",(uint32_t)rows.size(),trow.mom);
 				fprintf(stderr,"%8f\t%8f\t%8f\t",trow.amp[0],trow.amp[1],trow.amp[2]);
 				fprintf(stderr,"%8f\t%8f\t%8f\t%8f\t%8f\t%8f\t",trow.dac[0]/1e6,trow.dac[1]/1e6,trow.dac[2]/1e6,trow.mag.col[0],trow.mag.col[1],trow.mag.col[2]);
 				fprintf(stderr,"%u\t%u\t%u\t%u\n", trow.stablecount, trow.count, trow.invalidcount,  trow.errorcount);
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 		*/
 		trow.errorcount = terror;
 		rows.push_back(trow);
-		fprintf(stderr,"%lu %8f\t",rows.size(),trow.mom);
+		fprintf(stderr,"%" PRIu32 " %8f\t",(uint32_t)rows.size(),trow.mom);
 		fprintf(stderr,"%8f\t%8f\t%8f\t",trow.amp[0],trow.amp[1],trow.amp[2]);
 		fprintf(stderr,"%8f\t%8f\t%8f\t%8f\t%8f\t%8f\t",trow.dac[0]/1e6,trow.dac[1]/1e6,trow.dac[2]/1e6,trow.mag.col[0],trow.mag.col[1],trow.mag.col[2]);
 		fprintf(stderr,"%u\t%u\t%u\t%u\n", trow.stablecount, trow.count, trow.invalidcount,  trow.errorcount);

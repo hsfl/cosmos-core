@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 	char fname[200];
 	char *ibuf;
 	struct stat fstat;
-	linestruc tline;
+	tlestruc tline;
 
 	dt = .1;
 	mjdaccel = 1.;

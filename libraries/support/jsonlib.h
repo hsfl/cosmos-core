@@ -212,9 +212,9 @@ double json_convert_double(string object);
 int32_t json_parse_number(const char **pointer, double *value);
 int32_t json_skip_value(const char ** pointer);
 int32_t json_skip_white(const char ** pointer);
-int32_t json_clear_cosmosstruc(int type, cosmosstruc *cdata);
+int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cdata);
 int32_t json_setup(cosmosstruc *cdata);
-int32_t json_setup_node(const char *node, cosmosstruc *cdata);
+int32_t json_setup_node(string node, cosmosstruc *cdata);
 int32_t json_dump_node(cosmosstruc *cdata);
 
 char *json_of_wildcard(jstring *jstring, char *wildcard, cosmosstruc *cdata);
@@ -258,7 +258,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cdata, jsonhandle *handl
 bool json_static(char* json_extended_name);
 bool json_dynamic(char* json_extended_name);
 
-int32_t node_init(const char *name, cosmosstruc *data);
+int32_t node_init(string name, cosmosstruc *data);
 int32_t node_calc(cosmosstruc *data);
 void create_databases(cosmosstruc *root);
 void load_databases(char *name, uint16_t type, cosmosstruc *root);

@@ -205,16 +205,16 @@ while(agent_running(cdata))
         if ((int)cmjd != (int)nmjd || fname[0] == 0)
 			{
             sprintf(fname,"%s/data",base);
-            COSMOS_MKDIR(fname);
-            COSMOS_MKDIR(fname);
+			COSMOS_MKDIR(fname,00777);
+			COSMOS_MKDIR(fname,00777);
             year = mjd2year(cdata->node.loc.utc);
 			iyear = (int)year;
             sprintf(fname,"%s/data/%04d",base,iyear);
-            COSMOS_MKDIR(fname);
+			COSMOS_MKDIR(fname,00777);
             day = 365.26 * (year-iyear) + 1.;
 			iday = (int)day;
             sprintf(fname,"%s/data/%04d/%03d",base,iyear,iday);
-            COSMOS_MKDIR(fname);
+			COSMOS_MKDIR(fname,00777);
             iseconds = (int)(86400.*(day-iday));
 			sprintf(fname,"%s/data/%04d/%03d/%s.%4d%03d%05d.telemetry",base,iyear,iday,cdata->node.name,iyear,iday,iseconds);
 //			sprintf(ename,"data/%04d/%03d/%s.%4d%03d%05d.event",iyear,iday,cdata->node.name,iyear,iday,iseconds);

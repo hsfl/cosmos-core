@@ -123,37 +123,11 @@ using namespace std;
  * was initiiated by some generic equation.
  */
 
+
+#define EVENT_TYPE_REQUEST 0x1001
+
 //! Physical Events
-/*
-#define EVENT_TYPE_PHYSICAL 0x1000
-//#define EVENT_TYPE_CALCULATED 0
-#define EVENT_TYPE_REQUEST 0x1001
-#define EVENT_TYPE_LATA 0x1002
-#define EVENT_TYPE_LATD 0x1003
-#define EVENT_TYPE_LATMAX 0x1004
-#define EVENT_TYPE_LATMIN 0x1005
-#define EVENT_TYPE_UMBRA 0x1006
-#define EVENT_TYPE_PENUMBRA 0x1007
-#define EVENT_TYPE_GS 0x0008
-#define EVENT_TYPE_GS5 0x0009
-#define EVENT_TYPE_GS10 0x000a
-#define EVENT_TYPE_GSMAX 0x100b
-#define EVENT_TYPE_TARG 0x100c
-#define EVENT_TYPE_TARGMIN 0x100d
-#define EVENT_TYPE_APOGEE 0x100e
-#define EVENT_TYPE_PERIGEE 0x100f
-//! Payload Events
-#define EVENT_TYPE_PAYLOAD 0x2000
-//! Command Events
-#define EVENT_TYPE_COMMAND 0x3000
-//! Log Events
-#define EVENT_TYPE_LOG 0x4000
-//! Message Events
-#define EVENT_TYPE_MESSAGE 0x5000
-*/
 
-
-#define EVENT_TYPE_REQUEST 0x1001
 
 //Physical Events
 #define EVENT_TYPE_PHYSICAL 0x1000

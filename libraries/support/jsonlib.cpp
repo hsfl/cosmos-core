@@ -2012,6 +2012,12 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cdata
 	case JSON_GROUP_PORT:
 		data = offset+(uint8_t *)cdata->port.data();
 		break;
+	case JSON_GROUP_GLOSSARY:
+		data = offset+(uint8_t *)cdata->glossary.data();
+		break;
+	case JSON_GROUP_TLE:
+		data = offset+(uint8_t *)cdata->tle.data();
+		break;
 	}
 	return (data);
 }
@@ -4034,23 +4040,37 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cdata)
 		memset(&(cdata->node),0,sizeof(nodestruc));
 		break;
 	case JSON_GROUP_EVENT:
-		memset(cdata->event.data(),0,sizeof(eventstruc));
+		memset(cdata->event.data(),0,cdata->event.size()*sizeof(eventstruc));
+		break;
+	case JSON_GROUP_PIECE:
+		memset(cdata->piece.data(),0,cdata->piece.size()*sizeof(piecestruc));
+		break;
+	case JSON_GROUP_DEVICE:
+		cdata->device.clear();
+		break;
+	case JSON_GROUP_DEVSPEC:
+		memset(&(cdata->devspec),0,sizeof(devspecstruc));
 		break;
 	case JSON_GROUP_PHYSICS:
-		//		memset(cdata->physics.data(),0,sizeof(physicsstruc));
 		memset(&(cdata->physics),0,sizeof(physicsstruc));
 		break;
 	case JSON_GROUP_AGENT:
-		memset(cdata->agent.data(),0,sizeof(agentstruc));
+		memset(cdata->agent.data(),0,cdata->agent.size()*sizeof(agentstruc));
 		break;
 	case JSON_GROUP_USER:
-		memset(cdata->user.data(),0,sizeof(userstruc));
+		memset(cdata->user.data(),0,cdata->user.size()*sizeof(userstruc));
 		break;
 	case JSON_GROUP_PORT:
-		memset(cdata->port.data(),0,sizeof(portstruc));
+		memset(cdata->port.data(),0,cdata->port.size()*sizeof(portstruc));
 		break;
 	case JSON_GROUP_TARGET:
 		memset(cdata->target.data(),0,cdata->target.size()*sizeof(targetstruc));
+		break;
+	case JSON_GROUP_GLOSSARY:
+		memset(cdata->glossary.data(),0,cdata->glossary.size()*sizeof(glossarystruc));
+		break;
+	case JSON_GROUP_TLE:
+		memset(cdata->tle.data(),0,cdata->tle.size()*sizeof(tlestruc));
 		break;
 	}
 	return 0;
@@ -4063,7 +4083,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cdata)
  *	\param cdata Pointer to cdata ::cosmosstruc.
 	\return 0, or a negative ::error
 */
-int32_t json_setup_node(const char *node, cosmosstruc *cdata)
+int32_t json_setup_node(string node, cosmosstruc *cdata)
 {
 	uint32_t i;
 	int16_t iretn;
@@ -4136,7 +4156,7 @@ int32_t json_setup_node(const char *node, cosmosstruc *cdata)
 	}
 
 	// Set Node name from directory
-	strncpy(cdata->node.name, node, COSMOS_MAX_NAME);
+	strncpy(cdata->node.name, node.c_str(), COSMOS_MAX_NAME);
 
 	// Second: enter information for pieces
 	// Resize, then add entries to map for pieces
@@ -4715,27 +4735,34 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 		json_addentry((char *)"device_gps_utc",didx,-1,(ptrdiff_t)offsetof(gpsstruc,utc)+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
 		json_addentry((char *)"device_gps_cidx",didx,-1,(ptrdiff_t)offsetof(gpsstruc,cidx)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 		json_addentry((char *)"device_gps_portidx",didx,-1,(ptrdiff_t)offsetof(gpsstruc,portidx)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_position",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position)+i*sizeof(devicestruc),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_position_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position.col[0])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_position_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position.col[1])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_position_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position.col[2])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_velocity",didx,-1,(ptrdiff_t)offsetof(gpsstruc,velocity)+i*sizeof(devicestruc),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_velocity_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,velocity.col[0])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_velocity_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,velocity.col[1])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_velocity_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,velocity.col[2])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_position_sd",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position_sd)+i*sizeof(devicestruc),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_position_sd_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position_sd.col[0])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_position_sd_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position_sd.col[1])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_position_sd_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position_sd.col[2])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_velocity_sd",didx,-1,(ptrdiff_t)offsetof(gpsstruc,velocity_sd)+i*sizeof(devicestruc),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_velocity_sd_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,velocity_sd.col[0])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_velocity_sd_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,velocity_sd.col[1])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_velocity_sd_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,velocity_sd.col[2])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-        json_addentry((char *)"device_gps_geo",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geo)+i*sizeof(devicestruc),JSON_TYPE_GVECTOR,JSON_GROUP_DEVICE,cdata);
-        json_addentry((char *)"device_gps_heading",didx,-1,(ptrdiff_t)offsetof(gpsstruc,heading)+i*sizeof(devicestruc),JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geocs",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs)+i*sizeof(devicestruc),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geocs_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs.col[0])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geocs_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs.col[1])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geocs_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs.col[2])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geocv",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv)+i*sizeof(devicestruc),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geocv_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv.col[0])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geocv_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv.col[1])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geocv_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv.col[2])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_dgeocs",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs)+i*sizeof(devicestruc),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_dgeocs_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs.col[0])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_dgeocs_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs.col[1])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_dgeocs_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs.col[2])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_dgeocv",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv)+i*sizeof(devicestruc),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_dgeocv_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv.col[0])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_dgeocv_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv.col[1])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_dgeocv_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv.col[2])+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geods",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods)+i*sizeof(devicestruc),JSON_TYPE_GVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geods_lat",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods.lat)+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geods_lon",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods.lon)+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geods_h",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods.h)+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geodv",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv)+i*sizeof(devicestruc),JSON_TYPE_GVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geodv_lat",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv.lat)+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geodv_lon",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv.lon)+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geodv_h",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv.h)+i*sizeof(devicestruc),JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_heading",didx,-1,(ptrdiff_t)offsetof(gpsstruc,heading)+i*sizeof(devicestruc),JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry((char *)"device_gps_n_sats_used",didx,-1,(ptrdiff_t)offsetof(gpsstruc,n_sats_used)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
         json_addentry((char *)"device_gps_time_status",didx,-1,(ptrdiff_t)offsetof(gpsstruc,time_status)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-        json_addentry((char *)"device_gps_position_type",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position_type)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry((char *)"device_gps_geocs_type",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position_type)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
         json_addentry((char *)"device_gps_solution_status",didx,-1,(ptrdiff_t)offsetof(gpsstruc,solution_status)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 
         cdata->devspec.gps.push_back((gpsstruc *)&cdata->device[i].gps);
@@ -5293,7 +5320,7 @@ string json_list_of_soh(cosmosstruc* cdata)
 	{
 		sprintf(tempstring, ",\"device_gps_utc_%03d\",\"device_gps_temp_%03d\"", i, i);
 		result += tempstring;
-		sprintf(tempstring, ",\"device_gps_position_%03d\",\"device_gps_velocity_%03d\",\"device_gps_position_sd_%03d\",\"device_gps_velocity_sd_%03d\"",i,i,i,i);
+		sprintf(tempstring, ",\"device_gps_geocs_%03d\",\"device_gps_geocv_%03d\",\"device_gps_dgeocs_%03d\",\"device_gps_dgeocv_%03d\"",i,i,i,i);
 		result += tempstring;
 	}
 
@@ -6259,7 +6286,7 @@ uint32_t json_get_name_list_count(cosmosstruc *cdata)
 	::nodedir. If NULL, node.ini must be in current directory.
 	\return 0, or negative error.
 */
-int32_t node_init(const char *node, cosmosstruc *cdata)
+int32_t node_init(string node, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -6631,7 +6658,7 @@ void create_databases(cosmosstruc *cdata)
 	fprintf(op,"DeviceIndex\tComponentIndex\tLatitude\tLongitude\tAltitude\tVelocityX\tVelocityY\tVelocityZ\n");
 	for (i=0; i<cdata->devspec.gps_cnt; i++)
 	{
-		fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cdata->devspec.gps[i]->cidx,cdata->devspec.gps[i]->position.col[0],cdata->devspec.gps[i]->position.col[1],cdata->devspec.gps[i]->position.col[2],cdata->devspec.gps[i]->velocity.col[0],cdata->devspec.gps[i]->velocity.col[1],cdata->devspec.gps[i]->velocity.col[2]);
+		fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cdata->devspec.gps[i]->cidx,cdata->devspec.gps[i]->geocs.col[0],cdata->devspec.gps[i]->geocs.col[1],cdata->devspec.gps[i]->geocs.col[2],cdata->devspec.gps[i]->geocv.col[0],cdata->devspec.gps[i]->geocv.col[1],cdata->devspec.gps[i]->geocv.col[2]);
 	}
 	fclose(op);
 

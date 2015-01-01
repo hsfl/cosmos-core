@@ -66,7 +66,7 @@
 //! @{
 
 void log_reopen();
-void log_write(char* node,int type,double utc, const char* data);
+void log_write(string node, int type, double utc, const char* data);
 void log_write(string node, string agent, double utc, string type, const char *data);
 void log_write(string node, string agent, double utc, string extra, string type, string record);
 void log_move(string node, string agent);
@@ -95,11 +95,11 @@ void set_nodebase(string name);
 string get_nodebase();
 string get_resdir();
 string get_nodedir();
-string get_cnodedir(const char* node);
-string set_cnodedir(const char* node);
+string get_cnodedir(string node);
+string set_cnodedir(string node);
 int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
-double findlastday(char* node);
-double findfirstday(char* node);
+double findlastday(string node);
+double findfirstday(string node);
 int32_t kml_write(cosmosstruc* cdata);
 
 //! @}
