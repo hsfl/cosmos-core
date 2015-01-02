@@ -77,13 +77,13 @@
 #include "configCosmos.h"
 #include "cosmos-errno.h"
 
-#include <cmath>
-#include <stdlib.h>
-#include <cstring>
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <stdio.h>
+//#include <cmath>
+//#include <stdlib.h>
+//#include <cstring>
+//#include <iostream>
+//#include <iomanip>
+//#include <vector>
+//#include <stdio.h>
 
 using namespace std;
 

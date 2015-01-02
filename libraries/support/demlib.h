@@ -27,12 +27,11 @@
 
 #include "configCosmos.h"
 
-#include <math.h>
-//#include <sys/types.h>
-#include <semaphore.h>
+//#include <math.h>
+//#include <semaphore.h>
 
-#include "datalib.h"
-#include "mathlib.h"
+//#include "datalib.h"
+//#include "mathlib.h"
 
 //! \ingroup demlib
 //! \defgroup demlib_constants DEM library constants

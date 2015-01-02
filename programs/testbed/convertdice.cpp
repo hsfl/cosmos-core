@@ -3,9 +3,11 @@
 #include "jsonlib.h"
 #include "datalib.h"
 #include "jsonlib.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "timelib.h"
+
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 
 //#define MMCORRECT -2.766301289e-10
 #define MMCORRECT 0.0

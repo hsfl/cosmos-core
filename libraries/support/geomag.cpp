@@ -37,11 +37,12 @@
 */
 
 #include "geomag.h"
+#include "datalib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
 
-/* The following include file must define a function 'isnan' */
+/* The following include file must define a function 'std::isnan' */
 /* This function, which returns '1' if the number is NaN and 0*/
 /* otherwise, could be hand-written if not available. */
 /* Comment out one of the two following lines, as applicable */
@@ -57,7 +58,6 @@ char geomag_introduction(float epochlowlim);
 
 static int initialized = 0;
 static char fname[100];
-//extern char resdir[MAXDIR];
 
 void geomag_front(gvector pos, double time, rvector *comp)  
 {

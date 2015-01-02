@@ -81,9 +81,9 @@
 
 #include "configCosmos.h"
 
-#include "agentdef.h"
-#include "datalib.h"
 #include "jsondef.h"
+//#include "agentdef.h"
+#include "datalib.h"
 #include "stringlib.h"
 
 //#include <stdlib.h>

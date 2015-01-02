@@ -31,12 +31,12 @@
 #include "configCosmos.h"
 
 // c++ includes
-#include <cstring>
-#include <algorithm>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sys/stat.h>
+//#include <cstring>
+//#include <algorithm>
+//#include <iostream>
+//#include <fstream>
+//#include <string>
+//#include <sys/stat.h>
 
 //! \ingroup transferlib
 //! \defgroup transferlib_constants File Transfer constants

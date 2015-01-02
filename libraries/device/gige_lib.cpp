@@ -3,6 +3,16 @@
 */
 
 #include "gige_lib.h"
+#include "timelib.h"
+#include "mathlib.h"
+#include <cstring>
+
+#ifdef COSMOS_WIN_OS
+#include <io.h>
+#else
+#include <sys/select.h>
+#include <sys/ioctl.h>
+#endif
 
 //! \ingroup gige
 //! \addtogroup sinclair_functions
@@ -30,7 +40,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 	struct sockaddr_in raddr;
 	gige_handle *handle;
 	uint8_t bufferin[GIGE_MAX_PACKET];
-	vector<agent_channel> ifaces;
+	vector<socket_channel> ifaces;
 
 	if ((handle=new (gige_handle)) == NULL) return (NULL);
 
@@ -42,7 +52,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 	if (socket_usec < (uint32_t)(1024000000/streambps)) socket_usec = (uint32_t)(1024000000/streambps);
 
 	// Open Command socket
-	if ((iretn=agent_open_socket(&handle->command, AGENT_TYPE_UDP, address, 3956, AGENT_TALK, true, socket_usec)) < 0)
+	if ((iretn=socket_open(&handle->command, SOCKET_TYPE_UDP, address, 3956, SOCKET_TALK, true, socket_usec)) < 0)
 	{
 		delete(handle);
 		return (NULL);
@@ -63,7 +73,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
     if (socket_usec < (uint32_t)(16384000000./streambps)) socket_usec = (uint32_t)(16384000000/streambps);
 
 	// Open Stream socket
-	if ((iretn=agent_open_socket(&handle->stream, AGENT_TYPE_UDP, (char *)"", 0, AGENT_LISTEN,true,socket_usec)) < 0)
+	if ((iretn=socket_open(&handle->stream, SOCKET_TYPE_UDP, (char *)"", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
 	{
 		close(handle->command.cudp);
 		return (NULL);
@@ -81,7 +91,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 
 	// Find our own IP address to send to camera
 	theirip = (uint32_t)(*(uint32_t*)&handle->command.caddr.sin_addr);
-	ifaces = agent_find_addresses(AGENT_TYPE_UDP);
+	ifaces = socket_find_addresses(SOCKET_TYPE_UDP);
 	for (uint16_t i=0; i<ifaces.size(); ++i)
 	{
 		myip = (uint32_t)(*(uint32_t*)&ifaces[i].caddr.sin_addr);
@@ -289,17 +299,17 @@ vector<gige_acknowledge_ack> gige_discover()
 {
 	int32_t nbytes;
 	vector<gige_acknowledge_ack> gige_list;
-	agent_channel tchan;
+	socket_channel tchan;
 	gige_handle handle;
 	int on = 1;
-	vector<agent_channel> ifaces;
+	vector<socket_channel> ifaces;
 
-	ifaces = agent_find_addresses(AGENT_TYPE_UDP);
+	ifaces = socket_find_addresses(SOCKET_TYPE_UDP);
 	if (!ifaces.size()) return (gige_list);
 
 	for (uint16_t i=0; i<ifaces.size(); ++i)
 	{
-		if ((agent_open_socket(&tchan, AGENT_TYPE_UDP, ifaces[i].baddress, 3956, AGENT_TALK, true, 100000)) < 0) return (gige_list);
+		if ((socket_open(&tchan, SOCKET_TYPE_UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
 
 		if ((setsockopt(tchan.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
 		{

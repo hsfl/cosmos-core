@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     // Initialization stuff
     if (argc > 1)
     {
-        if (!(cosmos_data=agent_setup_server(AGENT_TYPE_UDP,nodename,agentname,1.,0,MAXBUFFERSIZE,(bool)false)))
+        if (!(cosmos_data=agent_setup_server(SOCKET_TYPE_UDP,nodename,agentname,1.,0,MAXBUFFERSIZE,(bool)false)))
         {
             printf("Failed to open [%s:%s]\n",nodename,agentname);
             exit (1);
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        if (!(cosmos_data=agent_setup_server(AGENT_TYPE_UDP,NULL,agentname,1.,0,MAXBUFFERSIZE,(bool)false)))
+        if (!(cosmos_data=agent_setup_server(SOCKET_TYPE_UDP,NULL,agentname,1.,0,MAXBUFFERSIZE,(bool)false)))
         {
             printf("Failed to open [null:%s]\n",agentname);
             exit (1);

@@ -3,6 +3,7 @@
 
 #include "gs232b_lib.h"
 #include <cstring>
+#include <cmath>
 
 /**
 * Internal descriptor for cssl serial control of GS-232B.

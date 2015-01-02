@@ -7,12 +7,12 @@
 
 #include "configCosmos.h"
 
-#include "convertdef.h"
+//#include "convertdef.h"
 
-#include <fcntl.h>
-#include <math.h>
-#include <time.h>
-#include <errno.h>
+//#include <fcntl.h>
+//#include <math.h>
+//#include <time.h>
+//#include <errno.h>
 
 //! \ingroup physicslib
 //! \defgroup physicslib_constants Physics constants

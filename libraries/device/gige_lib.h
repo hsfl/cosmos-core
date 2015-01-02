@@ -2,21 +2,7 @@
 #define _GIGE_H 1
 
 #include "configCosmos.h"
-#include "mathlib.h"
-#include "agentlib.h"
-#include <cstring>
-
-#ifdef COSMOS_WIN_OS
-#include <io.h>
-#else
-#include <sys/select.h>
-//#include <sys/socket.h>
-#include <sys/ioctl.h>
-//#include <net/if.h>
-//#include <arpa/inet.h>
-//#include <netinet/in.h>
-//#include <netdb.h>
-#endif
+#include "socketlib.h"
 
 /*! \file gige_lib.cpp
 *	\brief gige_lib include file.
@@ -318,9 +304,9 @@ typedef uint32_t gige_count;
 typedef struct
 {
 	//! Command channel
-	agent_channel command;
+	socket_channel command;
 	//! Stream channel
-	agent_channel stream;
+	socket_channel stream;
 	//! Camera Control Channel input buffer
 	union
 	{

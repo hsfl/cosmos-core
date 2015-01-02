@@ -1,5 +1,6 @@
 #include "mathlib.h"
-#include <stdio.h>
+#include <cstdio>
+#include <cmath>
 
 int main(int argc, char *argv[])
 {

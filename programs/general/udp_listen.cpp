@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	char logstring[AGENTMAXBUFFER-20];
 
     // Variables: Packet Reception: Data handling
-    agent_channel chan; // Agent UDP Channel Sructure
+    socket_channel chan; // Agent UDP Channel Sructure
     unsigned int fromlen; // UDP receive from "fromlen" parameter
     int received; // Num bytes received per UDP packet
     uint8_t buf1[BUFSIZE]; // RX Buffer
@@ -86,14 +86,14 @@ int main(int argc, char *argv[])
 
 
     // Begin Program, Initialize Socket, Blocking, Timeout set for 1 second
-    if ((iretn=agent_open_socket(&chan, AGENT_TYPE_UDP, address, port, AGENT_LISTEN, AGENT_BLOCKING, 1000000)) < 0)
+    if ((iretn=socket_open(&chan, SOCKET_TYPE_UDP, address, port, AGENT_LISTEN, AGENT_BLOCKING, 1000000)) < 0)
     {
         printf("Err: Unable to open connection to [%s:%d]\n",address,port);
     } else {
         printf("Netperf Listen is now listening on port %d...\n\n",port);
     }
 
-	cdata = agent_setup_server(AGENT_TYPE_UDP,(char *)"nps",(char *)"udp", 1., 0, AGENTMAXBUFFER);
+	cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)"nps",(char *)"udp", 1., 0, AGENTMAXBUFFER);
 
 	// Create default logstring
 	strcpy(logstring,json_of_soh(&jjstring,cdata));

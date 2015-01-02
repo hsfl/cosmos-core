@@ -2,13 +2,9 @@
 
 #include "demlib.h"
 #include "timelib.h"
-//#include <stdlib.h>
-//#include <cstring>
+#include "datalib.h"
 #include <dirent.h>
-//#include <sys/types.h>
 #include <sys/stat.h>
-//#include <unistd.h>
-//#include <stdio.h>
 
 map_dem_body *bodies[20] = {NULL};
 char bodynames[20][15] = {"mercury","venus","earth","mars","jupiter","saturn","uranus","neptune","pluto","moon","sun","near","","","","","","","",""};
@@ -313,7 +309,7 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 			return (pixel);
 	}
 
-	if (isnan(lat) || isnan(lon) || lat<-DPI2 || lat>DPI || lon<-DPI || lon>DPI)
+	if (std::isnan(lat) || std::isnan(lon) || lat<-DPI2 || lat>DPI || lon<-DPI || lon>DPI)
 		return (pixel);
 
 	if (bodies[body-1] == NULL)

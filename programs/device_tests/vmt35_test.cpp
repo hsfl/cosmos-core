@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 	switch (argc)
 	{
 	case 2:
-		if (!(cdata=agent_setup_client(AGENT_TYPE_UDP, argv[1], 1000)))
+		if (!(cdata=agent_setup_client(SOCKET_TYPE_UDP, argv[1], 1000)))
 		{
 			printf("Couldn't establish client\n");
 			exit (-1);

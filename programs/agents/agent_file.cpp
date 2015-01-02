@@ -15,13 +15,17 @@
 #include "agentlib.h"
 #include "jsonlib.h"
 #include "transferlib.h"
+#include "sliplib.h"
 
+#include <algorithm>
 #include <cstring>
 #include <time.h>
 #include <iostream>
-#include <sstream>
+#include <fstream>
+//#include <sstream>
 #include <string>
 #include <dirent.h>
+#include <sys/stat.h>
 
 #define TRANSFER_QUEUE_SIZE 256
 #define MAXBUFFERSIZE 1024
@@ -47,7 +51,7 @@ uint16_t use_channel = 0;
 /** the (global) structure of sending channels */
 typedef struct
 {
-	agent_channel sendchan;
+	socket_channel sendchan;
 	string destination_ip;
 	PACKET_CHUNK_SIZE_TYPE packet_size;
 	uint32_t throughput;
@@ -66,7 +70,7 @@ typedef struct
 queue<transmit_queue_entry> transmit_queue;
 condition_variable transmit_queue_check;
 
-agent_channel recvchan;
+socket_channel recvchan;
 
 //Send and receive thread info
 void send_loop();
@@ -132,7 +136,7 @@ PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
 void transmit_loop();
 double queuesendto(string type, uint16_t channel, vector<PACKET_BYTE> packet);
 int32_t mysendto(string type, sendchannelstruc& channel, vector<PACKET_BYTE>& buf);
-int32_t myrecvfrom(string type, agent_channel channel, vector<PACKET_BYTE>& buf, uint32_t length);
+int32_t myrecvfrom(string type, socket_channel channel, vector<PACKET_BYTE>& buf, uint32_t length);
 void debug_packet(vector<PACKET_BYTE> buf, string type);
 int32_t write_meta(tx_progress& tx);
 int32_t read_meta(tx_progress& tx);
@@ -182,7 +186,7 @@ int main(int argc, char *argv[])
 	printf("- Setting up server...");
 	fflush(stdout);
 
-	if ((cosmos_data=agent_setup_server(AGENT_TYPE_UDP, NULL, agentname.c_str(), 1., 0, AGENTMAXBUFFER,false)) == NULL)
+	if ((cosmos_data=agent_setup_server(SOCKET_TYPE_UDP, NULL, agentname.c_str(), 1., 0, AGENTMAXBUFFER,false)) == NULL)
 	{
 		printf("- Could not setup server... exiting.\n\n");
 		exit (-1);
@@ -196,7 +200,7 @@ int main(int argc, char *argv[])
 
 	int32_t iretn;
 
-	if((iretn = agent_open_socket(&recvchan, AGENT_TYPE_UDP, (char *)"", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, 5000000)) < 0)
+	if((iretn = socket_open(&recvchan, SOCKET_TYPE_UDP, (char *)"", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, 5000000)) < 0)
 	{
 		cout << "iretn = " << iretn <<endl;
 		printf("- Could not successfully open recv socket... exiting \n");
@@ -208,7 +212,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	for (uint16_t i=0; i<send_channels; ++i)
 	{
-		if((iretn = agent_open_socket(&send_channel[i].sendchan, AGENT_TYPE_UDP, send_channel[i].destination_ip.c_str(), AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
+		if((iretn = socket_open(&send_channel[i].sendchan, SOCKET_TYPE_UDP, send_channel[i].destination_ip.c_str(), AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
 		{
 			cout << "iretn = " << iretn <<endl;
 			printf("- Could not successfully open send socket %s at size %u ... exiting \n", send_channel[i].destination_ip.c_str(), send_channel[i].packet_size);
@@ -1127,7 +1131,7 @@ int32_t mysendto(string type, sendchannelstruc& channel, vector<PACKET_BYTE>& bu
 	return iretn;
 }
 
-int32_t myrecvfrom(string type, agent_channel channel, vector<PACKET_BYTE>& buf, uint32_t length)
+int32_t myrecvfrom(string type, socket_channel channel, vector<PACKET_BYTE>& buf, uint32_t length)
 {
 	int32_t nbytes;
 

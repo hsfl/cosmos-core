@@ -1,9 +1,11 @@
 #include "physicslib.h"
-#include <math.h>
-#include <stdio.h>
-#include <sys/time.h>
-#include <time.h>
-#include <cstring>
+#include "timelib.h"
+#include "datalib.h"
+//#include <math.h>
+//#include <stdio.h>
+//#include <sys/time.h>
+//#include <time.h>
+//#include <cstring>
 
 #define MAXDEGREE 360
 #define ASTEP 1
@@ -944,7 +946,7 @@ void simulate_hardware(cosmosstruc *cdata, locstruc *loc)
 
 	geov = loc->pos.geoc.v;
 	speed = geov.col[0]*geov.col[0]+geov.col[1]*geov.col[1]+geov.col[2]*geov.col[2];
-	if (loc->pos.geod.s.h < 10000. || isnan(loc->pos.geod.s.h))
+	if (loc->pos.geod.s.h < 10000. || std::isnan(loc->pos.geod.s.h))
 		density = 1.225;
 	else
 		density = 1000. * msis00_density(loc->pos,150.,150.,3.);
@@ -1530,7 +1532,7 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
 
 	loc->pos.eci.pass++;
 	pos_eci(loc);
-	if (isnan(loc->pos.eci.a.col[0]))
+	if (std::isnan(loc->pos.eci.a.col[0]))
 		loc->pos.eci.a.col[0] = 0.;
 }
 

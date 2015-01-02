@@ -218,4 +218,8 @@ using namespace std;
 #define PHYSICS_MODE_LVLH 1
 #define PHYSICS_MODE_SURFACE 2
 //! @}
+
+//! COSMOS heartbeat Multicast address
+#define COSMOSMCAST "225.1.1.1"
+
 #endif

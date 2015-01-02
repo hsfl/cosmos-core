@@ -5,11 +5,11 @@
 #include "configCosmos.h"
 #include "jsonlib.h"
 #include "convertlib.h"
+#include "timelib.h"
 
 #include <sys/stat.h>
 #include <iostream>
 #include <limits>
-#include <iostream>
 #include <fstream>
 
 char comp_type_string[DEVICE_TYPE_COUNT][10]={
@@ -2490,13 +2490,13 @@ double json_get_double_name(string token, cosmosstruc *cdata)
 	jsonentry *ptr;
 	const char* tokenp = &token[0];
 
-	if (!isnan(value=json_equation(&tokenp, cdata)))
+	if (!std::isnan(value=json_equation(&tokenp, cdata)))
 		return (value);
 
 	if ((ptr=json_entry_of_name(token,cdata)) == NULL)
 		return (NAN);
 
-	if (!isnan(value=json_get_double_entry(ptr, cdata)))
+	if (!std::isnan(value=json_get_double_entry(ptr, cdata)))
 		return (value);
 
 	return (NAN);
@@ -3446,7 +3446,7 @@ int32_t json_parse_value(const char **pointer, uint8_t type, ptrdiff_t offset, u
 	switch (type)
 	{
 	case JSON_TYPE_UINT16:
-		if (isnan(val=json_equation(pointer,cdata)))
+		if (std::isnan(val=json_equation(pointer,cdata)))
 		{
 			if ((iretn = json_parse_number(pointer,&val)) < 0)
 				return (iretn);
@@ -3454,7 +3454,7 @@ int32_t json_parse_value(const char **pointer, uint8_t type, ptrdiff_t offset, u
 		*(uint16_t *)data = (uint16_t)val;
 		break;
 	case JSON_TYPE_UINT32:
-		if (isnan(val=json_equation(pointer,cdata)))
+		if (std::isnan(val=json_equation(pointer,cdata)))
 		{
 			if ((iretn = json_parse_number(pointer,&val)) < 0)
 				return (iretn);
@@ -3462,7 +3462,7 @@ int32_t json_parse_value(const char **pointer, uint8_t type, ptrdiff_t offset, u
 		*(uint32_t *)data = (uint32_t)val;
 		break;
 	case JSON_TYPE_INT16:
-		if (isnan(val=json_equation(pointer,cdata)))
+		if (std::isnan(val=json_equation(pointer,cdata)))
 		{
 			if ((iretn = json_parse_number(pointer,&val)) < 0)
 				return (iretn);
@@ -3470,7 +3470,7 @@ int32_t json_parse_value(const char **pointer, uint8_t type, ptrdiff_t offset, u
 		*(int16_t *)data = (int16_t)val;
 		break;
 	case JSON_TYPE_INT32:
-		if (isnan(val=json_equation(pointer,cdata)))
+		if (std::isnan(val=json_equation(pointer,cdata)))
 		{
 			if ((iretn = json_parse_number(pointer,&val)) < 0)
 				return (iretn);
@@ -3478,7 +3478,7 @@ int32_t json_parse_value(const char **pointer, uint8_t type, ptrdiff_t offset, u
 		*(int32_t *)data = (int32_t)val;
 		break;
 	case JSON_TYPE_FLOAT:
-		if (isnan(val=json_equation(pointer,cdata)))
+		if (std::isnan(val=json_equation(pointer,cdata)))
 		{
 			if ((iretn = json_parse_number(pointer,&val)) < 0)
 				return (iretn);
@@ -3486,7 +3486,7 @@ int32_t json_parse_value(const char **pointer, uint8_t type, ptrdiff_t offset, u
 		*(float *)data = (float)val;
 		break;
 	case JSON_TYPE_TIMESTAMP:
-		if (isnan(val=json_equation(pointer,cdata)))
+		if (std::isnan(val=json_equation(pointer,cdata)))
 		{
 			if ((iretn = json_parse_number(pointer,&val)) < 0)
 				return (iretn);
@@ -3494,7 +3494,7 @@ int32_t json_parse_value(const char **pointer, uint8_t type, ptrdiff_t offset, u
 		*(double *)data = (double)val;
 		break;
 	case JSON_TYPE_DOUBLE:
-		if (isnan(val=json_equation(pointer,cdata)))
+		if (std::isnan(val=json_equation(pointer,cdata)))
 		{
 			if ((iretn = json_parse_number(pointer,&val)) < 0)
 				return (iretn);
@@ -7199,7 +7199,7 @@ uint32_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cdata, ve
 	events.resize(0);
 	for (uint32_t k=0; k<dictionary.size(); ++k)
 	{
-		if (!isnan(value=json_equation_handle(&dictionary[k].handle, cdata)) && value != 0. && dictionary[k].value == 0.)
+		if (!std::isnan(value=json_equation_handle(&dictionary[k].handle, cdata)) && value != 0. && dictionary[k].value == 0.)
 		{
 			dictionary[k].utc = cdata->node.loc.utc;
 			events.push_back(dictionary[k]);

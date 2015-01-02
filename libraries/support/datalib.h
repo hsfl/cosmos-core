@@ -2,16 +2,17 @@
 #define _DATALIB_H 1
 
 #include "configCosmos.h"
-#include "cosmos-errno.h"
+//#include "cosmos-errno.h"
 #include "datadef.h"
 #include "jsondef.h"
+//#include "timelib.h"
 
-#include <stdio.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <iostream>
-#include <fstream>
+//#include <stdio.h>
+//#include <dirent.h>
+//#include <unistd.h>
+//#include <sys/stat.h>
+//#include <iostream>
+//#include <fstream>
 
 /*! \file datalib.h
 *	\brief Data Management header file

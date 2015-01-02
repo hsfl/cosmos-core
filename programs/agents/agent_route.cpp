@@ -8,14 +8,14 @@ char agentname[COSMOS_MAX_NAME] = "route";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
 cosmosstruc *cdata;
-agent_channel rcvchan;
+socket_channel rcvchan;
 
 #define MAXBUFFERSIZE 2560 // comm buffer for agents
 
 int main(int argc, char *argv[])
 {
 	// Initialize the Agent
-	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,(char *)NULL,(char *)"route",1.,0,MAXBUFFERSIZE,AGENT_SINGLE)))
+	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)NULL,(char *)"route",1.,0,MAXBUFFERSIZE,AGENT_SINGLE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}

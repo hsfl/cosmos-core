@@ -5,6 +5,7 @@
 #include "datalib.h"
 #include "jsonlib.h"
 #include "zlib/zlib.h"
+#include "timelib.h"
 
 #include <stdio.h>
 //#ifdef COSMOS_WIN_BUILD_MSVC
@@ -659,11 +660,7 @@ FILE *data_open(string path, char *mode)
 			{
 				strncpy(dtemp, path.c_str(), index+1);
 				dtemp[index+1] = 0;
-#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-				if (mkdir(dtemp,00777))
-#else
-                if (COSMOS_MKDIR(dtemp))
-#endif
+				if (COSMOS_MKDIR(dtemp, 00777))
 				{
 					if (errno != EEXIST)
 						return (NULL);

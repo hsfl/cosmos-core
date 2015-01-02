@@ -32,7 +32,12 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
     {
         wVersionRequested = MAKEWORD( 1, 1 );
         iretn = WSAStartup( wVersionRequested, &wsaData );
-    }
+		if (iretn != 0)
+		{
+			return SOCKET_ERROR_OPEN;
+		}
+		started = true;
+	}
 #endif
 
 	switch (ntype)
@@ -340,7 +345,7 @@ int32_t socket_blocking(socket_channel *channel, bool blocking)
 {
 	int32_t iretn;
 
-	if (blocking == AGENT_NONBLOCKING)
+	if (blocking == SOCKET_NONBLOCKING)
 	{
 		iretn = 0;
 #ifdef COSMOS_WIN_OS
@@ -404,4 +409,164 @@ int32_t socket_close(socket_channel *channel)
 		}
 #endif
 	return iretn;
+}
+
+//! Discover interfaces
+/*! Return a vector of ::socket_channel containing info on each valid interface. For IPV4 this
+ *	will include the address and broadcast address, in both string sockaddr_in format.
+	\param ntype Type of network (Multicast, Broadcast UDP, CSP)
+	\return Vector of interfaces
+	*/
+vector<socket_channel> socket_find_addresses(uint16_t ntype)
+{
+	vector<socket_channel> iface;
+	socket_channel tiface;
+
+#ifdef COSMOS_WIN_OS
+	struct sockaddr_storage ss;
+	int sslen;
+	INTERFACE_INFO ilist[20];
+	unsigned long nbytes;
+	uint32_t nif, ssize;
+	uint32_t ip, net, bcast;
+#else
+	struct ifconf confa;
+	struct ifreq *ifra;
+	char data[512];
+#endif // COSMOS_WIN_OS
+	int32_t iretn;
+	int on = 1;
+	int32_t cudp;
+
+	switch (ntype)
+	{
+	case SOCKET_TYPE_MULTICAST:
+	case SOCKET_TYPE_UDP:
+		if ((cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+		{
+			return (iface);
+		}
+
+		// Use above socket to find available interfaces and establish
+		// publication on each.
+#ifdef COSMOS_WIN_OS
+		if (WSAIoctl(cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+		{
+			CLOSE_SOCKET(cudp);
+			return (iface);
+		}
+
+		nif = nbytes / sizeof(INTERFACE_INFO);
+		PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+		PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+		pAddresses = (IP_ADAPTER_ADDRESSES *) calloc(sizeof(IP_ADAPTER_ADDRESSES), 2*nif);
+		ULONG outBufLen = sizeof(IP_ADAPTER_ADDRESSES) * 2 * nif;
+		DWORD dwRetVal;
+		if ((dwRetVal=GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen)) == ERROR_BUFFER_OVERFLOW)
+		{
+			free(pAddresses);
+			return (iface);
+		}
+
+		for (uint32_t i=0; i<nif; i++)
+		{
+			strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+			if (!strcmp(tiface.address,"127.0.0.1"))
+			{
+				continue;
+			}
+
+			pCurrAddresses = pAddresses;
+			while (pAddresses)
+			{
+				if (((struct sockaddr_in *)(pCurrAddresses->FirstUnicastAddress->Address.lpSockaddr))->sin_addr.s_addr == ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.s_addr)
+				{
+					strcpy(tiface.name, pCurrAddresses->AdapterName);
+					break;
+				}
+				pCurrAddresses = pCurrAddresses->Next;
+			}
+			memset(&tiface.caddr,0,sizeof(struct sockaddr_in));
+			memset(&tiface.baddr,0,sizeof(struct sockaddr_in));
+			tiface.caddr.sin_family = AF_INET;
+			tiface.baddr.sin_family = AF_INET;
+			if (ntype == SOCKET_TYPE_MULTICAST)
+			{
+				sslen = sizeof(ss);
+				WSAStringToAddressA((char *)COSMOSMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+				tiface.caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+				tiface.baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+			}
+			else
+			{
+				if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+				{
+					continue;
+				}
+				ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
+				net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
+				bcast = ip | (~net);
+
+				tiface.caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+				tiface.caddr.sin_addr.S_un.S_addr = ip;
+				tiface.baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+				tiface.baddr.sin_addr.S_un.S_addr = bcast;
+			}
+			((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
+			ssize = strlen(tiface.address);
+			WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
+			ssize = strlen(tiface.baddress);
+			WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
+			tiface.type = ntype;
+			iface.push_back(tiface);
+		}
+#else
+		confa.ifc_len = sizeof(data);
+		confa.ifc_buf = (caddr_t)data;
+		if (ioctl(cudp,SIOCGIFCONF,&confa) < 0)
+		{
+			CLOSE_SOCKET(cudp);
+			return (iface);
+		}
+		// Use result to discover interfaces.
+		ifra = confa.ifc_req;
+		for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
+		{
+			if (ifra->ifr_addr.sa_family != AF_INET) continue;
+			inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
+
+			if (ioctl(cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+
+			if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0) continue;
+
+			if (ntype == SOCKET_TYPE_MULTICAST)
+			{
+				inet_pton(AF_INET,COSMOSMCAST,&tiface.caddr.sin_addr);\
+				strcpy(tiface.baddress, COSMOSMCAST);
+				inet_pton(AF_INET,COSMOSMCAST,&tiface.baddr.sin_addr);\
+			}
+			else
+			{
+				if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+				{
+					continue;
+				}
+
+				strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
+				if (ioctl(cudp,SIOCGIFBRDADDR,(char *)ifra) < 0) continue;
+				memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
+				if (ioctl(cudp,SIOCGIFADDR,(char *)ifra) < 0) continue;
+				memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+				inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
+			}
+			tiface.type = ntype;
+			iface.push_back(tiface);
+		}
+
+#endif // COSMOS_WIN_OS
+
+		break;
+	}
+
+	return (iface);
 }
