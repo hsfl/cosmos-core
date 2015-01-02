@@ -2,13 +2,7 @@
     \brief Agent support functions
 */
 
-#include "configCosmos.h"
-
 #include "agentlib.h"
-#include "jsonlib.h"
-#include "elapsedtime.hpp"
-#include <errno.h>
-
 
 #ifndef _SIZEOF_ADDR_IFREQ
 #define _SIZEOF_ADDR_IFREQ sizeof
@@ -510,7 +504,7 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, 
 int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float waitsec, beatstruc *rbeat)
 {
     beatstruc cbeat;
-    struct timeval tv, ltv;
+    //    struct timeval tv, ltv;
 
     //! 3. Loop for ::waitsec seconds, filling list with any discovered heartbeats.
 
@@ -526,20 +520,18 @@ int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float wai
     {
         cbeat = agent_poll_beat(cdata, 1);
 
-			if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
-			{
-				if (rbeat != NULL)
-					*rbeat = cbeat;
-				return (1);
-			}
-		}
+        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
+        {
+            if (rbeat != NULL)
+                *rbeat = cbeat;
+            return (1);
+        }
 
-            if (!strcmp(cbeat.proc,name) && !strcmp(cbeat.node,node))
-            {
-                if (rbeat != NULL)
-                    *rbeat = cbeat;
-                return (1);
-            }
+        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
+        {
+            if (rbeat != NULL)
+                *rbeat = cbeat;
+            return (1);
         }
 
         //gettimeofday(&tv,NULL);
@@ -604,15 +596,15 @@ vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec)
 {
     beatstruc cbeat, tbeat;
     uint32_t i, j;
-    struct timeval tv, ltv;
+    //    struct timeval tv, ltv;
 
     //! Loop for ::waitsec seconds, filling list with any discovered heartbeats.
 
-//    gettimeofday(&ltv,NULL);
+    //    gettimeofday(&ltv,NULL);
 
-//    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
-//    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
-//    ltv.tv_usec = ltv.tv_usec % 1000000;
+    //    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
+    //    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
+    //    ltv.tv_usec = ltv.tv_usec % 1000000;
 
     ElapsedTime ep;
     ep.start();
@@ -687,9 +679,9 @@ cosmosstruc *agent_get_cosmosstruc(cosmosstruc *cdata)
  */
 void heartbeat_loop(cosmosstruc *cdata)
 {
-    double cmjd, nmjd;
-    unsigned long usec;
-    struct timeval mytime;
+    //    double cmjd, nmjd;
+    //    unsigned long usec;
+    //    struct timeval mytime;
 
     // double precission is 15 digits of accuracy so we're subtracting
     // a big number to maitain accuracy
@@ -1381,7 +1373,7 @@ int32_t agent_unsubscribe(cosmosstruc *cdata)
 */
 int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float waitsec)
 {
-    struct timeval tv, ltv;
+    //    struct timeval tv, ltv;
     //	struct sockaddr_in raddr;
     //	int addrlen;
     int nbytes;
@@ -1390,12 +1382,12 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
     if (!cdata->agent[0].sub.cport)
         return (AGENT_ERROR_CHANNEL);
 
-//    gettimeofday(&ltv,NULL);
+    //    gettimeofday(&ltv,NULL);
 
-//    //	addrlen = sizeof(raddr);
-//    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
-//    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
-//    ltv.tv_usec = ltv.tv_usec % 1000000;
+    //    //	addrlen = sizeof(raddr);
+    //    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
+    //    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
+    //    ltv.tv_usec = ltv.tv_usec % 1000000;
 
     ElapsedTime ep;
     ep.start();

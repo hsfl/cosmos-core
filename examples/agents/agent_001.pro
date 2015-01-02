@@ -12,5 +12,8 @@ QMAKE_CXXFLAGS += -std=c++0x -pthread
 
 include( $$COSMOS/core/qt/cosmos.pri )
 
+MODULES += POCO
+include( $$COSMOS/thirdparty/thirdparty.pri )
+
 SOURCES += agent_001.cpp
 

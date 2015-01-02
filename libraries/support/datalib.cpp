@@ -3,18 +3,6 @@
 */
 
 #include "datalib.h"
-#include "jsonlib.h"
-#include "zlib/zlib.h"
-
-#include <stdio.h>
-//#ifdef COSMOS_WIN_BUILD_MSVC
-//#include <filesystem> // it is being proposed for standardization for C++
-//#elif
-#include <dirent.h>
-//#endif
-#include <sys/stat.h>
-#include <iostream>
-#include <fstream>
 
 //! \ingroup datalib
 //! \defgroup datalib_statics Static variables for Data functions.

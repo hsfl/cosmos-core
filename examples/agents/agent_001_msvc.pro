@@ -65,11 +65,21 @@ INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty
 SOURCES         += $$files($$COSMOS/core/libraries/thirdparty/zlib/*.c)
 HEADERS         += $$files($$COSMOS/core/libraries/thirdparty/zlib/*.h)
 
-INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty/dirent
-SOURCES         += $$files($$COSMOS/core/libraries/thirdparty/dirent/*.c)
-HEADERS         += $$files($$COSMOS/core/libraries/thirdparty/dirent/*.h)
 
-#SOURCES += $$COSMOS_CORE/programs/agents/agent_soh.cpp
+contains(QMAKE_CC, cl){
+    # Visual Studio
+    message("Compiler: Visual Studio")
+    #CONFIG += precompile_header
 
-#LIBS += -lpthread -lwsock32 -lwinmm -lws2_32 -liphlpapi
-LIBS += -lws2_32 -lwsock32 -liphlpapi
+    win32{
+    INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty/dirent
+    SOURCES         += $$files($$COSMOS/core/libraries/thirdparty/dirent/*.c)
+    HEADERS         += $$files($$COSMOS/core/libraries/thirdparty/dirent/*.h)
+    }
+    #SOURCES += $$COSMOS_CORE/programs/agents/agent_soh.cpp
+
+    #LIBS += -lpthread -lwsock32 -lwinmm -lws2_32 -liphlpapi
+    LIBS += -lws2_32 -lwsock32 -liphlpapi
+
+}
+

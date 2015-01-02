@@ -1,17 +1,28 @@
 #ifndef _DATALIB_H
 #define _DATALIB_H 1
 
+// COSMOS libs
 #include "configCosmos.h"
 #include "cosmos-errno.h"
 #include "datadef.h"
 #include "jsondef.h"
+#include "jsonlib.h"
+#include "zlib/zlib.h"
+#include "timelib.h"
 
+// C libs
 #include <stdio.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <iostream>
 #include <fstream>
+//#ifdef COSMOS_WIN_BUILD_MSVC
+//#include <filesystem> // it is being proposed for standardization for C++
+//#elif
+#include <dirent.h>
+//#endif
+
 
 /*! \file datalib.h
 *	\brief Data Management header file

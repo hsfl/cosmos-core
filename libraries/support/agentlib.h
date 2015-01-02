@@ -50,6 +50,11 @@
 #include "jsondef.h"
 #include "sliplib.h"
 #include "socketlib.h"
+#include "jsonlib.h"
+#include "elapsedtime.hpp"
+
+#include <cstring>
+#include <errno.h>
 
 #if !defined(COSMOS_WIN_OS)
 #include <sys/select.h>
