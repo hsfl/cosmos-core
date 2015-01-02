@@ -17,7 +17,7 @@ char ibuf[AGENTMAXBUFFER];
 
 int myagent();
 
-int ntype = AGENT_TYPE_UDP;
+int ntype = SOCKET_TYPE_UDP;
 int waitsec = 5;
 jstring reqjstring={0,0,0};
 jstring myjstring={0,0,0};

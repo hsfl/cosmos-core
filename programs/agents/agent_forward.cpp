@@ -9,15 +9,15 @@ char agentname[COSMOS_MAX_NAME] = "forward";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
 cosmosstruc *cdata;
-agent_channel rcvchan;
+socket_channel rcvchan;
 
 #define MAXBUFFERSIZE 2560 // comm buffer for agents
 
 int main(int argc, char *argv[])
 {
 	int32_t iretn;
-	agent_channel tempchan;
-	vector<agent_channel> sendchan;
+	socket_channel tempchan;
+	vector<socket_channel> sendchan;
 
 	if (argc < 2)
 	{
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,(char *)NULL,(char *)"forward",1.,AGENTRECVPORT,MAXBUFFERSIZE,AGENT_SINGLE)))
+	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)NULL,(char *)"forward",1.,AGENTRECVPORT,MAXBUFFERSIZE,AGENT_SINGLE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
@@ -34,14 +34,14 @@ int main(int argc, char *argv[])
 	// Open sockets to each address to be used for outgoing forwarding.
 	for (uint16_t i=1; i<argc; ++i)
 	{
-		if ((iretn=agent_open_socket(&tempchan, AGENT_TYPE_UDP, argv[i], AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) == 0)
+		if ((iretn=socket_open(&tempchan, SOCKET_TYPE_UDP, argv[i], AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) == 0)
 		{
 			sendchan.push_back(tempchan);
 		}
 	}
 
 	// Open the socket for incoming forwarding.
-	if ((iretn=agent_open_socket(&rcvchan, AGENT_TYPE_UDP, "", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, AGENTRCVTIMEO)) != 0)
+	if ((iretn=socket_open(&rcvchan, SOCKET_TYPE_UDP, "", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, AGENTRCVTIMEO)) != 0)
 	{
 		for (uint16_t i=0; i<sendchan.size(); ++i)
 		{

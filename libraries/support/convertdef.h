@@ -13,11 +13,11 @@
 //#include "jpleph.h"
 //#include "timelib.h"
 
-#include <cmath>
-#include <ctime>
-#include <cerrno>
-#include <cstring>
-#include <iostream>
+//#include <cmath>
+//#include <ctime>
+//#include <cerrno>
+//#include <cstring>
+//#include <iostream>
 using namespace std;
 
 //! \ingroup convertlib

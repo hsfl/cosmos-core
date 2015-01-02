@@ -1,12 +1,12 @@
 #include "configCosmos.h"
-#include "agentlib.h"
+#include "socketlib.h"
 
 int main (int argc, const char* argv[])
 {
 
-	vector<agent_channel> interfaces;
+	vector<socket_channel> interfaces;
 
-	interfaces = agent_find_addresses(AGENT_TYPE_UDP);
+	interfaces = socket_find_addresses(SOCKET_TYPE_UDP);
 
 	for (uint16_t i=0; i<interfaces.size(); ++i)
 	{

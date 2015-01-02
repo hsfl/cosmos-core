@@ -1,15 +1,4 @@
 #include "configCosmos.h"
-//#include <stdint.h>
-//#include <stdlib.h>
-//#include <stdio.h>
-//#include <unistd.h>
-
-//struct callocs
-//{
-//	int32_t count;
-//	void *ptr[10000];
-//	size_t size[10000];
-//} callocs = {0,{0},{0}};
 
 ////! JSON Name Space array.
 //void *zalloc(size_t nmemb, size_t size)

@@ -6,8 +6,8 @@
 */
 
 #include "configCosmos.h"
-#include <cstring>
-#include <string>
+//#include <cstring>
+//#include <string>
 
 //! \ingroup datalib
 //! \defgroup datalib_constants Data Management support library contants

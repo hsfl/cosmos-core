@@ -25,11 +25,8 @@
 #include "configCosmos.h"
 
 #include "mathlib.h"
-#include "convertdef.h"
-#include "convertlib.h"
-#include "timeutils.hpp"
+//#include "timeutils.hpp"
 
-//#include <math.h>
 #include <cmath>
 #include <time.h>
 #include <errno.h>

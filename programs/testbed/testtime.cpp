@@ -1,8 +1,10 @@
 #include "timelib.h"
 #include "convertlib.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "datalib.h"
+
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 
 int main(int argc, char *argv[])
 {

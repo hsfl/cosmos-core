@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
 	int32_t iretn;
 	uint16_t count=0;
-	agent_channel chan;
+	socket_channel chan;
 	uint8_t buf1[10000];
 	char buf2[10000];
 	int32_t lsleep;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	if ((iretn=agent_open_socket(&chan, AGENT_TYPE_UDP, address, 6101, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
+	if ((iretn=socket_open(&chan, SOCKET_TYPE_UDP, address, 6101, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
 	{
 		printf("Unable to open connection to [%s:6101]\n",address);
 	}

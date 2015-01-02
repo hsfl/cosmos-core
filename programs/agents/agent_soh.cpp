@@ -15,8 +15,10 @@
 #include <sys/stat.h>
 //#include "beacon.h"
 
+#include <iostream>
+
 #define SOH_STATE_OPEN 0
-#define NTYPE AGENT_TYPE_UDP
+#define NTYPE SOCKET_TYPE_UDP
 
 int32_t request_reopen(char* request, char* output, void *cdata);
 int32_t request_set_logperiod(char* request, char* output, void *cdata);
@@ -28,7 +30,7 @@ int32_t request_set_logstride(char* request, char* output, void *cdata);
 jstring jjstring={0,0,0};
 jstring myjstring={0,0,0};
 
-int ntype = AGENT_TYPE_UDP;
+int ntype = SOCKET_TYPE_UDP;
 int waitsec = 5;
 
 void collect_data_loop();

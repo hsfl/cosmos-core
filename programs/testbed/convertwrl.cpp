@@ -1,5 +1,7 @@
-#include <stdio.h>
+#include <cstdio>
 #include <cstring>
+#include <cmath>
+
 #include "mathlib.h"
 #include "cosmos-defs.h"
 #include "jsondef.h"

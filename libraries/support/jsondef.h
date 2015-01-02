@@ -7,17 +7,10 @@
 
 #include "configCosmos.h"
 
-//#include <stdlib.h>
-//#include <stdio.h>
-//#include <stdarg.h>
-//#include <sys/types.h>
-//#include <stddef.h>
-
 #include "mathlib.h"
 #include "convertdef.h"
-//#include "nodedef.h"
 #include "physicsdef.h"
-//#include "agentdef.h"
+#include "socketlib.h"
 
 //! \ingroup jsonlib
 //! \defgroup jsonlib_type JSON Name Space variable type constants
@@ -671,15 +664,15 @@ typedef struct
 	//! Client initialized?
 	bool client;
 	//! Subscription channel (for Client)
-	agent_channel sub;
+	socket_channel sub;
 	//! Server initialized?
 	bool server;
 	//! Number of network interfaces
 	int ifcnt;
 	//! Publication channels for each interface (for Server)
-	agent_channel pub[AGENTMAXIF];
+	socket_channel pub[AGENTMAXIF];
 	//! Request channel (for Server)
-	agent_channel req;
+	socket_channel req;
 	//! Agent process ID
 	int32_t pid;
 	//! Activity period in seconds

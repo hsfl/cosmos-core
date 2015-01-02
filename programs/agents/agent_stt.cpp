@@ -8,10 +8,13 @@
 //#include <sys/vfs.h>
 //#endif // COSMOS_MAC_OS
 
-#include <stdio.h>
 #include "agentlib.h"
 #include "sinclair_lib.h"
 #include "jsonlib.h"
+
+#include <cstdio>
+#include <iostream>
+#include <iomanip>
 
 //#define DOPRINT   // Print star tracker values to screen
 #define MAXBUFFERSIZE 1000
@@ -22,7 +25,7 @@ char nodename[COSMOS_MAX_NAME];
 // Set up SOH string
 char sohstring[]="{\"device_stt_att_000\",\"device_stt_omega_000\",\"device_stt_retcode_000\",\"node_loc_att_icrf\"}";
 
-int ntype = AGENT_TYPE_UDP;
+int ntype = SOCKET_TYPE_UDP;
 beatstruc rwbeat, pbeat;
 sinclair_state stth;
 char request[100], result[400], bufin[500];
@@ -55,7 +58,7 @@ int main(int argc, char *argv[])
 
 
 	// Initialize the Agent
-	if (!(cdata = agent_setup_server(AGENT_TYPE_BROADCAST,(char *)nodename,agentname,1.,0,MAXBUFFERSIZE))) {
+	if (!(cdata = agent_setup_server(SOCKET_TYPE_BROADCAST,(char *)nodename,agentname,1.,0,MAXBUFFERSIZE))) {
 		cout<<"agent_rw: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
 		exit (AGENT_ERROR_JSON_CREATE);
 	}

@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,(char *)NULL,("tunnel_"+tunnel_ip).c_str(),1.,0,MAXBUFFERSIZE,AGENT_SINGLE)))
+	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)NULL,("tunnel_"+tunnel_ip).c_str(),1.,0,MAXBUFFERSIZE,AGENT_SINGLE)))
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Start serial threads

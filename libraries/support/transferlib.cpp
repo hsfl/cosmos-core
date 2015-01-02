@@ -1,5 +1,7 @@
 #include "transferlib.h"
 #include "timelib.h"
+#include <iostream>
+#include <sys/stat.h>
 
 //#define DA_BUG
 

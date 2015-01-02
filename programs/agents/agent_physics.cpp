@@ -4,6 +4,7 @@
 #include "agentlib.h"
 #include "jsonlib.h"
 #include "datalib.h"
+#include "socketlib.h"
 #include <semaphore.h>
 #include <math.h>
 #include <stdio.h>
@@ -57,7 +58,7 @@ int main(int argc, char *argv[])
 
 	// Initialization stuff
 
-	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,node,(char *)"physics",2.,0,AGENTMAXBUFFER)))
+	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,node,(char *)"physics",2.,0,AGENTMAXBUFFER)))
 	{
 		printf("Failed to setup server: %d\n",AGENT_ERROR_JSON_CREATE);
 		exit (AGENT_ERROR_JSON_CREATE);

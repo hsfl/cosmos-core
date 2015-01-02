@@ -7,6 +7,9 @@
 */
 #include "mathlib.h"
 
+#include <cmath>
+#include <iostream>
+
 //! \addtogroup mathlib_functions
 //! @{
 
@@ -4869,7 +4872,7 @@ void lsfit::update(double x, quaternion y)
 	update(cfit, 4);
 
     // >> check this problem!!!
-    //if (parms.size() && (isnan(parms[0][0]) || isnan(parms[0][1] || isnan(parms[0][2]))))
+    //if (parms.size() && (std::isnan(parms[0][0]) || std::isnan(parms[0][1] || std::isnan(parms[0][2]))))
     if ( 1)
 	{
 		for (uint16_t i=0; i<var.size(); ++i)

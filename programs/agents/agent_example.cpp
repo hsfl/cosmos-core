@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 	// Initialize the Agent
 	// near future: support cubesat space protocol
 	// port number = 0 in this case, automatic assignment of port
-	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
+	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Add additional requests

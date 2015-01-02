@@ -5,6 +5,9 @@
 #include "convertlib.h"
 #include "datalib.h"
 
+#include <iostream>
+#include <iomanip>
+
 /*! \file agent_exec.cpp
 * \brief Executive Agent source file
 */
@@ -84,7 +87,7 @@ int main(int argc, char *argv[])
 
 	cout<<"Starting the executive agent...";
 	int32_t iretn;
-	int ntype = AGENT_TYPE_UDP;
+	int ntype = SOCKET_TYPE_UDP;
 
 	// Set node name to first argument
 	if (argc!=2)	{

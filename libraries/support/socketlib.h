@@ -15,21 +15,11 @@
 
 #include "configCosmos.h"
 #ifdef COSMOS_WIN_OS
-//#include <iostream.h>
-//#include <winsock2.h>
-//#include <ws2tcpip.h>
-//#include <iphlpapi.h>
-//#include "mmsystem.h"
 #include <io.h>
 #else
-//#include <sys/select.h>
-//#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
-//#include <arpa/inet.h>
-//#include <netinet/in.h>
-//#include <netdb.h>
 #endif
 
 //! \ingroup socketlib
@@ -124,6 +114,7 @@ int32_t socket_check_udp_checksum(vector<uint8_t> packet);
 int32_t socket_set_udp_checksum(vector<uint8_t>& packet);
 int32_t socket_blocking(socket_channel *channel, bool blocking);
 int32_t socket_close(socket_channel *channel);
+vector<socket_channel> socket_find_addresses(uint16_t ntype);
 
 //! @}
 

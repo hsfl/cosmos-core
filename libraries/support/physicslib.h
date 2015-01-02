@@ -64,7 +64,7 @@
 
 //#include <sys/types.h>
 #include <fcntl.h>
-#include <math.h>
+#include <cmath>
 #include <time.h>
 #include <errno.h>
 #include <unistd.h>

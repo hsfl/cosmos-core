@@ -3,7 +3,8 @@
 */
 
 #include "timelib.h"
-
+#include "datalib.h"
+#include "ephemlib.h"
 
 //extern char resdir[MAXDIR];
 

@@ -82,16 +82,15 @@
 
 #ifdef _MSC_BUILD
 #include <direct.h>
-#define COSMOS_MKDIR(dtemp) _mkdir((char *)dtemp)
+#define COSMOS_MKDIR(dtemp, mode) _mkdir((char *)dtemp)
 #else
-#define COSMOS_MKDIR(dtemp) mkdir((char *)dtemp)
+#define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp)
 #endif
 
 #define COSMOS_WIN_OS
 #define COSMOS_USLEEP(usec) Sleep((uint32_t)usec/1000)
 #define COSMOS_SLEEP(sec) Sleep((uint32_t)(sec*1000))
 #define CLOSE_SOCKET(socket) closesocket(socket)
-#define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp)
 //! @}
 //#define NTDDI_VERSION 0x06010000
 //#define _WIN32_WINNT 0x0601

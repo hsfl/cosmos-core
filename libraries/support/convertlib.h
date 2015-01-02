@@ -58,29 +58,24 @@
 
 #include "configCosmos.h"
 
-#include "datalib.h"
+//#include "datalib.h"
 #include "mathlib.h"
-#include "jpleph.h"
-#include "timelib.h"
+//#include "jpleph.h"
+//#include "timelib.h"
 #include "convertdef.h"
-//#include "demlib.h"
-#include "geomag.h"
+//#include "geomag.h"
 
-#include <fcntl.h>
-#include <cmath>
-#include <ctime>
-#include <cerrno>
-#include <cstring>
+//#include <fcntl.h>
+//#include <cmath>
+//#include <ctime>
+//#include <cerrno>
+//#include <cstring>
 
 //! \ingroup convertlib
 //! \defgroup convertlib_functions Coordinate conversion functions
 //! @{
 
 void loc_clear(locstruc *loc);
-void jplnut(double mjd, double nuts[]);
-void jplpos(long from, long to, double mjd, cartpos *pos);
-void jpllib(double utc,rmatrix *rm, rmatrix *drm);
-//void jpllib(double utc, aattstruc *pos);
 void geoc2geod(cartpos *geoc, geoidpos *geod);
 void geos2geoc(spherpos *geos, cartpos *geoc);
 void geod2geoc(geoidpos *geod, cartpos *geoc);
