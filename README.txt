@@ -13,8 +13,14 @@ Quick-start:
 1) install the latest Qt version (currently Qt5.4) from 
 http://www.qt.io/download-open-source/
 
-2) download the COSMOS-core software directly from
-https://bitbucket.org/cosmos/core/get/fb4eefd80ed9.zip
+2) clone the following repositories
+https://<your-user-name>@bitbucket.org/cosmos/core.git
+https://<your-user-name>@bitbucket.org/cosmos/nodes.git
+https://<your-user-name>@bitbucket.org/cosmos/resources.git
+https://<your-user-name>@bitbucket.org/cosmos/thirdparty.git
+
+using the command line:
+git clone https://<your-user-name>@bitbucket.org/cosmos/nodes.git
 
 3) go to core/examples/agents and open agent_001.pro 
 and agent_002.pro in Qt Creator. Compile and execute

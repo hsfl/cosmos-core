@@ -42,9 +42,23 @@
 //! functions with user defined ASCII strings.
 
 #include "configCosmos.h"
-#include "cosmos-errno.h"
 #include "agentdef.h"
+
+#include "cosmos-errno.h"
+#include "stringlib.h"
 #include "timelib.h"
+#include "jsondef.h"
+#include "sliplib.h"
+#include "socketlib.h"
+#include "jsonlib.h"
+#include "elapsedtime.hpp"
+
+#include <cstring>
+#include <errno.h>
+
+#if !defined(COSMOS_WIN_OS)
+#include <sys/select.h>
+#endif
 
 using namespace std;
 
@@ -92,8 +106,8 @@ locstruc agent_poll_location(cosmosstruc *cdata, float waitsec);
 nodestruc agent_poll_info(cosmosstruc *cdata, float waitsec);
 imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec);
 int json_map_agentstruc(cosmosstruc *cdata, agentstruc **agent);
-//int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
-//vector<socket_channel> agent_find_addresses(uint16_t ntype);
+int32_t agent_open_socket(agent_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
+vector<agent_channel> agent_find_addresses(uint16_t ntype);
 
 
 //! @}

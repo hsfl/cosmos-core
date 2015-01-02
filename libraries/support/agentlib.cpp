@@ -2,22 +2,7 @@
     \brief Agent support functions
 */
 
-#include "configCosmos.h"
-
 #include "agentlib.h"
-//#include "stringlib.h"
-//#include "jsondef.h"
-#include "sliplib.h"
-//#include "socketlib.h"
-#include "jsonlib.h"
-#include "elapsedtime.hpp"
-
-#if !defined(COSMOS_WIN_OS)
-#include <sys/select.h>
-#endif
-
-#include <errno.h>
-
 
 #ifndef _SIZEOF_ADDR_IFREQ
 #define _SIZEOF_ADDR_IFREQ sizeof
@@ -450,7 +435,7 @@ uint16_t agent_running(cosmosstruc *cdata)
 */
 int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, char* output, uint32_t clen, float waitsec)
 {
-	static socket_channel sendchan;
+    static agent_channel sendchan;
     int32_t iretn;
     int32_t nbytes;
     //struct timeval tv, ltv;
@@ -466,7 +451,7 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, 
     ElapsedTime ep;
     ep.start();
 
-	if ((iretn=socket_open(&sendchan, SOCKET_TYPE_UDP, hbeat.addr, hbeat.port, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
+    if ((iretn=agent_open_socket(&sendchan, AGENT_TYPE_UDP, hbeat.addr, hbeat.port, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
     {
         return (-errno);
     }
@@ -519,7 +504,7 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, 
 int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float waitsec, beatstruc *rbeat)
 {
     beatstruc cbeat;
-//    struct timeval tv, ltv;
+    //    struct timeval tv, ltv;
 
     //! 3. Loop for ::waitsec seconds, filling list with any discovered heartbeats.
 
@@ -535,19 +520,19 @@ int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float wai
     {
         cbeat = agent_poll_beat(cdata, 1);
 
-			if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
-			{
-				if (rbeat != NULL)
-					*rbeat = cbeat;
-				return (1);
-			}
+        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
+        {
+            if (rbeat != NULL)
+                *rbeat = cbeat;
+            return (1);
+        }
 
-			if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
-            {
-                if (rbeat != NULL)
-                    *rbeat = cbeat;
-                return (1);
-            }
+        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
+        {
+            if (rbeat != NULL)
+                *rbeat = cbeat;
+            return (1);
+        }
 
         //gettimeofday(&tv,NULL);
         ep.stop();
@@ -611,15 +596,15 @@ vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec)
 {
     beatstruc cbeat, tbeat;
     uint32_t i, j;
-//    struct timeval tv, ltv;
+    //    struct timeval tv, ltv;
 
     //! Loop for ::waitsec seconds, filling list with any discovered heartbeats.
 
-//    gettimeofday(&ltv,NULL);
+    //    gettimeofday(&ltv,NULL);
 
-//    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
-//    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
-//    ltv.tv_usec = ltv.tv_usec % 1000000;
+    //    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
+    //    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
+    //    ltv.tv_usec = ltv.tv_usec % 1000000;
 
     ElapsedTime ep;
     ep.start();
@@ -694,9 +679,9 @@ cosmosstruc *agent_get_cosmosstruc(cosmosstruc *cdata)
  */
 void heartbeat_loop(cosmosstruc *cdata)
 {
-//    double cmjd, nmjd;
-//    unsigned long usec;
-//    struct timeval mytime;
+    //    double cmjd, nmjd;
+    //    unsigned long usec;
+    //    struct timeval mytime;
 
     // double precission is 15 digits of accuracy so we're subtracting
     // a big number to maitain accuracy
@@ -758,7 +743,7 @@ void request_loop(cosmosstruc *cdata)
     char request[AGENTMAXBUFFER+1];
     uint32_t i;
 
-	if ((iretn=socket_open(&((cosmosstruc *)cdata)->agent[0].req,SOCKET_TYPE_UDP,(char *)"",((cosmosstruc *)cdata)->agent[0].beat.port,AGENT_LISTEN,AGENT_BLOCKING,2000000)) < 0)
+    if ((iretn=agent_open_socket(&((cosmosstruc *)cdata)->agent[0].req,AGENT_TYPE_UDP,(char *)"",((cosmosstruc *)cdata)->agent[0].beat.port,AGENT_LISTEN,AGENT_BLOCKING,2000000)) < 0)
     {
         return;
     }
@@ -967,8 +952,8 @@ int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port)
 
     switch (type)
     {
-	case SOCKET_TYPE_MULTICAST:
-	case SOCKET_TYPE_UDP:
+    case AGENT_TYPE_MULTICAST:
+    case AGENT_TYPE_UDP:
         for (uint32_t i=0; i<AGENTMAXIF; i++)
             cdata->agent[0].pub[i].cudp = -1;
 
@@ -1012,7 +997,7 @@ int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port)
             memset(&cdata->agent[0].pub[cdata->agent[0].ifcnt].caddr,0,sizeof(struct sockaddr_in));
             cdata->agent[0].pub[i].caddr.sin_family = AF_INET;
             cdata->agent[0].pub[i].baddr.sin_family = AF_INET;
-			if (type == SOCKET_TYPE_MULTICAST)
+            if (type == AGENT_TYPE_MULTICAST)
             {
                 sslen = sizeof(ss);
                 WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
@@ -1075,7 +1060,7 @@ int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port)
                 }
             }
 
-			if (type == SOCKET_TYPE_MULTICAST)
+            if (type == AGENT_TYPE_MULTICAST)
             {
                 inet_pton(AF_INET,AGENTMCAST,&cdata->agent[0].pub[cdata->agent[0].ifcnt].caddr.sin_addr);
                 inet_pton(AF_INET,AGENTMCAST,&cdata->agent[0].pub[cdata->agent[0].ifcnt].baddr.sin_addr);
@@ -1104,11 +1089,171 @@ int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port)
         }
 #endif // COSMOS_WIN_OS
         break;
-	case SOCKET_TYPE_CSP:
+    case AGENT_TYPE_CSP:
         break;
     }
 
     return 0;
+}
+
+//! Discover interfaces
+/*! Return a vector of ::agent_channel containing info on each valid interface. For IPV4 this
+ *	will include the address and broadcast address, in both string sockaddr_in format.
+    \param ntype Type of network (Multicast, Broadcast UDP, CSP)
+    \return Vector of interfaces
+    */
+vector<agent_channel> agent_find_addresses(uint16_t ntype)
+{
+    vector<agent_channel> iface;
+    agent_channel tiface;
+
+#ifdef COSMOS_WIN_OS
+    struct sockaddr_storage ss;
+    int sslen;
+    INTERFACE_INFO ilist[20];
+    unsigned long nbytes;
+    uint32_t nif, ssize;
+    uint32_t ip, net, bcast;
+#else
+    struct ifconf confa;
+    struct ifreq *ifra;
+    char data[512];
+#endif // COSMOS_WIN_OS
+    int32_t iretn;
+    int on = 1;
+    int32_t cudp;
+
+    switch (ntype)
+    {
+    case AGENT_TYPE_MULTICAST:
+    case AGENT_TYPE_UDP:
+        if ((cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+        {
+            return (iface);
+        }
+
+        // Use above socket to find available interfaces and establish
+        // publication on each.
+#ifdef COSMOS_WIN_OS
+        if (WSAIoctl(cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+        {
+            CLOSE_SOCKET(cudp);
+            return (iface);
+        }
+
+        nif = nbytes / sizeof(INTERFACE_INFO);
+        PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+        PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+        pAddresses = (IP_ADAPTER_ADDRESSES *) calloc(sizeof(IP_ADAPTER_ADDRESSES), 2*nif);
+        ULONG outBufLen = sizeof(IP_ADAPTER_ADDRESSES) * 2 * nif;
+        DWORD dwRetVal;
+        if ((dwRetVal=GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen)) == ERROR_BUFFER_OVERFLOW)
+        {
+            free(pAddresses);
+            return (iface);
+        }
+
+        for (uint32_t i=0; i<nif; i++)
+        {
+            strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+            if (!strcmp(tiface.address,"127.0.0.1"))
+            {
+                continue;
+            }
+
+            pCurrAddresses = pAddresses;
+            while (pAddresses)
+            {
+                if (((struct sockaddr_in *)(pCurrAddresses->FirstUnicastAddress->Address.lpSockaddr))->sin_addr.s_addr == ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.s_addr)
+                {
+                    strcpy(tiface.name, pCurrAddresses->AdapterName);
+                    break;
+                }
+                pCurrAddresses = pCurrAddresses->Next;
+            }
+            memset(&tiface.caddr,0,sizeof(struct sockaddr_in));
+            memset(&tiface.baddr,0,sizeof(struct sockaddr_in));
+            tiface.caddr.sin_family = AF_INET;
+            tiface.baddr.sin_family = AF_INET;
+            if (ntype == AGENT_TYPE_MULTICAST)
+            {
+                sslen = sizeof(ss);
+                WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+                tiface.caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+                tiface.baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+            }
+            else
+            {
+                if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                {
+                    continue;
+                }
+                ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
+                net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
+                bcast = ip | (~net);
+
+                tiface.caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                tiface.caddr.sin_addr.S_un.S_addr = ip;
+                tiface.baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                tiface.baddr.sin_addr.S_un.S_addr = bcast;
+            }
+            ((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
+            ssize = strlen(tiface.address);
+            WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
+            ssize = strlen(tiface.baddress);
+            WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
+            tiface.type = ntype;
+            iface.push_back(tiface);
+        }
+#else
+        confa.ifc_len = sizeof(data);
+        confa.ifc_buf = (caddr_t)data;
+        if (ioctl(cudp,SIOCGIFCONF,&confa) < 0)
+        {
+            CLOSE_SOCKET(cudp);
+            return (iface);
+        }
+        // Use result to discover interfaces.
+        ifra = confa.ifc_req;
+        for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
+        {
+            if (ifra->ifr_addr.sa_family != AF_INET) continue;
+            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
+
+            if (ioctl(cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+
+            if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0) continue;
+
+            if (ntype == AGENT_TYPE_MULTICAST)
+            {
+                inet_pton(AF_INET,AGENTMCAST,&tiface.caddr.sin_addr);\
+                strcpy(tiface.baddress, AGENTMCAST);
+                inet_pton(AF_INET,AGENTMCAST,&tiface.baddr.sin_addr);\
+            }
+            else
+            {
+                if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                {
+                    continue;
+                }
+
+                strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
+                if (ioctl(cudp,SIOCGIFBRDADDR,(char *)ifra) < 0) continue;
+                memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
+                if (ioctl(cudp,SIOCGIFADDR,(char *)ifra) < 0) continue;
+                memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+                inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
+            }
+            tiface.type = ntype;
+            iface.push_back(tiface);
+        }
+
+#endif // COSMOS_WIN_OS
+
+        break;
+    }
+
+    return (iface);
 }
 
 //! Post a JSON message
@@ -1184,13 +1329,13 @@ int32_t agent_subscribe(cosmosstruc *cdata, uint16_t type, char *address, uint16
 {
     int32_t iretn = 0;
 
-	// ?? this is preventing from running socket_open if
+    // ?? this is preventing from running agent_open_socket if
     // for some reason cdata->agent[0].sub.cport was ill initialized
 #ifndef COSMOS_WIN_BUILD_MSVC
     if (cdata->agent[0].sub.cport)
         return 0;
 #endif
-	if ((iretn=socket_open(&cdata->agent[0].sub,type,address,port,AGENT_LISTEN,AGENT_BLOCKING, usectimeo)) < 0)
+    if ((iretn=agent_open_socket(&cdata->agent[0].sub,type,address,port,AGENT_LISTEN,AGENT_BLOCKING, usectimeo)) < 0)
     {
         return (iretn);
     }
@@ -1228,7 +1373,7 @@ int32_t agent_unsubscribe(cosmosstruc *cdata)
 */
 int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float waitsec)
 {
-//    struct timeval tv, ltv;
+    //    struct timeval tv, ltv;
     //	struct sockaddr_in raddr;
     //	int addrlen;
     int nbytes;
@@ -1237,12 +1382,12 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
     if (!cdata->agent[0].sub.cport)
         return (AGENT_ERROR_CHANNEL);
 
-//    gettimeofday(&ltv,NULL);
+    //    gettimeofday(&ltv,NULL);
 
-//    //	addrlen = sizeof(raddr);
-//    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
-//    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
-//    ltv.tv_usec = ltv.tv_usec % 1000000;
+    //    //	addrlen = sizeof(raddr);
+    //    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
+    //    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
+    //    ltv.tv_usec = ltv.tv_usec % 1000000;
 
     ElapsedTime ep;
     ep.start();
@@ -1251,14 +1396,14 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
         nbytes = 0;
         switch (cdata->agent[0].sub.type)
         {
-		case SOCKET_TYPE_MULTICAST:
-		case SOCKET_TYPE_UDP:
+        case AGENT_TYPE_MULTICAST:
+        case AGENT_TYPE_UDP:
             nbytes = recvfrom(cdata->agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&cdata->agent[0].sub.caddr,(socklen_t *)&cdata->agent[0].sub.addrlen);
             if (nbytes > 0){
                 input[nbytes] = 0;
             }
             break;
-		case SOCKET_TYPE_CSP:
+        case AGENT_TYPE_CSP:
             break;
         }
 
@@ -1421,5 +1566,190 @@ imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec)
 
     return (imu);
 }
+
+//! Open UDP socket
+/*! Open a UDP socket and configure it for the specified use. Various
+flags are set, and the socket is bound, if necessary. Support is
+provided for the extra steps necessary for MS Windows.
+    \param channel Pointer to ::agent_channel holding final configuration.
+    \param address Destination address
+    \param port Source port. If zero, automatically assigned.
+    \param role Publish, subscribe, communicate.
+    \param blocking True or false.
+    \param usectimeo Blocking read timeout in micro seconds.
+    \return Zero, or negative error.
+*/
+int32_t agent_open_socket(agent_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t role, bool blocking, uint32_t usectimeo)
+{
+    socklen_t namelen;
+    int32_t iretn;
+    struct ip_mreq mreq;
+    int on = 1;
+    int protocol = 0;
+
+#ifdef COSMOS_WIN_OS
+    unsigned long nonblocking = 1;
+    struct sockaddr_storage ss;
+    int sslen;
+    WORD wVersionRequested;
+    WSADATA wsaData = {0};
+    static bool started=false;
+
+    protocol = IPPROTO_UDP;
+
+    if (!started)
+    {
+        wVersionRequested = MAKEWORD( 2, 2 );
+        iretn = WSAStartup( wVersionRequested, &wsaData );
+        if (iretn != 0) {
+            wprintf(L"WSAStartup failed: %d\n", iretn);
+            return 1;
+        }
+    }
+#endif
+
+    if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,protocol)) <0)
+    {
+        return (-errno);
+    }
+
+    if (blocking == AGENT_NONBLOCKING)
+    {
+        iretn = 0;
+#ifdef COSMOS_WIN_OS
+        if (ioctlsocket(channel->cudp, FIONBIO, &nonblocking) != 0)
+        {
+            iretn = -WSAGetLastError();
+        }
+#else
+        if (fcntl(channel->cudp, F_SETFL,O_NONBLOCK) < 0)
+        {
+            iretn = -errno;
+        }
+#endif
+        if (iretn < 0)
+        {
+            CLOSE_SOCKET(channel->cudp);
+            channel->cudp = iretn;
+            return (iretn);
+        }
+    }
+
+    // this defines the wait time for a response from a request
+    if (usectimeo)
+    {
+#ifdef COSMOS_WIN_OS
+        int msectimeo = usectimeo/1000;
+        iretn = setsockopt(channel->cudp,SOL_SOCKET,SO_RCVTIMEO,(const char *)&msectimeo,sizeof(msectimeo));
+#else
+        struct timeval tv;
+        tv.tv_sec = usectimeo/1000000;
+        tv.tv_usec = usectimeo%1000000;
+        iretn = setsockopt(channel->cudp,SOL_SOCKET,SO_RCVTIMEO,(char*)&tv,sizeof(tv));
+#endif
+    }
+
+    memset(&channel->caddr,0,sizeof(struct sockaddr_in));
+    channel->caddr.sin_family = AF_INET;
+    channel->caddr.sin_port = htons(port);
+
+    switch (role)
+    {
+    case AGENT_LISTEN:
+#ifdef COSMOS_MAC_OS
+        if (setsockopt(channel->cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
+#else
+        if (setsockopt(channel->cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
+#endif
+        {
+            CLOSE_SOCKET(channel->cudp);
+            channel->cudp = -errno;
+            return (-errno);
+        }
+
+        channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+        if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
+        {
+            CLOSE_SOCKET(channel->cudp);
+            channel->cudp = -errno;
+            return (-errno);
+        }
+
+        // If we bound to port 0, then find out what our assigned port is.
+        if (!port)
+        {
+            namelen = sizeof(struct sockaddr_in);
+            if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
+            {
+                CLOSE_SOCKET(channel->cudp);
+                channel->cudp = -errno;
+                return (-errno);
+            }
+            channel->cport = ntohs(channel->caddr.sin_port);
+        }
+        else
+        {
+            channel->cport = port;
+        }
+
+        if (ntype == AGENT_TYPE_MULTICAST)
+        {
+            //! 2. Join multicast
+            mreq.imr_multiaddr.s_addr = inet_addr(address);
+            mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+            if (setsockopt(channel->cudp, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
+            {
+                CLOSE_SOCKET(channel->cudp);
+                channel->cudp = -errno;
+                return (-errno);
+            }
+        }
+
+
+        break;
+    case AGENT_JABBER:
+        switch (ntype)
+        {
+        case AGENT_TYPE_UDP:
+            if ((iretn=setsockopt(channel->cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+            {
+                CLOSE_SOCKET(channel->cudp);
+                channel->cudp = -errno;
+                return (-errno);
+            }
+            channel->caddr.sin_addr.s_addr = 0xffffffff;
+            break;
+        case AGENT_TYPE_MULTICAST:
+#ifndef COSMOS_WIN_OS
+            inet_pton(AF_INET,AGENTMCAST,&channel->caddr.sin_addr);
+#else
+            sslen = sizeof(ss);
+            WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+            channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+#endif
+            break;
+        }
+        channel->cport = port;
+        break;
+    case AGENT_TALK:
+#ifndef COSMOS_WIN_OS
+        inet_pton(AF_INET,address,&channel->caddr.sin_addr);
+#else
+        sslen = sizeof(ss);
+        WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+        channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+#endif
+        channel->cport = port;
+        break;
+    }
+
+    strncpy(channel->address,address,17);
+    channel->type = ntype;
+    channel->addrlen = sizeof(struct sockaddr_in);
+
+    return 0;
+}
+
+
 
 //! @}

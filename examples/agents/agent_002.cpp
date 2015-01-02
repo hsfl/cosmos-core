@@ -12,7 +12,7 @@
 int myagent();
 
 char agentname[100] = "002";
-char nodename[100] = "hiakasat";
+char nodename[100] = "cubesat1";
 //char requestname[AGENTMAXNAME] = "001"; //name of the agent that the request is directed to
 
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
