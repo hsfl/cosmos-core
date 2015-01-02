@@ -3,6 +3,7 @@
 */
 
 #include "agentlib.h"
+#include "socketlib.h"
 
 #ifndef _SIZEOF_ADDR_IFREQ
 #define _SIZEOF_ADDR_IFREQ sizeof
@@ -435,7 +436,7 @@ uint16_t agent_running(cosmosstruc *cdata)
 */
 int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, char* output, uint32_t clen, float waitsec)
 {
-    static agent_channel sendchan;
+	static socket_channel sendchan;
     int32_t iretn;
     int32_t nbytes;
     //struct timeval tv, ltv;
@@ -451,7 +452,7 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, 
     ElapsedTime ep;
     ep.start();
 
-    if ((iretn=agent_open_socket(&sendchan, AGENT_TYPE_UDP, hbeat.addr, hbeat.port, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
+	if ((iretn=socket_open(&sendchan, AGENT_TYPE_UDP, hbeat.addr, hbeat.port, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
     {
         return (-errno);
     }
@@ -743,7 +744,7 @@ void request_loop(cosmosstruc *cdata)
     char request[AGENTMAXBUFFER+1];
     uint32_t i;
 
-    if ((iretn=agent_open_socket(&((cosmosstruc *)cdata)->agent[0].req,AGENT_TYPE_UDP,(char *)"",((cosmosstruc *)cdata)->agent[0].beat.port,AGENT_LISTEN,AGENT_BLOCKING,2000000)) < 0)
+	if ((iretn=socket_open(&((cosmosstruc *)cdata)->agent[0].req,AGENT_TYPE_UDP,(char *)"",((cosmosstruc *)cdata)->agent[0].beat.port,AGENT_LISTEN,AGENT_BLOCKING,2000000)) < 0)
     {
         return;
     }
@@ -1097,15 +1098,15 @@ int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port)
 }
 
 //! Discover interfaces
-/*! Return a vector of ::agent_channel containing info on each valid interface. For IPV4 this
+/*! Return a vector of ::socket_channel containing info on each valid interface. For IPV4 this
  *	will include the address and broadcast address, in both string sockaddr_in format.
     \param ntype Type of network (Multicast, Broadcast UDP, CSP)
     \return Vector of interfaces
     */
-vector<agent_channel> agent_find_addresses(uint16_t ntype)
+vector<socket_channel> agent_find_addresses(uint16_t ntype)
 {
-    vector<agent_channel> iface;
-    agent_channel tiface;
+	vector<socket_channel> iface;
+	socket_channel tiface;
 
 #ifdef COSMOS_WIN_OS
     struct sockaddr_storage ss;
@@ -1329,13 +1330,13 @@ int32_t agent_subscribe(cosmosstruc *cdata, uint16_t type, char *address, uint16
 {
     int32_t iretn = 0;
 
-    // ?? this is preventing from running agent_open_socket if
+	// ?? this is preventing from running socket_open if
     // for some reason cdata->agent[0].sub.cport was ill initialized
 #ifndef COSMOS_WIN_BUILD_MSVC
     if (cdata->agent[0].sub.cport)
         return 0;
 #endif
-    if ((iretn=agent_open_socket(&cdata->agent[0].sub,type,address,port,AGENT_LISTEN,AGENT_BLOCKING, usectimeo)) < 0)
+	if ((iretn=socket_open(&cdata->agent[0].sub,type,address,port,AGENT_LISTEN,AGENT_BLOCKING, usectimeo)) < 0)
     {
         return (iretn);
     }
@@ -1571,7 +1572,7 @@ imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec)
 /*! Open a UDP socket and configure it for the specified use. Various
 flags are set, and the socket is bound, if necessary. Support is
 provided for the extra steps necessary for MS Windows.
-    \param channel Pointer to ::agent_channel holding final configuration.
+	\param channel Pointer to ::socket_channel holding final configuration.
     \param address Destination address
     \param port Source port. If zero, automatically assigned.
     \param role Publish, subscribe, communicate.
@@ -1579,7 +1580,7 @@ provided for the extra steps necessary for MS Windows.
     \param usectimeo Blocking read timeout in micro seconds.
     \return Zero, or negative error.
 */
-int32_t agent_open_socket(agent_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t role, bool blocking, uint32_t usectimeo)
+int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t role, bool blocking, uint32_t usectimeo)
 {
     socklen_t namelen;
     int32_t iretn;
