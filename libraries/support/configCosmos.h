@@ -88,7 +88,7 @@
 #endif
 
 #define COSMOS_WIN_OS
-#define COSMOS_USLEEP(usec) Sleep((uint32_t)usec/1000)
+#define COSMOS_USLEEP(usec) Sleep((uint32_t)(usec/1000. + .5))
 #define COSMOS_SLEEP(sec) Sleep((uint32_t)(sec*1000))
 #define CLOSE_SOCKET(socket) closesocket(socket)
 //! @}

@@ -62,7 +62,7 @@ double TimeUtils::secondsSinceEpoch() {
 
     auto epoch = makeTimePoint(1970,01,01,00,00,00);
     //    std::cout << timeString(tp1) << std::endl;
-    auto utc = timePointUtc();
+	timePointUtc();
     auto now = std::chrono::system_clock::now();
 
     // alternative to get seconds since epoch, but it's not guaranteed

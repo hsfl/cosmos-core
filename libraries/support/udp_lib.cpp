@@ -2,6 +2,9 @@
 #include "udp_lib.h"
 #include "mathlib.h"
 #include "timelib.h"
+#include "elapsedtime.hpp"
+
+#include <iostream>
 
 //! Open UDP socket
 /*! Open a UDP socket and configure it for the specified use. Various

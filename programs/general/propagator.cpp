@@ -198,12 +198,6 @@ int main(int argc, char* argv[])
 		mjdnow = currentmjd(cdata->node.utcoffset);
 		gauss_jackson_propagate(cdata, mjdnow);
 
-        //print_vector("pos: ",cdata->node.loc.pos.geoc.s);
-//        cout << mjdnow << " | ";
-//        print_vector2("pos",cdata->node.loc.pos.geoc.s, "vel", cdata->node.loc.pos.geoc.v);
-
-
-
 		update_target(cdata);
 		calc_events(eventdict, cdata, events);
 		agent_post(cdata, AGENT_MESSAGE_SOH,json_of_table(&mainjstring, cdata->agent[0].sohtable, cdata));
