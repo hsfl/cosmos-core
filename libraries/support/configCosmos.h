@@ -17,6 +17,7 @@
 #include <climits>
 #include <csignal>
 #include <cstdint>
+#include <cinttypes>
 #include <cstdio>
 #include <cstddef>
 #include <cstdlib>

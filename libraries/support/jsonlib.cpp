@@ -4263,6 +4263,12 @@ int32_t json_setup_node(string node, cosmosstruc *cdata)
 	}
 	free(ibuf);
 
+	// Clean up any errors
+	for (i=0; i< cdata->node.device_cnt; i++)
+	{
+		cdata->device[i].gen.cidx = i;
+	}
+
 	// Fifth: enter information for ports
 	// Resize, then add names for ports
 	cdata->port.resize(cdata->node.port_cnt);
@@ -4585,6 +4591,8 @@ uint16_t json_addpieceentry(uint16_t i, cosmosstruc *cdata)
  */
 uint16_t json_addcompentry(uint16_t i, cosmosstruc *cdata)
 {
+	cdata->device[i].gen.cidx = i;
+	
 	json_addentry((char *)"comp_type",i,-1,(ptrdiff_t)offsetof(genstruc,type)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 	json_addentry((char *)"comp_model",i,-1,(ptrdiff_t)offsetof(genstruc,model)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 	json_addentry((char *)"comp_flag",i,-1,(ptrdiff_t)offsetof(genstruc,flag)+i*sizeof(devicestruc),JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
@@ -5734,13 +5742,11 @@ char *json_devices_specific(jstring *jstring, cosmosstruc *cdata)
 		sprintf(tstring,"device_%s_cnt",comp_type_string[i]);
 		if ((cnt=*(uint16_t *)json_ptrto(tstring,cdata)))
 		{
-			//			json_out(jstring,tstring,cdata);
-			//			json_out_character(jstring, '\n');
 			for (uint16_t j=0; j<cnt; ++j)
 			{
-				sprintf(tstring,"device_%s_cidx",comp_type_string[i]);
-				json_out_1d(jstring,tstring,j,cdata);
-				json_out_character(jstring, '\n');
+//				sprintf(tstring,"device_%s_cidx",comp_type_string[i]);
+//				json_out_1d(jstring,tstring,j,cdata);
+//				json_out_character(jstring, '\n');
 
 				// Dump ploads
 				if (!strcmp(comp_type_string[i],"pload"))
