@@ -26,7 +26,7 @@ void jpllib(double utc,rmatrix *rm, rmatrix *drm)
 
 		if (jplephem == NULL)
 		{
-				string fname = get_resdir() +"/general/lnx1900.405";
+				string fname = get_cosmosresources() +"/general/lnx1900.405";
 				jplephem = jpl_init_ephemeris(fname.c_str(),NULL,NULL);
 		}
 
@@ -52,7 +52,7 @@ void jplnut(double utc, double nuts[])
 
 		if (jplephem == NULL)
 		{
-				string fname = get_resdir() + "/general/lnx1900.405";
+				string fname = get_cosmosresources() + "/general/lnx1900.405";
 				jplephem = jpl_init_ephemeris(fname.c_str(),NULL,NULL);
 				if (jplephem == NULL)
 				{
@@ -83,7 +83,7 @@ void jplpos(long from, long to, double utc, cartpos *pos)
 
 		if (jplephem == NULL)
 		{
-				string fname = get_resdir() + "/general/lnx1900.405";
+				string fname = get_cosmosresources() + "/general/lnx1900.405";
 				jplephem = jpl_init_ephemeris(fname.c_str(),NULL,NULL);
 		}
 

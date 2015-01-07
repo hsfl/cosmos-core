@@ -140,7 +140,7 @@ map_dem_body *map_dem_open(int bodynum)
 	if (running == 2)
 		return (NULL);
 
-	tname = get_resdir();
+	tname = get_cosmosresources();
 	tname += "/mapping/";
 	tname += bodynames[bodynum-1];
 	tname += "/body.dat";
@@ -159,7 +159,7 @@ map_dem_body *map_dem_open(int bodynum)
 	strcpy(body->name,bodynames[bodynum-1]);
 	body->vscale = body->hscale = body->htov = 1.;
 
-	tname = get_resdir();
+	tname = get_cosmosresources();
 	tname += "/mapping/";
 	tname += bodynames[bodynum-1];
 	tname += "/dems5.dat";
@@ -184,8 +184,8 @@ map_dem_body *map_dem_open(int bodynum)
 			dc++;
 			break;
 		case DEM_TYPE_MULTI:
-//			sprintf(tname,"%s/mapping/%s/%s/dems5.dat",get_resdir(),bodynames[bodynum-1],body->dems[dc].name);
-			string tname = get_resdir();
+//			sprintf(tname,"%s/mapping/%s/%s/dems5.dat",get_cosmosresources(),bodynames[bodynum-1],body->dems[dc].name);
+			string tname = get_cosmosresources();
 			tname += "/mapping/";
 			tname += bodynames[bodynum-1];
 			tname += "/";
@@ -387,8 +387,8 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 				}
 			}
 		}
-//		sprintf(fname,"%s/mapping/%s/%s",get_resdir(),bodies[body-1]->name,sdem->name);
-		string fname = get_resdir();
+//		sprintf(fname,"%s/mapping/%s/%s",get_cosmosresources(),bodies[body-1]->name,sdem->name);
+		string fname = get_cosmosresources();
 		fname += "/mapping/";
 		fname += bodies[body-1]->name;
 		fname += "/";

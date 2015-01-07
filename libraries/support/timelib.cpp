@@ -6,8 +6,6 @@
 #include "datalib.h"
 #include "ephemlib.h"
 
-//extern char resdir[MAXDIR];
-
 typedef struct
 {
     uint32_t mjd;
@@ -882,7 +880,7 @@ int32_t load_iers()
 
     if (iers.size() == 0)
     {
-        string fname = get_resdir() + "/general/iers_pm_dut_ls.txt";
+		string fname = get_cosmosresources() + "/general/iers_pm_dut_ls.txt";
         if ((fdes=fopen(fname.c_str(),"r")) != NULL)
         {
             char data[100];

@@ -10,16 +10,12 @@
 
 //static vector<cosmosstruc> nodes;
 
-//! Path to project Node directory
+//! Path to Project Nodes directory
 string cosmosnodes;
-//! Path to COSMOS Root directory
+//! Path to COSMOS Resources directory
 string cosmosresources;
-//! Path to COSMOS Resource directory
-string resdir;
-//! Path to COSMOS Nodes directory
-string nodedir;
 //! Path to current COSMOS Node directory
-string cnodedir;
+string nodedir;
 
 //! @}
 
@@ -707,11 +703,6 @@ string get_cosmosresources()
 				troot = "../" + troot;
 			}
 		}
-
-		if (!cosmosresources.empty())
-		{
-			resdir = cosmosresources;
-		}
 	}
 
 	return (cosmosresources);
@@ -750,11 +741,6 @@ string get_cosmosnodes()
 				troot = "../" + troot;
 			}
 		}
-
-		if (!cosmosnodes.empty())
-		{
-			nodedir = cosmosnodes;
-		}
 	}
 
 	return (cosmosnodes);
@@ -765,36 +751,9 @@ string get_cosmosnodes()
  * functions.
 	\param name Absolute or relative pathname of directory.
 */
-void set_resdir(char *name)
+void set_cosmosresources(char *name)
 {
-	resdir = name;
-}
-
-//! Get Resource Directory
-/*! Get the internal variable that points to where resource files are
- * stored for the various modeling functions.
- * \return Pointer to character string containing path to Resources, otherwise NULL.
-*/
-string get_resdir()
-{
-
-	if (resdir.empty())
-		get_cosmosresources();
-
-	return (resdir);
-}
-
-//! Get Node Directory
-/*! Get the internal variable that points to where node files are
- * stored for the various modeling functions.
- * \return Pointer to character string containing path to Nodes, otherwise NULL.
-*/
-string get_nodedir()
-{
-	if (nodedir.empty())
-		get_cosmosnodes();
-
-	return (nodedir);
+	cosmosresources = name;
 }
 
 //! Get Current Node Directory
@@ -802,12 +761,12 @@ string get_nodedir()
  * stored for the current Node.
  * \return Pointer to character string containing path to Node, otherwise NULL.
 */
-string get_cnodedir(string name)
+string get_nodedir(string name)
 {
-	if (nodedir.empty())
+	if (cosmosnodes.empty())
 		get_cosmosnodes();
 
-	return (set_cnodedir(name));
+	return (set_nodedir(name));
 }
 
 //! Set Current Node Directory
@@ -816,19 +775,19 @@ string get_cnodedir(string name)
  * \param node Name of current Node
  * \return Pointer to character string containing path to Node, otherwise NULL.
 */
-string set_cnodedir(string node)
+string set_nodedir(string node)
 {
 	struct stat sbuf;
 
-	if (nodedir.empty())
+	if (cosmosnodes.empty())
 		get_cosmosnodes();
 
-	cnodedir = nodedir + "/" + node;
-	if (stat(cnodedir.c_str(),&sbuf) != 0)
+	nodedir = cosmosnodes + "/" + node;
+	if (stat(nodedir.c_str(),&sbuf) != 0)
 	{
-		cnodedir.clear();
+		nodedir.clear();
 	}
-	return (cnodedir);
+	return (nodedir);
 }
 
 
@@ -849,18 +808,18 @@ int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &eve
 	mjd = (int)mjd;
 	mjd2ymd(mjd,&year,&month,&day,&jday);
 
-	get_cnodedir(cdata->node.name);
-	if (cnodedir.size())
+	get_nodedir(cdata->node.name);
+	if (nodedir.size())
 	{
-		dlen = cnodedir.size() + 29 + strlen(cdata->node.name);
-		sprintf(dtemp,"%s/data/soh/%4d/%03d",cnodedir.c_str(),year,(int32_t)jday);
+		dlen = nodedir.size() + 29 + strlen(cdata->node.name);
+		sprintf(dtemp,"%s/data/soh/%4d/%03d",nodedir.c_str(),year,(int32_t)jday);
 		if ((jdp=opendir(dtemp))!=NULL)
 		{
 			while ((td=readdir(jdp))!=NULL)
 			{
 				if (td->d_name[0] != '.')
 				{
-					sprintf(dtemp,"%s/data/soh/%4d/%03d/%s",cnodedir.c_str(),year,(int32_t)jday,td->d_name);
+					sprintf(dtemp,"%s/data/soh/%4d/%03d/%s",nodedir.c_str(),year,(int32_t)jday,td->d_name);
 					if (((len=strlen(dtemp)) > dlen))
 						tfd.open(dtemp);
 					if (tfd.is_open())
@@ -918,9 +877,9 @@ double findlastday(string name)
 	time_t mytime;
 
 	year = jday = 0;
-	if (get_cnodedir(name).size())
+	if (get_nodedir(name).size())
 	{
-		sprintf(dtemp,"%s/data/soh", cnodedir.c_str());
+		sprintf(dtemp,"%s/data/soh", nodedir.c_str());
 		if ((jdp=opendir(dtemp))!=NULL)
 		{
 			while ((td=readdir(jdp))!=NULL)
@@ -932,7 +891,7 @@ double findlastday(string name)
 				}
 			}
 			closedir(jdp);
-			sprintf(dtemp,"%s/data/soh/%04d",cnodedir.c_str(),year);
+			sprintf(dtemp,"%s/data/soh/%04d",nodedir.c_str(),year);
 			if ((jdp=opendir(dtemp))!=NULL)
 			{
 				while ((td=readdir(jdp))!=NULL)
@@ -992,10 +951,10 @@ double findfirstday(string name)
 	struct tm mytm;
 	time_t mytime;
 
-	if (get_cnodedir(name).size())
+	if (get_nodedir(name).size())
 	{
 	year = jday = 9000;
-	sprintf(dtemp,"%s/data/soh", cnodedir.c_str());
+	sprintf(dtemp,"%s/data/soh", nodedir.c_str());
 	if ((jdp=opendir(dtemp))!=NULL)
 	{
 		while ((td=readdir(jdp))!=NULL)
@@ -1007,7 +966,7 @@ double findfirstday(string name)
 			}
 		}
 		closedir(jdp);
-		sprintf(dtemp,"%s/data/soh/%04d",cnodedir.c_str(),year);
+		sprintf(dtemp,"%s/data/soh/%04d",nodedir.c_str(),year);
 		if ((jdp=opendir(dtemp))!=NULL)
 		{
 			while ((td=readdir(jdp))!=NULL)

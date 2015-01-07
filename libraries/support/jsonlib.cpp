@@ -4095,7 +4095,7 @@ int32_t json_setup_node(string node, cosmosstruc *cdata)
 	if (!cdata || !cdata->jmapped)
 		return (JSON_ERROR_NOJMAP);
 
-	string nodepath = get_cnodedir(node);
+	string nodepath = get_nodedir(node);
 
 	// First: parse data for summary information - includes piece_cnt, device_cnt and port_cnt
 	fname = nodepath + "/node.ini";
@@ -4323,7 +4323,7 @@ int32_t json_dump_node(cosmosstruc *cdata)
 
 	// Node
 	char *output = json_node(&jst, cdata);
-	string fileloc = get_cnodedir(cdata->node.name);
+	string fileloc = get_nodedir(cdata->node.name);
 	string filename = fileloc + "/node.ini";
 	FILE *file = fopen(filename.c_str(), "w");
 	if (file == NULL)
@@ -6754,7 +6754,7 @@ int load_target(cosmosstruc *cdata)
 	char inb[JSON_MAX_DATA];
 	uint32_t count;
 
-	fname = get_cnodedir(cdata->node.name) + "/target.ini";
+	fname = get_nodedir(cdata->node.name) + "/target.ini";
 	count = 0;
 	if ((op=fopen(fname.c_str(),"r")) != NULL)
 	{
@@ -6836,7 +6836,7 @@ int load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cdata, char *fil
 	jsonhandle handle;
 	int32_t iretn;
 
-	string fname = (get_cnodedir(cdata->node.name) + "/") + file;
+	string fname = (get_nodedir(cdata->node.name) + "/") + file;
 	if ((op=fopen(fname.c_str(),"r")) != NULL)
 	{
 		while (fgets(inb,JSON_MAX_DATA,op) != NULL)

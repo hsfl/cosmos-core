@@ -66,12 +66,12 @@ void geomag_front(gvector pos, double time, rvector *comp)
 
 	// this reads the coefficients, specify path if neccessary
     itime = 5 * (int)(time/5.);
-	sprintf(fname, "%s/general/wmm_%04d.cof", get_resdir().c_str(), itime);
+	sprintf(fname, "%s/general/wmm_%04d.cof", get_cosmosresources().c_str(), itime);
 	/*
 	if (time < 2010.)
-		sprintf(fname,"%s/general/wmm_2005.cof",get_resdir());
+		sprintf(fname,"%s/general/wmm_2005.cof",get_cosmosresources());
 	else
-		sprintf(fname,"%s/general/wmm_2010.cof",get_resdir());
+		sprintf(fname,"%s/general/wmm_2010.cof",get_cosmosresources());
 		*/
 
 	// comment out introduction
