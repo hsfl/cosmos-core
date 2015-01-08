@@ -12,6 +12,7 @@
 
 vector<nodestruc> track;
 cosmosstruc *cdata;
+gj_handle gjh;
 char buf[3000], fname[200];
 svector azel;
 
@@ -55,7 +56,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	gauss_jackson_init_eci(4,0,5.,mjdnow,cdata->node.loc.pos.eci,cdata->node.loc.att.icrf,cdata);
+	gauss_jackson_init_eci(gjh, 4, 0, 5., mjdnow, cdata->node.loc.pos.eci, cdata->node.loc.att.icrf, *cdata);
 	mjdnow = cdata->node.loc.utc;
 	lastlat = cdata->node.loc.pos.geod.s.lat;
 	for (j=0; j<3; j++)
@@ -69,8 +70,8 @@ int main(int argc, char *argv[])
 	for (i=0; i<8640; i++)
 	{
 		mjdnow += 10./86400.;
-		gauss_jackson_propagate(cdata,mjdnow);
-		output = json_of_ephemeris(&jstring,cdata);
+		gauss_jackson_propagate(gjh, *cdata, mjdnow);
+		output = json_of_ephemeris(&jstring, cdata);
 		fprintf(fout,"%s\n",output);
 		fflush(fout);
 		mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);

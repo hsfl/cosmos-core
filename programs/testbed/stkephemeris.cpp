@@ -115,7 +115,7 @@ if ((eout=fopen("flags.ini","r")) != NULL)
 	}
 
 
-orbit_init(0,5.,0.,(char *)"stk_data_icrs.txt",cdata);
+orbit_init(0, 5., 0., (char *)"stk_data_icrs.txt", *cdata);
 mjdnow = cdata->node.loc.utc;
 lastlat = cdata->node.loc.pos.geod.s.lat;
 for (j=0; j<cdata->node.target_cnt; j++)
@@ -130,7 +130,7 @@ eout = fopen("orbitalevents","w");
 for (i=0; i<9331; i++)
 	{
 	mjdnow += 10./86400.;
-	orbit_propagate(cdata,mjdnow);
+	orbit_propagate(*cdata, mjdnow);
 	output = json_of_ephemeris(&jstring,cdata);
 	fprintf(fout,"%s\n",output);
 	fflush(fout);

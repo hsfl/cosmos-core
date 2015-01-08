@@ -30,7 +30,7 @@ cdata->physics.mode = atol(argv[1]);
 //cdata->node.info.testflag = FLAG_GTORQUE;
 
 mjdbase = mjdnow = 55593.41666667;
-orbit_init(0,dt,mjdbase,(char *)"stk_cdr_j2000.txt",cdata);
+orbit_init(0, dt, mjdbase, (char *)"stk_cdr_j2000.txt", *cdata);
 
 
 //att_eci2lvlh(&cdata->node.loc.pos,&cdata->node.loc.att);
@@ -79,7 +79,7 @@ do
 	if (dp)
 		{
 		mjdnow += dp/86400.;
-		orbit_propagate(cdata,mjdnow);
+		orbit_propagate(*cdata, mjdnow);
 //		att_eci2lvlh(&cdata->node.loc.pos,&cdata->node.loc.att);
 		ql = cdata->node.loc.att.lvlh.s;
 //		printf("%f\t%f\t%f\t%f\t",ql.d.col[0],ql.d.col[1],ql.d.col[2],ql.w);
@@ -93,7 +93,7 @@ do
 			{
 			lastlat = cdata->node.loc.pos.geod.s.lat;
 			mjdnow += dt/86400.;
-			orbit_propagate(cdata,mjdnow);
+			orbit_propagate(*cdata, mjdnow);
 			cp += dt/86400.;
 			}
 			while (!(lastlat < 0. && cdata->node.loc.pos.geod.s.lat >= 0.));

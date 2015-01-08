@@ -10,6 +10,7 @@
 #include <iomanip>
 
 cosmosstruc* cdata;
+gj_handle gjh;
 vector<shorteventstruc> eventdict;
 vector<shorteventstruc> events;
 jstring mainjstring={0,0,0};
@@ -56,11 +57,11 @@ int main(int argc, char* argv[])
 	// Set initial state
 	locstruc iloc;
 
-	pos_clear(&iloc);
+	pos_clear(iloc);
 
 	struct stat fstat;
 	FILE* fdes;
-	string fname = get_cnodedir((node.c_str()));
+	string fname = get_nodedir((node.c_str()));
 	fname += "/state.ini";
 	if ((iretn=stat(fname.c_str(), &fstat)) == 0 && (fdes=fopen(fname.c_str(),"r")) != NULL)
 	{
@@ -150,12 +151,12 @@ int main(int argc, char* argv[])
 
 	if (mjdnow < iloc.utc)
 	{
-		gauss_jackson_init_eci(order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, cdata);
+		gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, *cdata);
 
         //printf("Initialize backwards %f days\n", (cdata->node.loc.utc-mjdnow));
         cout << "Initialize backwards " << cdata->node.loc.utc-mjdnow << "days" << endl;
 
-		gauss_jackson_propagate(cdata, mjdnow);
+		gauss_jackson_propagate(gjh, *cdata, mjdnow);
 		iloc.utc = cdata->node.loc.utc;
 		iloc.pos.eci = cdata->node.loc.pos.eci;
 		iloc.att.icrf = cdata->node.loc.att.icrf;
@@ -174,13 +175,13 @@ int main(int argc, char* argv[])
     //printf("Initialize forwards %f days, steps of %f\n", (mjdnow-iloc.utc), step);
     cout << "Initialize forwards " << (mjdnow-iloc.utc) << " days, steps of " << step << endl;
 
-	gauss_jackson_init_eci(order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, cdata);
-	gauss_jackson_propagate(cdata, mjdnow);
-	pos_clear(&iloc);
+	gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
+	gauss_jackson_propagate(gjh, *cdata, mjdnow);
+	pos_clear(iloc);
 	iloc.pos.eci = cdata->node.loc.pos.eci;
 	iloc.att.icrf = cdata->node.loc.att.icrf;
 	iloc.utc = cdata->node.loc.pos.eci.utc;
-	gauss_jackson_init_eci(order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, cdata);
+	gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
 	mjdnow = currentmjd(cdata->node.utcoffset);
 
 	if (!(cdata = agent_setup_server(cdata, (char *)"physics", .1, 0, AGENTMAXBUFFER, AGENT_SINGLE)))
@@ -196,7 +197,7 @@ int main(int argc, char* argv[])
 	{
 		sohtimer += 1./86400.;
 		mjdnow = currentmjd(cdata->node.utcoffset);
-		gauss_jackson_propagate(cdata, mjdnow);
+		gauss_jackson_propagate(gjh, *cdata, mjdnow);
 
 		update_target(cdata);
 		calc_events(eventdict, cdata, events);

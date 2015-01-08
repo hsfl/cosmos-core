@@ -32,10 +32,10 @@ void loc_clear(locstruc *loc)
 	\param loc Pointer to ::locstruc that contains positions.
 	attitudes.
 */
-void pos_clear(locstruc *loc)
+void pos_clear(locstruc &loc)
 {
-	memset((void*) &loc->pos, 0, sizeof(posstruc));
-	att_clear(loc);
+	memset((void*) &loc.pos, 0, sizeof(posstruc));
+	att_clear(loc.att);
 }
 
 //! Initialize ::attstruc.
@@ -43,9 +43,9 @@ void pos_clear(locstruc *loc)
  * properly propagate changes.
 	\param loc Pointer to ::locstruc that contains attitudes.
 */
-void att_clear(locstruc *loc)
+void att_clear(attstruc &att)
 {
-	memset((void*) &loc->att, 0, sizeof(attstruc));
+	memset((void*) &att, 0, sizeof(attstruc));
 }
 
 //! Calculate Extra position information

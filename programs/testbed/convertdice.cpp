@@ -50,9 +50,9 @@ int main(int argc, char *argv[])
 		if (lines2eci(utc, cdata->tle, &npos) < 0)
 			exit (1);
 		cdata->node.loc.utc = utc;
-		update_eci(cdata,cdata->node.loc.utc,npos);
+		update_eci(*cdata, cdata->node.loc.utc, npos);
 		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(&mainjstring,cdata));
-//		ecount = check_events(events,20,cdata);
+		//		ecount = check_events(events,20,cdata);
 		for (i=0; i<ecount; i++)
 		{
 			cdata->event[0].s = events[i];
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 		if (lines2eci(utc, cdata->tle, &npos) < 0)
 			exit (1);
 		cdata->node.loc.utc = utc;
-		update_eci(cdata,cdata->node.loc.utc,npos);
+		update_eci(*cdata, cdata->node.loc.utc, npos);
 		bearth.col[2] = 0.;
 		cdata->node.loc.bearth = bearth;
 		cdata->devspec.imu[0]->mag = bearth;
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 		}
 		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,(char *)json_of_soh(&mainjstring,cdata));
 		lmjd += 10./86400.;
-//		ecount = check_events(events,20,cdata);
+		//		ecount = check_events(events,20,cdata);
 		for (i=0; i<ecount; i++)
 		{
 			cdata->event[0].s = events[i];
@@ -125,9 +125,9 @@ int main(int argc, char *argv[])
 		if (lines2eci(utc, cdata->tle, &npos) < 0)
 			exit (1);
 		cdata->node.loc.utc = utc;
-		update_eci(cdata,cdata->node.loc.utc,npos);
+		update_eci(*cdata, cdata->node.loc.utc, npos);
 		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(&mainjstring,cdata));
-//		ecount = check_events(events,20,cdata);
+		//		ecount = check_events(events,20,cdata);
 		for (i=0; i<ecount; i++)
 		{
 			cdata->event[0].s = events[i];

@@ -241,7 +241,7 @@ int myagent()
 		COSMOS_USLEEP(sleept);
 	} while (agent_running(cdata));
 
-	//	sprintf(tname,"%s/outgoing/%s",get_cnodedir(cdata->node.name),data_name(cdata->node.name,fmjd,(char *)"telemetry"));
+	//	sprintf(tname,"%s/outgoing/%s",get_nodedir(cdata->node.name),data_name(cdata->node.name,fmjd,(char *)"telemetry"));
 	//	rename(data_base_path(cdata->node.name,fmjd,(char *)"telemetry"),tname);
 	cdthread.join();
 	agent_shutdown_server(cdata);

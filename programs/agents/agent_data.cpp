@@ -56,12 +56,12 @@ char input[100];
 FILE *fd;
 
 // Setting the directory where the data is
-if (get_nodedir().empty())
+if (get_cosmosnodes().empty())
 {
 	printf("Couldn't find Nodes directory\n");
 	exit (1);
 }
-strcpy(dataDir,get_nodedir().c_str());
+strcpy(dataDir,get_cosmosnodes().c_str());
 
 // check if we are already running the agent
 if ((iretn=agent_get_server(cdata, (char *)"hmoc",agentname,waitsec,(beatstruc *)NULL)) > 0)

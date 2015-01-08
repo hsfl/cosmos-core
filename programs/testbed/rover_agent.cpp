@@ -192,7 +192,7 @@ while(agent_running(cdata))
 
 	// Simulate hardware
 	cdata->physics.dt = dt;
-	simulate_hardware(cdata,&cdata->node.loc);
+	simulate_hardware(*cdata, cdata->node.loc);
 	agent_post(cdata, AGENT_MESSAGE_SOH,json_of_soh(&jstring,cdata));
 
 	// Broadcast and Log SOH

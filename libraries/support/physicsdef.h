@@ -61,6 +61,25 @@ typedef struct
 	rvector tau;
 } gjstruc;
 
+//! Gauss-Jackson integration handle
+/*! Holds all the parameters necessary to run a single instance of a GJ integration.
+ */
+typedef struct
+{
+	vector< vector<int32_t> > binom;
+	vector<double> c;
+	vector<double> gam;
+	vector< vector<double> > beta;
+	vector<double> q;
+	vector<double> lam;
+	vector< vector<double> > alpha;
+	double dt;
+	double dtsq;
+	uint32_t order;
+	uint32_t order2;
+	vector<gjstruc> step;
+} gj_handle;
+
 //! Physics Simulation Structure
 /*! Holds parameters used specifically for the physical simulation of the
  * environment and hardware of a Node.

@@ -15,6 +15,7 @@
 
 char *output;
 
+gj_handle gjh;
 cosmosstruc *cdata;
 jstring reqjstring={0,0,0};
 jstring mainjstring={0,0,0};
@@ -66,7 +67,7 @@ int main(int argc, char *argv[])
 
 	order = 8;
 
-	sprintf(fname,"%s/state.ini",get_cnodedir(node).c_str());
+	sprintf(fname,"%s/state.ini",get_nodedir(node).c_str());
 
 	if ((iretn=stat(fname,&fstat)) == 0 && (fdes=fopen(fname,"r")) != NULL)
 	{
@@ -78,12 +79,12 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		sprintf(fname,"%s/tle.ini",get_cnodedir(node).c_str());
+		sprintf(fname,"%s/tle.ini",get_nodedir(node).c_str());
 		if ((iretn=stat(fname,&fstat)) == 0 && (iretn=load_lines(fname,cdata->tle)) > 0)
 		{
 			tline = get_line(0, cdata->tle);
 			mjdnow = currentmjd(0.);
-			lines2eci(mjdnow, cdata->tle,&cdata->node.loc.pos.eci);
+			lines2eci(mjdnow, cdata->tle, &cdata->node.loc.pos.eci);
 		}
 		else
 		{
@@ -120,7 +121,7 @@ int main(int argc, char *argv[])
 	loc_update(&cdata->node.loc);
 */
 
-	gauss_jackson_init_eci(order,mode,dt,mjdnow,cdata->node.loc.pos.eci,cdata->node.loc.att.icrf,cdata);
+	gauss_jackson_init_eci(gjh, order, mode, dt, mjdnow,cdata->node.loc.pos.eci, cdata->node.loc.att.icrf, *cdata);
 	mjdnow = cdata->node.loc.utc;
 
 	cdata->node.utcoffset = mjdnow - currentmjd(0);
@@ -130,7 +131,7 @@ int main(int argc, char *argv[])
 	do
 	{
 		mjdnow = currentmjd(0.);
-		gauss_jackson_propagate(cdata,mjdnow + cdata->node.utcoffset);
+		gauss_jackson_propagate(gjh, *cdata, mjdnow + cdata->node.utcoffset);
 
 		/*
 		if (cdata->node.state == 1)

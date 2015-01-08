@@ -47,6 +47,7 @@ vector<shorteventstruc> commanddict;
 
 cosmosstruc *cdata;
 nodestruc statnode;
+gj_handle gjh;
 
 // Internal variables
 int32_t myport;
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
 
 
 	// Check Node directory
-	if (get_cnodedir(cdata->node.name).empty())
+	if (get_nodedir(cdata->node.name).empty())
 	{
 		printf("Couldn't find Node directory %s\n",argv[1]);
 		exit (1);
@@ -159,7 +160,10 @@ int main(int argc, char *argv[])
 	switch (cdata->node.type)
 	{
 	case NODE_TYPE_SATELLITE:
-		gauss_jackson_init_eci(8,0,.1,cdata->node.loc.utc,cdata->node.loc.pos.eci,cdata->node.loc.att.icrf,cdata);
+		// Initialize hardware
+		hardware_init_eci(cdata->devspec, cdata->node.loc);
+		// Initialize orbit
+		gauss_jackson_init_eci(gjh, 8, 0, .1, cdata->node.loc.utc, cdata->node.loc.pos.eci, cdata->node.loc.att.icrf, *cdata);
 		cdata->node.utcoffset = cdata->node.loc.utc - currentmjd(0.);
 		agent_set_sohstring(cdata, (char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"}");
 		printf("Initialized satellite starting at %.15g [%.8g %.8g %.8g]\n",cdata->node.loc.pos.eci.utc,cdata->node.loc.pos.eci.s.col[0],cdata->node.loc.pos.eci.s.col[1],cdata->node.loc.pos.eci.s.col[2]);
@@ -186,7 +190,7 @@ int main(int argc, char *argv[])
 		switch (cdata->node.type)
 		{
 		case NODE_TYPE_SATELLITE:
-			gauss_jackson_propagate(cdata,currentmjd(cdata->node.utcoffset));
+			gauss_jackson_propagate(gjh, *cdata, currentmjd(cdata->node.utcoffset));
 			break;
 		default:
 			cdata->node.loc.utc = cdata->node.loc.pos.geod.utc = currentmjd(cdata->node.utcoffset);
@@ -227,7 +231,7 @@ void loadevents()
 	FILE *ifh;
 	char dtemp[100];
 
-	sprintf(dtemp,"%s/events.dict",get_cnodedir(cdata->node.name));
+	sprintf(dtemp,"%s/events.dict",get_nodedir(cdata->node.name));
 	if ((ifh=fopen(dtemp,"r")) != NULL)
 	{
 		while (fgets(ibuf,AGENTMAXBUFFER,ifh) != NULL)
@@ -276,7 +280,7 @@ void loadephemeris()
 	ctime = cdata->node.loc.utc;
 	stime = (int)ctime;
 	etime = stime + MAXEPHEM + 1;
-	gauss_jackson_init_eci(8,1,10.,ctime,cdata->node.loc.pos.eci,cdata->node.loc.att.icrf,cdata);
+	gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, cdata->node.loc.pos.eci, cdata->node.loc.att.icrf, *cdata);
 	update_target(cdata);
 	do
 	{
@@ -291,7 +295,7 @@ void loadephemeris()
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
 		cache[3+(int)(ctime-stime)].utime = ctime;
 		ctime += 20./86400.;
-		gauss_jackson_propagate(cdata,ctime);
+		gauss_jackson_propagate(gjh, *cdata, ctime);
 		update_target(cdata);
 	} while (ctime < etime);
 

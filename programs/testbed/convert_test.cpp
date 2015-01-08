@@ -128,7 +128,7 @@ printf("From Barycentric\n");
 compare();
 printf("\n");
 
-//pos_clear(&loc);
+//pos_clear(loc);
 loc.pos.eci = iloc.pos.eci;
 loc.att.icrf = iloc.att.icrf;
 loc.pos.eci.pass++;
@@ -137,7 +137,7 @@ printf("From ECI\n");
 compare();
 printf("\n");
 
-//pos_clear(&loc);
+//pos_clear(loc);
 loc.pos.geoc = iloc.pos.geoc;
 loc.att.geoc = iloc.att.geoc;
 loc.pos.geoc.pass++;
@@ -146,7 +146,7 @@ printf("From Geocentric\n");
 compare();
 printf("\n");
 
-//pos_clear(&loc);
+//pos_clear(loc);
 loc.pos.geod = iloc.pos.geod;
 loc.att.geoc = iloc.att.geoc;
 loc.pos.geod.pass++;

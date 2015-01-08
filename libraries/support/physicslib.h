@@ -94,36 +94,38 @@ void power(cosmosstruc *root);
 //! Ground station values
 svector groundstation(locstruc *satellite,locstruc *groundstation);
 //! Simulate all devices
-void simulate_hardware(cosmosstruc *root, locstruc *loc);
+void simulate_hardware(cosmosstruc &cdata, locstruc &loc);
 //! Initialize IMU simulation
-void initialize_imu(int index, cosmosstruc *root, locstruc *loc);
+void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &loc);
 //! Simulated IMU values
-void simulate_imu(int index, cosmosstruc *root, locstruc *loc);
+void simulate_imu(int index, cosmosstruc &root, locstruc &loc);
 //! Acceleration
-void pos_accel(cosmosstruc *root, locstruc *loc);
+void pos_accel(physicsstruc &physics, locstruc &loc);
 //! Torque
-void att_accel(cosmosstruc *root, locstruc *loc);
+void att_accel(physicsstruc &physics, locstruc &loc);
 //! Geodetic to Heliocentric
 void geod2baryc(posstruc *pos);
 double msis86_density(posstruc pos,float f107avg,float f107,float magidx);
 double msis00_density(posstruc pos,float f107avg,float f107,float magidx);
-void orbit_init_tle(int32_t mode,double dt,double mjd,cosmosstruc *root);
-void orbit_init_eci(int32_t mode,double dt,double mjd,cartpos ipos,cosmosstruc *root);
-void orbit_init_shape(int32_t mode,double dt,double mjd,double altitude,double angle,double hour,cosmosstruc *root);
-void propagate(cosmosstruc *root, double mjd);
+void orbit_init_tle(int32_t mode,double dt,double mjd,cosmosstruc &root);
+void orbit_init_eci(int32_t mode, double dt, double mjd, cartpos ipos, cosmosstruc &root);
+void orbit_init_shape(int32_t mode, double dt, double mjd, double altitude, double angle, double hour, cosmosstruc &root);
+void propagate(cosmosstruc &root, double mjd);
 double rearth(double lat);
-int update_eci(cosmosstruc *root, double utc, cartpos pos);
+int update_eci(cosmosstruc &root, double utc, cartpos pos);
 
-void gauss_jackson_setup(int32_t order, double utc, double *dt);
-void gauss_jackson_init_tle(int32_t order,int32_t mode,double dt,double mjd,cosmosstruc *root);
-void gauss_jackson_init_eci(int32_t order,int32_t mode,double dt,double mjd,cartpos ipos,qatt iatt,cosmosstruc *root);
-void gauss_jackson_init_stk(int32_t order,int32_t mode,double dt,double mjd,stkstruc *stk,cosmosstruc *root);
-void gauss_jackson_init(int32_t order,int32_t mode,double dt,double mjd,double altitude,double angle,double hour,cosmosstruc *root);
-void gauss_jackson_converge(cosmosstruc *root);
-void gauss_jackson_propagate(cosmosstruc *root, double mjd);
+void hardware_init_eci(devspecstruc &devspec, locstruc &loc);
+void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt);
+void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order,int32_t mode,double dt,double mjd,cosmosstruc &cdata);
+void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, cartpos ipos, qatt iatt, cosmosstruc &cdata);
+void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, stkstruc *stk, cosmosstruc &cdata, locstruc &loc);
+void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, double altitude, double angle, double hour, cosmosstruc &cdata, locstruc &loc);
+locstruc gauss_jackson_converge_orbit(gj_handle &gjh, cosmosstruc &cdata);
+void gauss_jackson_converge_hardware(gj_handle &gjh, cosmosstruc &cdata);
+void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &root, double mjd);
 //! Load TLE's from file
-int orbit_propagate(cosmosstruc *root, double mjd);
-int orbit_init(int32_t mode,double dt,double mjd,char *ofile,cosmosstruc *root);
+int orbit_propagate(cosmosstruc &root, double mjd);
+int orbit_init(int32_t mode,double dt,double mjd,char *ofile,cosmosstruc &root);
 //void SolidTide(posstruc pos, double dc[5][4], double ds[5][4]);
 
 //! @}

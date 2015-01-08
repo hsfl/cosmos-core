@@ -1,11 +1,6 @@
 #include "physicslib.h"
 #include "timelib.h"
 #include "datalib.h"
-//#include <math.h>
-//#include <stdio.h>
-//#include <sys/time.h>
-//#include <time.h>
-//#include <cstring>
 
 #define MAXDEGREE 360
 #define ASTEP 1
@@ -20,23 +15,7 @@ static double initialutc;
 static char orbitfile[50] = {""};
 static stkstruc stkhandle;
 
-/**
-* Data structure for Gauss-Jackson integration.
-* @brief Gauss-Jackson parameters
-*/
-static long gj_binom[MAXGJORDER+2][MAXGJORDER+2];
-static double gj_c[MAXGJORDER+3];
-static double gj_gam[MAXGJORDER+2];
-static double gj_beta[MAXGJORDER+2][MAXGJORDER+1];
-static double gj_q[MAXGJORDER+3];
-static double gj_lam[MAXGJORDER+3];
-static double gj_alpha[MAXGJORDER+2][MAXGJORDER+1];
-static double gj_dt;
-static double gj_dt2;
-static uint32_t gj_order = 0;
-static uint32_t gj_2order;
 static locstruc sloc[MAXGJORDER+2];
-gjstruc gj[MAXGJORDER+2];
 
 //! Data structures for spherical harmonic expansion
 /*! Coefficients for real and imaginary components of expansion. Of order and rank MAXDEGREE
@@ -849,57 +828,57 @@ svector groundstation(locstruc *satellite,locstruc *groundstation)
 	\param dyn Structure holding dynamic specs on satellite
 	\param loc Structure specifying location
 */
-void initialize_hardware(cosmosstruc *cdata, locstruc *loc)
+void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
 {
 	int i;
 
 	// Initialize power
-	cdata->node.battlev = cdata->node.battcap;
-	for (i=0; i<cdata->devspec.bus_cnt; i++)
+//	cdata.node.battlev = cdata.node.battcap;
+	for (i=0; i<devspec.bus_cnt; i++)
 	{
-		cdata->devspec.bus[i]->amp = 0.;
-		cdata->devspec.bus[i]->flag |= DEVICE_FLAG_ON;
+		devspec.bus[i]->amp = 0.;
+		devspec.bus[i]->flag |= DEVICE_FLAG_ON;
 	}
 
 	//! Initialize temperature sensors
-	for (i=0; i<cdata->devspec.tsen_cnt; i++)
+	for (i=0; i<devspec.tsen_cnt; i++)
 	{
-		cdata->devspec.tsen[i]->temp = 300.;
+		devspec.tsen[i]->temp = 300.;
 	}
 
 	//! Reaction Wheels
-	for (i=0; i<cdata->devspec.rw_cnt; i++)
+	for (i=0; i<devspec.rw_cnt; i++)
 	{
-		cdata->devspec.rw[i]->utc = loc->utc;
-		cdata->devspec.rw[i]->omg = cdata->devspec.rw[i]->alp = 0.;
-		cdata->devspec.rw[i]->romg = cdata->devspec.rw[i]->ralp = 0.;
+		devspec.rw[i]->utc = loc.utc;
+		devspec.rw[i]->omg = devspec.rw[i]->alp = 0.;
+		devspec.rw[i]->romg = devspec.rw[i]->ralp = 0.;
 	}
 
 	//! Magnetic Torque Rods
-	if (cdata->devspec.tcu_cnt)
+	if (devspec.tcu_cnt)
 	{
-		cdata->devspec.tcu[0]->utc = loc->utc;
-		for (i=0; i<cdata->devspec.mtr_cnt; i++)
+		devspec.tcu[0]->utc = loc.utc;
+		for (i=0; i<devspec.mtr_cnt; i++)
 		{
-			cdata->devspec.mtr[i]->utc = loc->utc;
-			cdata->devspec.mtr[i]->mom = 0.;
-			cdata->devspec.mtr[i]->rmom = 0.;
+			devspec.mtr[i]->utc = loc.utc;
+			devspec.mtr[i]->mom = 0.;
+			devspec.mtr[i]->rmom = 0.;
 		}
 	}
 
 	// Inertial Measurement Units
-	for (i=0; i<cdata->devspec.imu_cnt; i++)
+	for (i=0; i<devspec.imu_cnt; i++)
 	{
-		initialize_imu(i, cdata, loc);
-		cdata->devspec.imu[i]->utc = loc->utc;
+		initialize_imu(i, devspec, loc);
+		devspec.imu[i]->utc = loc.utc;
 	}
 
 	//! Star Trackers
-	for (i=0; i<cdata->devspec.stt_cnt; i++)
+	for (i=0; i<devspec.stt_cnt; i++)
 	{
-		cdata->devspec.stt[i]->att = q_mult(cdata->devspec.stt[i]->align,q_conjugate(loc->att.icrf.s));
-		cdata->devspec.stt[i]->omega = transform_q(q_conjugate(cdata->devspec.stt[i]->align),loc->att.icrf.v);
-		cdata->devspec.stt[i]->utc = loc->utc;
+		devspec.stt[i]->att = q_mult(devspec.stt[i]->align,q_conjugate(loc.att.icrf.s));
+		devspec.stt[i]->omega = transform_q(q_conjugate(devspec.stt[i]->align),loc.att.icrf.v);
+		devspec.stt[i]->utc = loc.utc;
 	}
 }
 
@@ -910,7 +889,7 @@ void initialize_hardware(cosmosstruc *cdata, locstruc *loc)
 	\param dyn Structure holding dynamic specs on satellite
 	\param loc Structure specifying location
 */
-void simulate_hardware(cosmosstruc *cdata, locstruc *loc)
+void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 {
 	double speed, density, sattemp;
 	rvector vbody, vplanet;
@@ -930,111 +909,111 @@ void simulate_hardware(cosmosstruc *cdata, locstruc *loc)
 
 
 	// Atmospheric and solar drag
-	unitv = loc->pos.geoc.v;
+	unitv = loc.pos.geoc.v;
 	normalize_rv(&unitv);
-	unitv = transform_q((loc->att.geoc.s),unitv);
+	unitv = transform_q((loc.att.geoc.s),unitv);
 
-	units = rv_smult(-1.,loc->pos.baryc.s);
+	units = rv_smult(-1.,loc.pos.baryc.s);
 	normalize_rv(&units);
-	units = transform_q((loc->att.icrf.s),units);
+	units = transform_q((loc.att.icrf.s),units);
 
-	unite = rv_smult(-1.,loc->pos.eci.s);
+	unite = rv_smult(-1.,loc.pos.eci.s);
 	normalize_rv(&unite);
-	unite = transform_q((loc->att.icrf.s),unite);
+	unite = transform_q((loc.att.icrf.s),unite);
 
-	geov = loc->pos.geoc.v;
+	geov = loc.pos.geoc.v;
 	speed = geov.col[0]*geov.col[0]+geov.col[1]*geov.col[1]+geov.col[2]*geov.col[2];
-	if (loc->pos.geod.s.h < 10000. || std::isnan(loc->pos.geod.s.h))
+	if (loc.pos.geod.s.h < 10000. || std::isnan(loc.pos.geod.s.h))
 		density = 1.225;
 	else
-		density = 1000. * msis00_density(loc->pos,150.,150.,3.);
+		density = 1000. * msis00_density(loc.pos,150.,150.,3.);
 	//	density = 0.;
 	adrag = density * 1.1 * speed;
 
-	cdata->node.powgen = 0.;
+	cdata.node.powgen = 0.;
 
-	cdata->physics.atorque = cdata->physics.rtorque = rv_zero();
-	cdata->physics.adrag = cdata->physics.rdrag = rv_zero();
+	cdata.physics.atorque = cdata.physics.rtorque = rv_zero();
+	cdata.physics.adrag = cdata.physics.rdrag = rv_zero();
 	sdheat = 0;
-	sattemp = cdata->physics.heat / (cdata->physics.mass * cdata->physics.hcap);
-	for (i=0; i<cdata->piece.size(); i++)
+	sattemp = cdata.physics.heat / (cdata.physics.mass * cdata.physics.hcap);
+	for (i=0; i<cdata.piece.size(); i++)
 	{
-		cdata->piece[i].heat = cdata->piece[i].mass * cdata->piece[i].temp * cdata->piece[i].hcap;
-		energyd = cdata->physics.dt * SIGMA * pow(cdata->piece[i].temp,4);
-		dheat = (cdata->piece[i].temp-sattemp)/100000.*cdata->piece[i].heat;
-		cdata->piece[i].heat -= dheat;
+		cdata.piece[i].heat = cdata.piece[i].mass * cdata.piece[i].temp * cdata.piece[i].hcap;
+		energyd = cdata.physics.dt * SIGMA * pow(cdata.piece[i].temp,4);
+		dheat = (cdata.piece[i].temp-sattemp)/100000.*cdata.piece[i].heat;
+		cdata.piece[i].heat -= dheat;
 		sdheat += dheat;
-		dheat = cdata->piece[i].emi*cdata->piece[i].area * energyd;
-		cdata->piece[i].heat -= dheat;
+		dheat = cdata.piece[i].emi*cdata.piece[i].area * energyd;
+		cdata.piece[i].heat -= dheat;
 		sdheat += dheat;
 
-		if (cdata->piece[i].type == PIECE_TYPE_EXTERNAL_PANEL)
+		if (cdata.piece[i].type == PIECE_TYPE_EXTERNAL_PANEL)
 		{
-			cdata->piece[i].heat -= dheat;
-			vdot = dot_rv(unitv,cdata->piece[i].normal);
+			cdata.piece[i].heat -= dheat;
+			vdot = dot_rv(unitv,cdata.piece[i].normal);
 			if (vdot > 0)
 			{
-				ddrag = adrag*vdot/cdata->physics.mass;
-				dtorque = rv_smult(ddrag,cdata->piece[i].twist);
-				cdata->physics.atorque = rv_add(cdata->physics.atorque,dtorque);
-				da = rv_smult(ddrag,cdata->piece[i].shove);
-				cdata->physics.adrag = rv_add(cdata->physics.adrag,da);
+				ddrag = adrag*vdot/cdata.physics.mass;
+				dtorque = rv_smult(ddrag,cdata.piece[i].twist);
+				cdata.physics.atorque = rv_add(cdata.physics.atorque,dtorque);
+				da = rv_smult(ddrag,cdata.piece[i].shove);
+				cdata.physics.adrag = rv_add(cdata.physics.adrag,da);
 			}
 
-			sdot = dot_rv(units,cdata->piece[i].normal);
-			if (loc->pos.sunradiance && sdot > 0)
+			sdot = dot_rv(units,cdata.piece[i].normal);
+			if (loc.pos.sunradiance && sdot > 0)
 			{
-				ddrag = loc->pos.sunradiance * sdot / (3e8*cdata->physics.mass);
-				dtorque = rv_smult(ddrag,cdata->piece[i].twist);
-				cdata->physics.rtorque = rv_add(cdata->physics.rtorque,dtorque);
-				da = rv_smult(ddrag,cdata->piece[i].shove);
-				cdata->physics.rdrag = rv_add(cdata->physics.rdrag,da);
+				ddrag = loc.pos.sunradiance * sdot / (3e8*cdata.physics.mass);
+				dtorque = rv_smult(ddrag,cdata.piece[i].twist);
+				cdata.physics.rtorque = rv_add(cdata.physics.rtorque,dtorque);
+				da = rv_smult(ddrag,cdata.piece[i].shove);
+				cdata.physics.rdrag = rv_add(cdata.physics.rdrag,da);
 
-				cdata->piece[i].insol = loc->pos.sunradiance * sdot/length_rv(cdata->piece[i].normal);
-				energyd =  cdata->piece[i].insol * cdata->physics.dt;
-				cdata->piece[i].heat += cdata->piece[i].area * cdata->piece[i].abs * energyd;
-				if (cdata->piece[i].cidx<DEVICE_TYPE_NONE && cdata->device[cdata->piece[i].cidx].gen.type == DEVICE_TYPE_STRG)
+				cdata.piece[i].insol = loc.pos.sunradiance * sdot/length_rv(cdata.piece[i].normal);
+				energyd =  cdata.piece[i].insol * cdata.physics.dt;
+				cdata.piece[i].heat += cdata.piece[i].area * cdata.piece[i].abs * energyd;
+				if (cdata.piece[i].cidx<DEVICE_TYPE_NONE && cdata.device[cdata.piece[i].cidx].gen.type == DEVICE_TYPE_STRG)
 				{
-					j = cdata->device[cdata->piece[i].cidx].gen.didx;
-					if (cdata->devspec.strg[j]->effbase > 0.)
+					j = cdata.device[cdata.piece[i].cidx].gen.didx;
+					if (cdata.devspec.strg[j]->effbase > 0.)
 					{
-						efficiency = cdata->devspec.strg[j]->effbase + cdata->devspec.strg[j]->effslope * cdata->piece[i].temp;
-						cdata->devspec.strg[j]->power = cdata->piece[i].area*efficiency*cdata->piece[i].insol;
-						cdata->device[cdata->devspec.strg[j]->cidx].gen.volt = 35.;
-						cdata->device[cdata->devspec.strg[j]->cidx].gen.amp = -cdata->devspec.strg[j]->power / cdata->device[cdata->devspec.strg[j]->cidx].gen.volt;
-						cdata->node.powgen += .4 * cdata->devspec.strg[j]->power;
-						cdata->piece[i].heat += (cdata->piece[i].abs * cdata->piece[i].area * cdata->piece[i].insol - cdata->devspec.strg[j]->power) * cdata->physics.dt;
-						cdata->piece[i].heat -= cdata->piece[i].emi * cdata->piece[i].area * energyd;
+						efficiency = cdata.devspec.strg[j]->effbase + cdata.devspec.strg[j]->effslope * cdata.piece[i].temp;
+						cdata.devspec.strg[j]->power = cdata.piece[i].area*efficiency*cdata.piece[i].insol;
+						cdata.device[cdata.devspec.strg[j]->cidx].gen.volt = 35.;
+						cdata.device[cdata.devspec.strg[j]->cidx].gen.amp = -cdata.devspec.strg[j]->power / cdata.device[cdata.devspec.strg[j]->cidx].gen.volt;
+						cdata.node.powgen += .4 * cdata.devspec.strg[j]->power;
+						cdata.piece[i].heat += (cdata.piece[i].abs * cdata.piece[i].area * cdata.piece[i].insol - cdata.devspec.strg[j]->power) * cdata.physics.dt;
+						cdata.piece[i].heat -= cdata.piece[i].emi * cdata.piece[i].area * energyd;
 					}
 				}
 			}
 			else
 			{
-				for (j=0; j<cdata->devspec.strg_cnt; j++)
+				for (j=0; j<cdata.devspec.strg_cnt; j++)
 				{
-					if (cdata->device[cdata->devspec.strg[j]->cidx].gen.pidx == i)
+					if (cdata.device[cdata.devspec.strg[j]->cidx].gen.pidx == i)
 					{
-						cdata->devspec.strg[j]->power = 0.;
-						cdata->device[cdata->devspec.strg[j]->cidx].gen.volt = 0.;
-						cdata->device[cdata->devspec.strg[j]->cidx].gen.amp = 0.;
-						cdata->piece[i].heat -= cdata->piece[i].emi * cdata->piece[i].area * energyd;
+						cdata.devspec.strg[j]->power = 0.;
+						cdata.device[cdata.devspec.strg[j]->cidx].gen.volt = 0.;
+						cdata.device[cdata.devspec.strg[j]->cidx].gen.amp = 0.;
+						cdata.piece[i].heat -= cdata.piece[i].emi * cdata.piece[i].area * energyd;
 					}
 				}
 			}
-			edot = acos(dot_rv(unite,cdata->piece[i].normal)/length_rv(cdata->piece[i].normal)) - RADOF(5.);
+			edot = acos(dot_rv(unite,cdata.piece[i].normal)/length_rv(cdata.piece[i].normal)) - RADOF(5.);
 			if (edot < 0.)
 				edot = 1.;
 			else
 				edot = cos(edot);
 			if (edot > 0)
 			{
-				energyd = edot * cdata->physics.dt * SIGMA * pow(290.,4);
-				cdata->piece[i].heat += cdata->piece[i].abs*cdata->piece[i].area * energyd;
-				for (j=0; j<cdata->devspec.strg_cnt; j++)
+				energyd = edot * cdata.physics.dt * SIGMA * pow(290.,4);
+				cdata.piece[i].heat += cdata.piece[i].abs*cdata.piece[i].area * energyd;
+				for (j=0; j<cdata.devspec.strg_cnt; j++)
 				{
-					if (cdata->device[cdata->devspec.strg[j]->cidx].gen.pidx == i)
+					if (cdata.device[cdata.devspec.strg[j]->cidx].gen.pidx == i)
 					{
-						energy += cdata->piece[i].abs * cdata->piece[i].area * energyd;
+						energy += cdata.piece[i].abs * cdata.piece[i].area * energyd;
 					}
 				}
 			}
@@ -1043,300 +1022,300 @@ void simulate_hardware(cosmosstruc *cdata, locstruc *loc)
 
 	// Simulate devices
 
-	cdata->physics.ctorque = rv_zero();
-	cdata->physics.hmomentum = rv_zero();
-	cdata->physics.ctorque = cdata->physics.ftorque;
+	cdata.physics.ctorque = rv_zero();
+	cdata.physics.hmomentum = rv_zero();
+	cdata.physics.ctorque = cdata.physics.ftorque;
 
 	// Start with Reaction Wheel Torque
 
-	for (i=0; i<cdata->devspec.rw_cnt; i++)
+	for (i=0; i<cdata.devspec.rw_cnt; i++)
 	{
 		//! Calculate change in Angular Momentum and therefore Acceleration
 
 		// Moments of Reaction Wheel in Device frame
-		mom = rm_diag(cdata->devspec.rw[i]->mom);
+		mom = rm_diag(cdata.devspec.rw[i]->mom);
 
 		// Torque and Momentum from reaction wheel
 
 		// Calculate Momentum in Body frame and transform to ICRF
-		//tskew = rm_skew(cdata->node.loc.att.icrf.v);
+		//tskew = rm_skew(loc.att.icrf.v);
 
-		wmomentum = rv_mmult(mom,rv_smult(cdata->devspec.rw[i]->omg,rv_unitz()));
-		wmomentum = transform_q(cdata->devspec.rw[i]->align,wmomentum);
-		cdata->physics.hmomentum = rv_add(cdata->physics.hmomentum,wmomentum);
+		wmomentum = rv_mmult(mom,rv_smult(cdata.devspec.rw[i]->omg,rv_unitz()));
+		wmomentum = transform_q(cdata.devspec.rw[i]->align,wmomentum);
+		cdata.physics.hmomentum = rv_add(cdata.physics.hmomentum,wmomentum);
 
 		// Calculate Torque in Body frame and transform to ICRF
-		wtorque = rv_mmult(mom,rv_smult(cdata->devspec.rw[i]->alp,rv_unitz()));
-		wtorque = transform_q(cdata->devspec.rw[i]->align,wtorque);
-		cdata->physics.ctorque = rv_sub(cdata->physics.ctorque,wtorque);
+		wtorque = rv_mmult(mom,rv_smult(cdata.devspec.rw[i]->alp,rv_unitz()));
+		wtorque = transform_q(cdata.devspec.rw[i]->align,wtorque);
+		cdata.physics.ctorque = rv_sub(cdata.physics.ctorque,wtorque);
 
 		// Term for exponential change
-		tcexp = exp(-cdata->physics.dt/cdata->devspec.rw[i]->tc);
+		tcexp = exp(-cdata.physics.dt/cdata.devspec.rw[i]->tc);
 
 		// Keep alpha within allowed limits
-		if (cdata->devspec.rw[i]->ralp > cdata->devspec.rw[i]->mxalp)
-			cdata->devspec.rw[i]->ralp = cdata->devspec.rw[i]->mxalp;
-		if (cdata->devspec.rw[i]->ralp < -cdata->devspec.rw[i]->mxalp)
-			cdata->devspec.rw[i]->ralp = -cdata->devspec.rw[i]->mxalp;
+		if (cdata.devspec.rw[i]->ralp > cdata.devspec.rw[i]->mxalp)
+			cdata.devspec.rw[i]->ralp = cdata.devspec.rw[i]->mxalp;
+		if (cdata.devspec.rw[i]->ralp < -cdata.devspec.rw[i]->mxalp)
+			cdata.devspec.rw[i]->ralp = -cdata.devspec.rw[i]->mxalp;
 
 		// Set alpha to zero if accelerating past limit
-		if (cdata->devspec.rw[i]->omg < -cdata->devspec.rw[i]->mxomg)
+		if (cdata.devspec.rw[i]->omg < -cdata.devspec.rw[i]->mxomg)
 		{
-			if (cdata->devspec.rw[i]->ralp < 0.)
-				cdata->devspec.rw[i]->ralp = 0.;
+			if (cdata.devspec.rw[i]->ralp < 0.)
+				cdata.devspec.rw[i]->ralp = 0.;
 		}
-		if (cdata->devspec.rw[i]->omg > cdata->devspec.rw[i]->mxomg)
+		if (cdata.devspec.rw[i]->omg > cdata.devspec.rw[i]->mxomg)
 		{
-			if (cdata->devspec.rw[i]->ralp > 0.)
-				cdata->devspec.rw[i]->ralp = 0.;
+			if (cdata.devspec.rw[i]->ralp > 0.)
+				cdata.devspec.rw[i]->ralp = 0.;
 		}
 
 		// Calculate change in acceleration effects
-		if (cdata->devspec.rw[i]->ralp != cdata->devspec.rw[i]->alp)
+		if (cdata.devspec.rw[i]->ralp != cdata.devspec.rw[i]->alp)
 		{
-			dalp = tcexp * (cdata->devspec.rw[i]->alp - cdata->devspec.rw[i]->ralp);
-			cdata->devspec.rw[i]->alp = cdata->devspec.rw[i]->ralp + dalp;
-			domg = -cdata->devspec.rw[i]->tc * dalp;
+			dalp = tcexp * (cdata.devspec.rw[i]->alp - cdata.devspec.rw[i]->ralp);
+			cdata.devspec.rw[i]->alp = cdata.devspec.rw[i]->ralp + dalp;
+			domg = -cdata.devspec.rw[i]->tc * dalp;
 		}
 		else
 			domg = 0.;
 
 		//! Accelerate Reaction Wheel and calculate Component currents.
-		cdata->devspec.rw[i]->omg += cdata->physics.dt * cdata->devspec.rw[i]->alp + domg;
-		cdata->device[cdata->devspec.rw[i]->cidx].gen.amp = .054 * fabs(cdata->devspec.rw[i]->omg)/400. + .093 * fabs(cdata->devspec.rw[i]->alp) / 30.;
-		cdata->devspec.rw[i]->utc = loc->utc;
+		cdata.devspec.rw[i]->omg += cdata.physics.dt * cdata.devspec.rw[i]->alp + domg;
+		cdata.device[cdata.devspec.rw[i]->cidx].gen.amp = .054 * fabs(cdata.devspec.rw[i]->omg)/400. + .093 * fabs(cdata.devspec.rw[i]->alp) / 30.;
+		cdata.devspec.rw[i]->utc = loc.utc;
 	}
 
 	// Determine magtorquer moments in body frame
 	// Magtorquer Torque is Cross Product of B field and Moments
 	mtorque = rv_zero();
 	mag_moment = rv_zero();
-	for (i=0; i<cdata->devspec.mtr_cnt; i++)
+	for (i=0; i<cdata.devspec.mtr_cnt; i++)
 	{
 		// Magnetic Moments in Body frame
-		mag_moment = rv_add(mag_moment,transform_q(cdata->devspec.mtr[i]->align,rv_smult(cdata->devspec.mtr[i]->mom,rv_unitz())));
+		mag_moment = rv_add(mag_moment,transform_q(cdata.devspec.mtr[i]->align,rv_smult(cdata.devspec.mtr[i]->mom,rv_unitz())));
 
-		tcexp = exp(-cdata->physics.dt/cdata->devspec.mtr[i]->tc);
+		tcexp = exp(-cdata.physics.dt/cdata.devspec.mtr[i]->tc);
 
 		// Keep field within allowed limits
-		if (cdata->devspec.mtr[i]->rmom > cdata->devspec.mtr[i]->mxmom)
-			cdata->devspec.mtr[i]->rmom = cdata->devspec.mtr[i]->mxmom;
-		if (cdata->devspec.mtr[i]->rmom < -cdata->devspec.mtr[i]->mxmom)
-			cdata->devspec.mtr[i]->rmom = -cdata->devspec.mtr[i]->mxmom;
+		if (cdata.devspec.mtr[i]->rmom > cdata.devspec.mtr[i]->mxmom)
+			cdata.devspec.mtr[i]->rmom = cdata.devspec.mtr[i]->mxmom;
+		if (cdata.devspec.mtr[i]->rmom < -cdata.devspec.mtr[i]->mxmom)
+			cdata.devspec.mtr[i]->rmom = -cdata.devspec.mtr[i]->mxmom;
 
-		if (cdata->devspec.mtr[i]->rmom != cdata->devspec.mtr[i]->mom)
+		if (cdata.devspec.mtr[i]->rmom != cdata.devspec.mtr[i]->mom)
 		{
-			dmom = tcexp * (cdata->devspec.mtr[i]->mom - cdata->devspec.mtr[i]->rmom);
-			cdata->devspec.mtr[i]->mom = cdata->devspec.mtr[i]->rmom + dmom;
+			dmom = tcexp * (cdata.devspec.mtr[i]->mom - cdata.devspec.mtr[i]->rmom);
+			cdata.devspec.mtr[i]->mom = cdata.devspec.mtr[i]->rmom + dmom;
 		}
 
 		//! Component currents for each MTR
-		if (cdata->devspec.mtr[i]->rmom < 0.)
+		if (cdata.devspec.mtr[i]->rmom < 0.)
 		{
-			cdata->device[cdata->devspec.mtr[i]->cidx].gen.amp = cdata->devspec.mtr[i]->mom * (3.6519e-3 - cdata->devspec.mtr[i]->mom * 8.6439e-5);
+			cdata.device[cdata.devspec.mtr[i]->cidx].gen.amp = cdata.devspec.mtr[i]->mom * (3.6519e-3 - cdata.devspec.mtr[i]->mom * 8.6439e-5);
 		}
 		else
 		{
-			cdata->device[cdata->devspec.mtr[i]->cidx].gen.amp = cdata->devspec.mtr[i]->mom * (3.6519e-3 + cdata->devspec.mtr[i]->mom * 8.6439e-5);
+			cdata.device[cdata.devspec.mtr[i]->cidx].gen.amp = cdata.devspec.mtr[i]->mom * (3.6519e-3 + cdata.devspec.mtr[i]->mom * 8.6439e-5);
 		}
-		//	cdata->devspec.mtr[i]->mom = cdata->device[cdata->devspec.mtr[i]->cidx].gen.amp*(229.43-cdata->device[cdata->devspec.mtr[i]->cidx].gen.amp*382.65);
+		//	cdata.devspec.mtr[i]->mom = cdata.device[cdata.devspec.mtr[i]->cidx].gen.amp*(229.43-cdata.device[cdata.devspec.mtr[i]->cidx].gen.amp*382.65);
 
-		cdata->devspec.mtr[i]->utc = loc->utc;
+		cdata.devspec.mtr[i]->utc = loc.utc;
 	}
 
 	// Get magnetic field in body frame
-	bearth = transform_q(cdata->node.loc.att.geoc.s,loc->bearth);
+	bearth = transform_q(loc.att.geoc.s,loc.bearth);
 
 	mtorque = rv_cross(mag_moment,bearth);
-//	mtorque = transform_q(q_conjugate(loc->att.icrf.s),mtorque);
-	cdata->physics.ctorque = rv_add(cdata->physics.ctorque,mtorque);
+//	mtorque = transform_q(q_conjugate(loc.att.icrf.s),mtorque);
+	cdata.physics.ctorque = rv_add(cdata.physics.ctorque,mtorque);
 
 	// Star Trackers
-	for (i=0; i<cdata->devspec.stt_cnt; i++)
+	for (i=0; i<cdata.devspec.stt_cnt; i++)
 	{
-		cdata->devspec.stt[i]->utc = loc->utc;
-		tq = q_mult(q_conjugate(cdata->devspec.stt[i]->align),cdata->node.loc.att.icrf.s);
-		cdata->devspec.stt[i]->att = tq;
-		cdata->devspec.stt[i]->omega = transform_q(tq,cdata->node.loc.att.icrf.v);
-		cdata->devspec.stt[i]->utc = loc->utc;
+		cdata.devspec.stt[i]->utc = loc.utc;
+		tq = q_mult(q_conjugate(cdata.devspec.stt[i]->align),loc.att.icrf.s);
+		cdata.devspec.stt[i]->att = tq;
+		cdata.devspec.stt[i]->omega = transform_q(tq,loc.att.icrf.v);
+		cdata.devspec.stt[i]->utc = loc.utc;
 	}
 
 	// Inertial Measurement Units
-	for (i=0; i<cdata->devspec.imu_cnt; i++)
+	for (i=0; i<cdata.devspec.imu_cnt; i++)
 	{
 		// convert attitude from ICRF to sensor body frame
 		// att.s = 0th order derivative (quaternion)
 		// embbed into a function
-		// 'updates' cdata->devspec.imu[i] with noise modified data
+		// 'updates' cdata.devspec.imu[i] with noise modified data
 		simulate_imu(i, cdata, loc);
-		cdata->devspec.imu[i]->utc = loc->utc;
+		cdata.devspec.imu[i]->utc = loc.utc;
 	}
 
-	for (i=0; i<cdata->devspec.gps_cnt; i++)
+	for (i=0; i<cdata.devspec.gps_cnt; i++)
 	{
-		cdata->devspec.gps[i]->utc = loc->utc;
-		cdata->devspec.gps[i]->geocs = loc->pos.geoc.s;
-		cdata->devspec.gps[i]->dgeocs = rv_one(5., 5., 5.);
-		cdata->devspec.gps[i]->geocv = loc->pos.geoc.v;
-		cdata->devspec.gps[i]->dgeocv = rv_one();
+		cdata.devspec.gps[i]->utc = loc.utc;
+		cdata.devspec.gps[i]->geocs = loc.pos.geoc.s;
+		cdata.devspec.gps[i]->dgeocs = rv_one(5., 5., 5.);
+		cdata.devspec.gps[i]->geocv = loc.pos.geoc.v;
+		cdata.devspec.gps[i]->dgeocv = rv_one();
 	}
 	
-	for (i=0; i<cdata->devspec.ssen_cnt; i++)
+	for (i=0; i<cdata.devspec.ssen_cnt; i++)
 	{
 		// Get sun vector in body frame
-		vec = transform_q(loc->att.icrf.s,rv_smult(-1.,loc->pos.baryc.s));
+		vec = transform_q(loc.att.icrf.s,rv_smult(-1.,loc.pos.baryc.s));
 		// Rotate into sun sensor frame
-		vec = transform_q(q_conjugate(cdata->devspec.ssen[i]->align),vec);
+		vec = transform_q(q_conjugate(cdata.devspec.ssen[i]->align),vec);
 		// Convert this to az and el
-		topo2azel(vec,&cdata->devspec.ssen[i]->azimuth,&cdata->devspec.ssen[i]->elevation);
-		if (cdata->devspec.ssen[i]->azimuth < 0.)
-			cdata->devspec.ssen[i]->azimuth += D2PI;
-		cdata->devspec.ssen[i]->qva = cdata->devspec.ssen[i]->qvb = cdata->devspec.ssen[i]->qvc = cdata->devspec.ssen[i]->qvd = 0.;
-		if (cdata->devspec.ssen[i]->elevation > RADOF(70.))
+		topo2azel(vec,&cdata.devspec.ssen[i]->azimuth,&cdata.devspec.ssen[i]->elevation);
+		if (cdata.devspec.ssen[i]->azimuth < 0.)
+			cdata.devspec.ssen[i]->azimuth += D2PI;
+		cdata.devspec.ssen[i]->qva = cdata.devspec.ssen[i]->qvb = cdata.devspec.ssen[i]->qvc = cdata.devspec.ssen[i]->qvd = 0.;
+		if (cdata.devspec.ssen[i]->elevation > RADOF(70.))
 		{
-			cdata->devspec.ssen[i]->qva = cdata->devspec.ssen[i]->qvb = cdata->devspec.ssen[i]->qvc = cdata->devspec.ssen[i]->qvd = sin(cdata->devspec.ssen[i]->elevation);
+			cdata.devspec.ssen[i]->qva = cdata.devspec.ssen[i]->qvb = cdata.devspec.ssen[i]->qvc = cdata.devspec.ssen[i]->qvd = sin(cdata.devspec.ssen[i]->elevation);
 		}
 		else
 		{
-			if (cdata->devspec.ssen[i]->elevation > RADOF(30.))
+			if (cdata.devspec.ssen[i]->elevation > RADOF(30.))
 			{
-				switch ((int)(cdata->devspec.ssen[i]->azimuth/(DPI/4.)+.5))
+				switch ((int)(cdata.devspec.ssen[i]->azimuth/(DPI/4.)+.5))
 				{
 				case 0:
-					cdata->devspec.ssen[i]->qva = sin(cdata->devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qva = sin(cdata.devspec.ssen[i]->elevation);
 					break;
 				case 1:
-					cdata->devspec.ssen[i]->qva = sin(cdata->devspec.ssen[i]->elevation);
-					cdata->devspec.ssen[i]->qvb = sin(cdata->devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qva = sin(cdata.devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qvb = sin(cdata.devspec.ssen[i]->elevation);
 					break;
 				case 2:
-					cdata->devspec.ssen[i]->qvb = sin(cdata->devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qvb = sin(cdata.devspec.ssen[i]->elevation);
 					break;
 				case 3:
-					cdata->devspec.ssen[i]->qvb = sin(cdata->devspec.ssen[i]->elevation);
-					cdata->devspec.ssen[i]->qvc = sin(cdata->devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qvb = sin(cdata.devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qvc = sin(cdata.devspec.ssen[i]->elevation);
 					break;
 				case 4:
-					cdata->devspec.ssen[i]->qvc = sin(cdata->devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qvc = sin(cdata.devspec.ssen[i]->elevation);
 					break;
 				case 5:
-					cdata->devspec.ssen[i]->qvc = sin(cdata->devspec.ssen[i]->elevation);
-					cdata->devspec.ssen[i]->qvd = sin(cdata->devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qvc = sin(cdata.devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qvd = sin(cdata.devspec.ssen[i]->elevation);
 					break;
 				case 6:
-					cdata->devspec.ssen[i]->qvd = sin(cdata->devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qvd = sin(cdata.devspec.ssen[i]->elevation);
 					break;
 				case 7:
-					cdata->devspec.ssen[i]->qvd = sin(cdata->devspec.ssen[i]->elevation);
-					cdata->devspec.ssen[i]->qva = sin(cdata->devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qvd = sin(cdata.devspec.ssen[i]->elevation);
+					cdata.devspec.ssen[i]->qva = sin(cdata.devspec.ssen[i]->elevation);
 					break;
 				}
 			}
 		}
-		cdata->devspec.ssen[i]->utc = loc->utc;
+		cdata.devspec.ssen[i]->utc = loc.utc;
 	}
 
 	// Simulate thsters
-	for (i=0; i<cdata->devspec.thst_cnt; i++)
+	for (i=0; i<cdata.devspec.thst_cnt; i++)
 	{
-		cdata->devspec.thst[i]->flw = (length_rv(cdata->physics.thrust) / cdata->devspec.thst_cnt) / cdata->devspec.thst[i]->isp;
-		if (cdata->devspec.thst[i]->flw < .002)
-			cdata->devspec.thst[i]->flw = 0.;
-		cdata->devspec.prop[0]->lev -= cdata->physics.dt * cdata->devspec.thst[i]->flw;
-		cdata->devspec.thst[i]->utc = loc->utc;
+		cdata.devspec.thst[i]->flw = (length_rv(cdata.physics.thrust) / cdata.devspec.thst_cnt) / cdata.devspec.thst[i]->isp;
+		if (cdata.devspec.thst[i]->flw < .002)
+			cdata.devspec.thst[i]->flw = 0.;
+		cdata.devspec.prop[0]->lev -= cdata.physics.dt * cdata.devspec.thst[i]->flw;
+		cdata.devspec.thst[i]->utc = loc.utc;
 	}
 
 	// Simulate drive motors
 	vbody = rv_zero();
-	for (i=0; i<cdata->devspec.motr_cnt; i++)
+	for (i=0; i<cdata.devspec.motr_cnt; i++)
 	{
-		cdata->device[cdata->devspec.motr[i]->cidx].gen.amp = cdata->devspec.motr[i]->spd;
-		vbody = rv_add(vbody,rv_smult(cdata->devspec.motr[i]->spd*cdata->devspec.motr[i]->rat,rv_unitx()));
-		if (i == cdata->devspec.motr_cnt-1)
+		cdata.device[cdata.devspec.motr[i]->cidx].gen.amp = cdata.devspec.motr[i]->spd;
+		vbody = rv_add(vbody,rv_smult(cdata.devspec.motr[i]->spd*cdata.devspec.motr[i]->rat,rv_unitx()));
+		if (i == cdata.devspec.motr_cnt-1)
 		{
-			switch (cdata->node.loc.pos.extra.closest)
+			switch (loc.pos.extra.closest)
 			{
 			case COSMOS_EARTH:
-				vplanet = transform_q(q_conjugate(cdata->node.loc.att.geoc.s),vbody);
-				cdata->node.loc.pos.geoc.s = rv_add(cdata->node.loc.pos.geoc.s,vplanet);
+				vplanet = transform_q(q_conjugate(loc.att.geoc.s),vbody);
+				loc.pos.geoc.s = rv_add(loc.pos.geoc.s,vplanet);
 				break;
 			case COSMOS_MOON:
-				vplanet = transform_q(q_conjugate(cdata->node.loc.att.selc.s),vbody);
-				cdata->node.loc.pos.selc.s = rv_add(cdata->node.loc.pos.selc.s,vplanet);
+				vplanet = transform_q(q_conjugate(loc.att.selc.s),vbody);
+				loc.pos.selc.s = rv_add(loc.pos.selc.s,vplanet);
 				break;
 			}
 		}
-		cdata->devspec.motr[i]->utc = loc->utc;
+		cdata.devspec.motr[i]->utc = loc.utc;
 	}
 
 	// Power details
-	cdata->node.powuse = 0.;
-	for (i=0; i<cdata->devspec.bus_cnt; i++)
+	cdata.node.powuse = 0.;
+	for (i=0; i<cdata.devspec.bus_cnt; i++)
 	{
-		cdata->devspec.bus[i]->amp = 0.;
+		cdata.devspec.bus[i]->amp = 0.;
 	}
 
-	for (i=0; i<cdata->node.device_cnt; i++)
+	for (i=0; i<cdata.node.device_cnt; i++)
 	{
-		index = cdata->device[i].gen.bidx;
-		if (index >= cdata->devspec.bus_cnt)
+		index = cdata.device[i].gen.bidx;
+		if (index >= cdata.devspec.bus_cnt)
 			index = 0;
-		if (cdata->devspec.bus_cnt && cdata->device[i].gen.flag&DEVICE_FLAG_ON && cdata->devspec.bus[index]->flag&DEVICE_FLAG_ON)
+		if (cdata.devspec.bus_cnt && cdata.device[i].gen.flag&DEVICE_FLAG_ON && cdata.devspec.bus[index]->flag&DEVICE_FLAG_ON)
 		{
-			cdata->devspec.bus[index]->amp += cdata->device[i].gen.amp;
-			if (cdata->device[i].gen.volt > cdata->devspec.bus[index]->volt)
-				cdata->devspec.bus[index]->volt = cdata->device[i].gen.volt;
-			watts = cdata->device[i].gen.amp * cdata->device[i].gen.volt;
+			cdata.devspec.bus[index]->amp += cdata.device[i].gen.amp;
+			if (cdata.device[i].gen.volt > cdata.devspec.bus[index]->volt)
+				cdata.devspec.bus[index]->volt = cdata.device[i].gen.volt;
+			watts = cdata.device[i].gen.amp * cdata.device[i].gen.volt;
 			if (watts <= 0.)
 				continue;
-			if (cdata->device[i].gen.pidx < cdata->node.piece_cnt)
+			if (cdata.device[i].gen.pidx < cdata.node.piece_cnt)
 			{
-				cdata->piece[cdata->device[i].gen.pidx].heat += .8 * watts * cdata->physics.dt;
+				cdata.piece[cdata.device[i].gen.pidx].heat += .8 * watts * cdata.physics.dt;
 			}
-			cdata->node.powuse += watts;
+			cdata.node.powuse += watts;
 		}
 	}
 
 	// Heat details
-	cdata->physics.heat = 0.;
-	for (i=0; i<cdata->piece.size(); i++)
+	cdata.physics.heat = 0.;
+	for (i=0; i<cdata.piece.size(); i++)
 	{
-		cdata->piece[i].heat += sdheat*cdata->piece[i].mass/cdata->physics.mass;
-		//	cdata->piece[i].heat += sdheat/cdata->piece.size();
-		cdata->physics.heat += cdata->piece[i].heat;
-		cdata->piece[i].temp = cdata->piece[i].heat / (cdata->piece[i].mass * cdata->piece[i].hcap);
+		cdata.piece[i].heat += sdheat*cdata.piece[i].mass/cdata.physics.mass;
+		//	cdata.piece[i].heat += sdheat/cdata.piece.size();
+		cdata.physics.heat += cdata.piece[i].heat;
+		cdata.piece[i].temp = cdata.piece[i].heat / (cdata.piece[i].mass * cdata.piece[i].hcap);
 	}
 
-	for (i=0; i<cdata->devspec.tsen_cnt; i++)
+	for (i=0; i<cdata.devspec.tsen_cnt; i++)
 	{
-		cdata->devspec.tsen[i]->temp = cdata->piece[cdata->device[cdata->devspec.tsen[i]->cidx].gen.pidx].temp;
-		cdata->devspec.tsen[i]->utc = loc->utc;
+		cdata.devspec.tsen[i]->temp = cdata.piece[cdata.device[cdata.devspec.tsen[i]->cidx].gen.pidx].temp;
+		cdata.devspec.tsen[i]->utc = loc.utc;
 	}
 
-	dcharge = (cdata->physics.dt/3600.) * ((cdata->node.powgen-cdata->node.powuse)) / cdata->devspec.batt_cnt;
-	for (i=0; i<cdata->devspec.batt_cnt; i++)
+	dcharge = (cdata.physics.dt/3600.) * ((cdata.node.powgen-cdata.node.powuse)) / cdata.devspec.batt_cnt;
+	for (i=0; i<cdata.devspec.batt_cnt; i++)
 	{
-		cdata->devspec.batt[i]->charge += dcharge;
-		cdata->node.battlev += dcharge;
-		if (cdata->devspec.batt[i]->charge > cdata->devspec.batt[i]->capacity)
-			cdata->devspec.batt[i]->charge = cdata->devspec.batt[i]->capacity;
-		if (cdata->devspec.batt[i]->charge < 0.)
-			cdata->devspec.batt[i]->charge = 0.;
-		cdata->devspec.batt[i]->utc = loc->utc;
+		cdata.devspec.batt[i]->charge += dcharge;
+		cdata.node.battlev += dcharge;
+		if (cdata.devspec.batt[i]->charge > cdata.devspec.batt[i]->capacity)
+			cdata.devspec.batt[i]->charge = cdata.devspec.batt[i]->capacity;
+		if (cdata.devspec.batt[i]->charge < 0.)
+			cdata.devspec.batt[i]->charge = 0.;
+		cdata.devspec.batt[i]->utc = loc.utc;
 	}
 
-	if (cdata->node.powgen > cdata->node.powuse)
-		cdata->node.charging = 1;
+	if (cdata.node.powgen > cdata.node.powuse)
+		cdata.node.charging = 1;
 	else
-		cdata->node.charging = 0;
+		cdata.node.charging = 0;
 
-	if (cdata->node.battlev < 0.)
-		cdata->node.battlev = 0.;
+	if (cdata.node.battlev < 0.)
+		cdata.node.battlev = 0.;
 
-	if (cdata->node.battlev >= cdata->node.battcap)
+	if (cdata.node.battlev >= cdata.node.battcap)
 	{
-		cdata->node.charging = 0;
-		cdata->node.battlev = cdata->node.battcap;
+		cdata.node.charging = 0;
+		cdata.node.battlev = cdata.node.battcap;
 	}
 
 }
@@ -1351,9 +1330,9 @@ void simulate_hardware(cosmosstruc *cdata, locstruc *loc)
 	\param loc Structure specifying location
 	\param index Index of desired IMU.
 */
-void initialize_imu(int index, cosmosstruc *cdata, locstruc *)
+void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &)
 {
-	if (index >= cdata->devspec.imu_cnt)
+	if (index >= devspec.imu_cnt)
 		return;
 
 }
@@ -1366,23 +1345,23 @@ void initialize_imu(int index, cosmosstruc *cdata, locstruc *)
 	\param loc Structure specifying location
 	\param index Index of desired IMU.
 */
-void simulate_imu(int index, cosmosstruc *cdata, locstruc *loc)
+void simulate_imu(int index, cosmosstruc &cdata, locstruc &loc)
 {
 	quaternion toimu;
 
-	if (index >= cdata->devspec.imu_cnt)
+	if (index >= cdata.devspec.imu_cnt)
 		return;
 
-	toimu = q_mult(q_conjugate(cdata->devspec.imu[index]->align),loc->att.icrf.s);
+	toimu = q_mult(q_conjugate(cdata.devspec.imu[index]->align),loc.att.icrf.s);
 	//! Set time of reading
-	cdata->devspec.imu[index]->utc = loc->utc;
+	cdata.devspec.imu[index]->utc = loc.utc;
 
 	//! Set raw values for accelerometer and gyros
-	cdata->devspec.imu[index]->accel = transform_q(toimu,loc->pos.baryc.a);
-	cdata->devspec.imu[index]->omega = transform_q(toimu,loc->att.icrf.v);
+	cdata.devspec.imu[index]->accel = transform_q(toimu,loc.pos.baryc.a);
+	cdata.devspec.imu[index]->omega = transform_q(toimu,loc.att.icrf.v);
 
 	//! Set magnetic field in IMU frame
-	cdata->devspec.imu[index]->mag = transform_q(q_conjugate(cdata->devspec.imu[index]->align),transform_q(loc->att.geoc.s,loc->bearth));
+	cdata.devspec.imu[index]->mag = transform_q(q_conjugate(cdata.devspec.imu[index]->align),transform_q(loc.att.geoc.s,loc.bearth));
 }
 
 //! Attitude acceleration
@@ -1390,39 +1369,39 @@ void simulate_imu(int index, cosmosstruc *cdata, locstruc *loc)
 	\param sat Structure specifying satellite.
 	\param loc Structure specifying location.
 */
-void att_accel(cosmosstruc *cdata, locstruc *loc)
+void att_accel(physicsstruc &physics, locstruc &loc)
 {
 	rvector ue, ta, tv;
 	rvector ttorque;
 	rmatrix mom;
 
-	att_extra(loc);
+	att_extra(&loc);
 
-	ttorque = cdata->physics.ctorque;
+	ttorque = physics.ctorque;
 
 	// Now calculate Gravity Gradient Torque
 	// Unit vector towards earth, rotated into body frame
-	ue = transform_q((loc->att.icrf.s),rv_smult(-1.,loc->pos.eci.s));
+	ue = transform_q((loc.att.icrf.s),rv_smult(-1.,loc.pos.eci.s));
 	normalize_rv(&ue);
 
-	cdata->physics.gtorque = rv_smult((3.*GM/pow(loc->pos.geos.s.r,3.)),rv_cross(ue,rv_mult(cdata->physics.moi,ue)));
+	physics.gtorque = rv_smult((3.*GM/pow(loc.pos.geos.s.r,3.)),rv_cross(ue,rv_mult(physics.moi,ue)));
 
-	ttorque = rv_add(ttorque,cdata->physics.gtorque);
+	ttorque = rv_add(ttorque,physics.gtorque);
 
 	// Atmospheric and solar torque
-//	ttorque = rv_add(ttorque,cdata->physics.atorque);
-//	ttorque = rv_add(ttorque,cdata->physics.rtorque);
+//	ttorque = rv_add(ttorque,physics.atorque);
+//	ttorque = rv_add(ttorque,physics.rtorque);
 
 	// Torque from rotational effects
 
 	// Moment of Inertia in Body frame
-	mom = rm_diag(cdata->physics.moi);
+	mom = rm_diag(physics.moi);
 	// Attitude rate in Body frame
-	tv = transform_q(loc->att.icrf.s,loc->att.icrf.v);
+	tv = transform_q(loc.att.icrf.s,loc.att.icrf.v);
 
 	// Torque from cross product of angular velocity and angular momentum
-	cdata->physics.htorque = rv_smult(-1., rv_cross(tv,rv_add(rv_mmult(mom,tv),cdata->physics.hmomentum)));
-	ttorque = rv_add(ttorque,cdata->physics.htorque);
+	physics.htorque = rv_smult(-1., rv_cross(tv,rv_add(rv_mmult(mom,tv),physics.hmomentum)));
+	ttorque = rv_add(ttorque,physics.htorque);
 
 	// Convert torque into accelerations, doing math in Body frame
 
@@ -1430,11 +1409,11 @@ void att_accel(cosmosstruc *cdata, locstruc *loc)
 	ta = rv_mmult(rm_inverse(mom),ttorque);
 
 	// Convert body frame acceleration back to other frames.
-	loc->att.icrf.a = transform_q(q_conjugate(loc->att.icrf.s),ta);
-	loc->att.topo.a = transform_q(q_conjugate(loc->att.topo.s),ta);
-	loc->att.lvlh.a = transform_q(q_conjugate(loc->att.lvlh.s),ta);
-	loc->att.geoc.a = transform_q(q_conjugate(loc->att.geoc.s),ta);
-	loc->att.selc.a = transform_q(q_conjugate(loc->att.selc.s),ta);
+	loc.att.icrf.a = transform_q(q_conjugate(loc.att.icrf.s),ta);
+	loc.att.topo.a = transform_q(q_conjugate(loc.att.topo.s),ta);
+	loc.att.lvlh.a = transform_q(q_conjugate(loc.att.lvlh.s),ta);
+	loc.att.geoc.a = transform_q(q_conjugate(loc.att.geoc.s),ta);
+	loc.att.selc.a = transform_q(q_conjugate(loc.att.selc.s),ta);
 }
 
 //! Position acceleration
@@ -1442,15 +1421,15 @@ void att_accel(cosmosstruc *cdata, locstruc *loc)
 	\param sat Structure specifying satellite.
 	\param loc Structure specifying location.
 */
-void pos_accel(cosmosstruc *cdata, locstruc *loc)
+void pos_accel(physicsstruc &physics, locstruc &loc)
 {
 	double radius;
 	rvector ctpos, da, tda;
 	cartpos bodypos;
 
-	radius = length_rv(loc->pos.eci.s);
+	radius = length_rv(loc.pos.eci.s);
 
-	loc->pos.eci.a = rv_zero();
+	loc.pos.eci.a = rv_zero();
 
 	// Earth gravity
 	// Calculate Geocentric acceleration vector
@@ -1459,79 +1438,79 @@ void pos_accel(cosmosstruc *cdata, locstruc *loc)
 	{
 		// Start with gravity vector in ITRS
 
-		da = gravity_accel(loc->pos,GRAVITY_EGM2008_NORM,12);
+		da = gravity_accel(loc.pos,GRAVITY_EGM2008_NORM,12);
 
 		// Correct for earth rotation, polar motion, precession, nutation
 
-		da = rv_mmult(loc->pos.extra.e2j,da);
+		da = rv_mmult(loc.pos.extra.e2j,da);
 	}
 	else
 	{
 		// Simple 2 body
-		da = rv_smult(-GM/(radius*radius*radius),loc->pos.eci.s);
+		da = rv_smult(-GM/(radius*radius*radius),loc.pos.eci.s);
 	}
-	loc->pos.eci.a = rv_add(loc->pos.eci.a,da);
+	loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 
 	// Sun gravity
 	// Calculate Satellite to Sun vector
-	ctpos = rv_sub(rv_smult(-1.,loc->pos.extra.sun2earth.s),loc->pos.eci.s);
+	ctpos = rv_sub(rv_smult(-1.,loc.pos.extra.sun2earth.s),loc.pos.eci.s);
 	radius = length_rv(ctpos);
 	da = rv_smult(GSUN/(radius*radius*radius),ctpos);
-	loc->pos.eci.a = rv_add(loc->pos.eci.a,da);
+	loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 
 	// Adjust for acceleration of frame
-	radius = length_rv(loc->pos.extra.sun2earth.s);
-	da = rv_smult(GSUN/(radius*radius*radius),loc->pos.extra.sun2earth.s);
+	radius = length_rv(loc.pos.extra.sun2earth.s);
+	da = rv_smult(GSUN/(radius*radius*radius),loc.pos.extra.sun2earth.s);
 	tda = da;
-	loc->pos.eci.a = rv_add(loc->pos.eci.a,da);
+	loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 
 	// Moon gravity
 	// Calculate Satellite to Moon vector
-	bodypos.s = rv_sub(loc->pos.extra.sun2earth.s,loc->pos.extra.sun2moon.s);
-	ctpos = rv_sub(bodypos.s,loc->pos.eci.s);
+	bodypos.s = rv_sub(loc.pos.extra.sun2earth.s,loc.pos.extra.sun2moon.s);
+	ctpos = rv_sub(bodypos.s,loc.pos.eci.s);
 	radius = length_rv(ctpos);
 	da = rv_smult(GMOON/(radius*radius*radius),ctpos);
-	loc->pos.eci.a = rv_add(loc->pos.eci.a,da);
+	loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 
 	// Adjust for acceleration of frame due to moon
 	radius = length_rv(bodypos.s);
 	da = rv_smult(GMOON/(radius*radius*radius),bodypos.s);
 	tda = rv_sub(tda,da);
-	loc->pos.eci.a = rv_sub(loc->pos.eci.a,da);
+	loc.pos.eci.a = rv_sub(loc.pos.eci.a,da);
 
 	/*
 // Jupiter gravity
 // Calculate Satellite to Jupiter vector
-jplpos(JPL_EARTH,JPL_JUPITER,loc->pos.extra.tt,(cartpos *)&bodypos);
-ctpos = rv_sub(bodypos.s,loc->pos.eci.s);
+jplpos(JPL_EARTH,JPL_JUPITER,loc.pos.extra.tt,(cartpos *)&bodypos);
+ctpos = rv_sub(bodypos.s,loc.pos.eci.s);
 radius = length_rv(ctpos);
 
 // Calculate acceleration
 da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
-//loc->pos.eci.a = rv_add(loc->pos.eci.a,da);
+//loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 */
 
 	// Atmospheric and solar drag
-	if (length_rv(cdata->physics.adrag))
+	if (length_rv(physics.adrag))
 	{
-		da = transform_q(q_conjugate(loc->att.icrf.s),cdata->physics.adrag);
-		//	loc->pos.eci.a = rv_add(loc->pos.eci.a,da);
+		da = transform_q(q_conjugate(loc.att.icrf.s),physics.adrag);
+		//	loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 	}
-	if (length_rv(cdata->physics.rdrag))
+	if (length_rv(physics.rdrag))
 	{
-		da = transform_q(q_conjugate(loc->att.icrf.s),cdata->physics.rdrag);
-		//	loc->pos.eci.a = rv_add(loc->pos.eci.a,da);
+		da = transform_q(q_conjugate(loc.att.icrf.s),physics.rdrag);
+		//	loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 	}
 
 	// Correct for Earth motion
-	//loc->pos.eci.a.col[0] += earthpos.a.col[0];
-	//loc->pos.eci.a.col[1] += earthpos.a.col[1];
-	//loc->pos.eci.a.col[2] += earthpos.a.col[2];
+	//loc.pos.eci.a.col[0] += earthpos.a.col[0];
+	//loc.pos.eci.a.col[1] += earthpos.a.col[1];
+	//loc.pos.eci.a.col[2] += earthpos.a.col[2];
 
-	loc->pos.eci.pass++;
-	pos_eci(loc);
-	if (std::isnan(loc->pos.eci.a.col[0]))
-		loc->pos.eci.a.col[0] = 0.;
+	loc.pos.eci.pass++;
+	pos_eci(&loc);
+	if (std::isnan(loc.pos.eci.a.col[0]))
+		loc.pos.eci.a.col[0] = 0.;
 }
 
 //! Calculate atmospheric density
@@ -1584,7 +1563,7 @@ double msis00_density(posstruc pos,float f107avg,float f107,float magidx)
 	return((double)output.d[5]);
 }
 
-void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc *cdata)
+void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc &cdata)
 {
 
 	uint16_t i;
@@ -1592,37 +1571,38 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc *cdata)
 	// Munge time step to fit local granularity
 	dt = 86400.*((utc + dt/86400.)-utc);
 
-	cdata->physics.dt = dt;
-	cdata->physics.dtj = cdata->physics.dt/86400.;
-	cdata->physics.mode = mode;
+	cdata.physics.dt = dt;
+	cdata.physics.dtj = cdata.physics.dt/86400.;
+	cdata.physics.mode = mode;
 
-	pos_clear(&cdata->node.loc);
+	locstruc loc;
+	pos_clear(loc);
 
-	lines2eci(utc,cdata->tle,&cdata->node.loc.pos.eci);
-	cdata->node.loc.pos.eci.pass++;
-	pos_eci(&cdata->node.loc);
+	lines2eci(utc,cdata.tle,&loc.pos.eci);
+	loc.pos.eci.pass++;
+	pos_eci(&loc);
 
 	// Initial attitude
-	cdata->physics.ftorque = rv_zero();
-	switch (cdata->physics.mode)
+	cdata.physics.ftorque = rv_zero();
+	switch (cdata.physics.mode)
 	{
 	//case 0:
-	//	cdata->node.loc.att.icrf.utc = cdata->node.loc.utc;
-	//	cdata->node.loc.att.icrf.s = q_eye();
-	//	cdata->node.loc.att.icrf.v = cdata->node.loc.att.icrf.a = rv_zero();
-	//	att_icrf(&cdata->node.loc);
+	//	loc.att.icrf.utc = loc.utc;
+	//	loc.att.icrf.s = q_eye();
+	//	loc.att.icrf.v = loc.att.icrf.a = rv_zero();
+	//	att_icrf(&loc);
 	//	break;
 	case 1:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_eye();
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		loc.att.lvlh.utc = loc.utc;
+		loc.att.lvlh.s = q_eye();
+		loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&loc);
 		break;
 	case 2:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_change_around_y(-DPI2);
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		loc.att.lvlh.utc = loc.utc;
+		loc.att.lvlh.s = q_change_around_y(-DPI2);
+		loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&loc);
 		break;
 	case 3:
 	case 4:
@@ -1634,31 +1614,31 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc *cdata)
 	case 10:
 	case 11:
 	case 12:
-		cdata->node.loc.att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
-		//	cdata->node.loc.att.icrf.s = rm_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
-		cdata->node.loc.att.icrf.v = rv_zero();
-		att_icrf2lvlh(&cdata->node.loc);
+		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		//	loc.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		loc.att.icrf.v = rv_zero();
+		att_icrf2lvlh(&loc);
 		break;
 	}
 
 
-	pos_accel(cdata,&cdata->node.loc);
+	pos_accel(cdata.physics, loc);
     // Initialize hardware,
     // ?? is this only for simulation?
-    initialize_hardware(cdata,&cdata->node.loc);
+	hardware_init_eci(cdata.devspec,loc);
 
     // ?? check
-    att_accel(cdata,&cdata->node.loc);
-//	groundstations(cdata,&cdata->node.loc);
+	att_accel(cdata.physics, loc);
+//	groundstations(cdata,&loc);
 
-	sloc[0] = cdata->node.loc;
+	sloc[0] = loc;
 
 	// Position at t0-dt
 	for (i=1; i<4; i++)
 	{
 		sloc[i] = sloc[i-1];
 		sloc[i].utc -= dt / 86400.;
-		lines2eci(sloc[i].utc,cdata->tle,&sloc[i].pos.eci);
+		lines2eci(sloc[i].utc,cdata.tle,&sloc[i].pos.eci);
 		sloc[i].pos.eci.pass++;
 		pos_eci(&sloc[i]);
 
@@ -1666,14 +1646,14 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc *cdata)
 		att_lvlh2icrf(&sloc[i]);
 
 		// Initialize hardware
-		pos_accel(cdata,&sloc[i]);
-		simulate_hardware(cdata,&sloc[i]);
-		att_accel(cdata,&sloc[i]);
+		pos_accel(cdata.physics, sloc[i]);
+		simulate_hardware(cdata, sloc[i]);
+		att_accel(cdata.physics, sloc[i]);
 	}
-	cdata->physics.mjdbase = cdata->node.loc.utc;
+	cdata.physics.mjdbase = loc.utc;
 }
 
-void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc *cdata)
+void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc &cdata)
 {
 	kepstruc kep;
 	double dea;
@@ -1682,39 +1662,40 @@ void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc 
 	// Munge time step to fit local granularity
 	dt = 86400.*((utc + dt/86400.)-utc);
 
-	cdata->physics.dt = dt;
-	cdata->physics.dtj = cdata->physics.dt/86400.;
-	cdata->physics.mode = mode;
+	cdata.physics.dt = dt;
+	cdata.physics.dtj = cdata.physics.dt/86400.;
+	cdata.physics.mode = mode;
 
-	pos_clear(&cdata->node.loc);
+	locstruc loc;
+	pos_clear(loc);
 
-	cdata->node.loc.pos.eci = ipos;
-	cdata->node.loc.utc = cdata->node.loc.att.icrf.utc = utc;
-	cdata->node.loc.pos.eci.pass++;
-	pos_eci(&cdata->node.loc);
-	eci2kep(&cdata->node.loc.pos.eci,&kep);
+	loc.pos.eci = ipos;
+	loc.utc = loc.att.icrf.utc = utc;
+	loc.pos.eci.pass++;
+	pos_eci(&loc);
+	eci2kep(&loc.pos.eci,&kep);
 
 	// Initial attitude
-	cdata->physics.ftorque = rv_zero();
-	switch (cdata->physics.mode)
+	cdata.physics.ftorque = rv_zero();
+	switch (cdata.physics.mode)
 	{
 	//case 0:
-	//	cdata->node.loc.att.icrf.utc = cdata->node.loc.utc;
-	//	cdata->node.loc.att.icrf.s = q_eye();
-	//	cdata->node.loc.att.icrf.v = cdata->node.loc.att.icrf.a = rv_zero();
-	//	att_icrf(&cdata->node.loc);
+	//	loc.att.icrf.utc = loc.utc;
+	//	loc.att.icrf.s = q_eye();
+	//	loc.att.icrf.v = loc.att.icrf.a = rv_zero();
+	//	att_icrf(&loc);
 	//	break;
 	case 1:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_eye();
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		loc.att.lvlh.utc = loc.utc;
+		loc.att.lvlh.s = q_eye();
+		loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&loc);
 		break;
 	case 2:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_change_around_y(-DPI2);
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		loc.att.lvlh.utc = loc.utc;
+		loc.att.lvlh.s = q_change_around_y(-DPI2);
+		loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&loc);
 		break;
 	case 3:
 	case 4:
@@ -1726,21 +1707,21 @@ void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc 
 	case 10:
 	case 11:
 	case 12:
-		cdata->node.loc.att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
-		//	cdata->node.loc.att.icrf.s = rm_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
-		cdata->node.loc.att.icrf.v = rv_zero();
-		att_icrf2lvlh(&cdata->node.loc);
+		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		//	loc.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		loc.att.icrf.v = rv_zero();
+		att_icrf2lvlh(&loc);
 		break;
 	}
 
 
-//	groundstations(cdata,&cdata->node.loc);
-	pos_accel(cdata,&cdata->node.loc);
+//	groundstations(cdata,&loc);
+	pos_accel(cdata.physics, loc);
 	// Initialize hardware
-	initialize_hardware(cdata,&cdata->node.loc);
-	att_accel(cdata,&cdata->node.loc);
+	hardware_init_eci(cdata.devspec, loc);
+	att_accel(cdata.physics, loc);
 
-	sloc[0] = cdata->node.loc;
+	sloc[0] = loc;
 
 	// Position at t0-dt
 	for (i=1; i<4; i++)
@@ -1762,14 +1743,14 @@ void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc 
 		att_lvlh2icrf(&sloc[i]);
 
 
-		pos_accel(cdata,&sloc[i]);
-		simulate_hardware(cdata,&sloc[i]);
-		att_accel(cdata,&sloc[i]);
+		pos_accel(cdata.physics, sloc[i]);
+		simulate_hardware(cdata, sloc[i]);
+		att_accel(cdata.physics, sloc[i]);
 	}
-	cdata->physics.mjdbase = cdata->node.loc.utc;
+	cdata.physics.mjdbase = loc.utc;
 }
 
-void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double angle,double hour,cosmosstruc *cdata)
+void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double angle,double hour,cosmosstruc &cdata)
 {
 	double lon;
 
@@ -1778,15 +1759,16 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
 	// Munge time step to fit local granularity
 	dt = 86400.*((utc + dt/86400.)-utc);
 
-	cdata->physics.dt = dt;
-	cdata->physics.dtj = cdata->physics.dt/86400.;
-	cdata->physics.mode = mode;
+	cdata.physics.dt = dt;
+	cdata.physics.dtj = cdata.physics.dt/86400.;
+	cdata.physics.mode = mode;
 	initialutc = utc;
 
-	pos_clear(&cdata->node.loc);
+	locstruc loc;
+	pos_clear(loc);
 
 	// Initial position
-	sloc[0] = sloc[1] = sloc[2] = cdata->node.loc;
+	sloc[0] = sloc[1] = sloc[2] = loc;
 	sloc[0].pos.geod.utc = sloc[0].att.geoc.utc = utc;
 	sloc[0].pos.geod.s.h = altitude;
 	sloc[0].pos.geos.s.r = rearth(0.) + altitude;
@@ -1805,13 +1787,13 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
 	pos_geod(&sloc[0]);
 
 	// Initial attitude
-	cdata->physics.ftorque = rv_zero();
-	switch (cdata->physics.mode)
+	cdata.physics.ftorque = rv_zero();
+	switch (cdata.physics.mode)
 	{
 	case 0:
 		sloc[0].att.icrf.utc =sloc[0].utc;
 		sloc[0].att.icrf.s = q_eye();
-		sloc[0].att.icrf.v = cdata->node.loc.att.icrf.a = rv_zero();
+		sloc[0].att.icrf.v = loc.att.icrf.a = rv_zero();
 		att_icrf2lvlh(&sloc[0]);
 		break;
 	case 1:
@@ -1836,20 +1818,20 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
 	case 10:
 	case 11:
 	case 12:
-		sloc[0].att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,sloc[0].pos.baryc.s));
-		//	sloc[0].att.icrf.s = rm_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
+		sloc[0].att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,sloc[0].pos.baryc.s));
+		//	sloc[0].att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
 		sloc[0].att.icrf.v = rv_zero();
 		att_icrf2lvlh(&sloc[0]);
 		break;
 	}
 
 //	groundstations(cdata,&sloc[0]);
-	pos_accel(cdata,&sloc[0]);
+	pos_accel(cdata.physics, sloc[0]);
 	// Initialize hardware
-	initialize_hardware(cdata,&sloc[0]);
-	att_accel(cdata,&sloc[0]);
+	hardware_init_eci(cdata.devspec, sloc[0]);
+	att_accel(cdata.physics, sloc[0]);
 
-	cdata->node.loc = sloc[0];
+	loc = sloc[0];
 
 	// Position at t0-dt
 	sloc[1].pos.geod.utc =  sloc[1].att.geoc.utc = sloc[0].pos.geod.utc - dt/86400.;
@@ -1865,11 +1847,11 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
 	sloc[1].att.lvlh = sloc[0].att.lvlh;
 	att_lvlh2icrf(&sloc[1]);
 
-	cdata->node.battlev = cdata->node.battcap;
+	cdata.node.battlev = cdata.node.battcap;
 
-	pos_accel(cdata,&sloc[1]);
-	simulate_hardware(cdata,&sloc[1]);
-	att_accel(cdata,&sloc[1]);
+	pos_accel(cdata.physics, sloc[1]);
+	simulate_hardware(cdata, sloc[1]);
+	att_accel(cdata.physics, sloc[1]);
 
 	// Position at t0-2*dt
 	sloc[2].pos.geod.utc = sloc[2].att.geoc.utc = sloc[1].utc - dt/86400.;
@@ -1885,11 +1867,11 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
 	sloc[2].att.lvlh = sloc[0].att.lvlh;
 	att_lvlh2icrf(&sloc[2]);
 
-	cdata->node.battlev = cdata->node.battcap;
+	cdata.node.battlev = cdata.node.battcap;
 
-	pos_accel(cdata,&sloc[2]);
-	simulate_hardware(cdata,&sloc[2]);
-	att_accel(cdata,&sloc[2]);
+	pos_accel(cdata.physics, sloc[2]);
+	simulate_hardware(cdata, sloc[2]);
+	att_accel(cdata.physics, sloc[2]);
 
 	// Position at t0-3*dt
 	sloc[3].pos.geod.utc = sloc[3].att.geoc.utc = sloc[2].utc - dt/86400.;
@@ -1905,15 +1887,15 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
 	sloc[3].att.lvlh = sloc[0].att.lvlh;
 	att_lvlh2icrf(&sloc[3]);
 
-	cdata->node.battlev = cdata->node.battcap;
+	cdata.node.battlev = cdata.node.battcap;
 
-	pos_accel(cdata,&sloc[3]);
-	simulate_hardware(cdata,&sloc[3]);
-	att_accel(cdata,&sloc[3]);
-	cdata->physics.mjdbase = cdata->node.loc.utc;
+	pos_accel(cdata.physics, sloc[3]);
+	simulate_hardware(cdata, sloc[3]);
+	att_accel(cdata.physics, sloc[3]);
+	cdata.physics.mjdbase = loc.utc;
 }
 
-void propagate(cosmosstruc *cdata, double utc)
+void propagate(cosmosstruc &cdata, double utc)
 {
 	locstruc lnew, lnewp;
 	rvector ds, unitp, unitx;
@@ -1927,7 +1909,7 @@ void propagate(cosmosstruc *cdata, double utc)
 		return;
 	}
 
-	chunks = (int32_t)(.5 + 86400.*(utc-sloc[0].utc)/cdata->physics.dt);
+	chunks = (int32_t)(.5 + 86400.*(utc-sloc[0].utc)/cdata.physics.dt);
 	lutc = sloc[0].pos.geoc.utc;
 	for (i=0; i<chunks; ++i)
 	{
@@ -1938,63 +1920,63 @@ void propagate(cosmosstruc *cdata, double utc)
 
 		lnew = lnewp = sloc[0];
 
-		lutc += (double)(cdata->physics.dt)/86400.;
+		lutc += (double)(cdata.physics.dt)/86400.;
 
 		lnewp.utc = lnewp.att.icrf.utc = lutc;
 
-		lnewp.pos.eci.s.col[0] += cdata->physics.dt * (lnewp.pos.eci.v.col[0] + cdata->physics.dt * (323.*sloc[0].pos.eci.a.col[0] - 264.*sloc[1].pos.eci.a.col[0] + 159.*sloc[2].pos.eci.a.col[0] - 38.*sloc[3].pos.eci.a.col[0]) / 360.);
-		lnewp.pos.eci.s.col[1] += cdata->physics.dt * (lnewp.pos.eci.v.col[1] + cdata->physics.dt * (323.*sloc[0].pos.eci.a.col[1] - 264.*sloc[1].pos.eci.a.col[1] + 159.*sloc[2].pos.eci.a.col[1] - 38.*sloc[3].pos.eci.a.col[1]) / 360.);
-		lnewp.pos.eci.s.col[2] += cdata->physics.dt * (lnewp.pos.eci.v.col[2] + cdata->physics.dt * (323.*sloc[0].pos.eci.a.col[2] - 264.*sloc[1].pos.eci.a.col[2] + 159.*sloc[2].pos.eci.a.col[2] - 38.*sloc[3].pos.eci.a.col[2]) / 360.);
-		lnewp.pos.eci.v.col[0] += cdata->physics.dt * (55.*sloc[0].pos.eci.a.col[0] - 59.*sloc[1].pos.eci.a.col[0] + 37.*sloc[2].pos.eci.a.col[0] - 9.*sloc[3].pos.eci.a.col[0]) / 24.;
-		lnewp.pos.eci.v.col[1] += cdata->physics.dt * (55.*sloc[0].pos.eci.a.col[1] - 59.*sloc[1].pos.eci.a.col[1] + 37.*sloc[2].pos.eci.a.col[1] - 9.*sloc[3].pos.eci.a.col[1]) / 24.;
-		lnewp.pos.eci.v.col[2] += cdata->physics.dt * (55.*sloc[0].pos.eci.a.col[2] - 59.*sloc[1].pos.eci.a.col[2] + 37.*sloc[2].pos.eci.a.col[2] - 9.*sloc[3].pos.eci.a.col[2]) / 24.;
+		lnewp.pos.eci.s.col[0] += cdata.physics.dt * (lnewp.pos.eci.v.col[0] + cdata.physics.dt * (323.*sloc[0].pos.eci.a.col[0] - 264.*sloc[1].pos.eci.a.col[0] + 159.*sloc[2].pos.eci.a.col[0] - 38.*sloc[3].pos.eci.a.col[0]) / 360.);
+		lnewp.pos.eci.s.col[1] += cdata.physics.dt * (lnewp.pos.eci.v.col[1] + cdata.physics.dt * (323.*sloc[0].pos.eci.a.col[1] - 264.*sloc[1].pos.eci.a.col[1] + 159.*sloc[2].pos.eci.a.col[1] - 38.*sloc[3].pos.eci.a.col[1]) / 360.);
+		lnewp.pos.eci.s.col[2] += cdata.physics.dt * (lnewp.pos.eci.v.col[2] + cdata.physics.dt * (323.*sloc[0].pos.eci.a.col[2] - 264.*sloc[1].pos.eci.a.col[2] + 159.*sloc[2].pos.eci.a.col[2] - 38.*sloc[3].pos.eci.a.col[2]) / 360.);
+		lnewp.pos.eci.v.col[0] += cdata.physics.dt * (55.*sloc[0].pos.eci.a.col[0] - 59.*sloc[1].pos.eci.a.col[0] + 37.*sloc[2].pos.eci.a.col[0] - 9.*sloc[3].pos.eci.a.col[0]) / 24.;
+		lnewp.pos.eci.v.col[1] += cdata.physics.dt * (55.*sloc[0].pos.eci.a.col[1] - 59.*sloc[1].pos.eci.a.col[1] + 37.*sloc[2].pos.eci.a.col[1] - 9.*sloc[3].pos.eci.a.col[1]) / 24.;
+		lnewp.pos.eci.v.col[2] += cdata.physics.dt * (55.*sloc[0].pos.eci.a.col[2] - 59.*sloc[1].pos.eci.a.col[2] + 37.*sloc[2].pos.eci.a.col[2] - 9.*sloc[3].pos.eci.a.col[2]) / 24.;
 		lnewp.pos.eci.pass++;
 		pos_eci(&lnewp);
-		pos_accel(cdata,&lnewp);
+		pos_accel(cdata.physics, lnewp);
 
 		lnew.utc = lnew.att.icrf.utc = lutc;
-		lnew.pos.eci.s.col[0] += cdata->physics.dt * (lnew.pos.eci.v.col[0] + cdata->physics.dt * (38.*lnewp.pos.eci.a.col[0] + 171.*sloc[0].pos.eci.a.col[0] - 36.*sloc[1].pos.eci.a.col[0] + 7.*sloc[2].pos.eci.a.col[0]) / 360.);
-		lnew.pos.eci.s.col[1] += cdata->physics.dt * (lnew.pos.eci.v.col[1] + cdata->physics.dt * (38.*lnewp.pos.eci.a.col[1] + 171.*sloc[0].pos.eci.a.col[1] - 36.*sloc[1].pos.eci.a.col[1] + 7.*sloc[2].pos.eci.a.col[1]) / 360.);
-		lnew.pos.eci.s.col[2] += cdata->physics.dt * (lnew.pos.eci.v.col[2] + cdata->physics.dt * (38.*lnewp.pos.eci.a.col[2] + 171.*sloc[0].pos.eci.a.col[2] - 36.*sloc[1].pos.eci.a.col[2] + 7.*sloc[2].pos.eci.a.col[2]) / 360.);
-		lnew.pos.eci.v.col[0] += cdata->physics.dt * (9.*lnewp.pos.eci.a.col[0] + 19.*sloc[0].pos.eci.a.col[0] - 5.*sloc[1].pos.eci.a.col[0] + sloc[2].pos.eci.a.col[0]) / 24.;
-		lnew.pos.eci.v.col[1] += cdata->physics.dt * (9.*lnewp.pos.eci.a.col[1] + 19.*sloc[0].pos.eci.a.col[1] - 5.*sloc[1].pos.eci.a.col[1] + sloc[2].pos.eci.a.col[1]) / 24.;
-		lnew.pos.eci.v.col[2] += cdata->physics.dt * (9.*lnewp.pos.eci.a.col[2] + 19.*sloc[0].pos.eci.a.col[2] - 5.*sloc[1].pos.eci.a.col[2] + sloc[2].pos.eci.a.col[2]) / 24.;
+		lnew.pos.eci.s.col[0] += cdata.physics.dt * (lnew.pos.eci.v.col[0] + cdata.physics.dt * (38.*lnewp.pos.eci.a.col[0] + 171.*sloc[0].pos.eci.a.col[0] - 36.*sloc[1].pos.eci.a.col[0] + 7.*sloc[2].pos.eci.a.col[0]) / 360.);
+		lnew.pos.eci.s.col[1] += cdata.physics.dt * (lnew.pos.eci.v.col[1] + cdata.physics.dt * (38.*lnewp.pos.eci.a.col[1] + 171.*sloc[0].pos.eci.a.col[1] - 36.*sloc[1].pos.eci.a.col[1] + 7.*sloc[2].pos.eci.a.col[1]) / 360.);
+		lnew.pos.eci.s.col[2] += cdata.physics.dt * (lnew.pos.eci.v.col[2] + cdata.physics.dt * (38.*lnewp.pos.eci.a.col[2] + 171.*sloc[0].pos.eci.a.col[2] - 36.*sloc[1].pos.eci.a.col[2] + 7.*sloc[2].pos.eci.a.col[2]) / 360.);
+		lnew.pos.eci.v.col[0] += cdata.physics.dt * (9.*lnewp.pos.eci.a.col[0] + 19.*sloc[0].pos.eci.a.col[0] - 5.*sloc[1].pos.eci.a.col[0] + sloc[2].pos.eci.a.col[0]) / 24.;
+		lnew.pos.eci.v.col[1] += cdata.physics.dt * (9.*lnewp.pos.eci.a.col[1] + 19.*sloc[0].pos.eci.a.col[1] - 5.*sloc[1].pos.eci.a.col[1] + sloc[2].pos.eci.a.col[1]) / 24.;
+		lnew.pos.eci.v.col[2] += cdata.physics.dt * (9.*lnewp.pos.eci.a.col[2] + 19.*sloc[0].pos.eci.a.col[2] - 5.*sloc[1].pos.eci.a.col[2] + sloc[2].pos.eci.a.col[2]) / 24.;
 		lnew.pos.eci.pass++;
 		pos_eci(&lnew);
-		pos_accel(cdata,&lnew);
+		pos_accel(cdata.physics, lnew);
 
 
-		switch (cdata->physics.mode)
+		switch (cdata.physics.mode)
 		{
 		case 0:
 			lnew.att.icrf.utc = lnew.utc;
 			ds = rv_zero();
-			ds.col[0] = cdata->physics.dt * (lnewp.att.icrf.v.col[0] + cdata->physics.dt * (323.*sloc[0].att.icrf.a.col[0] - 264.*sloc[1].att.icrf.a.col[0] + 159.*sloc[2].att.icrf.a.col[0] - 38.*sloc[3].att.icrf.a.col[0]) / 360.);
-			ds.col[1] = cdata->physics.dt * (lnewp.att.icrf.v.col[1] + cdata->physics.dt * (323.*sloc[0].att.icrf.a.col[1] - 264.*sloc[1].att.icrf.a.col[1] + 159.*sloc[2].att.icrf.a.col[1] - 38.*sloc[3].att.icrf.a.col[1]) / 360.);
-			ds.col[2] = cdata->physics.dt * (lnewp.att.icrf.v.col[2] + cdata->physics.dt * (323.*sloc[0].att.icrf.a.col[2] - 264.*sloc[1].att.icrf.a.col[2] + 159.*sloc[2].att.icrf.a.col[2] - 38.*sloc[3].att.icrf.a.col[2]) / 360.);
+			ds.col[0] = cdata.physics.dt * (lnewp.att.icrf.v.col[0] + cdata.physics.dt * (323.*sloc[0].att.icrf.a.col[0] - 264.*sloc[1].att.icrf.a.col[0] + 159.*sloc[2].att.icrf.a.col[0] - 38.*sloc[3].att.icrf.a.col[0]) / 360.);
+			ds.col[1] = cdata.physics.dt * (lnewp.att.icrf.v.col[1] + cdata.physics.dt * (323.*sloc[0].att.icrf.a.col[1] - 264.*sloc[1].att.icrf.a.col[1] + 159.*sloc[2].att.icrf.a.col[1] - 38.*sloc[3].att.icrf.a.col[1]) / 360.);
+			ds.col[2] = cdata.physics.dt * (lnewp.att.icrf.v.col[2] + cdata.physics.dt * (323.*sloc[0].att.icrf.a.col[2] - 264.*sloc[1].att.icrf.a.col[2] + 159.*sloc[2].att.icrf.a.col[2] - 38.*sloc[3].att.icrf.a.col[2]) / 360.);
 			dq = q_axis2quaternion_rv(rv_smult(.1,ds));
 			for (j=0; j<10; ++j)
 			{
 				lnewp.att.icrf.s = q_mult(dq,lnewp.att.icrf.s);
 			}
-			lnewp.att.icrf.v.col[0] += cdata->physics.dt * (55.*sloc[0].att.icrf.a.col[0] - 59.*sloc[1].att.icrf.a.col[0] + 37.*sloc[2].att.icrf.a.col[0] - 9.*sloc[3].att.icrf.a.col[0]) / 24.;
-			lnewp.att.icrf.v.col[1] += cdata->physics.dt * (55.*sloc[0].att.icrf.a.col[1] - 59.*sloc[1].att.icrf.a.col[1] + 37.*sloc[2].att.icrf.a.col[1] - 9.*sloc[3].att.icrf.a.col[1]) / 24.;
-			lnewp.att.icrf.v.col[2] += cdata->physics.dt * (55.*sloc[0].att.icrf.a.col[2] - 59.*sloc[1].att.icrf.a.col[2] + 37.*sloc[2].att.icrf.a.col[2] - 9.*sloc[3].att.icrf.a.col[2]) / 24.;
+			lnewp.att.icrf.v.col[0] += cdata.physics.dt * (55.*sloc[0].att.icrf.a.col[0] - 59.*sloc[1].att.icrf.a.col[0] + 37.*sloc[2].att.icrf.a.col[0] - 9.*sloc[3].att.icrf.a.col[0]) / 24.;
+			lnewp.att.icrf.v.col[1] += cdata.physics.dt * (55.*sloc[0].att.icrf.a.col[1] - 59.*sloc[1].att.icrf.a.col[1] + 37.*sloc[2].att.icrf.a.col[1] - 9.*sloc[3].att.icrf.a.col[1]) / 24.;
+			lnewp.att.icrf.v.col[2] += cdata.physics.dt * (55.*sloc[0].att.icrf.a.col[2] - 59.*sloc[1].att.icrf.a.col[2] + 37.*sloc[2].att.icrf.a.col[2] - 9.*sloc[3].att.icrf.a.col[2]) / 24.;
 			att_icrf2lvlh(&lnew);
-			att_accel(cdata,&lnewp);
+			att_accel(cdata.physics, lnewp);
 
 			ds = rv_zero();
-			ds.col[0] = cdata->physics.dt * (lnew.att.icrf.v.col[0] + cdata->physics.dt * (38.*lnewp.att.icrf.a.col[0] + 171.*sloc[0].att.icrf.a.col[0] - 36.*sloc[1].att.icrf.a.col[0] + 7.*sloc[2].att.icrf.a.col[0]) / 3600.);
-			ds.col[1] = cdata->physics.dt * (lnew.att.icrf.v.col[1] + cdata->physics.dt * (38.*lnewp.att.icrf.a.col[1] + 171.*sloc[0].att.icrf.a.col[1] - 36.*sloc[1].att.icrf.a.col[1] + 7.*sloc[2].att.icrf.a.col[1]) / 3600.);
-			ds.col[2] = cdata->physics.dt * (lnew.att.icrf.v.col[2] + cdata->physics.dt * (38.*lnewp.att.icrf.a.col[2] + 171.*sloc[0].att.icrf.a.col[2] - 36.*sloc[1].att.icrf.a.col[2] + 7.*sloc[2].att.icrf.a.col[2]) / 3600.);
+			ds.col[0] = cdata.physics.dt * (lnew.att.icrf.v.col[0] + cdata.physics.dt * (38.*lnewp.att.icrf.a.col[0] + 171.*sloc[0].att.icrf.a.col[0] - 36.*sloc[1].att.icrf.a.col[0] + 7.*sloc[2].att.icrf.a.col[0]) / 3600.);
+			ds.col[1] = cdata.physics.dt * (lnew.att.icrf.v.col[1] + cdata.physics.dt * (38.*lnewp.att.icrf.a.col[1] + 171.*sloc[0].att.icrf.a.col[1] - 36.*sloc[1].att.icrf.a.col[1] + 7.*sloc[2].att.icrf.a.col[1]) / 3600.);
+			ds.col[2] = cdata.physics.dt * (lnew.att.icrf.v.col[2] + cdata.physics.dt * (38.*lnewp.att.icrf.a.col[2] + 171.*sloc[0].att.icrf.a.col[2] - 36.*sloc[1].att.icrf.a.col[2] + 7.*sloc[2].att.icrf.a.col[2]) / 3600.);
 			dq = q_axis2quaternion_rv(rv_smult(.1,ds));
 			for (j=0; j<10; ++j)
 			{
 				lnew.att.icrf.s = q_mult(dq,lnew.att.icrf.s);
 			}
-			lnew.att.icrf.v.col[0] += cdata->physics.dt * (9.*lnewp.att.icrf.a.col[0] + 19.*sloc[0].att.icrf.a.col[0] - 5.*sloc[1].att.icrf.a.col[0] + sloc[2].att.icrf.a.col[0]) / 24.;
-			lnew.att.icrf.v.col[1] += cdata->physics.dt * (9.*lnewp.att.icrf.a.col[1] + 19.*sloc[0].att.icrf.a.col[1] - 5.*sloc[1].att.icrf.a.col[1] + sloc[2].att.icrf.a.col[1]) / 24.;
-			lnew.att.icrf.v.col[2] += cdata->physics.dt * (9.*lnewp.att.icrf.a.col[2] + 19.*sloc[0].att.icrf.a.col[2] - 5.*sloc[1].att.icrf.a.col[2] + sloc[2].att.icrf.a.col[2]) / 24.;
+			lnew.att.icrf.v.col[0] += cdata.physics.dt * (9.*lnewp.att.icrf.a.col[0] + 19.*sloc[0].att.icrf.a.col[0] - 5.*sloc[1].att.icrf.a.col[0] + sloc[2].att.icrf.a.col[0]) / 24.;
+			lnew.att.icrf.v.col[1] += cdata.physics.dt * (9.*lnewp.att.icrf.a.col[1] + 19.*sloc[0].att.icrf.a.col[1] - 5.*sloc[1].att.icrf.a.col[1] + sloc[2].att.icrf.a.col[1]) / 24.;
+			lnew.att.icrf.v.col[2] += cdata.physics.dt * (9.*lnewp.att.icrf.a.col[2] + 19.*sloc[0].att.icrf.a.col[2] - 5.*sloc[1].att.icrf.a.col[2] + sloc[2].att.icrf.a.col[2]) / 24.;
 			att_icrf2lvlh(&lnew);
 			break;
 		case 1:
@@ -2023,8 +2005,8 @@ void propagate(cosmosstruc *cdata, double utc)
 		case 9:
 		case 10:
 		case 11:
-			lnew.att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,lnew.pos.baryc.s));
-			//		lnew.att.icrf.s = rm_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,lnew.pos.baryc.s));
+			lnew.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,lnew.pos.baryc.s));
+			//		lnew.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,lnew.pos.baryc.s));
 			lnew.att.icrf.v = rv_zero();
 			att_icrf2lvlh(&lnew);
 			break;
@@ -2043,24 +2025,24 @@ void propagate(cosmosstruc *cdata, double utc)
 		}
 
 //		groundstations(cdata,&lnew);
-		cdata->node.battlev += (cdata->physics.dt/3600.) * (cdata->node.powgen-cdata->node.powuse);
+		cdata.node.battlev += (cdata.physics.dt/3600.) * (cdata.node.powgen-cdata.node.powuse);
 
-		if (cdata->node.powgen > cdata->node.powuse)
-			cdata->node.charging = 1;
+		if (cdata.node.powgen > cdata.node.powuse)
+			cdata.node.charging = 1;
 		else
-			cdata->node.charging = 0;
+			cdata.node.charging = 0;
 
-		if (cdata->node.battlev < 0.)
-			cdata->node.battlev = 0.;
+		if (cdata.node.battlev < 0.)
+			cdata.node.battlev = 0.;
 
-		if (cdata->node.battlev > cdata->node.battcap)
+		if (cdata.node.battlev > cdata.node.battcap)
 		{
-			cdata->node.charging = 0;
-			cdata->node.battlev = cdata->node.battcap;
+			cdata.node.charging = 0;
+			cdata.node.battlev = cdata.node.battcap;
 		}
 		// Simulate hardware values
-		simulate_hardware(cdata,&lnew);
-		att_accel(cdata,&lnew);
+		simulate_hardware(cdata, lnew);
+		att_accel(cdata.physics, lnew);
 
 
 		sloc[3] = sloc[2];
@@ -2070,7 +2052,7 @@ void propagate(cosmosstruc *cdata, double utc)
 
 	}
 
-	cdata->node.loc = sloc[0];
+	cdata.node.loc = sloc[0];
 }
 
 //! Prepare for Gauss-Jackson integration
@@ -2080,116 +2062,132 @@ void propagate(cosmosstruc *cdata, double utc)
 	\param order The order at which the integration will be performed
 	\param dt Step size in seconds.
 */
-void gauss_jackson_setup(int32_t order, double utc, double *dt)
+void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt)
 {
 	uint32_t i, n, j,m,k;
 	double test;
 
-	// Munge time step to fit local granularity
-	test = utc + *dt/86400.;
-	*dt = 86400.*(test-utc);
-
-	gj_order = order;
-	gj_2order = gj_order/2;
-	gj_order = gj_2order * 2;
-	gj_dt = *dt;
-	gj_dt2 = gj_dt * gj_dt;
-
-	for (m=0; m<gj_order+2; m++)
+	gjh.step.resize(order+2);
+	gjh.binom.resize(order+2);
+	gjh.beta.resize(order+2);
+	gjh.alpha.resize(order+2);
+	for (i=0; i<order+2; ++i)
 	{
-		for (i=0; i<gj_order+2; i++)
+		gjh.binom[i].resize(order+2);
+		gjh.beta[i].resize(order+1);
+		gjh.alpha[i].resize(order+1);
+	}
+	gjh.c.resize(order+3);
+	gjh.gam.resize(order+2);
+	gjh.q.resize(order+3);
+	gjh.lam.resize(order+3);
+	gjh.order = 0;
+
+	// Munge time step to fit local granularity
+	test = utc + dt/86400.;
+	dt = 86400.*(test-utc);
+
+	gjh.order = order;
+	gjh.order2 = gjh.order/2;
+	gjh.order = gjh.order2 * 2;
+	gjh.dt = dt;
+	gjh.dtsq = gjh.dt * gjh.dt;
+
+	for (m=0; m<gjh.order+2; m++)
+	{
+		for (i=0; i<gjh.order+2; i++)
 		{
 			if (m > i)
-				gj_binom[m][i] = 0;
+				gjh.binom[m][i] = 0;
 			else
 			{
 				if (m == i)
-					gj_binom[m][i] = 1;
+					gjh.binom[m][i] = 1;
 				else
 				{
 					if (m == 0)
-						gj_binom[m][i] = 1;
+						gjh.binom[m][i] = 1;
 					else
 					{
-						gj_binom[m][i] = gj_binom[m-1][i-1] + gj_binom[m][i-1];
+						gjh.binom[m][i] = gjh.binom[m-1][i-1] + gjh.binom[m][i-1];
 					}
 				}
 			}
 		}
 	}
 
-	gj_c[0] = 1.;
-	for (n=1; n<gj_order+3; n++)
+	gjh.c[0] = 1.;
+	for (n=1; n<gjh.order+3; n++)
 	{
-		gj_c[n] = 0.;
+		gjh.c[n] = 0.;
 		for (i=0; i<=n-1; i++)
 		{
-			gj_c[n] -= gj_c[i] / (n+1-i);
+			gjh.c[n] -= gjh.c[i] / (n+1-i);
 		}
 	}
 
-	gj_gam[0] = gj_c[0];
-	for (i=1; i<gj_order+2; i++)
+	gjh.gam[0] = gjh.c[0];
+	for (i=1; i<gjh.order+2; i++)
 	{
-		gj_gam[i] = gj_gam[i-1] + gj_c[i];
+		gjh.gam[i] = gjh.gam[i-1] + gjh.c[i];
 	}
 
-	for (i=0; i<gj_order+1; i++)
+	for (i=0; i<gjh.order+1; i++)
 	{
-		gj_beta[gj_order+1][i] = gj_gam[i+1];
-		gj_beta[gj_order][i] = gj_c[i+1];
-		for (j=gj_order-1; j<gj_order; --j)
+		gjh.beta[gjh.order+1][i] = gjh.gam[i+1];
+		gjh.beta[gjh.order][i] = gjh.c[i+1];
+		for (j=gjh.order-1; j<gjh.order; --j)
 		{
 			if (!i)
-				gj_beta[j][i] = gj_beta[j+1][i];
+				gjh.beta[j][i] = gjh.beta[j+1][i];
 			else
-				gj_beta[j][i] = gj_beta[j+1][i] - gj_beta[j+1][i-1];
+				gjh.beta[j][i] = gjh.beta[j+1][i] - gjh.beta[j+1][i-1];
 		}
 	}
 
-	gj_q[0] = 1.;
-	for (i=1; i<gj_order+3; i++)
+	gjh.q[0] = 1.;
+	for (i=1; i<gjh.order+3; i++)
 	{
-		gj_q[i] = 0.;
+		gjh.q[i] = 0.;
 		for (k=0; k<=i; k++)
 		{
-			gj_q[i] += gj_c[k]*gj_c[i-k];
+			gjh.q[i] += gjh.c[k]*gjh.c[i-k];
 		}
 	}
 
-	gj_lam[0] = gj_q[0];
-	for (i=1; i<gj_order+3; i++)
+	gjh.lam[0] = gjh.q[0];
+	for (i=1; i<gjh.order+3; i++)
 	{
-		gj_lam[i] = gj_lam[i-1] + gj_q[i];
+		gjh.lam[i] = gjh.lam[i-1] + gjh.q[i];
 	}
 
-	for (i=0; i<gj_order+1; i++)
+	for (i=0; i<gjh.order+1; i++)
 	{
-		gj_alpha[gj_order+1][i] = gj_lam[i+2];
-		gj_alpha[gj_order][i] = gj_q[i+2];
-		for (j=gj_order-1; j<gj_order; --j)
+		gjh.alpha[gjh.order+1][i] = gjh.lam[i+2];
+		gjh.alpha[gjh.order][i] = gjh.q[i+2];
+		for (j=gjh.order-1; j<gjh.order; --j)
 		{
 			if (!i)
-				gj_alpha[j][i] = gj_alpha[j+1][i];
+				gjh.alpha[j][i] = gjh.alpha[j+1][i];
 			else
-				gj_alpha[j][i] = gj_alpha[j+1][i] - gj_alpha[j+1][i-1];
+				gjh.alpha[j][i] = gjh.alpha[j+1][i] - gjh.alpha[j+1][i-1];
 		}
 	}
 
-	for (j=0; j<gj_order+2; j++)
+	for (j=0; j<gjh.order+2; j++)
 	{
-		for (m=0; m<gj_order+1; m++)
+		for (m=0; m<gjh.order+1; m++)
 		{
-			gj[j].a[gj_order-m] = gj[j].b[gj_order-m] = 0.;
-			for (i=m; i<=gj_order; i++)
+			gjh.step[j].a[gjh.order-m] = gjh.step[j].b[gjh.order-m] = 0.;
+			for (i=m; i<=gjh.order; i++)
 			{
-				gj[j].a[gj_order-m] += gj_alpha[j][i] * gj_binom[m][i];
-				gj[j].b[gj_order-m] += gj_beta[j][i] * gj_binom[m][i];
+				gjh.step[j].a[gjh.order-m] += gjh.alpha[j][i] * gjh.binom[m][i];
+				gjh.step[j].b[gjh.order-m] += gjh.beta[j][i] * gjh.binom[m][i];
 			}
-			gj[j].a[gj_order-m] *= pow(-1.,m);
-			gj[j].b[gj_order-m] *= pow(-1.,m);
-			if (gj_order-m == j)
-				gj[j].b[gj_order-m] += .5;
+			gjh.step[j].a[gjh.order-m] *= pow(-1.,m);
+			gjh.step[j].b[gjh.order-m] *= pow(-1.,m);
+			if (gjh.order-m == j)
+				gjh.step[j].b[gjh.order-m] += .5;
 		}
 	}
 }
@@ -2203,42 +2201,42 @@ void gauss_jackson_setup(int32_t order, double utc, double *dt)
 	\param sat Structure specifying satellite info
 */
 
-void gauss_jackson_init_tle(int32_t order,int32_t mode,double dt,double utc,cosmosstruc *cdata)
+void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cosmosstruc &cdata, locstruc &loc)
 {
 	uint32_t i;
 
-	cdata->physics.dt = dt;
-	cdata->physics.mode = mode;
-	gauss_jackson_setup(order, utc, &cdata->physics.dt);
-	cdata->physics.dtj = cdata->physics.dt/86400.;
+	cdata.physics.dt = dt;
+	cdata.physics.mode = mode;
+	gauss_jackson_setup(gjh, order, utc, cdata.physics.dt);
+	cdata.physics.dtj = cdata.physics.dt/86400.;
 
 	utc -= (order/2.)*dt/86400.;
-	pos_clear(&cdata->node.loc);
-	lines2eci(utc,cdata->tle,&cdata->node.loc.pos.eci);
-	cdata->node.loc.pos.eci.pass++;
-	pos_eci(&cdata->node.loc);
+	pos_clear(loc);
+	lines2eci(utc,cdata.tle,&loc.pos.eci);
+	loc.pos.eci.pass++;
+	pos_eci(&loc);
 
 	// Initial attitude
-	cdata->physics.ftorque = rv_zero();
-	switch (cdata->physics.mode)
+	cdata.physics.ftorque = rv_zero();
+	switch (cdata.physics.mode)
 	{
 	//case 0:
-	//	cdata->node.loc.att.icrf.utc = cdata->node.loc.utc;
-	//	cdata->node.loc.att.icrf.s = q_eye();
-	cdata->node.loc.att.icrf.a = rv_zero();
-	//	att_icrf(&cdata->node.loc);
+	//	loc.att.icrf.utc = loc.utc;
+	//	loc.att.icrf.s = q_eye();
+	loc.att.icrf.a = rv_zero();
+	//	att_icrf(&loc);
 	//	break;
 	case 1:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_eye();
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		loc.att.lvlh.utc = loc.utc;
+		loc.att.lvlh.s = q_eye();
+		loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&loc);
 		break;
 	case 2:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_change_around_y(-DPI2);
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		loc.att.lvlh.utc = loc.utc;
+		loc.att.lvlh.s = q_change_around_y(-DPI2);
+		loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&loc);
 		break;
 	case 3:
 	case 4:
@@ -2250,59 +2248,60 @@ void gauss_jackson_init_tle(int32_t order,int32_t mode,double dt,double utc,cosm
 	case 10:
 	case 11:
 	case 12:
-		cdata->node.loc.att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
-		cdata->node.loc.att.icrf.v = rv_zero();
-		att_icrf2lvlh(&cdata->node.loc);
+		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		loc.att.icrf.v = rv_zero();
+		att_icrf2lvlh(&loc);
 		break;
 	}
 
 
-	pos_accel(cdata,&cdata->node.loc);
+	pos_accel(cdata.physics, loc);
 	// Initialize hardware
-	initialize_hardware(cdata,&cdata->node.loc);
-	att_accel(cdata,&cdata->node.loc);
-//	groundstations(cdata,&cdata->node.loc);
+	hardware_init_eci(cdata.devspec, loc);
+	att_accel(cdata.physics, loc);
+//	groundstations(cdata,&loc);
 
-	gj[gj_2order].sloc = cdata->node.loc;
+	gjh.step[gjh.order2].sloc = loc;
 
 	// Position at t0-dt
-	for (i=gj_2order-1; i<gj_2order; --i)
+	for (i=gjh.order2-1; i<gjh.order2; --i)
 	{
-		gj[i].sloc = gj[i+1].sloc;
-		gj[i].sloc.utc -= dt / 86400.;
-		lines2eci(gj[i].sloc.utc,cdata->tle,&gj[i].sloc.pos.eci);
-		gj[i].sloc.pos.eci.pass++;
-		pos_eci(&gj[i].sloc);
+		gjh.step[i].sloc = gjh.step[i+1].sloc;
+		gjh.step[i].sloc.utc -= dt / 86400.;
+		lines2eci(gjh.step[i].sloc.utc,cdata.tle,&gjh.step[i].sloc.pos.eci);
+		gjh.step[i].sloc.pos.eci.pass++;
+		pos_eci(&gjh.step[i].sloc);
 
-		gj[i].sloc.att.lvlh = gj[i+1].sloc.att.lvlh;
-		att_lvlh2icrf(&gj[i].sloc);
+		gjh.step[i].sloc.att.lvlh = gjh.step[i+1].sloc.att.lvlh;
+		att_lvlh2icrf(&gjh.step[i].sloc);
 
-		pos_accel(cdata,&gj[i].sloc);
+		pos_accel(cdata.physics, gjh.step[i].sloc);
 		// Initialize hardware
-		initialize_hardware(cdata,&gj[i].sloc);
-		att_accel(cdata,&gj[i].sloc);
+		hardware_init_eci(cdata.devspec,gjh.step[i].sloc);
+		att_accel(cdata.physics, gjh.step[i].sloc);
 	}
 
-	for (i=gj_2order+1; i<=gj_order; i++)
+	for (i=gjh.order2+1; i<=gjh.order; i++)
 	{
-		gj[i].sloc = gj[i-1].sloc;
-		gj[i].sloc.utc += dt / 86400.;
-		lines2eci(gj[i].sloc.utc,cdata->tle,&gj[i].sloc.pos.eci);
-		gj[i].sloc.pos.eci.pass++;
-		pos_eci(&gj[i].sloc);
+		gjh.step[i].sloc = gjh.step[i-1].sloc;
+		gjh.step[i].sloc.utc += dt / 86400.;
+		lines2eci(gjh.step[i].sloc.utc,cdata.tle,&gjh.step[i].sloc.pos.eci);
+		gjh.step[i].sloc.pos.eci.pass++;
+		pos_eci(&gjh.step[i].sloc);
 
-		gj[i].sloc.att.lvlh = gj[i-1].sloc.att.lvlh;
-		att_lvlh2icrf(&gj[i].sloc);
+		gjh.step[i].sloc.att.lvlh = gjh.step[i-1].sloc.att.lvlh;
+		att_lvlh2icrf(&gjh.step[i].sloc);
 
-		pos_accel(cdata,&gj[i].sloc);
+		pos_accel(cdata.physics, gjh.step[i].sloc);
 		// Initialize hardware
-		initialize_hardware(cdata,&gj[i].sloc);
-		att_accel(cdata,&gj[i].sloc);
+		hardware_init_eci(cdata.devspec,gjh.step[i].sloc);
+		att_accel(cdata.physics, gjh.step[i].sloc);
 	}
 
-	gauss_jackson_converge(cdata);
+	loc = gauss_jackson_converge_orbit(gjh, cdata);
+	gauss_jackson_converge_hardware(gjh, cdata);
 
-	cdata->physics.mjdbase = cdata->node.loc.utc;
+	cdata.physics.mjdbase = loc.utc;
 }
 
 //! Initialize Gauss-Jackson orbit using ECI state vector
@@ -2310,53 +2309,55 @@ void gauss_jackson_init_tle(int32_t order,int32_t mode,double dt,double utc,cosm
 	\param order the order at which the integration will be performed (must be even)
 	\param dt Step size in seconds
 	\param utc Initial step time as UTC in Modified Julian Days
-	\param ipos ECI state vector
+	\param ipos Initial ECI Position
+	\param iatt Initial ICRF Attitude
 	\param sat Structure specifying satellite
 */
-void gauss_jackson_init_eci(int32_t order,int32_t mode,double dt,double utc,cartpos ipos,qatt iatt,cosmosstruc *cdata)
+void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cartpos ipos, qatt iatt, cosmosstruc &cdata)
 {
 	kepstruc kep;
 	double dea;
 	uint32_t i;
 	quaternion q1;
 
-	cdata->physics.dt = dt;
-	cdata->physics.mode = mode;
-	gauss_jackson_setup(order, utc, &cdata->physics.dt);
-	cdata->physics.dtj = cdata->physics.dt/86400.;
+	// dt is modified during setup
+	gauss_jackson_setup(gjh, order, utc, dt);
+	cdata.physics.dt = dt;
+	cdata.physics.dtj = cdata.physics.dt/86400.;
+	cdata.physics.mode = mode;
 
-	pos_clear(&cdata->node.loc);
-	gj[gj_order+1].sloc = cdata->node.loc;
+	pos_clear(cdata.node.loc);
+	gjh.step[gjh.order+1].sloc = cdata.node.loc;
 	ipos.pass = iatt.pass = 0;
-	cdata->node.loc.pos.eci = ipos;
-	cdata->node.loc.pos.eci.pass++;
-	cdata->node.loc.utc = cdata->node.loc.pos.eci.utc= utc;
-	pos_eci(&cdata->node.loc);
+	cdata.node.loc.pos.eci = ipos;
+	cdata.node.loc.pos.eci.pass++;
+	cdata.node.loc.utc = cdata.node.loc.pos.eci.utc= utc;
+	pos_eci(&cdata.node.loc);
 
 	// Initial attitude
-	switch (cdata->physics.mode)
+	switch (cdata.physics.mode)
 	{
 	case 0:
 		// Pure propagation
-		cdata->node.loc.att.icrf = iatt;
-		cdata->node.loc.att.icrf.pass++;
-		att_icrf(&cdata->node.loc);
+		cdata.node.loc.att.icrf = iatt;
+		cdata.node.loc.att.icrf.pass++;
+		att_icrf(&cdata.node.loc);
 		break;
 	case 1:
 		// Force LVLH
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_eye();
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		cdata->node.loc.att.lvlh.pass++;
-		att_lvlh(&cdata->node.loc);
+		cdata.node.loc.att.lvlh.utc = cdata.node.loc.utc;
+		cdata.node.loc.att.lvlh.s = q_eye();
+		cdata.node.loc.att.lvlh.v = rv_zero();
+		cdata.node.loc.att.lvlh.pass++;
+		att_lvlh(&cdata.node.loc);
 		break;
 	case 2:
 		// Force 90 degrees off LVLH
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_change_around_y(-DPI2);
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		pos_eci2geoc(&cdata->node.loc);
-		att_lvlh2icrf(&cdata->node.loc);
+		cdata.node.loc.att.lvlh.utc = cdata.node.loc.utc;
+		cdata.node.loc.att.lvlh.s = q_change_around_y(-DPI2);
+		cdata.node.loc.att.lvlh.v = rv_zero();
+		pos_eci2geoc(&cdata.node.loc);
+		att_lvlh2icrf(&cdata.node.loc);
 		break;
 	case 3:
 	case 4:
@@ -2368,29 +2369,27 @@ void gauss_jackson_init_eci(int32_t order,int32_t mode,double dt,double utc,cart
 	case 10:
 	case 11:
 	case 12:
-		cdata->node.loc.att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
-		cdata->node.loc.att.icrf.v = rv_zero();
-		pos_eci2geoc(&cdata->node.loc);
-		att_icrf2lvlh(&cdata->node.loc);
+		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.baryc.s));
+		cdata.node.loc.att.icrf.v = rv_zero();
+		pos_eci2geoc(&cdata.node.loc);
+		att_icrf2lvlh(&cdata.node.loc);
 		break;
 	}
 
 
-	pos_accel(cdata,&cdata->node.loc);
+	pos_accel(cdata.physics, cdata.node.loc);
 
-	// Initialize hardware
-	initialize_hardware(cdata,&cdata->node.loc);
-	att_accel(cdata,&cdata->node.loc);
+	att_accel(cdata.physics, cdata.node.loc);
 
-	gj[gj_2order].sloc = cdata->node.loc;
+	gjh.step[gjh.order2].sloc = cdata.node.loc;
 
 	// Position at t0-dt
-	eci2kep(&cdata->node.loc.pos.eci,&kep);
-	for (i=gj_2order-1; i<gj_2order; --i)
+	eci2kep(&cdata.node.loc.pos.eci,&kep);
+	for (i=gjh.order2-1; i<gjh.order2; --i)
 	{
-		gj[i].sloc = gj[i+1].sloc;
-		gj[i].sloc.utc -= dt / 86400.;
-		kep.utc = gj[i].sloc.att.icrf.utc = gj[i].sloc.utc;
+		gjh.step[i].sloc = gjh.step[i+1].sloc;
+		gjh.step[i].sloc.utc -= dt / 86400.;
+		kep.utc = gjh.step[i].sloc.att.icrf.utc = gjh.step[i].sloc.utc;
 		kep.ma -= dt * kep.mm;
 
 		do
@@ -2398,30 +2397,30 @@ void gauss_jackson_init_eci(int32_t order,int32_t mode,double dt,double utc,cart
 			dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
 			kep.ea -= dea;
 		} while (fabs(dea) > .000001);
-		kep2eci(&kep,&gj[i].sloc.pos.eci);
-		gj[i].sloc.pos.eci.pass++;
+		kep2eci(&kep,&gjh.step[i].sloc.pos.eci);
+		gjh.step[i].sloc.pos.eci.pass++;
 
-		q1 = q_axis2quaternion_rv(rv_smult(-dt,gj[i].sloc.att.icrf.v));
-		gj[i].sloc.att.icrf.s = q_mult(q1,gj[i].sloc.att.icrf.s);
-		q_normalize(&gj[i].sloc.att.icrf.s);
+		q1 = q_axis2quaternion_rv(rv_smult(-dt,gjh.step[i].sloc.att.icrf.v));
+		gjh.step[i].sloc.att.icrf.s = q_mult(q1,gjh.step[i].sloc.att.icrf.s);
+		q_normalize(&gjh.step[i].sloc.att.icrf.s);
 		// Calculate new v from da
-		gj[i].sloc.att.icrf.v = rv_add(gj[i].sloc.att.icrf.v,rv_smult(-dt,gj[i].sloc.att.icrf.a));
-//		gj[i].sloc.att.icrf.utc -= dt/86400.;
-//		att_icrf2lvlh(&gj[i].sloc);
-		pos_eci(&gj[i].sloc);
+		gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(-dt,gjh.step[i].sloc.att.icrf.a));
+//		gjh.step[i].sloc.att.icrf.utc -= dt/86400.;
+//		att_icrf2lvlh(&gjh.step[i].sloc);
+		pos_eci(&gjh.step[i].sloc);
 
-		pos_accel(cdata,&gj[i].sloc);
+		pos_accel(cdata.physics, gjh.step[i].sloc);
 		// Initialize hardware
-		initialize_hardware(cdata,&gj[i].sloc);
-		att_accel(cdata,&gj[i].sloc);
+		hardware_init_eci(cdata.devspec,gjh.step[i].sloc);
+		att_accel(cdata.physics, gjh.step[i].sloc);
 	}
 
-	eci2kep(&cdata->node.loc.pos.eci,&kep);
-	for (i=gj_2order+1; i<=gj_order; i++)
+	eci2kep(&cdata.node.loc.pos.eci,&kep);
+	for (i=gjh.order2+1; i<=gjh.order; i++)
 	{
-		gj[i].sloc = gj[i-1].sloc;
-		gj[i].sloc.utc += dt / 86400.;
-		kep.utc = gj[i].sloc.att.icrf.utc = gj[i].sloc.utc;
+		gjh.step[i].sloc = gjh.step[i-1].sloc;
+		gjh.step[i].sloc.utc += dt / 86400.;
+		kep.utc = gjh.step[i].sloc.att.icrf.utc = gjh.step[i].sloc.utc;
 		kep.ma += dt * kep.mm;
 
 		do
@@ -2429,64 +2428,65 @@ void gauss_jackson_init_eci(int32_t order,int32_t mode,double dt,double utc,cart
 			dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
 			kep.ea -= dea;
 		} while (fabs(dea) > .000001);
-		kep2eci(&kep,&gj[i].sloc.pos.eci);
-		gj[i].sloc.pos.eci.pass++;
+		kep2eci(&kep,&gjh.step[i].sloc.pos.eci);
+		gjh.step[i].sloc.pos.eci.pass++;
 
-		q1 = q_axis2quaternion_rv(rv_smult(dt,gj[i].sloc.att.icrf.v));
-		gj[i].sloc.att.icrf.s = q_mult(q1,gj[i].sloc.att.icrf.s);
-		q_normalize(&gj[i].sloc.att.icrf.s);
+		q1 = q_axis2quaternion_rv(rv_smult(dt,gjh.step[i].sloc.att.icrf.v));
+		gjh.step[i].sloc.att.icrf.s = q_mult(q1,gjh.step[i].sloc.att.icrf.s);
+		q_normalize(&gjh.step[i].sloc.att.icrf.s);
 		// Calculate new v from da
-		gj[i].sloc.att.icrf.v = rv_add(gj[i].sloc.att.icrf.v,rv_smult(dt,gj[i].sloc.att.icrf.a));
-//		gj[i].sloc.att.icrf.utc += dt/86400.;
-//		att_icrf2lvlh(&gj[i].sloc);
-		pos_eci(&gj[i].sloc);
+		gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(dt,gjh.step[i].sloc.att.icrf.a));
+//		gjh.step[i].sloc.att.icrf.utc += dt/86400.;
+//		att_icrf2lvlh(&gjh.step[i].sloc);
+		pos_eci(&gjh.step[i].sloc);
 
-		pos_accel(cdata,&gj[i].sloc);
+		pos_accel(cdata.physics, gjh.step[i].sloc);
 		// Initialize hardware
-		initialize_hardware(cdata,&gj[i].sloc);
-		att_accel(cdata,&gj[i].sloc);
+		hardware_init_eci(cdata.devspec, gjh.step[i].sloc);
+		att_accel(cdata.physics, gjh.step[i].sloc);
 	}
-	gauss_jackson_converge(cdata);
-	cdata->physics.mjdbase = cdata->node.loc.utc;
+	cdata.node.loc = gauss_jackson_converge_orbit(gjh, cdata);
+	gauss_jackson_converge_hardware(gjh, cdata);
+	cdata.physics.mjdbase = cdata.node.loc.utc;
 }
 
-void gauss_jackson_init_stk(int32_t order,int32_t mode,double dt,double utc,stkstruc *stk,cosmosstruc *cdata)
+void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order,int32_t mode,double dt,double utc,stkstruc *stk, cosmosstruc &cdata, locstruc &loc)
 {
 	uint32_t i;
 
-	cdata->physics.dt = dt;
-	cdata->physics.mode = mode;
-	gauss_jackson_setup(order, utc, &cdata->physics.dt);
-	cdata->physics.dtj = cdata->physics.dt/86400.;
+	cdata.physics.dt = dt;
+	cdata.physics.mode = mode;
+	gauss_jackson_setup(gjh, order, utc, cdata.physics.dt);
+	cdata.physics.dtj = cdata.physics.dt/86400.;
 
-	pos_clear(&cdata->node.loc);
-	gj[gj_order+1].sloc = cdata->node.loc;
-	stk2eci(utc,stk,&cdata->node.loc.pos.eci);
-	cdata->node.loc.att.icrf.utc = utc;
-	cdata->node.loc.pos.eci.pass++;
-	pos_eci(&cdata->node.loc);
+	pos_clear(loc);
+	gjh.step[gjh.order+1].sloc = loc;
+	stk2eci(utc,stk,&loc.pos.eci);
+	loc.att.icrf.utc = utc;
+	loc.pos.eci.pass++;
+	pos_eci(&loc);
 
 	// Initial attitude
-	cdata->physics.ftorque = rv_zero();
-	switch (cdata->physics.mode)
+	cdata.physics.ftorque = rv_zero();
+	switch (cdata.physics.mode)
 	{
 	//case 0:
-	//	cdata->node.loc.att.icrf.utc = cdata->node.loc.utc;
-	//	cdata->node.loc.att.icrf.s = q_eye();
-	//	cdata->node.loc.att.icrf.v = cdata->node.loc.att.icrf.a = rv_zero();
-	//	att_icrf(&cdata->node.loc);
+	//	loc.att.icrf.utc = loc.utc;
+	//	loc.att.icrf.s = q_eye();
+	//	loc.att.icrf.v = loc.att.icrf.a = rv_zero();
+	//	att_icrf(&loc);
 	//	break;
 	case 1:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_eye();
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		loc.att.lvlh.utc = loc.utc;
+		loc.att.lvlh.s = q_eye();
+		loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&loc);
 		break;
 	case 2:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_change_around_y(-DPI2);
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		loc.att.lvlh.utc = loc.utc;
+		loc.att.lvlh.s = q_change_around_y(-DPI2);
+		loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&loc);
 		break;
 	case 3:
 	case 4:
@@ -2498,63 +2498,63 @@ void gauss_jackson_init_stk(int32_t order,int32_t mode,double dt,double utc,stks
 	case 10:
 	case 11:
 	case 12:
-		cdata->node.loc.att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
-		cdata->node.loc.att.icrf.v = rv_zero();
-		att_icrf2lvlh(&cdata->node.loc);
+		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		loc.att.icrf.v = rv_zero();
+		att_icrf2lvlh(&loc);
 		break;
 	}
 
 
 	// Initialize hardware
-	initialize_hardware(cdata,&cdata->node.loc);
-	att_accel(cdata,&cdata->node.loc);
-//	groundstations(cdata,&cdata->node.loc);
+	hardware_init_eci(cdata.devspec, loc);
+	att_accel(cdata.physics, loc);
+//	groundstations(cdata,&loc);
 
-	gj[gj_2order].sloc = cdata->node.loc;
+	gjh.step[gjh.order2].sloc = loc;
 
 	// Position at t0-dt
-	for (i=gj_2order-1; i<gj_2order; --i)
+	for (i=gjh.order2-1; i<gjh.order2; --i)
 	{
-		gj[i].sloc = gj[i+1].sloc;
-		gj[i].sloc.utc -= dt / 86400.;
-		gj[i].sloc.att.icrf.utc = gj[i].sloc.utc;
-		stk2eci(gj[i].sloc.utc,stk,&gj[i].sloc.pos.eci);
-		gj[i].sloc.pos.eci.pass++;
-		pos_eci(&gj[i].sloc);
+		gjh.step[i].sloc = gjh.step[i+1].sloc;
+		gjh.step[i].sloc.utc -= dt / 86400.;
+		gjh.step[i].sloc.att.icrf.utc = gjh.step[i].sloc.utc;
+		stk2eci(gjh.step[i].sloc.utc,stk,&gjh.step[i].sloc.pos.eci);
+		gjh.step[i].sloc.pos.eci.pass++;
+		pos_eci(&gjh.step[i].sloc);
 
-		gj[i].sloc.att.lvlh = gj[i+1].sloc.att.lvlh;
-		att_lvlh2icrf(&gj[i].sloc);
+		gjh.step[i].sloc.att.lvlh = gjh.step[i+1].sloc.att.lvlh;
+		att_lvlh2icrf(&gjh.step[i].sloc);
 
 		// Initialize hardware
-		initialize_hardware(cdata,&gj[i].sloc);
-		att_accel(cdata,&gj[i].sloc);
+		hardware_init_eci(cdata.devspec,gjh.step[i].sloc);
+		att_accel(cdata.physics, gjh.step[i].sloc);
 	}
 
-	for (i=gj_2order+1; i<=gj_order; i++)
+	for (i=gjh.order2+1; i<=gjh.order; i++)
 	{
-		gj[i].sloc = gj[i-1].sloc;
-		gj[i].sloc.utc += dt / 86400.;
-		stk2eci(gj[i].sloc.utc,stk,&gj[i].sloc.pos.eci);
-		gj[i].sloc.pos.eci.pass++;
-		pos_eci(&gj[i].sloc);
+		gjh.step[i].sloc = gjh.step[i-1].sloc;
+		gjh.step[i].sloc.utc += dt / 86400.;
+		stk2eci(gjh.step[i].sloc.utc,stk,&gjh.step[i].sloc.pos.eci);
+		gjh.step[i].sloc.pos.eci.pass++;
+		pos_eci(&gjh.step[i].sloc);
 
-		gj[i].sloc.att.lvlh = gj[i-1].sloc.att.lvlh;
-		gj[i].sloc.att.lvlh.utc = gj[i].sloc.utc;
-		att_lvlh2icrf(&gj[i].sloc);
+		gjh.step[i].sloc.att.lvlh = gjh.step[i-1].sloc.att.lvlh;
+		gjh.step[i].sloc.att.lvlh.utc = gjh.step[i].sloc.utc;
+		att_lvlh2icrf(&gjh.step[i].sloc);
 
 		// Initialize hardware
-		initialize_hardware(cdata,&gj[i].sloc);
-		att_accel(cdata,&gj[i].sloc);
+		hardware_init_eci(cdata.devspec,gjh.step[i].sloc);
+		att_accel(cdata.physics, gjh.step[i].sloc);
 	}
-	gauss_jackson_converge(cdata);
-	cdata->node.loc = gj[gj_order].sloc;
-	cdata->physics.mjdbase = cdata->node.loc.utc;
+
+	loc = gauss_jackson_converge_orbit(gjh, cdata);
+	gauss_jackson_converge_hardware(gjh, cdata);
+	cdata.physics.mjdbase = loc.utc;
 }
 
-void gauss_jackson_init(int32_t order,int32_t mode,double dt,double utc,double altitude,double angle,double hour,cosmosstruc *cdata)
+void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, double altitude, double angle, double hour, cosmosstruc &cdata, locstruc &loc)
 {
 	double lon;
-	locstruc loc;
 	kepstruc kep;
 
 	lon = D2PI * (fabs(hour)/24. - (utc - (int)utc));
@@ -2563,14 +2563,14 @@ void gauss_jackson_init(int32_t order,int32_t mode,double dt,double utc,double a
 	if (lon > DPI)
 		lon -= D2PI;
 
-	cdata->physics.dt = dt;
-	cdata->physics.mode = mode;
-	gauss_jackson_setup(order, utc, &cdata->physics.dt);
-	cdata->physics.dtj = cdata->physics.dt/86400.;
+	cdata.physics.dt = dt;
+	cdata.physics.mode = mode;
+	gauss_jackson_setup(gjh, order, utc, cdata.physics.dt);
+	cdata.physics.dtj = cdata.physics.dt/86400.;
 	initialutc = utc;
 
 	// Initial position
-	pos_clear(&loc);
+	pos_clear(loc);
 	kep.utc = utc;
 	kep.a = REARTHM + altitude;
 	kep.i = angle;
@@ -2588,11 +2588,11 @@ void gauss_jackson_init(int32_t order,int32_t mode,double dt,double utc,double a
 	++loc.att.lvlh.pass;
 	att_lvlh(&loc);
 
-	gauss_jackson_init_eci(order,mode,cdata->physics.dt,utc,loc.pos.eci,loc.att.icrf,cdata);
-	cdata->physics.mjdbase = cdata->node.loc.utc;
+	gauss_jackson_init_eci(gjh, order, mode, cdata.physics.dt, utc, loc.pos.eci, loc.att.icrf, cdata);
+	cdata.physics.mjdbase = loc.utc;
 }
 
-void gauss_jackson_converge(cosmosstruc *cdata)
+locstruc gauss_jackson_converge_orbit(gj_handle &gjh, cosmosstruc &cdata)
 {
 	uint32_t c_cnt, cflag=0, k, n, i;
 	rvector oldsa;
@@ -2600,113 +2600,115 @@ void gauss_jackson_converge(cosmosstruc *cdata)
 	c_cnt = 0;
 	do
 	{
-		gj[gj_2order].s.col[0] = gj[gj_2order].sloc.pos.eci.v.col[0]/gj_dt;
-		gj[gj_2order].s.col[1] = gj[gj_2order].sloc.pos.eci.v.col[1]/gj_dt;
-		gj[gj_2order].s.col[2] = gj[gj_2order].sloc.pos.eci.v.col[2]/gj_dt;
-		for (k=0; k<=gj_order; k++)
+		gjh.step[gjh.order2].s.col[0] = gjh.step[gjh.order2].sloc.pos.eci.v.col[0]/gjh.dt;
+		gjh.step[gjh.order2].s.col[1] = gjh.step[gjh.order2].sloc.pos.eci.v.col[1]/gjh.dt;
+		gjh.step[gjh.order2].s.col[2] = gjh.step[gjh.order2].sloc.pos.eci.v.col[2]/gjh.dt;
+		for (k=0; k<=gjh.order; k++)
 		{
-			gj[gj_2order].s.col[0] -= gj[gj_2order].b[k] * gj[k].sloc.pos.eci.a.col[0];
-			gj[gj_2order].s.col[1] -= gj[gj_2order].b[k] * gj[k].sloc.pos.eci.a.col[1];
-			gj[gj_2order].s.col[2] -= gj[gj_2order].b[k] * gj[k].sloc.pos.eci.a.col[2];
+			gjh.step[gjh.order2].s.col[0] -= gjh.step[gjh.order2].b[k] * gjh.step[k].sloc.pos.eci.a.col[0];
+			gjh.step[gjh.order2].s.col[1] -= gjh.step[gjh.order2].b[k] * gjh.step[k].sloc.pos.eci.a.col[1];
+			gjh.step[gjh.order2].s.col[2] -= gjh.step[gjh.order2].b[k] * gjh.step[k].sloc.pos.eci.a.col[2];
 		}
-		for (n=1; n<=gj_2order; n++)
+		for (n=1; n<=gjh.order2; n++)
 		{
-			gj[gj_2order+n].s.col[0] = gj[gj_2order+n-1].s.col[0] + (gj[gj_2order+n].sloc.pos.eci.a.col[0]+gj[gj_2order+n-1].sloc.pos.eci.a.col[0])/2;
-			gj[gj_2order+n].s.col[1] = gj[gj_2order+n-1].s.col[1] + (gj[gj_2order+n].sloc.pos.eci.a.col[1]+gj[gj_2order+n-1].sloc.pos.eci.a.col[1])/2;
-			gj[gj_2order+n].s.col[2] = gj[gj_2order+n-1].s.col[2] + (gj[gj_2order+n].sloc.pos.eci.a.col[2]+gj[gj_2order+n-1].sloc.pos.eci.a.col[2])/2;
-			gj[gj_2order-n].s.col[0] = gj[gj_2order-n+1].s.col[0] - (gj[gj_2order-n].sloc.pos.eci.a.col[0]+gj[gj_2order-n+1].sloc.pos.eci.a.col[0])/2;
-			gj[gj_2order-n].s.col[1] = gj[gj_2order-n+1].s.col[1] - (gj[gj_2order-n].sloc.pos.eci.a.col[1]+gj[gj_2order-n+1].sloc.pos.eci.a.col[1])/2;
-			gj[gj_2order-n].s.col[2] = gj[gj_2order-n+1].s.col[2] - (gj[gj_2order-n].sloc.pos.eci.a.col[2]+gj[gj_2order-n+1].sloc.pos.eci.a.col[2])/2;
+			gjh.step[gjh.order2+n].s.col[0] = gjh.step[gjh.order2+n-1].s.col[0] + (gjh.step[gjh.order2+n].sloc.pos.eci.a.col[0]+gjh.step[gjh.order2+n-1].sloc.pos.eci.a.col[0])/2;
+			gjh.step[gjh.order2+n].s.col[1] = gjh.step[gjh.order2+n-1].s.col[1] + (gjh.step[gjh.order2+n].sloc.pos.eci.a.col[1]+gjh.step[gjh.order2+n-1].sloc.pos.eci.a.col[1])/2;
+			gjh.step[gjh.order2+n].s.col[2] = gjh.step[gjh.order2+n-1].s.col[2] + (gjh.step[gjh.order2+n].sloc.pos.eci.a.col[2]+gjh.step[gjh.order2+n-1].sloc.pos.eci.a.col[2])/2;
+			gjh.step[gjh.order2-n].s.col[0] = gjh.step[gjh.order2-n+1].s.col[0] - (gjh.step[gjh.order2-n].sloc.pos.eci.a.col[0]+gjh.step[gjh.order2-n+1].sloc.pos.eci.a.col[0])/2;
+			gjh.step[gjh.order2-n].s.col[1] = gjh.step[gjh.order2-n+1].s.col[1] - (gjh.step[gjh.order2-n].sloc.pos.eci.a.col[1]+gjh.step[gjh.order2-n+1].sloc.pos.eci.a.col[1])/2;
+			gjh.step[gjh.order2-n].s.col[2] = gjh.step[gjh.order2-n+1].s.col[2] - (gjh.step[gjh.order2-n].sloc.pos.eci.a.col[2]+gjh.step[gjh.order2-n+1].sloc.pos.eci.a.col[2])/2;
 		}
-		gj[gj_2order].ss.col[0] = gj[gj_2order].sloc.pos.eci.s.col[0]/gj_dt2;
-		gj[gj_2order].ss.col[1] = gj[gj_2order].sloc.pos.eci.s.col[1]/gj_dt2;
-		gj[gj_2order].ss.col[2] = gj[gj_2order].sloc.pos.eci.s.col[2]/gj_dt2;
-		for (k=0; k<=gj_order; k++)
+		gjh.step[gjh.order2].ss.col[0] = gjh.step[gjh.order2].sloc.pos.eci.s.col[0]/gjh.dtsq;
+		gjh.step[gjh.order2].ss.col[1] = gjh.step[gjh.order2].sloc.pos.eci.s.col[1]/gjh.dtsq;
+		gjh.step[gjh.order2].ss.col[2] = gjh.step[gjh.order2].sloc.pos.eci.s.col[2]/gjh.dtsq;
+		for (k=0; k<=gjh.order; k++)
 		{
-			gj[gj_2order].ss.col[0] -= gj[gj_2order].a[k] * gj[k].sloc.pos.eci.a.col[0];
-			gj[gj_2order].ss.col[1] -= gj[gj_2order].a[k] * gj[k].sloc.pos.eci.a.col[1];
-			gj[gj_2order].ss.col[2] -= gj[gj_2order].a[k] * gj[k].sloc.pos.eci.a.col[2];
+			gjh.step[gjh.order2].ss.col[0] -= gjh.step[gjh.order2].a[k] * gjh.step[k].sloc.pos.eci.a.col[0];
+			gjh.step[gjh.order2].ss.col[1] -= gjh.step[gjh.order2].a[k] * gjh.step[k].sloc.pos.eci.a.col[1];
+			gjh.step[gjh.order2].ss.col[2] -= gjh.step[gjh.order2].a[k] * gjh.step[k].sloc.pos.eci.a.col[2];
 		}
-		for (n=1; n<=gj_2order; n++)
+		for (n=1; n<=gjh.order2; n++)
 		{
-			gj[gj_2order+n].ss.col[0] = gj[gj_2order+n-1].ss.col[0] + gj[gj_2order+n-1].s.col[0] + (gj[gj_2order+n-1].sloc.pos.eci.a.col[0])/2;
-			gj[gj_2order+n].ss.col[1] = gj[gj_2order+n-1].ss.col[1] + gj[gj_2order+n-1].s.col[1] + (gj[gj_2order+n-1].sloc.pos.eci.a.col[1])/2;
-			gj[gj_2order+n].ss.col[2] = gj[gj_2order+n-1].ss.col[2] + gj[gj_2order+n-1].s.col[2] + (gj[gj_2order+n-1].sloc.pos.eci.a.col[2])/2;
-			gj[gj_2order-n].ss.col[0] = gj[gj_2order-n+1].ss.col[0] - gj[gj_2order-n+1].s.col[0] + (gj[gj_2order-n+1].sloc.pos.eci.a.col[0])/2;
-			gj[gj_2order-n].ss.col[1] = gj[gj_2order-n+1].ss.col[1] - gj[gj_2order-n+1].s.col[1] + (gj[gj_2order-n+1].sloc.pos.eci.a.col[1])/2;
-			gj[gj_2order-n].ss.col[2] = gj[gj_2order-n+1].ss.col[2] - gj[gj_2order-n+1].s.col[2] + (gj[gj_2order-n+1].sloc.pos.eci.a.col[2])/2;
+			gjh.step[gjh.order2+n].ss.col[0] = gjh.step[gjh.order2+n-1].ss.col[0] + gjh.step[gjh.order2+n-1].s.col[0] + (gjh.step[gjh.order2+n-1].sloc.pos.eci.a.col[0])/2;
+			gjh.step[gjh.order2+n].ss.col[1] = gjh.step[gjh.order2+n-1].ss.col[1] + gjh.step[gjh.order2+n-1].s.col[1] + (gjh.step[gjh.order2+n-1].sloc.pos.eci.a.col[1])/2;
+			gjh.step[gjh.order2+n].ss.col[2] = gjh.step[gjh.order2+n-1].ss.col[2] + gjh.step[gjh.order2+n-1].s.col[2] + (gjh.step[gjh.order2+n-1].sloc.pos.eci.a.col[2])/2;
+			gjh.step[gjh.order2-n].ss.col[0] = gjh.step[gjh.order2-n+1].ss.col[0] - gjh.step[gjh.order2-n+1].s.col[0] + (gjh.step[gjh.order2-n+1].sloc.pos.eci.a.col[0])/2;
+			gjh.step[gjh.order2-n].ss.col[1] = gjh.step[gjh.order2-n+1].ss.col[1] - gjh.step[gjh.order2-n+1].s.col[1] + (gjh.step[gjh.order2-n+1].sloc.pos.eci.a.col[1])/2;
+			gjh.step[gjh.order2-n].ss.col[2] = gjh.step[gjh.order2-n+1].ss.col[2] - gjh.step[gjh.order2-n+1].s.col[2] + (gjh.step[gjh.order2-n+1].sloc.pos.eci.a.col[2])/2;
 		}
 
-		for (n=0; n<=gj_order; n++)
+		for (n=0; n<=gjh.order; n++)
 		{
-			if (n == gj_2order)
+			if (n == gjh.order2)
 				continue;
-			gj[n].sb = gj[n].sa = rv_zero();
-			for (k=0; k<=gj_order; k++)
+			gjh.step[n].sb = gjh.step[n].sa = rv_zero();
+			for (k=0; k<=gjh.order; k++)
 			{
-				gj[n].sb.col[0] += gj[n].b[k] * gj[k].sloc.pos.eci.a.col[0];
-				gj[n].sa.col[0] += gj[n].a[k] * gj[k].sloc.pos.eci.a.col[0];
-				gj[n].sb.col[1] += gj[n].b[k] * gj[k].sloc.pos.eci.a.col[1];
-				gj[n].sa.col[1] += gj[n].a[k] * gj[k].sloc.pos.eci.a.col[1];
-				gj[n].sb.col[2] += gj[n].b[k] * gj[k].sloc.pos.eci.a.col[2];
-				gj[n].sa.col[2] += gj[n].a[k] * gj[k].sloc.pos.eci.a.col[2];
+				gjh.step[n].sb.col[0] += gjh.step[n].b[k] * gjh.step[k].sloc.pos.eci.a.col[0];
+				gjh.step[n].sa.col[0] += gjh.step[n].a[k] * gjh.step[k].sloc.pos.eci.a.col[0];
+				gjh.step[n].sb.col[1] += gjh.step[n].b[k] * gjh.step[k].sloc.pos.eci.a.col[1];
+				gjh.step[n].sa.col[1] += gjh.step[n].a[k] * gjh.step[k].sloc.pos.eci.a.col[1];
+				gjh.step[n].sb.col[2] += gjh.step[n].b[k] * gjh.step[k].sloc.pos.eci.a.col[2];
+				gjh.step[n].sa.col[2] += gjh.step[n].a[k] * gjh.step[k].sloc.pos.eci.a.col[2];
 			}
 		}
 
-		for (n=1; n<=gj_2order; n++)
+		for (n=1; n<=gjh.order2; n++)
 		{
 			for (i=-1; i<2; i+=2)
 			{
 				cflag = 0;
 
 				// Save current acceleration for comparison with next iteration
-				oldsa.col[0] = gj[gj_2order+i*n].sloc.pos.eci.a.col[0];
-				oldsa.col[1] = gj[gj_2order+i*n].sloc.pos.eci.a.col[1];
-				oldsa.col[2] = gj[gj_2order+i*n].sloc.pos.eci.a.col[2];
+				oldsa.col[0] = gjh.step[gjh.order2+i*n].sloc.pos.eci.a.col[0];
+				oldsa.col[1] = gjh.step[gjh.order2+i*n].sloc.pos.eci.a.col[1];
+				oldsa.col[2] = gjh.step[gjh.order2+i*n].sloc.pos.eci.a.col[2];
 
 				// Calculate new probable position and velocity
-				gj[gj_2order+i*n].sloc.pos.eci.v.col[0] = gj_dt * (gj[gj_2order+i*n].s.col[0] + gj[gj_2order+i*n].sb.col[0]);
-				gj[gj_2order+i*n].sloc.pos.eci.v.col[1] = gj_dt * (gj[gj_2order+i*n].s.col[1] + gj[gj_2order+i*n].sb.col[1]);
-				gj[gj_2order+i*n].sloc.pos.eci.v.col[2] = gj_dt * (gj[gj_2order+i*n].s.col[2] + gj[gj_2order+i*n].sb.col[2]);
-				gj[gj_2order+i*n].sloc.pos.eci.s.col[0] = gj_dt2 * (gj[gj_2order+i*n].ss.col[0] + gj[gj_2order+i*n].sa.col[0]);
-				gj[gj_2order+i*n].sloc.pos.eci.s.col[1] = gj_dt2 * (gj[gj_2order+i*n].ss.col[1] + gj[gj_2order+i*n].sa.col[1]);
-				gj[gj_2order+i*n].sloc.pos.eci.s.col[2] = gj_dt2 * (gj[gj_2order+i*n].ss.col[2] + gj[gj_2order+i*n].sa.col[2]);
+				gjh.step[gjh.order2+i*n].sloc.pos.eci.v.col[0] = gjh.dt * (gjh.step[gjh.order2+i*n].s.col[0] + gjh.step[gjh.order2+i*n].sb.col[0]);
+				gjh.step[gjh.order2+i*n].sloc.pos.eci.v.col[1] = gjh.dt * (gjh.step[gjh.order2+i*n].s.col[1] + gjh.step[gjh.order2+i*n].sb.col[1]);
+				gjh.step[gjh.order2+i*n].sloc.pos.eci.v.col[2] = gjh.dt * (gjh.step[gjh.order2+i*n].s.col[2] + gjh.step[gjh.order2+i*n].sb.col[2]);
+				gjh.step[gjh.order2+i*n].sloc.pos.eci.s.col[0] = gjh.dtsq * (gjh.step[gjh.order2+i*n].ss.col[0] + gjh.step[gjh.order2+i*n].sa.col[0]);
+				gjh.step[gjh.order2+i*n].sloc.pos.eci.s.col[1] = gjh.dtsq * (gjh.step[gjh.order2+i*n].ss.col[1] + gjh.step[gjh.order2+i*n].sa.col[1]);
+				gjh.step[gjh.order2+i*n].sloc.pos.eci.s.col[2] = gjh.dtsq * (gjh.step[gjh.order2+i*n].ss.col[2] + gjh.step[gjh.order2+i*n].sa.col[2]);
 
 				// Perform conversions between different systems
-				gj[gj_2order+i*n].sloc.pos.eci.pass++;
-				pos_eci(&gj[gj_2order+i*n].sloc);
-				att_icrf2lvlh(&gj[gj_2order+i*n].sloc);
-				//		eci2earth(&gj[gj_2order+i*n].sloc.pos,&gj[gj_2order+i*n].sloc.att);
+				gjh.step[gjh.order2+i*n].sloc.pos.eci.pass++;
+				pos_eci(&gjh.step[gjh.order2+i*n].sloc);
+				att_icrf2lvlh(&gjh.step[gjh.order2+i*n].sloc);
+				//		eci2earth(&gjh.step[gjh.order2+i*n].sloc.pos,&gjh.step[gjh.order2+i*n].sloc.att);
 
 				// Calculate acceleration at new position
-				pos_accel(cdata,&gj[gj_2order+i*n].sloc);
-				initialize_hardware(cdata,&gj[gj_2order+i*n].sloc);
-				//		att_accel(cdata,&gj[gj_2order+i*n].sloc);
+				pos_accel(cdata.physics, gjh.step[gjh.order2+i*n].sloc);
+//				hardware_init_eci(cdata.devspec,gjh.step[gjh.order2+i*n].sloc);
 
 				// Compare acceleration at new position to previous iteration
-				if (fabs(oldsa.col[0]-gj[gj_2order+i*n].sloc.pos.eci.a.col[0])>1e-14 || fabs(oldsa.col[1]-gj[gj_2order+i*n].sloc.pos.eci.a.col[1])>1e-14 || fabs(oldsa.col[2]-gj[gj_2order+i*n].sloc.pos.eci.a.col[2])>1e-14)
+				if (fabs(oldsa.col[0]-gjh.step[gjh.order2+i*n].sloc.pos.eci.a.col[0])>1e-14 || fabs(oldsa.col[1]-gjh.step[gjh.order2+i*n].sloc.pos.eci.a.col[1])>1e-14 || fabs(oldsa.col[2]-gjh.step[gjh.order2+i*n].sloc.pos.eci.a.col[2])>1e-14)
 					cflag = 1;
 			}
 		}
 		c_cnt++;
 	} while (c_cnt<10 && cflag);
 
-	for (i=0; i<=gj_order; i++)
-	{
-		cdata->node.loc = gj[i].sloc;
-		simulate_hardware(cdata,&gj[i].sloc);
-		att_accel(cdata,&gj[i].sloc);
-	}
-	cdata->node.loc = gj[gj_order].sloc;
+	return gjh.step[gjh.order].sloc;
 }
 
-void gauss_jackson_propagate(cosmosstruc *cdata, double tomjd)
+void gauss_jackson_converge_hardware(gj_handle &gjh, cosmosstruc &cdata)
+{
+	for (uint16_t i=0; i<=gjh.order; ++i)
+	{
+		simulate_hardware(cdata, gjh.step[i].sloc);
+		att_accel(cdata.physics, gjh.step[i].sloc);
+	}
+}
+
+void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 {
 	uint32_t i,chunks , astep;
 	uint32_t j, k;
-	static quaternion qs[2]={{{0.,0.,0.},0.}};
-	static rvector alpha[2] = {{{0.,0.,0.}}};
-	static rvector omega[2] = {{{0.,0.,0.}}};
+//	static quaternion qs[2]={{{0.,0.,0.},0.}};
+//	static rvector alpha[2] = {{{0.,0.,0.}}};
+//	static rvector omega[2] = {{{0.,0.,0.}}};
 	quaternion q1, dsq, q2;
 	dem_pixel val;
 	rvector normal, unitv, unitx, unitp, unitp1, unitp2;
@@ -2720,80 +2722,80 @@ void gauss_jackson_propagate(cosmosstruc *cdata, double tomjd)
 	rvector tvector;
 
 	// Don't bother if too low
-	if (gj[gj_order].sloc.pos.geod.s.h < 100.)
+	if (gjh.step[gjh.order].sloc.pos.geod.s.h < 100.)
 	{
 		return;
 	}
-	if (qs[0].w == 0.)
-	{
-		qs[0] = qs[1] = cdata->node.loc.att.icrf.s;
-		alpha[0] = alpha[1] = cdata->node.loc.att.icrf.a;
-		omega[0] = omega[1] = cdata->node.loc.att.icrf.v;
-	}
-    // MN: what do you mean by this if clause?
-	if ((tomjd < gj[gj_order].sloc.utc && cdata->physics.dt > 0.) || (tomjd > gj[gj_order].sloc.utc && cdata->physics.dt < 0.))
+//	if (qs[0].w == 0.)
+//	{
+//		qs[0] = qs[1] = loc.att.icrf.s;
+//		alpha[0] = alpha[1] = loc.att.icrf.a;
+//		omega[0] = omega[1] = loc.att.icrf.v;
+//	}
+	// Return immediately if we are trying to propagate earlier but dt is positive or vice versa
+	if ((tomjd < gjh.step[gjh.order].sloc.utc && cdata.physics.dt > 0.) || (tomjd > gjh.step[gjh.order].sloc.utc && cdata.physics.dt < 0.))
 	{
 		return;
 	}
-	chunks = (uint32_t)(.5 + (tomjd - gj[gj_order].sloc.utc)/(cdata->physics.dt/86400.));
+	chunks = (uint32_t)(.5 + (tomjd - gjh.step[gjh.order].sloc.utc)/(cdata.physics.dt/86400.));
 	for (i=0; i<chunks; i++)
 	{
-		if (gj[gj_order].sloc.pos.geod.s.h < 100.)
+		if (gjh.step[gjh.order].sloc.pos.geod.s.h < 100.)
 		{
 			break;
 		}
 
-		 gj[gj_order+1].sloc.pos.eci.utc = gj[gj_order+1].sloc.utc = gj[gj_order].sloc.utc + (cdata->physics.dt)/86400.;
+		 gjh.step[gjh.order+1].sloc.pos.eci.utc = gjh.step[gjh.order+1].sloc.utc = gjh.step[gjh.order].sloc.utc + (cdata.physics.dt)/86400.;
 
 		// Calculate S(order/2+1)
-		gj[gj_order+1].ss.col[0] = gj[gj_order].ss.col[0] + gj[gj_order].s.col[0] + gj[gj_order].sloc.pos.eci.a.col[0]/2.;
-		gj[gj_order+1].ss.col[1] = gj[gj_order].ss.col[1] + gj[gj_order].s.col[1] + gj[gj_order].sloc.pos.eci.a.col[1]/2.;
-		gj[gj_order+1].ss.col[2] = gj[gj_order].ss.col[2] + gj[gj_order].s.col[2] + gj[gj_order].sloc.pos.eci.a.col[2]/2.;
+		gjh.step[gjh.order+1].ss.col[0] = gjh.step[gjh.order].ss.col[0] + gjh.step[gjh.order].s.col[0] + gjh.step[gjh.order].sloc.pos.eci.a.col[0]/2.;
+		gjh.step[gjh.order+1].ss.col[1] = gjh.step[gjh.order].ss.col[1] + gjh.step[gjh.order].s.col[1] + gjh.step[gjh.order].sloc.pos.eci.a.col[1]/2.;
+		gjh.step[gjh.order+1].ss.col[2] = gjh.step[gjh.order].ss.col[2] + gjh.step[gjh.order].s.col[2] + gjh.step[gjh.order].sloc.pos.eci.a.col[2]/2.;
 
 		// Calculate Sum(order/2+1) for a and b
-		gj[gj_order+1].sb = gj[gj_order+1].sa = rv_zero();
-		for (k=0; k<=gj_order; k++)
+		gjh.step[gjh.order+1].sb = gjh.step[gjh.order+1].sa = rv_zero();
+		for (k=0; k<=gjh.order; k++)
 		{
-			gj[gj_order+1].sb.col[0] += gj[gj_order+1].b[k] * gj[k].sloc.pos.eci.a.col[0];
-			gj[gj_order+1].sa.col[0] += gj[gj_order+1].a[k] * gj[k].sloc.pos.eci.a.col[0];
-			gj[gj_order+1].sb.col[1] += gj[gj_order+1].b[k] * gj[k].sloc.pos.eci.a.col[1];
-			gj[gj_order+1].sa.col[1] += gj[gj_order+1].a[k] * gj[k].sloc.pos.eci.a.col[1];
-			gj[gj_order+1].sb.col[2] += gj[gj_order+1].b[k] * gj[k].sloc.pos.eci.a.col[2];
-			gj[gj_order+1].sa.col[2] += gj[gj_order+1].a[k] * gj[k].sloc.pos.eci.a.col[2];
+			gjh.step[gjh.order+1].sb.col[0] += gjh.step[gjh.order+1].b[k] * gjh.step[k].sloc.pos.eci.a.col[0];
+			gjh.step[gjh.order+1].sa.col[0] += gjh.step[gjh.order+1].a[k] * gjh.step[k].sloc.pos.eci.a.col[0];
+			gjh.step[gjh.order+1].sb.col[1] += gjh.step[gjh.order+1].b[k] * gjh.step[k].sloc.pos.eci.a.col[1];
+			gjh.step[gjh.order+1].sa.col[1] += gjh.step[gjh.order+1].a[k] * gjh.step[k].sloc.pos.eci.a.col[1];
+			gjh.step[gjh.order+1].sb.col[2] += gjh.step[gjh.order+1].b[k] * gjh.step[k].sloc.pos.eci.a.col[2];
+			gjh.step[gjh.order+1].sa.col[2] += gjh.step[gjh.order+1].a[k] * gjh.step[k].sloc.pos.eci.a.col[2];
 		}
 
 		// Calculate pos.v(order/2+1)
-		gj[gj_order+1].sloc.pos.eci.v.col[0] = gj_dt * (gj[gj_order].s.col[0] + gj[gj_order].sloc.pos.eci.a.col[0]/2. + gj[gj_order+1].sb.col[0]);
-		gj[gj_order+1].sloc.pos.eci.v.col[1] = gj_dt * (gj[gj_order].s.col[1] + gj[gj_order].sloc.pos.eci.a.col[1]/2. + gj[gj_order+1].sb.col[1]);
-		gj[gj_order+1].sloc.pos.eci.v.col[2] = gj_dt * (gj[gj_order].s.col[2] + gj[gj_order].sloc.pos.eci.a.col[2]/2. + gj[gj_order+1].sb.col[2]);
+		gjh.step[gjh.order+1].sloc.pos.eci.v.col[0] = gjh.dt * (gjh.step[gjh.order].s.col[0] + gjh.step[gjh.order].sloc.pos.eci.a.col[0]/2. + gjh.step[gjh.order+1].sb.col[0]);
+		gjh.step[gjh.order+1].sloc.pos.eci.v.col[1] = gjh.dt * (gjh.step[gjh.order].s.col[1] + gjh.step[gjh.order].sloc.pos.eci.a.col[1]/2. + gjh.step[gjh.order+1].sb.col[1]);
+		gjh.step[gjh.order+1].sloc.pos.eci.v.col[2] = gjh.dt * (gjh.step[gjh.order].s.col[2] + gjh.step[gjh.order].sloc.pos.eci.a.col[2]/2. + gjh.step[gjh.order+1].sb.col[2]);
 
 		// Calculate pos.s(order/2+1)
-		gj[gj_order+1].sloc.pos.eci.s.col[0] = gj_dt2 * (gj[gj_order+1].ss.col[0] + gj[gj_order+1].sa.col[0]);
-		gj[gj_order+1].sloc.pos.eci.s.col[1] = gj_dt2 * (gj[gj_order+1].ss.col[1] + gj[gj_order+1].sa.col[1]);
-		gj[gj_order+1].sloc.pos.eci.s.col[2] = gj_dt2 * (gj[gj_order+1].ss.col[2] + gj[gj_order+1].sa.col[2]);
-		gj[gj_order+1].sloc.pos.eci.pass++;
-		pos_eci(&gj[gj_order+1].sloc);
+		gjh.step[gjh.order+1].sloc.pos.eci.s.col[0] = gjh.dtsq * (gjh.step[gjh.order+1].ss.col[0] + gjh.step[gjh.order+1].sa.col[0]);
+		gjh.step[gjh.order+1].sloc.pos.eci.s.col[1] = gjh.dtsq * (gjh.step[gjh.order+1].ss.col[1] + gjh.step[gjh.order+1].sa.col[1]);
+		gjh.step[gjh.order+1].sloc.pos.eci.s.col[2] = gjh.dtsq * (gjh.step[gjh.order+1].ss.col[2] + gjh.step[gjh.order+1].sa.col[2]);
+		gjh.step[gjh.order+1].sloc.pos.eci.pass++;
+		pos_eci(&gjh.step[gjh.order+1].sloc);
 
 		// Calculate att.s(order/2+1) + hardware
-		gj[gj_order+1].sloc.att.icrf = gj[gj_order].sloc.att.icrf;
-		gj[gj_order+1].sloc.att.icrf.utc = gj[gj_order].sloc.utc;
-			switch (cdata->physics.mode)
+		gjh.step[gjh.order+1].sloc.att.icrf = gjh.step[gjh.order].sloc.att.icrf;
+		gjh.step[gjh.order+1].sloc.att.icrf.utc = gjh.step[gjh.order].sloc.utc;
+			switch (cdata.physics.mode)
 			{
 			case 0:
 				// Calculate att.v(order/2+1)
-				astep = 1 + (length_rv(gj[gj_order+1].sloc.att.icrf.v) * cdata->physics.dt) / .01;
+				astep = 1 + (length_rv(gjh.step[gjh.order+1].sloc.att.icrf.v) * cdata.physics.dt) / .01;
 				if (astep > 1000)
 				{
 					astep = 1000;
 				}
-				dtsave = cdata->physics.dt;
-				cdata->physics.dt /= astep;
-				gj[gj_order+1].sloc.utc = gj[gj_order].sloc.utc;
-				simulate_hardware(cdata,&gj[gj_order+1].sloc);
-				att_accel(cdata,&gj[gj_order+1].sloc);
+				dtsave = cdata.physics.dt;
+				cdata.physics.dt /= astep;
+				gjh.step[gjh.order+1].sloc.utc = gjh.step[gjh.order].sloc.utc;
+				simulate_hardware(cdata, gjh.step[gjh.order+1].sloc);
+				att_accel(cdata.physics, gjh.step[gjh.order+1].sloc);
 				for (k=0; k<astep; k++)
 				{
-					tvector = transform_q(gj[gj_order+1].sloc.att.icrf.s,rv_smult(cdata->physics.dt,gj[gj_order+1].sloc.att.icrf.v));
+					tvector = transform_q(gjh.step[gjh.order+1].sloc.att.icrf.s,rv_smult(cdata.physics.dt,gjh.step[gjh.order+1].sloc.att.icrf.v));
 					tskew = rm_skew(tvector);
 					tmatrix2.rows = tmatrix2.cols = 4;
 					for (int l=0; l<3; ++l)
@@ -2807,104 +2809,104 @@ void gauss_jackson_propagate(cosmosstruc *cdata, double tomjd)
 					}
 					tmatrix2.array[3][3] = 0.;
 					tvector1.m1.cols = 4;
-					tvector1.q = gj[gj_order+1].sloc.att.icrf.s;
+					tvector1.q = gjh.step[gjh.order+1].sloc.att.icrf.s;
 					tvector1.m1 = m1_smult(.5,m1_mmult(tmatrix2,tvector1.m1));
-					gj[gj_order+1].sloc.att.icrf.s = q_add(gj[gj_order+1].sloc.att.icrf.s,tvector1.q);
+					gjh.step[gjh.order+1].sloc.att.icrf.s = q_add(gjh.step[gjh.order+1].sloc.att.icrf.s,tvector1.q);
 
-//					q1 = q_axis2quaternion_rv(rv_smult(cdata->physics.dt,gj[gj_order+1].sloc.att.icrf.v));
-//					gj[gj_order+1].sloc.att.icrf.s = q_mult(q1,gj[gj_order+1].sloc.att.icrf.s);
-					q_normalize(&gj[gj_order+1].sloc.att.icrf.s);
+//					q1 = q_axis2quaternion_rv(rv_smult(cdata.physics.dt,gjh.step[gjh.order+1].sloc.att.icrf.v));
+//					gjh.step[gjh.order+1].sloc.att.icrf.s = q_mult(q1,gjh.step[gjh.order+1].sloc.att.icrf.s);
+					q_normalize(&gjh.step[gjh.order+1].sloc.att.icrf.s);
 
 					// Calculate new v from da
-					gj[gj_order+1].sloc.att.icrf.v = rv_add(gj[gj_order+1].sloc.att.icrf.v,rv_smult(cdata->physics.dt,gj[gj_order+1].sloc.att.icrf.a));
-					gj[gj_order+1].sloc.utc += (cdata->physics.dt)/86400.;
-					++gj[gj_order+1].sloc.att.icrf.pass;
-					att_icrf(&gj[gj_order+1].sloc);
+					gjh.step[gjh.order+1].sloc.att.icrf.v = rv_add(gjh.step[gjh.order+1].sloc.att.icrf.v,rv_smult(cdata.physics.dt,gjh.step[gjh.order+1].sloc.att.icrf.a));
+					gjh.step[gjh.order+1].sloc.utc += (cdata.physics.dt)/86400.;
+					++gjh.step[gjh.order+1].sloc.att.icrf.pass;
+					att_icrf(&gjh.step[gjh.order+1].sloc);
 				}
-					cdata->physics.dt = dtsave;
+					cdata.physics.dt = dtsave;
 				break;
 			case 1:
 				// Force LVLH
-				gj[gj_order+1].sloc.att.lvlh.utc = gj[gj_order+1].sloc.utc;
-				gj[gj_order+1].sloc.att.lvlh.s = q_eye();
-				gj[gj_order+1].sloc.att.lvlh.v = rv_zero();
-				att_lvlh2icrf(&gj[gj_order+1].sloc);
+				gjh.step[gjh.order+1].sloc.att.lvlh.utc = gjh.step[gjh.order+1].sloc.utc;
+				gjh.step[gjh.order+1].sloc.att.lvlh.s = q_eye();
+				gjh.step[gjh.order+1].sloc.att.lvlh.v = rv_zero();
+				att_lvlh2icrf(&gjh.step[gjh.order+1].sloc);
 				break;
 			case 2:
 				// Force surface normal (rover)
-				gj[gj_order+1].sloc.att.topo.v = gj[gj_order+1].sloc.att.topo.a = rv_zero();
-				switch (gj[gj_order+1].sloc.pos.extra.closest)
+				gjh.step[gjh.order+1].sloc.att.topo.v = gjh.step[gjh.order+1].sloc.att.topo.a = rv_zero();
+				switch (gjh.step[gjh.order+1].sloc.pos.extra.closest)
 				{
 				case COSMOS_EARTH:
 				default:
-					val = map_dem_pixel(COSMOS_EARTH,gj[gj_order+1].sloc.pos.geod.s.lon,gj[gj_order+1].sloc.pos.geod.s.lat,1./REARTHM);
+					val = map_dem_pixel(COSMOS_EARTH,gjh.step[gjh.order+1].sloc.pos.geod.s.lon,gjh.step[gjh.order+1].sloc.pos.geod.s.lat,1./REARTHM);
 					for (j=0; j<3; j++)
 					{
 						normal.col[j] = val.nmap[j];
 					}
 					unitv = rv_zero();
-					unitv.col[0] = gj[gj_order+1].sloc.pos.geod.v.lon / cos(gj[gj_order+1].sloc.pos.geod.s.lat);
-					unitv.col[1] = gj[gj_order+1].sloc.pos.geod.v.lat;
+					unitv.col[0] = gjh.step[gjh.order+1].sloc.pos.geod.v.lon / cos(gjh.step[gjh.order+1].sloc.pos.geod.s.lat);
+					unitv.col[1] = gjh.step[gjh.order+1].sloc.pos.geod.v.lat;
 					break;
 				case COSMOS_MOON:
-					val = map_dem_pixel(COSMOS_MOON,gj[gj_order+1].sloc.pos.selg.s.lon,gj[gj_order+1].sloc.pos.selg.s.lat,1./RMOONM);
+					val = map_dem_pixel(COSMOS_MOON,gjh.step[gjh.order+1].sloc.pos.selg.s.lon,gjh.step[gjh.order+1].sloc.pos.selg.s.lat,1./RMOONM);
 					for (j=0; j<3; j++)
 					{
 						normal.col[j] = -val.nmap[j];
 					}
 					unitv = rv_zero();
-					unitv.col[0] = gj[gj_order+1].sloc.pos.selg.v.lon / cos(gj[gj_order+1].sloc.pos.selg.s.lat);
-					unitv.col[1] = gj[gj_order+1].sloc.pos.selg.v.lat;
+					unitv.col[0] = gjh.step[gjh.order+1].sloc.pos.selg.v.lon / cos(gjh.step[gjh.order+1].sloc.pos.selg.s.lat);
+					unitv.col[1] = gjh.step[gjh.order+1].sloc.pos.selg.v.lat;
 					break;
 				}
 				q1 = q_change_between_rv(rv_unitz(),normal);
 				unitx = rv_cross(normal,rv_unity());
 				unitx = transform_q(q1,unitx);
 				q2 = q_change_between_rv(unitx,unitv);
-				//		gj[gj_order+1].sloc.att.topo.s = q_mult(q2,q1);
-				gj[gj_order+1].sloc.att.topo.s = q1;
-				gj[gj_order+1].sloc.att.topo.utc = gj[gj_order+1].sloc.pos.utc+1.e8;
-				gj[gj_order+1].sloc.att.topo.pass++;
-				att_topo(&gj[gj_order+1].sloc);
+				//		gjh.step[gjh.order+1].sloc.att.topo.s = q_mult(q2,q1);
+				gjh.step[gjh.order+1].sloc.att.topo.s = q1;
+				gjh.step[gjh.order+1].sloc.att.topo.utc = gjh.step[gjh.order+1].sloc.pos.utc+1.e8;
+				gjh.step[gjh.order+1].sloc.att.topo.pass++;
+				att_topo(&gjh.step[gjh.order+1].sloc);
 				break;
 			case 3:
-				gj[gj_order+1].sloc.att.icrf.utc = gj[gj_order+1].sloc.utc;
-				q1 = gj[gj_order+1].sloc.att.icrf.s;
-				gj[gj_order+1].sloc.att.icrf.s = q_change_between_rv(cdata->physics.thrust,rv_unitz());
-				dsq = q_sub(gj[gj_order+1].sloc.att.icrf.s,q1);
+				gjh.step[gjh.order+1].sloc.att.icrf.utc = gjh.step[gjh.order+1].sloc.utc;
+				q1 = gjh.step[gjh.order+1].sloc.att.icrf.s;
+				gjh.step[gjh.order+1].sloc.att.icrf.s = q_change_between_rv(cdata.physics.thrust,rv_unitz());
+				dsq = q_sub(gjh.step[gjh.order+1].sloc.att.icrf.s,q1);
 				angle = 2. * atan(length_q(dsq)/2.);
-				q2 = q_smult(1./cos(angle),gj[gj_order+1].sloc.att.icrf.s);
+				q2 = q_smult(1./cos(angle),gjh.step[gjh.order+1].sloc.att.icrf.s);
 				dsq = q_sub(q2,q1);
 				utemp.q = q_smult(2.,q_mult(q_conjugate(q1),dsq));
-				gj[gj_order+1].sloc.att.icrf.v = utemp.r;
-				att_icrf2lvlh(&gj[gj_order+1].sloc);
+				gjh.step[gjh.order+1].sloc.att.icrf.v = utemp.r;
+				att_icrf2lvlh(&gjh.step[gjh.order+1].sloc);
 				break;
 			case 4:
-				gj[gj_order+1].sloc.att.selc.utc = gj[gj_order+1].sloc.utc;
-				unitp1.col[0] += .1*(gj[gj_order+1].sloc.pos.selg.v.lon-unitp1.col[0]);
-				unitp1.col[1] += .1*(gj[gj_order+1].sloc.pos.selg.v.lat-unitp1.col[1]);
+				gjh.step[gjh.order+1].sloc.att.selc.utc = gjh.step[gjh.order+1].sloc.utc;
+				unitp1.col[0] += .1*(gjh.step[gjh.order+1].sloc.pos.selg.v.lon-unitp1.col[0]);
+				unitp1.col[1] += .1*(gjh.step[gjh.order+1].sloc.pos.selg.v.lat-unitp1.col[1]);
 				unitp1.col[2] =  0.;
 				if (length_rv(unitp1) < 1e-9)
 					unitp1 = lunitp1;
 				else
 					lunitp1 = unitp1;
 				q1 = q_change_between_rv(rv_unitx(),unitp1);
-				val = map_dem_pixel(COSMOS_MOON,gj[gj_order+1].sloc.pos.selg.s.lon,gj[gj_order+1].sloc.pos.selg.s.lat,.0003);
+				val = map_dem_pixel(COSMOS_MOON,gjh.step[gjh.order+1].sloc.pos.selg.s.lon,gjh.step[gjh.order+1].sloc.pos.selg.s.lat,.0003);
 				unitp2.col[0] += .1*(val.nmap[0]-unitp2.col[0]);
 				unitp2.col[1] += .1*(val.nmap[1]-unitp2.col[1]);
 				unitp2.col[2] += .1*(val.nmap[2]-unitp2.col[2]);
 				q2 = q_change_between_rv(transform_q(q1,rv_unitz()),unitp2);
-				gj[gj_order+1].sloc.att.selc.s = q_conjugate(q_mult(q2,q1));
-				gj[gj_order+1].sloc.att.selc.v = rv_zero();
-				att_selc2icrf(&gj[gj_order+1].sloc);
+				gjh.step[gjh.order+1].sloc.att.selc.s = q_conjugate(q_mult(q2,q1));
+				gjh.step[gjh.order+1].sloc.att.selc.v = rv_zero();
+				att_selc2icrf(&gjh.step[gjh.order+1].sloc);
 				break;
 			case 5:
-				gj[gj_order+1].sloc.att.geoc.utc = gj[gj_order+1].sloc.utc;
-				angle = 2.*acos(gj[gj_order+1].sloc.att.geoc.s.w);
-				gj[gj_order+1].sloc.att.geoc.s = q_change_around_z(angle+.2*D2PI*cdata->physics.dt);
-				gj[gj_order+1].sloc.att.geoc.v = rv_smult(.2*D2PI,rv_unitz());
-				att_geoc2icrf(&gj[gj_order+1].sloc);
-				att_planec2lvlh(&gj[gj_order+1].sloc);
+				gjh.step[gjh.order+1].sloc.att.geoc.utc = gjh.step[gjh.order+1].sloc.utc;
+				angle = 2.*acos(gjh.step[gjh.order+1].sloc.att.geoc.s.w);
+				gjh.step[gjh.order+1].sloc.att.geoc.s = q_change_around_z(angle+.2*D2PI*cdata.physics.dt);
+				gjh.step[gjh.order+1].sloc.att.geoc.v = rv_smult(.2*D2PI,rv_unitz());
+				att_geoc2icrf(&gjh.step[gjh.order+1].sloc);
+				att_planec2lvlh(&gjh.step[gjh.order+1].sloc);
 				break;
 			case 6:
 			case 7:
@@ -2912,39 +2914,39 @@ void gauss_jackson_propagate(cosmosstruc *cdata, double tomjd)
 			case 9:
 			case 10:
 			case 11:
-				gj[gj_order+1].sloc.att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,gj[gj_order+1].sloc.pos.baryc.s));
-				gj[gj_order+1].sloc.att.icrf.v = rv_zero();
-				att_icrf2lvlh(&gj[gj_order+1].sloc);
+				gjh.step[gjh.order+1].sloc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,gjh.step[gjh.order+1].sloc.pos.baryc.s));
+				gjh.step[gjh.order+1].sloc.att.icrf.v = rv_zero();
+				att_icrf2lvlh(&gjh.step[gjh.order+1].sloc);
 				break;
 			case 12:
-				angle = (1440.*(gj[gj_order+1].sloc.utc - initialutc) - (int)(1440.*(gj[gj_order+1].sloc.utc - initialutc))) * 2.*DPI;
+				angle = (1440.*(gjh.step[gjh.order+1].sloc.utc - initialutc) - (int)(1440.*(gjh.step[gjh.order+1].sloc.utc - initialutc))) * 2.*DPI;
 				unitx = unitp =  rv_zero();
 				unitx.col[0] = 1.;
 				unitp.col[0] = cos(angle);
 				unitp.col[1] = sin(angle);
-				gj[gj_order+1].sloc.att.lvlh.s = q_change_between_rv(unitp,unitx);
-				gj[gj_order+1].sloc.att.lvlh.v = rv_zero();
-				gj[gj_order+1].sloc.att.lvlh.v.col[2] = 2.*DPI/1440.;
-				att_lvlh2icrf(&gj[gj_order+1].sloc);
+				gjh.step[gjh.order+1].sloc.att.lvlh.s = q_change_between_rv(unitp,unitx);
+				gjh.step[gjh.order+1].sloc.att.lvlh.v = rv_zero();
+				gjh.step[gjh.order+1].sloc.att.lvlh.v.col[2] = 2.*DPI/1440.;
+				att_lvlh2icrf(&gjh.step[gjh.order+1].sloc);
 				break;
 			}
-		simulate_hardware(cdata,&gj[gj_order+1].sloc);
-		att_accel(cdata,&gj[gj_order+1].sloc);
+		simulate_hardware(cdata, gjh.step[gjh.order+1].sloc);
+		att_accel(cdata.physics, gjh.step[gjh.order+1].sloc);
 		// Perform positional and attitude accelerations at new position
-		pos_accel(cdata,&gj[gj_order+1].sloc);
+		pos_accel(cdata.physics, gjh.step[gjh.order+1].sloc);
 
 		// Calculate s(order/2+1)
-		gj[gj_order+1].s.col[0] = gj[gj_order].s.col[0] + (gj[gj_order].sloc.pos.eci.a.col[0]+gj[gj_order+1].sloc.pos.eci.a.col[0])/2.;
-		gj[gj_order+1].s.col[1] = gj[gj_order].s.col[1] + (gj[gj_order].sloc.pos.eci.a.col[1]+gj[gj_order+1].sloc.pos.eci.a.col[1])/2.;
-		gj[gj_order+1].s.col[2] = gj[gj_order].s.col[2] + (gj[gj_order].sloc.pos.eci.a.col[2]+gj[gj_order+1].sloc.pos.eci.a.col[2])/2.;
+		gjh.step[gjh.order+1].s.col[0] = gjh.step[gjh.order].s.col[0] + (gjh.step[gjh.order].sloc.pos.eci.a.col[0]+gjh.step[gjh.order+1].sloc.pos.eci.a.col[0])/2.;
+		gjh.step[gjh.order+1].s.col[1] = gjh.step[gjh.order].s.col[1] + (gjh.step[gjh.order].sloc.pos.eci.a.col[1]+gjh.step[gjh.order+1].sloc.pos.eci.a.col[1])/2.;
+		gjh.step[gjh.order+1].s.col[2] = gjh.step[gjh.order].s.col[2] + (gjh.step[gjh.order].sloc.pos.eci.a.col[2]+gjh.step[gjh.order+1].sloc.pos.eci.a.col[2])/2.;
 
 		// Shift everything over 1
-		for (j=0; j<=gj_order; j++)
-			gj[j] = gj[j+1];
+		for (j=0; j<=gjh.order; j++)
+			gjh.step[j] = gjh.step[j+1];
 
 	}
 
-	cdata->node.loc = gj[gj_order].sloc;
+	cdata.node.loc = gjh.step[gjh.order].sloc;
 }
 
 //! Initialize orbit from orbital data
@@ -2959,7 +2961,7 @@ void gauss_jackson_propagate(cosmosstruc *cdata, double tomjd)
 	\return Returns 0 if succsessful, otherwise negative error.
 */
 
-int orbit_init(int32_t mode,double dt,double utc,char *ofile,cosmosstruc *cdata)
+int orbit_init(int32_t mode, double dt, double utc, char *ofile, cosmosstruc &cdata)
 {
 	int32_t iretn;
 	tlestruc tline;
@@ -2967,11 +2969,11 @@ int orbit_init(int32_t mode,double dt,double utc,char *ofile,cosmosstruc *cdata)
 	// Munge time step to fit local granularity
 	dt = 86400.*((utc + dt/86400.)-utc);
 
-	cdata->physics.dt = dt;
-	cdata->physics.dtj = cdata->physics.dt/86400.;
-	cdata->physics.mode = mode;
+	cdata.physics.dt = dt;
+	cdata.physics.dtj = cdata.physics.dt/86400.;
+	cdata.physics.mode = mode;
 
-	pos_clear(&cdata->node.loc);
+	pos_clear(cdata.node.loc);
 
 	switch (ofile[0])
 	{
@@ -2982,18 +2984,18 @@ int orbit_init(int32_t mode,double dt,double utc,char *ofile,cosmosstruc *cdata)
 		{
 			utc = stkhandle.pos[1].utc;
 		}
-		if ((iretn=stk2eci(utc,&stkhandle,&cdata->node.loc.pos.eci)) < 0)
+		if ((iretn=stk2eci(utc,&stkhandle,&cdata.node.loc.pos.eci)) < 0)
 			return (iretn);
 		break;
 	case 't':
-		if ((iretn=load_lines(ofile, cdata->tle)) < 0)
+		if ((iretn=load_lines(ofile, cdata.tle)) < 0)
 			return (iretn);
 		if (utc == 0.)
 		{
-			tline = get_line(0, cdata->tle);
+			tline = get_line(0, cdata.tle);
 			utc = tline.utc;
 		}
-		if ((iretn=lines2eci(utc,cdata->tle,&cdata->node.loc.pos.eci)) < 0)
+		if ((iretn=lines2eci(utc,cdata.tle,&cdata.node.loc.pos.eci)) < 0)
 			return (iretn);
 		break;
 	default:
@@ -3002,46 +3004,46 @@ int orbit_init(int32_t mode,double dt,double utc,char *ofile,cosmosstruc *cdata)
 	}
 
 	strcpy(orbitfile,ofile);
-	cdata->node.loc.pos.eci.pass++;
-	pos_eci(&cdata->node.loc);
+	cdata.node.loc.pos.eci.pass++;
+	pos_eci(&cdata.node.loc);
 
 	// Initial attitude
-	cdata->physics.ftorque = rv_zero();
-	switch (cdata->physics.mode)
+	cdata.physics.ftorque = rv_zero();
+	switch (cdata.physics.mode)
 	{
 	case 0:
-		cdata->node.loc.att.icrf.utc = cdata->node.loc.utc;
-		//	cdata->node.loc.att.icrf.s = q_eye();
-		//	cdata->node.loc.att.icrf.v = rv_smult(1.,rv_unitz());
-		att_icrf2lvlh(&cdata->node.loc);
+		cdata.node.loc.att.icrf.utc = cdata.node.loc.utc;
+		//	cdata.node.loc.att.icrf.s = q_eye();
+		//	cdata.node.loc.att.icrf.v = rv_smult(1.,rv_unitz());
+		att_icrf2lvlh(&cdata.node.loc);
 		break;
 	case 1:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_eye();
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		cdata.node.loc.att.lvlh.utc = cdata.node.loc.utc;
+		cdata.node.loc.att.lvlh.s = q_eye();
+		cdata.node.loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&cdata.node.loc);
 		break;
 	case 2:
-		cdata->node.loc.att.topo.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.topo.s = q_eye();
-		cdata->node.loc.att.topo.v = rv_zero();
-		cdata->node.loc.att.topo.pass++;
-		att_topo(&cdata->node.loc);
+		cdata.node.loc.att.topo.utc = cdata.node.loc.utc;
+		cdata.node.loc.att.topo.s = q_eye();
+		cdata.node.loc.att.topo.v = rv_zero();
+		cdata.node.loc.att.topo.pass++;
+		att_topo(&cdata.node.loc);
 		break;
 	case 3:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_eye();
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		cdata.node.loc.att.lvlh.utc = cdata.node.loc.utc;
+		cdata.node.loc.att.lvlh.s = q_eye();
+		cdata.node.loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&cdata.node.loc);
 		break;
 	case 4:
 		break;
 	case 5:
-		cdata->node.loc.att.geoc.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.geoc.s = q_eye();
-		cdata->node.loc.att.geoc.v = rv_smult(.2*D2PI,rv_unitz());
-		att_geoc2icrf(&cdata->node.loc);
-		att_planec2lvlh(&cdata->node.loc);
+		cdata.node.loc.att.geoc.utc = cdata.node.loc.utc;
+		cdata.node.loc.att.geoc.s = q_eye();
+		cdata.node.loc.att.geoc.v = rv_smult(.2*D2PI,rv_unitz());
+		att_geoc2icrf(&cdata.node.loc);
+		att_planec2lvlh(&cdata.node.loc);
 		break;
 	case 6:
 	case 7:
@@ -3050,33 +3052,33 @@ int orbit_init(int32_t mode,double dt,double utc,char *ofile,cosmosstruc *cdata)
 	case 10:
 	case 11:
 	case 12:
-		cdata->node.loc.att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
-		cdata->node.loc.att.icrf.v = rv_zero();
-		att_icrf2lvlh(&cdata->node.loc);
+		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.baryc.s));
+		cdata.node.loc.att.icrf.v = rv_zero();
+		att_icrf2lvlh(&cdata.node.loc);
 		break;
 	}
 
 
 	// Initialize hardware
-	initialize_hardware(cdata,&cdata->node.loc);
-	att_accel(cdata,&cdata->node.loc);
-//	groundstations(cdata,&cdata->node.loc);
+	hardware_init_eci(cdata.devspec,cdata.node.loc);
+	att_accel(cdata.physics, cdata.node.loc);
+//	groundstations(cdata,&cdata.node.loc);
 
-	cdata->physics.mjdbase = cdata->node.loc.utc;
+	cdata.physics.mjdbase = cdata.node.loc.utc;
 	return 0;
 }
 
-int orbit_propagate(cosmosstruc *cdata, double utc)
+int orbit_propagate(cosmosstruc &cdata, double utc)
 {
 	cartpos npos;
 	int32_t chunks, i, iretn;
 	double nutc;
 
-	chunks = (uint32_t)(.5 + 86400.*(utc-cdata->node.loc.utc)/cdata->physics.dt);
-	nutc = cdata->node.loc.utc;
+	chunks = (uint32_t)(.5 + 86400.*(utc-cdata.node.loc.utc)/cdata.physics.dt);
+	nutc = cdata.node.loc.utc;
 	for (i=0; i<chunks; i++)
 	{
-		nutc += cdata->physics.dt/86400.;
+		nutc += cdata.physics.dt/86400.;
 		switch (orbitfile[0])
 		{
 		case 's':
@@ -3084,7 +3086,7 @@ int orbit_propagate(cosmosstruc *cdata, double utc)
 				return (iretn);
 			break;
 		case 't':
-			if ((iretn=lines2eci(nutc,cdata->tle,&npos)) < 0)
+			if ((iretn=lines2eci(nutc,cdata.tle,&npos)) < 0)
 				return (iretn);
 			break;
 		default:
@@ -3098,7 +3100,7 @@ int orbit_propagate(cosmosstruc *cdata, double utc)
 	return 0;
 }
 
-int update_eci(cosmosstruc *cdata, double utc, cartpos pos)
+int update_eci(cosmosstruc &cdata, double utc, cartpos pos)
 {
 	quaternion dsq, q1, q2;
 	uvector utemp;
@@ -3109,156 +3111,156 @@ int update_eci(cosmosstruc *cdata, double utc, cartpos pos)
 	double angle;
 	int j, k;
 
-	cdata->node.loc.utc = utc;
-	cdata->node.loc.pos.eci = pos;
-	cdata->node.loc.pos.eci.pass++;
-	pos_eci(&cdata->node.loc);
-	if (cdata->physics.mode == PHYSICS_MODE_SURFACE)
+	cdata.node.loc.utc = utc;
+	cdata.node.loc.pos.eci = pos;
+	cdata.node.loc.pos.eci.pass++;
+	pos_eci(&cdata.node.loc);
+	if (cdata.physics.mode == PHYSICS_MODE_SURFACE)
 	{
-		switch (cdata->node.loc.pos.extra.closest)
+		switch (cdata.node.loc.pos.extra.closest)
 		{
 		case COSMOS_EARTH:
 		default:
-			cdata->node.loc.pos.geod.s.h = 0.5;
-			cdata->node.loc.pos.geod.utc += 1e-8;
-			pos_geod(&cdata->node.loc);
+			cdata.node.loc.pos.geod.s.h = 0.5;
+			cdata.node.loc.pos.geod.utc += 1e-8;
+			pos_geod(&cdata.node.loc);
 			break;
 		case COSMOS_MOON:
-			cdata->node.loc.pos.selg.s.h = 2.5;
-			cdata->node.loc.pos.selg.utc += 1e-8;
-			pos_selg(&cdata->node.loc);
+			cdata.node.loc.pos.selg.s.h = 2.5;
+			cdata.node.loc.pos.selg.utc += 1e-8;
+			pos_selg(&cdata.node.loc);
 			break;
 		}
 	}
-	tloc = cdata->node.loc;
-	pos_accel(cdata,&tloc);
+	tloc = cdata.node.loc;
+	pos_accel(cdata.physics, tloc);
 
 	// Calculate probable thrust
-	if (cdata->devspec.thst_cnt)
+	if (cdata.devspec.thst_cnt)
 	{
-		cdata->physics.thrust = rv_sub(cdata->node.loc.pos.eci.a,tloc.pos.eci.a);
-		if (length_rv(cdata->physics.thrust) < 5.)
+		cdata.physics.thrust = rv_sub(cdata.node.loc.pos.eci.a,tloc.pos.eci.a);
+		if (length_rv(cdata.physics.thrust) < 5.)
 		{
-			cdata->physics.thrust = rv_zero();
+			cdata.physics.thrust = rv_zero();
 		}
 		else
 		{
-			cdata->physics.thrust = rv_smult(cdata->physics.mass,cdata->physics.thrust);
+			cdata.physics.thrust = rv_smult(cdata.physics.mass,cdata.physics.thrust);
 		}
 	}
 
 	// Calculate probable motor motion
-	if (cdata->devspec.motr_cnt)
+	if (cdata.devspec.motr_cnt)
 	{
 
-		for (j=0; j<cdata->devspec.motr_cnt; j++)
+		for (j=0; j<cdata.devspec.motr_cnt; j++)
 		{
-			switch (cdata->node.loc.pos.extra.closest)
+			switch (cdata.node.loc.pos.extra.closest)
 			{
 			case COSMOS_EARTH:
 			default:
-				cdata->devspec.motr[j]->spd = length_rv(cdata->node.loc.pos.geoc.v)/cdata->devspec.motr[j]->rat;
+				cdata.devspec.motr[j]->spd = length_rv(cdata.node.loc.pos.geoc.v)/cdata.devspec.motr[j]->rat;
 				break;
 			case COSMOS_MOON:
-				cdata->devspec.motr[j]->spd = length_rv(cdata->node.loc.pos.selc.v)/cdata->devspec.motr[j]->rat;
+				cdata.devspec.motr[j]->spd = length_rv(cdata.node.loc.pos.selc.v)/cdata.devspec.motr[j]->rat;
 				break;
 			}
 		}
 	}
 
-	switch (cdata->physics.mode)
+	switch (cdata.physics.mode)
 	{
 	case 0:
-		cdata->node.loc.att.icrf.utc = cdata->node.loc.utc;
+		cdata.node.loc.att.icrf.utc = cdata.node.loc.utc;
 		for (k=0; k<10; k++)
 		{
-			q1 = q_axis2quaternion_rv(rv_smult(cdata->physics.dt/10.,cdata->node.loc.att.icrf.v));
-			cdata->node.loc.att.icrf.s = q_mult(q1,cdata->node.loc.att.icrf.s);
-			q_normalize(&cdata->node.loc.att.icrf.s);
-			cdata->node.loc.att.icrf.v = rv_add(cdata->node.loc.att.icrf.v,rv_smult(cdata->physics.dt/10.,cdata->node.loc.att.icrf.a));
+			q1 = q_axis2quaternion_rv(rv_smult(cdata.physics.dt/10.,cdata.node.loc.att.icrf.v));
+			cdata.node.loc.att.icrf.s = q_mult(q1,cdata.node.loc.att.icrf.s);
+			q_normalize(&cdata.node.loc.att.icrf.s);
+			cdata.node.loc.att.icrf.v = rv_add(cdata.node.loc.att.icrf.v,rv_smult(cdata.physics.dt/10.,cdata.node.loc.att.icrf.a));
 		}
-		att_icrf2lvlh(&cdata->node.loc);
+		att_icrf2lvlh(&cdata.node.loc);
 		break;
 	case 1:
-		cdata->node.loc.att.lvlh.utc = cdata->node.loc.utc;
-		cdata->node.loc.att.lvlh.s = q_eye();
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		att_lvlh2icrf(&cdata->node.loc);
+		cdata.node.loc.att.lvlh.utc = cdata.node.loc.utc;
+		cdata.node.loc.att.lvlh.s = q_eye();
+		cdata.node.loc.att.lvlh.v = rv_zero();
+		att_lvlh2icrf(&cdata.node.loc);
 		break;
 	case 2:
-		cdata->node.loc.att.topo.v = cdata->node.loc.att.topo.a = rv_zero();
-		switch (cdata->node.loc.pos.extra.closest)
+		cdata.node.loc.att.topo.v = cdata.node.loc.att.topo.a = rv_zero();
+		switch (cdata.node.loc.pos.extra.closest)
 		{
 		case COSMOS_EARTH:
 		default:
-			val = map_dem_pixel(COSMOS_EARTH,cdata->node.loc.pos.geod.s.lon,cdata->node.loc.pos.geod.s.lat,1./REARTHM);
+			val = map_dem_pixel(COSMOS_EARTH,cdata.node.loc.pos.geod.s.lon,cdata.node.loc.pos.geod.s.lat,1./REARTHM);
 			for (j=0; j<3; j++)
 			{
 				normal.col[j] = val.nmap[j];
 			}
 			unitv = rv_zero();
-			unitv.col[0] = cdata->node.loc.pos.geod.v.lon / cos(cdata->node.loc.pos.geod.s.lat);
-			unitv.col[1] = cdata->node.loc.pos.geod.v.lat;
+			unitv.col[0] = cdata.node.loc.pos.geod.v.lon / cos(cdata.node.loc.pos.geod.s.lat);
+			unitv.col[1] = cdata.node.loc.pos.geod.v.lat;
 			break;
 		case COSMOS_MOON:
-			val = map_dem_pixel(COSMOS_MOON,cdata->node.loc.pos.selg.s.lon,cdata->node.loc.pos.selg.s.lat,1./RMOONM);
+			val = map_dem_pixel(COSMOS_MOON,cdata.node.loc.pos.selg.s.lon,cdata.node.loc.pos.selg.s.lat,1./RMOONM);
 			for (j=0; j<3; j++)
 			{
 				normal.col[j] = -val.nmap[j];
 			}
 			unitv = rv_zero();
-			unitv.col[0] = cdata->node.loc.pos.selg.v.lon / cos(cdata->node.loc.pos.selg.s.lat);
-			unitv.col[1] = cdata->node.loc.pos.selg.v.lat;
+			unitv.col[0] = cdata.node.loc.pos.selg.v.lon / cos(cdata.node.loc.pos.selg.s.lat);
+			unitv.col[1] = cdata.node.loc.pos.selg.v.lat;
 			break;
 		}
 		q1 = q_change_between_rv(rv_unitz(),normal);
 		unitx = rv_cross(normal,rv_unity());
 		unitx = transform_q(q1,unitx);
 		q2 = q_change_between_rv(unitx,unitv);
-		//		cdata->node.loc.att.topo.s = q_mult(q2,q1);
-		cdata->node.loc.att.topo.s = q1;
-		cdata->node.loc.att.topo.utc = cdata->node.loc.pos.utc+1.e8;
-		cdata->node.loc.att.topo.pass++;
-		att_topo(&cdata->node.loc);
+		//		cdata.node.loc.att.topo.s = q_mult(q2,q1);
+		cdata.node.loc.att.topo.s = q1;
+		cdata.node.loc.att.topo.utc = cdata.node.loc.pos.utc+1.e8;
+		cdata.node.loc.att.topo.pass++;
+		att_topo(&cdata.node.loc);
 		break;
 	case 3:
-		cdata->node.loc.att.icrf.utc = cdata->node.loc.utc;
-		q1 = cdata->node.loc.att.icrf.s;
-		cdata->node.loc.att.icrf.s = q_change_between_rv(cdata->physics.thrust,rv_unitz());
-		dsq = q_sub(cdata->node.loc.att.icrf.s,q1);
+		cdata.node.loc.att.icrf.utc = cdata.node.loc.utc;
+		q1 = cdata.node.loc.att.icrf.s;
+		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.physics.thrust,rv_unitz());
+		dsq = q_sub(cdata.node.loc.att.icrf.s,q1);
 		angle = 2. * atan(length_q(dsq)/2.);
-		q2 = q_smult(1./cos(angle),cdata->node.loc.att.icrf.s);
+		q2 = q_smult(1./cos(angle),cdata.node.loc.att.icrf.s);
 		dsq = q_sub(q2,q1);
 		utemp.q = q_smult(2.,q_mult(q_conjugate(q1),dsq));
-		cdata->node.loc.att.icrf.v = utemp.r;
-		att_icrf2lvlh(&cdata->node.loc);
+		cdata.node.loc.att.icrf.v = utemp.r;
+		att_icrf2lvlh(&cdata.node.loc);
 		break;
 	case 4:
-		cdata->node.loc.att.selc.utc = cdata->node.loc.utc;
-		unitp1.col[0] += .1*(cdata->node.loc.pos.selg.v.lon-unitp1.col[0]);
-		unitp1.col[1] += .1*(cdata->node.loc.pos.selg.v.lat-unitp1.col[1]);
+		cdata.node.loc.att.selc.utc = cdata.node.loc.utc;
+		unitp1.col[0] += .1*(cdata.node.loc.pos.selg.v.lon-unitp1.col[0]);
+		unitp1.col[1] += .1*(cdata.node.loc.pos.selg.v.lat-unitp1.col[1]);
 		unitp1.col[2] =  0.;
 		if (length_rv(unitp1) < 1e-9)
 			unitp1 = lunitp1;
 		else
 			lunitp1 = unitp1;
 		q1 = q_change_between_rv(rv_unitx(),unitp1);
-		val = map_dem_pixel(COSMOS_MOON,cdata->node.loc.pos.selg.s.lon,cdata->node.loc.pos.selg.s.lat,.0003);
+		val = map_dem_pixel(COSMOS_MOON,cdata.node.loc.pos.selg.s.lon,cdata.node.loc.pos.selg.s.lat,.0003);
 		unitp2.col[0] += .1*(val.nmap[0]-unitp2.col[0]);
 		unitp2.col[1] += .1*(val.nmap[1]-unitp2.col[1]);
 		unitp2.col[2] += .1*(val.nmap[2]-unitp2.col[2]);
 		q2 = q_change_between_rv(transform_q(q1,rv_unitz()),unitp2);
-		cdata->node.loc.att.selc.s = q_conjugate(q_mult(q2,q1));
-		cdata->node.loc.att.selc.v = rv_zero();
-		att_selc2icrf(&cdata->node.loc);
+		cdata.node.loc.att.selc.s = q_conjugate(q_mult(q2,q1));
+		cdata.node.loc.att.selc.v = rv_zero();
+		att_selc2icrf(&cdata.node.loc);
 		break;
 	case 5:
-		cdata->node.loc.att.geoc.utc = cdata->node.loc.utc;
-		angle = 2.*acos(cdata->node.loc.att.geoc.s.w);
-		cdata->node.loc.att.geoc.s = q_change_around_z(angle+.2*D2PI*cdata->physics.dt);
-		cdata->node.loc.att.geoc.v = rv_smult(.2*D2PI,rv_unitz());
-		att_geoc2icrf(&cdata->node.loc);
-		att_planec2lvlh(&cdata->node.loc);
+		cdata.node.loc.att.geoc.utc = cdata.node.loc.utc;
+		angle = 2.*acos(cdata.node.loc.att.geoc.s.w);
+		cdata.node.loc.att.geoc.s = q_change_around_z(angle+.2*D2PI*cdata.physics.dt);
+		cdata.node.loc.att.geoc.v = rv_smult(.2*D2PI,rv_unitz());
+		att_geoc2icrf(&cdata.node.loc);
+		att_planec2lvlh(&cdata.node.loc);
 		break;
 	case 6:
 	case 7:
@@ -3266,28 +3268,28 @@ int update_eci(cosmosstruc *cdata, double utc, cartpos pos)
 	case 9:
 	case 10:
 	case 11:
-		cdata->node.loc.att.icrf.s = q_change_between_rv(cdata->piece[cdata->physics.mode-2].normal,rv_smult(-1.,cdata->node.loc.pos.baryc.s));
-		cdata->node.loc.att.icrf.v = rv_zero();
-		att_icrf2lvlh(&cdata->node.loc);
+		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.baryc.s));
+		cdata.node.loc.att.icrf.v = rv_zero();
+		att_icrf2lvlh(&cdata.node.loc);
 		break;
 	case 12:
-		angle = (1440.*(cdata->node.loc.utc - initialutc) - (int)(1440.*(cdata->node.loc.utc - initialutc))) * 2.*DPI;
+		angle = (1440.*(cdata.node.loc.utc - initialutc) - (int)(1440.*(cdata.node.loc.utc - initialutc))) * 2.*DPI;
 		unitx = unitp =  rv_zero();
 		unitx.col[0] = 1.;
 		unitp.col[0] = cos(angle);
 		unitp.col[1] = sin(angle);
-		cdata->node.loc.att.lvlh.s = q_change_between_rv(unitp,unitx);
-		cdata->node.loc.att.lvlh.v = rv_zero();
-		cdata->node.loc.att.lvlh.v.col[2] = 2.*DPI/1440.;
-		att_lvlh2icrf(&cdata->node.loc);
+		cdata.node.loc.att.lvlh.s = q_change_between_rv(unitp,unitx);
+		cdata.node.loc.att.lvlh.v = rv_zero();
+		cdata.node.loc.att.lvlh.v.col[2] = 2.*DPI/1440.;
+		att_lvlh2icrf(&cdata.node.loc);
 		break;
 	}
 
 	// Perform positional and attitude accelerations at new position
-	simulate_hardware(cdata,&cdata->node.loc);
-	att_accel(cdata,&cdata->node.loc);
+	simulate_hardware(cdata, cdata.node.loc);
+	att_accel(cdata.physics, cdata.node.loc);
 
 	// Simulate at new position
-//	groundstations(cdata,&cdata->node.loc);
+//	groundstations(cdata,&cdata.node.loc);
 	return 0;
 }

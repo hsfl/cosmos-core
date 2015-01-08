@@ -737,7 +737,7 @@ void floatto(float value, uint8_t *pointer, uint8_t order);
 gj_kernel *gauss_jackson_kernel(int32_t order, double dvi);
 void gauss_jackson_dekernel(gj_kernel *gjk);
 gj_instance *gauss_jackson_instance(gj_kernel *gjk,int32_t axes,void (*calc_vd2)(double vi, double *vd0, double *vd2, int32_t axes));
-gj_instance3d *gauss_jackson_instance3d(gj_kernel *gjk,double (*calc_vd2)(double vi, double vdx0, double vdy0, double vdz0));
+//gj_instance3d *gauss_jackson_instance3d(gj_kernel *gjk,double (*calc_vd2)(double vi, double vdx0, double vdy0, double vdz0));
 int gauss_jackson_setstep(gj_instance *gji, double vi, double *vd0, double *vd1, double *vd2, int32_t istep);
 int gauss_jackson_getstep(gj_instance *gji, double *vi, double *vd0, double *vd1, double *vd2, int32_t istep);
 gj_step *gauss_jackson_step(gj_kernel *kern);
