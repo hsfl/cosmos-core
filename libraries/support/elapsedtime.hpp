@@ -36,7 +36,7 @@ public:
     double toc(string text);
 
     void start();
-    void stop();
+	double stop();
 
     // turn on/off printing
     bool print = true; //

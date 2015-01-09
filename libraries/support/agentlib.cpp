@@ -479,9 +479,8 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, 
         nbytes = recvfrom(sendchan.cudp,output,clen,0,(struct sockaddr *)NULL,(socklen_t *)NULL);
 
         //gettimeofday(&tv,NULL);
-        ep.stop();
 
-    } while ( (nbytes <= 0) && (ep.elapsedTime <= waitsec) );
+	} while ( (nbytes <= 0) && (ep.toc() <= waitsec) );
     //old://(nbytes <= 0 && !(tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec)));
 
     output[nbytes] = 0;
@@ -536,9 +535,7 @@ int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float wai
         }
 
         //gettimeofday(&tv,NULL);
-        ep.stop();
-
-    } while (ep.elapsedTime <= waitsec);
+	} while (ep.toc() <= waitsec);
     //while (!(tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec)));
 
     return(0);
@@ -578,8 +575,7 @@ beatstruc agent_find_server(cosmosstruc *cdata, string node, string proc, float 
             }
         }
         //gettimeofday(&tv,NULL);
-        ep.stop();
-    } while (ep.elapsedTime <= waitsec);
+	} while (ep.toc() <= waitsec);
     //while (!(tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec)));
 
     cbeat.utc = 0.;
@@ -635,9 +631,8 @@ vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec)
         }
 
         //gettimeofday(&tv,NULL);
-        ep.stop();
 
-    } while (ep.elapsedTime <= waitsec);
+	} while (ep.toc() <= waitsec);
     //while (!(tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec)));
 
     return(slist);
@@ -696,7 +691,7 @@ void heartbeat_loop(cosmosstruc *cdata)
 
     while (((cosmosstruc *)cdata)->agent[0].stateflag)
     {
-        ep.start();
+		ep.tic();
 
         ((cosmosstruc *)cdata)->agent[0].beat.utc = currentmjd(0.);
         if (!((cosmosstruc*)cdata)->agent[0].sohtable.empty())
@@ -724,7 +719,8 @@ void heartbeat_loop(cosmosstruc *cdata)
         }
         //        nmjd += ((cosmosstruc *)cdata)->agent[0].beat.bprd;
 
-        if (ep.elapsedTime <= ((cosmosstruc *)cdata)->agent[0].beat.bprd){
+		if (ep.toc() <= ((cosmosstruc *)cdata)->agent[0].beat.bprd)
+		{
             COSMOS_SLEEP(((cosmosstruc *)cdata)->agent[0].beat.bprd - ep.elapsedTime);
         }
     }
@@ -1421,9 +1417,9 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
             }
         }
         //gettimeofday(&tv,NULL);
-        ep.stop();
         //if (tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec))
-        if (ep.elapsedTime >= waitsec){
+		if (ep.toc() >= waitsec)
+		{
             nbytes = 0;
         }
     } while (nbytes != 0);

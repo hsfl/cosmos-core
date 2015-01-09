@@ -6758,6 +6758,7 @@ int load_target(cosmosstruc *cdata)
 	count = 0;
 	if ((op=fopen(fname.c_str(),"r")) != NULL)
 	{
+		cdata->target.resize(100);
 		while (count < cdata->target.size() && fgets(inb,JSON_MAX_DATA,op) != NULL)
 		{
 			json_addentry((char *)"target_range",count,-1,(ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc),JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
@@ -6772,13 +6773,20 @@ int load_target(cosmosstruc *cdata)
 			json_addentry((char *)"target_min",count,-1,(ptrdiff_t)offsetof(targetstruc,min)+count*sizeof(targetstruc),JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
 			json_addentry((char *)"target_loc",count,-1,(ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc),JSON_TYPE_LOC,JSON_GROUP_TARGET,cdata);
 			json_addentry((char *)"target_loc_pos_geod",count,-1,(ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc),JSON_TYPE_POS_GEOD,JSON_GROUP_TARGET,cdata);
+			json_addentry((char *)"target_loc_pos_eci",count,-1,(ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc),JSON_TYPE_POS_ECI,JSON_GROUP_TARGET,cdata);
 			if (json_parse(inb,cdata) >= 0)
 			{
-//				loc_update(&cdata->target[count].loc);
+				if (cdata->target[count].loc.utc == 0.)
+				{
+					cdata->target[count].loc.utc = currentmjd(cdata->node.utcoffset);
+				}
+				// This may cause problems, but location information won't be complete without it
+				loc_update(&cdata->target[count].loc);
 				++count;
 			}
 		}
 		fclose(op);
+		cdata->target.resize(count);
 		return (count);
 	}
 	else

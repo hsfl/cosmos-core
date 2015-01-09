@@ -85,7 +85,6 @@ void ElapsedTime::tic(){
 double ElapsedTime::toc(){
 
     stop();
-    printElapsedTime();
 
     return elapsedTime;
 }
@@ -119,7 +118,7 @@ void ElapsedTime::start(){
     time1 = chrono::steady_clock::now();
 }
 
-void ElapsedTime::stop(){
+double ElapsedTime::stop(){
     //Get the final time
     //gettimeofday(&time2, &x); //Get the final time
 
@@ -128,6 +127,7 @@ void ElapsedTime::stop(){
     time2 = chrono::steady_clock::now();
 
     elapsedTime = getElapsedTime();
+	return elapsedTime;
 }
 
 // -------------OLD Code

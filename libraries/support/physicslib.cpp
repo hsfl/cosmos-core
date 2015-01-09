@@ -1730,11 +1730,12 @@ void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc 
 		sloc[i].utc -= dt / 86400.;
 		kep.ma -= dt * kep.mm;
 
+		uint16_t count = 0;
 		do
 		{
 			dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
 			kep.ea -= dea;
-		} while (fabs(dea) > .000001);
+		} while (++count < 100 && fabs(dea) > .000001);
 		kep2eci(&kep,&sloc[i].pos.eci);
 		sloc[i].pos.eci.pass++;
 		pos_eci(&sloc[i]);
@@ -1902,14 +1903,18 @@ void propagate(cosmosstruc &cdata, double utc)
 	quaternion dq;
 	double angle;
 	double lutc;
-	int32_t chunks, i, j;
+	uint32_t chunks, i, j;
 
 	if (sloc[0].pos.geod.s.h < 100.)
 	{
 		return;
 	}
 
-	chunks = (int32_t)(.5 + 86400.*(utc-sloc[0].utc)/cdata.physics.dt);
+	chunks = (uint32_t)(.5 + 86400.*(utc-sloc[0].utc)/cdata.physics.dt);
+	if (chunks > 100000)
+	{
+		chunks = 100000;
+	}
 	lutc = sloc[0].pos.geoc.utc;
 	for (i=0; i<chunks; ++i)
 	{
@@ -2392,11 +2397,12 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 		kep.utc = gjh.step[i].sloc.att.icrf.utc = gjh.step[i].sloc.utc;
 		kep.ma -= dt * kep.mm;
 
+		uint16_t count = 0;
 		do
 		{
 			dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
 			kep.ea -= dea;
-		} while (fabs(dea) > .000001);
+		} while (++count < 100 && fabs(dea) > .000001);
 		kep2eci(&kep,&gjh.step[i].sloc.pos.eci);
 		gjh.step[i].sloc.pos.eci.pass++;
 
@@ -2423,11 +2429,12 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 		kep.utc = gjh.step[i].sloc.att.icrf.utc = gjh.step[i].sloc.utc;
 		kep.ma += dt * kep.mm;
 
+		uint16_t count = 0;
 		do
 		{
 			dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
 			kep.ea -= dea;
-		} while (fabs(dea) > .000001);
+		} while (++count < 100 && fabs(dea) > .000001);
 		kep2eci(&kep,&gjh.step[i].sloc.pos.eci);
 		gjh.step[i].sloc.pos.eci.pass++;
 
@@ -2737,7 +2744,11 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 	{
 		return;
 	}
-	chunks = (uint32_t)(.5 + (tomjd - gjh.step[gjh.order].sloc.utc)/(cdata.physics.dt/86400.));
+	chunks = (uint32_t)(.5 + 86400.*(tomjd - gjh.step[gjh.order].sloc.utc)/cdata.physics.dt);
+	if (chunks > 100000)
+	{
+		chunks = 100000;
+	}
 	for (i=0; i<chunks; i++)
 	{
 		if (gjh.step[gjh.order].sloc.pos.geod.s.h < 100.)
@@ -3075,6 +3086,10 @@ int orbit_propagate(cosmosstruc &cdata, double utc)
 	double nutc;
 
 	chunks = (uint32_t)(.5 + 86400.*(utc-cdata.node.loc.utc)/cdata.physics.dt);
+	if (chunks > 100000)
+	{
+		chunks = 100000;
+	}
 	nutc = cdata.node.loc.utc;
 	for (i=0; i<chunks; i++)
 	{

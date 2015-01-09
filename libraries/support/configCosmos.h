@@ -52,7 +52,7 @@
 //! @{
 #define COSMOS_LINUX_OS
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
-#define COSMOS_SLEEP(sec) usleep((uint32_t)(sec*1e6)) // this allows decimal seconds
+#define COSMOS_SLEEP(sec) usleep((uint32_t)((sec>=0.?sec:0)*1e6)) // this allows decimal seconds
 #define CLOSE_SOCKET(socket) close(socket)
 #define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp,mode)
 //! @}
@@ -89,7 +89,7 @@
 
 #define COSMOS_WIN_OS
 #define COSMOS_USLEEP(usec) Sleep((uint32_t)(usec/1000. + .5))
-#define COSMOS_SLEEP(sec) Sleep((uint32_t)(sec*1000))
+#define COSMOS_SLEEP(sec) Sleep((uint32_t)((sec>=0.?sec:0)*1000))
 #define CLOSE_SOCKET(socket) closesocket(socket)
 //! @}
 //#define NTDDI_VERSION 0x06010000
@@ -127,7 +127,7 @@
 //! @{
 #define COSMOS_MAC_OS
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
-#define COSMOS_SLEEP(sec) sleep((uint32_t)sec)
+#define COSMOS_SLEEP(sec) sleep((uint32_t)(sec>=0.?sec:0))
 #define CLOSE_SOCKET(socket) close(socket)
 #define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp, mode)
 //! @}
@@ -148,7 +148,7 @@
 //! @{
 #define COSMOS_CYGWIN_OS
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
-#define COSMOS_SLEEP(sec) sleep((uint32_t)sec)
+#define COSMOS_SLEEP(sec) sleep((uint32_t)(sec>=0.?sec:0))
 #define CLOSE_SOCKET(socket) close(socket)
 #define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp,mode)
 //! @}

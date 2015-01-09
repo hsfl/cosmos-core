@@ -107,8 +107,8 @@ void log_move(string node, string agent)
 		string oldpath = oldfile.path;
 		string temppath = oldfile.path + ".gz";
 		string newpath = data_base_path(node, "outgoing", agent, oldfile.name + ".gz");
-		FILE *fin = data_open(oldpath, (char *)"r");
-		FILE *fout = data_open(temppath, (char *)"w");
+		FILE *fin = data_open(oldpath, (char *)"rb");
+		FILE *fout = data_open(temppath, (char *)"wb");
 		gzFile gzfout;
 		gzfout = gzdopen(fileno(fout), "a");
 
@@ -124,6 +124,7 @@ void log_move(string node, string agent)
 		fclose(fin);
 		gzclose_w(gzfout);
 		rename(temppath.c_str(), newpath.c_str());
+		remove(temppath.c_str());
 		remove(oldpath.c_str());
 	}
 }
