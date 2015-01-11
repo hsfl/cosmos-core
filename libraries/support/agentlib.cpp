@@ -13,7 +13,7 @@
 //! \defgroup agentlib_statics Agent Server and Client static variables
 //! @{
 
-jstring hbjstring={0,0,0};
+string hbjstring;
 static vector<beatstruc> slist;
 agent_request_structure ireqs = {7,{
                                      {"help",agent_req_help,"","list of available requests for this agent"},
@@ -696,7 +696,7 @@ void heartbeat_loop(cosmosstruc *cdata)
         ((cosmosstruc *)cdata)->agent[0].beat.utc = currentmjd(0.);
         if (!((cosmosstruc*)cdata)->agent[0].sohtable.empty())
         {
-            agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT,json_of_table(&hbjstring,((cosmosstruc *)cdata)->agent[0].sohtable,((cosmosstruc *)cdata)));
+			agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT, json_of_table(hbjstring, ((cosmosstruc *)cdata)->agent[0].sohtable, ((cosmosstruc *)cdata)));
         }
         else
         {
@@ -876,13 +876,12 @@ int32_t agent_req_shutdown(char*, char* output, void *cdata)
 
 int32_t agent_req_status(char*, char* output, void *cdata)
 {
-    jstring jstring={0,0,0};
+	string jstring;
 
-    if (json_of_agent(&jstring, (cosmosstruc*)cdata) != NULL)
+	if (json_of_agent(jstring, (cosmosstruc*)cdata) != NULL)
     {
-        strncpy(output,jstring.string,((cosmosstruc *)cdata)->agent[0].beat.bsz);
+		strncpy(output, jstring.c_str(),((cosmosstruc *)cdata)->agent[0].beat.bsz);
         output[((cosmosstruc *)cdata)->agent[0].beat.bsz-1] = 0;
-        free(jstring.string);
         return 0;
     }
     else
@@ -895,13 +894,12 @@ int32_t agent_req_status(char*, char* output, void *cdata)
 
 int32_t agent_req_getvalue(char *request, char* output, void *cdata)
 {
-    jstring jstring={0,0,0};
+	string jstring;
 
-    if (json_of_list(&jstring,request,((cosmosstruc *)cdata)) != NULL)
+	if (json_of_list(jstring, request, ((cosmosstruc *)cdata)) != NULL)
     {
-        strncpy(output,jstring.string,((cosmosstruc *)cdata)->agent[0].beat.bsz);
+		strncpy(output, jstring.c_str(), ((cosmosstruc *)cdata)->agent[0].beat.bsz);
         output[((cosmosstruc *)cdata)->agent[0].beat.bsz-1] = 0;
-        free(jstring.string);
         return 0;
     }
     else
@@ -1259,11 +1257,11 @@ vector<socket_channel> agent_find_addresses(uint16_t ntype)
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
 */
-int32_t agent_post(cosmosstruc *cdata, uint8_t type, char *message)
+int32_t agent_post(cosmosstruc *cdata, uint8_t type, const char *message)
 {
     int nbytes, mbytes, i, iretn=0;
     char post[AGENTMAXBUFFER];
-    //jstring jstring={0,0,0};
+	//string jstring;
 
     if (message == NULL)
         mbytes = 0;
@@ -1588,16 +1586,15 @@ int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *a
     unsigned long nonblocking = 1;
     struct sockaddr_storage ss;
     int sslen;
-    WORD wVersionRequested;
-    WSADATA wsaData = {0};
     static bool started=false;
 
     protocol = IPPROTO_UDP;
 
     if (!started)
     {
-        wVersionRequested = MAKEWORD( 2, 2 );
-        iretn = WSAStartup( wVersionRequested, &wsaData );
+		WORD wVersionRequested = MAKEWORD( 2, 2 );
+		WSADATA wsaData;
+		iretn = WSAStartup( wVersionRequested, &wsaData );
         if (iretn != 0) {
             wprintf(L"WSAStartup failed: %d\n", iretn);
             return 1;

@@ -58,10 +58,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	jstring js = {0,0,0};
+	string jsp;
 
-	json_startout(&js);
-	json_out_commandevent(&js, com);
-	json_stopout(&js);
-	printf("%s\n", js.string);
+	json_out_commandevent(jsp, com);
+	printf("%s\n", jsp.c_str());
 }

@@ -151,9 +151,9 @@ int main(int argc, char *argv[])
 
 int32_t request_soh(char *request, char* response, void *)
 {
-	jstring rjstring={0,0,0};
-//	strcpy(response,json_of_list(&rjstring,sohstring,cdata));
-	strcpy(response,json_of_table(&rjstring, cdata->agent[0].sohtable, cdata));
+	string rjstring;
+//	strcpy(response,json_of_list(rjstring,sohstring,cdata));
+	strcpy(response,json_of_table(rjstring, cdata->agent[0].sohtable, cdata));
 	return 0;
 }
 

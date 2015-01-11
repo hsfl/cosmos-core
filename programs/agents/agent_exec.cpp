@@ -381,9 +381,8 @@ void collect_data_loop()
 // Prints the command information stored in local the copy of cdata->event[0].l
 void print_command()
 {
-	jstring js = {0,0,0};
-	jstring *jsp = &js;
-	json_startout(jsp);
+	string jsp;
+
 	json_out(jsp,(char*)"event_utc",cdata);
 	json_out(jsp,(char*)"event_utcexec",cdata);
 	json_out(jsp,(char*)"event_name",cdata);
@@ -391,8 +390,7 @@ void print_command()
 	json_out(jsp,(char*)"event_flag",cdata);
 	json_out(jsp,(char*)"event_data",cdata);
 	json_out(jsp,(char*)"event_condition",cdata);
-	json_stopout(jsp);
-	cout<<"<"<<jsp->string<<">"<<endl;
+	cout<<"<"<<jsp<<">"<<endl;
 
 	return;
 }
@@ -452,10 +450,8 @@ void command::set_command(string line)
 
 string command::get_json()
 {
-	jstring js = {0,0,0};
-	jstring *jsp = &js;
-	//    char dtemp[50];
-	string json;
+	string jsp;
+
 	longeventstruc event;
 
 	event.utc = utc;
@@ -466,11 +462,8 @@ string command::get_json()
 	strcpy(event.data, data.c_str());
 	strcpy(event.condition, condition.c_str());
 
-	json_startout(jsp);
 	json_out_commandevent(jsp, event);
-	json_stopout(jsp);
-	json = jsp->string;
-	return json;
+	return jsp;
 }
 
 

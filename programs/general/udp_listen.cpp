@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
     int received; // Num bytes received per UDP packet
     uint8_t buf1[BUFSIZE]; // RX Buffer
 
-	jstring myjstring={0,0,0};
-	jstring jjstring={0,0,0};
+	string myjstring;
+	string jjstring;
 
 
 	uint32_t i, j, tlen;
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 	cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)"nps",(char *)"udp", 1., 0, AGENTMAXBUFFER);
 
 	// Create default logstring
-	strcpy(logstring,json_of_soh(&jjstring,cdata));
+	strcpy(logstring,json_of_soh(jjstring,cdata));
 	j = 0;
 	tlen = strlen(logstring);
 	for (i=1; i<tlen-j; ++i)
@@ -229,8 +229,8 @@ int main(int argc, char *argv[])
 			}
 
 			// Broadcast it
-			agent_post(cdata, AGENT_MESSAGE_SOH, json_of_list(&myjstring, logstring, cdata));
-			log_write(cdata->node.name,DATA_LOG_TYPE_SOH,floor(cdata->node.loc.utc), json_of_list(&jjstring,logstring,cdata));
+			agent_post(cdata, AGENT_MESSAGE_SOH, json_of_list(myjstring, logstring, cdata));
+			log_write(cdata->node.name,DATA_LOG_TYPE_SOH,floor(cdata->node.loc.utc), json_of_list(jjstring,logstring,cdata));
 
         } // End If: packet reception / parse / idle cycle
 

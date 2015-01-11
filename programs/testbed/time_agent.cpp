@@ -50,7 +50,7 @@ int myagent()
 double cmjd, nmjd, period;
 struct timeval mytime;
 unsigned long usec;
-jstring jstring={0,0,0};
+string jstring;
 
 // Initialize loop timing
 period = .1;
@@ -63,7 +63,7 @@ while(agent_running(cdata))
 	{
 	// Calculate time and publish it
 	cdata->node.loc.utc = currentmjd(cdata->node.utcoffset);
-	agent_post(cdata, AGENT_MESSAGE_TIME,json_of_time(&jstring,cdata));
+	agent_post(cdata, AGENT_MESSAGE_TIME,json_of_time(jstring, cdata));
 
 	gettimeofday(&mytime,NULL);
 	cmjd = (mytime.tv_sec - 1280000000) + mytime.tv_usec / 1e6;

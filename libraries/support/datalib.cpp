@@ -692,7 +692,7 @@ string get_cosmosresources()
 		}
 		else
 		{
-			troot = "../resources";
+			troot = "resources";
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;
@@ -791,6 +791,53 @@ string set_nodedir(string node)
 	return (nodedir);
 }
 
+int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result)
+{
+	DIR *jdp;
+	struct dirent *td;
+	int year, month;
+	double day, jday;
+	char dtemp[356];
+	ifstream tfd;
+	string tstring;
+
+
+	result.clear();
+
+	mjd = (int)mjd;
+	mjd2ymd(mjd,&year,&month,&day,&jday);
+
+	get_nodedir(node);
+	if (nodedir.size())
+	{
+		sprintf(dtemp,"%s/data/%s/%04d/%03d", nodedir.c_str(), agent.c_str(), year, (int32_t)jday);
+		if ((jdp=opendir(dtemp))!=NULL)
+		{
+			while ((td=readdir(jdp))!=NULL)
+			{
+				string d_name = td->d_name;
+				auto dlen = d_name.find(type);
+				if (dlen != string::npos && dlen + type.size() == d_name.size())
+				{
+					sprintf(dtemp,"%s/data/%s/%04d/%03d/%s", nodedir.c_str(), agent.c_str(), year, (int32_t)jday, d_name.c_str());
+					tfd.open(dtemp);
+					if (tfd.is_open())
+					{
+						while (getline(tfd,tstring))
+						{
+							result.push_back(tstring);
+						}
+						tfd.close();
+					}
+				}
+			}
+			closedir(jdp);
+
+			return 0;
+		}
+	}
+	return (DATA_ERROR_ARCHIVE);
+}
 
 int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc *cdata)
 {
@@ -812,7 +859,7 @@ int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &eve
 	get_nodedir(cdata->node.name);
 	if (nodedir.size())
 	{
-		dlen = nodedir.size() + 29 + strlen(cdata->node.name);
+		dlen = nodedir.size() + 33 + strlen(cdata->node.name);
 		sprintf(dtemp,"%s/data/soh/%4d/%03d",nodedir.c_str(),year,(int32_t)jday);
 		if ((jdp=opendir(dtemp))!=NULL)
 		{
@@ -820,7 +867,7 @@ int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &eve
 			{
 				if (td->d_name[0] != '.')
 				{
-					sprintf(dtemp,"%s/data/soh/%4d/%03d/%s",nodedir.c_str(),year,(int32_t)jday,td->d_name);
+					sprintf(dtemp,"%s/data/soh/%04d/%03d/%s",nodedir.c_str(),year,(int32_t)jday,td->d_name);
 					if (((len=strlen(dtemp)) > dlen))
 						tfd.open(dtemp);
 					if (tfd.is_open())

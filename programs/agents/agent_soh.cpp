@@ -27,8 +27,8 @@ int32_t request_get_logstring(char* request, char* output, void *cdata);
 int32_t request_set_logstride(char* request, char* output, void *cdata);
 
 //char message[AGENTMAXBUFFER];
-jstring jjstring={0,0,0};
-jstring myjstring={0,0,0};
+string jjstring;
+string myjstring;
 
 int ntype = SOCKET_TYPE_UDP;
 int waitsec = 5;
@@ -190,13 +190,13 @@ int myagent()
 
 			loc_update(&cdata->node.loc);
 			update_target(cdata);
-			agent_post(cdata, AGENT_MESSAGE_SOH, json_of_table(&myjstring, logtable, cdata));
+			agent_post(cdata, AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, cdata));
 			calc_events(eventdict, cdata, events);
 			for (uint32_t k=0; k<events.size(); ++k)
 			{
 				memcpy(&cdata->event[0].s,&events[k],sizeof(shorteventstruc));
 				strcpy(cdata->event[0].l.condition,cdata->emap[events[k].handle.hash][events[k].handle.index].text);
-				log_write(cdata->node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(&jjstring,cdata));
+				log_write(cdata->node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(jjstring,cdata));
 			}
 		}
 		if (dmjd-logperiod > -logperiod/20.)
@@ -204,7 +204,7 @@ int myagent()
 			lmjd = cmjd;
 			if (cdata->node.utc != 0. && logstring.size())
 			{
-				log_write(cdata->node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(&jjstring, logtable, cdata));
+				log_write(cdata->node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(jjstring, logtable, cdata));
 			}
 		}
 

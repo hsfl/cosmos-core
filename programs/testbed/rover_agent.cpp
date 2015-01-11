@@ -98,7 +98,7 @@ int myagent()
 rvector testv;
 double dt;
 int  	i;
-jstring jstring={0,0,0};
+string jstring;
 period = 1./86400.;
 fname[0] = 0;
 
@@ -193,7 +193,7 @@ while(agent_running(cdata))
 	// Simulate hardware
 	cdata->physics.dt = dt;
 	simulate_hardware(*cdata, cdata->node.loc);
-	agent_post(cdata, AGENT_MESSAGE_SOH,json_of_soh(&jstring,cdata));
+	agent_post(cdata, AGENT_MESSAGE_SOH,json_of_soh(jstring, cdata));
 
 	// Broadcast and Log SOH
 	if (cmjd > nmjd)
@@ -221,7 +221,7 @@ while(agent_running(cdata))
 			}
 
 		fout = fopen(fname,"a+");
-		fprintf(fout,"%s\n",jstring.string);
+		fprintf(fout,"%s\n",jstring.c_str());
 		fclose(fout);
 		nmjd += period;
 		}

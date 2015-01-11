@@ -2265,7 +2265,7 @@ int lines2eci(double utc, vector<tlestruc>lines, cartpos *eci)
 	else
 		return (TLE_ERROR_OUTOFRANGE);
 
-	iretn = line2eci(utc, lines[lindex], eci);
+	iretn = tle2eci(utc, lines[lindex], eci);
 	return (iretn);
 }
 
@@ -2275,7 +2275,7 @@ int lines2eci(double utc, vector<tlestruc>lines, cartpos *eci)
 * @param line Two Line Element, given as pointer to a ::tlestruc
 * @param eci Converted location, given as pointer to a ::cartpos
 */
-int line2eci(double utc, tlestruc tle, cartpos *eci)
+int tle2eci(double utc, tlestruc tle, cartpos *eci)
 {
 	//	rmatrix pm = {{{{0.}}}};
 	//	static int lsnumber=-99;

@@ -572,15 +572,15 @@ typedef struct
  * indicator. As the string fills, it is automatically grown by another 1024 bytes. A record is kept
  * of both its' total and used length.
 */
-typedef struct
-{
-	//! Growing JSON string
-	char *string;
-	//! Current total length
-	uint32_t length;
-	//! Current used length
-	uint32_t index;
-} jstring;
+//typedef struct
+//{
+//	//! Growing JSON string
+//	string string;
+//	//! Current total length
+//	uint32_t length;
+//	//! Current used length
+//	uint32_t index;
+//} jstring;
 
 //! Agent Request Function
 //! Format of a user supplied function to handle a given request

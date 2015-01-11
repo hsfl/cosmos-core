@@ -45,7 +45,8 @@ alert_type alerts[22] = {
 	{"UMB_IN","U11321"},
 	{"UMB_OUT","U11321"}};
 
-char *output, date[30];
+string output;
+char date[30];
 FILE *eout, *fout;
 
 void alertfor(char *string1, char *string2);
@@ -60,7 +61,7 @@ double mjdnow, lastlat, lastsunradiance, fd, lastgsel[MAXTRACK];
 int i, j, iretn, gsup[MAXTRACK];
 int year, month, day, hour, minute, second;
 struct stat sbuf;
-jstring jstring={0};
+string jstring;
 
 cdata = json_create();
 node_init(argv[1],cdata);
@@ -131,8 +132,8 @@ for (i=0; i<9331; i++)
 	{
 	mjdnow += 10./86400.;
 	orbit_propagate(*cdata, mjdnow);
-	output = json_of_ephemeris(&jstring,cdata);
-	fprintf(fout,"%s\n",output);
+	output = json_of_ephemeris(jstring, cdata);
+	fprintf(fout,"%s\n",output.c_str());
 	fflush(fout);
 	mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
 	hour = (int)(24. * fd);

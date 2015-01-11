@@ -46,7 +46,8 @@ alert_type alerts[22] = {
 	{"UMB_IN","U11321"},
 	{"UMB_OUT","U11321"}};
 
-char *output, date[30];
+string output;
+char date[30];
 FILE *eout, *fout, *tfd;
 
 void alertfor(char *string1, char *string2);
@@ -136,7 +137,7 @@ do
 										lastsunradiance = cdata->node.loc.pos.sunradiance;
 										}
 									mjdnow = cdata->node.loc.utc;
-//	output = json_of_ephemeris(&jstring,cdata);
+//	output = json_of_ephemeris(jstring, cdata);
 //	fprintf(fout,"%s\n",output);
 //	fflush(fout);
 	mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);

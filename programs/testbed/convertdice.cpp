@@ -15,7 +15,7 @@
 cosmosstruc *cdata;
 stkstruc stk;
 shorteventstruc events[20];
-jstring mainjstring;
+string mainjstring;
 int ecount;
 
 int main(int argc, char *argv[])
@@ -51,13 +51,13 @@ int main(int argc, char *argv[])
 			exit (1);
 		cdata->node.loc.utc = utc;
 		update_eci(*cdata, cdata->node.loc.utc, npos);
-		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(&mainjstring,cdata));
+		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(mainjstring, cdata));
 		//		ecount = check_events(events,20,cdata);
 		for (i=0; i<ecount; i++)
 		{
 			cdata->event[0].s = events[i];
 			strcpy(cdata->event[0].l.condition,cdata->emap[events[i].handle.hash][events[i].handle.index].text);
-			log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(&mainjstring,cdata));
+			log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, cdata));
 		}
 	}
 
@@ -107,14 +107,14 @@ int main(int argc, char *argv[])
 		{
 			*cdata->devspec.tsen[i] = tsen[i];
 		}
-		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,(char *)json_of_soh(&mainjstring,cdata));
+		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,(char *)json_of_soh(mainjstring, cdata));
 		lmjd += 10./86400.;
 		//		ecount = check_events(events,20,cdata);
 		for (i=0; i<ecount; i++)
 		{
 			cdata->event[0].s = events[i];
 			strcpy(cdata->event[0].l.condition,cdata->emap[events[i].handle.hash][events[i].handle.index].text);
-			log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(&mainjstring,cdata));
+			log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, cdata));
 		}
 	}
 
@@ -126,13 +126,13 @@ int main(int argc, char *argv[])
 			exit (1);
 		cdata->node.loc.utc = utc;
 		update_eci(*cdata, cdata->node.loc.utc, npos);
-		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(&mainjstring,cdata));
+		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(mainjstring, cdata));
 		//		ecount = check_events(events,20,cdata);
 		for (i=0; i<ecount; i++)
 		{
 			cdata->event[0].s = events[i];
 			strcpy(cdata->event[0].l.condition,cdata->emap[events[i].handle.hash][events[i].handle.index].text);
-			log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(&mainjstring,cdata));
+			log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, cdata));
 		}
 	}
 

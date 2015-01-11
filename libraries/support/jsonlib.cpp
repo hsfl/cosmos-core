@@ -492,108 +492,6 @@ uint32_t json_count_total(cosmosstruc *cdata)
 	return i;
 }
 
-
-
-//! Maximum jstring size
-/*! Returns the maximum size that a jstring can be.
-	\return The maximum size of jstring
-*/
-uint32_t json_length(jstring *jstring)
-{
-	return (jstring->length);
-}
-
-//! Length of the current ::jsonmap jstring
-/*! Returns the current size of the jstring associated with the
- * indicated ::jsonmap
-	\return The NULL terminated length of the jstring
-*/
-uint32_t json_index(jstring *jstring)
-{
-	return (jstring->index);
-}
-
-//! Initialize JSON output
-/*! Prepares the indicated ::jsonmap for populating the jstring
-	\return 0 if successful, otherwise negative error.
-*/
-int32_t json_startout(jstring *jstring)
-{
-
-	if (jstring == NULL)	{
-		return (JSON_ERROR_JSTRING);
-	}
-
-	if (jstring->length == 0)
-	{
-		jstring->length = 1024;
-		jstring->string = (char *)calloc(1024,1);
-	}
-
-	memset((void *)jstring->string,0,jstring->length);
-	jstring->index = 0;
-	return 0;
-}
-
-//! Terminate JSON output
-/*! Closes off and null terminates the jstring in the indicated ::jsonmap and calculates the final
- * length.
-	\return The final NULL terminated jstring. NULL if unsuccessful.
-*/
-int32_t json_stopout(jstring *jstring)
-{
-	jstring->index = strlen(jstring->string);
-	return(0);
-}
-
-//! Name of indexed entry in COSMOS name space.
-/*! Return the COSMOS name space name for the provided hash and index.
-	\param hash Entry in the hash table.
-	\param index Index into a particular entry in the hash table.
-	\return Pointer to a string with the name, or NULL.
-*/
-/*
-char *json_name_index(jsonhandle handle, cosmosstruc *cdata)
-{
-	//	int32_t iretn;
-
-	if (!cdata || !cdata->jmapped)
-		return (NULL);
-
-	if (cdata->jmap[handle.hash].size() > handle.index)
-	{
-		return (cdata->jmap[handle.hash][handle.index].name);
-	}
-	else
-		return (NULL);
-}
-*/
-
-//! Double precision value of entry in COSMOS name space.
-/*! Return the Double Precision equivalent of the entry for the provided hash and index.
-	\param hash Entry in the hash table.
-	\param index Index into a particular entry in the hash table.
-	\return Double precision value, or 0.
-*/
-/*
-double json_get_double_index(jsonhandle handle, cosmosstruc *cdata)
-{
-	double value;
-	//	int32_t iretn;
-
-	if (!cdata || !cdata->jmapped)
-		return (NAN);
-
-	if (cdata->jmap[handle.hash].size() > handle.index)
-	{
-		value = json_get_double_name(json_name_index(handle.hash,handle.index,cdata),cdata);
-		return (value);
-	}
-	else
-		return (NAN);
-}
-*/
-
 //! Perform JSON output for a single indexed JSON item
 /*! Populates the jstring for the indicated ::jsonmap by index.
 	\param hash The JSON HASH of the desired variable.
@@ -601,7 +499,7 @@ double json_get_double_index(jsonhandle handle, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_handle(jstring *jstring, jsonhandle handle, cosmosstruc *cdata)
+int32_t json_out_handle(string &jstring, jsonhandle handle, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -619,7 +517,7 @@ int32_t json_out_handle(jstring *jstring, jsonhandle handle, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_entry(jstring *jstring, jsonentry* entry, cosmosstruc *cdata)
+int32_t json_out_entry(string &jstring, jsonentry* entry, cosmosstruc *cdata)
 {
 	int32_t iretn;
 	uint8_t *data;
@@ -640,7 +538,7 @@ int32_t json_out_entry(jstring *jstring, jsonentry* entry, cosmosstruc *cdata)
 	return (iretn);
 }
 
-int32_t json_out_value(jstring *jstring, char *name, uint8_t *data, uint16_t type, cosmosstruc *cdata)
+int32_t json_out_value(string &jstring, char *name, uint8_t *data, uint16_t type, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -771,23 +669,9 @@ int32_t json_out_value(jstring *jstring, char *name, uint8_t *data, uint16_t typ
 	\param string String to be appended.
 	\return 0 if successful, negative error number otherwise.
 */
-int32_t json_append(jstring *jstring,char *tstring)
+int32_t json_append(string &jstring, const char *tstring)
 {
-	uint16_t tlen;
-	char *tjstring;
-
-	tlen = strlen(tstring);
-	if (tlen+jstring->index > jstring->length-3)
-	{
-		if ((tjstring = (char *)calloc(jstring->length+1024,1)) == NULL)
-			return (JSON_ERROR_DATA_LENGTH);
-		strncpy(tjstring,jstring->string,jstring->length);
-		jstring->length += 1024;
-		free(jstring->string);
-		jstring->string = tjstring;
-	}
-	strcpy(&jstring->string[jstring->index],tstring);
-	jstring->index += strlen(tstring);
+	jstring.append(tstring);
 	return 0;
 }
 
@@ -796,7 +680,7 @@ int32_t json_append(jstring *jstring,char *tstring)
 	\param character Character to be added to string in the raw.
 	\return 0 if successful, otherwise negative error.
 */
-int32_t json_out_character(jstring *jstring,char character)
+int32_t json_out_character(string &jstring,char character)
 {
 	char tstring[2] = {0,0};
 	int32_t iretn;
@@ -814,7 +698,7 @@ int32_t json_out_character(jstring *jstring,char character)
 	\param name The Object Name
 	\return  0 if successful, otherwise negative error.
 */
-int32_t json_out_name(jstring *jstring,char *name)
+int32_t json_out_name(string &jstring,char *name)
 {
 	int32_t iretn;
 
@@ -830,7 +714,7 @@ int32_t json_out_name(jstring *jstring,char *name)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_int16(jstring *jstring,int16_t value)
+int32_t json_out_int16(string &jstring,int16_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -846,7 +730,7 @@ int32_t json_out_int16(jstring *jstring,int16_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_int32(jstring *jstring,int32_t value)
+int32_t json_out_int32(string &jstring,int32_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -862,7 +746,7 @@ int32_t json_out_int32(jstring *jstring,int32_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_uint16(jstring *jstring,uint16_t value)
+int32_t json_out_uint16(string &jstring,uint16_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -878,7 +762,7 @@ int32_t json_out_uint16(jstring *jstring,uint16_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_uint32(jstring *jstring,uint32_t value)
+int32_t json_out_uint32(string &jstring,uint32_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -894,7 +778,7 @@ int32_t json_out_uint32(jstring *jstring,uint32_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_float(jstring *jstring,float value)
+int32_t json_out_float(string &jstring,float value)
 {
 	int32_t iretn = 0;
 	char tstring[15];
@@ -913,7 +797,7 @@ int32_t json_out_float(jstring *jstring,float value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_double(jstring *jstring,double value)
+int32_t json_out_double(string &jstring,double value)
 {
 	int32_t iretn = 0;
 	char tstring[30];
@@ -932,7 +816,7 @@ int32_t json_out_double(jstring *jstring,double value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_string(jstring *jstring,char *string, uint16_t len)
+int32_t json_out_string(string &jstring,char *string, uint16_t len)
 {
 	int32_t iretn;
 	uint16_t i;
@@ -1019,7 +903,7 @@ int32_t json_out_string(jstring *jstring,char *string, uint16_t len)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_gvector(jstring *jstring,gvector value)
+int32_t json_out_gvector(string &jstring,gvector value)
 {
 	int32_t iretn;
 
@@ -1058,7 +942,7 @@ int32_t json_out_gvector(jstring *jstring,gvector value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_svector(jstring *jstring,svector value)
+int32_t json_out_svector(string &jstring,svector value)
 {
 	int32_t iretn;
 
@@ -1097,7 +981,7 @@ int32_t json_out_svector(jstring *jstring,svector value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_rvector(jstring *jstring,rvector value)
+int32_t json_out_rvector(string &jstring,rvector value)
 {
 	int32_t iretn;
 
@@ -1132,7 +1016,7 @@ int32_t json_out_rvector(jstring *jstring,rvector value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_quaternion(jstring *jstring,quaternion value)
+int32_t json_out_quaternion(string &jstring,quaternion value)
 {
 	int32_t iretn;
 
@@ -1163,7 +1047,7 @@ int32_t json_out_quaternion(jstring *jstring,quaternion value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_cvector(jstring *jstring,cvector value)
+int32_t json_out_cvector(string &jstring,cvector value)
 {
 	int32_t iretn;
 
@@ -1202,7 +1086,7 @@ int32_t json_out_cvector(jstring *jstring,cvector value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_cartpos(jstring *jstring,cartpos value)
+int32_t json_out_cartpos(string &jstring,cartpos value)
 {
 	int32_t iretn;
 
@@ -1250,7 +1134,7 @@ int32_t json_out_cartpos(jstring *jstring,cartpos value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_geoidpos(jstring *jstring,geoidpos value)
+int32_t json_out_geoidpos(string &jstring,geoidpos value)
 {
 	int32_t iretn;
 
@@ -1298,7 +1182,7 @@ int32_t json_out_geoidpos(jstring *jstring,geoidpos value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_spherpos(jstring *jstring,spherpos value)
+int32_t json_out_spherpos(string &jstring,spherpos value)
 {
 	int32_t iretn;
 
@@ -1340,13 +1224,39 @@ int32_t json_out_spherpos(jstring *jstring,spherpos value)
 	return 0;
 }
 
+//! ECI position to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated
+ * ECI based position.
+ * \param jstring JSON stream to append to
+ * \param value The JSON data of the desired variable
+ * \return  0 if successful, negative error otherwise
+*/
+
+int32_t json_out_ecipos(string &jstring, cartpos value)
+{
+	int32_t iretn;
+
+	if ((iretn=json_out_character(jstring,'{')) < 0)
+		return (iretn);
+
+	// Output Earth Centered Inertial
+	if ((iretn=json_out_name(jstring,(char *)"node_loc_pos_eci")) < 0)
+		return (iretn);
+	if ((iretn=json_out_cartpos(jstring,value)) < 0)
+		return (iretn);
+
+	if ((iretn=json_out_character(jstring,'}')) < 0)
+		return (iretn);
+	return 0;
+}
+
 //! ::posstruc to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::posstruc.
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_posstruc(jstring *jstring,posstruc value)
+int32_t json_out_posstruc(string &jstring,posstruc value)
 {
 	int32_t iretn;
 
@@ -1422,8 +1332,8 @@ int32_t json_out_posstruc(jstring *jstring,posstruc value)
 		return (iretn);
 	if ((iretn=json_out_spherpos(jstring,value.geos)) < 0)
 		return (iretn);
-	if ((iretn=json_out_character(jstring,',')) < 0)
-		return (iretn);
+//	if ((iretn=json_out_character(jstring,',')) < 0)
+//		return (iretn);
 
 	if ((iretn=json_out_character(jstring,'}')) < 0)
 		return (iretn);
@@ -1436,7 +1346,7 @@ int32_t json_out_posstruc(jstring *jstring,posstruc value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_attstruc(jstring *jstring,attstruc value)
+int32_t json_out_attstruc(string &jstring,attstruc value)
 {
 	int32_t iretn;
 
@@ -1500,7 +1410,7 @@ int32_t json_out_attstruc(jstring *jstring,attstruc value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_locstruc(jstring *jstring,locstruc value)
+int32_t json_out_locstruc(string &jstring,locstruc value)
 {
 	int32_t iretn;
 
@@ -1548,7 +1458,7 @@ int32_t json_out_locstruc(jstring *jstring,locstruc value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_commandevent(jstring *jstring,longeventstruc value)
+int32_t json_out_commandevent(string &jstring,longeventstruc value)
 {
 	int32_t iretn;
 
@@ -1605,7 +1515,7 @@ int32_t json_out_commandevent(jstring *jstring,longeventstruc value)
 		return (iretn);
 	if ((iretn=json_out_name(jstring, (char *)"event_data")) < 0)
 		return (iretn);
-	if ((iretn=json_out_string(jstring ,value.data, COSMOS_MAX_DATA)) < 0)
+	if ((iretn=json_out_string(jstring, value.data, COSMOS_MAX_DATA)) < 0)
 		return (iretn);
 	if ((iretn=json_out_character(jstring, '}')) < 0)
 		return (iretn);
@@ -1629,7 +1539,7 @@ int32_t json_out_commandevent(jstring *jstring,longeventstruc value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_dcmatt(jstring *jstring,dcmatt value)
+int32_t json_out_dcmatt(string &jstring,dcmatt value)
 {
 	int32_t iretn;
 
@@ -1669,7 +1579,7 @@ int32_t json_out_dcmatt(jstring *jstring,dcmatt value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_qatt(jstring *jstring,qatt value)
+int32_t json_out_qatt(string &jstring,qatt value)
 {
 	int32_t iretn;
 
@@ -1716,7 +1626,7 @@ int32_t json_out_qatt(jstring *jstring,qatt value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_dcm(jstring *jstring,rmatrix value)
+int32_t json_out_dcm(string &jstring,rmatrix value)
 {
 	int32_t iretn;
 
@@ -1750,7 +1660,7 @@ int32_t json_out_dcm(jstring *jstring,rmatrix value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_rmatrix(jstring *jstring,rmatrix value)
+int32_t json_out_rmatrix(string &jstring,rmatrix value)
 {
 	int32_t iretn;
 
@@ -1789,7 +1699,7 @@ int32_t json_out_rmatrix(jstring *jstring,rmatrix value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_beatstruc(jstring *jstring,beatstruc value)
+int32_t json_out_beatstruc(string &jstring,beatstruc value)
 {
 	int32_t iretn;
 
@@ -1846,7 +1756,7 @@ int32_t json_out_beatstruc(jstring *jstring,beatstruc value)
 	\param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_1d(jstring *jstring, const char *token, uint16_t index, cosmosstruc *cdata)
+int32_t json_out_1d(string &jstring, const char *token, uint16_t index, cosmosstruc *cdata)
 {
 	char name[COSMOS_MAX_NAME+1];
 	int32_t iretn;
@@ -1870,7 +1780,7 @@ int32_t json_out_1d(jstring *jstring, const char *token, uint16_t index, cosmoss
 	\param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_2d(jstring *jstring, const char *token, uint16_t row, uint16_t col, cosmosstruc *cdata)
+int32_t json_out_2d(string &jstring, const char *token, uint16_t row, uint16_t col, cosmosstruc *cdata)
 {
 	char name[COSMOS_MAX_NAME+1];
 	int32_t iretn;
@@ -1893,7 +1803,7 @@ int32_t json_out_2d(jstring *jstring, const char *token, uint16_t row, uint16_t 
 	\param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out(jstring *jstring, string token, cosmosstruc *cdata)
+int32_t json_out(string &jstring, string token, cosmosstruc *cdata)
 {
 	jsonhandle h;
 
@@ -1919,7 +1829,7 @@ int32_t json_out(jstring *jstring, string token, cosmosstruc *cdata)
 	\param tokens The comma separated list of JSON names for the desired variables.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_list(jstring *jstring,const char *tokens, cosmosstruc *cdata)
+int32_t json_out_list(string &jstring,const char *tokens, cosmosstruc *cdata)
 {
 	string tstring;
 	const char **pointer;
@@ -1950,7 +1860,7 @@ int32_t json_out_list(jstring *jstring,const char *tokens, cosmosstruc *cdata)
 	\return  0 if successful, negative error otherwise
 */
 
-int32_t json_out_wildcard(jstring *jstring,const char *wildcard, cosmosstruc *cdata)
+int32_t json_out_wildcard(string &jstring,const char *wildcard, cosmosstruc *cdata)
 {
 	int32_t iretn=0;
 	jsonhandle h;
@@ -4319,10 +4229,10 @@ int32_t json_setup_node(string node, cosmosstruc *cdata)
  */
 int32_t json_dump_node(cosmosstruc *cdata)
 {
-	jstring jst = {0, 0, 0};
+	string jst;
 
 	// Node
-	char *output = json_node(&jst, cdata);
+	string output = json_node(jst, cdata);
 	string fileloc = get_nodedir(cdata->node.name);
 	string filename = fileloc + "/node.ini";
 	FILE *file = fopen(filename.c_str(), "w");
@@ -4330,51 +4240,51 @@ int32_t json_dump_node(cosmosstruc *cdata)
 	{
 		return -errno;
 	}
-	fputs(output, file);
+	fputs(output.c_str(), file);
 	fclose(file);
 
 	// Pieces
-	output = json_pieces(&jst, cdata);
+	output = json_pieces(jst, cdata);
 	filename = fileloc + "/pieces.ini";
 	file = fopen(filename.c_str(), "w");
 	if (file == NULL)
 	{
 		return -errno;
 	}
-	fputs(output, file);
+	fputs(output.c_str(), file);
 	fclose(file);
 
 	// General Devices
-	output = json_devices_general(&jst, cdata);
+	output = json_devices_general(jst, cdata);
 	filename = fileloc + "/devices_general.ini";
 	file = fopen(filename.c_str(), "w");
 	if (file == NULL)
 	{
 		return -errno;
 	}
-	fputs(output, file);
+	fputs(output.c_str(), file);
 	fclose(file);
 
 	// Specific Devices
-	output = json_devices_specific(&jst, cdata);
+	output = json_devices_specific(jst, cdata);
 	filename = fileloc + "/devices_specific.ini";
 	file = fopen(filename.c_str(), "w");
 	if (file == NULL)
 	{
 		return -errno;
 	}
-	fputs(output, file);
+	fputs(output.c_str(), file);
 	fclose(file);
 
 	// Ports
-	output = json_ports(&jst, cdata);
+	output = json_ports(jst, cdata);
 	filename = fileloc + "/ports.ini";
 	file = fopen(filename.c_str(), "w");
 	if (file == NULL)
 	{
 		return -errno;
 	}
-	fputs(output, file);
+	fputs(output.c_str(), file);
 	fclose(file);
 
 	return 0;
@@ -4973,18 +4883,17 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 	\param cdata Pointer to cdata ::cosmosstruc to be used.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_wildcard(jstring *jstring, char *wildcard, cosmosstruc *cdata)
+const char *json_of_wildcard(string &jstring, char *wildcard, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
-	iretn = json_startout(jstring);
+	iretn = json_out_wildcard(jstring, wildcard, cdata);
 	if (iretn < 0)
-		return (NULL);
+	{
+		return nullptr;
+	}
 
-	json_out_wildcard(jstring, wildcard, cdata);
-	json_stopout(jstring);
-
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Create JSON stream from list
@@ -4993,21 +4902,15 @@ char *json_of_wildcard(jstring *jstring, char *wildcard, cosmosstruc *cdata)
 	\param cdata Pointer to cdata ::cosmosstruc to be used.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_list(jstring *jstring, const char *list, cosmosstruc *cdata)
+const char *json_of_list(string &jstring, const char *list, cosmosstruc *cdata)
 {
 	int32_t iretn;
-
-	iretn = json_startout(jstring);
-	if (iretn < 0)
-		return (NULL);
 
 	iretn = json_out_list(jstring, list, cdata);
 	if (iretn < 0 && iretn != JSON_ERROR_EOS)
 		return (NULL);
 
-	json_stopout(jstring);
-
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Create JSON stream from entries
@@ -5017,14 +4920,8 @@ char *json_of_list(jstring *jstring, const char *list, cosmosstruc *cdata)
 	\param cdata Pointer to cdata ::cosmosstruc to be used.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_table(jstring *jstring, vector<jsonentry*> table, cosmosstruc *cdata)
+const char *json_of_table(string &jstring, vector<jsonentry*> table, cosmosstruc *cdata)
 {
-	int32_t iretn;
-
-	iretn = json_startout(jstring);
-	if (iretn < 0)
-		return (NULL);
-
 	for (auto entry: table)
 	{
 		if (entry != NULL)
@@ -5033,9 +4930,7 @@ char *json_of_table(jstring *jstring, vector<jsonentry*> table, cosmosstruc *cda
 		}
 	}
 
-	json_stopout(jstring);
-
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Create JSON Track string
@@ -5045,29 +4940,67 @@ char *json_of_table(jstring *jstring, vector<jsonentry*> table, cosmosstruc *cda
  \param cdata->dyn A pointer to the beginning of the ::cosmosstruc_d to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_target(jstring *jstring, cosmosstruc *cdata, int32_t num)
+const char *json_of_target(string &jstring, cosmosstruc *cdata, int32_t num)
 {
 	int32_t iretn;
 
-	iretn = json_startout(jstring);
-	if (iretn < 0)
-		return (NULL);
-
 	iretn = json_out_1d(jstring,(char *)"target_utc",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_name",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_type",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_azfrom",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_elfrom",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_azto",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_elto",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_min",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_range",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_close",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out_1d(jstring,(char *)"target_loc_pos_geod",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 
-	json_stopout(jstring);
-
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Create JSON Node string
@@ -5076,31 +5009,77 @@ char *json_of_target(jstring *jstring, cosmosstruc *cdata, int32_t num)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_node(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_node(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
-	iretn = json_startout(jstring);
-	if (iretn < 0)
-		return (NULL);
-
 	iretn = json_out(jstring,(char *)"node_utcstart",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_utc",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_name",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_type",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_mass",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_moi",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_battcap",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_battlev",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_powchg",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_powgen",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_powuse",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_baryc",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"node_icrf",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 
-	json_stopout(jstring);
-
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Create JSON Agent string
@@ -5109,29 +5088,67 @@ char *json_of_node(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_agent(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_agent(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
-	iretn = json_startout(jstring);
-	if (iretn < 0)
-		return (NULL);
-
 	iretn = json_out(jstring,(char *)"agent_utc",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_node",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_proc",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_user",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_aprd",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_bprd",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_port",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_bsz",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_addr",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_pid",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 	iretn = json_out(jstring,(char *)"agent_stateflag",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 
-	json_stopout(jstring);
-
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Create JSON Time string
@@ -5142,13 +5159,9 @@ char *json_of_agent(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_time(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_time(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
-
-	iretn = json_startout(jstring);
-	if (iretn < 0)
-		return (NULL);
 
 	iretn = json_out(jstring,(char *)"node_utcstart",cdata);
 	if (iretn < 0)
@@ -5159,9 +5172,8 @@ char *json_of_time(jstring *jstring, cosmosstruc *cdata)
 	iretn = json_out(jstring,(char *)"node_utcoffset",cdata);
 	if (iretn < 0)
 		return (NULL);
-	json_stopout(jstring);
 
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Create JSON Heart Beat string
@@ -5171,19 +5183,15 @@ char *json_of_time(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_beat(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_beat(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
-	iretn = json_startout(jstring);
-	if (iretn < 0)
-		return (NULL);
 	iretn = json_out(jstring,(char *)"beat",cdata);
 	if (iretn < 0)
 		return (NULL);
-	json_stopout(jstring);
 
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Create JSON Beacon string
@@ -5192,27 +5200,67 @@ char *json_of_beat(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_beacon(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_beacon(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
-	iretn = json_startout(jstring);
+	iretn = json_out(jstring,(char *)"node_name",cdata);
 	if (iretn < 0)
-		return (NULL);
-	json_out(jstring,(char *)"node_name",cdata);
-	json_out(jstring,(char *)"node_type",cdata);
-	json_out(jstring,(char *)"node_utcstart",cdata);
-	json_out(jstring,(char *)"node_utc",cdata);
-	json_out(jstring,(char *)"node_utcoffset",cdata);
-	json_out(jstring,(char *)"node_loc_pos_eci",cdata);
-	json_out(jstring,(char *)"node_loc_att_icrf",cdata);
-	json_out(jstring,(char *)"node_powgen",cdata);
-	json_out(jstring,(char *)"node_powuse",cdata);
-	json_out(jstring,(char *)"node_powchg",cdata);
-	json_out(jstring,(char *)"node_battlev",cdata);
-	json_stopout(jstring);
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_type",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_utcstart",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_utc",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_utcoffset",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_loc_pos_eci",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_loc_att_icrf",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_powgen",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_powuse",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_powchg",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out(jstring,(char *)"node_battlev",cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Create JSON IMU string
@@ -5222,31 +5270,56 @@ char *json_of_beacon(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-char *json_of_imu(jstring *jstring, uint16_t num, cosmosstruc *cdata)
+const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
-	iretn = json_startout(jstring);
+	iretn = json_out_1d(jstring,(char *)"device_imu_att",num,cdata);
 	if (iretn < 0)
-		return (NULL);
-	json_out_1d(jstring,(char *)"device_imu_att",num,cdata);
-	json_out_1d(jstring,(char *)"device_imu_align",num,cdata);
-	json_out_1d(jstring,(char *)"device_imu_cidx",num,cdata);
-	json_out_1d(jstring,(char *)"device_imu_portidx",num,cdata);
-	json_out_1d(jstring,(char *)"device_imu_cnt",num,cdata);
-	json_out_1d(jstring,(char *)"device_imu_mag",num,cdata);
-	json_out_1d(jstring,(char *)"device_imu_bdot",num,cdata);
-	json_out_1d(jstring,(char *)"device_imu_pos",num,cdata);
-	json_stopout(jstring);
+	{
+		return nullptr;
+	}
+	iretn = json_out_1d(jstring,(char *)"device_imu_align",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out_1d(jstring,(char *)"device_imu_cidx",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out_1d(jstring,(char *)"device_imu_portidx",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out_1d(jstring,(char *)"device_imu_cnt",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out_1d(jstring,(char *)"device_imu_mag",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out_1d(jstring,(char *)"device_imu_bdot",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
+	iretn = json_out_1d(jstring,(char *)"device_imu_pos",num,cdata);
+	if (iretn < 0)
+	{
+		return nullptr;
+	}
 
-	return (jstring->string);
+	return jstring.data();
 }
 
-char *json_of_ephemeris(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_ephemeris(string &jstring, cosmosstruc *cdata)
 {
-
-	json_startout(jstring);
-
 	// Location
 	json_out(jstring,(char *)"node_utcstart",cdata);
 	json_out(jstring,(char *)"node_utc",cdata);
@@ -5255,20 +5328,16 @@ char *json_of_ephemeris(jstring *jstring, cosmosstruc *cdata)
 	json_out(jstring,(char *)"node_type",cdata);
 	json_out(jstring,(char *)"node_loc_pos_eci",cdata);
 
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
-char *json_of_utc(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_utc(string &jstring, cosmosstruc *cdata)
 {
-	json_startout(jstring);
-
 	// Time
 	json_out(jstring,(char *)"node_utcstart",cdata);
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
 string json_list_of_soh(cosmosstruc* cdata)
@@ -5490,11 +5559,9 @@ string json_list_of_soh(cosmosstruc* cdata)
 
 }
 
-char *json_of_soh(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_soh(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
-
-	json_startout(jstring);
 
 	// Time
 	json_out(jstring,(char *)"node_utcoffset",cdata);
@@ -5505,8 +5572,7 @@ char *json_of_soh(jstring *jstring, cosmosstruc *cdata)
 	if (iretn < 0 && iretn != JSON_ERROR_EOS)
 		return (NULL);
 
-	json_stopout(jstring);
-	return jstring->string;
+	return jstring.data();
 }
 
 //! Create JSON for an event
@@ -5516,10 +5582,8 @@ char *json_of_soh(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string created.
 */
-char *json_of_event(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_event(string &jstring, cosmosstruc *cdata)
 {
-	json_startout(jstring);
-
 	json_out(jstring,(char *)"event_utc", cdata);
 	if (json_get_double_name("event_utcexec", cdata) != 0.) json_out(jstring,(char *)"event_utcexec", cdata);
 	json_out(jstring,(char *)"event_node", cdata);
@@ -5538,15 +5602,12 @@ char *json_of_event(jstring *jstring, cosmosstruc *cdata)
 	if (json_get_double_name("event_dbytes", cdata) != 0.) json_out(jstring,"event_dbytes", cdata);
 	if (json_get_double_name("event_cbytes", cdata) != 0.) json_out(jstring,"event_cbytes", cdata);
 
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
-char *json_of_groundcontact(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_groundcontact(string &jstring, cosmosstruc *cdata)
 {
 	int16_t i;
-
-	json_startout(jstring);
 
 	json_out(jstring,(char *)"node_utcstart",cdata);
 	json_out(jstring,(char *)"node_utc",cdata);
@@ -5558,13 +5619,11 @@ char *json_of_groundcontact(jstring *jstring, cosmosstruc *cdata)
 		json_out_1d(jstring,(char *)"gs_el",i,cdata);
 	}
 
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
-char *json_of_mtr(jstring *jstring,uint16_t index, cosmosstruc *cdata)
+const char *json_of_mtr(string &jstring,uint16_t index, cosmosstruc *cdata)
 {
-	json_startout(jstring);
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
 
@@ -5573,14 +5632,12 @@ char *json_of_mtr(jstring *jstring,uint16_t index, cosmosstruc *cdata)
 	json_out_1d(jstring,(char *)"device_mtr_mom",index,cdata);
 	json_out_1d(jstring,(char *)"device_mtr_rmom",index,cdata);
 
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
 
-char *json_of_rw(jstring *jstring,uint16_t index, cosmosstruc *cdata)
+const char *json_of_rw(string &jstring,uint16_t index, cosmosstruc *cdata)
 {
-	json_startout(jstring);
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
 
@@ -5595,19 +5652,16 @@ char *json_of_rw(jstring *jstring,uint16_t index, cosmosstruc *cdata)
 	json_out_1d(jstring,(char *)"device_rw_romg",index,cdata);
 	json_out_1d(jstring,(char *)"device_rw_ralp",index,cdata);
 
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
-char *json_of_statevec(jstring *jstring, cosmosstruc *cdata)
+const char *json_of_statevec(string &jstring, cosmosstruc *cdata)
 {
-	json_startout(jstring);
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
 	json_out(jstring,(char *)"node_loc_att_icrf",cdata);
 	json_out(jstring,(char *)"node_loc_pos_eci",cdata);
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Dump Node description
@@ -5617,10 +5671,8 @@ char *json_of_statevec(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-char *json_node(jstring *jstring, cosmosstruc *cdata)
+const char *json_node(string &jstring, cosmosstruc *cdata)
 {
-
-	json_startout(jstring);
 
 	//	json_out(jstring,(char *)"node_name",cdata);
 	//	json_out_character(jstring, '\n');
@@ -5633,8 +5685,7 @@ char *json_node(jstring *jstring, cosmosstruc *cdata)
 	json_out(jstring,(char *)"port_cnt",cdata);
 	json_out_character(jstring, '\n');
 
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Dump Piece description
@@ -5644,11 +5695,9 @@ char *json_node(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-char *json_pieces(jstring *jstring, cosmosstruc *cdata)
+const char *json_pieces(string &jstring, cosmosstruc *cdata)
 {
 	uint16_t cnt;
-
-	json_startout(jstring);
 
 	// Dump structures
 	for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"piece_cnt",cdata); i++)
@@ -5682,8 +5731,7 @@ char *json_pieces(jstring *jstring, cosmosstruc *cdata)
 	}
 
 
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Dump General Device description
@@ -5693,10 +5741,8 @@ char *json_pieces(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-char *json_devices_general(jstring *jstring, cosmosstruc *cdata)
+const char *json_devices_general(string &jstring, cosmosstruc *cdata)
 {
-
-	json_startout(jstring);
 
 	// Dump components
 	for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"comp_cnt",cdata); i++)
@@ -5718,8 +5764,7 @@ char *json_devices_general(jstring *jstring, cosmosstruc *cdata)
 	}
 
 
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Dump Specific Device description
@@ -5729,12 +5774,10 @@ char *json_devices_general(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-char *json_devices_specific(jstring *jstring, cosmosstruc *cdata)
+const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 {
 	uint16_t cnt;
 	char tstring[COSMOS_MAX_NAME];
-
-	json_startout(jstring);
 
 	// Dump device specific info
 	for (uint16_t i=0; i<DEVICE_TYPE_COUNT; ++i)
@@ -6005,9 +6048,7 @@ char *json_devices_specific(jstring *jstring, cosmosstruc *cdata)
 		}
 	}
 
-
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
 //! Dump Port description
@@ -6017,10 +6058,8 @@ char *json_devices_specific(jstring *jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-char *json_ports(jstring *jstring, cosmosstruc *cdata)
+const char *json_ports(string &jstring, cosmosstruc *cdata)
 {
-
-	json_startout(jstring);
 
 	// Dump Port table
 	for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"port_cnt",cdata); i++)
@@ -6031,8 +6070,7 @@ char *json_ports(jstring *jstring, cosmosstruc *cdata)
 		json_out_character(jstring, '\n');
 	}
 
-	json_stopout(jstring);
-	return (jstring->string);
+	return jstring.data();
 }
 
 void json_test(cosmosstruc *cdata)
@@ -6814,15 +6852,15 @@ int update_target(cosmosstruc *cdata)
 		dv = rv_sub(cdata->target[i].loc.pos.geoc.v,cdata->node.loc.pos.geoc.v);
 		cdata->target[i].close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
 	}
-	for (uint32_t i=cdata->target.size(); i<100; ++i)
-	{
-		cdata->target[i].azto = NAN;
-		cdata->target[i].elto = NAN;
-		cdata->target[i].azfrom = NAN;
-		cdata->target[i].elfrom = NAN;
-		cdata->target[i].range = NAN;
-		cdata->target[i].close = NAN;
-	}
+//	for (uint32_t i=0; i<cdata->target.size(); ++i)
+//	{
+//		cdata->target[i].azto = NAN;
+//		cdata->target[i].elto = NAN;
+//		cdata->target[i].azfrom = NAN;
+//		cdata->target[i].elfrom = NAN;
+//		cdata->target[i].range = NAN;
+//		cdata->target[i].close = NAN;
+//	}
 	return 0;
 }
 

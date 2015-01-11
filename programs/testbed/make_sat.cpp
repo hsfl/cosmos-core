@@ -10,9 +10,9 @@ cosmosstruc *cdata;
 int main(int argc, char *argv[])
 {
 int16_t n;
-char *output;
+string output;
 FILE *odes;
-jstring jstring={0,0,0};
+string jstring;
 
 cdata = json_create();
 load_databases(argv[1],(uint16_t)atol(argv[2]),cdata);
@@ -25,11 +25,11 @@ for (n=0; n<cdata->devspec.batt_cnt; n++)
 	}
 cdata->node.battlev = cdata->node.battcap;
 
-output = json_of_node(&jstring,cdata);
+output = json_of_node(jstring, cdata);
 odes = fopen("node.ini","w");
-fputs(output,odes);
+fputs(output.c_str(),odes);
 fclose(odes);
-//output = json_groundstation(&jstring,cdata);
+//output = json_groundstation(jstring, cdata);
 //odes = fopen("groundstation.ini","w");
 //fputs(output,odes);
 //fclose(odes);

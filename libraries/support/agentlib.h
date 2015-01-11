@@ -94,7 +94,7 @@ cosmosstruc *agent_get_cosmosstruc(cosmosstruc *cdata);
 void agent_get_ip(cosmosstruc *cdata, char* buffer, size_t buflen);
 void agent_get_ip_list(cosmosstruc *cdata, uint16_t port);
 int32_t agent_unpublish(cosmosstruc *cdata);
-int32_t agent_post(cosmosstruc *cdata, uint8_t type, char *message);
+int32_t agent_post(cosmosstruc *cdata, uint8_t type, const char *message);
 int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port);
 int32_t agent_subscribe(cosmosstruc *cdata, uint16_t type, char *address, uint16_t port);
 int32_t agent_subscribe(cosmosstruc *cdata, uint16_t type, char *address, uint16_t port, uint32_t usectimeo);

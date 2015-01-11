@@ -19,8 +19,8 @@ int myagent();
 
 int ntype = SOCKET_TYPE_UDP;
 int waitsec = 5;
-jstring reqjstring={0,0,0};
-jstring myjstring={0,0,0};
+string reqjstring;
+string myjstring;
 
 typedef struct
 {
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 	if (loadmjd(lastday) == 0. && cdata->node.type == NODE_TYPE_GROUNDSTATION)
 	{
 		cdata->node.loc.utc = currentmjd(0.);
-		cache[3].telem.push_back(json_of_list(&myjstring,(char *)"{\"node_utc\",\"node_loc_pos_geod\",\"node_loc_att_topo\",\"node_powgen\",\"node_powuse\",\"node_battlev\"",cdata));
+		cache[3].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_geod\",\"node_loc_att_topo\",\"node_powgen\",\"node_powuse\",\"node_battlev\"",cdata));
 	}
 
 	printf("Loaded day %f\n",lastday);
@@ -209,8 +209,8 @@ int main(int argc, char *argv[])
 			att_topo(&cdata->node.loc);
 			break;
 		}
-//		agent_post(cdata, AGENT_MESSAGE_SOH, json_of_list(&myjstring,cdata->agent[0].sohstring,cdata));
-		agent_post(cdata, AGENT_MESSAGE_SOH, json_of_table(&myjstring, cdata->agent[0].sohtable, cdata));
+//		agent_post(cdata, AGENT_MESSAGE_SOH, json_of_list(myjstring,cdata->agent[0].sohstring,cdata));
+		agent_post(cdata, AGENT_MESSAGE_SOH, json_of_table(myjstring, cdata->agent[0].sohtable, cdata));
 		sleept = (int)((nextmjd-currentmjd(0.))*86400000000.);
 		if (sleept < 0) sleept = 0;
 		COSMOS_USLEEP(sleept);
@@ -284,13 +284,13 @@ void loadephemeris()
 	update_target(cdata);
 	do
 	{
-		cache[3+(int)(ctime-stime)].telem.push_back(json_of_list(&myjstring,(char *)"{\"node_utc\",\"node_loc_pos_eci\",\"node_loc_att_icrf\",\"node_powgen\",\"node_powuse\",\"node_battlev\"",cdata));
+		cache[3+(int)(ctime-stime)].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_eci\",\"node_loc_att_icrf\",\"node_powgen\",\"node_powuse\",\"node_battlev\"",cdata));
 		calc_events(eventdict, cdata, events);
 		for (k=0; k<events.size(); ++k)
 		{
 			memcpy(&cdata->event[0].s,&events[k],sizeof(shorteventstruc));
 			strcpy(cdata->event[0].l.condition,cdata->emap[events[k].handle.hash][events[k].handle.index].text);
-			cache[3+(int)(ctime-stime)].event.push_back(json_of_event(&myjstring,cdata));
+			cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring,cdata));
 		}
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
 		cache[3+(int)(ctime-stime)].utime = ctime;
@@ -476,7 +476,7 @@ int32_t request_next(char *request, char* response, void *cdata)
 		case 'r':
 			if (mindex >= 0)
 			{
-				strcpy(response,json_of_target(&reqjstring,(cosmosstruc *)cdata,mindex));
+				strcpy(response,json_of_target(reqjstring, (cosmosstruc *)cdata,mindex));
 				if (mindex < ((cosmosstruc *)cdata)->node.target_cnt-1)
 					++mindex;
 				return 0;
@@ -488,7 +488,7 @@ int32_t request_next(char *request, char* response, void *cdata)
 		if (dindex <= commanddict.size())
 		{
 			((cosmosstruc *)cdata)->event[0].s = commanddict[dindex];
-			strcpy(response,json_of_event(&myjstring,(cosmosstruc *)cdata));
+			strcpy(response,json_of_event(myjstring,(cosmosstruc *)cdata));
 			if (dindex < commanddict.size()-1)
 				++dindex;
 			return 0;
@@ -504,6 +504,6 @@ int32_t request_next(char *request, char* response, void *cdata)
 */
 int32_t request_getnode(char *request, char* response, void *cdata)
 {
-	strcpy(response,json_of_node(&reqjstring,(cosmosstruc *)cdata));
+	strcpy(response,json_of_node(reqjstring, (cosmosstruc *)cdata));
 	return 0;
 }

@@ -17,8 +17,8 @@ char *output;
 
 gj_handle gjh;
 cosmosstruc *cdata;
-jstring reqjstring={0,0,0};
-jstring mainjstring={0,0,0};
+string reqjstring;
+string mainjstring;
 double logperiod=30, newlogperiod=30;
 
 char logstring[AGENTMAXBUFFER-20];
@@ -159,26 +159,26 @@ int main(int argc, char *argv[])
 
 char* request_utc(char* request, char* output)
 {
-	strcpy(output,json_of_utc(&reqjstring,cdata));
+	strcpy(output,json_of_utc(reqjstring, cdata));
 	return (output);
 }
 
 char* request_soh(char* request, char* output)
 {
-	strcpy(output,json_of_soh(&reqjstring,cdata));
-	//strcpy(output,json_of_beacon(&reqjstring,cdata));
+	strcpy(output,json_of_soh(reqjstring, cdata));
+	//strcpy(output,json_of_beacon(reqjstring, cdata));
 	return (output);
 }
 
 char* request_beacon(char* request, char* output)
 {
-	strcpy(output,json_of_beacon(&reqjstring,cdata));
+	strcpy(output,json_of_beacon(reqjstring, cdata));
 	return (output);
 }
 
 char* request_statevec(char* request, char* output)
 {
-	strcpy(output,json_of_statevec(&reqjstring,cdata));
+	strcpy(output,json_of_statevec(reqjstring, cdata));
 	return (output);
 }
 
@@ -203,7 +203,7 @@ char* request_imu(char* request, char* output)
 	int j;
 
 	sscanf(request,"imu %d",&j);
-	strcpy(output,json_of_imu(&reqjstring,j,cdata));
+	strcpy(output,json_of_imu(reqjstring, j, cdata));
 	printf("%s\n",output);
 	return (output);
 }   
@@ -213,7 +213,7 @@ char* request_get_rw(char* request, char* output)
 	int j;
 
 	sscanf(request,"get_rw %d",&j);
-	strcpy(output,json_of_rw(&reqjstring,j,cdata));
+	strcpy(output,json_of_rw(reqjstring, j, cdata));
 	printf("%s\n",output);
 	return (output);
 }   
@@ -228,7 +228,7 @@ char* request_set_rw_moment(char* request, char* output)
 	cdata->devspec.rw[j]->mom.col[0] = value[0];
 	cdata->devspec.rw[j]->mom.col[1] = value[1];
 	cdata->devspec.rw[j]->mom.col[2] = value[2];
-	strcpy(output,json_of_rw(&reqjstring,j,cdata));
+	strcpy(output,json_of_rw(reqjstring, j, cdata));
 	printf("%s\n",output);
 	return (output);
 }
@@ -240,7 +240,7 @@ char* request_set_rw_omega(char* request, char* output)
 
 	sscanf(request,"%*s %d %lf",&j,&value);
 	cdata->devspec.rw[j]->omg = value;
-	strcpy(output,json_of_rw(&reqjstring,j,cdata));
+	strcpy(output,json_of_rw(reqjstring, j, cdata));
 	printf("%s\n",output);
 	return (output);
 }
@@ -252,7 +252,7 @@ char* request_set_rw_alpha(char* request, char* output)
 
 	sscanf(request,"%*s %d %lf",&j,&value);
 	cdata->devspec.rw[j]->alp = value;
-	strcpy(output,json_of_rw(&reqjstring,j,cdata));
+	strcpy(output,json_of_rw(reqjstring, j, cdata));
 	printf("%s\n",output);
 	return (output);
 }
@@ -262,7 +262,7 @@ char* request_get_mtr(char* request, char* output)
 	int j;
 
 	sscanf(request,"get_mtr %d",&j);
-	strcpy(output,json_of_mtr(&reqjstring,j,cdata));
+	strcpy(output,json_of_mtr(reqjstring, j, cdata));
 	printf("%s\n",output);
 	return (output);
 }
@@ -277,7 +277,7 @@ char* request_set_mtr_moment(char* request, char* output)
 	//cdata->devspec.mtr[j]->mom.col[0] = value[0];
 	//cdata->devspec.mtr[j]->mom.col[1] = value[1];
 	//cdata->devspec.mtr[j]->mom.col[2] = value[2];
-	strcpy(output,json_of_mtr(&reqjstring,j,cdata));
+	strcpy(output,json_of_mtr(reqjstring, j, cdata));
 	printf("%s\n",output);
 	return (output);
 }
@@ -290,7 +290,7 @@ char* request_set_mtr_current(char* request, char* output)
 	sscanf(request,"set_mtr_current %d %lf",&j,&value);
 
 	cdata->device[cdata->devspec.mtr[j]->cidx].gen.amp = value;
-	strcpy(output,json_of_mtr(&reqjstring,j,cdata));
+	strcpy(output,json_of_mtr(reqjstring, j, cdata));
 	printf("%s\n",output);
 	return (output);
 }
@@ -303,7 +303,7 @@ char* request_set_mtr_field(char* request, char* output)
 	sscanf(request,"set_mtr_field %d %lf",&j,&value);
 
 	cdata->device[cdata->devspec.mtr[j]->cidx].gen.amp = value*(4.838e-3+value*(-3.958e-5+value*3.053e-6));
-	strcpy(output,json_of_rw(&reqjstring,j,cdata));
+	strcpy(output,json_of_rw(reqjstring, j, cdata));
 	return (output);
 }
 

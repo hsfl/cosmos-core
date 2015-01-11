@@ -185,7 +185,7 @@ int		oldday, iyear, iday ;
 double 	year, day, cmjd, nmjd, period;
 struct 	timeval mytime;
 unsigned long usec;
-jstring jstring = {0, 0, 0};
+string jstring;
 oldday = -1 ;
 
 //FILE *flog = NULL ;
@@ -275,29 +275,29 @@ while(agent_running(cdata))
 	cdata->node.loc.pos.geod.utc = currentmjd(0);
 	pos_geod(&cdata->node.loc);
 
-	agent_post(cdata, AGENT_MESSAGE_SOH,json_of_soh(&jstring,cdata));
-	fprintf (fout, "%s", jstring.string) ;
-	agent_post(cdata, AGENT_MESSAGE_TIME,json_of_time(&jstring,cdata));
-	fprintf (fout, "%s", jstring.string) ;
+	agent_post(cdata, AGENT_MESSAGE_SOH,json_of_soh(jstring, cdata));
+	fprintf (fout, "%s", jstring.c_str()) ;
+	agent_post(cdata, AGENT_MESSAGE_TIME,json_of_time(jstring, cdata));
+	fprintf (fout, "%s", jstring.c_str()) ;
 
 	//json_startout (&jstring) ;
-	//json_out (&jstring, "timestamp") ;
-	//json_out_1d (&jstring, "imu_att", 0) ;
-	//strcpy (outstrbig, jstring.string) ;
+	//json_out (jstring,  "timestamp") ;
+	//json_out_1d (jstring,  "imu_att", 0) ;
+	//strcpy (outstrbig, jstring) ;
 	//iretn = agent_post(cdata, AGENT_MESSAGE_GENERIC,outstrbig) ;
 	//fprintf (fout, "%s", outstrbig) ;
-	//json_out (&jstring, "motr_cnt") ;
+	//json_out (jstring,  "motr_cnt") ;
 	//for (i=0; i<4; i++)
-	//json_out_1d (&jstring, "motr_spd", i) ;
-	//strcpy (outstrbig, jstring.string) ;
+	//json_out_1d (jstring,  "motr_spd", i) ;
+	//strcpy (outstrbig, jstring) ;
 	//iretn = agent_post(cdata, AGENT_MESSAGE_GENERIC,outstrbig) ;
 	//fprintf (fout, "%s\r\n", outstrbig) ;
 	fflush (fout) ;
 
 	/*
-	iretn = agent_post(cdata, AGENT_MESSAGE_GENERIC,json_out(&jstring,"motr_cnt"));
+	iretn = agent_post(cdata, AGENT_MESSAGE_GENERIC,json_out(jstring, "motr_cnt"));
 	for (i=0; i<4; i++)
-	iretn = agent_post(cdata, AGENT_MESSAGE_GENERIC,json_out_1d(&jstring,"motr_spd",i));
+	iretn = agent_post(cdata, AGENT_MESSAGE_GENERIC,json_out_1d(jstring, "motr_spd",i));
 	*/
 	//fprintf (flog, "%s\r\n", outstrbig) ;
 

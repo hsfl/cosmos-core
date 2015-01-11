@@ -21,12 +21,13 @@ int main(int argc, char *argv[])
 	double fyear;
 	beatstruc imubeat;
 	double mjdnow, lastlat, lastsunradiance, fd, lastgsel[MAXTRACK];
-	char *output, date[30];
+	string output;
+	char date[30];
 	FILE *eout, *fout;
 	int i, j, iretn, gsup[MAXTRACK];
 	int year, month, day, hour, minute, second;
 	struct stat sbuf;
-	jstring jstring={0};
+	string jstring;
 
 	cdata = json_create();
 	node_init(argv[1],cdata);
@@ -71,8 +72,8 @@ int main(int argc, char *argv[])
 	{
 		mjdnow += 10./86400.;
 		gauss_jackson_propagate(gjh, *cdata, mjdnow);
-		output = json_of_ephemeris(&jstring, cdata);
-		fprintf(fout,"%s\n",output);
+		output = json_of_ephemeris(jstring,  cdata);
+		fprintf(fout,"%s\n",output.c_str());
 		fflush(fout);
 		mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
 		hour = (int)(24. * fd);

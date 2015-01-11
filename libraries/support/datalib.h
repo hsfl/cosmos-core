@@ -114,6 +114,7 @@ void set_cosmosnodes(string name);
 string get_cosmosnodes();
 string get_nodedir(string node);
 string set_nodedir(string node);
+int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result);
 int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
 double findlastday(string node);
 double findfirstday(string node);

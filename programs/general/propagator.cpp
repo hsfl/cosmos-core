@@ -13,7 +13,7 @@ cosmosstruc* cdata;
 gj_handle gjh;
 vector<shorteventstruc> eventdict;
 vector<shorteventstruc> events;
-jstring mainjstring={0,0,0};
+string mainjstring;
 
 void endline(){
     cout << endl;
@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
 
 		update_target(cdata);
 		calc_events(eventdict, cdata, events);
-		agent_post(cdata, AGENT_MESSAGE_SOH,json_of_table(&mainjstring, cdata->agent[0].sohtable, cdata));
+		agent_post(cdata, AGENT_MESSAGE_SOH,json_of_table(mainjstring,  cdata->agent[0].sohtable, cdata));
 		double dsleep = 1000000. * 86400.*(sohtimer - mjdnow);
 		if (dsleep > 0.)
 		{
