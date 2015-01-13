@@ -87,7 +87,7 @@ int32_t vn100_measurements(vn100_handle *handle)
 		&handle->imu.omega.col[0],
 		&handle->imu.omega.col[1],
 		&handle->imu.omega.col[2],
-		&handle->imu.temp);
+		&handle->imu.gen.temp);
 
 	if (iretn != 10)
 	{
@@ -132,7 +132,7 @@ int32_t vn100_voltages(vn100_handle *handle)
 		&handle->imu.omega.col[0],
 		&handle->imu.omega.col[1],
 		&handle->imu.omega.col[2],
-		&handle->imu.temp);
+		&handle->imu.gen.temp);
 	
 	return(0);
 }

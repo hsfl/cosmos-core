@@ -66,7 +66,7 @@ do
 //		printf("%f %f %f %f ",vec.col[0],vec.col[1],vec.col[2],length_rv(vec));
 //		printf("%f %f %f
 //		",cdata->node.info.powuse,cdata->node.info.powgen,cdata->node.info.battlev);
-//		printf("%f %f %f %f",cdata->devspec.rw[0]->omega,cdata->devspec.rw[0]->alpha,cdata->device[cdata->devspec.rw[0]->cidx].gen.current,cdata->node.info.powuse);
+//		printf("%f %f %f %f",cdata->devspec.rw[0]->omega,cdata->devspec.rw[0]->alpha,cdata->device[cdata->devspec.rw[0]->gen.cidx].gen.current,cdata->node.info.powuse);
 	localtime = atan2(cdata->node.loc.pos.baryc.s.col[1],cdata->node.loc.pos.baryc.s.col[0]);
 	if (localtime < 0.)
 		localtime += D2PI;

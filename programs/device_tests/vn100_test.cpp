@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 		simu.mag = rv_zero();
 		simu.omega = rv_zero();
 		simu.accel = rv_zero();
-		simu.temp = 0;
+		simu.gen.temp = 0;
 		for (uint16_t j=0; j<10; ++j)
 		{
 			vn100_measurements(&handle);
@@ -66,17 +66,17 @@ int main(int argc, char *argv[])
 			simu.mag = rv_add(simu.mag, handle.imu.mag);
 			simu.omega = rv_add(simu.omega, handle.imu.omega);
 			simu.accel = rv_add(simu.accel, handle.imu.accel);
-			simu.temp += handle.imu.temp;
+			simu.gen.temp += handle.imu.gen.temp;
 		}
 
 		simu.mag = rv_smult(.1, simu.mag);
 		simu.omega = rv_smult(.1, simu.omega);
 		simu.accel = rv_smult(.1, simu.accel);
-		simu.temp /= 10.;
+		simu.gen.temp /= 10.;
 		FILE *fp = fopen("mag_log.txt","a");
-		fprintf(fp,"Time:\t%f\tMag:\t%f\t%f\t%f\t%f\tAccel:\t%f\t%f\t%f\t%f,\tOmega:\t%f\t%f\t%f\t%f\tTemp:\t%f\n",86400.*(currentmjd(0.)-lmjd),simu.mag.col[0],simu.mag.col[1],simu.mag.col[2],length_rv(simu.mag),simu.accel.col[0],simu.accel.col[1],simu.accel.col[2],length_rv(simu.accel),simu.omega.col[0],simu.omega.col[1],simu.omega.col[2],length_rv(simu.omega),simu.temp);
+		fprintf(fp,"Time:\t%f\tMag:\t%f\t%f\t%f\t%f\tAccel:\t%f\t%f\t%f\t%f,\tOmega:\t%f\t%f\t%f\t%f\tTemp:\t%f\n",86400.*(currentmjd(0.)-lmjd),simu.mag.col[0],simu.mag.col[1],simu.mag.col[2],length_rv(simu.mag),simu.accel.col[0],simu.accel.col[1],simu.accel.col[2],length_rv(simu.accel),simu.omega.col[0],simu.omega.col[1],simu.omega.col[2],length_rv(simu.omega),simu.gen.temp);
 		fclose(fp);
-		printf("Time %f Mag: %f %f %f [%f], Accel: %f %f %f [%f], Omega: %f %f %f [%f], Temp: %f\n",86400.*(currentmjd(0.)-lmjd),simu.mag.col[0],simu.mag.col[1],simu.mag.col[2],length_rv(simu.mag),simu.accel.col[0],simu.accel.col[1],simu.accel.col[2],length_rv(simu.accel),simu.omega.col[0],simu.omega.col[1],simu.omega.col[2],length_rv(simu.omega),simu.temp);
+		printf("Time %f Mag: %f %f %f [%f], Accel: %f %f %f [%f], Omega: %f %f %f [%f], Temp: %f\n",86400.*(currentmjd(0.)-lmjd),simu.mag.col[0],simu.mag.col[1],simu.mag.col[2],length_rv(simu.mag),simu.accel.col[0],simu.accel.col[1],simu.accel.col[2],length_rv(simu.accel),simu.omega.col[0],simu.omega.col[1],simu.omega.col[2],length_rv(simu.omega),simu.gen.temp);
 		COSMOS_USLEEP(100000);
 		fflush(stdout);
 		COSMOS_USLEEP(10000);

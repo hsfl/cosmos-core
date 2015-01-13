@@ -22,12 +22,12 @@ int main(int argc, char *argv[])
 			exit (-1);
 		}
 
-		if ((iretn=vmt35_connect(cdata->port[cdata->devspec.tcu[0]->portidx].name, &vmt35handle)) < 0)
+		if ((iretn=vmt35_connect(cdata->port[cdata->devspec.tcu[0]->gen.portidx].name, &vmt35handle)) < 0)
 		{
 			printf("Couldn't connect to VMT35\n");
 			exit (1);
 		}
-		printf("Connected to %s\n", cdata->port[cdata->devspec.tcu[0]->portidx].name);
+		printf("Connected to %s\n", cdata->port[cdata->devspec.tcu[0]->gen.portidx].name);
 
 		rod = argv[1][0];
 		moment = atof(argv[2]);

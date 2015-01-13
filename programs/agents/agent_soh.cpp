@@ -306,11 +306,11 @@ void collect_data_loop()
 			{
 				cdata->node.utc = cdata->node.loc.utc;
 			}
-			for (auto device: cdata->device)
+			for (devicestruc device: cdata->device)
 			{
-				if (device.gen.utc > cdata->node.utc)
+				if (device.all.gen.utc > cdata->node.utc)
 				{
-					cdata->node.utc = device.gen.utc;
+					cdata->node.utc = device.all.gen.utc;
 				}
 			}
 			cdata->node.utc = currentmjd();

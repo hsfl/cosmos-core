@@ -202,15 +202,15 @@ int main(int argc, char *argv[])
 			cdata->devspec.psen[0]->press = press / 1000.;
 
 			// Temperatures
-			cdata->devspec.tsen[0]->temp = etemp;
-			cdata->devspec.tsen[1]->temp = btemp;
-			cdata->devspec.tsen[2]->temp = atemp + 273.15;
+			cdata->devspec.tsen[0]->gen.temp = etemp;
+			cdata->devspec.tsen[1]->gen.temp = btemp;
+			cdata->devspec.tsen[2]->gen.temp = atemp + 273.15;
 
 			// GPS
 			if (fix == 1)
 			{
 			mjd = (int)currentmjd(0.) + hour / 24. + min / 1400. + sec / 86400. + hsec / 8640000.;;
-			cdata->devspec.gps[0]->utc = cdata->node.loc.utc = cdata->node.loc.pos.geod.utc = mjd;
+			cdata->devspec.gps[0]->gen.utc = cdata->node.loc.utc = cdata->node.loc.pos.geod.utc = mjd;
 			cdata->devspec.gps[0]->geocs = cdata->node.loc.pos.geoc.s;
 			cdata->node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
 			cdata->node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);

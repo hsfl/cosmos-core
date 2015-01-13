@@ -836,20 +836,20 @@ void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
 //	cdata.node.battlev = cdata.node.battcap;
 	for (i=0; i<devspec.bus_cnt; i++)
 	{
-		devspec.bus[i]->amp = 0.;
-		devspec.bus[i]->flag |= DEVICE_FLAG_ON;
+		devspec.bus[i]->gen.amp = 0.;
+		devspec.bus[i]->gen.flag |= DEVICE_FLAG_ON;
 	}
 
 	//! Initialize temperature sensors
 	for (i=0; i<devspec.tsen_cnt; i++)
 	{
-		devspec.tsen[i]->temp = 300.;
+		devspec.tsen[i]->gen.temp = 300.;
 	}
 
 	//! Reaction Wheels
 	for (i=0; i<devspec.rw_cnt; i++)
 	{
-		devspec.rw[i]->utc = loc.utc;
+		devspec.rw[i]->gen.utc = loc.utc;
 		devspec.rw[i]->omg = devspec.rw[i]->alp = 0.;
 		devspec.rw[i]->romg = devspec.rw[i]->ralp = 0.;
 	}
@@ -857,10 +857,10 @@ void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
 	//! Magnetic Torque Rods
 	if (devspec.tcu_cnt)
 	{
-		devspec.tcu[0]->utc = loc.utc;
+		devspec.tcu[0]->gen.utc = loc.utc;
 		for (i=0; i<devspec.mtr_cnt; i++)
 		{
-			devspec.mtr[i]->utc = loc.utc;
+			devspec.mtr[i]->gen.utc = loc.utc;
 			devspec.mtr[i]->mom = 0.;
 			devspec.mtr[i]->rmom = 0.;
 		}
@@ -870,7 +870,7 @@ void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
 	for (i=0; i<devspec.imu_cnt; i++)
 	{
 		initialize_imu(i, devspec, loc);
-		devspec.imu[i]->utc = loc.utc;
+		devspec.imu[i]->gen.utc = loc.utc;
 	}
 
 	//! Star Trackers
@@ -878,7 +878,7 @@ void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
 	{
 		devspec.stt[i]->att = q_mult(devspec.stt[i]->align,q_conjugate(loc.att.icrf.s));
 		devspec.stt[i]->omega = transform_q(q_conjugate(devspec.stt[i]->align),loc.att.icrf.v);
-		devspec.stt[i]->utc = loc.utc;
+		devspec.stt[i]->gen.utc = loc.utc;
 	}
 }
 
@@ -972,15 +972,15 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 				cdata.piece[i].insol = loc.pos.sunradiance * sdot/length_rv(cdata.piece[i].normal);
 				energyd =  cdata.piece[i].insol * cdata.physics.dt;
 				cdata.piece[i].heat += cdata.piece[i].area * cdata.piece[i].abs * energyd;
-				if (cdata.piece[i].cidx<DEVICE_TYPE_NONE && cdata.device[cdata.piece[i].cidx].gen.type == DEVICE_TYPE_STRG)
+				if (cdata.piece[i].cidx<DEVICE_TYPE_NONE && cdata.device[cdata.piece[i].cidx].all.gen.type == DEVICE_TYPE_STRG)
 				{
-					j = cdata.device[cdata.piece[i].cidx].gen.didx;
+					j = cdata.device[cdata.piece[i].cidx].all.gen.didx;
 					if (cdata.devspec.strg[j]->effbase > 0.)
 					{
 						efficiency = cdata.devspec.strg[j]->effbase + cdata.devspec.strg[j]->effslope * cdata.piece[i].temp;
 						cdata.devspec.strg[j]->power = cdata.piece[i].area*efficiency*cdata.piece[i].insol;
-						cdata.device[cdata.devspec.strg[j]->cidx].gen.volt = 35.;
-						cdata.device[cdata.devspec.strg[j]->cidx].gen.amp = -cdata.devspec.strg[j]->power / cdata.device[cdata.devspec.strg[j]->cidx].gen.volt;
+						cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.volt = 35.;
+						cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.amp = -cdata.devspec.strg[j]->power / cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.volt;
 						cdata.node.powgen += .4 * cdata.devspec.strg[j]->power;
 						cdata.piece[i].heat += (cdata.piece[i].abs * cdata.piece[i].area * cdata.piece[i].insol - cdata.devspec.strg[j]->power) * cdata.physics.dt;
 						cdata.piece[i].heat -= cdata.piece[i].emi * cdata.piece[i].area * energyd;
@@ -991,11 +991,11 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 			{
 				for (j=0; j<cdata.devspec.strg_cnt; j++)
 				{
-					if (cdata.device[cdata.devspec.strg[j]->cidx].gen.pidx == i)
+					if (cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.pidx == i)
 					{
 						cdata.devspec.strg[j]->power = 0.;
-						cdata.device[cdata.devspec.strg[j]->cidx].gen.volt = 0.;
-						cdata.device[cdata.devspec.strg[j]->cidx].gen.amp = 0.;
+						cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.volt = 0.;
+						cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.amp = 0.;
 						cdata.piece[i].heat -= cdata.piece[i].emi * cdata.piece[i].area * energyd;
 					}
 				}
@@ -1011,7 +1011,7 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 				cdata.piece[i].heat += cdata.piece[i].abs*cdata.piece[i].area * energyd;
 				for (j=0; j<cdata.devspec.strg_cnt; j++)
 				{
-					if (cdata.device[cdata.devspec.strg[j]->cidx].gen.pidx == i)
+					if (cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.pidx == i)
 					{
 						energy += cdata.piece[i].abs * cdata.piece[i].area * energyd;
 					}
@@ -1082,8 +1082,8 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 
 		//! Accelerate Reaction Wheel and calculate Component currents.
 		cdata.devspec.rw[i]->omg += cdata.physics.dt * cdata.devspec.rw[i]->alp + domg;
-		cdata.device[cdata.devspec.rw[i]->cidx].gen.amp = .054 * fabs(cdata.devspec.rw[i]->omg)/400. + .093 * fabs(cdata.devspec.rw[i]->alp) / 30.;
-		cdata.devspec.rw[i]->utc = loc.utc;
+		cdata.device[cdata.devspec.rw[i]->gen.cidx].all.gen.amp = .054 * fabs(cdata.devspec.rw[i]->omg)/400. + .093 * fabs(cdata.devspec.rw[i]->alp) / 30.;
+		cdata.devspec.rw[i]->gen.utc = loc.utc;
 	}
 
 	// Determine magtorquer moments in body frame
@@ -1112,15 +1112,15 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 		//! Component currents for each MTR
 		if (cdata.devspec.mtr[i]->rmom < 0.)
 		{
-			cdata.device[cdata.devspec.mtr[i]->cidx].gen.amp = cdata.devspec.mtr[i]->mom * (3.6519e-3 - cdata.devspec.mtr[i]->mom * 8.6439e-5);
+			cdata.device[cdata.devspec.mtr[i]->gen.cidx].all.gen.amp = cdata.devspec.mtr[i]->mom * (3.6519e-3 - cdata.devspec.mtr[i]->mom * 8.6439e-5);
 		}
 		else
 		{
-			cdata.device[cdata.devspec.mtr[i]->cidx].gen.amp = cdata.devspec.mtr[i]->mom * (3.6519e-3 + cdata.devspec.mtr[i]->mom * 8.6439e-5);
+			cdata.device[cdata.devspec.mtr[i]->gen.cidx].all.gen.amp = cdata.devspec.mtr[i]->mom * (3.6519e-3 + cdata.devspec.mtr[i]->mom * 8.6439e-5);
 		}
-		//	cdata.devspec.mtr[i]->mom = cdata.device[cdata.devspec.mtr[i]->cidx].gen.amp*(229.43-cdata.device[cdata.devspec.mtr[i]->cidx].gen.amp*382.65);
+		//	cdata.devspec.mtr[i]->mom = cdata.device[cdata.devspec.mtr[i]->gen.cidx].all.gen.amp*(229.43-cdata.device[cdata.devspec.mtr[i]->gen.cidx].all.gen.amp*382.65);
 
-		cdata.devspec.mtr[i]->utc = loc.utc;
+		cdata.devspec.mtr[i]->gen.utc = loc.utc;
 	}
 
 	// Get magnetic field in body frame
@@ -1133,11 +1133,11 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 	// Star Trackers
 	for (i=0; i<cdata.devspec.stt_cnt; i++)
 	{
-		cdata.devspec.stt[i]->utc = loc.utc;
+		cdata.devspec.stt[i]->gen.utc = loc.utc;
 		tq = q_mult(q_conjugate(cdata.devspec.stt[i]->align),loc.att.icrf.s);
 		cdata.devspec.stt[i]->att = tq;
 		cdata.devspec.stt[i]->omega = transform_q(tq,loc.att.icrf.v);
-		cdata.devspec.stt[i]->utc = loc.utc;
+		cdata.devspec.stt[i]->gen.utc = loc.utc;
 	}
 
 	// Inertial Measurement Units
@@ -1148,12 +1148,12 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 		// embbed into a function
 		// 'updates' cdata.devspec.imu[i] with noise modified data
 		simulate_imu(i, cdata, loc);
-		cdata.devspec.imu[i]->utc = loc.utc;
+		cdata.devspec.imu[i]->gen.utc = loc.utc;
 	}
 
 	for (i=0; i<cdata.devspec.gps_cnt; i++)
 	{
-		cdata.devspec.gps[i]->utc = loc.utc;
+		cdata.devspec.gps[i]->gen.utc = loc.utc;
 		cdata.devspec.gps[i]->geocs = loc.pos.geoc.s;
 		cdata.devspec.gps[i]->dgeocs = rv_one(5., 5., 5.);
 		cdata.devspec.gps[i]->geocv = loc.pos.geoc.v;
@@ -1212,7 +1212,7 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 				}
 			}
 		}
-		cdata.devspec.ssen[i]->utc = loc.utc;
+		cdata.devspec.ssen[i]->gen.utc = loc.utc;
 	}
 
 	// Simulate thsters
@@ -1222,14 +1222,14 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 		if (cdata.devspec.thst[i]->flw < .002)
 			cdata.devspec.thst[i]->flw = 0.;
 		cdata.devspec.prop[0]->lev -= cdata.physics.dt * cdata.devspec.thst[i]->flw;
-		cdata.devspec.thst[i]->utc = loc.utc;
+		cdata.devspec.thst[i]->gen.utc = loc.utc;
 	}
 
 	// Simulate drive motors
 	vbody = rv_zero();
 	for (i=0; i<cdata.devspec.motr_cnt; i++)
 	{
-		cdata.device[cdata.devspec.motr[i]->cidx].gen.amp = cdata.devspec.motr[i]->spd;
+		cdata.device[cdata.devspec.motr[i]->gen.cidx].all.gen.amp = cdata.devspec.motr[i]->spd;
 		vbody = rv_add(vbody,rv_smult(cdata.devspec.motr[i]->spd*cdata.devspec.motr[i]->rat,rv_unitx()));
 		if (i == cdata.devspec.motr_cnt-1)
 		{
@@ -1245,32 +1245,32 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 				break;
 			}
 		}
-		cdata.devspec.motr[i]->utc = loc.utc;
+		cdata.devspec.motr[i]->gen.utc = loc.utc;
 	}
 
 	// Power details
 	cdata.node.powuse = 0.;
 	for (i=0; i<cdata.devspec.bus_cnt; i++)
 	{
-		cdata.devspec.bus[i]->amp = 0.;
+		cdata.devspec.bus[i]->gen.amp = 0.;
 	}
 
 	for (i=0; i<cdata.node.device_cnt; i++)
 	{
-		index = cdata.device[i].gen.bidx;
+		index = cdata.device[i].all.gen.bidx;
 		if (index >= cdata.devspec.bus_cnt)
 			index = 0;
-		if (cdata.devspec.bus_cnt && cdata.device[i].gen.flag&DEVICE_FLAG_ON && cdata.devspec.bus[index]->flag&DEVICE_FLAG_ON)
+		if (cdata.devspec.bus_cnt && cdata.device[i].all.gen.flag&DEVICE_FLAG_ON && cdata.devspec.bus[index]->gen.flag&DEVICE_FLAG_ON)
 		{
-			cdata.devspec.bus[index]->amp += cdata.device[i].gen.amp;
-			if (cdata.device[i].gen.volt > cdata.devspec.bus[index]->volt)
-				cdata.devspec.bus[index]->volt = cdata.device[i].gen.volt;
-			watts = cdata.device[i].gen.amp * cdata.device[i].gen.volt;
+			cdata.devspec.bus[index]->gen.amp += cdata.device[i].all.gen.amp;
+			if (cdata.device[i].all.gen.volt > cdata.devspec.bus[index]->gen.volt)
+				cdata.devspec.bus[index]->gen.volt = cdata.device[i].all.gen.volt;
+			watts = cdata.device[i].all.gen.amp * cdata.device[i].all.gen.volt;
 			if (watts <= 0.)
 				continue;
-			if (cdata.device[i].gen.pidx < cdata.node.piece_cnt)
+			if (cdata.device[i].all.gen.pidx < cdata.node.piece_cnt)
 			{
-				cdata.piece[cdata.device[i].gen.pidx].heat += .8 * watts * cdata.physics.dt;
+				cdata.piece[cdata.device[i].all.gen.pidx].heat += .8 * watts * cdata.physics.dt;
 			}
 			cdata.node.powuse += watts;
 		}
@@ -1288,8 +1288,8 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 
 	for (i=0; i<cdata.devspec.tsen_cnt; i++)
 	{
-		cdata.devspec.tsen[i]->temp = cdata.piece[cdata.device[cdata.devspec.tsen[i]->cidx].gen.pidx].temp;
-		cdata.devspec.tsen[i]->utc = loc.utc;
+		cdata.devspec.tsen[i]->gen.temp = cdata.piece[cdata.device[cdata.devspec.tsen[i]->gen.cidx].all.gen.pidx].temp;
+		cdata.devspec.tsen[i]->gen.utc = loc.utc;
 	}
 
 	dcharge = (cdata.physics.dt/3600.) * ((cdata.node.powgen-cdata.node.powuse)) / cdata.devspec.batt_cnt;
@@ -1301,7 +1301,7 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 			cdata.devspec.batt[i]->charge = cdata.devspec.batt[i]->capacity;
 		if (cdata.devspec.batt[i]->charge < 0.)
 			cdata.devspec.batt[i]->charge = 0.;
-		cdata.devspec.batt[i]->utc = loc.utc;
+		cdata.devspec.batt[i]->gen.utc = loc.utc;
 	}
 
 	if (cdata.node.powgen > cdata.node.powuse)
@@ -1354,7 +1354,7 @@ void simulate_imu(int index, cosmosstruc &cdata, locstruc &loc)
 
 	toimu = q_mult(q_conjugate(cdata.devspec.imu[index]->align),loc.att.icrf.s);
 	//! Set time of reading
-	cdata.devspec.imu[index]->utc = loc.utc;
+	cdata.devspec.imu[index]->gen.utc = loc.utc;
 
 	//! Set raw values for accelerometer and gyros
 	cdata.devspec.imu[index]->accel = transform_q(toimu,loc.pos.baryc.a);

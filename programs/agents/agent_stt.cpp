@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		// Attempt to initialize hardware.
-		if ((iretn = sinclair_stt_connect(cdata->port[cdata->devspec.stt[0]->portidx].name,(uint8_t)0x11,(uint8_t)0x0E, &stth)) < 0)
+		if ((iretn = sinclair_stt_connect(cdata->port[cdata->devspec.stt[0]->gen.portidx].name,(uint8_t)0x11,(uint8_t)0x0E, &stth)) < 0)
 		{
 			//if ((&stth = sinclair_stt_connect("/dev/ttyUSB0",(uint8_t)0x11,(uint8_t)0x0E)) < 0)
 			printf("Connection Error: Star tracker not found for [%s]:%d\nAgent will continue\n\n",cdata->node.name, iretn);
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
 
 	for (uint32_t i=0; i<cdata->devspec.stt_cnt; ++i) {
-		if (!(cdata->devspec.stt[0]->flag&DEVICE_FLAG_SIMULATED)) {
+		if (!(cdata->devspec.stt[0]->gen.flag&DEVICE_FLAG_SIMULATED)) {
 			// Close the star tracker on exit.
 			sinclair_disconnect(&stth);
 		}
@@ -337,7 +337,7 @@ void sendComboCommand(uint32_t stt_num)
 
 	cdata->devspec.stt[stt_num]->retcode = ReturnCode;  // return code
 	cdata->devspec.stt[stt_num]->status = statusBits;   // Status bits
-	cdata->devspec.stt[stt_num]->temp = ProcTemp;       // Start Tracker processor temperature
+	cdata->devspec.stt[stt_num]->gen.temp = ProcTemp;       // Start Tracker processor temperature
 
 	//    Return Code
 	//    Bit 0    Image 1 output quality

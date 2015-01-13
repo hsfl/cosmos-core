@@ -20,14 +20,14 @@ int main(int argc, char *argv[])
 			exit (-1);
 		}
 
-		if ((iretn=vmt35_connect(cdata->port[cdata->devspec.tcu[0]->portidx].name, &vmt35handle)) < 0)
+		if ((iretn=vmt35_connect(cdata->port[cdata->devspec.tcu[0]->gen.portidx].name, &vmt35handle)) < 0)
 		{
 			printf("Couldn't connect to VMT35\n");
 			exit (1);
 		}
 
 
-		if ((iretn=vn100_connect(cdata->port[cdata->devspec.imu[0]->portidx].name, &vn100handle)) != 0)
+		if ((iretn=vn100_connect(cdata->port[cdata->devspec.imu[0]->gen.portidx].name, &vn100handle)) != 0)
 		{
 			printf("Couldn't connect to VN100\n");
 			exit (1);

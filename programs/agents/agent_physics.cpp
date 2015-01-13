@@ -189,11 +189,11 @@ char* request_set_bus(char* request, char* output)
 	sscanf(request,"set_bus %d %d",&j, &k);
 	if (k)
 	{
-		cdata->devspec.bus[j]->flag |= DEVICE_FLAG_ON;
+		cdata->devspec.bus[j]->gen.flag |= DEVICE_FLAG_ON;
 	}
 	else
 	{
-		cdata->devspec.bus[j]->flag &= ~DEVICE_FLAG_ON;
+		cdata->devspec.bus[j]->gen.flag &= ~DEVICE_FLAG_ON;
 	}
 	return (output);
 }   
@@ -289,7 +289,7 @@ char* request_set_mtr_current(char* request, char* output)
 
 	sscanf(request,"set_mtr_current %d %lf",&j,&value);
 
-	cdata->device[cdata->devspec.mtr[j]->cidx].gen.amp = value;
+	cdata->device[cdata->devspec.mtr[j]->gen.cidx].all.gen.amp = value;
 	strcpy(output,json_of_mtr(reqjstring, j, cdata));
 	printf("%s\n",output);
 	return (output);
@@ -302,7 +302,7 @@ char* request_set_mtr_field(char* request, char* output)
 
 	sscanf(request,"set_mtr_field %d %lf",&j,&value);
 
-	cdata->device[cdata->devspec.mtr[j]->cidx].gen.amp = value*(4.838e-3+value*(-3.958e-5+value*3.053e-6));
+	cdata->device[cdata->devspec.mtr[j]->gen.cidx].all.gen.amp = value*(4.838e-3+value*(-3.958e-5+value*3.053e-6));
 	strcpy(output,json_of_rw(reqjstring, j, cdata));
 	return (output);
 }

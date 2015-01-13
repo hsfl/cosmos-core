@@ -263,6 +263,10 @@ int load_target(cosmosstruc *root);
 int update_target(cosmosstruc *root);
 uint32_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *root, vector<shorteventstruc> &events);
 
+string device_type_name(uint32_t type);
+string port_type_name(uint32_t type);
+
+
 //! @}
 
 

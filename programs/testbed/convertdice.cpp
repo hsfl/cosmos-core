@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 				break;
 			for (i=0; i<14; i++)
 			{
-				if (fscanf(fp3," %f",&tsen[i].temp) == EOF)
+				if (fscanf(fp3," %f",&tsen[i].gen.temp) == EOF)
 					break;
 			}
 		} while (utc < lmjd);

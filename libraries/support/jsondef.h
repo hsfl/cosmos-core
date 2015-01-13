@@ -447,10 +447,17 @@ enum
 //! \ingroup defs_comp
 //! \defgroup defs_comp_port IO Port types.
 //! @{
-#define COMP_PORT_TYPE_RS232 0
-#define COMP_PORT_TYPE_RS422 1
-#define COMP_PORT_TYPE_ETHERNET 2
-#define COMP_PORT_TYPE_USB 3
+//!
+enum
+	{
+	PORT_TYPE_RS232 = 0,
+	PORT_TYPE_RS422 = 1,
+	PORT_TYPE_ETHERNET = 2,
+	PORT_TYPE_USB = 3,
+	PORT_TYPE_COUNT,
+	PORT_TYPE_NONE = 65535
+	};
+
 //! @}
 //! @}
 
@@ -466,7 +473,7 @@ enum
  * - 0th, 1st and 2nd derivative terms for any conversion
  */
 typedef struct
-{
+	{
 	//! JSON Unit Name
 	string name;
 	//! JSON Unit conversion type
@@ -477,7 +484,7 @@ typedef struct
 	float p1;
 	//! 2th derivative term
 	float p2;
-} unitstruc;
+	} unitstruc;
 
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
@@ -910,6 +917,8 @@ typedef struct
 	uint16_t pidx;
 	//! Power Bus index
 	uint16_t bidx;
+	//! Connection information for device.
+	uint16_t portidx;
 	//! Nominal Amperage
 	float namp;
 	//! Nominal Voltage
@@ -924,6 +933,14 @@ typedef struct
 	double utc;
 } genstruc;
 
+//! All structures.
+/*! This structure can be used for all devices. It contains only a ::genstruc
+ */
+typedef struct
+{
+	genstruc gen;
+} allstruc;
+
 //! Payload (PLOAD) structure.
 /*! You can define up to ::MAXPLOADKEYCNT keys by giving them unique
  * names. You can then set double precision values for these keys in
@@ -931,40 +948,14 @@ typedef struct
  */
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Number of keys being used.
 	uint16_t key_cnt;
 	//! Name for each key.
 	uint16_t keyidx[MAXPLOADKEYCNT];
 	//! Rate at which the payload generates data.
 	uint32_t bps;
-	//! Connection information for device.
-	uint16_t portidx;
 	//! Value for each key.
 	float keyval[MAXPLOADKEYCNT];
 } ploadstruc;
@@ -972,32 +963,8 @@ typedef struct
 //! Sun Sensor (SSEN) Sructure
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Sensor alignment quaternion.
 	quaternion align;
 	float qva;
@@ -1011,32 +978,8 @@ typedef struct
 //! Inertial Measurement Unit (IMU) structure
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! alignment quaternion
 	quaternion align;
 	//! Position acceleration vector
@@ -1049,39 +992,13 @@ typedef struct
 	rvector mag;
 	//! Magnetic field rate change in sensor frame
 	rvector bdot;
-	//! Connection information for device.
-	uint16_t portidx;
 } imustruc;
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Rotates vectors from RW frame (axis of rotation = z) to body frame.
 	quaternion align;
 	//! Moments of inertia in RW frame.
@@ -1092,8 +1009,6 @@ typedef struct
 	float mxalp;
 	//! Acceleration Time Constant
 	float tc;
-	//! Connection information for device.
-	uint16_t portidx;
 	//! Current angular velocity
 	float omg;
 	//! Current angular acceleration
@@ -1107,32 +1022,8 @@ typedef struct
 //! Magnetic Torque Rod structure: z axis is aligned with rod.
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Rotates vectors from MTR frame to Body frame.
 	quaternion align;
 	//! Terms of 6th order polynomial converting negative moment to current
@@ -1143,8 +1034,6 @@ typedef struct
 	float mxmom;
 	//! Field Change Time Constant
 	float tc;
-	//! Connection information for device.
-	uint16_t portidx;
 	//! Requested Magnetic Moment.
 	float rmom;
 	//! Actual Magnetic Moment.
@@ -1153,75 +1042,31 @@ typedef struct
 
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
-	uint16_t portidx;
+	//! Generic info
+	genstruc gen;
+	//! Seconds CPU has been up
 	uint32_t uptime;
+	//! Maximum disk capacity in GiB
 	float maxdisk;
+	//! Maximum memory capacity in GiB
 	float maxmem;
+	//! Maximu load
 	float maxload;
+	//! Current disk usage in GiB
 	float disk;
+	//! Current memory usage in GiB
 	float mem;
+	//! Current load
 	float load;
-    // ?? add number of reboots
+	//! Number of reboots
 	uint32_t boot_count;
 } cpustruc;
 
 
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp, Universal Time Coordinate (UTC) in Modified Julian Date (MJD)
-	double utc;
-	//! Connection information for device.
-	uint16_t portidx;
+	//! Generic info
+	genstruc gen;
 	//! Geocentric position
 	rvector geocs;
 	//! Geocentric velocity
@@ -1254,32 +1099,8 @@ typedef struct
 */
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Alignment
 	quaternion align;
 	//! Minimum elevation
@@ -1291,34 +1112,8 @@ typedef struct
 */
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
-	//! Connection information for device.
-	uint16_t portidx;
+	//! Generic info
+	genstruc gen;
 	//! Frequency
 	float freq;
 } rxrstruc;
@@ -1328,34 +1123,8 @@ typedef struct
 */
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
-	//! Connection information for device.
-	uint16_t portidx;
+	//! Generic info
+	genstruc gen;
 	//! Frequency
 	float freq;
 } txrstruc;
@@ -1365,34 +1134,8 @@ typedef struct
 */
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
-	//! Connection information for device.
-	uint16_t portidx;
+	//! Generic info
+	genstruc gen;
 	//! Input Frequency
 	float freqin;
 	//! Output Frequency
@@ -1404,32 +1147,8 @@ typedef struct
 */
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Efficiency 0th order term
 	float effbase;
 	//! Efficiency 1st order term
@@ -1443,32 +1162,8 @@ typedef struct
 //! Battery (BATT) structure.
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Capacity in amp hours
 	float capacity;
 	//! Charge conversion efficiency
@@ -1482,128 +1177,34 @@ typedef struct
 */
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Temperature set point
 	float setpoint;
 } htrstruc;
 
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
+	//! Maximum speed in revolutions per second
 	float max;
+	//!
 	float rat;
 	float spd;
 } motrstruc;
 
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 } tsenstruc;
 
 //! Thruster (THST) dynamic structure
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Flow
 	quaternion align;
 	//! Specific Impulse in dynes per kg per second
@@ -1615,32 +1216,8 @@ typedef struct
 //! Propellant Tank (PROP) structure.
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Propellant capacity in kg
 	float cap;
 	//! Propellant level in kg
@@ -1652,32 +1229,8 @@ typedef struct
 */
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 } swchstruc;
 
 //! Rotor Structure definition
@@ -1685,32 +1238,8 @@ typedef struct
 */
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Angular position
 	float angle;
 } rotstruc;
@@ -1718,36 +1247,10 @@ typedef struct
 //! Star Tracker (STT) Sructure
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! alignment quaternion
 	quaternion align;
-	//! Connection information for device.
-	uint16_t portidx;
 	//! includes 0 and 1st order derivative
 	quaternion att;
 	rvector omega;
@@ -1759,36 +1262,10 @@ typedef struct
 //! Motion Capture Camera (MCC) Structure
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Sensor alignment quaternion.
 	quaternion align;
-	//! Connection information for device.
-	uint16_t portidx;
 	//! attitude
 	quaternion q;
 } mccstruc;
@@ -1796,34 +1273,8 @@ typedef struct
 //! Torque Rod Control Unit
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
-	//! Connection information for device.
-	uint16_t portidx;
+	//! Generic info
+	genstruc gen;
 	//! Torque Rod count
 	uint16_t mcnt;
 	//! Torque Rod Component indices
@@ -1832,32 +1283,8 @@ typedef struct
 
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Total energy usage
 	float energy;
 	//! Watch Dog Timer (MJD)
@@ -1866,32 +1293,8 @@ typedef struct
 
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! Current Pressure
 	float press;
 } psenstruc;
@@ -1899,36 +1302,10 @@ typedef struct
 //! SUCHI Sructure
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
+	//! Generic info
+	genstruc gen;
 	//! alignment quaternion
 	quaternion align;
-	//! Connection information for device.
-	uint16_t portidx;
 	//! Internal pressure
 	float press;
 	//! Internal temperatures
@@ -1937,33 +1314,8 @@ typedef struct
 
 typedef struct
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-	//! Device flag
-	uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Nominal Amperage
-	float namp;
-	//! Nominal Voltage
-	float nvolt;
-	//! Current Amperage
-	float amp;
-	//! Current Voltage
-	float volt;
-	//! Current Temperature
-	float temp;
-	//! Device information time stamp
-	double utc;
-	uint16_t portidx;
+	//! Generic info
+	genstruc gen;
 	uint16_t pwidth;
 	uint16_t pheight;
 	float width;
@@ -2022,34 +1374,34 @@ typedef struct
 {
 	union
 	{
-	genstruc gen;
-	antstruc ant;
-	battstruc batt;
-	busstruc bus;
-	camstruc cam;
-	cpustruc cpu;
-	gpsstruc gps;
-	htrstruc htr;
-	imustruc imu;
-	mccstruc mcc;
-	motrstruc motr;
-	mtrstruc mtr;
-	tcustruc tcu;
-	ploadstruc pload;
-	propstruc prop;
-	psenstruc psen;
-	rotstruc rot;
-	rwstruc rw;
-	ssenstruc ssen;
-	strgstruc strg;
-	sttstruc stt;
-	suchistruc suchi;
-	swchstruc swch;
-	tcvstruc tcv;
-	txrstruc txr;
-	rxrstruc rxr;
-	thststruc thst;
-	tsenstruc tsen;
+		allstruc all;
+		antstruc ant;
+		battstruc batt;
+		busstruc bus;
+		camstruc cam;
+		cpustruc cpu;
+		gpsstruc gps;
+		htrstruc htr;
+		imustruc imu;
+		mccstruc mcc;
+		motrstruc motr;
+		mtrstruc mtr;
+		tcustruc tcu;
+		ploadstruc pload;
+		propstruc prop;
+		psenstruc psen;
+		rotstruc rot;
+		rwstruc rw;
+		ssenstruc ssen;
+		strgstruc strg;
+		sttstruc stt;
+		suchistruc suchi;
+		swchstruc swch;
+		tcvstruc tcv;
+		txrstruc txr;
+		rxrstruc rxr;
+		thststruc thst;
+		tsenstruc tsen;
 	};
 } devicestruc;
 
@@ -2085,7 +1437,7 @@ typedef struct
 	uint16_t txr_cnt;
 	uint16_t thst_cnt;
 	uint16_t tsen_cnt;
-	vector<genstruc *>gen;
+	vector<allstruc *>all;
 	vector<antstruc *>ant;
 	vector<battstruc *>batt;
 	vector<busstruc *>bus;

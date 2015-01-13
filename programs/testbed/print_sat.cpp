@@ -112,7 +112,7 @@ case 3:
 	printf("\nRW:\t%d\n",cdata->devspec.rw_cnt);
 	for (i=0;i<cdata->devspec.rw_cnt;i++) {
         printf("\trw %d:\n",i);
-		sprintf(outputBuffer[0], "cidx: %d  \n\nmax:\n%11.5g", cdata->devspec.rw[i]->cidx, cdata->devspec.rw[i]->mxomg);
+		sprintf(outputBuffer[0], "cidx: %d  \n\nmax:\n%11.5g", cdata->devspec.rw[i]->gen.cidx, cdata->devspec.rw[i]->mxomg);
 		n = rvector2buffer(outputBuffer[1], &cdata->devspec.rw[i]->mom, "mom");
 		n += quat2buffer(&outputBuffer[1][n], &cdata->devspec.rw[i]->align, "align");
         printBufferLeftToRight(2, "\t\t", "\t| ");
@@ -123,7 +123,7 @@ case 3:
 case 4:
 {
 	printf("\nTsen:\t%d\n",cdata->devspec.tsen_cnt);
-	for (i=0;i<cdata->devspec.tsen_cnt;i++) printf("\ttsen %d: \tcidx: %d\n",i,cdata->devspec.tsen[i]->cidx);
+	for (i=0;i<cdata->devspec.tsen_cnt;i++) printf("\ttsen %d: \tcidx: %d\n",i,cdata->devspec.tsen[i]->gen.cidx);
     printf("______________________________________________________________________________________________\n");
     if (jumpto!=-1) break;
 }
@@ -167,8 +167,8 @@ case 6:
 {
 	printf("\nComp:\t%d\n", cdata->node.device_cnt);
 	for (i=0; i<cdata->node.device_cnt;i++) {
-		printf("\tcomp %d:\tdidx: %d\tpidx: %d\tbidx: %d\n",i,cdata->device[i].gen.didx,cdata->device[i].gen.pidx,cdata->device[i].gen.bidx);
-		printf("\t\tcurrent: %11.5g, volt: %11.5g\n",cdata->device[i].gen.amp,cdata->device[i].gen.volt);
+		printf("\tcomp %d:\tdidx: %d\tpidx: %d\tbidx: %d\n",i,cdata->device[i].all.gen.didx,cdata->device[i].all.gen.pidx,cdata->device[i].all.gen.bidx);
+		printf("\t\tcurrent: %11.5g, volt: %11.5g\n",cdata->device[i].all.gen.amp,cdata->device[i].all.gen.volt);
     }
     printf("______________________________________________________________________________________________\n");
     if (jumpto!=-1) break;
@@ -177,7 +177,7 @@ case 7:
 {
 	printf("\nStrings:\t%d\n", cdata->devspec.strg_cnt);
 	for(i=0; i<cdata->devspec.strg_cnt; i++) {
-		printf("\tstrg %d:\tcidx: %d\n", i, cdata->devspec.strg[i]->cidx);
+		printf("\tstrg %d:\tcidx: %d\n", i, cdata->devspec.strg[i]->gen.cidx);
 		printf("\t\teffbase: %11.5g, effslope: %11.5g, maxpower: %11.5g\n",cdata->devspec.strg[i]->effbase,cdata->devspec.strg[i]->effslope,cdata->devspec.strg[i]->maxpower);
     }
     printf("______________________________________________________________________________________________\n");
@@ -187,7 +187,7 @@ case 8:
 {
 	printf("\nBatteries:\t%d\n", cdata->devspec.batt_cnt);
 	for(i=0; i<cdata->devspec.batt_cnt; i++) {
-		printf("\tbatt %d:\tcidx: %d,\tcapacity: %11.5g, efficiency: %11.5g\n", i, cdata->devspec.batt[i]->cidx, cdata->devspec.batt[i]->capacity, cdata->devspec.batt[i]->efficiency);
+		printf("\tbatt %d:\tcidx: %d,\tcapacity: %11.5g, efficiency: %11.5g\n", i, cdata->devspec.batt[i]->gen.cidx, cdata->devspec.batt[i]->capacity, cdata->devspec.batt[i]->efficiency);
     }
     printf("______________________________________________________________________________________________\n");
     if (jumpto!=-1) break;
@@ -197,7 +197,7 @@ case 9:
 	printf("\nSsen:\t%d\n", cdata->devspec.ssen_cnt);
 	for(i=0; i<cdata->devspec.ssen_cnt; i++) {
         printf("\tssen %d:\n", i);
-		sprintf(outputBuffer[0], "cidx: %d", cdata->devspec.ssen[i]->cidx);
+		sprintf(outputBuffer[0], "cidx: %d", cdata->devspec.ssen[i]->gen.cidx);
 		quat2buffer(outputBuffer[1], &cdata->devspec.ssen[i]->align, "align");
         printBufferLeftToRight(2, "\t\t", "\t| ");
     }
@@ -209,7 +209,7 @@ case 10:
 	printf("\nIMU:\t%d\n", cdata->devspec.imu_cnt);
 	for(i=0; i<cdata->devspec.imu_cnt; i++) {
         printf("\timu %d:\n", i);
-		sprintf(outputBuffer[0], "cidx: %d", cdata->devspec.imu[i]->cidx);
+		sprintf(outputBuffer[0], "cidx: %d", cdata->devspec.imu[i]->gen.cidx);
 		quat2buffer(outputBuffer[1], &cdata->devspec.imu[i]->align, "align");
         printBufferLeftToRight(2, "\t\t", "\t| ");
     }
@@ -221,7 +221,7 @@ case 11:
 	printf("\nMTR:\t%d\n", cdata->devspec.mtr_cnt);
 	for(i=0; i<cdata->devspec.mtr_cnt; i++) {
         printf("\tmtr %d:\n", i);
-		sprintf(outputBuffer[0], "cidx: %d", cdata->devspec.mtr[i]->cidx);
+		sprintf(outputBuffer[0], "cidx: %d", cdata->devspec.mtr[i]->gen.cidx);
 //        rvector2buffer(outputBuffer[1], &cdata->devspec.mtr[i]->mom, "mom");
         printBufferLeftToRight(2, "\t\t", "\t| ");
 		quat2buffer(outputBuffer[0], &cdata->devspec.mtr[i]->align, "align");
@@ -234,7 +234,7 @@ case 12:
 {
 	printf("\nGPS:\t%d\n", cdata->devspec.gps_cnt);
 	for(i=0; i<cdata->devspec.gps_cnt; i++) {
-		printf("\tgps %d:\tcidx: %d\n", i, cdata->devspec.gps[i]->cidx);
+		printf("\tgps %d:\tcidx: %d\n", i, cdata->devspec.gps[i]->gen.cidx);
     }
     printf("______________________________________________________________________________________________\n");
     if (jumpto!=-1) break;
@@ -243,7 +243,7 @@ case 13:
 {
 	printf("\nCPU:\t%d\n", cdata->devspec.cpu_cnt);
 	for(i=0; i<cdata->devspec.cpu_cnt; i++) {
-		printf("\tcpu %d:\tcidx: %d\n", i, cdata->devspec.cpu[i]->cidx);
+		printf("\tcpu %d:\tcidx: %d\n", i, cdata->devspec.cpu[i]->gen.cidx);
     }
     printf("______________________________________________________________________________________________\n");
     if (jumpto!=-1) break;
@@ -252,7 +252,7 @@ case 14:
 {
 	printf("\nPayloads:\t%d\n", cdata->devspec.pload_cnt);
 	for(i=0; i<cdata->devspec.pload_cnt; i++) {
-		printf("\tpload %d:\tcidx: %d\tkey_cnt: %d\n", i, cdata->devspec.pload[i]->cidx, cdata->devspec.pload[i]->key_cnt);
+		printf("\tpload %d:\tcidx: %d\tkey_cnt: %d\n", i, cdata->devspec.pload[i]->gen.cidx, cdata->devspec.pload[i]->key_cnt);
 		for(j=0; j<cdata->devspec.pload[i]->key_cnt; j++) {
 //			printf("\t\t%s\n", cdata->devspec.pload[i]->key[j]);
         }
