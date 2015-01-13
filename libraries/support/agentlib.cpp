@@ -180,16 +180,16 @@ cosmosstruc *agent_setup_client(int ntype, string node, uint32_t usectimeo)
     cosmosstruc *cdata;
 
     // Initialize COSMOS data space
-    if ((cdata = json_create()) == NULL)
+	if ((cdata = json_create()) == nullptr)
     {
-        return(NULL);
+		return(nullptr);
     }
 
 	//! Next, set up node.
 	if (!node.empty() && (iretn=node_init(node, cdata)))
 	{
 		json_destroy(cdata);
-		return (NULL);
+		return nullptr;
 	}
 
 	if (node.empty())
@@ -202,7 +202,7 @@ cosmosstruc *agent_setup_client(int ntype, string node, uint32_t usectimeo)
     if (iretn)
     {
         json_destroy(cdata);
-        return(NULL);
+		return nullptr;
     }
 
     // Finally, make copies
@@ -225,9 +225,9 @@ cosmosstruc *agent_setup_client(int ntype, string node)
 {
     cosmosstruc *cdata;
 
-    if ((cdata=agent_setup_client(ntype, node, 1000)) == NULL)
+	if ((cdata=agent_setup_client(ntype, node, 1000)) == nullptr)
     {
-        return (NULL);
+		return (nullptr);
     }
 
     return (cdata);
