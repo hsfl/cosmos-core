@@ -11,16 +11,18 @@ CONFIG -= qt
 CONFIG -= app_bundle
 CONFIG += c++11
 
-QMAKE_CXXFLAGS += -std=c++0x -pthread
+QMAKE_CXXFLAGS += -pthread
 
-BUILD_COSMOS_CORE_LIB_SUPPORT = "ON"
-BUILD_COSMOS_CORE_LIB_DEVICE  = "OFF"
-BUILD_COSMOS_CORE_LIB_THIRDPARTY_ZLIB = "ON"
+#BUILD_COSMOS_CORE_LIB_SUPPORT = "ON"
+#BUILD_COSMOS_CORE_LIB_DEVICE  = "OFF"
+#BUILD_COSMOS_CORE_LIB_THIRDPARTY_ZLIB = "ON"
 
+MODULES += SUPPORT
+MODULES += ZLIB
 include( $$COSMOS/core/qt/cosmos.pri )
 
 #HEADERS +=
-SOURCES += $$COSMOS_CORE/programs/agents/agent.cpp
+SOURCES += $$COSMOS/core/programs/agents/agent.cpp
 
 TARGET = agent
 #TARGET_EXT = .exe

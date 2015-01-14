@@ -1270,6 +1270,7 @@ int32_t agent_post(cosmosstruc *cdata, uint8_t type, const char *message)
 
     cdata->agent[0].beat.utc = cdata->agent[0].beat.utc;
     post[0] = type;
+    // this will broadcast messages to all external interfaces (ifcnt = interface count)
     for (i=0; i<cdata->agent[0].ifcnt; i++)
     {
         sprintf(&post[1],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"node_utcoffset\":%.15g}",cdata->agent[0].beat.utc,cdata->agent[0].beat.node,cdata->agent[0].beat.proc,cdata->agent[0].pub[i].address,cdata->agent[0].beat.port,cdata->agent[0].beat.bsz,cdata->node.utcoffset);

@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	cdata = agent_setup_client(SOCKET_TYPE_UDP, NULL, 1000);
+    cdata = agent_setup_client(SOCKET_TYPE_UDP, "", 1000);
 
 	// agent dump request
 	if ((argc== 2 || argc == 3) && !strcmp(argv[1],"dump"))

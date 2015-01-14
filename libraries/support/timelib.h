@@ -25,22 +25,14 @@
 #include "configCosmos.h"
 
 #include "mathlib.h"
-//#include "timeutils.hpp"
+#include "timeutils.hpp"
 
 #include <cmath>
 #include <time.h>
 #include <errno.h>
 #include <stdio.h>
-
-// MSVC does not include these
-#ifndef _MSC_BUILD
-#include <sys/time.h>
-#include <unistd.h>
-#endif
-
 #include <ctime>
 #include <ratio>
-//#include <chrono>
 
 //! \ingroup timelib
 //! \defgroup timelib_constants Time handling constants

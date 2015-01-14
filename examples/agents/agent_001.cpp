@@ -79,19 +79,21 @@ int myagent()
 
     string requestString = "test_request";
     char response[300];
+    int32_t err=0;
 
     // Start executing the agent
     while(agent_running(cdata))
     {
         // makes a request to agent 002
-        agent_send_request(cdata,
+        err = agent_send_request(cdata,
                            beat_agent_002,
                            requestString.c_str(),
                            response,
                            512,
                            2);
 
-        cout << "Received from agent_002: " << response << endl;
+
+        cout << "Received from agent_002: " << err << " : " << response << endl;
         COSMOS_SLEEP(1);
 		
     }
