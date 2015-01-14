@@ -73,10 +73,10 @@ vector <string> port_type_string
 */
 cosmosstruc *json_create()
 {
-	cosmosstruc *cdata = NULL;
+	cosmosstruc *cdata = nullptr;
 	unitstruc tunit;
 
-	if ((cdata = new cosmosstruc[2]) == NULL) return (NULL);
+	if ((cdata = new cosmosstruc[2]) == nullptr) return nullptr;
 
 	memset(cdata, 0, 2*sizeof(cosmosstruc));
 
@@ -116,7 +116,7 @@ cosmosstruc *json_create()
 		cdata->port.size() != 1)
 	{
 		delete [] cdata;
-		return (NULL);
+		return nullptr;
 	}
 
 	// Create JSON Map unit table

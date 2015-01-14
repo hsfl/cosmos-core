@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 		break;
 	}
 
-	if (!(cdata = agent_setup_client(SOCKET_TYPE_BROADCAST, node.c_str(), 1000)))
+	if (!(cdata = agent_setup_client(SOCKET_TYPE_BROADCAST, node.c_str(), 5000000)))
 	{
 		printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
 		exit (AGENT_ERROR_JSON_CREATE);
@@ -73,9 +73,11 @@ int main(int argc, char* argv[])
 			json_parse(ibuf,cdata);
 		}
 		free(ibuf);
-		iloc.pos.eci = cdata->node.loc.pos.eci;
-		iloc.att.icrf = cdata->node.loc.att.icrf;
-		iloc.utc = cdata->node.loc.pos.eci.utc;
+		loc_update(&cdata->node.loc);
+		iloc = cdata->node.loc;
+//		iloc.pos.eci = cdata->node.loc.pos.eci;
+//		iloc.att.icrf = cdata->node.loc.att.icrf;
+//		iloc.utc = cdata->node.loc.utc;
 
 //        print_vector("Initial State Vector Position: ", iloc.pos.eci.s.col[0], iloc.pos.eci.s.col[1], iloc.pos.eci.s.col[2], "km");
         //cout << "Initial State Vector Pos: [" << iloc.pos.eci.s.col[0] << ", " << iloc.pos.eci.s.col[1] <<  ", " << iloc.pos.eci.s.col[2] << "] km " << endl;
