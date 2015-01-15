@@ -24,8 +24,8 @@ git clone https://<your-user-name>@bitbucket.org/cosmos/nodes.git
 
 3) go to core/examples/agents and open agent_001.pro 
 and agent_002.pro in Qt Creator. Compile and execute
-the two programs. The two COSMOS agents will start 
-talking to each other.
+the two programs. Start agent 002 first. 
+The two COSMOS agents will start talking to each other.
 
 For more detailed instructions to get started with COSMOS
 please read the GET-STARTED-WITH-COSMOS.txt inside the 
