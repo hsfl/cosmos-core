@@ -131,15 +131,16 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
 			break;
 		case SOCKET_TYPE_TCP:
 			{
-#ifndef COSMOS_WIN_OS
-				inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-#else
-				sslen = sizeof(ss);
-				WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-				channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-#endif
-				channel->cport = port;
-				if (connect(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0 && errno != EINPROGRESS)
+				channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+				channel->caddr.sin_port = htons(port);
+				if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
+				{
+					CLOSE_SOCKET(channel->cudp);
+					channel->cudp = -errno;
+					return (-errno);
+				}
+
+				if (listen(channel->cudp, 1) < 0)
 				{
 					CLOSE_SOCKET(channel->cudp);
 					channel->cudp = -errno;
@@ -212,7 +213,17 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
         channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
 #endif
         channel->cport = port;
-        break;
+
+		if (ntype == SOCKET_TYPE_TCP)
+			{
+				if (connect(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0 && errno != EINPROGRESS)
+				{
+					CLOSE_SOCKET(channel->cudp);
+					channel->cudp = -errno;
+					return (-errno);
+				}
+			}
+		break;
     }
 
     strncpy(channel->address,address,17);

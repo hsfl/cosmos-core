@@ -4889,6 +4889,7 @@ const char *json_of_wildcard(string &jstring, char *wildcard, cosmosstruc *cdata
 {
 	int32_t iretn;
 
+	jstring.clear();
 	iretn = json_out_wildcard(jstring, wildcard, cdata);
 	if (iretn < 0)
 	{
@@ -4908,6 +4909,7 @@ const char *json_of_list(string &jstring, const char *list, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
+	jstring.clear();
 	iretn = json_out_list(jstring, list, cdata);
 	if (iretn < 0 && iretn != JSON_ERROR_EOS)
 		return (NULL);
@@ -4924,6 +4926,7 @@ const char *json_of_list(string &jstring, const char *list, cosmosstruc *cdata)
 */
 const char *json_of_table(string &jstring, vector<jsonentry*> table, cosmosstruc *cdata)
 {
+	jstring.clear();
 	for (auto entry: table)
 	{
 		if (entry != NULL)
@@ -4946,6 +4949,7 @@ const char *json_of_target(string &jstring, cosmosstruc *cdata, int32_t num)
 {
 	int32_t iretn;
 
+	jstring.clear();
 	iretn = json_out_1d(jstring,(char *)"target_utc",num,cdata);
 	if (iretn < 0)
 	{
@@ -5015,6 +5019,7 @@ const char *json_of_node(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
+	jstring.clear();
 	iretn = json_out(jstring,(char *)"node_utcstart",cdata);
 	if (iretn < 0)
 	{
@@ -5094,6 +5099,7 @@ const char *json_of_agent(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
+	jstring.clear();
 	iretn = json_out(jstring,(char *)"agent_utc",cdata);
 	if (iretn < 0)
 	{
@@ -5165,6 +5171,7 @@ const char *json_of_time(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
+	jstring.clear();
 	iretn = json_out(jstring,(char *)"node_utcstart",cdata);
 	if (iretn < 0)
 		return (NULL);
@@ -5189,6 +5196,7 @@ const char *json_of_beat(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
+	jstring.clear();
 	iretn = json_out(jstring,(char *)"beat",cdata);
 	if (iretn < 0)
 		return (NULL);
@@ -5206,6 +5214,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
+	jstring.clear();
 	iretn = json_out(jstring,(char *)"node_name",cdata);
 	if (iretn < 0)
 	{
@@ -5276,6 +5285,7 @@ const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
+	jstring.clear();
 	iretn = json_out_1d(jstring,(char *)"device_imu_att",num,cdata);
 	if (iretn < 0)
 	{
@@ -5318,6 +5328,7 @@ const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cdata)
 const char *json_of_ephemeris(string &jstring, cosmosstruc *cdata)
 {
 	// Location
+	jstring.clear();
 	json_out(jstring,(char *)"node_utcstart",cdata);
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
@@ -5331,6 +5342,7 @@ const char *json_of_ephemeris(string &jstring, cosmosstruc *cdata)
 const char *json_of_utc(string &jstring, cosmosstruc *cdata)
 {
 	// Time
+	jstring.clear();
 	json_out(jstring,(char *)"node_utcstart",cdata);
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
@@ -5560,6 +5572,7 @@ const char *json_of_soh(string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
+	jstring.clear();
 	// Time
 	json_out(jstring,(char *)"node_utcoffset",cdata);
 
@@ -5581,6 +5594,7 @@ const char *json_of_soh(string &jstring, cosmosstruc *cdata)
 */
 const char *json_of_event(string &jstring, cosmosstruc *cdata)
 {
+	jstring.clear();
 	json_out(jstring,(char *)"event_utc", cdata);
 	if (json_get_double_name("event_utcexec", cdata) != 0.) json_out(jstring,(char *)"event_utcexec", cdata);
 	json_out(jstring,(char *)"event_node", cdata);
@@ -5606,6 +5620,7 @@ const char *json_of_groundcontact(string &jstring, cosmosstruc *cdata)
 {
 	int16_t i;
 
+	jstring.clear();
 	json_out(jstring,(char *)"node_utcstart",cdata);
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
@@ -5621,6 +5636,7 @@ const char *json_of_groundcontact(string &jstring, cosmosstruc *cdata)
 
 const char *json_of_mtr(string &jstring,uint16_t index, cosmosstruc *cdata)
 {
+	jstring.clear();
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
 
@@ -5635,6 +5651,7 @@ const char *json_of_mtr(string &jstring,uint16_t index, cosmosstruc *cdata)
 
 const char *json_of_rw(string &jstring,uint16_t index, cosmosstruc *cdata)
 {
+	jstring.clear();
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
 
@@ -5653,6 +5670,7 @@ const char *json_of_rw(string &jstring,uint16_t index, cosmosstruc *cdata)
 
 const char *json_of_statevec(string &jstring, cosmosstruc *cdata)
 {
+	jstring.clear();
 	json_out(jstring,(char *)"node_utc",cdata);
 	json_out(jstring,(char *)"node_utcoffset",cdata);
 	json_out(jstring,(char *)"node_loc_att_icrf",cdata);
@@ -5670,8 +5688,7 @@ const char *json_of_statevec(string &jstring, cosmosstruc *cdata)
 const char *json_node(string &jstring, cosmosstruc *cdata)
 {
 
-	//	json_out(jstring,(char *)"node_name",cdata);
-	//	json_out_character(jstring, '\n');
+	jstring.clear();
 	json_out(jstring,(char *)"node_type",cdata);
 	json_out_character(jstring, '\n');
 	json_out(jstring,(char *)"piece_cnt",cdata);
@@ -5695,6 +5712,7 @@ const char *json_pieces(string &jstring, cosmosstruc *cdata)
 {
 	uint16_t cnt;
 
+	jstring.clear();
 	// Dump structures
 	for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"piece_cnt",cdata); i++)
 	{
@@ -5740,6 +5758,7 @@ const char *json_pieces(string &jstring, cosmosstruc *cdata)
 const char *json_devices_general(string &jstring, cosmosstruc *cdata)
 {
 
+	jstring.clear();
 	// Dump components
 	for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"comp_cnt",cdata); i++)
 	{
@@ -5777,6 +5796,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 	uint16_t cnt;
 	char tstring[COSMOS_MAX_NAME];
 
+	jstring.clear();
 	// Dump device specific info
 	for (uint16_t i=0; i<DEVICE_TYPE_COUNT; ++i)
 	{
@@ -6029,6 +6049,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 const char *json_ports(string &jstring, cosmosstruc *cdata)
 {
 
+	jstring.clear();
 	// Dump Port table
 	for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"port_cnt",cdata); i++)
 	{
