@@ -1,0 +1,41 @@
+Install COSMOS on Mac
+=========================
+
+The COSMOS software has been tested with the following
+Qt5.4
+Mingw 4.9 (and clang 64bit)
+
+
+Getting Started
+--------------
+1) install the latest Qt version for Mac from 
+http://www.qt.io/download-open-source/
+
+clang should already be your main compiler by default, if another compiler
+is selected it may have compatibility issues with COSMOS
+
+2) Download COSMOS-core source code
+
+-- using a git client such as GitHub for Mac.
+if you are planning on contributing to the project using a 
+client may be the easiest option
+
+-- using the command line
+$ git clone https://<yourusername>@bitbucket.org/cosmos/core.git
+
+
+
+MOST
+----
+3) Open the MOST.pro file in QT Creator
+4) On the Target Setup dialog
+	- open the details for the Desktop Build
+	- Check the Shadow Build
+	- Check either the debug or release (or both) configurations
+5) IMPORTANT! 
+	- Click on the Projects icon (on the left)
+	- Build Steps -> Add Build Step -> Make
+	- Make Arguments: add 'install'
+	- This installs the necessary files to run MOST from the shadow 
+	build directory
+5) Hit Run!

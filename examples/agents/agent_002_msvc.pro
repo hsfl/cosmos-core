@@ -27,6 +27,9 @@ HEADERS         += $$COSMOS/core/libraries/support/timeutils.h
 #agentlib
 INCLUDEPATH     += $$COSMOS/core/libraries/support
 
+SOURCES         += $$COSMOS/core/libraries/support/socketlib.cpp
+HEADERS         += $$COSMOS/core/libraries/support/socketlib.h
+
 SOURCES         += $$COSMOS/core/libraries/support/agentlib.cpp
 HEADERS         += $$COSMOS/core/libraries/support/agentlib.h
 
@@ -45,7 +48,7 @@ HEADERS         += $$COSMOS/core/libraries/support/datalib.h
 SOURCES         += $$COSMOS/core/libraries/support/convertlib.cpp
 HEADERS         += $$COSMOS/core/libraries/support/convertlib.h
 
-SOURCES         += $$COSMOS/core/libraries/support/convertdef.cpp
+#SOURCES         += $$COSMOS/core/libraries/support/convertdef.cpp
 HEADERS         += $$COSMOS/core/libraries/support/convertdef.h
 
 SOURCES         += $$COSMOS/core/libraries/support/stringlib.cpp
@@ -53,6 +56,9 @@ HEADERS         += $$COSMOS/core/libraries/support/stringlib.h
 
 SOURCES         += $$COSMOS/core/libraries/support/jpleph.cpp
 HEADERS         += $$COSMOS/core/libraries/support/jpleph.h
+
+SOURCES         += $$COSMOS/core/libraries/support/ephemlib.cpp
+HEADERS         += $$COSMOS/core/libraries/support/ephemlib.h
 
 SOURCES         += $$COSMOS/core/libraries/support/geomag.cpp
 HEADERS         += $$COSMOS/core/libraries/support/geomag.h

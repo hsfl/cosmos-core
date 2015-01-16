@@ -13,16 +13,13 @@
 // C libs
 #include <stdio.h>
 #include <dirent.h>
-#include <unistd.h>
 #include <sys/stat.h>
 #include <iostream>
 #include <fstream>
-//#ifdef COSMOS_WIN_BUILD_MSVC
-//#include <filesystem> // it is being proposed for standardization for C++
-//#elif
-#include <dirent.h>
-//#endif
 
+#ifndef COSMOS_WIN_BUILD_MSVC
+#include <unistd.h>
+#endif
 
 /*! \file datalib.h
 *	\brief Data Management header file

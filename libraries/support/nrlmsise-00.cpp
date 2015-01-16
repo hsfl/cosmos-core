@@ -129,7 +129,7 @@ double ccor(double alt, double r, double h1, double zh) {
 	double ex;
 	e = (alt - zh) / h1;
 	if (e>70)
-		return exp(0);
+        return exp(0.0f);
 	if (e<-70)
 		return exp(r);
 	ex = exp(e);
@@ -157,7 +157,7 @@ double ccor2(double alt, double r, double h1, double zh, double h2) {
 	e1 = (alt - zh) / h1;
 	e2 = (alt - zh) / h2;
 	if ((e1 > 70) || (e2 > 70))
-		return exp(0);
+        return exp(0.0f);
 	if ((e1 < -70) && (e2 < -70))
 		return exp(r);
 	ex1 = exp(e1);

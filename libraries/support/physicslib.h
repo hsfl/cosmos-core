@@ -62,12 +62,10 @@
 #include "physicsdef.h"
 #include "jsondef.h"
 
-//#include <sys/types.h>
 #include <fcntl.h>
 #include <cmath>
 #include <time.h>
 #include <errno.h>
-#include <unistd.h>
 
 //! \ingroup physicslib
 //! \defgroup physicslib_functions Physics Library functions

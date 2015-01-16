@@ -80,13 +80,17 @@ cosmosstruc *json_create()
 
 	memset(cdata, 0, 2*sizeof(cosmosstruc));
 
+
 	cdata->jmapped = 0;
 
 	cdata->glossary.resize(1);
-	cdata->piece.resize(1);
+    cdata->piece.resize(1);
 	cdata->device.resize(1);
+
 	//	json_clear_cosmosstruc(JSON_GROUP_NODE, cdata);
 	cdata->agent.resize(1);
+    memset(cdata->agent.data(), 0, sizeof(agentstruc));
+
 	cdata->event.resize(1);
 	cdata->user.resize(1);
 	cdata->glossary.resize(1);
@@ -217,19 +221,19 @@ cosmosstruc *json_create()
 		case JSON_UNIT_ACCELERATION:
 			tunit.name = "g";
 			tunit.type = JSON_UNIT_TYPE_POLY;
-			tunit.p1 = 1./9.80665;
+            tunit.p1 = 1./9.80665f;
 			cdata->unit[i].push_back(tunit);
 			break;
 		case JSON_UNIT_ANGLE:
 			tunit.name = "deg";
 			tunit.type = JSON_UNIT_TYPE_POLY;
-			tunit.p1 = RTOD;
+            tunit.p1 = (float)RTOD;
 			cdata->unit[i].push_back(tunit);
 			break;
 		case JSON_UNIT_AREA:
 			tunit.name = "ft2";
 			tunit.type = JSON_UNIT_TYPE_POLY;
-			tunit.p1 = 10.76391;
+            tunit.p1 = 10.76391f;
 			cdata->unit[i].push_back(tunit);
 			break;
 		case JSON_UNIT_CAPACITANCE:
