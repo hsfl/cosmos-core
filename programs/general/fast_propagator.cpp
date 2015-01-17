@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
 
-	cdata->physics.mode = mode;
+	cdata[0].physics.mode = mode;
 	json_clone(cdata);
 
 	load_dictionary(eventdict, cdata, (char *)"events.dict");
@@ -78,11 +78,11 @@ int main(int argc, char* argv[])
 			json_parse(ibuf,cdata);
 		}
 		free(ibuf);
-		loc_update(&cdata->node.loc);
-		iloc = cdata->node.loc;
-//		iloc.pos.eci = cdata->node.loc.pos.eci;
-//		iloc.att.icrf = cdata->node.loc.att.icrf;
-//		iloc.utc = cdata->node.loc.pos.eci.utc;
+		loc_update(&cdata[0].node.loc);
+		iloc = cdata[0].node.loc;
+//		iloc.pos.eci = cdata[0].node.loc.pos.eci;
+//		iloc.att.icrf = cdata[0].node.loc.att.icrf;
+//		iloc.utc = cdata[0].node.loc.pos.eci.utc;
 
 		//        print_vector("Initial State Vector Position: ", iloc.pos.eci.s.col[0], iloc.pos.eci.s.col[1], iloc.pos.eci.s.col[2], "km");
 		//cout << "Initial State Vector Pos: [" << iloc.pos.eci.s.col[0] << ", " << iloc.pos.eci.s.col[1] <<  ", " << iloc.pos.eci.s.col[2] << "] km " << endl;
@@ -110,26 +110,26 @@ int main(int argc, char* argv[])
 				tbuf = json_convert_string(json_extract_namedobject(pollbuf, "node_utcoffset"));
 				if (!tbuf.empty())
 				{
-					cdata->node.utcoffset = atof(tbuf.c_str());
-					printf("slave utcoffset: %f\n", cdata->node.utcoffset);
+					cdata[0].node.utcoffset = atof(tbuf.c_str());
+					printf("slave utcoffset: %f\n", cdata[0].node.utcoffset);
 				}
 			}
 			else
 			{
 				if (mjdstart == -1.)
 				{
-					cdata->node.utcoffset = cdata->node.loc.utc - currentmjd(0.);
+					cdata[0].node.utcoffset = cdata[0].node.loc.utc - currentmjd(0.);
 				}
 				else if (mjdstart == 0.)
 				{
-					cdata->node.utcoffset = 0.;
+					cdata[0].node.utcoffset = 0.;
 				}
 				else
 				{
-					cdata->node.utcoffset = mjdstart - currentmjd(0.);
+					cdata[0].node.utcoffset = mjdstart - currentmjd(0.);
 				}
-				//printf("master utcoffset: %f\n", cdata->node.utcoffset);
-				cout << "master utcoffset: " << setprecision(5) << cdata->node.utcoffset << endl;
+				//printf("master utcoffset: %f\n", cdata[0].node.utcoffset);
+				cout << "master utcoffset: " << setprecision(5) << cdata[0].node.utcoffset << endl;
 				//				master_timer = true;
 			}
 			break;
@@ -137,35 +137,35 @@ int main(int argc, char* argv[])
 	default:
 		if (mjdstart == -1.)
 		{
-			cdata->node.utcoffset = cdata->node.loc.utc - currentmjd(0.);
+			cdata[0].node.utcoffset = cdata[0].node.loc.utc - currentmjd(0.);
 		}
 		else if (mjdstart == 0.)
 		{
-			cdata->node.utcoffset = 0.;
+			cdata[0].node.utcoffset = 0.;
 		}
 		else
 		{
-			cdata->node.utcoffset = mjdstart - currentmjd(0.);
+			cdata[0].node.utcoffset = mjdstart - currentmjd(0.);
 		}
-		//printf("master utcoffset: %f\n", cdata->node.utcoffset);
-		cout << "master utcoffset: " << cdata->node.utcoffset << endl;
+		//printf("master utcoffset: %f\n", cdata[0].node.utcoffset);
+		cout << "master utcoffset: " << cdata[0].node.utcoffset << endl;
 		//		master_timer = true;
 		break;
 	}
 
-	mjdnow =  currentmjd(cdata->node.utcoffset);
+	mjdnow =  currentmjd(cdata[0].node.utcoffset);
 
 	if (mjdnow < iloc.utc)
 	{
 		gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, *cdata);
 
-		//printf("Initialize backwards %f days\n", (cdata->node.loc.utc-mjdnow));
-		cout << "Initialize backwards " << cdata->node.loc.utc-mjdnow << "days" << endl;
+		//printf("Initialize backwards %f days\n", (cdata[0].node.loc.utc-mjdnow));
+		cout << "Initialize backwards " << cdata[0].node.loc.utc-mjdnow << "days" << endl;
 
 		gauss_jackson_propagate(gjh, *cdata, mjdnow);
-		iloc.utc = cdata->node.loc.utc;
-		iloc.pos.eci = cdata->node.loc.pos.eci;
-		iloc.att.icrf = cdata->node.loc.att.icrf;
+		iloc.utc = cdata[0].node.loc.utc;
+		iloc.pos.eci = cdata[0].node.loc.pos.eci;
+		iloc.att.icrf = cdata[0].node.loc.att.icrf;
 	}
 	
 	double step = 8.64 * (mjdnow-iloc.utc);
@@ -189,19 +189,19 @@ int main(int argc, char* argv[])
 	gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
 	gauss_jackson_propagate(gjh, *cdata, mjdnow);
 	pos_clear(iloc);
-	iloc.pos.eci = cdata->node.loc.pos.eci;
-	iloc.att.icrf = cdata->node.loc.att.icrf;
-	iloc.utc = cdata->node.loc.pos.eci.utc;
+	iloc.pos.eci = cdata[0].node.loc.pos.eci;
+	iloc.att.icrf = cdata[0].node.loc.att.icrf;
+	iloc.utc = cdata[0].node.loc.pos.eci.utc;
 	gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
-	mjdnow = currentmjd(cdata->node.utcoffset);
+	mjdnow = currentmjd(cdata[0].node.utcoffset);
 
-	vector <gj_handle> tgjh(cdata->target.size());
-	vector <cosmosstruc *> tcdata(cdata->target.size());
+	vector <gj_handle> tgjh(cdata[0].target.size());
+	vector <cosmosstruc *> tcdata(cdata[0].target.size());
 
-	for (uint16_t i=0; i<cdata->target.size(); ++i)
+	for (uint16_t i=0; i<cdata[0].target.size(); ++i)
 	{
 		tcdata[i] = json_create();
-		gauss_jackson_init_eci(tgjh[i], order, 0, dt, cdata->target[i].loc.utc, cdata->target[i].loc.pos.eci, cdata->target[i].loc.att.icrf, *tcdata[i]);
+		gauss_jackson_init_eci(tgjh[i], order, 0, dt, cdata[0].target[i].loc.utc, cdata[0].target[i].loc.pos.eci, cdata[0].target[i].loc.att.icrf, *tcdata[i]);
 	}
 
 	string sohstring = json_list_of_soh(cdata);
@@ -215,19 +215,19 @@ int main(int argc, char* argv[])
 	{
 		mjdnow += logperiod/86400.;
 		gauss_jackson_propagate(gjh, *cdata, mjdnow);
-		if (cdata->node.loc.utc > cdata->node.utc)
+		if (cdata[0].node.loc.utc > cdata[0].node.utc)
 		{
-			cdata->node.utc = cdata->node.loc.utc;
+			cdata[0].node.utc = cdata[0].node.loc.utc;
 		}
 
 		double dtemp;
 		if ((dtemp=floor(mjdnow/logstride)*logstride) > logdate)
 		{
 			logdate = dtemp;
-			log_move(cdata->node.name, "soh");
+			log_move(cdata[0].node.name, "soh");
 		}
 
-		for (uint16_t i=0; i<cdata->target.size(); ++i)
+		for (uint16_t i=0; i<cdata[0].target.size(); ++i)
 		{
 			gauss_jackson_propagate(tgjh[i], *tcdata[i], mjdnow);
 		}
@@ -235,16 +235,16 @@ int main(int argc, char* argv[])
 		calc_events(eventdict, cdata, events);
 		for (uint32_t k=0; k<events.size(); ++k)
 		{
-			memcpy(&cdata->event[0].s,&events[k],sizeof(shorteventstruc));
-			strcpy(cdata->event[0].l.condition,cdata->emap[events[k].handle.hash][events[k].handle.index].text);
-			log_write(cdata->node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(mainjstring, cdata));
+			memcpy(&cdata[0].event[0].s,&events[k],sizeof(shorteventstruc));
+			strcpy(cdata[0].event[0].l.condition,cdata[0].emap[events[k].handle.hash][events[k].handle.index].text);
+			log_write(cdata[0].node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(mainjstring, cdata));
 		}
 
-		if (cdata->node.utc != 0. && sohstring.size())
+		if (cdata[0].node.utc != 0. && sohstring.size())
 		{
-			log_write(cdata->node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(mainjstring,  logtable, cdata));
+			log_write(cdata[0].node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(mainjstring,  logtable, cdata));
 		}
-		//		agent_post(cdata, AGENT_MESSAGE_SOH,json_of_table(mainjstring,  cdata->agent[0].sohtable, cdata));
+		//		agent_post(cdata, AGENT_MESSAGE_SOH,json_of_table(mainjstring,  cdata[0].agent[0].sohtable, cdata));
 	}
 	agent_shutdown_server(cdata);
 }

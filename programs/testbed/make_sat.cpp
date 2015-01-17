@@ -18,12 +18,12 @@ cdata = json_create();
 load_databases(argv[1],(uint16_t)atol(argv[2]),cdata);
 
 // Battery capacity
-cdata->node.battcap = 0.;
-for (n=0; n<cdata->devspec.batt_cnt; n++)
+cdata[0].node.battcap = 0.;
+for (n=0; n<cdata[0].devspec.batt_cnt; n++)
 	{
-	cdata->node.battcap += cdata->devspec.batt[n]->capacity;
+	cdata[0].node.battcap += cdata[0].devspec.batt[n]->capacity;
 	}
-cdata->node.battlev = cdata->node.battcap;
+cdata[0].node.battlev = cdata[0].node.battcap;
 
 output = json_of_node(jstring, cdata);
 odes = fopen("node.ini","w");

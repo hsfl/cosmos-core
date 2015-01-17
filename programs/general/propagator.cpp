@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
 
-	cdata->physics.mode = mode;
+	cdata[0].physics.mode = mode;
 	json_clone(cdata);
 
 	load_dictionary(eventdict, cdata, (char *)"events.dict");
@@ -73,11 +73,11 @@ int main(int argc, char* argv[])
 			json_parse(ibuf,cdata);
 		}
 		free(ibuf);
-		loc_update(&cdata->node.loc);
-		iloc = cdata->node.loc;
-//		iloc.pos.eci = cdata->node.loc.pos.eci;
-//		iloc.att.icrf = cdata->node.loc.att.icrf;
-//		iloc.utc = cdata->node.loc.utc;
+		loc_update(&cdata[0].node.loc);
+		iloc = cdata[0].node.loc;
+//		iloc.pos.eci = cdata[0].node.loc.pos.eci;
+//		iloc.att.icrf = cdata[0].node.loc.att.icrf;
+//		iloc.utc = cdata[0].node.loc.utc;
 
 //        print_vector("Initial State Vector Position: ", iloc.pos.eci.s.col[0], iloc.pos.eci.s.col[1], iloc.pos.eci.s.col[2], "km");
         //cout << "Initial State Vector Pos: [" << iloc.pos.eci.s.col[0] << ", " << iloc.pos.eci.s.col[1] <<  ", " << iloc.pos.eci.s.col[2] << "] km " << endl;
@@ -105,26 +105,26 @@ int main(int argc, char* argv[])
 				tbuf = json_convert_string(json_extract_namedobject(pollbuf, "node_utcoffset"));
 				if (!tbuf.empty())
 				{
-					cdata->node.utcoffset = atof(tbuf.c_str());
-					printf("slave utcoffset: %f\n", cdata->node.utcoffset);
+					cdata[0].node.utcoffset = atof(tbuf.c_str());
+					printf("slave utcoffset: %f\n", cdata[0].node.utcoffset);
 				}
 			}
 			else
 			{
 				if (mjdstart == -1.)
 				{
-					cdata->node.utcoffset = cdata->node.loc.utc - currentmjd(0.);
+					cdata[0].node.utcoffset = cdata[0].node.loc.utc - currentmjd(0.);
 				}
 				else if (mjdstart == 0.)
 				{
-					cdata->node.utcoffset = 0.;
+					cdata[0].node.utcoffset = 0.;
 				}
 				else
 				{
-					cdata->node.utcoffset = mjdstart - currentmjd(0.);
+					cdata[0].node.utcoffset = mjdstart - currentmjd(0.);
 				}
-                //printf("master utcoffset: %f\n", cdata->node.utcoffset);
-                cout << "master utcoffset: " << setprecision(5) << cdata->node.utcoffset << endl;
+				//printf("master utcoffset: %f\n", cdata[0].node.utcoffset);
+				cout << "master utcoffset: " << setprecision(5) << cdata[0].node.utcoffset << endl;
 //				master_timer = true;
 			}
 			break;
@@ -132,36 +132,36 @@ int main(int argc, char* argv[])
 	default:
 		if (mjdstart == -1.)
 		{
-			cdata->node.utcoffset = cdata->node.loc.utc - currentmjd(0.);
+			cdata[0].node.utcoffset = cdata[0].node.loc.utc - currentmjd(0.);
 		}
 		else if (mjdstart == 0.)
 		{
-			cdata->node.utcoffset = 0.;
+			cdata[0].node.utcoffset = 0.;
 		}
 		else
 		{
-			cdata->node.utcoffset = mjdstart - currentmjd(0.);
+			cdata[0].node.utcoffset = mjdstart - currentmjd(0.);
 		}
-        //printf("master utcoffset: %f\n", cdata->node.utcoffset);
-        cout << "master utcoffset: " << cdata->node.utcoffset << endl;
+		//printf("master utcoffset: %f\n", cdata[0].node.utcoffset);
+		cout << "master utcoffset: " << cdata[0].node.utcoffset << endl;
 //		master_timer = true;
 		break;
 	}
 
-	mjdnow =  currentmjd(cdata->node.utcoffset);
+	mjdnow =  currentmjd(cdata[0].node.utcoffset);
 	double sohtimer = mjdnow;
 
 	if (mjdnow < iloc.utc)
 	{
 		gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, *cdata);
 
-        //printf("Initialize backwards %f days\n", (cdata->node.loc.utc-mjdnow));
-        cout << "Initialize backwards " << cdata->node.loc.utc-mjdnow << "days" << endl;
+		//printf("Initialize backwards %f days\n", (cdata[0].node.loc.utc-mjdnow));
+		cout << "Initialize backwards " << cdata[0].node.loc.utc-mjdnow << "days" << endl;
 
 		gauss_jackson_propagate(gjh, *cdata, mjdnow);
-		iloc.utc = cdata->node.loc.utc;
-		iloc.pos.eci = cdata->node.loc.pos.eci;
-		iloc.att.icrf = cdata->node.loc.att.icrf;
+		iloc.utc = cdata[0].node.loc.utc;
+		iloc.pos.eci = cdata[0].node.loc.pos.eci;
+		iloc.att.icrf = cdata[0].node.loc.att.icrf;
 	}
 	
 	double step = 8.64 * (mjdnow-iloc.utc);
@@ -180,11 +180,11 @@ int main(int argc, char* argv[])
 	gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
 	gauss_jackson_propagate(gjh, *cdata, mjdnow);
 	pos_clear(iloc);
-	iloc.pos.eci = cdata->node.loc.pos.eci;
-	iloc.att.icrf = cdata->node.loc.att.icrf;
-	iloc.utc = cdata->node.loc.pos.eci.utc;
+	iloc.pos.eci = cdata[0].node.loc.pos.eci;
+	iloc.att.icrf = cdata[0].node.loc.att.icrf;
+	iloc.utc = cdata[0].node.loc.pos.eci.utc;
 	gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
-	mjdnow = currentmjd(cdata->node.utcoffset);
+	mjdnow = currentmjd(cdata[0].node.utcoffset);
 
 	if (!(cdata = agent_setup_server(cdata, (char *)"physics", .1, 0, AGENTMAXBUFFER, AGENT_SINGLE)))
 	{
@@ -198,12 +198,12 @@ int main(int argc, char* argv[])
 	while (agent_running(cdata))
 	{
 		sohtimer += 1./86400.;
-		mjdnow = currentmjd(cdata->node.utcoffset);
+		mjdnow = currentmjd(cdata[0].node.utcoffset);
 		gauss_jackson_propagate(gjh, *cdata, mjdnow);
 
 		update_target(cdata);
 		calc_events(eventdict, cdata, events);
-		agent_post(cdata, AGENT_MESSAGE_SOH,json_of_table(mainjstring,  cdata->agent[0].sohtable, cdata));
+		agent_post(cdata, AGENT_MESSAGE_SOH,json_of_table(mainjstring,  cdata[0].agent[0].sohtable, cdata));
 		double dsleep = 1000000. * 86400.*(sohtimer - mjdnow);
 		if (dsleep > 0.)
 		{

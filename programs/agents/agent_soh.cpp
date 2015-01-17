@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
 
-	cdata->node.utc = 0.;
+	cdata[0].node.utc = 0.;
 	json_clone (cdata) ;
-	cdata->agent[0].aprd = .5;
+	cdata[0].agent[0].aprd = .5;
 
 
 	if ((iretn=agent_add_request(cdata, (char *)"reopen",request_reopen)))
@@ -136,41 +136,41 @@ int myagent()
 
 	do
 	{
-		nextmjd += cdata->agent[0].aprd/86400.;
+		nextmjd += cdata[0].agent[0].aprd/86400.;
 		dmjd = (cmjd-lmjd)*86400.;
 
 		if (newlogperiod != logperiod )
 		{
 			logperiod = newlogperiod;
-			logdate = cdata->node.utc;
-			log_move(cdata->node.name, "soh");
+			logdate = cdata[0].node.utc;
+			log_move(cdata[0].node.name, "soh");
 		}
 
 		cmjd = currentmjd();
-		if (cdata->node.utc != 0.)
+		if (cdata[0].node.utc != 0.)
 		{
 
 #if !defined(COSMOS_WIN_OS)
         fp = fopen("/proc/meminfo","r");
         fscanf(fp,"MemTotal: %f kB\nMemFree: %f",
-               &cdata->devspec.cpu[0]->maxmem,
-                &cdata->devspec.cpu[0]->mem);
+			   &cdata[0].devspec.cpu[0]->maxmem,
+				&cdata[0].devspec.cpu[0]->mem);
         fclose(fp);
 
         // get load average
         fp = fopen("/proc/loadavg","r");
-        fscanf(fp,"%f",&cdata->devspec.cpu[0]->load);
+		fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
         fclose(fp);
 
         // get percetage of disk used
         statfs("/",&fsbuf);
-        cdata->devspec.cpu[0]->disk = 100.0 * (double) (fsbuf.f_blocks - fsbuf.f_bfree) / (double) (fsbuf.f_blocks - fsbuf.f_bfree + fsbuf.f_bavail);
-        //cdata->devspec.cpu[0]->disk = fsbuf.f_bavail * fsbuf.f_frsize; // f_blocks; //f_bfree
+		cdata[0].devspec.cpu[0]->disk = 100.0 * (double) (fsbuf.f_blocks - fsbuf.f_bfree) / (double) (fsbuf.f_blocks - fsbuf.f_bfree + fsbuf.f_bavail);
+		//cdata[0].devspec.cpu[0]->disk = fsbuf.f_bavail * fsbuf.f_frsize; // f_blocks; //f_bfree
         //diskfree = fsbuf.f_bfree;
 
         // get number of cpu reboots
         fp = fopen("/flight_software/cosmosroot/nodes/hiakasat/boot.count","r");
-        fscanf(fp,"%u",&cdata->devspec.cpu[0]->boot_count);
+		fscanf(fp,"%u",&cdata[0].devspec.cpu[0]->boot_count);
         fclose(fp);
 
 #endif
@@ -179,32 +179,32 @@ int myagent()
 			{
 				logstride = newlogstride;
 				logdate = currentmjd(0.);
-				log_move(cdata->node.name, "soh");
+				log_move(cdata[0].node.name, "soh");
 			}
 
 			if ((dtemp=floor(cmjd/logstride)*logstride) > logdate)
 			{
 				logdate = dtemp;
-				log_move(cdata->node.name, "soh");
+				log_move(cdata[0].node.name, "soh");
 			}
 
-			loc_update(&cdata->node.loc);
+			loc_update(&cdata[0].node.loc);
 			update_target(cdata);
 			agent_post(cdata, AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, cdata));
 			calc_events(eventdict, cdata, events);
 			for (uint32_t k=0; k<events.size(); ++k)
 			{
-				memcpy(&cdata->event[0].s,&events[k],sizeof(shorteventstruc));
-				strcpy(cdata->event[0].l.condition,cdata->emap[events[k].handle.hash][events[k].handle.index].text);
-				log_write(cdata->node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(jjstring,cdata));
+				memcpy(&cdata[0].event[0].s,&events[k],sizeof(shorteventstruc));
+				strcpy(cdata[0].event[0].l.condition,cdata[0].emap[events[k].handle.hash][events[k].handle.index].text);
+				log_write(cdata[0].node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(jjstring,cdata));
 			}
 		}
 		if (dmjd-logperiod > -logperiod/20.)
 		{
 			lmjd = cmjd;
-			if (cdata->node.utc != 0. && logstring.size())
+			if (cdata[0].node.utc != 0. && logstring.size())
 			{
-				log_write(cdata->node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(jjstring, logtable, cdata));
+				log_write(cdata[0].node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(jjstring, logtable, cdata));
 			}
 		}
 
@@ -241,8 +241,8 @@ int myagent()
 		COSMOS_USLEEP(sleept);
 	} while (agent_running(cdata));
 
-	//	sprintf(tname,"%s/outgoing/%s",get_nodedir(cdata->node.name),data_name(cdata->node.name,fmjd,(char *)"telemetry"));
-	//	rename(data_base_path(cdata->node.name,fmjd,(char *)"telemetry"),tname);
+	//	sprintf(tname,"%s/outgoing/%s",get_nodedir(cdata[0].node.name),data_name(cdata[0].node.name,fmjd,(char *)"telemetry"));
+	//	rename(data_base_path(cdata[0].node.name,fmjd,(char *)"telemetry"),tname);
 	cdthread.join();
 	agent_shutdown_server(cdata);
 
@@ -292,7 +292,7 @@ void collect_data_loop()
 		if((nbytes=agent_poll(cdata, message, AGENT_MESSAGE_BEAT,0)))
 		{
 			string tstring;
-			if ((tstring=json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"))) != cdata->node.name)
+			if ((tstring=json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"))) != cdata[0].node.name)
 			{
 				continue;
 			}
@@ -301,19 +301,19 @@ void collect_data_loop()
 			json_parse(message,&cdata[1]);
 			cdata[0].node  = cdata[1].node ;
 			cdata[0].device  = cdata[1].device ;
-			loc_update(&cdata->node.loc);
-			if (cdata->node.loc.utc > cdata->node.utc)
+			loc_update(&cdata[0].node.loc);
+			if (cdata[0].node.loc.utc > cdata[0].node.utc)
 			{
-				cdata->node.utc = cdata->node.loc.utc;
+				cdata[0].node.utc = cdata[0].node.loc.utc;
 			}
-			for (devicestruc device: cdata->device)
+			for (devicestruc device: cdata[0].device)
 			{
-				if (device.all.gen.utc > cdata->node.utc)
+				if (device.all.gen.utc > cdata[0].node.utc)
 				{
-					cdata->node.utc = device.all.gen.utc;
+					cdata[0].node.utc = device.all.gen.utc;
 				}
 			}
-			cdata->node.utc = currentmjd();
+			cdata[0].node.utc = currentmjd();
 			//			update_target(cdata);
 		}
 	}

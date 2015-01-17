@@ -108,12 +108,12 @@ init_copterstruc () ;
 if (!(cdata = agent_setup_server(SOCKET_TYPE_BROADCAST,(char *)"arduino",agentname,.1,0,MAXBUFFERSIZE)) != 0)
 	exit (AGENT_ERROR_JSON_CREATE);
 
-cdata->node.loc.pos.geod.v.lat = cdata->node.loc.pos.geod.v.lon = cdata->node.loc.pos.geod.v.h = 0.;
-cdata->node.loc.pos.geod.a.lat = cdata->node.loc.pos.geod.a.lon = cdata->node.loc.pos.geod.a.h = 0.;
-//cdata->node.loc.pos.geod.s = cdata->node.track[0].loc;
-cdata->node.loc.pos.geod.utc = currentmjd(0);
-cdata->node.loc.pos.geod.s.h += 100.;
-pos_geod(&cdata->node.loc);
+cdata[0].node.loc.pos.geod.v.lat = cdata[0].node.loc.pos.geod.v.lon = cdata[0].node.loc.pos.geod.v.h = 0.;
+cdata[0].node.loc.pos.geod.a.lat = cdata[0].node.loc.pos.geod.a.lon = cdata[0].node.loc.pos.geod.a.h = 0.;
+//cdata[0].node.loc.pos.geod.s = cdata[0].node.track[0].loc;
+cdata[0].node.loc.pos.geod.utc = currentmjd(0);
+cdata[0].node.loc.pos.geod.s.h += 100.;
+pos_geod(&cdata[0].node.loc);
 
 // Check for other instance of this agent
 if (argc == 2)
@@ -210,7 +210,7 @@ while(agent_running(cdata))
 	// Calculate time and publish it
 	strcpy (outstr1,"")  ;
 	cmjd = currentmjd (0) ;
-	cdata->node.loc.utc = cmjd ;
+	cdata[0].node.loc.utc = cmjd ;
 
 	year = mjd2year(cmjd);
 	iyear = (int)year;
@@ -272,8 +272,8 @@ while(agent_running(cdata))
 	getMotorSpeed() ;
 
 
-	cdata->node.loc.pos.geod.utc = currentmjd(0);
-	pos_geod(&cdata->node.loc);
+	cdata[0].node.loc.pos.geod.utc = currentmjd(0);
+	pos_geod(&cdata[0].node.loc);
 
 	agent_post(cdata, AGENT_MESSAGE_SOH,json_of_soh(jstring, cdata));
 	fprintf (fout, "%s", jstring.c_str()) ;
@@ -552,10 +552,10 @@ void getMotorSpeed () {
 	result = strtok (NULL, "*") ;
 	s3 = atof (result) ;
 
-	cdata->devspec.motr[0]->spd = s0 ;
-	cdata->devspec.motr[1]->spd = s1 ;
-	cdata->devspec.motr[2]->spd = s2 ;
-	cdata->devspec.motr[3]->spd = s3 ;
+	cdata[0].devspec.motr[0]->spd = s0 ;
+	cdata[0].devspec.motr[1]->spd = s1 ;
+	cdata[0].devspec.motr[2]->spd = s2 ;
+	cdata[0].devspec.motr[3]->spd = s3 ;
 
 
 }
@@ -590,7 +590,7 @@ void getAngles () {
 	myCopter.angles[0] = roll ;
 	myCopter.angles[1] = pitch ;
 	myCopter.angles[2] = yaw ;
-	cdata->devspec.stt[0]->att = q_euler2quaternion (rpw) ;
+	cdata[0].devspec.stt[0]->att = q_euler2quaternion (rpw) ;
 
 }
 

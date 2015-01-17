@@ -32,13 +32,13 @@ int main(int argc, char *argv[])
 	cdata = json_create();
 	node_init(argv[1],cdata);
 	json_clone(cdata);
-	iretn=agent_get_server(cdata, cdata->node.name,(char *)"simulator",5,&imubeat);
+	iretn=agent_get_server(cdata, cdata[0].node.name,(char *)"simulator",5,&imubeat);
 	agent_send_request(cdata, imubeat,(char *)"statevec",buf,1000,5);
 	json_parse(buf,cdata);
 	agent_send_request(cdata, imubeat,(char *)"value node_name",buf,1000,5);
 	json_parse(buf,cdata);
 
-	mjdnow = cdata->node.loc.utc;
+	mjdnow = cdata[0].node.loc.utc;
 	fyear = mjd2year(mjdnow);
 	year = (int)fyear;
 	day = (int)(365.26 * (fyear-year)) + 1;
@@ -57,15 +57,15 @@ int main(int argc, char *argv[])
 	}
 
 
-	gauss_jackson_init_eci(gjh, 4, 0, 5., mjdnow, cdata->node.loc.pos.eci, cdata->node.loc.att.icrf, *cdata);
-	mjdnow = cdata->node.loc.utc;
-	lastlat = cdata->node.loc.pos.geod.s.lat;
+	gauss_jackson_init_eci(gjh, 4, 0, 5., mjdnow, cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, *cdata);
+	mjdnow = cdata[0].node.loc.utc;
+	lastlat = cdata[0].node.loc.pos.geod.s.lat;
 	for (j=0; j<3; j++)
 	{
 		lastgsel[j] = azel.phi;
 		gsup[j] = 0;
 	}
-	lastsunradiance = cdata->node.loc.pos.sunradiance;
+	lastsunradiance = cdata[0].node.loc.pos.sunradiance;
 	fout = fopen("ephemeris","w");
 	eout = fopen("orbitalevents","w");
 	for (i=0; i<8640; i++)
@@ -80,39 +80,39 @@ int main(int argc, char *argv[])
 		minute = (int)(1440. * fd - hour * 60.);
 		second = (int)(86400. * fd - hour * 3600. - minute * 60.);
 		sprintf(date,"%4d-%02d-%02d,%02d:%02d:%02d,O00000,",year,month,day,hour,minute,second);
-		if (lastlat <= RADOF(-60.) && cdata->node.loc.pos.geod.s.lat >= RADOF(-60.))
+		if (lastlat <= RADOF(-60.) && cdata[0].node.loc.pos.geod.s.lat >= RADOF(-60.))
 			fprintf(eout,"%sS60A\n",date);
-		if (lastlat <= RADOF(-30.) && cdata->node.loc.pos.geod.s.lat >= RADOF(-30.))
+		if (lastlat <= RADOF(-30.) && cdata[0].node.loc.pos.geod.s.lat >= RADOF(-30.))
 			fprintf(eout,"%sS30A\n",date);
-		if (lastlat <= 0. && cdata->node.loc.pos.geod.s.lat >= 0.)
+		if (lastlat <= 0. && cdata[0].node.loc.pos.geod.s.lat >= 0.)
 			fprintf(eout,"%sEQA\n",date);
-		if (lastlat <= RADOF(30.) && cdata->node.loc.pos.geod.s.lat >= RADOF(30.))
+		if (lastlat <= RADOF(30.) && cdata[0].node.loc.pos.geod.s.lat >= RADOF(30.))
 			fprintf(eout,"%sN30A\n",date);
-		if (lastlat <= RADOF(60.) && cdata->node.loc.pos.geod.s.lat >= RADOF(60.))
+		if (lastlat <= RADOF(60.) && cdata[0].node.loc.pos.geod.s.lat >= RADOF(60.))
 			fprintf(eout,"%sN60A\n",date);
-		if (lastlat >= RADOF(-60.) && cdata->node.loc.pos.geod.s.lat <= RADOF(-60.))
+		if (lastlat >= RADOF(-60.) && cdata[0].node.loc.pos.geod.s.lat <= RADOF(-60.))
 			fprintf(eout,"%sS60D\n",date);
-		if (lastlat >= RADOF(-30.) && cdata->node.loc.pos.geod.s.lat <= RADOF(-30.))
+		if (lastlat >= RADOF(-30.) && cdata[0].node.loc.pos.geod.s.lat <= RADOF(-30.))
 			fprintf(eout,"%sS30D\n",date);
-		if (lastlat >= 0. && cdata->node.loc.pos.geod.s.lat <= 0.)
+		if (lastlat >= 0. && cdata[0].node.loc.pos.geod.s.lat <= 0.)
 			fprintf(eout,"%sEQD\n",date);
-		if (lastlat >= RADOF(30.) && cdata->node.loc.pos.geod.s.lat <= RADOF(30.))
+		if (lastlat >= RADOF(30.) && cdata[0].node.loc.pos.geod.s.lat <= RADOF(30.))
 			fprintf(eout,"%sN30D\n",date);
-		if (lastlat >= RADOF(60.) && cdata->node.loc.pos.geod.s.lat <= RADOF(60.))
+		if (lastlat >= RADOF(60.) && cdata[0].node.loc.pos.geod.s.lat <= RADOF(60.))
 			fprintf(eout,"%sN60D\n",date);
 
-		if (lastsunradiance == 0. && cdata->node.loc.pos.sunradiance > 0.)
+		if (lastsunradiance == 0. && cdata[0].node.loc.pos.sunradiance > 0.)
 		{
 			date[20] = JSON_TYPE_UINT32;
 			fprintf(eout,"%sUMB_OUT\n",date);
 		}
-		if (lastsunradiance > 0. && cdata->node.loc.pos.sunradiance == 0.)
+		if (lastsunradiance > 0. && cdata[0].node.loc.pos.sunradiance == 0.)
 		{
 			date[20] = JSON_TYPE_UINT32;
 			fprintf(eout,"%sUMB_IN\n",date);
 		}
-		lastlat = cdata->node.loc.pos.geod.s.lat;
-		lastsunradiance = cdata->node.loc.pos.sunradiance;
+		lastlat = cdata[0].node.loc.pos.geod.s.lat;
+		lastsunradiance = cdata[0].node.loc.pos.sunradiance;
 		for (j=0; j<3; j++)
 		{
 			if (azel.phi <= lastgsel[j] && azel.phi > 0.)

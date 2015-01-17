@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 
 	char buffer[8192];
 	vector<filestruc> srcfiles;
-	data_list_files(cdata->node.name, source.c_str(), agent.c_str(), srcfiles);
+	data_list_files(cdata[0].node.name, source.c_str(), agent.c_str(), srcfiles);
 
 	for (filestruc srcfile: srcfiles)
 	{

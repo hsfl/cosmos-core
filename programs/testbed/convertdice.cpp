@@ -31,10 +31,10 @@ int main(int argc, char *argv[])
 	tsenstruc tsen[14];
 
 
-	cdata->physics.mode = atol(argv[1]);
+	cdata[0].physics.mode = atol(argv[1]);
 	node_init((char *)"dice",cdata);
 
-	load_lines((char *)"tle_dice1.tle", cdata->tle);
+	load_lines((char *)"tle_dice1.tle", cdata[0].tle);
 
 	fp1 = fopen("dice_attitude_mag_gpsweek_1691.txt","r");
 	fp2 = fopen("dice_attitude_sun_gpsweek_1691.txt","r");
@@ -46,22 +46,22 @@ int main(int argc, char *argv[])
 
 	for (utc=nmjd; utc<lmjd; utc+=10./86400.)
 	{
-		cdata->node.loc.utc = currentmjd(cdata->node.utcoffset);
-		if (lines2eci(utc, cdata->tle, &npos) < 0)
+		cdata[0].node.loc.utc = currentmjd(cdata[0].node.utcoffset);
+		if (lines2eci(utc, cdata[0].tle, &npos) < 0)
 			exit (1);
-		cdata->node.loc.utc = utc;
-		update_eci(*cdata, cdata->node.loc.utc, npos);
+		cdata[0].node.loc.utc = utc;
+		update_eci(*cdata, cdata[0].node.loc.utc, npos);
 		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(mainjstring, cdata));
 		//		ecount = check_events(events,20,cdata);
 		for (i=0; i<ecount; i++)
 		{
-			cdata->event[0].s = events[i];
-			strcpy(cdata->event[0].l.condition,cdata->emap[events[i].handle.hash][events[i].handle.index].text);
+			cdata[0].event[0].s = events[i];
+			strcpy(cdata[0].event[0].l.condition,cdata[0].emap[events[i].handle.hash][events[i].handle.index].text);
 			log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, cdata));
 		}
 	}
 
-	cdata->node.loc.utc = lmjd;
+	cdata[0].node.loc.utc = lmjd;
 
 	while (1)
 	{
@@ -94,26 +94,26 @@ int main(int argc, char *argv[])
 		if (feof(fp1))
 			break;
 
-		cdata->node.loc.utc = currentmjd(cdata->node.utcoffset);
-		if (lines2eci(utc, cdata->tle, &npos) < 0)
+		cdata[0].node.loc.utc = currentmjd(cdata[0].node.utcoffset);
+		if (lines2eci(utc, cdata[0].tle, &npos) < 0)
 			exit (1);
-		cdata->node.loc.utc = utc;
-		update_eci(*cdata, cdata->node.loc.utc, npos);
+		cdata[0].node.loc.utc = utc;
+		update_eci(*cdata, cdata[0].node.loc.utc, npos);
 		bearth.col[2] = 0.;
-		cdata->node.loc.bearth = bearth;
-		cdata->devspec.imu[0]->mag = bearth;
-		*cdata->devspec.ssen[0] = ssen[0];
+		cdata[0].node.loc.bearth = bearth;
+		cdata[0].devspec.imu[0]->mag = bearth;
+		*cdata[0].devspec.ssen[0] = ssen[0];
 		for (i=0; i<14; i++)
 		{
-			*cdata->devspec.tsen[i] = tsen[i];
+			*cdata[0].devspec.tsen[i] = tsen[i];
 		}
 		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,(char *)json_of_soh(mainjstring, cdata));
 		lmjd += 10./86400.;
 		//		ecount = check_events(events,20,cdata);
 		for (i=0; i<ecount; i++)
 		{
-			cdata->event[0].s = events[i];
-			strcpy(cdata->event[0].l.condition,cdata->emap[events[i].handle.hash][events[i].handle.index].text);
+			cdata[0].event[0].s = events[i];
+			strcpy(cdata[0].event[0].l.condition,cdata[0].emap[events[i].handle.hash][events[i].handle.index].text);
 			log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, cdata));
 		}
 	}
@@ -121,17 +121,17 @@ int main(int argc, char *argv[])
 	nmjd = (int)(lmjd+1);
 	for (utc=lmjd; utc<nmjd; utc+=10./86400.)
 	{
-		cdata->node.loc.utc = currentmjd(cdata->node.utcoffset);
-		if (lines2eci(utc, cdata->tle, &npos) < 0)
+		cdata[0].node.loc.utc = currentmjd(cdata[0].node.utcoffset);
+		if (lines2eci(utc, cdata[0].tle, &npos) < 0)
 			exit (1);
-		cdata->node.loc.utc = utc;
-		update_eci(*cdata, cdata->node.loc.utc, npos);
+		cdata[0].node.loc.utc = utc;
+		update_eci(*cdata, cdata[0].node.loc.utc, npos);
 		log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(mainjstring, cdata));
 		//		ecount = check_events(events,20,cdata);
 		for (i=0; i<ecount; i++)
 		{
-			cdata->event[0].s = events[i];
-			strcpy(cdata->event[0].l.condition,cdata->emap[events[i].handle.hash][events[i].handle.index].text);
+			cdata[0].event[0].s = events[i];
+			strcpy(cdata[0].event[0].l.condition,cdata[0].emap[events[i].handle.hash][events[i].handle.index].text);
 			log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, cdata));
 		}
 	}

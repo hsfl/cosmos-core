@@ -64,17 +64,17 @@ else
 }
 
 // initialize position for kicks....
-nmjd = lmjd = cmjd = currentmjd(cdata->node.utcoffset) ;
+nmjd = lmjd = cmjd = currentmjd(cdata[0].node.utcoffset) ;
 speed = heading = 0.;
 cspeed = cheading = 0.;
 dspeed = dheading = 0.;
-cdata->node.loc.pos.geod.v.lat = cdata->node.loc.pos.geod.v.lon = cdata->node.loc.pos.geod.v.h = 0.;
-cdata->node.loc.pos.geod.a.lat = cdata->node.loc.pos.geod.a.lon = cdata->node.loc.pos.geod.a.h = 0.;
-cdata->node.loc.pos.geod.s.lat = RADOF(21.29747);
-cdata->node.loc.pos.geod.s.lon = RADOF(-157.815967);
-cdata->node.loc.pos.geod.utc = cmjd ;
-cdata->node.loc.pos.geod.s.h = 22.;
-pos_geod(&cdata->node.loc);
+cdata[0].node.loc.pos.geod.v.lat = cdata[0].node.loc.pos.geod.v.lon = cdata[0].node.loc.pos.geod.v.h = 0.;
+cdata[0].node.loc.pos.geod.a.lat = cdata[0].node.loc.pos.geod.a.lon = cdata[0].node.loc.pos.geod.a.h = 0.;
+cdata[0].node.loc.pos.geod.s.lat = RADOF(21.29747);
+cdata[0].node.loc.pos.geod.s.lon = RADOF(-157.815967);
+cdata[0].node.loc.pos.geod.utc = cmjd ;
+cdata[0].node.loc.pos.geod.s.h = 22.;
+pos_geod(&cdata[0].node.loc);
 
 // sets rover speed
 if ((iretn=agent_add_request(cdata, (char *)"setspeed", request_setspeed)) !=0)
@@ -111,8 +111,8 @@ FILE *fout =  NULL ;
 printf ("start agent ...\r\n") ;
 while(agent_running(cdata))
 	{
-	cmjd = currentmjd (cdata->node.utcoffset) ;
-	cdata->node.loc.utc = cmjd;
+	cmjd = currentmjd (cdata[0].node.utcoffset) ;
+	cdata[0].node.loc.utc = cmjd;
 	dt = 86400. * (cmjd-lmjd);
 
 	// Adjust speed
@@ -163,51 +163,51 @@ while(agent_running(cdata))
 	// Calculate new location from speed and heading
 	for (i=0; i<6; i++)
 		{
-		cdata->devspec.motr[i]->spd = speed/cdata->devspec.motr[i]->rat;
+		cdata[0].devspec.motr[i]->spd = speed/cdata[0].devspec.motr[i]->rat;
 		}
-	cdata->node.loc.pos.geod.a.lon = dspeed * sin(cheading) / (dt*cos(cdata->node.loc.pos.geod.s.lat)*cdata->node.loc.pos.geos.s.r);
-	cdata->node.loc.pos.geod.a.lat = dspeed * cos(cheading) / (dt*cdata->node.loc.pos.geos.s.r);
-	cdata->node.loc.pos.geod.v.lon = cspeed * sin(cheading) / (cos(cdata->node.loc.pos.geod.s.lat)*cdata->node.loc.pos.geos.s.r);
-	cdata->node.loc.pos.geod.v.lat = cspeed * cos(cheading) / (cdata->node.loc.pos.geos.s.r);
-	cdata->node.loc.pos.geod.v.h = cdata->node.loc.pos.geod.a.h = 0.;
-	cdata->node.loc.pos.geod.s.lon += cdata->node.loc.pos.geod.v.lon * dt;
-	cdata->node.loc.pos.geod.s.lat += cdata->node.loc.pos.geod.v.lat * dt;
-	cdata->node.loc.pos.geod.s.h += cdata->node.loc.pos.geod.v.h * dt;
-	cdata->node.loc.pos.geod.utc = cdata->node.loc.utc;
+	cdata[0].node.loc.pos.geod.a.lon = dspeed * sin(cheading) / (dt*cos(cdata[0].node.loc.pos.geod.s.lat)*cdata[0].node.loc.pos.geos.s.r);
+	cdata[0].node.loc.pos.geod.a.lat = dspeed * cos(cheading) / (dt*cdata[0].node.loc.pos.geos.s.r);
+	cdata[0].node.loc.pos.geod.v.lon = cspeed * sin(cheading) / (cos(cdata[0].node.loc.pos.geod.s.lat)*cdata[0].node.loc.pos.geos.s.r);
+	cdata[0].node.loc.pos.geod.v.lat = cspeed * cos(cheading) / (cdata[0].node.loc.pos.geos.s.r);
+	cdata[0].node.loc.pos.geod.v.h = cdata[0].node.loc.pos.geod.a.h = 0.;
+	cdata[0].node.loc.pos.geod.s.lon += cdata[0].node.loc.pos.geod.v.lon * dt;
+	cdata[0].node.loc.pos.geod.s.lat += cdata[0].node.loc.pos.geod.v.lat * dt;
+	cdata[0].node.loc.pos.geod.s.h += cdata[0].node.loc.pos.geod.v.h * dt;
+	cdata[0].node.loc.pos.geod.utc = cdata[0].node.loc.utc;
 
 	// Set attitude in Topocentric
-	cdata->node.loc.att.topo.utc = cdata->node.loc.pos.eci.utc;
-	cdata->node.loc.att.topo.s = q_change_around_z(-cheading);
-	cdata->node.loc.att.topo.v = rv_smult(dheading/dt,rv_unitz());
-	cdata->node.loc.att.topo.a = rv_zero();
+	cdata[0].node.loc.att.topo.utc = cdata[0].node.loc.pos.eci.utc;
+	cdata[0].node.loc.att.topo.s = q_change_around_z(-cheading);
+	cdata[0].node.loc.att.topo.v = rv_smult(dheading/dt,rv_unitz());
+	cdata[0].node.loc.att.topo.a = rv_zero();
 
 	// Synchronize positions and attitudes
-	pos_geod(&cdata->node.loc);
-	att_planec2topo(&cdata->node.loc);
+	pos_geod(&cdata[0].node.loc);
+	att_planec2topo(&cdata[0].node.loc);
 
-	testv = rotate_q(q_conjugate(cdata->node.loc.att.icrf.s),rv_unitz());
-	testv = rv_normal(cdata->node.loc.pos.eci.s);
-	testv = rotate_q(q_conjugate(cdata->node.loc.att.geoc.s),rv_unitz());
-	testv = rv_normal(cdata->node.loc.pos.geoc.s);
+	testv = rotate_q(q_conjugate(cdata[0].node.loc.att.icrf.s),rv_unitz());
+	testv = rv_normal(cdata[0].node.loc.pos.eci.s);
+	testv = rotate_q(q_conjugate(cdata[0].node.loc.att.geoc.s),rv_unitz());
+	testv = rv_normal(cdata[0].node.loc.pos.geoc.s);
 
 	// Simulate hardware
-	cdata->physics.dt = dt;
-	simulate_hardware(*cdata, cdata->node.loc);
+	cdata[0].physics.dt = dt;
+	simulate_hardware(*cdata, cdata[0].node.loc);
 	agent_post(cdata, AGENT_MESSAGE_SOH,json_of_soh(jstring, cdata));
 
 	// Broadcast and Log SOH
 	if (cmjd > nmjd)
 		{
 
-//        printf("%.15g %.15g %.15g %.15g %.15g %.15g\n",cdata->node.loc.utc,DEGOF(cdata->node.loc.pos.geod.s.lat),DEGOF(cdata->node.loc.pos.geod.s.lon),cdata->node.loc.pos.eci.s.col[0],cdata->node.loc.pos.eci.s.col[1],cdata->node.loc.pos.eci.s.col[2]);
-		printf("%.15g %.10g %.10g %.10g %.10g %.10g %.10g %.10g\n",cdata->node.loc.utc,DEGOF(cdata->node.loc.pos.geod.s.lat),DEGOF(cdata->node.loc.pos.geod.s.lon),cspeed,cheading,cdata->node.powgen,cdata->node.powuse,dt);
+//        printf("%.15g %.15g %.15g %.15g %.15g %.15g\n",cdata[0].node.loc.utc,DEGOF(cdata[0].node.loc.pos.geod.s.lat),DEGOF(cdata[0].node.loc.pos.geod.s.lon),cdata[0].node.loc.pos.eci.s.col[0],cdata[0].node.loc.pos.eci.s.col[1],cdata[0].node.loc.pos.eci.s.col[2]);
+		printf("%.15g %.10g %.10g %.10g %.10g %.10g %.10g %.10g\n",cdata[0].node.loc.utc,DEGOF(cdata[0].node.loc.pos.geod.s.lat),DEGOF(cdata[0].node.loc.pos.geod.s.lon),cspeed,cheading,cdata[0].node.powgen,cdata[0].node.powuse,dt);
 
         if ((int)cmjd != (int)nmjd || fname[0] == 0)
 			{
             sprintf(fname,"%s/data",base);
 			COSMOS_MKDIR(fname,00777);
 			COSMOS_MKDIR(fname,00777);
-            year = mjd2year(cdata->node.loc.utc);
+			year = mjd2year(cdata[0].node.loc.utc);
 			iyear = (int)year;
             sprintf(fname,"%s/data/%04d",base,iyear);
 			COSMOS_MKDIR(fname,00777);
@@ -216,8 +216,8 @@ while(agent_running(cdata))
             sprintf(fname,"%s/data/%04d/%03d",base,iyear,iday);
 			COSMOS_MKDIR(fname,00777);
             iseconds = (int)(86400.*(day-iday));
-			sprintf(fname,"%s/data/%04d/%03d/%s.%4d%03d%05d.telemetry",base,iyear,iday,cdata->node.name,iyear,iday,iseconds);
-//			sprintf(ename,"data/%04d/%03d/%s.%4d%03d%05d.event",iyear,iday,cdata->node.name,iyear,iday,iseconds);
+			sprintf(fname,"%s/data/%04d/%03d/%s.%4d%03d%05d.telemetry",base,iyear,iday,cdata[0].node.name,iyear,iday,iseconds);
+//			sprintf(ename,"data/%04d/%03d/%s.%4d%03d%05d.event",iyear,iday,cdata[0].node.name,iyear,iday,iseconds);
 			}
 
 		fout = fopen(fname,"a+");

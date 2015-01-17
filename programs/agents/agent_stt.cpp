@@ -65,10 +65,10 @@ int main(int argc, char *argv[])
 	printf("STT Server Agent is set up.\n");
 
 	// Initialization stuff - start real unless indicated
-	cdata->devspec.stt[0]->att.w =   -.1;
-	cdata->devspec.stt[0]->att.d.x = -.1;
-	cdata->devspec.stt[0]->att.d.y = -.1;
-	cdata->devspec.stt[0]->att.d.z = -.1;
+	cdata[0].devspec.stt[0]->att.w =   -.1;
+	cdata[0].devspec.stt[0]->att.d.x = -.1;
+	cdata[0].devspec.stt[0]->att.d.y = -.1;
+	cdata[0].devspec.stt[0]->att.d.z = -.1;
 
 	if (simulated)
 	{
@@ -82,10 +82,10 @@ int main(int argc, char *argv[])
 	else
 	{
 		// Attempt to initialize hardware.
-		if ((iretn = sinclair_stt_connect(cdata->port[cdata->devspec.stt[0]->gen.portidx].name,(uint8_t)0x11,(uint8_t)0x0E, &stth)) < 0)
+		if ((iretn = sinclair_stt_connect(cdata[0].port[cdata[0].devspec.stt[0]->gen.portidx].name,(uint8_t)0x11,(uint8_t)0x0E, &stth)) < 0)
 		{
 			//if ((&stth = sinclair_stt_connect("/dev/ttyUSB0",(uint8_t)0x11,(uint8_t)0x0E)) < 0)
-			printf("Connection Error: Star tracker not found for [%s]:%d\nAgent will continue\n\n",cdata->node.name, iretn);
+			printf("Connection Error: Star tracker not found for [%s]:%d\nAgent will continue\n\n",cdata[0].node.name, iretn);
 		}
 		else
 		{
@@ -124,9 +124,9 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			for (uint32_t i=0; i<cdata->devspec.stt_cnt; ++i)
+			for (uint32_t i=0; i<cdata[0].devspec.stt_cnt; ++i)
 			{
-				cdata->node.loc.utc = currentmjd( cdata->node.utcoffset);
+				cdata[0].node.loc.utc = currentmjd( cdata[0].node.utcoffset);
 				sinclair_stt_result_operational result;
 				sinclair_stt_combo(&stth, &result);
 			}
@@ -136,8 +136,8 @@ int main(int argc, char *argv[])
 	}
 
 
-	for (uint32_t i=0; i<cdata->devspec.stt_cnt; ++i) {
-		if (!(cdata->devspec.stt[0]->gen.flag&DEVICE_FLAG_SIMULATED)) {
+	for (uint32_t i=0; i<cdata[0].devspec.stt_cnt; ++i) {
+		if (!(cdata[0].devspec.stt[0]->gen.flag&DEVICE_FLAG_SIMULATED)) {
 			// Close the star tracker on exit.
 			sinclair_disconnect(&stth);
 		}
@@ -153,7 +153,7 @@ int32_t request_soh(char *request, char* response, void *)
 {
 	string rjstring;
 //	strcpy(response,json_of_list(rjstring,sohstring,cdata));
-	strcpy(response,json_of_table(rjstring, cdata->agent[0].sohtable, cdata));
+	strcpy(response,json_of_table(rjstring, cdata[0].agent[0].sohtable, cdata));
 	return 0;
 }
 
@@ -162,10 +162,10 @@ int32_t request_soh(char *request, char* response, void *)
 int32_t request_get_att(char *request, char* response, void *)
 {
 	sprintf(response,"mjd=%.15g  w=%.6g x=%.6g y=%.6g z=%.6g", mjd,
-			cdata->devspec.stt[0]->att.w,
-			cdata->devspec.stt[0]->att.d.x,
-			cdata->devspec.stt[0]->att.d.y,
-			cdata->devspec.stt[0]->att.d.z);
+			cdata[0].devspec.stt[0]->att.w,
+			cdata[0].devspec.stt[0]->att.d.x,
+			cdata[0].devspec.stt[0]->att.d.y,
+			cdata[0].devspec.stt[0]->att.d.z);
 
 	return 0;
 }
@@ -173,9 +173,9 @@ int32_t request_get_att(char *request, char* response, void *)
 int32_t request_get_omg(char *request, char* response, void *)
 {
 	sprintf(response,"mjd=%.15g  col0=%.6g col1=%.6g col2=%.6g", mjd,
-			cdata->devspec.stt[0]->omega.col[0],
-			cdata->devspec.stt[0]->omega.col[1],
-			cdata->devspec.stt[0]->omega.col[2]);
+			cdata[0].devspec.stt[0]->omega.col[0],
+			cdata[0].devspec.stt[0]->omega.col[1],
+			cdata[0].devspec.stt[0]->omega.col[2]);
 
 	return 0;
 }
@@ -305,39 +305,39 @@ void sendComboCommand(uint32_t stt_num)
 
 
 	// Fill in Attitude structure
-	cdata->devspec.stt[stt_num]->att.w = AttQ[0];
-	cdata->devspec.stt[stt_num]->att.d.x = AttQ[1];
-	cdata->devspec.stt[stt_num]->att.d.y = AttQ[2];
-	cdata->devspec.stt[stt_num]->att.d.z = AttQ[3];
+	cdata[0].devspec.stt[stt_num]->att.w = AttQ[0];
+	cdata[0].devspec.stt[stt_num]->att.d.x = AttQ[1];
+	cdata[0].devspec.stt[stt_num]->att.d.y = AttQ[2];
+	cdata[0].devspec.stt[stt_num]->att.d.z = AttQ[3];
 
 	// multiply stt quat by align
-	sttTimesAlign = q_mult( cdata->devspec.stt[stt_num]->att, cdata->devspec.stt[stt_num]->align );
+	sttTimesAlign = q_mult( cdata[0].devspec.stt[stt_num]->att, cdata[0].devspec.stt[stt_num]->align );
 
 	// Fill in satellite node att structure
-	cdata->node.loc.att.geoc.s.w = sttTimesAlign.w;
-	cdata->node.loc.att.geoc.s.d.x = sttTimesAlign.d.x;
-	cdata->node.loc.att.geoc.s.d.y = sttTimesAlign.d.y;
-	cdata->node.loc.att.geoc.s.d.z = sttTimesAlign.d.z;
+	cdata[0].node.loc.att.geoc.s.w = sttTimesAlign.w;
+	cdata[0].node.loc.att.geoc.s.d.x = sttTimesAlign.d.x;
+	cdata[0].node.loc.att.geoc.s.d.y = sttTimesAlign.d.y;
+	cdata[0].node.loc.att.geoc.s.d.z = sttTimesAlign.d.z;
 
 
 
 	// Fill in satellite node velocity structure
-	cdata->node.loc.att.geoc.v.col[0] = VelAng[0];
-	cdata->node.loc.att.geoc.v.col[1] = VelAng[1];
-	cdata->node.loc.att.geoc.v.col[2] = VelAng[2];
+	cdata[0].node.loc.att.geoc.v.col[0] = VelAng[0];
+	cdata[0].node.loc.att.geoc.v.col[1] = VelAng[1];
+	cdata[0].node.loc.att.geoc.v.col[2] = VelAng[2];
 
 	// multiply Velocity by align quat
-	velTimesAlign = transform_q( cdata->devspec.stt[stt_num]->align, cdata->devspec.stt[stt_num]->omega );
+	velTimesAlign = transform_q( cdata[0].devspec.stt[stt_num]->align, cdata[0].devspec.stt[stt_num]->omega );
 
 	// Fill in Velocity structure
-	cdata->devspec.stt[stt_num]->omega.col[0] = velTimesAlign.col[0];
-	cdata->devspec.stt[stt_num]->omega.col[1] = velTimesAlign.col[1];
-	cdata->devspec.stt[stt_num]->omega.col[2] = velTimesAlign.col[2];
+	cdata[0].devspec.stt[stt_num]->omega.col[0] = velTimesAlign.col[0];
+	cdata[0].devspec.stt[stt_num]->omega.col[1] = velTimesAlign.col[1];
+	cdata[0].devspec.stt[stt_num]->omega.col[2] = velTimesAlign.col[2];
 
 
-	cdata->devspec.stt[stt_num]->retcode = ReturnCode;  // return code
-	cdata->devspec.stt[stt_num]->status = statusBits;   // Status bits
-	cdata->devspec.stt[stt_num]->gen.temp = ProcTemp;       // Start Tracker processor temperature
+	cdata[0].devspec.stt[stt_num]->retcode = ReturnCode;  // return code
+	cdata[0].devspec.stt[stt_num]->status = statusBits;   // Status bits
+	cdata[0].devspec.stt[stt_num]->gen.temp = ProcTemp;       // Start Tracker processor temperature
 
 	//    Return Code
 	//    Bit 0    Image 1 output quality

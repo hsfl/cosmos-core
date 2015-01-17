@@ -20,14 +20,14 @@ int main(int argc, char *argv[])
 			exit (-1);
 		}
 
-		if ((iretn=vmt35_connect(cdata->port[cdata->devspec.tcu[0]->gen.portidx].name, &vmt35handle)) < 0)
+		if ((iretn=vmt35_connect(cdata[0].port[cdata[0].devspec.tcu[0]->gen.portidx].name, &vmt35handle)) < 0)
 		{
 			printf("Couldn't connect to VMT35\n");
 			exit (1);
 		}
 
 
-		if ((iretn=vn100_connect(cdata->port[cdata->devspec.imu[0]->gen.portidx].name, &vn100handle)) != 0)
+		if ((iretn=vn100_connect(cdata[0].port[cdata[0].devspec.imu[0]->gen.portidx].name, &vn100handle)) != 0)
 		{
 			printf("Couldn't connect to VN100\n");
 			exit (1);
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 		}
 
 //		double amp;
-//		amp = cdata->devspec.mtr[i]->poly[0] + cdata->devspec.mtr[i]->rmom * (cdata->devspec.mtr[i]->poly[1] + cdata->devspec.mtr[i]->rmom * cdata->devspec.mtr[i]->poly[2]);
+//		amp = cdata[0].devspec.mtr[i]->poly[0] + cdata[0].devspec.mtr[i]->rmom * (cdata[0].devspec.mtr[i]->poly[1] + cdata[0].devspec.mtr[i]->rmom * cdata[0].devspec.mtr[i]->poly[2]);
 		iretn = vmt35_set_amps(&vmt35handle, 0, .09);
 		printf("%d\n",iretn);
 		iretn = vmt35_set_amps(&vmt35handle, 1, .09);

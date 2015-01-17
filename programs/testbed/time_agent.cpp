@@ -62,7 +62,7 @@ nmjd = cmjd + period;
 while(agent_running(cdata))
 	{
 	// Calculate time and publish it
-	cdata->node.loc.utc = currentmjd(cdata->node.utcoffset);
+	cdata[0].node.loc.utc = currentmjd(cdata[0].node.utcoffset);
 	agent_post(cdata, AGENT_MESSAGE_TIME,json_of_time(jstring, cdata));
 
 	gettimeofday(&mytime,NULL);

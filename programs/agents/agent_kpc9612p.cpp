@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 
 	memset(&ifr1, 0, sizeof(ifr1));
 	ifr1.ifr_flags = IFF_TUN | IFF_NO_PI;
-	strncpy(ifr1.ifr_name, cdata->agent[0].beat.proc, IFNAMSIZ);
+	strncpy(ifr1.ifr_name, cdata[0].agent[0].beat.proc, IFNAMSIZ);
 	if (ioctl(tun_fd, TUNSETIFF, (void *)&ifr1) < 0)
 	{
 		perror("Error setting tunnel interface");
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Get ready to set things
-	strncpy(ifr2.ifr_name, cdata->agent[0].beat.proc, IFNAMSIZ);
+	strncpy(ifr2.ifr_name, cdata[0].agent[0].beat.proc, IFNAMSIZ);
 	ifr2.ifr_addr.sa_family = AF_INET;
 
 	// Set interface address
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 	while(agent_running(cdata))
 	{
 		// Set beginning of next cycle;
-		nmjd += cdata->agent[0].aprd/86400.;
+		nmjd += cdata[0].agent[0].aprd/86400.;
 
 		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);
 		if (sleept < 0)

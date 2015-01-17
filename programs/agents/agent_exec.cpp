@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 		cout<<"agent_exec: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
-	cdata->node.utc = 0.;
+	cdata[0].node.utc = 0.;
 
 	cout<<"  started."<<endl;
 
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 	// Start performing the body of the agent
 	while(agent_running(cdata))
 	{
-		cdata->node.utc = currentmjd(0.);
+		cdata[0].node.utc = currentmjd(0.);
 		if (newlogstride != logstride )
 		{
 			logstride = newlogstride;
@@ -362,7 +362,7 @@ void collect_data_loop()
 		// Collect new data
 		if((nbytes=agent_poll(cdata, message, AGENT_MESSAGE_BEAT, 0)))
 		{
-			if (json_convert_string(json_extract_namedobject(message.c_str(), "agent_node")) != cdata->node.name)
+			if (json_convert_string(json_extract_namedobject(message.c_str(), "agent_node")) != cdata[0].node.name)
 			{
 				continue;
 			}
@@ -371,14 +371,14 @@ void collect_data_loop()
 			json_parse(message,&cdata[1]);
 			cdata[0].node  = cdata[1].node ;
 			cdata[0].device  = cdata[1].device ;
-			loc_update(&cdata->node.loc);
-			cdata->node.utc = currentmjd(0.);
+			loc_update(&cdata[0].node.loc);
+			cdata[0].node.utc = currentmjd(0.);
 		}
 	}
 	return;
 }
 
-// Prints the command information stored in local the copy of cdata->event[0].l
+// Prints the command information stored in local the copy of cdata[0].event[0].l
 void print_command()
 {
 	string jsp;
@@ -434,7 +434,7 @@ command::command() : utc(0), utcexec(0), name(""), type(0), flag(0), data(""), c
 }
 
 // Copies the command information stored in the local copy
-// cdata->event[0].l into the current command object
+// cdata[0].event[0].l into the current command object
 void command::set_command(string line)
 {
 	json_clear_cosmosstruc(JSON_GROUP_EVENT, &cdata[1]);
@@ -647,7 +647,7 @@ void command_queue::load_commands()
 
 			while(getline(infile,line))
 			{
-				//clear cdata->event[0].l, parse line into cdata->event[0].l, set command object, and add to command queue
+				//clear cdata[0].event[0].l, parse line into cdata[0].event[0].l, set command object, and add to command queue
 				//				json_parse("{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", cdata);
 				//				cout<<"<"<<line.c_str()<<">"<<endl;
 				//				cout<<"Returned "<<ireturn<<" And the command is: "<<endl;

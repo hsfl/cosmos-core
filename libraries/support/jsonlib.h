@@ -101,8 +101,8 @@ int32_t json_clone(cosmosstruc *cdata);
 void json_destroy(cosmosstruc *cdata);
 
 //uint16_t json_addequation(const char *text, cosmosstruc *cdata, uint16_t unit);
-uint16_t json_addentry(const char *name, int16_t d1, int16_t d2, ptrdiff_t offset, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit);
-uint16_t json_addentry(const char *name, int16_t d1, int16_t d2, ptrdiff_t offset, uint16_t type, uint16_t group, cosmosstruc *cdata);
+uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit);
+uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata);
 uint16_t json_addbaseentry(cosmosstruc *cdata);
 uint16_t json_addpieceentry(uint16_t i, cosmosstruc *cdata);
 uint16_t json_addcompentry(uint16_t i, cosmosstruc *cdata);
@@ -187,6 +187,8 @@ int32_t json_set_double_name_2d(double value,char *token, int index1, int index2
 
 int32_t json_scan(char *istring);
 
+int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector <json_token> &tokens);
+int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json_token &token);
 int32_t json_parse(string json, cosmosstruc *cdata);
 int32_t json_parse_namedobject(const char** pointer, cosmosstruc *cdata);
 int32_t json_parse_value(const char **pointer, uint8_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata);

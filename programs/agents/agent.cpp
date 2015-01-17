@@ -139,31 +139,31 @@ int main(int argc, char *argv[])
 				}
 				if (!strcmp(channel,"info") && pretn == AGENT_MESSAGE_TRACK)
 				{
-					if (cdata->node.loc.utc > 0.)
+					if (cdata[0].node.loc.utc > 0.)
 					{
 						if (lmjd > 0.)
-							dmjd = 86400.*(cdata->node.loc.utc-lmjd);
+							dmjd = 86400.*(cdata[0].node.loc.utc-lmjd);
 						else
 							dmjd = 0.;
-						loc.pos.baryc.s = cdata->node.loc.pos.baryc.s;
-						loc.pos.utc = cdata->node.loc.utc;
+						loc.pos.baryc.s = cdata[0].node.loc.pos.baryc.s;
+						loc.pos.utc = cdata[0].node.loc.utc;
 						pos_eci(&loc);
-						printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",cdata->node.loc.utc,dmjd,cdata->node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,cdata->node.powgen,cdata->node.powuse,cdata->node.battlev);
-						lmjd = cdata->node.loc.utc;
+						printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",cdata[0].node.loc.utc,dmjd,cdata[0].node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,cdata[0].node.powgen,cdata[0].node.powuse,cdata[0].node.battlev);
+						lmjd = cdata[0].node.loc.utc;
 					}
 				}
 				if (!strcmp(channel,"imu") && pretn == AGENT_MESSAGE_IMU)
 				{
-					for (i=0; i<cdata->devspec.imu_cnt; i++)
+					for (i=0; i<cdata[0].devspec.imu_cnt; i++)
 					{
-						if (cdata->agent[0].beat.utc > 0.)
+						if (cdata[0].agent[0].beat.utc > 0.)
 						{
 							if (lmjd > 0.)
-								dmjd = 86400.*(cdata->agent[0].beat.utc-lmjd);
+								dmjd = 86400.*(cdata[0].agent[0].beat.utc-lmjd);
 							else
 								dmjd = 0.;
 							printf("%.15g %.4g\n",loc.utc,dmjd);
-							lmjd = cdata->agent[0].beat.utc;
+							lmjd = cdata[0].agent[0].beat.utc;
 						}
 					}
 				}

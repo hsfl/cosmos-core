@@ -34,13 +34,13 @@ int main(int argc, char *argv[])
 		exit (-1);
 	}
 
-	if ((iretn=vmt35_connect(cdata->port[cdata->devspec.tcu[0]->gen.portidx].name, &vmt35handle)) < 0)
+	if ((iretn=vmt35_connect(cdata[0].port[cdata[0].devspec.tcu[0]->gen.portidx].name, &vmt35handle)) < 0)
 	{
 		printf("Couldn't connect to VMT35\n");
 		exit (1);
 	}
 
-	if ((iretn=vn100_connect(cdata->port[cdata->devspec.imu[0]->gen.portidx].name, &vn100handle)) != 0)
+	if ((iretn=vn100_connect(cdata[0].port[cdata[0].devspec.imu[0]->gen.portidx].name, &vn100handle)) != 0)
 	{
 		printf("Couldn't connect to VN100\n");
 		exit (1);
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 				trow.mag = rv_sub(trow.mag, vn100_zero);
 				trow.amp[0] = trow.amp[1] = trow.amp[2] = 0.;
 				trow.amp[i] = amp*direction;
-				trow.mom = vmt35_calc_moment(trow.amp[i], cdata->devspec.mtr[i]->npoly, cdata->devspec.mtr[i]->ppoly);
+				trow.mom = vmt35_calc_moment(trow.amp[i], cdata[0].devspec.mtr[i]->npoly, cdata[0].devspec.mtr[i]->ppoly);
 				trow.dac[0] = vmt35handle.telem.dac[0];
 				trow.dac[1] = vmt35handle.telem.dac[1];
 				trow.dac[2] = vmt35handle.telem.dac[2];
@@ -188,11 +188,11 @@ int main(int argc, char *argv[])
 	for (double mom=-30.; mom<30.003; mom+=.3)
 	{
 		rowstruc trow;
-		trow.amp[0] = vmt35_calc_amp(mom, cdata->devspec.mtr[0]->npoly, cdata->devspec.mtr[0]->ppoly);
+		trow.amp[0] = vmt35_calc_amp(mom, cdata[0].devspec.mtr[0]->npoly, cdata[0].devspec.mtr[0]->ppoly);
 		vmt35handle.telem = set_amp(0, trow.amp[0]);
-		trow.amp[1] = vmt35_calc_amp(mom, cdata->devspec.mtr[1]->npoly, cdata->devspec.mtr[1]->ppoly);
+		trow.amp[1] = vmt35_calc_amp(mom, cdata[0].devspec.mtr[1]->npoly, cdata[0].devspec.mtr[1]->ppoly);
 		vmt35handle.telem = set_amp(1, trow.amp[1]);
-		trow.amp[2] = vmt35_calc_amp(mom, cdata->devspec.mtr[2]->npoly, cdata->devspec.mtr[2]->ppoly);
+		trow.amp[2] = vmt35_calc_amp(mom, cdata[0].devspec.mtr[2]->npoly, cdata[0].devspec.mtr[2]->ppoly);
 		vmt35handle.telem = set_amp(2, trow.amp[2]);
 		trow.stablecount = vn100_get_mag(&vn100handle, .02, 2);
 		trow.mag = vn100handle.imu.mag;

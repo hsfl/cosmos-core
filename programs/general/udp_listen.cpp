@@ -191,46 +191,46 @@ int main(int argc, char *argv[])
 				   */
 
 			// IMU
-			cdata->devspec.imu[0]->accel.col[0] = accx;
-			cdata->node.loc.pos.geod.a.lon = (accx/REARTHM)/cos(cdata->node.loc.pos.geod.s.lat);
-			cdata->devspec.imu[0]->accel.col[1] = accy;
-			cdata->node.loc.pos.geod.a.lat = (accy/REARTHM);
-			cdata->devspec.imu[0]->accel.col[2] = accz;
-			cdata->node.loc.pos.geod.a.h = accz;
+			cdata[0].devspec.imu[0]->accel.col[0] = accx;
+			cdata[0].node.loc.pos.geod.a.lon = (accx/REARTHM)/cos(cdata[0].node.loc.pos.geod.s.lat);
+			cdata[0].devspec.imu[0]->accel.col[1] = accy;
+			cdata[0].node.loc.pos.geod.a.lat = (accy/REARTHM);
+			cdata[0].devspec.imu[0]->accel.col[2] = accz;
+			cdata[0].node.loc.pos.geod.a.h = accz;
 
 			// Pressure sensor
-			cdata->devspec.psen[0]->press = press / 1000.;
+			cdata[0].devspec.psen[0]->press = press / 1000.;
 
 			// Temperatures
-			cdata->devspec.tsen[0]->gen.temp = etemp;
-			cdata->devspec.tsen[1]->gen.temp = btemp;
-			cdata->devspec.tsen[2]->gen.temp = atemp + 273.15;
+			cdata[0].devspec.tsen[0]->gen.temp = etemp;
+			cdata[0].devspec.tsen[1]->gen.temp = btemp;
+			cdata[0].devspec.tsen[2]->gen.temp = atemp + 273.15;
 
 			// GPS
 			if (fix == 1)
 			{
 			mjd = (int)currentmjd(0.) + hour / 24. + min / 1400. + sec / 86400. + hsec / 8640000.;;
-			cdata->devspec.gps[0]->gen.utc = cdata->node.loc.utc = cdata->node.loc.pos.geod.utc = mjd;
-			cdata->devspec.gps[0]->geocs = cdata->node.loc.pos.geoc.s;
-			cdata->node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
-			cdata->node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);
-			cdata->node.loc.pos.geod.s.h = alt;
-			cdata->devspec.gps[0]->geocv = rv_zero();
+			cdata[0].devspec.gps[0]->gen.utc = cdata[0].node.loc.utc = cdata[0].node.loc.pos.geod.utc = mjd;
+			cdata[0].devspec.gps[0]->geocs = cdata[0].node.loc.pos.geoc.s;
+			cdata[0].node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
+			cdata[0].node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);
+			cdata[0].node.loc.pos.geod.s.h = alt;
+			cdata[0].devspec.gps[0]->geocv = rv_zero();
 
-			cdata->node.loc.pos.geod.v.lat = 0.;
-			cdata->node.loc.pos.geod.v.lon = 0.;
-			cdata->node.loc.pos.geod.v.h = 0.;
-			cdata->node.loc.att.geoc.s = q_eye();
-			cdata->node.loc.att.geoc.v = rv_zero();
-			cdata->node.loc.att.geoc.a = rv_zero();
+			cdata[0].node.loc.pos.geod.v.lat = 0.;
+			cdata[0].node.loc.pos.geod.v.lon = 0.;
+			cdata[0].node.loc.pos.geod.v.h = 0.;
+			cdata[0].node.loc.att.geoc.s = q_eye();
+			cdata[0].node.loc.att.geoc.v = rv_zero();
+			cdata[0].node.loc.att.geoc.a = rv_zero();
 
-			++cdata->node.loc.pos.geod.pass;
-			pos_geod(&cdata->node.loc);
+			++cdata[0].node.loc.pos.geod.pass;
+			pos_geod(&cdata[0].node.loc);
 			}
 
 			// Broadcast it
 			agent_post(cdata, AGENT_MESSAGE_SOH, json_of_list(myjstring, logstring, cdata));
-			log_write(cdata->node.name,DATA_LOG_TYPE_SOH,floor(cdata->node.loc.utc), json_of_list(jjstring,logstring,cdata));
+			log_write(cdata[0].node.name,DATA_LOG_TYPE_SOH,floor(cdata[0].node.loc.utc), json_of_list(jjstring,logstring,cdata));
 
         } // End If: packet reception / parse / idle cycle
 

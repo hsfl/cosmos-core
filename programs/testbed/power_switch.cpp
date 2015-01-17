@@ -26,7 +26,7 @@ default:
 	break;
 	}
 
-if ((nbytes = agent_get_server(cdata, cdata->node.name,(char *)"engine",8,&cbeat)) > 0)
+if ((nbytes = agent_get_server(cdata, cdata[0].node.name,(char *)"engine",8,&cbeat)) > 0)
 	{
 	sprintf(request,"set_bus %d %d",bus,state);
 	nbytes = agent_send_request(cdata, cbeat,request,output,AGENTMAXBUFFER,5);

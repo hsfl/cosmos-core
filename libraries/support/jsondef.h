@@ -91,6 +91,8 @@ enum
 //! JSON Namelist Group
 enum
 	{
+	//! Absolute pointer
+	JSON_GROUP_ABSOLUTE,
 	//! ::nodestruc
 	JSON_GROUP_NODE,
 	//! ::agentstruc
@@ -502,6 +504,8 @@ typedef struct
 	char *name;
 	//! offset to data storage
 	ptrdiff_t offset;
+	//! size of data storage
+	size_t size;
 	//! Index to JSON Unit Type
 	uint16_t unit_index;
 	//! Index to alert condition in Data Dictionary
@@ -523,10 +527,20 @@ typedef struct
 typedef struct
 {
 	// Hash of equation or name
-	uint32_t hash;
+	uint16_t hash;
 	// Index within that hash entry
-	uint32_t index;
+	uint16_t index;
 } jsonhandle;
+
+//! JSON token
+/*! Tokenized version of a single JSON object. The token contains a pointer
+ * into the JSON map, and a binary representation of the JSON value.
+ */
+typedef struct
+{
+	jsonhandle handle;
+	vector <uint8_t> data;
+} json_token;
 
 //! JSON equation operand
 /*! Structure representing a single operand of a JSON equation. Each operand can be one
@@ -689,7 +703,7 @@ typedef struct
 	//! State of Health report string
 	//	char sohstring[AGENTMAXBUFFER];
 	//! Agent request list
-	agent_request_structure reqs;
+	vector <agent_request_entry> reqs;
 	//! Heartbeat
 	beatstruc beat;
 	//! State of Health element vector

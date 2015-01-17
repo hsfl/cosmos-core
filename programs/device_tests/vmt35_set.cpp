@@ -22,12 +22,12 @@ int main(int argc, char *argv[])
 			exit (-1);
 		}
 
-		if ((iretn=vmt35_connect(cdata->port[cdata->devspec.tcu[0]->gen.portidx].name, &vmt35handle)) < 0)
+		if ((iretn=vmt35_connect(cdata[0].port[cdata[0].devspec.tcu[0]->gen.portidx].name, &vmt35handle)) < 0)
 		{
 			printf("Couldn't connect to VMT35\n");
 			exit (1);
 		}
-		printf("Connected to %s\n", cdata->port[cdata->devspec.tcu[0]->gen.portidx].name);
+		printf("Connected to %s\n", cdata[0].port[cdata[0].devspec.tcu[0]->gen.portidx].name);
 
 		rod = argv[1][0];
 		moment = atof(argv[2]);
@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
         {
                 for (uint16_t j=0; j<7; ++j)
                 {
-                        npolys[i][j] = cdata->devspec.mtr[i]->npoly[j];
-                        ppolys[i][j] = cdata->devspec.mtr[i]->ppoly[j];
+                        npolys[i][j] = cdata[0].devspec.mtr[i]->npoly[j];
+                        ppolys[i][j] = cdata[0].devspec.mtr[i]->ppoly[j];
                 }
         }
 

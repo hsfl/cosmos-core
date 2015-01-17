@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	while(agent_running(cdata))
 	{
 
-		nbytes = recvfrom(cdata->agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL);
+		nbytes = recvfrom(cdata[0].agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL);
 		for (uint16_t i=0; i<sendchan.size(); ++i)
 		{
 			iretn = sendto(sendchan[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&sendchan[i].caddr,sizeof(struct sockaddr_in));
@@ -87,9 +87,9 @@ void incoming_thread()
 	{
 		if ((nbytes = recvfrom(rcvchan.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
 		{
-			for (uint16_t i=0; i<cdata->agent[0].ifcnt; ++i)
+			for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
 			{
-				sendto(cdata->agent[0].pub[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&((cosmosstruc *)cdata)->agent[0].pub[i].caddr,sizeof(struct sockaddr_in));
+				sendto(cdata[0].agent[0].pub[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&((cosmosstruc *)cdata)->agent[0].pub[i].caddr,sizeof(struct sockaddr_in));
 			}
 		}
 	}

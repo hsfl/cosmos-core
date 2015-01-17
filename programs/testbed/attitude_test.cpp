@@ -15,9 +15,9 @@ int main(int argc, char *argv[])
 	cdata = json_create();
 	node_init(NULL,cdata);
 
-	cdata->physics.moi.col[0] = 3.;
-	cdata->physics.moi.col[1] = 3.;
-	cdata->physics.moi.col[2] = 3.;
+	cdata[0].physics.moi.col[0] = 3.;
+	cdata[0].physics.moi.col[1] = 3.;
+	cdata[0].physics.moi.col[2] = 3.;
 
 	pos_clear(loc);
 
@@ -46,9 +46,9 @@ int main(int argc, char *argv[])
 
 	for (uint16_t i=0; i<=1000; ++i)
 	{
-		printf("%f\t%f\t%f\t%f\t%f\n",86400.*(cdata->node.loc.utc-imjd),cdata->node.loc.att.icrf.v.col[0],cdata->node.loc.att.icrf.v.col[1],cdata->node.loc.att.icrf.v.col[2],length_rv(cdata->node.loc.att.icrf.v));
-//		cdata->physics.ftorque = transform_q(cdata->node.loc.att.icrf.s,rv_smult(-5.2359406e-4,rv_unity()));
-		cdata->physics.ftorque = transform_q(cdata->node.loc.att.icrf.s,rv_smult(-5.2359406e-3,rv_unity()));
-		gauss_jackson_propagate(gjh, *cdata, cdata->node.loc.utc+10./86400.);
+		printf("%f\t%f\t%f\t%f\t%f\n",86400.*(cdata[0].node.loc.utc-imjd),cdata[0].node.loc.att.icrf.v.col[0],cdata[0].node.loc.att.icrf.v.col[1],cdata[0].node.loc.att.icrf.v.col[2],length_rv(cdata[0].node.loc.att.icrf.v));
+//		cdata[0].physics.ftorque = transform_q(cdata[0].node.loc.att.icrf.s,rv_smult(-5.2359406e-4,rv_unity()));
+		cdata[0].physics.ftorque = transform_q(cdata[0].node.loc.att.icrf.s,rv_smult(-5.2359406e-3,rv_unity()));
+		gauss_jackson_propagate(gjh, *cdata, cdata[0].node.loc.utc+10./86400.);
 	}
 }

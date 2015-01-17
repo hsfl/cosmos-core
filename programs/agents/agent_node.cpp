@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 		exit (JSON_ERROR_NOJMAP);
 
 	// Set period of broadcasting SOH
-	cdata->agent[0].aprd = 1.;
+	cdata[0].agent[0].aprd = 1.;
 
 	// temp cosmosstruc for next track requests
 	json_clone (cdata) ;
@@ -112,17 +112,17 @@ int main(int argc, char *argv[])
 
 
 	// Check Node directory
-	if (get_nodedir(cdata->node.name).empty())
+	if (get_nodedir(cdata[0].node.name).empty())
 	{
 		printf("Couldn't find Node directory %s\n",argv[1]);
 		exit (1);
 	}
 
 	// Find most recent day in archive
-	lastday = findlastday(cdata->node.name);
+	lastday = findlastday(cdata[0].node.name);
 
 	// Find oldest day in archive
-	firstday = findfirstday(cdata->node.name);
+	firstday = findfirstday(cdata[0].node.name);
 
 	printf("Found days %f to %f\n",firstday, lastday);
 
@@ -133,9 +133,9 @@ int main(int argc, char *argv[])
 		cache[i].telem.resize(0);
 		cache[i].event.resize(0);
 	}
-	if (loadmjd(lastday) == 0. && cdata->node.type == NODE_TYPE_GROUNDSTATION)
+	if (loadmjd(lastday) == 0. && cdata[0].node.type == NODE_TYPE_GROUNDSTATION)
 	{
-		cdata->node.loc.utc = currentmjd(0.);
+		cdata[0].node.loc.utc = currentmjd(0.);
 		cache[3].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_geod\",\"node_loc_att_topo\",\"node_powgen\",\"node_powuse\",\"node_battlev\"",cdata));
 	}
 
@@ -155,62 +155,62 @@ int main(int argc, char *argv[])
 
 	// Start performing the body of the agent
 	json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()),cdata);
-	loc_update(&cdata->node.loc);
+	loc_update(&cdata[0].node.loc);
 
-	switch (cdata->node.type)
+	switch (cdata[0].node.type)
 	{
 	case NODE_TYPE_SATELLITE:
 		// Initialize hardware
-		hardware_init_eci(cdata->devspec, cdata->node.loc);
+		hardware_init_eci(cdata[0].devspec, cdata[0].node.loc);
 		// Initialize orbit
-		gauss_jackson_init_eci(gjh, 8, 0, .1, cdata->node.loc.utc, cdata->node.loc.pos.eci, cdata->node.loc.att.icrf, *cdata);
-		cdata->node.utcoffset = cdata->node.loc.utc - currentmjd(0.);
+		gauss_jackson_init_eci(gjh, 8, 0, .1, cdata[0].node.loc.utc, cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, *cdata);
+		cdata[0].node.utcoffset = cdata[0].node.loc.utc - currentmjd(0.);
 		agent_set_sohstring(cdata, (char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"}");
-		printf("Initialized satellite starting at %.15g [%.8g %.8g %.8g]\n",cdata->node.loc.pos.eci.utc,cdata->node.loc.pos.eci.s.col[0],cdata->node.loc.pos.eci.s.col[1],cdata->node.loc.pos.eci.s.col[2]);
+		printf("Initialized satellite starting at %.15g [%.8g %.8g %.8g]\n",cdata[0].node.loc.pos.eci.utc,cdata[0].node.loc.pos.eci.s.col[0],cdata[0].node.loc.pos.eci.s.col[1],cdata[0].node.loc.pos.eci.s.col[2]);
 		break;
 	case NODE_TYPE_GROUNDSTATION:
 	case NODE_TYPE_MOC:
 	case NODE_TYPE_UAV:
 	case NODE_TYPE_VEHICLE:
 	default:
-		cdata->node.utcoffset = cdata->node.loc.utc - currentmjd(0.);
+		cdata[0].node.utcoffset = cdata[0].node.loc.utc - currentmjd(0.);
 		agent_set_sohstring(cdata, (char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_geod\",\"node_loc_att_topo\"}");
-		printf("Initialized ground node starting at %.15g [%.8g %.8g %.8g]\n",cdata->node.loc.pos.geod.utc,cdata->node.loc.pos.geod.s.lon,cdata->node.loc.pos.geod.s.lat,cdata->node.loc.pos.geod.s.h);
+		printf("Initialized ground node starting at %.15g [%.8g %.8g %.8g]\n",cdata[0].node.loc.pos.geod.utc,cdata[0].node.loc.pos.geod.s.lon,cdata[0].node.loc.pos.geod.s.lat,cdata[0].node.loc.pos.geod.s.h);
 		break;
 	}
 
 	nextmjd = currentmjd(0.);
 	while(agent_running(cdata))
 	{
-		nextmjd += cdata->agent[0].aprd/86400.;
-		if ((newlastday=findlastday(cdata->node.name)) != lastday)
+		nextmjd += cdata[0].agent[0].aprd/86400.;
+		if ((newlastday=findlastday(cdata[0].node.name)) != lastday)
 		{
 
 		}
-		switch (cdata->node.type)
+		switch (cdata[0].node.type)
 		{
 		case NODE_TYPE_SATELLITE:
-			gauss_jackson_propagate(gjh, *cdata, currentmjd(cdata->node.utcoffset));
+			gauss_jackson_propagate(gjh, *cdata, currentmjd(cdata[0].node.utcoffset));
 			break;
 		default:
-			cdata->node.loc.utc = cdata->node.loc.pos.geod.utc = currentmjd(cdata->node.utcoffset);
-			++cdata->node.loc.pos.geod.pass;
-			pos_geod(&cdata->node.loc);
+			cdata[0].node.loc.utc = cdata[0].node.loc.pos.geod.utc = currentmjd(cdata[0].node.utcoffset);
+			++cdata[0].node.loc.pos.geod.pass;
+			pos_geod(&cdata[0].node.loc);
 			update_target(cdata);
-			cdata->node.loc.att.topo.s = q_eye();
-			for (uint32_t i=0; i<cdata->node.target_cnt; ++i)
+			cdata[0].node.loc.att.topo.s = q_eye();
+			for (uint32_t i=0; i<cdata[0].node.target_cnt; ++i)
 			{
-				if (cdata->target[i].elfrom > 0.)
+				if (cdata[0].target[i].elfrom > 0.)
 				{
-					cdata->node.loc.att.topo.s = q_mult(q_change_around_x(cdata->target[i].elfrom),q_change_around_z(cdata->target[i].azfrom));
+					cdata[0].node.loc.att.topo.s = q_mult(q_change_around_x(cdata[0].target[i].elfrom),q_change_around_z(cdata[0].target[i].azfrom));
 				}
 			}
-			++cdata->node.loc.att.topo.pass;
-			att_topo(&cdata->node.loc);
+			++cdata[0].node.loc.att.topo.pass;
+			att_topo(&cdata[0].node.loc);
 			break;
 		}
-//		agent_post(cdata, AGENT_MESSAGE_SOH, json_of_list(myjstring,cdata->agent[0].sohstring,cdata));
-		agent_post(cdata, AGENT_MESSAGE_SOH, json_of_table(myjstring, cdata->agent[0].sohtable, cdata));
+//		agent_post(cdata, AGENT_MESSAGE_SOH, json_of_list(myjstring,cdata[0].agent[0].sohstring,cdata));
+		agent_post(cdata, AGENT_MESSAGE_SOH, json_of_table(myjstring, cdata[0].agent[0].sohtable, cdata));
 		sleept = (int)((nextmjd-currentmjd(0.))*86400000000.);
 		if (sleept < 0) sleept = 0;
 		COSMOS_USLEEP(sleept);
@@ -231,13 +231,13 @@ void loadevents()
 	FILE *ifh;
 	char dtemp[100];
 
-	sprintf(dtemp,"%s/events.dict",get_nodedir(cdata->node.name));
+	sprintf(dtemp,"%s/events.dict",get_nodedir(cdata[0].node.name));
 	if ((ifh=fopen(dtemp,"r")) != NULL)
 	{
 		while (fgets(ibuf,AGENTMAXBUFFER,ifh) != NULL)
 		{
 			json_parse(ibuf,cdata);
-			eventdict.push_back(cdata->event[0]);
+			eventdict.push_back(cdata[0].event[0]);
 		}
 		fclose(ifh);
 	}
@@ -268,7 +268,7 @@ void loadephemeris()
 
 	// Cache[j] holds most recent day
 	json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()),cdata);
-	loc_update(&cdata->node.loc);
+	loc_update(&cdata[0].node.loc);
 
 	for (j=4; j<MAXEPHEM+4; ++j)
 	{
@@ -277,10 +277,10 @@ void loadephemeris()
 	}
 
 	// Load Ephemeris with most recent data, calculated from last point of most recent day
-	ctime = cdata->node.loc.utc;
+	ctime = cdata[0].node.loc.utc;
 	stime = (int)ctime;
 	etime = stime + MAXEPHEM + 1;
-	gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, cdata->node.loc.pos.eci, cdata->node.loc.att.icrf, *cdata);
+	gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, *cdata);
 	update_target(cdata);
 	do
 	{
@@ -288,8 +288,8 @@ void loadephemeris()
 		calc_events(eventdict, cdata, events);
 		for (k=0; k<events.size(); ++k)
 		{
-			memcpy(&cdata->event[0].s,&events[k],sizeof(shorteventstruc));
-			strcpy(cdata->event[0].l.condition,cdata->emap[events[k].handle.hash][events[k].handle.index].text);
+			memcpy(&cdata[0].event[0].s,&events[k],sizeof(shorteventstruc));
+			strcpy(cdata[0].event[0].l.condition,cdata[0].emap[events[k].handle.hash][events[k].handle.index].text);
 			cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring,cdata));
 		}
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
@@ -351,7 +351,7 @@ double loadmjd(double mjd)
 	if (!data_load_archive(mjd, cache[cindex].telem, cache[cindex].event, cdata))
 	{
 		cache[cindex].mjd = (int)mjd;
-		cache[cindex].utime = currentmjd(cdata->node.utcoffset);
+		cache[cindex].utime = currentmjd(cdata[0].node.utcoffset);
 		cache[cindex].tindex = cache[cindex].eindex = 0;
 		return (mjd);
 	}
