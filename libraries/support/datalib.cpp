@@ -44,12 +44,12 @@ void log_write(string node, int type, double utc, const char *record)
 	case DATA_LOG_TYPE_EVENT:
 		path = data_type_path(node, "temp", "soh", utc, "event");
 		break;
-    case DATA_LOG_TYPE_BEACON:
-        path = data_type_path(node, "temp", "beacon", utc, "beacon");
-        break;
-//    case DATA_LOG_TYPE_PROGRAM:
-//        path = data_extra_type_path(node, "temp", "log", utc, "" , "log");
-//        break;
+	case DATA_LOG_TYPE_BEACON:
+		path = data_type_path(node, "temp", "beacon", utc, "beacon");
+		break;
+		//    case DATA_LOG_TYPE_PROGRAM:
+		//        path = data_extra_type_path(node, "temp", "log", utc, "" , "log");
+		//        break;
 	default:
 		path = data_type_path(node, "temp", "soh", utc, "log");
 		break;
@@ -82,19 +82,19 @@ void log_write(string node, string agent, double utc, string type, const char *r
 // MN: created new log write function to be able to write "extra" on the log file name, later should be merged with the other log functions?
 void log_write(string node, string agent, double utc, string extra, string type, string record)
 {
-    FILE *fout;
-    string path;
+	FILE *fout;
+	string path;
 
-    if (utc == 0.)
-        return;
+	if (utc == 0.)
+		return;
 
-    path = data_extra_type_path(node, "temp", agent, utc, extra, type);
+	path = data_extra_type_path(node, "temp", agent, utc, extra, type);
 
-    if ((fout = data_open(path, (char *)"a+")) != NULL)
-    {
-        fprintf(fout,"%s\n",record.c_str());
-        fclose(fout);
-    }
+	if ((fout = data_open(path, (char *)"a+")) != NULL)
+	{
+		fprintf(fout,"%s\n",record.c_str());
+		fclose(fout);
+	}
 }
 
 void log_move(string node, string agent)
@@ -129,8 +129,59 @@ void log_move(string node, string agent)
 	}
 }
 
+//! Get a list of days in a Node archive.
+/*! Generate a list of days available in the archive of the indicated Node and Agent.
+ * The result is returned as a vector of Modified Julian Days.
+ */
+vector <double> data_list_archive_days(string node, string agent)
+{
+	vector <double> days;
+
+	// Check Base Path
+	string dtemp;
+	dtemp = data_base_path(node, "data", agent);
+	DIR *jdp;
+	if ((jdp=opendir(dtemp.c_str())) != NULL)
+	{
+		struct dirent *td;
+		while ((td=readdir(jdp)) != NULL)
+		{
+			// Check Year Path
+			if (td->d_name[0] != '.' && atof(td->d_name) > 1900 && atof(td->d_name) < 3000)
+			{
+				string tpath = (dtemp + "/") + td->d_name;
+				DIR *jdp;
+				if ((jdp=opendir(tpath.c_str())) != NULL)
+				{
+					double year = atof(td->d_name);
+					struct dirent *td;
+					while ((td=readdir(jdp)) != NULL)
+					{
+						// Check Day Path
+						if (td->d_name[0] != '.' && atof(td->d_name) > 0 && atof(td->d_name) < 367)
+						{
+							string tpath = (dtemp + "/") + td->d_name;
+							struct stat st;
+							stat(tpath.c_str(), &st);
+							if (S_ISDIR(st.st_mode))
+							{
+								double jday = atof(td->d_name);
+								double mjd = cal2mjd2(year, 1, 0.) + jday;
+								days.push_back(mjd);
+							}
+						}
+					}
+					closedir(jdp);
+				}
+			}
+		}
+		closedir(jdp);
+	}
+	return days;
+}
+
 //! Get a list of files in a Node archive.
-/*! Genereate a list of archived files for the indicated Node, Agent, and UTC.
+/*! Generate a list of archived files for the indicated Node, Agent, and UTC.
  * The result is returned as a vector of ::filestruc, one entry for each file found.
  * \param node Node to search.
  * \param agent Subdirectory of location to search.
@@ -417,7 +468,7 @@ string data_base_path(string node, string location, string agent)
 	string tpath;
 	string path;
 
-//	printf("Node: %s Location: %s Agent: %s\n", node.c_str(), location.c_str(), agent.c_str());
+	//	printf("Node: %s Location: %s Agent: %s\n", node.c_str(), location.c_str(), agent.c_str());
 
 	tpath = get_cosmosnodes();
 	tpath += "/" + node;
@@ -479,18 +530,6 @@ string data_base_path(string node)
 	{
 
 		path = tpath;
-	}
-	return path;
-
-}
-
-string data_archive_path(string node, string agent, double mjd, string filename)
-{
-	string path = data_archive_path(node, agent, mjd);
-	if (!path.empty())
-	{
-
-		path += "/" + filename;
 	}
 	return path;
 
@@ -685,7 +724,7 @@ string get_cosmosresources()
 
 	if (cosmosresources.empty())
 	{
-        char *croot = getenv("COSMOSRESOURCES");
+		char *croot = getenv("COSMOSRESOURCES");
 		if (croot != NULL)
 		{
 			cosmosresources = croot;
@@ -723,14 +762,14 @@ string get_cosmosnodes()
 
 	if (cosmosnodes.empty())
 	{
-        char *croot = getenv("COSMOSNODES");
+		char *croot = getenv("COSMOSNODES");
 		if (croot != NULL)
 		{
 			cosmosnodes = croot;
 		}
 		else
 		{
-            troot = "../nodes";
+			troot = "../nodes";
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;
@@ -1001,56 +1040,56 @@ double findfirstday(string name)
 
 	if (get_nodedir(name).size())
 	{
-	year = jday = 9000;
-	sprintf(dtemp,"%s/data/soh", nodedir.c_str());
-	if ((jdp=opendir(dtemp))!=NULL)
-	{
-		while ((td=readdir(jdp))!=NULL)
-		{
-			if (td->d_name[0] != '.')
-			{
-				if (atol(td->d_name) < year)
-					year = atol(td->d_name);
-			}
-		}
-		closedir(jdp);
-		sprintf(dtemp,"%s/data/soh/%04d",nodedir.c_str(),year);
+		year = jday = 9000;
+		sprintf(dtemp,"%s/data/soh", nodedir.c_str());
 		if ((jdp=opendir(dtemp))!=NULL)
 		{
 			while ((td=readdir(jdp))!=NULL)
 			{
 				if (td->d_name[0] != '.')
 				{
-					if (atol(td->d_name) < jday)
-						jday = atol(td->d_name);
+					if (atol(td->d_name) < year)
+						year = atol(td->d_name);
 				}
 			}
 			closedir(jdp);
+			sprintf(dtemp,"%s/data/soh/%04d",nodedir.c_str(),year);
+			if ((jdp=opendir(dtemp))!=NULL)
+			{
+				while ((td=readdir(jdp))!=NULL)
+				{
+					if (td->d_name[0] != '.')
+					{
+						if (atol(td->d_name) < jday)
+							jday = atol(td->d_name);
+					}
+				}
+				closedir(jdp);
+			}
 		}
-	}
 
-	if (year == 9000. || jday == 9000.)
-	{
-		return (0.);
-	}
+		if (year == 9000. || jday == 9000.)
+		{
+			return (0.);
+		}
 
-	mytm.tm_year = year - 1900;
-	mytm.tm_hour = mytm.tm_min = mytm.tm_sec = 0;
-	mytm.tm_mon = mytm.tm_mday = mytm.tm_wday = 0;
-	mytm.tm_mday = 1;
-	mytm.tm_mon = 0;
-	mytm.tm_isdst = 0;
-	mytime = mktime(&mytm);
-	mytime += (int)((jday-1) * 86400.);
+		mytm.tm_year = year - 1900;
+		mytm.tm_hour = mytm.tm_min = mytm.tm_sec = 0;
+		mytm.tm_mon = mytm.tm_mday = mytm.tm_wday = 0;
+		mytm.tm_mday = 1;
+		mytm.tm_mon = 0;
+		mytm.tm_isdst = 0;
+		mytime = mktime(&mytm);
+		mytime += (int)((jday-1) * 86400.);
 #ifdef COSMOS_WIN_OS
-	struct tm *temptm;
-	temptm = localtime(&mytime);
-	mytm = *temptm;
+		struct tm *temptm;
+		temptm = localtime(&mytime);
+		mytm = *temptm;
 #else
-	localtime_r(&mytime,&mytm);
+		localtime_r(&mytime,&mytm);
 #endif
 
-	return (cal2mjd2(year,mytm.tm_mon+1,mytm.tm_mday));
+		return (cal2mjd2(year,mytm.tm_mon+1,mytm.tm_mday));
 	}
 	else
 	{
