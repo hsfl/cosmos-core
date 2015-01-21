@@ -55,9 +55,9 @@ set(COSMOS_CORE_THIRDPARTY ${CORE}/libraries/thirdparty)
 set(COSMOS_CORE_DEVICE ${CORE}/libraries/device)
 set(COSMOS_CORE_SUPPORT ${CORE}/libraries/support)
 set(COSMOS_PROJECT_USER ${CMAKE_SOURCE_DIR})
-SET(MY_INCLUDES "include")
-SET(MY_LIBS "lib")
-SET(MY_BINS "bin")
+#SET(MY_INCLUDES "include")
+#SET(MY_LIBS "lib")
+#SET(MY_BINS "bin")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
