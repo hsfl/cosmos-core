@@ -105,7 +105,12 @@ int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_f
     strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
     cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
     cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description="";
-    return 0;
+
+	int32_t iretn;
+
+	iretn = agent_add_request(cdata, token, function, "", "");
+
+	return iretn;
 }
 
 //! Add request to Agent request list with description
@@ -127,7 +132,12 @@ int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_f
     strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
     cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
     cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description = description;
-    return 0;
+
+	int32_t iretn;
+
+	iretn = agent_add_request(cdata, token, function, "", description);
+
+	return iretn;
 }
 
 //! Add request to Agent request list with description and synopsis.
@@ -151,7 +161,17 @@ int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_f
     cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
     cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].synopsis = synopsis;
     cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description = description;
-    return 0;
+
+	if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
+		return (AGENT_ERROR_REQ_COUNT);
+
+	agent_request_entry tentry;
+	strcpy(tentry.token,token);
+	tentry.function = function;
+	tentry.synopsis = synopsis;
+	tentry.description = description;
+	cdata[0].agent[0].reqs.push_back(tentry);
+	return 0;
 }
 
 //! Start Agent Request and Heartbeat loops
