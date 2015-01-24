@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
     beat_agent_002 = agent_find_server(cdata, nodename, "002", 5.);
 
-    cout << "beat agent 002: " << beat_agent_002.node << endl;
+    cout << "beat agent 002 node: " << beat_agent_002.node << endl;
 
     // Add additional requests
     //if ((iretn=agent_add_request("tcu_reset",request_reset)))
@@ -83,20 +83,22 @@ int myagent()
 {
     cout << "agent " << agentname <<  " ...online " << endl;
 
-    string requestString = "test_request";
+    string requestString = "request_hello";
+//    string requestString = "status";
     char response[300];
 
     // Start executing the agent
     while(agent_running(cdata))
     {
         // makes a request to agent 002
-        agent_send_request(cdata,
+        int iretn = agent_send_request(cdata,
                            beat_agent_002,
                            requestString.c_str(),
                            response,
                            512,
                            2);
 
+//        cout << "return:" << iretn << endl;
         if ( strlen(response) > 1){
             cout << "Received from agent_002: " << strlen(response) << " " << response << endl;
         }

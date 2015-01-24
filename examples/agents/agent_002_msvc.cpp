@@ -12,7 +12,7 @@ using namespace std;
 
 
 int myagent();
-int32_t request_test(char *request, char* response, void *cdata); // function prototype of agent request
+int32_t request_hello(char *request, char* response, void *cdata); // function prototype of agent request
 
 string agentname     = "002";
 string nodename      = "cubesat1";
@@ -32,9 +32,9 @@ int main(int argc, char *argv[])
 
     int iretn;
 
-//    // Check for other instance of this agent
-//    if (argc == 2)
-//        agentname = argv[1];
+    //    // Check for other instance of this agent
+    //    if (argc == 2)
+    //        agentname = argv[1];
 
 
     // Establish the command channel and heartbeat
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
         cout<<"Starting " << agentname << " ... OK" << endl;
     }
     // Add additional requests
-    if ((iretn=agent_add_request(cdata,"test_request",request_test)))
+    if ((iretn=agent_add_request(cdata,"request_hello",request_hello)))
         exit (iretn);
     
     // Start our own thread
@@ -64,22 +64,23 @@ int myagent()
 {
     cout << "agent 002...online " << endl;
 
-    string requestString = "test_request";
+    string requestString = "request_hello";
     char response[300];
 
     // Start executing the agent
     while(agent_running(cdata))
     {
-         COSMOS_SLEEP(0.010);
+        COSMOS_SLEEP(0.010);
     }
     return (0);
 
 }
 
 
-int32_t request_test(char *request, char* response, void *cdata)
+int32_t request_hello(char *request, char* response, void *cdata)
 {
     cout << "agent 002 got request!" << endl;
-    sprintf(response,"%f",300.23);
+    //    sprintf(response,"%f",300.23);
+    sprintf(response,"hello");
     return 0;
 }
