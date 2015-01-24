@@ -3,6 +3,7 @@
 */
 
 #include "datalib.h"
+#include <algorithm>
 
 //! \ingroup datalib
 //! \defgroup datalib_statics Static variables for Data functions.
@@ -138,10 +139,9 @@ vector <double> data_list_archive_days(string node, string agent)
 	vector <double> days;
 
 	// Check Base Path
-	string dtemp;
-	dtemp = data_base_path(node, "data", agent);
+	string bpath = data_base_path(node, "data", agent);
 	DIR *jdp;
-	if ((jdp=opendir(dtemp.c_str())) != NULL)
+	if ((jdp=opendir(bpath.c_str())) != NULL)
 	{
 		struct dirent *td;
 		while ((td=readdir(jdp)) != NULL)
@@ -149,9 +149,9 @@ vector <double> data_list_archive_days(string node, string agent)
 			// Check Year Path
 			if (td->d_name[0] != '.' && atof(td->d_name) > 1900 && atof(td->d_name) < 3000)
 			{
-				string tpath = (dtemp + "/") + td->d_name;
+				string ypath = (bpath + "/") + td->d_name;
 				DIR *jdp;
-				if ((jdp=opendir(tpath.c_str())) != NULL)
+				if ((jdp=opendir(ypath.c_str())) != NULL)
 				{
 					double year = atof(td->d_name);
 					struct dirent *td;
@@ -160,9 +160,9 @@ vector <double> data_list_archive_days(string node, string agent)
 						// Check Day Path
 						if (td->d_name[0] != '.' && atof(td->d_name) > 0 && atof(td->d_name) < 367)
 						{
-							string tpath = (dtemp + "/") + td->d_name;
+							string dpath = (ypath + "/") + td->d_name;
 							struct stat st;
-							stat(tpath.c_str(), &st);
+							stat(dpath.c_str(), &st);
 							if (S_ISDIR(st.st_mode))
 							{
 								double jday = atof(td->d_name);
@@ -177,6 +177,7 @@ vector <double> data_list_archive_days(string node, string agent)
 		}
 		closedir(jdp);
 	}
+	sort(days.begin(), days.end());
 	return days;
 }
 
