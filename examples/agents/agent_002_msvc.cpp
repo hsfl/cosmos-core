@@ -70,7 +70,7 @@ int myagent()
     // Start executing the agent
     while(agent_running(cdata))
     {
-        COSMOS_SLEEP(0.010);
+        COSMOS_SLEEP(1.00);
     }
     return (0);
 
@@ -79,8 +79,11 @@ int myagent()
 
 int32_t request_hello(char *request, char* response, void *cdata)
 {
-    cout << "agent 002 got request!" << endl;
+
     //    sprintf(response,"%f",300.23);
     sprintf(response,"hello");
+
+    cout << "agent 002 got request! response is: " << response << endl;
+
     return 0;
 }

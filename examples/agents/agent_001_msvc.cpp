@@ -100,7 +100,7 @@ int myagent()
 
 //        cout << "return:" << iretn << endl;
         if ( strlen(response) > 1){
-            cout << "Received from agent_002: " << strlen(response) << " " << response << endl;
+            cout << "Received from agent_002: " << strlen(response) << " bytes : " << response << endl;
         }
         COSMOS_SLEEP(1);
 
