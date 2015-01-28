@@ -486,6 +486,7 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, 
     static socket_channel sendchan;
     int32_t iretn;
     int32_t nbytes;
+    output[0] = '\0'; // reset the output
     //struct timeval tv, ltv;
 
     if (hbeat.utc == 0. || hbeat.addr == 0 || hbeat.port == 0)
@@ -625,7 +626,10 @@ beatstruc agent_find_server(cosmosstruc *cdata, string node, string proc, float 
     } while (ep.toc() <= waitsec);
     //while (!(tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec)));
 
+    // ?? do a complete reset of cbeat if agent not found, not just utc = 0
     cbeat.utc = 0.;
+    cbeat.node[0] = '\0';
+    // etc ...
     return cbeat;
 }
 

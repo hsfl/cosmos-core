@@ -85,7 +85,8 @@ int myagent()
 
     string requestString = "request_hello";
 //    string requestString = "status";
-    char response[300];
+    char response_c_str[300];
+    string response;
 
     // Start executing the agent
     while(agent_running(cdata))
@@ -94,13 +95,20 @@ int myagent()
         int iretn = agent_send_request(cdata,
                            beat_agent_002,
                            requestString.c_str(),
-                           response,
+                           response_c_str, // convert to C++ string
                            512,
                            2);
+        response = string(response_c_str);
 
 //        cout << "return:" << iretn << endl;
-        if ( strlen(response) > 1){
-            cout << "Received from agent_002: " << strlen(response) << " bytes : " << response << endl;
+        if ( response.size() > 1){
+            cout << "Received from agent_002: " << response.size() << " bytes : " << response << endl;
+            response = "";
+        } else {
+            cout << "What happened to agent_002 ??? " << endl;
+            beat_agent_002.node[0] = '\0'; // reset
+            beat_agent_002 = agent_find_server(cdata, nodename, "002", 5.);
+            cout << "beat agent 002 node: " << beat_agent_002.utc << endl;
         }
         COSMOS_SLEEP(1);
 
