@@ -860,8 +860,7 @@ void set_cosmosresources(string name)
 */
 string get_cosmosresources()
 {
-	string troot;
-	string dir1;
+	string aroot;
 	int i;
 	struct stat sbuf;
 
@@ -874,16 +873,25 @@ string get_cosmosresources()
 		}
 		else
 		{
-			troot = "cosmosresources";
+			aroot = "cosmosresources";
 			for (i=0; i<6; i++)
 			{
-				dir1 = troot;
-				if (stat(dir1.c_str(),&sbuf) == 0)
+				if (stat(aroot.c_str(),&sbuf) == 0)
 				{
-					cosmosresources = troot;
-					break;
+					cosmosresources = aroot;
+					return cosmosresources;
 				}
-				troot = "../" + troot;
+				aroot = "../" + aroot;
+			}
+			aroot = "resources";
+			for (i=0; i<6; i++)
+			{
+				if (stat(aroot.c_str(),&sbuf) == 0)
+				{
+					cosmosresources = aroot;
+					return cosmosresources;
+				}
+				aroot = "../" + aroot;
 			}
 		}
 	}
@@ -898,8 +906,7 @@ string get_cosmosresources()
 */
 string get_cosmosnodes()
 {
-	string troot;
-	string dir1;
+	string aroot;
 	int i;
 	struct stat sbuf;
 
@@ -912,16 +919,25 @@ string get_cosmosnodes()
 		}
 		else
 		{
-			troot = "nodes";
+			aroot = "cosmosnodes";
 			for (i=0; i<6; i++)
 			{
-				dir1 = troot;
-				if (stat(dir1.c_str(),&sbuf) == 0)
+				if (stat(aroot.c_str(),&sbuf) == 0)
 				{
-					cosmosnodes = troot;
-					break;
+					cosmosnodes = aroot;
+					return cosmosnodes;
 				}
-				troot = "../" + troot;
+				aroot = "../" + aroot;
+			}
+			aroot = "nodes";
+			for (i=0; i<6; i++)
+			{
+				if (stat(aroot.c_str(),&sbuf) == 0)
+				{
+					cosmosnodes = aroot;
+					return cosmosnodes;
+				}
+				aroot = "../" + aroot;
 			}
 		}
 	}
