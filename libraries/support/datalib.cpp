@@ -874,7 +874,10 @@ string get_cosmosresources()
 		}
 		else
 		{
-			troot = "cosmosresources";
+            // let's just keep this simple: 'resources' instead of 'cosmosresources'
+            troot = "resources";
+
+            // check up to 6 folders above to see if we find the cosmos resources folder.
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;
@@ -887,6 +890,12 @@ string get_cosmosresources()
 			}
 		}
 	}
+
+    // if cosmosresources is still empty then fail the program and inform the user
+    if (cosmosresources.empty()){
+        cout << "error " << AGENT_ERROR_RESOURCES_FOLDER << ": could not find cosmos/resources folder" << endl;
+        exit (AGENT_ERROR_RESOURCES_FOLDER);
+    }
 
 	return (cosmosresources);
 }

@@ -75,6 +75,7 @@
 #define AGENT_ERROR_NULL -277
 #define AGENT_ERROR_DISCOVERY -278
 #define AGENT_ERROR_REQUEST -279
+#define AGENT_ERROR_RESOURCES_FOLDER -280 // if agent can't find the cosmos/resources folder
 
 #define MATH_ERROR_GJ_UNDEFINED -281
 #define MATH_ERROR_GJ_OUTOFRANGE -282
