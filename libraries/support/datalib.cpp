@@ -896,6 +896,12 @@ string get_cosmosresources()
 		}
 	}
 
+    // if cosmosresources is still empty then fail the program and inform the user
+    if (cosmosresources.empty()){
+        cout << "error " << AGENT_ERROR_RESOURCES_FOLDER << ": could not find cosmos/resources folder" << endl;
+        exit (AGENT_ERROR_RESOURCES_FOLDER);
+    }
+
 	return (cosmosresources);
 }
 

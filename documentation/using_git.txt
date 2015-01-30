@@ -37,7 +37,7 @@ $ git push origin master
 $ git pull
 
 $git clean -n -d <path>
-will do a ‘dry run’ of the command and show you just what files and folders are going to be removed
+will do a dry run of the command and show you just what files and folders are going to be removed
 
 $sudo git clean -d -f .
 removes all untracked files in current directory
