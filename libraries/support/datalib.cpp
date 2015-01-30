@@ -29,7 +29,19 @@ string nodedir;
 //! \defgroup datalib_functions Data Management support functions
 //! @{
 
-void log_write(string node, int type, double utc, const char *record)
+
+//! Write log entry - full
+/*! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
+ * is created as {node}_yyyyjjjsssss_{extra}.{type}
+ * \param node Node name.
+ * ]param location Location name.
+ * \param agent Agent name.
+ * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
+ * \param extra Extra part  of name.
+ * \param type Type part of name.
+ * \param record String to be appended to file.
+ */
+void log_write(string node, string location, string agent, double utc, string extra, string type, string record)
 {
 	FILE *fout;
 	string path;
@@ -37,97 +49,182 @@ void log_write(string node, int type, double utc, const char *record)
 	if (utc == 0.)
 		return;
 
-	switch (type)
+	if (extra.empty())
 	{
-	case DATA_LOG_TYPE_SOH:
-		path = data_type_path(node, "temp", "soh", utc, "telemetry");
-		break;
-	case DATA_LOG_TYPE_EVENT:
-		path = data_type_path(node, "temp", "soh", utc, "event");
-		break;
-	case DATA_LOG_TYPE_BEACON:
-		path = data_type_path(node, "temp", "beacon", utc, "beacon");
-		break;
-		//    case DATA_LOG_TYPE_PROGRAM:
-		//        path = data_extra_type_path(node, "temp", "log", utc, "" , "log");
-		//        break;
-	default:
-		path = data_type_path(node, "temp", "soh", utc, "log");
-		break;
+		path = data_type_path(node, location, agent, utc, type);
+	}
+	else
+	{
+		path = data_type_path(node, location, agent, utc, extra, type);
 	}
 
-	if ((fout = data_open(path, (char *)"a+")) != NULL)
-	{
-		fprintf(fout,"%s\n",record);
-		fclose(fout);
-	}
-}
-
-void log_write(string node, string agent, double utc, string type, const char *record)
-{
-	FILE *fout;
-	string path;
-
-	if (utc == 0.)
-		return;
-
-	path = data_type_path(node, "temp", agent, utc, type);
-
-	if ((fout = data_open(path, (char *)"a+")) != NULL)
-	{
-		fprintf(fout,"%s\n",record);
-		fclose(fout);
-	}
-}
-
-// MN: created new log write function to be able to write "extra" on the log file name, later should be merged with the other log functions?
-void log_write(string node, string agent, double utc, string extra, string type, string record)
-{
-	FILE *fout;
-	string path;
-
-	if (utc == 0.)
-		return;
-
-	path = data_extra_type_path(node, "temp", agent, utc, extra, type);
-
-	if ((fout = data_open(path, (char *)"a+")) != NULL)
+	if ((fout = data_open(path, (char *)"a+")) != nullptr)
 	{
 		fprintf(fout,"%s\n",record.c_str());
 		fclose(fout);
 	}
 }
 
-void log_move(string node, string agent)
+//! Write log entry - fixed location
+/*! Append the provided string to a file in the {node}/temp/{agent} directory. The file name
+ * is created as {node}_yyyyjjjsssss_{extra}.{type}
+ * \param node Node name.
+ * \param agent Agent name.
+ * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
+ * \param extra Extra part  of name.
+ * \param type Type part of name.
+ * \param record String to be appended to file.
+ */
+void log_write(string node, string agent, double utc, string extra, string type, string record)
+{
+	log_write(node, "temp", agent, utc, extra, type, record);
+	//	FILE *fout;
+	//	string path;
+
+	//	if (utc == 0.)
+	//		return;
+
+	//	path = data_type_path(node, "temp", agent, utc, extra, type);
+
+	//	if ((fout = data_open(path, (char *)"a+")) != nullptr)
+	//	{
+	//		fprintf(fout,"%s\n",record.c_str());
+	//		fclose(fout);
+	//	}
+}
+
+//! Write log entry - fixed location, no extra
+/*! Append the provided string to a file in the {node}/temp/{agent} directory. The file name
+ * is created as {node}_yyyyjjjsssss.{type}
+ * \param node Node name.
+ * \param agent Agent name.
+ * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
+ * \param type Type part of name.
+ * \param record String to be appended to file.
+ */
+void log_write(string node, string agent, double utc, string type, const char *record)
+{
+	log_write(node, "temp", agent, utc, "", type, record);
+	//	FILE *fout;
+	//	string path;
+
+	//	if (utc == 0.)
+	//		return;
+
+	//	path = data_type_path(node, "temp", agent, utc, type);
+
+	//	if ((fout = data_open(path, (char *)"a+")) != nullptr)
+	//	{
+	//		fprintf(fout,"%s\n",record);
+	//		fclose(fout);
+	//	}
+}
+
+//! Write log entry - fixed location, no extra, integer type and agent
+/*! Append the provided string to a file in the {node}/temp/{agent_name} directory. The file name
+ * is created as {node}_yyyyjjjsssss.{type_name}
+ * \param node Node name.
+ * \param type Integer specifying what type and agent of file.
+ * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
+ * \param record String to be appended to file.
+ */
+void log_write(string node, int type, double utc, const char *record)
+{
+	//	FILE *fout;
+	//	string path;
+
+	//	if (utc == 0.)
+	//		return;
+
+	switch (type)
+	{
+	case DATA_LOG_TYPE_SOH:
+		log_write(node, "temp", "soh", utc, "", "telemetry", record);
+		//		path = data_type_path(node, "temp", "soh", utc, "telemetry");
+		break;
+	case DATA_LOG_TYPE_EVENT:
+		log_write(node, "temp", "soh", utc, "", "event", record);
+		//		path = data_type_path(node, "temp", "soh", utc, "event");
+		break;
+	case DATA_LOG_TYPE_BEACON:
+		log_write(node, "temp", "beacon", utc, "", "beacon", record);
+		//		path = data_type_path(node, "temp", "beacon", utc, "beacon");
+		break;
+	default:
+		log_write(node, "temp", "soh", utc, "", "log", record);
+		//		path = data_type_path(node, "temp", "soh", utc, "log");
+		break;
+	}
+
+	//	if ((fout = data_open(path, (char *)"a+")) != nullptr)
+	//	{
+	//		fprintf(fout,"%s\n",record);
+	//		fclose(fout);
+	//	}
+}
+
+//! Move log file - full version.
+/*! Move files previously created with ::log_write to their final location, optionally
+ * compressing with gzip. The full version allows for specification of the source and
+ * destination locations, and whether compression should be used. The routine will find
+ * all files currently in {node}/{srclocation}/{agent} and move them to {node}/{dstlocation}/{agent}.
+ * \param node Node name.
+ * \param agent Agent name.
+ * \param srclocation Source location name.
+ * \param dstlocation Destination location name.
+ */
+void log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
 {
 	char buffer[8192];
 	vector<filestruc> oldfiles;
-	data_list_files(node, "temp", agent, oldfiles);
+	data_list_files(node, srclocation, agent, oldfiles);
 	for (auto oldfile: oldfiles)
 	{
 		string oldpath = oldfile.path;
-		string temppath = oldfile.path + ".gz";
-		string newpath = data_base_path(node, "outgoing", agent, oldfile.name + ".gz");
-		FILE *fin = data_open(oldpath, (char *)"rb");
-		FILE *fout = data_open(temppath, (char *)"wb");
-		gzFile gzfout;
-		gzfout = gzdopen(fileno(fout), "a");
 
-		do
+		if (compress)
 		{
-			size_t nbytes = fread(buffer, 1, 8192, fin);
-			if (nbytes)
-			{
-				gzwrite(gzfout, buffer, nbytes);
-			}
-		} while (!feof(fin));
+			string temppath = oldfile.path + ".gz";
+			string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
+			FILE *fin = data_open(oldpath, (char *)"rb");
+			FILE *fout = data_open(temppath, (char *)"wb");
+			gzFile gzfout;
+			gzfout = gzdopen(fileno(fout), "a");
 
-		fclose(fin);
-		gzclose_w(gzfout);
-		rename(temppath.c_str(), newpath.c_str());
-		remove(temppath.c_str());
+			do
+			{
+				size_t nbytes = fread(buffer, 1, 8192, fin);
+				if (nbytes)
+				{
+					gzwrite(gzfout, buffer, nbytes);
+				}
+			} while (!feof(fin));
+
+			fclose(fin);
+			gzclose_w(gzfout);
+			rename(temppath.c_str(), newpath.c_str());
+			remove(temppath.c_str());
+		}
+		else
+		{
+			string newpath = data_base_path(node, dstlocation, agent, oldfile.name);
+			rename(oldpath.c_str(), newpath.c_str());
+		}
 		remove(oldpath.c_str());
 	}
+}
+
+//! Move log file - short version.
+/*! Move files previously created with ::log_write to their final location.
+ * The short version assumes a source location of "temp" and a destination
+ * locations of "outgoing". The routine will find all files currently in
+ * {node}/temp/{agent} and move them to {node}/outgoing/{agent}.
+ * \param node Node name.
+ * \param agent Agent name.
+ */
+void log_move(string node, string agent)
+{
+	log_move(node, agent, "temp", "outgoing", true);
 }
 
 //! Get a list of days in a Node archive.
@@ -141,21 +238,21 @@ vector <double> data_list_archive_days(string node, string agent)
 	// Check Base Path
 	string bpath = data_base_path(node, "data", agent);
 	DIR *jdp;
-	if ((jdp=opendir(bpath.c_str())) != NULL)
+	if ((jdp=opendir(bpath.c_str())) != nullptr)
 	{
 		struct dirent *td;
-		while ((td=readdir(jdp)) != NULL)
+		while ((td=readdir(jdp)) != nullptr)
 		{
 			// Check Year Path
 			if (td->d_name[0] != '.' && atof(td->d_name) > 1900 && atof(td->d_name) < 3000)
 			{
 				string ypath = (bpath + "/") + td->d_name;
 				DIR *jdp;
-				if ((jdp=opendir(ypath.c_str())) != NULL)
+				if ((jdp=opendir(ypath.c_str())) != nullptr)
 				{
 					double year = atof(td->d_name);
 					struct dirent *td;
-					while ((td=readdir(jdp)) != NULL)
+					while ((td=readdir(jdp)) != nullptr)
 					{
 						// Check Day Path
 						if (td->d_name[0] != '.' && atof(td->d_name) > 0 && atof(td->d_name) < 367)
@@ -201,9 +298,9 @@ vector<filestruc> data_list_archive(string node, string agent, double utc)
 	tf.node = node;
 	tf.agent = agent;
 	dtemp = data_archive_path(node, agent, utc);
-	if ((jdp=opendir(dtemp.c_str())) != NULL)
+	if ((jdp=opendir(dtemp.c_str())) != nullptr)
 	{
-		while ((td=readdir(jdp)) != NULL)
+		while ((td=readdir(jdp)) != nullptr)
 		{
 			if (td->d_name[0] != '.')
 			{
@@ -272,9 +369,9 @@ int32_t data_list_files(string node, string location, string agent, vector<files
 	tf.node = node;
 	tf.agent = agent;
 	dtemp = data_base_path(node, location, agent);
-	if ((jdp=opendir(dtemp.c_str())) != NULL)
+	if ((jdp=opendir(dtemp.c_str())) != nullptr)
 	{
-		while ((td=readdir(jdp)) != NULL)
+		while ((td=readdir(jdp)) != nullptr)
 		{
 			if (td->d_name[0] != '.')
 			{
@@ -343,9 +440,9 @@ int32_t data_list_nodes(vector<string>& nodes)
 	}
 
 	dtemp = rootd;
-	if ((jdp=opendir(dtemp.c_str())) != NULL)
+	if ((jdp=opendir(dtemp.c_str())) != nullptr)
 	{
-		while ((td=readdir(jdp)) != NULL)
+		while ((td=readdir(jdp)) != nullptr)
 		{
 			if (td->d_name[0] != '.' && !stat(((dtemp+"/")+td->d_name).c_str(), &statbuf) && S_ISDIR(statbuf.st_mode))
 			{
@@ -378,15 +475,15 @@ int32_t data_get_nodes(vector<cosmosstruc> &node)
 		return (NODE_ERROR_ROOTDIR);
 	}
 
-	if ((tnode=json_create()) == NULL)
+	if ((tnode=json_create()) == nullptr)
 	{
 		return (NODE_ERROR_NODE);
 	}
 
 	dtemp = rootd;
-	if ((jdp=opendir(dtemp.c_str())) != NULL)
+	if ((jdp=opendir(dtemp.c_str())) != nullptr)
 	{
-		while ((td=readdir(jdp)) != NULL)
+		while ((td=readdir(jdp)) != nullptr)
 		{
 			if (td->d_name[0] != '.')
 			{
@@ -408,7 +505,7 @@ int32_t data_get_nodes(vector<cosmosstruc> &node)
 *	telemetry, message, command.)
 *	\param mjd UTC of creation date in Modified Julian Day
 *	\param type Any valid extension type
-*	\return Filename string, otherwise NULL
+*	\return Filename string, otherwise nullptr
 */
 string data_name(string node, double mjd, string extra, string type)
 {
@@ -437,31 +534,88 @@ string data_name(string node, double mjd, string type)
 	return data_name(node, mjd, "", type);
 }
 
-/*
-char *data_name(char *node, double mjd, char *type)
+//! Get date from file name.
+/*! Assuming the COSMOS standard filename format from ::data_name, extract
+ * the date portion and return it as a Modified Julian Day.
+ * \param name File name.
+ * \return UTC as Modified Julian Day.
+ */
+int32_t data_name_date(string filename, uint16_t &year, uint16_t &jday, uint16_t &seconds)
 {
-	static char dtemp[100];
-
-	int year, month, seconds;
-	double jday, day;
-
-	mjd2ymd(mjd,&year,&month,&day,&jday);
-	seconds = (int)(86400.*(jday-(int)jday));
-	sprintf(dtemp,"%s_%04d%03d%05d.%s",node,year,(int32_t)jday,seconds,type);
-	return (dtemp);
+	if (sscanf(filename.c_str(), "%4" PRIu16 "%3" PRIu16 "%5" PRIu16 "", &year, &jday, &seconds) == 3 && seconds < 86400 && jday < 367)
+	{
+		return 0;
+	}
+	else
+	{
+		return DATA_ERROR_FORMAT;
+	}
 }
-*/
 
+int32_t data_name_date(string filename, double &utc)
+{
+	uint16_t year;
+	uint16_t jday;
+	uint16_t seconds;
+
+	int32_t iretn = data_name_date(filename, year, jday, seconds);
+
+	if (!iretn)
+	{
+		utc = cal2mjd2(year, 1, seconds/86400.) + jday;
+		return 0;
+	}
+	else
+	{
+		return iretn;
+	}
+}
+
+//! Create data file path.
+/*! Create a full path to the named file based on the provided information. The path
+ * will be of the form {cosmosnodes}/{node}/{location}/{agent}/{filename}, or in the case
+ * of a "data" location, {cosmosnodes}/{node}/{location}/{agent}/{yyyy}/{jjj}/{filename}. If
+ * {cosmosnodes} is not defined, or cannot be found, it will be left blank.
+ */
 string data_base_path(string node, string location, string agent, string filename)
 {
-	string path = data_base_path(node, location, agent);
-	if (!path.empty())
+	string path;
+	string tpath;
+
+	tpath = data_base_path(node, location, agent);
+
+	if (!tpath.empty())
 	{
+		if (location == "data")
+		{
+			uint16_t year;
+			uint16_t jday;
+			uint16_t seconds;
+			int32_t iretn = data_name_date(filename, year, jday, seconds);
+			if (!iretn)
+			{
+				char tbuf[10];
+				sprintf(tbuf, "/%04u", year);
+				tpath += tbuf;
+				if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
+				{
+					sprintf(tbuf, "/%03u", jday);
+					tpath += tbuf;
+					if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
+					{
+						path = tpath;
+					}
+				}
+			}
+		}
+		else
+		{
+			path = tpath;
+		}
 
 		path += "/" + filename;
 	}
 	return path;
-
 }
 
 string data_base_path(string node, string location, string agent)
@@ -469,28 +623,19 @@ string data_base_path(string node, string location, string agent)
 	string tpath;
 	string path;
 
-	//	printf("Node: %s Location: %s Agent: %s\n", node.c_str(), location.c_str(), agent.c_str());
-
-	tpath = get_cosmosnodes();
-	tpath += "/" + node;
-
-	if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
+	tpath = data_base_path(node, location);
+	if (!tpath.empty())
 	{
-
-		tpath += "/" + location;
-		if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
+		if (agent.empty())
 		{
-			if (agent.empty())
+			path = tpath;
+		}
+		else
+		{
+			tpath += "/" + agent;
+			if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 			{
 				path = tpath;
-			}
-			else
-			{
-				tpath += "/" + agent;
-				if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
-				{
-					path = tpath;
-				}
 			}
 		}
 	}
@@ -503,12 +648,9 @@ string data_base_path(string node, string location)
 	string tpath;
 	string path;
 
-	tpath = get_cosmosnodes();
-	tpath += "/" + node;
-
-	if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
+	tpath = data_base_path(node);
+	if (!tpath.empty())
 	{
-
 		tpath += "/" + location;
 		if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
 		{
@@ -573,13 +715,13 @@ string data_archive_path(string node, string agent, double mjd)
  * \param agent Task specific subfolder of location, if relevant
 *	\param mjd UTC of creation date in Modified Julian Day
 *	\param type Any valid extension type
-*	\return File path string, otherwise NULL
+*	\return File path string, otherwise nullptr
 */
 string data_type_path(string node, string location, string agent, double mjd, string type)
 {
 	string path;
 
-	path = data_extra_type_path(node, location, agent, mjd, "", type);
+	path = data_type_path(node, location, agent, mjd, "", type);
 
 	return (path);
 }
@@ -593,9 +735,9 @@ string data_type_path(string node, string location, string agent, double mjd, st
  * \param mjd UTC of creation date in Modified Julian Day
  * \param extra Extra text to add to the full name.
  * \param type Any valid extension type
- * \return File path string, otherwise NULL
+ * \return File path string, otherwise nullptr
 */
-string data_extra_type_path(string node, string location, string agent, double mjd, string extra, string type)
+string data_type_path(string node, string location, string agent, double mjd, string extra, string type)
 {
 	string path;
 	string tpath;
@@ -617,7 +759,7 @@ string data_extra_type_path(string node, string location, string agent, double m
  * \param agent Task specific subfolder of location, if relevant
  * \param mjd UTC of creation date in Modified Julian Day
  * \param name File name.
- * \return File path string, otherwise NULL
+ * \return File path string, otherwise nullptr
 */
 string data_name_path(string node, string location, string agent, double mjd, string name)
 {
@@ -659,7 +801,7 @@ bool data_exists(string& path)
  * opened with the requested mode.
  * \param path Full path to file, absolute or relative.
  * \mode fopen style mode
- * \return fopen style file handle, or NULL if either a directory element can not be
+ * \return fopen style file handle, or nullptr if either a directory element can not be
  * created, or the file can not be opened.
  */
 
@@ -687,18 +829,18 @@ FILE *data_open(string path, char *mode)
 				if (COSMOS_MKDIR(dtemp,00777))
 				{
 					if (errno != EEXIST)
-						return (NULL);
+						return (nullptr);
 				}
 			}
 		}
 	}
 
-	if ((tfd = fopen(path.c_str(),mode)) != NULL)
+	if ((tfd = fopen(path.c_str(),mode)) != nullptr)
 	{
 		return (tfd);
 	}
 
-	return (NULL);
+	return (nullptr);
 }
 
 //! Set Root Directory
@@ -714,7 +856,7 @@ void set_cosmosresources(string name)
 //! Get COSMOS Base Directory
 /*! Get the internal variable that points to where all COSMOS files are
  * stored.
- * \return Pointer to character string containing path to Root, otherwise NULL.
+ * \return Pointer to character string containing path to Root, otherwise nullptr.
 */
 string get_cosmosresources()
 {
@@ -726,13 +868,13 @@ string get_cosmosresources()
 	if (cosmosresources.empty())
 	{
 		char *croot = getenv("COSMOSRESOURCES");
-		if (croot != NULL)
+		if (croot != nullptr)
 		{
 			cosmosresources = croot;
 		}
 		else
 		{
-			troot = "resources";
+			troot = "cosmosresources";
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;
@@ -752,7 +894,7 @@ string get_cosmosresources()
 //! Get COSMOS Base Directory
 /*! Get the internal variable that points to where all COSMOS files are
  * stored.
- * \return Pointer to character string containing path to Root, otherwise NULL.
+ * \return Pointer to character string containing path to Root, otherwise nullptr.
 */
 string get_cosmosnodes()
 {
@@ -764,13 +906,13 @@ string get_cosmosnodes()
 	if (cosmosnodes.empty())
 	{
 		char *croot = getenv("COSMOSNODES");
-		if (croot != NULL)
+		if (croot != nullptr)
 		{
 			cosmosnodes = croot;
 		}
 		else
 		{
-			troot = "../nodes";
+			troot = "nodes";
 			for (i=0; i<6; i++)
 			{
 				dir1 = troot;
@@ -800,7 +942,7 @@ void set_cosmosresources(char *name)
 //! Get Current Node Directory
 /*! Get the internal variable that points to where node files are
  * stored for the current Node.
- * \return Pointer to character string containing path to Node, otherwise NULL.
+ * \return Pointer to character string containing path to Node, otherwise nullptr.
 */
 string get_nodedir(string name)
 {
@@ -814,7 +956,7 @@ string get_nodedir(string name)
 /*! Set the internal variable that points to where node files are
  * stored for the current Node.
  * \param node Name of current Node
- * \return Pointer to character string containing path to Node, otherwise NULL.
+ * \return Pointer to character string containing path to Node, otherwise nullptr.
 */
 string set_nodedir(string node)
 {
@@ -851,9 +993,9 @@ int32_t data_load_archive(string node, string agent, double mjd, string type, ve
 	if (nodedir.size())
 	{
 		sprintf(dtemp,"%s/data/%s/%04d/%03d", nodedir.c_str(), agent.c_str(), year, (int32_t)jday);
-		if ((jdp=opendir(dtemp))!=NULL)
+		if ((jdp=opendir(dtemp))!=nullptr)
 		{
-			while ((td=readdir(jdp))!=NULL)
+			while ((td=readdir(jdp))!=nullptr)
 			{
 				string d_name = td->d_name;
 				auto dlen = d_name.find(type);
@@ -901,9 +1043,9 @@ int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &eve
 	{
 		dlen = nodedir.size() + 33 + strlen(cdata[0].node.name);
 		sprintf(dtemp,"%s/data/soh/%4d/%03d",nodedir.c_str(),year,(int32_t)jday);
-		if ((jdp=opendir(dtemp))!=NULL)
+		if ((jdp=opendir(dtemp))!=nullptr)
 		{
-			while ((td=readdir(jdp))!=NULL)
+			while ((td=readdir(jdp))!=nullptr)
 			{
 				if (td->d_name[0] != '.')
 				{
@@ -968,9 +1110,9 @@ double findlastday(string name)
 	if (get_nodedir(name).size())
 	{
 		sprintf(dtemp,"%s/data/soh", nodedir.c_str());
-		if ((jdp=opendir(dtemp))!=NULL)
+		if ((jdp=opendir(dtemp))!=nullptr)
 		{
-			while ((td=readdir(jdp))!=NULL)
+			while ((td=readdir(jdp))!=nullptr)
 			{
 				if (td->d_name[0] != '.')
 				{
@@ -980,9 +1122,9 @@ double findlastday(string name)
 			}
 			closedir(jdp);
 			sprintf(dtemp,"%s/data/soh/%04d",nodedir.c_str(),year);
-			if ((jdp=opendir(dtemp))!=NULL)
+			if ((jdp=opendir(dtemp))!=nullptr)
 			{
-				while ((td=readdir(jdp))!=NULL)
+				while ((td=readdir(jdp))!=nullptr)
 				{
 					if (td->d_name[0] != '.')
 					{
@@ -1010,7 +1152,7 @@ double findlastday(string name)
 #ifdef COSMOS_WIN_OS
 		struct tm *temptm;
 		temptm = localtime(&mytime);
-		if(temptm!=NULL)
+		if(temptm!=nullptr)
 		{
 			mytm = *temptm;
 		}
@@ -1043,9 +1185,9 @@ double findfirstday(string name)
 	{
 		year = jday = 9000;
 		sprintf(dtemp,"%s/data/soh", nodedir.c_str());
-		if ((jdp=opendir(dtemp))!=NULL)
+		if ((jdp=opendir(dtemp))!=nullptr)
 		{
-			while ((td=readdir(jdp))!=NULL)
+			while ((td=readdir(jdp))!=nullptr)
 			{
 				if (td->d_name[0] != '.')
 				{
@@ -1055,9 +1197,9 @@ double findfirstday(string name)
 			}
 			closedir(jdp);
 			sprintf(dtemp,"%s/data/soh/%04d",nodedir.c_str(),year);
-			if ((jdp=opendir(dtemp))!=NULL)
+			if ((jdp=opendir(dtemp))!=nullptr)
 			{
-				while ((td=readdir(jdp))!=NULL)
+				while ((td=readdir(jdp))!=nullptr)
 				{
 					if (td->d_name[0] != '.')
 					{
@@ -1130,7 +1272,7 @@ int32_t kml_write(cosmosstruc *cdata)
 	fprintf(fout,"<coordinates>\n");
 
 	rewind (fin);
-	while (fgets(buf, 500, fin) != NULL)
+	while (fgets(buf, 500, fin) != nullptr)
 	{
 		fputs(buf, fout);
 	}

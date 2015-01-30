@@ -99,12 +99,12 @@ char * agent_parse_request(char *input);
 */
 int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_function function)
 {
-    if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
-        return (AGENT_ERROR_REQ_COUNT);
+//    if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
+//        return (AGENT_ERROR_REQ_COUNT);
 
-    strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
-    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
-    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description="";
+//    strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
+//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
+//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description="";
 
 	int32_t iretn;
 
@@ -126,12 +126,12 @@ int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_f
 */
 int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_function function, string description)
 {
-    if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
-        return (AGENT_ERROR_REQ_COUNT);
+//    if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
+//        return (AGENT_ERROR_REQ_COUNT);
 
-    strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
-    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
-    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description = description;
+//    strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
+//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
+//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description = description;
 
 	int32_t iretn;
 
@@ -157,13 +157,13 @@ int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_f
     if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
         return (AGENT_ERROR_REQ_COUNT);
 
-    strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
-    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
-    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].synopsis = synopsis;
-    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description = description;
+//    strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
+//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
+//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].synopsis = synopsis;
+//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description = description;
 
-	if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
-		return (AGENT_ERROR_REQ_COUNT);
+//	if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
+//		return (AGENT_ERROR_REQ_COUNT);
 
 	agent_request_entry tentry;
 	strcpy(tentry.token,token);

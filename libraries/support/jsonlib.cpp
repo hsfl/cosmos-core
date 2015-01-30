@@ -6349,7 +6349,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cdata, jsonhandle *handl
 	
 	handle->index = cdata[0].emap[handle->hash].size();
 	cdata[0].emap[handle->hash].push_back(tequation);
-	if (cdata[0].emap[handle->hash].size() != handle->index+1)
+	if (cdata[0].emap[handle->hash].size() != handle->index+1u)
 	{
 		free(tequation.text);
 		return (JSON_ERROR_SCAN);

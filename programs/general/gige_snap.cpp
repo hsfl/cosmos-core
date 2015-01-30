@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 
 		if (expbytes == tbytes)
 		{
-            fringename = data_extra_type_path("hiakasat", "temp", "gige", currentmjd(0.), extra, "imgfringe");
+            fringename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), extra, "imgfringe");
 			FILE *fp = fopen(fringename.c_str(), "w");
 			fprintf(fp, "Fringes\n");
 			uint16_t *cube = (uint16_t *)image;
@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
 
 		// write image:
 
-        imagename = data_extra_type_path("hiakasat", "temp", "gige", currentmjd(0.), extra, "imgdata");
+        imagename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), extra, "imgdata");
 		fp = fopen(imagename.c_str(),"wb");
 		fwrite((void *)image,tbytes,1,fp);
 		fclose(fp);
@@ -356,7 +356,7 @@ int main(int argc, char *argv[])
 		// write metadata file:
 
 
-        metafilename = data_extra_type_path("hiakasat", "temp", "gige", currentmjd(0.), extra, "imgmeta");
+        metafilename = data_type_path("hiakasat", "temp", "gige", currentmjd(0.), extra, "imgmeta");
 		FILE *f = fopen(metafilename.c_str(), "wb");
 		if (f == NULL)
 		{

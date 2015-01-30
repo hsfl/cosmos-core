@@ -2,7 +2,6 @@
 # user config variables
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
-    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}" CACHE PATH "Linux install path")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # define the project name
@@ -70,6 +69,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		set(CMAKE_TOOLCHAIN_FILE "${COSMOS_CORE_SOURCE_DIR}/cmake/toolchain_arm")
 	else()
                 SET(OS_FOLDER "linux")
+                if (${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
+#                    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "default install path" FORCE )
+                    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}" CACHE PATH "default install path" FORCE )
+                endif()
         endif()
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
@@ -86,7 +89,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/install/${OS_FOLDER}")
+#set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/install/${OS_FOLDER}")
 
 IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
 	message("Building support")

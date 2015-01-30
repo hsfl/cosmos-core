@@ -82,7 +82,7 @@ struct timeval utc2unix(double utc)
     struct tm unixtm;
     double day, doy, fd;
 
-    mjd2ymd(utc, &unixtm.tm_year, &unixtm.tm_mon, &day, &doy);
+	mjd2ymd(utc, &unixtm.tm_year, &unixtm.tm_mon, &day, &doy);
     unixtm.tm_year -= 1900;
     unixtm.tm_mon -= 1;
     unixtm.tm_mday = (int)day;
@@ -761,7 +761,7 @@ double mjd2year(double mjd)
     double day, doy, dyear;
     int32_t month, year;
 
-    mjd2ymd(mjd,&year,&month,&day,&doy);
+	mjd2ymd(mjd,&year,&month,&day,&doy);
     dyear = year + (doy-1) / (365.+isleap(year));
     return (dyear);
 }
