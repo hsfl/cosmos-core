@@ -1994,7 +1994,7 @@ jsonentry *json_entry_of_ptr(uint8_t *ptr, cosmosstruc *cdata)
 	ptrdiff_t offset;
 
 	if (!cdata || !cdata[0].jmapped)
-		return (NULL);
+		return nullptr;
 
 	offset = -1;
 
@@ -2062,7 +2062,7 @@ jsonentry *json_entry_of_name(string token, cosmosstruc *cdata)
 	uint16_t n;
 
 	if (!cdata || !cdata[0].jmapped)
-		return (NULL);
+		return nullptr;
 
 	hash = json_hash(token);
 
@@ -4368,8 +4368,8 @@ int32_t json_setup_node(string node, cosmosstruc *cdata)
 
 	for (uint16_t i=0; i<cdata[0].node.port_cnt; i++)
 	{
-		json_addentry((char *)"port_name",i,65535u,(ptrdiff_t)offsetof(portstruc,name)+i*sizeof(portstruc),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_PORT,cdata);
-		json_addentry((char *)"port_type",i,65535u,(ptrdiff_t)offsetof(portstruc,type)+i*sizeof(portstruc),2,JSON_TYPE_UINT16,JSON_GROUP_PORT,cdata);
+		json_addentry("port_name",i,65535u,(ptrdiff_t)offsetof(portstruc,name)+i*sizeof(portstruc),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_PORT,cdata);
+		json_addentry("port_type",i,65535u,(ptrdiff_t)offsetof(portstruc,type)+i*sizeof(portstruc),2,JSON_TYPE_UINT16,JSON_GROUP_PORT,cdata);
 	}
 
 	// Parse data for port information
@@ -4476,168 +4476,168 @@ int32_t json_dump_node(cosmosstruc *cdata)
 uint16_t json_addbaseentry(cosmosstruc *cdata)
 {
 	// User structure
-	json_addentry((char *)"user_node",-1,-1,offsetof(userstruc,node),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_USER,cdata);
-	json_addentry((char *)"user_name",-1,-1,offsetof(userstruc,name),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_USER,cdata);
-	json_addentry((char *)"user_tool",-1,-1,offsetof(userstruc,tool),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_USER,cdata);
-	json_addentry((char *)"user_cpu",-1,-1,offsetof(userstruc,cpu),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_USER,cdata);
+	json_addentry("user_node",-1,-1,offsetof(userstruc,node),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_USER,cdata);
+	json_addentry("user_name",-1,-1,offsetof(userstruc,name),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_USER,cdata);
+	json_addentry("user_tool",-1,-1,offsetof(userstruc,tool),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_USER,cdata);
+	json_addentry("user_cpu",-1,-1,offsetof(userstruc,cpu),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_USER,cdata);
 
 
 	// Agent structure
-	json_addentry((char *)"agent_addr",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,addr),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_aprd",-1,-1,offsetof(agentstruc,aprd),4,JSON_TYPE_DOUBLE,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_beat",-1,-1,offsetof(agentstruc,beat),COSMOS_SIZEOF(beatstruc),JSON_TYPE_HBEAT,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_bprd",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,bprd),4,JSON_TYPE_DOUBLE,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_bsz",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,bsz),2,JSON_TYPE_UINT16,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_node",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,node),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_ntype",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,ntype),2,JSON_TYPE_UINT16,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_pid",-1,-1,offsetof(agentstruc,pid),4,JSON_TYPE_INT32,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_port",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,port),2,JSON_TYPE_UINT16,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_proc",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,proc),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_stateflag",-1,-1,offsetof(agentstruc,stateflag),2,JSON_TYPE_UINT16,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_user",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,user),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_AGENT,cdata);
-	json_addentry((char *)"agent_utc",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,utc),4,JSON_TYPE_DOUBLE,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_addr",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,addr),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_aprd",-1,-1,offsetof(agentstruc,aprd),4,JSON_TYPE_DOUBLE,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_beat",-1,-1,offsetof(agentstruc,beat),COSMOS_SIZEOF(beatstruc),JSON_TYPE_HBEAT,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_bprd",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,bprd),4,JSON_TYPE_DOUBLE,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_bsz",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,bsz),2,JSON_TYPE_UINT16,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_node",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,node),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_ntype",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,ntype),2,JSON_TYPE_UINT16,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_pid",-1,-1,offsetof(agentstruc,pid),4,JSON_TYPE_INT32,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_port",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,port),2,JSON_TYPE_UINT16,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_proc",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,proc),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_stateflag",-1,-1,offsetof(agentstruc,stateflag),2,JSON_TYPE_UINT16,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_user",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,user),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_AGENT,cdata);
+	json_addentry("agent_utc",-1,-1,offsetof(agentstruc,beat)+offsetof(beatstruc,utc),4,JSON_TYPE_DOUBLE,JSON_GROUP_AGENT,cdata);
 
 	// Event structure
-	json_addentry((char *)"event_cbytes",-1,-1,offsetof(longeventstruc,cbytes),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_cenergy",-1,-1,offsetof(longeventstruc,cenergy),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_cmass",-1,-1,offsetof(longeventstruc,cmass),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_condition",-1,-1,offsetof(longeventstruc,condition),COSMOS_MAX_DATA,JSON_TYPE_STRING,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_ctime",-1,-1,offsetof(longeventstruc,ctime),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_data",-1,-1,offsetof(longeventstruc,data),COSMOS_MAX_DATA,JSON_TYPE_STRING,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_dbytes",-1,-1,offsetof(longeventstruc,dbytes),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_denergy",-1,-1,offsetof(longeventstruc,denergy),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_dmass",-1,-1,offsetof(longeventstruc,dmass),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_dtime",-1,-1,offsetof(longeventstruc,dtime),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_flag",-1,-1,offsetof(longeventstruc,flag),4,JSON_TYPE_UINT32,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_name",-1,-1,offsetof(longeventstruc,name),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_node",-1,-1,offsetof(longeventstruc,node),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_type",-1,-1,offsetof(longeventstruc,type),4,JSON_TYPE_UINT32,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_user",-1,-1,offsetof(longeventstruc,user),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_utc",-1,-1,offsetof(longeventstruc,utc),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_utcexec",-1,-1,offsetof(longeventstruc,utcexec),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
-	json_addentry((char *)"event_value",-1,-1,offsetof(longeventstruc,value),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_cbytes",-1,-1,offsetof(longeventstruc,cbytes),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_cenergy",-1,-1,offsetof(longeventstruc,cenergy),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_cmass",-1,-1,offsetof(longeventstruc,cmass),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_condition",-1,-1,offsetof(longeventstruc,condition),COSMOS_MAX_DATA,JSON_TYPE_STRING,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_ctime",-1,-1,offsetof(longeventstruc,ctime),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_data",-1,-1,offsetof(longeventstruc,data),COSMOS_MAX_DATA,JSON_TYPE_STRING,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_dbytes",-1,-1,offsetof(longeventstruc,dbytes),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_denergy",-1,-1,offsetof(longeventstruc,denergy),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_dmass",-1,-1,offsetof(longeventstruc,dmass),4,JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_dtime",-1,-1,offsetof(longeventstruc,dtime),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_flag",-1,-1,offsetof(longeventstruc,flag),4,JSON_TYPE_UINT32,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_name",-1,-1,offsetof(longeventstruc,name),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_node",-1,-1,offsetof(longeventstruc,node),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_type",-1,-1,offsetof(longeventstruc,type),4,JSON_TYPE_UINT32,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_user",-1,-1,offsetof(longeventstruc,user),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_utc",-1,-1,offsetof(longeventstruc,utc),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_utcexec",-1,-1,offsetof(longeventstruc,utcexec),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
+	json_addentry("event_value",-1,-1,offsetof(longeventstruc,value),4,JSON_TYPE_DOUBLE,JSON_GROUP_EVENT,cdata);
 
 	// Physics structure
-	json_addentry((char *)"physics_dt",-1,-1,offsetof(physicsstruc,dt),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_dtj",-1,-1,offsetof(physicsstruc,dtj),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_mjdbase",-1,-1,offsetof(physicsstruc,mjdbase),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_mjdaccel",-1,-1,offsetof(physicsstruc,mjdaccel),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_mjddiff",-1,-1,offsetof(physicsstruc,mjddiff),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_mode",-1,-1,offsetof(physicsstruc,mode),4,JSON_TYPE_INT32,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_thrust",-1,-1,offsetof(physicsstruc,thrust),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_adrag",-1,-1,offsetof(physicsstruc,adrag),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_rdrag",-1,-1,offsetof(physicsstruc,rdrag),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_atorque",-1,-1,offsetof(physicsstruc,atorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_rtorque",-1,-1,offsetof(physicsstruc,rtorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_gtorque",-1,-1,offsetof(physicsstruc,gtorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_htorque",-1,-1,offsetof(physicsstruc,htorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_ctorque",-1,-1,offsetof(physicsstruc,ctorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_ftorque",-1,-1,offsetof(physicsstruc,ftorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_ftorque_x",-1,-1,offsetof(physicsstruc,ftorque.col[0]),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_ftorque_y",-1,-1,offsetof(physicsstruc,ftorque.col[1]),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_ftorque_z",-1,-1,offsetof(physicsstruc,ftorque.col[2]),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_hcap",-1,-1,offsetof(physicsstruc,hcap),4,JSON_TYPE_FLOAT,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_area",-1,-1,offsetof(physicsstruc,area),4,JSON_TYPE_FLOAT,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_moi",-1,-1,offsetof(physicsstruc,moi),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_com",-1,-1,offsetof(physicsstruc,com),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_mass",-1,-1,offsetof(physicsstruc,mass),4,JSON_TYPE_FLOAT,JSON_GROUP_PHYSICS,cdata);
-	json_addentry((char *)"physics_heat",-1,-1,offsetof(physicsstruc,heat),4,JSON_TYPE_FLOAT,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_dt",-1,-1,offsetof(physicsstruc,dt),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_dtj",-1,-1,offsetof(physicsstruc,dtj),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_mjdbase",-1,-1,offsetof(physicsstruc,mjdbase),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_mjdaccel",-1,-1,offsetof(physicsstruc,mjdaccel),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_mjddiff",-1,-1,offsetof(physicsstruc,mjddiff),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_mode",-1,-1,offsetof(physicsstruc,mode),4,JSON_TYPE_INT32,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_thrust",-1,-1,offsetof(physicsstruc,thrust),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_adrag",-1,-1,offsetof(physicsstruc,adrag),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_rdrag",-1,-1,offsetof(physicsstruc,rdrag),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_atorque",-1,-1,offsetof(physicsstruc,atorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_rtorque",-1,-1,offsetof(physicsstruc,rtorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_gtorque",-1,-1,offsetof(physicsstruc,gtorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_htorque",-1,-1,offsetof(physicsstruc,htorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_ctorque",-1,-1,offsetof(physicsstruc,ctorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_ftorque",-1,-1,offsetof(physicsstruc,ftorque),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_ftorque_x",-1,-1,offsetof(physicsstruc,ftorque.col[0]),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_ftorque_y",-1,-1,offsetof(physicsstruc,ftorque.col[1]),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_ftorque_z",-1,-1,offsetof(physicsstruc,ftorque.col[2]),4,JSON_TYPE_DOUBLE,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_hcap",-1,-1,offsetof(physicsstruc,hcap),4,JSON_TYPE_FLOAT,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_area",-1,-1,offsetof(physicsstruc,area),4,JSON_TYPE_FLOAT,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_moi",-1,-1,offsetof(physicsstruc,moi),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_com",-1,-1,offsetof(physicsstruc,com),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_mass",-1,-1,offsetof(physicsstruc,mass),4,JSON_TYPE_FLOAT,JSON_GROUP_PHYSICS,cdata);
+	json_addentry("physics_heat",-1,-1,offsetof(physicsstruc,heat),4,JSON_TYPE_FLOAT,JSON_GROUP_PHYSICS,cdata);
 
 	// Node Structure
-	json_addentry((char *)"node_utcoffset",-1,-1,offsetof(nodestruc,utcoffset),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_name",-1,-1,offsetof(nodestruc,name),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_type",-1,-1,offsetof(nodestruc,type),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_state",-1,-1,offsetof(nodestruc,state),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_hcap",-1,-1,offsetof(nodestruc,hcap),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_mass",-1,-1,offsetof(nodestruc,mass),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_area",-1,-1,offsetof(nodestruc,area),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_battcap",-1,-1,offsetof(nodestruc,battcap),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_charging",-1,-1,offsetof(nodestruc,charging),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_powgen",-1,-1,offsetof(nodestruc,powgen),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_powuse",-1,-1,offsetof(nodestruc,powuse),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_battlev",-1,-1,offsetof(nodestruc,battlev),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_utc",-1,-1,offsetof(nodestruc,utc),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_utcstart",-1,-1,offsetof(nodestruc,utcstart),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc",-1,-1,offsetof(nodestruc,loc),COSMOS_SIZEOF(locstruc),JSON_TYPE_LOC,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_utc",-1,-1,offsetof(nodestruc,loc.utc),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos",-1,-1,offsetof(nodestruc,loc.pos),COSMOS_SIZEOF(posstruc),JSON_TYPE_POSSTRUC,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_geod",-1,-1,offsetof(nodestruc,loc.pos.geod),COSMOS_SIZEOF(geoidpos),JSON_TYPE_POS_GEOD,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_geod_v_lat",-1,-1,offsetof(nodestruc,loc.pos.geod.s.lat),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_geod_v_lon",-1,-1,offsetof(nodestruc,loc.pos.geod.s.lon),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_geod_v_h",-1,-1,offsetof(nodestruc,loc.pos.geod.s.h),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_geod_s_lat",-1,-1,offsetof(nodestruc,loc.pos.geod.s.lat),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_geod_s_lon",-1,-1,offsetof(nodestruc,loc.pos.geod.s.lon),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_geod_s_h",-1,-1,offsetof(nodestruc,loc.pos.geod.s.h),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_geoc",-1,-1,offsetof(nodestruc,loc.pos.geoc),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_GEOC,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_geos",-1,-1,offsetof(nodestruc,loc.pos.geos),COSMOS_SIZEOF(spherpos),JSON_TYPE_POS_GEOS,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_eci",-1,-1,offsetof(nodestruc,loc.pos.eci),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_ECI,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_sci",-1,-1,offsetof(nodestruc,loc.pos.sci),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_SCI,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_selc",-1,-1,offsetof(nodestruc,loc.pos.selc),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_SELC,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_selg",-1,-1,offsetof(nodestruc,loc.pos.selg),COSMOS_SIZEOF(geoidpos),JSON_TYPE_POS_SELG,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_baryc",-1,-1,offsetof(nodestruc,loc.pos.baryc),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_BARYC,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_sunsize",-1,-1,offsetof(nodestruc,loc.pos.sunsize),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_sunradiance",-1,-1,offsetof(nodestruc,loc.pos.sunradiance),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_earthsep",-1,-1,offsetof(nodestruc,loc.pos.earthsep),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_pos_moonsep",-1,-1,offsetof(nodestruc,loc.pos.moonsep),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att",-1,-1,offsetof(nodestruc,loc.att),COSMOS_SIZEOF(attstruc),JSON_TYPE_ATTSTRUC,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_icrf",-1,-1,offsetof(nodestruc,loc.att.icrf),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_icrf_s",-1,-1,offsetof(nodestruc,loc.att.icrf.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_icrf_v",-1,-1,offsetof(nodestruc,loc.att.icrf.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_icrf_a",-1,-1,offsetof(nodestruc,loc.att.icrf.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_topo",-1,-1,offsetof(nodestruc,loc.att.topo),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_topo_s",-1,-1,offsetof(nodestruc,loc.att.topo.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_topo_v",-1,-1,offsetof(nodestruc,loc.att.topo.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_topo_a",-1,-1,offsetof(nodestruc,loc.att.topo.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_geoc",-1,-1,offsetof(nodestruc,loc.att.geoc),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_geoc_s",-1,-1,offsetof(nodestruc,loc.att.geoc.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_geoc_v",-1,-1,offsetof(nodestruc,loc.att.geoc.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_geoc_a",-1,-1,offsetof(nodestruc,loc.att.geoc.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_lvlh",-1,-1,offsetof(nodestruc,loc.att.lvlh),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_lvlh_s",-1,-1,offsetof(nodestruc,loc.att.lvlh.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_lvlh_v",-1,-1,offsetof(nodestruc,loc.att.lvlh.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_lvlh_a",-1,-1,offsetof(nodestruc,loc.att.lvlh.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_selc",-1,-1,offsetof(nodestruc,loc.att.selc),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_selc_s",-1,-1,offsetof(nodestruc,loc.att.selc.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_selc_v",-1,-1,offsetof(nodestruc,loc.att.selc.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_att_selc_a",-1,-1,offsetof(nodestruc,loc.att.selc.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_loc_bearth",-1,-1,offsetof(nodestruc,loc.bearth),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_azfrom",-1,-1,offsetof(nodestruc,azfrom),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_azto",-1,-1,offsetof(nodestruc,azto),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_elfrom",-1,-1,offsetof(nodestruc,elfrom),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_elto",-1,-1,offsetof(nodestruc,elto),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_range",-1,-1,offsetof(nodestruc,range),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"comp_cnt",-1,-1,offsetof(nodestruc,device_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"piece_cnt",-1,-1,offsetof(nodestruc,piece_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"port_cnt",-1,-1,offsetof(nodestruc,port_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"target_cnt",-1,-1,offsetof(nodestruc,target_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"node_glossary_cnt",-1,-1,offsetof(nodestruc,glossary_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
-	json_addentry((char *)"device_ant_cnt",-1,-1,offsetof(devspecstruc,ant_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_batt_cnt",-1,-1,offsetof(devspecstruc,batt_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_bus_cnt",-1,-1,offsetof(devspecstruc,bus_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_cam_cnt",-1,-1,offsetof(devspecstruc,cam_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_cpu_cnt",-1,-1,offsetof(devspecstruc,cpu_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_gps_cnt",-1,-1,offsetof(devspecstruc,gps_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_htr_cnt",-1,-1,offsetof(devspecstruc,htr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_imu_cnt",-1,-1,offsetof(devspecstruc,imu_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_mcc_cnt",-1,-1,offsetof(devspecstruc,mcc_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_motr_cnt",-1,-1,offsetof(devspecstruc,motr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_mtr_cnt",-1,-1,offsetof(devspecstruc,mtr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_pload_cnt",-1,-1,offsetof(devspecstruc,pload_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_prop_cnt",-1,-1,offsetof(devspecstruc,prop_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_psen_cnt",-1,-1,offsetof(devspecstruc,psen_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_rot_cnt",-1,-1,offsetof(devspecstruc,rot_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_rw_cnt",-1,-1,offsetof(devspecstruc,rw_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_rxr_cnt",-1,-1,offsetof(devspecstruc,rxr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_ssen_cnt",-1,-1,offsetof(devspecstruc,ssen_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_strg_cnt",-1,-1,offsetof(devspecstruc,strg_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_stt_cnt",-1,-1,offsetof(devspecstruc,stt_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_suchi_cnt",-1,-1,offsetof(devspecstruc,suchi_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_swch_cnt",-1,-1,offsetof(devspecstruc,swch_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_tcu_cnt",-1,-1,offsetof(devspecstruc,tcu_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_tcv_cnt",-1,-1,offsetof(devspecstruc,tcv_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_thst_cnt",-1,-1,offsetof(devspecstruc,thst_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_tsen_cnt",-1,-1,offsetof(devspecstruc,tsen_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry((char *)"device_txr_cnt",-1,-1,offsetof(devspecstruc,txr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("node_utcoffset",-1,-1,offsetof(nodestruc,utcoffset),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_name",-1,-1,offsetof(nodestruc,name),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_NODE,cdata);
+	json_addentry("node_type",-1,-1,offsetof(nodestruc,type),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
+	json_addentry("node_state",-1,-1,offsetof(nodestruc,state),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
+	json_addentry("node_hcap",-1,-1,offsetof(nodestruc,hcap),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_mass",-1,-1,offsetof(nodestruc,mass),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_area",-1,-1,offsetof(nodestruc,area),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_battcap",-1,-1,offsetof(nodestruc,battcap),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_charging",-1,-1,offsetof(nodestruc,charging),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
+	json_addentry("node_powgen",-1,-1,offsetof(nodestruc,powgen),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_powuse",-1,-1,offsetof(nodestruc,powuse),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_battlev",-1,-1,offsetof(nodestruc,battlev),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_utc",-1,-1,offsetof(nodestruc,utc),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_utcstart",-1,-1,offsetof(nodestruc,utcstart),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc",-1,-1,offsetof(nodestruc,loc),COSMOS_SIZEOF(locstruc),JSON_TYPE_LOC,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_utc",-1,-1,offsetof(nodestruc,loc.utc),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos",-1,-1,offsetof(nodestruc,loc.pos),COSMOS_SIZEOF(posstruc),JSON_TYPE_POSSTRUC,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geod",-1,-1,offsetof(nodestruc,loc.pos.geod),COSMOS_SIZEOF(geoidpos),JSON_TYPE_POS_GEOD,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geod_v_lat",-1,-1,offsetof(nodestruc,loc.pos.geod.s.lat),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geod_v_lon",-1,-1,offsetof(nodestruc,loc.pos.geod.s.lon),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geod_v_h",-1,-1,offsetof(nodestruc,loc.pos.geod.s.h),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geod_s_lat",-1,-1,offsetof(nodestruc,loc.pos.geod.s.lat),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geod_s_lon",-1,-1,offsetof(nodestruc,loc.pos.geod.s.lon),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geod_s_h",-1,-1,offsetof(nodestruc,loc.pos.geod.s.h),4,JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geoc",-1,-1,offsetof(nodestruc,loc.pos.geoc),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_GEOC,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geos",-1,-1,offsetof(nodestruc,loc.pos.geos),COSMOS_SIZEOF(spherpos),JSON_TYPE_POS_GEOS,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_eci",-1,-1,offsetof(nodestruc,loc.pos.eci),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_ECI,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_sci",-1,-1,offsetof(nodestruc,loc.pos.sci),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_SCI,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_selc",-1,-1,offsetof(nodestruc,loc.pos.selc),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_SELC,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_selg",-1,-1,offsetof(nodestruc,loc.pos.selg),COSMOS_SIZEOF(geoidpos),JSON_TYPE_POS_SELG,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_baryc",-1,-1,offsetof(nodestruc,loc.pos.baryc),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_BARYC,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_sunsize",-1,-1,offsetof(nodestruc,loc.pos.sunsize),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_sunradiance",-1,-1,offsetof(nodestruc,loc.pos.sunradiance),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_earthsep",-1,-1,offsetof(nodestruc,loc.pos.earthsep),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_moonsep",-1,-1,offsetof(nodestruc,loc.pos.moonsep),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att",-1,-1,offsetof(nodestruc,loc.att),COSMOS_SIZEOF(attstruc),JSON_TYPE_ATTSTRUC,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_icrf",-1,-1,offsetof(nodestruc,loc.att.icrf),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_icrf_s",-1,-1,offsetof(nodestruc,loc.att.icrf.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_icrf_v",-1,-1,offsetof(nodestruc,loc.att.icrf.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_icrf_a",-1,-1,offsetof(nodestruc,loc.att.icrf.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_topo",-1,-1,offsetof(nodestruc,loc.att.topo),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_topo_s",-1,-1,offsetof(nodestruc,loc.att.topo.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_topo_v",-1,-1,offsetof(nodestruc,loc.att.topo.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_topo_a",-1,-1,offsetof(nodestruc,loc.att.topo.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_geoc",-1,-1,offsetof(nodestruc,loc.att.geoc),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_geoc_s",-1,-1,offsetof(nodestruc,loc.att.geoc.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_geoc_v",-1,-1,offsetof(nodestruc,loc.att.geoc.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_geoc_a",-1,-1,offsetof(nodestruc,loc.att.geoc.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_lvlh",-1,-1,offsetof(nodestruc,loc.att.lvlh),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_lvlh_s",-1,-1,offsetof(nodestruc,loc.att.lvlh.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_lvlh_v",-1,-1,offsetof(nodestruc,loc.att.lvlh.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_lvlh_a",-1,-1,offsetof(nodestruc,loc.att.lvlh.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_selc",-1,-1,offsetof(nodestruc,loc.att.selc),COSMOS_SIZEOF(qatt),JSON_TYPE_QATT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_selc_s",-1,-1,offsetof(nodestruc,loc.att.selc.s),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_selc_v",-1,-1,offsetof(nodestruc,loc.att.selc.v),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_att_selc_a",-1,-1,offsetof(nodestruc,loc.att.selc.a),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_bearth",-1,-1,offsetof(nodestruc,loc.bearth),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+	json_addentry("node_azfrom",-1,-1,offsetof(nodestruc,azfrom),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_azto",-1,-1,offsetof(nodestruc,azto),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_elfrom",-1,-1,offsetof(nodestruc,elfrom),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_elto",-1,-1,offsetof(nodestruc,elto),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_range",-1,-1,offsetof(nodestruc,range),4,JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("comp_cnt",-1,-1,offsetof(nodestruc,device_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
+	json_addentry("piece_cnt",-1,-1,offsetof(nodestruc,piece_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
+	json_addentry("port_cnt",-1,-1,offsetof(nodestruc,port_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
+	json_addentry("target_cnt",-1,-1,offsetof(nodestruc,target_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
+	json_addentry("node_glossary_cnt",-1,-1,offsetof(nodestruc,glossary_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
+	json_addentry("device_ant_cnt",-1,-1,offsetof(devspecstruc,ant_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_batt_cnt",-1,-1,offsetof(devspecstruc,batt_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_bus_cnt",-1,-1,offsetof(devspecstruc,bus_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_cam_cnt",-1,-1,offsetof(devspecstruc,cam_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_cpu_cnt",-1,-1,offsetof(devspecstruc,cpu_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_gps_cnt",-1,-1,offsetof(devspecstruc,gps_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_htr_cnt",-1,-1,offsetof(devspecstruc,htr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_imu_cnt",-1,-1,offsetof(devspecstruc,imu_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_mcc_cnt",-1,-1,offsetof(devspecstruc,mcc_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_motr_cnt",-1,-1,offsetof(devspecstruc,motr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_mtr_cnt",-1,-1,offsetof(devspecstruc,mtr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_pload_cnt",-1,-1,offsetof(devspecstruc,pload_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_prop_cnt",-1,-1,offsetof(devspecstruc,prop_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_psen_cnt",-1,-1,offsetof(devspecstruc,psen_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_rot_cnt",-1,-1,offsetof(devspecstruc,rot_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_rw_cnt",-1,-1,offsetof(devspecstruc,rw_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_rxr_cnt",-1,-1,offsetof(devspecstruc,rxr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_ssen_cnt",-1,-1,offsetof(devspecstruc,ssen_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_strg_cnt",-1,-1,offsetof(devspecstruc,strg_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_stt_cnt",-1,-1,offsetof(devspecstruc,stt_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_suchi_cnt",-1,-1,offsetof(devspecstruc,suchi_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_swch_cnt",-1,-1,offsetof(devspecstruc,swch_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_tcu_cnt",-1,-1,offsetof(devspecstruc,tcu_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_tcv_cnt",-1,-1,offsetof(devspecstruc,tcv_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_thst_cnt",-1,-1,offsetof(devspecstruc,thst_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_tsen_cnt",-1,-1,offsetof(devspecstruc,tsen_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_txr_cnt",-1,-1,offsetof(devspecstruc,txr_cnt),2,JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
 
 	return (cdata[0].jmapped);
 }
@@ -4650,21 +4650,21 @@ uint16_t json_addbaseentry(cosmosstruc *cdata)
  */
 uint16_t json_addpieceentry(uint16_t i, cosmosstruc *cdata)
 {
-	json_addentry((char *)"piece_name",i,-1,(ptrdiff_t)offsetof(piecestruc,name)+i*sizeof(piecestruc),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_type",i,-1,(ptrdiff_t)offsetof(piecestruc,type)+i*sizeof(piecestruc),2,JSON_TYPE_UINT16,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_cidx",i,-1,(ptrdiff_t)offsetof(piecestruc,cidx)+i*sizeof(piecestruc),2,JSON_TYPE_UINT16,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_mass",i,-1,(ptrdiff_t)offsetof(piecestruc,mass)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_emi",i,-1,(ptrdiff_t)offsetof(piecestruc,emi)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_abs",i,-1,(ptrdiff_t)offsetof(piecestruc,abs)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_dim",i,-1,(ptrdiff_t)offsetof(piecestruc,dim)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_hcap",i,-1,(ptrdiff_t)offsetof(piecestruc,hcap)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_hcon",i,-1,(ptrdiff_t)offsetof(piecestruc,hcon)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_area",i,-1,(ptrdiff_t)offsetof(piecestruc,area)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_com",i,-1,(ptrdiff_t)offsetof(piecestruc,centroid)+i*sizeof(piecestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PIECE,cdata);
-	json_addentry((char *)"piece_pnt_cnt",i,-1,(ptrdiff_t)offsetof(piecestruc,pnt_cnt)+i*sizeof(piecestruc),2,JSON_TYPE_UINT16,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_name",i,-1,(ptrdiff_t)offsetof(piecestruc,name)+i*sizeof(piecestruc),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_type",i,-1,(ptrdiff_t)offsetof(piecestruc,type)+i*sizeof(piecestruc),2,JSON_TYPE_UINT16,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_cidx",i,-1,(ptrdiff_t)offsetof(piecestruc,cidx)+i*sizeof(piecestruc),2,JSON_TYPE_UINT16,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_mass",i,-1,(ptrdiff_t)offsetof(piecestruc,mass)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_emi",i,-1,(ptrdiff_t)offsetof(piecestruc,emi)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_abs",i,-1,(ptrdiff_t)offsetof(piecestruc,abs)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_dim",i,-1,(ptrdiff_t)offsetof(piecestruc,dim)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_hcap",i,-1,(ptrdiff_t)offsetof(piecestruc,hcap)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_hcon",i,-1,(ptrdiff_t)offsetof(piecestruc,hcon)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_area",i,-1,(ptrdiff_t)offsetof(piecestruc,area)+i*sizeof(piecestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_com",i,-1,(ptrdiff_t)offsetof(piecestruc,centroid)+i*sizeof(piecestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PIECE,cdata);
+	json_addentry("piece_pnt_cnt",i,-1,(ptrdiff_t)offsetof(piecestruc,pnt_cnt)+i*sizeof(piecestruc),2,JSON_TYPE_UINT16,JSON_GROUP_PIECE,cdata);
 	for (uint16_t j=0; j<MAXPNT; ++j)
 	{
-		json_addentry((char *)"piece_pnt",i,j,(ptrdiff_t)offsetof(piecestruc,points)+i*sizeof(piecestruc)+j*sizeof(rvector),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PIECE,cdata);
+		json_addentry("piece_pnt",i,j,(ptrdiff_t)offsetof(piecestruc,points)+i*sizeof(piecestruc)+j*sizeof(rvector),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_PIECE,cdata);
 	}
 
 	return (cdata[0].jmapped);
@@ -4680,20 +4680,20 @@ uint16_t json_addcompentry(uint16_t i, cosmosstruc *cdata)
 {
 	cdata[0].device[i].all.gen.cidx = i;
 	
-	json_addentry((char *)"comp_type",i,-1,(ptrdiff_t)offsetof(genstruc,type)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_model",i,-1,(ptrdiff_t)offsetof(genstruc,model)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_flag",i,-1,(ptrdiff_t)offsetof(genstruc,flag)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_cidx",i,-1,(ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_didx",i,-1,(ptrdiff_t)offsetof(genstruc,didx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_pidx",i,-1,(ptrdiff_t)offsetof(genstruc,pidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_bidx",i,-1,(ptrdiff_t)offsetof(genstruc,bidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_portidx",i,-1,(ptrdiff_t)offsetof(genstruc,portidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_namp",i,-1,(ptrdiff_t)offsetof(genstruc,namp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_nvolt",i,-1,(ptrdiff_t)offsetof(genstruc,volt)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_amp",i,-1,(ptrdiff_t)offsetof(genstruc,amp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_volt",i,-1,(ptrdiff_t)offsetof(genstruc,volt)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_temp",i,-1,(ptrdiff_t)offsetof(genstruc,temp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-	json_addentry((char *)"comp_utc",i,-1,(ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_type",i,-1,(ptrdiff_t)offsetof(genstruc,type)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_model",i,-1,(ptrdiff_t)offsetof(genstruc,model)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_flag",i,-1,(ptrdiff_t)offsetof(genstruc,flag)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_cidx",i,-1,(ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_didx",i,-1,(ptrdiff_t)offsetof(genstruc,didx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_pidx",i,-1,(ptrdiff_t)offsetof(genstruc,pidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_bidx",i,-1,(ptrdiff_t)offsetof(genstruc,bidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_portidx",i,-1,(ptrdiff_t)offsetof(genstruc,portidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_namp",i,-1,(ptrdiff_t)offsetof(genstruc,namp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_nvolt",i,-1,(ptrdiff_t)offsetof(genstruc,volt)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_amp",i,-1,(ptrdiff_t)offsetof(genstruc,amp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_volt",i,-1,(ptrdiff_t)offsetof(genstruc,volt)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_temp",i,-1,(ptrdiff_t)offsetof(genstruc,temp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_utc",i,-1,(ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
 	cdata[0].devspec.all.push_back((allstruc *)&cdata[0].device[i].all);
 
 	return (cdata[0].jmapped);
@@ -4716,290 +4716,290 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 	switch (cdata[0].device[i].all.gen.type)
 	{
 	case DEVICE_TYPE_PLOAD:
-		json_addentry((char *)"device_pload_utc",didx,-1,(ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_pload_cidx",didx,-1,(ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_pload_bps",didx,-1,(ptrdiff_t)offsetof(ploadstruc,bps)+i*sizeof(devicestruc),4,JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_pload_key_cnt",didx,-1,(ptrdiff_t)offsetof(ploadstruc,key_cnt)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_pload_utc",didx,-1,(ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_pload_cidx",didx,-1,(ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_pload_bps",didx,-1,(ptrdiff_t)offsetof(ploadstruc,bps)+i*sizeof(devicestruc),4,JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_pload_key_cnt",didx,-1,(ptrdiff_t)offsetof(ploadstruc,key_cnt)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 		for (uint16_t j=0; j<MAXPLOADKEYCNT; j++)
 		{
-			json_addentry((char *)"device_pload_keyidx",didx,j,(ptrdiff_t)offsetof(ploadstruc,keyidx)+i*sizeof(devicestruc)+j*sizeof(uint16_t),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-			json_addentry((char *)"device_pload_keyval",didx,j,(ptrdiff_t)offsetof(ploadstruc,keyval)+i*sizeof(devicestruc)+j*sizeof(float),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+			json_addentry("device_pload_keyidx",didx,j,(ptrdiff_t)offsetof(ploadstruc,keyidx)+i*sizeof(devicestruc)+j*sizeof(uint16_t),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+			json_addentry("device_pload_keyval",didx,j,(ptrdiff_t)offsetof(ploadstruc,keyval)+i*sizeof(devicestruc)+j*sizeof(float),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		}
 		cdata[0].devspec.pload.push_back((ploadstruc *)&cdata[0].device[i].pload);
 		cdata[0].devspec.pload_cnt = cdata[0].devspec.pload.size();
 		break;
 		//! Elevation and Azimuth Sun Sensor
 	case DEVICE_TYPE_SSEN:
-		json_addentry((char *)"device_ssen_utc",didx,-1,(ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ssen_cidx",didx,-1,(ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ssen_align",didx,-1,(ptrdiff_t)offsetof(ssenstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ssen_qva",didx,-1,(ptrdiff_t)offsetof(ssenstruc,qva)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ssen_qvb",didx,-1,(ptrdiff_t)offsetof(ssenstruc,qvb)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ssen_qvc",didx,-1,(ptrdiff_t)offsetof(ssenstruc,qvc)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ssen_qvd",didx,-1,(ptrdiff_t)offsetof(ssenstruc,qvd)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ssen_azimuth",didx,-1,(ptrdiff_t)offsetof(ssenstruc,azimuth)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ssen_elevation",didx,-1,(ptrdiff_t)offsetof(ssenstruc,elevation)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ssen_utc",didx,-1,(ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ssen_cidx",didx,-1,(ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ssen_align",didx,-1,(ptrdiff_t)offsetof(ssenstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ssen_qva",didx,-1,(ptrdiff_t)offsetof(ssenstruc,qva)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ssen_qvb",didx,-1,(ptrdiff_t)offsetof(ssenstruc,qvb)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ssen_qvc",didx,-1,(ptrdiff_t)offsetof(ssenstruc,qvc)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ssen_qvd",didx,-1,(ptrdiff_t)offsetof(ssenstruc,qvd)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ssen_azimuth",didx,-1,(ptrdiff_t)offsetof(ssenstruc,azimuth)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ssen_elevation",didx,-1,(ptrdiff_t)offsetof(ssenstruc,elevation)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.ssen.push_back((ssenstruc *)&cdata[0].device[i].ssen);
 		cdata[0].devspec.ssen_cnt = cdata[0].devspec.ssen.size();
 		break;
 		//! Inertial Measurement Unit
 	case DEVICE_TYPE_IMU:
-		json_addentry((char *)"device_imu_utc",didx,-1,(ptrdiff_t)offsetof(imustruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_cidx",didx,-1,(ptrdiff_t)offsetof(imustruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_align",didx,-1,(ptrdiff_t)offsetof(imustruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_accel",didx,-1,(ptrdiff_t)offsetof(imustruc,accel)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_accel_x",didx,-1,(ptrdiff_t)offsetof(imustruc,accel)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_accel_y",didx,-1,(ptrdiff_t)offsetof(imustruc,accel)+sizeof(double)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_accel_z",didx,-1,(ptrdiff_t)offsetof(imustruc,accel)+2*sizeof(double)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_omega",didx,-1,(ptrdiff_t)offsetof(imustruc,omega)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_mag",didx,-1,(ptrdiff_t)offsetof(imustruc,mag)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_mag_x",didx,-1,(ptrdiff_t)offsetof(imustruc,mag)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_mag_y",didx,-1,(ptrdiff_t)offsetof(imustruc,mag)+sizeof(double)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_mag_z",didx,-1,(ptrdiff_t)offsetof(imustruc,mag)+2*sizeof(double)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_imu_bdot",didx,-1,(ptrdiff_t)offsetof(imustruc,bdot)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_utc",didx,-1,(ptrdiff_t)offsetof(imustruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_cidx",didx,-1,(ptrdiff_t)offsetof(imustruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_align",didx,-1,(ptrdiff_t)offsetof(imustruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_accel",didx,-1,(ptrdiff_t)offsetof(imustruc,accel)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_accel_x",didx,-1,(ptrdiff_t)offsetof(imustruc,accel)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_accel_y",didx,-1,(ptrdiff_t)offsetof(imustruc,accel)+sizeof(double)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_accel_z",didx,-1,(ptrdiff_t)offsetof(imustruc,accel)+2*sizeof(double)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_omega",didx,-1,(ptrdiff_t)offsetof(imustruc,omega)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_mag",didx,-1,(ptrdiff_t)offsetof(imustruc,mag)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_mag_x",didx,-1,(ptrdiff_t)offsetof(imustruc,mag)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_mag_y",didx,-1,(ptrdiff_t)offsetof(imustruc,mag)+sizeof(double)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_mag_z",didx,-1,(ptrdiff_t)offsetof(imustruc,mag)+2*sizeof(double)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_imu_bdot",didx,-1,(ptrdiff_t)offsetof(imustruc,bdot)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.imu.push_back((imustruc *)&cdata[0].device[i].imu);
 		cdata[0].devspec.imu_cnt = cdata[0].devspec.imu.size();
 		break;
 		//! Reaction Wheel
 	case DEVICE_TYPE_RW:
-		json_addentry((char *)"device_rw_utc",didx,-1,(ptrdiff_t)offsetof(rwstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_cidx",didx,-1,(ptrdiff_t)offsetof(rwstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_align",didx,-1,(ptrdiff_t)offsetof(rwstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_mom",didx,-1,(ptrdiff_t)offsetof(rwstruc,mom)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_mxomg",didx,-1,(ptrdiff_t)offsetof(rwstruc,mxomg)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_mxalp",didx,-1,(ptrdiff_t)offsetof(rwstruc,mxalp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_tc",didx,-1,(ptrdiff_t)offsetof(rwstruc,tc)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_omg",didx,-1,(ptrdiff_t)offsetof(rwstruc,omg)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_alp",didx,-1,(ptrdiff_t)offsetof(rwstruc,alp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_romg",didx,-1,(ptrdiff_t)offsetof(rwstruc,romg)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rw_ralp",didx,-1,(ptrdiff_t)offsetof(rwstruc,ralp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_utc",didx,-1,(ptrdiff_t)offsetof(rwstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_cidx",didx,-1,(ptrdiff_t)offsetof(rwstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_align",didx,-1,(ptrdiff_t)offsetof(rwstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_mom",didx,-1,(ptrdiff_t)offsetof(rwstruc,mom)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_mxomg",didx,-1,(ptrdiff_t)offsetof(rwstruc,mxomg)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_mxalp",didx,-1,(ptrdiff_t)offsetof(rwstruc,mxalp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_tc",didx,-1,(ptrdiff_t)offsetof(rwstruc,tc)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_omg",didx,-1,(ptrdiff_t)offsetof(rwstruc,omg)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_alp",didx,-1,(ptrdiff_t)offsetof(rwstruc,alp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_romg",didx,-1,(ptrdiff_t)offsetof(rwstruc,romg)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rw_ralp",didx,-1,(ptrdiff_t)offsetof(rwstruc,ralp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.rw.push_back((rwstruc *)&cdata[0].device[i].rw);
 		cdata[0].devspec.rw_cnt = cdata[0].devspec.rw.size();
 		break;
 		//! Magnetic Torque Rod
 	case DEVICE_TYPE_MTR:
-		json_addentry((char *)"device_mtr_utc",didx,-1,(ptrdiff_t)offsetof(mtrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_mtr_cidx",didx,-1,(ptrdiff_t)offsetof(mtrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_mtr_mxmom",didx,-1,(ptrdiff_t)offsetof(mtrstruc,mxmom)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_mtr_tc",didx,-1,(ptrdiff_t)offsetof(mtrstruc,tc)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_mtr_align",didx,-1,(ptrdiff_t)offsetof(mtrstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mtr_utc",didx,-1,(ptrdiff_t)offsetof(mtrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mtr_cidx",didx,-1,(ptrdiff_t)offsetof(mtrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mtr_mxmom",didx,-1,(ptrdiff_t)offsetof(mtrstruc,mxmom)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mtr_tc",didx,-1,(ptrdiff_t)offsetof(mtrstruc,tc)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mtr_align",didx,-1,(ptrdiff_t)offsetof(mtrstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
 		for (uint16_t j=0; j<7; j++)
 		{
-			json_addentry((char *)"device_mtr_npoly",didx,j,(ptrdiff_t)offsetof(mtrstruc,npoly)+i*sizeof(devicestruc)+j*sizeof(float),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-			json_addentry((char *)"device_mtr_ppoly",didx,j,(ptrdiff_t)offsetof(mtrstruc,ppoly)+i*sizeof(devicestruc)+j*sizeof(float),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+			json_addentry("device_mtr_npoly",didx,j,(ptrdiff_t)offsetof(mtrstruc,npoly)+i*sizeof(devicestruc)+j*sizeof(float),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+			json_addentry("device_mtr_ppoly",didx,j,(ptrdiff_t)offsetof(mtrstruc,ppoly)+i*sizeof(devicestruc)+j*sizeof(float),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		}
-		json_addentry((char *)"device_mtr_mom",didx,-1,(ptrdiff_t)offsetof(mtrstruc,mom)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_mtr_rmom",didx,-1,(ptrdiff_t)offsetof(mtrstruc,rmom)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mtr_mom",didx,-1,(ptrdiff_t)offsetof(mtrstruc,mom)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mtr_rmom",didx,-1,(ptrdiff_t)offsetof(mtrstruc,rmom)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.mtr.push_back((mtrstruc *)&cdata[0].device[i].mtr);
 		cdata[0].devspec.mtr_cnt = cdata[0].devspec.mtr.size();
 		break;
 		//! Camera
 	case DEVICE_TYPE_CAM:
-		json_addentry((char *)"device_cam_utc",didx,-1,(ptrdiff_t)offsetof(camstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cam_cidx",didx,-1,(ptrdiff_t)offsetof(camstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cam_pwidth",didx,-1,(ptrdiff_t)offsetof(camstruc,pwidth)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cam_pheight",didx,-1,(ptrdiff_t)offsetof(camstruc,pheight)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cam_width",didx,-1,(ptrdiff_t)offsetof(camstruc,width)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cam_height",didx,-1,(ptrdiff_t)offsetof(camstruc,height)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cam_flength",didx,-1,(ptrdiff_t)offsetof(camstruc,flength)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cam_utc",didx,-1,(ptrdiff_t)offsetof(camstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cam_cidx",didx,-1,(ptrdiff_t)offsetof(camstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cam_pwidth",didx,-1,(ptrdiff_t)offsetof(camstruc,pwidth)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cam_pheight",didx,-1,(ptrdiff_t)offsetof(camstruc,pheight)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cam_width",didx,-1,(ptrdiff_t)offsetof(camstruc,width)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cam_height",didx,-1,(ptrdiff_t)offsetof(camstruc,height)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cam_flength",didx,-1,(ptrdiff_t)offsetof(camstruc,flength)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.cam.push_back((camstruc *)&cdata[0].device[i].cam);
 		cdata[0].devspec.cam_cnt = cdata[0].devspec.cam.size();
 		break;
 		//! Processing Unit
 	case DEVICE_TYPE_CPU:
-		json_addentry((char *)"device_cpu_utc",didx,-1,(ptrdiff_t)offsetof(cpustruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cpu_cidx",didx,-1,(ptrdiff_t)offsetof(cpustruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cpu_uptime",didx,-1,(ptrdiff_t)offsetof(cpustruc,uptime)+i*sizeof(devicestruc),4,JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cpu_maxdisk",didx,-1,(ptrdiff_t)offsetof(cpustruc,maxdisk)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cpu_maxmem",didx,-1,(ptrdiff_t)offsetof(cpustruc,maxmem)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cpu_maxload",didx,-1,(ptrdiff_t)offsetof(cpustruc,maxload)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cpu_load",didx,-1,(ptrdiff_t)offsetof(cpustruc,load)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cpu_mem",didx,-1,(ptrdiff_t)offsetof(cpustruc,mem)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cpu_disk",didx,-1,(ptrdiff_t)offsetof(cpustruc,disk)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_cpu_boot_count",didx,-1,(ptrdiff_t)offsetof(cpustruc,boot_count)+i*sizeof(devicestruc),4,JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_utc",didx,-1,(ptrdiff_t)offsetof(cpustruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_cidx",didx,-1,(ptrdiff_t)offsetof(cpustruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_uptime",didx,-1,(ptrdiff_t)offsetof(cpustruc,uptime)+i*sizeof(devicestruc),4,JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_maxdisk",didx,-1,(ptrdiff_t)offsetof(cpustruc,maxdisk)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_maxmem",didx,-1,(ptrdiff_t)offsetof(cpustruc,maxmem)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_maxload",didx,-1,(ptrdiff_t)offsetof(cpustruc,maxload)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_load",didx,-1,(ptrdiff_t)offsetof(cpustruc,load)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_mem",didx,-1,(ptrdiff_t)offsetof(cpustruc,mem)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_disk",didx,-1,(ptrdiff_t)offsetof(cpustruc,disk)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_cpu_boot_count",didx,-1,(ptrdiff_t)offsetof(cpustruc,boot_count)+i*sizeof(devicestruc),4,JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.cpu.push_back((cpustruc *)&cdata[0].device[i].cpu);
 		cdata[0].devspec.cpu_cnt = cdata[0].devspec.cpu.size();
 		break;
 		//! GPS Unit
 	case DEVICE_TYPE_GPS:
-		json_addentry((char *)"device_gps_utc",didx,-1,(ptrdiff_t)offsetof(gpsstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_cidx",didx,-1,(ptrdiff_t)offsetof(gpsstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geocs",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geocs_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs.col[0])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geocs_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs.col[1])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geocs_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs.col[2])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geocv",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geocv_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv.col[0])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geocv_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv.col[1])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geocv_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv.col[2])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_dgeocs",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_dgeocs_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs.col[0])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_dgeocs_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs.col[1])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_dgeocs_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs.col[2])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_dgeocv",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_dgeocv_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv.col[0])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_dgeocv_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv.col[1])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_dgeocv_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv.col[2])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geods",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods)+i*sizeof(devicestruc),COSMOS_SIZEOF(gvector),JSON_TYPE_GVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geods_lat",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods.lat)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geods_lon",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods.lon)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geods_h",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods.h)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geodv",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv)+i*sizeof(devicestruc),COSMOS_SIZEOF(gvector),JSON_TYPE_GVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geodv_lat",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv.lat)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geodv_lon",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv.lon)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geodv_h",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv.h)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_heading",didx,-1,(ptrdiff_t)offsetof(gpsstruc,heading)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_n_sats_used",didx,-1,(ptrdiff_t)offsetof(gpsstruc,n_sats_used)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_time_status",didx,-1,(ptrdiff_t)offsetof(gpsstruc,time_status)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_geocs_type",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position_type)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_gps_solution_status",didx,-1,(ptrdiff_t)offsetof(gpsstruc,solution_status)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_utc",didx,-1,(ptrdiff_t)offsetof(gpsstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_cidx",didx,-1,(ptrdiff_t)offsetof(gpsstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geocs",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geocs_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs.col[0])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geocs_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs.col[1])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geocs_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocs.col[2])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geocv",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geocv_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv.col[0])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geocv_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv.col[1])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geocv_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geocv.col[2])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_dgeocs",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_dgeocs_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs.col[0])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_dgeocs_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs.col[1])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_dgeocs_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocs.col[2])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_dgeocv",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_dgeocv_x",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv.col[0])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_dgeocv_y",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv.col[1])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_dgeocv_z",didx,-1,(ptrdiff_t)offsetof(gpsstruc,dgeocv.col[2])+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geods",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods)+i*sizeof(devicestruc),COSMOS_SIZEOF(gvector),JSON_TYPE_GVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geods_lat",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods.lat)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geods_lon",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods.lon)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geods_h",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geods.h)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geodv",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv)+i*sizeof(devicestruc),COSMOS_SIZEOF(gvector),JSON_TYPE_GVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geodv_lat",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv.lat)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geodv_lon",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv.lon)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geodv_h",didx,-1,(ptrdiff_t)offsetof(gpsstruc,geodv.h)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_heading",didx,-1,(ptrdiff_t)offsetof(gpsstruc,heading)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_n_sats_used",didx,-1,(ptrdiff_t)offsetof(gpsstruc,n_sats_used)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_time_status",didx,-1,(ptrdiff_t)offsetof(gpsstruc,time_status)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_geocs_type",didx,-1,(ptrdiff_t)offsetof(gpsstruc,position_type)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_gps_solution_status",didx,-1,(ptrdiff_t)offsetof(gpsstruc,solution_status)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 
 		cdata[0].devspec.gps.push_back((gpsstruc *)&cdata[0].device[i].gps);
 		cdata[0].devspec.gps_cnt = cdata[0].devspec.gps.size();
 		break;
 		//! Antenna
 	case DEVICE_TYPE_ANT:
-		json_addentry((char *)"device_ant_utc",didx,-1,(ptrdiff_t)offsetof(antstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ant_cidx",didx,-1,(ptrdiff_t)offsetof(antstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ant_align",didx,-1,(ptrdiff_t)offsetof(antstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_ant_minelev",didx,-1,(ptrdiff_t)offsetof(antstruc,minelev)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ant_utc",didx,-1,(ptrdiff_t)offsetof(antstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ant_cidx",didx,-1,(ptrdiff_t)offsetof(antstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ant_align",didx,-1,(ptrdiff_t)offsetof(antstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ant_minelev",didx,-1,(ptrdiff_t)offsetof(antstruc,minelev)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.ant.push_back((antstruc *)&cdata[0].device[i].ant);
 		cdata[0].devspec.ant_cnt = cdata[0].devspec.ant.size();
 		break;
 		//! Radio Receiver
 	case DEVICE_TYPE_RXR:
-		json_addentry((char *)"device_rxr_utc",didx,-1,(ptrdiff_t)offsetof(rxrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rxr_cidx",didx,-1,(ptrdiff_t)offsetof(rxrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rxr_freq",didx,-1,(ptrdiff_t)offsetof(rxrstruc,freq)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rxr_utc",didx,-1,(ptrdiff_t)offsetof(rxrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rxr_cidx",didx,-1,(ptrdiff_t)offsetof(rxrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rxr_freq",didx,-1,(ptrdiff_t)offsetof(rxrstruc,freq)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.rxr.push_back((rxrstruc *)&cdata[0].device[i].rxr);
 		cdata[0].devspec.rxr_cnt = cdata[0].devspec.rxr.size();
 		break;
 		//! Radio Transmitter
 	case DEVICE_TYPE_TXR:
-		json_addentry((char *)"device_txr_utc",didx,-1,(ptrdiff_t)offsetof(txrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_txr_cidx",didx,-1,(ptrdiff_t)offsetof(txrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_txr_freq",didx,-1,(ptrdiff_t)offsetof(txrstruc,freq)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_txr_utc",didx,-1,(ptrdiff_t)offsetof(txrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_txr_cidx",didx,-1,(ptrdiff_t)offsetof(txrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_txr_freq",didx,-1,(ptrdiff_t)offsetof(txrstruc,freq)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.txr.push_back((txrstruc *)&cdata[0].device[i].txr);
 		cdata[0].devspec.txr_cnt = cdata[0].devspec.txr.size();
 		break;
 		//! Radio Transceiver
 	case DEVICE_TYPE_TCV:
-		json_addentry((char *)"device_tcv_utc",didx,-1,(ptrdiff_t)offsetof(tcvstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_tcv_cidx",didx,-1,(ptrdiff_t)offsetof(tcvstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_tcv_freqin",didx,-1,(ptrdiff_t)offsetof(tcvstruc,freqin)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_tcv_freqout",didx,-1,(ptrdiff_t)offsetof(tcvstruc,freqout)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_utc",didx,-1,(ptrdiff_t)offsetof(tcvstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_cidx",didx,-1,(ptrdiff_t)offsetof(tcvstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_freqin",didx,-1,(ptrdiff_t)offsetof(tcvstruc,freqin)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_freqout",didx,-1,(ptrdiff_t)offsetof(tcvstruc,freqout)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.tcv.push_back((tcvstruc *)&cdata[0].device[i].tcv);
 		cdata[0].devspec.tcv_cnt = cdata[0].devspec.tcv.size();
 		break;
 		//! Photo Voltaic String
 	case DEVICE_TYPE_STRG:
-		json_addentry((char *)"device_strg_utc",didx,-1,(ptrdiff_t)offsetof(strgstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_strg_cidx",didx,-1,(ptrdiff_t)offsetof(strgstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_strg_efi",didx,-1,(ptrdiff_t)offsetof(strgstruc,effbase)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_strg_efs",didx,-1,(ptrdiff_t)offsetof(strgstruc,effslope)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_strg_max",didx,-1,(ptrdiff_t)offsetof(strgstruc,maxpower)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_strg_power",didx,-1,(ptrdiff_t)offsetof(strgstruc,power)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_strg_utc",didx,-1,(ptrdiff_t)offsetof(strgstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_strg_cidx",didx,-1,(ptrdiff_t)offsetof(strgstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_strg_efi",didx,-1,(ptrdiff_t)offsetof(strgstruc,effbase)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_strg_efs",didx,-1,(ptrdiff_t)offsetof(strgstruc,effslope)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_strg_max",didx,-1,(ptrdiff_t)offsetof(strgstruc,maxpower)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_strg_power",didx,-1,(ptrdiff_t)offsetof(strgstruc,power)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.strg.push_back((strgstruc *)&cdata[0].device[i].strg);
 		cdata[0].devspec.strg_cnt = cdata[0].devspec.strg.size();
 		break;
 		//! Battery
 	case DEVICE_TYPE_BATT:
-		json_addentry((char *)"device_batt_utc",didx,-1,(ptrdiff_t)offsetof(battstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_batt_cidx",didx,-1,(ptrdiff_t)offsetof(battstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_batt_cap",didx,-1,(ptrdiff_t)offsetof(battstruc,capacity)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_batt_eff",didx,-1,(ptrdiff_t)offsetof(battstruc,efficiency)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_batt_lev",didx,-1,(ptrdiff_t)offsetof(battstruc,charge)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_batt_utc",didx,-1,(ptrdiff_t)offsetof(battstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_batt_cidx",didx,-1,(ptrdiff_t)offsetof(battstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_batt_cap",didx,-1,(ptrdiff_t)offsetof(battstruc,capacity)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_batt_eff",didx,-1,(ptrdiff_t)offsetof(battstruc,efficiency)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_batt_lev",didx,-1,(ptrdiff_t)offsetof(battstruc,charge)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.batt.push_back((battstruc *)&cdata[0].device[i].batt);
 		cdata[0].devspec.batt_cnt = cdata[0].devspec.batt.size();
 		break;
 		//! Heater
 	case DEVICE_TYPE_HTR:
-		json_addentry((char *)"device_htr_utc",didx,-1,(ptrdiff_t)offsetof(htrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_htr_cidx",didx,-1,(ptrdiff_t)offsetof(htrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_htr_utc",didx,-1,(ptrdiff_t)offsetof(htrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_htr_cidx",didx,-1,(ptrdiff_t)offsetof(htrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.htr.push_back((htrstruc *)&cdata[0].device[i].htr);
 		cdata[0].devspec.htr_cnt = cdata[0].devspec.htr.size();
 		break;
 		//! Motor
 	case DEVICE_TYPE_MOTR:
-		json_addentry((char *)"device_motr_utc",didx,-1,(ptrdiff_t)offsetof(motrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_motr_cidx",didx,-1,(ptrdiff_t)offsetof(motrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_motr_rat",didx,-1,(ptrdiff_t)offsetof(motrstruc,rat)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_motr_max",didx,-1,(ptrdiff_t)offsetof(motrstruc,max)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_motr_spd",didx,-1,(ptrdiff_t)offsetof(motrstruc,spd)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_motr_utc",didx,-1,(ptrdiff_t)offsetof(motrstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_motr_cidx",didx,-1,(ptrdiff_t)offsetof(motrstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_motr_rat",didx,-1,(ptrdiff_t)offsetof(motrstruc,rat)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_motr_max",didx,-1,(ptrdiff_t)offsetof(motrstruc,max)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_motr_spd",didx,-1,(ptrdiff_t)offsetof(motrstruc,spd)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.motr.push_back((motrstruc *)&cdata[0].device[i].motr);
 		cdata[0].devspec.motr_cnt = cdata[0].devspec.motr.size();
 		break;
 		//! Pressure Sensor
 	case DEVICE_TYPE_PSEN:
-		json_addentry((char *)"device_psen_utc",didx,-1,(ptrdiff_t)offsetof(psenstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_psen_cidx",didx,-1,(ptrdiff_t)offsetof(psenstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_psen_press",didx,-1,(ptrdiff_t)offsetof(psenstruc,press)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_psen_utc",didx,-1,(ptrdiff_t)offsetof(psenstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_psen_cidx",didx,-1,(ptrdiff_t)offsetof(psenstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_psen_press",didx,-1,(ptrdiff_t)offsetof(psenstruc,press)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.psen.push_back((psenstruc *)&cdata[0].device[i].psen);
 		cdata[0].devspec.psen_cnt = cdata[0].devspec.psen.size();
 		break;
 		//! Temperature Sensor
 	case DEVICE_TYPE_TSEN:
-		json_addentry((char *)"device_tsen_utc",didx,-1,(ptrdiff_t)offsetof(tsenstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_tsen_cidx",didx,-1,(ptrdiff_t)offsetof(tsenstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_tsen_temp",didx,-1,(ptrdiff_t)offsetof(tsenstruc,gen.temp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tsen_utc",didx,-1,(ptrdiff_t)offsetof(tsenstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tsen_cidx",didx,-1,(ptrdiff_t)offsetof(tsenstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tsen_temp",didx,-1,(ptrdiff_t)offsetof(tsenstruc,gen.temp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.tsen.push_back((tsenstruc *)&cdata[0].device[i].tsen);
 		cdata[0].devspec.tsen_cnt = cdata[0].devspec.tsen.size();
 		break;
 		//! Thruster
 	case DEVICE_TYPE_THST:
-		json_addentry((char *)"device_thst_utc",didx,-1,(ptrdiff_t)offsetof(thststruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_thst_cidx",didx,-1,(ptrdiff_t)offsetof(thststruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_thst_isp",didx,-1,(ptrdiff_t)offsetof(thststruc,isp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_thst_align",didx,-1,(ptrdiff_t)offsetof(thststruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_thst_flw",didx,-1,(ptrdiff_t)offsetof(thststruc,flw)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_thst_utc",didx,-1,(ptrdiff_t)offsetof(thststruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_thst_cidx",didx,-1,(ptrdiff_t)offsetof(thststruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_thst_isp",didx,-1,(ptrdiff_t)offsetof(thststruc,isp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_thst_align",didx,-1,(ptrdiff_t)offsetof(thststruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_thst_flw",didx,-1,(ptrdiff_t)offsetof(thststruc,flw)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.thst.push_back((thststruc *)&cdata[0].device[i].thst);
 		cdata[0].devspec.thst_cnt = cdata[0].devspec.thst.size();
 		break;
 		//! Propellant Tank
 	case DEVICE_TYPE_PROP:
-		json_addentry((char *)"device_prop_utc",didx,-1,(ptrdiff_t)offsetof(propstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_prop_cidx",didx,-1,(ptrdiff_t)offsetof(propstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_prop_cap",didx,-1,(ptrdiff_t)offsetof(propstruc,cap)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_prop_lev",didx,-1,(ptrdiff_t)offsetof(propstruc,lev)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_prop_utc",didx,-1,(ptrdiff_t)offsetof(propstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_prop_cidx",didx,-1,(ptrdiff_t)offsetof(propstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_prop_cap",didx,-1,(ptrdiff_t)offsetof(propstruc,cap)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_prop_lev",didx,-1,(ptrdiff_t)offsetof(propstruc,lev)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.prop.push_back((propstruc *)&cdata[0].device[i].prop);
 		cdata[0].devspec.prop_cnt = cdata[0].devspec.prop.size();
 		break;
 		//! Switch
 	case DEVICE_TYPE_SWCH:
-		json_addentry((char *)"device_swch_utc",didx,-1,(ptrdiff_t)offsetof(swchstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_swch_cidx",didx,-1,(ptrdiff_t)offsetof(swchstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_swch_utc",didx,-1,(ptrdiff_t)offsetof(swchstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_swch_cidx",didx,-1,(ptrdiff_t)offsetof(swchstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.swch.push_back((swchstruc *)&cdata[0].device[i].swch);
 		cdata[0].devspec.swch_cnt = cdata[0].devspec.swch.size();
 		break;
 		//! Rotor
 	case DEVICE_TYPE_ROT:
-		json_addentry((char *)"device_rot_utc",didx,-1,(ptrdiff_t)offsetof(rotstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_rot_cidx",didx,-1,(ptrdiff_t)offsetof(rotstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rot_utc",didx,-1,(ptrdiff_t)offsetof(rotstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_rot_cidx",didx,-1,(ptrdiff_t)offsetof(rotstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.rot.push_back((rotstruc *)&cdata[0].device[i].rot);
 		cdata[0].devspec.rot_cnt = cdata[0].devspec.rot.size();
 		break;
 		//! Star Tracker
 	case DEVICE_TYPE_STT:
-		json_addentry((char *)"device_stt_utc",didx,-1,(ptrdiff_t)offsetof(sttstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_stt_cidx",didx,-1,(ptrdiff_t)offsetof(sttstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_stt_align",didx,-1,(ptrdiff_t)offsetof(sttstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_stt_att",didx,-1,(ptrdiff_t)offsetof(sttstruc,att)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_stt_omega",didx,-1,(ptrdiff_t)offsetof(sttstruc,omega)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_stt_retcode",didx,-1,(ptrdiff_t)offsetof(sttstruc,retcode)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_stt_status",didx,-1,(ptrdiff_t)offsetof(sttstruc,status)+i*sizeof(devicestruc),4,JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_stt_utc",didx,-1,(ptrdiff_t)offsetof(sttstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_stt_cidx",didx,-1,(ptrdiff_t)offsetof(sttstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_stt_align",didx,-1,(ptrdiff_t)offsetof(sttstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_stt_att",didx,-1,(ptrdiff_t)offsetof(sttstruc,att)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_stt_omega",didx,-1,(ptrdiff_t)offsetof(sttstruc,omega)+i*sizeof(devicestruc),COSMOS_SIZEOF(rvector),JSON_TYPE_RVECTOR,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_stt_retcode",didx,-1,(ptrdiff_t)offsetof(sttstruc,retcode)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_stt_status",didx,-1,(ptrdiff_t)offsetof(sttstruc,status)+i*sizeof(devicestruc),4,JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.stt.push_back((sttstruc *)&cdata[0].device[i].stt);
 		cdata[0].devspec.stt_cnt = cdata[0].devspec.stt.size();
 		break;
 		//! Star Tracker
 	case DEVICE_TYPE_SUCHI:
 		{
-			json_addentry((char *)"device_suchi_utc",didx,-1,(ptrdiff_t)offsetof(suchistruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-			json_addentry((char *)"device_suchi_cidx",didx,-1,(ptrdiff_t)offsetof(suchistruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-			json_addentry((char *)"device_suchi_align",didx,-1,(ptrdiff_t)offsetof(suchistruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
-			json_addentry((char *)"device_suchi_press",didx,-1,(ptrdiff_t)offsetof(suchistruc,press)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+			json_addentry("device_suchi_utc",didx,-1,(ptrdiff_t)offsetof(suchistruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+			json_addentry("device_suchi_cidx",didx,-1,(ptrdiff_t)offsetof(suchistruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+			json_addentry("device_suchi_align",didx,-1,(ptrdiff_t)offsetof(suchistruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+			json_addentry("device_suchi_press",didx,-1,(ptrdiff_t)offsetof(suchistruc,press)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 			for (uint16_t j=0; j<8; j++)
 			{
-				json_addentry((char *)"device_suchi_temps",didx,j,(ptrdiff_t)offsetof(suchistruc,temps)+i*sizeof(devicestruc)+j*sizeof(float),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+				json_addentry("device_suchi_temps",didx,j,(ptrdiff_t)offsetof(suchistruc,temps)+i*sizeof(devicestruc)+j*sizeof(float),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 			}
 			suchistruc* ptr = &cdata[0].device[i].suchi;
 			cdata[0].devspec.suchi.push_back(ptr);
@@ -5007,31 +5007,31 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 			break;
 		}
 	case DEVICE_TYPE_MCC:
-		json_addentry((char *)"device_mcc_utc",didx,-1,(ptrdiff_t)offsetof(mccstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_mcc_cidx",didx,-1,(ptrdiff_t)offsetof(mccstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_mcc_q",didx,-1,(ptrdiff_t)offsetof(mccstruc,q)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_mcc_align",didx,-1,(ptrdiff_t)offsetof(mccstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mcc_utc",didx,-1,(ptrdiff_t)offsetof(mccstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mcc_cidx",didx,-1,(ptrdiff_t)offsetof(mccstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mcc_q",didx,-1,(ptrdiff_t)offsetof(mccstruc,q)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_mcc_align",didx,-1,(ptrdiff_t)offsetof(mccstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion),JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.mcc.push_back((mccstruc *)&cdata[0].device[i].mcc);
 		cdata[0].devspec.mcc_cnt = cdata[0].devspec.mcc.size();
 		break;
 	case DEVICE_TYPE_TCU:
-		json_addentry((char *)"device_tcu_utc",didx,-1,(ptrdiff_t)offsetof(tcustruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_tcu_cidx",didx,-1,(ptrdiff_t)offsetof(tcustruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_tcu_mcnt",didx,-1,(ptrdiff_t)offsetof(tcustruc,mcnt)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcu_utc",didx,-1,(ptrdiff_t)offsetof(tcustruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcu_cidx",didx,-1,(ptrdiff_t)offsetof(tcustruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcu_mcnt",didx,-1,(ptrdiff_t)offsetof(tcustruc,mcnt)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 		for (uint16_t j=0; j<3; j++)
 		{
-			json_addentry((char *)"device_tcu_mcidx",didx,j,(ptrdiff_t)offsetof(tcustruc,mcidx)+i*sizeof(devicestruc)+j*sizeof(int16_t),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+			json_addentry("device_tcu_mcidx",didx,j,(ptrdiff_t)offsetof(tcustruc,mcidx)+i*sizeof(devicestruc)+j*sizeof(int16_t),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 		}
 		cdata[0].devspec.tcu.push_back((tcustruc *)&cdata[0].device[i].tcu);
 		cdata[0].devspec.tcu_cnt = cdata[0].devspec.tcu.size();
 		break;
 	case DEVICE_TYPE_BUS:
-		json_addentry((char *)"device_bus_utc",didx,-1,(ptrdiff_t)offsetof(busstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_bus_cidx",didx,-1,(ptrdiff_t)offsetof(busstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_bus_amp",didx,-1,(ptrdiff_t)offsetof(busstruc,gen.amp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_bus_volt",didx,-1,(ptrdiff_t)offsetof(busstruc,gen.volt)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_bus_energy",didx,-1,(ptrdiff_t)offsetof(busstruc,energy)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry((char *)"device_bus_wdt",didx,-1,(ptrdiff_t)offsetof(busstruc,wdt)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_bus_utc",didx,-1,(ptrdiff_t)offsetof(busstruc,gen.utc)+i*sizeof(devicestruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_bus_cidx",didx,-1,(ptrdiff_t)offsetof(busstruc,gen.cidx)+i*sizeof(devicestruc),2,JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_bus_amp",didx,-1,(ptrdiff_t)offsetof(busstruc,gen.amp)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_bus_volt",didx,-1,(ptrdiff_t)offsetof(busstruc,gen.volt)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_bus_energy",didx,-1,(ptrdiff_t)offsetof(busstruc,energy)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_bus_wdt",didx,-1,(ptrdiff_t)offsetof(busstruc,wdt)+i*sizeof(devicestruc),4,JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.bus.push_back((busstruc *)&cdata[0].device[i].bus);
 		cdata[0].devspec.bus_cnt = cdata[0].devspec.bus.size();
 		break;
@@ -5075,7 +5075,7 @@ const char *json_of_list(string &jstring, const char *list, cosmosstruc *cdata)
 	jstring.clear();
 	iretn = json_out_list(jstring, list, cdata);
 	if (iretn < 0 && iretn != JSON_ERROR_EOS)
-		return (NULL);
+		return nullptr;
 
 	return jstring.data();
 }
@@ -5337,13 +5337,13 @@ const char *json_of_time(string &jstring, cosmosstruc *cdata)
 	jstring.clear();
 	iretn = json_out(jstring,(char *)"node_utcstart",cdata);
 	if (iretn < 0)
-		return (NULL);
+		return nullptr;
 	iretn = json_out(jstring,(char *)"node_utc",cdata);
 	if (iretn < 0)
-		return (NULL);
+		return nullptr;
 	iretn = json_out(jstring,(char *)"node_utcoffset",cdata);
 	if (iretn < 0)
-		return (NULL);
+		return nullptr;
 
 	return jstring.data();
 }
@@ -5362,7 +5362,7 @@ const char *json_of_beat(string &jstring, cosmosstruc *cdata)
 	jstring.clear();
 	iretn = json_out(jstring,(char *)"beat",cdata);
 	if (iretn < 0)
-		return (NULL);
+		return nullptr;
 
 	return jstring.data();
 }
@@ -5743,7 +5743,7 @@ const char *json_of_soh(string &jstring, cosmosstruc *cdata)
 	string soh = json_list_of_soh(cdata);
 	iretn = json_out_list(jstring, soh.c_str(), cdata);
 	if (iretn < 0 && iretn != JSON_ERROR_EOS)
-		return (NULL);
+		return nullptr;
 
 	return jstring.data();
 }
@@ -6951,19 +6951,19 @@ int load_target(cosmosstruc *cdata)
 		cdata[0].target.resize(100);
 		while (count < cdata[0].target.size() && fgets(inb,JSON_MAX_DATA,op) != NULL)
 		{
-			json_addentry((char *)"target_range",count,-1,(ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_close",count,-1,(ptrdiff_t)offsetof(targetstruc,close)+count*sizeof(targetstruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_utc",count,-1,(ptrdiff_t)offsetof(targetstruc,utc)+count*sizeof(targetstruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_name",count,-1,(ptrdiff_t)offsetof(targetstruc,name)+count*sizeof(targetstruc),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_type",count,-1,(ptrdiff_t)offsetof(targetstruc,type)+count*sizeof(targetstruc),2,JSON_TYPE_UINT16,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_azfrom",count,-1,(ptrdiff_t)offsetof(targetstruc,azfrom)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_azto",count,-1,(ptrdiff_t)offsetof(targetstruc,azto)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_elfrom",count,-1,(ptrdiff_t)offsetof(targetstruc,elfrom)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_elto",count,-1,(ptrdiff_t)offsetof(targetstruc,elto)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_min",count,-1,(ptrdiff_t)offsetof(targetstruc,min)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_loc",count,-1,(ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc),COSMOS_SIZEOF(locstruc),JSON_TYPE_LOC,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_loc_pos_geod",count,-1,(ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc),COSMOS_SIZEOF(geoidpos),JSON_TYPE_POS_GEOD,JSON_GROUP_TARGET,cdata);
-			json_addentry((char *)"target_loc_pos_eci",count,-1,(ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_ECI,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_range",count,-1,(ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_close",count,-1,(ptrdiff_t)offsetof(targetstruc,close)+count*sizeof(targetstruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_utc",count,-1,(ptrdiff_t)offsetof(targetstruc,utc)+count*sizeof(targetstruc),4,JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_name",count,-1,(ptrdiff_t)offsetof(targetstruc,name)+count*sizeof(targetstruc),COSMOS_MAX_NAME,JSON_TYPE_NAME,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_type",count,-1,(ptrdiff_t)offsetof(targetstruc,type)+count*sizeof(targetstruc),2,JSON_TYPE_UINT16,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_azfrom",count,-1,(ptrdiff_t)offsetof(targetstruc,azfrom)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_azto",count,-1,(ptrdiff_t)offsetof(targetstruc,azto)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_elfrom",count,-1,(ptrdiff_t)offsetof(targetstruc,elfrom)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_elto",count,-1,(ptrdiff_t)offsetof(targetstruc,elto)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_min",count,-1,(ptrdiff_t)offsetof(targetstruc,min)+count*sizeof(targetstruc),4,JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_loc",count,-1,(ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc),COSMOS_SIZEOF(locstruc),JSON_TYPE_LOC,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_loc_pos_geod",count,-1,(ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc),COSMOS_SIZEOF(geoidpos),JSON_TYPE_POS_GEOD,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_loc_pos_eci",count,-1,(ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc),COSMOS_SIZEOF(cartpos),JSON_TYPE_POS_ECI,JSON_GROUP_TARGET,cdata);
 			if (json_parse(inb,cdata) >= 0)
 			{
 				if (cdata[0].target[count].loc.utc == 0.)

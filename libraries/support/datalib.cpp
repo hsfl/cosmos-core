@@ -258,9 +258,10 @@ vector <double> data_list_archive_days(string node, string agent)
 						if (td->d_name[0] != '.' && atof(td->d_name) > 0 && atof(td->d_name) < 367)
 						{
 							string dpath = (ypath + "/") + td->d_name;
-							struct stat st;
-							stat(dpath.c_str(), &st);
-							if (S_ISDIR(st.st_mode))
+							//							struct stat st;
+							//							stat(dpath.c_str(), &st);
+							//							if (S_ISDIR(st.st_mode))
+							if (data_isdir(dpath))
 							{
 								double jday = atof(td->d_name);
 								double mjd = cal2mjd2(year, 1, 0.) + jday;
@@ -431,12 +432,12 @@ int32_t data_list_nodes(vector<string>& nodes)
 	string rootd;
 	struct dirent *td;
 	string tnode;
-	struct stat statbuf;
+	//	struct stat statbuf;
 
-	rootd=get_cosmosnodes();
-	if (rootd.empty())
+	int32_t iretn = get_cosmosnodes(rootd);
+	if (iretn < 0)
 	{
-		return (NODE_ERROR_ROOTDIR);
+		return (iretn);
 	}
 
 	dtemp = rootd;
@@ -444,7 +445,8 @@ int32_t data_list_nodes(vector<string>& nodes)
 	{
 		while ((td=readdir(jdp)) != nullptr)
 		{
-			if (td->d_name[0] != '.' && !stat(((dtemp+"/")+td->d_name).c_str(), &statbuf) && S_ISDIR(statbuf.st_mode))
+			//			if (td->d_name[0] != '.' && !stat(((dtemp+"/")+td->d_name).c_str(), &statbuf) && S_ISDIR(statbuf.st_mode))
+			if (td->d_name[0] != '.' && data_isdir((dtemp+"/")+td->d_name))
 			{
 				tnode = td->d_name;
 				nodes.push_back(tnode);
@@ -469,10 +471,10 @@ int32_t data_get_nodes(vector<cosmosstruc> &node)
 	struct dirent *td;
 	cosmosstruc *tnode;
 
-	rootd=get_cosmosnodes();
-	if (rootd.empty())
+	int32_t iretn = get_cosmosnodes(rootd);
+	if (iretn < 0)
 	{
-		return (NODE_ERROR_ROOTDIR);
+		return (iretn);
 	}
 
 	if ((tnode=json_create()) == nullptr)
@@ -540,9 +542,9 @@ string data_name(string node, double mjd, string type)
  * \param name File name.
  * \return UTC as Modified Julian Day.
  */
-int32_t data_name_date(string filename, uint16_t &year, uint16_t &jday, uint16_t &seconds)
+int32_t data_name_date(string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds)
 {
-	if (sscanf(filename.c_str(), "%4" PRIu16 "%3" PRIu16 "%5" PRIu16 "", &year, &jday, &seconds) == 3 && seconds < 86400 && jday < 367)
+	if (sscanf(filename.c_str(), "%4" SCNu16 "%3" SCNu16 "%5" SCNu32 "", &year, &jday, &seconds) == 3 && seconds < 86400 && jday < 367)
 	{
 		return 0;
 	}
@@ -556,7 +558,7 @@ int32_t data_name_date(string filename, double &utc)
 {
 	uint16_t year;
 	uint16_t jday;
-	uint16_t seconds;
+	uint32_t seconds;
 
 	int32_t iretn = data_name_date(filename, year, jday, seconds);
 
@@ -590,7 +592,7 @@ string data_base_path(string node, string location, string agent, string filenam
 		{
 			uint16_t year;
 			uint16_t jday;
-			uint16_t seconds;
+			uint32_t seconds;
 			int32_t iretn = data_name_date(filename, year, jday, seconds);
 			if (!iretn)
 			{
@@ -666,13 +668,16 @@ string data_base_path(string node)
 	string tpath;
 	string path;
 
-	tpath = get_cosmosnodes();
-	tpath += "/" + node;
-
-	if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
+	int32_t iretn = get_cosmosnodes(tpath);
+	if (iretn >= 0)
 	{
+		tpath += "/" + node;
 
-		path = tpath;
+		if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
+		{
+
+			path = tpath;
+		}
 	}
 	return path;
 
@@ -843,22 +848,33 @@ FILE *data_open(string path, char *mode)
 	return (nullptr);
 }
 
-//! Set Root Directory
-/*! Set the internal variable that points to where all COSMOS files
+//! Set Resources Directory
+/*! Set the internal variable that points to where all COSMOS resource files
  * are stored.
 	\param name Absolute or relative pathname of directory.
+	\return Zero, or negative error.
 */
-void set_cosmosresources(string name)
+int32_t set_cosmosresources(string name)
 {
-	cosmosresources = name;
+	if (data_isdir(name))
+	{
+		cosmosresources = name;
+		return 0;
+	}
+	else
+	{
+		cosmosresources.clear();
+		return DATA_ERROR_RESOURCES_FOLDER;
+	}
 }
 
-//! Get COSMOS Base Directory
-/*! Get the internal variable that points to where all COSMOS files are
- * stored.
- * \return Pointer to character string containing path to Root, otherwise nullptr.
+//! Find Resources Directory
+/*! Set the internal variable that points to where all COSMOS resource files
+ * are stored. This either uses the value in COSMOSRESOURCES, or looks for the directory
+ * up to 6 levels above the current directory, first in "cosmosresources", and then in "resources".
+ * \return Zero, or negative error.
 */
-string get_cosmosresources()
+int32_t set_cosmosresources()
 {
 	string aroot;
 	int i;
@@ -867,7 +883,7 @@ string get_cosmosresources()
 	if (cosmosresources.empty())
 	{
 		char *croot = getenv("COSMOSRESOURCES");
-		if (croot != nullptr)
+		if (croot != nullptr && data_isdir(croot))
 		{
 			cosmosresources = croot;
 		}
@@ -879,47 +895,96 @@ string get_cosmosresources()
 				if (stat(aroot.c_str(),&sbuf) == 0)
 				{
 					cosmosresources = aroot;
-					return cosmosresources;
+					break;
 				}
 				aroot = "../" + aroot;
 			}
-			aroot = "resources";
-			for (i=0; i<6; i++)
+			if (cosmosresources.empty())
 			{
-				if (stat(aroot.c_str(),&sbuf) == 0)
+				aroot = "resources";
+				for (i=0; i<6; i++)
 				{
-					cosmosresources = aroot;
-					return cosmosresources;
+					if (stat(aroot.c_str(),&sbuf) == 0)
+					{
+						cosmosresources = aroot;
+						break;
+					}
+					aroot = "../" + aroot;
 				}
-				aroot = "../" + aroot;
 			}
 		}
 	}
 
-    // if cosmosresources is still empty then fail the program and inform the user
-    if (cosmosresources.empty()){
-        cout << "error " << AGENT_ERROR_RESOURCES_FOLDER << ": could not find cosmos/resources folder" << endl;
-        exit (AGENT_ERROR_RESOURCES_FOLDER);
-    }
+	// if cosmosresources is still empty then fail the program and inform the user
+	if (cosmosresources.empty())
+	{
+		cerr << "error " << DATA_ERROR_RESOURCES_FOLDER << ": could not find cosmos/resources folder" << endl;
+		return (DATA_ERROR_RESOURCES_FOLDER);
+	}
 
-	return (cosmosresources);
+	return 0;
 }
 
-//! Get COSMOS Base Directory
-/*! Get the internal variable that points to where all COSMOS files are
- * stored.
- * \return Pointer to character string containing path to Root, otherwise nullptr.
+//! Return COSMOS Resources Directory
+/*! Get the internal variable that points to where all COSMOS Resource files are
+ * stored. Initialize variable if this is the first call to the function.
+ * \param result Full path to Resources directory.
+ * \return Length of string, otherwise negative error.
 */
-string get_cosmosnodes()
+int32_t get_cosmosresources(string &result)
+{
+	int32_t iretn;
+
+	result.clear();
+	if (cosmosresources.empty())
+	{
+		iretn = set_cosmosresources();
+		if (iretn < 0)
+		{
+			// if cosmosresources is still empty then fail the program and inform the user
+			cerr << "error " << DATA_ERROR_RESOURCES_FOLDER << ": could not find cosmos/resources folder" << endl;
+			return (DATA_ERROR_RESOURCES_FOLDER);
+		}
+	}
+	result = cosmosresources;
+	return 0;
+}
+
+//! Set Nodes Directory
+/*! Set the internal variable that points to where all COSMOS resource files
+ * are stored.
+	\param name Absolute or relative pathname of directory.
+	\return Zero, or negative error.
+*/
+int32_t set_cosmosnodes(string name)
+{
+	if (data_isdir(name))
+	{
+		cosmosnodes = name;
+		return 0;
+	}
+	else
+	{
+		cosmosnodes.clear();
+		return DATA_ERROR_RESOURCES_FOLDER;
+	}
+}
+
+//! Find Nodes Directory
+/*! Set the internal variable that points to where all COSMOS node files
+ * are stored. This either uses the value in COSMOSNODES, or looks for the directory
+ * up to 6 levels above the current directory, first in "cosmosnodes", and then in "nodes".
+ * \return Zero, or negative error.
+*/
+int32_t set_cosmosnodes()
 {
 	string aroot;
 	int i;
-	struct stat sbuf;
 
 	if (cosmosnodes.empty())
 	{
 		char *croot = getenv("COSMOSNODES");
-		if (croot != nullptr)
+		if (croot != nullptr && data_isdir(croot))
 		{
 			cosmosnodes = croot;
 		}
@@ -928,37 +993,63 @@ string get_cosmosnodes()
 			aroot = "cosmosnodes";
 			for (i=0; i<6; i++)
 			{
-				if (stat(aroot.c_str(),&sbuf) == 0)
+				if (data_isdir(aroot))
 				{
 					cosmosnodes = aroot;
-					return cosmosnodes;
+					break;
 				}
 				aroot = "../" + aroot;
 			}
-			aroot = "nodes";
-			for (i=0; i<6; i++)
+			if (cosmosnodes.empty())
 			{
-				if (stat(aroot.c_str(),&sbuf) == 0)
+				aroot = "nodes";
+				for (i=0; i<6; i++)
 				{
-					cosmosnodes = aroot;
-					return cosmosnodes;
+					if (data_isdir(aroot))
+					{
+						cosmosnodes = aroot;
+						break;
+					}
+					aroot = "../" + aroot;
 				}
-				aroot = "../" + aroot;
 			}
 		}
 	}
 
-	return (cosmosnodes);
+	if (cosmosnodes.empty())
+	{
+		cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << endl;
+		return (DATA_ERROR_NODES_FOLDER);
+	}
+	else
+	{
+		return 0;
+	}
 }
 
-//! Set Resource Directory
-/*! Set the internal variable that points to where resource files are stored for the various modeling
- * functions.
-	\param name Absolute or relative pathname of directory.
+//! Get COSMOS Nodes Directory
+/*! Get the internal variable that points to where all COSMOS files are
+ * stored.
+ * \param result String to place path in.
+ * \return Zero, or negative error.
 */
-void set_cosmosresources(char *name)
+int32_t get_cosmosnodes(string &result)
 {
-	cosmosresources = name;
+	int32_t iretn;
+
+	result.clear();
+	if (cosmosnodes.empty())
+	{
+		iretn = set_cosmosnodes();
+		if (iretn < 0)
+		{
+			cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << endl;
+			return (DATA_ERROR_NODES_FOLDER);
+		}
+	}
+
+	result = cosmosnodes;
+	return 0;
 }
 
 //! Get Current Node Directory
@@ -968,9 +1059,6 @@ void set_cosmosresources(char *name)
 */
 string get_nodedir(string name)
 {
-	if (cosmosnodes.empty())
-		get_cosmosnodes();
-
 	return (set_nodedir(name));
 }
 
@@ -982,15 +1070,14 @@ string get_nodedir(string name)
 */
 string set_nodedir(string node)
 {
-	struct stat sbuf;
-
-	if (cosmosnodes.empty())
-		get_cosmosnodes();
-
-	nodedir = cosmosnodes + "/" + node;
-	if (stat(nodedir.c_str(),&sbuf) != 0)
+	nodedir.clear();
+	if (!set_cosmosnodes())
 	{
-		nodedir.clear();
+		nodedir = cosmosnodes + "/" + node;
+		if (!data_isdir(nodedir))
+		{
+			nodedir.clear();
+		}
 	}
 	return (nodedir);
 }
@@ -1305,4 +1392,20 @@ int32_t kml_write(cosmosstruc *cdata)
 
 	return 0;
 }
+
+bool data_isdir(string path)
+{
+	struct stat st;
+
+	if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+
 //! @}

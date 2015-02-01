@@ -9,7 +9,7 @@
 //#endif
 
 //	if ((ptr=calloc(nmemb,size)) == NULL)
-//		return (NULL);
+//		return nullptr;
 
 //#ifdef TRACKMEM
 

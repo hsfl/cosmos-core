@@ -667,7 +667,7 @@ rvector gravity_accel2(posstruc pos,int model,uint32_t degree)
 	return (accel1);
 }
 
-void gravity_params(int model)
+int32_t gravity_params(int model)
 {
 	int32_t iretn;
 	register uint32_t il, im;
@@ -698,7 +698,12 @@ void gravity_params(int model)
 		{
 		case GRAVITY_EGM2008:
 		case GRAVITY_EGM2008_NORM:
-			fname = get_cosmosresources() + "/general/egm2008_coef.txt";
+			iretn = get_cosmosresources(fname);
+			if (iretn < 0)
+			{
+				return iretn;
+			}
+			fname += "/general/egm2008_coef.txt";
 			fi = fopen(fname.c_str(),"r");
 			for (il=2; il<101; il++)
 			{
@@ -719,7 +724,12 @@ void gravity_params(int model)
 		case GRAVITY_PGM2000A:
 		case GRAVITY_PGM2000A_NORM:
 		default:
-			fname = get_cosmosresources() + "/general/pgm2000a_coef.txt";
+			iretn = get_cosmosresources(fname);
+			if (iretn < 0)
+			{
+				return iretn;
+			}
+			fname += "/general/pgm2000a_coef.txt";
 			fi = fopen(fname.c_str(),"r");
 			for (il=2; il<361; il++)
 			{
@@ -739,6 +749,7 @@ void gravity_params(int model)
 			break;
 		}
 	}
+	return 0;
 }
 
 double nplgndr(uint32_t l, uint32_t m, double x)

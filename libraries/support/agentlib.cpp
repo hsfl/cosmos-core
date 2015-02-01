@@ -298,7 +298,7 @@ cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd
     //! First, see if we can become a Client, as all Servers are also Clients.
     if ((cdata = agent_setup_client(ntype, node, 1000)) == NULL)
     {
-        return (NULL);
+		return nullptr;
     }
 
     return agent_setup_server(cdata, name, bprd, port, bsize, multiflag);
@@ -335,7 +335,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
         if (strlen(cdata[0].node.name)>COSMOS_MAX_NAME || name.size()>COSMOS_MAX_NAME || agent_get_server(cdata, cdata[0].node.name, name, 4, (beatstruc *)NULL))
         {
             json_destroy(cdata);
-            return (NULL);
+			return nullptr;
         }
         strcpy(tname,name.c_str());
     }
@@ -344,7 +344,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
         if (strlen(cdata[0].node.name)>COSMOS_MAX_NAME-4 || name.size()>COSMOS_MAX_NAME-4)
         {
             json_destroy(cdata);
-            return (NULL);
+			return nullptr;
         }
 
         uint32_t i=0;
@@ -386,7 +386,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
     {
         agent_unsubscribe(cdata);
         json_destroy(cdata);
-        return (NULL);
+		return nullptr;
     }
 
     // Start the heartbeat and request threads running
@@ -396,7 +396,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
         agent_unsubscribe(cdata);
         agent_unpublish(cdata);
         json_destroy(cdata);
-        return (NULL);
+		return nullptr;
     }
 
     //! Set up initial requests

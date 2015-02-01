@@ -3985,7 +3985,7 @@ gj_kernel *gauss_jackson_kernel(int32_t order, double dvi)
 	if ((gjk->binom = (int32_t **)calloc(order+2,sizeof(int32_t *))) == NULL)
 	{
 		gauss_jackson_dekernel(gjk);
-		return (NULL);
+		return nullptr;
 	}
 
 	for (i=0; i<order+2; i++)
@@ -3993,14 +3993,14 @@ gj_kernel *gauss_jackson_kernel(int32_t order, double dvi)
 		if ((gjk->binom[i] = (int32_t *)calloc(order+2,sizeof(int32_t))) == NULL)
 		{
 			gauss_jackson_dekernel(gjk);
-			return (NULL);
+			return nullptr;
 		}
 	}
 
 	if ((gjk->alpha = (double **)calloc(order+2,sizeof(double *))) == NULL)
 	{
 		gauss_jackson_dekernel(gjk);
-		return (NULL);
+		return nullptr;
 	}
 
 	for (i=0; i<order+2; i++)
@@ -4008,14 +4008,14 @@ gj_kernel *gauss_jackson_kernel(int32_t order, double dvi)
 		if ((gjk->alpha[i] = (double *)calloc(order+1,sizeof(double))) == NULL)
 		{
 			gauss_jackson_dekernel(gjk);
-			return (NULL);
+			return nullptr;
 		}
 	}
 
 	if ((gjk->beta = (double **)calloc(order+2,sizeof(double *))) == NULL)
 	{
 		gauss_jackson_dekernel(gjk);
-		return (NULL);
+		return nullptr;
 	}
 
 	for (i=0; i<order+2; i++)
@@ -4023,32 +4023,32 @@ gj_kernel *gauss_jackson_kernel(int32_t order, double dvi)
 		if ((gjk->beta[i] = (double *)calloc(order+1,sizeof(double))) == NULL)
 		{
 			gauss_jackson_dekernel(gjk);
-			return (NULL);
+			return nullptr;
 		}
 	}
 
 	if ((gjk->c = (double *)calloc(order+3,sizeof(double *))) == NULL)
 	{
 		gauss_jackson_dekernel(gjk);
-		return (NULL);
+		return nullptr;
 	}
 
 	if ((gjk->gam = (double *)calloc(order+2,sizeof(double *))) == NULL)
 	{
 		gauss_jackson_dekernel(gjk);
-		return (NULL);
+		return nullptr;
 	}
 
 	if ((gjk->q = (double *)calloc(order+3,sizeof(double *))) == NULL)
 	{
 		gauss_jackson_dekernel(gjk);
-		return (NULL);
+		return nullptr;
 	}
 
 	if ((gjk->lam = (double *)calloc(order+3,sizeof(double *))) == NULL)
 	{
 		gauss_jackson_dekernel(gjk);
-		return (NULL);
+		return nullptr;
 	}
 
 	for (m=0; m<order+2; m++)
@@ -4206,7 +4206,7 @@ gj_instance *gauss_jackson_instance(gj_kernel *kern, int32_t axes, void (*calc_v
 	gj_instance *gji;
 
 	if (kern == NULL)
-		return (NULL);
+		return nullptr;
 
 	if ((gji = (gj_instance *)calloc(1,sizeof(gj_instance))) != NULL)
 	{
@@ -4234,23 +4234,23 @@ gj_instance *gauss_jackson_instance(gj_kernel *kern, int32_t axes, void (*calc_v
 				free(gji->steps);
 				free(gji->vi);
 				free(gji);
-				return (NULL);
+				return nullptr;
 			}
 			else
 			{
 				free(gji->vi);
 				free(gji);
-				return (NULL);
+				return nullptr;
 			}
 		}
 		else
 		{
 			free(gji);
-			return (NULL);
+			return nullptr;
 		}
 	}
 	else
-		return (NULL);
+		return nullptr;
 }
 
 //! Initialize a Step of a Gauss-Jackson integrator
@@ -4285,7 +4285,7 @@ gj_step *gauss_jackson_step(gj_kernel *kern)
 				free(step[i].b);
 			}
 			free(step);
-			return (NULL);
+			return nullptr;
 		}
 	}
 

@@ -880,7 +880,13 @@ int32_t load_iers()
 
     if (iers.size() == 0)
     {
-		string fname = get_cosmosresources() + "/general/iers_pm_dut_ls.txt";
+		string fname;
+		int32_t iretn = get_cosmosresources(fname);
+		if (iretn < 0)
+		{
+			return iretn;
+		}
+		fname += "/general/iers_pm_dut_ls.txt";
         if ((fdes=fopen(fname.c_str(),"r")) != NULL)
         {
             char data[100];

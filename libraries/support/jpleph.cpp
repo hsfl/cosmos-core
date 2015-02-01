@@ -126,11 +126,10 @@ int DLL_FUNC jpl_pleph( void *ephem, const double et, const int ntarg,
 		if( eph->ipt[11][1] > 0) /* there is nutation on ephemeris */
 		{
 			list[10] = list_val;
-			if( jpl_state( ephem, et, list, pv, rrd, 0))
-				rval = -1;
+			rval = jpl_state( ephem, et, list, pv, rrd, 0);
 		}
 		else          /*  no nutations on the ephemeris file  */
-			rval = -2;
+			rval = JPLEPHEM_ERROR_NUTATIONS;
 		return( rval);
 	}
 
@@ -141,13 +140,12 @@ int DLL_FUNC jpl_pleph( void *ephem, const double et, const int ntarg,
 		if( eph->ipt[12][1] > 0) /* there are librations on ephemeris file */
 		{
 			list[11] = list_val;
-			if( jpl_state( eph, et, list, pv, rrd, 0))
-				rval = -3;
+			rval = jpl_state( eph, et, list, pv, rrd, 0);
 			for( i = 0; i < 6; ++i)
 				rrd[i] = pv[10][i]; /* librations */
 		}
 		else          /*  no librations on the ephemeris file  */
-			rval = -4;
+			rval = JPLEPHEM_ERROR_LIBRATIONS;
 		return( rval);
 	}
 
@@ -167,8 +165,7 @@ int DLL_FUNC jpl_pleph( void *ephem, const double et, const int ntarg,
 
 	/*   make call to state   */
 
-	if( jpl_state( eph, et, list, pv, rrd, 1))
-		rval = -5;
+	rval = jpl_state( eph, et, list, pv, rrd, 1);
 	/* Solar System barycentric Sun state goes to pv[10][] */
 	if( ntarg == 11 || ncent == 11)
 		for( i = 0; i < 6; i++)
@@ -201,7 +198,7 @@ int DLL_FUNC jpl_pleph( void *ephem, const double et, const int ntarg,
 	for( i = 0; i < list_val * 3; ++i)
 		rrd[i] = pv[ntarg-1][i] - pv[ncent-1][i];
 
-	return( rval);
+	return rval;
 }
 
 /*****************************************************************************
@@ -479,7 +476,7 @@ double pv[][6], double nut[4], const int bary)
 	/*   error return for epoch out of range  */
 
 	if( et < eph->ephem_start || et > eph->ephem_end)
-		return( -1);
+		return JPLEPHEM_ERROR_OUTOFRANGE;
 
 	/*   calculate record # and relative time in interval   */
 
@@ -578,7 +575,10 @@ void * DLL_FUNC jpl_init_ephemeris( const char *ephemeris_filename,
 	size_t count;
 
 	if( !ifile)
-		return( NULL);
+	{
+		errno = -JPLEPHEM_ERROR_NOTFOUND;
+		return nullptr;
+	}
 	/* Rather than do three separate allocations,  everything   */
 	/* we need is allocated in _one_ chunk,  then parceled out. */
 	/* This looks a little weird,  but it does simplify error   */
@@ -589,7 +589,8 @@ void * DLL_FUNC jpl_init_ephemeris( const char *ephemeris_filename,
 	if( !rval)
 	{
 		fclose( ifile);
-		return( NULL);
+		errno = -JPLEPHEM_ERROR_INSUFFICIENT_MEMORY;
+		return nullptr;
 	}
 	rval->ifile = ifile;
 	count = fread( title, 84, 1, ifile);

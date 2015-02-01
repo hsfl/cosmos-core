@@ -11,6 +11,7 @@ char bodynames[20][15] = {"mercury","venus","earth","mars","jupiter","saturn","u
 static uint32_t maxalloc=300000000L, totalloc=0;
 //static sem_t *bsem,tsem;
 static mutex bsem;
+// running: 0 = uninitialized, 1 = ready, 2 = insufficient memory
 static int running = 0;
 
 
@@ -26,7 +27,7 @@ map_dem_body *planet_dem(int body)
 	{
 		if ((bodies[body-1] = map_dem_open(body)) == NULL)
 		{
-			return (NULL);
+			return nullptr;
 		}
 	}
 	return (bodies[body-1]);
@@ -60,8 +61,9 @@ int map_dem_init()
 		}
 	}
 	maxalloc = 0;
+	// running: 0 = uninitialized, 1 = ready, 2 = insufficient memory
 	running = 2;
-	return 0;
+	return DEM_ERROR_INSUFFICIENT_MEMORY;
 }
 
 void map_dem_cache(int body, int num)
@@ -134,23 +136,39 @@ map_dem_body *map_dem_open(int bodynum)
 	if (!running)
 	{
 		if ((iretn=map_dem_init()) < 0)
-			return (NULL);
+		{
+			errno = -iretn;
+			return nullptr;
+		}
 	}
 
+	// running: 0 = uninitialized, 1 = ready, 2 = insufficient memory
 	if (running == 2)
-		return (NULL);
+	{
+		errno = -DEM_ERROR_INSUFFICIENT_MEMORY;
+		return nullptr;
+	}
 
-	tname = get_cosmosresources();
+	iretn = get_cosmosresources(tname);
+	if (iretn < 0)
+	{
+		errno = -iretn;
+		return nullptr;
+	}
 	tname += "/mapping/";
 	tname += bodynames[bodynum-1];
 	tname += "/body.dat";
 	if ((fp=fopen(tname.c_str(),"r"))==NULL)
 	{
-		return (NULL);
+		errno = -iretn;
+		return nullptr;
 	}
 	body = (map_dem_body *)calloc(1,sizeof(map_dem_body));
 	if (body == NULL)
-		return (NULL);
+	{
+		errno = -DEM_ERROR_INSUFFICIENT_MEMORY;
+		return nullptr;
+	}
 
 
 	iretn = fscanf(fp,"%lf %lf %lf",&body->orbit,&body->radius,&body->highest);
@@ -159,20 +177,25 @@ map_dem_body *map_dem_open(int bodynum)
 	strcpy(body->name,bodynames[bodynum-1]);
 	body->vscale = body->hscale = body->htov = 1.;
 
-	tname = get_cosmosresources();
+	iretn = get_cosmosresources(tname);
+	if (iretn < 0)
+	{
+		errno = -iretn;
+		return nullptr;
+	}
 	tname += "/mapping/";
 	tname += bodynames[bodynum-1];
 	tname += "/dems5.dat";
 	if ((fp=fopen(tname.c_str(),"r"))==NULL)
 	{
-		return (NULL);
+		errno = -DEM_ERROR_NOTFOUND;
+		return nullptr;
 	}
 
 	dc = 0;
 	while ((iretn=fscanf(fp,"%s %lf %lf %u %u %lf %hu",body->dems[dc].name,&body->dems[dc].lonul,&body->dems[dc].latul,&body->dems[dc].xcount,&body->dems[dc].ycount,&body->dems[dc].psize,&demtype)) != EOF)
 	{
 		body->dems[dc].psize = RADOF(body->dems[dc].psize);
-//		body->dems[dc].pixel = NULL;
 		body->dems[dc].pixel.clear();
 		switch (demtype)
 		{
@@ -184,8 +207,13 @@ map_dem_body *map_dem_open(int bodynum)
 			dc++;
 			break;
 		case DEM_TYPE_MULTI:
-//			sprintf(tname,"%s/mapping/%s/%s/dems5.dat",get_cosmosresources(),bodynames[bodynum-1],body->dems[dc].name);
-			string tname = get_cosmosresources();
+			string tname;
+			iretn = get_cosmosresources(tname);
+			if (iretn < 0)
+			{
+				errno = -iretn;
+				return nullptr;
+			}
 			tname += "/mapping/";
 			tname += bodynames[bodynum-1];
 			tname += "/";
@@ -193,7 +221,8 @@ map_dem_body *map_dem_open(int bodynum)
 			tname += "/dems5.dat";
 			if ((fp1=fopen(tname.c_str(),"r"))==NULL)
 			{
-				return (NULL);
+				errno = -DEM_ERROR_NOTFOUND;
+				return nullptr;
 			}
 
 //			strcpy(tname,body->dems[dc].name);
@@ -300,6 +329,7 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 	map_dem_dem *sdem;
 	FILE *fp;
 
+	// running: 0 = uninitialized, 1 = ready, 2 = insufficient memory
 	if (running == 2)
 		return (pixel);
 
@@ -387,8 +417,13 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 				}
 			}
 		}
-//		sprintf(fname,"%s/mapping/%s/%s",get_cosmosresources(),bodies[body-1]->name,sdem->name);
-		string fname = get_cosmosresources();
+		string fname;
+		int32_t iretn = get_cosmosresources(fname);
+		if (iretn < 0)
+		{
+			errno = -iretn;
+			return pixel;
+		}
 		fname += "/mapping/";
 		fname += bodies[body-1]->name;
 		fname += "/";

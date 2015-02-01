@@ -27,7 +27,7 @@ agentstruc tempagent;
 vector<cosmosstruc> nodes;
 char tempname[100];
 char agentname[COSMOS_MAX_NAME] = "data";
-char dataDir[100];
+string dataDir;
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int32_t request_login(char *request, char* response, void *cdata);
 int32_t request_getnodelist(char *request, char* response, void *cdata);
@@ -56,12 +56,11 @@ char input[100];
 FILE *fd;
 
 // Setting the directory where the data is
-if (get_cosmosnodes().empty())
+if (set_cosmosnodes(dataDir) < 0)
 {
 	printf("Couldn't find Nodes directory\n");
 	exit (1);
 }
-strcpy(dataDir,get_cosmosnodes().c_str());
 
 // check if we are already running the agent
 if ((iretn=agent_get_server(cdata, (char *)"hmoc",agentname,waitsec,(beatstruc *)NULL)) > 0)
@@ -69,7 +68,7 @@ if ((iretn=agent_get_server(cdata, (char *)"hmoc",agentname,waitsec,(beatstruc *
 
 // Load user list
 usercount = 0;
-sprintf(input,"%s/login.dat",dataDir);
+sprintf(input,"%s/login.dat",dataDir.c_str());
 
 if ((fd = fopen(input,"r")) != NULL)
 	{

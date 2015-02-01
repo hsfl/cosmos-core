@@ -96,7 +96,7 @@ int32_t data_list_files(string node, string location, string agent, vector<files
 vector<filestruc> data_list_archive(string node, string agent, double utc);
 vector <double> data_list_archive_days(string node, string agent);
 FILE* data_open(string path, char* mode);
-int32_t data_name_date(string filename, uint16_t &year, uint16_t &jday, uint16_t &seconds);
+int32_t data_name_date(string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds);
 int32_t data_name_date(string filename, double &utc);
 string data_name(string node, double mjd, string extra, string type);
 string data_name(string node, double mjd, string type);
@@ -109,10 +109,12 @@ string data_type_path(string node, string location, string agent, double mjd, st
 string data_type_path(string node, string location, string agent, double mjd, string extra, string type);
 string data_name_path(string node, string location, string agent, double mjd, string name);
 bool data_exists(string& path);
-void set_cosmosresources(string name);
-string get_cosmosresources();
-void set_cosmosnodes(string name);
-string get_cosmosnodes();
+int32_t set_cosmosresources(string name);
+int32_t set_cosmosresources();
+int32_t get_cosmosresources(string &result);
+int32_t set_cosmosnodes(string name);
+int32_t set_cosmosnodes();
+int32_t get_cosmosnodes(string &result);
 string get_nodedir(string node);
 string set_nodedir(string node);
 int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result);
@@ -120,6 +122,7 @@ int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &eve
 double findlastday(string node);
 double findfirstday(string node);
 int32_t kml_write(cosmosstruc* cdata);
+bool data_isdir(string path);
 
 //! @}
 

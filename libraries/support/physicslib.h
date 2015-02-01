@@ -84,7 +84,7 @@ rvector gravity_accel2(posstruc pos, int model, uint32_t degree);
 //! Calculates geocentric acceleration magnitude from chosen model.
 double gravity(double radius, double colat, double elon, int model, uint32_t degree);
 //! Gravitational model parameters
-void gravity_params(int model);
+int32_t gravity_params(int model);
 //! Legendre polynomial
 double nplgndr(uint32_t l, uint32_t m, double x);
 //! Power values

@@ -12,7 +12,7 @@ double utc, hour, min, sec;
 double ut1, dut1, dt, theta, gmst, gast, eps, deps, dpsi;
 double deg, amin, asec;
 
-get_cosmosresources();
+//get_cosmosresources();
 
 for (ut1=49809.; ut1<=53809.; ut1+=100.)
 	{

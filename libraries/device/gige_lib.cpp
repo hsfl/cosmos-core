@@ -42,7 +42,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 	uint8_t bufferin[GIGE_MAX_PACKET];
 	vector<socket_channel> ifaces;
 
-	if ((handle=new (gige_handle)) == NULL) return (NULL);
+	if ((handle=new (gige_handle)) == NULL) return nullptr;
 
 	if (streambps < 100000) streambps = 100000;
 	if (streambps > 100000000) streambps = 100000000;
@@ -55,7 +55,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 	if ((iretn=socket_open(&handle->command, SOCKET_TYPE_UDP, address, 3956, SOCKET_TALK, true, socket_usec)) < 0)
 	{
 		delete(handle);
-		return (NULL);
+		return nullptr;
 	}
 
 	// See if we can get control
@@ -66,7 +66,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 	{
 		close(handle->command.cudp);
 		delete(handle);
-		return (NULL);
+		return nullptr;
 	}
 
 	// Adjust SO_RCVTIMEO to be long enough to receive twice stream largest packet at expected flow rate.
@@ -76,7 +76,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 	if ((iretn=socket_open(&handle->stream, SOCKET_TYPE_UDP, (char *)"", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
 	{
 		close(handle->command.cudp);
-		return (NULL);
+		return nullptr;
 		delete(handle);
 	}
 
@@ -106,7 +106,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 		close(handle->command.cudp);
 		close(handle->stream.cudp);
 		delete(handle);
-		return (NULL);
+		return nullptr;
 	}
 
 	if ((iretn=gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport)) < 0)
@@ -114,7 +114,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 			close(handle->command.cudp);
 			close(handle->stream.cudp);
 			delete(handle);
-			return (NULL);
+			return nullptr;
 		}
 
 	uint32_t bsize;
@@ -133,7 +133,7 @@ gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_ms
 		close(handle->command.cudp);
 		close(handle->stream.cudp);
 		delete(handle);
-		return (NULL);
+		return nullptr;
 	}
 	iretn = gige_writereg(handle,GIGE_REG_SCP,0);
 

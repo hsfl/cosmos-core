@@ -16,6 +16,8 @@
 //! \ingroup error
 //! \defgroup error_defines COSMOS Error Code definitions
 //! @{
+// All COSMOS errors are less than -200 since the range of standard system errors
+// is 1-200
 #define GS232B_ERROR_OPEN -201
 #define GS232B_ERROR_CLOSED -202
 #define GS232B_ERROR_OUTOFRANGE -203
@@ -75,7 +77,6 @@
 #define AGENT_ERROR_NULL -277
 #define AGENT_ERROR_DISCOVERY -278
 #define AGENT_ERROR_REQUEST -279
-#define AGENT_ERROR_RESOURCES_FOLDER -280 // if agent can't find the cosmos/resources folder
 
 #define MATH_ERROR_GJ_UNDEFINED -281
 #define MATH_ERROR_GJ_OUTOFRANGE -282
@@ -98,6 +99,8 @@
 
 #define DEM_ERROR_SEMINIT -321
 #define DEM_ERROR_OPEN -322
+#define DEM_ERROR_INSUFFICIENT_MEMORY -323
+#define DEM_ERROR_NOTFOUND -324
 
 #define TLE_ERROR_OUTOFRANGE -331
 #define ORBIT_ERROR_NOTSUPPORTED -332
@@ -113,6 +116,8 @@
 #define DATA_ERROR_SIZE_MISMATCH -362
 #define DATA_ERROR_CRC -363
 #define DATA_ERROR_FORMAT -364
+#define DATA_ERROR_RESOURCES_FOLDER -365 // if agent can't find the cosmos/resources folder
+#define DATA_ERROR_NODES_FOLDER -366
 
 #define GIGE_ERROR_NACK -371
 
@@ -180,24 +185,33 @@
 
 #define TRIMBLE_ERROR_CS -491
 
+#define JPLEPHEM_ERROR_NOTFOUND -501
+#define JPLEPHEM_ERROR_INSUFFICIENT_MEMORY -502
+#define JPLEPHEM_ERROR_OUTOFRANGE -503
+#define JPLEPHEM_ERROR_NUTATIONS -504
+#define JPLEPHEM_ERROR_LIBRATIONS -505
+
+#define GEOMAG_ERROR_NOTFOUND -511
+#define GEOMAG_ERROR_OUTOFRANGE -512
+
 #define GENERAL_OK                        0     /* everything is all right */
-#define GENERAL_ERROR_NOSIGNAL         -501     /* there's no free signal */
-#define GENERAL_ERROR_NOTSTARTED       -502     /* uninitialized error */
-#define GENERAL_ERROR_NULLPOINTER      -503     /* you gave a null pointer to the function */
-#define GENERAL_ERROR_OOPS             -504     /* internal error, something's erong */
-#define GENERAL_ERROR_MEMORY           -505     /* there's no memory for more of something */
-#define GENERAL_ERROR_OPEN             -506     /* file doesnt exist or you aren't good user */
-#define GENERAL_ERROR_CRC              -507     /* crc error */
-#define GENERAL_ERROR_OVERSIZE         -508     /* input was too large */
-#define GENERAL_ERROR_ZEROSIZE         -509     /* input cannot be zero size */
-#define GENERAL_ERROR_UNIMPLEMENTED    -510     /* command is not implemented */
-#define GENERAL_ERROR_EMPTY            -511     /* usually indicates that a buffer was empty */
-#define GENERAL_ERROR_UNHANDLED_ERR    -512     /* error that is not currently handled */
-#define GENERAL_ERROR_UNDERSIZE        -513     /* packet is smaller than expected size */
-#define GENERAL_ERROR_BAD_SIZE         -514     /* packet is an invalid size */
-#define GENERAL_ERROR_TIMEOUT          -515     /* a timer expired */
-#define GENERAL_ERROR_INPUT            -516     /* invalid input was provided */
-#define GENERAL_ERROR_OUTPUT           -517     /* output from a routine returned bad output, possibly related to bad input */
+#define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
+#define GENERAL_ERROR_NOTSTARTED       -2002     /* uninitialized error */
+#define GENERAL_ERROR_NULLPOINTER      -2003     /* you gave a null pointer to the function */
+#define GENERAL_ERROR_OOPS             -2004     /* internal error, something's erong */
+#define GENERAL_ERROR_MEMORY           -2005     /* there's no memory for more of something */
+#define GENERAL_ERROR_OPEN             -2006     /* file doesnt exist or you aren't good user */
+#define GENERAL_ERROR_CRC              -2007     /* crc error */
+#define GENERAL_ERROR_OVERSIZE         -2008     /* input was too large */
+#define GENERAL_ERROR_ZEROSIZE         -2009     /* input cannot be zero size */
+#define GENERAL_ERROR_UNIMPLEMENTED    -2010     /* command is not implemented */
+#define GENERAL_ERROR_EMPTY            -2011     /* usually indicates that a buffer was empty */
+#define GENERAL_ERROR_UNHANDLED_ERR    -2012     /* error that is not currently handled */
+#define GENERAL_ERROR_UNDERSIZE        -2013     /* packet is smaller than expected size */
+#define GENERAL_ERROR_BAD_SIZE         -2014     /* packet is an invalid size */
+#define GENERAL_ERROR_TIMEOUT          -2015     /* a timer expired */
+#define GENERAL_ERROR_INPUT            -2016     /* invalid input was provided */
+#define GENERAL_ERROR_OUTPUT           -2017     /* output from a routine returned bad output, possibly related to bad input */
 
 
 //! @}

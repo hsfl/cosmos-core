@@ -51,32 +51,28 @@
 
 #define NaN log(-1.0)
 
-void E0000(int IENTRY, int *maxdeg, float alt,float rlat,float rlon, float time, float *dec, float *dip, float *ti, float *gv);
-void geomag(int *maxdeg);
-void geomg1(float alt, float rlat, float rlon, float time, float *dec, float *dip, float *ti, float *gv, float *bx, float *by, float *bz);
+int32_t E0000(int IENTRY, int *maxdeg, float alt,float rlat,float rlon, float time, float *dec, float *dip, float *ti, float *gv);
+int32_t geomag(int *maxdeg);
+int32_t geomg1(float alt, float rlat, float rlon, float time, float *dec, float *dip, float *ti, float *gv, float *bx, float *by, float *bz);
 char geomag_introduction(float epochlowlim);
 
 static int initialized = 0;
 static char fname[100];
 
-void geomag_front(gvector pos, double time, rvector *comp)  
+int32_t geomag_front(gvector pos, double time, rvector *comp)
 {
 	static int maxdeg, itime;
 	static float alt,  dec, dip, ti, gv, bx, by, bz;
 
 	// this reads the coefficients, specify path if neccessary
     itime = 5 * (int)(time/5.);
-	sprintf(fname, "%s/general/wmm_%04d.cof", get_cosmosresources().c_str(), itime);
-	/*
-	if (time < 2010.)
-		sprintf(fname,"%s/general/wmm_2005.cof",get_cosmosresources());
-	else
-		sprintf(fname,"%s/general/wmm_2010.cof",get_cosmosresources());
-		*/
-
-	// comment out introduction
-	//ans = geomag_introduction(epochlowlim);
-
+	string rname;
+	int32_t iretn = get_cosmosresources(rname);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+	sprintf(fname, "%s/general/wmm_%04d.cof", rname.c_str(), itime);
 
 	/* INITIALIZE GEOMAG ROUTINE */
 
@@ -90,14 +86,22 @@ void geomag_front(gvector pos, double time, rvector *comp)
 
 	if (!initialized)
 	{
-		geomag(&maxdeg);
+		iretn = geomag(&maxdeg);
+		if (iretn < 0)
+		{
+			return iretn;
+		}
 		initialized = 1;
 	}
 
 
 	// convert alt to km
 	alt = pos.h/1000.;
-	geomg1(alt,(float)pos.lat,(float)pos.lon,(float)time,&dec,&dip,&ti,&gv,&bx,&by,&bz);
+	iretn = geomg1(alt,(float)pos.lat,(float)pos.lon,(float)time,&dec,&dip,&ti,&gv,&bx,&by,&bz);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
 	//      time = time1 + 1.0;
 
 
@@ -119,10 +123,11 @@ void geomag_front(gvector pos, double time, rvector *comp)
 	ltime = time;
 	lcomp = *comp;
 	*/
+	return 0;
 }
 /*************************************************************************/
 
-void E0000(int IENTRY, int *maxdeg, float alt, float rlat, float rlon, float time, float *dec, float *dip, float *ti, float *gv, float *bx, float *by, float *bz)
+int32_t E0000(int IENTRY, int *maxdeg, float alt, float rlat, float rlon, float time, float *dec, float *dip, float *ti, float *gv, float *bx, float *by, float *bz)
 {
 	register int n,m,D3,D4;
 	static int maxord,i,icomp,j,D1,D2,in,im;
@@ -144,7 +149,7 @@ void E0000(int IENTRY, int *maxdeg, float alt, float rlat, float rlon, float tim
 GEOMAG:
 	if ((wmmdat=fopen(fname,"r")) == NULL)
 	{
-		return;
+		return GEOMAG_ERROR_NOTFOUND;
 	}
 
 
@@ -224,7 +229,7 @@ S4:
 
 	otime = oalt = olat = olon = -1000.0;
 	fclose(wmmdat);
-	return;
+	return 0;
 
 	/*************************************************************************/
 
@@ -249,7 +254,7 @@ GEOMG1:
 		printf("\n TIME   = %.3f",time);
 		*/
 		*bx = *by =*bz = *dec = *dip = *ti = *gv = 0.;
-		return;
+		return GEOMAG_ERROR_OUTOFRANGE;
 		/*
 		printf("\n Do you wish to continue? (y or n) ");
 		scanf("%c%*[^\n]",&answer);
@@ -415,21 +420,21 @@ S50:
 	oalt = alt;
 	olat = glat;
 	olon = glon;
-	return;
+	return 0;
 }
 
 /*************************************************************************/
 
-void geomag(int *maxdeg)
+int32_t geomag(int *maxdeg)
 {
-	E0000(0,maxdeg,0.0,0.0,0.0,0.0,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+	return E0000(0,maxdeg,0.0,0.0,0.0,0.0,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 }
 
 /*************************************************************************/
 
-void geomg1(float alt, float rlat, float rlon, float time, float *dec, float *dip, float *ti, float *gv, float *bx, float *by, float *bz)
+int32_t geomg1(float alt, float rlat, float rlon, float time, float *dec, float *dip, float *ti, float *gv, float *bx, float *by, float *bz)
 {
-	E0000(1,NULL,alt,rlat,rlon,time,dec,dip,ti,gv,bx,by,bz);
+	return E0000(1,NULL,alt,rlat,rlon,time,dec,dip,ti,gv,bx,by,bz);
 }
 
 /*************************************************************************/
