@@ -1,28 +1,42 @@
-Crosscompile COSMOS for the ARM plarform
-========================================
+Cross-compile COSMOS for the ARM plarform
+=========================================
 
-These instructions are for compilation of COSMOS using a linux base distributions like Ubuntu or Windows, they have been tested with Ubuntu 14.04 running on a virtual box and Windows 7.
+These instructions are for compilation of COSMOS using a linux base 
+distributions like Ubuntu or Windows, they have been tested with 
+Ubuntu 14.04 running on a virtual box and Windows 7.
 
-This COSMOS project builds the code that runs in the Overo ARMv7 architecture.
+We have tested cross-compiling for Overo ARMv7 architecture but these
+instructions should work well for other architectures. Let us know 
+if you successfully compile COSMOS in other platforms.
 
-It is assumed you have installed the latest version of Qt and downloaded the COSMOS code.
+It is assumed you have installed the latest version of Qt and 
+downloaded the COSMOS code.
 
-There are three ways to compile the code for either the COSMOS tools and the flight software
-
-1) using Qt Creator and .pro files (prefered way)
+There are three ways to compile the code for the COSMOS tools and 
+the flight software:
+1) using Qt Creator and .pro files (probably the easiest)
 2) using Qt Creator and Cmake files
-3) using the command line and compile using Cmake  (not recommended for beginners)
+3) using the command line and Cmake  (not recommended for beginners)
 
-In either case you will have to install the cross compile tools for ARM. 
-We recommend using the Linaro Toochain from the Linaro project. 
+In either case you will have to install the cross compile tools for 
+the ARM. We recommend using the Linaro Toochain from the Linaro project. 
 The current version is 14.11 with GCC 4.9 with C++11 compatibility.
 
 
 Windows
 -------
-The latest crosscompiler can be directly downloaded from here:
-https://releases.linaro.org/14.11/components/toolchain/binaries/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09-20140911_win32.exe
+Choose the cross-toolchain for Windows 32-bit binaries for the 
+ARMv7 Linux with hard float: linaro-toolchain-binaries 4.9 (little-endian). 
+The latest Linaro cross-compiler for the ARM (as of Feb 6 2015) 
+can be directly downloaded from here:
+http://releases.linaro.org/14.09/components/toolchain/binaries/gcc-linaro-arm-linux-gnueabihf-4.9-2014.09-20140911_win32.exe
 
+This will install the cross compiler in a path like this
+C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09
+
+Linaro is just one option, there may be other cross-compiler options ... 
+
+now continue reading the section 'Compile the code using Qt Creator and .pro files'
 
 Ubuntu
 ------
@@ -97,6 +111,7 @@ On Windows7 go to the Start Mebu, right click on "Computer", select "Properties"
 Now, everything should be set to go and you can start compiling the COSMOS code and deploy it to your ARM platform.
 
 Finally, let's just create a simple project and test the cross compilation steps. Open Qt Creator, a create a new project, select "Non-Qt Project" and "Plain C++ Project", select the folder and name for this this project. Select the Kit you just configured with your cross compiler, ex: Linaro. Hit "Finish". Click "ctr+b"
+
 
 Compile the code using Qt Creator and Cmake files
 -------------------------------------------------
