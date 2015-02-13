@@ -287,7 +287,7 @@ vector <double> data_list_archive_days(string node, string agent)
  * \param utc Date in archive as MJD.
  * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
-vector<filestruc> data_list_archive(string node, string agent, double utc)
+vector<filestruc> data_list_archive(string node, string agent, double utc, string type)
 {
 	vector<filestruc> files;
 
@@ -310,7 +310,8 @@ vector<filestruc> data_list_archive(string node, string agent, double utc)
 				struct stat st;
 				stat(tf.path.c_str(), &st);
 				tf.size = st.st_size;
-				if (S_ISDIR(st.st_mode))
+				// Not looking for a specific type, or specifically looking for directory
+				if (S_ISDIR(st.st_mode) && (type.empty() || type == "directory"))
 				{
 					tf.type = "directory";
 				}
@@ -325,7 +326,11 @@ vector<filestruc> data_list_archive(string node, string agent, double utc)
 						}
 					}
 				}
-				files.push_back(tf);
+				// Not looking for a specific type, or found type we were looking for
+				if (type.empty() || tf.type == type)
+				{
+					files.push_back(tf);
+				}
 			}
 		}
 		closedir(jdp);
@@ -538,9 +543,12 @@ string data_name(string node, double mjd, string type)
 
 //! Get date from file name.
 /*! Assuming the COSMOS standard filename format from ::data_name, extract
- * the date portion and return it as a Modified Julian Day.
+ * the date portion and return it as year, julian day and seconds.
  * \param name File name.
- * \return UTC as Modified Julian Day.
+ * \param year Holder for integer year.
+ * \param jday Holder for integer julian day.
+ * \param seconds Holder for integer julian seconds.
+ * \return 0 or negative error.
  */
 int32_t data_name_date(string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds)
 {
@@ -554,6 +562,13 @@ int32_t data_name_date(string filename, uint16_t &year, uint16_t &jday, uint32_t
 	}
 }
 
+//! Get date from file name.
+/*! Assuming the COSMOS standard filename format from ::data_name, extract
+ * the date portion and return it as a Modified Julian Day.
+ * \param name File name.
+ * \param utc Holder for returned utc.
+ * \return 0 or negative error.
+ */
 int32_t data_name_date(string filename, double &utc)
 {
 	uint16_t year;
@@ -1082,123 +1097,140 @@ string set_nodedir(string node)
 	return (nodedir);
 }
 
-int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result)
+//! Load data from archive
+/*! Load JSON entries of specified type from data archive for specified Node and Agent.
+ * Will return all data that is available within specified date range, in files
+ * {COSMOSNODES}/{Node}/date/{Agent}/{yyyy}/{ddd}/{*}.type.
+ * \param node Name of Node.
+ * \param Agent Name of Agent.
+ * \param utcbegin Starting UTC.
+ * \param utcend Ending UTC.
+ * \param type Type extension.
+ * \param result Vector of JSON strings.
+ * \return 0 or negative error.
+ */
+int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, vector<string> &result)
 {
-	DIR *jdp;
-	struct dirent *td;
-	int year, month;
-	double day, jday;
-	char dtemp[356];
+	uint16_t year, jday;
+	uint32_t seconds;
 	ifstream tfd;
 	string tstring;
+	int32_t iretn;
+	vector <filestruc> files;
 
 
 	result.clear();
 
-	mjd = (int)mjd;
-	mjd2ymd(mjd,&year,&month,&day,&jday);
-
-	get_nodedir(node);
-	if (nodedir.size())
+	for (double mjd = floor(utcbegin); mjd < floor(utcend); ++mjd)
 	{
-		sprintf(dtemp,"%s/data/%s/%04d/%03d", nodedir.c_str(), agent.c_str(), year, (int32_t)jday);
-		if ((jdp=opendir(dtemp))!=nullptr)
+		files = data_list_archive(node, agent, mjd, type);
+		for (filestruc file : files)
 		{
-			while ((td=readdir(jdp))!=nullptr)
+			iretn = data_name_date(file.name, year, jday, seconds);
+			if (iretn < 0)
 			{
-				string d_name = td->d_name;
-				auto dlen = d_name.find(type);
-				if (dlen != string::npos && dlen + type.size() == d_name.size())
-				{
-					sprintf(dtemp,"%s/data/%s/%04d/%03d/%s", nodedir.c_str(), agent.c_str(), year, (int32_t)jday, d_name.c_str());
-					tfd.open(dtemp);
-					if (tfd.is_open())
-					{
-						while (getline(tfd,tstring))
-						{
-							result.push_back(tstring);
-						}
-						tfd.close();
-					}
-				}
+				return iretn;
 			}
-			closedir(jdp);
-
-			return 0;
+			tfd.open(file.name);
+			if (tfd.is_open())
+			{
+				while (getline(tfd,tstring))
+				{
+					result.push_back(tstring);
+				}
+				tfd.close();
+			}
 		}
 	}
-	return (DATA_ERROR_ARCHIVE);
+	return 0;
+}
+
+int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result)
+{
+	int32_t iretn;
+	iretn = data_load_archive(node, agent, floor(mjd), floor(mjd)+.999999, type, result);
+	return iretn;
 }
 
 int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc *cdata)
 {
-	DIR *jdp;
-	struct dirent *td;
-	int year, month;
-	double day, jday;
-	int len, dlen;
-	char dtemp[356];
-	ifstream tfd;
-	string tstring;
+	int32_t iretn;
 
-	telem.clear();
-	event.clear();
-
-	mjd = (int)mjd;
-	mjd2ymd(mjd,&year,&month,&day,&jday);
-
-	get_nodedir(cdata[0].node.name);
-	if (nodedir.size())
+	iretn = data_load_archive(cdata[0].node.name, "soh", mjd, "telemetry", telem);
+	if (iretn < 0)
 	{
-		dlen = nodedir.size() + 33 + strlen(cdata[0].node.name);
-		sprintf(dtemp,"%s/data/soh/%4d/%03d",nodedir.c_str(),year,(int32_t)jday);
-		if ((jdp=opendir(dtemp))!=nullptr)
-		{
-			while ((td=readdir(jdp))!=nullptr)
-			{
-				if (td->d_name[0] != '.')
-				{
-					sprintf(dtemp,"%s/data/soh/%04d/%03d/%s",nodedir.c_str(),year,(int32_t)jday,td->d_name);
-					if (((len=strlen(dtemp)) > dlen))
-						tfd.open(dtemp);
-					if (tfd.is_open())
-					{
-						while (getline(tfd,tstring))
-						{
-							switch (dtemp[dlen])
-							{
-							//! Telemetry file
-							case 't':
-								if (!strcmp(&dtemp[dlen],"telemetry"))
-								{
-									telem.push_back(tstring);
-								}
-								break;
-								//! Event file
-							case 'e':
-								//! Log file
-							case 'l':
-								//! Command file
-							case 'c':
-								//! Message file
-							case 'm':
-								if (!strcmp(&dtemp[dlen],"event") || !strcmp(&dtemp[dlen],"log") || !strcmp(&dtemp[dlen],"command") || !strcmp(&dtemp[dlen],"message"))
-								{
-									event.push_back(tstring);
-								}
-								break;
-							}
-						}
-						tfd.close();
-					}
-				}
-			}
-			closedir(jdp);
-
-			return 0;
-		}
+		return iretn;
 	}
-	return (DATA_ERROR_ARCHIVE);
+	iretn = data_load_archive(cdata[0].node.name, "soh", mjd, "event", event);
+
+//	DIR *jdp;
+//	struct dirent *td;
+//	int year, month;
+//	double day, jday;
+//	int len, dlen;
+//	char dtemp[356];
+//	ifstream tfd;
+//	string tstring;
+
+//	telem.clear();
+//	event.clear();
+
+//	mjd = (int)mjd;
+//	mjd2ymd(mjd,&year,&month,&day,&jday);
+
+//	get_nodedir(cdata[0].node.name);
+//	if (nodedir.size())
+//	{
+//		dlen = nodedir.size() + 33 + strlen(cdata[0].node.name);
+//		sprintf(dtemp,"%s/data/soh/%4d/%03d",nodedir.c_str(),year,(int32_t)jday);
+//		if ((jdp=opendir(dtemp))!=nullptr)
+//		{
+//			while ((td=readdir(jdp))!=nullptr)
+//			{
+//				if (td->d_name[0] != '.')
+//				{
+//					sprintf(dtemp,"%s/data/soh/%04d/%03d/%s",nodedir.c_str(),year,(int32_t)jday,td->d_name);
+//					if (((len=strlen(dtemp)) > dlen))
+//						tfd.open(dtemp);
+//					if (tfd.is_open())
+//					{
+//						while (getline(tfd,tstring))
+//						{
+//							switch (dtemp[dlen])
+//							{
+//							//! Telemetry file
+//							case 't':
+//								if (!strcmp(&dtemp[dlen],"telemetry"))
+//								{
+//									telem.push_back(tstring);
+//								}
+//								break;
+//								//! Event file
+//							case 'e':
+//								//! Log file
+//							case 'l':
+//								//! Command file
+//							case 'c':
+//								//! Message file
+//							case 'm':
+//								if (!strcmp(&dtemp[dlen],"event") || !strcmp(&dtemp[dlen],"log") || !strcmp(&dtemp[dlen],"command") || !strcmp(&dtemp[dlen],"message"))
+//								{
+//									event.push_back(tstring);
+//								}
+//								break;
+//							}
+//						}
+//						tfd.close();
+//					}
+//				}
+//			}
+//			closedir(jdp);
+
+//			return 0;
+//		}
+//	}
+//	return (DATA_ERROR_ARCHIVE);
+	return iretn;
 }
 
 //! Find last day in archive

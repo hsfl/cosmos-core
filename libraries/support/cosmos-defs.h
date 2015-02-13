@@ -59,6 +59,7 @@ using namespace std;
 #define NODE_TYPE_UAV 4
 #define NODE_TYPE_TARGET 5
 #define NODE_TYPE_BALLOON 6
+#define NODE_TYPE_SHIP 7
 //! @}
 
 //! \ingroup defs
