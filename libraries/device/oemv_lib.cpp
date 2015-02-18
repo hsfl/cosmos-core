@@ -832,7 +832,12 @@ int32_t oemv_gpgga(oemv_handle *handle)
             if (field.size() != 9){
                 break;
             }
-            handle->message.geo.lat  = lat + stod(field.substr(2,field.size()))/60.;
+			#ifndef stod
+			handle->message.geo.lat  = lat + strtod(field.substr(2,field.size()).c_str(), NULL)/60.;
+			#else
+			handle->message.geo.lat  = lat + stod(field.substr(2,field.size()))/60.;
+			#endif
+            
         }
 
         if (i==4){
@@ -858,7 +863,11 @@ int32_t oemv_gpgga(oemv_handle *handle)
             if (field.size() != 10){
                 break;
             }
+			#ifndef stod
+			handle->message.geo.lon  = lon + strtod(field.substr(2,field.size()).c_str(), NULL)/60.;
+			#else
             handle->message.geo.lon  = lon + stod(field.substr(3,field.size()))/60.;
+			#endif
         }
 
         if (i==6){

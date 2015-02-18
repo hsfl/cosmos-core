@@ -37,6 +37,22 @@
 #define THROUGHPUT_HI 150000
 //#define TRANSFER_QUEUE_LIMIT 10
 
+#ifndef to_string
+#include<sstream>
+template <typename T>
+std::string to_string(T value)
+{
+  //create an output string stream
+  std::ostringstream os ;
+  //throw the value into the string stream, assuming std::stringstream 
+  //handles it
+  os << value ;
+  //convert the string stream into a string and return
+  return os.str() ;
+}
+#endif
+
+
 // Some global variables
 
 /** the (global) name of the agent */
