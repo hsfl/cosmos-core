@@ -29,12 +29,18 @@ cmake_minimum_required(VERSION 2.6)
 
 project(${PROJECT_NAME})
 
+if (UNIX)
+set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
+elseif (MSVC)
+set(COSMOS_CXX_FLAGS "")
+endif ()
+
 Option(BUILD_GPROF "Build for Profiling" OFF)
 if (BUILD_GPROF)
 message("Profiling")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -Wall -pedantic -std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg ${COSMOS_CXX_FLAGS}")
 else ()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COSMOS_CXX_FLAGS}")
 endif ()
 
 Option(BUILD_STATIC "Build Static Executables" OFF)
@@ -49,7 +55,9 @@ if (${PROJECT_NAME} MATCHES "COSMOS_CORE")
 else()
 set(COSMOS_CORE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../../core)
 endif()
-set(CORE ${COSMOS_CORE_SOURCE_DIR})
+
+# make the assumption that 'core' is where the CMakeLists.txt (this) file is located
+set(CORE ${CMAKE_CURRENT_SOURCE_DIR})
 set(COSMOS_CORE_THIRDPARTY ${CORE}/libraries/thirdparty)
 set(COSMOS_CORE_DEVICE ${CORE}/libraries/device)
 set(COSMOS_CORE_SUPPORT ${CORE}/libraries/support)
@@ -57,6 +65,10 @@ set(COSMOS_PROJECT_USER ${CMAKE_SOURCE_DIR})
 #SET(MY_INCLUDES "include")
 #SET(MY_LIBS "lib")
 #SET(MY_BINS "bin")
+
+if (MSVC)
+include_directories("${COSMOS_CORE_THIRDPARTY}/softagalleria_dirent")
+endif ()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
