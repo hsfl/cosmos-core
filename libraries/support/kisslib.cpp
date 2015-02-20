@@ -1,6 +1,7 @@
-#include <stdio.h>
-#include <iomanip>
+#include "configCosmos.h"
 #include "kisslib.h"
+//#include <stdio.h>
+//#include <iomanip>
 
 kissHandle::kissHandle( int port, int comm, const char dest_call[], char dest_stat, const char sour_call[], char sour_stat, char cont, char prot)
 : port_number(port), command(comm), destination_stationID(dest_stat), source_stationID(sour_stat), control(cont), protocolID(prot)

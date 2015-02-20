@@ -158,7 +158,11 @@ typedef struct
 	uint16_t function_config;
 	uint16_t function_config2;
 	uint16_t cs;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} astrodev_tcv_config;
+#else
 } __attribute__((__may_alias__)) astrodev_tcv_config;
+#endif
 
 typedef struct
 {
@@ -194,7 +198,11 @@ typedef struct
 	uint16_t tx_freq;
 	uint16_t rx_freq;
 	uint16_t cs;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} astrodev_rf_config;
+#else
 } __attribute__((__may_alias__)) astrodev_rf_config;
+#endif
 
 typedef struct
 {
@@ -210,7 +218,11 @@ typedef struct
 	uint32_t bytes_rx;
 	uint32_t bytes_tx;
 	uint16_t cs;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} astrodev_telem;
+#else
 } __attribute__((__may_alias__)) astrodev_telem;
+#endif
 
 typedef struct
 {
@@ -255,7 +267,11 @@ typedef struct
 		astrodev_firmware firmware;
 		astrodev_telem telemetry;
 	};
+#ifdef COSMOS_WIN_BUILD_MSVC
+} astrodev_frame;
+#else
 } __attribute__((__may_alias__)) astrodev_frame;
+#endif
 
 typedef struct
 {

@@ -96,7 +96,7 @@ int32_t geomag_front(gvector pos, double time, rvector *comp)
 
 
 	// convert alt to km
-	alt = pos.h/1000.;
+	alt = (float)(pos.h/1000.);
 	iretn = geomg1(alt,(float)pos.lat,(float)pos.lon,(float)time,&dec,&dip,&ti,&gv,&bx,&by,&bz);
 	if (iretn < 0)
 	{
@@ -158,9 +158,9 @@ GEOMAG:
 	sp[0] = 0.0;
 	cp[0] = *p = pp[0] = 1.0;
 	dp[0][0] = 0.0;
-	a = 6378.137;
-	b = 6356.7523142;
-	re = 6371.2;
+	a = (float)6378.137;
+	b = (float)6356.7523142;
+	re = (float)6371.2;
 	a2 = a*a;
 	b2 = b*b;
 	c2 = a2-b2;
@@ -270,7 +270,7 @@ GEOMG1:
 		*/
 	}
 
-	dtr = DPI/180.0;
+	dtr = (float)(DPI/180.0);
 	glon = rlon/dtr;
 	glat = rlat/dtr;
 	srlon = sin(rlon);
@@ -289,8 +289,8 @@ GEOMG1:
 		q1 = alt*q;
 		q2 = ((q1+a2)/(q1+b2))*((q1+a2)/(q1+b2));
 		ct = srlat/sqrt(q2*crlat2+srlat2);
-		st = sqrt(1.0-(ct*ct));
-		r2 = (alt*alt)+2.0*q1+(a4-c4*srlat2)/(q*q);
+		st = (float)sqrt(1.0-(ct*ct));
+		r2 = (float)((alt*alt)+2.0*q1+(a4-c4*srlat2)/(q*q));
 		r = sqrt(r2);
 		d = sqrt(a2*crlat2+b2*srlat2);
 		ca = (alt+d)/r;

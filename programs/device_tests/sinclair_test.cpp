@@ -1,4 +1,4 @@
-#include <unistd.h>
+// #include <unistd.h>
 #include "sinclair_lib.h"
 
 int main(int argc, char *argv[])

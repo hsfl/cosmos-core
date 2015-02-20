@@ -7,7 +7,9 @@
 #include "agentlib.h"
 #include "gige_lib.h"
 #include "acq_a35.h"
+#ifndef COSMOS_WIN_BUILD_MSVC
 #include <sys/time.h>
+#endif
 
 #define IMAGESIZEMAX 86016
 

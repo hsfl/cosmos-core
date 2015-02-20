@@ -5,12 +5,12 @@
 
 //---------------------------------------------------------------
 // Print class
+#include "mathlib.h"
 
 #include <iostream>
 #include <string>
 
 // ?? remove the dependency of matlib later, change rvector to vector?
-#include "mathlib.h"
 
 class PrintUtils {
 

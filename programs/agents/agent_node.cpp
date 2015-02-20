@@ -1,6 +1,6 @@
 //#include <sys/vfs.h>
 #include <stdio.h>
-#include <dirent.h>
+#include "dirent/dirent.h"
 
 #include "agentlib.h"
 #include "jsonlib.h"

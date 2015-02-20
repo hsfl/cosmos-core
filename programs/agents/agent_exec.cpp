@@ -31,7 +31,7 @@
 //! set to the actual time of execution.
 //!
 //! Usage: agent_exec node_name
-#include <dirent.h>
+#include "dirent/dirent.h"
 #include <list>
 #include <fstream>
 #include <sstream>

@@ -9,13 +9,13 @@
 
 //bool IS_MESSAGE(const unsigned char P_TYPE)	{ return P_TYPE & PACKET_MESSAGE; }
 //bool IS_REQUEST(const unsigned char P_TYPE) { return P_TYPE & PACKET_REQUEST; }
-bool IS_METADATA(const unsigned char P_TYPE){ return (P_TYPE & 0x0f) & PACKET_METADATA; }
-bool IS_DATA(const unsigned char P_TYPE)	{ return (P_TYPE & 0x0f) & PACKET_DATA; }
-bool IS_REQDATA(const unsigned char P_TYPE)	{ return (P_TYPE & 0x0f) & PACKET_REQDATA; }
-bool IS_REQMETA(const unsigned char P_TYPE)	{ return (P_TYPE & 0x0f) & PACKET_REQMETA; }
-bool IS_COMPLETE(const unsigned char P_TYPE)	{ return (P_TYPE & 0x0f) & PACKET_COMPLETE; }
-bool IS_CANCEL(const unsigned char P_TYPE)	{ return (P_TYPE & 0x0f) & PACKET_CANCEL; }
-bool IS_QUEUE(const unsigned char P_TYPE)	{ return (P_TYPE & 0x0f) & PACKET_QUEUE; }
+bool IS_METADATA(const unsigned char P_TYPE){ return (((P_TYPE & 0x0f) & PACKET_METADATA) != 0); }
+bool IS_DATA(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_DATA) != 0); }
+bool IS_REQDATA(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_REQDATA) != 0); }
+bool IS_REQMETA(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_REQMETA) != 0); }
+bool IS_COMPLETE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_COMPLETE) != 0); }
+bool IS_CANCEL(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_CANCEL) != 0); }
+bool IS_QUEUE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_QUEUE) != 0); }
 
 void make_complete_packet(vector<PACKET_BYTE>& packet, packet_struct_complete complete)
 {

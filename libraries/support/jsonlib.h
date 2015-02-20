@@ -168,22 +168,22 @@ uint32_t json_get_uint_name(string token, cosmosstruc *cdata);
 double json_get_double_entry(jsonentry *entry, cosmosstruc *cdata);
 double json_get_double_name(string token, cosmosstruc *cdata);
 string json_get_string_name(string token, cosmosstruc *cdata);
-int32_t json_get_int_name_1d(string token, int index1, cosmosstruc *cdata);
-uint32_t json_get_uint_name_1d(string token, int index1, cosmosstruc *cdata);
-double json_get_double_name_1d(string token, int index1, cosmosstruc *cdata);
-int32_t json_get_int_name_2d(string token, int index1, int index2, cosmosstruc *cdata);
-uint32_t json_get_uint_name_2d(string token, int index1, int index2, cosmosstruc *cdata);
-double json_get_double_name_2d(string token, int index1, int index2, cosmosstruc *cdata);
+int32_t json_get_int_name_1d(string token, uint16_t index1, cosmosstruc *cdata);
+uint32_t json_get_uint_name_1d(string token, uint16_t index1, cosmosstruc *cdata);
+double json_get_double_name_1d(string token, uint16_t index1, cosmosstruc *cdata);
+int32_t json_get_int_name_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+uint32_t json_get_uint_name_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+double json_get_double_name_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
 
 int32_t json_set_int_name(int32_t value,char *token, cosmosstruc *cdata);
 int32_t json_set_uint_name(uint32_t value,char *token, cosmosstruc *cdata);
 int32_t json_set_double_name(double value,char *token, cosmosstruc *cdata);
-int32_t json_set_int_name_1d(int32_t value,char *token, int index1, cosmosstruc *cdata);
-int32_t json_set_uint_name_1d(uint32_t value,char *token, int index1, cosmosstruc *cdata);
-int32_t json_set_double_name_1d(double value,char *token, int index1, cosmosstruc *cdata);
-int32_t json_set_int_name_2d(int32_t value,char *token, int index1, int index2, cosmosstruc *cdata);
-int32_t json_set_uint_name_2d(uint32_t value,char *token, int index1, int index2, cosmosstruc *cdata);
-int32_t json_set_double_name_2d(double value,char *token, int index1, int index2, cosmosstruc *cdata);
+int32_t json_set_int_name_1d(int32_t value,char *token, uint16_t index1, cosmosstruc *cdata);
+int32_t json_set_uint_name_1d(uint32_t value,char *token, uint16_t index1, cosmosstruc *cdata);
+int32_t json_set_double_name_1d(double value,char *token, uint16_t index1, cosmosstruc *cdata);
+int32_t json_set_int_name_2d(int32_t value,char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+int32_t json_set_uint_name_2d(uint32_t value,char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+int32_t json_set_double_name_2d(double value,char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
 
 int32_t json_scan(char *istring);
 
@@ -191,7 +191,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector <json_token> &t
 int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json_token &token);
 int32_t json_parse(string json, cosmosstruc *cdata);
 int32_t json_parse_namedobject(const char** pointer, cosmosstruc *cdata);
-int32_t json_parse_value(const char **pointer, uint8_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata);
+int32_t json_parse_value(const char **pointer, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata);
 int32_t json_parse_equation(const char **pointer, string &equation);
 int32_t json_parse_operand(const char **pointer, jsonoperand *operand, cosmosstruc *cdata);
 int32_t json_parse_string(const char **pointer, string &ostring);
@@ -220,7 +220,7 @@ const char *json_of_list(string &jstring, const char *tokens, cosmosstruc *cdata
 const char *json_of_table(string &jstring,vector<jsonentry*> entries,cosmosstruc *cdata);
 const char *json_of_node(string &jstring, cosmosstruc *cdata);
 const char *json_of_agent(string &jstring, cosmosstruc *cdata);
-const char *json_of_target(string &jstring, cosmosstruc *cdata, int num);
+const char *json_of_target(string &jstring, cosmosstruc *cdata, uint16_t num);
 const char *json_of_time(string &jstring, cosmosstruc *cdata);
 const char *json_of_beat(string &jstring, cosmosstruc *cdata);
 const char *json_of_beacon(string &jstring, cosmosstruc *cdata);

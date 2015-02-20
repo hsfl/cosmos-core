@@ -1,11 +1,12 @@
-#include <unistd.h> //for usleep
+// #include <unistd.h> //for COSMOS_USLEEP
+#include "configCosmos.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>       /* for mktime()       */
-#include <sys/time.h>   /* for settimeofday() */
+//#include <sys/time.h>   /* for settimeofday() */
 
 #include "cssl_lib.h"
 #include "bbFctns.h"
@@ -27,14 +28,14 @@ void FindBbPort(int *BbPortNum)
         sprintf(strPort, "/dev/ttyUSB%d", i);
 		SerialCheck=cssl_open(strPort, 2400,8,0,1);
 
-        usleep(10000);
+		COSMOS_USLEEP(10000);
         if(SerialCheck) {
             cssl_settimeout(SerialCheck, 0, 1);  // 1 second timeout!
 
             // Is this a Temperature (BB) Controller
             strcpy(comString, "#00R00\r\n");
             cssl_putstring(SerialCheck,comString);
-            usleep(50000);
+			COSMOS_USLEEP(50000);
             memset(comString, 0, 255);
             cssl_getdata(SerialCheck, (uint8_t*)comString, nBytes);
 
@@ -42,7 +43,7 @@ void FindBbPort(int *BbPortNum)
             // Takes a second time to get a reply if we did Slide first.
             strcpy(comString, "#00R00\r\n");
             cssl_putstring(SerialCheck,comString);
-            usleep(50000);
+			COSMOS_USLEEP(50000);
             memset(comString, 0, 255);
             cssl_getdata(SerialCheck, (uint8_t*)comString, nBytes);
 
@@ -81,7 +82,7 @@ bool OpenBb(cssl_t **SerialBb, int BbPortNum)
         cssl_putstring(*SerialBb,comString);
 
         // Throw away response
-        usleep(40000);
+		COSMOS_USLEEP(40000);
         cssl_getdata(*SerialBb, (uint8_t*)comString, nBytes);
 
         return(true);
@@ -109,7 +110,7 @@ void runBbUnit1(float DesiredTemperature, cssl_t *SerialBb)
 
     // ***** Send the command.
     cssl_putstring(SerialBb,comStringOut);
-    usleep(100000);
+	COSMOS_USLEEP(100000);
 
 
     // ***** Get Athena's reply.
@@ -119,7 +120,7 @@ void runBbUnit1(float DesiredTemperature, cssl_t *SerialBb)
 
         //Try again if Athena didn't respond.
         cssl_putstring(SerialBb,comStringOut);
-        usleep(100000);
+		COSMOS_USLEEP(100000);
 
         //Read Athena's reply.
         memset (comStringIn, 0, 40);
@@ -128,7 +129,7 @@ void runBbUnit1(float DesiredTemperature, cssl_t *SerialBb)
 
             //Try a third time if Athena didn't respond.
             cssl_putstring(SerialBb,comStringOut);
-            usleep(100000);
+			COSMOS_USLEEP(100000);
 
             //Read Athena's reply.
             memset (comStringIn, 0, 40);
@@ -150,7 +151,7 @@ void runBbUnit1(float DesiredTemperature, cssl_t *SerialBb)
     // ***** Send command to get temperature (So it will be ready for next request.)
     strcpy(comStringOut, "#00R00\r\n");
     cssl_putstring(SerialBb,comStringOut);
-    usleep(200000);
+	COSMOS_USLEEP(200000);
 
     return;
 }

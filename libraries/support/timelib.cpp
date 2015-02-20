@@ -34,15 +34,15 @@ double leaps[MAXLEAPS] =
 */
 double currentmjd(double offset)
 {
-    struct timeval mytime;
     double mjd;
 
 #ifndef COSMOS_WIN_BUILD_MSVC
-    gettimeofday(&mytime, NULL);
+	struct timeval mytime;
+	gettimeofday(&mytime, NULL);
     mjd = unix2utc(mytime);
 #else
     TimeUtils tu;
-    mjd = tu.secondsSinceEpoch();
+	mjd = unix2utc(tu.secondsSinceEpoch());
 #endif
     return mjd+offset;
 }
@@ -69,6 +69,20 @@ double unix2utc(struct timeval unixtime)
     utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + unixtime.tv_usec / 1000000.) / 60.) / 60.) / 24.);
 
     return utc;
+}
+
+double unix2utc(double unixtime)
+{
+	double utc;
+	struct tm *mytm;
+	time_t thetime;
+
+	thetime = (time_t)unixtime;
+	mytm = gmtime(&thetime);
+	utc = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
+	utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + (unixtime-(time_t)unixtime)) / 60.) / 60.) / 24.);
+
+	return utc;
 }
 
 //! UTC to Unix time

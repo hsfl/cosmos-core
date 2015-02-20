@@ -24,7 +24,11 @@
 #define PIC_PARITY 0
 #define PIC_STOPBITS 1
 
+#ifdef COSMOS_WIN_BUILD_MSVC
+#define PIC_HEADER_SIZE 6
+#else
 #define PIC_HEADER_SIZE (ptrdiff_t)(((pic_header*)0)+1)
+#endif
 #define PIC_DATA_SIZE 300
 
 #define SUCHI_CMD_SET_HEATER_ON 0x10
@@ -100,13 +104,21 @@ typedef struct
 		uint8_t raw[PIC_DATA_SIZE+PIC_HEADER_SIZE+2];
 	} ;
 	uint16_t seq;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} picstruc;
+#else
 } __attribute__((__may_alias__)) picstruc;
+#endif
 
 typedef struct
 {
 	cssl_t *serial;
 	picstruc buffer;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} pic_handle;
+#else
 } __attribute__((__may_alias__)) pic_handle;
+#endif
 
 int32_t pic_connect(char *dev, pic_handle *handle);
 int32_t pic_disconnect(pic_handle *handle);

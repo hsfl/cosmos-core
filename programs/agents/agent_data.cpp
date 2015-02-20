@@ -2,7 +2,7 @@
 
 #include "configCosmos.h"
 
-#include <dirent.h>
+#include "dirent/dirent.h"
 #include <sys/stat.h>
 
 #include <stdio.h>

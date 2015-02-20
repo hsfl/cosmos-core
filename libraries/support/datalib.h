@@ -12,14 +12,14 @@
 
 // C libs
 #include <stdio.h>
-#include <dirent.h>
 #include <sys/stat.h>
 #include <iostream>
 #include <fstream>
 
 #ifndef COSMOS_WIN_BUILD_MSVC
-#include <unistd.h>
+// #include <unistd.h>
 #endif
+#include "dirent/dirent.h"
 
 /*! \file datalib.h
 *	\brief Data Management header file

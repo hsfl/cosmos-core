@@ -3,7 +3,7 @@
 #include "demlib.h"
 #include "timelib.h"
 #include "datalib.h"
-#include <dirent.h>
+#include "dirent/dirent.h"
 #include <sys/stat.h>
 
 map_dem_body *bodies[20] = {NULL};
