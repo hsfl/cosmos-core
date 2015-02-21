@@ -1,4 +1,13 @@
 #--------------------------------------------------------------------
+# Windows/MSVC2013 notes:
+# * Near the end of this script is replacement lines to select the 
+#   MSVC static runtime. Turn USE_MSVC_STATIC_RUNTIME to OFF to 
+#   use the default "multithreaded DLL" style of RTL
+# * For x64 linkage give the "-A x64" option to the CMAKE command
+#--------------------------------------------------------------------
+set(USE_MSVC_STATIC_RUNTIME ON)
+
+#--------------------------------------------------------------------
 # user config variables
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
@@ -32,7 +41,11 @@ project(${PROJECT_NAME})
 if (UNIX)
 set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
 elseif (MSVC)
-set(COSMOS_CXX_FLAGS "")
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+set(COSMOS_CXX_FLAGS "/MTd")
+else ()
+set(COSMOS_CXX_FLAGS "/MT")
+endif (CMAKE_BUILD_TYPE MATCHES "Debug")
 endif ()
 
 Option(BUILD_GPROF "Build for Profiling" OFF)
@@ -134,5 +147,19 @@ IF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
     add_subdirectory(${COSMOS_PROJECT_USER}/libraries)
     set(LINK_LIBRARY_COSMOS_PROJECT_USER CosmosUser)
 ENDIF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
+
+if(MSVC AND ((${USE_MSVC_STATIC_RUNTIME} MATCHES "ON")))
+# Below foreach is to remove the /MD from the linker settings to use a static runtime link 
+# referenced from https://www.mail-archive.com/cmake@cmake.org/msg02225.html
+FOREACH (MODE "_DEBUG" "_MINSIZEREL" "_RELEASE" "_RELWITHDEBINFO")
+   STRING(REPLACE "/MD" "/MT" TMP "${CMAKE_C_FLAGS${MODE}}")
+   SET(CMAKE_C_FLAGS${MODE} "${TMP}" CACHE STRING "" FORCE)
+   MESSAGE(STATUS "C_${MODE}=${CMAKE_C_FLAGS${MODE}}")
+   STRING(REPLACE "/MD" "/MT" TMP "${CMAKE_CXX_FLAGS${MODE}}")
+   SET(CMAKE_CXX_FLAGS${MODE} "${TMP}" CACHE STRING "" FORCE)
+   MESSAGE(STATUS "CXX_${MODE}=${CMAKE_CXX_FLAGS${MODE}}")
+ ENDFOREACH (MODE)
+	message("MSVC CXX Flags: ${CMAKE_CXX_FLAGS}")
+endif()
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/programs)
