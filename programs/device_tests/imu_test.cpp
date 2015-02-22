@@ -231,7 +231,7 @@ int loop() {
         if(iretn == RW_ERROR_FAILED) 
         	printf("Did not get anything within a second.");
         count++;
-        sleep(3);
+        COSMOS_SLEEP(3);
     }
     */
     return(0);

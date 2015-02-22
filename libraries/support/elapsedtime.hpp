@@ -34,6 +34,8 @@ public:
     double toc();
     //double toc(bool print_flag);
     double toc(string text);
+	double split();
+	double reset();
 
     void start();
 	double stop();

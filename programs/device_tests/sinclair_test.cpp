@@ -37,7 +37,7 @@ for (i=1; i<4; i++)
 		{
 		printf("%.5f\r",sinclair_get_speed(&handle));
 		fflush(stdout);
-		sleep(1);
+		COSMOS_SLEEP(1);
 		}
 	}
 for (i=3; i>0; i--)
@@ -47,7 +47,7 @@ for (i=3; i>0; i--)
 		{
 		printf( "%.5f\r",sinclair_get_speed(&handle) );
 		fflush(stdout);
-		sleep(1);
+		COSMOS_SLEEP(1);
 		}
 	}
 iretn = sinclair_mode_speed(&handle,0.);

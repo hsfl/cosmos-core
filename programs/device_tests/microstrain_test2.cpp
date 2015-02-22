@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         printf("%10.3f %+-10.6g %+-10.6g %+-10.6g %+-10.6g\r",86400.*(lastmjd-currentmjd(0.)),DEGOF(euler.b),DEGOF(euler.e),DEGOF(euler.h),sep);
         lastmjd = currentmjd(0.);
         fflush(stdout);
-        //	sleep(1);
+        //	COSMOS_SLEEP(1);
     }
     iretn = microstrain_temperature(handle,&t1,&t2,&t3,&t4);
     printf("\nTemperatures: %f %f %f %f\n",t1,t2,t3,t4);

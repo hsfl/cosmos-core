@@ -1,3 +1,4 @@
+#include "configCosmos.h"
 #include <time.h>
 // #include <unistd.h>
 #include "sinclair_lib.h"
@@ -184,7 +185,7 @@ uint32_t ResultLength;
 //int16_t *DetTempADU;
 //int16_t *ProcTempADU;
 uint8_t command = 0x0B;
-struct timespec ts = {0,100L*1000000L};
+//struct timespec ts = {0,100L*1000000L};
 
 int16_t DetTemp;
 uint16_t ProcTemp;
@@ -205,7 +206,8 @@ printf("iretn=%d\nGo Command returns: %02X\n\n",iretn,buf[0]);
         if(ResultLength==2616) {
             break;
         }
-        nanosleep(&ts, NULL);
+//        nanosleep(&ts, NULL);
+		COSMOS_USLEEP(100000);
     }
 
 

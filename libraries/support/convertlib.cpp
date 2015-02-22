@@ -110,35 +110,35 @@ void pos_baryc(locstruc *loc)
 
 	// Set SUN specific stuff
 	distance = length_rv(loc->pos.baryc.s);
-	loc->pos.sunsize = RSUNM/distance;
-	loc->pos.sunradiance = 3.839e26/(4.*DPI*distance*distance);
+	loc->pos.sunsize = (float)(RSUNM/distance);
+	loc->pos.sunradiance = (float)(3.839e26/(4.*DPI*distance*distance));
 
 	// Check Earth:Sun separation
 	sat2body = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2earth.s);
-	loc->pos.earthsep = sep_rv(loc->pos.baryc.s,sat2body);
-	loc->pos.earthsep -= asin(REARTHM/length_rv(sat2body));
+	loc->pos.earthsep = (float)(sep_rv(loc->pos.baryc.s,sat2body));
+	loc->pos.earthsep -= (float)(asin(REARTHM/length_rv(sat2body)));
 	if (loc->pos.earthsep < -loc->pos.sunsize)
 		loc->pos.sunradiance = 0.;
 	else
 		if (loc->pos.earthsep <= loc->pos.sunsize)
 		{
 			theta = DPI*(loc->pos.sunsize+loc->pos.earthsep)/loc->pos.sunsize;
-			loc->pos.sunradiance *= (theta - sin(theta))/D2PI;;
+			loc->pos.sunradiance *= (float)((theta - sin(theta))/D2PI);
 		}
 
 	// Set Moon specific stuff
 	sat2body = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2moon.s);
 
 	// Check Earth:Moon separation
-	loc->pos.moonsep = sep_rv(loc->pos.baryc.s,sat2body);
-	loc->pos.moonsep -= asin(RMOONM/length_rv(sat2body));
+	loc->pos.moonsep = (float)(sep_rv(loc->pos.baryc.s,sat2body));
+	loc->pos.moonsep -= (float)(asin(RMOONM/length_rv(sat2body)));
 	if (loc->pos.moonsep < -loc->pos.sunsize)
 		loc->pos.sunradiance = 0.;
 	else
 		if (loc->pos.moonsep <= loc->pos.sunsize)
 		{
 			theta = DPI*(loc->pos.sunsize+loc->pos.moonsep)/loc->pos.sunsize;
-			loc->pos.sunradiance *= (theta - sin(theta))/D2PI;;
+			loc->pos.sunradiance *= (float)((theta - sin(theta))/D2PI);
 		}
 
 	// Set related attitudes
@@ -2235,8 +2235,8 @@ void geoc2topo(gvector source, rvector targetgeoc, rvector *topo)
 
 void topo2azel(rvector tpos, float *az, float *el)
 {
-	*az = atan2(tpos.col[0],tpos.col[1]);
-	*el = atan2(tpos.col[2],sqrt(tpos.col[0]*tpos.col[0]+tpos.col[1]*tpos.col[1]));
+	*az = (float)(atan2(tpos.col[0],tpos.col[1]));
+	*el = (float)(atan2(tpos.col[2],sqrt(tpos.col[0]*tpos.col[0]+tpos.col[1]*tpos.col[1])));
 }
 
 //! Return position from TLE set

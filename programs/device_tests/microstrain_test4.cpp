@@ -42,7 +42,7 @@ while (count < 10000000L)
 	vrate2 = rv_sub(rv_mmult(matrix,vrate),irate);
 	printf("%+-10.5f %+-10.5f %+-10.5f %+-10.5f %+-10.5f %+-10.5f %+-10.5f %+-10.5f %+-10.5f\r",vrate1.col[0],vrate2.col[0],vrate1.col[1],vrate2.col[1],vrate1.col[2],vrate2.col[2],position.col[0],position.col[1],position.col[2]);
 	fflush(stdout);
-//	sleep(1);
+//	COSMOS_SLEEP(1);
 	}
 iretn = microstrain_temperature(handle,&t1,&t2,&t3,&t4);
 printf("\nTemperatures: %f %f %f %f\n",t1,t2,t3,t4);

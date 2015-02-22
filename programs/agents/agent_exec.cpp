@@ -334,13 +334,21 @@ int32_t request_run(char *request, char* response, void *cdata)
 	}
 	else
 	{
+#ifdef COSMOS_WIN_BUILD_MSVC
+		if ((pd=_popen(&request[i], "r")) != NULL)
+#else
 		if ((pd=popen(&request[i],"r")) != NULL)
+#endif
 		{
 			iretn = fread(response,1,AGENTMAXBUFFER-1,pd);
 			response[iretn] = 0;
 
 			iretn = 0;
-			pclose(pd);
+#ifdef COSMOS_WIN_BUILD_MSVC
+			_pclose(pd);
+#else
+			pclose(pd); // close process
+#endif
 		}
 		else
 		{

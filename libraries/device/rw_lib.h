@@ -12,7 +12,7 @@
 #include "cosmos-errno.h"
 #include <cstring>
 #ifndef COSMOS_WIN_BUILD_MSVC
-#include <sys/time.h>
+//#include <sys/time.h>
 #endif
 
 #define RW_ID 1

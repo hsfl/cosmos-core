@@ -5,7 +5,7 @@
 #include "jsonlib.h"
 #include "datalib.h"
 #include "socketlib.h"
-#include <semaphore.h>
+//#include <semaphore.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

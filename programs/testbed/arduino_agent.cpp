@@ -190,9 +190,8 @@ oldday = -1 ;
 
 //FILE *flog = NULL ;
 // Initialize loop timing
-period = .1;
-gettimeofday(&mytime, NULL);
-cmjd = (mytime.tv_sec - 1280000000) + mytime.tv_usec / 1e6;
+period = .1/86400.;
+cmjd = currentmjd();
 nmjd = cmjd + period;
 oldday = -1 ;
 
@@ -301,11 +300,10 @@ while(agent_running(cdata))
 	*/
 	//fprintf (flog, "%s\r\n", outstrbig) ;
 
-	gettimeofday(&mytime,NULL);
-	cmjd = (mytime.tv_sec - 1280000000) + mytime.tv_usec / 1e6;
+	cmjd = currentmjd();
 	if (nmjd > cmjd)
 		{
-		usec = (unsigned long)((nmjd-cmjd)*1e6+.5);
+		usec = (unsigned long)((nmjd-cmjd)*86400*1e6+.5);
 		COSMOS_USLEEP(usec);
 		}
 	nmjd += period;
