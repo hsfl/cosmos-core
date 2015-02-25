@@ -5,7 +5,7 @@
 #   use the default "multithreaded DLL" style of RTL
 # * For x64 linkage give the "-A x64" option to the CMAKE command
 #--------------------------------------------------------------------
-set(USE_MSVC_STATIC_RUNTIME ON)
+option(USE_MSVC_STATIC_RUNTIME "USE Static Runtime with MSVC" "ON")
 
 #--------------------------------------------------------------------
 # user config variables
@@ -39,13 +39,10 @@ cmake_minimum_required(VERSION 2.6)
 project(${PROJECT_NAME})
 
 if (UNIX)
-set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
+#set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
+set(COSMOS_CXX_FLAGS "")
 elseif (MSVC)
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
-set(COSMOS_CXX_FLAGS "/MTd")
-else ()
-set(COSMOS_CXX_FLAGS "/MT")
-endif (CMAKE_BUILD_TYPE MATCHES "Debug")
+set(COSMOS_CXX_FLAGS "")
 endif ()
 
 Option(BUILD_GPROF "Build for Profiling" OFF)
@@ -62,6 +59,26 @@ if (BUILD_STATIC)
 	set(BUILD_SHARED_LIBS OFF)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 endif ()
+
+# Type of compiler
+string(FIND ${CMAKE_CXX_COMPILER} "cl.exe" posc)
+if (posc GREATER -1)
+Option(BUILD_MSVC "Build With MSVC" ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W4")
+message("Building with MSVC")
+endif()
+
+string(FIND ${CMAKE_CXX_COMPILER} "++" posc)
+message("Find ++: '${posc}'")
+if (posc GREATER -1)
+Option(BUILD_G++ "Build With G++" ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
+message("Building with G++")
+endif()
+
+
+if (BUILD_MSVC)
+endif()
 
 # set the COSMOS CORE path
 if (${PROJECT_NAME} MATCHES "COSMOS_CORE")
@@ -154,11 +171,13 @@ if(MSVC AND ((${USE_MSVC_STATIC_RUNTIME} MATCHES "ON")))
 FOREACH (MODE "_DEBUG" "_MINSIZEREL" "_RELEASE" "_RELWITHDEBINFO")
    STRING(REPLACE "/MD" "/MT" TMP "${CMAKE_C_FLAGS${MODE}}")
    SET(CMAKE_C_FLAGS${MODE} "${TMP}" CACHE STRING "" FORCE)
-   MESSAGE(STATUS "C_${MODE}=${CMAKE_C_FLAGS${MODE}}")
+   #MESSAGE(STATUS "C_${MODE}=${CMAKE_C_FLAGS${MODE}}")
    STRING(REPLACE "/MD" "/MT" TMP "${CMAKE_CXX_FLAGS${MODE}}")
    SET(CMAKE_CXX_FLAGS${MODE} "${TMP}" CACHE STRING "" FORCE)
-   MESSAGE(STATUS "CXX_${MODE}=${CMAKE_CXX_FLAGS${MODE}}")
+   #MESSAGE(STATUS "CXX_${MODE}=${CMAKE_CXX_FLAGS${MODE}}")
  ENDFOREACH (MODE)
+	message("MSVC CXX Flags: ${CMAKE_CXX_FLAGS}")
+elseif(MSVC)
 	message("MSVC CXX Flags: ${CMAKE_CXX_FLAGS}")
 endif()
 
