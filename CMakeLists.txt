@@ -92,7 +92,7 @@ string(FIND ${CMAKE_CXX_COMPILER} "++" posc)
 message("Find ++: '${posc}'")
 if (posc GREATER -1)
 Option(BUILD_G++ "Build With G++" ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=gnu++11 -Wno-invalid-offsetof")
 message("Building with G++")
 endif()
 
