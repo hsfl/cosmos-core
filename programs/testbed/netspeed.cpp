@@ -24,7 +24,6 @@ int main(int argc, char *argv[])
 	unsigned short port;
 	long number, size;
 	struct sockaddr_in sin;
-	struct timeval tp0, tp1;
 	double srate, srate2;
 	float rate;
 

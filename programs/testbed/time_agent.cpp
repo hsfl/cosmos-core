@@ -48,7 +48,6 @@ int main(int argc, char *argv[])
 int myagent()
 {
 	double cmjd, nmjd, period;
-	struct timeval mytime;
 	unsigned long usec;
 	string jstring;
 

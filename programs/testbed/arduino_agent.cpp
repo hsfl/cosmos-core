@@ -183,7 +183,6 @@ int myagent()
 char 	outstr [240], outstr1[240], fname[120] ;
 int		oldday, iyear, iday ;
 double 	year, day, cmjd, nmjd, period;
-struct 	timeval mytime;
 unsigned long usec;
 string jstring;
 oldday = -1 ;
