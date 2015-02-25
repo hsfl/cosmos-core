@@ -37,7 +37,7 @@
 #define THROUGHPUT_HI 150000
 //#define TRANSFER_QUEUE_LIMIT 10
 
-#ifndef to_string
+#ifdef COSMOS_CYGWIN_OS
 #include<sstream>
 template <typename T>
 std::string to_string(T value)
