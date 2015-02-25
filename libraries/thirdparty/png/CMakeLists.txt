@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 2.6)
+#set(CMAKE_CXX_FLAGS "-Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${COSMOS_CORE_SOURCE_DIR}/libraries/thirdparty/zlib)
+
+FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
+FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+
+add_library(png STATIC ${SOURCES} ${INCLUDES})
+
+install(TARGETS png DESTINATION lib)
+install(FILES ${INCLUDES} DESTINATION include/png)
+
