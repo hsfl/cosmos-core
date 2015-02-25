@@ -210,7 +210,7 @@ cosmosstruc *agent_setup_client(int ntype, string node, uint32_t usectimeo)
     }
 
     //! Next, set up node.
-    if (!node.empty() && (iretn=node_init(node, cdata)))
+	if (!node.empty() && (iretn=node_init(node, cdata)) != 0)
     {
         json_destroy(cdata);
         return nullptr;
@@ -230,7 +230,7 @@ cosmosstruc *agent_setup_client(int ntype, string node, uint32_t usectimeo)
     }
 
     // Finally, make copies
-    if ((iretn=json_clone(cdata)))
+	if ((iretn=json_clone(cdata)) != 0)
     {
         json_destroy(cdata);
         return(NULL);
@@ -1698,172 +1698,177 @@ provided for the extra steps necessary for MS Windows.
 */
 int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t role, bool blocking, uint32_t usectimeo)
 {
-    socklen_t namelen;
-    int32_t iretn;
-    struct ip_mreq mreq;
-    int on = 1;
-    int protocol = 0;
+	int32_t iretn;
 
-#ifdef COSMOS_WIN_OS
-    unsigned long nonblocking = 1;
-    struct sockaddr_storage ss;
-    int sslen;
-    static bool started=false;
+	iretn = socket_open(channel, ntype, address, port, role, blocking, usectimeo);
 
-    protocol = IPPROTO_UDP;
+	return iretn;
 
-    if (!started)
-    {
-        WORD wVersionRequested = MAKEWORD( 2, 2 );
-        WSADATA wsaData;
-        iretn = WSAStartup( wVersionRequested, &wsaData );
-        if (iretn != 0) {
-            wprintf(L"WSAStartup failed: %d\n", iretn);
-            return 1;
-        }
-    }
-#endif
+//    socklen_t namelen;
+//    struct ip_mreq mreq;
+//    int on = 1;
+//    int protocol = 0;
 
-    if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,protocol)) <0)
-    {
-        return (-errno);
-    }
+//#ifdef COSMOS_WIN_OS
+//    unsigned long nonblocking = 1;
+//    struct sockaddr_storage ss;
+//    int sslen;
+//    static bool started=false;
 
-    if (blocking == AGENT_NONBLOCKING)
-    {
-        iretn = 0;
-#ifdef COSMOS_WIN_OS
-        if (ioctlsocket(channel->cudp, FIONBIO, &nonblocking) != 0)
-        {
-            iretn = -WSAGetLastError();
-        }
-#else
-        if (fcntl(channel->cudp, F_SETFL,O_NONBLOCK) < 0)
-        {
-            iretn = -errno;
-        }
-#endif
-        if (iretn < 0)
-        {
-            CLOSE_SOCKET(channel->cudp);
-            channel->cudp = iretn;
-            return (iretn);
-        }
-    }
+//    protocol = IPPROTO_UDP;
 
-    // this defines the wait time for a response from a request
-    if (usectimeo)
-    {
-#ifdef COSMOS_WIN_OS
-        int msectimeo = usectimeo/1000;
-        iretn = setsockopt(channel->cudp,SOL_SOCKET,SO_RCVTIMEO,(const char *)&msectimeo,sizeof(msectimeo));
-#else
-        struct timeval tv;
-        tv.tv_sec = usectimeo/1000000;
-        tv.tv_usec = usectimeo%1000000;
-        iretn = setsockopt(channel->cudp,SOL_SOCKET,SO_RCVTIMEO,(char*)&tv,sizeof(tv));
-#endif
-    }
+//    if (!started)
+//    {
+//        WORD wVersionRequested = MAKEWORD( 2, 2 );
+//        WSADATA wsaData;
+//        iretn = WSAStartup( wVersionRequested, &wsaData );
+//        if (iretn != 0) {
+//            wprintf(L"WSAStartup failed: %d\n", iretn);
+//            return 1;
+//        }
+//    }
+//#endif
 
-    memset(&channel->caddr,0,sizeof(struct sockaddr_in));
-    channel->caddr.sin_family = AF_INET;
-    channel->caddr.sin_port = htons(port);
+//    if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,protocol)) <0)
+//    {
+//        return (-errno);
+//    }
 
-    switch (role)
-    {
-    case AGENT_LISTEN:
-#ifdef COSMOS_MAC_OS
-        if (setsockopt(channel->cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
-#else
-        if (setsockopt(channel->cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
-#endif
-        {
-            CLOSE_SOCKET(channel->cudp);
-            channel->cudp = -errno;
-            return (-errno);
-        }
+//    if (blocking == AGENT_NONBLOCKING)
+//    {
+//        iretn = 0;
+//#ifdef COSMOS_WIN_OS
+//        if (ioctlsocket(channel->cudp, FIONBIO, &nonblocking) != 0)
+//        {
+//            iretn = -WSAGetLastError();
+//        }
+//#else
+//        if (fcntl(channel->cudp, F_SETFL,O_NONBLOCK) < 0)
+//        {
+//            iretn = -errno;
+//        }
+//#endif
+//        if (iretn < 0)
+//        {
+//            CLOSE_SOCKET(channel->cudp);
+//            channel->cudp = iretn;
+//            return (iretn);
+//        }
+//    }
 
-        channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
-        if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
-        {
-            CLOSE_SOCKET(channel->cudp);
-            channel->cudp = -errno;
-            return (-errno);
-        }
+//    // this defines the wait time for a response from a request
+//    if (usectimeo)
+//    {
+//#ifdef COSMOS_WIN_OS
+//        int msectimeo = usectimeo/1000;
+//        iretn = setsockopt(channel->cudp,SOL_SOCKET,SO_RCVTIMEO,(const char *)&msectimeo,sizeof(msectimeo));
+//#else
+//        struct timeval tv;
+//        tv.tv_sec = usectimeo/1000000;
+//        tv.tv_usec = usectimeo%1000000;
+//        iretn = setsockopt(channel->cudp,SOL_SOCKET,SO_RCVTIMEO,(char*)&tv,sizeof(tv));
+//#endif
+//    }
 
-        // If we bound to port 0, then find out what our assigned port is.
-        if (!port)
-        {
-            namelen = sizeof(struct sockaddr_in);
-            if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
-            {
-                CLOSE_SOCKET(channel->cudp);
-                channel->cudp = -errno;
-                return (-errno);
-            }
-            channel->cport = ntohs(channel->caddr.sin_port);
-        }
-        else
-        {
-            channel->cport = port;
-        }
+//    memset(&channel->caddr,0,sizeof(struct sockaddr_in));
+//    channel->caddr.sin_family = AF_INET;
+//    channel->caddr.sin_port = htons(port);
 
-        if (ntype == AGENT_TYPE_MULTICAST)
-        {
-            //! 2. Join multicast
-            mreq.imr_multiaddr.s_addr = inet_addr(address);
-            mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-            if (setsockopt(channel->cudp, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
-            {
-                CLOSE_SOCKET(channel->cudp);
-                channel->cudp = -errno;
-                return (-errno);
-            }
-        }
+//    switch (role)
+//    {
+//    case AGENT_LISTEN:
+//#ifdef COSMOS_MAC_OS
+//        if (setsockopt(channel->cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
+//#else
+//        if (setsockopt(channel->cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
+//#endif
+//        {
+//            CLOSE_SOCKET(channel->cudp);
+//            channel->cudp = -errno;
+//            return (-errno);
+//        }
+
+//        channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+//        if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
+//        {
+//            CLOSE_SOCKET(channel->cudp);
+//            channel->cudp = -errno;
+//            return (-errno);
+//        }
+
+//        // If we bound to port 0, then find out what our assigned port is.
+//        if (!port)
+//        {
+//            namelen = sizeof(struct sockaddr_in);
+//            if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
+//            {
+//                CLOSE_SOCKET(channel->cudp);
+//                channel->cudp = -errno;
+//                return (-errno);
+//            }
+//            channel->cport = ntohs(channel->caddr.sin_port);
+//        }
+//        else
+//        {
+//            channel->cport = port;
+//        }
+
+//        if (ntype == AGENT_TYPE_MULTICAST)
+//        {
+//            //! 2. Join multicast
+//            mreq.imr_multiaddr.s_addr = inet_addr(address);
+//            mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+//            if (setsockopt(channel->cudp, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
+//            {
+//                CLOSE_SOCKET(channel->cudp);
+//                channel->cudp = -errno;
+//                return (-errno);
+//            }
+//        }
 
 
-        break;
-    case AGENT_JABBER:
-        switch (ntype)
-        {
-        case AGENT_TYPE_UDP:
-            if ((iretn=setsockopt(channel->cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-            {
-                CLOSE_SOCKET(channel->cudp);
-                channel->cudp = -errno;
-                return (-errno);
-            }
-            channel->caddr.sin_addr.s_addr = 0xffffffff;
-            break;
-        case AGENT_TYPE_MULTICAST:
-#ifndef COSMOS_WIN_OS
-            inet_pton(AF_INET,AGENTMCAST,&channel->caddr.sin_addr);
-#else
-            sslen = sizeof(ss);
-            WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-            channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-#endif
-            break;
-        }
-        channel->cport = port;
-        break;
-    case AGENT_TALK:
-#ifndef COSMOS_WIN_OS
-        inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-#else
-        sslen = sizeof(ss);
-        WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-        channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-#endif
-        channel->cport = port;
-        break;
-    }
+//        break;
+//    case AGENT_JABBER:
+//        switch (ntype)
+//        {
+//        case AGENT_TYPE_UDP:
+//            if ((iretn=setsockopt(channel->cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+//            {
+//                CLOSE_SOCKET(channel->cudp);
+//                channel->cudp = -errno;
+//                return (-errno);
+//            }
+//            channel->caddr.sin_addr.s_addr = 0xffffffff;
+//            break;
+//        case AGENT_TYPE_MULTICAST:
+//#ifndef COSMOS_WIN_OS
+//            inet_pton(AF_INET,AGENTMCAST,&channel->caddr.sin_addr);
+//#else
+//            sslen = sizeof(ss);
+//            WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+//            channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+//#endif
+//            break;
+//        }
+//        channel->cport = port;
+//        break;
+//    case AGENT_TALK:
+//#ifndef COSMOS_WIN_OS
+//        inet_pton(AF_INET,address,&channel->caddr.sin_addr);
+//#else
+//        sslen = sizeof(ss);
+//        WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+//        channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+//#endif
+//        channel->cport = port;
+//        break;
+//    }
 
-    strncpy(channel->address,address,17);
-    channel->type = ntype;
-    channel->addrlen = sizeof(struct sockaddr_in);
+//    strncpy(channel->address,address,17);
+//    channel->type = ntype;
+//    channel->addrlen = sizeof(struct sockaddr_in);
 
-    return 0;
+//    return 0;
 }
 
 

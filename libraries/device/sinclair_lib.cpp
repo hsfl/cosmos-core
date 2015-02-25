@@ -5,7 +5,7 @@
 #include "configCosmos.h"
 #if defined(COSMOS_WIN_OS) || defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 
-#include <unistd.h>
+// #include <unistd.h>
 #include "sinclair_lib.h"
 #include "timelib.h"
 

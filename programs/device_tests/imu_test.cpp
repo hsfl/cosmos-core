@@ -1,7 +1,7 @@
 #include "rw_lib.h"
 #include "cssl_lib.cpp"
 #include <stdio.h>
-#include <unistd.h>
+// #include <unistd.h>
 #include <cstring>
 
 int count;
@@ -231,7 +231,7 @@ int loop() {
         if(iretn == RW_ERROR_FAILED) 
         	printf("Did not get anything within a second.");
         count++;
-        sleep(3);
+        COSMOS_SLEEP(3);
     }
     */
     return(0);

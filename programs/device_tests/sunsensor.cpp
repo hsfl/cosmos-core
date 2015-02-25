@@ -1,3 +1,4 @@
+#include "configCosmos.h"
 #include <stdio.h>
 #include <math.h>
 #include "mathlib.h"

@@ -70,7 +70,7 @@ int32_t pic_putframe(pic_handle *handle)
 	int32_t iretn;
 	uint16_t size;
 
-	size = handle->buffer.packet.header.size+PIC_HEADER_SIZE;
+	size = (uint16_t)(handle->buffer.packet.header.size+PIC_HEADER_SIZE);
 
 	union
 	{

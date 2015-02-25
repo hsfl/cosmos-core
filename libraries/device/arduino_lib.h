@@ -4,14 +4,14 @@
 //#include <stdlib.h>
 //#include <stdint.h>   /* Standard types */
 //#include <cstring>   /* String function definitions */
-//#include <unistd.h>   /* UNIX standard function definitions */
+//// #include <unistd.h>   /* UNIX standard function definitions */
 //#include <fcntl.h>    /* File control definitions */
 //#include <errno.h>    /* Error number definitions */
 #ifndef COSMOS_WIN_OS
 #include <termios.h>  /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 #endif
-#include <getopt.h>
+//#include <getopt.h>
 
 int arduino_init(char* port, int baud);
 int arduino_printstring(char* str);

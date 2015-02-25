@@ -21,7 +21,7 @@
 #endif
 
 #include <stdio.h>    // Standard input/output definitions
-#include <unistd.h>   // UNIX standard function definitions
+// #include <unistd.h>   // UNIX standard function definitions
 #include <fcntl.h>    // File control definitions
 #include <errno.h>    // Error number definitions
 #include <cstring>   // String function definitions
@@ -54,7 +54,7 @@ int arduino_printnum(int num) {
 	return iretn;
 }
 int arduino_delay(int delay) {
-	usleep(delay * 1000);
+	COSMOS_USLEEP(delay * 1000);
 	return delay;
 }
 char* arduino_setport(char* port) {
@@ -104,7 +104,7 @@ int serialport_read_until(int fd, char* buf, char until)
         int n = read(fd, b, 1);  // read a char at a time
         if( n==-1) return -1;    // couldn't read
         if( n==0 ) {
-            usleep( 10 * 1000 ); // wait 10 msec try again
+			COSMOS_USLEEP( 10 * 1000 ); // wait 10 msec try again
             continue;
         }
         buf[i] = b[0]; i++;

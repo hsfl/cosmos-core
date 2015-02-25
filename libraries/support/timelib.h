@@ -109,7 +109,8 @@ double  mjd2jd(double mjd);
 double  jd2mjd(double jd);
 
 // other
-double  unix2utc(struct timeval unixtime);
+double unix2utc(struct timeval unixtime);
+double unix2utc(double unixtime);
 double  tt2utc(double mjd);
 double  tt2tdb(double mjd);
 double  julcen(double mjd);

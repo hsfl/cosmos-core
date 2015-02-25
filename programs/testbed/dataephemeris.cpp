@@ -6,10 +6,12 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 //#include <sys/types.h>
 #include <sys/stat.h>
-#include <dirent.h>
+#ifndef COSMOS_WIN_BUILD_MSVC
+// #include <unistd.h>
+#endif
+#include "dirent/dirent.h"
 
 svector azel;
 vector<nodestruc> track;

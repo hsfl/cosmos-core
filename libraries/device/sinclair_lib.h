@@ -62,19 +62,19 @@
 // **************************************************************************
 //! SLIP Buffer End character
 #ifndef SLIP_FEND
-    #define SLIP_FEND 0xC0
+#define SLIP_FEND 0xC0
 #endif
 //! SLIP Buffer Escape character
 #ifndef SLIP_FESC
-    #define SLIP_FESC 0xDB
+#define SLIP_FESC 0xDB
 #endif
 //! SLIP Buffer Escaped End character
 #ifndef SLIP_TFEND
-    #define SLIP_TFEND 0xDC
+#define SLIP_TFEND 0xDC
 #endif
 //! SLIP Buffer Escaped Escape character
 #ifndef SLIP_TFESC
-    #define SLIP_TFESC 0xDD
+#define SLIP_TFESC 0xDD
 #endif
 
 #define SLIP_MAXBUF 500
@@ -176,7 +176,7 @@
 /*! Structure representing an NSP message.
 */
 typedef struct
-	{
+{
 	//! Destination Address
 	uint8_t dst;
 	//! Source Address
@@ -189,20 +189,24 @@ typedef struct
 	uint16_t size;
 	//! CRC
 	uint16_t crc;
-	} __attribute__((__may_alias__)) nsp_message;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} nsp_message;
+#else
+} __attribute__((__may_alias__)) nsp_message;
+#endif
 
 //! reaction wheel state
 /*! Internal structure storing the state and device information for a connected reaction wheel.
 */
 typedef struct
-	{
+{
 	//! Serial device
-//	char *dev;
+	//	char *dev;
 	string dev;
 	cssl_t *serial;
 	nsp_message mbuf;
 	double lmjd;
-	} sinclair_state;
+} sinclair_state;
 
 //! Star Tracker status
 /*! Structure for storing the state of the star tracker as read from
@@ -210,7 +214,7 @@ EDAC memory.
 */
 
 typedef struct
-	{
+{
 	uint8_t junk1[12];
 	int16_t detector_temperature;
 	uint16_t functional_temperature;
@@ -219,10 +223,14 @@ typedef struct
 	uint8_t vdd_mpu;
 	uint16_t junk2;
 	uint16_t dark_offsets[16];
-	} __attribute__((__may_alias__)) sinclair_stt_hardware_telemetry;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_hardware_telemetry;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_hardware_telemetry;
+#endif
 
 typedef struct
-	{
+{
 	uint16_t image1_good_rows;
 	uint16_t image2_good_rows;
 	float image1_mean[8];
@@ -232,17 +240,25 @@ typedef struct
 	float temporal_variation[8];
 	uint32_t junk1;
 	uint32_t junk2;
-	} __attribute__((__may_alias__)) sinclair_stt_statistics_telemetry;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_statistics_telemetry;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_statistics_telemetry;
+#endif
 
 typedef struct
-	{
+{
 	int32_t x;
 	int32_t y;
 	int32_t intensity;
-	} __attribute__((__may_alias__)) sinclair_stt_peak_entry;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_peak_entry;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_peak_entry;
+#endif
 
 typedef struct
-	{
+{
 	uint32_t initialization_flag;
 	int32_t return_code;
 	int32_t lit_pixel_count;
@@ -250,29 +266,41 @@ typedef struct
 	double exposure_error;
 	double capture_time;
 	sinclair_stt_peak_entry peaks[30];
-	} __attribute__((__may_alias__)) sinclair_stt_image_telemetry;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_image_telemetry;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_image_telemetry;
+#endif
 
 typedef struct
-	{
+{
 	uint32_t initialization_flag;
 	int32_t return_code;
 	int32_t star_mapping[10];
 	double fit_residual;
 	double angular_velocity_covariance[6];
-	} __attribute__((__may_alias__)) sinclair_stt_ers_telemetry;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_ers_telemetry;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_ers_telemetry;
+#endif
 
 typedef struct
-	{
+{
 	uint32_t initialization_flag;
 	int32_t return_code;
 	int32_t good_start_count;
 	uint32_t junk1;
 	double best_centroids[10][2];
 	double best_star_vectors[10][3];
-	} __attribute__((__may_alias__)) sinclair_stt_centroid_telemetry;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_centroid_telemetry;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_centroid_telemetry;
+#endif
 
 typedef struct
-	{
+{
 	uint32_t initialization_flag;
 	int32_t return_code;
 	uint32_t triangle_test_count;
@@ -287,10 +315,14 @@ typedef struct
 	int32_t matched_starts[10];
 	quaternion attitude;
 	double angular_velocity_covariance[6];
-	} __attribute__((__may_alias__)) sinclair_stt_matching_telemetry;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_matching_telemetry;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_matching_telemetry;
+#endif
 
 typedef struct
-	{
+{
 	float current_sense;
 	float bus_voltage;
 	float vdd_core;
@@ -299,10 +331,14 @@ typedef struct
 	float supervisor_temperature;
 	float vdd_supervisor;
 	float vdd_detector;
-	} __attribute__((__may_alias__)) sinclair_stt_analog_frame;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_analog_frame;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_analog_frame;
+#endif
 
 typedef struct
-	{
+{
 	uint32_t sequence_number;
 	uint32_t return_code;
 	quaternion attitude;
@@ -315,10 +351,14 @@ typedef struct
 	sinclair_stt_ers_telemetry ers;
 	sinclair_stt_centroid_telemetry ctelem[2];
 	sinclair_stt_matching_telemetry mtelem[2];
-	} __attribute__((__may_alias__)) sinclair_stt_result_operational;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_result_operational;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_result_operational;
+#endif
 
 typedef struct
-	{
+{
 	sinclair_stt_analog_frame step1;
 	sinclair_stt_analog_frame step2;
 	sinclair_stt_analog_frame step3;
@@ -336,13 +376,17 @@ typedef struct
 	sinclair_stt_analog_frame step13;
 	sinclair_stt_statistics_telemetry stelem;
 	sinclair_stt_analog_frame step14;
-	} __attribute__((__may_alias__)) sinclair_stt_result_selftest;
+#ifdef COSMOS_WIN_BUILD_MSVC
+} sinclair_stt_result_selftest;
+#else
+} __attribute__((__may_alias__)) sinclair_stt_result_selftest;
+#endif
 
 typedef union
-	{
+{
 	sinclair_stt_result_operational op;
 	sinclair_stt_result_selftest test;
-	} sinclair_stt_result;
+} sinclair_stt_result;
 //! @}
 
 //! \ingroup sinclair

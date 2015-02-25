@@ -3,7 +3,7 @@
 #include "demlib.h"
 #include "timelib.h"
 #include "datalib.h"
-#include <dirent.h>
+#include "dirent/dirent.h"
 #include <sys/stat.h>
 
 map_dem_body *bodies[20] = {NULL};
@@ -50,7 +50,7 @@ int map_dem_init()
 //		}
 	}
 	// Determine reasonable maxalloc, and whether we should run at all
-	for (maxalloc=1<<31; maxalloc>1<<27; maxalloc=maxalloc>>1)
+	for (maxalloc=1U<<31; maxalloc>1U<<27; maxalloc=maxalloc>>1)
 	{
 		if ((tptr=malloc(maxalloc)) != NULL)
 		{
@@ -127,7 +127,7 @@ map_dem_body *map_dem_open(int bodynum)
 	string tname;
 	FILE *fp, *fp1;
 	map_dem_body *body;
-	int i, j, iretn, iretn1, ir, ic, irmin, irmax, icmin, icmax;
+	int iretn, iretn1, ir, ic, irmin, irmax, icmin, icmax;
 	uint16_t demtype, dc;
 
 	if (bodies[bodynum-1] != NULL)
@@ -248,7 +248,7 @@ map_dem_body *map_dem_open(int bodynum)
 
 	// Now populate demindex matrix
 
-	for (i=0; i<dc; i++)
+	for (int32_t i=0; i<dc; i++)
 	{
 		irmin = (int)(200.*(DPI2+body->dems[i].latlr)/DPI);
 		if (irmin < 0)
@@ -266,6 +266,7 @@ map_dem_body *map_dem_open(int bodynum)
 				icmax = 399;
 			for (ic=icmin; ic<=icmax; ic++)
 			{
+				int32_t j;
 				for (j=0; j<body->demindexc[ir][ic]; j++)
 				{
 					if (body->demindexi[ir][ic][j] == i)

@@ -1,3 +1,4 @@
+#include "configCosmos.h"
 // COSMOS Library for Printing Vector and stuff like that to the stream
 
 #include "print_utils.h"

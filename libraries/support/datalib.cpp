@@ -264,7 +264,7 @@ vector <double> data_list_archive_days(string node, string agent)
 							if (data_isdir(dpath))
 							{
 								double jday = atof(td->d_name);
-								double mjd = cal2mjd2(year, 1, 0.) + jday;
+								double mjd = cal2mjd2((int)year, 1, 0.) + jday;
 								days.push_back(mjd);
 							}
 						}
@@ -317,7 +317,7 @@ vector<filestruc> data_list_archive(string node, string agent, double utc, strin
 				}
 				else
 				{
-					for (uint16_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
+					for (uint32_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
 					{
 						if (td->d_name[i] == '.')
 						{
@@ -392,7 +392,7 @@ int32_t data_list_files(string node, string location, string agent, vector<files
 				}
 				else
 				{
-					for (uint16_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
+					for (uint32_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
 					{
 						if (td->d_name[i] == '.')
 						{

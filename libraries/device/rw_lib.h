@@ -11,10 +11,9 @@
 #include "mathlib.h"
 #include "cosmos-errno.h"
 #include <cstring>
-#include <unistd.h>
-//#include <sys/select.h>
-#include <sys/time.h>
-//#include <sys/types.h>
+#ifndef COSMOS_WIN_BUILD_MSVC
+//#include <sys/time.h>
+#endif
 
 #define RW_ID 1
 #define RW_BAUD 9600

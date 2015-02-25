@@ -1,4 +1,4 @@
-#include <unistd.h>
+// #include <unistd.h>
 #include "microstrain_lib.h"
 #include "timelib.h"
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         //	printf("[%-+10.5g %-+10.5g %-+10.5g] [%-+12.5g %-+12.5g %-+12.5g] [%-+10.5g %-+10.5g %-+10.5g]\r",vaccel.col[0],vaccel.col[1],vaccel.col[2],vrate.col[0],vrate.col[1],vrate.col[2],mag.col[0],mag.col[1],mag.col[2]);
         //	printf("[%-+10.5g %-+10.5g %-+10.5g] [%-+10.5g %-+10.5g %-+10.5g] [%-+10.5g %-+10.5g %-+10.5g]\r",matrix.row[0].col[0],matrix.row[0].col[1],matrix.row[0].col[2],matrix.row[1].col[0],matrix.row[1].col[1],matrix.row[1].col[2],matrix.row[2].col[0],matrix.row[2].col[1],matrix.row[2].col[2]);
         fflush(stdout);
-        //	sleep(1);
+        //	COSMOS_SLEEP(1);
         count++;
     }
     iretn = microstrain_temperature(handle,&t1,&t2,&t3,&t4);

@@ -1,4 +1,4 @@
-#include <unistd.h>
+// #include <unistd.h>
 #include "microstrain_lib.h"
 #include "timelib.h"
 
@@ -55,7 +55,7 @@ while (count < 10000000L)
 	lastmjd = cmjd;
 	lsec = csec;
 	fflush(stdout);
-//	sleep(1);
+//	COSMOS_SLEEP(1);
 	}
 iretn = microstrain_temperature(handle,&t1,&t2,&t3,&t4);
 printf("\nTemperatures: %f %f %f %f\n",t1,t2,t3,t4);

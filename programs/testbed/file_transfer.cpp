@@ -1,7 +1,8 @@
+#include "configCosmos.h"
 #include <sys/stat.h>
 //#include <sys/types.h>
 #include <stdio.h>
-#include <dirent.h>
+#include "dirent/dirent.h"
 
 #include "agentlib.h"
 #include "jsonlib.h"

@@ -24,7 +24,7 @@
 #include <fstream>
 //#include <sstream>
 #include <string>
-#include <dirent.h>
+#include "dirent/dirent.h"
 #include <sys/stat.h>
 
 #define TRANSFER_QUEUE_SIZE 256

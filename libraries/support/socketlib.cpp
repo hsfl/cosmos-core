@@ -22,8 +22,6 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
 
 #ifdef COSMOS_WIN_OS
     unsigned long nonblocking = 1;
-    struct sockaddr_storage ss;
-    int sslen;
     WORD wVersionRequested;
     WSADATA wsaData;
     static bool started=false;
@@ -170,9 +168,10 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
         if (ntype == SOCKET_TYPE_MULTICAST)
         {
             //! 2. Join multicast
-            mreq.imr_multiaddr.s_addr = inet_addr(address);
-            mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-            if (setsockopt(channel->cudp, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
+			inet_pton(AF_INET,address,&mreq.imr_multiaddr.s_addr);
+//			mreq.imr_multiaddr.s_addr = inet_addr(address);
+//            mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+			if (setsockopt(channel->cudp, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
             {
                 CLOSE_SOCKET(channel->cudp);
                 channel->cudp = -errno;
@@ -196,9 +195,12 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
 #ifndef COSMOS_WIN_OS
             inet_pton(AF_INET,address,&channel->caddr.sin_addr);
 #else
-            sslen = sizeof(ss);
-            WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-            channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+			inet_pton(AF_INET,address,&channel->caddr.sin_addr);
+//			struct sockaddr_storage ss;
+//		    int sslen;
+//            sslen = sizeof(ss);
+//            WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+//            channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
 #endif
             break;
         }
@@ -208,9 +210,12 @@ int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address
 #ifndef COSMOS_WIN_OS
         inet_pton(AF_INET,address,&channel->caddr.sin_addr);
 #else
-        sslen = sizeof(ss);
-        WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-        channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+		inet_pton(AF_INET,address,&channel->caddr.sin_addr);
+//		struct sockaddr_storage ss;
+//	    int sslen;
+//        sslen = sizeof(ss);
+//        WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+//        channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
 #endif
         channel->cport = port;
 
@@ -434,11 +439,9 @@ vector<socket_channel> socket_find_addresses(uint16_t ntype)
 	socket_channel tiface;
 
 #ifdef COSMOS_WIN_OS
-	struct sockaddr_storage ss;
-	int sslen;
 	INTERFACE_INFO ilist[20];
 	unsigned long nbytes;
-	uint32_t nif, ssize;
+	uint32_t nif;
 	uint32_t ip, net, bcast;
 #else
 	struct ifconf confa;
@@ -481,7 +484,8 @@ vector<socket_channel> socket_find_addresses(uint16_t ntype)
 
 		for (uint32_t i=0; i<nif; i++)
 		{
-			strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+			inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
+//			strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
 			if (!strcmp(tiface.address,"127.0.0.1"))
 			{
 				continue;
@@ -503,10 +507,14 @@ vector<socket_channel> socket_find_addresses(uint16_t ntype)
 			tiface.baddr.sin_family = AF_INET;
 			if (ntype == SOCKET_TYPE_MULTICAST)
 			{
-				sslen = sizeof(ss);
-				WSAStringToAddressA((char *)COSMOSMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-				tiface.caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-				tiface.baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+				inet_pton(AF_INET,(char *)COSMOSMCAST,&tiface.caddr.sin_addr);
+				inet_pton(AF_INET,(char *)COSMOSMCAST,&tiface.baddr.sin_addr);
+//				struct sockaddr_storage ss;
+//			    int sslen;
+//				sslen = sizeof(ss);
+//				WSAStringToAddressA((char *)COSMOSMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+//				tiface.caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+//				tiface.baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
 			}
 			else
 			{
@@ -523,11 +531,14 @@ vector<socket_channel> socket_find_addresses(uint16_t ntype)
 				tiface.baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
 				tiface.baddr.sin_addr.S_un.S_addr = bcast;
 			}
-			((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
-			ssize = strlen(tiface.address);
-			WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
-			ssize = strlen(tiface.baddress);
-			WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
+//			struct sockaddr_storage ss;
+//			((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
+//			ssize = strlen(tiface.address);
+//			WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
+			inet_ntop(tiface.caddr.sin_family,&tiface.caddr.sin_addr,tiface.address,sizeof(tiface.address));
+//			ssize = strlen(tiface.baddress);
+//			WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
+			inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
 			tiface.type = ntype;
 			iface.push_back(tiface);
 		}

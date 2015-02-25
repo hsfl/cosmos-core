@@ -9,6 +9,19 @@
 //! \defgroup defs_macros Special COSMOS macros
 //!
 
+// Building under Windows
+#ifdef _WIN32
+
+//! // if we're compiling with MSVC
+#ifdef _MSC_BUILD
+#define COSMOS_WIN_BUILD_MSVC
+#endif
+
+#define NTDDI_VERSION NTDDI_WIN7
+#define _WIN32_WINNT _WIN32_WINNT_WIN7
+
+#endif // Building under Windows
+
 // for MSVC
 #define _CRT_SECURE_NO_DEPRECATE
 
@@ -75,11 +88,6 @@
 //! \addtogroup defs_macros
 //! @{
 //!
-//! // if we're compiling with MSVC
-#ifdef _MSC_BUILD
-#define COSMOS_WIN_BUILD_MSVC
-#endif
-
 #ifdef _MSC_BUILD
 #include <direct.h>
 #define COSMOS_MKDIR(dtemp, mode) _mkdir((char *)dtemp)
@@ -92,21 +100,10 @@
 #define COSMOS_SLEEP(sec) Sleep((uint32_t)((sec>=0.?sec:0)*1000))
 #define CLOSE_SOCKET(socket) closesocket(socket)
 //! @}
-//#define NTDDI_VERSION 0x06010000
-//#define _WIN32_WINNT 0x0601
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
 
-#include <windows.h>
-#include <winsock2.h>
-
-//#ifdef __MINGW32__
-#include <winsock2.h>
-#include <iphlpapi.h>
 #include <ws2tcpip.h>
-//#endif
-//#include <windows.h>
+#include <iphlpapi.h>
+#include <windows.h>
 #include <mmsystem.h>
 
 #ifdef __MINGW32__

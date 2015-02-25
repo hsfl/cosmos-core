@@ -18,6 +18,7 @@
  ****************************************************************************
 */
 
+#include "configCosmos.h"
 #include <iostream>
 #include <sstream>
 #include <string>

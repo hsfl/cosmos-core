@@ -7,7 +7,10 @@
 #include "agentlib.h"
 #include "gige_lib.h"
 #include "acq_a35.h"
+#include "elapsedtime.hpp"
+#ifndef COSMOS_WIN_BUILD_MSVC
 #include <sys/time.h>
+#endif
 
 #define IMAGESIZEMAX 86016
 
@@ -28,12 +31,14 @@ bool InitCamera(uint16_t width, uint16_t height, gige_handle* handle)
     int16_t a35Index;
 //    uint32_t myip;
     vector<gige_acknowledge_ack> gige_list;
-    struct timeval StartTime;
-    struct timeval PresentTime;
-    int64_t Duration, seconds, useconds;
+//    struct timeval StartTime;
+//    struct timeval PresentTime;
+//    int64_t Duration, seconds, useconds;
 
     // Get time for timeout
-    gettimeofday(&StartTime, NULL);
+//    gettimeofday(&StartTime, NULL);
+	ElapsedTime et;
+	et.start();
 
     do
 	{
@@ -44,11 +49,12 @@ bool InitCamera(uint16_t width, uint16_t height, gige_handle* handle)
         }
 
         // 2000ms timeout
-        gettimeofday(&PresentTime, NULL);
-        seconds  = PresentTime.tv_sec  - StartTime.tv_sec;
-        useconds = PresentTime.tv_usec - StartTime.tv_usec;
-        Duration = seconds*1000000.0 + useconds;
-        if(Duration > 2000000) break;   // Timeout
+//        gettimeofday(&PresentTime, NULL);
+//        seconds  = PresentTime.tv_sec  - StartTime.tv_sec;
+//        useconds = PresentTime.tv_usec - StartTime.tv_usec;
+//        Duration = seconds*1000000.0 + useconds;
+//        if(Duration > 2000000) break;   // Timeout
+		if (et.split() > 2.) break;
     } while(true);
 
 
@@ -172,9 +178,9 @@ bool GetCameraFrame(gige_handle* handle, uint16_t *A35FrameBuffer, uint32_t Imag
     uint32_t bsize=GIGE_MAX_PACKET;
     uint8_t PacketType;
     uint32_t PayloadSize, FramePtr;
-    struct timeval StartTime;
-    struct timeval PresentTime;
-    int64_t Duration, seconds, useconds;
+//    struct timeval StartTime;
+//    struct timeval PresentTime;
+//    int64_t Duration, seconds, useconds;
 
 
     PacketCount = 0;
@@ -192,7 +198,9 @@ bool GetCameraFrame(gige_handle* handle, uint16_t *A35FrameBuffer, uint32_t Imag
     }
 
     // Get time for timeout
-    gettimeofday(&StartTime, NULL);
+//    gettimeofday(&StartTime, NULL);
+	ElapsedTime et;
+	et.start();
 
 
 
@@ -209,14 +217,15 @@ bool GetCameraFrame(gige_handle* handle, uint16_t *A35FrameBuffer, uint32_t Imag
 
             if(bytes_recieved==-1)
 			{
-                usleep(5000);
+				COSMOS_USLEEP(5000);
 
                 // 500ms timeout
-                gettimeofday(&PresentTime, NULL);
-                seconds  = PresentTime.tv_sec  - StartTime.tv_sec;
-                useconds = PresentTime.tv_usec - StartTime.tv_usec;
-                Duration = seconds*1000000.0 + useconds;
-                if(Duration > 1000000)
+//                gettimeofday(&PresentTime, NULL);
+//                seconds  = PresentTime.tv_sec  - StartTime.tv_sec;
+//                useconds = PresentTime.tv_usec - StartTime.tv_usec;
+//                Duration = seconds*1000000.0 + useconds;
+//                if(Duration > 1000000)
+				if (et.split() > 1.)
 				{
                     printf("Timeout2\n");
                     return(false);   // Timeout

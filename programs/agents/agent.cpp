@@ -11,13 +11,14 @@
 //! - command specific Agents
 //! - monitor Agent traffic
 
+#include "configCosmos.h"
 #include <stdlib.h>
 #include "agentlib.h"
 #include "jsonlib.h"
 #include "physicslib.h"
 #include "datalib.h"
 #include "sys/stat.h"
-#include "dirent.h"
+#include "dirent/dirent.h"
 #include "limits.h"
 #include <iostream>
 

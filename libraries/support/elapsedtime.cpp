@@ -85,6 +85,7 @@ void ElapsedTime::tic(){
 double ElapsedTime::toc(){
 
     stop();
+	printElapsedTime();
 
     return elapsedTime;
 }
@@ -127,6 +128,31 @@ double ElapsedTime::stop(){
     time2 = chrono::steady_clock::now();
 
     elapsedTime = getElapsedTime();
+	return elapsedTime;
+}
+
+double ElapsedTime::split(){
+	//Get the final time
+	//gettimeofday(&time2, &x); //Get the final time
+
+	// On windows using MinGw32 it does not get better than 1ms
+	// new c++11
+	time2 = chrono::steady_clock::now();
+
+	elapsedTime = getElapsedTime();
+	return elapsedTime;
+}
+
+double ElapsedTime::reset(){
+	//Get the final time
+	//gettimeofday(&time2, &x); //Get the final time
+
+	// On windows using MinGw32 it does not get better than 1ms
+	// new c++11
+	time2 = chrono::steady_clock::now();
+
+	elapsedTime = getElapsedTime();
+	time1 = chrono::steady_clock::now();
 	return elapsedTime;
 }
 

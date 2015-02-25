@@ -1,3 +1,4 @@
+#include "configCosmos.h"
 #include <cstdio>
 #include <cstring>
 #include <cmath>
