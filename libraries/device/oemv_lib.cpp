@@ -832,7 +832,7 @@ int32_t oemv_gpgga(oemv_handle *handle)
 			if (field.size() != 9){
 				break;
 			}
-#ifndef stod
+#ifdef COSMOS_CYGWIN_OS
 			handle->message.geo.lat  = lat + strtod(field.substr(2,field.size()).c_str(), NULL)/60.;
 #else
 			handle->message.geo.lat  = lat + stod(field.substr(2,field.size()))/60.;
@@ -862,7 +862,7 @@ int32_t oemv_gpgga(oemv_handle *handle)
 			if (field.size() != 10){
 				break;
 			}
-#ifndef stod
+#ifdef COSMOS_CYGWIN_OS
 			handle->message.geo.lon  = lon + strtod(field.substr(2,field.size()).c_str(), NULL)/60.;
 #else
 			handle->message.geo.lon  = lon + stod(field.substr(3,field.size()))/60.;
