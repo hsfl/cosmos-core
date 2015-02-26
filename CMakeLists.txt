@@ -111,7 +111,7 @@ set(COSMOS_CORE_SUPPORT ${CORE}/libraries/support)
 set(COSMOS_PROJECT_USER ${CMAKE_SOURCE_DIR})
 
 if (MSVC)
-include_directories("${COSMOS_CORE_THIRDPARTY}/softagalleria_dirent")
+#include_directories("${COSMOS_CORE_THIRDPARTY}/softagalleria_dirent")
 endif ()
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
