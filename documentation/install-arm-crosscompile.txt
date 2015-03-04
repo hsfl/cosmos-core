@@ -87,7 +87,8 @@ but they should work similarly for other platforms.
 
 - Open Qt Creator 3.3
 - Open Tools->Options
-- Open Tab "Debuggers": Add a GDB debugger with Python enabled (see 
+- 20150303JC: Click on "Build and Run" Option on the left menu
+- Open Tab "Debuggers"
 section to build GDB with python enabled). If you downloaded the 
 Linaro toolchain for windows it may not have python enabled, but you can try
 just select the gdb debugger from the installation path, 
@@ -95,7 +96,7 @@ ex: C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin
 - Move to the next Tab "Compilers": Add a GCC compiler, in this case the ARM-LINUX-GNUEABIHF-G++ 4.9 cross compiler (or whatever else you have). 
 On windows the compiler path will be something like: C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin\arm-linux-gnueabihf-g++.exe
 - Move to the Tab "Kits": this is the important part!!! Create a new Kit a give it a name that describes well the the target that will run the code, ex. FlightComputer
--- On Device type choose "Generic Linux Device"
+-- On "Device Type" choose "Generic Linux Device" 
 -- On Device click Manage. Now you can add your target platform (make sure you can connect to it over an ip address or hostname). Click "Add", select "Generic Linux Device", "Start Wizard", type the info to connect to your device and finally go through the test step to make sure it works. You should see a report window saying something like: 
 "Connecting to host...
 Checking kernel version...
@@ -112,15 +113,39 @@ Click apply. Click on the "Build and Run" option on the left menu, go back to "K
 
 Go to the folder where your selected Qt version is installed.
 Ex.: C:\Qt\5.4\mingw491_32\mkspecs
-By default there is a folder linux-arm-gnueabihf-g++ already available. That would be for the mkspec "linux-arm-gnueabi-g++" but we need one for "linux-arm-gnueabihf-g++" (with hf). Copy the folder "linux-arm-gnueabi-g++" and paste it to the same level, rename it to be "linux-arm-gnueabihf-g++". Go inside the folder and open the file qmake.conf. Replace all instances of "gnueabi" to "gnueabihf". Save and close the file.
+Ex.: C:\Qt\Qt5.3.1\5.3\mingw482_32\mkspecs
+By default there is a folder linux-arm-gnueabihf-g++ already available. That would be for the mkspec "linux-arm-gnueabi-g++" but we need one for "linux-arm-gnueabihf-g++" (with hf added to gnueabi...). 
+  Copy the folder "linux-arm-gnueabi-g++" and paste it to the same level, rename it to be "linux-arm-gnueabihf-g++". 
+  Go inside the folder and open the file qmake.conf. 
+  Replace all instances of "gnueabi" to "gnueabihf". Save and close the file.
 
 The last thing we have to do is to add the path to the crosscompiler binaries to the PATH environment so that the mkspec file can find the right tools (you could instead just add the full path to the cross compiler tools in the qmake.conf file). 
 
-On Windows7 go to the Start Menu, right click on "Computer", select "Properties", select "Advanced System Settings", select "Environment variables", and on "System Variables" select the PATH variable and at the end of the line add the path to your cross compiler tools, ex: ";C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin". The final thing: you are going to need a make program in your PATH environment, the easiest thing to do is to copy "mingw32-make" into your cross compiler bin folder. Copy "mingw32-make" from "C:\Qt\Tools\mingw491_32\bin" (or wherever your have your qt mingw install) to "C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin" and rename the file to "make.exe".
+On Windows7 go to the Start Menu, right click on "Computer", select "Properties", select "Advanced System Settings", select "Environment variables", 
+  and on "System Variables" select the PATH variable and at the end of the line add the path to your cross compiler tools, 
+  ex: ";C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin". 
+  
+The final thing: you are going to need a make program in your PATH environment, 
+  the easiest thing to do is to copy "mingw32-make" into your cross compiler bin folder. 
+   Copy "mingw32-make" from "C:\Qt\Tools\mingw491_32\bin" (or wherever your have your qt mingw install) to "C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin" and rename the file to "make.exe".
 
 Now, everything should be set to go and you can start compiling the COSMOS code and deploy it to your ARM platform.
 
-Finally, let's just create a simple project and test the cross compilation steps. Open Qt Creator, a create a new project, select "Non-Qt Project" and "Plain C++ Project", select the folder and name for this this project. Select the Kit you just configured with your cross compiler, ex: Linaro. Hit "Finish". Click "ctr+b"
+Finally, let's just create a simple project and test the cross compilation steps. 
+Open Qt Creator, a create a new project, select "Non-Qt Project" and "Plain C++ Project", select the folder and name for this this project. 
+Select the Kit you just configured with your cross compiler, ex: Linaro. Hit "Finish". Click "ctr+b"
+
+Window -> Show Sidebar
+Edit .pro file for your project
+Add the following:
+
+	target.path = /root/work 
+	INSTALLS += target
+
+Where /root/work is your target computer's folder that will contain your deployed executables
+
+Now run your program, and it should deploy the executable to the target machine, and run it in "Application Output".
+ - To add command line arguments, click on the left side "Projects" -> Run (From your kit at the top, Run vs Build) -> Modify Run: Arguments
 
 
 Cross-compile using Qt Creator and Cmake files
@@ -157,7 +182,7 @@ On the Run configuration
 - Click the "Add" button and selec the program you want to run in the remote host. Ex: agent_adcs (on Remote Device)
 - check the box "use this command instead" and type /fligh_software/bin/agent_adcs
 - add the arguments your program needs
-- select working directory to be /fligh_software/bin
+- select working directory to be /flight_software/bin
 
 Now build it and run it to see if it works. You should be able to see the progress in the "compile output"
 
