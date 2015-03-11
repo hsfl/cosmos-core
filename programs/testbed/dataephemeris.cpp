@@ -11,7 +11,11 @@
 #ifndef COSMOS_WIN_BUILD_MSVC
 // #include <unistd.h>
 #endif
-#include "dirent/dirent.h"
+//#ifdef _MSC_BUILD
+//#include "dirent/dirent.h"
+//#else
+//#include <dirent.h>
+//#endif
 
 svector azel;
 vector<nodestruc> track;

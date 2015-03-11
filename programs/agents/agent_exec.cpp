@@ -31,7 +31,11 @@
 //! set to the actual time of execution.
 //!
 //! Usage: agent_exec node_name
-#include "dirent/dirent.h"
+//#ifdef _MSC_BUILD
+//#include "dirent/dirent.h"
+//#else
+//#include <dirent.h>
+//#endif
 #include <list>
 #include <fstream>
 #include <sstream>

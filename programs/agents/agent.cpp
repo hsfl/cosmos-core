@@ -18,7 +18,11 @@
 #include "physicslib.h"
 #include "datalib.h"
 #include "sys/stat.h"
-#include "dirent/dirent.h"
+//#ifdef _MSC_BUILD
+//#include "dirent/dirent.h"
+//#else
+//#include <dirent.h>
+//#endif
 #include "limits.h"
 #include <iostream>
 

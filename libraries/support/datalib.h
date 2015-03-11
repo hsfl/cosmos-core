@@ -16,10 +16,11 @@
 #include <iostream>
 #include <fstream>
 
-#ifndef COSMOS_WIN_BUILD_MSVC
-// #include <unistd.h>
-#endif
+#ifdef _MSC_BUILD
 #include "dirent/dirent.h"
+#else
+#include <dirent.h>
+#endif
 
 /*! \file datalib.h
 *	\brief Data Management header file

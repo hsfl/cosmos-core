@@ -3,7 +3,11 @@
 #include "demlib.h"
 #include "timelib.h"
 #include "datalib.h"
-#include "dirent/dirent.h"
+//#ifdef _MSC_BUILD
+//#include "dirent/dirent.h"
+//#else
+//#include <dirent.h>
+//#endif
 #include <sys/stat.h>
 
 map_dem_body *bodies[20] = {NULL};

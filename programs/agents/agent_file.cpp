@@ -24,7 +24,11 @@
 #include <fstream>
 //#include <sstream>
 #include <string>
-#include "dirent/dirent.h"
+//#ifdef _MSC_BUILD
+//#include "dirent/dirent.h"
+//#else
+//#include <dirent.h>
+//#endif
 #include <sys/stat.h>
 
 #define TRANSFER_QUEUE_SIZE 256

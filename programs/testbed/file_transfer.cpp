@@ -2,7 +2,11 @@
 #include <sys/stat.h>
 //#include <sys/types.h>
 #include <stdio.h>
-#include "dirent/dirent.h"
+//#ifdef _MSC_BUILD
+//#include "dirent/dirent.h"
+//#else
+//#include <dirent.h>
+//#endif
 
 #include "agentlib.h"
 #include "jsonlib.h"

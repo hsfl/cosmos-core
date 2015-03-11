@@ -338,6 +338,10 @@ vector<filestruc> data_list_archive(string node, string agent, double utc, strin
 	return files;
 }
 
+vector<filestruc> data_list_archive(string node, string agent, double utc)
+{
+	return data_list_archive(node, agent, utc, "");
+}
 
 //! Get list of files in a Node, directly.
 /*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
@@ -1121,7 +1125,7 @@ int32_t data_load_archive(string node, string agent, double utcbegin, double utc
 
 	result.clear();
 
-	for (double mjd = floor(utcbegin); mjd < floor(utcend); ++mjd)
+	for (double mjd = floor(utcbegin); mjd <= floor(utcend); ++mjd)
 	{
 		files = data_list_archive(node, agent, mjd, type);
 		for (filestruc file : files)
@@ -1129,7 +1133,11 @@ int32_t data_load_archive(string node, string agent, double utcbegin, double utc
 			iretn = data_name_date(file.name, year, jday, seconds);
 			if (iretn < 0)
 			{
-				return iretn;
+				continue;
+			}
+			if ((mjd == floor(utcbegin) && seconds/86400. < floor(utcbegin)-mjd) || (mjd == floor(utcend) && seconds/86400. > floor(utcend)-mjd))
+			{
+				continue;
 			}
 			tfd.open(file.name);
 			if (tfd.is_open())
