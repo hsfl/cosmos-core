@@ -612,7 +612,7 @@ typedef int32_t (*agent_request_function)(char* request_string, char* output_str
 typedef struct
 {
 	//! Character token for request
-	char token[COSMOS_MAX_NAME];
+    char token[COSMOS_MAX_NAME];
 	//! Pointer to function to call with request string as argument and returning any error
 	agent_request_function function;
 	string synopsis;
