@@ -1,0 +1,103 @@
+using the command line
+----------------------
+(check this excelent tutorial on git using the command line: http://alistapart.com/article/get-started-with-git)
+
+most common commands
+
+# check the status
+$ git status
+
+# add and commit to the staging area
+$ git commit -am "your message here"
+
+#  commit changes to server
+$ git push 
+
+# update your local branch
+$ git pull
+
+other commands
+
+$ git init
+
+# add new files from the local folder, -A removes files and adds new files from 
+$ git add . -A
+$ git rm -r folder/.
+
+$ git commit -m "README file"
+
+
+## commit changes to origin (server)
+$ git push origin master
+
+## to download/update the server repo 
+## this command is the same as running: git fetch origin + git merge origin/master
+$ git pull
+
+$git clean -n -d <path>
+will do a dry run of the command and show you just what files and folders are going to be removed
+
+$sudo git clean -d -f .
+removes all untracked files in current directory
+
+# reset the staged files, 
+$ git reset
+
+git configuration
+-----------------
+configure user name and email for local repository
+
+$ git config user.name "Your Name"
+$ git config user.email "your_email@example.com"
+
+configure user name and email for all repositories (global on your computer)
+$ git config --global user.name "whatever"
+$ git config --global user.email "whatever"
+
+$ git config --list
+
+
+configure ssh key
+-----------------
+in case you want to use encryption and avoid typing passwords ....
+there is one RSA per local git repository 
+
+create rsa key
+$ ssh-keygen
+
+example name for rsa key:
+bitbucket_yourusername_rsa
+
+edit ssh config file
+$ vi  ~/.ssh/config
+
+add the following lines to the config file:
+
+Host bitbucket-yourusername
+        User git
+        Hostname bitbucket.org
+        PreferredAuthentications publickey
+        IdentitiesOnly yes
+        IdentityFile ~/.ssh/bitbucket_yourusername
+
+now go back to your local repository folder
+
+let's change the remote url from HTTPS to SSH
+
+first list your existing remotes just to see how the look like
+$ git remote -v
+
+now change the remote url (notice that the host name has to match what you typed in the ssh config file, e.g. bitbucket-yourusername )
+$ git remote set-url origin git@bitbucket-yourusername:cosmos/thirdparty.git
+
+you could alternativelly have directly done this by editing the git config file
+$ vi .git/config
+
+finally don't forget to add the ssh key to your bitbucket account: 
+go to  Manage Account-> SSH keys-> Add key
+
+the label can be anything, but the key must be copied from the rsa.pub (public) key that you generated:
+cat ~/.ssh/bitbucket_yourusername_rsa.pub | pbcopy
+
+
+
