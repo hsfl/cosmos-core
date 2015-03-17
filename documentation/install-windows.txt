@@ -38,7 +38,11 @@ compliant with C++11. From this link you can download MSVC 2013 express
 and the Debugging Tools for Windows: 
 https://msdn.microsoft.com/en-us/windows/hardware/hh852365
 
-If MSVC was correctly installed Qt Creator will automatically detect MSVC and CDB. Make sure you have the msvc2013 64-bit OpenGL version of Qt for 5.4 ( you may check/install this with the MaintenanceTool.exe inside the Qt installation folder (typically C:\Qt). Finally just make sure you have a Qt kit setup for MSVC.
+If MSVC was correctly installed Qt Creator will automatically detect MSVC 
+and CDB. Make sure you have the msvc2013 64-bit OpenGL version of Qt for 5.4 
+(you may check/install this with the MaintenanceTool.exe inside the Qt 
+installation folder (typically C:\Qt). Finally just make sure you have a 
+Qt kit setup for MSVC.
 
 Cross-compiling on Windows for ARM
 ----------------------------------
