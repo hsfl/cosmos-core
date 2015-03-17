@@ -28,4 +28,4 @@ MODULES += sliplib
 MODULES += zlib
 include( $$COSMOS/core/qt/cosmos.pri )
 
-SOURCES += agent_001_msvc.cpp
+SOURCES += agent_001.cpp
