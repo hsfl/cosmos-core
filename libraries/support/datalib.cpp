@@ -193,7 +193,7 @@ void log_move(string node, string agent, string srclocation, string dstlocation,
 
 			do
 			{
-				size_t nbytes = fread(buffer, 1, 8192, fin);
+				unsigned nbytes = (unsigned)fread(buffer, 1, 8192, fin);
 				if (nbytes)
 				{
 					gzwrite(gzfout, buffer, nbytes);
@@ -317,7 +317,7 @@ vector<filestruc> data_list_archive(string node, string agent, double utc, strin
 				}
 				else
 				{
-					for (uint32_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
+					for (size_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
 					{
 						if (td->d_name[i] == '.')
 						{
@@ -329,7 +329,11 @@ vector<filestruc> data_list_archive(string node, string agent, double utc, strin
 				// Not looking for a specific type, or found type we were looking for
 				if (type.empty() || tf.type == type)
 				{
-					files.push_back(tf);
+					int32_t iretn = data_name_date(tf.node, tf.name, tf.year, tf.jday, tf.seconds);
+					if (iretn == 0)
+					{
+						files.push_back(tf);
+					}
 				}
 			}
 		}
@@ -369,7 +373,7 @@ vector<filestruc> data_list_files(string node, string location, string agent)
  * \param agent Subdirectory of location to search.
  * \return Number of files found, otherwise negative error.
  */
-int32_t data_list_files(string node, string location, string agent, vector<filestruc>& files)
+size_t data_list_files(string node, string location, string agent, vector<filestruc>& files)
 {
 	string dtemp;
 	DIR *jdp;
@@ -396,7 +400,7 @@ int32_t data_list_files(string node, string location, string agent, vector<files
 				}
 				else
 				{
-					for (uint32_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
+					for (size_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
 					{
 						if (td->d_name[i] == '.')
 						{
@@ -554,9 +558,9 @@ string data_name(string node, double mjd, string type)
  * \param seconds Holder for integer julian seconds.
  * \return 0 or negative error.
  */
-int32_t data_name_date(string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds)
+int32_t data_name_date(string node, string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds)
 {
-	if (sscanf(filename.c_str(), "%4" SCNu16 "%3" SCNu16 "%5" SCNu32 "", &year, &jday, &seconds) == 3 && seconds < 86400 && jday < 367)
+	if (sscanf(filename.substr(node.size()+1).c_str(), "%4" SCNu16 "%3" SCNu16 "%5" SCNu32 "", &year, &jday, &seconds) == 3 && seconds < 86400 && jday < 367)
 	{
 		return 0;
 	}
@@ -573,13 +577,13 @@ int32_t data_name_date(string filename, uint16_t &year, uint16_t &jday, uint32_t
  * \param utc Holder for returned utc.
  * \return 0 or negative error.
  */
-int32_t data_name_date(string filename, double &utc)
+int32_t data_name_date(string node, string filename, double &utc)
 {
 	uint16_t year;
 	uint16_t jday;
 	uint32_t seconds;
 
-	int32_t iretn = data_name_date(filename, year, jday, seconds);
+	int32_t iretn = data_name_date(node, filename, year, jday, seconds);
 
 	if (!iretn)
 	{
@@ -612,7 +616,7 @@ string data_base_path(string node, string location, string agent, string filenam
 			uint16_t year;
 			uint16_t jday;
 			uint32_t seconds;
-			int32_t iretn = data_name_date(filename, year, jday, seconds);
+			int32_t iretn = data_name_date(node, filename, year, jday, seconds);
 			if (!iretn)
 			{
 				char tbuf[10];
@@ -835,7 +839,7 @@ FILE *data_open(string path, char *mode)
 	uint32_t index, dindex, length;
 	FILE *tfd;
 
-	length = path.size();
+	length = (uint32_t)path.size();
 	for (dindex=length-1; dindex<length; --dindex)
 	{
 		if (path[dindex] == '/')
@@ -1115,11 +1119,8 @@ string set_nodedir(string node)
  */
 int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, vector<string> &result)
 {
-	uint16_t year, jday;
-	uint32_t seconds;
 	ifstream tfd;
 	string tstring;
-	int32_t iretn;
 	vector <filestruc> files;
 
 
@@ -1130,16 +1131,11 @@ int32_t data_load_archive(string node, string agent, double utcbegin, double utc
 		files = data_list_archive(node, agent, mjd, type);
 		for (filestruc file : files)
 		{
-			iretn = data_name_date(file.name, year, jday, seconds);
-			if (iretn < 0)
+			if ((mjd == floor(utcbegin) && file.seconds/86400. < utcbegin-mjd) || (mjd == floor(utcend) && file.seconds/86400. > utcend-mjd))
 			{
 				continue;
 			}
-			if ((mjd == floor(utcbegin) && seconds/86400. < floor(utcbegin)-mjd) || (mjd == floor(utcend) && seconds/86400. > floor(utcend)-mjd))
-			{
-				continue;
-			}
-			tfd.open(file.name);
+			tfd.open(file.path);
 			if (tfd.is_open())
 			{
 				while (getline(tfd,tstring))

@@ -501,7 +501,7 @@ typedef struct
 	//! JSON Data Group
 	uint16_t group;
 	//! Name of entry
-	char *name;
+	string name;
 	//! offset to data storage
 	ptrdiff_t offset;
 	//! size of data storage
@@ -538,7 +538,7 @@ typedef struct
  */
 typedef struct
 {
-	jsonhandle handle;
+	jsonentry entry;
 	vector <uint8_t> data;
 } json_token;
 

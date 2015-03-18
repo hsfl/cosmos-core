@@ -252,7 +252,7 @@ map_dem_body *map_dem_open(int bodynum)
 
 	// Now populate demindex matrix
 
-	for (int32_t i=0; i<dc; i++)
+	for (uint16_t i=0; i<dc; i++)
 	{
 		irmin = (int)(200.*(DPI2+body->dems[i].latlr)/DPI);
 		if (irmin < 0)
@@ -270,7 +270,7 @@ map_dem_body *map_dem_open(int bodynum)
 				icmax = 399;
 			for (ic=icmin; ic<=icmax; ic++)
 			{
-				int32_t j;
+				uint16_t j;
 				for (j=0; j<body->demindexc[ir][ic]; j++)
 				{
 					if (body->demindexi[ir][ic][j] == i)
@@ -285,8 +285,6 @@ map_dem_body *map_dem_open(int bodynum)
 				}
 				if (body->demindexc[ir][ic] > maxcount)
 				{
-//					maxir = ir;
-//					maxic = ic;
 					maxcount = body->demindexc[ir][ic];
 				}
 			}
@@ -437,7 +435,7 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 		sdem->pixel.resize(sdem->ycount);
 		if (sdem->pixel.size() != sdem->ycount)
 		{
-			maxalloc *= .9;
+			maxalloc = (uint32_t)(.9 * maxalloc);
 			return (pixel);
 		}
 		for (i=0; i<sdem->ycount; i++)
@@ -446,7 +444,7 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 			if (sdem->pixel[i].size() != sdem->xcount)
 			{
 				sdem->pixel.clear();
-				maxalloc *= .9;
+				maxalloc = (uint32_t)(.9 * maxalloc);
 				return (pixel);
 			}
 			size_t count = fread(sdem->pixel[i].data(),sizeof(dem_pixel),sdem->xcount,fp);
@@ -483,8 +481,8 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 	pixel = sdem->pixel[drow][dcol];
 //	sem_post(bsem);
 	bsem.unlock();
-	pixel.alt *= bodies[body-1]->vscale;
-	pixel.nmap[2] *= bodies[body-1]->htov;
+	pixel.alt = (float)(pixel.alt * bodies[body-1]->vscale);
+	pixel.nmap[2] = (float)(pixel.nmap[2] * bodies[body-1]->htov);
 
 	return (pixel);
 }

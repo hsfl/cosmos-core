@@ -430,8 +430,7 @@ uint16_t json_hash(string hstring)
 uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit)
 {
 	jsonentry tentry;
-	int32_t namelen;
-	uint32_t csize;
+	size_t csize;
 	uint16_t hash;
 	char ename[COSMOS_MAX_NAME];
 
@@ -442,11 +441,11 @@ uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t off
 	if (d2 < 65535)
 		sprintf(&ename[strlen(ename)],"_%03u",d2);
 
-	namelen = strlen(ename)+1;
-	if ((tentry.name = (char *)calloc(1,namelen)) == NULL)
-	{
-		return 0;
-	}
+//	namelen = strlen(ename)+1;
+//	if ((tentry.name = (char *)calloc(1,namelen)) == NULL)
+//	{
+//		return 0;
+//	}
 
 	hash = json_hash(ename);
 
@@ -458,14 +457,15 @@ uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t off
 	tentry.unit_index = unit;
 	tentry.type = type;
 	tentry.group = group;
-	strcpy(tentry.name,ename);
+//	strcpy(tentry.name,ename);
+	tentry.name = ename;
 	tentry.offset = offset;
 	tentry.size = size;
 	csize = cdata[0].jmap[hash].size();
 	cdata[0].jmap[hash].push_back(tentry);
 	if (cdata[0].jmap[hash].size() != csize+1)
 	{
-		free(tentry.name);
+//		free(tentry.name);
 		return 0;
 	}
 
@@ -485,7 +485,7 @@ uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t off
 	\param cdata Pointer to ::cosmosstruc being used.
 	\return Number of JSON items mapped, otherwise zero.
 */
-uint32_t json_count_hash(uint16_t hash, cosmosstruc *cdata)
+size_t json_count_hash(uint16_t hash, cosmosstruc *cdata)
 {
 	return (cdata[0].jmap[hash].size());
 }
@@ -496,9 +496,9 @@ uint32_t json_count_hash(uint16_t hash, cosmosstruc *cdata)
 	\return total number of JSON items mapped, otherwise zero.
 */
 
-uint32_t json_count_total(cosmosstruc *cdata)
+size_t json_count_total(cosmosstruc *cdata)
 {
-	uint32_t i = 0;
+	size_t i = 0;
 
 	for(uint32_t j = 0; j < cdata[0].jmap.size(); ++j)
 		i += json_count_hash((uint16_t)j,cdata);
@@ -552,14 +552,14 @@ int32_t json_out_entry(string &jstring, jsonentry* entry, cosmosstruc *cdata)
 	return (iretn);
 }
 
-int32_t json_out_value(string &jstring, char *name, uint8_t *data, uint16_t type, cosmosstruc *cdata)
+int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t type, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
 	if (!cdata || !cdata[0].jmapped)
 		return (JSON_ERROR_NOJMAP);
 
-	if ((iretn=json_out_name(jstring,name)) != 0)
+	if ((iretn=json_out_name(jstring ,name)) != 0)
 		return (iretn);
 
 	switch (type)
@@ -712,11 +712,11 @@ int32_t json_out_character(string &jstring,char character)
 	\param name The Object Name
 	\return  0 if successful, otherwise negative error.
 */
-int32_t json_out_name(string &jstring,char *name)
+int32_t json_out_name(string &jstring, string name)
 {
 	int32_t iretn;
 
-	if ((iretn=json_out_string(jstring,name,COSMOS_MAX_NAME)) < 0)
+	if ((iretn=json_out_string(jstring, name, COSMOS_MAX_NAME)) < 0)
 		return (iretn);
 	if ((iretn=json_out_character(jstring,':')) < 0)
 		return (iretn);
@@ -830,7 +830,7 @@ int32_t json_out_double(string &jstring,double value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_string(string &jstring,char *string, uint16_t len)
+int32_t json_out_string(string &jstring, string ostring, uint16_t len)
 {
 	int32_t iretn;
 	uint16_t i;
@@ -842,25 +842,25 @@ int32_t json_out_string(string &jstring,char *string, uint16_t len)
 	if ((iretn=json_out_character(jstring,'"')) < 0)
 		return (iretn);
 
-	for (i=0; i<strlen(string); i++)
+	for (i=0; i<ostring.size(); i++)
 	{
 		if (i > len)
 		{
 			break;
 		}
 
-		if (string[i] == '"' || string[i] == '\\' || string[i] == '/')
+		if (ostring[i] == '"' || ostring[i] == '\\' || ostring[i] == '/')
 		{
 			if ((iretn=json_out_character(jstring,'\\')) < 0)
 				return (iretn);
-			if ((iretn=json_out_character(jstring,string[i])) < 0)
+			if ((iretn=json_out_character(jstring, ostring[i])) < 0)
 				return (iretn);
 		}
-		else if (string[i] < 32)
+		else if (ostring[i] < 32)
 		{
 			if ((iretn=json_out_character(jstring,'\\')) < 0)
 				return (iretn);
-			switch (string[i])
+			switch (ostring[i])
 			{
 			case '\b':
 				if ((iretn=json_out_character(jstring,'b')) < 0)
@@ -885,14 +885,14 @@ int32_t json_out_string(string &jstring,char *string, uint16_t len)
 			default:
 				if ((iretn=json_out_character(jstring,'u')) < 0)
 					return (iretn);
-				sprintf(tstring,"%04x",string[i]);
+				sprintf(tstring,"%04x", ostring[i]);
 				if ((iretn=json_out_string(jstring,tstring,4)) < 0)
 					return (iretn);
 			}
 		}
-		else if (string[i] < 127)
+		else if (ostring[i] < 127)
 		{
-			if ((iretn=json_out_character(jstring,string[i])) < 0)
+			if ((iretn=json_out_character(jstring, ostring[i])) < 0)
 				return (iretn);
 		}
 		else
@@ -901,7 +901,7 @@ int32_t json_out_string(string &jstring,char *string, uint16_t len)
 				return (iretn);
 			if ((iretn=json_out_character(jstring,'u')) < 0)
 				return (iretn);
-			sprintf(tstring,"%04x",string[i]);
+			sprintf(tstring,"%04x", ostring[i]);
 			if ((iretn=json_out_string(jstring,tstring,4)) < 0)
 				return (iretn);
 		}
@@ -1830,8 +1830,11 @@ int32_t json_out(string &jstring, string token, cosmosstruc *cdata)
 		return (JSON_ERROR_NOJMAP);
 
 	for (h.index=0; h.index<cdata[0].jmap[h.hash].size(); ++h.index)
-		if (!strcmp(token.c_str(),cdata[0].jmap[h.hash][h.index].name))
-			return (json_out_handle(jstring,h,cdata));
+//		if (!strcmp(token.c_str(),cdata[0].jmap[h.hash][h.index].name))
+		if (token == cdata[0].jmap[h.hash][h.index].name)
+		{
+			return (json_out_handle(jstring, h, cdata));
+		}
 
 	return (JSON_ERROR_NOENTRY);
 }
@@ -1874,7 +1877,7 @@ int32_t json_out_list(string &jstring,const char *tokens, cosmosstruc *cdata)
 	\return  0 if successful, negative error otherwise
 */
 
-int32_t json_out_wildcard(string &jstring,const char *wildcard, cosmosstruc *cdata)
+int32_t json_out_wildcard(string &jstring, string wildcard, cosmosstruc *cdata)
 {
 	int32_t iretn=0;
 	jsonhandle h;
@@ -1883,9 +1886,9 @@ int32_t json_out_wildcard(string &jstring,const char *wildcard, cosmosstruc *cda
 	{
 		for (h.index=0; h.index<cdata[0].jmap[h.hash].size(); ++h.index)
 		{
-			if (string_cmp(wildcard,cdata[0].jmap[h.hash][h.index].name))
+			if (string_cmp(wildcard.c_str(),cdata[0].jmap[h.hash][h.index].name.c_str()))
 			{
-				iretn = json_out_handle(jstring,h,cdata);
+				iretn = json_out_handle(jstring, h, cdata);
 			}
 		}
 	}
@@ -1990,7 +1993,7 @@ int32_t json_table_of_list(vector<jsonentry*> &table, const char *tokens, cosmos
 jsonentry *json_entry_of_ptr(uint8_t *ptr, cosmosstruc *cdata)
 {
 	uint16_t n, m;
-	uint16_t group;
+	uint16_t group = UINT16_MAX;
 	ptrdiff_t offset;
 
 	if (!cdata || !cdata[0].jmapped)
@@ -2071,7 +2074,8 @@ jsonentry *json_entry_of_name(string token, cosmosstruc *cdata)
 
 	for (n=0; n<cdata[0].jmap[hash].size(); n++)
 	{
-		if (!strcmp(token.c_str(),cdata[0].jmap[hash][n].name))
+//		if (!strcmp(token.c_str(),cdata[0].jmap[hash][n].name))
+		if (token == cdata[0].jmap[hash][n].name)
 		{
 			return ((jsonentry *)&cdata[0].jmap[hash][n]);
 		}
@@ -2414,16 +2418,16 @@ uint32_t json_get_uint_name_2d(string token, uint16_t index1, uint16_t index2, c
 double json_get_double_name(string token, cosmosstruc *cdata)
 {
 	double value=0.;
-	jsonentry *ptr;
+	jsonentry *entry;
 	const char* tokenp = &token[0];
 
 	if (!std::isnan(value=json_equation(&tokenp, cdata)))
 		return (value);
 
-	if ((ptr=json_entry_of_name(token,cdata)) == NULL)
+	if ((entry=json_entry_of_name(token,cdata)) == NULL)
 		return (NAN);
 
-	if (!std::isnan(value=json_get_double_entry(ptr, cdata)))
+	if (!std::isnan(value=json_get_double_entry(entry, cdata)))
 		return (value);
 
 	return (NAN);
@@ -2436,36 +2440,57 @@ double json_get_double_name(string token, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a double, or 0.
 */
-double json_get_double_entry(jsonentry *ptr, cosmosstruc *cdata)
+double json_get_double_entry(jsonentry *entry, cosmosstruc *cdata)
 {
 	uint8_t *data=nullptr;
 	double value=0.;
 
-	data = json_ptr_of_offset(ptr->offset,ptr->group,cdata);
+	data = json_ptr_of_offset(entry->offset,entry->group,cdata);
+	if (data == nullptr)
+	{
+		return 0.;
+	}
+	else
+	{
+		value = json_get_double_pointer(entry->type, data);
+		return value;
+	}
+}
 
-	switch (ptr->type)
+//! Return double from pointer.
+/*! Cast the data in the provided pointer to its native type, and then
+ * convert this to a double, if at all possible.
+ \param entry Pointer to a valid COSMOS Namespace entry.
+ \param pointer Pointer to memory space where data is stored.
+ \return Value cast as a double, or 0.
+*/
+double json_get_double_pointer(uint16_t type, uint8_t *pointer)
+{
+	double value;
+
+	switch (type)
 	{
 	case JSON_TYPE_UINT16:
-		value = (double)(*(uint16_t *)(data));
+		value = (double)(*(uint16_t *)(pointer));
 		break;
 	case JSON_TYPE_UINT32:
-		value = (double)(*(uint32_t *)(data));
+		value = (double)(*(uint32_t *)(pointer));
 		break;
 	case JSON_TYPE_INT16:
-		value = (double)(*(int16_t *)(data));
+		value = (double)(*(int16_t *)(pointer));
 		break;
 	case JSON_TYPE_INT32:
-		value = (double)(*(int32_t *)(data));
+		value = (double)(*(int32_t *)(pointer));
 		break;
 	case JSON_TYPE_FLOAT:
-		value = (double)(*(float *)(data));
+		value = (double)(*(float *)(pointer));
 		break;
 	case JSON_TYPE_DOUBLE:
 	case JSON_TYPE_TIMESTAMP:
-		value = (double)(*(double *)(data));
+		value = (double)(*(double *)(pointer));
 		break;
 	case JSON_TYPE_STRING:
-		value = atol((char *)data);
+		value = atol((char *)pointer);
 		break;
 	default:
 		value = 0;
@@ -2807,7 +2832,8 @@ string json_convert_string(string object)
 int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector <json_token> &tokens)
 {
 	const char *cpoint;
-	int32_t length, iretn;
+	size_t length;
+	int32_t iretn;
 	json_token ttoken;
 
 	length = jstring.size();
@@ -2831,12 +2857,12 @@ int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector <json_token> &t
 		}
 		else
 			iretn = JSON_ERROR_EOS;
-	} while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (cpoint-&jstring[0]) <= length);
+	} while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
 
-	if (!iretn) iretn = tokens.size();
+	if (!iretn) iretn = (int32_t)tokens.size();
 	return (iretn);}
 
-//! Toeknize next JSON Named Pair
+//! Tokenize next JSON Named Pair
 /*! Extract the next Named Pair from the provided JSON stream and place it in a ::json_token.
  * Leave pointer at the next Object in the string.
  * \param pointer Pointer to a pointer to a JSON stream.
@@ -2846,9 +2872,9 @@ int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector <json_token> &t
 */
 int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json_token &token)
 {
-	uint32_t n;
 	int32_t iretn=0;
 	string ostring;
+	uint16_t hash, index;
 
 	if (!(cdata[0].jmapped))
 	{
@@ -2880,17 +2906,18 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 	}
 
 	// Calculate hash
-	token.handle.hash = json_hash(ostring);
+	hash = json_hash(ostring);
 
 	// See if there is a match in the ::jsonmap.
-	for (token.handle.index=0; token.handle.index<cdata[0].jmap[token.handle.hash].size(); ++n)	{
-		if (!strcmp(ostring.c_str(),cdata[0].jmap[token.handle.hash][token.handle.index].name))
+	for (index=0; index<cdata[0].jmap[hash].size(); ++index)	{
+		if (ostring == cdata[0].jmap[hash][index].name)
 		{
 			break;
 		}
 	}
 
-	if (token.handle.index == cdata[0].jmap[token.handle.hash].size())	{
+	if (index == cdata[0].jmap[hash].size())
+	{
 		if ((iretn = json_skip_value(pointer)) < 0 && iretn != JSON_ERROR_EOS)
 		{
 			return (iretn);
@@ -2924,8 +2951,9 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 			else
 				return (iretn);
 		}
-		token.data.resize(cdata[0].jmap[token.handle.hash][token.handle.index].size);
-		if ((iretn = json_parse_value(pointer,cdata[0].jmap[token.handle.hash][token.handle.index].type,0,JSON_GROUP_ABSOLUTE,(cosmosstruc *)token.data.data())) < 0)
+		token.entry = cdata[0].jmap[hash][index];
+		token.data.resize(token.entry.size);
+		if ((iretn = json_parse_value(pointer,token.entry.type,0,JSON_GROUP_ABSOLUTE,(cosmosstruc *)token.data.data())) < 0)
 		{
 			if (iretn != JSON_ERROR_EOS)
 			{
@@ -2961,7 +2989,8 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 int32_t json_parse(string jstring, cosmosstruc *cdata)
 {
 	const char *cpoint;
-	int32_t length, iretn;
+	size_t length;
+	int32_t iretn;
 	uint32_t count = 0;
 
 	length = jstring.size();
@@ -2986,7 +3015,7 @@ int32_t json_parse(string jstring, cosmosstruc *cdata)
 		}
 		else
 			iretn = JSON_ERROR_EOS;
-	} while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (cpoint-&jstring[0]) <= length);
+	} while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
 
 	if (!iretn) iretn = count;
 	return (iretn);
@@ -3039,7 +3068,7 @@ int32_t json_parse_namedobject(const char** pointer, cosmosstruc *cdata)
 
 	// See if there is a match in the ::jsonmap.
 	for (n=0; n<cdata[0].jmap[hash].size(); ++n)	{
-		if (!strcmp(ostring.c_str(),cdata[0].jmap[hash][n].name))
+		if (ostring == cdata[0].jmap[hash][n].name)
 		{
 			break;
 		}
@@ -3180,7 +3209,7 @@ int32_t json_parse_equation(const char **pointer, string& equation)
 	int32_t iretn = 0;
 	register uint16_t i2;
 	uint16_t index, depth=1;
-	uint32_t ilen;
+	size_t ilen;
 
 	if ((*pointer)[0] == 0)
 		return (JSON_ERROR_EOS);
@@ -3316,7 +3345,7 @@ int32_t json_parse_string(const char **pointer, string &ostring)
 {
 	int32_t iretn = 0;
 	register uint32_t i2;
-	uint32_t ilen;
+	size_t ilen;
 
 	if ((*pointer)[0] == 0)
 		return (JSON_ERROR_EOS);
@@ -3397,7 +3426,8 @@ int32_t json_parse_string(const char **pointer, string &ostring)
 int32_t json_parse_number(const char **pointer, double *number)
 {
 	int32_t iretn = 0;
-	uint32_t i1, ilen;
+	uint32_t i1;
+	size_t ilen;
 
 	if ((*pointer)[0] == 0)
 		return (JSON_ERROR_EOS);
@@ -5049,7 +5079,7 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 	\param cdata Pointer to cdata ::cosmosstruc to be used.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_wildcard(string &jstring, char *wildcard, cosmosstruc *cdata)
+const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -5957,7 +5987,7 @@ const char *json_devices_general(string &jstring, cosmosstruc *cdata)
 */
 const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 {
-	uint16_t cnt;
+	uint16_t *cnt;
 	char tstring[COSMOS_MAX_NAME];
 
 	jstring.clear();
@@ -5965,9 +5995,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 	for (uint16_t i=0; i<DEVICE_TYPE_COUNT; ++i)
 	{
 		sprintf(tstring,"device_%s_cnt",device_type_string[i].c_str());
-		if ((cnt=*(uint16_t *)json_ptrto(tstring,cdata)))
+		if ((cnt=(uint16_t *)json_ptrto(tstring,cdata)) != nullptr && *cnt != 0)
 		{
-			for (uint16_t j=0; j<cnt; ++j)
+			for (uint16_t j=0; j<*cnt; ++j)
 			{
 				// Dump ploads
 				if (!strcmp(device_type_string[i].c_str(),"pload"))
@@ -6239,7 +6269,7 @@ void json_test(cosmosstruc *cdata)
 		{
 			hash = json_hash(cdata[0].jmap[i][j].name);
 
-			printf("%s %d %d %ld\n",cdata[0].jmap[i][j].name,i,j,hash);
+			printf("%s %d %d %ld\n",cdata[0].jmap[i][j].name.c_str(),i,j,hash);
 
 			hashcount[hash]++;
 		}
@@ -6267,8 +6297,10 @@ int32_t json_name_map(string name, cosmosstruc *cdata, jsonhandle *handle)
 	handle->hash = json_hash(name);
 
 	for (handle->index=0; handle->index<cdata[0].jmap[handle->hash].size(); ++handle->index)
-		if (!strcmp(name.c_str(),cdata[0].jmap[handle->hash][handle->index].name))
+		if (name == cdata[0].jmap[handle->hash][handle->index].name)
+		{
 			return 0;
+		}
 
 	return (JSON_ERROR_NOENTRY);
 }
@@ -6287,7 +6319,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cdata, jsonhandle *handl
 	jsonequation tequation;
 	char ops[] = "+-*/%&|><=!~";
 	int32_t iretn;
-	int32_t textlen;
+	size_t textlen;
 
 	if (!cdata || !cdata[0].jmapped)
 		return (JSON_ERROR_NOJMAP);
@@ -6348,7 +6380,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cdata, jsonhandle *handl
 	// Populate the equation
 	strcpy(tequation.text,equation.c_str());
 	
-	handle->index = cdata[0].emap[handle->hash].size();
+	handle->index = (uint16_t)cdata[0].emap[handle->hash].size();
 	cdata[0].emap[handle->hash].push_back(tequation);
 	if (cdata[0].emap[handle->hash].size() != handle->index+1u)
 	{
@@ -6556,13 +6588,13 @@ int32_t node_calc(cosmosstruc *cdata)
 					tv1 = rv_sub(cdata[0].piece[n].points[i+1],cdata[0].piece[n].centroid);
 					dv = rv_sub(tv1,tv0);
 					sv = rv_add(tv1,tv0);
-					cdata[0].piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]))/2.;
+					cdata[0].piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]))/2.f;
 				}
 				tv0 = rv_sub(cdata[0].piece[n].points[cdata[0].piece[n].pnt_cnt-1],cdata[0].piece[n].centroid);
 				tv1 = rv_sub(cdata[0].piece[n].points[0],cdata[0].piece[n].centroid);
 				dv = rv_sub(tv1,tv0);
 				sv = rv_add(tv1,tv0);
-				cdata[0].piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]))/2.;
+				cdata[0].piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]))/2.f;
 				tv0 = cdata[0].piece[n].points[0];
 				tv1 = cdata[0].piece[n].points[1];
 				tv2 = cdata[0].piece[n].points[2];
@@ -6587,7 +6619,7 @@ int32_t node_calc(cosmosstruc *cdata)
 				tv1 = rv_sub(cdata[0].piece[n].points[0],cdata[0].piece[n].centroid);
 				dv = rv_sub(tv1,tv0);
 				sv = rv_add(tv1,tv0);
-				cdata[0].piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]))/2.;
+				cdata[0].piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]))/2.f;
 				break;
 			case PIECE_TYPE_BOX:
 				tv0 = cdata[0].piece[n].points[0];
@@ -6603,10 +6635,10 @@ int32_t node_calc(cosmosstruc *cdata)
 				tv0 = cdata[0].piece[n].points[0];
 				tv1 = cdata[0].piece[n].points[1];
 				ta = length_rv(rv_sub(tv1,tv0));
-				cdata[0].piece[n].area = DPI * cdata[0].piece[n].dim * cdata[0].piece[n].dim * ta;
+				cdata[0].piece[n].area = (float)(DPI * cdata[0].piece[n].dim * cdata[0].piece[n].dim * ta);
 				break;
 			case PIECE_TYPE_SPHERE:
-				cdata[0].piece[n].area = (4./3.) *DPI * pow(cdata[0].piece[n].dim,3.);
+				cdata[0].piece[n].area = (float)((4./3.) *DPI * pow(cdata[0].piece[n].dim,3.));
 				break;
 			}
 		}
@@ -6944,7 +6976,7 @@ int load_target(cosmosstruc *cdata)
 	FILE *op;
 	string fname;
 	char inb[JSON_MAX_DATA];
-	uint32_t count;
+	uint16_t count;
 
 	fname = get_nodedir(cdata[0].node.name) + "/target.ini";
 	count = 0;
@@ -6953,19 +6985,19 @@ int load_target(cosmosstruc *cdata)
 		cdata[0].target.resize(100);
 		while (count < cdata[0].target.size() && fgets(inb,JSON_MAX_DATA,op) != NULL)
 		{
-			json_addentry("target_range",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_close",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,close)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_utc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,utc)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_name",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,name)+count*sizeof(targetstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_type",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,type)+count*sizeof(targetstruc),2, (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_azfrom",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,azfrom)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_azto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,azto)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_elfrom",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elfrom)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_elto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elto)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_min",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,min)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_loc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc),COSMOS_SIZEOF(locstruc), (uint16_t)JSON_TYPE_LOC,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_loc_pos_geod",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc),COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_GEOD,JSON_GROUP_TARGET,cdata);
-			json_addentry("target_loc_pos_eci",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ECI,JSON_GROUP_TARGET,cdata);
+			json_addentry("target_range",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_close",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,close)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_utc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,utc)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_name",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,name)+count*sizeof(targetstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_type",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,type)+count*sizeof(targetstruc),2, (uint16_t)JSON_TYPE_UINT16, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_azfrom",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,azfrom)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_azto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,azto)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_elfrom",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elfrom)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_elto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elto)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_min",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,min)+count*sizeof(targetstruc),4, (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_loc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc),COSMOS_SIZEOF(locstruc), (uint16_t)JSON_TYPE_LOC, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_loc_pos_geod",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc),COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_GEOD, (uint16_t)JSON_GROUP_TARGET,cdata);
+			json_addentry("target_loc_pos_eci",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ECI, (uint16_t)JSON_GROUP_TARGET,cdata);
 			if (json_parse(inb,cdata) >= 0)
 			{
 				if (cdata[0].target[count].loc.utc == 0.)
@@ -7028,7 +7060,7 @@ int update_target(cosmosstruc *cdata)
  *	\param file Name of dictionary file.
  *	\return Number of items loaded.
 */
-int load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cdata, char *file)
+size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cdata, char *file)
 {
 	FILE *op;
 	char inb[JSON_MAX_DATA];
@@ -7391,7 +7423,7 @@ void load_databases(char *name, uint16_t type, cosmosstruc *cdata)
 *	\param events Reference to vector of ::shortenventstruc representing events.
 *	\return Number of events created.
 */
-uint32_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cdata, vector<shorteventstruc> &events)
+size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cdata, vector<shorteventstruc> &events)
 {
 	double value;
 	//	const char *cp;

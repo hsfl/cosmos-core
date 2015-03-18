@@ -30,6 +30,9 @@ typedef struct
 	string type;
 	string path;
 	size_t size;
+	uint16_t year;
+	uint16_t jday;
+	uint32_t seconds;
 } filestruc;
 //! @}
 

@@ -48,7 +48,7 @@ return 0;
 */
 int32_t gps_getnmea(gps_handle *handle, char *buf, int buflen)
 {
-uint16_t i,j;
+int32_t i,j;
 
 i = 0;
 while ((j=cssl_getdata(handle->serial,(uint8_t *)&buf[i],buflen-i)) > 0)
