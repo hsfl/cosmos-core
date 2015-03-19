@@ -9,3 +9,6 @@ examples/build-agent_001_msvc-Desktop_Qt_5_4_0_clang_64bit-Debug
 examples/build-agent_002_msvc-Desktop_Qt_5_3_Clang_x86_64bit_with_lldb-Debug/*
 examples/build-agent_001_msvc-Desktop_Qt_5_3_Clang_x86_64bit_with_lldb-Debug/*
 *.user
+build/
+install/
+CMakeLists.txt.user.18
