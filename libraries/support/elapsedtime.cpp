@@ -1,14 +1,36 @@
+// change class elapsedtime to stopwatch with functions jsut like a stop watch:
+// - start
+// - stop
+// - lap
+// - reset
+
 #include "elapsedtime.hpp"
 
 // -------------------------------------------------------------------
 // ElapsedTime class
 // Example use:
+
 // ElapsedTime ep;
+
+// typical use to count elapsed time
+// ep.start();
+// //do something
+// ep.stop();
+// ep.printElapsedTime();
+
+// use for printing elapsed time as in Matlab
 // ep.tic();
 // //do something
 // ep.toc();
-// ep.printElapsedTime();
 
+// use as a stopwatch, to keep counting time
+// ep.start();
+// //do something
+// ep.lap();
+// ep.start();
+// //do something
+// ep.stop();
+// ep.printElapsedTime();
 
 // basic code
 //    auto start = chrono::steady_clock::now();
@@ -61,24 +83,22 @@ void ElapsedTime::printElapsedTime(string text)
 }
 
 
-double ElapsedTime::getElapsedTime()
+double ElapsedTime::lap()
 {
-    // return elapsed time in seconds (instead of miliseconds)
-    // old plain c
-    //return getElapsedTimeMiliSeconds()/1000.;
-
-    // new with c++11
+    // collect Elapsed time
     // On windows using MinGw32 it does not get better than 1ms
-    return chrono::duration<double>(time2 - time1).count();
+
+    // collect current time
+    //timeNow = chrono::steady_clock::now();
+    elapsedTime = chrono::duration<double>(chrono::steady_clock::now() - timeStart).count();
+    return elapsedTime;
 
 }
 
 
 // equivalent to matlab to start a stopwatch timer
 void ElapsedTime::tic(){
-
     start();
-
 }
 
 // equivalent to matlab to stop a stopwatch timer
@@ -113,47 +133,35 @@ double ElapsedTime::toc(string text){
 
 void ElapsedTime::start(){
     //Get the start time
-    //gettimeofday(&time1, &x); //Get the initial time
-
-    // new way with c++11
-    time1 = chrono::steady_clock::now();
+    timeStart = chrono::steady_clock::now();
 }
 
 double ElapsedTime::stop(){
     //Get the final time
-    //gettimeofday(&time2, &x); //Get the final time
 
-    // On windows using MinGw32 it does not get better than 1ms
-    // new c++11
-    time2 = chrono::steady_clock::now();
-
-    elapsedTime = getElapsedTime();
+    //timeNow = chrono::steady_clock::now();
+    // add elapsedTime to keep counting just like a stopwathc
+    // elapsedTime is set to zero when we call reset()
+    elapsedTime = elapsedTime + lap();
 	return elapsedTime;
 }
 
-double ElapsedTime::split(){
-	//Get the final time
-	//gettimeofday(&time2, &x); //Get the final time
-
-	// On windows using MinGw32 it does not get better than 1ms
-	// new c++11
-	time2 = chrono::steady_clock::now();
-
-	elapsedTime = getElapsedTime();
-	return elapsedTime;
+double ElapsedTime::getElapsedTime(){
+    //Get the elapsedTime from start
+    return lap();
 }
 
-double ElapsedTime::reset(){
-	//Get the final time
-	//gettimeofday(&time2, &x); //Get the final time
+void ElapsedTime::reset(){
+    // set elapsedTime to 0
 
 	// On windows using MinGw32 it does not get better than 1ms
 	// new c++11
-	time2 = chrono::steady_clock::now();
+    //time2 = chrono::steady_clock::now();
 
-	elapsedTime = getElapsedTime();
-	time1 = chrono::steady_clock::now();
-	return elapsedTime;
+    //elapsedTime = getElapsedTime();
+    //timeStart = chrono::steady_clock::now();
+    elapsedTime = 0;
+    //return elapsedTime;
 }
 
 // -------------OLD Code
@@ -210,7 +218,7 @@ double ElapsedTime::reset(){
 //    struct timeval dif;
 
 //    // Subtract the timevals
-//    timeval_subtract(&dif,&time1,&time2);
+//    timeval_subtract(&dif,&timeStart,&time2);
 
 //    // Calculate and return difference in milliseconds
 //    return -dif.tv_sec*1000.0-dif.tv_usec/1000.0;

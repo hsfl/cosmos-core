@@ -10,7 +10,6 @@
 #include <string>
 using namespace std;
 
-
 int myagent();
 
 string agentname     = "001";
