@@ -151,19 +151,6 @@ double ElapsedTime::getElapsedTime(){
     return lap();
 }
 
-
-double ElapsedTime::split(){
-	//Get the final time
-    //gettimeofday(&timeStop, &x); //Get the final time
-
-	// On windows using MinGw32 it does not get better than 1ms
-	// new c++11
-    //time2 = chrono::steady_clock::now();
-
-	elapsedTime = getElapsedTime();
-	return elapsedTime;
-}
-
 void ElapsedTime::reset(){
     // set elapsedTime to 0
 
