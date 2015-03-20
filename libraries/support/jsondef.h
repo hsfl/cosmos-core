@@ -506,6 +506,8 @@ typedef struct
 	ptrdiff_t offset;
 	//! size of data storage
 	size_t size;
+	//! vector of actual data
+	vector <uint8_t> data;
 	//! Index to JSON Unit Type
 	uint16_t unit_index;
 	//! Index to alert condition in Data Dictionary

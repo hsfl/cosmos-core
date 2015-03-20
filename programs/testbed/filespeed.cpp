@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 			//		diff_u = 1000000L*(tp.tv_sec-start_s)+(tp.tv_usec-start_u);
 			j++;
 			//		} while (diff_u<10000000L);
-		} while (et.split() < 10.);
+		} while (et.lap() < 10.);
 		close(inb);
 		printf("Blocks: %7d x %7d ",j,size);
 		printf("Write: %6.3f MB/sec (%d err) ",(size*j*1.)/diff_u,werr);
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 				tsize = sbuf.st_size;
 			}
 			//		} while (diff_u<10000000L);
-		} while (et.split() < 10.);
+		} while (et.lap() < 10.);
 		close(inb);
 		printf("Read: %6.3f MB/sec (%d err) \n",(size*j*1.)/diff_u, rerr);
 		fflush(stdout);

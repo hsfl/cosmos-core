@@ -12,3 +12,9 @@ examples/build-agent_001_msvc-Desktop_Qt_5_3_Clang_x86_64bit_with_lldb-Debug/*
 build/
 install/
 CMakeLists.txt.user.18
+documentation/latex/
+documentation/html/
+documentation/man/
+documentation/log.txt
+libraries/support/save/
+*.save

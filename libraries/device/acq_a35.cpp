@@ -54,7 +54,7 @@ bool InitCamera(uint16_t width, uint16_t height, gige_handle* handle)
 //        useconds = PresentTime.tv_usec - StartTime.tv_usec;
 //        Duration = seconds*1000000.0 + useconds;
 //        if(Duration > 2000000) break;   // Timeout
-		if (et.split() > 2.) break;
+		if (et.lap() > 2.) break;
     } while(true);
 
 
@@ -225,7 +225,7 @@ bool GetCameraFrame(gige_handle* handle, uint16_t *A35FrameBuffer, uint32_t Imag
 //                useconds = PresentTime.tv_usec - StartTime.tv_usec;
 //                Duration = seconds*1000000.0 + useconds;
 //                if(Duration > 1000000)
-				if (et.split() > 1.)
+				if (et.lap() > 1.)
 				{
                     printf("Timeout2\n");
                     return(false);   // Timeout

@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 		}
 //		gettimeofday(&tp,NULL);
 //		diff_u = 1000000L*(tp.tv_sec-start_s)+(tp.tv_usec-start_u);
-		diff_u = 1000000L * et.split();
+		diff_u = 1000000L * et.lap();
 		if (time1 > diff_u)
 			time1 = diff_u;
 		base = 5000000./diff_u;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 		}
 //		gettimeofday(&tp,NULL);
 //		diff_u = 1000000L*(tp.tv_sec-start_s)+(tp.tv_usec-start_u);
-		diff_u = 1000000L * et.split();
+		diff_u = 1000000L * et.lap();
 		if (time2 > diff_u)
 			time2 = diff_u;
 		base = 5000000./(time2);
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 		}
 //		gettimeofday(&tp,NULL);
 //		diff_u = 1000000L*(tp.tv_sec-start_s)+(tp.tv_usec-start_u);
-		diff_u = 1000000L * et.split();
+		diff_u = 1000000L * et.lap();
 		if (time3 > diff_u)
 			time3 = diff_u;
 		base = 5000000./(time3);
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 		}
 //		gettimeofday(&tp,NULL);
 //		diff_u = 1000000L*(tp.tv_sec-start_s)+(tp.tv_usec-start_u);
-		diff_u = 1000000L * et.split();
+		diff_u = 1000000L * et.lap();
 		if (time4 > diff_u)
 			time4 = diff_u;
 		base = 5000000./(time4);

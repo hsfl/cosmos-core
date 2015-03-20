@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 		} while (inchar < 50);
 //		gettimeofday(&tp1,NULL);
 //		rate = (double)(number*size)/(1024.*((tp1.tv_sec+tp1.tv_usec/1e6)-(tp0.tv_sec+tp0.tv_usec/1e6)));
-		rate = (double)(number*size)/(1024.*((et.split())));
+		rate = (double)(number*size)/(1024.*((et.lap())));
 		srate += rate;
 		srate2 += rate * rate;
 		cnt++;

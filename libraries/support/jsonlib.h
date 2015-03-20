@@ -188,8 +188,8 @@ int32_t json_set_double_name_2d(double value,char *token, uint16_t index1, uint1
 
 int32_t json_scan(char *istring);
 
-int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector <json_token> &tokens);
-int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json_token &token);
+int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector <jsonentry> &tokens);
+int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, jsonentry &token);
 int32_t json_parse(string json, cosmosstruc *cdata);
 int32_t json_parse_namedobject(const char** pointer, cosmosstruc *cdata);
 int32_t json_parse_value(const char **pointer, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata);
