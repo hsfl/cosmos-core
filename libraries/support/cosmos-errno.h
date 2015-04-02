@@ -191,7 +191,7 @@
 #define JPLEPHEM_ERROR_NUTATIONS -504
 #define JPLEPHEM_ERROR_LIBRATIONS -505
 
-#define GEOMAG_ERROR_NOTFOUND -511
+#define GEOMAG_ERROR_NOTFOUND -511              // WMM File not found
 #define GEOMAG_ERROR_OUTOFRANGE -512
 
 #define GENERAL_OK                        0     /* everything is all right */

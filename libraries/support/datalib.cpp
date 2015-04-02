@@ -892,9 +892,11 @@ int32_t set_cosmosresources(string name)
 }
 
 //! Find Resources Directory
-/*! Set the internal variable that points to where all COSMOS resource files
- * are stored. This either uses the value in COSMOSRESOURCES, or looks for the directory
- * up to 6 levels above the current directory, first in "cosmosresources", and then in "resources".
+/*! Set the internal variable that points to where all COSMOS
+ * resource files are stored. This either uses the value in the
+ * COSMOSRESOURCES environment variable, or looks for the directory
+ * up to 6 levels above the current directory, first in
+ * "cosmosresources", and then in "resources".
  * \return Zero, or negative error.
 */
 int32_t set_cosmosresources()
@@ -912,6 +914,10 @@ int32_t set_cosmosresources()
 		}
 		else
 		{
+            // ??MN: this will not work on the Mac with bundled apps
+            // because the executable is actually two folders deeper
+            // maybe the best thing to do is to encourage the user
+            // to set the COSMOSRESOURCES env. variable
 			aroot = "cosmosresources";
 			for (i=0; i<6; i++)
 			{

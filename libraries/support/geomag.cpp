@@ -59,6 +59,14 @@ char geomag_introduction(float epochlowlim);
 static int initialized = 0;
 static char fname[100];
 
+
+//! Main function to compute the magnetic field from the
+//! World Magnetic Model
+/*! Input: Position, time | output: Mag Field
+        \param pos geodetic position (lon, lat, alt) in (rad, rad, meters)
+        \param time in decimal year, ex. use mjd2year(currentmjd())
+        \param comp are the magnetic field x,y,z components
+*/
 int32_t geomag_front(gvector pos, double time, rvector *comp)
 {
 	static int maxdeg, itime;

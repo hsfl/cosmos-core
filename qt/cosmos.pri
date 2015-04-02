@@ -123,6 +123,11 @@ contains(MODULES, agentlib){
     HEADERS += $$COSMOS/core/libraries/support/agentlib.h
 }
 
+contains(MODULES, jsondef){
+    message( "Add COSMOS module: jsondef" )
+    HEADERS += $$COSMOS/core/libraries/support/jsondef.h
+}
+
 contains(MODULES, jsonlib){
     message( "Add COSMOS module: jsonlib" )
     SOURCES += $$COSMOS/core/libraries/support/jsonlib.cpp

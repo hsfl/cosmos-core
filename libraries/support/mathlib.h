@@ -224,7 +224,8 @@ std::istream& operator >> (std::istream& out, svector& a);
 //! 3 element geodetic vector
 /*! 3 double precision numbers representing a vector in a WGS84
  * based geodetic space. Longitude increases east. */
-typedef struct
+// MN: replace name gvector->geodetic
+struct gvector
 {
 	//! Latitude in radians
 	double lat;
@@ -232,7 +233,7 @@ typedef struct
 	double lon;
 	//! Height in meters
 	double h;
-} gvector;
+};
 
 std::ostream& operator << (std::ostream& out, const gvector& a);
 std::istream& operator >> (std::istream& out, gvector& a);
