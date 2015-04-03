@@ -979,6 +979,65 @@ int32_t get_cosmosresources(string &result)
 	return 0;
 }
 
+//! Set Environment Variable for COSMOS resources
+/*! \param resourcesPath full path of the COSMOS resources folder.
+    \return Zero, or negative error.
+*/
+int32_t setEnvCosmosResources(string resourcesPath){
+
+    uint32_t iretn;
+    //    // windows
+    //#ifdef COSMOS_WIN_OS
+    //    iretn = _putenv_s("COSMOSRESOURCES",resourcesPath.c_str());
+    //#else
+    //    // mac, linux
+    //    iretn = setenv("COSMOSRESOURCES",
+    //                   resourcesPath.c_str(),1);
+    //#endif
+    //    char *path = getenv("COSMOSRESOURCES");
+
+    //    if (path!=NULL){
+    //        cout << "COSMOSRESOURCES set to " << path << endl;
+    //    } else {
+    //        cout << "COSMOSRESOURCES not set " << endl;
+    //        return DATA_ERROR_RESOURCES_FOLDER;
+    //    }
+
+    iretn = setEnvCosmos("COSMOSRESOURCES", resourcesPath);
+    return iretn;
+}
+
+
+//! Set Environment Variable for COSMOS
+/*! \param var environment variable to set (ex. COSMOSRESOURCES)
+ *  \param path full path of the COSMOS variable folder.
+    \return Zero, or negative error.
+*/
+int32_t setEnvCosmos(string var, string path){
+
+    uint32_t iretn;
+
+#ifdef COSMOS_WIN_OS
+    // windows
+    iretn = _putenv_s(var.c_str(),path.c_str());
+#else
+    // mac, linux
+    iretn = setenv(var.c_str(),
+                   path.c_str(),1);
+#endif
+    char *pathReturned = getenv(var.c_str());
+
+    if (pathReturned!=NULL){
+        cout << var << " set to " << pathReturned << endl;
+    } else {
+        cout << var << " not set " << endl;
+        return DATA_ERROR_RESOURCES_FOLDER;
+    }
+
+    return iretn;
+}
+
+
 //! Set Nodes Directory
 /*! Set the internal variable that points to where all COSMOS resource files
  * are stored.

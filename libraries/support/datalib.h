@@ -114,6 +114,8 @@ bool data_exists(string& path);
 int32_t set_cosmosresources(string name);
 int32_t set_cosmosresources();
 int32_t get_cosmosresources(string &result);
+int32_t setEnvCosmosResources(string resourcesPath);
+int32_t setEnvCosmos(string var, string path);
 int32_t set_cosmosnodes(string name);
 int32_t set_cosmosnodes();
 int32_t get_cosmosnodes(string &result);
