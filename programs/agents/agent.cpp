@@ -115,8 +115,8 @@ int main(int argc, char *argv[])
 		{
 			if ((pretn=agent_poll(cdata, message,  AGENT_MESSAGE_ALL, 1)) > 0)
 			{
-				json_clear_cosmosstruc(JSON_GROUP_NODE,cdata);
-				json_clear_cosmosstruc(JSON_GROUP_DEVICE,cdata);
+				json_clear_cosmosstruc(JSON_GROUP_NODE,&cdata[1]);
+				json_clear_cosmosstruc(JSON_GROUP_DEVICE,&cdata[1]);
 				string utc = json_extract_namedobject(message.c_str(), "agent_utc");
 				string node = json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"));
 				string proc = json_extract_namedobject(message.c_str(), "agent_proc");
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 				string port = json_extract_namedobject(message.c_str(), "agent_port");
 				if ((!strcmp(channel,"soh") && pretn != AGENT_MESSAGE_SOH) || (!strcmp(channel,"beat") && pretn != AGENT_MESSAGE_BEAT))
 					continue;
-				json_parse(message.c_str(),cdata);
+				json_parse(message.c_str(),&cdata[1]);
 				switch (pretn)
 				{
 				case AGENT_MESSAGE_SOH:
