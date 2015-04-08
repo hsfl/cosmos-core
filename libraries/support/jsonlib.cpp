@@ -85,8 +85,8 @@ cosmosstruc *json_create()
 	cdata[0].jmapped = 0;
 
 	cdata[0].glossary.resize(1);
-	cdata[0].piece.resize(1);
-	cdata[0].device.resize(1);
+	//	cdata[0].piece.resize(1);
+	//	cdata[0].device.resize(1);
 
 	//	json_clear_cosmosstruc(JSON_GROUP_NODE, cdata);
 	cdata[0].agent.resize(1);
@@ -94,8 +94,8 @@ cosmosstruc *json_create()
 
 	cdata[0].event.resize(1);
 	cdata[0].user.resize(1);
-	cdata[0].glossary.resize(1);
-	cdata[0].port.resize(1);
+	//	cdata[0].glossary.resize(1);
+	//	cdata[0].port.resize(1);
 	cdata[0].unit.resize(JSON_UNIT_COUNT);
 	cdata[0].target.resize(100);
 	//	json_clear_cosmosstruc(JSON_GROUP_TARGET, cdata);
@@ -106,15 +106,15 @@ cosmosstruc *json_create()
 		cdata[0].unit.size() != JSON_UNIT_COUNT ||
 		cdata[0].jmap.size() != JSON_MAX_HASH ||
 		cdata[0].emap.size() != JSON_MAX_HASH ||
-		cdata[0].piece.size() != 1 ||
-		cdata[0].device.size() != 1 ||
-		cdata[0].agent.size() != 1 ||
-		cdata[0].event.size() != 1 ||
+		//		cdata[0].piece.size() != 1 ||
+		//		cdata[0].device.size() != 1 ||
+		//		cdata[0].event.size() != 1 ||
 		//		cdata[0].physics.size() != 1 ||
 		//		cdata[0].node.size() != 1 ||
-		cdata[0].user.size() != 1 ||
-		cdata[0].glossary.size() != 1 ||
-		cdata[0].port.size() != 1)
+		//		cdata[0].user.size() != 1 ||
+		//		cdata[0].glossary.size() != 1 ||
+		//		cdata[0].port.size() != 1 ||
+		cdata[0].agent.size() != 1)
 	{
 		delete [] cdata;
 		return nullptr;
@@ -441,11 +441,11 @@ uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t off
 	if (d2 < 65535)
 		sprintf(&ename[strlen(ename)],"_%03u",d2);
 
-//	namelen = strlen(ename)+1;
-//	if ((tentry.name = (char *)calloc(1,namelen)) == NULL)
-//	{
-//		return 0;
-//	}
+	//	namelen = strlen(ename)+1;
+	//	if ((tentry.name = (char *)calloc(1,namelen)) == NULL)
+	//	{
+	//		return 0;
+	//	}
 
 	hash = json_hash(ename);
 
@@ -457,7 +457,7 @@ uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t off
 	tentry.unit_index = unit;
 	tentry.type = type;
 	tentry.group = group;
-//	strcpy(tentry.name,ename);
+	//	strcpy(tentry.name,ename);
 	tentry.name = ename;
 	tentry.offset = offset;
 	tentry.size = size;
@@ -465,7 +465,7 @@ uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t off
 	cdata[0].jmap[hash].push_back(tentry);
 	if (cdata[0].jmap[hash].size() != csize+1)
 	{
-//		free(tentry.name);
+		//		free(tentry.name);
 		return 0;
 	}
 
@@ -1830,7 +1830,7 @@ int32_t json_out(string &jstring, string token, cosmosstruc *cdata)
 		return (JSON_ERROR_NOJMAP);
 
 	for (h.index=0; h.index<cdata[0].jmap[h.hash].size(); ++h.index)
-//		if (!strcmp(token.c_str(),cdata[0].jmap[h.hash][h.index].name))
+		//		if (!strcmp(token.c_str(),cdata[0].jmap[h.hash][h.index].name))
 		if (token == cdata[0].jmap[h.hash][h.index].name)
 		{
 			return (json_out_handle(jstring, h, cdata));
@@ -2074,7 +2074,7 @@ jsonentry *json_entry_of_name(string token, cosmosstruc *cdata)
 
 	for (n=0; n<cdata[0].jmap[hash].size(); n++)
 	{
-//		if (!strcmp(token.c_str(),cdata[0].jmap[hash][n].name))
+		//		if (!strcmp(token.c_str(),cdata[0].jmap[hash][n].name))
 		if (token == cdata[0].jmap[hash][n].name)
 		{
 			return ((jsonentry *)&cdata[0].jmap[hash][n]);
@@ -5908,33 +5908,37 @@ const char *json_pieces(string &jstring, cosmosstruc *cdata)
 
 	jstring.clear();
 	// Dump structures
-	for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"piece_cnt",cdata); i++)
+	uint16_t *piece_cnt = (uint16_t *)json_ptrto((char *)"piece_cnt",cdata);
+	if (piece_cnt != nullptr)
 	{
-		json_out_1d(jstring,(char *)"piece_name",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"piece_type",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"piece_cidx",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"piece_mass",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"piece_emi",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"piece_abs",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"piece_hcap",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"piece_hcon",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"piece_dim",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"piece_pnt_cnt",i,cdata);
-		json_out_character(jstring, '\n');
-		cnt = (uint16_t)json_get_int_name_1d((char *)"piece_pnt_cnt",i,cdata);
-		for (uint16_t j=0; j<cnt; j++)
+		for (uint16_t i=0; i<*piece_cnt; i++)
 		{
-			json_out_2d(jstring,(char *)"piece_pnt",i,j,cdata);
+			json_out_1d(jstring,(char *)"piece_name",i,cdata);
 			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"piece_type",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"piece_cidx",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"piece_mass",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"piece_emi",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"piece_abs",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"piece_hcap",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"piece_hcon",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"piece_dim",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"piece_pnt_cnt",i,cdata);
+			json_out_character(jstring, '\n');
+			cnt = (uint16_t)json_get_int_name_1d((char *)"piece_pnt_cnt",i,cdata);
+			for (uint16_t j=0; j<cnt; j++)
+			{
+				json_out_2d(jstring,(char *)"piece_pnt",i,j,cdata);
+				json_out_character(jstring, '\n');
+			}
 		}
 	}
 
@@ -5954,24 +5958,28 @@ const char *json_devices_general(string &jstring, cosmosstruc *cdata)
 
 	jstring.clear();
 	// Dump components
-	for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"comp_cnt",cdata); i++)
+	uint16_t *comp_cnt = (uint16_t *)json_ptrto((char *)"comp_cnt",cdata);
+	if (comp_cnt != nullptr)
 	{
-		json_out_1d(jstring,(char *)"comp_type",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"comp_model",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"comp_didx",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"comp_pidx",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"comp_bidx",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"comp_portidx",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"comp_nvolt",i,cdata);
-		json_out_character(jstring, '\n');
-		json_out_1d(jstring,(char *)"comp_namp",i,cdata);
-		json_out_character(jstring, '\n');
+		for (uint16_t i=0; i<*comp_cnt; i++)
+		{
+			json_out_1d(jstring,(char *)"comp_type",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"comp_model",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"comp_didx",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"comp_pidx",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"comp_bidx",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"comp_portidx",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"comp_nvolt",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"comp_namp",i,cdata);
+			json_out_character(jstring, '\n');
+		}
 	}
 
 
