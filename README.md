@@ -21,18 +21,24 @@ Quick-start:
 * https://<your-user-name>@bitbucket.org/cosmos/resources.git
 * https://<your-user-name>@bitbucket.org/cosmos/thirdparty.git
 
-using the command line:
+using your favorite client (e.g. SourceTree) or the the command line:
 
 ```
 #!sh
 git clone https://<your-user-name>@bitbucket.org/cosmos/core.git
 ```
 
-3) go to core/examples/agents and open agent_001.pro 
-and agent_002.pro in Qt Creator. Compile and execute
-the two programs. Start agent 002 first. 
-The two COSMOS agents will startt alking to each other.
+3) Open Qt creator and load two agent example projects: 
+- core/examples/agents/agent_001.pro 
+- core/examples/agents/agent_002.pro 
+Compile and execute the two programs. Start agent_002 first. 
+The two COSMOS agents will startt talking to each other.
 
 For more detailed instructions to get started with COSMOS
 please read the GET-STARTED-WITH-COSMOS.txt inside the 
 documentation folder.
+
+By default we recomment that COSMOS is installed if the following folders
+for Windows: C:\COSMOS
+for MacOS: /COSMOS
+for Linux/Unix: /home/COSMOS 
