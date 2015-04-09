@@ -41,7 +41,8 @@ vector <string> device_type_string
 	"bus",
 	"psen",
 	"suchi",
-	"cam"
+	"cam",
+	"telem"
 };
 
 vector <string> port_type_string
@@ -360,6 +361,7 @@ void json_destroy(cosmosstruc *cdata)
 		cdata[i].devspec.ant.resize(0);
 		cdata[i].devspec.batt.resize(0);
 		cdata[i].devspec.bus.resize(0);
+		cdata[i].devspec.cam.resize(0);
 		cdata[i].devspec.cpu.resize(0);
 		cdata[i].devspec.gps.resize(0);
 		cdata[i].devspec.htr.resize(0);
@@ -381,6 +383,7 @@ void json_destroy(cosmosstruc *cdata)
 		cdata[i].devspec.tcv.resize(0);
 		cdata[i].devspec.txr.resize(0);
 		cdata[i].devspec.rxr.resize(0);
+		cdata[i].devspec.telem.resize(0);
 		cdata[i].devspec.thst.resize(0);
 		cdata[i].devspec.tsen.resize(0);
 		cdata[i].device.resize(0);
@@ -4665,7 +4668,8 @@ uint16_t json_addbaseentry(cosmosstruc *cdata)
 	json_addentry("device_suchi_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,suchi_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
 	json_addentry("device_swch_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,swch_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
 	json_addentry("device_tcu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tcu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
-	json_addentry("device_tcv_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tcv_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_tcu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tcu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+	json_addentry("device_telem_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,telem_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
 	json_addentry("device_thst_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,thst_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
 	json_addentry("device_tsen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tsen_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
 	json_addentry("device_txr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,txr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
@@ -4746,6 +4750,22 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 	uint16_t didx = cdata[0].device[i].all.gen.didx;
 	switch (cdata[0].device[i].all.gen.type)
 	{
+	case DEVICE_TYPE_TELEM:
+		json_addentry("device_telem_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_type",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,type)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_vuint8",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vuint8)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint8_t), (uint16_t)JSON_TYPE_UINT8,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_vint8",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vint8)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint8_t), (uint16_t)JSON_TYPE_INT8,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_vuint16",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vuint16)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_vint16",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vint16)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_INT16,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_vuint32",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vuint32)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_vint32",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vint32)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_INT32,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_vfloat",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vfloat)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_vdouble",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vdouble)+i*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_telem_vstring",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vstring)+i*sizeof(devicestruc), COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_STRING,JSON_GROUP_DEVICE,cdata);
+		cdata[0].devspec.telem.push_back((telemstruc *)&cdata[0].device[i].telem);
+		cdata[0].devspec.telem_cnt = (uint16_t)cdata[0].devspec.telem.size();
+		break;
 	case DEVICE_TYPE_PLOAD:
 		json_addentry("device_pload_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_pload_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
@@ -6002,9 +6022,11 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 	// Dump device specific info
 	for (uint16_t i=0; i<DEVICE_TYPE_COUNT; ++i)
 	{
+		// Create Namespace name for Device Specific count
 		sprintf(tstring,"device_%s_cnt",device_type_string[i].c_str());
 		if ((cnt=(uint16_t *)json_ptrto(tstring,cdata)) != nullptr && *cnt != 0)
 		{
+			// Only dump information for Devices that have non zero count
 			for (uint16_t j=0; j<*cnt; ++j)
 			{
 				// Dump ploads
@@ -6234,6 +6256,53 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 					json_out_1d(jstring,(char *)"device_cam_flength",j,cdata);
 					json_out_character(jstring, '\n');
 				}
+
+				// Dump Telemetry
+				if (!strcmp(device_type_string[i].c_str(),"telem"))
+				{
+					json_out_1d(jstring,(char *)"device_telem_type",j,cdata);
+					json_out_character(jstring, '\n');
+					switch (json_get_int_name_1d((char *)"device_telem_type",j,cdata))
+					{
+					case TELEM_TYPE_UINT8:
+						json_out_1d(jstring,(char *)"device_telem_vuint8",j,cdata);
+						json_out_character(jstring, '\n');
+						break;
+					case TELEM_TYPE_INT8:
+						json_out_1d(jstring,(char *)"device_telem_vint8",j,cdata);
+						json_out_character(jstring, '\n');
+						break;
+					case TELEM_TYPE_UINT16:
+						json_out_1d(jstring,(char *)"device_telem_vuint16",j,cdata);
+						json_out_character(jstring, '\n');
+						break;
+					case TELEM_TYPE_INT16:
+						json_out_1d(jstring,(char *)"device_telem_vint16",j,cdata);
+						json_out_character(jstring, '\n');
+						break;
+					case TELEM_TYPE_UINT32:
+						json_out_1d(jstring,(char *)"device_telem_vuint32",j,cdata);
+						json_out_character(jstring, '\n');
+						break;
+					case TELEM_TYPE_INT32:
+						json_out_1d(jstring,(char *)"device_telem_vint32",j,cdata);
+						json_out_character(jstring, '\n');
+						break;
+					case TELEM_TYPE_FLOAT:
+						json_out_1d(jstring,(char *)"device_telem_vfloat",j,cdata);
+						json_out_character(jstring, '\n');
+						break;
+					case TELEM_TYPE_DOUBLE:
+						json_out_1d(jstring,(char *)"device_telem_vdouble",j,cdata);
+						json_out_character(jstring, '\n');
+						break;
+					case TELEM_TYPE_CHAR:
+						json_out_1d(jstring,(char *)"device_telem_vstring",j,cdata);
+						json_out_character(jstring, '\n');
+						break;
+					}
+				}
+
 			}
 		}
 	}
@@ -6414,6 +6483,9 @@ int32_t json_clone(cosmosstruc *cdata)
 	{
 		switch(cdata[1].device[i].all.gen.type)
 		{
+		case DEVICE_TYPE_TELEM:
+			cdata[1].devspec.telem[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].telem;
+			break;
 		case DEVICE_TYPE_PLOAD:
 			cdata[1].devspec.pload[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].pload;
 			break;

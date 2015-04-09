@@ -122,8 +122,12 @@ enum
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
 enum
 	{
+	//! JSON 8 bit unsigned integer type
+	JSON_TYPE_UINT8=1,
+	//! JSON 8 bit signed integer type
+	JSON_TYPE_INT8,
 	//! JSON 32 bit unsigned integer type
-	JSON_TYPE_UINT32=1,
+	JSON_TYPE_UINT32,
 	//! JSON 16 bit unsigned integer type
 	JSON_TYPE_UINT16,
 	//! JSON 16 bit integer type
@@ -415,10 +419,25 @@ enum
 	DEVICE_TYPE_SUCHI=25,
 	//! Camera
 	DEVICE_TYPE_CAM=26,
+	//! Telemetry
+	DEVICE_TYPE_TELEM=27,
 	//! List count
 	DEVICE_TYPE_COUNT,
 	//! Not a Component
 	DEVICE_TYPE_NONE=65535
+	};
+
+enum
+	{
+	TELEM_TYPE_UINT8,
+	TELEM_TYPE_INT8,
+	TELEM_TYPE_UINT16,
+	TELEM_TYPE_INT16,
+	TELEM_TYPE_UINT32,
+	TELEM_TYPE_INT32,
+	TELEM_TYPE_FLOAT,
+	TELEM_TYPE_DOUBLE,
+	TELEM_TYPE_CHAR
 	};
 
 //! @}
@@ -911,6 +930,8 @@ typedef struct
 	float insol;
 } piecestruc;
 
+// Beginning of Device General structures
+
 //! General Component structure
 /*! These are the elements that are repeated in all devices. Each
 device specific structure has these as its first elements, followed by
@@ -956,6 +977,37 @@ typedef struct
 {
 	genstruc gen;
 } allstruc;
+
+// End of Device General structures
+
+// Beginning of Device Specific structures
+
+//! Telemetry (TELEM) structure.
+/*! This provides access to a union of a variety of possible data types, along
+ * with an optional indicator of what type the data actually is. The same data
+ * is then accessible as all supported data types, both in the structure and the
+ * Namespace.
+ */
+struct telemstruc
+{
+	//! Generic info
+	genstruc gen;
+	//! Data type
+	uint16_t type;
+	//! Union of data
+	union
+	{
+		uint8_t vuint8;
+		int8_t vint8;
+		uint16_t vuint16;
+		int16_t vint16;
+		uint32_t vuint32;
+		int32_t vint32;
+		float vfloat;
+		double vdouble;
+		char vstring[COSMOS_MAX_NAME];
+	};
+} ;
 
 //! Payload (PLOAD) structure.
 /*! You can define up to ::MAXPLOADKEYCNT keys by giving them unique
@@ -1339,6 +1391,8 @@ typedef struct
 	float flength;
 } camstruc;
 
+// End of Device Specific structures
+
 //! Node Structure
 //! Structure for storing all information about a Node that never changes, or only
 //! changes slowly. The information for initializing this should be in node.ini.
@@ -1414,6 +1468,7 @@ typedef struct
 		suchistruc suchi;
 		swchstruc swch;
 		tcvstruc tcv;
+		telemstruc telem;
 		txrstruc txr;
 		rxrstruc rxr;
 		thststruc thst;
@@ -1450,6 +1505,7 @@ typedef struct
 	uint16_t swch_cnt;
 	uint16_t tcu_cnt;
 	uint16_t tcv_cnt;
+	uint16_t telem_cnt;
 	uint16_t txr_cnt;
 	uint16_t thst_cnt;
 	uint16_t tsen_cnt;
@@ -1476,6 +1532,7 @@ typedef struct
 	vector<sttstruc *>stt;
 	vector<suchistruc *>suchi;
 	vector<swchstruc *>swch;
+	vector<telemstruc *>telem;
 	vector<tcvstruc *>tcv;
 	vector<txrstruc *>txr;
 	vector<rxrstruc *>rxr;
