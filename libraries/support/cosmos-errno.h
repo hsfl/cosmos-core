@@ -106,7 +106,7 @@
 #define ORBIT_ERROR_NOTSUPPORTED -332
 #define TLE_ERROR_NOTFOUND -334
 
-#define NODE_ERROR_NODE -341
+#define NODE_ERROR_NODE -341            // node.ini does not exist
 #define NODE_ERROR_GROUNDSTATION -342
 #define NODE_ERROR_ROOTDIR -343
 

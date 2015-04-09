@@ -6296,7 +6296,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 						json_out_1d(jstring,(char *)"device_telem_vdouble",j,cdata);
 						json_out_character(jstring, '\n');
 						break;
-					case TELEM_TYPE_CHAR:
+                    case TELEM_TYPE_STRING:
 						json_out_1d(jstring,(char *)"device_telem_vstring",j,cdata);
 						json_out_character(jstring, '\n');
 						break;
