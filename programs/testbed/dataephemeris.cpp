@@ -69,7 +69,7 @@ DIR *ddp, *ydp, *jdp;
 struct dirent *td, *yd, *jd;
 
 cdata = json_create();
-node_init(argv[1],cdata);
+json_setup_node(argv[1],cdata);
 json_clone(cdata);
 
 

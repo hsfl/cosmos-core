@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	string jstring;
 
 	cdata = json_create();
-	node_init(argv[1],cdata);
+	json_setup_node(argv[1],cdata);
 	json_clone(cdata);
 	iretn=agent_get_server(cdata, cdata[0].node.name,(char *)"simulator",5,&imubeat);
 	agent_send_request(cdata, imubeat,(char *)"statevec",buf,1000,5);

@@ -210,7 +210,7 @@ cosmosstruc *agent_setup_client(int ntype, string node, uint32_t usectimeo)
     }
 
     //! Next, set up node.
-	if (!node.empty() && (iretn=node_init(node, cdata)) != 0)
+	if (!node.empty() && (iretn=json_setup_node(node, cdata)) != 0)
     {
         json_destroy(cdata);
         return nullptr;

@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
 
 cdata = json_create();
-node_init(argv[1],cdata);
+json_setup_node(argv[1],cdata);
 
 create_databases(cdata);
 

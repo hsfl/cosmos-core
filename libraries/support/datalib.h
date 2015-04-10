@@ -121,7 +121,7 @@ int32_t set_cosmosnodes(string name);
 int32_t set_cosmosnodes();
 int32_t get_cosmosnodes(string &result);
 string get_nodedir(string node);
-string set_nodedir(string node);
+string get_nodedir(string node, bool create_flag);
 int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, vector<string> &result);
 int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result);
 int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);

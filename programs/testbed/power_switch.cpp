@@ -19,7 +19,7 @@ case 4:
 case 3:
 	bus = atol(argv[2]);
 case 2:
-	node_init(argv[1],cdata);
+	json_setup_node(argv[1],cdata);
 	break;
 default:
 	printf("Usage: power_switch node{ bus {state}}\n");

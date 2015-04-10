@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
 
 	cdata[0].physics.mode = atol(argv[1]);
-	node_init((char *)"dice",cdata);
+	json_setup_node((char *)"dice",cdata);
 
 	load_lines((char *)"tle_dice1.tle", cdata[0].tle);
 

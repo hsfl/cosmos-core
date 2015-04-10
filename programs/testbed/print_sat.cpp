@@ -67,7 +67,7 @@ if (satellite==NULL) {
     fclose(satellite);
 }*/
 cdata = json_create();
-node_init(argv[1],cdata);
+json_setup_node(argv[1],cdata);
 json_clone(cdata);
 
 switch (jumpto) {

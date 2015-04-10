@@ -214,6 +214,7 @@ int32_t json_skip_white(const char ** pointer);
 int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cdata);
 int32_t json_setup(cosmosstruc *cdata);
 int32_t json_setup_node(string node, cosmosstruc *cdata);
+int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag);
 int32_t json_dump_node(cosmosstruc *cdata);
 
 const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cdata);

@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	double imjd;
 
 	cdata = json_create();
-	node_init(NULL,cdata);
+	json_setup_node(NULL,cdata);
 
 	cdata[0].physics.moi.col[0] = 3.;
 	cdata[0].physics.moi.col[1] = 3.;

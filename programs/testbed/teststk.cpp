@@ -23,7 +23,7 @@ dp = atof(argv[3]);
 tp = atof(argv[4]);
 
 cdata = json_create();
-node_init(argv[1],cdata);
+json_setup_node(argv[1],cdata);
 
 cdata[0].physics.mode = atol(argv[1]);
 //cdata[0].node.info.testflag = FLAG_ADRAG;

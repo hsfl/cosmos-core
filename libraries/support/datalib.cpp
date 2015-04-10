@@ -502,7 +502,7 @@ int32_t data_get_nodes(vector<cosmosstruc> &node)
 		{
 			if (td->d_name[0] != '.')
 			{
-				if (!node_init(td->d_name,tnode))
+				if (!json_setup_node(td->d_name,tnode))
 				{
 					node.push_back(*tnode);
 				}
@@ -914,10 +914,10 @@ int32_t set_cosmosresources()
 		}
 		else
 		{
-            // ??MN: this will not work on the Mac with bundled apps
-            // because the executable is actually two folders deeper
-            // maybe the best thing to do is to encourage the user
-            // to set the COSMOSRESOURCES env. variable
+			// ??MN: this will not work on the Mac with bundled apps
+			// because the executable is actually two folders deeper
+			// maybe the best thing to do is to encourage the user
+			// to set the COSMOSRESOURCES env. variable
 			aroot = "cosmosresources";
 			for (i=0; i<6; i++)
 			{
@@ -981,50 +981,50 @@ int32_t get_cosmosresources(string &result)
 
 //! Set Environment Variable for COSMOS resources
 /*! \param resourcesPath full path of the COSMOS resources folder.
-    \return Zero, or negative error.
+	\return Zero, or negative error.
 */
 int32_t setEnvCosmosResources(string path){
 
-    return setEnvCosmos("COSMOSRESOURCES", path);;
+	return setEnvCosmos("COSMOSRESOURCES", path);;
 }
 
 
 //! Set Environment Variable for COSMOS nodes
 /*! \param path full path of the COSMOS nodes folder.
-    \return Zero, or negative error.
+	\return Zero, or negative error.
 */
 int32_t setEnvCosmosNodes(string path){
 
-    return setEnvCosmos("COSMOSNODES", path);;
+	return setEnvCosmos("COSMOSNODES", path);;
 }
 
 //! Set Environment Variable for COSMOS
 /*! \param var environment variable to set (ex. COSMOSRESOURCES)
  *  \param path full path of the COSMOS variable folder.
-    \return Zero, or negative error.
+	\return Zero, or negative error.
 */
 int32_t setEnvCosmos(string var, string path){
 
-    uint32_t iretn;
+	uint32_t iretn;
 
 #ifdef COSMOS_WIN_OS
-    // windows
-    iretn = _putenv_s(var.c_str(),path.c_str());
+	// windows
+	iretn = _putenv_s(var.c_str(),path.c_str());
 #else
-    // mac, linux
-    iretn = setenv(var.c_str(),
-                   path.c_str(),1);
+	// mac, linux
+	iretn = setenv(var.c_str(),
+				   path.c_str(),1);
 #endif
-    char *pathReturned = getenv(var.c_str());
+	char *pathReturned = getenv(var.c_str());
 
-    if (pathReturned!=NULL){
-        cout << var << " set to " << pathReturned << endl;
-    } else {
-        cout << var << " not set " << endl;
-        return DATA_ERROR_RESOURCES_FOLDER;
-    }
+	if (pathReturned!=NULL){
+		cout << var << " set to " << pathReturned << endl;
+	} else {
+		cout << var << " not set " << endl;
+		return DATA_ERROR_RESOURCES_FOLDER;
+	}
 
-    return iretn;
+	return iretn;
 }
 
 
@@ -1132,21 +1132,23 @@ int32_t get_cosmosnodes(string &result)
 
 //! Get Current Node Directory
 /*! Get the internal variable that points to where node files are
- * stored for the current Node.
+ * stored for the current Node. This overloaded version will NOT create the directory
+ * if it does not exist.
+ * \param node Name of current Node
  * \return Pointer to character string containing path to Node, otherwise nullptr.
 */
-string get_nodedir(string name)
+string get_nodedir(string node)
 {
-	return (set_nodedir(name));
+	return get_nodedir(node, false);
 }
 
-//! Set Current Node Directory
-/*! Set the internal variable that points to where node files are
+//! Get Current Node Directory
+/*! Get the internal variable that points to where node files are
  * stored for the current Node.
  * \param node Name of current Node
  * \return Pointer to character string containing path to Node, otherwise nullptr.
 */
-string set_nodedir(string node)
+string get_nodedir(string node, bool create_flag)
 {
 	nodedir.clear();
 	if (!set_cosmosnodes())
@@ -1154,7 +1156,17 @@ string set_nodedir(string node)
 		nodedir = cosmosnodes + "/" + node;
 		if (!data_isdir(nodedir))
 		{
-			nodedir.clear();
+			if (!create_flag)
+			{
+				nodedir.clear();
+			}
+			else
+			{
+				if (COSMOS_MKDIR(nodedir.c_str(),00777) != 0)
+				{
+					nodedir.clear();
+				}
+			}
 		}
 	}
 	return (nodedir);
@@ -1222,73 +1234,73 @@ int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &eve
 	}
 	iretn = data_load_archive(cdata[0].node.name, "soh", mjd, "event", event);
 
-//	DIR *jdp;
-//	struct dirent *td;
-//	int year, month;
-//	double day, jday;
-//	int len, dlen;
-//	char dtemp[356];
-//	ifstream tfd;
-//	string tstring;
+	//	DIR *jdp;
+	//	struct dirent *td;
+	//	int year, month;
+	//	double day, jday;
+	//	int len, dlen;
+	//	char dtemp[356];
+	//	ifstream tfd;
+	//	string tstring;
 
-//	telem.clear();
-//	event.clear();
+	//	telem.clear();
+	//	event.clear();
 
-//	mjd = (int)mjd;
-//	mjd2ymd(mjd,&year,&month,&day,&jday);
+	//	mjd = (int)mjd;
+	//	mjd2ymd(mjd,&year,&month,&day,&jday);
 
-//	get_nodedir(cdata[0].node.name);
-//	if (nodedir.size())
-//	{
-//		dlen = nodedir.size() + 33 + strlen(cdata[0].node.name);
-//		sprintf(dtemp,"%s/data/soh/%4d/%03d",nodedir.c_str(),year,(int32_t)jday);
-//		if ((jdp=opendir(dtemp))!=nullptr)
-//		{
-//			while ((td=readdir(jdp))!=nullptr)
-//			{
-//				if (td->d_name[0] != '.')
-//				{
-//					sprintf(dtemp,"%s/data/soh/%04d/%03d/%s",nodedir.c_str(),year,(int32_t)jday,td->d_name);
-//					if (((len=strlen(dtemp)) > dlen))
-//						tfd.open(dtemp);
-//					if (tfd.is_open())
-//					{
-//						while (getline(tfd,tstring))
-//						{
-//							switch (dtemp[dlen])
-//							{
-//							//! Telemetry file
-//							case 't':
-//								if (!strcmp(&dtemp[dlen],"telemetry"))
-//								{
-//									telem.push_back(tstring);
-//								}
-//								break;
-//								//! Event file
-//							case 'e':
-//								//! Log file
-//							case 'l':
-//								//! Command file
-//							case 'c':
-//								//! Message file
-//							case 'm':
-//								if (!strcmp(&dtemp[dlen],"event") || !strcmp(&dtemp[dlen],"log") || !strcmp(&dtemp[dlen],"command") || !strcmp(&dtemp[dlen],"message"))
-//								{
-//									event.push_back(tstring);
-//								}
-//								break;
-//							}
-//						}
-//						tfd.close();
-//					}
-//				}
-//			}
-//			closedir(jdp);
+	//	get_nodedir(cdata[0].node.name);
+	//	if (nodedir.size())
+	//	{
+	//		dlen = nodedir.size() + 33 + strlen(cdata[0].node.name);
+	//		sprintf(dtemp,"%s/data/soh/%4d/%03d",nodedir.c_str(),year,(int32_t)jday);
+	//		if ((jdp=opendir(dtemp))!=nullptr)
+	//		{
+	//			while ((td=readdir(jdp))!=nullptr)
+	//			{
+	//				if (td->d_name[0] != '.')
+	//				{
+	//					sprintf(dtemp,"%s/data/soh/%04d/%03d/%s",nodedir.c_str(),year,(int32_t)jday,td->d_name);
+	//					if (((len=strlen(dtemp)) > dlen))
+	//						tfd.open(dtemp);
+	//					if (tfd.is_open())
+	//					{
+	//						while (getline(tfd,tstring))
+	//						{
+	//							switch (dtemp[dlen])
+	//							{
+	//							//! Telemetry file
+	//							case 't':
+	//								if (!strcmp(&dtemp[dlen],"telemetry"))
+	//								{
+	//									telem.push_back(tstring);
+	//								}
+	//								break;
+	//								//! Event file
+	//							case 'e':
+	//								//! Log file
+	//							case 'l':
+	//								//! Command file
+	//							case 'c':
+	//								//! Message file
+	//							case 'm':
+	//								if (!strcmp(&dtemp[dlen],"event") || !strcmp(&dtemp[dlen],"log") || !strcmp(&dtemp[dlen],"command") || !strcmp(&dtemp[dlen],"message"))
+	//								{
+	//									event.push_back(tstring);
+	//								}
+	//								break;
+	//							}
+	//						}
+	//						tfd.close();
+	//					}
+	//				}
+	//			}
+	//			closedir(jdp);
 
-//			return 0;
-//		}
-//	}
-//	return (DATA_ERROR_ARCHIVE);
+	//			return 0;
+	//		}
+	//	}
+	//	return (DATA_ERROR_ARCHIVE);
 	return iretn;
 }
 

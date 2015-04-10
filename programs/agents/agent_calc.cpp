@@ -23,7 +23,7 @@ using namespace std;
 #include "agentlib.h"
 #include "physicslib.h" // long term we may move this away
 #include "jsonlib.h"
-#include "jsonlib.h"	// need this for node_init
+#include "jsonlib.h"	// need this for json_setup_node
 
 int myagent();
 
