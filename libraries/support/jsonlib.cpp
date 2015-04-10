@@ -3562,6 +3562,24 @@ int32_t json_parse_value(const char **pointer, uint16_t type, ptrdiff_t offset, 
 
 	switch (type)
 	{
+    case JSON_TYPE_UINT8:
+        if (std::isnan(val=json_equation(pointer,cdata)))
+        {
+            if ((iretn = json_parse_number(pointer,&val)) < 0)
+                return (iretn);
+        }
+        *(uint8_t *)data = (uint8_t)val;
+        break;
+
+    case JSON_TYPE_INT8:
+        if (std::isnan(val=json_equation(pointer,cdata)))
+        {
+            if ((iretn = json_parse_number(pointer,&val)) < 0)
+                return (iretn);
+        }
+        *(int8_t *)data = (int8_t)val;
+        break;
+
 	case JSON_TYPE_UINT16:
 		if (std::isnan(val=json_equation(pointer,cdata)))
 		{
