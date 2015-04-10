@@ -127,8 +127,10 @@ int32_t json_out_1d(string &jstring, const char *token, uint16_t col, cosmosstru
 int32_t json_out_2d(string &jstring,const char *token, uint16_t row, uint16_t col,cosmosstruc *cdata);
 int32_t json_out_name(string &jstring, string name);
 int32_t json_out_character(string &jstring,char character);
+int32_t json_out_int8(string &jstring,int8_t value);
 int32_t json_out_int16(string &jstring,int16_t value);
 int32_t json_out_int32(string &jstring,int32_t value);
+int32_t json_out_uint8(string &jstring,uint8_t value);
 int32_t json_out_uint16(string &jstring,uint16_t value);
 int32_t json_out_uint32(string &jstring,uint32_t value);
 int32_t json_out_float(string &jstring,float value);

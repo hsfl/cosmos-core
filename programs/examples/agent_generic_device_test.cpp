@@ -231,7 +231,10 @@ int generic_node_test(int type_number, string type){
         if (type == "vstring"){
             //cdata->devspec.telem[type_number]->vstring = "asd";
             //value_str = to_string(cdata->devspec.telem[type_number]->vuint8);
-        }
+			uint32_t itemp = atol(value_str.c_str());
+			++itemp;
+			sprintf(cdata->devspec.telem[type_number]->vstring, "%lu", itemp);
+		}
 
 
         // now send the new value to the neighbour agent

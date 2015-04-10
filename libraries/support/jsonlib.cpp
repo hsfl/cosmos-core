@@ -567,12 +567,20 @@ int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t typ
 
 	switch (type)
 	{
+	case JSON_TYPE_UINT8:
+		if ((iretn=json_out_uint8(jstring,*(uint8_t *)data)) != 0)
+			return (iretn);
+		break;
 	case JSON_TYPE_UINT16:
 		if ((iretn=json_out_uint16(jstring,*(uint16_t *)data)) != 0)
 			return (iretn);
 		break;
 	case JSON_TYPE_UINT32:
 		if ((iretn=json_out_uint32(jstring,*(uint32_t *)data)) != 0)
+			return (iretn);
+		break;
+	case JSON_TYPE_INT8:
+		if ((iretn=json_out_int8(jstring,*(int8_t *)data)) != 0)
 			return (iretn);
 		break;
 	case JSON_TYPE_INT16:
@@ -726,6 +734,22 @@ int32_t json_out_name(string &jstring, string name)
 	return 0;
 }
 
+//! Signed 8 bit integer to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 8 bit signed integer.
+	\param value The JSON data of the desired variable
+	\return  0 if successful, negative error otherwise
+*/
+int32_t json_out_int8(string &jstring,int8_t value)
+{
+	int32_t iretn;
+	char tstring[15];
+
+	sprintf(tstring,"%hd",value);
+
+	iretn = json_append(jstring,tstring);
+	return (iretn);
+}
+
 //! Signed 16 bit integer to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated 16 bit signed integer.
 	\param value The JSON data of the desired variable
@@ -753,6 +777,22 @@ int32_t json_out_int32(string &jstring,int32_t value)
 	char tstring[15];
 
 	sprintf(tstring,"%d",value);
+
+	iretn = json_append(jstring,tstring);
+	return (iretn);
+}
+
+//! Unsigned 8 bit integer to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 8 bit unsigned integer.
+	\param value The JSON data of the desired variable
+	\return  0 if successful, negative error otherwise
+*/
+int32_t json_out_uint8(string &jstring,uint8_t value)
+{
+	int32_t iretn;
+	char tstring[15];
+
+	sprintf(tstring,"%hu",value);
 
 	iretn = json_append(jstring,tstring);
 	return (iretn);
