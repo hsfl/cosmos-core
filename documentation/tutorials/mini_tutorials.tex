@@ -1,0 +1,517 @@
+% include the standard headers for the COSMOS documentation
+\input{../latex/commonHeaders.tex}
+
+\title{Mini Tutorials on COSMOS-core}
+\author{Eric J. Pilger, Miguel A. Nunes}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+%\chapter{Mini Tutorials}
+
+
+\newpage
+\section{Add a new generic device}
+
+As an example we are going to add a new generic device to measure the temperature named ``temperatureStation". Go to jsondef.h approx in line 960 and create the structure that  contains the information you want to use.
+
+\begin{lstlisting}
+struct temperatureStationStruc
+{
+	//! Generic info must be here for every device
+	genstruc gen;
+	//! the following is any data specific to this device
+	float temperature; // your temperature data will be stored here
+} ;
+
+\end{lstlisting}
+
+add your temperatureStationStruc structure to the devicestruc union (apporox in line 1400)
+
+\begin{lstlisting}
+typedef struct
+{
+	union
+	{
+		allstruc all;
+		...
+		thststruc thst;
+		tsenstruc tsen;
+		temperatureStationStruc temperatureStation; // << --- add here
+	};
+} devicestruc;
+
+\end{lstlisting}
+
+
+add your temperatureStationStruc structure to the devspecstruc structure (apporox in line 1500)
+
+
+\begin{lstlisting}
+typedef struct
+{
+	uint16_t ant_cnt;
+	...
+	uint16_t thst_cnt;
+	uint16_t tsen_cnt; 
+	uint16_t temperatureStation_cnt; // << --- add here
+	vector<allstruc *>all;
+	...
+	vector<thststruc *>thst;
+	vector<tsenstruc *>tsen;
+	vector<temperatureStationStruc *>temperatureStation;  // << --- add here
+} devspecstruc;
+
+\end{lstlisting}
+
+
+now go to jsonlib.cpp , add your temperatureStation to the end of device\_type\_string
+
+
+\begin{lstlisting}
+vector <string> device_type_string
+{
+	"pload",
+	...
+	"cam",
+	"temperatureStation" // <-- add here
+};
+
+
+\end{lstlisting}
+
+in jsondef.h you also must add the device type to the end of device\_type\ enum (approx in line 400)
+
+
+\begin{lstlisting}
+enum
+	{
+	//! Payload
+	DEVICE_TYPE_PLOAD=0,
+	...
+	//! Camera
+	DEVICE_TYPE_CAM=26,
+	//! your tempStation here
+	DEVICE_TYPE_TEMPSTATION = 27, // <- add here 
+	//! List count
+	DEVICE_TYPE_COUNT,
+	//! Not a Component
+	DEVICE_TYPE_NONE=65535
+	};
+
+\end{lstlisting}
+
+
+now we are going to modify some functions in the code. The first one is json\_detroy in jsonlib.cpp
+
+
+\begin{lstlisting}
+void json_destroy(cosmosstruc *cdata)
+{
+	for (uint16_t i=0; i<2; ++i)
+	{
+		cdata[i].devspec.ant.resize(0);
+		...
+		cdata[i].devspec.tsen.resize(0);
+		cdata[i].devspec.temperatureStation.resize(0); // <- add here
+		cdata[i].device.resize(0);
+
+	}
+
+	delete [] cdata;
+	cdata = NULL;
+}
+
+\end{lstlisting}
+
+(side note: for a really complex type further definitions must be added to the namespace, but most common types are already supported, so this is an advanced feature)
+
+go to json\_devices\_specific and inside the for loop that goes over each type add some of the following
+
+\begin{lstlisting}
+const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
+{
+...
+
+	for (uint16_t j=0; j<*cnt; ++j)
+	{
+	...
+  
+		// Dump Temperature Station
+	 	if (!strcmp(device_type_string[i].c_str(),"tempStation"))
+	 	{
+		 	json_out_1d(jstring,(char *)"device_tempStation_temperature",j,cdata);
+	 		json_out_character(jstring, '\n');
+	 	}
+
+	} 
+}
+
+\end{lstlisting}
+
+go to json\_clone
+
+\begin{lstlisting}
+
+int32_t json_clone(cosmosstruc *cdata)
+{
+...
+	case DEVICE_TYPE_TEMPSTATION:
+		cdata[1].devspec.tempStation[cdata[1].device[i].all.gen.didx] =
+			&cdata[1].device[i].tempStation;
+		break;
+...
+}
+
+\end{lstlisting}
+
+add name for the device count in json\_addbaseentry
+
+\begin{lstlisting}
+
+uint16_t json_addbaseentry(cosmosstruc *cdata)
+{
+
+	...
+	json_addentry("device_tempStation_cnt", 
+		UINT16_MAX, 
+		UINT16_MAX,
+		offsetof(devspecstruc,tempStation_cnt), 
+		COSMOS_SIZEOF(uint16_t), 
+		(uint16_t)JSON_TYPE_UINT16,
+		JSON_GROUP_DEVSPEC,
+		cdata);
+
+}
+
+\end{lstlisting}
+
+
+to json\_adddeviceentry add 
+
+\begin{lstlisting}
+
+uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
+{
+
+	...
+	case DEVICE_TYPE_BUS:
+	
+		json_addentry("device_tempStation_utc",
+			didx, 
+			UINT16_MAX, 
+			(ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),
+			COSMOS_SIZEOF(double), 
+			(uint16_t)JSON_TYPE_DOUBLE,
+			JSON_GROUP_DEVICE,
+			cdata);
+
+		json_addentry("device_tempStation_temperature",
+			didx, 
+			UINT16_MAX,
+			(ptrdiff_t)offsetof(temperatureStationStruc,temperature) + 
+				i*sizeof(devicestruc),
+			COSMOS_SIZEOF(double), 
+			(uint16_t)JSON_TYPE_DOUBLE,
+			JSON_GROUP_DEVICE,
+			cdata);
+		
+		cdata[0].devspec.tempStation.push_back(
+			(temperatureStationStruct *)&cdata[0].device[i].tempStation);
+		cdata[0].devspec.tempStation_cnt = 
+			(uint16_t)cdata[0].devspec.tempStation.size();
+	break;
+
+}
+
+\end{lstlisting}
+
+
+
+% --------------------------------------------------------------------
+
+%\newpage
+%\section{Add a new common device}
+%
+%overview
+%\begin{itemize}
+%\item add to json
+%\item add to simulator
+%\item add to node.ini creator
+%\end{itemize}
+%
+%All things are parts
+%Parts - everything in nodes are parts, physical size and location
+%Components - electrical parts - nominal voltage,current, actual voltage and current, some components are 
+%Devices - specialized component
+%
+%
+%\subsection{edit jsondef.h}
+%
+%
+%\begin{lstlisting}
+%//! Maximum number of Star Trackers
+%#define MAXSTT 2
+%
+%int16_t stt_cnt; // star tracker count, how many STTs there are?
+%
+%// static 
+%sttstruc_s stt[MAXSTT];
+%
+%// dynamic
+%sttstruc_d stt[MAXSTT];
+%\end{lstlisting}
+%
+%\begin{lstlisting}
+%//! Star Tracker (STT) Static Structure
+%typedef struct
+%    {
+%    int16_t cidx;    // component index
+%    quaternion algn; // alignment quaternion
+%    } sttstruc_s;
+%
+%//! Star Tracker (STT) Dynamic Sructure
+%typedef struct
+%    {
+%    //double utc; // probably not needed
+%    qatt att; // includes 0 and 1st order derivative
+%    } sttstruc_d;
+%\end{lstlisting}
+%
+%
+%
+%\subsection{edit jsonlib.cpp}
+%\begin{lstlisting}
+%
+%{"stt_cidx",JSON_TYPE_INT16},
+%{"stt_algn",JSON_TYPE_QUATERNION},
+%{"stt_att",JSON_TYPE_QATT},    
+%{"stt_cnt",JSON_TYPE_INT16},// how many of these
+%
+%
+%//Device: Star Tracker
+%json_addentry("stt_cnt",-1,-1,offsetof(cosmosstruc,stat.node.stt_cnt));
+%for (i=0; i<MAXIMU; i++)
+%    {
+%    json_addentry("stt_cidx",i,-1,
+%    offsetof(cosmosstruc,stat.node.stt)+
+%    (ptrdiff_t)offsetof(sttstruc_s,cidx)+i*sizeof(sttstruc_s));
+%    
+%    json_addentry("stt_algn",i,-1,
+%    offsetof(cosmosstruc,stat.node.stt)+
+%    (ptrdiff_t)offsetof(sttstruc_s,algn)+i*sizeof(sttstruc_s));
+%    
+%    json_addentry("stt_att",i,-1,
+%    offsetof(cosmosstruc,dyn.node.stt)+
+%    (ptrdiff_t)offsetof(sttstruc_d,att)+i*sizeof(sttstruc_d));
+%    
+%    }
+%
+%//i index for each device, ex: stt_cidx_001...
+%//-1, no second dimension
+%//offsetof, memory mapping
+%
+%
+%add to json_satellite
+%
+%// Dump STT's
+%json_out(jstring,(char *)"stt_cnt",sroot,droot);
+%for (i=0; i<*(int16_t *)json_ptrto((char *)"stt_cnt",sroot,droot); i++)
+%    {
+%    json_out_1d(jstring,(char *)"stt_cidx",i,sroot,droot);
+%    json_out_1d(jstring,(char *)"stt_algn",i,sroot,droot);
+%    }
+%
+%\end{lstlisting}
+%
+%
+%\subsection{edit satlib.cpp}
+%\begin{lstlisting}
+%in void load_databases()
+%
+%sttstruc_d *std;
+%sttstruc_s *sts;
+%
+%
+%op = fopen("stt.txt","r");
+%if (op != NULL)
+%{
+%for (i=0; i<cosmos_data.stat.node.stt_cnt; i++)
+%	{
+%	sts = &cosmos_data.stat.node.stt[i];
+%	std = &cosmos_data.dyn.node.stt[i];
+%	fscanf(op,"%*d\t%hd\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+%	&sts->cidx,
+%	&sts->algn.d.x,
+%	&sts->algn.d.y,
+%	&sts->algn.d.z,
+%	&sts->algn.w,
+%	&std->att.s.d.x,
+%	&std->att.s.d.y,
+%	&std->att.s.d.z,
+%	&std->att.s.w,
+%	&std->att.v.col[0],
+%	&std->att.v.col[1],
+%	&std->att.v.col[2],
+%	&std->att.a.col[0],
+%	&std->att.a.col[1],
+%	&std->att.a.col[2]);
+%	}
+%fclose(op);
+%}
+%\end{lstlisting}
+%
+%\subsection{create node.ini (Eric's Magic)}
+%
+%make stt.txt file with tab delimited fields
+
+
+
+\newpage
+\section{extending the COSMOS namespace}
+
+example on extending the COSMOS namespace by adding port/address name to the devices namespace.
+
+\subsection{edit nodedef.h}
+
+look for nodestruc\_s \\
+look for imustruc\_s, line 220 \\
+add connection information for device:
+\begin{lstlisting}
+char port[COSMOS_MAX_NAME];
+\end{lstlisting}
+note: "COSMOS\_MAX\_NAME" contains 40 spaces \\
+add this to other devices that may require the name information:
+\begin{itemize}
+\item imu
+\item stt
+\item rw
+\item tcu (mtr)
+\item gps
+\item payload
+\item cpu
+\end{itemize}
+
+now recompile and check everything works
+\subsection{edit jsonlib.c}
+add the following JSON strings to the COSMOS namespace table
+\begin{lstlisting}
+("cpu_port",JSON_\TYPE_\STRING)
+("gps_port",JSON_\TYPE_\STRING)
+("imu_port",JSON_\TYPE_\STRING)
+("stt_port",JSON_\TYPE_\STRING)
+("mtr_port",JSON_\TYPE_\STRING)
+("payload_port",JSON_\TYPE_\STRING)
+("rw_port",JSON_\TYPE_\STRING)
+\end{lstlisting}
+
+in jason\_setup(), line 2600, add entries by copying a static one:
+\begin{lstlisting}
+    json_addentry("cpu_port",i,-1,
+    offsetof(cosmosstruc,stat.node.stt)+
+    (ptrdiff_t)offsetof(cpustruc_s,algn)+i*sizeof(cpustruc_s));
+\end{lstlisting}
+
+do the same to the: imu, stt, gps, mtr, rw, payload.
+
+\subsection{edit node.ini}
+add {"imu\_port","/dev/ttyUSB0"} \\
+note: later this will be done automatically using the COSMOS editor that Kyle is working on.\\
+to finally use the port name, ex.: \ microstrain\_connect(cosmos\_data.stat.imu[0].port)\\
+
+----------------\\
+things to clarify\\
+COSMOS namespace vs C++ namespace\\
+
+
+notes:
+node.ini
+is a static description of the node
+
+
+all the node.ini information goes into the node\_s structure
+
+node\_s - description info about node
+node\_d - dynamic part of node, like telemetry
+
+\section{Software profiler}
+
+\subsection{Linux}
+To check how your software preforms in Linux use 'gprof'
+
+1) Compile with correct switches 
+-pg
+
+CFLAGS = -pg 
+
+go to examples/profiler
+\$ make testprofiler
+
+2) run to completion, exit normally 
+this will create file gmon.out
+
+3) gprof <program>
+it reads gmon.out and prints a report
+
+\subsection{Mac OS}
+Use Instruments budled with Xcode
+or install
+http://valgrind.org
+
+Here is a list of profiling tools recomended by Qt: \\
+\url{http://qt-project.org/wiki/Profiling-and-Memory-Checking-Tools}
+%\href{http://qt-project.org/wiki/Profiling-and-Memory-Checking-Tools}{wikibooks home}
+
+\section{Code Documentation using Doxygen}
+Download Doxygen from www.doxygen.org
+
+
+% Tristan Tutorial on Installing Latex and then Qt with MinGW
+\section{Installing Latex and Qt with MinGW}
+
+\subsection{LaTex}
+Windows only:
+
+Download Latex from Here: \url{http://www.tug.org/protext/}
+
+Protext will contain MiKTex and TeXstudio.
+
+-extract files to a convenient folder
+
+-Install folder has a pdf of installation procedures
+
+-follow that document to get TeXstudio up and running. TeXstudio allows you to edit .tex files.
+
+\subsection{Custom Qt , MinGW and CMake}
+Windows only:
+
+Download Qt4.8.5.zip, and the cmake, mingw and qt-5.2.0 executables from here: \url{http://cosmos-project.org/software/downloads/}
+
+- Run the Qt5 executable and an installation wizard will guide you through installation. Accept all defaults.
+
+- Run the cmake executable, accepting all defaults.
+
+- Run the mingw-builds executable, accepting all defaults.
+
+- Expand the Qt4.8.5 zip and place it in the Qt folder created on the C: drive by the Qt5 install.
+\\
+\\
+When you first run Qt Creator, you will need to go to the Build \& Run section of Tools:Options to set up your environment. You will need to point to CMake, Compilers, and Qt Versions. Browse, or add then browse, as appropriate. The paths should be something like:
+
+- CMake: C:\textbackslash Program Files (x86)\textbackslash CMake 2.8\textbackslash bin\textbackslash cmake.exe
+
+- Compilers: C:\textbackslash Program Files (x86)\textbackslash mingw-builds\textbackslash x32-4.8.1-posix-dwarf-rev5\textbackslash mingw32\textbackslash bin\textbackslash g++.exe
+
+- Qt Versions: C:\textbackslash Qt\textbackslash Qt4.8.5\textbackslash bin\textbackslash qmake.exe
+\\
+\\
+Once this has been established, go to the Kits tab and set up a custom kit by selecting the things you just added.
+
+
+
+
+
+
+\end{document}

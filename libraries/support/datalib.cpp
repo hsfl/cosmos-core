@@ -985,7 +985,7 @@ int32_t get_cosmosresources(string &result)
 */
 int32_t setEnvCosmosResources(string path){
 
-	return setEnvCosmos("COSMOSRESOURCES", path);;
+    return setEnv("COSMOSRESOURCES", path);
 }
 
 
@@ -995,7 +995,7 @@ int32_t setEnvCosmosResources(string path){
 */
 int32_t setEnvCosmosNodes(string path){
 
-	return setEnvCosmos("COSMOSNODES", path);;
+    return setEnv("COSMOSNODES", path);
 }
 
 //! Set Environment Variable for COSMOS
@@ -1003,7 +1003,7 @@ int32_t setEnvCosmosNodes(string path){
  *  \param path full path of the COSMOS variable folder.
 	\return Zero, or negative error.
 */
-int32_t setEnvCosmos(string var, string path){
+int32_t setEnv(string var, string path){
 
 	uint32_t iretn;
 
@@ -1025,6 +1025,20 @@ int32_t setEnvCosmos(string var, string path){
 	}
 
 	return iretn;
+}
+
+//! Set Environment Variable for COSMOS Automatically
+/*! \param path full path of the COSMOS variable folder.
+    \return Zero, or negative error.
+*/
+int32_t setEnvCosmos(string path){
+
+    uint32_t iretn;
+
+    iretn = setEnv("COSMOSRESOURCES", path + "resources");
+    iretn = setEnv("COSMOSNODES", path + "nodes");
+
+    return iretn;
 }
 
 
