@@ -1044,7 +1044,7 @@ typedef struct
 } ssenstruc;
 
 //! Inertial Measurement Unit (IMU) structure
-typedef struct
+struct imustruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1060,7 +1060,7 @@ typedef struct
 	rvector mag;
 	//! Magnetic field rate change in sensor frame
 	rvector bdot;
-} imustruc;
+};
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
 typedef struct

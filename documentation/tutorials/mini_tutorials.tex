@@ -1,8 +1,15 @@
-% include the standard headers for the COSMOS documentation
-\input{../latex/commonHeaders.tex}
+\documentclass[10pt,letterpaper]{article}
+
+% ----------
+% include the standard packages for the COSMOS documentation
+\input{../latex/commonLatexPackages.tex}
+
+% ----------
+% include any specific packages for this document
+\usepackage[left=2.00cm, right=2.00cm, top=2cm,bottom=2.00cm]{geometry}
 
 \title{Mini Tutorials on COSMOS-core}
-\author{Eric J. Pilger, Miguel A. Nunes}
+%\author{Eric J. Pilger, Miguel A. Nunes}
 
 \begin{document}
 
@@ -197,7 +204,7 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 {
 
 	...
-	case DEVICE_TYPE_BUS:
+	case DEVICE_TYPE_TEMPSTATION:
 	
 		json_addentry("device_tempStation_utc",
 			didx, 
@@ -369,77 +376,79 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 
 
 
+%\newpage
+%\section{extending the COSMOS namespace}
+%
+%example on extending the COSMOS namespace by adding port/address name to the devices namespace.
+%
+%\subsection{edit nodedef.h}
+%
+%look for nodestruc\_s \\
+%look for imustruc\_s, line 220 \\
+%add connection information for device:
+%\begin{lstlisting}
+%char port[COSMOS_MAX_NAME];
+%\end{lstlisting}
+%note: "COSMOS\_MAX\_NAME" contains 40 spaces \\
+%add this to other devices that may require the name information:
+%\begin{itemize}
+%\item imu
+%\item stt
+%\item rw
+%\item tcu (mtr)
+%\item gps
+%\item payload
+%\item cpu
+%\end{itemize}
+%
+%now recompile and check everything works
+%\subsection{edit jsonlib.c}
+%add the following JSON strings to the COSMOS namespace table
+%\begin{lstlisting}
+%("cpu_port",JSON_\TYPE_\STRING)
+%("gps_port",JSON_\TYPE_\STRING)
+%("imu_port",JSON_\TYPE_\STRING)
+%("stt_port",JSON_\TYPE_\STRING)
+%("mtr_port",JSON_\TYPE_\STRING)
+%("payload_port",JSON_\TYPE_\STRING)
+%("rw_port",JSON_\TYPE_\STRING)
+%\end{lstlisting}
+%
+%in jason\_setup(), line 2600, add entries by copying a static one:
+%\begin{lstlisting}
+%    json_addentry("cpu_port",i,-1,
+%    offsetof(cosmosstruc,stat.node.stt)+
+%    (ptrdiff_t)offsetof(cpustruc_s,algn)+i*sizeof(cpustruc_s));
+%\end{lstlisting}
+%
+%do the same to the: imu, stt, gps, mtr, rw, payload.
+%
+%\subsection{edit node.ini}
+%add {"imu\_port","/dev/ttyUSB0"} \\
+%note: later this will be done automatically using the COSMOS editor that Kyle is working on.\\
+%to finally use the port name, ex.: \ microstrain\_connect(cosmos\_data.stat.imu[0].port)\\
+%
+%----------------\\
+%things to clarify\\
+%COSMOS namespace vs C++ namespace\\
+%
+%
+%notes:
+%node.ini
+%is a static description of the node
+%
+%
+%all the node.ini information goes into the node\_s structure
+%
+%node\_s - description info about node
+%node\_d - dynamic part of node, like telemetry
+
+
 \newpage
-\section{extending the COSMOS namespace}
-
-example on extending the COSMOS namespace by adding port/address name to the devices namespace.
-
-\subsection{edit nodedef.h}
-
-look for nodestruc\_s \\
-look for imustruc\_s, line 220 \\
-add connection information for device:
-\begin{lstlisting}
-char port[COSMOS_MAX_NAME];
-\end{lstlisting}
-note: "COSMOS\_MAX\_NAME" contains 40 spaces \\
-add this to other devices that may require the name information:
-\begin{itemize}
-\item imu
-\item stt
-\item rw
-\item tcu (mtr)
-\item gps
-\item payload
-\item cpu
-\end{itemize}
-
-now recompile and check everything works
-\subsection{edit jsonlib.c}
-add the following JSON strings to the COSMOS namespace table
-\begin{lstlisting}
-("cpu_port",JSON_\TYPE_\STRING)
-("gps_port",JSON_\TYPE_\STRING)
-("imu_port",JSON_\TYPE_\STRING)
-("stt_port",JSON_\TYPE_\STRING)
-("mtr_port",JSON_\TYPE_\STRING)
-("payload_port",JSON_\TYPE_\STRING)
-("rw_port",JSON_\TYPE_\STRING)
-\end{lstlisting}
-
-in jason\_setup(), line 2600, add entries by copying a static one:
-\begin{lstlisting}
-    json_addentry("cpu_port",i,-1,
-    offsetof(cosmosstruc,stat.node.stt)+
-    (ptrdiff_t)offsetof(cpustruc_s,algn)+i*sizeof(cpustruc_s));
-\end{lstlisting}
-
-do the same to the: imu, stt, gps, mtr, rw, payload.
-
-\subsection{edit node.ini}
-add {"imu\_port","/dev/ttyUSB0"} \\
-note: later this will be done automatically using the COSMOS editor that Kyle is working on.\\
-to finally use the port name, ex.: \ microstrain\_connect(cosmos\_data.stat.imu[0].port)\\
-
-----------------\\
-things to clarify\\
-COSMOS namespace vs C++ namespace\\
-
-
-notes:
-node.ini
-is a static description of the node
-
-
-all the node.ini information goes into the node\_s structure
-
-node\_s - description info about node
-node\_d - dynamic part of node, like telemetry
-
 \section{Software profiler}
 
 \subsection{Linux}
-To check how your software preforms in Linux use 'gprof'
+To check how your software preforms in Linux you can use 'gprof'
 
 1) Compile with correct switches 
 -pg
@@ -456,7 +465,7 @@ this will create file gmon.out
 it reads gmon.out and prints a report
 
 \subsection{Mac OS}
-Use Instruments budled with Xcode
+To profile on the the Mac use ``Instruments" budled with Xcode
 or install
 http://valgrind.org
 
@@ -464,50 +473,37 @@ Here is a list of profiling tools recomended by Qt: \\
 \url{http://qt-project.org/wiki/Profiling-and-Memory-Checking-Tools}
 %\href{http://qt-project.org/wiki/Profiling-and-Memory-Checking-Tools}{wikibooks home}
 
-\section{Code Documentation using Doxygen}
-Download Doxygen from www.doxygen.org
 
 
 % Tristan Tutorial on Installing Latex and then Qt with MinGW
-\section{Installing Latex and Qt with MinGW}
-
-\subsection{LaTex}
-Windows only:
-
-Download Latex from Here: \url{http://www.tug.org/protext/}
-
-Protext will contain MiKTex and TeXstudio.
-
--extract files to a convenient folder
-
--Install folder has a pdf of installation procedures
-
--follow that document to get TeXstudio up and running. TeXstudio allows you to edit .tex files.
-
-\subsection{Custom Qt , MinGW and CMake}
-Windows only:
-
-Download Qt4.8.5.zip, and the cmake, mingw and qt-5.2.0 executables from here: \url{http://cosmos-project.org/software/downloads/}
-
-- Run the Qt5 executable and an installation wizard will guide you through installation. Accept all defaults.
-
-- Run the cmake executable, accepting all defaults.
-
-- Run the mingw-builds executable, accepting all defaults.
-
-- Expand the Qt4.8.5 zip and place it in the Qt folder created on the C: drive by the Qt5 install.
-\\
-\\
-When you first run Qt Creator, you will need to go to the Build \& Run section of Tools:Options to set up your environment. You will need to point to CMake, Compilers, and Qt Versions. Browse, or add then browse, as appropriate. The paths should be something like:
-
-- CMake: C:\textbackslash Program Files (x86)\textbackslash CMake 2.8\textbackslash bin\textbackslash cmake.exe
-
-- Compilers: C:\textbackslash Program Files (x86)\textbackslash mingw-builds\textbackslash x32-4.8.1-posix-dwarf-rev5\textbackslash mingw32\textbackslash bin\textbackslash g++.exe
-
-- Qt Versions: C:\textbackslash Qt\textbackslash Qt4.8.5\textbackslash bin\textbackslash qmake.exe
-\\
-\\
-Once this has been established, go to the Kits tab and set up a custom kit by selecting the things you just added.
+%\section{Installing Latex and Qt with MinGW}
+%
+%
+%
+%\subsection{Custom Qt , MinGW and CMake}
+%Windows only:
+%
+%Download Qt4.8.5.zip, and the cmake, mingw and qt-5.2.0 executables from here: \url{http://cosmos-project.org/software/downloads/}
+%
+%- Run the Qt5 executable and an installation wizard will guide you through installation. Accept all defaults.
+%
+%- Run the cmake executable, accepting all defaults.
+%
+%- Run the mingw-builds executable, accepting all defaults.
+%
+%- Expand the Qt4.8.5 zip and place it in the Qt folder created on the C: drive by the Qt5 install.
+%\\
+%\\
+%When you first run Qt Creator, you will need to go to the Build \& Run section of Tools:Options to set up your environment. You will need to point to CMake, Compilers, and Qt Versions. Browse, or add then browse, as appropriate. The paths should be something like:
+%
+%- CMake: C:\textbackslash Program Files (x86)\textbackslash CMake 2.8\textbackslash bin\textbackslash cmake.exe
+%
+%- Compilers: C:\textbackslash Program Files (x86)\textbackslash mingw-builds\textbackslash x32-4.8.1-posix-dwarf-rev5\textbackslash mingw32\textbackslash bin\textbackslash g++.exe
+%
+%- Qt Versions: C:\textbackslash Qt\textbackslash Qt4.8.5\textbackslash bin\textbackslash qmake.exe
+%\\
+%\\
+%Once this has been established, go to the Kits tab and set up a custom kit by selecting the things you just added.
 
 
 

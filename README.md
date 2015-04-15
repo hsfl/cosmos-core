@@ -40,5 +40,5 @@ documentation folder.
 
 By default we recomment that COSMOS is installed if the following folders
 for Windows: C:\COSMOS
-for MacOS: /COSMOS
+for MacOS: /Applications/COSMOS
 for Linux/Unix: /home/COSMOS 
