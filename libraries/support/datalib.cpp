@@ -893,54 +893,77 @@ int32_t set_cosmosresources(string name)
 
 //! Find Resources Directory
 /*! Set the internal variable that points to where all COSMOS
- * resource files are stored. This either uses the value in the
- * COSMOSRESOURCES environment variable, or looks for the directory
- * up to 6 levels above the current directory, first in
- * "cosmosresources", and then in "resources".
+ * resource files are stored. This checks, in succession:
+ * - a folder named "resources" in a path specified by the COSMOS environment variable
+ * - the path specified by the COSMOSRESOURCES environment variable
+ * - "~/cosmos/resources" (Unix); "c:\Program Files\cosmos\resources" (Windows)
+ * - up to 6 levels above the current directory, first in "cosmosresources", and then in "resources".
  * \return Zero, or negative error.
 */
 int32_t set_cosmosresources()
 {
 	string aroot;
 	int i;
-	struct stat sbuf;
 
 	if (cosmosresources.empty())
 	{
-		char *croot = getenv("COSMOSRESOURCES");
-		if (croot != nullptr && data_isdir(croot))
+		char *croot = getenv("COSMOS");
+		if (croot != nullptr)
 		{
-			cosmosresources = croot;
+			if (data_isdir(croot + (string)"/resources"))
+			{
+				cosmosresources = croot + (string)"/resources";
+				return 0;
+			}
 		}
 		else
 		{
-			// ??MN: this will not work on the Mac with bundled apps
-			// because the executable is actually two folders deeper
-			// maybe the best thing to do is to encourage the user
-			// to set the COSMOSRESOURCES env. variable
-			aroot = "cosmosresources";
-			for (i=0; i<6; i++)
+			croot = getenv("COSMOSRESOURCES");
+			if (croot != nullptr && data_isdir(croot))
 			{
-				if (stat(aroot.c_str(),&sbuf) == 0)
-				{
-					cosmosresources = aroot;
-					break;
-				}
-				aroot = "../" + aroot;
+				cosmosresources = croot;
+				return 0;
 			}
-			if (cosmosresources.empty())
+		}
+
+		// No environment variables set. Look in standard location.
+#ifdef COSMOS_LINUX_OS
+		if (data_isdir(getenv("HOME")+(string)"/cosmos/resources"))
+		{
+			cosmosresources = getenv("HOME")+(string)"/cosmos/resources");
+			return 0;
+		}
+#endif
+#ifdef COSMOS_WIN_OS
+		if (data_isdir("c:/Program Files/cosmos/resources"))
+		{
+			cosmosresources = "c:/Program Files/cosmos/resources";
+			return 0;
+		}
+#endif
+
+		// No standard location. Search upward for "cosmosresources"
+		aroot = "cosmosresources";
+		for (i=0; i<6; i++)
+		{
+			if (data_isdir(aroot))
 			{
-				aroot = "resources";
-				for (i=0; i<6; i++)
-				{
-					if (stat(aroot.c_str(),&sbuf) == 0)
-					{
-						cosmosresources = aroot;
-						break;
-					}
-					aroot = "../" + aroot;
-				}
+				cosmosresources = aroot;
+				return 0;
 			}
+			aroot = "../" + aroot;
+		}
+
+		// Still didn't find it. Search upward for "resources"
+		aroot = "resources";
+		for (i=0; i<6; i++)
+		{
+			if (data_isdir(aroot))
+			{
+				cosmosresources = aroot;
+				return 0;
+			}
+			aroot = "../" + aroot;
 		}
 	}
 
@@ -985,7 +1008,7 @@ int32_t get_cosmosresources(string &result)
 */
 int32_t setEnvCosmosResources(string path){
 
-    return setEnv("COSMOSRESOURCES", path);
+	return setEnv("COSMOSRESOURCES", path);
 }
 
 
@@ -995,7 +1018,7 @@ int32_t setEnvCosmosResources(string path){
 */
 int32_t setEnvCosmosNodes(string path){
 
-    return setEnv("COSMOSNODES", path);
+	return setEnv("COSMOSNODES", path);
 }
 
 //! Set Environment Variable for COSMOS
@@ -1029,16 +1052,16 @@ int32_t setEnv(string var, string path){
 
 //! Set Environment Variable for COSMOS Automatically
 /*! \param path full path of the COSMOS variable folder.
-    \return Zero, or negative error.
+	\return Zero, or negative error.
 */
 int32_t setEnvCosmos(string path){
 
-    uint32_t iretn;
+	uint32_t iretn;
 
-    iretn = setEnv("COSMOSRESOURCES", path + "resources");
-    iretn = setEnv("COSMOSNODES", path + "nodes");
+	iretn = setEnv("COSMOSRESOURCES", path + "resources");
+	iretn = setEnv("COSMOSNODES", path + "nodes");
 
-    return iretn;
+	return iretn;
 }
 
 
@@ -1075,36 +1098,63 @@ int32_t set_cosmosnodes()
 
 	if (cosmosnodes.empty())
 	{
-		char *croot = getenv("COSMOSNODES");
-		if (croot != nullptr && data_isdir(croot))
+		char *croot = getenv("COSMOS");
+		if (croot != nullptr)
 		{
-			cosmosnodes = croot;
+			if (data_isdir(croot + (string)"/nodes"))
+			{
+				cosmosnodes = croot + (string)"/nodes";
+				return 0;
+			}
 		}
 		else
 		{
-			aroot = "cosmosnodes";
-			for (i=0; i<6; i++)
+			croot = getenv("COSMOSNODES");
+			if (croot != nullptr && data_isdir(croot))
 			{
-				if (data_isdir(aroot))
-				{
-					cosmosnodes = aroot;
-					break;
-				}
-				aroot = "../" + aroot;
+				cosmosnodes = croot;
+				return 0;
 			}
-			if (cosmosnodes.empty())
+		}
+
+		// No environment variables set. Look in standard location.
+#ifdef COSMOS_LINUX_OS
+		if (data_isdir(getenv("HOME")+(string)"/cosmos/nodes"))
+		{
+			cosmosnodes = getenv("HOME")+(string)"/cosmos/nodes");
+			return 0;
+		}
+#endif
+#ifdef COSMOS_WIN_OS
+		if (data_isdir("c:/Program Files/cosmos/nodes"))
+		{
+			cosmosnodes = "c:/Program Files/cosmos/nodes";
+			return 0;
+		}
+#endif
+
+		// No standard location. Search upward for "cosmosnodes"
+		aroot = "cosmosnodes";
+		for (i=0; i<6; i++)
+		{
+			if (data_isdir(aroot))
 			{
-				aroot = "nodes";
-				for (i=0; i<6; i++)
-				{
-					if (data_isdir(aroot))
-					{
-						cosmosnodes = aroot;
-						break;
-					}
-					aroot = "../" + aroot;
-				}
+				cosmosnodes = aroot;
+				return 0;
 			}
+			aroot = "../" + aroot;
+		}
+
+		// Still didn't find it. Search upward for "nodes"
+		aroot = "nodes";
+		for (i=0; i<6; i++)
+		{
+			if (data_isdir(aroot))
+			{
+				cosmosnodes = aroot;
+				return 0;
+			}
+			aroot = "../" + aroot;
 		}
 	}
 
