@@ -100,7 +100,7 @@ int agentloop()
         generic_node_test(8,"vstring");
 
 
-        COSMOS_SLEEP(1.0);
+		COSMOS_USLEEP(50000);
 
     }
     return (0);

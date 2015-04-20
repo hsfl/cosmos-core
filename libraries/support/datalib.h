@@ -31,7 +31,7 @@
 //! Data Management support library.
 //!
 //! Data within COSMOS is managed in a heirarchical structure that
-//! mirrors the Node:Agent arrangement laid down in the \ref nodelib.
+//! mirrors the Node:Agent arrangement laid down in the \ref jsonlib.
 //! Directories are defined for storage of general use information, as
 //! well as information specific to each Node. Separate directories are
 //! also defined for Incoming data, Outgoing data, and Archival data.
