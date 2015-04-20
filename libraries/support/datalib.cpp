@@ -930,7 +930,7 @@ int32_t set_cosmosresources()
 #ifdef COSMOS_LINUX_OS
 		if (data_isdir(getenv("HOME")+(string)"/cosmos/resources"))
 		{
-			cosmosresources = getenv("HOME")+(string)"/cosmos/resources");
+			cosmosresources = getenv("HOME")+(string)"/cosmos/resources";
 			return 0;
 		}
 #endif
@@ -1121,7 +1121,7 @@ int32_t set_cosmosnodes()
 #ifdef COSMOS_LINUX_OS
 		if (data_isdir(getenv("HOME")+(string)"/cosmos/nodes"))
 		{
-			cosmosnodes = getenv("HOME")+(string)"/cosmos/nodes");
+			cosmosnodes = getenv("HOME")+(string)"/cosmos/nodes";
 			return 0;
 		}
 #endif
