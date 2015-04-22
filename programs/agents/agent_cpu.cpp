@@ -192,7 +192,7 @@ float GetLinuxUsedDisk()
 	free = buf.f_frsize * buf.f_bfree;
 	used = disk_size - free;
 
-	return (used) * 0.000976563; // convert byte to kibibyte
+	return (used) / 1024; // convert byte to kibibyte
 }
 
 float GetLinuxVirtualMem() // unsure if working??
@@ -205,7 +205,7 @@ float GetLinuxVirtualMem() // unsure if working??
 	virtualMemUsed += memInfo.totalswap - memInfo.freeswap;
 	virtualMemUsed *= memInfo.mem_unit;
 
-	return (virtualMemUsed) * 0.000976563; // convert byte to kibibyte
+	return (virtualMemUsed) / 1024; // convert byte to kibibyte
 }
 
 static float CalculateLinuxCPULoad(float *out)
