@@ -2,7 +2,7 @@
 // agent 002 makes request to 002 upon activation
 
 #include "configCosmos.h"
-#include "elapsedtime.hpp"
+//#include "elapsedtime.hpp"
 #include "timeutils.hpp"
 #include "agentlib.h"
 
@@ -15,7 +15,8 @@ int myagent();
 int32_t request_hello(char *request, char* response, void *cdata); // function prototype of agent request
 
 string agentname     = "002";
-string nodename      = "cubesat1";
+string nodename      = "telem";
+string cosmosPath   = "E:/cosmos/bitbucket/"; // change this to where your COSMOS folder is
 
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int loopmsec = 1; // period of heartbeat
@@ -28,14 +29,11 @@ cosmosstruc *cdata; // to access the cosmos data, will change later
 
 int main(int argc, char *argv[])
 {
+    setEnvCosmos(cosmosPath);
+
     cout << "Starting agent " << endl;
 
     int iretn;
-
-    //    // Check for other instance of this agent
-    //    if (argc == 2)
-    //        agentname = argv[1];
-
 
     // Establish the command channel and heartbeat
     if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,

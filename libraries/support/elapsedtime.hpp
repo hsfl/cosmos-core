@@ -20,7 +20,7 @@ using namespace std;
 // On windows using MinGw32 it does not get better than 1ms
 class ElapsedTime {
     //new c++11
-    chrono::steady_clock::time_point timeStart, timeNow, timeStop;
+    chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
 
 public:
     //int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
@@ -38,7 +38,8 @@ public:
     void reset();
 
     void start();
-    double stop();
+//    double stop();
+    double check();
 
     // turn on/off printing
     bool print = true; //

@@ -1,6 +1,14 @@
 // Example of an agent making a request to another agent
 // agent 001 makes request to 002 upon activation
 
+// the single quote only works on linux
+// test: agent telem 001 'setvalue {"device_telem_vint16_000":10}'
+// test: agent telem 001 'getvalue {"device_telem_vint16_000"}'
+
+// the single quote only works on windows
+// test: agent telem 001 "setvalue {\"device_telem_vint16_000\":10}"
+// test: agent telem 001 "getvalue {\"device_telem_vint16_000\"}"
+
 #include "configCosmos.h"
 #include "elapsedtime.hpp"
 #include "timeutils.hpp"
@@ -10,11 +18,13 @@
 #include <string>
 using namespace std;
 
+
 int myagent();
 
-string agentname     = "001";
-string nodename      = "cubesat1";
-string requestname   = "002"; //name of the agent that the request is directed to
+string agentname    = "001";
+string nodename     = "telem";
+string requestname  = "002"; //name of the agent that the request is directed to
+string cosmosPath   = "C:/COSMOS/"; // change this to where your COSMOS folder is
 
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int loopmsec = 1; // period of heartbeat
@@ -27,25 +37,11 @@ cosmosstruc *cdata; // to access the cosmos data, will change later
 
 int main(int argc, char *argv[])
 {
+    setEnvCosmos(cosmosPath);
+
     cout << "Starting agent " << endl;
 
     int iretn;
-
-    //    // Check for other instance of this agent
-    //    if (argc == 2)
-    //        agentname = argv[1];
-
-
-    //    TimeUtils time;
-    //    while(1){
-
-    //        cout << time.secondsSinceEpoch() << endl;
-    //        time.testSecondsSinceMidnight();
-    //        COSMOS_SLEEP(1);
-
-    //    }
-
-
 
     // Establish the command channel and heartbeat
     if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,
@@ -55,11 +51,10 @@ int main(int argc, char *argv[])
                                      0,
                                      AGENTMAXBUFFER)))
     {
-        cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+        cout << "agent_setup_server failed (error <" << AGENT_ERROR_JSON_CREATE << ">)"<<endl;
         exit (AGENT_ERROR_JSON_CREATE);
     } else {
         cout<<"Starting " << agentname << " ... OK" << endl;
-        //        cdata->agent[0].sub
     }
 
     //agent_get_server(nodename,requestname,8,&cbeat);

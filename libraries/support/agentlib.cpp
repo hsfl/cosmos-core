@@ -1533,7 +1533,7 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
         }
         //gettimeofday(&tv,NULL);
         //if (tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec))
-        if (ep.stop() >= waitsec)
+        if (ep.check() >= waitsec)
         {
             nbytes = 0;
         }

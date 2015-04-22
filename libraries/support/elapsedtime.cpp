@@ -67,7 +67,7 @@ void ElapsedTime::printElapsedTime()
         //char buffer[50];
         //sprintf(buffer,"Elapsed Time: %.6f s",elapsedTime);
         //cout << buffer << endl;
-        cout << "Elapsed Time "<< elapsedTime<< " s" << endl;
+        cout << "Elapsed Time "<< elapsedTime << " s" << endl;
     }
 }
 
@@ -90,7 +90,9 @@ double ElapsedTime::lap()
 
     // collect current time
     //timeNow = chrono::steady_clock::now();
-    elapsedTime = chrono::duration<double>(chrono::steady_clock::now() - timeStart).count();
+    //elapsedTime = chrono::duration<double>(chrono::steady_clock::now() - timeStart).count();
+//    stop();
+    check();
     return elapsedTime;
 
 }
@@ -104,7 +106,8 @@ void ElapsedTime::tic(){
 // equivalent to matlab to stop a stopwatch timer
 double ElapsedTime::toc(){
 
-    stop();
+//    stop();
+    check();
 	printElapsedTime();
 
     return elapsedTime;
@@ -122,7 +125,8 @@ double ElapsedTime::toc(){
 
 double ElapsedTime::toc(string text){
 
-    stop();
+//    stop();
+    check();
 
     // print the text
     printElapsedTime(text);
@@ -134,15 +138,21 @@ double ElapsedTime::toc(string text){
 void ElapsedTime::start(){
     //Get the start time
     timeStart = chrono::steady_clock::now();
+    timeCheck = timeStart;
+    elapsedTime = 0;
 }
 
-double ElapsedTime::stop(){
+//double ElapsedTime::stop(){
+double ElapsedTime::check(){
     //Get the final time
 
-    //timeNow = chrono::steady_clock::now();
+    timeNow = chrono::steady_clock::now();
     // add elapsedTime to keep counting just like a stopwathc
     // elapsedTime is set to zero when we call reset()
-    elapsedTime = elapsedTime + lap();
+//    elapsedTime = elapsedTime + lap();
+    elapsedTime =  chrono::duration<double>(timeNow - timeStart).count();
+
+    timeCheck = timeNow;
 	return elapsedTime;
 }
 
@@ -160,7 +170,7 @@ void ElapsedTime::reset(){
 
     //elapsedTime = getElapsedTime();
     //timeStart = chrono::steady_clock::now();
-    elapsedTime = 0;
+    start();
     //return elapsedTime;
 }
 

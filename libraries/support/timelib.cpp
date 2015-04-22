@@ -1058,7 +1058,7 @@ string mjd2human2(double mjd)
     min = (int)(1440 * fd);
     fd -= min / 1440.;
     sec = (int)(86400 * fd);
-    sprintf(buffer, "%02d-%3s-%04d %02d:%02d:%02d", day, month_name[month-1], year, hh, min, sec);
+    sprintf(buffer, "%04d-%3s-%02d %02d:%02d:%02d", year, month_name[month-1], day,  hh, min, sec);
 
     return string(buffer);
 }
