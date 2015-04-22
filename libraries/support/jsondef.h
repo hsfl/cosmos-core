@@ -513,7 +513,7 @@ typedef struct
  * - index: Index of this entry in the ::json_map.
  * - data: Offset to appropriate storage for this data type.
 */
-typedef struct
+struct jsonentry
 {
 	//! JSON Data Type
 	uint16_t type;
@@ -539,7 +539,7 @@ typedef struct
 	uint16_t minimum_index;
 	//! Index to subsystem
 	uint16_t subsystem;
-} jsonentry;
+};
 
 //! JSON handle
 /*! Structure representing the location of a single JSON Equation or Name in its respective

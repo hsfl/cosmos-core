@@ -108,7 +108,7 @@ struct timeval utc2unix(double utc)
     unixtm.tm_sec = (int)(fd * 86400.);
     fd -= unixtm.tm_sec / 86400.;
     unixtime.tv_sec = mktime(&unixtm);
-    unixtime.tv_usec = (int)(fd * 1000000.);
+	unixtime.tv_usec = (int)(fd * 86400000000. + .5);
 
     return unixtime;
 }

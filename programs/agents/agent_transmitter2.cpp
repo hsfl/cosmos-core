@@ -20,7 +20,8 @@
 // Added 20130223JC: Libraries
 #include <cstring>
 #include "kisslib.h"
-#include "rs232_lib.h"
+//#include "rs232_lib.h"
+#include "cssl_lib.h"
 #define SERIAL_USB0 16
 #define SERIAL_USB1 17
 
@@ -41,6 +42,7 @@ cosmosstruc *cdata; // to access the cosmos data, will change later
 int32_t diskfree;
 int32_t stateflag;
 int32_t myport;
+cssl_t *handle;
 
 int main(int argc, char *argv[])
 {
@@ -57,7 +59,8 @@ int main(int argc, char *argv[])
 	// Initialization stuff
 
 	// RS232 Library Initialization
-	RS232_OpenComport(SERIAL_USB1,19200); // 16=ttyUSB0, 19200bps
+//	RS232_OpenComport(SERIAL_USB1,19200); // 16=ttyUSB0, 19200bps
+	handle = cssl_open("/dev/", 19200, 8, 0, 1);
 
 
 	// Initialize the Agent
@@ -85,7 +88,8 @@ int myagent()
 		unsigned char serial_input[1000];
 
 		// Read Serial Port(s)
-		rxcount = RS232_PollComport(SERIAL_USB1, serial_input, 1000);
+//		rxcount = RS232_PollComport(SERIAL_USB1, serial_input, 1000);
+		rxcount = cssl_getdata(handle, serial_input, 1000);
 
 		// Print Inbound Characters if New Input Found
 		if (rxcount)
@@ -155,7 +159,8 @@ if(input_size == -1 || input_size > 255)
 	printf("\n\n");
 
 
-	RS232_SendBuf(SERIAL_USB1,packet_buffer,payload_size);
+//	RS232_SendBuf(SERIAL_USB1,packet_buffer,payload_size);
+	cssl_putdata(handle, packet_buffer, payload_size);
 
 
 	//#printf("Transmitting: %s\n",request+3);

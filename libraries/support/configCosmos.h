@@ -39,6 +39,8 @@
 #include <string>
 #include <condition_variable>
 #include <mutex>
+#include <cmath>
+#include <iostream>
 #ifdef _MSC_BUILD
 #include <io.h> // replaces in someways unistd for windows
 #else
@@ -102,6 +104,7 @@
 //! @}
 
 #include <ws2tcpip.h>
+#define HAVE_BOOLEAN
 #include <iphlpapi.h>
 #include <windows.h>
 #include <mmsystem.h>
