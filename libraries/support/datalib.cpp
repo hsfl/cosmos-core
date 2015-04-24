@@ -1039,13 +1039,17 @@ int32_t setEnv(string var, string path){
 				   path.c_str(),1);
 #endif
 	char *pathReturned = getenv(var.c_str());
-
-	if (pathReturned!=NULL){
-		cout << var << " set to " << pathReturned << endl;
-	} else {
-		cout << var << " not set " << endl;
+	if (pathReturned == nullptr)
+	{
 		return DATA_ERROR_RESOURCES_FOLDER;
 	}
+
+//	if (pathReturned!=NULL){
+//		cout << var << " set to " << pathReturned << endl;
+//	} else {
+//		cout << var << " not set " << endl;
+//		return DATA_ERROR_RESOURCES_FOLDER;
+//	}
 
 	return iretn;
 }
