@@ -42,7 +42,7 @@ double currentmjd(double offset)
     mjd = unix2utc(mytime);
 #else
     TimeUtils tu;
-	mjd = unix2utc(tu.secondsSinceEpoch());
+    mjd = unix2utc(tu.secondsSinceEpoch() + _timezone);
 #endif
     return mjd+offset;
 }
