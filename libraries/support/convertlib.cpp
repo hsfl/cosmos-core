@@ -170,8 +170,9 @@ void pos_baryc(locstruc *loc)
 }
 
 //! Set ECI position
-/*! Set the current time and position to whatever is in the Earth Centered Inertial position of the
- * ::posstruc. Then propagate to all the other positions.
+/*! Set the current time and position to whatever is in the
+ *  Earth Centered Inertial position of the ::posstruc.
+ *  Then propagate to all the other positions.
 	\param pos ::posstruc with the current position and those to be updated.
 */
 void pos_eci(locstruc *loc)

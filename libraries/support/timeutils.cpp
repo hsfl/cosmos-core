@@ -60,6 +60,7 @@ std::chrono::system_clock::time_point TimeUtils::timePointUtc ()
 
 double TimeUtils::secondsSinceEpoch() {
 
+    //A unix time stamp, number of seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
     auto epoch = makeTimePoint(1970,01,01,00,00,00);
     //    std::cout << timeString(tp1) << std::endl;
 	timePointUtc();
