@@ -60,13 +60,14 @@ double currentmjd()
 double unix2utc(struct timeval unixtime)
 {
     double utc;
-    struct tm *mytm;
-    time_t thetime;
+//    struct tm *mytm;
+//    time_t thetime;
 
-    thetime = unixtime.tv_sec;
-    mytm = gmtime(&thetime);
-    utc = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
-    utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + unixtime.tv_usec / 1000000.) / 60.) / 60.) / 24.);
+//    thetime = unixtime.tv_sec;
+//    mytm = gmtime(&thetime);
+//    utc = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
+//    utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + unixtime.tv_usec / 1000000.) / 60.) / 60.) / 24.);
+	utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.F) / 86400.;
 
     return utc;
 }
@@ -93,22 +94,25 @@ double unix2utc(double unixtime)
 struct timeval utc2unix(double utc)
 {
     struct timeval unixtime;
-    struct tm unixtm;
-    double day, doy, fd;
+//    struct tm unixtm;
+//    double day, doy, fd;
 
-	mjd2ymd(utc, &unixtm.tm_year, &unixtm.tm_mon, &day, &doy);
-    unixtm.tm_year -= 1900;
-    unixtm.tm_mon -= 1;
-    unixtm.tm_mday = (int)day;
-    fd = fmod(utc, 1.);
-    unixtm.tm_hour = (int)(fd * 24.);
-    fd -= unixtm.tm_hour / 24.;
-    unixtm.tm_min = int(fd * 1440.);
-    fd -= unixtm.tm_min / 1440.;
-    unixtm.tm_sec = (int)(fd * 86400.);
-    fd -= unixtm.tm_sec / 86400.;
-    unixtime.tv_sec = mktime(&unixtm);
-	unixtime.tv_usec = (int)(fd * 86400000000. + .5);
+//	mjd2ymd(utc, &unixtm.tm_year, &unixtm.tm_mon, &day, &doy);
+//    unixtm.tm_year -= 1900;
+//    unixtm.tm_mon -= 1;
+//    unixtm.tm_mday = (int)day;
+//    fd = fmod(utc, 1.);
+//    unixtm.tm_hour = (int)(fd * 24.);
+//    fd -= unixtm.tm_hour / 24.;
+//    unixtm.tm_min = int(fd * 1440.);
+//    fd -= unixtm.tm_min / 1440.;
+//    unixtm.tm_sec = (int)(fd * 86400.);
+//    fd -= unixtm.tm_sec / 86400.;
+//    unixtime.tv_sec = mktime(&unixtm);
+//	unixtime.tv_usec = (int)(fd * 86400000000. + .5);
+	double unixseconds = 86400. * (utc - 40587.);
+	unixtime.tv_sec = (int)unixseconds;
+	unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);
 
     return unixtime;
 }
@@ -1058,7 +1062,7 @@ string mjd2human2(double mjd)
     min = (int)(1440 * fd);
     fd -= min / 1440.;
     sec = (int)(86400 * fd);
-    sprintf(buffer, "%04d-%3s-%02d %02d:%02d:%02d", year, month_name[month-1], day,  hh, min, sec);
+    sprintf(buffer, "%02d-%3s-%04d %02d:%02d:%02d", day, month_name[month-1], year, hh, min, sec);
 
     return string(buffer);
 }
