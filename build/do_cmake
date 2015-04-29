@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ -d $1 ]; then
+echo "Configuring "$1
+cd $1
+if [ -e ../toolchain_$1 ]; then
+cmake $2 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../toolchain_$1 -DBUILD_TYPE=$1 ../..
+else
+cmake $2 -DCMAKE_BUILD_TYPE=Release -DBUILD_TYPE=$1 ../..
+fi
+fi

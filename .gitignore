@@ -1,5 +1,11 @@
 *.user
-build/
+build/arm/*
+build/linux/*
+build/macos/*
+build/windows/*
+build/windows_msvc/*
+build/windows_arm/*
+build/cygwin/*
 /install/
 documentation/doxygen/latex/
 documentation/doxygen/html/

@@ -1,0 +1,6 @@
+#!/bin/bash
+if grep -Fxq "* Copyright (C) 2015 by Interstel Technologies, Inc." $1
+then
+sed -i '1,29d' $1
+echo $1
+fi
