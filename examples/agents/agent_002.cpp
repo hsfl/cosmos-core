@@ -16,7 +16,7 @@ int32_t request_hello(char *request, char* response, void *cdata); // function p
 
 string agentname     = "002";
 string nodename      = "telem";
-string cosmosPath   = "E:/cosmos/bitbucket/"; // change this to where your COSMOS folder is
+string cosmosPath   = "C:/COSMOS/"; // change this to where your COSMOS folder is
 
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int loopmsec = 1; // period of heartbeat
