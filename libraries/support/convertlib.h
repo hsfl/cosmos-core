@@ -132,7 +132,6 @@ void att_lvlh2icrf(locstruc *loc);
 void att_selc2icrf(locstruc *loc);
 void loc_update(locstruc *loc);
 double mjd2gmst(double mjd);
-void euler2dcm( char *order, double phi, double theta, double psi, double rmat[3][3] );
 void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
 void itrs2icrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
 void true2mean(double ep1, rmatrix *pm);
