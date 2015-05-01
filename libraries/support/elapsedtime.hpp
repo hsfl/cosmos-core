@@ -1,3 +1,32 @@
+/********************************************************************
+* Copyright (C) 2015 by Interstel Technologies, Inc.
+*   and Hawaii Space Flight Laboratory.
+*
+* This file is part of the COSMOS/core that is the central
+* module for COSMOS. For more information on COSMOS go to
+* <http://cosmos-project.com>
+*
+* The COSMOS/core software is licenced under the
+* GNU Lesser General Public License (LGPL) version 3 licence.
+*
+* You should have received a copy of the
+* GNU Lesser General Public License
+* If not, go to <http://www.gnu.org/licenses/>
+*
+* COSMOS/core is free software: you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* as published by the Free Software Foundation, either version 3 of
+* the License, or (at your option) any later version.
+*
+* COSMOS/core is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* Refer to the "licences" folder for further information on the
+* condititons and terms to use this software.
+********************************************************************/
+
 // ?? remove ElapsedTime from timelib.h and use this one instead
 
 // just for the old code for timeval, deprecated
@@ -20,7 +49,7 @@ using namespace std;
 // On windows using MinGw32 it does not get better than 1ms
 class ElapsedTime {
     //new c++11
-    chrono::steady_clock::time_point timeStart, timeNow, timeStop;
+    chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
 
 public:
     //int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
@@ -38,7 +67,8 @@ public:
     void reset();
 
     void start();
-    double stop();
+//    double stop();
+    double check();
 
     // turn on/off printing
     bool print = true; //

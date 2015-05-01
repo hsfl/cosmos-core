@@ -1,3 +1,32 @@
+/********************************************************************
+* Copyright (C) 2015 by Interstel Technologies, Inc.
+*   and Hawaii Space Flight Laboratory.
+*
+* This file is part of the COSMOS/core that is the central
+* module for COSMOS. For more information on COSMOS go to
+* <http://cosmos-project.com>
+*
+* The COSMOS/core software is licenced under the
+* GNU Lesser General Public License (LGPL) version 3 licence.
+*
+* You should have received a copy of the
+* GNU Lesser General Public License
+* If not, go to <http://www.gnu.org/licenses/>
+*
+* COSMOS/core is free software: you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* as published by the Free Software Foundation, either version 3 of
+* the License, or (at your option) any later version.
+*
+* COSMOS/core is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* Refer to the "licences" folder for further information on the
+* condititons and terms to use this software.
+********************************************************************/
+
 // change class elapsedtime to stopwatch with functions jsut like a stop watch:
 // - start
 // - stop
@@ -67,7 +96,7 @@ void ElapsedTime::printElapsedTime()
         //char buffer[50];
         //sprintf(buffer,"Elapsed Time: %.6f s",elapsedTime);
         //cout << buffer << endl;
-        cout << "Elapsed Time "<< elapsedTime<< " s" << endl;
+        cout << "Elapsed Time "<< elapsedTime << " s" << endl;
     }
 }
 
@@ -90,7 +119,9 @@ double ElapsedTime::lap()
 
     // collect current time
     //timeNow = chrono::steady_clock::now();
-    elapsedTime = chrono::duration<double>(chrono::steady_clock::now() - timeStart).count();
+    //elapsedTime = chrono::duration<double>(chrono::steady_clock::now() - timeStart).count();
+//    stop();
+    check();
     return elapsedTime;
 
 }
@@ -104,7 +135,8 @@ void ElapsedTime::tic(){
 // equivalent to matlab to stop a stopwatch timer
 double ElapsedTime::toc(){
 
-    stop();
+//    stop();
+    check();
 	printElapsedTime();
 
     return elapsedTime;
@@ -122,7 +154,8 @@ double ElapsedTime::toc(){
 
 double ElapsedTime::toc(string text){
 
-    stop();
+//    stop();
+    check();
 
     // print the text
     printElapsedTime(text);
@@ -134,15 +167,21 @@ double ElapsedTime::toc(string text){
 void ElapsedTime::start(){
     //Get the start time
     timeStart = chrono::steady_clock::now();
+    timeCheck = timeStart;
+    elapsedTime = 0;
 }
 
-double ElapsedTime::stop(){
+//double ElapsedTime::stop(){
+double ElapsedTime::check(){
     //Get the final time
 
-    //timeNow = chrono::steady_clock::now();
+    timeNow = chrono::steady_clock::now();
     // add elapsedTime to keep counting just like a stopwathc
     // elapsedTime is set to zero when we call reset()
-    elapsedTime = elapsedTime + lap();
+//    elapsedTime = elapsedTime + lap();
+    elapsedTime =  chrono::duration<double>(timeNow - timeStart).count();
+
+    timeCheck = timeNow;
 	return elapsedTime;
 }
 
@@ -160,7 +199,7 @@ void ElapsedTime::reset(){
 
     //elapsedTime = getElapsedTime();
     //timeStart = chrono::steady_clock::now();
-    elapsedTime = 0;
+    start();
     //return elapsedTime;
 }
 

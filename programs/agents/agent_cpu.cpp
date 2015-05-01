@@ -1,3 +1,32 @@
+/********************************************************************
+* Copyright (C) 2015 by Interstel Technologies, Inc.
+*   and Hawaii Space Flight Laboratory.
+*
+* This file is part of the COSMOS/core that is the central
+* module for COSMOS. For more information on COSMOS go to
+* <http://cosmos-project.com>
+*
+* The COSMOS/core software is licenced under the
+* GNU Lesser General Public License (LGPL) version 3 licence.
+*
+* You should have received a copy of the
+* GNU Lesser General Public License
+* If not, go to <http://www.gnu.org/licenses/>
+*
+* COSMOS/core is free software: you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* as published by the Free Software Foundation, either version 3 of
+* the License, or (at your option) any later version.
+*
+* COSMOS/core is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* Refer to the "licences" folder for further information on the
+* condititons and terms to use this software.
+********************************************************************/
+
 /*! brief CPU monitoring agent
 */
 
@@ -192,7 +221,7 @@ float GetLinuxUsedDisk()
 	free = buf.f_frsize * buf.f_bfree;
 	used = disk_size - free;
 
-	return (used) * 0.000976563; // convert byte to kibibyte
+	return (used) / 1024; // convert byte to kibibyte
 }
 
 float GetLinuxVirtualMem() // unsure if working??
@@ -205,7 +234,7 @@ float GetLinuxVirtualMem() // unsure if working??
 	virtualMemUsed += memInfo.totalswap - memInfo.freeswap;
 	virtualMemUsed *= memInfo.mem_unit;
 
-	return (virtualMemUsed) * 0.000976563; // convert byte to kibibyte
+	return (virtualMemUsed) / 1024; // convert byte to kibibyte
 }
 
 static float CalculateLinuxCPULoad(float *out)

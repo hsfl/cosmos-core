@@ -1,3 +1,32 @@
+/********************************************************************
+* Copyright (C) 2015 by Interstel Technologies, Inc.
+*   and Hawaii Space Flight Laboratory.
+*
+* This file is part of the COSMOS/core that is the central
+* module for COSMOS. For more information on COSMOS go to
+* <http://cosmos-project.com>
+*
+* The COSMOS/core software is licenced under the
+* GNU Lesser General Public License (LGPL) version 3 licence.
+*
+* You should have received a copy of the
+* GNU Lesser General Public License
+* If not, go to <http://www.gnu.org/licenses/>
+*
+* COSMOS/core is free software: you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* as published by the Free Software Foundation, either version 3 of
+* the License, or (at your option) any later version.
+*
+* COSMOS/core is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* Refer to the "licences" folder for further information on the
+* condititons and terms to use this software.
+********************************************************************/
+
 /*! \file convertlib.c
 	\brief Coordinate conversion library source file
 */
@@ -93,14 +122,24 @@ void pos_baryc(locstruc *loc)
 	double distance, theta;
 	rvector sat2body;
 
-	if (!isfinite(loc->utc) || !isfinite(loc->pos.baryc.utc))
+	// Synchronize time
+	if (loc->pos.baryc.utc == 0.)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.baryc.utc = loc->pos.utc = loc->utc;
 	}
-
-	// Set time dependent stuff
-	if (loc->utc >  loc->pos.baryc.utc) loc->pos.baryc.utc = loc->pos.utc = loc->utc;
-	else loc->utc = loc->pos.utc = loc->pos.baryc.utc;
+	else
+	{
+		if (!isfinite(loc->pos.baryc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.baryc.utc;
+	}
+	
 	pos_extra(loc);
 
 	// Determine closest planetary body
@@ -166,13 +205,24 @@ void pos_baryc(locstruc *loc)
 */
 void pos_eci(locstruc *loc)
 {
-	if (!isfinite(loc->utc) || !isfinite(loc->pos.eci.utc))
+	// Synchronize time
+	if (0. == loc->pos.eci.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.eci.utc = loc->pos.utc = loc->utc;
 	}
-
-	if (0. == loc->pos.eci.utc) loc->pos.eci.utc = loc->pos.utc = loc->utc;
-	else loc->utc = loc->pos.utc = loc->pos.eci.utc;
+	else
+	{
+		if (!isfinite(loc->pos.eci.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.eci.utc;
+	}
+	
 	pos_extra(loc);
 
 	// Set adjoining positions
@@ -199,13 +249,24 @@ void pos_eci(locstruc *loc)
 */
 void pos_sci(locstruc *loc)
 {
-	if (!isfinite(loc->utc) || !isfinite(loc->pos.sci.utc))
+	// Synchronize time
+	if (0. == loc->pos.sci.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.sci.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.sci.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.sci.utc;
 	}
 
-	if (0. == loc->pos.sci.utc) loc->pos.sci.utc = loc->pos.utc = loc->utc;
-	else loc->utc = loc->pos.utc = loc->pos.sci.utc;
 	pos_extra(loc);
 
 	// Set adjoining positions
@@ -232,13 +293,24 @@ void pos_sci(locstruc *loc)
 */
 void pos_geoc(locstruc *loc)
 {
-	if (!isfinite(loc->utc) || !isfinite(loc->pos.geoc.utc))
+	// Synchronize time
+	if (0. == loc->pos.geoc.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
 	}
-
-	if (0. == loc->pos.geoc.utc) loc->pos.geoc.utc = loc->pos.utc = loc->utc;
-	else loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+	else
+	{
+		if (!isfinite(loc->pos.geoc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+	}
+	
 	pos_extra(loc);
 
 	// Go to ECI if necessary
@@ -247,7 +319,7 @@ void pos_geoc(locstruc *loc)
 		pos_geoc2eci(loc);
 		pos_eci(loc);
 	}
-	// Go to Geocentric Sperical if necessary
+	// Go to Geocentric Spherical if necessary
 	if (loc->pos.geoc.pass > loc->pos.geos.pass)
 	{
 		pos_geoc2geos(loc);
@@ -272,13 +344,24 @@ void pos_geoc(locstruc *loc)
 */
 void pos_selc(locstruc *loc)
 {
-	if (!isfinite(loc->utc) || !isfinite(loc->pos.selc.utc))
+	// Synchronize time
+	if (0. == loc->pos.selc.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.selc.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.selc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.selc.utc;
 	}
 
-	if (0. == loc->pos.selc.utc) loc->pos.selc.utc = loc->pos.utc = loc->utc;
-	else loc->utc = loc->pos.utc = loc->pos.selc.utc;
 	pos_extra(loc);
 
 	// Go to SCI if necessary
@@ -306,13 +389,24 @@ void pos_selc(locstruc *loc)
 */
 void pos_selg(locstruc *loc)
 {
-	if (!isfinite(loc->utc) || !isfinite(loc->pos.selg.utc))
+	// Synchroniz time
+	if (0. == loc->pos.selg.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.selg.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.selg.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.selg.utc;
 	}
 
-	if (0. == loc->pos.selg.utc) loc->pos.selg.utc = loc->pos.utc = loc->utc;
-	else loc->utc = loc->pos.utc = loc->pos.selg.utc;
 	pos_extra(loc);
 
 	if (loc->pos.selg.pass > loc->pos.selc.pass)
@@ -330,13 +424,24 @@ void pos_selg(locstruc *loc)
 */
 void pos_geos(locstruc *loc)
 {
-	if (!isfinite(loc->utc) || !isfinite(loc->pos.geos.utc))
+	// Synchronize time
+	if (0. == loc->pos.geos.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.geos.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.geos.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.geos.utc;
 	}
 
-	if (0. == loc->pos.geos.utc) loc->pos.geos.utc = loc->pos.utc = loc->utc;
-	else loc->utc = loc->pos.utc = loc->pos.geos.utc;
 	pos_extra(loc);
 
 	if (loc->pos.geos.pass > loc->pos.geoc.pass)
@@ -354,13 +459,24 @@ void pos_geos(locstruc *loc)
 */
 void pos_geod(locstruc *loc)
 {
-	if (!isfinite(loc->utc) || !isfinite(loc->pos.geod.utc))
+	// Synchroniz time
+	if (0. == loc->pos.geod.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.geod.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.geod.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.geod.utc;
 	}
 
-	if (0. == loc->pos.geod.utc) loc->pos.geod.utc = loc->pos.utc = loc->utc;
-	else loc->utc = loc->pos.utc = loc->pos.geod.utc;
 	pos_extra(loc);
 
 	if (loc->pos.geod.pass > loc->pos.geoc.pass)
@@ -383,16 +499,29 @@ void pos_geod(locstruc *loc)
 */
 void pos_baryc2eci(locstruc *loc)
 {
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (loc->pos.baryc.utc == 0.)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.baryc.utc = loc->pos.utc = loc->utc;
 	}
-
+	else
+	{
+		if (!isfinite(loc->pos.baryc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.baryc.utc;
+	}
+	
 	// Update extra information
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.eci.utc = loc->pos.baryc.utc = loc->pos.utc = loc->utc;
+	loc->pos.eci.utc = loc->utc;
 
 	// Update pass
 	loc->pos.eci.pass = loc->pos.baryc.pass;
@@ -412,11 +541,24 @@ void pos_baryc2eci(locstruc *loc)
 */
 void pos_eci2baryc(locstruc *loc)
 {
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (0. == loc->pos.eci.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.eci.utc = loc->pos.utc = loc->utc;
 	}
-
+	else
+	{
+		if (!isfinite(loc->pos.eci.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.eci.utc;
+	}
+	
 	// Update extra information
 	pos_extra(loc);
 
@@ -424,7 +566,7 @@ void pos_eci2baryc(locstruc *loc)
 	loc->pos.baryc.pass = loc->pos.eci.pass;
 
 	// Update time
-	loc->pos.baryc.utc = loc->pos.eci.utc = loc->pos.utc = loc->utc;
+	loc->pos.baryc.utc = loc->utc;
 
 	// Geocentric Equatorial to Heliocentric
 	loc->pos.baryc.s = rv_add(loc->pos.eci.s,loc->pos.extra.sun2earth.s);
@@ -439,16 +581,29 @@ void pos_eci2baryc(locstruc *loc)
 */
 void pos_baryc2sci(locstruc *loc)
 {
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (loc->pos.baryc.utc == 0.)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.baryc.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.baryc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.baryc.utc;
 	}
 
 	// Update extra information
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.sci.utc = loc->pos.baryc.utc = loc->pos.utc = loc->utc;
+	loc->pos.sci.utc = loc->utc;
 
 	// Update pass
 	loc->pos.sci.pass = loc->pos.baryc.pass;
@@ -469,16 +624,29 @@ void pos_baryc2sci(locstruc *loc)
 */
 void pos_sci2baryc(locstruc *loc)
 {
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (0. == loc->pos.sci.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.sci.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.sci.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.sci.utc;
 	}
 
 	// Update extra information
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.baryc.utc = loc->pos.sci.utc = loc->pos.utc = loc->utc;
+	loc->pos.baryc.utc = loc->utc;
 
 	// Update pass
 	loc->pos.baryc.pass = loc->pos.sci.pass;
@@ -499,16 +667,29 @@ void pos_eci2geoc(locstruc *loc)
 {
 	rvector v2 = {{0.}};
 
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (0. == loc->pos.eci.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.eci.utc = loc->pos.utc = loc->utc;
 	}
-
+	else
+	{
+		if (!isfinite(loc->pos.eci.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.eci.utc;
+	}
+	
 	// Update extra information
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.geoc.utc = loc->pos.eci.utc = loc->pos.utc = loc->utc;
+	loc->pos.geoc.utc = loc->utc;
 
 	// Update pass
 	loc->pos.geoc.pass = loc->att.icrf.pass = loc->pos.eci.pass;
@@ -552,16 +733,29 @@ void pos_geoc2eci(locstruc *loc)
 {
 	rvector ds;
 
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (0. == loc->pos.geoc.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
 	}
-
+	else
+	{
+		if (!isfinite(loc->pos.geoc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+	}
+	
 	// Update extra information
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.eci.utc = loc->pos.geoc.utc = loc->pos.utc = loc->utc;
+	loc->pos.eci.utc = loc->utc;
 
 	// Update pass
 	loc->pos.eci.pass = loc->att.geoc.pass = loc->pos.geoc.pass;
@@ -600,13 +794,26 @@ void pos_geoc2geos(locstruc *loc)
 	double xvx, yvy, r2, r, minir, minir2;
 	double cp, cl, sl, sp;
 
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (0. == loc->pos.geoc.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
 	}
-
+	else
+	{
+		if (!isfinite(loc->pos.geoc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+	}
+	
 	// Update time
-	loc->pos.geos.utc = loc->pos.geoc.utc = loc->pos.utc = loc->utc;
+	loc->pos.geos.utc = loc->utc;
 
 	// Update pass
 	loc->pos.geos.pass = loc->pos.geoc.pass;
@@ -645,13 +852,26 @@ void pos_geos2geoc(locstruc *loc)
 {
 	double sp, cp, sl, cl, cpr;
 
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (0. == loc->pos.geos.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.geos.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.geoc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.geos.utc;
 	}
 
 	// Update time
-	loc->pos.geoc.utc = loc->pos.geos.utc = loc->pos.utc = loc->utc;
+	loc->pos.geoc.utc = loc->utc;
 
 	// Update pass
 	loc->pos.geoc.pass = loc->pos.geos.pass;
@@ -688,13 +908,26 @@ void pos_geoc2geod(locstruc *loc)
 	double c, rp, a1, a2, a3, b1, b2, c1, c2, c3, rbc;
 	double p, phi, h, nh, rn;
 
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (0. == loc->pos.geoc.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
 	}
-
+	else
+	{
+		if (!isfinite(loc->pos.geoc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+	}
+	
 	// Update time
-	loc->pos.geod.utc = loc->pos.geoc.utc = loc->pos.utc = loc->utc;
+	loc->pos.geod.utc = loc->utc;
 
 	// Update pass
 	loc->pos.geod.pass = loc->pos.geoc.pass;
@@ -761,9 +994,22 @@ void pos_geod2geoc(locstruc *loc)
 	double lst, dlst, r, c, s, c2, rp;
 	double cn, ct, sn, st;
 
-	if (!isfinite(loc->utc))
+	// Synchroniz time
+	if (0. == loc->pos.geod.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.geod.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.geod.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.geod.utc;
 	}
 
 	// Update time
@@ -806,16 +1052,29 @@ void pos_sci2selc(locstruc *loc)
 	rvector v2 = {{0.}};
 	rmatrix m1;
 
-	if (!isfinite(loc->utc))
+	// Synchronize time
+	if (0. == loc->pos.sci.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.sci.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.sci.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.sci.utc;
 	}
 
 	// Update extra information
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.selc.utc = loc->pos.sci.utc = loc->pos.utc = loc->utc;
+	loc->pos.selc.utc = loc->utc;
 
 	// Update pass
 	loc->pos.selc.pass = loc->att.icrf.pass = loc->pos.sci.pass;
@@ -856,16 +1115,29 @@ void pos_selc2sci(locstruc *loc)
 	rvector v2;
 	rmatrix m1;
 
-	if (!isfinite(loc->utc))
+	// Synchroniz time
+	if (0. == loc->pos.selc.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.selc.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.selc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.selc.utc;
 	}
 
 	// Update extra information
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.sci.utc = loc->pos.selc.utc = loc->pos.utc = loc->utc;
+	loc->pos.sci.utc = loc->utc;
 
 	// Update pass
 	loc->pos.sci.pass = loc->att.selc.pass = loc->pos.selc.pass;
@@ -897,16 +1169,29 @@ void pos_selc2selg(locstruc *loc)
 {
 	double xvx, yvy, r2, r, minir, minir2;
 
-	if (!isfinite(loc->utc))
+	// Synchroniz time
+	if (0. == loc->pos.selc.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.selc.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.selc.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.selc.utc;
 	}
 
 	// Update extra information
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.selg.utc = loc->pos.selc.utc = loc->pos.utc = loc->utc;
+	loc->pos.selg.utc = loc->utc;
 
 	// Update pass
 	loc->pos.selg.pass = loc->pos.selc.pass;
@@ -935,16 +1220,29 @@ void pos_selg2selc(locstruc *loc)
 {
 	double sp, cp, sl, cl, cpr, r;
 
-	if (!isfinite(loc->utc))
+	// Synchroniz time
+	if (0. == loc->pos.selg.utc)
 	{
-		return;
+		if (!isfinite(loc->utc))
+		{
+			return;
+		}
+		loc->pos.selg.utc = loc->pos.utc = loc->utc;
+	}
+	else
+	{
+		if (!isfinite(loc->pos.selg.utc))
+		{
+			return;
+		}
+		loc->utc = loc->pos.utc = loc->pos.selg.utc;
 	}
 
 	// Update extra information
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.selc.utc = loc->pos.selg.utc = loc->pos.utc = loc->utc;
+	loc->pos.selc.utc = loc->utc;
 
 	// Update pass
 	loc->pos.selc.pass = loc->pos.selg.pass;
@@ -2739,167 +3037,6 @@ int stk2eci(double utc, stkstruc *stk, cartpos *eci)
 	}
 
 	return 0;
-}
-
-void euler2dcm( char *order, double phi, double theta, double psi, double rmat[3][3] )
-/*
-**  - - - - - - - - - -
-**   s l a D e u l e r
-**  - - - - - - - - - -
-**
-**  Form a rotation matrix from the Euler angles - three successive
-**  rotations about specified Cartesian axes.
-**
-**  (double precision)
-**
-**  Given:
-**    *order char     specifies about which axes the rotations occur
-**    phi    double   1st rotation (radians)
-**    theta  double   2nd rotation (   "   )
-**    psi    double   3rd rotation (   "   )
-**
-**  Returned:
-**    rmat   double[3][3]  rotation matrix
-**
-**  A rotation is positive when the reference frame rotates
-**  anticposkwise as seen looking towards the origin from the
-**  locitive region of the specified axis.
-**
-**  The characters of order define which axes the three successive
-**  rotations are about.  A typical value is 'zxz', indicating that
-**  rmat is to become the direction cosine matrix corresponding to
-**  rotations of the reference frame through phi radians about the
-**  old z-axis, followed by theta radians about the resulting x-axis,
-**  then psi radians about the resulting z-axis.
-**
-**  The axis names can be any of the following, in any order or
-**  combination:  x, y, z, uppercase or lowercase, 1, 2, 3.  Normal
-**  axis labelling/numbering conventions apply;  the xyz (=123)
-**  triad is right-handed.  Thus, the 'zxz' example given above
-**  could be written 'zxz' or '313' (or even 'zxz' or '3xz').  Order
-**  is terminated by length or by the first unrecognized character.
-**
-**  Fewer than three rotations are acceptable, in which case the later
-**  angle arguments are ignored.  Zero rotations leaves rmat set to the
-**  identity matrix.
-**
-**  Last revision:   9 December 1996
-**
-**  Copyright P.T.Wallace.  All rights reserved.
-*/
-{
-	int j, i, l, n, k;
-	double result[3][3], rotn[3][3], angle, s, c , w, wm[3][3];
-	char axis;
-
-	/* Initialize result matrix */
-	for ( j = 0; j < 3; j++ )
-	{
-		for ( i = 0; i < 3; i++ )
-		{
-			result[i][j] = ( i == j ) ? 1.0 : 0.0;
-		}
-	}
-
-	/* Establish length of axis string */
-	l = strlen ( order );
-
-	/* Look at each character of axis string until finished */
-	for ( n = 0; n < 3; n++ )
-	{
-		if ( n <= l )
-		{
-
-			/* Initialize rotation matrix for the current rotation */
-			for ( j = 0; j < 3; j++ )
-			{
-				for ( i = 0; i < 3; i++ )
-				{
-					rotn[i][j] = ( i == j ) ? 1.0 : 0.0;
-				}
-			}
-
-			/* Pick up the appropriate Euler angle and take sine & cosine */
-			switch ( n )
-			{
-			case 0 :
-				angle = phi;
-				break;
-			case 1 :
-				angle = theta;
-				break;
-			default:
-				angle = psi;
-				break;
-			}
-			s = sin ( angle );
-			c = cos ( angle );
-
-			/* Identify the axis */
-			axis =  order[n];
-			if ( ( axis == 'X' ) || ( axis == 'x' ) || ( axis == '1' ) )
-			{
-
-				/* Matrix for x-rotation */
-				rotn[1][1] = c;
-				rotn[1][2] = s;
-				rotn[2][1] = -s;
-				rotn[2][2] = c;
-			}
-			else if ( ( axis == 'Y' ) || ( axis == 'y' ) || ( axis == '2' ) )
-			{
-
-				/* Matrix for y-rotation */
-				rotn[0][0] = c;
-				rotn[0][2] = -s;
-				rotn[2][0] = s;
-				rotn[2][2] = c;
-			}
-			else if ( ( axis == 'Z' ) || ( axis == 'z' ) || ( axis == '3' ) )
-			{
-
-				/* Matrix for z-rotation */
-				rotn[0][0] = c;
-				rotn[0][1] = s;
-				rotn[1][0] = -s;
-				rotn[1][1] = c;
-			} else {
-
-				/* Unrecognized character - fake end of string */
-				l = 0;
-			}
-
-			/* Apply the current rotation (matrix rotn x matrix result) */
-			for ( i = 0; i < 3; i++ )
-			{
-				for ( j = 0; j < 3; j++ )
-				{
-					w = 0.0;
-					for ( k = 0; k < 3; k++ )
-					{
-						w += rotn[i][k] * result[k][j];
-					}
-					wm[i][j] = w;
-				}
-			}
-			for ( j = 0; j < 3; j++ )
-			{
-				for ( i= 0; i < 3; i++ )
-				{
-					result[i][j] = wm[i][j];
-				}
-			}
-		}
-	}
-
-	/* Copy the result */
-	for ( j = 0; j < 3; j++ )
-	{
-		for ( i = 0; i < 3; i++ )
-		{
-			rmat[i][j] = result[i][j];
-		}
-	}
 }
 
 std::ostream& operator << (std::ostream& out, const cartpos& a)

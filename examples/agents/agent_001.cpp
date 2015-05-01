@@ -1,5 +1,42 @@
+/********************************************************************
+* Copyright (C) 2015 by Interstel Technologies, Inc.
+*   and Hawaii Space Flight Laboratory.
+*
+* This file is part of the COSMOS/core that is the central
+* module for COSMOS. For more information on COSMOS go to
+* <http://cosmos-project.com>
+*
+* The COSMOS/core software is licenced under the
+* GNU Lesser General Public License (LGPL) version 3 licence.
+*
+* You should have received a copy of the
+* GNU Lesser General Public License
+* If not, go to <http://www.gnu.org/licenses/>
+*
+* COSMOS/core is free software: you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* as published by the Free Software Foundation, either version 3 of
+* the License, or (at your option) any later version.
+*
+* COSMOS/core is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* Refer to the "licences" folder for further information on the
+* condititons and terms to use this software.
+********************************************************************/
+
 // Example of an agent making a request to another agent
 // agent 001 makes request to 002 upon activation
+
+// the single quote only works on linux
+// test: agent telem 001 'setvalue {"device_telem_vint16_000":10}'
+// test: agent telem 001 'getvalue {"device_telem_vint16_000"}'
+
+// the single quote only works on windows
+// test: agent telem 001 "setvalue {\"device_telem_vint16_000\":10}"
+// test: agent telem 001 "getvalue {\"device_telem_vint16_000\"}"
 
 #include "configCosmos.h"
 #include "elapsedtime.hpp"
@@ -10,11 +47,13 @@
 #include <string>
 using namespace std;
 
+
 int myagent();
 
-string agentname     = "001";
-string nodename      = "cubesat1";
-string requestname   = "002"; //name of the agent that the request is directed to
+string agentname    = "001";
+string nodename     = "telem";
+string requestname  = "002"; //name of the agent that the request is directed to
+string cosmosPath   = "C:/COSMOS/"; // change this to where your COSMOS folder is
 
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int loopmsec = 1; // period of heartbeat
@@ -27,25 +66,11 @@ cosmosstruc *cdata; // to access the cosmos data, will change later
 
 int main(int argc, char *argv[])
 {
+    setEnvCosmos(cosmosPath);
+
     cout << "Starting agent " << endl;
 
     int iretn;
-
-    //    // Check for other instance of this agent
-    //    if (argc == 2)
-    //        agentname = argv[1];
-
-
-    //    TimeUtils time;
-    //    while(1){
-
-    //        cout << time.secondsSinceEpoch() << endl;
-    //        time.testSecondsSinceMidnight();
-    //        COSMOS_SLEEP(1);
-
-    //    }
-
-
 
     // Establish the command channel and heartbeat
     if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,
@@ -55,11 +80,10 @@ int main(int argc, char *argv[])
                                      0,
                                      AGENTMAXBUFFER)))
     {
-        cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+        cout << "agent_setup_server failed (error <" << AGENT_ERROR_JSON_CREATE << ">)"<<endl;
         exit (AGENT_ERROR_JSON_CREATE);
     } else {
         cout<<"Starting " << agentname << " ... OK" << endl;
-        //        cdata->agent[0].sub
     }
 
     //agent_get_server(nodename,requestname,8,&cbeat);

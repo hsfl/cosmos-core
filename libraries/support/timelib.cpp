@@ -1,3 +1,32 @@
+/********************************************************************
+* Copyright (C) 2015 by Interstel Technologies, Inc.
+*   and Hawaii Space Flight Laboratory.
+*
+* This file is part of the COSMOS/core that is the central
+* module for COSMOS. For more information on COSMOS go to
+* <http://cosmos-project.com>
+*
+* The COSMOS/core software is licenced under the
+* GNU Lesser General Public License (LGPL) version 3 licence.
+*
+* You should have received a copy of the
+* GNU Lesser General Public License
+* If not, go to <http://www.gnu.org/licenses/>
+*
+* COSMOS/core is free software: you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License
+* as published by the Free Software Foundation, either version 3 of
+* the License, or (at your option) any later version.
+*
+* COSMOS/core is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* Refer to the "licences" folder for further information on the
+* condititons and terms to use this software.
+********************************************************************/
+
 /*! \file timelib.c
     \brief Time handling library source file
 */
@@ -42,7 +71,7 @@ double currentmjd(double offset)
     mjd = unix2utc(mytime);
 #else
     TimeUtils tu;
-	mjd = unix2utc(tu.secondsSinceEpoch());
+    mjd = unix2utc(tu.secondsSinceEpoch() + _timezone);
 #endif
     return mjd+offset;
 }
@@ -60,13 +89,14 @@ double currentmjd()
 double unix2utc(struct timeval unixtime)
 {
     double utc;
-    struct tm *mytm;
-    time_t thetime;
+//    struct tm *mytm;
+//    time_t thetime;
 
-    thetime = unixtime.tv_sec;
-    mytm = gmtime(&thetime);
-    utc = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
-    utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + unixtime.tv_usec / 1000000.) / 60.) / 60.) / 24.);
+//    thetime = unixtime.tv_sec;
+//    mytm = gmtime(&thetime);
+//    utc = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
+//    utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + unixtime.tv_usec / 1000000.) / 60.) / 60.) / 24.);
+	utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.F) / 86400.;
 
     return utc;
 }
@@ -93,22 +123,25 @@ double unix2utc(double unixtime)
 struct timeval utc2unix(double utc)
 {
     struct timeval unixtime;
-    struct tm unixtm;
-    double day, doy, fd;
+//    struct tm unixtm;
+//    double day, doy, fd;
 
-	mjd2ymd(utc, &unixtm.tm_year, &unixtm.tm_mon, &day, &doy);
-    unixtm.tm_year -= 1900;
-    unixtm.tm_mon -= 1;
-    unixtm.tm_mday = (int)day;
-    fd = fmod(utc, 1.);
-    unixtm.tm_hour = (int)(fd * 24.);
-    fd -= unixtm.tm_hour / 24.;
-    unixtm.tm_min = int(fd * 1440.);
-    fd -= unixtm.tm_min / 1440.;
-    unixtm.tm_sec = (int)(fd * 86400.);
-    fd -= unixtm.tm_sec / 86400.;
-    unixtime.tv_sec = mktime(&unixtm);
-    unixtime.tv_usec = (int)(fd * 1000000.);
+//	mjd2ymd(utc, &unixtm.tm_year, &unixtm.tm_mon, &day, &doy);
+//    unixtm.tm_year -= 1900;
+//    unixtm.tm_mon -= 1;
+//    unixtm.tm_mday = (int)day;
+//    fd = fmod(utc, 1.);
+//    unixtm.tm_hour = (int)(fd * 24.);
+//    fd -= unixtm.tm_hour / 24.;
+//    unixtm.tm_min = int(fd * 1440.);
+//    fd -= unixtm.tm_min / 1440.;
+//    unixtm.tm_sec = (int)(fd * 86400.);
+//    fd -= unixtm.tm_sec / 86400.;
+//    unixtime.tv_sec = mktime(&unixtm);
+//	unixtime.tv_usec = (int)(fd * 86400000000. + .5);
+	double unixseconds = 86400. * (utc - 40587.);
+	unixtime.tv_sec = (int)unixseconds;
+	unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);
 
     return unixtime;
 }

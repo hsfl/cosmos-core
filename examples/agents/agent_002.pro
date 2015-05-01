@@ -29,3 +29,7 @@ MODULES += zlib
 include( $$COSMOS/core/qt/cosmos.pri )
 
 SOURCES += agent_002.cpp
+
+TARGET = agent_002
+target.path = /home/cosmos/test
+INSTALLS += target
