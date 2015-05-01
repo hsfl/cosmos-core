@@ -65,7 +65,7 @@ static char fname[100];
 /*! Input: Position, time | output: Mag Field
         \param pos geodetic position (lon, lat, alt) in (rad, rad, meters)
         \param time in decimal year, ex. use mjd2year(currentmjd())
-        \param comp are the magnetic field x,y,z components
+        \param comp are the magnetic field x,y,z components in Topocentric System
 */
 int32_t geomag_front(gvector pos, double time, rvector *comp)
 {
