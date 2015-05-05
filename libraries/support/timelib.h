@@ -96,7 +96,7 @@ double currentmjd();
 
 // cal to another format
 double  cal2mjd2(int32_t year, int32_t month, double day);
-void    cal2mjd( int iy, int im, int id, double *djm, int *j );
+//void    cal2mjd( int iy, int im, int id, double *djm, int *j );
 
 // utc to another format
 struct timeval utc2unix(double utc);
@@ -128,8 +128,9 @@ double  week2gps(uint32_t week, double seconds);
 
 // mjd to another format
 double  mjd2year(double mjd);
-int32_t mjd2ymd(double mjd, int32_t *year, int32_t *month, double *day, double *doy);
-void    mjd2cal( double djm, int *iy, int *im, int *id, double *fd, int *j);
+int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day);
+int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy);
+//void    mjd2cal( double djm, int *iy, int *im, int *id, double *fd, int *j);
 string  mjd2human(double mjd);
 string  mjd2human2(double mjd);
 string  mjd2human3(double mjd);

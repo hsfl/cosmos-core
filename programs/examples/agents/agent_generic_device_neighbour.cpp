@@ -54,9 +54,6 @@ cosmosstruc *cdata; // to access the cosmos data, will change later
 
 int main(int argc, char *argv[])
 {
-
-    int iretn;
-
     cout << "Agent Name: " << agentname << endl;
     cout << "Agent Setup Server ... " ;
     // Establish the command channel and heartbeat
@@ -74,7 +71,7 @@ int main(int argc, char *argv[])
     }
     
     // Start our own thread
-    iretn = myagent();
+	myagent();
 
     return 0;
 }

@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 	string output;
 	char date[30];
 	FILE *eout, *fout;
-	int i, j, iretn, gsup[MAXTRACK];
+	int i, j, gsup[MAXTRACK];
 	int year, month, day, hour, minute, second;
 	struct stat sbuf;
 	string jstring;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	cdata = json_create();
 	json_setup_node(argv[1],cdata);
 	json_clone(cdata);
-	iretn=agent_get_server(cdata, cdata[0].node.name,(char *)"simulator",5,&imubeat);
+	agent_get_server(cdata, cdata[0].node.name,(char *)"simulator",5,&imubeat);
 	agent_send_request(cdata, imubeat,(char *)"statevec",buf,1000,5);
 	json_parse(buf,cdata);
 	agent_send_request(cdata, imubeat,(char *)"value node_name",buf,1000,5);
@@ -104,7 +104,10 @@ int main(int argc, char *argv[])
 		output = json_of_ephemeris(jstring,  cdata);
 		fprintf(fout,"%s\n",output.c_str());
 		fflush(fout);
-		mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
+//		mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
+		mjd2ymd(mjdnow, year, month, fd);
+		day = (int32_t)fd;
+		fd -= day;
 		hour = (int)(24. * fd);
 		minute = (int)(1440. * fd - hour * 60.);
 		second = (int)(86400. * fd - hour * 3600. - minute * 60.);
