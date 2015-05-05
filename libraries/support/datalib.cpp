@@ -1084,12 +1084,12 @@ int32_t setEnv(string var, string path){
 		return DATA_ERROR_RESOURCES_FOLDER;
 	}
 
-//	if (pathReturned!=NULL){
-//		cout << var << " set to " << pathReturned << endl;
-//	} else {
-//		cout << var << " not set " << endl;
-//		return DATA_ERROR_RESOURCES_FOLDER;
-//	}
+	//	if (pathReturned!=NULL){
+	//		cout << var << " set to " << pathReturned << endl;
+	//	} else {
+	//		cout << var << " not set " << endl;
+	//		return DATA_ERROR_RESOURCES_FOLDER;
+	//	}
 
 	return iretn;
 }
@@ -1304,13 +1304,18 @@ int32_t data_load_archive(string node, string agent, double utcbegin, double utc
 	for (double mjd = floor(utcbegin); mjd <= floor(utcend); ++mjd)
 	{
 		files = data_list_archive(node, agent, mjd, type);
-		for (filestruc file : files)
+		for (size_t i=0; i<files.size(); ++i)
 		{
-			if ((mjd == floor(utcbegin) && file.seconds/86400. < utcbegin-mjd) || (mjd == floor(utcend) && file.seconds/86400. > utcend-mjd))
+			if (mjd == floor(utcbegin) && i < files.size()-2 && files[i+1].utc < utcbegin)
 			{
 				continue;
 			}
-			tfd.open(file.path);
+			else if (mjd == floor(utcend) && files[i].utc > utcend)
+			{
+				continue;
+			}
+
+			tfd.open(files[i].path);
 			if (tfd.is_open())
 			{
 				while (getline(tfd,tstring))
