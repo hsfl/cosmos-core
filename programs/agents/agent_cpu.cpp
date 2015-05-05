@@ -1221,8 +1221,7 @@ double GetLinuxUsedDisk()
 {
 	struct statvfs buf;
 	int64_t disk_size, used, free;
-	char *path = "/";
-	unsigned int function = 1;
+	char *path = (char*) "/";
 
 	statvfs(path,&buf);
 
@@ -1237,8 +1236,7 @@ double GetLinuxTotalDisk() // NOT TESTED
 {
 	struct statvfs buf;
 	int64_t disk_size, used, free;
-	char *path = "/";
-	unsigned int function = 1;
+	char *path = (char*) "/";
 
 	statvfs(path,&buf);
 
@@ -1314,19 +1312,19 @@ int32_t request_soh(char *request, char* response, void *)
 int32_t request_mem(char *request, char* response, void *)
 {
 	string mem = to_string(cdata[0].devspec.cpu[0]->mem);
-	return (sprintf(response, &mem[0u]));
+	return (sprintf(response, "%s", &mem[0u]));
 }
 
 int32_t request_disk(char *request, char* response, void *)
 {
 	string disk = to_string(cdata[0].devspec.cpu[0]->disk);
-	return (sprintf(response, &disk[0u]));
+	return (sprintf(response, "%s", &disk[0u]));
 }
 
 int32_t request_load (char *request, char* response, void *)
 {
 	string load = to_string(cdata[0].devspec.cpu[0]->load);
-	return (sprintf(response, &load[0u]));
+	return (sprintf(response, "%s", &load[0u]));
 }
 
 int32_t request_diskpercent (char *request, char *response, void *)
