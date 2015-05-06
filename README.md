@@ -44,6 +44,7 @@ By default we recommend that COSMOS is installed if the following folders
 
 Suggested structure for the COSMOS developer folder (the installation folder may have a different structure)
 COSMOS
+```
 - bin
 - lib
 - include
@@ -68,6 +69,5 @@ COSMOS
   |_ thirdparty
   |_ tools
   |_ documentation
-
-the source folder is dedicated to developers, the remaining folders are for a regular users. 
-
+```
+the source folder is dedicated to developers, the remaining folders are for a regular users.
