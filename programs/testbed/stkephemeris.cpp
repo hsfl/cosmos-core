@@ -87,7 +87,7 @@ alert_type talert;
 double fyear;
 beatstruc imubeat;
 double mjdnow, lastlat, lastsunradiance, fd, lastgsel[MAXTRACK];
-int i, j, iretn, gsup[MAXTRACK];
+int i, j, gsup[MAXTRACK];
 int year, month, day, hour, minute, second;
 struct stat sbuf;
 string jstring;
@@ -101,7 +101,7 @@ if (argc == 3)
 	}
 else
 	{
-	iretn=agent_get_server(cdata, cdata[0].node.name,(char *)"engine",5,&imubeat);
+	agent_get_server(cdata, cdata[0].node.name,(char *)"engine",5,&imubeat);
 	agent_send_request(cdata, imubeat,(char *)"statevec",buf,1000,5);
 	json_parse(buf,cdata);
 
@@ -164,7 +164,10 @@ for (i=0; i<9331; i++)
 	output = json_of_ephemeris(jstring, cdata);
 	fprintf(fout,"%s\n",output.c_str());
 	fflush(fout);
-	mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
+//	mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
+	mjd2ymd(mjdnow, year, month, fd);
+	day = (int32_t)fd;
+	fd -= day;
 	hour = (int)(24. * fd);
 	minute = (int)(1440. * fd - hour * 60.);
 	second = (int)(86400. * fd - hour * 3600. - minute * 60.);

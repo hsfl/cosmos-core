@@ -62,6 +62,7 @@ typedef struct
 	uint16_t year;
 	uint16_t jday;
 	uint32_t seconds;
+	double utc;
 } filestruc;
 //! @}
 

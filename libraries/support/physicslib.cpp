@@ -1584,7 +1584,7 @@ double msis00_density(posstruc pos,float f107avg,float f107,float magidx)
 		}
 	}
 
-	mjd2ymd(pos.extra.utc,&year,&month,&day,&doy);
+	mjd2ymd(pos.extra.utc,year,month,day,doy);
 	input.doy = (int32_t)doy;
 	input.g_lat = pos.geod.s.lat*180./DPI;
 	input.g_long = pos.geod.s.lon*180./DPI;

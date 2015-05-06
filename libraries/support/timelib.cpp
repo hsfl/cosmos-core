@@ -149,6 +149,20 @@ struct timeval utc2unix(double utc)
 
 //! MJD to Year, Month, and Decimal Day
 /*! Convert Modified Julian Day to Calendar Year, Month, Decimal Day.
+	\param mjd Modified Julian Day
+	\param year Pointer to return Calendar Year
+	\param month Pointer to return Calendar Month
+	\param day Pointer to return Decimal Day of the Month
+	\return 0, otherwise negative error
+*/
+int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day)
+{
+	double doy;
+	return mjd2ymd(mjd, year, month, day, doy);
+}
+
+//! MJD to Year, Month, Decimal Day, and Julian Day
+/*! Convert Modified Julian Day to Calendar Year, Month, Decimal Day.
     \param mjd Modified Julian Day
     \param year Pointer to return Calendar Year
     \param month Pointer to return Calendar Month
@@ -156,7 +170,7 @@ struct timeval utc2unix(double utc)
     \param doy Pointer to return Decimal Day of the Year
     \return 0, otherwise negative error
 */
-int32_t mjd2ymd(double mjd, int32_t *year, int32_t *month, double *day, double *doy)
+int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy)
 {
     int32_t a, b, c, d, e, z, alpha;
     double f;
@@ -178,20 +192,20 @@ int32_t mjd2ymd(double mjd, int32_t *year, int32_t *month, double *day, double *
     d = (int32_t)(365.25*c);
     e = (int32_t)((b - d)/30.6001);
 
-    *day = b - d - (int32_t)(30.6001 * e) + f;
+	day = b - d - (int32_t)(30.6001 * e) + f;
     if (e < 14)
-        *month = e - 1;
+		month = e - 1;
     else
-        *month = e - 13;
-    if (*month > 2)
-        *year = c - 4716;
+		month = e - 13;
+	if (month > 2)
+		year = c - 4716;
     else
-        *year = c - 4715;
-    *doy = (int32_t)((275 * *month)/9) - (2-isleap(*year))*(int32_t)((*month+9)/12) + *day - 30;
+		year = c - 4715;
+	doy = (int32_t)((275 * month)/9) - (2-isleap(year))*(int32_t)((month+9)/12) + day - 30;
     return 0;
 }
 
-void mjd2cal( double djm, int *iy, int *im, int *id, double *fd, int *j)
+//void mjd2cal( double djm, int *iy, int *im, int *id, double *fd, int *j)
 /*
 **  - - - - - - - -
 **   s l a D j c l
@@ -217,35 +231,35 @@ void mjd2cal( double djm, int *iy, int *im, int *id, double *fd, int *j)
 **
 **  Copyright P.T.Wallace.  All rights reserved.
 */
-{
-    double f, d;
-    long jd, n4, nd10;
+//{
+//    double f, d;
+//    long jd, n4, nd10;
 
-    /* Check if date is acceptable */
-    if ( ( djm <= -2395520.0 ) || ( djm >= 1e9 ) )
-    {
-        *j = -1;
-        return;
-    } else {
-        *j = 0;
+//    /* Check if date is acceptable */
+//    if ( ( djm <= -2395520.0 ) || ( djm >= 1e9 ) )
+//    {
+//        *j = -1;
+//        return;
+//    } else {
+//        *j = 0;
 
-        /* Separate day and fraction */
-        f = fmod ( djm, 1.0 );
-        if ( f < 0.0 ) f += 1.0;
-        d = djm - f;
-        d = round ( d );
+//        /* Separate day and fraction */
+//        f = fmod ( djm, 1.0 );
+//        if ( f < 0.0 ) f += 1.0;
+//        d = djm - f;
+//        d = round ( d );
 
-        /* Express day in Gregorian calendar */
-        jd = (long) round ( d ) + 2400001;
-        n4 = 4L*(jd+((6L*((4L*jd-17918L)/146097L))/4L+1L)/2L-37L);
-        nd10 = 10L*(((n4-237L)%1461L)/4L)+5L;
-        *iy = (int) (n4/1461L-4712L);
-        *im = (int) (((nd10/306L+2L)%12L)+1L);
-        *id = (int) ((nd10%306L)/10L+1L);
-        *fd = f;
-        *j = 0;
-    }
-}
+//        /* Express day in Gregorian calendar */
+//        jd = (long) round ( d ) + 2400001;
+//        n4 = 4L*(jd+((6L*((4L*jd-17918L)/146097L))/4L+1L)/2L-37L);
+//        nd10 = 10L*(((n4-237L)%1461L)/4L)+5L;
+//        *iy = (int) (n4/1461L-4712L);
+//        *im = (int) (((nd10/306L+2L)%12L)+1L);
+//        *id = (int) ((nd10%306L)/10L+1L);
+//        *fd = f;
+//        *j = 0;
+//    }
+//}
 
 double cal2mjd2(int32_t year, int32_t month, double day)
 {
@@ -284,7 +298,7 @@ double cal2mjd2(int32_t year, int32_t month, double day)
     return (mjd);
 }
 
-void cal2mjd( int iy, int im, int id, double *djm, int *j )
+//void cal2mjd( int iy, int im, int id, double *djm, int *j )
 /*
 **  - - - - - - - -
 **   s l a C l d j
@@ -311,45 +325,45 @@ void cal2mjd( int iy, int im, int id, double *djm, int *j )
 **
 **  Copyright P.T.Wallace.  All rights reserved.
 */
-{
-    long iyL, imL;
+//{
+//    long iyL, imL;
 
-    /* Month lengths in days */
-    static int mtab[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+//    /* Month lengths in days */
+//    static int mtab[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 
 
-    /* Validate year */
-    if ( iy < -4699 )
-    {
-        *j = 1; return;
-    }
+//    /* Validate year */
+//    if ( iy < -4699 )
+//    {
+//        *j = 1; return;
+//    }
 
-    /* Validate month */
-    if ( ( im < 1 ) || ( im > 12 ) )
-    {
-        *j = 2; return;
-    }
+//    /* Validate month */
+//    if ( ( im < 1 ) || ( im > 12 ) )
+//    {
+//        *j = 2; return;
+//    }
 
-    /* Allow for leap year */
-    mtab[1] = ( ( ( iy % 4 ) == 0 ) &&
-                ( ( ( iy % 100 ) != 0 ) || ( ( iy % 400 ) == 0 ) ) ) ?
-                29 : 28;
+//    /* Allow for leap year */
+//    mtab[1] = ( ( ( iy % 4 ) == 0 ) &&
+//                ( ( ( iy % 100 ) != 0 ) || ( ( iy % 400 ) == 0 ) ) ) ?
+//                29 : 28;
 
-    /* Validate day */
-    *j = ( id < 1 || id > mtab[im-1] ) ? 3 : 0;
+//    /* Validate day */
+//    *j = ( id < 1 || id > mtab[im-1] ) ? 3 : 0;
 
-    /* Lengthen year and month numbers to avoid overflow */
-    iyL = (long) iy;
-    imL = (long) im;
+//    /* Lengthen year and month numbers to avoid overflow */
+//    iyL = (long) iy;
+//    imL = (long) im;
 
-    /* Perform the conversion */
-    *djm = (double)
-            ( ( 1461L * ( iyL - ( 12L - imL ) / 10L + 4712L ) ) / 4L
-              + ( 306L * ( ( imL + 9L ) % 12L ) + 5L ) / 10L
-              - ( 3L * ( ( iyL - ( 12L - imL ) / 10L + 4900L ) / 100L ) ) / 4L
-              + (long) id - 2399904L );
-}
+//    /* Perform the conversion */
+//    *djm = (double)
+//            ( ( 1461L * ( iyL - ( 12L - imL ) / 10L + 4712L ) ) / 4L
+//              + ( 306L * ( ( imL + 9L ) % 12L ) + 5L ) / 10L
+//              - ( 3L * ( ( iyL - ( 12L - imL ) / 10L + 4900L ) / 100L ) ) / 4L
+//              + (long) id - 2399904L );
+//}
 
 //! Julian Century
 /*! Caculate the number of centuries since J2000 for the provided date.
@@ -808,7 +822,7 @@ double mjd2year(double mjd)
     double day, doy, dyear;
     int32_t month, year;
 
-	mjd2ymd(mjd,&year,&month,&day,&doy);
+	mjd2ymd(mjd,year,month,day,doy);
     dyear = year + (doy-1) / (365.+isleap(year));
     return (dyear);
 }
@@ -1026,15 +1040,18 @@ cvector polar_motion(double mjd)
 string utc2iso8601(double utc)
 {
     char buffer[25];
-    int iy=0, im=0, id=0, j, ihh, imm, iss;
+	int32_t iy=0, im=0, id=0, ihh, imm, iss;
     double fd=0.;
 
-    mjd2cal(utc, &iy, &im, &id, &fd, &j);
-    ihh = (int)(24 * fd);
+//    mjd2cal(utc, &iy, &im, &id, &fd, &j);
+	mjd2ymd(utc, iy, im, fd);
+	id = (int32_t)fd;
+	fd -= id;
+	ihh = (int32_t)(24 * fd);
     fd -= ihh / 24.;
-    imm = (int)(1440 * fd);
+	imm = (int32_t)(1440 * fd);
     fd -= imm / 1440.;
-    iss = (int)(86400 * fd);
+	iss = (int32_t)(86400 * fd);
     sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d", iy, im, id, ihh, imm, iss);
 
     return string(buffer);
@@ -1054,15 +1071,18 @@ string mjd2iso8601(double mjd){
 string mjd2human(double mjd)
 {
     char buffer[25];
-    int iy=0, im=0, id=0, j, ihh, imm, iss;
+	int32_t iy=0, im=0, id=0, ihh, imm, iss;
     double fd=0.;
 
-    mjd2cal(mjd, &iy, &im, &id, &fd, &j);
-    ihh = (int)(24 * fd);
+//    mjd2cal(mjd, &iy, &im, &id, &fd, &j);
+	mjd2ymd(mjd, iy, im, fd);
+	id = (int32_t)fd;
+	fd -= id;
+	ihh = (int32_t)(24 * fd);
     fd -= ihh / 24.;
-    imm = (int)(1440 * fd);
+	imm = (int32_t)(1440 * fd);
     fd -= imm / 1440.;
-    iss = (int)(86400 * fd);
+	iss = (int32_t)(86400 * fd);
     sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d", iy, im, id, ihh, imm, iss);
 
     return string(buffer);
@@ -1077,7 +1097,7 @@ string mjd2human(double mjd)
 string mjd2human2(double mjd)
 {
     char buffer[25];
-    int year=0, month=0, day=0, j, hh, min, sec;
+	int32_t year=0, month=0, day=0, hh, min, sec;
     double fd=0.;
 
     static const char month_name[][4] = {
@@ -1085,12 +1105,15 @@ string mjd2human2(double mjd)
         "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
     };
 
-    mjd2cal(mjd, &year, &month, &day, &fd, &j);
-    hh = (int)(24 * fd);
+//    mjd2cal(mjd, &year, &month, &day, &fd, &j);
+	mjd2ymd(mjd, year, month, fd);
+	day = (int32_t)fd;
+	fd -= day;
+	hh = (int32_t)(24 * fd);
     fd -= hh / 24.;
-    min = (int)(1440 * fd);
+	min = (int32_t)(1440 * fd);
     fd -= min / 1440.;
-    sec = (int)(86400 * fd);
+	sec = (int32_t)(86400 * fd);
     sprintf(buffer, "%02d-%3s-%04d %02d:%02d:%02d", day, month_name[month-1], year, hh, min, sec);
 
     return string(buffer);
@@ -1106,8 +1129,8 @@ string mjd2human2(double mjd)
 string mjd2human3(double mjd)
 {
     char buffer[50];
-    int year=0, month=0, day=0, j, hh, min, sec;
-    int msec = 0;
+	int32_t year=0, month=0, day=0, hh, min, sec;
+	int32_t msec = 0;
     double fd=0.;
 
     static const char month_name[][4] = {
@@ -1115,14 +1138,17 @@ string mjd2human3(double mjd)
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
 
-    mjd2cal(mjd, &year, &month, &day, &fd, &j);
-    hh = (int)(24 * fd);
+//    mjd2cal(mjd, &year, &month, &day, &fd, &j);
+	mjd2ymd(mjd, year, month, fd);
+	day = (int32_t)fd;
+	fd -= day;
+	hh = (int32_t)(24 * fd);
     fd -= hh / 24.;
-    min = (int)(1440 * fd);
+	min = (int32_t)(1440 * fd);
     fd -= min / 1440.;
-    sec = (int)(86400 * fd);
+	sec = (int32_t)(86400 * fd);
     fd -= sec / 86400.;
-    msec = (int)(86400*1000 * fd);
+	msec = (int32_t)(86400*1000 * fd);
     sprintf(buffer, "%02d %3s %04d %02d:%02d:%02d.%03d", day, month_name[month-1], year, hh, min, sec, msec);
 
     return string(buffer);

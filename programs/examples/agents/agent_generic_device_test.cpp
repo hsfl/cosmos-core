@@ -63,9 +63,6 @@ cosmosstruc *cdata; // to access the cosmos data, will change later
 int main(int argc, char *argv[])
 {
     //setEnvCosmos("C:/COSMOS/");
-
-    int iretn;
-
     cout << "Agent Name: " << agentname << endl;
     cout << "Agent Setup Server ... " ;
     // Establish the command channel and heartbeat
@@ -93,7 +90,7 @@ int main(int argc, char *argv[])
 
 
     // Start agent thread
-    iretn = agentloop();
+	agentloop();
 
     return 0;
 }
