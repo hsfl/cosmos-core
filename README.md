@@ -43,8 +43,9 @@ By default we recommend that COSMOS is installed if the following folders
 * for Linux/Unix: /home/cosmos
 
 Suggested structure for the COSMOS developer folder (the installation folder may have a different structure)
-COSMOS
+
 ```
+COSMOS
 - bin
 - lib
 - include
