@@ -35,10 +35,39 @@ Compile and execute the two programs. Start agent_002 first.
 The two COSMOS agents will startt talking to each other.
 
 For more detailed instructions to get started with COSMOS
-please read the GET-STARTED-WITH-COSMOS.txt inside the 
-documentation folder.
+please read the README.md inside the documentation folder.
 
 By default we recommend that COSMOS is installed if the following folders
-for Windows: C:\COSMOS
-for MacOS: /Applications/COSMOS
-for Linux/Unix: /home/cosmos
+* for Windows: C:\COSMOS
+* for MacOS: /Applications/COSMOS
+* for Linux/Unix: /home/cosmos
+
+Suggested structure for the COSMOS developer folder (the installation folder may have a different structure)
+COSMOS
+- bin
+- lib
+- include
+- nodes
+- resources
+- projects (developer specific)
+  |- my_project_1
+    |- programs
+    |- libraries
+    |- build
+  |- my_project_2
+    |- programs
+    |- libraries
+    |- build
+- documentation
+- Tools
+  |_ MOST
+  |_ CEO
+  |_ ...
+- source (developer specific)
+  |_ core
+  |_ thirdparty
+  |_ tools
+  |_ documentation
+
+the source folder is dedicated to developers, the remaining folders are for a regular users. 
+

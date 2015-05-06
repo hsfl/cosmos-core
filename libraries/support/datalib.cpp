@@ -1095,6 +1095,8 @@ int32_t setEnv(string var, string path){
 }
 
 //! Set Environment Variable for COSMOS Automatically
+//! These variables are just temporarily created while the
+//! program runs.
 /*! \param path full path of the COSMOS variable folder.
 	\return Zero, or negative error.
 */
@@ -1153,7 +1155,7 @@ int32_t set_cosmosnodes()
 		}
 		else
 		{
-			croot = getenv("COSMOSNODES");
+            croot = getenv("COSMOSNODES");
 			if (croot != nullptr && data_isdir(croot))
 			{
 				cosmosnodes = croot;
@@ -1170,11 +1172,18 @@ int32_t set_cosmosnodes()
 		}
 #endif
 #ifdef COSMOS_WIN_OS
-		if (data_isdir("c:/Program Files/cosmos/nodes"))
+        if (data_isdir("c:/cosmos/nodes"))
 		{
-			cosmosnodes = "c:/Program Files/cosmos/nodes";
+            cosmosnodes = "c:/cosmos/nodes";
 			return 0;
 		}
+#endif
+#ifdef COSMOS_MAC_OS
+        if (data_isdir("/Applications/COSMOS/nodes/"))
+        {
+            cosmosnodes = "/Applications/COSMOS/nodes/";
+            return 0;
+        }
 #endif
 
 		// No standard location. Search upward for "cosmosnodes"
