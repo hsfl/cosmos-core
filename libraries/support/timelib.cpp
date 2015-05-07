@@ -132,11 +132,13 @@ struct timeval utc2unix(double utc)
 calstruc mjd2cal(double mjd)
 {
 	calstruc date;
+	double dom;
 	double doy;
 
-	mjd2ymd(mjd, date.year, date.month, doy);
-	date.day = (int32_t)doy;
-	doy = (doy - date.day) * 24.;
+	mjd2ymd(mjd, date.year, date.month, dom, doy);
+	date.doy = (int32_t)doy;
+	date.dom = (int32_t)dom;
+	doy = (doy - date.doy) * 24.;
 	date.hour = (int32_t)doy;
 	doy = (doy - date.hour) * 60.;
 	date.minute = (int32_t)doy;
@@ -206,6 +208,18 @@ int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &
     return 0;
 }
 
+//! Calendar representation to Modified Julian Day - full
+/*! Convert a full calendar representation of date and time to MJD. If month
+ * is given as zero, then day will be taken as day of the year.
+ * \param year Full representation of year.
+ * \param month Calendar month, or zero.
+ * \param day Day of month if 1 <= month <=12, otherwise day of year.
+ * \param hour Hour of day (0-23)
+ * \param minute Minute of day (0-59)
+ * \param second Second of day (0-59)
+ * \param nsecond Nanosecond of day (0-999999999)
+ * \return Modified Julian Day
+*/
 double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond)
 {
 	double mjd;
@@ -213,7 +227,16 @@ double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t m
 
 	date.year = year;
 	date.month = month;
-	date.day = day;
+	if (month == 0)
+	{
+		date.dom = 0;
+		date.doy = day;
+	}
+	else
+	{
+		date.dom = day;
+		date.doy = 0;
+	}
 	date.hour = hour;
 	date.minute = minute;
 	date.second = second;
@@ -224,6 +247,15 @@ double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t m
 	return mjd;
 }
 
+//! Calendar representation to Modified Julian Day - shortened
+/*! Convert a shortened calendar representation of date to MJD.
+ * Time is taken from the fractional part of the day. If month
+ * is given as zero, then day will be taken as day of the year.
+ * \param year Full representation of year.
+ * \param month Calendar month, or zero.
+ * \param day Day of month if 1 <= month <=12, otherwise day of year.
+ * \return Modified Julian Day
+*/
 double cal2mjd(int32_t year, int32_t month, double day)
 {
 	double mjd;
@@ -231,7 +263,16 @@ double cal2mjd(int32_t year, int32_t month, double day)
 
 	date.year = year;
 	date.month = month;
-	date.day = 1;
+	if (month == 0)
+	{
+		date.dom = 0;
+		date.doy = 1;
+	}
+	else
+	{
+		date.dom = 1;
+		date.doy = 0;
+	}
 	date.hour = date.minute = date.second = date.nsecond = 0;
 
 	mjd = cal2mjd(date);
@@ -240,16 +281,24 @@ double cal2mjd(int32_t year, int32_t month, double day)
 	return mjd;
 }
 
+//! Calendar representation to Modified Julian Day - structure
+/*! Convert a full calendar representation of date and time to MJD. If month
+ * is given as zero, then day will be taken as day of the year.
+ * \param date Full representation of date and time in ::calstruc.
+ * \return Modified Julian Day
+*/
 double cal2mjd(calstruc date)
 {
     double mjd;
     int32_t a, b;
 
 	if (date.year < -4712)
-        return (0.);
+		return (-2400000.);
 
 	switch (date.month)
     {
+	case 0:
+		++date.month;
     case 1:
     case 2:
 		date.year--;
@@ -265,15 +314,22 @@ double cal2mjd(calstruc date)
     case 11:
     case 12:
 		a = (int32_t)(date.year / 100);
-		if ((date.year > 1582) || (date.year == 1582 && date.month > 10) || (date.year == 1582 && date.month == 10 && date.day > 4))
+		if ((date.year > 1582) || (date.year == 1582 && date.month > 10) || (date.year == 1582 && date.month == 10 && date.dom > 4))
             b = 2 - a + (int32_t)(a/4);
         else
             b = 0;
         break;
     default:
-        return (0.);
+		return (-2400000.);
     }
-	mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.day + b - 2401525.;
+	if (date.dom)
+	{
+		mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.dom + b - 2401525.;
+	}
+	else
+	{
+		mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.doy + b - 2401525.;
+	}
 	mjd += ((date.hour + (date.minute + (date.second + date.nsecond / 1e9) / 60.) / 60.) / 24.);
 
 	return (mjd);
