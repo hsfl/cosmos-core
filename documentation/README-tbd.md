@@ -28,12 +28,22 @@ Examples: Tortoise Git for win, GitHub for Mac, gitg for Linux )
 Installing COSMOS on Windows
 ----------------------------
 
+
+
+
+
 Installing COSMOS on Linux (Ubuntu)
 -----------------------------------
 please refer to the file COSMOS-Ubuntu.txt
 
+
+
+
+
+
+
 System Requirements
-----------------------------------------------------------------------
+------------------- 
 
 * MacOSX 10.4 (Tiger) or higher
 * Intel or PowerPC processor
@@ -47,6 +57,11 @@ Please make sure you have enough free memory in the temporary directory
 on your system, and please ensure that read, write and run access 
 rights have been granted. Close all other programs before starting the 
 installation process.
+
+
+
+
+
 
 QT 4.8.x INSTALLATION (X11 Platforms)
 ________________________________________
@@ -163,7 +178,7 @@ NOTE: if you are using this source code from a secondary drive formated in NTFS 
 
 
 Directory Structure
-----------------------------------------------------------------------
+-------------------
 
 
 Running Example Applications
@@ -179,7 +194,7 @@ Developing COSMOS Applications
 
 
 FAQs
-----------------------------------------------------------------------
+----
 Is COSMOS Really Free for Any User?
 
 

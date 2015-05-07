@@ -1,9 +1,7 @@
-Welcome to COSMOS 1.0-alpha
-============================
+Welcome to COSMOS-core 1.0-alpha
+================================
 
-COSMOS is the Comprehensive Open-architecture Solution for Mission
-Operations System, a software framework with source code for 
-space mission operations, simulation and flight software.
+COSMOS is the Comprehensive Open-architecture Solution for Mission Operations System, a software framework with source code for space mission operations, simulation and flight software.
 
 For the latest information on COSMOS refer to our website:
 http://www.cosmos-project.org/
@@ -29,16 +27,48 @@ git clone https://<your-user-name>@bitbucket.org/cosmos/core.git
 ```
 
 3) Open Qt creator and load two agent example projects: 
+
 - core/examples/agents/agent_001.pro 
 - core/examples/agents/agent_002.pro 
-Compile and execute the two programs. Start agent_002 first. 
-The two COSMOS agents will startt talking to each other.
 
-For more detailed instructions to get started with COSMOS
-please read the GET-STARTED-WITH-COSMOS.txt inside the 
-documentation folder.
+Compile and execute the two programs. Start agent_002 first. The two COSMOS agents will startt talking to each other.
+
+**For more detailed instructions to get started with COSMOS
+please read the [documentation/README.md](documentation/README.md)**
 
 By default we recommend that COSMOS is installed if the following folders
-for Windows: C:\COSMOS
-for MacOS: /Applications/COSMOS
-for Linux/Unix: /home/cosmos
+
+* for Windows: C:\COSMOS
+* for MacOS: /Applications/COSMOS
+* for Linux/Unix: /home/cosmos
+
+Suggested structure for the COSMOS developer folder (the installation folder may have a different structure)
+
+```
+COSMOS
+- bin
+- lib
+- include
+- nodes
+- resources
+- projects (developer specific)
+  |- my_project_1
+    |- programs
+    |- libraries
+    |- build
+  |- my_project_2
+    |- programs
+    |- libraries
+    |- build
+- documentation
+- Tools
+  |_ MOST
+  |_ CEO
+  |_ ...
+- source (developer specific)
+  |_ core
+  |_ thirdparty
+  |_ tools
+  |_ documentation
+```
+the source folder is dedicated to developers, the remaining folders are for a regular users.
