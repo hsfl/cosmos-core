@@ -293,7 +293,7 @@ vector <double> data_list_archive_days(string node, string agent)
 							if (data_isdir(dpath))
 							{
 								double jday = atof(td->d_name);
-								double mjd = cal2mjd2((int)year, 1, 0.) + jday;
+								double mjd = cal2mjd((int)year, 1, 0.) + jday;
 								days.push_back(mjd);
 							}
 						}
@@ -362,7 +362,7 @@ vector<filestruc> data_list_archive(string node, string agent, double utc, strin
 					int32_t iretn = data_name_date(tf.node, tf.name, tf.year, tf.jday, tf.seconds);
 					if (iretn == 0)
 					{
-						tf.utc = cal2mjd2(tf.year, 1, tf.seconds/86400.) + tf.jday;
+						tf.utc = cal2mjd(tf.year, 1, tf.seconds/86400.) + tf.jday;
 						files.push_back(tf);
 						for (size_t i=files.size()-1; i>0; --i)
 						{
@@ -627,7 +627,7 @@ int32_t data_name_date(string node, string filename, double &utc)
 
 	if (!iretn)
 	{
-		utc = cal2mjd2(year, 1, seconds/86400.) + jday;
+		utc = cal2mjd(year, 1, seconds/86400.) + jday;
 		return 0;
 	}
 	else
@@ -1484,7 +1484,7 @@ double findlastday(string name)
 #else
 		localtime_r(&mytime,&mytm);
 #endif
-		return cal2mjd2(year,mytm.tm_mon+1,mytm.tm_mday);
+		return cal2mjd(year,mytm.tm_mon+1,mytm.tm_mday);
 	}
 	else
 	{
@@ -1557,7 +1557,7 @@ double findfirstday(string name)
 		localtime_r(&mytime,&mytm);
 #endif
 
-		return (cal2mjd2(year,mytm.tm_mon+1,mytm.tm_mday));
+		return (cal2mjd(year,mytm.tm_mon+1,mytm.tm_mday));
 	}
 	else
 	{

@@ -2889,7 +2889,7 @@ int32_t load_lines(char *fname, vector<tlestruc>& lines)
 		else
 			year += 1900;
 		sscanf(&ibuf[20],"%12lf",&jday);
-		tle.utc = cal2mjd2((int)year,1,0.);
+		tle.utc = cal2mjd((int)year,1,0.);
 		tle.utc += jday;
 		if (strlen(ibuf) > 50)
 		{

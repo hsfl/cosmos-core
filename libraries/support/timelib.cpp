@@ -89,13 +89,6 @@ double currentmjd()
 double unix2utc(struct timeval unixtime)
 {
     double utc;
-//    struct tm *mytm;
-//    time_t thetime;
-
-//    thetime = unixtime.tv_sec;
-//    mytm = gmtime(&thetime);
-//    utc = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
-//    utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + unixtime.tv_usec / 1000000.) / 60.) / 60.) / 24.);
 	utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.F) / 86400.;
 
     return utc;
@@ -109,7 +102,7 @@ double unix2utc(double unixtime)
 
 	thetime = (time_t)unixtime;
 	mytm = gmtime(&thetime);
-	utc = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
+	utc = cal2mjd(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
 	utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + (unixtime-(time_t)unixtime)) / 60.) / 60.) / 24.);
 
 	return utc;
@@ -123,22 +116,6 @@ double unix2utc(double unixtime)
 struct timeval utc2unix(double utc)
 {
     struct timeval unixtime;
-//    struct tm unixtm;
-//    double day, doy, fd;
-
-//	mjd2ymd(utc, &unixtm.tm_year, &unixtm.tm_mon, &day, &doy);
-//    unixtm.tm_year -= 1900;
-//    unixtm.tm_mon -= 1;
-//    unixtm.tm_mday = (int)day;
-//    fd = fmod(utc, 1.);
-//    unixtm.tm_hour = (int)(fd * 24.);
-//    fd -= unixtm.tm_hour / 24.;
-//    unixtm.tm_min = int(fd * 1440.);
-//    fd -= unixtm.tm_min / 1440.;
-//    unixtm.tm_sec = (int)(fd * 86400.);
-//    fd -= unixtm.tm_sec / 86400.;
-//    unixtime.tv_sec = mktime(&unixtm);
-//	unixtime.tv_usec = (int)(fd * 86400000000. + .5);
 	double unixseconds = 86400. * (utc - 40587.);
 	unixtime.tv_sec = (int)unixseconds;
 	unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);
@@ -146,6 +123,30 @@ struct timeval utc2unix(double utc)
     return unixtime;
 }
 
+//! MJD to Calendar
+/*! Convert Modified Julian Day to Calendar Year, Month, Day, Hour, Minute,
+ * Second and Nanosecond.
+ * \param mjd Modified Julian Day
+ * \return Calendar representation in ::calstruc
+*/
+calstruc mjd2cal(double mjd)
+{
+	calstruc date;
+	double doy;
+
+	mjd2ymd(mjd, date.year, date.month, doy);
+	date.day = (int32_t)doy;
+	doy = (doy - date.day) * 24.;
+	date.hour = (int32_t)doy;
+	doy = (doy - date.hour) * 60.;
+	date.minute = (int32_t)doy;
+	doy = (doy - date.minute) * 60.;
+	date.second = (int32_t)doy;
+	doy = (doy - date.second) * 1e9;
+	date.nsecond = (int32_t)(doy + .5);
+
+	return date;
+}
 
 //! MJD to Year, Month, and Decimal Day
 /*! Convert Modified Julian Day to Calendar Year, Month, Decimal Day.
@@ -205,76 +206,54 @@ int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &
     return 0;
 }
 
-//void mjd2cal( double djm, int *iy, int *im, int *id, double *fd, int *j)
-/*
-**  - - - - - - - -
-**   s l a D j c l
-**  - - - - - - - -
-**
-**  Modified Julian Day to Gregorian year, month, day,
-**  and fraction of a day.
-**
-**  Given:
-**     djm      double     Modified Julian Day (JD-2400000.5)
-**
-**  Returned:
-**     *iy      int        year
-**     *im      int        month
-**     *id      int        day
-**     *fd      double     fraction of day
-**     *j       int        status:
-**                      -1 = unacceptable date (before 4701BC March 1)
-**
-**  The algorithm is derived from that of Hatcher 1984 (QJRAS 25, 53-55).
-**
-**  Last revision:   12 March 1998
-**
-**  Copyright P.T.Wallace.  All rights reserved.
-*/
-//{
-//    double f, d;
-//    long jd, n4, nd10;
+double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond)
+{
+	double mjd;
+	calstruc date;
 
-//    /* Check if date is acceptable */
-//    if ( ( djm <= -2395520.0 ) || ( djm >= 1e9 ) )
-//    {
-//        *j = -1;
-//        return;
-//    } else {
-//        *j = 0;
+	date.year = year;
+	date.month = month;
+	date.day = day;
+	date.hour = hour;
+	date.minute = minute;
+	date.second = second;
+	date.nsecond = nsecond;
 
-//        /* Separate day and fraction */
-//        f = fmod ( djm, 1.0 );
-//        if ( f < 0.0 ) f += 1.0;
-//        d = djm - f;
-//        d = round ( d );
+	mjd = cal2mjd(date);
 
-//        /* Express day in Gregorian calendar */
-//        jd = (long) round ( d ) + 2400001;
-//        n4 = 4L*(jd+((6L*((4L*jd-17918L)/146097L))/4L+1L)/2L-37L);
-//        nd10 = 10L*(((n4-237L)%1461L)/4L)+5L;
-//        *iy = (int) (n4/1461L-4712L);
-//        *im = (int) (((nd10/306L+2L)%12L)+1L);
-//        *id = (int) ((nd10%306L)/10L+1L);
-//        *fd = f;
-//        *j = 0;
-//    }
-//}
+	return mjd;
+}
 
-double cal2mjd2(int32_t year, int32_t month, double day)
+double cal2mjd(int32_t year, int32_t month, double day)
+{
+	double mjd;
+	calstruc date;
+
+	date.year = year;
+	date.month = month;
+	date.day = 1;
+	date.hour = date.minute = date.second = date.nsecond = 0;
+
+	mjd = cal2mjd(date);
+	mjd += day - 1.;
+
+	return mjd;
+}
+
+double cal2mjd(calstruc date)
 {
     double mjd;
     int32_t a, b;
 
-    if (year < -4712)
+	if (date.year < -4712)
         return (0.);
 
-    switch (month)
+	switch (date.month)
     {
     case 1:
     case 2:
-        year--;
-        month += 12;
+		date.year--;
+		date.month += 12;
     case 3:
     case 4:
     case 5:
@@ -285,8 +264,8 @@ double cal2mjd2(int32_t year, int32_t month, double day)
     case 10:
     case 11:
     case 12:
-        a = (int32_t)(year / 100);
-        if ((year > 1582) || (year == 1582 && month > 10) || (year == 1582 && month == 10 && day > 4))
+		a = (int32_t)(date.year / 100);
+		if ((date.year > 1582) || (date.year == 1582 && date.month > 10) || (date.year == 1582 && date.month == 10 && date.day > 4))
             b = 2 - a + (int32_t)(a/4);
         else
             b = 0;
@@ -294,76 +273,11 @@ double cal2mjd2(int32_t year, int32_t month, double day)
     default:
         return (0.);
     }
-    mjd = (int32_t)(365.25 * (year+4716)) + (int32_t)(30.6001*(month+1)) + day + b - 2401525.;
-    return (mjd);
+	mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.day + b - 2401525.;
+	mjd += ((date.hour + (date.minute + (date.second + date.nsecond / 1e9) / 60.) / 60.) / 24.);
+
+	return (mjd);
 }
-
-//void cal2mjd( int iy, int im, int id, double *djm, int *j )
-/*
-**  - - - - - - - -
-**   s l a C l d j
-**  - - - - - - - -
-**
-**  Gregorian calendar to Modified Julian Day.
-**
-**  Given:
-**     iy,im,id     int    year, month, day in Gregorian calendar
-**
-**  Returned:
-**     *djm         double Modified Julian Day (JD-2400000.5) for 0 hrs
-**     *j           int    status:
-**                           0 = OK
-**                           1 = bad year   (MJD not computed)
-**                           2 = bad month  (MJD not computed)
-**                           3 = bad day    (MJD computed)
-**
-**  The year must be -4699 (i.e. 4700BC) or later.
-**
-**  The algorithm is derived from that of Hatcher 1984 (QJRAS 25, 53-55).
-**
-**  Last revision:   29 August 1994
-**
-**  Copyright P.T.Wallace.  All rights reserved.
-*/
-//{
-//    long iyL, imL;
-
-//    /* Month lengths in days */
-//    static int mtab[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
-
-
-//    /* Validate year */
-//    if ( iy < -4699 )
-//    {
-//        *j = 1; return;
-//    }
-
-//    /* Validate month */
-//    if ( ( im < 1 ) || ( im > 12 ) )
-//    {
-//        *j = 2; return;
-//    }
-
-//    /* Allow for leap year */
-//    mtab[1] = ( ( ( iy % 4 ) == 0 ) &&
-//                ( ( ( iy % 100 ) != 0 ) || ( ( iy % 400 ) == 0 ) ) ) ?
-//                29 : 28;
-
-//    /* Validate day */
-//    *j = ( id < 1 || id > mtab[im-1] ) ? 3 : 0;
-
-//    /* Lengthen year and month numbers to avoid overflow */
-//    iyL = (long) iy;
-//    imL = (long) im;
-
-//    /* Perform the conversion */
-//    *djm = (double)
-//            ( ( 1461L * ( iyL - ( 12L - imL ) / 10L + 4712L ) ) / 4L
-//              + ( 306L * ( ( imL + 9L ) % 12L ) + 5L ) / 10L
-//              - ( 3L * ( ( iyL - ( 12L - imL ) / 10L + 4900L ) / 100L ) ) / 4L
-//              + (long) id - 2399904L );
-//}
 
 //! Julian Century
 /*! Caculate the number of centuries since J2000 for the provided date.
@@ -1043,7 +957,6 @@ string utc2iso8601(double utc)
 	int32_t iy=0, im=0, id=0, ihh, imm, iss;
     double fd=0.;
 
-//    mjd2cal(utc, &iy, &im, &id, &fd, &j);
 	mjd2ymd(utc, iy, im, fd);
 	id = (int32_t)fd;
 	fd -= id;
