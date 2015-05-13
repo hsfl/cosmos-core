@@ -1,74 +1,20 @@
-Welcome to COSMOS-core 1.0-alpha
-================================
+COSMOS-core 1.0-alpha
+=====================
 
-COSMOS is the Comprehensive Open-architecture Solution for Mission Operations System, a software framework with source code for space mission operations, simulation and flight software.
+COSMOS-core is the essence of the Comprehensive Open-architecture Solution for Mission Operations System. 
 
-For the latest information on COSMOS refer to our website:
-http://www.cosmos-project.org/
+To get started with COSMOS-core you need to download and configure the COSMOS source code as described in the COSMOS tutorial for developers:
+https://bitbucket.org/cosmos/tutorial/
 
-Quick-start:
+Quick Start:
 
-1) install the latest Qt version (currently Qt5.4) from
-
-* http://www.qt.io/download-open-source/
-
-2) clone the following repositories
-
-* https://<your-user-name>@bitbucket.org/cosmos/core.git
-* https://<your-user-name>@bitbucket.org/cosmos/nodes.git
-* https://<your-user-name>@bitbucket.org/cosmos/resources.git
-* https://<your-user-name>@bitbucket.org/cosmos/thirdparty.git
-
-using your favorite client (e.g. SourceTree) or the the command line:
-
-```
-#!sh
-git clone https://<your-user-name>@bitbucket.org/cosmos/core.git
-```
-
-3) Open Qt creator and load two agent example projects: 
+1) Open Qt creator and load the two example agents: 
 
 - core/examples/agents/agent_001.pro 
 - core/examples/agents/agent_002.pro 
 
-Compile and execute the two programs. Start agent_002 first. The two COSMOS agents will startt talking to each other.
+Compile and execute the two programs. Start agent_002 first. The two COSMOS agents will start talking to each other.
 
 **For more detailed instructions to get started with COSMOS
 please read the [documentation/README.md](documentation/README.md)**
 
-By default we recommend that COSMOS is installed if the following folders
-
-* for Windows: C:\COSMOS
-* for MacOS: /Applications/COSMOS
-* for Linux/Unix: /home/cosmos
-
-Suggested structure for the COSMOS developer folder (the installation folder may have a different structure)
-
-```
-COSMOS
-- bin
-- lib
-- include
-- nodes
-- resources
-- projects (developer specific)
-  |- my_project_1
-    |- programs
-    |- libraries
-    |- build
-  |- my_project_2
-    |- programs
-    |- libraries
-    |- build
-- documentation
-- Tools
-  |_ MOST
-  |_ CEO
-  |_ ...
-- source (developer specific)
-  |_ core
-  |_ thirdparty
-  |_ tools
-  |_ documentation
-```
-the source folder is dedicated to developers, the remaining folders are for a regular users.
