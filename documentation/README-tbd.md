@@ -1,11 +1,3 @@
-GET STARTED WITH COSMOS
-=======================
-
-This file contains important information about the COSMOS software. 
-You are recommended to read this information very carefully before 
-starting using it.
-
-
 Overview
 --------
   License
@@ -13,30 +5,6 @@ Overview
   COSMOS Resources
   Contributions
   Acknowledgements
- 
-
-Downloading COSMOS
-------------------
-
-using git
-$ git clone https://<yourusername>@bitbucket.org/cosmos/core.git
-
-or install some git client if you are planning on contributing to the project
-Examples: Tortoise Git for win, GitHub for Mac, gitg for Linux )
-
- 
-Installing COSMOS on Windows
-----------------------------
-
-
-
-
-
-Installing COSMOS on Linux (Ubuntu)
------------------------------------
-please refer to the file COSMOS-Ubuntu.txt
-
-
 
 
 
