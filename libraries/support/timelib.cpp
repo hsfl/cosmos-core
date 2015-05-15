@@ -89,7 +89,7 @@ double currentmjd()
 double unix2utc(struct timeval unixtime)
 {
     double utc;
-	utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.F) / 86400.;
+	utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.) / 86400.;
 
     return utc;
 }
@@ -293,7 +293,7 @@ double cal2mjd(calstruc date)
     int32_t a, b;
 
 	if (date.year < -4712)
-		return (-2400000.);
+		return (-2400001.);
 
 	switch (date.month)
     {
@@ -320,7 +320,7 @@ double cal2mjd(calstruc date)
             b = 0;
         break;
     default:
-		return (-2400000.);
+		return (-2400001.);
     }
 	if (date.dom)
 	{
