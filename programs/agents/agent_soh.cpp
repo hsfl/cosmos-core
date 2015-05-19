@@ -81,7 +81,7 @@ double logstride = 0.;
 int pid;
 int state = 0;
 double cmjd;
-timestruc systime;
+//timestruc systime;
 cosmosstruc *cdata;
 
 beatstruc iscbeat;

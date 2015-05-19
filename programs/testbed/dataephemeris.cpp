@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
 char ts[20], dtemp[256], tstring[5000], etemp[256];
 alert_type talert;
 double mjdnow, lastlat, lastsunradiance, fd, lastgsel[MAXTRACK];
-int i, j, iretn, gsup[MAXTRACK];
-int year, month, day, hour, minute, second;
+int i, j, gsup[MAXTRACK];
+int32_t year, month, day, hour, minute, second;
 DIR *ddp, *ydp, *jdp;
 struct dirent *td, *yd, *jd;
 
@@ -175,7 +175,10 @@ do
 //	output = json_of_ephemeris(jstring, cdata);
 //	fprintf(fout,"%s\n",output);
 //	fflush(fout);
-	mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
+//	mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
+	mjd2ymd(mjdnow, year, month, fd);
+	day = (int32_t)fd;
+	fd -= day;
 	hour = (int)(24. * fd);
 	minute = (int)(1440. * fd - hour * 60.);
 	second = (int)(86400. * fd - hour * 3600. - minute * 60.);

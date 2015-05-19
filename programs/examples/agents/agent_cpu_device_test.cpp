@@ -54,8 +54,6 @@ ElapsedTime et;
 
 int main(int argc, char *argv[])
 {
-	int iretn;
-
 	cout << "Starting agent CPU Device Test" << endl;
 
 	// Establish the command channel and heartbeat
@@ -76,7 +74,7 @@ int main(int argc, char *argv[])
 	beat_agent_cpu = agent_find_server(cdata, nodename, "agent_cpu", 10.);
 
 	// Start our own thread
-	iretn = myagent();
+	myagent();
 
 	return 0;
 }
@@ -86,7 +84,6 @@ int myagent()
 	cout << "agent " << agentname <<  " ...online " << endl;
 	char response[300];
 	int count = 1;
-	int iretn;
 
 	// Start executing the agent
 	while(agent_running(cdata))
@@ -94,7 +91,7 @@ int myagent()
 		cout << "-------------------" << endl;
 		cout << "Cycle: \t\t\t\t" << count << endl;
 
-		iretn = agent_send_request(cdata,
+		agent_send_request(cdata,
 								   beat_agent_cpu,
 								   "mem",
 								   response,
@@ -102,7 +99,7 @@ int myagent()
 								   2);
 		cout << "Memory used in KB: \t\t" << response << endl;
 
-		iretn = agent_send_request(cdata,
+		agent_send_request(cdata,
 								   beat_agent_cpu,
 								   "disk",
 								   response,
@@ -111,7 +108,7 @@ int myagent()
 		cout << "Disk used in KB: \t\t" << response << endl;
 
 
-		iretn = agent_send_request(cdata,
+		agent_send_request(cdata,
 								   beat_agent_cpu,
 								   "load",
 								   response,

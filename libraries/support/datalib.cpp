@@ -293,7 +293,7 @@ vector <double> data_list_archive_days(string node, string agent)
 							if (data_isdir(dpath))
 							{
 								double jday = atof(td->d_name);
-								double mjd = cal2mjd2((int)year, 1, 0.) + jday;
+								double mjd = cal2mjd((int)year, 1, 0.) + jday;
 								days.push_back(mjd);
 							}
 						}
@@ -313,7 +313,8 @@ vector <double> data_list_archive_days(string node, string agent)
  * The result is returned as a vector of ::filestruc, one entry for each file found.
  * \param node Node to search.
  * \param agent Subdirectory of location to search.
- * \param utc Date in archive as MJD.
+ * \param utc Day in archive as MJD.
+ * \param type File extension.
  * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
 vector<filestruc> data_list_archive(string node, string agent, double utc, string type)
@@ -361,7 +362,17 @@ vector<filestruc> data_list_archive(string node, string agent, double utc, strin
 					int32_t iretn = data_name_date(tf.node, tf.name, tf.year, tf.jday, tf.seconds);
 					if (iretn == 0)
 					{
+						tf.utc = cal2mjd(tf.year, 1, tf.seconds/86400.) + tf.jday;
 						files.push_back(tf);
+						for (size_t i=files.size()-1; i>0; --i)
+						{
+							if (files[i].utc < files[i-1].utc)
+							{
+								tf = files[i-1];
+								files[i-1] = files[i];
+								files[i] = tf;
+							}
+						}
 					}
 				}
 			}
@@ -559,7 +570,7 @@ string data_name(string node, double mjd, string extra, string type)
 	int year, month, seconds;
 	double jday, day;
 
-	mjd2ymd(mjd,&year,&month,&day,&jday);
+	mjd2ymd(mjd,year,month,day,jday);
 	seconds = (int)(86400.*(jday-(int)jday));
 	sprintf(ntemp,"_%04d%03d%05d",year,(int32_t)jday,seconds);
 	if (extra.empty())
@@ -616,7 +627,7 @@ int32_t data_name_date(string node, string filename, double &utc)
 
 	if (!iretn)
 	{
-		utc = cal2mjd2(year, 1, seconds/86400.) + jday;
+		utc = cal2mjd(year, 1, seconds/86400.) + jday;
 		return 0;
 	}
 	else
@@ -746,7 +757,7 @@ string data_archive_path(string node, string agent, double mjd)
 	{
 		int year, month;
 		double jday, day;
-		mjd2ymd(mjd,&year,&month,&day,&jday);
+		mjd2ymd(mjd,year,month,day,jday);
 		sprintf(ntemp, "/%04d", year);
 		tpath += ntemp;
 		if (COSMOS_MKDIR(tpath.c_str(),00777) == 0 || errno == EEXIST)
@@ -1073,17 +1084,19 @@ int32_t setEnv(string var, string path){
 		return DATA_ERROR_RESOURCES_FOLDER;
 	}
 
-//	if (pathReturned!=NULL){
-//		cout << var << " set to " << pathReturned << endl;
-//	} else {
-//		cout << var << " not set " << endl;
-//		return DATA_ERROR_RESOURCES_FOLDER;
-//	}
+	//	if (pathReturned!=NULL){
+	//		cout << var << " set to " << pathReturned << endl;
+	//	} else {
+	//		cout << var << " not set " << endl;
+	//		return DATA_ERROR_RESOURCES_FOLDER;
+	//	}
 
 	return iretn;
 }
 
 //! Set Environment Variable for COSMOS Automatically
+//! These variables are just temporarily created while the
+//! program runs.
 /*! \param path full path of the COSMOS variable folder.
 	\return Zero, or negative error.
 */
@@ -1142,7 +1155,7 @@ int32_t set_cosmosnodes()
 		}
 		else
 		{
-			croot = getenv("COSMOSNODES");
+            croot = getenv("COSMOSNODES");
 			if (croot != nullptr && data_isdir(croot))
 			{
 				cosmosnodes = croot;
@@ -1159,11 +1172,18 @@ int32_t set_cosmosnodes()
 		}
 #endif
 #ifdef COSMOS_WIN_OS
-		if (data_isdir("c:/Program Files/cosmos/nodes"))
+        if (data_isdir("c:/cosmos/nodes"))
 		{
-			cosmosnodes = "c:/Program Files/cosmos/nodes";
+            cosmosnodes = "c:/cosmos/nodes";
 			return 0;
 		}
+#endif
+#ifdef COSMOS_MAC_OS
+        if (data_isdir("/Applications/COSMOS/nodes/"))
+        {
+            cosmosnodes = "/Applications/COSMOS/nodes/";
+            return 0;
+        }
 #endif
 
 		// No standard location. Search upward for "cosmosnodes"
@@ -1293,13 +1313,18 @@ int32_t data_load_archive(string node, string agent, double utcbegin, double utc
 	for (double mjd = floor(utcbegin); mjd <= floor(utcend); ++mjd)
 	{
 		files = data_list_archive(node, agent, mjd, type);
-		for (filestruc file : files)
+		for (size_t i=0; i<files.size(); ++i)
 		{
-			if ((mjd == floor(utcbegin) && file.seconds/86400. < utcbegin-mjd) || (mjd == floor(utcend) && file.seconds/86400. > utcend-mjd))
+			if (mjd == floor(utcbegin) && i < files.size()-2 && files[i+1].utc < utcbegin)
 			{
 				continue;
 			}
-			tfd.open(file.path);
+			else if (mjd == floor(utcend) && files[i].utc > utcend)
+			{
+				continue;
+			}
+
+			tfd.open(files[i].path);
 			if (tfd.is_open())
 			{
 				while (getline(tfd,tstring))
@@ -1468,7 +1493,7 @@ double findlastday(string name)
 #else
 		localtime_r(&mytime,&mytm);
 #endif
-		return cal2mjd2(year,mytm.tm_mon+1,mytm.tm_mday);
+		return cal2mjd(year,mytm.tm_mon+1,mytm.tm_mday);
 	}
 	else
 	{
@@ -1541,7 +1566,7 @@ double findfirstday(string name)
 		localtime_r(&mytime,&mytm);
 #endif
 
-		return (cal2mjd2(year,mytm.tm_mon+1,mytm.tm_mday));
+		return (cal2mjd(year,mytm.tm_mon+1,mytm.tm_mday));
 	}
 	else
 	{

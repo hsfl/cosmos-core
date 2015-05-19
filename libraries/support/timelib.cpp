@@ -35,14 +35,14 @@
 #include "datalib.h"
 #include "ephemlib.h"
 
-struct iersstruc
+typedef struct
 {
     uint32_t mjd;
     double pmx;
     double pmy;
     double dutc;
     uint32_t ls;
-};
+} iersstruc;
 
 static vector<iersstruc> iers;
 static uint32_t iersbase=0;
@@ -89,14 +89,7 @@ double currentmjd()
 double unix2utc(struct timeval unixtime)
 {
     double utc;
-//    struct tm *mytm;
-//    time_t thetime;
-
-//    thetime = unixtime.tv_sec;
-//    mytm = gmtime(&thetime);
-//    utc = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
-//    utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + unixtime.tv_usec / 1000000.) / 60.) / 60.) / 24.);
-	utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.F) / 86400.;
+	utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.) / 86400.;
 
     return utc;
 }
@@ -109,7 +102,7 @@ double unix2utc(double unixtime)
 
 	thetime = (time_t)unixtime;
 	mytm = gmtime(&thetime);
-	utc = cal2mjd2(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
+	utc = cal2mjd(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
 	utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + (unixtime-(time_t)unixtime)) / 60.) / 60.) / 24.);
 
 	return utc;
@@ -123,22 +116,6 @@ double unix2utc(double unixtime)
 struct timeval utc2unix(double utc)
 {
     struct timeval unixtime;
-//    struct tm unixtm;
-//    double day, doy, fd;
-
-//	mjd2ymd(utc, &unixtm.tm_year, &unixtm.tm_mon, &day, &doy);
-//    unixtm.tm_year -= 1900;
-//    unixtm.tm_mon -= 1;
-//    unixtm.tm_mday = (int)day;
-//    fd = fmod(utc, 1.);
-//    unixtm.tm_hour = (int)(fd * 24.);
-//    fd -= unixtm.tm_hour / 24.;
-//    unixtm.tm_min = int(fd * 1440.);
-//    fd -= unixtm.tm_min / 1440.;
-//    unixtm.tm_sec = (int)(fd * 86400.);
-//    fd -= unixtm.tm_sec / 86400.;
-//    unixtime.tv_sec = mktime(&unixtm);
-//	unixtime.tv_usec = (int)(fd * 86400000000. + .5);
 	double unixseconds = 86400. * (utc - 40587.);
 	unixtime.tv_sec = (int)unixseconds;
 	unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);
@@ -146,29 +123,48 @@ struct timeval utc2unix(double utc)
     return unixtime;
 }
 
-
-
-
-
-//! MJD to Year, Month, and Decimal Day (overloaded)
-/*! Convert Modified Julian Day to Calendar Year, Month, Decimal Day.
- * basically it just calls mjd2ymd with all the arguments
-    \param mjd Modified Julian Day
-    \param year Pointer to return Calendar Year
-    \param month Pointer to return Calendar Month
-    \param day Pointer to return Decimal Day of the Month
-    \return 0, otherwise negative error
+//! MJD to Calendar
+/*! Convert Modified Julian Day to Calendar Year, Month, Day, Hour, Minute,
+ * Second and Nanosecond.
+ * \param mjd Modified Julian Day
+ * \return Calendar representation in ::calstruc
 */
-int32_t mjd2ymdf(double mjd, int32_t *year, int32_t *month, double *day)
+calstruc mjd2cal(double mjd)
 {
-    // ignore doy
-    double doy;
-    mjd2ymd(mjd, year, month, day, &doy);
-    return 0;
+	calstruc date;
+	double dom;
+	double doy;
+
+	mjd2ymd(mjd, date.year, date.month, dom, doy);
+	date.doy = (int32_t)doy;
+	date.dom = (int32_t)dom;
+	doy = (doy - date.doy) * 24.;
+	date.hour = (int32_t)doy;
+	doy = (doy - date.hour) * 60.;
+	date.minute = (int32_t)doy;
+	doy = (doy - date.minute) * 60.;
+	date.second = (int32_t)doy;
+	doy = (doy - date.second) * 1e9;
+	date.nsecond = (int32_t)(doy + .5);
+
+	return date;
 }
 
+//! MJD to Year, Month, and Decimal Day
+/*! Convert Modified Julian Day to Calendar Year, Month, Decimal Day.
+	\param mjd Modified Julian Day
+	\param year Pointer to return Calendar Year
+	\param month Pointer to return Calendar Month
+	\param day Pointer to return Decimal Day of the Month
+	\return 0, otherwise negative error
+*/
+int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day)
+{
+	double doy;
+	return mjd2ymd(mjd, year, month, day, doy);
+}
 
-//! MJD to Year, Month, and Decimal Day (overloaded)
+//! MJD to Year, Month, Decimal Day, and Julian Day
 /*! Convert Modified Julian Day to Calendar Year, Month, Decimal Day.
     \param mjd Modified Julian Day
     \param year Pointer to return Calendar Year
@@ -177,7 +173,7 @@ int32_t mjd2ymdf(double mjd, int32_t *year, int32_t *month, double *day)
     \param doy Pointer to return Decimal Day of the Year
     \return 0, otherwise negative error
 */
-int32_t mjd2ymd(double mjd, int32_t *year, int32_t *month, double *day, double *doy)
+int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy)
 {
     int32_t a, b, c, d, e, z, alpha;
     double f;
@@ -199,91 +195,114 @@ int32_t mjd2ymd(double mjd, int32_t *year, int32_t *month, double *day, double *
     d = (int32_t)(365.25*c);
     e = (int32_t)((b - d)/30.6001);
 
-    *day = b - d - (int32_t)(30.6001 * e) + f;
+	day = b - d - (int32_t)(30.6001 * e) + f;
     if (e < 14)
-        *month = e - 1;
+		month = e - 1;
     else
-        *month = e - 13;
-    if (*month > 2)
-        *year = c - 4716;
+		month = e - 13;
+	if (month > 2)
+		year = c - 4716;
     else
-        *year = c - 4715;
-    *doy = (int32_t)((275 * *month)/9) - (2-isleap(*year))*(int32_t)((*month+9)/12) + *day - 30;
+		year = c - 4715;
+	doy = (int32_t)((275 * month)/9) - (2-isleap(year))*(int32_t)((month+9)/12) + day - 30;
     return 0;
 }
 
-void mjd2cal( double djm, int *iy, int *im, int *id, double *fd, int *j)
-/*
-**  - - - - - - - -
-**   s l a D j c l
-**  - - - - - - - -
-**
-**  Modified Julian Day to Gregorian year, month, day,
-**  and fraction of a day.
-**
-**  Given:
-**     djm      double     Modified Julian Day (JD-2400000.5)
-**
-**  Returned:
-**     *iy      int        year
-**     *im      int        month
-**     *id      int        day
-**     *fd      double     fraction of day
-**     *j       int        status:
-**                      -1 = unacceptable date (before 4701BC March 1)
-**
-**  The algorithm is derived from that of Hatcher 1984 (QJRAS 25, 53-55).
-**
-**  Last revision:   12 March 1998
-**
-**  Copyright P.T.Wallace.  All rights reserved.
+//! Calendar representation to Modified Julian Day - full
+/*! Convert a full calendar representation of date and time to MJD. If month
+ * is given as zero, then day will be taken as day of the year.
+ * \param year Full representation of year.
+ * \param month Calendar month, or zero.
+ * \param day Day of month if 1 <= month <=12, otherwise day of year.
+ * \param hour Hour of day (0-23)
+ * \param minute Minute of day (0-59)
+ * \param second Second of day (0-59)
+ * \param nsecond Nanosecond of day (0-999999999)
+ * \return Modified Julian Day
 */
+double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond)
 {
-    double f, d;
-    long jd, n4, nd10;
+	double mjd;
+	calstruc date;
 
-    /* Check if date is acceptable */
-    if ( ( djm <= -2395520.0 ) || ( djm >= 1e9 ) )
-    {
-        *j = -1;
-        return;
-    } else {
-        *j = 0;
+	date.year = year;
+	date.month = month;
+	if (month == 0)
+	{
+		date.dom = 0;
+		date.doy = day;
+	}
+	else
+	{
+		date.dom = day;
+		date.doy = 0;
+	}
+	date.hour = hour;
+	date.minute = minute;
+	date.second = second;
+	date.nsecond = nsecond;
 
-        /* Separate day and fraction */
-        f = fmod ( djm, 1.0 );
-        if ( f < 0.0 ) f += 1.0;
-        d = djm - f;
-        d = round ( d );
+	mjd = cal2mjd(date);
 
-        /* Express day in Gregorian calendar */
-        jd = (long) round ( d ) + 2400001;
-        n4 = 4L*(jd+((6L*((4L*jd-17918L)/146097L))/4L+1L)/2L-37L);
-        nd10 = 10L*(((n4-237L)%1461L)/4L)+5L;
-        *iy = (int) (n4/1461L-4712L);
-        *im = (int) (((nd10/306L+2L)%12L)+1L);
-        *id = (int) ((nd10%306L)/10L+1L);
-        *fd = f;
-        *j = 0;
-    }
+	return mjd;
 }
 
-// ?? description
-double cal2mjd2(int32_t year, int32_t month, double day)
+//! Calendar representation to Modified Julian Day - shortened
+/*! Convert a shortened calendar representation of date to MJD.
+ * Time is taken from the fractional part of the day. If month
+ * is given as zero, then day will be taken as day of the year.
+ * \param year Full representation of year.
+ * \param month Calendar month, or zero.
+ * \param day Day of month if 1 <= month <=12, otherwise day of year.
+ * \return Modified Julian Day
+*/
+double cal2mjd(int32_t year, int32_t month, double day)
+{
+	double mjd;
+	calstruc date;
+
+	date.year = year;
+	date.month = month;
+	if (month == 0)
+	{
+		date.dom = 0;
+		date.doy = 1;
+	}
+	else
+	{
+		date.dom = 1;
+		date.doy = 0;
+	}
+	date.hour = date.minute = date.second = date.nsecond = 0;
+
+	mjd = cal2mjd(date);
+	mjd += day - 1.;
+
+	return mjd;
+}
+
+//! Calendar representation to Modified Julian Day - structure
+/*! Convert a full calendar representation of date and time to MJD. If month
+ * is given as zero, then day will be taken as day of the year.
+ * \param date Full representation of date and time in ::calstruc.
+ * \return Modified Julian Day
+*/
+double cal2mjd(calstruc date)
 {
     double mjd;
     int32_t a, b;
 
-    if (year < -4712)
-        return (0.);
+	if (date.year < -4712)
+		return (-2400001.);
 
-    switch (month)
+	switch (date.month)
     {
+	case 0:
+		++date.month;
     case 1:
     case 2:
-        // ??
-        year--;
-        month += 12;
+		date.year--;
+		date.month += 12;
     case 3:
     case 4:
     case 5:
@@ -294,103 +313,26 @@ double cal2mjd2(int32_t year, int32_t month, double day)
     case 10:
     case 11:
     case 12:
-        a = (int32_t)(year / 100);
-        if ((year > 1582) || (year == 1582 && month > 10) || (year == 1582 && month == 10 && day > 4))
+		a = (int32_t)(date.year / 100);
+		if ((date.year > 1582) || (date.year == 1582 && date.month > 10) || (date.year == 1582 && date.month == 10 && date.dom > 4))
             b = 2 - a + (int32_t)(a/4);
         else
             b = 0;
         break;
     default:
-        return (0.);
+		return (-2400001.);
     }
-    mjd = (int32_t)(365.25 * (year+4716)) + (int32_t)(30.6001*(month+1)) + day + b - 2401525.;
-    return (mjd);
-}
+	if (date.dom)
+	{
+		mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.dom + b - 2401525.;
+	}
+	else
+	{
+		mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.doy + b - 2401525.;
+	}
+	mjd += ((date.hour + (date.minute + (date.second + date.nsecond / 1e9) / 60.) / 60.) / 24.);
 
-void cal2mjd( int iy, int im, int id, double *djm, int *j )
-/*
-**  - - - - - - - -
-**   s l a C l d j
-**  - - - - - - - -
-**
-**  Gregorian calendar to Modified Julian Day.
-**
-**  Given:
-**     iy,im,id     int    year, month, day in Gregorian calendar
-**
-**  Returned:
-**     *djm         double Modified Julian Day (JD-2400000.5) for 0 hrs
-**     *j           int    status:
-**                           0 = OK
-**                           1 = bad year   (MJD not computed)
-**                           2 = bad month  (MJD not computed)
-**                           3 = bad day    (MJD computed)
-**
-**  The year must be -4699 (i.e. 4700BC) or later.
-**
-**  The algorithm is derived from that of Hatcher 1984 (QJRAS 25, 53-55).
-**
-**  Last revision:   29 August 1994
-**
-**  Copyright P.T.Wallace.  All rights reserved.
-*/
-{
-    long iyL, imL;
-
-    /* Month lengths in days */
-    static int mtab[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
-
-
-    /* Validate year */
-    if ( iy < -4699 )
-    {
-        *j = 1; return;
-    }
-
-    /* Validate month */
-    if ( ( im < 1 ) || ( im > 12 ) )
-    {
-        *j = 2; return;
-    }
-
-    /* Allow for leap year */
-    mtab[1] = ( ( ( iy % 4 ) == 0 ) &&
-                ( ( ( iy % 100 ) != 0 ) || ( ( iy % 400 ) == 0 ) ) ) ?
-                29 : 28;
-
-    /* Validate day */
-    *j = ( id < 1 || id > mtab[im-1] ) ? 3 : 0;
-
-    /* Lengthen year and month numbers to avoid overflow */
-    iyL = (long) iy;
-    imL = (long) im;
-
-    /* Perform the conversion */
-    *djm = (double)
-            ( ( 1461L * ( iyL - ( 12L - imL ) / 10L + 4712L ) ) / 4L
-              + ( 306L * ( ( imL + 9L ) % 12L ) + 5L ) / 10L
-              - ( 3L * ( ( iyL - ( 12L - imL ) / 10L + 4900L ) / 100L ) ) / 4L
-              + (long) id - 2399904L );
-}
-
-
-/*! Get Modified Julian Date from Gregorian Calendar Date in UTC
- * \param int_32 year
- * \param int_32 month
- * \param int_32 day
- * \param int_32 hours
- * \param int_32 minutes
- * \param double seconds (for high precision mjd)
- * \return double mjd (Modified Julian Date)
- */
-double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
-                                   int32_t hours, int32_t minutes, double seconds)
-{
-
-    double dayFraction = hours/24.0 + minutes/(1440.) + seconds/(86400.);
-    double mjd = cal2mjd2(year, month, day + dayFraction);
-    return mjd;
+	return (mjd);
 }
 
 //! Julian Century
@@ -850,7 +792,7 @@ double mjd2year(double mjd)
     double day, doy, dyear;
     int32_t month, year;
 
-	mjd2ymd(mjd,&year,&month,&day,&doy);
+	mjd2ymd(mjd,year,month,day,doy);
     dyear = year + (doy-1) / (365.+isleap(year));
     return (dyear);
 }
@@ -1068,15 +1010,17 @@ cvector polar_motion(double mjd)
 string utc2iso8601(double utc)
 {
     char buffer[25];
-    int iy=0, im=0, id=0, j, ihh, imm, iss;
+	int32_t iy=0, im=0, id=0, ihh, imm, iss;
     double fd=0.;
 
-    mjd2cal(utc, &iy, &im, &id, &fd, &j);
-    ihh = (int)(24 * fd);
+	mjd2ymd(utc, iy, im, fd);
+	id = (int32_t)fd;
+	fd -= id;
+	ihh = (int32_t)(24 * fd);
     fd -= ihh / 24.;
-    imm = (int)(1440 * fd);
+	imm = (int32_t)(1440 * fd);
     fd -= imm / 1440.;
-    iss = (int)(86400 * fd);
+	iss = (int32_t)(86400 * fd);
     sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d", iy, im, id, ihh, imm, iss);
 
     return string(buffer);
@@ -1088,171 +1032,74 @@ string mjd2iso8601(double mjd){
 }
 
 
-
-/*! Convert Modified Julian Date to Time of day (hour, minute, second.fff)
- * \param double mjd (Modified Julian Days)
- * \param double dayFraction
- * \param int32_t hour Pointer to return Hour of the day
- * \param int32_t minute Pointer to return Minute of the day
- * \param double second Pointer to return Second of the day (decimal)
- *
- * \return int32_t hour
- * \return int32_t minute
- * \return double second
+//! Convert Modified Julian Date to UTC in Human Readable Format (most common)
+/*! UTC string in the format: YYYY-MM-DD HH:MM:SS (2014-09-15 12:00:00)
+ * \param utc Coordinated Universal Time expressed in Modified Julian Days.
+ * \return C++ String containing human readable formated date.
  */
-int32_t dayFraction2hms(double dayFraction,
-                int32_t *hour, int32_t *minute, int32_t *second) //, double *secondFraction
+string mjd2human(double mjd)
 {
-    double secs;
-    *hour = (int32_t)(24. * dayFraction);
-    dayFraction -= *hour / 24.;
-    *minute = (int32_t)(1440. * dayFraction);
-    dayFraction -= *minute / 1440.;
-    secs = (86400. * dayFraction);
-//    double secondOfMinute = (86400. * dayFraction);
-    *second = (int32_t)round(secs);
-
-    // don't let seconds be 60
-    if (*second == 60.){
-        *second = 0;
-        *minute = *minute + 1;
-    }
-
-    // don't let minutes be 60
-    if (*minute == 60){
-        *minute = 0;
-        *hour = *hour + 1;
-    }
-
-    return 0;
-}
-
-/*! Convert Modified Julian Date to standard Gregorian Date-Time
- * \param double mjd (Modified Julian Days)
- * \param int32_t year Pointer to return Calendar Year
- * \param int32_t month Pointer to return Calendar Month
- * \param int32_t day Pointer to return Decimal Day of the Month
- * \param int32_t hour Pointer to return Hour of the day
- * \param int32_t minute Pointer to return Minute of the day
- * \param double second Pointer to return Second of the day (decimal)
- *
- * \return int32_t year
- * \return int32_t month
- * \return int32_t day
- * \return int32_t hour
- * \return int32_t minute
- * \return double second
- */
-int32_t mjdToGregorian(double mjd, int32_t *year, int32_t *month, int32_t *day,
-                      int32_t *hour, int32_t *minute, int32_t *second)
-{
-
-    double dayFraction;
-//    mjd2ymdf(mjd,year,month,&dayFraction);
-//    *day = (int)dayFraction;
-
-    int j;
-    mjd2cal(mjd, year, month, day, &dayFraction, &j);
-
-    // now remove the day part and keep the fraction only
-//    dayFraction --;
-    dayFraction2hms(dayFraction,hour,minute,second);
-    return 0;
-}
-
-
-/*! Convert Modified Julian Date to international standard Gregorian
- * Date-Time in the format: YYYY-MM-DD HH:MM:SS (ex. 2014-09-15 12:00:00)
- * \param double mjd (Modified Julian Days)
- * \return string gregorianDateTime (YYYY-MM-DD HH:MM:SS)
- */
-string mjdToGregorian(double mjd)
-{
-    char gregorianDateTime[25];
-    int year=0, month=0, day=0;
-    int hour=0, minute=0, second=0;
-//    double seconds;
-    int j;
+    char buffer[25];
+	int32_t iy=0, im=0, id=0, ihh, imm, iss;
     double fd=0.;
 
-//    mjd2cal(mjd, &year, &month, &day, &fd, &j);
+//    mjd2cal(mjd, &iy, &im, &id, &fd, &j);
+	mjd2ymd(mjd, iy, im, fd);
+	id = (int32_t)fd;
+	fd -= id;
+	ihh = (int32_t)(24 * fd);
+    fd -= ihh / 24.;
+	imm = (int32_t)(1440 * fd);
+    fd -= imm / 1440.;
+	iss = (int32_t)(86400 * fd);
+    sprintf(buffer, "%04d-%02d-%02d %02d:%02d:%02d", iy, im, id, ihh, imm, iss);
 
-//    // !! create mjd2cal(mjd, &year, &month, &day, &hours, &minutes, &seconds)
-//    // and use this instead for all ToGregorian functions
-//    hours = (int)(24 * fd);
-//    fd -= hours / 24.;
-//    minutes = (int)(1440 * fd);
-//    fd -= minutes / 1440.;
-//    seconds = (86400 * fd);
-//    int int_seconds = (int)round(seconds);
-
-//    // don't let seconds be 60
-//    if (int_seconds == 60){
-//        int_seconds = 0;
-//        minutes ++;
-//    }
-
-//    // don't let minutes be 60
-//    if (minutes == 60){
-//        minutes = 0;
-//        hours ++;
-//    }
-
-    mjdToGregorian(mjd, &year, &month, &day, &hour, &minute, &second);
-
-    sprintf(gregorianDateTime, "%04d-%02d-%02d %02d:%02d:%02d",
-            year, month, day,
-            hour, minute, second);
-
-    return string(gregorianDateTime);
+    return string(buffer);
 }
 
-/*! Convert Modified Julian Date to US standard Gregorian Date-Time
- * with 3-letter month format:
- * DD-MMM-YYYY HH:MM:SS (ex. 15-SEP-2014 12:00:00)
- * (previously this function was named mjd2human2)
- * \param double mjd (Modified Julian Days)
- * \return string gregorianDateTime (DD-MMM-YYYY HH:MM:SS)
+
+//! Convert Modified Julian Date to Human Readable Format (3-letter month string)
+/*! UTC string in the format: YYYY-MMM-DD HH:MM:SS (2014-SEP-15 12:00:00)
+ * \param utc Coordinated Universal Time expressed in Modified Julian Days.
+ * \return C++ String containing human readable formated date.
  */
-string mjdToGregorianDDMMMYYYY(double mjd)
+string mjd2human2(double mjd)
 {
-    char gregorianDateTime[25];
-    int year=0, month=0, day=0, j, hours, minutes;
-    double seconds;
-    double fd=0.; //?? is this fraction of day
+    char buffer[25];
+	int32_t year=0, month=0, day=0, hh, min, sec;
+    double fd=0.;
 
     static const char month_name[][4] = {
         "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
         "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
     };
 
-    mjd2cal(mjd, &year, &month, &day, &fd, &j);
-    hours = (int)(24 * fd);
-    fd -= hours / 24.;
-    minutes = (int)(1440 * fd);
-    fd -= minutes / 1440.;
-    seconds = (86400 * fd);
-    int int_seconds = (int)round(seconds);
-    sprintf(gregorianDateTime, "%02d-%3s-%04d %02d:%02d:%02d",
-            day, month_name[month-1], year,
-            hours, minutes, int_seconds);
+//    mjd2cal(mjd, &year, &month, &day, &fd, &j);
+	mjd2ymd(mjd, year, month, fd);
+	day = (int32_t)fd;
+	fd -= day;
+	hh = (int32_t)(24 * fd);
+    fd -= hh / 24.;
+	min = (int32_t)(1440 * fd);
+    fd -= min / 1440.;
+	sec = (int32_t)(86400 * fd);
+    sprintf(buffer, "%02d-%3s-%04d %02d:%02d:%02d", day, month_name[month-1], year, hh, min, sec);
 
-    return string(gregorianDateTime);
+    return string(buffer);
 }
 
-/*! Convert Modified Julian Date to US standard Gregorian Date-Time
- * with 3-letter month format in small caps:
- * DD mmm YYYY HH:MM:SS.FFF (15 Sep 2014 12:00:00.000)
- * Used for STK remote
- * (previously this function was named mjd2human3)
- * \param double mjd (Modified Julian Days)
- * \return string gregorianDateTime (DD-MMM-YYYY HH:MM:SS)
+
+//! Convert Modified Julian Date to Human Readable Format (3) US type
+/*! UTC string in the format: DD mmm YYYY HH:MM:SS.FFF (15 Sep 2014 12:00:00.000)
+ * \param utc Coordinated Universal Time expressed in Modified Julian Days.
+ * \return C++ String containing human readable formated date.
+ *  Used for STK remote
  */
-string mjdToGregorianDDMmmYYYY(double mjd)
+string mjd2human3(double mjd)
 {
-    char gregorianDateTime[50];
-    int year=0, month=0, day=0, j, hh, min, sec;
-    int msec = 0;
+    char buffer[50];
+	int32_t year=0, month=0, day=0, hh, min, sec;
+	int32_t msec = 0;
     double fd=0.;
 
     static const char month_name[][4] = {
@@ -1260,17 +1107,20 @@ string mjdToGregorianDDMmmYYYY(double mjd)
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
 
-    mjd2cal(mjd, &year, &month, &day, &fd, &j);
-    hh = (int)(24 * fd);
+//    mjd2cal(mjd, &year, &month, &day, &fd, &j);
+	mjd2ymd(mjd, year, month, fd);
+	day = (int32_t)fd;
+	fd -= day;
+	hh = (int32_t)(24 * fd);
     fd -= hh / 24.;
-    min = (int)(1440 * fd);
+	min = (int32_t)(1440 * fd);
     fd -= min / 1440.;
-    sec = (int)(86400 * fd);
+	sec = (int32_t)(86400 * fd);
     fd -= sec / 86400.;
-    msec = (int)(86400*1000 * fd);
-    sprintf(gregorianDateTime, "%02d %3s %04d %02d:%02d:%02d.%03d", day, month_name[month-1], year, hh, min, sec, msec);
+	msec = (int32_t)(86400*1000 * fd);
+    sprintf(buffer, "%02d %3s %04d %02d:%02d:%02d.%03d", day, month_name[month-1], year, hh, min, sec, msec);
 
-    return string(gregorianDateTime);
+    return string(buffer);
 }
 
 

@@ -85,6 +85,18 @@ struct timestruc
 	double gmst_rad;
 };
 
+struct calstruc
+{
+	int32_t year;
+	int32_t month;
+	int32_t dom;
+	int32_t doy;
+	int32_t hour;
+	int32_t minute;
+	int32_t second;
+	int32_t nsecond;
+};
+
 //! @}
 
 //! \ingroup timelib
@@ -94,12 +106,10 @@ struct timestruc
 double currentmjd(double offset);
 double currentmjd();
 
-// gregorian calendar (year, month, day) to another format
-double  cal2mjd2(int32_t year, int32_t month, double day);
-void    cal2mjd( int iy, int im, int id, double *djm, int *j );
-double  gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
-                                   int32_t hours, int32_t minutes, double seconds);
-
+// cal to another format
+double cal2mjd(calstruc date);
+double  cal2mjd(int32_t year, int32_t month, double day);
+double  cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond);
 
 // utc to another format
 struct timeval utc2unix(double utc);
@@ -130,25 +140,20 @@ void    gps2week(double gps, uint32_t& week, double& seconds);
 double  week2gps(uint32_t week, double seconds);
 
 // mjd to another format
-
 double  mjd2year(double mjd);
-int32_t mjd2ymd(double mjd, int32_t *year, int32_t *month, double *day, double *doy);
-int32_t mjd2ymdf(double mjd, int32_t *year, int32_t *month, double *day);
-int32_t dayFraction2hms(double mjd, double dayFraction,
-                int32_t *hour, int32_t *minute, int32_t *second);
-void    mjd2cal( double djm, int *iy, int *im, int *id, double *fd, int *j);
-string  mjdToGregorian(double mjd);
-int32_t mjdToGregorian(double mjd, int32_t *year, int32_t *month, int32_t *day,
-                      int32_t *hour, int32_t *minute, int32_t *second);
-string  mjdToGregorianDDMMMYYYY(double mjd);
-string  mjdToGregorianDDMmmYYYY(double mjd);
+calstruc mjd2cal(double mjd);
+int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day);
+int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy);
+string  mjd2human(double mjd);
+string  mjd2human2(double mjd);
+string  mjd2human3(double mjd);
 string  mjd2iso8601(double mjd);
 double  mjd2jd(double mjd);
 double  jd2mjd(double jd);
 
 // other
-double  unix2utc(struct timeval unixtime);
-double  unix2utc(double unixtime);
+double unix2utc(struct timeval unixtime);
+double unix2utc(double unixtime);
 double  tt2utc(double mjd);
 double  tt2tdb(double mjd);
 double  julcen(double mjd);
@@ -158,6 +163,38 @@ double  ranrm(double angle);
 int16_t isleap(int32_t year);
 int32_t load_iers();
 string  seconds2DDHHMMSS(double elapsed_seconds);
+
+// moved to core/libraries/new/elapsedtime.cpp
+//// profiling class
+//// On windows using MinGw32 it does not get better than 1ms
+//class ElapsedTime {
+//    // old plain c
+//    struct timeval time1, time2;
+//    struct timezone x;
+//    float timeDiff;
+
+//    // new c++11
+//    //std::chrono::high_resolution_clock::time_point time1, time2;
+
+//public:
+//    int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
+//    float elapsed_time(struct timeval a,struct timeval b);
+//    void printElapsedTime();
+//    void printElapsedTime(string text);
+//    double getElapsedTimeMiliSeconds();
+//    double getElapsedTime();
+
+//    void tic();
+
+//    double toc();
+//    //double toc(bool print_flag);
+//    double toc(string text);
+
+//    // turn on/off printing
+//    bool print = true; //
+//    double elapsedTime = 0.;
+//};
+
 
 //! @}
 

@@ -27,43 +27,63 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#ifndef _DATADEF_H
-#define _DATADEF_H 1
-
-/*! \file datadef.h
-*	\brief Data Management support library definitions file
-*/
-
 #include "configCosmos.h"
-//#include <cstring>
-//#include <string>
+#include "agentlib.h"
+#include "jsonlib.h"
+#include "datalib.h"
+#include "elapsedtime.hpp"
 
-//! \ingroup datalib
-//! \defgroup datalib_constants Data Management support library contants
-//! @{
-
-#define DATA_LOG_TYPE_SOH 0
-#define DATA_LOG_TYPE_EVENT 1
-#define DATA_LOG_TYPE_BEACON 2
-#define DATA_LOG_TYPE_PROGRAM 3 // to log program status information while running
-//! @}
-
-//! \ingroup datalib
-//! \defgroup datalib_typedefs Data Management support library type definitions
-//! @{
-typedef struct
+int main(int argc, char *argv[])
 {
-	string node;
-	string agent;
-	string name;
-	string type;
-	string path;
-	size_t size;
-	uint16_t year;
-	uint16_t jday;
-	uint32_t seconds;
-	double utc;
-} filestruc;
-//! @}
+	cosmosstruc *cdata;
 
-#endif
+	switch (argc)
+	{
+	case 3:
+		setEnvCosmosNodes(argv[2]);
+	case 2:
+		cdata = agent_setup_client(AGENT_TYPE_UDP, argv[1]);
+		break;
+	default:
+		printf("Usage: namespace_speed node [node_directory]\n");
+		exit (1);
+		break;
+	}
+
+	vector <string> names;
+	map <string,jsonentry*> testmap;
+	for (uint32_t i = 0; i < cdata[0].jmap.size(); i++)
+	{
+		for (uint32_t j = 0; j < cdata[0].jmap[i].size(); j++)
+		{
+			names.push_back(cdata[0].jmap[i][j].name);
+			testmap[cdata[0].jmap[i][j].name] = json_entry_of_name(cdata[0].jmap[i][j].name, cdata);
+		}
+	}
+
+	ElapsedTime et;
+
+	for (uint16_t i=0; i<3; ++i)
+	{
+		et.start();
+
+		for (string name: names)
+		{
+			jsonentry *tentry = json_entry_of_name(name, cdata);
+			string tname = tentry->name;
+		}
+		printf("Standard Lookup: %d names, %f seconds\n", names.size(), et.lap());
+
+		et.reset();
+
+		for (string name: names)
+		{
+			jsonentry *tentry = testmap[name];
+			string tname = tentry->name;
+		}
+		printf("Map Lookup: %d names, %f seconds\n", names.size(), et.lap());
+	}
+
+}
+
+
