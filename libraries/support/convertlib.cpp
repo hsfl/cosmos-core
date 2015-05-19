@@ -85,7 +85,8 @@ void att_clear(attstruc &att)
 */
 void pos_extra(locstruc *loc)
 {
-
+    // avoid expensive calculations
+    // ?? not sure why the second condition is here
 	if (!isfinite(loc->utc) || loc->pos.extra.utc == loc->utc)
 		return;
 

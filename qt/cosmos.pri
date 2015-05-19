@@ -16,12 +16,10 @@ win32 {
 
     # add libraries for MinGW
     *-g++* {
+        message("Compiler: MinGW")
         LIBS += -lpthread -lwsock32 -lwinmm -lws2_32 -liphlpapi
         QMAKE_CXXFLAGS += -Wall -pedantic -std=c++11 -pthread
     }
-
-    # add libraries
-    LIBS += -lwsock32 -lwinmm -lws2_32 -liphlpapi #-lpthread
 
     *-msvc* {
         message("Compiler: MSVC")
@@ -217,9 +215,9 @@ contains(MODULES, DEVICE){
 
 
 #--------------------------------------------------------------------
-# Add COSMOS thirdparty
+# Add COSMOS core thirdparty libraries
 INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty
-INCLUDEPATH     += $$COSMOS/thirdparty
+#INCLUDEPATH     += $$COSMOS/thirdparty
 
 # Add Zlib
 contains(MODULES, zlib){
