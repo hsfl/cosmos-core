@@ -200,7 +200,19 @@ contains(MODULES, sliplib){
     HEADERS         += $$COSMOS/core/libraries/support/sliplib.h
 }
 
+contains(MODULES, qtsupport){
+    message( "- source/tools/libraries/qtsupport" )
+    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qtsupport
+    #SOURCES         += $$COSMOS/source/tools/libraries/qtsupport...
+    #HEADERS         += $$COSMOS/source/tools/libraries/qtsupport...
+}
 
+contains(MODULES, qmlsupport){
+    message( "- source/tools/libraries/qmlsupport" )
+    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qmlsupport
+    #SOURCES         += $$COSMOS/source/tools/libraries/qmlsupport...
+    #HEADERS         += $$COSMOS/source/tools/libraries/qmlsupport...
+}
 
 
 #--------------------------------------------------------------------
