@@ -85,7 +85,8 @@ void att_clear(attstruc &att)
 */
 void pos_extra(locstruc *loc)
 {
-
+    // avoid expensive calculations
+    // ?? not sure why the second condition is here
 	if (!isfinite(loc->utc) || loc->pos.extra.utc == loc->utc)
 		return;
 
@@ -2531,6 +2532,7 @@ void geoc2topo(gvector source, rvector targetgeoc, rvector *topo)
 	*topo = rv_mmult(g2t,rv_sub(targetgeoc,sourcegeoc));
 }
 
+// ??
 void topo2azel(rvector tpos, float *az, float *el)
 {
 	*az = (float)(atan2(tpos.col[0],tpos.col[1]));
@@ -2889,7 +2891,7 @@ int32_t load_lines(char *fname, vector<tlestruc>& lines)
 		else
 			year += 1900;
 		sscanf(&ibuf[20],"%12lf",&jday);
-		tle.utc = cal2mjd2((int)year,1,0.);
+		tle.utc = cal2mjd((int)year,1,0.);
 		tle.utc += jday;
 		if (strlen(ibuf) > 50)
 		{

@@ -39,6 +39,6 @@ please read the GET-STARTED-WITH-COSMOS.txt inside the
 documentation folder.
 
 By default we recommend that COSMOS is installed if the following folders
-for Windows: C:\COSMOS
-for MacOS: /Applications/COSMOS
-for Linux/Unix: /home/cosmos
+* for Windows: C:\COSMOS
+* for MacOS: /Applications/COSMOS
+* for Linux/Unix: /home/cosmos

@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 				gzFile gzin = gzdopen(fileno(fin), "r");
 				uint32_t year, jday, isecond;
 				sscanf(srcfile.name.c_str(), "%*[A-Z,a-z,0-9]_%4u%3u%5u", &year, &jday, &isecond);
-				double utc = cal2mjd2(year, 1, isecond/86400.) + jday;
+				double utc = cal2mjd(year, 1, isecond/86400.) + jday;
 
 				// Check for gzip
 				uint16_t namelen = srcfile.name.size();

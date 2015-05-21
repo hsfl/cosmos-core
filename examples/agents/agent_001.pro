@@ -38,7 +38,7 @@ TARGET = agent_001
 #debug: target.files = $$OUT_PWD/debug/agent_001.exe
 
 #win32:target.path = "C:/COSMOS/core/bin"
-#linux:target.path = /home/cosmos/bin
+linux:target.path = /home/cosmos/bin
 
-#INSTALLS    += target
+INSTALLS    += target
 

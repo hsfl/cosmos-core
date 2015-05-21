@@ -120,7 +120,7 @@ char buffer3[] = "LOGA,COM1,0,0.,UNKNOWN,0,0.,0,0,0;COM1,BESTPOSA,ONCE,0.000000,
 		}
 		else
 		{
-			utc = cal2mjd2(handle.message.time.utc_year, handle.message.time.utc_month, handle.message.time.utc_day+handle.message.time.utc_hour/24.+handle.message.time.utc_minute/1440.+handle.message.time.utc_ms/86400000.);
+			utc = cal2mjd(handle.message.time.utc_year, handle.message.time.utc_month, handle.message.time.utc_day+handle.message.time.utc_hour/24.+handle.message.time.utc_minute/1440.+handle.message.time.utc_ms/86400000.);
 			printf("{%u %u} %f %f [ %u/%u/%u %u:%u:%f ] %f ", handle.message.time.clock_status, handle.message.time.utc_status, handle.message.time.offset, handle.message.time.utc_offset, handle.message.time.utc_year, handle.message.time.utc_month, handle.message.time.utc_day, handle.message.time.utc_hour, handle.message.time.utc_minute, handle.message.time.utc_ms/1000., utc);
 		}
 

@@ -253,7 +253,7 @@ std::istream& operator >> (std::istream& out, svector& a);
 //! 3 element geodetic vector
 /*! 3 double precision numbers representing a vector in a WGS84
  * based geodetic space. Longitude increases east. */
-// MN: replace name gvector->geodetic
+// MN?? replace name gvector->geodetic
 struct gvector
 {
 	//! Latitude in radians

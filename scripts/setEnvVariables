@@ -1,0 +1,7 @@
+
+for Mac
+export COSMOSNODES=/Applications/COSMOS/nodes/
+export COSMOSRESOURCES=/Applications/COSMOS/resources/
+
+launchctl setenv COSMOSNODES "/Applications/COSMOS/nodes/"
+launchctl setenv COSMOSRESOURCES "/Applications/COSMOS/resources/"
