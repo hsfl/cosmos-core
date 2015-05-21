@@ -1,4 +1,5 @@
 *.user
+build/qtarm/*
 build/arm/*
 build/linux/*
 build/macos/*

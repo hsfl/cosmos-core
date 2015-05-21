@@ -49,7 +49,12 @@ using namespace std;
 // On windows using MinGw32 it does not get better than 1ms
 class ElapsedTime {
     //new c++11
-    chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
+#ifdef BUILD_TYPE_arm
+//	struct timespec timeStart, timeNow, timeCheck;
+	timeval timeStart, timeNow, timeCheck;
+#else
+	chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
+#endif
 
 public:
     //int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);

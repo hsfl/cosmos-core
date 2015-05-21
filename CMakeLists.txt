@@ -20,6 +20,9 @@ set(PROJECT_NAME                COSMOS_CORE)
 # Type of build
 set(CMAKE_BUILD_TYPE Debug) # Release or Debug
 
+# Type of architecture
+add_definitions( -DBUILD_TYPE_${BUILD_TYPE})
+
 # define folder where your programs are going to be installed
 #set(INSTALL_DIR                run)
 
@@ -208,5 +211,6 @@ elseif(MSVC)
 endif()
 
 message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+message("CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/programs)

@@ -70,6 +70,7 @@
 
 
 void ElapsedTime::info(){
+#ifndef BUILD_TYPE_arm
     cout << "system_clock" << endl;
     cout << chrono::system_clock::period::num << endl;
     cout << chrono::system_clock::period::den << endl;
@@ -84,6 +85,7 @@ void ElapsedTime::info(){
     cout << chrono::steady_clock::period::num << endl;
     cout << chrono::steady_clock::period::den << endl;
     cout << "steady = " << boolalpha << chrono::steady_clock::is_steady << endl << endl;
+#endif
 
 }
 
@@ -166,7 +168,12 @@ double ElapsedTime::toc(string text){
 
 void ElapsedTime::start(){
     //Get the start time
-    timeStart = chrono::steady_clock::now();
+#ifdef BUILD_TYPE_arm
+//	clock_gettime(CLOCK_MONOTONIC, &timeStart);
+	gettimeofday(&timeStart, nullptr);
+#else
+	timeStart = chrono::steady_clock::now();
+#endif
     timeCheck = timeStart;
     elapsedTime = 0;
 }
@@ -175,11 +182,18 @@ void ElapsedTime::start(){
 double ElapsedTime::check(){
     //Get the final time
 
-    timeNow = chrono::steady_clock::now();
-    // add elapsedTime to keep counting just like a stopwathc
-    // elapsedTime is set to zero when we call reset()
+	// add elapsedTime to keep counting just like a stopwathc
+	// elapsedTime is set to zero when we call reset()
 //    elapsedTime = elapsedTime + lap();
-    elapsedTime =  chrono::duration<double>(timeNow - timeStart).count();
+#ifdef BUILD_TYPE_arm
+//	clock_gettime(CLOCK_MONOTONIC, &timeNow);
+//	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_nsec - timeNow.tv_nsec) / 1e9;
+	gettimeofday(&timeNow, nullptr);
+	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_usec - timeNow.tv_usec) / 1e6;
+#else
+	timeNow = chrono::steady_clock::now();
+	elapsedTime =  chrono::duration<double>(timeNow - timeStart).count();
+#endif
 
     timeCheck = timeNow;
 	return elapsedTime;
