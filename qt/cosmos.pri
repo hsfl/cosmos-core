@@ -202,16 +202,52 @@ contains(MODULES, sliplib){
 
 contains(MODULES, qtsupport){
     message( "- source/tools/libraries/qtsupport" )
-    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qtsupport
-    #SOURCES         += $$COSMOS/source/tools/libraries/qtsupport...
-    #HEADERS         += $$COSMOS/source/tools/libraries/qtsupport...
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
+    MODULES += cosmosdata
+    MODULES += cosmosdatum
+    MODULES += event
+}
+
+contains(MODULES, cosmosdata){
+    message( "- tools/libraries/qtsupport/cosmosdata" )
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
+    SOURCES += $$COSMOS/tools/libraries/qtsupport/cosmosdata.cpp
+    HEADERS += $$COSMOS/tools/libraries/qtsupport/cosmosdata.h
+}
+
+contains(MODULES, cosmosdatum){
+    message( "- tools/libraries/qtsupport/cosmosdatum" )
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
+    SOURCES += $$COSMOS/tools/libraries/qtsupport/cosmosdatum.cpp
+    HEADERS += $$COSMOS/tools/libraries/qtsupport/cosmosdatum.h
+}
+
+contains(MODULES, event){
+    message( "- tools/libraries/qtsupport/event" )
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
+    SOURCES += $$COSMOS/tools/libraries/qtsupport/event.cpp
+    HEADERS += $$COSMOS/tools/libraries/qtsupport/event.h
 }
 
 contains(MODULES, qmlsupport){
-    message( "- source/tools/libraries/qmlsupport" )
-    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qmlsupport
-    #SOURCES         += $$COSMOS/source/tools/libraries/qmlsupport...
-    #HEADERS         += $$COSMOS/source/tools/libraries/qmlsupport...
+    message( "- tools/libraries/qmlsupport" )
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qmlsupport
+    MODULES += sharedobjectlist
+    MODULES += miscqmlsupport
+}
+
+contains(MODULES, sharedobjectlist){
+    message( "- tools/libraries/qmlsupport/sharedobjectlist" )
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qmlsupport
+    SOURCES += $$COSMOS/tools/libraries/qmlsupport/sharedobjectlist.cpp
+    HEADERS += $$COSMOS/tools/libraries/qmlsupport/sharedobjectlist.h
+}
+
+contains(MODULES, miscqmlsupport){
+    message( "- tools/libraries/qmlsupport/sharedobjectlist" )
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qmlsupport
+    SOURCES += $$COSMOS/tools/libraries/qmlsupport/miscqmlsupport.cpp
+    HEADERS += $$COSMOS/tools/libraries/qmlsupport/miscqmlsupport.h
 }
 
 
