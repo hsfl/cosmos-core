@@ -260,6 +260,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cdata);
 const char *json_of_groundcontact(cosmosstruc *cdata);
 const char *json_of_soh(string &jstring, cosmosstruc *cdata);
 string json_list_of_soh(cosmosstruc* cdata);
+string json_list_of_all(cosmosstruc *cdata);
 const char *json_of_utc(string &jstring, cosmosstruc *cdata);
 const char *json_of_statevec(string &jstring, cosmosstruc *cdata);
 const char *json_of_imu(string &jstring,uint16_t num, cosmosstruc *cdata);

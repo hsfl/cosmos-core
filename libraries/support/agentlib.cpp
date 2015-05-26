@@ -50,54 +50,6 @@
 string hbjstring;
 static vector<beatstruc> slist;
 vector <agent_request_entry> ireqs;
-//{
-//	{"help",agent_req_help,"","list of available requests for this agent"},
-//	{"shutdown",agent_req_shutdown,"","request to shutdown this agent"},
-//	{"status",agent_req_status,"","request the status of this agent"},
-//	{"getvalue",agent_req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent"},
-//	{"setvalue",agent_req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent"},
-//	{"forward",agent_req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network"},
-//	{"echo",agent_req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc."},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""},
-//	{"",NULL,"",""}
-//};
 
 #include<iostream>
 using namespace std;
@@ -449,7 +401,11 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
         agent_request_entry tentry = {"setvalue",agent_req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent"};
         cdata[0].agent[0].reqs.push_back(tentry);
     }
-    {
+	{
+		agent_request_entry tentry = {"listnames",agent_req_listnames,"","list the Namespace of the agent"};
+		cdata[0].agent[0].reqs.push_back(tentry);
+	}
+	{
         agent_request_entry tentry = {"forward",agent_req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network"};
         cdata[0].agent[0].reqs.push_back(tentry);
     }
@@ -989,6 +945,14 @@ int32_t agent_req_setvalue(char *request, char* output, void *cdata)
     sprintf(output,"%d",iretn);
 
     return(iretn);
+}
+
+int32_t agent_req_listnames(char *request, char* output, void *cdata)
+{
+	string result = json_list_of_all((cosmosstruc *)cdata);
+	strncpy(output, result.c_str(), ((cosmosstruc *)cdata)->agent[0].beat.bsz);
+	output[((cosmosstruc *)cdata)->agent[0].beat.bsz-1] = 0;
+	return 0;
 }
 
 //! Open COSMOS output channel

@@ -5,7 +5,7 @@
 #   use the default "multithreaded DLL" style of RTL
 # * For x64 linkage give the "-A x64" option to the CMAKE command
 #--------------------------------------------------------------------
-option(USE_MSVC_STATIC_RUNTIME "USE Static Runtime with MSVC" "ON")
+option(USE_MSVC_STATIC_RUNTIME "USE Static Runtime with MSVC" "OFF")
 
 #--------------------------------------------------------------------
 # user config variables
@@ -195,6 +195,7 @@ IF(${BUILD_COSMOS_CORE_THIRDPARTY_DIRENT} MATCHES "ON")
 ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_DIRENT} MATCHES "ON")
 
 if(MSVC AND ((${USE_MSVC_STATIC_RUNTIME} MATCHES "ON")))
+message("Building MSVC Static")
 # Below foreach is to remove the /MD from the linker settings to use a static runtime link
 # referenced from https://www.mail-archive.com/cmake@cmake.org/msg02225.html
 FOREACH (MODE "_DEBUG" "_MINSIZEREL" "_RELEASE" "_RELWITHDEBINFO")

@@ -112,7 +112,7 @@ void collect_data_loop();
 thread cdthread;
 command_queue cmd_queue;
 
-extern agent_request_structure reqs;
+//extern agent_request_structure reqs;
 
 
 int main(int argc, char *argv[])

@@ -111,6 +111,7 @@ int32_t agent_req_shutdown(char *request, char* response, void *root);
 int32_t agent_req_status(char *request, char* response, void *root);
 int32_t agent_req_getvalue(char *request, char* response, void *root);
 int32_t agent_req_setvalue(char *request, char* response, void *root);
+int32_t agent_req_listnames(char *request, char* response, void *root);
 cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag);
 cosmosstruc* agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize);
 cosmosstruc* agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag);

@@ -466,7 +466,7 @@ enum
 	TELEM_TYPE_INT32,
 	TELEM_TYPE_FLOAT,
 	TELEM_TYPE_DOUBLE,
-    TELEM_TYPE_STRING
+	TELEM_TYPE_STRING
 	};
 
 //! @}
@@ -523,7 +523,7 @@ enum
  * - 0th, 1st and 2nd derivative terms for any conversion
  */
 typedef struct
-	{
+{
 	//! JSON Unit Name
 	string name;
 	//! JSON Unit conversion type
@@ -534,7 +534,7 @@ typedef struct
 	float p1;
 	//! 2th derivative term
 	float p2;
-	} unitstruc;
+} unitstruc;
 
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
@@ -662,7 +662,7 @@ typedef int32_t (*agent_request_function)(char* request_string, char* output_str
 typedef struct
 {
 	//! Character token for request
-    char token[COSMOS_MAX_NAME];
+	char token[COSMOS_MAX_NAME];
 	//! Pointer to function to call with request string as argument and returning any error
 	agent_request_function function;
 	string synopsis;
@@ -671,11 +671,11 @@ typedef struct
 
 //! Agent Request Structure
 //! Structure for storing Agent request handling information
-typedef struct
-{
-	uint32_t count;
-	agent_request_entry request[AGENTMAXREQUESTCOUNT];
-} agent_request_structure;
+//typedef struct
+//{
+//	uint32_t count;
+//	agent_request_entry request[AGENTMAXREQUESTCOUNT];
+//} agent_request_structure;
 
 //! Channel structure
 //! This structure stores the information about an open COSMOS network channel.
@@ -1164,18 +1164,24 @@ typedef struct
 {
 	//! Generic info
 	genstruc gen;
-	//! Geocentric position
+	//! UTC time error
+	double dutc;
+	//! Geocentric position: x, y, z
 	rvector geocs;
-	//! Geocentric velocity
+	//! Geocentric velocity: x, y, z
 	rvector geocv;
-	//! Geocentric position error
+	//! Geocentric position error: x, y, z
 	rvector dgeocs;
-	//! Geocentric velocity error
+	//! Geocentric velocity error: x, y, z
 	rvector dgeocv;
 	//! Geodetic position: longitude, latitude, altitude
 	gvector geods;
-	//! Geodetic velocity
+	//! Geodetic velocity: longitude, latitude, altitude
 	gvector geodv;
+	//! Geodetic position error: longitude, latitude, altitude
+	gvector dgeods;
+	//! Geodetic velocity error: longitude, latitude, altitude
+	gvector dgeodv;
 	//! GPS heading
 	float heading;
 	//! number of satellites used by GPS receiver
@@ -1188,7 +1194,6 @@ typedef struct
 	uint16_t position_type;
 	//! Solution Status
 	uint16_t solution_status;
-
 } gpsstruc;
 
 //! Antenna information

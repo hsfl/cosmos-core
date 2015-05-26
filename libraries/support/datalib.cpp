@@ -936,7 +936,7 @@ int32_t set_cosmosresources(string name)
  * resource files are stored. This checks, in succession:
  * - a folder named "resources" in a path specified by the COSMOS environment variable
  * - the path specified by the COSMOSRESOURCES environment variable
- * - "~/cosmos/resources" (Unix); "c:\Program Files\cosmos\resources" (Windows)
+ * - "~/cosmos/resources" (Unix); "c:\cosmos\resources" (Windows)
  * - up to 6 levels above the current directory, first in "cosmosresources", and then in "resources".
  * \return Zero, or negative error.
 */
@@ -975,9 +975,9 @@ int32_t set_cosmosresources()
 		}
 #endif
 #ifdef COSMOS_WIN_OS
-		if (data_isdir("c:/Program Files/cosmos/resources"))
+		if (data_isdir("c:/cosmos/resources"))
 		{
-			cosmosresources = "c:/Program Files/cosmos/resources";
+			cosmosresources = "c:/cosmos/resources";
 			return 0;
 		}
 #endif
