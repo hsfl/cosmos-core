@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <iostream>
 
+#ifndef COSMOS_MAC_OS
 #if defined (COSMOS_WIN_OS)
 #include "windows.h"
 #include <tchar.h>
@@ -1350,3 +1351,4 @@ int32_t request_mempercent (char *request, char *response, void *)
 #endif
 	return (sprintf(response, "%s", mem.c_str()));
 }
+#endif COSMOS_MAC_OS
