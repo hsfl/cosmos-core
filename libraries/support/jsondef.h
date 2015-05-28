@@ -1605,12 +1605,14 @@ typedef struct
 	vector<glossarystruc> glossary;
 	//! Whether JSON map has been created.
 	uint16_t jmapped;
-	//! Pointer to JSON Namespace Map.
+	//! JSON Namespace Map matrix.
 	vector<vector<jsonentry> > jmap;
-	//! Pointer to JSON Equation Map.
+	//! JSON Equation Map matrix.
 	vector<vector<jsonequation> > emap;
-	//! Array of units: first level is for type, second level is for variant.
+	//! JSON Unit Map matrix: first level is for type, second level is for variant.
 	vector<vector<unitstruc> > unit;
+	//! JSON Alias Map array
+	map<string, string> amap;
 	//! Array of Two Line Elements
 	vector<tlestruc> tle;
 } cosmosstruc;

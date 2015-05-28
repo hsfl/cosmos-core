@@ -443,7 +443,56 @@ uint16_t json_hash(string hstring)
 	return (hashval % JSON_MAX_HASH);
 }
 
-//! Add an entry to the JSON Namespace map.
+//! Enter an alias into the JSON Alias map
+/*! See if the provided name is in the Namespace. If so, add an entry
+ * for the provided alias that points to the same location.
+ * \param name Namespace name that should already exist in the Namespace
+ * \param alias Name to add as an alias.
+ * \param cdata Pointer to ::cosmosstruc.
+ * \return The current number of entries, if successful, 0 if the entry could not be
+ * added.
+*/
+uint16_t json_addalias(string name, string alias, cosmosstruc *cdata)
+{
+	jsonhandle handle;
+	uint16_t count = 0;
+	if (!json_name_map(name, cdata, handle))
+	{
+		jsonentry tentry = cdata[0].jmap[handle.hash][handle.index];
+		tentry.name = alias;
+		count = json_addentry(tentry, &cdata[0]);
+		if (count)
+		{
+			cdata[0].amap[alias] = name;
+		}
+	}
+	return count;
+}
+
+
+//! Enter an entry into the JSON Namespace.
+/*! Enters a ::jsonentry in the JSON Data Name Space.
+	\param entry The entry to be entered.
+	\param cdata Pointer to ::cosmosstruc.
+	\return The current number of entries, if successful, 0 if the entry could not be
+	added, or if enough memory could not be allocated to hold the JSON stream.
+*/
+uint16_t json_addentry(jsonentry entry, cosmosstruc *cdata)
+{
+	uint16_t hash = json_hash(entry.name);
+	size_t csize = cdata[0].jmap[hash].size();
+	cdata[0].jmap[hash].push_back(entry);
+	if (cdata[0].jmap[hash].size() != csize+1)
+	{
+		return 0;
+	}
+
+	++cdata[0].jmapped;
+
+	return (cdata[0].jmapped);
+}
+
+//! Add an entry to the JSON Namespace map with units.
 /*! Allocates the space for a new ::jsonentry and then enters the information
  * associating a pointer with an entry in the name table. The name will be of form "name" if it is a
  * scalar, "name_iii" if it is a first level array, "name_iii_iii" if it is second
@@ -462,8 +511,6 @@ uint16_t json_hash(string hstring)
 uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit)
 {
 	jsonentry tentry;
-	size_t csize;
-	uint16_t hash;
 	char ename[COSMOS_MAX_NAME];
 
 	// Determine extended name
@@ -473,14 +520,6 @@ uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t off
 	if (d2 < 65535)
 		sprintf(&ename[strlen(ename)],"_%03u",d2);
 
-	//	namelen = strlen(ename)+1;
-	//	if ((tentry.name = (char *)calloc(1,namelen)) == NULL)
-	//	{
-	//		return 0;
-	//	}
-
-	hash = json_hash(ename);
-
 	// Populate the entry
 	tentry.alarm_index = 0;
 	tentry.alert_index = 0;
@@ -489,23 +528,28 @@ uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t off
 	tentry.unit_index = unit;
 	tentry.type = type;
 	tentry.group = group;
-	//	strcpy(tentry.name,ename);
 	tentry.name = ename;
 	tentry.offset = offset;
 	tentry.size = size;
-	csize = cdata[0].jmap[hash].size();
-	cdata[0].jmap[hash].push_back(tentry);
-	if (cdata[0].jmap[hash].size() != csize+1)
-	{
-		//		free(tentry.name);
-		return 0;
-	}
 
-	++cdata[0].jmapped;
-
-	return (cdata[0].jmapped);
+	return json_addentry(tentry, cdata);
 }
 
+//! Add an entry to the JSON Namespace map without units.
+/*! Allocates the space for a new ::jsonentry and then enters the information
+ * associating a pointer with an entry in the name table. The name will be of form "name" if it is a
+ * scalar, "name_iii" if it is a first level array, "name_iii_iii" if it is second
+ * level, where "iii" is the zero filled index for the appropriate level.
+	\param name variable name from the JSON Data Name Space
+	\param d1 array index for first level, otherwise -1
+	\param d2 array index for second level, otherwise -1
+	\param offset Offset to the data from the beginning of its group.
+	\param type COSMOS JSON Data Type.
+	\param group COSMOS JSON Data Group.
+	\param cdata Pointer to ::cosmosstruc.
+	\return The current number of entries, if successful, 0 if the entry could not be
+	added, or if enough memory could not be allocated to hold the JSON stream.
+*/
 uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata)
 {
 	return (json_addentry(name, d1, d2, offset, size, type, group, cdata, 0));
@@ -3374,7 +3418,7 @@ int32_t json_parse_operand(const char **pointer, jsonoperand *operand, cosmosstr
 		{
 			return (JSON_ERROR_SCAN);
 		}
-		if ((iretn=json_name_map(tstring, cdata, &operand->data)) < 0)
+		if ((iretn=json_name_map(tstring, cdata, operand->data)) < 0)
 		{
 			return (JSON_ERROR_SCAN);
 		}
@@ -4542,6 +4586,32 @@ int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
 
 		//! Load targeting information
 		cdata[0].node.target_cnt = (uint16_t)load_target(cdata);
+
+		//! Load alias map
+		fname = nodepath + "/aliases.ini";
+		if ((iretn=stat(fname.c_str(),&fstat)) == 0)
+		{
+			ifs.open(fname);
+			if (ifs.is_open())
+			{
+				string alias;
+				while (getline(ifs, alias, ' '))
+				{
+					string cname;
+					getline(ifs, cname);
+					json_addalias(cname, alias, cdata);
+//					jsonhandle handle;
+//					if (!json_name_map(cname, cdata, handle))
+//					{
+//						jsonentry tentry = cdata[0].jmap[handle.hash][handle.index];
+//						tentry.name = alias;
+//						json_addentry(tentry, &cdata[0]);
+//						cdata[0].amap[alias] = cname;
+//					}
+				} ;
+			}
+		}
+
 	}
 
 	return 0;
@@ -4612,6 +4682,22 @@ int32_t json_dump_node(cosmosstruc *cdata)
 	}
 	fputs(output.c_str(), file);
 	fclose(file);
+
+	// Aliases
+	if (cdata[0].amap.size())
+	{
+		filename = fileloc + "/aliases.ini";
+		file = fopen(filename.c_str(), "w");
+		if (file == NULL)
+		{
+			return -errno;
+		}
+		for (auto &alias : cdata[0].amap)
+		{
+			fprintf(file, "%s %s\n", alias.first.c_str(), alias.second.c_str());
+		}
+		fclose(file);
+	}
 
 	return 0;
 }
@@ -6516,7 +6602,7 @@ void json_test(cosmosstruc *cdata)
 	\param handle Pointer to ::jsonhandle of name.
 	\return Zero, or negative error number.
 */
-int32_t json_name_map(string name, cosmosstruc *cdata, jsonhandle *handle)
+int32_t json_name_map(string name, cosmosstruc *cdata, jsonhandle &handle)
 {
 
 	if (!cdata || !cdata[0].jmapped)
@@ -6525,10 +6611,10 @@ int32_t json_name_map(string name, cosmosstruc *cdata, jsonhandle *handle)
 	if (cdata[0].jmap.size() == 0)
 		return (JSON_ERROR_NOJMAP);
 
-	handle->hash = json_hash(name);
+	handle.hash = json_hash(name);
 
-	for (handle->index=0; handle->index<cdata[0].jmap[handle->hash].size(); ++handle->index)
-		if (name == cdata[0].jmap[handle->hash][handle->index].name)
+	for (handle.index=0; handle.index<cdata[0].jmap[handle.hash].size(); ++handle.index)
+		if (name == cdata[0].jmap[handle.hash][handle.index].name)
 		{
 			return 0;
 		}

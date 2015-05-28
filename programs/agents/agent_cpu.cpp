@@ -65,7 +65,7 @@ char sohstring[] = "{\"device_cpu_disk_000\",\"device_cpu_maxdisk_000\",\"device
 cosmosstruc *cdata;  // to access the cosmos data
 ElapsedTime et;
 
-#endif COSMOS_MAC_OS
+#endif //COSMOS_MAC_OS
 int main(int argc, char *argv[])
 {
 #ifndef COSMOS_MAC_OS
@@ -1097,7 +1097,7 @@ int main(int argc, char *argv[])
 	iretn = myagent();
 
 	return 0;
-#endif COSMOS_MAC_OS
+#endif //COSMOS_MAC_OS
 }
 #ifndef COSMOS_MAC_OS
 int myagent()
@@ -1353,5 +1353,5 @@ int32_t request_mempercent (char *request, char *response, void *)
 	string mem = to_string(mempercent);
 #endif
 	return (sprintf(response, "%s", mem.c_str()));
-#endif COSMOS_MAC_OS
 }
+#endif //COSMOS_MAC_OS

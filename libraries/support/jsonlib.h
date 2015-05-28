@@ -130,6 +130,8 @@ int32_t json_clone(cosmosstruc *cdata);
 void json_destroy(cosmosstruc *cdata);
 
 //uint16_t json_addequation(const char *text, cosmosstruc *cdata, uint16_t unit);
+uint16_t json_addalias(string name, string alias, cosmosstruc *cdata);
+uint16_t json_addentry(jsonentry entry, cosmosstruc *cdata);
 uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit);
 uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata);
 uint16_t json_addbaseentry(cosmosstruc *cdata);
@@ -284,7 +286,7 @@ uint16_t json_hash(string hstring);
 //json_name *json_get_name_list();
 uint32_t json_get_name_list_count();
 uint32_t json_get_name_list_count(cosmosstruc *cdata);
-int32_t json_name_map(string name, cosmosstruc *cdata, jsonhandle *handle);
+int32_t json_name_map(string name, cosmosstruc *cdata, jsonhandle &handle);
 int32_t json_equation_map(string equation, cosmosstruc *cdata, jsonhandle *handle);
 
 bool json_static(char* json_extended_name);
