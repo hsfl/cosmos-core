@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	return 0;
 #endif //COSMOS_MAC_OS
 }
-#ifndef //COSMOS_MAC_OS
+#ifndef COSMOS_MAC_OS
 int myagent()
 {
 	cout << agentname << " ...online " << endl;
