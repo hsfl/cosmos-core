@@ -128,7 +128,11 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
    SET(OperatingSystem "Mac OS X")
-                SET(COSMOS_FOLDER "$ENV{HOME}/cosmos/macos")
+    IF($ENV{COSMOS} MATCHES "")
+        SET(COSMOS_FOLDER "$ENV{HOME}/cosmos/macos")
+    ELSE()
+        SET(COSMOS_FOLDER "${COSMOS}/macos")
+    ENDIF($ENV{COSMOS} MATCHES "")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
