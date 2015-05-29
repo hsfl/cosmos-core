@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <iostream>
 
+#ifndef COSMOS_MAC_OS
 #if defined (COSMOS_WIN_OS)
 #include "windows.h"
 #include <tchar.h>
@@ -65,9 +66,11 @@ char sohstring[] = "{\"device_cpu_disk_000\",\"device_cpu_maxdisk_000\",\"device
 
 cosmosstruc *cdata;  // to access the cosmos data
 ElapsedTime et;
+#endif //COSMOS_MAC_OS
 
 int main(int argc, char *argv[])
 {
+#ifndef COSMOS_MAC_OS
 	cout << "Starting agent cpu" << endl;
 	int iretn;
 
@@ -113,8 +116,9 @@ int main(int argc, char *argv[])
 	iretn = myagent();
 
 	return 0;
+#endif //COSMOS_MAC_OS
 }
-
+#ifndef //COSMOS_MAC_OS
 int myagent()
 {
 	cout << agentname << " ...online " << endl;
@@ -1361,3 +1365,4 @@ int create_node () // only use when unsure what the node is
 	else
 		return 0;
 }
+#endif //COSMOS_MAC_OS
