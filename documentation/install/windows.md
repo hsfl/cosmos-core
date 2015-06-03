@@ -15,19 +15,50 @@ select Mingw as your main compiler, you may also choose
 to select MSVC as an alternative compiler but there may 
 be some compatibility issues with COSMOS
 
-2) Download COSMOS-core source code
+2) Select a DEVELOPMENT location. This will be where all your
+source code and compilation resides, and can be anywhere that
+you have write access to. It will end up as a tree looking something
+like this:
 
--- using a git client such as Tortoise Git for win.
+DEVELOPMENT
+	| core
+	| nodes
+		| cubesat1
+		.
+		.
+		.
+	| projects
+	| resources
+	| tools
+		| cat
+		| ceo
+		| dmt
+		| libraries
+		| most
+
+3) Download COSMOS-core source code, nodes and resources
+
+These should be placed in DEVELOPMENT\core, DEVELOPMENT\nodes and
+DEVELOPMENT\resources. The URL's are:
+
+https://<yourusername>@bitbucket.org/cosmos/core.git
+https://<yourusername>@bitbucket.org/cosmos/nodes.git
+https://<yourusername>@bitbucket.org/cosmos/resources.git
+
+-- using a git client such as Tortoise Git for win or Atlassian SourceTree.
 if you are planning on contributing to the project using a 
 client may be the easiest alternative
 
 -- using the command line
+$ cd DEVELOPMENT
 $ git clone https://<yourusername>@bitbucket.org/cosmos/core.git
+$ git clone https://<yourusername>@bitbucket.org/cosmos/nodes.git
+$ git clone https://<yourusername>@bitbucket.org/cosmos/resources.git
 
 
 MSVC install (optional)
 -----------------------
-If you really want to use MSVC then follow thes instruction. 
+If you really want to use MSVC then follow these instruction. 
 Note: you don't have to use MSVC just to use COSMOS, in fact we
 recommend that you use MinGW - the default compiler for Qt on windows.
 

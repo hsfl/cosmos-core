@@ -513,7 +513,7 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, 
 
         //gettimeofday(&tv,NULL);
 
-    } while ( (nbytes <= 0) && (ep.lap() <= waitsec) );
+	} while ( (nbytes <= 0) && (ep.split() <= waitsec) );
     //old://(nbytes <= 0 && !(tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec)));
 
     output[nbytes] = 0;
@@ -567,9 +567,7 @@ int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float wai
             return (1);
         }
 
-        //gettimeofday(&tv,NULL);
-    } while (ep.lap() <= waitsec);
-    //while (!(tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec)));
+	} while (ep.split() <= waitsec);
 
     return(0);
 }
@@ -608,7 +606,7 @@ beatstruc agent_find_server(cosmosstruc *cdata, string node, string proc, float 
             }
         }
         //gettimeofday(&tv,NULL);
-    } while (ep.lap() <= waitsec);
+	} while (ep.split() <= waitsec);
     //while (!(tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec)));
 
     // ?? do a complete reset of cbeat if agent not found, not just utc = 0
@@ -668,7 +666,7 @@ vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec)
 
         //gettimeofday(&tv,NULL);
 
-    } while (ep.lap() <= waitsec);
+	} while (ep.split() <= waitsec);
     //while (!(tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec)));
 
     return(slist);
@@ -750,7 +748,7 @@ void heartbeat_loop(cosmosstruc *cdata)
         }
         //        nmjd += ((cosmosstruc *)cdata)->agent[0].beat.bprd;
 
-        if (ep.lap() <= ((cosmosstruc *)cdata)->agent[0].beat.bprd)
+		if (ep.split() <= ((cosmosstruc *)cdata)->agent[0].beat.bprd)
         {
             COSMOS_SLEEP(((cosmosstruc *)cdata)->agent[0].beat.bprd - ep.elapsedTime);
         }
@@ -1529,7 +1527,7 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
         }
         //gettimeofday(&tv,NULL);
         //if (tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec))
-        if (ep.check() >= waitsec)
+		if (ep.split() >= waitsec)
         {
             nbytes = 0;
         }

@@ -63,6 +63,7 @@ public:
     void printElapsedTime(string text);
     double getElapsedTimeMiliSeconds();
     double lap();
+    double split();
     double getElapsedTime();
 
     void tic();

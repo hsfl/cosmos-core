@@ -113,18 +113,25 @@ void ElapsedTime::printElapsedTime(string text)
     }
 }
 
-
+//! Lap Time
+/*! This is the elapsed time since the last Lap Time. ::timeCheck is set in order
+ * to keep track of this event.
+ * \return Time since last call to lap(), reset(), or start(), in seconds.
+*/
 double ElapsedTime::lap()
 {
-    // collect Elapsed time
-    // On windows using MinGw32 it does not get better than 1ms
+#ifdef BUILD_TYPE_arm
+//	clock_gettime(CLOCK_MONOTONIC, &timeNow);
+//	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_nsec - timeCheck.tv_nsec) / 1e9;
+	gettimeofday(&timeNow, nullptr);
+	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_usec - timeCheck.tv_usec) / 1e6;
+#else
+	timeNow = chrono::steady_clock::now();
+	elapsedTime =  chrono::duration<double>(timeNow - timeCheck).count();
+#endif
 
-    // collect current time
-    //timeNow = chrono::steady_clock::now();
-    //elapsedTime = chrono::duration<double>(chrono::steady_clock::now() - timeStart).count();
-//    stop();
-    check();
-    return elapsedTime;
+	timeCheck = timeNow;
+	return elapsedTime;
 
 }
 
@@ -138,7 +145,7 @@ void ElapsedTime::tic(){
 double ElapsedTime::toc(){
 
 //    stop();
-    check();
+	split();
 	printElapsedTime();
 
     return elapsedTime;
@@ -157,7 +164,7 @@ double ElapsedTime::toc(){
 double ElapsedTime::toc(string text){
 
 //    stop();
-    check();
+	split();
 
     // print the text
     printElapsedTime(text);
@@ -179,17 +186,14 @@ void ElapsedTime::start(){
 }
 
 //double ElapsedTime::stop(){
-double ElapsedTime::check(){
+double ElapsedTime::split(){
     //Get the final time
 
-	// add elapsedTime to keep counting just like a stopwathc
-	// elapsedTime is set to zero when we call reset()
-//    elapsedTime = elapsedTime + lap();
 #ifdef BUILD_TYPE_arm
 //	clock_gettime(CLOCK_MONOTONIC, &timeNow);
-//	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_nsec - timeNow.tv_nsec) / 1e9;
+//	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_nsec - timeStart.tv_nsec) / 1e9;
 	gettimeofday(&timeNow, nullptr);
-	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_usec - timeNow.tv_usec) / 1e6;
+	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_usec - timeStart.tv_usec) / 1e6;
 #else
 	timeNow = chrono::steady_clock::now();
 	elapsedTime =  chrono::duration<double>(timeNow - timeStart).count();

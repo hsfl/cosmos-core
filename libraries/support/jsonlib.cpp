@@ -6718,7 +6718,33 @@ int32_t json_clone(cosmosstruc *cdata)
 {
 	if (!cdata || !cdata[0].jmapped) return (JSON_ERROR_NOJMAP);
 
+#ifdef COSMOS_WIN_BUILD_MSVC
+	cdata[1].agent = cdata[0].agent;
+	cdata[1].device = cdata[0].device;
+	cdata[1].devspec = cdata[0].devspec;
+	cdata[1].emap = cdata[0].emap;
+	cdata[1].event = cdata[0].event;
+	cdata[1].glossary = cdata[0].glossary;
+	cdata[1].jmap = cdata[0].jmap;
+	cdata[1].jmapped = cdata[0].jmapped;
+	cdata[1].node = cdata[0].node;
+	cdata[1].physics = cdata[0].physics;
+	cdata[1].piece = cdata[0].piece;
+	cdata[1].port = cdata[0].port;
+	cdata[1].target = cdata[0].target;
+	cdata[1].tle = cdata[0].tle;
+	cdata[1].unit = cdata[0].unit;
+	cdata[1].user = cdata[0].user;
+	if (cdata[0].amap.size())
+	{
+		for (auto &entry : cdata[0].amap)
+		{
+			cdata[1].amap[entry.first] = entry.second;
+		}
+	}
+#else
 	cdata[1] = cdata[0];
+#endif
 	for (uint16_t i=0; i<cdata[1].node.device_cnt; ++i)
 	{
 		switch(cdata[1].device[i].all.gen.type)
