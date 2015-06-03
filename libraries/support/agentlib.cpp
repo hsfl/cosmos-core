@@ -1007,7 +1007,8 @@ int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port)
         nif = nbytes / sizeof(INTERFACE_INFO);
         for (uint32_t i=0; i<nif; i++)
         {
-            strcpy(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+			inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address));
+//            strcpy(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
             if (!strcmp(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,"127.0.0.1"))
             {
                 if (cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp >= 0)
@@ -1216,7 +1217,7 @@ vector<socket_channel> agent_find_addresses(uint16_t ntype)
     int sslen;
     INTERFACE_INFO ilist[20];
     unsigned long nbytes;
-    uint32_t nif, ssize;
+	size_t nif, ssize;
     uint32_t ip, net, bcast;
 #else
     struct ifconf confa;
@@ -1259,7 +1260,8 @@ vector<socket_channel> agent_find_addresses(uint16_t ntype)
 
         for (uint32_t i=0; i<nif; i++)
         {
-            strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+			inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
+//            strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
             if (!strcmp(tiface.address,"127.0.0.1"))
             {
                 continue;
@@ -1368,7 +1370,8 @@ vector<socket_channel> agent_find_addresses(uint16_t ntype)
 */
 int32_t agent_post(cosmosstruc *cdata, uint8_t type, const char *message)
 {
-    int nbytes, mbytes, i, iretn=0;
+	size_t nbytes, mbytes;
+	int32_t i, iretn=0;
     char post[AGENTMAXBUFFER];
     //string jstring;
 

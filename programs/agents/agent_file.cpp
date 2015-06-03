@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 	printf("- Setting up server...");
 	fflush(stdout);
 
-	if ((cosmos_data=agent_setup_server(SOCKET_TYPE_UDP, NULL, agentname.c_str(), 1., 0, AGENTMAXBUFFER,false)) == NULL)
+	if ((cosmos_data=agent_setup_server(SOCKET_TYPE_UDP, "", agentname, 1., 0, AGENTMAXBUFFER,false)) == NULL)
 	{
 		printf("- Could not setup server... exiting.\n\n");
 		exit (-1);
