@@ -86,7 +86,7 @@ but they should work similarly for other platforms.
 - Open Qt Creator 3.3
 - Open Tools->Options
 - Click on "Build and Run" Option on the left menu
-- Open the Tab "Debuggers"  [*check note1*](#note1)
+- Open the Tab "Debuggers"  [*check note1*](#markdown-header-note-1)
 - Move to the next Tab "Compilers": Add a GCC compiler, 
 in this case the ARM-LINUX-GNUEABIHF-G++ 4.9 cross compiler (or whatever else you have). 
 On windows the compiler path will be something like: C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin\arm-linux-gnueabihf-g++.exe
@@ -133,7 +133,6 @@ Where /root/work is your target computer's folder that will contain your deploye
 Now run your program, and it should deploy the executable to the target machine, and run it in "Application Output".
  - To add command line arguments, click on the left side "Projects" -> Run (From your kit at the top, Run vs Build) -> Modify Run: Arguments
 
-<a name="note1"></a>
 ##### Note 1
 If you downloaded the Linaro toolchain for windows it may not have GDB with python enabled, but you can still try using the Linaro GDB. Select the gdb debugger from the Linaro installation path, 
 ex: C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin\arm-linux-gnueabihf-gdb
