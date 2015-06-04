@@ -27,12 +27,11 @@ Install Cross-compiler for Windows
 Choose the cross-toolchain for Windows 32-bit binaries for the 
 ARMv7 Linux with hard float: linaro-toolchain-binaries 4.9 (little-endian). 
 The latest Linaro cross-compiler for the ARM (as of Feb 6 2015) 
-can be directly downloaded from here:
-http://releases.linaro.org/14.09/components/toolchain/binaries/
-download the file
-gcc-linaro-arm-linux-gnueabihf-4.9-2014.09-20140911_win32.exe
+can be directly downloaded from [here](http://releases.linaro.org/14.09/components/toolchain/binaries/)
+choose *gcc-linaro-arm-linux-gnueabihf-4.9-2014.09-20140911_win32.exe*
 
 This will install the cross compiler in a path like this
+
 C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09
 
 Linaro is just one option, there may be other cross-compiler options ... 
