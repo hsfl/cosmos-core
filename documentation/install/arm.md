@@ -42,9 +42,10 @@ Install Cross-compiler for Linux (Ubuntu)
 -----------------------------------------
 
 install crosscompiler:
-
-- "apt-get install g++-arm-linux-gnueabi gcc-arm-linux-gnueabi 
-    g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf uboot-mkimage"
+```
+#!sh
+apt-get install g++-arm-linux-gnueabi gcc-arm-linux-gnueabi g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf uboot-mkimage
+```
 
 installing GDB for cross debugging in qt (python support) on Ubuntu 12.04
 
@@ -69,6 +70,7 @@ sudo apt-get install libncurses5-dev
 ```
 
 ** error2 **
+
 configure: error: no usable python found at /usr/bin/python
 
 solution
@@ -144,6 +146,16 @@ Now run your program, and it should deploy the executable to the target machine,
 If you downloaded the Linaro toolchain for windows it may not have GDB with python enabled, but you can still try using the Linaro GDB. Select the gdb debugger from the Linaro installation path, 
 ex: C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin\arm-linux-gnueabihf-gdb
 To compile gdb with python enabled check the section to build GDB with python
+
+##### Note 2 
+if you get a problem like this:
+
+* 'test' is not recognized as an internal or external command *
+
+this is because 'test' is not installed in your system (windows) .. or something like that. I think 'test' is a unix program that check for folders in unix. 
+Either you install 'test' in your path ... OR!!! 
+
+- don't use SUBDIRS in your .pro, I've found that if you load you prodject directly (without subdirs) it works ok!
 
 
 Cross-compile using Qt Creator and Cmake files
