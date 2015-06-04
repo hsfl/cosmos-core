@@ -35,7 +35,7 @@ Linaro is just one option, there are tons of other cross-compiler options ...
 
 Next, if you want to use .pro files to compile your project go to the section 
 [Cross-compile using Qt Creator and .pro files](#markdown-header-cross-compile-using-qt-creator-and-pro-files)
-or go to [Cross-compile using Qt Creator and Cmake files](#cmake-files) if you want to use CMAKE files.
+or go to [Cross-compile using Qt Creator and Cmake files](#markdown-cross-compile-using-qt-creator-and-cmake-files) if you want to use CMAKE files.
 
 Install Cross-compiler for Linux (Ubuntu)
 -----------------------------------------
@@ -72,7 +72,7 @@ or
 sudo apt-get install python2.7-dev
 
 
-# Cross-compile using Qt Creator and .pro files #
+Cross-compile using Qt Creator and .pro files
 ---------------------------------------------
 Using .pro files may be more convenient than Cmake files. We think of 
 Cmake more for command line compilation of code although it is 
@@ -139,9 +139,9 @@ If you downloaded the Linaro toolchain for windows it may not have GDB with pyth
 ex: C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin\arm-linux-gnueabihf-gdb
 To compile gdb with python enabled check the section to build GDB with python
 
- <a name="cmake-files"></a>
+
 Cross-compile using Qt Creator and Cmake files
--------------------------------------------------
+-----------------------------------------------
 On Qt Creator you can open the CMakeLists.txt as a project, this is very convenient
 for developing large applications using cosmos. If you go this route use following 
 arguments when running the cmake wizard in Qt Creator. 
