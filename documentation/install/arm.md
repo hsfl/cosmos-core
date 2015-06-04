@@ -71,8 +71,8 @@ sudo apt-get install python-dev
 or
 sudo apt-get install python2.7-dev
 
- <a name="pro-files"></a>
-Cross-compile using Qt Creator and .pro files
+
+# Cross-compile using Qt Creator and .pro files #
 ---------------------------------------------
 Using .pro files may be more convenient than Cmake files. We think of 
 Cmake more for command line compilation of code although it is 
