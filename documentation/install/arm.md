@@ -56,7 +56,7 @@ Configure
 ./configure --target=arm-linux-gnueabihf --with-python=/usr/bin/python
 ```
 
-* error1
+** error1 **
 
 configure: error: no termcap library found
 
@@ -68,7 +68,7 @@ sudo apt-get install ncurses-dev
 sudo apt-get install libncurses5-dev
 ```
 
-* error2
+** error2 **
 configure: error: no usable python found at /usr/bin/python
 
 solution
