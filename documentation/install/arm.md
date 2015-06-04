@@ -35,7 +35,7 @@ Linaro is just one option, there are tons of other cross-compiler options ...
 
 Next, if you want to use .pro files to compile your project go to the section 
 [Cross-compile using Qt Creator and .pro files](#markdown-header-cross-compile-using-qt-creator-and-pro-files)
-or go to [Cross-compile using Qt Creator and Cmake files](#markdown-cross-compile-using-qt-creator-and-cmake-files) if you want to use CMAKE files.
+or go to [Cross-compile using Qt Creator and Cmake files](#markdown-header-cross-compile-using-qt-creator-and-cmake-files) if you want to use CMAKE files.
 
 Install Cross-compiler for Linux (Ubuntu)
 -----------------------------------------
