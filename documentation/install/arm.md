@@ -11,6 +11,7 @@ It is assumed you have installed the latest version of Qt and have downloaded th
 
 There are three ways to compile the code for the COSMOS tools and 
 the flight software:
+
 1. using Qt Creator and .pro files (probably the easiest)
 2. using Qt Creator and Cmake files
 3. using the command line and Cmake  (not recommended for beginners)
@@ -56,21 +57,27 @@ Configure
 ```
 
 * error1
+
 configure: error: no termcap library found
 
 solution
+```
+#!sh
 sudo apt-get install ncurses-dev
-or
+# or
 sudo apt-get install libncurses5-dev
+```
 
 * error2
 configure: error: no usable python found at /usr/bin/python
 
 solution
+```
+#!sh
 sudo apt-get install python-dev 
-or
+# or
 sudo apt-get install python2.7-dev
-
+```
 
 Cross-compile using Qt Creator and .pro files
 ---------------------------------------------
