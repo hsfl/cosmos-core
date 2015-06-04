@@ -28,7 +28,7 @@ Choose the cross-toolchain for Windows 32-bit binaries for the
 ARMv7 Linux with hard float: linaro-toolchain-binaries 4.9 (little-endian). 
 The latest Linaro cross-compiler for the ARM (as of Feb 6 2015) 
 can be directly downloaded from [here](http://releases.linaro.org/14.09/components/toolchain/binaries/)
-choose *gcc-linaro-arm-linux-gnueabihf-4.9-2014.09-20140911_win32.exe*
+choose **gcc-linaro-arm-linux-gnueabihf-4.9-2014.09-20140911_win32.exe**
 
 This will install the cross compiler in a path like this
 
@@ -44,19 +44,22 @@ or
 Install Cross-compiler for Linux (Ubuntu)
 -----------------------------------------
 
-install crosscompiler
+install crosscompiler:
+
 - "apt-get install g++-arm-linux-gnueabi gcc-arm-linux-gnueabi 
     g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf uboot-mkimage"
 
 installing GDB for cross debugging in qt (python support) on Ubuntu 12.04
 
 Configure
+```
+#!sh
 ./gdb/configure --target=arm-linux-gnueabihf --with-python=/usr/bin/python
-
 ./configure --prefix /usr/local/gdb-python2 --with-python
 ./configure --target=arm-linux-gnueabihf --with-python=/usr/bin/python
+```
 
-#error1
+* error1
 configure: error: no termcap library found
 
 solution
@@ -64,7 +67,7 @@ sudo apt-get install ncurses-dev
 or
 sudo apt-get install libncurses5-dev
 
-#error2
+* error2
 configure: error: no usable python found at /usr/bin/python
 
 solution
@@ -75,7 +78,7 @@ sudo apt-get install python2.7-dev
 
 
 Cross-compile using Qt Creator and .pro files
--------------------------------------------------
+---------------------------------------------
 Using .pro files may be more convenient than Cmake files. We think of 
 Cmake more for command line compilation of code although it is 
 also possible to use Cmake files to load a COSMOS project in Qt 
@@ -88,11 +91,7 @@ but they should work similarly for other platforms.
 - Open Qt Creator 3.3
 - Open Tools->Options
 - Click on "Build and Run" Option on the left menu
-- Open Tab "Debuggers"
-section to build GDB with python enabled). If you downloaded the 
-Linaro toolchain for windows it may not have python enabled, 
-but you can try just select the gdb debugger from the installation path, 
-ex: C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin\arm-linux-gnueabihf-gdb
+- Open the Tab "Debuggers"  [*check note1*](#note1)
 - Move to the next Tab "Compilers": Add a GCC compiler, 
 in this case the ARM-LINUX-GNUEABIHF-G++ 4.9 cross compiler (or whatever else you have). 
 On windows the compiler path will be something like: C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin\arm-linux-gnueabihf-g++.exe
@@ -149,6 +148,10 @@ Where /root/work is your target computer's folder that will contain your deploye
 Now run your program, and it should deploy the executable to the target machine, and run it in "Application Output".
  - To add command line arguments, click on the left side "Projects" -> Run (From your kit at the top, Run vs Build) -> Modify Run: Arguments
 
+## Note1
+If you downloaded the Linaro toolchain for windows it may not have GDB with python enabled, but you can still try using the Linaro GDB. Select the gdb debugger from the Linaro installation path, 
+ex: C:\Program Files (x86)\Linaro\gcc-linaro-arm-linux-gnueabihf-4.9-2014.09\bin\arm-linux-gnueabihf-gdb
+To compile gdb with python enabled check the section to build GDB with python
 
 Cross-compile using Qt Creator and Cmake files
 -------------------------------------------------
