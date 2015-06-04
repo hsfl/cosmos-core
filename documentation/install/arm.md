@@ -1,16 +1,13 @@
 Cross-compile COSMOS for the ARM plarform
 =========================================
 
-These instructions are for cross compilation of COSMOS.
-This has been tested on Windows 7 and also with 
-Ubuntu 14.04 running on a virtual box.
+These instructions are to setup a cross-compiler environment so that you can compile COSMOS for embedded devices with an ARM architecture. 
+We have tested these instructions on Windows 7 and also on Ubuntu 14.04 running on a Virtual Box.
 
-We have tested cross-compiling for the Overo ARMv7 architecture but
-these instructions should work well for other architectures. 
+We have tested cross-compiling for the Gumstix Overo, Gumstix Duovero and RaspberryPi architectures but these instructions should work well for other architectures. 
 Let us know if you successfully compile COSMOS in other platforms.
 
-It is assumed you have installed the latest version of Qt and 
-downloaded the COSMOS code.
+It is assumed you have installed the latest version of Qt and have downloaded the COSMOS source.
 
 There are three ways to compile the code for the COSMOS tools and 
 the flight software:
@@ -18,7 +15,7 @@ the flight software:
 2) using Qt Creator and Cmake files
 3) using the command line and Cmake  (not recommended for beginners)
 
-In either case you will have to install the cross compile tools for 
+In either case you will have to install the cross compiler tools for 
 the ARM. We recommend using the Linaro Toochain from the Linaro project. 
 The current version is 14.11 with GCC 4.9 with C++11 compatibility.
 
