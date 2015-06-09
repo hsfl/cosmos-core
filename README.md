@@ -23,46 +23,52 @@ you have write access to. It will end up as a tree looking something
 like this:
 
 DEVELOPMENT
-	| core
-	| nodes
-		| cubesat1
-		.
-		.
-		.
-	| projects
-	| resources
-	| tools
-		| cat
-		| ceo
-		| dmt
-		| libraries
-		| most
-
+* 	| core
+* 	| nodes
+* * 		| cubesat1
+* * 		.
+* * 		.
+* * 		.
+* 	| projects
+* 	| resources
+* 	| tools
+* * 		| cat
+* * 		| ceo
+* * 		| dmt
+* * 		| libraries
+* * 		| most
+* 
 3) Download COSMOS-core source code, nodes and resources
 
 These should be placed in DEVELOPMENT\core, DEVELOPMENT\nodes and
 DEVELOPMENT\resources. The URL's are:
 
-https://<yourusername>@bitbucket.org/cosmos/core.git
-https://<yourusername>@bitbucket.org/cosmos/nodes.git
-https://<yourusername>@bitbucket.org/cosmos/resources.git
+* https://<yourusername>@bitbucket.org/cosmos/core.git
+* https://<yourusername>@bitbucket.org/cosmos/nodes.git
+* https://<yourusername>@bitbucket.org/cosmos/resources.git
 
 -- using a git client such as Tortoise Git for win or Atlassian SourceTree.
 if you are planning on contributing to the project using a 
 client may be the easiest alternative
 
 -- using the command line
+
+```
+#!bash
+
 $ cd DEVELOPMENT
 $ git clone https://<yourusername>@bitbucket.org/cosmos/core.git
 $ git clone https://<yourusername>@bitbucket.org/cosmos/nodes.git
 $ git clone https://<yourusername>@bitbucket.org/cosmos/resources.git
 
+```
+
 4) Select an (optional)INSTALL location. This will be where operational
 files, such as executable binaries, compiled libraries, etc. end up. If you
 do not choose one, the following default locations of will be used:
-- (Windows) c:\cosmos
-- (Linux) /usr/local/cosmos
-- (MacOS) /Applications/cosmos
+* - (Windows) c:\cosmos
+* - (Linux) /usr/local/cosmos
+* - (MacOS) /Applications/cosmos
 If you do not have write permission (eg: /usr/local/linux),  or you choose
 your own location, then you will need to set the COSMOS environment variable
 to this location. (Note: It is permissible to set the COSMOS environment variable
@@ -75,8 +81,8 @@ nodes you wish to work with from DEVELOPMENT\nodes to INSTALL\nodes.
 Cmake.
 
 For Qt Creator, Open two instances of Qt Creator and load two agent example projects: 
-- core/examples/agents/agent_001.pro 
-- core/examples/agents/agent_002.pro 
+* - core/examples/agents/agent_001.pro 
+* - core/examples/agents/agent_002.pro 
 Compile and execute the two programs. Start agent_002 first. 
 The two COSMOS agents will start talking to each other.
 
@@ -86,18 +92,24 @@ can be found at:
 http://www.cmake.org/
 
 --to compile from the unix command line:
+
+```
+#!bash
+
 $cd DEVELOPMENT/core/build
-$mkdir linux|macos (depending on your OS)
-$./do_cmake linux|macos
-$cd linux|macos
+$mkdir {linux|macos} (depending on your OS)
+$./do_cmake {linux|macos}
+$cd {linux|macos}
 $make install
+```
+
 
 --to compile from Qt Creator
-- Start Qt Creator
-- Open DEVELOPMENT/core/CMakeLists.txt
-- Choose a build directory of DEVELOPMENT/core/build/{windows|linux|macos} (depending on your OS)
-- Run CMake
-- Build install
+*Start Qt Creator
+*Open DEVELOPMENT/core/CMakeLists.txt
+*Choose a build directory of DEVELOPMENT/core/build/{windows|linux|macos} (depending on your OS)
+*Run CMake
+*Build install
 
 For more detailed instructions to get started with COSMOS
 please read the GET-STARTED-WITH-COSMOS.txt inside the 
