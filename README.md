@@ -22,22 +22,15 @@ source code and compilation resides, and can be anywhere that
 you have write access to. It will end up as a tree looking something
 like this:
 
-DEVELOPMENT
-* 	| core
-* 	| nodes
-* * 		| cubesat1
-* * 		.
-* * 		.
-* * 		.
-* 	| projects
-* 	| resources
-* 	| tools
-* * 		| cat
-* * 		| ceo
-* * 		| dmt
-* * 		| libraries
-* * 		| most
-* 
+* DEVELOPMENT
+    * core
+    * nodes
+        * cubesat1
+        * .
+        * .
+        * .
+    * resources
+
 3) Download COSMOS-core source code, nodes and resources
 
 These should be placed in DEVELOPMENT\core, DEVELOPMENT\nodes and
@@ -66,9 +59,11 @@ $ git clone https://<yourusername>@bitbucket.org/cosmos/resources.git
 4) Select an (optional)INSTALL location. This will be where operational
 files, such as executable binaries, compiled libraries, etc. end up. If you
 do not choose one, the following default locations of will be used:
-* - (Windows) c:\cosmos
-* - (Linux) /usr/local/cosmos
-* - (MacOS) /Applications/cosmos
+
+* (Windows) c:\cosmos
+* (Linux) /usr/local/cosmos
+* (MacOS) /Applications/cosmos
+
 If you do not have write permission (eg: /usr/local/linux),  or you choose
 your own location, then you will need to set the COSMOS environment variable
 to this location. (Note: It is permissible to set the COSMOS environment variable
@@ -81,8 +76,10 @@ nodes you wish to work with from DEVELOPMENT\nodes to INSTALL\nodes.
 Cmake.
 
 For Qt Creator, Open two instances of Qt Creator and load two agent example projects: 
-* - core/examples/agents/agent_001.pro 
-* - core/examples/agents/agent_002.pro 
+
+* core/examples/agents/agent_001.pro 
+* core/examples/agents/agent_002.pro
+
 Compile and execute the two programs. Start agent_002 first. 
 The two COSMOS agents will start talking to each other.
 
@@ -104,18 +101,20 @@ $make install
 ```
 
 
---to compile from Qt Creator
-*Start Qt Creator
-*Open DEVELOPMENT/core/CMakeLists.txt
-*Choose a build directory of DEVELOPMENT/core/build/{windows|linux|macos} (depending on your OS)
-*Run CMake
-*Build install
+To compile from Qt Creator:
+
+* Start Qt Creator
+* Open DEVELOPMENT/core/CMakeLists.txt
+* Choose a build directory of DEVELOPMENT/core/build/{windows|linux|macos} (depending on your OS)
+* Run CMake
+* Build install
 
 For more detailed instructions to get started with COSMOS
 please read the GET-STARTED-WITH-COSMOS.txt inside the 
 documentation folder.
 
 By default we recommend that COSMOS is installed if the following folders
+
 * for Windows: C:\cosmos
 * for MacOS: /Applications/cosmos
 * for Linux/Unix: /usr/local/cosmos
