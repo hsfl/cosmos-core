@@ -443,32 +443,61 @@ uint16_t json_hash(string hstring)
 	return (hashval % JSON_MAX_HASH);
 }
 
-//! Enter an alias into the JSON Alias map
+//! Enter an alias into the JSON Namespace.
 /*! See if the provided name is in the Namespace. If so, add an entry
  * for the provided alias that points to the same location.
- * \param name Namespace name that should already exist in the Namespace
  * \param alias Name to add as an alias.
+ * \param value Either the contents of an equation, or a Namespace name that
+ * should already exist in the Namespace
  * \param cdata Pointer to ::cosmosstruc.
  * \return The current number of entries, if successful, 0 if the entry could not be
  * added.
 */
-uint16_t json_addalias(string name, string alias, cosmosstruc *cdata)
+uint16_t json_addentry(string alias, string value, cosmosstruc *cdata)
 {
 	jsonhandle handle;
 	uint16_t count = 0;
-	if (!json_name_map(name, cdata, handle))
+	// Add this alias only if it is not already in the map
+	if (json_name_map(alias, cdata, handle))
 	{
-		jsonentry tentry = cdata[0].jmap[handle.hash][handle.index];
+		jsonentry tentry;
 		tentry.name = alias;
-		count = json_addentry(tentry, &cdata[0]);
-		if (count)
+		// If it begins with ( then it is an equation
+		if (value[0] == '(')
 		{
-			cdata[0].amap[alias] = name;
+			// Add new equation
+			equationstruc teq;
+			teq.name = alias;
+			teq.value = value;
+			cdata[0].equation.push_back(teq);
+			// Point to it in the map
+			tentry.type = JSON_TYPE_EQUATION;
+			tentry.group = JSON_GROUP_EQUATION;
+			tentry.offset = cdata[0].equation.size() - 1;
+			tentry.size = value.size();
+			count = json_addentry(tentry, &cdata[0]);
+		}
+		else
+		{
+			// It is a Namespace name which should only be added if it is in the map
+			if (!json_name_map(value, cdata, handle))
+			{
+				// Add new alias
+				aliasstruc talias;
+				talias.name = alias;
+				talias.handle = handle;
+				cdata[0].alias.push_back(talias);
+				// Point to it in the map
+				tentry.type = JSON_TYPE_ALIAS;
+				tentry.group = JSON_GROUP_ALIAS;
+				tentry.offset = cdata[0].alias.size() - 1;
+				tentry.size = COSMOS_SIZEOF(jsonhandle);
+				count = json_addentry(tentry, &cdata[0]);
+			}
 		}
 	}
 	return count;
 }
-
 
 //! Enter an entry into the JSON Namespace.
 /*! Enters a ::jsonentry in the JSON Data Name Space.
@@ -508,13 +537,13 @@ uint16_t json_addentry(jsonentry entry, cosmosstruc *cdata)
 	\return The current number of entries, if successful, 0 if the entry could not be
 	added, or if enough memory could not be allocated to hold the JSON stream.
 */
-uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit)
+uint16_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit)
 {
 	jsonentry tentry;
 	char ename[COSMOS_MAX_NAME];
 
 	// Determine extended name
-	strcpy(ename,name);
+	strcpy(ename,name.c_str());
 	if (d1 < 65535)
 		sprintf(&ename[strlen(ename)],"_%03u",d1);
 	if (d2 < 65535)
@@ -550,7 +579,7 @@ uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t off
 	\return The current number of entries, if successful, 0 if the entry could not be
 	added, or if enough memory could not be allocated to hold the JSON stream.
 */
-uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata)
+uint16_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata)
 {
 	return (json_addentry(name, d1, d2, offset, size, type, group, cdata, 0));
 }
@@ -628,15 +657,49 @@ int32_t json_out_entry(string &jstring, jsonentry* entry, cosmosstruc *cdata)
 	return (iretn);
 }
 
+//! Output JSON Pair
+/*! Append a name:value pair to the provided JSON String for a variable in
+ * the JSON Namespace, based on the provided data and type.
+ * \param jstring Reference to JSON String to append to.
+ * \param name Namespace name of variable.
+ * \param data Pointer to location in ::cosmosstruc of variable.
+ * \param type Type of variable.
+ * \param cdata Pointer to ::cosmosstruc representing Namespace.
+ * \return Zero or negative error.
+*/
 int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t type, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
 	if (!cdata || !cdata[0].jmapped)
-		return (JSON_ERROR_NOJMAP);
+	{
+		return JSON_ERROR_NOJMAP;
+	}
 
 	if ((iretn=json_out_name(jstring ,name)) != 0)
-		return (iretn);
+	{
+		return iretn;
+	}
+
+	if ((iretn=json_out_type(jstring, data, type, cdata)) != 0)
+	{
+		return iretn;
+	}
+
+	return 0;
+}
+
+//! Output JSON Value
+/*! Append the value of a name:value pair to the provided JSON String for a variable in
+ * the JSON Namespace, based on the provided data and type.
+ * \param jstring Reference to JSON String to append to.
+ * \param data Pointer to location of variable.
+ * \param type Type of variable.
+ * \return Zero or negative error.
+*/
+int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc *cdata)
+{
+	int32_t iretn;
 
 	switch (type)
 	{
@@ -755,6 +818,25 @@ int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t typ
 		{
 			if ((iretn=json_out_locstruc(jstring,*(locstruc *)data)) != 0)
 				return (iretn);
+			break;
+		}
+	case JSON_TYPE_ALIAS:
+		{
+			jsonhandle *hptr = (jsonhandle *)data;
+			jsonentry *eptr = &cdata[0].jmap[hptr->hash][hptr->index];
+			if ((iretn=json_out_type(jstring, eptr->data.data(), eptr->type, cdata)) != 0)
+			{
+				return iretn;
+			}
+			break;
+		}
+	case JSON_TYPE_EQUATION:
+		{
+			const char *tpointer = (char *)data;
+			if ((iretn=json_out_double(jstring, json_equation(&tpointer, cdata))) != 0)
+			{
+				return iretn;
+			}
 			break;
 		}
 	}
@@ -2064,6 +2146,12 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cdata
 	case JSON_GROUP_TLE:
 		data = offset+(uint8_t *)cdata[0].tle.data();
 		break;
+	case JSON_GROUP_ALIAS:
+		data = (uint8_t *)&cdata[0].alias[(size_t)offset];
+		break;
+	case JSON_GROUP_EQUATION:
+		data = (uint8_t *)&cdata[0].equation[offset];
+		break;
 	}
 	return (data);
 }
@@ -2091,7 +2179,7 @@ int32_t json_table_of_list(vector<jsonentry*> &table, const char *tokens, cosmos
 	{
 		if ((iretn=json_parse_string(pointer, tstring)) != 0)
 			return (iretn);
-		tentry = json_entry_of_name(tstring, cdata);
+		tentry = json_entry_of(tstring, cdata);
 		table.push_back(tentry);
 	} while (!json_parse_character(pointer,','));
 	if ((iretn=json_parse_character(pointer,'}')) != 0 && iretn!=JSON_ERROR_EOS)
@@ -2106,7 +2194,7 @@ int32_t json_table_of_list(vector<jsonentry*> &table, const char *tokens, cosmos
  \param cdata Address of the ::cosmosstruc that may contain the ptr.
  \return Pointer to the ::jsonentry for the token, or NULL.
 */
-jsonentry *json_entry_of_ptr(uint8_t *ptr, cosmosstruc *cdata)
+jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cdata)
 {
 	uint16_t n, m;
 	uint16_t group = UINT16_MAX;
@@ -2175,7 +2263,7 @@ jsonentry *json_entry_of_ptr(uint8_t *ptr, cosmosstruc *cdata)
  \param token Namespace name to look up
  \return Pointer to the ::jsonentry for the token, or NULL.
 */
-jsonentry *json_entry_of_name(string token, cosmosstruc *cdata)
+jsonentry *json_entry_of(string token, cosmosstruc *cdata)
 {
 	int16_t hash;
 	uint16_t n;
@@ -2190,13 +2278,30 @@ jsonentry *json_entry_of_name(string token, cosmosstruc *cdata)
 
 	for (n=0; n<cdata[0].jmap[hash].size(); n++)
 	{
-		//		if (!strcmp(token.c_str(),cdata[0].jmap[hash][n].name))
 		if (token == cdata[0].jmap[hash][n].name)
 		{
 			return ((jsonentry *)&cdata[0].jmap[hash][n]);
 		}
 	}
 	return ((jsonentry *)NULL);
+}
+
+//! Info on Namespace name
+/*! Return a pointer to the Namespace Entry structure containing the
+ * information for a given name.
+ \param token Namespace name to look up
+ \return Pointer to the ::jsonentry for the token, or NULL.
+*/
+jsonentry *json_entry_of(jsonhandle handle, cosmosstruc *cdata)
+{
+	if (!cdata || !cdata[0].jmapped || handle.hash >= cdata[0].jmap.size())
+		return nullptr;
+
+	if (cdata[0].jmap[handle.hash].size() > handle.index)
+	{
+		return ((jsonentry *)&cdata[0].jmap[handle.hash][handle.index]);
+	}
+	return ((jsonentry *)nullptr);
 }
 
 //! Type of namespace name.
@@ -2211,7 +2316,7 @@ uint16_t json_type_of_name(string token, cosmosstruc *cdata)
 	if (token[0] == '(')
 		return (JSON_TYPE_EQUATION);
 
-	if ((entry=json_entry_of_name(token, cdata)) != NULL)
+	if ((entry=json_entry_of(token, cdata)) != NULL)
 	{
 		return (entry->type);
 	}
@@ -2229,7 +2334,7 @@ uint8_t *json_ptrto(string token, cosmosstruc *cdata)
 {
 	jsonentry *ptr;
 
-	if ((ptr=json_entry_of_name(token,cdata)) == NULL)
+	if ((ptr=json_entry_of(token,cdata)) == NULL)
 		return ((uint8_t *)NULL);
 	else
 		return (json_ptr_of_offset(ptr->offset,ptr->group,cdata));
@@ -2280,6 +2385,93 @@ uint8_t *json_ptrto_2d(string token, uint16_t index1, uint16_t index2, cosmosstr
 
 }
 
+//! Return integer from handle.
+/*! If the value at this ::jsonhandle can in any way be interepreted as a number,
+ * return it as an int32_t.
+ \param handle ::jsonhandle for a valid COSMOS Namespace entry.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as an int32_t, or 0.
+*/
+int32_t json_get_int(jsonhandle &handle, cosmosstruc *cdata)
+{
+	int32_t value=0.;
+
+	if (cdata[0].jmap[handle.hash].size() <= handle.index)
+	{
+		return 0;
+	}
+
+	value = json_get_int(&cdata[0].jmap[handle.hash][handle.index], cdata);
+	return value;
+}
+
+//! Return integer from entry.
+/*! If the value stored in this ::jsonentry can in any way be interepreted as a number,
+ * return it as an int32_t.
+ \param entry A valid COSMOS Namespace entry.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as an int32_t, or 0.
+*/
+int32_t json_get_int(jsonentry *entry, cosmosstruc *cdata)
+{
+	uint8_t *dptr=nullptr;
+	int32_t value=0.;
+
+	dptr = json_ptr_of_offset(entry->offset,entry->group,cdata);
+	if (dptr == nullptr)
+	{
+		return 0.;
+	}
+	else
+	{
+		switch (entry->type)
+		{
+		case JSON_TYPE_UINT16:
+			value = (int32_t)(*(uint16_t *)(dptr));
+			break;
+		case JSON_TYPE_UINT32:
+			value = (int32_t)(*(uint32_t *)(dptr));
+			break;
+		case JSON_TYPE_INT16:
+			value = (int32_t)(*(int16_t *)(dptr));
+			break;
+		case JSON_TYPE_INT32:
+			value = (int32_t)(*(int32_t *)(dptr));
+			break;
+		case JSON_TYPE_FLOAT:
+			value = (int32_t)(*(float *)(dptr));
+			break;
+		case JSON_TYPE_DOUBLE:
+		case JSON_TYPE_TIMESTAMP:
+			value = (int32_t)(*(double *)(dptr) + .5);
+			break;
+		case JSON_TYPE_STRING:
+			value = atol((char *)(dptr));
+			break;
+		case JSON_TYPE_EQUATION:
+			{
+				const char *tpointer = (char *)dptr;
+				value = (int32_t)json_equation(&tpointer, cdata);
+			}
+			break;
+		case JSON_TYPE_ALIAS:
+			{
+				jsonentry *eptr;
+				if ((eptr=json_entry_of((*(jsonhandle *)(dptr)), cdata)) == nullptr)
+				{
+					value =  0;
+				}
+				else
+				{
+					value = json_get_int(eptr, cdata);
+				}
+			}
+			break;
+		}
+		return value;
+	}
+}
+
 //! Return integer from name.
 /*! If the named value can in any way be interepreted as a number,
  * return it as a signed 32 bit integer.
@@ -2287,42 +2479,394 @@ uint8_t *json_ptrto_2d(string token, uint16_t index1, uint16_t index2, cosmosstr
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a signed 32 bit integer, or 0.
 */
-int32_t json_get_int_name(string token, cosmosstruc *cdata)
+int32_t json_get_int(string token, cosmosstruc *cdata)
 {
 	int32_t value=0;
 	jsonentry *ptr;
 
-	if ((ptr=json_entry_of_name(token,cdata)) == NULL)
-		return 0;
-
-	switch (ptr->type)
+	if ((ptr=json_entry_of(token,cdata)) == nullptr)
 	{
-	case JSON_TYPE_UINT16:
-		value = (int32_t)(*(uint16_t *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_UINT32:
-		value = (int32_t)(*(uint32_t *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_INT16:
-		value = (int32_t)(*(int16_t *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_INT32:
-		value = (int32_t)(*(int32_t *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_FLOAT:
-		value = (int32_t)(*(float *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_DOUBLE:
-	case JSON_TYPE_TIMESTAMP:
-		value = (int32_t)(*(double *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)) + .5);
-		break;
-	case JSON_TYPE_STRING:
-		value = atol((char *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
+		return 0;
 	}
 
+	value = json_get_int(ptr, cdata);
 	return (value);
 
+}
+
+//! Return integer from 1d name.
+/*! If the named 1d indexed value can in any way be interepreted as a number,
+ * return it as a signed 32 bit integer.
+ \param token Valid COSMOS Namespace name.
+ \param index1 1d index.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as a signed 32 bit integer, or 0.
+*/
+int32_t json_get_int(string token, uint16_t index1, cosmosstruc *cdata)
+{
+	int32_t value;
+	char tstring[5+COSMOS_MAX_NAME];
+
+	if (index1 > 999)
+		return 0;
+
+	// Create extended name, shortening if neccessary
+	sprintf(tstring,"%.*s_%03u",COSMOS_MAX_NAME,token.c_str(), index1);
+
+	value = json_get_int(tstring,cdata);
+
+	return (value);
+}
+
+//! Return integer from 2d name.
+/*! If the named 2d indexed value can in any way be interepreted as a number,
+ * return it as a signed 32 bit integer.
+ \param token Valid COSMOS Namespace name.
+ \param index1 1d index.
+ \param index2 2d index.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as a signed 32 bit integer, or 0.
+*/
+int32_t json_get_int(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
+{
+	int32_t value;
+	char tstring[9+COSMOS_MAX_NAME];
+
+	if (index1 > 999)
+		return 0;
+
+	// Create extended name, shortening if neccessary
+	sprintf(tstring,"%.*s_%03u_%03u",COSMOS_MAX_NAME,token.c_str(), index1,index2);
+
+	value = json_get_int(tstring,cdata);
+
+	return (value);
+}
+
+//! Return unsigned integer from handle.
+/*! If the value at this ::jsonhandle can in any way be interepreted as a number,
+ * return it as an uint32_t.
+ \param handle ::jsonhandle for a valid COSMOS Namespace entry.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as an uint32_t, or 0.
+*/
+uint32_t json_get_uint(jsonhandle &handle, cosmosstruc *cdata)
+{
+	uint32_t value=0.;
+
+	if (cdata[0].jmap[handle.hash].size() <= handle.index)
+	{
+		return 0;
+	}
+
+	value = json_get_uint(&cdata[0].jmap[handle.hash][handle.index], cdata);
+	return value;
+}
+
+//! Return unsigned integer from entry.
+/*! If the value stored in this ::jsonentry can in any way be interepreted as a number,
+ * return it as an uint32_t.
+ \param entry A valid COSMOS Namespace entry.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as an uint32_t, or 0.
+*/
+uint32_t json_get_uint(jsonentry *entry, cosmosstruc *cdata)
+{
+	uint8_t *dptr=nullptr;
+	uint32_t value=0.;
+
+	dptr = json_ptr_of_offset(entry->offset,entry->group,cdata);
+	if (dptr == nullptr)
+	{
+		return 0.;
+	}
+	else
+	{
+		switch (entry->type)
+		{
+		case JSON_TYPE_UINT16:
+			value = (uint32_t)(*(uint16_t *)(dptr));
+			break;
+		case JSON_TYPE_UINT32:
+			value = (uint32_t)(*(uint32_t *)(dptr));
+			break;
+		case JSON_TYPE_INT16:
+			value = (uint32_t)(*(int16_t *)(dptr));
+			break;
+		case JSON_TYPE_INT32:
+			value = (uint32_t)(*(int32_t *)(dptr));
+			break;
+		case JSON_TYPE_FLOAT:
+			value = (uint32_t)(*(float *)(dptr));
+			break;
+		case JSON_TYPE_DOUBLE:
+		case JSON_TYPE_TIMESTAMP:
+			value = (uint32_t)(*(double *)(dptr) + .5);
+			break;
+		case JSON_TYPE_STRING:
+			value = atol((char *)(dptr));
+			break;
+		case JSON_TYPE_EQUATION:
+			{
+				const char *tpointer = (char *)dptr;
+				value = (uint32_t)json_equation(&tpointer, cdata);
+			}
+			break;
+		case JSON_TYPE_ALIAS:
+			{
+				jsonentry *eptr;
+				if ((eptr=json_entry_of((*(jsonhandle *)(dptr)), cdata)) == nullptr)
+				{
+					value =  0;
+				}
+				else
+				{
+					value = json_get_uint(eptr, cdata);
+				}
+			}
+			break;
+		}
+		return value;
+	}
+}
+
+//! Return unsigned integer from name.
+/*! If the named value can in any way be interepreted as a number,
+ * return it as a signed 32 bit unsigned integer.
+ \param token Valid COSMOS Namespace name.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as a signed 32 bit unsigned integer, or 0.
+*/
+uint32_t json_get_uint(string token, cosmosstruc *cdata)
+{
+	uint32_t value=0;
+	jsonentry *ptr;
+
+	if ((ptr=json_entry_of(token,cdata)) == nullptr)
+	{
+		return 0;
+	}
+
+	value = json_get_uint(ptr, cdata);
+	return (value);
+
+}
+
+//! Return unsigned integer from 1d name.
+/*! If the named 1d indexed value can in any way be interepreted as a number,
+ * return it as a signed 32 bit unsigned integer.
+ \param token Valid COSMOS Namespace name.
+ \param index1 1d index.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as a signed 32 bit unsigned integer, or 0.
+*/
+uint32_t json_get_uint(string token, uint16_t index1, cosmosstruc *cdata)
+{
+	uint32_t value;
+	char tstring[5+COSMOS_MAX_NAME];
+
+	if (index1 > 999)
+		return 0;
+
+	// Create extended name, shortening if neccessary
+	sprintf(tstring,"%.*s_%03u",COSMOS_MAX_NAME,token.c_str(), index1);
+
+	value = json_get_uint(tstring,cdata);
+
+	return (value);
+}
+
+//! Return unsigned integer from 2d name.
+/*! If the named 2d indexed value can in any way be interepreted as a number,
+ * return it as a signed 32 bit unsigned integer.
+ \param token Valid COSMOS Namespace name.
+ \param index1 1d index.
+ \param index2 2d index.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as a signed 32 bit unsigned integer, or 0.
+*/
+uint32_t json_get_uint(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
+{
+	uint32_t value;
+	char tstring[9+COSMOS_MAX_NAME];
+
+	if (index1 > 999)
+		return 0;
+
+	// Create extended name, shortening if neccessary
+	sprintf(tstring,"%.*s_%03u_%03u",COSMOS_MAX_NAME,token.c_str(), index1,index2);
+
+	value = json_get_uint(tstring,cdata);
+
+	return (value);
+}
+
+//! Return double from handle.
+/*! If the value at this ::jsonhandle can in any way be interepreted as a number,
+ * return it as a double.
+ \param handle ::jsonhandle for a valid COSMOS Namespace entry.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as an double, or 0.
+*/
+double json_get_double(jsonhandle &handle, cosmosstruc *cdata)
+{
+	double value=0.;
+
+	if (cdata[0].jmap[handle.hash].size() <= handle.index)
+	{
+		return 0.;
+	}
+
+	value = json_get_double(&cdata[0].jmap[handle.hash][handle.index], cdata);
+	return value;
+}
+
+//! Return double from name.
+/*! If the named value can in any way be interepreted as a number,
+ * return it as a double.
+ \param token Valid COSMOS Namespace name.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as a double, or 0.
+*/
+double json_get_double(string token, cosmosstruc *cdata)
+{
+	double value=0.;
+	jsonentry *entry;
+	const char* tokenp = &token[0];
+
+	if (!std::isnan(value=json_equation(&tokenp, cdata)))
+		return (value);
+
+	if ((entry=json_entry_of(token,cdata)) == nullptr)
+	{
+		return (NAN);
+	}
+
+	if (!std::isnan(value=json_get_double(entry, cdata)))
+		return (value);
+
+	return (NAN);
+}
+
+//! Return double from entry.
+/*! If the named value can in any way be interepreted as a number,
+ * return it as a double.
+ \param ptr Pointer to a valid COSMOS Namespace entry.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as a double, or 0.
+*/
+double json_get_double(jsonentry *entry, cosmosstruc *cdata)
+{
+	uint8_t *dptr=nullptr;
+	double value=0.;
+
+	dptr = json_ptr_of_offset(entry->offset,entry->group,cdata);
+	if (dptr == nullptr)
+	{
+		return 0.;
+	}
+	else
+	{
+		switch (entry->type)
+		{
+		case JSON_TYPE_UINT16:
+			value = (double)(*(uint16_t *)(dptr));
+			break;
+		case JSON_TYPE_UINT32:
+			value = (double)(*(uint32_t *)(dptr));
+			break;
+		case JSON_TYPE_INT16:
+			value = (double)(*(int16_t *)(dptr));
+			break;
+		case JSON_TYPE_INT32:
+			value = (double)(*(int32_t *)(dptr));
+			break;
+		case JSON_TYPE_FLOAT:
+			value = (double)(*(float *)(dptr));
+			break;
+		case JSON_TYPE_DOUBLE:
+		case JSON_TYPE_TIMESTAMP:
+			value = (double)(*(double *)(dptr));
+			break;
+		case JSON_TYPE_STRING:
+			value = atof((char *)dptr);
+			break;
+		case JSON_TYPE_EQUATION:
+			{
+				const char *tpointer = (char *)dptr;
+				value = (double)json_equation(&tpointer, cdata);
+			}
+			break;
+		case JSON_TYPE_ALIAS:
+			{
+				jsonentry *eptr;
+				if ((eptr=json_entry_of((*(jsonhandle *)(dptr)), cdata)) == nullptr)
+				{
+					value =  0;
+				}
+				else
+				{
+					value = json_get_double(eptr, cdata);
+				}
+			}
+			break;
+		default:
+			value = 0;
+		}
+
+		return value;
+	}
+}
+
+//! Return double from 1d name.
+/*! If the named 1d indexed value can in any way be interepreted as a number,
+ * return it as a double.
+ \param token Valid COSMOS Namespace name.
+ \param index1 1d index.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as a double, or 0.
+*/
+double json_get_double(string token, uint16_t index1, cosmosstruc *cdata)
+{
+	double value;
+	char tstring[5+COSMOS_MAX_NAME];
+
+	if (index1 > 999)
+		return 0;
+
+	// Create extended name, shortening if neccessary
+	sprintf(tstring,"%.*s_%03u",COSMOS_MAX_NAME,token.c_str(), index1);
+
+
+	value = json_get_double(tstring,cdata);
+
+	return (value);
+}
+
+//! Return double from 2d name.
+/*! If the named 2d indexed value can in any way be interepreted as a number,
+ * return it as a double.
+ \param token Valid COSMOS Namespace name.
+ \param index1 1d index.
+ \param index2 2d index.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as a double, or 0.
+*/
+double json_get_double(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
+{
+	double value;
+	char tstring[9+COSMOS_MAX_NAME];
+
+	if (index1 > 999)
+		return 0;
+
+	// Create extended name, shortening if neccessary
+	sprintf(tstring,"%.*s_%03u_%03u",COSMOS_MAX_NAME,token.c_str(), index1,index2);
+
+
+	value = json_get_double(tstring,cdata);
+
+	return (value);
 }
 
 //! Return string from name.
@@ -2340,7 +2884,7 @@ string json_get_string_name(string token, cosmosstruc *cdata)
 	string tstring;
 	char tbuf[20];
 
-	if ((ptr=json_entry_of_name(token,cdata)) == NULL)
+	if ((ptr=json_entry_of(token,cdata)) == NULL)
 		return (tstring);
 
 	switch (ptr->type)
@@ -2380,293 +2924,6 @@ string json_get_string_name(string token, cosmosstruc *cdata)
 	return (tstring);
 }
 
-//! Return integer from 1d name.
-/*! If the named 1d indexed value can in any way be interepreted as a number,
- * return it as a signed 32 bit integer.
- \param token Valid COSMOS Namespace name.
- \param index1 1d index.
- \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- \return Value cast as a signed 32 bit integer, or 0.
-*/
-int32_t json_get_int_name_1d(string token, uint16_t index1, cosmosstruc *cdata)
-{
-	int32_t value;
-	char tstring[5+COSMOS_MAX_NAME];
-
-	if (index1 > 999)
-		return 0;
-
-	// Create extended name, shortening if neccessary
-	sprintf(tstring,"%.*s_%03u",COSMOS_MAX_NAME,token.c_str(), index1);
-
-	value = json_get_int_name(tstring,cdata);
-
-	return (value);
-}
-
-//! Return integer from 2d name.
-/*! If the named 2d indexed value can in any way be interepreted as a number,
- * return it as a signed 32 bit integer.
- \param token Valid COSMOS Namespace name.
- \param index1 1d index.
- \param index2 2d index.
- \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- \return Value cast as a signed 32 bit integer, or 0.
-*/
-int32_t json_get_int_name_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
-{
-	int32_t value;
-	char tstring[9+COSMOS_MAX_NAME];
-
-	if (index1 > 999)
-		return 0;
-
-	// Create extended name, shortening if neccessary
-	sprintf(tstring,"%.*s_%03u_%03u",COSMOS_MAX_NAME,token.c_str(), index1,index2);
-
-	value = json_get_int_name(tstring,cdata);
-
-	return (value);
-}
-
-//! Return unsigned integer from name.
-/*! If the named value can in any way be interepreted as a number,
- * return it as an unsigned 32 bit integer.
- \param token Valid COSMOS Namespace name.
- \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- \return Value cast as an unsigned 32 bit integer, or 0.
-*/
-uint32_t json_get_uint_name(string token, cosmosstruc *cdata)
-{
-	uint32_t value=0;
-	jsonentry *ptr;
-
-	if ((ptr=json_entry_of_name(token,cdata)) == NULL)
-		return 0;
-
-	switch (ptr->type)
-	{
-	case JSON_TYPE_UINT16:
-		value = (uint32_t)(*(uint16_t *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_UINT32:
-		value = (uint32_t)(*(uint32_t *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_INT16:
-		value = (uint32_t)(*(int16_t *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_INT32:
-		value = (uint32_t)(*(int32_t *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_FLOAT:
-		value = (uint32_t)(*(float *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	case JSON_TYPE_DOUBLE:
-	case JSON_TYPE_TIMESTAMP:
-		value = (uint32_t)(*(double *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)) + .5);
-		break;
-	case JSON_TYPE_STRING:
-		value = (uint32_t)atol((char *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
-		break;
-	}
-
-	return (value);
-
-}
-
-//! Return unsigned integer from 1d name.
-/*! If the named 1d indexed value can in any way be interepreted as a number,
- * return it as an unsigned 32 bit integer.
- \param token Valid COSMOS Namespace name.
- \param index1 1d index.
- \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- \return Value cast as an unsigned 32 bit integer, or 0.
-*/
-uint32_t json_get_uint_name_1d(string token, uint16_t index1, cosmosstruc *cdata)
-{
-	uint32_t value;
-	char tstring[5+COSMOS_MAX_NAME];
-
-	if (index1 > 999)
-		return 0;
-
-	// Create extended name, shortening if neccessary
-	sprintf(tstring,"%.*s_%03u",COSMOS_MAX_NAME,token.c_str(), index1);
-
-
-	value = json_get_uint_name(tstring,cdata);
-
-	return (value);
-}
-
-//! Return unsigned integer from 2d name.
-/*! If the named 2d indexed value can in any way be interepreted as a number,
- * return it as an unsigned 32 bit integer.
- \param token Valid COSMOS Namespace name.
- \param index1 1d index.
- \param index2 2d index.
- \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- \return Value cast as an unsigned 32 bit integer, or 0.
-*/
-uint32_t json_get_uint_name_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
-{
-	uint32_t value;
-	char tstring[9+COSMOS_MAX_NAME];
-
-	if (index1 > 999)
-		return 0;
-
-	// Create extended name, shortening if neccessary
-	sprintf(tstring,"%.*s_%03u_%03u",COSMOS_MAX_NAME,token.c_str(), index1,index2);
-
-	value = json_get_uint_name(tstring,cdata);
-
-	return (value);
-}
-
-//! Return double from name.
-/*! If the named value can in any way be interepreted as a number,
- * return it as a double.
- \param token Valid COSMOS Namespace name.
- \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- \return Value cast as a double, or 0.
-*/
-double json_get_double_name(string token, cosmosstruc *cdata)
-{
-	double value=0.;
-	jsonentry *entry;
-	const char* tokenp = &token[0];
-
-	if (!std::isnan(value=json_equation(&tokenp, cdata)))
-		return (value);
-
-	if ((entry=json_entry_of_name(token,cdata)) == NULL)
-		return (NAN);
-
-	if (!std::isnan(value=json_get_double_entry(entry, cdata)))
-		return (value);
-
-	return (NAN);
-}
-
-//! Return double from entry.
-/*! If the named value can in any way be interepreted as a number,
- * return it as a double.
- \param ptr Pointer to a valid COSMOS Namespace entry.
- \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- \return Value cast as a double, or 0.
-*/
-double json_get_double_entry(jsonentry *entry, cosmosstruc *cdata)
-{
-	uint8_t *data=nullptr;
-	double value=0.;
-
-	data = json_ptr_of_offset(entry->offset,entry->group,cdata);
-	if (data == nullptr)
-	{
-		return 0.;
-	}
-	else
-	{
-		value = json_get_double_pointer(entry->type, data);
-		return value;
-	}
-}
-
-//! Return double from pointer.
-/*! Cast the data in the provided pointer to its native type, and then
- * convert this to a double, if at all possible.
- \param entry Pointer to a valid COSMOS Namespace entry.
- \param pointer Pointer to memory space where data is stored.
- \return Value cast as a double, or 0.
-*/
-double json_get_double_pointer(uint16_t type, uint8_t *pointer)
-{
-	double value;
-
-	switch (type)
-	{
-	case JSON_TYPE_UINT16:
-		value = (double)(*(uint16_t *)(pointer));
-		break;
-	case JSON_TYPE_UINT32:
-		value = (double)(*(uint32_t *)(pointer));
-		break;
-	case JSON_TYPE_INT16:
-		value = (double)(*(int16_t *)(pointer));
-		break;
-	case JSON_TYPE_INT32:
-		value = (double)(*(int32_t *)(pointer));
-		break;
-	case JSON_TYPE_FLOAT:
-		value = (double)(*(float *)(pointer));
-		break;
-	case JSON_TYPE_DOUBLE:
-	case JSON_TYPE_TIMESTAMP:
-		value = (double)(*(double *)(pointer));
-		break;
-	case JSON_TYPE_STRING:
-		value = atof((char *)pointer);
-		break;
-	default:
-		value = 0;
-	}
-
-	return (value);
-
-}
-
-//! Return double from 1d name.
-/*! If the named 1d indexed value can in any way be interepreted as a number,
- * return it as a double.
- \param token Valid COSMOS Namespace name.
- \param index1 1d index.
- \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- \return Value cast as a double, or 0.
-*/
-double json_get_double_name_1d(string token, uint16_t index1, cosmosstruc *cdata)
-{
-	double value;
-	char tstring[5+COSMOS_MAX_NAME];
-
-	if (index1 > 999)
-		return 0;
-
-	// Create extended name, shortening if neccessary
-	sprintf(tstring,"%.*s_%03u",COSMOS_MAX_NAME,token.c_str(), index1);
-
-
-	value = json_get_double_name(tstring,cdata);
-
-	return (value);
-}
-
-//! Return double from 2d name.
-/*! If the named 2d indexed value can in any way be interepreted as a number,
- * return it as a double.
- \param token Valid COSMOS Namespace name.
- \param index1 1d index.
- \param index2 2d index.
- \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- \return Value cast as a double, or 0.
-*/
-double json_get_double_name_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
-{
-	double value;
-	char tstring[9+COSMOS_MAX_NAME];
-
-	if (index1 > 999)
-		return 0;
-
-	// Create extended name, shortening if neccessary
-	sprintf(tstring,"%.*s_%03u_%03u",COSMOS_MAX_NAME,token.c_str(), index1,index2);
-
-
-	value = json_get_double_name(tstring,cdata);
-
-	return (value);
-}
-
 //! Set name from double.
 /*! If the provided double can in any way be placed in the name it
  * will.
@@ -2680,7 +2937,7 @@ int32_t json_set_double_name(double value, char *token, cosmosstruc *cdata)
 	utype *nval;
 	jsonentry *ptr;
 
-	if ((ptr=json_entry_of_name(token,cdata)) == NULL)
+	if ((ptr=json_entry_of(token,cdata)) == NULL)
 		return 0;
 
 	nval = (utype *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata));
@@ -2726,6 +2983,7 @@ int32_t json_set_double_name(double value, char *token, cosmosstruc *cdata)
 	- '>': logical Greater Than
 	- '<': logical Less Than
 	- '=': logical Equal
+	- '^': power
   \param pointer Pointer to a pointer to a JSON stream.
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
   \return Result of the equation, or NAN.
@@ -2784,7 +3042,7 @@ double json_equation_entry(jsonequation *ptr, cosmosstruc *cdata)
 			a[i] = json_equation_entry(&cdata[0].emap[ptr->operand[i].data.hash][ptr->operand[i].data.index], cdata);
 			break;
 		case JSON_OPERAND_NAME:
-			a[i] = json_get_double_entry(&cdata[0].jmap[ptr->operand[i].data.hash][ptr->operand[i].data.index],cdata);
+			a[i] = json_get_double(&cdata[0].jmap[ptr->operand[i].data.hash][ptr->operand[i].data.index],cdata);
 			break;
 		}
 	}
@@ -2827,6 +3085,8 @@ double json_equation_entry(jsonequation *ptr, cosmosstruc *cdata)
 	case JSON_OPERATION_EQ:
 		c = a[0] == a[1];
 		break;
+	case JSON_OPERATION_POWER:
+		c = pow(a[0], a[1]);
 	}
 	return (c);
 }
@@ -3675,23 +3935,23 @@ int32_t json_parse_value(const char **pointer, uint16_t type, ptrdiff_t offset, 
 
 	switch (type)
 	{
-    case JSON_TYPE_UINT8:
-        if (std::isnan(val=json_equation(pointer,cdata)))
-        {
-            if ((iretn = json_parse_number(pointer,&val)) < 0)
-                return (iretn);
-        }
-        *(uint8_t *)data = (uint8_t)val;
-        break;
+	case JSON_TYPE_UINT8:
+		if (std::isnan(val=json_equation(pointer,cdata)))
+		{
+			if ((iretn = json_parse_number(pointer,&val)) < 0)
+				return (iretn);
+		}
+		*(uint8_t *)data = (uint8_t)val;
+		break;
 
-    case JSON_TYPE_INT8:
-        if (std::isnan(val=json_equation(pointer,cdata)))
-        {
-            if ((iretn = json_parse_number(pointer,&val)) < 0)
-                return (iretn);
-        }
-        *(int8_t *)data = (int8_t)val;
-        break;
+	case JSON_TYPE_INT8:
+		if (std::isnan(val=json_equation(pointer,cdata)))
+		{
+			if ((iretn = json_parse_number(pointer,&val)) < 0)
+				return (iretn);
+		}
+		*(int8_t *)data = (int8_t)val;
+		break;
 
 	case JSON_TYPE_UINT16:
 		if (std::isnan(val=json_equation(pointer,cdata)))
@@ -3907,7 +4167,7 @@ int32_t json_parse_value(const char **pointer, uint16_t type, ptrdiff_t offset, 
 		{
 			gp->utc = currentmjd(cdata[0].node.utcoffset);
 		}
-		
+
 		if ((iretn = json_parse_value(pointer, (uint16_t)JSON_TYPE_GVECTOR,offset+(ptrdiff_t)offsetof(geoidpos,s),group,cdata)) < 0)
 			return (iretn);
 		if ((iretn = json_parse_character(pointer,',')) < 0)
@@ -3947,7 +4207,7 @@ int32_t json_parse_value(const char **pointer, uint16_t type, ptrdiff_t offset, 
 		{
 			sp->utc = currentmjd(cdata[0].node.utcoffset);
 		}
-		
+
 		if ((iretn = json_parse_value(pointer, (uint16_t)JSON_TYPE_SVECTOR,offset+(ptrdiff_t)offsetof(spherpos,s),group,cdata)) < 0)
 			return (iretn);
 		if ((iretn = json_parse_character(pointer,',')) < 0)
@@ -3992,7 +4252,7 @@ int32_t json_parse_value(const char **pointer, uint16_t type, ptrdiff_t offset, 
 		{
 			rp->utc = currentmjd(cdata[0].node.utcoffset);
 		}
-		
+
 		if ((iretn = json_parse_value(pointer, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(cartpos,s),group,cdata)) < 0)
 			return (iretn);
 		if ((iretn = json_parse_character(pointer,',')) < 0)
@@ -4061,7 +4321,7 @@ int32_t json_parse_value(const char **pointer, uint16_t type, ptrdiff_t offset, 
 		{
 			qa->utc = currentmjd(cdata[0].node.utcoffset);
 		}
-		
+
 		if ((iretn = json_parse_value(pointer, (uint16_t)JSON_TYPE_QUATERNION,offset+(ptrdiff_t)offsetof(qatt,s),group,cdata)) < 0)
 			return (iretn);
 		if ((iretn = json_parse_character(pointer,',')) < 0)
@@ -4599,15 +4859,7 @@ int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
 				{
 					string cname;
 					getline(ifs, cname);
-					json_addalias(cname, alias, cdata);
-//					jsonhandle handle;
-//					if (!json_name_map(cname, cdata, handle))
-//					{
-//						jsonentry tentry = cdata[0].jmap[handle.hash][handle.index];
-//						tentry.name = alias;
-//						json_addentry(tentry, &cdata[0]);
-//						cdata[0].amap[alias] = cname;
-//					}
+					json_addentry(alias, cname, cdata);
 				} ;
 			}
 		}
@@ -4684,7 +4936,7 @@ int32_t json_dump_node(cosmosstruc *cdata)
 	fclose(file);
 
 	// Aliases
-	if (cdata[0].amap.size())
+	if (cdata[0].alias.size() || cdata[0].equation.size())
 	{
 		filename = fileloc + "/aliases.ini";
 		file = fopen(filename.c_str(), "w");
@@ -4692,9 +4944,13 @@ int32_t json_dump_node(cosmosstruc *cdata)
 		{
 			return -errno;
 		}
-		for (auto &alias : cdata[0].amap)
+		for (aliasstruc &alias : cdata[0].alias)
 		{
-			fprintf(file, "%s %s\n", alias.first.c_str(), alias.second.c_str());
+			fprintf(file, "%s %s\n", alias.name.c_str(), cdata[0].jmap[alias.handle.hash][alias.handle.index].name.c_str());
+		}
+		for (equationstruc &equation : cdata[0].equation)
+		{
+			fprintf(file, "%s %s\n", equation.name.c_str(), equation.value.c_str());
 		}
 		fclose(file);
 	}
@@ -4803,6 +5059,12 @@ uint16_t json_addbaseentry(cosmosstruc *cdata)
 	json_addentry("node_loc_pos_geod_s_lon", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lon),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_geod_s_h", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.h),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_geoc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_GEOC,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geoc_v_x", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[0]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geoc_v_y", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[1]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geoc_v_z", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[2]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geoc_s_x", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[0]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geoc_s_y", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[1]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_geoc_s_z", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[2]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_geos", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geos),COSMOS_SIZEOF(spherpos), (uint16_t)JSON_TYPE_POS_GEOS,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_eci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ECI,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_sci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sci),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_SCI,JSON_GROUP_NODE,cdata);
@@ -4914,7 +5176,7 @@ uint16_t json_addpieceentry(uint16_t i, cosmosstruc *cdata)
 uint16_t json_addcompentry(uint16_t i, cosmosstruc *cdata)
 {
 	cdata[0].device[i].all.gen.cidx = i;
-	
+
 	json_addentry("comp_type",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,type)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 	json_addentry("comp_model",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,model)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 	json_addentry("comp_flag",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,flag)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
@@ -6050,7 +6312,7 @@ const char *json_of_event(string &jstring, cosmosstruc *cdata)
 {
 	jstring.clear();
 	json_out(jstring,(char *)"event_utc", cdata);
-	if (json_get_double_name("event_utcexec", cdata) != 0.) json_out(jstring,(char *)"event_utcexec", cdata);
+	if (json_get_double("event_utcexec", cdata) != 0.) json_out(jstring,(char *)"event_utcexec", cdata);
 	json_out(jstring,(char *)"event_node", cdata);
 	json_out(jstring,(char *)"event_name", cdata);
 	json_out(jstring,(char *)"event_user", cdata);
@@ -6058,14 +6320,14 @@ const char *json_of_event(string &jstring, cosmosstruc *cdata)
 	json_out(jstring,(char *)"event_flag", cdata);
 	json_out(jstring,(char *)"event_data", cdata);
 	json_out(jstring,(char *)"event_condition", cdata);
-	if (json_get_double_name("event_dtime", cdata) != 0.) json_out(jstring,"event_dtime", cdata);
-	if (json_get_double_name("event_ctime", cdata) != 0.) json_out(jstring,"event_ctime", cdata);
-	if (json_get_double_name("event_denergy", cdata) != 0.) json_out(jstring,"event_denergy", cdata);
-	if (json_get_double_name("event_cenergy", cdata) != 0.) json_out(jstring,"event_cenergy", cdata);
-	if (json_get_double_name("event_dmass", cdata) != 0.) json_out(jstring,"event_dmass", cdata);
-	if (json_get_double_name("event_cmass", cdata) != 0.) json_out(jstring,"event_cmass", cdata);
-	if (json_get_double_name("event_dbytes", cdata) != 0.) json_out(jstring,"event_dbytes", cdata);
-	if (json_get_double_name("event_cbytes", cdata) != 0.) json_out(jstring,"event_cbytes", cdata);
+	if (json_get_double("event_dtime", cdata) != 0.) json_out(jstring,"event_dtime", cdata);
+	if (json_get_double("event_ctime", cdata) != 0.) json_out(jstring,"event_ctime", cdata);
+	if (json_get_double("event_denergy", cdata) != 0.) json_out(jstring,"event_denergy", cdata);
+	if (json_get_double("event_cenergy", cdata) != 0.) json_out(jstring,"event_cenergy", cdata);
+	if (json_get_double("event_dmass", cdata) != 0.) json_out(jstring,"event_dmass", cdata);
+	if (json_get_double("event_cmass", cdata) != 0.) json_out(jstring,"event_cmass", cdata);
+	if (json_get_double("event_dbytes", cdata) != 0.) json_out(jstring,"event_dbytes", cdata);
+	if (json_get_double("event_cbytes", cdata) != 0.) json_out(jstring,"event_cbytes", cdata);
 
 	return jstring.data();
 }
@@ -6193,7 +6455,7 @@ const char *json_pieces(string &jstring, cosmosstruc *cdata)
 			json_out_character(jstring, '\n');
 			json_out_1d(jstring,(char *)"piece_pnt_cnt",i,cdata);
 			json_out_character(jstring, '\n');
-			cnt = (uint16_t)json_get_int_name_1d((char *)"piece_pnt_cnt",i,cdata);
+			cnt = (uint16_t)json_get_int((char *)"piece_pnt_cnt",i,cdata);
 			for (uint16_t j=0; j<cnt; j++)
 			{
 				json_out_2d(jstring,(char *)"piece_pnt",i,j,cdata);
@@ -6276,7 +6538,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 					json_out_character(jstring, '\n');
 					json_out_1d(jstring,(char *)"device_pload_key_cnt",j,cdata);
 					json_out_character(jstring, '\n');
-					for (uint16_t k=0; k<json_get_int_name_1d((char *)"device_pload_key_cnt",j,cdata); ++k)
+					for (uint16_t k=0; k<json_get_int((char *)"device_pload_key_cnt",j,cdata); ++k)
 					{
 						json_out_2d(jstring,(char *)"device_pload_key_name",j,k,cdata);
 						json_out_character(jstring, '\n');
@@ -6457,7 +6719,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 				{
 					json_out_1d(jstring,(char *)"device_tcu_mcnt",j,cdata);
 					json_out_character(jstring, '\n');
-					for (uint16_t k=0; k<json_get_int_name_1d((char *)"device_tcu_mcnt",j,cdata); ++k)
+					for (uint16_t k=0; k<json_get_int((char *)"device_tcu_mcnt",j,cdata); ++k)
 					{
 						json_out_2d(jstring,(char *)"device_tcu_mcidx",j,k,cdata);
 						json_out_character(jstring, '\n');
@@ -6502,7 +6764,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 				{
 					json_out_1d(jstring,(char *)"device_telem_type",j,cdata);
 					json_out_character(jstring, '\n');
-					switch (json_get_int_name_1d((char *)"device_telem_type",j,cdata))
+					switch (json_get_int((char *)"device_telem_type",j,cdata))
 					{
 					case TELEM_TYPE_UINT8:
 						json_out_1d(jstring,(char *)"device_telem_vuint8",j,cdata);
@@ -6536,7 +6798,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 						json_out_1d(jstring,(char *)"device_telem_vdouble",j,cdata);
 						json_out_character(jstring, '\n');
 						break;
-                    case TELEM_TYPE_STRING:
+					case TELEM_TYPE_STRING:
 						json_out_1d(jstring,(char *)"device_telem_vstring",j,cdata);
 						json_out_character(jstring, '\n');
 						break;
@@ -6696,7 +6958,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cdata, jsonhandle *handl
 
 	// Populate the equation
 	strcpy(tequation.text,equation.c_str());
-	
+
 	handle->index = (uint16_t)cdata[0].emap[handle->hash].size();
 	cdata[0].emap[handle->hash].push_back(tequation);
 	if (cdata[0].emap[handle->hash].size() != handle->index+1u)

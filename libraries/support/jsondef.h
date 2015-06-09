@@ -145,7 +145,11 @@ enum
 	//! ::glossarystruc
 	JSON_GROUP_GLOSSARY,
 	//! ::tlestruc
-	JSON_GROUP_TLE
+	JSON_GROUP_TLE,
+	//! ::aliasstruc
+	JSON_GROUP_ALIAS,
+	//! ::equationstruc
+	JSON_GROUP_EQUATION
 	};
 
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
@@ -234,7 +238,9 @@ enum
 	//! JSON Timestamp
 	JSON_TYPE_TIMESTAMP,
 	//! JSON Equation
-	JSON_TYPE_EQUATION
+	JSON_TYPE_EQUATION,
+	//! JSON Alias
+	JSON_TYPE_ALIAS
 	};
 
 //! Types of equation operands
@@ -276,7 +282,9 @@ enum
 	//! Logical Not
 	JSON_OPERATION_NOT,
 	//! Complement
-	JSON_OPERATION_COMPLEMENT
+	JSON_OPERATION_COMPLEMENT,
+	//! Power
+	JSON_OPERATION_POWER
 	};
 
 #define HCAP 800.
@@ -522,7 +530,7 @@ enum
  * - a type for the unit conversion: 0 = identity, 1 = linear, 2 = log
  * - 0th, 1st and 2nd derivative terms for any conversion
  */
-typedef struct
+struct unitstruc
 {
 	//! JSON Unit Name
 	string name;
@@ -534,7 +542,7 @@ typedef struct
 	float p1;
 	//! 2th derivative term
 	float p2;
-} unitstruc;
+};
 
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
@@ -574,30 +582,30 @@ struct jsonentry
 /*! Structure representing the location of a single JSON Equation or Name in its respective
 	hash table.
 */
-typedef struct
+struct jsonhandle
 {
 	// Hash of equation or name
 	uint16_t hash;
 	// Index within that hash entry
 	uint16_t index;
-} jsonhandle;
+};
 
 //! JSON token
 /*! Tokenized version of a single JSON object. The token contains a pointer
  * into the JSON map, and a binary representation of the JSON value.
  */
-typedef struct
+struct json_token
 {
 	jsonentry entry;
 	vector <uint8_t> data;
-} json_token;
+};
 
 //! JSON equation operand
 /*! Structure representing a single operand of a JSON equation. Each operand can be one
 	of: JSON_OPERAND_NULL, no operand; JSON_OPERAND_EQUATION, another equation;
 	JSON_OPERAND_CONSTANT, a constant value; or JSON_OPERAND_NAME, a Namespace name.
 */
-typedef struct
+struct jsonoperand
 {
 	//! JSON Operand Type
 	uint16_t type;
@@ -607,7 +615,7 @@ typedef struct
 		double value;
 		jsonhandle data;
 	};
-} jsonoperand;
+};
 
 //! JSON equation entry
 /*! Single entry in a JSON equation map. Ties together a JSON equation and its
@@ -615,7 +623,7 @@ typedef struct
  * - index: Index of this entry in the ::json_map.
  * - data: Offset to appropriate storage for this data type.
 */
-typedef struct
+struct jsonequation
 {
 	//! JSON equation text
 	char *text;
@@ -625,33 +633,18 @@ typedef struct
 	uint16_t operation;
 	//! JSON equation operands
 	jsonoperand operand[2];
-} jsonequation;
+};
 
 //! JSON pointer map
 /*! The complete JSON offset map consists of an array of ::jsonentry elements, along
  * with their count. It also provides a dynamically sized char string, used by
  * the JSON output functions, and an index of its length.
 */
-typedef struct
+struct jsonmap
 {
 	//! Array of entries
 	vector<vector<jsonentry> > entry;
-} jsonmap;
-
-//! JSON string storage
-/*! A structure to be used for building a JSON string. Contains a pointer to the growing string and a size
- * indicator. As the string fills, it is automatically grown by another 1024 bytes. A record is kept
- * of both its' total and used length.
-*/
-//typedef struct
-//{
-//	//! Growing JSON string
-//	string string;
-//	//! Current total length
-//	uint32_t length;
-//	//! Current used length
-//	uint32_t index;
-//} jstring;
+};
 
 //! Agent Request Function
 //! Format of a user supplied function to handle a given request
@@ -659,7 +652,7 @@ typedef int32_t (*agent_request_function)(char* request_string, char* output_str
 
 //! Agent Request Entry
 //! Structure representing a single Agent request.
-typedef struct
+struct agent_request_entry
 {
 	//! Character token for request
 	char token[COSMOS_MAX_NAME];
@@ -667,19 +660,11 @@ typedef struct
 	agent_request_function function;
 	string synopsis;
 	string description;
-} agent_request_entry;
-
-//! Agent Request Structure
-//! Structure for storing Agent request handling information
-//typedef struct
-//{
-//	uint32_t count;
-//	agent_request_entry request[AGENTMAXREQUESTCOUNT];
-//} agent_request_structure;
+};
 
 //! Channel structure
 //! This structure stores the information about an open COSMOS network channel.
-typedef struct
+struct agent_channel
 {
 	// Channel type
 	int32_t type;
@@ -703,11 +688,11 @@ typedef struct
 	char baddress[17];
 	// Channel's interface name
 	char name[COSMOS_MAX_NAME];
-} agent_channel;
+};
 
 //! Process heartbeat.
 //! Detailed elements of a single heartbeat of a single process.
-typedef struct
+struct beatstruc
 {
 	// Heartbeat timestamp
 	double utc;
@@ -727,10 +712,10 @@ typedef struct
 	double bprd;
 	//! Agent User Name
 	char user[COSMOS_MAX_NAME+1];
-} beatstruc;
+};
 
 //! Agent control structure
-typedef struct
+struct agentstruc
 {
 	//! Client initialized?
 	bool client;
@@ -758,13 +743,13 @@ typedef struct
 	beatstruc beat;
 	//! State of Health element vector
 	vector<jsonentry*> sohtable;
-} agentstruc;
+};
 
 //! Long COSMOS Event structure.
 /*! This is the structure that holds each Event, along with associated
  * resources.
  */
-typedef struct
+struct longeventstruc
 {
 	//! Time event is to start.
 	double utc;
@@ -804,13 +789,13 @@ typedef struct
 	char data[JSON_MAX_DATA];
 	//! Condition that caused event, NULL if timed event.
 	char condition[JSON_MAX_DATA];
-} longeventstruc;
+};
 
 //! Shortened COSMOS Event structure
 /*! This is the structure that holds each Event, along with associated
  * resources, in a shorter format.
  */
-typedef struct
+struct shorteventstruc
 {
 	//! Time event is to start.
 	double utc;
@@ -848,34 +833,34 @@ typedef struct
 	jsonhandle handle;
 	//! Event specific data.
 	char data[COSMOS_MAX_NAME];
-} shorteventstruc;
+};
 
 //! Full COSMOS Event structure
 /*! This is the union that holds each Event, along with associated
  * resources, in both formats.
  */
-typedef union
+union eventstruc
 {
 	shorteventstruc s;
 	longeventstruc l;
-} eventstruc;
+};
 
 //! User structure
 /*! Containing entries unique to each User
  */
-typedef struct
+struct userstruc
 {
 	char name[COSMOS_MAX_NAME];
 	char node[COSMOS_MAX_NAME];
 	char tool[COSMOS_MAX_NAME];
 	char cpu[COSMOS_MAX_NAME];
-} userstruc;
+};
 
 //! Glossary structure
 /*! Contains entries for a glossary of names and matching descriptions
 and types.
 */
-typedef struct
+struct glossarystruc
 {
 	// Glossary entry name.
 	string name;
@@ -883,12 +868,36 @@ typedef struct
 	string description;
 	// Glossary entry ::namespace type.
 	uint16_t type;
-} glossarystruc;
+};
+
+//! Alias structure
+/*! Contains the name of an alias and the ::jsonmap entry it points to,
+ * stored as a ::jsonhandle.
+*/
+struct aliasstruc
+{
+	// Alias name
+	string name;
+	// Namespace handle
+	jsonhandle handle;
+};
+
+//! Equation structure
+/*! Contains the name of an equation and the Equation string it points to.
+*/
+struct equationstruc
+{
+	// Equation name
+	string name;
+	// Equation string
+	string value;
+};
+
 
 //! Target structure
 /*! Contains entries unique to each Target
 */
-typedef struct
+struct targetstruc
 {
 	double utc;
 	char name[COSMOS_MAX_NAME];
@@ -901,23 +910,23 @@ typedef struct
 	double close;
 	float min;
 	locstruc loc;
-} targetstruc;
+};
 
 //! Port structure
 /*! Contains information about I/O ports available to devices. The
  * ::portidx entry in each device structure indicates which of these
  * ports a device will use.
  */
-typedef struct
+struct portstruc
 {
 	//! Type of I/O as listed in ::def_comp_port.
 	uint16_t type;
 	//! Name information for port.
 	char name[COSMOS_MAX_NAME];
-} portstruc;
+};
 
 //! Part structure: physical information for each piece of Node
-typedef struct
+struct piecestruc
 {
 	//! Name of piece
 	char name[COSMOS_MAX_NAME];
@@ -957,7 +966,7 @@ typedef struct
 	float temp;
 	//! Insolation in Watts/sq m
 	float insol;
-} piecestruc;
+};
 
 // Beginning of Device General structures
 
@@ -967,7 +976,7 @@ device specific structure has these as its first elements, followed by
 any specific elements. They are all then combined together in one grand
 union as a ::devicestruc.
 */
-typedef struct
+struct genstruc
 {
 	//! Component Type
 	uint16_t type;
@@ -997,15 +1006,15 @@ typedef struct
 	float temp;
 	//! Device information time stamp
 	double utc;
-} genstruc;
+};
 
 //! All structures.
 /*! This structure can be used for all devices. It contains only a ::genstruc
  */
-typedef struct
+struct allstruc
 {
 	genstruc gen;
-} allstruc;
+};
 
 // End of Device General structures
 
@@ -1043,7 +1052,7 @@ struct telemstruc
  * names. You can then set double precision values for these keys in
  * the dynamic structure.
  */
-typedef struct
+struct ploadstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1055,10 +1064,10 @@ typedef struct
 	uint32_t bps;
 	//! Value for each key.
 	float keyval[MAXPLOADKEYCNT];
-} ploadstruc;
+};
 
 //! Sun Sensor (SSEN) Sructure
-typedef struct
+struct ssenstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1070,7 +1079,7 @@ typedef struct
 	float qvd;
 	float azimuth;
 	float elevation;
-} ssenstruc;
+};
 
 //! Inertial Measurement Unit (IMU) structure
 struct imustruc
@@ -1092,7 +1101,7 @@ struct imustruc
 };
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
-typedef struct
+struct rwstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1114,10 +1123,10 @@ typedef struct
 	float romg;
 	//! Requested angular acceleration
 	float ralp;
-} rwstruc;
+};
 
 //! Magnetic Torque Rod structure: z axis is aligned with rod.
-typedef struct
+struct mtrstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1135,9 +1144,9 @@ typedef struct
 	float rmom;
 	//! Actual Magnetic Moment.
 	float mom;
-} mtrstruc;
+};
 
-typedef struct
+struct cpustruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1157,10 +1166,10 @@ typedef struct
 	float load;
 	//! Number of reboots
 	uint32_t boot_count;
-} cpustruc;
+};
 
 
-typedef struct
+struct gpsstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1194,12 +1203,12 @@ typedef struct
 	uint16_t position_type;
 	//! Solution Status
 	uint16_t solution_status;
-} gpsstruc;
+};
 
 //! Antenna information
 /*! This structure holds the information concerning antennas.
 */
-typedef struct
+struct antstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1207,34 +1216,34 @@ typedef struct
 	quaternion align;
 	//! Minimum elevation
 	float minelev;
-} antstruc;
+};
 
 //! Receiver information
 /*! This structure holds the information concerning receivers.
 */
-typedef struct
+struct rxrstruc
 {
 	//! Generic info
 	genstruc gen;
 	//! Frequency
 	float freq;
-} rxrstruc;
+};
 
 //! Transmitter information
 /*! This structure holds the information concerning transmitters.
 */
-typedef struct
+struct txrstruc
 {
 	//! Generic info
 	genstruc gen;
 	//! Frequency
 	float freq;
-} txrstruc;
+};
 
 //! Transceiver information
 /*! This structure holds the information concerning transceivers.
 */
-typedef struct
+struct tcvstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1242,12 +1251,12 @@ typedef struct
 	float freqin;
 	//! Output Frequency
 	float freqout;
-} tcvstruc;
+};
 
 //! PV String (STRG) structure.
 /*! Efficiency is goven as effbase + effslope * Tkelvin.
 */
-typedef struct
+struct strgstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1259,10 +1268,10 @@ typedef struct
 	float maxpower;
 	//! Current power being generated in Watts.
 	float power;
-} strgstruc;
+};
 
 //! Battery (BATT) structure.
-typedef struct
+struct battstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1272,20 +1281,20 @@ typedef struct
 	float efficiency;
 	//! Charge in amp hours
 	float charge;
-} battstruc;
+};
 
 //! Heater Structure definition
 /*! This structure holds the description of a heaters.
 */
-typedef struct
+struct htrstruc
 {
 	//! Generic info
 	genstruc gen;
 	//! Temperature set point
 	float setpoint;
-} htrstruc;
+};
 
-typedef struct
+struct motrstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1294,16 +1303,16 @@ typedef struct
 	//!
 	float rat;
 	float spd;
-} motrstruc;
+};
 
-typedef struct
+struct tsenstruc
 {
 	//! Generic info
 	genstruc gen;
-} tsenstruc;
+};
 
 //! Thruster (THST) dynamic structure
-typedef struct
+struct thststruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1313,10 +1322,10 @@ typedef struct
 	float flw;
 	//! Rotation of thrust vector (+z) in to node frame.
 	float isp;
-} thststruc;
+};
 
 //! Propellant Tank (PROP) structure.
-typedef struct
+struct propstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1324,30 +1333,30 @@ typedef struct
 	float cap;
 	//! Propellant level in kg
 	float lev;
-} propstruc;
+};
 
 //! Switch Structure definition
 /*! This structure holds the description of a switches.
 */
-typedef struct
+struct swchstruc
 {
 	//! Generic info
 	genstruc gen;
-} swchstruc;
+};
 
 //! Rotor Structure definition
 /*! This structure holds the description of a rotors.
 */
-typedef struct
+struct rotstruc
 {
 	//! Generic info
 	genstruc gen;
 	//! Angular position
 	float angle;
-} rotstruc;
+};
 
 //! Star Tracker (STT) Sructure
-typedef struct
+struct sttstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1359,10 +1368,10 @@ typedef struct
 	rvector alpha;
 	uint16_t retcode;
 	uint32_t status;
-} sttstruc;
+};
 
 //! Motion Capture Camera (MCC) Structure
-typedef struct
+struct mccstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1370,10 +1379,10 @@ typedef struct
 	quaternion align;
 	//! attitude
 	quaternion q;
-} mccstruc;
+};
 
 //! Torque Rod Control Unit
-typedef struct
+struct tcustruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1381,9 +1390,9 @@ typedef struct
 	uint16_t mcnt;
 	//! Torque Rod Component indices
 	uint16_t mcidx[3];
-} tcustruc;
+};
 
-typedef struct
+struct busstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1391,18 +1400,18 @@ typedef struct
 	float energy;
 	//! Watch Dog Timer (MJD)
 	float wdt;
-} busstruc;
+};
 
-typedef struct
+struct psenstruc
 {
 	//! Generic info
 	genstruc gen;
 	//! Current Pressure
 	float press;
-} psenstruc;
+};
 
 //! SUCHI Sructure
-typedef struct
+struct suchistruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1412,9 +1421,9 @@ typedef struct
 	float press;
 	//! Internal temperatures
 	float temps[8];
-} suchistruc;
+};
 
-typedef struct
+struct camstruc
 {
 	//! Generic info
 	genstruc gen;
@@ -1423,14 +1432,14 @@ typedef struct
 	float width;
 	float height;
 	float flength;
-} camstruc;
+};
 
 // End of Device Specific structures
 
 //! Node Structure
 //! Structure for storing all information about a Node that never changes, or only
 //! changes slowly. The information for initializing this should be in node.ini.
-typedef struct
+struct nodestruc
 {
 	//! Node Name.
 	char name[COSMOS_MAX_NAME];
@@ -1467,14 +1476,14 @@ typedef struct
 	double utcstart;
 	//! Location structure
 	locstruc loc;
-} nodestruc;
+};
 
 //! Device structure
 /*! Complete details of each Device. It is a union of all the
 possible device types, with a generic type for looking up basic
 information.
 */
-typedef struct
+struct devicestruc
 {
 	union
 	{
@@ -1508,12 +1517,12 @@ typedef struct
 		thststruc thst;
 		tsenstruc tsen;
 	};
-} devicestruc;
+};
 
 //! Specific Device structure
 /*! Counts and arrays of pointers to each type of device, ordered by type.
 */
-typedef struct
+struct devspecstruc
 {
 	uint16_t ant_cnt;
 	uint16_t batt_cnt;
@@ -1572,14 +1581,14 @@ typedef struct
 	vector<rxrstruc *>rxr;
 	vector<thststruc *>thst;
 	vector<tsenstruc *>tsen;
-} devspecstruc;
+};
 
 //! JSON Name Space structure
 /*! A structure containing an element for every unique name in the COSMOS Name
  * Space. The static and dynamic components of this can then be mapped
  * separately to the name space using ::json_map_cosmosstruc.
 */
-typedef struct
+struct cosmosstruc
 {
 	//! Structure for summary information in node
 	nodestruc node;
@@ -1611,11 +1620,13 @@ typedef struct
 	vector<vector<jsonequation> > emap;
 	//! JSON Unit Map matrix: first level is for type, second level is for variant.
 	vector<vector<unitstruc> > unit;
-	//! JSON Alias Map array
-	map<string, string> amap;
 	//! Array of Two Line Elements
 	vector<tlestruc> tle;
-} cosmosstruc;
+	//! Array of Aliases
+	vector<aliasstruc> alias;
+	//! Vector of Equations
+	vector<equationstruc> equation;
+};
 
 //! @}
 

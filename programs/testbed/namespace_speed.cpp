@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 		for (uint32_t j = 0; j < cdata[0].jmap[i].size(); j++)
 		{
 			names.push_back(cdata[0].jmap[i][j].name);
-			testmap[cdata[0].jmap[i][j].name] = json_entry_of_name(cdata[0].jmap[i][j].name, cdata);
+			testmap[cdata[0].jmap[i][j].name] = json_entry_of(cdata[0].jmap[i][j].name, cdata);
 		}
 	}
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
 		for (string name: names)
 		{
-			jsonentry *tentry = json_entry_of_name(name, cdata);
+			jsonentry *tentry = json_entry_of(name, cdata);
 			string tname = tentry->name;
 		}
 		printf("Standard Lookup: %d names, %f seconds\n", names.size(), et.lap());

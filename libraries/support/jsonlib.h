@@ -130,10 +130,10 @@ int32_t json_clone(cosmosstruc *cdata);
 void json_destroy(cosmosstruc *cdata);
 
 //uint16_t json_addequation(const char *text, cosmosstruc *cdata, uint16_t unit);
-uint16_t json_addalias(string name, string alias, cosmosstruc *cdata);
+uint16_t json_addentry(string name, string value, cosmosstruc *cdata);
 uint16_t json_addentry(jsonentry entry, cosmosstruc *cdata);
-uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit);
-uint16_t json_addentry(const char *name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata);
+uint16_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit);
+uint16_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata);
 uint16_t json_addbaseentry(cosmosstruc *cdata);
 uint16_t json_addpieceentry(uint16_t i, cosmosstruc *cdata);
 uint16_t json_addcompentry(uint16_t i, cosmosstruc *cdata);
@@ -142,8 +142,9 @@ size_t json_count_hash(uint16_t hash, cosmosstruc *cdata);
 size_t json_count_total(cosmosstruc *cdata);
 
 uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cdata);
-jsonentry *json_entry_of_ptr(uint8_t *ptr, cosmosstruc *cdata);
-jsonentry *json_entry_of_name(string token, cosmosstruc *cdata);
+jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cdata);
+jsonentry *json_entry_of(string token, cosmosstruc *cdata);
+jsonentry *json_entry_of(jsonhandle handle, cosmosstruc *cdata);
 int32_t json_table_of_list(vector<jsonentry*> &entry, const char *tokens, cosmosstruc *cdata);
 uint16_t json_type_of_name(string token, cosmosstruc *cdata);
 
@@ -158,6 +159,7 @@ int32_t json_out_1d(string &jstring, const char *token, uint16_t col, cosmosstru
 int32_t json_out_2d(string &jstring,const char *token, uint16_t row, uint16_t col,cosmosstruc *cdata);
 int32_t json_out_name(string &jstring, string name);
 int32_t json_out_character(string &jstring,char character);
+int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc *cdata);
 int32_t json_out_int8(string &jstring,int8_t value);
 int32_t json_out_int16(string &jstring,int16_t value);
 int32_t json_out_int32(string &jstring,int32_t value);
@@ -195,19 +197,25 @@ double json_equation(const char** pointer, cosmosstruc *cdata);
 double json_equation_entry(jsonequation *ptr, cosmosstruc *cdata);
 double json_equation_handle(jsonhandle *handle, cosmosstruc *cdata);
 
-//uint8_t json_get_byte_name(const char *token, cosmosstruc *cdata);
-int32_t json_get_int_name(string token, cosmosstruc *cdata);
-uint32_t json_get_uint_name(string token, cosmosstruc *cdata);
-double json_get_double_pointer(uint16_t type, uint8_t *pointer);
-double json_get_double_entry(jsonentry *entry, cosmosstruc *cdata);
-double json_get_double_name(string token, cosmosstruc *cdata);
+int32_t json_get_int(jsonhandle &handle, cosmosstruc *cdata);
+int32_t json_get_int(string token, cosmosstruc *cdata);
+int32_t json_get_int(string token, uint16_t index1, cosmosstruc *cdata);
+int32_t json_get_int(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+int32_t json_get_int(jsonentry *entry, cosmosstruc *cdata);
+
+uint32_t json_get_uint(jsonhandle &handle, cosmosstruc *cdata);
+uint32_t json_get_uint(string token, cosmosstruc *cdata);
+uint32_t json_get_uint(string token, uint16_t index1, cosmosstruc *cdata);
+uint32_t json_get_uint(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+uint32_t json_get_uint(jsonentry *entry, cosmosstruc *cdata);
+
+double json_get_double(jsonhandle &handle, cosmosstruc *cdata);
+double json_get_double(string token, cosmosstruc *cdata);
+double json_get_double(string token, uint16_t index1, cosmosstruc *cdata);
+double json_get_double(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+double json_get_double(jsonentry *entry, cosmosstruc *cdata);
+
 string json_get_string_name(string token, cosmosstruc *cdata);
-int32_t json_get_int_name_1d(string token, uint16_t index1, cosmosstruc *cdata);
-uint32_t json_get_uint_name_1d(string token, uint16_t index1, cosmosstruc *cdata);
-double json_get_double_name_1d(string token, uint16_t index1, cosmosstruc *cdata);
-int32_t json_get_int_name_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
-uint32_t json_get_uint_name_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
-double json_get_double_name_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
 
 int32_t json_set_int_name(int32_t value,char *token, cosmosstruc *cdata);
 int32_t json_set_uint_name(uint32_t value,char *token, cosmosstruc *cdata);
