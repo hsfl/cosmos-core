@@ -1,7 +1,7 @@
 COSMOS core 1.0-alpha
 =====================
 
-Note: If you haven't donlowaded the COSMOS software please go to the [COSMOS 101 tutorial.](https://bitbucket.org/cosmos/tutorial). Also for the latest information on COSMOS refer to our website:
+Note: If you haven't donlowaded the COSMOS software please go to the [COSMOS 101 tutorial](https://bitbucket.org/cosmos/tutorial). Also for the latest information on COSMOS refer to our website:
 [http://www.cosmos-project.org/](http://www.cosmos-project.org/)
 
 Quick-start:
@@ -26,11 +26,11 @@ make sure you have the latest version of Cmake from [http://www.cmake.org/](http
 To compile from the unix command line:
 
 ```
-$cd core/build
-$mkdir {linux|macos} (depending on your OS)
-$./do_cmake {linux|macos}
-$cd {linux|macos}
-$make install
+$ cd core/build
+$ mkdir {linux|macos} (depending on your OS)
+$ ./do_cmake {linux|macos}
+$ cd {linux|macos}
+$ make install
 ```
 
 **For Qt Creator using Cmake**
@@ -42,5 +42,5 @@ $make install
 * Build install
 
 For more detailed instructions to get started with COSMOS
-please read the GET-STARTED-WITH-COSMOS.txt inside the 
+please read the [core/documentation/README.md](https://bitbucket.org/cosmos/core/src/master/documentation/README.md) inside the 
 documentation folder.
