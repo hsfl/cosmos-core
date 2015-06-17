@@ -143,7 +143,7 @@ int update_eci(cosmosstruc &root, double utc, cartpos pos);
 
 void hardware_init_eci(devspecstruc &devspec, locstruc &loc);
 void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt);
-void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order,int32_t mode,double dt,double mjd,cosmosstruc &cdata);
+void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, cosmosstruc &cdata);
 void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, cartpos ipos, qatt iatt, cosmosstruc &cdata);
 void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, stkstruc *stk, cosmosstruc &cdata, locstruc &loc);
 void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, double altitude, double angle, double hour, cosmosstruc &cdata, locstruc &loc);
