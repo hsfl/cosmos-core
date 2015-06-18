@@ -118,8 +118,8 @@ int32_t cssl_putdata(cssl_t *serial,
 		  uint8_t *data, /* data */
 		  uint32_t datalen);  /* length of data */
 
-int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, uint16_t size);
-int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, uint16_t size);
+int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, size_t size);
+int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size);
 
 /* waits until all data has been transmited */
 

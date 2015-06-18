@@ -699,7 +699,7 @@ int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t typ
 */
 int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc *cdata)
 {
-	int32_t iretn;
+	int32_t iretn = 0;
 
 	switch (type)
 	{
@@ -2394,7 +2394,7 @@ uint8_t *json_ptrto_2d(string token, uint16_t index1, uint16_t index2, cosmosstr
 */
 int32_t json_get_int(jsonhandle &handle, cosmosstruc *cdata)
 {
-	int32_t value=0.;
+	int32_t value=0;
 
 	if (cdata[0].jmap[handle.hash].size() <= handle.index)
 	{
@@ -2415,12 +2415,12 @@ int32_t json_get_int(jsonhandle &handle, cosmosstruc *cdata)
 int32_t json_get_int(jsonentry *entry, cosmosstruc *cdata)
 {
 	uint8_t *dptr=nullptr;
-	int32_t value=0.;
+	int32_t value=0;
 
 	dptr = json_ptr_of_offset(entry->offset,entry->group,cdata);
 	if (dptr == nullptr)
 	{
-		return 0.;
+		return 0;
 	}
 	else
 	{
@@ -2552,7 +2552,7 @@ int32_t json_get_int(string token, uint16_t index1, uint16_t index2, cosmosstruc
 */
 uint32_t json_get_uint(jsonhandle &handle, cosmosstruc *cdata)
 {
-	uint32_t value=0.;
+	uint32_t value=0;
 
 	if (cdata[0].jmap[handle.hash].size() <= handle.index)
 	{
@@ -2573,12 +2573,12 @@ uint32_t json_get_uint(jsonhandle &handle, cosmosstruc *cdata)
 uint32_t json_get_uint(jsonentry *entry, cosmosstruc *cdata)
 {
 	uint8_t *dptr=nullptr;
-	uint32_t value=0.;
+	uint32_t value=0;
 
 	dptr = json_ptr_of_offset(entry->offset,entry->group,cdata);
 	if (dptr == nullptr)
 	{
-		return 0.;
+		return 0;
 	}
 	else
 	{
@@ -6980,33 +6980,33 @@ int32_t json_clone(cosmosstruc *cdata)
 {
 	if (!cdata || !cdata[0].jmapped) return (JSON_ERROR_NOJMAP);
 
-#ifdef COSMOS_WIN_BUILD_MSVC
-	cdata[1].agent = cdata[0].agent;
-	cdata[1].device = cdata[0].device;
-	cdata[1].devspec = cdata[0].devspec;
-	cdata[1].emap = cdata[0].emap;
-	cdata[1].event = cdata[0].event;
-	cdata[1].glossary = cdata[0].glossary;
-	cdata[1].jmap = cdata[0].jmap;
-	cdata[1].jmapped = cdata[0].jmapped;
-	cdata[1].node = cdata[0].node;
-	cdata[1].physics = cdata[0].physics;
-	cdata[1].piece = cdata[0].piece;
-	cdata[1].port = cdata[0].port;
-	cdata[1].target = cdata[0].target;
-	cdata[1].tle = cdata[0].tle;
-	cdata[1].unit = cdata[0].unit;
-	cdata[1].user = cdata[0].user;
-	if (cdata[0].amap.size())
-	{
-		for (auto &entry : cdata[0].amap)
-		{
-			cdata[1].amap[entry.first] = entry.second;
-		}
-	}
-#else
+//#ifdef COSMOS_WIN_BUILD_MSVC
+//	cdata[1].agent = cdata[0].agent;
+//	cdata[1].device = cdata[0].device;
+//	cdata[1].devspec = cdata[0].devspec;
+//	cdata[1].emap = cdata[0].emap;
+//	cdata[1].event = cdata[0].event;
+//	cdata[1].glossary = cdata[0].glossary;
+//	cdata[1].jmap = cdata[0].jmap;
+//	cdata[1].jmapped = cdata[0].jmapped;
+//	cdata[1].node = cdata[0].node;
+//	cdata[1].physics = cdata[0].physics;
+//	cdata[1].piece = cdata[0].piece;
+//	cdata[1].port = cdata[0].port;
+//	cdata[1].target = cdata[0].target;
+//	cdata[1].tle = cdata[0].tle;
+//	cdata[1].unit = cdata[0].unit;
+//	cdata[1].user = cdata[0].user;
+//	if (cdata[0].amap.size())
+//	{
+//		for (auto &entry : cdata[0].amap)
+//		{
+//			cdata[1].amap[entry.first] = entry.second;
+//		}
+//	}
+//#else
 	cdata[1] = cdata[0];
-#endif
+//#endif
 	for (uint16_t i=0; i<cdata[1].node.device_cnt; ++i)
 	{
 		switch(cdata[1].device[i].all.gen.type)

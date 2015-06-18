@@ -179,24 +179,32 @@ int32_t oemv_getbinary(oemv_handle *handle)
 
 	// Get 3 sync bytes
 	if ((iretn=cssl_getchar(handle->serial)) < 0)
+	{
 		return (handle->message.header.sync1);
-	handle->message.header.sync1 = iretn;
+	}
+	handle->message.header.sync1 = (uint8_t)iretn;
 	printf("oemv_getbinary: sync %0x\n",handle->message.header.sync1);
 
 	if ((iretn=cssl_getchar(handle->serial)) < 0)
+	{
 		return (handle->message.header.sync2);
-	handle->message.header.sync2 = iretn;
+	}
+	handle->message.header.sync2 = (uint8_t)iretn;
 	printf("oemv_getbinary: sync %0x\n",handle->message.header.sync2);
 
 	if ((iretn=cssl_getchar(handle->serial)) < 0)
+	{
 		return (handle->message.header.sync3);
-	handle->message.header.sync3 = iretn;
+	}
+	handle->message.header.sync3 = (uint8_t)iretn;
 	printf("oemv_getbinary: sync %0x\n",handle->message.header.sync3);
 
 	// Get header size
 	if ((iretn=cssl_getchar(handle->serial)) < 0)
+	{
 		return (handle->message.header.header_size);
-	handle->message.header.header_size = iretn;
+	}
+	handle->message.header.header_size = (uint8_t)iretn;
 	printf("oemv_getbinary: header size %d\n",handle->message.header.header_size);
 
 	// Get header
@@ -290,7 +298,7 @@ int32_t oemv_putbinary(oemv_handle *handle)
 int32_t oemv_getascii(oemv_handle *handle)
 {
 	uint16_t i,j;
-	int16_t ch;
+	int32_t ch;
 	uint32_t crc2;
 	union
 	{
@@ -331,7 +339,7 @@ int32_t oemv_getascii(oemv_handle *handle)
 		case '*': // end of message '*'
 			break;
 		default: // save the incoming char
-			handle->data[i++] = ch;
+			handle->data[i++] = (uint8_t)ch;
 			break;
 		}
 	} while (i<OEMV_MAX_DATA && ch != '*');
@@ -346,9 +354,10 @@ int32_t oemv_getascii(oemv_handle *handle)
 	{
 		ch = cssl_getchar(handle->serial);
 		if (ch < 0)
-			//continue;
+		{
 			return (ch);
-		crcbuf[j] = ch;
+		}
+		crcbuf[j] = (char)ch;
 	}
 	crcbuf[8] = 0;
 	sscanf(crcbuf, "%x", &crc1);
@@ -371,7 +380,7 @@ int32_t oemv_getascii(oemv_handle *handle)
 int32_t oemv_getascii_gpgga(oemv_handle *handle)
 {
 	uint16_t i;
-	int16_t ch;
+	int32_t ch;
 	//    uint32_t crc2;
 	union
 	{
@@ -400,8 +409,9 @@ int32_t oemv_getascii_gpgga(oemv_handle *handle)
 	{
 		ch = cssl_getchar(handle->serial);
 		if (ch < 0)
-			//continue;
+		{
 			return (ch); // MN: this may be a problem in case the incoming byte is not ascii, but the following ones may be ok
+		}
 
 		switch (ch)
 		{
@@ -412,7 +422,7 @@ int32_t oemv_getascii_gpgga(oemv_handle *handle)
 		case '*': // end of message '*'
 			break;
 		default: // save the incoming char
-			handle->data[i++] = ch;
+			handle->data[i++] = (uint8_t)ch;
 			break;
 		}
 	} while (i<OEMV_MAX_DATA && ch != '*');
@@ -660,7 +670,7 @@ int32_t oemv_log(oemv_handle *handle, const char* log)
 			   &handle->message.header.gps_week,
 			   &handle->message.header.gps_second);
 		// Adjust for transmission lag
-		handle->message.header.gps_second += length * 10./OEMV_BAUD;
+		handle->message.header.gps_second += (float)(length * 10./OEMV_BAUD);
 		if (handle->message.header.gps_second > 604600.)
 		{
 			handle->message.header.gps_second -= 604600.;
