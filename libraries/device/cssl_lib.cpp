@@ -557,9 +557,9 @@ int32_t cssl_putdata(cssl_t *serial, uint8_t *data, uint32_t datalen)
 }
 
 /* SLIP mode: writing a data buffer */
-int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, uint16_t size)
+int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, size_t size)
 {
-	uint16_t i, j;
+	size_t i, j;
 
 	i = 0;
 	cssl_putchar(serial,SLIP_FEND);
@@ -588,33 +588,59 @@ int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, uint16_t size)
 }
 
 /* NMEA mode: writing a data buffer */
-int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
+int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
 {
-	uint16_t j;
+	size_t j;
 	uint8_t cs_in, digit1, digit2;
 
 	cs_in = 0;
+
+    // All commands start with a dollar sign, followed by a
+    // character command, a comma, command specific parameters,
+    // an asterisk, a checksum, and a newline character.
+    // An example for VN-100 command is shown below.
+    // $VNRRG,11*73
+
+    // start command '$'
 	cssl_putchar(serial,'$');
+
+    // iterate through the buffer to send each charcter to serial port
 	for (j=0; j<size; j++)
 	{
 		cssl_putchar(serial,buf[j]);
+        // check sum (xor?)
 		cs_in ^= (uint8_t)buf[j];
 	}
+    // end of command '*'
 	cssl_putchar(serial,'*');
+
 	if (cs_in > 16)
 	{
 		digit1 = cs_in/16;
-		if (digit1 < 10) cssl_putchar(serial, '0'+digit1);
-		else cssl_putchar(serial, 'A'+digit1-10);
+        if (digit1 < 10)
+        {
+            cssl_putchar(serial, '0'+digit1);
+        }
+        else
+        {
+            cssl_putchar(serial, 'A'+digit1-10);
+        }
 	}
 	else
 	{
 		cssl_putchar(serial, '0');
 	}
+
 	++j;
 	digit2 = cs_in%16;
-	if (digit2 <10 ) cssl_putchar(serial, '0'+digit2);
-	else cssl_putchar(serial, 'A'+digit2-10);
+    if (digit2 <10 )
+    {
+        cssl_putchar(serial, '0'+digit2);
+    }
+    else
+    {
+        cssl_putchar(serial, 'A'+digit2-10);
+    }
 	++j;
 	cssl_putchar(serial, '\n');
 	return (j+3);
