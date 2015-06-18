@@ -78,10 +78,11 @@ int main(int argc, char *argv[])
 	att.a = rv_zero();
 	cdata->physics.mass = 400000.;
 	cdata->physics.area = 200.;
-	gauss_jackson_init_eci(gjh, 6, 0, 10., utc, eci, att, *cdata);
+	gauss_jackson_init_eci(gjh, 6, 0, 1., utc, eci, att, *cdata);
 
-	for (double cmjd=cdata->node.loc.utc; cmjd<utc+1.; cmjd+=cdata->physics.dtj)
+	for (size_t i=0; i<10000; ++i)
 	{
+		double cmjd = cdata->node.loc.utc + cdata->physics.dtj;
 		gauss_jackson_propagate(gjh, *cdata, cmjd);
 		tle2eci(cmjd, tle[0], &eci);
 		printf("%.15g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\n", cmjd, eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.eci.s.col[0], cdata->node.loc.pos.eci.s.col[1], cdata->node.loc.pos.eci.s.col[2]);

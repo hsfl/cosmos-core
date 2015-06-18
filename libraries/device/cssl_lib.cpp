@@ -557,9 +557,9 @@ int32_t cssl_putdata(cssl_t *serial, uint8_t *data, uint32_t datalen)
 }
 
 /* SLIP mode: writing a data buffer */
-int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, uint16_t size)
+int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, size_t size)
 {
-	uint16_t i, j;
+	size_t i, j;
 
 	i = 0;
 	cssl_putchar(serial,SLIP_FEND);
@@ -588,9 +588,9 @@ int32_t cssl_putslip(cssl_t *serial, uint8_t *buf, uint16_t size)
 }
 
 /* NMEA mode: writing a data buffer */
-int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
+int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
 {
-	uint16_t j;
+	size_t j;
 	uint8_t cs_in, digit1, digit2;
 
 	cs_in = 0;
