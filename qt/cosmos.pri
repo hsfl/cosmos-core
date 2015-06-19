@@ -47,9 +47,9 @@ win32 {
 
 
         # include dirent for MSVC
-        INCLUDEPATH     += $$COSMOS/source/core/libraries/thirdparty/dirent
-        SOURCES         += $$files($$COSMOS/source/core/libraries/thirdparty/dirent/*.c)
-        HEADERS         += $$files($$COSMOS/source/core/libraries/thirdparty/dirent/*.h)
+        INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty/dirent
+        SOURCES         += $$files($$COSMOS/core/libraries/thirdparty/dirent/*.c)
+        HEADERS         += $$files($$COSMOS/core/libraries/thirdparty/dirent/*.h)
     }
 
 }
@@ -60,9 +60,9 @@ win32 {
 #    #CONFIG += precompile_header
 
 #    win32{
-#    INCLUDEPATH     += $$COSMOS/source/core/libraries/thirdparty/dirent
-#    SOURCES         += $$files($$COSMOS/source/core/libraries/thirdparty/dirent/*.c)
-#    HEADERS         += $$files($$COSMOS/source/core/libraries/thirdparty/dirent/*.h)
+#    INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty/dirent
+#    SOURCES         += $$files($$COSMOS/core/libraries/thirdparty/dirent/*.c)
+#    HEADERS         += $$files($$COSMOS/core/libraries/thirdparty/dirent/*.h)
 #    }
 #    #SOURCES += $$COSMOS_CORE/programs/agents/agent_soh.cpp
 
@@ -95,114 +95,114 @@ message("COSMOS Modules >>")
 
 #--------------------------------------------------------------------
 #add COSMOS support to the path
-INCLUDEPATH     += $$COSMOS/source/core/libraries/support
+INCLUDEPATH     += $$COSMOS/core/libraries/support
 
 # Add all COSMOS support libraries
 contains(MODULES, SUPPORT){
     message( "Add library: SUPPORT" )
-    INCLUDEPATH     += $$COSMOS/source/core/libraries/support
-    #SOURCES         += $$files($$COSMOS/source/core/libraries/support/*.cpp)
-    #HEADERS         += $$files($$COSMOS/source/core/libraries/support/*.h)
+    INCLUDEPATH     += $$COSMOS/core/libraries/support
+    #SOURCES         += $$files($$COSMOS/core/libraries/support/*.cpp)
+    #HEADERS         += $$files($$COSMOS/core/libraries/support/*.h)
     MODULES += ZLIB
 }
 
 contains(MODULES, elapsedtime){
     message( "- support/elapsedtime" )
-    SOURCES     += $$COSMOS/source/core/libraries/support/elapsedtime.cpp
-    HEADERS     += $$COSMOS/source/core/libraries/support/elapsedtime.hpp
+    SOURCES     += $$COSMOS/core/libraries/support/elapsedtime.cpp
+    HEADERS     += $$COSMOS/core/libraries/support/elapsedtime.hpp
 }
 
 contains(MODULES, timeutils){
     message( "- support/timeutils" )
-    SOURCES += $$COSMOS/source/core/libraries/support/timeutils.cpp
-    HEADERS += $$COSMOS/source/core/libraries/support/timeutils.h
+    SOURCES += $$COSMOS/core/libraries/support/timeutils.cpp
+    HEADERS += $$COSMOS/core/libraries/support/timeutils.h
 }
 
 contains(MODULES, socketlib){
     message( "- support/socketlib" )
-    SOURCES += $$COSMOS/source/core/libraries/support/socketlib.cpp
-    HEADERS += $$COSMOS/source/core/libraries/support/socketlib.h
+    SOURCES += $$COSMOS/core/libraries/support/socketlib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/socketlib.h
 }
 
 contains(MODULES, agentlib){
     message( "- support/agentlib" )
-    SOURCES += $$COSMOS/source/core/libraries/support/agentlib.cpp
-    HEADERS += $$COSMOS/source/core/libraries/support/agentlib.h
+    SOURCES += $$COSMOS/core/libraries/support/agentlib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/agentlib.h
 }
 
 contains(MODULES, jsondef){
     message( "- support/jsondef" )
-    HEADERS += $$COSMOS/source/core/libraries/support/jsondef.h
+    HEADERS += $$COSMOS/core/libraries/support/jsondef.h
 }
 
 contains(MODULES, jsonlib){
     message( "- support/jsonlib" )
-    SOURCES += $$COSMOS/source/core/libraries/support/jsonlib.cpp
-    HEADERS += $$COSMOS/source/core/libraries/support/jsonlib.h
+    SOURCES += $$COSMOS/core/libraries/support/jsonlib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/jsonlib.h
 }
 
 contains(MODULES, mathlib){
     message( "- support/mathlib" )
-    SOURCES += $$COSMOS/source/core/libraries/support/mathlib.cpp
-    HEADERS += $$COSMOS/source/core/libraries/support/mathlib.h
+    SOURCES += $$COSMOS/core/libraries/support/mathlib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/mathlib.h
 }
 
 contains(MODULES, timelib){
     message( "- support/timelib" )
-    SOURCES += $$COSMOS/source/core/libraries/support/timelib.cpp
-    HEADERS += $$COSMOS/source/core/libraries/support/timelib.h
+    SOURCES += $$COSMOS/core/libraries/support/timelib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/timelib.h
 }
 
 contains(MODULES, datalib){
     message( "- support/datalib" )
-    SOURCES += $$COSMOS/source/core/libraries/support/datalib.cpp
-    HEADERS += $$COSMOS/source/core/libraries/support/datalib.h
+    SOURCES += $$COSMOS/core/libraries/support/datalib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/datalib.h
 }
 
 contains(MODULES, convertlib){
     message( "- support/convertlib" )
-    SOURCES += $$COSMOS/source/core/libraries/support/convertlib.cpp
-    HEADERS += $$COSMOS/source/core/libraries/support/convertlib.h
+    SOURCES += $$COSMOS/core/libraries/support/convertlib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/convertlib.h
 }
 
 contains(MODULES, convertdef){
     message( "- support/convertdef" )
-    HEADERS += $$COSMOS/source/core/libraries/support/convertdef.h
+    HEADERS += $$COSMOS/core/libraries/support/convertdef.h
 }
 
 contains(MODULES, stringlib){
     message( "- support/stringlib" )
-    SOURCES         += $$COSMOS/source/core/libraries/support/stringlib.cpp
-    HEADERS         += $$COSMOS/source/core/libraries/support/stringlib.h
+    SOURCES         += $$COSMOS/core/libraries/support/stringlib.cpp
+    HEADERS         += $$COSMOS/core/libraries/support/stringlib.h
 }
 
 contains(MODULES, jpleph){
     message( "- support/jpleph" )
-    SOURCES         += $$COSMOS/source/core/libraries/support/jpleph.cpp
-    HEADERS         += $$COSMOS/source/core/libraries/support/jpleph.h
+    SOURCES         += $$COSMOS/core/libraries/support/jpleph.cpp
+    HEADERS         += $$COSMOS/core/libraries/support/jpleph.h
 }
 
 contains(MODULES, ephemlib){
     message( "- support/ephemlib" )
-    SOURCES         += $$COSMOS/source/core/libraries/support/ephemlib.cpp
-    HEADERS         += $$COSMOS/source/core/libraries/support/ephemlib.h
+    SOURCES         += $$COSMOS/core/libraries/support/ephemlib.cpp
+    HEADERS         += $$COSMOS/core/libraries/support/ephemlib.h
 }
 
 contains(MODULES, geomag){
     message( "- support/geomag" )
-    SOURCES         += $$COSMOS/source/core/libraries/support/geomag.cpp
-    HEADERS         += $$COSMOS/source/core/libraries/support/geomag.h
+    SOURCES         += $$COSMOS/core/libraries/support/geomag.cpp
+    HEADERS         += $$COSMOS/core/libraries/support/geomag.h
 }
 
 contains(MODULES, sliplib){
     message( "- support/support/sliplib" )
-    SOURCES         += $$COSMOS/source/core/libraries/support/sliplib.cpp
-    HEADERS         += $$COSMOS/source/core/libraries/support/sliplib.h
+    SOURCES         += $$COSMOS/core/libraries/support/sliplib.cpp
+    HEADERS         += $$COSMOS/core/libraries/support/sliplib.h
 }
 
 contains(MODULES, qtsupport){
     message( "- source/tools/libraries/qtsupport" )
-    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qtsupport
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
     MODULES += cosmosdata
     MODULES += cosmosdatum
     MODULES += event
@@ -210,76 +210,82 @@ contains(MODULES, qtsupport){
 
 contains(MODULES, cosmosdata){
     message( "- tools/libraries/qtsupport/cosmosdata" )
-    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qtsupport
-    SOURCES += $$COSMOS/source/tools/libraries/qtsupport/cosmosdata.cpp
-    HEADERS += $$COSMOS/source/tools/libraries/qtsupport/cosmosdata.h
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
+    SOURCES += $$COSMOS/tools/libraries/qtsupport/cosmosdata.cpp
+    HEADERS += $$COSMOS/tools/libraries/qtsupport/cosmosdata.h
 }
 
 contains(MODULES, cosmosdatum){
     message( "- tools/libraries/qtsupport/cosmosdatum" )
-    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qtsupport
-    SOURCES += $$COSMOS/source/tools/libraries/qtsupport/cosmosdatum.cpp
-    HEADERS += $$COSMOS/source/tools/libraries/qtsupport/cosmosdatum.h
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
+    SOURCES += $$COSMOS/tools/libraries/qtsupport/cosmosdatum.cpp
+    HEADERS += $$COSMOS/tools/libraries/qtsupport/cosmosdatum.h
 }
 
 contains(MODULES, event){
     message( "- tools/libraries/qtsupport/event" )
-    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qtsupport
-    SOURCES += $$COSMOS/source/tools/libraries/qtsupport/event.cpp
-    HEADERS += $$COSMOS/source/tools/libraries/qtsupport/event.h
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
+    SOURCES += $$COSMOS/tools/libraries/qtsupport/event.cpp
+    HEADERS += $$COSMOS/tools/libraries/qtsupport/event.h
 }
 
 contains(MODULES, qmlsupport){
     message( "- tools/libraries/qmlsupport" )
-    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qmlsupport
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qmlsupport
     MODULES += sharedobjectlist
     MODULES += miscqmlsupport
 }
 
 contains(MODULES, sharedobjectlist){
     message( "- tools/libraries/qmlsupport/sharedobjectlist" )
-    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qmlsupport
-    SOURCES += $$COSMOS/source/tools/libraries/qmlsupport/sharedobjectlist.cpp
-    HEADERS += $$COSMOS/source/tools/libraries/qmlsupport/sharedobjectlist.h
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qmlsupport
+    SOURCES += $$COSMOS/tools/libraries/qmlsupport/sharedobjectlist.cpp
+    HEADERS += $$COSMOS/tools/libraries/qmlsupport/sharedobjectlist.h
 }
 
 contains(MODULES, miscqmlsupport){
-    message( "- tools/libraries/qmlsupport/sharedobjectlist" )
-    INCLUDEPATH     += $$COSMOS/source/tools/libraries/qmlsupport
-    SOURCES += $$COSMOS/source/tools/libraries/qmlsupport/miscqmlsupport.cpp
-    HEADERS += $$COSMOS/source/tools/libraries/qmlsupport/miscqmlsupport.h
+    message( "- tools/libraries/qmlsupport.miscqmlsupport" )
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qmlsupport
+    SOURCES += $$COSMOS/tools/libraries/qmlsupport/miscqmlsupport.cpp
+    HEADERS += $$COSMOS/tools/libraries/qmlsupport/miscqmlsupport.h
 }
 
+contains(MODULES, qtgl){
+    message( "- tools/libraries/qtgl" )
+    INCLUDEPATH     += $$COSMOS/tools/libraries/qtgl
+    SOURCES += $$COSMOS/tools/libraries/qtgl/*.cpp
+    HEADERS += $$COSMOS/tools/libraries/qtgl/*.h
+}
 
 #--------------------------------------------------------------------
 # Add COSMOS device
 contains(MODULES, DEVICE){
     message( "Add library: DEVICES" )
-    INCLUDEPATH     += $$COSMOS/source/core/libraries/device
-    SOURCES         += $$files($$COSMOS/source/core/libraries/device/*.cpp)
-    HEADERS         += $$files($$COSMOS/source/core/libraries/device/*.h)
+    INCLUDEPATH     += $$COSMOS/core/libraries/device
+    SOURCES         += $$files($$COSMOS/core/libraries/device/*.cpp)
+    HEADERS         += $$files($$COSMOS/core/libraries/device/*.h)
 }
 
 
 
 #--------------------------------------------------------------------
 # Add COSMOS core thirdparty libraries
-INCLUDEPATH     += $$COSMOS/source/core/libraries/thirdparty
-#INCLUDEPATH     += $$COSMOS/source/thirdparty
+INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty
+#INCLUDEPATH     += $$COSMOS/thirdparty
 
 # Add Zlib
 contains(MODULES, zlib){
     message( "- thirdparty/zlib" )
-    INCLUDEPATH     += $$COSMOS/source/core/libraries/thirdparty/zlib
-    SOURCES         += $$files($$COSMOS/source/core/libraries/thirdparty/zlib/*.c)
-    HEADERS         += $$files($$COSMOS/source/core/libraries/thirdparty/zlib/*.h)
+    INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty/zlib
+    SOURCES         += $$files($$COSMOS/core/libraries/thirdparty/zlib/*.c)
+    HEADERS         += $$files($$COSMOS/core/libraries/thirdparty/zlib/*.h)
 }
 
 # Add JPEG
 contains(MODULES, jpeg){
     message( "- thirdparty/jpeg" )
-    INCLUDEPATH     += $$COSMOS/source/core/libraries/thirdparty/jpeg
-    SOURCES         += $$files($$COSMOS/source/core/libraries/thirdparty/jpeg/*.c)
-    HEADERS         += $$files($$COSMOS/source/core/libraries/thirdparty/jpeg/*.h)
+    INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty/jpeg
+    SOURCES         += $$files($$COSMOS/core/libraries/thirdparty/jpeg/*.c)
+    HEADERS         += $$files($$COSMOS/core/libraries/thirdparty/jpeg/*.h)
 }
 
