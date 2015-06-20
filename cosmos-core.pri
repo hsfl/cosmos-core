@@ -4,25 +4,25 @@
 # to the make arguments to speed up the compilation time
 
 
-message(" ")
-message(" -- COSMOS.pri --")
+#message(" ")
+message("cosmos-core.pri >>")
 #--------------------------------------------------------------------
 # Windows config
 #--------------------------------------------------------------------
 win32 {
-    message( "Building on Win32" )
+    #message( "Building on Win32" )
 
     #QMAKE_CXXFLAGS += -std=c++0x -pthread
 
     # add libraries for MinGW
     *-g++* {
-        message("Compiler: MinGW")
+        #message("Compiler: MinGW")
         LIBS += -lpthread -lwsock32 -lwinmm -lws2_32 -liphlpapi
         QMAKE_CXXFLAGS += -Wall -pedantic -std=c++11 -pthread
     }
 
     *-msvc* {
-        message("Compiler: MSVC")
+        #message("Compiler: MSVC")
         LIBS += -lwsock32 -lwinmm -lws2_32 -liphlpapi
 
         QMAKE_CXXFLAGS += -W4 -D_CRT_NONSTDC_NO_DEPRECATE
@@ -77,7 +77,7 @@ win32 {
 # Mac config
 ################################################################################
 macx { #mac
-    message( "Building on MAC OS X" )
+    #message( "Building on MAC OS X" )
 }
 
 
@@ -85,13 +85,13 @@ macx { #mac
 # Unix config
 ################################################################################
 unix:!macx{
-    message( "Building on Unix" )
+    #message( "Building on Unix" )
     # add libraries
     LIBS += -pthread #-ljpeg
 }
 
-message("")
-message("COSMOS Modules >>")
+#message("")
+#message("COSMOS Modules >>")
 
 #--------------------------------------------------------------------
 #add COSMOS support to the path
@@ -200,63 +200,6 @@ contains(MODULES, sliplib){
     HEADERS         += $$COSMOS/core/libraries/support/sliplib.h
 }
 
-contains(MODULES, qtsupport){
-    message( "- source/tools/libraries/qtsupport" )
-    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
-    MODULES += cosmosdata
-    MODULES += cosmosdatum
-    MODULES += event
-}
-
-contains(MODULES, cosmosdata){
-    message( "- tools/libraries/qtsupport/cosmosdata" )
-    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
-    SOURCES += $$COSMOS/tools/libraries/qtsupport/cosmosdata.cpp
-    HEADERS += $$COSMOS/tools/libraries/qtsupport/cosmosdata.h
-}
-
-contains(MODULES, cosmosdatum){
-    message( "- tools/libraries/qtsupport/cosmosdatum" )
-    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
-    SOURCES += $$COSMOS/tools/libraries/qtsupport/cosmosdatum.cpp
-    HEADERS += $$COSMOS/tools/libraries/qtsupport/cosmosdatum.h
-}
-
-contains(MODULES, event){
-    message( "- tools/libraries/qtsupport/event" )
-    INCLUDEPATH     += $$COSMOS/tools/libraries/qtsupport
-    SOURCES += $$COSMOS/tools/libraries/qtsupport/event.cpp
-    HEADERS += $$COSMOS/tools/libraries/qtsupport/event.h
-}
-
-contains(MODULES, qmlsupport){
-    message( "- tools/libraries/qmlsupport" )
-    INCLUDEPATH     += $$COSMOS/tools/libraries/qmlsupport
-    MODULES += sharedobjectlist
-    MODULES += miscqmlsupport
-}
-
-contains(MODULES, sharedobjectlist){
-    message( "- tools/libraries/qmlsupport/sharedobjectlist" )
-    INCLUDEPATH     += $$COSMOS/tools/libraries/qmlsupport
-    SOURCES += $$COSMOS/tools/libraries/qmlsupport/sharedobjectlist.cpp
-    HEADERS += $$COSMOS/tools/libraries/qmlsupport/sharedobjectlist.h
-}
-
-contains(MODULES, miscqmlsupport){
-    message( "- tools/libraries/qmlsupport.miscqmlsupport" )
-    INCLUDEPATH     += $$COSMOS/tools/libraries/qmlsupport
-    SOURCES += $$COSMOS/tools/libraries/qmlsupport/miscqmlsupport.cpp
-    HEADERS += $$COSMOS/tools/libraries/qmlsupport/miscqmlsupport.h
-}
-
-contains(MODULES, qtgl){
-    message( "- tools/libraries/qtgl" )
-    INCLUDEPATH     += $$COSMOS/tools/libraries/qtgl
-    SOURCES += $$COSMOS/tools/libraries/qtgl/*.cpp
-    HEADERS += $$COSMOS/tools/libraries/qtgl/*.h
-}
-
 #--------------------------------------------------------------------
 # Add COSMOS device
 contains(MODULES, DEVICE){
@@ -265,8 +208,6 @@ contains(MODULES, DEVICE){
     SOURCES         += $$files($$COSMOS/core/libraries/device/*.cpp)
     HEADERS         += $$files($$COSMOS/core/libraries/device/*.h)
 }
-
-
 
 #--------------------------------------------------------------------
 # Add COSMOS core thirdparty libraries
@@ -289,3 +230,4 @@ contains(MODULES, jpeg){
     HEADERS         += $$files($$COSMOS/core/libraries/thirdparty/jpeg/*.h)
 }
 
+message("")
