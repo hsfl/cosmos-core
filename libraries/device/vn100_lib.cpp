@@ -237,10 +237,16 @@ int32_t vn100_magcal_on(vn100_handle *handle)
 	return 0;
 }
 
+// ??? what is this function doing?
 int32_t vn100_asynchoff(vn100_handle *handle)
 {
 	int32_t iretn;
 
+    // references: VN-100 User Manual (UM001) pg. 47
+
+    // write register command: VNWRG
+    // register access ID: 6 (asynchronous data output type)
+    // ex. $VNRRG,06,0*69
 	if ((iretn=cssl_putnmea(handle->serial, (uint8_t *)"VNWRG,6,0", 9)) < 0)
 	{
 		return (iretn);
