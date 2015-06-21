@@ -253,8 +253,8 @@ contains(MODULES, miscqmlsupport){
 contains(MODULES, qtgl){
     message( "- tools/libraries/qtgl" )
     INCLUDEPATH     += $$COSMOS/tools/libraries/qtgl
-    SOURCES += $$COSMOS/tools/libraries/qtgl/*.cpp
-    HEADERS += $$COSMOS/tools/libraries/qtgl/*.h
+    SOURCES += $$files($$COSMOS/tools/libraries/qtgl/*.cpp)
+    HEADERS += $$files($$COSMOS/tools/libraries/qtgl/*.h)
 }
 
 #--------------------------------------------------------------------
