@@ -106,6 +106,15 @@ contains(MODULES, SUPPORT){
     MODULES += ZLIB
 }
 
+contains(MODULES, agentlib){
+    message( "- support/agentlib" )
+    SOURCES += $$COSMOS/core/libraries/support/agentlib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/agentlib.h
+    MODULES += socketlib #Because agentlib needs socketlib to funciton.
+    MODULES += sliplib #and sliplib
+    MODULES += elapsedtime #and elapsedtime
+}
+
 contains(MODULES, elapsedtime){
     message( "- support/elapsedtime" )
     SOURCES     += $$COSMOS/core/libraries/support/elapsedtime.cpp
@@ -122,12 +131,6 @@ contains(MODULES, socketlib){
     message( "- support/socketlib" )
     SOURCES += $$COSMOS/core/libraries/support/socketlib.cpp
     HEADERS += $$COSMOS/core/libraries/support/socketlib.h
-}
-
-contains(MODULES, agentlib){
-    message( "- support/agentlib" )
-    SOURCES += $$COSMOS/core/libraries/support/agentlib.cpp
-    HEADERS += $$COSMOS/core/libraries/support/agentlib.h
 }
 
 contains(MODULES, jsondef){
