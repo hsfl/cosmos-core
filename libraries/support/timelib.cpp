@@ -973,9 +973,9 @@ double utc2gmst1982(double utc)
 
 	if (utc != lutc)
 	{
-		ut1 = utc2ut1(utc);
+//		ut1 = utc2ut1(utc);
 		tt = utc2jcentt(utc);
-		lgmst = ut1 + 8640184.812866 * utc2jcenut1(utc) + tt * tt * (0.093104 + tt * (0.0000062));
+		lgmst = 24110.54841 + 8640184.812866 * utc2jcenut1(utc) + tt * tt * (0.093104 + tt * (-0.0000062));
 		lgmst = ranrm(lgmst);
 	}
 

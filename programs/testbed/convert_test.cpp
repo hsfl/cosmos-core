@@ -49,6 +49,10 @@ int main(int argc, char *argv[])
 {
 	rmatrix pm;
 	double temeutc = cal2mjd(2000, 0, 182.78495062)+1;
+//	temeutc = cal2mjd(2004, 4, 6, 7, 51, 28, 386009000);
+	double theta = DEGOF(utc2theta(temeutc));
+	double zeta = DEGOF(utc2zeta(temeutc));
+	double z = DEGOF(utc2z(temeutc));
 	double eeq = DEGOF(utc2gast(temeutc) - utc2gmst1982(temeutc));
 	double dpsi = DEGOF(utc2dpsi(temeutc));
 	double deps = DEGOF(utc2depsilon(temeutc));
