@@ -1,12 +1,9 @@
 #!/bin/csh
 foreach num (253 254 255 256 257 258 259)
-wget http://datacenter.iers.org/eop/-/somos/5Rgv/document/tx14iers.009/bulletinb-$num.txt
+wget http://datacenter.iers.org/eop/-/somos/5Rgv/getTX/207/bulletinb-$num.txt -O bulletinb-$num.txt
 end
-foreach numa (26 27 28 29 30)
+foreach numa (26 27 28 29 30 31 32)
 foreach numb (0 1 2 3 4 5 6 7 8 9)
-wget http://datacenter.iers.org/eop/-/somos/5Rgv/document/tx14iers.009/bulletinb-$numa$numb.txt
+wget http://datacenter.iers.org/eop/-/somos/5Rgv/getTX/207/bulletinb-$numa$numb.txt -O bulletinb-$numa$numb.txt
 end
-end
-foreach num (310 311)
-wget http://datacenter.iers.org/eop/-/somos/5Rgv/document/tx14iers.009/bulletinb-$num.txt
 end

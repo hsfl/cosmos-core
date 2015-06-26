@@ -47,7 +47,28 @@ void compare();
 
 int main(int argc, char *argv[])
 {
-rvector vec1;
+	rmatrix pm;
+	double temeutc = cal2mjd(2000, 0, 182.78495062)+1;
+	double eeq = DEGOF(utc2gast(temeutc) - utc2gmst1982(temeutc));
+	double dpsi = DEGOF(utc2dpsi(temeutc));
+	double deps = DEGOF(utc2depsilon(temeutc));
+	double eps = DEGOF(utc2epsilon(temeutc));
+	double omega = DEGOF(utc2omega(temeutc));
+	double gmst = DEGOF(utc2gmst2000(temeutc));
+	gmst = DEGOF(utc2gmst1982(temeutc));
+	double gast = DEGOF(utc2gast(temeutc));
+
+	rvector teme = {{-9060473.73569, 4645709.52502, 813686.73153}};
+	teme2true(temeutc, &pm);
+	teme = rv_mmult(pm, teme);
+	true2mean(temeutc, &pm);
+	teme = rv_mmult(pm, teme);
+	mean2j2000(temeutc, &pm);
+	teme = rv_mmult(pm, teme);
+	j20002icrs(temeutc, &pm);
+	teme = rv_mmult(pm, teme);
+
+	rvector vec1;
 
 iloc.pos.eci.s.col[0] = 5111777.399;
 iloc.pos.eci.s.col[1] = 4451164.779;
@@ -106,13 +127,16 @@ iloc.att.icrf.a = rv_zero();
 
 iloc.utc = utc;
 iloc.pos.eci.pass++;
-pos_eci(&iloc);
+loc = iloc;
+pos_eci(&loc);
+iloc.pos.extra = loc.pos.extra;
 
-iloc.att.lvlh.s = q_eye();
-iloc.att.lvlh.v = rv_zero();
-iloc.att.lvlh.a = rv_zero();
-iloc.att.lvlh.pass++;
-att_lvlh(&iloc);
+loc.att.lvlh.s = q_eye();
+loc.att.lvlh.v = rv_zero();
+loc.att.lvlh.a = rv_zero();
+loc.att.lvlh.pass++;
+att_lvlh(&loc);
+iloc.att = loc.att;
 
 quaternion qe_z, qe_y, fqe;
 
@@ -158,6 +182,21 @@ compare();
 printf("\n");
 
 //pos_clear(loc);
+loc.pos.eci = iloc.pos.eci;
+
+rmatrix rm;
+icrs2j2000(iloc.pos.eci.utc, &rm);
+loc.pos.eci.s = rv_mmult(rm, loc.pos.eci.s);
+loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
+
+j20002mean(iloc.pos.eci.utc, &rm);
+loc.pos.eci.s = rv_mmult(rm, loc.pos.eci.s);
+loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
+
+mean2true(iloc.pos.eci.utc, &rm);
+loc.pos.eci.s = rv_mmult(rm, loc.pos.eci.s);
+loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
+
 loc.pos.eci = iloc.pos.eci;
 loc.att.icrf = iloc.att.icrf;
 loc.pos.eci.pass++;
