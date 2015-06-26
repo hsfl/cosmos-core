@@ -14,3 +14,6 @@ documentation/doxygen/man/
 documentation/doxygen/log.txt
 libraries/support/save/
 *.save
+*.aux
+*.gz
+*.toc

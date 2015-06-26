@@ -248,6 +248,19 @@ double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t m
 	return mjd;
 }
 
+//! Calendar representation YYYY,DDD.ffff to Modified Julian Day - overloaded
+/*! Convert a shortened calendar representation of date to MJD.
+ * Day argument is day of year.
+ * \param year Full representation of year.
+ * \param day of year.
+ * \return Modified Julian Day
+*/
+double cal2mjd(int32_t year, double dayOfYear)
+{
+    return cal2mjd(year, 0 , dayOfYear);
+}
+
+
 //! Calendar representation to Modified Julian Day - shortened
 /*! Convert a shortened calendar representation of date to MJD.
  * Time is taken from the fractional part of the day. If month
