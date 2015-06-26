@@ -108,9 +108,10 @@ double currentmjd();
 
 // gregorian calendar (year, month, day) to another format
 double cal2mjd(calstruc date);
-double  cal2mjd(int32_t year, int32_t month, double day);
-double  cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond);
-double  gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
+double cal2mjd(int32_t year, double dayOfYear);
+double cal2mjd(int32_t year, int32_t month, double day);
+double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond);
+double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
                                    int32_t hour, int32_t minute, double second);
 
 // utc to another format

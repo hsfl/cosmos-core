@@ -2842,7 +2842,85 @@ tlestruc get_line(uint16_t index, vector<tlestruc> lines)
 	}
 }
 
-//! Load TLE from file.
+
+//! Load TLE from file. TODO!!! create new class for dealing with TLEs
+/*!
+* Load Two Line Element file into TLE structure
+* \param fname Name of file containing elements
+* \param tle structure to contain TLE elements
+* \return 0 if parsing was sucessfull, otherwise a negative error.
+*/
+int32_t loadTLE(char *fname, tlestruc &tle)
+{
+    FILE *fdes;
+    uint16_t year;
+    double jday;
+    int32_t bdragm, bdrage, ecc;
+    char ibuf[81], tlename[81];
+    int i;
+
+    if ((fdes=fopen(fname,"r")) == NULL)
+        return (-1);
+
+    tlecount = 0;
+
+    // Name Line
+    char* ichar = fgets(tlename,80,fdes);
+    if (ichar == NULL || feof(fdes))
+        return (-1);
+
+    for (i=strlen(tlename)-1; i>0; i--)
+    {
+        if (tlename[i]!=' ' && tlename[i]!='\r' && tlename[i]!='\n')
+            break;
+    }
+    tlename[i+1] = 0;
+
+    while (!feof(fdes))
+    {
+        strcpy(tle.name,tlename);
+
+        // Line 1
+        if (fgets(ibuf,80,fdes) == NULL)
+            break;
+        sscanf(&ibuf[2],"%5hu",&tle.snumber);
+        sscanf(&ibuf[9],"%6s",tle.id);
+        sscanf(&ibuf[18],"%2hu",&year);
+        if (year < 57)
+            year += 2000;
+        else
+            year += 1900;
+        sscanf(&ibuf[20],"%12lf",&jday);
+        tle.utc = cal2mjd((int)year,1,0.);
+        tle.utc += jday;
+        if (strlen(ibuf) > 50)
+        {
+            sscanf(&ibuf[53],"%6d%2d",&bdragm,&bdrage);
+            tle.bstar = pow(10.,bdrage)*bdragm/1.e5;
+        }
+        else
+            tle.bstar = 0.;
+
+        // Line 2
+        char* ichar = fgets(ibuf,80,fdes);
+        if (ichar != NULL)
+        {
+            ibuf[68] = 0;
+            sscanf(&ibuf[8],"%8lf %8lf %7d %8lf %8lf %11lf%5u",&tle.i,&tle.raan,&ecc,&tle.ap,&tle.ma,&tle.mm,&tle.orbit);
+            tle.i = RADOF(tle.i);
+            tle.raan = RADOF(tle.raan);
+            tle.ap = RADOF(tle.ap);
+            tle.ma = RADOF(tle.ma);
+            tle.mm *= D2PI/1440.;
+            tle.e = ecc / 1.e7;
+        }
+    }
+    fclose(fdes);
+    return 0;
+}
+
+
+//! Load TLE from file. TODO!!! Rename Function to loadTle and create new class for dealing with TLEs
 /*!
 * Load Two Line Element file into array of TLE's
 * \param fname Name of file containing elements
