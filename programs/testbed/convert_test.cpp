@@ -45,8 +45,81 @@ kepstruc kep;
 
 void compare();
 
+
+double difference(double a, double b)
+{
+   return a - b;
+}
+
+double errorPercent(double a, double b){
+    return (a-b)/b*100.;
+}
+
+void printError(string variable, double a, double b)
+{
+    cout << "error  "<< variable << " = " << setprecision(4) <<  difference(a, b) << " % error = " << errorPercent(a, b) << endl;
+
+}
+
+void test_tle_valado(){
+
+    double mjd = cal2mjd(2000, 182.78495054);
+    tlestruc tle;
+    cartpos teme_cosmos;
+
+    int iretn = loadTLE("E:/cosmos-source/documentation/stk-validation/valado234.txt", tle);
+
+    // this is really tle2teme not eci
+    tle2eci(mjd, tle, &teme_cosmos);
+
+    // compare with results from Valado
+    cartpos teme_valado;
+    // convert to meters
+    teme_valado.s.col[0] = -9060.47373569*1e3;
+    teme_valado.s.col[1] = 4658.70952502*1e3;
+    teme_valado.s.col[2] = 813.68673153*1e3;
+
+    teme_valado.v.col[0] = -2.232832783*1e3;
+    teme_valado.v.col[1] = -4.110453490*1e3;
+    teme_valado.v.col[2] = -3.157345433*1e3;
+
+    cout << teme_cosmos << endl;
+    cout << teme_valado << endl;
+
+    cout.setf( ios::fixed, ios::floatfield );
+    cout << "error r_x = " << setprecision(4) <<  difference(teme_cosmos.s.col[0], teme_valado.s.col[0]) << " % error = " << errorPercent(teme_cosmos.s.col[0], teme_valado.s.col[0]) << endl;
+    cout << "error r_y = " << setprecision(4) <<  difference(teme_cosmos.s.col[1], teme_valado.s.col[1]) << " % error = " << errorPercent(teme_cosmos.s.col[1], teme_valado.s.col[1]) << endl;
+    cout << "error r_z = " << setprecision(4) <<  difference(teme_cosmos.s.col[2], teme_valado.s.col[2]) << " % error = " << errorPercent(teme_cosmos.s.col[2], teme_valado.s.col[2]) << endl;
+
+    cout << "error v_x = " << setprecision(4) <<  difference(teme_cosmos.v.col[0], teme_valado.v.col[0]) << " % error = " << errorPercent(teme_cosmos.v.col[0], teme_valado.v.col[0]) << endl;
+    cout << "error v_y = " << setprecision(4) <<  difference(teme_cosmos.v.col[1], teme_valado.v.col[1]) << " % error = " << errorPercent(teme_cosmos.v.col[1], teme_valado.v.col[1]) << endl;
+    cout << "error v_z = " << setprecision(4) <<  difference(teme_cosmos.v.col[2], teme_valado.v.col[2]) << " % error = " << errorPercent(teme_cosmos.v.col[2], teme_valado.v.col[2]) << endl;
+
+
+    // find precession terms
+    double zeta_cosmos  = RAD2DEG(utc2zeta(mjd));
+    double theta_cosmos = RAD2DEG(utc2theta(mjd));
+    double z_cosmos     = RAD2DEG(utc2z(mjd));
+
+    double zeta_valado  = 0.0031796;
+    double theta_valado = 0.0027633;
+    double z_valado     = 0.0031796;
+
+    cout << endl;
+    cout << "Precession values" << endl;
+    cout << "[zeta, theta, z] (COSMOS) = [" << zeta_cosmos << ", " << theta_cosmos << ", " << z_cosmos << "]" << endl;
+    cout << "[zeta, theta, z] (VALADO) = [" << zeta_valado << ", " << theta_valado << ", " << z_valado << "]" << endl;
+
+    printError("zeta", zeta_cosmos, zeta_valado);
+    printError("theta", theta_cosmos, theta_valado);
+    printError("z", z_cosmos, z_valado);
+}
+
 int main(int argc, char *argv[])
 {
+
+    test_tle_valado();
+
 	rmatrix pm;
 	double temeutc = cal2mjd(2000, 0, 182.78495062)+1;
 	double eeq = DEGOF(utc2gast(temeutc) - utc2gmst1982(temeutc));
