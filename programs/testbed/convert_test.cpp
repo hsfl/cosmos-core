@@ -36,6 +36,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iomanip>      // std::setprecision
 
 cosmosstruc *cdata;
 locstruc tloc, loc, iloc;
@@ -57,7 +58,7 @@ double errorPercent(double a, double b){
 
 void printError(string variable, double a, double b)
 {
-    cout << "error  "<< variable << " = " << setprecision(4) <<  difference(a, b) << " % error = " << errorPercent(a, b) << endl;
+    cout << "error  "<< variable << " = " << setprecision(9) <<  difference(a, b) << " % error = " << errorPercent(a, b) << endl;
 
 }
 
@@ -86,7 +87,7 @@ void test_tle_valado(){
     cout << teme_cosmos << endl;
     cout << teme_valado << endl;
 
-    cout.setf( ios::fixed, ios::floatfield );
+//    cout.setf( ios::fixed, ios::floatfield );
     cout << "error r_x = " << setprecision(4) <<  difference(teme_cosmos.s.col[0], teme_valado.s.col[0]) << " % error = " << errorPercent(teme_cosmos.s.col[0], teme_valado.s.col[0]) << endl;
     cout << "error r_y = " << setprecision(4) <<  difference(teme_cosmos.s.col[1], teme_valado.s.col[1]) << " % error = " << errorPercent(teme_cosmos.s.col[1], teme_valado.s.col[1]) << endl;
     cout << "error r_z = " << setprecision(4) <<  difference(teme_cosmos.s.col[2], teme_valado.s.col[2]) << " % error = " << errorPercent(teme_cosmos.s.col[2], teme_valado.s.col[2]) << endl;
@@ -107,8 +108,8 @@ void test_tle_valado(){
 
     cout << endl;
     cout << "Precession values" << endl;
-    cout << "[zeta, theta, z] (COSMOS) = [" << zeta_cosmos << ", " << theta_cosmos << ", " << z_cosmos << "]" << endl;
-    cout << "[zeta, theta, z] (VALADO) = [" << zeta_valado << ", " << theta_valado << ", " << z_valado << "]" << endl;
+    cout << "[zeta, theta, z] (COSMOS) = [" << setprecision(9)<< zeta_cosmos << ", " << theta_cosmos << ", " << z_cosmos << "]" << endl;
+    cout << "[zeta, theta, z] (VALADO) = [" << setprecision(9)<< zeta_valado << ", " << theta_valado << ", " << z_valado << "]" << endl;
 
     printError("zeta", zeta_cosmos, zeta_valado);
     printError("theta", theta_cosmos, theta_valado);
