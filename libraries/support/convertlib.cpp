@@ -1985,13 +1985,13 @@ void teme2true(double ep0, rmatrix *rm)
 {
 	// TEME to True of Date (Equation of Equinoxes)
 	double eeq = utc2gast(ep0) - utc2gmst1982(ep0);
-	*rm = rm_change_around_z(-eeq);
+	*rm = rm_change_around_z(eeq);
 }
 
 void true2teme(double ep0, rmatrix *rm)
 {
 	double eeq = utc2gast(ep0) - utc2gmst1982(ep0);
-	*rm = rm_change_around_z(eeq);
+	*rm = rm_change_around_z(-eeq);
 }
 
 void true2pef(double utc, rmatrix *rm)
@@ -2128,49 +2128,41 @@ void mean2j2000(double ep0, rmatrix *pm)
 		return;
 	}
 
-	/* Interval between basic epoch J2000.0 and beginning epoch (JC) */
-//	t0 = (ep0 - 51544.5) / 36525.;
-
-	/* Interval over which precession required (JC) */
-//	t =  -t0;
-
-	/* Euler angles */
-//	tas2r = t * DAS2R;
-//	w = 2306.2181 + ( ( 1.39656 - ( 0.000139 * t0 ) ) * t0 );
-//	zeta = (w + ( ( 0.30188 - 0.000344 * t0 ) + 0.017998 * t ) * t ) * tas2r;
-//	z = (w + ( ( 1.09468 + 0.000066 * t0 ) + 0.018203 * t ) * t ) * tas2r;
-//	theta = ((2004.3109 + (-0.85330 - 0.000217 * t0) * t0)+ ((-0.42665 - 0.000217 * t0) - 0.041833 * t) * t) * tas2r;
-
-	double ttc = utc2jcentt(ep0);
+//	double ttc = utc2jcentt(ep0);
 
 	/* Euler angles */
 	// Capitaine, et. al, A&A, 412, 567-586 (2003)
 	// Expressions for IAU 2000 precession quantities
 	// Equation 40
-	double zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971 + ttc*(0.0000003173))))))*DAS2R;
-	double z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596 + ttc*(0.0000002904))))))*DAS2R;
-	double theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+//	double zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971 + ttc*(0.0000003173))))))*DAS2R;
+//	double z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596 + ttc*(0.0000002904))))))*DAS2R;
+//	double theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+	double zeta = utc2zeta(ep0);
+	double theta = utc2theta(ep0);
+	double z = utc2z(ep0);
+
+	*pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
 
 //	zeta = ttc*(2306.2181 + ttc*(0.30188 + ttc*(0.017998)))*DAS2R;
 //	z = zeta + ttc*ttc*(0.79280 + ttc*(0.000205))*DAS2R;
 //	theta = ttc*(2004.3109 + ttc*(-0.42665 + ttc*(-0.041833)))*DAS2R;
 
-	ca = cos(zeta);
-	sa = -sin(zeta);
-	cb = cos(theta);
-	sb = sin(theta);
-	cg = cos(z);
-	sg = -sin(z);
+//	ca = cos(zeta);
+//	sa = -sin(zeta);
+//	cb = cos(theta);
+//	sb = sin(theta);
+//	cg = cos(z);
+//	sg = -sin(z);
 
-	pm->row[0].col[0] = ca*cb*cg - sa*sg;
-	pm->row[0].col[1] = cg*sa*cb +ca*sg;
-	pm->row[0].col[2] = -sb*cg;
-	pm->row[1].col[0] = -ca*cb*sg - sa*cg;
-	pm->row[1].col[1] = -sa*cb*sg + ca*cg;
-	pm->row[1].col[2] = sg*sb;
-	pm->row[2].col[0] = ca*sb;
-	pm->row[2].col[1] = sa*sb;
-	pm->row[2].col[2] = cb;
+//	pm->row[0].col[0] = ca*cb*cg - sa*sg;
+//	pm->row[0].col[1] = cg*sa*cb +ca*sg;
+//	pm->row[0].col[2] = -sb*cg;
+//	pm->row[1].col[0] = -ca*cb*sg - sa*cg;
+//	pm->row[1].col[1] = -sa*cb*sg + ca*cg;
+//	pm->row[1].col[2] = sg*sb;
+//	pm->row[2].col[0] = ca*sb;
+//	pm->row[2].col[1] = sa*sb;
+//	pm->row[2].col[2] = cb;
 	opm = *pm;
 }
 
@@ -2262,43 +2254,44 @@ void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 		ttc = utc2jcentt(utc);
 
 		/* Euler angles */
-		zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971)))))*DAS2R;
-		z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596)))))*DAS2R;
-		theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+//		zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971)))))*DAS2R;
+//		z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596)))))*DAS2R;
+//		theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+//		pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
 
-//		j20002mean(utc, &pm);
-		pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
+		j20002mean(utc, &pm);
 
 		// Calculate Nutation Matrix (nm)
-		nuts = utc2nuts(utc);
-		dpsi = nuts.col[0];
-		deps = nuts.col[1];
-		eps = utc2epsilon(utc);
+//		nuts = utc2nuts(utc);
+//		dpsi = nuts.col[0];
+//		deps = nuts.col[1];
+//		eps = utc2epsilon(utc);
 
-		se = sin(eps);
-		sdp = sin(dpsi);
-		sde = sin(-eps+deps);
-		ce = cos(eps);
-		cdp = cos(dpsi);
-		cde = cos(-eps+deps);
+//		se = sin(eps);
+//		sdp = sin(dpsi);
+//		sde = sin(-eps+deps);
+//		ce = cos(eps);
+//		cdp = cos(dpsi);
+//		cde = cos(-eps+deps);
 
-//		mean2true(utc, &nm);
-		nm = rm_zero();
-		nm.row[0].col[0] = cdp;
-		nm.row[1].col[0] = sdp*ce;
-		nm.row[2].col[0] = sdp*se;
+//		nm = rm_zero();
+//		nm.row[0].col[0] = cdp;
+//		nm.row[1].col[0] = sdp*ce;
+//		nm.row[2].col[0] = sdp*se;
 
-		nm.row[0].col[1] = -sdp*cde;
-		nm.row[1].col[1] = cde*cdp*ce-se*sde;
-		nm.row[2].col[1] = cde*cdp*se+ce*sde;
+//		nm.row[0].col[1] = -sdp*cde;
+//		nm.row[1].col[1] = cde*cdp*ce-se*sde;
+//		nm.row[2].col[1] = cde*cdp*se+ce*sde;
 
-		nm.row[0].col[2] = sdp*sde;
-		nm.row[1].col[2] = -sde*cdp*ce-se*cde;
-		nm.row[2].col[2] = -sde*cdp*se+cde*ce;
+//		nm.row[0].col[2] = sdp*sde;
+//		nm.row[1].col[2] = -sde*cdp*ce-se*cde;
+//		nm.row[2].col[2] = -sde*cdp*se+cde*ce;
+		mean2true(utc, &nm);
 
 		// Calculate Earth Rotation (Sidereal Time) Matrix (sm)
-		gast = utc2gast(utc);
-		sm = rm_change_around_z(-gast);
+//		gast = utc2gast(utc);
+//		sm = rm_change_around_z(-gast);
+		true2pef(utc, &sm);
 
 //		dsm = rm_zero();
 //		dsm.row[1].col[0] = cos(gast);
@@ -2307,10 +2300,11 @@ void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 //		dsm = rm_smult(-.000072921158553,dsm);
 
 		// Calculate Polar Motion (Wander) Matrix (pw)
-		polm = polar_motion(utc);
-		pols = -47. * 4.848136811095359935899141e-12 * ttc;
+//		polm = polar_motion(utc);
+//		pols = -47. * 4.848136811095359935899141e-12 * ttc;
 
-		pw = rm_mmult(rm_change_around_z(-pols),rm_mmult(rm_change_around_y(polm.x),rm_change_around_x(polm.y)));
+//		pw = rm_mmult(rm_change_around_z(-pols),rm_mmult(rm_change_around_y(polm.x),rm_change_around_x(polm.y)));
+		pef2itrs(utc, &pw);
 
 		// Start with ICRS to J2000 Matrix (bm)
 		// Final Matrix = pw * sm * nm * pm * bm

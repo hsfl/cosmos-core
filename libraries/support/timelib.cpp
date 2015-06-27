@@ -606,6 +606,7 @@ double utc2zeta(double utc)
 {
 	double ttc = utc2jcentt(utc);
 //	double zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971 + ttc*(0.0000003173))))))*DAS2R;
+	// Vallado, eqn. 3-88
 	double zeta = (ttc*(2306.2181 + ttc*(0.30188 + ttc*(0.017998))))*DAS2R;
 	return zeta;
 }
@@ -621,7 +622,9 @@ double utc2zeta(double utc)
 double utc2z(double utc)
 {
 	double ttc = utc2jcentt(utc);
-	double z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596 + ttc*(0.0000002904))))))*DAS2R;
+//	double z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596 + ttc*(0.0000002904))))))*DAS2R;
+	// Vallado, eqn. 3-88
+	double z = (ttc*(2306.2181 + ttc*(1.09468 + ttc*(0.018203))))*DAS2R;
 	return z;
 }
 
@@ -636,7 +639,9 @@ double utc2z(double utc)
 double utc2theta(double utc)
 {
 	double ttc = utc2jcentt(utc);
-	double theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+//	double theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+	// Vallado, eqn. 3-88
+	double theta = ttc*(2004.3109 + ttc*(-0.42665 + ttc*(-0.041833)))*DAS2R;
 	return theta;
 }
 
@@ -949,7 +954,7 @@ double utc2gast(double mjd)
     \param mjd UT as Modified Julian Day
     \return GMST as radians
 */
-double utc2gmst2000(double mjd)
+double utc2gmst1982(double mjd)
 {
     static double lmjd=0.;
     static double lcalc=0.;
@@ -966,7 +971,7 @@ double utc2gmst2000(double mjd)
     return (lcalc);
 }
 
-double utc2gmst1982(double utc)
+double utc2gmst2000(double utc)
 {
 	static double lutc=0.;
 	static double lgmst = 0.;

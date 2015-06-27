@@ -122,29 +122,44 @@ int main(int argc, char *argv[])
     test_tle_valado();
 
 	rmatrix pm;
-	double temeutc = cal2mjd(2000, 0, 182.78495062)+1;
-//	temeutc = cal2mjd(2004, 4, 6, 7, 51, 28, 386009000);
-	double theta = DEGOF(utc2theta(temeutc));
-	double zeta = DEGOF(utc2zeta(temeutc));
-	double z = DEGOF(utc2z(temeutc));
-	double eeq = DEGOF(utc2gast(temeutc) - utc2gmst1982(temeutc));
-	double dpsi = DEGOF(utc2dpsi(temeutc));
-	double deps = DEGOF(utc2depsilon(temeutc));
-	double eps = DEGOF(utc2epsilon(temeutc));
-	double omega = DEGOF(utc2omega(temeutc));
-	double gmst = DEGOF(utc2gmst2000(temeutc));
-	gmst = DEGOF(utc2gmst1982(temeutc));
-	double gast = DEGOF(utc2gast(temeutc));
+//	double sutc = cal2mjd(2000, 0, 182.78495062)+1;
+//	rvector spos = {{-9060473.73569, 4658709.52502, 813686.73153}};
+	double sutc = cal2mjd(2004, 4, 6, 7, 51, 28, 386009000);
+	rvector spos = {{-1033479.38300, 7901295.27540, 6380356.5958}};
+	double theta = DEGOF(utc2theta(sutc));
+	double zeta = DEGOF(utc2zeta(sutc));
+	double z = DEGOF(utc2z(sutc));
+	double eeq = DEGOF(utc2gast(sutc) - utc2gmst1982(sutc));
+	double dpsi = DEGOF(utc2dpsi(sutc));
+	double deps = DEGOF(utc2depsilon(sutc));
+	double eps = DEGOF(utc2epsilon(sutc));
+	double omega = DEGOF(utc2omega(sutc));
+	double gmst = DEGOF(utc2gmst2000(sutc));
+	gmst = DEGOF(utc2gmst1982(sutc));
+	double gast = DEGOF(utc2gast(sutc));
 
-	rvector teme = {{-9060473.73569, 4645709.52502, 813686.73153}};
-	teme2true(temeutc, &pm);
-	teme = rv_mmult(pm, teme);
-	true2mean(temeutc, &pm);
-	teme = rv_mmult(pm, teme);
-	mean2j2000(temeutc, &pm);
-	teme = rv_mmult(pm, teme);
-	j20002icrs(temeutc, &pm);
-	teme = rv_mmult(pm, teme);
+	// TLE to GCRF
+	// Vallado, pg. 234
+	teme2true(sutc, &pm);
+	spos = rv_mmult(rm_transpose(pm), spos);
+	true2mean(sutc, &pm);
+	spos = rv_mmult(pm, spos);
+	mean2j2000(sutc, &pm);
+	spos = rv_mmult(rm_transpose(pm), spos);
+	j20002icrs(sutc, &pm);
+	spos = rv_mmult(pm, spos);
+
+	//GCRF to ITRF
+	icrs2j2000(sutc, &pm);
+	spos = rv_mmult(pm, spos);
+	j20002mean(sutc, &pm);
+	spos = rv_mmult(pm, spos);
+	mean2true(sutc, &pm);
+	spos = rv_mmult(pm, spos);
+	true2pef(sutc, &pm);
+	spos = rv_mmult(pm, spos);
+	pef2itrs(sutc, &pm);
+	spos = rv_mmult(pm, spos);
 
 	rvector vec1;
 
@@ -251,7 +266,8 @@ tpos = rotate_q(iloc.att.geoc.s,iloc.pos.geoc.s);
 tpos = transform_q(iloc.att.geoc.s,iloc.pos.geoc.s);
 
 loc.utc = iloc.utc;
-loc.pos.baryc = iloc.pos.baryc;
+loc.pos.baryc.s = iloc.pos.baryc.s;
+loc.pos.baryc.v = iloc.pos.baryc.v;
 loc.att.icrf = iloc.att.icrf;
 loc.pos.baryc.pass++;
 pos_baryc(&loc);
@@ -275,7 +291,8 @@ mean2true(iloc.pos.eci.utc, &rm);
 loc.pos.eci.s = rv_mmult(rm, loc.pos.eci.s);
 loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
 
-loc.pos.eci = iloc.pos.eci;
+loc.pos.eci.s = iloc.pos.eci.s;
+loc.pos.eci.v = iloc.pos.eci.v;
 loc.att.icrf = iloc.att.icrf;
 loc.pos.eci.pass++;
 pos_eci(&loc);
@@ -284,7 +301,8 @@ compare();
 printf("\n");
 
 //pos_clear(loc);
-loc.pos.geoc = iloc.pos.geoc;
+loc.pos.geoc.s = iloc.pos.geoc.s;
+loc.pos.geoc.v = iloc.pos.geoc.v;
 loc.att.geoc = iloc.att.geoc;
 loc.pos.geoc.pass++;
 pos_geoc(&loc);
