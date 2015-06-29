@@ -1598,6 +1598,7 @@ BEGIN SubObjects
 Class Satellite
 
 	Satellite1
+	Satellite2
 
 END Class
 
@@ -1609,6 +1610,9 @@ BEGIN References
     END Instance
     Instance Satellite/Satellite1
         Satellite/Satellite1
+    END Instance
+    Instance Satellite/Satellite2
+        Satellite/Satellite2
     END Instance
 END References
 
