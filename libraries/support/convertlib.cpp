@@ -460,7 +460,7 @@ void pos_geos(locstruc *loc)
 */
 void pos_geod(locstruc *loc)
 {
-	// Synchroniz time
+	// Synchronize time
 	if (0. == loc->pos.geod.utc)
 	{
 		if (!isfinite(loc->utc))
@@ -490,7 +490,6 @@ void pos_geod(locstruc *loc)
 
 	// Transform to ITRS
 	loc->bearth = transform_q(q_change_around_z(-loc->pos.geod.s.lon),transform_q(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
-	//	loc->bearth = transform_q(q_change_around_z(loc->pos.geod.s.lon-DPI),transform_q(q_change_around_y(DPI2-loc->pos.geod.s.lat),loc->bearth));
 }
 
 //! Convert Barycentric to ECI
@@ -986,7 +985,6 @@ void pos_geoc2geod(locstruc *loc)
 	geomag_front(loc->pos.geod.s,mjd2year(loc->utc),&loc->bearth);
 
 	// Transform to ITRS
-	//	loc->bearth = transform_q(q_change_around_z(loc->pos.geod.s.lon-DPI),transform_q(q_change_around_y(DPI2-loc->pos.geod.s.lat),loc->bearth));
 	loc->bearth = transform_q(q_change_around_z(-loc->pos.geod.s.lon),transform_q(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
 
 }
@@ -1989,6 +1987,58 @@ void loc_update(locstruc *loc)
 
 }
 
+void teme2true(double ep0, rmatrix *rm)
+{
+	// TEME to True of Date (Equation of Equinoxes)
+	double eeq = utc2gast(ep0) - utc2gmst1982(ep0);
+	*rm = rm_change_around_z(eeq);
+}
+
+void true2teme(double ep0, rmatrix *rm)
+{
+	double eeq = utc2gast(ep0) - utc2gmst1982(ep0);
+	*rm = rm_change_around_z(-eeq);
+}
+
+void true2pef(double utc, rmatrix *rm)
+{
+	double gast = utc2gast(utc);
+	*rm = rm_change_around_z(-gast);
+}
+
+void pef2true(double utc, rmatrix *rm)
+{
+	double gast = utc2gast(utc);
+	*rm = rm_change_around_z(gast);
+}
+
+void pef2itrs(double utc, rmatrix *rm)
+{
+	double ttc = utc2jcentt(utc);
+	cvector polm = polar_motion(utc);
+	double pols = -47. * 4.848136811095359935899141e-12 * ttc;
+
+	*rm = rm_mmult(rm_change_around_z(-pols),rm_mmult(rm_change_around_y(polm.x),rm_change_around_x(polm.y)));
+}
+
+void itrs2pef(double utc, rmatrix *rm)
+{
+	static rmatrix orm;
+	static double outc = 0.;
+
+	if (utc == outc)
+	{
+		*rm = orm;
+		return;
+	}
+
+	pef2itrs(utc, rm);
+	*rm = rm_transpose(*rm);
+
+	outc = utc;
+	orm = *rm;
+}
+
 //! Rotate Mean of Epoch to True of Epoch
 /*! Calculate the rotation matrix for converting coordinates from a system based on the
  * Mean orientation for that Epoch to one based on the True orientation. Adds effects of
@@ -2025,7 +2075,7 @@ void true2mean(double ep0, rmatrix *pm)
 {
 	static rmatrix opm;
 	static double oep0 = 0.;
-	double nuts[4], jt;
+//	double nuts[4], jt;
 	double eps;
 	double cdp, sdp, ce, se, cde, sde;
 
@@ -2035,26 +2085,31 @@ void true2mean(double ep0, rmatrix *pm)
 		return;
 	}
 
-	jplnut(utc2tt(ep0),nuts);
-	jt = (ep0-51544.5)/36525.;
-	eps = DAS2R*(84381.448+jt*(-46.84024+jt*(-.00059+jt*.001813)));
+	rvector nuts = utc2nuts(ep0);
+	eps = utc2epsilon(ep0);
+//	jplnut(utc2tt(ep0),nuts);
+//	jt = (ep0-51544.5)/36525.;
+//	eps = DAS2R*(84381.448+jt*(-46.84024+jt*(-.00059+jt*.001813)));
 
-	cdp = cos(nuts[0]);
-	sdp = sin(nuts[0]);
-	ce = cos(eps);
 	se = sin(eps);
-	cde = cos(eps+nuts[1]);
-	sde = sin(eps+nuts[1]);
+	sdp = sin(nuts.col[0]);
+	sde = sin(-eps+nuts.col[1]);
+	ce = cos(eps);
+	cdp = cos(nuts.col[0]);
+	cde = cos(-eps+nuts.col[1]);
 
 	pm->row[0].col[0] = cdp;
-	pm->row[0].col[1] = -ce*sdp;
-	pm->row[0].col[2] = -se*sdp;
-	pm->row[1].col[0] = cde*sdp;
-	pm->row[1].col[1] = ce*cde*cdp + se*sde;
-	pm->row[1].col[2] = se*cde*cdp - ce*sde;
-	pm->row[2].col[0] = sde*sdp;
-	pm->row[2].col[1] = ce*sde*sdp - se*sde;
-	pm->row[2].col[2] = se*sde*cdp + ce*cde;
+	pm->row[0].col[1] = sdp*ce;
+	pm->row[0].col[2] = sdp*se;
+
+	pm->row[1].col[0] = -sdp*cde;
+	pm->row[1].col[1] = cde*cdp*ce-se*sde;
+	pm->row[1].col[2] = cde*cdp*se+ce*sde;
+
+	pm->row[2].col[0] = sdp*sde;
+	pm->row[2].col[1] = -sde*cdp*ce-se*cde;
+	pm->row[2].col[2] = -sde*cdp*se+cde*ce;
+
 	oep0 = ep0;
 	opm = *pm;
 }
@@ -2066,9 +2121,9 @@ void true2mean(double ep0, rmatrix *pm)
 	\param ep0 Epoch, in units of Modified Julian Day
 	\param pm Rotation matrix
 */
-void mean2icrs(double ep0, rmatrix *pm)
+void mean2j2000(double ep0, rmatrix *pm)
 {
-	double t0, t, tas2r, w, zeta, z, theta;
+//	double t0, t, tas2r, w, zeta, z, theta;
 	double ca, sa, cb, sb, cg, sg;
 	static rmatrix opm;
 	static double oep0 = 0.;
@@ -2079,36 +2134,41 @@ void mean2icrs(double ep0, rmatrix *pm)
 		return;
 	}
 
-	/* Interval between basic epoch J2000.0 and beginning epoch (JC) */
-	//t0 = ( ep0 - 2000.0 ) / 100.0;
-	t0 = (ep0 - 51544.5) / 36525.;
-
-	/* Interval over which precession required (JC) */
-	t =  -t0;
+//	double ttc = utc2jcentt(ep0);
 
 	/* Euler angles */
-	tas2r = t * DAS2R;
-	w = 2306.2181 + ( ( 1.39656 - ( 0.000139 * t0 ) ) * t0 );
-	zeta = (w + ( ( 0.30188 - 0.000344 * t0 ) + 0.017998 * t ) * t ) * tas2r;
-	z = (w + ( ( 1.09468 + 0.000066 * t0 ) + 0.018203 * t ) * t ) * tas2r;
-	theta = ((2004.3109 + (-0.85330 - 0.000217 * t0) * t0)+ ((-0.42665 - 0.000217 * t0) - 0.041833 * t) * t) * tas2r;
+	// Capitaine, et. al, A&A, 412, 567-586 (2003)
+	// Expressions for IAU 2000 precession quantities
+	// Equation 40
+//	double zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971 + ttc*(0.0000003173))))))*DAS2R;
+//	double z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596 + ttc*(0.0000002904))))))*DAS2R;
+//	double theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+	double zeta = utc2zeta(ep0);
+	double theta = utc2theta(ep0);
+	double z = utc2z(ep0);
 
-	ca = cos(zeta);
-	sa = -sin(zeta);
-	cb = cos(theta);
-	sb = sin(theta);
-	cg = cos(z);
-	sg = -sin(z);
+	*pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
 
-	pm->row[0].col[0] = ca*cb*cg - sa*sg;
-	pm->row[0].col[1] = cg*sa*cb +ca*sg;
-	pm->row[0].col[2] = -sb*cg;
-	pm->row[1].col[0] = -ca*cb*sg - sa*cg;
-	pm->row[1].col[1] = -sa*cb*sg + ca*cg;
-	pm->row[1].col[2] = sg*sb;
-	pm->row[2].col[0] = ca*sb;
-	pm->row[2].col[1] = sa*sb;
-	pm->row[2].col[2] = cb;
+//	zeta = ttc*(2306.2181 + ttc*(0.30188 + ttc*(0.017998)))*DAS2R;
+//	z = zeta + ttc*ttc*(0.79280 + ttc*(0.000205))*DAS2R;
+//	theta = ttc*(2004.3109 + ttc*(-0.42665 + ttc*(-0.041833)))*DAS2R;
+
+//	ca = cos(zeta);
+//	sa = -sin(zeta);
+//	cb = cos(theta);
+//	sb = sin(theta);
+//	cg = cos(z);
+//	sg = -sin(z);
+
+//	pm->row[0].col[0] = ca*cb*cg - sa*sg;
+//	pm->row[0].col[1] = cg*sa*cb +ca*sg;
+//	pm->row[0].col[2] = -sb*cg;
+//	pm->row[1].col[0] = -ca*cb*sg - sa*cg;
+//	pm->row[1].col[1] = -sa*cb*sg + ca*cg;
+//	pm->row[1].col[2] = sg*sb;
+//	pm->row[2].col[0] = ca*sb;
+//	pm->row[2].col[1] = sa*sb;
+//	pm->row[2].col[2] = cb;
 	opm = *pm;
 }
 
@@ -2157,11 +2217,13 @@ void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	rvector nuts;
 	double eps, pols, dpsi, deps;
 	double zeta, z, theta;
-	double s1, s2, s3, c1, c2, c3;
+	double se, sdp, sde, ce, cdp, cde;
 	rmatrix nrm[3], ndrm, nddrm;
-	rmatrix pm, nm, sm, pw = {{{{0.}}}}, dsm = {{{{0.}}}};
+	rmatrix pm, nm, sm, pw = {{{{0.}}}};
+//	rmatrix dsm = {{{{0.}}}};
 	//static rmatrix bm = {{{{1.,-14.6*DAS2R,16.617*DAS2R,0.}},{{14.6*DAS2R,1.,6.8192*DAS2R}},{{-16.617*DAS2R,-6.8192*DAS2R,1.}},{{0.}}}};
-	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
+//	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
+	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
 	cvector polm= {0.,0.,0.};
 	static rmatrix orm, odrm, oddrm, ornp;
 	static double outc = 0.;
@@ -2194,58 +2256,64 @@ void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	utc -= realsec;
 	for (i=0; i<3; i++)
 	{
-		/* Interval over which precession required (JC) */
-		ut1 = utc2ut1(utc);
-		//		tt = utc2tt(utc);
-		ttc = utc2jcen(utc);
+		// Calculate Precession Matrix (pm)
+		ttc = utc2jcentt(utc);
 
 		/* Euler angles */
-		zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971)))))*DAS2R;
-		z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596)))))*DAS2R;
-		theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+//		zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971)))))*DAS2R;
+//		z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596)))))*DAS2R;
+//		theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+//		pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
 
-		pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
+		j20002mean(utc, &pm);
 
-		nuts = utc2nuts(utc);
-		dpsi = -nuts.col[0];
-		deps = -nuts.col[1];
-		eps = utc2epsilon(utc);
+		// Calculate Nutation Matrix (nm)
+//		nuts = utc2nuts(utc);
+//		dpsi = nuts.col[0];
+//		deps = nuts.col[1];
+//		eps = utc2epsilon(utc);
 
-		s1 = sin(eps);
-		s2 = sin(-dpsi);
-		s3 = sin(-eps-deps);
-		c1 = cos(eps);
-		c2 = cos(-dpsi);
-		c3 = cos(-eps-deps);
+//		se = sin(eps);
+//		sdp = sin(dpsi);
+//		sde = sin(-eps+deps);
+//		ce = cos(eps);
+//		cdp = cos(dpsi);
+//		cde = cos(-eps+deps);
 
-		//nm = rm_mmult(rm_change_around_x(-eps),rm_mmult(rm_change_around_z(dpsi),rm_change_around_x(eps+deps)));
-		nm = rm_zero();
-		nm.row[0].col[0] = c2;
-		nm.row[1].col[0] = s2*c1;
-		nm.row[2].col[0] = s2*s1;
+//		nm = rm_zero();
+//		nm.row[0].col[0] = cdp;
+//		nm.row[1].col[0] = sdp*ce;
+//		nm.row[2].col[0] = sdp*se;
 
-		nm.row[0].col[1] = -s2*c3;
-		nm.row[1].col[1] = c3*c2*c1-s1*s3;
-		nm.row[2].col[1] = c3*c2*s1+c1*s3;;
+//		nm.row[0].col[1] = -sdp*cde;
+//		nm.row[1].col[1] = cde*cdp*ce-se*sde;
+//		nm.row[2].col[1] = cde*cdp*se+ce*sde;
 
-		nm.row[0].col[2] = s2*s3;
-		nm.row[1].col[2] = -s3*c2*c1-s1*c3;
-		nm.row[2].col[2] = -s3*c2*s1+c3*c1;
+//		nm.row[0].col[2] = sdp*sde;
+//		nm.row[1].col[2] = -sde*cdp*ce-se*cde;
+//		nm.row[2].col[2] = -sde*cdp*se+cde*ce;
+		mean2true(utc, &nm);
 
-		gast = utc2gast(utc);
-		sm = rm_change_around_z(-gast);
+		// Calculate Earth Rotation (Sidereal Time) Matrix (sm)
+//		gast = utc2gast(utc);
+//		sm = rm_change_around_z(-gast);
+		true2pef(utc, &sm);
 
-		dsm = rm_zero();
-		dsm.row[1].col[0] = cos(gast);
-		dsm.row[0].col[1] = -dsm.row[1].col[0];
-		dsm.row[0].col[0] = dsm.row[1].col[1] = -sin(gast);
-		dsm = rm_smult(-.000072921158553,dsm);
+//		dsm = rm_zero();
+//		dsm.row[1].col[0] = cos(gast);
+//		dsm.row[0].col[1] = -dsm.row[1].col[0];
+//		dsm.row[0].col[0] = dsm.row[1].col[1] = -sin(gast);
+//		dsm = rm_smult(-.000072921158553,dsm);
 
-		polm = polar_motion(utc);
-		pols = -47. * 4.848136811095359935899141e-12 * ttc;
+		// Calculate Polar Motion (Wander) Matrix (pw)
+//		polm = polar_motion(utc);
+//		pols = -47. * 4.848136811095359935899141e-12 * ttc;
 
-		pw = rm_mmult(rm_change_around_z(-pols),rm_mmult(rm_change_around_y(polm.x),rm_change_around_x(polm.y)));
+//		pw = rm_mmult(rm_change_around_z(-pols),rm_mmult(rm_change_around_y(polm.x),rm_change_around_x(polm.y)));
+		pef2itrs(utc, &pw);
 
+		// Start with ICRS to J2000 Matrix (bm)
+		// Final Matrix = pw * sm * nm * pm * bm
 		nrm[i] = rm_mmult(nm,rm_mmult(pm,bm));
 		if (i==1)
 			*rnp = nrm[i];
@@ -2268,7 +2336,7 @@ void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	\param ep1 Epoch to change to, UTC in MJD
 	\param pm pointer to rotation matrix
 */
-void icrs2mean(double ep1, rmatrix *pm)
+void j20002mean(double ep1, rmatrix *pm)
 {
 	double t, tas2r, w, zeta, z, theta;
 	double ca, sa, cb, sb, cg, sg;
@@ -2309,6 +2377,20 @@ void icrs2mean(double ep1, rmatrix *pm)
 	pm->row[2].col[2] = cb;
 	opm = *pm;
 	oep1 = ep1;
+}
+
+void icrs2j2000(double op0, rmatrix *rm)
+{
+//	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
+//	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
+	static rmatrix bm = {{{{0.99999999999999,-0.00000007078280,0.00000008056149}},{{0.00000007078280,1.,0.00000003306041}},{{-0.00000008056149,-0.00000003306041,1.}}}};
+	*rm = bm;
+}
+
+void j20002icrs(double op0, rmatrix *rm)
+{
+	static rmatrix bm = {{{{1.,0.000273e-8,-9.740996e-8}},{{-0.000273e-8,1.,-1.324146e-8}},{{9.740996e-8,1.324146e-8,1.}}}};
+	*rm = bm;
 }
 
 void mean2mean(double ep0, double ep1, rmatrix *pm)
@@ -2800,27 +2882,30 @@ int tle2eci(double utc, tlestruc tle, cartpos *eci)
 	eci->v.col[1] =REARTHM * (rdotk*uy+rfdotk*vy) / 60.;
 	eci->v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
 
-	/*
-	mean2icrs(utc,&pm);
+	// Uniform of Date to True of Date (Equation of Equinoxes)
+	double eeq = utc2gast(utc) - utc2gmst1982(utc);
+	rmatrix sm = rm_change_around_z(eeq);
+	eci->s = rv_mmult(sm,eci->s);
+	eci->v = rv_mmult(sm,eci->v);
+
+	// True of Date to Mean of Date (Nutation)
+	rmatrix nm;
+	true2mean(utc,&nm);
+	eci->s = rv_mmult(nm,eci->s);
+	eci->v = rv_mmult(nm,eci->v);
+
+	// Mean of Date to ICRF (precession)
+	rmatrix pm;
+	mean2j2000(utc,&pm);
 	eci->s = rv_mmult(pm,eci->s);
 	eci->v = rv_mmult(pm,eci->v);
-	*/
+
+//	rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
+//	bm = rm_transpose(bm);
+//	eci->s = rv_mmult(bm,eci->s);
+//	eci->v = rv_mmult(bm,eci->v);
+
 	eci->utc = utc;
-
-	/*
-	loc.utc = loc.pos.utc = loc.pos.geoc.utc = utc;
-	loc.pos.geoc.s = loc.pos.geoc.v = loc.pos.geoc.a = rv_zero();
-
-	loc.pos.geoc.s.col[0] = REARTHM * rk *ux;
-	loc.pos.geoc.s.col[1] = REARTHM * rk *uy;
-	loc.pos.geoc.s.col[2] = REARTHM * rk *uz;
-	loc.pos.geoc.v.col[0] =REARTHM * (rdotk*ux+rfdotk*vx) / 60.;
-	loc.pos.geoc.v.col[1] =REARTHM * (rdotk*uy+rfdotk*vy) / 60.;
-	loc.pos.geoc.v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
-
-	pos_geoc2eci(&loc);
-	*eci = loc.pos.eci;
-	*/
 
 	return 0;
 }
@@ -2848,7 +2933,85 @@ tlestruc get_line(uint16_t index, vector<tlestruc> lines)
 	}
 }
 
-//! Load TLE from file.
+
+//! Load TLE from file. TODO!!! create new class for dealing with TLEs
+/*!
+* Load Two Line Element file into TLE structure
+* \param fname Name of file containing elements
+* \param tle structure to contain TLE elements
+* \return 0 if parsing was sucessfull, otherwise a negative error.
+*/
+int32_t loadTLE(char *fname, tlestruc &tle)
+{
+    FILE *fdes;
+    uint16_t year;
+    double jday;
+    int32_t bdragm, bdrage, ecc;
+    char ibuf[81], tlename[81];
+    int i;
+
+    if ((fdes=fopen(fname,"r")) == NULL)
+        return (-1);
+
+    tlecount = 0;
+
+    // Name Line
+    char* ichar = fgets(tlename,80,fdes);
+    if (ichar == NULL || feof(fdes))
+        return (-1);
+
+    for (i=strlen(tlename)-1; i>0; i--)
+    {
+        if (tlename[i]!=' ' && tlename[i]!='\r' && tlename[i]!='\n')
+            break;
+    }
+    tlename[i+1] = 0;
+
+    while (!feof(fdes))
+    {
+        strcpy(tle.name,tlename);
+
+        // Line 1
+        if (fgets(ibuf,80,fdes) == NULL)
+            break;
+        sscanf(&ibuf[2],"%5hu",&tle.snumber);
+        sscanf(&ibuf[9],"%6s",tle.id);
+        sscanf(&ibuf[18],"%2hu",&year);
+        if (year < 57)
+            year += 2000;
+        else
+            year += 1900;
+        sscanf(&ibuf[20],"%12lf",&jday);
+        tle.utc = cal2mjd((int)year,1,0.);
+        tle.utc += jday;
+        if (strlen(ibuf) > 50)
+        {
+            sscanf(&ibuf[53],"%6d%2d",&bdragm,&bdrage);
+            tle.bstar = pow(10.,bdrage)*bdragm/1.e5;
+        }
+        else
+            tle.bstar = 0.;
+
+        // Line 2
+        char* ichar = fgets(ibuf,80,fdes);
+        if (ichar != NULL)
+        {
+            ibuf[68] = 0;
+            sscanf(&ibuf[8],"%8lf %8lf %7d %8lf %8lf %11lf%5u",&tle.i,&tle.raan,&ecc,&tle.ap,&tle.ma,&tle.mm,&tle.orbit);
+            tle.i = RADOF(tle.i);
+            tle.raan = RADOF(tle.raan);
+            tle.ap = RADOF(tle.ap);
+            tle.ma = RADOF(tle.ma);
+            tle.mm *= D2PI/1440.;
+            tle.e = ecc / 1.e7;
+        }
+    }
+    fclose(fdes);
+    return 0;
+}
+
+
+//! Load TLE from file. TODO!!! Rename Function to loadTle and create new class for dealing with TLEs
 /*!
 * Load Two Line Element file into array of TLE's
 * \param fname Name of file containing elements

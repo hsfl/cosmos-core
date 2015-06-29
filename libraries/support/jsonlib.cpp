@@ -7007,7 +7007,6 @@ int32_t json_clone(cosmosstruc *cdata)
 //#else
 	cdata[1] = cdata[0];
 //#endif
-
 	for (uint16_t i=0; i<cdata[1].node.device_cnt; ++i)
 	{
 		switch(cdata[1].device[i].all.gen.type)
