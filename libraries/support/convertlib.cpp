@@ -933,25 +933,31 @@ void pos_geoc2geod(locstruc *loc)
 	// Update pass
 	loc->pos.geod.pass = loc->pos.geoc.pass;
 
-	loc->pos.geod.s.lon = atan2(loc->pos.geoc.s.col[1],loc->pos.geoc.s.col[0]);
+    // calculate geodetic longitude = atan2(py/px)
+    loc->pos.geod.s.lon = atan2(loc->pos.geoc.s.col[1], loc->pos.geoc.s.col[0]);
 
-	// Calculate effects of oblate spheroid
+    // Calculate effects of oblate spheroid
+    // !!! Explain math
+    // e2 (square of first eccentricity) = 1 - (1 - f)^2
 	e2 = (1. - FRATIO2);
-	p = sqrt(loc->pos.geoc.s.col[0]*loc->pos.geoc.s.col[0] + loc->pos.geoc.s.col[1]*loc->pos.geoc.s.col[1]);
-	nh = sqrt(p*p+loc->pos.geoc.s.col[2]*loc->pos.geoc.s.col[2]) - REARTHM;
+    p = sqrt(loc->pos.geoc.s.col[0]*loc->pos.geoc.s.col[0] +
+             loc->pos.geoc.s.col[1]*loc->pos.geoc.s.col[1]);
+    nh = sqrt(p*p + loc->pos.geoc.s.col[2]*loc->pos.geoc.s.col[2]) - REARTHM;
 	phi = atan2(loc->pos.geoc.s.col[2],p);
 	do
 	{
 		h = nh;
 		st = sin(phi);
+        // rn = radius of curvature in the vertical prime
 		rn = REARTHM / sqrt(1.-e2*st*st);
 		nh = p/cos(phi) - rn;
-		phi = atan((loc->pos.geoc.s.col[2]/p)/(1.-e2*rn/(rn+h)));
+        phi = atan( (loc->pos.geoc.s.col[2]/p)/(1.-e2*rn/(rn+h) ) );
 	} while (fabs(nh-h) > .01);
 
 	loc->pos.geod.s.lat = phi;
 	loc->pos.geod.s.h = h;
 
+    // !!! Explain math
 	st = sin(loc->pos.geod.s.lat);
 	ct = cos(loc->pos.geod.s.lat);
 	sn = sin(loc->pos.geod.s.lon);

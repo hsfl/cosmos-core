@@ -134,7 +134,18 @@ int32_t geomag_front(gvector pos, double time, rvector *comp)
 
 	// convert alt to km
 	alt = (float)(pos.h/1000.);
-	iretn = geomg1(alt,(float)pos.lat,(float)pos.lon,(float)time,&dec,&dip,&ti,&gv,&bx,&by,&bz);
+    // !!! add comment/description to each filed
+    iretn = geomg1(alt, // altitude in km
+                   (float)pos.lat, // lattitude in rad?
+                   (float)pos.lon, // longitude in rad?
+                   (float)time, // time in decimal year
+                   &dec,
+                   &dip,
+                   &ti,
+                   &gv,
+                   &bx,
+                   &by,
+                   &bz);
 	if (iretn < 0)
 	{
 		return iretn;
