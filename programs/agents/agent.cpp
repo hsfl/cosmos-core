@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 							dmjd = 86400.*(cdata[0].node.loc.utc-lmjd);
 						else
 							dmjd = 0.;
-						loc.pos.baryc.s = cdata[0].node.loc.pos.baryc.s;
+						loc.pos.icrf.s = cdata[0].node.loc.pos.icrf.s;
 						loc.pos.utc = cdata[0].node.loc.utc;
 						pos_eci(&loc);
 						printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",cdata[0].node.loc.utc,dmjd,cdata[0].node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,cdata[0].node.powgen,cdata[0].node.powuse,cdata[0].node.battlev);

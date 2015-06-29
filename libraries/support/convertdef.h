@@ -397,7 +397,7 @@ std::istream& operator >> (std::istream& in, extraatt& a);
 typedef struct
 {
 	double utc;
-	cartpos baryc;
+	cartpos icrf;
 	cartpos eci;
 	cartpos sci;
 	cartpos geoc;

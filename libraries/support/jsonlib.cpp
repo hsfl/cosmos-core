@@ -1484,9 +1484,9 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
 		return (iretn);
 
 	// Output Barycentric
-	if ((iretn=json_out_name(jstring,(char *)"baryc")) < 0)
+	if ((iretn=json_out_name(jstring,(char *)"icrf")) < 0)
 		return (iretn);
-	if ((iretn=json_out_cartpos(jstring,value.baryc)) < 0)
+	if ((iretn=json_out_cartpos(jstring,value.icrf)) < 0)
 		return (iretn);
 	if ((iretn=json_out_character(jstring,',')) < 0)
 		return (iretn);
@@ -4423,7 +4423,7 @@ int32_t json_parse_value(const char **pointer, uint16_t type, ptrdiff_t offset, 
 			return (iretn);
 		if ((iretn = json_parse_character(pointer,':')) < 0)
 			return (iretn);
-		if ((iretn = json_parse_value(pointer, (uint16_t)JSON_TYPE_CARTPOS,offset+(ptrdiff_t)offsetof(posstruc,baryc),group,cdata)) < 0)
+		if ((iretn = json_parse_value(pointer, (uint16_t)JSON_TYPE_CARTPOS,offset+(ptrdiff_t)offsetof(posstruc,icrf),group,cdata)) < 0)
 			return (iretn);
 		if ((iretn = json_parse_character(pointer,',')) < 0)
 			return (iretn);
@@ -5070,7 +5070,7 @@ uint16_t json_addbaseentry(cosmosstruc *cdata)
 	json_addentry("node_loc_pos_sci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sci),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_SCI,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_selc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selc),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_SELC,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_selg", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selg),COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_SELG,JSON_GROUP_NODE,cdata);
-	json_addentry("node_loc_pos_baryc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.baryc),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_BARYC,JSON_GROUP_NODE,cdata);
+	json_addentry("node_loc_pos_icrf", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.icrf),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_BARYC,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_sunsize", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sunsize), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_sunradiance", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sunradiance), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
 	json_addentry("node_loc_pos_earthsep", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.earthsep), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
@@ -5760,7 +5760,7 @@ const char *json_of_node(string &jstring, cosmosstruc *cdata)
 	{
 		return nullptr;
 	}
-	iretn = json_out(jstring,(char *)"node_baryc",cdata);
+	iretn = json_out(jstring,(char *)"node_icrf",cdata);
 	if (iretn < 0)
 	{
 		return nullptr;

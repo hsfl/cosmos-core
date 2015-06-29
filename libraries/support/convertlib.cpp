@@ -95,7 +95,7 @@ void pos_extra(locstruc *loc)
 	loc->pos.extra.tdb = utc2tdb(loc->utc);
 	loc->pos.extra.ut = utc2ut1(loc->utc);
 
-	icrs2itrs(loc->utc,&loc->pos.extra.j2t,&loc->pos.extra.j2e,&loc->pos.extra.dj2e,&loc->pos.extra.ddj2e);
+	gcrf2itrs(loc->utc,&loc->pos.extra.j2t,&loc->pos.extra.j2e,&loc->pos.extra.dj2e,&loc->pos.extra.ddj2e);
 	loc->pos.extra.t2j = rm_transpose(loc->pos.extra.j2t);
 	loc->pos.extra.e2j = rm_transpose(loc->pos.extra.j2e);
 	loc->pos.extra.de2j = rm_transpose(loc->pos.extra.dj2e);
@@ -118,44 +118,44 @@ void pos_extra(locstruc *loc)
  * ::posstruc. Then propagate to all the other positions.
 	\param pos ::posstruc with the current position and those to be updated.
 */
-void pos_baryc(locstruc *loc)
+void pos_icrf(locstruc *loc)
 {
 	double distance, theta;
 	rvector sat2body;
 
 	// Synchronize time
-	if (loc->pos.baryc.utc == 0.)
+	if (loc->pos.icrf.utc == 0.)
 	{
 		if (!isfinite(loc->utc))
 		{
 			return;
 		}
-		loc->pos.baryc.utc = loc->pos.utc = loc->utc;
+		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
 	}
 	else
 	{
-		if (!isfinite(loc->pos.baryc.utc))
+		if (!isfinite(loc->pos.icrf.utc))
 		{
 			return;
 		}
-		loc->utc = loc->pos.utc = loc->pos.baryc.utc;
+		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
 	}
 	
 	pos_extra(loc);
 
 	// Determine closest planetary body
 	loc->pos.extra.closest = COSMOS_EARTH;
-	if (length_rv(rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2moon.s)) < length_rv(rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2earth.s)))
+	if (length_rv(rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2moon.s)) < length_rv(rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s)))
 		loc->pos.extra.closest = COSMOS_MOON;
 
 	// Set SUN specific stuff
-	distance = length_rv(loc->pos.baryc.s);
+	distance = length_rv(loc->pos.icrf.s);
 	loc->pos.sunsize = (float)(RSUNM/distance);
 	loc->pos.sunradiance = (float)(3.839e26/(4.*DPI*distance*distance));
 
 	// Check Earth:Sun separation
-	sat2body = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2earth.s);
-	loc->pos.earthsep = (float)(sep_rv(loc->pos.baryc.s,sat2body));
+	sat2body = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s);
+	loc->pos.earthsep = (float)(sep_rv(loc->pos.icrf.s,sat2body));
 	loc->pos.earthsep -= (float)(asin(REARTHM/length_rv(sat2body)));
 	if (loc->pos.earthsep < -loc->pos.sunsize)
 		loc->pos.sunradiance = 0.;
@@ -167,10 +167,10 @@ void pos_baryc(locstruc *loc)
 		}
 
 	// Set Moon specific stuff
-	sat2body = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2moon.s);
+	sat2body = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2moon.s);
 
 	// Check Earth:Moon separation
-	loc->pos.moonsep = (float)(sep_rv(loc->pos.baryc.s,sat2body));
+	loc->pos.moonsep = (float)(sep_rv(loc->pos.icrf.s,sat2body));
 	loc->pos.moonsep -= (float)(asin(RMOONM/length_rv(sat2body)));
 	if (loc->pos.moonsep < -loc->pos.sunsize)
 		loc->pos.sunradiance = 0.;
@@ -182,18 +182,18 @@ void pos_baryc(locstruc *loc)
 		}
 
 	// Set related attitudes
-	loc->att.icrf.pass = loc->pos.baryc.pass;
-	loc->att.icrf.utc = loc->pos.baryc.utc;
+	loc->att.icrf.pass = loc->pos.icrf.pass;
+	loc->att.icrf.utc = loc->pos.icrf.utc;
 
 	// Set adjoining positions
-	if (loc->pos.baryc.pass > loc->pos.eci.pass)
+	if (loc->pos.icrf.pass > loc->pos.eci.pass)
 	{
-		pos_baryc2eci(loc);
+		pos_icrf2eci(loc);
 		pos_eci(loc);
 	}
-	if (loc->pos.baryc.pass > loc->pos.sci.pass)
+	if (loc->pos.icrf.pass > loc->pos.sci.pass)
 	{
-		pos_baryc2sci(loc);
+		pos_icrf2sci(loc);
 		pos_sci(loc);
 	}
 
@@ -227,10 +227,10 @@ void pos_eci(locstruc *loc)
 	pos_extra(loc);
 
 	// Set adjoining positions
-	if (loc->pos.eci.pass > loc->pos.baryc.pass)
+	if (loc->pos.eci.pass > loc->pos.icrf.pass)
 	{
-		pos_eci2baryc(loc);
-		pos_baryc(loc);
+		pos_eci2icrf(loc);
+		pos_icrf(loc);
 	}
 	if (loc->pos.eci.pass > loc->pos.geoc.pass)
 	{
@@ -271,10 +271,10 @@ void pos_sci(locstruc *loc)
 	pos_extra(loc);
 
 	// Set adjoining positions
-	if (loc->pos.sci.pass > loc->pos.baryc.pass)
+	if (loc->pos.sci.pass > loc->pos.icrf.pass)
 	{
-		pos_sci2baryc(loc);
-		pos_baryc(loc);
+		pos_sci2icrf(loc);
+		pos_icrf(loc);
 	}
 	if (loc->pos.sci.pass > loc->pos.selc.pass)
 	{
@@ -497,24 +497,24 @@ void pos_geod(locstruc *loc)
  * the Earth Centered Inertial slot, performing all relevant updates.
 	\param pos Working ::posstruc
 */
-void pos_baryc2eci(locstruc *loc)
+void pos_icrf2eci(locstruc *loc)
 {
 	// Synchronize time
-	if (loc->pos.baryc.utc == 0.)
+	if (loc->pos.icrf.utc == 0.)
 	{
 		if (!isfinite(loc->utc))
 		{
 			return;
 		}
-		loc->pos.baryc.utc = loc->pos.utc = loc->utc;
+		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
 	}
 	else
 	{
-		if (!isfinite(loc->pos.baryc.utc))
+		if (!isfinite(loc->pos.icrf.utc))
 		{
 			return;
 		}
-		loc->utc = loc->pos.utc = loc->pos.baryc.utc;
+		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
 	}
 	
 	// Update extra information
@@ -524,14 +524,14 @@ void pos_baryc2eci(locstruc *loc)
 	loc->pos.eci.utc = loc->utc;
 
 	// Update pass
-	loc->pos.eci.pass = loc->pos.baryc.pass;
+	loc->pos.eci.pass = loc->pos.icrf.pass;
 
 	// Heliocentric to Geocentric Ecliptic
 	loc->pos.eci.s = loc->pos.eci.v = loc->pos.eci.a = rv_zero();
 
-	loc->pos.eci.s = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2earth.s);
-	loc->pos.eci.v = rv_sub(loc->pos.baryc.v,loc->pos.extra.sun2earth.v);
-	loc->pos.eci.a = rv_sub(loc->pos.baryc.a,loc->pos.extra.sun2earth.a);
+	loc->pos.eci.s = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s);
+	loc->pos.eci.v = rv_sub(loc->pos.icrf.v,loc->pos.extra.sun2earth.v);
+	loc->pos.eci.a = rv_sub(loc->pos.icrf.a,loc->pos.extra.sun2earth.a);
 }
 
 //! Convert ECI to Barycentric
@@ -539,7 +539,7 @@ void pos_baryc2eci(locstruc *loc)
  * the Barycentric slot, performing all relevant updates.
 	\param pos Working ::posstruc
 */
-void pos_eci2baryc(locstruc *loc)
+void pos_eci2icrf(locstruc *loc)
 {
 	// Synchronize time
 	if (0. == loc->pos.eci.utc)
@@ -563,15 +563,15 @@ void pos_eci2baryc(locstruc *loc)
 	pos_extra(loc);
 
 	// Update pass
-	loc->pos.baryc.pass = loc->pos.eci.pass;
+	loc->pos.icrf.pass = loc->pos.eci.pass;
 
 	// Update time
-	loc->pos.baryc.utc = loc->utc;
+	loc->pos.icrf.utc = loc->utc;
 
 	// Geocentric Equatorial to Heliocentric
-	loc->pos.baryc.s = rv_add(loc->pos.eci.s,loc->pos.extra.sun2earth.s);
-	loc->pos.baryc.v = rv_add(loc->pos.eci.v,loc->pos.extra.sun2earth.v);
-	loc->pos.baryc.a = rv_add(loc->pos.eci.a,loc->pos.extra.sun2earth.a);
+	loc->pos.icrf.s = rv_add(loc->pos.eci.s,loc->pos.extra.sun2earth.s);
+	loc->pos.icrf.v = rv_add(loc->pos.eci.v,loc->pos.extra.sun2earth.v);
+	loc->pos.icrf.a = rv_add(loc->pos.eci.a,loc->pos.extra.sun2earth.a);
 }
 
 //! Convert Barycentric to SCI
@@ -579,24 +579,24 @@ void pos_eci2baryc(locstruc *loc)
  * the Selene Centered Inertial slot, performing all relevant updates.
 	\param pos Working ::posstruc
 */
-void pos_baryc2sci(locstruc *loc)
+void pos_icrf2sci(locstruc *loc)
 {
 	// Synchronize time
-	if (loc->pos.baryc.utc == 0.)
+	if (loc->pos.icrf.utc == 0.)
 	{
 		if (!isfinite(loc->utc))
 		{
 			return;
 		}
-		loc->pos.baryc.utc = loc->pos.utc = loc->utc;
+		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
 	}
 	else
 	{
-		if (!isfinite(loc->pos.baryc.utc))
+		if (!isfinite(loc->pos.icrf.utc))
 		{
 			return;
 		}
-		loc->utc = loc->pos.utc = loc->pos.baryc.utc;
+		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
 	}
 
 	// Update extra information
@@ -606,14 +606,14 @@ void pos_baryc2sci(locstruc *loc)
 	loc->pos.sci.utc = loc->utc;
 
 	// Update pass
-	loc->pos.sci.pass = loc->pos.baryc.pass;
+	loc->pos.sci.pass = loc->pos.icrf.pass;
 
 	// Heliocentric to Geocentric Ecliptic
 	loc->pos.sci.s = loc->pos.sci.v = loc->pos.sci.a = rv_zero();
 
-	loc->pos.sci.s = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2moon.s);
-	loc->pos.sci.v = rv_sub(loc->pos.baryc.v,loc->pos.extra.sun2moon.v);
-	loc->pos.sci.a = rv_sub(loc->pos.baryc.a,loc->pos.extra.sun2moon.a);
+	loc->pos.sci.s = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2moon.s);
+	loc->pos.sci.v = rv_sub(loc->pos.icrf.v,loc->pos.extra.sun2moon.v);
+	loc->pos.sci.a = rv_sub(loc->pos.icrf.a,loc->pos.extra.sun2moon.a);
 
 }
 
@@ -622,7 +622,7 @@ void pos_baryc2sci(locstruc *loc)
  * the Barycentric slot, performing all relevant updates.
 	\param pos Working ::posstruc
 */
-void pos_sci2baryc(locstruc *loc)
+void pos_sci2icrf(locstruc *loc)
 {
 	// Synchronize time
 	if (0. == loc->pos.sci.utc)
@@ -646,15 +646,15 @@ void pos_sci2baryc(locstruc *loc)
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.baryc.utc = loc->utc;
+	loc->pos.icrf.utc = loc->utc;
 
 	// Update pass
-	loc->pos.baryc.pass = loc->pos.sci.pass;
+	loc->pos.icrf.pass = loc->pos.sci.pass;
 
 	// Geocentric Equatorial to Heliocentric
-	loc->pos.baryc.s = rv_add(loc->pos.sci.s,loc->pos.extra.sun2moon.s);
-	loc->pos.baryc.v = rv_add(loc->pos.sci.v,loc->pos.extra.sun2moon.v);
-	loc->pos.baryc.a = rv_add(loc->pos.sci.a,loc->pos.extra.sun2moon.a);
+	loc->pos.icrf.s = rv_add(loc->pos.sci.s,loc->pos.extra.sun2moon.s);
+	loc->pos.icrf.v = rv_add(loc->pos.sci.v,loc->pos.extra.sun2moon.v);
+	loc->pos.icrf.a = rv_add(loc->pos.sci.a,loc->pos.extra.sun2moon.a);
 
 }
 
@@ -1891,9 +1891,9 @@ void loc_update(locstruc *loc)
 		apass = loc->att.topo.pass;
 		atype = JSON_TYPE_QATT_TOPO;
 	}
-	if (loc->pos.baryc.pass > ppass)
+	if (loc->pos.icrf.pass > ppass)
 	{
-		ppass = loc->pos.baryc.pass;
+		ppass = loc->pos.icrf.pass;
 		ptype = JSON_TYPE_POS_BARYC;
 	}
 	if (loc->pos.eci.pass > ppass)
@@ -1935,7 +1935,7 @@ void loc_update(locstruc *loc)
 	switch (ptype)
 	{
 	case JSON_TYPE_POS_BARYC:
-		pos_baryc(loc);
+		pos_icrf(loc);
 		break;
 	case JSON_TYPE_POS_ECI:
 		pos_eci(loc);
@@ -2141,7 +2141,8 @@ void mean2j2000(double ep0, rmatrix *pm)
 	double theta = utc2theta(ep0);
 	double z = utc2z(ep0);
 
-	*pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
+//	*pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
+	*pm = rm_mmult(rm_change_around_z(-z), rm_mmult(rm_change_around_y(theta), rm_change_around_z(-zeta)));
 
 //	zeta = ttc*(2306.2181 + ttc*(0.30188 + ttc*(0.017998)))*DAS2R;
 //	z = zeta + ttc*ttc*(0.79280 + ttc*(0.000205))*DAS2R;
@@ -2174,7 +2175,7 @@ void mean2j2000(double ep0, rmatrix *pm)
 	\param drm pointer to rotation matrix derivative
 	\param ddrm pointer to rotation matrix 2nd derivative
 */
-void itrs2icrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
+void itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
 {
 	static rmatrix orm, odrm, oddrm, ornp;
 	static double outc = 0.;
@@ -2188,7 +2189,7 @@ void itrs2icrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	}
 	else
 	{
-		icrs2itrs(utc,rnp,rm,drm,ddrm);
+		gcrf2itrs(utc,rnp,rm,drm,ddrm);
 		ornp = *rnp = rm_transpose(*rnp);
 		orm = *rm = rm_transpose(*rm);
 		odrm = *drm = rm_transpose(*drm);
@@ -2205,20 +2206,21 @@ void itrs2icrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	\param rm pointer to rotation matrix
 	\param drm pointer to rotation matrix derivative
 */
-void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
+void gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
 {
-	double gast, ut1, ttc;
-	rvector nuts;
-	double eps, pols, dpsi, deps;
-	double zeta, z, theta;
-	double se, sdp, sde, ce, cdp, cde;
+//	double gast;
+	double ut1, ttc;
+//	rvector nuts;
+//	double eps, pols, dpsi, deps;
+//	double zeta, z, theta;
+//	double se, sdp, sde, ce, cdp, cde;
 	rmatrix nrm[3], ndrm, nddrm;
 	rmatrix pm, nm, sm, pw = {{{{0.}}}};
 //	rmatrix dsm = {{{{0.}}}};
 	//static rmatrix bm = {{{{1.,-14.6*DAS2R,16.617*DAS2R,0.}},{{14.6*DAS2R,1.,6.8192*DAS2R}},{{-16.617*DAS2R,-6.8192*DAS2R,1.}},{{0.}}}};
 //	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
 	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
-	cvector polm= {0.,0.,0.};
+//	cvector polm= {0.,0.,0.};
 	static rmatrix orm, odrm, oddrm, ornp;
 	static double outc = 0.;
 	static double realsec = 0.;
@@ -2248,10 +2250,12 @@ void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	// Do it 3 times to get rate change
 	outc = utc;
 	utc -= realsec;
+	// Calculate bias offset for GCRF to J2000
+	gcrf2j2000(utc, &bm);
 	for (i=0; i<3; i++)
 	{
 		// Calculate Precession Matrix (pm)
-		ttc = utc2jcentt(utc);
+//		ttc = utc2jcentt(utc);
 
 		/* Euler angles */
 //		zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971)))))*DAS2R;
@@ -2373,18 +2377,18 @@ void j20002mean(double ep1, rmatrix *pm)
 	oep1 = ep1;
 }
 
-void icrs2j2000(double op0, rmatrix *rm)
+void gcrf2j2000(double op0, rmatrix *rm)
 {
 //	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
 //	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
-	static rmatrix bm = {{{{0.99999999999999,-0.00000007078280,0.00000008056149}},{{0.00000007078280,1.,0.00000003306041}},{{-0.00000008056149,-0.00000003306041,1.}}}};
+	static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
 	*rm = bm;
 }
 
-void j20002icrs(double op0, rmatrix *rm)
+void j20002gcrf(double op0, rmatrix *rm)
 {
-	static rmatrix bm = {{{{1.,0.000273e-8,-9.740996e-8}},{{-0.000273e-8,1.,-1.324146e-8}},{{9.740996e-8,1.324146e-8,1.}}}};
-	*rm = bm;
+	static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
+	*rm = rm_transpose(bm);
 }
 
 void mean2mean(double ep0, double ep1, rmatrix *pm)
@@ -2877,8 +2881,8 @@ int tle2eci(double utc, tlestruc tle, cartpos *eci)
 	eci->v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
 
 	// Uniform of Date to True of Date (Equation of Equinoxes)
-	double eeq = utc2gast(utc) - utc2gmst1982(utc);
-	rmatrix sm = rm_change_around_z(eeq);
+	rmatrix sm;
+	teme2true(utc, &sm);
 	eci->s = rv_mmult(sm,eci->s);
 	eci->v = rv_mmult(sm,eci->v);
 
@@ -2894,10 +2898,10 @@ int tle2eci(double utc, tlestruc tle, cartpos *eci)
 	eci->s = rv_mmult(pm,eci->s);
 	eci->v = rv_mmult(pm,eci->v);
 
-//	rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
-//	bm = rm_transpose(bm);
-//	eci->s = rv_mmult(bm,eci->s);
-//	eci->v = rv_mmult(bm,eci->v);
+	rmatrix bm;
+	j20002gcrf(utc, &bm);
+	eci->s = rv_mmult(bm,eci->s);
+	eci->v = rv_mmult(bm,eci->v);
 
 	eci->utc = utc;
 
@@ -3422,7 +3426,7 @@ std::istream& operator >> (std::istream& in, extraatt& a)
 std::ostream& operator << (std::ostream& out, const posstruc& a)
 {
 	out << a.utc << "\t"
-		<< a.baryc << "\t"
+		<< a.icrf << "\t"
 		<< a.eci << "\t"
 		<< a.sci << "\t"
 		<< a.geoc << "\t"
@@ -3441,7 +3445,7 @@ std::ostream& operator << (std::ostream& out, const posstruc& a)
 std::istream& operator >> (std::istream& in, posstruc& a)
 {
 	in  >> a.utc
-		>> a.baryc
+		>> a.icrf
 		>> a.eci
 		>> a.sci
 		>> a.geoc

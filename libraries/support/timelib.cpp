@@ -916,7 +916,7 @@ double utc2era(double mjd)
     {
         ut1 = utc2ut1(mjd);
         ltheta = D2PI * (.779057273264 + 1.00273781191135448 * (ut1 - 51544.5));
-        ltheta = ranrm(ltheta);
+//        ltheta = ranrm(ltheta);
     }
 
     return (ltheta);

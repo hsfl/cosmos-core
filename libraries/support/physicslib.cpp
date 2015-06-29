@@ -851,7 +851,7 @@ svector groundstation(locstruc *satellite,locstruc *groundstation)
 	svector azel = {0.,0.,0.};
 	float lambda, phi;
 
-	pos_baryc2eci(satellite);
+	pos_icrf2eci(satellite);
 	pos_eci2geoc(satellite);
 	geoc2topo(groundstation->pos.geod.s,satellite->pos.geoc.s,&topo);
 	topo2azel(topo,&lambda,&phi);
@@ -953,7 +953,7 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 	normalize_rv(&unitv);
 	unitv = transform_q((loc.att.geoc.s),unitv);
 
-	units = rv_smult(-1.,loc.pos.baryc.s);
+	units = rv_smult(-1.,loc.pos.icrf.s);
 	normalize_rv(&units);
 	units = transform_q((loc.att.icrf.s),units);
 
@@ -1203,7 +1203,7 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 	for (i=0; i<cdata.devspec.ssen_cnt; i++)
 	{
 		// Get sun vector in body frame
-		vec = transform_q(loc.att.icrf.s,rv_smult(-1.,loc.pos.baryc.s));
+		vec = transform_q(loc.att.icrf.s,rv_smult(-1.,loc.pos.icrf.s));
 		// Rotate into sun sensor frame
 		vec = transform_q(q_conjugate(cdata.devspec.ssen[i]->align),vec);
 		// Convert this to az and el
@@ -1397,7 +1397,7 @@ void simulate_imu(int index, cosmosstruc &cdata, locstruc &loc)
 	cdata.devspec.imu[index]->gen.utc = loc.utc;
 
 	//! Set raw values for accelerometer and gyros
-	cdata.devspec.imu[index]->accel = transform_q(toimu,loc.pos.baryc.a);
+	cdata.devspec.imu[index]->accel = transform_q(toimu,loc.pos.icrf.a);
 	cdata.devspec.imu[index]->omega = transform_q(toimu,loc.att.icrf.v);
 
 	//! Set magnetic field in IMU frame
@@ -1530,22 +1530,24 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
 //loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 */
 
-	// Atmospheric and solar drag
+	// Atmospheric drag
 	if (length_rv(physics.adrag))
 	{
 		da = transform_q(q_conjugate(loc.att.icrf.s),physics.adrag);
-		//	loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
+		loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 	}
+	// Solar drag
 	if (length_rv(physics.rdrag))
 	{
 		da = transform_q(q_conjugate(loc.att.icrf.s),physics.rdrag);
-		//	loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
+		loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
 	}
-
-	// Correct for Earth motion
-	//loc.pos.eci.a.col[0] += earthpos.a.col[0];
-	//loc.pos.eci.a.col[1] += earthpos.a.col[1];
-	//loc.pos.eci.a.col[2] += earthpos.a.col[2];
+	// Fictitious drag
+	if (length_rv(physics.fdrag))
+	{
+		da = transform_q(q_conjugate(loc.att.icrf.s),physics.fdrag);
+		loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
+	}
 
 	loc.pos.eci.pass++;
 	pos_eci(&loc);
@@ -1654,8 +1656,8 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc &cdata)
 	case 10:
 	case 11:
 	case 12:
-		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
-		//	loc.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+		//	loc.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
 		loc.att.icrf.v = rv_zero();
 		att_icrf2lvlh(&loc);
 		break;
@@ -1747,8 +1749,8 @@ void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc 
 	case 10:
 	case 11:
 	case 12:
-		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
-		//	loc.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+		//	loc.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
 		loc.att.icrf.v = rv_zero();
 		att_icrf2lvlh(&loc);
 		break;
@@ -1859,8 +1861,8 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
 	case 10:
 	case 11:
 	case 12:
-		sloc[0].att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,sloc[0].pos.baryc.s));
-		//	sloc[0].att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		sloc[0].att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,sloc[0].pos.icrf.s));
+		//	sloc[0].att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
 		sloc[0].att.icrf.v = rv_zero();
 		att_icrf2lvlh(&sloc[0]);
 		break;
@@ -2050,8 +2052,8 @@ void propagate(cosmosstruc &cdata, double utc)
 		case 9:
 		case 10:
 		case 11:
-			lnew.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,lnew.pos.baryc.s));
-			//		lnew.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,lnew.pos.baryc.s));
+			lnew.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,lnew.pos.icrf.s));
+			//		lnew.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,lnew.pos.icrf.s));
 			lnew.att.icrf.v = rv_zero();
 			att_icrf2lvlh(&lnew);
 			break;
@@ -2293,7 +2295,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
 	case 10:
 	case 11:
 	case 12:
-		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
 		loc.att.icrf.v = rv_zero();
 		att_icrf2lvlh(&loc);
 		break;
@@ -2414,7 +2416,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 	case 10:
 	case 11:
 	case 12:
-		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.baryc.s));
+		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.icrf.s));
 		cdata.node.loc.att.icrf.v = rv_zero();
 		pos_eci2geoc(&cdata.node.loc);
 		att_icrf2lvlh(&cdata.node.loc);
@@ -2545,7 +2547,7 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order,int32_t mode,double d
 	case 10:
 	case 11:
 	case 12:
-		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.baryc.s));
+		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
 		loc.att.icrf.v = rv_zero();
 		att_icrf2lvlh(&loc);
 		break;
@@ -2965,7 +2967,7 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 			case 9:
 			case 10:
 			case 11:
-				gjh.step[gjh.order+1].sloc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,gjh.step[gjh.order+1].sloc.pos.baryc.s));
+				gjh.step[gjh.order+1].sloc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,gjh.step[gjh.order+1].sloc.pos.icrf.s));
 				gjh.step[gjh.order+1].sloc.att.icrf.v = rv_zero();
 				att_icrf2lvlh(&gjh.step[gjh.order+1].sloc);
 				break;
@@ -3103,7 +3105,7 @@ int orbit_init(int32_t mode, double dt, double utc, char *ofile, cosmosstruc &cd
 	case 10:
 	case 11:
 	case 12:
-		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.baryc.s));
+		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.icrf.s));
 		cdata.node.loc.att.icrf.v = rv_zero();
 		att_icrf2lvlh(&cdata.node.loc);
 		break;
@@ -3323,7 +3325,7 @@ int update_eci(cosmosstruc &cdata, double utc, cartpos pos)
 	case 9:
 	case 10:
 	case 11:
-		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.baryc.s));
+		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.icrf.s));
 		cdata.node.loc.att.icrf.v = rv_zero();
 		att_icrf2lvlh(&cdata.node.loc);
 		break;

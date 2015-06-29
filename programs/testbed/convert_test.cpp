@@ -138,19 +138,21 @@ int main(int argc, char *argv[])
 	gmst = DEGOF(utc2gmst1982(sutc));
 	double gast = DEGOF(utc2gast(sutc));
 
-	// TLE to GCRF
+	// ITRS to GCRF
 	// Vallado, pg. 234
-	teme2true(sutc, &pm);
-	spos = rv_mmult(rm_transpose(pm), spos);
+	itrs2pef(sutc, &pm);
+	spos = rv_mmult(pm, spos);
+	pef2true(sutc, &pm);
+	spos = rv_mmult(pm, spos);
 	true2mean(sutc, &pm);
 	spos = rv_mmult(pm, spos);
 	mean2j2000(sutc, &pm);
-	spos = rv_mmult(rm_transpose(pm), spos);
-	j20002icrs(sutc, &pm);
+	spos = rv_mmult((pm), spos);
+	j20002gcrf(sutc, &pm);
 	spos = rv_mmult(pm, spos);
 
-	//GCRF to ITRF
-	icrs2j2000(sutc, &pm);
+	//GCRF to ITRS
+	gcrf2j2000(sutc, &pm);
 	spos = rv_mmult(pm, spos);
 	j20002mean(sutc, &pm);
 	spos = rv_mmult(pm, spos);
@@ -160,6 +162,11 @@ int main(int argc, char *argv[])
 	spos = rv_mmult(pm, spos);
 	pef2itrs(sutc, &pm);
 	spos = rv_mmult(pm, spos);
+
+	loc.pos.geoc.utc = sutc;
+	loc.pos.geoc.s = spos;
+	loc.pos.geoc.pass++;
+	pos_geoc(&loc);
 
 	rvector vec1;
 
@@ -266,11 +273,11 @@ tpos = rotate_q(iloc.att.geoc.s,iloc.pos.geoc.s);
 tpos = transform_q(iloc.att.geoc.s,iloc.pos.geoc.s);
 
 loc.utc = iloc.utc;
-loc.pos.baryc.s = iloc.pos.baryc.s;
-loc.pos.baryc.v = iloc.pos.baryc.v;
+loc.pos.icrf.s = iloc.pos.icrf.s;
+loc.pos.icrf.v = iloc.pos.icrf.v;
 loc.att.icrf = iloc.att.icrf;
-loc.pos.baryc.pass++;
-pos_baryc(&loc);
+loc.pos.icrf.pass++;
+pos_icrf(&loc);
 printf("From Barycentric\n");
 compare();
 printf("\n");
@@ -279,16 +286,24 @@ printf("\n");
 loc.pos.eci = iloc.pos.eci;
 
 rmatrix rm;
-icrs2j2000(iloc.pos.eci.utc, &rm);
+gcrf2j2000(utc, &rm);
 loc.pos.eci.s = rv_mmult(rm, loc.pos.eci.s);
 loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
 
-j20002mean(iloc.pos.eci.utc, &rm);
+j20002mean(utc, &rm);
 loc.pos.eci.s = rv_mmult(rm, loc.pos.eci.s);
 loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
 
-mean2true(iloc.pos.eci.utc, &rm);
+mean2true(utc, &rm);
 loc.pos.eci.s = rv_mmult(rm, loc.pos.eci.s);
+loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
+
+true2pef(utc, &rm);
+loc.pos.eci.s = rv_mmult((rm), loc.pos.eci.s);
+loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
+
+pef2itrs(utc, &rm);
+loc.pos.eci.s = rv_mmult((rm), loc.pos.eci.s);
 loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
 
 loc.pos.eci.s = iloc.pos.eci.s;
@@ -329,14 +344,14 @@ uvector u1, u2;
 rvector vec1;
 
 printf("pos_bary: ");
-mag1 = length_rv(iloc.pos.baryc.s);
-mag2 = length_rv(rv_sub(loc.pos.baryc.s,iloc.pos.baryc.s));
+mag1 = length_rv(iloc.pos.icrf.s);
+mag2 = length_rv(rv_sub(loc.pos.icrf.s,iloc.pos.icrf.s));
 printf("S: %.10g %.10g ",mag2,(mag2)/mag1);
-mag1 = length_rv(iloc.pos.baryc.v);
-mag2 = length_rv(rv_sub(loc.pos.baryc.v,iloc.pos.baryc.v));
+mag1 = length_rv(iloc.pos.icrf.v);
+mag2 = length_rv(rv_sub(loc.pos.icrf.v,iloc.pos.icrf.v));
 printf("V: %.10g %.10g ",mag2,(mag2)/mag1);
-mag1 = length_rv(iloc.pos.baryc.a);
-mag2 = length_rv(rv_sub(loc.pos.baryc.a,iloc.pos.baryc.a));
+mag1 = length_rv(iloc.pos.icrf.a);
+mag2 = length_rv(rv_sub(loc.pos.icrf.a,iloc.pos.icrf.a));
 printf("A: %.10g %.10g ",mag2,(mag2)/mag1);
 printf("\n");
 
