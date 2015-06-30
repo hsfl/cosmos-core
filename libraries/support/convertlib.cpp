@@ -95,7 +95,7 @@ void pos_extra(locstruc *loc)
 	loc->pos.extra.tdb = utc2tdb(loc->utc);
 	loc->pos.extra.ut = utc2ut1(loc->utc);
 
-	icrs2itrs(loc->utc,&loc->pos.extra.j2t,&loc->pos.extra.j2e,&loc->pos.extra.dj2e,&loc->pos.extra.ddj2e);
+	gcrf2itrs(loc->utc,&loc->pos.extra.j2t,&loc->pos.extra.j2e,&loc->pos.extra.dj2e,&loc->pos.extra.ddj2e);
 	loc->pos.extra.t2j = rm_transpose(loc->pos.extra.j2t);
 	loc->pos.extra.e2j = rm_transpose(loc->pos.extra.j2e);
 	loc->pos.extra.de2j = rm_transpose(loc->pos.extra.dj2e);
@@ -118,44 +118,44 @@ void pos_extra(locstruc *loc)
  * ::posstruc. Then propagate to all the other positions.
 	\param pos ::posstruc with the current position and those to be updated.
 */
-void pos_baryc(locstruc *loc)
+void pos_icrf(locstruc *loc)
 {
 	double distance, theta;
 	rvector sat2body;
 
 	// Synchronize time
-	if (loc->pos.baryc.utc == 0.)
+	if (loc->pos.icrf.utc == 0.)
 	{
 		if (!isfinite(loc->utc))
 		{
 			return;
 		}
-		loc->pos.baryc.utc = loc->pos.utc = loc->utc;
+		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
 	}
 	else
 	{
-		if (!isfinite(loc->pos.baryc.utc))
+		if (!isfinite(loc->pos.icrf.utc))
 		{
 			return;
 		}
-		loc->utc = loc->pos.utc = loc->pos.baryc.utc;
+		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
 	}
 	
 	pos_extra(loc);
 
 	// Determine closest planetary body
 	loc->pos.extra.closest = COSMOS_EARTH;
-	if (length_rv(rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2moon.s)) < length_rv(rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2earth.s)))
+	if (length_rv(rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2moon.s)) < length_rv(rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s)))
 		loc->pos.extra.closest = COSMOS_MOON;
 
 	// Set SUN specific stuff
-	distance = length_rv(loc->pos.baryc.s);
+	distance = length_rv(loc->pos.icrf.s);
 	loc->pos.sunsize = (float)(RSUNM/distance);
 	loc->pos.sunradiance = (float)(3.839e26/(4.*DPI*distance*distance));
 
 	// Check Earth:Sun separation
-	sat2body = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2earth.s);
-	loc->pos.earthsep = (float)(sep_rv(loc->pos.baryc.s,sat2body));
+	sat2body = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s);
+	loc->pos.earthsep = (float)(sep_rv(loc->pos.icrf.s,sat2body));
 	loc->pos.earthsep -= (float)(asin(REARTHM/length_rv(sat2body)));
 	if (loc->pos.earthsep < -loc->pos.sunsize)
 		loc->pos.sunradiance = 0.;
@@ -167,10 +167,10 @@ void pos_baryc(locstruc *loc)
 		}
 
 	// Set Moon specific stuff
-	sat2body = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2moon.s);
+	sat2body = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2moon.s);
 
 	// Check Earth:Moon separation
-	loc->pos.moonsep = (float)(sep_rv(loc->pos.baryc.s,sat2body));
+	loc->pos.moonsep = (float)(sep_rv(loc->pos.icrf.s,sat2body));
 	loc->pos.moonsep -= (float)(asin(RMOONM/length_rv(sat2body)));
 	if (loc->pos.moonsep < -loc->pos.sunsize)
 		loc->pos.sunradiance = 0.;
@@ -182,18 +182,18 @@ void pos_baryc(locstruc *loc)
 		}
 
 	// Set related attitudes
-	loc->att.icrf.pass = loc->pos.baryc.pass;
-	loc->att.icrf.utc = loc->pos.baryc.utc;
+	loc->att.icrf.pass = loc->pos.icrf.pass;
+	loc->att.icrf.utc = loc->pos.icrf.utc;
 
 	// Set adjoining positions
-	if (loc->pos.baryc.pass > loc->pos.eci.pass)
+	if (loc->pos.icrf.pass > loc->pos.eci.pass)
 	{
-		pos_baryc2eci(loc);
+		pos_icrf2eci(loc);
 		pos_eci(loc);
 	}
-	if (loc->pos.baryc.pass > loc->pos.sci.pass)
+	if (loc->pos.icrf.pass > loc->pos.sci.pass)
 	{
-		pos_baryc2sci(loc);
+		pos_icrf2sci(loc);
 		pos_sci(loc);
 	}
 
@@ -227,10 +227,10 @@ void pos_eci(locstruc *loc)
 	pos_extra(loc);
 
 	// Set adjoining positions
-	if (loc->pos.eci.pass > loc->pos.baryc.pass)
+	if (loc->pos.eci.pass > loc->pos.icrf.pass)
 	{
-		pos_eci2baryc(loc);
-		pos_baryc(loc);
+		pos_eci2icrf(loc);
+		pos_icrf(loc);
 	}
 	if (loc->pos.eci.pass > loc->pos.geoc.pass)
 	{
@@ -271,10 +271,10 @@ void pos_sci(locstruc *loc)
 	pos_extra(loc);
 
 	// Set adjoining positions
-	if (loc->pos.sci.pass > loc->pos.baryc.pass)
+	if (loc->pos.sci.pass > loc->pos.icrf.pass)
 	{
-		pos_sci2baryc(loc);
-		pos_baryc(loc);
+		pos_sci2icrf(loc);
+		pos_icrf(loc);
 	}
 	if (loc->pos.sci.pass > loc->pos.selc.pass)
 	{
@@ -497,24 +497,24 @@ void pos_geod(locstruc *loc)
  * the Earth Centered Inertial slot, performing all relevant updates.
 	\param pos Working ::posstruc
 */
-void pos_baryc2eci(locstruc *loc)
+void pos_icrf2eci(locstruc *loc)
 {
 	// Synchronize time
-	if (loc->pos.baryc.utc == 0.)
+	if (loc->pos.icrf.utc == 0.)
 	{
 		if (!isfinite(loc->utc))
 		{
 			return;
 		}
-		loc->pos.baryc.utc = loc->pos.utc = loc->utc;
+		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
 	}
 	else
 	{
-		if (!isfinite(loc->pos.baryc.utc))
+		if (!isfinite(loc->pos.icrf.utc))
 		{
 			return;
 		}
-		loc->utc = loc->pos.utc = loc->pos.baryc.utc;
+		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
 	}
 	
 	// Update extra information
@@ -524,14 +524,14 @@ void pos_baryc2eci(locstruc *loc)
 	loc->pos.eci.utc = loc->utc;
 
 	// Update pass
-	loc->pos.eci.pass = loc->pos.baryc.pass;
+	loc->pos.eci.pass = loc->pos.icrf.pass;
 
 	// Heliocentric to Geocentric Ecliptic
 	loc->pos.eci.s = loc->pos.eci.v = loc->pos.eci.a = rv_zero();
 
-	loc->pos.eci.s = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2earth.s);
-	loc->pos.eci.v = rv_sub(loc->pos.baryc.v,loc->pos.extra.sun2earth.v);
-	loc->pos.eci.a = rv_sub(loc->pos.baryc.a,loc->pos.extra.sun2earth.a);
+	loc->pos.eci.s = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s);
+	loc->pos.eci.v = rv_sub(loc->pos.icrf.v,loc->pos.extra.sun2earth.v);
+	loc->pos.eci.a = rv_sub(loc->pos.icrf.a,loc->pos.extra.sun2earth.a);
 }
 
 //! Convert ECI to Barycentric
@@ -539,7 +539,7 @@ void pos_baryc2eci(locstruc *loc)
  * the Barycentric slot, performing all relevant updates.
 	\param pos Working ::posstruc
 */
-void pos_eci2baryc(locstruc *loc)
+void pos_eci2icrf(locstruc *loc)
 {
 	// Synchronize time
 	if (0. == loc->pos.eci.utc)
@@ -563,15 +563,15 @@ void pos_eci2baryc(locstruc *loc)
 	pos_extra(loc);
 
 	// Update pass
-	loc->pos.baryc.pass = loc->pos.eci.pass;
+	loc->pos.icrf.pass = loc->pos.eci.pass;
 
 	// Update time
-	loc->pos.baryc.utc = loc->utc;
+	loc->pos.icrf.utc = loc->utc;
 
 	// Geocentric Equatorial to Heliocentric
-	loc->pos.baryc.s = rv_add(loc->pos.eci.s,loc->pos.extra.sun2earth.s);
-	loc->pos.baryc.v = rv_add(loc->pos.eci.v,loc->pos.extra.sun2earth.v);
-	loc->pos.baryc.a = rv_add(loc->pos.eci.a,loc->pos.extra.sun2earth.a);
+	loc->pos.icrf.s = rv_add(loc->pos.eci.s,loc->pos.extra.sun2earth.s);
+	loc->pos.icrf.v = rv_add(loc->pos.eci.v,loc->pos.extra.sun2earth.v);
+	loc->pos.icrf.a = rv_add(loc->pos.eci.a,loc->pos.extra.sun2earth.a);
 }
 
 //! Convert Barycentric to SCI
@@ -579,24 +579,24 @@ void pos_eci2baryc(locstruc *loc)
  * the Selene Centered Inertial slot, performing all relevant updates.
 	\param pos Working ::posstruc
 */
-void pos_baryc2sci(locstruc *loc)
+void pos_icrf2sci(locstruc *loc)
 {
 	// Synchronize time
-	if (loc->pos.baryc.utc == 0.)
+	if (loc->pos.icrf.utc == 0.)
 	{
 		if (!isfinite(loc->utc))
 		{
 			return;
 		}
-		loc->pos.baryc.utc = loc->pos.utc = loc->utc;
+		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
 	}
 	else
 	{
-		if (!isfinite(loc->pos.baryc.utc))
+		if (!isfinite(loc->pos.icrf.utc))
 		{
 			return;
 		}
-		loc->utc = loc->pos.utc = loc->pos.baryc.utc;
+		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
 	}
 
 	// Update extra information
@@ -606,14 +606,14 @@ void pos_baryc2sci(locstruc *loc)
 	loc->pos.sci.utc = loc->utc;
 
 	// Update pass
-	loc->pos.sci.pass = loc->pos.baryc.pass;
+	loc->pos.sci.pass = loc->pos.icrf.pass;
 
 	// Heliocentric to Geocentric Ecliptic
 	loc->pos.sci.s = loc->pos.sci.v = loc->pos.sci.a = rv_zero();
 
-	loc->pos.sci.s = rv_sub(loc->pos.baryc.s,loc->pos.extra.sun2moon.s);
-	loc->pos.sci.v = rv_sub(loc->pos.baryc.v,loc->pos.extra.sun2moon.v);
-	loc->pos.sci.a = rv_sub(loc->pos.baryc.a,loc->pos.extra.sun2moon.a);
+	loc->pos.sci.s = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2moon.s);
+	loc->pos.sci.v = rv_sub(loc->pos.icrf.v,loc->pos.extra.sun2moon.v);
+	loc->pos.sci.a = rv_sub(loc->pos.icrf.a,loc->pos.extra.sun2moon.a);
 
 }
 
@@ -622,7 +622,7 @@ void pos_baryc2sci(locstruc *loc)
  * the Barycentric slot, performing all relevant updates.
 	\param pos Working ::posstruc
 */
-void pos_sci2baryc(locstruc *loc)
+void pos_sci2icrf(locstruc *loc)
 {
 	// Synchronize time
 	if (0. == loc->pos.sci.utc)
@@ -646,15 +646,15 @@ void pos_sci2baryc(locstruc *loc)
 	pos_extra(loc);
 
 	// Update time
-	loc->pos.baryc.utc = loc->utc;
+	loc->pos.icrf.utc = loc->utc;
 
 	// Update pass
-	loc->pos.baryc.pass = loc->pos.sci.pass;
+	loc->pos.icrf.pass = loc->pos.sci.pass;
 
 	// Geocentric Equatorial to Heliocentric
-	loc->pos.baryc.s = rv_add(loc->pos.sci.s,loc->pos.extra.sun2moon.s);
-	loc->pos.baryc.v = rv_add(loc->pos.sci.v,loc->pos.extra.sun2moon.v);
-	loc->pos.baryc.a = rv_add(loc->pos.sci.a,loc->pos.extra.sun2moon.a);
+	loc->pos.icrf.s = rv_add(loc->pos.sci.s,loc->pos.extra.sun2moon.s);
+	loc->pos.icrf.v = rv_add(loc->pos.sci.v,loc->pos.extra.sun2moon.v);
+	loc->pos.icrf.a = rv_add(loc->pos.sci.a,loc->pos.extra.sun2moon.a);
 
 }
 
@@ -932,25 +932,31 @@ void pos_geoc2geod(locstruc *loc)
 	// Update pass
 	loc->pos.geod.pass = loc->pos.geoc.pass;
 
-	loc->pos.geod.s.lon = atan2(loc->pos.geoc.s.col[1],loc->pos.geoc.s.col[0]);
+    // calculate geodetic longitude = atan2(py/px)
+    loc->pos.geod.s.lon = atan2(loc->pos.geoc.s.col[1], loc->pos.geoc.s.col[0]);
 
-	// Calculate effects of oblate spheroid
+    // Calculate effects of oblate spheroid
+    // !!! Explain math
+    // e2 (square of first eccentricity) = 1 - (1 - f)^2
 	e2 = (1. - FRATIO2);
-	p = sqrt(loc->pos.geoc.s.col[0]*loc->pos.geoc.s.col[0] + loc->pos.geoc.s.col[1]*loc->pos.geoc.s.col[1]);
-	nh = sqrt(p*p+loc->pos.geoc.s.col[2]*loc->pos.geoc.s.col[2]) - REARTHM;
+    p = sqrt(loc->pos.geoc.s.col[0]*loc->pos.geoc.s.col[0] +
+             loc->pos.geoc.s.col[1]*loc->pos.geoc.s.col[1]);
+    nh = sqrt(p*p + loc->pos.geoc.s.col[2]*loc->pos.geoc.s.col[2]) - REARTHM;
 	phi = atan2(loc->pos.geoc.s.col[2],p);
 	do
 	{
 		h = nh;
 		st = sin(phi);
+        // rn = radius of curvature in the vertical prime
 		rn = REARTHM / sqrt(1.-e2*st*st);
 		nh = p/cos(phi) - rn;
-		phi = atan((loc->pos.geoc.s.col[2]/p)/(1.-e2*rn/(rn+h)));
+        phi = atan( (loc->pos.geoc.s.col[2]/p)/(1.-e2*rn/(rn+h) ) );
 	} while (fabs(nh-h) > .01);
 
 	loc->pos.geod.s.lat = phi;
 	loc->pos.geod.s.h = h;
 
+    // !!! Explain math
 	st = sin(loc->pos.geod.s.lat);
 	ct = cos(loc->pos.geod.s.lat);
 	sn = sin(loc->pos.geod.s.lon);
@@ -1891,9 +1897,9 @@ void loc_update(locstruc *loc)
 		apass = loc->att.topo.pass;
 		atype = JSON_TYPE_QATT_TOPO;
 	}
-	if (loc->pos.baryc.pass > ppass)
+	if (loc->pos.icrf.pass > ppass)
 	{
-		ppass = loc->pos.baryc.pass;
+		ppass = loc->pos.icrf.pass;
 		ptype = JSON_TYPE_POS_BARYC;
 	}
 	if (loc->pos.eci.pass > ppass)
@@ -1935,7 +1941,7 @@ void loc_update(locstruc *loc)
 	switch (ptype)
 	{
 	case JSON_TYPE_POS_BARYC:
-		pos_baryc(loc);
+		pos_icrf(loc);
 		break;
 	case JSON_TYPE_POS_ECI:
 		pos_eci(loc);
@@ -2141,7 +2147,8 @@ void mean2j2000(double ep0, rmatrix *pm)
 	double theta = utc2theta(ep0);
 	double z = utc2z(ep0);
 
-	*pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
+//	*pm = rm_mmult(rm_change_around_z(zeta),rm_mmult(rm_change_around_y(-theta),rm_change_around_z(z)));
+	*pm = rm_mmult(rm_change_around_z(-z), rm_mmult(rm_change_around_y(theta), rm_change_around_z(-zeta)));
 
 //	zeta = ttc*(2306.2181 + ttc*(0.30188 + ttc*(0.017998)))*DAS2R;
 //	z = zeta + ttc*ttc*(0.79280 + ttc*(0.000205))*DAS2R;
@@ -2174,7 +2181,7 @@ void mean2j2000(double ep0, rmatrix *pm)
 	\param drm pointer to rotation matrix derivative
 	\param ddrm pointer to rotation matrix 2nd derivative
 */
-void itrs2icrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
+void itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
 {
 	static rmatrix orm, odrm, oddrm, ornp;
 	static double outc = 0.;
@@ -2188,7 +2195,7 @@ void itrs2icrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	}
 	else
 	{
-		icrs2itrs(utc,rnp,rm,drm,ddrm);
+		gcrf2itrs(utc,rnp,rm,drm,ddrm);
 		ornp = *rnp = rm_transpose(*rnp);
 		orm = *rm = rm_transpose(*rm);
 		odrm = *drm = rm_transpose(*drm);
@@ -2205,20 +2212,21 @@ void itrs2icrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	\param rm pointer to rotation matrix
 	\param drm pointer to rotation matrix derivative
 */
-void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
+void gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
 {
-	double gast, ut1, ttc;
-	rvector nuts;
-	double eps, pols, dpsi, deps;
-	double zeta, z, theta;
-	double se, sdp, sde, ce, cdp, cde;
+//	double gast;
+	double ut1, ttc;
+//	rvector nuts;
+//	double eps, pols, dpsi, deps;
+//	double zeta, z, theta;
+//	double se, sdp, sde, ce, cdp, cde;
 	rmatrix nrm[3], ndrm, nddrm;
 	rmatrix pm, nm, sm, pw = {{{{0.}}}};
 //	rmatrix dsm = {{{{0.}}}};
 	//static rmatrix bm = {{{{1.,-14.6*DAS2R,16.617*DAS2R,0.}},{{14.6*DAS2R,1.,6.8192*DAS2R}},{{-16.617*DAS2R,-6.8192*DAS2R,1.}},{{0.}}}};
 //	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
 	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
-	cvector polm= {0.,0.,0.};
+//	cvector polm= {0.,0.,0.};
 	static rmatrix orm, odrm, oddrm, ornp;
 	static double outc = 0.;
 	static double realsec = 0.;
@@ -2248,10 +2256,12 @@ void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	// Do it 3 times to get rate change
 	outc = utc;
 	utc -= realsec;
+	// Calculate bias offset for GCRF to J2000
+	gcrf2j2000(utc, &bm);
 	for (i=0; i<3; i++)
 	{
 		// Calculate Precession Matrix (pm)
-		ttc = utc2jcentt(utc);
+//		ttc = utc2jcentt(utc);
 
 		/* Euler angles */
 //		zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971)))))*DAS2R;
@@ -2373,18 +2383,18 @@ void j20002mean(double ep1, rmatrix *pm)
 	oep1 = ep1;
 }
 
-void icrs2j2000(double op0, rmatrix *rm)
+void gcrf2j2000(double op0, rmatrix *rm)
 {
 //	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
 //	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
-	static rmatrix bm = {{{{0.99999999999999,-0.00000007078280,0.00000008056149}},{{0.00000007078280,1.,0.00000003306041}},{{-0.00000008056149,-0.00000003306041,1.}}}};
+	static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
 	*rm = bm;
 }
 
-void j20002icrs(double op0, rmatrix *rm)
+void j20002gcrf(double op0, rmatrix *rm)
 {
-	static rmatrix bm = {{{{1.,0.000273e-8,-9.740996e-8}},{{-0.000273e-8,1.,-1.324146e-8}},{{9.740996e-8,1.324146e-8,1.}}}};
-	*rm = bm;
+	static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
+	*rm = rm_transpose(bm);
 }
 
 void mean2mean(double ep0, double ep1, rmatrix *pm)
@@ -2659,263 +2669,249 @@ int lines2eci(double utc, vector<tlestruc>lines, cartpos *eci)
 */
 int tle2eci(double utc, tlestruc tle, cartpos *eci)
 {
-    // TODO: change eci when calling sgp4
-    sgp4(utc, tle, eci);
+	//	rmatrix pm = {{{{0.}}}};
+	//	static int lsnumber=-99;
+	static double c1=0.;
+	static double cosio=0. ,x3thm1=0. , xnodp=0. ,aodp=0.,isimp=0.,eta=0.,sinio=0. ,ximth2=0.,c4=0.,c5=0.;
+	static double xmdot=0.,omgdot=0., xnodot=0.,omgcof=0.,xmcof=0., xnodcf=0.,t2cof=0.,xlcof=0.,aycof=0.;
+	int i;
+	double temp, temp1, temp2, temp3, temp4, temp5, temp6;
+	double tempa, tempe, templ;
+	double ao, a1, c2, c3, coef, coef1, theta4, c1sq;
+	double theta2, betao2, betao, delo, del1, s4, qoms24, x1m5th, xhdot1;
+	double perige, eosq, pinvsq, tsi, etasq, eeta, psisq, g, xmdf;
+	double tsince, omgadf, alpha, xnoddf, xmp, tsq, xnode, delomg, delm;
+	double tcube, tfour, a, e, xl, beta, axn, xn, xll, ayn, capu, aynl;
+	double xlt, sinepw, cosepw, epw, ecose, esine,  pl, r, elsq;
+	double rdot, rfdot, cosu, sinu, u, sin2u, cos2u, uk, rk, ux, uy, uz;
+	double vx, vy, vz, xinck, rdotk, rfdotk, sinuk, cosuk, sinik, cosik, xnodek;
+	double xmx, xmy, sinnok, cosnok;
+	//	locstruc loc;
+	static double lutc=0.;
+	static uint16_t lsnumber=0;
+
+	static double delmo,sinmo,x7thm1,d2,d3,d4,t3cof,t4cof,t5cof, betal;
+
+	if (tle.utc != lutc || tle.snumber != lsnumber)
+	{
+		// RECOVER ORIGINAL MEAN MOTION ( xnodp ) AND SEMIMAJOR AXIS (aodp)
+		// FROM INPUT ELEMENTS
+		a1=pow((SGP4_XKE/ tle.mm ),SGP4_TOTHRD);
+		cosio = cos(tle.i);
+		theta2=cosio * cosio;
+		x3thm1 =3.*theta2-1.;
+		eosq = tle.e * tle.e;
+		betao2=1.- eosq;
+		betao=sqrt(betao2);
+		del1=1.5*SGP4_CK2*x3thm1 /(a1*a1*betao*betao2);
+		ao=a1*(1.-del1*(.5*SGP4_TOTHRD+del1*(1.+134./81.*del1)));
+		delo=1.5*SGP4_CK2*x3thm1 /(ao*ao*betao*betao2);
+		xnodp = tle.mm /(1.+delo);
+		aodp=ao/(1.-delo);
+		// INITIALIZATION
+		// FOR PERIGEE LESS THAN 220 KILOMETERS, THE isimp FLAG IS SET AND
+		// THE EQUATIONS ARE TRUNCATED TO LINEAR VARIATION IN sqrt A AND
+		// QUADRATIC VARIATION IN MEAN ANOMALY. ALSO, THE c3 TERM, THE
+		// DELTA alpha TERM, AND THE DELTA M TERM ARE DROPPED.
+		isimp=0;
+		if((aodp*(1.- tle.e)/SGP4_AE) < (220./SGP4_XKMPER+SGP4_AE))
+			isimp=1;
+		// FOR PERIGEE BELOW 156 KM, THE VALUES OF
+		// S AND SGP4_QOMS2T ARE ALTERED
+		s4=SGP4_S;
+		qoms24=SGP4_QOMS2T;
+		perige=(aodp*(1.- tle.e )-SGP4_AE)*SGP4_XKMPER;
+		if(perige < 156.)
+		{
+			s4=perige-78.;
+			if(perige <= 98.)
+			{
+				s4=20.;
+				qoms24=pow(((120.-s4)*SGP4_AE/SGP4_XKMPER),4.);
+				s4=s4/SGP4_XKMPER+SGP4_AE;
+			}
+		}
+		pinvsq = 1./(aodp*aodp*betao2*betao2);
+		tsi =1./(aodp-s4);
+		eta=aodp* tle.e * tsi;
+		etasq=eta*eta;
+		eeta= tle.e *eta;
+		psisq=fabs(1.-etasq);
+		coef=qoms24*pow(tsi,4.);
+		coef1=coef/pow(psisq,3.5);
+		c2=coef1* xnodp *(aodp*(1.+1.5*etasq+eeta*(4.+etasq))+.75* SGP4_CK2*tsi/psisq*x3thm1 *(8.+3.*etasq*(8.+etasq)));
+		c1 = tle.bstar *c2;
+		sinio =sin( tle.i );
+		g =-SGP4_XJ3/SGP4_CK2*pow(SGP4_AE,3.);
+		c3 =coef*tsi*g* xnodp *SGP4_AE*sinio / tle.e;
+		ximth2 =1.-theta2;
+		c4 =2.* xnodp *coef1*aodp*betao2*(eta* (2.+.5*etasq)+ tle.e *(.5+2.*etasq)-2.*SGP4_CK2*tsi/ (aodp*psisq)*(-3.*x3thm1 *(1.-2.*eeta+etasq* (1.5-.5*eeta))+.75*ximth2*(2.*etasq-eeta* (1.+etasq))*cos(2.* tle.ap )));
+		c5 =2.*coef1*aodp*betao2*(1.+2.75*(etasq+eeta)+eeta*etasq);
+		theta4 =theta2*theta2;
+		temp1 =3.*SGP4_CK2*pinvsq* xnodp;
+		temp2 = temp1*SGP4_CK2*pinvsq;
+		temp3 =1.25*SGP4_CK4*pinvsq*pinvsq* xnodp;
+		xmdot = xnodp +.5* temp1*betao*x3thm1 +.0625* temp2*betao* (13.-78.*theta2+137.*theta4);
+		x1m5th =1.-5.*theta2;
+		omgdot =-.5* temp1*x1m5th+.0625* temp2*(7.-114.*theta2+ 395.*theta4)+ temp3*(3.-36.*theta2+49.*theta4);
+		xhdot1 =- temp1*cosio;
+		xnodot =xhdot1+(.5* temp2*(4.-19.*theta2)+2.* temp3*(3.- 7.*theta2))*cosio;
+		omgcof = tle.bstar *c3*cos( tle.ap );
+		xmcof =-SGP4_TOTHRD*coef* tle.bstar *SGP4_AE/eeta;
+		xnodcf =3.5*betao2*xhdot1*c1;
+		t2cof =1.5*c1;
+		xlcof =.125*g*sinio *(3.+5.*cosio )/(1.+cosio );
+		aycof =.25*g*sinio;
+		delmo =pow((1.+eta*cos( tle.ma )),3.);
+		sinmo =sin( tle.ma );
+		x7thm1 =7.*theta2-1.;
+		if(isimp != 1)
+		{
+			c1sq=c1*c1;
+			d2=4.*aodp*tsi*c1sq;
+			temp =d2*tsi*c1/3.;
+			d3=(17.*aodp+s4)* temp;
+			d4=.5* temp *aodp*tsi*(221.*aodp+31.*s4)*c1;
+			t3cof=d2+2.*c1sq;
+			t4cof=.25*(3.*d3+c1*(12.*d2+10.*c1sq));
+			t5cof=.2*(3.*d4+12.*c1*d3+6.*d2*d2+15.*c1sq*( 2.*d2+c1sq));
+		}
+		lsnumber = tle.snumber;
+		lutc = tle.utc;
+	}
+
+	// UPDATE FOR SECULAR GRAVITY AND ATMOSPHERIC DRAG
+	tsince = (utc - tle.utc) * 1440.;
+	xmdf = tle.ma +xmdot*tsince;
+	omgadf= tle.ap +omgdot*tsince;
+	xnoddf= tle.raan + xnodot*tsince;
+	alpha=omgadf;
+	xmp = xmdf;
+	tsq=tsince*tsince;
+	xnode= xnoddf+ xnodcf*tsq;
+	tempa=1.-c1*tsince;
+	tempe= tle.bstar *c4*tsince;
+	templ=t2cof*tsq;
+	if(isimp != 1)
+	{
+		delomg=omgcof*tsince;
+		delm=xmcof*(pow((1.+eta*cos( xmdf )),3.)-delmo);
+		temp =delomg+delm;
+		xmp = xmdf + temp;
+		alpha=omgadf- temp;
+		tcube=tsq*tsince;
+		tfour=tsince*tcube;
+		tempa = tempa-d2*tsq-d3*tcube-d4*tfour;
+		tempe = tempe+ tle.bstar *c5*(sin( xmp )-sinmo);
+		templ = templ+t3cof*tcube+ tfour*(t4cof+tsince*t5cof);
+	}
+	a =aodp* tempa * tempa;
+	e = tle.e - tempe;
+	xl= xmp +alpha+ xnode+ xnodp * templ;
+	beta=sqrt(1.-e*e);
+	xn=SGP4_XKE/pow(a,1.5);
+	// LONG PERIOD PERIODICS
+	axn=e*cos(alpha);
+	temp =1./(a*beta*beta);
+	xll= temp *xlcof*axn;
+	aynl= temp *aycof;
+	xlt=xl+xll;
+	ayn=e*sin(alpha)+aynl;
+	// SOLVE KEplERS EQUATION;
+	capu=ranrm(xlt- xnode);
+	temp2=capu;
+	for (i=1; i<=10; i++)
+	{
+		sinepw=sin( temp2);
+		cosepw=cos( temp2);
+		temp3=axn*sinepw;
+		temp4=ayn*cosepw;
+		temp5=axn*cosepw;
+		temp6=ayn*sinepw;
+		epw=(capu- temp4+ temp3- temp2)/(1.- temp5- temp6)+ temp2;
+		if(fabs(epw- temp2) <= SGP4_E6A)
+			break;
+		temp2=epw;
+	}
+	// SHORT PERIOD PRELIMINARY QUANTITIES;
+	ecose= temp5+ temp6;
+	esine= temp3- temp4;
+	elsq=axn*axn+ayn*ayn;
+	temp =1.-elsq;
+	pl=a* temp;
+	r=a*(1.-ecose);
+	temp1=1./r;
+	rdot=SGP4_XKE*sqrt(a)*esine* temp1;
+	rfdot=SGP4_XKE*sqrt(pl)* temp1;
+	temp2=a* temp1;
+	betal=sqrt( temp );
+	temp3=1./(1.+betal);
+	cosu = temp2*(cosepw-axn+ayn*esine* temp3);
+	sinu= temp2*(sinepw-ayn-axn*esine* temp3);
+	u=actan(sinu, cosu );
+	sin2u=2.*sinu* cosu;
+	cos2u =2.* cosu * cosu -1.;
+	temp =1./pl;
+	temp1=SGP4_CK2* temp;
+	temp2= temp1* temp;
+	// UPDATE FOR SHORT PERIODICS;
+	rk =r*(1.-1.5* temp2*betal*x3thm1 )+.5* temp1*ximth2* cos2u;
+	uk=u-.25* temp2*x7thm1*sin2u;
+	xnodek= xnode+1.5* temp2*cosio *sin2u;
+	xinck= tle.i +1.5* temp2*cosio *sinio * cos2u;
+	rdotk=rdot-xn* temp1*ximth2*sin2u;
+	rfdotk=rfdot+xn* temp1*(ximth2* cos2u +1.5*x3thm1 );
+	// ORIENTATION VECTORS;
+	sinuk =sin(uk);
+	cosuk=cos(uk);
+	sinik =sin(xinck);
+	cosik =cos(xinck);
+	sinnok=sin( xnodek);
+	cosnok=cos( xnodek);
+	xmx=-sinnok* cosik;
+	xmy=cosnok* cosik;
+	ux=xmx* sinuk +cosnok* cosuk;
+	uy=xmy* sinuk +sinnok* cosuk;
+	uz= sinik * sinuk;
+	vx=xmx* cosuk-cosnok* sinuk;
+	vy=xmy* cosuk-sinnok* sinuk;
+	vz= sinik * cosuk;
+	// POSITION AND VELOCITY;
+	eci->s = eci->v = eci->a = rv_zero();
+
+	eci->s.col[0] = REARTHM * rk *ux;
+	eci->s.col[1] = REARTHM * rk *uy;
+	eci->s.col[2] = REARTHM * rk *uz;
+	eci->v.col[0] =REARTHM * (rdotk*ux+rfdotk*vx) / 60.;
+	eci->v.col[1] =REARTHM * (rdotk*uy+rfdotk*vy) / 60.;
+	eci->v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
+
+	// Uniform of Date to True of Date (Equation of Equinoxes)
+	rmatrix sm;
+	teme2true(utc, &sm);
+	eci->s = rv_mmult(sm,eci->s);
+	eci->v = rv_mmult(sm,eci->v);
+
+	// True of Date to Mean of Date (Nutation)
+	rmatrix nm;
+	true2mean(utc,&nm);
+	eci->s = rv_mmult(nm,eci->s);
+	eci->v = rv_mmult(nm,eci->v);
+
+	// Mean of Date to ICRF (precession)
+	rmatrix pm;
+	mean2j2000(utc,&pm);
+	eci->s = rv_mmult(pm,eci->s);
+	eci->v = rv_mmult(pm,eci->v);
+
+	rmatrix bm;
+	j20002gcrf(utc, &bm);
+	eci->s = rv_mmult(bm,eci->s);
+	eci->v = rv_mmult(bm,eci->v);
+
+	eci->utc = utc;
+
 	return 0;
-}
-
-
-/**
-* SGP4 algoritm
-* @param utc Specified time as Modified Julian Date
-* @param tle Two Line Element structure, given as pointer to a ::tlestruc
-* @param pos_teme result from SGP4 algorithm is a cartesian state given in TEME frame, as pointer to a ::cartpos
-*/
-int sgp4(double utc, tlestruc tle, cartpos *pos_teme)
-{
-    //	rmatrix pm = {{{{0.}}}};
-    //	static int lsnumber=-99;
-    static double c1=0.;
-    static double cosio=0. ,x3thm1=0. , xnodp=0. ,aodp=0.,isimp=0.,eta=0.,sinio=0. ,ximth2=0.,c4=0.,c5=0.;
-    static double xmdot=0.,omgdot=0., xnodot=0.,omgcof=0.,xmcof=0., xnodcf=0.,t2cof=0.,xlcof=0.,aycof=0.;
-    int i;
-    double temp, temp1, temp2, temp3, temp4, temp5, temp6;
-    double tempa, tempe, templ;
-    double ao, a1, c2, c3, coef, coef1, theta4, c1sq;
-    double theta2, betao2, betao, delo, del1, s4, qoms24, x1m5th, xhdot1;
-    double perige, eosq, pinvsq, tsi, etasq, eeta, psisq, g, xmdf;
-    double tsince, omgadf, alpha, xnoddf, xmp, tsq, xnode, delomg, delm;
-    double tcube, tfour, a, e, xl, beta, axn, xn, xll, ayn, capu, aynl;
-    double xlt, sinepw, cosepw, epw, ecose, esine,  pl, r, elsq;
-    double rdot, rfdot, cosu, sinu, u, sin2u, cos2u, uk, rk, ux, uy, uz;
-    double vx, vy, vz, xinck, rdotk, rfdotk, sinuk, cosuk, sinik, cosik, xnodek;
-    double xmx, xmy, sinnok, cosnok;
-    //	locstruc loc;
-    static double lutc=0.;
-    static uint16_t lsnumber=0;
-
-    static double delmo,sinmo,x7thm1,d2,d3,d4,t3cof,t4cof,t5cof, betal;
-
-    if (tle.utc != lutc || tle.snumber != lsnumber)
-    {
-        // RECOVER ORIGINAL MEAN MOTION ( xnodp ) AND SEMIMAJOR AXIS (aodp)
-        // FROM INPUT ELEMENTS
-        a1=pow((SGP4_XKE/ tle.mm ),SGP4_TOTHRD);
-        cosio = cos(tle.i);
-        theta2=cosio * cosio;
-        x3thm1 =3.*theta2-1.;
-        eosq = tle.e * tle.e;
-        betao2=1.- eosq;
-        betao=sqrt(betao2);
-        del1=1.5*SGP4_CK2*x3thm1 /(a1*a1*betao*betao2);
-        ao=a1*(1.-del1*(.5*SGP4_TOTHRD+del1*(1.+134./81.*del1)));
-        delo=1.5*SGP4_CK2*x3thm1 /(ao*ao*betao*betao2);
-        xnodp = tle.mm /(1.+delo);
-        aodp=ao/(1.-delo);
-        // INITIALIZATION
-        // FOR PERIGEE LESS THAN 220 KILOMETERS, THE isimp FLAG IS SET AND
-        // THE EQUATIONS ARE TRUNCATED TO LINEAR VARIATION IN sqrt A AND
-        // QUADRATIC VARIATION IN MEAN ANOMALY. ALSO, THE c3 TERM, THE
-        // DELTA alpha TERM, AND THE DELTA M TERM ARE DROPPED.
-        isimp=0;
-        if((aodp*(1.- tle.e)/SGP4_AE) < (220./SGP4_XKMPER+SGP4_AE))
-            isimp=1;
-        // FOR PERIGEE BELOW 156 KM, THE VALUES OF
-        // S AND SGP4_QOMS2T ARE ALTERED
-        s4=SGP4_S;
-        qoms24=SGP4_QOMS2T;
-        perige=(aodp*(1.- tle.e )-SGP4_AE)*SGP4_XKMPER;
-        if(perige < 156.)
-        {
-            s4=perige-78.;
-            if(perige <= 98.)
-            {
-                s4=20.;
-                qoms24=pow(((120.-s4)*SGP4_AE/SGP4_XKMPER),4.);
-                s4=s4/SGP4_XKMPER+SGP4_AE;
-            }
-        }
-        pinvsq = 1./(aodp*aodp*betao2*betao2);
-        tsi =1./(aodp-s4);
-        eta=aodp* tle.e * tsi;
-        etasq=eta*eta;
-        eeta= tle.e *eta;
-        psisq=fabs(1.-etasq);
-        coef=qoms24*pow(tsi,4.);
-        coef1=coef/pow(psisq,3.5);
-        c2=coef1* xnodp *(aodp*(1.+1.5*etasq+eeta*(4.+etasq))+.75* SGP4_CK2*tsi/psisq*x3thm1 *(8.+3.*etasq*(8.+etasq)));
-        c1 = tle.bstar *c2;
-        sinio =sin( tle.i );
-        g =-SGP4_XJ3/SGP4_CK2*pow(SGP4_AE,3.);
-        c3 =coef*tsi*g* xnodp *SGP4_AE*sinio / tle.e;
-        ximth2 =1.-theta2;
-        c4 =2.* xnodp *coef1*aodp*betao2*(eta* (2.+.5*etasq)+ tle.e *(.5+2.*etasq)-2.*SGP4_CK2*tsi/ (aodp*psisq)*(-3.*x3thm1 *(1.-2.*eeta+etasq* (1.5-.5*eeta))+.75*ximth2*(2.*etasq-eeta* (1.+etasq))*cos(2.* tle.ap )));
-        c5 =2.*coef1*aodp*betao2*(1.+2.75*(etasq+eeta)+eeta*etasq);
-        theta4 =theta2*theta2;
-        temp1 =3.*SGP4_CK2*pinvsq* xnodp;
-        temp2 = temp1*SGP4_CK2*pinvsq;
-        temp3 =1.25*SGP4_CK4*pinvsq*pinvsq* xnodp;
-        xmdot = xnodp +.5* temp1*betao*x3thm1 +.0625* temp2*betao* (13.-78.*theta2+137.*theta4);
-        x1m5th =1.-5.*theta2;
-        omgdot =-.5* temp1*x1m5th+.0625* temp2*(7.-114.*theta2+ 395.*theta4)+ temp3*(3.-36.*theta2+49.*theta4);
-        xhdot1 =- temp1*cosio;
-        xnodot =xhdot1+(.5* temp2*(4.-19.*theta2)+2.* temp3*(3.- 7.*theta2))*cosio;
-        omgcof = tle.bstar *c3*cos( tle.ap );
-        xmcof =-SGP4_TOTHRD*coef* tle.bstar *SGP4_AE/eeta;
-        xnodcf =3.5*betao2*xhdot1*c1;
-        t2cof =1.5*c1;
-        xlcof =.125*g*sinio *(3.+5.*cosio )/(1.+cosio );
-        aycof =.25*g*sinio;
-        delmo =pow((1.+eta*cos( tle.ma )),3.);
-        sinmo =sin( tle.ma );
-        x7thm1 =7.*theta2-1.;
-        if(isimp != 1)
-        {
-            c1sq=c1*c1;
-            d2=4.*aodp*tsi*c1sq;
-            temp =d2*tsi*c1/3.;
-            d3=(17.*aodp+s4)* temp;
-            d4=.5* temp *aodp*tsi*(221.*aodp+31.*s4)*c1;
-            t3cof=d2+2.*c1sq;
-            t4cof=.25*(3.*d3+c1*(12.*d2+10.*c1sq));
-            t5cof=.2*(3.*d4+12.*c1*d3+6.*d2*d2+15.*c1sq*( 2.*d2+c1sq));
-        }
-        lsnumber = tle.snumber;
-        lutc = tle.utc;
-    }
-
-    // UPDATE FOR SECULAR GRAVITY AND ATMOSPHERIC DRAG
-    tsince = (utc - tle.utc) * 1440.;
-    xmdf = tle.ma +xmdot*tsince;
-    omgadf= tle.ap +omgdot*tsince;
-    xnoddf= tle.raan + xnodot*tsince;
-    alpha=omgadf;
-    xmp = xmdf;
-    tsq=tsince*tsince;
-    xnode= xnoddf+ xnodcf*tsq;
-    tempa=1.-c1*tsince;
-    tempe= tle.bstar *c4*tsince;
-    templ=t2cof*tsq;
-    if(isimp != 1)
-    {
-        delomg=omgcof*tsince;
-        delm=xmcof*(pow((1.+eta*cos( xmdf )),3.)-delmo);
-        temp =delomg+delm;
-        xmp = xmdf + temp;
-        alpha=omgadf- temp;
-        tcube=tsq*tsince;
-        tfour=tsince*tcube;
-        tempa = tempa-d2*tsq-d3*tcube-d4*tfour;
-        tempe = tempe+ tle.bstar *c5*(sin( xmp )-sinmo);
-        templ = templ+t3cof*tcube+ tfour*(t4cof+tsince*t5cof);
-    }
-    a =aodp* tempa * tempa;
-    e = tle.e - tempe;
-    xl= xmp +alpha+ xnode+ xnodp * templ;
-    beta=sqrt(1.-e*e);
-    xn=SGP4_XKE/pow(a,1.5);
-    // LONG PERIOD PERIODICS
-    axn=e*cos(alpha);
-    temp =1./(a*beta*beta);
-    xll= temp *xlcof*axn;
-    aynl= temp *aycof;
-    xlt=xl+xll;
-    ayn=e*sin(alpha)+aynl;
-    // SOLVE KEplERS EQUATION;
-    capu=ranrm(xlt- xnode);
-    temp2=capu;
-    for (i=1; i<=10; i++)
-    {
-        sinepw=sin( temp2);
-        cosepw=cos( temp2);
-        temp3=axn*sinepw;
-        temp4=ayn*cosepw;
-        temp5=axn*cosepw;
-        temp6=ayn*sinepw;
-        epw=(capu- temp4+ temp3- temp2)/(1.- temp5- temp6)+ temp2;
-        if(fabs(epw- temp2) <= SGP4_E6A)
-            break;
-        temp2=epw;
-    }
-    // SHORT PERIOD PRELIMINARY QUANTITIES;
-    ecose= temp5+ temp6;
-    esine= temp3- temp4;
-    elsq=axn*axn+ayn*ayn;
-    temp =1.-elsq;
-    pl=a* temp;
-    r=a*(1.-ecose);
-    temp1=1./r;
-    rdot=SGP4_XKE*sqrt(a)*esine* temp1;
-    rfdot=SGP4_XKE*sqrt(pl)* temp1;
-    temp2=a* temp1;
-    betal=sqrt( temp );
-    temp3=1./(1.+betal);
-    cosu = temp2*(cosepw-axn+ayn*esine* temp3);
-    sinu= temp2*(sinepw-ayn-axn*esine* temp3);
-    u=actan(sinu, cosu );
-    sin2u=2.*sinu* cosu;
-    cos2u =2.* cosu * cosu -1.;
-    temp =1./pl;
-    temp1=SGP4_CK2* temp;
-    temp2= temp1* temp;
-    // UPDATE FOR SHORT PERIODICS;
-    rk =r*(1.-1.5* temp2*betal*x3thm1 )+.5* temp1*ximth2* cos2u;
-    uk=u-.25* temp2*x7thm1*sin2u;
-    xnodek= xnode+1.5* temp2*cosio *sin2u;
-    xinck= tle.i +1.5* temp2*cosio *sinio * cos2u;
-    rdotk=rdot-xn* temp1*ximth2*sin2u;
-    rfdotk=rfdot+xn* temp1*(ximth2* cos2u +1.5*x3thm1 );
-    // ORIENTATION VECTORS;
-    sinuk =sin(uk);
-    cosuk=cos(uk);
-    sinik =sin(xinck);
-    cosik =cos(xinck);
-    sinnok=sin( xnodek);
-    cosnok=cos( xnodek);
-    xmx=-sinnok* cosik;
-    xmy=cosnok* cosik;
-    ux=xmx* sinuk +cosnok* cosuk;
-    uy=xmy* sinuk +sinnok* cosuk;
-    uz= sinik * sinuk;
-    vx=xmx* cosuk-cosnok* sinuk;
-    vy=xmy* cosuk-sinnok* sinuk;
-    vz= sinik * cosuk;
-    // POSITION AND VELOCITY;
-    pos_teme->s = pos_teme->v = pos_teme->a = rv_zero();
-
-    pos_teme->s.col[0] = REARTHM * rk *ux;
-    pos_teme->s.col[1] = REARTHM * rk *uy;
-    pos_teme->s.col[2] = REARTHM * rk *uz;
-    pos_teme->v.col[0] =REARTHM * (rdotk*ux+rfdotk*vx) / 60.;
-    pos_teme->v.col[1] =REARTHM * (rdotk*uy+rfdotk*vy) / 60.;
-    pos_teme->v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
-
-    // Uniform of Date to True of Date (Equation of Equinoxes)
-    double eeq = utc2gast(utc) - utc2gmst1982(utc);
-    rmatrix sm = rm_change_around_z(eeq);
-    pos_teme->s = rv_mmult(sm,pos_teme->s);
-    pos_teme->v = rv_mmult(sm,pos_teme->v);
-
-    // True of Date to Mean of Date (Nutation)
-    rmatrix nm;
-    true2mean(utc,&nm);
-    pos_teme->s = rv_mmult(nm,pos_teme->s);
-    pos_teme->v = rv_mmult(nm,pos_teme->v);
-
-    // Mean of Date to ICRF (precession)
-    rmatrix pm;
-    mean2j2000(utc,&pm);
-    pos_teme->s = rv_mmult(pm,pos_teme->s);
-    pos_teme->v = rv_mmult(pm,pos_teme->v);
-
-//	rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
-//	bm = rm_transpose(bm);
-//	pos_teme->s = rv_mmult(bm,pos_teme->s);
-//	pos_teme->v = rv_mmult(bm,pos_teme->v);
-
-    pos_teme->utc = utc;
-
-    return 0;
 }
 
 //! Get TLE from array of TLE's
@@ -3436,7 +3432,7 @@ std::istream& operator >> (std::istream& in, extraatt& a)
 std::ostream& operator << (std::ostream& out, const posstruc& a)
 {
 	out << a.utc << "\t"
-		<< a.baryc << "\t"
+		<< a.icrf << "\t"
 		<< a.eci << "\t"
 		<< a.sci << "\t"
 		<< a.geoc << "\t"
@@ -3455,7 +3451,7 @@ std::ostream& operator << (std::ostream& out, const posstruc& a)
 std::istream& operator >> (std::istream& in, posstruc& a)
 {
 	in  >> a.utc
-		>> a.baryc
+		>> a.icrf
 		>> a.eci
 		>> a.sci
 		>> a.geoc

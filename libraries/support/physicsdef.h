@@ -135,6 +135,7 @@ typedef struct
 	rvector htorque;
 	rvector hmomentum;
 	rvector ctorque;
+	rvector fdrag;
 	rvector adrag;
 	rvector rdrag;
 	rvector thrust;

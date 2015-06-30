@@ -103,8 +103,8 @@ double DLL_FUNC jpl_get_long( const void *ephem, const int value)
 **            2 = venus             9 = pluto                               **
 **            3 = earth            10 = moon                                **
 **            4 = mars             11 = sun                                 **
-**            5 = jupiter          12 = solar-system barycenter             **
-**            6 = saturn           13 = earth-moon barycenter               **
+**            5 = jupiter          12 = solar-system Barycenter             **
+**            6 = saturn           13 = earth-moon Barycenter               **
 **            7 = uranus           14 = nutations (longitude and obliq)     **
 **                                 15 = librations, if on eph. file         **
 **                                                                          **
@@ -179,7 +179,7 @@ int DLL_FUNC jpl_pleph( void *ephem, const double et, const int ntarg,
 		return( rval);
 	}
 
-	/*  force barycentric output by 'state'     */
+	/*  force Barycentric output by 'state'     */
 
 	/*  set up proper entries in 'list' array for state call     */
 
@@ -196,7 +196,7 @@ int DLL_FUNC jpl_pleph( void *ephem, const double et, const int ntarg,
 	/*   make call to state   */
 
 	rval = jpl_state( eph, et, list, pv, rrd, 1);
-	/* Solar System barycentric Sun state goes to pv[10][] */
+	/* Solar System Barycentric Sun state goes to pv[10][] */
 	if( ntarg == 11 || ncent == 11)
 		for( i = 0; i < 6; i++)
 			pv[10][i] = eph->pvsun[i];
@@ -206,7 +206,7 @@ int DLL_FUNC jpl_pleph( void *ephem, const double et, const int ntarg,
 		for( i = 0; i < 6; i++)
 			pv[11][i] = 0.0;
 
-	/* Solar System barycentric EMBary state:  */
+	/* Solar System Barycentric EMBary state:  */
 	if( ntarg == 13 || ncent == 13)
 		for( i = 0; i < 6; i++)
 			pv[12][i] = pv[2][i];
@@ -220,7 +220,7 @@ int DLL_FUNC jpl_pleph( void *ephem, const double et, const int ntarg,
 			for( i = 0; i < list[2] * 3; ++i)
 				pv[2][i] -= pv[9][i]/(1.0+eph->emrat);
 
-		if(list[9]) /* calculate Solar System barycentric moon state */
+		if(list[9]) /* calculate Solar System Barycentric moon state */
 			for( i = 0; i < list[9] * 3; ++i)
 				pv[9][i] += pv[2][i];
 	}
@@ -440,7 +440,7 @@ static void swap_double( void *ptr, long count)
 **                                                                          **
 **                        i = 0: mercury                                    **
 **                          = 1: venus                                      **
-**                          = 2: earth-moon barycenter                      **
+**                          = 2: earth-moon Barycenter                      **
 **                          = 3: mars                                       **
 **                          = 4: jupiter                                    **
 **                          = 5: saturn                                     **
@@ -464,8 +464,8 @@ static void swap_double( void *ptr, long count)
 **                                                                          **
 **              All output vectors are referenced to the earth mean         **
 **              equator and equinox of epoch. The moon state is always      **
-**              geocentric; the other nine states are either barycentric   **
-**              or solar-system barycentric, depending on the setting of    **
+**              geocentric; the other nine states are either Barycentric   **
+**              or solar-system Barycentric, depending on the setting of    **
 **              global variables (see below).                               **
 **                                                                          **
 **              Lunar librations, if on file, are put into pv[10][k] if     **
@@ -554,7 +554,7 @@ double pv[][6], double nut[4], const int bary)
 			}
 
 	if( !bary)                             /* gotta correct everybody for */
-		for( i = 0; i < 9; i++)            /* the solar system barycenter */
+		for( i = 0; i < 9; i++)            /* the solar system Barycenter */
 			for( j = 0; j < list[i] * 3; j++)
 				pv[i][j] -= eph->pvsun[j];
 

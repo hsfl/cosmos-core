@@ -35,7 +35,7 @@
 
 #define TLE 0
 #define STK 1
-#define DT 1.
+#define DT .1
 
 int main(int argc, char *argv[])
 {
@@ -107,16 +107,16 @@ int main(int argc, char *argv[])
 	teme = rv_mmult(pm, teme);
 	mean2j2000(temeutc, &pm);
 	teme = rv_mmult(pm, teme);
-	j20002icrs(temeutc, &pm);
+	j20002gcrf(temeutc, &pm);
 	teme = rv_mmult(pm, teme);
 
 	rvector mod = {{7022.465305, -1400.082889, 0.221526}};
 	mean2j2000(utc, &pm);
 	rvector j2000 = {{7022.312444, -1400.849398, -0.110870}};
 	rvector my2000 = rv_mmult(pm, mod);
-	icrs2j2000(utc, &pm);
+	gcrf2j2000(utc, &pm);
 	my2000 = rv_mmult(pm, my2000);
-	j20002icrs(utc, &pm);
+	j20002gcrf(utc, &pm);
 	my2000 = rv_mmult(pm, my2000);
 	eci.utc = utc;
 
@@ -141,14 +141,17 @@ int main(int argc, char *argv[])
 
 	for (size_t i=1; i<10000; ++i)
 	{
-		double cmjd = utc + i*DT*10/86400.;
-		gauss_jackson_propagate(gjh, *cdata, cmjd);
+		double cmjd;
 		if (modeltype == TLE)
 		{
+			cmjd = utc + i*DT*10/86400.;
+			gauss_jackson_propagate(gjh, *cdata, cmjd);
 			tle2eci(cmjd, tle[0], &eci);
 		}
 		else
 		{
+			cmjd = utc + i*DT*10/86400.;
+			gauss_jackson_propagate(gjh, *cdata, cmjd);
 			stk2eci(cmjd, &stk, &eci);
 		}
 		printf("%.15g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\n", cmjd, eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.eci.s.col[0], cdata->node.loc.pos.eci.s.col[1], cdata->node.loc.pos.eci.s.col[2]);

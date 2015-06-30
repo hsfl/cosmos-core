@@ -131,7 +131,7 @@ void pos_accel(physicsstruc &physics, locstruc &loc);
 //! Torque
 void att_accel(physicsstruc &physics, locstruc &loc);
 //! Geodetic to Heliocentric
-void geod2baryc(posstruc *pos);
+void geod2icrf(posstruc *pos);
 double msis86_density(posstruc pos,float f107avg,float f107,float magidx);
 double msis00_density(posstruc pos,float f107avg,float f107,float magidx);
 void orbit_init_tle(int32_t mode,double dt,double mjd,cosmosstruc &root);
