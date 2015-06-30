@@ -154,6 +154,8 @@ int main(int argc, char *argv[])
 			gauss_jackson_propagate(gjh, *cdata, cmjd);
 			stk2eci(cmjd, &stk, &eci);
 		}
-		printf("%.15g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\n", cmjd, eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.eci.s.col[0], cdata->node.loc.pos.eci.s.col[1], cdata->node.loc.pos.eci.s.col[2]);
+		printf("%.15g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t", cmjd, eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.eci.s.col[0], cdata->node.loc.pos.eci.s.col[1], cdata->node.loc.pos.eci.s.col[2]);
+		printf("%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], cdata->node.loc.pos.eci.v.col[0], cdata->node.loc.pos.eci.v.col[1], cdata->node.loc.pos.eci.v.col[2]);
+		printf("%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\n", eci.a.col[0], eci.a.col[1], eci.a.col[2], cdata->node.loc.pos.eci.a.col[0], cdata->node.loc.pos.eci.a.col[1], cdata->node.loc.pos.eci.a.col[2]);
 	}
 }
