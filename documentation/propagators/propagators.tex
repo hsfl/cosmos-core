@@ -17,21 +17,47 @@
 
 \section{Terms and Usage}
 The COSMOS environment supports propagation of both a Position and Attitude state for objects. 
+\subsection{Units}
+All units, unless otherwise indicated, are SI, with angles expressed in radians. All absolute times (eg. dates) are expressed in Modified Julian Days (MJD).
+\subsection{Time}
+Important time scales
+\begin{itemize}
+\item TAI, International Atomic Time: in units of SI seconds
+\item UTC, Coordinated Universal Time: basis of civil time, in units of SI seconds, but jumps periodically to keep within 0.9 seconds of UT1.
+\item UT1, Universal Time: Human time scale, tied to the irregular rotation of the earth, measured at 0 degrees longitude.
+\item ERA, Earth Rotation Angle: with respect to ICRF
+\item TT, Terrestrial Time: used with ephemerides, in units of SI seconds, ahead of TAI by 32.184 seconds.
+\item GPS, GPS Time: used with GPS, in units of SI seconds, behind TAI by 19. seconds.
+\end{itemize}
+Important representations.
+\begin{itemize}
+\item Julian Day (JD) - number of days since 12:00 UT on January 1, 4713 BC
+\item Modified Julian Day (MJD) - number of days since 00:00 UT, November 17, 1858
+\end{itemize}
+\subsection{Rotations and Transformations}
+Vector rotations represent the physical motion of a vector within a single coordinate system. Vector transformations represent the conversion of the coordinates of a vector in one coordinate system into the coordinates of the same vector in a second coordinate system (or the rotation of the axes of the first coordinate system into the axes of the second). The quaternion representation chosen is that which produces rotation with a Left Side Multiplication.
+\section{Time Calculation}
+UTC is used as the base time for all operations. It is converted to and from all other time frames as needed using the equations below.
+\subsection{Equations}
+\begin{equation}
+UT1 = UTC + {\Delta}UT1
+\end{equation}
+where ${\Delta}UT1$ is provided by IERS bulletins A and B, and expressed in days.
+\begin{equation}
+TT = UTC + (32.184 + LS)/86400.
+\end{equation}
+where LS is the number of leap seconds as provided by IERS bulletins B and C.
+\begin{equation}
+GPS = UTC - 51.184/86400.
+\end{equation}
+\begin{equation}
+MJD = JD - 2400000.5
+\end{equation}
 
-\section{Orbit Prediction}
+\section{Orbit Propagation}
 
 \subsection{Reductions}
 The transformation from celestial to terrestrial coordinates in COSMOS is done using the IAU-76/FK5 reduction. Although it is not the latest theory it is still valid and used in multiple applications.
-\subsection{Time}
-
-a) UTC (Coordinated Universal Time) adopted as basic time scale
-
-b) Important time scales
-\begin{enumerate}
-\item UTO, universal time, rotational time scale of particular location
-\item UT1, universtal time, UT0 corrected for polar motion
-\end{enumerate}
-
 \subsection{Two Line Elements (TLE)}
 
 The orbit propagation from a Two Line Element (TLE) state is propagated by an SGP4 algorithm that outputs the results in a true equator, mean equinox (TEME) coordinate system. Then we take the state in TEME and convert it to other frames.
@@ -115,7 +141,7 @@ The other terms are computed by evaluating a trigonometric series to find the nu
 
 
 \section{Attitude Propagation}
-The full Attitude state is expressed as a Time, an Attitude (0th time derivative), an Attitude Rate (1st time derivative) and an Attitude Acceleration (2nd time derivative). Time is UTC, stored as Modified Julian Day. Attitude is a quaternion representing the rotation of the axes of the given right-handed Source frame into the axes of the right-handed Body frame of the object.
+The full Attitude state is expressed as a Time, an Attitude (0th time derivative), an Attitude Rate (1st time derivative) and an Attitude Acceleration (2nd time derivative). Time is UTC, stored as Modified Julian Day. Attitude is a quaternion representing the rotation of the axes of a given right-handed Source frame into the the right-handed Body frame of the object.
 \[q \otimes \begin{bmatrix} \hat(ijk)\\0 \end{bmatrix} \otimes q^{*}\]
 Attitude Rate and Acceleration are vectors ($\begin{bmatrix}\omega\end{bmatrix}$ and $\begin{bmatrix}\dot{\omega}\end{bmatrix}$) expressed in the Source frame in units of $Radians \cdot Second^{-1}$ and $Radians \cdot Second^{-2}$ respectively. Conversion to the Body frame is then achieved through the transformations.
 \[q^{*} \otimes \begin{bmatrix} \omega\\0 \end{bmatrix} \otimes q\] and \[q^{*} \otimes \begin{bmatrix} \dot{\omega}\\0 \end{bmatrix} \otimes q\]
@@ -127,7 +153,7 @@ COSMOS supports a variety of Source frames, and provides functions to synchroniz
 \item LVLH - +Z aligned with the Nadir vector, +Y the cross product of +Z and the velocity vector, +X the cross product of +Y and +Z.
 \item TOPO - +Z aligned with the Zenith vector, +x aligned with East, +Y aligned with North
 \end{itemize}
-\section{Equations}
+\subsection{Equations}
 The primary equations involved in the propagation algorithm are those for the equation of motion, and the derivative of the Attitude. The equation of motion includes all torques, both external and those generated be control hardware, and any sources of angular momentum.
 \\
 
@@ -150,7 +176,7 @@ The derivative of the the attitude in quaternion form is given by the equation
 -\omega_{B}^{T}&0
 \end{matrix}\right]q\]
 where $\omega_{B}$ is the angular rate of the Node expressed in its Body frame.
-\section{Algorithm}
+\subsection{Algorithm}
 Attitude is propagated forward in a 3 step process.
 \\
 
