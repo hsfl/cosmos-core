@@ -85,7 +85,7 @@
 //! direction cosine matrices, euler angles, and simple direction and
 //! magnitude. In the interest of conciseness, the following conventions have
 //! been adopted:
-//! - Quaternions represent Left Rotation.
+//! - Quaternions represent Left Side Multiplication Rotation.
 //! - Euler angles represent a Right Handed, Intrinsic, ZYX, Tait-Bryan Rotation.
 //! - Direction and Magnitude uses radians.
 //!
