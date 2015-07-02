@@ -5094,6 +5094,10 @@ quaternion lsfit::slopequaternion(double x)
 	}
 }
 
+vector<vector<double> > lsfit::getparms(double x)
+{
+	return parms;
+}
 
 cmatrix DCM::base2_from_base1(basisOrthonormal base2,basisOrthonormal base1){
 
