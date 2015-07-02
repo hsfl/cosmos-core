@@ -59,26 +59,17 @@ MJD = JD - 2400000.5
 \section{Orbital Position Propagation}
 The full Position state is expressed as a Time, a Position(0th time derivative) ${r}_{ijk}$, a Rate(1st time derivative) ${v}_{ijk}$, and an Acceleration(2nd time derivative) ${a}_{ijk}$. Time is UTC stored as Modified Julian Day. COSMOS supports a variety of position source frames, and provides functions to synchronize all the frames for a complete Position and Attitude state from a specified updated frame. The currently supported position frames include:
 \begin{itemize}
-\item ICRF - aligned with the axes of the International Celestial Reference System, centered on the Sun.
-\item GCRF (ECI) - aligned with the axes of the International Celestial Reference System, centered on the Earth.
+\item ICRF - aligned with the axes of the International Celestial Reference System, origin is at the barycenter of the solar system.
+\item GCRF, Geocentric Celestial Reference Frame. Similarly to the ICRF this is an inertial frame, but centered at the Earth (geocentric). This is the standard inertial coordinate system for the Earth. Sometimes refered to as ECI. Aligned with the axes of the International Celestial Reference System.
 \item J2000 - IAU-76/FK5 frame, differing from GCRF by a frame bias.
 \item MOD - Mean of Date, differing from J2000 due to the Proper Motion of the Earth around the Sun.
 \item TOD - True of Date, differing from MOD due to the Nutation of the Earth's axes.
 \item PEF - Pseudo Earth Fixed, differing from TOD due to a rotation around Z-axis of GAST
-\item ITRS (GEOC) - aligned with the axes of the International Terrestrial Reference System
+\item ITRF, International Terrestrial Reference Frame. The ITRF is a realization of the International Terrestrial Reference System (ITRS). This is a Earth fixed (geocentric) coordinate system. The origin of this frame is at the center of the Earth. It is sometimes referred to as the Earth Centered, Earth Fixed (ECEF) frame.
 \item SELC - aligned with axes of the Moon for the given time
 \end{itemize}
 
-%-------------------------------------------------
-%MN:
-Add to definitions:
-\begin{itemize}
-\item ITRF, International Terrestrial Reference Frame. The ITRF is a realization of the International Terrestrial Reference System (ITRS). This is a Earth fixed geocentric coordinate system. The origin of this frame is at the center of the Earth. It is sometimes referred to as the Earth Centered, Earth Fixed (ECEF) frame.
-\item GCRF, Geocentric Celestial Reference Frame. Similarly to the ICRF this is an inertial frame, but centered at the Earth (geocentric). This is the standard inertial coordinate system for the Earth.
-\end{itemize}
 
-Corrections:
-ICRF origin is at the barycenter of the solar system.
 %-------------------------------------------------
 \subsection{Reductions}
 The transformation from celestial to terrestrial coordinates in COSMOS is done using the IAU-76/FK5 reduction. This formulation is properly described in various sources such as in \cite{Vallado2013,Luzum2010,Vallado2006,Seago2000,Vallado2006a,Capitaine2003,Pottasch1997}. In 2000 the IAU adopted the updated models for computing the Earth's instantaneous orientation within the ICRS (\cite{Luzum2010}, chapter 5). But the classical reduction of IAU-76/FK5 is still precise enough for current applications we have adopted it for the current version of COSMOS. This classical transformations 
@@ -163,20 +154,73 @@ Finally, we convert J2000 coordinates to GCRF coordinates by applying the follow
 
 \subsection{Compare COSMOS results with STK}
 
-In this section we validate the algorithms implemented in COSMOS by comparing the results with STK. we use an updated TLE file for the ISS to compare the results. Figure \ref{fig:compare_cosmos_stk_tle2gcrf_pos_error} shows that for more than one orbit the algorithm has a consistent error bounded between 2.12 and 2.127 meters for the difference in absolute position. Figure \ref{fig:compare_cosmos_stk_tle2gcrf_vel_error} shows the error for the velocity. 
+In this section we validate the algorithms implemented in COSMOS by comparing the results with STK. we use an updated TLE file for the ISS to compare the results. Figures \ref{fig:compare_cosmos_stk_tle2gcrf_pos_error_x},\ref{fig:compare_cosmos_stk_tle2gcrf_pos_error_y},\ref{fig:compare_cosmos_stk_tle2gcrf_pos_error_z}\ref{fig:compare_cosmos_stk_tle2gcrf_pos_error_abs} show the comparison between the ISS position given STK data and a COSMOS test run for one week. The algorithm has a consistent error bounded between -2 and 2 meters for the difference in position in each of the three coordinates. Figures \ref{fig:compare_cosmos_stk_tle2gcrf_vel_error_x},\ref{fig:compare_cosmos_stk_tle2gcrf_vel_error_y},\ref{fig:compare_cosmos_stk_tle2gcrf_vel_error_z},\ref{fig:compare_cosmos_stk_tle2gcrf_vel_error_abs} show the error for the velocity. 
+
 \begin{figure}
 \centering
-\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_pos_error}
-\caption{Position error in meters, difference between the results produced by the COSMOS algorithms and STK}
-\label{fig:compare_cosmos_stk_tle2gcrf_pos_error}
+\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_pos_error_x}
+\caption{X Position error in meters, difference between the results produced by the COSMOS algorithms and STK for one week run.}
+\label{fig:compare_cosmos_stk_tle2gcrf_pos_error_x}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_pos_error_y}
+\caption{Y Position error in meters, difference between the results produced by the COSMOS algorithms and STK for one week run}
+\label{fig:compare_cosmos_stk_tle2gcrf_pos_error_y}
 \end{figure}
 
 
 \begin{figure}
 \centering
-\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_vel_error}
-\caption{Velocity error in meters/sec, difference between the results produced by the COSMOS algorithms and STK}
-\label{fig:compare_cosmos_stk_tle2gcrf_vel_error}
+\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_pos_error_z}
+\caption{Z Position error in meters, difference between the results produced by the COSMOS algorithms and STK for one week run}
+\label{fig:compare_cosmos_stk_tle2gcrf_pos_error_z}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_pos_error_abs}
+\caption{Absolute Position error in meters, difference between the results produced by the COSMOS algorithms and STK for one week run}
+\label{fig:compare_cosmos_stk_tle2gcrf_pos_error_abs}
+\end{figure}
+
+
+
+
+
+
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_vel_error_x}
+\caption{X Velocity error in meters/sec, difference between the results produced by the COSMOS algorithms and STK for one week run}
+\label{fig:compare_cosmos_stk_tle2gcrf_vel_error_x}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_vel_error_y}
+\caption{Y Velocity error in meters/sec, difference between the results produced by the COSMOS algorithms and STK for one week run}
+\label{fig:compare_cosmos_stk_tle2gcrf_vel_error_y}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_vel_error_z}
+\caption{Z Velocity error in meters/sec, difference between the results produced by the COSMOS algorithms and STK for one week run}
+\label{fig:compare_cosmos_stk_tle2gcrf_vel_error_z}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.9\linewidth]{figures/compare_cosmos_stk_tle2gcrf_vel_error_abs}
+\caption{Absolute Velocity error in meters/sec, difference between the results produced by the COSMOS algorithms and STK for one week run}
+\label{fig:compare_cosmos_stk_tle2gcrf_vel_error_abs}
 \end{figure}
 
 
@@ -214,6 +258,12 @@ In this section we validate the algorithms implemented in COSMOS by comparing th
 \subsection{Algorithms}
 Propagation is achieved through use of a Gauss-Jackson Integrator of even order N, acting on the initial state vector. N/2 initial position and velocity values before and after the epoch are generated by adjusting the Mean Anomaly with the product of the Mean Motion and successive multiples of dt, and then adjusting the Effective Anomaly to match. Acceleration values for the initial positions, and all subsequent positions, 
 
+
+
+
+
+
+\newpage
 \section{Attitude Propagation}
 The full Attitude state is expressed as a Time, an Attitude (0th time derivative), an Attitude Rate (1st time derivative) and an Attitude Acceleration (2nd time derivative). Time is UTC, stored as Modified Julian Day. Attitude is a quaternion representing the rotation of the axes of a given right-handed Source frame into the the right-handed Body frame of the object.
 \[q \otimes \begin{bmatrix} \hat(ijk)\\0 \end{bmatrix} \otimes q^{*}\]
