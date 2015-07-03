@@ -65,13 +65,14 @@ double currentmjd(double offset)
 {
     double mjd;
 
-#ifndef COSMOS_WIN_BUILD_MSVC
-	struct timeval mytime;
-	gettimeofday(&mytime, NULL);
-    mjd = unix2utc(mytime);
-#else
+// unfortunatelly MSVC does not support gettimeofday
+#ifdef COSMOS_WIN_BUILD_MSVC
     TimeUtils tu;
     mjd = unix2utc(tu.secondsSinceEpoch() + _timezone);
+#else
+    struct timeval mytime;
+    gettimeofday(&mytime, NULL);
+    mjd = unix2utc(mytime);
 #endif
     return mjd+offset;
 }

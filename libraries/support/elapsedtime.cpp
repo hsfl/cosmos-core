@@ -123,7 +123,7 @@ double ElapsedTime::lap()
 #ifdef BUILD_TYPE_arm
 //	clock_gettime(CLOCK_MONOTONIC, &timeNow);
 //	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_nsec - timeCheck.tv_nsec) / 1e9;
-	gettimeofday(&timeNow, nullptr);
+    gettimeofday(&timeNow, nullptr);
 	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_usec - timeCheck.tv_usec) / 1e6;
 #else
 	timeNow = chrono::steady_clock::now();
