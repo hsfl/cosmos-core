@@ -205,8 +205,8 @@ contains(MODULES, sliplib){
 
 #--------------------------------------------------------------------
 # Add COSMOS device
-contains(MODULES, DEVICE){
-    message( "Add library: DEVICES" )
+contains(MODULES, device){
+    message( "Add library: device" )
     INCLUDEPATH     += $$COSMOS/core/libraries/device
     SOURCES         += $$files($$COSMOS/core/libraries/device/*.cpp)
     HEADERS         += $$files($$COSMOS/core/libraries/device/*.h)
