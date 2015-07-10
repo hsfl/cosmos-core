@@ -212,6 +212,14 @@ contains(MODULES, device){
     HEADERS         += $$files($$COSMOS/core/libraries/device/*.h)
 }
 
+contains(MODULES, cssl_lib){
+    message( "Add library: cssl_lib" )
+    INCLUDEPATH     += $$COSMOS/core/libraries/device
+    SOURCES         += $$files($$COSMOS/core/libraries/device/cssl_lib.cpp)
+    HEADERS         += $$files($$COSMOS/core/libraries/device/cssl_lib.h)
+}
+
+
 #--------------------------------------------------------------------
 # Add COSMOS core thirdparty libraries
 INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty
