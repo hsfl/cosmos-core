@@ -389,7 +389,7 @@ enum
 //! Maximum number of builtin AGENT requests
 #define AGENTMAXBUILTINCOUNT 6
 //! Maximum number of user defined AGENT requests
-#define AGENTMAXUSERCOUNT 40
+#define AGENTMAXUSERCOUNT 200    // 20150629JC: Increased count from 40 to 200 (to support new software)
 //! Maximum number of AGENT requests
 #define AGENTMAXREQUESTCOUNT (AGENTMAXBUILTINCOUNT+AGENTMAXUSERCOUNT)
 
