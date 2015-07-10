@@ -922,6 +922,7 @@ struct portstruc
 	//! Type of I/O as listed in ::def_comp_port.
 	uint16_t type;
 	//! Name information for port.
+    //!!! Change 'char' to 'string'
 	char name[COSMOS_MAX_NAME];
 };
 

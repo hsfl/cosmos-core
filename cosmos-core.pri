@@ -106,31 +106,31 @@ contains(MODULES, SUPPORT){
     MODULES += ZLIB
 }
 
+
+# -----------------------------------------------
+# Tier 1 libraries,
+# these libraries depend on Tier 0 libraries
+
 contains(MODULES, agentlib){
     message( "- support/agentlib" )
     SOURCES += $$COSMOS/core/libraries/support/agentlib.cpp
     HEADERS += $$COSMOS/core/libraries/support/agentlib.h
-    MODULES += socketlib #Because agentlib needs socketlib to funciton.
-    MODULES += sliplib #and sliplib
-    MODULES += elapsedtime #and elapsedtime
+    MODULES += socketlib   # agentlib depends on socketlib
+    MODULES += sliplib     # and sliplib
+    MODULES += elapsedtime # and elapsedtime
 }
 
 contains(MODULES, elapsedtime){
     message( "- support/elapsedtime" )
-    SOURCES     += $$COSMOS/core/libraries/support/elapsedtime.cpp
-    HEADERS     += $$COSMOS/core/libraries/support/elapsedtime.hpp
-}
-
-contains(MODULES, timeutils){
-    message( "- support/timeutils" )
-    SOURCES += $$COSMOS/core/libraries/support/timeutils.cpp
-    HEADERS += $$COSMOS/core/libraries/support/timeutils.h
+    SOURCES += $$COSMOS/core/libraries/support/elapsedtime.cpp
+    HEADERS += $$COSMOS/core/libraries/support/elapsedtime.hpp
 }
 
 contains(MODULES, socketlib){
     message( "- support/socketlib" )
     SOURCES += $$COSMOS/core/libraries/support/socketlib.cpp
     HEADERS += $$COSMOS/core/libraries/support/socketlib.h
+    MODULES += mathlib
 }
 
 contains(MODULES, jsondef){
@@ -142,12 +142,6 @@ contains(MODULES, jsonlib){
     message( "- support/jsonlib" )
     SOURCES += $$COSMOS/core/libraries/support/jsonlib.cpp
     HEADERS += $$COSMOS/core/libraries/support/jsonlib.h
-}
-
-contains(MODULES, mathlib){
-    message( "- support/mathlib" )
-    SOURCES += $$COSMOS/core/libraries/support/mathlib.cpp
-    HEADERS += $$COSMOS/core/libraries/support/mathlib.h
 }
 
 contains(MODULES, timelib){
@@ -173,18 +167,6 @@ contains(MODULES, convertdef){
     HEADERS += $$COSMOS/core/libraries/support/convertdef.h
 }
 
-contains(MODULES, stringlib){
-    message( "- support/stringlib" )
-    SOURCES         += $$COSMOS/core/libraries/support/stringlib.cpp
-    HEADERS         += $$COSMOS/core/libraries/support/stringlib.h
-}
-
-contains(MODULES, jpleph){
-    message( "- support/jpleph" )
-    SOURCES         += $$COSMOS/core/libraries/support/jpleph.cpp
-    HEADERS         += $$COSMOS/core/libraries/support/jpleph.h
-}
-
 contains(MODULES, ephemlib){
     message( "- support/ephemlib" )
     SOURCES         += $$COSMOS/core/libraries/support/ephemlib.cpp
@@ -197,10 +179,39 @@ contains(MODULES, geomag){
     HEADERS         += $$COSMOS/core/libraries/support/geomag.h
 }
 
+
+# -----------------------------------------------
+# Tier 0 libraries
+# The following libraries do not depend on other libraries
+# These are self contained, they are the building blocks for
+# more complext libraries such as agentlib
+contains(MODULES, mathlib){
+    message( "- support/mathlib" )
+    SOURCES += $$COSMOS/core/libraries/support/mathlib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/mathlib.h
+}
+contains(MODULES, stringlib){
+    message( "- support/stringlib" )
+    SOURCES         += $$COSMOS/core/libraries/support/stringlib.cpp
+    HEADERS         += $$COSMOS/core/libraries/support/stringlib.h
+}
+
+contains(MODULES, jpleph){
+    message( "- support/jpleph" )
+    SOURCES         += $$COSMOS/core/libraries/support/jpleph.cpp
+    HEADERS         += $$COSMOS/core/libraries/support/jpleph.h
+}
+
 contains(MODULES, sliplib){
     message( "- support/support/sliplib" )
     SOURCES         += $$COSMOS/core/libraries/support/sliplib.cpp
     HEADERS         += $$COSMOS/core/libraries/support/sliplib.h
+}
+
+contains(MODULES, timeutils){
+    message( "- support/timeutils" )
+    SOURCES += $$COSMOS/core/libraries/support/timeutils.cpp
+    HEADERS += $$COSMOS/core/libraries/support/timeutils.h
 }
 
 #--------------------------------------------------------------------

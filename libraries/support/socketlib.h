@@ -104,7 +104,7 @@
 
 //! Socket Channel
 //! Storage for socket information
-typedef struct
+struct socket_channel
 {
 	// Channel type
 	int32_t type;
@@ -128,7 +128,7 @@ typedef struct
 	char baddress[17];
 	// Channel's interface name
 	char name[COSMOS_MAX_NAME];
-} socket_channel;
+};
 
 
 //! @}
