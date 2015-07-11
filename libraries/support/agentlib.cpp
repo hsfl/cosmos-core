@@ -1532,7 +1532,7 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t
 				}
 				message.resize(nbytes+1-start_byte);
 				memcpy(&message[0], &input[start_byte], nbytes+1-start_byte);
-                return ((int)input[0]);
+				return ((int)meta.type);
             }
         }
 		if (ep.split() >= waitsec)
