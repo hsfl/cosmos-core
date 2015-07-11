@@ -2432,6 +2432,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 
 	// Position at t0-dt
 	eci2kep(&cdata.node.loc.pos.eci,&kep);
+//	kep2eci(&kep,&gjh.step[gjh.order2].sloc.pos.eci);
 	for (i=gjh.order2-1; i<gjh.order2; --i)
 	{
 		gjh.step[i].sloc = gjh.step[i+1].sloc;

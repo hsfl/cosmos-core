@@ -733,7 +733,7 @@ void heartbeat_loop(cosmosstruc *cdata)
         }
         else
         {
-            agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT,(char *)"");
+			agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT,"");
         }
 
         //        if (nmjd >= cmjd)
@@ -1366,36 +1366,30 @@ vector<socket_channel> agent_find_addresses(uint16_t ntype)
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
 */
-int32_t agent_post(cosmosstruc *cdata, uint8_t type, const char *message)
+int32_t agent_post(cosmosstruc *cdata, uint8_t type, string message)
 {
-	size_t nbytes, mbytes;
+	size_t nbytes;
 	int32_t i, iretn=0;
     char post[AGENTMAXBUFFER];
-    //string jstring;
-
-    if (message == NULL)
-        mbytes = 0;
-    else
-        mbytes = strlen(message);
 
     cdata[0].agent[0].beat.utc = cdata[0].agent[0].beat.utc;
     post[0] = type;
     // this will broadcast messages to all external interfaces (ifcnt = interface count)
     for (i=0; i<cdata[0].agent[0].ifcnt; i++)
     {
-        sprintf(&post[1],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"node_utcoffset\":%.15g}",cdata[0].agent[0].beat.utc,cdata[0].agent[0].beat.node,cdata[0].agent[0].beat.proc,cdata[0].agent[0].pub[i].address,cdata[0].agent[0].beat.port,cdata[0].agent[0].beat.bsz,cdata[0].node.utcoffset);
-        if (mbytes)
+		sprintf(&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"node_utcoffset\":%.15g}",cdata[0].agent[0].beat.utc,cdata[0].agent[0].beat.node,cdata[0].agent[0].beat.proc,cdata[0].agent[0].pub[i].address,cdata[0].agent[0].beat.port,cdata[0].agent[0].beat.bsz,cdata[0].node.utcoffset);
+		size_t hlength = strlen(&post[3]);
+		post[1] = hlength%256;
+		post[2] = hlength / 256;
+		nbytes = hlength + 3;
+		if (message.size())
         {
-            nbytes = strlen(post);
-            if (nbytes+mbytes > AGENTMAXBUFFER)
+			if (nbytes+message.size() > AGENTMAXBUFFER)
                 return (AGENT_ERROR_BUFLEN);
-            strcat(post,message);
+			memcpy(&post[nbytes], &message[0], message.size());
+//            strcat(post,message);
         }
-        else
-        {
-            nbytes = strlen(post)+1;
-        }
-        iretn = sendto(cdata[0].agent[0].pub[i].cudp,(const char *)post,nbytes+mbytes,0,(struct sockaddr *)&cdata[0].agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+		iretn = sendto(cdata[0].agent[0].pub[i].cudp,(const char *)post,nbytes+message.size(),0,(struct sockaddr *)&cdata[0].agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
     }
     if (iretn<0)
     {
@@ -1477,23 +1471,13 @@ int32_t agent_unsubscribe(cosmosstruc *cdata)
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float waitsec)
+int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t type, float waitsec)
 {
-    //    struct timeval tv, ltv;
-    //	struct sockaddr_in raddr;
-    //	int addrlen;
     int nbytes;
     char input[AGENTMAXBUFFER+1];
 
     if (!cdata[0].agent[0].sub.cport)
         return (AGENT_ERROR_CHANNEL);
-
-    //    gettimeofday(&ltv,NULL);
-
-    //    //	addrlen = sizeof(raddr);
-    //    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
-    //    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
-    //    ltv.tv_usec = ltv.tv_usec % 1000000;
 
     ElapsedTime ep;
     ep.start();
@@ -1505,8 +1489,9 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
         case AGENT_TYPE_MULTICAST:
         case AGENT_TYPE_UDP:
             nbytes = recvfrom(cdata[0].agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&cdata[0].agent[0].sub.caddr,(socklen_t *)&cdata[0].agent[0].sub.addrlen);
-            if (nbytes > 0){
-                input[nbytes] = 0;
+			if (nbytes > 0)
+			{
+				input[nbytes] = 0;
             }
             break;
         case AGENT_TYPE_CSP:
@@ -1517,16 +1502,22 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
         {
             if (type == AGENT_MESSAGE_ALL || type == input[0])
             {
-                if (json_convert_string(json_extract_namedobject(&input[1], "agent_proc")) == cdata[0].agent[0].beat.proc && json_convert_string(json_extract_namedobject(&input[1], "agent_node")) == cdata[0].agent[0].beat.node)
+				// Check for having heard our own message
+				if (json_convert_string(json_extract_namedobject(&input[1], "agent_proc")) == cdata[0].agent[0].beat.proc && json_convert_string(json_extract_namedobject(&input[1], "agent_node")) == cdata[0].agent[0].beat.node)
                 {
                     return 0;
                 }
-                message = &input[1];
+				// First, extract meta information
+				meta.type = (uint16_t)input[0];
+				meta.jlength = input[1] + 256 * input[2];
+
+				// Second, extract message. Could have binary data, so copy safe way
+				message.resize(nbytes-2);
+				memcpy(&message[0], &input[3], nbytes-2);
+//                message = &input[1];
                 return ((int)input[0]);
             }
         }
-        //gettimeofday(&tv,NULL);
-        //if (tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec))
 		if (ep.split() >= waitsec)
         {
             nbytes = 0;
@@ -1546,9 +1537,10 @@ beatstruc agent_poll_beat(cosmosstruc *cdata, float waitsec)
 {
     int32_t iretn;
     beatstruc beat;
+	pollstruc meta;
     string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_BEAT, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_BEAT, waitsec);
 
     beat.utc = 0.;
     if (iretn == AGENT_MESSAGE_BEAT)
@@ -1570,9 +1562,10 @@ timestruc agent_poll_time(cosmosstruc *cdata, float waitsec)
 {
     int32_t iretn;
     timestruc time;
-    string message;
+	pollstruc meta;
+	string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_TIME, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_TIME, waitsec);
 
     if (iretn == AGENT_MESSAGE_TIME)
     {
@@ -1596,9 +1589,10 @@ locstruc agent_poll_location(cosmosstruc *cdata, float waitsec)
 {
     int32_t iretn;
     locstruc loc;
-    string message;
+	pollstruc meta;
+	string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_LOCATION, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_LOCATION, waitsec);
 
     if (iretn == AGENT_MESSAGE_LOCATION)
     {
@@ -1624,9 +1618,10 @@ nodestruc agent_poll_info(cosmosstruc *cdata, float waitsec)
     int32_t iretn;
     //summarystruc info;
     nodestruc info;
-    string message;
+	pollstruc meta;
+	string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_TRACK, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_TRACK, waitsec);
 
     if (iretn == AGENT_MESSAGE_TRACK)
     {
@@ -1657,9 +1652,10 @@ imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec)
 {
     int32_t iretn;
     imustruc imu;
-    string message;
+	pollstruc meta;
+	string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_IMU, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_IMU, waitsec);
 
     if (iretn == AGENT_MESSAGE_IMU)
     {

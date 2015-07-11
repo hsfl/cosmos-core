@@ -716,7 +716,7 @@ double utc2ut1(double mjd)
 */
 double julcen(double mjd)
 {
-    return ((mjd - 51544.5) / 36525.);
+	return ((mjd - 51544.5) / 36525.);
 }
 
 //! Convert UTC to TDB.
@@ -975,7 +975,7 @@ double utc2gmst2000(double utc)
 {
 	static double lutc=0.;
 	static double lgmst = 0.;
-	double ut1, tt;
+	double tt;
 
 	if (utc != lutc)
 	{

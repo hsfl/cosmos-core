@@ -106,13 +106,19 @@ using namespace std;
 
 //! List of heartbeats.
 //! Heartbeats for multiple processes found on the multicast bus.
-typedef struct
+struct beatstruc_list
 {
 	//! Number of heartbeats in list
 	int16_t count;
 	//! Pointer to an array of pointers to heartbeats
 	beatstruc *heartbeat[AGENTMAXLIST];
-} beatstruc_list;
+};
+
+struct pollstruc
+{
+	uint8_t type;
+	uint16_t jlength;
+};
 
 //! @}
 

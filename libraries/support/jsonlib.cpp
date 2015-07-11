@@ -4882,6 +4882,10 @@ int32_t json_dump_node(cosmosstruc *cdata)
 	// Node
 	string output = json_node(jst, cdata);
 	string fileloc = get_nodedir(cdata[0].node.name);
+	if (fileloc.empty())
+	{
+		return DATA_ERROR_NODES_FOLDER;
+	}
 	string filename = fileloc + "/node.ini";
 	FILE *file = fopen(filename.c_str(), "w");
 	if (file == NULL)

@@ -121,8 +121,9 @@ int main(int argc, char* argv[])
 
 #define POLLBUFSIZE 20000
 	string pollbuf;
+	pollstruc meta;
 
-	iretn = agent_poll(cdata, pollbuf, AGENT_MESSAGE_ALL,1);
+	iretn = agent_poll(cdata, meta, pollbuf, AGENT_MESSAGE_ALL,1);
 	switch (iretn)
 	{
 	case AGENT_MESSAGE_SOH:

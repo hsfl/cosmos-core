@@ -35,7 +35,9 @@
 
 #define TLE 0
 #define STK 1
+//#define DT (1./3.)
 #define DT .1
+#define MT 10
 
 int main(int argc, char *argv[])
 {
@@ -74,50 +76,51 @@ int main(int argc, char *argv[])
 	{
 		if (modeltype == TLE)
 		{
-			utc = tle[0].utc;
+			utc = tle[0].utc + DT*MT/86400.;
 			tle2eci(utc, tle[0], &eci);
 		}
 		else
 		{
-			utc = stk.pos[1].utc;
-			stk2eci(utc, &stk, &eci);
+			utc = stk.pos[0].utc;
+			eci = stk.pos[0].pos;
+//			stk2eci(utc, &stk, &eci);
 		}
 	}
 
-	double tt = cal2mjd(2004, 4, 6, 7, 51, 28, 386009000);
-	double dpsi = DEGOF(utc2dpsi(tt));
-	double deps = DEGOF(utc2depsilon(tt));
-	double eps = DEGOF(utc2epsilon(tt));
-	double omega = DEGOF(utc2omega(tt));
-	double gmst = DEGOF(utc2gmst1982(tt));
-	double gast = DEGOF(utc2gast(tt));
-	tt = utc2jcentt(tt);
+//	double tt = cal2mjd(2004, 4, 6, 7, 51, 28, 386009000);
+//	double dpsi = DEGOF(utc2dpsi(tt));
+//	double deps = DEGOF(utc2depsilon(tt));
+//	double eps = DEGOF(utc2epsilon(tt));
+//	double omega = DEGOF(utc2omega(tt));
+//	double gmst = DEGOF(utc2gmst1982(tt));
+//	double gast = DEGOF(utc2gast(tt));
+//	tt = utc2jcentt(tt);
 
-	rmatrix pm;
-	double temeutc = cal2mjd(2000, 0, 182.78495062)+1;
-	double eeq = DEGOF(utc2gast(temeutc) - utc2gmst1982(temeutc));
-	dpsi = DEGOF(utc2dpsi(temeutc));
-	deps = DEGOF(utc2depsilon(temeutc));
-	eps = DEGOF(utc2epsilon(temeutc));
-	//51726.78495062;
-	rvector teme = {{-9060473.73569, 4645709.52502, 813686.73153}};
-	teme2true(temeutc, &pm);
-	teme = rv_mmult(pm, teme);
-	true2mean(temeutc, &pm);
-	teme = rv_mmult(pm, teme);
-	mean2j2000(temeutc, &pm);
-	teme = rv_mmult(pm, teme);
-	j20002gcrf(temeutc, &pm);
-	teme = rv_mmult(pm, teme);
+//	rmatrix pm;
+//	double temeutc = cal2mjd(2000, 0, 182.78495062)+1;
+//	double eeq = DEGOF(utc2gast(temeutc) - utc2gmst1982(temeutc));
+//	dpsi = DEGOF(utc2dpsi(temeutc));
+//	deps = DEGOF(utc2depsilon(temeutc));
+//	eps = DEGOF(utc2epsilon(temeutc));
+//	//51726.78495062;
+//	rvector teme = {{-9060473.73569, 4645709.52502, 813686.73153}};
+//	teme2true(temeutc, &pm);
+//	teme = rv_mmult(pm, teme);
+//	true2mean(temeutc, &pm);
+//	teme = rv_mmult(pm, teme);
+//	mean2j2000(temeutc, &pm);
+//	teme = rv_mmult(pm, teme);
+//	j20002gcrf(temeutc, &pm);
+//	teme = rv_mmult(pm, teme);
 
-	rvector mod = {{7022.465305, -1400.082889, 0.221526}};
-	mean2j2000(utc, &pm);
-	rvector j2000 = {{7022.312444, -1400.849398, -0.110870}};
-	rvector my2000 = rv_mmult(pm, mod);
-	gcrf2j2000(utc, &pm);
-	my2000 = rv_mmult(pm, my2000);
-	j20002gcrf(utc, &pm);
-	my2000 = rv_mmult(pm, my2000);
+//	rvector mod = {{7022.465305, -1400.082889, 0.221526}};
+//	mean2j2000(utc, &pm);
+//	rvector j2000 = {{7022.312444, -1400.849398, -0.110870}};
+//	rvector my2000 = rv_mmult(pm, mod);
+//	gcrf2j2000(utc, &pm);
+//	my2000 = rv_mmult(pm, my2000);
+//	j20002gcrf(utc, &pm);
+//	my2000 = rv_mmult(pm, my2000);
 	eci.utc = utc;
 
 	gj_handle gjh;
@@ -139,23 +142,23 @@ int main(int argc, char *argv[])
 	cdata->physics.area = .01;
 	gauss_jackson_init_eci(gjh, 6, 0, DT, utc, eci, att, *cdata);
 
-	for (size_t i=1; i<10000; ++i)
+	for (size_t i=1; i<(modeltype==TLE?10000:stk.count-1); ++i)
 	{
 		double cmjd;
 		if (modeltype == TLE)
 		{
-			cmjd = utc + i*DT*10/86400.;
+			cmjd = utc + i*DT*MT/86400.;
 			gauss_jackson_propagate(gjh, *cdata, cmjd);
 			tle2eci(cmjd, tle[0], &eci);
 		}
 		else
 		{
-			cmjd = utc + i*DT*10/86400.;
+			cmjd = stk.pos[i].utc;
 			gauss_jackson_propagate(gjh, *cdata, cmjd);
 			stk2eci(cmjd, &stk, &eci);
 		}
-		printf("%.15g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t", cmjd, eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.eci.s.col[0], cdata->node.loc.pos.eci.s.col[1], cdata->node.loc.pos.eci.s.col[2]);
-		printf("%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], cdata->node.loc.pos.eci.v.col[0], cdata->node.loc.pos.eci.v.col[1], cdata->node.loc.pos.eci.v.col[2]);
-		printf("%.8g\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\n", eci.a.col[0], eci.a.col[1], eci.a.col[2], cdata->node.loc.pos.eci.a.col[0], cdata->node.loc.pos.eci.a.col[1], cdata->node.loc.pos.eci.a.col[2]);
+		printf("%.15g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", cmjd, eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.eci.s.col[0], cdata->node.loc.pos.eci.s.col[1], cdata->node.loc.pos.eci.s.col[2]);
+		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], cdata->node.loc.pos.eci.v.col[0], cdata->node.loc.pos.eci.v.col[1], cdata->node.loc.pos.eci.v.col[2]);
+		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\n", eci.a.col[0], eci.a.col[1], eci.a.col[2], cdata->node.loc.pos.eci.a.col[0], cdata->node.loc.pos.eci.a.col[1], cdata->node.loc.pos.eci.a.col[2]);
 	}
 }

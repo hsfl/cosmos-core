@@ -2124,7 +2124,7 @@ void true2mean(double ep0, rmatrix *pm)
 void mean2j2000(double ep0, rmatrix *pm)
 {
 //	double t0, t, tas2r, w, zeta, z, theta;
-	double ca, sa, cb, sb, cg, sg;
+//	double ca, sa, cb, sb, cg, sg;
 	static rmatrix opm;
 	static double oep0 = 0.;
 
@@ -2215,7 +2215,7 @@ void itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 void gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
 {
 //	double gast;
-	double ut1, ttc;
+	double ut1;
 //	rvector nuts;
 //	double eps, pols, dpsi, deps;
 //	double zeta, z, theta;

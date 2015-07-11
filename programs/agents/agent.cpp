@@ -118,6 +118,7 @@ int main(int argc, char *argv[])
 		double lmjd = 0., dmjd;
 		char channel[30];
 		string message;
+		pollstruc meta;
 		int i, pretn;
 		locstruc loc;
 
@@ -142,7 +143,7 @@ int main(int argc, char *argv[])
 
 		while (1)
 		{
-			if ((pretn=agent_poll(cdata, message,  AGENT_MESSAGE_ALL, 1)) > 0)
+			if ((pretn=agent_poll(cdata, meta, message,  AGENT_MESSAGE_ALL, 1)) > 0)
 			{
 				json_clear_cosmosstruc(JSON_GROUP_NODE,&cdata[1]);
 				json_clear_cosmosstruc(JSON_GROUP_DEVICE,&cdata[1]);

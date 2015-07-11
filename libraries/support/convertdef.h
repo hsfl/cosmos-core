@@ -469,7 +469,7 @@ struct tlestruc
 typedef struct
 {
 	//! Number of positions
-	int32_t count;
+	size_t count;
 	//! Time step in Modified Julian Days
 	double dt;
 	//! Array of positions

@@ -90,6 +90,7 @@ using namespace std;
 #define NODE_TYPE_BALLOON 6
 #define NODE_TYPE_SHIP 7
 #define NODE_TYPE_DATA 8
+#define NODE_TYPE_COMPUTER 9
 //! @}
 
 //! \ingroup defs
