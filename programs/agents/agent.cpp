@@ -112,49 +112,80 @@ int main(int argc, char *argv[])
     cdata = agent_setup_client(SOCKET_TYPE_UDP, "", 1000);
 
 	// agent dump request
-	if ((argc== 2 || argc == 3) && !strcmp(argv[1],"dump"))
+	if (!strcmp(argv[1],"dump"))
 	{
 
 		double lmjd = 0., dmjd;
-		char channel[30];
+		string channel;
+		uint8_t cnum;
 		string message;
+		string header;
 		pollstruc meta;
 		int i, pretn;
 		locstruc loc;
 
-		if (	argc == 3 
-			&& strcmp(argv[2],"all") 
-			&& strcmp(argv[2],"beat") 
-			&& strcmp(argv[2],"imu") 
-			&& strcmp(argv[2],"info") 
-			&& strcmp(argv[2],"loc") 
-			&& strcmp(argv[2],"soh") 
-			&& strcmp(argv[2],"some") 
-			&& strcmp(argv[2],"time")        )
-		{
+//		if (	argc == 3
+//			&& strcmp(argv[2],"all")
+//			&& strcmp(argv[2],"beat")
+//			&& strcmp(argv[2],"imu")
+//			&& strcmp(argv[2],"info")
+//			&& strcmp(argv[2],"loc")
+//			&& strcmp(argv[2],"soh")
+//			&& strcmp(argv[2],"some")
+//			&& strcmp(argv[2],"time")        )
+//		{
 
-			printf("\n  Usage: agent dump [ all | beat | imu | info | loc | soh | some | time ]\n\n");
-			exit(1);
-		}
+//			printf("\n  Usage: agent dump [ all | beat | imu | info | loc | soh | some | time ]\n\n");
+//			exit(1);
+//		}
 		if(argc == 3)
-			strcpy(channel,argv[2]);
+		{
+			channel = argv[2];
+			if (channel == "soh")
+			{
+				cnum = AGENT_MESSAGE_SOH;
+			}
+			else
+			{
+				if (channel == "beat")
+				{
+					cnum = AGENT_MESSAGE_BEAT;
+				}
+				else
+				{
+					cnum = atoi(channel.c_str());
+				}
+			}
+		}
 		else
-			strcpy(channel,"some");
+		{
+			channel.clear();
+			cnum = AGENT_MESSAGE_ALL;
+		}
 
 		while (1)
 		{
 			if ((pretn=agent_poll(cdata, meta, message,  AGENT_MESSAGE_ALL, 1)) > 0)
 			{
-				json_clear_cosmosstruc(JSON_GROUP_NODE,&cdata[1]);
-				json_clear_cosmosstruc(JSON_GROUP_DEVICE,&cdata[1]);
-				string utc = json_extract_namedobject(message.c_str(), "agent_utc");
-				string node = json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"));
-				string proc = json_extract_namedobject(message.c_str(), "agent_proc");
-				string addr = json_convert_string(json_extract_namedobject(message.c_str(), "agent_addr"));
-				string port = json_extract_namedobject(message.c_str(), "agent_port");
-				if ((!strcmp(channel,"soh") && pretn != AGENT_MESSAGE_SOH) || (!strcmp(channel,"beat") && pretn != AGENT_MESSAGE_BEAT))
+				header.resize(meta.jlength);
+				memcpy(&header[0], &message[3], meta.jlength);
+				string utc = json_extract_namedobject(header.c_str(), "agent_utc");
+				string node = json_convert_string(json_extract_namedobject(header.c_str(), "agent_node"));
+				string proc = json_extract_namedobject(header.c_str(), "agent_proc");
+				string addr = json_convert_string(json_extract_namedobject(header.c_str(), "agent_addr"));
+				string port = json_extract_namedobject(header.c_str(), "agent_port");
+				if (!channel.empty() && cnum != pretn)
+				{
 					continue;
-				json_parse(message.c_str(),&cdata[1]);
+				}
+
+				if (pretn < 128)
+				{
+					json_clear_cosmosstruc(JSON_GROUP_NODE,&cdata[1]);
+					json_clear_cosmosstruc(JSON_GROUP_DEVICE,&cdata[1]);
+					json_parse(message.c_str(),&cdata[1]);
+				}
+
 				switch (pretn)
 				{
 				case AGENT_MESSAGE_SOH:
@@ -167,12 +198,12 @@ int main(int argc, char *argv[])
 					printf("[%d]",pretn);
 					break;
 				}
-				printf("%s:[%s:%s][%s:%s](%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), message.size());
-				if (!strcmp(channel,"all"))
+				printf("%s:[%s:%s][%s:%s](%" PRIu32 ":%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), header.size(), message.size());
+				if (pretn < 128 && !channel.empty())
 				{
 					printf("%s\n",message.c_str());
 				}
-				if (!strcmp(channel,"info") && pretn == AGENT_MESSAGE_TRACK)
+				if ((channel=="info") && pretn == AGENT_MESSAGE_TRACK)
 				{
 					if (cdata[0].node.loc.utc > 0.)
 					{
@@ -187,7 +218,7 @@ int main(int argc, char *argv[])
 						lmjd = cdata[0].node.loc.utc;
 					}
 				}
-				if (!strcmp(channel,"imu") && pretn == AGENT_MESSAGE_IMU)
+				if ((channel=="imu") && pretn == AGENT_MESSAGE_IMU)
 				{
 					for (i=0; i<cdata[0].devspec.imu_cnt; i++)
 					{

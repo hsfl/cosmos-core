@@ -1370,15 +1370,15 @@ int32_t agent_post(cosmosstruc *cdata, uint8_t type, string message)
 {
 	size_t nbytes;
 	int32_t i, iretn=0;
-    char post[AGENTMAXBUFFER];
+	uint8_t post[AGENTMAXBUFFER];
 
     cdata[0].agent[0].beat.utc = cdata[0].agent[0].beat.utc;
     post[0] = type;
     // this will broadcast messages to all external interfaces (ifcnt = interface count)
     for (i=0; i<cdata[0].agent[0].ifcnt; i++)
     {
-		sprintf(&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"node_utcoffset\":%.15g}",cdata[0].agent[0].beat.utc,cdata[0].agent[0].beat.node,cdata[0].agent[0].beat.proc,cdata[0].agent[0].pub[i].address,cdata[0].agent[0].beat.port,cdata[0].agent[0].beat.bsz,cdata[0].node.utcoffset);
-		size_t hlength = strlen(&post[3]);
+		sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"node_utcoffset\":%.15g}",cdata[0].agent[0].beat.utc,cdata[0].agent[0].beat.node,cdata[0].agent[0].beat.proc,cdata[0].agent[0].pub[i].address,cdata[0].agent[0].beat.port,cdata[0].agent[0].beat.bsz,cdata[0].node.utcoffset);
+		size_t hlength = strlen((char *)&post[3]);
 		post[1] = hlength%256;
 		post[2] = hlength / 256;
 		nbytes = hlength + 3;
@@ -1474,7 +1474,7 @@ int32_t agent_unsubscribe(cosmosstruc *cdata)
 int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t type, float waitsec)
 {
     int nbytes;
-    char input[AGENTMAXBUFFER+1];
+	uint8_t input[AGENTMAXBUFFER+1];
 
     if (!cdata[0].agent[0].sub.cport)
         return (AGENT_ERROR_CHANNEL);
@@ -1488,11 +1488,7 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t
         {
         case AGENT_TYPE_MULTICAST:
         case AGENT_TYPE_UDP:
-            nbytes = recvfrom(cdata[0].agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&cdata[0].agent[0].sub.caddr,(socklen_t *)&cdata[0].agent[0].sub.addrlen);
-			if (nbytes > 0)
-			{
-				input[nbytes] = 0;
-            }
+			nbytes = recvfrom(cdata[0].agent[0].sub.cudp,(char *)input,AGENTMAXBUFFER,0,(struct sockaddr *)&cdata[0].agent[0].sub.caddr,(socklen_t *)&cdata[0].agent[0].sub.addrlen);
             break;
         case AGENT_TYPE_CSP:
             break;
@@ -1502,19 +1498,40 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t
         {
             if (type == AGENT_MESSAGE_ALL || type == input[0])
             {
+				// Determine if old or new message
+				uint8_t start_byte;
+				if (input[1] == '{')
+				{
+					start_byte = 1;
+				}
+				else
+				{
+					start_byte = 3;
+				}
 				// Check for having heard our own message
-				if (json_convert_string(json_extract_namedobject(&input[1], "agent_proc")) == cdata[0].agent[0].beat.proc && json_convert_string(json_extract_namedobject(&input[1], "agent_node")) == cdata[0].agent[0].beat.node)
+				if (json_convert_string(json_extract_namedobject((char *)&input[start_byte], "agent_proc")) == cdata[0].agent[0].beat.proc && json_convert_string(json_extract_namedobject((char *)&input[start_byte], "agent_node")) == cdata[0].agent[0].beat.node)
                 {
                     return 0;
                 }
 				// First, extract meta information
-				meta.type = (uint16_t)input[0];
-				meta.jlength = input[1] + 256 * input[2];
+				if (start_byte > 1)
+				{
+					meta.type = (uint16_t)input[0];
+					meta.jlength = input[1] + 256 * input[2];
+				}
+				else
+				{
+					meta.type = (uint16_t)input[0] + 1;
+					meta.jlength = nbytes;
+				}
 
 				// Second, extract message. Could have binary data, so copy safe way
-				message.resize(nbytes-2);
-				memcpy(&message[0], &input[3], nbytes-2);
-//                message = &input[1];
+				if (nbytes > 0)
+				{
+					input[nbytes] = 0;
+				}
+				message.resize(nbytes+1-start_byte);
+				memcpy(&message[0], &input[start_byte], nbytes+1-start_byte);
                 return ((int)input[0]);
             }
         }

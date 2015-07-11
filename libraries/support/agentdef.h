@@ -81,19 +81,19 @@ using namespace std;
 #define AGENTRCVTIMEO 100000
 
 //! All Message types
-#define AGENT_MESSAGE_ALL 255
+#define AGENT_MESSAGE_ALL 1
 //! Heartbeat Messages
-#define AGENT_MESSAGE_BEAT 1
+#define AGENT_MESSAGE_BEAT 2
 //! State of Health Messages
-#define AGENT_MESSAGE_SOH 2
+#define AGENT_MESSAGE_SOH 3
 //! Generic Mesages
-#define AGENT_MESSAGE_GENERIC 3
-#define AGENT_MESSAGE_TIME 4
-#define AGENT_MESSAGE_LOCATION 5
-#define AGENT_MESSAGE_TRACK 6
-#define AGENT_MESSAGE_IMU 7
+#define AGENT_MESSAGE_GENERIC 4
+#define AGENT_MESSAGE_TIME 5
+#define AGENT_MESSAGE_LOCATION 6
+#define AGENT_MESSAGE_TRACK 7
+#define AGENT_MESSAGE_IMU 8
 //! Event Messsages
-#define AGENT_MESSAGE_EVENT 8
+#define AGENT_MESSAGE_EVENT 9
 
 //! @}
 
