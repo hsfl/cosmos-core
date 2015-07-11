@@ -40,20 +40,25 @@
 //#include "configCosmos.h" // avoid including this if not really needed
 #include <iostream>
 #include <string>
-#include <chrono>
 #include <ctime>
+
+#ifdef BUILD_TYPE_arm
+#include <sys/time.h>
+#else
+#include <chrono>
+#endif
 
 using namespace std;
 
 // profiling class
 // On windows using MinGw32 it does not get better than 1ms
 class ElapsedTime {
-    //new c++11
+    //new for c++11
 #ifdef BUILD_TYPE_arm
-//	struct timespec timeStart, timeNow, timeCheck;
-	timeval timeStart, timeNow, timeCheck;
+    //	struct timespec timeStart, timeNow, timeCheck;
+    timeval timeStart, timeNow, timeCheck;
 #else
-	chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
+    chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
 #endif
 
 public:
@@ -73,7 +78,7 @@ public:
     void reset();
 
     void start();
-//    double stop();
+    //    double stop();
     double check();
 
     // turn on/off printing

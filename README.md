@@ -1,7 +1,7 @@
 COSMOS core 1.0-alpha
 =====================
 
-Note: If you haven't donlowaded the COSMOS software please go to the [COSMOS 101 tutorial](https://bitbucket.org/cosmos/tutorial). Also for the latest information on COSMOS refer to our website:
+Note: If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutorial](https://bitbucket.org/cosmos/tutorial). Also for the latest information on COSMOS refer to our website:
 [http://www.cosmos-project.org/](http://www.cosmos-project.org/)
 
 Quick-start:

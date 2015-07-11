@@ -1,0 +1,174 @@
+\documentclass[12pt,letterpaper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=.5in, right=.25in, top=1.00in, bottom=1.00in]{geometry}
+%\usepackage[left=1.00cm, right=1.00cm, top=1.00cm, bottom=1.00cm]{geometry}
+\usepackage[pdftex]{graphicx} 
+%opening
+\title{COSMOS Orbit and Attitude Propagation Algorithms}
+\author{Eric J. Pilger, Miguel A. Nunes}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Terms and Usage}
+The COSMOS environment supports propagation of both a Position and Attitude state for objects. 
+
+\section{Orbit Prediction}
+
+\subsection{Reductions}
+The transformation from celestial to terrestrial coordinates in COSMOS is done using the IAU-76/FK5 reduction. Although it is not the latest theory it is still valid and used in multiple applications.
+\subsection{Time}
+
+a) UTC (Coordinated Universal Time) adopted as basic time scale
+
+b) Important time scales
+\begin{enumerate}
+\item UTO, universal time, rotational time scale of particular location
+\item UT1, universtal time, UT0 corrected for polar motion
+\end{enumerate}
+
+\subsection{Two Line Elements (TLE)}
+
+The orbit propagation from a Two Line Element (TLE) state is propagated by an SGP4 algorithm that outputs the results in a true equator, mean equinox (TEME) coordinate system. Then we take the state in TEME and convert it to other frames.
+
+\subsubsection{TEME to TOD}
+\begin{equation}
+%\begin{align}
+\mathbf{r}_{TOD} = R_3(-Eq_{equinox1982}) \mathbf{r}_{TEME}
+%\end{align}
+\end{equation}
+
+\subsubsection{Precession Matrix}
+The precession matrix is given by
+\begin{equation}
+P = R_3(-z)R_2(\theta)R_3(-\zeta)
+\end{equation}
+where $R_i$ is the rotation about axis-i that represents the accumulated precession angles $\zeta, \theta, z$ that specify the position of the mean equinox and equator of date w.r.t. the mean equinox and equator of standard epoch J2000.
+
+%\begin{equation}
+\begin{align}
+\zeta &= 2306''.2181T + 0''.30188T^2 + 0''.0.17988T^3\\
+\theta &= 2004''.3109T - 0''.42665T^2 - 0''.041833T^3\\
+z &= 2306''.2181T + 1''.09468T^2 + 0''.018203T^3
+\end{align}
+%\end{equation}
+
+\subsubsection{Nutation Matrix}
+The nutation matrix is given by
+\begin{equation}
+N = R_1(- \bar{\epsilon}_{1980})R_3(\Delta\Psi_{1980})R_1(\epsilon_{1980})
+\end{equation}
+
+\begin{align}
+\epsilon_{1980} &= \bar{\epsilon}_{1980} + \Delta \epsilon_{1980} \\
+\bar{\epsilon}_{1980} &= 84,381.448'' - 46.8150T_{TT} - 0.00059T^2_{TT} + 0.001813 T^3_{TT}\\
+\end{align}
+
+
+The other terms are computed by evaluating a trigonometric series to find the nutation in longitude, $\Delta\Psi_{1980}$ and the nutation in obliquity,  $\Delta \epsilon_{1980}$
+
+\begin{align}
+\Delta \epsilon_{1980} &= \sum_{i=1}^{106} (C_i + D_i T_{TT})cos\left\lbrace{a_{p_i}}\right\rbrace \\
+\Delta \Psi_{1980} &= \sum_{i=1}^{106} (A_i + B_i T_{TT})sin\left\lbrace{a_{p_i}}\right\rbrace
+\end{align}
+
+\subsubsection{TOD to MOD}
+
+
+\subsubsection{MOD to J2000}
+%\section{Results for Orbit Propagation}
+
+%initial conditions
+%
+%TLE file retreived on June 24 2015 from Celestrack
+%
+%ISS (ZARYA)             
+%1 25544U 98067A   15175.54043817  .00012877  00000-0  19275-3 0  9993
+%2 25544  51.6451  47.3061 0003441 100.2136 333.3349 15.55343243949184
+%
+%Converted date by load_lines
+%24 Jun 2015 12:58:13.858 UTCG
+%
+%STK results for TEMEofDate
+%Time (ModJDate)       x (km)          y (km)          z (km)       vx (km/sec)    vy (km/sec)    vz (km/sec)
+%---------------    ------------    ------------    ------------    -----------    -----------    -----------
+% 57197.54043817    -1658.606132     4145.697308     5089.386189      -5.982719      -4.495145       1.706183
+%
+%Results from COSMOS SGP4 algorithm
+%                   -1658.606652     4145.698607     5089.387783      -5.982721      -4.495146      1.706184  
+%
+%PASS (good enough for now)
+%
+%
+%test run commands
+%
+%Direct output for SGP4 (TEME)
+%
+%to true of date (TOD) - true2mean
+%
+%mean2icrs - big error
+
+
+\section{Attitude Propagation}
+The full Attitude state is expressed as a Time, an Attitude (0th time derivative), an Attitude Rate (1st time derivative) and an Attitude Acceleration (2nd time derivative). Time is UTC, stored as Modified Julian Day. Attitude is a quaternion representing the rotation of the axes of the given right-handed Source frame into the axes of the right-handed Body frame of the object.
+\[q \otimes \begin{bmatrix} \hat(ijk)\\0 \end{bmatrix} \otimes q^{*}\]
+Attitude Rate and Acceleration are vectors ($\begin{bmatrix}\omega\end{bmatrix}$ and $\begin{bmatrix}\dot{\omega}\end{bmatrix}$) expressed in the Source frame in units of $Radians \cdot Second^{-1}$ and $Radians \cdot Second^{-2}$ respectively. Conversion to the Body frame is then achieved through the transformations.
+\[q^{*} \otimes \begin{bmatrix} \omega\\0 \end{bmatrix} \otimes q\] and \[q^{*} \otimes \begin{bmatrix} \dot{\omega}\\0 \end{bmatrix} \otimes q\]
+COSMOS supports a variety of Source frames, and provides functions to synchronize all the frames for a complete Position and Attitude state from a specified updated frame. The currently supported frames include:
+\begin{itemize}
+\item ICRF - aligned with the axes of the International Celestial Reference Frame
+\item GEOC - aligned with the axes of the International Terrestrial Reference System for the given time
+\item SELC - aligned with axes of the Moon for the given time
+\item LVLH - +Z aligned with the Nadir vector, +Y the cross product of +Z and the velocity vector, +X the cross product of +Y and +Z.
+\item TOPO - +Z aligned with the Zenith vector, +x aligned with East, +Y aligned with North
+\end{itemize}
+\section{Equations}
+The primary equations involved in the propagation algorithm are those for the equation of motion, and the derivative of the Attitude. The equation of motion includes all torques, both external and those generated be control hardware, and any sources of angular momentum.
+\\
+
+The equation of motion is given by this basic equation:
+\[\hat{\dot{L}}=\Sigma\hat{\tau}_{n} - (\hat{\omega} \times \hat{L})\]
+In a Node with any sort of moving wheels, the left hand side will include terms for the angular acceleration of the wheels. Expressed in the body frame, this term becomes \[\begin{matrix}I\end{matrix} \hat{\dot{\omega}} - \Sigma\hat{\dot{h}}_{n}\] Similarly, upon expanding the sum of external torques, the right hand side becomes
+\[\hat{\tau}_{G} + \hat{\tau}_{A} + \hat{\tau}_{R} + \hat{\tau}_{C} - (\hat{\omega} \times ( \begin{matrix}I\end{matrix} \hat{\omega} - \Sigma\hat{h}_{n}))\]
+where the torques are respectively Gravitational,
+\[\hat{\tau}_{G} = \dfrac{3\mu}{r^{3}}\dfrac{-\hat{r}}{r} \times \begin{matrix}I\end{matrix} \dfrac{-\hat{r}}{r}\]
+Atmospheric,
+\[\hat{\tau}_{A} = \Sigma\left(\dfrac{1}{2}\dfrac{C_{D}A\rho v_{GEOC}^{2}}{M}\cos \theta_{n}\hat{\varsigma}_{n}\right)\]
+Radiational
+\[\hat{\tau}_{R} = \Sigma\left(\dfrac{\Phi}{cM}\cos \Theta_{n}\hat{\varsigma}_{n}\right)\]
+and Control. The vector $\hat{\varsigma}_{n}$ represents the torque exerted by a pressure normal to the nth surface. The angles $\theta_{n}$ and $\Theta_{n}$ represent the angle between the normal of the nth surface and the velocity and sun vectors respectively.
+\\
+
+The derivative of the the attitude in quaternion form is given by the equation
+\[\dot{q} = \frac{1}{2}\left[\begin{matrix}
+-S(\omega_{B})&\omega_{B}\\
+-\omega_{B}^{T}&0
+\end{matrix}\right]q\]
+where $\omega_{B}$ is the angular rate of the Node expressed in its Body frame.
+\section{Algorithm}
+Attitude is propagated forward in a 3 step process.
+\\
+
+First, the external torques, and the wheel torques and momentums are calculated using the current time step's Positional State Vector and hardware conditions, combined with the equations above.
+\\
+
+Second, the angular acceleration in the Body frame is calculated by solving for $\hat{\dot{\omega}}$ in the equation of motion
+\[\hat{\dot{\omega}} = \begin{matrix}I\end{matrix}^{-1}\left(\Sigma\hat{\dot{h}}_{n} + \hat{\tau}_{G} + \hat{\tau}_{A} + \hat{\tau}_{R} + \hat{\tau}_{C} - (\hat{\omega} \times ( \begin{matrix}I\end{matrix} \hat{\omega} - \Sigma\hat{h}_{n}))\right)\]
+\\
+
+Finally, the new attitude and attitude rate are calculated using $\dot{q}$ and $\hat{\dot{\omega}}$. Integration is achieved through a discrete approximation. Error is minimized by using sub time steps calculated to ensure an angular motion of the frame of no more than .01 radians.
+
+
+
+%
+
+
+
+
+
+\end{document}

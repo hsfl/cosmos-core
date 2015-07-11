@@ -837,6 +837,7 @@ public:
 	double slope(double x);
 	rvector slopervector(double x);
 	quaternion slopequaternion(double x);
+	vector<vector<double> > getparms(double x);
 };
 
 //! @}

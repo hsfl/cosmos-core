@@ -40,9 +40,7 @@
 #include "timelib.h"
 
 // C libs
-#include <stdio.h>
 #include <sys/stat.h>
-#include <iostream>
 #include <fstream>
 
 #ifdef _MSC_BUILD

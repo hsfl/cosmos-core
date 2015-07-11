@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// MN change to cosmos.h ??
+// ??? change to cosmos.h
 #ifndef CONFIGCOSMOS_H
 #define CONFIGCOSMOS_H
 
@@ -41,11 +41,14 @@
 // Building under Windows
 #ifdef _WIN32
 
-//! // if we're compiling with MSVC
+#define COSMOS_WIN_OS
+
+//! // determined if we're compiling with MSVC
 #ifdef _MSC_BUILD
 #define COSMOS_WIN_BUILD_MSVC
 #endif
 
+// ??? Explain the reason why this is here
 #define NTDDI_VERSION NTDDI_WIN7
 #define _WIN32_WINNT _WIN32_WINNT_WIN7
 
@@ -70,7 +73,7 @@
 #include <mutex>
 #include <cmath>
 #include <iostream>
-#ifdef _MSC_BUILD
+#ifdef COSMOS_WIN_BUILD_MSVC
 #include <io.h> // replaces in someways unistd for windows
 #else
 #include <unistd.h>
@@ -115,18 +118,20 @@
 // for c++x0 WIN32 is not defined, use _WIN32 (with underscore)
 // For MingW on Windows: #ifdef __MINGW32__
 // Windows (x64 and x86)
-#ifdef _WIN32 // Defined for both 32-bit and 64-bit environments 1
+#ifdef COSMOS_WIN_OS // Defined for both 32-bit and 64-bit environments 1
 //! \addtogroup defs_macros
 //! @{
 //!
-#ifdef _MSC_BUILD
+
+#include <winsock2.h> // must come before <windows.h>
+
+#ifdef COSMOS_WIN_BUILD_MSVC
 #include <direct.h>
 #define COSMOS_MKDIR(dtemp, mode) _mkdir((char *)dtemp)
 #else
 #define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp)
 #endif
 
-#define COSMOS_WIN_OS
 #define COSMOS_USLEEP(usec) Sleep((uint32_t)(usec/1000. + .5))
 #define COSMOS_SLEEP(sec) Sleep((uint32_t)((sec>=0.?sec:0)*1000))
 #define CLOSE_SOCKET(socket) closesocket(socket)
