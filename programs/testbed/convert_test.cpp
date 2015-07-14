@@ -71,7 +71,7 @@ void test_tle2eci(){
     tlestruc tle;
     cartpos teme_cosmos;
 
-    int iretn = loadTLE("E:/cosmos-source/documentation/stk-validation/stk_scenario/results/ISS-TLE-2015-06-29.txt", tle);
+	loadTLE((char *)"E:/cosmos-source/documentation/stk-validation/stk_scenario/results/ISS-TLE-2015-06-29.txt", tle);
 
     ofstream file;
     file.open("E:/cosmos-source/documentation/stk-validation/stk_scenario/results/ISS_TLE-COSMOS-2015-07-01.csv");
@@ -113,7 +113,7 @@ void test_tle_valado(){
     tlestruc tle;
     cartpos teme_cosmos;
 
-    int iretn = loadTLE("E:/cosmos-source/documentation/stk-validation/valado234.txt", tle);
+	loadTLE((char *)"E:/cosmos-source/documentation/stk-validation/valado234.txt", tle);
 
     tle2eci(mjd, tle, &teme_cosmos);
 
@@ -179,17 +179,17 @@ void test_eric(){
     //	rvector spos = {{-9060473.73569, 4658709.52502, 813686.73153}};
     double sutc = cal2mjd(2004, 4, 6, 7, 51, 28, 386009000);
     rvector spos = {{-1033479.38300, 7901295.27540, 6380356.5958}};
-    double theta = DEGOF(utc2theta(sutc));
-    double zeta = DEGOF(utc2zeta(sutc));
-    double z = DEGOF(utc2z(sutc));
-    double eeq = DEGOF(utc2gast(sutc) - utc2gmst1982(sutc));
-    double dpsi = DEGOF(utc2dpsi(sutc));
-    double deps = DEGOF(utc2depsilon(sutc));
-    double eps = DEGOF(utc2epsilon(sutc));
-    double omega = DEGOF(utc2omega(sutc));
-    double gmst = DEGOF(utc2gmst2000(sutc));
-    gmst = DEGOF(utc2gmst1982(sutc));
-    double gast = DEGOF(utc2gast(sutc));
+//    double theta = DEGOF(utc2theta(sutc));
+//    double zeta = DEGOF(utc2zeta(sutc));
+//    double z = DEGOF(utc2z(sutc));
+//    double eeq = DEGOF(utc2gast(sutc) - utc2gmst1982(sutc));
+//    double dpsi = DEGOF(utc2dpsi(sutc));
+//    double deps = DEGOF(utc2depsilon(sutc));
+//    double eps = DEGOF(utc2epsilon(sutc));
+//    double omega = DEGOF(utc2omega(sutc));
+//    double gmst = DEGOF(utc2gmst2000(sutc));
+//    gmst = DEGOF(utc2gmst1982(sutc));
+//    double gast = DEGOF(utc2gast(sutc));
 
     // ITRS to GCRF
     // Vallado, pg. 234
