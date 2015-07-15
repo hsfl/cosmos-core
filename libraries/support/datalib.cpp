@@ -974,6 +974,15 @@ int32_t set_cosmosresources()
 			return 0;
 		}
 #endif
+
+#ifdef COSMOS_MAC_OS
+        if (data_isdir("/Applications/cosmos/resources"))
+        {
+            cosmosresources = "/Applications/cosmos/resources";
+            return 0;
+        }
+#endif
+
 #ifdef COSMOS_WIN_OS
 		if (data_isdir("c:/cosmos/resources"))
 		{
