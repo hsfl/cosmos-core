@@ -591,13 +591,14 @@ struct jsonhandle
 };
 
 //! JSON token
-/*! Tokenized version of a single JSON object. The token contains a pointer
- * into the JSON map, and a binary representation of the JSON value.
+/*! Tokenized version of a single JSON object. The token is a handle to the location
+ * in the JSON map represented by the string portion, and the value portion stored as a string.
  */
-struct json_token
+struct jsontoken
 {
-	jsonentry entry;
-	vector <uint8_t> data;
+	jsonhandle handle;
+	string value;
+	double utc;
 };
 
 //! JSON equation operand

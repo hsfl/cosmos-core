@@ -118,6 +118,11 @@ contains(MODULES, agentlib){
     MODULES += socketlib   # agentlib depends on socketlib
     MODULES += sliplib     # and sliplib
     MODULES += elapsedtime # and elapsedtime
+    MODULES += jsonlib
+    MODULES += timelib
+    MODULES += stringlib
+    MODULES += datalib
+
 }
 
 contains(MODULES, elapsedtime){
@@ -142,24 +147,33 @@ contains(MODULES, jsonlib){
     message( "- support/jsonlib" )
     SOURCES += $$COSMOS/core/libraries/support/jsonlib.cpp
     HEADERS += $$COSMOS/core/libraries/support/jsonlib.h
+    MODULES += convertlib
 }
 
 contains(MODULES, timelib){
     message( "- support/timelib" )
     SOURCES += $$COSMOS/core/libraries/support/timelib.cpp
     HEADERS += $$COSMOS/core/libraries/support/timelib.h
+    MODULES += ephemlib
+    MODULES += datalib
 }
 
 contains(MODULES, datalib){
     message( "- support/datalib" )
     SOURCES += $$COSMOS/core/libraries/support/datalib.cpp
     HEADERS += $$COSMOS/core/libraries/support/datalib.h
+    MODULES += zlib
+    MODULES += datadef
+    MODULES += jsondef
+    MODULES += jsonlib
+    MODULES += timelib
 }
 
 contains(MODULES, convertlib){
     message( "- support/convertlib" )
     SOURCES += $$COSMOS/core/libraries/support/convertlib.cpp
     HEADERS += $$COSMOS/core/libraries/support/convertlib.h
+    MODULES += geomag
 }
 
 contains(MODULES, convertdef){
@@ -169,14 +183,15 @@ contains(MODULES, convertdef){
 
 contains(MODULES, ephemlib){
     message( "- support/ephemlib" )
-    SOURCES         += $$COSMOS/core/libraries/support/ephemlib.cpp
-    HEADERS         += $$COSMOS/core/libraries/support/ephemlib.h
+    SOURCES += $$COSMOS/core/libraries/support/ephemlib.cpp
+    HEADERS += $$COSMOS/core/libraries/support/ephemlib.h
+    MODULES += jpleph
 }
 
 contains(MODULES, geomag){
     message( "- support/geomag" )
-    SOURCES         += $$COSMOS/core/libraries/support/geomag.cpp
-    HEADERS         += $$COSMOS/core/libraries/support/geomag.h
+    SOURCES += $$COSMOS/core/libraries/support/geomag.cpp
+    HEADERS += $$COSMOS/core/libraries/support/geomag.h
 }
 
 
@@ -247,8 +262,38 @@ INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty
 contains(MODULES, zlib){
     message( "- thirdparty/zlib" )
     INCLUDEPATH     += $$COSMOS/core/libraries/thirdparty/zlib
-    SOURCES         += $$files($$COSMOS/core/libraries/thirdparty/zlib/*.c)
-    HEADERS         += $$files($$COSMOS/core/libraries/thirdparty/zlib/*.h)
+    #SOURCES         += $$files($$COSMOS/core/libraries/thirdparty/zlib/*.c)
+    #HEADERS         += $$files( $$COSMOS/core/libraries/thirdparty/zlib/*.h)
+    #SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/*.c
+    #HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/*.h
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/adler32.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/compress.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/crc32.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/deflate.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/gzclose.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/gzlib.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/gzread.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/gzwrite.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/infback.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/inffast.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/inflate.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/inftrees.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/trees.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/uncompr.c
+    SOURCES         += $$COSMOS/core/libraries/thirdparty/zlib/zutil.c
+
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/crc32.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/deflate.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/gzguts.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/inffast.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/inffixed.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/inflate.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/inftrees.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/trees.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/zconf.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/zlib.h
+    HEADERS         += $$COSMOS/core/libraries/thirdparty/zlib/zutil.h
+
 }
 
 # Add JPEG

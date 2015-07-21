@@ -53,7 +53,7 @@ double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();
 static double CalculateLinuxCPULoad (float *out);
 #endif
 
-string agentname  = "agent_cpu";
+string agentname  = "cpu_monitor";
 string nodename;
 
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds

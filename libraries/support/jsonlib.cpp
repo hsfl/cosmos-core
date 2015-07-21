@@ -3195,23 +3195,46 @@ string json_convert_string(string object)
 	return result;
 }
 
+//! Convert JSON to double.
+/*! Convert the supplied JSON Object to a double representation. If the supplied
+ * Object does not have the proper format for a double, zero
+ * be returned.
+ * \param object Fully formed JSON object.
+ * \return Object as double, or zero.
+ */
+double json_convert_double(string object)
+{
+	string result;
+	double dresult;
+	const char *ptr = &object[0];
+
+	json_parse_string(&ptr, result);
+
+	if (!result.empty())
+	{
+		dresult = atof(result.c_str());
+	}
+
+	return dresult;
+}
 
 //! Tokenize using JSON Name Space.
 /*! Scan through the provided JSON stream, matching names to the ::json_name_list.
- * for each match that is found, create a ::jsonentry entry and add it to a vector
- * of entries.
+ * for each match that is found, create a ::jsontoken entry and add it to a vector
+ * of tokens.
  * \param jstring string containing JSON stream.
- * \param tokens vector of ::jsonentry.
+ * \param tokens vector of ::jsontoken.
  * \param cdata Pointer to the ::cosmosstruc containing the name space.
  * \return Zero or negative error.
  */
-int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector<jsonentry> &tokens)
+int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector<jsontoken> &tokens)
 {
 	const char *cpoint;
 	size_t length;
 	int32_t iretn;
-	jsonentry ttoken;
+	jsontoken ttoken;
 
+	ttoken.utc = json_convert_double(json_extract_namedobject(jstring, "node_utc"));
 	length = jstring.size();
 	cpoint = &jstring[0];
 	while (*cpoint != 0 && *cpoint != '{')
@@ -3239,14 +3262,14 @@ int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector<jsonentry> &tok
 	return (iretn);}
 
 //! Tokenize next JSON Named Pair
-/*! Extract the next Named Pair from the provided JSON stream and place it in a ::jsonentry.
+/*! Extract the next Named Pair from the provided JSON stream and place it in a ::jsontoken.
  * Leave pointer at the next Object in the string.
  * \param pointer Pointer to a pointer to a JSON stream.
  * \param cdata A pointer to the beginning of the ::cosmosstruc to use.
- * \param token ::jsonentry to return.
+ * \param token ::jsontoken to return.
  * \return Zero, or a negative error.
 */
-int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, jsonentry &token)
+int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, jsontoken &token)
 {
 	int32_t iretn=0;
 	string ostring;
@@ -3303,6 +3326,7 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 	}
 	else
 	{
+		// Skip white space before separator
 		if ((iretn = json_skip_white(pointer)) < 0)
 		{
 			if (iretn != JSON_ERROR_EOS)
@@ -3315,6 +3339,7 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 			else
 				return (iretn);
 		}
+		// Skip separator
 		if ((iretn = json_parse_character(pointer,':')) < 0)
 		{
 			if (iretn != JSON_ERROR_EOS)
@@ -3327,9 +3352,8 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 			else
 				return (iretn);
 		}
-		token = cdata[0].jmap[hash][index];
-		token.data.resize(token.size);
-		if ((iretn = json_parse_value(pointer,token.type,0,JSON_GROUP_ABSOLUTE,(cosmosstruc *)token.data.data())) < 0)
+		// Skip white space before value
+		if ((iretn = json_skip_white(pointer)) < 0)
 		{
 			if (iretn != JSON_ERROR_EOS)
 			{
@@ -3339,13 +3363,32 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 					return (JSON_ERROR_SCAN);
 			}
 			else
-			{
 				return (iretn);
-			}
 		}
-		if (token.data.size() == COSMOS_MAX_DATA)
+		// Read value
+		string input;
+		if ((iretn = json_parse_string(pointer, input)) < 0)
 		{
-			token.data.resize(strlen((char *)token.data.data()));
+			if (iretn != JSON_ERROR_EOS)
+			{
+				if ((iretn = json_skip_value(pointer)) < 0)
+					return (iretn);
+				else
+					return (JSON_ERROR_SCAN);
+			}
+			else
+				return (iretn);
+		}
+		if (input.size())
+		{
+			token.value = input;
+			token.handle.hash = hash;
+			token.handle.index = index;
+		}
+		//Skip whitespace after value
+		if ((iretn = json_skip_white(pointer)) < 0)
+		{
+			return (iretn);
 		}
 	}
 
