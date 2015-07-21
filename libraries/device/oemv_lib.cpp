@@ -31,87 +31,88 @@
 
 
 
-
 //! Time Status
 //! check OEMV firmware documentation on page 31
 map <string, uint16_t> time_status = {
-	{"UNKNOWN",0},
-	{"APPROXIMATE",1},
-	{"COARSEADJUSTING",2},
-	{"COARSE",3},
-	{"COARSESTEERING",4},
-	{"FREEWHEELING",5},
-	{"FINEADJUSTING",6},
-	{"FINE",7},
-	{"FINESTEERING",8}
+    {"UNKNOWN",           0},
+    {"APPROXIMATE",       1},
+    {"COARSEADJUSTING",   2},
+    {"COARSE",            3},
+    {"COARSESTEERING",    4},
+    {"FREEWHEELING",      5},
+    {"FINEADJUSTING",     6},
+    {"FINE",              7},
+    {"FINESTEERING",      8}
 };
 
 //! Solution status
 //! check OEMV firmware documentation on page 252, Table 51
 map <string, uint16_t> solution_status = {
-	{"SOL_COMPUTED",0},
-	{"INSUFFICIENT_OBS",1},
-	{"NO_CONVERGENCE",2},
-	{"SINGULARITY",3},
-	{"COV_TRACE",4},
-	{"TEST_DIST",5},
-	{"COLD_START",6},
-	{"V_H_LIMIT",7},
-	{"VARIANCE",8},
-	{"RESIDUALS",9},
-	{"DELTA_POS",10},
-	{"NEGATIVE_VAR",11},
-	{"RSERVED",12},
-	{"INTEGRITY_WARNING",13},
-	{"INS_1",14},
-	{"INS_2",15},
-	{"INS_3",16},
-	{"INS_4",17},
-	{"PENDING",18},
-	{"INVALID_FIX",19},
-	{"UNAUTHORIZED",20},
-	{"ANTENNA_WARNING",21}
+    {"SOL_COMPUTED",      0},
+    {"INSUFFICIENT_OBS",  1},
+    {"NO_CONVERGENCE",    2},
+    {"SINGULARITY",       3},
+    {"COV_TRACE",         4},
+    {"TEST_DIST",         5},
+    {"COLD_START",        6},
+    {"V_H_LIMIT",         7},
+    {"VARIANCE",          8},
+    {"RESIDUALS",         9},
+    {"DELTA_POS",         10},
+    {"NEGATIVE_VAR",      11},
+    {"RSERVED",           12},
+    {"INTEGRITY_WARNING", 13},
+    {"INS_1",             14},
+    {"INS_2",             15},
+    {"INS_3",             16},
+    {"INS_4",             17},
+    {"PENDING",           18},
+    {"INVALID_FIX",       19},
+    {"UNAUTHORIZED",      20},
+    {"ANTENNA_WARNING",   21}
 };
 
 //! Position or Velocity types
 //! check OEMV firmware documentation on page 251, Table 50
 map <string, uint16_t> fix_type = {
-	{"NONE",0},
-	{"FIXEDPOS",1},
-	{"FIXEDHEIGHT",2},
-	{"DOPPLER_VELOCITY",8},
-	{"SINGLE",16},
-	{"PSRDIFF",17},
-	{"WASS",18},
-	{"PROPAGATED",19},
-	{"OMNISTAR",20},
-	{"L1_FLOAT",32},
-	{"IONOFREE_FLOAT",33},
-	{"NARROW_FLOAT",34},
-	{"L1_INT",48},
-	{"WIDE_INT",49},
-	{"NARROW_INT",50},
-	{"RTK_DIRECT_INS",51},
-	{"INS",52},
-	{"INS_PSRSP",53},
-	{"INS_PSRDIFF",54},
-	{"INS_RTKFLOAT",55},
-	{"INS_RTKFIXED",56},
-	{"OMNISTAR_HP",64},
-	{"OMNISTAR_XP",65},
-	{"CDGPS",66}
+    {"NONE",             0},
+    {"FIXEDPOS",         1},
+    {"FIXEDHEIGHT",      2},
+    {"DOPPLER_VELOCITY", 8},
+    {"SINGLE",           16},
+    {"PSRDIFF",          17},
+    {"WASS",             18},
+    {"PROPAGATED",       19},
+    {"OMNISTAR",         20},
+    {"L1_FLOAT",         32},
+    {"IONOFREE_FLOAT",   33},
+    {"NARROW_FLOAT",     34},
+    {"L1_INT",           48},
+    {"WIDE_INT",         49},
+    {"NARROW_INT",       50},
+    {"RTK_DIRECT_INS",   51},
+    {"INS",              52},
+    {"INS_PSRSP",        53},
+    {"INS_PSRDIFF",      54},
+    {"INS_RTKFLOAT",     55},
+    {"INS_RTKFIXED",     56},
+    {"OMNISTAR_HP",      64},
+    {"OMNISTAR_XP",      65},
+    {"CDGPS",            66}
 };
 
 
 //! Clock Model status
 //! check OEMV firmware documentation on page 268, table 54
 map <string, uint16_t> clock_status = {
-	{"VALID",0},
-	{"CONVERGING",1},
-	{"ITERATING",2},
-	{"INVALID",3},
-	{"ERROR",4}
+    {"VALID",      0},
+    {"CONVERGING", 1},
+    {"ITERATING",  2},
+    {"INVALID",    3},
+    {"ERROR",      4}
 };
+
+
 
 //! Connect to OEMV.
 /*! Connect to a OEMV speaking NMEA protocol, connected to the
@@ -121,12 +122,13 @@ map <string, uint16_t> clock_status = {
  * \param handle Pointer to ::oemv_handle.
  * \return Zero, or negative error number.
 */
-int32_t oemv_connect(char *dev, oemv_handle *handle)
+//int32_t oemv_connect(char *dev, oemv_handle *handle)
+int32_t oemv_connect(string port, oemv_handle *handle)
 {
 	int32_t iretn;
 
 	cssl_start();
-	handle->serial = cssl_open(dev,OEMV_BAUD,OEMV_BITS,OEMV_PARITY,OEMV_STOPBITS);
+    handle->serial = cssl_open(port.c_str(),OEMV_BAUD,OEMV_BITS,OEMV_PARITY,OEMV_STOPBITS);
 	if (handle->serial == NULL)
 		return (CSSL_ERROR_OPEN);
 	if ((iretn=cssl_settimeout(handle->serial, 0, 5.)) < 0)
@@ -935,10 +937,10 @@ int32_t oemv_gpgga(oemv_handle *handle)
 	return 0;
 }
 
-
+// to get number of satellites in view: GPGSV pg. 328
 int32_t oemv_gpgsv(oemv_handle *handle)
 {
-	// to get number of satellites in view: GPGSV pg. 328
+
 	int32_t iretn;
 
 	//printf("Requesting GPPGA\n");
@@ -1240,6 +1242,11 @@ int32_t oemv_bestxyz(oemv_handle *handle)
 	return 0;
 }
 
+
+// RXSTATUS, Receiver status
+// This log conveys various status parameters of the GPS receiver system. These include the Receiver
+// Status and Error words which contain several flags specifying status and error conditions
+// Ref: OEMV Family Firmware Version 3.500 Reference Manual Rev 6 pg 540
 int32_t oemv_rxstatus(oemv_handle *handle)
 {
 	uint32_t length;

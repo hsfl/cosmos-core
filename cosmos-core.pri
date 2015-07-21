@@ -217,17 +217,24 @@ contains(MODULES, timeutils){
 #--------------------------------------------------------------------
 # Add COSMOS device
 contains(MODULES, device){
-    message( "Add library: device" )
+    message( "- device" )
     INCLUDEPATH     += $$COSMOS/core/libraries/device
     SOURCES         += $$files($$COSMOS/core/libraries/device/*.cpp)
     HEADERS         += $$files($$COSMOS/core/libraries/device/*.h)
 }
 
 contains(MODULES, cssl_lib){
-    message( "Add library: cssl_lib" )
+    message( "- device/cssl_lib" )
     INCLUDEPATH     += $$COSMOS/core/libraries/device
     SOURCES         += $$files($$COSMOS/core/libraries/device/cssl_lib.cpp)
     HEADERS         += $$files($$COSMOS/core/libraries/device/cssl_lib.h)
+}
+
+contains(MODULES, oemv_lib){
+    message( "- device/oemv_lib" )
+    INCLUDEPATH     += $$COSMOS/core/libraries/device
+    SOURCES         += $$files($$COSMOS/core/libraries/device/oemv_lib.cpp)
+    HEADERS         += $$files($$COSMOS/core/libraries/device/oemv_lib.h)
 }
 
 

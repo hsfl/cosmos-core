@@ -109,13 +109,17 @@
 
 #define OEMV_MAX_DATA 2048
 
-typedef struct
+
+
+
+
+struct oemv_response_type
 {
 	uint32_t id;
 	char text[48];
-} oemv_response_type;
+};
 
-typedef struct
+struct oemv_log_type
 {
 	uint32_t port_address;// 0
 	uint16_t message_id;// 4
@@ -125,9 +129,9 @@ typedef struct
 	double period;// 12
 	double offset;// 20
 	uint32_t hold;// 28
-} oemv_log_type;
+};
 
-typedef struct
+struct oemv_bestpos_type
 {
 	uint32_t solution_status;// 0
 	uint32_t position_type;// 4
@@ -150,9 +154,9 @@ typedef struct
 	uint8_t ext_sol_stat;// 69
 	uint8_t reserved2;// 70
 	uint8_t signal_mask;// 71
-} oemv_bestpos_type;
+};
 
-typedef struct
+struct oemv_bestvel_type
 {
 	uint32_t solution_status;
 	uint32_t velocity_type;
@@ -162,12 +166,18 @@ typedef struct
 	double ground_track;
 	double vertical_speed;
 	uint8_t reserved;
-} oemv_bestvel_type;
+};
 
-typedef struct
+// Best Available Cartesian Position and Velocity
+// Cartesian coordinate position data, message ID = 241
+// This structure contains the best available position and velocity in ECEF coordinates
+// The position and velocity status fields indicate whether or not the corresponding data is valid
+// For more information refer to
+// [1] OEMV Family Firmware Version 3.500 Reference Manual Rev 6 pg 261
+struct oemv_bestxyz_type
 {
-	uint32_t position_status;// 0
-	uint32_t position_type;// 4
+    uint32_t position_status;// 0 | check table 51, pg 252
+    uint32_t position_type;  // 4 | check table 50, pg 251
 	double position_x;// 8
 	double position_y;// 16
 	double position_z;// 24
@@ -194,11 +204,11 @@ typedef struct
 	uint8_t solution_status_x;// 109
 	uint8_t reserved2;// 110
 	uint8_t signal_mask;// 111
-} oemv_bestxyz_type;
+} ;
 
-typedef struct
+struct oemv_time_type
 {
-	uint32_t clock_status;
+    uint32_t clock_status; // check map clock_status defined in this file
 	double offset;
 	double offset_std;
 	double utc_offset;
@@ -209,9 +219,9 @@ typedef struct
 	uint8_t utc_minute;
 	uint32_t utc_ms;
 	uint32_t utc_status;
-} oemv_time_type;
+};
 
-typedef struct
+struct oemv_version_type
 {
 	uint32_t numcomp;
 	char model[16];
@@ -221,26 +231,26 @@ typedef struct
 	char boot_version[16];
 	char comp_date[12];
 	char comp_time[12];
-} oemv_version_type;
+} ;
 
-typedef struct
+struct oemv_rxstatus_status
 {
 	uint32_t word;
 	uint32_t pri_mask;
 	uint32_t set_mask;
 	uint32_t clear_mask;
-} oemv_rxstatus_status;
+} ;
 
-typedef struct
+struct oemv_rxstatus_type
 {
 	uint32_t error;
 	uint32_t count;
 	oemv_rxstatus_status rx[10];
-} oemv_rxstatus_type;
+} ;
 
-typedef struct
+struct oemvstruc
 {
-	struct
+    struct
 	{
 		uint8_t sync1;// 0
 		uint8_t sync2;// 1
@@ -252,14 +262,14 @@ typedef struct
 		uint16_t message_size;// 8
 		uint16_t sequence;// 10
 		uint8_t idle_time;// 12
-		uint8_t time_status;// 13
+        uint8_t time_status;// 13 | check map time_status or OEMV firmware documentation on page 31
 		uint16_t gps_week;// 14
 		float gps_second;// 16
 		uint32_t rxr_status;// 20
 		uint16_t reserved;// 24
 		uint16_t rxr_version;// 26
-	} header;
-	union
+    } header;
+    union // !!! why union???
 	{
 		oemv_response_type response;
 		oemv_log_type log;
@@ -273,16 +283,17 @@ typedef struct
 	};
     int16_t n_sats_visible;
     int16_t n_sats_used;
-} oemvstruc;
+};
 
-typedef struct
+struct oemv_handle
 {
 	cssl_t *serial;
 	oemvstruc message;
 	uint8_t data[OEMV_MAX_DATA];
-} oemv_handle;
+};
 
-int32_t oemv_connect(char *dev, oemv_handle *handle);
+//int32_t oemv_connect(char *dev, oemv_handle *handle);
+int32_t oemv_connect(string port, oemv_handle *handle);
 int32_t oemv_disconnect(oemv_handle *handle);
 int32_t oemv_bestpos(oemv_handle *handle);
 int32_t oemv_bestvel(oemv_handle *handle);
