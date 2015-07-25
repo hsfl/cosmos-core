@@ -41,6 +41,9 @@
 #include "configCosmos.h"
 
 #include <errno.h>
+#include <string>
+#include <sstream>
+using namespace std;
 
 //! \ingroup stringlib
 //! \defgroup stringlib_functions String handling functions
@@ -48,6 +51,22 @@
 
 uint16_t string_parse(char *string, char *word[], uint16_t size);
 int string_cmp(const char *wild, const char *string);
+
+// Class to parse a comma delimited string
+class StringParser {
+
+    vector<string> vect;
+
+public:
+    // the offset allows you to move the index by an offset value
+    // this can be usefullif for example getFieldNumber(1) should logically be getFieldNumber(2)
+    // the offset then is 1
+    int offset;
+    StringParser(string str);
+    string getFieldNumber(unsigned int index);
+    double getFieldNumberAsDouble(unsigned int index);
+};
+
 //! @}
 
 #endif

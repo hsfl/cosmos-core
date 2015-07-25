@@ -107,10 +107,8 @@
 
 #define CRC32_POLYNOMIAL 0xEDB88320L
 
-#define OEMV_MAX_DATA 2048
-
-
-
+//#define OEMV_MAX_DATA 2048 // !!! why so much?
+#define OEMV_MAX_DATA 512 // !!! check
 
 
 struct oemv_response_type
@@ -177,6 +175,7 @@ struct oemv_bestvel_type
 struct oemv_bestxyz_type
 {
     uint32_t position_status;// 0 | check table 51, pg 252
+    string position_status_str;// just the string
     uint32_t position_type;  // 4 | check table 50, pg 251
 	double position_x;// 8
 	double position_y;// 16
@@ -209,6 +208,7 @@ struct oemv_bestxyz_type
 struct oemv_time_type
 {
     uint32_t clock_status; // check map clock_status defined in this file
+    string clock_status_str;
 	double offset;
 	double offset_std;
 	double utc_offset;
@@ -219,6 +219,7 @@ struct oemv_time_type
 	uint8_t utc_minute;
 	uint32_t utc_ms;
 	uint32_t utc_status;
+    string utc_status_str;
 };
 
 struct oemv_version_type
@@ -275,14 +276,18 @@ struct oemvstruc
 		oemv_log_type log;
 		oemv_bestpos_type bestpos;
 		oemv_bestvel_type bestvel;
-		oemv_bestxyz_type bestxyz;
-		oemv_time_type time;
+        //oemv_bestxyz_type bestxyz;
+        //oemv_time_type time;
 		oemv_version_type version;
 		oemv_rxstatus_type rxstatus;
         gvector geo;
 	};
     int16_t n_sats_visible;
     int16_t n_sats_used;
+
+    // new
+    oemv_time_type time;
+    oemv_bestxyz_type bestxyz;
 };
 
 struct oemv_handle
