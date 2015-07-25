@@ -3259,7 +3259,8 @@ int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector<jsontoken> &tok
 	} while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
 
 	if (!iretn) iretn = (int32_t)tokens.size();
-	return (iretn);}
+    return (iretn);
+}
 
 //! Tokenize next JSON Named Pair
 /*! Extract the next Named Pair from the provided JSON stream and place it in a ::jsontoken.
