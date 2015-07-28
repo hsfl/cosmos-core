@@ -194,6 +194,18 @@ contains(MODULES, geomag){
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/geomag.h
 }
 
+contains(MODULES, physicslib){
+    message( "- support/physicslib" )
+    SOURCES += $$COSMOS_SOURCE/core/libraries/support/physicslib.cpp
+    HEADERS += $$COSMOS_SOURCE/core/libraries/support/physicslib.h
+    MODULES += nrlmsise
+}
+
+contains(MODULES, demlib){
+    message( "- support/demlib" )
+    SOURCES += $$COSMOS_SOURCE/core/libraries/support/demlib.cpp
+    HEADERS += $$COSMOS_SOURCE/core/libraries/support/demlib.h
+}
 
 # -----------------------------------------------
 # Tier 0 libraries
@@ -218,7 +230,7 @@ contains(MODULES, jpleph){
 }
 
 contains(MODULES, sliplib){
-    message( "- support/support/sliplib" )
+    message( "- support/sliplib" )
     SOURCES         += $$COSMOS_SOURCE/core/libraries/support/sliplib.cpp
     HEADERS         += $$COSMOS_SOURCE/core/libraries/support/sliplib.h
 }
@@ -227,6 +239,12 @@ contains(MODULES, timeutils){
     message( "- support/timeutils" )
     SOURCES += $$COSMOS_SOURCE/core/libraries/support/timeutils.cpp
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/timeutils.h
+}
+
+contains(MODULES, nrlmsise){
+    message( "- support/nrlmsise" )
+    SOURCES += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.cpp
+    HEADERS += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.h
 }
 
 #--------------------------------------------------------------------
