@@ -254,125 +254,125 @@ int32_t Udp::socketOpen()
     return 0;
 }
 
-//! Calculate UDP Checksum
-/*! Calculate UDP Checksum, as detailed in RFC 768, based on the provided IP packet.
- * \param packet IP packet
- * \param csum Location to store calculated Checksum.
- * \return Zero or negative error.
- * */
-uint16_t socket_calc_udp_checksum(vector<uint8_t> packet)
-{
-    union
-    {
-        uint8_t* bytes;
-        uint16_t* ints;
-    } ;
+////! Calculate UDP Checksum
+///*! Calculate UDP Checksum, as detailed in RFC 768, based on the provided IP packet.
+// * \param packet IP packet
+// * \param csum Location to store calculated Checksum.
+// * \return Zero or negative error.
+// * */
+//uint16_t socket_calc_udp_checksum(vector<uint8_t> packet)
+//{
+//    union
+//    {
+//        uint8_t* bytes;
+//        uint16_t* ints;
+//    } ;
 
-    bytes = &packet[0];
+//    bytes = &packet[0];
 
-    uint32_t csum32;
-    csum32 = 0;
-    // Pseudo header
-    // Source Address
-    csum32 += ints[6];
-    csum32 += ints[7];
-    // Destination Address
-    csum32 += ints[8];
-    csum32 += ints[9];
-    // Protocol byte
-    csum32 += bytes[SOCKET_IP_BYTE_PROTOCOL]*256U;
-    // UDP Length
-    csum32 += ints[12];
+//    uint32_t csum32;
+//    csum32 = 0;
+//    // Pseudo header
+//    // Source Address
+//    csum32 += ints[6];
+//    csum32 += ints[7];
+//    // Destination Address
+//    csum32 += ints[8];
+//    csum32 += ints[9];
+//    // Protocol byte
+//    csum32 += bytes[SOCKET_IP_BYTE_PROTOCOL]*256U;
+//    // UDP Length
+//    csum32 += ints[12];
 
-    // UDP header
-    // UDP Source Port
-    csum32 += ints[10];
-    // UDP Destination Port
-    csum32 += ints[11];
-    // UDP Length
-    csum32 += ints[12];
-    // UDP Checksum
-    csum32 += ints[13];
+//    // UDP header
+//    // UDP Source Port
+//    csum32 += ints[10];
+//    // UDP Destination Port
+//    csum32 += ints[11];
+//    // UDP Length
+//    csum32 += ints[12];
+//    // UDP Checksum
+//    csum32 += ints[13];
 
-    // Actual data bytes. Do any even number, then special treatment for any odd byte.
-    uint16_t udpl = (bytes[24]*256U + bytes[25]) - 8;
-    if (udpl)
-    {
-        for (uint16_t i=0; i<udpl/2; ++i)
-        {
-            csum32 += ints[14+i];
-        }
+//    // Actual data bytes. Do any even number, then special treatment for any odd byte.
+//    uint16_t udpl = (bytes[24]*256U + bytes[25]) - 8;
+//    if (udpl)
+//    {
+//        for (uint16_t i=0; i<udpl/2; ++i)
+//        {
+//            csum32 += ints[14+i];
+//        }
 
-        if (2*(udpl/2) != udpl)
-        {
-            csum32 += bytes[27+udpl];
-        }
-    }
+//        if (2*(udpl/2) != udpl)
+//        {
+//            csum32 += bytes[27+udpl];
+//        }
+//    }
 
-    // Perform end around carry
-    while (csum32 > 0xffff)
-    {
-        csum32 = (csum32 & 0xffff) + (csum32 >> 16);
-    }
+//    // Perform end around carry
+//    while (csum32 > 0xffff)
+//    {
+//        csum32 = (csum32 & 0xffff) + (csum32 >> 16);
+//    }
 
-    csum32 = ~csum32;
+//    csum32 = ~csum32;
 
-    if ((uint16_t)csum32 == 0)
-    {
-        return 0xffff;
-    }
-    else
-    {
-        return (uint16_t)csum32;
-    }
-}
+//    if ((uint16_t)csum32 == 0)
+//    {
+//        return 0xffff;
+//    }
+//    else
+//    {
+//        return (uint16_t)csum32;
+//    }
+//}
 
-//! Check UDP checksum
-/*! Calculate UDP checksum for provided UDP packet and return whether it is valid or not.
- * \param packet UDP packet
- * \return Zero or negative error.
- */
-int32_t socket_check_udp_checksum(vector<uint8_t> packet)
-{
-    uint16_t csum = socket_calc_udp_checksum(packet);
+////! Check UDP checksum
+///*! Calculate UDP checksum for provided UDP packet and return whether it is valid or not.
+// * \param packet UDP packet
+// * \return Zero or negative error.
+// */
+//int32_t socket_check_udp_checksum(vector<uint8_t> packet)
+//{
+//    uint16_t csum = socket_calc_udp_checksum(packet);
 
-    //	if (csum == uint16from(&packet[26], ORDER_NETWORK))
-    if (csum == 0xffff)
-    {
-        return 0;
-    }
-    else
-    {
-        printf("UDP checksum error: %x\n", csum);
-        return SOCKET_ERROR_CS;
-    }
-}
+//    //	if (csum == uint16from(&packet[26], ORDER_NETWORK))
+//    if (csum == 0xffff)
+//    {
+//        return 0;
+//    }
+//    else
+//    {
+//        printf("UDP checksum error: %x\n", csum);
+//        return SOCKET_ERROR_CS;
+//    }
+//}
 
-//! Set UDP checksum
-/*! Clear UDP checksum field, calculate UDP checksum, and set UDP checksum field in provided
- * UDP packet.
- * \param packet UDP packet
- * \return Zero or negative error.
- */
-int32_t socket_set_udp_checksum(vector<uint8_t>& packet)
-{
-    // Check if this is UDP packet
-    if (packet[SOCKET_IP_BYTE_PROTOCOL] != 17)
-    {
-        return SOCKET_ERROR_PROTOCOL;
-    }
+////! Set UDP checksum
+///*! Clear UDP checksum field, calculate UDP checksum, and set UDP checksum field in provided
+// * UDP packet.
+// * \param packet UDP packet
+// * \return Zero or negative error.
+// */
+//int32_t socket_set_udp_checksum(vector<uint8_t>& packet)
+//{
+//    // Check if this is UDP packet
+//    if (packet[SOCKET_IP_BYTE_PROTOCOL] != 17)
+//    {
+//        return SOCKET_ERROR_PROTOCOL;
+//    }
 
-    // Set UDP checksum bytes to zero.
-    packet[SOCKET_IP_BYTE_UDP_CS] = packet[SOCKET_IP_BYTE_UDP_CS+1] = 0;
+//    // Set UDP checksum bytes to zero.
+//    packet[SOCKET_IP_BYTE_UDP_CS] = packet[SOCKET_IP_BYTE_UDP_CS+1] = 0;
 
-    // Calculate checksum
-    uint16_t csum = socket_calc_udp_checksum(packet);
+//    // Calculate checksum
+//    uint16_t csum = socket_calc_udp_checksum(packet);
 
-    // Place it in checksum bytes
-    uint16to(csum, &packet[SOCKET_IP_BYTE_UDP_CS], ORDER_LITTLEENDIAN);
+//    // Place it in checksum bytes
+//    uint16to(csum, &packet[SOCKET_IP_BYTE_UDP_CS], ORDER_LITTLEENDIAN);
 
-    return 0;
-}
+//    return 0;
+//}
 
 
 
