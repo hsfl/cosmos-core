@@ -3168,10 +3168,10 @@ string json_extract_namedobject(string json, string token)
 		} while ((ptr[0]>='0'&&ptr[0]<='9')||ptr[0]=='e'||ptr[0]=='E'||ptr[0]=='.'||ptr[0]=='-');
 		eptr = ptr-1;
 		break;
-	}
+    }
 
-	tstring = bptr;
-	tstring.resize(eptr-bptr+1);
+    tstring = bptr;
+    tstring.resize(eptr-bptr+1);
 	//	strncpy(tbuf,bptr,eptr-bptr+1);
 	//	tbuf[eptr-bptr+1] = 0;
 
@@ -3234,7 +3234,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector<jsontoken> &tok
 	int32_t iretn;
 	jsontoken ttoken;
 
-	ttoken.utc = json_convert_double(json_extract_namedobject(jstring, "node_utc"));
+    ttoken.utc = atof(json_extract_namedobject(jstring, "node_utc").c_str());
 	length = jstring.size();
 	cpoint = &jstring[0];
 	while (*cpoint != 0 && *cpoint != '{')
@@ -3303,7 +3303,7 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 		}
 		else
 			return (iretn);
-	}
+    }
 
 	// Calculate hash
 	hash = json_hash(ostring);
@@ -3368,7 +3368,8 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 		}
 		// Read value
 		string input;
-		if ((iretn = json_parse_string(pointer, input)) < 0)
+        //Original code, does not work-------------
+        /*if ((iretn = json_parse_string(pointer, input)) < 0)
 		{
 			if (iretn != JSON_ERROR_EOS)
 			{
@@ -3379,17 +3380,28 @@ int32_t json_tokenize_namedobject(const char** pointer, cosmosstruc *cdata, json
 			}
 			else
 				return (iretn);
-		}
+        }*/
+        //New method-------------------------------
+        if ((*pointer)[0] == 0) return (JSON_ERROR_EOS);
+        int brkt_lvl = 0;
+        while (true) {
+            if ((*pointer)[0]==0) return (JSON_ERROR_EOS);
+            if ((*pointer)[0]=='}') {
+                if (brkt_lvl==0) break;
+                else {
+                    brkt_lvl--;
+                    if (brkt_lvl<0) return (JSON_ERROR_SCAN);
+                }
+            } else if ((*pointer)[0]=='{') brkt_lvl++;
+            input.push_back((*pointer)[0]);
+            (*pointer)++;
+        }
+        //-----------------------------------------
 		if (input.size())
 		{
 			token.value = input;
 			token.handle.hash = hash;
 			token.handle.index = index;
-		}
-		//Skip whitespace after value
-		if ((iretn = json_skip_white(pointer)) < 0)
-		{
-			return (iretn);
 		}
 	}
 
