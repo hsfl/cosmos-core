@@ -10,8 +10,8 @@ BEGIN VehiclePath
 
     BEGIN Interval
 
-         StartTime            1 Sep 2013 22:00:00.000288002
-         StopTime             2 Sep 2013 22:00:00.000288002
+         StartTime            29 Jun 2015 22:00:00.000000000
+         StopTime             30 Jun 2015 22:00:00.000000000
 
     END Interval
 
@@ -114,8 +114,8 @@ NumberOfEphemerisPoints 1441
 
 ScenarioEpoch            1 Sep 2013 22:00:00.000288002
 
-# Epoch in JDate format: 2456537.41666667000002
-# Epoch in YYDDD format:   13244.91666667000002
+# Epoch in JDate format: 2456537.41666667000003
+# Epoch in YYDDD format:   13244.91666667000003
 
 
 InterpolationMethod     OnePt
@@ -128,7 +128,7 @@ CoordinateSystem        ICRF
 
 BlockingFactor          20
 
-# Time of first point: 1 Sep 2013 22:00:00.000288002 UTCG = 2456537.41666667000002 JDate = 13244.91666667000002 YYDDD
+# Time of first point: 1 Sep 2013 22:00:00.000288002 UTCG = 2456537.41666667000003 JDate = 13244.91666667000003 YYDDD
 
 EphemerisTimePosVel
 
@@ -1959,10 +1959,10 @@ BEGIN Extensions
 	PctCmpltTitle  Attitude Simulation
 	UseAnimate  No
 	AnimateSampling 1.0000000000000000e+000
-	StartTime  1 Sep 2013 22:00:00.000288002
-	StopTime  2 Sep 2013 22:00:00.000288002
+	StartTime  29 Jun 2015 22:00:00.000000000
+	StopTime  30 Jun 2015 22:00:00.000000000
 	Step  0.0000000000000000e+000
-	InitialTime  1 Sep 2013 22:00:00.000288002
+	InitialTime  29 Jun 2015 22:00:00.000000000
 	BEGIN InitialAttitude
 		0.0000000000000000e+000
 		0.0000000000000000e+000
