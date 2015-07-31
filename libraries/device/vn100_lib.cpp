@@ -38,12 +38,13 @@
  * \param handle Pointer to ::vn100_handle.
  * \return Zero, or negative error number.
 */
-int32_t vn100_connect(char *dev, vn100_handle *handle)
+//int32_t vn100_connect(char *dev, vn100_handle *handle)
+int32_t vn100_connect(string dev, vn100_handle *handle)
 {
 	int32_t iretn;
 
 	cssl_start();
-	handle->serial = cssl_open(dev,VN100_BAUD, VN100_BITS,VN100_PARITY,VN100_STOPBITS);
+    handle->serial = cssl_open(dev.c_str(),VN100_BAUD, VN100_BITS,VN100_PARITY,VN100_STOPBITS);
 	if (handle->serial == NULL)
 	{
 		return (CSSL_ERROR_OPEN);
