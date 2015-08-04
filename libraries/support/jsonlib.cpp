@@ -3110,6 +3110,17 @@ string json_extract_namedobject(string json, string token)
 	{
 		return tstring;
 	}
+    ptr += token.length();
+
+    // Skip over " (which will be there if name was supplied without " "'s around it)
+    if (ptr[0] == '"')
+    {
+        iretn = json_skip_character(ptr, '"');
+        if (iretn < 0)
+        {
+            return tstring;
+        }
+    }
 
 	// Skip over :
 	iretn = json_skip_character(ptr, ':');
@@ -3236,15 +3247,11 @@ string json_convert_string(string object)
  */
 double json_convert_double(string object)
 {
-	string result;
-	double dresult;
-	const char *ptr = &object[0];
+    double dresult;
 
-	json_extract_string(ptr, result);
-
-	if (!result.empty())
+    if (!object.empty())
 	{
-		dresult = atof(result.c_str());
+        dresult = atof(object.c_str());
 	}
 
 	return dresult;
@@ -3266,7 +3273,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector<jsontoken> &tok
 	int32_t iretn;
 	jsontoken ttoken;
 
-	ttoken.utc = json_convert_double(json_extract_namedobject(jstring, "node_utc"));
+    ttoken.utc = json_convert_double(json_extract_namedobject(jstring, "node_utc"));
 	length = jstring.size();
 	cpoint = &jstring[0];
 	while (*cpoint != 0 && *cpoint != '{')
@@ -3897,10 +3904,8 @@ int32_t json_parse_number(const char* &ptr, double *number)
 	if ((iretn = json_skip_white(ptr)) < 0)
 	{
 		return (iretn);
-	}
-
-	ilen = strlen(ptr);
-
+    }
+    ilen = strlen(ptr);
 
 	// First, check for integer: series of digits
 	i1 = 0;
@@ -3911,11 +3916,6 @@ int32_t json_parse_number(const char* &ptr, double *number)
 		++i1;
 	}
 
-	if (i1 == ilen)
-	{
-		return (JSON_ERROR_EOS);
-	}
-
 	// Second, check for fraction: . followed by series of digits
 	if (ptr[i1] == '.')
 	{
@@ -3923,14 +3923,8 @@ int32_t json_parse_number(const char* &ptr, double *number)
 		while (i1 < ilen && ptr[i1] >= '0' && ptr[i1] <= '9')
 		{
 			++i1;
-		}
-
-		if (i1 == ilen)
-		{
-			return (JSON_ERROR_EOS);
-		}
-	}
-
+        }
+    }
 
 	// Third, check for exponent: e or E followed by optional - and series of digits
 	if (ptr[i1] == 'e' || ptr[i1] == 'E')
@@ -3942,15 +3936,10 @@ int32_t json_parse_number(const char* &ptr, double *number)
 		{
 			++i1;
 		}
-
-		if (i1 == ilen)
-		{
-			return (JSON_ERROR_EOS);
-		}
 	}
 
 	// Finally, scan resulting string and move pointer to new location: i1 equals first position after number
-	sscanf(ptr,"%lf",number);
+    sscanf(ptr,"%lf",number);
 	ptr = &ptr[i1];
 	return (iretn);
 }
@@ -4075,7 +4064,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
 		{
 			if ((iretn = json_parse_number(ptr,&val)) < 0)
 				return (iretn);
-		}
+        }
 		*(float *)data = (float)val;
 		break;
 	case JSON_TYPE_TIMESTAMP:
@@ -4089,9 +4078,9 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
 	case JSON_TYPE_DOUBLE:
 		if (std::isnan(val=json_equation(ptr,cdata)))
 		{
-			if ((iretn = json_parse_number(ptr,&val)) < 0)
+            if ((iretn = json_parse_number(ptr,&val)) < 0)
 				return (iretn);
-		}
+        }
 		*(double *)data = (double)val;
 		break;
 	case JSON_TYPE_STRING:
