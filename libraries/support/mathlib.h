@@ -762,6 +762,7 @@ void int32to(int32_t value, uint8_t *pointer, uint8_t order);
 void uint16to(uint16_t value, uint8_t *pointer, uint8_t order);
 void int16to(int16_t value, uint8_t *pointer, uint8_t order);
 void floatto(float value, uint8_t *pointer, uint8_t order);
+void doubleto(double value, uint8_t *pointer, uint8_t order);
 
 // Gauss-Jackson routines
 gj_kernel *gauss_jackson_kernel(int32_t order, double dvi);

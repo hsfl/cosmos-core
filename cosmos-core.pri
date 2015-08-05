@@ -230,6 +230,12 @@ contains(MODULES, cssl_lib){
     HEADERS         += $$files($$COSMOS/core/libraries/device/cssl_lib.h)
 }
 
+contains(MODULES, sinclair_lib){
+    message( "Add library: sinclair_lib" )
+    INCLUDEPATH     += $$COSMOS/core/libraries/device
+    SOURCES         += $$files($$COSMOS/core/libraries/device/sinclair_lib.cpp)
+    HEADERS         += $$files($$COSMOS/core/libraries/device/sinclair_lib.h)
+}
 
 #--------------------------------------------------------------------
 # Add COSMOS core thirdparty libraries
