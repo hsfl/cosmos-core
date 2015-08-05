@@ -47,7 +47,7 @@
 //#include <cerrno>
 //#include <cstring>
 //#include <iostream>
-using namespace std;
+//using namespace std; // don't use this as it may cause conflicts with other namespaces
 
 //! \ingroup convertlib
 //! \defgroup convertlib_constants Coordinate conversion constants

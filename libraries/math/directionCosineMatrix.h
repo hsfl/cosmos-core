@@ -27,46 +27,20 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file stringlib.h
-	\brief stringlib include file
-	A library providing functions for handling various types of string.
-*/
+#ifndef _DIRECTION_COSINE_MATRIX_H
+#define _DIRECTION_COSINE_MATRIX_H
 
-//! \ingroup support
-//!	\defgroup stringlib String handling library
+#include "mathTypes.h"
 
-#ifndef _STRINGLIB_H
-#define _STRINGLIB_H 1
 
-#include "configCosmos.h"
-
-#include <errno.h>
-#include <string>
-#include <sstream>
-//using namespace std;  // don't use this as it may cause conflicts with other namespaces
-
-//! \ingroup stringlib
-//! \defgroup stringlib_functions String handling functions
-//! @{
-
-uint16_t string_parse(char *string, char *word[], uint16_t size);
-int string_cmp(const char *wild, const char *string);
-
-// Class to parse a comma delimited string
-class StringParser {
-
-    vector<string> vect;
+class DCM {
+private:
 
 public:
-    // the offset allows you to move the index by an offset value
-    // this can be usefullif for example getFieldNumber(1) should logically be getFieldNumber(2)
-    // the offset then is 1
-    int offset;
-    StringParser(string str);
-    string getFieldNumber(unsigned int index);
-    double getFieldNumberAsDouble(unsigned int index);
+    cmatrix base2_from_base1(basisOrthonormal base2,basisOrthonormal base1);
+    cmatrix base1_from_base2(basisOrthonormal base1, basisOrthonormal base2);
+
+    double dotProduct(cvector a, cvector b);
+    cmatrix transposeMatrix(cmatrix a);
 };
-
-//! @}
-
 #endif

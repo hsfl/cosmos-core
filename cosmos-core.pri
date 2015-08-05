@@ -214,25 +214,36 @@ contains(MODULES, demlib){
 # more complext libraries such as agentlib
 contains(MODULES, mathlib){
     message( "- support/mathlib" )
+    INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/math
+    HEADERS += $$COSMOS_SOURCE/core/libraries/math/mathTypes.h
     SOURCES += $$COSMOS_SOURCE/core/libraries/support/mathlib.cpp
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/mathlib.h
 }
+
+contains(MODULES, directionCosineMatrix){
+    message( "- math/directionCosineMatrix" )
+    INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/math
+    HEADERS     += $$COSMOS_SOURCE/core/libraries/math/directionCosineMatrix.h
+    SOURCES     += $$COSMOS_SOURCE/core/libraries/math/directionCosineMatrix.cpp
+}
+
+
 contains(MODULES, stringlib){
     message( "- support/stringlib" )
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/support/stringlib.cpp
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/support/stringlib.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/support/stringlib.cpp
+    HEADERS += $$COSMOS_SOURCE/core/libraries/support/stringlib.h
 }
 
 contains(MODULES, jpleph){
     message( "- support/jpleph" )
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/support/jpleph.cpp
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/support/jpleph.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/support/jpleph.cpp
+    HEADERS += $$COSMOS_SOURCE/core/libraries/support/jpleph.h
 }
 
 contains(MODULES, sliplib){
     message( "- support/sliplib" )
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/support/sliplib.cpp
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/support/sliplib.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/support/sliplib.cpp
+    HEADERS += $$COSMOS_SOURCE/core/libraries/support/sliplib.h
 }
 
 contains(MODULES, timeutils){
@@ -246,6 +257,13 @@ contains(MODULES, nrlmsise){
     SOURCES += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.cpp
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.h
 }
+
+contains(MODULES, print_utils){
+    message( "- support/print_utils" )
+    SOURCES += $$COSMOS_SOURCE/core/libraries/support/print_utils.cpp
+    HEADERS += $$COSMOS_SOURCE/core/libraries/support/print_utils.h
+}
+
 
 #--------------------------------------------------------------------
 # Add COSMOS device
@@ -282,6 +300,20 @@ contains(MODULES, vn100_lib){
     INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
     SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/vn100_lib.cpp)
     HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/vn100_lib.h)
+}
+
+contains(MODULES, vmt35_lib){
+    message( "- device/vmt35_lib" )
+    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
+    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/vmt35_lib.cpp)
+    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/vmt35_lib.h)
+}
+
+contains(MODULES, sinclair_lib){
+    message( "- device/sinclair_lib" )
+    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
+    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/sinclair_lib.cpp)
+    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/sinclair_lib.h)
 }
 
 

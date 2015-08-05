@@ -52,7 +52,7 @@ static vector<beatstruc> slist;
 vector <agent_request_entry> ireqs;
 
 #include<iostream>
-using namespace std;
+//using namespace std; // don't use this as it may cause conflicts with other namespaces
 
 //! Handle for request thread
 static thread cthread;

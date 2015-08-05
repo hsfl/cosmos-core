@@ -228,9 +228,11 @@ int nsp_send_message(sinclair_state *handle)
 	{
 		xbuf[i+3] = handle->mbuf.data[i];
 	}
+
 	handle->mbuf.crc = slip_calc_crc(xbuf,handle->mbuf.size+3);
 	uint16to((uint16_t)handle->mbuf.crc,(uint8_t *)&xbuf[handle->mbuf.size+3],(uint8_t)ORDER_LITTLEENDIAN);
 	iretn = sinclair_writeslip(handle,xbuf,handle->mbuf.size+5);
+
 	if (iretn < 0)
 		return (iretn);
 
@@ -249,6 +251,7 @@ int nsp_send_message(sinclair_state *handle)
 					handle->mbuf.src = (uint8_t)xbuf[0];
 					handle->mbuf.dst = (uint8_t)xbuf[1];
 					handle->mbuf.mcf = (uint8_t)xbuf[2];
+
 					if ((handle->mbuf.mcf&0x1f) == NSP_COMMAND_COMBINATION || (handle->mbuf.mcf&0x1f) == NSP_COMMAND_READ_RESULT)
 					{
 						uint16_t place;
@@ -262,7 +265,9 @@ int nsp_send_message(sinclair_state *handle)
 						memcpy((void *)&handle->mbuf.data[handle->mbuf.size], (void *)&xbuf[3], iretn-5);
 						handle->mbuf.size += iretn-5;
 					}
+
 					handle->mbuf.crc = crc;
+
 					if (!(handle->mbuf.mcf & NSP_MCB_A))
 					{
 						// NACK
@@ -287,7 +292,9 @@ int nsp_send_message(sinclair_state *handle)
 			}
 		} while (!(handle->mbuf.mcf & NSP_MCB_PF));
 	}
+
 	handle->lmjd = currentmjd(0.);
+
 	return (handle->mbuf.size);
 }
 
