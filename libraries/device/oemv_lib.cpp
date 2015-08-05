@@ -31,87 +31,96 @@
 
 
 
-
 //! Time Status
 //! check OEMV firmware documentation on page 31
 map <string, uint16_t> time_status = {
-	{"UNKNOWN",0},
-	{"APPROXIMATE",1},
-	{"COARSEADJUSTING",2},
-	{"COARSE",3},
-	{"COARSESTEERING",4},
-	{"FREEWHEELING",5},
-	{"FINEADJUSTING",6},
-	{"FINE",7},
-	{"FINESTEERING",8}
+    {"UNKNOWN",           0},
+    {"APPROXIMATE",       1},
+    {"COARSEADJUSTING",   2},
+    {"COARSE",            3},
+    {"COARSESTEERING",    4},
+    {"FREEWHEELING",      5},
+    {"FINEADJUSTING",     6},
+    {"FINE",              7},
+    {"FINESTEERING",      8}
 };
 
 //! Solution status
 //! check OEMV firmware documentation on page 252, Table 51
 map <string, uint16_t> solution_status = {
-	{"SOL_COMPUTED",0},
-	{"INSUFFICIENT_OBS",1},
-	{"NO_CONVERGENCE",2},
-	{"SINGULARITY",3},
-	{"COV_TRACE",4},
-	{"TEST_DIST",5},
-	{"COLD_START",6},
-	{"V_H_LIMIT",7},
-	{"VARIANCE",8},
-	{"RESIDUALS",9},
-	{"DELTA_POS",10},
-	{"NEGATIVE_VAR",11},
-	{"RSERVED",12},
-	{"INTEGRITY_WARNING",13},
-	{"INS_1",14},
-	{"INS_2",15},
-	{"INS_3",16},
-	{"INS_4",17},
-	{"PENDING",18},
-	{"INVALID_FIX",19},
-	{"UNAUTHORIZED",20},
-	{"ANTENNA_WARNING",21}
+    {"SOL_COMPUTED",      0},
+    {"INSUFFICIENT_OBS",  1},
+    {"NO_CONVERGENCE",    2},
+    {"SINGULARITY",       3},
+    {"COV_TRACE",         4},
+    {"TEST_DIST",         5},
+    {"COLD_START",        6},
+    {"V_H_LIMIT",         7},
+    {"VARIANCE",          8},
+    {"RESIDUALS",         9},
+    {"DELTA_POS",         10},
+    {"NEGATIVE_VAR",      11},
+    {"RSERVED",           12},
+    {"INTEGRITY_WARNING", 13},
+    {"INS_1",             14},
+    {"INS_2",             15},
+    {"INS_3",             16},
+    {"INS_4",             17},
+    {"PENDING",           18},
+    {"INVALID_FIX",       19},
+    {"UNAUTHORIZED",      20},
+    {"ANTENNA_WARNING",   21}
 };
 
 //! Position or Velocity types
 //! check OEMV firmware documentation on page 251, Table 50
 map <string, uint16_t> fix_type = {
-	{"NONE",0},
-	{"FIXEDPOS",1},
-	{"FIXEDHEIGHT",2},
-	{"DOPPLER_VELOCITY",8},
-	{"SINGLE",16},
-	{"PSRDIFF",17},
-	{"WASS",18},
-	{"PROPAGATED",19},
-	{"OMNISTAR",20},
-	{"L1_FLOAT",32},
-	{"IONOFREE_FLOAT",33},
-	{"NARROW_FLOAT",34},
-	{"L1_INT",48},
-	{"WIDE_INT",49},
-	{"NARROW_INT",50},
-	{"RTK_DIRECT_INS",51},
-	{"INS",52},
-	{"INS_PSRSP",53},
-	{"INS_PSRDIFF",54},
-	{"INS_RTKFLOAT",55},
-	{"INS_RTKFIXED",56},
-	{"OMNISTAR_HP",64},
-	{"OMNISTAR_XP",65},
-	{"CDGPS",66}
+    {"NONE",             0},
+    {"FIXEDPOS",         1},
+    {"FIXEDHEIGHT",      2},
+    {"DOPPLER_VELOCITY", 8},
+    {"SINGLE",           16},
+    {"PSRDIFF",          17},
+    {"WASS",             18},
+    {"PROPAGATED",       19},
+    {"OMNISTAR",         20},
+    {"L1_FLOAT",         32},
+    {"IONOFREE_FLOAT",   33},
+    {"NARROW_FLOAT",     34},
+    {"L1_INT",           48},
+    {"WIDE_INT",         49},
+    {"NARROW_INT",       50},
+    {"RTK_DIRECT_INS",   51},
+    {"INS",              52},
+    {"INS_PSRSP",        53},
+    {"INS_PSRDIFF",      54},
+    {"INS_RTKFLOAT",     55},
+    {"INS_RTKFIXED",     56},
+    {"OMNISTAR_HP",      64},
+    {"OMNISTAR_XP",      65},
+    {"CDGPS",            66}
 };
 
 
 //! Clock Model status
 //! check OEMV firmware documentation on page 268, table 54
 map <string, uint16_t> clock_status = {
-	{"VALID",0},
-	{"CONVERGING",1},
-	{"ITERATING",2},
-	{"INVALID",3},
-	{"ERROR",4}
+    {"VALID",      0},
+    {"CONVERGING", 1},
+    {"ITERATING",  2},
+    {"INVALID",    3},
+    {"ERROR",      4}
 };
+
+//! Clock UTC status
+//! check OEMV firmware documentation on page 555
+map <string, uint16_t> utc_status = {
+    {"INVALID",      0},
+    {"VALID",        1}
+};
+
+
+
 
 //! Connect to OEMV.
 /*! Connect to a OEMV speaking NMEA protocol, connected to the
@@ -121,12 +130,13 @@ map <string, uint16_t> clock_status = {
  * \param handle Pointer to ::oemv_handle.
  * \return Zero, or negative error number.
 */
-int32_t oemv_connect(char *dev, oemv_handle *handle)
+//int32_t oemv_connect(char *dev, oemv_handle *handle)
+int32_t oemv_connect(string port, oemv_handle *handle)
 {
 	int32_t iretn;
 
 	cssl_start();
-	handle->serial = cssl_open(dev,OEMV_BAUD,OEMV_BITS,OEMV_PARITY,OEMV_STOPBITS);
+    handle->serial = cssl_open(port.c_str(),OEMV_BAUD,OEMV_BITS,OEMV_PARITY,OEMV_STOPBITS);
 	if (handle->serial == NULL)
 		return (CSSL_ERROR_OPEN);
 	if ((iretn=cssl_settimeout(handle->serial, 0, 5.)) < 0)
@@ -574,8 +584,10 @@ int32_t oemv_log(oemv_handle *handle, const char* log)
 	sprintf((char *)handle->data,
 			"LOGA,COM1,0,0.,UNKNOWN,0,0.0,0,0;COM1,%s,ONCE,0.,0.,NOHOLD", log);
 
-	if (strcmp(log, "GPGGAA") == 0 || strcmp(log, "GPGSVA") == 0){
-		//NMEA messages starting with '$'
+    // for NMEA messages starting with '$'
+    if (strcmp(log, "GPGGAA") == 0 || strcmp(log, "GPGSVA") == 0)
+    {
+
 
 		if ((iretn=oemv_putascii(handle)) < 0)
 		{
@@ -597,9 +609,9 @@ int32_t oemv_log(oemv_handle *handle, const char* log)
 		//printf("gpgga test: %s\n", handle->data);
 
 
-	} else {
-		// the default messages starting with '#'
-
+    }
+    else // for the default messages starting with '#'
+    {
 		if ((iretn=oemv_talkascii(handle, true)) < 0)
 		{
 			//printf("error 2\n");
@@ -611,14 +623,13 @@ int32_t oemv_log(oemv_handle *handle, const char* log)
 			return(OEMV_ERROR_RESPONSE);
 		}
 
-
 		uint32_t length = iretn;
-
 
 		string t_status;
 		uint16_t nexti;
 		uint16_t lasti=0;
-		// Skip over four commas
+
+        // Skip over four commas // ??? why ???
 		for (uint16_t i=0; i<4; ++i)
 		{
 			for(nexti=lasti; nexti<length; ++nexti)
@@ -642,7 +653,7 @@ int32_t oemv_log(oemv_handle *handle, const char* log)
 			return(OEMV_ERROR_RESPONSE);
 		}
 
-		//  Read in clock_status
+        //  Read in clock_status // why here ??? should only be called in get_time or something
 		for(nexti=lasti; nexti<length; ++nexti)
 		{
 			if (nexti >= length)
@@ -665,7 +676,7 @@ int32_t oemv_log(oemv_handle *handle, const char* log)
 			return(OEMV_ERROR_RESPONSE);
 		}
 
-		// Scan GPS Week and Seconds
+        // Scan GPS Week and Seconds //
 		sscanf((char *)&handle->data[lasti], "%hu,%f",
 			   &handle->message.header.gps_week,
 			   &handle->message.header.gps_second);
@@ -935,10 +946,10 @@ int32_t oemv_gpgga(oemv_handle *handle)
 	return 0;
 }
 
-
+// to get number of satellites in view: GPGSV pg. 328
 int32_t oemv_gpgsv(oemv_handle *handle)
 {
-	// to get number of satellites in view: GPGSV pg. 328
+
 	int32_t iretn;
 
 	//printf("Requesting GPPGA\n");
@@ -984,6 +995,8 @@ int32_t oemv_gpgsv(oemv_handle *handle)
 	return 0;
 }
 
+// This log provides several time related pieces of information including receiver clock offset and UTC time and offset
+// pg. 553
 int32_t oemv_time(oemv_handle *handle)
 {
 	int32_t iretn;
@@ -995,66 +1008,101 @@ int32_t oemv_time(oemv_handle *handle)
 
 	uint32_t length = iretn;
 
-	string c_status;
-	uint16_t nexti;
-	uint16_t lasti=0;
-	// Find first comma and read in clock_status
-	for(nexti=lasti; nexti<length; ++nexti)
-	{
-		if (handle->data[nexti] == ',')
-		{
-			handle->data[nexti] = 0;
-			c_status.assign((char *)&handle->data[lasti]);
-			handle->message.time.clock_status = clock_status[c_status];
-			lasti = nexti + 1;
-			break;
-		}
-	}
+    string c_status; // clock status string
+//	uint16_t nexti;
+//	uint16_t lasti=0;
 
-	if (++lasti >= length)
-	{
-		return(OEMV_ERROR_RESPONSE);
-	}
+    // convert handle->data to string
+    // !!! this would be unecessary if omev_log would directly return a string
+    string logdata;
+    logdata.assign(handle->data, handle->data + length);
+    //logdata = string( (char *)handle->data); // this should work because the handle->data is null terminated
 
-	// Scan variables in place
-	sscanf((char *)&handle->data[lasti],"%lf,%lf,%lf,%u,%hhu,%hhu,%hhu,%hhu,%u"
-		   ,&handle->message.time.offset
-		   ,&handle->message.time.offset_std
-		   ,&handle->message.time.utc_offset
-		   ,&handle->message.time.utc_year
-		   ,&handle->message.time.utc_month
-		   ,&handle->message.time.utc_day
-		   ,&handle->message.time.utc_hour
-		   ,&handle->message.time.utc_minute
-		   ,&handle->message.time.utc_ms
-		   );
+    StringParser parser(logdata);
+    // set the offset so we can call getFieldNumber with the tabulated field number in the OEMV documentation tables
+    parser.offset = -2;
+
+    //read in clock_status
+    c_status = parser.getFieldNumber(2);
+
+    if (c_status.empty())
+    {
+        return OEMV_ERROR_RESPONSE;
+    }
+
+//	// Find first comma and read in clock_status
+//	for(nexti=lasti; nexti<length; ++nexti)
+//	{
+//		if (handle->data[nexti] == ',')
+//		{
+//			handle->data[nexti] = 0;
+//			c_status.assign((char *)&handle->data[lasti]);
+//			handle->message.time.clock_status = clock_status[c_status];
+//			lasti = nexti + 1;
+//			break;
+//		}
+//	}
+
+    handle->message.time.clock_status = clock_status[c_status];
+    handle->message.time.clock_status_str = c_status;
+
+//	if (++lasti >= length)
+//	{
+//		return(OEMV_ERROR_RESPONSE);
+//	}
+
+//	// Scan variables in place
+//	sscanf((char *)&handle->data[lasti],"%lf,%lf,%lf,%u,%hhu,%hhu,%hhu,%hhu,%u"
+//		   ,&handle->message.time.offset
+//		   ,&handle->message.time.offset_std
+//		   ,&handle->message.time.utc_offset
+//		   ,&handle->message.time.utc_year
+//		   ,&handle->message.time.utc_month
+//		   ,&handle->message.time.utc_day
+//		   ,&handle->message.time.utc_hour
+//		   ,&handle->message.time.utc_minute
+//		   ,&handle->message.time.utc_ms
+//		   );
+
+    handle->message.time.offset      = parser.getFieldNumberAsDouble(3);
+    handle->message.time.offset_std  = parser.getFieldNumberAsDouble(4);
+    handle->message.time.utc_offset  = parser.getFieldNumberAsDouble(5);
+    handle->message.time.utc_year    = parser.getFieldNumberAsDouble(6);
+    handle->message.time.utc_month   = parser.getFieldNumberAsDouble(7);
+    handle->message.time.utc_day     = parser.getFieldNumberAsDouble(8);
+    handle->message.time.utc_hour    = parser.getFieldNumberAsDouble(9);
+    handle->message.time.utc_minute  = parser.getFieldNumberAsDouble(10);
+    handle->message.time.utc_ms      = parser.getFieldNumberAsDouble(11);
+
 
 	// Adjust for transmission lag: 66 characters plus length of message
 	double offset = (66 + length) * (10./OEMV_BAUD);
 	handle->message.time.utc_ms += 1000. * offset + .5;
 
-	// Skip over intervening commas
-	for (uint16_t i=0; i<9; ++i)
-	{
-		for(nexti=lasti; nexti<length; ++nexti)
-		{
-			if (handle->data[nexti] == ',')
-			{
-				lasti = nexti;
-				break;
-			}
-		}
+//	// Skip over intervening commas
+//	for (uint16_t i=0; i<9; ++i)
+//	{
+//		for(nexti=lasti; nexti<length; ++nexti)
+//		{
+//			if (handle->data[nexti] == ',')
+//			{
+//				lasti = nexti;
+//				break;
+//			}
+//		}
 
-		if (++lasti >= length)
-		{
-			return(OEMV_ERROR_RESPONSE);
-		}
-	}
+//		if (++lasti >= length)
+//		{
+//			return(OEMV_ERROR_RESPONSE);
+//		}
+//	}
 
-	// Scan in UTC Status
-	string u_status;
-	u_status.assign((char *)&handle->data[lasti]);
-	handle->message.time.utc_status = clock_status[u_status];
+//	// Scan in UTC Status
+//	string u_status;
+//	u_status.assign((char *)&handle->data[lasti]);
+//	handle->message.time.utc_status = clock_status[u_status];
+    handle->message.time.utc_status_str = parser.getFieldNumber(12);
+    handle->message.time.utc_status = utc_status[handle->message.time.utc_status_str];
 
 	return 0;
 }
@@ -1113,9 +1161,12 @@ int32_t oemv_bestvel(oemv_handle *handle)
 	return 0;
 }
 
+// request best available cartesian position and velocity
+// ref pg 261
 int32_t oemv_bestxyz(oemv_handle *handle)
 {
 	int32_t iretn;
+    string p_status, p_type, v_status, v_type;
 
 	if ((iretn=oemv_log(handle, "BESTXYZA")) < 0)
 	{
@@ -1123,21 +1174,35 @@ int32_t oemv_bestxyz(oemv_handle *handle)
 	}
 	uint32_t length = iretn;
 
+
+    // convert handle->data to string
+    // !!! this would be unecessary if omev_log would directly return a string
+    string logdata;
+    logdata.assign(handle->data, handle->data + sizeof(handle->data));
+
+    StringParser parser(logdata);
+    p_status = parser.getFieldNumber(1);
+
+    //cout << pos_status << endl;
+
+    handle->message.bestxyz.position_status = solution_status[p_status];
+    handle->message.bestxyz.position_status_str = p_status;
+
 	// Find next comma and read in position_status
-	string p_status, p_type, v_status, v_type;
+
 	uint16_t nexti=0;
 	uint16_t lasti=0;
-	for(nexti=lasti; nexti<length; ++nexti)
-	{
-		if (handle->data[nexti] == ',')
-		{
-			handle->data[nexti] = 0;
-			p_status.assign((char *)&handle->data[lasti]);
-			handle->message.bestxyz.position_status = solution_status[p_status];
-			lasti = nexti;
-			break;
-		}
-	}
+//	for(nexti=lasti; nexti<length; ++nexti)
+//	{
+//		if (handle->data[nexti] == ',')
+//		{
+//			handle->data[nexti] = 0;
+//			p_status.assign((char *)&handle->data[lasti]);
+//			handle->message.bestxyz.position_status = solution_status[p_status];
+//			lasti = nexti;
+//			break;
+//		}
+//	}
 
 	if (++lasti >= length)
 	{
@@ -1237,9 +1302,15 @@ int32_t oemv_bestxyz(oemv_handle *handle)
 		   ,&handle->message.bestxyz.velocity_z_sd
 		   );
 
+
 	return 0;
 }
 
+
+// RXSTATUS, Receiver status
+// This log conveys various status parameters of the GPS receiver system. These include the Receiver
+// Status and Error words which contain several flags specifying status and error conditions
+// Ref: OEMV Family Firmware Version 3.500 Reference Manual Rev 6 pg 540
 int32_t oemv_rxstatus(oemv_handle *handle)
 {
 	uint32_t length;
@@ -1387,7 +1458,7 @@ int32_t oemv_talkascii(oemv_handle *handle, bool data_flag)
 	{
 		return (iretn);
 	}
-
+    // ??? what is the data flag doing here?
 	if (!data_flag)
 	{
 		return (iretn);
@@ -1397,6 +1468,7 @@ int32_t oemv_talkascii(oemv_handle *handle, bool data_flag)
 	if ((iretn=oemv_getascii(handle)) < 0)
 	{
 		//printf("error 3\n");
+        //cout << "error: " << iretn << endl;
 		return (iretn);
 	}
 

@@ -70,12 +70,15 @@ public:
     bool condition_true()	{
         const char *cp = (char *)condition.c_str();
 //		cout <<"condition sent: <" << cp << ">" << endl;
-        double d= json_equation(&cp,cdata);
+		double d= json_equation(cp,cdata);
 //		cout <<"condition returned: <" << d << ">" << endl;
         return d;
     };
 
-    const string get_name() {	return name; };
+	const string get_name()
+	{
+		return name;
+	};
     friend ostream& operator<<(ostream& out, const command& cmd);
     friend bool operator==(const command& cmd1, const command& cmd2);
 };

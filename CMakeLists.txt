@@ -36,6 +36,7 @@ cmake_minimum_required(VERSION 2.6)
 project(${PROJECT_NAME})
 
 # define what libraries you want to compile
+set(BUILD_COSMOS_CORE_MATH              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_DEVICES              ON)         #ON/OFF
 set(BUILD_COSMOS_CORE_THIRDPARTY_JPEG     ON)          #ON/OFF
@@ -128,7 +129,7 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    # Mac OS X specific code
     IF("$ENV{COSMOS}" STREQUAL "")
-        SET(COSMOS_FOLDER "/Applications/cosmos/macos")
+        SET(COSMOS_FOLDER "/Applications/cosmos")
     ELSE()
         SET(COSMOS_FOLDER "$ENV{COSMOS}/macos")
     ENDIF("$ENV{COSMOS}" STREQUAL "")
@@ -141,7 +142,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
                 set(CMAKE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
         else()
             IF("$ENV{COSMOS}" STREQUAL "")
-                SET(COSMOS_FOLDER "c:/cosmos/windows")
+                SET(COSMOS_FOLDER "c:/cosmos")
             ELSE()
                 SET(COSMOS_FOLDER "$ENV{COSMOS}/windows")
             ENDIF("$ENV{COSMOS}" STREQUAL "")
@@ -155,6 +156,12 @@ if (${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
 endif()
 
 get_filename_component(OS_FOLDER ${CMAKE_BINARY_DIR} NAME)
+
+IF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
+        message("Building math")
+    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/math ${CMAKE_BINARY_DIR}/libraries/math)
+    set(LINK_LIBRARY_COSMOS_CORE_MATH CosmosMath)
+ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
 
 IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
         message("Building support")

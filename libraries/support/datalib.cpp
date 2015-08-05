@@ -974,6 +974,15 @@ int32_t set_cosmosresources()
 			return 0;
 		}
 #endif
+
+#ifdef COSMOS_MAC_OS
+        if (data_isdir("/Applications/cosmos/resources"))
+        {
+            cosmosresources = "/Applications/cosmos/resources";
+            return 0;
+        }
+#endif
+
 #ifdef COSMOS_WIN_OS
 		if (data_isdir("c:/cosmos/resources"))
 		{
@@ -1179,9 +1188,9 @@ int32_t set_cosmosnodes()
 		}
 #endif
 #ifdef COSMOS_MAC_OS
-        if (data_isdir("/Applications/COSMOS/nodes/"))
+        if (data_isdir("/Applications/cosmos/nodes/"))
         {
-            cosmosnodes = "/Applications/COSMOS/nodes/";
+            cosmosnodes = "/Applications/cosmos/nodes/";
             return 0;
         }
 #endif

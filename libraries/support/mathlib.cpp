@@ -27,9 +27,9 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// ?? TBDs
-// * Group all the quaternion operations in one class, and other logical groups
-//   this will make it much easier to use matlib
+//   TODO:
+// * create a new class just for quaternion operations, and other logical groups
+//   this will make it much easier to use the separate libraries
 
 /*! \file mathlib.cpp
 	\brief mathlib source file
@@ -1465,6 +1465,12 @@ double dot_cv(cvector a, cvector b)
 	return (d);
 }
 
+
+double q_norm(quaternion q)
+{
+    return length_q(q);
+}
+
 void q_normalize(quaternion *q)
 {
 	double mag;
@@ -1473,8 +1479,10 @@ void q_normalize(quaternion *q)
 	q->d.x = round(q->d.x/D_SMALL)*D_SMALL;
 	q->d.y = round(q->d.y/D_SMALL)*D_SMALL;
 	q->d.z = round(q->d.z/D_SMALL)*D_SMALL;
+
 	mag = q->w * q->w + q->d.x * q->d.x + q->d.y * q->d.y + q->d.z * q->d.z;
-	if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
+
+    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
 	{
 		mag = sqrt(mag);
 		q->w /= mag;
@@ -1544,7 +1552,8 @@ quaternion q_mult(rvector r1, quaternion q2)
 	return (o);
 }
 
-//! quaternion multiply
+//! Quaternion multiplication. The result of moltuplying two quaternions is the
+//! composition of two rotations (not commutative).
 /*! Quaternion multiply two quaternions.
  * \param q1 First quaternion
  * \param q2 Second quaternion
@@ -1761,6 +1770,7 @@ quaternion q_change_around_cv(cvector around, double angle)
 	return (rq);
 }
 
+// TODO: explain
 void qrotate(double ipos[3], double rpos[3], double angle, double *opos)
 {
 	double q1, q2, q3, q4, length, sa;
@@ -1817,6 +1827,7 @@ quaternion q_euler2quaternion(avector rpw)
 	return (q);
 }
 
+// TODO: validade and add reference
 avector a_quaternion2euler(quaternion q)
 {
 	avector rpw;
@@ -1896,45 +1907,50 @@ cmatrix cm_quaternion2dcm(quaternion q)
 	return (m);
 }
 
-quaternion q_dcm2quaternion_cm(cmatrix m)
+//! Direction Cosine Matrix to Quaternion
+/*! Convert the given DCM to an equivalent quaternion
+    \param dcm direction cosine matrix
+    \return q quaternion
+*/
+quaternion q_dcm2quaternion_cm(cmatrix dcm)
 {
 	quaternion q;
 	double t, tr;
 
-	if ((tr=trace_cm(m)) > 0.)
+    if ((tr=trace_cm(dcm)) > 0.)
 	{
 		t = .5 / sqrt(1.+tr);
 		q.w = .25 / t;
-		q.d.x = t*(m.r3.y - m.r2.z);
-		q.d.y = t*(m.r1.z - m.r3.x);
-		q.d.z = t*(m.r2.x - m.r1.y);
+        q.d.x = t*(dcm.r3.y - dcm.r2.z);
+        q.d.y = t*(dcm.r1.z - dcm.r3.x);
+        q.d.z = t*(dcm.r2.x - dcm.r1.y);
 	}
 	else
 	{
-		if (m.r1.x > m.r2.y && m.r1.x > m.r3.z)
+        if (dcm.r1.x > dcm.r2.y && dcm.r1.x > dcm.r3.z)
 		{
-			t = 2. * sqrt(1. + m.r1.x - m.r2.y - m.r3.z);
-			q.w = (m.r3.y - m.r2.z) / t;
+            t = 2. * sqrt(1. + dcm.r1.x - dcm.r2.y - dcm.r3.z);
+            q.w = (dcm.r3.y - dcm.r2.z) / t;
 			q.d.x = .25 * t;
-			q.d.y = (m.r1.y + m.r2.x) / t;
-			q.d.z = (m.r1.z + m.r3.x) / t;
+            q.d.y = (dcm.r1.y + dcm.r2.x) / t;
+            q.d.z = (dcm.r1.z + dcm.r3.x) / t;
 		}
 		else
 		{
-			if (m.r2.x > m.r3.z)
+            if (dcm.r2.x > dcm.r3.z)
 			{
-				t = 2. * sqrt(1. + m.r2.y - m.r1.x - m.r3.z);
-				q.w = (m.r1.z - m.r3.x) / t;
-				q.d.x = (m.r1.y + m.r2.x) / t;
+                t = 2. * sqrt(1. + dcm.r2.y - dcm.r1.x - dcm.r3.z);
+                q.w = (dcm.r1.z - dcm.r3.x) / t;
+                q.d.x = (dcm.r1.y + dcm.r2.x) / t;
 				q.d.y = .25 * t;
-				q.d.z = (m.r2.z + m.r3.y) / t;
+                q.d.z = (dcm.r2.z + dcm.r3.y) / t;
 			}
 			else
 			{
-				t = 2. * sqrt(1. + m.r3.z - m.r1.x - m.r2.y);
-				q.w = (m.r2.x - m.r1.y) / t;
-				q.d.x = (m.r1.z + m.r3.x) / t;
-				q.d.y = (m.r2.z + m.r3.y) / t;
+                t = 2. * sqrt(1. + dcm.r3.z - dcm.r1.x - dcm.r2.y);
+                q.w = (dcm.r2.x - dcm.r1.y) / t;
+                q.d.x = (dcm.r1.z + dcm.r3.x) / t;
+                q.d.y = (dcm.r2.z + dcm.r3.y) / t;
 				q.d.z = .25 * t;
 			}
 		}
@@ -1944,6 +1960,7 @@ quaternion q_dcm2quaternion_cm(cmatrix m)
 	return(q);
 }
 
+// TODO: explain
 quaternion q_axis2quaternion_cv(cvector v)
 {
 	double length, s2;
@@ -5133,68 +5150,70 @@ vector<vector<double> > lsfit::getparms(double x)
 	return parms;
 }
 
-cmatrix DCM::base2_from_base1(basisOrthonormal base2,basisOrthonormal base1){
 
-// compute dcm matrix (A) to represent vector in base 2 coordinates
+// moved to math folder
+//cmatrix DCM::base2_from_base1(basisOrthonormal base2,basisOrthonormal base1){
 
-// References
-// - Quaternion and Rotation Sequences, Kuipers, pg 160 (I think these
-//   formulas are wrong in the book! they are inversed, must check)
-// - http://people.ae.illinois.edu/tbretl/ae403/handouts/06-dcm.pdf (this
-//   reference seems to be sound)
-// - http://www.starlino.com/dcm_tutorial.html (eq 1.4)
+//// compute dcm matrix (A) to represent vector in base 2 coordinates
 
-// example: vector_body_coordinates = dcm_base2_from_base1 * vector_inertial_coodinates
+//// References
+//// - Quaternion and Rotation Sequences, Kuipers, pg 160 (I think these
+////   formulas are wrong in the book! they are inversed, must check)
+//// - http://people.ae.illinois.edu/tbretl/ae403/handouts/06-dcm.pdf (this
+////   reference seems to be sound)
+//// - http://www.starlino.com/dcm_tutorial.html (eq 1.4)
 
-// Notes:
-// - matrix A represents a frame rotation that relates the initial reference
-//   frame {X,Y,Z} to a rotated frame {x,y,z}: x = AX. Example, appliying
-//   the operation AX - where X is for instance a vector in the inertial
-//   frame - resutls in the coordinates of that vector in the new frame {x,y,z}
-//   in general the vector x is simply the vector X expressed in a new frame coordinates
+//// example: vector_body_coordinates = dcm_base2_from_base1 * vector_inertial_coodinates
 
-// Example to run:
-// define a base1 (inertial)
-// base1.i = [1,0,0];
-// base1.j = [0,1,0];
-// base1.k = [0,0,1];
-// define a frame2 rotated 90 deg aroud z axis (of the inertial)
-// base2.i = [0,1,0];
-// base2.j = [-1,0,0];
-// base2.k = [0,0,1];
-// compute the dcm
-// dcm_base2_from_base1(base2,base1);
-// check if it's right, base1.i vector shoud be now [0,-1,0]
-// dcm_base2_from_base1(base2,base1)*base1.i'
+//// Notes:
+//// - matrix A represents a frame rotation that relates the initial reference
+////   frame {X,Y,Z} to a rotated frame {x,y,z}: x = AX. Example, appliying
+////   the operation AX - where X is for instance a vector in the inertial
+////   frame - resutls in the coordinates of that vector in the new frame {x,y,z}
+////   in general the vector x is simply the vector X expressed in a new frame coordinates
 
-// TODOs
-// - add validation step to verify if the bases are orthogonal
+//// Example to run:
+//// define a base1 (inertial)
+//// base1.i = [1,0,0];
+//// base1.j = [0,1,0];
+//// base1.k = [0,0,1];
+//// define a frame2 rotated 90 deg aroud z axis (of the inertial)
+//// base2.i = [0,1,0];
+//// base2.j = [-1,0,0];
+//// base2.k = [0,0,1];
+//// compute the dcm
+//// dcm_base2_from_base1(base2,base1);
+//// check if it's right, base1.i vector shoud be now [0,-1,0]
+//// dcm_base2_from_base1(base2,base1)*base1.i'
 
-    return  {
-        { dot_cv(base1.i, base2.i) , dot_cv(base1.j, base2.i), dot_cv(base1.k, base2.i) },
-        { dot_cv(base1.i, base2.j) , dot_cv(base1.j, base2.j), dot_cv(base1.k, base2.j) },
-        { dot_cv(base1.i, base2.k) , dot_cv(base1.j, base2.k), dot_cv(base1.k, base2.k) }
-    };
-}
+//// TODOs
+//// - add validation step to verify if the bases are orthogonal
 
-cmatrix DCM::base1_from_base2(basisOrthonormal base1, basisOrthonormal base2){
-    // compute dcm matrix (A) to represent vector given in base 2
-    // in base 1 coordinates
+//    return  {
+//        { dot_cv(base1.i, base2.i) , dot_cv(base1.j, base2.i), dot_cv(base1.k, base2.i) },
+//        { dot_cv(base1.i, base2.j) , dot_cv(base1.j, base2.j), dot_cv(base1.k, base2.j) },
+//        { dot_cv(base1.i, base2.k) , dot_cv(base1.j, base2.k), dot_cv(base1.k, base2.k) }
+//    };
+//}
 
-    // References
-    // - Quaternion and Rotation Sequences, Kuipers, pg 160
-    // - http://people.ae.illinois.edu/tbretl/ae403/handouts/06-dcm.pdf
-    // - http://www.starlino.com/dcm_tutorial.html (eq 1.4)
+//cmatrix DCM::base1_from_base2(basisOrthonormal base1, basisOrthonormal base2){
+//    // compute dcm matrix (A) to represent vector given in base 2
+//    // in base 1 coordinates
 
-    // example:
-    // vector_inertial_coordinates = dcm_base1_from_base2 * vector_body_coodinates
+//    // References
+//    // - Quaternion and Rotation Sequences, Kuipers, pg 160
+//    // - http://people.ae.illinois.edu/tbretl/ae403/handouts/06-dcm.pdf
+//    // - http://www.starlino.com/dcm_tutorial.html (eq 1.4)
 
-    // TODOs
-    // - add validation step to verify if the bases are orthogonal
+//    // example:
+//    // vector_inertial_coordinates = dcm_base1_from_base2 * vector_body_coodinates
 
-    // just compute the transpose
-    return cm_transpose(base2_from_base1(base2,base1));
-}
+//    // TODOs
+//    // - add validation step to verify if the bases are orthogonal
+
+//    // just compute the transpose
+//    return cm_transpose(base2_from_base1(base2,base1));
+//}
 
 
 // convert from cartesian vector to row vector

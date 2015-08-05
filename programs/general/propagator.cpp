@@ -232,8 +232,8 @@ int main(int argc, char* argv[])
 		gauss_jackson_propagate(gjh, *cdata, mjdnow);
 
 		update_target(cdata);
-		calc_events(eventdict, cdata, events);
-		agent_post(cdata, AGENT_MESSAGE_SOH,json_of_table(mainjstring,  cdata[0].agent[0].sohtable, cdata));
+        calc_events(eventdict, cdata, events);
+        agent_post(cdata, AGENT_MESSAGE_SOH, json_of_table(mainjstring, cdata[0].agent[0].sohtable, cdata));
 		double dsleep = 1000000. * 86400.*(sohtimer - mjdnow);
 		if (dsleep > 0.)
 		{

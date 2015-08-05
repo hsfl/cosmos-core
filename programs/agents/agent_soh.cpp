@@ -180,27 +180,29 @@ int myagent()
 		{
 
 #if !defined(COSMOS_WIN_OS)
-        fp = fopen("/proc/meminfo","r");
-        fscanf(fp,"MemTotal: %f kB\nMemFree: %f",
-			   &cdata[0].devspec.cpu[0]->maxmem,
-				&cdata[0].devspec.cpu[0]->mem);
-        fclose(fp);
+        if (cdata[0].devspec.cpu_cnt>0) {
+            fp = fopen("/proc/meminfo","r");
+            fscanf(fp,"MemTotal: %f kB\nMemFree: %f",
+                   &cdata[0].devspec.cpu[0]->maxmem,
+                    &cdata[0].devspec.cpu[0]->mem);
+            fclose(fp);
 
-        // get load average
-        fp = fopen("/proc/loadavg","r");
-		fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
-        fclose(fp);
+            // get load average
+            fp = fopen("/proc/loadavg","r");
+            fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
+            fclose(fp);
 
-        // get percetage of disk used
-        statfs("/",&fsbuf);
-		cdata[0].devspec.cpu[0]->disk = 100.0 * (double) (fsbuf.f_blocks - fsbuf.f_bfree) / (double) (fsbuf.f_blocks - fsbuf.f_bfree + fsbuf.f_bavail);
-		//cdata[0].devspec.cpu[0]->disk = fsbuf.f_bavail * fsbuf.f_frsize; // f_blocks; //f_bfree
-        //diskfree = fsbuf.f_bfree;
+            // get percetage of disk used
+            statfs("/",&fsbuf);
+            cdata[0].devspec.cpu[0]->disk = 100.0 * (double) (fsbuf.f_blocks - fsbuf.f_bfree) / (double) (fsbuf.f_blocks - fsbuf.f_bfree + fsbuf.f_bavail);
+            //cdata[0].devspec.cpu[0]->disk = fsbuf.f_bavail * fsbuf.f_frsize; // f_blocks; //f_bfree
+            //diskfree = fsbuf.f_bfree;
 
-        // get number of cpu reboots
-        fp = fopen("/flight_software/cosmosroot/nodes/hiakasat/boot.count","r");
-		fscanf(fp,"%u",&cdata[0].devspec.cpu[0]->boot_count);
-        fclose(fp);
+            // get number of cpu reboots
+            fp = fopen("/flight_software/cosmosroot/nodes/hiakasat/boot.count","r");
+            fscanf(fp,"%u",&cdata[0].devspec.cpu[0]->boot_count);
+            fclose(fp);
+        }
 
 #endif
 

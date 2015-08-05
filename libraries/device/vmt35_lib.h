@@ -99,5 +99,6 @@ int32_t vmt35_putbyte(vmt35_handle *handle, uint8_t byte);
 uint8_t vmt35_crc(uint8_t *string, uint16_t length);
 double vmt35_calc_amp(double mom, float npoly[6], float ppoly[6]);
 double vmt35_calc_moment(double amp, float npoly[6], float ppoly[6]);
+int32_t vmt35_calc_currents_from_moment(rvector mom, rvector &amp, float npoly[3][7], float ppoly[3][7]);
 
 #endif
