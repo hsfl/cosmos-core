@@ -10,8 +10,8 @@ END Epoch
 
 BEGIN Interval
 
-Start                   1 Sep 2013 22:00:00.000288002
-Stop                    2 Sep 2013 22:00:00.000288002
+Start                   29 Jun 2015 22:00:00.000000000
+Stop                    30 Jun 2015 22:00:00.000000000
 EpochUsesAnalStart      Yes
 AnimStartUsesAnalStart  Yes
 AnimStopUsesAnalStop    Yes
@@ -81,9 +81,9 @@ BEGIN Extensions
 
 BEGIN Animation
 
-    StartTime          1 Sep 2013 22:00:00.000288002
-    EndTime            2 Sep 2013 22:00:00.000288002
-    CurrentTime        1 Sep 2013 22:00:00.000288002
+    StartTime          29 Jun 2015 22:00:00.000000000
+    EndTime            30 Jun 2015 22:00:00.000000000
+    CurrentTime        29 Jun 2015 22:00:00.000000000
     Direction          Forward
     UpdateDelta        60.000000
     RefreshDelta       0.010000
@@ -1599,6 +1599,9 @@ Class Satellite
 
 	Satellite1
 	Satellite2
+	Satellite2_SGP4
+	test_hpop
+	test_sgp4
 
 END Class
 
@@ -1613,6 +1616,15 @@ BEGIN References
     END Instance
     Instance Satellite/Satellite2
         Satellite/Satellite2
+    END Instance
+    Instance Satellite/Satellite2_SGP4
+        Satellite/Satellite2_SGP4
+    END Instance
+    Instance Satellite/test_hpop
+        Satellite/test_hpop
+    END Instance
+    Instance Satellite/test_sgp4
+        Satellite/test_sgp4
     END Instance
 END References
 
