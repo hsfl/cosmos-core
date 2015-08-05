@@ -43,7 +43,7 @@
 #include <errno.h>
 #include <string>
 #include <sstream>
-using namespace std;
+//using namespace std;  // don't use this as it may cause conflicts with other namespaces
 
 //! \ingroup stringlib
 //! \defgroup stringlib_functions String handling functions

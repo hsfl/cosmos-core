@@ -89,7 +89,7 @@
 #include <sys/select.h>
 #endif
 
-using namespace std;
+//using namespace std;  // don't use this as it may cause conflicts with other namespaces
 
 //! \ingroup agentlib
 //! \defgroup agentlib_functions Agent Server and Client Library functions

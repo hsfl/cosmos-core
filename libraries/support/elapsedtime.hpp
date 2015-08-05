@@ -48,7 +48,7 @@
 #include <chrono>
 #endif
 
-using namespace std;
+//using namespace std;  // don't use this as it may cause conflicts with other namespaces
 
 // profiling class
 // On windows using MinGw32 it does not get better than 1ms
@@ -58,14 +58,14 @@ class ElapsedTime {
     //	struct timespec timeStart, timeNow, timeCheck;
     timeval timeStart, timeNow, timeCheck;
 #else
-    chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
+    std::chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
 #endif
 
 public:
     //int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
     //float elapsed_time(struct timeval a,struct timeval b);
     void printElapsedTime();
-    void printElapsedTime(string text);
+    void printElapsedTime(std::string text);
     double getElapsedTimeMiliSeconds();
     double lap();
     double split();
@@ -74,7 +74,7 @@ public:
     void tic();
     double toc();
     //double toc(bool print_flag);
-    double toc(string text);
+    double toc(std::string text);
     void reset();
 
     void start();

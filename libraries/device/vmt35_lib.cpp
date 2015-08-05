@@ -525,6 +525,47 @@ int32_t vmt35_set_moment(vmt35_handle *handle, uint16_t channel, double mom, flo
 
 }
 
+//! Compute currents from moment
+/*! Calculate the current to use for each torque rod using the requested ::rvector of
+ * magnetic moments and the supplied polynomial coefficients. Wait for the current
+ * to stabilize at the new value.
+ * \param handle Pointer to ::vmt35_handle.
+ * \param mom Magnetic moments.
+ * \param npoly Coefficients for 6th order polynomial to be used with negative moments.
+ * \param ppoly Coefficients for 6th order polynomial to be used with positive moments.
+ * \return Zero or negative error.
+ */
+int32_t vmt35_calc_currents_from_moment(rvector mom, rvector &amp, float npoly[3][7], float ppoly[3][7])
+{
+    double setamp; //amp[3],
+    // limit the moment to a maximum of 32 Am^2
+    for (uint16_t i =0; i<3; ++i)
+    {
+        if (fabs(mom.col[i]) > 32.)
+        {
+            double decrease = 32. / fabs(mom.col[i]);
+            for (uint16_t j=0; j<3; ++j)
+            {
+                mom.col[j] *= decrease;
+            }
+        }
+    }
+    //compute the current that produces the desired torque, for the 3 torque rods
+    for (uint16_t i =0; i<3; ++i)
+    {
+        if (mom.col[i] == 0.)
+        {
+            amp.col[i] = 0.;
+        }
+        else
+        {
+            amp.col[i] = vmt35_calc_amp(mom.col[i], npoly[i], ppoly[i]);
+        }
+    }
+
+    return ((int32_t)(setamp*1e3));
+}
+
 //! Set all three VMT35 Magnetic Moment
 /*! Calculate the current to use for each torque rod using the requested ::rvector of
  * magnetic moments and the supplied polynomial coefficients. Wait for the current
