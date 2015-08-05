@@ -263,6 +263,13 @@ contains(MODULES, cssl_lib){
     HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.h)
 }
 
+contains(MODULES, microstrain_lib){
+    message( "- device/microstrain_lib" )
+    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
+    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/microstrain_lib.cpp)
+    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/microstrain_lib.h)
+}
+
 contains(MODULES, serial){
     message( "- device/serial" )
     INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
