@@ -2945,6 +2945,40 @@ void floatto(float value, uint8_t *pointer, uint8_t order)
 
 }
 
+//! 64 bit floating point to memory
+/*! Cast a 64 bit floating point equivalent into a location in memory, corrected for the local byte order.
+    \param value float to be cast
+    \param pointer location in memory
+    \param order desired byte order of the data in memory. ORDER_BIGENDIAN or ORDER_LITTLEENDIAN
+*/
+
+void doubleto(double value, uint8_t *pointer, uint8_t order)
+{
+    double *result;
+    uint8_t *rb;
+    double rd;
+
+    rb = (uint8_t *)&rd;
+
+    result = (double *)rb;
+    *result = value;
+    if (local_byte_order() == order)
+    {
+        memcpy(pointer,(void *)rb,8);
+    }
+    else
+    {
+        pointer[0] = rb[7];
+        pointer[1] = rb[6];
+        pointer[2] = rb[5];
+        pointer[3] = rb[4];
+        pointer[4] = rb[3];
+        pointer[5] = rb[2];
+        pointer[6] = rb[1];
+        pointer[7] = rb[0];
+    }
+}
+
 //! Initialize estimator
 /*! Setup the provided ::estimatorhandle so that it can be fed values
  * and provide estimates.
