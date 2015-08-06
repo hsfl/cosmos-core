@@ -106,60 +106,12 @@
 #include "configCosmos.h"
 #include "cosmos-errno.h"
 
-#include "mathTypes.h"
+#include "math/types.h"
+#include "math/constants.h"
+#include "math/quaternion.h"
 
-//! \ingroup mathlib
-//! \defgroup mathlib_constants Math library constants
-//! @{
-
-//! PI
-#define PI 3.1415926535897932384626433832795028841971693993751
-//! Double precision PI
-#define DPI 3.1415926535897932384626433832795028841971693993751
-//! Double precision 2*PI
-#define D2PI 6.2831853071795864769252867665590057683943387987502
-//! Double precision PI/2
-#define DPI2 1.5707963267948966192313216916397514420985846996876
-//! Multiplicand for Seconds of Time to Radians
-#define DS2R 7.2722052166430399038487115353692196393452995355905e-5
-//! Multiplicand for Seconds of Arc to Radians
-#define DAS2R 4.8481368110953599358991410235794797595635330237270e-6
-
-//! Multiplicand for Degrees to Radians
-#define DTOR            (DPI / (double)180.)
-//! Multiplicand for Radians to Degrees
-#define RTOD            ((double)180. / DPI)
-//! Radians of a Degree value
-#define RADOF(deg)  (double)(DTOR * (deg))
-//! Radians of a Degree value
-#define DEG2RAD(deg)  (double)(DTOR * (deg))
-//! Degrees of a Radian value
-#define DEGOF(rad)  (double)(RTOD * (rad))
-//! Degrees of a Radian value
-#define RAD2DEG(rad)  (double)(RTOD * (rad))
-
-#define O_UNDEFINED 999999.1
-#define O_INFINITE 10000000000000000000000000.9
-#define O_SMALL 0.00000001
-#define D_SMALL ((double)1e-76)
-//! Big Endian byte order
-#define ORDER_BIGENDIAN 0
-//! PowerPC byte order
-#define ORDER_PPC ORDER_BIGENDIAN
-//! Motorola byte order
-#define ORDER_MOTOROLA ORDER_BIGENDIAN
-//! Little Endian byte order
-#define ORDER_LITTLEENDIAN 1
-//! Intel byte order
-#define ORDER_INTEL ORDER_LITTLEENDIAN
-//! Network byte order
-#define ORDER_NETWORK ORDER_BIGENDIAN
-
-#define DIRECTION_ROW 0
-#define DIRECTION_COLUMN 1
-
-#define ESTIMATOR_SIZE 5
-//! @}
+#include <cmath>
+#include <iostream>
 
 //#define true 1
 //#define false 0
@@ -168,8 +120,6 @@
 //! \ingroup mathlib
 //! \defgroup mathlib_typedefs Math library typedefs
 //! @{
-
-
 
 //! Testing Row Vector Class
 /*! eventually this is where all row vector stuff would come?
@@ -445,44 +395,7 @@ cvector cv_smult(double a, cvector b);
 cvector cv_mmult(cmatrix a, cvector b);
 cvector cv_sqrt(cvector a);
 cvector cv_diag(cmatrix a);
-cvector rotate_q(quaternion q,cvector v);
-//cvector transform_q(quaternion q,cvector v); // doesn't exist in .cpp?
-cvector cv_quaternion2axis(quaternion q);
 
-
-void q_normalize(quaternion *q);
-
-quaternion q_zero();
-quaternion q_conjugate(quaternion q);
-quaternion q_times(quaternion q1, quaternion q2);
-quaternion q_mult(rvector r1, quaternion q2);
-quaternion q_mult(quaternion q1, quaternion q2);
-quaternion q_smult(double a, quaternion q);
-quaternion q_add(quaternion q1, quaternion q2);
-quaternion q_sub(quaternion q1, quaternion q2);
-quaternion q_euler2quaternion(avector rpw);
-quaternion q_dcm2quaternion_cm(cmatrix dcm);
-quaternion q_dcm2quaternion_rm(rmatrix m);
-quaternion q_axis2quaternion_cv(cvector v);
-quaternion q_axis2quaternion_rv(rvector v);
-quaternion q_change_between_cv(cvector from, cvector to);
-quaternion q_change_between_rv(rvector from, rvector to);
-quaternion q_change_around_cv(cvector around, double angle);
-quaternion q_change_around_rv(rvector around, double angle);
-quaternion q_change_around_x(double angle);
-quaternion q_change_around_y(double angle);
-quaternion q_change_around_z(double angle);
-quaternion q_rotate_around(int axis, double angle);
-quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb);
-quaternion q_eye();
-quaternion q_evaluate_poly(double x, vector< vector<double> > parms);
-quaternion q_evaluate_poly_slope(double x, vector< vector<double> > parms);
-double length_q(quaternion q);
-double q_norm(quaternion q);
-
-void qrotate(double ipos[3], double rpos[3], double angle, double *opos);
-
-avector a_quaternion2euler(quaternion q);
 
 svector s_convert(rvector from);
 

@@ -30,8 +30,7 @@
 #ifndef _DIRECTION_COSINE_MATRIX_H
 #define _DIRECTION_COSINE_MATRIX_H
 
-#include "mathTypes.h"
-
+#include "math/types.h"
 
 class DCM {
 private:

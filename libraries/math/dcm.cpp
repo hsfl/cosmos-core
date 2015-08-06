@@ -36,7 +36,7 @@
 */
 //#include "mathlib.h"
 
-#include "directionCosineMatrix.h"
+#include "math/dcm.h"
 
 
 // this is same function as dot_cv from mathlib.h

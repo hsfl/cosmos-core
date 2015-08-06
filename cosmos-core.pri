@@ -95,7 +95,9 @@ unix:!macx{
 
 #--------------------------------------------------------------------
 #add COSMOS support to the path
-INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/support
+INCLUDEPATH += $$COSMOS_SOURCE/core/libraries # generic path to allow for math/types.h etc.
+INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/support
+
 
 # Add all COSMOS support libraries
 contains(MODULES, SUPPORT){
@@ -212,19 +214,24 @@ contains(MODULES, demlib){
 # The following libraries do not depend on other libraries
 # These are self contained, they are the building blocks for
 # more complext libraries such as agentlib
-contains(MODULES, mathlib){
-    message( "- support/mathlib" )
-    INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/math
-    HEADERS += $$COSMOS_SOURCE/core/libraries/math/mathTypes.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/mathlib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/mathlib.h
+contains(MODULES, math-mathlib){
+    message( "- math/mathlib" )
+    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/math #TODO: remove this later to force the use of math/mathlib
+#    HEADERS += $$COSMOS_SOURCE/core/libraries/math/mathTypes.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/math/mathlib.cpp
+    HEADERS += $$COSMOS_SOURCE/core/libraries/math/mathlib.h
 }
 
-contains(MODULES, directionCosineMatrix){
-    message( "- math/directionCosineMatrix" )
-    INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/math
-    HEADERS     += $$COSMOS_SOURCE/core/libraries/math/directionCosineMatrix.h
-    SOURCES     += $$COSMOS_SOURCE/core/libraries/math/directionCosineMatrix.cpp
+contains(MODULES, math-dcm){
+    message( "- math/dcm" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/math/dcm.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/math/dcm.cpp
+}
+
+contains(MODULES, math-quaternion){
+    message( "- math/quaternion" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/math/quaternion.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/math/quaternion.cpp
 }
 
 
