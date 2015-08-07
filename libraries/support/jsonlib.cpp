@@ -3295,7 +3295,17 @@ int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector<jsontoken> &tok
 	int32_t iretn;
 	jsontoken ttoken;
 
-    ttoken.utc = json_convert_double(json_extract_namedobject(jstring, "node_utc"));
+    string val = json_extract_namedobject(jstring, "node_utc");
+    if (val.length()!=0) ttoken.utc = json_convert_double(val);
+    else
+    {
+        //Some older sets of telemetry do not include "node_utc" so the utc must be found elsewhere:
+        if ((val = json_extract_namedobject(jstring, "node_loc_pos_eci")).length()!=0)
+        {
+            if ((val=json_extract_namedobject(val, "utc")).length()!=0) ttoken.utc = json_convert_double(val);
+        }
+    }
+
 	length = jstring.size();
 	cpoint = &jstring[0];
 	while (*cpoint != 0 && *cpoint != '{')
