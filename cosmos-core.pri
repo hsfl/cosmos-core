@@ -96,6 +96,7 @@ unix:!macx{
 #--------------------------------------------------------------------
 #add COSMOS support to the path
 INCLUDEPATH += $$COSMOS_SOURCE/core/libraries # generic path to allow for math/types.h etc.
+INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/math
 INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/support
 
 
@@ -220,6 +221,8 @@ contains(MODULES, math-mathlib){
 #    HEADERS += $$COSMOS_SOURCE/core/libraries/math/mathTypes.h
     SOURCES += $$COSMOS_SOURCE/core/libraries/math/mathlib.cpp
     HEADERS += $$COSMOS_SOURCE/core/libraries/math/mathlib.h
+    MODULES += math-dcm
+    MODULES += math-quaternion
 }
 
 contains(MODULES, math-dcm){
