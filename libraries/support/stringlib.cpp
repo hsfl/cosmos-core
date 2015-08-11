@@ -130,19 +130,34 @@ int string_cmp(const char *wild, const char *string)
 
 
 
-// constructor splits the string into a vector field of strings
+// default constructor
 StringParser::StringParser(string str)
+{
+    splitString(str, ',');
+}
+
+// overladed constructor
+StringParser::StringParser(string str, char delimiter)
+{
+    splitString(str,delimiter);
+}
+
+
+//  splits the string into a vector field of strings
+void StringParser::splitString(string str, char delimiter)
 {
     stringstream ss(str);
     string token;
 
-    while(getline(ss, token, ','))
+    while(getline(ss, token, delimiter))
     {
         //cout << token << '\n';
         vect.push_back(token);
     }
 
-    // dafault offset so that when we want to get the 1st entry we just to getFieldNumber(1)
+    numberOfFields = vect.size();
+
+    // default offset so that when we want to get the 1st entry we just to getFieldNumber(1)
     offset = -1;
 }
 
@@ -155,7 +170,7 @@ string StringParser::getFieldNumber(unsigned int index)
     string out;
     unsigned int real_offset = index + offset;
 
-    if ( index>0 && vect.size() >= (real_offset) ){
+    if ( index>0 && numberOfFields >= (real_offset) ){
 
         out = vect.at(real_offset);
         //cout <<out << endl;
@@ -170,7 +185,7 @@ string StringParser::getFieldNumber(unsigned int index)
 double StringParser::getFieldNumberAsDouble(unsigned int index)
 {
     double out;
-    if (index>0 && vect.size() >= index){
+    if (index>0 && numberOfFields >= index){
 
         out = stod(vect.at(index + offset));
         //cout <<out << endl;

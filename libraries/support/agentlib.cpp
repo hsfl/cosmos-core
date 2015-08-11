@@ -282,7 +282,37 @@ cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd
 		return nullptr;
     }
 
-    return agent_setup_server(cdata, name, bprd, port, bsize, multiflag);
+    return agent_setup_server(cdata, name, bprd, port, bsize, multiflag, 4);
+}
+
+//! Prepare Agent server with default values (overloaded)
+/*! This is the first function to call when setting up an Agent. It first sets the Agent up as
+ * a client, and checks that no other copies of the Agent are running. It then establishes the name
+ * and connection information for the Agent, the frequency of the heartbeat, and the
+ * size of the largest block that can be transferred. It initializes the built in
+ * requests and makes it so the user can add their own requests.
+    \param node The Node this Agent is associated with.
+    \param name The name of the Agent.
+    \return Pointer to ::cosmosstruc, otherwise NULL.
+*/
+cosmosstruc *agent_setup_server(string nodename, string agentname)
+{
+    cosmosstruc *cdata;
+
+    //! First, see if we can become a Client, as all Servers are also Clients.
+    if ((cdata = agent_setup_client(AGENT_TYPE_UDP, nodename, 1000)) == NULL)
+    {
+        return nullptr;
+    }
+
+    // run setup server with default values
+    double beat_period = 1;
+    int32_t port = 0;
+    uint32_t buffer_size = 1000;
+    bool multiflag = 0;
+    float timeoutSec = 1;
+
+    return agent_setup_server(cdata, agentname, beat_period, port, buffer_size, multiflag, timeoutSec);
 }
 
 //! Prepare Agent server
@@ -305,7 +335,7 @@ cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd
     \param multiflag Boolean for whether to start multiple copies.
     \return Pointer to ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag)
+cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag, float timeoutSec = 4)
 {
     int32_t iretn;
     char tname[COSMOS_MAX_NAME];
@@ -313,14 +343,14 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
     //! Next, check if this Agent is already running
     if (!multiflag)
     {
-        if (strlen(cdata[0].node.name)>COSMOS_MAX_NAME || name.size()>COSMOS_MAX_NAME || agent_get_server(cdata, cdata[0].node.name, name, 4, (beatstruc *)NULL))
+        if (strlen(cdata[0].node.name)>COSMOS_MAX_NAME || name.size()>COSMOS_MAX_NAME || agent_get_server(cdata, cdata[0].node.name, name, timeoutSec, (beatstruc *)NULL))
         {
             json_destroy(cdata);
 			return nullptr;
         }
         strcpy(tname,name.c_str());
     }
-    else
+    else // then there is an agent running with the given name, so let's make the name unique
     {
         if (strlen(cdata[0].node.name)>COSMOS_MAX_NAME-4 || name.size()>COSMOS_MAX_NAME-4)
         {
@@ -332,7 +362,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
         do
         {
             sprintf(tname,"%s_%03d",name.c_str(),i);
-            if (!agent_get_server(cdata, cdata[0].node.name, tname, 4, (beatstruc *)NULL))
+            if (!agent_get_server(cdata, cdata[0].node.name, tname, timeoutSec, (beatstruc *)NULL))
             {
                 break;
             }
@@ -903,6 +933,8 @@ int32_t agent_req_shutdown(char*, char* output, void *cdata)
     return(0);
 }
 
+// TODO: add a line break (\n) when printing the data
+// this makes it easier to read
 int32_t agent_req_status(char*, char* output, void *cdata)
 {
     string jstring;
@@ -1873,6 +1905,51 @@ int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *a
 //    return 0;
 }
 
+// default constructor
+Agent::Agent()
+{
 
+}
+
+// overloaded constructor
+Agent::Agent(string nodename, string agentname)
+{
+    nodeName = nodename;
+    agentName = agentname;
+}
+
+// this function assumes you have initialized the node and agent names
+bool Agent::setupServer()
+{
+    cdata = agent_setup_server(nodeName, agentName);
+
+    // if setup server was not sucessfull
+    if (cdata == NULL){
+        return false;
+    }
+
+    // if setup server was sucessfull
+    return true;
+}
+
+bool Agent::setupServer(string nodename, string agentname)
+{
+    nodeName = nodename;
+    agentName = agentname;
+
+    return setupServer();
+}
+
+//
+beatstruc Agent::findServer(string servername)
+{
+    float timeout = 1.0;
+    return agent_find_server(cdata, nodeName, servername, timeout);
+}
+
+beatstruc Agent::find(string servername)
+{
+    return findServer(servername);
+}
 
 //! @}

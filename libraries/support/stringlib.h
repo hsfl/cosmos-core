@@ -63,8 +63,11 @@ public:
     // the offset then is 1
     int offset;
     StringParser(string str);
+    StringParser(string str, char delimiter);
     string getFieldNumber(unsigned int index);
     double getFieldNumberAsDouble(unsigned int index);
+    void splitString(string str, char delimiter);
+    int numberOfFields;
 };
 
 //! @}

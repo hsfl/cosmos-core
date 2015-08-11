@@ -984,8 +984,9 @@ struct genstruc
 	uint16_t type;
 	//! Device Model
 	uint16_t model;
-	//! Device flag
-	uint16_t flag;
+    //! Device flag
+    // TODO: explain what is the device flag for?
+    uint16_t flag;
 	//! Component Index
 	uint16_t cidx;
 	//! Device specific index
@@ -995,17 +996,17 @@ struct genstruc
 	//! Power Bus index
 	uint16_t bidx;
 	//! Connection information for device.
-	uint16_t portidx;
+    uint16_t portidx; // TODO: rename to port_id or port_index
 	//! Nominal Amperage
-	float namp;
+    float namp; // TODO: rename to nominal current
 	//! Nominal Voltage
-	float nvolt;
+    float nvolt; // TODO: rename to nominal voltage
 	//! Current Amperage
-	float amp;
+    float amp; // TODO: rename to current
 	//! Current Voltage
-	float volt;
+    float volt; // TODO: rename to voltage
 	//! Current Temperature
-	float temp;
+    float temp; // TODO: rename to temperature
 	//! Device information time stamp
 	double utc;
 };
@@ -1171,6 +1172,7 @@ struct cpustruc
 };
 
 
+// TODO: rename to GpsData
 struct gpsstruc
 {
 	//! Generic info
@@ -1358,6 +1360,7 @@ struct rotstruc
 };
 
 //! Star Tracker (STT) Sructure
+// TODO: rename to ST
 struct sttstruc
 {
 	//! Generic info
@@ -1365,9 +1368,10 @@ struct sttstruc
 	//! alignment quaternion
 	quaternion align;
 	//! includes 0 and 1st order derivative
-	quaternion att;
+    quaternion att; // TODO: rename to q
 	rvector omega;
 	rvector alpha;
+    //! return code for
 	uint16_t retcode;
 	uint32_t status;
 };

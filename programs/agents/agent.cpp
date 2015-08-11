@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	// check command line arguments
 	if (argc == 1)
 	{
-		printf("\n  Usage: agent [ list | dump | node_name agent_name \"request [ arguments ]\" ]\n");
+        printf("\n  Usage: agent [ list | dump [soh, beat] | node_name agent_name \"request [ arguments ]\" ]\n");
 		printf("\n    List of available nodes:\n\n");
 		print_node_list(nl);
 		printf("\n");

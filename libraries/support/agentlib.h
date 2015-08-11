@@ -112,11 +112,17 @@ int32_t agent_req_status(char *request, char* response, void *root);
 int32_t agent_req_getvalue(char *request, char* response, void *root);
 int32_t agent_req_setvalue(char *request, char* response, void *root);
 int32_t agent_req_listnames(char *request, char* response, void *root);
-cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag);
+
+// agent setup server
+cosmosstruc* agent_setup_server(string nodename, string agentname);
 cosmosstruc* agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize);
 cosmosstruc* agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag);
+cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag, float timeoutSec);
+
+// agent setup client
 cosmosstruc* agent_setup_client(int ntype, string node);
 cosmosstruc* agent_setup_client(int ntype, string node, uint32_t usectimeo);
+
 int32_t agent_shutdown_server(cosmosstruc *cdata);
 int32_t agent_shutdown_client(cosmosstruc *cdata);
 int32_t agent_set_sohstring(cosmosstruc *cdata, const char *list);
@@ -138,6 +144,25 @@ imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec);
 int json_map_agentstruc(cosmosstruc *cdata, agentstruc **agent);
 int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
 vector<socket_channel> agent_find_addresses(uint16_t ntype);
+
+
+// TODO: new agent class that will conventrate all of the above functions
+class Agent {
+
+public:
+    Agent();
+    Agent(string nodename, string agentname);
+
+    bool setupServer();
+    bool setupServer(string nodename, string agentname);
+
+    //
+    string nodeName;
+    string agentName;
+    cosmosstruc *cdata;
+    beatstruc findServer(string servername);
+    beatstruc find(string servername);
+};
 
 
 //! @}
