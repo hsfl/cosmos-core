@@ -66,6 +66,7 @@ quaternion q_change_around_z(double angle);
 quaternion q_rotate_around(int axis, double angle);
 quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb);
 quaternion q_eye();
+quaternion q_identity();
 quaternion q_evaluate_poly(double x, std::vector< std::vector<double> > parms);
 quaternion q_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
 double length_q(quaternion q);

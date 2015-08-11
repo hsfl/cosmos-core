@@ -468,13 +468,13 @@ private:
 	/*! Contains the dependent (x) and independent (y) values for a single element of a ::fitstruc.
 	 * The ::uvector allows both quaternions and rvector to be fit.
 	 */
-	typedef struct
+    struct fitelement
 	{
 		// Independent variable
 		double x;
 		// Double, rvector or quaternion dependent variable
 		uvector y;
-	} fitelement;
+    } ;
 
 	//! Least Squares Fit Structure
 	/*! Contains the data for a second order least squares fit of N elements that are type
@@ -503,10 +503,12 @@ public:
 	// Minimum reasonable step in dependent variable
 	double resolution;
 
+    // constructors
 	lsfit();
 	lsfit(uint16_t element_cnt);
 	lsfit(uint16_t element_cnt, uint16_t ord);
 	lsfit(uint16_t cnt, uint16_t ord, double res);
+
 	void update(double x, double y);
 	void update(double x, rvector y);
 	void update(double x, quaternion y);
