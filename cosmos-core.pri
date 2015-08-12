@@ -215,20 +215,41 @@ contains(MODULES, demlib){
 # The following libraries do not depend on other libraries
 # These are self contained, they are the building blocks for
 # more complext libraries such as agentlib
-contains(MODULES, math-mathlib){
+contains(MODULES, mathlib){
     message( "- math/mathlib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/math #TODO: remove this later to force the use of math/mathlib
-#    HEADERS += $$COSMOS_SOURCE/core/libraries/math/mathTypes.h
+    #TODO: remove this later to force the use of #include "math/mathfile"
+    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/math
     SOURCES += $$COSMOS_SOURCE/core/libraries/math/mathlib.cpp
     HEADERS += $$COSMOS_SOURCE/core/libraries/math/mathlib.h
-    MODULES += math-dcm
+    MODULES += math-vector
+    MODULES += math-matrix
+    MODULES += math-rotation
     MODULES += math-quaternion
 }
 
-contains(MODULES, math-dcm){
-    message( "- math/dcm" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/math/dcm.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/math/dcm.cpp
+contains(MODULES, math-lsfit){
+    message( "- math/lsfit" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/math/lsfit.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/math/lsfit.cpp
+}
+
+contains(MODULES, math-matrix){
+    message( "- math/matrix" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/math/matrix.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/math/matrix.cpp
+    MODULES += math-vector
+}
+
+contains(MODULES, math-vector){
+    message( "- math/vector" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/math/vector.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/math/vector.cpp
+}
+
+contains(MODULES, math-rotation){
+    message( "- math/rotation" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/math/rotation.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/math/rotation.cpp
 }
 
 contains(MODULES, math-quaternion){

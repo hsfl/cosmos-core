@@ -35,12 +35,75 @@
 #ifndef _MATH_QUATERNION_H
 #define _MATH_QUATERNION_H
 
-#include "math/types.h"
+// TODO: remove dependency
+#include "math/vector.h"
 #include "math/constants.h"
-#include "math/mathlib.h"
 
-cvector rotate_q(quaternion q,cvector v);
-//cvector transform_q(quaternion q,cvector v); // doesn't exist in .cpp?
+
+//! Quaternion, scalar last, using x, y, z.
+/*! Can be thought of as ::rvector with scalar last. One can be set equal to other.
+ * First 3 elements are the scaled orientation axis. Fourth element is the scaled
+ * amount of rotation. Can alternatively be thought of as a ::cvector,
+ * followed by a scalar.
+*/
+// TODO: replace cvector with x,y,z
+struct quaternion
+{
+    //! Orientation
+    cvector d;
+    //! Rotation
+    double w;
+} ;
+
+std::ostream& operator << (std::ostream& out, const quaternion& a);
+std::istream& operator >> (std::istream& out, quaternion& a);
+
+//! Quaternion, scalar last, using imaginary elements.
+/*! Can be thought of as i, j, k elements, followed by scalar.
+*/
+struct qcomplex
+{
+    double i;
+    double j;
+    double k;
+    double r;
+} ;
+
+std::ostream& operator << (std::ostream& out, const qcomplex& a);
+std::istream& operator >> (std::istream& out, qcomplex& a);
+
+//! Quaternion, scalar last, using vector elements.
+/*! Can be thought of as vector elements, q1, q2, q3, followed by
+ * scalar q4.
+*/
+struct qlast
+{
+    double q1; // x
+    double q2; // y
+    double q3; // z
+    double q4; // w
+} ;
+
+std::ostream& operator << (std::ostream& out, const qlast& a);
+std::istream& operator >> (std::istream& out, qlast& a);
+
+//! Quaternion, scalar first using vector elements.
+/*! Can be thought of as scalar element, q0, followed by vector
+ * elements, q1, q2, q3.
+*/
+struct qfirst
+{
+    double q0; // w
+    double q1; // x
+    double q2; // y
+    double q3; // z
+} ;
+
+std::ostream& operator << (std::ostream& out, const qfirst& a);
+std::istream& operator >> (std::istream& out, qfirst& a);
+
+
+
 cvector cv_quaternion2axis(quaternion q);
 void q_normalize(quaternion *q);
 quaternion q_zero();
@@ -52,11 +115,9 @@ quaternion q_smult(double a, quaternion q);
 quaternion q_add(quaternion q1, quaternion q2);
 quaternion q_sub(quaternion q1, quaternion q2);
 quaternion q_euler2quaternion(avector rpw);
-quaternion q_dcm2quaternion_cm(cmatrix dcm);
-quaternion q_dcm2quaternion_rm(rmatrix m);
 quaternion q_axis2quaternion_cv(cvector v);
 quaternion q_axis2quaternion_rv(rvector v);
-quaternion q_change_between_cv(cvector from, cvector to);
+
 quaternion q_change_between_rv(rvector from, rvector to);
 quaternion q_change_around_cv(cvector around, double angle);
 quaternion q_change_around_rv(rvector around, double angle);
@@ -73,5 +134,38 @@ double length_q(quaternion q);
 double q_norm(quaternion q);
 void qrotate(double ipos[3], double rpos[3], double angle, double *opos);
 avector a_quaternion2euler(quaternion q);
+
+// TODO: bring these functions from mathlib
+//quaternion q_change_between_cv(cvector from, cvector to);
+//cvector rotate_q(quaternion q, rvector v);
+//cvector rotate_q(quaternion q, cvector v);
+//cvector transform_q(quaternion q,cvector v); // doesn't exist in .cpp?
+
+// TODO: implement new class
+class Quaternion {
+
+public:
+    Quaternion();
+    Quaternion(double qx, double qy, double qz, double qw);
+    double x,y,z,w;
+    Quaternion getQuaternion();
+
+    Quaternion quaternion2Quaternion(quaternion q);
+    quaternion Quaternion2quaternion(Quaternion Q);
+
+
+    // operators
+    Quaternion operator+(const Quaternion& );
+    Quaternion operator-(const Quaternion& );
+    Quaternion operator*(const Quaternion& );
+
+    friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
+    //std::istream& operator >> (std::istream& out, Quaternion& a);
+
+    Quaternion multiplyScalar(double a);
+    Quaternion conjugate();
+    cvector vector();
+    cvector omegaFromDerivative(Quaternion dq);
+};
 
 #endif

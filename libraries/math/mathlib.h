@@ -106,9 +106,14 @@
 #include "configCosmos.h"
 #include "cosmos-errno.h"
 
-#include "math/types.h"
+// include all math modules
+//#include "math/types.h"
 #include "math/constants.h"
+#include "math/vector.h"
+#include "math/matrix.h"
 #include "math/quaternion.h"
+#include "math/rotation.h"
+#include "math/lsfit.h"
 
 #include <cmath>
 #include <iostream>
@@ -121,26 +126,41 @@
 //! \defgroup mathlib_typedefs Math library typedefs
 //! @{
 
-//! Testing Row Vector Class
-/*! eventually this is where all row vector stuff would come?
- * do we really need to differentiate between cvector and rvector in the future?
+
+//! Scalar value type Union
+/*! A union of double, float, int32, int16, unit32, uint16 that allows
+ * manipulating all.
 */
-class RowVector{
+// TODO: explain why this union is used for
+typedef union
+{
+    double d;
+    float f;
+    int32_t i32;
+    int16_t i16;
+    uint32_t u32;
+    uint16_t u16;
+} utype;
 
-public:
-    // convert from cartesian vector to row vector
-    rvector from_cv(cvector v);
-};
+//! Quaternion/Rvector Union
+/*! A union of a ::cvector, ::rvector, ::matrix1d, and a ::quaternion that allows manipulating all.
+*/
+// TODO: explain why this union is used for
+typedef union
+{
+    quaternion q;
+    qcomplex qc;
+    qfirst qf;
+    qlast ql;
+    rvector r;
+    cvector c;
+    svector s;
+    gvector g;
+    matrix1d m1;
+    avector a;
+    double a4[4];
+} uvector;
 
-// DCM class moved to math folder
-//class DCM {
-//private:
-
-//public:
-//    cmatrix base2_from_base1(basisOrthonormal base2,basisOrthonormal base1);
-//    cmatrix base1_from_base2(basisOrthonormal base1, basisOrthonormal base2);
-
-//};
 
 //! pxnxm element cube
 //typedef double*** matrix3d;
@@ -259,88 +279,17 @@ struct estimatorhandle
 
 double gaussian_random(double mean, double stdev);
 
-double norm_rv(rvector a);
-double norm_rv2(rvector a);
-
-double norm_rm(rmatrix a);
-double norm_rm2(rmatrix a);
-
-double trace_rm(rmatrix a);
-double trace_rm2(rmatrix a);
-double determinant_rm(rmatrix a);
-
-rmatrix rm_transpose(rmatrix a);
-rmatrix rm_square(rmatrix a);
-rmatrix rm_sqrt(rmatrix a);
-rmatrix rm_eye();
-rmatrix rm_zero();
-rmatrix rm_mmult(rmatrix a, rmatrix b);
-rmatrix rm_mult(rmatrix a, rmatrix b);
-rmatrix rm_smult(double a, rmatrix b);
-rmatrix rm_add(rmatrix a, rmatrix b);
-rmatrix rm_sub(rmatrix a, rmatrix b);
-rmatrix rm_change_between_rv(rvector from, rvector to);
-rmatrix rm_change_around_x(double angle);
-rmatrix rm_change_around_y(double angle);
-rmatrix rm_change_around_z(double angle);
-rmatrix rm_change_around(int axis, double angle);
-rmatrix rm_diag(rvector a);
-rmatrix rm_from_cm(cmatrix matrix);
-rmatrix rm_quaternion2dcm(quaternion q);
-rmatrix rm_from_rv(rvector vector,int direction);
-rmatrix rm_skew(rvector row1);
-rmatrix rm_inverse(rmatrix m);
-rmatrix rm_from_m2(matrix2d m);
-
-void normalize_rv(rvector *v);
-void normalize_rv2(rvector &v);
-
-double sep_rv(rvector v1, rvector v2);
-double sep_rv2(rvector v1, rvector v2);
-double dot_rv(rvector a, rvector b);
-double dot_rv2(rvector a, rvector b);
-double length_rv(rvector v);
-double length_rv2(rvector v);
-bool equal_rv(rvector v1, rvector v2);
-bool equal_rv2(rvector v1, rvector v2);
-double sum_rv(rvector a);
-double sum_rv2(rvector a);
 double distance_rv(rvector p0, rvector p1, rvector p2);
 double distance_rv_1(rvector p0, rvector p1, rvector p2);
 double area_rv(rvector p0, rvector p1, rvector p2);
 double evaluate_poly(double x, rvector parms);
 double evaluate_poly_slope(double x, rvector parms);
 
-rvector rv_zero();
-rvector rv_shortest(rvector v);
-rvector rv_shortest2(rvector v);
-rvector rv_unitx();
-rvector rv_unitx(double scale);
-rvector rv_unity();
-rvector rv_unity(double scale);
-rvector rv_unitz();
-rvector rv_unitz(double scale);
-rvector rv_one();
-rvector rv_one(double x, double y, double z);
-rvector rv_smult(double a, rvector b);
-rvector rv_normal(rvector v);
-rvector rv_normalto(rvector p0, rvector p1, rvector p2);
-rvector rv_sadd(double a, rvector b);
-rvector rv_add(rvector a, rvector b);
-rvector rv_sub(rvector a, rvector b);
-rvector rv_mult(rvector a, rvector b);
-rvector rv_div(rvector a, rvector b);
-rvector rv_sqrt(rvector a);
-rvector rv_cross(rvector a, rvector b);
-rvector rv_mmult(rmatrix a, rvector b);
-rvector rv_diag(rmatrix a);
-rvector rv_unskew(rmatrix matrix);
-rvector rv_evaluate_poly(double x, vector< vector<double> > parms);
-rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms);
-rvector rv_convert(svector from);
-
+// TODO: move these functions to quaternion ???
 rvector rotate_q(quaternion q,rvector v);
 rvector transform_q(quaternion q,rvector v);
+
+
 rvector rv_quaternion2axis(quaternion q);
 uvector rv_fitpoly(uvector x, uvector y, uint32_t order);
 vector<double> polyfit(vector<double> &x, vector<double> &y);
@@ -349,86 +298,10 @@ void open_estimate(estimatorhandle *estimate, uint32_t size, uint32_t degree);
 int16_t set_estimate(estimatorhandle *estimate, double independent, double dependent);
 estimatorstruc get_estimate(estimatorhandle *estimate, double independent);
 
-double norm_cm(cmatrix a);
-double trace_cm(cmatrix a);
-
-cmatrix cm_transpose(cmatrix a);
-cmatrix cm_square(cmatrix a);
-cmatrix cm_sqrt(cmatrix a);
-cmatrix cm_eye();
-cmatrix cm_zero();
-cmatrix cm_mmult(cmatrix a, cmatrix b);
-cmatrix cm_mult(cmatrix a, cmatrix b);
-cmatrix cm_smult(double a, cmatrix b);
-cmatrix cm_add(cmatrix a, cmatrix b);
-cmatrix cm_sub(cmatrix a, cmatrix b);
-cmatrix cm_change_between_cv(cvector from, cvector to);
-cmatrix cm_change_around_x(double angle);
-cmatrix cm_change_around_y(double angle);
-cmatrix cm_change_around_z(double angle);
-cmatrix cm_change_around(int axis, double angle);
-cmatrix cm_from_rm(rmatrix matrix);
-cmatrix cm_diag(cvector a);
-cmatrix cm_quaternion2dcm(quaternion q);
-
-void normalize_cv(cvector *v);
-
-double sep_cv(cvector v1, cvector v2);
-double dot_cv(cvector a, cvector b);
-double length_cv(cvector v);
-double norm_cv(cvector a);
-double sum_cv(cvector a);
-
-cvector cv_zero();
-cvector cv_unitx();
-cvector cv_unity();
-cvector cv_unitz();
-cvector cv_one();
-cvector cv_normal(cvector v);
-cvector cv_cross(cvector a, cvector b);
-cvector cv_sadd(double a, cvector b);
-cvector cv_add(cvector a, cvector b);
-cvector cv_sub(cvector a, cvector b);
-cvector cv_mult(cvector a, cvector b);
-cvector cv_div(cvector a, cvector b);
-cvector cv_smult(double a, cvector b);
-cvector cv_mmult(cmatrix a, cvector b);
-cvector cv_sqrt(cvector a);
-cvector cv_diag(cmatrix a);
 
 
-svector s_convert(rvector from);
 
-matrix2d m2_inverse(matrix2d m);
-double m2_determinant(matrix2d m);
-matrix2d m2_zero(uint16_t rows, uint16_t cols);
-matrix2d m2_eye(uint16_t rows);
-matrix2d m2_cross(matrix2d matrix1, matrix2d matrix2);
-matrix2d m2_smult(double number, matrix2d matrix);
-matrix2d m2_sub(matrix2d matrix1, matrix2d matrix2);
-matrix2d m2_add(matrix2d matrix1, matrix2d matrix2);
-matrix2d m2_transpose(matrix2d matrix);
-matrix1d m2_unskew(matrix2d matrix);
-double m2_trace(matrix2d matrix);
-matrix2d m2_mmult(matrix2d matrix1, matrix2d matrix2);
-matrix1d m2_eig2x2(matrix2d matrix);
-double m2_snorm2x2(matrix2d matrix);
-matrix2d cv_to_m2(cvector vector,int direction);
-matrix1d cv_to_m1(cvector vector);
-matrix2d cm3x3_to_m2(cmatrix matrix);
-matrix2d m1_to_m2(matrix1d vector,int direction);
-matrix2d m2_from_rm(rmatrix matrix);
 
-matrix1d m1_zero(uint16_t cols);
-matrix1d m1_smult(double number, matrix1d row);
-matrix1d m1_mmult(matrix2d matrix, matrix1d row);
-matrix1d m1_sub(matrix1d row1, matrix1d row2);
-matrix1d m1_add(matrix1d row1, matrix1d row2);
-matrix1d m1_cross(matrix1d row1, matrix1d row2);
-matrix2d m2_skew(matrix1d row1);
-matrix2d m2_diag(matrix1d row1);
-double m1_norm(matrix1d matrix);
-double m1_dot(matrix1d a, matrix1d b);
 
 uint8_t local_byte_order();
 uint16_t uint16from(uint8_t *pointer, uint8_t order);
@@ -460,69 +333,79 @@ double actan(double y, double x);
 double fixprecision(double number, double precision);
 uint16_t calc_crc16ccitt(uint8_t *buf, int size);
 
-
 class lsfit
 {
 private:
-	//! Least Squares Fit Element
-	/*! Contains the dependent (x) and independent (y) values for a single element of a ::fitstruc.
-	 * The ::uvector allows both quaternions and rvector to be fit.
-	 */
+        //! Least Squares Fit Element
+        /*! Contains the dependent (x) and independent (y) values for a single element of a ::fitstruc.
+         * The ::uvector allows both quaternions and rvector to be fit.
+         */
     struct fitelement
-	{
-		// Independent variable
-		double x;
-		// Double, rvector or quaternion dependent variable
-		uvector y;
+        {
+                // Independent variable
+                double x;
+                // Double, rvector or quaternion dependent variable
+                uvector y;
     } ;
 
-	//! Least Squares Fit Structure
-	/*! Contains the data for a second order least squares fit of N elements that are type
-	 * ::rvector or ::quaternion.
-	 */
-	// Number of elements in fit
-	uint16_t element_cnt;
-	// Number of axes (double, rvector, quaternion)
-	uint16_t depth;
-	// Order of fit
-	uint32_t order;
-	// base level subtracted from independent variable before fitting
-	double basex;
-	// Of size element_cnt
-	deque<fitelement> var;
+        //! Least Squares Fit Structure
+        /*! Contains the data for a second order least squares fit of N elements that are type
+         * ::rvector or ::quaternion.
+         */
+        // Number of elements in fit
+        uint16_t element_cnt;
+        // Number of axes (double, rvector, quaternion)
+        uint16_t depth;
+        // Order of fit
+        uint32_t order;
+        // base level subtracted from independent variable before fitting
+        double basex;
+        // Of size element_cnt
+        std::deque<fitelement> var;
 
-	vector< vector<double> > parms;
+        std::vector< std::vector<double> > parms;
 
-	void fit();
+        void fit();
 
 public:
-	double meanx;
-	uvector meany;
-	double stdevx;
-	uvector stdevy;
-	// Minimum reasonable step in dependent variable
-	double resolution;
+        double meanx;
+        uvector meany;
+        double stdevx;
+        uvector stdevy;
+        // Minimum reasonable step in dependent variable
+        double resolution;
 
     // constructors
-	lsfit();
-	lsfit(uint16_t element_cnt);
-	lsfit(uint16_t element_cnt, uint16_t ord);
-	lsfit(uint16_t cnt, uint16_t ord, double res);
+        lsfit();
+        lsfit(uint16_t element_cnt);
+        lsfit(uint16_t element_cnt, uint16_t ord);
+        lsfit(uint16_t cnt, uint16_t ord, double res);
 
-	void update(double x, double y);
-	void update(double x, rvector y);
-	void update(double x, quaternion y);
-	void update(fitelement cfit, uint16_t dep);
-	double lastx();
-	double eval(double x);
-	rvector evalrvector(double x);
-	quaternion evalquaternion(double x);
-	double slope(double x);
-	rvector slopervector(double x);
-	quaternion slopequaternion(double x);
-	vector<vector<double> > getparms(double x);
+        void update(double x, double y);
+        void update(double x, rvector y);
+        void update(double x, quaternion y);
+        void update(fitelement cfit, uint16_t dep);
+        double lastx();
+        double eval(double x);
+        rvector evalrvector(double x);
+        quaternion evalquaternion(double x);
+        double slope(double x);
+        rvector slopervector(double x);
+        quaternion slopequaternion(double x);
+        std::vector<std::vector<double> > getparms(double x);
 };
 
+
+//! Testing Row Vector Class
+/*! eventually this is where all row vector stuff would come?
+ * do we really need to differentiate between cvector and rvector in the future?
+*/
+class RowVector{
+
+public:
+    // convert from cartesian vector to row vector
+    rvector from_cv(cvector v);
+};
 //! @}
 
 #endif

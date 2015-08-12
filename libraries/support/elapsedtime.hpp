@@ -48,17 +48,15 @@
 #include <chrono>
 #endif
 
-//using namespace std;  // don't use this as it may cause conflicts with other namespaces
-
 // profiling class
 // On windows using MinGw32 it does not get better than 1ms
 class ElapsedTime {
     //new for c++11
 #ifdef BUILD_TYPE_arm
     //	struct timespec timeStart, timeNow, timeCheck;
-    timeval timeStart, timeNow, timeCheck;
+    timeval timeStart, timeStop, timeNow, timeCheck;
 #else
-    std::chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
+    std::chrono::steady_clock::time_point timeStart, timeStop, timeNow, timeCheck; //
 #endif
 
 public:
@@ -66,20 +64,22 @@ public:
     //float elapsed_time(struct timeval a,struct timeval b);
     void printElapsedTime();
     void printElapsedTime(std::string text);
+
     double getElapsedTimeMiliSeconds();
+    double getElapsedTime();
+
     double lap();
     double split();
-    double getElapsedTime();
+    double check();
+    void reset();
+
+    void start();
+    double stop();
 
     void tic();
     double toc();
     //double toc(bool print_flag);
     double toc(std::string text);
-    void reset();
-
-    void start();
-    //    double stop();
-    double check();
 
     // turn on/off printing
     bool print = true; //

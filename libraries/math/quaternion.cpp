@@ -30,6 +30,184 @@
 // TODO: convert to class
 #include "math/quaternion.h"
 
+Quaternion::Quaternion()
+{
+    // by default create the identity quaternion
+    x = 0;
+    y = 0;
+    z = 0;
+    w = 1;
+}
+
+Quaternion::Quaternion(double qx, double qy, double qz, double qw)
+{
+    x = qx;
+    y = qy;
+    z = qz;
+    w = qw;
+}
+
+// TODO: change to Vector
+cvector Quaternion::vector()
+{
+    cvector o; // output
+
+    o.x = x;
+    o.y = y;
+    o.z = z;
+
+    return o;
+}
+
+
+// same as q_conjugate(quaternion q)
+Quaternion Quaternion::conjugate()
+{
+    Quaternion o; // output
+
+    o.w = w;
+    o.x = -x;
+    o.y = -y;
+    o.z = -z;
+
+    return o;
+}
+
+// same as q_smult(double a, quaternion b)
+Quaternion Quaternion::multiplyScalar(double a)
+{
+    Quaternion c;
+
+    c.w = a * w;
+    c.x = a * x;
+    c.y = a * y;
+    c.z = a * z;
+
+    return c;
+}
+
+
+// function to easily convert from the Quaternion to quaternion
+// hopefully this function will be removed when the quaternion type
+// has been fully converted to Quaternion
+quaternion Quaternion::Quaternion2quaternion(Quaternion Q)
+{
+    quaternion q;
+
+    q.d.x = Q.x;
+    q.d.y = Q.y;
+    q.d.z = Q.z;
+    q.w = Q.w;
+
+    return q;
+}
+
+// function to easily convert from the quaternion type to Quaternion
+// hopefully this function will be removed when the quaternion type
+// has been fully converted to Quaternion
+Quaternion Quaternion::quaternion2Quaternion(quaternion q)
+{
+    Quaternion Q;
+
+    Q.x = q.d.x;
+    Q.y = q.d.y;
+    Q.z = q.d.z;
+    Q.w = q.w;
+
+    return Q;
+}
+
+// adition operator for quaternion class
+Quaternion Quaternion::operator+(const Quaternion& q)
+{
+    Quaternion q1, q2, q3;
+
+    q1 = *this;
+    q2 = q;
+
+    //    q3->x = q1.x + q2.x;
+    //    q3->y = q1.y + q2.y;
+    //    q3->z = q1.z + q2.z;
+    //    q3->w = q1.w + q2.w;
+
+    q3.x = q1.x + q2.x;
+    q3.y = q1.y + q2.y;
+    q3.z = q1.z + q2.z;
+    q3.w = q1.w + q2.w;
+
+    return q3;
+}
+
+// substraction operator for quaternion class
+Quaternion Quaternion::operator-(const Quaternion& q)
+{
+    Quaternion q1,q2,q3;
+
+    q1 = *this;
+    q2 = q;
+
+    q3.x = q1.x - q2.x;
+    q3.y = q1.y - q2.y;
+    q3.z = q1.z - q2.z;
+    q3.w = q1.w - q2.w;
+
+    return q3;
+}
+
+// product operator for quaternion class
+Quaternion Quaternion::operator*(const Quaternion& q)
+{
+    Quaternion q1,q2,q3;
+
+    q1 = *this;
+    q2 = q;
+
+    q3.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+    q3.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
+    q3.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
+    q3.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+
+    return q3;
+}
+
+std::ostream& operator<<(std::ostream& os, const Quaternion& q)
+{
+    os << "[("
+       << q.x << ", "
+       << q.y << ", "
+       << q.z << "), "
+       << q.w
+       << "]"; //<< std::endl;
+    return os;
+}
+
+// copy *this quaternion into a new Quaternion object
+// basically this collapses (x,y,z,w) into a Quaternion object
+Quaternion Quaternion::getQuaternion()
+{
+    Quaternion o;
+    o.x = x;
+    o.y = y;
+    o.z = z;
+    o.w = w;
+
+    return o;
+}
+
+// calculate the angular rate given the current quaternion and it's derivative
+cvector Quaternion::omegaFromDerivative(Quaternion dq)
+{
+    cvector o; // output
+    Quaternion q = getQuaternion();
+    o = (dq * q.conjugate()).multiplyScalar(2.).vector();
+
+    return o;
+}
+
+
+
+
+// ----------------------------------------------
 
 double q_norm(quaternion q)
 {
@@ -117,7 +295,7 @@ quaternion q_mult(rvector r1, quaternion q2)
     return (o);
 }
 
-//! Quaternion multiplication. The result of moltuplying two quaternions is the
+//! Quaternion multiplication. The result of multiplying two quaternions is the
 //! composition of two rotations (not commutative).
 /*! Quaternion multiply two quaternions.
  * \param q1 First quaternion
@@ -188,152 +366,6 @@ quaternion q_sub(quaternion a, quaternion b)
     return (c);
 }
 
-//! Rotate a row vector using a quaternion
-/*! Rotate a row vector within one coordinate system using the
- * provided left quaternion.
-        \param v row vector to be rotated
-        \param q quaternion representing the rotation
-        \return rotated row vector in the same system
-*/
-rvector rotate_q(quaternion q, rvector v)
-{
-    uvector t = {{{0.,0.,0.},0.}};
-
-    //	t.q.d = ((uvector *)&v)->c;
-    //	t.q.w = 0.0;
-
-    //	t.q = q_mult(q,q_mult(t.q,q_conjugate(q)));
-    t.q = q_mult(q,q_mult(v,q_conjugate(q)));
-
-    return (t.r);
-}
-
-//! Transform a row vector using a quaternion
-/*! Transform a row vector from one coordinate system to another using the
- * provided left quaternion.
-        \param v row vector to be rotated
-        \param q quaternion representing the transformation
-        \return row vector in the transformed system
-*/
-rvector transform_q(quaternion q, rvector v)
-{
-    uvector t = {{{0.,0.,0.},0.}};
-
-    //	t.q.d = ((uvector *)&v)->c;
-    //	t.q.w = 0.0;
-
-    //	t.q = q_mult(q_conjugate(q),q_mult(t.q,q));
-    t.q = q_mult(q_conjugate(q),q_mult(v,q));
-
-    return (t.r);
-}
-
-//! Rotate a cartesiian vector using a quaternion
-/*! Rotate a cartesian vector from one coordinate system to another using the
- * provided quaternion.
-        \param v cartesian vector to be rotated
-        \param q quaternion representing the rotation
-        \return cartesian vector in the rotated system
-*/
-cvector rotate_q(quaternion q, cvector v)
-{
-    uvector qt;
-    quaternion qc;
-
-    qt.c = v;
-    qt.q.w = 0.0;
-
-    qc = q_conjugate(q);
-    qt.q = q_mult(qt.q,qc);
-    qt.q = q_mult(q,qt.q);
-
-    return (qt.c);
-}
-
-//! Create rotation matrix from 2 vectors
-/*! Generate the direction cosine matrix that represents a rotation from one cartesian vector
- * to a second cartesian vector.
-        \param from initial cartesian vector
-        \param to final cartesian vector
-        \return direction cosine matrix that can be used to rotate points
-*/
-cmatrix cm_change_between_cv(cvector from, cvector to)
-{
-    //cmatrix m;
-    //m = cm_quaternion2dcm(q_change_between_cv(from,to));
-    //return (m);
-
-    return cm_quaternion2dcm(q_change_between_cv(from,to));
-}
-
-//! Create rotation quaternion from 2 vectors
-/*! Generate the quaternion that represents a rotation of from one cartesian vector
- * to a second cartesian vector.
-        \param from initial cartesian vector
-        \param to final cartesian vector
-        \return quaternion that can be used to rotate points
-*/
-quaternion q_change_between_cv(cvector from, cvector to)
-{
-    uvector rq;
-    cvector vec1, vec2;
-
-    normalize_cv(&from);
-    normalize_cv(&to);
-
-    if (length_cv(cv_add(from,to)) < 1e-14)
-    {
-        vec1.x = rand();
-        vec1.y = rand();
-        vec1.z = rand();
-        normalize_cv(&vec1);
-        vec2 = cv_cross(vec1,to);
-        normalize_cv(&vec2);
-        if (length_cv(vec2)<D_SMALL)
-        {
-            vec1.x = rand();
-            vec1.y = rand();
-            vec1.z = rand();
-            normalize_cv(&vec1);
-            vec2 = cv_cross(vec1,to);
-            normalize_cv(&vec2);
-        }
-        rq.c = vec2;
-        rq.q.w = 0.;
-    }
-    else
-    {
-        rq.c = cv_cross(from,to);
-        rq.q.w = 1. + dot_cv(from,to);
-    }
-
-    q_normalize(&rq.q);
-    return (rq.q);
-}
-
-//! Create rotation quaternion from axis and angle
-/*! Generate the quaternion that represents a rotation of the specified angle
- * around the specified axis.
-        \param around cartesian vector around which the rotation will occur
-        \param angle amount of rotation in radians
-        \return quaternion that can be used to rotate points
-*/
-quaternion q_change_around_cv(cvector around, double angle)
-{
-    double sa;
-    quaternion rq;
-
-    angle /= 2.;
-    sa = sin(angle);
-    normalize_cv(&around);
-
-    rq.d.x = around.x * sa;
-    rq.d.y = around.y * sa;
-    rq.d.z = around.z * sa;
-    rq.w = cos(angle);
-    q_normalize(&rq);
-    return (rq);
-}
 
 // TODO: explain
 void qrotate(double ipos[3], double rpos[3], double angle, double *opos)
@@ -414,116 +446,9 @@ avector a_quaternion2euler(quaternion q)
     return (rpw);
 }
 
-cvector cv_quaternion2axis(quaternion q)
-{
-    cvector v;
-    double ca, sa;
 
-    ca = 2.*acos(q.w);
-    if (ca > 0.)
-    {
-        sa = sin(ca/2.);
-        v.x = ca*(q.d.x/sa);
-        v.y = ca*(q.d.y/sa);
-        v.z = ca*(q.d.z/sa);
-    }
-    else
-        v = cv_zero();
 
-    return (v);
-}
 
-//! Quaternion to Direction Cosine Matrix
-/*! Convert supplied quaternion to an equivalent direction cosine matrix
-        \param q quaternion
-        \return direction cosine matrix
-*/
-
-cmatrix cm_quaternion2dcm(quaternion q)
-{
-    cmatrix m;
-    double yy, xx, zz, xy, xz, xw, yz, yw, zw;
-
-    q_normalize(&q);
-
-    xx = 2. * q.d.x;
-    xy = xx * q.d.y;
-    xz = xx * q.d.z;
-    xw = xx * q.w;
-    xx *= q.d.x;
-    yy = 2. * q.d.y;
-    yz = yy * q.d.z;
-    yw = yy * q.w;
-    yy *= q.d.y;
-    zz = 2. * q.d.z;
-    zw = zz * q.w;
-    zz *= q.d.z;
-
-    m.r1.x = 1. - yy - zz;
-    m.r1.y = xy - zw;
-    m.r1.z = xz + yw;
-    m.r2.x = xy + zw;
-    m.r2.y = 1. - xx - zz;
-    m.r2.z = yz - xw;
-    m.r3.x = xz - yw;
-    m.r3.y = yz + xw;
-    m.r3.z = 1. - xx - yy;
-
-    return (m);
-}
-
-//! Direction Cosine Matrix to Quaternion
-/*! Convert the given DCM to an equivalent quaternion
-    \param dcm direction cosine matrix
-    \return q quaternion
-*/
-quaternion q_dcm2quaternion_cm(cmatrix dcm)
-{
-    quaternion q;
-    double t, tr;
-
-    if ((tr=trace_cm(dcm)) > 0.)
-    {
-        t = .5 / sqrt(1.+tr);
-        q.w = .25 / t;
-        q.d.x = t*(dcm.r3.y - dcm.r2.z);
-        q.d.y = t*(dcm.r1.z - dcm.r3.x);
-        q.d.z = t*(dcm.r2.x - dcm.r1.y);
-    }
-    else
-    {
-        if (dcm.r1.x > dcm.r2.y && dcm.r1.x > dcm.r3.z)
-        {
-            t = 2. * sqrt(1. + dcm.r1.x - dcm.r2.y - dcm.r3.z);
-            q.w = (dcm.r3.y - dcm.r2.z) / t;
-            q.d.x = .25 * t;
-            q.d.y = (dcm.r1.y + dcm.r2.x) / t;
-            q.d.z = (dcm.r1.z + dcm.r3.x) / t;
-        }
-        else
-        {
-            if (dcm.r2.x > dcm.r3.z)
-            {
-                t = 2. * sqrt(1. + dcm.r2.y - dcm.r1.x - dcm.r3.z);
-                q.w = (dcm.r1.z - dcm.r3.x) / t;
-                q.d.x = (dcm.r1.y + dcm.r2.x) / t;
-                q.d.y = .25 * t;
-                q.d.z = (dcm.r2.z + dcm.r3.y) / t;
-            }
-            else
-            {
-                t = 2. * sqrt(1. + dcm.r3.z - dcm.r1.x - dcm.r2.y);
-                q.w = (dcm.r2.x - dcm.r1.y) / t;
-                q.d.x = (dcm.r1.z + dcm.r3.x) / t;
-                q.d.y = (dcm.r2.z + dcm.r3.y) / t;
-                q.d.z = .25 * t;
-            }
-        }
-    }
-
-    q_normalize(&q);
-    return(q);
-}
 
 // TODO: explain
 quaternion q_axis2quaternion_cv(cvector v)
@@ -547,76 +472,8 @@ quaternion q_axis2quaternion_cv(cvector v)
     return (q);
 }
 
-//! Rotation quaternion for X axis
-/*! Create the ::quaternion that represents a rotation of the given angle around the X axis.
-        \param angle Angle of rotation in radians
-        \return Resulting ::quaternion
-*/
-quaternion q_change_around_x(double angle)
-{
-    quaternion a = {{1.,0.,0.},0.};
 
-    a.d = cv_smult(sin(angle/2.),a.d);
-    a.w = cos(angle/2.);
 
-    return (a);
-}
-
-//! Rotation quaternion for Y axis
-/*! Create the ::quaternion that represents a rotation of the given angle around the Y axis.
-        \param angle Angle of rotation in radians
-        \return Resulting ::quaternion
-*/
-quaternion q_change_around_y(double angle)
-{
-    quaternion a = {{0.,1.,0.},0.};
-
-    a.d = cv_smult(sin(angle/2.),a.d);
-    a.w = cos(angle/2.);
-
-    return (a);
-}
-
-//! Rotation quaternion for Z axis
-/*! Create the ::quaternion that represents a rotation of the given angle around the Z axis.
-        \param angle Angle of rotation in radians
-        \return Resulting ::quaternion
-*/
-quaternion q_change_around_z(double angle)
-{
-    quaternion a = {{0.,0.,1.},0.};
-
-    a.d = cv_smult(sin(angle/2.),a.d);
-    a.w = cos(angle/2.);
-
-    return (a);
-}
-
-//! Rotation quaternion for indicated axis
-/*! Create the ::quaternion that represents a rotation of the given angle around the indicated axis.
-        \param axis Axis of rotation: 1=X, 2=Y, 3=Z
-        \param angle Angle of rotation in radians
-        \return Resulting ::quaternion
-*/
-quaternion q_change_around(int axis,double angle)
-{
-    quaternion a = {{1.,0.,0.},0.};
-
-    switch (axis)
-    {
-    case 1:
-        q_change_around_x(angle);
-        break;
-    case 2:
-        q_change_around_y(angle);
-        break;
-    case 3:
-        q_change_around_z(angle);
-        break;
-    }
-
-    return (a);
-}
 
 //! Identity quaternion
 /*! Returns a quaternion that will cause no rotation when multiplied by a vector.
@@ -651,4 +508,220 @@ double length_q(quaternion q)
         return (0.);
     else
         return (length);
+}
+
+cvector cv_quaternion2axis(quaternion q)
+{
+    cvector v;
+    double ca, sa;
+
+    ca = 2.*acos(q.w);
+    if (ca > 0.)
+    {
+        sa = sin(ca/2.);
+        v.x = ca*(q.d.x/sa);
+        v.y = ca*(q.d.y/sa);
+        v.z = ca*(q.d.z/sa);
+    }
+    else
+        v = {0.,0.,0.};
+
+    return (v);
+}
+
+
+
+
+
+//! Create rotation quaternion from axis and angle
+/*! Generate the quaternion that represents a rotation of the specified angle
+ * around the specified axis.
+        \param around cartesian vector around which the rotation will occur
+        \param angle amount of rotation in radians
+        \return quaternion that can be used to rotate points
+*/
+quaternion q_change_around_cv(cvector around, double angle)
+{
+    double sa;
+    quaternion rq;
+
+    angle /= 2.;
+    sa = sin(angle);
+
+    // normalize vector
+    // before it was normalize_cv(&around);
+
+    double mag = around.x*around.x
+            + around.y*around.y
+            + around.z*around.z;
+
+    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
+    {
+        mag = sqrt(mag);
+        around.x /= mag;
+        around.y /= mag;
+        around.z /= mag;
+    }
+
+    rq.d.x = around.x * sa;
+    rq.d.y = around.y * sa;
+    rq.d.z = around.z * sa;
+    rq.w = cos(angle);
+    q_normalize(&rq);
+    return (rq);
+}
+
+
+//! Rotation quaternion for X axis
+/*! Create the ::quaternion that represents a rotation of the given angle around the X axis.
+        \param angle Angle of rotation in radians
+        \return Resulting ::quaternion
+*/
+quaternion q_change_around_x(double angle)
+{
+    quaternion a = {{1.,0.,0.},0.};
+
+    // removed cv_mult to clean the dependency from mathlib
+    // previously was: a.d = cv_smult(sin(angle/2.),a.d);
+
+    // new
+    double sa = sin(angle/2.);
+
+    a.d.x = sa * a.d.x;
+    a.d.y = sa * a.d.y;
+    a.d.z = sa * a.d.z;
+
+    a.w = cos(angle/2.);
+
+    return (a);
+}
+
+//! Rotation quaternion for Y axis
+/*! Create the ::quaternion that represents a rotation of the given angle around the Y axis.
+        \param angle Angle of rotation in radians
+        \return Resulting ::quaternion
+*/
+quaternion q_change_around_y(double angle)
+{
+    quaternion a = {{0.,1.,0.},0.};
+
+    // removed cv_mult to clean the dependency from mathlib
+    // previously was: a.d = cv_smult(sin(angle/2.),a.d);
+
+    // new
+    double sa = sin(angle/2.);
+
+    a.d.x = sa * a.d.x;
+    a.d.y = sa * a.d.y;
+    a.d.z = sa * a.d.z;
+
+    a.w = cos(angle/2.);
+
+    return (a);
+}
+
+
+//! Rotation quaternion for Z axis
+/*! Create the ::quaternion that represents a rotation of the given angle around the Z axis.
+        \param angle Angle of rotation in radians
+        \return Resulting ::quaternion
+*/
+quaternion q_change_around_z(double angle)
+{
+    quaternion a = {{0.,0.,1.},0.};
+
+    // removed cv_mult to clean the dependency from mathlib
+    // previously was: a.d = cv_smult(sin(angle/2.),a.d);
+
+    // new
+    double sa = sin(angle/2.);
+
+    a.d.x = sa * a.d.x;
+    a.d.y = sa * a.d.y;
+    a.d.z = sa * a.d.z;
+    a.w = cos(angle/2.);
+
+    return (a);
+}
+
+
+//! Rotation quaternion for indicated axis
+/*! Create the ::quaternion that represents a rotation of the given angle around the indicated axis.
+        \param axis Axis of rotation: 1=X, 2=Y, 3=Z
+        \param angle Angle of rotation in radians
+        \return Resulting ::quaternion
+*/
+quaternion q_change_around(int axis,double angle)
+{
+    quaternion a = {{1.,0.,0.},0.};
+
+    switch (axis)
+    {
+    case 1:
+        q_change_around_x(angle);
+        break;
+    case 2:
+        q_change_around_y(angle);
+        break;
+    case 3:
+        q_change_around_z(angle);
+        break;
+    }
+
+    return (a);
+}
+
+
+
+
+std::ostream& operator << (std::ostream& out, const quaternion& a)
+{
+    out<< "[" << a.d.x << "," << a.d.y << "," << a.d.z << "," << a.w << "]";
+    return out;
+}
+
+std::istream& operator >> (std::istream& in, quaternion& a)
+{
+    char junk;
+    in >> junk >> a.d.x >> junk >> a.d.y >> junk >> a.d.z >> junk >> a.w >> junk;
+    return in;
+}
+
+std::ostream& operator << (std::ostream& out, const qcomplex& a)
+{
+    out<< "[" << a.i << "," << a.j << "," << a.k << "," << a.r << "]";
+    return out;
+}
+
+std::istream& operator >> (std::istream& in, qcomplex& a)
+{
+    char junk;
+    in >> junk >> a.i >> junk >> a.j >> junk >> a.k >> junk >> a.r >> junk;
+    return in;
+}
+
+std::ostream& operator << (std::ostream& out, const qlast& a)
+{
+    out << "[" << a.q1 << "," << a.q2 << "," << a.q3 << "," << a.q4 << "]";
+    return out;
+}
+
+std::istream& operator >> (std::istream& in, qlast& a)
+{
+    char junk;
+    in >> junk >> a.q1 >> junk >> a.q2 >> junk >> a.q3 >> junk >> a.q4 >> junk;
+    return in;
+}
+
+std::ostream& operator << (std::ostream& out, const qfirst& a)
+{
+    out << "[" << a.q0 << "," << a.q1 << "," << a.q2 << "," << a.q3 << "]";
+    return out;
+}
+
+std::istream& operator >> (std::istream& in, qfirst& a)
+{
+    char junk;
+    in >> junk >> a.q0 >> junk >> a.q1 >> junk >> a.q2 >> junk >> a.q3 >> junk;
+    return in;
 }

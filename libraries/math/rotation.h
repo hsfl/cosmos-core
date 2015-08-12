@@ -27,10 +27,30 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#ifndef _DIRECTION_COSINE_MATRIX_H
-#define _DIRECTION_COSINE_MATRIX_H
+#ifndef _MATH_ROTATE_H
+#define _MATH_ROTATE_H
 
-#include "math/types.h"
+#include "math/vector.h"
+#include "math/matrix.h"
+#include "math/quaternion.h"
+
+// these came from the quaternion lib because they depend on matrix types
+cmatrix cm_quaternion2dcm(quaternion q);
+quaternion q_dcm2quaternion_cm(cmatrix dcm);
+quaternion q_dcm2quaternion_rm(rmatrix m);
+// from matrix
+rmatrix rm_quaternion2dcm(quaternion q);
+
+//! Orthonormal basis
+/*! Used to crease frame basis such as inertial, body and sensor frames
+ * The DCM class uses this struct as default
+*/
+struct basisOrthonormal{
+    cvector i; // = {1,0,0}
+    cvector j; // = {0,1,0}
+    cvector k; // = {0,0,1};
+};
+
 
 class DCM {
 private:
@@ -42,4 +62,5 @@ public:
     double dotProduct(cvector a, cvector b);
     cmatrix transposeMatrix(cmatrix a);
 };
+
 #endif
