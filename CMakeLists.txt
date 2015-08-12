@@ -157,6 +157,8 @@ endif()
 
 get_filename_component(OS_FOLDER ${CMAKE_BINARY_DIR} NAME)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
+
 IF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
         message("Building math")
     add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/math ${CMAKE_BINARY_DIR}/libraries/math)
