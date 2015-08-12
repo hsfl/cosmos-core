@@ -1174,9 +1174,9 @@ int32_t set_cosmosnodes()
 
 		// No environment variables set. Look in standard location.
 #ifdef COSMOS_LINUX_OS
-		if (data_isdir(getenv("HOME")+(string)"/cosmos/nodes"))
+        if (data_isdir("/usr/local/cosmos/nodes"))
 		{
-			cosmosnodes = getenv("HOME")+(string)"/cosmos/nodes";
+            cosmosnodes = "/usr/local/cosmos/nodes";
 			return 0;
 		}
 #endif
