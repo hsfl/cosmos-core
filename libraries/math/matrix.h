@@ -86,10 +86,10 @@ struct matrix2d
 
 
 rvector rv_mmult(rmatrix a, rvector b);
-//rvector rv_diag(rmatrix a);
-//rvector rv_unskew(rmatrix matrix);
+rvector rv_diag(rmatrix a);
+rvector rv_unskew(rmatrix matrix);
 cvector cv_mmult(cmatrix a, cvector b);
-//cvector cv_diag(cmatrix a);
+cvector cv_diag(cmatrix a);
 
 rmatrix rm_transpose(rmatrix a);
 rmatrix rm_square(rmatrix a);

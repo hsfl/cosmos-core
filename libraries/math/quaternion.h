@@ -136,7 +136,7 @@ void qrotate(double ipos[3], double rpos[3], double angle, double *opos);
 avector a_quaternion2euler(quaternion q);
 
 // TODO: bring these functions from mathlib
-//quaternion q_change_between_cv(cvector from, cvector to);
+quaternion q_change_between_cv(cvector from, cvector to);
 //cvector rotate_q(quaternion q, rvector v);
 //cvector rotate_q(quaternion q, cvector v);
 //cvector transform_q(quaternion q,cvector v); // doesn't exist in .cpp?

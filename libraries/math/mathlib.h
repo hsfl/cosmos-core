@@ -287,6 +287,7 @@ double evaluate_poly_slope(double x, rvector parms);
 
 // TODO: move these functions to quaternion ???
 rvector rotate_q(quaternion q,rvector v);
+cvector rotate_q(quaternion q, cvector v);
 rvector transform_q(quaternion q,rvector v);
 
 

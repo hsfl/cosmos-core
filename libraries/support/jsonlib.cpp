@@ -6270,6 +6270,8 @@ string json_list_of_soh(cosmosstruc* cdata)
 		result += tempstring;
 		sprintf(tempstring, ",\"device_gps_geocs_%03d\",\"device_gps_geocv_%03d\",\"device_gps_dgeocs_%03d\",\"device_gps_dgeocv_%03d\"",i,i,i,i);
 		result += tempstring;
+		sprintf(tempstring, ",\"device_gps_geods_%03d\",\"device_gps_geodv_%03d\",\"device_gps_dgeods_%03d\",\"device_gps_dgeodv_%03d\"",i,i,i,i);
+		result += tempstring;
 	}
 
 	for (uint16_t i=0; i<cdata[0].devspec.ant_cnt; ++i)
