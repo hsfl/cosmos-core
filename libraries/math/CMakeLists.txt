@@ -12,6 +12,6 @@ FILE(GLOB INCLUDESPP ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 add_library(CosmosMath STATIC ${SOURCES} ${INCLUDES})
 
 install(TARGETS CosmosMath DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include)
-install(FILES ${INCLUDESPP} DESTINATION include)
+install(FILES ${INCLUDES} DESTINATION include/math)
+install(FILES ${INCLUDESPP} DESTINATION include/math)
 
