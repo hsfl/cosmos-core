@@ -119,6 +119,7 @@
 // for c++x0 WIN32 is not defined, use _WIN32 (with underscore)
 // For MingW on Windows: #ifdef __MINGW32__
 // Windows (x64 and x86)
+
 #ifdef COSMOS_WIN_OS // Defined for both 32-bit and 64-bit environments 1
 //! \addtogroup defs_macros
 //! @{
@@ -144,6 +145,7 @@
 #include <windows.h>
 #include <mmsystem.h>
 
+// for MinGW
 #ifdef __MINGW32__
 #include <pthread.h>
 #include <sys/time.h>

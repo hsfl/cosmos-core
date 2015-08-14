@@ -6,17 +6,16 @@ include_directories(${COSMOS_CORE_SOURCE_DIR}/libraries/device)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+
+# run for each cpp file in this directory
 foreach(file ${files})
-        get_filename_component(bfile ${file} NAME_WE)
-		add_executable(${bfile} ${bfile}.cpp)
-		if (UNIX)
-                target_link_libraries(${bfile} CosmosMath CosmosDevice CosmosSupport CosmosDevice CosmosMath zlib)
-		else()
-                    if (MSVC)
-                        target_link_libraries(${bfile} CosmosMath CosmosDevice CosmosSupport CosmosDevice CosmosMath zlib dirent wsock32 winmm ws2_32 iphlpapi)
-                    else()
-                        target_link_libraries(${bfile} CosmosMath CosmosDevice CosmosSupport CosmosDevice CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
-                    endif()
-                endif()
-                install(TARGETS ${bfile} DESTINATION bin)
+
+    get_filename_component(bfile ${file} NAME_WE)
+
+    add_executable(${bfile} ${bfile}.cpp)
+
+    target_link_libraries(${bfile} ${COSMOS_LIBS})
+
+    install(TARGETS ${bfile} DESTINATION bin)
+
 endforeach()

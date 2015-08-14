@@ -37,6 +37,10 @@
 #include <iostream>
 #include <vector>
 
+#ifdef _MSC_BUILD
+#include <stdint.h> // for uint16_t et all.
+#endif
+
 //! 3 element generic row vector
 /*! 3 double precision numbers representing a 3 element row major vector.
 */
