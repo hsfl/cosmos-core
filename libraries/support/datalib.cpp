@@ -947,21 +947,18 @@ int32_t set_cosmosresources()
 
 	if (cosmosresources.empty())
 	{
-		char *croot = getenv("COSMOS");
-		if (croot != nullptr)
+		char *croot = getenv("COSMOSRESOURCES");
+		if (croot != nullptr && data_isdir(croot))
 		{
-			if (data_isdir(croot + (string)"/resources"))
-			{
-				cosmosresources = croot + (string)"/resources";
-				return 0;
-			}
+			cosmosresources = croot;
+			return 0;
 		}
 		else
 		{
-			croot = getenv("COSMOSRESOURCES");
-			if (croot != nullptr && data_isdir(croot))
+			croot = getenv("COSMOS");
+			if (croot != nullptr && data_isdir(croot + (string)"/resources"))
 			{
-				cosmosresources = croot;
+				cosmosresources = croot + (string)"/resources";
 				return 0;
 			}
 		}
@@ -1153,21 +1150,18 @@ int32_t set_cosmosnodes()
 
 	if (cosmosnodes.empty())
 	{
-		char *croot = getenv("COSMOS");
-		if (croot != nullptr)
+		char *croot = getenv("COSMOSNODES");
+		if (croot != nullptr && data_isdir(croot))
 		{
-			if (data_isdir(croot + (string)"/nodes"))
-			{
-				cosmosnodes = croot + (string)"/nodes";
-				return 0;
-			}
+			cosmosnodes = croot;
+			return 0;
 		}
 		else
 		{
-            croot = getenv("COSMOSNODES");
-			if (croot != nullptr && data_isdir(croot))
+			croot = getenv("COSMOS");
+			if (croot != nullptr && data_isdir(croot + (string)"/nodes"))
 			{
-				cosmosnodes = croot;
+				cosmosnodes = croot + (string)"/nodes";
 				return 0;
 			}
 		}
