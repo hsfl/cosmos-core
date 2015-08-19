@@ -56,9 +56,9 @@ public:
     // print functions to help visualize the vectors and other data
 
     // main function
-    void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision);
-
-
+    // 20150818JC: Fixed mismatched prototype to include field width.  Default value in cpp
+    //void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision);
+    void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision, int fieldwidth);
 
     // split vector
     void vector(string vector_name, double a, double b, double c, string units);
