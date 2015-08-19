@@ -51,7 +51,7 @@ struct basisOrthonormal{
     cvector k; // = {0,0,1};
 };
 
-
+// TODO: rename to DirectionCosineMatrix
 class DCM {
 private:
 

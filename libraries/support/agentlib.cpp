@@ -1924,9 +1924,15 @@ bool Agent::setupServer()
     cdata = agent_setup_server(nodeName, agentName);
 
     // if setup server was not sucessfull
-    if (cdata == NULL){
+    if (cdata == NULL)
+    {
+        // TODO: improve error message with a more detailed description
+        // of the reason for failure
+        cout << "Agent setup server failed" << endl;
         return false;
     }
+
+    cout << "Agent server is on for " << nodeName << ":" << agentName << endl;
 
     // if setup server was sucessfull
     return true;
