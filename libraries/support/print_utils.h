@@ -27,6 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+
+#ifndef _COSMOS_PRINT_UTILS
+#define _COSMOS_PRINT_UTILS
+
 // COSMOS Library for Printing Vector and stuff like that to the stream
 
 // v1.0 : 2014-10-05
@@ -34,7 +38,7 @@
 
 //---------------------------------------------------------------
 // Print class
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 #include <iostream>
 #include <string>
@@ -80,3 +84,6 @@ public:
     void end();
 
 };
+
+#endif //_COSMOS_PRINT_UTILS
+

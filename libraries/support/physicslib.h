@@ -84,7 +84,7 @@
 #include "configCosmos.h"
 
 #include "cosmos-defs.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "nrlmsise-00.h"
 #include "convertlib.h"
 #include "demlib.h"

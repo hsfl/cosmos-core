@@ -30,7 +30,7 @@
 #include "configCosmos.h"
 #include <stdio.h>
 #include <math.h>
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 #define HEIGHT 1.05
 #define DEPTH 1.5

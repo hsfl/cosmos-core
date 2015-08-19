@@ -34,7 +34,7 @@
 #include "timelib.h"
 #include "datalib.h"
 #include "ephemlib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 struct iersstruc
 {

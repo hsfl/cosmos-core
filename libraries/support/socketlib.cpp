@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "socketlib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 //! Open UDP socket
 /*! Open a UDP socket and configure it for the specified use. Various

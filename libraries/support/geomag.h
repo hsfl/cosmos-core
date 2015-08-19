@@ -42,7 +42,7 @@
 
 #include "configCosmos.h"
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 //! \ingroup geomag
 //! \defgroup geomag_functions World Magnetic Model support library function declarations
