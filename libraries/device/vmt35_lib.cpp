@@ -39,7 +39,7 @@
 #endif
 
 #include "vmt35_lib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "timelib.h"
 //// #include <unistd.h>
 //#include <fcntl.h>

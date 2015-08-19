@@ -33,7 +33,7 @@
 
 #include "gige_lib.h"
 #include "timelib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include <cstring>
 
 #ifdef COSMOS_WIN_OS

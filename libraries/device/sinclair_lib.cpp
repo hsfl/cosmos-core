@@ -1100,10 +1100,12 @@ int nsp_stt_combination(sinclair_state *handle, sinclair_stt_result_operational 
 	if (handle == NULL)
 		return (SINCLAIR_ERROR_CLOSED);
 
+    // Prime prep combo command
 	handle->mbuf.mcf = NSP_COMMAND_COMBINATION|NSP_MCB_PF;
 
 	// Put command into command buffer
 	handle->mbuf.data[0] = go_command;
+
 	// Put combination bitfield into command buffer
 	uint32to(bitfield, &handle->mbuf.data[1], ORDER_LITTLEENDIAN);
 	handle->mbuf.size = 4;
@@ -1115,6 +1117,8 @@ int nsp_stt_combination(sinclair_state *handle, sinclair_stt_result_operational 
 //	memcpy((void *)buf_out,(void *)(handle->mbuf.data),handle->mbuf.size);
 	return (handle->mbuf.size);
 }
+
+
 
 int32_t sinclair_stt_combo(sinclair_state *handle, sinclair_stt_result_operational *result)
 {

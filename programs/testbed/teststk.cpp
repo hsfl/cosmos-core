@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "physicslib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "jsonlib.h"
 #include "timelib.h"
 #include <math.h>

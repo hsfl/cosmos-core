@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include <cstdio>
 #include <cmath>
 

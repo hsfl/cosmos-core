@@ -39,7 +39,7 @@
         position and attitude coordinate systems used in orbital mechanics.
 */
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "convertdef.h"
 
 //! \ingroup support

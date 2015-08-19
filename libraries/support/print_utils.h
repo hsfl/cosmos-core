@@ -27,24 +27,23 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// COSMOS Library for printing math types such as rvector to the stream
+
+#ifndef _COSMOS_PRINT_UTILS
+#define _COSMOS_PRINT_UTILS
+
+// COSMOS Library for Printing Vector and stuff like that to the stream
 
 // v1.0 : 2014-10-05
 // library created
 
 //---------------------------------------------------------------
 // Print class
-
-#ifndef PRINT_UTILS_H
-#define PRINT_UTILS_H
-
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 #include <iostream>
 #include <string>
-#include <iomanip>      // std::setw
 
-// TODO: remove the dependency of matlib later, change rvector to vector?
+// ?? remove the dependency of matlib later, change rvector to vector?
 
 class PrintUtils {
 
@@ -52,12 +51,14 @@ private:
 
 public:
 
-    // main functions
+    //main functions
     //-------------------------------------------------------------
     // print functions to help visualize the vectors and other data
 
     // main function
-    void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision, int fieldwidth);
+    void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision);
+
+
 
     // split vector
     void vector(string vector_name, double a, double b, double c, string units);
@@ -84,4 +85,5 @@ public:
 
 };
 
-#endif // PRINT_UTILS_H
+#endif //_COSMOS_PRINT_UTILS
+

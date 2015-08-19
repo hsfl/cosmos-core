@@ -305,6 +305,14 @@ contains(MODULES, device){
     HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/*.h)
 }
 
+contains(MODULES, astrodev_lib){
+    message( "- device/astrodev_lib" )
+    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
+    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/astrodev_lib.cpp)
+    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/astrodev_lib.h)
+    MODULES         +=  cssl_lib
+}
+
 contains(MODULES, cssl_lib){
     message( "- device/cssl_lib" )
     INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
@@ -345,6 +353,20 @@ contains(MODULES, vmt35_lib){
     INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
     SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/vmt35_lib.cpp)
     HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/vmt35_lib.h)
+}
+
+contains(MODULES, gige_lib){
+    message( "- device/gige_lib" )
+    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
+    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/gige_lib.cpp)
+    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/gige_lib.h)
+}
+
+contains(MODULES, mixwtnc_lib){
+    message( "- device/mixwtnc_lib" )
+    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
+    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/mixwtnc_lib.cpp)
+    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/mixwtnc_lib.h)
 }
 
 contains(MODULES, sinclair_lib){

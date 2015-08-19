@@ -41,7 +41,7 @@
 #include "configCosmos.h"
 #if defined(COSMOS_WIN_OS) || defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "cssl_lib.h"
 #include "cosmos-errno.h"
 

@@ -38,7 +38,7 @@
 
 #include "configCosmos.h"
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 //#include "jpleph.h"
 //#include "timelib.h"
 

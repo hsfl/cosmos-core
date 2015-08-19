@@ -60,7 +60,7 @@
 //#include <semaphore.h>
 
 //#include "datalib.h"
-//#include "mathlib.h"
+//#include "math/mathlib.h"
 
 //! \ingroup demlib
 //! \defgroup demlib_constants DEM library constants
