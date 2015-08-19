@@ -42,7 +42,7 @@
 
 #include "configCosmos.h"
 
-//#include "mathlib.h"
+//#include "math/mathlib.h"
 #include "cssl_lib.h"
 #include "cosmos-errno.h"
 

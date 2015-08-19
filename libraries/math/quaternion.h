@@ -35,6 +35,8 @@
 #ifndef _MATH_QUATERNION_H
 #define _MATH_QUATERNION_H
 
+#include <iomanip>      // std::setw
+
 // TODO: remove dependency
 #include "math/vector.h"
 #include "math/constants.h"

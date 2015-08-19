@@ -59,7 +59,7 @@
 #include "configCosmos.h"
 
 //#include "datalib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 //#include "jpleph.h"
 //#include "timelib.h"
 #include "convertdef.h"

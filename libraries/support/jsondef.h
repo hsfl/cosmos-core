@@ -36,7 +36,7 @@
 
 #include "configCosmos.h"
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "convertdef.h"
 #include "physicsdef.h"
 #include "socketlib.h"

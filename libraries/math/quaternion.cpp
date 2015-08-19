@@ -672,11 +672,21 @@ quaternion q_change_around(int axis,double angle)
 }
 
 
-
-
+// default operator for printing the quaternion values
 std::ostream& operator << (std::ostream& out, const quaternion& a)
 {
-    out<< "[" << a.d.x << "," << a.d.y << "," << a.d.z << "," << a.w << "]";
+    //out << std::fixed;
+    //out << std::setprecision(5);
+    out<< "["
+       << std::setw(6) << a.d.x << ","
+       << std::setw(6) << a.d.y << ","
+       << std::setw(6) << a.d.z << ","
+       << std::setw(6) << a.w
+       << "]";
+
+    // remove formating for floatfield (not set)
+    std::cout.unsetf ( std::ios::floatfield );
+
     return out;
 }
 

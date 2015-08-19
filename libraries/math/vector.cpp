@@ -246,31 +246,32 @@ rvector rv_normal(rvector v)
 */
 void normalize_rv(rvector *v)
 {
-        double mag;
+    double mag;
 
-        mag = length_rv(*v);
+    mag = length_rv(*v);
 
-        // if the current length is not zero (or already one)
-        if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
-        {
-                v->col[0] /= mag;
-                v->col[1] /= mag;
-                v->col[2] /= mag;
-        }
+    // if the current length is not zero (or already one)
+    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
+    {
+        v->col[0] /= mag;
+        v->col[1] /= mag;
+        v->col[2] /= mag;
+    }
 }
+
 void normalize_rv2(rvector &v)
 {
-        double mag;
+    double mag;
 
-        mag = length_rv(v);
+    mag = length_rv(v);
 
-        // if the current length is not zero (or already one)
-        if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
-        {
-                v.col[0] /= mag;
-                v.col[1] /= mag;
-                v.col[2] /= mag;
-        }
+    // if the current length is not zero (or already one)
+    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
+    {
+        v.col[0] /= mag;
+        v.col[1] /= mag;
+        v.col[2] /= mag;
+    }
 }
 
 
@@ -765,8 +766,19 @@ rvector rv_sqrt(rvector vec)
 
 std::ostream& operator << (std::ostream& out, const rvector& a)
 {
-    out.precision(15);
-    out<<"["<<a.col[0]<<","<<a.col[1]<<","<<a.col[2]<<"]";
+    //out.precision(15);
+
+    out << std::fixed;
+    out << std::setprecision(6);
+    out<< "["
+       << std::setw(10) << a.col[0] << ","
+       << std::setw(10) << a.col[1] << ","
+       << std::setw(10) << a.col[2]
+       << "]";
+
+    // remove formating for floatfield (not set)
+    std::cout.unsetf ( std::ios::floatfield );
+
     return out;
 }
 

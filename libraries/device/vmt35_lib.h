@@ -46,7 +46,7 @@
 //#include <stdio.h>
 //#include <errno.h>
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "cssl_lib.h"
 #include "cosmos-errno.h"
 

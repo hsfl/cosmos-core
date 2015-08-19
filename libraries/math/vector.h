@@ -33,8 +33,9 @@
 //#include "math/types.h"
 #include "math/constants.h"
 
-#include <cmath>
 #include <iostream>
+#include <iomanip>      // std::setw
+#include <cmath>
 #include <vector>
 
 #ifdef _MSC_BUILD

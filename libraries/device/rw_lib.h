@@ -37,7 +37,7 @@
 #include <stdio.h>
 
 #include "cssl_lib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "cosmos-errno.h"
 #include <cstring>
 #ifndef COSMOS_WIN_BUILD_MSVC

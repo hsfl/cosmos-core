@@ -38,7 +38,7 @@
 
 #include "configCosmos.h"
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 //#include "jpleph.h"
 //#include "timelib.h"
 
@@ -276,19 +276,18 @@ std::istream& operator >> (std::istream& in, dcmatt& a);
  * to present the 0th derivative.
  *
 */
-typedef struct
+struct qatt
 {
 	double utc;
 	//! 0th derivative: Quaternion
 	quaternion s; //q
 	//! 1st derivative: Omega - angular velocity
-	//!
 	rvector v;  //dq
 	//! 2nd derivative: Alpha - acceleration
 	rvector a;  //ddq
 	//! pass indicator: allows synchronization with other attitude and position values.
 	uint32_t pass;
-} qatt;
+} ;
 
 std::ostream& operator << (std::ostream& out, const qatt& a);
 std::istream& operator >> (std::istream& in, qatt& a);

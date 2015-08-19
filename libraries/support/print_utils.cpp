@@ -42,26 +42,31 @@ void PrintUtils::vector(
         rvector v,
         double scale,
         string text_suffix,
-        int precision){
+        int precision,
+        int fieldwidth = 6)
+{
 
     if (precision != -1){
         // with set precision
         cout.precision(precision);
         cout << fixed;
-
     }
-    cout << text_prefix << "[" << v.col[0]*scale << ", " << v.col[1]*scale <<  ", " << v.col[2]*scale << "]" << text_suffix;
+    //    std::cout.width(filedwidth);
+    std::setw(fieldwidth);
+    cout << text_prefix << "[" << v.col[0]*scale << "," << v.col[1]*scale <<  "," << v.col[2]*scale << "]" << text_suffix;
 
 }
 
 
-void PrintUtils::vector(rvector v){
+void PrintUtils::vector(rvector v)
+{
     // this prints the vector v enclosed in brackets like this: [x,y,z]
     //cout << v;
     vector("", v, 1, " ", -1);
 }
 
-void PrintUtils::vector(rvector v, int precision){
+void PrintUtils::vector(rvector v, int precision)
+{
     cout.precision(precision);
     // this prints the vector v enclosed in brackets like this: [x,y,z]
     cout << fixed << "[" << v.col[0] << ", " << v.col[1] <<  ", " << v.col[2] << "]";
@@ -71,19 +76,22 @@ void PrintUtils::vector(rvector v, int precision){
 void PrintUtils::vector_endl(rvector v,
                              double factor,
                              string units,
-                             int precision){
+                             int precision)
+{
     cout.precision(precision);
     // this prints the vector v enclosed in brackets like this: [x,y,z]
     cout << fixed << "[" << v.col[0]*factor << ", " << v.col[1]*factor <<  ", " << v.col[2]*factor << "] " << units << endl;
 }
 
 
-void PrintUtils::vector(string vector_name, rvector v){
+void PrintUtils::vector(string vector_name, rvector v)
+{
     //cout << vector_name << ": " << v;
     vector(vector_name, v, 1, " ", -1);
 }
 
-void PrintUtils::vector(string vector_name, rvector v, int precision){
+void PrintUtils::vector(string vector_name, rvector v, int precision)
+{
     vector(vector_name, v, 1, " ", precision);
 }
 
@@ -91,21 +99,30 @@ void PrintUtils::vector(string vector_name, rvector v, int precision){
 //    vector(vector_name, v, scale, " ", precision);
 //}
 
-void PrintUtils::vector(string vector_name, rvector v, string text_suffix, int precision){
+void PrintUtils::vector(string vector_name,
+                        rvector v,
+                        string text_suffix,
+                        int precision)
+{
      vector(vector_name, v, 1, text_suffix, precision);
 }
 
-void PrintUtils::vectorScaled(string vector_name, rvector v, double scale, int precision){
+void PrintUtils::vectorScaled(string vector_name,
+                              rvector v,
+                              double scale,
+                              int precision)
+{
     vector(vector_name, v, scale, " ", precision);
 }
 
 
-// overloaded function with setprecision
+// overloaded function
 void PrintUtils::vector(string vector_name,
                         double a,
                         double b,
                         double c,
-                        string units){
+                        string units)
+{
     cout << vector_name << "[" << a << ", " << b <<  ", " << c << "] " << units << endl;
 }
 
@@ -125,7 +142,8 @@ void PrintUtils::vector(string vector_name,
                         double b,
                         double c,
                         double d,
-                        string units){
+                        string units)
+{
     cout << vector_name << "[" << a << ", " << b <<  ", " << c << ", " << d << "] " << units << endl;
 }
 
@@ -134,11 +152,20 @@ void PrintUtils::vector(string vector_name,
 
 
 
-void PrintUtils::vector2(string name_v1, rvector v1, string name_v2, rvector v2){
+void PrintUtils::vector2(string name_v1,
+                         rvector v1,
+                         string name_v2,
+                         rvector v2)
+{
     cout << name_v1 << ": " << v1 << " | " << name_v2 << ": " << v2 << endl;
 }
 
-void PrintUtils::vector2(string name_v1, rvector v1, string name_v2, rvector v2, int precision){
+void PrintUtils::vector2(string name_v1,
+                         rvector v1,
+                         string name_v2,
+                         rvector v2,
+                         int precision)
+{
     cout.precision(precision);
     cout << name_v1 << fixed << "[" << v1.col[0] << ", " << v1.col[1] <<  ", " << v1.col[2] << "]" << " | " << name_v2 << "[" << v2.col[0] << ", " << v2.col[1] <<  ", " << v2.col[2] << "]" << endl;
 }

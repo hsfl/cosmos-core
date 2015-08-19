@@ -53,7 +53,7 @@
 
 #include "configCosmos.h"
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 #ifdef COSMOS_WIN_BUILD_MSVC
 #include "timeutils.hpp"
