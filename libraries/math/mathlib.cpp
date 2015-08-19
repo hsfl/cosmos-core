@@ -154,17 +154,26 @@ quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rv
 	quaternion qe_b;
 	quaternion fqe;
 
-	normalize_rv(&sourcea);
-	normalize_rv(&sourceb);
-
 	// Determine rotation of source A into target A
 	qe_a = q_conjugate(q_change_between_rv(sourcea,targeta));
 
 	// Use to transform source B into intermediate B
 	sourceb = transform_q(qe_a,sourceb);
-
-	// Determine transformation of this intermediate B into target B
-	qe_b = q_conjugate(q_change_between_rv(sourceb,targetb));
+	normalize_rv(&sourceb);
+	normalize_rv(&targetb);
+	if (length_rv(rv_add(sourceb,targetb)) < 1e-14)
+	{
+		// Antiparallel - rotate 180 degrees around vector A
+		qe_b.d.x = -targeta.col[0];
+		qe_b.d.y = -targeta.col[1];
+		qe_b.d.z = -targeta.col[2];
+		qe_b.w = 0;
+	}
+	else
+	{
+		// Determine transformation of this intermediate B into target B
+		qe_b = q_conjugate(q_change_between_rv(sourceb,targetb));
+	}
 
 	// Combine to determine complete transformation of source into target
 	fqe = q_mult(qe_a,qe_b);
@@ -680,36 +689,36 @@ void floatto(float value, uint8_t *pointer, uint8_t order)
 
 //! 64 bit floating point to memory
 /*! Cast a 64 bit floating point equivalent into a location in memory, corrected for the local byte order.
-    \param value float to be cast
-    \param pointer location in memory
-    \param order desired byte order of the data in memory. ORDER_BIGENDIAN or ORDER_LITTLEENDIAN
+	\param value float to be cast
+	\param pointer location in memory
+	\param order desired byte order of the data in memory. ORDER_BIGENDIAN or ORDER_LITTLEENDIAN
 */
 
 void doubleto(double value, uint8_t *pointer, uint8_t order)
 {
-    double *result;
-    uint8_t *rb;
-    double rd;
+	double *result;
+	uint8_t *rb;
+	double rd;
 
-    rb = (uint8_t *)&rd;
+	rb = (uint8_t *)&rd;
 
-    result = (double *)rb;
-    *result = value;
-    if (local_byte_order() == order)
-    {
-        memcpy(pointer,(void *)rb,8);
-    }
-    else
-    {
-        pointer[0] = rb[7];
-        pointer[1] = rb[6];
-        pointer[2] = rb[5];
-        pointer[3] = rb[4];
-        pointer[4] = rb[3];
-        pointer[5] = rb[2];
-        pointer[6] = rb[1];
-        pointer[7] = rb[0];
-    }
+	result = (double *)rb;
+	*result = value;
+	if (local_byte_order() == order)
+	{
+		memcpy(pointer,(void *)rb,8);
+	}
+	else
+	{
+		pointer[0] = rb[7];
+		pointer[1] = rb[6];
+		pointer[2] = rb[5];
+		pointer[3] = rb[4];
+		pointer[4] = rb[3];
+		pointer[5] = rb[2];
+		pointer[6] = rb[1];
+		pointer[7] = rb[0];
+	}
 }
 
 //! Initialize estimator
@@ -1825,11 +1834,11 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size)
 
 // convert from cartesian vector to row vector
 rvector RowVector::from_cv(cvector v){
-    rvector rv;
-    rv.col[0] = v.x;
-    rv.col[1] = v.y;
-    rv.col[2] = v.z;
-    return rv;
+	rvector rv;
+	rv.col[0] = v.x;
+	rv.col[1] = v.y;
+	rv.col[2] = v.z;
+	return rv;
 }
 
 
@@ -1840,66 +1849,66 @@ rvector RowVector::from_cv(cvector v){
 //! Rotate a row vector using a quaternion
 /*! Rotate a row vector within one coordinate system using the
  * provided left quaternion.
-        \param v row vector to be rotated
-        \param q quaternion representing the rotation
-        \return rotated row vector in the same system
+		\param v row vector to be rotated
+		\param q quaternion representing the rotation
+		\return rotated row vector in the same system
 */
 rvector rotate_q(quaternion q, rvector v)
 {
-    // TODO: remove uvector, use quaternion
-    uvector t = {{{0.,0.,0.},0.}};
+	// TODO: remove uvector, use quaternion
+	uvector t = {{{0.,0.,0.},0.}};
 
-    //	t.q.d = ((uvector *)&v)->c;
-    //	t.q.w = 0.0;
+	//	t.q.d = ((uvector *)&v)->c;
+	//	t.q.w = 0.0;
 
-    //	t.q = q_mult(q,q_mult(t.q,q_conjugate(q)));
-    t.q = q_mult(q,q_mult(v,q_conjugate(q)));
+	//	t.q = q_mult(q,q_mult(t.q,q_conjugate(q)));
+	t.q = q_mult(q,q_mult(v,q_conjugate(q)));
 
-    // TODO: how is this supposed to work?
-    return (t.r);
+	// TODO: how is this supposed to work?
+	return (t.r);
 }
 
 //! Rotate a cartesian vector using a quaternion
 /*! Rotate a cartesian vector from one coordinate system to another using the
  * provided quaternion.
-        \param v cartesian vector to be rotated
-        \param q quaternion representing the rotation
-        \return cartesian vector in the rotated system
+		\param v cartesian vector to be rotated
+		\param q quaternion representing the rotation
+		\return cartesian vector in the rotated system
 */
 cvector rotate_q(quaternion q, cvector v)
 {
-    uvector qt;
-    quaternion qc;
+	uvector qt;
+	quaternion qc;
 
-    qt.c = v;
-    qt.q.w = 0.0;
+	qt.c = v;
+	qt.q.w = 0.0;
 
-    qc = q_conjugate(q);
-    qt.q = q_mult(qt.q,qc);
-    qt.q = q_mult(q,qt.q);
+	qc = q_conjugate(q);
+	qt.q = q_mult(qt.q,qc);
+	qt.q = q_mult(q,qt.q);
 
-    return (qt.c);
+	return (qt.c);
 }
 
 
 //! Transform a row vector using a quaternion
 /*! Transform a row vector from one coordinate system to another using the
  * provided left quaternion.
-        \param v row vector to be rotated
-        \param q quaternion representing the transformation
-        \return row vector in the transformed system
+		\param v row vector to be rotated
+		\param q quaternion representing the transformation
+		\return row vector in the transformed system
 */
 rvector transform_q(quaternion q, rvector v)
 {
-    uvector t = {{{0.,0.,0.},0.}};
+	uvector t = {{{0.,0.,0.},0.}};
 
-    //	t.q.d = ((uvector *)&v)->c;
-    //	t.q.w = 0.0;
+	//	t.q.d = ((uvector *)&v)->c;
+	//	t.q.w = 0.0;
 
-    //	t.q = q_mult(q_conjugate(q),q_mult(t.q,q));
-    t.q = q_mult(q_conjugate(q),q_mult(v,q));
+	//	t.q = q_mult(q_conjugate(q),q_mult(t.q,q));
+	t.q = q_mult(q_conjugate(q),q_mult(v,q));
 
-    return (t.r);
+	return (t.r);
 }
 
 
@@ -1907,48 +1916,48 @@ rvector transform_q(quaternion q, rvector v)
 //! Create rotation quaternion from 2 vectors
 /*! Generate the quaternion that represents a rotation of from one cartesian vector
  * to a second cartesian vector.
-        \param from initial cartesian vector
-        \param to final cartesian vector
-        \return quaternion that can be used to rotate points
+		\param from initial cartesian vector
+		\param to final cartesian vector
+		\return quaternion that can be used to rotate points
 */
 // TODO: move this function to quaternion library
 // and remove dependency of uvector
 quaternion q_change_between_cv(cvector from, cvector to)
 {
-    uvector rq;
-    cvector vec1, vec2;
+	uvector rq;
+	cvector vec1, vec2;
 
-    normalize_cv(&from);
-    normalize_cv(&to);
+	normalize_cv(&from);
+	normalize_cv(&to);
 
-    if (length_cv(cv_add(from,to)) < 1e-14)
-    {
-        vec1.x = rand();
-        vec1.y = rand();
-        vec1.z = rand();
-        normalize_cv(&vec1);
-        vec2 = cv_cross(vec1,to);
-        normalize_cv(&vec2);
-        if (length_cv(vec2)<D_SMALL)
-        {
-            vec1.x = rand();
-            vec1.y = rand();
-            vec1.z = rand();
-            normalize_cv(&vec1);
-            vec2 = cv_cross(vec1,to);
-            normalize_cv(&vec2);
-        }
-        rq.c = vec2;
-        rq.q.w = 0.;
-    }
-    else
-    {
-        rq.c = cv_cross(from,to);
-        rq.q.w = 1. + dot_cv(from,to);
-    }
+	if (length_cv(cv_add(from,to)) < 1e-14)
+	{
+		vec1.x = rand();
+		vec1.y = rand();
+		vec1.z = rand();
+		normalize_cv(&vec1);
+		vec2 = cv_cross(vec1,to);
+		normalize_cv(&vec2);
+		if (length_cv(vec2)<D_SMALL)
+		{
+			vec1.x = rand();
+			vec1.y = rand();
+			vec1.z = rand();
+			normalize_cv(&vec1);
+			vec2 = cv_cross(vec1,to);
+			normalize_cv(&vec2);
+		}
+		rq.c = vec2;
+		rq.q.w = 0.;
+	}
+	else
+	{
+		rq.c = cv_cross(from,to);
+		rq.q.w = 1. + dot_cv(from,to);
+	}
 
-    q_normalize(&rq.q);
-    return (rq.q);
+	q_normalize(&rq.q);
+	return (rq.q);
 }
 
 
@@ -1956,304 +1965,304 @@ quaternion q_change_between_cv(cvector from, cvector to)
 //! Create rotation matrix from 2 vectors
 /*! Generate the direction cosine matrix that represents a rotation from one cartesian vector
  * to a second cartesian vector.
-        \param from initial cartesian vector
-        \param to final cartesian vector
-        \return direction cosine matrix that can be used to rotate points
+		\param from initial cartesian vector
+		\param to final cartesian vector
+		\return direction cosine matrix that can be used to rotate points
 */
 cmatrix cm_change_between_cv(cvector from, cvector to)
 {
-    //cmatrix m;
-    //m = cm_quaternion2dcm(q_change_between_cv(from,to));
-    //return (m);
+	//cmatrix m;
+	//m = cm_quaternion2dcm(q_change_between_cv(from,to));
+	//return (m);
 
-    return cm_quaternion2dcm(q_change_between_cv(from,to));
+	return cm_quaternion2dcm(q_change_between_cv(from,to));
 }
 
 
 
 
 lsfit::lsfit()
-        : element_cnt(10), order(2), resolution(0.)
+	: element_cnt(10), order(2), resolution(0.)
 {
-//	lsfit(10, 2, 0.);
-        //	printf("lsfit()\n");
+	//	lsfit(10, 2, 0.);
+	//	printf("lsfit()\n");
 }
 
 lsfit::lsfit(uint16_t cnt)
-        : element_cnt(cnt), order(2), resolution(0.)
+	: element_cnt(cnt), order(2), resolution(0.)
 {
-//	lsfit(cnt, 2, 0.);
-        //	printf("lsfit(%u)\n",cnt);
+	//	lsfit(cnt, 2, 0.);
+	//	printf("lsfit(%u)\n",cnt);
 }
 
 lsfit::lsfit(uint16_t cnt, uint16_t ord)
-        : element_cnt(cnt), order(ord), resolution(0.)
+	: element_cnt(cnt), order(ord), resolution(0.)
 {
-//	lsfit(cnt, ord, 0.);
-        //	printf("lsfit(%u %u)\n",cnt,ord);
+	//	lsfit(cnt, ord, 0.);
+	//	printf("lsfit(%u %u)\n",cnt,ord);
 }
 
 lsfit::lsfit(uint16_t cnt, uint16_t ord, double res)
-        : element_cnt(cnt), order(ord), resolution(res)
+	: element_cnt(cnt), order(ord), resolution(res)
 {
-        if (ord)
-        {
-                order = ord;
-        }
-        else
-        {
-                order = 1;
-        }
-        if (cnt)
-        {
-                element_cnt = cnt;
-        }
-        else
-        {
-                element_cnt = order + 1;
-        }
-        resolution = res;
-        var.resize(0);
-        depth = 0;
-        //	printf("lsfit(%u %u %f)\n",cnt,ord,res);
+	if (ord)
+	{
+		order = ord;
+	}
+	else
+	{
+		order = 1;
+	}
+	if (cnt)
+	{
+		element_cnt = cnt;
+	}
+	else
+	{
+		element_cnt = order + 1;
+	}
+	resolution = res;
+	var.resize(0);
+	depth = 0;
+	//	printf("lsfit(%u %u %f)\n",cnt,ord,res);
 }
 
 void lsfit::update(double x, double y)
 {
-        fitelement cfit;
+	fitelement cfit;
 
-        // Independent variable
-        cfit.x = x;
+	// Independent variable
+	cfit.x = x;
 
-        // Dependent variable for quaternion
-        cfit.y.a4[0] = y;
+	// Dependent variable for quaternion
+	cfit.y.a4[0] = y;
 
-        update(cfit, 1);
+	update(cfit, 1);
 }
 
 void lsfit::update(double x, rvector y)
 {
-        fitelement cfit;
+	fitelement cfit;
 
-        // Independent variable
-        cfit.x = x;
+	// Independent variable
+	cfit.x = x;
 
-        // Dependent variable for quaternion
-        cfit.y.r = y;
+	// Dependent variable for quaternion
+	cfit.y.r = y;
 
-        update(cfit, 3);
+	update(cfit, 3);
 }
 
 void lsfit::update(double x, quaternion y)
 {
-        fitelement cfit;
+	fitelement cfit;
 
-        // Independent variable
-        cfit.x = x;
+	// Independent variable
+	cfit.x = x;
 
-        // Dependent variable for quaternion
-        cfit.y.q = y;
+	// Dependent variable for quaternion
+	cfit.y.q = y;
 
-        update(cfit, 4);
+	update(cfit, 4);
 
-//    // TODO: check this problem!!!
-//    //if (parms.size() && (std::isnan(parms[0][0]) || std::isnan(parms[0][1] || std::isnan(parms[0][2]))))
-//    if (1)
-//	{
-//		for (uint16_t i=0; i<var.size(); ++i)
-//		{
-//            // TODO: why are we printing this?
-//			printf("%.15g [%g %g %g %g]\n", var[i].x, var[i].y.q.w, var[i].y.q.d.x, var[i].y.q.d.y, var[i].y.q.d.z);
-//		}
-//		printf("\n");
-//	}
+	//    // TODO: check this problem!!!
+	//    //if (parms.size() && (std::isnan(parms[0][0]) || std::isnan(parms[0][1] || std::isnan(parms[0][2]))))
+	//    if (1)
+	//	{
+	//		for (uint16_t i=0; i<var.size(); ++i)
+	//		{
+	//            // TODO: why are we printing this?
+	//			printf("%.15g [%g %g %g %g]\n", var[i].x, var[i].y.q.w, var[i].y.q.d.x, var[i].y.q.d.y, var[i].y.q.d.z);
+	//		}
+	//		printf("\n");
+	//	}
 }
 
 void lsfit::update(fitelement cfit, uint16_t dep)
 {
-        if (var.size() && cfit.x == var[var.size()-1].x)
-        {
-                return;
-        }
+	if (var.size() && cfit.x == var[var.size()-1].x)
+	{
+		return;
+	}
 
-        depth = dep;
+	depth = dep;
 
-        // Sudden switch to mirror value will wreak havoc with fit of quaternion
-        if (depth == 4 && var.size() > 0)
-        {
-                // If new value is closer to mirror of last value, then switch all previous values
-                if (length_q(q_sub(cfit.y.q, var[var.size()-1].y.q)) > length_q(q_sub(q_smult(-1., cfit.y.q), var[var.size()-1].y.q)))
-                {
-                        for (uint16_t i=0; i<var.size(); ++i)
-                        {
-                                var[i].y.q = q_smult(-1., var[i].y.q);
-                        }
-                }
-        }
+	// Sudden switch to mirror value will wreak havoc with fit of quaternion
+	if (depth == 4 && var.size() > 0)
+	{
+		// If new value is closer to mirror of last value, then switch all previous values
+		if (length_q(q_sub(cfit.y.q, var[var.size()-1].y.q)) > length_q(q_sub(q_smult(-1., cfit.y.q), var[var.size()-1].y.q)))
+		{
+			for (uint16_t i=0; i<var.size(); ++i)
+			{
+				var[i].y.q = q_smult(-1., var[i].y.q);
+			}
+		}
+	}
 
-        // Save to FIFO
-        var.push_back(cfit);
+	// Save to FIFO
+	var.push_back(cfit);
 
-        // Element_cnt element collected and we can start cycling FIFO
-        if (var.size() > element_cnt)
-        {
-                var.pop_front();
-        }
+	// Element_cnt element collected and we can start cycling FIFO
+	if (var.size() > element_cnt)
+	{
+		var.pop_front();
+	}
 
-        // More than order elements collected and we can start fitting
-        if (var.size() > order)
-        {
-                lsfit::fit();
-        }
+	// More than order elements collected and we can start fitting
+	if (var.size() > order)
+	{
+		lsfit::fit();
+	}
 }
 
 void lsfit::fit()
 {
-        // Minimize independent variable by zero offsetting
-        basex = var[0].x;
+	// Minimize independent variable by zero offsetting
+	basex = var[0].x;
 
-        // For each independent, calculate sums of powers
-        vector<double> sumx(2*order+1);
-        sumx[0] = var.size();
-        for (uint16_t i=0; i<sumx[0]; ++i)
-        {
-                double ix = 1.;
-                double cx = var[i].x - basex;
-                for (uint16_t j=0; j<2*order; ++j)
-                {
-                        ix *= cx;
-                        sumx[j+1] += ix;
-                }
-        }
-        meanx = sumx[1] / sumx[0];
-        stdevx = sqrt(sumx[2] - sumx[1]*sumx[1]/sumx[0])/(sumx[0]-1);
+	// For each independent, calculate sums of powers
+	vector<double> sumx(2*order+1);
+	sumx[0] = var.size();
+	for (uint16_t i=0; i<sumx[0]; ++i)
+	{
+		double ix = 1.;
+		double cx = var[i].x - basex;
+		for (uint16_t j=0; j<2*order; ++j)
+		{
+			ix *= cx;
+			sumx[j+1] += ix;
+		}
+	}
+	meanx = sumx[1] / sumx[0];
+	stdevx = sqrt(sumx[2] - sumx[1]*sumx[1]/sumx[0])/(sumx[0]-1);
 
-        // Calculate sums of products of dependent and independent and do least squares fit
-        parms.resize(depth);
-        for (uint16_t i=0; i<depth; ++i)
-        {
-                vector<double> sumxy(order+1);
-                stdevy.a4[i] = 0;
-                for (uint16_t j=0; j<var.size(); ++j)
-                {
-                        double ixy = var[j].y.a4[i];
-                        stdevy.a4[i] += ixy * ixy;
-                        double cx = var[j].x - basex;
-                        for (uint16_t k=0; k<order+1; ++k)
-                        {
-                                sumxy[k] += ixy;
-                                ixy *= cx;
-                        }
-                }
-                meany.a4[i] = sumxy[0] / var.size();
-                stdevy.a4[i] = sqrt(stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1);
+	// Calculate sums of products of dependent and independent and do least squares fit
+	parms.resize(depth);
+	for (uint16_t i=0; i<depth; ++i)
+	{
+		vector<double> sumxy(order+1);
+		stdevy.a4[i] = 0;
+		for (uint16_t j=0; j<var.size(); ++j)
+		{
+			double ixy = var[j].y.a4[i];
+			stdevy.a4[i] += ixy * ixy;
+			double cx = var[j].x - basex;
+			for (uint16_t k=0; k<order+1; ++k)
+			{
+				sumxy[k] += ixy;
+				ixy *= cx;
+			}
+		}
+		meany.a4[i] = sumxy[0] / var.size();
+		stdevy.a4[i] = sqrt(stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1);
 
-                vector< vector<double> > xs(order+1, vector<double>(order+1));
-                vector<double> ys(order+1);
-                vector<double> tx(order+1);
-                for (uint16_t j=0; j<order+1; ++j)
-                {
-                        for (uint16_t k=0; k<order+1; ++k)
-                        {
-                                tx[k] = sumx[k+j];
-                        }
-                        xs[j] = tx;
-                        ys[j] = sumxy[j];
-                }
-                parms[i].resize(ys.size());
-                multisolve(xs, ys, parms[i]);
-                //		printf("%u %u %f %f %f\n", i, parms[i].size(), parms[i][0], parms[i][1], parms[i][2]);
-        }
+		vector< vector<double> > xs(order+1, vector<double>(order+1));
+		vector<double> ys(order+1);
+		vector<double> tx(order+1);
+		for (uint16_t j=0; j<order+1; ++j)
+		{
+			for (uint16_t k=0; k<order+1; ++k)
+			{
+				tx[k] = sumx[k+j];
+			}
+			xs[j] = tx;
+			ys[j] = sumxy[j];
+		}
+		parms[i].resize(ys.size());
+		multisolve(xs, ys, parms[i]);
+		//		printf("%u %u %f %f %f\n", i, parms[i].size(), parms[i][0], parms[i][1], parms[i][2]);
+	}
 }
 
 double lsfit::lastx()
 {
-        if (var.size())
-        {
-                return var[var.size()-1].x;
-        }
-        else
-        {
-                return 0.;
-        }
+	if (var.size())
+	{
+		return var[var.size()-1].x;
+	}
+	else
+	{
+		return 0.;
+	}
 }
 
 double lsfit::eval(double x)
 {
-        if (var.size() > order)
-        {
-                return evaluate_poly(x - basex, parms[0]);
-        }
-        else
-        {
-                return 0.;
-        }
+	if (var.size() > order)
+	{
+		return evaluate_poly(x - basex, parms[0]);
+	}
+	else
+	{
+		return 0.;
+	}
 
 }
 
 rvector lsfit::evalrvector(double x)
 {
-        if (var.size() > order)
-        {
-                return rv_evaluate_poly(x - basex, parms);
-        }
-        else
-        {
-                return rv_zero();
-        }
+	if (var.size() > order)
+	{
+		return rv_evaluate_poly(x - basex, parms);
+	}
+	else
+	{
+		return rv_zero();
+	}
 }
 
 quaternion lsfit::evalquaternion(double x)
 {
-        if (var.size() > order)
-        {
-                return q_evaluate_poly(x - basex, parms);
-        }
-        else
-        {
-                return q_zero();
-        }
+	if (var.size() > order)
+	{
+		return q_evaluate_poly(x - basex, parms);
+	}
+	else
+	{
+		return q_zero();
+	}
 }
 
 double lsfit::slope(double x)
 {
-        if (var.size() > order)
-        {
-                return evaluate_poly_slope(x - basex, parms[0]);
-        }
-        else
-        {
-                return 0.;
-        }
+	if (var.size() > order)
+	{
+		return evaluate_poly_slope(x - basex, parms[0]);
+	}
+	else
+	{
+		return 0.;
+	}
 }
 
 rvector lsfit::slopervector(double x)
 {
-        if (var.size() > order)
-        {
-                return rv_evaluate_poly_slope(x - basex, parms);
-        }
-        else
-        {
-                return rv_zero();
-        }
+	if (var.size() > order)
+	{
+		return rv_evaluate_poly_slope(x - basex, parms);
+	}
+	else
+	{
+		return rv_zero();
+	}
 }
 
 quaternion lsfit::slopequaternion(double x)
 {
-        if (var.size() > order)
-        {
-                return q_evaluate_poly_slope(x - basex, parms);
-        }
-        else
-        {
-                return q_zero();
-        }
+	if (var.size() > order)
+	{
+		return q_evaluate_poly_slope(x - basex, parms);
+	}
+	else
+	{
+		return q_zero();
+	}
 }
 
 vector<vector<double> > lsfit::getparms(double x)
 {
-        return parms;
+	return parms;
 }
 
 

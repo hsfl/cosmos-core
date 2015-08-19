@@ -32,6 +32,10 @@
 // v1.0 : 2014-10-05
 // library created
 
+#ifndef _PRINT_UTILS_H
+#define _PRINT_UTILS_H 1
+
+
 //---------------------------------------------------------------
 // Print class
 #include "mathlib.h"
@@ -80,3 +84,5 @@ public:
     void end();
 
 };
+
+#endif
