@@ -59,6 +59,7 @@ public:
     // 20150818JC: Fixed mismatched prototype to include field width.  Default value in cpp
     //void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision);
     void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision, int fieldwidth);
+	void vector(string text_prefix, quaternion q, double scale, string text_suffix, int precision, int fieldwidth);
 
     // split vector
     void vector(string vector_name, double a, double b, double c, string units);
@@ -66,16 +67,20 @@ public:
     void vector(string vector_name, double a, double b, double c, double d, string units);
 
     void vector(rvector v);
-    void vector(rvector v, int precision);
-
 	void vector(quaternion q);
+	void vector(rvector v, int precision);
 	void vector(quaternion q, int precision);
+
 
 	void vector(string vector_name, rvector v);
     void vector(string vector_name, rvector v, int precision);
     void vector(string vector_name, rvector v, string text_suffix, int precision);
+	void vector(string vector_name, quaternion q);
+	void vector(string vector_name, quaternion q, int precision);
+	void vector(string vector_name, quaternion q, string text_suffix, int precision);
 
     void vectorScaled(string vector_name, rvector v, double scale, int precision);
+	void vectorScaled(string vector_name, quaternion q, double scale, int precision);
 
     void vector_endl(rvector v,
                      double factor,

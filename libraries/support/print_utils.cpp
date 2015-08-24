@@ -57,12 +57,39 @@ void PrintUtils::vector(
 
 }
 
+void PrintUtils::vector(
+		string text_prefix,
+		quaternion q,
+		double scale,
+		string text_suffix,
+		int precision,
+		int fieldwidth = 6)
+{
+
+	if (precision != -1){
+		// with set precision
+		cout.precision(precision);
+		cout << fixed;
+	}
+	//    std::cout.width(filedwidth);
+	std::setw(fieldwidth);
+	cout << text_prefix << "[[" << q.d.x*scale << "," << q.d.y*scale <<  "," << q.d.z*scale << "] " << q.w*scale << "]" << text_suffix;
+
+}
+
 
 void PrintUtils::vector(rvector v)
 {
     // this prints the vector v enclosed in brackets like this: [x,y,z]
     //cout << v;
-    vector("", v, 1, " ", -1);
+	vector("", v, 1., " ", -1, 6);
+}
+
+void PrintUtils::vector(quaternion q)
+{
+	// this prints the quaternion q enclosed in brackets like this: [[x,y,z] w]
+	//cout << q;
+	vector("", q, 1., " ", -1, 6);
 }
 
 void PrintUtils::vector(rvector v, int precision)
@@ -71,15 +98,6 @@ void PrintUtils::vector(rvector v, int precision)
     // this prints the vector v enclosed in brackets like this: [x,y,z]
     cout << fixed << "[" << v.col[0] << ", " << v.col[1] <<  ", " << v.col[2] << "]";
 }
-
-void PrintUtils::vector(quaternion q)
-{
-	// this prints the quaternion q enclosed in brackets like this: [[x,y,z] w]
-	//cout << q;
-	vector(q, 3);
-}
-
-quaternion q;
 
 void PrintUtils::vector(quaternion q, int precision)
 {
@@ -105,9 +123,20 @@ void PrintUtils::vector(string vector_name, rvector v)
     vector(vector_name, v, 1, " ", -1);
 }
 
+void PrintUtils::vector(string vector_name, quaternion q)
+{
+	//cout << vector_name << ": " << q;
+	vector(vector_name, q, 1, " ", -1);
+}
+
 void PrintUtils::vector(string vector_name, rvector v, int precision)
 {
     vector(vector_name, v, 1, " ", precision);
+}
+
+void PrintUtils::vector(string vector_name, quaternion q, int precision)
+{
+	vector(vector_name, q, 1, " ", precision);
 }
 
 //void PrintUtils::vector(string vector_name, rvector v, double scale, int precision){
@@ -122,12 +151,28 @@ void PrintUtils::vector(string vector_name,
      vector(vector_name, v, 1, text_suffix, precision);
 }
 
+void PrintUtils::vector(string vector_name,
+						quaternion q,
+						string text_suffix,
+						int precision)
+{
+	 vector(vector_name, q, 1, text_suffix, precision);
+}
+
 void PrintUtils::vectorScaled(string vector_name,
                               rvector v,
                               double scale,
                               int precision)
 {
     vector(vector_name, v, scale, " ", precision);
+}
+
+void PrintUtils::vectorScaled(string vector_name,
+							  quaternion q,
+							  double scale,
+							  int precision)
+{
+	vector(vector_name, q, scale, " ", precision);
 }
 
 
