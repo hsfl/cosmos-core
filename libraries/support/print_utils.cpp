@@ -72,6 +72,21 @@ void PrintUtils::vector(rvector v, int precision)
     cout << fixed << "[" << v.col[0] << ", " << v.col[1] <<  ", " << v.col[2] << "]";
 }
 
+void PrintUtils::vector(quaternion q)
+{
+	// this prints the quaternion q enclosed in brackets like this: [[x,y,z] w]
+	//cout << q;
+	vector(q, 3);
+}
+
+quaternion q;
+
+void PrintUtils::vector(quaternion q, int precision)
+{
+	cout.precision(precision);
+	// this prints the vector v enclosed in brackets like this: [x,y,z]
+	cout << fixed << "[[" << q.d.x << ", " << q.d.y <<  ", " << q.d.z << "] " << q.w << "]";
+}
 
 void PrintUtils::vector_endl(rvector v,
                              double factor,

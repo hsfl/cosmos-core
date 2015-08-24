@@ -68,7 +68,10 @@ public:
     void vector(rvector v);
     void vector(rvector v, int precision);
 
-    void vector(string vector_name, rvector v);
+	void vector(quaternion q);
+	void vector(quaternion q, int precision);
+
+	void vector(string vector_name, rvector v);
     void vector(string vector_name, rvector v, int precision);
     void vector(string vector_name, rvector v, string text_suffix, int precision);
 
