@@ -165,10 +165,10 @@ void StringParser::splitString(string str, char delimiter)
 // Ex: string = "SOL_COMPUTED,NARROW_INT,-1634531.5683"
 // StringParser::getFieldNumber(1) => "SOL_COMPUTED"
 // StringParser::getFieldNumber(0) => NULL (does not return a meaning value)
-string StringParser::getFieldNumber(unsigned int index)
+string StringParser::getFieldNumber(uint32_t index)
 {
     string out;
-    unsigned int real_offset = index + offset;
+	uint32_t real_offset = index + offset;
 
     if ( index>0 && numberOfFields >= (real_offset) ){
 
@@ -182,7 +182,7 @@ string StringParser::getFieldNumber(unsigned int index)
 }
 
 
-double StringParser::getFieldNumberAsDouble(unsigned int index)
+double StringParser::getFieldNumberAsDouble(uint32_t index)
 {
     double out;
     if (index>0 && numberOfFields >= index){

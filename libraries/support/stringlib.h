@@ -59,15 +59,15 @@ class StringParser {
 
 public:
     // the offset allows you to move the index by an offset value
-    // this can be usefullif for example getFieldNumber(1) should logically be getFieldNumber(2)
+	// this can be useful if, for example, getFieldNumber(1) should logically be getFieldNumber(2)
     // the offset then is 1
     int offset;
     StringParser(string str);
     StringParser(string str, char delimiter);
-    string getFieldNumber(unsigned int index);
-    double getFieldNumberAsDouble(unsigned int index);
+	string getFieldNumber(uint32_t index);
+	double getFieldNumberAsDouble(uint32_t index);
     void splitString(string str, char delimiter);
-    int numberOfFields;
+	size_t numberOfFields;
 };
 
 //! @}
