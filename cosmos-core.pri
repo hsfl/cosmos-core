@@ -215,6 +215,12 @@ contains(MODULES, demlib){
 # The following libraries do not depend on other libraries
 # These are self contained, they are the building blocks for
 # more complext libraries such as agentlib
+contains(MODULES, gp_cosmostimeutils){
+    message( "- support/gp_cosmostimeutils" )
+    SOURCES += $$COSMOS_SOURCE/core/libraries/support/gp_cosmostimeutils.cpp
+    HEADERS += $$COSMOS_SOURCE/core/libraries/support/gp_cosmostimeutils.h
+}
+
 contains(MODULES, mathlib){
     message( "- math/mathlib" )
     #TODO: remove this later to force the use of #include "math/mathfile"
