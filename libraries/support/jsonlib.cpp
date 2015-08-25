@@ -3274,7 +3274,12 @@ double json_convert_double(string object)
     if (!object.empty())
 	{
         dresult = atof(object.c_str());
+        return dresult;
 	}
+    else
+    {
+        dresult = 0;
+    }
 
 	return dresult;
 }
