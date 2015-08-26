@@ -110,16 +110,16 @@ int main(int argc, char *argv[])
 //	teme = rv_mmult(pm, teme);
 //	mean2j2000(temeutc, &pm);
 //	teme = rv_mmult(pm, teme);
-//	j20002gcrf(temeutc, &pm);
+//	j20002gcrf(&pm);
 //	teme = rv_mmult(pm, teme);
 
 //	rvector mod = {{7022.465305, -1400.082889, 0.221526}};
 //	mean2j2000(utc, &pm);
 //	rvector j2000 = {{7022.312444, -1400.849398, -0.110870}};
 //	rvector my2000 = rv_mmult(pm, mod);
-//	gcrf2j2000(utc, &pm);
+//	gcrf2j2000(&pm);
 //	my2000 = rv_mmult(pm, my2000);
-//	j20002gcrf(utc, &pm);
+//	j20002gcrf(&pm);
 //	my2000 = rv_mmult(pm, my2000);
 	eci.utc = utc;
 

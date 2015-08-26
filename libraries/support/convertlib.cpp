@@ -2219,19 +2219,10 @@ void itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 */
 void gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
 {
-//	double gast;
 	double ut1;
-//	rvector nuts;
-//	double eps, pols, dpsi, deps;
-//	double zeta, z, theta;
-//	double se, sdp, sde, ce, cdp, cde;
 	rmatrix nrm[3], ndrm, nddrm;
 	rmatrix pm, nm, sm, pw = {{{{0.}}}};
-//	rmatrix dsm = {{{{0.}}}};
-	//static rmatrix bm = {{{{1.,-14.6*DAS2R,16.617*DAS2R,0.}},{{14.6*DAS2R,1.,6.8192*DAS2R}},{{-16.617*DAS2R,-6.8192*DAS2R,1.}},{{0.}}}};
-//	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
 	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
-//	cvector polm= {0.,0.,0.};
 	static rmatrix orm, odrm, oddrm, ornp;
 	static double outc = 0.;
 	static double realsec = 0.;
@@ -2262,7 +2253,7 @@ void gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	outc = utc;
 	utc -= realsec;
 	// Calculate bias offset for GCRF to J2000
-	gcrf2j2000(utc, &bm);
+	gcrf2j2000(&bm);
 	for (i=0; i<3; i++)
 	{
 		// Calculate Precession Matrix (pm)
@@ -2388,23 +2379,15 @@ void j20002mean(double ep1, rmatrix *pm)
 	oep1 = ep1;
 }
 
-void gcrf2j2000(double op0, rmatrix *rm)
+void gcrf2j2000(rmatrix *rm)
 {
-    // TOOD: Explain why is op0 unused
-
-    //	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
-    //	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
-
-    // TBD!!!: add reference to where did this matrix come from
+	// Vallado, Seago, Seidelmann: Implementation Issues Surrounding the New IAU Reference System for Astrodynamics
     static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
 	*rm = bm;
 }
 
-void j20002gcrf(double op0, rmatrix *rm)
+void j20002gcrf(rmatrix *rm)
 {
-    // TOOD: Explain why is op0 unused
-
-    // TBD!!!: add reference to where did this matrix come from
 	static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
 	*rm = rm_transpose(bm);
 }
@@ -2935,7 +2918,7 @@ int tle2eci(double utc, tlestruc tle, cartpos *eci)
 	eci->v = rv_mmult(pm,eci->v);
 
 	rmatrix bm;
-	j20002gcrf(utc, &bm);
+	j20002gcrf(&bm);
 	eci->s = rv_mmult(bm,eci->s);
 	eci->v = rv_mmult(bm,eci->v);
 
@@ -3206,7 +3189,7 @@ int stk2eci(double utc, stkstruc *stk, cartpos *eci)
 	if (index < 0)
 		return (STK_ERROR_LOWINDEX);
 
-	if (index > stk->count-3)
+	if (index > (int32_t)stk->count-3)
 		return (STK_ERROR_HIGHINDEX);
 
 

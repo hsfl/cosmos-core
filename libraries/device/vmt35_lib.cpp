@@ -537,7 +537,6 @@ int32_t vmt35_set_moment(vmt35_handle *handle, uint16_t channel, double mom, flo
  */
 int32_t vmt35_calc_currents_from_moment(rvector mom, rvector &amp, float npoly[3][7], float ppoly[3][7])
 {
-    double setamp; //amp[3],
     // limit the moment to a maximum of 32 Am^2
     for (uint16_t i =0; i<3; ++i)
     {
@@ -563,7 +562,7 @@ int32_t vmt35_calc_currents_from_moment(rvector mom, rvector &amp, float npoly[3
         }
     }
 
-    return ((int32_t)(setamp*1e3));
+	return 0;
 }
 
 //! Set all three VMT35 Magnetic Moment

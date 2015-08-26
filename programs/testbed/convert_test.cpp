@@ -201,11 +201,11 @@ void test_eric(){
     spos = rv_mmult(pm, spos);
     mean2j2000(sutc, &pm);
     spos = rv_mmult((pm), spos);
-    j20002gcrf(sutc, &pm);
+	j20002gcrf(&pm);
     spos = rv_mmult(pm, spos);
 
     //GCRF to ITRS
-    gcrf2j2000(sutc, &pm);
+	gcrf2j2000(&pm);
     spos = rv_mmult(pm, spos);
     j20002mean(sutc, &pm);
     spos = rv_mmult(pm, spos);
@@ -339,7 +339,7 @@ void test_eric(){
     loc.pos.eci = iloc.pos.eci;
 
     rmatrix rm;
-    gcrf2j2000(utc, &rm);
+	gcrf2j2000(&rm);
     loc.pos.eci.s = rv_mmult(rm, loc.pos.eci.s);
     loc.pos.eci.v = rv_mmult(rm, loc.pos.eci.v);
 

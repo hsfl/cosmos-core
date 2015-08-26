@@ -2260,10 +2260,8 @@ quaternion lsfit::slopequaternion(double x)
 	}
 }
 
-vector<vector<double> > lsfit::getparms(double x)
+vector<vector<double> > lsfit::getparms()
 {
-    // TODO: Why is x not used?
-
 	return parms;
 }
 

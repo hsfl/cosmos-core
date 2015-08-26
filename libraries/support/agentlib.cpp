@@ -982,9 +982,9 @@ int32_t agent_req_setvalue(char *request, char* output, void *cdata)
     return(iretn);
 }
 
-int32_t agent_req_listnames(char *request, char* output, void *cdata)
+int32_t agent_req_listnames(char *, char* output, void *cdata)
 {
-    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
+//    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
 
 	string result = json_list_of_all((cosmosstruc *)cdata);
 	strncpy(output, result.c_str(), ((cosmosstruc *)cdata)->agent[0].beat.bsz);

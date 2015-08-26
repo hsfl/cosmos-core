@@ -393,7 +393,7 @@ public:
         double slope(double x);
         rvector slopervector(double x);
         quaternion slopequaternion(double x);
-        std::vector<std::vector<double> > getparms(double x);
+		std::vector<std::vector<double> > getparms();
 };
 
 
