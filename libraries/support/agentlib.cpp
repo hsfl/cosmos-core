@@ -39,6 +39,11 @@
 #include <ifaddrs.h>
 #endif
 
+// Used to mark unused variables as known
+#ifndef UNUSED_VARIABLE_LOCALDEF
+    #define UNUSED_VARIABLE_LOCALDEF(x) (void)(x)
+#endif // UNUSED_VARIABLE_LOCALDEF
+
 #ifndef _SIZEOF_ADDR_IFREQ
 #define _SIZEOF_ADDR_IFREQ sizeof
 #endif
@@ -979,6 +984,8 @@ int32_t agent_req_setvalue(char *request, char* output, void *cdata)
 
 int32_t agent_req_listnames(char *request, char* output, void *cdata)
 {
+    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
+
 	string result = json_list_of_all((cosmosstruc *)cdata);
 	strncpy(output, result.c_str(), ((cosmosstruc *)cdata)->agent[0].beat.bsz);
 	output[((cosmosstruc *)cdata)->agent[0].beat.bsz-1] = 0;

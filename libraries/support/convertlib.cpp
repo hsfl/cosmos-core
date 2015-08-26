@@ -37,6 +37,11 @@
 #include "jsondef.h"
 #include "ephemlib.h"
 
+// Used to mark unused variables as known
+#ifndef UNUSED_VARIABLE_LOCALDEF
+    #define UNUSED_VARIABLE_LOCALDEF(x) (void)(x)
+#endif // UNUSED_VARIABLE_LOCALDEF
+
 #include <iostream>
 
 uint16_t tlecount;
@@ -2385,8 +2390,10 @@ void j20002mean(double ep1, rmatrix *pm)
 
 void gcrf2j2000(double op0, rmatrix *rm)
 {
-//	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
-//	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
+    // TOOD: Explain why is op0 unused
+
+    //	static rmatrix bm = {{{{9.99999999999994E-01,-7.07836896097156E-08,8.05621397761319E-08}},{{7.07836869463768E-08,9.99999999999997E-01,3.30594373543214E-08}},{{-8.05621421162006E-08,-3.30594316921839E-08,9.99999999999996E-01}}}};
+    //	static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
 
     // TBD!!!: add reference to where did this matrix come from
     static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
@@ -2395,6 +2402,8 @@ void gcrf2j2000(double op0, rmatrix *rm)
 
 void j20002gcrf(double op0, rmatrix *rm)
 {
+    // TOOD: Explain why is op0 unused
+
     // TBD!!!: add reference to where did this matrix come from
 	static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
 	*rm = rm_transpose(bm);
