@@ -167,7 +167,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
         SET(CMAKE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
     ELSE()
         IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_FOLDER "c:/cosmos")
+            SET(COSMOS_FOLDER "c:/cosmos/windows")
         ELSE()
             SET(COSMOS_FOLDER "$ENV{COSMOS}/windows")
         ENDIF("$ENV{COSMOS}" STREQUAL "")
