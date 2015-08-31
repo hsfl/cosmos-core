@@ -72,11 +72,17 @@ int main(int argc, char* argv[])
 		break;
 	}
 
-	if (!(cdata = agent_setup_client(SOCKET_TYPE_BROADCAST, node.c_str(), 1000)))
-	{
-		printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
-		exit (AGENT_ERROR_JSON_CREATE);
-	}
+    if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP, node, (string)"physics", .1, 0, AGENTMAXBUFFER, AGENT_SINGLE)))
+    {
+        printf("Failed to setup server for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
+        exit (AGENT_ERROR_JSON_CREATE);
+    }
+
+//    if (!(cdata = agent_setup_client(SOCKET_TYPE_BROADCAST, node.c_str(), 1000)))
+//	{
+//		printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
+//		exit (AGENT_ERROR_JSON_CREATE);
+//	}
 
 	cdata[0].physics.mode = mode;
 	json_clone(cdata);
@@ -216,12 +222,6 @@ int main(int argc, char* argv[])
 	gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
 	mjdnow = currentmjd(cdata[0].node.utcoffset);
 
-
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP, node, (string)"physics", .1, 0, AGENTMAXBUFFER, AGENT_SINGLE)))
-	{
-		printf("Failed to setup server for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
-		exit (AGENT_ERROR_JSON_CREATE);
-	}
 
 	string sohstring = json_list_of_soh(cdata);
 	agent_set_sohstring(cdata, sohstring.c_str());

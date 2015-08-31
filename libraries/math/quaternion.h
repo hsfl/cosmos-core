@@ -111,6 +111,7 @@ void q_normalize(quaternion *q);
 quaternion q_zero();
 quaternion q_conjugate(quaternion q);
 quaternion q_times(quaternion q1, quaternion q2);
+quaternion q_sqrt(quaternion q1);
 quaternion q_mult(rvector r1, quaternion q2);
 quaternion q_mult(quaternion q1, quaternion q2);
 quaternion q_smult(double a, quaternion q);

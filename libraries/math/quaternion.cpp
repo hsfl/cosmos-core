@@ -276,6 +276,23 @@ quaternion q_times(quaternion q1, quaternion q2)
     return (o);
 }
 
+//! Square root of the elements of a quaternion
+/*! Take the square root of each element of one quaternion.
+ * \param q1 quaternion
+ * \return Quaternion result
+ */
+quaternion q_sqrt(quaternion q1)
+{
+    quaternion o;
+
+    o.d.x = sqrt(q1.d.x);
+    o.d.y = sqrt(q1.d.y);
+    o.d.z = sqrt(q1.d.z);
+    o.w = sqrt(q1.w);
+
+    return (o);
+}
+
 //! rvector quaternion muliply
 /*! Treat an ::rvector as a ::quaternion with scalar set to zero, then
  * quaternion multiply the rvector by the quaternion.
