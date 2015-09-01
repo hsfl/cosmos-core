@@ -993,7 +993,14 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 			vdot = dot_rv(unitv,cdata.piece[i].normal);
 			if (vdot > 0)
 			{
-				ddrag = adrag*vdot/cdata.physics.mass;
+				if (cdata.physics.mass)
+				{
+					ddrag = adrag*vdot/cdata.physics.mass;
+				}
+				else
+				{
+					ddrag = 0.;
+				}
 				dtorque = rv_smult(ddrag,cdata.piece[i].twist);
 				cdata.physics.atorque = rv_add(cdata.physics.atorque,dtorque);
 				da = rv_smult(ddrag,cdata.piece[i].shove);
@@ -1320,10 +1327,17 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 	cdata.physics.heat = 0.;
 	for (i=0; i<cdata.piece.size(); i++)
 	{
-		cdata.piece[i].heat += sdheat*cdata.piece[i].mass/cdata.physics.mass;
-		//	cdata.piece[i].heat += sdheat/cdata.piece.size();
-		cdata.physics.heat += cdata.piece[i].heat;
-		cdata.piece[i].temp = cdata.piece[i].heat / (cdata.piece[i].mass * cdata.piece[i].hcap);
+		if (cdata.physics.mass)
+		{
+			cdata.piece[i].heat += sdheat*cdata.piece[i].mass/cdata.physics.mass;
+			//	cdata.piece[i].heat += sdheat/cdata.piece.size();
+			cdata.physics.heat += cdata.piece[i].heat;
+			cdata.piece[i].temp = cdata.piece[i].heat / (cdata.piece[i].mass * cdata.piece[i].hcap);
+		}
+		else
+		{
+			cdata.piece[i].temp = 0.;
+		}
 	}
 
 	for (i=0; i<cdata.devspec.tsen_cnt; i++)
@@ -2423,9 +2437,9 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 		break;
 	}
 
-
+	simulate_hardware(cdata, cdata.node.loc);
 	pos_accel(cdata.physics, cdata.node.loc);
-
+	simulate_hardware(cdata, cdata.node.loc);
 	att_accel(cdata.physics, cdata.node.loc);
 
 	gjh.step[gjh.order2].sloc = cdata.node.loc;

@@ -1463,6 +1463,7 @@ struct nodestruc
 	float hcap;
 	//! Total Mass
 	float mass;
+	rvector moi;
 	float area;
 	float battcap;
 	float powgen;
