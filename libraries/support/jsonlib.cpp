@@ -5192,6 +5192,7 @@ uint16_t json_addbaseentry(cosmosstruc *cdata)
 	json_addentry("node_hcap", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,hcap), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
 	json_addentry("node_mass", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,mass), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
 	json_addentry("node_area", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,area), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
+	json_addentry("node_moi", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,moi),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
 	json_addentry("node_battcap", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,battcap), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
 	json_addentry("node_charging", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,charging), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_NODE,cdata);
 	json_addentry("node_powgen", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,powgen), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_NODE,cdata);
@@ -7309,9 +7310,9 @@ int32_t node_calc(cosmosstruc *cdata)
 	double dm, ta, tb, tc;
 	rvector tv0, tv1, tv2, tv3, dv, sv;
 
-	cdata[0].physics.mass = cdata[0].physics.hcap = cdata[0].physics.heat = 0.;
-	cdata[0].physics.moi.col[0] = cdata[0].physics.moi.col[1] =
-			cdata[0].physics.moi.col[2] = 0.;
+	cdata[0].physics.hcap = cdata[0].physics.heat = 0.;
+	cdata[0].physics.mass = 0.;
+	cdata[0].physics.moi = rv_zero();
 	cdata[0].physics.com = rv_zero();
 
 	for (n=0; n<cdata[0].piece.size(); n++)
@@ -7404,7 +7405,14 @@ int32_t node_calc(cosmosstruc *cdata)
 			}
 		}
 	}
-	cdata[0].node.mass = cdata[0].physics.mass;
+	if (cdata[0].node.mass == 0.)
+	{
+		cdata[0].node.mass = cdata[0].physics.mass;
+	}
+	else
+	{
+		cdata[0].physics.mass = cdata[0].node.mass;
+	}
 
 	// Turn on power buses
 	for (n=0; n<cdata[0].devspec.bus_cnt; n++)
@@ -7489,6 +7497,15 @@ int32_t node_calc(cosmosstruc *cdata)
 				cdata[0].piece[n].shove = rv_smult(-1./10000.,cdata[0].piece[n].shove);
 			}
 		}
+	}
+
+	if (length_rv(cdata[0].node.moi) == 0.)
+	{
+		cdata[0].node.moi = cdata[0].physics.moi;
+	}
+	else
+	{
+		cdata[0].physics.moi = cdata[0].node.moi;
 	}
 
 	// Turn all CPU's on
@@ -7834,7 +7851,7 @@ size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cdata, char *
 	{
 		while (fgets(inb,JSON_MAX_DATA,op) != NULL)
 		{
-			json_clear_cosmosstruc(JSON_MAP_EVENT, cdata);
+			json_clear_cosmosstruc(JSON_GROUP_EVENT, cdata);
 			if (json_parse(inb,cdata) > 0)
 			{
 				if ((iretn=json_equation_map(cdata[0].event[0].l.condition, cdata, &handle)) < 0)
