@@ -2187,6 +2187,18 @@ double lsfit::lastx()
 	}
 }
 
+double lsfit::firstx()
+{
+	if (var.size())
+	{
+		return var[0].x;
+	}
+	else
+	{
+		return 0.;
+	}
+}
+
 double lsfit::eval(double x)
 {
 	if (var.size() > order)
