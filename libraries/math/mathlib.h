@@ -387,7 +387,8 @@ public:
         void update(double x, quaternion y);
         void update(fitelement cfit, uint16_t dep);
         double lastx();
-        double eval(double x);
+		double firstx();
+		double eval(double x);
         rvector evalrvector(double x);
         quaternion evalquaternion(double x);
         double slope(double x);
