@@ -26,7 +26,7 @@ void print_timestamp()
 }
 
 
-size_t gs_hs1_gen_timestr(time_t unixtime, char* timestring, uint16_t max_len)
+size_t cosmos_timeutils_gen_timestr(time_t unixtime, char* timestring, uint16_t max_len)
 {
     struct tm * timeinfo;
     timeinfo = localtime(&unixtime);    // Convert UNIX Epoch timestamp to struct tm for custom print
