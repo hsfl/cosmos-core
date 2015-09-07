@@ -90,6 +90,7 @@ public:
     void vector2(string name_v1, rvector v1, string name_v2, rvector v2);
     void vector2(string name_v1, rvector v1, string name_v2, rvector v2, int precision);
     void end();
+    void endline();
 
 };
 

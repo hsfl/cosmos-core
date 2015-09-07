@@ -1198,9 +1198,9 @@ struct gpsstruc
 	//! GPS heading
 	float heading;
 	//! number of satellites used by GPS receiver
-	uint16_t n_sats_used;
+	uint16_t sats_used;
 	//! number of satellites visible by GPS receiver
-	uint16_t n_sats_visible;
+	uint16_t sats_visible;
 	//! Time Status
 	uint16_t time_status;
 	//! Position Type

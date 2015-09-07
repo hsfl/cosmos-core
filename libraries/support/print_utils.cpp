@@ -230,6 +230,12 @@ void PrintUtils::vector2(string name_v1,
     cout << name_v1 << fixed << "[" << v1.col[0] << ", " << v1.col[1] <<  ", " << v1.col[2] << "]" << " | " << name_v2 << "[" << v2.col[0] << ", " << v2.col[1] <<  ", " << v2.col[2] << "]" << endl;
 }
 
-void PrintUtils::end(){
+void PrintUtils::end()
+{
+    cout << endl;
+}
+
+void PrintUtils::endline()
+{
     cout << endl;
 }

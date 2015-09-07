@@ -224,11 +224,11 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 # -----------------------------------------------
-MESSAGE(COSMOS_FOLDER: ${COSMOS_FOLDER})
+MESSAGE("COSMOS_FOLDER: ${COSMOS_FOLDER}")
 
-IF (${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
     SET(CMAKE_INSTALL_PREFIX "${COSMOS_FOLDER}" CACHE PATH "default install path" FORCE )
-ENDIF()
+message("Install: ${CMAKE_INSTALL_PREFIX}")
+
 
 get_filename_component(OS_FOLDER ${CMAKE_BINARY_DIR} NAME)
 
