@@ -282,8 +282,8 @@ struct oemvstruc
 		oemv_rxstatus_type rxstatus;
         gvector geo;
 	};
-    int16_t n_sats_visible;
-    int16_t n_sats_used;
+    int16_t sats_visible;
+    int16_t sats_used;
 
     // new
     oemv_time_type time;
