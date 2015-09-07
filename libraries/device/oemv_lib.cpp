@@ -1185,7 +1185,7 @@ int32_t oemv_bestxyz(oemv_handle *handle)
     {
         return iretn;
     }
-    uint32_t length = iretn;
+//    uint32_t length = iretn;
 
 
     // convert handle->data to string
@@ -1197,8 +1197,8 @@ int32_t oemv_bestxyz(oemv_handle *handle)
     // set the offset so we can call getFieldNumber with the tabulated field number in the OEMV documentation tables
     parser.offset = -2;
 
-    uint16_t nexti=0;
-    uint16_t lasti=0;
+//    uint16_t nexti=0;
+//    uint16_t lasti=0;
 
     // ------------------------------------------
     // Find next comma and read in position_status
