@@ -938,7 +938,7 @@ int32_t oemv_gpgga(oemv_handle *handle)
 
         if (i==8){
             // number of satellites used by GPS calculations
-            handle->message.n_sats_used = atoi(pch);
+            handle->message.sats_used = atoi(pch);
         }
 
         if (i==10){
@@ -991,7 +991,7 @@ int32_t oemv_gpgsv(oemv_handle *handle)
 
         if (i==4){
             // number of satellites in view
-            handle->message.n_sats_visible = atoi(pch);
+            handle->message.sats_visible = atoi(pch);
         }
 
 
