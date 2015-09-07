@@ -634,16 +634,9 @@ vector<socket_channel> socket_find_addresses(uint16_t ntype)
 /*! Open a UDP socket and configure it for the specified use. Various
 flags are set, and the socket is bound, if necessary. Support is
 provided for the extra steps necessary for MS Windows.
-	\param channel Pointer to ::agent_channel holding final configuration.
-	\param address Destination address
-	\param port Source port. If zero, automatically assigned.
-	\param role Publish, subscribe, communicate.
-	\param blocking True or false.
-	\param usectimeo Blocking read timeout in micro seconds.
 	\return Zero, or negative error.
 */
 int32_t Udp::socketOpen()
-//int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t role, bool blocking, uint32_t usectimeo)
 {
 	socklen_t namelen;
 	int32_t iretn;
