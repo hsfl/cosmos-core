@@ -1180,6 +1180,8 @@ struct gpsstruc
 	//! UTC time error
 	double dutc;
 	//! Geocentric position: x, y, z
+    //! ECEF coordinates
+    // TODO: rename variables to more meaningfull names like position, velocity
 	rvector geocs;
 	//! Geocentric velocity: x, y, z
 	rvector geocv;
