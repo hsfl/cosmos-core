@@ -9,30 +9,30 @@ int main()
 {
     cout << "COSMOS Playground" << endl;
 
-//    cout << 100 << '\n';
-//    cout.width(10);
-//    cout << 100 << '\n';
-//    //cout.fill('x');
-//    cout.width(15);
-//    cout << left << 100 << '\n';
+    //    cout << 100 << '\n';
+    //    cout.width(10);
+    //    cout << 100 << '\n';
+    //    //cout.fill('x');
+    //    cout.width(15);
+    //    cout << left << 100 << '\n';
 
-//    cout << "[PD] ";
-
-
-//    quaternion q;
-//    rvector v;
-//    v = rv_one();
-
-//    q = q_eye();
-//    cout << "q:" << q << endl;
-//    q = {{-1.,0,0},1};
-//    cout << "q:" << q << endl;
+    //    cout << "[PD] ";
 
 
-//    v = {1.23,1,3};
-//    cout << "v:" << v << endl;
-//    v = {-1.23,-10,3};
-//    cout << "v:" << v << endl;
+    //    quaternion q;
+    //    rvector v;
+    //    v = rv_one();
+
+    //    q = q_eye();
+    //    cout << "q:" << q << endl;
+    //    q = {{-1.,0,0},1};
+    //    cout << "q:" << q << endl;
+
+
+    //    v = {1.23,1,3};
+    //    cout << "v:" << v << endl;
+    //    v = {-1.23,-10,3};
+    //    cout << "v:" << v << endl;
 
     quaternion q_error, q_error_last, q_derror;
     double dt = 1.58805e-005;
@@ -104,8 +104,15 @@ int main()
 
 
 
+    // testing * operator in rvector
+    rvector v, b;
+    v = {1,2,3};
 
-//-119.568,-195.145,-138.744,-1397.701
+    b = v * 3;
+
+    cout << "b=" <<  b << endl;
+
+    //-119.568,-195.145,-138.744,-1397.701
     //70.4439,-80.4836,222.288,183.266
     //267.364,-439.573,433.141,348.974
 

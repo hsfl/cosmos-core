@@ -796,6 +796,18 @@ std::istream& operator >> (std::istream& in, rvector& a)
     return in;
 }
 
+// multiply vector by scalar operator
+rvector operator * (rvector v, double scalar)
+{
+    //rvector v = *this;
+    v.col[0] = scalar * v.col[0];
+    v.col[1] = scalar * v.col[1];
+    v.col[2] = scalar * v.col[2];
+
+    return v;
+}
+
+
 std::ostream& operator << (std::ostream& out, const cvector& a)
 {
     out << "[" << a.x << "," << a.y << "," << a.z << "]";
