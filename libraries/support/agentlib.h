@@ -158,7 +158,9 @@ public:
 
     //
     string nodeName;
-    string agentName;
+    string name;
+    string version = "0.0";
+
     cosmosstruc *cdata;
     beatstruc findServer(string servername);
     beatstruc find(string servername);

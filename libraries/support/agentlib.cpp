@@ -1922,13 +1922,13 @@ Agent::Agent()
 Agent::Agent(string nodename, string agentname)
 {
     nodeName = nodename;
-    agentName = agentname;
+    name = agentname;
 }
 
 // this function assumes you have initialized the node and agent names
 bool Agent::setupServer()
 {
-    cdata = agent_setup_server(nodeName, agentName);
+    cdata = agent_setup_server(nodeName, name);
 
     // if setup server was not sucessfull
     if (cdata == NULL)
@@ -1939,7 +1939,12 @@ bool Agent::setupServer()
         return false;
     }
 
-    cout << "Agent server is on for " << nodeName << ":" << agentName << endl;
+    //cout << "Agent server is on for " << nodeName << ":" << name << endl;
+
+    cout << "================================================" << endl;
+    cout << "| Agent Server Running [" <<  nodeName << ":" << name << "]" << endl;
+    cout << "| Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << endl;
+    cout << "================================================" << endl;
 
     // if setup server was sucessfull
     return true;
@@ -1948,7 +1953,7 @@ bool Agent::setupServer()
 bool Agent::setupServer(string nodename, string agentname)
 {
     nodeName = nodename;
-    agentName = agentname;
+    name = agentname;
 
     return setupServer();
 }
@@ -1957,7 +1962,20 @@ bool Agent::setupServer(string nodename, string agentname)
 beatstruc Agent::findServer(string servername)
 {
     float timeout = 1.0;
-    return agent_find_server(cdata, nodeName, servername, timeout);
+
+    beatstruc beat_agent = agent_find_server(cdata, nodeName, servername, timeout);
+
+    // TODO: improve the way we find the agent server
+    if (beat_agent.utc == 0)
+    {
+        cout << "agent " << servername << " : not found" << endl;
+    }
+    else
+    {
+        cout << "agent " << servername << " : found" << endl;
+    }
+
+    return beat_agent;
 }
 
 beatstruc Agent::find(string servername)
