@@ -153,6 +153,7 @@ public:
     double x,y,z,w;
     Quaternion getQuaternion();
 
+    // temporary while the new Quaternion class is not finisheds
     Quaternion quaternion2Quaternion(quaternion q);
     quaternion Quaternion2quaternion(Quaternion Q);
 

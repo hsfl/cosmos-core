@@ -30,11 +30,19 @@
 #include "math/rotation.h"
 
 //! Quaternion to Direction Cosine Matrix
+//! If the quaternion represents the rotation from the inertial reference frame
+//! into the frame of the sensor then this DCM will represent
+//! the rotation from the sensor body frame (B) to the inertial frame (I)
 /*! Convert supplied quaternion to an equivalent direction cosine matrix
         \param q quaternion
         \return direction cosine matrix
 */
 
+// TODO: create a matrix type (apart from cmatrix and rmatrix)
+// TODO: rename function simply to quaternion2dcm or quaternionToRotationMatrix
+// TODO: check consistency with ST ICD (this DCM is transpose)
+// TODO: use kuipers notation, see pg 126
+// Ref: Star Tracker ICD sec 9: http://www.sinclairinterplanetary.com/startrackers/ICD%201.23.docx
 cmatrix cm_quaternion2dcm(quaternion q)
 {
     cmatrix m;
@@ -47,23 +55,30 @@ cmatrix cm_quaternion2dcm(quaternion q)
     xz = xx * q.d.z;
     xw = xx * q.w;
     xx *= q.d.x;
+
     yy = 2. * q.d.y;
     yz = yy * q.d.z;
     yw = yy * q.w;
     yy *= q.d.y;
+
     zz = 2. * q.d.z;
     zw = zz * q.w;
     zz *= q.d.z;
 
-    m.r1.x = 1. - yy - zz;
-    m.r1.y = xy - zw;
-    m.r1.z = xz + yw;
-    m.r2.x = xy + zw;
-    m.r2.y = 1. - xx - zz;
-    m.r2.z = yz - xw;
-    m.r3.x = xz - yw;
-    m.r3.y = yz + xw;
-    m.r3.z = 1. - xx - yy;
+    // first row
+    m.r1.x = 1. - yy - zz; // 1 - 2(qy^2 + qz^2) == 1 - 2(q2^ + q3^2)
+    m.r1.y = xy - zw;      // 2*(qx*qy - qw*qz)
+    m.r1.z = xz + yw;      // 2*(qx*qz + qw*qy)
+
+    // second row
+    m.r2.x = xy + zw;      // 2*(qx*qy + qw*qz)   == 2(q1q2 + q0q3)
+    m.r2.y = 1. - xx - zz; // 1 - 2*(qz^2 + qx^2) == 1 - 2(q3^2 + q1^2)
+    m.r2.z = yz - xw;      // 2*(qy*qz - qw*qx)   == 2(q2q3 - q0q1)
+
+    // third row
+    m.r3.x = xz - yw;      // 2(qx*qz - qw*qy)    == 2(q1q3 - q0q2)
+    m.r3.y = yz + xw;      // 2(qy*qz + qw*qx)    == 2(q2q3 + q0q1)
+    m.r3.z = 1. - xx - yy; // 1 - 2(qx^2 + qy^2)  == 1 - 2(q1^2 + q2^2)
 
     return (m);
 }
@@ -134,11 +149,11 @@ quaternion q_dcm2quaternion_cm(cmatrix dcm)
 */
 rmatrix rm_change_between_rv(rvector from, rvector to)
 {
-        rmatrix m = {{{{0.}}}};
+    rmatrix m = {{{{0.}}}};
 
-        m = rm_quaternion2dcm(q_change_between_rv(from,to));
+    m = rm_quaternion2dcm(q_change_between_rv(from,to));
 
-        return (m);
+    return (m);
 }
 
 //! Row matrix DCM to Quaternion
@@ -148,50 +163,50 @@ rmatrix rm_change_between_rv(rvector from, rvector to)
 */
 quaternion q_dcm2quaternion_rm(rmatrix m)
 {
-        quaternion q={{0.,0.,0.},0.};
-        double t, tr;
+    quaternion q={{0.,0.,0.},0.};
+    double t, tr;
 
-        if ((tr=trace_rm(m)) > 0.)
+    if ((tr=trace_rm(m)) > 0.)
+    {
+        t = .5 / sqrt(1.+tr);
+        q.w = .25 / t;
+        q.d.x = t*(m.row[2].col[1] - m.row[1].col[2]);
+        q.d.y = t*(m.row[0].col[2] - m.row[2].col[0]);
+        q.d.z = t*(m.row[1].col[0] - m.row[0].col[1]);
+    }
+    else
+    {
+        if (m.row[0].col[0] > m.row[1].col[1] && m.row[0].col[0] > m.row[2].col[2])
         {
-                t = .5 / sqrt(1.+tr);
-                q.w = .25 / t;
-                q.d.x = t*(m.row[2].col[1] - m.row[1].col[2]);
-                q.d.y = t*(m.row[0].col[2] - m.row[2].col[0]);
-                q.d.z = t*(m.row[1].col[0] - m.row[0].col[1]);
+            t = 2. * sqrt(1. + m.row[0].col[0] - m.row[1].col[1] - m.row[2].col[2]);
+            q.w = (m.row[2].col[1] - m.row[1].col[2]) / t;
+            q.d.x = .25 * t;
+            q.d.y = (m.row[0].col[1] + m.row[1].col[0]) / t;
+            q.d.z = (m.row[0].col[2] + m.row[2].col[0]) / t;
         }
         else
         {
-                if (m.row[0].col[0] > m.row[1].col[1] && m.row[0].col[0] > m.row[2].col[2])
-                {
-                        t = 2. * sqrt(1. + m.row[0].col[0] - m.row[1].col[1] - m.row[2].col[2]);
-                        q.w = (m.row[2].col[1] - m.row[1].col[2]) / t;
-                        q.d.x = .25 * t;
-                        q.d.y = (m.row[0].col[1] + m.row[1].col[0]) / t;
-                        q.d.z = (m.row[0].col[2] + m.row[2].col[0]) / t;
-                }
-                else
-                {
-                        if (m.row[1].col[0] > m.row[2].col[2])
-                        {
-                                t = 2. * sqrt(1. + m.row[1].col[1] - m.row[0].col[0] - m.row[2].col[2]);
-                                q.w = (m.row[0].col[2] - m.row[2].col[0]) / t;
-                                q.d.x = (m.row[0].col[1] + m.row[1].col[0]) / t;
-                                q.d.y = .25 * t;
-                                q.d.z = (m.row[1].col[2] + m.row[2].col[1]) / t;
-                        }
-                        else
-                        {
-                                t = 2. * sqrt(1. + m.row[2].col[2] - m.row[0].col[0] - m.row[1].col[1]);
-                                q.w = (m.row[1].col[0] - m.row[0].col[1]) / t;
-                                q.d.x = (m.row[0].col[2] + m.row[2].col[0]) / t;
-                                q.d.y = (m.row[1].col[2] + m.row[2].col[1]) / t;
-                                q.d.z = .25 * t;
-                        }
-                }
+            if (m.row[1].col[0] > m.row[2].col[2])
+            {
+                t = 2. * sqrt(1. + m.row[1].col[1] - m.row[0].col[0] - m.row[2].col[2]);
+                q.w = (m.row[0].col[2] - m.row[2].col[0]) / t;
+                q.d.x = (m.row[0].col[1] + m.row[1].col[0]) / t;
+                q.d.y = .25 * t;
+                q.d.z = (m.row[1].col[2] + m.row[2].col[1]) / t;
+            }
+            else
+            {
+                t = 2. * sqrt(1. + m.row[2].col[2] - m.row[0].col[0] - m.row[1].col[1]);
+                q.w = (m.row[1].col[0] - m.row[0].col[1]) / t;
+                q.d.x = (m.row[0].col[2] + m.row[2].col[0]) / t;
+                q.d.y = (m.row[1].col[2] + m.row[2].col[1]) / t;
+                q.d.z = .25 * t;
+            }
         }
+    }
 
-        q_normalize(&q);
-        return(q);
+    q_normalize(&q);
+    return(q);
 }
 
 
@@ -205,7 +220,7 @@ double DCM::dotProduct(cvector a, cvector b)
 }
 
 // this is same function as cm_transpose from mathlib.h
-// TODO: when mathlib has been breaken appart then use the math module
+// TODO: when mathlib has been broken appart then use the math module
 // that computes the transpose
 cmatrix DCM::transposeMatrix(cmatrix a)
 {
@@ -228,40 +243,40 @@ cmatrix DCM::transposeMatrix(cmatrix a)
 
 cmatrix DCM::base2_from_base1(basisOrthonormal base2,basisOrthonormal base1){
 
-// compute dcm matrix (A) to represent vector in base 2 coordinates
+    // compute dcm matrix (A) to represent vector in base 2 coordinates
 
-// References
-// - Quaternion and Rotation Sequences, Kuipers, pg 160 (I think these
-//   formulas are wrong in the book! they are inversed, must check)
-// - http://people.ae.illinois.edu/tbretl/ae403/handouts/06-dcm.pdf (this
-//   reference seems to be sound)
-// - http://www.starlino.com/dcm_tutorial.html (eq 1.4)
+    // References
+    // - Quaternion and Rotation Sequences, Kuipers, pg 160 (I think these
+    //   formulas are wrong in the book! they are inversed, must check)
+    // - http://people.ae.illinois.edu/tbretl/ae403/handouts/06-dcm.pdf (this
+    //   reference seems to be sound)
+    // - http://www.starlino.com/dcm_tutorial.html (eq 1.4)
 
-// example: vector_body_coordinates = dcm_base2_from_base1 * vector_inertial_coodinates
+    // example: vector_body_coordinates = dcm_base2_from_base1 * vector_inertial_coodinates
 
-// Notes:
-// - matrix A represents a frame rotation that relates the initial reference
-//   frame {X,Y,Z} to a rotated frame {x,y,z}: x = AX. Example, appliying
-//   the operation AX - where X is for instance a vector in the inertial
-//   frame - resutls in the coordinates of that vector in the new frame {x,y,z}
-//   in general the vector x is simply the vector X expressed in a new frame coordinates
+    // Notes:
+    // - matrix A represents a frame rotation that relates the initial reference
+    //   frame {X,Y,Z} to a rotated frame {x,y,z}: x = AX. Example, appliying
+    //   the operation AX - where X is for instance a vector in the inertial
+    //   frame - resutls in the coordinates of that vector in the new frame {x,y,z}
+    //   in general the vector x is simply the vector X expressed in a new frame coordinates
 
-// Example to run:
-// define a base1 (inertial)
-// base1.i = [1,0,0];
-// base1.j = [0,1,0];
-// base1.k = [0,0,1];
-// define a frame2 rotated 90 deg aroud z axis (of the inertial)
-// base2.i = [0,1,0];
-// base2.j = [-1,0,0];
-// base2.k = [0,0,1];
-// compute the dcm
-// dcm_base2_from_base1(base2,base1);
-// check if it's right, base1.i vector shoud be now [0,-1,0]
-// dcm_base2_from_base1(base2,base1)*base1.i'
+    // Example to run:
+    // define a base1 (inertial)
+    // base1.i = [1,0,0];
+    // base1.j = [0,1,0];
+    // base1.k = [0,0,1];
+    // define a frame2 rotated 90 deg aroud z axis (of the inertial)
+    // base2.i = [0,1,0];
+    // base2.j = [-1,0,0];
+    // base2.k = [0,0,1];
+    // compute the dcm
+    // dcm_base2_from_base1(base2,base1);
+    // check if it's right, base1.i vector shoud be now [0,-1,0]
+    // dcm_base2_from_base1(base2,base1)*base1.i'
 
-// TODOs
-// - add validation step to verify if the bases are orthogonal
+    // TODOs
+    // - add validation step to verify if the bases are orthogonal
 
     return  {
         { dotProduct(base1.i, base2.i) , dotProduct(base1.j, base2.i), dotProduct(base1.k, base2.i) },

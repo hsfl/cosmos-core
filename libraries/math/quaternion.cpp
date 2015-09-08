@@ -293,7 +293,7 @@ quaternion q_sqrt(quaternion q1)
     return (o);
 }
 
-//! rvector quaternion muliply
+//! rvector quaternion multiply
 /*! Treat an ::rvector as a ::quaternion with scalar set to zero, then
  * quaternion multiply the rvector by the quaternion.
  * \param r1 ::rvector as first quaternion.
