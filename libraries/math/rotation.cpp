@@ -88,6 +88,10 @@ cmatrix cm_quaternion2dcm(quaternion q)
     \param dcm direction cosine matrix
     \return q quaternion
 */
+
+// Ref:
+// - Kuipers pg. 169
+// - https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions
 quaternion q_dcm2quaternion_cm(cmatrix dcm)
 {
     quaternion q;
@@ -97,10 +101,15 @@ quaternion q_dcm2quaternion_cm(cmatrix dcm)
     // computing the trace in place
     tr = dcm.r1.x + dcm.r2.y + dcm.r3.z; //trace_cm(dcm)
 
+    // TODO: explain the different cases
     if (tr > 0.)
     {
+        // TODO: simplify
+        // q.w = 0.5 * sqrt(1 + tr)
         t = .5 / sqrt(1.+tr);
         q.w = .25 / t;
+
+        // TODO: check because Kuipers does the inverse here
         q.d.x = t*(dcm.r3.y - dcm.r2.z);
         q.d.y = t*(dcm.r1.z - dcm.r3.x);
         q.d.z = t*(dcm.r2.x - dcm.r1.y);

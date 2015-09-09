@@ -594,6 +594,7 @@ quaternion q_change_around_cv(cvector around, double angle)
         \param angle Angle of rotation in radians
         \return Resulting ::quaternion
 */
+// TODO: change function name to q_rotate_object_around_z vs q_rotate_coord_around_z
 quaternion q_change_around_x(double angle)
 {
     quaternion a = {{1.,0.,0.},0.};
@@ -618,6 +619,7 @@ quaternion q_change_around_x(double angle)
         \param angle Angle of rotation in radians
         \return Resulting ::quaternion
 */
+// TODO: change function name to q_rotate_object_around_z vs q_rotate_coord_around_z
 quaternion q_change_around_y(double angle)
 {
     quaternion a = {{0.,1.,0.},0.};
@@ -643,6 +645,7 @@ quaternion q_change_around_y(double angle)
         \param angle Angle of rotation in radians
         \return Resulting ::quaternion
 */
+// TODO: change function name to q_rotate_object_around_z vs q_rotate_coord_around_z
 quaternion q_change_around_z(double angle)
 {
     quaternion a = {{0.,0.,1.},0.};
@@ -694,10 +697,10 @@ std::ostream& operator << (std::ostream& out, const quaternion& a)
 {
     //out << std::fixed;
     //out << std::setprecision(5);
-    out<< "["
+    out<< "[("
        << std::setw(6) << a.d.x << ","
        << std::setw(6) << a.d.y << ","
-       << std::setw(6) << a.d.z << ","
+       << std::setw(6) << a.d.z << "),"
        << std::setw(6) << a.w
        << "]";
 

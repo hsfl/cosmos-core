@@ -38,7 +38,7 @@
 */
 struct rmatrix
 {
-        rvector row[3];
+    rvector row[3];
 } ;
 
 std::ostream& operator << (std::ostream& out, const rmatrix& a);
@@ -52,12 +52,12 @@ std::istream& operator >> (std::istream& out, rmatrix& a);
  * handed cartesian system */
 struct cmatrix
 {
-        //! Row 1
-        cvector r1;
-        //! Row 2
-        cvector r2;
-        //! Row 3
-        cvector r3;
+    //! Row 1
+    cvector r1;
+    //! Row 2
+    cvector r2;
+    //! Row 3
+    cvector r3;
 } ;
 
 std::ostream& operator << (std::ostream& out, const cmatrix& a);
@@ -67,21 +67,21 @@ std::istream& operator >> (std::istream& in, cmatrix& a);
 //! n element row matrix
 struct matrix1d
 {
-        //! Elements
-        double vector[4];
-        //! Number of elements
-        uint16_t cols;
+    //! Elements
+    double vector[4];
+    //! Number of elements
+    uint16_t cols;
 } ;
 
 //! nxm element 2D matrix
 struct matrix2d
 {
-        //! Number of rows
-        uint16_t rows;
-        //! Number of elements
-        uint16_t cols;
-        //! Elements
-        double array[4][4];
+    //! Number of rows
+    uint16_t rows;
+    //! Number of elements
+    uint16_t cols;
+    //! Elements
+    double array[4][4];
 } ;
 
 

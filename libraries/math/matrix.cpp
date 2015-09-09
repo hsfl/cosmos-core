@@ -1553,8 +1553,8 @@ std::istream& operator >> (std::istream& in, rmatrix& a)
 
 std::ostream& operator << (std::ostream& out, const cmatrix& a)
 {
-    out << "["  << a.r1.x << "," << a.r1.y << "," << a.r1.z << ";"
-        << a.r2.x << "," << a.r2.y << "," << a.r2.z << ";"
+    out << "["  << a.r1.x << "," << a.r1.y << "," << a.r1.z << ";\n"
+        << a.r2.x << "," << a.r2.y << "," << a.r2.z << ";\n"
         << a.r3.x << "," << a.r3.y << "," << a.r3.z << "]";
     return out;
 }
