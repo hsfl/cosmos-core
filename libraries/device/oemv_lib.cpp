@@ -137,12 +137,15 @@ int32_t oemv_connect(string port, oemv_handle *handle)
 
     cssl_start();
     handle->serial = cssl_open(port.c_str(),OEMV_BAUD,OEMV_BITS,OEMV_PARITY,OEMV_STOPBITS);
+
     if (handle->serial == NULL)
         return (CSSL_ERROR_OPEN);
+
     if ((iretn=cssl_settimeout(handle->serial, 0, 5.)) < 0)
     {
         return (iretn);
     }
+
     if ((iretn=cssl_setflowcontrol(handle->serial, 0, 0)) < 0)
     {
         return (iretn);
@@ -523,6 +526,9 @@ int32_t oemv_putascii(oemv_handle *handle)
     return 0;
 }
 
+// Remove all logs from logging control
+// This makes the GPS less verbose
+// Reference [1] pg. 213
 int32_t oemv_unlogall(oemv_handle *handle)
 {
     int32_t iretn;
@@ -1602,3 +1608,7 @@ int32_t oemv_getmessage(oemv_handle *handle)
 
     return 0;
 }
+
+
+// Reference Documents [RD]
+// [RD1] - OEMV Family Firmware Reference Manual Rev 6 (2008/08/21), OM-20000094 Rev 6, File:om-20000094-FirmwareAndDataStreams.pdf

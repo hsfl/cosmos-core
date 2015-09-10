@@ -129,22 +129,28 @@ int main()
     frame_body_wrt_body.j = cv_unity();
     frame_body_wrt_body.k = cv_unitz();
 
+    // define ST frame base wrt to the body frame
     basisOrthonormal frame_st_wrt_body;
-
     frame_st_wrt_body.i = {-1,0,0};
     frame_st_wrt_body.j = {0,1,0};
     frame_st_wrt_body.k = {0,0,-1};
 
-    // get the DCM to convert ST vector into body vector
+    // get the DCM to represent a vector in the ST frame on the body frame
+    // This is a passive rotation
+    // Ex: The vector (1,0,0) in ST frame is (-1,0,0) in body frame
     cmatrix R_body_from_st_frame = dcm.base1_from_base2(frame_body_wrt_body, frame_st_wrt_body);
 
     //cout << R_body_from_st_frame << endl;
     // test vector rotation
     cvector test_vector = cv_mmult(R_body_from_st_frame, {1,0,0});
+    //cout << "test_vector1" << test_vector << endl;
 
-    cout << test_vector << endl;
+    // quaternion that represents the rotation between the st frame and the body frame
+    quaternion q_rotation_body_from_st_frame = q_dcm2quaternion_cm(R_body_from_st_frame);
+    cout << "q_rotation_body_from_st_frame:" << q_rotation_body_from_st_frame << endl;
 
-    quaternion q_body_from_st_frame = q_dcm2quaternion_cm(R_body_from_st_frame);
+    quaternion q_transform_body_from_st_frame = q_transform_for(rv_unitx(), rv_unitz(), {-1,0,0}, {0,0,-1});
+    cout << "q_transform_body_from_st_frame:" << q_transform_body_from_st_frame << endl;
 
     // quaternion given by star tracker (in st frame)
 
@@ -163,7 +169,7 @@ int main()
 
     cout << "q_st:" << q_st << endl;
 
-    quaternion q_inertial_from_body = q_mult(q_st, q_conjugate(q_body_from_st_frame));
+    quaternion q_inertial_from_body = q_mult(q_st, q_conjugate(q_rotation_body_from_st_frame));
 
     cout << "q_inertial_from_body (1):" << q_inertial_from_body << endl;
 
@@ -196,13 +202,13 @@ int main()
 
     // calculated from
     // calc_transform 1 0 0 0 0 1 -1 0 0 0 0 -1
-    q_body_from_st_frame = {{0,1,0},0};
-    omega_st_wrt_eci_in_body_frame = transform_q(q_body_from_st_frame, omega_st_wrt_eci_in_st_frame);
+    q_rotation_body_from_st_frame = {{0,1,0},0};
+    omega_st_wrt_eci_in_body_frame = transform_q(q_rotation_body_from_st_frame, omega_st_wrt_eci_in_st_frame);
 
     //cout << omega_st_wrt_eci_in_body_frame << endl;
 
     /// testing quaterion conversion
-    q_inertial_from_body = q_conjugate(q_mult(q_body_from_st_frame,q_conjugate(q_st)));
+    q_inertial_from_body = q_conjugate(q_mult(q_rotation_body_from_st_frame,q_conjugate(q_st)));
 
     cout << "q_inertial_from_body (2):" << q_inertial_from_body << endl;
 
