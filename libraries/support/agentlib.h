@@ -155,15 +155,23 @@ public:
 
     bool setupServer();
     bool setupServer(string nodename, string agentname);
+    bool setupClient(string nodename);
 
     //
     string nodeName;
     string name;
-    string version = "0.0";
+    string version       = "0.0";
+    double beat_period   = 1.0; // in seconds
+    int32_t  port        = 0;
+    uint32_t buffer_size = AGENTMAXBUFFER;
+    bool     multiflag   = false;
+    float    timeoutSec  = 1.0;
+
 
     cosmosstruc *cdata;
     beatstruc findServer(string servername);
     beatstruc find(string servername);
+
 };
 
 

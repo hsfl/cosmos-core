@@ -311,11 +311,11 @@ cosmosstruc *agent_setup_server(string nodename, string agentname)
     }
 
     // run setup server with default values
-    double beat_period = 1;
-    int32_t port = 0;
+    double   beat_period = 1;
+    int32_t  port        = 0;
     uint32_t buffer_size = 1000;
-    bool multiflag = 0;
-    float timeoutSec = 1;
+    bool     multiflag   = 0;
+    float    timeoutSec  = 1;
 
     return agent_setup_server(cdata, agentname, beat_period, port, buffer_size, multiflag, timeoutSec);
 }
@@ -1928,7 +1928,15 @@ Agent::Agent(string nodename, string agentname)
 // this function assumes you have initialized the node and agent names
 bool Agent::setupServer()
 {
-    cdata = agent_setup_server(nodeName, name);
+    //! First, see if we can become a Client, as all Servers are also Clients.
+    if ((cdata = agent_setup_client(AGENT_TYPE_UDP, nodeName, 1000)) == NULL)
+    {
+        return nullptr;
+    }
+
+    //cdata = agent_setup_server(nodeName, name);
+    //cdata = agent_setup_server(AGENT_TYPE_UDP, nodeName, beat_period, 0, AGENTSVR_MAXBUF_BYTES, (bool)false);
+    cdata = agent_setup_server(cdata, name, beat_period, port, buffer_size, multiflag, timeoutSec);
 
     // if setup server was not sucessfull
     if (cdata == NULL)
@@ -1956,6 +1964,20 @@ bool Agent::setupServer(string nodename, string agentname)
     name = agentname;
 
     return setupServer();
+}
+
+
+bool Agent::setupClient(string nodename)
+{
+    nodeName = nodename;
+
+    if (!(cdata=agent_setup_client(AGENT_TYPE_UDP, nodeName.c_str(), 1000)))
+    {
+        cout << "Couldn't establish client for Node " << nodename << endl;
+        exit (AGENT_ERROR_NULL);
+    }
+
+    return true;
 }
 
 //
