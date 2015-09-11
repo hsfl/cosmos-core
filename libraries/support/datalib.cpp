@@ -1274,13 +1274,17 @@ string get_nodedir(string node, bool create_flag)
 	if (!set_cosmosnodes())
 	{
 		nodedir = cosmosnodes + "/" + node;
+
+        // check if the data folder exists
 		if (!data_isdir(nodedir))
 		{
+            // if the create folder flag is not on then
+            // exit this function without a nodedir
 			if (!create_flag)
 			{
 				nodedir.clear();
 			}
-			else
+            else // let's create the node directory (good for on the fly nodes)
 			{
 				if (COSMOS_MKDIR(nodedir.c_str(),00777) != 0)
 				{
@@ -1289,6 +1293,8 @@ string get_nodedir(string node, bool create_flag)
 			}
 		}
 	}
+
+    // if the node folder exists or was created let's return the path
 	return (nodedir);
 }
 

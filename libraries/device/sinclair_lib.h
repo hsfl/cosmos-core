@@ -422,7 +422,7 @@ typedef union
 //! \defgroup sinclair_functions Sinclair reaction wheel handling functions
 //! @{
 
-int sinclair_stt_connect(const char *dev, uint8_t src, uint8_t dst, sinclair_state *handle);
+int32_t sinclair_stt_connect(const char *dev, uint8_t src, uint8_t dst, sinclair_state *handle);
 int32_t sinclair_rw_connect(const char *dev, uint8_t src, uint8_t dst, sinclair_state *handle);
 int sinclair_disconnect(sinclair_state *handle);
 int32_t sinclair_readslip(sinclair_state *handle, uint8_t *buf, int size);

@@ -1931,6 +1931,7 @@ bool Agent::setupServer()
     //! First, see if we can become a Client, as all Servers are also Clients.
     if ((cdata = agent_setup_client(AGENT_TYPE_UDP, nodeName, 1000)) == NULL)
     {
+        cout << "Agent setup client failed" << endl;
         return nullptr;
     }
 

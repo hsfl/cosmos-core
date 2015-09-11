@@ -924,12 +924,12 @@ int32_t sinclair_stt_connect(const char *dev, uint8_t src, uint8_t dst, sinclair
 		handle->dev.assign(dev);
 		handle->mbuf.src = src;
 		handle->mbuf.dst = dst;
-/*
-		if ((iretn=nsp_ping(handle)) >= 0)
-		{
-			return 0;
-		}
-*/
+
+        //		if ((iretn=nsp_ping(handle)) >= 0)
+        //		{
+        //			return 0;
+        //		}
+
 		if ((iretn=nsp_init(handle,0x00002000)) >=0)
 		{
 			if ((iretn=nsp_ping(handle)) >= 0)
@@ -1122,15 +1122,15 @@ int nsp_stt_combination(sinclair_state *handle, sinclair_stt_result_operational 
 
 int32_t sinclair_stt_combo(sinclair_state *handle, sinclair_stt_result_operational *result)
 {
-//	int i;
-//	char buf[4096];
-//	uint8_t command[4];
+    //	int i;
+    //	char buf[4096];
+    //	uint8_t command[4];
 
-	// Send COMBINATION command 0x00001E0B
-//	command[0] = 0x0B;
-//	command[1] = 0x7E;
-//	command[2] = 0x00;
-//	command[3] = 0x00;
+    // Send COMBINATION command 0x00001E0B
+    //	command[0] = 0x0B;
+    //	command[1] = 0x7E;
+    //	command[2] = 0x00;
+    //	command[3] = 0x00;
 
 	// Get the result of the Combination Command
     if(handle->serial->fd >= 0)
@@ -1146,7 +1146,7 @@ int32_t sinclair_stt_combo(sinclair_state *handle, sinclair_stt_result_operation
 
                             );
 
-//		*result = *(sinclair_stt_result_operational *)handle->mbuf.data;
+        //		*result = *(sinclair_stt_result_operational *)handle->mbuf.data;
 	}
 	else
 	{
