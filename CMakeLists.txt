@@ -19,7 +19,7 @@ SET(PROJECT_NAME                COSMOS_CORE)
 # Type of build
 SET(CMAKE_BUILD_TYPE Debug) # Release or Debug
 
-# Type of architecture
+# Type of architecture (arm, ...)
 add_definitions( -DBUILD_TYPE_${BUILD_TYPE})
 
 # define folder where your programs are going to be installed
@@ -163,6 +163,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
     ENDIF()
 
     IF (${BUILD_TYPE} MATCHES "arm")
+        MESSAGE("Building for targe arm")
         SET(COSMOS_FOLDER "c:/cosmos/windows_arm")
         SET(CMAKE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
     ELSE()
@@ -235,10 +236,22 @@ get_filename_component(OS_FOLDER ${CMAKE_BINARY_DIR} NAME)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 # -----------------------------------------------
+# To load the COSMOS source into another project using cmake
+# we cannot use the CMAKE_SOURCE_DIR by default because it will conflict
+# with the new project CMAKE_SOURCE_DIR, let's use the COSMOS_CORE variable to
+# properly define where the COSMOS_CORE files are
+
+#TEST
+#SET(COSMOS_CORE "e:/cosmos-source/core/")
+
+# by default (but it will fail when loaded into another project)
+SET(COSMOS_CORE ${CMAKE_SOURCE_DIR})
+
+# -----------------------------------------------
 # Build Math Library
 IF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
     MESSAGE("Building Math Library")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/math ${CMAKE_BINARY_DIR}/libraries/math)
+    add_subdirectory(${COSMOS_CORE}/libraries/math ${CMAKE_BINARY_DIR}/libraries/math)
     SET(LINK_LIBRARY_COSMOS_CORE_MATH CosmosMath)
 ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
 
@@ -246,7 +259,7 @@ ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
 # Build Support Library
 IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
     MESSAGE("Building Support Library")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/support ${CMAKE_BINARY_DIR}/libraries/support)
+    add_subdirectory(${COSMOS_CORE}/libraries/support ${CMAKE_BINARY_DIR}/libraries/support)
     SET(LINK_LIBRARY_COSMOS_CORE_SUPPORT CosmosSupport)
 ENDIF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
 
@@ -254,7 +267,7 @@ ENDIF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
 # Build Devices Library
 IF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
     MESSAGE("Building Device Library")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/device ${CMAKE_BINARY_DIR}/libraries/device)
+    add_subdirectory(${COSMOS_CORE}/libraries/device ${CMAKE_BINARY_DIR}/libraries/device)
     SET(LINK_LIBRARY_COSMOS_DEVICE CosmosDevice)
 ENDIF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
 
@@ -262,7 +275,7 @@ ENDIF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
 # Build Thirdparty-zlib Library
 IF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
     MESSAGE("Building zlib Library")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/thirdparty/zlib ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib)
+    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/zlib ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib)
     SET(LINK_LIBRARY_COSMOS_CORE_ZLIB zlib )
 ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
 
@@ -270,7 +283,7 @@ ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
 # Build Thirdparty-jpeg Library
 IF(${BUILD_COSMOS_CORE_THIRDPARTY_JPEG} MATCHES "ON")
     MESSAGE("Building jpeg Library")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/thirdparty/jpeg ${CMAKE_BINARY_DIR}/libraries/thirdparty/jpeg)
+    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/jpeg ${CMAKE_BINARY_DIR}/libraries/thirdparty/jpeg)
     SET(LINK_LIBRARY_COSMOS_CORE_JPEG jpeg )
 ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_JPEG} MATCHES "ON")
 
@@ -278,7 +291,7 @@ ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_JPEG} MATCHES "ON")
 # Build user Library
 IF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
     MESSAGE("Building user Library")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries)
+    add_subdirectory(${COSMOS_CORE}/libraries)
     SET(LINK_LIBRARY_COSMOS_PROJECT_USER CosmosUser)
 ENDIF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
 
@@ -286,7 +299,7 @@ ENDIF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
 # Build png Library
 IF(${BUILD_COSMOS_CORE_THIRDPARTY_PNG} MATCHES "ON")
     MESSAGE("Building png")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/thirdparty/png ${CMAKE_BINARY_DIR}/libraries/thirdparty/png)
+    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/png ${CMAKE_BINARY_DIR}/libraries/thirdparty/png)
     SET(LINK_LIBRARY_COSMOS_CORE_PNG png )
 ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_PNG} MATCHES "ON")
 
@@ -294,7 +307,7 @@ ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_PNG} MATCHES "ON")
 # Build dirent Library
 IF(${BUILD_COSMOS_CORE_THIRDPARTY_DIRENT} MATCHES "ON")
     MESSAGE("Building dirent")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/thirdparty/dirent ${CMAKE_BINARY_DIR}/libraries/thirdparty/dirent)
+    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/dirent ${CMAKE_BINARY_DIR}/libraries/thirdparty/dirent)
     SET(LINK_LIBRARY_COSMOS_CORE_DIRENT dirent )
 ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_DIRENT} MATCHES "ON")
 
