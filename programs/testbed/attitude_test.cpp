@@ -71,13 +71,15 @@ int main(int argc, char *argv[])
 	loc.att.icrf.a = rv_zero();
 	pos_eci(&loc);
 
-	gauss_jackson_init_eci(gjh, 6, 0, .1, loc.utc, loc.pos.eci, loc.att.icrf, *cdata);
+    hardware_init_eci(cdata[0].devspec, loc);
+    gauss_jackson_init_eci(gjh, 6, 0, .1, loc.utc, loc.pos.eci, loc.att.icrf, cdata->physics, cdata->node.loc);
 
 	for (uint16_t i=0; i<=1000; ++i)
 	{
 		printf("%f\t%f\t%f\t%f\t%f\n",86400.*(cdata[0].node.loc.utc-imjd),cdata[0].node.loc.att.icrf.v.col[0],cdata[0].node.loc.att.icrf.v.col[1],cdata[0].node.loc.att.icrf.v.col[2],length_rv(cdata[0].node.loc.att.icrf.v));
 //		cdata[0].physics.ftorque = transform_q(cdata[0].node.loc.att.icrf.s,rv_smult(-5.2359406e-4,rv_unity()));
 		cdata[0].physics.ftorque = transform_q(cdata[0].node.loc.att.icrf.s,rv_smult(-5.2359406e-3,rv_unity()));
-		gauss_jackson_propagate(gjh, *cdata, cdata[0].node.loc.utc+10./86400.);
-	}
+        gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cdata[0].node.loc.utc+10./86400.);
+        simulate_hardware(*cdata, cdata->node.loc);
+    }
 }

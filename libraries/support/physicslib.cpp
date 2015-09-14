@@ -2359,8 +2359,8 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
 		att_accel(cdata.physics, gjh.step[i].sloc);
 	}
 
-	loc = gauss_jackson_converge_orbit(gjh, cdata);
-	gauss_jackson_converge_hardware(gjh, cdata);
+    loc = gauss_jackson_converge_orbit(gjh, cdata.physics);
+    gauss_jackson_converge_hardware(gjh, cdata.physics);
 
 	cdata.physics.mjdbase = loc.utc;
 }
@@ -2374,7 +2374,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
 	\param iatt Initial ICRF Attitude
 	\param sat Structure specifying satellite
 */
-void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cartpos ipos, qatt iatt, cosmosstruc &cdata)
+void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cartpos ipos, qatt iatt, physicsstruc &physics, locstruc &loc)
 {
 	kepstruc kep;
 	double dea;
@@ -2383,42 +2383,42 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 
 	// dt is modified during setup
 	gauss_jackson_setup(gjh, order, utc, dt);
-	cdata.physics.dt = dt;
-	cdata.physics.dtj = cdata.physics.dt/86400.;
-	cdata.physics.mode = mode;
+    physics.dt = dt;
+    physics.dtj = physics.dt/86400.;
+    physics.mode = mode;
 
-	pos_clear(cdata.node.loc);
-	gjh.step[gjh.order+1].sloc = cdata.node.loc;
+    pos_clear(loc);
+    gjh.step[gjh.order+1].sloc = loc;
 	ipos.pass = iatt.pass = 0;
-	cdata.node.loc.pos.eci = ipos;
-	cdata.node.loc.pos.eci.pass++;
-	cdata.node.loc.utc = cdata.node.loc.pos.eci.utc= utc;
-	pos_eci(&cdata.node.loc);
+    loc.pos.eci = ipos;
+    loc.pos.eci.pass++;
+    loc.utc = loc.pos.eci.utc= utc;
+    pos_eci(&loc);
 
 	// Initial attitude
-	switch (cdata.physics.mode)
+    switch (physics.mode)
 	{
 	case 0:
 		// Pure propagation
-		cdata.node.loc.att.icrf = iatt;
-		cdata.node.loc.att.icrf.pass++;
-		att_icrf(&cdata.node.loc);
+        loc.att.icrf = iatt;
+        loc.att.icrf.pass++;
+        att_icrf(&loc);
 		break;
 	case 1:
 		// Force LVLH
-		cdata.node.loc.att.lvlh.utc = cdata.node.loc.utc;
-		cdata.node.loc.att.lvlh.s = q_eye();
-		cdata.node.loc.att.lvlh.v = rv_zero();
-		cdata.node.loc.att.lvlh.pass++;
-		att_lvlh(&cdata.node.loc);
+        loc.att.lvlh.utc = loc.utc;
+        loc.att.lvlh.s = q_eye();
+        loc.att.lvlh.v = rv_zero();
+        loc.att.lvlh.pass++;
+        att_lvlh(&loc);
 		break;
 	case 2:
 		// Force 90 degrees off LVLH
-		cdata.node.loc.att.lvlh.utc = cdata.node.loc.utc;
-		cdata.node.loc.att.lvlh.s = q_change_around_y(-DPI2);
-		cdata.node.loc.att.lvlh.v = rv_zero();
-		pos_eci2geoc(&cdata.node.loc);
-		att_lvlh2icrf(&cdata.node.loc);
+        loc.att.lvlh.utc = loc.utc;
+        loc.att.lvlh.s = q_change_around_y(-DPI2);
+        loc.att.lvlh.v = rv_zero();
+        pos_eci2geoc(&loc);
+        att_lvlh2icrf(&loc);
 		break;
 	case 3:
 	case 4:
@@ -2430,22 +2430,22 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 	case 10:
 	case 11:
 	case 12:
-		cdata.node.loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.icrf.s));
-		cdata.node.loc.att.icrf.v = rv_zero();
-		pos_eci2geoc(&cdata.node.loc);
-		att_icrf2lvlh(&cdata.node.loc);
+//		loc.att.icrf.s = q_change_between_rv(cdata.piece[physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+        loc.att.icrf.v = rv_zero();
+        pos_eci2geoc(&loc);
+        att_icrf2lvlh(&loc);
 		break;
 	}
 
-	simulate_hardware(cdata, cdata.node.loc);
-	pos_accel(cdata.physics, cdata.node.loc);
-	simulate_hardware(cdata, cdata.node.loc);
-	att_accel(cdata.physics, cdata.node.loc);
+//    simulate_hardware(cdata, loc);
+    pos_accel(physics, loc);
+//    simulate_hardware(cdata, loc);
+    att_accel(physics, loc);
 
-	gjh.step[gjh.order2].sloc = cdata.node.loc;
+    gjh.step[gjh.order2].sloc = loc;
 
 	// Position at t0-dt
-	eci2kep(&cdata.node.loc.pos.eci,&kep);
+    eci2kep(&loc.pos.eci,&kep);
 //	kep2eci(&kep,&gjh.step[gjh.order2].sloc.pos.eci);
 	for (i=gjh.order2-1; i<gjh.order2; --i)
 	{
@@ -2472,13 +2472,13 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 //		att_icrf2lvlh(&gjh.step[i].sloc);
 		pos_eci(&gjh.step[i].sloc);
 
-		pos_accel(cdata.physics, gjh.step[i].sloc);
+        pos_accel(physics, gjh.step[i].sloc);
 		// Initialize hardware
-		hardware_init_eci(cdata.devspec,gjh.step[i].sloc);
-		att_accel(cdata.physics, gjh.step[i].sloc);
+//		hardware_init_eci(cdata.devspec,gjh.step[i].sloc);
+        att_accel(physics, gjh.step[i].sloc);
 	}
 
-	eci2kep(&cdata.node.loc.pos.eci,&kep);
+    eci2kep(&loc.pos.eci,&kep);
 	for (i=gjh.order2+1; i<=gjh.order; i++)
 	{
 		gjh.step[i].sloc = gjh.step[i-1].sloc;
@@ -2504,24 +2504,24 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 //		att_icrf2lvlh(&gjh.step[i].sloc);
 		pos_eci(&gjh.step[i].sloc);
 
-		pos_accel(cdata.physics, gjh.step[i].sloc);
+        pos_accel(physics, gjh.step[i].sloc);
 		// Initialize hardware
-		hardware_init_eci(cdata.devspec, gjh.step[i].sloc);
-		att_accel(cdata.physics, gjh.step[i].sloc);
+//		hardware_init_eci(cdata.devspec, gjh.step[i].sloc);
+        att_accel(physics, gjh.step[i].sloc);
 	}
-	cdata.node.loc = gauss_jackson_converge_orbit(gjh, cdata);
-	gauss_jackson_converge_hardware(gjh, cdata);
-	cdata.physics.mjdbase = cdata.node.loc.utc;
+    loc = gauss_jackson_converge_orbit(gjh, physics);
+    gauss_jackson_converge_hardware(gjh, physics);
+    physics.mjdbase = loc.utc;
 }
 
-void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order,int32_t mode,double dt,double utc,stkstruc *stk, cosmosstruc &cdata, locstruc &loc)
+void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, stkstruc *stk, physicsstruc &physics, locstruc &loc)
 {
 	uint32_t i;
 
-	cdata.physics.dt = dt;
-	cdata.physics.mode = mode;
-	gauss_jackson_setup(gjh, order, utc, cdata.physics.dt);
-	cdata.physics.dtj = cdata.physics.dt/86400.;
+    physics.dt = dt;
+    physics.mode = mode;
+    gauss_jackson_setup(gjh, order, utc, physics.dt);
+    physics.dtj = physics.dt/86400.;
 
 	pos_clear(loc);
 	gjh.step[gjh.order+1].sloc = loc;
@@ -2531,8 +2531,8 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order,int32_t mode,double d
 	pos_eci(&loc);
 
 	// Initial attitude
-	cdata.physics.ftorque = rv_zero();
-	switch (cdata.physics.mode)
+    physics.ftorque = rv_zero();
+    switch (physics.mode)
 	{
 	//case 0:
 	//	loc.att.icrf.utc = loc.utc;
@@ -2562,7 +2562,7 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order,int32_t mode,double d
 	case 10:
 	case 11:
 	case 12:
-		loc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+//        loc.att.icrf.s = q_change_between_rv(physics.piece[physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
 		loc.att.icrf.v = rv_zero();
 		att_icrf2lvlh(&loc);
 		break;
@@ -2570,8 +2570,8 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order,int32_t mode,double d
 
 
 	// Initialize hardware
-	hardware_init_eci(cdata.devspec, loc);
-	att_accel(cdata.physics, loc);
+//    hardware_init_eci(physics.devspec, loc);
+    att_accel(physics, loc);
 //	groundstations(cdata,&loc);
 
 	gjh.step[gjh.order2].sloc = loc;
@@ -2590,8 +2590,8 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order,int32_t mode,double d
 		att_lvlh2icrf(&gjh.step[i].sloc);
 
 		// Initialize hardware
-		hardware_init_eci(cdata.devspec,gjh.step[i].sloc);
-		att_accel(cdata.physics, gjh.step[i].sloc);
+//        hardware_init_eci(physics.devspec,gjh.step[i].sloc);
+        att_accel(physics, gjh.step[i].sloc);
 	}
 
 	for (i=gjh.order2+1; i<=gjh.order; i++)
@@ -2607,16 +2607,16 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order,int32_t mode,double d
 		att_lvlh2icrf(&gjh.step[i].sloc);
 
 		// Initialize hardware
-		hardware_init_eci(cdata.devspec,gjh.step[i].sloc);
-		att_accel(cdata.physics, gjh.step[i].sloc);
+//        hardware_init_eci(physics.devspec,gjh.step[i].sloc);
+        att_accel(physics, gjh.step[i].sloc);
 	}
 
-	loc = gauss_jackson_converge_orbit(gjh, cdata);
-	gauss_jackson_converge_hardware(gjh, cdata);
-	cdata.physics.mjdbase = loc.utc;
+    loc = gauss_jackson_converge_orbit(gjh, physics);
+    gauss_jackson_converge_hardware(gjh, physics);
+    physics.mjdbase = loc.utc;
 }
 
-void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, double altitude, double angle, double hour, cosmosstruc &cdata, locstruc &loc)
+void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, double altitude, double angle, double hour, locstruc &iloc, physicsstruc &physics, locstruc &loc)
 {
 	double lon;
 	kepstruc kep;
@@ -2627,14 +2627,14 @@ void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt,
 	if (lon > DPI)
 		lon -= D2PI;
 
-	cdata.physics.dt = dt;
-	cdata.physics.mode = mode;
-	gauss_jackson_setup(gjh, order, utc, cdata.physics.dt);
-	cdata.physics.dtj = cdata.physics.dt/86400.;
+    physics.dt = dt;
+    physics.mode = mode;
+    gauss_jackson_setup(gjh, order, utc, physics.dt);
+    physics.dtj = physics.dt/86400.;
 	initialutc = utc;
 
 	// Initial position
-	pos_clear(loc);
+    pos_clear(iloc);
 	kep.utc = utc;
 	kep.a = REARTHM + altitude;
 	kep.i = angle;
@@ -2642,21 +2642,21 @@ void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt,
 	kep.ea = 0.;
 	kep.ap = 0.;
 	kep.raan = lon;
-	kep2eci(&kep, &loc.pos.geoc);
-	++loc.pos.geoc.pass;
-	pos_geoc(&loc);
+    kep2eci(&kep, &iloc.pos.geoc);
+    ++iloc.pos.geoc.pass;
+    pos_geoc(&iloc);
 
-	loc.att.lvlh.s = q_eye();
-	loc.att.lvlh.v = rv_zero();
-	loc.att.lvlh.a = rv_zero();
-	++loc.att.lvlh.pass;
-	att_lvlh(&loc);
+    iloc.att.lvlh.s = q_eye();
+    iloc.att.lvlh.v = rv_zero();
+    iloc.att.lvlh.a = rv_zero();
+    ++iloc.att.lvlh.pass;
+    att_lvlh(&iloc);
 
-	gauss_jackson_init_eci(gjh, order, mode, cdata.physics.dt, utc, loc.pos.eci, loc.att.icrf, cdata);
-	cdata.physics.mjdbase = loc.utc;
+    gauss_jackson_init_eci(gjh, order, mode, physics.dt, utc, iloc.pos.eci, iloc.att.icrf, physics, loc);
+    physics.mjdbase = iloc.utc;
 }
 
-locstruc gauss_jackson_converge_orbit(gj_handle &gjh, cosmosstruc &cdata)
+locstruc gauss_jackson_converge_orbit(gj_handle &gjh, physicsstruc &physics)
 {
 	uint32_t c_cnt, cflag=0, k, n, i;
 	rvector oldsa;
@@ -2743,7 +2743,7 @@ locstruc gauss_jackson_converge_orbit(gj_handle &gjh, cosmosstruc &cdata)
 				//		eci2earth(&gjh.step[gjh.order2+i*n].sloc.pos,&gjh.step[gjh.order2+i*n].sloc.att);
 
 				// Calculate acceleration at new position
-				pos_accel(cdata.physics, gjh.step[gjh.order2+i*n].sloc);
+                pos_accel(physics, gjh.step[gjh.order2+i*n].sloc);
 //				hardware_init_eci(cdata.devspec,gjh.step[gjh.order2+i*n].sloc);
 
 				// Compare acceleration at new position to previous iteration
@@ -2757,16 +2757,16 @@ locstruc gauss_jackson_converge_orbit(gj_handle &gjh, cosmosstruc &cdata)
 	return gjh.step[gjh.order].sloc;
 }
 
-void gauss_jackson_converge_hardware(gj_handle &gjh, cosmosstruc &cdata)
+void gauss_jackson_converge_hardware(gj_handle &gjh, physicsstruc &physics)
 {
 	for (uint16_t i=0; i<=gjh.order; ++i)
 	{
-		simulate_hardware(cdata, gjh.step[i].sloc);
-		att_accel(cdata.physics, gjh.step[i].sloc);
+//		simulate_hardware(cdata, gjh.step[i].sloc);
+        att_accel(physics, gjh.step[i].sloc);
 	}
 }
 
-void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
+void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &loc, double tomjd)
 {
 	uint32_t i,chunks , astep;
 	uint32_t j, k;
@@ -2797,11 +2797,11 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 //		omega[0] = omega[1] = loc.att.icrf.v;
 //	}
 	// Return immediately if we are trying to propagate earlier but dt is positive or vice versa
-	if ((tomjd < gjh.step[gjh.order].sloc.utc && cdata.physics.dt > 0.) || (tomjd > gjh.step[gjh.order].sloc.utc && cdata.physics.dt < 0.))
+    if ((tomjd < gjh.step[gjh.order].sloc.utc && physics.dt > 0.) || (tomjd > gjh.step[gjh.order].sloc.utc && physics.dt < 0.))
 	{
 		return;
 	}
-	chunks = (uint32_t)(.5 + 86400.*(tomjd - gjh.step[gjh.order].sloc.utc)/cdata.physics.dt);
+    chunks = (uint32_t)(.5 + 86400.*(tomjd - gjh.step[gjh.order].sloc.utc)/physics.dt);
 	if (chunks > 100000)
 	{
 		chunks = 100000;
@@ -2813,7 +2813,7 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 			break;
 		}
 
-		 gjh.step[gjh.order+1].sloc.pos.eci.utc = gjh.step[gjh.order+1].sloc.utc = gjh.step[gjh.order].sloc.utc + (cdata.physics.dt)/86400.;
+         gjh.step[gjh.order+1].sloc.pos.eci.utc = gjh.step[gjh.order+1].sloc.utc = gjh.step[gjh.order].sloc.utc + (physics.dt)/86400.;
 
 		// Calculate S(order/2+1)
 		gjh.step[gjh.order+1].ss.col[0] = gjh.step[gjh.order].ss.col[0] + gjh.step[gjh.order].s.col[0] + gjh.step[gjh.order].sloc.pos.eci.a.col[0]/2.;
@@ -2847,23 +2847,23 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 		// Calculate att.s(order/2+1) + hardware
 		gjh.step[gjh.order+1].sloc.att.icrf = gjh.step[gjh.order].sloc.att.icrf;
 		gjh.step[gjh.order+1].sloc.att.icrf.utc = gjh.step[gjh.order].sloc.utc;
-			switch (cdata.physics.mode)
+            switch (physics.mode)
 			{
 			case 0:
 				// Calculate att.v(order/2+1)
-				astep = 1 + (length_rv(gjh.step[gjh.order+1].sloc.att.icrf.v) * cdata.physics.dt) / .01;
+                astep = 1 + (length_rv(gjh.step[gjh.order+1].sloc.att.icrf.v) * physics.dt) / .01;
 				if (astep > 1000)
 				{
 					astep = 1000;
 				}
-				dtsave = cdata.physics.dt;
-				cdata.physics.dt /= astep;
+                dtsave = physics.dt;
+                physics.dt /= astep;
 				gjh.step[gjh.order+1].sloc.utc = gjh.step[gjh.order].sloc.utc;
-				simulate_hardware(cdata, gjh.step[gjh.order+1].sloc);
-				att_accel(cdata.physics, gjh.step[gjh.order+1].sloc);
+//				simulate_hardware(cdata, gjh.step[gjh.order+1].sloc);
+                att_accel(physics, gjh.step[gjh.order+1].sloc);
 				for (k=0; k<astep; k++)
 				{
-					tvector = transform_q(gjh.step[gjh.order+1].sloc.att.icrf.s,rv_smult(cdata.physics.dt,gjh.step[gjh.order+1].sloc.att.icrf.v));
+                    tvector = transform_q(gjh.step[gjh.order+1].sloc.att.icrf.s,rv_smult(physics.dt,gjh.step[gjh.order+1].sloc.att.icrf.v));
 					tskew = rm_skew(tvector);
 					tmatrix2.rows = tmatrix2.cols = 4;
 					for (int l=0; l<3; ++l)
@@ -2881,17 +2881,17 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 					tvector1.m1 = m1_smult(.5,m1_mmult(tmatrix2,tvector1.m1));
 					gjh.step[gjh.order+1].sloc.att.icrf.s = q_add(gjh.step[gjh.order+1].sloc.att.icrf.s,tvector1.q);
 
-//					q1 = q_axis2quaternion_rv(rv_smult(cdata.physics.dt,gjh.step[gjh.order+1].sloc.att.icrf.v));
+//					q1 = q_axis2quaternion_rv(rv_smult(physics.dt,gjh.step[gjh.order+1].sloc.att.icrf.v));
 //					gjh.step[gjh.order+1].sloc.att.icrf.s = q_mult(q1,gjh.step[gjh.order+1].sloc.att.icrf.s);
 					q_normalize(&gjh.step[gjh.order+1].sloc.att.icrf.s);
 
 					// Calculate new v from da
-					gjh.step[gjh.order+1].sloc.att.icrf.v = rv_add(gjh.step[gjh.order+1].sloc.att.icrf.v,rv_smult(cdata.physics.dt,gjh.step[gjh.order+1].sloc.att.icrf.a));
-					gjh.step[gjh.order+1].sloc.utc += (cdata.physics.dt)/86400.;
+                    gjh.step[gjh.order+1].sloc.att.icrf.v = rv_add(gjh.step[gjh.order+1].sloc.att.icrf.v,rv_smult(physics.dt,gjh.step[gjh.order+1].sloc.att.icrf.a));
+                    gjh.step[gjh.order+1].sloc.utc += (physics.dt)/86400.;
 					++gjh.step[gjh.order+1].sloc.att.icrf.pass;
 					att_icrf(&gjh.step[gjh.order+1].sloc);
 				}
-					cdata.physics.dt = dtsave;
+                    physics.dt = dtsave;
 				break;
 			case 1:
 				// Force LVLH
@@ -2940,7 +2940,7 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 			case 3:
 				gjh.step[gjh.order+1].sloc.att.icrf.utc = gjh.step[gjh.order+1].sloc.utc;
 				q1 = gjh.step[gjh.order+1].sloc.att.icrf.s;
-				gjh.step[gjh.order+1].sloc.att.icrf.s = q_change_between_rv(cdata.physics.thrust,rv_unitz());
+                gjh.step[gjh.order+1].sloc.att.icrf.s = q_change_between_rv(physics.thrust,rv_unitz());
 				dsq = q_sub(gjh.step[gjh.order+1].sloc.att.icrf.s,q1);
 				angle = 2. * atan(length_q(dsq)/2.);
 				q2 = q_smult(1./cos(angle),gjh.step[gjh.order+1].sloc.att.icrf.s);
@@ -2971,7 +2971,7 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 			case 5:
 				gjh.step[gjh.order+1].sloc.att.geoc.utc = gjh.step[gjh.order+1].sloc.utc;
 				angle = 2.*acos(gjh.step[gjh.order+1].sloc.att.geoc.s.w);
-				gjh.step[gjh.order+1].sloc.att.geoc.s = q_change_around_z(angle+.2*D2PI*cdata.physics.dt);
+                gjh.step[gjh.order+1].sloc.att.geoc.s = q_change_around_z(angle+.2*D2PI*physics.dt);
 				gjh.step[gjh.order+1].sloc.att.geoc.v = rv_smult(.2*D2PI,rv_unitz());
 				att_geoc2icrf(&gjh.step[gjh.order+1].sloc);
 				att_planec2lvlh(&gjh.step[gjh.order+1].sloc);
@@ -2982,7 +2982,7 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 			case 9:
 			case 10:
 			case 11:
-				gjh.step[gjh.order+1].sloc.att.icrf.s = q_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,gjh.step[gjh.order+1].sloc.pos.icrf.s));
+//				gjh.step[gjh.order+1].sloc.att.icrf.s = q_change_between_rv(cdata.piece[physics.mode-2].normal,rv_smult(-1.,gjh.step[gjh.order+1].sloc.pos.icrf.s));
 				gjh.step[gjh.order+1].sloc.att.icrf.v = rv_zero();
 				att_icrf2lvlh(&gjh.step[gjh.order+1].sloc);
 				break;
@@ -2998,10 +2998,10 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 				att_lvlh2icrf(&gjh.step[gjh.order+1].sloc);
 				break;
 			}
-		simulate_hardware(cdata, gjh.step[gjh.order+1].sloc);
-		att_accel(cdata.physics, gjh.step[gjh.order+1].sloc);
+//		simulate_hardware(cdata, gjh.step[gjh.order+1].sloc);
+        att_accel(physics, gjh.step[gjh.order+1].sloc);
 		// Perform positional and attitude accelerations at new position
-		pos_accel(cdata.physics, gjh.step[gjh.order+1].sloc);
+        pos_accel(physics, gjh.step[gjh.order+1].sloc);
 
 		// Calculate s(order/2+1)
 		gjh.step[gjh.order+1].s.col[0] = gjh.step[gjh.order].s.col[0] + (gjh.step[gjh.order].sloc.pos.eci.a.col[0]+gjh.step[gjh.order+1].sloc.pos.eci.a.col[0])/2.;
@@ -3014,7 +3014,7 @@ void gauss_jackson_propagate(gj_handle &gjh, cosmosstruc &cdata, double tomjd)
 
 	}
 
-	cdata.node.loc = gjh.step[gjh.order].sloc;
+    loc = gjh.step[gjh.order].sloc;
 }
 
 //! Initialize orbit from orbital data

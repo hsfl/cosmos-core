@@ -140,7 +140,15 @@ int main(int argc, char *argv[])
 //	cdata->physics.area = 200.;
 	cdata->physics.mass = 3.;
 	cdata->physics.area = .01;
-	gauss_jackson_init_eci(gjh, 6, 0, DT, utc, eci, att, *cdata);
+
+    locstruc loc;
+    loc.pos.eci = eci;
+    loc.att.icrf = att;
+    loc.pos.eci.pass++;
+    pos_eci(&loc);
+    hardware_init_eci(cdata[0].devspec, loc);
+    gauss_jackson_init_eci(gjh, 6, 0, DT, utc, eci, att, cdata->physics, cdata->node.loc);
+    simulate_hardware(*cdata, cdata->node.loc);
 
 	for (size_t i=1; i<(modeltype==TLE?10000:stk.count-1); ++i)
 	{
@@ -148,14 +156,16 @@ int main(int argc, char *argv[])
 		if (modeltype == TLE)
 		{
 			cmjd = utc + i*DT*MT/86400.;
-			gauss_jackson_propagate(gjh, *cdata, cmjd);
-			tle2eci(cmjd, tle[0], &eci);
+            gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cmjd);
+            simulate_hardware(*cdata, cdata->node.loc);
+            tle2eci(cmjd, tle[0], &eci);
 		}
 		else
 		{
 			cmjd = stk.pos[i].utc;
-			gauss_jackson_propagate(gjh, *cdata, cmjd);
-			stk2eci(cmjd, &stk, &eci);
+            gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cmjd);
+            simulate_hardware(*cdata, cdata->node.loc);
+            stk2eci(cmjd, &stk, &eci);
 		}
 		printf("%.15g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", cmjd, eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.eci.s.col[0], cdata->node.loc.pos.eci.s.col[1], cdata->node.loc.pos.eci.s.col[2]);
 		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], cdata->node.loc.pos.eci.v.col[0], cdata->node.loc.pos.eci.v.col[1], cdata->node.loc.pos.eci.v.col[2]);

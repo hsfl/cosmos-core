@@ -101,7 +101,6 @@ int main(int argc, char* argv[])
 	{
 		char* ibuf = (char *)calloc(1,fstat.st_size+1);
 		size_t nbytes = fread(ibuf, 1, fstat.st_size, fdes);
-		//		fgets(ibuf,fstat.st_size,fdes);
 		if (nbytes)
 		{
 			json_parse(ibuf,cdata);
@@ -187,13 +186,15 @@ int main(int argc, char* argv[])
 
 	if (mjdnow < iloc.utc)
 	{
-		gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, *cdata);
+        hardware_init_eci(cdata[0].devspec, iloc);
+        gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, cdata->physics, cdata->node.loc);
 
 		//printf("Initialize backwards %f days\n", (cdata[0].node.loc.utc-mjdnow));
 		cout << "Initialize backwards " << cdata[0].node.loc.utc-mjdnow << "days" << endl;
 
-		gauss_jackson_propagate(gjh, *cdata, mjdnow);
-		iloc.utc = cdata[0].node.loc.utc;
+        gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, mjdnow);
+        simulate_hardware(*cdata, cdata->node.loc);
+        iloc.utc = cdata[0].node.loc.utc;
 		iloc.pos.eci = cdata[0].node.loc.pos.eci;
 		iloc.att.icrf = cdata[0].node.loc.att.icrf;
 	}
@@ -216,14 +217,19 @@ int main(int argc, char* argv[])
 //	gauss_jackson_preset(&gji);
 //	gauss_jackson_extrapolate(&gji, mjdnow);
 
-	gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
-	gauss_jackson_propagate(gjh, *cdata, mjdnow);
-	pos_clear(iloc);
+    hardware_init_eci(cdata[0].devspec, iloc);
+    gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, cdata->physics, cdata->node.loc);
+    simulate_hardware(*cdata, cdata->node.loc);
+    gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, mjdnow);
+    simulate_hardware(*cdata, cdata->node.loc);
+    pos_clear(iloc);
 	iloc.pos.eci = cdata[0].node.loc.pos.eci;
 	iloc.att.icrf = cdata[0].node.loc.att.icrf;
 	iloc.utc = cdata[0].node.loc.pos.eci.utc;
-	gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
-	mjdnow = currentmjd(cdata[0].node.utcoffset);
+    hardware_init_eci(cdata[0].devspec, iloc);
+    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, cdata->physics, cdata->node.loc);
+    simulate_hardware(*cdata, cdata->node.loc);
+    mjdnow = currentmjd(cdata[0].node.utcoffset);
 
 	vector <gj_handle> tgjh(cdata[0].target.size());
 	vector <cosmosstruc *> tcdata(cdata[0].target.size());
@@ -231,8 +237,10 @@ int main(int argc, char* argv[])
 	for (uint16_t i=0; i<cdata[0].target.size(); ++i)
 	{
 		tcdata[i] = json_create();
-		gauss_jackson_init_eci(tgjh[i], order, 0, dt, cdata[0].target[i].loc.utc, cdata[0].target[i].loc.pos.eci, cdata[0].target[i].loc.att.icrf, *tcdata[i]);
-	}
+        hardware_init_eci(cdata[0].devspec, cdata[0].target[i].loc);
+        gauss_jackson_init_eci(tgjh[i], order, 0, dt, cdata[0].target[i].loc.utc, cdata[0].target[i].loc.pos.eci, cdata[0].target[i].loc.att.icrf, tcdata[i]->physics, tcdata[i]->node.loc);
+        simulate_hardware(*cdata, cdata[0].target[i].loc);
+    }
 
 	string sohstring = json_list_of_soh(cdata);
 	agent_set_sohstring(cdata, sohstring.c_str());
@@ -244,8 +252,9 @@ int main(int argc, char* argv[])
 	while (mjdend < 0. || mjdend-mjdstart > 0)
 	{
 		mjdnow += logperiod/86400.;
-		gauss_jackson_propagate(gjh, *cdata, mjdnow);
-		if (cdata[0].node.loc.utc > cdata[0].node.utc)
+        gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, mjdnow);
+        simulate_hardware(*cdata, cdata->node.loc);
+        if (cdata[0].node.loc.utc > cdata[0].node.utc)
 		{
 			cdata[0].node.utc = cdata[0].node.loc.utc;
 		}
@@ -259,8 +268,9 @@ int main(int argc, char* argv[])
 
 		for (uint16_t i=0; i<cdata[0].target.size(); ++i)
 		{
-			gauss_jackson_propagate(tgjh[i], *tcdata[i], mjdnow);
-		}
+            gauss_jackson_propagate(tgjh[i], tcdata[i]->physics, tcdata[i]->node.loc, mjdnow);
+            simulate_hardware(*tcdata[i], tcdata[i]->node.loc);
+        }
 		update_target(cdata);
 		calc_events(eventdict, cdata, events);
 		for (uint32_t k=0; k<events.size(); ++k)

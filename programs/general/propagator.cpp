@@ -189,13 +189,16 @@ int main(int argc, char* argv[])
 
 	if (mjdnow < iloc.utc)
 	{
-		gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, *cdata);
+        hardware_init_eci(cdata[0].devspec, iloc);
+        gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, cdata->physics, cdata->node.loc);
 
 		//printf("Initialize backwards %f days\n", (cdata[0].node.loc.utc-mjdnow));
 		cout << "Initialize backwards " << cdata[0].node.loc.utc-mjdnow << "days" << endl;
 
-		gauss_jackson_propagate(gjh, *cdata, mjdnow);
-		iloc.utc = cdata[0].node.loc.utc;
+        simulate_hardware(*cdata, cdata->node.loc);
+        gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, mjdnow);
+        simulate_hardware(*cdata, cdata->node.loc);
+        iloc.utc = cdata[0].node.loc.utc;
 		iloc.pos.eci = cdata[0].node.loc.pos.eci;
 		iloc.att.icrf = cdata[0].node.loc.att.icrf;
 	}
@@ -213,13 +216,17 @@ int main(int argc, char* argv[])
     //printf("Initialize forwards %f days, steps of %f\n", (mjdnow-iloc.utc), step);
     cout << "Initialize forwards " << (mjdnow-iloc.utc) << " days, steps of " << step << endl;
 
-	gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
-	gauss_jackson_propagate(gjh, *cdata, mjdnow);
-	pos_clear(iloc);
+    hardware_init_eci(cdata[0].devspec, iloc);
+    gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, cdata->physics, cdata->node.loc);
+    simulate_hardware(*cdata, cdata->node.loc);
+    gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, mjdnow);
+    simulate_hardware(*cdata, cdata->node.loc);
+    pos_clear(iloc);
 	iloc.pos.eci = cdata[0].node.loc.pos.eci;
 	iloc.att.icrf = cdata[0].node.loc.att.icrf;
 	iloc.utc = cdata[0].node.loc.pos.eci.utc;
-	gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, *cdata);
+    hardware_init_eci(cdata[0].devspec, iloc);
+    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, cdata->physics, cdata->node.loc);
 	mjdnow = currentmjd(cdata[0].node.utcoffset);
 
 
@@ -230,7 +237,8 @@ int main(int argc, char* argv[])
 	{
 		sohtimer += 1./86400.;
 		mjdnow = currentmjd(cdata[0].node.utcoffset);
-		gauss_jackson_propagate(gjh, *cdata, mjdnow);
+        gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, mjdnow);
+        simulate_hardware(*cdata, cdata->node.loc);
 
 		update_target(cdata);
         calc_events(eventdict, cdata, events);
