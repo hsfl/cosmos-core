@@ -21,17 +21,19 @@ The two COSMOS agents will start talking to each other.
 
 **For Cmake**
 
-make sure you have the latest version of Cmake from [http://www.cmake.org/](http://www.cmake.org/)
+make sure you have the latest version of Cmake from [http://www.cmake.org/](http://www.cmake.org/) (currently it is 3.3.1)
 
-To compile from the unix command line:
+To compile from the unix command line (we recommend using Ubuntu 14):
 
 ```
 $ cd core/build
-$ mkdir {linux|macos} (depending on your OS)
-$ ./do_cmake {linux|macos}
-$ cd {linux|macos}
-$ make install
+$ mkdir {linux|macos|arm|...} (depending on your target OS)
+$ ./do_cmake {linux|macos|arm|...}
+$ cd {linux|macos|arm|...}
+$ sudo make -j8 install (-j8 will allocate 8 cores for the compiler, use the # of cores in your machine)
 ```
+
+this will install COSMOS core intro /usr/local/cosmos
 
 **For Qt Creator using Cmake**
 
@@ -44,3 +46,7 @@ $ make install
 For more detailed instructions to get started with COSMOS
 please read the [core/documentation/README.md](https://bitbucket.org/cosmos/core/src/master/documentation/README.md) inside the 
 documentation folder.
+
+Troubleshooting
+---------------
+If you get an error 
