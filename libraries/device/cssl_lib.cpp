@@ -140,7 +140,20 @@ cssl_t *cssl_open(const char *fname,
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    serial->handle = CreateFileA(fname, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    serial->handle = CreateFileA(fname,
+                                 GENERIC_READ|GENERIC_WRITE,
+                                 0,                 /* no share  */
+                                 NULL,              /* no security */
+                                 OPEN_EXISTING,
+                                 0,  /* no threads */ // FILE_ATTRIBUTE_NORMAL
+                                 NULL);                 /* no templates */
+
+    if(serial->handle==INVALID_HANDLE_VALUE)
+    {
+      cout << "unable to open serial port" << endl;
+      exit(0);
+    }
+
 	serial->fd = _open_osfhandle((intptr_t)serial->handle, 0);
 #endif
 
@@ -154,12 +167,17 @@ cssl_t *cssl_open(const char *fname,
 	/* we remember old termios */
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 	tcgetattr(serial->fd,&(serial->oldtio));
-#else
-	GetCommState(serial->handle, &(serial->olddcb));
+#else // windows
+    // does not seem to be necessary
+    // GetCommState(serial->handle, &(serial->olddcb));
 #endif
 
 	/* now we set new values */
-	cssl_setup(serial,baud,parity,bits,stop);
+    // TODO: what a bit ERROR, parity and bits is flipped
+    //cssl_setup(serial,baud,parity,bits,stop);
+
+    // new! TODO: check if all functions that call cssl_open work
+    cssl_setup(serial,baud,bits,parity,stop);
 
 	// Default to no flow control
 	cssl_setflowcontrol(serial, 0, 0);
@@ -357,7 +375,7 @@ int32_t cssl_setup(cssl_t *serial, int baud, int bits, int parity, int stop)
 
 	/* we send new config to the port */
 	tcsetattr(serial->fd,TCSANOW,&(serial->tio));
-#else
+#else // windows
 	serial->dcb.BaudRate = baud;
 	serial->dcb.Parity = parity;
 	serial->dcb.StopBits = stop;
@@ -411,7 +429,7 @@ int32_t cssl_setflowcontrol(cssl_t *serial, int rtscts, int xonxoff)
 #if defined(COSMOS_WIN_OS)
 	if (xonxoff)
 	{
-	serial->dcb.fInX = serial->dcb.fOutX = TRUE;
+        serial->dcb.fInX = serial->dcb.fOutX = TRUE;
 	}
 	else
 	{
@@ -466,7 +484,7 @@ int32_t cssl_settimeout(cssl_t *serial, int minchar, double timeout)
 	serial->tio.c_cc[VTIME]=(int)(timeout*10.+.4);
 
 	tcsetattr(serial->fd,TCSANOW,&(serial->tio));
-#else
+#else // windows
 	_COMMTIMEOUTS timeouts;
 	timeouts.ReadIntervalTimeout = timeout * 1000.;
 	SetCommTimeouts(serial->handle, &timeouts);
@@ -496,10 +514,16 @@ int32_t cssl_putchar(cssl_t *serial, uint8_t c)
 		return (CSSL_ERROR_NULLPOINTER);
 	}
 
+#ifdef COSMOS_WIN_OS
+    int n=0;
+    WriteFile(serial->handle, &c, 1, (LPDWORD)((void *)&n), NULL);
+    if(n<0)  return(-errno);
+#else
 	if (write(serial->fd,&c,1) < 0)
 	{
 		return (-errno);
 	}
+#endif
 
 	COSMOS_USLEEP(10000000/serial->baud);
 	return 0;
@@ -592,6 +616,7 @@ int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
 {
 	size_t j;
 	uint8_t cs_in, digit1, digit2;
+    string message_sent; // for debugging
 
 	cs_in = 0;
 
@@ -603,16 +628,19 @@ int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
 
     // start command '$'
 	cssl_putchar(serial,'$');
+    message_sent = '$';
 
     // iterate through the buffer to send each charcter to serial port
 	for (j=0; j<size; j++)
 	{
 		cssl_putchar(serial,buf[j]);
+        message_sent += buf[j];
         // check sum (xor?)
 		cs_in ^= (uint8_t)buf[j];
 	}
     // end of command '*'
 	cssl_putchar(serial,'*');
+    message_sent += '*';
 
 	if (cs_in > 16)
 	{
@@ -620,15 +648,18 @@ int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
         if (digit1 < 10)
         {
             cssl_putchar(serial, '0'+digit1);
+            message_sent += '0'+digit1;
         }
         else
         {
             cssl_putchar(serial, 'A'+digit1-10);
+            message_sent += 'A'+digit1-10;
         }
 	}
 	else
 	{
 		cssl_putchar(serial, '0');
+        message_sent += '0';
 	}
 
 	++j;
@@ -636,13 +667,16 @@ int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
     if (digit2 <10 )
     {
         cssl_putchar(serial, '0'+digit2);
+        message_sent += '0'+digit2;
     }
     else
     {
         cssl_putchar(serial, 'A'+digit2-10);
+        message_sent += 'A'+digit2-10;
     }
 	++j;
 	cssl_putchar(serial, '\n');
+    message_sent += "<CR><LF>";
 	return (j+3);
 }
 
@@ -663,7 +697,7 @@ int32_t cssl_drain(cssl_t *serial)
 //	tcflush(serial->fd,TCOFLUSH);
 //	tcflush(serial->fd,TCIFLUSH);
 	tcflush(serial->fd, TCIOFLUSH);
-#else
+#else // windows
 	PurgeComm(serial->handle, PURGE_RXCLEAR|PURGE_TXCLEAR);
 #endif
 	return 0;
@@ -675,7 +709,12 @@ int32_t cssl_getchar(cssl_t *serial)
 	int result;
 	uint8_t c;
 
+#ifdef COSMOS_WIN_OS
+    int n=0;
+    ReadFile(serial->handle, &c, 1, (LPDWORD)((void *)&n), NULL);
+#else
 	result=read(serial->fd,&c,sizeof(c));
+#endif
 	if (result > 0)
 	{
 		return c;
@@ -856,10 +895,12 @@ int32_t cssl_getnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
 	int16_t ch;
 	uint16_t i;
 	uint8_t cs_in, cs_out;
+    string input;
 	
 	do
 	{
 		ch = cssl_getchar(serial);
+        input += ch;
 		if (ch < 0) return (ch);
 	} while (ch != '$');
 
@@ -868,6 +909,7 @@ int32_t cssl_getnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
 	do
 	{
 		ch = cssl_getchar(serial);
+        input += ch;
 		if (ch < 0) return (ch);
 		if (i < size)
 		{
@@ -884,6 +926,7 @@ int32_t cssl_getnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
 		}
 	} while (ch != '*');
 	ch = cssl_getchar(serial);
+    input += ch;
 	if (ch < 0) return (ch);
 	if (ch > '9')
 	{
@@ -901,6 +944,7 @@ int32_t cssl_getnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
 		cs_out = (ch - '0') * 16;
 	}
 	ch = cssl_getchar(serial);
+    input += ch;
 	if (ch < 0) return (ch);
 	if (ch > '9')
 	{
@@ -920,6 +964,7 @@ int32_t cssl_getnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
 	if (cs_in != cs_out)
 		return (CSSL_ERROR_CHECKSUM);
 	ch = cssl_getchar(serial);
+    input += ch;
 
 	return (i);
 }

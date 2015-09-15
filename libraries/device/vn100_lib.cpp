@@ -45,22 +45,28 @@ int32_t vn100_connect(string dev, vn100_handle *handle)
 
 	cssl_start();
     handle->serial = cssl_open(dev.c_str(),VN100_BAUD, VN100_BITS,VN100_PARITY,VN100_STOPBITS);
-	if (handle->serial == NULL)
+
+    if (handle->serial == NULL)
 	{
 		return (CSSL_ERROR_OPEN);
 	}
-	if ((iretn=cssl_settimeout(handle->serial, 0, .1)) < 0)
-	{
-		return (iretn);
-	}
-	if ((iretn=cssl_setflowcontrol(handle->serial, 0, 0)) < 0)
-	{
-		return (iretn);
-	}
+    // Settimeout nd set flow control is already in cssl_open,
+    //	if ((iretn=cssl_settimeout(handle->serial, 0, .1)) < 0)
+    //	{
+    //		return (iretn);
+    //	}
+
+    //    if ((iretn=cssl_setflowcontrol(handle->serial, 0, 0)) < 0)
+    //	{
+    //		return (iretn);
+    //	}
+
+    // stop data stream, we are going to request the data instead
 	if ((iretn=vn100_asynchoff(handle)) < 0)
 	{
 		return (iretn);
 	}
+
 	if ((iretn=vn100_magcal_off(handle)) < 0)
 	{
 		return (iretn);
@@ -238,7 +244,7 @@ int32_t vn100_magcal_on(vn100_handle *handle)
 	return 0;
 }
 
-// ??? what is this function doing?
+// TODO: explain what is this function doing?
 int32_t vn100_asynchoff(vn100_handle *handle)
 {
 	int32_t iretn;
@@ -252,6 +258,7 @@ int32_t vn100_asynchoff(vn100_handle *handle)
 	{
 		return (iretn);
 	}
+
 	if ((iretn=cssl_getnmea(handle->serial, (uint8_t *)handle->buf, 150)) < 0)
 		return (iretn);
 

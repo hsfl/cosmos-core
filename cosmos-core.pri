@@ -319,12 +319,6 @@ contains(MODULES, astrodev_lib){
     MODULES         +=  cssl_lib
 }
 
-contains(MODULES, cssl_lib){
-    message( "- device/cssl_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.h)
-}
 
 contains(MODULES, microstrain_lib){
     message( "- device/microstrain_lib" )
@@ -352,6 +346,9 @@ contains(MODULES, vn100_lib){
     INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
     SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/vn100_lib.cpp)
     HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/vn100_lib.h)
+
+    # dependencies
+    MODULES += cssl_lib
 }
 
 contains(MODULES, vmt35_lib){
@@ -387,6 +384,13 @@ contains(MODULES, sinclair_lib){
     INCLUDEPATH     += $$COSMOS/core/libraries/device
     SOURCES         += $$files($$COSMOS/core/libraries/device/sinclair_lib.cpp)
     HEADERS         += $$files($$COSMOS/core/libraries/device/sinclair_lib.h)
+}
+
+contains(MODULES, cssl_lib){
+    message( "- device/cssl_lib" )
+    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
+    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.cpp)
+    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.h)
 }
 
 #--------------------------------------------------------------------

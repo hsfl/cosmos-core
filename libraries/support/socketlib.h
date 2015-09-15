@@ -179,9 +179,17 @@ public:
 	// constructor
 	SocketOptions(){}
 	//SocketOptions():type(0),handle(0),address(""),port(),addrlen(0),role(0),blocking(false),timeout(0){}
-	SocketOptions(uint16_t p):port{p}{}
-	SocketOptions(string a, uint16_t p):address{a},port{p}{}
-	SocketOptions(string a, uint16_t p, uint16_t r):address{a},port{p},role{r}{}
+
+    // using list initialization is not supported be gcc 4.8 and/or MSVC 2013
+    // so for the moment keep these commented out
+    //  SocketOptions(uint16_t p):port{p}{}
+    //  SocketOptions(string a, uint16_t p):address{a},port{p}{}
+    //  SocketOptions(string a, uint16_t p, uint16_t r):address{a},port{p},role{r}{}
+
+    SocketOptions(uint16_t p);
+    SocketOptions(string a, uint16_t p);
+    SocketOptions(string a, uint16_t p, uint16_t r);
+
 
 } ;
 
