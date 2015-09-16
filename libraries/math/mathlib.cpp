@@ -2027,6 +2027,29 @@ lsfit::lsfit(uint16_t cnt, uint16_t ord, double res)
 	//	printf("lsfit(%u %u %f)\n",cnt,ord,res);
 }
 
+void lsfit::initialize(uint16_t cnt, uint16_t ord, double res)
+{
+    if (ord)
+    {
+        order = ord;
+    }
+    else
+    {
+        order = 1;
+    }
+    if (cnt)
+    {
+        element_cnt = cnt;
+    }
+    else
+    {
+        element_cnt = order + 1;
+    }
+    resolution = res;
+    var.resize(0);
+    depth = 0;
+}
+
 void lsfit::update(double x, double y)
 {
 	fitelement cfit;

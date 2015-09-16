@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	quaternion qrot1, qrot2, qrot3, qrot4, qrot5;
 	qrot1.w = cos(RADOF(22.5)); qrot1.d.x = qrot1.d.y = sqrt(1./3.)*sin(RADOF(22.5)); qrot1.d.z = -sqrt(1./3.)*sin(RADOF(22.5)); //45 around vector(1, 1, -1)
 	PrintUtils print;
-	print.vector("qrot1:", qrot1);
+    print.quat("qrot1:", qrot1);
 	qrot2.w = sqrt(.5); qrot2.d.x = sqrt(.5); qrot2.d.y = 0.; qrot2.d.z = 0.; //90 around X (a positive rotation around a positive axis, viewed from the origin, is clockwise)
 	qrot3.w = sqrt(.5); qrot3.d.x = 0.; qrot3.d.y = sqrt(.5); qrot3.d.z = 0.; //90 around Y
 	qrot4.w = sqrt(.5); qrot4.d.x = 0.; qrot4.d.y = 0.; qrot4.d.z = sqrt(.5); //90 around Z

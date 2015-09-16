@@ -382,6 +382,7 @@ public:
         lsfit(uint16_t element_cnt, uint16_t ord);
         lsfit(uint16_t cnt, uint16_t ord, double res);
 
+        void initialize(uint16_t cnt, uint16_t ord, double res);
         void update(double x, double y);
         void update(double x, rvector y);
         void update(double x, quaternion y);
