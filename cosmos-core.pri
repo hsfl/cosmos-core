@@ -289,10 +289,12 @@ contains(MODULES, timeutils){
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/timeutils.h
 }
 
-contains(MODULES, nrlmsise){
+contains(MODULES, nrlmsise)
+{
     message( "- support/nrlmsise" )
     SOURCES += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.cpp
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00_data.cpp
 }
 
 contains(MODULES, print_utils){

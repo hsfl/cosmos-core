@@ -57,6 +57,7 @@ std::ostream& operator << (std::ostream& out, const rvector& a);
 std::ostream& operator << (std::ostream& out, const std::vector<rvector>& a);
 std::istream& operator >> (std::istream& out, rvector& a);
 rvector operator * (rvector v, double scalar); // multiply vector by scalar operator
+rvector operator / (rvector v, double scalar); // multiply vector by scalar operator
 
 //! 3 element cartesian vector
 /*! 3 double precision numbers representing a vector in a right handed

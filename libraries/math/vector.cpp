@@ -766,18 +766,24 @@ rvector rv_sqrt(rvector vec)
 
 std::ostream& operator << (std::ostream& out, const rvector& a)
 {
-    //out.precision(15);
 
-    out << std::fixed;
-    out << std::setprecision(6);
-    out<< "["
-       << std::setw(10) << a.col[0] << ","
-       << std::setw(10) << a.col[1] << ","
-       << std::setw(10) << a.col[2]
-       << "]";
+    //    // fancy formating
+    //    //out.precision(15);
+    //    out << std::fixed;
+    //    out << std::setprecision(6);
+    //    out<< "["
+    //       << std::setw(10) << a.col[0] << ","
+    //       << std::setw(10) << a.col[1] << ","
+    //       << std::setw(10) << a.col[2];
+    //       << "]";
 
-    // remove formating for floatfield (not set)
-    std::cout.unsetf ( std::ios::floatfield );
+    //    // remove formating for floatfield (not set)
+    //    std::cout.unsetf ( std::ios::floatfield );
+
+    // simple formating
+    out << a.col[0] << ","
+        << a.col[1] << ","
+        << a.col[2];
 
     return out;
 }
@@ -807,6 +813,15 @@ rvector operator * (rvector v, double scalar)
     return v;
 }
 
+// divide vector by scalar operator
+rvector operator / (rvector v, double scalar)
+{
+    v.col[0] = v.col[0] / scalar;
+    v.col[1] = v.col[1] / scalar;
+    v.col[2] = v.col[2] / scalar;
+
+    return v;
+}
 
 std::ostream& operator << (std::ostream& out, const cvector& a)
 {

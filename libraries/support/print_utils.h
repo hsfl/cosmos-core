@@ -43,13 +43,16 @@
 #include <iostream>
 #include <string>
 
-// ?? remove the dependency of matlib later, change rvector to vector?
+// TODO: remove the dependency of matlib later, change rvector to vector?
 
-class PrintUtils {
+class PrintUtils
+{
 
 private:
 
 public:
+
+    PrintUtils();
 
     //main functions
     //-------------------------------------------------------------
@@ -59,28 +62,25 @@ public:
     // 20150818JC: Fixed mismatched prototype to include field width.  Default value in cpp
     //void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision);
     void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision, int fieldwidth);
-	void vector(string text_prefix, quaternion q, double scale, string text_suffix, int precision, int fieldwidth);
-
-    // split vector
-    void vector(string vector_name, double a, double b, double c, string units);
-    void vector(string vector_name, double a, double b, double c, string units, int precision);
-    void vector(string vector_name, double a, double b, double c, double d, string units);
 
     void vector(rvector v);
-	void vector(quaternion q);
-	void vector(rvector v, int precision);
-	void vector(quaternion q, int precision);
-
-
+    //void vector(rvector v, int precision);
 	void vector(string vector_name, rvector v);
-    void vector(string vector_name, rvector v, int precision);
-    void vector(string vector_name, rvector v, string text_suffix, int precision);
-	void vector(string vector_name, quaternion q);
-	void vector(string vector_name, quaternion q, int precision);
-	void vector(string vector_name, quaternion q, string text_suffix, int precision);
+    //void vector(string vector_name, rvector v, int precision);
+    void vector(string vector_name, rvector v, string suffix);
 
-    void vectorScaled(string vector_name, rvector v, double scale, int precision);
-	void vectorScaled(string vector_name, quaternion q, double scale, int precision);
+    void vectorAndMag(string vector_name, rvector v);
+    void vectorAndMag(string vector_name, rvector v, string suffix);
+
+
+    //    void vectorScaled(string vector_name, rvector v, double scale, int precision);
+    //	void vectorScaled(string vector_name, quaternion q, double scale, int precision);
+
+    // split vector
+    //    void vector(string vector_name, double a, double b, double c, string units);
+    //    void vector(string vector_name, double a, double b, double c, string units, int precision);
+    //    void vector(string vector_name, double a, double b, double c, double d, string units);
+
 
     void vector_endl(rvector v,
                      double factor,
@@ -92,6 +92,29 @@ public:
     void end();
     void endline();
 
+    // quaternions
+    void quat(string text_prefix, quaternion q, double scale, string text_suffix, int precision, int fieldwidth);
+    void quat(quaternion q);
+    void quat(quaternion q, int precision);
+    void quat(string vector_name, quaternion q);
+    void quat(string vector_name, quaternion q, int precision);
+    void quat(string vector_name, quaternion q, string text_suffix, int precision);
+
+    //
+    int precision;
+    int fieldwidth;
+    double scale;
+    string prefix;
+    string suffix;
+    bool use_brackets;
+
+    // reset to default values
+    void reset();
+
+
+    void text(string text);
+    void scalar(string name, double s, string suffix);
+    void scalar(string text_prefix, double s, double scale, string text_suffix, int precision, int fieldwidth);
 };
 
 #endif //_COSMOS_PRINT_UTILS

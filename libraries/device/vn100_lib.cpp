@@ -27,6 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: validate the firmware version for this lib (1.1)
+
 #include "vn100_lib.h"
 
 
