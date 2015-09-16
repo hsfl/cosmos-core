@@ -425,6 +425,14 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
         cdata[0].agent[0].reqs.push_back(tentry);
     }
     {
+        agent_request_entry tentry = {"idle",agent_req_idle,"","request to transition this agent to idle state"};
+        cdata[0].agent[0].reqs.push_back(tentry);
+    }
+    {
+        agent_request_entry tentry = {"run",agent_req_idle,"","request to transition this agent to run state"};
+        cdata[0].agent[0].reqs.push_back(tentry);
+    }
+    {
         agent_request_entry tentry = {"status",agent_req_status,"","request the status of this agent"};
         cdata[0].agent[0].reqs.push_back(tentry);
     }
@@ -450,6 +458,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
     }
 
     cdata[0].agent[0].server = 1;
+    cdata[0].agent[0].stateflag = (uint16_t)AGENT_STATE_RUN;
     return (cdata);
 }
 
@@ -744,17 +753,6 @@ cosmosstruc *agent_get_cosmosstruc(cosmosstruc *cdata)
  */
 void heartbeat_loop(cosmosstruc *cdata)
 {
-    //    double cmjd, nmjd;
-    //    unsigned long usec;
-    //    struct timeval mytime;
-
-    // double precission is 15 digits of accuracy so we're subtracting
-    // a big number to maitain accuracy
-
-    //    gettimeofday(&mytime, NULL);
-    //    cmjd = (mytime.tv_sec - 1280000000) + mytime.tv_usec / 1e6;
-    //    nmjd = cmjd + ((cosmosstruc *)cdata)->agent[0].beat.bprd;
-
     ElapsedTime ep;
 
     while (((cosmosstruc *)cdata)->agent[0].stateflag)
@@ -762,7 +760,7 @@ void heartbeat_loop(cosmosstruc *cdata)
         ep.start();
 
         ((cosmosstruc *)cdata)->agent[0].beat.utc = currentmjd(0.);
-        if (!((cosmosstruc*)cdata)->agent[0].sohtable.empty())
+        if (((cosmosstruc*)cdata)->agent[0].stateflag != AGENT_STATE_IDLE && !((cosmosstruc*)cdata)->agent[0].sohtable.empty())
         {
             agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT, json_of_table(hbjstring, ((cosmosstruc *)cdata)->agent[0].sohtable, ((cosmosstruc *)cdata)));
         }
@@ -771,17 +769,10 @@ void heartbeat_loop(cosmosstruc *cdata)
 			agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT,"");
         }
 
-        //        if (nmjd >= cmjd)
-        //        {
-        //            usec = (unsigned long)((nmjd-cmjd)*1e6+.5);
-        //            COSMOS_USLEEP(usec);
-        //        }
-
         if (((cosmosstruc *)cdata)->agent[0].beat.bprd < .1)
         {
             ((cosmosstruc *)cdata)->agent[0].beat.bprd = .1;
         }
-        //        nmjd += ((cosmosstruc *)cdata)->agent[0].beat.bprd;
 
 		if (ep.split() <= ((cosmosstruc *)cdata)->agent[0].beat.bprd)
         {
@@ -929,6 +920,20 @@ int32_t agent_req_help(char*, char* output, void *cdata)
     help_string += "\n";
     strcpy(output, (char*)help_string.c_str());
     return 0;
+}
+
+int32_t agent_req_run(char*, char* output, void *cdata)
+{
+    ((cosmosstruc *)cdata)->agent[0].stateflag = AGENT_STATE_RUN;
+    output[0] = 0;
+    return(0);
+}
+
+int32_t agent_req_idle(char*, char* output, void *cdata)
+{
+    ((cosmosstruc *)cdata)->agent[0].stateflag = AGENT_STATE_IDLE;
+    output[0] = 0;
+    return(0);
 }
 
 int32_t agent_req_shutdown(char*, char* output, void *cdata)

@@ -219,6 +219,8 @@ using namespace std;
 #define AGENT_STATE_SAFE 3
 //! Agent in Debug State
 #define AGENT_STATE_DEBUG 4
+//! Agent in Idle State
+#define AGENT_STATE_IDLE 4
 
 //! Multiple agents per name
 #define AGENT_MULTIPLE true

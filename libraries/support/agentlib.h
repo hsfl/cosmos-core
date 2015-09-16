@@ -108,6 +108,8 @@ int32_t agent_req_forward(char *request, char* response, void *root);
 int32_t agent_req_echo(char *request, char* response, void *root);
 int32_t agent_req_help(char *request, char* response, void *root);
 int32_t agent_req_shutdown(char *request, char* response, void *root);
+int32_t agent_req_idle(char *request, char* response, void *root);
+int32_t agent_req_run(char *request, char* response, void *root);
 int32_t agent_req_status(char *request, char* response, void *root);
 int32_t agent_req_getvalue(char *request, char* response, void *root);
 int32_t agent_req_setvalue(char *request, char* response, void *root);
