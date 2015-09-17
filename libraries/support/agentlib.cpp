@@ -429,7 +429,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
         cdata[0].agent[0].reqs.push_back(tentry);
     }
     {
-        agent_request_entry tentry = {"run",agent_req_idle,"","request to transition this agent to run state"};
+        agent_request_entry tentry = {"run",agent_req_run,"","request to transition this agent to run state"};
         cdata[0].agent[0].reqs.push_back(tentry);
     }
     {
