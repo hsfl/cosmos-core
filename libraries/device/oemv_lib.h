@@ -195,8 +195,8 @@ struct oemv_bestxyz_type
 	float latency;// 92
 	float differential_age;// 96
 	float solution_age;// 100
-	uint8_t tracked_cnt;// 104
-	uint8_t solution_cnt;// 105
+    uint8_t num_sat_tracked;    // 104 - Number of satellite vehicles tracked, was tracked_cnt
+    uint8_t num_sat_solution;   // 105 - Number of satellite vehicles used in solution, was solution_cnt
 	uint8_t glonassl1_cnt;// 106
 	uint8_t glonassl1l2_cnt;// 107
 	uint8_t reserved1;// 108
@@ -270,7 +270,7 @@ struct oemvstruc
 		uint16_t reserved;// 24
 		uint16_t rxr_version;// 26
     } header;
-    union // !!! why union???
+    union // TODO: why union???
 	{
 		oemv_response_type response;
 		oemv_log_type log;

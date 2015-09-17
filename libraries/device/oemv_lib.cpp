@@ -589,8 +589,11 @@ int32_t oemv_setapproxpos(oemv_handle *handle, gvector pos)
     return 0;
 }
 
+
+// TODO: make omev_log return a string
 int32_t oemv_log(oemv_handle *handle, const char* log)
 {
+
     int32_t iretn;
     sprintf((char *)handle->data,
             "LOGA,COM1,0,0.,UNKNOWN,0,0.0,0,0;COM1,%s,ONCE,0.,0.,NOHOLD", log);
@@ -598,8 +601,7 @@ int32_t oemv_log(oemv_handle *handle, const char* log)
     // for NMEA messages starting with '$'
     if (strcmp(log, "GPGGAA") == 0 || strcmp(log, "GPGSVA") == 0)
     {
-
-
+        // send message
         if ((iretn=oemv_putascii(handle)) < 0)
         {
             return (iretn);
@@ -628,6 +630,7 @@ int32_t oemv_log(oemv_handle *handle, const char* log)
             //printf("error 2\n");
             return (iretn);
         }
+
         // Return should start with contents of log
         if (strncmp(log, (char *)handle->data, strlen(log)))
         {
@@ -691,6 +694,7 @@ int32_t oemv_log(oemv_handle *handle, const char* log)
         sscanf((char *)&handle->data[lasti], "%hu,%f",
                &handle->message.header.gps_week,
                &handle->message.header.gps_second);
+
         // Adjust for transmission lag
         handle->message.header.gps_second += (float)(length * 10./OEMV_BAUD);
         if (handle->message.header.gps_second > 604600.)
@@ -1025,7 +1029,7 @@ int32_t oemv_time(oemv_handle *handle)
     //	uint16_t lasti=0;
 
     // convert handle->data to string
-    // !!! this would be unecessary if omev_log would directly return a string
+    // TODO: this would be unecessary if omev_log would directly return a string
     string logdata;
     logdata.assign(handle->data, handle->data + length);
     //logdata = string( (char *)handle->data); // this should work because the handle->data is null terminated
@@ -1191,7 +1195,7 @@ int32_t oemv_bestxyz(oemv_handle *handle)
     {
         return iretn;
     }
-//    uint32_t length = iretn;
+    //    uint32_t length = iretn;
 
 
     // convert handle->data to string
@@ -1362,6 +1366,10 @@ int32_t oemv_bestxyz(oemv_handle *handle)
     handle->message.bestxyz.velocity_x_sd = parser.getFieldNumberAsDouble(15);
     handle->message.bestxyz.velocity_y_sd = parser.getFieldNumberAsDouble(16);
     handle->message.bestxyz.velocity_z_sd = parser.getFieldNumberAsDouble(17);
+
+
+    handle->message.bestxyz.num_sat_tracked = parser.getFieldNumberAsDouble(22);
+    handle->message.bestxyz.num_sat_solution = parser.getFieldNumberAsDouble(23);
 
     return 0;
 }
