@@ -128,4 +128,72 @@ int string_cmp(const char *wild, const char *string)
 	return !*wild;
 }
 
+
+
+// default constructor
+StringParser::StringParser(string str)
+{
+    splitString(str, ',');
+}
+
+// overladed constructor
+StringParser::StringParser(string str, char delimiter)
+{
+    splitString(str,delimiter);
+}
+
+
+//  splits the string into a vector field of strings
+void StringParser::splitString(string str, char delimiter)
+{
+    stringstream ss(str);
+    string token;
+
+    while(getline(ss, token, delimiter))
+    {
+        //cout << token << '\n';
+        vect.push_back(token);
+    }
+
+    numberOfFields = vect.size();
+
+    // default offset so that when we want to get the 1st entry we just to getFieldNumber(1)
+    offset = -1;
+}
+
+// this function gets the field number of the comma delimited string
+// Ex: string = "SOL_COMPUTED,NARROW_INT,-1634531.5683"
+// StringParser::getFieldNumber(1) => "SOL_COMPUTED"
+// StringParser::getFieldNumber(0) => NULL (does not return a meaning value)
+string StringParser::getFieldNumber(uint32_t index)
+{
+    string out;
+	uint32_t real_offset = index + offset;
+
+    if ( index>0 && numberOfFields >= (real_offset) ){
+
+        out = vect.at(real_offset);
+        //cout <<out << endl;
+    } else {
+        return "";
+    }
+
+    return out;
+}
+
+
+double StringParser::getFieldNumberAsDouble(uint32_t index)
+{
+    double out;
+    if (index>0 && numberOfFields >= index){
+
+        out = stod(vect.at(index + offset));
+        //cout <<out << endl;
+    } else {
+        return 0;
+    }
+
+    return out;
+}
+
 //! @}

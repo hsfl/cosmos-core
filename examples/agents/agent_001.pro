@@ -2,7 +2,7 @@
 # Tested on windows with MinGW and MSVC
 
 # DEFINE THE COSMOS SOFTWARE HOME FOLDER
-COSMOS                  = $$PWD/../../..
+COSMOS_SOURCE = $$PWD/../../..
 
 TEMPLATE = app
 CONFIG += console
@@ -15,7 +15,6 @@ MODULES += timeutils
 MODULES += socketlib
 MODULES += agentlib
 MODULES += jsonlib
-MODULES += mathlib
 MODULES += timelib
 MODULES += datalib
 MODULES += convertlib
@@ -26,7 +25,8 @@ MODULES += ephemlib
 MODULES += geomag
 MODULES += sliplib
 MODULES += zlib
-include( $$COSMOS/core/qt/cosmos.pri )
+MODULES += math-mathlib
+include( $$COSMOS_SOURCE/core/cosmos-core.pri )
 
 SOURCES += agent_001.cpp
 
@@ -38,7 +38,7 @@ TARGET = agent_001
 #debug: target.files = $$OUT_PWD/debug/agent_001.exe
 
 #win32:target.path = "C:/COSMOS/core/bin"
-linux:target.path = /home/cosmos/bin
+#linux:target.path = /home/cosmos/bin
 
-INSTALLS    += target
+#INSTALLS    += target
 

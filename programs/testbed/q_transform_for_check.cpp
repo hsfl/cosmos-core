@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 int main(int argc, char *argv[])
 {
@@ -37,12 +37,18 @@ int main(int argc, char *argv[])
 	rvector targetx;
 	rvector targety;
 	rvector targetz;
+	quaternion tq;
+
+	targetx = {{0., 1., 0.}};
+	targety = {{1., 0., 0.}};
+
+	tq = q_transform_for(sourcex, sourcey, targetx, targety);
 
 	targetx = rotate_q(q_change_around_rv({{1.,1.,-1.}}, RADOF(45.)), sourcex);
 	targety = rotate_q(q_change_around_rv({{1.,1.,-1.}}, RADOF(45.)), sourcey);
 	targetz = rotate_q(q_change_around_rv({{1.,1.,-1.}}, RADOF(45.)), sourcez);
 
-	quaternion tq = q_transform_for(sourcex, sourcey, targetx, targety);
+	tq = q_transform_for(sourcex, sourcey, targetx, targety);
 
 	printf("X: [ %f, %f, %f] to ", targetx.col[0], targetx.col[1], targetx.col[2]);
 	targetx = transform_q(tq, sourcex);

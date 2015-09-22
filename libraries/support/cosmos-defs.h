@@ -90,6 +90,7 @@ using namespace std;
 #define NODE_TYPE_BALLOON 6
 #define NODE_TYPE_SHIP 7
 #define NODE_TYPE_DATA 8
+#define NODE_TYPE_COMPUTER 9
 //! @}
 
 //! \ingroup defs
@@ -218,6 +219,8 @@ using namespace std;
 #define AGENT_STATE_SAFE 3
 //! Agent in Debug State
 #define AGENT_STATE_DEBUG 4
+//! Agent in Idle State
+#define AGENT_STATE_IDLE 4
 
 //! Multiple agents per name
 #define AGENT_MULTIPLE true

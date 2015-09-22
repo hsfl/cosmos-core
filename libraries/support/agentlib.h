@@ -89,7 +89,7 @@
 #include <sys/select.h>
 #endif
 
-using namespace std;
+//using namespace std;  // don't use this as it may cause conflicts with other namespaces
 
 //! \ingroup agentlib
 //! \defgroup agentlib_functions Agent Server and Client Library functions
@@ -108,15 +108,23 @@ int32_t agent_req_forward(char *request, char* response, void *root);
 int32_t agent_req_echo(char *request, char* response, void *root);
 int32_t agent_req_help(char *request, char* response, void *root);
 int32_t agent_req_shutdown(char *request, char* response, void *root);
+int32_t agent_req_idle(char *request, char* response, void *root);
+int32_t agent_req_run(char *request, char* response, void *root);
 int32_t agent_req_status(char *request, char* response, void *root);
 int32_t agent_req_getvalue(char *request, char* response, void *root);
 int32_t agent_req_setvalue(char *request, char* response, void *root);
 int32_t agent_req_listnames(char *request, char* response, void *root);
-cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag);
+
+// agent setup server
+cosmosstruc* agent_setup_server(string nodename, string agentname);
 cosmosstruc* agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize);
 cosmosstruc* agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag);
+cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag, float timeoutSec);
+
+// agent setup client
 cosmosstruc* agent_setup_client(int ntype, string node);
 cosmosstruc* agent_setup_client(int ntype, string node, uint32_t usectimeo);
+
 int32_t agent_shutdown_server(cosmosstruc *cdata);
 int32_t agent_shutdown_client(cosmosstruc *cdata);
 int32_t agent_set_sohstring(cosmosstruc *cdata, const char *list);
@@ -124,12 +132,12 @@ cosmosstruc *agent_get_cosmosstruc(cosmosstruc *cdata);
 void agent_get_ip(cosmosstruc *cdata, char* buffer, size_t buflen);
 void agent_get_ip_list(cosmosstruc *cdata, uint16_t port);
 int32_t agent_unpublish(cosmosstruc *cdata);
-int32_t agent_post(cosmosstruc *cdata, uint8_t type, const char *message);
+int32_t agent_post(cosmosstruc *cdata, uint8_t type, string message);
 int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port);
 int32_t agent_subscribe(cosmosstruc *cdata, uint16_t type, char *address, uint16_t port);
 int32_t agent_subscribe(cosmosstruc *cdata, uint16_t type, char *address, uint16_t port, uint32_t usectimeo);
 int32_t agent_unsubscribe(cosmosstruc *cdata);
-int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float waitsec);
+int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string& message, uint8_t type, float waitsec);
 timestruc agent_poll_time(cosmosstruc *cdata, float waitsec);
 beatstruc agent_poll_beat(cosmosstruc *cdata, float waitsec);
 locstruc agent_poll_location(cosmosstruc *cdata, float waitsec);
@@ -138,6 +146,35 @@ imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec);
 int json_map_agentstruc(cosmosstruc *cdata, agentstruc **agent);
 int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
 vector<socket_channel> agent_find_addresses(uint16_t ntype);
+
+
+// TODO: new agent class that will conventrate all of the above functions
+class Agent {
+
+public:
+    Agent();
+    Agent(string nodename, string agentname);
+
+    bool setupServer();
+    bool setupServer(string nodename, string agentname);
+    bool setupClient(string nodename);
+
+    //
+    string nodeName;
+    string name;
+    string version       = "0.0";
+    double beat_period   = 1.0; // in seconds
+    int32_t  port        = 0;
+    uint32_t buffer_size = AGENTMAXBUFFER;
+    bool     multiflag   = false;
+    float    timeoutSec  = 1.0;
+
+
+    cosmosstruc *cdata;
+    beatstruc findServer(string servername);
+    beatstruc find(string servername);
+
+};
 
 
 //! @}

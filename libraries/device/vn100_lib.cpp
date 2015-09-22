@@ -27,6 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: validate the firmware version for this lib (1.1)
+
 #include "vn100_lib.h"
 
 
@@ -38,28 +40,35 @@
  * \param handle Pointer to ::vn100_handle.
  * \return Zero, or negative error number.
 */
-int32_t vn100_connect(char *dev, vn100_handle *handle)
+//int32_t vn100_connect(char *dev, vn100_handle *handle)
+int32_t vn100_connect(string dev, vn100_handle *handle)
 {
 	int32_t iretn;
 
 	cssl_start();
-	handle->serial = cssl_open(dev,VN100_BAUD, VN100_BITS,VN100_PARITY,VN100_STOPBITS);
-	if (handle->serial == NULL)
+    handle->serial = cssl_open(dev.c_str(),VN100_BAUD, VN100_BITS,VN100_PARITY,VN100_STOPBITS);
+
+    if (handle->serial == NULL)
 	{
 		return (CSSL_ERROR_OPEN);
 	}
-	if ((iretn=cssl_settimeout(handle->serial, 0, .1)) < 0)
-	{
-		return (iretn);
-	}
-	if ((iretn=cssl_setflowcontrol(handle->serial, 0, 0)) < 0)
-	{
-		return (iretn);
-	}
+    // Settimeout nd set flow control is already in cssl_open,
+    //	if ((iretn=cssl_settimeout(handle->serial, 0, .1)) < 0)
+    //	{
+    //		return (iretn);
+    //	}
+
+    //    if ((iretn=cssl_setflowcontrol(handle->serial, 0, 0)) < 0)
+    //	{
+    //		return (iretn);
+    //	}
+
+    // stop data stream, we are going to request the data instead
 	if ((iretn=vn100_asynchoff(handle)) < 0)
 	{
 		return (iretn);
 	}
+
 	if ((iretn=vn100_magcal_off(handle)) < 0)
 	{
 		return (iretn);
@@ -237,14 +246,21 @@ int32_t vn100_magcal_on(vn100_handle *handle)
 	return 0;
 }
 
+// TODO: explain what is this function doing?
 int32_t vn100_asynchoff(vn100_handle *handle)
 {
 	int32_t iretn;
 
+    // references: VN-100 User Manual (UM001) pg. 47
+
+    // write register command: VNWRG
+    // register access ID: 6 (asynchronous data output type)
+    // ex. $VNRRG,06,0*69
 	if ((iretn=cssl_putnmea(handle->serial, (uint8_t *)"VNWRG,6,0", 9)) < 0)
 	{
 		return (iretn);
 	}
+
 	if ((iretn=cssl_getnmea(handle->serial, (uint8_t *)handle->buf, 150)) < 0)
 		return (iretn);
 

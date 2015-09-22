@@ -37,44 +37,49 @@
 #ifndef ELAPSED_TIME
 #define ELAPSED_TIME
 
-#include "configCosmos.h"
+//#include "configCosmos.h" // avoid including this if not really needed
 #include <iostream>
 #include <string>
-#include <chrono>
 #include <ctime>
 
-using namespace std;
+#ifdef BUILD_TYPE_arm
+#include <sys/time.h>
+#else
+#include <chrono>
+#endif
 
 // profiling class
 // On windows using MinGw32 it does not get better than 1ms
 class ElapsedTime {
-    //new c++11
+    //new for c++11
 #ifdef BUILD_TYPE_arm
-//	struct timespec timeStart, timeNow, timeCheck;
-	timeval timeStart, timeNow, timeCheck;
+    //	struct timespec timeStart, timeNow, timeCheck;
+    timeval timeStart, timeStop, timeNow, timeCheck;
 #else
-	chrono::steady_clock::time_point timeStart, timeNow, timeCheck; //timeStop
+    std::chrono::steady_clock::time_point timeStart, timeStop, timeNow, timeCheck; //
 #endif
 
 public:
     //int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
     //float elapsed_time(struct timeval a,struct timeval b);
     void printElapsedTime();
-    void printElapsedTime(string text);
+    void printElapsedTime(std::string text);
+
     double getElapsedTimeMiliSeconds();
+    double getElapsedTime();
+
     double lap();
     double split();
-    double getElapsedTime();
+    double check();
+    void reset();
+
+    void start();
+    double stop();
 
     void tic();
     double toc();
     //double toc(bool print_flag);
-    double toc(string text);
-    void reset();
-
-    void start();
-//    double stop();
-    double check();
+    double toc(std::string text);
 
     // turn on/off printing
     bool print = true; //

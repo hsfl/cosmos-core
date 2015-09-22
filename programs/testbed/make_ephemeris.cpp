@@ -29,7 +29,7 @@
 
 #include "jsonlib.h"
 #include "physicslib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "jsonlib.h"
 #include "agentlib.h"
 #include <math.h>
@@ -86,8 +86,10 @@ int main(int argc, char *argv[])
 	}
 
 
-	gauss_jackson_init_eci(gjh, 4, 0, 5., mjdnow, cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, *cdata);
-	mjdnow = cdata[0].node.loc.utc;
+    hardware_init_eci(cdata[0].devspec, cdata[0].node.loc);
+    gauss_jackson_init_eci(gjh, 4, 0, 5., mjdnow, cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, cdata->physics, cdata->node.loc);
+    simulate_hardware(*cdata, cdata->node.loc);
+    mjdnow = cdata[0].node.loc.utc;
 	lastlat = cdata[0].node.loc.pos.geod.s.lat;
 	for (j=0; j<3; j++)
 	{
@@ -100,8 +102,9 @@ int main(int argc, char *argv[])
 	for (i=0; i<8640; i++)
 	{
 		mjdnow += 10./86400.;
-		gauss_jackson_propagate(gjh, *cdata, mjdnow);
-		output = json_of_ephemeris(jstring,  cdata);
+        gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, mjdnow);
+        simulate_hardware(*cdata, cdata->node.loc);
+        output = json_of_ephemeris(jstring,  cdata);
 		fprintf(fout,"%s\n",output.c_str());
 		fflush(fout);
 //		mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);

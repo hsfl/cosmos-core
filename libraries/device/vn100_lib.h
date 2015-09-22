@@ -59,7 +59,7 @@ typedef struct
 	char buf[150];
 } vn100_handle;
 
-int32_t vn100_connect(char *dev, vn100_handle *handle);
+int32_t vn100_connect(string dev, vn100_handle *handle);
 int32_t vn100_disconnect(vn100_handle *handle);
 int32_t vn100_measurements(vn100_handle *handle);
 int32_t vn100_voltages(vn100_handle *handle);

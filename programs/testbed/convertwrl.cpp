@@ -32,7 +32,7 @@
 #include <cstring>
 #include <cmath>
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "cosmos-defs.h"
 #include "jsondef.h"
 

@@ -23,7 +23,7 @@
 //! Position is actually a triple of the 0th, 1st and 2nd derivative of position, measured
 //! in either meters, or meters and radians, with respect
 //! to a standardly defined coordinate system. The systems currently supported are:
-//! - Barycentric: Cartesian, ICRF centered on Solar System barycenter
+//! - Barycentric: Cartesian, ICRF centered on Solar System Barycenter
 //! - Earth Centered Inertial: Cartesian, ICRF centered on instantaneous Earth position
 //! - Selene Centered Inertial: Cartesian, ICRF centered on instantaneous Moon position
 //! - Geocentric: Cartesian, ITRF centered on instantaneous Earth position
@@ -59,7 +59,7 @@
 #include "configCosmos.h"
 
 //#include "datalib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 //#include "jpleph.h"
 //#include "timelib.h"
 #include "convertdef.h"
@@ -76,6 +76,7 @@
 //! @{
 
 void loc_clear(locstruc *loc);
+// TODO: implement using pos_geoc2geod
 void geoc2geod(cartpos *geoc, geoidpos *geod);
 void geos2geoc(spherpos *geos, cartpos *geoc);
 void geod2geoc(geoidpos *geod, cartpos *geoc);
@@ -83,7 +84,7 @@ void geoc2geos(cartpos *geoc, spherpos *geos);
 void selg2selc(geoidpos *selg, cartpos *selc);
 void pos_extra(locstruc *loc);
 void pos_clear(locstruc &loc);
-void pos_baryc(locstruc *loc);
+void pos_icrf(locstruc *loc);
 void pos_eci(locstruc *loc);
 void pos_sci(locstruc *loc);
 void pos_geoc(locstruc *loc);
@@ -91,10 +92,10 @@ void pos_geos(locstruc *loc);
 void pos_geod(locstruc *loc);
 void pos_selc(locstruc *loc);
 void pos_selg(locstruc *loc);
-void pos_baryc2eci(locstruc *loc);
-void pos_eci2baryc(locstruc *loc);
-void pos_baryc2sci(locstruc *loc);
-void pos_sci2baryc(locstruc *loc);
+void pos_icrf2eci(locstruc *loc);
+void pos_eci2icrf(locstruc *loc);
+void pos_icrf2sci(locstruc *loc);
+void pos_sci2icrf(locstruc *loc);
 void pos_eci2geoc(locstruc *loc);
 void pos_eci2selc(locstruc *loc);
 void pos_geoc2eci(locstruc *loc);
@@ -132,19 +133,29 @@ void att_lvlh2icrf(locstruc *loc);
 void att_selc2icrf(locstruc *loc);
 void loc_update(locstruc *loc);
 double mjd2gmst(double mjd);
-void icrs2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
-void itrs2icrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
+void gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
+void itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
+void true2pef(double utc, rmatrix *rm);
+void pef2true(double utc, rmatrix *rm);
+void pef2itrs(double utc, rmatrix *rm);
+void itrs2pef(double utc, rmatrix *rm);
 void true2mean(double ep1, rmatrix *pm);
 void mean2true(double ep0, rmatrix *pm);
-void icrs2mean(double ep1, rmatrix *pm);
-void mean2icrs(double ep0, rmatrix *pm);
+void j20002mean(double ep1, rmatrix *pm);
+void mean2j2000(double ep0, rmatrix *pm);
+void gcrf2j2000(rmatrix *rm);
+void j20002gcrf(rmatrix *rm);
+void teme2true(double ep0, rmatrix *rm);
+void true2teme(double ep0, rmatrix *rm);
 void mean2mean(double ep0, double ep1, rmatrix *pm);
 void geoc2topo(gvector gs, rvector geoc, rvector *topo);
 void topo2azel(rvector tpos, float *az, float *el);
 int lines2eci(double mjd, vector<tlestruc> tle, cartpos *eci);
 int tle2eci(double mjd, tlestruc tle, cartpos *eci);
+int sgp4(double utc, tlestruc tle, cartpos *pos_teme);
 tlestruc get_line(uint16_t index, vector<tlestruc> tle);
 int32_t load_lines(char *fname, vector<tlestruc>& tle);
+int32_t loadTLE(char *fname, tlestruc &tle);
 int32_t load_stk(char *filename, stkstruc *stkdata);
 int stk2eci(double utc, stkstruc *stk, cartpos *eci);
 

@@ -35,6 +35,9 @@
 
 #include "elapsedtime.hpp"
 
+using std::cout;
+using std::endl;
+
 // -------------------------------------------------------------------
 // ElapsedTime class
 // Example use:
@@ -72,19 +75,19 @@
 void ElapsedTime::info(){
 #ifndef BUILD_TYPE_arm
     cout << "system_clock" << endl;
-    cout << chrono::system_clock::period::num << endl;
-    cout << chrono::system_clock::period::den << endl;
-    cout << "steady = " << boolalpha << chrono::system_clock::is_steady << endl << endl;
+    cout << std::chrono::system_clock::period::num << endl;
+    cout << std::chrono::system_clock::period::den << endl;
+    cout << "steady = " << std::boolalpha << std::chrono::system_clock::is_steady << endl << endl;
 
     cout << "high_resolution_clock" << endl;
-    cout << chrono::high_resolution_clock::period::num << endl;
-    cout << chrono::high_resolution_clock::period::den << endl;
-    cout << "steady = " << boolalpha << chrono::high_resolution_clock::is_steady << endl << endl;
+    cout << std::chrono::high_resolution_clock::period::num << endl;
+    cout << std::chrono::high_resolution_clock::period::den << endl;
+    cout << "steady = " << std::boolalpha << std::chrono::high_resolution_clock::is_steady << endl << endl;
 
     cout << "steady_clock" << endl;
-    cout << chrono::steady_clock::period::num << endl;
-    cout << chrono::steady_clock::period::den << endl;
-    cout << "steady = " << boolalpha << chrono::steady_clock::is_steady << endl << endl;
+    cout << std::chrono::steady_clock::period::num << endl;
+    cout << std::chrono::steady_clock::period::den << endl;
+    cout << "steady = " << std::boolalpha << std::chrono::steady_clock::is_steady << endl << endl;
 #endif
 
 }
@@ -102,7 +105,7 @@ void ElapsedTime::printElapsedTime()
     }
 }
 
-void ElapsedTime::printElapsedTime(string text)
+void ElapsedTime::printElapsedTime(std::string text)
 {
     if (print){
         //toc();
@@ -121,17 +124,17 @@ void ElapsedTime::printElapsedTime(string text)
 double ElapsedTime::lap()
 {
 #ifdef BUILD_TYPE_arm
-//	clock_gettime(CLOCK_MONOTONIC, &timeNow);
-//	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_nsec - timeCheck.tv_nsec) / 1e9;
-	gettimeofday(&timeNow, nullptr);
-	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_usec - timeCheck.tv_usec) / 1e6;
+    //	clock_gettime(CLOCK_MONOTONIC, &timeNow);
+    //	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_nsec - timeCheck.tv_nsec) / 1e9;
+    gettimeofday(&timeNow, nullptr);
+    elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_usec - timeCheck.tv_usec) / 1e6;
 #else
-	timeNow = chrono::steady_clock::now();
-	elapsedTime =  chrono::duration<double>(timeNow - timeCheck).count();
+    timeNow = std::chrono::steady_clock::now();
+    elapsedTime =  std::chrono::duration<double>(timeNow - timeCheck).count();
 #endif
 
-	timeCheck = timeNow;
-	return elapsedTime;
+    timeCheck = timeNow;
+    return elapsedTime;
 
 }
 
@@ -144,9 +147,9 @@ void ElapsedTime::tic(){
 // equivalent to matlab to stop a stopwatch timer
 double ElapsedTime::toc(){
 
-//    stop();
-	split();
-	printElapsedTime();
+    //    stop();
+    split();
+    printElapsedTime();
 
     return elapsedTime;
 }
@@ -161,10 +164,10 @@ double ElapsedTime::toc(){
 //    return elapsedTime;
 //}
 
-double ElapsedTime::toc(string text){
+double ElapsedTime::toc(std::string text)
+{
 
-//    stop();
-	split();
+    split();
 
     // print the text
     printElapsedTime(text);
@@ -173,34 +176,41 @@ double ElapsedTime::toc(string text){
 }
 
 
-void ElapsedTime::start(){
+void ElapsedTime::start()
+{
     //Get the start time
 #ifdef BUILD_TYPE_arm
-//	clock_gettime(CLOCK_MONOTONIC, &timeStart);
-	gettimeofday(&timeStart, nullptr);
+    //	clock_gettime(CLOCK_MONOTONIC, &timeStart);
+    gettimeofday(&timeStart, nullptr);
 #else
-	timeStart = chrono::steady_clock::now();
+    timeStart = std::chrono::steady_clock::now();
 #endif
     timeCheck = timeStart;
     elapsedTime = 0;
 }
 
-//double ElapsedTime::stop(){
-double ElapsedTime::split(){
+double ElapsedTime::stop()
+{
+    return split();
+}
+
+//was previously stop(){
+double ElapsedTime::split()
+{
     //Get the final time
 
 #ifdef BUILD_TYPE_arm
-//	clock_gettime(CLOCK_MONOTONIC, &timeNow);
-//	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_nsec - timeStart.tv_nsec) / 1e9;
-	gettimeofday(&timeNow, nullptr);
-	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_usec - timeStart.tv_usec) / 1e6;
+    //	clock_gettime(CLOCK_MONOTONIC, &timeNow);
+    //	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_nsec - timeStart.tv_nsec) / 1e9;
+    gettimeofday(&timeNow, nullptr);
+    elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_usec - timeStart.tv_usec) / 1e6;
 #else
-	timeNow = chrono::steady_clock::now();
-	elapsedTime =  chrono::duration<double>(timeNow - timeStart).count();
+    timeNow = std::chrono::steady_clock::now();
+    elapsedTime =  std::chrono::duration<double>(timeNow - timeStart).count();
 #endif
 
     timeCheck = timeNow;
-	return elapsedTime;
+    return elapsedTime;
 }
 
 double ElapsedTime::getElapsedTime(){
@@ -211,8 +221,8 @@ double ElapsedTime::getElapsedTime(){
 void ElapsedTime::reset(){
     // set elapsedTime to 0
 
-	// On windows using MinGw32 it does not get better than 1ms
-	// new c++11
+    // On windows using MinGw32 it does not get better than 1ms
+    // new c++11
     //time2 = chrono::steady_clock::now();
 
     //elapsedTime = getElapsedTime();

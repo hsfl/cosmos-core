@@ -397,11 +397,12 @@ void collect_data_loop()
 {
 	int nbytes;
 	string message;
+	pollstruc meta;
 
 	while (agent_running(cdata))
 	{
 		// Collect new data
-		if((nbytes=agent_poll(cdata, message, AGENT_MESSAGE_BEAT, 0)))
+		if((nbytes=agent_poll(cdata, meta, message, AGENT_MESSAGE_BEAT, 0)))
 		{
 			if (json_convert_string(json_extract_namedobject(message.c_str(), "agent_node")) != cdata[0].node.name)
 			{

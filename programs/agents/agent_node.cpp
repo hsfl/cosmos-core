@@ -196,8 +196,9 @@ int main(int argc, char *argv[])
 		// Initialize hardware
 		hardware_init_eci(cdata[0].devspec, cdata[0].node.loc);
 		// Initialize orbit
-		gauss_jackson_init_eci(gjh, 8, 0, .1, cdata[0].node.loc.utc, cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, *cdata);
-		cdata[0].node.utcoffset = cdata[0].node.loc.utc - currentmjd(0.);
+        gauss_jackson_init_eci(gjh, 8, 0, .1, cdata[0].node.loc.utc, cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, cdata->physics, cdata->node.loc);
+        simulate_hardware(*cdata, cdata->node.loc);
+        cdata[0].node.utcoffset = cdata[0].node.loc.utc - currentmjd(0.);
 		agent_set_sohstring(cdata, (char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"}");
 		printf("Initialized satellite starting at %.15g [%.8g %.8g %.8g]\n",cdata[0].node.loc.pos.eci.utc,cdata[0].node.loc.pos.eci.s.col[0],cdata[0].node.loc.pos.eci.s.col[1],cdata[0].node.loc.pos.eci.s.col[2]);
 		break;
@@ -223,8 +224,9 @@ int main(int argc, char *argv[])
 		switch (cdata[0].node.type)
 		{
 		case NODE_TYPE_SATELLITE:
-			gauss_jackson_propagate(gjh, *cdata, currentmjd(cdata[0].node.utcoffset));
-			break;
+            gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, currentmjd(cdata[0].node.utcoffset));
+            simulate_hardware(*cdata, cdata->node.loc);
+            break;
 		default:
 			cdata[0].node.loc.utc = cdata[0].node.loc.pos.geod.utc = currentmjd(cdata[0].node.utcoffset);
 			++cdata[0].node.loc.pos.geod.pass;
@@ -313,8 +315,9 @@ void loadephemeris()
 	ctime = cdata[0].node.loc.utc;
 	stime = (int)ctime;
 	etime = stime + MAXEPHEM + 1;
-	gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, *cdata);
-	update_target(cdata);
+    gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, cdata->physics, cdata->node.loc);
+    simulate_hardware(*cdata, cdata->node.loc);
+    update_target(cdata);
 	do
 	{
 		cache[3+(int)(ctime-stime)].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_eci\",\"node_loc_att_icrf\",\"node_powgen\",\"node_powuse\",\"node_battlev\"",cdata));
@@ -328,8 +331,9 @@ void loadephemeris()
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
 		cache[3+(int)(ctime-stime)].utime = ctime;
 		ctime += 20./86400.;
-		gauss_jackson_propagate(gjh, *cdata, ctime);
-		update_target(cdata);
+        gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, ctime);
+        simulate_hardware(*cdata, cdata->node.loc);
+        update_target(cdata);
 	} while (ctime < etime);
 
 }

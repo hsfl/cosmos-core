@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "physicslib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "jsonlib.h"
 #include "timelib.h"
 #include <math.h>
@@ -87,7 +87,7 @@ do
 //		printf("%f\t%f\t%f\t",cdata[0].node.loc.att.eci.s.row[2].col[0],cdata[0].node.loc.att.eci.s.row[2].col[1],cdata[0].node.loc.att.eci.s.row[2].col[2]);
 //		vec = rv_normal(rv_mmult((cdata[0].node.loc.att.eci.s),cdata[0].node.loc.pos.eci.s));
 //		vec =
-//		rv_normal(rv_mmult((cdata[0].node.loc.att.eci.s),rv_smult(-1.,cdata[0].node.loc.pos.baryc.s)));
+//		rv_normal(rv_mmult((cdata[0].node.loc.att.eci.s),rv_smult(-1.,cdata[0].node.loc.pos.icrf.s)));
 //		vec = cdata[0].node.loc.att.eci.v;
 //		printf("%f %f %f %f ",vec.col[0],vec.col[1],vec.col[2],length_rv(vec));
 //		printf("%f %f %f %f ",DEGOF(vec.col[0]),DEGOF(vec.col[1]),DEGOF(vec.col[2]),DEGOF(length_rv(vec)));
@@ -96,7 +96,7 @@ do
 //		printf("%f %f %f
 //		",cdata[0].node.info.powuse,cdata[0].node.info.powgen,cdata[0].node.info.battlev);
 //		printf("%f %f %f %f",cdata[0].devspec.rw[0]->omega,cdata[0].devspec.rw[0]->alpha,cdata[0].device[cdata[0].devspec.rw[0]->gen.cidx].gen.current,cdata[0].node.info.powuse);
-	localtime = atan2(cdata[0].node.loc.pos.baryc.s.col[1],cdata[0].node.loc.pos.baryc.s.col[0]);
+	localtime = atan2(cdata[0].node.loc.pos.icrf.s.col[1],cdata[0].node.loc.pos.icrf.s.col[0]);
 	if (localtime < 0.)
 		localtime += D2PI;
 	eci2kep(&cdata[0].node.loc.pos.eci,&kep);

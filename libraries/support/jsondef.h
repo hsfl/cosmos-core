@@ -36,7 +36,7 @@
 
 #include "configCosmos.h"
 
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "convertdef.h"
 #include "physicsdef.h"
 #include "socketlib.h"
@@ -389,7 +389,7 @@ enum
 //! Maximum number of builtin AGENT requests
 #define AGENTMAXBUILTINCOUNT 6
 //! Maximum number of user defined AGENT requests
-#define AGENTMAXUSERCOUNT 40
+#define AGENTMAXUSERCOUNT 200    // 20150629JC: Increased count from 40 to 200 (to support new software)
 //! Maximum number of AGENT requests
 #define AGENTMAXREQUESTCOUNT (AGENTMAXBUILTINCOUNT+AGENTMAXUSERCOUNT)
 
@@ -591,13 +591,14 @@ struct jsonhandle
 };
 
 //! JSON token
-/*! Tokenized version of a single JSON object. The token contains a pointer
- * into the JSON map, and a binary representation of the JSON value.
+/*! Tokenized version of a single JSON object. The token is a handle to the location
+ * in the JSON map represented by the string portion, and the value portion stored as a string.
  */
-struct json_token
+struct jsontoken
 {
-	jsonentry entry;
-	vector <uint8_t> data;
+	jsonhandle handle;
+	string value;
+	double utc;
 };
 
 //! JSON equation operand
@@ -922,6 +923,7 @@ struct portstruc
 	//! Type of I/O as listed in ::def_comp_port.
 	uint16_t type;
 	//! Name information for port.
+    //!!! Change 'char' to 'string'
 	char name[COSMOS_MAX_NAME];
 };
 
@@ -982,8 +984,9 @@ struct genstruc
 	uint16_t type;
 	//! Device Model
 	uint16_t model;
-	//! Device flag
-	uint16_t flag;
+    //! Device flag
+    // TODO: explain what is the device flag for?
+    uint16_t flag;
 	//! Component Index
 	uint16_t cidx;
 	//! Device specific index
@@ -993,17 +996,17 @@ struct genstruc
 	//! Power Bus index
 	uint16_t bidx;
 	//! Connection information for device.
-	uint16_t portidx;
+    uint16_t portidx; // TODO: rename to port_id or port_index
 	//! Nominal Amperage
-	float namp;
+    float namp; // TODO: rename to nominal current
 	//! Nominal Voltage
-	float nvolt;
+    float nvolt; // TODO: rename to nominal voltage
 	//! Current Amperage
-	float amp;
+    float amp; // TODO: rename to current
 	//! Current Voltage
-	float volt;
+    float volt; // TODO: rename to voltage
 	//! Current Temperature
-	float temp;
+    float temp; // TODO: rename to temperature
 	//! Device information time stamp
 	double utc;
 };
@@ -1169,6 +1172,7 @@ struct cpustruc
 };
 
 
+// TODO: rename to GpsData
 struct gpsstruc
 {
 	//! Generic info
@@ -1176,6 +1180,8 @@ struct gpsstruc
 	//! UTC time error
 	double dutc;
 	//! Geocentric position: x, y, z
+    //! ECEF coordinates
+    // TODO: rename variables to more meaningfull names like position, velocity
 	rvector geocs;
 	//! Geocentric velocity: x, y, z
 	rvector geocv;
@@ -1194,9 +1200,9 @@ struct gpsstruc
 	//! GPS heading
 	float heading;
 	//! number of satellites used by GPS receiver
-	uint16_t n_sats_used;
+	uint16_t sats_used;
 	//! number of satellites visible by GPS receiver
-	uint16_t n_sats_visible;
+	uint16_t sats_visible;
 	//! Time Status
 	uint16_t time_status;
 	//! Position Type
@@ -1356,6 +1362,7 @@ struct rotstruc
 };
 
 //! Star Tracker (STT) Sructure
+// TODO: rename to ST
 struct sttstruc
 {
 	//! Generic info
@@ -1363,9 +1370,10 @@ struct sttstruc
 	//! alignment quaternion
 	quaternion align;
 	//! includes 0 and 1st order derivative
-	quaternion att;
+    quaternion att; // TODO: rename to q
 	rvector omega;
 	rvector alpha;
+    //! return code for
 	uint16_t retcode;
 	uint32_t status;
 };
@@ -1457,6 +1465,7 @@ struct nodestruc
 	float hcap;
 	//! Total Mass
 	float mass;
+	rvector moi;
 	float area;
 	float battcap;
 	float powgen;

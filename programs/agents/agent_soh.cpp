@@ -46,16 +46,12 @@
 
 #include <iostream>
 
-#define SOH_STATE_OPEN 0
-#define NTYPE SOCKET_TYPE_UDP
-
 int32_t request_reopen(char* request, char* output, void *cdata);
 int32_t request_set_logperiod(char* request, char* output, void *cdata);
 int32_t request_set_logstring(char* request, char* output, void *cdata);
 int32_t request_get_logstring(char* request, char* output, void *cdata);
 int32_t request_set_logstride(char* request, char* output, void *cdata);
 
-//char message[AGENTMAXBUFFER];
 string jjstring;
 string myjstring;
 
@@ -143,13 +139,12 @@ int myagent()
 {
 	int sleept;
 	double lmjd, dmjd, dtemp;
-	//double fmjd;
 	double nextmjd;
 
-    //Beacon beacon;
-    //string beaconMessage;
+	//Beacon beacon;
+	//string beaconMessage;
 
-    //double mjd_start = currentmjd();
+	//double mjd_start = currentmjd();
 
 #if !defined(COSMOS_WIN_OS)
 	FILE *fp;
@@ -180,27 +175,29 @@ int myagent()
 		{
 
 #if !defined(COSMOS_WIN_OS)
-        fp = fopen("/proc/meminfo","r");
-        fscanf(fp,"MemTotal: %f kB\nMemFree: %f",
-			   &cdata[0].devspec.cpu[0]->maxmem,
-				&cdata[0].devspec.cpu[0]->mem);
-        fclose(fp);
+			if (cdata[0].devspec.cpu_cnt>0) {
+				fp = fopen("/proc/meminfo","r");
+				fscanf(fp,"MemTotal: %f kB\nMemFree: %f",
+					   &cdata[0].devspec.cpu[0]->maxmem,
+						&cdata[0].devspec.cpu[0]->mem);
+				fclose(fp);
 
-        // get load average
-        fp = fopen("/proc/loadavg","r");
-		fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
-        fclose(fp);
+				// get load average
+				fp = fopen("/proc/loadavg","r");
+				fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
+				fclose(fp);
 
-        // get percetage of disk used
-        statfs("/",&fsbuf);
-		cdata[0].devspec.cpu[0]->disk = 100.0 * (double) (fsbuf.f_blocks - fsbuf.f_bfree) / (double) (fsbuf.f_blocks - fsbuf.f_bfree + fsbuf.f_bavail);
-		//cdata[0].devspec.cpu[0]->disk = fsbuf.f_bavail * fsbuf.f_frsize; // f_blocks; //f_bfree
-        //diskfree = fsbuf.f_bfree;
+				// get percetage of disk used
+				statfs("/",&fsbuf);
+				cdata[0].devspec.cpu[0]->disk = 100.0 * (double) (fsbuf.f_blocks - fsbuf.f_bfree) / (double) (fsbuf.f_blocks - fsbuf.f_bfree + fsbuf.f_bavail);
+				//cdata[0].devspec.cpu[0]->disk = fsbuf.f_bavail * fsbuf.f_frsize; // f_blocks; //f_bfree
+				//diskfree = fsbuf.f_bfree;
 
-        // get number of cpu reboots
-        fp = fopen("/flight_software/cosmosroot/nodes/hiakasat/boot.count","r");
-		fscanf(fp,"%u",&cdata[0].devspec.cpu[0]->boot_count);
-        fclose(fp);
+				// get number of cpu reboots
+				fp = fopen("/flight_software/cosmosroot/nodes/hiakasat/boot.count","r");
+				fscanf(fp,"%u",&cdata[0].devspec.cpu[0]->boot_count);
+				fclose(fp);
+			}
 
 #endif
 
@@ -237,33 +234,33 @@ int myagent()
 			}
 		}
 
-//        // send beacon every 10 second
-//        if ((currentmjd() - mjd_start)*86400 > 10){
-//            beacon.createBeacon(cdata);
-//            cout << beacon.message << "*" << beacon.message.size() << endl;
+		//        // send beacon every 10 second
+		//        if ((currentmjd() - mjd_start)*86400 > 10){
+		//            beacon.createBeacon(cdata);
+		//            cout << beacon.message << "*" << beacon.message.size() << endl;
 
 
-//            // Shutdown radio link, if on
-//            //if (radio_state)
-//            //{
-//                if (iscbeat.utc == 0)
-//                {
-//                    iscbeat = agent_find_server(cdata, node, "isc", 5.);
-//                }
-//                if (iscbeat.utc != 0)
-//                {
-//                    string requestString = "beacon_data_update ";
-//                    requestString += beacon.message;
-//                    agent_send_request(cdata, iscbeat, requestString.c_str(), response, 300, 2.);
-//                }
+		//            // Shutdown radio link, if on
+		//            //if (radio_state)
+		//            //{
+		//                if (iscbeat.utc == 0)
+		//                {
+		//                    iscbeat = agent_find_server(cdata, node, "isc", 5.);
+		//                }
+		//                if (iscbeat.utc != 0)
+		//                {
+		//                    string requestString = "beacon_data_update ";
+		//                    requestString += beacon.message;
+		//                    agent_send_request(cdata, iscbeat, requestString.c_str(), response, 300, 2.);
+		//                }
 
-//                // Take down tunnel interface
-//             //   if_takedown("sband");
-//            //}
+		//                // Take down tunnel interface
+		//             //   if_takedown("sband");
+		//            //}
 
 
-//            mjd_start = currentmjd();
-//        }
+		//            mjd_start = currentmjd();
+		//        }
 
 		sleept = (int)((nextmjd-currentmjd())*86400000000.);
 		if (sleept < 0) sleept = 0;
@@ -314,11 +311,12 @@ void collect_data_loop()
 {
 	int nbytes;
 	string message;
+	pollstruc meta;
 
 	while (agent_running(cdata))
 	{
 		// Collect new data
-		if((nbytes=agent_poll(cdata, message, AGENT_MESSAGE_BEAT,0)))
+		if((nbytes=agent_poll(cdata, meta, message, AGENT_MESSAGE_BEAT,0)))
 		{
 			string tstring;
 			if ((tstring=json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"))) != cdata[0].node.name)

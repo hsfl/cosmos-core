@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "physicslib.h"
-#include "mathlib.h"
+#include "math/mathlib.h"
 #include "jsonlib.h"
 #include "agentlib.h"
 #include "jsonlib.h"
@@ -150,8 +150,10 @@ int main(int argc, char *argv[])
 	loc_update(&cdata[0].node.loc);
 */
 
-	gauss_jackson_init_eci(gjh, order, mode, dt, mjdnow,cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, *cdata);
-	mjdnow = cdata[0].node.loc.utc;
+    hardware_init_eci(cdata[0].devspec, cdata[0].node.loc);
+    gauss_jackson_init_eci(gjh, order, mode, dt, mjdnow,cdata[0].node.loc.pos.eci, cdata[0].node.loc.att.icrf, cdata->physics, cdata->node.loc);
+    simulate_hardware(*cdata, cdata->node.loc);
+    mjdnow = cdata[0].node.loc.utc;
 
 	cdata[0].node.utcoffset = mjdnow - currentmjd(0);
 	lmjd = currentmjd(0);
@@ -160,7 +162,8 @@ int main(int argc, char *argv[])
 	do
 	{
 		mjdnow = currentmjd(0.);
-		gauss_jackson_propagate(gjh, *cdata, mjdnow + cdata[0].node.utcoffset);
+        gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, mjdnow + cdata[0].node.utcoffset);
+        simulate_hardware(*cdata, cdata->node.loc);
 
 		/*
 		if (cdata[0].node.state == 1)

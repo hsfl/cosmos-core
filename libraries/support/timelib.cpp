@@ -34,6 +34,7 @@
 #include "timelib.h"
 #include "datalib.h"
 #include "ephemlib.h"
+#include "math/mathlib.h"
 
 struct iersstruc
 {
@@ -65,13 +66,14 @@ double currentmjd(double offset)
 {
     double mjd;
 
-#ifndef COSMOS_WIN_BUILD_MSVC
-	struct timeval mytime;
-	gettimeofday(&mytime, NULL);
-    mjd = unix2utc(mytime);
-#else
+// unfortunatelly MSVC does not support gettimeofday
+#ifdef COSMOS_WIN_BUILD_MSVC
     TimeUtils tu;
     mjd = unix2utc(tu.secondsSinceEpoch() + _timezone);
+#else
+    struct timeval mytime;
+    gettimeofday(&mytime, NULL);
+    mjd = unix2utc(mytime);
 #endif
     return mjd+offset;
 }
@@ -248,6 +250,19 @@ double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t m
 	return mjd;
 }
 
+//! Calendar representation YYYY,DDD.ffff to Modified Julian Day - overloaded
+/*! Convert a shortened calendar representation of date to MJD.
+ * Day argument is day of year.
+ * \param year Full representation of year.
+ * \param day of year.
+ * \return Modified Julian Day
+*/
+double cal2mjd(int32_t year, double dayOfYear)
+{
+    return cal2mjd(year, 0 , dayOfYear);
+}
+
+
 //! Calendar representation to Modified Julian Day - shortened
 /*! Convert a shortened calendar representation of date to MJD.
  * Time is taken from the fractional part of the day. If month
@@ -355,22 +370,40 @@ double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
     return mjd;
 }
 
-//! Julian Century
-/*! Caculate the number of centuries since J2000 for the provided date.
-    \param mjd Date in Modified Julian Day.
-    \return Julian century in decimal form.
+//! TT Julian Century
+/*! Caculate the number of centuries since J2000, Terrestrial Time, for the provided date.
+	\param mjd Date in Modified Julian Day.
+	\return Julian century in decimal form.
 */
-double utc2jcen(double mjd)
+double utc2jcentt(double mjd)
 {
-    static double lmjd=0.;
-    static double lcalc=0.;
+	static double lmjd=0.;
+	static double lcalc=0.;
 
-    if (mjd != lmjd)
-    {
-        lcalc = (utc2tt(mjd)-51544.5) / 36525.;
-        lmjd = mjd;
-    }
-    return (lcalc);
+	if (mjd != lmjd)
+	{
+		lcalc = (utc2tt(mjd)-51544.5) / 36525.;
+		lmjd = mjd;
+	}
+	return (lcalc);
+}
+
+//! UT1 Julian Century
+/*! Caculate the number of centuries since J2000, UT1, for the provided date.
+	\param mjd Date in Modified Julian Day.
+	\return Julian century in decimal form.
+*/
+double utc2jcenut1(double mjd)
+{
+	static double lmjd=0.;
+	static double lcalc=0.;
+
+	if (mjd != lmjd)
+	{
+		lcalc = (utc2ut1(mjd)-51544.5) / 36525.;
+		lmjd = mjd;
+	}
+	return (lcalc);
 }
 
 //! Nutation values
@@ -443,13 +476,14 @@ double utc2depsilon(double mjd)
 */
 double utc2epsilon(double mjd)
 {
+	// Vallado, et al, AAS-06_134, eq. 17
     static double lmjd=0.;
     static double lcalc=0.;
     double jcen;
 
     if (mjd != lmjd)
     {
-        jcen = utc2jcen(mjd);
+		jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(84381.406+jcen*(-46.836769+jcen*(-.0001831+jcen*(0.0020034+jcen*(-0.000000576+jcen*(-0.0000000434))))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -470,7 +504,7 @@ double utc2L(double mjd)
 
     if (mjd != lmjd)
     {
-        jcen = utc2jcen(mjd);
+		jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(485868.249036+jcen*(1717915923.2178+jcen*(31.8792+jcen*(.051635+jcen*(-.0002447)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -491,7 +525,7 @@ double utc2Lp(double mjd)
 
     if (mjd != lmjd)
     {
-        jcen = utc2jcen(mjd);
+		jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(1287104.79305+jcen*(129596581.0481+jcen*(-.5532+jcen*(.000136+jcen*(-.00001149)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -512,7 +546,7 @@ double utc2F(double mjd)
 
     if (mjd != lmjd)
     {
-        jcen = utc2jcen(mjd);
+		jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(335779.526232+jcen*(1739527262.8478+jcen*(-12.7512+jcen*(-.001037+jcen*(.00000417)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -533,7 +567,7 @@ double utc2D(double mjd)
 
     if (mjd != lmjd)
     {
-        jcen = utc2jcen(mjd);
+		jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(1072260.70369+jcen*(1602961601.209+jcen*(-6.3706+jcen*(.006593+jcen*(-.00003169)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -554,12 +588,63 @@ double utc2omega(double mjd)
 
     if (mjd != lmjd)
     {
-        jcen = utc2jcen(mjd);
+		jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(450160.398036+jcen*(-6962890.5431+jcen*(7.4722+jcen*(.007702+jcen*(-.00005939)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
     }
     return (lcalc);
+}
+
+//! Precession zeta value
+/*! Calculate angle zeta used in the calculation of Precession, re.
+ *  Capitaine, et. al, A&A, 412, 567-586 (2003)
+ * Expressions for IAU 2000 precession quantities
+ * Equation 40
+ * \param utc Epoch in Modified Julian Day.
+ * \return Zeta in radians
+*/
+double utc2zeta(double utc)
+{
+	double ttc = utc2jcentt(utc);
+//	double zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971 + ttc*(0.0000003173))))))*DAS2R;
+	// Vallado, eqn. 3-88
+	double zeta = (ttc*(2306.2181 + ttc*(0.30188 + ttc*(0.017998))))*DAS2R;
+	return zeta;
+}
+
+//! Precession z value
+/*! Calculate angle z used in the calculation of Precession, re.
+ *  Capitaine, et. al, A&A, 412, 567-586 (2003)
+ * Expressions for IAU 2000 precession quantities
+ * Equation 40
+ * \param utc Epoch in Modified Julian Day.
+ * \return Zeta in radians
+*/
+double utc2z(double utc)
+{
+	double ttc = utc2jcentt(utc);
+//	double z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596 + ttc*(0.0000002904))))))*DAS2R;
+	// Vallado, eqn. 3-88
+	double z = (ttc*(2306.2181 + ttc*(1.09468 + ttc*(0.018203))))*DAS2R;
+	return z;
+}
+
+//! Precession theta value
+/*! Calculate angle theta used in the calculation of Precession, re.
+ *  Capitaine, et. al, A&A, 412, 567-586 (2003)
+ * Expressions for IAU 2000 precession quantities
+ * Equation 40
+ * \param utc Epoch in Modified Julian Day.
+ * \return Zeta in radians
+*/
+double utc2theta(double utc)
+{
+	double ttc = utc2jcentt(utc);
+//	double theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+	// Vallado, eqn. 3-88
+	double theta = ttc*(2004.3109 + ttc*(-0.42665 + ttc*(-0.041833)))*DAS2R;
+	return theta;
 }
 
 //! Calculate DUT1
@@ -633,7 +718,7 @@ double utc2ut1(double mjd)
 */
 double julcen(double mjd)
 {
-    return ((mjd - 51544.5) / 36525.);
+	return ((mjd - 51544.5) / 36525.);
 }
 
 //! Convert UTC to TDB.
@@ -823,7 +908,7 @@ double mjd2year(double mjd)
     \param mjd Coordinated Universal Time as Modified Julian Day.
     \return Earth Rotation Angle, theta, in radians.
 */
-double utc2theta(double mjd)
+double utc2era(double mjd)
 {
     static double lmjd=0.;
     static double ltheta=0.;
@@ -833,7 +918,7 @@ double utc2theta(double mjd)
     {
         ut1 = utc2ut1(mjd);
         ltheta = D2PI * (.779057273264 + 1.00273781191135448 * (ut1 - 51544.5));
-        ltheta = ranrm(ltheta);
+//        ltheta = ranrm(ltheta);
     }
 
     return (ltheta);
@@ -855,7 +940,7 @@ double utc2gast(double mjd)
         omega = utc2omega(mjd);
         F = utc2F(mjd);
         D = utc2D(mjd);
-        lgast = utc2gmst(mjd) + utc2dpsi(mjd) * cos(utc2epsilon(mjd));
+		lgast = utc2gmst1982(mjd) + utc2dpsi(mjd) * cos(utc2epsilon(mjd));
         lgast += DAS2R * .00264096 * sin(omega);
         lgast += DAS2R * .00006352 * sin(2.*omega);
         lgast += DAS2R * .00001175 * sin(2.*F - 2.*D + 3.*omega);
@@ -871,7 +956,7 @@ double utc2gast(double mjd)
     \param mjd UT as Modified Julian Day
     \return GMST as radians
 */
-double utc2gmst(double mjd)
+double utc2gmst1982(double mjd)
 {
     static double lmjd=0.;
     static double lcalc=0.;
@@ -879,13 +964,30 @@ double utc2gmst(double mjd)
 
     if (mjd != lmjd)
     {
-        jcen = utc2jcen(mjd);
-        lcalc = utc2theta(mjd) + DS2R*(.014506+jcen*(4612.156534+jcen*(1.3915817+jcen*(-.00000044+jcen*(-.000029956+jcen*(-.0000000368))))))/15.;
+		jcen = utc2jcentt(mjd);
+		lcalc = utc2era(mjd) + DS2R*(.014506+jcen*(4612.156534+jcen*(1.3915817+jcen*(-.00000044+jcen*(-.000029956+jcen*(-.0000000368))))))/15.;
         lcalc = ranrm(lcalc);
         lmjd = mjd;
     }
 
     return (lcalc);
+}
+
+double utc2gmst2000(double utc)
+{
+	static double lutc=0.;
+	static double lgmst = 0.;
+	double tt;
+
+	if (utc != lutc)
+	{
+//		ut1 = utc2ut1(utc);
+		tt = utc2jcentt(utc);
+		lgmst = 24110.54841 + 8640184.812866 * utc2jcenut1(utc) + tt * tt * (0.093104 + tt * (-0.0000062));
+		lgmst = ranrm(lgmst);
+	}
+
+	return lgmst;
 }
 
 double ranrm(double angle)

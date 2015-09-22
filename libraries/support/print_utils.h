@@ -27,6 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+
+#ifndef _COSMOS_PRINT_UTILS
+#define _COSMOS_PRINT_UTILS
+
 // COSMOS Library for Printing Vector and stuff like that to the stream
 
 // v1.0 : 2014-10-05
@@ -34,41 +38,49 @@
 
 //---------------------------------------------------------------
 // Print class
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 #include <iostream>
 #include <string>
 
-// ?? remove the dependency of matlib later, change rvector to vector?
+// TODO: remove the dependency of matlib later, change rvector to vector?
 
-class PrintUtils {
+class PrintUtils
+{
 
 private:
 
 public:
+
+    PrintUtils();
 
     //main functions
     //-------------------------------------------------------------
     // print functions to help visualize the vectors and other data
 
     // main function
-    void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision);
-
-
-
-    // split vector
-    void vector(string vector_name, double a, double b, double c, string units);
-    void vector(string vector_name, double a, double b, double c, string units, int precision);
-    void vector(string vector_name, double a, double b, double c, double d, string units);
+    // 20150818JC: Fixed mismatched prototype to include field width.  Default value in cpp
+    //void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision);
+    void vector(string prefix, rvector v, double scale, string suffix, int precision, int fieldwidth);
 
     void vector(rvector v);
-    void vector(rvector v, int precision);
+    //void vector(rvector v, int precision);
+    void vector(string prefix, rvector v);
+    //void vector(string vector_name, rvector v, int precision);
+    void vector(string vector_name, rvector v, string suffix);
 
-    void vector(string vector_name, rvector v);
-    void vector(string vector_name, rvector v, int precision);
-    void vector(string vector_name, rvector v, string text_suffix, int precision);
+    void vectorAndMag(string vector_name, rvector v);
+    void vectorAndMag(string vector_name, rvector v, string suffix);
 
-    void vectorScaled(string vector_name, rvector v, double scale, int precision);
+
+    //    void vectorScaled(string vector_name, rvector v, double scale, int precision);
+    //	void vectorScaled(string vector_name, quaternion q, double scale, int precision);
+
+    // split vector
+    //    void vector(string vector_name, double a, double b, double c, string units);
+    //    void vector(string vector_name, double a, double b, double c, string units, int precision);
+    //    void vector(string vector_name, double a, double b, double c, double d, string units);
+
 
     void vector_endl(rvector v,
                      double factor,
@@ -77,6 +89,39 @@ public:
 
     void vector2(string name_v1, rvector v1, string name_v2, rvector v2);
     void vector2(string name_v1, rvector v1, string name_v2, rvector v2, int precision);
-    void end();
+    void endline();
 
+    // quaternions
+    void quat(string text_prefix, quaternion q, double scale, string text_suffix, int precision, int fieldwidth);
+    void quat(quaternion q);
+    void quat(quaternion q, int precision);
+    void quat(string vector_name, quaternion q);
+    void quat(string vector_name, quaternion q, int precision);
+    void quat(string vector_name, quaternion q, string text_suffix, int precision);
+
+    //
+    int precision;
+    int fieldwidth;
+    double scale;
+    string prefix;
+    string suffix;
+    string delimiter;
+    bool delimiter_flag;
+    bool use_brackets;
+
+    // reset to default values
+    void reset();
+
+
+    void text(string text);
+
+    // scalar
+    void scalar(string prefix, double s, string suffix);
+    void scalar(string prefix, double s, double scale, string suffix, int precision, int fieldwidth);
+    void scalar(double s, string suffix);
+    void scalar(string prefix, double s);
+    void scalar(double s);
 };
+
+#endif //_COSMOS_PRINT_UTILS
+

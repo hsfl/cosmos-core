@@ -107,15 +107,17 @@
 
 #define CRC32_POLYNOMIAL 0xEDB88320L
 
-#define OEMV_MAX_DATA 2048
+//#define OEMV_MAX_DATA 2048 // !!! why so much?
+#define OEMV_MAX_DATA 512 // !!! check
 
-typedef struct
+
+struct oemv_response_type
 {
 	uint32_t id;
 	char text[48];
-} oemv_response_type;
+};
 
-typedef struct
+struct oemv_log_type
 {
 	uint32_t port_address;// 0
 	uint16_t message_id;// 4
@@ -125,9 +127,9 @@ typedef struct
 	double period;// 12
 	double offset;// 20
 	uint32_t hold;// 28
-} oemv_log_type;
+};
 
-typedef struct
+struct oemv_bestpos_type
 {
 	uint32_t solution_status;// 0
 	uint32_t position_type;// 4
@@ -150,9 +152,9 @@ typedef struct
 	uint8_t ext_sol_stat;// 69
 	uint8_t reserved2;// 70
 	uint8_t signal_mask;// 71
-} oemv_bestpos_type;
+};
 
-typedef struct
+struct oemv_bestvel_type
 {
 	uint32_t solution_status;
 	uint32_t velocity_type;
@@ -162,12 +164,19 @@ typedef struct
 	double ground_track;
 	double vertical_speed;
 	uint8_t reserved;
-} oemv_bestvel_type;
+};
 
-typedef struct
+// Best Available Cartesian Position and Velocity
+// Cartesian coordinate position data, message ID = 241
+// This structure contains the best available position and velocity in ECEF coordinates
+// The position and velocity status fields indicate whether or not the corresponding data is valid
+// For more information refer to
+// [1] OEMV Family Firmware Version 3.500 Reference Manual Rev 6 pg 261
+struct oemv_bestxyz_type
 {
-	uint32_t position_status;// 0
-	uint32_t position_type;// 4
+    uint32_t position_status;// 0 | check table 51, pg 252
+    string position_status_str;// just the string
+    uint32_t position_type;  // 4 | check table 50, pg 251
 	double position_x;// 8
 	double position_y;// 16
 	double position_z;// 24
@@ -186,19 +195,20 @@ typedef struct
 	float latency;// 92
 	float differential_age;// 96
 	float solution_age;// 100
-	uint8_t tracked_cnt;// 104
-	uint8_t solution_cnt;// 105
+    uint8_t num_sat_tracked;    // 104 - Number of satellite vehicles tracked, was tracked_cnt
+    uint8_t num_sat_solution;   // 105 - Number of satellite vehicles used in solution, was solution_cnt
 	uint8_t glonassl1_cnt;// 106
 	uint8_t glonassl1l2_cnt;// 107
 	uint8_t reserved1;// 108
 	uint8_t solution_status_x;// 109
 	uint8_t reserved2;// 110
 	uint8_t signal_mask;// 111
-} oemv_bestxyz_type;
+} ;
 
-typedef struct
+struct oemv_time_type
 {
-	uint32_t clock_status;
+    uint32_t clock_status; // check map clock_status defined in this file
+    string clock_status_str;
 	double offset;
 	double offset_std;
 	double utc_offset;
@@ -209,9 +219,10 @@ typedef struct
 	uint8_t utc_minute;
 	uint32_t utc_ms;
 	uint32_t utc_status;
-} oemv_time_type;
+    string utc_status_str;
+};
 
-typedef struct
+struct oemv_version_type
 {
 	uint32_t numcomp;
 	char model[16];
@@ -221,26 +232,26 @@ typedef struct
 	char boot_version[16];
 	char comp_date[12];
 	char comp_time[12];
-} oemv_version_type;
+} ;
 
-typedef struct
+struct oemv_rxstatus_status
 {
 	uint32_t word;
 	uint32_t pri_mask;
 	uint32_t set_mask;
 	uint32_t clear_mask;
-} oemv_rxstatus_status;
+} ;
 
-typedef struct
+struct oemv_rxstatus_type
 {
 	uint32_t error;
 	uint32_t count;
 	oemv_rxstatus_status rx[10];
-} oemv_rxstatus_type;
+} ;
 
-typedef struct
+struct oemvstruc
 {
-	struct
+    struct
 	{
 		uint8_t sync1;// 0
 		uint8_t sync2;// 1
@@ -252,37 +263,42 @@ typedef struct
 		uint16_t message_size;// 8
 		uint16_t sequence;// 10
 		uint8_t idle_time;// 12
-		uint8_t time_status;// 13
+        uint8_t time_status;// 13 | check map time_status or OEMV firmware documentation on page 31
 		uint16_t gps_week;// 14
 		float gps_second;// 16
 		uint32_t rxr_status;// 20
 		uint16_t reserved;// 24
 		uint16_t rxr_version;// 26
-	} header;
-	union
+    } header;
+    union // TODO: why union???
 	{
 		oemv_response_type response;
 		oemv_log_type log;
 		oemv_bestpos_type bestpos;
 		oemv_bestvel_type bestvel;
-		oemv_bestxyz_type bestxyz;
-		oemv_time_type time;
+        //oemv_bestxyz_type bestxyz;
+        //oemv_time_type time;
 		oemv_version_type version;
 		oemv_rxstatus_type rxstatus;
         gvector geo;
 	};
-    int16_t n_sats_visible;
-    int16_t n_sats_used;
-} oemvstruc;
+    int16_t sats_visible;
+    int16_t sats_used;
 
-typedef struct
+    // new
+    oemv_time_type time;
+    oemv_bestxyz_type bestxyz;
+};
+
+struct oemv_handle
 {
 	cssl_t *serial;
 	oemvstruc message;
 	uint8_t data[OEMV_MAX_DATA];
-} oemv_handle;
+};
 
-int32_t oemv_connect(char *dev, oemv_handle *handle);
+//int32_t oemv_connect(char *dev, oemv_handle *handle);
+int32_t oemv_connect(string port, oemv_handle *handle);
 int32_t oemv_disconnect(oemv_handle *handle);
 int32_t oemv_bestpos(oemv_handle *handle);
 int32_t oemv_bestvel(oemv_handle *handle);

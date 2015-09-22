@@ -39,6 +39,11 @@
 #include <ifaddrs.h>
 #endif
 
+// Used to mark unused variables as known
+#ifndef UNUSED_VARIABLE_LOCALDEF
+    #define UNUSED_VARIABLE_LOCALDEF(x) (void)(x)
+#endif // UNUSED_VARIABLE_LOCALDEF
+
 #ifndef _SIZEOF_ADDR_IFREQ
 #define _SIZEOF_ADDR_IFREQ sizeof
 #endif
@@ -52,7 +57,7 @@ static vector<beatstruc> slist;
 vector <agent_request_entry> ireqs;
 
 #include<iostream>
-using namespace std;
+//using namespace std; // don't use this as it may cause conflicts with other namespaces
 
 //! Handle for request thread
 static thread cthread;
@@ -282,7 +287,37 @@ cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd
 		return nullptr;
     }
 
-    return agent_setup_server(cdata, name, bprd, port, bsize, multiflag);
+    return agent_setup_server(cdata, name, bprd, port, bsize, multiflag, 4);
+}
+
+//! Prepare Agent server with default values (overloaded)
+/*! This is the first function to call when setting up an Agent. It first sets the Agent up as
+ * a client, and checks that no other copies of the Agent are running. It then establishes the name
+ * and connection information for the Agent, the frequency of the heartbeat, and the
+ * size of the largest block that can be transferred. It initializes the built in
+ * requests and makes it so the user can add their own requests.
+    \param node The Node this Agent is associated with.
+    \param name The name of the Agent.
+    \return Pointer to ::cosmosstruc, otherwise NULL.
+*/
+cosmosstruc *agent_setup_server(string nodename, string agentname)
+{
+    cosmosstruc *cdata;
+
+    //! First, see if we can become a Client, as all Servers are also Clients.
+    if ((cdata = agent_setup_client(AGENT_TYPE_UDP, nodename, 1000)) == NULL)
+    {
+        return nullptr;
+    }
+
+    // run setup server with default values
+    double   beat_period = 1;
+    int32_t  port        = 0;
+    uint32_t buffer_size = 1000;
+    bool     multiflag   = 0;
+    float    timeoutSec  = 1;
+
+    return agent_setup_server(cdata, agentname, beat_period, port, buffer_size, multiflag, timeoutSec);
 }
 
 //! Prepare Agent server
@@ -305,7 +340,7 @@ cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd
     \param multiflag Boolean for whether to start multiple copies.
     \return Pointer to ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag)
+cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag, float timeoutSec = 4)
 {
     int32_t iretn;
     char tname[COSMOS_MAX_NAME];
@@ -313,14 +348,14 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
     //! Next, check if this Agent is already running
     if (!multiflag)
     {
-        if (strlen(cdata[0].node.name)>COSMOS_MAX_NAME || name.size()>COSMOS_MAX_NAME || agent_get_server(cdata, cdata[0].node.name, name, 4, (beatstruc *)NULL))
+        if (strlen(cdata[0].node.name)>COSMOS_MAX_NAME || name.size()>COSMOS_MAX_NAME || agent_get_server(cdata, cdata[0].node.name, name, timeoutSec, (beatstruc *)NULL))
         {
             json_destroy(cdata);
 			return nullptr;
         }
         strcpy(tname,name.c_str());
     }
-    else
+    else // then there is an agent running with the given name, so let's make the name unique
     {
         if (strlen(cdata[0].node.name)>COSMOS_MAX_NAME-4 || name.size()>COSMOS_MAX_NAME-4)
         {
@@ -332,7 +367,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
         do
         {
             sprintf(tname,"%s_%03d",name.c_str(),i);
-            if (!agent_get_server(cdata, cdata[0].node.name, tname, 4, (beatstruc *)NULL))
+            if (!agent_get_server(cdata, cdata[0].node.name, tname, timeoutSec, (beatstruc *)NULL))
             {
                 break;
             }
@@ -390,6 +425,14 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
         cdata[0].agent[0].reqs.push_back(tentry);
     }
     {
+        agent_request_entry tentry = {"idle",agent_req_idle,"","request to transition this agent to idle state"};
+        cdata[0].agent[0].reqs.push_back(tentry);
+    }
+    {
+        agent_request_entry tentry = {"run",agent_req_run,"","request to transition this agent to run state"};
+        cdata[0].agent[0].reqs.push_back(tentry);
+    }
+    {
         agent_request_entry tentry = {"status",agent_req_status,"","request the status of this agent"};
         cdata[0].agent[0].reqs.push_back(tentry);
     }
@@ -415,6 +458,7 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, in
     }
 
     cdata[0].agent[0].server = 1;
+    cdata[0].agent[0].stateflag = (uint16_t)AGENT_STATE_RUN;
     return (cdata);
 }
 
@@ -709,17 +753,6 @@ cosmosstruc *agent_get_cosmosstruc(cosmosstruc *cdata)
  */
 void heartbeat_loop(cosmosstruc *cdata)
 {
-    //    double cmjd, nmjd;
-    //    unsigned long usec;
-    //    struct timeval mytime;
-
-    // double precission is 15 digits of accuracy so we're subtracting
-    // a big number to maitain accuracy
-
-    //    gettimeofday(&mytime, NULL);
-    //    cmjd = (mytime.tv_sec - 1280000000) + mytime.tv_usec / 1e6;
-    //    nmjd = cmjd + ((cosmosstruc *)cdata)->agent[0].beat.bprd;
-
     ElapsedTime ep;
 
     while (((cosmosstruc *)cdata)->agent[0].stateflag)
@@ -727,26 +760,19 @@ void heartbeat_loop(cosmosstruc *cdata)
         ep.start();
 
         ((cosmosstruc *)cdata)->agent[0].beat.utc = currentmjd(0.);
-        if (!((cosmosstruc*)cdata)->agent[0].sohtable.empty())
+        if (((cosmosstruc*)cdata)->agent[0].stateflag != AGENT_STATE_IDLE && !((cosmosstruc*)cdata)->agent[0].sohtable.empty())
         {
             agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT, json_of_table(hbjstring, ((cosmosstruc *)cdata)->agent[0].sohtable, ((cosmosstruc *)cdata)));
         }
         else
         {
-            agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT,(char *)"");
+			agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT,"");
         }
-
-        //        if (nmjd >= cmjd)
-        //        {
-        //            usec = (unsigned long)((nmjd-cmjd)*1e6+.5);
-        //            COSMOS_USLEEP(usec);
-        //        }
 
         if (((cosmosstruc *)cdata)->agent[0].beat.bprd < .1)
         {
             ((cosmosstruc *)cdata)->agent[0].beat.bprd = .1;
         }
-        //        nmjd += ((cosmosstruc *)cdata)->agent[0].beat.bprd;
 
 		if (ep.split() <= ((cosmosstruc *)cdata)->agent[0].beat.bprd)
         {
@@ -896,6 +922,20 @@ int32_t agent_req_help(char*, char* output, void *cdata)
     return 0;
 }
 
+int32_t agent_req_run(char*, char* output, void *cdata)
+{
+    ((cosmosstruc *)cdata)->agent[0].stateflag = AGENT_STATE_RUN;
+    output[0] = 0;
+    return(0);
+}
+
+int32_t agent_req_idle(char*, char* output, void *cdata)
+{
+    ((cosmosstruc *)cdata)->agent[0].stateflag = AGENT_STATE_IDLE;
+    output[0] = 0;
+    return(0);
+}
+
 int32_t agent_req_shutdown(char*, char* output, void *cdata)
 {
     ((cosmosstruc *)cdata)->agent[0].stateflag = AGENT_STATE_SHUTDOWN;
@@ -903,6 +943,8 @@ int32_t agent_req_shutdown(char*, char* output, void *cdata)
     return(0);
 }
 
+// TODO: add a line break (\n) when printing the data
+// this makes it easier to read
 int32_t agent_req_status(char*, char* output, void *cdata)
 {
     string jstring;
@@ -945,8 +987,10 @@ int32_t agent_req_setvalue(char *request, char* output, void *cdata)
     return(iretn);
 }
 
-int32_t agent_req_listnames(char *request, char* output, void *cdata)
+int32_t agent_req_listnames(char *, char* output, void *cdata)
 {
+//    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
+
 	string result = json_list_of_all((cosmosstruc *)cdata);
 	strncpy(output, result.c_str(), ((cosmosstruc *)cdata)->agent[0].beat.bsz);
 	output[((cosmosstruc *)cdata)->agent[0].beat.bsz-1] = 0;
@@ -1366,36 +1410,30 @@ vector<socket_channel> agent_find_addresses(uint16_t ntype)
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
 */
-int32_t agent_post(cosmosstruc *cdata, uint8_t type, const char *message)
+int32_t agent_post(cosmosstruc *cdata, uint8_t type, string message)
 {
-	size_t nbytes, mbytes;
+	size_t nbytes;
 	int32_t i, iretn=0;
-    char post[AGENTMAXBUFFER];
-    //string jstring;
-
-    if (message == NULL)
-        mbytes = 0;
-    else
-        mbytes = strlen(message);
+	uint8_t post[AGENTMAXBUFFER];
 
     cdata[0].agent[0].beat.utc = cdata[0].agent[0].beat.utc;
     post[0] = type;
     // this will broadcast messages to all external interfaces (ifcnt = interface count)
     for (i=0; i<cdata[0].agent[0].ifcnt; i++)
     {
-        sprintf(&post[1],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"node_utcoffset\":%.15g}",cdata[0].agent[0].beat.utc,cdata[0].agent[0].beat.node,cdata[0].agent[0].beat.proc,cdata[0].agent[0].pub[i].address,cdata[0].agent[0].beat.port,cdata[0].agent[0].beat.bsz,cdata[0].node.utcoffset);
-        if (mbytes)
+		sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"node_utcoffset\":%.15g}",cdata[0].agent[0].beat.utc,cdata[0].agent[0].beat.node,cdata[0].agent[0].beat.proc,cdata[0].agent[0].pub[i].address,cdata[0].agent[0].beat.port,cdata[0].agent[0].beat.bsz,cdata[0].node.utcoffset);
+		size_t hlength = strlen((char *)&post[3]);
+		post[1] = hlength%256;
+		post[2] = hlength / 256;
+		nbytes = hlength + 3;
+		if (message.size())
         {
-            nbytes = strlen(post);
-            if (nbytes+mbytes > AGENTMAXBUFFER)
+			if (nbytes+message.size() > AGENTMAXBUFFER)
                 return (AGENT_ERROR_BUFLEN);
-            strcat(post,message);
+			memcpy(&post[nbytes], &message[0], message.size());
+//            strcat(post,message);
         }
-        else
-        {
-            nbytes = strlen(post)+1;
-        }
-        iretn = sendto(cdata[0].agent[0].pub[i].cudp,(const char *)post,nbytes+mbytes,0,(struct sockaddr *)&cdata[0].agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+		iretn = sendto(cdata[0].agent[0].pub[i].cudp,(const char *)post,nbytes+message.size(),0,(struct sockaddr *)&cdata[0].agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
     }
     if (iretn<0)
     {
@@ -1477,23 +1515,13 @@ int32_t agent_unsubscribe(cosmosstruc *cdata)
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float waitsec)
+int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t type, float waitsec)
 {
-    //    struct timeval tv, ltv;
-    //	struct sockaddr_in raddr;
-    //	int addrlen;
     int nbytes;
-    char input[AGENTMAXBUFFER+1];
+	uint8_t input[AGENTMAXBUFFER+1];
 
     if (!cdata[0].agent[0].sub.cport)
         return (AGENT_ERROR_CHANNEL);
-
-    //    gettimeofday(&ltv,NULL);
-
-    //    //	addrlen = sizeof(raddr);
-    //    ltv.tv_usec += 1000000 *(waitsec - (int)waitsec);
-    //    ltv.tv_sec += (int)waitsec + (int)(ltv.tv_usec/1000000);
-    //    ltv.tv_usec = ltv.tv_usec % 1000000;
 
     ElapsedTime ep;
     ep.start();
@@ -1504,10 +1532,7 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
         {
         case AGENT_TYPE_MULTICAST:
         case AGENT_TYPE_UDP:
-            nbytes = recvfrom(cdata[0].agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&cdata[0].agent[0].sub.caddr,(socklen_t *)&cdata[0].agent[0].sub.addrlen);
-            if (nbytes > 0){
-                input[nbytes] = 0;
-            }
+			nbytes = recvfrom(cdata[0].agent[0].sub.cudp,(char *)input,AGENTMAXBUFFER,0,(struct sockaddr *)&cdata[0].agent[0].sub.caddr,(socklen_t *)&cdata[0].agent[0].sub.addrlen);
             break;
         case AGENT_TYPE_CSP:
             break;
@@ -1517,16 +1542,43 @@ int32_t agent_poll(cosmosstruc *cdata, string& message, uint8_t type, float wait
         {
             if (type == AGENT_MESSAGE_ALL || type == input[0])
             {
-                if (json_convert_string(json_extract_namedobject(&input[1], "agent_proc")) == cdata[0].agent[0].beat.proc && json_convert_string(json_extract_namedobject(&input[1], "agent_node")) == cdata[0].agent[0].beat.node)
+				// Determine if old or new message
+				uint8_t start_byte;
+				if (input[1] == '{')
+				{
+					start_byte = 1;
+				}
+				else
+				{
+					start_byte = 3;
+				}
+				// Check for having heard our own message
+				if (json_convert_string(json_extract_namedobject((char *)&input[start_byte], "agent_proc")) == cdata[0].agent[0].beat.proc && json_convert_string(json_extract_namedobject((char *)&input[start_byte], "agent_node")) == cdata[0].agent[0].beat.node)
                 {
                     return 0;
                 }
-                message = &input[1];
-                return ((int)input[0]);
+				// First, extract meta information
+				if (start_byte > 1)
+				{
+					meta.type = (uint16_t)input[0];
+					meta.jlength = input[1] + 256 * input[2];
+				}
+				else
+				{
+					meta.type = (uint16_t)input[0] + 1;
+					meta.jlength = nbytes;
+				}
+
+				// Second, extract message. Could have binary data, so copy safe way
+				if (nbytes > 0)
+				{
+					input[nbytes] = 0;
+				}
+				message.resize(nbytes+1-start_byte);
+				memcpy(&message[0], &input[start_byte], nbytes+1-start_byte);
+				return ((int)meta.type);
             }
         }
-        //gettimeofday(&tv,NULL);
-        //if (tv.tv_sec > ltv.tv_sec || (tv.tv_sec == ltv.tv_sec && tv.tv_usec > ltv.tv_usec))
 		if (ep.split() >= waitsec)
         {
             nbytes = 0;
@@ -1546,9 +1598,10 @@ beatstruc agent_poll_beat(cosmosstruc *cdata, float waitsec)
 {
     int32_t iretn;
     beatstruc beat;
+	pollstruc meta;
     string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_BEAT, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_BEAT, waitsec);
 
     beat.utc = 0.;
     if (iretn == AGENT_MESSAGE_BEAT)
@@ -1570,9 +1623,10 @@ timestruc agent_poll_time(cosmosstruc *cdata, float waitsec)
 {
     int32_t iretn;
     timestruc time;
-    string message;
+	pollstruc meta;
+	string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_TIME, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_TIME, waitsec);
 
     if (iretn == AGENT_MESSAGE_TIME)
     {
@@ -1596,9 +1650,10 @@ locstruc agent_poll_location(cosmosstruc *cdata, float waitsec)
 {
     int32_t iretn;
     locstruc loc;
-    string message;
+	pollstruc meta;
+	string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_LOCATION, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_LOCATION, waitsec);
 
     if (iretn == AGENT_MESSAGE_LOCATION)
     {
@@ -1624,9 +1679,10 @@ nodestruc agent_poll_info(cosmosstruc *cdata, float waitsec)
     int32_t iretn;
     //summarystruc info;
     nodestruc info;
-    string message;
+	pollstruc meta;
+	string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_TRACK, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_TRACK, waitsec);
 
     if (iretn == AGENT_MESSAGE_TRACK)
     {
@@ -1657,9 +1713,10 @@ imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec)
 {
     int32_t iretn;
     imustruc imu;
-    string message;
+	pollstruc meta;
+	string message;
 
-    iretn = agent_poll(cdata, message, AGENT_MESSAGE_IMU, waitsec);
+	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_IMU, waitsec);
 
     if (iretn == AGENT_MESSAGE_IMU)
     {
@@ -1860,6 +1917,98 @@ int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *a
 //    return 0;
 }
 
+// default constructor
+Agent::Agent()
+{
 
+}
+
+// overloaded constructor
+Agent::Agent(string nodename, string agentname)
+{
+    nodeName = nodename;
+    name = agentname;
+}
+
+// this function assumes you have initialized the node and agent names
+bool Agent::setupServer()
+{
+    //! First, see if we can become a Client, as all Servers are also Clients.
+    if ((cdata = agent_setup_client(AGENT_TYPE_UDP, nodeName, 1000)) == NULL)
+    {
+        cout << "Agent setup client failed" << endl;
+        return nullptr;
+    }
+
+    //cdata = agent_setup_server(nodeName, name);
+    //cdata = agent_setup_server(AGENT_TYPE_UDP, nodeName, beat_period, 0, AGENTSVR_MAXBUF_BYTES, (bool)false);
+    cdata = agent_setup_server(cdata, name, beat_period, port, buffer_size, multiflag, timeoutSec);
+
+    // if setup server was not sucessfull
+    if (cdata == NULL)
+    {
+        // TODO: improve error message with a more detailed description
+        // of the reason for failure
+        cout << "Agent setup server failed" << endl;
+        return false;
+    }
+
+    //cout << "Agent server is on for " << nodeName << ":" << name << endl;
+
+    cout << "================================================" << endl;
+    cout << "| Agent Server Running [" <<  nodeName << ":" << name << "]" << endl;
+    cout << "| Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << endl;
+    cout << "================================================" << endl;
+
+    // if setup server was sucessfull
+    return true;
+}
+
+bool Agent::setupServer(string nodename, string agentname)
+{
+    nodeName = nodename;
+    name = agentname;
+
+    return setupServer();
+}
+
+
+bool Agent::setupClient(string nodename)
+{
+    nodeName = nodename;
+
+    if (!(cdata=agent_setup_client(AGENT_TYPE_UDP, nodeName.c_str(), 1000)))
+    {
+        cout << "Couldn't establish client for Node " << nodename << endl;
+        exit (AGENT_ERROR_NULL);
+    }
+
+    return true;
+}
+
+//
+beatstruc Agent::findServer(string servername)
+{
+    float timeout = 1.0;
+
+    beatstruc beat_agent = agent_find_server(cdata, nodeName, servername, timeout);
+
+    // TODO: improve the way we find the agent server
+    if (beat_agent.utc == 0)
+    {
+        cout << "agent " << servername << " : not found" << endl;
+    }
+    else
+    {
+        cout << "agent " << servername << " : found" << endl;
+    }
+
+    return beat_agent;
+}
+
+beatstruc Agent::find(string servername)
+{
+    return findServer(servername);
+}
 
 //! @}

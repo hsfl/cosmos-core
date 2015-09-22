@@ -53,8 +53,11 @@
 
 #include "configCosmos.h"
 
-#include "mathlib.h"
+#include "math/mathlib.h"
+
+#ifdef COSMOS_WIN_BUILD_MSVC
 #include "timeutils.hpp"
+#endif
 
 #include <cmath>
 #include <time.h>
@@ -108,9 +111,10 @@ double currentmjd();
 
 // gregorian calendar (year, month, day) to another format
 double cal2mjd(calstruc date);
-double  cal2mjd(int32_t year, int32_t month, double day);
-double  cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond);
-double  gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
+double cal2mjd(int32_t year, double dayOfYear);
+double cal2mjd(int32_t year, int32_t month, double day);
+double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond);
+double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
                                    int32_t hour, int32_t minute, double second);
 
 // utc to another format
@@ -123,17 +127,22 @@ double utc2Lp(double mjd);
 double utc2F(double mjd);
 double utc2D(double mjd);
 double utc2omega(double mjd);
+double utc2zeta(double mjd);
+double utc2z(double mjd);
+double utc2era(double mjd);
 double utc2tt(double mjd);
 double utc2gps(double utc);
 double utc2ut1(double mjd);
 double utc2dut1(double mjd);
 double utc2tdb(double mjd);
 double utc2tdb(double mjd);
-double utc2gmst(double mjd);
+double utc2gmst1982(double mjd);
+double utc2gmst2000(double mjd);
 double utc2gast(double mjd);
 rvector utc2nuts(double mjd);
 double utc2theta(double mjd);
-double utc2jcen(double mjd);
+double utc2jcentt(double mjd);
+double utc2jcenut1(double mjd);
 string utc2iso8601(double mjd);
 
 // gps to another format

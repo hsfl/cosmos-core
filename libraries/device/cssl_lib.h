@@ -40,7 +40,7 @@ typedef struct __cssl_t {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 	struct termios tio;       /* termios structure for the port */
     struct termios oldtio;    /* old termios structure */
-#else
+#else // windows
 	struct _DCB dcb;
 	struct _DCB olddcb;
 	HANDLE handle;

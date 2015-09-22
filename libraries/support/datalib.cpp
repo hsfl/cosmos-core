@@ -947,21 +947,18 @@ int32_t set_cosmosresources()
 
 	if (cosmosresources.empty())
 	{
-		char *croot = getenv("COSMOS");
-		if (croot != nullptr)
+		char *croot = getenv("COSMOSRESOURCES");
+		if (croot != nullptr && data_isdir(croot))
 		{
-			if (data_isdir(croot + (string)"/resources"))
-			{
-				cosmosresources = croot + (string)"/resources";
-				return 0;
-			}
+			cosmosresources = croot;
+			return 0;
 		}
 		else
 		{
-			croot = getenv("COSMOSRESOURCES");
-			if (croot != nullptr && data_isdir(croot))
+			croot = getenv("COSMOS");
+			if (croot != nullptr && data_isdir(croot + (string)"/resources"))
 			{
-				cosmosresources = croot;
+				cosmosresources = croot + (string)"/resources";
 				return 0;
 			}
 		}
@@ -974,6 +971,15 @@ int32_t set_cosmosresources()
 			return 0;
 		}
 #endif
+
+#ifdef COSMOS_MAC_OS
+        if (data_isdir("/Applications/cosmos/resources"))
+        {
+            cosmosresources = "/Applications/cosmos/resources";
+            return 0;
+        }
+#endif
+
 #ifdef COSMOS_WIN_OS
 		if (data_isdir("c:/cosmos/resources"))
 		{
@@ -1144,30 +1150,27 @@ int32_t set_cosmosnodes()
 
 	if (cosmosnodes.empty())
 	{
-		char *croot = getenv("COSMOS");
-		if (croot != nullptr)
+		char *croot = getenv("COSMOSNODES");
+		if (croot != nullptr && data_isdir(croot))
 		{
-			if (data_isdir(croot + (string)"/nodes"))
-			{
-				cosmosnodes = croot + (string)"/nodes";
-				return 0;
-			}
+			cosmosnodes = croot;
+			return 0;
 		}
 		else
 		{
-            croot = getenv("COSMOSNODES");
-			if (croot != nullptr && data_isdir(croot))
+			croot = getenv("COSMOS");
+			if (croot != nullptr && data_isdir(croot + (string)"/nodes"))
 			{
-				cosmosnodes = croot;
+				cosmosnodes = croot + (string)"/nodes";
 				return 0;
 			}
 		}
 
 		// No environment variables set. Look in standard location.
 #ifdef COSMOS_LINUX_OS
-		if (data_isdir(getenv("HOME")+(string)"/cosmos/nodes"))
+        if (data_isdir("/usr/local/cosmos/nodes"))
 		{
-			cosmosnodes = getenv("HOME")+(string)"/cosmos/nodes";
+            cosmosnodes = "/usr/local/cosmos/nodes";
 			return 0;
 		}
 #endif
@@ -1179,9 +1182,9 @@ int32_t set_cosmosnodes()
 		}
 #endif
 #ifdef COSMOS_MAC_OS
-        if (data_isdir("/Applications/COSMOS/nodes/"))
+        if (data_isdir("/Applications/cosmos/nodes/"))
         {
-            cosmosnodes = "/Applications/COSMOS/nodes/";
+            cosmosnodes = "/Applications/cosmos/nodes/";
             return 0;
         }
 #endif
@@ -1271,13 +1274,17 @@ string get_nodedir(string node, bool create_flag)
 	if (!set_cosmosnodes())
 	{
 		nodedir = cosmosnodes + "/" + node;
+
+        // check if the data folder exists
 		if (!data_isdir(nodedir))
 		{
+            // if the create folder flag is not on then
+            // exit this function without a nodedir
 			if (!create_flag)
 			{
 				nodedir.clear();
 			}
-			else
+            else // let's create the node directory (good for on the fly nodes)
 			{
 				if (COSMOS_MKDIR(nodedir.c_str(),00777) != 0)
 				{
@@ -1286,6 +1293,8 @@ string get_nodedir(string node, bool create_flag)
 			}
 		}
 	}
+
+    // if the node folder exists or was created let's return the path
 	return (nodedir);
 }
 

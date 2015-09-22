@@ -81,19 +81,19 @@ using namespace std;
 #define AGENTRCVTIMEO 100000
 
 //! All Message types
-#define AGENT_MESSAGE_ALL 255
+#define AGENT_MESSAGE_ALL 1
 //! Heartbeat Messages
-#define AGENT_MESSAGE_BEAT 1
+#define AGENT_MESSAGE_BEAT 2
 //! State of Health Messages
-#define AGENT_MESSAGE_SOH 2
+#define AGENT_MESSAGE_SOH 3
 //! Generic Mesages
-#define AGENT_MESSAGE_GENERIC 3
-#define AGENT_MESSAGE_TIME 4
-#define AGENT_MESSAGE_LOCATION 5
-#define AGENT_MESSAGE_TRACK 6
-#define AGENT_MESSAGE_IMU 7
+#define AGENT_MESSAGE_GENERIC 4
+#define AGENT_MESSAGE_TIME 5
+#define AGENT_MESSAGE_LOCATION 6
+#define AGENT_MESSAGE_TRACK 7
+#define AGENT_MESSAGE_IMU 8
 //! Event Messsages
-#define AGENT_MESSAGE_EVENT 8
+#define AGENT_MESSAGE_EVENT 9
 
 //! @}
 
@@ -106,13 +106,19 @@ using namespace std;
 
 //! List of heartbeats.
 //! Heartbeats for multiple processes found on the multicast bus.
-typedef struct
+struct beatstruc_list
 {
 	//! Number of heartbeats in list
 	int16_t count;
 	//! Pointer to an array of pointers to heartbeats
 	beatstruc *heartbeat[AGENTMAXLIST];
-} beatstruc_list;
+};
+
+struct pollstruc
+{
+	uint8_t type;
+	uint16_t jlength;
+};
 
 //! @}
 
