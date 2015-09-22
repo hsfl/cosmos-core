@@ -76,6 +76,7 @@
 //! @{
 
 void loc_clear(locstruc *loc);
+// TODO: implement using pos_geoc2geod
 void geoc2geod(cartpos *geoc, geoidpos *geod);
 void geos2geoc(spherpos *geos, cartpos *geoc);
 void geod2geoc(geoidpos *geod, cartpos *geoc);

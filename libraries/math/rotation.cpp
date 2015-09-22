@@ -30,9 +30,11 @@
 #include "math/rotation.h"
 
 //! Quaternion to Direction Cosine Matrix
+//! This function expects a quaternion that represents the coordinate frame transofrmation not the rotation. 
 //! If the quaternion represents the rotation from the inertial reference frame
-//! into the frame of the sensor then this DCM will represent
+//! into the frame of the sensor/body then this DCM will represent
 //! the rotation from the sensor body frame (B) to the inertial frame (I)
+//! TODO: later this should be changed to be more consistent
 /*! Convert supplied quaternion to an equivalent direction cosine matrix
         \param q quaternion
         \return direction cosine matrix

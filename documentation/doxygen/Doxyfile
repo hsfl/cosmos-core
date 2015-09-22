@@ -461,7 +461,16 @@ WARN_LOGFILE           = log.txt
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT = mainpage.dox ../../programs/agents ../../programs/general ../../programs/device_tests ../../programs/testbed ../../libraries/support ../../libraries/device
+INPUT += mainpage.dox  
+INPUT += ../../programs/agents
+INPUT += ../../programs/general
+INPUT += ../../programs/device_tests
+INPUT += ../../programs/testbed
+INPUT += ../../libraries/support 
+INPUT += ../../libraries/device
+
+# mini tutorials
+INPUT += ../tutorials/agent_add_state_of_health.md
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

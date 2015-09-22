@@ -3,7 +3,7 @@
 # (this uses multiple cores if you have them)
 
 # DEFINE THE COSMOS SOFTWARE HOME FOLDER
-COSMOS                  = $$PWD/../../..
+COSMOS_SOURCE                  = $$PWD/../../..
 
 TEMPLATE = app
 CONFIG += console
@@ -30,19 +30,18 @@ MODULES += ephemlib
 MODULES += geomag
 MODULES += sliplib
 MODULES += zlib
-include( $$COSMOS/core/qt/cosmos.pri )
 
-SOURCES += $$COSMOS/core/programs/agents/agent.cpp
+include( $$COSMOS_SOURCE/core/cosmos-core.pri )
 
-TARGET = agent
+SOURCES += $$COSMOS_SOURCE/core/programs/agents/agent.cpp
+
+#TARGET = agent
 #TARGET_EXT = .exe
 
-## if you want to install this file in the default COSMOS folder
-# uncomment the following lines
-release: target.files = $$OUT_PWD/release/agent.exe
-debug: target.files = $$OUT_PWD/debug/agent.exe
+# if you want to install this file in the default COSMOS folder
+# add a "make install" step in the project build configuration
 
-win32:target.path = "C:/COSMOS/core/bin"
-linux:target.path = /home/cosmos/bin
+win32:target.path = "C:/cosmos/bin"
+linux:target.path = /usr/local/cosmos/bin
 
 INSTALLS += target
