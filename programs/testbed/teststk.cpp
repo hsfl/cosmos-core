@@ -99,7 +99,7 @@ do
 	localtime = atan2(cdata[0].node.loc.pos.icrf.s.col[1],cdata[0].node.loc.pos.icrf.s.col[0]);
 	if (localtime < 0.)
 		localtime += D2PI;
-	eci2kep(&cdata[0].node.loc.pos.eci,&kep);
+	eci2kep(cdata[0].node.loc.pos.eci,kep);
 	localtime = kep.raan + DPI - localtime;
 	if (localtime < 0.)
 		localtime += D2PI;

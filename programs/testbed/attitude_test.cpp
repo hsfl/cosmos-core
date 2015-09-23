@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	kep.i = 0.;
 	kep.raan = 0.;
 	kep.ap = 0.;
-	kep2eci(&kep, &loc.pos.eci);
+	kep2eci(kep, loc.pos.eci);
 
 	imjd = loc.utc = currentmjd(0.);
 	loc.pos.eci.utc = loc.utc;

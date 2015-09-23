@@ -1634,7 +1634,7 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc &cdata)
     locstruc loc;
     pos_clear(loc);
 
-    lines2eci(utc,cdata.tle,&loc.pos.eci);
+	lines2eci(utc,cdata.tle,loc.pos.eci);
     loc.pos.eci.pass++;
     pos_eci(&loc);
 
@@ -1694,7 +1694,7 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc &cdata)
     {
         sloc[i] = sloc[i-1];
         sloc[i].utc -= dt / 86400.;
-        lines2eci(sloc[i].utc,cdata.tle,&sloc[i].pos.eci);
+		lines2eci(sloc[i].utc,cdata.tle,sloc[i].pos.eci);
         sloc[i].pos.eci.pass++;
         pos_eci(&sloc[i]);
 
@@ -1729,7 +1729,7 @@ void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc 
     loc.utc = loc.att.icrf.utc = utc;
     loc.pos.eci.pass++;
     pos_eci(&loc);
-    eci2kep(&loc.pos.eci,&kep);
+	eci2kep(loc.pos.eci,kep);
 
     // Initial attitude
     cdata.physics.ftorque = rv_zero();
@@ -1792,7 +1792,7 @@ void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc 
             dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
             kep.ea -= dea;
         } while (++count < 100 && fabs(dea) > .000001);
-        kep2eci(&kep,&sloc[i].pos.eci);
+		kep2eci(kep,sloc[i].pos.eci);
         sloc[i].pos.eci.pass++;
         pos_eci(&sloc[i]);
 
@@ -2273,7 +2273,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
 
     utc -= (order/2.)*dt/86400.;
     pos_clear(loc);
-    lines2eci(utc,cdata.tle,&loc.pos.eci);
+	lines2eci(utc,cdata.tle,loc.pos.eci);
     loc.pos.eci.pass++;
     pos_eci(&loc);
 
@@ -2329,7 +2329,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
     {
         gjh.step[i].sloc = gjh.step[i+1].sloc;
         gjh.step[i].sloc.utc -= dt / 86400.;
-        lines2eci(gjh.step[i].sloc.utc,cdata.tle,&gjh.step[i].sloc.pos.eci);
+		lines2eci(gjh.step[i].sloc.utc,cdata.tle,gjh.step[i].sloc.pos.eci);
         gjh.step[i].sloc.pos.eci.pass++;
         pos_eci(&gjh.step[i].sloc);
 
@@ -2346,7 +2346,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
     {
         gjh.step[i].sloc = gjh.step[i-1].sloc;
         gjh.step[i].sloc.utc += dt / 86400.;
-        lines2eci(gjh.step[i].sloc.utc,cdata.tle,&gjh.step[i].sloc.pos.eci);
+		lines2eci(gjh.step[i].sloc.utc,cdata.tle,gjh.step[i].sloc.pos.eci);
         gjh.step[i].sloc.pos.eci.pass++;
         pos_eci(&gjh.step[i].sloc);
 
@@ -2445,7 +2445,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
     gjh.step[gjh.order2].sloc = loc;
 
     // Position at t0-dt
-    eci2kep(&loc.pos.eci,&kep);
+	eci2kep(loc.pos.eci,kep);
     //	kep2eci(&kep,&gjh.step[gjh.order2].sloc.pos.eci);
     for (i=gjh.order2-1; i<gjh.order2; --i)
     {
@@ -2460,7 +2460,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
             dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
             kep.ea -= dea;
         } while (++count < 100 && fabs(dea) > .000001);
-        kep2eci(&kep,&gjh.step[i].sloc.pos.eci);
+		kep2eci(kep,gjh.step[i].sloc.pos.eci);
         gjh.step[i].sloc.pos.eci.pass++;
 
         q1 = q_axis2quaternion_rv(rv_smult(-dt,gjh.step[i].sloc.att.icrf.v));
@@ -2478,7 +2478,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
         att_accel(physics, gjh.step[i].sloc);
     }
 
-    eci2kep(&loc.pos.eci,&kep);
+	eci2kep(loc.pos.eci,kep);
     for (i=gjh.order2+1; i<=gjh.order; i++)
     {
         gjh.step[i].sloc = gjh.step[i-1].sloc;
@@ -2492,7 +2492,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
             dea = (kep.ea - kep.e * sin(kep.ea) - kep.ma) / (1. - kep.e * cos(kep.ea));
             kep.ea -= dea;
         } while (++count < 100 && fabs(dea) > .000001);
-        kep2eci(&kep,&gjh.step[i].sloc.pos.eci);
+		kep2eci(kep,gjh.step[i].sloc.pos.eci);
         gjh.step[i].sloc.pos.eci.pass++;
 
         q1 = q_axis2quaternion_rv(rv_smult(dt,gjh.step[i].sloc.att.icrf.v));
@@ -2514,7 +2514,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
     physics.mjdbase = loc.utc;
 }
 
-void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, stkstruc *stk, physicsstruc &physics, locstruc &loc)
+void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, stkstruc &stk, physicsstruc &physics, locstruc &loc)
 {
     uint32_t i;
 
@@ -2525,7 +2525,7 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double
 
     pos_clear(loc);
     gjh.step[gjh.order+1].sloc = loc;
-    stk2eci(utc,stk,&loc.pos.eci);
+	stk2eci(utc,stk,loc.pos.eci);
     loc.att.icrf.utc = utc;
     loc.pos.eci.pass++;
     pos_eci(&loc);
@@ -2582,7 +2582,7 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double
         gjh.step[i].sloc = gjh.step[i+1].sloc;
         gjh.step[i].sloc.utc -= dt / 86400.;
         gjh.step[i].sloc.att.icrf.utc = gjh.step[i].sloc.utc;
-        stk2eci(gjh.step[i].sloc.utc,stk,&gjh.step[i].sloc.pos.eci);
+		stk2eci(gjh.step[i].sloc.utc,stk,gjh.step[i].sloc.pos.eci);
         gjh.step[i].sloc.pos.eci.pass++;
         pos_eci(&gjh.step[i].sloc);
 
@@ -2598,7 +2598,7 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double
     {
         gjh.step[i].sloc = gjh.step[i-1].sloc;
         gjh.step[i].sloc.utc += dt / 86400.;
-        stk2eci(gjh.step[i].sloc.utc,stk,&gjh.step[i].sloc.pos.eci);
+		stk2eci(gjh.step[i].sloc.utc,stk,gjh.step[i].sloc.pos.eci);
         gjh.step[i].sloc.pos.eci.pass++;
         pos_eci(&gjh.step[i].sloc);
 
@@ -2642,7 +2642,7 @@ void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt,
     kep.ea = 0.;
     kep.ap = 0.;
     kep.raan = lon;
-    kep2eci(&kep, &iloc.pos.geoc);
+	kep2eci(kep, iloc.pos.geoc);
     ++iloc.pos.geoc.pass;
     pos_geoc(&iloc);
 
@@ -3053,13 +3053,13 @@ int orbit_init(int32_t mode, double dt, double utc, char *ofile, cosmosstruc &cd
     switch (ofile[0])
     {
     case 's':
-        if ((iretn=load_stk(ofile,&stkhandle)) < 2)
+		if ((iretn=load_stk(ofile,stkhandle)) < 2)
             return (iretn);
         if (utc == 0.)
         {
             utc = stkhandle.pos[1].utc;
         }
-        if ((iretn=stk2eci(utc,&stkhandle,&cdata.node.loc.pos.eci)) < 0)
+		if ((iretn=stk2eci(utc,stkhandle,cdata.node.loc.pos.eci)) < 0)
             return (iretn);
         break;
     case 't':
@@ -3070,7 +3070,7 @@ int orbit_init(int32_t mode, double dt, double utc, char *ofile, cosmosstruc &cd
             tline = get_line(0, cdata.tle);
             utc = tline.utc;
         }
-        if ((iretn=lines2eci(utc,cdata.tle,&cdata.node.loc.pos.eci)) < 0)
+		if ((iretn=lines2eci(utc,cdata.tle,cdata.node.loc.pos.eci)) < 0)
             return (iretn);
         break;
     default:
@@ -3161,11 +3161,11 @@ int orbit_propagate(cosmosstruc &cdata, double utc)
         switch (orbitfile[0])
         {
         case 's':
-            if ((iretn=stk2eci(nutc,&stkhandle,&npos)) < 0)
+			if ((iretn=stk2eci(nutc,stkhandle,npos)) < 0)
                 return (iretn);
             break;
         case 't':
-            if ((iretn=lines2eci(nutc,cdata.tle,&npos)) < 0)
+			if ((iretn=lines2eci(nutc,cdata.tle,npos)) < 0)
                 return (iretn);
             break;
         default:

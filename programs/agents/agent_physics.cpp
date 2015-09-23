@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 		{
 			tline = get_line(0, cdata[0].tle);
 			mjdnow = currentmjd(0.);
-			lines2eci(mjdnow, cdata[0].tle, &cdata[0].node.loc.pos.eci);
+			lines2eci(mjdnow, cdata[0].tle, cdata[0].node.loc.pos.eci);
 		}
 		else
 		{

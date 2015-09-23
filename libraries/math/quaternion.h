@@ -138,6 +138,8 @@ quaternion q_eye();
 quaternion q_identity();
 quaternion q_evaluate_poly(double x, std::vector< std::vector<double> > parms);
 quaternion q_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
+quaternion q_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
+quaternion q_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
 
 double length_q(quaternion q);
 double q_norm(quaternion q);

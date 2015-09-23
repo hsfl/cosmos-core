@@ -284,6 +284,8 @@ double distance_rv_1(rvector p0, rvector p1, rvector p2);
 double area_rv(rvector p0, rvector p1, rvector p2);
 double evaluate_poly(double x, rvector parms);
 double evaluate_poly_slope(double x, rvector parms);
+double evaluate_poly_accel(double x, rvector parms);
+double evaluate_poly_jerk(double x, rvector parms);
 
 // TODO: move these functions to quaternion ???
 rvector rotate_q(quaternion q,rvector v);
@@ -395,6 +397,12 @@ public:
         double slope(double x);
         rvector slopervector(double x);
         quaternion slopequaternion(double x);
+		double accel(double x);
+		rvector accelrvector(double x);
+		quaternion accelquaternion(double x);
+		double jerk(double x);
+		rvector jerkrvector(double x);
+		quaternion jerkquaternion(double x);
 		std::vector<std::vector<double> > getparms();
 };
 

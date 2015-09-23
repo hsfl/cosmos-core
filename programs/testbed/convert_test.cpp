@@ -81,7 +81,7 @@ void test_tle2eci(){
 
     for (int i=0; i< 10082; i++){
         double mjd = mjdStart + i*(60./86400.);
-        tle2eci(mjd, tle, &teme_cosmos);
+		tle2eci(mjd, tle, teme_cosmos);
         //sgp4(mjd, tle, &teme_cosmos);
         //cout << teme_cosmos << endl;
 
@@ -115,7 +115,7 @@ void test_tle_valado(){
 
 	loadTLE((char *)"E:/cosmos-source/documentation/stk-validation/valado234.txt", tle);
 
-    tle2eci(mjd, tle, &teme_cosmos);
+	tle2eci(mjd, tle, teme_cosmos);
 
     // compare with results from Valado
     cartpos teme_valado;
@@ -229,7 +229,7 @@ void test_eric(){
     iloc.pos.eci.v.col[0] = -5022.687260;
     iloc.pos.eci.v.col[1] = 5768.132100;
     iloc.pos.eci.v.col[2] = 6.979330;
-    eci2kep(&iloc.pos.eci,&kep);
+	eci2kep(iloc.pos.eci,kep);
 
     utc = 56536.916666670;
     //utc = 51544.5;
