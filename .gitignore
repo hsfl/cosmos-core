@@ -3,10 +3,9 @@ build/qtarm/*
 build/arm/*
 build/linux/*
 build/macos/*
-build/windows/*
-build/windows_msvc/*
-build/windows_arm/*
+build/windows*
 build/cygwin/*
+build/centos*
 CMakeLists.txt.*
 /install/
 documentation/doxygen/latex/

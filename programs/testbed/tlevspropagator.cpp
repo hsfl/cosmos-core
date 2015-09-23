@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		modeltype = STK;
-		load_stk(argv[1], &stk);
+		load_stk(argv[1], stk);
 	}
 
 	if (utc == 0.)
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 		if (modeltype == TLE)
 		{
 			utc = tle[0].utc + DT*MT/86400.;
-			tle2eci(utc, tle[0], &eci);
+			tle2eci(utc, tle[0], eci);
 		}
 		else
 		{
@@ -158,17 +158,20 @@ int main(int argc, char *argv[])
 			cmjd = utc + i*DT*MT/86400.;
             gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cmjd);
             simulate_hardware(*cdata, cdata->node.loc);
-            tle2eci(cmjd, tle[0], &eci);
+			tle2eci(cmjd, tle[0], eci);
 		}
 		else
 		{
 			cmjd = stk.pos[i].utc;
             gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cmjd);
             simulate_hardware(*cdata, cdata->node.loc);
-            stk2eci(cmjd, &stk, &eci);
+			stk2eci(cmjd, stk, eci);
 		}
+		kepstruc kep;
+		eci2kep(eci, kep);
 		printf("%.15g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", cmjd, eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.eci.s.col[0], cdata->node.loc.pos.eci.s.col[1], cdata->node.loc.pos.eci.s.col[2]);
 		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], cdata->node.loc.pos.eci.v.col[0], cdata->node.loc.pos.eci.v.col[1], cdata->node.loc.pos.eci.v.col[2]);
-		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\n", eci.a.col[0], eci.a.col[1], eci.a.col[2], cdata->node.loc.pos.eci.a.col[0], cdata->node.loc.pos.eci.a.col[1], cdata->node.loc.pos.eci.a.col[2]);
+		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.a.col[0], eci.a.col[1], eci.a.col[2], cdata->node.loc.pos.eci.a.col[0], cdata->node.loc.pos.eci.a.col[1], cdata->node.loc.pos.eci.a.col[2]);
+		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\n", kep.ea, kep.e, kep.a, kep.raan, kep.i, kep.ap);
 	}
 }

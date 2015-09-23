@@ -962,6 +962,11 @@ double evaluate_poly(double x, vector<double> parms)
 {
 	double result;
 
+	if (parms.size() < 2)
+	{
+		return 0.;
+	}
+
 	result = parms[parms.size()-1];
 	for (uint16_t i=parms.size()-2; i<parms.size(); --i)
 	{
@@ -976,11 +981,54 @@ double evaluate_poly_slope(double x, vector<double> parms)
 {
 	double result;
 
+	if (parms.size() < 2)
+	{
+		return 0.;
+	}
+
 	result = parms[parms.size()-1] * (parms.size()-1);
 	for (uint16_t i=parms.size()-2; i>0; --i)
 	{
 		result *= x;
 		result += i * parms[i];
+	}
+
+	return result;
+}
+
+double evaluate_poly_accel(double x, vector<double> parms)
+{
+	double result;
+
+	if (parms.size() < 3)
+	{
+		return 0.;
+	}
+
+	result = parms[parms.size()-1] * (parms.size()-1) * (parms.size()-2);
+	for (uint16_t i=parms.size()-2; i>1; --i)
+	{
+		result *= x;
+		result += i * (i-1) * parms[i];
+	}
+
+	return result;
+}
+
+double evaluate_poly_jerk(double x, vector<double> parms)
+{
+	double result;
+
+	if (parms.size() < 4)
+	{
+		return 0.;
+	}
+
+	result = parms[parms.size()-1] * (parms.size()-1) * (parms.size()-2) * (parms.size()-3);
+	for (uint16_t i=parms.size()-2; i>2; --i)
+	{
+		result *= x;
+		result += i * (i-1) * (i-2) * parms[i];
 	}
 
 	return result;
@@ -992,11 +1040,18 @@ rvector rv_evaluate_poly(double x, vector< vector<double> > parms)
 
 	for (uint16_t ic=0; ic<parms.size(); ++ic)
 	{
-		result.a4[ic] = parms[ic][parms[ic].size()-1];
-		for (uint16_t i=parms[ic].size()-2; i<parms[ic].size(); --i)
+		if (parms[ic].size() < 2)
 		{
-			result.a4[ic] *= x;
-			result.a4[ic] += parms[ic][i];
+			result.a4[ic] = 0.;
+		}
+		else
+		{
+			result.a4[ic] = parms[ic][parms[ic].size()-1];
+			for (uint16_t i=parms[ic].size()-2; i<parms[ic].size(); --i)
+			{
+				result.a4[ic] *= x;
+				result.a4[ic] += parms[ic][i];
+			}
 		}
 	}
 
@@ -1009,11 +1064,66 @@ rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms)
 
 	for (uint16_t ic=0; ic<parms.size(); ++ic)
 	{
-		result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1);
-		for (uint16_t i=parms[ic].size()-2; i>0; --i)
+		if (parms[ic].size() < 2)
 		{
-			result.a4[ic] *= x;
-			result.a4[ic] += i * parms[ic][i];
+			result.a4[ic] = 0.;
+		}
+		else
+		{
+			result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1);
+			for (uint16_t i=parms[ic].size()-2; i>0; --i)
+			{
+				result.a4[ic] *= x;
+				result.a4[ic] += i * parms[ic][i];
+			}
+		}
+	}
+
+	return result.r;
+}
+
+rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms)
+{
+	uvector result;
+
+	for (uint16_t ic=0; ic<parms.size(); ++ic)
+	{
+		if (parms[ic].size() < 2)
+		{
+			result.a4[ic] = 0.;
+		}
+		else
+		{
+			result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1) * (parms[ic].size()-2);
+			for (uint16_t i=parms[ic].size()-2; i>1; --i)
+			{
+				result.a4[ic] *= x;
+				result.a4[ic] += i * (i-1) * parms[ic][i];
+			}
+		}
+	}
+
+	return result.r;
+}
+
+rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
+{
+	uvector result;
+
+	for (uint16_t ic=0; ic<parms.size(); ++ic)
+	{
+		if (parms[ic].size() < 2)
+		{
+			result.a4[ic] = 0.;
+		}
+		else
+		{
+			result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1) * (parms[ic].size()-2) * (parms[ic].size()-3);
+			for (uint16_t i=parms[ic].size()-2; i>2; --i)
+			{
+				result.a4[ic] *= x;
+				result.a4[ic] += i * (i-1) * (i-2) * parms[ic][i];
+			}
 		}
 	}
 
@@ -1026,11 +1136,18 @@ quaternion q_evaluate_poly(double x, vector< vector<double> > parms)
 
 	for (uint16_t ic=0; ic<parms.size(); ++ic)
 	{
-		result.a4[ic] = parms[ic][parms[ic].size()-1];
-		for (uint16_t i=parms[ic].size()-2; i<parms[ic].size(); --i)
+		if (parms[ic].size() < 2)
 		{
-			result.a4[ic] *= x;
-			result.a4[ic] += parms[ic][i];
+			result.a4[ic] = 0.;
+		}
+		else
+		{
+			result.a4[ic] = parms[ic][parms[ic].size()-1];
+			for (uint16_t i=parms[ic].size()-2; i<parms[ic].size(); --i)
+			{
+				result.a4[ic] *= x;
+				result.a4[ic] += parms[ic][i];
+			}
 		}
 	}
 
@@ -1043,11 +1160,66 @@ quaternion q_evaluate_poly_slope(double x, vector< vector<double> > parms)
 
 	for (uint16_t ic=0; ic<parms.size(); ++ic)
 	{
-		result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1);
-		for (uint16_t i=parms[ic].size()-2; i>0; --i)
+		if (parms[ic].size() < 2)
 		{
-			result.a4[ic] *= x;
-			result.a4[ic] += i * parms[ic][i];
+			result.a4[ic] = 0.;
+		}
+		else
+		{
+			result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1);
+			for (uint16_t i=parms[ic].size()-2; i>0; --i)
+			{
+				result.a4[ic] *= x;
+				result.a4[ic] += i * parms[ic][i];
+			}
+		}
+	}
+
+	return result.q;
+}
+
+quaternion q_evaluate_poly_accel(double x, vector< vector<double> > parms)
+{
+	uvector result;
+
+	for (uint16_t ic=0; ic<parms.size(); ++ic)
+	{
+		if (parms[ic].size() < 2)
+		{
+			result.a4[ic] = 0.;
+		}
+		else
+		{
+			result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1) * (parms[ic].size()-2);
+			for (uint16_t i=parms[ic].size()-2; i>1; --i)
+			{
+				result.a4[ic] *= x;
+				result.a4[ic] += i * (i-1) * parms[ic][i];
+			}
+		}
+	}
+
+	return result.q;
+}
+
+quaternion q_evaluate_poly_jerk(double x, vector< vector<double> > parms)
+{
+	uvector result;
+
+	for (uint16_t ic=0; ic<parms.size(); ++ic)
+	{
+		if (parms[ic].size() < 2)
+		{
+			result.a4[ic] = 0.;
+		}
+		else
+		{
+			result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1) * (parms[ic].size()-2) * (parms[ic].size()-3);
+			for (uint16_t i=parms[ic].size()-2; i>2; --i)
+			{
+				result.a4[ic] *= x;
+				result.a4[ic] += i * (i-1) * (i-2) * parms[ic][i];
+			}
 		}
 	}
 
@@ -2288,6 +2460,78 @@ quaternion lsfit::slopequaternion(double x)
 	if (var.size() > order)
 	{
 		return q_evaluate_poly_slope(x - basex, parms);
+	}
+	else
+	{
+		return q_zero();
+	}
+}
+
+double lsfit::accel(double x)
+{
+	if (var.size() > order)
+	{
+		return evaluate_poly_accel(x - basex, parms[0]);
+	}
+	else
+	{
+		return 0.;
+	}
+}
+
+rvector lsfit::accelrvector(double x)
+{
+	if (var.size() > order)
+	{
+		return rv_evaluate_poly_accel(x - basex, parms);
+	}
+	else
+	{
+		return rv_zero();
+	}
+}
+
+quaternion lsfit::accelquaternion(double x)
+{
+	if (var.size() > order)
+	{
+		return q_evaluate_poly_accel(x - basex, parms);
+	}
+	else
+	{
+		return q_zero();
+	}
+}
+
+double lsfit::jerk(double x)
+{
+	if (var.size() > order)
+	{
+		return evaluate_poly_jerk(x - basex, parms[0]);
+	}
+	else
+	{
+		return 0.;
+	}
+}
+
+rvector lsfit::jerkrvector(double x)
+{
+	if (var.size() > order)
+	{
+		return rv_evaluate_poly_jerk(x - basex, parms);
+	}
+	else
+	{
+		return rv_zero();
+	}
+}
+
+quaternion lsfit::jerkquaternion(double x)
+{
+	if (var.size() > order)
+	{
+		return q_evaluate_poly_jerk(x - basex, parms);
 	}
 	else
 	{

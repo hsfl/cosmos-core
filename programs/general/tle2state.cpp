@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 		utc = tle[0].utc;
 	}
 
-	tle2eci(utc, tle[0], &eci);
+	tle2eci(utc, tle[0], eci);
 	eci.utc = utc;
 
 	string jsp;

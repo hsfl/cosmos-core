@@ -2431,32 +2431,32 @@ void mean2mean(double ep0, double ep1, rmatrix *pm)
 
 }
 
-void kep2eci(kepstruc *kep, cartpos *eci)
+void kep2eci(kepstruc &kep, cartpos &eci)
 {
 	rvector qpos = {{0.}}, qvel = {{0.}};
 	double s1, s2, s3, c1, c2, c3;
 	double xx, xy, xz, yx, yy, yz, zx, zy, zz;
 	double sea, cea, sqe;
 
-	sea = sin(kep->ea);
-	cea = cos(kep->ea);
-	sqe = sqrt(1. - kep->e * kep->e);
+	sea = sin(kep.ea);
+	cea = cos(kep.ea);
+	sqe = sqrt(1. - kep.e * kep.e);
 
-	qpos.col[0] = kep->a * (cea - kep->e);
-	qpos.col[1] = kep->a * sqe * sea;
+	qpos.col[0] = kep.a * (cea - kep.e);
+	qpos.col[1] = kep.a * sqe * sea;
 	qpos.col[2] = 0.;
 
-	kep->mm = sqrt(GM/pow(kep->a,3.));
-	qvel.col[0] = -kep->mm * kep->a * sea / (1. - kep->e*cea);
-	qvel.col[1] = kep->mm * kep->a * sqe * cea / (1. - kep->e*cea);
+	kep.mm = sqrt(GM/pow(kep.a,3.));
+	qvel.col[0] = -kep.mm * kep.a * sea / (1. - kep.e*cea);
+	qvel.col[1] = kep.mm * kep.a * sqe * cea / (1. - kep.e*cea);
 	qvel.col[2] = 0.;
 
-	s1 = sin(kep->raan);
-	c1 = cos(kep->raan);
-	s2 = sin(kep->i);
-	c2 = cos(kep->i);
-	s3 = sin(kep->ap);
-	c3 = cos(kep->ap);
+	s1 = sin(kep.raan);
+	c1 = cos(kep.raan);
+	s2 = sin(kep.i);
+	c2 = cos(kep.i);
+	s3 = sin(kep.ap);
+	c3 = cos(kep.ap);
 
 	xx = c1*c3 - s1*c2*s3;
 	xy = -c1*s3 - s1*c2*c3;
@@ -2470,76 +2470,76 @@ void kep2eci(kepstruc *kep, cartpos *eci)
 	zy = s2*c3;
 	zz = c2;
 
-	eci->s = eci->v = eci->a = rv_zero();
+	eci.s = eci.v = eci.a = rv_zero();
 
-	eci->s.col[0] = qpos.col[0] * xx + qpos.col[1] * xy + qpos.col[2] * xz;
-	eci->s.col[1] = qpos.col[0] * yx + qpos.col[1] * yy + qpos.col[2] * yz;
-	eci->s.col[2] = qpos.col[0] * zx + qpos.col[1] * zy + qpos.col[2] * zz;
+	eci.s.col[0] = qpos.col[0] * xx + qpos.col[1] * xy + qpos.col[2] * xz;
+	eci.s.col[1] = qpos.col[0] * yx + qpos.col[1] * yy + qpos.col[2] * yz;
+	eci.s.col[2] = qpos.col[0] * zx + qpos.col[1] * zy + qpos.col[2] * zz;
 
-	eci->v.col[0] = qvel.col[0] * xx + qvel.col[1] * xy + qvel.col[2] * xz;
-	eci->v.col[1] = qvel.col[0] * yx + qvel.col[1] * yy + qvel.col[2] * yz;
-	eci->v.col[2] = qvel.col[0] * zx + qvel.col[1] * zy + qvel.col[2] * zz;
+	eci.v.col[0] = qvel.col[0] * xx + qvel.col[1] * xy + qvel.col[2] * xz;
+	eci.v.col[1] = qvel.col[0] * yx + qvel.col[1] * yy + qvel.col[2] * yz;
+	eci.v.col[2] = qvel.col[0] * zx + qvel.col[1] * zy + qvel.col[2] * zz;
 
-	eci->utc = kep->utc;
+	eci.utc = kep.utc;
 }
 
-void eci2kep(cartpos *eci,kepstruc *kep)
+void eci2kep(cartpos &eci,kepstruc &kep)
 {
 	double magr, magv, magn, sme, rdotv, temp;
 	double c1, hk, magh;
 	rvector nbar = {{0.}}, ebar = {{0.}}, rsun = {{0.}}, hsat = {{0.}};
 	cartpos earthpos;
 
-	kep->utc = eci->utc;
+	kep.utc = eci.utc;
 
-	magr = length_rv(eci->s);
+	magr = length_rv(eci.s);
 	if (magr < D_SMALL)
 		magr = D_SMALL;
-	magv = length_rv(eci->v);
+	magv = length_rv(eci.v);
 	if (magv < D_SMALL)
 		magv = D_SMALL;
-	kep->h = rv_cross(eci->s,eci->v);
+	kep.h = rv_cross(eci.s,eci.v);
 	if (magr == D_SMALL && magv == D_SMALL)
-		kep->fa = acos(1./D_SMALL);
+		kep.fa = acos(1./D_SMALL);
 	else
-		kep->fa = acos(length_rv(kep->h)/(magr*magv));
-	kep->eta = magv*magv/2. - GM/magr;
-	magh = length_rv(kep->h);
-	jplpos(JPL_EARTH,JPL_SUN_BARY,utc2tt(eci->utc),&earthpos);
+		kep.fa = acos(length_rv(kep.h)/(magr*magv));
+	kep.eta = magv*magv/2. - GM/magr;
+	magh = length_rv(kep.h);
+	jplpos(JPL_EARTH,JPL_SUN_BARY,utc2tt(eci.utc),&earthpos);
 	rsun = earthpos.s;
 	normalize_rv(&rsun);
-	hsat = kep->h;
+	hsat = kep.h;
 	normalize_rv(&hsat);
-	kep->beta = asin(dot_rv(rsun,hsat));
+	kep.beta = asin(dot_rv(rsun,hsat));
 
 	if (magh > O_SMALL)
 	{
 		// ------------  find a e and semi-latus rectum   ----------
-		nbar.col[0] = -kep->h.col[1];
-		nbar.col[1] = kep->h.col[0];
+		nbar.col[0] = -kep.h.col[1];
+		nbar.col[1] = kep.h.col[0];
 		nbar.col[2] = 0.0;
 		magn = length_rv(nbar);
 		c1 = magv * magv - GM / magr;
-		rdotv = dot_rv(eci->s,eci->v);
-		ebar.col[0] = (c1 * eci->s.col[0] - rdotv * eci->v.col[0]) / GM;
-		ebar.col[1] = (c1 * eci->s.col[1] - rdotv * eci->v.col[1]) / GM;
-		ebar.col[2] = (c1 * eci->s.col[2] - rdotv * eci->v.col[2]) / GM;
-		kep->e = length_rv(ebar);
+		rdotv = dot_rv(eci.s,eci.v);
+		ebar.col[0] = (c1 * eci.s.col[0] - rdotv * eci.v.col[0]) / GM;
+		ebar.col[1] = (c1 * eci.s.col[1] - rdotv * eci.v.col[1]) / GM;
+		ebar.col[2] = (c1 * eci.s.col[2] - rdotv * eci.v.col[2]) / GM;
+		kep.e = length_rv(ebar);
 
 		sme = (magv * magv * 0.5) - (GM / magr);
 		if (fabs(sme) > O_SMALL)
-			kep->a = -GM / (2. * sme);
+			kep.a = -GM / (2. * sme);
 		else
-			kep->a = O_INFINITE;
+			kep.a = O_INFINITE;
 		//	p = magh * magh / GM;
 
 		// find mean motion and period
-		kep->mm = sqrt(GM/pow(kep->a,3.));
-		kep->period = 2. * DPI / kep->mm;
+		kep.mm = sqrt(GM/pow(kep.a,3.));
+		kep.period = 2. * DPI / kep.mm;
 
 		// -----------------  find inclination   -------------------
-		hk = kep->h.col[2] / magh;
-		kep->i = acos(hk);
+		hk = kep.h.col[2] / magh;
+		kep.i = acos(hk);
 
 		// ----------  find longitude of ascending node ------------
 		if (magn > O_SMALL)
@@ -2547,30 +2547,30 @@ void eci2kep(cartpos *eci,kepstruc *kep)
 			temp = nbar.col[0] / magn;
 			if (fabs(temp) > 1.)
 				temp = temp<1.?-1.:(temp>1.?1.:0.);
-			kep->raan = acos(temp);
+			kep.raan = acos(temp);
 			if (nbar.col[1] < 0.)
-				kep->raan = D2PI - kep->raan;
+				kep.raan = D2PI - kep.raan;
 		}
 		else
-			kep->raan = O_UNDEFINED;
+			kep.raan = O_UNDEFINED;
 
 		// Find eccentric and mean anomaly
-		kep->ea = atan2(rdotv/sqrt(kep->a*GM),1.-magr/kep->a);
-		kep->ma = kep->ea - kep->e*sin(kep->ea);
+		kep.ea = atan2(rdotv/sqrt(kep.a*GM),1.-magr/kep.a);
+		kep.ma = kep.ea - kep.e*sin(kep.ea);
 
 		// Find argument of latitude
-		kep->alat = atan2(eci->s.col[2],(eci->s.col[1]*kep->h.col[0]-eci->s.col[0]*kep->h.col[1])/magh);
+		kep.alat = atan2(eci.s.col[2],(eci.s.col[1]*kep.h.col[0]-eci.s.col[0]*kep.h.col[1])/magh);
 
 		// Find true anomaly
-		kep->ta = atan2(sqrt(1-kep->e*kep->e)*sin(kep->ea),cos(kep->ea)-kep->e);
+		kep.ta = atan2(sqrt(1-kep.e*kep.e)*sin(kep.ea),cos(kep.ea)-kep.e);
 
 		// Find argument of perigee
-		kep->ap = kep->alat - kep->ta;
+		kep.ap = kep.alat - kep.ta;
 	}
 	else
 	{
-		kep->a = kep->e = kep->i = kep->raan = O_UNDEFINED;
-		kep->ap = kep->alat = kep->ma = kep->ta = kep->ea = kep->mm = O_UNDEFINED;
+		kep.a = kep.e = kep.i = kep.raan = O_UNDEFINED;
+		kep.ap = kep.alat = kep.ma = kep.ta = kep.ea = kep.mm = O_UNDEFINED;
 	}
 }
 
@@ -2633,7 +2633,7 @@ void topo2azel(rvector tpos, float *az, float *el)
 	\param lines Vector of TLE's.
 	\param eci Pointer to ::cartpos in ECI frame.
 	*/
-int lines2eci(double utc, vector<tlestruc>lines, cartpos *eci)
+int lines2eci(double utc, vector<tlestruc>lines, cartpos &eci)
 {
 	static uint16_t lindex=0;
 	int32_t iretn;
@@ -2662,7 +2662,7 @@ int lines2eci(double utc, vector<tlestruc>lines, cartpos *eci)
 * @param tle Two Line Element structure, given as pointer to a ::tlestruc
 * @param pos_teme result from SGP4 algorithm is a cartesian state given in TEME frame, as pointer to a ::cartpos
 */
-int sgp4(double utc, tlestruc tle, cartpos *pos_teme)
+int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
 {
     //	rmatrix pm = {{{{0.}}}};
     //	static int lsnumber=-99;
@@ -2872,14 +2872,14 @@ int sgp4(double utc, tlestruc tle, cartpos *pos_teme)
     vy=xmy* cosuk-sinnok* sinuk;
     vz= sinik * cosuk;
     // POSITION AND VELOCITY in TEME
-    pos_teme->s = pos_teme->v = pos_teme->a = rv_zero();
+	pos_teme.s = pos_teme.v = pos_teme.a = rv_zero();
 
-    pos_teme->s.col[0] = REARTHM * rk *ux;
-    pos_teme->s.col[1] = REARTHM * rk *uy;
-    pos_teme->s.col[2] = REARTHM * rk *uz;
-    pos_teme->v.col[0] =REARTHM * (rdotk*ux+rfdotk*vx) / 60.;
-    pos_teme->v.col[1] =REARTHM * (rdotk*uy+rfdotk*vy) / 60.;
-    pos_teme->v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
+	pos_teme.s.col[0] = REARTHM * rk *ux;
+	pos_teme.s.col[1] = REARTHM * rk *uy;
+	pos_teme.s.col[2] = REARTHM * rk *uz;
+	pos_teme.v.col[0] =REARTHM * (rdotk*ux+rfdotk*vx) / 60.;
+	pos_teme.v.col[1] =REARTHM * (rdotk*uy+rfdotk*vy) / 60.;
+	pos_teme.v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
 
     return 0;
 }
@@ -2890,7 +2890,7 @@ int sgp4(double utc, tlestruc tle, cartpos *pos_teme)
 * @param line Two Line Element, given as pointer to a ::tlestruc
 * @param eci Converted location, given as pointer to a ::cartpos
 */
-int tle2eci(double utc, tlestruc tle, cartpos *eci)
+int tle2eci(double utc, tlestruc tle, cartpos &eci)
 {
 
     // call sgp4, eci is passed by pointer
@@ -2902,27 +2902,27 @@ int tle2eci(double utc, tlestruc tle, cartpos *eci)
 	// Uniform of Date to True of Date (Equation of Equinoxes)
 	rmatrix sm;
 	teme2true(utc, &sm);
-	eci->s = rv_mmult(sm,eci->s);
-	eci->v = rv_mmult(sm,eci->v);
+	eci.s = rv_mmult(sm,eci.s);
+	eci.v = rv_mmult(sm,eci.v);
 
 	// True of Date to Mean of Date (Nutation)
 	rmatrix nm;
 	true2mean(utc,&nm);
-	eci->s = rv_mmult(nm,eci->s);
-	eci->v = rv_mmult(nm,eci->v);
+	eci.s = rv_mmult(nm,eci.s);
+	eci.v = rv_mmult(nm,eci.v);
 
 	// Mean of Date to ICRF (precession)
 	rmatrix pm;
 	mean2j2000(utc,&pm);
-	eci->s = rv_mmult(pm,eci->s);
-	eci->v = rv_mmult(pm,eci->v);
+	eci.s = rv_mmult(pm,eci.s);
+	eci.v = rv_mmult(pm,eci.v);
 
 	rmatrix bm;
 	j20002gcrf(&bm);
-	eci->s = rv_mmult(bm,eci->s);
-	eci->v = rv_mmult(bm,eci->v);
+	eci.s = rv_mmult(bm,eci.s);
+	eci.v = rv_mmult(bm,eci.v);
 
-	eci->utc = utc;
+	eci.utc = utc;
 
 	return 0;
 }
@@ -3112,7 +3112,7 @@ int32_t load_lines(char *fname, vector<tlestruc>& lines)
 	\param filename Name of file containing positions.
 	\return The number of entries in the table, otherwise a negative error.
 */
-int32_t load_stk(char *filename, stkstruc *stkdata)
+int32_t load_stk(char *filename, stkstruc &stkdata)
 {
 	FILE *fdes;
 	int32_t maxcount;
@@ -3124,23 +3124,23 @@ int32_t load_stk(char *filename, stkstruc *stkdata)
 		return (STK_ERROR_NOTFOUND);
 
 	maxcount = 1000;
-	stkdata->pos = (cposstruc *)calloc(maxcount,sizeof(cposstruc));
-	stkdata->count = 0;
+	stkdata.pos = (cposstruc *)calloc(maxcount,sizeof(cposstruc));
+	stkdata.count = 0;
 	while (!feof(fdes))
 	{
 		char* ichar = fgets(ibuf,250,fdes);
 		if (ichar == NULL || feof(fdes))
 			break;
-		if ((iretn=sscanf(ibuf,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",&stkdata->pos[stkdata->count].pos.utc,&stkdata->pos[stkdata->count].pos.s.col[0],&stkdata->pos[stkdata->count].pos.s.col[1],&stkdata->pos[stkdata->count].pos.s.col[2],&stkdata->pos[stkdata->count].pos.v.col[0],&stkdata->pos[stkdata->count].pos.v.col[1],&stkdata->pos[stkdata->count].pos.v.col[2],&stkdata->pos[stkdata->count].pos.a.col[0],&stkdata->pos[stkdata->count].pos.a.col[1],&stkdata->pos[stkdata->count].pos.a.col[2])) == 10)
+		if ((iretn=sscanf(ibuf,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",&stkdata.pos[stkdata.count].pos.utc,&stkdata.pos[stkdata.count].pos.s.col[0],&stkdata.pos[stkdata.count].pos.s.col[1],&stkdata.pos[stkdata.count].pos.s.col[2],&stkdata.pos[stkdata.count].pos.v.col[0],&stkdata.pos[stkdata.count].pos.v.col[1],&stkdata.pos[stkdata.count].pos.v.col[2],&stkdata.pos[stkdata.count].pos.a.col[0],&stkdata.pos[stkdata.count].pos.a.col[1],&stkdata.pos[stkdata.count].pos.a.col[2])) == 10)
 		{
-			stkdata->pos[stkdata->count].utc = stkdata->pos[stkdata->count].pos.utc;
-			stkdata->count++;
-			if (!(stkdata->count%1000))
+			stkdata.pos[stkdata.count].utc = stkdata.pos[stkdata.count].pos.utc;
+			stkdata.count++;
+			if (!(stkdata.count%1000))
 			{
 				maxcount += 1000;
-				tpos = stkdata->pos;
-				stkdata->pos = (cposstruc *)calloc(maxcount,sizeof(cposstruc));
-				memcpy(stkdata->pos,tpos,(maxcount-1000)*sizeof(cposstruc));
+				tpos = stkdata.pos;
+				stkdata.pos = (cposstruc *)calloc(maxcount,sizeof(cposstruc));
+				memcpy(stkdata.pos,tpos,(maxcount-1000)*sizeof(cposstruc));
 				free(tpos);
 			}
 		}
@@ -3148,9 +3148,11 @@ int32_t load_stk(char *filename, stkstruc *stkdata)
 			iretn = 0;
 	}
 	fclose(fdes);
-	if (stkdata->count)
-		stkdata->dt = ((stkdata->pos[9].utc - stkdata->pos[0].utc))/9.;
-	return (stkdata->count);
+	if (stkdata.count)
+	{
+		stkdata.dt = ((stkdata.pos[9].utc - stkdata.pos[0].utc))/9.;
+	}
+	return (stkdata.count);
 }
 
 /**
@@ -3166,61 +3168,61 @@ int32_t load_stk(char *filename, stkstruc *stkdata)
 	\param eci Structure to return position in
 	\return 0 if successful, otherwise negative error
 */
-int stk2eci(double utc, stkstruc *stk, cartpos *eci)
+int stk2eci(double utc, stkstruc &stk, cartpos &eci)
 {
 	int32_t index, i, j;
 	double findex;
 	uvector t, p, su, vu, au;
 	rmatrix s, v, a;
 
-	findex = ((utc-stk->pos[0].utc)/stk->dt)+.5;
+	findex = ((utc-stk.pos[0].utc)/stk.dt)+.5;
 	if (findex < 1)
 	{
 		findex = 1.;
 	}
-	if (findex >= stk->count)
+	if (findex >= stk.count)
 	{
-		findex = stk->count - 1;
+		findex = stk.count - 1;
 	}
 
-	findex = (int)findex + ((utc-stk->pos[(int)findex].utc)/stk->dt) + .5;
+	findex = (int)findex + ((utc-stk.pos[(int)findex].utc)/stk.dt) + .5;
 
 	index = (int)findex-1;
 	if (index < 0)
 		return (STK_ERROR_LOWINDEX);
 
-	if (index > (int32_t)stk->count-3)
+	if (index > (int32_t)stk.count-3)
 		return (STK_ERROR_HIGHINDEX);
 
 
 	for (i=0; i<3; i++)
 	{
-		t.a4[i] = utc-stk->pos[index+i].utc;
+		t.a4[i] = utc-stk.pos[index+i].utc;
 		for (j=0; j<3; j++)
 		{
-			s.row[j].col[i] = stk->pos[index+i].pos.s.col[j];
-			v.row[j].col[i] = stk->pos[index+i].pos.v.col[j];
-			a.row[j].col[i] = stk->pos[index+i].pos.a.col[j];
+			s.row[j].col[i] = stk.pos[index+i].pos.s.col[j];
+			v.row[j].col[i] = stk.pos[index+i].pos.v.col[j];
+			a.row[j].col[i] = stk.pos[index+i].pos.a.col[j];
 		}
 	}
 
-	eci->utc = utc;
-	eci->s = eci->v = eci->a = rv_zero();
+	eci.utc = utc;
+	eci.s = eci.v = eci.a = rv_zero();
 
 	for (j=0; j<3; j++)
 	{
 		su.r = s.row[j];
 		p = rv_fitpoly(t,su,2);
-		//	eci->s.col[j] = p.a4[0] + utc * (p.a4[1] + utc * p.a4[2]);
-		eci->s.col[j] = p.a4[0];
+		//	eci.s.col[j] = p.a4[0] + utc * (p.a4[1] + utc * p.a4[2]);
+		eci.s.col[j] = p.a4[0];
 		vu.r = v.row[j];
 		p = rv_fitpoly(t,vu,2);
-		//	eci->v.col[j] = p.a4[0] + utc * (p.a4[1] + utc * p.a4[2]);
-		eci->v.col[j] = p.a4[0];
+		//	eci.v.col[j] = p.a4[0] + utc * (p.a4[1] + utc * p.a4[2]);
+		eci.v.col[j] = p.a4[0];
 		au.r = a.row[j];
 		p = rv_fitpoly(t,au,2);
-		//	eci->a.col[j] = p.a4[0] + utc * (p.a4[1] + utc * p.a4[2]);
-		eci->a.col[j] = p.a4[0];
+		//	eci.a.col[j] = p.a4[0] + utc * (p.a4[1] + utc * p.a4[2]);
+		eci.a.col[j] = p.a4[0];
 	}
 
 	return 0;

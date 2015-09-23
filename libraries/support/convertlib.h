@@ -110,8 +110,8 @@ void pos_selc2selg(locstruc *loc);
 void pos_selc2sci(locstruc *loc);
 void pos_selg2selc(locstruc *loc);
 void pos_selc2eci(locstruc *loc);
-void eci2kep(cartpos *eci,kepstruc *kep);
-void kep2eci(kepstruc *kep,cartpos *eci);
+void eci2kep(cartpos &eci, kepstruc &kep);
+void kep2eci(kepstruc &kep,cartpos &eci);
 double rearth(double lat);
 double mjd2year(double mjd);
 void att_extra(locstruc *loc);
@@ -150,14 +150,14 @@ void true2teme(double ep0, rmatrix *rm);
 void mean2mean(double ep0, double ep1, rmatrix *pm);
 void geoc2topo(gvector gs, rvector geoc, rvector *topo);
 void topo2azel(rvector tpos, float *az, float *el);
-int lines2eci(double mjd, vector<tlestruc> tle, cartpos *eci);
-int tle2eci(double mjd, tlestruc tle, cartpos *eci);
-int sgp4(double utc, tlestruc tle, cartpos *pos_teme);
+int lines2eci(double mjd, vector<tlestruc> tle, cartpos &eci);
+int tle2eci(double mjd, tlestruc tle, cartpos &eci);
+int sgp4(double utc, tlestruc tle, cartpos &pos_teme);
 tlestruc get_line(uint16_t index, vector<tlestruc> tle);
 int32_t load_lines(char *fname, vector<tlestruc>& tle);
 int32_t loadTLE(char *fname, tlestruc &tle);
-int32_t load_stk(char *filename, stkstruc *stkdata);
-int stk2eci(double utc, stkstruc *stk, cartpos *eci);
+int32_t load_stk(char *filename, stkstruc &stkdata);
+int stk2eci(double utc, stkstruc &stk, cartpos &eci);
 
 //! @}
 

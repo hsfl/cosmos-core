@@ -148,6 +148,8 @@ rvector rv_sqrt(rvector a);
 rvector rv_cross(rvector a, rvector b);
 rvector rv_evaluate_poly(double x, std::vector< std::vector<double> > parms);
 rvector rv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
+rvector rv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
+rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
 rvector rv_convert(svector from);
 
 double norm_rv(rvector a);

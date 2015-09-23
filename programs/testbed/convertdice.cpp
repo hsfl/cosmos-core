@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	for (utc=nmjd; utc<lmjd; utc+=10./86400.)
 	{
 		cdata[0].node.loc.utc = currentmjd(cdata[0].node.utcoffset);
-		if (lines2eci(utc, cdata[0].tle, &npos) < 0)
+		if (lines2eci(utc, cdata[0].tle, npos) < 0)
 			exit (1);
 		cdata[0].node.loc.utc = utc;
 		update_eci(*cdata, cdata[0].node.loc.utc, npos);
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 			break;
 
 		cdata[0].node.loc.utc = currentmjd(cdata[0].node.utcoffset);
-		if (lines2eci(utc, cdata[0].tle, &npos) < 0)
+		if (lines2eci(utc, cdata[0].tle, npos) < 0)
 			exit (1);
 		cdata[0].node.loc.utc = utc;
 		update_eci(*cdata, cdata[0].node.loc.utc, npos);
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 	for (utc=lmjd; utc<nmjd; utc+=10./86400.)
 	{
 		cdata[0].node.loc.utc = currentmjd(cdata[0].node.utcoffset);
-		if (lines2eci(utc, cdata[0].tle, &npos) < 0)
+		if (lines2eci(utc, cdata[0].tle, npos) < 0)
 			exit (1);
 		cdata[0].node.loc.utc = utc;
 		update_eci(*cdata, cdata[0].node.loc.utc, npos);
