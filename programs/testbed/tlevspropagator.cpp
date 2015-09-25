@@ -35,8 +35,9 @@
 
 #define TLE 0
 #define STK 1
+#define INI 2
 //#define DT (1./3.)
-#define DT .1
+#define DT 1.
 #define MT 10
 
 int main(int argc, char *argv[])
@@ -61,66 +62,50 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	if (modelname[modelname.size()-3] == 't')
+	switch (modelname[modelname.size()-3])
 	{
-		modeltype = TLE;
-		load_lines(argv[1], tle);
-	}
-	else
-	{
-		modeltype = STK;
-		load_stk(argv[1], stk);
-	}
-
-	if (utc == 0.)
-	{
-		if (modeltype == TLE)
+	case 't':
+		// TLE
 		{
-			utc = tle[0].utc + DT*MT/86400.;
-			tle2eci(utc, tle[0], eci);
+			modeltype = TLE;
+			load_lines(argv[1], tle);
+			if (utc == 0.)
+			{
+				utc = tle[0].utc + DT*MT/86400.;
+				tle2eci(utc, tle[0], eci);
+			}
 		}
-		else
+		break;
+	case 's':
+		// STK
 		{
-			utc = stk.pos[0].utc;
-			eci = stk.pos[0].pos;
-//			stk2eci(utc, &stk, &eci);
+			modeltype = STK;
+			load_stk(argv[1], stk);
+			if (utc == 0.)
+			{
+				utc = stk.pos[0].utc;
+				eci = stk.pos[0].pos;
+			}
 		}
+		break;
+	case 'i':
+		// state.ini
+		{
+			modeltype = INI;
+			FILE *fdes;
+			if ((fdes=fopen(argv[1],"r")) != NULL)
+			{
+//				ibuf = (char *)calloc(1,fstat.st_size+1);
+//				fgets(ibuf,fstat.st_size,fdes);
+				fscanf(fdes, "{\"node_loc_pos_eci\":{\"utc\":%lf,\"pos\":[%lf,%lf,%lf],\"vel\":[%lf,%lf,%lf]", &eci.utc, &eci.s.col[0], &eci.s.col[1], &eci.s.col[2], &eci.v.col[0], &eci.v.col[1], &eci.v.col[2]);
+//				json_parse(ibuf,cdata);
+//				free(ibuf);
+			}
+			utc = eci.utc;
+		}
+		break;
 	}
 
-//	double tt = cal2mjd(2004, 4, 6, 7, 51, 28, 386009000);
-//	double dpsi = DEGOF(utc2dpsi(tt));
-//	double deps = DEGOF(utc2depsilon(tt));
-//	double eps = DEGOF(utc2epsilon(tt));
-//	double omega = DEGOF(utc2omega(tt));
-//	double gmst = DEGOF(utc2gmst1982(tt));
-//	double gast = DEGOF(utc2gast(tt));
-//	tt = utc2jcentt(tt);
-
-//	rmatrix pm;
-//	double temeutc = cal2mjd(2000, 0, 182.78495062)+1;
-//	double eeq = DEGOF(utc2gast(temeutc) - utc2gmst1982(temeutc));
-//	dpsi = DEGOF(utc2dpsi(temeutc));
-//	deps = DEGOF(utc2depsilon(temeutc));
-//	eps = DEGOF(utc2epsilon(temeutc));
-//	//51726.78495062;
-//	rvector teme = {{-9060473.73569, 4645709.52502, 813686.73153}};
-//	teme2true(temeutc, &pm);
-//	teme = rv_mmult(pm, teme);
-//	true2mean(temeutc, &pm);
-//	teme = rv_mmult(pm, teme);
-//	mean2j2000(temeutc, &pm);
-//	teme = rv_mmult(pm, teme);
-//	j20002gcrf(&pm);
-//	teme = rv_mmult(pm, teme);
-
-//	rvector mod = {{7022.465305, -1400.082889, 0.221526}};
-//	mean2j2000(utc, &pm);
-//	rvector j2000 = {{7022.312444, -1400.849398, -0.110870}};
-//	rvector my2000 = rv_mmult(pm, mod);
-//	gcrf2j2000(&pm);
-//	my2000 = rv_mmult(pm, my2000);
-//	j20002gcrf(&pm);
-//	my2000 = rv_mmult(pm, my2000);
 	eci.utc = utc;
 
 	gj_handle gjh;
@@ -138,7 +123,7 @@ int main(int argc, char *argv[])
 	att.a = rv_zero();
 //	cdata->physics.mass = 400000.;
 //	cdata->physics.area = 200.;
-	cdata->physics.mass = 3.;
+	cdata->physics.mass = 55.;
 	cdata->physics.area = .01;
 
     locstruc loc;
@@ -150,22 +135,51 @@ int main(int argc, char *argv[])
     gauss_jackson_init_eci(gjh, 6, 0, DT, utc, eci, att, cdata->physics, cdata->node.loc);
     simulate_hardware(*cdata, cdata->node.loc);
 
-	for (size_t i=1; i<(modeltype==TLE?10000:stk.count-1); ++i)
+	size_t total_count;
+	switch (modeltype)
+	{
+	case TLE:
+	case INI:
+		{
+			total_count = 86400.;
+		}
+		break;
+	case STK:
+		{
+			total_count = stk.count-1;
+		}
+		break;
+	}
+
+	for (size_t i=1; i<total_count; ++i)
 	{
 		double cmjd;
-		if (modeltype == TLE)
+		switch (modeltype)
 		{
-			cmjd = utc + i*DT*MT/86400.;
-            gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cmjd);
-            simulate_hardware(*cdata, cdata->node.loc);
-			tle2eci(cmjd, tle[0], eci);
-		}
-		else
-		{
-			cmjd = stk.pos[i].utc;
-            gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cmjd);
-            simulate_hardware(*cdata, cdata->node.loc);
-			stk2eci(cmjd, stk, eci);
+		case TLE:
+			{
+				cmjd = utc + i*DT*MT/86400.;
+				gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cmjd);
+				simulate_hardware(*cdata, cdata->node.loc);
+				tle2eci(cmjd, tle[0], eci);
+			}
+			break;
+		case STK:
+			{
+				cmjd = stk.pos[i].utc;
+				gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cmjd);
+				simulate_hardware(*cdata, cdata->node.loc);
+				stk2eci(cmjd, stk, eci);
+			}
+			break;
+		case INI:
+			{
+				cmjd = utc + i*DT*MT/86400.;
+				gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cmjd);
+				simulate_hardware(*cdata, cdata->node.loc);
+				eci = cdata->node.loc.pos.eci;
+			}
+			break;
 		}
 		kepstruc kep;
 		eci2kep(eci, kep);
