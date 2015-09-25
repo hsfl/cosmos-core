@@ -711,7 +711,7 @@ int32_t cssl_getchar(cssl_t *serial)
 
 #ifdef COSMOS_WIN_OS
     int n=0;
-    ReadFile(serial->handle, &c, 1, (LPDWORD)((void *)&n), NULL);
+	result = ReadFile(serial->handle, &c, 1, (LPDWORD)((void *)&n), NULL);
 #else
 	result=read(serial->fd,&c,sizeof(c));
 #endif
