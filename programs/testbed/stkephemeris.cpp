@@ -150,7 +150,7 @@ mjdnow = cdata[0].node.loc.utc;
 lastlat = cdata[0].node.loc.pos.geod.s.lat;
 for (j=0; j<cdata[0].node.target_cnt; j++)
 	{
-	azel = groundstation(&cdata[0].node.loc,&track[j].loc);
+	azel = groundstation(cdata[0].node.loc,track[j].loc);
 	lastgsel[j] = azel.phi;
 	gsup[j] = 0;
 	}
@@ -205,7 +205,7 @@ for (i=0; i<9331; i++)
 	lastsunradiance = cdata[0].node.loc.pos.sunradiance;
 	for (j=0; j<cdata[0].node.target_cnt; j++)
 		{
-		azel = groundstation(&cdata[0].node.loc,&track[j].loc);
+		azel = groundstation(cdata[0].node.loc,track[j].loc);
 		if (azel.phi <= lastgsel[j] && azel.phi > 0.)
 			{
 			if (gsup[j] > 0.)

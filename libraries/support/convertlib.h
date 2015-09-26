@@ -148,7 +148,7 @@ void j20002gcrf(rmatrix *rm);
 void teme2true(double ep0, rmatrix *rm);
 void true2teme(double ep0, rmatrix *rm);
 void mean2mean(double ep0, double ep1, rmatrix *pm);
-void geoc2topo(gvector gs, rvector geoc, rvector *topo);
+void geoc2topo(gvector gs, rvector geoc, rvector &topo);
 void topo2azel(rvector tpos, float *az, float *el);
 int lines2eci(double mjd, vector<tlestruc> tle, cartpos &eci);
 int tle2eci(double mjd, tlestruc tle, cartpos &eci);

@@ -845,15 +845,15 @@ double nplgndr(uint32_t l, uint32_t m, double x)
     \see geoc2topo
     \see topo2azel
 */
-svector groundstation(locstruc *satellite,locstruc *groundstation)
+svector groundstation(locstruc &satellite,locstruc &groundstation)
 {
     rvector topo;
     svector azel = {0.,0.,0.};
     float lambda, phi;
 
-    pos_icrf2eci(satellite);
-    pos_eci2geoc(satellite);
-    geoc2topo(groundstation->pos.geod.s,satellite->pos.geoc.s,&topo);
+	pos_icrf2eci(&satellite);
+	pos_eci2geoc(&satellite);
+	geoc2topo(groundstation.pos.geod.s,satellite.pos.geoc.s,topo);
     topo2azel(topo,&lambda,&phi);
     azel.lambda = lambda;
     azel.phi = phi;

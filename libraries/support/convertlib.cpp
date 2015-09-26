@@ -2580,7 +2580,7 @@ void eci2kep(cartpos &eci,kepstruc &kep)
  * \param targetgeoc Geocentric location of Target.
  * \param topo Resulting Topocentric position.
  */
-void geoc2topo(gvector source, rvector targetgeoc, rvector *topo)
+void geoc2topo(gvector source, rvector targetgeoc, rvector &topo)
 {
 	rmatrix g2t = {{{{0.}}}};
 	double clat, clon, slat, slon;
@@ -2616,7 +2616,7 @@ void geoc2topo(gvector source, rvector targetgeoc, rvector *topo)
 	sourcegeoc.col[0] = r * cs;
 	sourcegeoc.col[1] = r * ss;
 
-	*topo = rv_mmult(g2t,rv_sub(targetgeoc,sourcegeoc));
+	topo = rv_mmult(g2t,rv_sub(targetgeoc,sourcegeoc));
 }
 
 // ??

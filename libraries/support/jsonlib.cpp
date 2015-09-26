@@ -7836,9 +7836,9 @@ int update_target(cosmosstruc *cdata)
 	for (uint32_t i=0; i<cdata[0].target.size(); ++i)
 	{
 		loc_update(&cdata[0].target[i].loc);
-		geoc2topo(cdata[0].target[i].loc.pos.geod.s,cdata[0].node.loc.pos.geoc.s,&topo);
+		geoc2topo(cdata[0].target[i].loc.pos.geod.s,cdata[0].node.loc.pos.geoc.s,topo);
 		topo2azel(topo,&cdata[0].target[i].azto,&cdata[0].target[i].elto);
-		geoc2topo(cdata[0].node.loc.pos.geod.s,cdata[0].target[i].loc.pos.geoc.s,&topo);
+		geoc2topo(cdata[0].node.loc.pos.geod.s,cdata[0].target[i].loc.pos.geoc.s,topo);
 		topo2azel(topo,&cdata[0].target[i].azfrom,&cdata[0].target[i].elfrom);
 		ds = rv_sub(cdata[0].target[i].loc.pos.geoc.s,cdata[0].node.loc.pos.geoc.s);
 		cdata[0].target[i].range = length_rv(ds);

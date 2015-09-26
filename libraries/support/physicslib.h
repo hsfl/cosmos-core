@@ -119,7 +119,7 @@ double nplgndr(uint32_t l, uint32_t m, double x);
 //! Power values
 void power(cosmosstruc *root);
 //! Ground station values
-svector groundstation(locstruc *satellite,locstruc *groundstation);
+svector groundstation(locstruc &satellite, locstruc &groundstation);
 //! Simulate all devices
 void simulate_hardware(cosmosstruc &cdata, locstruc &loc);
 //! Initialize IMU simulation

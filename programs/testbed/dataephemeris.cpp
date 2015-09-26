@@ -135,7 +135,7 @@ if ((yd=readdir(ddp))==NULL)
 lastsunradiance = lastlat = -999.;
 for (j=0; j<cdata[0].node.target_cnt; j++)
 	{
-	azel = groundstation(&cdata[0].node.loc,&track[j].loc);
+	azel = groundstation(cdata[0].node.loc,track[j].loc);
 	lastgsel[j] = azel.phi;
 	gsup[j] = 0;
 	}

@@ -183,7 +183,12 @@ int main(int argc, char *argv[])
 		}
 		kepstruc kep;
 		eci2kep(eci, kep);
-		printf("%.15g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", cmjd, eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.geod.s.h, cdata->node.loc.pos.geod.s.lat, cdata->node.loc.pos.geod.s.lon);
+		locstruc station;
+		station.pos.geoc.s = {0.,0.383658276, -2.788325796};
+		svector ground;
+		ground = groundstation(cdata->node.loc, station);
+		printf("%.15g\t%.10g\t%.10g\t", cmjd, ground.lambda, ground.phi);
+		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.geod.s.h, cdata->node.loc.pos.geod.s.lat, cdata->node.loc.pos.geod.s.lon);
 		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], cdata->node.loc.pos.geod.v.h, cdata->node.loc.pos.geod.v.lat, cdata->node.loc.pos.geod.v.lon);
 		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.a.col[0], eci.a.col[1], eci.a.col[2], cdata->node.loc.pos.geod.a.h, cdata->node.loc.pos.geod.a.lat, cdata->node.loc.pos.geod.a.lon);
 		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\n", kep.ea, kep.e, kep.a, kep.raan, kep.i, kep.ap);
