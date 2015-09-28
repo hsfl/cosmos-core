@@ -256,7 +256,7 @@ int nsp_send_message(sinclair_state *handle)
 					{
 						uint16_t place;
 						place = uint16from(&xbuf[3],ORDER_LITTLEENDIAN);
-                        //handle->mbuf.size = 0;
+						//handle->mbuf.size = 0;
 						memcpy((void *)&handle->mbuf.data[place], (void *)&xbuf[5], iretn-7);
 						handle->mbuf.size = place + iretn-7;
 					}
@@ -512,7 +512,7 @@ int nsp_ping(sinclair_state *handle)
 	if ((iretn=nsp_send_message(handle)) < 0)
 		return (iretn);
 
-//	memcpy((void *)buf,(void *)handle->mbuf.data,size);
+	//	memcpy((void *)buf,(void *)handle->mbuf.data,size);
 	if (nsp_get_size(handle) < NSP_MAX_MESSAGE+1)
 		handle->mbuf.data[nsp_get_size(handle)] = 0;
 	return (nsp_get_size(handle));
@@ -913,6 +913,11 @@ float sinclair_get_inertia(sinclair_state *handle)
 
 int32_t sinclair_stt_connect(const char *dev, uint8_t src, uint8_t dst, sinclair_state *handle)
 {
+	return sinclair_stt_connect(dev, src, dst, 1., handle);
+}
+
+int32_t sinclair_stt_connect(const char *dev, uint8_t src, uint8_t dst, double timeoutsec, sinclair_state *handle)
+{
 	int32_t iretn;
 
 	cssl_start();
@@ -920,15 +925,15 @@ int32_t sinclair_stt_connect(const char *dev, uint8_t src, uint8_t dst, sinclair
 
 	if (handle->serial != NULL)
 	{
-		cssl_settimeout(handle->serial, 0, 1.);
+		cssl_settimeout(handle->serial, 0, timeoutsec);
 		handle->dev.assign(dev);
 		handle->mbuf.src = src;
 		handle->mbuf.dst = dst;
 
-        //		if ((iretn=nsp_ping(handle)) >= 0)
-        //		{
-        //			return 0;
-        //		}
+		//		if ((iretn=nsp_ping(handle)) >= 0)
+		//		{
+		//			return 0;
+		//		}
 
 		if ((iretn=nsp_init(handle,0x00002000)) >=0)
 		{
@@ -1100,7 +1105,7 @@ int nsp_stt_combination(sinclair_state *handle, sinclair_stt_result_operational 
 	if (handle == NULL)
 		return (SINCLAIR_ERROR_CLOSED);
 
-    // Prime prep combo command
+	// Prime prep combo command
 	handle->mbuf.mcf = NSP_COMMAND_COMBINATION|NSP_MCB_PF;
 
 	// Put command into command buffer
@@ -1114,7 +1119,7 @@ int nsp_stt_combination(sinclair_state *handle, sinclair_stt_result_operational 
 		return (iretn);
 
 	*result = *(sinclair_stt_result_operational *)handle->mbuf.data;
-//	memcpy((void *)buf_out,(void *)(handle->mbuf.data),handle->mbuf.size);
+	//	memcpy((void *)buf_out,(void *)(handle->mbuf.data),handle->mbuf.size);
 	return (handle->mbuf.size);
 }
 
@@ -1122,31 +1127,31 @@ int nsp_stt_combination(sinclair_state *handle, sinclair_stt_result_operational 
 
 int32_t sinclair_stt_combo(sinclair_state *handle, sinclair_stt_result_operational *result)
 {
-    //	int i;
-    //	char buf[4096];
-    //	uint8_t command[4];
+	//	int i;
+	//	char buf[4096];
+	//	uint8_t command[4];
 
-    // Send COMBINATION command 0x00001E0B
-    //	command[0] = 0x0B;
-    //	command[1] = 0x7E;
-    //	command[2] = 0x00;
-    //	command[3] = 0x00;
+	// Send COMBINATION command 0x00001E0B
+	//	command[0] = 0x0B;
+	//	command[1] = 0x7E;
+	//	command[2] = 0x00;
+	//	command[3] = 0x00;
 
 	// Get the result of the Combination Command
-    if(handle->serial->fd >= 0)
+	if(handle->serial->fd >= 0)
 	{     // If there is a valid star tracker handle
-        nsp_stt_combination(handle, result
-                            // old, segmentation fault problem
-                            //,STT_GO_ON|STT_GO_LOAD_NAND|STT_GO_NOT_OFF|STT_GO_COMMAND
-                            //,STT_COMBO_RET_COD|STT_COMBO_ATT_QUA|STT_COMBO_ANG_VEL|STT_COMBO_EPO_TIM|STT_COMBO_HAR_TEL|STT_COMBO_STA_TEL
-                            // new, fixed segmentation fault by removing "STT_GO_NOT_OFF"
-                            // and didnt' hurt to add STT_COMBO_SEQ_NUM
-                            ,STT_GO_ON|STT_GO_LOAD_NAND|STT_GO_COMMAND
-                            ,STT_COMBO_SEQ_NUM|STT_COMBO_RET_COD|STT_COMBO_ATT_QUA|STT_COMBO_ANG_VEL|STT_COMBO_EPO_TIM|STT_COMBO_HAR_TEL|STT_COMBO_STA_TEL
+		nsp_stt_combination(handle, result
+							// old, segmentation fault problem
+							//,STT_GO_ON|STT_GO_LOAD_NAND|STT_GO_NOT_OFF|STT_GO_COMMAND
+							//,STT_COMBO_RET_COD|STT_COMBO_ATT_QUA|STT_COMBO_ANG_VEL|STT_COMBO_EPO_TIM|STT_COMBO_HAR_TEL|STT_COMBO_STA_TEL
+							// new, fixed segmentation fault by removing "STT_GO_NOT_OFF"
+							// and didnt' hurt to add STT_COMBO_SEQ_NUM
+							,STT_GO_ON|STT_GO_LOAD_NAND|STT_GO_COMMAND
+							,STT_COMBO_SEQ_NUM|STT_COMBO_RET_COD|STT_COMBO_ATT_QUA|STT_COMBO_ANG_VEL|STT_COMBO_EPO_TIM|STT_COMBO_HAR_TEL|STT_COMBO_STA_TEL
 
-                            );
+							);
 
-        //		*result = *(sinclair_stt_result_operational *)handle->mbuf.data;
+		//		*result = *(sinclair_stt_result_operational *)handle->mbuf.data;
 	}
 	else
 	{

@@ -91,15 +91,37 @@ int main(int argc, char *argv[])
 	case 'i':
 		// state.ini
 		{
+			locstruc loc;
 			modeltype = INI;
 			FILE *fdes;
 			if ((fdes=fopen(argv[1],"r")) != NULL)
 			{
-//				ibuf = (char *)calloc(1,fstat.st_size+1);
-//				fgets(ibuf,fstat.st_size,fdes);
-				fscanf(fdes, "{\"node_loc_pos_eci\":{\"utc\":%lf,\"pos\":[%lf,%lf,%lf],\"vel\":[%lf,%lf,%lf]", &eci.utc, &eci.s.col[0], &eci.s.col[1], &eci.s.col[2], &eci.v.col[0], &eci.v.col[1], &eci.v.col[2]);
+				struct stat fstat;
+				stat(argv[1], &fstat);
+				char *ibuf = (char *)calloc(1,fstat.st_size+1);
+				fgets(ibuf,fstat.st_size,fdes);
+				switch(ibuf[15])
+				{
+				case 'e':
+					sscanf(ibuf, "{\"node_loc_pos_eci\":{\"utc\":%lf,\"pos\":[%lf,%lf,%lf],\"vel\":[%lf,%lf,%lf]", &loc.pos.eci.utc, &loc.pos.eci.s.col[0], &loc.pos.eci.s.col[1], &loc.pos.eci.s.col[2], &loc.pos.eci.v.col[0], &loc.pos.eci.v.col[1], &loc.pos.eci.v.col[2]);
+					break;
+				case 'g':
+					switch (ibuf[18])
+					{
+					case 'c':
+						sscanf(ibuf, "{\"node_loc_pos_geoc\":{\"utc\":%lf,\"pos\":[%lf,%lf,%lf],\"vel\":[%lf,%lf,%lf]", &loc.pos.geoc.utc, &loc.pos.geoc.s.col[0], &loc.pos.geoc.s.col[1], &loc.pos.geoc.s.col[2], &loc.pos.geoc.v.col[0], &loc.pos.geoc.v.col[1], &loc.pos.geoc.v.col[2]);
+						pos_geoc2eci(&loc);
+						break;
+					case 'd':
+						sscanf(ibuf, "{\"node_loc_pos_geod\":{\"utc\":%lf,\"pos\":[%lf,%lf,%lf],\"vel\":[%lf,%lf,%lf]", &loc.pos.geod.utc, &loc.pos.geod.s.lat, &loc.pos.geod.s.lon, &loc.pos.geod.s.h, &loc.pos.geod.v.lat, &loc.pos.geod.v.lon, &loc.pos.geod.v.h);
+						pos_geod2geoc(&loc);
+						pos_geoc2eci(&loc);
+						break;
+					}
+				}
 //				json_parse(ibuf,cdata);
-//				free(ibuf);
+				free(ibuf);
+				eci = loc.pos.eci;
 			}
 			utc = eci.utc;
 		}
@@ -184,7 +206,7 @@ int main(int argc, char *argv[])
 		kepstruc kep;
 		eci2kep(eci, kep);
 		locstruc station;
-		station.pos.geoc.s = {0.,0.383658276, -2.788325796};
+		station.pos.geod.s = {0.383658276, -2.788325796, 107.};
 		svector ground;
 		ground = groundstation(cdata->node.loc, station);
 		printf("%.15g\t%.10g\t%.10g\t", cmjd, ground.lambda, ground.phi);
