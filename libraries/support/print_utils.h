@@ -40,8 +40,9 @@
 // Print class
 #include "math/mathlib.h"
 
-#include <iostream>
-#include <string>
+#include <iostream>     // std::cout
+#include <string>       // std::string
+#include <sstream>      // std::ostringstream
 
 // TODO: remove the dependency of matlib later, change rvector to vector?
 
@@ -108,6 +109,7 @@ public:
     string delimiter;
     bool delimiter_flag;
     bool use_brackets;
+    string fullMessage;
 
     // reset to default values
     void reset();
@@ -121,6 +123,7 @@ public:
     void scalar(double s, string suffix);
     void scalar(string prefix, double s);
     void scalar(double s);
+
 };
 
 #endif //_COSMOS_PRINT_UTILS

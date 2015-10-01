@@ -6567,14 +6567,25 @@ const char *json_of_rw(string &jstring,uint16_t index, cosmosstruc *cdata)
 	return jstring.data();
 }
 
-const char *json_of_statevec(string &jstring, cosmosstruc *cdata)
+const char *json_of_state_eci(string &jstring, cosmosstruc *cdata)
 {
 	jstring.clear();
-	json_out(jstring,(char *)"node_utc",cdata);
-	json_out(jstring,(char *)"node_utcoffset",cdata);
-	json_out(jstring,(char *)"node_loc_att_icrf",cdata);
+    //	json_out(jstring,(char *)"node_utc",cdata);
+    //	json_out(jstring,(char *)"node_utcoffset",cdata);
 	json_out(jstring,(char *)"node_loc_pos_eci",cdata);
-	return jstring.data();
+    json_out(jstring,(char *)"node_loc_att_icrf",cdata);
+    return jstring.data();
+}
+
+// get state vector in ECEF/Geocentric
+const char *json_of_state_geoc(string &jstring, cosmosstruc *cdata)
+{
+    jstring.clear();
+    //	json_out(jstring,(char *)"node_utc",cdata);
+    //	json_out(jstring,(char *)"node_utcoffset",cdata);
+    json_out(jstring,(char *)"node_loc_pos_geoc",cdata);
+    json_out(jstring,(char *)"node_loc_att_geoc",cdata);
+    return jstring.data();
 }
 
 //! Dump Node description

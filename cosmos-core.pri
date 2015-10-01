@@ -54,7 +54,8 @@ win32 {
 
 }
 
-#contains(QMAKE_CC, cl){
+#contains(QMAKE_CC, cl)
+{
 #    # Visual Studio
 #    message("Compiler: Visual Studio")
 #    #CONFIG += precompile_header
@@ -212,6 +213,7 @@ contains(MODULES, demlib){
 
 # -----------------------------------------------
 # Tier 0 libraries
+# -----------------------------------------------
 # The following libraries do not depend on other libraries
 # These are self contained, they are the building blocks for
 # more complext libraries such as agentlib
@@ -221,6 +223,9 @@ contains(MODULES, gp_cosmostimeutils){
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/gp_cosmostimeutils.h
 }
 
+
+# -----------------------------------------------
+# Tier 0 libraries for Math
 contains(MODULES, mathlib){
     message( "- math/mathlib" )
     #TODO: remove this later to force the use of #include "math/mathfile"
@@ -264,7 +269,27 @@ contains(MODULES, math-quaternion){
     SOURCES += $$COSMOS_SOURCE/core/libraries/math/quaternion.cpp
 }
 
+# -----------------------------------------------
+# Tier 0 libraries for physics
+message( "" )
 
+contains(MODULES, physics-keplerianorbit){
+    message( "- physics/keplerianorbit" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.cpp
+    MODULES += physics-constants
+}
+
+contains(MODULES, physics-constants){
+    message( "- physics/constants" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/physics/constants.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/physics/constants.cpp
+}
+
+
+# -----------------------------------------------
+# Tier 0 libraries for physics
+message( "- support/" )
 contains(MODULES, stringlib){
     message( "- support/stringlib" )
     SOURCES += $$COSMOS_SOURCE/core/libraries/support/stringlib.cpp
@@ -289,8 +314,7 @@ contains(MODULES, timeutils){
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/timeutils.h
 }
 
-contains(MODULES, nrlmsise)
-{
+contains(MODULES, nrlmsise){
     message( "- support/nrlmsise" )
     SOURCES += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.cpp
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.h
@@ -382,7 +406,7 @@ contains(MODULES, sinclair_lib){
 }
 
 contains(MODULES, sinclair_lib){
-    message( "Add library: sinclair_lib" )
+    message( "- device/sinclair_lib" )
     INCLUDEPATH     += $$COSMOS/core/libraries/device
     SOURCES         += $$files($$COSMOS/core/libraries/device/sinclair_lib.cpp)
     HEADERS         += $$files($$COSMOS/core/libraries/device/sinclair_lib.h)
@@ -404,10 +428,13 @@ INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty
 contains(MODULES, zlib){
     message( "- thirdparty/zlib" )
     INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib
+
+    # note: sometimes including all the files with * creates problems
     #SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.c)
     #HEADERS         += $$files( $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.h)
     #SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.c
     #HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.h
+
     SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/adler32.c
     SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/compress.c
     SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/crc32.c
@@ -445,5 +472,16 @@ contains(MODULES, jpeg){
     SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/jpeg/*.c)
     HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/jpeg/*.h)
 }
+
+# Add Eigen
+contains(MODULES, thirdparty-Eigen){
+    message( "- thirdparty/Eigen" )
+
+    # We just need to inlcude the parent folder for Eigen
+    # then in the code we alwas reference it using
+    # #include <Eigen/Eigen>
+    #INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty
+}
+
 
 message("")

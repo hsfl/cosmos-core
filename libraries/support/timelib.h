@@ -177,6 +177,13 @@ int16_t isleap(int32_t year);
 int32_t load_iers();
 string  seconds2DDHHMMSS(double elapsed_seconds);
 
+
+class Time
+{
+public:
+    double elapsedTime(double startTimeMjd);
+};
+
 //! @}
 
 #endif

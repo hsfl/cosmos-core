@@ -44,26 +44,34 @@ PrintUtils::PrintUtils()
 void PrintUtils::reset()
 {
     // default values
-    precision     = -1;
-    fieldwidth     = -1;
-    scale          = 1;
-    prefix         = "";
-    suffix         = "";
-    use_brackets   = false;
-    delimiter      = ",";
-    delimiter_flag = false;
+    precision      = -1; // start with no set precision
+    fieldwidth     = -1; // start with no set fieldwidth
+    scale          = 1;  // start with no scale factor
+    prefix         = ""; // start with no prefix text
+    suffix         = ""; // start with no suffix text
+    use_brackets   = false; // start with no brackets around text
+    delimiter      = ","; // start with coma delimiter
+    delimiter_flag = false; // start with no delimiter flags, user has to turn on this flag for use
 }
 
 void PrintUtils::text(string text)
 {
+    string out;
+
     if (delimiter_flag)
     {
-        cout << text << delimiter;
+        out = text + delimiter;
     }
     else
     {
-        cout << text;
+        out = text;
     }
+
+    cout << out;
+
+    // add to full message
+    fullMessage += out;
+
 }
 
 
@@ -79,16 +87,18 @@ void PrintUtils::vector(
         int fieldwidth)
 {
 
-    cout << prefix;
+    std::ostringstream out;
+
+    out << prefix;
 
     if (delimiter_flag)
     {
-        cout << delimiter;
+        out << delimiter;
     }
 
     if (use_brackets)
     {
-        cout << "[";
+        out << "[";
     }
 
     // in case we don't want to print the vector with fixed width
@@ -96,8 +106,8 @@ void PrintUtils::vector(
     {
         // with set precision
         //cout.precision(precision);
-        cout << std::fixed;
-        cout << std::setprecision(precision);
+        out << std::fixed;
+        out << std::setprecision(precision);
     }
 
     if (fieldwidth != -1)
@@ -105,7 +115,7 @@ void PrintUtils::vector(
         // print with fixed width
         // std::cout.width(filedwidth);
 
-        cout << std::setw(fieldwidth) << v.col[0]*scale << ","
+        out << std::setw(fieldwidth) << v.col[0]*scale << ","
              << std::setw(fieldwidth) << v.col[1]*scale <<  ","
              << std::setw(fieldwidth) << v.col[2]*scale;
 
@@ -113,22 +123,26 @@ void PrintUtils::vector(
     else
     {
         // simple print, no fixed width
-        cout << v.col[0]*scale << ","
-                               << v.col[1]*scale <<  ","
-                               << v.col[2]*scale;
+        out << v.col[0]*scale << ","
+            << v.col[1]*scale <<  ","
+            << v.col[2]*scale;
     }
 
     if (use_brackets)
     {
-        cout << "]";
+        out << "]";
     }
 
-    cout << suffix;
+    out << suffix;
 
     if (delimiter_flag)
     {
-        cout << delimiter;
+        out << delimiter;
     }
+
+    cout << out.str();
+
+    fullMessage += out.str();
 }
 
 
@@ -181,7 +195,9 @@ void PrintUtils::scalar(
         int fieldwidth)
 {
 
-    cout << prefix;
+    std::ostringstream out;
+
+    out << prefix;
 
     if (prefix == "")
     {
@@ -191,7 +207,7 @@ void PrintUtils::scalar(
     {
         if (delimiter_flag)
         {
-            cout << delimiter;
+            out << delimiter;
         }
     }
 
@@ -199,34 +215,38 @@ void PrintUtils::scalar(
 
     if (use_brackets)
     {
-        cout << "[";
+        out << "[";
     }
 
     // in case we don't want to print the vector with fixed width
     if (precision != -1)
     {
-        cout << std::fixed;
-        cout << std::setprecision(precision);
+        out << std::fixed;
+        out << std::setprecision(precision);
     }
 
     if (fieldwidth != -1)
     {
-        cout << std::setw(fieldwidth);
+        out << std::setw(fieldwidth);
     }
 
-    cout << s*scale;
+    out << s*scale;
 
-    cout << suffix;
+    out << suffix;
 
     if (use_brackets)
     {
-        cout << "]";
+        out << "]";
     }
 
     if (delimiter_flag)
     {
-        cout << delimiter;
+        out << delimiter;
     }
+
+    cout << out.str();
+
+    fullMessage += out.str();
 }
 
 void PrintUtils::scalar(double s)
@@ -360,24 +380,32 @@ void PrintUtils::vectorAndMag(string vector_name, rvector v)
 void PrintUtils::vectorAndMag(string vector_name, rvector v, string suffix)
 {
     vector(vector_name, v, scale, "", precision, fieldwidth);
+
     double magnitude = length_rv(v)*scale;
-    cout << ",M,";
+
+    if (delimiter_flag)
+    {
+        cout << "M,";
+    }
+    else
+    {
+        cout << ",M,";
+    }
+
+    if (use_brackets)
+    {
+        cout << "[";
+    }
 
     if (fieldwidth != -1)
     {
         cout << std::fixed;
 
-        if (use_brackets)
-        {
-            cout << "[";
-        }
+
 
         cout << std::setw(fieldwidth) << magnitude;
 
-        if (use_brackets)
-        {
-            cout << "]";
-        }
+
         cout << suffix;
     }
     else
@@ -385,9 +413,22 @@ void PrintUtils::vectorAndMag(string vector_name, rvector v, string suffix)
         cout << magnitude << suffix;
     }
 
+    if (use_brackets)
+    {
+        cout << "]";
+    }
+
+    if (delimiter_flag)
+    {
+        cout << ",";
+    }
+    else
+    {
+        cout << "";
+    }
+
 
 }
-
 
 
 

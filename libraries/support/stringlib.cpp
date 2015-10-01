@@ -174,7 +174,7 @@ string StringParser::getFieldNumber(uint32_t index)
 
         out = vect.at(real_offset);
         //cout <<out << endl;
-    } else {
+    } else { // fail safe
         return "";
     }
 
@@ -189,7 +189,7 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
 
         out = stod(vect.at(index + offset));
         //cout <<out << endl;
-    } else {
+    } else { // fail safe
         return 0;
     }
 

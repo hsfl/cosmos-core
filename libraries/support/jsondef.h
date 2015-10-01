@@ -498,8 +498,8 @@ enum
 #define DEVICE_FLAG_OFF			0x0000
 #define DEVICE_FLAG_ON			0x0001
 #define DEVICE_FLAG_SIMULATED	0x0002
-#define DEVICE_FLAG_ACTIVE      0x0004
-#define DEVICE_FLAG_CONNECTED   0x0008
+#define DEVICE_FLAG_ACTIVE      0x0004 // TODO: define device active
+#define DEVICE_FLAG_CONNECTED   0x0008 // TODO: define device connected
 //! @}
 
 //! \ingroup defs_comp

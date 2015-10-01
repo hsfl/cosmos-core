@@ -941,7 +941,7 @@ void pos_geoc2geod(locstruc *loc)
     loc->pos.geod.s.lon = atan2(loc->pos.geoc.s.col[1], loc->pos.geoc.s.col[0]);
 
     // Calculate effects of oblate spheroid
-    // !!! Explain math
+    // TODO: Explain math
     // e2 (square of first eccentricity) = 1 - (1 - f)^2
 	e2 = (1. - FRATIO2);
     p = sqrt(loc->pos.geoc.s.col[0]*loc->pos.geoc.s.col[0] +
@@ -961,7 +961,7 @@ void pos_geoc2geod(locstruc *loc)
 	loc->pos.geod.s.lat = phi;
 	loc->pos.geod.s.h = h;
 
-    // !!! Explain math
+    // TODO: Explain math
 	st = sin(loc->pos.geod.s.lat);
 	ct = cos(loc->pos.geod.s.lat);
 	sn = sin(loc->pos.geod.s.lon);

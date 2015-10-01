@@ -1412,5 +1412,16 @@ double  jd2mjd(double jd) {
     return JD2MJD(jd);
 }
 
+// compute the elapsed time given the startTimeMjd
+double Time::elapsedTime(double startTimeMjd)
+{
+    double elapsedTimeSec = (currentmjd()-startTimeMjd)*86400;
+
+    return elapsedTimeSec;
+}
+
+
 
 //! @}
+
+

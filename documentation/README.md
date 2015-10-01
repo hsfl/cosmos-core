@@ -50,3 +50,7 @@ make COSMOS work there, you too can!
 
 Installation: go to [install/arm.md](install/arm.md)
 
+Coding Conventions
+------------------
+
+If you are going to contribute to the COSMOS code base please check the COSMOS coding style [coding-style.md](coding-style.md)
