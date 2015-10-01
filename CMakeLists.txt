@@ -35,7 +35,7 @@ cmake_minimum_required(VERSION 2.6)
 project(${PROJECT_NAME})
 
 # define what libraries you want to compile
-SET(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
+#SET(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_MATH                 ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_DEVICES              ON)          #ON/OFF
@@ -108,7 +108,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
         # set the COSMOS_LIBS for GCC
         #TODO: remove redundancy libs, this can be resolved when building the libs
         #SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosMath CosmosSupport CosmosDevice CosmosMath zlib)
-        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosPhysics CosmosMath zlib)
+        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosMath zlib)
 
     ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
@@ -147,7 +147,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
         # set the COSMOS_LIBS for MinGW
         #TODO: remove redundancy libs, this can be resolved when building the libs
         #set (COSMOS_LIBS ${COSMOS_LIBS} CosmosMath CosmosDevice CosmosMath CosmosSupport CosmosMath CosmosDevice CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
-        set (COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosPhysics CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
+        set (COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
 
     ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") #or just MSVC
         MESSAGE("Building with MSVC")
@@ -160,7 +160,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
         # set the COSMOS_LIBS for MSVC
         #TODO: remove redundancy libs, this can be resolved when building the libs
         #SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosMath CosmosSupport CosmosDevice zlib dirent wsock32 winmm ws2_32 iphlpapi)
-        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosPhysics CosmosMath zlib dirent wsock32 winmm ws2_32 iphlpapi)
+        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosMath zlib dirent wsock32 winmm ws2_32 iphlpapi)
 
     ENDIF()
 
@@ -213,7 +213,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         SET(COMPILER_IS_MACOS_GCC 1)
 
         # set the COSMOS_LIBS for GCC
-        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosPhysics CosmosMath CosmosSupport CosmosDevice CosmosMath zlib)
+        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosMath CosmosSupport CosmosDevice CosmosMath zlib)
 
     ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
@@ -251,11 +251,11 @@ SET(COSMOS_CORE ${CMAKE_SOURCE_DIR})
 
 # -----------------------------------------------
 # Build Physics Library
-IF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
-    MESSAGE("Building Physics Library")
-	add_subdirectory(${COSMOS_CORE}/libraries/physics ${CMAKE_BINARY_DIR}/libraries/physics)
-	SET(LINK_LIBRARY_COSMOS_CORE_PHYSICS CosmosPhysics)
-ENDIF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
+#IF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
+#    MESSAGE("Building Physics Library")
+#	add_subdirectory(${COSMOS_CORE}/libraries/physics ${CMAKE_BINARY_DIR}/libraries/physics)
+#	SET(LINK_LIBRARY_COSMOS_CORE_PHYSICS CosmosPhysics)
+#ENDIF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
 
 
 # Build Math Library
