@@ -210,7 +210,7 @@ char* request_beacon(char* request, char* output)
 
 char* request_statevec(char* request, char* output)
 {
-	strcpy(output,json_of_statevec(reqjstring, cdata));
+	strcpy(output,json_of_state_eci(reqjstring, cdata));
 	return (output);
 }
 
