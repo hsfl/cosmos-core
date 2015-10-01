@@ -39,6 +39,7 @@ double Kepler::anomaly2nu(double e, double E)
         nu = atan2(sinNu, cosNu);
         return nu;
     }
+	return 0.;
 }
 
 
@@ -208,7 +209,7 @@ double Kepler::KepEqtnE(double M, double e)
 {
 
     double E, E_, error;
-    if (-M_PI < M < 0 || M > M_PI){
+	if (((-M_PI < M) && (M < 0)) || M > M_PI){
         E = M - e;
     } else {
         E = M + e;
