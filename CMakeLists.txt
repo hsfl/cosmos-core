@@ -41,6 +41,7 @@ SET(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_DEVICES              ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_THIRDPARTY_JPEG      ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_THIRDPARTY_ZLIB      ON)          #ON/OFF
+SET(BUILD_COSMOS_CORE_THIRDPARTY_EIGEN      ON)          #ON/OFF
 SET(BUILD_COSMOS_PROJECT_USER              OFF)         #ON/OFF
 SET(BUILD_COSMOS_CORE_THIRDPARTY_PNG       ON)          #ON/OFF
 IF (MSVC)
@@ -279,6 +280,14 @@ IF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
     add_subdirectory(${COSMOS_CORE}/libraries/device ${CMAKE_BINARY_DIR}/libraries/device)
     SET(LINK_LIBRARY_COSMOS_DEVICE CosmosDevice)
 ENDIF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
+
+# -----------------------------------------------
+# Build Thirdparty-Eigen Library
+IF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
+    MESSAGE("Building Eigen Library")
+    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/Eigen ${CMAKE_BINARY_DIR}/libraries/thirdparty/Eigen)
+    SET(LINK_LIBRARY_COSMOS_CORE_EIGEN Eigen )
+ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
 
 # -----------------------------------------------
 # Build Thirdparty-zlib Library
