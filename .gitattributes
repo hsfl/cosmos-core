@@ -5,6 +5,7 @@
 # this will make everyfile unix compatible (even on windows)
 # *.* eol=lf
 * eol=lf
+do_cmake eol=lf
 
 # Explicitly declare text files you want to always be normalized and
 # converted
