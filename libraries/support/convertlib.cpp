@@ -2657,7 +2657,7 @@ int lines2eci(double utc, vector<tlestruc>lines, cartpos &eci)
 }
 
 /**
-* SGP4 algoritm
+* SGP4 propagator algoritm
 * @param utc Specified time as Modified Julian Date
 * @param tle Two Line Element structure, given as pointer to a ::tlestruc
 * @param pos_teme result from SGP4 algorithm is a cartesian state given in TEME frame, as pointer to a ::cartpos

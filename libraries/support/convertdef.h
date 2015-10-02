@@ -53,6 +53,7 @@
 //! \defgroup convertlib_constants Coordinate conversion constants
 //! @{
 
+// TODO: move these constants to physics/constants.h
 //! SI Stefan-Boltzmann constant
 #define SIGMA 5.67e-8
 //! SI Gravitational constant
@@ -98,7 +99,7 @@
 //! Geocentric location of Honolulu
 #define GEOC_HONOLULU {{-5588871.,-2278876.,2353191.}}
 
-// SGP4 stuff
+// SGP4 constants
 #define SGP4_CK2 5.413080E-4
 #define SGP4_CK4 0.62098875E-6
 #define SGP4_E6A 1E-6

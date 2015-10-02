@@ -385,11 +385,11 @@ void PrintUtils::vectorAndMag(string vector_name, rvector v, string suffix)
 
     if (delimiter_flag)
     {
-        cout << "M,";
+        cout << " M,";
     }
     else
     {
-        cout << ",M,";
+        cout << ", M,";
     }
 
     if (use_brackets)
@@ -397,21 +397,24 @@ void PrintUtils::vectorAndMag(string vector_name, rvector v, string suffix)
         cout << "[";
     }
 
+    if (precision != -1)
+    {
+        cout << std::fixed;
+        cout << std::setprecision(precision);
+    }
+
     if (fieldwidth != -1)
     {
         cout << std::fixed;
-
-
-
         cout << std::setw(fieldwidth) << magnitude;
-
-
-        cout << suffix;
     }
     else
     {
-        cout << magnitude << suffix;
+        cout << magnitude;
     }
+
+
+    cout << suffix;
 
     if (use_brackets)
     {

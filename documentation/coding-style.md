@@ -9,3 +9,13 @@ use 4 spaces for indentation, do not use tabs!
 File Names
 * use lower case file names (unix style, Qt also uses this naming convention for C++ classes et. al. ). Example: mainwindow.cpp will contain class MainWindow
 * for header files just use the extension .h, not .hpp 
+
+Doxygen documentation
+* use the Qt style for commenting the code [1]
+
+/*!
+ * ... text ...
+ */
+
+references:
+[1] https://www.stack.nl/~dimitri/doxygen/manual/docblocks.html

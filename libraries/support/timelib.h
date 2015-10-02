@@ -180,8 +180,15 @@ string  seconds2DDHHMMSS(double elapsed_seconds);
 
 class Time
 {
+
 public:
-    double elapsedTime(double startTimeMjd);
+    Time();
+    /*!
+     * \brief Function to compute the elapsed time since the given time in the function arguments
+     * \param startTimeMjd
+     * \return elapsed time in seconds
+     */
+    double elapsedTimeSince(double startTimeMjd);
 };
 
 //! @}

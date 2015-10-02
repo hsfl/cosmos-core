@@ -1996,11 +1996,15 @@ beatstruc Agent::findServer(string servername)
     // TODO: improve the way we find the agent server
     if (beat_agent.utc == 0)
     {
-        cout << "agent " << servername << " : not found" << endl;
+        if (printMessages) {
+            cout << "agent " << servername << " : not found" << endl;
+        }
     }
     else
     {
-        cout << "agent " << servername << " : found" << endl;
+        if (printMessages) {
+            cout << "agent " << servername << " : found" << endl;
+        }
     }
 
     return beat_agent;

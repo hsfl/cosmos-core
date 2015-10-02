@@ -2374,6 +2374,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
     \param iatt Initial ICRF Attitude
     \param sat Structure specifying satellite
 */
+// TODO: split the orbit from the attitude propagation sections of the code
 void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cartpos ipos, qatt iatt, physicsstruc &physics, locstruc &loc)
 {
     kepstruc kep;
