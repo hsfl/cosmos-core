@@ -133,21 +133,28 @@ struct timeval utc2unix(double utc)
 */
 calstruc mjd2cal(double mjd)
 {
-	calstruc date;
-	double dom;
-	double doy;
+	static double lmjd = 0.;
+	static calstruc date;
 
-	mjd2ymd(mjd, date.year, date.month, dom, doy);
-	date.doy = (int32_t)doy;
-	date.dom = (int32_t)dom;
-	doy = (doy - date.doy) * 24.;
-	date.hour = (int32_t)doy;
-	doy = (doy - date.hour) * 60.;
-	date.minute = (int32_t)doy;
-	doy = (doy - date.minute) * 60.;
-	date.second = (int32_t)doy;
-	doy = (doy - date.second) * 1e9;
-	date.nsecond = (int32_t)(doy + .5);
+	if (lmjd != mjd)
+	{
+		double dom;
+		double doy;
+
+		lmjd = mjd;
+
+		mjd2ymd(mjd, date.year, date.month, dom, doy);
+		date.doy = (int32_t)doy;
+		date.dom = (int32_t)dom;
+		doy = (doy - date.doy) * 24.;
+		date.hour = (int32_t)doy;
+		doy = (doy - date.hour) * 60.;
+		date.minute = (int32_t)doy;
+		doy = (doy - date.minute) * 60.;
+		date.second = (int32_t)doy;
+		doy = (doy - date.second) * 1e9;
+		date.nsecond = (int32_t)(doy + .5);
+	}
 
 	return date;
 }

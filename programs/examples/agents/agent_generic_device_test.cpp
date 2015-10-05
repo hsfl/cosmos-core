@@ -274,7 +274,7 @@ int generic_node_test(int telem_num, string type){
             //value_str = to_string(cdata->devspec.telem[telem_num]->vuint8);
             //itemp = atol(value_str.c_str());
             ++itemp;
-            sprintf(cdata->devspec.telem[telem_num]->vstring, "\"str%lu\"", itemp);
+			sprintf(cdata->devspec.telem[telem_num]->vstring, "\"str%u\"", itemp);
             value_str = string(cdata->devspec.telem[telem_num]->vstring);
         }
 
