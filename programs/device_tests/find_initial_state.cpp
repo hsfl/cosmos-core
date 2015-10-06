@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
 	int c[3];
 
 	// terms for initial attitude and acceleration
-	rvector avg_body_accel = rv_zero();
-	quaternion avg_body_att = q_zero();
+//	rvector avg_body_accel = rv_zero();
+//	quaternion avg_body_att = q_zero();
 	quaternion body2geoc = q_zero();
 
 	// terms for defining mission phase states

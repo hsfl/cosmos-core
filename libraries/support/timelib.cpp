@@ -133,21 +133,28 @@ struct timeval utc2unix(double utc)
 */
 calstruc mjd2cal(double mjd)
 {
-	calstruc date;
-	double dom;
-	double doy;
+	static double lmjd = 0.;
+	static calstruc date;
 
-	mjd2ymd(mjd, date.year, date.month, dom, doy);
-	date.doy = (int32_t)doy;
-	date.dom = (int32_t)dom;
-	doy = (doy - date.doy) * 24.;
-	date.hour = (int32_t)doy;
-	doy = (doy - date.hour) * 60.;
-	date.minute = (int32_t)doy;
-	doy = (doy - date.minute) * 60.;
-	date.second = (int32_t)doy;
-	doy = (doy - date.second) * 1e9;
-	date.nsecond = (int32_t)(doy + .5);
+	if (lmjd != mjd)
+	{
+		double dom;
+		double doy;
+
+		lmjd = mjd;
+
+		mjd2ymd(mjd, date.year, date.month, dom, doy);
+		date.doy = (int32_t)doy;
+		date.dom = (int32_t)dom;
+		doy = (doy - date.doy) * 24.;
+		date.hour = (int32_t)doy;
+		doy = (doy - date.hour) * 60.;
+		date.minute = (int32_t)doy;
+		doy = (doy - date.minute) * 60.;
+		date.second = (int32_t)doy;
+		doy = (doy - date.second) * 1e9;
+		date.nsecond = (int32_t)(doy + .5);
+	}
 
 	return date;
 }
@@ -178,36 +185,51 @@ int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day)
 */
 int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy)
 {
-    int32_t a, b, c, d, e, z, alpha;
-    double f;
+	static double lmjd = 0.;
+	static int32_t lyear = 1858;
+	static int32_t lmonth = 11;
+	static int32_t lday = 17;
+	static int32_t ldoy = 321;
 
-    mjd += 2400001.;
-    z = (int32_t)mjd;
-    f = mjd - z;
+	if (mjd != lmjd)
+	{
+		int32_t a, b, c, d, e, z, alpha;
+		double f;
 
-    if (z<2299161)
-        a = z;
-    else
-    {
-        alpha = (int32_t)((z - 1867216.25)/36524.25);
-        a = z +1 + alpha - (int32_t)(alpha/4);
-    }
+		lmjd = mjd;
+		mjd += 2400001.;
+		z = (int32_t)mjd;
+		f = mjd - z;
 
-    b = a + 1524;
-    c = (int32_t)((b - 122.1)/365.25);
-    d = (int32_t)(365.25*c);
-    e = (int32_t)((b - d)/30.6001);
+		if (z<2299161)
+			a = z;
+		else
+		{
+			alpha = (int32_t)((z - 1867216.25)/36524.25);
+			a = z +1 + alpha - (int32_t)(alpha/4);
+		}
 
-	day = b - d - (int32_t)(30.6001 * e) + f;
-    if (e < 14)
-		month = e - 1;
-    else
-		month = e - 13;
-	if (month > 2)
-		year = c - 4716;
-    else
-		year = c - 4715;
-	doy = (int32_t)((275 * month)/9) - (2-isleap(year))*(int32_t)((month+9)/12) + day - 30;
+		b = a + 1524;
+		c = (int32_t)((b - 122.1)/365.25);
+		d = (int32_t)(365.25*c);
+		e = (int32_t)((b - d)/30.6001);
+
+		lday = b - d - (int32_t)(30.6001 * e) + f;
+		if (e < 14)
+			lmonth = e - 1;
+		else
+			lmonth = e - 13;
+		if (lmonth > 2)
+			lyear = c - 4716;
+		else
+			lyear = c - 4715;
+		ldoy = (int32_t)((275 * lmonth)/9) - (2-isleap(lyear))*(int32_t)((lmonth+9)/12) + lday - 30;
+	}
+
+	year = lyear;
+	month = lmonth;
+	day = lday;
+	doy  = ldoy;
     return 0;
 }
 
