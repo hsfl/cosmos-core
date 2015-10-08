@@ -58,17 +58,19 @@
 
 struct channel_struc
 {
-    uint8_t channel;
-    uint8_t mode;
-    uint8_t rfgain;
-    uint8_t squelch;
-    double frequency;
+	uint8_t channel;
+	uint8_t mode;
+	uint8_t rfgain;
+	uint8_t squelch;
+	uint8_t rfpower;
+	double frequency;
 };
 
 struct ic9100_handle
 {
-    cssl_t *serial;
-    channel_struc channel[2];
+	cssl_t *serial;
+	string response;
+	channel_struc channel[2];
 };
 
 int32_t ic9100_connect(string device, ic9100_handle &handle);
@@ -80,10 +82,11 @@ int32_t ic9100_set_frequency(ic9100_handle &handle, uint8_t channel, double freq
 int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t channel, uint8_t mode);
 int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t channel, uint8_t rfgain);
 int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t channel, uint8_t squelch);
-int32_t ic9100_get_frequency(ic9100_handle &handle, uint8_t channel, double &frequency);
-int32_t ic9100_get_mode(ic9100_handle &handle, uint8_t channel, uint8_t &mode);
-int32_t ic9100_get_rfgain(ic9100_handle &handle, uint8_t channel, uint8_t &rfgain);
-int32_t ic9100_get_squelch(ic9100_handle &handle, uint8_t channel, uint8_t &squelch);
+int32_t ic9100_get_frequency(ic9100_handle &handle, uint8_t channel);
+int32_t ic9100_get_mode(ic9100_handle &handle, uint8_t channel);
+int32_t ic9100_get_rfgain(ic9100_handle &handle, uint8_t channel);
+int32_t ic9100_get_squelch(ic9100_handle &handle, uint8_t channel);
+int32_t ic9100_get_rfpower(ic9100_handle &handle, uint8_t channel);
 
 #endif // IC9100_LIB_H
 

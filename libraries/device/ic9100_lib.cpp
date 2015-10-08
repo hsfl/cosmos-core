@@ -91,17 +91,25 @@ int32_t ic9100_write(ic9100_handle &handle, string message)
 		return iretn;
 	}
 
-	if (buffer[0] != 0xfe || buffer[1] != 0xfe || buffer[2] != 0xe0 || buffer[3] != 0x7c)
+	if (iretn < 6)
+	{
+		return IC9100_ERROR_READ;
+	}
+
+	if (buffer[0] != 0xfe || buffer[1] != 0xfe || buffer[2] != 0xe0 || buffer[3] != 0x7c || buffer[iretn-1] != 0xfd)
 	{
 		return IC9100_ERROR_WRITE;
 	}
 
-	if (buffer[4] != 0xfb)
+	if (buffer[4] == 0xfa)
 	{
 		return IC9100_ERROR_NG;
 	}
 
-	return 0;
+	handle.response.resize(iretn-5);
+	memcpy((void *)handle.response.data(), &buffer[4], iretn-5);
+
+	return iretn-5;
 }
 
 int32_t ic9100_read(ic9100_handle &handle, string &message)
@@ -233,7 +241,7 @@ int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t channel, uint8_t rfgain
 		return iretn;
 	}
 
-	string command ("\x14\x0\x2\x0\x0");
+	string command ("\x14\x2\x0\x0");
 
 	for (size_t i=0; i<2; ++i)
 	{
@@ -268,7 +276,7 @@ int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t channel, uint8_t squel
 		return iretn;
 	}
 
-	string command ("\x14\x0\x3\x0\x0");
+	string command ("\x14\x3\x0\x0");
 
 	for (size_t i=0; i<2; ++i)
 	{
@@ -293,7 +301,42 @@ int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t channel, uint8_t squel
 	return iretn;
 }
 
-int32_t ic9100_get_frequency(ic9100_handle &handle, uint8_t channel, double &frequency)
+int32_t ic9100_set_rfpower(ic9100_handle &handle, uint8_t channel, uint8_t squelch)
+{
+	int32_t iretn = 0;
+
+	iretn = ic9100_set_channel(handle, channel);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	string command ("\x14\xa\x0\x0");
+
+	for (size_t i=0; i<2; ++i)
+	{
+		command[3-i] = 0;
+		for (size_t j=0; j<2; ++j)
+		{
+			uint8_t digit = squelch % 10;
+			switch (j)
+			{
+			case 0:
+				command[3-i] += digit;
+				break;
+			case 1:
+				command[3-i] += digit << 4;
+				break;
+			}
+			squelch /= 10;
+		}
+	}
+
+	iretn = ic9100_write(handle, command);
+	return iretn;
+}
+
+int32_t ic9100_get_frequency(ic9100_handle &handle, uint8_t channel)
 {
 	int32_t iretn = 0;
 
@@ -311,29 +354,22 @@ int32_t ic9100_get_frequency(ic9100_handle &handle, uint8_t channel, double &fre
 		return iretn;
 	}
 
-	string response;
-	iretn = ic9100_read(handle, response);
-	if (iretn < 0)
-	{
-		return iretn;
-	}
-
-	if (iretn != 5)
+	if (iretn != 7)
 	{
 		return IC9100_ERROR_OUTOFRANGE;
 	}
 
-	frequency = 0.;
+	handle.channel[channel].frequency = 0.;
 	for (size_t i=0; i<5; ++i)
 	{
-		frequency += 10. * (response[4-i] >> 4) + (response[4-i] % 16);
-		frequency *= 100.;
+		handle.channel[channel].frequency += 10. * (handle.response[6-i] >> 4) + (handle.response[6-i] % 16);
+		handle.channel[channel].frequency *= 100.;
 	}
 
 	return iretn;
 }
 
-int32_t ic9100_get_mode(ic9100_handle &handle, uint8_t channel, uint8_t &mode)
+int32_t ic9100_get_mode(ic9100_handle &handle, uint8_t channel)
 {
 	int32_t iretn = 0;
 
@@ -351,32 +387,79 @@ int32_t ic9100_get_mode(ic9100_handle &handle, uint8_t channel, uint8_t &mode)
 		return iretn;
 	}
 
-	string response;
-	iretn = ic9100_read(handle, response);
+	if (iretn != 4)
+	{
+		return IC9100_ERROR_OUTOFRANGE;
+	}
+
+	handle.channel[channel].mode = handle.response[2];
+
+	return iretn;
+}
+
+int32_t ic9100_get_rfgain(ic9100_handle &handle, uint8_t channel)
+{
+	int32_t iretn = 0;
+
+	iretn = ic9100_set_channel(handle, channel);
 	if (iretn < 0)
 	{
 		return iretn;
 	}
 
-	if (iretn != 2)
-	{
-		return IC9100_ERROR_OUTOFRANGE;
-	}
+	string command ("\x14\x2");
 
-	mode = response[0];
+	iretn = ic9100_write(handle, command);
+	handle.channel[channel].rfgain = 0;
+	for (size_t i=0; i<2; ++i)
+	{
+		handle.channel[channel].rfgain += 10. * (handle.response[i+2] >> 4) + (handle.response[i+2] % 16);
+		handle.channel[channel].rfgain *= 100.;
+	}
 
 	return iretn;
 }
 
-int32_t ic9100_get_rfgain(ic9100_handle &handle, uint8_t channel, uint8_t &rfgain)
+int32_t ic9100_get_squelch(ic9100_handle &handle, uint8_t channel)
 {
+	int32_t iretn = 0;
 
+	iretn = ic9100_set_channel(handle, channel);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	string command ("\x14\x2");
+
+	iretn = ic9100_write(handle, command);
+	handle.channel[channel].squelch = 0;
+	for (size_t i=0; i<2; ++i)
+	{
+		handle.channel[channel].squelch += 10. * (handle.response[i+2] >> 4) + (handle.response[i+2] % 16);
+		handle.channel[channel].squelch *= 100.;
+	}
 	return 0;
 }
 
-int32_t ic9100_get_squelch(ic9100_handle &handle, uint8_t channel, uint8_t &squelch)
+int32_t ic9100_get_rfpower(ic9100_handle &handle, uint8_t channel, uint8_t &rfgain)
 {
+	int32_t iretn = 0;
 
-	return 0;
+	iretn = ic9100_set_channel(handle, channel);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	string command ("\x14\xa");
+
+	iretn = ic9100_write(handle, command);
+	handle.channel[channel].rfpower = 0;
+	for (size_t i=0; i<2; ++i)
+	{
+		handle.channel[channel].rfpower += 10. * (handle.response[i+2] >> 4) + (handle.response[i+2] % 16);
+		handle.channel[channel].rfpower *= 100.;
+	}
+	return iretn;
 }
-
