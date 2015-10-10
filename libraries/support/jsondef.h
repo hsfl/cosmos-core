@@ -470,6 +470,18 @@ enum
 	DEVICE_MODEL_TS2000=1,
 	DEVICE_MODEL_IC9100=2
 	};
+
+enum
+	{
+	DEVICE_RADIO_MODE_AM,
+	DEVICE_RADIO_MODE_FM,
+	DEVICE_RADIO_MODE_LSB,
+	DEVICE_RADIO_MODE_USB,
+	DEVICE_RADIO_MODE_CW,
+	DEVICE_RADIO_MODE_RTTY,
+	DEVICE_RADIO_MODE_DV
+	};
+
 enum
 	{
 	TELEM_TYPE_UINT8,
@@ -1236,14 +1248,18 @@ struct rxrstruc
 {
 	//! Generic info
 	genstruc gen;
+	//! Operating mode
+	uint16_t mode;
 	//! Frequency
-	float freqin;
+	float freq;
 	//! Maximum frequency allowed
-	float maxfreqin;
+	float maxfreq;
 	//! Minimum frequency allowed
-	float minfreqin;
+	float minfreq;
+	//! Power
+	float power;
 	//! Filter bandpass
-	float filt;
+	float band;
 };
 
 //! Transmitter information
@@ -1253,12 +1269,16 @@ struct txrstruc
 {
 	//! Generic info
 	genstruc gen;
+	//! Operating mode
+	uint16_t mode;
 	//! Frequency
-	float freqout;
+	float freq;
 	//! Maximum frequency allowed
-	float maxfreqout;
+	float maxfreq;
 	//! Minimum frequency allowed
-	float minfreqout;
+	float minfreq;
+	//! Power
+	float power;
 };
 
 //! Transceiver information
@@ -1268,12 +1288,16 @@ struct tcvstruc
 {
 	//! Generic info
 	genstruc gen;
+	//! Operating mode
+	uint16_t mode;
 	//! Input Frequency
 	float freqin;
 	//! Maximum frequency allowed
 	float maxfreqin;
 	//! Minimum frequency allowed
 	float minfreqin;
+	//! Power
+	float powerin;
 	//! Filter bandpass
 	float filt;
 	//! Output Frequency
@@ -1282,6 +1306,8 @@ struct tcvstruc
 	float maxfreqout;
 	//! Minimum frequency allowed
 	float minfreqout;
+	//! Power
+	float powerout;
 };
 
 //! PV String (STRG) structure.

@@ -28,6 +28,7 @@
 ********************************************************************/
 
 #include "ic9100_lib.h"
+#include "jsondef.h"
 
 int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle)
 {
@@ -207,7 +208,74 @@ int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency)
 	}
 
 	iretn = ic9100_write(handle, command);
-	return iretn;
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	if (frequency < 1.8e6)
+	{
+		handle.channel[handle.channelnum].freqband = 14;
+	}
+	else if (frequency < 2.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 1;
+	}
+	else if (frequency >= 3.4e6 && frequency < 4.1e6)
+	{
+		handle.channel[handle.channelnum].freqband = 2;
+	}
+	else if (frequency >= 6.9e6 && frequency < 7.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 3;
+	}
+	else if (frequency >= 9.9e6 && frequency < 10.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 4;
+	}
+	else if (frequency >= 13.9e6 && frequency < 14.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 5;
+	}
+	else if (frequency >= 17.9e6 && frequency < 18.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 6;
+	}
+	else if (frequency >= 20.9e6 && frequency < 21.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 7;
+	}
+	else if (frequency >= 24.4e6 && frequency < 25.1e6)
+	{
+		handle.channel[handle.channelnum].freqband = 8;
+	}
+	else if (frequency >= 28.0e6 && frequency < 30.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 9;
+	}
+	else if (frequency >= 50.0e6 && frequency <= 54.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 10;
+	}
+	else if (frequency >= 108.0e6 && frequency <= 174.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 11;
+	}
+	else if (frequency >= 420.0e6 && frequency <= 480.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 12;
+	}
+	else if (frequency >= 1240.0e6 && frequency <1320.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 13;
+	}
+	else
+	{
+		handle.channel[handle.channelnum].freqband = 14;
+	}
+	handle.channel[handle.channelnum].frequency = frequency;
+
+	return 0;
 }
 
 int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t mode)
@@ -239,7 +307,42 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t mode)
 	command[2] = mode;
 
 	iretn = ic9100_write(handle, command);
-	return iretn;
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	switch (mode)
+	{
+	case IC9100_MODE_AM:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_AM;
+		break;
+	case IC9100_MODE_CW:
+	case IC9100_MODE_CWR:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_CW;
+		break;
+	case IC9100_MODE_DV:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_DV;
+		break;
+	case IC9100_MODE_FM:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_FM;
+		break;
+	case IC9100_MODE_LSB:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_LSB;
+		break;
+	case IC9100_MODE_RTTY:
+	case IC9100_MODE_RTTYR:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_RTTY;
+		break;
+	case IC9100_MODE_USB:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_USB;
+		break;
+	default:
+		return IC9100_ERROR_OUTOFRANGE;
+		break;
+	}
+
+	return 0;
 }
 
 int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t rfgain)
@@ -310,8 +413,9 @@ int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t squelch)
 	return iretn;
 }
 
-int32_t ic9100_set_rfpower(ic9100_handle &handle, uint8_t rfpower)
+int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 {
+	uint8_t rfpower;
 	int32_t iretn = 0;
 
 	if (iretn < 0)
@@ -319,6 +423,38 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, uint8_t rfpower)
 		return iretn;
 	}
 
+	if (handle.channel[handle.channelnum].freqband < 11)
+	{
+		if (power < 2. || power > (handle.channel[handle.channelnum].mode==DEVICE_RADIO_MODE_AM?30.:100.))
+		{
+			return IC9100_ERROR_OUTOFRANGE;
+		}
+		rfpower = (power - 2.) / (handle.channel[handle.channelnum].mode==DEVICE_RADIO_MODE_AM?28.:98.);
+	}
+	else if (handle.channel[handle.channelnum].freqband < 12)
+	{
+		if (power < 2. || power > (100.))
+		{
+			return IC9100_ERROR_OUTOFRANGE;
+		}
+		rfpower = (power - 2.) / (98.);
+	}
+	else if (handle.channel[handle.channelnum].freqband < 13)
+	{
+		if (power < 2. || power > 75.)
+		{
+			return IC9100_ERROR_OUTOFRANGE;
+		}
+		rfpower = (power - 2.) / 73.;
+	}
+	else if (handle.channel[handle.channelnum].freqband < 14)
+	{
+		if (power < 2. || power > 10.)
+		{
+			return IC9100_ERROR_OUTOFRANGE;
+		}
+		rfpower = (power - 2.) / 8.;
+	}
 	string command ("\x14\xa\x0\x0");
 
 	for (size_t i=0; i<2; ++i)
@@ -336,12 +472,18 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, uint8_t rfpower)
 				command[3-i] += digit << 4;
 				break;
 			}
-			squelch /= 10;
+			rfpower /= 10;
 		}
 	}
 
 	iretn = ic9100_write(handle, command);
-	return iretn;
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	handle.channel[handle.channelnum].power = power;
+	return 0;
 }
 
 int32_t ic9100_check_address(ic9100_handle &handle)
@@ -418,7 +560,32 @@ int32_t ic9100_get_mode(ic9100_handle &handle)
 		return IC9100_ERROR_OUTOFRANGE;
 	}
 
-	handle.channel[handle.channelnum].mode = handle.response[2];
+	switch (handle.response[2])
+	{
+	case IC9100_MODE_AM:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_AM;
+		break;
+	case IC9100_MODE_FM:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_FM;
+		break;
+	case IC9100_MODE_LSB:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_LSB;
+		break;
+	case IC9100_MODE_USB:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_USB;
+		break;
+	case IC9100_MODE_CW:
+	case IC9100_MODE_CWR:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_CW;
+		break;
+	case IC9100_MODE_RTTY:
+	case IC9100_MODE_RTTYR:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_RTTY;
+		break;
+	case IC9100_MODE_DV:
+		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_DV;
+		break;
+	}
 
 	return iretn;
 }
