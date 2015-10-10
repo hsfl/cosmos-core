@@ -58,7 +58,6 @@
 
 struct channel_struc
 {
-	uint8_t channel;
 	uint8_t mode;
 	uint8_t rfgain;
 	uint8_t squelch;
@@ -69,24 +68,28 @@ struct channel_struc
 struct ic9100_handle
 {
 	cssl_t *serial;
+	uint8_t address;
+	uint8_t channelnum;
 	string response;
 	channel_struc channel[2];
 };
 
-int32_t ic9100_connect(string device, ic9100_handle &handle);
+int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle);
 int32_t ic9100_disconnect(ic9100_handle &handle);
 int32_t ic9100_write(ic9100_handle &handle, string message);
 int32_t ic9100_read(ic9100_handle &handle, string &message);
-int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channel);
-int32_t ic9100_set_frequency(ic9100_handle &handle, uint8_t channel, double frequency);
-int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t channel, uint8_t mode);
-int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t channel, uint8_t rfgain);
-int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t channel, uint8_t squelch);
-int32_t ic9100_get_frequency(ic9100_handle &handle, uint8_t channel);
-int32_t ic9100_get_mode(ic9100_handle &handle, uint8_t channel);
-int32_t ic9100_get_rfgain(ic9100_handle &handle, uint8_t channel);
-int32_t ic9100_get_squelch(ic9100_handle &handle, uint8_t channel);
-int32_t ic9100_get_rfpower(ic9100_handle &handle, uint8_t channel);
+int32_t ic9100_check_address(ic9100_handle &handle);
+int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channelnum);
+int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency);
+int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t mode);
+int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t rfgain);
+int32_t ic9100_set_rfpower(ic9100_handle &handle, uint8_t rfpower);
+int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t squelch);
+int32_t ic9100_get_frequency(ic9100_handle &handle);
+int32_t ic9100_get_mode(ic9100_handle &handle);
+int32_t ic9100_get_rfgain(ic9100_handle &handle);
+int32_t ic9100_get_squelch(ic9100_handle &handle);
+int32_t ic9100_get_rfpower(ic9100_handle &handle);
 
 #endif // IC9100_LIB_H
 

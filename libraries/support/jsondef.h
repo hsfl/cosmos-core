@@ -466,6 +466,12 @@ enum
 
 enum
 	{
+	DEVICE_MODEL_ASTRODEV=0,
+	DEVICE_MODEL_TS2000=1,
+	DEVICE_MODEL_IC9100=2
+	};
+enum
+	{
 	TELEM_TYPE_UINT8,
 	TELEM_TYPE_INT8,
 	TELEM_TYPE_UINT16,
@@ -984,8 +990,7 @@ struct genstruc
 	uint16_t type;
 	//! Device Model
 	uint16_t model;
-    //! Device flag
-    // TODO: explain what is the device flag for?
+	//! Device flag - catch all for any small piece of information that might be device specific
     uint16_t flag;
 	//! Component Index
 	uint16_t cidx;
@@ -1232,7 +1237,13 @@ struct rxrstruc
 	//! Generic info
 	genstruc gen;
 	//! Frequency
-	float freq;
+	float freqin;
+	//! Maximum frequency allowed
+	float maxfreqin;
+	//! Minimum frequency allowed
+	float minfreqin;
+	//! Filter bandpass
+	float filt;
 };
 
 //! Transmitter information
@@ -1243,7 +1254,11 @@ struct txrstruc
 	//! Generic info
 	genstruc gen;
 	//! Frequency
-	float freq;
+	float freqout;
+	//! Maximum frequency allowed
+	float maxfreqout;
+	//! Minimum frequency allowed
+	float minfreqout;
 };
 
 //! Transceiver information
@@ -1255,8 +1270,18 @@ struct tcvstruc
 	genstruc gen;
 	//! Input Frequency
 	float freqin;
+	//! Maximum frequency allowed
+	float maxfreqin;
+	//! Minimum frequency allowed
+	float minfreqin;
+	//! Filter bandpass
+	float filt;
 	//! Output Frequency
 	float freqout;
+	//! Maximum frequency allowed
+	float maxfreqout;
+	//! Minimum frequency allowed
+	float minfreqout;
 };
 
 //! PV String (STRG) structure.
