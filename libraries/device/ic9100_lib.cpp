@@ -88,8 +88,8 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command)
 {
 	int32_t iretn = 0;
 
-//	vector <uint8_t> message {};
-	iretn = ic9100_write(handle, command, vector <uint8_t> {});
+	vector <uint8_t> data {};
+	iretn = ic9100_write(handle, command, data);
 	return iretn;
 }
 
@@ -97,7 +97,8 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand)
 {
 	int32_t iretn = 0;
 
-	iretn = ic9100_write(handle, command, subcommand, vector <uint8_t> {});
+	vector <uint8_t> data {};
+	iretn = ic9100_write(handle, command, subcommand, data);
 	return iretn;
 }
 
