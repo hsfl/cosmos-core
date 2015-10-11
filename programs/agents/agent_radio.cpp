@@ -40,7 +40,7 @@ size_t deviceindex;
 size_t radioindex = 9999;
 uint16_t radiotype = 9999;
 string radiodevice;
-uint16_t radioflag;
+uint16_t radioaddr;
 
 astrodev_handle astrodev;
 ts2000_state ts2000;
@@ -151,14 +151,14 @@ int main(int argc, char *argv[])
 	}
 
 	radiodevice = cdata[0].port[cdata[0].device[deviceindex].all.gen.portidx].name;
-	radioflag = cdata[0].device[deviceindex].all.gen.flag;
+	radioaddr = cdata[0].device[deviceindex].all.gen.addr;
 
 	switch (cdata[0].device[deviceindex].all.gen.model)
 	{
 	case DEVICE_MODEL_ASTRODEV:
 		break;
 	case DEVICE_MODEL_IC9100:
-		iretn = ic9100_connect(radiodevice, radioflag, ic9100);
+		iretn = ic9100_connect(radiodevice, radioaddr, ic9100);
 		if (iretn < 0)
 		{
 			cout<<"Exiting " << agentname << " for Node: " << nodename << " error connecting to IC9100 " << iretn << endl;

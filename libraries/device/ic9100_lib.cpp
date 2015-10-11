@@ -56,7 +56,7 @@ int32_t ic9100_disconnect(ic9100_handle &handle)
 	return 0;
 }
 
-int32_t ic9100_write(ic9100_handle &handle, string message)
+int32_t ic9100_write(ic9100_handle &handle, vector <uint8_t> message)
 {
 	int32_t iretn = 0;
 
@@ -80,7 +80,7 @@ int32_t ic9100_write(ic9100_handle &handle, string message)
 	{
 		return iretn;
 	}
-	iretn = cssl_putdata(handle.serial, (uint8_t *)message.data(), message.length());
+	iretn = cssl_putdata(handle.serial, (uint8_t *)message.data(), message.size());
 	if (iretn < 0)
 	{
 		return iretn;
@@ -98,25 +98,31 @@ int32_t ic9100_write(ic9100_handle &handle, string message)
 		return iretn;
 	}
 
-	if (iretn < 6)
-	{
-		return IC9100_ERROR_READ;
-	}
-
-	if (buffer[0] != 0xfe || buffer[1] != 0xfe || buffer[2] != 0xe0 || buffer[3] != handle.address || buffer[iretn-1] != 0xfd)
+	if (iretn < message.size() + 5)
 	{
 		return IC9100_ERROR_WRITE;
 	}
 
-	if (buffer[4] == 0xfa)
+	if (iretn == message.size() + 5)
+	{
+		return IC9100_ERROR_ADDR;
+	}
+
+	uint16_t base = message.size() + 5;
+	if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[iretn-1] != 0xfd)
+	{
+		return IC9100_ERROR_WRITE;
+	}
+
+	if (buffer[base+4] == 0xfa)
 	{
 		return IC9100_ERROR_NG;
 	}
 
-	handle.response.resize(iretn-5);
-	memcpy((void *)handle.response.data(), &buffer[4], iretn-5);
+	handle.response.resize(iretn-(base+message.size()));
+	memcpy((void *)handle.response.data(), &buffer[base+6], iretn-(base+message.size()));
 
-	return iretn-5;
+	return iretn-(base+message.size());
 }
 
 int32_t ic9100_read(ic9100_handle &handle, string &message)
@@ -147,7 +153,7 @@ int32_t ic9100_read(ic9100_handle &handle, string &message)
 int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channelnum)
 {
 	int32_t iretn = 0;
-	string command ("\x7\x0");
+	vector <uint8_t> command { 0x7,0x0 };
 
 	switch (channelnum)
 	{
@@ -180,7 +186,7 @@ int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency)
 		return iretn;
 	}
 
-	string command ("\x5\x0\x0\x0\x0\x0\x0");
+	vector <uint8_t> command { 0x5,0x0,0x0,0x0,0x0,0x0,0x0 };
 
 	if (frequency >= 1e10 || frequency < 0)
 	{
@@ -303,7 +309,7 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t mode)
 		break;
 	}
 
-	string command ("\x6\x0\x0\x0");
+	vector <uint8_t> command { 0x6,0x0,0x0,0x0 };
 	command[2] = mode;
 
 	iretn = ic9100_write(handle, command);
@@ -354,7 +360,7 @@ int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t rfgain)
 		return iretn;
 	}
 
-	string command ("\x14\x2\x0\x0");
+	vector <uint8_t> command { 0x14,0x2,0x0,0x0 };
 
 	for (size_t i=0; i<2; ++i)
 	{
@@ -388,7 +394,7 @@ int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t squelch)
 		return iretn;
 	}
 
-	string command ("\x14\x3\x0\x0");
+	vector <uint8_t> command { 0x14,0x3,0x0,0x0 };
 
 	for (size_t i=0; i<2; ++i)
 	{
@@ -455,7 +461,7 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 		}
 		rfpower = (power - 2.) / 8.;
 	}
-	string command ("\x14\xa\x0\x0");
+	vector <uint8_t> command { 0x14,0xa,0x0,0x0 };
 
 	for (size_t i=0; i<2; ++i)
 	{
@@ -490,7 +496,7 @@ int32_t ic9100_check_address(ic9100_handle &handle)
 {
 	int32_t iretn = 0;
 
-	string command ("\x19\x0");
+	vector <uint8_t> command { 0x19,0x0 };
 
 	iretn = ic9100_write(handle, command);
 	if (iretn < 0)
@@ -515,7 +521,7 @@ int32_t ic9100_get_frequency(ic9100_handle &handle)
 		return iretn;
 	}
 
-	string command ("\x3\x0");
+	vector <uint8_t> command { 0x3 };
 
 	iretn = ic9100_write(handle, command);
 	if (iretn < 0)
@@ -523,7 +529,7 @@ int32_t ic9100_get_frequency(ic9100_handle &handle)
 		return iretn;
 	}
 
-	if (iretn != 7)
+	if (iretn != 5)
 	{
 		return IC9100_ERROR_OUTOFRANGE;
 	}
@@ -531,7 +537,7 @@ int32_t ic9100_get_frequency(ic9100_handle &handle)
 	handle.channel[handle.channelnum].frequency = 0.;
 	for (size_t i=0; i<5; ++i)
 	{
-		handle.channel[handle.channelnum].frequency += 10. * (handle.response[6-i] >> 4) + (handle.response[6-i] % 16);
+		handle.channel[handle.channelnum].frequency += 10. * (handle.response[4-i] >> 4) + (handle.response[4-i] % 16);
 		handle.channel[handle.channelnum].frequency *= 100.;
 	}
 
@@ -547,7 +553,7 @@ int32_t ic9100_get_mode(ic9100_handle &handle)
 		return iretn;
 	}
 
-	string command ("\x4\x0");
+	vector <uint8_t> command { 0x4,0x0 };
 
 	iretn = ic9100_write(handle, command);
 	if (iretn < 0)
@@ -555,12 +561,12 @@ int32_t ic9100_get_mode(ic9100_handle &handle)
 		return iretn;
 	}
 
-	if (iretn != 4)
+	if (iretn != 2)
 	{
 		return IC9100_ERROR_OUTOFRANGE;
 	}
 
-	switch (handle.response[2])
+	switch (handle.response[0])
 	{
 	case IC9100_MODE_AM:
 		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_AM;
@@ -599,13 +605,13 @@ int32_t ic9100_get_rfgain(ic9100_handle &handle)
 		return iretn;
 	}
 
-	string command ("\x14\x2");
+	vector <uint8_t> command { 0x14,0x2 };
 
 	iretn = ic9100_write(handle, command);
 	handle.channel[handle.channelnum].rfgain = 0;
 	for (size_t i=0; i<2; ++i)
 	{
-		handle.channel[handle.channelnum].rfgain += 10. * (handle.response[i+2] >> 4) + (handle.response[i+2] % 16);
+		handle.channel[handle.channelnum].rfgain += 10. * (handle.response[i] >> 4) + (handle.response[i] % 16);
 		handle.channel[handle.channelnum].rfgain *= 100.;
 	}
 
@@ -621,13 +627,13 @@ int32_t ic9100_get_squelch(ic9100_handle &handle)
 		return iretn;
 	}
 
-	string command ("\x14\x2");
+	vector <uint8_t> command { 0x14,0x2 };
 
 	iretn = ic9100_write(handle, command);
 	handle.channel[handle.channelnum].squelch = 0;
 	for (size_t i=0; i<2; ++i)
 	{
-		handle.channel[handle.channelnum].squelch += 10. * (handle.response[i+2] >> 4) + (handle.response[i+2] % 16);
+		handle.channel[handle.channelnum].squelch += 10. * (handle.response[i] >> 4) + (handle.response[i] % 16);
 		handle.channel[handle.channelnum].squelch *= 100.;
 	}
 	return 0;
@@ -642,13 +648,13 @@ int32_t ic9100_get_rfpower(ic9100_handle &handle)
 		return iretn;
 	}
 
-	string command ("\x14\xa");
+	vector <uint8_t> command { 0x14,0xa };
 
 	iretn = ic9100_write(handle, command);
 	handle.channel[handle.channelnum].rfpower = 0;
 	for (size_t i=0; i<2; ++i)
 	{
-		handle.channel[handle.channelnum].rfpower += 10. * (handle.response[i+2] >> 4) + (handle.response[i+2] % 16);
+		handle.channel[handle.channelnum].rfpower += 10. * (handle.response[i] >> 4) + (handle.response[i] % 16);
 		handle.channel[handle.channelnum].rfpower *= 100.;
 	}
 	return iretn;

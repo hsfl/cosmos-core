@@ -73,14 +73,14 @@ struct ic9100_handle
 	cssl_t *serial;
 	uint8_t address;
 	uint8_t channelnum;
-	string response;
+	vector <uint8_t> response;
 	channel_struc channel[2];
 };
 
 int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle);
 int32_t ic9100_disconnect(ic9100_handle &handle);
-int32_t ic9100_write(ic9100_handle &handle, string message);
-int32_t ic9100_read(ic9100_handle &handle, string &message);
+int32_t ic9100_write(ic9100_handle &handle, vector <uint8_t> message);
+int32_t ic9100_read(ic9100_handle &handle, vector <uint8_t> &message);
 int32_t ic9100_check_address(ic9100_handle &handle);
 int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channelnum);
 int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency);

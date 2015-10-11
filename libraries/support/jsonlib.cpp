@@ -5332,6 +5332,7 @@ uint16_t json_addcompentry(uint16_t i, cosmosstruc *cdata)
 	json_addentry("comp_type",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,type)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 	json_addentry("comp_model",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,model)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 	json_addentry("comp_flag",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,flag)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+	json_addentry("comp_addr",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,addr)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 	json_addentry("comp_cidx",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 	json_addentry("comp_didx",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,didx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 	json_addentry("comp_pidx",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,pidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
@@ -6710,6 +6711,8 @@ const char *json_devices_general(string &jstring, cosmosstruc *cdata)
 			json_out_1d(jstring,(char *)"comp_pidx",i,cdata);
 			json_out_character(jstring, '\n');
 			json_out_1d(jstring,(char *)"comp_bidx",i,cdata);
+			json_out_character(jstring, '\n');
+			json_out_1d(jstring,(char *)"comp_addr",i,cdata);
 			json_out_character(jstring, '\n');
 			json_out_1d(jstring,(char *)"comp_portidx",i,cdata);
 			json_out_character(jstring, '\n');

@@ -1003,7 +1003,9 @@ struct genstruc
 	//! Device Model
 	uint16_t model;
 	//! Device flag - catch all for any small piece of information that might be device specific
-    uint16_t flag;
+	uint16_t flag;
+	//! Device specific address
+	uint16_t addr;
 	//! Component Index
 	uint16_t cidx;
 	//! Device specific index
