@@ -138,18 +138,18 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
 	{
 		return iretn;
 	}
+	int32_t base = message.size() + 6;
 
-	if (iretn < message.size() + 6)
+	if (iretn < base)
 	{
 		return IC9100_ERROR_WRITE;
 	}
 
-	if (iretn == message.size() + 6)
+	if (iretn == base)
 	{
 		return IC9100_ERROR_ADDR;
 	}
 
-	uint16_t base = message.size() + 5;
 	if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[iretn-1] != 0xfd)
 	{
 		return IC9100_ERROR_WRITE;
@@ -208,17 +208,17 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
 		return iretn;
 	}
 
-	if (iretn < message.size() + 7)
+	int32_t base = message.size() + 7;
+	if (iretn < base)
 	{
 		return IC9100_ERROR_WRITE;
 	}
 
-	if (iretn == message.size() + 7)
+	if (iretn == base)
 	{
 		return IC9100_ERROR_ADDR;
 	}
 
-	uint16_t base = message.size() + 6;
 	if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[iretn-1] != 0xfd)
 	{
 		return IC9100_ERROR_WRITE;
