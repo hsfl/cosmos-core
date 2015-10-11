@@ -164,6 +164,7 @@ int main(int argc, char *argv[])
 			cout<<"Exiting " << agentname << " for Node: " << nodename << " error connecting to IC9100 " << iretn << endl;
 			agent_shutdown_server(cdata);
 		}
+		iretn = ic9100_set_channel(ic9100, 0);
 		break;
 	case DEVICE_MODEL_TS2000:
 		break;
@@ -260,7 +261,7 @@ int32_t request_get_bandpass(char *request, char* response, void *)
 
 int32_t request_set_bandpass(char *request, char* response, void *)
 {
-	int32_t iretn;
+//	int32_t iretn;
 
 	sscanf(request, "set_bandpass %f", &radio.band);
 	switch (cdata[0].device[deviceindex].all.gen.model)
