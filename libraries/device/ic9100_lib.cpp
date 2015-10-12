@@ -845,6 +845,7 @@ int32_t ic9100_get_rfpower(ic9100_handle &handle)
 		power *= 100.;
 		power += 10. * (handle.response[i] >> 4) + (handle.response[i] % 16);
 	}
+	power /= 256.;
 
 	if (handle.channel[handle.channelnum].freqband < 11)
 	{

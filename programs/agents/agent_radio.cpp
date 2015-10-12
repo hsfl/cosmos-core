@@ -178,6 +178,7 @@ int main(int argc, char *argv[])
 			agent_shutdown_server(cdata);
 		}
 		iretn = ic9100_set_channel(ic9100, 0);
+		iretn = ic9100_set_mode(ic9100, IC9100_MODE_FM);
 		break;
 	case DEVICE_MODEL_TS2000:
 		break;
