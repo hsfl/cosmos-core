@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Establish the command channel and heartbeat
-	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP, nodename.c_str(), agentname.c_str(), 5.0, 0, AGENTMAXBUFFER)))
+	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP, nodename.c_str(), agentname.c_str(), 1.0, 0, AGENTMAXBUFFER)))
 	{
 			cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
 			exit (AGENT_ERROR_JSON_CREATE);
@@ -150,6 +150,19 @@ int main(int argc, char *argv[])
 			exit (1);
 	}
 
+	// Set SOH string
+	char sohstring[100];
+	switch (radiotype)
+	{
+	case DEVICE_TYPE_TXR:
+		sprintf(sohstring, "{\"device_txr_freq_%03d\",\"device_txr_power_%03d\",\"device_txr_band_%03d\"}", radioindex, radioindex, radioindex);
+		break;
+	case DEVICE_TYPE_RXR:
+		sprintf(sohstring, "{\"device_rxr_freq_%03d\",\"device_rxr_power_%03d\",\"device_rxr_band_%03d\"}", radioindex, radioindex, radioindex);
+		break;
+	}
+	agent_set_sohstring(cdata, sohstring);
+
 	radiodevice = cdata[0].port[cdata[0].device[deviceindex].all.gen.portidx].name;
 	radioaddr = cdata[0].device[deviceindex].all.gen.addr;
 
@@ -182,17 +195,17 @@ int main(int argc, char *argv[])
 			break;
 		case DEVICE_MODEL_IC9100:
 			iretn = ic9100_get_frequency(ic9100);
-			if (iretn == 0)
+			if (iretn >= 0)
 			{
 				cdata[0].device[deviceindex].rxr.freq = ic9100.channel[0].frequency;
 			}
 			iretn = ic9100_get_mode(ic9100);
-			if (iretn == 0)
+			if (iretn >= 0)
 			{
 				cdata[0].device[deviceindex].rxr.mode = ic9100.channel[0].mode;
 			}
 			iretn = ic9100_get_rfpower(ic9100);
-			if (iretn == 0)
+			if (iretn >= 0)
 			{
 				cdata[0].device[deviceindex].rxr.power = ic9100.channel[0].rfpower;
 			}

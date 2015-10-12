@@ -161,11 +161,19 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
 		return IC9100_ERROR_NG;
 	}
 
-	base += 5;
-	handle.response.resize(iretn-(base+1));
-	memcpy((void *)handle.response.data(), &buffer[base], iretn-(base+1));
+	if (buffer[base+4] == 0xfb)
+	{
+		handle.response.resize(0);
+		return 0;
+	}
+	else
+	{
+		base += 5;
+		handle.response.resize(iretn-(base+1));
+		memcpy((void *)handle.response.data(), &buffer[base], iretn-(base+1));
+		return iretn-(base+1);
+	}
 
-	return iretn-(base+1);
 }
 
 int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand, vector <uint8_t> message)
@@ -230,11 +238,18 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
 		return IC9100_ERROR_NG;
 	}
 
-	base += 6;
-	handle.response.resize(iretn-(base+1));
-	memcpy((void *)handle.response.data(), &buffer[base], iretn-(base+1));
-
-	return iretn-(base+1);
+	if (buffer[base+4] == 0xfb)
+	{
+		handle.response.resize(0);
+		return 0;
+	}
+	else
+	{
+		base += 6;
+		handle.response.resize(iretn-(base+1));
+		memcpy((void *)handle.response.data(), &buffer[base], iretn-(base+1));
+		return iretn-(base+1);
+	}
 }
 
 int32_t ic9100_read(ic9100_handle &handle, string &message)
@@ -640,13 +655,74 @@ int32_t ic9100_get_frequency(ic9100_handle &handle)
 		return IC9100_ERROR_OUTOFRANGE;
 	}
 
-	handle.channel[handle.channelnum].frequency = 0.;
+	double frequency = 0.;
 	for (size_t i=0; i<5; ++i)
 	{
-		handle.channel[handle.channelnum].frequency += 10. * (handle.response[4-i] >> 4) + (handle.response[4-i] % 16);
-		handle.channel[handle.channelnum].frequency *= 100.;
+		frequency *= 100.;
+		frequency += 10. * (handle.response[4-i] >> 4) + (handle.response[4-i] % 16);
 	}
+	handle.channel[handle.channelnum].frequency = frequency;
 
+	if (frequency < 1.8e6)
+	{
+		handle.channel[handle.channelnum].freqband = 14;
+	}
+	else if (frequency < 2.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 1;
+	}
+	else if (frequency >= 3.4e6 && frequency < 4.1e6)
+	{
+		handle.channel[handle.channelnum].freqband = 2;
+	}
+	else if (frequency >= 6.9e6 && frequency < 7.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 3;
+	}
+	else if (frequency >= 9.9e6 && frequency < 10.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 4;
+	}
+	else if (frequency >= 13.9e6 && frequency < 14.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 5;
+	}
+	else if (frequency >= 17.9e6 && frequency < 18.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 6;
+	}
+	else if (frequency >= 20.9e6 && frequency < 21.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 7;
+	}
+	else if (frequency >= 24.4e6 && frequency < 25.1e6)
+	{
+		handle.channel[handle.channelnum].freqband = 8;
+	}
+	else if (frequency >= 28.0e6 && frequency < 30.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 9;
+	}
+	else if (frequency >= 50.0e6 && frequency <= 54.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 10;
+	}
+	else if (frequency >= 108.0e6 && frequency <= 174.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 11;
+	}
+	else if (frequency >= 420.0e6 && frequency <= 480.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 12;
+	}
+	else if (frequency >= 1240.0e6 && frequency <1320.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 13;
+	}
+	else
+	{
+		handle.channel[handle.channelnum].freqband = 14;
+	}
 	return iretn;
 }
 
@@ -665,7 +741,7 @@ int32_t ic9100_get_mode(ic9100_handle &handle)
 		return iretn;
 	}
 
-	if (iretn != 1)
+	if (iretn != 2)
 	{
 		return IC9100_ERROR_OUTOFRANGE;
 	}
@@ -751,6 +827,7 @@ int32_t ic9100_get_squelch(ic9100_handle &handle)
 int32_t ic9100_get_rfpower(ic9100_handle &handle)
 {
 	int32_t iretn = 0;
+	float power;
 
 	if (iretn < 0)
 	{
@@ -762,11 +839,29 @@ int32_t ic9100_get_rfpower(ic9100_handle &handle)
 	{
 		return IC9100_ERROR_OUTOFRANGE;
 	}
-	handle.channel[handle.channelnum].rfpower = 0;
+	power = 0;
 	for (size_t i=0; i<2; ++i)
 	{
-		handle.channel[handle.channelnum].rfpower += 10. * (handle.response[i] >> 4) + (handle.response[i] % 16);
-		handle.channel[handle.channelnum].rfpower *= 100.;
+		power *= 100.;
+		power += 10. * (handle.response[i] >> 4) + (handle.response[i] % 16);
 	}
+
+	if (handle.channel[handle.channelnum].freqband < 11)
+	{
+		power = 2. + power * (handle.channel[handle.channelnum].mode==DEVICE_RADIO_MODE_AM?28.:98.);
+	}
+	else if (handle.channel[handle.channelnum].freqband < 12)
+	{
+		power = 2. + power * 98.;
+	}
+	else if (handle.channel[handle.channelnum].freqband < 13)
+	{
+		power = 2. + power * 73.;
+	}
+	else if (handle.channel[handle.channelnum].freqband < 14)
+	{
+		power = 2. + power * 8.;
+	}
+	handle.channel[handle.channelnum].rfpower = power;
 	return iretn;
 }
