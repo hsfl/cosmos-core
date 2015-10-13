@@ -693,7 +693,7 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 		{
 			return IC9100_ERROR_OUTOFRANGE;
 		}
-		rfpower = (power - 2.) / (handle.channel[handle.channelnum].mode==DEVICE_RADIO_MODE_AM?28.:98.);
+		rfpower = 255 * (power - 2.) / (handle.channel[handle.channelnum].mode==DEVICE_RADIO_MODE_AM?28.:98.);
 	}
 	else if (handle.channel[handle.channelnum].freqband < 12)
 	{
@@ -701,7 +701,7 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 		{
 			return IC9100_ERROR_OUTOFRANGE;
 		}
-		rfpower = (power - 2.) / (98.);
+		rfpower = 255 * (power - 2.) / (98.);
 	}
 	else if (handle.channel[handle.channelnum].freqband < 13)
 	{
@@ -709,7 +709,7 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 		{
 			return IC9100_ERROR_OUTOFRANGE;
 		}
-		rfpower = (power - 2.) / 73.;
+		rfpower = 255 * (power - 2.) / 73.;
 	}
 	else if (handle.channel[handle.channelnum].freqband < 14)
 	{
@@ -717,7 +717,7 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 		{
 			return IC9100_ERROR_OUTOFRANGE;
 		}
-		rfpower = (power - 2.) / 8.;
+		rfpower = 255 * (power - 2.) / 8.;
 	}
 	vector <uint8_t> data { 0x0,0x0 };
 
