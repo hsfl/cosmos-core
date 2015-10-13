@@ -996,6 +996,6 @@ int32_t ic9100_get_rfpower(ic9100_handle &handle)
 	{
 		power = 2. + power * 8.;
 	}
-	handle.channel[handle.channelnum].rfpower = power;
+	handle.channel[handle.channelnum].power = power;
 	return iretn;
 }

@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 			iretn = ic9100_get_rfpower(ic9100);
 			if (iretn >= 0)
 			{
-				cdata[0].device[deviceindex].rxr.power = ic9100.channel[0].rfpower;
+				cdata[0].device[deviceindex].rxr.power = ic9100.channel[0].power;
 			}
 			break;
 		case DEVICE_MODEL_TS2000:
