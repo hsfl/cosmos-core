@@ -89,7 +89,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
 int32_t ic9100_check_address(ic9100_handle &handle);
 int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channelnum);
 int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency);
-int32_t ic9100_set_bandpass(ic9100_handle &handle, float bandpass);
+int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass);
 int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t mode);
 int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t rfgain);
 int32_t ic9100_set_rfpower(ic9100_handle &handle, float power);
