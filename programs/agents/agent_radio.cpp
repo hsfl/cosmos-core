@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 		exit (iretn);
 	if ((iretn=agent_add_request(cdata, (char *)"get_mode",request_get_mode,"", "returns the radio mode")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"get_mode",request_get_power,"", "returns the radio power")))
+	if ((iretn=agent_add_request(cdata, (char *)"get_power",request_get_power,"", "returns the radio power")))
 		exit (iretn);
 	if ((iretn=agent_add_request(cdata, (char *)"set_frequency",request_set_frequency,"", "sets the radio frequency")))
 		exit (iretn);
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 		exit (iretn);
 	if ((iretn=agent_add_request(cdata, (char *)"set_mode",request_set_mode,"", "sets the radio mode")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"set_mode",request_set_power,"", "sets the radio power")))
+	if ((iretn=agent_add_request(cdata, (char *)"set_power",request_set_power,"", "sets the radio power")))
 		exit (iretn);
 
 
