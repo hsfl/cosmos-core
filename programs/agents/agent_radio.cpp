@@ -275,13 +275,13 @@ int32_t request_get_bandpass(char *request, char* response, void *)
 
 int32_t request_set_bandpass(char *request, char* response, void *)
 {
-//	int32_t iretn;
+	int32_t iretn;
 
 	sscanf(request, "set_bandpass %f", &radio.band);
 	switch (cdata[0].device[deviceindex].all.gen.model)
 	{
 	case DEVICE_MODEL_IC9100:
-//		iretn = ic9100_set_bandpass(ic9100, radio.band);
+		iretn = ic9100_set_bandpass(ic9100, radio.band);
 		break;
 	}
 	return 0;
