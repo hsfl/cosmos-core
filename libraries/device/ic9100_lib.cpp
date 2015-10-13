@@ -106,15 +106,19 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
 {
 	int32_t iretn = 0;
 
+	handle.mut.lock();
+
 	iretn = ic9100_write_header(handle);
 	if (iretn < 0)
 	{
+		handle.mut.unlock();
 		return iretn;
 	}
 
 	iretn = cssl_putchar(handle.serial, command);
 	if (iretn < 0)
 	{
+		handle.mut.unlock();
 		return iretn;
 	}
 
@@ -123,6 +127,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
 		iretn = cssl_putdata(handle.serial, (uint8_t *)message.data(), message.size());
 		if (iretn < 0)
 		{
+			handle.mut.unlock();
 			return iretn;
 		}
 	}
@@ -130,6 +135,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
 	iretn = cssl_putchar(handle.serial, 0xfd);
 	if (iretn < 0)
 	{
+		handle.mut.unlock();
 		return iretn;
 	}
 
@@ -137,33 +143,39 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
 	iretn = cssl_getdata(handle.serial, buffer, 100);
 	if (iretn < 0)
 	{
+		handle.mut.unlock();
 		return iretn;
 	}
 	int32_t base = message.size() + 6;
 
 	if (iretn < base)
 	{
+		handle.mut.unlock();
 		return IC9100_ERROR_WRITE;
 	}
 
 	if (iretn == base)
 	{
+		handle.mut.unlock();
 		return IC9100_ERROR_ADDR;
 	}
 
 	if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[iretn-1] != 0xfd)
 	{
+		handle.mut.unlock();
 		return IC9100_ERROR_WRITE;
 	}
 
 	if (buffer[base+4] == 0xfa)
 	{
+		handle.mut.unlock();
 		return IC9100_ERROR_NG;
 	}
 
 	if (buffer[base+4] == 0xfb)
 	{
 		handle.response.resize(0);
+		handle.mut.unlock();
 		return 0;
 	}
 	else
@@ -171,6 +183,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
 		base += 5;
 		handle.response.resize(iretn-(base+1));
 		memcpy((void *)handle.response.data(), &buffer[base], iretn-(base+1));
+		handle.mut.unlock();
 		return iretn-(base+1);
 	}
 
@@ -180,20 +193,25 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
 {
 	int32_t iretn = 0;
 
+	handle.mut.lock();
+
 	iretn = ic9100_write_header(handle);
 	if (iretn < 0)
 	{
+		handle.mut.unlock();
 		return iretn;
 	}
 
 	iretn = cssl_putchar(handle.serial, command);
 	if (iretn < 0)
 	{
+		handle.mut.unlock();
 		return iretn;
 	}
 	iretn = cssl_putchar(handle.serial, subcommand);
 	if (iretn < 0)
 	{
+		handle.mut.unlock();
 		return iretn;
 	}
 	if (message.size())
@@ -201,12 +219,14 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
 		iretn = cssl_putdata(handle.serial, (uint8_t *)message.data(), message.size());
 		if (iretn < 0)
 		{
+			handle.mut.unlock();
 			return iretn;
 		}
 	}
 	iretn = cssl_putchar(handle.serial, 0xfd);
 	if (iretn < 0)
 	{
+		handle.mut.unlock();
 		return iretn;
 	}
 
@@ -214,33 +234,39 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
 	iretn = cssl_getdata(handle.serial, buffer, 100);
 	if (iretn < 0)
 	{
+		handle.mut.unlock();
 		return iretn;
 	}
 
 	int32_t base = message.size() + 7;
 	if (iretn < base)
 	{
+		handle.mut.unlock();
 		return IC9100_ERROR_WRITE;
 	}
 
 	if (iretn == base)
 	{
+		handle.mut.unlock();
 		return IC9100_ERROR_ADDR;
 	}
 
 	if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[iretn-1] != 0xfd)
 	{
+		handle.mut.unlock();
 		return IC9100_ERROR_WRITE;
 	}
 
 	if (buffer[base+4] == 0xfa)
 	{
+		handle.mut.unlock();
 		return IC9100_ERROR_NG;
 	}
 
 	if (buffer[base+4] == 0xfb)
 	{
 		handle.response.resize(0);
+		handle.mut.unlock();
 		return 0;
 	}
 	else
@@ -248,34 +274,35 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
 		base += 6;
 		handle.response.resize(iretn-(base+1));
 		memcpy((void *)handle.response.data(), &buffer[base], iretn-(base+1));
+		handle.mut.unlock();
 		return iretn-(base+1);
 	}
 }
 
-int32_t ic9100_read(ic9100_handle &handle, string &message)
-{
-	int32_t iretn = 0;
+//int32_t ic9100_read(ic9100_handle &handle, string &message)
+//{
+//	int32_t iretn = 0;
 
-	uint8_t buffer[100];
-	iretn = cssl_getdata(handle.serial, buffer, 100);
-	if (iretn < 0)
-	{
-		return iretn;
-	}
+//	uint8_t buffer[100];
+//	iretn = cssl_getdata(handle.serial, buffer, 100);
+//	if (iretn < 0)
+//	{
+//		return iretn;
+//	}
 
-	if (buffer[0] != 0xfe || buffer[1] != 0xfe || buffer[2] != 0xe0 || buffer[3] != handle.address)
-	{
-		return IC9100_ERROR_READ;
-	}
+//	if (buffer[0] != 0xfe || buffer[1] != 0xfe || buffer[2] != 0xe0 || buffer[3] != handle.address)
+//	{
+//		return IC9100_ERROR_READ;
+//	}
 
-	if (iretn > 7)
-	{
-		message.resize(iretn-7);
-		memcpy((void *)message.data(), &buffer[6], message.size());
-	}
+//	if (iretn > 7)
+//	{
+//		message.resize(iretn-7);
+//		memcpy((void *)message.data(), &buffer[6], message.size());
+//	}
 
-	return iretn-7;
-}
+//	return iretn-7;
+//}
 
 int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channelnum)
 {
@@ -405,6 +432,112 @@ int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency)
 		handle.channel[handle.channelnum].freqband = 14;
 	}
 	handle.channel[handle.channelnum].frequency = frequency;
+
+	return 0;
+}
+
+int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
+{
+	int32_t iretn = 0;
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	vector <uint8_t> data { 0x0,0x0,0x0,0x0,0x0 };
+
+	if (bandpass >= 1e10 || bandpass < 0)
+	{
+		return IC9100_ERROR_OUTOFRANGE;
+	}
+
+	bandpass = trunc(bandpass);
+	for (size_t i=0; i<5; ++i)
+	{
+		data[i] = 0;
+		for (size_t j=0; j<2; ++j)
+		{
+			uint8_t digit = fmod(bandpass, 10.);
+			switch (j)
+			{
+			case 0:
+				data[i] += digit;
+				break;
+			case 1:
+				data[i] += digit << 4;
+				break;
+			}
+			bandpass = trunc(bandpass / 10.);
+		}
+	}
+
+	iretn = ic9100_write(handle, 0x5, data);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	if (bandpass < 1.8e6)
+	{
+		handle.channel[handle.channelnum].freqband = 14;
+	}
+	else if (bandpass < 2.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 1;
+	}
+	else if (bandpass >= 3.4e6 && bandpass < 4.1e6)
+	{
+		handle.channel[handle.channelnum].freqband = 2;
+	}
+	else if (bandpass >= 6.9e6 && bandpass < 7.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 3;
+	}
+	else if (bandpass >= 9.9e6 && bandpass < 10.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 4;
+	}
+	else if (bandpass >= 13.9e6 && bandpass < 14.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 5;
+	}
+	else if (bandpass >= 17.9e6 && bandpass < 18.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 6;
+	}
+	else if (bandpass >= 20.9e6 && bandpass < 21.5e6)
+	{
+		handle.channel[handle.channelnum].freqband = 7;
+	}
+	else if (bandpass >= 24.4e6 && bandpass < 25.1e6)
+	{
+		handle.channel[handle.channelnum].freqband = 8;
+	}
+	else if (bandpass >= 28.0e6 && bandpass < 30.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 9;
+	}
+	else if (bandpass >= 50.0e6 && bandpass <= 54.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 10;
+	}
+	else if (bandpass >= 108.0e6 && bandpass <= 174.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 11;
+	}
+	else if (bandpass >= 420.0e6 && bandpass <= 480.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 12;
+	}
+	else if (bandpass >= 1240.0e6 && bandpass <1320.0e6)
+	{
+		handle.channel[handle.channelnum].freqband = 13;
+	}
+	else
+	{
+		handle.channel[handle.channelnum].freqband = 14;
+	}
+	handle.channel[handle.channelnum].bandpass = bandpass;
 
 	return 0;
 }
