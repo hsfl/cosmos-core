@@ -42,11 +42,14 @@ uint16_t radiotype = 9999;
 string radiodevice;
 uint16_t radioaddr;
 bool radioconnected = false;
+size_t channelnum = 0;
 
 astrodev_handle astrodev;
 ts2000_state ts2000;
 ic9100_handle ic9100;
 rxrstruc radio;
+
+channel_struc target[2];
 
 int32_t lasterrorcode;
 char lasterrormessage[300];
@@ -186,7 +189,11 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_frequency(ic9100);
 				if (iretn >= 0)
 				{
-					cdata[0].device[deviceindex].rxr.freq = ic9100.channel[0].frequency;
+					cdata[0].device[deviceindex].rxr.freq = ic9100.channel[channelnum].frequency;
+					if (target[channelnum].frequency != ic9100.channel[channelnum].frequency)
+					{
+						iretn = ic9100_set_frequency(ic9100, target[channelnum].frequency);
+					}
 				}
 				else
 				{
@@ -196,20 +203,30 @@ int main(int argc, char *argv[])
 				if (iretn >= 0)
 				{
 					cdata[0].device[deviceindex].rxr.opmode = ic9100.channel[0].opmode;
+					if (target[channelnum].opmode != ic9100.channel[channelnum].opmode)
+					{
+						iretn = ic9100_set_opmode(ic9100, target[channelnum].opmode);
+					}
 				}
 				else
 				{
 					radioconnected = false;
 				}
-				iretn = ic9100_get_rfpower(ic9100);
-				if (iretn >= 0)
+				if (radiotype == DEVICE_TYPE_TXR)
 				{
-					// If this is actually a rxr, then this value will actually be maxpower.
-					cdata[0].device[deviceindex].rxr.band = ic9100.channel[0].maxpower;
-				}
-				else
-				{
-					radioconnected = false;
+					iretn = ic9100_get_rfpower(ic9100);
+					if (iretn >= 0)
+					{
+						cdata[0].device[deviceindex].txr.maxpower = ic9100.channel[0].maxpower;
+						if (target[channelnum].maxpower != ic9100.channel[channelnum].maxpower)
+						{
+							iretn = ic9100_set_rfpower(ic9100, target[channelnum].maxpower);
+						}
+					}
+					else
+					{
+						radioconnected = false;
+					}
 				}
 				iretn = ic9100_get_rfmeter(ic9100);
 				if (iretn >= 0)
