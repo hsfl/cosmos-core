@@ -199,13 +199,26 @@ int main(int argc, char *argv[])
 				{
 					radioconnected = false;
 				}
+				iretn = ic9100_get_bandpass(ic9100);
+				if (iretn >= 0)
+				{
+					cdata[0].device[deviceindex].rxr.freq = ic9100.channel[channelnum].bandpass;
+					if (target[channelnum].bandpass != ic9100.channel[channelnum].bandpass)
+					{
+						iretn = ic9100_set_bandpass(ic9100, target[channelnum].bandpass);
+					}
+				}
+				else
+				{
+					radioconnected = false;
+				}
 				iretn = ic9100_get_mode(ic9100);
 				if (iretn >= 0)
 				{
 					cdata[0].device[deviceindex].rxr.opmode = ic9100.channel[0].opmode;
 					if (target[channelnum].opmode != ic9100.channel[channelnum].opmode)
 					{
-						iretn = ic9100_set_opmode(ic9100, target[channelnum].opmode);
+						iretn = ic9100_set_mode(ic9100, target[channelnum].opmode);
 					}
 				}
 				else
@@ -279,19 +292,21 @@ int32_t request_get_frequency(char *request, char* response, void *)
 
 int32_t request_set_frequency(char *request, char* response, void *)
 {
-	int32_t iretn;
+//	int32_t iretn;
 
 	sscanf(request, "set_frequency %f", &radio.freq);
-	switch (cdata[0].device[deviceindex].all.gen.model)
-	{
-	case DEVICE_MODEL_IC9100:
-		iretn = ic9100_set_frequency(ic9100, radio.freq);
-		if (iretn <0)
-		{
-			return iretn;
-		}
-		break;
-	}
+	target[channelnum].frequency = radio.freq;
+
+//	switch (cdata[0].device[deviceindex].all.gen.model)
+//	{
+//	case DEVICE_MODEL_IC9100:
+//		iretn = ic9100_set_frequency(ic9100, radio.freq);
+//		if (iretn <0)
+//		{
+//			return iretn;
+//		}
+//		break;
+//	}
 
 	return 0;
 }
@@ -317,12 +332,13 @@ int32_t request_set_bandpass(char *request, char* response, void *)
 	int32_t iretn = 0;
 
 	sscanf(request, "set_bandpass %f", &radio.band);
-	switch (cdata[0].device[deviceindex].all.gen.model)
-	{
-	case DEVICE_MODEL_IC9100:
-		iretn = ic9100_set_bandpass(ic9100, radio.band);
-		break;
-	}
+	target[channelnum].bandpass = radio.band;
+//	switch (cdata[0].device[deviceindex].all.gen.model)
+//	{
+//	case DEVICE_MODEL_IC9100:
+//		iretn = ic9100_set_bandpass(ic9100, radio.band);
+//		break;
+//	}
 	return iretn;
 }
 
@@ -345,25 +361,26 @@ int32_t request_get_power(char *request, char* response, void *)
 
 int32_t request_set_power(char *request, char* response, void *)
 {
-	int32_t iretn;
+//	int32_t iretn;
 
 	sscanf(request, "set_power %f", &radio.power);
-	switch (cdata[0].device[deviceindex].all.gen.model)
-	{
-	case DEVICE_MODEL_ASTRODEV:
-		break;
-	case DEVICE_MODEL_IC9100:
-		iretn = ic9100_set_rfpower(ic9100, radio.power);
-		if (iretn < 0)
-		{
-			return iretn;
-		}
-		break;
-	case DEVICE_MODEL_TS2000:
-		break;
-	}
+	target[channelnum].maxpower = radio.power;
+//	switch (cdata[0].device[deviceindex].all.gen.model)
+//	{
+//	case DEVICE_MODEL_ASTRODEV:
+//		break;
+//	case DEVICE_MODEL_IC9100:
+//		iretn = ic9100_set_rfpower(ic9100, radio.power);
+//		if (iretn < 0)
+//		{
+//			return iretn;
+//		}
+//		break;
+//	case DEVICE_MODEL_TS2000:
+//		break;
+//	}
 
-	cdata[0].device[deviceindex].rxr.power = radio.power;
+//	cdata[0].device[deviceindex].rxr.power = radio.power;
 	return 0;
 }
 
@@ -408,7 +425,7 @@ int32_t request_get_mode(char *request, char* response, void *)
 		case DEVICE_RADIO_MODE_DV:
 			strcpy(response, "DV");
 			break;
-		case DEVICE_RADIO_MODE_DR:
+		case DEVICE_RADIO_MODE_DVD:
 			strcpy(response, "DV Data");
 			break;
 		}
@@ -425,31 +442,31 @@ int32_t request_set_mode(char *request, char* response, void *)
 	{
 	case 'a':
 	case 'A':
-		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_AM;
+		target[channelnum].opmode = DEVICE_RADIO_MODE_AM;
 		break;
 	case 'c':
 	case 'C':
-		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_CW;
+		target[channelnum].opmode = DEVICE_RADIO_MODE_CW;
 		break;
 	case 'd':
 	case 'D':
-		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_DV;
+		target[channelnum].opmode = DEVICE_RADIO_MODE_DV;
 		break;
 	case 'f':
 	case 'F':
-		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_FM;
+		target[channelnum].opmode = DEVICE_RADIO_MODE_FM;
 		break;
 	case 'l':
 	case 'L':
-		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_LSB;
+		target[channelnum].opmode = DEVICE_RADIO_MODE_LSB;
 		break;
 	case 'r':
 	case 'R':
-		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_RTTY;
+		target[channelnum].opmode = DEVICE_RADIO_MODE_RTTY;
 		break;
 	case 'u':
 	case 'U':
-		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_USB;
+		target[channelnum].opmode = DEVICE_RADIO_MODE_USB;
 		break;
 	}
 
