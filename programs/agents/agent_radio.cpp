@@ -211,6 +211,9 @@ int main(int argc, char *argv[])
 				{
 					radioconnected = false;
 				}
+				iretn = ic9100_get_smeter(ic9100);
+				iretn = ic9100_get_swrmeter(ic9100);
+				iretn = ic9100_get_alcmeter(ic9100);
 				iretn = ic9100_get_rfmeter(ic9100);
 				if (iretn >= 0)
 				{
