@@ -160,10 +160,10 @@ int main(int argc, char *argv[])
 	switch (radiotype)
 	{
 	case DEVICE_TYPE_TXR:
-		sprintf(sohstring, "{\"device_txr_freq_%03d\",\"device_txr_maxpower_%03d\",\"device_txr_power_%03d\",\"device_txr_band_%03d\"}", radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_txr_freq_%03d\",\"device_txr_maxpower_%03d\",\"device_txr_power_%03d\",\"device_txr_band_%03d\",\"device_txr_opmode_%03d\"}", radioindex, radioindex, radioindex, radioindex, radioindex);
 		break;
 	case DEVICE_TYPE_RXR:
-		sprintf(sohstring, "{\"device_rxr_freq_%03d\",\"device_rxr_maxpower_%03d\",\"device_rxr_power_%03d\",\"device_rxr_band_%03d\"}", radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_rxr_freq_%03d\",\"device_rxr_maxpower_%03d\",\"device_rxr_power_%03d\",\"device_rxr_band_%03d\",\"device_rxr_opmode_%03d\"}", radioindex, radioindex, radioindex, radioindex, radioindex);
 		break;
 	}
 	agent_set_sohstring(cdata, sohstring);
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_mode(ic9100);
 				if (iretn >= 0)
 				{
-					cdata[0].device[deviceindex].rxr.mode = ic9100.channel[0].mode;
+					cdata[0].device[deviceindex].rxr.opmode = ic9100.channel[0].opmode;
 				}
 				else
 				{
@@ -352,19 +352,31 @@ int32_t request_get_mode(char *request, char* response, void *)
 	{
 	case DEVICE_TYPE_RXR:
 	case DEVICE_TYPE_TXR:
-		switch (cdata[0].device[deviceindex].rxr.mode)
+		switch (cdata[0].device[deviceindex].rxr.opmode)
 		{
 		case DEVICE_RADIO_MODE_AM:
 			strcpy(response, "AM");
 			break;
+		case DEVICE_RADIO_MODE_AMD:
+			strcpy(response, "AM Data");
+			break;
 		case DEVICE_RADIO_MODE_FM:
 			strcpy(response, "FM");
+			break;
+		case DEVICE_RADIO_MODE_FMD:
+			strcpy(response, "FM Data");
 			break;
 		case DEVICE_RADIO_MODE_LSB:
 			strcpy(response, "LSB");
 			break;
+		case DEVICE_RADIO_MODE_LSBD:
+			strcpy(response, "LSB Data");
+			break;
 		case DEVICE_RADIO_MODE_USB:
 			strcpy(response, "USB");
+			break;
+		case DEVICE_RADIO_MODE_USBD:
+			strcpy(response, "USB Data");
 			break;
 		case DEVICE_RADIO_MODE_CW:
 			strcpy(response, "CW");
@@ -374,6 +386,9 @@ int32_t request_get_mode(char *request, char* response, void *)
 			break;
 		case DEVICE_RADIO_MODE_DV:
 			strcpy(response, "DV");
+			break;
+		case DEVICE_RADIO_MODE_DR:
+			strcpy(response, "DV Data");
 			break;
 		}
 		break;
@@ -389,31 +404,31 @@ int32_t request_set_mode(char *request, char* response, void *)
 	{
 	case 'a':
 	case 'A':
-		cdata[0].device[deviceindex].rxr.mode = DEVICE_RADIO_MODE_AM;
+		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_AM;
 		break;
 	case 'c':
 	case 'C':
-		cdata[0].device[deviceindex].rxr.mode = DEVICE_RADIO_MODE_CW;
+		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_CW;
 		break;
 	case 'd':
 	case 'D':
-		cdata[0].device[deviceindex].rxr.mode = DEVICE_RADIO_MODE_DV;
+		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_DV;
 		break;
 	case 'f':
 	case 'F':
-		cdata[0].device[deviceindex].rxr.mode = DEVICE_RADIO_MODE_FM;
+		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_FM;
 		break;
 	case 'l':
 	case 'L':
-		cdata[0].device[deviceindex].rxr.mode = DEVICE_RADIO_MODE_LSB;
+		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_LSB;
 		break;
 	case 'r':
 	case 'R':
-		cdata[0].device[deviceindex].rxr.mode = DEVICE_RADIO_MODE_RTTY;
+		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_RTTY;
 		break;
 	case 'u':
 	case 'U':
-		cdata[0].device[deviceindex].rxr.mode = DEVICE_RADIO_MODE_USB;
+		cdata[0].device[deviceindex].rxr.opmode = DEVICE_RADIO_MODE_USB;
 		break;
 	}
 

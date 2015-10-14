@@ -474,12 +474,17 @@ enum
 enum
 	{
 	DEVICE_RADIO_MODE_AM,
+	DEVICE_RADIO_MODE_AMD,
 	DEVICE_RADIO_MODE_FM,
+	DEVICE_RADIO_MODE_FMD,
 	DEVICE_RADIO_MODE_LSB,
+	DEVICE_RADIO_MODE_LSBD,
 	DEVICE_RADIO_MODE_USB,
+	DEVICE_RADIO_MODE_USBD,
+	DEVICE_RADIO_MODE_DV,
+	DEVICE_RADIO_MODE_DR,
 	DEVICE_RADIO_MODE_CW,
-	DEVICE_RADIO_MODE_RTTY,
-	DEVICE_RADIO_MODE_DV
+	DEVICE_RADIO_MODE_RTTY
 	};
 
 enum
@@ -1251,7 +1256,7 @@ struct rxrstruc
 	//! Generic info
 	genstruc gen;
 	//! Operating mode
-	uint16_t mode;
+	uint16_t opmode;
 	//! Frequency
 	float freq;
 	//! Maximum frequency allowed
@@ -1274,7 +1279,7 @@ struct txrstruc
 	//! Generic info
 	genstruc gen;
 	//! Operating mode
-	uint16_t mode;
+	uint16_t opmode;
 	//! Frequency
 	float freq;
 	//! Maximum frequency allowed
@@ -1293,7 +1298,7 @@ struct tcvstruc
 	//! Generic info
 	genstruc gen;
 	//! Operating mode
-	uint16_t mode;
+	uint16_t opmode;
 	//! Input Frequency
 	float freqin;
 	//! Maximum frequency allowed
