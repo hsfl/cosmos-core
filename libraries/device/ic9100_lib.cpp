@@ -1074,7 +1074,7 @@ int32_t ic9100_get_rfmeter(ic9100_handle &handle)
 {
 	int32_t iretn = 0;
 
-	iretn = ic9100_write(handle, 0x15, 0x2);
+	iretn = ic9100_write(handle, 0x15, 0x11);
 	if (iretn < 0)
 	{
 		return iretn;
@@ -1122,7 +1122,7 @@ int32_t ic9100_get_swrmeter(ic9100_handle &handle)
 {
 	int32_t iretn = 0;
 
-	iretn = ic9100_write(handle, 0x15, 0x2);
+	iretn = ic9100_write(handle, 0x15, 0x12);
 	if (iretn < 0)
 	{
 		return iretn;
@@ -1137,7 +1137,7 @@ int32_t ic9100_get_alcmeter(ic9100_handle &handle)
 {
 	int32_t iretn = 0;
 
-	iretn = ic9100_write(handle, 0x15, 0x2);
+	iretn = ic9100_write(handle, 0x15, 0x13);
 	if (iretn < 0)
 	{
 		return iretn;
@@ -1152,7 +1152,7 @@ int32_t ic9100_get_compmeter(ic9100_handle &handle)
 {
 	int32_t iretn = 0;
 
-	iretn = ic9100_write(handle, 0x15, 0x2);
+	iretn = ic9100_write(handle, 0x15, 0x14);
 	if (iretn < 0)
 	{
 		return iretn;
