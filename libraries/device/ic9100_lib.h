@@ -42,6 +42,12 @@
 #define IC9100_CHANNEL_A 0
 #define IC9100_CHANNEL_B 1
 
+#define IC9100_DATAMODE_OFF 0
+#define IC9100_DATAMODE_ON 1
+
+#define IC9100_9600MODE_OFF 0
+#define IC9100_9600MODE_ON 1
+
 #define IC9100_MODE_LSB 0
 #define IC9100_MODE_USB 1
 #define IC9100_MODE_AM 2
@@ -59,12 +65,21 @@
 struct channel_struc
 {
 	uint8_t freqband;
+	uint8_t filtband;
 	uint8_t mode;
+	uint8_t datamode;
+	uint8_t bps9600mode;
 	uint8_t rfgain;
 	uint8_t squelch;
 	uint8_t rfpower;
+	uint8_t smeter;
+	uint8_t rfmeter;
+	uint8_t swrmeter;
+	uint8_t alcmeter;
+	uint8_t compmeter;
 	float bandpass;
 	float power;
+	float maxpower;
 	double frequency;
 };
 
@@ -85,21 +100,31 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command);
 int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand);
 int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> message);
 int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand, vector <uint8_t> message);
+uint8_t ic9100_byte(vector <uint8_t> response);
 //int32_t ic9100_read(ic9100_handle &handle, vector <uint8_t> &message);
 int32_t ic9100_check_address(ic9100_handle &handle);
 int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channelnum);
 int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency);
-int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass);
-int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t mode);
-int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t rfgain);
-int32_t ic9100_set_rfpower(ic9100_handle &handle, float power);
-int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t squelch);
 int32_t ic9100_get_frequency(ic9100_handle &handle);
+int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass);
 int32_t ic9100_get_bandpass(ic9100_handle &handle);
+int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t mode);
 int32_t ic9100_get_mode(ic9100_handle &handle);
+int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t rfgain);
 int32_t ic9100_get_rfgain(ic9100_handle &handle);
-int32_t ic9100_get_squelch(ic9100_handle &handle);
+int32_t ic9100_set_rfpower(ic9100_handle &handle, float power);
 int32_t ic9100_get_rfpower(ic9100_handle &handle);
+int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t squelch);
+int32_t ic9100_get_squelch(ic9100_handle &handle);
+int32_t ic9100_set_datamode(ic9100_handle &handle, uint8_t mode);
+int32_t ic9100_get_datamode(ic9100_handle &handle);
+int32_t ic9100_set_bps9600mode(ic9100_handle &handle, uint8_t mode);
+int32_t ic9100_get_bps9600mode(ic9100_handle &handle);
+int32_t ic9100_get_smeter(ic9100_handle &handle);
+int32_t ic9100_get_rfmeter(ic9100_handle &handle);
+int32_t ic9100_get_swrmeter(ic9100_handle &handle);
+int32_t ic9100_get_alcmeter(ic9100_handle &handle);
+int32_t ic9100_get_compmeter(ic9100_handle &handle);
 
 #endif // IC9100_LIB_H
 
