@@ -366,7 +366,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		break;
 	case IC9100_MODE_DV:
 	case IC9100_MODE_FM:
-		if (bandpass != 7000. || bandpass != 10000. || bandpass != 15000.)
+		if (bandpass != 7000. && bandpass != 10000. && bandpass != 15000.)
 		{
 			return IC9100_ERROR_OUTOFRANGE;
 		}
