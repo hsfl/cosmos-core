@@ -545,11 +545,11 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 
 	if (handle.channel[handle.channelnum].freqband < 11)
 	{
-		if (power < 2. || power > (handle.channel[handle.channelnum].mode==DEVICE_RADIO_MODE_AM?30.:100.))
+		if (power < 2. || power > (handle.channel[handle.channelnum].mode==IC9100_MODE_AM?30.:100.))
 		{
 			return IC9100_ERROR_OUTOFRANGE;
 		}
-		rfpower = 255 * (power - 2.) / (handle.channel[handle.channelnum].mode==DEVICE_RADIO_MODE_AM?28.:98.);
+		rfpower = 255 * (power - 2.) / (handle.channel[handle.channelnum].mode==IC9100_MODE_AM?28.:98.);
 	}
 	else if (handle.channel[handle.channelnum].freqband < 12)
 	{
@@ -738,29 +738,30 @@ int32_t ic9100_get_mode(ic9100_handle &handle)
 	switch (handle.response[0])
 	{
 	case IC9100_MODE_AM:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_AM;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_AM;
 		break;
 	case IC9100_MODE_FM:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_FM;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_FM;
 		break;
 	case IC9100_MODE_LSB:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_LSB;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_LSB;
 		break;
 	case IC9100_MODE_USB:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_USB;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_USB;
 		break;
 	case IC9100_MODE_CW:
 	case IC9100_MODE_CWR:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_CW;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_CW;
 		break;
 	case IC9100_MODE_RTTY:
 	case IC9100_MODE_RTTYR:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_RTTY;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_RTTY;
 		break;
 	case IC9100_MODE_DV:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_DV;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_DV;
 		break;
 	}
+	handle.channel[handle.channelnum].mode = handle.response[0];
 
 	return iretn;
 }
@@ -918,32 +919,33 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t mode)
 	switch (mode)
 	{
 	case IC9100_MODE_AM:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_AM;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_AM;
 		break;
 	case IC9100_MODE_CW:
 	case IC9100_MODE_CWR:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_CW;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_CW;
 		break;
 	case IC9100_MODE_DV:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_DV;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_DV;
 		break;
 	case IC9100_MODE_FM:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_FM;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_FM;
 		break;
 	case IC9100_MODE_LSB:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_LSB;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_LSB;
 		break;
 	case IC9100_MODE_RTTY:
 	case IC9100_MODE_RTTYR:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_RTTY;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_RTTY;
 		break;
 	case IC9100_MODE_USB:
-		handle.channel[handle.channelnum].mode = DEVICE_RADIO_MODE_USB;
+		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_USB;
 		break;
 	default:
 		return IC9100_ERROR_OUTOFRANGE;
 		break;
 	}
+	handle.channel[handle.channelnum].mode = mode;
 
 	return 0;
 }
@@ -1035,7 +1037,7 @@ int32_t ic9100_get_rfpower(ic9100_handle &handle)
 
 	if (handle.channel[handle.channelnum].freqband < 11)
 	{
-		power = 2. + power * (handle.channel[handle.channelnum].mode==DEVICE_RADIO_MODE_AM?28.:98.);
+		power = 2. + power * (handle.channel[handle.channelnum].mode==IC9100_MODE_AM?28.:98.);
 	}
 	else if (handle.channel[handle.channelnum].freqband < 12)
 	{
@@ -1097,7 +1099,7 @@ int32_t ic9100_get_rfmeter(ic9100_handle &handle)
 
 	if (handle.channel[handle.channelnum].freqband < 11)
 	{
-		power = 2. + power * (handle.channel[handle.channelnum].mode==DEVICE_RADIO_MODE_AM?28.:98.);
+		power = 2. + power * (handle.channel[handle.channelnum].mode==IC9100_MODE_AM?28.:98.);
 	}
 	else if (handle.channel[handle.channelnum].freqband < 12)
 	{
@@ -1184,7 +1186,7 @@ int32_t ic9100_set_bps9600mode(ic9100_handle &handle, uint8_t mode)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].datamode = mode;
+	handle.channel[handle.channelnum].bps9600mode = mode;
 
 	return 0;
 }
@@ -1233,6 +1235,7 @@ int32_t ic9100_set_datamode(ic9100_handle &handle, uint8_t mode)
 	}
 
 	handle.channel[handle.channelnum].datamode = mode;
+	handle.channel[handle.channelnum].opmode = ((handle.channel[handle.channelnum].datamode >> 1) << 1) + mode;
 
 	return 0;
 }
@@ -1248,6 +1251,7 @@ int32_t ic9100_get_datamode(ic9100_handle &handle)
 	}
 
 	handle.channel[handle.channelnum].datamode = handle.response[0];
+	handle.channel[handle.channelnum].opmode = ((handle.channel[handle.channelnum].datamode >> 1) << 1) + handle.response[0];
 
 	return 0;
 }

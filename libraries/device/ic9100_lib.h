@@ -77,6 +77,7 @@ struct channel_struc
 	uint8_t swrmeter;
 	uint8_t alcmeter;
 	uint8_t compmeter;
+	uint16_t opmode;
 	float bandpass;
 	float power;
 	float maxpower;
