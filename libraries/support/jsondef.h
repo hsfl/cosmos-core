@@ -1265,8 +1265,6 @@ struct rxrstruc
 	float minfreq;
 	//! Current Power
 	float power;
-	//! Maximum Power
-	float maxpower;
 	//! Filter bandpass
 	float band;
 };
@@ -1288,6 +1286,8 @@ struct txrstruc
 	float minfreq;
 	//! Power
 	float power;
+	//! Maximum Power
+	float maxpower;
 };
 
 //! Transceiver information

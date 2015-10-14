@@ -160,10 +160,10 @@ int main(int argc, char *argv[])
 	switch (radiotype)
 	{
 	case DEVICE_TYPE_TXR:
-		sprintf(sohstring, "{\"device_txr_freq_%03d\",\"device_txr_maxpower_%03d\",\"device_txr_power_%03d\",\"device_txr_band_%03d\",\"device_txr_opmode_%03d\"}", radioindex, radioindex, radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_txr_freq_%03d\",\"device_txr_maxpower_%03d\",\"device_txr_power_%03d\",\"device_txr_opmode_%03d\"}", radioindex, radioindex, radioindex, radioindex);
 		break;
 	case DEVICE_TYPE_RXR:
-		sprintf(sohstring, "{\"device_rxr_freq_%03d\",\"device_rxr_maxpower_%03d\",\"device_rxr_power_%03d\",\"device_rxr_band_%03d\",\"device_rxr_opmode_%03d\"}", radioindex, radioindex, radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_rxr_freq_%03d\",\"device_rxr_power_%03d\",\"device_rxr_band_%03d\",\"device_rxr_opmode_%03d\"}", radioindex, radioindex, radioindex, radioindex);
 		break;
 	}
 	agent_set_sohstring(cdata, sohstring);
@@ -204,7 +204,8 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_rfpower(ic9100);
 				if (iretn >= 0)
 				{
-					cdata[0].device[deviceindex].rxr.maxpower = ic9100.channel[0].maxpower;
+					// If this is actually a rxr, then this value will actually be maxpower.
+					cdata[0].device[deviceindex].rxr.band = ic9100.channel[0].maxpower;
 				}
 				else
 				{
