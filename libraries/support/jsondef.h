@@ -1258,8 +1258,10 @@ struct rxrstruc
 	float maxfreq;
 	//! Minimum frequency allowed
 	float minfreq;
-	//! Power
+	//! Current Power
 	float power;
+	//! Maximum Power
+	float maxpower;
 	//! Filter bandpass
 	float band;
 };

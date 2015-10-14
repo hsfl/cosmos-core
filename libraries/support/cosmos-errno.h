@@ -245,7 +245,7 @@
 #define GENERAL_ERROR_TIMEOUT          -2015     /* a timer expired */
 #define GENERAL_ERROR_INPUT            -2016     /* invalid input was provided */
 #define GENERAL_ERROR_OUTPUT           -2017     /* output from a routine returned bad output, possibly related to bad input */
-
+#define GENERAL_ERROR_UNDEFINED           -2018
 
 //! @}
 #endif

@@ -41,11 +41,15 @@ size_t radioindex = 9999;
 uint16_t radiotype = 9999;
 string radiodevice;
 uint16_t radioaddr;
+bool radioconnected = false;
 
 astrodev_handle astrodev;
 ts2000_state ts2000;
 ic9100_handle ic9100;
 rxrstruc radio;
+
+int32_t lasterrorcode;
+char lasterrormessage[300];
 
 int32_t request_get_bandpass(char *request, char* response, void *);
 int32_t request_get_frequency(char *request, char* response, void *);
@@ -56,6 +60,7 @@ int32_t request_set_frequency(char *request, char* response, void *);
 int32_t request_set_mode(char *request, char* response, void *);
 int32_t request_set_power(char *request, char* response, void *);
 
+int32_t connect_radio();
 
 int main(int argc, char *argv[])
 {
@@ -76,12 +81,12 @@ int main(int argc, char *argv[])
 	// Establish the command channel and heartbeat
 	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP, nodename.c_str(), agentname.c_str(), 1.0, 0, AGENTMAXBUFFER)))
 	{
-			cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
-			exit (AGENT_ERROR_JSON_CREATE);
+		cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+		exit (AGENT_ERROR_JSON_CREATE);
 	}
 	else
 	{
-			cout<<"Starting " << agentname << " for Node: " << nodename << endl;
+		cout<<"Starting " << agentname << " for Node: " << nodename << endl;
 	}
 
 	// Add requests
@@ -145,20 +150,20 @@ int main(int argc, char *argv[])
 
 	if (radiotype == 9999)
 	{
-			cout<<"Exiting " << agentname << " for Node: " << nodename << " no radio found." << endl;
-			agent_shutdown_server(cdata);
-			exit (1);
+		cout<<"Exiting " << agentname << " for Node: " << nodename << " no radio found." << endl;
+		agent_shutdown_server(cdata);
+		exit (1);
 	}
 
 	// Set SOH string
-	char sohstring[100];
+	char sohstring[200];
 	switch (radiotype)
 	{
 	case DEVICE_TYPE_TXR:
-		sprintf(sohstring, "{\"device_txr_freq_%03d\",\"device_txr_power_%03d\",\"device_txr_band_%03d\"}", radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_txr_freq_%03d\",\"device_txr_maxpower_%03d\",\"device_txr_power_%03d\",\"device_txr_band_%03d\"}", radioindex, radioindex, radioindex);
 		break;
 	case DEVICE_TYPE_RXR:
-		sprintf(sohstring, "{\"device_rxr_freq_%03d\",\"device_rxr_power_%03d\",\"device_rxr_band_%03d\"}", radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_rxr_freq_%03d\",\"device_rxr_maxpower_%03d\",\"device_rxr_power_%03d\",\"device_rxr_band_%03d\"}", radioindex, radioindex, radioindex);
 		break;
 	}
 	agent_set_sohstring(cdata, sohstring);
@@ -166,56 +171,69 @@ int main(int argc, char *argv[])
 	radiodevice = cdata[0].port[cdata[0].device[deviceindex].all.gen.portidx].name;
 	radioaddr = cdata[0].device[deviceindex].all.gen.addr;
 
-	switch (cdata[0].device[deviceindex].all.gen.model)
-	{
-	case DEVICE_MODEL_ASTRODEV:
-		break;
-	case DEVICE_MODEL_IC9100:
-		iretn = ic9100_connect(radiodevice, radioaddr, ic9100);
-		if (iretn < 0)
-		{
-			cout<<"Exiting " << agentname << " for Node: " << nodename << " error connecting to IC9100 " << iretn << endl;
-			agent_shutdown_server(cdata);
-		}
-		iretn = ic9100_set_channel(ic9100, 0);
-		iretn = ic9100_set_mode(ic9100, IC9100_MODE_FM);
-		break;
-	case DEVICE_MODEL_TS2000:
-		break;
-	default:
-		cout<<"Exiting " << agentname << " for Node: " << nodename << " unknown model " << cdata[0].device[deviceindex].all.gen.model << endl;
-		agent_shutdown_server(cdata);
-		break;
-	}
+	iretn = connect_radio();
+
 
 	while (agent_running(cdata))
 	{
-		switch (cdata[0].device[deviceindex].all.gen.model)
+		if (radioconnected)
 		{
-		case DEVICE_MODEL_ASTRODEV:
-			break;
-		case DEVICE_MODEL_IC9100:
-			iretn = ic9100_get_frequency(ic9100);
-			if (iretn >= 0)
+			switch (cdata[0].device[deviceindex].all.gen.model)
 			{
-				cdata[0].device[deviceindex].rxr.freq = ic9100.channel[0].frequency;
+			case DEVICE_MODEL_ASTRODEV:
+				break;
+			case DEVICE_MODEL_IC9100:
+				iretn = ic9100_get_frequency(ic9100);
+				if (iretn >= 0)
+				{
+					cdata[0].device[deviceindex].rxr.freq = ic9100.channel[0].frequency;
+				}
+				else
+				{
+					radioconnected = false;
+				}
+				iretn = ic9100_get_mode(ic9100);
+				if (iretn >= 0)
+				{
+					cdata[0].device[deviceindex].rxr.mode = ic9100.channel[0].mode;
+				}
+				else
+				{
+					radioconnected = false;
+				}
+				iretn = ic9100_get_rfpower(ic9100);
+				if (iretn >= 0)
+				{
+					cdata[0].device[deviceindex].rxr.maxpower = ic9100.channel[0].maxpower;
+				}
+				else
+				{
+					radioconnected = false;
+				}
+				iretn = ic9100_get_rfmeter(ic9100);
+				if (iretn >= 0)
+				{
+					cdata[0].device[deviceindex].rxr.power = ic9100.channel[0].power;
+				}
+				else
+				{
+					radioconnected = false;
+				}
+				break;
+			case DEVICE_MODEL_TS2000:
+				break;
 			}
-			iretn = ic9100_get_mode(ic9100);
-			if (iretn >= 0)
-			{
-				cdata[0].device[deviceindex].rxr.mode = ic9100.channel[0].mode;
-			}
-			iretn = ic9100_get_rfpower(ic9100);
-			if (iretn >= 0)
-			{
-				cdata[0].device[deviceindex].rxr.power = ic9100.channel[0].power;
-			}
-			break;
-		case DEVICE_MODEL_TS2000:
-			break;
-		}
 
-		COSMOS_SLEEP(1.);
+			COSMOS_SLEEP(1.);
+		}
+		else
+		{
+			iretn = connect_radio();
+			if (iretn < 0)
+			{
+				COSMOS_SLEEP(1.);
+			}
+		}
 	}
 }
 
@@ -264,9 +282,9 @@ int32_t request_get_bandpass(char *request, char* response, void *)
 	case DEVICE_TYPE_RXR:
 		sprintf(response,"%f", cdata[0].device[deviceindex].rxr.band);
 		break;
-//	case DEVICE_TYPE_TCV:
-//		sprintf(response,"%f", cdata[0].device[deviceindex].tcv.band);
-//		break;
+		//	case DEVICE_TYPE_TCV:
+		//		sprintf(response,"%f", cdata[0].device[deviceindex].tcv.band);
+		//		break;
 	default:
 		sprintf(response,"0.");
 	}
@@ -295,9 +313,9 @@ int32_t request_get_power(char *request, char* response, void *)
 	case DEVICE_TYPE_TXR:
 		sprintf(response,"%f", cdata[0].device[deviceindex].rxr.power);
 		break;
-//	case DEVICE_TYPE_TCV:
-//		sprintf(response,"%f", cdata[0].device[deviceindex].tcv.power);
-//		break;
+		//	case DEVICE_TYPE_TCV:
+		//		sprintf(response,"%f", cdata[0].device[deviceindex].tcv.power);
+		//		break;
 	default:
 		sprintf(response,"0.");
 	}
@@ -399,5 +417,71 @@ int32_t request_set_mode(char *request, char* response, void *)
 		break;
 	}
 
+	return 0;
+}
+
+int32_t connect_radio()
+{
+	int32_t iretn;
+	radioconnected = false;
+
+	switch (cdata[0].device[deviceindex].all.gen.model)
+	{
+	case DEVICE_MODEL_ASTRODEV:
+		break;
+	case DEVICE_MODEL_IC9100:
+		iretn = ic9100_connect(radiodevice, radioaddr, ic9100);
+		if (iretn < 0)
+		{
+			sprintf(lasterrormessage, "Unable to connect to IC9100: %d", iretn);
+			lasterrorcode = iretn;
+			return iretn;
+		}
+		iretn = ic9100_set_channel(ic9100, 0);
+		if (iretn < 0)
+		{
+			sprintf(lasterrormessage, "Unable to set IC9100 to Main: %d", iretn);
+			lasterrorcode = iretn;
+			return iretn;
+		}
+		iretn = ic9100_set_mode(ic9100, IC9100_MODE_FM);
+		if (iretn < 0)
+		{
+			sprintf(lasterrormessage, "Unable to set IC9100 to FM: %d", iretn);
+			lasterrorcode = iretn;
+			return iretn;
+		}
+		iretn = ic9100_set_bandpass(ic9100, 15000.);
+		if (iretn < 0)
+		{
+			sprintf(lasterrormessage, "Unable to set IC9100 bandpass to 15kHz: %d", iretn);
+			lasterrorcode = iretn;
+			return iretn;
+		}
+		iretn = ic9100_set_datamode(ic9100, IC9100_DATAMODE_ON);
+		if (iretn < 0)
+		{
+			sprintf(lasterrormessage, "Unable to set IC9100 Data mode On: %d", iretn);
+			lasterrorcode = iretn;
+			return iretn;
+		}
+		iretn = ic9100_set_bps9600mode(ic9100, IC9100_9600MODE_ON);
+		if (iretn < 0)
+		{
+			sprintf(lasterrormessage, "Unable to set IC9100 to 9600 bps mode: %d", iretn);
+			lasterrorcode = iretn;
+			return iretn;
+		}
+		break;
+	case DEVICE_MODEL_TS2000:
+		break;
+	default:
+		sprintf(lasterrormessage, "Unknow radio model: %d", cdata[0].device[deviceindex].all.gen.model);
+		lasterrorcode = GENERAL_ERROR_UNDEFINED;
+		return GENERAL_ERROR_UNDEFINED;
+		break;
+	}
+
+	radioconnected = true;
 	return 0;
 }
