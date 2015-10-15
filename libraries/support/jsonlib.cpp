@@ -6851,6 +6851,8 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 					json_out_character(jstring, '\n');
 					json_out_1d(jstring,(char *)"device_rxr_band",j,cdata);
 					json_out_character(jstring, '\n');
+					json_out_1d(jstring,(char *)"device_rxr_opmode",j,cdata);
+					json_out_character(jstring, '\n');
 				}
 
 				// Dump Transmitters
@@ -6861,6 +6863,10 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 					json_out_1d(jstring,(char *)"device_txr_maxfreq",j,cdata);
 					json_out_character(jstring, '\n');
 					json_out_1d(jstring,(char *)"device_txr_minfreq",j,cdata);
+					json_out_character(jstring, '\n');
+					json_out_1d(jstring,(char *)"device_txr_opmode",j,cdata);
+					json_out_character(jstring, '\n');
+					json_out_1d(jstring,(char *)"device_txr_maxpower",j,cdata);
 					json_out_character(jstring, '\n');
 				}
 
@@ -6875,11 +6881,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 					json_out_character(jstring, '\n');
 					json_out_1d(jstring,(char *)"device_tcv_band",j,cdata);
 					json_out_character(jstring, '\n');
-					json_out_1d(jstring,(char *)"device_tcv_freqout",j,cdata);
+					json_out_1d(jstring,(char *)"device_tcv_opmode",j,cdata);
 					json_out_character(jstring, '\n');
-					json_out_1d(jstring,(char *)"device_tcv_maxfreqout",j,cdata);
-					json_out_character(jstring, '\n');
-					json_out_1d(jstring,(char *)"device_tcv_minfreqout",j,cdata);
+					json_out_1d(jstring,(char *)"device_tcv_maxpower",j,cdata);
 					json_out_character(jstring, '\n');
 				}
 
