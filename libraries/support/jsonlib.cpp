@@ -5587,15 +5587,12 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 		json_addentry("device_tcv_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_tcv_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_tcv_opmode",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,opmode)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
-		json_addentry("device_tcv_freqin",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,freqin)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry("device_tcv_maxfreqin",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxfreqin)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry("device_tcv_minfreqin",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,minfreqin)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry("device_tcv_powerin",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,powerin)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-//		json_addentry("device_tcv_band",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,band)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry("device_tcv_freqout",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,freqout)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry("device_tcv_maxfreqout",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxfreqout)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry("device_tcv_minfreqout",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,minfreqout)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry("device_tcv_powerout",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,powerout)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,freq)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_maxfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxfreq)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_minfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,minfreq)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,power)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_maxpower",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxpower)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_band",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,band)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.tcv.push_back((tcvstruc *)&cdata[0].device[i].tcv);
 		cdata[0].devspec.tcv_cnt = (uint16_t)cdata[0].devspec.tcv.size();
 		break;
@@ -6364,7 +6361,7 @@ string json_list_of_soh(cosmosstruc* cdata)
 	{
 		sprintf(tempstring, ",\"device_tcv_utc_%03d\",\"device_tcv_temp_%03d\"", i, i);
 		result += tempstring;
-		sprintf(tempstring, ",\"device_tcv_freqin_%03d\",\"device_tcv_freqout_%03d\"",i,i);
+		sprintf(tempstring, ",\"device_tcv_freq_%03d\",\"device_tcv_freqout_%03d\"",i,i);
 		result += tempstring;
 	}
 
@@ -6870,11 +6867,11 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 				// Dump Transceivers
 				if (!strcmp(device_type_string[i].c_str(),"tcv"))
 				{
-					json_out_1d(jstring,(char *)"device_tcv_freqin",j,cdata);
+					json_out_1d(jstring,(char *)"device_tcv_freq",j,cdata);
 					json_out_character(jstring, '\n');
-					json_out_1d(jstring,(char *)"device_tcv_maxfreqin",j,cdata);
+					json_out_1d(jstring,(char *)"device_tcv_maxfreq",j,cdata);
 					json_out_character(jstring, '\n');
-					json_out_1d(jstring,(char *)"device_tcv_minfreqin",j,cdata);
+					json_out_1d(jstring,(char *)"device_tcv_minfreq",j,cdata);
 					json_out_character(jstring, '\n');
 					json_out_1d(jstring,(char *)"device_tcv_band",j,cdata);
 					json_out_character(jstring, '\n');

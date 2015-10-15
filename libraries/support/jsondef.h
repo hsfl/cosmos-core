@@ -1302,23 +1302,17 @@ struct tcvstruc
 	//! Operating mode
 	uint16_t opmode;
 	//! Input Frequency
-	float freqin;
+	float freq;
 	//! Maximum frequency allowed
-	float maxfreqin;
+	float maxfreq;
 	//! Minimum frequency allowed
-	float minfreqin;
+	float minfreq;
 	//! Power
-	float powerin;
-	//! Filter bandpass
-	float filt;
-	//! Output Frequency
-	float freqout;
-	//! Maximum frequency allowed
-	float maxfreqout;
-	//! Minimum frequency allowed
-	float minfreqout;
-	//! Power
-	float powerout;
+	float power;
+	//! Output Power limit
+	float maxpower;
+	//! Input Filter bandpass
+	float band;
 };
 
 //! PV String (STRG) structure.

@@ -1062,12 +1062,17 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode)
 	if (handle.channel[handle.channelnum].datamode != datamode)
 	{
 		iretn = ic9100_set_datamode(handle, datamode);
+		if (iretn < 0)
+		{
+			return iretn;
+		}
+		iretn = ic9100_set_bps9600mode(handle, IC9100_9600MODE_ON);
+		if (iretn < 0)
+		{
+			return iretn;
+		}
 	}
 
-	if (iretn < 0)
-	{
-		return iretn;
-	}
 
 	handle.channel[handle.channelnum].opmode = opmode;
 	handle.channel[handle.channelnum].mode = mode;
