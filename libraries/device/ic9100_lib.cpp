@@ -1293,6 +1293,60 @@ int32_t ic9100_get_compmeter(ic9100_handle &handle)
 	return 0;
 }
 
+int32_t ic9100_set_freqband(ic9100_handle &handle, uint8_t band)
+{
+	int32_t iretn = 0;
+
+	if (band > 0 && band < 15)
+	{
+		vector <uint8_t> data { 0x0, 0x1 };
+		if (band < 10)
+		{
+			data[0] = band;
+		}
+		else
+		{
+			data[0] = band + 6;
+		}
+		iretn = ic9100_write(handle, 0x1a, 0x1, data);
+	}
+	else
+	{
+		return IC9100_ERROR_OUTOFRANGE;
+	}
+
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	handle.channel[handle.channelnum].freqband = band;
+
+	return 0;
+}
+
+int32_t ic9100_get_freqband(ic9100_handle &handle)
+{
+	int32_t iretn = 0;
+
+	iretn = ic9100_write(handle, 0x1a, 0x3);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	if (handle.response[0] < 10)
+	{
+		handle.channel[handle.channelnum].bps9600mode = handle.response[0];
+	}
+	else
+	{
+		handle.channel[handle.channelnum].bps9600mode = handle.response[0] - 6;
+	}
+
+	return 0;
+}
+
 int32_t ic9100_set_bps9600mode(ic9100_handle &handle, uint8_t mode)
 {
 	int32_t iretn = 0;
@@ -1351,6 +1405,10 @@ int32_t ic9100_set_datamode(ic9100_handle &handle, uint8_t mode)
 			if (mode == IC9100_DATAMODE_ON)
 			{
 				data[1] = handle.channel[handle.channelnum].filtband;
+				if (data[1] == 0 || data[1] > 3)
+				{
+					data[1] = 1;
+				}
 			}
 			iretn = ic9100_write(handle, 0x1a, 0x6, data);
 		}

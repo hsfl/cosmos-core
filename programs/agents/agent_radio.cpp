@@ -191,6 +191,7 @@ int main(int argc, char *argv[])
 			case DEVICE_MODEL_ASTRODEV:
 				break;
 			case DEVICE_MODEL_IC9100:
+				iretn = ic9100_get_freqband(ic9100);
 				iretn = ic9100_get_frequency(ic9100);
 				if (iretn >= 0)
 				{
