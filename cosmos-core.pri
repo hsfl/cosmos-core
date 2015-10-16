@@ -54,8 +54,7 @@ win32 {
 
 }
 
-#contains(QMAKE_CC, cl)
-{
+#contains(QMAKE_CC, cl) {
 #    # Visual Studio
 #    message("Compiler: Visual Studio")
 #    #CONFIG += precompile_header
@@ -85,7 +84,7 @@ macx { #mac
 ################################################################################
 # Unix config
 ################################################################################
-unix:!macx{
+unix:!macx {
     #message( "Building on Unix" )
     # add libraries
     LIBS += -pthread #-ljpeg
@@ -102,7 +101,7 @@ INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/support
 
 
 # Add all COSMOS support libraries
-contains(MODULES, SUPPORT){
+contains(MODULES, SUPPORT) {
     message( "Add library: SUPPORT" )
     INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/support
     #SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/support/*.cpp)

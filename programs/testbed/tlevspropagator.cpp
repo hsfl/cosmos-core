@@ -69,6 +69,9 @@ int main(int argc, char *argv[])
 		{
 			modeltype = TLE;
 			load_lines(argv[1], tle);
+			tle2eci(tle[0].utc, tle[0], eci);
+			tlestruc ttle;
+			eci2tle(tle[0].utc, eci, ttle);
 			if (utc == 0.)
 			{
 				utc = tle[0].utc + DT*MT/86400.;
