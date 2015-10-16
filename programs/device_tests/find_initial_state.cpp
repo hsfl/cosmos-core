@@ -11,7 +11,6 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <sstream>
 
 vn100_handle handle;
 cosmosstruc *cdata;
@@ -24,13 +23,15 @@ ElapsedTime et, pt;
 
 int main(int argc, char *argv[])
 {
+	COSMOS_SLEEP (1.00); // waiting for qt
+
 	// terms for debugging and time
 	int32_t iretn;
 	double lmjd;
 
 	// terms for position and velocity
-	double tt[4] = { 0 }; // time temp
-    double ps[3][4];    // past position
+	double tt[4] = { 0 };  // time temp
+	double ps[3][4]; // past position
 	double pv[3][4] = { 0 }; // past velocity
 
 	// terms for fitting acceleration to polynomial
@@ -48,8 +49,8 @@ int main(int argc, char *argv[])
 
 	// terms for defining mission phase states
 	bool avg_prd = true;
-	int program_cycles = 0;
-	const int INIT_P = 25;
+    int program_cycles = 0;
+    const int INIT_P = 45;
 
 	// terms for attitude calculation
 	uvector au, t, p;
@@ -104,32 +105,28 @@ int main(int argc, char *argv[])
 		sprintf(&sohstring[strlen(sohstring)], ",\"device_imu_utc_%03d\",\"device_imu_temp_%03d\",\"device_imu_mag_%03d\",\"device_imu_bdot_%03d\",\"device_imu_omega_%03d\",\"device_imu_accel_%03d\"",i,i,i,i,i,i);
 	agent_set_sohstring(cdata, sohstring);
 
-    // determine if IMU names through the argument
-    switch (argc)
-    {
-    case 2: // one imu
-        if ((iretn=vn100_connect(argv[1], &handle)) < 0)
-        {
-            printf("Failed to open VN100 on %s, error %d\n",argv[1],iretn);
-            exit (iretn);
-        }
-    case 3: // two imus
-        if ((iretn=vn100_connect(argv[2], &handle)) < 0)
-        {
-            printf("Failed to open VN100 on %s, error %d\n",argv[2],iretn);
-            exit (iretn);
-        }
-        if ((iretn=vn100_connect(argv[1], &handle)) < 0)
-        {
-            printf("Failed to open VN100 on %s, error %d\n",argv[1],iretn);
-            exit (iretn);
-        }
-        break;
-    default: // incorrect format
-        printf("Usage: find_initial_state device1 device2");
-        exit (1);
-        break;
-    }
+	// determine if IMU names through the argument
+	switch (argc)
+	{
+	case 2: // one imu
+		if ((iretn=vn100_connect(argv[1], &handle)) < 0)
+		{
+			printf("Failed to open VN100 on %s, error %d\n",argv[1],iretn);
+			exit (iretn);
+		}
+		break;
+	case 3: // two imus
+		if ((iretn=vn100_connect(argv[2], &handle)) < 0)
+		{
+			printf("Failed to open VN100 on %s, error %d\n",argv[1],iretn);
+			exit (iretn);
+		}
+		break;
+	default: // incorrect format
+		printf("Usage: find_initial_state device1 device2");
+		exit (1);
+		break;
+	}
 
 	// connect to IMU and check measurements
 	iretn = vn100_asynchoff(&handle);
@@ -138,15 +135,14 @@ int main(int argc, char *argv[])
 		printf("Fail: Unable to acquire measurements: %d\n", iretn);
 
 	// print values to a file delimited by spaces
-//	ofstream txtout ("../../../imu-data/" + to_string(currentmjd()) + "_fisdata.txt");
-	ofstream txtout ("/nmsr/" + to_string(currentmjd()) + "_fisdata.txt");
-	txtout << "BODY.ACCEL.X BODY.ACCEL.Y BODY.ACCEL.Z BODY.OMEGA.X BODY.OMEGA.Y BODY.OMEGA.Z CORRE.OMEGA.X CORRE.OMEGA.Y CORRE.OMEGA.Z BODY.MAG.X BODY.MAG.Y BODY.MAG.Z GEOC.ACCEL.X GEOC.ACCEL.Y GEOC.ACCEL.Z GEOC.VEL.X GEOC.VEL.Y GEOC.VEL.Z GEOC.POS.X GEOC.POS.Y GEOC.POS.Z CYCLES MJD" << endl;
+    ofstream txtout ("imu-data" + to_string(currentmjd()) + "_fisdata.txt");
+    txtout << "GEOC.ACCEL.X GEOC.ACCEL.Y GEOC.ACCEL.Z GEOC.VEL.X GEOC.VEL.Y GEOC.VEL.Z GEOC.POS.X GEOC.POS.Y GEOC.POS.Z GEOC.ATT.X GEOC.ATT.Y GEOC.ATT.Z GEOC.ATT.W BODY.ACCEL.X BODY.ACCEL.Y BODY.ACCEL.Z COME.X COME.Y COME.Z CYCLES MJD" << endl;
 
 	// streams for printing omega to a temp text file and reading it back in
-	ofstream omegaout ("omegaout.txt", ios_base::trunc);
+    ofstream omegaout ("omegaout.txt", ios_base::trunc);
 	ifstream omegain;
 
-	while(agent_running(cdata))
+    while(agent_running (cdata))
 	{
 		// number of imu readings
 		const int IMU_AVERAGE = 10;
@@ -186,8 +182,9 @@ int main(int argc, char *argv[])
 			if(program_cycles == 0)
 				cout <<  "Initialization Period... Don't move IMU." << endl;
 
-			rvector sourcea, sourceb, targeta, targetb, avg_body_accel;
-			quaternion avg_body_att;
+			rvector sourcea, sourceb, targeta, targetb;
+			//, avg_body_accel;
+//			quaternion avg_body_att;
 
 			targeta = rv_smult(-1., iloc.pos.geoc.s);
 			targetb = iloc.bearth;
@@ -204,9 +201,8 @@ int main(int argc, char *argv[])
 			if (program_cycles == INIT_P - 1)
 			{
 				avg_body_accel = rv_smult(1./INIT_P, avg_body_accel);
-				avg_body_att = q_smult(1./INIT_P, avg_body_att);
-				avg_body_att = q_eye();/////////////////////////////////////////////////////////////////////////////
-				q_normalize(&avg_body_att);
+                avg_body_att = q_smult(1./INIT_P, avg_body_att);
+                q_normalize(&avg_body_att);avg_body_att = q_eye();
 
 				 // initial acceleration in geoc frame
 				sloc.pos.geoc.a = transform_q(q_conjugate(avg_body_att), avg_body_accel);
@@ -237,6 +233,7 @@ int main(int argc, char *argv[])
 				wct = rv_zero();
 				cct = 0;
 				c_sum = 0;
+                w_sum[0] = rv_zero(); w_sum[1] = rv_zero(); w_sum[2] = rv_zero();
 			}
 
 			// start timer for tt and t.a4
@@ -247,7 +244,7 @@ int main(int argc, char *argv[])
 
 		// enter averaging period, moves onto estimation period if large force is detected
 //		else if (abs(length_rv(simu.accel) - length_rv(avg_body_accel)) < 10. && avg_prd)
-		else if (program_cycles < 250 && program_cycles >= INIT_P)
+        else if (program_cycles < 250 && program_cycles >= INIT_P)
 		{
 			if (program_cycles == INIT_P)
 				cout << "\nEntering Averaging Period" << endl;
@@ -270,6 +267,8 @@ int main(int argc, char *argv[])
 			omegaout << setprecision(10) << simu.omega.col[0] << " " << simu.omega.col[1] << " " << simu.omega.col[2] << endl;
 
 			iloc = sloc;
+
+            vectort2.a4[0] = 0; vectort2.a4[1] = 0; vectort2.a4[2] = 0; vectort2.a4[3] = 0;
 
 			pt.start();
 		}
@@ -343,8 +342,8 @@ int main(int argc, char *argv[])
 			t.a4[0] = tt[0] - tt[3];
 
 			// calculate new attitude based on omega
-			double timestep = t.a4[0] / 100.;
-			for (int i = 0; i < 100; i++)
+            double timestep = t.a4[0] / 1000.;
+            for (int i = 0; i < 1000; i++)
 			{
 				// scale omega by 1/3 and timestep
 				atttem = rv_smult(timestep * (1./3), c_ome);
@@ -413,7 +412,7 @@ int main(int argc, char *argv[])
 
 			}
 
-			if (pt.split() > 10)
+            if (pt.split() > 2)
 			{
 				// formatted output of values
 				char buffer[300];
@@ -428,13 +427,12 @@ int main(int argc, char *argv[])
 				cout << "Cycles: \t\t\t" << program_cycles << "\n" << buffer << endl;
 
 				// output values to file, uses space as delimiter
-				txtout << simu.accel.col[0] << " " << simu.accel.col[1] << " " << simu.accel.col[2] << " "
-					<< simu.omega.col[0] << " " << simu.omega.col[1] << " " << simu.omega.col[2] << " "
-					<< c_ome.col[0] << " " << c_ome.col[1] << " " << c_ome.col[2] << " "
-					<< simu.mag.col[0] << " " << simu.mag.col[1] << " " << simu.mag.col[2] << " "
-					<< iloc.pos.geoc.a.col[0] << " " << iloc.pos.geoc.a.col[1] << " " << iloc.pos.geoc.a.col[2] << " "
-					<< iloc.pos.geoc.v.col[0] << " " << iloc.pos.geoc.v.col[1] << " " << iloc.pos.geoc.v.col[2] << " "
-					<< iloc.pos.geoc.s.col[0] << " " << iloc.pos.geoc.s.col[1] << " " << iloc.pos.geoc.s.col[2] << " "
+                txtout << iloc.pos.geoc.a.col[0] << " " << iloc.pos.geoc.a.col[1] << " " << iloc.pos.geoc.a.col[2] << " "
+                    << iloc.pos.geoc.v.col[0] << " " << iloc.pos.geoc.v.col[1] << " " << iloc.pos.geoc.v.col[2] << " "
+                    << iloc.pos.geoc.s.col[0] << " " <<iloc.pos.geoc.s.col[1] << " " << iloc.pos.geoc.s.col[2] << " "
+                    << iloc.att.geoc.s.d.x << " " << iloc.att.geoc.s.d.y << " " << iloc.att.geoc.s.d.z << " " << iloc.att.geoc.s.w << " "
+                    << simu.accel.col[0] << " " << simu.accel.col[1] << " " << simu.accel.col[2] << " "
+                    << c_ome.col[0] << " " << c_ome.col[1] << " " << c_ome.col[2] << " "
 					<< program_cycles << " " << currentmjd() << endl;
 				pt.start();
 			}
