@@ -191,7 +191,6 @@ int main(int argc, char *argv[])
 			case DEVICE_MODEL_ASTRODEV:
 				break;
 			case DEVICE_MODEL_IC9100:
-				iretn = ic9100_get_freqband(ic9100);
 				iretn = ic9100_get_frequency(ic9100);
 				if (iretn >= 0)
 				{
@@ -435,6 +434,9 @@ int32_t connect_radio()
 			lasterrorcode = iretn;
 			return iretn;
 		}
+
+//		iretn = ic9100_set_freqband(ic9100, 13);
+
 		iretn = ic9100_set_mode(ic9100, target[channelnum].opmode);
 		if (iretn < 0)
 		{
