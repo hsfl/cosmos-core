@@ -290,6 +290,73 @@ uint8_t ic9100_byte(vector <uint8_t> response)
 
 	return result;
 }
+
+uint8_t ic9100_freq2band(double frequency)
+{
+	uint8_t freqband;
+
+	if (frequency < 1.8e6)
+	{
+		freqband = 14;
+	}
+	else if (frequency < 2.0e6)
+	{
+		freqband = 1;
+	}
+	else if (frequency >= 3.4e6 && frequency < 4.1e6)
+	{
+		freqband = 2;
+	}
+	else if (frequency >= 6.9e6 && frequency < 7.5e6)
+	{
+		freqband = 3;
+	}
+	else if (frequency >= 9.9e6 && frequency < 10.5e6)
+	{
+		freqband = 4;
+	}
+	else if (frequency >= 13.9e6 && frequency < 14.5e6)
+	{
+		freqband = 5;
+	}
+	else if (frequency >= 17.9e6 && frequency < 18.5e6)
+	{
+		freqband = 6;
+	}
+	else if (frequency >= 20.9e6 && frequency < 21.5e6)
+	{
+		freqband = 7;
+	}
+	else if (frequency >= 24.4e6 && frequency < 25.1e6)
+	{
+		freqband = 8;
+	}
+	else if (frequency >= 28.0e6 && frequency < 30.0e6)
+	{
+		freqband = 9;
+	}
+	else if (frequency >= 50.0e6 && frequency <= 54.0e6)
+	{
+		freqband = 10;
+	}
+	else if (frequency >= 108.0e6 && frequency <= 174.0e6)
+	{
+		freqband = 11;
+	}
+	else if (frequency >= 420.0e6 && frequency <= 480.0e6)
+	{
+		freqband = 12;
+	}
+	else if (frequency >= 1240.0e6 && frequency <1320.0e6)
+	{
+		freqband = 13;
+	}
+	else
+	{
+		freqband = 14;
+	}
+	return freqband;
+}
 //int32_t ic9100_read(ic9100_handle &handle, string &message)
 //{
 //	int32_t iretn = 0;
@@ -764,66 +831,7 @@ int32_t ic9100_get_frequency(ic9100_handle &handle)
 	}
 	handle.channel[handle.channelnum].frequency = frequency;
 
-	if (frequency < 1.8e6)
-	{
-		handle.channel[handle.channelnum].freqband = 14;
-	}
-	else if (frequency < 2.0e6)
-	{
-		handle.channel[handle.channelnum].freqband = 1;
-	}
-	else if (frequency >= 3.4e6 && frequency < 4.1e6)
-	{
-		handle.channel[handle.channelnum].freqband = 2;
-	}
-	else if (frequency >= 6.9e6 && frequency < 7.5e6)
-	{
-		handle.channel[handle.channelnum].freqband = 3;
-	}
-	else if (frequency >= 9.9e6 && frequency < 10.5e6)
-	{
-		handle.channel[handle.channelnum].freqband = 4;
-	}
-	else if (frequency >= 13.9e6 && frequency < 14.5e6)
-	{
-		handle.channel[handle.channelnum].freqband = 5;
-	}
-	else if (frequency >= 17.9e6 && frequency < 18.5e6)
-	{
-		handle.channel[handle.channelnum].freqband = 6;
-	}
-	else if (frequency >= 20.9e6 && frequency < 21.5e6)
-	{
-		handle.channel[handle.channelnum].freqband = 7;
-	}
-	else if (frequency >= 24.4e6 && frequency < 25.1e6)
-	{
-		handle.channel[handle.channelnum].freqband = 8;
-	}
-	else if (frequency >= 28.0e6 && frequency < 30.0e6)
-	{
-		handle.channel[handle.channelnum].freqband = 9;
-	}
-	else if (frequency >= 50.0e6 && frequency <= 54.0e6)
-	{
-		handle.channel[handle.channelnum].freqband = 10;
-	}
-	else if (frequency >= 108.0e6 && frequency <= 174.0e6)
-	{
-		handle.channel[handle.channelnum].freqband = 11;
-	}
-	else if (frequency >= 420.0e6 && frequency <= 480.0e6)
-	{
-		handle.channel[handle.channelnum].freqband = 12;
-	}
-	else if (frequency >= 1240.0e6 && frequency <1320.0e6)
-	{
-		handle.channel[handle.channelnum].freqband = 13;
-	}
-	else
-	{
-		handle.channel[handle.channelnum].freqband = 14;
-	}
+	handle.channel[handle.channelnum].freqband = ic9100_freq2band(frequency);
 	return iretn;
 }
 
@@ -1090,6 +1098,11 @@ int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channelnum)
 	case IC9100_CHANNEL_B:
 		{
 			iretn = ic9100_write(handle, 0x7, 0xd0+channelnum);
+		}
+		break;
+	case IC9100_CHANNEL_SWAP:
+		{
+			iretn = ic9100_write(handle, 0x7, 0xb0);
 		}
 		break;
 	default:
@@ -1443,4 +1456,3 @@ int32_t ic9100_get_datamode(ic9100_handle &handle)
 
 	return 0;
 }
-

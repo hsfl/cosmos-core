@@ -41,6 +41,7 @@
 
 #define IC9100_CHANNEL_A 0
 #define IC9100_CHANNEL_B 1
+#define IC9100_CHANNEL_SWAP 2
 
 #define IC9100_DATAMODE_OFF 0
 #define IC9100_DATAMODE_ON 1
@@ -102,6 +103,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand)
 int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> message);
 int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand, vector <uint8_t> message);
 uint8_t ic9100_byte(vector <uint8_t> response);
+uint8_t ic9100_freq2band(double frequency);
 //int32_t ic9100_read(ic9100_handle &handle, vector <uint8_t> &message);
 int32_t ic9100_check_address(ic9100_handle &handle);
 int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channelnum);
