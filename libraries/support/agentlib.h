@@ -176,6 +176,9 @@ public:
     beatstruc findServer(string servername);
     beatstruc find(string servername);
 
+    uint16_t isRunning();
+    int32_t sendRequest(beatstruc beat, string request, string &response);
+    int32_t shutdownServer();
 };
 
 

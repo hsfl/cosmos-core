@@ -1931,6 +1931,7 @@ Agent::Agent(string nodename, string agentname)
 }
 
 // this function assumes you have initialized the node and agent names
+// with Agent::nodename and Agent::agentname
 bool Agent::setupServer()
 {
     //! First, see if we can become a Client, as all Servers are also Clients.
@@ -1955,10 +1956,16 @@ bool Agent::setupServer()
 
     //cout << "Agent server is on for " << nodeName << ":" << name << endl;
 
-    cout << "================================================" << endl;
-    cout << "| Agent Server Running [" <<  nodeName << ":" << name << "]" << endl;
-    cout << "| Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << endl;
-    cout << "================================================" << endl;
+    cout << "------------------------------------------------------" << endl;
+    cout << "COSMOS AGENT [" <<  name << " on node " << nodeName << "]" << endl;
+    cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << endl;
+    //cout << "------------------------------------------------------" << endl;
+
+    //cout << "================================================" << endl;
+    cout << "Agent server is running" << endl;
+
+    //cout << "================================================" << endl;
+    cout << "------------------------------------------------------" << endl;
 
     // if setup server was sucessfull
     return true;
@@ -2009,6 +2016,51 @@ beatstruc Agent::findServer(string servername)
 
     return beat_agent;
 }
+
+//! Check if we're supposed to be running
+/*!	Returns the value of the internal variable that indicates that
+ * the threads are running.
+    \param cdata Pointer to ::cosmosstruc to use.
+    \return True or False, depending on internal "run" variable
+*/
+// replica of agent_running
+uint16_t Agent::isRunning()
+{
+    return (cdata[0].agent[0].stateflag);
+}
+
+// replica of agent_send_request
+int32_t Agent::sendRequest(beatstruc beat, string request, string &response)
+{
+    char response_c_str[300];
+    int32_t iretn = agent_send_request(cdata, beat, request.c_str(), response_c_str, 512, 2 );
+
+    response = string(response_c_str);
+
+    return iretn;
+}
+
+
+//! Shutdown server gracefully
+/*! Waits for heartbeat and request loops to stop running before pulling the rug out from under them.
+ * \param cdata Pointer to ::cosmosstruc to use.
+ */
+// replica from agent_shutdown_server
+int32_t Agent::shutdownServer()
+{
+    cdata[0].agent[0].stateflag = AGENT_STATE_SHUTDOWN;;
+    hthread.join();
+    cthread.join();
+    agent_unsubscribe(cdata);
+    agent_unpublish(cdata);
+    json_destroy(cdata);
+
+    cout << "------------------------------------------------------" << endl;
+    cout << "Agent server is shutdown" << endl;
+    cout << "------------------------------------------------------" << endl;
+    return 0;
+}
+
 
 beatstruc Agent::find(string servername)
 {
