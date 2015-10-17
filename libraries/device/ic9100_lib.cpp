@@ -395,7 +395,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 
 	uint8_t filtband = 1;
 
-	switch (handle.channel[handle.channelnum].mode)
+	switch (handle.mode)
 	{
 	case IC9100_MODE_AM:
 		if (bandpass < 200 || bandpass > 10000)
@@ -404,7 +404,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		}
 		if (bandpass < 3333.)
 		{
-			filtband = 1;
+			filtband = 3;
 		}
 		else if (bandpass < 6666.)
 		{
@@ -412,7 +412,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		}
 		else
 		{
-			filtband = 3;
+			filtband = 1;
 		}
 		break;
 	case IC9100_MODE_CW:
@@ -423,7 +423,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		}
 		if (bandpass < 300.)
 		{
-			filtband = 1;
+			filtband = 3;
 		}
 		else if (bandpass < 600.)
 		{
@@ -431,7 +431,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		}
 		else
 		{
-			filtband = 3;
+			filtband = 1;
 		}
 		break;
 	case IC9100_MODE_DV:
@@ -442,7 +442,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		}
 		if (bandpass == 7000.)
 		{
-			filtband = 1;
+			filtband = 3;
 		}
 		else if (bandpass == 10000.)
 		{
@@ -450,7 +450,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		}
 		else
 		{
-			filtband = 3;
+			filtband = 1;
 		}
 		break;
 	case IC9100_MODE_LSB:
@@ -459,11 +459,11 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		{
 			return IC9100_ERROR_OUTOFRANGE;
 		}
-		if (!handle.channel[handle.channelnum].datamode)
+		if (!handle.datamode)
 		{
 			if (bandpass < 2100.)
 			{
-				filtband = 1;
+				filtband = 3;
 			}
 			else if (bandpass < 2700.)
 			{
@@ -471,14 +471,14 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 			}
 			else
 			{
-				filtband = 3;
+				filtband = 1;
 			}
 		}
 		else
 		{
 			if (bandpass < 300.)
 			{
-				filtband = 1;
+				filtband = 3;
 			}
 			else if (bandpass < 600.)
 			{
@@ -486,7 +486,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 			}
 			else
 			{
-				filtband = 3;
+				filtband = 1;
 			}
 		}
 		break;
@@ -498,7 +498,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		}
 		if (bandpass < 300.)
 		{
-			filtband = 1;
+			filtband = 2;
 		}
 		else if (bandpass < 600.)
 		{
@@ -506,7 +506,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		}
 		else
 		{
-			filtband = 3;
+			filtband = 1;
 		}
 		break;
 	default:
@@ -519,19 +519,14 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		return IC9100_ERROR_OUTOFRANGE;
 	}
 
-//	vector <uint8_t> data { 0x0 };
-//	data[0] = handle.channel[handle.channelnum].mode;
-//	data[1] = filtband;
-
-//	iretn = ic9100_write(handle, 0x6, data);
-	iretn = ic9100_set_mode(handle, handle.channel[handle.channelnum].opmode, filtband);
+	iretn = ic9100_set_mode(handle, handle.opmode, filtband);
 	if (iretn < 0)
 	{
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].bandpass = bandpass;
-	handle.channel[handle.channelnum].filtband = filtband;
+	handle.bandpass = bandpass;
+	handle.filtband = filtband;
 
 	return 0;
 }
@@ -546,97 +541,97 @@ int32_t ic9100_get_bandpass(ic9100_handle &handle)
 		return iretn;
 	}
 
-	switch (handle.channel[handle.channelnum].mode)
+	switch (handle.mode)
 	{
 	case IC9100_MODE_AM:
-		switch(handle.channel[handle.channelnum].filtband)
+		switch(handle.filtband)
 		{
-		case 1:
-			handle.channel[handle.channelnum].bandpass = 3000.;
+		case 3:
+			handle.bandpass = 3000.;
 			break;
 		case 2:
-			handle.channel[handle.channelnum].bandpass = 6000.;
+			handle.bandpass = 6000.;
 			break;
-		case 3:
-			handle.channel[handle.channelnum].bandpass = 9000.;
+		case 1:
+			handle.bandpass = 9000.;
 			break;
 		}
 		break;
 	case IC9100_MODE_CW:
 	case IC9100_MODE_CWR:
-		switch(handle.channel[handle.channelnum].filtband)
+		switch(handle.filtband)
 		{
-		case 1:
-			handle.channel[handle.channelnum].bandpass = 250.;
+		case 3:
+			handle.bandpass = 250.;
 			break;
 		case 2:
-			handle.channel[handle.channelnum].bandpass = 500.;
+			handle.bandpass = 500.;
 			break;
-		case 3:
-			handle.channel[handle.channelnum].bandpass = 1200.;
+		case 1:
+			handle.bandpass = 1200.;
 			break;
 		}
 		break;
 	case IC9100_MODE_DV:
 	case IC9100_MODE_FM:
-		switch(handle.channel[handle.channelnum].filtband)
+		switch(handle.filtband)
 		{
-		case 1:
-			handle.channel[handle.channelnum].bandpass = 7000.;
+		case 3:
+			handle.bandpass = 7000.;
 			break;
 		case 2:
-			handle.channel[handle.channelnum].bandpass = 10000.;
+			handle.bandpass = 10000.;
 			break;
-		case 3:
-			handle.channel[handle.channelnum].bandpass = 15000.;
+		case 1:
+			handle.bandpass = 15000.;
 			break;
 		}
 		break;
 	case IC9100_MODE_LSB:
 	case IC9100_MODE_USB:
-		if (!handle.channel[handle.channelnum].datamode)
+		if (!handle.datamode)
 		{
-			switch(handle.channel[handle.channelnum].filtband)
+			switch(handle.filtband)
 			{
-			case 1:
-				handle.channel[handle.channelnum].bandpass = 1800.;
+			case 3:
+				handle.bandpass = 1800.;
 				break;
 			case 2:
-				handle.channel[handle.channelnum].bandpass = 2400.;
+				handle.bandpass = 2400.;
 				break;
-			case 3:
-				handle.channel[handle.channelnum].bandpass = 3000.;
+			case 1:
+				handle.bandpass = 3000.;
 				break;
 			}
 		}
 		else
 		{
-			switch(handle.channel[handle.channelnum].filtband)
+			switch(handle.filtband)
 			{
-			case 1:
-				handle.channel[handle.channelnum].bandpass = 350.;
+			case 3:
+				handle.bandpass = 350.;
 				break;
 			case 2:
-				handle.channel[handle.channelnum].bandpass = 500.;
+				handle.bandpass = 500.;
 				break;
-			case 3:
-				handle.channel[handle.channelnum].bandpass = 1200.;
+			case 1:
+				handle.bandpass = 1200.;
 				break;
 			}
 		}
 		break;
 	case IC9100_MODE_RTTY:
 	case IC9100_MODE_RTTYR:
-		switch(handle.channel[handle.channelnum].filtband)
+		switch(handle.filtband)
 		{
-		case 1:
-			handle.channel[handle.channelnum].bandpass = 250.;
+		case 3:
+			handle.bandpass = 250.;
 			break;
 		case 2:
-			handle.channel[handle.channelnum].bandpass = 500.;
+			handle.bandpass = 500.;
 			break;
-		case 3:
-			handle.channel[handle.channelnum].bandpass = 2400.;
+		case 1:
+			handle.bandpass = 2400.;
 			break;
 		}
 		break;
@@ -723,15 +718,15 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 		return iretn;
 	}
 
-	if (handle.channel[handle.channelnum].freqband < 11)
+	if (handle.freqband < 11)
 	{
-		if (power < 2. || power > (handle.channel[handle.channelnum].mode==IC9100_MODE_AM?30.:100.))
+		if (power < 2. || power > (handle.mode==IC9100_MODE_AM?30.:100.))
 		{
 			return IC9100_ERROR_OUTOFRANGE;
 		}
-		rfpower = 255 * (power - 2.) / (handle.channel[handle.channelnum].mode==IC9100_MODE_AM?28.:98.);
+		rfpower = 255 * (power - 2.) / (handle.mode==IC9100_MODE_AM?28.:98.);
 	}
-	else if (handle.channel[handle.channelnum].freqband < 12)
+	else if (handle.freqband < 12)
 	{
 		if (power < 2. || power > (100.))
 		{
@@ -739,7 +734,7 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 		}
 		rfpower = 255 * (power - 2.) / (98.);
 	}
-	else if (handle.channel[handle.channelnum].freqband < 13)
+	else if (handle.freqband < 13)
 	{
 		if (power < 2. || power > 75.)
 		{
@@ -747,7 +742,7 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 		}
 		rfpower = 255 * (power - 2.) / 73.;
 	}
-	else if (handle.channel[handle.channelnum].freqband < 14)
+	else if (handle.freqband < 14)
 	{
 		if (power < 2. || power > 10.)
 		{
@@ -782,7 +777,7 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].maxpower = power;
+	handle.maxpower = power;
 	return 0;
 }
 
@@ -830,9 +825,9 @@ int32_t ic9100_get_frequency(ic9100_handle &handle)
 		frequency *= 100.;
 		frequency += 10. * (handle.response[4-i] >> 4) + (handle.response[4-i] % 16);
 	}
-	handle.channel[handle.channelnum].frequency = frequency;
+	handle.frequency = frequency;
 
-	handle.channel[handle.channelnum].freqband = ic9100_freq2band(frequency);
+	handle.freqband = ic9100_freq2band(frequency);
 	return iretn;
 }
 
@@ -859,31 +854,31 @@ int32_t ic9100_get_mode(ic9100_handle &handle)
 	switch (handle.response[0])
 	{
 	case IC9100_MODE_AM:
-		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_AM;
+		handle.opmode = DEVICE_RADIO_MODE_AM;
 		break;
 	case IC9100_MODE_FM:
-		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_FM;
+		handle.opmode = DEVICE_RADIO_MODE_FM;
 		break;
 	case IC9100_MODE_LSB:
-		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_LSB;
+		handle.opmode = DEVICE_RADIO_MODE_LSB;
 		break;
 	case IC9100_MODE_USB:
-		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_USB;
+		handle.opmode = DEVICE_RADIO_MODE_USB;
 		break;
 	case IC9100_MODE_CW:
 	case IC9100_MODE_CWR:
-		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_CW;
+		handle.opmode = DEVICE_RADIO_MODE_CW;
 		break;
 	case IC9100_MODE_RTTY:
 	case IC9100_MODE_RTTYR:
-		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_RTTY;
+		handle.opmode = DEVICE_RADIO_MODE_RTTY;
 		break;
 	case IC9100_MODE_DV:
-		handle.channel[handle.channelnum].opmode = DEVICE_RADIO_MODE_DV;
+		handle.opmode = DEVICE_RADIO_MODE_DV;
 		break;
 	}
-	handle.channel[handle.channelnum].mode = handle.response[0];
-	handle.channel[handle.channelnum].filtband = handle.response[1];
+	handle.mode = handle.response[0];
+	handle.filtband = handle.response[1];
 
 	return iretn;
 }
@@ -931,65 +926,65 @@ int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency)
 
 	if (frequency < 1.8e6)
 	{
-		handle.channel[handle.channelnum].freqband = 14;
+		handle.freqband = 14;
 	}
 	else if (frequency < 2.0e6)
 	{
-		handle.channel[handle.channelnum].freqband = 1;
+		handle.freqband = 1;
 	}
 	else if (frequency >= 3.4e6 && frequency < 4.1e6)
 	{
-		handle.channel[handle.channelnum].freqband = 2;
+		handle.freqband = 2;
 	}
 	else if (frequency >= 6.9e6 && frequency < 7.5e6)
 	{
-		handle.channel[handle.channelnum].freqband = 3;
+		handle.freqband = 3;
 	}
 	else if (frequency >= 9.9e6 && frequency < 10.5e6)
 	{
-		handle.channel[handle.channelnum].freqband = 4;
+		handle.freqband = 4;
 	}
 	else if (frequency >= 13.9e6 && frequency < 14.5e6)
 	{
-		handle.channel[handle.channelnum].freqband = 5;
+		handle.freqband = 5;
 	}
 	else if (frequency >= 17.9e6 && frequency < 18.5e6)
 	{
-		handle.channel[handle.channelnum].freqband = 6;
+		handle.freqband = 6;
 	}
 	else if (frequency >= 20.9e6 && frequency < 21.5e6)
 	{
-		handle.channel[handle.channelnum].freqband = 7;
+		handle.freqband = 7;
 	}
 	else if (frequency >= 24.4e6 && frequency < 25.1e6)
 	{
-		handle.channel[handle.channelnum].freqband = 8;
+		handle.freqband = 8;
 	}
 	else if (frequency >= 28.0e6 && frequency < 30.0e6)
 	{
-		handle.channel[handle.channelnum].freqband = 9;
+		handle.freqband = 9;
 	}
 	else if (frequency >= 50.0e6 && frequency <= 54.0e6)
 	{
-		handle.channel[handle.channelnum].freqband = 10;
+		handle.freqband = 10;
 	}
 	else if (frequency >= 108.0e6 && frequency <= 174.0e6)
 	{
-		handle.channel[handle.channelnum].freqband = 11;
+		handle.freqband = 11;
 	}
 	else if (frequency >= 420.0e6 && frequency <= 480.0e6)
 	{
-		handle.channel[handle.channelnum].freqband = 12;
+		handle.freqband = 12;
 	}
 	else if (frequency >= 1240.0e6 && frequency <1320.0e6)
 	{
-		handle.channel[handle.channelnum].freqband = 13;
+		handle.freqband = 13;
 	}
 	else
 	{
-		handle.channel[handle.channelnum].freqband = 14;
+		handle.freqband = 14;
 	}
-	handle.channel[handle.channelnum].frequency = frequency;
+	handle.frequency = frequency;
 
 	return 0;
 }
@@ -998,7 +993,7 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode)
 {
 	int32_t iretn;
 
-	iretn = ic9100_set_mode(handle, opmode, handle.channel[handle.channelnum].filtband);
+	iretn = ic9100_set_mode(handle, opmode, handle.filtband);
 	if (iretn < 0)
 	{
 		return iretn;
@@ -1082,16 +1077,11 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].filtband = filtband;
+	handle.filtband = filtband;
 
-	if (handle.channel[handle.channelnum].datamode != datamode)
+	if (handle.datamode != datamode)
 	{
 		iretn = ic9100_set_datamode(handle, datamode);
-		if (iretn < 0)
-		{
-			return iretn;
-		}
-		iretn = ic9100_set_bps9600mode(handle, IC9100_9600MODE_ON);
 		if (iretn < 0)
 		{
 			return iretn;
@@ -1099,8 +1089,8 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband)
 	}
 
 
-	handle.channel[handle.channelnum].opmode = opmode;
-	handle.channel[handle.channelnum].mode = mode;
+	handle.opmode = opmode;
+	handle.mode = mode;
 
 	return 0;
 }
@@ -1154,7 +1144,7 @@ int32_t ic9100_get_rfgain(ic9100_handle &handle)
 		return IC9100_ERROR_OUTOFRANGE;
 	}
 
-	handle.channel[handle.channelnum].rfgain = ic9100_byte(handle.response);
+	handle.rfgain = ic9100_byte(handle.response);
 
 	return iretn;
 }
@@ -1173,7 +1163,7 @@ int32_t ic9100_get_squelch(ic9100_handle &handle)
 	{
 		return IC9100_ERROR_OUTOFRANGE;
 	}
-	handle.channel[handle.channelnum].squelch = ic9100_byte(handle.response);
+	handle.squelch = ic9100_byte(handle.response);
 
 	return 0;
 }
@@ -1195,26 +1185,26 @@ int32_t ic9100_get_rfpower(ic9100_handle &handle)
 
 	float power = ic9100_byte(handle.response);
 
-	handle.channel[handle.channelnum].rfpower = power;
+	handle.rfpower = power;
 	power /= 255.;
 
-	if (handle.channel[handle.channelnum].freqband < 11)
+	if (handle.freqband < 11)
 	{
-		power = 2. + power * (handle.channel[handle.channelnum].mode==IC9100_MODE_AM?28.:98.);
+		power = 2. + power * (handle.mode==IC9100_MODE_AM?28.:98.);
 	}
-	else if (handle.channel[handle.channelnum].freqband < 12)
+	else if (handle.freqband < 12)
 	{
 		power = 2. + power * 98.;
 	}
-	else if (handle.channel[handle.channelnum].freqband < 13)
+	else if (handle.freqband < 13)
 	{
 		power = 2. + power * 73.;
 	}
-	else if (handle.channel[handle.channelnum].freqband < 14)
+	else if (handle.freqband < 14)
 	{
 		power = 2. + power * 8.;
 	}
-	handle.channel[handle.channelnum].maxpower = power;
+	handle.maxpower = power;
 	return iretn;
 }
 
@@ -1228,7 +1218,33 @@ int32_t ic9100_get_smeter(ic9100_handle &handle)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].smeter = ic9100_byte(handle.response);
+	float power = ic9100_byte(handle.response);
+
+	handle.smeter = power;
+	power /= 240.;
+
+	if (power > 1.)
+	{
+		power = 1.;
+	}
+
+	if (handle.freqband < 11)
+	{
+		power = 2. + power * (handle.mode==IC9100_MODE_AM?28.:98.);
+	}
+	else if (handle.freqband < 12)
+	{
+		power = 2. + power * 98.;
+	}
+	else if (handle.freqband < 13)
+	{
+		power = 2. + power * 73.;
+	}
+	else if (handle.freqband < 14)
+	{
+		power = 1. + power * 8.;
+	}
+	handle.power = power;
 
 	return 0;
 }
@@ -1245,7 +1261,7 @@ int32_t ic9100_get_rfmeter(ic9100_handle &handle)
 
 	float power = ic9100_byte(handle.response);
 
-	handle.channel[handle.channelnum].rfmeter = power;
+	handle.rfmeter = power;
 	if (power <= 141)
 	{
 		power /= 282.;
@@ -1260,23 +1276,23 @@ int32_t ic9100_get_rfmeter(ic9100_handle &handle)
 		power = 1.;
 	}
 
-	if (handle.channel[handle.channelnum].freqband < 11)
+	if (handle.freqband < 11)
 	{
-		power = 2. + power * (handle.channel[handle.channelnum].mode==IC9100_MODE_AM?28.:98.);
+		power = 2. + power * (handle.mode==IC9100_MODE_AM?28.:98.);
 	}
-	else if (handle.channel[handle.channelnum].freqband < 12)
+	else if (handle.freqband < 12)
 	{
 		power = 2. + power * 98.;
 	}
-	else if (handle.channel[handle.channelnum].freqband < 13)
+	else if (handle.freqband < 13)
 	{
 		power = 2. + power * 73.;
 	}
-	else if (handle.channel[handle.channelnum].freqband < 14)
+	else if (handle.freqband < 14)
 	{
 		power = 1. + power * 8.;
 	}
-	handle.channel[handle.channelnum].power = power;
+	handle.power = power;
 
 	return 0;
 }
@@ -1291,7 +1307,7 @@ int32_t ic9100_get_swrmeter(ic9100_handle &handle)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].swrmeter = ic9100_byte(handle.response);
+	handle.swrmeter = ic9100_byte(handle.response);
 
 	return 0;
 }
@@ -1306,7 +1322,7 @@ int32_t ic9100_get_alcmeter(ic9100_handle &handle)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].alcmeter = ic9100_byte(handle.response);
+	handle.alcmeter = ic9100_byte(handle.response);
 
 	return 0;
 }
@@ -1353,7 +1369,7 @@ int32_t ic9100_set_freqband(ic9100_handle &handle, uint8_t band)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].freqband = band;
+	handle.freqband = band;
 
 	return 0;
 }
@@ -1370,11 +1386,11 @@ int32_t ic9100_get_freqband(ic9100_handle &handle)
 
 	if (handle.response[0] < 10)
 	{
-		handle.channel[handle.channelnum].bps9600mode = handle.response[0];
+		handle.bps9600mode = handle.response[0];
 	}
 	else
 	{
-		handle.channel[handle.channelnum].bps9600mode = handle.response[0] - 6;
+		handle.bps9600mode = handle.response[0] - 6;
 	}
 
 	return 0;
@@ -1403,7 +1419,7 @@ int32_t ic9100_set_bps9600mode(ic9100_handle &handle, uint8_t mode)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].bps9600mode = mode;
+	handle.bps9600mode = mode;
 
 	return 0;
 }
@@ -1419,7 +1435,7 @@ int32_t ic9100_get_bps9600mode(ic9100_handle &handle)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].bps9600mode = handle.response[2];
+	handle.bps9600mode = handle.response[2];
 
 	return 0;
 }
@@ -1430,20 +1446,25 @@ int32_t ic9100_set_datamode(ic9100_handle &handle, uint8_t mode)
 
 	switch (mode)
 	{
-	case IC9100_DATAMODE_OFF:
 	case IC9100_DATAMODE_ON:
+	case IC9100_DATAMODE_OFF:
 		{
 			vector <uint8_t> data { 0x0, 0x0 };
 			data[0] = mode;
 			if (mode == IC9100_DATAMODE_ON)
 			{
-				data[1] = handle.channel[handle.channelnum].filtband;
+				data[1] = handle.filtband;
 				if (data[1] == 0 || data[1] > 3)
 				{
 					data[1] = 1;
 				}
 			}
 			iretn = ic9100_write(handle, 0x1a, 0x6, data);
+			if (iretn < 0)
+			{
+				return iretn;
+			}
+			iretn = ic9100_set_bps9600mode(handle, IC9100_9600MODE_ON);
 		}
 		break;
 	default:
@@ -1455,8 +1476,8 @@ int32_t ic9100_set_datamode(ic9100_handle &handle, uint8_t mode)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].datamode = mode;
-	handle.channel[handle.channelnum].opmode = ((handle.channel[handle.channelnum].datamode >> 1) << 1) + mode;
+	handle.datamode = mode;
+	handle.opmode = ((handle.opmode >> 1) << 1) + mode;
 
 	return 0;
 }
@@ -1471,8 +1492,8 @@ int32_t ic9100_get_datamode(ic9100_handle &handle)
 		return iretn;
 	}
 
-	handle.channel[handle.channelnum].datamode = handle.response[0];
-	handle.channel[handle.channelnum].opmode = ((handle.channel[handle.channelnum].datamode >> 1) << 1) + handle.response[0];
+	handle.datamode = handle.response[0];
+	handle.opmode = ((handle.opmode >> 1) << 1) + handle.response[0];
 
 	return 0;
 }

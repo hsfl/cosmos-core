@@ -63,8 +63,13 @@
 #define IC9100_FILTER_2 2
 #define IC9100_FILTER_3 3
 
-struct channel_struc
+struct ic9100_handle
 {
+	uint8_t address;
+	uint8_t channelnum;
+	cssl_t *serial;
+	mutex mut;
+	vector <uint8_t> response;
 	uint8_t freqband;
 	uint8_t filtband;
 	uint8_t mode;
@@ -83,16 +88,6 @@ struct channel_struc
 	float power;
 	float maxpower;
 	double frequency;
-};
-
-struct ic9100_handle
-{
-	uint8_t address;
-	uint8_t channelnum;
-	cssl_t *serial;
-	mutex mut;
-	vector <uint8_t> response;
-	channel_struc channel[2];
 };
 
 int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle);

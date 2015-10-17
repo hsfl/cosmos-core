@@ -48,8 +48,7 @@ astrodev_handle astrodev;
 ts2000_state ts2000;
 ic9100_handle ic9100;
 
-tcvstruc actual;
-tcvstruc target[2];
+tcvstruc target;
 
 int32_t lasterrorcode;
 char lasterrormessage[300];
@@ -178,7 +177,7 @@ int main(int argc, char *argv[])
 	radioaddr = cdata[0].device[deviceindex].all.gen.addr;
 
 	// Initialize values so connect_radio will work
-	target[channelnum] = cdata[0].device[deviceindex].tcv;
+	target = cdata[0].device[deviceindex].tcv;
 
 	iretn = connect_radio();
 
@@ -194,18 +193,17 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_frequency(ic9100);
 				if (iretn >= 0)
 				{
-					actual.freq = ic9100.channel[channelnum].frequency;
-					cdata[0].device[deviceindex].tcv.freq = ic9100.channel[channelnum].frequency;
-/*
-					if (ic9100_freq2band(target[channelnum].freq) != ic9100.channel[channelnum].freqband)
+					cdata[0].device[deviceindex].tcv.freq = ic9100.frequency;
+					/*
+					if (ic9100_freq2band(target.freq) != ic9100.freqband)
 					{
 						iretn = ic9100_set_channel(ic9100, IC9100_CHANNEL_SWAP);
 						iretn = ic9100_get_frequency(ic9100);
 					}
 */
-					if (target[channelnum].freq != ic9100.channel[channelnum].frequency)
+					if (target.freq != ic9100.frequency)
 					{
-						iretn = ic9100_set_frequency(ic9100, target[channelnum].freq);
+						iretn = ic9100_set_frequency(ic9100, target.freq);
 					}
 				}
 				else
@@ -216,11 +214,10 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_bandpass(ic9100);
 				if (iretn >= 0)
 				{
-					actual.band = ic9100.channel[channelnum].bandpass;
-					cdata[0].device[deviceindex].tcv.band = ic9100.channel[channelnum].bandpass;
-					if (target[channelnum].band != ic9100.channel[channelnum].bandpass)
+					cdata[0].device[deviceindex].tcv.band = ic9100.bandpass;
+					if (target.band != ic9100.bandpass)
 					{
-						iretn = ic9100_set_bandpass(ic9100, target[channelnum].band);
+						iretn = ic9100_set_bandpass(ic9100, target.band);
 					}
 				}
 				else
@@ -231,11 +228,10 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_mode(ic9100);
 				if (iretn >= 0)
 				{
-					actual.opmode = ic9100.channel[0].opmode;
-					cdata[0].device[deviceindex].tcv.opmode = ic9100.channel[0].opmode;
-					if (target[channelnum].opmode != ic9100.channel[channelnum].opmode)
+					cdata[0].device[deviceindex].tcv.opmode = ic9100.opmode;
+					if (target.opmode != ic9100.opmode)
 					{
-						iretn = ic9100_set_mode(ic9100, target[channelnum].opmode);
+						iretn = ic9100_set_mode(ic9100, target.opmode);
 					}
 				}
 				else
@@ -246,11 +242,10 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_rfpower(ic9100);
 				if (iretn >= 0)
 				{
-					actual.maxpower = ic9100.channel[0].maxpower;
-					cdata[0].device[deviceindex].txr.maxpower = ic9100.channel[0].maxpower;
-					if (target[channelnum].maxpower != ic9100.channel[channelnum].maxpower)
+					cdata[0].device[deviceindex].txr.maxpower = ic9100.maxpower;
+					if (target.maxpower != ic9100.maxpower)
 					{
-						iretn = ic9100_set_rfpower(ic9100, target[channelnum].maxpower);
+						iretn = ic9100_set_rfpower(ic9100, target.maxpower);
 					}
 				}
 				else
@@ -258,14 +253,27 @@ int main(int argc, char *argv[])
 					radioconnected = false;
 				}
 
-				//				iretn = ic9100_get_smeter(ic9100);
 				//				iretn = ic9100_get_swrmeter(ic9100);
 				//				iretn = ic9100_get_alcmeter(ic9100);
-				iretn = ic9100_get_rfmeter(ic9100);
+				iretn = ic9100_get_smeter(ic9100);
 				if (iretn >= 0)
 				{
-					actual.power = ic9100.channel[0].power;
-					cdata[0].device[deviceindex].tcv.power = ic9100.channel[0].power;
+					if (!ic9100.smeter)
+					{
+						iretn = ic9100_get_rfmeter(ic9100);
+						if (iretn >= 0)
+						{
+							cdata[0].device[deviceindex].tcv.power = ic9100.power;
+						}
+						else
+						{
+							radioconnected = false;
+						}
+					}
+					else
+					{
+						cdata[0].device[deviceindex].tcv.power = ic9100.power;
+					}
 				}
 				else
 				{
@@ -291,7 +299,7 @@ int main(int argc, char *argv[])
 
 int32_t request_get_frequency(char *request, char* response, void *)
 {
-	sprintf(response,"%f", actual.freq);
+	sprintf(response,"%f", cdata[0].device[deviceindex].tcv.freq);
 	return 0;
 }
 
@@ -299,13 +307,13 @@ int32_t request_set_frequency(char *request, char* response, void *)
 {
 	//	int32_t iretn;
 
-	sscanf(request, "set_frequency %f", &target[channelnum].freq);
+	sscanf(request, "set_frequency %f", &target.freq);
 	return 0;
 }
 
 int32_t request_get_bandpass(char *request, char* response, void *)
 {
-	sprintf(response,"%f", actual.band);
+	sprintf(response,"%f", cdata[0].device[deviceindex].tcv.band);
 	return 0;
 }
 
@@ -313,25 +321,25 @@ int32_t request_set_bandpass(char *request, char* response, void *)
 {
 	int32_t iretn = 0;
 
-	sscanf(request, "set_bandpass %f", &target[channelnum].band);
+	sscanf(request, "set_bandpass %f", &target.band);
 	return iretn;
 }
 
 int32_t request_get_power(char *request, char* response, void *)
 {
-	sprintf(response,"%f", actual.power);
+	sprintf(response,"%f", cdata[0].device[deviceindex].tcv.power);
 	return 0;
 }
 
 int32_t request_set_power(char *request, char* response, void *)
 {
-	sscanf(request, "set_power %f", &target[channelnum].power);
+	sscanf(request, "set_power %f", &target.power);
 	return 0;
 }
 
 int32_t request_get_opmode(char *request, char* response, void *)
 {
-	strcpy(response, opmode2string(actual.opmode).c_str());
+	strcpy(response, opmode2string(cdata[0].device[deviceindex].tcv.opmode).c_str());
 	return 0;
 }
 
@@ -345,11 +353,11 @@ int32_t request_set_opmode(char *request, char* response, void *)
 		{
 		case 'c':
 		case 'C':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_CWR;
+			target.opmode = DEVICE_RADIO_MODE_CWR;
 			break;
 		case 'r':
 		case 'R':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_RTTYR;
+			target.opmode = DEVICE_RADIO_MODE_RTTYR;
 			break;
 		}
 		break;
@@ -359,23 +367,23 @@ int32_t request_set_opmode(char *request, char* response, void *)
 		{
 		case 'a':
 		case 'A':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_AMD;
+			target.opmode = DEVICE_RADIO_MODE_AMD;
 			break;
 		case 'd':
 		case 'D':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_DVD;
+			target.opmode = DEVICE_RADIO_MODE_DVD;
 			break;
 		case 'f':
 		case 'F':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_FMD;
+			target.opmode = DEVICE_RADIO_MODE_FMD;
 			break;
 		case 'l':
 		case 'L':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_LSBD;
+			target.opmode = DEVICE_RADIO_MODE_LSBD;
 			break;
 		case 'u':
 		case 'U':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_USBD;
+			target.opmode = DEVICE_RADIO_MODE_USBD;
 			break;
 		}
 		break;
@@ -384,31 +392,31 @@ int32_t request_set_opmode(char *request, char* response, void *)
 		{
 		case 'a':
 		case 'A':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_AM;
+			target.opmode = DEVICE_RADIO_MODE_AM;
 			break;
 		case 'c':
 		case 'C':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_CW;
+			target.opmode = DEVICE_RADIO_MODE_CW;
 			break;
 		case 'd':
 		case 'D':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_DV;
+			target.opmode = DEVICE_RADIO_MODE_DV;
 			break;
 		case 'f':
 		case 'F':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_FM;
+			target.opmode = DEVICE_RADIO_MODE_FM;
 			break;
 		case 'l':
 		case 'L':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_LSB;
+			target.opmode = DEVICE_RADIO_MODE_LSB;
 			break;
 		case 'r':
 		case 'R':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_RTTY;
+			target.opmode = DEVICE_RADIO_MODE_RTTY;
 			break;
 		case 'u':
 		case 'U':
-			target[channelnum].opmode = DEVICE_RADIO_MODE_USB;
+			target.opmode = DEVICE_RADIO_MODE_USB;
 			break;
 		}
 		break;
@@ -442,36 +450,36 @@ int32_t connect_radio()
 			return iretn;
 		}
 
-//		iretn = ic9100_set_freqband(ic9100, 13);
+		//		iretn = ic9100_set_freqband(ic9100, 13);
 
-		iretn = ic9100_set_mode(ic9100, target[channelnum].opmode);
+		iretn = ic9100_set_mode(ic9100, target.opmode);
 		if (iretn < 0)
 		{
-			sprintf(lasterrormessage, "Unable to set IC9100 to %s: %d", opmode2string(target[channelnum].opmode).c_str(), iretn);
+			sprintf(lasterrormessage, "Unable to set IC9100 to %s: %d", opmode2string(target.opmode).c_str(), iretn);
 			lasterrorcode = iretn;
 			return iretn;
 		}
-		iretn = ic9100_set_bandpass(ic9100, target[channelnum].band);
+		iretn = ic9100_set_bandpass(ic9100, target.band);
 		if (iretn < 0)
 		{
-			sprintf(lasterrormessage, "Unable to set IC9100 bandpass to %f: %d", target[channelnum].band, iretn);
+			sprintf(lasterrormessage, "Unable to set IC9100 bandpass to %f: %d", target.band, iretn);
 			lasterrorcode = iretn;
 			return iretn;
 		}
-//		iretn = ic9100_set_datamode(ic9100, IC9100_DATAMODE_ON);
-//		if (iretn < 0)
-//		{
-//			sprintf(lasterrormessage, "Unable to set IC9100 Data mode On: %d", iretn);
-//			lasterrorcode = iretn;
-//			return iretn;
-//		}
-//		iretn = ic9100_set_bps9600mode(ic9100, IC9100_9600MODE_ON);
-//		if (iretn < 0)
-//		{
-//			sprintf(lasterrormessage, "Unable to set IC9100 to 9600 bps mode: %d", iretn);
-//			lasterrorcode = iretn;
-//			return iretn;
-//		}
+		//		iretn = ic9100_set_datamode(ic9100, IC9100_DATAMODE_ON);
+		//		if (iretn < 0)
+		//		{
+		//			sprintf(lasterrormessage, "Unable to set IC9100 Data mode On: %d", iretn);
+		//			lasterrorcode = iretn;
+		//			return iretn;
+		//		}
+		//		iretn = ic9100_set_bps9600mode(ic9100, IC9100_9600MODE_ON);
+		//		if (iretn < 0)
+		//		{
+		//			sprintf(lasterrormessage, "Unable to set IC9100 to 9600 bps mode: %d", iretn);
+		//			lasterrorcode = iretn;
+		//			return iretn;
+		//		}
 		break;
 	case DEVICE_MODEL_TS2000:
 		break;
