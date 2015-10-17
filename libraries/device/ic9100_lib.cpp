@@ -880,6 +880,12 @@ int32_t ic9100_get_mode(ic9100_handle &handle)
 	handle.mode = handle.response[0];
 	handle.filtband = handle.response[1];
 
+	iretn = ic9100_get_datamode(handle);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
 	return iretn;
 }
 
