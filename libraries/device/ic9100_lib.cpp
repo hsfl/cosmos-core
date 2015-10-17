@@ -519,11 +519,12 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 		return IC9100_ERROR_OUTOFRANGE;
 	}
 
-	vector <uint8_t> data { 0x0 };
-	data[0] = handle.channel[handle.channelnum].mode;
-	data[1] = filtband;
+//	vector <uint8_t> data { 0x0 };
+//	data[0] = handle.channel[handle.channelnum].mode;
+//	data[1] = filtband;
 
-	iretn = ic9100_write(handle, 0x6, data);
+//	iretn = ic9100_write(handle, 0x6, data);
+	iretn = ic9100_set_mode(handle, handle.channel[handle.channelnum].opmode, filtband);
 	if (iretn < 0)
 	{
 		return iretn;
@@ -995,6 +996,20 @@ int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency)
 
 int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode)
 {
+	int32_t iretn;
+
+	iretn = ic9100_set_mode(handle, opmode, handle.channel[handle.channelnum].filtband);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	return 0;
+
+}
+
+int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband)
+{
 	int32_t iretn = 0;
 	if (iretn < 0)
 	{
@@ -1048,11 +1063,11 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode)
 		break;
 	}
 
-	if (handle.channel[handle.channelnum].filtband)
+	if (filtband)
 	{
 		vector <uint8_t> data { 0x0, 0x0 };
 		data[0] = mode;
-		data[1] = handle.channel[handle.channelnum].filtband;
+		data[1] = filtband;
 		iretn = ic9100_write(handle, 0x6, data);
 	}
 	else
@@ -1066,6 +1081,8 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode)
 	{
 		return iretn;
 	}
+
+	handle.channel[handle.channelnum].filtband = filtband;
 
 	if (handle.channel[handle.channelnum].datamode != datamode)
 	{
@@ -1114,7 +1131,10 @@ int32_t ic9100_set_channel(ic9100_handle &handle, uint8_t channelnum)
 		return iretn;
 	}
 
-	handle.channelnum = channelnum;
+	if (channelnum != IC9100_CHANNEL_SWAP)
+	{
+		handle.channelnum = channelnum;
+	}
 
 	return 0;
 }
