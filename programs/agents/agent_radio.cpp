@@ -196,11 +196,13 @@ int main(int argc, char *argv[])
 				{
 					actual.freq = ic9100.channel[channelnum].frequency;
 					cdata[0].device[deviceindex].tcv.freq = ic9100.channel[channelnum].frequency;
+/*
 					if (ic9100_freq2band(target[channelnum].freq) != ic9100.channel[channelnum].freqband)
 					{
 						iretn = ic9100_set_channel(ic9100, IC9100_CHANNEL_SWAP);
 						iretn = ic9100_get_frequency(ic9100);
 					}
+*/
 					if (target[channelnum].freq != ic9100.channel[channelnum].frequency)
 					{
 						iretn = ic9100_set_frequency(ic9100, target[channelnum].freq);

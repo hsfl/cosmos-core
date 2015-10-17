@@ -34,7 +34,7 @@
 #include "configCosmos.h"
 #include "cssl_lib.h"
 
-#define IC9100_BAUD 9800
+#define IC9100_BAUD 19200
 #define IC9100_BITS 8
 #define IC9100_PARITY 0
 #define IC9100_STOPBITS 1
