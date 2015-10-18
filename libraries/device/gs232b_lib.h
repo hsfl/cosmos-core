@@ -65,38 +65,38 @@ extern "C" {
 * associated G-5500.
 * @brief GS-232B state
 */
-typedef struct
+struct gs232b_state
 	{
-	int az_center;
-	int az_mode;
-	int az_offset_waiting;
-	double az_offset;
-	double currentaz;
-	double targetaz;
-	int el_offset_waiting;
-	double el_offset;
-	double currentel;
-	double targetel;
-	int in_command;
-	int data_received;
-	} gs232b_state;
+	int32_t az_center;
+	int32_t az_mode;
+	int32_t az_offset_waiting;
+	float az_offset;
+	float currentaz;
+	float targetaz;
+	int32_t el_offset_waiting;
+	float el_offset;
+	float currentel;
+	float targetel;
+	int32_t in_command;
+	int32_t data_received;
+	} ;
 
-int gs232b_connect(char *dev);
-int gs232b_disconnect();
-void gs232b_callback(int id, uint8_t *buf, int buflen);
-int gs232b_calibrate_offset(int axis);
-void gs232b_full_scale_calibration(int axis);
-void gs232b_rotate(int axis, int direction);
-double gs232b_get_az();
-double gs232b_get_el();
-int gs232b_get_az_el(double *az, double *el);
-double gs232b_get_az_offset();
-double gs232b_get_el_offset();
-void gs232b_get_state(gs232b_state *state);
-int gs232b_goto(double az, double el);
-int gs232b_az_speed(int speed);
-int gs232b_getdata(char *buf, int buflen);
-void gs232b_send(char *buf, int force);
+int32_t gs232b_connect(string dev);
+int32_t gs232b_disconnect();
+int32_t gs232b_calibrate_offset(int32_t axis);
+//void gs232b_full_scale_calibration(int32_t axis);
+//void gs232b_rotate(int32_t axis, int32_t direction);
+float gs232b_get_az();
+float gs232b_get_el();
+int32_t gs232b_get_az_el(float &az, float &el);
+float gs232b_get_az_offset();
+float gs232b_get_el_offset();
+void gs232b_get_state(gs232b_state &state);
+int32_t gs232b_goto(float az, float el);
+int32_t gs232b_stop();
+int32_t gs232b_az_speed(int32_t speed);
+int32_t gs232b_getdata(char *buf, int32_t buflen);
+int32_t gs232b_send(char *buf, int32_t force);
 
 #ifdef __cplusplus
 }

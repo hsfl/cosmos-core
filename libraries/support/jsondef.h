@@ -468,7 +468,8 @@ enum
 	{
 	DEVICE_MODEL_ASTRODEV=0,
 	DEVICE_MODEL_TS2000=1,
-	DEVICE_MODEL_IC9100=2
+	DEVICE_MODEL_IC9100=2,
+	DEVICE_MODEL_GS232B=3
 	};
 
 enum
@@ -1246,6 +1247,10 @@ struct antstruc
 	genstruc gen;
 	//! Alignment
 	quaternion align;
+	//! Azimuth;
+	float azim;
+	//! Elevation
+	float elev;
 	//! Minimum elevation
 	float minelev;
 };
