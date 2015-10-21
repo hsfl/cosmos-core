@@ -1266,6 +1266,7 @@ string get_nodedir(string node)
 /*! Get the internal variable that points to where node files are
  * stored for the current Node.
  * \param node Name of current Node
+ * \param create_flag Whether or not to create node directory if it doesn't already exist.
  * \return Pointer to character string containing path to Node, otherwise nullptr.
 */
 string get_nodedir(string node, bool create_flag)

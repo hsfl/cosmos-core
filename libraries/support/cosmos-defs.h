@@ -91,6 +91,10 @@ using namespace std;
 #define NODE_TYPE_SHIP 7
 #define NODE_TYPE_DATA 8
 #define NODE_TYPE_COMPUTER 9
+#define NODE_TYPE_SUN 10
+#define NODE_TYPE_MOON 11
+#define NODE_TYPE_MARS 12
+#define NODE_TYPE_LOCATION 13
 //! @}
 
 //! \ingroup defs

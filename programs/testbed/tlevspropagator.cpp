@@ -146,10 +146,10 @@ int main(int argc, char *argv[])
 	att.s = q_eye();
 	att.v = rv_zero();
 	att.a = rv_zero();
-//	cdata->physics.mass = 400000.;
-//	cdata->physics.area = 200.;
-	cdata->physics.mass = 55.;
-	cdata->physics.area = .01;
+	cdata->physics.mass = 400000.;
+	cdata->physics.area = 200.;
+//	cdata->physics.mass = 55.;
+//	cdata->physics.area = .01;
 
     locstruc loc;
     loc.pos.eci = eci;
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     loc.pos.eci.pass++;
     pos_eci(&loc);
     hardware_init_eci(cdata[0].devspec, loc);
-    gauss_jackson_init_eci(gjh, 6, 0, DT, utc, eci, att, cdata->physics, cdata->node.loc);
+	gauss_jackson_init_eci(gjh, 12, 0, DT, utc, eci, att, cdata->physics, cdata->node.loc);
     simulate_hardware(*cdata, cdata->node.loc);
 
 	size_t total_count;
@@ -209,26 +209,26 @@ int main(int argc, char *argv[])
 		printf("%.15g\t", cmjd);
 		kepstruc kep;
 		eci2kep(eci, kep);
-		locstruc station;
-		svector ground;
-		station.pos.geod.s = {0.383658276, -2.788325796, 107.};
-		ground = groundstation(cdata->node.loc, station);
-		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
-		station.pos.geod.s = {RADOF(64.8589), RADOF(-147.8356), 190.};
-		ground = groundstation(cdata->node.loc, station);
-		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
-		station.pos.geod.s = {RADOF(51.2437), RADOF(-0.58896), 55.};
-		ground = groundstation(cdata->node.loc, station);
-		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
-		station.pos.geod.s = {RADOF(19.826236), RADOF(-155.471951), 4160.};
-		ground = groundstation(cdata->node.loc, station);
-		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
-		station.pos.geod.s = {RADOF(20.708137), RADOF(-156.2567), 3034.};
-		ground = groundstation(cdata->node.loc, station);
-		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
-		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.geod.s.h, cdata->node.loc.pos.geod.s.lat, cdata->node.loc.pos.geod.s.lon);
-		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], cdata->node.loc.pos.geod.v.h, cdata->node.loc.pos.geod.v.lat, cdata->node.loc.pos.geod.v.lon);
-		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.a.col[0], eci.a.col[1], eci.a.col[2], cdata->node.loc.pos.geod.a.h, cdata->node.loc.pos.geod.a.lat, cdata->node.loc.pos.geod.a.lon);
+//		locstruc station;
+//		svector ground;
+//		station.pos.geod.s = {0.383658276, -2.788325796, 107.};
+//		ground = groundstation(cdata->node.loc, station);
+//		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
+//		station.pos.geod.s = {RADOF(64.8589), RADOF(-147.8356), 190.};
+//		ground = groundstation(cdata->node.loc, station);
+//		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
+//		station.pos.geod.s = {RADOF(51.2437), RADOF(-0.58896), 55.};
+//		ground = groundstation(cdata->node.loc, station);
+//		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
+//		station.pos.geod.s = {RADOF(19.826236), RADOF(-155.471951), 4160.};
+//		ground = groundstation(cdata->node.loc, station);
+//		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
+//		station.pos.geod.s = {RADOF(20.708137), RADOF(-156.2567), 3034.};
+//		ground = groundstation(cdata->node.loc, station);
+//		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
+		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.s.col[0], eci.s.col[1], eci.s.col[2], cdata->node.loc.pos.eci.s.col[0], cdata->node.loc.pos.eci.s.col[1], cdata->node.loc.pos.eci.s.col[2]);
+		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], cdata->node.loc.pos.eci.v.col[0], cdata->node.loc.pos.eci.v.col[1], cdata->node.loc.pos.eci.v.col[2]);
+		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.a.col[0], eci.a.col[1], eci.a.col[2], cdata->node.loc.pos.eci.a.col[0], cdata->node.loc.pos.eci.a.col[1], cdata->node.loc.pos.eci.a.col[2]);
 		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\n", kep.ea, kep.e, kep.a, kep.raan, kep.i, kep.ap);
 	}
 }

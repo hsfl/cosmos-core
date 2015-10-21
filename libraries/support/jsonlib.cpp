@@ -4746,8 +4746,10 @@ int32_t json_setup_node(string node, cosmosstruc *cdata)
 //! Map Name Space to global data structure components and pieces
 /*! Create an entry in the JSON mapping tables between each name in the Name Space and the
  * \ref cosmosstruc.
- *	\param buffer Character buffer containing contents of node.ini.
+ *	\param node Name and/or path of node directory. If name, then a path will be created
+ * based on nodedir setting. If path, then name will be extracted from the end.
  *	\param cdata Pointer to cdata ::cosmosstruc.
+ * \param create_flag Whether or not to create node directory if it doesn't already exist.
 	\return 0, or a negative ::error
 */
 int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
@@ -4757,11 +4759,21 @@ int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
 	ifstream ifs;
 	char *ibuf;
 	string fname;
+	string nodepath;
 
 	if (!cdata || !cdata[0].jmapped)
 		return (JSON_ERROR_NOJMAP);
 
-	string nodepath = get_nodedir(node, create_flag);
+	size_t nodestart;
+	if ((nodestart = node.rfind('/')) == string::npos)
+	{
+		nodepath = get_nodedir(node, create_flag);
+	}
+	else
+	{
+		nodepath = node;
+		node = node.substr(nodestart+1, string::npos);
+	}
 
 	// First: parse data for summary information - includes piece_cnt, device_cnt and port_cnt
 	fname = nodepath + "/node.ini";
