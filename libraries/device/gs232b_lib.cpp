@@ -93,6 +93,7 @@ int32_t gs232b_getdata(char *buf, int32_t buflen)
 			break;
 	}
 	buf[i] = 0;
+	printf("getdata: [%d] %s\n", i, buf);
 	return (i);
 }
 
@@ -132,13 +133,21 @@ void gs232b_offset_accept()
 
 int32_t gs232b_az_speed(int32_t speed)
 {
+	int32_t iretn;
 	char out[50];
 
 	if (speed < 1 || speed > 4)
 		return (GS232B_ERROR_OUTOFRANGE);
 	sprintf(out,"X%1d\r",speed);
-	gs232b_send(out,0);
-	return (speed);
+	iretn = gs232b_send(out,0);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+	else
+	{
+		return (speed);
+	}
 }
 
 int32_t gs232b_goto(float az, float el)
@@ -167,7 +176,7 @@ int32_t gs232b_goto(float az, float el)
 	del = el-gs_state.currentel;
 	daz = (az-gs_state.currentaz)/cos(mel);
 	sep = sqrt(daz*daz+del*del);
-	printf("az: %7.2f-%7.2f el: %7.2f-%7.2f sep: %8.3f \n",DEGOF(gs_state.currentaz),DEGOF(az),DEGOF(gs_state.currentel),DEGOF(el),DEGOF(sep));
+//	printf("az: %7.2f-%7.2f el: %7.2f-%7.2f sep: %8.3f \n",DEGOF(gs_state.currentaz),DEGOF(az),DEGOF(gs_state.currentel),DEGOF(el),DEGOF(sep));
 	if (sep > RADOF(2.))
 	{
 		switch ((int)(4.5*sep/DPI))
@@ -238,13 +247,20 @@ float gs232b_get_el()
 int32_t gs232b_get_az_el(float &az, float &el)
 {
 	int32_t iretn = 0;
-	char buf[20];
+	char buf[40];
 
 	iretn = gs232b_send((char *)"C2\r",1);
-	gs232b_getdata(buf,20);
-	sscanf(buf,"AZ=%03f  EL=%03f\r\n",&az,&el);
-	az = RADOF(az);
-	el = RADOF(el);
+	iretn = gs232b_getdata(buf,40);
+	if (iretn == 0)
+	{
+		iretn = gs232b_getdata(buf,40);
+	}
+	if (iretn)
+	{
+		sscanf(buf,"AZ=%03f  EL=%03f\r\n",&az,&el);
+		az = RADOF(az);
+		el = RADOF(el);
+	}
 	return iretn;
 }
 
@@ -270,7 +286,7 @@ int32_t gs232b_send(char *buf, int32_t force)
 
 	if (strcmp(lastbuf,buf) || force)
 	{
-		printf("%s\n",buf);
+//		printf("%s\n",buf);
 		iretn = cssl_putstring(gs232b_serial,buf);
 		strncpy(lastbuf,buf,256);
 	}
