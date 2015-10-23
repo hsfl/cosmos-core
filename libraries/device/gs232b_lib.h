@@ -96,7 +96,7 @@ int32_t gs232b_goto(float az, float el);
 int32_t gs232b_stop();
 int32_t gs232b_az_speed(int32_t speed);
 int32_t gs232b_getdata(char *buf, int32_t buflen);
-int32_t gs232b_send(char *buf, int32_t force);
+int32_t gs232b_send(char *buf, bool force);
 
 #ifdef __cplusplus
 }

@@ -163,12 +163,12 @@ int main(int argc, char *argv[])
 	switch (radiotype)
 	{
 	case DEVICE_TYPE_TXR:
-		sprintf(sohstring, "{\"device_txr_freq_%03d\",\"device_txr_maxpower_%03d\",\"device_txr_power_%03d\",\"device_txr_opmode_%03d\"}", radioindex, radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_txr_freq_%03lu\",\"device_txr_maxpower_%03lu\",\"device_txr_power_%03lu\",\"device_txr_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex);
 		break;
 	case DEVICE_TYPE_RXR:
-		sprintf(sohstring, "{\"device_rxr_freq_%03d\",\"device_rxr_power_%03d\",\"device_rxr_band_%03d\",\"device_rxr_opmode_%03d\"}", radioindex, radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_rxr_freq_%03lu\",\"device_rxr_power_%03lu\",\"device_rxr_band_%03lu\",\"device_rxr_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex);
 	case DEVICE_TYPE_TCV:
-		sprintf(sohstring, "{\"device_tcv_freq_%03d\",\"device_tcv_power_%03d\",\"device_tcv_maxpower_%03d\",\"device_tcv_band_%03d\",\"device_tcv_opmode_%03d\"}", radioindex, radioindex, radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_tcv_freq_%03lu\",\"device_tcv_power_%03lu\",\"device_tcv_maxpower_%03lu\",\"device_tcv_band_%03lu\",\"device_tcv_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex, radioindex);
 		break;
 	}
 	agent_set_sohstring(cdata, sohstring);

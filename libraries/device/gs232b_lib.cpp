@@ -53,11 +53,51 @@ static gs232b_state gs_state;
 */
 int32_t gs232b_connect(string dev)
 {
+	int32_t iretn;
 	cssl_start();
-	if (gs232b_serial != NULL)
-		return(GS232B_ERROR_OPEN);
+	if (gs232b_serial != nullptr)
+	{
+		cssl_close(gs232b_serial);
+		gs232b_serial = nullptr;
+	}
 
 	gs232b_serial = cssl_open(dev.c_str(), GS232B_BAUD, GS232B_BITS, GS232B_PARITY, GS232B_STOPBITS);
+	if (gs232b_serial == nullptr)
+	{
+		return CSSL_ERROR_OPEN;
+	}
+
+	iretn = cssl_settimeout(gs232b_serial, 0, .5);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	iretn = gs232b_send((char *)"\r", true);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+	char buf[100];
+	iretn = gs232b_getdata(buf,100);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+	iretn = gs232b_send((char *)"\r", true);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+	iretn = gs232b_getdata(buf,100);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+	if (buf[0] != '?' || buf[1] != '>')
+	{
+		return GS232B_ERROR_OPEN;
+	}
 
 	return 0;
 }
@@ -88,12 +128,18 @@ int32_t gs232b_getdata(char *buf, int32_t buflen)
 	i = 0;
 	while ((j=cssl_getdata(gs232b_serial,(uint8_t *)&buf[i],buflen-i)))
 	{
-		i += j;
-		if (buf[i-1] == '\n')
-			break;
+		if (j < 0)
+		{
+			return j;
+		}
+		else
+		{
+			i += j;
+			if (buf[i-1] == '\n')
+				break;
+		}
 	}
 	buf[i] = 0;
-	printf("getdata: [%d] %s\n", i, buf);
 	return (i);
 }
 
@@ -102,25 +148,32 @@ int32_t gs232b_getdata(char *buf, int32_t buflen)
 * calibration mode on in GS-232B.
 * @param axis ::int32_t , 0 = Azimuth, 1 = Elevation
 */
-void gs232b_offset_wait(int32_t axis)
+int32_t gs232b_offset_wait(int32_t axis)
 {
+	int32_t iretn;
 	switch (axis)
 	{
 	case 0:
-		gs232b_send((char *)"O\r",0);
+		iretn = gs232b_send((char *)"O\r", false);
 		break;
 	case 1:
-		gs232b_send((char *)"O2\r",0);
+		iretn = gs232b_send((char *)"O2\r", false);
+		break;
+	default:
+		iretn = GS232B_ERROR_OUTOFRANGE;
 		break;
 	}
+	return iretn;
 }
 
 /**
 * Accept rotor offset calibration for currently calibrating axis.
 */
-void gs232b_offset_accept()
+int32_t gs232b_offset_accept()
 {
-	cssl_putchar(gs232b_serial,'y');
+	int32_t iretn;
+	iretn = cssl_putchar(gs232b_serial,'y');
+	return iretn;
 }
 
 //void gs232b_full_scale_calibration(int32_t axis)
@@ -139,7 +192,7 @@ int32_t gs232b_az_speed(int32_t speed)
 	if (speed < 1 || speed > 4)
 		return (GS232B_ERROR_OUTOFRANGE);
 	sprintf(out,"X%1d\r",speed);
-	iretn = gs232b_send(out,0);
+	iretn = gs232b_send(out, false);
 	if (iretn < 0)
 	{
 		return iretn;
@@ -152,6 +205,7 @@ int32_t gs232b_az_speed(int32_t speed)
 
 int32_t gs232b_goto(float az, float el)
 {
+	int32_t iretn;
 	char out[50];
 	float mel, daz, del, sep;
 	static int32_t taz = 500;
@@ -161,7 +215,12 @@ int32_t gs232b_goto(float az, float el)
 	if (az < 0 || az > RADOF(450) || el < 0 || el > DPI)
 		return (GS232B_ERROR_OUTOFRANGE);
 
-	gs232b_get_az_el(gs_state.currentaz,gs_state.currentel);
+	iretn = gs232b_get_az_el(gs_state.currentaz,gs_state.currentel);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
 	if (az < DPI2 && az < gs_state.currentaz)
 	{
 		az += D2PI;
@@ -184,17 +243,17 @@ int32_t gs232b_goto(float az, float el)
 		case 0:
 			break;
 		case 1:
-			gs232b_send((char *)"X1\r",0);
+			gs232b_send((char *)"X1\r", false);
 			break;
 		case 2:
-			gs232b_send((char *)"X2\r",0);
+			gs232b_send((char *)"X2\r", false);
 			break;
 		case 3:
-			gs232b_send((char *)"X3\r",0);
+			gs232b_send((char *)"X3\r", false);
 			break;
 		case 4:
 		default:
-			gs232b_send((char *)"X4\r",0);
+			gs232b_send((char *)"X4\r", false);
 			break;
 		}
 		iaz = (int)(DEGOF(az)+.5);
@@ -202,7 +261,7 @@ int32_t gs232b_goto(float az, float el)
 		if (iaz != taz || iel != tel)
 		{
 			sprintf(out,"W%03d %03d\r",iaz,iel);
-			gs232b_send(out,0);
+			gs232b_send(out, false);
 			taz = iaz;
 			tel = iel;
 		}
@@ -219,7 +278,7 @@ int32_t gs232b_stop()
 {
 	int32_t iretn;
 
-	iretn = gs232b_send((char *)"S\r",0);
+	iretn = gs232b_send((char *)"S\r", false);
 
 	return iretn;
 }
@@ -279,7 +338,7 @@ void gs232b_get_state(gs232b_state &state)
 	state = gs_state;
 }
 
-int32_t gs232b_send(char *buf, int32_t force)
+int32_t gs232b_send(char *buf, bool force)
 {
 	int32_t iretn = 0;
 	static char lastbuf[256];

@@ -5559,6 +5559,8 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 		json_addentry("device_ant_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_ant_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_ant_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,align)+i*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ant_azim",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,azim)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_ant_elev",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,elev)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_ant_minelev",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,minelev)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.ant.push_back((antstruc *)&cdata[0].device[i].ant);
 		cdata[0].devspec.ant_cnt = (uint16_t)cdata[0].devspec.ant.size();
