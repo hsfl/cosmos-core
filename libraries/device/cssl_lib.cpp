@@ -741,7 +741,14 @@ int32_t cssl_getdata(cssl_t *serial, uint8_t *buffer, int size)
 	{
 		if ((iretn=cssl_getchar(serial)) < 0)
 		{
-			return(i);
+			if (iretn == CSSL_ERROR_TIMEOUT)
+			{
+				return(i);
+			}
+			else
+			{
+				return iretn;
+			}
 		}
 		else
 		{
