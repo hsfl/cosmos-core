@@ -1476,7 +1476,7 @@ int32_t request_ls(char* request, char* response, void* cosmos_data)
 
 	//the request string == "ls directoryname"
 	//get the directory name
-	char directoryname[COSMOS_MAX_NAME];
+	char directoryname[COSMOS_MAX_NAME+1];
 	memmove(directoryname, request+3, COSMOS_MAX_NAME);
 	DIR* dir;
 	struct dirent* ent;
@@ -1579,9 +1579,9 @@ int32_t request_remove_file(char* request, char* response, void* cosmos_data)
 //	//the request string == "send_file agent_name file_name packet_size"
 
 //	//get the agent, file name and packet_size
-//	char file_name[COSMOS_MAX_NAME];
-//	char agent_name[COSMOS_MAX_NAME];
-//	char node_name[COSMOS_MAX_NAME];
+//	char file_name[COSMOS_MAX_NAME+1];
+//	char agent_name[COSMOS_MAX_NAME+1];
+//	char node_name[COSMOS_MAX_NAME+1];
 //	uint16_t channel=0;
 
 //	sscanf(request+10, "%40s %40s %40s %hu", node_name, agent_name, file_name, &channel);

@@ -83,7 +83,7 @@ char * agent_parse_request(char *input);
     \param function The user supplied function to parse the specified request.
     \return Error, if any, otherwise zero.
 */
-int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_function function)
+int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function)
 {
 //    if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
 //        return (AGENT_ERROR_REQ_COUNT);
@@ -110,7 +110,7 @@ int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_f
     \param description A brief description of the function performed.
     \return Error, if any, otherwise zero.
 */
-int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_function function, string description)
+int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function, string description)
 {
 //    if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
 //        return (AGENT_ERROR_REQ_COUNT);
@@ -138,7 +138,7 @@ int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_f
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_function function, string synopsis, string description)
+int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function, string synopsis, string description)
 {
     if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
         return (AGENT_ERROR_REQ_COUNT);
@@ -152,7 +152,11 @@ int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_f
 //		return (AGENT_ERROR_REQ_COUNT);
 
 	agent_request_entry tentry;
-	strcpy(tentry.token,token);
+	if (token.size() > COSMOS_MAX_NAME)
+	{
+		token.resize(COSMOS_MAX_NAME);
+	}
+	tentry.token = token;
 	tentry.function = function;
 	tentry.synopsis = synopsis;
 	tentry.description = description;
@@ -343,7 +347,7 @@ cosmosstruc *agent_setup_server(string nodename, string agentname)
 cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag, float timeoutSec = 4)
 {
     int32_t iretn;
-    char tname[COSMOS_MAX_NAME];
+	char tname[COSMOS_MAX_NAME+1];
 
     //! Next, check if this Agent is already running
     if (!multiflag)
@@ -510,7 +514,7 @@ uint16_t agent_running(cosmosstruc *cdata)
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
-int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, char* output, uint32_t clen, float waitsec)
+int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, string request, char* output, uint32_t clen, float waitsec)
 {
     static socket_channel sendchan;
     int32_t iretn;
@@ -536,8 +540,8 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, const char* request, 
 
     //	if (strlen(request) > (uint16_t)hbeat.bsz)
     //		request[hbeat.bsz] = 0;
-    nbytes = strnlen(request, hbeat.bsz);
-    if ((nbytes=sendto(sendchan.cudp,request,nbytes,0,(struct sockaddr *)&sendchan.caddr,sizeof(struct sockaddr_in))) < 0)
+	nbytes = strnlen(request.c_str(), hbeat.bsz);
+	if ((nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in))) < 0)
     {
         CLOSE_SOCKET(sendchan.cudp);
 #ifdef COSMOS_WIN_OS
@@ -724,7 +728,7 @@ vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec)
     \param list Properly formatted list of JSON names.
     \return 0, otherwise a negative error.
 */
-int32_t agent_set_sohstring(cosmosstruc *cdata, const char *list)
+int32_t agent_set_sohstring(cosmosstruc *cdata, string list)
 {
 
     if (!cdata[0].agent[0].sohtable.empty())
@@ -833,7 +837,7 @@ void request_loop(cosmosstruc *cdata)
 
             for (i=0; i<((cosmosstruc *)cdata)->agent[0].reqs.size(); i++)
             {
-                if (!strcmp(request,((cosmosstruc *)cdata)->agent[0].reqs[i].token))
+				if (!strcmp(request,((cosmosstruc *)cdata)->agent[0].reqs[i].token.c_str()))
                     break;
             }
 
@@ -1533,7 +1537,16 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t
         case AGENT_TYPE_MULTICAST:
         case AGENT_TYPE_UDP:
 			nbytes = recvfrom(cdata[0].agent[0].sub.cudp,(char *)input,AGENTMAXBUFFER,0,(struct sockaddr *)&cdata[0].agent[0].sub.caddr,(socklen_t *)&cdata[0].agent[0].sub.addrlen);
-            break;
+			// Return if port and address are our own
+			for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
+			{
+				if (cdata[0].agent[0].sub.caddr.sin_port == cdata[0].agent[0].pub[i].caddr.sin_port && cdata[0].agent[0].sub.caddr.sin_addr.s_addr == cdata[0].agent[0].pub[i].caddr.sin_addr.s_addr)
+				{
+					return 0;
+					break;
+				}
+			}
+			break;
         case AGENT_TYPE_CSP:
             break;
         }
@@ -1552,12 +1565,7 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t
 				{
 					start_byte = 3;
 				}
-				// Check for having heard our own message
-				if (json_convert_string(json_extract_namedobject((char *)&input[start_byte], "agent_proc")) == cdata[0].agent[0].beat.proc && json_convert_string(json_extract_namedobject((char *)&input[start_byte], "agent_node")) == cdata[0].agent[0].beat.node)
-                {
-                    return 0;
-                }
-				// First, extract meta information
+				// Provide support for older messages that did not include jlength
 				if (start_byte > 1)
 				{
 					meta.type = (uint16_t)input[0];
@@ -1569,13 +1577,16 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t
 					meta.jlength = nbytes;
 				}
 
-				// Second, extract message. Could have binary data, so copy safe way
+				// Copy message. Could have binary data, so copy safe way
 				if (nbytes > 0)
 				{
 					input[nbytes] = 0;
 				}
 				message.resize(nbytes+1-start_byte);
 				memcpy(&message[0], &input[start_byte], nbytes+1-start_byte);
+
+				// Extract meta data
+				sscanf(message.c_str(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40s\"}{\"agent_proc\":\"%40s\"}{\"agent_addr\":\"%17s\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}", &meta.beat.utc, meta.beat.node, meta.beat.proc, meta.beat.addr, &meta.beat.port, &meta.beat.bsz);
 				return ((int)meta.type);
             }
         }
@@ -1606,8 +1617,9 @@ beatstruc agent_poll_beat(cosmosstruc *cdata, float waitsec)
     beat.utc = 0.;
     if (iretn == AGENT_MESSAGE_BEAT)
     {
-        iretn = json_parse(message, &cdata[1]);
-        beat = cdata[1].agent[0].beat;
+//        iretn = json_parse(message, &cdata[1]);
+//        beat = cdata[1].agent[0].beat;
+		beat = meta.beat;
     }
 
     return (beat);
@@ -1730,25 +1742,25 @@ imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec)
     return (imu);
 }
 
-//! Open UDP socket
-/*! Open a UDP socket and configure it for the specified use. Various
-flags are set, and the socket is bound, if necessary. Support is
-provided for the extra steps necessary for MS Windows.
-    \param channel Pointer to ::socket_channel holding final configuration.
-    \param address Destination address
-    \param port Source port. If zero, automatically assigned.
-    \param role Publish, subscribe, communicate.
-    \param blocking True or false.
-    \param usectimeo Blocking read timeout in micro seconds.
-    \return Zero, or negative error.
-*/
-int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t role, bool blocking, uint32_t usectimeo)
-{
-	int32_t iretn;
+////! Open UDP socket
+///*! Open a UDP socket and configure it for the specified use. Various
+//flags are set, and the socket is bound, if necessary. Support is
+//provided for the extra steps necessary for MS Windows.
+//    \param channel Pointer to ::socket_channel holding final configuration.
+//    \param address Destination address
+//    \param port Source port. If zero, automatically assigned.
+//    \param role Publish, subscribe, communicate.
+//    \param blocking True or false.
+//    \param usectimeo Blocking read timeout in micro seconds.
+//    \return Zero, or negative error.
+//*/
+//int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t role, bool blocking, uint32_t usectimeo)
+//{
+//	int32_t iretn;
 
-	iretn = socket_open(channel, ntype, address, port, role, blocking, usectimeo);
+//	iretn = socket_open(channel, ntype, address, port, role, blocking, usectimeo);
 
-	return iretn;
+//	return iretn;
 
 //    socklen_t namelen;
 //    struct ip_mreq mreq;
@@ -1915,7 +1927,7 @@ int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *a
 //    channel->addrlen = sizeof(struct sockaddr_in);
 
 //    return 0;
-}
+//}
 
 // default constructor
 Agent::Agent()

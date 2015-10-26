@@ -46,7 +46,7 @@
 
 int myagent();
 
-char agentname[COSMOS_MAX_NAME] = "blank";
+char agentname[COSMOS_MAX_NAME+1] = "blank";
 char ipaddress[16] = "192.168.150.1";
 int waitsec = 5;
 int32_t request_run_program(char *request, char* response, void *cdata);

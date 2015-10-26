@@ -371,7 +371,7 @@ typedef struct
 //! @{
 
 vector<gige_acknowledge_ack> gige_discover();
-gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps);
+gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps);
 int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data);
 uint32_t gige_readreg(gige_handle *handle, uint32_t address);
 uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t nbytes);

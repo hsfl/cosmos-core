@@ -749,7 +749,7 @@ string data_base_path(string node)
 string data_archive_path(string node, string agent, double mjd)
 {
 	string tpath;
-	char ntemp[COSMOS_MAX_NAME];
+	char ntemp[COSMOS_MAX_NAME+1];
 	string path;
 
 	tpath = data_base_path(node, "data", agent);

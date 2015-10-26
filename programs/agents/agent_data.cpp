@@ -59,7 +59,7 @@ agentstruc tempagent;
 
 vector<cosmosstruc> nodes;
 char tempname[100];
-char agentname[COSMOS_MAX_NAME] = "data";
+char agentname[COSMOS_MAX_NAME+1] = "data";
 string dataDir;
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int32_t request_login(char *request, char* response, void *cdata);
@@ -201,8 +201,8 @@ return 0;
 //Verify Login Info
 int32_t request_login(char *request, char* response, void *cdata)
 {
-char user[COSMOS_MAX_NAME];
-char pass[COSMOS_MAX_NAME];
+char user[COSMOS_MAX_NAME+1];
+char pass[COSMOS_MAX_NAME+1];
 int i;
 bool login;
 

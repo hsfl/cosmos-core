@@ -58,7 +58,7 @@ int32_t request_getutc (char *request, char *response, void *cdata) ;
 char fname[100], base[100];
 double year, day;
 int32_t iyear, iday, iseconds;
-char 	agentname[COSMOS_MAX_NAME] = "rover";
+char 	agentname[COSMOS_MAX_NAME+1] = "rover";
 char 	ipaddress[16] = "192.168.150.1";
 int 	waitsec = 5;
 double	lmjd, cmjd, nmjd, period;

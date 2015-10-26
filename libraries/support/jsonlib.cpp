@@ -41,7 +41,6 @@
 #include <limits>
 #include <fstream>
 
-//char device_type_string[DEVICE_TYPE_COUNT][COSMOS_MAX_NAME]={
 vector <string> device_type_string
 {
 	"pload",
@@ -540,7 +539,7 @@ uint16_t json_addentry(jsonentry entry, cosmosstruc *cdata)
 uint16_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit)
 {
 	jsonentry tentry;
-	char ename[COSMOS_MAX_NAME];
+	char ename[COSMOS_MAX_NAME+1];
 
 	// Determine extended name
 	strcpy(ename,name.c_str());
@@ -4807,6 +4806,28 @@ int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
 		cdata[0].node.type = NODE_TYPE_DATA;
 	}
 
+	// 1A: load state vector, if it is present
+	fname = nodepath + "/state.ini";
+
+	if (!stat(fname.c_str(),&fstat) && fstat.st_size)
+	{
+		ifs.open(fname);
+		if (ifs.is_open())
+		{
+			ibuf = (char *)calloc(1,fstat.st_size+1);
+			ifs.read(ibuf, fstat.st_size);
+			ifs.close();
+			ibuf[fstat.st_size] = 0;
+			if ((iretn = json_parse(ibuf, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+			{
+				free(ibuf);
+				return (iretn);
+			}
+			free(ibuf);
+			loc_update(&cdata[0].node.loc);
+		}
+	}
+
 	// Set node_utcstart
 	fname = nodepath + "/node_utcstart.ini";
 	if ((iretn=stat(fname.c_str(),&fstat)) == -1)
@@ -6750,7 +6771,7 @@ const char *json_devices_general(string &jstring, cosmosstruc *cdata)
 const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
 {
 	uint16_t *cnt;
-	char tstring[COSMOS_MAX_NAME];
+	char tstring[COSMOS_MAX_NAME+1];
 
 	jstring.clear();
 	// Dump device specific info

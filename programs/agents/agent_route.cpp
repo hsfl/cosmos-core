@@ -33,7 +33,7 @@
 
 #include "agentlib.h"
 
-char agentname[COSMOS_MAX_NAME] = "route";
+char agentname[COSMOS_MAX_NAME+1] = "route";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
 cosmosstruc *cdata;

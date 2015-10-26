@@ -55,7 +55,7 @@
 
 int myagent();
 
-char agentname[COSMOS_MAX_NAME] = "gs_tx";
+char agentname[COSMOS_MAX_NAME+1] = "gs_tx";
 char node[50] = "otb";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int32_t transmit_kiss(char *request, char* response, void *cdata); // extra request
