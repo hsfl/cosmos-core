@@ -1586,7 +1586,7 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t
 				memcpy(&message[0], &input[start_byte], nbytes+1-start_byte);
 
 				// Extract meta data
-				sscanf(message.c_str(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40s\"}{\"agent_proc\":\"%40s\"}{\"agent_addr\":\"%17s\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}", &meta.beat.utc, meta.beat.node, meta.beat.proc, meta.beat.addr, &meta.beat.port, &meta.beat.bsz);
+				sscanf(message.c_str(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}", &meta.beat.utc, meta.beat.node, meta.beat.proc, meta.beat.addr, &meta.beat.port, &meta.beat.bsz);
 				return ((int)meta.type);
             }
         }
