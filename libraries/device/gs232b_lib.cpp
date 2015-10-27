@@ -236,7 +236,7 @@ int32_t gs232b_goto(float az, float el)
 	daz = (az-gs_state.currentaz)/cos(mel);
 	sep = sqrt(daz*daz+del*del);
 //	printf("az: %7.2f-%7.2f el: %7.2f-%7.2f sep: %8.3f \n",DEGOF(gs_state.currentaz),DEGOF(az),DEGOF(gs_state.currentel),DEGOF(el),DEGOF(sep));
-	if (sep > RADOF(2.))
+	if (sep > RADOF(1.))
 	{
 		switch ((int)(4.5*sep/DPI))
 		{
