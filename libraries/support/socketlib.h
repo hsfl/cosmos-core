@@ -127,7 +127,7 @@ struct socket_channel
 	// Channel's broadcast address in string form
 	char baddress[17];
 	// Channel's interface name
-	char name[COSMOS_MAX_NAME];
+	char name[COSMOS_MAX_NAME+1];
 };
 
 

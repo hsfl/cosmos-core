@@ -38,7 +38,7 @@
 
 int myagent();
 
-char agentname[COSMOS_MAX_NAME] = "example";
+char agentname[COSMOS_MAX_NAME+1] = "example";
 char node[50] = "null";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int32_t request_run_program(char *request, char* response, void *cdata); // extra request

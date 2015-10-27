@@ -682,7 +682,7 @@ typedef int32_t (*agent_request_function)(char* request_string, char* output_str
 struct agent_request_entry
 {
 	//! Character token for request
-	char token[COSMOS_MAX_NAME];
+	string token;
 	//! Pointer to function to call with request string as argument and returning any error
 	agent_request_function function;
 	string synopsis;
@@ -710,11 +710,11 @@ struct agent_channel
 	// Channel's maximum message size
 	uint16_t msgsize;
 	// Channel's protocol address in string form
-	char address[17];
+	char address[18];
 	// Channel's broadcast address in string form
-	char baddress[17];
+	char baddress[18];
 	// Channel's interface name
-	char name[COSMOS_MAX_NAME];
+	char name[COSMOS_MAX_NAME+1];
 };
 
 //! Process heartbeat.
@@ -730,7 +730,7 @@ struct beatstruc
 	// Type of address protocol
 	uint16_t ntype;
 	//! Protocol Address
-	char addr[17];
+	char addr[18];
 	//! AGENT port
 	uint16_t port;
 	//! Transfer buffer size
@@ -783,11 +783,11 @@ struct longeventstruc
 	//! Time event was executed.
 	double utcexec;
 	//! Node for event
-	char node[COSMOS_MAX_NAME];
+	char node[COSMOS_MAX_NAME+1];
 	//! Name of event.
-	char name[COSMOS_MAX_NAME];
+	char name[COSMOS_MAX_NAME+1];
 	//! User of event.
-	char user[COSMOS_MAX_NAME];
+	char user[COSMOS_MAX_NAME+1];
 	//! Event flags.
 	uint32_t flag;
 	//! Event type.
@@ -829,11 +829,11 @@ struct shorteventstruc
 	//! Time event was executed.
 	double utcexec;
 	//! Node for event
-	char node[COSMOS_MAX_NAME];
+	char node[COSMOS_MAX_NAME+1];
 	//! Name of event.
-	char name[COSMOS_MAX_NAME];
+	char name[COSMOS_MAX_NAME+1];
 	//! User of event.
-	char user[COSMOS_MAX_NAME];
+	char user[COSMOS_MAX_NAME+1];
 	//! Event flags.
 	uint32_t flag;
 	//! Event type.
@@ -859,7 +859,7 @@ struct shorteventstruc
 	//! Handle of condition that caused event, NULL if timed event.
 	jsonhandle handle;
 	//! Event specific data.
-	char data[COSMOS_MAX_NAME];
+	char data[COSMOS_MAX_NAME+1];
 };
 
 //! Full COSMOS Event structure
@@ -877,10 +877,10 @@ union eventstruc
  */
 struct userstruc
 {
-	char name[COSMOS_MAX_NAME];
-	char node[COSMOS_MAX_NAME];
-	char tool[COSMOS_MAX_NAME];
-	char cpu[COSMOS_MAX_NAME];
+	char name[COSMOS_MAX_NAME+1];
+	char node[COSMOS_MAX_NAME+1];
+	char tool[COSMOS_MAX_NAME+1];
+	char cpu[COSMOS_MAX_NAME+1];
 };
 
 //! Glossary structure
@@ -927,7 +927,7 @@ struct equationstruc
 struct targetstruc
 {
 	double utc;
-	char name[COSMOS_MAX_NAME];
+	char name[COSMOS_MAX_NAME+1];
 	uint16_t type;
 	float azfrom;
 	float elfrom;
@@ -950,14 +950,14 @@ struct portstruc
 	uint16_t type;
 	//! Name information for port.
     //!!! Change 'char' to 'string'
-	char name[COSMOS_MAX_NAME];
+	char name[COSMOS_MAX_NAME+1];
 };
 
 //! Part structure: physical information for each piece of Node
 struct piecestruc
 {
 	//! Name of piece
-	char name[COSMOS_MAX_NAME];
+	char name[COSMOS_MAX_NAME+1];
 	//! Type of piece from \ref defs_piece.
 	uint16_t type;
 	//! Component index: -1 if not a Component
@@ -1073,7 +1073,7 @@ struct telemstruc
 		int32_t vint32;
 		float vfloat;
 		double vdouble;
-		char vstring[COSMOS_MAX_NAME];
+		char vstring[COSMOS_MAX_NAME+1];
 	};
 } ;
 
@@ -1511,7 +1511,7 @@ struct camstruc
 struct nodestruc
 {
 	//! Node Name.
-	char name[COSMOS_MAX_NAME];
+	char name[COSMOS_MAX_NAME+1];
 	//! Node Type as listed in \ref defs_node.
 	uint16_t type;
 	//! Operational state

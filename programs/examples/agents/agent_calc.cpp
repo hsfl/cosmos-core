@@ -57,8 +57,8 @@ using namespace std;
 int myagent();
 
 //do we need a NODEMAXNAME? using COSMOS_MAX_NAME for now...
-char nodename[COSMOS_MAX_NAME] = "otb";
-char agentname[COSMOS_MAX_NAME] = "calc";
+char nodename[COSMOS_MAX_NAME+1] = "otb";
+char agentname[COSMOS_MAX_NAME+1] = "calc";
 
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 

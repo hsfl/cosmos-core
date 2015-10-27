@@ -48,8 +48,8 @@
 //#define DOPRINT   // Print star tracker values to screen
 #define MAXBUFFERSIZE 1000
 
-char agentname[COSMOS_MAX_NAME] = "stt";
-char nodename[COSMOS_MAX_NAME];
+char agentname[COSMOS_MAX_NAME+1] = "stt";
+char nodename[COSMOS_MAX_NAME+1];
 
 // Set up SOH string
 char sohstring[]="{\"device_stt_att_000\",\"device_stt_omega_000\",\"device_stt_retcode_000\",\"node_loc_att_icrf\"}";

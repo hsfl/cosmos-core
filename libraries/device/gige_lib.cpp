@@ -61,7 +61,7 @@
 	\return A handle to the camera to be used for all subsequent
 	calls.
 */
-gige_handle *gige_open(char address[17],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps)
+gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps)
 {
 	int32_t iretn;
 	int32_t nbytes;
@@ -412,7 +412,7 @@ uint32_t gige_address_to_value(char *address)
  */
 char *gige_value_to_address(uint32_t value)
 {
-	static char address[17];
+	static char address[18];
 	union
 	{
 		uint8_t byte[4];

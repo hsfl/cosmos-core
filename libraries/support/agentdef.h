@@ -118,6 +118,7 @@ struct pollstruc
 {
 	uint8_t type;
 	uint16_t jlength;
+	beatstruc beat;
 };
 
 //! @}

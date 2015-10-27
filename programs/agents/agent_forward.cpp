@@ -34,7 +34,7 @@
 #include "agentlib.h"
 
 void incoming_thread();
-char agentname[COSMOS_MAX_NAME] = "forward";
+char agentname[COSMOS_MAX_NAME+1] = "forward";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
 cosmosstruc *cdata;

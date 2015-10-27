@@ -95,11 +95,11 @@
 //! \defgroup agentlib_functions Agent Server and Client Library functions
 //! @{
 
-int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_function function);
-int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_function function, string description);
-int32_t agent_add_request(cosmosstruc *cdata, const char *token, agent_request_function function, string synopsis, string description);
+int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function);
+int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function, string description);
+int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function, string synopsis, string description);
 int32_t agent_start(cosmosstruc *cdata);
-int32_t agent_send_request(cosmosstruc *cdata, beatstruc cbeat, const char *request, char* output, uint32_t clen, float waitsec);
+int32_t agent_send_request(cosmosstruc *cdata, beatstruc cbeat, string request, char* output, uint32_t clen, float waitsec);
 int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float waitsec, beatstruc *cbeat);
 vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec);
 beatstruc agent_find_server(cosmosstruc* cdata, string node, string proc, float waitsec);
@@ -127,7 +127,7 @@ cosmosstruc* agent_setup_client(int ntype, string node, uint32_t usectimeo);
 
 int32_t agent_shutdown_server(cosmosstruc *cdata);
 int32_t agent_shutdown_client(cosmosstruc *cdata);
-int32_t agent_set_sohstring(cosmosstruc *cdata, const char *list);
+int32_t agent_set_sohstring(cosmosstruc *cdata, string list);
 cosmosstruc *agent_get_cosmosstruc(cosmosstruc *cdata);
 void agent_get_ip(cosmosstruc *cdata, char* buffer, size_t buflen);
 void agent_get_ip_list(cosmosstruc *cdata, uint16_t port);
@@ -144,7 +144,7 @@ locstruc agent_poll_location(cosmosstruc *cdata, float waitsec);
 nodestruc agent_poll_info(cosmosstruc *cdata, float waitsec);
 imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec);
 int json_map_agentstruc(cosmosstruc *cdata, agentstruc **agent);
-int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
+//int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
 vector<socket_channel> agent_find_addresses(uint16_t ntype);
 
 

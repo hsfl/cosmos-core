@@ -96,7 +96,7 @@ void flushport () ;
 
 
 
-char agentname[COSMOS_MAX_NAME] = "arduino";
+char agentname[COSMOS_MAX_NAME+1] = "arduino";
 char ipaddress[16] = "192.168.150.1";
 int waitsec = 5;
 copterstruc myCopter ;

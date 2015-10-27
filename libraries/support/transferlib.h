@@ -134,9 +134,9 @@ typedef uint32_t PACKET_FILE_SIZE_TYPE;
 typedef struct
 {
 	PACKET_TYPE type;
-	char node_name[COSMOS_MAX_NAME];
+	char node_name[COSMOS_MAX_NAME+1];
 	PACKET_TX_ID_TYPE tx_id;
-	char agent_name[COSMOS_MAX_NAME];
+	char agent_name[COSMOS_MAX_NAME+1];
 	char file_name[TRANSFER_MAX_FILENAME];
 	PACKET_FILE_SIZE_TYPE file_size;
 } packet_struct_metalong;
@@ -154,7 +154,7 @@ typedef struct
 	PACKET_TYPE type;
 	PACKET_NODE_ID_TYPE node_id;
 	PACKET_TX_ID_TYPE tx_id;
-	char agent_name[COSMOS_MAX_NAME];
+	char agent_name[COSMOS_MAX_NAME+1];
 	char file_name[TRANSFER_MAX_FILENAME];
 	PACKET_FILE_SIZE_TYPE file_size;
 } packet_struct_metashort;
@@ -205,7 +205,7 @@ typedef struct
 {
 	PACKET_TYPE type;
 	PACKET_NODE_ID_TYPE node_id;
-    char node_name[COSMOS_MAX_NAME];
+    char node_name[COSMOS_MAX_NAME+1];
     PACKET_TX_ID_TYPE tx_id[TRANSFER_QUEUE_LIMIT];
 } packet_struct_reqmeta;
 
@@ -243,7 +243,7 @@ typedef struct
 {
 	PACKET_TYPE type;
 	PACKET_NODE_ID_TYPE node_id;
-    char node_name[COSMOS_MAX_NAME];
+    char node_name[COSMOS_MAX_NAME+1];
     PACKET_TX_ID_TYPE tx_id[TRANSFER_QUEUE_LIMIT];
 } packet_struct_queue;
 

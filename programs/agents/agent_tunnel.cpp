@@ -40,7 +40,7 @@
 #include "agentlib.h"
 #include "cssl_lib.h"
 
-char agentname[COSMOS_MAX_NAME] = "tunnel";
+char agentname[COSMOS_MAX_NAME+1] = "tunnel";
 char node[50] = "";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
