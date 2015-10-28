@@ -217,9 +217,13 @@ int32_t gs232b_goto(float az, float el)
 		az = fixangle(az);
 	}
 
-	if (el < 0 || el > DPI)
+	if (el < 0)
 	{
-		return (GS232B_ERROR_OUTOFRANGE);
+		el = 0.;
+	}
+	else if (el > DPI)
+	{
+		el = DPI;
 	}
 
 	iretn = gs232b_get_az_el(gs_state.currentaz,gs_state.currentel);
