@@ -252,12 +252,12 @@ cmatrix DCM::transposeMatrix(cmatrix a)
     return (b);
 }
 
-cmatrix DCM::base2_from_base1(basisOrthonormal base2,basisOrthonormal base1){
+cmatrix DCM::base2_from_base1(basisOrthonormal base2, basisOrthonormal base1){
 
     // compute dcm matrix (A) to represent vector in base 2 coordinates
 
     // References
-    // - Quaternion and Rotation Sequences, Kuipers, pg 160 (I think these
+    // - Quaternion and Rotation Sequences, Kuipers, pg 161 eq 7.8 (I think these
     //   formulas are wrong in the book! they are inversed, must check)
     // - http://people.ae.illinois.edu/tbretl/ae403/handouts/06-dcm.pdf (this
     //   reference seems to be sound)
@@ -269,7 +269,7 @@ cmatrix DCM::base2_from_base1(basisOrthonormal base2,basisOrthonormal base1){
     // - matrix A represents a frame rotation that relates the initial reference
     //   frame {X,Y,Z} to a rotated frame {x,y,z}: x = AX. Example, appliying
     //   the operation AX - where X is for instance a vector in the inertial
-    //   frame - resutls in the coordinates of that vector in the new frame {x,y,z}
+    //   frame - results in the coordinates of that vector in the new frame {x,y,z}
     //   in general the vector x is simply the vector X expressed in a new frame coordinates
 
     // Example to run:
@@ -289,6 +289,12 @@ cmatrix DCM::base2_from_base1(basisOrthonormal base2,basisOrthonormal base1){
     // TODOs
     // - add validation step to verify if the bases are orthogonal
 
+    // normalize the basis just in case
+
+    base1.normalize();
+    base2.normalize();
+
+
     return  {
         { dotProduct(base1.i, base2.i) , dotProduct(base1.j, base2.i), dotProduct(base1.k, base2.i) },
         { dotProduct(base1.i, base2.j) , dotProduct(base1.j, base2.j), dotProduct(base1.k, base2.j) },
@@ -296,14 +302,11 @@ cmatrix DCM::base2_from_base1(basisOrthonormal base2,basisOrthonormal base1){
     };
 }
 
+// TODO: rename base to basis
+// ref: https://en.wikipedia.org/wiki/Basis_(linear_algebra)
 cmatrix DCM::base1_from_base2(basisOrthonormal base1, basisOrthonormal base2){
     // compute dcm matrix (A) to represent vector given in base 2
     // in base 1 coordinates
-
-    // References
-    // - Quaternion and Rotation Sequences, Kuipers, pg 160
-    // - http://people.ae.illinois.edu/tbretl/ae403/handouts/06-dcm.pdf
-    // - http://www.starlino.com/dcm_tutorial.html (eq 1.4)
 
     // example:
     // vector_inertial_coordinates = dcm_base1_from_base2 * vector_body_coodinates
@@ -316,4 +319,14 @@ cmatrix DCM::base1_from_base2(basisOrthonormal base1, basisOrthonormal base2){
 }
 
 
+void basisOrthonormal::normalize()
+{
+    this->i.normalize();
+    this->j.normalize();
+    this->k.normalize();
+}
+
 //! @}
+
+
+

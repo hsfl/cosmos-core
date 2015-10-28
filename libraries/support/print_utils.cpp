@@ -439,22 +439,89 @@ void PrintUtils::vectorAndMag(string vector_name, rvector v, string suffix)
 // Quaternion prints
 
 void PrintUtils::quat(
-        string text_prefix,
+        string prefix,
         quaternion q,
-        double scale,
-        string text_suffix,
+        string suffix,
         int precision,
         int fieldwidth = 6)
 {
 
+    std::ostringstream out;
+
+    out << prefix;
+
+    if (delimiter_flag)
+    {
+        out << delimiter;
+    }
+
+    if (use_brackets)
+    {
+        out << "[";
+    }
+
     if (precision != -1){
         // with set precision
-        cout.precision(precision);
-        cout << fixed;
+        out << std::fixed;
+        out << std::setprecision(precision);
     }
-    //    std::cout.width(filedwidth);
-    std::setw(fieldwidth);
-    cout << text_prefix << "[[" << q.d.x*scale << "," << q.d.y*scale <<  "," << q.d.z*scale << "] " << q.w*scale << "]" << text_suffix;
+
+    out << "[xyzw],"; // "[["
+    if (fieldwidth != -1)
+    {
+        // print with fixed width
+        if (use_brackets)
+        {
+            out << "(";
+        }
+        out << std::setw(fieldwidth) << q.d.x << ","
+            << std::setw(fieldwidth) << q.d.y << ","
+            << std::setw(fieldwidth) << q.d.z << ",";
+
+        if (use_brackets)
+        {
+            out << ")";
+        }
+        out << std::setw(fieldwidth) << q.w;
+
+    }
+    else
+    {
+        // simple print, no fixed width
+
+        if (use_brackets)
+        {
+            out << "(";
+        }
+        out << q.d.x << ","
+            << q.d.y << ","
+            << q.d.z << ",";
+
+        if (use_brackets)
+        {
+            out << ")";
+        }
+        out << q.w;
+    }
+
+
+    if (use_brackets)
+    {
+        out << "]";
+    }
+
+    out << suffix;
+
+    if (delimiter_flag)
+    {
+        out << delimiter;
+    }
+
+    cout << out.str();
+
+    fullMessage += out.str();
+
+    //cout << prefix << "[[" << q.d.x*scale << "," << q.d.y*scale <<  "," << q.d.z*scale << "] " << q.w*scale << "]" << text_suffix;
 
 }
 
@@ -462,33 +529,30 @@ void PrintUtils::quat(quaternion q)
 {
     // this prints the quaternion q enclosed in brackets like this: [[x,y,z] w]
     //cout << q;
-    quat("", q, 1., "", -1, 6);
+    quat(prefix, q, suffix, -1, fieldwidth);
 }
 
 void PrintUtils::quat(quaternion q, int precision)
 {
-    cout.precision(precision);
-    // this prints the vector v enclosed in brackets like this: [x,y,z]
-    cout << fixed << "[[" << q.d.x << ", " << q.d.y <<  ", " << q.d.z << "] " << q.w << "]";
+    quat(prefix, q, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::quat(string vector_name, quaternion q)
+void PrintUtils::quat(string prefix, quaternion q)
 {
-    //cout << vector_name << ": " << q;
-    quat(vector_name, q, 1, "", -1, -1);
+    quat(prefix, q, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::quat(string vector_name, quaternion q, int precision)
+void PrintUtils::quat(string prefix, quaternion q, int precision)
 {
-    quat(vector_name, q, 1, "", precision, -1);
+    quat(prefix, q, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::quat(string vector_name,
+void PrintUtils::quat(string prefix,
                       quaternion q,
-                      string text_suffix,
+                      string suffix,
                       int precision)
 {
-    quat(vector_name, q, 1, text_suffix, precision, -1);
+    quat(prefix, q, suffix, precision, fieldwidth);
 }
 
 void PrintUtils::endline()

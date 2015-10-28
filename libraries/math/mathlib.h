@@ -31,7 +31,7 @@
 #define _MATHLIB_H 1
 
 /*! \file mathlib.h
-	\brief mathlib include file
+    \brief mathlib include file
 */
 
 //! \ingroup support
@@ -171,17 +171,17 @@ typedef union
 // TODO: create seperate class (and file) for gauss jackson functions
 struct gj_kernel
 {
-	int32_t order;
-	int32_t horder;
-	double dvi;
-	double dvi2;
-	int32_t **binom;
-	double **alpha;
-	double **beta;
-	double *c;
-	double *gam;
-	double *q;
-	double *lam;
+    int32_t order;
+    int32_t horder;
+    double dvi;
+    double dvi2;
+    int32_t **binom;
+    double **alpha;
+    double **beta;
+    double *c;
+    double *gam;
+    double *q;
+    double *lam;
 } ;
 
 //! Gauss-Jackson Integration Step
@@ -189,19 +189,19 @@ struct gj_kernel
 */
 struct gj_step
 {
-	//! Dependent variable
-	double vd0;
-	//! Dependent variable 1st derivative
-	double vd1;
-	//! Dependent variable 2nd derivative
-	double vd2;
-	double *a;
-	double *b;
-	//! Current guess of dependent variable
-	double s;
-	double ss;
-	double sa;
-	double sb;
+    //! Dependent variable
+    double vd0;
+    //! Dependent variable 1st derivative
+    double vd1;
+    //! Dependent variable 2nd derivative
+    double vd2;
+    double *a;
+    double *b;
+    //! Current guess of dependent variable
+    double s;
+    double ss;
+    double sa;
+    double sb;
 } ;
 
 //! Gauss-Jackson Integration Instance
@@ -209,16 +209,16 @@ struct gj_step
 */
 struct gj_instance
 {
-	//! Kernel Pointer
-	gj_kernel *kern;
-	//! Number of axes of integration
-	int32_t axes;
-	//! Pointer to array of steps; one for each axis, order+2 for the orders
-	gj_step **steps;
-	//! Pointer to array of independent variables; order+2
-	double *vi;
-	//! Pointer to a function that will calculate the 2nd derivative given a axes dependent and one independent variable.
-	void (*calc_vd2)(double vi, double *vd0, double *vd2, int32_t axes);
+    //! Kernel Pointer
+    gj_kernel *kern;
+    //! Number of axes of integration
+    int32_t axes;
+    //! Pointer to array of steps; one for each axis, order+2 for the orders
+    gj_step **steps;
+    //! Pointer to array of independent variables; order+2
+    double *vi;
+    //! Pointer to a function that will calculate the 2nd derivative given a axes dependent and one independent variable.
+    void (*calc_vd2)(double vi, double *vd0, double *vd2, int32_t axes);
 } ;
 
 //! Gauss-Jackson 3D Integration Instance
@@ -226,18 +226,18 @@ struct gj_instance
 */
 struct gj_instance3d
 {
-	//! Kernel Pointer
-	gj_kernel *kern;
-	//! Pointer to array of x steps
-	gj_step *stepx;
-	//! Pointer to array of y steps
-	gj_step *stepy;
-	//! Pointer to array of z steps
-	gj_step *stepz;
-	//! Pointer to array of independent variables
-	double *vi;
-	//! Pointer to a function that will calculate the 2nd derivative given a dependent and independent variable.
-	double (*calc_vd2)(double vi, double vdx0, double vdy0, double vdz0);
+    //! Kernel Pointer
+    gj_kernel *kern;
+    //! Pointer to array of x steps
+    gj_step *stepx;
+    //! Pointer to array of y steps
+    gj_step *stepy;
+    //! Pointer to array of z steps
+    gj_step *stepz;
+    //! Pointer to array of independent variables
+    double *vi;
+    //! Pointer to a function that will calculate the 2nd derivative given a dependent and independent variable.
+    double (*calc_vd2)(double vi, double vdx0, double vdy0, double vdz0);
 } ;
 
 //! Estimator structure
@@ -247,11 +247,11 @@ struct gj_instance3d
 */
 struct estimatorstruc
 {
-	double value[3];
-	double error[3];
-	vector<double> a;
-	vector<double> x;
-	vector<double> y;
+    double value[3];
+    double error[3];
+    vector<double> a;
+    vector<double> x;
+    vector<double> y;
 };
 
 //! Estimator handle
@@ -263,12 +263,12 @@ struct estimatorstruc
 */
 struct estimatorhandle
 {
-	vector<estimatorstruc> r;
-	int32_t index;
-	uint32_t size;
-	uint32_t degree;
-	double xbase;
-	double ybase;
+    vector<estimatorstruc> r;
+    int32_t index;
+    uint32_t size;
+    uint32_t degree;
+    double xbase;
+    double ybase;
 } ;
 
 //! @}
@@ -339,84 +339,74 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size);
 class lsfit
 {
 private:
-        //! Least Squares Fit Element
-        /*! Contains the dependent (x) and independent (y) values for a single element of a ::fitstruc.
+    //! Least Squares Fit Element
+    /*! Contains the dependent (x) and independent (y) values for a single element of a ::fitstruc.
          * The ::uvector allows both quaternions and rvector to be fit.
          */
     struct fitelement
-        {
-                // Independent variable
-                double x;
-                // Double, rvector or quaternion dependent variable
-                uvector y;
+    {
+        // Independent variable
+        double x;
+        // Double, rvector or quaternion dependent variable
+        uvector y;
     } ;
 
-        //! Least Squares Fit Structure
-        /*! Contains the data for a second order least squares fit of N elements that are type
+    //! Least Squares Fit Structure
+    /*! Contains the data for a second order least squares fit of N elements that are type
          * ::rvector or ::quaternion.
          */
-        // Number of elements in fit
-        uint16_t element_cnt;
-        // Number of axes (double, rvector, quaternion)
-        uint16_t depth;
-        // Order of fit
-        uint32_t order;
-        // base level subtracted from independent variable before fitting
-        double basex;
-        // Of size element_cnt
-        std::deque<fitelement> var;
+    // Number of elements in fit
+    uint16_t element_cnt;
+    // Number of axes (double, rvector, quaternion)
+    uint16_t depth;
+    // Order of fit
+    uint32_t order;
+    // base level subtracted from independent variable before fitting
+    double basex;
+    // Of size element_cnt
+    std::deque<fitelement> var;
 
-        std::vector< std::vector<double> > parms;
+    std::vector< std::vector<double> > parms;
 
-        void fit();
+    void fit();
 
 public:
-        double meanx;
-        uvector meany;
-        double stdevx;
-        uvector stdevy;
-        // Minimum reasonable step in dependent variable
-        double resolution;
+    double meanx;
+    uvector meany;
+    double stdevx;
+    uvector stdevy;
+    // Minimum reasonable step in dependent variable
+    double resolution;
 
     // constructors
-        lsfit();
-        lsfit(uint16_t element_cnt);
-        lsfit(uint16_t element_cnt, uint16_t ord);
-        lsfit(uint16_t cnt, uint16_t ord, double res);
+    lsfit();
+    lsfit(uint16_t element_cnt);
+    lsfit(uint16_t element_cnt, uint16_t ord);
+    lsfit(uint16_t cnt, uint16_t ord, double res);
 
-        void initialize(uint16_t cnt, uint16_t ord, double res);
-        void update(double x, double y);
-        void update(double x, rvector y);
-        void update(double x, quaternion y);
-        void update(fitelement cfit, uint16_t dep);
-        double lastx();
-		double firstx();
-		double eval(double x);
-        rvector evalrvector(double x);
-        quaternion evalquaternion(double x);
-        double slope(double x);
-        rvector slopervector(double x);
-        quaternion slopequaternion(double x);
-		double accel(double x);
-		rvector accelrvector(double x);
-		quaternion accelquaternion(double x);
-		double jerk(double x);
-		rvector jerkrvector(double x);
-		quaternion jerkquaternion(double x);
-		std::vector<std::vector<double> > getparms();
+    void initialize(uint16_t cnt, uint16_t ord, double res);
+    void update(double x, double y);
+    void update(double x, rvector y);
+    void update(double x, quaternion y);
+    void update(fitelement cfit, uint16_t dep);
+    double lastx();
+    double firstx();
+    double eval(double x);
+    rvector evalrvector(double x);
+    quaternion evalquaternion(double x);
+    double slope(double x);
+    rvector slopervector(double x);
+    quaternion slopequaternion(double x);
+    double accel(double x);
+    rvector accelrvector(double x);
+    quaternion accelquaternion(double x);
+    double jerk(double x);
+    rvector jerkrvector(double x);
+    quaternion jerkquaternion(double x);
+    std::vector<std::vector<double> > getparms();
 };
 
 
-//! Testing Row Vector Class
-/*! eventually this is where all row vector stuff would come?
- * do we really need to differentiate between cvector and rvector in the future?
-*/
-class RowVector{
-
-public:
-    // convert from cartesian vector to row vector
-    rvector from_cv(cvector v);
-};
 //! @}
 
 #endif

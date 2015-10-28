@@ -170,16 +170,18 @@ Quaternion Quaternion::operator*(const Quaternion& q)
     return q3;
 }
 
+
 std::ostream& operator<<(std::ostream& os, const Quaternion& q)
 {
-    os << "[("
-       << q.x << ", "
-       << q.y << ", "
-       << q.z << "), "
-       << q.w
-       << "]"; //<< std::endl;
+    //out << "[(";
+    os << q.x << ",";
+    os << q.y << ",";
+    os << q.z << ", ";
+    os << q.w;
+    //out << "]"; //<< std::endl;
     return os;
 }
+
 
 // copy *this quaternion into a new Quaternion object
 // basically this collapses (x,y,z,w) into a Quaternion object
@@ -202,6 +204,49 @@ cvector Quaternion::omegaFromDerivative(Quaternion dq)
     o = (dq * q.conjugate()).multiplyScalar(2.).vector();
 
     return o;
+}
+
+//! compute the quaternion that represents the rotation from vector a to vector b
+//! Ref: - http://lolengine.net/blog/2013/09/18/beautiful-maths-quaternion-from-vectors
+void Quaternion::fromTwoVectors(Vector a, Vector b)
+{
+    // normalize the vectors in place
+    a.normalize();
+    b.normalize();
+
+    Vector w = a.cross(b);
+    Quaternion q = Quaternion(w.x, w.y, w.z, 1.f + a.dot(b));
+
+    q.normalize();
+
+    *this = q;
+}
+
+//! Normalizes the quaternion in place (*this)
+void Quaternion::normalize()
+{
+    double norm;
+
+    this->w = round(this->w/D_SMALL)*D_SMALL;
+    this->x = round(this->x/D_SMALL)*D_SMALL;
+    this->y = round(this->y/D_SMALL)*D_SMALL;
+    this->z = round(this->z/D_SMALL)*D_SMALL;
+
+    norm = this->norm();
+
+    if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
+    {
+        this->w /= norm;
+        this->x /= norm;
+        this->y /= norm;
+        this->z /= norm;
+    }
+}
+
+//! return the norm of the quaternion's coefficients
+double Quaternion::norm()
+{
+    return ( sqrt(this->w*this->w + this->x*this->x + this->y*this->y + this->z*this->z) ) ;
 }
 
 
@@ -514,6 +559,7 @@ quaternion q_identity()
         \param q Quaternion to find the length of.
         \return Length of quaternion.
 */
+// TODO: check the redundancy with q_normalize
 double length_q(quaternion q)
 {
     double length;
@@ -697,15 +743,19 @@ std::ostream& operator << (std::ostream& out, const quaternion& a)
 {
     //out << std::fixed;
     //out << std::setprecision(5);
-    out<< "[("
-       << std::setw(6) << a.d.x << ","
-       << std::setw(6) << a.d.y << ","
-       << std::setw(6) << a.d.z << "),"
-       << std::setw(6) << a.w
-       << "]";
+    //out<< "[("
+    //out << std::setw(6);
+    out << a.d.x << ",";
+    //out << std::setw(6);
+    out << a.d.y << ",";
+    //out << std::setw(6);
+    out << a.d.z << ", ";
+    //out << std::setw(6)
+    out << a.w;
+    //   << "]";
 
     // remove formating for floatfield (not set)
-    std::cout.unsetf ( std::ios::floatfield );
+    // std::cout.unsetf ( std::ios::floatfield );
 
     return out;
 }
