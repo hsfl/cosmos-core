@@ -212,8 +212,19 @@ int32_t gs232b_goto(float az, float el)
 	static int32_t tel = 500;
 	int32_t iaz, iel;
 
-	if (az < 0 || az > RADOF(450) || el < 0 || el > DPI)
-		return (GS232B_ERROR_OUTOFRANGE);
+	if (az < 0 || az > RADOF(450))
+	{
+		az = fixangle(az);
+	}
+
+	if (el < 0)
+	{
+		el = 0.;
+	}
+	else if (el > DPI)
+	{
+		el = DPI;
+	}
 
 	iretn = gs232b_get_az_el(gs_state.currentaz,gs_state.currentel);
 	if (iretn < 0)
@@ -221,21 +232,20 @@ int32_t gs232b_goto(float az, float el)
 		return iretn;
 	}
 
-	if (az < DPI2 && az < gs_state.currentaz)
-	{
-		az += D2PI;
-	}
-	else
-		if (az > D2PI && az > gs_state.currentaz)
-		{
-			az -= D2PI;
-		}
+	//	if (az < DPI2 && az < gs_state.currentaz)
+	//	{
+	//		az += D2PI;
+	//	}
+	//	else if (az > D2PI && az > gs_state.currentaz)
+	//	{
+	//		az -= D2PI;
+	//	}
 	
 	mel = .001+(el+gs_state.currentel)/2.;
 	del = el-gs_state.currentel;
 	daz = (az-gs_state.currentaz)/cos(mel);
 	sep = sqrt(daz*daz+del*del);
-//	printf("az: %7.2f-%7.2f el: %7.2f-%7.2f sep: %8.3f \n",DEGOF(gs_state.currentaz),DEGOF(az),DEGOF(gs_state.currentel),DEGOF(el),DEGOF(sep));
+	//	printf("az: %7.2f-%7.2f el: %7.2f-%7.2f sep: %8.3f \n",DEGOF(gs_state.currentaz),DEGOF(az),DEGOF(gs_state.currentel),DEGOF(el),DEGOF(sep));
 	if (sep > RADOF(1.))
 	{
 		switch ((int)(4.5*sep/DPI))
@@ -345,7 +355,7 @@ int32_t gs232b_send(char *buf, bool force)
 
 	if (strcmp(lastbuf,buf) || force)
 	{
-//		printf("%s\n",buf);
+		//		printf("%s\n",buf);
 		iretn = cssl_putstring(gs232b_serial,buf);
 		strncpy(lastbuf,buf,256);
 	}

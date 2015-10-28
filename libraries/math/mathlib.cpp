@@ -1972,6 +1972,15 @@ void gauss_jackson_extrapolate(gj_instance *gji, double target)
 	}
 }
 
+double fixangle(double angle)
+{
+	double result;
+
+	result = fmod(angle,D2PI);
+
+	return (result >= 0.)?result:result+D2PI;
+}
+
 double actan(double y,double x)
 {
 	double actan;

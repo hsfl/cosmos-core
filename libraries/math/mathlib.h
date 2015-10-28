@@ -332,6 +332,7 @@ void gauss_jackson_destep(gj_kernel *kern, gj_step *step);
 void gauss_jackson_preset(gj_instance *gji);
 void gauss_jackson_extrapolate(gj_instance *gji, double target);
 
+double fixangle(double angle);
 double actan(double y, double x);
 double fixprecision(double number, double precision);
 uint16_t calc_crc16ccitt(uint8_t *buf, int size);
