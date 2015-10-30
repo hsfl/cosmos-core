@@ -154,10 +154,10 @@ int32_t gs232b_offset_wait(int32_t axis)
 	switch (axis)
 	{
 	case 0:
-		iretn = gs232b_send((char *)"O\r", false);
+		iretn = gs232b_send((char *)"O\r", true);
 		break;
 	case 1:
-		iretn = gs232b_send((char *)"O2\r", false);
+		iretn = gs232b_send((char *)"O2\r", true);
 		break;
 	default:
 		iretn = GS232B_ERROR_OUTOFRANGE;
@@ -192,7 +192,7 @@ int32_t gs232b_az_speed(int32_t speed)
 	if (speed < 1 || speed > 4)
 		return (GS232B_ERROR_OUTOFRANGE);
 	sprintf(out,"X%1d\r",speed);
-	iretn = gs232b_send(out, false);
+	iretn = gs232b_send(out, true);
 	if (iretn < 0)
 	{
 		return iretn;
@@ -253,17 +253,17 @@ int32_t gs232b_goto(float az, float el)
 		case 0:
 			break;
 		case 1:
-			gs232b_send((char *)"X1\r", false);
+			gs232b_send((char *)"X1\r", true);
 			break;
 		case 2:
-			gs232b_send((char *)"X2\r", false);
+			gs232b_send((char *)"X2\r", true);
 			break;
 		case 3:
-			gs232b_send((char *)"X3\r", false);
+			gs232b_send((char *)"X3\r", true);
 			break;
 		case 4:
 		default:
-			gs232b_send((char *)"X4\r", false);
+			gs232b_send((char *)"X4\r", true);
 			break;
 		}
 		iaz = (int)(DEGOF(az)+.5);
@@ -271,7 +271,7 @@ int32_t gs232b_goto(float az, float el)
 		if (iaz != taz || iel != tel)
 		{
 			sprintf(out,"W%03d %03d\r",iaz,iel);
-			gs232b_send(out, false);
+			gs232b_send(out, true);
 			taz = iaz;
 			tel = iel;
 		}
@@ -288,7 +288,7 @@ int32_t gs232b_stop()
 {
 	int32_t iretn;
 
-	iretn = gs232b_send((char *)"S\r", false);
+	iretn = gs232b_send((char *)"S\r", true);
 
 	return iretn;
 }
