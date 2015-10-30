@@ -45,10 +45,6 @@
 
 #include <stdio.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define GS232B_ID 1
 #define GS232B_BAUD 9600
 #define GS232B_BITS 8
@@ -97,10 +93,6 @@ int32_t gs232b_stop();
 int32_t gs232b_az_speed(int32_t speed);
 int32_t gs232b_getdata(char *buf, int32_t buflen);
 int32_t gs232b_send(char *buf, bool force);
-
-#ifdef __cplusplus
-}
-#endif
-
+int32_t gs232b_test();
 
 #endif

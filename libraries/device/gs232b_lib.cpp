@@ -348,14 +348,43 @@ void gs232b_get_state(gs232b_state &state)
 	state = gs_state;
 }
 
+int32_t gs232b_test()
+{
+	int32_t iretn;
+
+	iretn = cssl_putchar(gs232b_serial, '\r');
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+
+	char buf[100];
+	iretn = gs232b_getdata(buf,100);
+	if (iretn < 0)
+	{
+		return iretn;
+	}
+	if (buf[0] != '?' || buf[1] != '>')
+	{
+		return GS232B_ERROR_SEND;
+	}
+
+	return 0;
+}
+
 int32_t gs232b_send(char *buf, bool force)
 {
 	int32_t iretn = 0;
 	static char lastbuf[256];
 
-	if (strcmp(lastbuf,buf) || force)
+	iretn = gs232b_test();
+	if (iretn < 0)
 	{
-		//		printf("%s\n",buf);
+		return iretn;
+	}
+
+	if (strlen(buf) && (strcmp(lastbuf,buf) || force))
+	{
 		iretn = cssl_putstring(gs232b_serial,buf);
 		strncpy(lastbuf,buf,256);
 	}

@@ -46,10 +46,6 @@
 #include "cssl_lib.h"
 #include "cosmos-errno.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define TS2000_ID 1
 #define TS2000_BAUD 9600
 #define TS2000_BITS 8
@@ -70,9 +66,5 @@ int ts2000_connect(char *dev);
 int ts2000_disconnect();
 double ts2000_get_frequency(int channel);
 double ts2000_set_frequency(int channel, double frequency);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
