@@ -93,12 +93,12 @@ public:
     void endline();
 
     // quaternions
-    void quat(string text_prefix, quaternion q, double scale, string text_suffix, int precision, int fieldwidth);
+    void quat(string prefix, quaternion q, string suffix, int precision, int fieldwidth);
     void quat(quaternion q);
     void quat(quaternion q, int precision);
-    void quat(string vector_name, quaternion q);
-    void quat(string vector_name, quaternion q, int precision);
-    void quat(string vector_name, quaternion q, string text_suffix, int precision);
+    void quat(string prefix, quaternion q);
+    void quat(string prefix, quaternion q, int precision);
+    void quat(string prefix, quaternion q, string suffix, int precision);
 
     //
     int precision;

@@ -11,4 +11,5 @@ COSMOS_SOURCE   = $$PWD/../../../
 
 MODULES += mathlib
 include( $$COSMOS_SOURCE/core/cosmos-core.pri )
+include( $$COSMOS_SOURCE/thirdparty/cosmos-thirdparty.pri )
 

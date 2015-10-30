@@ -37,21 +37,21 @@
 */
 double sep_rv(rvector v1, rvector v2)
 {
-        rvector dv = {{0.}};
+    rvector dv = {{0.}};
 
-        normalize_rv(&v1);
-        normalize_rv(&v2);
+    normalize_rv(&v1);
+    normalize_rv(&v2);
 
-        dv = rv_sub(v2,v1);
-        double diff = length_rv(dv);
+    dv = rv_sub(v2,v1);
+    double diff = length_rv(dv);
 
-        double sepangle = 2. * atan2(diff/2.,sqrt(fmax(0.,1.-diff*diff/4.)));
-        return (sepangle);
+    double sepangle = 2. * atan2(diff/2.,sqrt(fmax(0.,1.-diff*diff/4.)));
+    return (sepangle);
 }
 
 double sep_rv2(rvector v1, rvector v2)
 {
-        return acos(dot_rv2(v1,v2)/(length_rv2(v1)*length_rv2(v2)));
+    return acos(dot_rv2(v1,v2)/(length_rv2(v1)*length_rv2(v2)));
 }
 
 //! Convert ::rvector to ::svector
@@ -61,17 +61,17 @@ double sep_rv2(rvector v1, rvector v2)
  */
 svector s_convert(rvector from)
 {
-        svector result;
+    svector result;
 
-        double minir2 = from.col[0] * from.col[0] + from.col[1] * from.col[1];
-        double r2 = minir2 + from.col[2] * from.col[2];
-        result.r = sqrt(r2);
+    double minir2 = from.col[0] * from.col[0] + from.col[1] * from.col[1];
+    double r2 = minir2 + from.col[2] * from.col[2];
+    result.r = sqrt(r2);
 
-        double sp = from.col[2] / result.r;
-        result.phi = asin(sp);
-        result.lambda = atan2(from.col[1], from.col[0]);
+    double sp = from.col[2] / result.r;
+    result.phi = asin(sp);
+    result.lambda = atan2(from.col[1], from.col[0]);
 
-        return result;
+    return result;
 }
 
 //! Convert ::svector to ::rvector
@@ -81,19 +81,19 @@ svector s_convert(rvector from)
  */
 rvector rv_convert(svector from)
 {
-        rvector result;
+    rvector result;
 
-        double sp = sin(from.phi);
-        double cp = cos(from.phi);
-        double sl = sin(from.lambda);
-        double cl = cos(from.lambda);
-        double cpr = cp * from.r;
+    double sp = sin(from.phi);
+    double cp = cos(from.phi);
+    double sl = sin(from.lambda);
+    double cl = cos(from.lambda);
+    double cpr = cp * from.r;
 
-        result.col[0] = cpr * cl;
-        result.col[1] = cpr * sl;
-        result.col[2] = from.r * sp;
+    result.col[0] = cpr * cl;
+    result.col[1] = cpr * sl;
+    result.col[2] = from.r * sp;
 
-        return result;
+    return result;
 }
 
 //! Zero row order vector
@@ -102,9 +102,9 @@ rvector rv_convert(svector from)
 */
 rvector rv_zero()
 {
-        rvector v={{0.,0.,0.}};
+    rvector v={{0.,0.,0.}};
 
-        return (v);
+    return (v);
 }
 
 //! Unit x row vector
@@ -113,8 +113,8 @@ rvector rv_zero()
 */
 rvector rv_unitx()
 {
-        rvector v={{1.,0.,0.}};
-        return (v);
+    rvector v={{1.,0.,0.}};
+    return (v);
 }
 
 //! Scaled x row vector
@@ -123,9 +123,9 @@ rvector rv_unitx()
 */
 rvector rv_unitx(double scale)
 {
-        rvector v={{1.,0.,0.}};
-        v.col[0] *= scale;
-        return (v);
+    rvector v={{1.,0.,0.}};
+    v.col[0] *= scale;
+    return (v);
 }
 
 //! Unit y row vector
@@ -134,8 +134,8 @@ rvector rv_unitx(double scale)
 */
 rvector rv_unity()
 {
-        rvector v={{0.,1.,0.}};
-        return (v);
+    rvector v={{0.,1.,0.}};
+    return (v);
 }
 
 //! Scaled y row vector
@@ -144,9 +144,9 @@ rvector rv_unity()
 */
 rvector rv_unity(double scale)
 {
-        rvector v={{0.,1.,0.}};
-        v.col[1] *= scale;
-        return (v);
+    rvector v={{0.,1.,0.}};
+    v.col[1] *= scale;
+    return (v);
 }
 
 //! Unit z row vector
@@ -155,8 +155,8 @@ rvector rv_unity(double scale)
 */
 rvector rv_unitz()
 {
-        rvector v={{0.,0.,1.}};
-        return (v);
+    rvector v={{0.,0.,1.}};
+    return (v);
 }
 
 //! Scaled z row vector
@@ -165,9 +165,9 @@ rvector rv_unitz()
 */
 rvector rv_unitz(double scale)
 {
-        rvector v={{0.,0.,1.}};
-        v.col[2] *= scale;
-        return (v);
+    rvector v={{0.,0.,1.}};
+    v.col[2] *= scale;
+    return (v);
 }
 
 //! Row vector of ones
@@ -176,9 +176,9 @@ rvector rv_unitz(double scale)
 */
 rvector rv_one()
 {
-        rvector v={{1.,1.,1.}};
+    rvector v={{1.,1.,1.}};
 
-        return (v);
+    return (v);
 }
 
 //! Row vector of values
@@ -187,12 +187,12 @@ rvector rv_one()
 */
 rvector rv_one(double x, double y, double z)
 {
-        rvector v={{1.,1.,1.}};
-        v.col[0] *= x;
-        v.col[1] *= y;
-        v.col[2] *= z;
+    rvector v={{1.,1.,1.}};
+    v.col[0] *= x;
+    v.col[1] *= y;
+    v.col[2] *= z;
 
-        return (v);
+    return (v);
 }
 
 //! Shortest vector
@@ -202,31 +202,31 @@ rvector rv_one(double x, double y, double z)
 */
 rvector rv_shortest(rvector v)
 {
-        rvector a={{1.,0.,0.}};
+    rvector a={{1.,0.,0.}};
 
-        for (int i=1; i<3; i++)
+    for (int i=1; i<3; i++)
+    {
+        if (fabs(v.col[i]) < fabs(v.col[i-1]))
         {
-                if (fabs(v.col[i]) < fabs(v.col[i-1]))
-                {
-                        a.col[i-1] = 0.;
-                        a.col[i] = 1.;
-                }
+            a.col[i-1] = 0.;
+            a.col[i] = 1.;
         }
-        return (a);
+    }
+    return (a);
 }
 
 rvector rv_shortest2(rvector v)
 {
-        rvector rx = {{1,0,0}};
-        rvector ry = {{0,1,0}};
-        rvector rz = {{0,0,1}};
+    rvector rx = {{1,0,0}};
+    rvector ry = {{0,1,0}};
+    rvector rz = {{0,0,1}};
 
-        if (v.col[0]<=v.col[1] && v.col[0]<=v.col[2])
-                return (rx);
-        else if (v.col[1]<=v.col[0] && v.col[1]<=v.col[2])
-                return (ry);
-        else
-                return (rz);
+    if (v.col[0]<=v.col[1] && v.col[0]<=v.col[2])
+        return (rx);
+    else if (v.col[1]<=v.col[0] && v.col[1]<=v.col[2])
+        return (ry);
+    else
+        return (rz);
 }
 
 //! Normalize row order vector
@@ -236,8 +236,8 @@ rvector rv_shortest2(rvector v)
 */
 rvector rv_normal(rvector v)
 {
-        normalize_rv(&v);
-        return (v);
+    normalize_rv(&v);
+    return (v);
 }
 
 //! Normalize row order vector in place.
@@ -275,6 +275,28 @@ void normalize_rv2(rvector &v)
 }
 
 
+//! basic function to compute the L2 norm of a 3d generic vector with separate entries
+// TODO: create new class vector3
+double normVector3(double x, double y, double z)
+{
+    return sqrt(x*x + y*y + z*z);
+}
+
+//! basic function to normalize any 3d vector with separate entries
+// TODO: create new class vector3
+void normalizeVector3(double &x, double &y, double &z)
+{
+    double norm = normVector3(x,y,z);
+
+    // if the current norm is not zero (or already one)
+    if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
+    {
+        x /= norm;
+        y /= norm;
+        z /= norm;
+    }
+}
+
 
 //! Multiply row vector by scalar
 /*! Multiply a row vector by a double precision scalar.
@@ -284,12 +306,12 @@ void normalize_rv2(rvector &v)
 */
 rvector rv_smult(double a, rvector b)
 {
-        rvector c = {{0.}};
+    rvector c = {{0.}};
 
-        c.col[0] = a * b.col[0];
-        c.col[1] = a * b.col[1];
-        c.col[2] = a * b.col[2];
-        return (c);
+    c.col[0] = a * b.col[0];
+    c.col[1] = a * b.col[1];
+    c.col[2] = a * b.col[2];
+    return (c);
 }
 
 //! Add scalar to each element of vector.
@@ -301,12 +323,12 @@ rvector rv_smult(double a, rvector b)
 */
 rvector rv_sadd(double a, rvector b)
 {
-        rvector c = {{0.}};
+    rvector c = {{0.}};
 
-        c.col[0] = a + b.col[0];
-        c.col[1] = a + b.col[1];
-        c.col[2] = a + b.col[2];
-        return (c);
+    c.col[0] = a + b.col[0];
+    c.col[1] = a + b.col[1];
+    c.col[2] = a + b.col[2];
+    return (c);
 }
 
 //! Add two row vectors
@@ -317,12 +339,12 @@ rvector rv_sadd(double a, rvector b)
 */
 rvector rv_add(rvector a, rvector b)
 {
-        rvector c = {{0.}};
+    rvector c = {{0.}};
 
-        c.col[0] = a.col[0] + b.col[0];
-        c.col[1] = a.col[1] + b.col[1];
-        c.col[2] = a.col[2] + b.col[2];
-        return (c);
+    c.col[0] = a.col[0] + b.col[0];
+    c.col[1] = a.col[1] + b.col[1];
+    c.col[2] = a.col[2] + b.col[2];
+    return (c);
 }
 
 //! Subtract two vectors
@@ -333,12 +355,12 @@ rvector rv_add(rvector a, rvector b)
 */
 rvector rv_sub(rvector a, rvector b)
 {
-        rvector c = {{0.}};
+    rvector c = {{0.}};
 
-        c.col[0] = a.col[0] - b.col[0];
-        c.col[1] = a.col[1] - b.col[1];
-        c.col[2] = a.col[2] - b.col[2];
-        return (c);
+    c.col[0] = a.col[0] - b.col[0];
+    c.col[1] = a.col[1] - b.col[1];
+    c.col[2] = a.col[2] - b.col[2];
+    return (c);
 }
 
 //! Divide two row vectors
@@ -349,12 +371,12 @@ rvector rv_sub(rvector a, rvector b)
 */
 rvector rv_div(rvector a, rvector b)
 {
-        rvector c = {{0.}};
+    rvector c = {{0.}};
 
-        c.col[0] = a.col[0] / b.col[0];
-        c.col[1] = a.col[1] / b.col[1];
-        c.col[2] = a.col[2] / b.col[2];
-        return (c);
+    c.col[0] = a.col[0] / b.col[0];
+    c.col[1] = a.col[1] / b.col[1];
+    c.col[2] = a.col[2] / b.col[2];
+    return (c);
 }
 
 //! Multiply two row vectors
@@ -365,12 +387,12 @@ rvector rv_div(rvector a, rvector b)
 */
 rvector rv_mult(rvector a, rvector b)
 {
-        rvector c = {{0.}};
+    rvector c = {{0.}};
 
-        c.col[0] = a.col[0] * b.col[0];
-        c.col[1] = a.col[1] * b.col[1];
-        c.col[2] = a.col[2] * b.col[2];
-        return (c);
+    c.col[0] = a.col[0] * b.col[0];
+    c.col[1] = a.col[1] * b.col[1];
+    c.col[2] = a.col[2] * b.col[2];
+    return (c);
 }
 
 //! Take cross product of two row vectors.
@@ -381,12 +403,12 @@ rvector rv_mult(rvector a, rvector b)
 */
 rvector rv_cross(rvector a, rvector b)
 {
-        rvector c = {{0.}};
+    rvector c = {{0.}};
 
-        c.col[0] = a.col[1]*b.col[2] - a.col[2]*b.col[1];
-        c.col[1] = a.col[2]*b.col[0] - a.col[0]*b.col[2];
-        c.col[2] = a.col[0]*b.col[1] - a.col[1]*b.col[0];
-        return (c);
+    c.col[0] = a.col[1]*b.col[2] - a.col[2]*b.col[1];
+    c.col[1] = a.col[2]*b.col[0] - a.col[0]*b.col[2];
+    c.col[2] = a.col[0]*b.col[1] - a.col[1]*b.col[0];
+    return (c);
 }
 
 //! Dot product of two row vectors.
@@ -397,13 +419,13 @@ rvector rv_cross(rvector a, rvector b)
 */
 double dot_rv(rvector a, rvector b)
 {
-        double d;
-        d = a.col[0]*b.col[0] + a.col[1]*b.col[1] + a.col[2]*b.col[2];
-        return (d);
+    double d;
+    d = a.col[0]*b.col[0] + a.col[1]*b.col[1] + a.col[2]*b.col[2];
+    return (d);
 }
 double dot_rv2(rvector a, rvector b)
 {
-        return a.col[0]*b.col[0] + a.col[1]*b.col[1] + a.col[2]*b.col[2];
+    return a.col[0]*b.col[0] + a.col[1]*b.col[1] + a.col[2]*b.col[2];
 }
 
 //! Angular separation between vectors.
@@ -414,20 +436,20 @@ double dot_rv2(rvector a, rvector b)
 */
 double sep_cv(cvector v1, cvector v2)
 {
-        double length, sepangle;
+    double length, sepangle;
 
-        length = sqrt(v1.x*v1.x+v1.y*v1.y+v1.z*v1.z); /*!< Normalize first vector */
-        v1.x /= length;
-        v1.y /= length;
-        v1.z /= length;
-        length = sqrt(v2.x*v2.x+v2.y*v2.y+v2.z*v2.z);
-        v2.x /= length;
-        v2.y /= length;
-        v2.z /= length;
+    length = sqrt(v1.x*v1.x+v1.y*v1.y+v1.z*v1.z); /*!< Normalize first vector */
+    v1.x /= length;
+    v1.y /= length;
+    v1.z /= length;
+    length = sqrt(v2.x*v2.x+v2.y*v2.y+v2.z*v2.z);
+    v2.x /= length;
+    v2.y /= length;
+    v2.z /= length;
 
-        sepangle = ((v1.x-v2.x)*(v1.x-v2.x)+(v1.y-v2.y)*(v1.y-v2.y)+(v1.z-v2.z)*(v1.z-v2.z))/4.;
-        sepangle = 2. * atan2(sqrt(sepangle),sqrt(fmax(0.,1.-sepangle)));
-        return (sepangle);
+    sepangle = ((v1.x-v2.x)*(v1.x-v2.x)+(v1.y-v2.y)*(v1.y-v2.y)+(v1.z-v2.z)*(v1.z-v2.z))/4.;
+    sepangle = 2. * atan2(sqrt(sepangle),sqrt(fmax(0.,1.-sepangle)));
+    return (sepangle);
 }
 
 //! Zero cartesian vector
@@ -436,8 +458,8 @@ double sep_cv(cvector v1, cvector v2)
 */
 cvector cv_zero()
 {
-        cvector v={0.,0.,0.};
-        return (v);
+    cvector v={0.,0.,0.};
+    return (v);
 }
 
 //! Unit x vector
@@ -446,8 +468,8 @@ cvector cv_zero()
 */
 cvector cv_unitx()
 {
-        cvector v={1.,0.,0.};
-        return (v);
+    cvector v={1.,0.,0.};
+    return (v);
 }
 
 //! Unit y vector
@@ -456,8 +478,8 @@ cvector cv_unitx()
 */
 cvector cv_unity()
 {
-        cvector v={0.,1.,0.};
-        return (v);
+    cvector v={0.,1.,0.};
+    return (v);
 }
 
 //! Unit z vector
@@ -466,8 +488,8 @@ cvector cv_unity()
 */
 cvector cv_unitz()
 {
-        cvector v={0.,0.,1.};
-        return (v);
+    cvector v={0.,0.,1.};
+    return (v);
 }
 
 //! Vector of ones
@@ -476,37 +498,70 @@ cvector cv_unitz()
 */
 cvector cv_one()
 {
-        cvector v={1.,1.,1.};
-        return (v);
+    cvector v={1.,1.,1.};
+    return (v);
 }
 
 //! Normalize cartesian vector
 /*! Returns a normalized version of the requested cartesian vector.
         \param v the ::cvector to be normalized
         \return the normalized version of the vector as ::cvector
-*/ // ?? normal is a term used for perpendicular, change to cv_normalize
+*/ // TODO: check! normal is a term used for perpendicular, change to cv_normalize
 cvector cv_normal(cvector v)
 {
-        normalize_cv(&v);
-        return (v);
+    normalize_cv(&v);
+    return (v);
 }
 
-//! Normalize cartesian vector in place.
+//! Normalize cartesian vector in place, i.e. divides it by its own norm.
 /*! Normalizes requested cartesian vector.
         \param v a pointer to the ::cvector to be normalized
 */
+// TODO: replace normalize_cv2 to normalize_cv with &
 void normalize_cv(cvector *v)
 {
-        double mag;
+    double mag;
 
-        mag = v->x*v->x + v->y*v->y + v->z*v->z;
-        if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
-        {
-                mag = sqrt(mag);
-                v->x /= mag;
-                v->y /= mag;
-                v->z /= mag;
-        }
+    mag = v->x*v->x + v->y*v->y + v->z*v->z;
+    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
+    {
+        mag = sqrt(mag);
+        v->x /= mag;
+        v->y /= mag;
+        v->z /= mag;
+    }
+}
+
+//! Normalize cartesian vector in place, i.e. divides it by its own norm.
+/*! Normalizes requested cartesian vector.
+        \param v a pointer to the ::cvector to be normalized
+*/
+// TODO: replace normalize_cv2 to normalize_cv with &
+void normalize_cv(cvector &v)
+{
+    double mag;
+
+    mag = v.x*v.x + v.y*v.y + v.z*v.z;
+    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
+    {
+        mag = sqrt(mag);
+        v.x /= mag;
+        v.y /= mag;
+        v.z /= mag;
+    }
+}
+
+//! Normalize cartesian vector in place, i.e. divides it by its own norm.
+void cvector::normalize()
+{
+    double norm = this->norm();
+
+    if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
+    {
+        this->x /= norm;
+        this->y /= norm;
+        this->z /= norm;
+    }
 }
 
 
@@ -519,12 +574,12 @@ void normalize_cv(cvector *v)
 */
 cvector cv_smult(double a, cvector b)
 {
-        cvector c;
+    cvector c;
 
-        c.x = a * b.x;
-        c.y = a * b.y;
-        c.z = a * b.z;
-        return (c);
+    c.x = a * b.x;
+    c.y = a * b.y;
+    c.z = a * b.z;
+    return (c);
 }
 
 //! Add scalar to each element of vector.
@@ -536,12 +591,12 @@ cvector cv_smult(double a, cvector b)
 */
 cvector cv_sadd(double a, cvector b)
 {
-        cvector c;
+    cvector c;
 
-        c.x = a + b.x;
-        c.y = a + b.y;
-        c.z = a + b.z;
-        return (c);
+    c.x = a + b.x;
+    c.y = a + b.y;
+    c.z = a + b.z;
+    return (c);
 }
 
 //! Add two vectors
@@ -552,12 +607,12 @@ cvector cv_sadd(double a, cvector b)
 */
 cvector cv_add(cvector a, cvector b)
 {
-        cvector c;
+    cvector c;
 
-        c.x = a.x + b.x;
-        c.y = a.y + b.y;
-        c.z = a.z + b.z;
-        return (c);
+    c.x = a.x + b.x;
+    c.y = a.y + b.y;
+    c.z = a.z + b.z;
+    return (c);
 }
 
 //! Subtract two vectors
@@ -568,12 +623,12 @@ cvector cv_add(cvector a, cvector b)
 */
 cvector cv_sub(cvector a, cvector b)
 {
-        cvector c;
+    cvector c;
 
-        c.x = a.x - b.x;
-        c.y = a.y - b.y;
-        c.z = a.z - b.z;
-        return (c);
+    c.x = a.x - b.x;
+    c.y = a.y - b.y;
+    c.z = a.z - b.z;
+    return (c);
 }
 
 //! Divide two vectors
@@ -584,12 +639,12 @@ cvector cv_sub(cvector a, cvector b)
 */
 cvector cv_div(cvector a, cvector b)
 {
-        cvector c;
+    cvector c;
 
-        c.x = a.x / b.x;
-        c.y = a.y / b.y;
-        c.z = a.z / b.z;
-        return (c);
+    c.x = a.x / b.x;
+    c.y = a.y / b.y;
+    c.z = a.z / b.z;
+    return (c);
 }
 
 //! Multiply two vectors
@@ -600,74 +655,96 @@ cvector cv_div(cvector a, cvector b)
 */
 cvector cv_mult(cvector a, cvector b)
 {
-        cvector c;
+    cvector c;
 
-        c.x = a.x * b.x;
-        c.y = a.y * b.y;
-        c.z = a.z * b.z;
-        return (c);
+    c.x = a.x * b.x;
+    c.y = a.y * b.y;
+    c.z = a.z * b.z;
+    return (c);
 }
 
 //! Take cross product of two vectors.
 cvector cv_cross(cvector a, cvector b)
 {
-        cvector c;
+    cvector c;
 
-        c.x = a.y*b.z - a.z*b.y;
-        c.y = a.z*b.x - a.x*b.z;
-        c.z = a.x*b.y - a.y*b.x;
-        return (c);
+    c.x = a.y*b.z - a.z*b.y;
+    c.y = a.z*b.x - a.x*b.z;
+    c.z = a.x*b.y - a.y*b.x;
+    return (c);
 }
 
 double dot_cv(cvector a, cvector b)
 {
-        double d;
+    double d;
 
-        d = a.x*b.x + a.y*b.y + a.z*b.z;
-        return (d);
+    d = a.x*b.x + a.y*b.y + a.z*b.z;
+    return (d);
 }
 
 
-
+// TODO: delete and just keep cv_norm
+// There are 4 options now
+// - length_cv
+// - cv_norm
+// - norm_cv
+// - cvector::norm()
 double length_cv(cvector v)
 {
-        double length;
-
-        length = sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
-        if (length < D_SMALL)
-                return (0.);
-        else
-                return (length);
+    return cv_norm(v);
 }
 
-// ?? what norm is this?
-double norm_cv(cvector vec)
+
+double cv_norm(cvector v)
 {
-        double norm;
+    double length;
 
-        norm = fmax(fabs(vec.x),fmax(fabs(vec.y),fabs(vec.z)));
+    length = sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
+    if (length < D_SMALL)
+        return (0.);
+    else
+        return (length);
+}
 
+double cvector::norm()
+{
+    double norm = sqrt(this->x*this->x + this->y*this->y + this->z*this->z);
+    if (norm < D_SMALL)
+        return (0.);
+    else
         return (norm);
+}
+
+
+// TODO: what norm is this?
+// TODO: replace by cv_norm?
+double norm_cv(cvector v)
+{
+    double norm;
+
+    norm = fmax(fabs(v.x),fmax(fabs(v.y),fabs(v.z)));
+
+    return (norm);
 }
 
 double sum_cv(cvector vec)
 {
-        double sum;
+    double sum;
 
-        sum = vec.x + vec.y + vec.z;
+    sum = vec.x + vec.y + vec.z;
 
-        return (sum);
+    return (sum);
 }
 
 cvector cv_sqrt(cvector a)
 {
-        cvector s;
+    cvector s;
 
-        s.x = sqrt(a.x);
-        s.y = sqrt(a.y);
-        s.z = sqrt(a.z);
+    s.x = sqrt(a.x);
+    s.y = sqrt(a.y);
+    s.z = sqrt(a.z);
 
-        return (s);
+    return (s);
 }
 
 
@@ -679,15 +756,15 @@ cvector cv_sqrt(cvector a)
 */
 bool equal_rv(rvector v1, rvector v2)
 {
-        if (v1.col[0] == v2.col[0] && v1.col[1] == v2.col[1] && v1.col[2] == v2.col[2])
-                return (true);
-        else
-                return (false);
+    if (v1.col[0] == v2.col[0] && v1.col[1] == v2.col[1] && v1.col[2] == v2.col[2])
+        return (true);
+    else
+        return (false);
 }
 
 bool equal_rv2(rvector v1, rvector v2)
 {
-        return (v1.col[0] == v2.col[0] && v1.col[1] == v2.col[1] && v1.col[2] == v2.col[2]);
+    return (v1.col[0] == v2.col[0] && v1.col[1] == v2.col[1] && v1.col[2] == v2.col[2]);
 
 }
 //! Length of row vector
@@ -697,19 +774,21 @@ bool equal_rv2(rvector v1, rvector v2)
 */
 double length_rv(rvector v)
 {
-        double length;
+    double length;
 
-        length = (v.col[0]*v.col[0]+v.col[1]*v.col[1]+v.col[2]*v.col[2]);
-        length = sqrt(length);
+    length = (v.col[0]*v.col[0]+v.col[1]*v.col[1]+v.col[2]*v.col[2]);
+    length = sqrt(length);
 
-        if (length < D_SMALL)
-                return (0.);
-        else
-                return (length);
+    if (length < D_SMALL)
+        return (0.);
+    else
+        return (length);
 }
+
+// TODO: merge to norm_rv
 double length_rv2(rvector v)
 {
-        return sqrt(v.col[0]*v.col[0]+v.col[1]*v.col[1]+v.col[2]*v.col[2]);
+    return sqrt(v.col[0]*v.col[0]+v.col[1]*v.col[1]+v.col[2]*v.col[2]);
 }
 
 //! Infinite norm of row vector
@@ -719,14 +798,14 @@ double length_rv2(rvector v)
 */
 double norm_rv(rvector vec)
 {
-        double norm;
-        norm = fmax(fabs(vec.col[0]),fmax(fabs(vec.col[1]),fabs(vec.col[2])));
-        return (norm);
+    double norm;
+    norm = fmax(fabs(vec.col[0]),fmax(fabs(vec.col[1]),fabs(vec.col[2])));
+    return (norm);
 }
 
 double norm_rv2(rvector vec)
 {
-        return fmax(fabs(vec.col[0]),fmax(fabs(vec.col[1]),fabs(vec.col[2])));
+    return fmax(fabs(vec.col[0]),fmax(fabs(vec.col[1]),fabs(vec.col[2])));
 }
 
 //! Sum elements of a row vector
@@ -736,14 +815,14 @@ double norm_rv2(rvector vec)
 */
 double sum_rv(rvector vec)
 {
-        double sum;
-        sum = vec.col[0] + vec.col[1] + vec.col[2];
-        return (sum);
+    double sum;
+    sum = vec.col[0] + vec.col[1] + vec.col[2];
+    return (sum);
 }
 
 double sum_rv2(rvector vec)
 {
-        return vec.col[0] + vec.col[1] + vec.col[2];
+    return vec.col[0] + vec.col[1] + vec.col[2];
 }
 
 //! Row vector square root
@@ -754,13 +833,13 @@ double sum_rv2(rvector vec)
 */
 rvector rv_sqrt(rvector vec)
 {
-        rvector s = {{0.}};
+    rvector s = {{0.}};
 
-        s.col[0] = sqrt(vec.col[0]);
-        s.col[1] = sqrt(vec.col[1]);
-        s.col[2] = sqrt(vec.col[2]);
+    s.col[0] = sqrt(vec.col[0]);
+    s.col[1] = sqrt(vec.col[1]);
+    s.col[2] = sqrt(vec.col[2]);
 
-        return (s);
+    return (s);
 }
 
 
@@ -782,8 +861,8 @@ std::ostream& operator << (std::ostream& out, const rvector& a)
 
     // simple formating
     out << a.col[0] << ","
-        << a.col[1] << ","
-        << a.col[2];
+                    << a.col[1] << ","
+                    << a.col[2];
 
     return out;
 }
@@ -876,5 +955,88 @@ std::istream& operator >> (std::istream& in, avector& a)
 }
 
 
+
+// TODO: the vector class is very similar to the cvector
+// consider merging
+Vector::Vector()
+{
+
+}
+
+Vector::Vector(double x, double y, double z)
+{
+    this->x = x;
+    this->y = y;
+    this->z = z;
+}
+
+double Vector::col(int i)
+{
+    switch (i) {
+    case 0:
+        return this->x;
+        break;
+    case 1:
+        return this->y;
+        break;
+    case 2:
+        return this->z;
+        break;
+    default:
+        return 0;
+        break;
+    }
+}
+
+// convert from column vector to row vector
+rvector Vector::from_cv(cvector v){
+    rvector rv;
+    rv.col[0] = v.x;
+    rv.col[1] = v.y;
+    rv.col[2] = v.z;
+    return rv;
+}
+
+//! Compute the cross product of two vectors.
+//! where a = *this
+Vector Vector::cross(Vector b)
+{
+    Vector c;
+
+    c.x = this->y*b.z - this->z*b.y;
+    c.y = this->z*b.x - this->x*b.z;
+    c.z = this->x*b.y - this->y*b.x;
+
+    return c;
+}
+
+double Vector::dot(Vector b)
+{
+    return (this->x*b.x + this->y*b.y + this->z*b.z);
+}
+
+//! normalize vector in place
+void Vector::normalize()
+{
+    double norm = this->norm();
+
+    if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
+    {
+        this->x /= norm;
+        this->y /= norm;
+        this->z /= norm;
+    }
+
+}
+
+//! return the norm of the vector
+double Vector::norm()
+{
+    double norm = sqrt(this->x*this->x + this->y*this->y + this->z*this->z);
+    if (norm < D_SMALL)
+        return (0.);
+    else
+        return (norm);
+}
 
 //! @}

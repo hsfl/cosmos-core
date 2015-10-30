@@ -27,6 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: add TCP class
+
 #include "socketlib.h"
 #include "math/mathlib.h"
 #include "elapsedtime.hpp"
@@ -636,6 +638,7 @@ flags are set, and the socket is bound, if necessary. Support is
 provided for the extra steps necessary for MS Windows.
 	\return Zero, or negative error.
 */
+// TODO: try to merge with socket_open
 int32_t Udp::socketOpen()
 {
 	socklen_t namelen;
@@ -739,7 +742,7 @@ int32_t Udp::socketOpen()
 	}
 
 	//Prepare the sockaddr_in structure
-	memset(&sok.server,0,sizeof(struct sockaddr_in));
+    memset(&sok.server, 0, sizeof(struct sockaddr_in));
 	sok.server.sin_family = AF_INET;
 	sok.server.sin_port = htons(sok.port);
 
@@ -1018,12 +1021,12 @@ int32_t Udp::errorStatus(string functionName){
 
 int32_t Udp::send(string package2send){
 
-	if (sendto(sok.handle,
-			   package2send.c_str(),
-			   strlen(package2send.c_str()),
-			   0,
-			   (struct sockaddr *)&sok.server, //(struct sockaddr *) &socket.caddr,
-			   sok.addrlen) //sizeof(struct sockaddr_in))
+    if (sendto(sok.handle,                      // socket
+               package2send.c_str(),            // buffer to send
+               strlen(package2send.c_str()),    // size of buffer
+               0,                               // flags
+               (struct sockaddr *)&sok.server,  // socket address
+               sok.addrlen)                     // size of address to socket pointer //sizeof(struct sockaddr_in))
 			< 0){
 
 		return errorStatus("Udp::send");

@@ -157,9 +157,12 @@ quaternion q_change_between_cv(cvector from, cvector to);
 class Quaternion {
 
 public:
+
+    double x,y,z,w;
+
     Quaternion();
     Quaternion(double qx, double qy, double qz, double qw);
-    double x,y,z,w;
+
     Quaternion getQuaternion();
 
     // temporary while the new Quaternion class is not finisheds
@@ -171,14 +174,20 @@ public:
     Quaternion operator+(const Quaternion& );
     Quaternion operator-(const Quaternion& );
     Quaternion operator*(const Quaternion& );
-
-    friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
+    //std::ostream& operator<<(std::ostream& os, const Quaternion& q);
+    //friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
     //std::istream& operator >> (std::istream& out, Quaternion& a);
 
     Quaternion multiplyScalar(double a);
     Quaternion conjugate();
     cvector vector();
     cvector omegaFromDerivative(Quaternion dq);
+    void fromTwoVectors(Vector a, Vector b);
+    void normalize();
+    double norm();
 };
+
+// deplared outside class because it does not need to access members of the class Quaternion
+std::ostream& operator << (std::ostream& os, const Quaternion& q);
 
 #endif

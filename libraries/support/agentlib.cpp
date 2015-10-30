@@ -1437,7 +1437,13 @@ int32_t agent_post(cosmosstruc *cdata, uint8_t type, string message)
 			memcpy(&post[nbytes], &message[0], message.size());
 //            strcat(post,message);
         }
-		iretn = sendto(cdata[0].agent[0].pub[i].cudp,(const char *)post,nbytes+message.size(),0,(struct sockaddr *)&cdata[0].agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+        iretn = sendto(cdata[0].agent[0].pub[i].cudp,       // socket
+                (const char *)post,                         // buffer to send
+                nbytes+message.size(),                      // size of buffer
+                0,                                          // flags
+                (struct sockaddr *)&cdata[0].agent[0].pub[i].baddr, // socket address
+                sizeof(struct sockaddr_in)                  // size of address to socket pointer
+                );
     }
     if (iretn<0)
     {
