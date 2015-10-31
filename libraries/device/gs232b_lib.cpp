@@ -126,21 +126,39 @@ int32_t gs232b_getdata(char *buf, int32_t buflen)
 	int32_t i,j;
 
 	i = 0;
-	while ((j=cssl_getdata(gs232b_serial,(uint8_t *)&buf[i],buflen-i)))
+//	while ((j=cssl_getdata(gs232b_serial,(uint8_t *)&buf[i],buflen-i)))
+//	{
+//		if (j < 0)
+//		{
+//			return j;
+//		}
+//		else
+//		{
+//			i += j;
+//			if (buf[i-1] == '\n')
+//				break;
+//		}
+//	}
+//	buf[i] = 0;
+//	return (i);
+
+	while ((j=cssl_getchar(gs232b_serial)) >= 0)
 	{
-		if (j < 0)
+		buf[i++] = j;
+		if (j == '\n')
 		{
-			return j;
-		}
-		else
-		{
-			i += j;
-			if (buf[i-1] == '\n')
-				break;
+			break;
 		}
 	}
-	buf[i] = 0;
-	return (i);
+	if (j >= 0)
+	{
+		buf[i] = 0;
+		return (i);
+	}
+	else
+	{
+		return j;
+	}
 }
 
 /**
@@ -207,7 +225,6 @@ int32_t gs232b_goto(float az, float el)
 {
 	int32_t iretn;
 	char out[50];
-//	float mel, daz, del, sep;
 	static int32_t taz = 500;
 	static int32_t tel = 500;
 	int32_t iaz, iel;
@@ -244,8 +261,8 @@ int32_t gs232b_goto(float az, float el)
 //	mel = .001+(el+ant_state.currentel)/2.;
 //	del = el-ant_state.currentel;
 //	daz = (az-ant_state.currentaz)/cos(mel);
-	float daz = az - ant_state.targetaz;
-	float del = el - ant_state.targetel;
+	float daz = az - ant_state.currentaz;
+	float del = el - ant_state.currentel;
 	float sep = sqrt(daz*daz+del*del);
 
 	//	printf("az: %7.2f-%7.2f el: %7.2f-%7.2f sep: %8.3f \n",DEGOF(ant_state.currentaz),DEGOF(az),DEGOF(ant_state.currentel),DEGOF(el),DEGOF(sep));
