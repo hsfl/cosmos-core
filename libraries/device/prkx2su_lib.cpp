@@ -39,7 +39,7 @@
 */
 static cssl_t *prkx2su_serial[2] = {nullptr, nullptr};
 
-static prkx2su_state pr_state;
+static prkx2su_state ant_state;
 
 /**
 * Connects to am MII prkx2su antenna controller, which in turn
@@ -67,7 +67,7 @@ int32_t prkx2su_connect(string dev)
 		return CSSL_ERROR_OPEN;
 	}
 
-	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_AZ], 0, .5);
+	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_AZ], 0, .1);
 	if (iretn < 0)
 	{
 		prkx2su_disconnect();
@@ -95,7 +95,7 @@ int32_t prkx2su_connect(string dev)
 		return CSSL_ERROR_OPEN;
 	}
 
-	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_EL], 0, .5);
+	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_EL], 0, .1);
 	if (iretn < 0)
 	{
 		prkx2su_disconnect();
@@ -144,21 +144,36 @@ int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen)
 	int32_t i,j;
 
 	i = 0;
-	while ((j=cssl_getdata(prkx2su_serial[axis], (uint8_t *)&buf[i],buflen-i)))
+	while ((j=cssl_getchar(prkx2su_serial[axis])) >= 0)
 	{
-		if (j < 0)
+		buf[i++] = j;
+		if (j == ';')
 		{
-			return j;
-		}
-		else
-		{
-			i += j;
-			if (buf[i-1] == ';')
-				break;
+			break;
 		}
 	}
-	buf[i] = 0;
-	return (i);
+//	while ((j=cssl_getdata(prkx2su_serial[axis], (uint8_t *)&buf[i],buflen-i)))
+//	{
+//		if (j < 0)
+//		{
+//			return j;
+//		}
+//		else
+//		{
+//			i += j;
+//			if (buf[i-1] == ';')
+//				break;
+//		}
+//	}
+	if (j >= 0)
+	{
+		buf[i] = 0;
+		return (i);
+	}
+	else
+	{
+		return j;
+	}
 }
 
 /**
@@ -184,13 +199,13 @@ int32_t prkx2su_status(int8_t axis)
 	{
 	case PRKX2SU_AXIS_AZ:
 		float az;
-		sscanf(buf, "%c%c%f", &pr_state.azid, &pr_state.azstatus, &az);
-		pr_state.currentaz = RADOF(az);
+		sscanf(buf, "%c%c%f", &ant_state.azid, &ant_state.azstatus, &az);
+		ant_state.currentaz = RADOF(az);
 		break;
 	case PRKX2SU_AXIS_EL:
 		float el;
-		sscanf(buf, "%c%c%f", &pr_state.elid, &pr_state.elstatus, &el);
-		pr_state.currentel = RADOF(el);
+		sscanf(buf, "%c%c%f", &ant_state.elid, &ant_state.elstatus, &el);
+		ant_state.currentel = RADOF(el);
 		break;
 	}
 	return iretn;
@@ -241,22 +256,31 @@ int32_t prkx2su_goto(float az, float el)
 	{
 		el = 0.;
 	}
-	else if (el > DPI)
+	else if (el > DPI2)
 	{
-		el = DPI;
+		el = DPI2;
 	}
 
-	az = DEGOF(az);
-	el = DEGOF(el);
-	sprintf(out, "APn%03d.%1d\r;", (int16_t)az, (int16_t)(10 * (az - (int16_t)az)));
-	iretn = prkx2su_send(PRKX2SU_AXIS_AZ, out, true);
-	if (iretn >= 0)
+	float daz = az - ant_state.targetaz;
+	float del = el - ant_state.targetel;
+	float sep = sqrt(daz*daz+del*del);
+
+	if (sep > ant_state.sensitivity)
 	{
-		sprintf(out, "APn%03d.%1d\r;", (int16_t)el, (int16_t)(10 * (el - (int16_t)el)));
-		iretn = prkx2su_send(PRKX2SU_AXIS_EL, out, true);
+		ant_state.targetaz = az;
+		ant_state.targetel = el;
+		az = DEGOF(az);
+		el = DEGOF(el);
+		sprintf(out, "APn%03d.%1d\r;", (int16_t)az, (int16_t)(10 * (az - (int16_t)az)));
+		iretn = prkx2su_send(PRKX2SU_AXIS_AZ, out, true);
 		if (iretn >= 0)
 		{
-			iretn = prkx2su_get_az_el(pr_state.currentaz, pr_state.currentel);
+			sprintf(out, "APn%03d.%1d\r;", (int16_t)el, (int16_t)(10 * (el - (int16_t)el)));
+			iretn = prkx2su_send(PRKX2SU_AXIS_EL, out, true);
+			if (iretn >= 0)
+			{
+				iretn = prkx2su_get_az_el(ant_state.currentaz, ant_state.currentel);
+			}
 		}
 	}
 
@@ -265,12 +289,12 @@ int32_t prkx2su_goto(float az, float el)
 
 float prkx2su_get_az()
 {
-	return (pr_state.currentaz);
+	return (ant_state.currentaz);
 }
 
 float prkx2su_get_el()
 {
-	return (pr_state.currentel);
+	return (ant_state.currentel);
 }
 
 int32_t prkx2su_get_az_el(float &az, float &el)
@@ -283,8 +307,8 @@ int32_t prkx2su_get_az_el(float &az, float &el)
 		iretn = prkx2su_status(PRKX2SU_AXIS_EL);
 		if (iretn >= 0)
 		{
-			az = pr_state.currentaz;
-			el = pr_state.currentel;
+			az = ant_state.currentaz;
+			el = ant_state.currentel;
 		}
 	}
 	return iretn;
@@ -322,24 +346,24 @@ int32_t prkx2su_write_calibration(uint8_t axis, float value)
 
 float prkx2su_get_az_offset()
 {
-	return (pr_state.az_offset);
+	return (ant_state.az_offset);
 }
 
 float prkx2su_get_el_offset()
 {
-	return (pr_state.el_offset);
+	return (ant_state.el_offset);
 }
 
 void prkx2su_get_state(prkx2su_state &state)
 {
-	state = pr_state;
+	state = ant_state;
 }
 
 int32_t prkx2su_test(uint8_t axis)
 {
 	int32_t iretn;
 
-	iretn = cssl_putstring(prkx2su_serial[axis], (char *)"RR;");
+	iretn = cssl_putstring(prkx2su_serial[axis], (char *)"R10;");
 	if (iretn < 0)
 	{
 		return iretn;
@@ -351,7 +375,7 @@ int32_t prkx2su_test(uint8_t axis)
 	{
 		return iretn;
 	}
-	if (buf[0] != 'R' || buf[1] != 0x1 || buf[3] != ';')
+	if (buf[0] != '1' || buf[1] != 0x1 || buf[strlen(buf)-1] != ';')
 	{
 		return PRKX2SU_ERROR_SEND;
 	}
@@ -377,4 +401,10 @@ int32_t prkx2su_send(uint8_t axis, char *buf, bool force)
 	}
 
 	return iretn;
+}
+
+int32_t prkx2su_set_sensitivity(float sensitivity)
+{
+	ant_state.sensitivity = sensitivity;
+	return 0;
 }

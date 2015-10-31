@@ -75,6 +75,7 @@ struct prkx2su_state
 	float el_offset;
 	float currentel;
 	float targetel;
+	float sensitivity;
 	int32_t in_command;
 	int32_t data_received;
 	} ;
@@ -96,5 +97,6 @@ int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed);
 int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen);
 int32_t prkx2su_send(uint8_t axis, char *buf, bool force);
 int32_t prkx2su_test(uint8_t axis);
+int32_t prkx2su_set_sensitivity(float sensitivity);
 
 #endif

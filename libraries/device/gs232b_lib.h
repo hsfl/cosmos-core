@@ -73,6 +73,7 @@ struct gs232b_state
 	float el_offset;
 	float currentel;
 	float targetel;
+	float sensitivity;
 	int32_t in_command;
 	int32_t data_received;
 	} ;
@@ -94,5 +95,6 @@ int32_t gs232b_az_speed(int32_t speed);
 int32_t gs232b_getdata(char *buf, int32_t buflen);
 int32_t gs232b_send(char *buf, bool force);
 int32_t gs232b_test();
+int32_t gs232b_set_sensitivity(float sensitivity);
 
 #endif

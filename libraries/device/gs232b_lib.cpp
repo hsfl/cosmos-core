@@ -40,7 +40,7 @@
 */
 static cssl_t *gs232b_serial = NULL;
 
-static gs232b_state gs_state;
+static gs232b_state ant_state;
 
 /**
 * Connects to a Yaesu GS-232B computer controller, which in turn
@@ -207,7 +207,7 @@ int32_t gs232b_goto(float az, float el)
 {
 	int32_t iretn;
 	char out[50];
-	float mel, daz, del, sep;
+//	float mel, daz, del, sep;
 	static int32_t taz = 500;
 	static int32_t tel = 500;
 	int32_t iaz, iel;
@@ -226,28 +226,33 @@ int32_t gs232b_goto(float az, float el)
 		el = DPI;
 	}
 
-	iretn = gs232b_get_az_el(gs_state.currentaz,gs_state.currentel);
+	iretn = gs232b_get_az_el(ant_state.currentaz,ant_state.currentel);
 	if (iretn < 0)
 	{
 		return iretn;
 	}
 
-	//	if (az < DPI2 && az < gs_state.currentaz)
+	//	if (az < DPI2 && az < ant_state.currentaz)
 	//	{
 	//		az += D2PI;
 	//	}
-	//	else if (az > D2PI && az > gs_state.currentaz)
+	//	else if (az > D2PI && az > ant_state.currentaz)
 	//	{
 	//		az -= D2PI;
 	//	}
 	
-	mel = .001+(el+gs_state.currentel)/2.;
-	del = el-gs_state.currentel;
-	daz = (az-gs_state.currentaz)/cos(mel);
-	sep = sqrt(daz*daz+del*del);
-	//	printf("az: %7.2f-%7.2f el: %7.2f-%7.2f sep: %8.3f \n",DEGOF(gs_state.currentaz),DEGOF(az),DEGOF(gs_state.currentel),DEGOF(el),DEGOF(sep));
-	if (sep > RADOF(1.))
+//	mel = .001+(el+ant_state.currentel)/2.;
+//	del = el-ant_state.currentel;
+//	daz = (az-ant_state.currentaz)/cos(mel);
+	float daz = az - ant_state.targetaz;
+	float del = el - ant_state.targetel;
+	float sep = sqrt(daz*daz+del*del);
+
+	//	printf("az: %7.2f-%7.2f el: %7.2f-%7.2f sep: %8.3f \n",DEGOF(ant_state.currentaz),DEGOF(az),DEGOF(ant_state.currentel),DEGOF(el),DEGOF(sep));
+	if (sep > ant_state.sensitivity)
 	{
+		ant_state.targetaz = az;
+		ant_state.targetel = el;
 		switch ((int)(4.5*sep/DPI))
 		{
 		case 0:
@@ -298,9 +303,9 @@ float gs232b_get_az()
 	char buf[20];
 	gs232b_send((char *)"C\r",1);
 	gs232b_getdata(buf,20);
-	sscanf(buf,"AZ=%03f\r\n",&gs_state.currentaz);
-	gs_state.currentaz = RADOF(gs_state.currentaz);
-	return (gs_state.currentaz);
+	sscanf(buf,"AZ=%03f\r\n",&ant_state.currentaz);
+	ant_state.currentaz = RADOF(ant_state.currentaz);
+	return (ant_state.currentaz);
 }
 
 float gs232b_get_el()
@@ -308,9 +313,9 @@ float gs232b_get_el()
 	char buf[20];
 	gs232b_send((char *)"B\r",1);
 	gs232b_getdata(buf,20);
-	sscanf(buf,"EL=%03f\r\n",&gs_state.currentel);
-	gs_state.currentel = RADOF(gs_state.currentel);
-	return (gs_state.currentel);
+	sscanf(buf,"EL=%03f\r\n",&ant_state.currentel);
+	ant_state.currentel = RADOF(ant_state.currentel);
+	return (ant_state.currentel);
 }
 
 int32_t gs232b_get_az_el(float &az, float &el)
@@ -335,17 +340,17 @@ int32_t gs232b_get_az_el(float &az, float &el)
 
 float gs232b_get_az_offset()
 {
-	return (gs_state.az_offset);
+	return (ant_state.az_offset);
 }
 
 float gs232b_get_el_offset()
 {
-	return (gs_state.el_offset);
+	return (ant_state.el_offset);
 }
 
 void gs232b_get_state(gs232b_state &state)
 {
-	state = gs_state;
+	state = ant_state;
 }
 
 int32_t gs232b_test()
@@ -391,5 +396,12 @@ int32_t gs232b_send(char *buf, bool force)
 
 	return iretn;
 }
+
+int32_t gs232b_set_sensitivity(float sensitivity)
+{
+	ant_state.sensitivity = sensitivity;
+	return 0;
+}
+
 
 //#endif // define(COSMOS_MAC_OS) || define(COSMOS_LINUX_OS)
