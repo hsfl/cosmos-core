@@ -4839,7 +4839,7 @@ int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
 			iretn = load_lines(fname, tles);
 			if (iretn > 0)
 			{
-				if ((iretn=lines2eci(tles[0].utc, tles, cdata[0].node.loc.pos.eci)) < 0)
+				if ((iretn=lines2eci(currentmjd()-10./86400., tles, cdata[0].node.loc.pos.eci)) < 0)
 				{
 					loc_update(&cdata[0].node.loc);
 				}
