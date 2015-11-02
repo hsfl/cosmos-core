@@ -4839,7 +4839,7 @@ int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
 			iretn = load_lines(fname, tles);
 			if (iretn > 0)
 			{
-				if ((iretn=lines2eci(currentmjd()-10./86400., tles, cdata[0].node.loc.pos.eci)) < 0)
+				if ((iretn=lines2eci(tles[0].utc, tles, cdata[0].node.loc.pos.eci)) < 0)
 				{
 					loc_update(&cdata[0].node.loc);
 				}
@@ -7977,6 +7977,22 @@ int update_target(cosmosstruc *cdata)
 	//		cdata[0].target[i].range = NAN;
 	//		cdata[0].target[i].close = NAN;
 	//	}
+	return 0;
+}
+
+int32_t update_target(locstruc source, targetstruc &target)
+{
+	rvector topo, dv, ds;
+
+	loc_update(&target.loc);
+	geoc2topo(target.loc.pos.geod.s, source.pos.geoc.s,topo);
+	topo2azel(topo, &target.azto, &target.elto);
+	geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
+	topo2azel(topo, &target.azfrom, &target.elfrom);
+	ds = rv_sub(target.loc.pos.geoc.s, source.pos.geoc.s);
+	target.range = length_rv(ds);
+	dv = rv_sub(target.loc.pos.geoc.v, source.pos.geoc.v);
+	target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
 	return 0;
 }
 
