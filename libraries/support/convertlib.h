@@ -155,10 +155,10 @@ int tle2eci(double mjd, tlestruc tle, cartpos &eci);
 int32_t eci2tle(double utc, cartpos eci, tlestruc &tle);
 int sgp4(double utc, tlestruc tle, cartpos &pos_teme);
 tlestruc get_line(uint16_t index, vector<tlestruc> tle);
-int32_t load_lines(char *fname, vector<tlestruc>& tle);
-int32_t load_lines_multi(char *fname, vector<tlestruc>& tle);
+int32_t load_lines(string fname, vector<tlestruc>& tle);
+int32_t load_lines_multi(string fname, vector<tlestruc>& tle);
 int32_t loadTLE(char *fname, tlestruc &tle);
-int32_t load_stk(char *filename, stkstruc &stkdata);
+int32_t load_stk(string filename, stkstruc &stkdata);
 int stk2eci(double utc, stkstruc &stk, cartpos &eci);
 
 //! @}

@@ -3083,7 +3083,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
 * \param lines Array of ::tlestruc structures to contain elements
 * \return A ::int32_t indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines(char *fname, vector<tlestruc>& lines)
+int32_t load_lines(string fname, vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -3093,7 +3093,7 @@ int32_t load_lines(char *fname, vector<tlestruc>& lines)
 	int i;
 	tlestruc tle;
 
-	if ((fdes=fopen(fname,"r")) == NULL)
+	if ((fdes=fopen(fname.c_str(),"r")) == NULL)
 		return (-1);
 
 	tlecount = 0;
@@ -3159,7 +3159,7 @@ int32_t load_lines(char *fname, vector<tlestruc>& lines)
 * \param lines Array of ::tlestruc structures to contain elements
 * \return A ::int32_t indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines_multi(char *fname, vector<tlestruc>& lines)
+int32_t load_lines_multi(string fname, vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -3169,7 +3169,7 @@ int32_t load_lines_multi(char *fname, vector<tlestruc>& lines)
 	int i;
 	tlestruc tle;
 
-	if ((fdes=fopen(fname,"r")) == NULL)
+	if ((fdes=fopen(fname.c_str(),"r")) == NULL)
 		return (-1);
 
 	tlecount = 0;
@@ -3236,7 +3236,7 @@ int32_t load_lines_multi(char *fname, vector<tlestruc>& lines)
 	\param filename Name of file containing positions.
 	\return The number of entries in the table, otherwise a negative error.
 */
-int32_t load_stk(char *filename, stkstruc &stkdata)
+int32_t load_stk(string filename, stkstruc &stkdata)
 {
 	FILE *fdes;
 	int32_t maxcount;
@@ -3244,7 +3244,7 @@ int32_t load_stk(char *filename, stkstruc &stkdata)
 	cposstruc *tpos;
 	char ibuf[250];
 
-	if ((fdes=fopen(filename,"r")) == NULL)
+	if ((fdes=fopen(filename.c_str(),"r")) == NULL)
 		return (STK_ERROR_NOTFOUND);
 
 	maxcount = 1000;
