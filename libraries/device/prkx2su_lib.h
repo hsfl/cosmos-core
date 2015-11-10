@@ -28,14 +28,14 @@
 ********************************************************************/
 
 /**
-* Contains definitions and functions for running a Yaesu GS-232B
+* Contains definitions and functions for running a Yaesu prkx2su
 * controller.
-* @file gs232b_lib.h
-* @brief GS-232B controller includes
+* @file prkx2su_lib.h
+* @brief prkx2su controller includes
 */
 
-#ifndef _GS232BLIB_H
-#define _GS232BLIB_H 1
+#ifndef _prkx2suLIB_H
+#define _prkx2suLIB_H 1
 
 #include "configCosmos.h"
 
@@ -45,30 +45,32 @@
 
 #include <stdio.h>
 
-#define GS232B_ID 1
-#define GS232B_BAUD 9600
-#define GS232B_BITS 8
-#define GS232B_PARITY 0
-#define GS232B_STOPBITS 1
+#define PRKX2SU_ID 1
+#define PRKX2SU_BAUD 9600
+#define PRKX2SU_BITS 8
+#define PRKX2SU_PARITY 0
+#define PRKX2SU_STOPBITS 1
 
-#define GS_STATE_STOWED 0
-#define GS_STATE_FIXED 1
-#define GS_STATE_SEEKING 2
-#define GS_STATE_TRACKING 3
+#define PRKX2SU_AXIS_AZ 0
+#define PRKX2SU_AXIS_EL 1
 
 /**
-* Internal structure containing the state of the GS-232B and its
+* Internal structure containing the state of the prkx2su and its
 * associated G-5500.
-* @brief GS-232B state
+* @brief prkx2su state
 */
-struct gs232b_state
+struct prkx2su_state
 	{
+	uint8_t azid;
+	uint8_t azstatus;
 	int32_t az_center;
 	int32_t az_mode;
 	int32_t az_offset_waiting;
 	float az_offset;
 	float currentaz;
 	float targetaz;
+	uint8_t elid;
+	uint8_t elstatus;
 	int32_t el_offset_waiting;
 	float el_offset;
 	float currentel;
@@ -78,23 +80,23 @@ struct gs232b_state
 	int32_t data_received;
 	} ;
 
-int32_t gs232b_connect(string dev);
-int32_t gs232b_disconnect();
-int32_t gs232b_calibrate_offset(int32_t axis);
-//void gs232b_full_scale_calibration(int32_t axis);
-//void gs232b_rotate(int32_t axis, int32_t direction);
-float gs232b_get_az();
-float gs232b_get_el();
-int32_t gs232b_get_az_el(float &az, float &el);
-float gs232b_get_az_offset();
-float gs232b_get_el_offset();
-void gs232b_get_state(gs232b_state &state);
-int32_t gs232b_goto(float az, float el);
-int32_t gs232b_stop();
-int32_t gs232b_az_speed(int32_t speed);
-int32_t gs232b_getdata(char *buf, int32_t buflen);
-int32_t gs232b_send(char *buf, bool force);
-int32_t gs232b_test();
-int32_t gs232b_set_sensitivity(float sensitivity);
+int32_t prkx2su_connect(string dev);
+int32_t prkx2su_disconnect();
+int32_t prkx2su_calibrate_offset(int32_t axis);
+//void prkx2su_full_scale_calibration(int32_t axis);
+//void prkx2su_rotate(int32_t axis, int32_t direction);
+float prkx2su_get_az();
+float prkx2su_get_el();
+int32_t prkx2su_get_az_el(float &az, float &el);
+float prkx2su_get_az_offset();
+float prkx2su_get_el_offset();
+void prkx2su_get_state(prkx2su_state &state);
+int32_t prkx2su_goto(float az, float el);
+int32_t prkx2su_stop(uint8_t axis);
+int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed);
+int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen);
+int32_t prkx2su_send(uint8_t axis, char *buf, bool force);
+int32_t prkx2su_test(uint8_t axis);
+int32_t prkx2su_set_sensitivity(float sensitivity);
 
 #endif

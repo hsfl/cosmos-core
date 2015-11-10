@@ -54,6 +54,8 @@
 //! @{
 
 // TODO: move these constants to physics/constants.h
+//! Speed of light
+#define CLIGHT 299792458.
 //! SI Stefan-Boltzmann constant
 #define SIGMA 5.67e-8
 //! SI Gravitational constant
