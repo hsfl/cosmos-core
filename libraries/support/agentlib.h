@@ -155,11 +155,25 @@ public:
     Agent();
     Agent(string nodename, string agentname);
 
+    // agent functions
     bool setupServer();
     bool setupServer(string nodename, string agentname);
     bool setupClient(string nodename);
 
-    //
+    beatstruc findServer(string servername);
+    beatstruc find(string servername);
+
+    uint16_t isRunning();
+    int32_t sendRequest(beatstruc beat, string request, string &response);
+    int32_t shutdownServer();
+
+    int32_t post(uint8_t type, string message);
+    int32_t poll(uint8_t type, string &message);
+    int32_t poll(pollstruc &meta, string& message, uint8_t type, float waitsec);
+    int32_t pollParse(string &message);
+
+    // agent variables
+    cosmosstruc *cdata;
     string nodeName;
     string name;
     string version       = "0.0";
@@ -168,17 +182,13 @@ public:
     uint32_t buffer_size = AGENTMAXBUFFER;
     bool     multiflag   = false;
     float    timeoutSec  = 1.0;
-
     bool printMessages   = true; // by default?
 
+    // poll
+    pollstruc metaRx;
+    string metaHeader;
 
-    cosmosstruc *cdata;
-    beatstruc findServer(string servername);
-    beatstruc find(string servername);
 
-    uint16_t isRunning();
-    int32_t sendRequest(beatstruc beat, string request, string &response);
-    int32_t shutdownServer();
 };
 
 

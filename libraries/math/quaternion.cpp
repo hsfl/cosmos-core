@@ -749,7 +749,7 @@ std::ostream& operator << (std::ostream& out, const quaternion& a)
     //out << std::setw(6);
     out << a.d.y << ",";
     //out << std::setw(6);
-    out << a.d.z << ", ";
+    out << a.d.z << ",,";
     //out << std::setw(6)
     out << a.w;
     //   << "]";

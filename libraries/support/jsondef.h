@@ -739,6 +739,12 @@ struct beatstruc
 	double bprd;
 	//! Agent User Name
 	char user[COSMOS_MAX_NAME+1];
+    //! Agent % CPU
+    float cpu;
+    //! Agent % memory
+    float memory;
+    //! Agent heartbeat jitter [sec]
+    double jitter;
 };
 
 //! Agent control structure

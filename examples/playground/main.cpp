@@ -15,6 +15,7 @@ using namespace std;
 
 
 void compute_quaternion_from_vectors();
+void torque_mtr();
 
 int main()
 {
@@ -232,8 +233,29 @@ int main()
 
     compute_quaternion_from_vectors();
 
+//    torque_mtr();
+
     return 0;
 
+}
+
+
+void torque_mtr()
+{
+    // define torque desired
+    Vector torqueDesired = {0,0,2};
+
+    // define magnetic Field
+    Vector magField = {0,2,1};
+
+    // compute moment for torque desired
+    Vector momentDesired = 1./(magField.norm()*magField.norm()) * magField.cross(torqueDesired) ;
+
+    Vector torqueReal = momentDesired.cross(magField);
+
+    cout << "torqueDesired = " << torqueDesired << endl;
+    cout << "momentDesired = " << momentDesired << endl;
+    cout << "torqueReal    = " << torqueReal << endl;
 }
 
 void compute_quaternion_from_vectors(){
@@ -248,16 +270,43 @@ void compute_quaternion_from_vectors(){
     // define basis 2
     // target frame wrt basis1 frame inertial
     basisOrthonormal frame_target_wrt_inertial;
-    frame_target_wrt_inertial.i = {-1,0,0};
-    frame_target_wrt_inertial.j = {0,-1,0};
-    frame_target_wrt_inertial.k = {0,0,1};
+
+//    // rotate 90 deg
+//    frame_target_wrt_inertial.i = {0,1,0};
+//    frame_target_wrt_inertial.j = {-1,0,0};
+//    frame_target_wrt_inertial.k = {0,0,1};
+
+//    // rotate 180 deg
+//    frame_target_wrt_inertial.i = {-1,0,0};
+//    frame_target_wrt_inertial.j = {0,-1,0};
+//    frame_target_wrt_inertial.k = {0,0,1};
+
+//    // rotate 270 deg, q = [0,0,-0.707107, 0.707107]
+//    frame_target_wrt_inertial.i = {0,-1,0};
+//    frame_target_wrt_inertial.j = {1,0,0};
+//    frame_target_wrt_inertial.k = {0,0,1};
+
+    // rotate x down a bit [1,0,0]->[1,0,-1] [0 -0.382683 0 0.92388]
+    frame_target_wrt_inertial.i = {1,0,1};
+    frame_target_wrt_inertial.j = {0,1,0};
+    frame_target_wrt_inertial.k = {-1,0,1};
+
+    // rotate x up a bit [1,0,0]->[1,0,-1] [0 -0.382683 0 0.92388]
+    frame_target_wrt_inertial.i = {1,0,-1};
+    frame_target_wrt_inertial.j = {0,1,0};
+    frame_target_wrt_inertial.k = {1,0,1};
+
+    // rotate y up a bit [1,0,0]->[1,0,-1] [0 -0.382683 0 0.92388]
+    frame_target_wrt_inertial.i = {1,0,0};
+    frame_target_wrt_inertial.j = {0,1,1};
+    frame_target_wrt_inertial.k = {0,-1,1};
 
     // this rotation matrix represents an active rotation (fixed axis, vector rotates)
     // the vector is represented in the inertial frame
     // the vector will rotate counterclockwise around the axis
     cmatrix R_target_from_inertial = dcm.base1_from_base2(frame_inertial, frame_target_wrt_inertial);
 
-    cout << R_target_from_inertial << endl;
+//    cout << R_target_from_inertial << endl;
 
     // test vector rotation
     // a x-vector of the inertial frame (1,0,0) will be rotated to the x-vector of the target frame (1,1,0)
@@ -266,12 +315,33 @@ void compute_quaternion_from_vectors(){
 
     // quaternion that represents the rotation between the body frame and the inertial frame
     quaternion q_target_wrt_inertial = q_dcm2quaternion_cm(R_target_from_inertial);
-    cout << "q_target_wrt_inertial: " << q_target_wrt_inertial << endl;
+    cout << "q_target_wrt_inertial: ";
+    cout << q_target_wrt_inertial.d.x << " ";
+    cout << q_target_wrt_inertial.d.y << " ";
+    cout << q_target_wrt_inertial.d.z << " ";
+    cout << q_target_wrt_inertial.w << " " << endl;
 
 
     // The above math can be simplified by just calling this function
     Quaternion q;
-    q.fromTwoVectors({1,0,0},{-1,0,0});
+//    // rotate 90 deg (i -> j) = [0 0 0.707107 0.707107]
+//    q.fromTwoVectors({1,0,0},{0,1,0});
+
+//    // rotate 180 deg (i -> -i) = [0 0 1 0]
+//    q.fromTwoVectors({1,0,0},{-1,0,0});
+
+//    // rotate 270 deg (i -> -j) = [0,0,-0.707107, 0.707107]
+//    q.fromTwoVectors({1,0,0},{0,-1,0});
+
+    // rotate x down a bit [1,0,0]->[1,0,-1] [0 -0.382683 0 0.92388]
+    q.fromTwoVectors({1,0,0},{1,0,1});
+
+    // rotate x up a bit [1,0,0]->[1,0,-1] [0 0.382683 0 0.92388]
+    q.fromTwoVectors({1,0,0},{1,0,-1});
+
+    // rotate y up a bit [0,1,0]->[0,1,1] [0 0.382683 0 0.92388]
+    q.fromTwoVectors({0,1,0},{0,1,1});
+
 
     cout << "q: " << q << endl;
 
@@ -299,15 +369,16 @@ void compute_quaternion_from_vectors(){
     // I want: the quaternion that represents the target frame wrt the inertial frame
     // this is equivalent of a quaternion that represents the rotation of 45 deg around z axis of the inertial frame
 
-    Vector a, b;
-    a = {123,2,3};
+//    using COSMOS::Math::Vector;
+//    Vector a, b;
+//    a = {123,2,3};
 
-    cout << a.x << endl;
-    cout << a.y << endl;
-    cout << a.z << endl;
+//    cout << a.x << endl;
+//    cout << a.y << endl;
+//    cout << a.z << endl;
 
-    for (int i= 0; i<3; i++){
-        cout << a.col(i) << endl;
-    }
+//    for (int i= 0; i<3; i++){
+//        cout << a.at(i) << endl;
+//    }
 
 }

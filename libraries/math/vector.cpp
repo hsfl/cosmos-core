@@ -234,6 +234,7 @@ rvector rv_shortest2(rvector v)
         \param v the ::rvector to be normalized
         \return the normalized version of the vector as ::rvector
 */
+// TODO: change name to normalize, normal means perpendicular
 rvector rv_normal(rvector v)
 {
     normalize_rv(&v);
@@ -955,12 +956,19 @@ std::istream& operator >> (std::istream& in, avector& a)
 }
 
 
+namespace COSMOS {
+namespace Math {
+
 
 // TODO: the vector class is very similar to the cvector
 // consider merging
+
+// default constructor sets x,y,z members to 0
 Vector::Vector()
 {
-
+    this->x = 0;
+    this->y = 0;
+    this->z = 0;
 }
 
 Vector::Vector(double x, double y, double z)
@@ -970,7 +978,7 @@ Vector::Vector(double x, double y, double z)
     this->z = z;
 }
 
-double Vector::col(int i)
+double Vector::at(int i)
 {
     switch (i) {
     case 0:
@@ -1038,5 +1046,41 @@ double Vector::norm()
     else
         return (norm);
 }
+
+
+// multiply vector with scalar operator
+// result = Vector * scale
+Vector Vector::operator * (double scale)
+{
+    Vector vo;
+
+    vo.x = scale * this->x;
+    vo.y = scale * this->y;
+    vo.z = scale * this->z;
+
+    return vo;
+}
+
+// multiply scalar with vector operator
+// result = scale * Vector
+// TODO: is is possible to add this as a member function of Vector?
+Vector operator * (double scale, Vector v)
+{
+    return v*scale;
+}
+
+
+std::ostream& operator << (std::ostream& out, const Vector& v)
+{
+    out << v.x << ",";
+    out << v.y << ",";
+    out << v.z;
+
+    return out;
+}
+
+} // end namespace Math
+} // end namespace COSMOS
+
 
 //! @}

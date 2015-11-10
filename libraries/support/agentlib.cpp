@@ -761,6 +761,12 @@ void heartbeat_loop(cosmosstruc *cdata)
 
     while (((cosmosstruc *)cdata)->agent[0].stateflag)
     {
+
+        // compute the jitter
+        ((cosmosstruc *)cdata)->agent[0].beat.jitter = ep.split() - ((cosmosstruc *)cdata)->agent[0].beat.bprd;
+        ((cosmosstruc *)cdata)->agent[0].beat.cpu = 1;
+        ((cosmosstruc *)cdata)->agent[0].beat.memory = 2;
+
         ep.start();
 
         ((cosmosstruc *)cdata)->agent[0].beat.utc = currentmjd(0.);
@@ -780,7 +786,7 @@ void heartbeat_loop(cosmosstruc *cdata)
 
 		if (ep.split() <= ((cosmosstruc *)cdata)->agent[0].beat.bprd)
         {
-            COSMOS_SLEEP(((cosmosstruc *)cdata)->agent[0].beat.bprd - ep.elapsedTime);
+            COSMOS_SLEEP(((cosmosstruc *)cdata)->agent[0].beat.bprd - ep.split());
         }
     }
     agent_unpublish(((cosmosstruc *)cdata));
@@ -1425,17 +1431,28 @@ int32_t agent_post(cosmosstruc *cdata, uint8_t type, string message)
     // this will broadcast messages to all external interfaces (ifcnt = interface count)
     for (i=0; i<cdata[0].agent[0].ifcnt; i++)
     {
-		sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"node_utcoffset\":%.15g}",cdata[0].agent[0].beat.utc,cdata[0].agent[0].beat.node,cdata[0].agent[0].beat.proc,cdata[0].agent[0].pub[i].address,cdata[0].agent[0].beat.port,cdata[0].agent[0].beat.bsz,cdata[0].node.utcoffset);
+        sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
+                cdata[0].agent[0].beat.utc,
+                cdata[0].agent[0].beat.node,
+                cdata[0].agent[0].beat.proc,
+                cdata[0].agent[0].pub[i].address,
+                cdata[0].agent[0].beat.port,
+                cdata[0].agent[0].beat.bsz,
+                cdata[0].agent[0].beat.cpu,
+                cdata[0].agent[0].beat.memory,
+                cdata[0].agent[0].beat.jitter,
+                cdata[0].node.utcoffset);
 		size_t hlength = strlen((char *)&post[3]);
 		post[1] = hlength%256;
 		post[2] = hlength / 256;
 		nbytes = hlength + 3;
+
 		if (message.size())
         {
 			if (nbytes+message.size() > AGENTMAXBUFFER)
                 return (AGENT_ERROR_BUFLEN);
 			memcpy(&post[nbytes], &message[0], message.size());
-//            strcat(post,message);
+            //            strcat(post,message);
         }
         iretn = sendto(cdata[0].agent[0].pub[i].cudp,       // socket
                 (const char *)post,                         // buffer to send
@@ -1525,6 +1542,7 @@ int32_t agent_unsubscribe(cosmosstruc *cdata)
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
+// TODO: instead of type (AGENT_MESSAGE_ALL) replace by header ex: 0xBB
 int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t type, float waitsec)
 {
     int nbytes;
@@ -1542,11 +1560,18 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t
         {
         case AGENT_TYPE_MULTICAST:
         case AGENT_TYPE_UDP:
-			nbytes = recvfrom(cdata[0].agent[0].sub.cudp,(char *)input,AGENTMAXBUFFER,0,(struct sockaddr *)&cdata[0].agent[0].sub.caddr,(socklen_t *)&cdata[0].agent[0].sub.addrlen);
+
+            nbytes = recvfrom(cdata[0].agent[0].sub.cudp,
+                    (char *)input,AGENTMAXBUFFER,
+                    0,
+                    (struct sockaddr *)&cdata[0].agent[0].sub.caddr,
+                    (socklen_t *)&cdata[0].agent[0].sub.addrlen);
+
 			// Return if port and address are our own
 			for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
 			{
-				if (cdata[0].agent[0].sub.caddr.sin_port == cdata[0].agent[0].pub[i].caddr.sin_port && cdata[0].agent[0].sub.caddr.sin_addr.s_addr == cdata[0].agent[0].pub[i].caddr.sin_addr.s_addr)
+                if (cdata[0].agent[0].sub.caddr.sin_port == cdata[0].agent[0].pub[i].caddr.sin_port &&
+                        cdata[0].agent[0].sub.caddr.sin_addr.s_addr == cdata[0].agent[0].pub[i].caddr.sin_addr.s_addr)
 				{
 					return 0;
 					break;
@@ -1592,7 +1617,8 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t
 				memcpy(&message[0], &input[start_byte], nbytes+1-start_byte);
 
 				// Extract meta data
-				sscanf(message.c_str(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}", &meta.beat.utc, meta.beat.node, meta.beat.proc, meta.beat.addr, &meta.beat.port, &meta.beat.bsz);
+                sscanf(message.c_str(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}",
+                       &meta.beat.utc, meta.beat.node, meta.beat.proc, meta.beat.addr, &meta.beat.port, &meta.beat.bsz);
 				return ((int)meta.type);
             }
         }
@@ -2079,6 +2105,31 @@ int32_t Agent::shutdownServer()
     return 0;
 }
 
+int32_t Agent::post(uint8_t type, string message)
+{
+    return agent_post(cdata, type, message);
+}
+
+int32_t Agent::poll(pollstruc &meta, string &message, uint8_t type, float waitsec)
+{
+    return agent_poll(cdata, meta, message, type, waitsec);
+}
+
+int32_t Agent::pollParse(string &message)
+{
+    // collect the header
+    metaHeader = message.substr(0, metaRx.jlength);
+    // collect the data
+    message.erase(0, metaRx.jlength);
+
+    return 0;
+}
+
+int32_t Agent::poll(uint8_t type, string &message)
+{
+    float waitsec = 1; // by default
+    return agent_poll(cdata, metaRx, message, type, waitsec);
+}
 
 beatstruc Agent::find(string servername)
 {

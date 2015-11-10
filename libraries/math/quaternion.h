@@ -41,6 +41,7 @@
 #include "math/vector.h"
 #include "math/constants.h"
 
+using COSMOS::Math::Vector;
 
 //! Quaternion, scalar last, using x, y, z.
 /*! Can be thought of as ::rvector with scalar last. One can be set equal to other.
@@ -187,7 +188,7 @@ public:
     double norm();
 };
 
-// deplared outside class because it does not need to access members of the class Quaternion
+// declared outside class because it does not need to access members of the class Quaternion
 std::ostream& operator << (std::ostream& os, const Quaternion& q);
 
 #endif

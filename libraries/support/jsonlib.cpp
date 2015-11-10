@@ -5170,6 +5170,9 @@ uint16_t json_addbaseentry(cosmosstruc *cdata)
 	json_addentry("agent_stateflag", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,stateflag), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_AGENT,cdata);
 	json_addentry("agent_user", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,user),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_GROUP_AGENT,cdata);
 	json_addentry("agent_utc", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,utc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_AGENT,cdata);
+    json_addentry("agent_cpu", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,cpu),COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_AGENT,cdata);
+    json_addentry("agent_memory", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,memory),COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_AGENT,cdata);
+    json_addentry("agent_jitter", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,jitter),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_AGENT,cdata);
 
 	// Event structure
 	json_addentry("event_cbytes", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cbytes), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_EVENT,cdata);
@@ -6072,6 +6075,21 @@ const char *json_of_agent(string &jstring, cosmosstruc *cdata)
 	{
 		return nullptr;
 	}
+    iretn = json_out(jstring,(char *)"agent_cpu",cdata);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out(jstring,(char *)"agent_memory",cdata);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out(jstring,(char *)"agent_jitter",cdata);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
 
 	return jstring.data();
 }

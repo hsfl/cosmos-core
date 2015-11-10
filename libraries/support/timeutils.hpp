@@ -38,6 +38,8 @@
 #include "configCosmos.h"
 #include <iostream>
 #include <string>
+
+#ifndef BUILD_TYPE_arm
 #include <chrono>
 #include <ctime>
 
@@ -55,5 +57,6 @@ public:
     void testSecondsSinceMidnight();
 };
 
+#endif
 
 #endif
