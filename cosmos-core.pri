@@ -48,8 +48,8 @@ win32 {
 
         # include dirent for MSVC
         INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent
-        SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/dirent/*.c)
-        HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/dirent/*.h)
+        SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent/dirent.c
+        HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent/dirent.h
     }
 
 }
@@ -123,6 +123,7 @@ contains(MODULES, agentlib){
     MODULES += elapsedtime # and elapsedtime
     MODULES += jsonlib
     MODULES += timelib
+    MODULES += timeutils
     MODULES += stringlib
     MODULES += datalib
 
