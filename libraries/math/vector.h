@@ -207,7 +207,7 @@ double cv_norm(cvector v);
 double sum_cv(cvector a);
 
 
-namespace COSMOS {
+namespace Cosmos {
 namespace Math {
 //! Vector Class
 /*! eventually this is where all row vector stuff would come?

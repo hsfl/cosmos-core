@@ -956,7 +956,7 @@ std::istream& operator >> (std::istream& in, avector& a)
 }
 
 
-namespace COSMOS {
+namespace Cosmos {
 namespace Math {
 
 
@@ -1080,7 +1080,7 @@ std::ostream& operator << (std::ostream& out, const Vector& v)
 }
 
 } // end namespace Math
-} // end namespace COSMOS
+} // end namespace Cosmos
 
 
 //! @}

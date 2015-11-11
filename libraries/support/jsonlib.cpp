@@ -6406,6 +6406,10 @@ string json_list_of_soh(cosmosstruc* cdata)
 		result += tempstring;
 		sprintf(tempstring, ",\"device_ant_align_%03d\"",i);
 		result += tempstring;
+		sprintf(tempstring, ",\"device_ant_azim_%03d\"",i);
+		result += tempstring;
+		sprintf(tempstring, ",\"device_ant_elev_%03d\"",i);
+		result += tempstring;
 	}
 
 	for (uint16_t i=0; i<cdata[0].devspec.rxr_cnt; ++i)
@@ -6434,7 +6438,11 @@ string json_list_of_soh(cosmosstruc* cdata)
 	{
 		sprintf(tempstring, ",\"device_tcv_utc_%03d\",\"device_tcv_temp_%03d\"", i, i);
 		result += tempstring;
-		sprintf(tempstring, ",\"device_tcv_freq_%03d\",\"device_tcv_freqout_%03d\"",i,i);
+		sprintf(tempstring, ",\"device_tcv_freq_%03d\",\"device_tcv_opmode_%03d\"",i,i);
+		result += tempstring;
+		sprintf(tempstring, ",\"device_tcv_band_%03d\"",i);
+		result += tempstring;
+		sprintf(tempstring, ",\"device_tcv_powerin_%03d\",\"device_tcv_powerout_%03d\"",i,i);
 		result += tempstring;
 	}
 

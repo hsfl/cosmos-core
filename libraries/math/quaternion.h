@@ -41,7 +41,7 @@
 #include "math/vector.h"
 #include "math/constants.h"
 
-using COSMOS::Math::Vector;
+using Cosmos::Math::Vector;
 
 //! Quaternion, scalar last, using x, y, z.
 /*! Can be thought of as ::rvector with scalar last. One can be set equal to other.
