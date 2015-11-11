@@ -1319,8 +1319,10 @@ struct tcvstruc
 	float maxfreq;
 	//! Minimum frequency allowed
 	float minfreq;
-	//! Power
-	float power;
+	//! Current RX Power
+	float powerin;
+	//! Current TX Power
+	float powerout;
 	//! Output Power limit
 	float maxpower;
 	//! Input Filter bandpass

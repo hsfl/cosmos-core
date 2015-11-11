@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 	case DEVICE_TYPE_RXR:
 		sprintf(sohstring, "{\"device_rxr_freq_%03lu\",\"device_rxr_power_%03lu\",\"device_rxr_band_%03lu\",\"device_rxr_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex);
 	case DEVICE_TYPE_TCV:
-		sprintf(sohstring, "{\"device_tcv_freq_%03lu\",\"device_tcv_power_%03lu\",\"device_tcv_maxpower_%03lu\",\"device_tcv_band_%03lu\",\"device_tcv_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex, radioindex);
+		sprintf(sohstring, "{\"device_tcv_freq_%03lu\",\"device_tcv_powerin_%03lu\",\"device_tcv_powerout_%03lu\",\"device_tcv_maxpower_%03lu\",\"device_tcv_band_%03lu\",\"device_tcv_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex, radioindex, radioindex);
 		break;
 	}
 	agent_set_sohstring(cdata, sohstring);

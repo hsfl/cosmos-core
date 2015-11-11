@@ -5647,7 +5647,8 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 		json_addentry("device_tcv_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,freq)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_tcv_maxfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxfreq)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_tcv_minfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,minfreq)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-		json_addentry("device_tcv_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,power)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_powerin",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,powerin)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+		json_addentry("device_tcv_powerout",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,powerout)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_tcv_maxpower",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxpower)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		json_addentry("device_tcv_band",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,band)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
 		cdata[0].devspec.tcv.push_back((tcvstruc *)&cdata[0].device[i].tcv);
