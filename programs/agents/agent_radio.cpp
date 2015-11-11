@@ -253,27 +253,20 @@ int main(int argc, char *argv[])
 					radioconnected = false;
 				}
 
-				//				iretn = ic9100_get_swrmeter(ic9100);
-				//				iretn = ic9100_get_alcmeter(ic9100);
+				iretn = ic9100_get_rfmeter(ic9100);
+				if (iretn >= 0)
+				{
+					cdata[0].device[deviceindex].tcv.powerout = ic9100.powerout;
+				}
+				else
+				{
+					radioconnected = false;
+				}
+
 				iretn = ic9100_get_smeter(ic9100);
 				if (iretn >= 0)
 				{
-					if (!ic9100.smeter)
-					{
-						iretn = ic9100_get_rfmeter(ic9100);
-						if (iretn >= 0)
-						{
-							cdata[0].device[deviceindex].tcv.power = ic9100.power;
-						}
-						else
-						{
-							radioconnected = false;
-						}
-					}
-					else
-					{
-						cdata[0].device[deviceindex].tcv.power = ic9100.power;
-					}
+					cdata[0].device[deviceindex].tcv.powerin = ic9100.powerin;
 				}
 				else
 				{
@@ -327,13 +320,13 @@ int32_t request_set_bandpass(char *request, char* response, void *)
 
 int32_t request_get_power(char *request, char* response, void *)
 {
-	sprintf(response,"%f", cdata[0].device[deviceindex].tcv.power);
+	sprintf(response,"%f", cdata[0].device[deviceindex].tcv.powerin);
 	return 0;
 }
 
 int32_t request_set_power(char *request, char* response, void *)
 {
-	sscanf(request, "set_power %f", &target.power);
+	sscanf(request, "set_power %f", &target.maxpower);
 	return 0;
 }
 

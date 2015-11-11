@@ -85,7 +85,8 @@ struct ic9100_handle
 	uint8_t compmeter;
 	uint16_t opmode;
 	float bandpass;
-	float power;
+	float powerin;
+	float powerout;
 	float maxpower;
 	double frequency;
 };
