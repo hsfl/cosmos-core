@@ -115,18 +115,18 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
     #  Option(BUILD_ARM "Build for ARM architecture" OFF)
     IF (${BUILD_TYPE} MATCHES "arm")
         IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_FOLDER "/usr/local/cosmos/linux_arm")
+            SET(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux_arm")
         ELSE()
-            SET(COSMOS_FOLDER "$ENV{COSMOS}/linux_arm")
+            SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux_arm")
         ENDIF("$ENV{COSMOS}" STREQUAL "")
 
         SET(CMAKE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/build/toolchain_arm")
 
     ELSE()
         IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_FOLDER "/usr/local/cosmos/linux")
+            SET(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux")
         ELSE()
-            SET(COSMOS_FOLDER "$ENV{COSMOS}/linux")
+            SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux")
         ENDIF("$ENV{COSMOS}" STREQUAL "")
     ENDIF()
 
@@ -166,13 +166,13 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
     IF (${BUILD_TYPE} MATCHES "arm")
         MESSAGE("Building for targe arm")
-        SET(COSMOS_FOLDER "c:/cosmos/windows_arm")
+        SET(COSMOS_INSTALL_FOLDER "c:/cosmos/windows_arm")
         SET(CMAKE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
     ELSE()
         IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_FOLDER "c:/cosmos/windows")
+            SET(COSMOS_INSTALL_FOLDER "c:/cosmos/windows")
         ELSE()
-            SET(COSMOS_FOLDER "$ENV{COSMOS}/windows")
+            SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/windows")
         ENDIF("$ENV{COSMOS}" STREQUAL "")
     ENDIF()
 
@@ -218,18 +218,18 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
     IF("$ENV{COSMOS}" STREQUAL "")
-        SET(COSMOS_FOLDER "/Applications/cosmos")
+        SET(COSMOS_INSTALL_FOLDER "/Applications/cosmos")
     ELSE()
-        SET(COSMOS_FOLDER "$ENV{COSMOS}/macos")
+        SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/macos")
     ENDIF("$ENV{COSMOS}" STREQUAL "")
 
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 # -----------------------------------------------
-MESSAGE("COSMOS_FOLDER: ${COSMOS_FOLDER}")
+MESSAGE("COSMOS_INSTALL_FOLDER: ${COSMOS_INSTALL_FOLDER}")
 
-    SET(CMAKE_INSTALL_PREFIX "${COSMOS_FOLDER}" CACHE PATH "default install path" FORCE )
+SET(CMAKE_INSTALL_PREFIX "${COSMOS_INSTALL_FOLDER}" CACHE PATH "default install path" FORCE )
 message("Install: ${CMAKE_INSTALL_PREFIX}")
 
 
@@ -249,86 +249,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 # by default (but it will fail when loaded into another project)
 SET(COSMOS_CORE ${CMAKE_SOURCE_DIR})
 
-# -----------------------------------------------
-# Build Physics Library
-#IF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
-#    MESSAGE("Building Physics Library")
-#	add_subdirectory(${COSMOS_CORE}/libraries/physics ${CMAKE_BINARY_DIR}/libraries/physics)
-#	SET(LINK_LIBRARY_COSMOS_CORE_PHYSICS CosmosPhysics)
-#ENDIF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
-
-
-# Build Math Library
-IF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
-    MESSAGE("Building Math Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/math ${CMAKE_BINARY_DIR}/libraries/math)
-    SET(LINK_LIBRARY_COSMOS_CORE_MATH CosmosMath)
-ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
-
-# -----------------------------------------------
-# Build Support Library
-IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
-    MESSAGE("Building Support Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/support ${CMAKE_BINARY_DIR}/libraries/support)
-    SET(LINK_LIBRARY_COSMOS_CORE_SUPPORT CosmosSupport)
-ENDIF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
-
-# -----------------------------------------------
-# Build Devices Library
-IF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
-    MESSAGE("Building Device Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/device ${CMAKE_BINARY_DIR}/libraries/device)
-    SET(LINK_LIBRARY_COSMOS_DEVICE CosmosDevice)
-ENDIF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
-
-# -----------------------------------------------
-# Build Thirdparty-Eigen Library
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
-    MESSAGE("Building Eigen Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/Eigen ${CMAKE_BINARY_DIR}/libraries/thirdparty/Eigen)
-    SET(LINK_LIBRARY_COSMOS_CORE_EIGEN Eigen )
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_EIGEN} MATCHES "ON")
-
-# -----------------------------------------------
-# Build Thirdparty-zlib Library
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
-    MESSAGE("Building zlib Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/zlib ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib)
-    SET(LINK_LIBRARY_COSMOS_CORE_ZLIB zlib )
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
-
-# -----------------------------------------------
-# Build Thirdparty-jpeg Library
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_JPEG} MATCHES "ON")
-    MESSAGE("Building jpeg Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/jpeg ${CMAKE_BINARY_DIR}/libraries/thirdparty/jpeg)
-    SET(LINK_LIBRARY_COSMOS_CORE_JPEG jpeg )
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_JPEG} MATCHES "ON")
-
-# -----------------------------------------------
-# Build user Library
-IF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
-    MESSAGE("Building user Library")
-    add_subdirectory(${COSMOS_CORE}/libraries)
-    SET(LINK_LIBRARY_COSMOS_PROJECT_USER CosmosUser)
-ENDIF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
-
-# -----------------------------------------------
-# Build png Library
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_PNG} MATCHES "ON")
-    MESSAGE("Building png")
-    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/png ${CMAKE_BINARY_DIR}/libraries/thirdparty/png)
-    SET(LINK_LIBRARY_COSMOS_CORE_PNG png )
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_PNG} MATCHES "ON")
-
-# -----------------------------------------------
-# Build dirent Library
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_DIRENT} MATCHES "ON")
-    MESSAGE("Building dirent")
-    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/dirent ${CMAKE_BINARY_DIR}/libraries/thirdparty/dirent)
-    SET(LINK_LIBRARY_COSMOS_CORE_DIRENT dirent )
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_DIRENT} MATCHES "ON")
-
+include(${CMAKE_SOURCE_DIR}/cmake/build_core_libs.cmake)
 
 # -----------------------------------------------
 MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")

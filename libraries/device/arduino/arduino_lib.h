@@ -27,43 +27,31 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// #include <unistd.h>
-#include "microstrain_lib.h"
-#include "timelib.h"
+#include "configCosmos.h"
 
-int main(int argc, char *argv[])
-{
-	int32_t iretn, handle;
-	rvector mag, magm, mags;
-	uint32_t count;
+//#include <stdio.h>    /* Standard input/output definitions */
+//#include <stdlib.h>
+//#include <stdint.h>   /* Standard types */
+//#include <cstring>   /* String function definitions */
+//// #include <unistd.h>   /* UNIX standard function definitions */
+//#include <fcntl.h>    /* File control definitions */
+//#include <errno.h>    /* Error number definitions */
+#ifndef COSMOS_WIN_OS
+#include <termios.h>  /* POSIX terminal control definitions */
+#include <sys/ioctl.h>
+#endif
+//#include <getopt.h>
 
-	iretn = microstrain_connect(argv[1]);
-	COSMOS_USLEEP(100000);
+int arduino_init(char* port, int baud);
+int arduino_printstring(char* str);
+int arduino_printnum(int num);
+int arduino_delay(int delay);
+char* arduino_setport(char* port);
+int arduino_setbaud(int baud);
+char* arduino_read(char* str);
+int arduino_closeport();
+int serialport_init(const char* serialport, int baud);
+int serialport_writebyte(int fd, uint8_t b);
+int serialport_write(int fd, const char* str);
+int serialport_read_until(int fd, char* buf, char until);
 
-	if (iretn < 0)
-		{
-		printf("Error: microstrain_connect() %d\n",iretn);
-		exit (1);
-		}
-
-	handle = iretn;
-
-	count = 1;
-	iretn = microstrain_magfield(handle, &magm);
-	COSMOS_USLEEP(100000);
-	mags = rv_mult(magm, magm);
-	for (uint16_t i=0; i<19; ++i)
-	{
-		iretn = microstrain_magfield(handle, &mag);
-		COSMOS_USLEEP(100000);
-		magm = rv_add(magm, mag);
-		mags = rv_add(mags, rv_mult(mag, mag));
-		++count;
-	}
-
-	mags = rv_sqrt(rv_smult(1./19., rv_sub(mags, rv_smult(1./20., rv_mult(magm, magm)))));
-	magm = rv_smult(1./20., magm);
-
-	printf("%+-10.5f %+-10.5f %+-10.5f %+-10.5f %+-10.5f %+-10.5f %+-10.5f\n",magm.col[0], magm.col[1], magm.col[2], mags.col[0], mags.col[1], mags.col[2], length_rv(magm));
-	iretn = microstrain_disconnect(handle);
-}
