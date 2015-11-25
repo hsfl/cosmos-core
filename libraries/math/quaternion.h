@@ -154,6 +154,11 @@ quaternion q_change_between_cv(cvector from, cvector to);
 //cvector rotate_q(quaternion q, cvector v);
 //cvector transform_q(quaternion q,cvector v); // doesn't exist in .cpp?
 
+
+namespace Cosmos {
+namespace Math {
+
+
 // TODO: implement new class
 class Quaternion {
 
@@ -188,7 +193,10 @@ public:
     double norm();
 };
 
+} // end namespace Math
+} // end namespace COSMOS
+
 // declared outside class because it does not need to access members of the class Quaternion
-std::ostream& operator << (std::ostream& os, const Quaternion& q);
+std::ostream& operator << (std::ostream& os, const Cosmos::Math::Quaternion& q);
 
 #endif

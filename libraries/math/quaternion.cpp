@@ -30,6 +30,10 @@
 // TODO: convert to class
 #include "math/quaternion.h"
 
+
+namespace Cosmos {
+namespace Math {
+
 Quaternion::Quaternion()
 {
     // by default create the identity quaternion
@@ -249,7 +253,8 @@ double Quaternion::norm()
     return ( sqrt(this->w*this->w + this->x*this->x + this->y*this->y + this->z*this->z) ) ;
 }
 
-
+} // end namespace Math
+} // end namespace Cosmos
 
 
 // ----------------------------------------------
