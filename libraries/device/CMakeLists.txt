@@ -43,7 +43,7 @@ message("-------------------------")
 
 FOREACH(subdir ${SUBDIRS})
     message(${subdir})
-    add_subdirectory(${COSMOS_SOURCE_FOLDER}/core/libraries/device/${subdir} ${CMAKE_BINARY_DIR}/libraries/device/${subdir})
+    add_subdirectory(${COSMOS_FOLDER}/core/libraries/device/${subdir} ${CMAKE_BINARY_DIR}/libraries/device/${subdir})
     list(APPEND libraryList ${libraryName})
 ENDFOREACH()
 

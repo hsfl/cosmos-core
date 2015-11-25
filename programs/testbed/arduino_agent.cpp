@@ -44,7 +44,8 @@
 #include "physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
-#include "arduino_lib.h"
+//#include "arduino_lib.h"
+#include "device/arduino/arduino_lib.h"
 
 typedef struct {
 	int 	controllerFlag ;

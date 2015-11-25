@@ -25,6 +25,15 @@ add_definitions( -DBUILD_TYPE_${BUILD_TYPE})
 # define folder where your programs are going to be installed
 #SET(INSTALL_DIR                run)
 
+# by default
+
+
+#IF("$ENV{COSMOS}" STREQUAL "")
+#    SET(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux_arm")
+#ELSE()
+#    SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux_arm")
+#ENDIF("$ENV{COSMOS}" STREQUAL "")
+
 #--------------------------------------------------------------------
 # automatic config
 
@@ -33,6 +42,8 @@ SET(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
 cmake_minimum_required(VERSION 2.6)
 
 project(${PROJECT_NAME})
+
+SET(COSMOS_FOLDER ${PROJECT_SOURCE_DIR}/..)
 
 # define what libraries you want to compile
 #SET(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
@@ -84,12 +95,12 @@ ENDIF ()
 
 
 
-# SET the COSMOS CORE path
-IF (${PROJECT_NAME} MATCHES "COSMOS_CORE")
+## SET the COSMOS CORE path
+#IF (${PROJECT_NAME} MATCHES "COSMOS_CORE")
 
-ELSE()
-    SET(COSMOS_CORE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../../core)
-ENDIF()
+#ELSE()
+#    SET(COSMOS_FOLDER ${CMAKE_SOURCE_DIR}/../..)
+#ENDIF()
 
 # -----------------------------------------------
 # Linux specific
