@@ -2,10 +2,10 @@
 
 message("Building device/arduino")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../math)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../support)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../math)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../support)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
