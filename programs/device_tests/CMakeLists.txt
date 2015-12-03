@@ -14,7 +14,7 @@ foreach(file ${files})
 
     add_executable(${bfile} ${bfile}.cpp)
 
-    target_link_libraries(${bfile} ${COSMOS_LIBS})
+    target_link_libraries(${bfile} ${libraryList} ${COSMOS_LIBS})
 
     install(TARGETS ${bfile} DESTINATION bin)
 

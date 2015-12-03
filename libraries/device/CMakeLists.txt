@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 #include_directories(${COSMOS_FOLDER}/core)
 include_directories(${COSMOS_FOLDER}/core/libraries/thirdparty)
@@ -12,7 +12,7 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 add_library(CosmosDevice STATIC ${SOURCES})
 
 # device depends on support and math, so link them here
-target_link_libraries(CosmosDevice CosmosSupport)
+#target_link_libraries(CosmosDevice CosmosSupport)
 #target_link_libraries(CosmosDevice CosmosMath) # not sure if I have to do this?
 
 install(TARGETS CosmosDevice DESTINATION lib)
@@ -59,3 +59,7 @@ foreach(libraryName ${libraryList})
     message("adding " ${libraryName})
     target_link_libraries(CosmosDevice ${libraryName})
 endforeach()
+
+#target_link_libraries(CosmosDevice CosmosMath CosmosSupport)
+#target_link_libraries(CosmosDevice CosmosDeviceArduino)
+

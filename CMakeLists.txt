@@ -39,7 +39,7 @@ add_definitions( -DBUILD_TYPE_${BUILD_TYPE})
 
 # comment
 SET(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(${PROJECT_NAME})
 
@@ -118,8 +118,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
 
         # set the COSMOS_LIBS for GCC
         #TODO: remove redundancy libs, this can be resolved when building the libs
-        #SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosMath CosmosSupport CosmosDevice CosmosMath zlib)
-        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosMath zlib)
+        SET(COSMOS_LIBS CosmosDevice CosmosSupport CosmosMath zlib)
 
     ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
@@ -157,8 +156,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
         # set the COSMOS_LIBS for MinGW
         #TODO: remove redundancy libs, this can be resolved when building the libs
-        #set (COSMOS_LIBS ${COSMOS_LIBS} CosmosMath CosmosDevice CosmosMath CosmosSupport CosmosMath CosmosDevice CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
-        set (COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
+        set (COSMOS_LIBS CosmosDevice CosmosSupport CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
 
     ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") #or just MSVC
         MESSAGE("Building with MSVC")
@@ -170,8 +168,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
         # set the COSMOS_LIBS for MSVC
         #TODO: remove redundancy libs, this can be resolved when building the libs
-        #SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosMath CosmosSupport CosmosDevice zlib dirent wsock32 winmm ws2_32 iphlpapi)
-        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosMath zlib dirent wsock32 winmm ws2_32 iphlpapi)
+        SET(COSMOS_LIBS CosmosDevice CosmosSupport CosmosMath zlib dirent wsock32 winmm ws2_32 iphlpapi)
 
     ENDIF()
 
@@ -224,7 +221,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         SET(COMPILER_IS_MACOS_GCC 1)
 
         # set the COSMOS_LIBS for GCC
-        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosMath CosmosSupport CosmosDevice CosmosMath zlib)
+        SET(COSMOS_LIBS CosmosDevice CosmosMath CosmosSupport CosmosDevice CosmosMath zlib)
 
     ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
