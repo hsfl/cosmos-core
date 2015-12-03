@@ -2105,15 +2105,36 @@ int32_t Agent::shutdownServer()
     return 0;
 }
 
+
 int32_t Agent::post(uint8_t type, string message)
 {
     return agent_post(cdata, type, message);
 }
 
+int32_t Agent::send(uint8_t address, string message)
+{
+    return post(address, message);
+}
+
+
+
 int32_t Agent::poll(pollstruc &meta, string &message, uint8_t type, float waitsec)
 {
     return agent_poll(cdata, meta, message, type, waitsec);
 }
+
+int32_t Agent::poll(uint8_t type, string &message)
+{
+    float waitsec = 1; // by default
+    return agent_poll(cdata, metaRx, message, type, waitsec);
+}
+
+int32_t Agent::receive(uint8_t address, string &message)
+{
+    return poll(address, message);
+}
+
+
 
 int32_t Agent::pollParse(string &message)
 {
@@ -2125,11 +2146,7 @@ int32_t Agent::pollParse(string &message)
     return 0;
 }
 
-int32_t Agent::poll(uint8_t type, string &message)
-{
-    float waitsec = 1; // by default
-    return agent_poll(cdata, metaRx, message, type, waitsec);
-}
+
 
 beatstruc Agent::find(string servername)
 {

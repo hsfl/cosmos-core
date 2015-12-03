@@ -189,6 +189,8 @@ public:
     string metaHeader;
 
 
+    int32_t send(uint8_t address, string message);
+    int32_t receive(uint8_t address, string &message);
 };
 
 
