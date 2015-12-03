@@ -191,12 +191,14 @@ public:
     void fromTwoVectors(Vector a, Vector b);
     void normalize();
     double norm();
+    Vector toEuler();
 };
+
+// declared outside class because it does not need to access members of the class Quaternion
+std::ostream& operator << (std::ostream& os, const Cosmos::Math::Quaternion& q);
 
 } // end namespace Math
 } // end namespace COSMOS
 
-// declared outside class because it does not need to access members of the class Quaternion
-std::ostream& operator << (std::ostream& os, const Cosmos::Math::Quaternion& q);
 
 #endif

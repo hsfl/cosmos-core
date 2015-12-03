@@ -247,6 +247,29 @@ void Quaternion::normalize()
     }
 }
 
+// ref: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+Vector Quaternion::toEuler(){
+
+    Vector euler;
+
+    this->normalize();
+
+    double sqx = this->x * this->x;
+    double sqy = this->y * this->y;
+    double sqz = this->z * this->z;
+    double phi   = atan2( 2.*(this->w*this->x + this->y*this->z), 1. - 2.*(sqx + sqy));
+    double theta = asin(  2.*(this->x*this->y - this->z*this->x) );
+    double psi   = atan2( 2.*(this->w*this->z + this->x*this->y), 1. - 2.*(sqy + sqz));
+
+    euler.x = phi;
+    euler.y = theta;
+    euler.z = psi;
+
+    return (euler);
+}
+
+
+
 //! return the norm of the quaternion's coefficients
 double Quaternion::norm()
 {
