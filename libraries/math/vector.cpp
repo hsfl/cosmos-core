@@ -956,6 +956,19 @@ std::istream& operator >> (std::istream& in, avector& a)
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 namespace Cosmos {
 namespace Math {
 

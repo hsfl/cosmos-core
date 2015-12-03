@@ -322,6 +322,9 @@ void compute_quaternion_from_vectors(){
     cout << q_target_wrt_inertial.w << " " << endl;
 
 
+    // load the Quaternion namespace
+    using Cosmos::Math::Quaternion;
+
     // The above math can be simplified by just calling this function
     Quaternion q;
 //    // rotate 90 deg (i -> j) = [0 0 0.707107 0.707107]
@@ -344,6 +347,9 @@ void compute_quaternion_from_vectors(){
 
 
     cout << "q: " << q << endl;
+
+    Quaternion q1(0.017,-0.022,-0.004, 1.000);
+    cout << q1.toEuler()*(180./PI) << endl;
 
 
 //    Matrix3f m;
