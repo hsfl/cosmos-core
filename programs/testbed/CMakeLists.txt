@@ -19,7 +19,7 @@ foreach(file ${files})
         if (MSVC)
             target_link_libraries(${bfile} CosmosDevice CosmosSupport CosmosDevice CosmosMath zlib dirent wsock32 winmm ws2_32 iphlpapi)
         else()
-            target_link_libraries(${bfile} CosmosDevice CosmosSupport CosmosDevice CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
+            target_link_libraries(${bfile} CosmosDevice CosmosDeviceArduino CosmosSupport CosmosDevice CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
         endif()
 
     endif()
