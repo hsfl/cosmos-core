@@ -36,19 +36,20 @@
 int main(int argc, char *argv[])
 {
 
-    int iretn;
+    int32_t iretn;
 
     Agent agent;
 
-    if ( agent.setupServer("telem","post") )
+    if ( agent.setupServer("telem","send") )
     {
         while (agent.isRunning())
         {
             string message {"helloBB"};
 
             iretn = agent.post(0xBB, message);
+//            iretn = agent.send(0xBB, message);
 
-            cout << message << endl;
+            cout << "tx: " <<  message << endl;
 
             COSMOS_SLEEP(1);
         }

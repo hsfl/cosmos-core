@@ -40,16 +40,17 @@ int main()
     Agent agent;
 
     // TODO: remove telem node, replace by node on the fly
-    if ( agent.setupServer("telem","poll") )
+    if ( agent.setupServer("telem","receive") )
     {
         while (agent.isRunning())
         {
             string message;
 
-            iretn = agent.poll(0xBB, message);
-            //agent.pollParse(message);
+//            iretn = agent.poll(0xBB, message);
+            iretn = agent.receive(0xBB, message);
+            agent.pollParse(message);
 
-            cout << message << endl;
+            cout << "rx: " << message << endl;
 
             //COSMOS_SLEEP(0.1);
         }
