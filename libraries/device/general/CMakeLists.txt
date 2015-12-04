@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-message("Building device/arduino")
+message("Building device/general")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -10,10 +10,9 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 # set the variable "libraryName" with the name of the library
 # and make sure it's propagated to the parent scope
 # for using it in the libraryList
-set(libraryName CosmosDeviceArduino PARENT_SCOPE)
+set(libraryName CosmosDeviceGeneral PARENT_SCOPE)
 
-add_library(CosmosDeviceArduino STATIC ${SOURCES} ${INCLUDES})
-target_link_libraries(CosmosDeviceArduino CosmosDeviceGeneral)
+add_library(CosmosDeviceGeneral STATIC ${SOURCES} ${INCLUDES})
 
-install(TARGETS CosmosDeviceArduino DESTINATION lib)
+install(TARGETS CosmosDeviceGeneral DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device)
