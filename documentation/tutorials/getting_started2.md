@@ -7,6 +7,7 @@ Disclaimer: This is a "the blind leading the blind" kind of tutorial, so if you'
 
 ### Nodes: 
 Physical devices that we can program. Typically, these devices can run 'agents' (we'll get to that in the next header) and contain some sort of computer-like system on them. 
+	
 	<ex>
 		- cell phone
 		- gumstix
@@ -17,6 +18,7 @@ Physical devices that we can program. Typically, these devices can run 'agents' 
 ### Agents:
 Analogous to a data communication assistant.
 Code that allow you to interface with physical devices (nodes, sensors, microprocessors).	
+	
 	<ex>
 		There are agents for:
 		- talking with IMUs
@@ -27,6 +29,7 @@ Code that allow you to interface with physical devices (nodes, sensors, micropro
 
 ### Classes:
 A grouping of functions that contribute to and/or are properties of a specific task or object.
+	
 	<ex>
 		Class:
 			- agent
