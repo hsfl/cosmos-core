@@ -145,7 +145,7 @@ if ((eout=fopen("flags.ini","r")) != NULL)
 	}
 
 
-orbit_init(0, 5., 0., (char *)"stk_data_icrs.txt", *cdata);
+orbit_init(0, 5., 0., "stk_data_icrs.txt", *cdata);
 mjdnow = cdata[0].node.loc.utc;
 lastlat = cdata[0].node.loc.pos.geod.s.lat;
 for (j=0; j<cdata[0].node.target_cnt; j++)

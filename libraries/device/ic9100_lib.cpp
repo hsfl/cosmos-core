@@ -1250,7 +1250,7 @@ int32_t ic9100_get_smeter(ic9100_handle &handle)
 	{
 		power = 1. + power * 8.;
 	}
-	handle.power = power;
+	handle.powerin = power;
 
 	return 0;
 }
@@ -1298,7 +1298,7 @@ int32_t ic9100_get_rfmeter(ic9100_handle &handle)
 	{
 		power = 1. + power * 8.;
 	}
-	handle.power = power;
+	handle.powerout = power;
 
 	return 0;
 }

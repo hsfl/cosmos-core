@@ -207,6 +207,8 @@ double cv_norm(cvector v);
 double sum_cv(cvector a);
 
 
+namespace Cosmos {
+namespace Math {
 //! Vector Class
 /*! eventually this is where all row vector stuff would come?
  * do we really need to differentiate between cvector and rvector in the future?
@@ -221,7 +223,7 @@ public:
     Vector(double x, double y, double z);
 
     // TODO: check if we can iterated the vector
-    double col(int i);
+    double at(int i);
 
     //! X value
     double x;
@@ -236,7 +238,16 @@ public:
     double dot(Vector b);
     void normalize();
     double norm();
+
+    Vector operator * (double scale); // multiply vector by scalar operator
+
 };
 
+std::ostream& operator << (std::ostream& out, const Vector& v);
+Vector operator * (double scale, Vector v);
+
+
+} // end namespace Math
+} // end namespace COSMOS
 
 #endif // _MATH_VECTOR_H

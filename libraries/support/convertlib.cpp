@@ -3083,7 +3083,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
 * \param lines Array of ::tlestruc structures to contain elements
 * \return A ::int32_t indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines(char *fname, vector<tlestruc>& lines)
+int32_t load_lines(string fname, vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -3093,7 +3093,7 @@ int32_t load_lines(char *fname, vector<tlestruc>& lines)
 	int i;
 	tlestruc tle;
 
-	if ((fdes=fopen(fname,"r")) == NULL)
+	if ((fdes=fopen(fname.c_str(),"r")) == NULL)
 		return (-1);
 
 	tlecount = 0;
@@ -3154,13 +3154,89 @@ int32_t load_lines(char *fname, vector<tlestruc>& lines)
 	return (lines.size());
 }
 
+/*! Load Two Line Element file for multiple satellites into array of TLE's
+* \param fname Name of file containing elements
+* \param lines Array of ::tlestruc structures to contain elements
+* \return A ::int32_t indicating number of elements, otherwise a negative error.
+*/
+int32_t load_lines_multi(string fname, vector<tlestruc>& lines)
+{
+	FILE *fdes;
+	uint16_t year;
+	double jday;
+	int32_t bdragm, bdrage, ecc;
+	char ibuf[81], tlename[81];
+	int i;
+	tlestruc tle;
+
+	if ((fdes=fopen(fname.c_str(),"r")) == NULL)
+		return (-1);
+
+	tlecount = 0;
+
+	while (!feof(fdes))
+	{
+		// Name Line
+		char* ichar = fgets(tlename,80,fdes);
+		if (ichar == NULL || feof(fdes))
+			break;
+
+		for (i=strlen(tlename)-1; i>0; i--)
+		{
+			if (tlename[i]!=' ' && tlename[i]!='\r' && tlename[i]!='\n')
+				break;
+		}
+		tlename[i+1] = 0;
+
+		strcpy(tle.name,tlename);
+
+		// Line 1
+		if (fgets(ibuf,80,fdes) == NULL)
+			break;
+		sscanf(&ibuf[2],"%5hu",&tle.snumber);
+		sscanf(&ibuf[9],"%6s",tle.id);
+		sscanf(&ibuf[18],"%2hu",&year);
+		if (year < 57)
+			year += 2000;
+		else
+			year += 1900;
+		sscanf(&ibuf[20],"%12lf",&jday);
+		tle.utc = cal2mjd((int)year,1,0.);
+		tle.utc += jday;
+		if (strlen(ibuf) > 50)
+		{
+			sscanf(&ibuf[53],"%6d%2d",&bdragm,&bdrage);
+			tle.bstar = pow(10.,bdrage)*bdragm/1.e5;
+		}
+		else
+			tle.bstar = 0.;
+
+		// Line 2
+		ichar = fgets(ibuf,80,fdes);
+		if (ichar != NULL)
+		{
+			ibuf[68] = 0;
+			sscanf(&ibuf[8],"%8lf %8lf %7d %8lf %8lf %11lf%5u",&tle.i,&tle.raan,&ecc,&tle.ap,&tle.ma,&tle.mm,&tle.orbit);
+			tle.i = RADOF(tle.i);
+			tle.raan = RADOF(tle.raan);
+			tle.ap = RADOF(tle.ap);
+			tle.ma = RADOF(tle.ma);
+			tle.mm *= D2PI/1440.;
+			tle.e = ecc / 1.e7;
+			lines.push_back(tle);
+		}
+	}
+	fclose(fdes);
+	return (lines.size());
+}
+
 //! Load STK elements
 /*! Load a table of locations calculated in STK. Format is expected to be J2000; position,
  * velocity and acceleration; in X, Y, and Z; all in meters.
 	\param filename Name of file containing positions.
 	\return The number of entries in the table, otherwise a negative error.
 */
-int32_t load_stk(char *filename, stkstruc &stkdata)
+int32_t load_stk(string filename, stkstruc &stkdata)
 {
 	FILE *fdes;
 	int32_t maxcount;
@@ -3168,7 +3244,7 @@ int32_t load_stk(char *filename, stkstruc &stkdata)
 	cposstruc *tpos;
 	char ibuf[250];
 
-	if ((fdes=fopen(filename,"r")) == NULL)
+	if ((fdes=fopen(filename.c_str(),"r")) == NULL)
 		return (STK_ERROR_NOTFOUND);
 
 	maxcount = 1000;

@@ -309,6 +309,7 @@ void load_databases(char *name, uint16_t type, cosmosstruc *root);
 size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *root, char *file);
 int load_target(cosmosstruc *root);
 int update_target(cosmosstruc *root);
+int32_t update_target(locstruc source, targetstruc &target);
 size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *root, vector<shorteventstruc> &events);
 
 string device_type_name(uint32_t type);

@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	cdata[0].physics.mode = atol(argv[1]);
 	json_setup_node((char *)"dice",cdata);
 
-	load_lines((char *)"tle_dice1.tle", cdata[0].tle);
+	load_lines("tle_dice1.tle", cdata[0].tle);
 
 	fp1 = fopen("dice_attitude_mag_gpsweek_1691.txt","r");
 	fp2 = fopen("dice_attitude_sun_gpsweek_1691.txt","r");

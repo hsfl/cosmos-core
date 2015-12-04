@@ -27,36 +27,33 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// just for the old code for timeval, deprecated
-//#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-//#include <winsock.h>
-//#endif
+// Example of an agent post broadcasting genetic data to the network
+// the data is not in the COSMOS namespace
 
-#ifndef TIME_UTILS
-#define TIME_UTILS
-
-#include "configCosmos.h"
+#include "agentlib.h"
 #include <iostream>
-#include <string>
 
-#ifndef BUILD_TYPE_arm
-#include <chrono>
-#include <ctime>
+int main(int argc, char *argv[])
+{
 
-using namespace std;
+    int32_t iretn;
 
-class TimeUtils {
+    Agent agent;
 
-public:
+    if ( agent.setupServer("telem","send") )
+    {
+        while (agent.isRunning())
+        {
+            string message {"helloBB"};
 
-    string timeString(const std::chrono::system_clock::time_point &tp);
-    chrono::system_clock::time_point makeTimePoint(int year, int mon, int day, int hour, int min, int sec);
-    std::chrono::system_clock::time_point timePointUtc();
-    double secondsSinceEpoch();
-    chrono::system_clock::duration secondsSinceMidnight();
-    void testSecondsSinceMidnight();
-};
+            iretn = agent.post(0xBB, message);
+//            iretn = agent.send(0xBB, message);
 
-#endif
+            cout << "tx: " <<  message << endl;
 
-#endif
+            COSMOS_SLEEP(1);
+        }
+    }
+
+    return 0;
+}

@@ -41,7 +41,7 @@ static double spmm[MAXDEGREE+1];
 static double lastx = 10.;
 static uint16_t lastm = 65535;
 static double initialutc;
-static char orbitfile[50] = {""};
+static string orbitfile;
 static stkstruc stkhandle;
 
 static locstruc sloc[MAXGJORDER+2];
@@ -3037,7 +3037,7 @@ void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &lo
     \return Returns 0 if succsessful, otherwise negative error.
 */
 
-int orbit_init(int32_t mode, double dt, double utc, char *ofile, cosmosstruc &cdata)
+int orbit_init(int32_t mode, double dt, double utc, string ofile, cosmosstruc &cdata)
 {
     int32_t iretn;
     tlestruc tline;
@@ -3079,7 +3079,7 @@ int orbit_init(int32_t mode, double dt, double utc, char *ofile, cosmosstruc &cd
         break;
     }
 
-    strcpy(orbitfile,ofile);
+	orbitfile = ofile;
     cdata.node.loc.pos.eci.pass++;
     pos_eci(&cdata.node.loc);
 

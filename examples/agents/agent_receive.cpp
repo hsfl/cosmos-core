@@ -27,36 +27,36 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// just for the old code for timeval, deprecated
-//#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-//#include <winsock.h>
-//#endif
+// Example of an agent poll collecting the broadcasted data on the network
 
-#ifndef TIME_UTILS
-#define TIME_UTILS
-
-#include "configCosmos.h"
+#include "agentlib.h"
 #include <iostream>
-#include <string>
 
-#ifndef BUILD_TYPE_arm
-#include <chrono>
-#include <ctime>
+int main()
+{
 
-using namespace std;
+    int32_t iretn;
 
-class TimeUtils {
+    Agent agent;
 
-public:
+    // TODO: remove telem node, replace by node on the fly
+    if ( agent.setupServer("telem","receive") )
+    {
+        while (agent.isRunning())
+        {
+            string message;
 
-    string timeString(const std::chrono::system_clock::time_point &tp);
-    chrono::system_clock::time_point makeTimePoint(int year, int mon, int day, int hour, int min, int sec);
-    std::chrono::system_clock::time_point timePointUtc();
-    double secondsSinceEpoch();
-    chrono::system_clock::duration secondsSinceMidnight();
-    void testSecondsSinceMidnight();
-};
+//            iretn = agent.poll(0xBB, message);
+            iretn = agent.receive(0xBB, message);
+            agent.pollParse(message);
 
-#endif
+            cout << "rx: " << message << endl;
 
-#endif
+            //COSMOS_SLEEP(0.1);
+        }
+    }
+
+    return 0;
+}
+
+

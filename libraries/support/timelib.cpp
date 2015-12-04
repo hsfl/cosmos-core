@@ -188,8 +188,8 @@ int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &
 	static double lmjd = 0.;
 	static int32_t lyear = 1858;
 	static int32_t lmonth = 11;
-	static int32_t lday = 17;
-	static int32_t ldoy = 321;
+	static double lday = 17.;
+	static double ldoy = 321.;
 
 	if (mjd != lmjd)
 	{
