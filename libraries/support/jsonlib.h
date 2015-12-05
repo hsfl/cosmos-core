@@ -194,8 +194,8 @@ uint8_t *json_ptrto_1d(const char *token, uint16_t index1, cosmosstruc *cdata);
 uint8_t *json_ptrto_2d(const char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
 
 double json_equation(const char *&ptr, cosmosstruc *cdata);
-double json_equation_entry(jsonequation *ptr, cosmosstruc *cdata);
-double json_equation_handle(jsonhandle *handle, cosmosstruc *cdata);
+double json_equation_entry(jsonequation *ptr, cosmosstruc *cdata); // TODO: overload with json_equation
+double json_equation_handle(jsonhandle *handle, cosmosstruc *cdata); // TODO: overload with json_equation
 
 int32_t json_get_int(jsonhandle &handle, cosmosstruc *cdata);
 int32_t json_get_int(string token, cosmosstruc *cdata);
