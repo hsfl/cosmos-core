@@ -467,7 +467,7 @@ INPUT += ../../programs/general
 INPUT += ../../programs/device_tests
 INPUT += ../../programs/testbed
 INPUT += ../../libraries/support 
-INPUT += ../../libraries/device
+INPUT += ../../libraries/device/general
 
 # mini tutorials
 INPUT += ../tutorials/agent_add_state_of_health.md
