@@ -328,96 +328,12 @@ contains(MODULES, print_utils){
 }
 
 
+
 #--------------------------------------------------------------------
-# Add COSMOS device
-contains(MODULES, device){
-    message( "- device" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/*.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/*.h)
-}
-
-contains(MODULES, astrodev_lib){
-    message( "- device/astrodev_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/astrodev_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/astrodev_lib.h)
-    MODULES         +=  cssl_lib
-}
+# Add COSMOS core devices libraries
+include( $$COSMOS_SOURCE/core/libraries/device/cosmos-core-devices.pri )
 
 
-contains(MODULES, microstrain_lib){
-    message( "- device/microstrain_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/microstrain_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/microstrain_lib.h)
-}
-
-contains(MODULES, serial){
-    message( "- device/serial" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/serial.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/serial.h)
-}
-
-contains(MODULES, oemv_lib){
-    message( "- device/oemv_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/oemv_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/oemv_lib.h)
-}
-
-contains(MODULES, vn100_lib){
-    message( "- device/vn100_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/vn100_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/vn100_lib.h)
-
-    # dependencies
-    MODULES += cssl_lib
-}
-
-contains(MODULES, vmt35_lib){
-    message( "- device/vmt35_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/vmt35_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/vmt35_lib.h)
-}
-
-contains(MODULES, gige_lib){
-    message( "- device/gige_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/gige_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/gige_lib.h)
-}
-
-contains(MODULES, mixwtnc_lib){
-    message( "- device/mixwtnc_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/mixwtnc_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/mixwtnc_lib.h)
-}
-
-contains(MODULES, sinclair_lib){
-    message( "- device/sinclair_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/sinclair_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/sinclair_lib.h)
-}
-
-contains(MODULES, sinclair_lib){
-    message( "- device/sinclair_lib" )
-    INCLUDEPATH     += $$COSMOS/core/libraries/device
-    SOURCES         += $$files($$COSMOS/core/libraries/device/sinclair_lib.cpp)
-    HEADERS         += $$files($$COSMOS/core/libraries/device/sinclair_lib.h)
-}
-
-contains(MODULES, cssl_lib){
-    message( "- device/cssl_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.h)
-}
 
 #--------------------------------------------------------------------
 # Add COSMOS core thirdparty libraries
