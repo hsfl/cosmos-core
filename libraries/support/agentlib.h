@@ -42,33 +42,38 @@
 //! Agents are persistent programs that provide the system framework for any
 //! COSMOS implementation. They are similar to UNIX Daemons or Windows Services in that
 //! they run continuously until commanded to stop, and serve a constant function, either
-//! automatically or on demand.
+//! automatically or on demand. Agents are started with a call to ::agent_setup_server.
 //!
-//! All Agents provide at least the following:
+//! Clients are COSMOS aware programs that are started with a call to ::agent_setup_client. This establishes
+//! their connection to the \def json_namespace, thereby allowing them to communicate with Agents.
 //!
-//! - A "Heartbeat", delivered to a system specified Multicast (::AGENTMCAST), or Broadcast address as a JSON packet,
-//! at some regular interval, that identifies the name of the Agent, the IP address and
-//! Port at which it can be reached, and the size of its communication buffer.
+//! Agents are implemented as at least three threads of execution. These threads provide the following services:
 //!
-//! - A UDP based "Request" channel, available on an IP Port that is determined at startup.
+//! - "Heartbeat": Delivered to a system specified Multicast (::AGENTMCAST), or Broadcast address as a \ref json_packet,
+//! at some regular interval.
+//!     - Provides the time, the name of the Node and Agent, the IP address and
+//! Port at which it can be reached, the size of its communication buffer, and the jitter in heartbeat period.
+//!
+//! - "Requests": available at the IP Port reported in the Heartbeat.
 //! Requests are received as plain text commands and arguments. They are processed and
 //! any response is sent back. The response, even if empty, always ends with [OK], if understood,
 //! or [NOK] if not. Requests and their responses must be less than the size of the communications
-//! buffer.
-//!
-//! - Support for built in requests.
-//! 	- "help" - list available requests for this Agent.
-//! 	- "shutdown" - causes the Agent to stop what it is doing and exit.
-//! 	- "status" - causes the Agent to dump any \ref jsonlib variables it is monitoring.
-//! 	- "getvalue {\"json_name_000\"[,\"json_name_001\"]}" - requests the Agent to return the values
+//! buffer. Built in requests include:
+//!         - "help" - list available requests for this Agent.
+//!         - "shutdown" - causes the Agent to stop what it is doing and exit.
+//!         - "status" - causes the Agent to dump any \ref jsonlib variables it is monitoring.
+//!         - "getvalue {\"json_name_000\"[,\"json_name_001\"]}" - requests the Agent to return the values
 //! of the indicated JSON names.
-//! 	- "setvalue {\"json_name_000\":value0[,\"json_name_001\":value1]}" - requests the Agent to set
+//!         - "setvalue {\"json_name_000\":value0[,\"json_name_001\":value1]}" - requests the Agent to set
 //! the values of the indicated JSON names.
-//! 	- "echo utc crc nbytes bytes" - requests the Agent to echo the local time the request was received,
+//!         - "echo utc crc nbytes bytes" - requests the Agent to echo the local time the request was received,
 //! the CRC calculated for the bytes, and the bytes themselves.
 //!
-//! - Support for additional requests, added using ::agent_add_request, that tie together user defined
+//!     - Additional requests can be added using ::agent_add_request, that tie together user defined
 //! functions with user defined ASCII strings.
+//! - "Main Loop": The main activity of the Agent. Once you have called ::agent_setup_server and performed any
+//! other initializations necessary, you should enter a continuous loop protected by ::agent_running. Upon exiting from
+//! this loop, you should call ::agent_shutdown_server.
 
 #include "configCosmos.h"
 #include "agentdef.h"
