@@ -38,9 +38,14 @@
 //! \defgroup socketlib Socket Library
 //! UDP Socket.
 //!
-//! Allows the creation of UDP sockets for incoming or outgoing communication.
+//! Allows the creation of UDP or TCP sockets for incoming or outgoing communication.
 //! Supports blocking or non-blocking; Unicast, Broadcast or Multicast; Windows,
 //! MacOS, or Linux.
+//!
+//! The sockets support being opened for specific types of operation:
+//! - LISTEN: Wait for input on a specific port, and then optionally send a reply.
+//! - COMMUNICATE: Send a message to a specific port, and then optionally receive a reply.
+//! - JABBER: Broadcast packets over multiple interfaces.
 
 #include "configCosmos.h"
 #ifdef COSMOS_WIN_OS

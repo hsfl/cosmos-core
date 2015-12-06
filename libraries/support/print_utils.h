@@ -44,7 +44,13 @@
 #include <string>       // std::string
 #include <sstream>      // std::ostringstream
 
-// TODO: remove the dependency of matlib later, change rvector to vector?
+// TODO: remove the dependency of mathlib later, change rvector to vector?
+
+//! \ingroup support
+//! \defgroup printutils Screen Output Utilities
+//! Screen Output Utilities.
+//!
+//! Various utilities to support output of the numerous COSMOS data types.
 
 class PrintUtils
 {
@@ -125,6 +131,9 @@ public:
     void scalar(double s);
 
 };
+
+//! @}
+
 
 #endif //_COSMOS_PRINT_UTILS
 
