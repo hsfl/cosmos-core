@@ -13,6 +13,10 @@ documentation/doxygen/latex/
 documentation/doxygen/html/
 documentation/doxygen/man/
 documentation/doxygen/log.txt
+docs/doxygen/latex/
+docs/doxygen/html/
+docs/doxygen/man/
+docs/doxygen/log.txt
 libraries/support/save/
 *.save
 *.aux

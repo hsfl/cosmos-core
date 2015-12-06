@@ -6,7 +6,7 @@
 
 //! \ingroup support
 //! \defgroup convertlib Coordinate conversion library
-//! Coordinate conversion support library.
+//! Coordinate conversion.
 //!
 //! COSMOS supports a wide variety of coordinate systems for both position and attitude. This
 //! library provides both definitions of structures for representing these various systems, as

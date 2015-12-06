@@ -101,7 +101,7 @@ vector <string> port_type_string
 
 //! @}
 
-//! \addtogroup jsonlib_functions JSON support library functions
+//! \addtogroup jsonlib_functions JSON functions
 //! @{
 
 //! Initialize JSON pointer map

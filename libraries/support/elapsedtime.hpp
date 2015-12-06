@@ -48,6 +48,20 @@
 #include <chrono>
 #endif
 
+/*! \file elapsedtime.hpp
+*	\brief Elapsed %Time header file
+*/
+
+//! \ingroup support
+//! \defgroup elapsedtime Elapsed %Time
+//! Elapsed Time.
+//! The functions in this library support the measurement of various types of elapsed time. Suppoert is provided
+//! for both absolute elapsed time (ElapsedTime::split()) and relative elapsed time (ElapsedTime::lap()).
+
+//! \ingroup elapsedtime
+//! \defgroup elapsedtime_functions Elapsed Time function declarations
+//! @{
+
 // profiling class
 // On windows using MinGw32 it does not get better than 1ms
 class ElapsedTime {
@@ -103,5 +117,7 @@ public:
 //    int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
 //    float elapsed_time(struct timeval a,struct timeval b);
 //};
+//! @}
+
 
 #endif

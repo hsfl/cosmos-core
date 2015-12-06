@@ -38,7 +38,7 @@
 *
 *	\defgroup gige GigE Vision support.
 * @{
-* GigE Vision support library.
+* GigE Vision.
 *
 * This library provides the functions necessary to any GigE Vision conforming camera.
 * @}

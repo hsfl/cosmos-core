@@ -36,16 +36,17 @@
 */
 
 //! \ingroup support
-//!	\defgroup geomag Earth geomagnetic field calculation
+//!	\defgroup geomag Earth Geomagnetic Field calculation
 //! Front end for calculating the World Magnetic Model provided by the National
-//! Geophysical Data Center
+//! Geophysical Data Center. Requires an appropriate model file for the requested datae range in resources/general.
+//! COSMOS currently provides wmm_2005_cof, wmm_2010_cof and wmm_2015_cof.
 
 #include "configCosmos.h"
 
 #include "math/mathlib.h"
 
 //! \ingroup geomag
-//! \defgroup geomag_functions World Magnetic Model support library function declarations
+//! \defgroup geomag_functions World Magnetic Model function declarations
 //! @{
 
 int32_t geomag_front(gvector pos, double year, rvector *comp);
