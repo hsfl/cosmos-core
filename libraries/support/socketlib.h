@@ -36,7 +36,7 @@
 
 //! \ingroup support
 //! \defgroup socketlib Socket Library
-//! UDP Socket support library.
+//! UDP Socket.
 //!
 //! Allows the creation of UDP sockets for incoming or outgoing communication.
 //! Supports blocking or non-blocking; Unicast, Broadcast or Multicast; Windows,

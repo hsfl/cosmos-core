@@ -1435,17 +1435,17 @@ double  jd2mjd(double jd) {
 }
 
 
-Time::Time()
-{
-}
+//Time::Time()
+//{
+//}
 
-// compute the elapsed time given the startTimeMjd
-double Time::elapsedTimeSince(double startTimeMjd)
-{
-    double elapsedTimeSec = (currentmjd()-startTimeMjd)*86400;
+//// compute the elapsed time given the startTimeMjd
+//double Time::elapsedTimeSince(double startTimeMjd)
+//{
+//    double elapsedTimeSec = (currentmjd()-startTimeMjd)*86400;
 
-    return elapsedTimeSec;
-}
+//    return elapsedTimeSec;
+//}
 
 
 

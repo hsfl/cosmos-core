@@ -36,7 +36,7 @@
 
 //! \ingroup support
 //! \defgroup transferlib File Transfer Library
-//! File Transfer Protocol support library.
+//! File Transfer Protocol.
 //!
 //! COSMOS provides a basic File Transfer Protocol for direct transfer of
 //! files between Nodes and Agents. Each file transferred is targeted at

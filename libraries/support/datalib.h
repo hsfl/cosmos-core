@@ -54,24 +54,29 @@
 */
 
 //! \ingroup support
-//! \defgroup datalib Data Management support library
-//! Data Management support library.
+//! \defgroup datalib Data Management
+//! Data Management.
 //!
-//! Data within COSMOS is managed in a heirarchical structure that
-//! mirrors the Node:Agent arrangement laid down in the \ref jsonlib.
-//! Directories are defined for storage of general use information, as
-//! well as information specific to each Node. Separate directories are
-//! also defined for Incoming data, Outgoing data, and Archival data.
-//! The top level directory of this Node information is defined as the
-//! "cosmosnodes". "cosmosnodes" contains all data specific to each Node. Within
-//! "nodes", there is a directory named after each Node. This directory
-//! can be discovered automatically by the software if it is within 4 levels
-//! above the current directory, or if an environment variable, "NODEBASE",
-//! is set. The environment variable takes precedence.
+//! Data within COSMOS is managed in a heirarchical structure. At the highest level, separate
+//! directories are provided for Nodal information (nodes), and for general software Resources (resources).
+//! These two directories can be together in a single COSMOS directory, or in separate locations. Their locations can
+//! be defined through the use of environment variables, or through default values. The order of assignment is as follows:
+//! - If the environment variables COSMOSNODES or COSMOSRESOURCES exist, then the
+//! directories specified by these variables will be used for nodes or resources.
+//! - If either COSMOSNODES and/or COSMOSRESOURCES is not set, but the environment variable COSMOS is, then nodes or
+//! resources will be located in ${COSMOS}/nodes or ${COSMOS}/resources.
+//! - If no environment variable is found, default locations are used, specific to the OS
+//! + Windows: c:/cosmos/nodes and c:/cosmos/resources
+//! + Unix: /usr/local/cosmos/nodes and /usr/local/cosmos/resources
+//! + MacOS: /Applications/cosmos/nodes and /Applications/cosmos/resources
+//! - If these directories are not found, then the software will look up to four levels above the directory it is running
+//! in for directories called "nodes" or "cosmosnodes" and "resources" or "cosmosresources".
+//! Once this search is completed successfully, the nodes folder for the current Node will be stored internally as
+//! "cosmosnodes" and the resources folder as "cosmosresources".
 //!
-//! Within each Node directory is a
-//! set of initialization files covering different aspects of the Node, as well as sub-directories
-//! for "incoming", "outgoing", "temp", and "data" archive files.
+//! Within "nodes", there is a directory specific to each Node. Each Node specific directory mirrors the Node:Agent
+//! arrangement laid down in the \ref jsonlib. A series of initialization files are incldued, as well as a set of directories
+//! for Temporary data (temp), Incoming data (incoming), Outgoing data (outgoing), and Archival data (data).
 //!
 //! The initialization files include:
 //! - node.ini: Describes the Node type, number of pieces, number of Devices, and number of ports.
@@ -82,17 +87,10 @@
 //! - target.ini: Provides a list of any targets associated with this Node.
 //! - state.ini: Provides a complete state vector for this Node at some specific time.
 //!
-//! Each nodes sub-directories contain sub-directories of their own for each Agent. The "data"
-//! directories Agent directories are further subdivided by first
-//! year, then day.
+//! Each of temp, incoming and outgoing contain sub-directories named after each active Agent. Each agent sub-directory
+//! in the "data" directory is further subdivided by first year, then day.
 //!
-//! Resources for COSMOS are stored in a second heirarchy of directories.
-//! The highest level is a top level directory, "cosmosresources". This
-//! directory can also be discovered by the software, if it is within 4
-//! levels above the current directory. It can also be set through use
-//! of the environment variable, "COSMOSBASE".
-//!
-//! "cosmosresources" contains directories of files for use in different
+//! The software resources directory contains directories of files for use in different
 //! aspects of COSMOS. The directory "general" contains files of
 //! coefficients used for the various models used in COSMOS simulations.
 //! The directory "logo" contains any special images used by COSMOS
@@ -105,7 +103,7 @@
 //! of standard names, and the automatic creation of log files.
 
 //! \ingroup datalib
-//! \defgroup datalib_functions Data Management support library function declarations
+//! \defgroup datalib_functions Data Management function declarations
 //! @{
 
 void log_reopen();
