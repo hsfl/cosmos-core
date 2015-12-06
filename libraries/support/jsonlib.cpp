@@ -92,6 +92,15 @@ vector <string> port_type_string
 
 //! @}
 
+/*! \ingroup jsonlib
+* \defgroup jsonlib_packet JSON Packet
+* @{
+* A JSON object constructed only of members present in the \ref jsonlib_namespace. Each \ref json_type in the JSON
+* packet is a separate JSON Object to aid in parsing.
+*/
+
+//! @}
+
 //! \addtogroup jsonlib_functions JSON support library functions
 //! @{
 
