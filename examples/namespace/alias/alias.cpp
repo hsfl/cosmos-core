@@ -27,18 +27,19 @@ int main()
 
     jsonhandle eqhandle;
     string equation = "(\"device_imu_temp_000\" - 273.15)";
-    json_equation_map(equation,cdata,&eqhandle);
     json_addentry("tempCelcius", equation, cdata);
+    json_equation_map(equation,cdata,&eqhandle);
 
-    while(1) {
+    cdata->devspec.imu[0]->gen.temp = 0;
+    while(cdata->devspec.imu[0]->gen.temp < 1000) {
         // set temp in Kelvin
-        cdata->devspec.imu[0]->gen.temp = 0;
 
-        //double tempCelcius = json_equation_handle(&eqhandle, cdata);
-        //cout << tempCelcius << endl;
+        double tempCelcius = json_equation(&eqhandle, cdata);
+        cout << tempCelcius << endl;
 
         double temp = json_get_double("tempCelcius", cdata);
         cout << temp << endl;
+        cdata->devspec.imu[0]->gen.temp += 1;
     };
 
     return 0;

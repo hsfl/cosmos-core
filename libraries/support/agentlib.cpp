@@ -607,7 +607,7 @@ int32_t agent_get_server(cosmosstruc *cdata, std::string node, std::string name,
  */
 beatstruc agent_find_server(cosmosstruc *cdata, std::string node, std::string proc, float waitsec)
 {
-    beatstruc cbeat = {0.,"","",0,"",0,0,0.,""};
+    beatstruc cbeat = {0.,"","",0,"",0,0,0.,"",0.,0.,0.};
     //    struct timeval tv, ltv;
 
     //! Loop for ::waitsec seconds, looking for desired agent.

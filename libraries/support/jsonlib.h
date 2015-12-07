@@ -130,10 +130,10 @@ int32_t json_clone(cosmosstruc *cdata);
 void json_destroy(cosmosstruc *cdata);
 
 //uint16_t json_addequation(const char *text, cosmosstruc *cdata, uint16_t unit);
-uint16_t json_addentry(std::string name, std::string value, cosmosstruc *cdata);
-uint16_t json_addentry(jsonentry entry, cosmosstruc *cdata);
-uint16_t json_addentry(std::string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit);
-uint16_t json_addentry(std::string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata);
+int32_t json_addentry(std::string name, std::string value, cosmosstruc *cdata);
+int32_t json_addentry(jsonentry entry, cosmosstruc *cdata);
+int32_t json_addentry(std::string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit);
+int32_t json_addentry(std::string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata);
 uint16_t json_addbaseentry(cosmosstruc *cdata);
 uint16_t json_addpieceentry(uint16_t i, cosmosstruc *cdata);
 uint16_t json_addcompentry(uint16_t i, cosmosstruc *cdata);
@@ -145,6 +145,7 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cdata
 jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cdata);
 jsonentry *json_entry_of(std::string token, cosmosstruc *cdata);
 jsonentry *json_entry_of(jsonhandle handle, cosmosstruc *cdata);
+jsonequation *json_equation_of(jsonhandle handle, cosmosstruc *cdata);
 int32_t json_table_of_list(std::vector<jsonentry*> &entry, std::string tokens, cosmosstruc *cdata);
 uint16_t json_type_of_name(std::string token, cosmosstruc *cdata);
 

@@ -914,6 +914,8 @@ struct aliasstruc
     std::string name;
     // Namespace handle
     jsonhandle handle;
+    //! JSON Data Type
+    uint16_t type;
 };
 
 //! Equation structure
