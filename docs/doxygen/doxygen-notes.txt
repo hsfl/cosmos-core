@@ -1,0 +1,52 @@
+\section tutorials COSMOS Aliases
+
+
+
+-------------------------------------------------
+in doxygen markdown files this 
+\section install_windows Windows
+
+is the same as this
+# Windows {#windows}
+
+
+
+-------------------------------------------------
+to add table of contents
+[TOC]
+
+this kinda works if its placed before the title like this
+
+[TOC]
+Installation {#install} 
+============
+
+but then the title gets mixed up with the tag (bug?)
+
+
+I've tried just adding @tableofcontents after the title and this works fine
+
+
+-------------------------------------------------
+using the labels
+
+If you have a page with header label, i.e. 
+
+# Tips {#tips} 
+
+you can simply use "@ref tips". 
+
+ref
+- http://doxygen.10944.n7.nabble.com/Creating-links-in-and-between-Markdown-files-pages-td6689.html
+
+
+-------------------------------------------------
+to include other files this should work (but it doesnt)
+
+@include agent_001.cpp
+
+
+-------------------------------------------------
+other references 
+http://svenax.net/site/2013/07/creating-user-documentation-with-doxygen/
+http://stackoverflow.com/questions/13648124/header-label-in-doxygen-markdown-page-makes-header-title-disappear

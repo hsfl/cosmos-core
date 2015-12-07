@@ -1,0 +1,4 @@
+SHOW_NAMESPACES        = NO
+
+EXTERNAL_GROUPS        = NO
+EXTERNAL_PAGES         = NO

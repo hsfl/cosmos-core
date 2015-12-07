@@ -1,6 +1,4 @@
-Math Libraries
-==============
+Math Library {#library-math}
+============
 
 This folder contains the math related libraries
-
-move mathlib here

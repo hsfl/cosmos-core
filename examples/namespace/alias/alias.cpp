@@ -34,8 +34,8 @@ int main()
         // set temp in Kelvin
         cdata->devspec.imu[0]->gen.temp = 0;
 
-        //double tempCelcius = json_equation_handle(&eqhandle, cdata);
-        //cout << tempCelcius << endl;
+        double tempCelcius = json_equation_handle(&eqhandle, cdata);
+        cout << tempCelcius << endl;
 
         double temp = json_get_double("tempCelcius", cdata);
         cout << temp << endl;

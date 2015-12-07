@@ -1,5 +1,7 @@
-COSMOS Agent Tutorial: how to use state of health messages
-==========================================================
+state of health messages {#tutorial-soh}
+========================
+
+This is a tutorial to show you how to use State of Health messages in the COSMOS Agents.
 
 After you have setup the agent server  (ex. \ref agent_setup_server) you can add your personalized state of health (SOH) information using the function \ref agent_set_sohstring :
 

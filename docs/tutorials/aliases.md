@@ -1,9 +1,6 @@
-COSMOS Aliases
-==============
+# COSMOS Aliases {#tutorial-alias}
 
 purpose of COSMOS aliases: 
-
-
 
 where is the code?
 inside core/libraries/support/jsonlib

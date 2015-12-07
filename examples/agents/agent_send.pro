@@ -11,23 +11,9 @@ CONFIG -= app_bundle
 CONFIG += c++11
 
 MODULES += agentlib
-#MODULES += elapsedtime
-#MODULES += timeutils
-#MODULES += socketlib
-#MODULES += jsonlib
-#MODULES += timelib
-#MODULES += datalib
-#MODULES += convertlib
-#MODULES += convertdef
-#MODULES += stringlib
-#MODULES += jpleph
-#MODULES += ephemlib
-#MODULES += geomag
-#MODULES += sliplib
-#MODULES += zlib
-#MODULES += math-mathlib
+
 include( $$COSMOS_SOURCE/core/cosmos-core.pri )
 
-SOURCES += agent_post.cpp
+SOURCES += agent_send.cpp
 
 TARGET = agent_post

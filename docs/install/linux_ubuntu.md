@@ -1,7 +1,9 @@
-COSMOS Ubuntu 12.04 x64 Virtual Box Image
+Install COSMOS on Linux Ubuntu 12.04 x64 {#install-linux-ubuntu}
 -----------------------------------------
 
-This VB image intents to make the COSMOS software development and
+Follow these instructions to install COSMOS on a Virtual Box image.
+
+This Virtual Box image intents to make the COSMOS software development and
 usage easy for anyone that wants to use it. You can build COSMOS
 desktop applications or embedded applications (such as for the
 gumstix) using this environment.

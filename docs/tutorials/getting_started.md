@@ -1,4 +1,4 @@
-COSMOS Tutorial: getting started with the concepts of COSMOS
+getting started with the concepts of COSMOS {#tutorial-getting-started-1}
 ==================================================================
 # What is Cosmos?
 Cosmos is a software program that allows the user to manage and create information exchange between many machines.

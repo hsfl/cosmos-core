@@ -1,4 +1,4 @@
-Install COSMOS on Windows
+Install COSMOS on Windows {#install-windows}
 =========================
 
 The COSMOS software has been tested with the following
