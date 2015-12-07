@@ -150,7 +150,7 @@ cssl_t *cssl_open(const char *fname,
 
     if(serial->handle==INVALID_HANDLE_VALUE)
     {
-      cout << "unable to open serial port" << endl;
+      std::cout << "unable to open serial port" << std::endl;
       exit(0);
     }
 
@@ -616,7 +616,7 @@ int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
 {
 	size_t j;
 	uint8_t cs_in, digit1, digit2;
-    string message_sent; // for debugging
+    std::string message_sent; // for debugging
 
 	cs_in = 0;
 
@@ -902,7 +902,7 @@ int32_t cssl_getnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
 	int16_t ch;
 	uint16_t i;
 	uint8_t cs_in, cs_out;
-    string input;
+    std::string input;
 	
 	do
 	{

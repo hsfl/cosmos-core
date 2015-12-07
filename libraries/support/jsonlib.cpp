@@ -41,7 +41,7 @@
 #include <limits>
 #include <fstream>
 
-vector <string> device_type_string
+std::vector <std::string> device_type_string
 {
 	"pload",
 	"ssen",
@@ -73,7 +73,7 @@ vector <string> device_type_string
 	"telem"
 };
 
-vector <string> port_type_string
+std::vector <std::string> port_type_string
 {
 	"rs232",
 	"rs422",
@@ -432,11 +432,11 @@ void json_destroy(cosmosstruc *cdata)
 
 //! Calculate JSON HASH
 /*! Simple hash function (TCPL Section 6.6 Table Lookup)
-	\param string String to calculate the hash for.
+    \param std::string String to calculate the hash for.
 	\return The hash, as an unsigned 16 bit number.
 */
 
-uint16_t json_hash(string hstring)
+uint16_t json_hash(std::string hstring)
 {
 	uint16_t hashval;
 
@@ -461,7 +461,7 @@ uint16_t json_hash(string hstring)
  * \return The current number of entries, if successful, 0 if the entry could not be
  * added.
 */
-uint16_t json_addentry(string alias, string value, cosmosstruc *cdata)
+uint16_t json_addentry(std::string alias, std::string value, cosmosstruc *cdata)
 {
 	jsonhandle handle;
 	uint16_t count = 0;
@@ -545,7 +545,7 @@ uint16_t json_addentry(jsonentry entry, cosmosstruc *cdata)
 	\return The current number of entries, if successful, 0 if the entry could not be
 	added, or if enough memory could not be allocated to hold the JSON stream.
 */
-uint16_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit)
+uint16_t json_addentry(std::string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata, uint16_t unit)
 {
 	jsonentry tentry;
 	char ename[COSMOS_MAX_NAME+1];
@@ -587,7 +587,7 @@ uint16_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, 
 	\return The current number of entries, if successful, 0 if the entry could not be
 	added, or if enough memory could not be allocated to hold the JSON stream.
 */
-uint16_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata)
+uint16_t json_addentry(std::string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosstruc *cdata)
 {
 	return (json_addentry(name, d1, d2, offset, size, type, group, cdata, 0));
 }
@@ -626,7 +626,7 @@ size_t json_count_total(cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_handle(string &jstring, jsonhandle handle, cosmosstruc *cdata)
+int32_t json_out_handle(std::string &jstring, jsonhandle handle, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -644,7 +644,7 @@ int32_t json_out_handle(string &jstring, jsonhandle handle, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_entry(string &jstring, jsonentry* entry, cosmosstruc *cdata)
+int32_t json_out_entry(std::string &jstring, jsonentry* entry, cosmosstruc *cdata)
 {
 	int32_t iretn;
 	uint8_t *data;
@@ -675,7 +675,7 @@ int32_t json_out_entry(string &jstring, jsonentry* entry, cosmosstruc *cdata)
  * \param cdata Pointer to ::cosmosstruc representing Namespace.
  * \return Zero or negative error.
 */
-int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t type, cosmosstruc *cdata)
+int32_t json_out_value(std::string &jstring, std::string name, uint8_t *data, uint16_t type, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -684,7 +684,7 @@ int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t typ
 		return JSON_ERROR_NOJMAP;
 	}
 
-	if ((iretn=json_out_name(jstring ,name)) != 0)
+    if ((iretn=json_out_name(jstring ,name)) != 0)
 	{
 		return iretn;
 	}
@@ -705,7 +705,7 @@ int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t typ
  * \param type Type of variable.
  * \return Zero or negative error.
 */
-int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc *cdata)
+int32_t json_out_type(std::string &jstring, uint8_t *data, uint16_t type, cosmosstruc *cdata)
 {
 	int32_t iretn = 0;
 
@@ -857,7 +857,7 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
 	\param string String to be appended.
 	\return 0 if successful, negative error number otherwise.
 */
-int32_t json_append(string &jstring, const char *tstring)
+int32_t json_append(std::string &jstring, const char *tstring)
 {
 	jstring.append(tstring);
 	return 0;
@@ -868,7 +868,7 @@ int32_t json_append(string &jstring, const char *tstring)
 	\param character Character to be added to string in the raw.
 	\return 0 if successful, otherwise negative error.
 */
-int32_t json_out_character(string &jstring,char character)
+int32_t json_out_character(std::string &jstring,char character)
 {
 	char tstring[2] = {0,0};
 	int32_t iretn;
@@ -886,7 +886,7 @@ int32_t json_out_character(string &jstring,char character)
 	\param name The Object Name
 	\return  0 if successful, otherwise negative error.
 */
-int32_t json_out_name(string &jstring, string name)
+int32_t json_out_name(std::string &jstring, std::string name)
 {
 	int32_t iretn;
 
@@ -902,7 +902,7 @@ int32_t json_out_name(string &jstring, string name)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_int8(string &jstring,int8_t value)
+int32_t json_out_int8(std::string &jstring,int8_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -918,7 +918,7 @@ int32_t json_out_int8(string &jstring,int8_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_int16(string &jstring,int16_t value)
+int32_t json_out_int16(std::string &jstring,int16_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -934,7 +934,7 @@ int32_t json_out_int16(string &jstring,int16_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_int32(string &jstring,int32_t value)
+int32_t json_out_int32(std::string &jstring,int32_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -950,7 +950,7 @@ int32_t json_out_int32(string &jstring,int32_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_uint8(string &jstring,uint8_t value)
+int32_t json_out_uint8(std::string &jstring,uint8_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -966,7 +966,7 @@ int32_t json_out_uint8(string &jstring,uint8_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_uint16(string &jstring,uint16_t value)
+int32_t json_out_uint16(std::string &jstring,uint16_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -982,7 +982,7 @@ int32_t json_out_uint16(string &jstring,uint16_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_uint32(string &jstring,uint32_t value)
+int32_t json_out_uint32(std::string &jstring,uint32_t value)
 {
 	int32_t iretn;
 	char tstring[15];
@@ -998,12 +998,12 @@ int32_t json_out_uint32(string &jstring,uint32_t value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_float(string &jstring,float value)
+int32_t json_out_float(std::string &jstring,float value)
 {
 	int32_t iretn = 0;
 	char tstring[15];
 
-	if (isfinite(value))
+    if (std::isfinite(value))
 	{
 		sprintf(tstring,"%.8g",value);
 		iretn = json_append(jstring,tstring);
@@ -1017,12 +1017,12 @@ int32_t json_out_float(string &jstring,float value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_double(string &jstring,double value)
+int32_t json_out_double(std::string &jstring,double value)
 {
 	int32_t iretn = 0;
 	char tstring[30];
 
-	if (isfinite(value))
+    if (std::isfinite(value))
 	{
 		sprintf(tstring,"%.17g",value);
 		iretn = json_append(jstring,tstring);
@@ -1036,7 +1036,7 @@ int32_t json_out_double(string &jstring,double value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_string(string &jstring, string ostring, uint16_t len)
+int32_t json_out_string(std::string &jstring, std::string ostring, uint16_t len)
 {
 	int32_t iretn;
 	uint16_t i;
@@ -1123,7 +1123,7 @@ int32_t json_out_string(string &jstring, string ostring, uint16_t len)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_gvector(string &jstring,gvector value)
+int32_t json_out_gvector(std::string &jstring,gvector value)
 {
 	int32_t iretn;
 
@@ -1162,7 +1162,7 @@ int32_t json_out_gvector(string &jstring,gvector value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_svector(string &jstring,svector value)
+int32_t json_out_svector(std::string &jstring,svector value)
 {
 	int32_t iretn;
 
@@ -1201,7 +1201,7 @@ int32_t json_out_svector(string &jstring,svector value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_rvector(string &jstring,rvector value)
+int32_t json_out_rvector(std::string &jstring,rvector value)
 {
 	int32_t iretn;
 
@@ -1236,7 +1236,7 @@ int32_t json_out_rvector(string &jstring,rvector value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_quaternion(string &jstring,quaternion value)
+int32_t json_out_quaternion(std::string &jstring,quaternion value)
 {
 	int32_t iretn;
 
@@ -1267,7 +1267,7 @@ int32_t json_out_quaternion(string &jstring,quaternion value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_cvector(string &jstring,cvector value)
+int32_t json_out_cvector(std::string &jstring,cvector value)
 {
 	int32_t iretn;
 
@@ -1306,7 +1306,7 @@ int32_t json_out_cvector(string &jstring,cvector value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_cartpos(string &jstring,cartpos value)
+int32_t json_out_cartpos(std::string &jstring,cartpos value)
 {
 	int32_t iretn;
 
@@ -1354,7 +1354,7 @@ int32_t json_out_cartpos(string &jstring,cartpos value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_geoidpos(string &jstring,geoidpos value)
+int32_t json_out_geoidpos(std::string &jstring,geoidpos value)
 {
 	int32_t iretn;
 
@@ -1402,7 +1402,7 @@ int32_t json_out_geoidpos(string &jstring,geoidpos value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_spherpos(string &jstring,spherpos value)
+int32_t json_out_spherpos(std::string &jstring,spherpos value)
 {
 	int32_t iretn;
 
@@ -1452,7 +1452,7 @@ int32_t json_out_spherpos(string &jstring,spherpos value)
  * \return  0 if successful, negative error otherwise
 */
 
-int32_t json_out_ecipos(string &jstring, cartpos value)
+int32_t json_out_ecipos(std::string &jstring, cartpos value)
 {
 	int32_t iretn;
 
@@ -1476,7 +1476,7 @@ int32_t json_out_ecipos(string &jstring, cartpos value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_posstruc(string &jstring,posstruc value)
+int32_t json_out_posstruc(std::string &jstring,posstruc value)
 {
 	int32_t iretn;
 
@@ -1566,7 +1566,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_attstruc(string &jstring,attstruc value)
+int32_t json_out_attstruc(std::string &jstring,attstruc value)
 {
 	int32_t iretn;
 
@@ -1630,7 +1630,7 @@ int32_t json_out_attstruc(string &jstring,attstruc value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_locstruc(string &jstring,locstruc value)
+int32_t json_out_locstruc(std::string &jstring,locstruc value)
 {
 	int32_t iretn;
 
@@ -1678,7 +1678,7 @@ int32_t json_out_locstruc(string &jstring,locstruc value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_commandevent(string &jstring,longeventstruc value)
+int32_t json_out_commandevent(std::string &jstring,longeventstruc value)
 {
 	int32_t iretn;
 
@@ -1759,7 +1759,7 @@ int32_t json_out_commandevent(string &jstring,longeventstruc value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_dcmatt(string &jstring,dcmatt value)
+int32_t json_out_dcmatt(std::string &jstring,dcmatt value)
 {
 	int32_t iretn;
 
@@ -1799,7 +1799,7 @@ int32_t json_out_dcmatt(string &jstring,dcmatt value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_qatt(string &jstring,qatt value)
+int32_t json_out_qatt(std::string &jstring,qatt value)
 {
 	int32_t iretn;
 
@@ -1846,7 +1846,7 @@ int32_t json_out_qatt(string &jstring,qatt value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_dcm(string &jstring,rmatrix value)
+int32_t json_out_dcm(std::string &jstring,rmatrix value)
 {
 	int32_t iretn;
 
@@ -1880,7 +1880,7 @@ int32_t json_out_dcm(string &jstring,rmatrix value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_rmatrix(string &jstring,rmatrix value)
+int32_t json_out_rmatrix(std::string &jstring,rmatrix value)
 {
 	int32_t iretn;
 
@@ -1919,7 +1919,7 @@ int32_t json_out_rmatrix(string &jstring,rmatrix value)
 	\param value The JSON data of the desired variable
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_beatstruc(string &jstring,beatstruc value)
+int32_t json_out_beatstruc(std::string &jstring,beatstruc value)
 {
 	int32_t iretn;
 
@@ -1976,7 +1976,7 @@ int32_t json_out_beatstruc(string &jstring,beatstruc value)
 	\param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_1d(string &jstring, const char *token, uint16_t index, cosmosstruc *cdata)
+int32_t json_out_1d(std::string &jstring, const char *token, uint16_t index, cosmosstruc *cdata)
 {
 	char name[COSMOS_MAX_NAME+1];
 	int32_t iretn;
@@ -2000,7 +2000,7 @@ int32_t json_out_1d(string &jstring, const char *token, uint16_t index, cosmosst
 	\param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_2d(string &jstring, const char *token, uint16_t row, uint16_t col, cosmosstruc *cdata)
+int32_t json_out_2d(std::string &jstring, const char *token, uint16_t row, uint16_t col, cosmosstruc *cdata)
 {
 	char name[COSMOS_MAX_NAME+1];
 	int32_t iretn;
@@ -2023,7 +2023,7 @@ int32_t json_out_2d(string &jstring, const char *token, uint16_t row, uint16_t c
 	\param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out(string &jstring, string token, cosmosstruc *cdata)
+int32_t json_out(std::string &jstring, std::string token, cosmosstruc *cdata)
 {
 	jsonhandle h;
 
@@ -2052,9 +2052,9 @@ int32_t json_out(string &jstring, string token, cosmosstruc *cdata)
 	\param tokens The comma separated list of JSON names for the desired variables.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_out_list(string &jstring,string tokens, cosmosstruc *cdata)
+int32_t json_out_list(std::string &jstring,std::string tokens, cosmosstruc *cdata)
 {
-	string tstring;
+    std::string tstring;
 	const char* ptr;
 	int32_t iretn;
 
@@ -2089,7 +2089,7 @@ int32_t json_out_list(string &jstring,string tokens, cosmosstruc *cdata)
 	\return  0 if successful, negative error otherwise
 */
 
-int32_t json_out_wildcard(string &jstring, string wildcard, cosmosstruc *cdata)
+int32_t json_out_wildcard(std::string &jstring, std::string wildcard, cosmosstruc *cdata)
 {
 	int32_t iretn=0;
 	jsonhandle h;
@@ -2177,9 +2177,9 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cdata
 	\param tokens The comma separated list of JSON names for the desired variables.
 	\return  0 if successful, negative error otherwise
 */
-int32_t json_table_of_list(vector<jsonentry*> &table, string tokens, cosmosstruc *cdata)
+int32_t json_table_of_list(std::vector<jsonentry*> &table, std::string tokens, cosmosstruc *cdata)
 {
-	string tstring;
+    std::string tstring;
 	const char *ptr;
 	int32_t iretn;
 	jsonentry* tentry;
@@ -2283,7 +2283,7 @@ jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cdata)
  \param token Namespace name to look up
  \return Pointer to the ::jsonentry for the token, or NULL.
 */
-jsonentry *json_entry_of(string token, cosmosstruc *cdata)
+jsonentry *json_entry_of(std::string token, cosmosstruc *cdata)
 {
 	int16_t hash;
 	uint16_t n;
@@ -2329,7 +2329,7 @@ jsonentry *json_entry_of(jsonhandle handle, cosmosstruc *cdata)
  \param token the JSON name for the desired variable
  \return The ::json_type, otherwise 0.
 */
-uint16_t json_type_of_name(string token, cosmosstruc *cdata)
+uint16_t json_type_of_name(std::string token, cosmosstruc *cdata)
 {
 	jsonentry *entry;
 
@@ -2350,7 +2350,7 @@ uint16_t json_type_of_name(string token, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return The associated data pointer, if succesful, otherwise NULL
 */
-uint8_t *json_ptrto(string token, cosmosstruc *cdata)
+uint8_t *json_ptrto(std::string token, cosmosstruc *cdata)
 {
 	jsonentry *ptr;
 
@@ -2367,7 +2367,7 @@ uint8_t *json_ptrto(string token, cosmosstruc *cdata)
 	\param index1 Primary index.
 	\return The associated data pointer, if succesful, otherwise NULL
 */
-uint8_t *json_ptrto_1d(string token, uint16_t index1, cosmosstruc *cdata)
+uint8_t *json_ptrto_1d(std::string token, uint16_t index1, cosmosstruc *cdata)
 {
 	char tstring[5+COSMOS_MAX_NAME];
 
@@ -2390,7 +2390,7 @@ uint8_t *json_ptrto_1d(string token, uint16_t index1, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return The associated data pointer, if succesful, otherwise NULL
 */
-uint8_t *json_ptrto_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
+uint8_t *json_ptrto_2d(std::string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
 {
 	char tstring[9+COSMOS_MAX_NAME];
 
@@ -2499,7 +2499,7 @@ int32_t json_get_int(jsonentry *entry, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a signed 32 bit integer, or 0.
 */
-int32_t json_get_int(string token, cosmosstruc *cdata)
+int32_t json_get_int(std::string token, cosmosstruc *cdata)
 {
 	int32_t value=0;
 	jsonentry *ptr;
@@ -2522,7 +2522,7 @@ int32_t json_get_int(string token, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a signed 32 bit integer, or 0.
 */
-int32_t json_get_int(string token, uint16_t index1, cosmosstruc *cdata)
+int32_t json_get_int(std::string token, uint16_t index1, cosmosstruc *cdata)
 {
 	int32_t value;
 	char tstring[5+COSMOS_MAX_NAME];
@@ -2547,7 +2547,7 @@ int32_t json_get_int(string token, uint16_t index1, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a signed 32 bit integer, or 0.
 */
-int32_t json_get_int(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
+int32_t json_get_int(std::string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
 {
 	int32_t value;
 	char tstring[9+COSMOS_MAX_NAME];
@@ -2657,7 +2657,7 @@ uint32_t json_get_uint(jsonentry *entry, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a signed 32 bit unsigned integer, or 0.
 */
-uint32_t json_get_uint(string token, cosmosstruc *cdata)
+uint32_t json_get_uint(std::string token, cosmosstruc *cdata)
 {
 	uint32_t value=0;
 	jsonentry *ptr;
@@ -2680,7 +2680,7 @@ uint32_t json_get_uint(string token, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a signed 32 bit unsigned integer, or 0.
 */
-uint32_t json_get_uint(string token, uint16_t index1, cosmosstruc *cdata)
+uint32_t json_get_uint(std::string token, uint16_t index1, cosmosstruc *cdata)
 {
 	uint32_t value;
 	char tstring[5+COSMOS_MAX_NAME];
@@ -2705,7 +2705,7 @@ uint32_t json_get_uint(string token, uint16_t index1, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a signed 32 bit unsigned integer, or 0.
 */
-uint32_t json_get_uint(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
+uint32_t json_get_uint(std::string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
 {
 	uint32_t value;
 	char tstring[9+COSMOS_MAX_NAME];
@@ -2748,7 +2748,7 @@ double json_get_double(jsonhandle &handle, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a double, or 0.
 */
-double json_get_double(string token, cosmosstruc *cdata)
+double json_get_double(std::string token, cosmosstruc *cdata)
 {
 	double value=0.;
 	jsonentry *entry;
@@ -2846,7 +2846,7 @@ double json_get_double(jsonentry *entry, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a double, or 0.
 */
-double json_get_double(string token, uint16_t index1, cosmosstruc *cdata)
+double json_get_double(std::string token, uint16_t index1, cosmosstruc *cdata)
 {
 	double value;
 	char tstring[5+COSMOS_MAX_NAME];
@@ -2872,7 +2872,7 @@ double json_get_double(string token, uint16_t index1, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Value cast as a double, or 0.
 */
-double json_get_double(string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
+double json_get_double(std::string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata)
 {
 	double value;
 	char tstring[9+COSMOS_MAX_NAME];
@@ -2898,10 +2898,10 @@ you call this function.
 	\param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to a char buffer containing the string.
 */
-string json_get_string_name(string token, cosmosstruc *cdata)
+std::string json_get_string_name(std::string token, cosmosstruc *cdata)
 {
 	jsonentry *ptr;
-	string tstring;
+    std::string tstring;
 	char tbuf[20];
 
 	if ((ptr=json_entry_of(token,cdata)) == NULL)
@@ -3010,7 +3010,7 @@ int32_t json_set_double_name(double value, char *token, cosmosstruc *cdata)
 */
 double json_equation(const char* &ptr, cosmosstruc *cdata)
 {
-	string equation;
+    std::string equation;
 	int32_t iretn;
 	jsonhandle handle;
 
@@ -3025,7 +3025,7 @@ double json_equation(const char* &ptr, cosmosstruc *cdata)
 		return (NAN);
 	}
 
-	return(json_equation_entry(&cdata[0].emap[handle.hash][handle.index], cdata));
+    return(json_equation(&cdata[0].emap[handle.hash][handle.index], cdata));
 }
 
 //! Return the results of a known JSON equation handle
@@ -3034,9 +3034,9 @@ double json_equation(const char* &ptr, cosmosstruc *cdata)
 	\param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Result of the equation, or NAN.
 */
-double json_equation_handle(jsonhandle *handle, cosmosstruc *cdata)
+double json_equation(jsonhandle *handle, cosmosstruc *cdata)
 {
-	return(json_equation_entry(&cdata[0].emap[handle->hash][handle->index], cdata));
+    return(json_equation(&cdata[0].emap[handle->hash][handle->index], cdata));
 }
 
 //! Return the results of a known JSON equation entry
@@ -3045,7 +3045,7 @@ double json_equation_handle(jsonhandle *handle, cosmosstruc *cdata)
 	\param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Result of the equation, or NAN.
 */
-double json_equation_entry(jsonequation *ptr, cosmosstruc *cdata)
+double json_equation(jsonequation *ptr, cosmosstruc *cdata)
 {
 	double a[2]={0.,0.}, c=NAN;
 
@@ -3059,7 +3059,7 @@ double json_equation_entry(jsonequation *ptr, cosmosstruc *cdata)
 			a[i] = ptr->operand[i].value;
 			break;
 		case JSON_OPERAND_EQUATION:
-			a[i] = json_equation_entry(&cdata[0].emap[ptr->operand[i].data.hash][ptr->operand[i].data.index], cdata);
+            a[i] = json_equation(&cdata[0].emap[ptr->operand[i].data.hash][ptr->operand[i].data.index], cdata);
 			break;
 		case JSON_OPERAND_NAME:
 			a[i] = json_get_double(&cdata[0].jmap[ptr->operand[i].data.hash][ptr->operand[i].data.index],cdata);
@@ -3119,9 +3119,9 @@ double json_equation_entry(jsonequation *ptr, cosmosstruc *cdata)
 	\param token The Namespace name to be extracted.
 	\return A character string representing the extracted value, otherwise NULL.
 */
-string json_extract_namedobject(string json, string token)
+std::string json_extract_namedobject(std::string json, std::string token)
 {
-	string tstring;
+    std::string tstring;
 	const char *ptr;
 	int32_t iretn;
 
@@ -3178,7 +3178,7 @@ string json_extract_namedobject(string json, string token)
 	\param ptr Pointer to a pointer to a JSON stream.
 	\return The length of the returned string.
 */
-int32_t json_extract_value(const char *&ptr, string &value)
+int32_t json_extract_value(const char *&ptr, std::string &value)
 {
 	const char *bptr, *eptr;
 	uint32_t count;
@@ -3258,9 +3258,9 @@ int32_t json_extract_value(const char *&ptr, string &value)
  * \param object Fully formed JSON object.
  * \return Object as string, or empty string.
  */
-string json_convert_string(string object)
+std::string json_convert_string(std::string object)
 {
-	string result;
+    std::string result;
 	const char *ptr = &object[0];
 
 	json_extract_string(ptr, result);
@@ -3275,7 +3275,7 @@ string json_convert_string(string object)
  * \param object Fully formed JSON object.
  * \return Object as double, or zero.
  */
-double json_convert_double(string object)
+double json_convert_double(std::string object)
 {
 	double dresult;
 
@@ -3301,14 +3301,14 @@ double json_convert_double(string object)
  * \param cdata Pointer to the ::cosmosstruc containing the name space.
  * \return Zero or negative error.
  */
-int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector<jsontoken> &tokens)
+int32_t json_tokenize(std::string jstring, cosmosstruc *cdata, std::vector<jsontoken> &tokens)
 {
 	const char *cpoint;
 	size_t length;
 	int32_t iretn;
 	jsontoken ttoken;
 
-	string val = json_extract_namedobject(jstring, "node_utc");
+    std::string val = json_extract_namedobject(jstring, "node_utc");
 	if (val.length()!=0) ttoken.utc = json_convert_double(val);
 	else
 	{
@@ -3357,7 +3357,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cdata, vector<jsontoken> &tok
 int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cdata, jsontoken &token)
 {
 	int32_t iretn=0;
-	string ostring;
+    std::string ostring;
 	uint16_t hash, index;
 
 	if (!(cdata[0].jmapped))
@@ -3394,7 +3394,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cdata, jsontoke
 
 	// See if there is a match in the ::jsonmap.
 	for (index=0; index<cdata[0].jmap[hash].size(); ++index)	{
-		if (ostring == cdata[0].jmap[hash][index].name)
+        if (ostring == cdata[0].jmap[hash][index].name)
 		{
 			break;
 		}
@@ -3451,7 +3451,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cdata, jsontoke
 				return (iretn);
 		}
 		// Read value
-		string input;
+        std::string input;
 		if ((iretn = json_extract_value(ptr, input)) < 0)
 		{
 			if (iretn != JSON_ERROR_EOS)
@@ -3498,7 +3498,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cdata, jsontoke
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Zero or negative error.
 */
-int32_t json_parse(string jstring, cosmosstruc *cdata)
+int32_t json_parse(std::string jstring, cosmosstruc *cdata)
 {
 	const char *cpoint;
 	size_t length;
@@ -3511,7 +3511,7 @@ int32_t json_parse(string jstring, cosmosstruc *cdata)
 		cpoint++;
 	do
 	{
-		// is this the only reference to endlines?
+        // is this the only reference to endlines?
 		if (*cpoint != 0)// && *cpoint != '\r' && *cpoint != '\n')
 			//if (*cpoint != 0 && *cpoint != '\r' && *cpoint != '\n')
 		{
@@ -3544,7 +3544,7 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosstruc *cdata)
 {
 	uint32_t hash, n;
 	int32_t iretn=0;
-	string ostring;
+    std::string ostring;
 
 	if (!(cdata[0].jmapped))
 	{
@@ -3669,7 +3669,7 @@ int32_t json_skip_character(const char* &ptr, const char character)
  \param string Pointer to a location to copy the string.
  \return Zero, otherwise negative error.
 */
-int32_t json_parse_name(const char* &ptr, string& ostring)
+int32_t json_parse_name(const char* &ptr, std::string& ostring)
 {
 	int32_t iretn = 0;
 
@@ -3711,7 +3711,7 @@ int32_t json_parse_name(const char* &ptr, string& ostring)
  \param string Pointer to a location to copy the equation.
  \return Zero, otherwise negative error.
 */
-int32_t json_parse_equation(const char* &ptr, string& equation)
+int32_t json_parse_equation(const char* &ptr, std::string& equation)
 {
 	int32_t iretn = 0;
 	register uint16_t i2;
@@ -3787,7 +3787,7 @@ int32_t json_parse_equation(const char* &ptr, string& equation)
 */
 int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosstruc *cdata)
 {
-	string tstring;
+    std::string tstring;
 	int32_t iretn;
 
 	switch(ptr[0])
@@ -3848,7 +3848,7 @@ int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosstruc *
  \param string Pointer to a location to copy the string.
  \return Zero, otherwise negative error.
 */
-int32_t json_extract_string(const char* &ptr, string &ostring)
+int32_t json_extract_string(const char* &ptr, std::string &ostring)
 {
 	int32_t iretn = 0;
 	register uint32_t i2;
@@ -4024,7 +4024,7 @@ int32_t json_skip_value(const char* &ptr)
 
 int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata)
 {
-	string input;
+    std::string input;
 	int32_t iretn = 0;
 	double val;
 	cartpos *rp;
@@ -4033,7 +4033,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
 	dcmatt *ra;
 	qatt *qa;
 	uint8_t *data;
-	string empty;
+    std::string empty;
 
 	if (ptr[0] == 0)
 		return (JSON_ERROR_EOS);
@@ -4746,7 +4746,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cdata)
  *	\param cdata Pointer to cdata ::cosmosstruc.
 	\return 0, or a negative ::error
 */
-int32_t json_setup_node(string node, cosmosstruc *cdata)
+int32_t json_setup_node(std::string node, cosmosstruc *cdata)
 {
 	return json_setup_node(node, cdata, false);
 }
@@ -4760,27 +4760,27 @@ int32_t json_setup_node(string node, cosmosstruc *cdata)
  * \param create_flag Whether or not to create node directory if it doesn't already exist.
 	\return 0, or a negative ::error
 */
-int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
+int32_t json_setup_node(std::string node, cosmosstruc *cdata, bool create_flag)
 {
 	int32_t iretn;
 	struct stat fstat;
-	ifstream ifs;
+    std::ifstream ifs;
 	char *ibuf;
-	string fname;
-	string nodepath;
+    std::string fname;
+    std::string nodepath;
 
 	if (!cdata || !cdata[0].jmapped)
 		return (JSON_ERROR_NOJMAP);
 
 	size_t nodestart;
-	if ((nodestart = node.rfind('/')) == string::npos)
+    if ((nodestart = node.rfind('/')) == std::string::npos)
 	{
 		nodepath = get_nodedir(node, create_flag);
 	}
 	else
 	{
 		nodepath = node;
-		node = node.substr(nodestart+1, string::npos);
+        node = node.substr(nodestart+1, std::string::npos);
 	}
 
 	// First: parse data for summary information - includes piece_cnt, device_cnt and port_cnt
@@ -4844,7 +4844,7 @@ int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
 		if (!stat(fname.c_str(),&fstat) && fstat.st_size)
 		{
 			int32_t iretn;
-			vector <tlestruc> tles;
+            std::vector <tlestruc> tles;
 			iretn = load_lines(fname, tles);
 			if (iretn > 0)
 			{
@@ -5062,10 +5062,10 @@ int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
 			ifs.open(fname);
 			if (ifs.is_open())
 			{
-				string alias;
+                std::string alias;
 				while (getline(ifs, alias, ' '))
 				{
-					string cname;
+                    std::string cname;
 					getline(ifs, cname);
 					json_addentry(alias, cname, cdata);
 				} ;
@@ -5085,16 +5085,16 @@ int32_t json_setup_node(string node, cosmosstruc *cdata, bool create_flag)
  */
 int32_t json_dump_node(cosmosstruc *cdata)
 {
-	string jst;
+    std::string jst;
 
 	// Node
-	string output = json_node(jst, cdata);
-	string fileloc = get_nodedir(cdata[0].node.name);
+    std::string output = json_node(jst, cdata);
+    std::string fileloc = get_nodedir(cdata[0].node.name);
 	if (fileloc.empty())
 	{
 		return DATA_ERROR_NODES_FOLDER;
 	}
-	string filename = fileloc + "/node.ini";
+    std::string filename = fileloc + "/node.ini";
 	FILE *file = fopen(filename.c_str(), "w");
 	if (file == NULL)
 	{
@@ -5834,7 +5834,7 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
 	\param cdata Pointer to cdata ::cosmosstruc to be used.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cdata)
+const char *json_of_wildcard(std::string &jstring, std::string wildcard, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -5854,7 +5854,7 @@ const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cdat
 	\param cdata Pointer to cdata ::cosmosstruc to be used.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_list(string &jstring, string list, cosmosstruc *cdata)
+const char *json_of_list(std::string &jstring, std::string list, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -5873,7 +5873,7 @@ const char *json_of_list(string &jstring, string list, cosmosstruc *cdata)
 	\param cdata Pointer to cdata ::cosmosstruc to be used.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_table(string &jstring, vector<jsonentry*> table, cosmosstruc *cdata)
+const char *json_of_table(std::string &jstring, std::vector<jsonentry*> table, cosmosstruc *cdata)
 {
 	jstring.clear();
 	for (auto entry: table)
@@ -5894,7 +5894,7 @@ const char *json_of_table(string &jstring, vector<jsonentry*> table, cosmosstruc
  \param num Target index.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_target(string &jstring, cosmosstruc *cdata, uint16_t num)
+const char *json_of_target(std::string &jstring, cosmosstruc *cdata, uint16_t num)
 {
 	int32_t iretn;
 
@@ -5964,7 +5964,7 @@ const char *json_of_target(string &jstring, cosmosstruc *cdata, uint16_t num)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_node(string &jstring, cosmosstruc *cdata)
+const char *json_of_node(std::string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -6044,7 +6044,7 @@ const char *json_of_node(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_agent(string &jstring, cosmosstruc *cdata)
+const char *json_of_agent(std::string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -6131,7 +6131,7 @@ const char *json_of_agent(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_time(string &jstring, cosmosstruc *cdata)
+const char *json_of_time(std::string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -6156,7 +6156,7 @@ const char *json_of_time(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_beat(string &jstring, cosmosstruc *cdata)
+const char *json_of_beat(std::string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -6174,7 +6174,7 @@ const char *json_of_beat(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_beacon(string &jstring, cosmosstruc *cdata)
+const char *json_of_beacon(std::string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -6245,7 +6245,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cdata)
+const char *json_of_imu(std::string &jstring, uint16_t num, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -6289,7 +6289,7 @@ const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cdata)
 	return jstring.data();
 }
 
-const char *json_of_ephemeris(string &jstring, cosmosstruc *cdata)
+const char *json_of_ephemeris(std::string &jstring, cosmosstruc *cdata)
 {
 	// Location
 	jstring.clear();
@@ -6303,7 +6303,7 @@ const char *json_of_ephemeris(string &jstring, cosmosstruc *cdata)
 	return jstring.data();
 }
 
-const char *json_of_utc(string &jstring, cosmosstruc *cdata)
+const char *json_of_utc(std::string &jstring, cosmosstruc *cdata)
 {
 	// Time
 	jstring.clear();
@@ -6317,12 +6317,12 @@ const char *json_of_utc(string &jstring, cosmosstruc *cdata)
 /*! Go through the Namespace map, extracting each valid Namespace name. Return this
  * as a JSON like list.
 */
-string json_list_of_all(cosmosstruc *cdata)
+std::string json_list_of_all(cosmosstruc *cdata)
 {
-	string result;
+    std::string result;
 
 	result = "{";
-	for (vector<jsonentry> entryrow : cdata->jmap)
+    for (std::vector<jsonentry> entryrow : cdata->jmap)
 	{
 		for (jsonentry entry : entryrow)
 		{
@@ -6344,9 +6344,9 @@ string json_list_of_all(cosmosstruc *cdata)
 }
 
 
-string json_list_of_soh(cosmosstruc* cdata)
+std::string json_list_of_soh(cosmosstruc* cdata)
 {
-	string result;
+    std::string result;
 	char tempstring[200];
 
 	result = "{\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_charging\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
@@ -6581,7 +6581,7 @@ string json_list_of_soh(cosmosstruc* cdata)
 
 }
 
-const char *json_of_soh(string &jstring, cosmosstruc *cdata)
+const char *json_of_soh(std::string &jstring, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -6590,7 +6590,7 @@ const char *json_of_soh(string &jstring, cosmosstruc *cdata)
 	json_out(jstring,(char *)"node_utcoffset",cdata);
 
 	// Satellite Information
-	string soh = json_list_of_soh(cdata);
+    std::string soh = json_list_of_soh(cdata);
 	iretn = json_out_list(jstring, soh.c_str(), cdata);
 	if (iretn < 0 && iretn != JSON_ERROR_EOS)
 		return nullptr;
@@ -6605,7 +6605,7 @@ const char *json_of_soh(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
 	\return Pointer to the string created.
 */
-const char *json_of_event(string &jstring, cosmosstruc *cdata)
+const char *json_of_event(std::string &jstring, cosmosstruc *cdata)
 {
 	jstring.clear();
 	json_out(jstring,(char *)"event_utc", cdata);
@@ -6629,7 +6629,7 @@ const char *json_of_event(string &jstring, cosmosstruc *cdata)
 	return jstring.data();
 }
 
-const char *json_of_groundcontact(string &jstring, cosmosstruc *cdata)
+const char *json_of_groundcontact(std::string &jstring, cosmosstruc *cdata)
 {
 	int16_t i;
 
@@ -6647,7 +6647,7 @@ const char *json_of_groundcontact(string &jstring, cosmosstruc *cdata)
 	return jstring.data();
 }
 
-const char *json_of_mtr(string &jstring,uint16_t index, cosmosstruc *cdata)
+const char *json_of_mtr(std::string &jstring,uint16_t index, cosmosstruc *cdata)
 {
 	jstring.clear();
 	json_out(jstring,(char *)"node_utc",cdata);
@@ -6662,7 +6662,7 @@ const char *json_of_mtr(string &jstring,uint16_t index, cosmosstruc *cdata)
 }
 
 
-const char *json_of_rw(string &jstring,uint16_t index, cosmosstruc *cdata)
+const char *json_of_rw(std::string &jstring,uint16_t index, cosmosstruc *cdata)
 {
 	jstring.clear();
 	json_out(jstring,(char *)"node_utc",cdata);
@@ -6681,7 +6681,7 @@ const char *json_of_rw(string &jstring,uint16_t index, cosmosstruc *cdata)
 	return jstring.data();
 }
 
-const char *json_of_state_eci(string &jstring, cosmosstruc *cdata)
+const char *json_of_state_eci(std::string &jstring, cosmosstruc *cdata)
 {
 	jstring.clear();
 	//	json_out(jstring,(char *)"node_utc",cdata);
@@ -6692,7 +6692,7 @@ const char *json_of_state_eci(string &jstring, cosmosstruc *cdata)
 }
 
 // get state vector in ECEF/Geocentric
-const char *json_of_state_geoc(string &jstring, cosmosstruc *cdata)
+const char *json_of_state_geoc(std::string &jstring, cosmosstruc *cdata)
 {
 	jstring.clear();
 	//	json_out(jstring,(char *)"node_utc",cdata);
@@ -6709,7 +6709,7 @@ const char *json_of_state_geoc(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-const char *json_node(string &jstring, cosmosstruc *cdata)
+const char *json_node(std::string &jstring, cosmosstruc *cdata)
 {
 
 	jstring.clear();
@@ -6732,7 +6732,7 @@ const char *json_node(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-const char *json_pieces(string &jstring, cosmosstruc *cdata)
+const char *json_pieces(std::string &jstring, cosmosstruc *cdata)
 {
 	uint16_t cnt;
 
@@ -6783,7 +6783,7 @@ const char *json_pieces(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-const char *json_devices_general(string &jstring, cosmosstruc *cdata)
+const char *json_devices_general(std::string &jstring, cosmosstruc *cdata)
 {
 
 	jstring.clear();
@@ -6825,7 +6825,7 @@ const char *json_devices_general(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
+const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
 {
 	uint16_t *cnt;
 	char tstring[COSMOS_MAX_NAME+1];
@@ -7161,7 +7161,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cdata)
  \param cdata A pointer to the beginning of the ::cosmosstruc to use.
  \return Pointer to the created JSON stream.
 */
-const char *json_ports(string &jstring, cosmosstruc *cdata)
+const char *json_ports(std::string &jstring, cosmosstruc *cdata)
 {
 
 	jstring.clear();
@@ -7206,7 +7206,7 @@ void json_test(cosmosstruc *cdata)
 	\param handle Pointer to ::jsonhandle of name.
 	\return Zero, or negative error number.
 */
-int32_t json_name_map(string name, cosmosstruc *cdata, jsonhandle &handle)
+int32_t json_name_map(std::string name, cosmosstruc *cdata, jsonhandle &handle)
 {
 
 	if (!cdata || !cdata[0].jmapped)
@@ -7234,7 +7234,7 @@ int32_t json_name_map(string name, cosmosstruc *cdata, jsonhandle &handle)
 	\param handle Pointer to ::jsonhandle of name.
 	\return Zero, or negative error number.
 */
-int32_t json_equation_map(string equation, cosmosstruc *cdata, jsonhandle *handle)
+int32_t json_equation_map(std::string equation, cosmosstruc *cdata, jsonhandle *handle)
 {
 	const char *pointer;
 	jsonequation tequation;
@@ -7465,7 +7465,7 @@ uint32_t json_get_name_list_count(cosmosstruc *cdata)
 	::nodedir. If NULL, node.ini must be in current directory.
 	\return 0, or negative error.
 */
-int32_t node_init(string node, cosmosstruc *cdata)
+int32_t node_init(std::string node, cosmosstruc *cdata)
 {
 	int32_t iretn;
 
@@ -7940,7 +7940,7 @@ void create_databases(cosmosstruc *cdata)
 int load_target(cosmosstruc *cdata)
 {
 	FILE *op;
-	string fname;
+    std::string fname;
 	char inb[JSON_MAX_DATA];
 	uint16_t count;
 
@@ -8042,7 +8042,7 @@ int32_t update_target(locstruc source, targetstruc &target)
  *	\param file Name of dictionary file.
  *	\return Number of items loaded.
 */
-size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cdata, char *file)
+size_t load_dictionary(std::vector<shorteventstruc> &dict, cosmosstruc *cdata, char *file)
 {
 	FILE *op;
 	char inb[JSON_MAX_DATA];
@@ -8050,7 +8050,7 @@ size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cdata, char *
 	jsonhandle handle;
 	int32_t iretn;
 
-	string fname = (get_nodedir(cdata[0].node.name) + "/") + file;
+    std::string fname = (get_nodedir(cdata[0].node.name) + "/") + file;
 	if ((op=fopen(fname.c_str(),"r")) != NULL)
 	{
 		while (fgets(inb,JSON_MAX_DATA,op) != NULL)
@@ -8405,7 +8405,7 @@ void load_databases(char *name, uint16_t type, cosmosstruc *cdata)
 *	\param events Reference to vector of ::shortenventstruc representing events.
 *	\return Number of events created.
 */
-size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cdata, vector<shorteventstruc> &events)
+size_t calc_events(std::vector<shorteventstruc> &dictionary, cosmosstruc *cdata, std::vector<shorteventstruc> &events)
 {
 	double value;
 	//	const char *cp;
@@ -8414,11 +8414,11 @@ size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cdata, vect
 	events.resize(0);
 	for (uint32_t k=0; k<dictionary.size(); ++k)
 	{
-		if (!std::isnan(value=json_equation_handle(&dictionary[k].handle, cdata)) && value != 0. && dictionary[k].value == 0.)
+        if (!std::isnan(value=json_equation(&dictionary[k].handle, cdata)) && value != 0. && dictionary[k].value == 0.)
 		{
 			dictionary[k].utc = cdata[0].node.loc.utc;
 			events.push_back(dictionary[k]);
-			string tstring = json_get_string_name(dictionary[k].data, cdata);
+            std::string tstring = json_get_string_name(dictionary[k].data, cdata);
 			strcpy(events[events.size()-1].data, tstring.c_str());
 			strcpy(events[events.size()-1].node,cdata[0].node.name);
 			if ((sptr=strstr(events[events.size()-1].name,"${")) != NULL && (eptr=strstr(sptr,"}")) != NULL)
@@ -8435,9 +8435,9 @@ size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cdata, vect
 	return (events.size());
 }
 
-string device_type_name(uint32_t type)
+std::string device_type_name(uint32_t type)
 {
-	string result;
+    std::string result;
 
 	if (type < DEVICE_TYPE_COUNT)
 	{
@@ -8447,9 +8447,9 @@ string device_type_name(uint32_t type)
 	return result;
 }
 
-string port_type_name(uint32_t type)
+std::string port_type_name(uint32_t type)
 {
-	string result;
+    std::string result;
 
 	if (type < PORT_TYPE_COUNT)
 	{

@@ -35,7 +35,7 @@
 #include <cstring>
 #include <iostream>
 
-using namespace std;
+//using namespace std;
 
 #define FEND  0xC0
 #define FESC  0xDB
@@ -86,7 +86,7 @@ private:
 	unsigned char control;
 	unsigned char protocolID;
 
-	friend ostream& operator<<(ostream& out, kissHandle& K);
+    friend std::ostream& operator<<(std::ostream& out, kissHandle& K);
 };
 
 //old encode (to be deleted)**********************************************

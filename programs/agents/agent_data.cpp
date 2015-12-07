@@ -52,15 +52,15 @@
 
 int myagent();
 
-vector<agentstruc> agent;
+std::vector<agentstruc> agent;
 agentstruc tempagent;
 
 //what else?
 
-vector<cosmosstruc> nodes;
+std::vector<cosmosstruc> nodes;
 char tempname[100];
 char agentname[COSMOS_MAX_NAME+1] = "data";
-string dataDir;
+std::string dataDir;
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int32_t request_login(char *request, char* response, void *cdata);
 int32_t request_getnodelist(char *request, char* response, void *cdata);

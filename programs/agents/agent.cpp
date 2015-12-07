@@ -55,7 +55,7 @@
 #include "limits.h"
 #include <iostream>
 
-using namespace std;
+//using namespace std;
 
 char output[AGENTMAXBUFFER];
 cosmosstruc *cdata;
@@ -63,10 +63,10 @@ cosmosstruc *cdata;
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 4;
 
-bool is_node(vector<string> nl, string node_name)
+bool is_node(std::vector<std::string> nl, std::string node_name)
 {
 
-    for (string node: nl)
+    for (std::string node: nl)
     {
         if(node == node_name)
         {
@@ -77,14 +77,14 @@ bool is_node(vector<string> nl, string node_name)
 }
 
 
-void print_node_list(vector<string>& nlp) {
+void print_node_list(std::vector<std::string>& nlp) {
 
     if(nlp.empty())
     {
         return;
     }
 
-    for(string n: nlp)
+    for(std::string n: nlp)
     {
         printf("    %s\n", n.c_str());
     }
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 {
     int nbytes;
     beatstruc cbeat;
-    vector<string> nl;
+    std::vector<std::string> nl;
     data_list_nodes(nl);
 
     cdata = agent_setup_client(SOCKET_TYPE_UDP, "", 1000);
@@ -117,10 +117,10 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1],"dump"))
         {
             double lmjd = 0., dmjd;
-            string channel;
+            std::string channel;
             uint8_t cnum;
-            string message;
-            string header;
+            std::string message;
+            std::string header;
             pollstruc meta;
             int i, pretn;
             locstruc loc;
@@ -156,11 +156,11 @@ int main(int argc, char *argv[])
                 {
                     header.resize(meta.jlength);
                     memcpy(&header[0], &message[3], meta.jlength);
-                    string utc = json_extract_namedobject(header.c_str(), "agent_utc");
-                    string node = json_convert_string(json_extract_namedobject(header.c_str(), "agent_node"));
-                    string proc = json_extract_namedobject(header.c_str(), "agent_proc");
-                    string addr = json_convert_string(json_extract_namedobject(header.c_str(), "agent_addr"));
-                    string port = json_extract_namedobject(header.c_str(), "agent_port");
+                    std::string utc = json_extract_namedobject(header.c_str(), "agent_utc");
+                    std::string node = json_convert_string(json_extract_namedobject(header.c_str(), "agent_node"));
+                    std::string proc = json_extract_namedobject(header.c_str(), "agent_proc");
+                    std::string addr = json_convert_string(json_extract_namedobject(header.c_str(), "agent_addr"));
+                    std::string port = json_extract_namedobject(header.c_str(), "agent_port");
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
@@ -226,12 +226,12 @@ int main(int argc, char *argv[])
         }
         else if (!strcmp(argv[1],"list"))
         {
-            vector<beatstruc> cbeat;
+            std::vector<beatstruc> cbeat;
             cbeat = agent_find_servers(cdata, SERVER_WAIT_TIME);
 
             if (cbeat.size() > 0)
             {
-                cout<<"Number of Agents found: "<<cbeat.size()<<endl;
+                std::cout<<"Number of Agents found: "<<cbeat.size()<<std::endl;
                 for (unsigned int i=0; i<cbeat.size(); i++)
                 {
                     agent_send_request(cdata, cbeat[i],(char *)"getvalue {\"agent_pid\"}",output,AGENTMAXBUFFER,REQUEST_WAIT_TIME);
@@ -248,13 +248,13 @@ int main(int argc, char *argv[])
         //  {
         //      if (is_node(nl,argv[1]))
         //      {
-        //          vector<beatstruc> cbeat;
+        //          std::vector<beatstruc> cbeat;
         //          cbeat = agent_find_servers(cdata, SERVER_WAIT_TIME);
 
         //          printf("\n    List of available agents:\n\n");
 
         //              if (!cbeat.empty()) {
-        //              cout<<"Number of Agents found: "<<cbeat.size()<<endl;
+        //              std::cout<<"Number of Agents found: "<<cbeat.size()<<std::endl;
         //              for (unsigned int i=0; i<cbeat.size(); i++)
         //                  if(!strcmp(argv[1],cbeat[i].node))
         //                      printf("    %s\n", cbeat[i].proc);
@@ -283,10 +283,10 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1],"dump"))
         {
             double lmjd = 0., dmjd;
-            string channel;
+            std::string channel;
             uint8_t cnum;
-            string message;
-            string header;
+            std::string message;
+            std::string header;
             pollstruc meta;
             int i, pretn;
             locstruc loc;
@@ -322,11 +322,11 @@ int main(int argc, char *argv[])
                 {
                     header.resize(meta.jlength);
                     memcpy(&header[0], &message[3], meta.jlength);
-                    string utc = json_extract_namedobject(header.c_str(), "agent_utc");
-                    string node = json_convert_string(json_extract_namedobject(header.c_str(), "agent_node"));
-                    string proc = json_extract_namedobject(header.c_str(), "agent_proc");
-                    string addr = json_convert_string(json_extract_namedobject(header.c_str(), "agent_addr"));
-                    string port = json_extract_namedobject(header.c_str(), "agent_port");
+                    std::string utc = json_extract_namedobject(header.c_str(), "agent_utc");
+                    std::string node = json_convert_string(json_extract_namedobject(header.c_str(), "agent_node"));
+                    std::string proc = json_extract_namedobject(header.c_str(), "agent_proc");
+                    std::string addr = json_convert_string(json_extract_namedobject(header.c_str(), "agent_addr"));
+                    std::string port = json_extract_namedobject(header.c_str(), "agent_port");
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
@@ -404,9 +404,9 @@ int main(int argc, char *argv[])
             }
             else
             {
-                string request;
+                std::string request;
                 request = argv[3];
-                for (size_t i=0; i<argc-4; ++i)
+                for (size_t i=0; i<(size_t)argc-4; ++i)
                 {
                     request += " ";
                     request += argv[i+4];

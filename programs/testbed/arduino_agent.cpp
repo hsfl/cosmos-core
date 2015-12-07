@@ -214,7 +214,7 @@ char 	outstr [240], outstr1[240], fname[120] ;
 int		oldday, iyear, iday ;
 double 	year, day, cmjd, nmjd, period;
 unsigned long usec;
-string jstring;
+std::string jstring;
 oldday = -1 ;
 
 //FILE *flog = NULL ;

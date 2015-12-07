@@ -143,7 +143,7 @@ rvector utc2nuts(double mjd);
 double utc2theta(double mjd);
 double utc2jcentt(double mjd);
 double utc2jcenut1(double mjd);
-string utc2iso8601(double mjd);
+std::string utc2iso8601(double mjd);
 
 // gps to another format
 double  gps2utc(double gps);
@@ -155,12 +155,12 @@ double  mjd2year(double mjd);
 calstruc mjd2cal(double mjd);
 int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day);
 int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy);
-string mjdToGregorian(double mjd);
+std::string mjdToGregorian(double mjd);
 int32_t mjdToGregorian(double mjd, int32_t *year, int32_t *month, int32_t *day,
                       int32_t *hour, int32_t *minute, int32_t *second);
-string  mjdToGregorianDDMMMYYYY(double mjd);
-string  mjdToGregorianDDMmmYYYY(double mjd);
-string  mjd2iso8601(double mjd);
+std::string  mjdToGregorianDDMMMYYYY(double mjd);
+std::string  mjdToGregorianDDMmmYYYY(double mjd);
+std::string  mjd2iso8601(double mjd);
 double  mjd2jd(double mjd);
 double  jd2mjd(double jd);
 
@@ -175,7 +175,7 @@ int32_t leap_seconds(double mjd);
 double  ranrm(double angle);
 int16_t isleap(int32_t year);
 int32_t load_iers();
-string  seconds2DDHHMMSS(double elapsed_seconds);
+std::string  seconds2DDHHMMSS(double elapsed_seconds);
 
 
 //class Time

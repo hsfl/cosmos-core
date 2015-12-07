@@ -34,7 +34,7 @@
 #include <sys/stat.h>
 #include <iostream>
 
-using namespace std;
+//using namespace std;
 #include <stdio.h>
 
 #include "jsonlib.h"
@@ -127,7 +127,7 @@ int myagent()
 rvector testv;
 double dt;
 int  	i;
-string jstring;
+std::string jstring;
 period = 1./86400.;
 fname[0] = 0;
 

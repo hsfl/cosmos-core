@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-//	thread send_thread(send_loop);
+//	std::thread send_thread(send_loop);
 
 	tcount = 0;
 	for (double to=0.; to<.2; to+=.1)

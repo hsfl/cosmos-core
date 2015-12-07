@@ -53,11 +53,11 @@
 //! @{
 typedef struct
 {
-	string node;
-	string agent;
-	string name;
-	string type;
-	string path;
+    std::string node;
+    std::string agent;
+    std::string name;
+    std::string type;
+    std::string path;
 	size_t size;
 	uint16_t year;
 	uint16_t jday;

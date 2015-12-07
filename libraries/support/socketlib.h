@@ -143,12 +143,12 @@ struct socket_channel
 //! @{
 
 int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
-uint16_t socket_calc_udp_checksum(vector<uint8_t> packet);
-int32_t socket_check_udp_checksum(vector<uint8_t> packet);
-int32_t socket_set_udp_checksum(vector<uint8_t>& packet);
+uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet);
+int32_t socket_check_udp_checksum(std::vector<uint8_t> packet);
+int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet);
 int32_t socket_blocking(socket_channel *channel, bool blocking);
 int32_t socket_close(socket_channel *channel);
-vector<socket_channel> socket_find_addresses(uint16_t ntype);
+std::vector<socket_channel> socket_find_addresses(uint16_t ntype);
 
 //-------------------------------------------------------------------
 // Simple UDP class to send data
@@ -167,7 +167,7 @@ struct SocketOptions
 	bool connect = false;
 
 	// Channel's protocol address in string form
-	string address = "127.0.0.1";
+    std::string address = "127.0.0.1";
 	// port
 	uint16_t port = 8888;
 
@@ -188,12 +188,12 @@ public:
     // using list initialization is not supported be gcc 4.8 and/or MSVC 2013
     // so for the moment keep these commented out
     //  SocketOptions(uint16_t p):port{p}{}
-    //  SocketOptions(string a, uint16_t p):address{a},port{p}{}
-    //  SocketOptions(string a, uint16_t p, uint16_t r):address{a},port{p},role{r}{}
+    //  SocketOptions(std::string a, uint16_t p):address{a},port{p}{}
+    //  SocketOptions(std::string a, uint16_t p, uint16_t r):address{a},port{p},role{r}{}
 
     SocketOptions(uint16_t p);
-    SocketOptions(string a, uint16_t p);
-    SocketOptions(string a, uint16_t p, uint16_t r);
+    SocketOptions(std::string a, uint16_t p);
+    SocketOptions(std::string a, uint16_t p, uint16_t r);
 
 
 } ;
@@ -211,35 +211,35 @@ private:
 
 	//int32_t openClient();
 	int32_t openServer();
-	int32_t errorStatus(string functionName);
+    int32_t errorStatus(std::string functionName);
 
 public:
 	// constructors
 	Udp(); // : sok("127.0.0.1",8888){}
 	//Udp(uint16_t p);
-	//Udp(string a, uint16_t p);
-	//Udp(string a, uint16_t p, uint16_t r);
+    //Udp(std::string a, uint16_t p);
+    //Udp(std::string a, uint16_t p, uint16_t r);
 
 	int32_t socketOpen();
 
 	int32_t setupClient();
-	int32_t setupClient(string a, uint16_t p);
+    int32_t setupClient(std::string a, uint16_t p);
 
-	int32_t setupClientSimGen(string a, uint16_t p);
-	int32_t setupClientAcstb(string a, uint16_t p);
+    int32_t setupClientSimGen(std::string a, uint16_t p);
+    int32_t setupClientAcstb(std::string a, uint16_t p);
 
 	//int32_t setupServer();
 	//int32_t setupServer(uint16_t p);
 	int32_t setupServer(uint16_t port, float timeout_sec);
 
 
-	int32_t send(string package2send);
+    int32_t send(std::string package2send);
 	int32_t receiveLoop();
 	int32_t receiveOnce();
 
 	int32_t close();
 
-	string receivedData; // container for received data
+    std::string receivedData; // container for received data
 
 };
 

@@ -14,7 +14,7 @@
 
 /*
  * To define the enum list of message codes, include this file without
- * defining macro JMESSAGE.  To create a message string table, include it
+ * defining macro JMESSAGE.  To create a message std::string table, include it
  * again with a suitable JMESSAGE definition (see jerror.c for an example).
  */
 #ifndef JMESSAGE

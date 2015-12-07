@@ -35,9 +35,9 @@
 int main(int argc, char *argv[])
 {
 	cartpos eci;
-	vector <tlestruc> tle;
+	std::vector <tlestruc> tle;
 	double utc = 0.;
-	string tlename;
+	std::string tlename;
 
 	switch (argc)
 	{
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	tle2eci(utc, tle[0], eci);
 	eci.utc = utc;
 
-	string jsp;
+	std::string jsp;
 	json_out_ecipos(jsp, eci);
 
 	printf("%s\n", jsp.c_str());

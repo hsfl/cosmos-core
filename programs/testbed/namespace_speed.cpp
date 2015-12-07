@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	vector <string> names;
-	map <string,jsonentry*> testmap;
+	std::vector <std::string> names;
+    std::map <std::string,jsonentry*> testmap;
 	for (uint32_t i = 0; i < cdata[0].jmap.size(); i++)
 	{
 		for (uint32_t j = 0; j < cdata[0].jmap[i].size(); j++)
@@ -67,19 +67,19 @@ int main(int argc, char *argv[])
 	{
 		et.start();
 
-		for (string name: names)
+		for (std::string name: names)
 		{
 			jsonentry *tentry = json_entry_of(name, cdata);
-			string tname = tentry->name;
+			std::string tname = tentry->name;
 		}
 		printf("Standard Lookup: %d names, %f seconds\n", names.size(), et.lap());
 
 		et.reset();
 
-		for (string name: names)
+		for (std::string name: names)
 		{
 			jsonentry *tentry = testmap[name];
-			string tname = tentry->name;
+			std::string tname = tentry->name;
 		}
 		printf("Map Lookup: %d names, %f seconds\n", names.size(), et.lap());
 	}

@@ -41,7 +41,7 @@
 //#include <stdlib.h>
 //#include <errno.h>
 
-using namespace std;
+//using namespace std;
 
 //! \ingroup agentlib
 //! \defgroup agentlib_constants Agent Server and Client Library constants

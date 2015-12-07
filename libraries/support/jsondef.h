@@ -171,7 +171,7 @@ enum
     JSON_TYPE_FLOAT,
     //! JSON double precision floating point type
     JSON_TYPE_DOUBLE,
-    //! JSON string type
+    //! JSON std::string type
     JSON_TYPE_STRING,
     //! JSON Name type
     JSON_TYPE_NAME,
@@ -560,7 +560,7 @@ enum
 struct unitstruc
 {
     //! JSON Unit Name
-    string name;
+    std::string name;
     //! JSON Unit conversion type
     uint16_t type;
     //! 0th derivative term
@@ -584,13 +584,13 @@ struct jsonentry
     //! JSON Data Group
     uint16_t group;
     //! Name of entry
-    string name;
+    std::string name;
     //! offset to data storage
     ptrdiff_t offset;
     //! size of data storage
     size_t size;
     //! vector of actual data
-    vector <uint8_t> data;
+    std::vector <uint8_t> data;
     //! Index to JSON Unit Type
     uint16_t unit_index;
     //! Index to alert condition in Data Dictionary
@@ -624,7 +624,7 @@ struct jsonhandle
 struct jsontoken
 {
     jsonhandle handle;
-    string value;
+    std::string value;
     double utc;
 };
 
@@ -671,7 +671,7 @@ struct jsonequation
 struct jsonmap
 {
     //! Array of entries
-    vector<vector<jsonentry> > entry;
+    std::vector<std::vector<jsonentry> > entry;
 };
 
 //! Agent Request Function
@@ -683,11 +683,11 @@ typedef int32_t (*agent_request_function)(char* request_string, char* output_str
 struct agent_request_entry
 {
     //! Character token for request
-    string token;
+    std::string token;
     //! Pointer to function to call with request string as argument and returning any error
     agent_request_function function;
-    string synopsis;
-    string description;
+    std::string synopsis;
+    std::string description;
 };
 
 //! Channel structure
@@ -712,7 +712,7 @@ struct agent_channel
     uint16_t msgsize;
     // Channel's protocol address in string form
     char address[18];
-    // Channel's broadcast address in string form
+    // Channel's broadcast address in std::string form
     char baddress[18];
     // Channel's interface name
     char name[COSMOS_MAX_NAME+1];
@@ -772,11 +772,11 @@ struct agentstruc
     //! State of Health report string
     //	char sohstring[AGENTMAXBUFFER];
     //! Agent request list
-    vector <agent_request_entry> reqs;
+    std::vector <agent_request_entry> reqs;
     //! Heartbeat
     beatstruc beat;
     //! State of Health element vector
-    vector<jsonentry*> sohtable;
+    std::vector<jsonentry*> sohtable;
 };
 
 //! Long COSMOS Event structure.
@@ -897,9 +897,9 @@ and types.
 struct glossarystruc
 {
     // Glossary entry name.
-    string name;
+    std::string name;
     // Glossary entry description, to be interpreted based on its type.
-    string description;
+    std::string description;
     // Glossary entry ::namespace type.
     uint16_t type;
 };
@@ -911,7 +911,7 @@ struct glossarystruc
 struct aliasstruc
 {
     // Alias name
-    string name;
+    std::string name;
     // Namespace handle
     jsonhandle handle;
 };
@@ -922,9 +922,9 @@ struct aliasstruc
 struct equationstruc
 {
     // Equation name
-    string name;
+    std::string name;
     // Equation string
-    string value;
+    std::string value;
 };
 
 
@@ -1631,35 +1631,35 @@ struct devspecstruc
     uint16_t txr_cnt;
     uint16_t thst_cnt;
     uint16_t tsen_cnt;
-    vector<allstruc *>all;
-    vector<antstruc *>ant;
-    vector<battstruc *>batt;
-    vector<busstruc *>bus;
-    vector<camstruc *>cam;
-    vector<cpustruc *>cpu;
-    vector<gpsstruc *>gps;
-    vector<htrstruc *>htr;
-    vector<imustruc *>imu;
-    vector<mccstruc *>mcc;
-    vector<motrstruc *>motr;
-    vector<mtrstruc *>mtr;
-    vector<tcustruc *>tcu;
-    vector<ploadstruc *>pload;
-    vector<propstruc *>prop;
-    vector<psenstruc *>psen;
-    vector<rotstruc *>rot;
-    vector<rwstruc *>rw;
-    vector<ssenstruc *>ssen;
-    vector<strgstruc *>strg;
-    vector<sttstruc *>stt;
-    vector<suchistruc *>suchi;
-    vector<swchstruc *>swch;
-    vector<telemstruc *>telem;
-    vector<tcvstruc *>tcv;
-    vector<txrstruc *>txr;
-    vector<rxrstruc *>rxr;
-    vector<thststruc *>thst;
-    vector<tsenstruc *>tsen;
+    std::vector<allstruc *>all;
+    std::vector<antstruc *>ant;
+    std::vector<battstruc *>batt;
+    std::vector<busstruc *>bus;
+    std::vector<camstruc *>cam;
+    std::vector<cpustruc *>cpu;
+    std::vector<gpsstruc *>gps;
+    std::vector<htrstruc *>htr;
+    std::vector<imustruc *>imu;
+    std::vector<mccstruc *>mcc;
+    std::vector<motrstruc *>motr;
+    std::vector<mtrstruc *>mtr;
+    std::vector<tcustruc *>tcu;
+    std::vector<ploadstruc *>pload;
+    std::vector<propstruc *>prop;
+    std::vector<psenstruc *>psen;
+    std::vector<rotstruc *>rot;
+    std::vector<rwstruc *>rw;
+    std::vector<ssenstruc *>ssen;
+    std::vector<strgstruc *>strg;
+    std::vector<sttstruc *>stt;
+    std::vector<suchistruc *>suchi;
+    std::vector<swchstruc *>swch;
+    std::vector<telemstruc *>telem;
+    std::vector<tcvstruc *>tcv;
+    std::vector<txrstruc *>txr;
+    std::vector<rxrstruc *>rxr;
+    std::vector<thststruc *>thst;
+    std::vector<tsenstruc *>tsen;
 };
 
 //! JSON Name Space structure
@@ -1672,39 +1672,39 @@ struct cosmosstruc
     //! Structure for summary information in node
     nodestruc node;
     //! Vector of all pieces in node.
-    vector<piecestruc> piece;
+    std::vector<piecestruc> piece;
     //! Vector of all general (common) information for devices (components) in node.
-    vector<devicestruc> device;
+    std::vector<devicestruc> device;
     //! Structure for devices (components) special data in node, by type.
     devspecstruc devspec;
     //! Vector of all ports known to node.
-    vector<portstruc> port;
+    std::vector<portstruc> port;
     //! Structure for physics modelling.
     physicsstruc physics;
     //! Single entry vector for agent information.
-    vector<agentstruc> agent;
+    std::vector<agentstruc> agent;
     //! Single entry vector for event information.
-    vector<eventstruc> event;
+    std::vector<eventstruc> event;
     //! Vector of all targets known to node.
-    vector<targetstruc> target;
+    std::vector<targetstruc> target;
     //! Single entry vector for user information.
-    vector<userstruc> user;
+    std::vector<userstruc> user;
     //! Vector of glossary terms for node.
-    vector<glossarystruc> glossary;
+    std::vector<glossarystruc> glossary;
     //! Whether JSON map has been created.
     uint16_t jmapped;
     //! JSON Namespace Map matrix.
-    vector<vector<jsonentry> > jmap;
+    std::vector<std::vector<jsonentry> > jmap;
     //! JSON Equation Map matrix.
-    vector<vector<jsonequation> > emap;
+    std::vector<std::vector<jsonequation> > emap;
     //! JSON Unit Map matrix: first level is for type, second level is for variant.
-    vector<vector<unitstruc> > unit;
+    std::vector<std::vector<unitstruc> > unit;
     //! Array of Two Line Elements
-    vector<tlestruc> tle;
+    std::vector<tlestruc> tle;
     //! Array of Aliases
-    vector<aliasstruc> alias;
+    std::vector<aliasstruc> alias;
     //! Vector of Equations
-    vector<equationstruc> equation;
+    std::vector<equationstruc> equation;
 };
 
 //! @}

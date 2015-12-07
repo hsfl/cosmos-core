@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	uint8_t bufferin[60000];
 	FILE *fp;
 	double fmjd, smjd;
-	vector<gige_acknowledge_ack> gige_list;
+	std::vector<gige_acknowledge_ack> gige_list;
 
 	gige_list = gige_discover();
 	if (!gige_list.size())

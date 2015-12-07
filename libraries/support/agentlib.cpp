@@ -52,17 +52,17 @@
 //! \defgroup agentlib_statics Agent Server and Client static variables
 //! @{
 
-string hbjstring;
-static vector<beatstruc> slist;
-vector <agent_request_entry> ireqs;
+std::string hbjstring;
+static std::vector<beatstruc> slist;
+std::vector <agent_request_entry> ireqs;
 
 #include<iostream>
 //using namespace std; // don't use this as it may cause conflicts with other namespaces
 
 //! Handle for request thread
-static thread cthread;
+static std::thread cthread;
 //! Handle for heartbeat thread
-static thread hthread;
+static std::thread hthread;
 //! @}
 
 void heartbeat_loop(cosmosstruc *cdata);
@@ -83,15 +83,8 @@ char * agent_parse_request(char *input);
     \param function The user supplied function to parse the specified request.
     \return Error, if any, otherwise zero.
 */
-int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function)
+int32_t agent_add_request(cosmosstruc *cdata, std::string token, agent_request_function function)
 {
-//    if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
-//        return (AGENT_ERROR_REQ_COUNT);
-
-//    strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
-//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
-//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description="";
-
 	int32_t iretn;
 
 	iretn = agent_add_request(cdata, token, function, "", "");
@@ -110,15 +103,8 @@ int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_functi
     \param description A brief description of the function performed.
     \return Error, if any, otherwise zero.
 */
-int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function, string description)
+int32_t agent_add_request(cosmosstruc *cdata, std::string token, agent_request_function function, std::string description)
 {
-//    if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
-//        return (AGENT_ERROR_REQ_COUNT);
-
-//    strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
-//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
-//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description = description;
-
 	int32_t iretn;
 
 	iretn = agent_add_request(cdata, token, function, "", description);
@@ -138,18 +124,10 @@ int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_functi
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function, string synopsis, string description)
+int32_t agent_add_request(cosmosstruc *cdata, std::string token, agent_request_function function, std::string synopsis, std::string description)
 {
     if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
         return (AGENT_ERROR_REQ_COUNT);
-
-//    strcpy(cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].token,token);
-//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].function = function;
-//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].synopsis = synopsis;
-//    cdata[0].agent[0].reqs[cdata[0].agent[0].reqs.size()].description = description;
-
-//	if (cdata[0].agent[0].reqs.size() > AGENTMAXREQUESTCOUNT)
-//		return (AGENT_ERROR_REQ_COUNT);
 
 	agent_request_entry tentry;
 	if (token.size() > COSMOS_MAX_NAME)
@@ -175,8 +153,8 @@ int32_t agent_start(cosmosstruc *cdata)
 {
 
     // start heartbeat thread
-    hthread = thread(heartbeat_loop, cdata);
-    cthread = thread(request_loop, cdata);
+    hthread = std::thread(heartbeat_loop, cdata);
+    cthread = std::thread(request_loop, cdata);
     return 0;
 }
 
@@ -188,7 +166,7 @@ int32_t agent_start(cosmosstruc *cdata)
     \param usectimeo Blocking read timeout in micro seconds.
     \return Pointer to ::cosmosstruc to be used for all other calls, otherwise NULL.
 */
-cosmosstruc *agent_setup_client(int ntype, string node, uint32_t usectimeo)
+cosmosstruc *agent_setup_client(int ntype, std::string node, uint32_t usectimeo)
 {
     int32_t iretn;
     cosmosstruc *cdata;
@@ -235,7 +213,7 @@ cosmosstruc *agent_setup_client(int ntype, string node, uint32_t usectimeo)
     return (cdata);
 }
 
-cosmosstruc *agent_setup_client(int ntype, string node)
+cosmosstruc *agent_setup_client(int ntype, std::string node)
 {
     cosmosstruc *cdata;
 
@@ -261,7 +239,7 @@ cosmosstruc *agent_setup_client(int ntype, string node)
     \param bsize Size of transfer buffer.
     \return Pointer to ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize)
+cosmosstruc *agent_setup_server(int ntype, std::string node, std::string name, double bprd, int32_t port, uint32_t bsize)
 {
     return (agent_setup_server(ntype, node, name, bprd, port, bsize, AGENT_SINGLE));
 }
@@ -281,7 +259,7 @@ cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd
     \param multiflag Boolean for whether to start multiple copies.
     \return Pointer to ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag)
+cosmosstruc *agent_setup_server(int ntype, std::string node, std::string name, double bprd, int32_t port, uint32_t bsize, bool multiflag)
 {
     cosmosstruc *cdata;
 
@@ -304,7 +282,7 @@ cosmosstruc *agent_setup_server(int ntype, string node, string name, double bprd
     \param name The name of the Agent.
     \return Pointer to ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc *agent_setup_server(string nodename, string agentname)
+cosmosstruc *agent_setup_server(std::string nodename, std::string agentname)
 {
     cosmosstruc *cdata;
 
@@ -344,7 +322,7 @@ cosmosstruc *agent_setup_server(string nodename, string agentname)
     \param multiflag Boolean for whether to start multiple copies.
     \return Pointer to ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag, float timeoutSec = 4)
+cosmosstruc* agent_setup_server(cosmosstruc* cdata, std::string name, double bprd, int32_t port, uint32_t bsize, bool multiflag, float timeoutSec = 4)
 {
     int32_t iretn;
 	char tname[COSMOS_MAX_NAME+1];
@@ -514,7 +492,7 @@ uint16_t agent_running(cosmosstruc *cdata)
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
-int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, string request, char* output, uint32_t clen, float waitsec)
+int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, std::string request, char* output, uint32_t clen, float waitsec)
 {
     static socket_channel sendchan;
     int32_t iretn;
@@ -582,7 +560,7 @@ int32_t agent_send_request(cosmosstruc *, beatstruc hbeat, string request, char*
     \param rbeat pointer to a location to store the heartbeat
     \return 1 if found, otherwise 0, or an error number
 */
-int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float waitsec, beatstruc *rbeat)
+int32_t agent_get_server(cosmosstruc *cdata, std::string node, std::string name, float waitsec, beatstruc *rbeat)
 {
     beatstruc cbeat;
     //    struct timeval tv, ltv;
@@ -627,7 +605,7 @@ int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float wai
     \param waitsec Maximum number of seconds to wait.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-beatstruc agent_find_server(cosmosstruc *cdata, string node, string proc, float waitsec)
+beatstruc agent_find_server(cosmosstruc *cdata, std::string node, std::string proc, float waitsec)
 {
     beatstruc cbeat = {0.,"","",0,"",0,0,0.,""};
     //    struct timeval tv, ltv;
@@ -671,7 +649,7 @@ beatstruc agent_find_server(cosmosstruc *cdata, string node, string proc, float 
     \param waitsec Maximum number of seconds to wait.
     \return A vector of ::beatstruc entries listing the unique servers found.
 */
-vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec)
+std::vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec)
 {
     beatstruc cbeat, tbeat;
     uint32_t i, j;
@@ -728,7 +706,7 @@ vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec)
     \param list Properly formatted list of JSON names.
     \return 0, otherwise a negative error.
 */
-int32_t agent_set_sohstring(cosmosstruc *cdata, string list)
+int32_t agent_set_sohstring(cosmosstruc *cdata, std::string list)
 {
 
     if (!cdata[0].agent[0].sohtable.empty())
@@ -911,7 +889,7 @@ int32_t agent_req_echo(char* request, char* output, void *)
 
 int32_t agent_req_help(char*, char* output, void *cdata)
 {
-    string help_string;
+    std::string help_string;
     help_string += "\n";
     for(uint32_t i = 0; i < ((cosmosstruc *)cdata)->agent[0].reqs.size(); ++i)
     {
@@ -957,7 +935,7 @@ int32_t agent_req_shutdown(char*, char* output, void *cdata)
 // this makes it easier to read
 int32_t agent_req_status(char*, char* output, void *cdata)
 {
-    string jstring;
+    std::string jstring;
 
     if (json_of_agent(jstring, (cosmosstruc*)cdata) != NULL)
     {
@@ -975,7 +953,7 @@ int32_t agent_req_status(char*, char* output, void *cdata)
 
 int32_t agent_req_getvalue(char *request, char* output, void *cdata)
 {
-    string jstring;
+    std::string jstring;
 
     if (json_of_list(jstring, request, ((cosmosstruc *)cdata)) != NULL)
     {
@@ -1001,7 +979,7 @@ int32_t agent_req_listnames(char *, char* output, void *cdata)
 {
 //    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
 
-	string result = json_list_of_all((cosmosstruc *)cdata);
+    std::string result = json_list_of_all((cosmosstruc *)cdata);
 	strncpy(output, result.c_str(), ((cosmosstruc *)cdata)->agent[0].beat.bsz);
 	output[((cosmosstruc *)cdata)->agent[0].beat.bsz-1] = 0;
 	return 0;
@@ -1259,9 +1237,9 @@ int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port)
     \param ntype Type of network (Multicast, Broadcast UDP, CSP)
     \return Vector of interfaces
     */
-vector<socket_channel> agent_find_addresses(uint16_t ntype)
+std::vector<socket_channel> agent_find_addresses(uint16_t ntype)
 {
-    vector<socket_channel> iface;
+    std::vector<socket_channel> iface;
     socket_channel tiface;
 
 #ifdef COSMOS_WIN_OS
@@ -1420,7 +1398,7 @@ vector<socket_channel> agent_find_addresses(uint16_t ntype)
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
 */
-int32_t agent_post(cosmosstruc *cdata, uint8_t type, string message)
+int32_t agent_post(cosmosstruc *cdata, uint8_t type, std::string message)
 {
 	size_t nbytes;
 	int32_t i, iretn=0;
@@ -1543,7 +1521,7 @@ int32_t agent_unsubscribe(cosmosstruc *cdata)
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
 // TODO: instead of type (AGENT_MESSAGE_ALL) replace by header ex: 0xBB
-int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string &message, uint8_t type, float waitsec)
+int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, std::string &message, uint8_t type, float waitsec)
 {
     int nbytes;
 	uint8_t input[AGENTMAXBUFFER+1];
@@ -1642,7 +1620,7 @@ beatstruc agent_poll_beat(cosmosstruc *cdata, float waitsec)
     int32_t iretn;
     beatstruc beat;
 	pollstruc meta;
-    string message;
+    std::string message;
 
 	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_BEAT, waitsec);
 
@@ -1668,7 +1646,7 @@ timestruc agent_poll_time(cosmosstruc *cdata, float waitsec)
     int32_t iretn;
     timestruc time;
 	pollstruc meta;
-	string message;
+    std::string message;
 
 	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_TIME, waitsec);
 
@@ -1695,7 +1673,7 @@ locstruc agent_poll_location(cosmosstruc *cdata, float waitsec)
     int32_t iretn;
     locstruc loc;
 	pollstruc meta;
-	string message;
+    std::string message;
 
 	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_LOCATION, waitsec);
 
@@ -1724,7 +1702,7 @@ nodestruc agent_poll_info(cosmosstruc *cdata, float waitsec)
     //summarystruc info;
     nodestruc info;
 	pollstruc meta;
-	string message;
+    std::string message;
 
 	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_TRACK, waitsec);
 
@@ -1758,7 +1736,7 @@ imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec)
     int32_t iretn;
     imustruc imu;
 	pollstruc meta;
-	string message;
+    std::string message;
 
 	iretn = agent_poll(cdata, meta, message, AGENT_MESSAGE_IMU, waitsec);
 
@@ -1968,7 +1946,7 @@ Agent::Agent()
 }
 
 // overloaded constructor
-Agent::Agent(string nodename, string agentname)
+Agent::Agent(std::string nodename, std::string agentname)
 {
     nodeName = nodename;
     name = agentname;
@@ -1981,7 +1959,7 @@ bool Agent::setupServer()
     //! First, see if we can become a Client, as all Servers are also Clients.
     if ((cdata = agent_setup_client(AGENT_TYPE_UDP, nodeName, 1000)) == NULL)
     {
-        cout << "Agent setup client failed" << endl;
+        std::cout << "Agent setup client failed" << std::endl;
         return nullptr;
     }
 
@@ -1994,28 +1972,28 @@ bool Agent::setupServer()
     {
         // TODO: improve error message with a more detailed description
         // of the reason for failure
-        cout << "Agent setup server failed" << endl;
+        std::cout << "Agent setup server failed" << std::endl;
         return false;
     }
 
-    //cout << "Agent server is on for " << nodeName << ":" << name << endl;
+    //std::cout << "Agent server is on for " << nodeName << ":" << name << std::endl;
 
-    cout << "------------------------------------------------------" << endl;
-    cout << "COSMOS AGENT [" <<  name << " on node " << nodeName << "]" << endl;
-    cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << endl;
-    //cout << "------------------------------------------------------" << endl;
+    std::cout << "------------------------------------------------------" << std::endl;
+    std::cout << "COSMOS AGENT [" <<  name << " on node " << nodeName << "]" << std::endl;
+    std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
+    //std::cout << "------------------------------------------------------" << std::endl;
 
-    //cout << "================================================" << endl;
-    cout << "Agent server is running" << endl;
+    //std::cout << "================================================" << std::endl;
+    std::cout << "Agent server is running" << std::endl;
 
-    //cout << "================================================" << endl;
-    cout << "------------------------------------------------------" << endl;
+    //std::cout << "================================================" << std::endl;
+    std::cout << "------------------------------------------------------" << std::endl;
 
     // if setup server was sucessfull
     return true;
 }
 
-bool Agent::setupServer(string nodename, string agentname)
+bool Agent::setupServer(std::string nodename, std::string agentname)
 {
     nodeName = nodename;
     name = agentname;
@@ -2024,13 +2002,13 @@ bool Agent::setupServer(string nodename, string agentname)
 }
 
 
-bool Agent::setupClient(string nodename)
+bool Agent::setupClient(std::string nodename)
 {
     nodeName = nodename;
 
     if (!(cdata=agent_setup_client(AGENT_TYPE_UDP, nodeName.c_str(), 1000)))
     {
-        cout << "Couldn't establish client for Node " << nodename << endl;
+        std::cout << "Couldn't establish client for Node " << nodename << std::endl;
         exit (AGENT_ERROR_NULL);
     }
 
@@ -2038,7 +2016,7 @@ bool Agent::setupClient(string nodename)
 }
 
 //
-beatstruc Agent::findServer(string servername)
+beatstruc Agent::findServer(std::string servername)
 {
     float timeout = 1.0;
 
@@ -2048,13 +2026,13 @@ beatstruc Agent::findServer(string servername)
     if (beat_agent.utc == 0)
     {
         if (printMessages) {
-            cout << "agent " << servername << " : not found" << endl;
+            std::cout << "agent " << servername << " : not found" << std::endl;
         }
     }
     else
     {
         if (printMessages) {
-            cout << "agent " << servername << " : found" << endl;
+            std::cout << "agent " << servername << " : found" << std::endl;
         }
     }
 
@@ -2074,12 +2052,12 @@ uint16_t Agent::isRunning()
 }
 
 // replica of agent_send_request
-int32_t Agent::sendRequest(beatstruc beat, string request, string &response)
+int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &response)
 {
     char response_c_str[300];
     int32_t iretn = agent_send_request(cdata, beat, request.c_str(), response_c_str, 512, 2 );
 
-    response = string(response_c_str);
+    response = std::string(response_c_str);
 
     return iretn;
 }
@@ -2099,44 +2077,44 @@ int32_t Agent::shutdownServer()
     agent_unpublish(cdata);
     json_destroy(cdata);
 
-    cout << "------------------------------------------------------" << endl;
-    cout << "Agent server is shutdown" << endl;
-    cout << "------------------------------------------------------" << endl;
+    std::cout << "------------------------------------------------------" << std::endl;
+    std::cout << "Agent server is shutdown" << std::endl;
+    std::cout << "------------------------------------------------------" << std::endl;
     return 0;
 }
 
 
-int32_t Agent::post(uint8_t type, string message)
+int32_t Agent::post(uint8_t type, std::string message)
 {
     return agent_post(cdata, type, message);
 }
 
-int32_t Agent::send(uint8_t address, string message)
+int32_t Agent::send(uint8_t address, std::string message)
 {
     return post(address, message);
 }
 
 
 
-int32_t Agent::poll(pollstruc &meta, string &message, uint8_t type, float waitsec)
+int32_t Agent::poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec)
 {
     return agent_poll(cdata, meta, message, type, waitsec);
 }
 
-int32_t Agent::poll(uint8_t type, string &message)
+int32_t Agent::poll(uint8_t type, std::string &message)
 {
     float waitsec = 1; // by default
     return agent_poll(cdata, metaRx, message, type, waitsec);
 }
 
-int32_t Agent::receive(uint8_t address, string &message)
+int32_t Agent::receive(uint8_t address, std::string &message)
 {
     return poll(address, message);
 }
 
 
 
-int32_t Agent::pollParse(string &message)
+int32_t Agent::pollParse(std::string &message)
 {
     // collect the header
     metaHeader = message.substr(0, metaRx.jlength);
@@ -2148,7 +2126,7 @@ int32_t Agent::pollParse(string &message)
 
 
 
-beatstruc Agent::find(string servername)
+beatstruc Agent::find(std::string servername)
 {
     return findServer(servername);
 }

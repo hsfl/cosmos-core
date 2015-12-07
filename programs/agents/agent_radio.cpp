@@ -34,12 +34,12 @@
 #include "ic9100_lib.h"
 
 cosmosstruc *cdata;
-string nodename;
-string agentname;
+std::string nodename;
+std::string agentname;
 size_t deviceindex;
 size_t radioindex = 9999;
 uint16_t radiotype = 9999;
-string radiodevice;
+std::string radiodevice;
 uint16_t radioaddr;
 bool radioconnected = false;
 size_t channelnum = 0;
@@ -63,7 +63,7 @@ int32_t request_set_opmode(char *request, char* response, void *);
 int32_t request_set_power(char *request, char* response, void *);
 
 int32_t connect_radio();
-string opmode2string(uint8_t opmode);
+std::string opmode2string(uint8_t opmode);
 
 int main(int argc, char *argv[])
 {
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	{
 	case 3:
 		nodename = argv[1];
-		agentname = (string)"radio_" + argv[2];
+		agentname = (std::string)"radio_" + argv[2];
 		break;
 	default:
 		printf("Usage: agent_radio node radio");
@@ -84,12 +84,12 @@ int main(int argc, char *argv[])
 	// Establish the command channel and heartbeat
 	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP, nodename.c_str(), agentname.c_str(), 1.0, 0, AGENTMAXBUFFER)))
 	{
-		cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+		std::cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
 	else
 	{
-		cout<<"Starting " << agentname << " for Node: " << nodename << endl;
+		std::cout<<"Starting " << agentname << " for Node: " << nodename << std::endl;
 	}
 
 	// Add requests
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
 
 	if (radiotype == 9999)
 	{
-		cout<<"Exiting " << agentname << " for Node: " << nodename << " no radio found." << endl;
+		std::cout<<"Exiting " << agentname << " for Node: " << nodename << " no radio found." << std::endl;
 		agent_shutdown_server(cdata);
 		exit (1);
 	}
@@ -487,9 +487,9 @@ int32_t connect_radio()
 	return 0;
 }
 
-string opmode2string(uint8_t opmode)
+std::string opmode2string(uint8_t opmode)
 {
-	string result;
+	std::string result;
 	switch (opmode)
 	{
 	case DEVICE_RADIO_MODE_AM:

@@ -135,15 +135,15 @@ unsigned int kissHandle::get_protocolID()
 	return protocolID;
 }
 
-ostream& operator<< (ostream& out, kissHandle& K)	{
-	out<<"port_number= "<< K.port_number<<endl;
-	out<<"command="<< K.command<<endl;
-	out<<"destination callsign=<"<< K.destination_callsign<<">"<<endl;
-	out<<"destination station ID="<< K.destination_stationID<<endl;
-	out<<"source callsign=<"<< K.source_callsign<<">"<<endl;
-	out<<"source station ID="<< K.source_stationID<<endl;
-	out<<"control="<< K.control<<endl;
-	out<<"protocol ID="<< K.protocolID<<endl;
+std::ostream& operator<< (std::ostream& out, kissHandle& K)	{
+    out<<"port_number= "<< K.port_number<<std::endl;
+    out<<"command="<< K.command<<std::endl;
+    out<<"destination callsign=<"<< K.destination_callsign<<">"<<std::endl;
+    out<<"destination station ID="<< K.destination_stationID<<std::endl;
+    out<<"source callsign=<"<< K.source_callsign<<">"<<std::endl;
+    out<<"source station ID="<< K.source_stationID<<std::endl;
+    out<<"control="<< K.control<<std::endl;
+    out<<"protocol ID="<< K.protocolID<<std::endl;
 
 	return out;
 }
@@ -567,10 +567,10 @@ int kissDecode(uint8_t* kissed_input, uint32_t, uint8_t* decoded_payload)
 void print_ascii(unsigned char* packet, unsigned int count)
 {
 
-	cout<<"<";
+    std::cout<<"<";
 	for(unsigned int i=0; i<count; i++)
 		printf("%c", packet[i]);	
-	cout<<">"<<endl;
+    std::cout<<">"<<std::endl;
 
 	return;
 }
@@ -578,10 +578,10 @@ void print_ascii(unsigned char* packet, unsigned int count)
 
 void print_hex(unsigned char* packet, unsigned int count)
 {
-	cout<<"<";
+    std::cout<<"<";
 	for(unsigned int i=0; i<count; i++)
 		printf("%02x", packet[i]);	
-	cout<<">"<<endl;
+    std::cout<<">"<<std::endl;
 
 	return;
 }

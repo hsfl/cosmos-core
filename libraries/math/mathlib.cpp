@@ -896,13 +896,13 @@ vectors of N-1 points ( N independent and 1 dependent variable).
 	\param y vector of N independent variables.
 	\return Vector of parameters
 */
-void multisolve(vector< vector<double> > x, vector<double> y, vector<double>& a)
+void multisolve(std::vector< std::vector<double> > x, std::vector<double> y, std::vector<double>& a)
 {
 	uint32_t order;
-	vector< vector<double> > dx(y.size()-1, vector<double>(y.size()-1));
-	vector<double> dy(y.size()-1);
-	//	vector<double> a(y.size());
-	vector<double> da(y.size()-1);
+	std::vector< std::vector<double> > dx(y.size()-1, std::vector<double>(y.size()-1));
+	std::vector<double> dy(y.size()-1);
+	//	std::vector<double> a(y.size());
+	std::vector<double> da(y.size()-1);
 
 	order = y.size() - 1;
 
@@ -963,7 +963,7 @@ void multisolve(vector< vector<double> > x, vector<double> y, vector<double>& a)
  * \return Value of the variable, evaluated at the location of the independent variable.
  */
 // TODO: move to lsfit.cpp
-double evaluate_poly(double x, vector<double> parms)
+double evaluate_poly(double x, std::vector<double> parms)
 {
 	double result;
 
@@ -983,7 +983,7 @@ double evaluate_poly(double x, vector<double> parms)
 }
 
 // TODO: move to lsfit.cpp
-double evaluate_poly_slope(double x, vector<double> parms)
+double evaluate_poly_slope(double x, std::vector<double> parms)
 {
 	double result;
 
@@ -1003,7 +1003,7 @@ double evaluate_poly_slope(double x, vector<double> parms)
 }
 
 // TODO: move to lsfit.cpp
-double evaluate_poly_accel(double x, vector<double> parms)
+double evaluate_poly_accel(double x, std::vector<double> parms)
 {
 	double result;
 
@@ -1023,7 +1023,7 @@ double evaluate_poly_accel(double x, vector<double> parms)
 }
 
 // TODO: move to lsfit.cpp
-double evaluate_poly_jerk(double x, vector<double> parms)
+double evaluate_poly_jerk(double x, std::vector<double> parms)
 {
 	double result;
 
@@ -1043,7 +1043,7 @@ double evaluate_poly_jerk(double x, vector<double> parms)
 }
 
 // TODO: move to lsfit.cpp
-rvector rv_evaluate_poly(double x, vector< vector<double> > parms)
+rvector rv_evaluate_poly(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1068,7 +1068,7 @@ rvector rv_evaluate_poly(double x, vector< vector<double> > parms)
 }
 
 // TODO: move to lsfit.cpp
-rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms)
+rvector rv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1093,7 +1093,7 @@ rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms)
 }
 
 // TODO: move to lsfit.cpp
-rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms)
+rvector rv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1118,7 +1118,7 @@ rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms)
 }
 
 // TODO: move to lsfit.cpp
-rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
+rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1143,7 +1143,7 @@ rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 }
 
 // TODO: move to lsfit.cpp
-quaternion q_evaluate_poly(double x, vector< vector<double> > parms)
+quaternion q_evaluate_poly(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1168,7 +1168,7 @@ quaternion q_evaluate_poly(double x, vector< vector<double> > parms)
 }
 
 // TODO: move to lsfit.cpp
-quaternion q_evaluate_poly_slope(double x, vector< vector<double> > parms)
+quaternion q_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1193,7 +1193,7 @@ quaternion q_evaluate_poly_slope(double x, vector< vector<double> > parms)
 }
 
 // TODO: move to lsfit.cpp
-quaternion q_evaluate_poly_accel(double x, vector< vector<double> > parms)
+quaternion q_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1218,7 +1218,7 @@ quaternion q_evaluate_poly_accel(double x, vector< vector<double> > parms)
 }
 
 // TODO: move to lsfit.cpp
-quaternion q_evaluate_poly_jerk(double x, vector< vector<double> > parms)
+quaternion q_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1253,13 +1253,13 @@ quaternion q_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 	\return Vector of polynomial coefficients
 */
 // TODO: move to lsfit.cpp
-vector<double> polyfit(vector<double> &x, vector<double> &y)
+std::vector<double> polyfit(std::vector<double> &x, std::vector<double> &y)
 {
 	uint32_t order;
-	vector< vector<double> > dx;
-	vector<double> dy;
-	vector<double> da;
-	vector<double> a;
+	std::vector< std::vector<double> > dx;
+	std::vector<double> dy;
+	std::vector<double> da;
+	std::vector<double> a;
 
 	order = x.size() - 1;
 	a.resize(x.size());
@@ -2336,7 +2336,7 @@ void lsfit::fit()
 	basex = var[0].x;
 
 	// For each independent, calculate sums of powers
-	vector<double> sumx(2*order+1);
+	std::vector<double> sumx(2*order+1);
 	sumx[0] = var.size();
 	for (uint16_t i=0; i<sumx[0]; ++i)
 	{
@@ -2355,7 +2355,7 @@ void lsfit::fit()
 	parms.resize(depth);
 	for (uint16_t i=0; i<depth; ++i)
 	{
-		vector<double> sumxy(order+1);
+		std::vector<double> sumxy(order+1);
 		stdevy.a4[i] = 0;
 		for (uint16_t j=0; j<var.size(); ++j)
 		{
@@ -2371,9 +2371,9 @@ void lsfit::fit()
 		meany.a4[i] = sumxy[0] / var.size();
 		stdevy.a4[i] = sqrt(stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1);
 
-		vector< vector<double> > xs(order+1, vector<double>(order+1));
-		vector<double> ys(order+1);
-		vector<double> tx(order+1);
+		std::vector< std::vector<double> > xs(order+1, std::vector<double>(order+1));
+		std::vector<double> ys(order+1);
+		std::vector<double> tx(order+1);
 		for (uint16_t j=0; j<order+1; ++j)
 		{
 			for (uint16_t k=0; k<order+1; ++k)
@@ -2558,7 +2558,7 @@ quaternion lsfit::jerkquaternion(double x)
 	}
 }
 
-vector<vector<double> > lsfit::getparms()
+std::vector<std::vector<double> > lsfit::getparms()
 {
 	return parms;
 }

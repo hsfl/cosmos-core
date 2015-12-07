@@ -53,13 +53,13 @@ void tcv_write_loop();
 void tun_read_loop();
 void tun_write_loop();
 
-queue<vector<uint8_t> > tun_fifo;
-queue<vector<uint8_t> > tcv_fifo;
+std::queue<std::vector<uint8_t> > tun_fifo;
+std::queue<std::vector<uint8_t> > tcv_fifo;
 
-mutex tcv_fifo_lock;
-condition_variable tcv_fifo_check;
-mutex tun_fifo_lock;
-condition_variable tun_fifo_check;
+std::mutex tcv_fifo_lock;
+std::condition_variable tcv_fifo_check;
+std::mutex tun_fifo_lock;
+std::condition_variable tun_fifo_check;
 
 int tun_fd;
 
@@ -77,8 +77,8 @@ kpc9612p_handle txr_handle;
 int main(int argc, char *argv[])
 {
 
-	string tunnel_ip;
-	vector<uint8_t> buffer;
+    std::string tunnel_ip;
+    std::vector<uint8_t> buffer;
 	int32_t iretn;
 
 	//	cssl_start();
@@ -118,8 +118,8 @@ int main(int argc, char *argv[])
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Start serial threads
-	thread tcv_read_thread(tcv_read_loop);
-	thread tcv_write_thread(tcv_write_loop);
+    std::thread tcv_read_thread(tcv_read_loop);
+    std::thread tcv_write_thread(tcv_write_loop);
 
 #if defined(COSMOS_LINUX_OS)
 	// Open tunnel device
@@ -196,8 +196,8 @@ int main(int argc, char *argv[])
 #endif
 
 	// Start tunnel threads
-	thread tun_read_thread(tun_read_loop);
-	thread tun_write_thread(tun_write_loop);
+    std::thread tun_read_thread(tun_read_loop);
+    std::thread tun_write_thread(tun_write_loop);
 
 	double nmjd = currentmjd(0.);
 	int32_t sleept;
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 //#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
 void tun_read_loop()
 {
-	vector<uint8_t> buffer;
+    std::vector<uint8_t> buffer;
 	int32_t nbytes;
 
 	while (agent_running(cdata))
@@ -252,13 +252,13 @@ void tun_read_loop()
 
 void tun_write_loop()
 {
-	vector<uint8_t> buffer;
+    std::vector<uint8_t> buffer;
 	int32_t nbytes;
 
 	while (agent_running(cdata))
 	{
 		{	// Start of mutex for tun fifo
-			unique_lock<mutex> locker(tun_fifo_lock);
+            std::unique_lock<std::mutex> locker(tun_fifo_lock);
 
 			while (tun_fifo.empty())
 			{
@@ -294,7 +294,7 @@ void tun_write_loop()
 
 void tcv_read_loop()
 {
-	vector<uint8_t> buffer;
+    std::vector<uint8_t> buffer;
 	int32_t iretn;
 	double lastin = currentmjd(0.);
 	double lastbeacon = currentmjd(0.);
@@ -340,8 +340,8 @@ void tcv_read_loop()
 			{
 				printf("Beacon: [%d,%u,%" PRIu32 "] %f\n", iretn, rxr_handle.frame.size, buffer.size(), 86400.*(currentmjd(0.)-lastbeacon));
 				lastbeacon = currentmjd(0.);
-//				string str(buffer.begin(), buffer.end());
-//				cout << "\t" << str << endl;
+//				std::string str(buffer.begin(), buffer.end());
+//				std::cout << "\t" << str << std::endl;
 			}
 		} // End of mutex for tun FIFO
 	}
@@ -352,14 +352,14 @@ void tcv_read_loop()
 
 void tcv_write_loop()
 {
-	vector<uint8_t> buffer;
+    std::vector<uint8_t> buffer;
 //	int32_t iretn;
 //	double lastout = currentmjd(0.);
 
 	while (agent_running(cdata))
 	{
 		{	// Start of mutex for tcv FIFO
-			unique_lock<mutex> locker(tcv_fifo_lock);
+            std::unique_lock<std::mutex> locker(tcv_fifo_lock);
 
 			while (tcv_fifo.empty())
 			{

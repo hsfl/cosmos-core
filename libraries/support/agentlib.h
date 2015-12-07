@@ -99,14 +99,14 @@
 //! \defgroup agentlib_functions %Agent Server and Client Library functions
 //! @{
 
-int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function);
-int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function, string description);
-int32_t agent_add_request(cosmosstruc *cdata, string token, agent_request_function function, string synopsis, string description);
+int32_t agent_add_request(cosmosstruc *cdata, std::string token, agent_request_function function);
+int32_t agent_add_request(cosmosstruc *cdata, std::string token, agent_request_function function, std::string description);
+int32_t agent_add_request(cosmosstruc *cdata, std::string token, agent_request_function function, std::string synopsis, std::string description);
 int32_t agent_start(cosmosstruc *cdata);
-int32_t agent_send_request(cosmosstruc *cdata, beatstruc cbeat, string request, char* output, uint32_t clen, float waitsec);
-int32_t agent_get_server(cosmosstruc *cdata, string node, string name, float waitsec, beatstruc *cbeat);
-vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec);
-beatstruc agent_find_server(cosmosstruc* cdata, string node, string proc, float waitsec);
+int32_t agent_send_request(cosmosstruc *cdata, beatstruc cbeat, std::string request, char* output, uint32_t clen, float waitsec);
+int32_t agent_get_server(cosmosstruc *cdata, std::string node, std::string name, float waitsec, beatstruc *cbeat);
+std::vector<beatstruc> agent_find_servers(cosmosstruc *cdata, float waitsec);
+beatstruc agent_find_server(cosmosstruc* cdata, std::string node, std::string proc, float waitsec);
 uint16_t agent_running(cosmosstruc *cdata);
 int32_t agent_req_forward(char *request, char* response, void *root);
 int32_t agent_req_echo(char *request, char* response, void *root);
@@ -120,28 +120,28 @@ int32_t agent_req_setvalue(char *request, char* response, void *root);
 int32_t agent_req_listnames(char *request, char* response, void *root);
 
 // agent setup server
-cosmosstruc* agent_setup_server(string nodename, string agentname);
-cosmosstruc* agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize);
-cosmosstruc* agent_setup_server(int ntype, string node, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag);
-cosmosstruc* agent_setup_server(cosmosstruc* cdata, string name, double bprd, int32_t port, uint32_t bsize, bool multiflag, float timeoutSec);
+cosmosstruc* agent_setup_server(std::string nodename, std::string agentname);
+cosmosstruc* agent_setup_server(int ntype, std::string node, std::string name, double bprd, int32_t port, uint32_t bsize);
+cosmosstruc* agent_setup_server(int ntype, std::string node, std::string name, double bprd, int32_t port, uint32_t bsize, bool multiflag);
+cosmosstruc* agent_setup_server(cosmosstruc* cdata, std::string name, double bprd, int32_t port, uint32_t bsize, bool multiflag, float timeoutSec);
 
 // agent setup client
-cosmosstruc* agent_setup_client(int ntype, string node);
-cosmosstruc* agent_setup_client(int ntype, string node, uint32_t usectimeo);
+cosmosstruc* agent_setup_client(int ntype, std::string node);
+cosmosstruc* agent_setup_client(int ntype, std::string node, uint32_t usectimeo);
 
 int32_t agent_shutdown_server(cosmosstruc *cdata);
 int32_t agent_shutdown_client(cosmosstruc *cdata);
-int32_t agent_set_sohstring(cosmosstruc *cdata, string list);
+int32_t agent_set_sohstring(cosmosstruc *cdata, std::string list);
 cosmosstruc *agent_get_cosmosstruc(cosmosstruc *cdata);
 void agent_get_ip(cosmosstruc *cdata, char* buffer, size_t buflen);
 void agent_get_ip_list(cosmosstruc *cdata, uint16_t port);
 int32_t agent_unpublish(cosmosstruc *cdata);
-int32_t agent_post(cosmosstruc *cdata, uint8_t type, string message);
+int32_t agent_post(cosmosstruc *cdata, uint8_t type, std::string message);
 int32_t agent_publish(cosmosstruc *cdata, uint16_t type, uint16_t port);
 int32_t agent_subscribe(cosmosstruc *cdata, uint16_t type, char *address, uint16_t port);
 int32_t agent_subscribe(cosmosstruc *cdata, uint16_t type, char *address, uint16_t port, uint32_t usectimeo);
 int32_t agent_unsubscribe(cosmosstruc *cdata);
-int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, string& message, uint8_t type, float waitsec);
+int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, std::string& message, uint8_t type, float waitsec);
 timestruc agent_poll_time(cosmosstruc *cdata, float waitsec);
 beatstruc agent_poll_beat(cosmosstruc *cdata, float waitsec);
 locstruc agent_poll_location(cosmosstruc *cdata, float waitsec);
@@ -149,7 +149,7 @@ nodestruc agent_poll_info(cosmosstruc *cdata, float waitsec);
 imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec);
 int json_map_agentstruc(cosmosstruc *cdata, agentstruc **agent);
 //int32_t agent_open_socket(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
-vector<socket_channel> agent_find_addresses(uint16_t ntype);
+std::vector<socket_channel> agent_find_addresses(uint16_t ntype);
 
 
 // TODO: new agent class that will conventrate all of the above functions
@@ -157,30 +157,30 @@ class Agent {
 
 public:
     Agent();
-    Agent(string nodename, string agentname);
+    Agent(std::string nodename, std::string agentname);
 
     // agent functions
     bool setupServer();
-    bool setupServer(string nodename, string agentname);
-    bool setupClient(string nodename);
+    bool setupServer(std::string nodename, std::string agentname);
+    bool setupClient(std::string nodename);
 
-    beatstruc findServer(string servername);
-    beatstruc find(string servername);
+    beatstruc findServer(std::string servername);
+    beatstruc find(std::string servername);
 
     uint16_t isRunning();
-    int32_t sendRequest(beatstruc beat, string request, string &response);
+    int32_t sendRequest(beatstruc beat, std::string request, std::string &response);
     int32_t shutdownServer();
 
-    int32_t post(uint8_t type, string message);
-    int32_t poll(uint8_t type, string &message);
-    int32_t poll(pollstruc &meta, string& message, uint8_t type, float waitsec);
-    int32_t pollParse(string &message);
+    int32_t post(uint8_t type, std::string message);
+    int32_t poll(uint8_t type, std::string &message);
+    int32_t poll(pollstruc &meta, std::string& message, uint8_t type, float waitsec);
+    int32_t pollParse(std::string &message);
 
     // agent variables
     cosmosstruc *cdata;
-    string nodeName;
-    string name;
-    string version       = "0.0";
+    std::string nodeName;
+    std::string name;
+    std::string version       = "0.0";
     double beat_period   = 1.0; // in seconds
     int32_t  port        = 0;
     uint32_t buffer_size = AGENTMAXBUFFER;
@@ -190,11 +190,11 @@ public:
 
     // poll
     pollstruc metaRx;
-    string metaHeader;
+    std::string metaHeader;
 
 
-    int32_t send(uint8_t address, string message);
-    int32_t receive(uint8_t address, string &message);
+    int32_t send(uint8_t address, std::string message);
+    int32_t receive(uint8_t address, std::string &message);
 };
 
 

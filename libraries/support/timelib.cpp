@@ -45,7 +45,7 @@ struct iersstruc
     uint32_t ls;
 };
 
-static vector<iersstruc> iers;
+static std::vector<iersstruc> iers;
 static uint32_t iersbase=0;
 
 #define MAXLEAPS 26
@@ -1055,7 +1055,7 @@ int32_t load_iers()
 
     if (iers.size() == 0)
     {
-		string fname;
+        std::string fname;
 		int32_t iretn = get_cosmosresources(fname);
 		if (iretn < 0)
 		{
@@ -1151,7 +1151,7 @@ cvector polar_motion(double mjd)
  * \param utc Coordinated Universal Time expressed in Modified Julian Days.
  * \return C++ String containing the ISO 8601 date.
  */
-string utc2iso8601(double utc)
+std::string utc2iso8601(double utc)
 {
     char buffer[25];
 	int32_t iy=0, im=0, id=0, ihh, imm, iss;
@@ -1167,11 +1167,11 @@ string utc2iso8601(double utc)
 	iss = (int32_t)(86400 * fd);
     sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d", iy, im, id, ihh, imm, iss);
 
-    return string(buffer);
+    return std::string(buffer);
 }
 
 // just call utc2iso8601(double utc)
-string mjd2iso8601(double mjd){
+std::string mjd2iso8601(double mjd){
     return utc2iso8601(mjd);
 }
 
@@ -1260,7 +1260,7 @@ int32_t mjdToGregorian(double mjd, int32_t &year, int32_t &month, int32_t &day,
  * \param double mjd (Modified Julian Days)
  * \return string gregorianDateTime (YYYY-MM-DD HH:MM:SS)
  */
-string mjdToGregorian(double mjd)
+std::string mjdToGregorian(double mjd)
 {
     char gregorianDateTime[25];
     int year=0, month=0, day=0;
@@ -1298,7 +1298,7 @@ string mjdToGregorian(double mjd)
             year, month, day,
             hour, minute, second);
 
-    return string(gregorianDateTime);
+    return std::string(gregorianDateTime);
 }
 
 
@@ -1310,7 +1310,7 @@ string mjdToGregorian(double mjd)
  * \param double mjd (Modified Julian Days)
  * \return string gregorianDateTime (DD-MMM-YYYY HH:MM:SS)
  */
-string mjdToGregorianDDMMMYYYY(double mjd)
+std::string mjdToGregorianDDMMMYYYY(double mjd)
 {
     char gregorianDateTime[25];
     int year=0, month=0, day=0, hour=0, minute=0, second=0;
@@ -1335,7 +1335,7 @@ string mjdToGregorianDDMMMYYYY(double mjd)
             day, month_name[month-1], year,
             hour, minute, second);
 
-    return string(gregorianDateTime);
+    return std::string(gregorianDateTime);
 }
 
 // !!! Must fix milisecond accuracy
@@ -1347,7 +1347,7 @@ string mjdToGregorianDDMMMYYYY(double mjd)
  * \param double mjd (Modified Julian Days)
  * \return string gregorianDateTime (DD-MMM-YYYY HH:MM:SS)
  */
-string mjdToGregorianDDMmmYYYY(double mjd)
+std::string mjdToGregorianDDMmmYYYY(double mjd)
 {
     char gregorianDateTime[50];
     int year=0, month=0, day=0, hour=0, minute=0, second=0;
@@ -1372,7 +1372,7 @@ string mjdToGregorianDDMmmYYYY(double mjd)
             day, month_name[month-1], year,
             hour, minute, second, msec);
 
-    return string(gregorianDateTime);
+    return std::string(gregorianDateTime);
 }
 
 
@@ -1382,7 +1382,7 @@ string mjdToGregorianDDMmmYYYY(double mjd)
  * \param elapsed seconds
  * \return C++ String containing human readable formated date.
  */
-string seconds2DDHHMMSS(double elapsed_seconds){
+std::string seconds2DDHHMMSS(double elapsed_seconds){
 
     //double temp;
     char buffer[50];
@@ -1424,7 +1424,7 @@ string seconds2DDHHMMSS(double elapsed_seconds){
     // specific format for SimGEN
     //sprintf(buffer,"%d %02d:%02d:%.2f", day, hour, min, sec);
     sprintf(buffer,"%02d:%02d:%02d.%03d", hour, min, sec, msec);
-    return string(buffer);
+    return std::string(buffer);
 }
 
 double  mjd2jd(double mjd){

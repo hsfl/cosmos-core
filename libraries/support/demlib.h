@@ -109,7 +109,7 @@ typedef struct
 	double dlon;
 	double dlat;
 //	dem_pixel **pixel;
-	vector< vector<dem_pixel> > pixel;
+	std::vector< std::vector<dem_pixel> > pixel;
 } map_dem_dem;
 
 //! Planetary body support structure

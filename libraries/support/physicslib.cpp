@@ -41,7 +41,7 @@ static double spmm[MAXDEGREE+1];
 static double lastx = 10.;
 static uint16_t lastm = 65535;
 static double initialutc;
-static string orbitfile;
+static std::string orbitfile;
 static stkstruc stkhandle;
 
 static locstruc sloc[MAXGJORDER+2];
@@ -721,7 +721,7 @@ int32_t gravity_params(int model)
         coef[0][0][1] = 0.;
         coef[1][0][0] = coef[1][0][1] = 0.;
         coef[1][1][0] = coef[1][1][1] = 0.;
-        string fname;
+        std::string fname;
         FILE *fi;
         switch (model)
         {
@@ -3037,7 +3037,7 @@ void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &lo
     \return Returns 0 if succsessful, otherwise negative error.
 */
 
-int orbit_init(int32_t mode, double dt, double utc, string ofile, cosmosstruc &cdata)
+int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosstruc &cdata)
 {
     int32_t iretn;
     tlestruc tline;

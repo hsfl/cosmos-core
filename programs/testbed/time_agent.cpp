@@ -78,7 +78,7 @@ int myagent()
 {
 	double cmjd, nmjd, period;
 	unsigned long usec;
-	string jstring;
+	std::string jstring;
 
 	// Initialize loop timing
 	period = .1/86400.;

@@ -95,18 +95,18 @@ typedef struct
  */
 typedef struct
 {
-	vector< vector<int32_t> > binom;
-	vector<double> c;
-	vector<double> gam;
-	vector< vector<double> > beta;
-	vector<double> q;
-	vector<double> lam;
-	vector< vector<double> > alpha;
+    std::vector< std::vector<int32_t> > binom;
+    std::vector<double> c;
+    std::vector<double> gam;
+    std::vector< std::vector<double> > beta;
+    std::vector<double> q;
+    std::vector<double> lam;
+    std::vector< std::vector<double> > alpha;
 	double dt;
 	double dtsq;
 	uint32_t order;
 	uint32_t order2;
-	vector<gjstruc> step;
+    std::vector<gjstruc> step;
 } gj_handle;
 
 //! Physics Simulation Structure

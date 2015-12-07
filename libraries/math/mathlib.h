@@ -252,9 +252,9 @@ struct estimatorstruc
 {
     double value[3];
     double error[3];
-    vector<double> a;
-    vector<double> x;
-    vector<double> y;
+    std::vector<double> a;
+    std::vector<double> x;
+    std::vector<double> y;
 };
 
 //! Estimator handle
@@ -266,7 +266,7 @@ struct estimatorstruc
 */
 struct estimatorhandle
 {
-    vector<estimatorstruc> r;
+    std::vector<estimatorstruc> r;
     int32_t index;
     uint32_t size;
     uint32_t degree;
@@ -298,8 +298,8 @@ rvector transform_q(quaternion q,rvector v);
 
 rvector rv_quaternion2axis(quaternion q);
 uvector rv_fitpoly(uvector x, uvector y, uint32_t order);
-vector<double> polyfit(vector<double> &x, vector<double> &y);
-void multisolve(vector< vector<double> > x, vector<double> y, vector<double>& a);
+std::vector<double> polyfit(std::vector<double> &x, std::vector<double> &y);
+void multisolve(std::vector< std::vector<double> > x, std::vector<double> y, std::vector<double>& a);
 void open_estimate(estimatorhandle *estimate, uint32_t size, uint32_t degree);
 int16_t set_estimate(estimatorhandle *estimate, double independent, double dependent);
 estimatorstruc get_estimate(estimatorhandle *estimate, double independent);

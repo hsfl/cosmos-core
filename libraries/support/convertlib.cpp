@@ -92,7 +92,7 @@ void pos_extra(locstruc *loc)
 {
     // avoid expensive calculations
     // ?? not sure why the second condition is here
-	if (!isfinite(loc->utc) || loc->pos.extra.utc == loc->utc)
+    if (!std::isfinite(loc->utc) || loc->pos.extra.utc == loc->utc)
 		return;
 
 	loc->pos.extra.utc = loc->utc;
@@ -131,7 +131,7 @@ void pos_icrf(locstruc *loc)
 	// Synchronize time
 	if (loc->pos.icrf.utc == 0.)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -139,7 +139,7 @@ void pos_icrf(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.icrf.utc))
+        if (!std::isfinite(loc->pos.icrf.utc))
 		{
 			return;
 		}
@@ -214,7 +214,7 @@ void pos_eci(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.eci.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -222,7 +222,7 @@ void pos_eci(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.eci.utc))
+        if (!std::isfinite(loc->pos.eci.utc))
 		{
 			return;
 		}
@@ -258,7 +258,7 @@ void pos_sci(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.sci.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -266,7 +266,7 @@ void pos_sci(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.sci.utc))
+        if (!std::isfinite(loc->pos.sci.utc))
 		{
 			return;
 		}
@@ -302,7 +302,7 @@ void pos_geoc(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.geoc.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -310,7 +310,7 @@ void pos_geoc(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc->pos.geoc.utc))
 		{
 			return;
 		}
@@ -353,7 +353,7 @@ void pos_selc(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.selc.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -361,7 +361,7 @@ void pos_selc(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.selc.utc))
+        if (!std::isfinite(loc->pos.selc.utc))
 		{
 			return;
 		}
@@ -398,7 +398,7 @@ void pos_selg(locstruc *loc)
 	// Synchroniz time
 	if (0. == loc->pos.selg.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -406,7 +406,7 @@ void pos_selg(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.selg.utc))
+        if (!std::isfinite(loc->pos.selg.utc))
 		{
 			return;
 		}
@@ -433,7 +433,7 @@ void pos_geos(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.geos.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -441,7 +441,7 @@ void pos_geos(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.geos.utc))
+        if (!std::isfinite(loc->pos.geos.utc))
 		{
 			return;
 		}
@@ -468,7 +468,7 @@ void pos_geod(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.geod.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -476,7 +476,7 @@ void pos_geod(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.geod.utc))
+        if (!std::isfinite(loc->pos.geod.utc))
 		{
 			return;
 		}
@@ -507,7 +507,7 @@ void pos_icrf2eci(locstruc *loc)
 	// Synchronize time
 	if (loc->pos.icrf.utc == 0.)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -515,7 +515,7 @@ void pos_icrf2eci(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.icrf.utc))
+        if (!std::isfinite(loc->pos.icrf.utc))
 		{
 			return;
 		}
@@ -549,7 +549,7 @@ void pos_eci2icrf(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.eci.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -557,7 +557,7 @@ void pos_eci2icrf(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.eci.utc))
+        if (!std::isfinite(loc->pos.eci.utc))
 		{
 			return;
 		}
@@ -589,7 +589,7 @@ void pos_icrf2sci(locstruc *loc)
 	// Synchronize time
 	if (loc->pos.icrf.utc == 0.)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -597,7 +597,7 @@ void pos_icrf2sci(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.icrf.utc))
+        if (!std::isfinite(loc->pos.icrf.utc))
 		{
 			return;
 		}
@@ -632,7 +632,7 @@ void pos_sci2icrf(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.sci.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -640,7 +640,7 @@ void pos_sci2icrf(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.sci.utc))
+        if (!std::isfinite(loc->pos.sci.utc))
 		{
 			return;
 		}
@@ -675,7 +675,7 @@ void pos_eci2geoc(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.eci.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -683,7 +683,7 @@ void pos_eci2geoc(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.eci.utc))
+        if (!std::isfinite(loc->pos.eci.utc))
 		{
 			return;
 		}
@@ -741,7 +741,7 @@ void pos_geoc2eci(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.geoc.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -749,7 +749,7 @@ void pos_geoc2eci(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc->pos.geoc.utc))
 		{
 			return;
 		}
@@ -802,7 +802,7 @@ void pos_geoc2geos(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.geoc.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -810,7 +810,7 @@ void pos_geoc2geos(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc->pos.geoc.utc))
 		{
 			return;
 		}
@@ -860,7 +860,7 @@ void pos_geos2geoc(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.geos.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -868,7 +868,7 @@ void pos_geos2geoc(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc->pos.geoc.utc))
 		{
 			return;
 		}
@@ -916,7 +916,7 @@ void pos_geoc2geod(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.geoc.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -924,7 +924,7 @@ void pos_geoc2geod(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc->pos.geoc.utc))
 		{
 			return;
 		}
@@ -1007,7 +1007,7 @@ void pos_geod2geoc(locstruc *loc)
 	// Synchroniz time
 	if (0. == loc->pos.geod.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -1015,7 +1015,7 @@ void pos_geod2geoc(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.geod.utc))
+        if (!std::isfinite(loc->pos.geod.utc))
 		{
 			return;
 		}
@@ -1065,7 +1065,7 @@ void pos_sci2selc(locstruc *loc)
 	// Synchronize time
 	if (0. == loc->pos.sci.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -1073,7 +1073,7 @@ void pos_sci2selc(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.sci.utc))
+        if (!std::isfinite(loc->pos.sci.utc))
 		{
 			return;
 		}
@@ -1128,7 +1128,7 @@ void pos_selc2sci(locstruc *loc)
 	// Synchroniz time
 	if (0. == loc->pos.selc.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -1136,7 +1136,7 @@ void pos_selc2sci(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.selc.utc))
+        if (!std::isfinite(loc->pos.selc.utc))
 		{
 			return;
 		}
@@ -1182,7 +1182,7 @@ void pos_selc2selg(locstruc *loc)
 	// Synchroniz time
 	if (0. == loc->pos.selc.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -1190,7 +1190,7 @@ void pos_selc2selg(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.selc.utc))
+        if (!std::isfinite(loc->pos.selc.utc))
 		{
 			return;
 		}
@@ -1233,7 +1233,7 @@ void pos_selg2selc(locstruc *loc)
 	// Synchroniz time
 	if (0. == loc->pos.selg.utc)
 	{
-		if (!isfinite(loc->utc))
+        if (!std::isfinite(loc->utc))
 		{
 			return;
 		}
@@ -1241,7 +1241,7 @@ void pos_selg2selc(locstruc *loc)
 	}
 	else
 	{
-		if (!isfinite(loc->pos.selg.utc))
+        if (!std::isfinite(loc->pos.selg.utc))
 		{
 			return;
 		}
@@ -2228,7 +2228,7 @@ void gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
 	static double realsec = 0.;
 	int i;
 
-	if (!isfinite(utc))
+    if (!std::isfinite(utc))
 	{
 		return;
 	}
@@ -2633,7 +2633,7 @@ void topo2azel(rvector tpos, float *az, float *el)
 	\param lines Vector of TLE's.
 	\param eci Pointer to ::cartpos in ECI frame.
 	*/
-int lines2eci(double utc, vector<tlestruc>lines, cartpos &eci)
+int lines2eci(double utc, std::vector<tlestruc>lines, cartpos &eci)
 {
 	static uint16_t lindex=0;
 	int32_t iretn;
@@ -2983,7 +2983,7 @@ int tle2eci(double utc, tlestruc tle, cartpos &eci)
 	\param lines Array of TLE's.
 	\return Indexed TLE.
 	*/
-tlestruc get_line(uint16_t index, vector<tlestruc> lines)
+tlestruc get_line(uint16_t index, std::vector<tlestruc> lines)
 {
 	tlestruc ttle;
 
@@ -3083,7 +3083,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
 * \param lines Array of ::tlestruc structures to contain elements
 * \return A ::int32_t indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines(string fname, vector<tlestruc>& lines)
+int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -3159,7 +3159,7 @@ int32_t load_lines(string fname, vector<tlestruc>& lines)
 * \param lines Array of ::tlestruc structures to contain elements
 * \return A ::int32_t indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines_multi(string fname, vector<tlestruc>& lines)
+int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -3236,7 +3236,7 @@ int32_t load_lines_multi(string fname, vector<tlestruc>& lines)
 	\param filename Name of file containing positions.
 	\return The number of entries in the table, otherwise a negative error.
 */
-int32_t load_stk(string filename, stkstruc &stkdata)
+int32_t load_stk(std::string filename, stkstruc &stkdata)
 {
 	FILE *fdes;
 	int32_t maxcount;

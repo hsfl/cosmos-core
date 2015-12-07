@@ -44,7 +44,7 @@
 cosmosstruc *cdata;
 stkstruc stk;
 shorteventstruc events[20];
-string mainjstring;
+std::string mainjstring;
 int ecount;
 
 int main(int argc, char *argv[])

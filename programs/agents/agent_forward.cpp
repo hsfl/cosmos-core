@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 {
 	int32_t iretn;
 	socket_channel tempchan;
-	vector<socket_channel> sendchan;
+	std::vector<socket_channel> sendchan;
 
 	if (argc < 2)
 	{
@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
 	}
 
 	// Start thread for incoming forwarding.
-	thread thread_incoming;
-	thread_incoming = thread(incoming_thread);
+	std::thread thread_incoming;
+	thread_incoming = std::thread(incoming_thread);
 
 	// Start performing the body of the agent
 	int nbytes;

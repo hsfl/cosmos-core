@@ -46,8 +46,8 @@ char *output;
 
 gj_handle gjh;
 cosmosstruc *cdata;
-string reqjstring;
-string mainjstring;
+std::string reqjstring;
+std::string mainjstring;
 double logperiod=30, newlogperiod=30;
 
 char logstring[AGENTMAXBUFFER-20];
