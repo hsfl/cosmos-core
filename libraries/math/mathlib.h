@@ -116,7 +116,7 @@
 #include "math/matrix.h"
 #include "math/quaternion.h"
 #include "math/rotation.h"
-#include "math/lsfit.h"
+//#include "math/lsfit.h"
 
 #include <cmath>
 #include <iostream>
