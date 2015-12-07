@@ -801,6 +801,7 @@ INPUT += ../tutorials/state_of_health.md
 
 # examples
 #INPUT += ../../examples/agents/
+INPUT += ../../examples/
 
 # other
 INPUT += ../coding-style.md
