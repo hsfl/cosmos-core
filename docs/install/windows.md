@@ -20,6 +20,7 @@ source code and compilation resides, and can be anywhere that
 you have write access to. It will end up as a tree looking something
 like this:
 
+```
 DEVELOPMENT
 	| core
 	| nodes
@@ -35,26 +36,29 @@ DEVELOPMENT
 		| dmt
 		| libraries
 		| most
+```
 
 3) Download COSMOS-core source code, nodes and resources
 
 These should be placed in DEVELOPMENT\core, DEVELOPMENT\nodes and
 DEVELOPMENT\resources. The URL's are:
 
+```
 https://<yourusername>@bitbucket.org/cosmos/core.git
 https://<yourusername>@bitbucket.org/cosmos/nodes.git
 https://<yourusername>@bitbucket.org/cosmos/resources.git
-
+```
 -- using a git client such as Tortoise Git for win or Atlassian SourceTree.
 if you are planning on contributing to the project using a 
 client may be the easiest alternative
 
 -- using the command line
+```
 $ cd DEVELOPMENT
 $ git clone https://<yourusername>@bitbucket.org/cosmos/core.git
 $ git clone https://<yourusername>@bitbucket.org/cosmos/nodes.git
 $ git clone https://<yourusername>@bitbucket.org/cosmos/resources.git
-
+```
 
 MSVC install (optional)
 -----------------------

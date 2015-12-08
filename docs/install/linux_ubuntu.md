@@ -1,5 +1,5 @@
 Install COSMOS on Linux Ubuntu 12.04 x64 {#install-linux-ubuntu}
------------------------------------------
+========================================
 
 Follow these instructions to install COSMOS on a Virtual Box image.
 

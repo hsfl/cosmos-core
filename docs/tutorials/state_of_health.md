@@ -1,4 +1,4 @@
-state of health messages {#tutorial-soh}
+State of health messages {#tutorial-soh}
 ========================
 
 This is a tutorial to show you how to use State of Health messages in the COSMOS Agents.

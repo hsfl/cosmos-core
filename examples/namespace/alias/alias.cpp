@@ -1,6 +1,7 @@
 /*! \file
  *	\brief Example to demonstrate use of cosmos namespace aliases
  *  \include ../../examples/namespace/alias.cpp
+ *  Follow this tutorial for more information tutorial-alias
  */
 
 #include <iostream>     // std::cout
@@ -13,8 +14,8 @@ using namespace std;
 cosmosstruc *cdata; // to access the cosmos data, will change later
 
 /*!
- * \brief Example to demonstrate use of cosmos namespace aliases
- * \return 0
+ * \brief Example to demonstrate use of cosmos namespace aliases by
+ * creating an alias to an equation that converts degrees Kelvin to degrees Celcius
  */
 int main()
 {
@@ -32,11 +33,10 @@ int main()
         cout << "agent setup client ... OK" << endl;
     }
 
-    //! \brief equation
-    //! define the equation using the COSMOS namespace
-    //! in this case we are setting an equation to convert the temperature
-    //! for imu 0 (device_imu_temp_000) from Kelvin (the standart temperature unit in COSMOS)
-    //! to degree Celcius
+    // define the equation using the COSMOS namespace
+    // in this case we are setting an equation to convert the temperature
+    // for imu 0 (device_imu_temp_000) from Kelvin (the standart temperature unit in COSMOS)
+    // to degree Celcius
     string equation = "(\"device_imu_temp_000\" - 273.15)";
 
     // get the equation handle for later use
@@ -45,7 +45,8 @@ int main()
 
     // add the equation to the system usin the alias "tempCelcius"
     // for easy retrieval of the imu temperature in celcius
-    json_addentry("tempCelcius", equation, cdata);
+    string alias = "imuTempCelcius";
+    json_addentry(alias, equation, cdata);
 
     // set initial temperature in Kelvin
     cdata->devspec.imu[0]->gen.temp = 0;
@@ -62,7 +63,7 @@ int main()
         cout << "temperature value from equation [C] : " << temp << endl;
 
         // using the alias get the result of the equation
-        temp = json_get_double("tempCelcius", cdata);
+        temp = json_get_double(alias, cdata);
         cout << "temperature value from alias    [C] : " <<  temp << endl;
 
         // change temperature value for demo only

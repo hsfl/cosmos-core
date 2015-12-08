@@ -19,5 +19,7 @@ Doxygen documentation
  */
 ```
 
+* don't add doxygen comments inside the functions since it is not supported. Just add regular comments such as // or /* */
+
 references:
 [1] https://www.stack.nl/~dimitri/doxygen/manual/docblocks.html
