@@ -1952,6 +1952,11 @@ Agent::Agent(std::string nodename, std::string agentname)
     name = agentname;
 }
 
+Agent::~Agent()
+{
+    shutdown();
+}
+
 // this function assumes you have initialized the node and agent names
 // with Agent::nodename and Agent::agentname
 bool Agent::setupServer()
@@ -2016,28 +2021,28 @@ bool Agent::setupClient(std::string nodename)
 }
 
 //
-beatstruc Agent::findServer(std::string servername)
-{
-    float timeout = 1.0;
+//beatstruc Agent::findServer(std::string agent)
+//{
+//    float timeout = 1.0;
 
-    beatstruc beat_agent = agent_find_server(cdata, nodeName, servername, timeout);
+//    beatstruc beat_agent = agent_find_server(cdata, nodeName, agent, timeout);
 
-    // TODO: improve the way we find the agent server
-    if (beat_agent.utc == 0)
-    {
-        if (printMessages) {
-            std::cout << "agent " << servername << " : not found" << std::endl;
-        }
-    }
-    else
-    {
-        if (printMessages) {
-            std::cout << "agent " << servername << " : found" << std::endl;
-        }
-    }
+//    // TODO: improve the way we find the agent server
+//    if (beat_agent.utc == 0)
+//    {
+//        if (printMessages) {
+//            std::cout << "agent " << agent << " : not found" << std::endl;
+//        }
+//    }
+//    else
+//    {
+//        if (printMessages) {
+//            std::cout << "agent " << agent << " : found" << std::endl;
+//        }
+//    }
 
-    return beat_agent;
-}
+//    return beat_agent;
+//}
 
 //! Check if we're supposed to be running
 /*!	Returns the value of the internal variable that indicates that
@@ -2068,7 +2073,7 @@ int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &res
  * \param cdata Pointer to ::cosmosstruc to use.
  */
 // replica from agent_shutdown_server
-int32_t Agent::shutdownServer()
+int32_t Agent::shutdown()
 {
     cdata[0].agent[0].stateflag = AGENT_STATE_SHUTDOWN;;
     hthread.join();
@@ -2078,7 +2083,7 @@ int32_t Agent::shutdownServer()
     json_destroy(cdata);
 
     std::cout << "------------------------------------------------------" << std::endl;
-    std::cout << "Agent server is shutdown" << std::endl;
+    std::cout << "Agent is down" << std::endl;
     std::cout << "------------------------------------------------------" << std::endl;
     return 0;
 }
@@ -2124,11 +2129,32 @@ int32_t Agent::pollParse(std::string &message)
     return 0;
 }
 
+//beatstruc Agent::findAgent(std::string agent)
+//{
+//    return findServer(agent);
+//}
 
-
-beatstruc Agent::find(std::string servername)
+beatstruc Agent::find(std::string agent)
 {
-    return findServer(servername);
+    float timeout = 1.0;
+
+    beatstruc beat_agent = agent_find_server(cdata, nodeName, agent, timeout);
+
+    // TODO: improve the way we find the agent server
+    if (beat_agent.utc == 0)
+    {
+        if (printMessages) {
+            std::cout << "agent " << agent << " : not found" << std::endl;
+        }
+    }
+    else
+    {
+        if (printMessages) {
+            std::cout << "agent " << agent << " : found" << std::endl;
+        }
+    }
+
+    return beat_agent;
 }
 
 //! @}

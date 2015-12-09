@@ -158,18 +158,20 @@ class Agent {
 public:
     Agent();
     Agent(std::string nodename, std::string agentname);
+    ~Agent();
 
     // agent functions
     bool setupServer();
     bool setupServer(std::string nodename, std::string agentname);
     bool setupClient(std::string nodename);
 
-    beatstruc findServer(std::string servername);
-    beatstruc find(std::string servername);
+    //beatstruc findServer(std::string agent);
+    //beatstruc findAgent(std::string agent);
+    beatstruc find(std::string agent);
 
     uint16_t isRunning();
     int32_t sendRequest(beatstruc beat, std::string request, std::string &response);
-    int32_t shutdownServer();
+    int32_t shutdown();
 
     int32_t post(uint8_t type, std::string message);
     int32_t poll(uint8_t type, std::string &message);
