@@ -46,7 +46,7 @@ Picture of thing
 ROADMAP:
 
 * create node for rover and ground station
-  * check DMT manual (in https://bitbucket.org/cosmos/documentation)
-  * check MOST manual (in https://bitbucket.org/cosmos/documentation)
+    * check DMT manual (in https://bitbucket.org/cosmos/documentation)
+    * check MOST manual (in https://bitbucket.org/cosmos/documentation)
 * create agent for rover and ground station
 * display data from rover on ground station using MOST
