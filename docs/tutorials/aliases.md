@@ -1,6 +1,6 @@
 # Namespace Aliases {#tutorial-alias}
 
-COSMOS aliases can be used to rename COSMOS namespace names or equations. The following example shows a typical use of COSMOS aliases. There is a self contained example that can be run using Qt creator from the folder <COSMOS>/core/examples/namespace. The documenation of the example file can be found in this link: alias.cpp.
+COSMOS aliases can be used to rename COSMOS namespace names or equations. The following example shows a typical use of COSMOS aliases. There is a self contained example that can be run using Qt creator from the folder <COSMOS>/core/examples/namespace/alias. The documenation of the example file can be found in this link: alias.cpp.
 
 ## Example
 Objective: convert the IMU temperature data from degrees Celcius to Kelvin. This actually could be handled differently by unit conversion but the purpose here is to demonstrate the use of equations in COSMOS.

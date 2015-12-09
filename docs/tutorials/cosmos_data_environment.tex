@@ -1,0 +1,226 @@
+\documentclass[10pt,letterpaper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=.75in, right=.75in, top=1.00in, bottom=1.00in]{geometry}
+%\usepackage[left=1.00cm, right=1.00cm, top=1.00cm, bottom=1.00cm]{geometry}
+\usepackage[pdftex]{graphicx} 
+%opening
+\title{COSMOS Infrastructure}
+\author{Eric J. Pilger}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+The primary goal of COSMOS is to draw together related systems into a loosely linked network, allowing for control, monitoring and communication on a network level. Toward this end, the COSMOS project has developed a paradigm for representing, storing and communicating the state of these systems and their elements so that they can interact with each other, and be managed, in standardized ways. This infrastructure is the combination of a method for encapsulating function in to distinct units of code; an approach for representing relevant aspects of each system in a unified parameter space; and mechanisms for mapping and transmitting this space between the code units and the outside world. This document defines the elements of this paradigm and how they interact.
+
+\chapter{COSMOS JSON}
+JavaScript Object Notation(JSON) was chosen as the medium for exchange of information within COSMOS. It addresses the need to communicate various data types in a platform independent way, while remaining simple and direct. Additionally, we have shown that complex structures represented as JSON, and then compressed using GZIP, occupy no more more space than 50\% of the original binary structure. The use of JSON therefore need not incur a significant cost in storage and/or transmission.
+\\
+\\
+While pretty much the full range of JSON is supported in COSMOS, only a subset as it relates to the defined parameter space is practically useful. Additionally, COSMOS has extended the JSON specification internally by adding a variety of defined usages. This has placed limits on the range of JSON that actually makes sense within COSMOS, as well as generating JSON that would not be fully recognized by the specification.
+\\
+\\
+In order to support the various data types a distinction is made between types of integer, and types of floating point. This distinction is then extended to the various data structures defined within COSMOS. This is all recognized and generated internally by the COSMOS JSON code. The details of this are elaborated on below.
+\\
+\\
+In order to support the use of JSON to request values, support has been added for JSON Objects that do not include a value. This modified JSON Object, consisting only of a comma separated list of strings, can then be filled in with associated values, thereby generating a standard JSON Object. As an example, the truncated JSON object \{"string1","string2","string3"\} would be used to return the actual JSON \{"string1":value1,"string2":value2,"string3":value3\}.
+\\
+\\
+Finally, in addition to the fixed arrays defined by the JSON standard, COSMOS JSON provides support for something akin to vectors which grow dynamically. This is implemented through the combination of a count variable, and a 3 digit numerical name extension. Multiple levels are supported through multiple numerical extensions. 
+
+\chapter{Hierarchical Organization}
+Each complex of systems in COSMOS should be considered a \emph{Domain}. Within each Domain there will exist a variety of interacting physical \emph{Nodes} along with their attendant data and functionality. Each Node represents an assemblage of linked hardware, driven by associated software, that is performing some common purpose. Each Node in a Domain has a unique name, and communication is possible between each Node by way of this name.
+\\
+\\
+The functionality of each Node is implemented through a suite of programs, running on one or more processors, in direct network communication with each other. The software actions that perform the functionality of a Node are divided  between one-off programs called \emph{Commands}, and persistent programs called \emph{Agents}. Both are considered to be COSMOS \emph{Clients}, which means that they have access to the COSMOS parameter space and associated communication mechanisms. Agents are additionally considered to be \emph{Servers}. As such, each Agent has its own name and can accept \emph{Requests} over the network, as well as broadcasting relevant data about itself.
+\\
+\\
+All communications are at the level of Node:Agent. They will consist of either a single packet message, or a file. Messages will either be Requests  passed from one Client to a Node:Agent, or Broadcasts, which can be heard by any Client. Requests always generate a response, which will contain, at a minimum,  "[OK]" or "[NOK]" with respect to the incoming Request. Files will be transferred within  a directory structure that reflects the COSMOS hierarchy, some portion of which will be kept on any processor capable of supporting a file system. This directory structure will always start at what is referred to as \emph{cosmosroot}. Within a Domain, cosmosroot will contain a folder for Domain resources, and a folder for Domain Nodes. Each Node folder will contain descriptive files for that Node, as well folders for incoming files, outgoing files, and data. The incoming and outgoing folders will be further divided into folders for each Agent.
+
+\chapter{COSMOS Name Space}
+The suite of programs that make up each Node are tied together through a common pool of information that they share back and forth. Each piece of information in this pool is given a unique name with which that information can be accessed. These names exist in a Name Space hierarchy, subdivided by major divisional differences. Each name in the Name Space is tied to a type, a unit, a range of acceptable values, and a meaning. Increasing levels of complexity in the name hierarchy are represented by separate words in the name, demarcated by underscores.
+\\
+\\
+One portion of this Name Space is dedicated to general system level information, while the other deals with Node specific information. Initialization files are provided for the Node specific information, which are stored at the Node level of cosmosroot. The following sections describe each of these divisions and their meaning.
+\section{System Level}
+\subsection{User}
+Allows the definition of Users within the system. This allows the implementation of an authentication mechanism, as well as tracking and assignment.
+\\
+\\
+\begin{tabular}{|l|c|l|l|}
+\hline \textbf{Base Name} &\textbf{Data Type}  & \textbf{Units} & \textbf{Meaning}\\ 
+\hline user\_cpu & name &  & CPU assigned to \\ 
+\hline user\_name & name &  & Name of User \\ 
+\hline user\_node & name &  & Node of User \\ 
+\hline user\_tool & name &  & Tool currently being used \\ 
+\hline 
+\end{tabular} 
+\subsection{Agent}
+Information concerning the internal functions of each Agent.
+\\
+\\
+\begin{tabular}{|l|c|l|l|}
+\hline \textbf{Base Name} &\textbf{Data Type}  & \textbf{Units} & \textbf{Meaning}\\ 
+\hline agent\_addr & string &  & Network address \\ 
+\hline agent\_aprd & double & seconds & Activity period \\ 
+\hline agent\_beat & hbeat &  & Heartbeat contents \\ 
+\hline agent\_bprd & double & seconds & Heartbeat period \\ 
+\hline agent\_bsz & uint16 &  & Request buffer size \\ 
+\hline agent\_node & name &  & Node assigned to \\ 
+\hline agent\_ntype & uint16 &  & Network protocol type \\ 
+\hline agent\_pid & int32 &  & Process ID \\ 
+\hline agent\_port & uint16 &  & Network port \\ 
+\hline agent\_proc & name &  & Name \\ 
+\hline agent\_sohstring & string &  & JSON State of Health to output \\ 
+\hline agent\_stateflag & uint16 &  & Agent state \\ 
+\hline agent\_user & string &  & User assigned \\ 
+\hline agent\_utc & double & MJD & Timestamp \\ 
+\hline 
+\end{tabular} 
+\subsection{Event}
+\subsection{Physics}
+\section{Node Specific}
+\subsection{Node}
+All names beginning with \emph{node\_} present information about the Node as a whole. The initialization file is name \emph{node.ini}. This file typically contains the name  of the node, its type, and counts for the numbers of entries in the other divisions. Currently supported names are:
+\\
+\\
+\begin{tabular}{|l|c|l|l|}
+\hline \textbf{Base Name} &\textbf{Data Type}  & \textbf{Units} & \textbf{Meaning}\\ 
+\hline node\_name & string &  & Name of Node \\ 
+\hline node\_type & uint16 &  & Type of Node \\ 
+\hline node\_hcap & float &  & Heat Capacity \\ 
+\hline node\_mass & float & kg & Mass \\ 
+\hline node\_area & float & m sq & Area \\ 
+\hline node\_battcap & float & amp hr & Battery Capacity \\ 
+\hline node\_battlev & float & amp hr & Battery Level \\ 
+\hline node\_powuse & float & watts & Power Use \\ 
+\hline node\_powgen & float & watts & Power Generation \\ 
+\hline node\_utc & double & modified julian day & Coordinated Universal Time \\ 
+\hline node\_loc & locstruc & & Complete Position and Attitude \\
+\hline node\_loc\_att & attstruc & & Complete Attitude \\
+\hline node\_loc\_pos & posstruc & & Complete Position \\
+\hline node\_loc\_att\_geoc & qatt & quaternion, meters, seconds & 0th, 1st, 2nd derivative of geocentric attitude\\ 
+\hline node\_loc\_att\_icrf & qatt & quaternion, meters, seconds & 3 derivatives of ICRS based attitude \\ 
+\hline node\_loc\_att\_lvlh & qatt & quaternion, meters, seconds & 3 derivatives of LVLH based attitude \\ 
+\hline node\_loc\_att\_selc & qatt & quaternion, meters, seconds & 3 derivatives of selenocentric based attitude \\ 
+\hline node\_loc\_pos\_bary & cartpos & meters, seconds & 3 derivatives of barycentric based position \\ 
+\hline node\_loc\_pos\_eci & cartpos & meters, seconds & 3 derivatives of ECI based position \\ 
+\hline node\_loc\_pos\_geoc & cartpos & meters, seconds & 3 derivatives of geocentric based position \\ 
+\hline node\_loc\_pos\_geod & geoidpos & radians, meters, seconds & 3 derivatives of geodetic based position \\ 
+\hline node\_loc\_pos\_sci & cartpos & meters, seconds & 3 derivatives of SCI based position \\ 
+\hline node\_azfrom & float &radians & Azimuth from nearest target \\ 
+\hline node\_azto & float & radians & Azimuth to nearest target \\ 
+\hline node\_elfrom & float & radians & Elevation from nearest target \\ 
+\hline node\_elto & float & radians & Elevation to nearest target \\ 
+\hline 
+\end{tabular} 
+\section{Piece}
+Under the \textit{Node} level is the \textit{Piece} level. This deals with all the physical elements of the \textit{Node}. Any other levels below this will be tied to some physical \textit{Piece}. Each \textit{Piece} is given a name and a type, along with physical dimensions, the meaning of which vary with type. Currently supported types are:
+\begin{itemize}
+\item Dimensionless: 1 point, location only
+\item Internal Panel: n points defining perimeter of panel, dimension indicating thickness
+\item External Panel: same as internal but cross product of any 3 sequential points is external direction
+\item Box: 8 points, representing 2 parallel sides with points in same order, first side cross product points out, dimension indicates wall thickness
+\item Cylinder: 3 points, 1st at vertex, 2nd in center of mouth, 3rd on perimeter, dimension indicates wall thickness 
+\item Cone: 3 points, one end, other end, perimeter of other end, dimension indicates wall thickness
+\item Sphere: 2 points, 1st at center, 2nd on radius, dimension indicates wall thickness
+\end{itemize}
+Additional static traits are heat capacity, emmissivity, and absorptivity. Dynamic traits are temperature, and heat content.
+
+A subset of \textit{Parts} will have some further special qualities and be listed as \textit{Components}. In this case, a \textit{Component} index will be listed as well. \textit{Parts} without a \textit{Component} aspect will be given a \textit{Component} index of -1.
+\section{Component}
+A \textit{Component} represents the electrical nature of a \textit{Part}. Each \textit{Component} is assigned to a Power \textit{Bus} index. It is statically assigned a static nominal amperage and voltage. It is also dynamically assigned an instantaneous amperage and voltage, and whether it is on or not. Each Component also has an index back to the \textit{Part} that it is tied to.
+
+A subset of \textit{Components} represent more complex \textit{Devices}. These are then given a \textit{Device} type and index. \textit{Components} without a \textit{Device} aspect will be given a \textit{Device} type and index of -1.
+\section{Devices}
+A different \textit{Device} type exists for each unique type of \textit{Component}. Each \textit{Device} type has its own set of static and dynamic data elements, as well as an index back to the \textit{Component} it is tied to. Currently supported \textit{Device} types are:
+\begin{itemize}
+\item Payload: Each payload can define up to 10 keys as paired names and floating point values.
+\item Sun Sensor: Four quadrant sun sensor. Static values are the alignment of the device in the body frame. Dynamic values include the voltages on the four quadrants and the derived azimuth and elevation.
+\item Inertial Measurement Unit: 3 axis accelerometer, gyros and magnetometer. Static values are the alignment of the device in the body frame. Dynamic values can be first three derivatives of position, first three derivatives of the attitude, and a magnetic field vector.
+\item Reaction Wheel: Static values are the alignment of the device in the body frame, the moments of inertia of the device, and its maximum angular speed. Dynamic values can include the instantaneous angular speed and acceleration.
+\item Magnetic Torque Rod: Static values are the alignment of the device in the body frame and the magnetic moment of the rod. Dynamic values include the magnetic field.
+\item Central Processing Unit: Static values are the maximum disk and memory available. Dynamic values are the instantaneous load, disk and memory usage.
+\item Geographic Position System: Dynamic values include the first two derivatives of position.
+\item Antenna: Static values include the antenna pattern?
+\item Receiver:
+\item Transmitter:
+\item Transceiver:
+\item String: Serial string of photovoltaic cells. Static values include the area, absorptivity, maximum power production and the efficiency response to temperature. Dynamic values are power.
+\item Battery: Static values of charging efficiency. Dynamic values of instantaneous level.
+\item Heater:
+\item Motor:
+\item Rotator:
+\item Temperature Sensor:
+\item Thruster:
+\item Propellant Tank:
+\item Switch:
+\end{itemize}
+
+\chapter{COSMOS Data Structure}
+The \textit{COSMOS Data Structure} has a space reserved to represent any data value needed to support any of the elements described previously. At its top level, it is divided into a Static and a Dynamic part. The Static part, \textbf{cosmosstruc\_s}, contains elements that are not subject to significant change over short periods of time. While not necessarily completely static, these values change only infrequently, and a record of their past values is not required. The Dynamic part,  \textbf{cosmosstruc\_d}, is meant for values that are in constant flux. Because these values change so frequently it is expected that you might want to store 1000's of copies, or more, for quick access.
+
+Within each of \textbf{cosmosstruc\_s} and \textbf{cosmosstruc\_d} are parts for the major divisions introduced above. \textbf{nodesstruc} stores information concerning \textit{Nodes}, \textbf{agentstruc} data concerning \textit{Agents}, and \textbf{eventstruc} data concerning \textit{Events}.
+
+The \textbf{eventstruc} contains:
+\begin{itemize}
+\item a time stamp
+\item an event name 
+\item an event flag
+\item an event type
+\item an event body (contents dependent on event type)
+\end{itemize}
+
+The \textbf{agentstruc} contains:
+\begin{itemize}
+\item agent internals
+\item a name
+\item a time stamp
+\item the period of the agents heartbeat
+\item the size of the agents transfer buffer
+\end{itemize}
+
+\chapter{COSMOS Name Space}
+In order to provide a bridge between the COSMOS Data Environment and the internal data environment of program code, COSMOS has created a uniform space of names that represent each of the elements listed above. By providing a map between these names and internal data elements, values can be imported and exported without the need for either recompiling, or accompanying meta data.
+
+The naming scheme follows the hierarchical nature of the data environment, with each level being represented in the name. As a compromise between human readability/writeability and programming efficiency a number of rules and exceptions have been defined:
+\begin{itemize}
+\item Words are separated by "\_"
+\item Words are kept to a minimum of 2 characters and a maximum of 4
+\item Redundant leading words are stripped
+\item Arrays of similar items are indicated with a trailing 3 digit zero based number
+\item All such number are appended at the end, separated by "\_"
+\end{itemize}
+The resulting name space is defined as follows:
+\section{Node}
+
+\section{Part}
+\begin{tabular}{|l|c|c|l|l|}
+\hline \textbf{Base Name} &\textbf{Data Type}  & \textbf{Level} & \textbf{Units} & \textbf{Meaning}\\ 
+\hline part\_abs & double & 1 &  &  \\ 
+\hline part\_area & double & 1 &  &  \\ 
+\hline part\_cidx & int16 & 1 &  &  \\ 
+\hline part\_cnt & int16 & 0 &  &  \\ 
+\hline part\_com & rvector & 1 &  &  \\ 
+\hline part\_dim & double & 1 &  &  \\ 
+\hline part\_emi & double & 1 &  &  \\ 
+\hline part\_hcap & double & 1 &  &  \\ 
+\hline part\_hcon & double & 1 &  &  \\ 
+\hline part\_heat & double & 1 &  &  \\ 
+\hline part\_mass & double & 1 &  &  \\ 
+\hline part\_name & string & 1 &  &  \\ 
+\hline part\_pnt & rvector & 2 &  &  \\ 
+\hline part\_pnt\_cnt & int16 & 1 &  &  \\ 
+\hline part\_temp & double & 1 &  &  \\ 
+\hline part\_type & uint32 & 1 &  &  \\ 
+\hline part\_tidx & int16 & 1 &  &  \\ 
+\hline
+\end{tabular}
+\chapter{COSMOS Communications and File Hierarchy}
+
+\end{document}

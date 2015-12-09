@@ -1,5 +1,5 @@
-The Basics - Christianne P.o.V. {#tutorial-getting-started-2}
-===============================
+Notes: Getting Started by Christianne {#notes-getting-started-chris}
+=====================================
 
 Disclaimer: This is a "the blind leading the blind" kind of tutorial, so if you're ever very unsure about a topic, please stop tearing your hair out, and go speak with Eric or Miguel.
 

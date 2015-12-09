@@ -24,7 +24,7 @@ int main()
     //! define the node name (it must be installed in <COSMOS>/nodes
     string nodename = "cubesat1";
 
-    // Establish the command channel and heartbeat
+    // Establish the agent inside the given node
     if (!(cdata = agent_setup_client(AGENT_TYPE_UDP, nodename, 10000)))
     {
         cout << "agent_setup_client failed (error <" << AGENT_ERROR_JSON_CREATE << ">)"<<endl;
@@ -41,6 +41,8 @@ int main()
 
     // get the equation handle for later use
     jsonhandle eqhandle;
+
+    // map/connect the equation to the handle
     json_equation_map(equation,cdata,&eqhandle);
 
     // add the equation to the system usin the alias "tempCelcius"
@@ -48,7 +50,7 @@ int main()
     string alias = "imuTempCelcius";
     json_addentry(alias, equation, cdata);
 
-    // set initial temperature in Kelvin
+    // set initial IMU temperature in Kelvin
     cdata->devspec.imu[0]->gen.temp = 0;
 
     // loop to demonstrate how to change values on the cdata structure
@@ -60,7 +62,7 @@ int main()
 
         // using the equation handle get the result of the equation
         double temp = json_equation(&eqhandle, cdata);
-        cout << "temperature value from equation [C] : " << temp << endl;
+        cout << "temperature value from handle   [C] : " << temp << endl;
 
         // using the alias get the result of the equation
         temp = json_get_double(alias, cdata);

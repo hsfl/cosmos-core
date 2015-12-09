@@ -1,5 +1,5 @@
-COSMOS 101: concepts {#tutorial-getting-started-1}
-====================
+Notes: Getting Started by Josh {#notes-getting-started-chris}
+=============================
 
 # What is Cosmos?
 Cosmos is a software program that allows the user to manage and create information exchange between many machines.
@@ -42,3 +42,10 @@ also hopefully give you a better understanding of the concepts of an agent and a
 	successful. From there we can start analyzing the rocks.
 	
 Picture of thing
+
+ROADMAP:
+* create node for rover and ground station
+** check DMT manual (in https://bitbucket.org/cosmos/documentation)
+** check MOST manual (in https://bitbucket.org/cosmos/documentation)
+* create agent for rover and ground station
+* display data from rover on ground station using MOST

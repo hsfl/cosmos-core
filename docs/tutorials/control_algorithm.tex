@@ -1,0 +1,86 @@
+\documentclass[12pt,letterpaper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=.5in, right=.25in, top=1.00in, bottom=1.00in]{geometry}
+%\usepackage[left=1.00cm, right=1.00cm, top=1.00cm, bottom=1.00cm]{geometry}
+\usepackage[pdftex]{graphicx} 
+%opening
+\title{Hiakasat Attitude Control Algorithm}
+\author{Eric J. Pilger}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Overview}
+
+The Hiakasat Attitude Control Algorithm (ACS) is designed to drive a satellite of roughly equal moments, of order a few kg m2, with 3 Magnetic Torque Rods aligned at right angles to each other, and 1 small Reaction Wheel aligned along the body X axis.
+\\
+\\
+The two key aspects of the current ACS algorithm are:
+\begin{itemize}
+\item 1.)It is achieved solely through Velocity matching.
+\item 2.)It is achieved in two stages; first calculating the ideal torque that would be applied if any torque were possible, then decomposing this ideal torque into the torques available from the Magnetic Torque Rods and the Reaction Wheel. 
+\end{itemize}
+
+\section{Algorithm}
+
+All calculations are performed in the ICRS inertial frame. Conversions between this and the spacecraft body frame are performed as needed. Attitude is expressed as a structure containing the 0th, 1st and 2nd time derivative. The position (0th) term, att.s, is given as a quaternion representing the transformation taking a vector in the ICRS frame to the body frame. The velocity (1st) term, att.v, is a cartesian vector representing the angular velocity in the ICRS frame. The acceleration (2nd) term, att.a, is a cartesian vector representing the angular acceleration in the ICRS frame. Description of the algorithm is broken into the two stages described in the overview.
+
+\subsection{Stage 1: Pure Torque}
+
+\begin{itemize}
+\item Identify time step ($\Delta t$), current attitude ($q_{0}$) and target attitude (tatt).
+\item Advance tatt.s by one time step based on catt.v and dt. \[tatt.s' = (catt.v * dt) * tatt.s\]
+\item Determine quaternion (ds) that takes us from catt.s to advanced tatt.s. \[ds = tatt.s' * q_conj(catt.s)\]
+\item If magnitude of rotation would be greater than $\pi$ , reverse $\Delta q$ to go other way around
+\item Determine vector (dphi) that is axis/angle equivalent of ds
+\item Determine angular velocity vector (domega) that would achieve dphi in 10 time periods \[domega = .1 * dphi / dt\]
+\item Add desired target angular velocity (tatt.v) \[domega' = domega + tatt.v\]
+\item Determine angular acceleration vector (dalpha) that would achieve domega' in 10 time periods \[dalpha = .1 * domega / dt\]
+\item Convert to torque \[dtorque = SATMOI * dalpha\]
+\end{itemize}
+
+\subsection{Stage 2: Decomposition to Actual Torques}
+
+Hiakasat is expected to fly in a polar or sun synchronous orbit, in a nominal Local Vertical Local Horizontal (LVLH) attitude with the body X axis in the direction of flight. Since the magnetic field lines the spacecraft will experience are basically parallel to the Earth's rotation axis, this will allow the Reaction Wheel to apply at least half of its torque to motion around the field lines, over the range -60 to +60 degrees of latitude. Since they can only exert torque perpendicular to the magnetic field lines, the Magnetic Torque Rods will then be responsible for a combination of this perpendicular torque, plus any Reaction Wheel torque not parallel with the field lines.
+
+This presents some difficulty at the poles, where the Reaction Wheel axis will approach perpendicularity to the field lines. However, it also provides an ideal opportunity to perform any necessary Reaction Wheel desaturation as the field lines are then ideally suited to apply the required torque.
+
+The current decomposition algorithm is as follows:
+
+\begin{itemize}
+\item Acquire ideal torque (dtorque) in ICRS frame
+\item Transform in to body frame (dtorque')
+\item Calculate angle between Earth magnetic field in body frame (bfield) and both dtorque' (tangle) and Reaction Wheel axis (rangle)
+\item Determine the magnitude of the Reaction Wheel torque (rwtau) required to generate the component of the ideal torque that is parallel to the field lines \[rwtau = length(dtorque) * \cos(tangle) / \cos(rangle)\]
+\item Convert rwtau to Reaction Wheel acceleration (rwalpha) by dividing by Reaction Wheel moment of inertia \[rwalpha = rwtau / RWMOI.z\]
+\item Limit acceleration to what can be produced by Reaction Wheel (rwalpha'). Convert back to new limited rwtau'
+\item Set Reaction Wheel torque (rtorque) to be vector of magnitude rwtau', aligned along Reaction Wheel axis \[rtorque = rwtau' * unitx()\]
+\item Determine new required torque perpendicular to field lines \[dtorque'' = dtorque' - rtorque\]
+\item Calculate new angle (tangle') between dtorque'' and field lines
+\item Determine the magnitude of the Magnetic Torque Rod torque (mttau) required to generate the component of the ideal torque, as modified by the reaction wheel, that is perpendicular to the field lines \[mttau = length(dtorque'') * \sin(tangle)\]
+\item Limit acceleration to what can be produced by Magnetic Torque Rods in current field (mttau')
+\item Determine required Magnetic Moment to create this torque \[mmoment = (mttau/length(bfield)) * normal(cross(bfield,dtorque''))\]
+\item Set Magnetic Torque Rod torque (mtorque) to be \[mtorque = cross(mmoment,bfield)\]
+\item Calculate modified ideal torque (dtorque''') by summing Reaction Wheel and Magnetic Torque Rod torques and transforming back to ICRS frame.
+\end{itemize}
+
+\section{Test Results}
+Tests have been run for both the pure torque and the hardware corrected cases. The algorithm has shown itself capable of being stable under both conditions. In either case, once stability has been achieved, control can be disabled and the spacecraft will stay within 15 degrees over a period of half an orbit. The tests that follow were run with the spacecraft in an initial attitude in which its body Z axis was parallel to the direction of flight and it was rotating around the body Z axis at 1 RPS.
+\\
+
+Under pure torque conditions, with a 1 second time step, it stabilizes in under 1 minute with an offset in position of .86 degrees and in velocity of .08 degrees per second. Decreasing the step time by a factor of ten decreases the position error by almost the same magnitude.
+\\
+
+Under hardware conditions, stabilization requires 1100 minutes, or roughly 11.5 orbits, after which behavior is essentially the same as under pure torque. While under hardware control, the Reaction Wheel steadily accelerates at a rate of just under .01 radians per second per second while control is active. Given a reasonable operating range of 1000 radians per second for the Reaction Wheel, this would require desaturation on the order of every 100000 seconds, or roughly 17 orbits.
+\\
+
+After having added display of the Earth's magnetic field to the MOST spacecraft display I realized that the filed becomes regularly aligned with the Reaction Wheel when near the poles. I have added a test algorithm that desaturates the wheel at a rate of .1 radians per second per second whenever the Reaction Wheel is spinning more than -400 radians per second and the magnetic field vector is within 20 percent of perpendicular to the Reaction Wheel. This has been quite successful in keeping the Reaction Wheel out of saturation, while causing minimal disturbance to attitude.
+
+\subsection{Conclusions}
+
+\end{document}
