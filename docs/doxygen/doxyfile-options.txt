@@ -1,0 +1,18 @@
+SHOW_NAMESPACES        = NO
+
+EXTERNAL_GROUPS        = NO
+EXTERNAL_PAGES         = NO
+
+#---------------------------------------------------------------------------
+# Configuration options related to source browsing
+#---------------------------------------------------------------------------
+
+SOURCE_BROWSER         = YES # to show link "Go to the source code of this file."
+INLINE_SOURCES         = YES # to show source code inline with documentation
+
+
+
+
+# to streamline the doxygen execution time
+SOURCE_BROWSER         = NO
+INLINE_SOURCES         = NO

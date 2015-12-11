@@ -1,0 +1,14 @@
+# Doxyfile 1.8.10
+
+PROJECT_NAME           = "COSMOS"
+PROJECT_NUMBER         = 1.0
+#OUTPUT_DIRECTORY       = output
+EXTRACT_ALL            = YES
+
+INPUT += ../../README.md #  mainpage
+INPUT += ../install/
+
+RECURSIVE              = YES
+USE_MDFILE_AS_MAINPAGE = ../../README.md
+DISABLE_INDEX          = YES
+GENERATE_TREEVIEW      = YES

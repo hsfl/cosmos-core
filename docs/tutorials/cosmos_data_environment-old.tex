@@ -1,0 +1,135 @@
+\documentclass[10pt,letterpaper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=.5in, right=.25in, top=1.00in, bottom=1.00in]{geometry}
+%\usepackage[left=1.00cm, right=1.00cm, top=1.00cm, bottom=1.00cm]{geometry}
+\usepackage[pdftex]{graphicx} 
+%opening
+\title{COSMOS Data Environment}
+\author{Eric J. Pilger}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+COSMOS started as a project to meet the needs of all phases of a spacecrafts life cycle. It has grown to address the needs of complexes of systems interacting with each other. The COSMOS project has developed a paradigm for representing, storing and communicating the state of these systems so that they can interact with each other, and be managed, in standardized ways. This \textit{Data Environment} is the combination of an approach for representing relevant aspects of each system with mechanisms for mapping these between various forms of storage and transmission. This document defines the elements of this paradigm and how they interact.
+
+\chapter{Nodes, Entities and Agents}
+The COSMOS Paradigm is a hierarchical, almost object oriented approach. In any given COSMOS complex of systems, there will exist a variety of interacting physical Nodes and non-physical Entities. Nodes represent an assemblage of linked hardware, driven by associated software, that is performing some common purpose. Entities represent an intelligence, not necessarily tied to a specific set of hardware, that is also performing some common purpose, either through software or human interaction. The highest element in the COSMOS Paradigm is therefore the Node or Entity. Each Node or Entity in a complex of systems has a unique name, and communication is possible between each Node or Entity by way of this name.
+
+The software actions of a Node or Entity are performed by persistent programs called Agents. Each Agent has its own name, and multiple Agents may be associated with a Node or Entity. Communications will always be at this level; files or messages are passed to a Node:Agent or Entity:Agent.
+
+\chapter{Data Definition}
+Beneath the level of \textit{Node:Agent}, COSMOS attempts to represent everything important to that system as a hierarchy of names. At each level, various data products are defined that represent aspects of the \textit{Node} at the level. Each defined data product is given a name, a type, units, range of acceptable values, and a meaning. The lower levels of the hierarchy express increasingly specific aspects of the system. Pointers are kept specifying the relationship between elements at different level. Data is furthered subdivided into static and dynamic elements.
+\section{Node}
+At the highest level is the \textit{Node} itself. This is a general summary level and stores information about the \textit{Node} as a whole. The primary static element is the name. Dynamic elements include summaries of things such as mass, power, position and attitude are part of the Node information. Special types of \textit{Nodes} are handled by \textit{Node} subcategories. These subcategories include:
+\begin{itemize}
+\item Ground station: Static values are minimum elevation. Dynamic values are instantaneous azimuth and elevation
+\item Agent:
+\item User:
+\end{itemize}
+\section{Part}
+Under the \textit{Node} level is the \textit{Part} level. This deals with all the physical elements of the \textit{Node}. Any other levels below this will be tied to some physical \textit{Part}. Each \textit{Part} is given a name and a type, along with physical dimensions, the meaning of which vary with type. Currently supported types are:
+\begin{itemize}
+\item Dimensionless: 1 point, location only
+\item Internal Panel: n points defining perimeter of panel, dimension indicating thickness
+\item External Panel: same as internal but cross product of any 3 sequential points is external direction
+\item Box: 8 points, representing 2 parallel sides with points in same order, first side cross product points out, dimension indicates wall thickness
+\item Cylinder: 3 points, 1st at vertex, 2nd in center of mouth, 3rd on perimeter, dimension indicates wall thickness 
+\item Cone: 3 points, one end, other end, perimeter of other end, dimension indicates wall thickness
+\item Sphere: 2 points, 1st at center, 2nd on radius, dimension indicates wall thickness
+\end{itemize}
+Additional static traits are heat capacity, emmissivity, and absorptivity. Dynamic traits are temperature, and heat content.
+
+A subset of \textit{Parts} will have some further special qualities and be listed as \textit{Components}. In this case, a \textit{Component} index will be listed as well. \textit{Parts} without a \textit{Component} aspect will be given a \textit{Component} index of -1.
+\section{Component}
+A \textit{Component} represents the electrical nature of a \textit{Part}. Each \textit{Component} is assigned to a Power \textit{Bus} index. It is statically assigned a static nominal amperage and voltage. It is also dynamically assigned an instantaneous amperage and voltage, and whether it is on or not. Each Component also has an index back to the \textit{Part} that it is tied to.
+
+A subset of \textit{Components} represent more complex \textit{Devices}. These are then given a \textit{Device} type and index. \textit{Components} without a \textit{Device} aspect will be given a \textit{Device} type and index of -1.
+\section{Devices}
+A different \textit{Device} type exists for each unique type of \textit{Component}. Each \textit{Device} type has its own set of static and dynamic data elements, as well as an index back to the \textit{Component} it is tied to. Currently supported \textit{Device} types are:
+\begin{itemize}
+\item Payload: Each payload can define up to 10 keys as paired names and floating point values.
+\item Sun Sensor: Four quadrant sun sensor. Static values are the alignment of the device in the body frame. Dynamic values include the voltages on the four quadrants and the derived azimuth and elevation.
+\item Inertial Measurement Unit: 3 axis accelerometer, gyros and magnetometer. Static values are the alignment of the device in the body frame. Dynamic values can be first three derivatives of position, first three derivatives of the attitude, and a magnetic field vector.
+\item Reaction Wheel: Static values are the alignment of the device in the body frame, the moments of inertia of the device, and its maximum angular speed. Dynamic values can include the instantaneous angular speed and acceleration.
+\item Magnetic Torque Rod: Static values are the alignment of the device in the body frame and the magnetic moment of the rod. Dynamic values include the magnetic field.
+\item Central Processing Unit: Static values are the maximum disk and memory available. Dynamic values are the instantaneous load, disk and memory usage.
+\item Geographic Position System: Dynamic values include the first two derivatives of position.
+\item Antenna: Static values include the antenna pattern?
+\item Receiver:
+\item Transmitter:
+\item Transceiver:
+\item String: Serial string of photovoltaic cells. Static values include the area, absorptivity, maximum power production and the efficiency response to temperature. Dynamic values are power.
+\item Battery: Static values of charging efficiency. Dynamic values of instantaneous level.
+\item Heater:
+\item Motor:
+\item Rotator:
+\item Temperature Sensor:
+\item Thruster:
+\item Propellant Tank:
+\item Switch:
+\end{itemize}
+
+\chapter{Name Space}
+In order to provide a bridge between the COSMOS Data Environment and the internal data environment of program code, COSMOS has created a uniform space of names that represent each of the elements listed above. By providing a map between these names and internal data elements, values can be imported and exported without the need for either recompiling, or accompanying meta data.
+
+The naming scheme follows the hierarchical nature of the data environment, with each level being represented in the name. As a compromise between human readability/writeability and programming efficiency a number of rules and exceptions have been defined:
+\begin{itemize}
+\item Words are separated by "\_"
+\item Words are kept to a minimum of 2 characters and a maximum of 4
+\item Redundant leading words are stripped
+\item Arrays of similar items are indicated with a trailing 3 digit zero based number
+\item All such number are appended at the end, separated by "\_"
+\end{itemize}
+The resulting name space is defined as follows:
+\section{Node}
+\begin{tabular}{|l|c|c|l|l|}
+\hline \textbf{Base Name} &\textbf{Data Type}  & \textbf{Level} & \textbf{Units} & \textbf{Meaning}\\ 
+\hline node\_att\_geoc & qatt & 0 & quaternion, meters, seconds & 3 derivatives of geocentric based attitude\\ 
+\hline node\_att\_icrf & qatt & 0 & quaternion, meters, seconds & 3 derivatives of ICRS based attitude \\ 
+\hline node\_att\_lvlh & qatt & 0 & quaternion, meters, seconds & 3 derivatives of LVLH based attitude \\ 
+\hline node\_att\_selc & qatt & 0 & quaternion, meters, seconds & 3 derivatives of selenocentric based attitude \\ 
+\hline node\_name & string & 0 &  & Name of Node \\ 
+\hline node\_pos\_bary & cartpos & 0 & meters, seconds & 3 derivatives of barycentric based position \\ 
+\hline node\_pos\_eci & cartpos & 0 & meters, seconds & 3 derivatives of ECI based position \\ 
+\hline node\_pos\_geoc & cartpos & 0 & meters, seconds & 3 derivatives of geocentric based position \\ 
+\hline node\_pos\_geod & geoidpos & 0 & radians, meters, seconds & 3 derivatives of geodetic based position \\ 
+\hline node\_pos\_sci & cartpos & 0 & meters, seconds & 3 derivatives of SCI based position \\ 
+\hline node\_utc & double & 0 & modified julian day & Coordinated Universal Time \\ 
+\hline agnt\_beat & hbeat & 1 &  & COSMOS Heartbeat \\ 
+\hline  &  & 0 &  &  \\ 
+\hline  &  & 0 &  &  \\ 
+\hline 
+\end{tabular} 
+\section{Part}
+\begin{tabular}{|l|c|c|l|l|}
+\hline \textbf{Base Name} &\textbf{Data Type}  & \textbf{Level} & \textbf{Units} & \textbf{Meaning}\\ 
+\hline part\_abs & double & 1 &  &  \\ 
+\hline part\_area & double & 1 &  &  \\ 
+\hline part\_cidx & int16 & 1 &  &  \\ 
+\hline part\_cnt & int16 & 0 &  &  \\ 
+\hline part\_com & rvector & 1 &  &  \\ 
+\hline part\_dim & double & 1 &  &  \\ 
+\hline part\_emi & double & 1 &  &  \\ 
+\hline part\_hcap & double & 1 &  &  \\ 
+\hline part\_hcon & double & 1 &  &  \\ 
+\hline part\_heat & double & 1 &  &  \\ 
+\hline part\_mass & double & 1 &  &  \\ 
+\hline part\_name & string & 1 &  &  \\ 
+\hline part\_pnt & rvector & 2 &  &  \\ 
+\hline part\_pnt\_cnt & int16 & 1 &  &  \\ 
+\hline part\_temp & double & 1 &  &  \\ 
+\hline part\_type & uint32 & 1 &  &  \\ 
+\hline part\_tidx & int16 & 1 &  &  \\ 
+\hline
+\end{tabular}
+\chapter{JSON}
+
+\section{}
+
+\end{document}

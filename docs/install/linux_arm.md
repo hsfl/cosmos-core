@@ -1,4 +1,4 @@
-Cross-compile COSMOS for the ARM plarform
+Install COSMOS on Linux-ARM (crosscompile) {#install-arm} 
 =========================================
 
 These instructions are to setup a cross-compiler environment so that you can compile COSMOS for embedded devices with different architectures (ARM, PowerPC, etc.). 

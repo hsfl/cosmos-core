@@ -1,4 +1,4 @@
-# COSMOS agent poll example
+# COSMOS agent receive example
 
 # define the COSMOS source folder
 COSMOS_SOURCE = $$PWD/../../..
@@ -10,4 +10,4 @@ CONFIG -= qt app_bundle
 MODULES += agentlib
 include( $$COSMOS_SOURCE/core/cosmos-core.pri )
 
-SOURCES += agent_poll.cpp
+SOURCES += agent_receive.cpp

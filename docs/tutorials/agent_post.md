@@ -1,5 +1,7 @@
-COSMOS Agent Tutorial: how to post generic messages to the network
-==================================================================
+Agent Post {#tutorial-agent-post}
+==========
+
+Send generic messages to the network.
 
 You can use \ref agent_post to broadcast specific information that does not fit into the COSMOS namespace format (ex: your payload counts the number of reboots and you want to collect that information easily over the network)
 
