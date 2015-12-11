@@ -111,15 +111,8 @@
 #include "configCosmos.h"
 
 #include "jsondef.h"
-//#include "agentdef.h"
 #include "datalib.h"
 #include "stringlib.h"
-
-//#include <stdlib.h>
-//#include <stdio.h>
-//#include <cstring>
-//#include <stdarg.h>
-//#include <stddef.h>
 
 //! \ingroup jsonlib
 //! \defgroup jsonlib_functions JSON functions
