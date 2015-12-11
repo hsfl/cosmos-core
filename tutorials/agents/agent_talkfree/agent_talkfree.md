@@ -1,5 +1,4 @@
-Agent Post {#tutorial-agent-post}
-==========
+# Agent Talk Free {#tutorial-agent-talkfree}
 
 Send generic messages to the network.
 

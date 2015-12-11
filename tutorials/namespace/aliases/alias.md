@@ -1,4 +1,4 @@
-# Namespace Aliases {#tutorial-alias}
+# Aliases {#tutorial-namespace-aliases}
 
 COSMOS aliases can be used to rename COSMOS namespace names or equations. The following example shows a typical use of COSMOS aliases. There is a self contained example that can be run using Qt creator from the folder <COSMOS>/core/examples/namespace/alias. The documenation of the example file can be found in this link: alias.cpp.
 

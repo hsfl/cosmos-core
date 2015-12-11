@@ -1,5 +1,5 @@
-Coding style
-=============
+# Coding style {#tutorial-coding-style}
+
 This is an overview of the coding conventions when contributing to the COSMOS code base. 
 The style has been created using commonly used programming styles and through collaboration of the developers in a way that makes it more efficient to write and visualize code.
 

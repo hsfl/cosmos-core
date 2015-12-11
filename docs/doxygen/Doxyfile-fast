@@ -778,20 +778,11 @@ WARN_LOGFILE           =
 #INPUT += mainpage.dox  
 INPUT += ../../README.md # this is the new index.md or mainpage
 
-# install
-INPUT += ../install/
-
 # tutorials
-INPUT += ../tutorials/
-
-# examples
-INPUT += ../../examples/
-
-# other
-INPUT += ../coding-style.md
+INPUT += ../../tutorials/
 
 # libraries
-INPUT += ../../libraries/
+#INPUT += ../../libraries/
 
 #INPUT += ../../programs/agents
 #INPUT += ../../programs/general
