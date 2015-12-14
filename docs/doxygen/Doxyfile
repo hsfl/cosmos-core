@@ -778,30 +778,21 @@ WARN_LOGFILE           =
 #INPUT += mainpage.dox  
 INPUT += ../../README.md # this is the new index.md or mainpage
 
-# install
-INPUT += ../install/
-
 # tutorials
-INPUT += ../tutorials/
+INPUT += ../../tutorials/
 
-# examples
-INPUT += ../../examples/
-
-# other
-INPUT += ../coding-style.md
+# libraries
+#INPUT += ../../libraries/
 
 # libraries
 INPUT += ../../libraries/
-#INPUT += ../../libraries/support 
-#INPUT += ../../libraries/math
-#INPUT += ../../libraries/physics
-##INPUT += ../../libraries/device 
-#INPUT += ../../libraries/device/general
 
 INPUT += ../../programs/agents
 INPUT += ../../programs/general
-INPUT += ../../programs/device_tests
-INPUT += ../../programs/testbed
+
+# these are not needed
+#INPUT += ../../programs/device_tests
+#INPUT += ../../programs/testbed
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
