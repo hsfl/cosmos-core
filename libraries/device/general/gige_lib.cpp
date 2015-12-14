@@ -185,7 +185,7 @@ void gige_close(gige_handle *handle)
 //! Write Register
 /*! Write indicated GigE register with provided data.
 	\param handle Handle for GigE camera as returned from ::gige_open.
-	\param register Number of register.
+    \param address Address of register.
 	\param data Data to be written.
 	\return Zero or negative error.
 */
@@ -231,7 +231,7 @@ int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data)
 //! Read GIGE Register
 /*! Read indicated GigE register and return data.
 	\param handle Handle for GigE camera as returned from ::gige_open.
-	\param register Number of register.
+    \param address Address of register.
 	\return Contents of register as 4 byte unsigned integer.
 */
 uint32_t gige_readreg(gige_handle *handle, uint32_t address)
@@ -274,6 +274,13 @@ uint32_t gige_readreg(gige_handle *handle, uint32_t address)
 	return (handle->cack.data);
 }
 
+//! Read GIGE memory
+/*! Read indicated GigE memory and return data.
+    \param handle Handle for GigE camera as returned from ::gige_open.
+    \param address Address of memory.
+    \param size Size of memory area to read.
+    \return Contents of register as 4 byte unsigned integer.
+*/
 uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size)
 {
 	int32_t nbytes, ncount;
@@ -320,9 +327,7 @@ uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size)
 //! Discover GIGE Camera
 /*! Broadcast GIGE DISCOVERY_CMD, accepting all the reponses and returning them
  * in a vector of ::gige_acknowledge_ack.
-	\param handle Handle for GigE camera as returned from ::gige_open.
-	\param register Number of register.
-	\return Contents of register as 4 byte unsigned integer.
+    \return Vector of ::gige_acknowledge_ack containing responses.
 */
 std::vector<gige_acknowledge_ack> gige_discover()
 {
@@ -428,7 +433,7 @@ char *gige_value_to_address(uint32_t value)
 /*! Setup the basic image parameters for a a35 camera being used over GIGE.
  * The camera must first be opened with a call to ::gige_open.
  * \param handle Pointer to ::gige_handle returned by ::gige_open.
- * \param format Pixel format for output as defined in ::gige_a35_constants.
+ * \param format Pixel format for output as defined in \ref gige_a35_constants.
  * \param xsize Number of pixels in x direction.
  * \param ysize Number of pixels in y direction.
  * \param video_rate 30 or 60 Hz.
@@ -470,7 +475,7 @@ int a35_config(gige_handle *handle, uint32_t format, uint32_t xsize, uint32_t ys
  * \param frames Number of images to store.
  * \param buffer Pointer to buffer for storing image.
  * \param bsize Number of bytes to expect at a go.
- * \param Zero, or negative error.
+ * \return Zero, or negative error.
  */
 int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize)
 {
@@ -529,14 +534,13 @@ int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bs
 /*! Setup the basic image parameters for a Prosilica camera being used over GIGE.
  * The camera must first be opened with a call to ::gige_open.
  * \param handle Pointer to ::gige_handle returned by ::gige_open.
- * \param format Pixel format for output as defined in ::gige_prosilica_constants.
+ * \param format Pixel format for output as defined in \ref gige_prosilica_constants.
  * \param xbin Factor for binning in x direction.
  * \param ybin Factor for binning in y direction.
  * \param xsize Number of pixels in x direction.
  * \param ysize Number of pixels in y direction.
  * \param xoffset Starting pixel of sub-image in x direction.
  * \param yoffset Starting pixel of sub-image in y direction.
- * \param streambps Stream Bytes per Second for flow control.
  * \return Zero, or negative error.
  */
 int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32_t ybin, uint32_t xsize, uint32_t ysize, uint32_t xoffset, uint32_t yoffset)
@@ -579,9 +583,12 @@ int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32
 /*! Command Prosilica camera being used over GIGE to take a single image of the indicated
  * exposure length. The resulting image will be stored in the provided image buffer.
  * \param handle Pointer to ::gige_handle returned by ::gige_open.
+ * \param emode One of ::PROSILICA_ExposureMode_AutoOff, ::PROSILICA_ExposureMode_AutoOnce, ::PROSILICA_ExposureMode_Auto.
  * \param exposure Exposure time in usec.
+ * \param gain DN mutiplicative value.
  * \param buffer Pointer to buffer for storing image.
- * \param Zero, or negative error.
+ * \param bsize Maximum size of buffer.
+ * \return Zero, or negative error.
  */
 int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint32_t gain, uint8_t *buffer, uint16_t bsize)
 {
@@ -665,7 +672,7 @@ int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint
 //! Read GIGE Register for A35 with different flag
 /*! Read indicated GigE register and return data.
     \param handle Handle for GigE camera as returned from ::gige_open.
-    \param register Number of register.
+    \param address Address of register.
     \return Contents of register as 4 byte unsigned integer.
 */
 uint32_t gige_readreg2(gige_handle *handle, uint32_t address)
@@ -712,7 +719,7 @@ uint32_t gige_readreg2(gige_handle *handle, uint32_t address)
 //! Send A35 discover message?
 /*! Read indicated GigE register and return data.
     \param handle Handle for GigE camera as returned from ::gige_open.
-    \param register Number of register.
+    \param address Address of register.
     \return Contents of register as 4 byte unsigned integer.
 */
 uint32_t gige_request(gige_handle *handle, uint32_t address)

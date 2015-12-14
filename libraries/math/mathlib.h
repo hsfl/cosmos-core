@@ -344,7 +344,7 @@ class lsfit
 {
 private:
     //! Least Squares Fit Element
-    /*! Contains the dependent (x) and independent (y) values for a single element of a ::fitstruc.
+    /*! Contains the dependent (x) and independent (y) values for a single element of a ::lsfit.
          * The ::uvector allows both quaternions and rvector to be fit.
          */
     struct fitelement

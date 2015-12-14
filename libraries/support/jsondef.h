@@ -533,7 +533,7 @@ enum
 //! \defgroup defs_comp_port IO Port types.
 //! @{
 //!
-enum
+enum PORT_TYPE
     {
     PORT_TYPE_RS232 = 0,
     PORT_TYPE_RS422 = 1,
@@ -551,7 +551,7 @@ enum
 //! @{
 
 //! JSON unit type entry
-/*! To be used in the ::json_map table of units. Each entry represents
+/*! To be used in the ::cosmosstruc table of units. Each entry represents
  * one specific variant of one type of unit. Each entry includes:
  * - a name for the unit
  * - a type for the unit conversion: 0 = identity, 1 = linear, 2 = log
@@ -574,7 +574,7 @@ struct unitstruc
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
  * to a single object, along with its data type.
- * - index: Index of this entry in the ::json_map.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonentry
@@ -648,7 +648,7 @@ struct jsonoperand
 //! JSON equation entry
 /*! Single entry in a JSON equation map. Ties together a JSON equation and its
  * preparsed form.
- * - index: Index of this entry in the ::json_map.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonequation
@@ -950,12 +950,12 @@ struct targetstruc
 
 //! Port structure
 /*! Contains information about I/O ports available to devices. The
- * ::portidx entry in each device structure indicates which of these
+ * ::genstruc::portidx entry in each device structure indicates which of these
  * ports a device will use.
  */
 struct portstruc
 {
-    //! Type of I/O as listed in ::def_comp_port.
+    //! Type of I/O as listed in ::PORT_TYPE.
     uint16_t type;
     //! Name information for port.
     //!!! Change 'char' to 'string'
@@ -1523,7 +1523,7 @@ struct nodestruc
 {
     //! Node Name.
     char name[COSMOS_MAX_NAME+1];
-    //! Node Type as listed in \ref defs_node.
+    //! Node Type as listed in \ref NODE_TYPE.
     uint16_t type;
     //! Operational state
     uint16_t state;
@@ -1666,8 +1666,8 @@ struct devspecstruc
 
 //! JSON Name Space structure
 /*! A structure containing an element for every unique name in the COSMOS Name
- * Space. The static and dynamic components of this can then be mapped
- * separately to the name space using ::json_map_cosmosstruc.
+ * Space. The components of this can then be mapped to the Name Space
+ * using calls to ::json_addentry.
 */
 struct cosmosstruc
 {

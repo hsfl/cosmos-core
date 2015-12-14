@@ -28,8 +28,8 @@
 ********************************************************************/
 
 /*! \file timelib.h
-	\brief timelib include file
-	A library providing functions for handling various types of time.
+    \brief timelib include file
+    A library providing functions for handling various types of time.
 */
 
 //! \ingroup support
@@ -79,25 +79,25 @@
 //! @{
 struct timestruc
 {
-	double mjd;
-	int32_t year;
-	int32_t month;
-	int32_t day;
-	double fd;
-	double tt_mjd;
-	double gmst_rad;
+    double mjd;
+    int32_t year;
+    int32_t month;
+    int32_t day;
+    double fd;
+    double tt_mjd;
+    double gmst_rad;
 };
 
 struct calstruc
 {
-	int32_t year;
-	int32_t month;
-	int32_t dom;
-	int32_t doy;
-	int32_t hour;
-	int32_t minute;
-	int32_t second;
-	int32_t nsecond;
+    int32_t year;
+    int32_t month;
+    int32_t dom;
+    int32_t doy;
+    int32_t hour;
+    int32_t minute;
+    int32_t second;
+    int32_t nsecond;
 };
 
 //! @}
@@ -115,7 +115,7 @@ double cal2mjd(int32_t year, double dayOfYear);
 double cal2mjd(int32_t year, int32_t month, double day);
 double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond);
 double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
-                                   int32_t hour, int32_t minute, double second);
+                                int32_t hour, int32_t minute, double second);
 
 // utc to another format
 struct timeval utc2unix(double utc);
@@ -157,7 +157,7 @@ int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day);
 int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy);
 std::string mjdToGregorian(double mjd);
 int32_t mjdToGregorian(double mjd, int32_t *year, int32_t *month, int32_t *day,
-                      int32_t *hour, int32_t *minute, int32_t *second);
+                       int32_t *hour, int32_t *minute, int32_t *second);
 std::string  mjdToGregorianDDMMMYYYY(double mjd);
 std::string  mjdToGregorianDDMmmYYYY(double mjd);
 std::string  mjd2iso8601(double mjd);

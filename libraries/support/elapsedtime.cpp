@@ -117,7 +117,7 @@ void ElapsedTime::printElapsedTime(std::string text)
 }
 
 //! Lap Time
-/*! This is the elapsed time since the last Lap Time. ::timeCheck is set in order
+/*! This is the elapsed time since the last Lap Time. ::ElapsedTime::timeCheck is set in order
  * to keep track of this event.
  * \return Time since last call to lap(), reset(), or start(), in seconds.
 */

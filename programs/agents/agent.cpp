@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
                 std::cout<<"Number of Agents found: "<<cbeat.size()<<std::endl;
                 for (unsigned int i=0; i<cbeat.size(); i++)
                 {
-                    agent_send_request(cdata, cbeat[i],(char *)"getvalue {\"agent_pid\"}",output,AGENTMAXBUFFER,REQUEST_WAIT_TIME);
+                    agent_send_request(cbeat[i],(char *)"getvalue {\"agent_pid\"}",output,AGENTMAXBUFFER,REQUEST_WAIT_TIME);
                     printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat[i].utc,cbeat[i].node,cbeat[i].proc,cbeat[i].addr,cbeat[i].port,cbeat[i].bsz);
                     printf("\t%s\n",output);
                 }
@@ -399,7 +399,7 @@ int main(int argc, char *argv[])
             if(argc == 3)
             {
                 printf("List of available requests:\n");
-                nbytes = agent_send_request(cdata, cbeat,(char*)"help",output,AGENTMAXBUFFER,REQUEST_WAIT_TIME);
+                nbytes = agent_send_request(cbeat,(char*)"help",output,AGENTMAXBUFFER,REQUEST_WAIT_TIME);
                 printf("%s [%d]\n",output,nbytes);
             }
             else
@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
                     request += " ";
                     request += argv[i+4];
                 }
-                nbytes = agent_send_request(cdata, cbeat,request.c_str(),output,AGENTMAXBUFFER,REQUEST_WAIT_TIME);
+                nbytes = agent_send_request(cbeat,request.c_str(),output,AGENTMAXBUFFER,REQUEST_WAIT_TIME);
                 printf("%s [%d]\n",output,nbytes);
             }
         }

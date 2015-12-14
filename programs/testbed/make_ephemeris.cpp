@@ -62,9 +62,9 @@ int main(int argc, char *argv[])
 	json_setup_node(argv[1],cdata);
 	json_clone(cdata);
 	agent_get_server(cdata, cdata[0].node.name,(char *)"simulator",5,&imubeat);
-	agent_send_request(cdata, imubeat,(char *)"statevec",buf,1000,5);
+	agent_send_request(imubeat,(char *)"statevec",buf,1000,5);
 	json_parse(buf,cdata);
-	agent_send_request(cdata, imubeat,(char *)"value node_name",buf,1000,5);
+	agent_send_request(imubeat,(char *)"value node_name",buf,1000,5);
 	json_parse(buf,cdata);
 
 	mjdnow = cdata[0].node.loc.utc;

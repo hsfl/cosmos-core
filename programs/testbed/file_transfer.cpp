@@ -55,7 +55,7 @@ cdata = json_create();
 
 if ((i = agent_get_server(cdata, NULL,(char *)"soh",2,&hbeat)) > 0)
 	{
-	i = agent_send_request(cdata, hbeat,(char *)"reopen",fromname,150,1);
+	i = agent_send_request(hbeat,(char *)"reopen",fromname,150,1);
 	COSMOS_USLEEP(2000000);
 	}
 

@@ -251,7 +251,7 @@ int myagent()
 		//                {
 		//                    std::string requestString = "beacon_data_update ";
 		//                    requestString += beacon.message;
-		//                    agent_send_request(cdata, iscbeat, requestString.c_str(), response, 300, 2.);
+		//                    agent_send_request(iscbeat, requestString.c_str(), response, 300, 2.);
 		//                }
 
 		//                // Take down tunnel interface

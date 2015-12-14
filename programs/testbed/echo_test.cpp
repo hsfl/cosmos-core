@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 			mjd = currentmjd(0);
 			sprintf(buffer,"echo %.17g %4x %5u ",mjd,crc,count);
 			strncpy(&buffer[strlen(buffer)],(char *)data,count+1);
-			agent_send_request(cdata, beat,buffer,response,AGENTMAXBUFFER,3);
+			agent_send_request(beat,buffer,response,AGENTMAXBUFFER,3);
 			cmjd = currentmjd(0);
 			sscanf(response,"%lf %hx %hu",&rmjd,&rcrc,&rcount);
 			dt1 += (rmjd - mjd);
