@@ -37,18 +37,18 @@ int main(int argc, char *argv[])
 	cdata = json_create();
 	json_setup_node(argv[1],cdata);
 
-	vector <double> daylist = data_list_archive_days(cdata->node.name, "soh");
+	std::vector <double> daylist = data_list_archive_days(cdata->node.name, "soh");
 	for (double day: daylist)
 	{
-		vector <filestruc> files = data_list_archive(cdata->node.name, "soh", day);
+		std::vector <filestruc> files = data_list_archive(cdata->node.name, "soh", day);
 		for (filestruc file : files)
 		{
-			ifstream tfd;
+			std::ifstream tfd;
 			tfd.open(file.path);
 			if (tfd.is_open())
 			{
-				string tstring;
-				vector <jsontoken> tokens;
+				std::string tstring;
+				std::vector <jsontoken> tokens;
 				while (getline(tfd,tstring))
 				{
 					json_tokenize(tstring, cdata, tokens);

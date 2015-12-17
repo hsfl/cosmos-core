@@ -44,7 +44,8 @@
 #include "physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
-#include "arduino_lib.h"
+//#include "arduino_lib.h"
+#include "device/arduino/arduino_lib.h"
 
 typedef struct {
 	int 	controllerFlag ;
@@ -96,7 +97,7 @@ void flushport () ;
 
 
 
-char agentname[COSMOS_MAX_NAME] = "arduino";
+char agentname[COSMOS_MAX_NAME+1] = "arduino";
 char ipaddress[16] = "192.168.150.1";
 int waitsec = 5;
 copterstruc myCopter ;
@@ -213,7 +214,7 @@ char 	outstr [240], outstr1[240], fname[120] ;
 int		oldday, iyear, iday ;
 double 	year, day, cmjd, nmjd, period;
 unsigned long usec;
-string jstring;
+std::string jstring;
 oldday = -1 ;
 
 //FILE *flog = NULL ;

@@ -45,10 +45,14 @@ rmatrix rm_quaternion2dcm(quaternion q);
 /*! Used to crease frame basis such as inertial, body and sensor frames
  * The DCM class uses this struct as default
 */
-struct basisOrthonormal{
+class basisOrthonormal {
+public:
+
     cvector i; // = {1,0,0}
     cvector j; // = {0,1,0}
-    cvector k; // = {0,0,1};
+    cvector k; // = {0,0,1}
+
+    void normalize();
 };
 
 // TODO: rename to DirectionCosineMatrix

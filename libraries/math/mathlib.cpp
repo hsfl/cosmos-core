@@ -77,6 +77,7 @@ double gaussian_random(double mean, double stdev)
 	\param to final row order vector
 	\return quaternion that can be used to rotate points
 */
+// TODO: move to quaternion.cpp
 quaternion q_change_between_rv(rvector from, rvector to)
 {
 	uvector rq = {{{0.,0.,0.},0.}};
@@ -123,6 +124,7 @@ quaternion q_change_between_rv(rvector from, rvector to)
 	\param angle amount of rotation in radians
 	\return quaternion that can be used to rotate points
 */
+// TODO: move to quaternion.cpp
 quaternion q_change_around_rv(rvector around, double angle)
 {
 	double sa;
@@ -148,6 +150,7 @@ quaternion q_change_around_rv(rvector around, double angle)
  * \param targetb Second vector in target frame
  * \return Quaternion to use with ::transform_q to transform from source to target.
  */
+// TODO: move to quaternion.cpp
 quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb)
 {
 	quaternion qe_a;
@@ -253,6 +256,7 @@ rmatrix rm_quaternion2dcm(quaternion q)
 	\param v Row vector axis and angle.
 	\return Orientation Quaternion.
 */
+// TODO: move to quaternion.cpp
 quaternion q_axis2quaternion_rv(rvector v)
 {
 	double length, s2;
@@ -892,13 +896,13 @@ vectors of N-1 points ( N independent and 1 dependent variable).
 	\param y vector of N independent variables.
 	\return Vector of parameters
 */
-void multisolve(vector< vector<double> > x, vector<double> y, vector<double>& a)
+void multisolve(std::vector< std::vector<double> > x, std::vector<double> y, std::vector<double>& a)
 {
 	uint32_t order;
-	vector< vector<double> > dx(y.size()-1, vector<double>(y.size()-1));
-	vector<double> dy(y.size()-1);
-	//	vector<double> a(y.size());
-	vector<double> da(y.size()-1);
+	std::vector< std::vector<double> > dx(y.size()-1, std::vector<double>(y.size()-1));
+	std::vector<double> dy(y.size()-1);
+	//	std::vector<double> a(y.size());
+	std::vector<double> da(y.size()-1);
 
 	order = y.size() - 1;
 
@@ -958,7 +962,8 @@ void multisolve(vector< vector<double> > x, vector<double> y, vector<double>& a)
  * \param parms Vector of parameters for Nth order polynomial to be evaluated.
  * \return Value of the variable, evaluated at the location of the independent variable.
  */
-double evaluate_poly(double x, vector<double> parms)
+// TODO: move to lsfit.cpp
+double evaluate_poly(double x, std::vector<double> parms)
 {
 	double result;
 
@@ -977,7 +982,8 @@ double evaluate_poly(double x, vector<double> parms)
 	return result;
 }
 
-double evaluate_poly_slope(double x, vector<double> parms)
+// TODO: move to lsfit.cpp
+double evaluate_poly_slope(double x, std::vector<double> parms)
 {
 	double result;
 
@@ -996,7 +1002,8 @@ double evaluate_poly_slope(double x, vector<double> parms)
 	return result;
 }
 
-double evaluate_poly_accel(double x, vector<double> parms)
+// TODO: move to lsfit.cpp
+double evaluate_poly_accel(double x, std::vector<double> parms)
 {
 	double result;
 
@@ -1015,7 +1022,8 @@ double evaluate_poly_accel(double x, vector<double> parms)
 	return result;
 }
 
-double evaluate_poly_jerk(double x, vector<double> parms)
+// TODO: move to lsfit.cpp
+double evaluate_poly_jerk(double x, std::vector<double> parms)
 {
 	double result;
 
@@ -1034,7 +1042,8 @@ double evaluate_poly_jerk(double x, vector<double> parms)
 	return result;
 }
 
-rvector rv_evaluate_poly(double x, vector< vector<double> > parms)
+// TODO: move to lsfit.cpp
+rvector rv_evaluate_poly(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1058,7 +1067,8 @@ rvector rv_evaluate_poly(double x, vector< vector<double> > parms)
 	return result.r;
 }
 
-rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms)
+// TODO: move to lsfit.cpp
+rvector rv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1082,7 +1092,8 @@ rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms)
 	return result.r;
 }
 
-rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms)
+// TODO: move to lsfit.cpp
+rvector rv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1106,7 +1117,8 @@ rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms)
 	return result.r;
 }
 
-rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
+// TODO: move to lsfit.cpp
+rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1130,7 +1142,8 @@ rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 	return result.r;
 }
 
-quaternion q_evaluate_poly(double x, vector< vector<double> > parms)
+// TODO: move to lsfit.cpp
+quaternion q_evaluate_poly(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1154,7 +1167,8 @@ quaternion q_evaluate_poly(double x, vector< vector<double> > parms)
 	return result.q;
 }
 
-quaternion q_evaluate_poly_slope(double x, vector< vector<double> > parms)
+// TODO: move to lsfit.cpp
+quaternion q_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1178,7 +1192,8 @@ quaternion q_evaluate_poly_slope(double x, vector< vector<double> > parms)
 	return result.q;
 }
 
-quaternion q_evaluate_poly_accel(double x, vector< vector<double> > parms)
+// TODO: move to lsfit.cpp
+quaternion q_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1202,7 +1217,8 @@ quaternion q_evaluate_poly_accel(double x, vector< vector<double> > parms)
 	return result.q;
 }
 
-quaternion q_evaluate_poly_jerk(double x, vector< vector<double> > parms)
+// TODO: move to lsfit.cpp
+quaternion q_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms)
 {
 	uvector result;
 
@@ -1236,13 +1252,14 @@ quaternion q_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 	\param n Order of polynomial
 	\return Vector of polynomial coefficients
 */
-vector<double> polyfit(vector<double> &x, vector<double> &y)
+// TODO: move to lsfit.cpp
+std::vector<double> polyfit(std::vector<double> &x, std::vector<double> &y)
 {
 	uint32_t order;
-	vector< vector<double> > dx;
-	vector<double> dy;
-	vector<double> da;
-	vector<double> a;
+	std::vector< std::vector<double> > dx;
+	std::vector<double> dy;
+	std::vector<double> da;
+	std::vector<double> a;
 
 	order = x.size() - 1;
 	a.resize(x.size());
@@ -1308,6 +1325,7 @@ vector<double> polyfit(vector<double> &x, vector<double> &y)
 	\param order The order of the polynomial (< 5)
 	\return The n resulting coefficients
 */
+// TODO: move to lsfit.cpp
 uvector rv_fitpoly(uvector x, uvector y, uint32_t order)
 {
 	uvector a = {{{0.,0.,0.},0.}};
@@ -1885,8 +1903,8 @@ void gauss_jackson_extrapolate(gj_instance *gji, double target)
 	int32_t gj_order, gj_2order;
 	double gj_dvi, gj_dvi2;
 	static double *newvd0 = NULL;
-	static double *newvd2 = NULL;
-	static int32_t axes = 0;
+    static double *newvd2 = NULL;
+    static int32_t axes = 0;
 
 	if (newvd0 == NULL || axes < gji->axes)
 	{
@@ -1954,6 +1972,15 @@ void gauss_jackson_extrapolate(gj_instance *gji, double target)
 	}
 }
 
+double fixangle(double angle)
+{
+	double result;
+
+	result = fmod(angle,D2PI);
+
+	return (result >= 0.)?result:result+D2PI;
+}
+
 double actan(double y,double x)
 {
 	double actan;
@@ -2004,14 +2031,6 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size)
 
 
 
-// convert from cartesian vector to row vector
-rvector RowVector::from_cv(cvector v){
-	rvector rv;
-	rv.col[0] = v.x;
-	rv.col[1] = v.y;
-	rv.col[2] = v.z;
-	return rv;
-}
 
 
 // -------------------------------------------------
@@ -2317,7 +2336,7 @@ void lsfit::fit()
 	basex = var[0].x;
 
 	// For each independent, calculate sums of powers
-	vector<double> sumx(2*order+1);
+	std::vector<double> sumx(2*order+1);
 	sumx[0] = var.size();
 	for (uint16_t i=0; i<sumx[0]; ++i)
 	{
@@ -2336,7 +2355,7 @@ void lsfit::fit()
 	parms.resize(depth);
 	for (uint16_t i=0; i<depth; ++i)
 	{
-		vector<double> sumxy(order+1);
+		std::vector<double> sumxy(order+1);
 		stdevy.a4[i] = 0;
 		for (uint16_t j=0; j<var.size(); ++j)
 		{
@@ -2352,9 +2371,9 @@ void lsfit::fit()
 		meany.a4[i] = sumxy[0] / var.size();
 		stdevy.a4[i] = sqrt(stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1);
 
-		vector< vector<double> > xs(order+1, vector<double>(order+1));
-		vector<double> ys(order+1);
-		vector<double> tx(order+1);
+		std::vector< std::vector<double> > xs(order+1, std::vector<double>(order+1));
+		std::vector<double> ys(order+1);
+		std::vector<double> tx(order+1);
 		for (uint16_t j=0; j<order+1; ++j)
 		{
 			for (uint16_t k=0; k<order+1; ++k)
@@ -2539,7 +2558,7 @@ quaternion lsfit::jerkquaternion(double x)
 	}
 }
 
-vector<vector<double> > lsfit::getparms()
+std::vector<std::vector<double> > lsfit::getparms()
 {
 	return parms;
 }

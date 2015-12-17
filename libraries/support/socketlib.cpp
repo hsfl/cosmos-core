@@ -27,6 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: add TCP class
+
 #include "socketlib.h"
 #include "math/mathlib.h"
 #include "elapsedtime.hpp"
@@ -281,7 +283,7 @@ int32_t socket_open(socket_channel *channel,
  * \param csum Location to store calculated Checksum.
  * \return Zero or negative error.
  * */
-uint16_t socket_calc_udp_checksum(vector<uint8_t> packet)
+uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet)
 {
     union
     {
@@ -353,7 +355,7 @@ uint16_t socket_calc_udp_checksum(vector<uint8_t> packet)
  * \param packet UDP packet
  * \return Zero or negative error.
  */
-int32_t socket_check_udp_checksum(vector<uint8_t> packet)
+int32_t socket_check_udp_checksum(std::vector<uint8_t> packet)
 {
     uint16_t csum = socket_calc_udp_checksum(packet);
 
@@ -374,7 +376,7 @@ int32_t socket_check_udp_checksum(vector<uint8_t> packet)
  * \param packet UDP packet
  * \return Zero or negative error.
  */
-int32_t socket_set_udp_checksum(vector<uint8_t>& packet)
+int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet)
 {
     // Check if this is UDP packet
     if (packet[SOCKET_IP_BYTE_PROTOCOL] != 17)
@@ -466,13 +468,13 @@ int32_t socket_close(socket_channel *channel)
 
 //! Discover interfaces
 /*! Return a vector of ::socket_channel containing info on each valid interface. For IPV4 this
- *	will include the address and broadcast address, in both string sockaddr_in format.
+ *	will include the address and broadcast address, in both std::string sockaddr_in format.
 	\param ntype Type of network (Multicast, Broadcast UDP, CSP)
 	\return Vector of interfaces
 	*/
-vector<socket_channel> socket_find_addresses(uint16_t ntype)
+std::vector<socket_channel> socket_find_addresses(uint16_t ntype)
 {
-	vector<socket_channel> iface;
+	std::vector<socket_channel> iface;
 	socket_channel tiface;
 
 #ifdef COSMOS_WIN_OS
@@ -636,6 +638,7 @@ flags are set, and the socket is bound, if necessary. Support is
 provided for the extra steps necessary for MS Windows.
 	\return Zero, or negative error.
 */
+// TODO: try to merge with socket_open
 int32_t Udp::socketOpen()
 {
 	socklen_t namelen;
@@ -653,7 +656,7 @@ int32_t Udp::socketOpen()
 	static bool started=false;
 
 	//Initialise winsock
-	if (debug){cout << "\nInitialising Winsock...";}
+	if (debug){std::cout << "\nInitialising Winsock...";}
 	if (!started)
 	{
 		wVersionRequested = MAKEWORD( 1, 1 );
@@ -666,7 +669,7 @@ int32_t Udp::socketOpen()
 				return errno;
 			}
 		}
-		if (debug){cout << "Initialised." << endl;}
+		if (debug){std::cout << "Initialised." << std::endl;}
 	}
 #endif
 
@@ -700,7 +703,7 @@ int32_t Udp::socketOpen()
 		}
 	}
 
-	if (debug){cout << "Socket created" << endl;}
+	if (debug){std::cout << "Socket created" << std::endl;}
 
 	if (sok.blocking == SOCKET_NONBLOCKING)
 	{
@@ -739,7 +742,7 @@ int32_t Udp::socketOpen()
 	}
 
 	//Prepare the sockaddr_in structure
-	memset(&sok.server,0,sizeof(struct sockaddr_in));
+    memset(&sok.server, 0, sizeof(struct sockaddr_in));
 	sok.server.sin_family = AF_INET;
 	sok.server.sin_port = htons(sok.port);
 
@@ -772,7 +775,7 @@ int32_t Udp::socketOpen()
 			sok.handle = -errno;
 			return (-errno);
 		}
-		if (debug){cout << "Bind done" << endl;}
+		if (debug){std::cout << "Bind done" << std::endl;}
 
 		// If we bound to port 0, then find out what our assigned port is.
 		if (!sok.port)
@@ -879,7 +882,7 @@ int32_t Udp::setupClient(){
 	return socketOpen();
 }
 
-int32_t Udp::setupClient(string a, uint16_t p){
+int32_t Udp::setupClient(std::string a, uint16_t p){
 	// config
 	sok.address = a;
 	sok.port = p;
@@ -887,7 +890,7 @@ int32_t Udp::setupClient(string a, uint16_t p){
 	return socketOpen();
 }
 
-int32_t Udp::setupClientSimGen(string a, uint16_t p){
+int32_t Udp::setupClientSimGen(std::string a, uint16_t p){
 	// config
 	sok.address     = a;
 	sok.port        = p;
@@ -899,7 +902,7 @@ int32_t Udp::setupClientSimGen(string a, uint16_t p){
 	return socketOpen();
 }
 
-int32_t Udp::setupClientAcstb(string a, uint16_t p){
+int32_t Udp::setupClientAcstb(std::string a, uint16_t p){
 	// config
 	sok.address     = a;
 	sok.port        = p;
@@ -982,7 +985,7 @@ Udp::Udp(){
 
 //Udp class overloaded contructor to use
 //other ip and port
-//Udp::Udp(string a, uint16_t p){
+//Udp::Udp(std::string a, uint16_t p){
 //    sok.address = a;
 //    sok.port    = p;
 
@@ -993,7 +996,7 @@ Udp::Udp(){
 
 //Udp class overloaded contructor to use
 //other ip and port
-//Udp::Udp(string a, uint16_t p, uint16_t r){
+//Udp::Udp(std::string a, uint16_t p, uint16_t r){
 //    sok.address = a;
 //    sok.port    = p;
 //    sok.role    = r;
@@ -1001,14 +1004,14 @@ Udp::Udp(){
 //}
 
 
-int32_t Udp::errorStatus(string functionName){
+int32_t Udp::errorStatus(std::string functionName){
 
 #ifdef COSMOS_WIN_OS
 	errno = WSAGetLastError();
-	cout << functionName << " failed with error code :" << errno <<  " (" << strerror(errno) << ")" << endl;
-	cout << "Check the Windows Sockets Error Codes to get more information: http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668%28v=vs.85%29.aspx" << endl;
+	std::cout << functionName << " failed with error code :" << errno <<  " (" << strerror(errno) << ")" << std::endl;
+	std::cout << "Check the Windows Sockets Error Codes to get more information: http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668%28v=vs.85%29.aspx" << std::endl;
 #else
-	cout << functionName << " failed with error code :" << errno <<  " (" << strerror(errno) << ")" << endl;
+	std::cout << functionName << " failed with error code :" << errno <<  " (" << strerror(errno) << ")" << std::endl;
 #endif
 
 	// return negative error number
@@ -1016,19 +1019,19 @@ int32_t Udp::errorStatus(string functionName){
 	//exit(EXIT_FAILURE);
 }
 
-int32_t Udp::send(string package2send){
+int32_t Udp::send(std::string package2send){
 
-	if (sendto(sok.handle,
-			   package2send.c_str(),
-			   strlen(package2send.c_str()),
-			   0,
-			   (struct sockaddr *)&sok.server, //(struct sockaddr *) &socket.caddr,
-			   sok.addrlen) //sizeof(struct sockaddr_in))
+    if (sendto(sok.handle,                      // socket
+               package2send.c_str(),            // buffer to send
+               strlen(package2send.c_str()),    // size of buffer
+               0,                               // flags
+               (struct sockaddr *)&sok.server,  // socket address
+               sok.addrlen)                     // size of address to socket pointer //sizeof(struct sockaddr_in))
 			< 0){
 
 		return errorStatus("Udp::send");
 	}
-	//cout << "sent: " << package2send << endl;
+	//std::cout << "sent: " << package2send << std::endl;
 	// return 0 on sucess
 	return 0;
 }
@@ -1043,7 +1046,7 @@ int32_t Udp::receiveOnce(){
 	int recv_len = -1;
 
 	//keep listening for data
-	//cout << "Waiting for data...";
+	//std::cout << "Waiting for data...";
 
 	//clear the buffer by filling null, it might have previously received data
 	memset(buf,'\0', SOCKET_BUFFER_LENGTH);
@@ -1071,15 +1074,15 @@ int32_t Udp::receiveOnce(){
 							(socklen_t *)&sok.addrlen);
 
 		timer = ep.toc();
-		//cout << recv_len << " | " << timer << endl;
-		//cout << " (udp rx: " << recv_len << " bytes | " << timer << " sec)" << endl;
+		//std::cout << recv_len << " | " << timer << std::endl;
+		//std::cout << " (udp rx: " << recv_len << " bytes | " << timer << " sec)" << std::endl;
 
 
 		if (recv_len < 0)
 		{
 #ifdef COSMOS_WIN_OS
 			if (WSAGetLastError() == 10035){
-				//cout << "Resource temporarily unavailable. Continue." << endl;
+				//std::cout << "Resource temporarily unavailable. Continue." << std::endl;
 				continue;
 			}
 #endif
@@ -1089,20 +1092,20 @@ int32_t Udp::receiveOnce(){
 
 		if (recv_len > 0) {
 			//print details of the client/peer and the data received
-			//        cout << "Received packet from " << inet_ntoa(sok.server.sin_addr) << ":" << ntohs(sok.port) << endl;
-			//        cout << "Data: " << buf << endl;
+			//        std::cout << "Received packet from " << inet_ntoa(sok.server.sin_addr) << ":" << ntohs(sok.port) << std::endl;
+			//        std::cout << "Data: " << buf << std::endl;
 
-			//cout << endl << "<< udp rx: " << recv_len << " bytes | " << setprecision(3) << fixed << timer << " sec" << endl;
+            //std::cout << std::endl << "<< udp rx: " << recv_len << " bytes | " << std::setprecision(3) << std::fixed << timer << " sec" << std::endl;
 
 			recv_len = 0;
 			timer = 0;
-			receivedData = string(buf);
+            receivedData = std::string(buf);
 			return 0;
 		}
 		//
 	}
 
-	cout << "Failed to receive data in less than 5 sec. Elapsed time: " << ep.toc() << endl;
+	std::cout << "Failed to receive data in less than 5 sec. Elapsed time: " << ep.toc() << std::endl;
 	return -1;
 }
 
@@ -1113,7 +1116,7 @@ int32_t Udp::receiveLoop(){
 	int recv_len;
 
 	//keep listening for data
-	cout << "Waiting for data...";
+	std::cout << "Waiting for data...";
 
 	while(1){
 
@@ -1132,8 +1135,8 @@ int32_t Udp::receiveLoop(){
 
 		if (recv_len > 0) {
 			//print details of the client/peer and the data received
-			cout << "Received packet from " << inet_ntoa(sok.server.sin_addr) << ":" << ntohs(sok.port) << endl;
-			cout << "Data: " << buf << endl;
+			std::cout << "Received packet from " << inet_ntoa(sok.server.sin_addr) << ":" << ntohs(sok.port) << std::endl;
+			std::cout << "Data: " << buf << std::endl;
 			recv_len = 0;
 		}
 

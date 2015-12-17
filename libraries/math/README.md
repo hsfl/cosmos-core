@@ -1,6 +1,4 @@
-Math Libraries
-==============
+Math Library {#library-math}
+============
 
-This folder contains the math related libraries
-
-move mathlib here
+The COSMOS-core math libraries contains the essensial mathematical elements necessary for orbit propagation, attitude propagation, etc.

@@ -52,23 +52,23 @@ int32_t request_set_logstring(char* request, char* output, void *cdata);
 int32_t request_get_logstring(char* request, char* output, void *cdata);
 int32_t request_set_logstride(char* request, char* output, void *cdata);
 
-string jjstring;
-string myjstring;
+std::string jjstring;
+std::string myjstring;
 
 int ntype = SOCKET_TYPE_UDP;
 int waitsec = 5;
 
 void collect_data_loop();
-thread cdthread;
+std::thread cdthread;
 
 int myagent();
 
-string logstring;
-vector<jsonentry*> logtable;
+std::string logstring;
+std::vector<jsonentry*> logtable;
 double logdate=0.;
 
-vector<shorteventstruc> eventdict;
-vector<shorteventstruc> events;
+std::vector<shorteventstruc> eventdict;
+std::vector<shorteventstruc> events;
 
 // variables to map to JSON
 int32_t newlogperiod = 10, logperiod = 0;
@@ -81,7 +81,7 @@ double cmjd;
 cosmosstruc *cdata;
 
 beatstruc iscbeat;
-string node = "hiakasat";
+std::string node = "hiakasat";
 char response[300];
 
 int main(int argc, char *argv[])
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 	// Establish the command channel and heartbeat
 	if (!(cdata = agent_setup_server(ntype,argv[1],(char *)"soh",1.,0,AGENTMAXBUFFER)))
 	{
-		cout<<"agent_soh: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+		std::cout<<"agent_soh: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
 
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 	load_dictionary(eventdict, cdata, (char *)"events.dict");
 
 	// Start SOH collection thread
-	cdthread = thread(collect_data_loop);
+	cdthread = std::thread(collect_data_loop);
 	//	printf("Started data collection thread\n");
 
 
@@ -142,7 +142,7 @@ int myagent()
 	double nextmjd;
 
 	//Beacon beacon;
-	//string beaconMessage;
+	//std::string beaconMessage;
 
 	//double mjd_start = currentmjd();
 
@@ -237,7 +237,7 @@ int myagent()
 		//        // send beacon every 10 second
 		//        if ((currentmjd() - mjd_start)*86400 > 10){
 		//            beacon.createBeacon(cdata);
-		//            cout << beacon.message << "*" << beacon.message.size() << endl;
+		//            std::cout << beacon.message << "*" << beacon.message.size() << std::endl;
 
 
 		//            // Shutdown radio link, if on
@@ -249,9 +249,9 @@ int myagent()
 		//                }
 		//                if (iscbeat.utc != 0)
 		//                {
-		//                    string requestString = "beacon_data_update ";
+		//                    std::string requestString = "beacon_data_update ";
 		//                    requestString += beacon.message;
-		//                    agent_send_request(cdata, iscbeat, requestString.c_str(), response, 300, 2.);
+		//                    agent_send_request(iscbeat, requestString.c_str(), response, 300, 2.);
 		//                }
 
 		//                // Take down tunnel interface
@@ -310,7 +310,7 @@ int32_t request_set_logstride(char* request, char* output, void *cdata)
 void collect_data_loop()
 {
 	int nbytes;
-	string message;
+	std::string message;
 	pollstruc meta;
 
 	while (agent_running(cdata))
@@ -318,7 +318,7 @@ void collect_data_loop()
 		// Collect new data
 		if((nbytes=agent_poll(cdata, meta, message, AGENT_MESSAGE_BEAT,0)))
 		{
-			string tstring;
+			std::string tstring;
 			if ((tstring=json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"))) != cdata[0].node.name)
 			{
 				continue;

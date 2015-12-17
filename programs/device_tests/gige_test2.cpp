@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	//uint32_t faddress, fsize;
 	uint32_t bsize;
 	FILE *fp;
-	vector<gige_acknowledge_ack> gige_list;
+	std::vector<gige_acknowledge_ack> gige_list;
 
 	gige_list = gige_discover();
 	if (!gige_list.size())

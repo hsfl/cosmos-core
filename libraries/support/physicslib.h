@@ -119,7 +119,7 @@ double nplgndr(uint32_t l, uint32_t m, double x);
 //! Power values
 void power(cosmosstruc *root);
 //! Ground station values
-svector groundstation(locstruc *satellite,locstruc *groundstation);
+svector groundstation(locstruc &satellite, locstruc &groundstation);
 //! Simulate all devices
 void simulate_hardware(cosmosstruc &cdata, locstruc &loc);
 //! Initialize IMU simulation
@@ -152,7 +152,7 @@ void gauss_jackson_converge_hardware(gj_handle &gjh, physicsstruc &physics);
 void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &loc, double mjd);
 //! Load TLE's from file
 int orbit_propagate(cosmosstruc &root, double mjd);
-int orbit_init(int32_t mode,double dt,double mjd,char *ofile,cosmosstruc &root);
+int orbit_init(int32_t mode, double dt, double mjd, std::string ofile, cosmosstruc &root);
 //void SolidTide(posstruc pos, double dc[5][4], double ds[5][4]);
 
 //! @}

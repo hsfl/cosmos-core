@@ -39,7 +39,7 @@
 //#include <sys/types.h>
 #include <sys/stat.h>
 
-vector<nodestruc> track;
+std::vector<nodestruc> track;
 cosmosstruc *cdata;
 gj_handle gjh;
 char buf[3000], fname[200];
@@ -50,21 +50,21 @@ int main(int argc, char *argv[])
 	double fyear;
 	beatstruc imubeat;
 	double mjdnow, lastlat, lastsunradiance, fd, lastgsel[MAXTRACK];
-	string output;
+	std::string output;
 	char date[30];
 	FILE *eout, *fout;
 	int i, j, gsup[MAXTRACK];
 	int year, month, day, hour, minute, second;
 	struct stat sbuf;
-	string jstring;
+	std::string jstring;
 
 	cdata = json_create();
 	json_setup_node(argv[1],cdata);
 	json_clone(cdata);
 	agent_get_server(cdata, cdata[0].node.name,(char *)"simulator",5,&imubeat);
-	agent_send_request(cdata, imubeat,(char *)"statevec",buf,1000,5);
+	agent_send_request(imubeat,(char *)"statevec",buf,1000,5);
 	json_parse(buf,cdata);
-	agent_send_request(cdata, imubeat,(char *)"value node_name",buf,1000,5);
+	agent_send_request(imubeat,(char *)"value node_name",buf,1000,5);
 	json_parse(buf,cdata);
 
 	mjdnow = cdata[0].node.loc.utc;

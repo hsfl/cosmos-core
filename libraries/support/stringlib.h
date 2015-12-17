@@ -55,18 +55,18 @@ int string_cmp(const char *wild, const char *string);
 // Class to parse a comma delimited string
 class StringParser {
 
-    vector<string> vect;
+    std::vector<std::string> vect;
 
 public:
     // the offset allows you to move the index by an offset value
 	// this can be useful if, for example, getFieldNumber(1) should logically be getFieldNumber(2)
     // the offset then is 1
     int offset;
-    StringParser(string str);
-    StringParser(string str, char delimiter);
-	string getFieldNumber(uint32_t index);
+    StringParser(std::string str);
+    StringParser(std::string str, char delimiter);
+    std::string getFieldNumber(uint32_t index);
 	double getFieldNumberAsDouble(uint32_t index);
-    void splitString(string str, char delimiter);
+    void splitString(std::string str, char delimiter);
 	size_t numberOfFields;
 };
 

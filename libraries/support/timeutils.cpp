@@ -32,17 +32,18 @@
 //typedef std::chrono::duration<int, std::ratio_multiply<std::chrono::hours::period, std::ratio<8>>::type> Days; /* UTC: +8:00 */
 
 
+#ifndef BUILD_TYPE_arm
 // Convert time_t value to string
-string TimeUtils::timeString(const std::chrono::system_clock::time_point& tp)
+std::string TimeUtils::timeString(const std::chrono::system_clock::time_point& tp)
 {
-    time_t t = chrono::system_clock::to_time_t(tp);
-    string ts = ctime(&t);   // convert to calendar time
+    time_t t = std::chrono::system_clock::to_time_t(tp);
+    std::string ts = ctime(&t);   // convert to calendar time
     ts.resize(ts.size()-1);  // skip trailing newline
     return ts;
 }
 
 // convert calendar time to timepoint
-chrono::system_clock::time_point TimeUtils::makeTimePoint (int year, int mon, int day, int hour, int min, int sec)
+std::chrono::system_clock::time_point TimeUtils::makeTimePoint (int year, int mon, int day, int hour, int min, int sec)
 {
     struct std::tm time;
     time.tm_year  = year-1900;  // year since 1900
@@ -99,12 +100,12 @@ double TimeUtils::secondsSinceEpoch() {
     //    unsigned double now = std::chrono::duration_cast<std::chrono::seconds> (std::chrono::system_clock::now().time_since_epoch()).count();
 
     std::chrono::system_clock::duration elapsedSeconds = now-epoch;
-    return chrono::duration_cast<std::chrono::milliseconds>(elapsedSeconds).count()/1000.0;
+    return std::chrono::duration_cast<std::chrono::milliseconds>(elapsedSeconds).count()/1000.0;
 
 }
 
 
-chrono::system_clock::duration TimeUtils::secondsSinceMidnight() {
+std::chrono::system_clock::duration TimeUtils::secondsSinceMidnight() {
     auto now = std::chrono::system_clock::now();
 
     time_t tnow = std::chrono::system_clock::to_time_t(now);
@@ -143,6 +144,7 @@ void TimeUtils::testSecondsSinceMidnight(){
     //    auto end = chrono::steady_clock::now();
     //    double unix_timestamp = chrono::seconds(std::time(NULL)).count()/(60.0*60.0*24.0);
     ////    double test = chrono::duration <double> (start - unix_timestamp).count();
-    //    cout <<  unix_timestamp << " s" << endl;
+    //    std::cout <<  unix_timestamp << " s" << std::endl;
 }
 
+#endif

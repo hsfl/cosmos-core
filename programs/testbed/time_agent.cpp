@@ -38,7 +38,7 @@
 int myagent();
 int32_t request_mjd(char *request, char* response, void *cdata);
 
-char agentname[COSMOS_MAX_NAME] = "time";
+char agentname[COSMOS_MAX_NAME+1] = "time";
 char ipaddress[16] = "192.168.150.1";
 int waitsec = 5;
 cosmosstruc *cdata;
@@ -78,7 +78,7 @@ int myagent()
 {
 	double cmjd, nmjd, period;
 	unsigned long usec;
-	string jstring;
+	std::string jstring;
 
 	// Initialize loop timing
 	period = .1/86400.;

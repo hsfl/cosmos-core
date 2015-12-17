@@ -36,7 +36,7 @@
 
 //! \ingroup support
 //! \defgroup jpleph JPL Ephemeris Library
-//! JPL Ephemeris support library.
+//! JPL Ephemeris.
 //!
 //! The JPL Ephemeris provides information about the locations of all the
 //! solar system planets, and the Moon. This information is used to support
@@ -70,7 +70,7 @@
 #include <stdio.h>
 
 //! \ingroup jpleph
-//! \defgroup jpleph_functions JPL Ephemeris support library function declarations
+//! \defgroup jpleph_functions JPL Ephemeris function declarations
 //! @{
 
 void * DLL_FUNC jpl_init_ephemeris( const char *ephemeris_filename,
@@ -91,7 +91,7 @@ const double start_jd, const double end_jd);
 /* jpl_get_double( ) and jpl_get_long( ):   */
 
 //! \ingroup jpleph
-//! \defgroup jpleph_contants JPL Ephemeris support library constants
+//! \defgroup jpleph_contants JPL Ephemeris constants
 //! @{
 
 #define JPL_EPHEM_START_JD               0
@@ -123,7 +123,7 @@ const double start_jd, const double end_jd);
 #pragma pack(1)
 
 //! \ingroup jpleph
-//! \defgroup jpleph_structs JPL Ephemeris support library structs
+//! \defgroup jpleph_structs JPL Ephemeris structs
 //! @{
 
 struct jpl_eph_data {

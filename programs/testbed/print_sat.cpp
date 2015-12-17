@@ -36,7 +36,7 @@
 #include <cstring>
 
 svector azel;
-vector<nodestruc> track;
+std::vector<nodestruc> track;
 cosmosstruc *cdata;
 char outputBuffer[3][400];//holds blocks of text so they can be generated in series and then displayed side by side.
 void printBufferLeftToRight(int blockCount, const char *indent, const char *spacer);
@@ -126,7 +126,7 @@ case 2:
 {
 	printf("\nGS:\t%d\n",cdata[0].node.target_cnt);
 	for (i=0;i<cdata[0].node.target_cnt;i++) {
-	azel = groundstation(&cdata[0].node.loc,&track[i].loc);
+	azel = groundstation(cdata[0].node.loc,track[i].loc);
         printf("\tgs %d:\n",i);
         printf("\t\tName: %s\n", track[i].name);
         sprintf(outputBuffer[0], "az: %11.5g, el: %11.5g\n", azel.lambda, azel.phi);

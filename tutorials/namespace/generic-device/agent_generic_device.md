@@ -1,0 +1,5 @@
+# Generic device {#tutorial-namespace-generic-device}
+
+The COSMOS namespace allows the user to quickly reutilize pre-defined data structures to hold commonly used devices, one common example is a GPS. The COSMOS namespace for a GPS \ref gpsstruc contains most fields typically used when collecting data from a GPS device. But if some device is not in the COSMOS namespace or there is a new piece of information that is not listed then one can use a generic device. This tutorial shows how to use a generic device so that new infromation can be added witout much effort. Another approach would be to create or add the piece of information directly into the namespace. This approach, although encouraged, requires more work. Please see \ref tutorial-namespace-add-new-device. 
+
+The following example shows a typical use of generic devices. There is a self contained example that can be compiled and run using Qt creator from the folder <COSMOS>/core/examples/namespace/generic-device. The documenation of the example file can be found in agent_generic_device_neighbour.cpp and agent_generic_device_test.cpp

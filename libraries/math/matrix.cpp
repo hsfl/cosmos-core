@@ -1527,9 +1527,9 @@ double m2_snorm2x2(matrix2d matrix)
 std::ostream& operator << (std::ostream& out, const rmatrix& a)
 {
     out.precision(15);
-    out << "["  << a.row[0].col[0] << "," << a.row[0].col[1] << "," << a.row[0].col[2] << ";"
-                                                                                       << a.row[1].col[0] << "," << a.row[1].col[1] << "," << a.row[1].col[2] << ";"
-                                                                                                                                                              << a.row[2].col[0] << "," << a.row[2].col[1] << "," << a.row[2].col[2] << "]";
+    out << "["  << a.row[0].col[0] << "," << a.row[0].col[1] << "," << a.row[0].col[2] << ";";
+    out << a.row[1].col[0] << "," << a.row[1].col[1] << "," << a.row[1].col[2] << ";";
+    out << a.row[2].col[0] << "," << a.row[2].col[1] << "," << a.row[2].col[2] << "]";
     return out;
 }
 

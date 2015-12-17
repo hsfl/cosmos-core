@@ -25,21 +25,35 @@ add_definitions( -DBUILD_TYPE_${BUILD_TYPE})
 # define folder where your programs are going to be installed
 #SET(INSTALL_DIR                run)
 
+# by default
+
+
+#IF("$ENV{COSMOS}" STREQUAL "")
+#    SET(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux_arm")
+#ELSE()
+#    SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux_arm")
+#ENDIF("$ENV{COSMOS}" STREQUAL "")
+
 #--------------------------------------------------------------------
 # automatic config
 
 # comment
 SET(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(${PROJECT_NAME})
 
+SET(COSMOS_FOLDER ${PROJECT_SOURCE_DIR}/..)
+SET(COSMOS_CORE ${CMAKE_SOURCE_DIR})
+
 # define what libraries you want to compile
+#SET(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_MATH                 ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_DEVICES              ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_THIRDPARTY_JPEG      ON)          #ON/OFF
 SET(BUILD_COSMOS_CORE_THIRDPARTY_ZLIB      ON)          #ON/OFF
+SET(BUILD_COSMOS_CORE_THIRDPARTY_EIGEN      ON)          #ON/OFF
 SET(BUILD_COSMOS_PROJECT_USER              OFF)         #ON/OFF
 SET(BUILD_COSMOS_CORE_THIRDPARTY_PNG       ON)          #ON/OFF
 IF (MSVC)
@@ -80,15 +94,6 @@ IF (BUILD_STATIC AND NOT MSVC)
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 ENDIF ()
 
-
-
-# SET the COSMOS CORE path
-IF (${PROJECT_NAME} MATCHES "COSMOS_CORE")
-
-ELSE()
-    SET(COSMOS_CORE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../../core)
-ENDIF()
-
 # -----------------------------------------------
 # Linux specific
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
@@ -105,26 +110,25 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
 
         # set the COSMOS_LIBS for GCC
         #TODO: remove redundancy libs, this can be resolved when building the libs
-        #SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosMath CosmosSupport CosmosDevice CosmosMath zlib)
-        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosMath zlib)
+        SET(COSMOS_LIBS  )
 
     ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
     #  Option(BUILD_ARM "Build for ARM architecture" OFF)
     IF (${BUILD_TYPE} MATCHES "arm")
         IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_FOLDER "/usr/local/cosmos/linux_arm")
+            SET(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux_arm")
         ELSE()
-            SET(COSMOS_FOLDER "$ENV{COSMOS}/linux_arm")
+            SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux_arm")
         ENDIF("$ENV{COSMOS}" STREQUAL "")
 
         SET(CMAKE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/build/toolchain_arm")
 
     ELSE()
         IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_FOLDER "/usr/local/cosmos/linux")
+            SET(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux")
         ELSE()
-            SET(COSMOS_FOLDER "$ENV{COSMOS}/linux")
+            SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux")
         ENDIF("$ENV{COSMOS}" STREQUAL "")
     ENDIF()
 
@@ -144,8 +148,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
         # set the COSMOS_LIBS for MinGW
         #TODO: remove redundancy libs, this can be resolved when building the libs
-        #set (COSMOS_LIBS ${COSMOS_LIBS} CosmosMath CosmosDevice CosmosMath CosmosSupport CosmosMath CosmosDevice CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
-        set (COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosMath zlib wsock32 winmm ws2_32 iphlpapi)
+        SET(COSMOS_LIBS  wsock32 winmm ws2_32 iphlpapi)
 
     ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") #or just MSVC
         MESSAGE("Building with MSVC")
@@ -157,20 +160,19 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
         # set the COSMOS_LIBS for MSVC
         #TODO: remove redundancy libs, this can be resolved when building the libs
-        #SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosMath CosmosSupport CosmosDevice zlib dirent wsock32 winmm ws2_32 iphlpapi)
-        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosSupport CosmosMath zlib dirent wsock32 winmm ws2_32 iphlpapi)
+        SET(COSMOS_LIBS  dirent wsock32 winmm ws2_32 iphlpapi)
 
     ENDIF()
 
     IF (${BUILD_TYPE} MATCHES "arm")
         MESSAGE("Building for targe arm")
-        SET(COSMOS_FOLDER "c:/cosmos/windows_arm")
+        SET(COSMOS_INSTALL_FOLDER "c:/cosmos/windows_arm")
         SET(CMAKE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
     ELSE()
         IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_FOLDER "c:/cosmos/windows")
+            SET(COSMOS_INSTALL_FOLDER "c:/cosmos/windows")
         ELSE()
-            SET(COSMOS_FOLDER "$ENV{COSMOS}/windows")
+            SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/windows")
         ENDIF("$ENV{COSMOS}" STREQUAL "")
     ENDIF()
 
@@ -211,29 +213,59 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         SET(COMPILER_IS_MACOS_GCC 1)
 
         # set the COSMOS_LIBS for GCC
-        SET(COSMOS_LIBS ${COSMOS_LIBS} CosmosDevice CosmosMath CosmosSupport CosmosDevice CosmosMath zlib)
+        SET(COSMOS_LIBS  )
 
     ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
     IF("$ENV{COSMOS}" STREQUAL "")
-        SET(COSMOS_FOLDER "/Applications/cosmos")
+        SET(COSMOS_INSTALL_FOLDER "/Applications/cosmos")
     ELSE()
-        SET(COSMOS_FOLDER "$ENV{COSMOS}/macos")
+        SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/macos")
     ENDIF("$ENV{COSMOS}" STREQUAL "")
 
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 # -----------------------------------------------
-MESSAGE("COSMOS_FOLDER: ${COSMOS_FOLDER}")
+# Extend COSMOS_LIBS with standard libraries
+SET(COSMOS_LIBS  CosmosSupport CosmosMath zlib ${COSMOS_LIBS})
 
-    SET(CMAKE_INSTALL_PREFIX "${COSMOS_FOLDER}" CACHE PATH "default install path" FORCE )
+MESSAGE("COSMOS_INSTALL_FOLDER: ${COSMOS_INSTALL_FOLDER}")
+
+SET(CMAKE_INSTALL_PREFIX "${COSMOS_INSTALL_FOLDER}" CACHE PATH "default install path" FORCE )
 message("Install: ${CMAKE_INSTALL_PREFIX}")
 
 
-get_filename_component(OS_FOLDER ${CMAKE_BINARY_DIR} NAME)
+#get_filename_component(OS_FOLDER ${CMAKE_BINARY_DIR} NAME)
 
+# Establish includes, both standard and device specific
+# Standard inludes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/thirdparty)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/math)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/support)
+
+# Device includes
+# Macro to find sub-directories
+MACRO(SUBDIRLIST result curdir)
+  FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
+  SET(dirlist "")
+  FOREACH(child ${children})
+    IF(IS_DIRECTORY ${curdir}/${child})
+        LIST(APPEND dirlist ${child})
+    ENDIF()
+  ENDFOREACH()
+  SET(${result} ${dirlist})
+ENDMACRO()
+
+# go into every device folder to find cmakelists
+SUBDIRLIST(DEVICEDIRS ${CMAKE_CURRENT_SOURCE_DIR}/libraries/device)
+
+# Make sure includes in all folders are available
+FOREACH(subdir ${DEVICEDIRS})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/device/${subdir})
+ENDFOREACH()
+
 
 # -----------------------------------------------
 # To load the COSMOS source into another project using cmake
@@ -241,76 +273,20 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 # with the new project CMAKE_SOURCE_DIR, let's use the COSMOS_CORE variable to
 # properly define where the COSMOS_CORE files are
 
-#TEST
-#SET(COSMOS_CORE "e:/cosmos-source/core/")
-
-# by default (but it will fail when loaded into another project)
-SET(COSMOS_CORE ${CMAKE_SOURCE_DIR})
-
-# -----------------------------------------------
-# Build Math Library
-IF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
-    MESSAGE("Building Math Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/math ${CMAKE_BINARY_DIR}/libraries/math)
-    SET(LINK_LIBRARY_COSMOS_CORE_MATH CosmosMath)
-ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
-
-# -----------------------------------------------
-# Build Support Library
-IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
-    MESSAGE("Building Support Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/support ${CMAKE_BINARY_DIR}/libraries/support)
-    SET(LINK_LIBRARY_COSMOS_CORE_SUPPORT CosmosSupport)
-ENDIF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
-
-# -----------------------------------------------
-# Build Devices Library
-IF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
-    MESSAGE("Building Device Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/device ${CMAKE_BINARY_DIR}/libraries/device)
-    SET(LINK_LIBRARY_COSMOS_DEVICE CosmosDevice)
-ENDIF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
-
-# -----------------------------------------------
-# Build Thirdparty-zlib Library
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
-    MESSAGE("Building zlib Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/zlib ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib)
-    SET(LINK_LIBRARY_COSMOS_CORE_ZLIB zlib )
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
-
-# -----------------------------------------------
-# Build Thirdparty-jpeg Library
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_JPEG} MATCHES "ON")
-    MESSAGE("Building jpeg Library")
-    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/jpeg ${CMAKE_BINARY_DIR}/libraries/thirdparty/jpeg)
-    SET(LINK_LIBRARY_COSMOS_CORE_JPEG jpeg )
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_JPEG} MATCHES "ON")
-
-# -----------------------------------------------
-# Build user Library
-IF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
-    MESSAGE("Building user Library")
-    add_subdirectory(${COSMOS_CORE}/libraries)
-    SET(LINK_LIBRARY_COSMOS_PROJECT_USER CosmosUser)
-ENDIF(${BUILD_COSMOS_PROJECT_USER} MATCHES "ON")
-
-# -----------------------------------------------
-# Build png Library
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_PNG} MATCHES "ON")
-    MESSAGE("Building png")
-    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/png ${CMAKE_BINARY_DIR}/libraries/thirdparty/png)
-    SET(LINK_LIBRARY_COSMOS_CORE_PNG png )
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_PNG} MATCHES "ON")
-
-# -----------------------------------------------
-# Build dirent Library
-IF(${BUILD_COSMOS_CORE_THIRDPARTY_DIRENT} MATCHES "ON")
-    MESSAGE("Building dirent")
-    add_subdirectory(${COSMOS_CORE}/libraries/thirdparty/dirent ${CMAKE_BINARY_DIR}/libraries/thirdparty/dirent)
-    SET(LINK_LIBRARY_COSMOS_CORE_DIRENT dirent )
-ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_DIRENT} MATCHES "ON")
-
+# Establish libraries, both standard and device specific
+include(${CMAKE_SOURCE_DIR}/cmake/build_core_libs.cmake)
+SET(COSMOS_LIBS CosmosDeviceGeneral ${COSMOS_LIBS})
+FOREACH(subdir ${DEVICEDIRS})
+    message(${subdir})
+    add_subdirectory(${COSMOS_FOLDER}/core/libraries/device/${subdir} ${CMAKE_BINARY_DIR}/libraries/device/${subdir})
+    list(APPEND libraryList ${libraryName})
+    IF(${subdir} MATCHES "general")
+    ELSE()
+        SET(COSMOS_LIBS ${libraryName} ${COSMOS_LIBS})
+message("Setting " ${libraryName})
+    ENDIF()
+ENDFOREACH()
+message("core: COSMOS_LIBS: " ${COSMOS_LIBS})
 
 # -----------------------------------------------
 MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")

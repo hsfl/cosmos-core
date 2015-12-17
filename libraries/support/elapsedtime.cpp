@@ -69,25 +69,25 @@ using std::endl;
 //    auto end = chrono::steady_clock::now();
 //    auto diff = end - start;
 //    double test = chrono::duration <double> (diff).count();
-//    cout <<  test << " s" << endl;
+//    std::cout <<  test << " s" << std::endl;
 
 
 void ElapsedTime::info(){
 #ifndef BUILD_TYPE_arm
-    cout << "system_clock" << endl;
-    cout << std::chrono::system_clock::period::num << endl;
-    cout << std::chrono::system_clock::period::den << endl;
-    cout << "steady = " << std::boolalpha << std::chrono::system_clock::is_steady << endl << endl;
+    std::cout << "system_clock" << std::endl;
+    std::cout << std::chrono::system_clock::period::num << std::endl;
+    std::cout << std::chrono::system_clock::period::den << std::endl;
+    std::cout << "steady = " << std::boolalpha << std::chrono::system_clock::is_steady << std::endl << std::endl;
 
-    cout << "high_resolution_clock" << endl;
-    cout << std::chrono::high_resolution_clock::period::num << endl;
-    cout << std::chrono::high_resolution_clock::period::den << endl;
-    cout << "steady = " << std::boolalpha << std::chrono::high_resolution_clock::is_steady << endl << endl;
+    std::cout << "high_resolution_clock" << std::endl;
+    std::cout << std::chrono::high_resolution_clock::period::num << std::endl;
+    std::cout << std::chrono::high_resolution_clock::period::den << std::endl;
+    std::cout << "steady = " << std::boolalpha << std::chrono::high_resolution_clock::is_steady << std::endl << std::endl;
 
-    cout << "steady_clock" << endl;
-    cout << std::chrono::steady_clock::period::num << endl;
-    cout << std::chrono::steady_clock::period::den << endl;
-    cout << "steady = " << std::boolalpha << std::chrono::steady_clock::is_steady << endl << endl;
+    std::cout << "steady_clock" << std::endl;
+    std::cout << std::chrono::steady_clock::period::num << std::endl;
+    std::cout << std::chrono::steady_clock::period::den << std::endl;
+    std::cout << "steady = " << std::boolalpha << std::chrono::steady_clock::is_steady << std::endl << std::endl;
 #endif
 
 }
@@ -100,8 +100,8 @@ void ElapsedTime::printElapsedTime()
     if (print){
         //char buffer[50];
         //sprintf(buffer,"Elapsed Time: %.6f s",elapsedTime);
-        //cout << buffer << endl;
-        cout << "Elapsed Time "<< elapsedTime << " s" << endl;
+        //std::cout << buffer << std::endl;
+        std::cout << "Elapsed Time "<< elapsedTime << " s" << std::endl;
     }
 }
 
@@ -111,13 +111,13 @@ void ElapsedTime::printElapsedTime(std::string text)
         //toc();
         //char buffer[50];
         //sprintf(buffer,"Elapsed Time (%s): %.6f s",text.c_str(),elapsedTime);
-        //cout << buffer << endl;
-        cout << "Elapsed Time (" << text << "): "<< elapsedTime<< " s" << endl;
+        //std::cout << buffer << std::endl;
+        std::cout << "Elapsed Time (" << text << "): "<< elapsedTime<< " s" << std::endl;
     }
 }
 
 //! Lap Time
-/*! This is the elapsed time since the last Lap Time. ::timeCheck is set in order
+/*! This is the elapsed time since the last Lap Time. ::ElapsedTime::timeCheck is set in order
  * to keep track of this event.
  * \return Time since last call to lap(), reset(), or start(), in seconds.
 */

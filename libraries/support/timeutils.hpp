@@ -38,22 +38,25 @@
 #include "configCosmos.h"
 #include <iostream>
 #include <string>
+
+#ifndef BUILD_TYPE_arm
 #include <chrono>
 #include <ctime>
 
-using namespace std;
+//using namespace std;
 
 class TimeUtils {
 
 public:
 
-    string timeString(const std::chrono::system_clock::time_point &tp);
-    chrono::system_clock::time_point makeTimePoint(int year, int mon, int day, int hour, int min, int sec);
+    std::string timeString(const std::chrono::system_clock::time_point &tp);
+    std::chrono::system_clock::time_point makeTimePoint(int year, int mon, int day, int hour, int min, int sec);
     std::chrono::system_clock::time_point timePointUtc();
     double secondsSinceEpoch();
-    chrono::system_clock::duration secondsSinceMidnight();
+    std::chrono::system_clock::duration secondsSinceMidnight();
     void testSecondsSinceMidnight();
 };
 
+#endif
 
 #endif

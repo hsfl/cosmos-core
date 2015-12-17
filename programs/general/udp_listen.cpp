@@ -53,7 +53,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+//using namespace std;
 
 #include "agentlib.h"
 #include "jsonlib.h"
@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
 {
     // **** Declare Variables
 
-    string input;
-    string token;
+    std::string input;
+    std::string token;
 
 	/*
     char gps_time[50];
@@ -102,8 +102,8 @@ int main(int argc, char *argv[])
     int received; // Num bytes received per UDP packet
     uint8_t buf1[BUFSIZE]; // RX Buffer
 
-	string myjstring;
-	string jjstring;
+    std::string myjstring;
+    std::string jjstring;
 
 
 	uint32_t i, j, tlen;
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
             // 11- acc_y,
             // 12- acc_z (g)
 
-            //string string_input;
+            //std::string string_input;
             //string_input = buf1;
             //char string_input[100];
             //strcpy(input,string_input);

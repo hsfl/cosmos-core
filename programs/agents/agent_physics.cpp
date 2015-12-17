@@ -46,8 +46,8 @@ char *output;
 
 gj_handle gjh;
 cosmosstruc *cdata;
-string reqjstring;
-string mainjstring;
+std::string reqjstring;
+std::string mainjstring;
 double logperiod=30, newlogperiod=30;
 
 char logstring[AGENTMAXBUFFER-20];
@@ -210,7 +210,7 @@ char* request_beacon(char* request, char* output)
 
 char* request_statevec(char* request, char* output)
 {
-	strcpy(output,json_of_statevec(reqjstring, cdata));
+	strcpy(output,json_of_state_eci(reqjstring, cdata));
 	return (output);
 }
 

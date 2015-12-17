@@ -30,7 +30,7 @@
 #include <unistd.h>
 #endif
 
-using namespace std;
+//using namespace std;
 
 int myagent(), create_node();
 
@@ -46,15 +46,15 @@ double GetWindowsCPULoad(), GetWindowsUsedDisk(), GetWindowsVirtualMem();
 double GetWindowsTotalDisk(), GetWindowsTotalVirtualMem();
 static double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
 static unsigned long long FileTimeToInt64(const FILETIME & ft) {return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);}
-string getWindowsDeviceName();
+std::string getWindowsDeviceName();
 #else
 double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
 double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();
 static double CalculateLinuxCPULoad (float *out);
 #endif
 
-string agentname  = "cpu_monitor";
-string nodename;
+std::string agentname  = "cpu_monitor";
+std::string nodename;
 
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int loopmsec = 1; // period of heartbeat
@@ -71,7 +71,7 @@ ElapsedTime et;
 int main(int argc, char *argv[])
 {
 #ifndef COSMOS_MAC_OS
-	cout << "Starting agent cpu" << endl;
+    std::cout << "Starting agent cpu" << std::endl;
 	int iretn;
 
 	switch (argc)
@@ -79,12 +79,12 @@ int main(int argc, char *argv[])
 	case 1:
 		{
 #ifdef COSMOS_WIN_OS
-			string devicename = getWindowsDeviceName();
+            std::string devicename = getWindowsDeviceName();
 			nodename = "cpu_" + devicename;
 #else
 			char devicename[128];
 			gethostname(devicename, sizeof devicename);
-			nodename = "cpu_" + (string)devicename;
+            nodename = "cpu_" + (std::string)devicename;
 #endif
 		}
 		break;
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
 	if (create_node())
 	{
-		cout << "Unable to make node " << endl;
+        std::cout << "Unable to make node " << std::endl;
 		exit(1);
 	}
 
@@ -114,10 +114,10 @@ int main(int argc, char *argv[])
 									 0,
 									 AGENTMAXBUFFER)))
 	{
-		cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+        std::cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
 		exit (AGENT_ERROR_JSON_CREATE);
 	} else {
-		cout<<"Starting " << agentname << " ... OK" << endl;
+        std::cout<<"Starting " << agentname << " ... OK" << std::endl;
 	}
 
 	// Add additional requests
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 #ifndef COSMOS_MAC_OS
 int myagent()
 {
-	cout << agentname << " ...online " << endl;
+    std::cout << agentname << " ...online " << std::endl;
 	ElapsedTime et;
 	et.start();
 
@@ -173,7 +173,7 @@ int myagent()
 			cdata[0].devspec.cpu[0]->maxmem = GetLinuxTotalVirtualMem();
 #endif
 		}
-		//		cout << et.lap() << "           " << mempercent << endl;
+        //		std::cout << et.lap() << "           " << mempercent << std::endl;
 		//		et.start();
 	}
 
@@ -245,7 +245,7 @@ static double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned lon
 	_previousIdleTicks  = idleTicks;
 	return ret;
 }
-string getWindowsDeviceName()
+std::string getWindowsDeviceName()
 {
 	TCHAR nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
 	DWORD nameBufSize;
@@ -354,7 +354,7 @@ static double CalculateLinuxCPULoad(float *out)
 #endif
 int32_t request_soh(char *request, char* response, void *)
 {
-	string rjstring;
+    std::string rjstring;
 	//	strcpy(response,json_of_list(rjstring,sohstring,cdata));
 	strcpy(response,json_of_table(rjstring, cdata[0].agent[0].sohtable, cdata));
 
@@ -398,16 +398,16 @@ int32_t request_mempercent (char *request, char *response, void *)
 
 int create_node () // only use when unsure what the node is
 {
-	//	string node_directory;
+    //	std::string node_directory;
 
 	// Ensure node is present
-	cout << "Node name is " << nodename << endl;
+    std::cout << "Node name is " << nodename << std::endl;
 	if (get_nodedir(nodename).empty())
 	{
-		cout << "Couldn't find Node directory, making directory now..." << endl;
+        std::cout << "Couldn't find Node directory, making directory now..." << std::endl;
 		if (get_nodedir(nodename, true).empty())
 		{
-			cout << "Couldn't create Node directory." << endl;
+            std::cout << "Couldn't create Node directory." << std::endl;
 			return 1;
 		}
 		cdata = json_create();
@@ -451,7 +451,7 @@ int create_node () // only use when unsure what the node is
 	}
 	//	if (get_nodedir(nodename).empty())
 	//	{
-	//		cout << "Couldn't find Node directory, making directory now..." << endl;
+    //		std::cout << "Couldn't find Node directory, making directory now..." << std::endl;
 	//#ifdef COSMOS_WIN_OS
 	//		node_directory = "M:\\work\\nodes\\" + nodename + "\\";
 	//		CreateDirectory (node_directory.c_str(), NULL); // create folder
@@ -464,7 +464,7 @@ int create_node () // only use when unsure what the node is
 	//		char *nodetemp = &node_directory[0u];
 	//		mkdir (nodetemp, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	//#endif
-	//		ofstream ofile;
+    //		std::ofstream ofile;
 	//		ofile.open (node_directory + "devices_general.ini");
 
 	//		ofile << "{\"comp_type_000\":5}" <<
@@ -474,13 +474,13 @@ int create_node () // only use when unsure what the node is
 	//		"{\"comp_bidx_000\":0}" <<
 	//		"{\"comp_portidx_000\":0}" <<
 	//		"{\"comp_nvolt_000\":0}" <<
-	//		"{\"comp_namp_000\":0}" << endl;
+    //		"{\"comp_namp_000\":0}" << std::endl;
 	//		ofile.close();
 
 	//		ofile.open (node_directory + "devices_specific.ini");
 	//		ofile << "{\"device_cpu_maxdisk_000\":0}" <<
 	//		"{\"device_cpu_maxmem_000\":0}" <<
-	//		"{\"device_cpu_maxload_000\":0}" << endl;
+    //		"{\"device_cpu_maxload_000\":0}" << std::endl;
 	//		ofile.close();
 
 	//		ofile.open (node_directory + "events.dict");
@@ -1397,18 +1397,18 @@ int create_node () // only use when unsure what the node is
 	//		"{\"event_name\":\"AOS+10_${target_name_099}\"}{\"event_type\":5122}{\"event_flag\":235027}{\"event_condition\":\"((\"target_type_099\"=1)&(\"target_elto_099\">(\"target_min_099\"+.1745)))\"}{\"event_data\":\"target_elto_099\"}" <<
 	//		"{\"event_name\":\"LOS_${target_name_099}\"}{\"event_type\":5120}{\"event_flag\":259603}{\"event_condition\":\"((\"target_type_099\"=1)&(\"target_elto_099\"<\"target_min_099\"))\"}{\"event_data\":\"target_elto_099\"}" <<
 	//		"{\"event_name\":\"LOS+5_${target_name_099}\"}{\"event_type\":5121}{\"event_flag\":235027}{\"event_condition\":\"((\"target_type_099\"=1)&(\"target_elto_099\"<(\"target_min_099\"+.0873)))\"}{\"event_data\":\"target_elto_099\"}" <<
-	//		"{\"event_name\":\"LOS+10_${target_name_099}\"}{\"event_type\":5122}{\"event_flag\":235027}{\"event_condition\":\"((\"target_type_099\"=1)&(\"target_elto_099\"<(\"target_min_099\"+.1745)))\"}{\"event_data\":\"target_elto_099\"}" << endl;
+    //		"{\"event_name\":\"LOS+10_${target_name_099}\"}{\"event_type\":5122}{\"event_flag\":235027}{\"event_condition\":\"((\"target_type_099\"=1)&(\"target_elto_099\"<(\"target_min_099\"+.1745)))\"}{\"event_data\":\"target_elto_099\"}" << std::endl;
 	//		ofile.close();
 
 	//		ofile.open (node_directory + "node.ini");
 	//		ofile << "{\"node_type\":0}" <<
 	//		"{\"piece_cnt\":1}" <<
 	//		"{\"comp_cnt\":1}" <<
-	//		"{\"port_cnt\":0}" << endl;
+    //		"{\"port_cnt\":0}" << std::endl;
 	//		ofile.close();
 
 	//		ofile.open (node_directory + "node_utcstart.ini");
-	//		ofile << "57119.1133001281" << endl;
+    //		ofile << "57119.1133001281" << std::endl;
 	//		ofile.close();
 
 	//		ofile.open (node_directory + "pieces.ini");
@@ -1422,11 +1422,11 @@ int create_node () // only use when unsure what the node is
 	//		"{\"piece_hcon_000\":237}" <<
 	//		"{\"piece_dim_000\":0}" <<
 	//		"{\"piece_pnt_cnt_000\":1}" <<
-	//		"{\"piece_pnt_000_000\":[0,0,0]}" << endl;
+    //		"{\"piece_pnt_000_000\":[0,0,0]}" << std::endl;
 	//		ofile.close();
 
 	//		ofile.open (node_directory + "ports.ini");
-	//		ofile << "" << endl;
+    //		ofile << "" << std::endl;
 	//		ofile.close();
 	//	}
 

@@ -1,4 +1,5 @@
 *.user
+*.autosave
 build/qtarm/*
 build/arm/*
 build/linux/*
@@ -12,13 +13,18 @@ documentation/doxygen/latex/
 documentation/doxygen/html/
 documentation/doxygen/man/
 documentation/doxygen/log.txt
+docs/doxygen/latex/
+docs/doxygen/html/
+docs/doxygen/man/
+docs/doxygen/log.txt
 libraries/support/save/
 *.save
 *.aux
 *.gz
 *.toc
-examples/build-agent_002-Desktop_Qt_5_4_1_MinGW_32bit-Debug/
-examples/build-agent_001-Desktop_Qt_5_4_1_MinGW_32bit-Debug/
+examples/build-*
+examples/namespace/build-*
 *.bbl
 *.blg
 *.tmp
+programs/testbed/orbits/convert_test/iss_test.txt

@@ -54,24 +54,29 @@
 */
 
 //! \ingroup support
-//! \defgroup datalib Data Management support library
-//! Data Management support library.
+//! \defgroup datalib Data Management
+//! Data Management.
 //!
-//! Data within COSMOS is managed in a heirarchical structure that
-//! mirrors the Node:Agent arrangement laid down in the \ref jsonlib.
-//! Directories are defined for storage of general use information, as
-//! well as information specific to each Node. Separate directories are
-//! also defined for Incoming data, Outgoing data, and Archival data.
-//! The top level directory of this Node information is defined as the
-//! "cosmosnodes". "cosmosnodes" contains all data specific to each Node. Within
-//! "nodes", there is a directory named after each Node. This directory
-//! can be discovered automatically by the software if it is within 4 levels
-//! above the current directory, or if an environment variable, "NODEBASE",
-//! is set. The environment variable takes precedence.
+//! Data within COSMOS is managed in a heirarchical structure. At the highest level, separate
+//! directories are provided for Nodal information (nodes), and for general software Resources (resources).
+//! These two directories can be together in a single COSMOS directory, or in separate locations. Their locations can
+//! be defined through the use of environment variables, or through default values. The order of assignment is as follows:
+//! - If the environment variables COSMOSNODES or COSMOSRESOURCES exist, then the
+//! directories specified by these variables will be used for nodes or resources.
+//! - If either COSMOSNODES and/or COSMOSRESOURCES is not set, but the environment variable COSMOS is, then nodes or
+//! resources will be located in ${COSMOS}/nodes or ${COSMOS}/resources.
+//! - If no environment variable is found, default locations are used, specific to the OS
+//! + Windows: c:/cosmos/nodes and c:/cosmos/resources
+//! + Unix: /usr/local/cosmos/nodes and /usr/local/cosmos/resources
+//! + MacOS: /Applications/cosmos/nodes and /Applications/cosmos/resources
+//! - If these directories are not found, then the software will look up to four levels above the directory it is running
+//! in for directories called "nodes" or "cosmosnodes" and "resources" or "cosmosresources".
+//! Once this search is completed successfully, the nodes folder for the current Node will be stored internally as
+//! "cosmosnodes" and the resources folder as "cosmosresources".
 //!
-//! Within each Node directory is a
-//! set of initialization files covering different aspects of the Node, as well as sub-directories
-//! for "incoming", "outgoing", "temp", and "data" archive files.
+//! Within "nodes", there is a directory specific to each Node. Each Node specific directory mirrors the Node:Agent
+//! arrangement laid down in the \ref jsonlib. A series of initialization files are incldued, as well as a set of directories
+//! for Temporary data (temp), Incoming data (incoming), Outgoing data (outgoing), and Archival data (data).
 //!
 //! The initialization files include:
 //! - node.ini: Describes the Node type, number of pieces, number of Devices, and number of ports.
@@ -82,17 +87,10 @@
 //! - target.ini: Provides a list of any targets associated with this Node.
 //! - state.ini: Provides a complete state vector for this Node at some specific time.
 //!
-//! Each nodes sub-directories contain sub-directories of their own for each Agent. The "data"
-//! directories Agent directories are further subdivided by first
-//! year, then day.
+//! Each of temp, incoming and outgoing contain sub-directories named after each active Agent. Each agent sub-directory
+//! in the "data" directory is further subdivided by first year, then day.
 //!
-//! Resources for COSMOS are stored in a second heirarchy of directories.
-//! The highest level is a top level directory, "cosmosresources". This
-//! directory can also be discovered by the software, if it is within 4
-//! levels above the current directory. It can also be set through use
-//! of the environment variable, "COSMOSBASE".
-//!
-//! "cosmosresources" contains directories of files for use in different
+//! The software resources directory contains directories of files for use in different
 //! aspects of COSMOS. The directory "general" contains files of
 //! coefficients used for the various models used in COSMOS simulations.
 //! The directory "logo" contains any special images used by COSMOS
@@ -105,58 +103,58 @@
 //! of standard names, and the automatic creation of log files.
 
 //! \ingroup datalib
-//! \defgroup datalib_functions Data Management support library function declarations
+//! \defgroup datalib_functions Data Management function declarations
 //! @{
 
 void log_reopen();
-void log_write(string node, int type, double utc, const char* data);
-void log_write(string node, string agent, double utc, string type, const char *data);
-void log_write(string node, string agent, double utc, string extra, string type, string record);
-void log_write(string node, string agent, string location, double utc, string extra, string type, string record);
-void log_move(string node, string agent, string srclocation, string dstlocation, bool compress);
-void log_move(string node, string agent);
+void log_write(std::string node, int type, double utc, const char* data);
+void log_write(std::string node, std::string agent, double utc, std::string type, const char *data);
+void log_write(std::string node, std::string agent, double utc, std::string extra, std::string type, std::string record);
+void log_write(std::string node, std::string agent, std::string location, double utc, std::string extra, std::string type, std::string record);
+void log_move(std::string node, std::string agent, std::string srclocation, std::string dstlocation, bool compress);
+void log_move(std::string node, std::string agent);
 int check_events(eventstruc* events, int max, cosmosstruc* data);
-int32_t data_get_nodes(vector<cosmosstruc> &data);
-vector<string> data_list_nodes();
-int32_t data_list_nodes(vector<string>& nodes);
-vector<filestruc> data_list_files(string node, string location, string agent);
-size_t data_list_files(string node, string location, string agent, vector<filestruc>& files);
-vector<filestruc> data_list_archive(string node, string agent, double utc, string type);
-vector<filestruc> data_list_archive(string node, string agent, double utc);
-vector <double> data_list_archive_days(string node, string agent);
-FILE* data_open(string path, char* mode);
-int32_t data_name_date(string node, string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds);
-int32_t data_name_date(string node, string filename, double &utc);
-string data_name(string node, double mjd, string extra, string type);
-string data_name(string node, double mjd, string type);
-string data_base_path(string node);
-string data_base_path(string node, string location);
-string data_base_path(string node, string location, string agent);
-string data_base_path(string node, string location, string agent, string filename);
-string data_archive_path(string node, string agent, double mjd);
-string data_type_path(string node, string location, string agent, double mjd, string type);
-string data_type_path(string node, string location, string agent, double mjd, string extra, string type);
-string data_name_path(string node, string location, string agent, double mjd, string name);
-bool data_exists(string& path);
-int32_t set_cosmosresources(string name);
+int32_t data_get_nodes(std::vector<cosmosstruc> &data);
+std::vector<std::string> data_list_nodes();
+int32_t data_list_nodes(std::vector<std::string>& nodes);
+std::vector<filestruc> data_list_files(std::string node, std::string location, std::string agent);
+size_t data_list_files(std::string node, std::string location, std::string agent, std::vector<filestruc>& files);
+std::vector<filestruc> data_list_archive(std::string node, std::string agent, double utc, std::string type);
+std::vector<filestruc> data_list_archive(std::string node, std::string agent, double utc);
+std::vector <double> data_list_archive_days(std::string node, std::string agent);
+FILE* data_open(std::string path, char* mode);
+int32_t data_name_date(std::string node, std::string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds);
+int32_t data_name_date(std::string node, std::string filename, double &utc);
+std::string data_name(std::string node, double mjd, std::string extra, std::string type);
+std::string data_name(std::string node, double mjd, std::string type);
+std::string data_base_path(std::string node);
+std::string data_base_path(std::string node, std::string location);
+std::string data_base_path(std::string node, std::string location, std::string agent);
+std::string data_base_path(std::string node, std::string location, std::string agent, std::string filename);
+std::string data_archive_path(std::string node, std::string agent, double mjd);
+std::string data_type_path(std::string node, std::string location, std::string agent, double mjd, std::string type);
+std::string data_type_path(std::string node, std::string location, std::string agent, double mjd, std::string extra, std::string type);
+std::string data_name_path(std::string node, std::string location, std::string agent, double mjd, std::string name);
+bool data_exists(std::string& path);
+int32_t set_cosmosresources(std::string name);
 int32_t set_cosmosresources();
-int32_t get_cosmosresources(string &result);
-int32_t setEnvCosmosResources(string path);
-int32_t setEnvCosmosNodes(string path);
-int32_t setEnv(string var, string path);
-int32_t setEnvCosmos(string path);
-int32_t set_cosmosnodes(string name);
+int32_t get_cosmosresources(std::string &result);
+int32_t setEnvCosmosResources(std::string path);
+int32_t setEnvCosmosNodes(std::string path);
+int32_t setEnv(std::string var, std::string path);
+int32_t setEnvCosmos(std::string path);
+int32_t set_cosmosnodes(std::string name);
 int32_t set_cosmosnodes();
-int32_t get_cosmosnodes(string &result);
-string get_nodedir(string node);
-string get_nodedir(string node, bool create_flag);
-int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, vector<string> &result);
-int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result);
-int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc* root);
-double findlastday(string node);
-double findfirstday(string node);
+int32_t get_cosmosnodes(std::string &result);
+std::string get_nodedir(std::string node);
+std::string get_nodedir(std::string node, bool create_flag);
+int32_t data_load_archive(std::string node, std::string agent, double utcbegin, double utcend, std::string type, std::vector<std::string> &result);
+int32_t data_load_archive(std::string node, std::string agent, double mjd, std::string type, std::vector<std::string> &result);
+int32_t data_load_archive(double mjd, std::vector<std::string> &telem, std::vector<std::string> &event, cosmosstruc* root);
+double findlastday(std::string node);
+double findfirstday(std::string node);
 int32_t kml_write(cosmosstruc* cdata);
-bool data_isdir(string path);
+bool data_isdir(std::string path);
 
 //! @}
 

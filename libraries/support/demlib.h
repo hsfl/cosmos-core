@@ -33,7 +33,7 @@
 
 //! \ingroup support
 //! \defgroup demlib DEM Library
-//! DEM (Digital Elevation Model) support library.
+//! DEM (Digital Elevation Model).
 //!
 //! The COSMOS system integrates Digital Elevation Models (DEMs)for a variety of planetary surfaces.
 //! Full globe support at 30" resolution is available for Earth, Mars, and Moon. Additional higher
@@ -109,7 +109,7 @@ typedef struct
 	double dlon;
 	double dlat;
 //	dem_pixel **pixel;
-	vector< vector<dem_pixel> > pixel;
+	std::vector< std::vector<dem_pixel> > pixel;
 } map_dem_dem;
 
 //! Planetary body support structure

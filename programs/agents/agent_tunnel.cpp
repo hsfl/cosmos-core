@@ -40,7 +40,7 @@
 #include "agentlib.h"
 #include "cssl_lib.h"
 
-char agentname[COSMOS_MAX_NAME] = "tunnel";
+char agentname[COSMOS_MAX_NAME+1] = "tunnel";
 char node[50] = "";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
@@ -51,11 +51,11 @@ void tcv_write_loop();
 void tun_read_loop();
 void tun_write_loop();
 
-queue<vector<uint8_t> > tun_fifo;
-queue<vector<uint8_t> > tcv_fifo;
+std::queue<std::vector<uint8_t> > tun_fifo;
+std::queue<std::vector<uint8_t> > tcv_fifo;
 
-condition_variable tcv_fifo_check;
-condition_variable tun_fifo_check;
+std::condition_variable tcv_fifo_check;
+std::condition_variable tun_fifo_check;
 
 int tun_fd;
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 #if defined(COSMOS_LINUX_OS)
 
 	char tunnel_ip[20];
-	vector<uint8_t> buffer;
+	std::vector<uint8_t> buffer;
 
 	cssl_start();
 
@@ -113,8 +113,8 @@ int main(int argc, char *argv[])
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Start serial threads
-	thread tcv_read_thread(tcv_read_loop);
-	thread tcv_write_thread(tcv_write_loop);
+	std::thread tcv_read_thread(tcv_read_loop);
+	std::thread tcv_write_thread(tcv_write_loop);
 
 	// Open tunnel device
 	int tunnel_sock;
@@ -189,8 +189,8 @@ int main(int argc, char *argv[])
 	close(tunnel_sock);
 
 	// Start tunnel threads
-	thread tun_read_thread(tun_read_loop);
-	thread tun_write_thread(tun_write_loop);
+	std::thread tun_read_thread(tun_read_loop);
+	std::thread tun_write_thread(tun_write_loop);
 
 	double nmjd = currentmjd(0.);
 	int32_t sleept;
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
 void tun_read_loop()
 {
-	vector<uint8_t> buffer;
+	std::vector<uint8_t> buffer;
 	int32_t nbytes;
 
 	while (agent_running(cdata))
@@ -234,10 +234,10 @@ void tun_read_loop()
 
 void tun_write_loop()
 {
-	vector<uint8_t> buffer;
+	std::vector<uint8_t> buffer;
 	int32_t nbytes;
-	mutex tun_fifo_lock;
-	unique_lock<mutex> locker(tun_fifo_lock);
+	std::mutex tun_fifo_lock;
+	std::unique_lock<std::mutex> locker(tun_fifo_lock);
 
 	while (agent_running(cdata))
 	{
@@ -261,7 +261,7 @@ void tun_write_loop()
 
 void tcv_read_loop()
 {
-	vector<uint8_t> buffer;
+	std::vector<uint8_t> buffer;
 	int32_t nbytes;
 
 	while (agent_running(cdata))
@@ -288,9 +288,9 @@ void tcv_read_loop()
 
 void tcv_write_loop()
 {
-	mutex tcv_fifo_lock;
-	unique_lock<mutex> locker(tcv_fifo_lock);
-	vector<uint8_t> buffer;
+	std::mutex tcv_fifo_lock;
+	std::unique_lock<std::mutex> locker(tcv_fifo_lock);
+	std::vector<uint8_t> buffer;
 
 	while (agent_running(cdata))
 	{

@@ -1,7 +1,9 @@
 COSMOS core 1.0.1.0 (beta)
 =========================
 
-Note: If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutorial](https://bitbucket.org/cosmos/tutorial). Also for the latest information on COSMOS refer to our website:
+**Please note that the documenation is work in progress. If there is some part of the documentation that is missing or not clear please let us know.**
+
+If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutorial](http://bitbucket.org/cosmos/tutorial). Also for the latest information on COSMOS refer to our website:
 [http://www.cosmos-project.org/](http://www.cosmos-project.org/)
 
 Quick-start:

@@ -48,13 +48,13 @@ win32 {
 
         # include dirent for MSVC
         INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent
-        SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/dirent/*.c)
-        HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/dirent/*.h)
+        SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent/dirent.c
+        HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent/dirent.h
     }
 
 }
 
-#contains(QMAKE_CC, cl){
+#contains(QMAKE_CC, cl) {
 #    # Visual Studio
 #    message("Compiler: Visual Studio")
 #    #CONFIG += precompile_header
@@ -84,7 +84,7 @@ macx { #mac
 ################################################################################
 # Unix config
 ################################################################################
-unix:!macx{
+unix:!macx {
     #message( "Building on Unix" )
     # add libraries
     LIBS += -pthread #-ljpeg
@@ -101,7 +101,7 @@ INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/support
 
 
 # Add all COSMOS support libraries
-contains(MODULES, SUPPORT){
+contains(MODULES, SUPPORT) {
     message( "Add library: SUPPORT" )
     INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/support
     #SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/support/*.cpp)
@@ -123,6 +123,7 @@ contains(MODULES, agentlib){
     MODULES += elapsedtime # and elapsedtime
     MODULES += jsonlib
     MODULES += timelib
+    MODULES += timeutils
     MODULES += stringlib
     MODULES += datalib
 
@@ -212,6 +213,7 @@ contains(MODULES, demlib){
 
 # -----------------------------------------------
 # Tier 0 libraries
+# -----------------------------------------------
 # The following libraries do not depend on other libraries
 # These are self contained, they are the building blocks for
 # more complext libraries such as agentlib
@@ -221,6 +223,9 @@ contains(MODULES, gp_cosmostimeutils){
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/gp_cosmostimeutils.h
 }
 
+
+# -----------------------------------------------
+# Tier 0 libraries for Math
 contains(MODULES, mathlib){
     message( "- math/mathlib" )
     #TODO: remove this later to force the use of #include "math/mathfile"
@@ -264,7 +269,27 @@ contains(MODULES, math-quaternion){
     SOURCES += $$COSMOS_SOURCE/core/libraries/math/quaternion.cpp
 }
 
+# -----------------------------------------------
+# Tier 0 libraries for physics
+message( "" )
 
+contains(MODULES, physics-keplerianorbit){
+    message( "- physics/keplerianorbit" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.cpp
+    MODULES += physics-constants
+}
+
+contains(MODULES, physics-constants){
+    message( "- physics/constants" )
+    HEADERS += $$COSMOS_SOURCE/core/libraries/physics/constants.h
+    SOURCES += $$COSMOS_SOURCE/core/libraries/physics/constants.cpp
+}
+
+
+# -----------------------------------------------
+# Tier 0 libraries for physics
+message( "- support/" )
 contains(MODULES, stringlib){
     message( "- support/stringlib" )
     SOURCES += $$COSMOS_SOURCE/core/libraries/support/stringlib.cpp
@@ -289,8 +314,7 @@ contains(MODULES, timeutils){
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/timeutils.h
 }
 
-contains(MODULES, nrlmsise)
-{
+contains(MODULES, nrlmsise){
     message( "- support/nrlmsise" )
     SOURCES += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.cpp
     HEADERS += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.h
@@ -304,96 +328,12 @@ contains(MODULES, print_utils){
 }
 
 
+
 #--------------------------------------------------------------------
-# Add COSMOS device
-contains(MODULES, device){
-    message( "- device" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/*.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/*.h)
-}
-
-contains(MODULES, astrodev_lib){
-    message( "- device/astrodev_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/astrodev_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/astrodev_lib.h)
-    MODULES         +=  cssl_lib
-}
+# Add COSMOS core devices libraries
+include( $$COSMOS_SOURCE/core/libraries/device/cosmos-core-devices.pri )
 
 
-contains(MODULES, microstrain_lib){
-    message( "- device/microstrain_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/microstrain_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/microstrain_lib.h)
-}
-
-contains(MODULES, serial){
-    message( "- device/serial" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/serial.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/serial.h)
-}
-
-contains(MODULES, oemv_lib){
-    message( "- device/oemv_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/oemv_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/oemv_lib.h)
-}
-
-contains(MODULES, vn100_lib){
-    message( "- device/vn100_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/vn100_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/vn100_lib.h)
-
-    # dependencies
-    MODULES += cssl_lib
-}
-
-contains(MODULES, vmt35_lib){
-    message( "- device/vmt35_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/vmt35_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/vmt35_lib.h)
-}
-
-contains(MODULES, gige_lib){
-    message( "- device/gige_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/gige_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/gige_lib.h)
-}
-
-contains(MODULES, mixwtnc_lib){
-    message( "- device/mixwtnc_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/mixwtnc_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/mixwtnc_lib.h)
-}
-
-contains(MODULES, sinclair_lib){
-    message( "- device/sinclair_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/sinclair_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/sinclair_lib.h)
-}
-
-contains(MODULES, sinclair_lib){
-    message( "Add library: sinclair_lib" )
-    INCLUDEPATH     += $$COSMOS/core/libraries/device
-    SOURCES         += $$files($$COSMOS/core/libraries/device/sinclair_lib.cpp)
-    HEADERS         += $$files($$COSMOS/core/libraries/device/sinclair_lib.h)
-}
-
-contains(MODULES, cssl_lib){
-    message( "- device/cssl_lib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/device
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.cpp)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.h)
-}
 
 #--------------------------------------------------------------------
 # Add COSMOS core thirdparty libraries
@@ -404,10 +344,13 @@ INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty
 contains(MODULES, zlib){
     message( "- thirdparty/zlib" )
     INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib
+
+    # note: sometimes including all the files with * creates problems
     #SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.c)
     #HEADERS         += $$files( $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.h)
     #SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.c
     #HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.h
+
     SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/adler32.c
     SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/compress.c
     SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/crc32.c
@@ -445,5 +388,16 @@ contains(MODULES, jpeg){
     SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/jpeg/*.c)
     HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/jpeg/*.h)
 }
+
+# Add Eigen
+contains(MODULES, thirdparty-Eigen){
+    message( "- thirdparty/Eigen" )
+
+    # We just need to inlcude the parent folder for Eigen
+    # then in the code we alwas reference it using
+    # #include <Eigen/Eigen>
+    #INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty
+}
+
 
 message("")

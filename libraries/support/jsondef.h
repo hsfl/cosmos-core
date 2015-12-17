@@ -47,245 +47,245 @@
 
 //! JSON Unit conversion type
 enum
-	{
-	//! Identity
-	JSON_UNIT_TYPE_IDENTITY,
-	//! Polynomial
-	JSON_UNIT_TYPE_POLY,
-	//! Logarithm
-	JSON_UNIT_TYPE_LOG
-	};
+    {
+    //! Identity
+    JSON_UNIT_TYPE_IDENTITY,
+    //! Polynomial
+    JSON_UNIT_TYPE_POLY,
+    //! Logarithm
+    JSON_UNIT_TYPE_LOG
+    };
 
 //! JSON Unit type
 enum
-	{
-	//! No units
-	JSON_UNIT_NONE,
-	//! Length
-	JSON_UNIT_LENGTH,
-	//! Mass
-	JSON_UNIT_MASS,
-	//! Time
-	JSON_UNIT_TIME,
-	//! Current
-	JSON_UNIT_CURRENT,
-	//! Temperature
-	JSON_UNIT_TEMPERATURE,
-	//! Intensity
-	JSON_UNIT_INTENSITY,
-	//! Area
-	JSON_UNIT_AREA,
-	//! Volume
-	JSON_UNIT_VOLUME,
-	//! Speed
-	JSON_UNIT_SPEED,
-	//! Acceleration
-	JSON_UNIT_ACCELERATION,
-	//! Density
-	JSON_UNIT_DENSITY,
-	//! Magnetic Field Strengh
-	JSON_UNIT_MAGFIELD,
-	//! Luminance
-	JSON_UNIT_LUMINANCE,
-	//! Angle
-	JSON_UNIT_ANGLE,
-	//! Solid Angle
-	JSON_UNIT_SOLIDANGLE,
-	//! Frequency
-	JSON_UNIT_FREQUENCY,
-	//! Force
-	JSON_UNIT_FORCE,
-	//! Pressure
-	JSON_UNIT_PRESSURE,
-	//! Energy
-	JSON_UNIT_ENERGY,
-	//! Charge
-	JSON_UNIT_CHARGE,
-	//! Electric Potential
-	JSON_UNIT_VOLTAGE,
-	//! Capacitance
-	JSON_UNIT_CAPACITANCE,
-	//! Electrical Resistance
-	JSON_UNIT_RESISTANCE,
-	//! Magnetic FLux
-	JSON_UNIT_MAGFLUX,
-	//! Magnetic Flux Density
-	JSON_UNIT_MAGDENSITY,
-	//! Specific Impulse
-	JSON_UNIT_ISP,
-	//! Holder for number of entries
-	JSON_UNIT_COUNT
-	} ;
+    {
+    //! No units
+    JSON_UNIT_NONE,
+    //! Length
+    JSON_UNIT_LENGTH,
+    //! Mass
+    JSON_UNIT_MASS,
+    //! Time
+    JSON_UNIT_TIME,
+    //! Current
+    JSON_UNIT_CURRENT,
+    //! Temperature
+    JSON_UNIT_TEMPERATURE,
+    //! Intensity
+    JSON_UNIT_INTENSITY,
+    //! Area
+    JSON_UNIT_AREA,
+    //! Volume
+    JSON_UNIT_VOLUME,
+    //! Speed
+    JSON_UNIT_SPEED,
+    //! Acceleration
+    JSON_UNIT_ACCELERATION,
+    //! Density
+    JSON_UNIT_DENSITY,
+    //! Magnetic Field Strengh
+    JSON_UNIT_MAGFIELD,
+    //! Luminance
+    JSON_UNIT_LUMINANCE,
+    //! Angle
+    JSON_UNIT_ANGLE,
+    //! Solid Angle
+    JSON_UNIT_SOLIDANGLE,
+    //! Frequency
+    JSON_UNIT_FREQUENCY,
+    //! Force
+    JSON_UNIT_FORCE,
+    //! Pressure
+    JSON_UNIT_PRESSURE,
+    //! Energy
+    JSON_UNIT_ENERGY,
+    //! Charge
+    JSON_UNIT_CHARGE,
+    //! Electric Potential
+    JSON_UNIT_VOLTAGE,
+    //! Capacitance
+    JSON_UNIT_CAPACITANCE,
+    //! Electrical Resistance
+    JSON_UNIT_RESISTANCE,
+    //! Magnetic FLux
+    JSON_UNIT_MAGFLUX,
+    //! Magnetic Flux Density
+    JSON_UNIT_MAGDENSITY,
+    //! Specific Impulse
+    JSON_UNIT_ISP,
+    //! Holder for number of entries
+    JSON_UNIT_COUNT
+    } ;
 
 //! JSON Namelist Group
 enum
-	{
-	//! Absolute pointer
-	JSON_GROUP_ABSOLUTE,
-	//! ::nodestruc
-	JSON_GROUP_NODE,
-	//! ::agentstruc
-	JSON_GROUP_AGENT,
-	//! ::devicestruc
-	JSON_GROUP_DEVICE,
-	//! ::devspecstruc
-	JSON_GROUP_DEVSPEC,
-	//! ::physstruc
-	JSON_GROUP_PHYSICS,
-	//! ::eventstruc
-	JSON_GROUP_EVENT,
-	//! ::piecestruc
-	JSON_GROUP_PIECE,
-	//! ::targetstrunc
-	JSON_GROUP_TARGET,
-	//! ::userstruc
-	JSON_GROUP_USER,
-	//! ::portstruc
-	JSON_GROUP_PORT,
-	//! ::glossarystruc
-	JSON_GROUP_GLOSSARY,
-	//! ::tlestruc
-	JSON_GROUP_TLE,
-	//! ::aliasstruc
-	JSON_GROUP_ALIAS,
-	//! ::equationstruc
-	JSON_GROUP_EQUATION
-	};
+    {
+    //! Absolute pointer
+    JSON_GROUP_ABSOLUTE,
+    //! ::nodestruc
+    JSON_GROUP_NODE,
+    //! ::agentstruc
+    JSON_GROUP_AGENT,
+    //! ::devicestruc
+    JSON_GROUP_DEVICE,
+    //! ::devspecstruc
+    JSON_GROUP_DEVSPEC,
+    //! ::physstruc
+    JSON_GROUP_PHYSICS,
+    //! ::eventstruc
+    JSON_GROUP_EVENT,
+    //! ::piecestruc
+    JSON_GROUP_PIECE,
+    //! ::targetstrunc
+    JSON_GROUP_TARGET,
+    //! ::userstruc
+    JSON_GROUP_USER,
+    //! ::portstruc
+    JSON_GROUP_PORT,
+    //! ::glossarystruc
+    JSON_GROUP_GLOSSARY,
+    //! ::tlestruc
+    JSON_GROUP_TLE,
+    //! ::aliasstruc
+    JSON_GROUP_ALIAS,
+    //! ::equationstruc
+    JSON_GROUP_EQUATION
+    };
 
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
 enum
-	{
-	//! JSON 8 bit unsigned integer type
-	JSON_TYPE_UINT8=1,
-	//! JSON 8 bit signed integer type
-	JSON_TYPE_INT8,
-	//! JSON 32 bit unsigned integer type
-	JSON_TYPE_UINT32,
-	//! JSON 16 bit unsigned integer type
-	JSON_TYPE_UINT16,
-	//! JSON 16 bit integer type
-	JSON_TYPE_INT16,
-	//! JSON 32 bit integer type
-	JSON_TYPE_INT32,
-	//! JSON single precision floating point type
-	JSON_TYPE_FLOAT,
-	//! JSON double precision floating point type
-	JSON_TYPE_DOUBLE,
-	//! JSON string type
-	JSON_TYPE_STRING,
-	//! JSON Name type
-	JSON_TYPE_NAME,
-	//! JSON ::rvector
-	JSON_TYPE_RVECTOR,
-	//! JSON 3 element ::rvector
-	JSON_TYPE_TVECTOR,
-	//! JSON ::cvector
-	JSON_TYPE_CVECTOR,
-	//! JSON ::quaternion type
-	JSON_TYPE_QUATERNION,
-	//! JSON ::gvector
-	JSON_TYPE_GVECTOR,
-	//! JSON ::svector
-	JSON_TYPE_SVECTOR,
-	//! JSON 3x3 ::rmatrix
-	JSON_TYPE_DCM,
-	//! JSON ::rmatrix
-	JSON_TYPE_RMATRIX,
-	//! JSON ::cartpos
-	JSON_TYPE_CARTPOS,
-	//! JSON ::qatt
-	JSON_TYPE_QATT,
-	//! JSON ::dcmatt
-	JSON_TYPE_DCMATT,
-	//! JSON ::posstruc
-	JSON_TYPE_POSSTRUC,
-	//! JSON ::attstruc
-	JSON_TYPE_ATTSTRUC,
-	//! JSON Agent Heartbeat
-	JSON_TYPE_HBEAT,
-	//! JSON Solar Barycentric Position
-	JSON_TYPE_POS_BARYC,
-	//! JSON Earth Centered Inertial Position
-	JSON_TYPE_POS_ECI,
-	//! JSON Lunar Centered Inertial Position
-	JSON_TYPE_POS_SCI,
-	//! JSON Geocentric Position
-	JSON_TYPE_POS_GEOC,
-	//! JSON Selenocentric Position
-	JSON_TYPE_POS_SELC,
-	//! JSON Geodetic Position
-	JSON_TYPE_POS_GEOD,
-	//! JSON Geocentric Spherical
-	JSON_TYPE_POS_GEOS,
-	//! JSON Selenographic Position
-	JSON_TYPE_POS_SELG,
-	//! JSON Topocentric Attitude
-	JSON_TYPE_QATT_TOPO,
-	//! JSON Geocentric Attitude
-	JSON_TYPE_QATT_GEOC,
-	//! JSON Lunar Centered Inertial Attitude
-	JSON_TYPE_QATT_SELC,
-	//! JSON Earth Centered Inertial Attitude
-	JSON_TYPE_QATT_ICRF,
-	//! JSON LVLH Attitude
-	JSON_TYPE_QATT_LVLH,
-	//! JSON Satellite Position Structure
-	JSON_TYPE_LOC_POS,
-	//! JSON Satellite Attitude Structure
-	JSON_TYPE_LOC_ATT,
-	//! JSON ::locstruc type
-	JSON_TYPE_LOC,
-	//! JSON Timestamp
-	JSON_TYPE_TIMESTAMP,
-	//! JSON Equation
-	JSON_TYPE_EQUATION,
-	//! JSON Alias
-	JSON_TYPE_ALIAS
-	};
+    {
+    //! JSON 8 bit unsigned integer type
+    JSON_TYPE_UINT8=1,
+    //! JSON 8 bit signed integer type
+    JSON_TYPE_INT8,
+    //! JSON 32 bit unsigned integer type
+    JSON_TYPE_UINT32,
+    //! JSON 16 bit unsigned integer type
+    JSON_TYPE_UINT16,
+    //! JSON 16 bit integer type
+    JSON_TYPE_INT16,
+    //! JSON 32 bit integer type
+    JSON_TYPE_INT32,
+    //! JSON single precision floating point type
+    JSON_TYPE_FLOAT,
+    //! JSON double precision floating point type
+    JSON_TYPE_DOUBLE,
+    //! JSON std::string type
+    JSON_TYPE_STRING,
+    //! JSON Name type
+    JSON_TYPE_NAME,
+    //! JSON ::rvector
+    JSON_TYPE_RVECTOR,
+    //! JSON 3 element ::rvector
+    JSON_TYPE_TVECTOR,
+    //! JSON ::cvector
+    JSON_TYPE_CVECTOR,
+    //! JSON ::quaternion type
+    JSON_TYPE_QUATERNION,
+    //! JSON ::gvector
+    JSON_TYPE_GVECTOR,
+    //! JSON ::svector
+    JSON_TYPE_SVECTOR,
+    //! JSON 3x3 ::rmatrix
+    JSON_TYPE_DCM,
+    //! JSON ::rmatrix
+    JSON_TYPE_RMATRIX,
+    //! JSON ::cartpos
+    JSON_TYPE_CARTPOS,
+    //! JSON ::qatt
+    JSON_TYPE_QATT,
+    //! JSON ::dcmatt
+    JSON_TYPE_DCMATT,
+    //! JSON ::posstruc
+    JSON_TYPE_POSSTRUC,
+    //! JSON ::attstruc
+    JSON_TYPE_ATTSTRUC,
+    //! JSON Agent Heartbeat
+    JSON_TYPE_HBEAT,
+    //! JSON Solar Barycentric Position
+    JSON_TYPE_POS_BARYC,
+    //! JSON Earth Centered Inertial Position
+    JSON_TYPE_POS_ECI,
+    //! JSON Lunar Centered Inertial Position
+    JSON_TYPE_POS_SCI,
+    //! JSON Geocentric Position
+    JSON_TYPE_POS_GEOC,
+    //! JSON Selenocentric Position
+    JSON_TYPE_POS_SELC,
+    //! JSON Geodetic Position
+    JSON_TYPE_POS_GEOD,
+    //! JSON Geocentric Spherical
+    JSON_TYPE_POS_GEOS,
+    //! JSON Selenographic Position
+    JSON_TYPE_POS_SELG,
+    //! JSON Topocentric Attitude
+    JSON_TYPE_QATT_TOPO,
+    //! JSON Geocentric Attitude
+    JSON_TYPE_QATT_GEOC,
+    //! JSON Lunar Centered Inertial Attitude
+    JSON_TYPE_QATT_SELC,
+    //! JSON Earth Centered Inertial Attitude
+    JSON_TYPE_QATT_ICRF,
+    //! JSON LVLH Attitude
+    JSON_TYPE_QATT_LVLH,
+    //! JSON Satellite Position Structure
+    JSON_TYPE_LOC_POS,
+    //! JSON Satellite Attitude Structure
+    JSON_TYPE_LOC_ATT,
+    //! JSON ::locstruc type
+    JSON_TYPE_LOC,
+    //! JSON Timestamp
+    JSON_TYPE_TIMESTAMP,
+    //! JSON Equation
+    JSON_TYPE_EQUATION,
+    //! JSON Alias
+    JSON_TYPE_ALIAS
+    };
 
 //! Types of equation operands
 enum
-	{
-	//! Nothing at all
-	JSON_OPERAND_NULL,
-	//! A simple constant
-	JSON_OPERAND_CONSTANT,
-	//! A Namespace name
-	JSON_OPERAND_NAME,
-	//! Another equation
-	JSON_OPERAND_EQUATION
-	};
+    {
+    //! Nothing at all
+    JSON_OPERAND_NULL,
+    //! A simple constant
+    JSON_OPERAND_CONSTANT,
+    //! A Namespace name
+    JSON_OPERAND_NAME,
+    //! Another equation
+    JSON_OPERAND_EQUATION
+    };
 
 //! Types of equation operations
 enum
-	{
-	//! Addition
-	JSON_OPERATION_ADD,
-	//! Subtraction
-	JSON_OPERATION_SUBTRACT,
-	//! Multiplication
-	JSON_OPERATION_MULTIPLY,
-	//! Division
-	JSON_OPERATION_DIVIDE,
-	//! Modulo
-	JSON_OPERATION_MOD,
-	//! Boolean And
-	JSON_OPERATION_AND,
-	//! Boolean Or
-	JSON_OPERATION_OR,
-	//! Boolean Greater Than
-	JSON_OPERATION_GT,
-	//! Boolean Less Than
-	JSON_OPERATION_LT,
-	//! Boolean Equal
-	JSON_OPERATION_EQ,
-	//! Logical Not
-	JSON_OPERATION_NOT,
-	//! Complement
-	JSON_OPERATION_COMPLEMENT,
-	//! Power
-	JSON_OPERATION_POWER
-	};
+    {
+    //! Addition
+    JSON_OPERATION_ADD,
+    //! Subtraction
+    JSON_OPERATION_SUBTRACT,
+    //! Multiplication
+    JSON_OPERATION_MULTIPLY,
+    //! Division
+    JSON_OPERATION_DIVIDE,
+    //! Modulo
+    JSON_OPERATION_MOD,
+    //! Boolean And
+    JSON_OPERATION_AND,
+    //! Boolean Or
+    JSON_OPERATION_OR,
+    //! Boolean Greater Than
+    JSON_OPERATION_GT,
+    //! Boolean Less Than
+    JSON_OPERATION_LT,
+    //! Boolean Equal
+    JSON_OPERATION_EQ,
+    //! Logical Not
+    JSON_OPERATION_NOT,
+    //! Complement
+    JSON_OPERATION_COMPLEMENT,
+    //! Power
+    JSON_OPERATION_POWER
+    };
 
 #define HCAP 800.
 
@@ -401,81 +401,108 @@ enum
 //! \defgroup defs_comp_type Type of Component.
 //! @{
 enum
-	{
-	//! Payload
-	DEVICE_TYPE_PLOAD=0,
-	//! Elevation and Azimuth Sun Sensor
-	DEVICE_TYPE_SSEN=1,
-	//! Inertial Measurement Unit
-	DEVICE_TYPE_IMU=2,
-	//! Reaction Wheel
-	DEVICE_TYPE_RW=3,
-	//! Magnetic Torque Rod
-	DEVICE_TYPE_MTR=4,
-	//! Processing Unit
-	DEVICE_TYPE_CPU=5,
-	//! GPS Unit
-	DEVICE_TYPE_GPS=6,
-	//! Antenna
-	DEVICE_TYPE_ANT=7,
-	//! Radio Receiver
-	DEVICE_TYPE_RXR=8,
-	//! Radio Transmitter
-	DEVICE_TYPE_TXR=9,
-	//! Radio Transceiver
-	DEVICE_TYPE_TCV=10,
-	//! Photo Voltaic String
-	DEVICE_TYPE_STRG=11,
-	//! Battery
-	DEVICE_TYPE_BATT=12,
-	//! Heater
-	DEVICE_TYPE_HTR=13,
-	//! Motor
-	DEVICE_TYPE_MOTR=14,
-	//! Temperature Sensor
-	DEVICE_TYPE_TSEN=15,
-	//! Thruster
-	DEVICE_TYPE_THST=16,
-	//! Propellant Tank
-	DEVICE_TYPE_PROP=17,
-	//! Switch
-	DEVICE_TYPE_SWCH=18,
-	//! Rotor
-	DEVICE_TYPE_ROT=19,
-	//! Star Tracker
-	DEVICE_TYPE_STT=20,
-	//! Motion Capture Camera
-	DEVICE_TYPE_MCC=21,
-	//! Torque rod Control Unit
-	DEVICE_TYPE_TCU=22,
-	//! Power Bus
-	DEVICE_TYPE_BUS=23,
-	//! Pressure sensor
-	DEVICE_TYPE_PSEN=24,
-	//! SUCHI
-	DEVICE_TYPE_SUCHI=25,
-	//! Camera
-	DEVICE_TYPE_CAM=26,
-	//! Telemetry
-	DEVICE_TYPE_TELEM=27,
-	//! List count
-	DEVICE_TYPE_COUNT,
-	//! Not a Component
-	DEVICE_TYPE_NONE=65535
-	};
+    {
+    //! Payload
+    DEVICE_TYPE_PLOAD=0,
+    //! Elevation and Azimuth Sun Sensor
+    DEVICE_TYPE_SSEN=1,
+    //! Inertial Measurement Unit
+    DEVICE_TYPE_IMU=2,
+    //! Reaction Wheel
+    DEVICE_TYPE_RW=3,
+    //! Magnetic Torque Rod
+    DEVICE_TYPE_MTR=4,
+    //! Processing Unit
+    DEVICE_TYPE_CPU=5,
+    //! GPS Unit
+    DEVICE_TYPE_GPS=6,
+    //! Antenna
+    DEVICE_TYPE_ANT=7,
+    //! Radio Receiver
+    DEVICE_TYPE_RXR=8,
+    //! Radio Transmitter
+    DEVICE_TYPE_TXR=9,
+    //! Radio Transceiver
+    DEVICE_TYPE_TCV=10,
+    //! Photo Voltaic String
+    DEVICE_TYPE_STRG=11,
+    //! Battery
+    DEVICE_TYPE_BATT=12,
+    //! Heater
+    DEVICE_TYPE_HTR=13,
+    //! Motor
+    DEVICE_TYPE_MOTR=14,
+    //! Temperature Sensor
+    DEVICE_TYPE_TSEN=15,
+    //! Thruster
+    DEVICE_TYPE_THST=16,
+    //! Propellant Tank
+    DEVICE_TYPE_PROP=17,
+    //! Switch
+    DEVICE_TYPE_SWCH=18,
+    //! Rotor
+    DEVICE_TYPE_ROT=19,
+    //! Star Tracker
+    DEVICE_TYPE_STT=20,
+    //! Motion Capture Camera
+    DEVICE_TYPE_MCC=21,
+    //! Torque rod Control Unit
+    DEVICE_TYPE_TCU=22,
+    //! Power Bus
+    DEVICE_TYPE_BUS=23,
+    //! Pressure sensor
+    DEVICE_TYPE_PSEN=24,
+    //! SUCHI
+    DEVICE_TYPE_SUCHI=25,
+    //! Camera
+    DEVICE_TYPE_CAM=26,
+    //! Telemetry
+    DEVICE_TYPE_TELEM=27,
+    //! List count
+    DEVICE_TYPE_COUNT,
+    //! Not a Component
+    DEVICE_TYPE_NONE=65535
+    };
 
 enum
-	{
-	TELEM_TYPE_UINT8,
-	TELEM_TYPE_INT8,
-	TELEM_TYPE_UINT16,
-	TELEM_TYPE_INT16,
-	TELEM_TYPE_UINT32,
-	TELEM_TYPE_INT32,
-	TELEM_TYPE_FLOAT,
-	TELEM_TYPE_DOUBLE,
-	TELEM_TYPE_STRING
-	};
+    {
+    DEVICE_MODEL_ASTRODEV=0,
+    DEVICE_MODEL_TS2000=1,
+    DEVICE_MODEL_IC9100=2,
+    DEVICE_MODEL_GS232B=3,
+    DEVICE_MODEL_PRKX2SU=4
+    };
+
+enum
+    {
+    DEVICE_RADIO_MODE_AM,
+    DEVICE_RADIO_MODE_AMD,
+    DEVICE_RADIO_MODE_FM,
+    DEVICE_RADIO_MODE_FMD,
+    DEVICE_RADIO_MODE_LSB,
+    DEVICE_RADIO_MODE_LSBD,
+    DEVICE_RADIO_MODE_USB,
+    DEVICE_RADIO_MODE_USBD,
+    DEVICE_RADIO_MODE_DV,
+    DEVICE_RADIO_MODE_DVD,
+    DEVICE_RADIO_MODE_CW,
+    DEVICE_RADIO_MODE_CWR,
+    DEVICE_RADIO_MODE_RTTY,
+    DEVICE_RADIO_MODE_RTTYR
+    };
+
+enum
+    {
+    TELEM_TYPE_UINT8,
+    TELEM_TYPE_INT8,
+    TELEM_TYPE_UINT16,
+    TELEM_TYPE_INT16,
+    TELEM_TYPE_UINT32,
+    TELEM_TYPE_INT32,
+    TELEM_TYPE_FLOAT,
+    TELEM_TYPE_DOUBLE,
+    TELEM_TYPE_STRING
+    };
 
 //! @}
 
@@ -498,23 +525,23 @@ enum
 #define DEVICE_FLAG_OFF			0x0000
 #define DEVICE_FLAG_ON			0x0001
 #define DEVICE_FLAG_SIMULATED	0x0002
-#define DEVICE_FLAG_ACTIVE      0x0004
-#define DEVICE_FLAG_CONNECTED   0x0008
+#define DEVICE_FLAG_ACTIVE      0x0004 // TODO: define device active
+#define DEVICE_FLAG_CONNECTED   0x0008 // TODO: define device connected
 //! @}
 
 //! \ingroup defs_comp
 //! \defgroup defs_comp_port IO Port types.
 //! @{
 //!
-enum
-	{
-	PORT_TYPE_RS232 = 0,
-	PORT_TYPE_RS422 = 1,
-	PORT_TYPE_ETHERNET = 2,
-	PORT_TYPE_USB = 3,
-	PORT_TYPE_COUNT,
-	PORT_TYPE_NONE = 65535
-	};
+enum PORT_TYPE
+    {
+    PORT_TYPE_RS232 = 0,
+    PORT_TYPE_RS422 = 1,
+    PORT_TYPE_ETHERNET = 2,
+    PORT_TYPE_USB = 3,
+    PORT_TYPE_COUNT,
+    PORT_TYPE_NONE = 65535
+    };
 
 //! @}
 //! @}
@@ -524,7 +551,7 @@ enum
 //! @{
 
 //! JSON unit type entry
-/*! To be used in the ::json_map table of units. Each entry represents
+/*! To be used in the ::cosmosstruc table of units. Each entry represents
  * one specific variant of one type of unit. Each entry includes:
  * - a name for the unit
  * - a type for the unit conversion: 0 = identity, 1 = linear, 2 = log
@@ -532,62 +559,62 @@ enum
  */
 struct unitstruc
 {
-	//! JSON Unit Name
-	string name;
-	//! JSON Unit conversion type
-	uint16_t type;
-	//! 0th derivative term
-	float p0;
-	//! 1th derivative term
-	float p1;
-	//! 2th derivative term
-	float p2;
+    //! JSON Unit Name
+    std::string name;
+    //! JSON Unit conversion type
+    uint16_t type;
+    //! 0th derivative term
+    float p0;
+    //! 1th derivative term
+    float p1;
+    //! 2th derivative term
+    float p2;
 };
 
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
  * to a single object, along with its data type.
- * - index: Index of this entry in the ::json_map.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonentry
 {
-	//! JSON Data Type
-	uint16_t type;
-	//! JSON Data Group
-	uint16_t group;
-	//! Name of entry
-	string name;
-	//! offset to data storage
-	ptrdiff_t offset;
-	//! size of data storage
-	size_t size;
-	//! vector of actual data
-	vector <uint8_t> data;
-	//! Index to JSON Unit Type
-	uint16_t unit_index;
-	//! Index to alert condition in Data Dictionary
-	uint16_t alert_index;
-	//! Index to alarm condition in Data Dictionary
-	uint16_t alarm_index;
-	//! Index to maximum condition in Data Dictionary
-	uint16_t maximum_index;
-	//! Index to minimum condition in Data Dictionary
-	uint16_t minimum_index;
-	//! Index to subsystem
-	uint16_t subsystem;
+    //! JSON Data Type
+    uint16_t type;
+    //! JSON Data Group
+    uint16_t group;
+    //! Name of entry
+    std::string name;
+    //! offset to data storage
+    ptrdiff_t offset;
+    //! size of data storage
+    size_t size;
+    //! vector of actual data
+    std::vector <uint8_t> data;
+    //! Index to JSON Unit Type
+    uint16_t unit_index;
+    //! Index to alert condition in Data Dictionary
+    uint16_t alert_index;
+    //! Index to alarm condition in Data Dictionary
+    uint16_t alarm_index;
+    //! Index to maximum condition in Data Dictionary
+    uint16_t maximum_index;
+    //! Index to minimum condition in Data Dictionary
+    uint16_t minimum_index;
+    //! Index to subsystem
+    uint16_t subsystem;
 };
 
 //! JSON handle
 /*! Structure representing the location of a single JSON Equation or Name in its respective
-	hash table.
+    hash table.
 */
 struct jsonhandle
 {
-	// Hash of equation or name
-	uint16_t hash;
-	// Index within that hash entry
-	uint16_t index;
+    // Hash of equation or name
+    uint16_t hash;
+    // Index within that hash entry
+    uint16_t index;
 };
 
 //! JSON token
@@ -596,44 +623,44 @@ struct jsonhandle
  */
 struct jsontoken
 {
-	jsonhandle handle;
-	string value;
-	double utc;
+    jsonhandle handle;
+    std::string value;
+    double utc;
 };
 
 //! JSON equation operand
 /*! Structure representing a single operand of a JSON equation. Each operand can be one
-	of: JSON_OPERAND_NULL, no operand; JSON_OPERAND_EQUATION, another equation;
-	JSON_OPERAND_CONSTANT, a constant value; or JSON_OPERAND_NAME, a Namespace name.
+    of: JSON_OPERAND_NULL, no operand; JSON_OPERAND_EQUATION, another equation;
+    JSON_OPERAND_CONSTANT, a constant value; or JSON_OPERAND_NAME, a Namespace name.
 */
 struct jsonoperand
 {
-	//! JSON Operand Type
-	uint16_t type;
-	//! JSON Operand data: CONSTANT uses value, EQUATION and NAME use ::jsonhandle.
-	union
-	{
-		double value;
-		jsonhandle data;
-	};
+    //! JSON Operand Type
+    uint16_t type;
+    //! JSON Operand data: CONSTANT uses value, EQUATION and NAME use ::jsonhandle.
+    union
+    {
+        double value;
+        jsonhandle data;
+    };
 };
 
 //! JSON equation entry
 /*! Single entry in a JSON equation map. Ties together a JSON equation and its
  * preparsed form.
- * - index: Index of this entry in the ::json_map.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonequation
 {
-	//! JSON equation text
-	char *text;
-	//! Index to JSON Unit Type
-	uint16_t unit_index;
-	//! JSON equation operation
-	uint16_t operation;
-	//! JSON equation operands
-	jsonoperand operand[2];
+    //! JSON equation text
+    char *text;
+    //! Index to JSON Unit Type
+    uint16_t unit_index;
+    //! JSON equation operation
+    uint16_t operation;
+    //! JSON equation operands
+    jsonoperand operand[2];
 };
 
 //! JSON pointer map
@@ -643,8 +670,8 @@ struct jsonequation
 */
 struct jsonmap
 {
-	//! Array of entries
-	vector<vector<jsonentry> > entry;
+    //! Array of entries
+    std::vector<std::vector<jsonentry> > entry;
 };
 
 //! Agent Request Function
@@ -655,95 +682,101 @@ typedef int32_t (*agent_request_function)(char* request_string, char* output_str
 //! Structure representing a single Agent request.
 struct agent_request_entry
 {
-	//! Character token for request
-	char token[COSMOS_MAX_NAME];
-	//! Pointer to function to call with request string as argument and returning any error
-	agent_request_function function;
-	string synopsis;
-	string description;
+    //! Character token for request
+    std::string token;
+    //! Pointer to function to call with request string as argument and returning any error
+    agent_request_function function;
+    std::string synopsis;
+    std::string description;
 };
 
 //! Channel structure
 //! This structure stores the information about an open COSMOS network channel.
 struct agent_channel
 {
-	// Channel type
-	int32_t type;
-	// Channel UDP socket handle
-	int32_t cudp;
-	// Channel UDP INET4 address
-	struct sockaddr_in caddr;
-	// Channel UDP INET4 broadcast address
-	struct sockaddr_in baddr;
-	// Channel UDP INET6 address
-	struct sockaddr_in6 caddr6;
-	// Length for chosen address
-	int addrlen;
-	// Channel port
-	uint16_t cport;
-	// Channel's maximum message size
-	uint16_t msgsize;
-	// Channel's protocol address in string form
-	char address[17];
-	// Channel's broadcast address in string form
-	char baddress[17];
-	// Channel's interface name
-	char name[COSMOS_MAX_NAME];
+    // Channel type
+    int32_t type;
+    // Channel UDP socket handle
+    int32_t cudp;
+    // Channel UDP INET4 address
+    struct sockaddr_in caddr;
+    // Channel UDP INET4 broadcast address
+    struct sockaddr_in baddr;
+    // Channel UDP INET6 address
+    struct sockaddr_in6 caddr6;
+    // Length for chosen address
+    int addrlen;
+    // Channel port
+    uint16_t cport;
+    // Channel's maximum message size
+    uint16_t msgsize;
+    // Channel's protocol address in string form
+    char address[18];
+    // Channel's broadcast address in std::string form
+    char baddress[18];
+    // Channel's interface name
+    char name[COSMOS_MAX_NAME+1];
 };
 
 //! Process heartbeat.
 //! Detailed elements of a single heartbeat of a single process.
 struct beatstruc
 {
-	// Heartbeat timestamp
-	double utc;
-	// Heartbeat Node Name
-	char node[COSMOS_MAX_NAME+1];
-	//! Heartbeat Agent Name
-	char proc[COSMOS_MAX_NAME+1];
-	// Type of address protocol
-	uint16_t ntype;
-	//! Protocol Address
-	char addr[17];
-	//! AGENT port
-	uint16_t port;
-	//! Transfer buffer size
-	uint32_t bsz;
-	//! Heartbeat period in seconds
-	double bprd;
-	//! Agent User Name
-	char user[COSMOS_MAX_NAME+1];
+    // Heartbeat timestamp
+    double utc;
+    // Heartbeat Node Name
+    char node[COSMOS_MAX_NAME+1];
+    //! Heartbeat Agent Name
+    char proc[COSMOS_MAX_NAME+1];
+    // Type of address protocol
+    uint16_t ntype;
+    //! Protocol Address
+    char addr[18];
+    //! AGENT port
+    uint16_t port;
+    //! Transfer buffer size
+    uint32_t bsz;
+    //! Heartbeat period in seconds
+    double bprd;
+    //! Agent User Name
+    char user[COSMOS_MAX_NAME+1];
+    //! Agent % CPU
+    float cpu;
+    //! Agent % memory
+    float memory;
+    //! Agent heartbeat jitter [sec]
+    double jitter;
 };
 
 //! Agent control structure
 struct agentstruc
 {
-	//! Client initialized?
-	bool client;
-	//! Subscription channel (for Client)
-	socket_channel sub;
-	//! Server initialized?
-	bool server;
-	//! Number of network interfaces
-	int ifcnt;
-	//! Publication channels for each interface (for Server)
-	socket_channel pub[AGENTMAXIF];
-	//! Request channel (for Server)
-	socket_channel req;
-	//! Agent process ID
-	int32_t pid;
-	//! Activity period in seconds
-	double aprd;
-	//! Agent Running State Flag
-	uint16_t stateflag;
-	//! State of Health report string
-	//	char sohstring[AGENTMAXBUFFER];
-	//! Agent request list
-	vector <agent_request_entry> reqs;
-	//! Heartbeat
-	beatstruc beat;
-	//! State of Health element vector
-	vector<jsonentry*> sohtable;
+    //! Client initialized?
+    bool client;
+    //! Subscription channel (for Client)
+    socket_channel sub;
+    //! Server initialized?
+    bool server;
+    //! Number of network interfaces
+    int ifcnt;
+    //! Publication channels for each interface (for Server)
+    socket_channel pub[AGENTMAXIF];
+    //! Request channel (for Server)
+    socket_channel req;
+    //! Agent process ID
+    int32_t pid;
+    //! Activity period in seconds
+    double aprd;
+    //! Agent Running State Flag
+    uint16_t stateflag;
+    //! State of Health report string
+    //	char sohstring[AGENTMAXBUFFER];
+    //! Agent request list
+    std::vector <agent_request_entry> reqs;
+    //! Heartbeat
+    beatstruc beat;
+    //! State of Health element vector
+    std::vector<jsonentry*> sohtable;
 };
 
 //! Long COSMOS Event structure.
@@ -752,44 +785,44 @@ struct agentstruc
  */
 struct longeventstruc
 {
-	//! Time event is to start.
-	double utc;
-	//! Time event was executed.
-	double utcexec;
-	//! Node for event
-	char node[COSMOS_MAX_NAME];
-	//! Name of event.
-	char name[COSMOS_MAX_NAME];
-	//! User of event.
-	char user[COSMOS_MAX_NAME];
-	//! Event flags.
-	uint32_t flag;
-	//! Event type.
-	uint32_t type;
-	//! Value of condition
-	double value;
-	//! Event initial time consumed.
-	double dtime;
-	//! Event continuous time consumed.
-	double ctime;
-	//! Event initial energy consumed.
-	float denergy;
-	//! Event continuous energy consumed.
-	float cenergy;
-	//! Event initial mass consumed.
-	float dmass;
-	//! Event continuous mass consumed.
-	float cmass;
-	//! Event initial bytes consumed.
-	float dbytes;
-	//! Event continuous bytes consumed.
-	float cbytes;
-	//! Handle of condition that caused event, NULL if timed event.
-	jsonhandle handle;
-	//! Event specific data.
-	char data[JSON_MAX_DATA];
-	//! Condition that caused event, NULL if timed event.
-	char condition[JSON_MAX_DATA];
+    //! Time event is to start.
+    double utc;
+    //! Time event was executed.
+    double utcexec;
+    //! Node for event
+    char node[COSMOS_MAX_NAME+1];
+    //! Name of event.
+    char name[COSMOS_MAX_NAME+1];
+    //! User of event.
+    char user[COSMOS_MAX_NAME+1];
+    //! Event flags.
+    uint32_t flag;
+    //! Event type.
+    uint32_t type;
+    //! Value of condition
+    double value;
+    //! Event initial time consumed.
+    double dtime;
+    //! Event continuous time consumed.
+    double ctime;
+    //! Event initial energy consumed.
+    float denergy;
+    //! Event continuous energy consumed.
+    float cenergy;
+    //! Event initial mass consumed.
+    float dmass;
+    //! Event continuous mass consumed.
+    float cmass;
+    //! Event initial bytes consumed.
+    float dbytes;
+    //! Event continuous bytes consumed.
+    float cbytes;
+    //! Handle of condition that caused event, NULL if timed event.
+    jsonhandle handle;
+    //! Event specific data.
+    char data[JSON_MAX_DATA];
+    //! Condition that caused event, NULL if timed event.
+    char condition[JSON_MAX_DATA];
 };
 
 //! Shortened COSMOS Event structure
@@ -798,42 +831,42 @@ struct longeventstruc
  */
 struct shorteventstruc
 {
-	//! Time event is to start.
-	double utc;
-	//! Time event was executed.
-	double utcexec;
-	//! Node for event
-	char node[COSMOS_MAX_NAME];
-	//! Name of event.
-	char name[COSMOS_MAX_NAME];
-	//! User of event.
-	char user[COSMOS_MAX_NAME];
-	//! Event flags.
-	uint32_t flag;
-	//! Event type.
-	uint32_t type;
-	//! Value of condition
-	double value;
-	//! Event initial time consumed.
-	double dtime;
-	//! Event continuous time consumed.
-	double ctime;
-	//! Event initial energy consumed.
-	float denergy;
-	//! Event continuous energy consumed.
-	float cenergy;
-	//! Event initial mass consumed.
-	float dmass;
-	//! Event continuous mass consumed.
-	float cmass;
-	//! Event initial bytes consumed.
-	float dbytes;
-	//! Event continuous bytes consumed.
-	float cbytes;
-	//! Handle of condition that caused event, NULL if timed event.
-	jsonhandle handle;
-	//! Event specific data.
-	char data[COSMOS_MAX_NAME];
+    //! Time event is to start.
+    double utc;
+    //! Time event was executed.
+    double utcexec;
+    //! Node for event
+    char node[COSMOS_MAX_NAME+1];
+    //! Name of event.
+    char name[COSMOS_MAX_NAME+1];
+    //! User of event.
+    char user[COSMOS_MAX_NAME+1];
+    //! Event flags.
+    uint32_t flag;
+    //! Event type.
+    uint32_t type;
+    //! Value of condition
+    double value;
+    //! Event initial time consumed.
+    double dtime;
+    //! Event continuous time consumed.
+    double ctime;
+    //! Event initial energy consumed.
+    float denergy;
+    //! Event continuous energy consumed.
+    float cenergy;
+    //! Event initial mass consumed.
+    float dmass;
+    //! Event continuous mass consumed.
+    float cmass;
+    //! Event initial bytes consumed.
+    float dbytes;
+    //! Event continuous bytes consumed.
+    float cbytes;
+    //! Handle of condition that caused event, NULL if timed event.
+    jsonhandle handle;
+    //! Event specific data.
+    char data[COSMOS_MAX_NAME+1];
 };
 
 //! Full COSMOS Event structure
@@ -842,8 +875,8 @@ struct shorteventstruc
  */
 union eventstruc
 {
-	shorteventstruc s;
-	longeventstruc l;
+    shorteventstruc s;
+    longeventstruc l;
 };
 
 //! User structure
@@ -851,10 +884,10 @@ union eventstruc
  */
 struct userstruc
 {
-	char name[COSMOS_MAX_NAME];
-	char node[COSMOS_MAX_NAME];
-	char tool[COSMOS_MAX_NAME];
-	char cpu[COSMOS_MAX_NAME];
+    char name[COSMOS_MAX_NAME+1];
+    char node[COSMOS_MAX_NAME+1];
+    char tool[COSMOS_MAX_NAME+1];
+    char cpu[COSMOS_MAX_NAME+1];
 };
 
 //! Glossary structure
@@ -863,12 +896,12 @@ and types.
 */
 struct glossarystruc
 {
-	// Glossary entry name.
-	string name;
-	// Glossary entry description, to be interpreted based on its type.
-	string description;
-	// Glossary entry ::namespace type.
-	uint16_t type;
+    // Glossary entry name.
+    std::string name;
+    // Glossary entry description, to be interpreted based on its type.
+    std::string description;
+    // Glossary entry ::namespace type.
+    uint16_t type;
 };
 
 //! Alias structure
@@ -877,10 +910,12 @@ struct glossarystruc
 */
 struct aliasstruc
 {
-	// Alias name
-	string name;
-	// Namespace handle
-	jsonhandle handle;
+    // Alias name
+    std::string name;
+    // Namespace handle
+    jsonhandle handle;
+    //! JSON Data Type
+    uint16_t type;
 };
 
 //! Equation structure
@@ -888,10 +923,10 @@ struct aliasstruc
 */
 struct equationstruc
 {
-	// Equation name
-	string name;
-	// Equation string
-	string value;
+    // Equation name
+    std::string name;
+    // Equation string
+    std::string value;
 };
 
 
@@ -900,74 +935,74 @@ struct equationstruc
 */
 struct targetstruc
 {
-	double utc;
-	char name[COSMOS_MAX_NAME];
-	uint16_t type;
-	float azfrom;
-	float elfrom;
-	float azto;
-	float elto;
-	double range;
-	double close;
-	float min;
-	locstruc loc;
+    double utc;
+    char name[COSMOS_MAX_NAME+1];
+    uint16_t type;
+    float azfrom;
+    float elfrom;
+    float azto;
+    float elto;
+    double range;
+    double close;
+    float min;
+    locstruc loc;
 };
 
 //! Port structure
 /*! Contains information about I/O ports available to devices. The
- * ::portidx entry in each device structure indicates which of these
+ * ::genstruc::portidx entry in each device structure indicates which of these
  * ports a device will use.
  */
 struct portstruc
 {
-	//! Type of I/O as listed in ::def_comp_port.
-	uint16_t type;
-	//! Name information for port.
+    //! Type of I/O as listed in ::PORT_TYPE.
+    uint16_t type;
+    //! Name information for port.
     //!!! Change 'char' to 'string'
-	char name[COSMOS_MAX_NAME];
+    char name[COSMOS_MAX_NAME+1];
 };
 
 //! Part structure: physical information for each piece of Node
 struct piecestruc
 {
-	//! Name of piece
-	char name[COSMOS_MAX_NAME];
-	//! Type of piece from \ref defs_piece.
-	uint16_t type;
-	//! Component index: -1 if not a Component
-	uint16_t cidx;
-	//! Mass in kg
-	float mass;
-	//! Emissivity: 0-1
-	float emi;
-	//! Absorptivity: 0-1
-	float abs;
-	//! Heat capacity in joules per kelvin
-	float hcap;
-	//! Heat conductivity in Watts per meter per kelvin
-	float hcon;
-	//! Dimension in meters: effect is dependent on Part type
-	float dim;
-	//! Area in square meters
-	float area;
-	//! Number of vertices/points
-	uint16_t pnt_cnt;
-	//! Array of vertices/points
-	rvector points[MAXPNT];
-	//! Normal to panel if external
-	rvector normal;
-	//! Centroid of piece
-	rvector centroid;
-	//! Contribution of piece to linear forces
-	rvector shove;
-	//! Contribution of piece to angular forces
-	rvector twist;
-	//! Stored thermal energy
-	float heat;
-	//! Temperature in Kelvins
-	float temp;
-	//! Insolation in Watts/sq m
-	float insol;
+    //! Name of piece
+    char name[COSMOS_MAX_NAME+1];
+    //! Type of piece from \ref defs_piece.
+    uint16_t type;
+    //! Component index: -1 if not a Component
+    uint16_t cidx;
+    //! Mass in kg
+    float mass;
+    //! Emissivity: 0-1
+    float emi;
+    //! Absorptivity: 0-1
+    float abs;
+    //! Heat capacity in joules per kelvin
+    float hcap;
+    //! Heat conductivity in Watts per meter per kelvin
+    float hcon;
+    //! Dimension in meters: effect is dependent on Part type
+    float dim;
+    //! Area in square meters
+    float area;
+    //! Number of vertices/points
+    uint16_t pnt_cnt;
+    //! Array of vertices/points
+    rvector points[MAXPNT];
+    //! Normal to panel if external
+    rvector normal;
+    //! Centroid of piece
+    rvector centroid;
+    //! Contribution of piece to linear forces
+    rvector shove;
+    //! Contribution of piece to angular forces
+    rvector twist;
+    //! Stored thermal energy
+    float heat;
+    //! Temperature in Kelvins
+    float temp;
+    //! Insolation in Watts/sq m
+    float insol;
 };
 
 // Beginning of Device General structures
@@ -980,35 +1015,36 @@ union as a ::devicestruc.
 */
 struct genstruc
 {
-	//! Component Type
-	uint16_t type;
-	//! Device Model
-	uint16_t model;
-    //! Device flag
-    // TODO: explain what is the device flag for?
+    //! Component Type
+    uint16_t type;
+    //! Device Model
+    uint16_t model;
+    //! Device flag - catch all for any small piece of information that might be device specific
     uint16_t flag;
-	//! Component Index
-	uint16_t cidx;
-	//! Device specific index
-	uint16_t didx;
-	//! Piece index
-	uint16_t pidx;
-	//! Power Bus index
-	uint16_t bidx;
-	//! Connection information for device.
+    //! Device specific address
+    uint16_t addr;
+    //! Component Index
+    uint16_t cidx;
+    //! Device specific index
+    uint16_t didx;
+    //! Piece index
+    uint16_t pidx;
+    //! Power Bus index
+    uint16_t bidx;
+    //! Connection information for device.
     uint16_t portidx; // TODO: rename to port_id or port_index
-	//! Nominal Amperage
+    //! Nominal Amperage
     float namp; // TODO: rename to nominal current
-	//! Nominal Voltage
+    //! Nominal Voltage
     float nvolt; // TODO: rename to nominal voltage
-	//! Current Amperage
+    //! Current Amperage
     float amp; // TODO: rename to current
-	//! Current Voltage
+    //! Current Voltage
     float volt; // TODO: rename to voltage
-	//! Current Temperature
+    //! Current Temperature
     float temp; // TODO: rename to temperature
-	//! Device information time stamp
-	double utc;
+    //! Device information time stamp
+    double utc;
 };
 
 //! All structures.
@@ -1016,7 +1052,7 @@ struct genstruc
  */
 struct allstruc
 {
-	genstruc gen;
+    genstruc gen;
 };
 
 // End of Device General structures
@@ -1031,23 +1067,23 @@ struct allstruc
  */
 struct telemstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Data type
-	uint16_t type;
-	//! Union of data
-	union
-	{
-		uint8_t vuint8;
-		int8_t vint8;
-		uint16_t vuint16;
-		int16_t vint16;
-		uint32_t vuint32;
-		int32_t vint32;
-		float vfloat;
-		double vdouble;
-		char vstring[COSMOS_MAX_NAME];
-	};
+    //! Generic info
+    genstruc gen;
+    //! Data type
+    uint16_t type;
+    //! Union of data
+    union
+    {
+        uint8_t vuint8;
+        int8_t vint8;
+        uint16_t vuint16;
+        int16_t vint16;
+        uint32_t vuint32;
+        int32_t vint32;
+        float vfloat;
+        double vdouble;
+        char vstring[COSMOS_MAX_NAME+1];
+    };
 } ;
 
 //! Payload (PLOAD) structure.
@@ -1057,158 +1093,158 @@ struct telemstruc
  */
 struct ploadstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Number of keys being used.
-	uint16_t key_cnt;
-	//! Name for each key.
-	uint16_t keyidx[MAXPLOADKEYCNT];
-	//! Rate at which the payload generates data.
-	uint32_t bps;
-	//! Value for each key.
-	float keyval[MAXPLOADKEYCNT];
+    //! Generic info
+    genstruc gen;
+    //! Number of keys being used.
+    uint16_t key_cnt;
+    //! Name for each key.
+    uint16_t keyidx[MAXPLOADKEYCNT];
+    //! Rate at which the payload generates data.
+    uint32_t bps;
+    //! Value for each key.
+    float keyval[MAXPLOADKEYCNT];
 };
 
 //! Sun Sensor (SSEN) Sructure
 struct ssenstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Sensor alignment quaternion.
-	quaternion align;
-	float qva;
-	float qvb;
-	float qvc;
-	float qvd;
-	float azimuth;
-	float elevation;
+    //! Generic info
+    genstruc gen;
+    //! Sensor alignment quaternion.
+    quaternion align;
+    float qva;
+    float qvb;
+    float qvc;
+    float qvd;
+    float azimuth;
+    float elevation;
 };
 
 //! Inertial Measurement Unit (IMU) structure
 struct imustruc
 {
-	//! Generic info
-	genstruc gen;
-	//! alignment quaternion
-	quaternion align;
-	//! Position acceleration vector
-	rvector accel;
-	//! Attitude rate vector
-	rvector omega;
-	//! Attitude acceleration vector
-	rvector alpha;
-	//! Magnetic field in sensor frame
-	rvector mag;
-	//! Magnetic field rate change in sensor frame
-	rvector bdot;
+    //! Generic info
+    genstruc gen;
+    //! alignment quaternion
+    quaternion align;
+    //! Position acceleration vector
+    rvector accel;
+    //! Attitude rate vector
+    rvector omega;
+    //! Attitude acceleration vector
+    rvector alpha;
+    //! Magnetic field in sensor frame
+    rvector mag;
+    //! Magnetic field rate change in sensor frame
+    rvector bdot;
 };
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
 struct rwstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Rotates vectors from RW frame (axis of rotation = z) to body frame.
-	quaternion align;
-	//! Moments of inertia in RW frame.
-	rvector mom;
-	//! Maximum omega in radians/second.
-	float mxomg;
-	//! Maximum alpha in radians/second/second.
-	float mxalp;
-	//! Acceleration Time Constant
-	float tc;
-	//! Current angular velocity
-	float omg;
-	//! Current angular acceleration
-	float alp;
-	//! Requested angular velocity
-	float romg;
-	//! Requested angular acceleration
-	float ralp;
+    //! Generic info
+    genstruc gen;
+    //! Rotates vectors from RW frame (axis of rotation = z) to body frame.
+    quaternion align;
+    //! Moments of inertia in RW frame.
+    rvector mom;
+    //! Maximum omega in radians/second.
+    float mxomg;
+    //! Maximum alpha in radians/second/second.
+    float mxalp;
+    //! Acceleration Time Constant
+    float tc;
+    //! Current angular velocity
+    float omg;
+    //! Current angular acceleration
+    float alp;
+    //! Requested angular velocity
+    float romg;
+    //! Requested angular acceleration
+    float ralp;
 };
 
 //! Magnetic Torque Rod structure: z axis is aligned with rod.
 struct mtrstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Rotates vectors from MTR frame to Body frame.
-	quaternion align;
-	//! Terms of 6th order polynomial converting negative moment to current
-	float npoly[7];
-	//! Terms of 6th order polynomial converting positive moment to current
-	float ppoly[7];
-	//! Maxiumum field strength
-	float mxmom;
-	//! Field Change Time Constant
-	float tc;
-	//! Requested Magnetic Moment.
-	float rmom;
-	//! Actual Magnetic Moment.
-	float mom;
+    //! Generic info
+    genstruc gen;
+    //! Rotates vectors from MTR frame to Body frame.
+    quaternion align;
+    //! Terms of 6th order polynomial converting negative moment to current
+    float npoly[7];
+    //! Terms of 6th order polynomial converting positive moment to current
+    float ppoly[7];
+    //! Maxiumum field strength
+    float mxmom;
+    //! Field Change Time Constant
+    float tc;
+    //! Requested Magnetic Moment.
+    float rmom;
+    //! Actual Magnetic Moment.
+    float mom;
 };
 
 struct cpustruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Seconds CPU has been up
-	uint32_t uptime;
-	//! Maximum disk capacity in GiB
-	float maxdisk;
-	//! Maximum memory capacity in GiB
-	float maxmem;
-	//! Maximu load
-	float maxload;
-	//! Current disk usage in GiB
-	float disk;
-	//! Current memory usage in GiB
-	float mem;
-	//! Current load
-	float load;
-	//! Number of reboots
-	uint32_t boot_count;
+    //! Generic info
+    genstruc gen;
+    //! Seconds CPU has been up
+    uint32_t uptime;
+    //! Maximum disk capacity in GiB
+    float maxdisk;
+    //! Maximum memory capacity in GiB
+    float maxmem;
+    //! Maximu load
+    float maxload;
+    //! Current disk usage in GiB
+    float disk;
+    //! Current memory usage in GiB
+    float mem;
+    //! Current load
+    float load;
+    //! Number of reboots
+    uint32_t boot_count;
 };
 
 
 // TODO: rename to GpsData
 struct gpsstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! UTC time error
-	double dutc;
-	//! Geocentric position: x, y, z
+    //! Generic info
+    genstruc gen;
+    //! UTC time error
+    double dutc;
+    //! Geocentric position: x, y, z
     //! ECEF coordinates
     // TODO: rename variables to more meaningfull names like position, velocity
-	rvector geocs;
-	//! Geocentric velocity: x, y, z
-	rvector geocv;
-	//! Geocentric position error: x, y, z
-	rvector dgeocs;
-	//! Geocentric velocity error: x, y, z
-	rvector dgeocv;
-	//! Geodetic position: longitude, latitude, altitude
-	gvector geods;
-	//! Geodetic velocity: longitude, latitude, altitude
-	gvector geodv;
-	//! Geodetic position error: longitude, latitude, altitude
-	gvector dgeods;
-	//! Geodetic velocity error: longitude, latitude, altitude
-	gvector dgeodv;
-	//! GPS heading
-	float heading;
-	//! number of satellites used by GPS receiver
-	uint16_t sats_used;
-	//! number of satellites visible by GPS receiver
-	uint16_t sats_visible;
-	//! Time Status
-	uint16_t time_status;
-	//! Position Type
-	uint16_t position_type;
-	//! Solution Status
-	uint16_t solution_status;
+    rvector geocs;
+    //! Geocentric velocity: x, y, z
+    rvector geocv;
+    //! Geocentric position error: x, y, z
+    rvector dgeocs;
+    //! Geocentric velocity error: x, y, z
+    rvector dgeocv;
+    //! Geodetic position: longitude, latitude, altitude
+    gvector geods;
+    //! Geodetic velocity: longitude, latitude, altitude
+    gvector geodv;
+    //! Geodetic position error: longitude, latitude, altitude
+    gvector dgeods;
+    //! Geodetic velocity error: longitude, latitude, altitude
+    gvector dgeodv;
+    //! GPS heading
+    float heading;
+    //! number of satellites used by GPS receiver
+    uint16_t sats_used;
+    //! number of satellites visible by GPS receiver
+    uint16_t sats_visible;
+    //! Time Status
+    uint16_t time_status;
+    //! Position Type
+    uint16_t position_type;
+    //! Solution Status
+    uint16_t solution_status;
 };
 
 //! Antenna information
@@ -1216,12 +1252,16 @@ struct gpsstruc
 */
 struct antstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Alignment
-	quaternion align;
-	//! Minimum elevation
-	float minelev;
+    //! Generic info
+    genstruc gen;
+    //! Alignment
+    quaternion align;
+    //! Azimuth;
+    float azim;
+    //! Elevation
+    float elev;
+    //! Minimum elevation
+    float minelev;
 };
 
 //! Receiver information
@@ -1229,10 +1269,20 @@ struct antstruc
 */
 struct rxrstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Frequency
-	float freq;
+    //! Generic info
+    genstruc gen;
+    //! Operating mode
+    uint16_t opmode;
+    //! Frequency
+    float freq;
+    //! Maximum frequency allowed
+    float maxfreq;
+    //! Minimum frequency allowed
+    float minfreq;
+    //! Current Power
+    float power;
+    //! Filter bandpass
+    float band;
 };
 
 //! Transmitter information
@@ -1240,10 +1290,20 @@ struct rxrstruc
 */
 struct txrstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Frequency
-	float freq;
+    //! Generic info
+    genstruc gen;
+    //! Operating mode
+    uint16_t opmode;
+    //! Frequency
+    float freq;
+    //! Maximum frequency allowed
+    float maxfreq;
+    //! Minimum frequency allowed
+    float minfreq;
+    //! Power
+    float power;
+    //! Maximum Power
+    float maxpower;
 };
 
 //! Transceiver information
@@ -1251,12 +1311,24 @@ struct txrstruc
 */
 struct tcvstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Input Frequency
-	float freqin;
-	//! Output Frequency
-	float freqout;
+    //! Generic info
+    genstruc gen;
+    //! Operating mode
+    uint16_t opmode;
+    //! Input Frequency
+    float freq;
+    //! Maximum frequency allowed
+    float maxfreq;
+    //! Minimum frequency allowed
+    float minfreq;
+    //! Current RX Power
+    float powerin;
+    //! Current TX Power
+    float powerout;
+    //! Output Power limit
+    float maxpower;
+    //! Input Filter bandpass
+    float band;
 };
 
 //! PV String (STRG) structure.
@@ -1264,29 +1336,29 @@ struct tcvstruc
 */
 struct strgstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Efficiency 0th order term
-	float effbase;
-	//! Efficiency 1st order term
-	float effslope;
-	//! Maximum power generation in Watts
-	float maxpower;
-	//! Current power being generated in Watts.
-	float power;
+    //! Generic info
+    genstruc gen;
+    //! Efficiency 0th order term
+    float effbase;
+    //! Efficiency 1st order term
+    float effslope;
+    //! Maximum power generation in Watts
+    float maxpower;
+    //! Current power being generated in Watts.
+    float power;
 };
 
 //! Battery (BATT) structure.
 struct battstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Capacity in amp hours
-	float capacity;
-	//! Charge conversion efficiency
-	float efficiency;
-	//! Charge in amp hours
-	float charge;
+    //! Generic info
+    genstruc gen;
+    //! Capacity in amp hours
+    float capacity;
+    //! Charge conversion efficiency
+    float efficiency;
+    //! Charge in amp hours
+    float charge;
 };
 
 //! Heater Structure definition
@@ -1294,51 +1366,51 @@ struct battstruc
 */
 struct htrstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Temperature set point
-	float setpoint;
+    //! Generic info
+    genstruc gen;
+    //! Temperature set point
+    float setpoint;
 };
 
 struct motrstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Maximum speed in revolutions per second
-	float max;
-	//!
-	float rat;
-	float spd;
+    //! Generic info
+    genstruc gen;
+    //! Maximum speed in revolutions per second
+    float max;
+    //!
+    float rat;
+    float spd;
 };
 
 struct tsenstruc
 {
-	//! Generic info
-	genstruc gen;
+    //! Generic info
+    genstruc gen;
 };
 
 //! Thruster (THST) dynamic structure
 struct thststruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Flow
-	quaternion align;
-	//! Specific Impulse in dynes per kg per second
-	float flw;
-	//! Rotation of thrust vector (+z) in to node frame.
-	float isp;
+    //! Generic info
+    genstruc gen;
+    //! Flow
+    quaternion align;
+    //! Specific Impulse in dynes per kg per second
+    float flw;
+    //! Rotation of thrust vector (+z) in to node frame.
+    float isp;
 };
 
 //! Propellant Tank (PROP) structure.
 struct propstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Propellant capacity in kg
-	float cap;
-	//! Propellant level in kg
-	float lev;
+    //! Generic info
+    genstruc gen;
+    //! Propellant capacity in kg
+    float cap;
+    //! Propellant level in kg
+    float lev;
 };
 
 //! Switch Structure definition
@@ -1346,8 +1418,8 @@ struct propstruc
 */
 struct swchstruc
 {
-	//! Generic info
-	genstruc gen;
+    //! Generic info
+    genstruc gen;
 };
 
 //! Rotor Structure definition
@@ -1355,91 +1427,91 @@ struct swchstruc
 */
 struct rotstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Angular position
-	float angle;
+    //! Generic info
+    genstruc gen;
+    //! Angular position
+    float angle;
 };
 
 //! Star Tracker (STT) Sructure
 // TODO: rename to ST
 struct sttstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! alignment quaternion
-	quaternion align;
-	//! includes 0 and 1st order derivative
+    //! Generic info
+    genstruc gen;
+    //! alignment quaternion
+    quaternion align;
+    //! includes 0 and 1st order derivative
     quaternion att; // TODO: rename to q
-	rvector omega;
-	rvector alpha;
+    rvector omega;
+    rvector alpha;
     //! return code for
-	uint16_t retcode;
-	uint32_t status;
+    uint16_t retcode;
+    uint32_t status;
 };
 
 //! Motion Capture Camera (MCC) Structure
 struct mccstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Sensor alignment quaternion.
-	quaternion align;
-	//! attitude
-	quaternion q;
+    //! Generic info
+    genstruc gen;
+    //! Sensor alignment quaternion.
+    quaternion align;
+    //! attitude
+    quaternion q;
 };
 
 //! Torque Rod Control Unit
 struct tcustruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Torque Rod count
-	uint16_t mcnt;
-	//! Torque Rod Component indices
-	uint16_t mcidx[3];
+    //! Generic info
+    genstruc gen;
+    //! Torque Rod count
+    uint16_t mcnt;
+    //! Torque Rod Component indices
+    uint16_t mcidx[3];
 };
 
 struct busstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Total energy usage
-	float energy;
-	//! Watch Dog Timer (MJD)
-	float wdt;
+    //! Generic info
+    genstruc gen;
+    //! Total energy usage
+    float energy;
+    //! Watch Dog Timer (MJD)
+    float wdt;
 };
 
 struct psenstruc
 {
-	//! Generic info
-	genstruc gen;
-	//! Current Pressure
-	float press;
+    //! Generic info
+    genstruc gen;
+    //! Current Pressure
+    float press;
 };
 
 //! SUCHI Sructure
 struct suchistruc
 {
-	//! Generic info
-	genstruc gen;
-	//! alignment quaternion
-	quaternion align;
-	//! Internal pressure
-	float press;
-	//! Internal temperatures
-	float temps[8];
+    //! Generic info
+    genstruc gen;
+    //! alignment quaternion
+    quaternion align;
+    //! Internal pressure
+    float press;
+    //! Internal temperatures
+    float temps[8];
 };
 
 struct camstruc
 {
-	//! Generic info
-	genstruc gen;
-	uint16_t pwidth;
-	uint16_t pheight;
-	float width;
-	float height;
-	float flength;
+    //! Generic info
+    genstruc gen;
+    uint16_t pwidth;
+    uint16_t pheight;
+    float width;
+    float height;
+    float flength;
 };
 
 // End of Device Specific structures
@@ -1449,42 +1521,42 @@ struct camstruc
 //! changes slowly. The information for initializing this should be in node.ini.
 struct nodestruc
 {
-	//! Node Name.
-	char name[COSMOS_MAX_NAME];
-	//! Node Type as listed in \ref defs_node.
-	uint16_t type;
-	//! Operational state
-	uint16_t state;
-	uint16_t piece_cnt;
-	uint16_t device_cnt;
-	uint16_t port_cnt;
-	uint16_t target_cnt;
-	uint16_t glossary_cnt;
-	uint16_t charging;
-	//! Total Heat Capacity
-	float hcap;
-	//! Total Mass
-	float mass;
-	rvector moi;
-	float area;
-	float battcap;
-	float powgen;
-	float powuse;
-	float battlev;
-	//! Alt/Az/Range info
-	float azfrom;
-	float elfrom;
-	float azto;
-	float elto;
-	float range;
-	//! MJD Offset between system UT and simulated UT
-	double utcoffset;
-	//! Overall Node time
-	double utc;
-	//! Mission start time
-	double utcstart;
-	//! Location structure
-	locstruc loc;
+    //! Node Name.
+    char name[COSMOS_MAX_NAME+1];
+    //! Node Type as listed in \ref NODE_TYPE.
+    uint16_t type;
+    //! Operational state
+    uint16_t state;
+    uint16_t piece_cnt;
+    uint16_t device_cnt;
+    uint16_t port_cnt;
+    uint16_t target_cnt;
+    uint16_t glossary_cnt;
+    uint16_t charging;
+    //! Total Heat Capacity
+    float hcap;
+    //! Total Mass
+    float mass;
+    rvector moi;
+    float area;
+    float battcap;
+    float powgen;
+    float powuse;
+    float battlev;
+    //! Alt/Az/Range info
+    float azfrom;
+    float elfrom;
+    float azto;
+    float elto;
+    float range;
+    //! MJD Offset between system UT and simulated UT
+    double utcoffset;
+    //! Overall Node time
+    double utc;
+    //! Mission start time
+    double utcstart;
+    //! Location structure
+    locstruc loc;
 };
 
 //! Device structure
@@ -1494,38 +1566,38 @@ information.
 */
 struct devicestruc
 {
-	union
-	{
-		allstruc all;
-		antstruc ant;
-		battstruc batt;
-		busstruc bus;
-		camstruc cam;
-		cpustruc cpu;
-		gpsstruc gps;
-		htrstruc htr;
-		imustruc imu;
-		mccstruc mcc;
-		motrstruc motr;
-		mtrstruc mtr;
-		tcustruc tcu;
-		ploadstruc pload;
-		propstruc prop;
-		psenstruc psen;
-		rotstruc rot;
-		rwstruc rw;
-		ssenstruc ssen;
-		strgstruc strg;
-		sttstruc stt;
-		suchistruc suchi;
-		swchstruc swch;
-		tcvstruc tcv;
-		telemstruc telem;
-		txrstruc txr;
-		rxrstruc rxr;
-		thststruc thst;
-		tsenstruc tsen;
-	};
+    union
+    {
+        allstruc all;
+        antstruc ant;
+        battstruc batt;
+        busstruc bus;
+        camstruc cam;
+        cpustruc cpu;
+        gpsstruc gps;
+        htrstruc htr;
+        imustruc imu;
+        mccstruc mcc;
+        motrstruc motr;
+        mtrstruc mtr;
+        tcustruc tcu;
+        ploadstruc pload;
+        propstruc prop;
+        psenstruc psen;
+        rotstruc rot;
+        rwstruc rw;
+        ssenstruc ssen;
+        strgstruc strg;
+        sttstruc stt;
+        suchistruc suchi;
+        swchstruc swch;
+        tcvstruc tcv;
+        telemstruc telem;
+        txrstruc txr;
+        rxrstruc rxr;
+        thststruc thst;
+        tsenstruc tsen;
+    };
 };
 
 //! Specific Device structure
@@ -1533,108 +1605,108 @@ struct devicestruc
 */
 struct devspecstruc
 {
-	uint16_t ant_cnt;
-	uint16_t batt_cnt;
-	uint16_t bus_cnt;
-	uint16_t cam_cnt;
-	uint16_t cpu_cnt;
-	uint16_t gps_cnt;
-	uint16_t htr_cnt;
-	uint16_t imu_cnt;
-	uint16_t mcc_cnt;
-	uint16_t motr_cnt;
-	uint16_t mtr_cnt;
-	uint16_t pload_cnt;
-	uint16_t prop_cnt;
-	uint16_t psen_cnt;
-	uint16_t rot_cnt;
-	uint16_t rw_cnt;
-	uint16_t rxr_cnt;
-	uint16_t ssen_cnt;
-	uint16_t strg_cnt;
-	uint16_t stt_cnt;
-	uint16_t suchi_cnt;
-	uint16_t swch_cnt;
-	uint16_t tcu_cnt;
-	uint16_t tcv_cnt;
-	uint16_t telem_cnt;
-	uint16_t txr_cnt;
-	uint16_t thst_cnt;
-	uint16_t tsen_cnt;
-	vector<allstruc *>all;
-	vector<antstruc *>ant;
-	vector<battstruc *>batt;
-	vector<busstruc *>bus;
-	vector<camstruc *>cam;
-	vector<cpustruc *>cpu;
-	vector<gpsstruc *>gps;
-	vector<htrstruc *>htr;
-	vector<imustruc *>imu;
-	vector<mccstruc *>mcc;
-	vector<motrstruc *>motr;
-	vector<mtrstruc *>mtr;
-	vector<tcustruc *>tcu;
-	vector<ploadstruc *>pload;
-	vector<propstruc *>prop;
-	vector<psenstruc *>psen;
-	vector<rotstruc *>rot;
-	vector<rwstruc *>rw;
-	vector<ssenstruc *>ssen;
-	vector<strgstruc *>strg;
-	vector<sttstruc *>stt;
-	vector<suchistruc *>suchi;
-	vector<swchstruc *>swch;
-	vector<telemstruc *>telem;
-	vector<tcvstruc *>tcv;
-	vector<txrstruc *>txr;
-	vector<rxrstruc *>rxr;
-	vector<thststruc *>thst;
-	vector<tsenstruc *>tsen;
+    uint16_t ant_cnt;
+    uint16_t batt_cnt;
+    uint16_t bus_cnt;
+    uint16_t cam_cnt;
+    uint16_t cpu_cnt;
+    uint16_t gps_cnt;
+    uint16_t htr_cnt;
+    uint16_t imu_cnt;
+    uint16_t mcc_cnt;
+    uint16_t motr_cnt;
+    uint16_t mtr_cnt;
+    uint16_t pload_cnt;
+    uint16_t prop_cnt;
+    uint16_t psen_cnt;
+    uint16_t rot_cnt;
+    uint16_t rw_cnt;
+    uint16_t rxr_cnt;
+    uint16_t ssen_cnt;
+    uint16_t strg_cnt;
+    uint16_t stt_cnt;
+    uint16_t suchi_cnt;
+    uint16_t swch_cnt;
+    uint16_t tcu_cnt;
+    uint16_t tcv_cnt;
+    uint16_t telem_cnt;
+    uint16_t txr_cnt;
+    uint16_t thst_cnt;
+    uint16_t tsen_cnt;
+    std::vector<allstruc *>all;
+    std::vector<antstruc *>ant;
+    std::vector<battstruc *>batt;
+    std::vector<busstruc *>bus;
+    std::vector<camstruc *>cam;
+    std::vector<cpustruc *>cpu;
+    std::vector<gpsstruc *>gps;
+    std::vector<htrstruc *>htr;
+    std::vector<imustruc *>imu;
+    std::vector<mccstruc *>mcc;
+    std::vector<motrstruc *>motr;
+    std::vector<mtrstruc *>mtr;
+    std::vector<tcustruc *>tcu;
+    std::vector<ploadstruc *>pload;
+    std::vector<propstruc *>prop;
+    std::vector<psenstruc *>psen;
+    std::vector<rotstruc *>rot;
+    std::vector<rwstruc *>rw;
+    std::vector<ssenstruc *>ssen;
+    std::vector<strgstruc *>strg;
+    std::vector<sttstruc *>stt;
+    std::vector<suchistruc *>suchi;
+    std::vector<swchstruc *>swch;
+    std::vector<telemstruc *>telem;
+    std::vector<tcvstruc *>tcv;
+    std::vector<txrstruc *>txr;
+    std::vector<rxrstruc *>rxr;
+    std::vector<thststruc *>thst;
+    std::vector<tsenstruc *>tsen;
 };
 
 //! JSON Name Space structure
 /*! A structure containing an element for every unique name in the COSMOS Name
- * Space. The static and dynamic components of this can then be mapped
- * separately to the name space using ::json_map_cosmosstruc.
+ * Space. The components of this can then be mapped to the Name Space
+ * using calls to ::json_addentry.
 */
 struct cosmosstruc
 {
-	//! Structure for summary information in node
-	nodestruc node;
-	//! Vector of all pieces in node.
-	vector<piecestruc> piece;
-	//! Vector of all general (common) information for devices (components) in node.
-	vector<devicestruc> device;
-	//! Structure for devices (components) special data in node, by type.
-	devspecstruc devspec;
-	//! Vector of all ports known to node.
-	vector<portstruc> port;
-	//! Structure for physics modelling.
-	physicsstruc physics;
-	//! Single entry vector for agent information.
-	vector<agentstruc> agent;
-	//! Single entry vector for event information.
-	vector<eventstruc> event;
-	//! Vector of all targets known to node.
-	vector<targetstruc> target;
-	//! Single entry vector for user information.
-	vector<userstruc> user;
-	//! Vector of glossary terms for node.
-	vector<glossarystruc> glossary;
-	//! Whether JSON map has been created.
-	uint16_t jmapped;
-	//! JSON Namespace Map matrix.
-	vector<vector<jsonentry> > jmap;
-	//! JSON Equation Map matrix.
-	vector<vector<jsonequation> > emap;
-	//! JSON Unit Map matrix: first level is for type, second level is for variant.
-	vector<vector<unitstruc> > unit;
-	//! Array of Two Line Elements
-	vector<tlestruc> tle;
-	//! Array of Aliases
-	vector<aliasstruc> alias;
-	//! Vector of Equations
-	vector<equationstruc> equation;
+    //! Structure for summary information in node
+    nodestruc node;
+    //! Vector of all pieces in node.
+    std::vector<piecestruc> piece;
+    //! Vector of all general (common) information for devices (components) in node.
+    std::vector<devicestruc> device;
+    //! Structure for devices (components) special data in node, by type.
+    devspecstruc devspec;
+    //! Vector of all ports known to node.
+    std::vector<portstruc> port;
+    //! Structure for physics modelling.
+    physicsstruc physics;
+    //! Single entry vector for agent information.
+    std::vector<agentstruc> agent;
+    //! Single entry vector for event information.
+    std::vector<eventstruc> event;
+    //! Vector of all targets known to node.
+    std::vector<targetstruc> target;
+    //! Single entry vector for user information.
+    std::vector<userstruc> user;
+    //! Vector of glossary terms for node.
+    std::vector<glossarystruc> glossary;
+    //! Whether JSON map has been created.
+    uint16_t jmapped;
+    //! JSON Namespace Map matrix.
+    std::vector<std::vector<jsonentry> > jmap;
+    //! JSON Equation Map matrix.
+    std::vector<std::vector<jsonequation> > emap;
+    //! JSON Unit Map matrix: first level is for type, second level is for variant.
+    std::vector<std::vector<unitstruc> > unit;
+    //! Array of Two Line Elements
+    std::vector<tlestruc> tle;
+    //! Array of Aliases
+    std::vector<aliasstruc> alias;
+    //! Vector of Equations
+    std::vector<equationstruc> equation;
 };
 
 //! @}

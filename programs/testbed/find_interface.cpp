@@ -33,7 +33,7 @@
 int main (int argc, const char* argv[])
 {
 
-	vector<socket_channel> interfaces;
+	std::vector<socket_channel> interfaces;
 
 	interfaces = socket_find_addresses(SOCKET_TYPE_UDP);
 

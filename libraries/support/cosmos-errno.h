@@ -50,6 +50,7 @@
 #define GS232B_ERROR_OPEN -201
 #define GS232B_ERROR_CLOSED -202
 #define GS232B_ERROR_OUTOFRANGE -203
+#define	GS232B_ERROR_SEND -204
 
 //! Error opening MicroStrain device
 #define MICROSTRAIN_ERROR_OPEN -211
@@ -163,6 +164,10 @@
 #define IC9100_ERROR_OPEN -391
 #define IC9100_ERROR_CLOSED -392
 #define IC9100_ERROR_OUTOFRANGE -393
+#define IC9100_ERROR_WRITE -394
+#define IC9100_ERROR_NG -395
+#define IC9100_ERROR_READ -396
+#define IC9100_ERROR_ADDR -397
 
 #define ASTRODEV_ERROR_HEADER_CS -391
 #define ASTRODEV_ERROR_SYNC0 -392
@@ -223,6 +228,11 @@
 #define GEOMAG_ERROR_NOTFOUND -511              // WMM File not found
 #define GEOMAG_ERROR_OUTOFRANGE -512
 
+#define PRKX2SU_ERROR_OPEN -521
+#define PRKX2SU_ERROR_CLOSED -522
+#define PRKX2SU_ERROR_OUTOFRANGE -523
+#define	PRKX2SU_ERROR_SEND -524
+
 #define GENERAL_OK                        0     /* everything is all right */
 #define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
 #define GENERAL_ERROR_NOTSTARTED       -2002     /* uninitialized error */
@@ -241,7 +251,7 @@
 #define GENERAL_ERROR_TIMEOUT          -2015     /* a timer expired */
 #define GENERAL_ERROR_INPUT            -2016     /* invalid input was provided */
 #define GENERAL_ERROR_OUTPUT           -2017     /* output from a routine returned bad output, possibly related to bad input */
-
+#define GENERAL_ERROR_UNDEFINED           -2018
 
 //! @}
 #endif

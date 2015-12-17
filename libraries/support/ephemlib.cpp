@@ -82,7 +82,7 @@ int32_t jplnut(double utc, double nuts[])
 {
 	double pvec[6];
 
-	if (!isfinite(utc))
+	if (!std::isfinite(utc))
 	{
 		return JPLEPHEM_ERROR_OUTOFRANGE;
 	}
@@ -162,7 +162,7 @@ int32_t jplopen()
 {
 	if (jplephem == NULL)
 	{
-		string fname;
+		std::string fname;
 		int32_t iretn = get_cosmosresources(fname);
 		if (iretn < 0)
 		{

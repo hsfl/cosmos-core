@@ -41,7 +41,7 @@ static double spmm[MAXDEGREE+1];
 static double lastx = 10.;
 static uint16_t lastm = 65535;
 static double initialutc;
-static char orbitfile[50] = {""};
+static std::string orbitfile;
 static stkstruc stkhandle;
 
 static locstruc sloc[MAXGJORDER+2];
@@ -721,7 +721,7 @@ int32_t gravity_params(int model)
         coef[0][0][1] = 0.;
         coef[1][0][0] = coef[1][0][1] = 0.;
         coef[1][1][0] = coef[1][1][1] = 0.;
-        string fname;
+        std::string fname;
         FILE *fi;
         switch (model)
         {
@@ -845,15 +845,15 @@ double nplgndr(uint32_t l, uint32_t m, double x)
     \see geoc2topo
     \see topo2azel
 */
-svector groundstation(locstruc *satellite,locstruc *groundstation)
+svector groundstation(locstruc &satellite,locstruc &groundstation)
 {
     rvector topo;
     svector azel = {0.,0.,0.};
     float lambda, phi;
 
-    pos_icrf2eci(satellite);
-    pos_eci2geoc(satellite);
-    geoc2topo(groundstation->pos.geod.s,satellite->pos.geoc.s,&topo);
+	pos_icrf2eci(&satellite);
+	pos_eci2geoc(&satellite);
+	geoc2topo(groundstation.pos.geod.s,satellite.pos.geoc.s,topo);
     topo2azel(topo,&lambda,&phi);
     azel.lambda = lambda;
     azel.phi = phi;
@@ -2374,6 +2374,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
     \param iatt Initial ICRF Attitude
     \param sat Structure specifying satellite
 */
+// TODO: split the orbit from the attitude propagation sections of the code
 void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cartpos ipos, qatt iatt, physicsstruc &physics, locstruc &loc)
 {
     kepstruc kep;
@@ -3036,7 +3037,7 @@ void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &lo
     \return Returns 0 if succsessful, otherwise negative error.
 */
 
-int orbit_init(int32_t mode, double dt, double utc, char *ofile, cosmosstruc &cdata)
+int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosstruc &cdata)
 {
     int32_t iretn;
     tlestruc tline;
@@ -3078,7 +3079,7 @@ int orbit_init(int32_t mode, double dt, double utc, char *ofile, cosmosstruc &cd
         break;
     }
 
-    strcpy(orbitfile,ofile);
+	orbitfile = ofile;
     cdata.node.loc.pos.eci.pass++;
     pos_eci(&cdata.node.loc);
 

@@ -62,14 +62,19 @@ rvector operator / (rvector v, double scalar); // multiply vector by scalar oper
 //! 3 element cartesian vector
 /*! 3 double precision numbers representing a vector in a right handed
  * cartesian space */
-struct cvector
+class cvector
 {
+
+public:
     //! X value
     double x;
     //! Y value
     double y;
     //! Z value
     double z;
+
+    void normalize();
+    double norm();
 } ;
 
 //! 3 element spherical vector
@@ -125,6 +130,7 @@ std::istream& operator >> (std::istream& out, avector& a);
 std::ostream& operator << (std::ostream& out, const cvector& a);
 std::istream& operator >> (std::istream& in, cvector& a);
 
+// Row Vector operations
 rvector rv_zero();
 rvector rv_shortest(rvector v);
 rvector rv_shortest2(rvector v);
@@ -169,12 +175,11 @@ bool equal_rv2(rvector v1, rvector v2);
 double sum_rv(rvector a);
 double sum_rv2(rvector a);
 
-double sep_cv(cvector v1, cvector v2);
-double dot_cv(cvector a, cvector b);
-double length_cv(cvector v);
-double norm_cv(cvector a);
-double sum_cv(cvector a);
+
 svector s_convert(rvector from);
+
+
+// Column Vector operations
 
 cvector cv_zero();
 cvector cv_unitx();
@@ -191,5 +196,58 @@ cvector cv_div(cvector a, cvector b);
 cvector cv_smult(double a, cvector b);
 cvector cv_sqrt(cvector a);
 void normalize_cv(cvector *v);
+// TODO: replace normalize_cv2 to normalize_cv with &
+void normalize_cv2(cvector &v);
+
+double sep_cv(cvector v1, cvector v2);
+double dot_cv(cvector a, cvector b);
+double length_cv(cvector v);
+double norm_cv(cvector v);
+double cv_norm(cvector v);
+double sum_cv(cvector a);
+
+
+namespace Cosmos {
+namespace Math {
+//! Vector Class
+/*! eventually this is where all row vector stuff would come?
+ * do we really need to differentiate between cvector and rvector in the future?
+ * maybe we can have vector type = {'c', 'r'}
+*/
+class Vector{
+
+public:
+
+    // default constructor
+    Vector();
+    Vector(double x, double y, double z);
+
+    // TODO: check if we can iterated the vector
+    double at(int i);
+
+    //! X value
+    double x;
+    //! Y value
+    double y;
+    //! Z value
+    double z;
+
+    // convert from cartesian vector to row vector
+    rvector from_cv(cvector v);
+    Vector cross(Vector b);
+    double dot(Vector b);
+    void normalize();
+    double norm();
+
+    Vector operator * (double scale); // multiply vector by scalar operator
+
+};
+
+std::ostream& operator << (std::ostream& out, const Vector& v);
+Vector operator * (double scale, Vector v);
+
+
+} // end namespace Math
+} // end namespace COSMOS
 
 #endif // _MATH_VECTOR_H

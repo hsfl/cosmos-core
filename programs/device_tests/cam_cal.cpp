@@ -47,7 +47,7 @@ int32_t iretn, et, r, c;
 double Red, Green, Blue;
 char fname[50];
 uint16_t *array;
-vector<gige_acknowledge_ack> gige_list;
+std::vector<gige_acknowledge_ack> gige_list;
 
 
 gige_list = gige_discover();

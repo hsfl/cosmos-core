@@ -45,16 +45,16 @@ class command
 private:
     double	utc;
     double	utcexec;
-    string 	name;
-    uint32_t	type;
-    uint32_t	flag;
-    string	data;
-    string	condition;
+    std::string name;
+    uint32_t type;
+    uint32_t flag;
+    std::string data;
+    std::string condition;
 
 public:
     command();
-    void set_command(string line);
-    string get_json();
+    void set_command(std::string line);
+    std::string get_json();
     void set_utcexec()	{	utcexec = currentmjd(0.);	};
     void set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	};
     double get_utc()	{	return utc;	};
@@ -69,17 +69,17 @@ public:
     //seems to return nan from json_equation...  how to use?
     bool condition_true()	{
         const char *cp = (char *)condition.c_str();
-//		cout <<"condition sent: <" << cp << ">" << endl;
+//		std::cout <<"condition sent: <" << cp << ">" << std::endl;
 		double d= json_equation(cp,cdata);
-//		cout <<"condition returned: <" << d << ">" << endl;
+//		std::cout <<"condition returned: <" << d << ">" << std::endl;
         return d;
     };
 
-	const string get_name()
+	const std::string get_name()
 	{
 		return name;
 	};
-    friend ostream& operator<<(ostream& out, const command& cmd);
+    friend std::ostream& operator<<(std::ostream& out, const command& cmd);
     friend bool operator==(const command& cmd1, const command& cmd2);
 };
 
@@ -103,14 +103,14 @@ bool compare_command_times(command command1, command command2)
 class command_queue
 {
 private:
-    list<command> commands;
+    std::list<command> commands;
 
 public:
     const size_t get_size()	{ return commands.size(); };
     command& get_command(int i)
     {
-        list<command>::iterator ii = commands.begin();
-        advance(ii,i);
+        std::list<command>::iterator ii = commands.begin();
+        std::advance(ii,i);
         return *ii;
     };
     void load_commands();
@@ -119,7 +119,7 @@ public:
 	void add_command(command& c);
 	int del_command(command& c);
     void sort()	{ commands.sort(compare_command_times);	};
-    friend ostream& operator<<(ostream& out, command_queue& cmd);
+    friend std::ostream& operator<<(std::ostream& out, command_queue& cmd);
 };
 
 

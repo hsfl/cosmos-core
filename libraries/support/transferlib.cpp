@@ -46,12 +46,12 @@ bool IS_COMPLETE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET
 bool IS_CANCEL(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_CANCEL) != 0); }
 bool IS_QUEUE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_QUEUE) != 0); }
 
-void make_complete_packet(vector<PACKET_BYTE>& packet, packet_struct_complete complete)
+void make_complete_packet(std::vector<PACKET_BYTE>& packet, packet_struct_complete complete)
 {
 	make_complete_packet(packet, complete.node_id, complete.tx_id);
 }
 
-void make_complete_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
+void make_complete_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
 {
 	PACKET_TYPE type = salt_type(PACKET_COMPLETE);
 
@@ -61,23 +61,23 @@ void make_complete_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_
 	memmove(&packet[0]+PACKET_COMPLETE_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
 }
 
-void extract_complete(vector<PACKET_BYTE>& packet, packet_struct_complete &complete)
+void extract_complete(std::vector<PACKET_BYTE>& packet, packet_struct_complete &complete)
 {
 	extract_complete(packet, complete.node_id, complete.tx_id);
 }
 
-void extract_complete(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id)
+void extract_complete(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id)
 {
 	memmove(&node_id, &packet[0]+PACKET_COMPLETE_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
 	memmove(&tx_id, &packet[0]+PACKET_COMPLETE_TX_ID, sizeof(PACKET_TX_ID_TYPE));
 }
 
-void make_cancel_packet(vector<PACKET_BYTE>& packet, packet_struct_cancel cancel)
+void make_cancel_packet(std::vector<PACKET_BYTE>& packet, packet_struct_cancel cancel)
 {
 	make_cancel_packet(packet, cancel.node_id, cancel.tx_id);
 }
 
-void make_cancel_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
+void make_cancel_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id)
 {
 	PACKET_TYPE type = salt_type(PACKET_CANCEL);
 
@@ -87,18 +87,18 @@ void make_cancel_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id
 	memmove(&packet[0]+PACKET_CANCEL_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
 }
 
-void extract_cancel(vector<PACKET_BYTE>& packet, packet_struct_cancel &cancel)
+void extract_cancel(std::vector<PACKET_BYTE>& packet, packet_struct_cancel &cancel)
 {
 	extract_cancel(packet, cancel.node_id, cancel.tx_id);
 }
 
-void extract_cancel(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id)
+void extract_cancel(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id)
 {
 	memmove(&node_id, &packet[0]+PACKET_CANCEL_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
 	memmove(&tx_id, &packet[0]+PACKET_CANCEL_TX_ID, sizeof(PACKET_TX_ID_TYPE));
 }
 
-void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta)
+void make_reqmeta_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, std::vector<PACKET_TX_ID_TYPE> reqmeta)
 {
 	PACKET_TYPE type = salt_type(PACKET_REQMETA);
 
@@ -110,19 +110,19 @@ void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_i
 	memmove(&packet[0]+PACKET_REQMETA_TX_ID, &reqmeta[0], COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
 }
 
-void extract_reqmeta(vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta)
+void extract_reqmeta(std::vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta)
 {
 	memmove(&reqmeta.node_id, &packet[0]+PACKET_REQMETA_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
 	memmove(&reqmeta.node_name, &packet[0]+PACKET_REQMETA_NODE_NAME, COSMOS_MAX_NAME);
 	memmove(&reqmeta.tx_id, &packet[0]+PACKET_REQMETA_TX_ID, COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
 }
 
-void make_reqdata_packet(vector<PACKET_BYTE>& packet, packet_struct_reqdata reqdata)
+void make_reqdata_packet(std::vector<PACKET_BYTE>& packet, packet_struct_reqdata reqdata)
 {
 	make_reqdata_packet(packet, reqdata.node_id, reqdata.tx_id, reqdata.hole_start, reqdata.hole_end);
 }
 
-void make_reqdata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end)
+void make_reqdata_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end)
 {
 	PACKET_TYPE type = salt_type(PACKET_REQDATA);
 
@@ -134,12 +134,12 @@ void make_reqdata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_i
 	memmove(&packet[0]+PACKET_REQDATA_HOLE_END, &hole_end, sizeof(PACKET_FILE_SIZE_TYPE));
 }
 
-void extract_reqdata(vector<PACKET_BYTE>& packet, packet_struct_reqdata &reqdata)
+void extract_reqdata(std::vector<PACKET_BYTE>& packet, packet_struct_reqdata &reqdata)
 {
 	extract_reqdata(packet, reqdata.node_id, reqdata.tx_id, reqdata.hole_start, reqdata.hole_end);
 }
 
-void extract_reqdata(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id, PACKET_FILE_SIZE_TYPE &hole_start, PACKET_FILE_SIZE_TYPE &hole_end)
+void extract_reqdata(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE &tx_id, PACKET_FILE_SIZE_TYPE &hole_start, PACKET_FILE_SIZE_TYPE &hole_end)
 {
 	memmove(&node_id, &packet[0]+PACKET_REQDATA_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
 	memmove(&tx_id, &packet[0]+PACKET_REQDATA_TX_ID, sizeof(PACKET_TX_ID_TYPE));
@@ -147,12 +147,12 @@ void extract_reqdata(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, 
 	memmove(&hole_end, &packet[0]+PACKET_REQDATA_HOLE_END, sizeof(hole_end));
 }
 
-void make_metadata_packet(vector<PACKET_BYTE>& packet , packet_struct_metalong meta)
+void make_metadata_packet(std::vector<PACKET_BYTE>& packet , packet_struct_metalong meta)
 {
 	make_metadata_packet(packet, meta.tx_id, meta.file_name, meta.file_size, meta.node_name, meta.agent_name);
 }
 
-void make_metadata_packet(vector<PACKET_BYTE>& packet , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name)
+void make_metadata_packet(std::vector<PACKET_BYTE>& packet , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name)
 {
 	PACKET_TYPE type = salt_type(PACKET_METADATA);
 
@@ -165,12 +165,12 @@ void make_metadata_packet(vector<PACKET_BYTE>& packet , PACKET_TX_ID_TYPE tx_id,
 	memmove(&packet[0]+PACKET_METALONG_AGENT_NAME, agent_name, COSMOS_MAX_NAME);
 }
 
-void make_metadata_packet(vector<PACKET_BYTE>& packet , packet_struct_metashort meta)
+void make_metadata_packet(std::vector<PACKET_BYTE>& packet , packet_struct_metashort meta)
 {
 	make_metadata_packet(packet, meta.node_id, meta.tx_id, meta.file_name, meta.file_size, meta.agent_name);
 }
 
-void make_metadata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name)
+void make_metadata_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id , PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name)
 {
 	PACKET_TYPE type = salt_type(PACKET_METADATA);
 
@@ -184,12 +184,12 @@ void make_metadata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_
 	memmove(&packet[0]+PACKET_METASHORT_AGENT_NAME, agent_name, COSMOS_MAX_NAME);
 }
 
-void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metalong &meta)
+void extract_metadata(std::vector<PACKET_BYTE>& packet, packet_struct_metalong &meta)
 {
 	extract_metadata(packet, meta.tx_id, meta.file_name, meta.file_size, meta.node_name, meta.agent_name);
 }
 
-void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, char* node_name, char* agent_name)
+void extract_metadata(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, char* node_name, char* agent_name)
 {
 	memmove(&tx_id, &packet[0]+PACKET_METALONG_TX_ID, sizeof(PACKET_TX_ID_TYPE));
 	memmove(node_name, &packet[0]+PACKET_METALONG_NODE_NAME, COSMOS_MAX_NAME);
@@ -198,12 +198,12 @@ void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, cha
 	memmove(agent_name, &packet[0]+PACKET_METALONG_AGENT_NAME, COSMOS_MAX_NAME);
 }
 
-void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metashort &meta)
+void extract_metadata(std::vector<PACKET_BYTE>& packet, packet_struct_metashort &meta)
 {
 	extract_metadata(packet, meta.tx_id, meta.file_name, meta.file_size, meta.node_id, meta.agent_name);
 }
 
-void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, PACKET_NODE_ID_TYPE& node_id, char* agent_name)
+void extract_metadata(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, PACKET_NODE_ID_TYPE& node_id, char* agent_name)
 {
 	memmove(&tx_id, &packet[0]+PACKET_METASHORT_TX_ID, sizeof(PACKET_TX_ID_TYPE));
 	memmove(file_name, &packet[0]+PACKET_METASHORT_FILE_NAME, TRANSFER_MAX_FILENAME);
@@ -212,7 +212,7 @@ void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id, cha
 	memmove(agent_name, &packet[0]+PACKET_METASHORT_AGENT_NAME, COSMOS_MAX_NAME);
 }
 
-void make_data_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
+void make_data_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk)
 {
 	PACKET_TYPE type = salt_type(PACKET_DATA);
 
@@ -226,7 +226,7 @@ void make_data_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, 
 }
 
 //Function to extract necessary fileds from a received data packet
-void extract_data(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_CHUNK_SIZE_TYPE& byte_count, PACKET_FILE_SIZE_TYPE& chunk_start, PACKET_BYTE* chunk)
+void extract_data(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_CHUNK_SIZE_TYPE& byte_count, PACKET_FILE_SIZE_TYPE& chunk_start, PACKET_BYTE* chunk)
 {
 	memmove(&node_id, &packet[0]+PACKET_DATA_NODE_ID, sizeof(PACKET_NODE_ID_TYPE));
 	memmove(&tx_id, &packet[0]+PACKET_DATA_TX_ID, sizeof(PACKET_TX_ID_TYPE));
@@ -235,7 +235,7 @@ void extract_data(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PAC
 	memmove(chunk, &packet[0]+PACKET_DATA_CHUNK, byte_count);
 }
 
-void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> queue)
+void make_queue_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, std::vector<PACKET_TX_ID_TYPE> queue)
 {
 	PACKET_TYPE type = salt_type(PACKET_QUEUE);
 
@@ -248,23 +248,23 @@ void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id,
 }
 
 //Function to extract necessary fileds from a received queue packet
-void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue)
+void extract_queue(std::vector<PACKET_BYTE>& packet, packet_struct_queue& queue)
 {
 	memmove(&queue.node_id, &packet[0]+PACKET_QUEUE_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
 	memmove(&queue.node_name, &packet[0]+PACKET_QUEUE_NODE_NAME, COSMOS_MAX_NAME);
 	memmove(&queue.tx_id, &packet[0]+PACKET_QUEUE_TX_ID, COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
 }
 
-void show_fstream_state(ifstream& )  {
-	cout<<"eobit =\t"<<ios_base::eofbit<<endl;
-	cout<<"failbit =\t"<<ios_base::failbit<<endl;
-	cout<<"badbit =\t"<<ios_base::badbit<<endl;
-	cout<<"goodbit =\t"<<ios_base::goodbit<<endl;
+void show_fstream_state(std::ifstream& )  {
+    std::cout<<"eobit =\t"<<std::ios_base::eofbit<<std::endl;
+    std::cout<<"failbit =\t"<<std::ios_base::failbit<<std::endl;
+    std::cout<<"badbit =\t"<<std::ios_base::badbit<<std::endl;
+    std::cout<<"goodbit =\t"<<std::ios_base::goodbit<<std::endl;
 	return;
 }
 
 // Function to get age of a file in seconds
-time_t get_file_age(string filename)
+time_t get_file_age(std::string filename)
 {
 	struct stat stat_buf;
 	if (stat(filename.c_str(), &stat_buf) != 0)
@@ -279,7 +279,7 @@ time_t get_file_age(string filename)
 }
 
 //Function which gets the size of a file
-uint32_t get_file_size(string filename)
+uint32_t get_file_size(std::string filename)
 {
 	struct stat stat_buf;
 
@@ -295,7 +295,7 @@ uint32_t get_file_size(string filename)
 
 uint32_t get_file_size(const char* filename)
 {
-	string sfilename = filename;
+	std::string sfilename = filename;
 	return get_file_size(sfilename);
 }
 
@@ -313,10 +313,10 @@ void print_cstring_with_index(uint8_t* buf, int siz)
 	int start = 0;
 	int linesize = 40;
 	while(start < siz)	{
-		for(int i=start; i<min(start+linesize,siz); ++i)
+        for(int i=start; i<std::min(start+linesize,siz); ++i)
 			printf("%2c", buf[i]);
 		printf("\n");
-		for(int i=start; i<min(start+linesize,siz); ++i)
+        for(int i=start; i<std::min(start+linesize,siz); ++i)
 			printf("%02d", i%100);
 		printf("\n");
 		printf("\n");
@@ -340,10 +340,10 @@ void print_cstring_hex_with_index(uint8_t* buf, int siz)
 	int start = 0;
 	int linesize = 40;
 	while(start < siz)	{
-		for(int i=start; i<min(start+linesize,siz); ++i)
+        for(int i=start; i<std::min(start+linesize,siz); ++i)
 			printf("%02x", buf[i]);
 		printf("\n");
-		for(int i=start; i<min(start+linesize,siz); ++i)
+        for(int i=start; i<std::min(start+linesize,siz); ++i)
 			printf("%02d", i%100);
 		printf("\n");
 		printf("\n");
@@ -353,8 +353,8 @@ void print_cstring_hex_with_index(uint8_t* buf, int siz)
 	return;
 }
 
-void unable_to_remove(string filename)  {
-	cout<<"ERROR:\tunable to remove file <"<<filename<<">"<<endl;
+void unable_to_remove(std::string filename)  {
+	std::cout<<"ERROR:\tunable to remove file <"<<filename<<">"<<std::endl;
 	return;
 }
 
