@@ -28,12 +28,17 @@
 ********************************************************************/
 
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
 int main()
 {
     cout << "Hello World!" << endl;
+
+    int a = 5;
+    cout << "sqrt of " << a << " is " << sqrt(a) << endl;
+
     return 0;
 }
 
