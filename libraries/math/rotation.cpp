@@ -29,6 +29,9 @@
 
 #include "math/rotation.h"
 
+//! \addtogroup mathlib_functions
+//! @{
+
 //! Quaternion to Direction Cosine Matrix
 //! This function expects a quaternion that represents the coordinate frame transofrmation not the rotation. 
 //! If the quaternion represents the rotation from the inertial reference frame

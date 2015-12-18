@@ -29,6 +29,9 @@
 
 #include "vector.h"
 
+//! \addtogroup mathlib_functions
+//! @{
+
 //! Angular separation between row vectors.
 /*! Calculates the separation angle between two row order vectors, in radians.
         \param v1 the first vector, in ::rvector format

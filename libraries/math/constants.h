@@ -36,18 +36,22 @@
 #define O_SMALL 0.00000001
 #define D_SMALL ((double)1e-76)
 
-//! Big Endian byte order
-#define ORDER_BIGENDIAN 0
-//! PowerPC byte order
-#define ORDER_PPC ORDER_BIGENDIAN
-//! Motorola byte order
-#define ORDER_MOTOROLA ORDER_BIGENDIAN
-//! Little Endian byte order
-#define ORDER_LITTLEENDIAN 1
-//! Intel byte order
-#define ORDER_INTEL ORDER_LITTLEENDIAN
-//! Network byte order
-#define ORDER_NETWORK ORDER_BIGENDIAN
+//! Enumeration of possible byte orders
+enum BYTE_ORDER
+    {
+    //! Big Endian byte order
+    ORDER_BIGENDIAN=0,
+    //! PowerPC byte order
+    ORDER_PPC=ORDER_BIGENDIAN,
+    //! Motorola byte order
+    ORDER_MOTOROLA=ORDER_BIGENDIAN,
+    //! Little Endian byte order
+    ORDER_LITTLEENDIAN=1,
+    //! Intel byte order
+    ORDER_INTEL=ORDER_LITTLEENDIAN,
+    //! Network byte order
+    ORDER_NETWORK=ORDER_BIGENDIAN
+    };
 
 #define DIRECTION_ROW 0
 #define DIRECTION_COLUMN 1

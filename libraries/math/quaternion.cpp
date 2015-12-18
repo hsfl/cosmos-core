@@ -31,6 +31,9 @@
 #include "math/quaternion.h"
 
 
+//! \addtogroup mathlib_functions
+//! @{
+
 namespace Cosmos {
 namespace Math {
 
@@ -833,3 +836,5 @@ std::istream& operator >> (std::istream& in, qfirst& a)
     in >> junk >> a.q0 >> junk >> a.q1 >> junk >> a.q2 >> junk >> a.q3 >> junk;
     return in;
 }
+
+//! @}

@@ -29,6 +29,9 @@
 
 #include "math/matrix.h"
 
+//! \addtogroup mathlib_functions
+//! @{
+
 //! Multiply row order matrix by row order vector
 /*! Multiply 3x3 row order matrix by 3 element row order vector (treated as a column order vector).
         \param m matrix to multiply by, in ::rmatrix form
@@ -79,12 +82,11 @@ cvector cv_mmult(cmatrix m, cvector v)
     return (o);
 }
 
-
-
-
-
-
-
+/*!
+ * \brief Diagonal ::rmatrix
+ * \param a
+ * \return
+ */
 rmatrix rm_diag(rvector a)
 {
     rmatrix b = {{{{0.}}}};;
@@ -119,6 +121,11 @@ rmatrix rm_zero()
     return (mat);
 }
 
+/*!
+ * \brief norm_rm
+ * \param mat
+ * \return
+ */
 double norm_rm(rmatrix mat)
 {
     double norm;
@@ -130,6 +137,11 @@ double norm_rm(rmatrix mat)
     return (norm);
 }
 
+/*!
+ * \brief norm_rm2
+ * \param mat
+ * \return
+ */
 double norm_rm2(rmatrix mat)
 {
     return fmax(
@@ -141,6 +153,11 @@ double norm_rm2(rmatrix mat)
             );
 }
 
+/*!
+ * \brief trace_rm
+ * \param mat
+ * \return
+ */
 double trace_rm(rmatrix mat)
 {
     double trace;
@@ -148,11 +165,21 @@ double trace_rm(rmatrix mat)
     return (trace);
 }
 
+/*!
+ * \brief trace_rm2
+ * \param mat
+ * \return
+ */
 double trace_rm2(rmatrix mat)
 {
     return mat.row[0].col[0] + mat.row[1].col[1] + mat.row[2].col[2];
 }
 
+/*!
+ * \brief rm_transpose
+ * \param a
+ * \return
+ */
 rmatrix rm_transpose(rmatrix a)
 {
     rmatrix b = {{{{0.}}}};;
@@ -198,6 +225,12 @@ rmatrix rm_mmult(rmatrix a, rmatrix b)
     return (mat);
 }
 
+/*!
+ * \brief rm_mult
+ * \param a
+ * \param b
+ * \return
+ */
 rmatrix rm_mult(rmatrix a, rmatrix b)
 {
     rmatrix mat = {{{{0.}}}};
