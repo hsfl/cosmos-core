@@ -42,8 +42,8 @@ double sep_rv(rvector v1, rvector v2)
 {
     rvector dv = {{0.}};
 
-    normalize_rv(&v1);
-    normalize_rv(&v2);
+    normalize_rv(v1);
+    normalize_rv(v2);
 
     dv = rv_sub(v2,v1);
     double diff = length_rv(dv);
@@ -52,10 +52,10 @@ double sep_rv(rvector v1, rvector v2)
     return (sepangle);
 }
 
-double sep_rv2(rvector v1, rvector v2)
-{
-    return acos(dot_rv2(v1,v2)/(length_rv2(v1)*length_rv2(v2)));
-}
+//double sep_rv2(rvector v1, rvector v2)
+//{
+//    return acos(dot_rv2(v1,v2)/(length_rv2(v1)*length_rv2(v2)));
+//}
 
 //! Convert ::rvector to ::svector
 /*! Convert vector in cartesian coordinates to vector in spherical coordinates.
@@ -240,7 +240,7 @@ rvector rv_shortest2(rvector v)
 // TODO: change name to normalize, normal means perpendicular
 rvector rv_normal(rvector v)
 {
-    normalize_rv(&v);
+    normalize_rv(v);
     return (v);
 }
 
@@ -248,22 +248,7 @@ rvector rv_normal(rvector v)
 /*! Normalizes requested row order vector.
         \param v a pointer to the ::rvector to be normalized
 */
-void normalize_rv(rvector *v)
-{
-    double mag;
-
-    mag = length_rv(*v);
-
-    // if the current length is not zero (or already one)
-    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
-    {
-        v->col[0] /= mag;
-        v->col[1] /= mag;
-        v->col[2] /= mag;
-    }
-}
-
-void normalize_rv2(rvector &v)
+void normalize_rv(rvector &v)
 {
     double mag;
 
@@ -277,7 +262,6 @@ void normalize_rv2(rvector &v)
         v.col[2] /= mag;
     }
 }
-
 
 //! basic function to compute the L2 norm of a 3d generic vector with separate entries
 // TODO: create new class vector3
@@ -423,12 +407,6 @@ rvector rv_cross(rvector a, rvector b)
 */
 double dot_rv(rvector a, rvector b)
 {
-    double d;
-    d = a.col[0]*b.col[0] + a.col[1]*b.col[1] + a.col[2]*b.col[2];
-    return (d);
-}
-double dot_rv2(rvector a, rvector b)
-{
     return a.col[0]*b.col[0] + a.col[1]*b.col[1] + a.col[2]*b.col[2];
 }
 
@@ -513,27 +491,8 @@ cvector cv_one()
 */ // TODO: check! normal is a term used for perpendicular, change to cv_normalize
 cvector cv_normal(cvector v)
 {
-    normalize_cv(&v);
+    normalize_cv(v);
     return (v);
-}
-
-//! Normalize cartesian vector in place, i.e. divides it by its own norm.
-/*! Normalizes requested cartesian vector.
-        \param v a pointer to the ::cvector to be normalized
-*/
-// TODO: replace normalize_cv2 to normalize_cv with &
-void normalize_cv(cvector *v)
-{
-    double mag;
-
-    mag = v->x*v->x + v->y*v->y + v->z*v->z;
-    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
-    {
-        mag = sqrt(mag);
-        v->x /= mag;
-        v->y /= mag;
-        v->z /= mag;
-    }
 }
 
 //! Normalize cartesian vector in place, i.e. divides it by its own norm.
@@ -760,17 +719,12 @@ cvector cv_sqrt(cvector a)
 */
 bool equal_rv(rvector v1, rvector v2)
 {
-    if (v1.col[0] == v2.col[0] && v1.col[1] == v2.col[1] && v1.col[2] == v2.col[2])
-        return (true);
-    else
-        return (false);
-}
-
-bool equal_rv2(rvector v1, rvector v2)
-{
     return (v1.col[0] == v2.col[0] && v1.col[1] == v2.col[1] && v1.col[2] == v2.col[2]);
 
 }
+
+
+// TODO: merge to norm_rv
 //! Length of row vector
 /*! Calculate the length of a vector in row vector format.
         \param v Vector to find the length of.
@@ -780,19 +734,12 @@ double length_rv(rvector v)
 {
     double length;
 
-    length = (v.col[0]*v.col[0]+v.col[1]*v.col[1]+v.col[2]*v.col[2]);
-    length = sqrt(length);
+    length = sqrt(v.col[0]*v.col[0]+v.col[1]*v.col[1]+v.col[2]*v.col[2]);
 
     if (length < D_SMALL)
         return (0.);
     else
         return (length);
-}
-
-// TODO: merge to norm_rv
-double length_rv2(rvector v)
-{
-    return sqrt(v.col[0]*v.col[0]+v.col[1]*v.col[1]+v.col[2]*v.col[2]);
 }
 
 //! Infinite norm of row vector
@@ -801,13 +748,6 @@ double length_rv2(rvector v)
         \return Norm
 */
 double norm_rv(rvector vec)
-{
-    double norm;
-    norm = fmax(fabs(vec.col[0]),fmax(fabs(vec.col[1]),fabs(vec.col[2])));
-    return (norm);
-}
-
-double norm_rv2(rvector vec)
 {
     return fmax(fabs(vec.col[0]),fmax(fabs(vec.col[1]),fabs(vec.col[2])));
 }
@@ -818,13 +758,6 @@ double norm_rv2(rvector vec)
         \return Sum of elements
 */
 double sum_rv(rvector vec)
-{
-    double sum;
-    sum = vec.col[0] + vec.col[1] + vec.col[2];
-    return (sum);
-}
-
-double sum_rv2(rvector vec)
 {
     return vec.col[0] + vec.col[1] + vec.col[2];
 }
@@ -846,6 +779,8 @@ rvector rv_sqrt(rvector vec)
     return (s);
 }
 
+
+//! @}
 
 std::ostream& operator << (std::ostream& out, const rvector& a)
 {
@@ -973,130 +908,128 @@ std::istream& operator >> (std::istream& in, avector& a)
 
 
 namespace Cosmos {
-namespace Math {
+    namespace Math {
 
 
-// TODO: the vector class is very similar to the cvector
-// consider merging
+        // TODO: the vector class is very similar to the cvector
+        // consider merging
 
-// default constructor sets x,y,z members to 0
-Vector::Vector()
-{
-    this->x = 0;
-    this->y = 0;
-    this->z = 0;
-}
+        // default constructor sets x,y,z members to 0
+        Vector::Vector()
+        {
+            this->x = 0;
+            this->y = 0;
+            this->z = 0;
+        }
 
-Vector::Vector(double x, double y, double z)
-{
-    this->x = x;
-    this->y = y;
-    this->z = z;
-}
+        Vector::Vector(double x, double y, double z)
+        {
+            this->x = x;
+            this->y = y;
+            this->z = z;
+        }
 
-double Vector::at(int i)
-{
-    switch (i) {
-    case 0:
-        return this->x;
-        break;
-    case 1:
-        return this->y;
-        break;
-    case 2:
-        return this->z;
-        break;
-    default:
-        return 0;
-        break;
-    }
-}
+        double Vector::at(int i)
+        {
+            switch (i) {
+            case 0:
+                return this->x;
+                break;
+            case 1:
+                return this->y;
+                break;
+            case 2:
+                return this->z;
+                break;
+            default:
+                return 0;
+                break;
+            }
+        }
 
-// convert from column vector to row vector
-rvector Vector::from_cv(cvector v){
-    rvector rv;
-    rv.col[0] = v.x;
-    rv.col[1] = v.y;
-    rv.col[2] = v.z;
-    return rv;
-}
+        // convert from column vector to row vector
+        rvector Vector::from_cv(cvector v){
+            rvector rv;
+            rv.col[0] = v.x;
+            rv.col[1] = v.y;
+            rv.col[2] = v.z;
+            return rv;
+        }
 
-//! Compute the cross product of two vectors.
-//! where a = *this
-Vector Vector::cross(Vector b)
-{
-    Vector c;
+        //! Compute the cross product of two vectors.
+        //! where a = *this
+        Vector Vector::cross(Vector b)
+        {
+            Vector c;
 
-    c.x = this->y*b.z - this->z*b.y;
-    c.y = this->z*b.x - this->x*b.z;
-    c.z = this->x*b.y - this->y*b.x;
+            c.x = this->y*b.z - this->z*b.y;
+            c.y = this->z*b.x - this->x*b.z;
+            c.z = this->x*b.y - this->y*b.x;
 
-    return c;
-}
+            return c;
+        }
 
-double Vector::dot(Vector b)
-{
-    return (this->x*b.x + this->y*b.y + this->z*b.z);
-}
+        double Vector::dot(Vector b)
+        {
+            return (this->x*b.x + this->y*b.y + this->z*b.z);
+        }
 
-//! normalize vector in place
-void Vector::normalize()
-{
-    double norm = this->norm();
+        //! normalize vector in place
+        void Vector::normalize()
+        {
+            double norm = this->norm();
 
-    if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
-    {
-        this->x /= norm;
-        this->y /= norm;
-        this->z /= norm;
-    }
+            if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
+            {
+                this->x /= norm;
+                this->y /= norm;
+                this->z /= norm;
+            }
 
-}
+        }
 
-//! return the norm of the vector
-double Vector::norm()
-{
-    double norm = sqrt(this->x*this->x + this->y*this->y + this->z*this->z);
-    if (norm < D_SMALL)
-        return (0.);
-    else
-        return (norm);
-}
-
-
-// multiply vector with scalar operator
-// result = Vector * scale
-Vector Vector::operator * (double scale)
-{
-    Vector vo;
-
-    vo.x = scale * this->x;
-    vo.y = scale * this->y;
-    vo.z = scale * this->z;
-
-    return vo;
-}
-
-// multiply scalar with vector operator
-// result = scale * Vector
-// TODO: is is possible to add this as a member function of Vector?
-Vector operator * (double scale, Vector v)
-{
-    return v*scale;
-}
+        //! return the norm of the vector
+        double Vector::norm()
+        {
+            double norm = sqrt(this->x*this->x + this->y*this->y + this->z*this->z);
+            if (norm < D_SMALL)
+                return (0.);
+            else
+                return (norm);
+        }
 
 
-std::ostream& operator << (std::ostream& out, const Vector& v)
-{
-    out << v.x << ",";
-    out << v.y << ",";
-    out << v.z;
+        // multiply vector with scalar operator
+        // result = Vector * scale
+        Vector Vector::operator * (double scale)
+        {
+            Vector vo;
 
-    return out;
-}
+            vo.x = scale * this->x;
+            vo.y = scale * this->y;
+            vo.z = scale * this->z;
 
-} // end namespace Math
+            return vo;
+        }
+
+        // multiply scalar with vector operator
+        // result = scale * Vector
+        // TODO: is is possible to add this as a member function of Vector?
+        Vector operator * (double scale, Vector v)
+        {
+            return v*scale;
+        }
+
+
+        std::ostream& operator << (std::ostream& out, const Vector& v)
+        {
+            out << v.x << ",";
+            out << v.y << ",";
+            out << v.z;
+
+            return out;
+        }
+
+    } // end namespace Math
 } // end namespace Cosmos
 
-
-//! @}

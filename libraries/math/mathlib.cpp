@@ -83,25 +83,25 @@ quaternion q_change_between_rv(rvector from, rvector to)
     uvector rq = {{{0.,0.,0.},0.}};
     rvector vec1 = {{0.}}, vec2 = {{0.}};
 
-    normalize_rv(&from);
-    normalize_rv(&to);
+    normalize_rv(from);
+    normalize_rv(to);
 
     if (length_rv(rv_add(from,to)) < 1e-14)
     {
         vec1.col[0] = rand();
         vec1.col[1] = rand();
         vec1.col[2] = rand();
-        normalize_rv(&vec1);
+        normalize_rv(vec1);
         vec2 = rv_cross(vec1,to);
-        normalize_rv(&vec2);
+        normalize_rv(vec2);
         if (length_rv(vec2)<D_SMALL)
         {
             vec1.col[0] = rand();
             vec1.col[1] = rand();
             vec1.col[2] = rand();
-            normalize_rv(&vec1);
+            normalize_rv(vec1);
             vec2 = rv_cross(vec1,to);
-            normalize_rv(&vec2);
+            normalize_rv(vec2);
         }
         rq.r = vec2;
         rq.q.w = 0.;
@@ -132,7 +132,7 @@ quaternion q_change_around_rv(rvector around, double angle)
 
     angle /= 2.;
     sa = sin(angle);
-    normalize_rv(&around);
+    normalize_rv(around);
 
     rq.r = rv_smult(sa,around);
     rq.q.w = cos(angle);
@@ -162,8 +162,8 @@ quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rv
 
     // Use to transform source B into intermediate B
     sourceb = transform_q(qe_a,sourceb);
-    normalize_rv(&sourceb);
-    normalize_rv(&targetb);
+    normalize_rv(sourceb);
+    normalize_rv(targetb);
     if (length_rv(rv_add(sourceb,targetb)) < 1e-14)
     {
         // Antiparallel - rotate 180 degrees around vector A
@@ -2181,25 +2181,25 @@ quaternion q_change_between_cv(cvector from, cvector to)
     uvector rq;
     cvector vec1, vec2;
 
-    normalize_cv(&from);
-    normalize_cv(&to);
+    normalize_cv(from);
+    normalize_cv(to);
 
     if (length_cv(cv_add(from,to)) < 1e-14)
     {
         vec1.x = rand();
         vec1.y = rand();
         vec1.z = rand();
-        normalize_cv(&vec1);
+        normalize_cv(vec1);
         vec2 = cv_cross(vec1,to);
-        normalize_cv(&vec2);
+        normalize_cv(vec2);
         if (length_cv(vec2)<D_SMALL)
         {
             vec1.x = rand();
             vec1.y = rand();
             vec1.z = rand();
-            normalize_cv(&vec1);
+            normalize_cv(vec1);
             vec2 = cv_cross(vec1,to);
-            normalize_cv(&vec2);
+            normalize_cv(vec2);
         }
         rq.c = vec2;
         rq.q.w = 0.;

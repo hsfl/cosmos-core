@@ -32,11 +32,11 @@
 //! \addtogroup mathlib_functions
 //! @{
 
-//! Multiply row order matrix by row order vector
-/*! Multiply 3x3 row order matrix by 3 element row order vector (treated as a column order vector).
-        \param m matrix to multiply by, in ::rmatrix form
-        \param v vector to be tranformed, in ::rvector form
-        \return multiplied vector, in ::rvector format
+//! Multiply ::rmatrix by ::rvector.
+/*! Multiply 3x3 ::rmatrix by 3 element ::rvector (treated as a column order vector).
+        \param m matrix to multiply by, in ::rmatrix form.
+        \param v vector to be tranformed, in ::rvector form.
+        \return multiplied vector, in ::rvector format.
 */
 rvector rv_mmult(rmatrix m, rvector v)
 {
@@ -84,8 +84,9 @@ cvector cv_mmult(cmatrix m, cvector v)
 
 /*!
  * \brief Diagonal ::rmatrix
+ * Creates an ::rmatrix whose diagonal is filled with the supplied ::rvector.
  * \param a
- * \return
+ * \return New ::rmatrix.
  */
 rmatrix rm_diag(rvector a)
 {
@@ -100,7 +101,7 @@ rmatrix rm_diag(rvector a)
     return (b);
 }
 
-//! Identity rmatrix
+//! Identity ::rmatrix
 /*! ::rmatrix with diagonal elements set to one and all others set to zero
         \return Identity matrix
 */
@@ -111,7 +112,7 @@ rmatrix rm_eye()
     return (mat);
 }
 
-//! Zero filled rmatrix
+//! Zero filled ::rmatrix
 /*! ::rmatrix with all elements set to zero
         \return Zero filled matrix
 */
@@ -122,41 +123,27 @@ rmatrix rm_zero()
 }
 
 /*!
- * \brief norm_rm
+ * \brief ::rmatrix norm.
+ * Calculates the Norm of the supplied ::rmatrix
  * \param mat
- * \return
+ * \return Calculated norm.
  */
 double norm_rm(rmatrix mat)
 {
-    double norm;
-
-    norm = norm_rv(mat.row[0]);
-    norm = fmax(norm,norm_rv(mat.row[1]));
-    norm = fmax(norm,norm_rv(mat.row[2]));
-
-    return (norm);
-}
-
-/*!
- * \brief norm_rm2
- * \param mat
- * \return
- */
-double norm_rm2(rmatrix mat)
-{
     return fmax(
-                norm_rv2(mat.row[0]),
+                norm_rv(mat.row[0]),
             fmax(
-                norm_rv2(mat.row[1]),
-            norm_rv2(mat.row[2])
+                norm_rv(mat.row[1]),
+            norm_rv(mat.row[2])
             )
             );
 }
 
 /*!
- * \brief trace_rm
+ * \brief ::rmatrix Trace
+ * Calculates the trace of the supplied ::rmatrix.
  * \param mat
- * \return
+ * \return Calculated trace.
  */
 double trace_rm(rmatrix mat)
 {
@@ -165,20 +152,16 @@ double trace_rm(rmatrix mat)
     return (trace);
 }
 
-/*!
- * \brief trace_rm2
- * \param mat
- * \return
- */
-double trace_rm2(rmatrix mat)
-{
-    return mat.row[0].col[0] + mat.row[1].col[1] + mat.row[2].col[2];
-}
+//double trace_rm2(rmatrix mat)
+//{
+//    return mat.row[0].col[0] + mat.row[1].col[1] + mat.row[2].col[2];
+//}
 
 /*!
- * \brief rm_transpose
+ * \brief ::rmatrix Transpose.
+ * Calculate the transpose of the supplied ::rmatrix.
  * \param a
- * \return
+ * \return Calculated transpose.
  */
 rmatrix rm_transpose(rmatrix a)
 {
@@ -200,11 +183,11 @@ rmatrix rm_transpose(rmatrix a)
 }
 
 
-//! Matrix Product
+//! ::rmatrix Matrix Product
 /*! Multiply two row order matrices together.
-        \param a first row order matrix
-        \param b second row order matrix
-        \return product row order matrix
+        \param a first ::rmatrix.
+        \param b second ::rmatrix.
+        \return product ::rmatrix.
 */
 rmatrix rm_mmult(rmatrix a, rmatrix b)
 {
@@ -226,10 +209,10 @@ rmatrix rm_mmult(rmatrix a, rmatrix b)
 }
 
 /*!
- * \brief rm_mult
- * \param a
- * \param b
- * \return
+ * \brief Element-wise ::rmatrix multiplication.
+ * \param a first ::rmatrix.
+ * \param b second ::rmatrix.
+ * \return Element-wise product ::rmatrix.
  */
 rmatrix rm_mult(rmatrix a, rmatrix b)
 {
@@ -249,6 +232,12 @@ rmatrix rm_mult(rmatrix a, rmatrix b)
     return (mat);
 }
 
+/*!
+ * \brief Scalar ::rmatrix multiplication.
+ * \param a Scalar to multiply each element by.
+ * \param b ::rmatrix.
+ * \return Scalar product ::rmatrix.
+ */
 rmatrix rm_smult(double a, rmatrix b)
 {
     rmatrix mat = {{{{0.}}}};
@@ -264,6 +253,13 @@ rmatrix rm_smult(double a, rmatrix b)
     return (mat);
 }
 
+/*!
+ * \brief ::rmatrix addition.
+ * Sum of two ::rmatrix values.
+ * \param a First term.
+ * \param b Second term.
+ * \return Matrix sum.
+ */
 rmatrix rm_add(rmatrix a, rmatrix b)
 {
     rmatrix mat = {{{{0.}}}};
@@ -282,6 +278,13 @@ rmatrix rm_add(rmatrix a, rmatrix b)
     return (mat);
 }
 
+/*!
+ * \brief ::rmatrix subtraction.
+ * Subtract two ::rmatrix values.
+ * \param a Minuend.
+ * \param b Subtrahend.
+ * \return Difference.
+ */
 rmatrix rm_sub(rmatrix a, rmatrix b)
 {
     rmatrix mat = {{{{0.}}}};
@@ -411,8 +414,8 @@ rmatrix rm_change_around(int axis,double angle)
     return (a);
 }
 
-//! rmatrix from rmatrix
-/*! Converts 3x3 matrix in row order form to cartesian form.
+//! ::cmatrix from ::rmatrix
+/*! Converts 3x3 matrix in ::rmatrix form to ::cmatrix form.
         \param matrix Row major matrix to convert
         \return Converted matrix in row order form
 */
@@ -435,6 +438,12 @@ cmatrix cm_from_rm(rmatrix matrix)
 
 
 
+/*!
+ * \brief Diagonal ::cmatrix
+ * Creates an ::cmatrix whose diagonal is filled with the supplied ::cvector.
+ * \param a
+ * \return New ::cmatrix.
+ */
 cmatrix cm_diag(cvector a)
 {
     cmatrix b;
@@ -448,6 +457,10 @@ cmatrix cm_diag(cvector a)
     return (b);
 }
 
+//! Identity ::cmatrix
+/*! ::cmatrix with diagonal elements set to one and all others set to zero
+        \return Identity matrix
+*/
 cmatrix cm_eye()
 {
     cmatrix mat = {{1.,0.,0.},{0.,1.,0.},{0.,0.,1.}};
@@ -455,12 +468,22 @@ cmatrix cm_eye()
     return (mat);
 }
 
+//! Zero filled ::cmatrix
+/*! ::cmatrix with all elements set to zero
+        \return Zero filled matrix
+*/
 cmatrix cm_zero()
 {
     cmatrix mat = {{0.,0.,0.},{0.,0.,0.},{0.,0.,0.}};
     return (mat);
 }
 
+/*!
+ * \brief ::cmatrix norm.
+ * Calculates the Norm of the supplied ::cmatrix
+ * \param mat
+ * \return Calculated norm.
+ */
 double norm_cm(cmatrix mat)
 {
     double norm;
@@ -472,6 +495,12 @@ double norm_cm(cmatrix mat)
     return (norm);
 }
 
+/*!
+ * \brief ::cmatrix Trace
+ * Calculates the trace of the supplied ::cmatrix.
+ * \param mat
+ * \return Calculated trace.
+ */
 double trace_cm(cmatrix mat)
 {
     double trace;
@@ -481,6 +510,12 @@ double trace_cm(cmatrix mat)
     return (trace);
 }
 
+/*!
+ * \brief ::cmatrix Transpose.
+ * Calculate the transpose of the supplied ::cmatrix.
+ * \param a
+ * \return Calculated transpose.
+ */
 cmatrix cm_transpose(cmatrix a)
 {
     cmatrix b;
@@ -500,6 +535,11 @@ cmatrix cm_transpose(cmatrix a)
     return (b);
 }
 
+//! Matrix diagonal
+/*! ::cvector representing the diagonal of a ::cmatrix
+        \param a :cmatrix to get diagonal from.
+        \return Diagonal
+*/
 cvector cv_diag(cmatrix a)
 {
     cvector b;
@@ -511,7 +551,7 @@ cvector cv_diag(cmatrix a)
     return (b);
 }
 
-//! Matrix Product
+//! ::cmatrix Matrix Product
 /*! Multiply two cartesian matrices together.
         \param a first cartesian matrix
         \param b second cartesian matrix
@@ -536,6 +576,12 @@ cmatrix cm_mmult(cmatrix a, cmatrix b)
     return (mat);
 }
 
+/*!
+ * \brief Element-wise ::cmatrix multiplication.
+ * \param a first ::cmatrix.
+ * \param b second ::cmatrix.
+ * \return Element-wise product ::cmatrix.
+ */
 cmatrix cm_mult(cmatrix a, cmatrix b)
 {
     cmatrix mat;
@@ -554,6 +600,12 @@ cmatrix cm_mult(cmatrix a, cmatrix b)
     return (mat);
 }
 
+/*!
+ * \brief Scalar ::cmatrix multiplication.
+ * \param a Scalar to multiply each element by.
+ * \param b ::cmatrix.
+ * \return Scalar product ::cmatrix.
+ */
 cmatrix cm_smult(double a, cmatrix b)
 {
     cmatrix mat;
@@ -569,6 +621,13 @@ cmatrix cm_smult(double a, cmatrix b)
     return (mat);
 }
 
+/*!
+ * \brief ::cmatrix addition.
+ * Sum of two ::cmatrix values.
+ * \param a First term.
+ * \param b Second term.
+ * \return Matrix sum.
+ */
 cmatrix cm_add(cmatrix a, cmatrix b)
 {
     cmatrix mat;
@@ -587,6 +646,13 @@ cmatrix cm_add(cmatrix a, cmatrix b)
     return (mat);
 }
 
+/*!
+ * \brief ::cmatrix subtraction.
+ * Subtract two ::cmatrix values.
+ * \param a Minuend.
+ * \param b Subtrahend.
+ * \return Difference.
+ */
 cmatrix cm_sub(cmatrix a, cmatrix b)
 {
     cmatrix mat;
@@ -605,8 +671,8 @@ cmatrix cm_sub(cmatrix a, cmatrix b)
     return (mat);
 }
 
-//! Square cmatrix
-/*! Square a cmatrix matrix by matrix multiplying it by itself.
+//! Square ::cmatrix
+/*! Square a ::cmatrix by matrix multiplying it by itself.
         \param a matrix to be squared
         \return squared matrix
 */
@@ -724,7 +790,7 @@ cmatrix cm_change_around(int axis,double angle)
     return (a);
 }
 
-//! rmatrix from cmatrix
+//! ::rmatrix from ::cmatrix
 /*! Converts 3x3 matrix in cartesian form to row major form.
         \param matrix Cartesian matrix to convert
         \return Converted matrix in row major form
@@ -746,7 +812,7 @@ rmatrix rm_from_cm(cmatrix matrix)
     return (rm);
 }
 
-//! Row vector to row order matrix
+//! ::rvector to ::rmatrix.
 /*! Convert a row vector to a row ordder ::rmatrix
         \param vector Row vector to be converted
         \param direction Alignment, column order if 1 (DIRECTION_COLUMN), otherwise row
@@ -1004,6 +1070,12 @@ matrix1d m1_cross(matrix1d Vector1, matrix1d Vector2)
     return(result);
 }
 
+//! matrix1d dot product
+/*! Computes the vector dot product (A x B) of two 1d vectors.
+        \param Vector1 vector A
+        \param Vector2 vector B
+\return Vector cross product as 1d vector.
+*/
 double m1_dot(matrix1d a, matrix1d b)
 {
     double d = 0.;
@@ -1271,14 +1343,6 @@ matrix2d m2_sub(matrix2d matrix1, matrix2d matrix2)
 
     return (answer);
 }
-
-//! Add one matrix2d to another
-/*! Add each element in the first matrix to each element in
- * the second matrix, returning the answer as a new matrix.
-                \param matrix1 matrix to be added to
-                \param matrix2 matrix to add
-                \return sum, as newly created 2D matrix
-*/
 
 //! Return transpose of a 2D matrix
 /*! Generate a new ::matrix2d that is is the transpose of the provided ::matrix2d
@@ -1556,6 +1620,8 @@ double m2_snorm2x2(matrix2d matrix)
 }
 
 
+//! @}
+
 
 std::ostream& operator << (std::ostream& out, const rmatrix& a)
 {
@@ -1601,5 +1667,3 @@ std::istream& operator >> (std::istream& in, cmatrix& a)
     return in;
 }
 
-
-//! @}

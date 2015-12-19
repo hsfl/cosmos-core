@@ -33,7 +33,7 @@
 //! @{
 
 //! Quaternion to Direction Cosine Matrix
-//! This function expects a quaternion that represents the coordinate frame transofrmation not the rotation. 
+//! This function expects a quaternion that represents the coordinate frame transformation not the rotation.
 //! If the quaternion represents the rotation from the inertial reference frame
 //! into the frame of the sensor/body then this DCM will represent
 //! the rotation from the sensor body frame (B) to the inertial frame (I)
