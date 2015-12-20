@@ -159,21 +159,15 @@ rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms
 rvector rv_convert(svector from);
 
 double norm_rv(rvector a);
-double norm_rv2(rvector a);
 
-void normalize_rv(rvector *v);
-void normalize_rv2(rvector &v);
+void normalize_rv(rvector &v);
 
 double sep_rv(rvector v1, rvector v2);
-double sep_rv2(rvector v1, rvector v2);
+//double sep_rv2(rvector v1, rvector v2);
 double dot_rv(rvector a, rvector b);
-double dot_rv2(rvector a, rvector b);
 double length_rv(rvector v);
-double length_rv2(rvector v);
 bool equal_rv(rvector v1, rvector v2);
-bool equal_rv2(rvector v1, rvector v2);
 double sum_rv(rvector a);
-double sum_rv2(rvector a);
 
 
 svector s_convert(rvector from);
@@ -195,9 +189,7 @@ cvector cv_mult(cvector a, cvector b);
 cvector cv_div(cvector a, cvector b);
 cvector cv_smult(double a, cvector b);
 cvector cv_sqrt(cvector a);
-void normalize_cv(cvector *v);
-// TODO: replace normalize_cv2 to normalize_cv with &
-void normalize_cv2(cvector &v);
+void normalize_cv(cvector &v);
 
 double sep_cv(cvector v1, cvector v2);
 double dot_cv(cvector a, cvector b);
@@ -208,46 +200,46 @@ double sum_cv(cvector a);
 
 
 namespace Cosmos {
-namespace Math {
-//! Vector Class
-/*! eventually this is where all row vector stuff would come?
+    namespace Math {
+        //! Vector Class
+        /*! eventually this is where all row vector stuff would come?
  * do we really need to differentiate between cvector and rvector in the future?
  * maybe we can have vector type = {'c', 'r'}
 */
-class Vector{
+        class Vector{
 
-public:
+        public:
 
-    // default constructor
-    Vector();
-    Vector(double x, double y, double z);
+            // default constructor
+            Vector();
+            Vector(double x, double y, double z);
 
-    // TODO: check if we can iterated the vector
-    double at(int i);
+            // TODO: check if we can iterated the vector
+            double at(int i);
 
-    //! X value
-    double x;
-    //! Y value
-    double y;
-    //! Z value
-    double z;
+            //! X value
+            double x;
+            //! Y value
+            double y;
+            //! Z value
+            double z;
 
-    // convert from cartesian vector to row vector
-    rvector from_cv(cvector v);
-    Vector cross(Vector b);
-    double dot(Vector b);
-    void normalize();
-    double norm();
+            // convert from cartesian vector to row vector
+            rvector from_cv(cvector v);
+            Vector cross(Vector b);
+            double dot(Vector b);
+            void normalize();
+            double norm();
 
-    Vector operator * (double scale); // multiply vector by scalar operator
+            Vector operator * (double scale); // multiply vector by scalar operator
 
-};
+        };
 
-std::ostream& operator << (std::ostream& out, const Vector& v);
-Vector operator * (double scale, Vector v);
+        std::ostream& operator << (std::ostream& out, const Vector& v);
+        Vector operator * (double scale, Vector v);
 
 
-} // end namespace Math
+    } // end namespace Math
 } // end namespace COSMOS
 
 #endif // _MATH_VECTOR_H

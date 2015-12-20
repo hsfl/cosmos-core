@@ -970,7 +970,7 @@ int main(int argc, char *argv[])
 	uvec1.r = rv_zero(); uvec1.r.col[0] = 1.; //Vector (1, 0, 0)
 	uvec2.r = rv_zero(); uvec2.c.y = uvec2.c.z = 1.; //Vector (0, 1, 1)
 	uvec5.r = rv_cross(uvec1.r, uvec2.r);
-	normalize_cv(&uvec5.c);
+    normalize_cv(uvec5.c);
 	uvec5.q.w = cos(RADOF(45.)); uvec5.q.d = cv_smult(sin(RADOF(45.)),uvec5.q.d); //The quaternion we expect to get from the functions.
 	uvec3.q = q_change_between_cv(uvec1.c, uvec2.c);
 	uvec4.q = q_change_between_rv(uvec1.r, uvec2.r);

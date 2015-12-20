@@ -154,49 +154,49 @@ quaternion q_change_between_cv(cvector from, cvector to);
 
 
 namespace Cosmos {
-namespace Math {
+    namespace Math {
 
 using Cosmos::Math::Vector;
 
-// TODO: implement new class
-class Quaternion {
+        // TODO: implement new class
+        class Quaternion {
 
-public:
+        public:
 
-    double x,y,z,w;
+            double x,y,z,w;
 
-    Quaternion();
-    Quaternion(double qx, double qy, double qz, double qw);
+            Quaternion();
+            Quaternion(double qx, double qy, double qz, double qw);
 
-    Quaternion getQuaternion();
+            Quaternion getQuaternion();
 
-    // temporary while the new Quaternion class is not finisheds
-    Quaternion quaternion2Quaternion(quaternion q);
-    quaternion Quaternion2quaternion(Quaternion Q);
+            // temporary while the new Quaternion class is not finisheds
+            Quaternion quaternion2Quaternion(quaternion q);
+            quaternion Quaternion2quaternion(Quaternion Q);
 
 
-    // operators
-    Quaternion operator+(const Quaternion& );
-    Quaternion operator-(const Quaternion& );
-    Quaternion operator*(const Quaternion& );
-    //std::ostream& operator<<(std::ostream& os, const Quaternion& q);
-    //friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
-    //std::istream& operator >> (std::istream& out, Quaternion& a);
+            // operators
+            Quaternion operator+(const Quaternion& );
+            Quaternion operator-(const Quaternion& );
+            Quaternion operator*(const Quaternion& );
+            //std::ostream& operator<<(std::ostream& os, const Quaternion& q);
+            //friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
+            //std::istream& operator >> (std::istream& out, Quaternion& a);
 
-    Quaternion multiplyScalar(double a);
-    Quaternion conjugate();
-    cvector vector();
-    cvector omegaFromDerivative(Quaternion dq);
-    void fromTwoVectors(Vector a, Vector b);
-    void normalize();
-    double norm();
-    Vector toEuler();
-};
+            Quaternion multiplyScalar(double a);
+            Quaternion conjugate();
+            cvector vector();
+            cvector omegaFromDerivative(Quaternion dq);
+            void fromTwoVectors(Vector a, Vector b);
+            void normalize();
+            double norm();
+            Vector toEuler();
+        };
 
-// declared outside class because it does not need to access members of the class Quaternion
-std::ostream& operator << (std::ostream& os, const Cosmos::Math::Quaternion& q);
+        // declared outside class because it does not need to access members of the class Quaternion
+        std::ostream& operator << (std::ostream& os, const Cosmos::Math::Quaternion& q);
 
-} // end namespace Math
+    } // end namespace Math
 } // end namespace COSMOS
 
 
