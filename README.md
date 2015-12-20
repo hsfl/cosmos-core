@@ -12,13 +12,13 @@ Cmake. These instructions assume that you are in the COSMOS-DEVELOPMENT folder.
 
 **For Qt Creator with qmake (.pro files)**
 
-Open two instances of Qt Creator and load the two agent example projects: 
+Open Qt Creator and load the two agent example projects: 
 
-* core/examples/agents/agent_001.pro 
-* core/examples/agents/agent_002.pro
+* core/tutorials/agents/agent_001/agent_001.pro 
+* core/tutorials/agents/agent_002/agent_002.pro
 
 Compile and execute the two programs. Start agent_002 first. 
-The two COSMOS agents will start talking to each other.
+The two COSMOS agents will start talking to each other. 
 
 **For Cmake**
 
