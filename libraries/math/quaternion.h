@@ -41,8 +41,6 @@
 #include "math/vector.h"
 #include "math/constants.h"
 
-using Cosmos::Math::Vector;
-
 //! Quaternion, scalar last, using x, y, z.
 /*! Can be thought of as ::rvector with scalar last. One can be set equal to other.
  * First 3 elements are the scaled orientation axis. Fourth element is the scaled
@@ -158,6 +156,7 @@ quaternion q_change_between_cv(cvector from, cvector to);
 namespace Cosmos {
 namespace Math {
 
+using Cosmos::Math::Vector;
 
 // TODO: implement new class
 class Quaternion {

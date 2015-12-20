@@ -274,10 +274,10 @@ contains(MODULES, math-quaternion){
 message( "" )
 
 contains(MODULES, physics-keplerianorbit){
-    message( "- physics/keplerianorbit" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.cpp
-    MODULES += physics-constants
+#    message( "- physics/keplerianorbit" )
+#    HEADERS += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.h
+#    SOURCES += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.cpp
+#    MODULES += physics-constants
 }
 
 contains(MODULES, physics-constants){
