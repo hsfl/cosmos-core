@@ -1,5 +1,4 @@
-COSMOS core 1.0.1.0 (beta)
-=========================
+# COSMOS core 1.0.1 (beta)
 
 **Please note that the documenation is work in progress. If there is some part of the documentation that is missing or not clear please let us know.**
 
