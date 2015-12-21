@@ -7,42 +7,32 @@ If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutor
 
 Quick-start:
 
-Compile and test the agent examples. This can be done either with Qt Creator, or with
-Cmake. These instructions assume that you are in the **cosmos-source** folder.
+1. Compile and test the first two agent examples. 
+These instructions assume that you are in the **cosmos-source** folder. 
 
-**For Qt Creator with qmake (.pro files)**
+* Open Qt Creator and load agent_002.pro from core/tutorials/agents/agent_002/
+* build the agent by pressing the "Build" button (hammer icon on left side of Qt Creator), or press ctrl+b
+* run the agent by pressing the "Run" button (green play icon on left side of Qt Creator), or press ctrl+r
 
-Open Qt Creator and load the two agent example projects: 
+* now load agent_001.pro from core/tutorials/agents/agent_001/
+* build and run agent
 
-* core/tutorials/agents/agent_001/agent_001.pro 
-* core/tutorials/agents/agent_002/agent_002.pro
+The two COSMOS agents should be talking to each other at this point
 
-Compile and execute the two programs. Start agent_002 first. 
-The two COSMOS agents will start talking to each other. 
-
-**For Cmake**
+2. Install cosmos-core
 
 make sure you have the latest version of Cmake from [http://www.cmake.org/](http://www.cmake.org/) (currently it is 3.3.1)
 
-To compile from the unix command line (we recommend using Ubuntu 14):
-
-```
-$ cd core/build
-$ mkdir {linux|macos|arm|...} (depending on your target OS)
-$ ./do_cmake {linux|macos|arm|...}
-$ cd {linux|macos|arm|...}
-$ sudo make -j8 install (-j8 will allocate 8 cores for the compiler, use the # of cores in your machine)
-```
-
-this will install COSMOS core intro /usr/local/cosmos
-
-**For Qt Creator using Cmake**
-
 * Start Qt Creator
-* Open core/CMakeLists.txt
-* Choose a build directory of core/build/{windows|linux|macos} (depending on your OS)
-* Run CMake
-* Build install
+* Open the core CMakeLists.txt file (File -> Open File or Project -> Open project : cosmos-source/core/CMakeLists.txt)
+* Select a build directory (or use the default)
+* Select Generator : ex: MinGW Generator (Desktop Qt 5.5.1 MinGW 32 bit)
+* Hit "Run CMake"
+* Go to Projects -> Build Steps -> Details (expand the icon)
+* on additional arguments add "-j4" or whatever number of cores that your computer supports
+* on Targets select "install"
+* Build the project : ctrl + b and wait some minutes to finish
+* Check your "cosmos" folder (ex: C:\cosmos) to see the files that were installed
 
 For more detailed instructions to get started with COSMOS
 please read the [core/documentation/README.md](https://bitbucket.org/cosmos/core/src/master/documentation/README.md) inside the 
