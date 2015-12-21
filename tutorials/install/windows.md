@@ -1,75 +1,21 @@
 Install COSMOS on Windows {#install-windows}
 =========================
 
-The COSMOS software has been tested with the following
-Qt5.4
-Mingw 4.9
-
-
-Getting Started
---------------
-1) install the latest Qt version for Windows from 
-http://www.qt.io/download-open-source/
-
-select Mingw as your main compiler, you may also choose
-to select MSVC as an alternative compiler but there may 
-be some compatibility issues with COSMOS
-
-2) Select a DEVELOPMENT location. This will be where all your
-source code and compilation resides, and can be anywhere that
-you have write access to. It will end up as a tree looking something
-like this:
-
-```
-DEVELOPMENT
-	| core
-	| nodes
-		| cubesat1
-		.
-		.
-		.
-	| projects
-	| resources
-	| tools
-		| cat
-		| ceo
-		| dmt
-		| libraries
-		| most
-```
-
-3) Download COSMOS-core source code, nodes and resources
-
-These should be placed in DEVELOPMENT\core, DEVELOPMENT\nodes and
-DEVELOPMENT\resources. The URL's are:
-
-```
-https://<yourusername>@bitbucket.org/cosmos/core.git
-https://<yourusername>@bitbucket.org/cosmos/nodes.git
-https://<yourusername>@bitbucket.org/cosmos/resources.git
-```
--- using a git client such as Tortoise Git for win or Atlassian SourceTree.
-if you are planning on contributing to the project using a 
-client may be the easiest alternative
-
--- using the command line
-```
-$ cd DEVELOPMENT
-$ git clone https://<yourusername>@bitbucket.org/cosmos/core.git
-$ git clone https://<yourusername>@bitbucket.org/cosmos/nodes.git
-$ git clone https://<yourusername>@bitbucket.org/cosmos/resources.git
-```
+Before anything else go to the [COSMOS 101 tutorial](https://bitbucket.org/cosmos/tutorial/) to make sure you have the basics covered. 
+If you are just using a default installation using Qt with mingw then you should be good to get started to compile the software using the [COSMOS 101 tutorial](https://bitbucket.org/cosmos/tutorial/).
+The following instructions are just for specific installs like using MSVC and to cross compile on windows.
+The COSMOS software has been tested with Qt5.4 and Mingw 4.9. 
 
 MSVC install (optional)
 -----------------------
-If you really want to use MSVC then follow these instruction. 
-Note: you don't have to use MSVC just to use COSMOS, in fact we
+
+Note: you don't have to use MSVC to compile the COSMOS sofware, in fact we
 recommend that you use MinGW - the default compiler for Qt on windows.
 
 First install Microsoft Visual Studio Express 2013 (v12.0), we recommend
-Express because it is free and 2013 because is more compliant with C++11. 
-Do not use an earlier version of MSVC. The 2015 version will be fully 
-compliant with C++11. From this link you can download MSVC 2013 express 
+Express because it is free and 2013 because is (somewhat) compliant with C++11. 
+Do not use an earlier version of MSVC. The 2015 version will be released soon and will have better support for C++11. 
+From this link you can download MSVC 2013 express 
 and the Debugging Tools for Windows: 
 https://msdn.microsoft.com/en-us/windows/hardware/hh852365
 
@@ -81,19 +27,4 @@ Qt kit setup for MSVC.
 
 Cross-compiling on Windows for ARM
 ----------------------------------
-please read the file: install-arm.txt
-
-MOST
-----
-3) Open the MOST.pro file in QT Creator
-4) On the Target Setup dialog
-	- open the details for the Desktop Build
-	- Check the Shadow Build
-	- Check either the debug or release (or both) configurations
-5) IMPORTANT! 
-	- Click on the Projects icon (on the left)
-	- Build Steps -> Add Build Step -> Make
-	- Make Arguments: add 'install'
-	- This installs the necessary files to run MOST from the shadow 
-	build directory
-5) Hit Run!
+please open the file [install-arm.txt](https://bitbucket.org/cosmos/core/src/master/tutorials/install/linux_arm.md)
