@@ -2,7 +2,8 @@ Install COSMOS on Windows {#install-windows}
 =========================
 
 Before anything else go to the [COSMOS 101 tutorial](https://bitbucket.org/cosmos/tutorial/) to make sure you have the basics covered. 
-If you are just using a default installation using Qt with mingw then you should be good to get started to compile the software using the [COSMOS 101 tutorial](https://bitbucket.org/cosmos/tutorial/).
+If you are just using a default installation using Qt with mingw then you should be good to get started to compile the cosmos software.
+
 The following instructions are just for specific installs like using MSVC and to cross compile on windows.
 The COSMOS software has been tested with Qt5.4 and Mingw 4.9. 
 
