@@ -8,6 +8,7 @@ If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutor
 Quick-start:
 
 1) Compile and test the first two agent examples. These instructions assume that you are in the **cosmos-source** folder. 
+
 * Open Qt Creator and load agent_002.pro from core/tutorials/agents/agent_002/
 * build the agent by pressing the "Build" button (hammer icon on left side of Qt Creator), or press ctrl+b
 * run the agent by pressing the "Run" button (green play icon on left side of Qt Creator), or press ctrl+r
