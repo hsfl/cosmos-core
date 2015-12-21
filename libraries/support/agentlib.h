@@ -170,8 +170,10 @@ public:
     beatstruc find(std::string agent);
 
     uint16_t isRunning();
-    int32_t sendRequest(beatstruc beat, std::string request, std::string &response);
     int32_t shutdown();
+
+    int32_t addRequest(std::string request, agent_request_function function);
+    int32_t sendRequest(beatstruc beat, std::string request, std::string &response);
 
     int32_t post(uint8_t type, std::string message);
     int32_t poll(uint8_t type, std::string &message);
@@ -182,7 +184,7 @@ public:
     cosmosstruc *cdata;
     std::string nodeName;
     std::string name;
-    std::string version       = "0.0";
+    std::string version  = "0.0";
     double beat_period   = 1.0; // in seconds
     int32_t  port        = 0;
     uint32_t buffer_size = AGENTMAXBUFFER;

@@ -283,7 +283,7 @@ struct estimatorhandle
 double gaussian_random(double mean, double stdev);
 
 double distance_rv(rvector p0, rvector p1, rvector p2);
-double distance_rv_1(rvector p0, rvector p1, rvector p2);
+//double distance_rv_1(rvector p0, rvector p1, rvector p2);
 double area_rv(rvector p0, rvector p1, rvector p2);
 double evaluate_poly(double x, rvector parms);
 double evaluate_poly_slope(double x, rvector parms);

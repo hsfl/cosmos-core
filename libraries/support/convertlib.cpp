@@ -1537,11 +1537,11 @@ void att_planec2lvlh(locstruc *loc)
 
 	// LVLH Z is opposite of direction to satellite
 	geoc_z = rv_smult(-1.,ppos->s);
-	normalize_rv(&geoc_z);
+	normalize_rv(geoc_z);
 
 	// LVLH Y is Cross Product of LVLH Z and velocity vector
 	geoc_y = rv_cross(geoc_z,ppos->v);
-	normalize_rv(&geoc_y);
+	normalize_rv(geoc_y);
 
 	// Determine rotation of ITRF Z  into LVLH Z
 	qe_z = q_conjugate(q_change_between_rv(geoc_z,lvlh_z));
@@ -1610,11 +1610,11 @@ void att_lvlh2planec(locstruc *loc)
 
 	// LVLH Z is opposite of earth to satellite vector
 	geoc_z = rv_smult(-1.,ppos->s);
-	normalize_rv(&geoc_z);
+	normalize_rv(geoc_z);
 
 	// LVLH Y is Cross Product of LVLH Z and velocity vector
 	geoc_y = rv_cross(geoc_z,ppos->v);
-	normalize_rv(&geoc_y);
+	normalize_rv(geoc_y);
 
 	// Determine rotation of ITRF Z  into LVLH Z
 	qe_z = q_conjugate(q_change_between_rv(geoc_z,lvlh_z));
@@ -1634,11 +1634,11 @@ void att_lvlh2planec(locstruc *loc)
 
 	// LVLH Z is opposite of earth to satellite vector
 	geoc_z = rv_smult(-1.,ppos->s);
-	normalize_rv(&geoc_z);
+	normalize_rv(geoc_z);
 
 	// LVLH Y is Cross Product of LVLH Z and velocity vector
 	geoc_y = rv_cross(geoc_z,ppos->v);
-	normalize_rv(&geoc_y);
+	normalize_rv(geoc_y);
 
 	// Rotate LVLH frame into ITRS frame
 	//	patt->s = q_mult(rqe,loc->att.lvlh.s);
@@ -2507,9 +2507,9 @@ void eci2kep(cartpos &eci,kepstruc &kep)
 	magh = length_rv(kep.h);
 	jplpos(JPL_EARTH,JPL_SUN_BARY,utc2tt(eci.utc),&earthpos);
 	rsun = earthpos.s;
-	normalize_rv(&rsun);
+	normalize_rv(rsun);
 	hsat = kep.h;
-	normalize_rv(&hsat);
+	normalize_rv(hsat);
 	kep.beta = asin(dot_rv(rsun,hsat));
 
 	if (magh > O_SMALL)

@@ -41,8 +41,6 @@
 #include "math/vector.h"
 #include "math/constants.h"
 
-using Cosmos::Math::Vector;
-
 //! Quaternion, scalar last, using x, y, z.
 /*! Can be thought of as ::rvector with scalar last. One can be set equal to other.
  * First 3 elements are the scaled orientation axis. Fourth element is the scaled
@@ -156,48 +154,49 @@ quaternion q_change_between_cv(cvector from, cvector to);
 
 
 namespace Cosmos {
-namespace Math {
+    namespace Math {
+
+using Cosmos::Math::Vector;
+
+        // TODO: implement new class
+        class Quaternion {
+
+        public:
+
+            double x,y,z,w;
+
+            Quaternion();
+            Quaternion(double qx, double qy, double qz, double qw);
+
+            Quaternion getQuaternion();
+
+            // temporary while the new Quaternion class is not finisheds
+            Quaternion quaternion2Quaternion(quaternion q);
+            quaternion Quaternion2quaternion(Quaternion Q);
 
 
-// TODO: implement new class
-class Quaternion {
+            // operators
+            Quaternion operator+(const Quaternion& );
+            Quaternion operator-(const Quaternion& );
+            Quaternion operator*(const Quaternion& );
+            //std::ostream& operator<<(std::ostream& os, const Quaternion& q);
+            //friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
+            //std::istream& operator >> (std::istream& out, Quaternion& a);
 
-public:
+            Quaternion multiplyScalar(double a);
+            Quaternion conjugate();
+            cvector vector();
+            cvector omegaFromDerivative(Quaternion dq);
+            void fromTwoVectors(Vector a, Vector b);
+            void normalize();
+            double norm();
+            Vector toEuler();
+        };
 
-    double x,y,z,w;
+        // declared outside class because it does not need to access members of the class Quaternion
+        std::ostream& operator << (std::ostream& os, const Cosmos::Math::Quaternion& q);
 
-    Quaternion();
-    Quaternion(double qx, double qy, double qz, double qw);
-
-    Quaternion getQuaternion();
-
-    // temporary while the new Quaternion class is not finisheds
-    Quaternion quaternion2Quaternion(quaternion q);
-    quaternion Quaternion2quaternion(Quaternion Q);
-
-
-    // operators
-    Quaternion operator+(const Quaternion& );
-    Quaternion operator-(const Quaternion& );
-    Quaternion operator*(const Quaternion& );
-    //std::ostream& operator<<(std::ostream& os, const Quaternion& q);
-    //friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
-    //std::istream& operator >> (std::istream& out, Quaternion& a);
-
-    Quaternion multiplyScalar(double a);
-    Quaternion conjugate();
-    cvector vector();
-    cvector omegaFromDerivative(Quaternion dq);
-    void fromTwoVectors(Vector a, Vector b);
-    void normalize();
-    double norm();
-    Vector toEuler();
-};
-
-// declared outside class because it does not need to access members of the class Quaternion
-std::ostream& operator << (std::ostream& os, const Cosmos::Math::Quaternion& q);
-
-} // end namespace Math
+    } // end namespace Math
 } // end namespace COSMOS
 
 

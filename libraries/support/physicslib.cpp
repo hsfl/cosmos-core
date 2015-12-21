@@ -691,7 +691,7 @@ rvector gravity_accel2(posstruc pos,int model,uint32_t degree)
     sloc.pos.geod.s.lat += .4448*(sloc.pos.geod.s.lat - sloc.pos.geos.s.phi);
     pos_geod2geoc(&sloc);
     accel1 = sloc.pos.geoc.s;
-    normalize_rv(&accel1);
+    normalize_rv(accel1);
     accel1 = rv_smult(v,accel1);
     return (accel1);
 }
@@ -950,15 +950,15 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 
     // Atmospheric and solar drag
     unitv = loc.pos.geoc.v;
-    normalize_rv(&unitv);
+    normalize_rv(unitv);
     unitv = transform_q((loc.att.geoc.s),unitv);
 
     units = rv_smult(-1.,loc.pos.icrf.s);
-    normalize_rv(&units);
+    normalize_rv(units);
     units = transform_q((loc.att.icrf.s),units);
 
     unite = rv_smult(-1.,loc.pos.eci.s);
-    normalize_rv(&unite);
+    normalize_rv(unite);
     unite = transform_q((loc.att.icrf.s),unite);
 
     geov = loc.pos.geoc.v;
@@ -1436,7 +1436,7 @@ void att_accel(physicsstruc &physics, locstruc &loc)
     // Now calculate Gravity Gradient Torque
     // Unit vector towards earth, rotated into body frame
     ue = transform_q((loc.att.icrf.s),rv_smult(-1.,loc.pos.eci.s));
-    normalize_rv(&ue);
+    normalize_rv(ue);
 
     physics.gtorque = rv_smult((3.*GM/pow(loc.pos.geos.s.r,3.)),rv_cross(ue,rv_mult(physics.moi,ue)));
 

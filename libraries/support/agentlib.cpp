@@ -1907,6 +1907,15 @@ int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &res
     return iretn;
 }
 
+// replica of agent_add_request
+int32_t Agent::addRequest(std::string request, agent_request_function function)
+{
+
+    int32_t iretn = agent_add_request(cdata, request, function);
+
+    return iretn;
+}
+
 
 //! Shutdown server gracefully
 /*! Waits for heartbeat and request loops to stop running before pulling the rug out from under them.
