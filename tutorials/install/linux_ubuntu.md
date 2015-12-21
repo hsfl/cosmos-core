@@ -1,8 +1,28 @@
-Install COSMOS on Linux Ubuntu 12.04 x64 {#install-linux-ubuntu}
-========================================
+Install COSMOS on Linux Ubuntu {#install-linux-ubuntu}
+==============================
 
-Follow these instructions to install COSMOS on a Virtual Box image.
+Before anything else go to the [COSMOS 101 tutorial](https://bitbucket.org/cosmos/tutorial/) to make sure you have the basics covered. The COSMOS 101 tutorial should allow you to build the cosmos core in a standard way on linux as well. Only use the following instructions to install COSMOS on a Linux distribution using the command line or some other specific ways.
 
+To compile cosmos-core from the command line (we recommend using Ubuntu 14.04 x64):
+
+Go to the build folder cosmos-source/core
+```
+$ cd core/build
+$ mkdir {linux|macos|arm|...} (depending on your target OS)
+$ ./do_cmake {linux|macos|arm|...}
+$ cd {linux|macos|arm|...}
+$ sudo make -j8 install (-j8 will allocate 8 cores for the compiler, use the # of cores in your machine)
+```
+
+this will install COSMOS core into /usr/local/cosmos
+
+
+# Cross-compiling on for ARM
+If you want co cross compile cosmos-core and deploy it in another platform (like an embedded arm processor) please open the file [linux_arm.md](https://bitbucket.org/cosmos/core/src/master/tutorials/install/linux_arm.md)
+
+
+# Virtual Box installation
+If you want to use cosmos on a virtual box then follow these instructions. 
 This Virtual Box image intents to make the COSMOS software development and
 usage easy for anyone that wants to use it. You can build COSMOS
 desktop applications or embedded applications (such as for the
@@ -13,13 +33,13 @@ your life more enjoyable while using the COSMOS VB image.
 
 These settings are for VB 4.3.12
 
-> Open the settings menu
-> In System/Motherboard, Increase the Base Memory (as much as you can)
-> In System/Processor, increase the number of processors (as much as you can)
-> In Display/Video, increase the Video Memory (as much as you can)
-> In Display/Video, Enable 3D acceleration
-> In Network, change the adapter to Bridged Adapter (this allows your guest OS to run on the same network)
-> In Serial Ports, enable the serial port if using some hardware
+Open the settings menu
+* In System/Motherboard, Increase the Base Memory (as much as you can)
+* In System/Processor, increase the number of processors (as much as you can)
+* In Display/Video, increase the Video Memory (as much as you can)
+* In Display/Video, Enable 3D acceleration
+* In Network, change the adapter to Bridged Adapter (this allows your guest OS to run on the same network)
+* In Serial Ports, enable the serial port if using some hardware
 
 also make sure you install the latest Guest Additions CD by going to the Virtual Box
 Devices Menu and click on " Insert Guest Additions CD Image ..." when your guest OS is running
@@ -61,36 +81,6 @@ $ vi make_hiakasat.sh (or use your favorite editor)
 $ ./make_hiakasat.sh
 
 
-
-Things that got installed
--------------------------
-
-1.) COSMOS software, of course!
-
-Here are the steps we did for you ...
-
-create cosmos folder
-$ mkdir /home/cosmos/cosmos
-
-set empty repository
-$ svn co https://www.hsfl.hawaii.edu/svn/cosmos/trunk/ . --depth empty
-
-download cosmos core
-$ svn up --set-depth infinity core
-
-configure the projects folder and download the hiakasat project
-$ svn up --set-depth empty projects
-$ svn up --set-depth infinity projects/hiakasat
-
-configure the tools folder and dowload it
-$ svn up --set-depth empty tools
-$ svn up --set-depth infinity tools
-
-configure the cosmosroot folder and dowload the resources and nodes/hiakasat
-$ svn up --set-depth empty cosmosroot
-$ svn up --set-depth infinity cosmosroot/resources
-$ svn up --set-depth empty cosmosroot/nodes
-$ svn up --set-depth infinity cosmosroot/nodes/hiakasat
 
 2.) Cross compile tools for Ubuntu, g++-4.8-arm-linux-gnueabihf. Make sure you have version 4.8 at least. Also make sure you are using Ubuntu 14 or later, if you insist in using Ubuntu 12 please add the following line to your /etc/apt/sources.list
 >>deb http://us.archive.ubuntu.com/ubuntu saucy main universe 
@@ -151,6 +141,7 @@ sudo apt-get install python2.7-dev
 
 install cmake 2.8.12
 --------------------
+just in case you don't have cmake already installed
 $ wget http://www.cmake.org/files/v2.8/cmake-2.8.12.2.tar.gz
 
 create build directory inside 
@@ -165,22 +156,10 @@ $ sudo ldconfig
 
 install git
 -----------
+just in case you don't have git already installed
 $ sudo apt-get install git-core git-gui git-doc
 
 download cosmos/software and cosmos/cosmosroot with svn
-
-install svn 1.8
----------------
-$ sudo sh -c 'echo "# WANdisco Open Source Repo" >> /etc/apt/sources.list.d/WANdisco.list'
-$ sudo sh -c 'echo "deb http://opensource.wandisco.com/ubuntu precise svn18" >> /etc/apt/sources.list.d/WANdisco.list'
-$ wget -q http://opensource.wandisco.com/wandisco-debian.gpg -O- | sudo apt-key add -
-$ sudo apt-get update
-
-To confirm that the new subversion package has been detected, run:
-$ apt-cache show subversion | grep '^Version:'
-
-If the 1.8 package is listed, you should then be able to install as normal:
-$ sudo apt-get install subversion
 
 
 install qt 4.8
