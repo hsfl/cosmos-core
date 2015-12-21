@@ -7,19 +7,16 @@ If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutor
 
 Quick-start:
 
-1. Compile and test the first two agent examples. 
-These instructions assume that you are in the **cosmos-source** folder. 
-
+1) Compile and test the first two agent examples. These instructions assume that you are in the **cosmos-source** folder. 
 * Open Qt Creator and load agent_002.pro from core/tutorials/agents/agent_002/
 * build the agent by pressing the "Build" button (hammer icon on left side of Qt Creator), or press ctrl+b
 * run the agent by pressing the "Run" button (green play icon on left side of Qt Creator), or press ctrl+r
-
 * now load agent_001.pro from core/tutorials/agents/agent_001/
 * build and run agent
 
 The two COSMOS agents should be talking to each other at this point
 
-2. Install cosmos-core
+2) Install cosmos-core
 
 make sure you have the latest version of Cmake from [http://www.cmake.org/](http://www.cmake.org/) (currently it is 3.3.1)
 
