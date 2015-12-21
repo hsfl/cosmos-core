@@ -8,7 +8,7 @@ If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutor
 Quick-start:
 
 Compile and test the agent examples. This can be done either with Qt Creator, or with
-Cmake. These instructions assume that you are in the COSMOS-DEVELOPMENT folder.
+Cmake. These instructions assume that you are in the **cosmos-source** folder.
 
 **For Qt Creator with qmake (.pro files)**
 
