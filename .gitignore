@@ -28,3 +28,4 @@ examples/namespace/build-*
 *.blg
 *.tmp
 programs/testbed/orbits/convert_test/iss_test.txt
+docs/doxygen/1.0.1/

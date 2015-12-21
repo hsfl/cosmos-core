@@ -11,8 +11,18 @@ SOURCE_BROWSER         = YES # to show link "Go to the source code of this file.
 INLINE_SOURCES         = YES # to show source code inline with documentation
 
 
-
-
 # to streamline the doxygen execution time
 SOURCE_BROWSER         = NO
 INLINE_SOURCES         = NO
+
+
+#---------------------------------------------------------------------------
+# Configuration options related to the dot tool
+#---------------------------------------------------------------------------
+
+# if you have grahviz to generate diagrams
+HAVE_DOT               = YES
+
+INTERACTIVE_SVG        = YES
+
+DOT_IMAGE_FORMAT       = svg/png # svg allows for zooming and panning
