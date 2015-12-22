@@ -2,7 +2,7 @@
 # Tested on windows with MinGW and MSVC
 
 # define the COSMOS source folder
-COSMOS_SOURCE = $$PWD/../../..
+COSMOS_SOURCE = $$PWD/../../../..
 
 TEMPLATE = app
 CONFIG += console
