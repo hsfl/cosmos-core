@@ -371,7 +371,8 @@ rvector rv_normalto(rvector p0, rvector p1, rvector p2)
     \return Order as provided in ::BYTE_ORDER.
 */
 
-uint8_t local_byte_order()
+//std::uint8_t local_byte_order()
+ByteOrder local_byte_order()
 {
     uint16_t test = 1;
     uint8_t *check;
@@ -379,9 +380,9 @@ uint8_t local_byte_order()
     check = (uint8_t *)&test;
 
     if (check[0] == 0)
-        return (ORDER_BIGENDIAN);
+        return (ByteOrder::BIGENDIAN);
     else
-        return (ORDER_LITTLEENDIAN);
+        return (ByteOrder::LITTLEENDIAN);
 }
 
 //! Memory to 16 bit unsigned integer
@@ -391,7 +392,7 @@ uint8_t local_byte_order()
     \return 16 bit unsigned integer
 */
 
-uint16_t uint16from(uint8_t *pointer, uint8_t order)
+uint16_t uint16from(uint8_t *pointer, ByteOrder order)
 {
     uint16_t *result;
     uint8_t *rb;
@@ -420,7 +421,7 @@ uint16_t uint16from(uint8_t *pointer, uint8_t order)
     \return 16 bit signed integer
 */
 
-int16_t int16from(uint8_t *pointer, uint8_t order)
+int16_t int16from(uint8_t *pointer, ByteOrder order)
 {
     int16_t *result;
     uint16_t rb;
@@ -438,7 +439,7 @@ int16_t int16from(uint8_t *pointer, uint8_t order)
     \return 32 bit unsigned integer
 */
 
-uint32_t uint32from(uint8_t *pointer, uint8_t order)
+uint32_t uint32from(uint8_t *pointer, ByteOrder order)
 {
     uint32_t *result;
     uint8_t *rb;
@@ -469,7 +470,7 @@ uint32_t uint32from(uint8_t *pointer, uint8_t order)
     \return 32 bit signed integer
 */
 
-int32_t int32from(uint8_t *pointer, uint8_t order)
+int32_t int32from(uint8_t *pointer, ByteOrder order)
 {
     int32_t *result;
     uint32_t rb;
@@ -487,7 +488,7 @@ int32_t int32from(uint8_t *pointer, uint8_t order)
     \return 32 bit float
 */
 
-float floatfrom(uint8_t *pointer, uint8_t order)
+float floatfrom(uint8_t *pointer, ByteOrder order)
 {
     float result;
     uint8_t *rb;
@@ -515,7 +516,7 @@ float floatfrom(uint8_t *pointer, uint8_t order)
     \return 64 bit float
 */
 
-double doublefrom(uint8_t *pointer, uint8_t order)
+double doublefrom(uint8_t *pointer, ByteOrder order)
 {
     double result;
     uint8_t *rb;
@@ -547,7 +548,7 @@ double doublefrom(uint8_t *pointer, uint8_t order)
     \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
 */
 
-void uint32to(uint32_t value, uint8_t *pointer, uint8_t order)
+void uint32to(uint32_t value, uint8_t *pointer, ByteOrder order)
 {
     uint32_t *result;
     uint8_t *rb;
@@ -578,7 +579,7 @@ void uint32to(uint32_t value, uint8_t *pointer, uint8_t order)
     \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
 */
 
-void int32to(int32_t value, uint8_t *pointer, uint8_t order)
+void int32to(int32_t value, uint8_t *pointer, ByteOrder order)
 {
     int32_t *result;
     uint8_t *rb;
@@ -609,7 +610,7 @@ void int32to(int32_t value, uint8_t *pointer, uint8_t order)
     \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
 */
 
-void uint16to(uint16_t value, uint8_t *pointer, uint8_t order)
+void uint16to(uint16_t value, uint8_t *pointer, ByteOrder order)
 {
     uint16_t *result;
     uint8_t *rb;
@@ -638,7 +639,7 @@ void uint16to(uint16_t value, uint8_t *pointer, uint8_t order)
     \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
 */
 
-void int16to(int16_t value, uint8_t *pointer, uint8_t order)
+void int16to(int16_t value, uint8_t *pointer, ByteOrder order)
 {
     int16_t *result;
     uint8_t *rb;
@@ -667,7 +668,7 @@ void int16to(int16_t value, uint8_t *pointer, uint8_t order)
     \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
 */
 
-void floatto(float value, uint8_t *pointer, uint8_t order)
+void floatto(float value, uint8_t *pointer, ByteOrder order)
 {
     float *result;
     uint8_t *rb;
@@ -698,7 +699,7 @@ void floatto(float value, uint8_t *pointer, uint8_t order)
     \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
 */
 
-void doubleto(double value, uint8_t *pointer, uint8_t order)
+void doubleto(double value, uint8_t *pointer, ByteOrder order)
 {
     double *result;
     uint8_t *rb;

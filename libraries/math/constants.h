@@ -1,6 +1,11 @@
 #ifndef _MATH_CONSTANTS_H
 #define _MATH_CONSTANTS_H
 
+#include <cstdint>
+//#include <iostream>
+//using std::uint8_t;
+
+
 //! \ingroup mathlib
 //! \defgroup mathlib_constants Math library constants
 //! @{
@@ -37,21 +42,20 @@
 #define D_SMALL ((double)1e-76)
 
 //! Enumeration of possible byte orders
-enum BYTE_ORDER
-    {
+enum class ByteOrder : std::uint8_t {
     //! Big Endian byte order
-    ORDER_BIGENDIAN=0,
+    BIGENDIAN=0,
     //! PowerPC byte order
-    ORDER_PPC=ORDER_BIGENDIAN,
+    PPC=ByteOrder::BIGENDIAN,
     //! Motorola byte order
-    ORDER_MOTOROLA=ORDER_BIGENDIAN,
+    MOTOROLA=ByteOrder::BIGENDIAN,
     //! Little Endian byte order
-    ORDER_LITTLEENDIAN=1,
+    LITTLEENDIAN=1,
     //! Intel byte order
-    ORDER_INTEL=ORDER_LITTLEENDIAN,
+    INTEL=ByteOrder::LITTLEENDIAN,
     //! Network byte order
-    ORDER_NETWORK=ORDER_BIGENDIAN
-    };
+    NETWORK=ByteOrder::BIGENDIAN
+};
 
 #define DIRECTION_ROW 0
 #define DIRECTION_COLUMN 1

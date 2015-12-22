@@ -306,22 +306,20 @@ estimatorstruc get_estimate(estimatorhandle *estimate, double independent);
 
 
 
+ByteOrder local_byte_order();
 
-
-
-uint8_t local_byte_order();
-uint16_t uint16from(uint8_t *pointer, uint8_t order);
-int16_t int16from(uint8_t *pointer, uint8_t order);
-uint32_t uint32from(uint8_t *pointer, uint8_t order);
-int32_t int32from(uint8_t *pointer, uint8_t order);
-float floatfrom(uint8_t *pointer, uint8_t order);
-double doublefrom(uint8_t *pointer, uint8_t order);
-void uint32to(uint32_t value, uint8_t *pointer, uint8_t order);
-void int32to(int32_t value, uint8_t *pointer, uint8_t order);
-void uint16to(uint16_t value, uint8_t *pointer, uint8_t order);
-void int16to(int16_t value, uint8_t *pointer, uint8_t order);
-void floatto(float value, uint8_t *pointer, uint8_t order);
-void doubleto(double value, uint8_t *pointer, uint8_t order);
+uint16_t uint16from(uint8_t *pointer, ByteOrder order);
+int16_t int16from(uint8_t *pointer, ByteOrder order);
+uint32_t uint32from(uint8_t *pointer, ByteOrder order);
+int32_t int32from(uint8_t *pointer, ByteOrder order);
+float floatfrom(uint8_t *pointer, ByteOrder order);
+double doublefrom(uint8_t *pointer, ByteOrder order);
+void uint32to(uint32_t value, uint8_t *pointer, ByteOrder order);
+void int32to(int32_t value, uint8_t *pointer, ByteOrder order);
+void uint16to(uint16_t value, uint8_t *pointer, ByteOrder order);
+void int16to(int16_t value, uint8_t *pointer, ByteOrder order);
+void floatto(float value, uint8_t *pointer, ByteOrder order);
+void doubleto(double value, uint8_t *pointer, ByteOrder order);
 
 // Gauss-Jackson routines
 gj_kernel *gauss_jackson_kernel(int32_t order, double dvi);

@@ -193,12 +193,12 @@ int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data)
 {
 	int32_t nbytes, ncount;
 
-	uint16to(0x4201,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-	uint16to(GIGE_CMD_WRITEREG,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-	uint16to(0x0008,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-	uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
-	uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
-	uint32to(data,(uint8_t *)&handle->creg.data,ORDER_BIGENDIAN);
+    uint16to(0x4201,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_WRITEREG,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0008,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
+    uint32to(data,(uint8_t *)&handle->creg.data,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,16,0,(struct sockaddr *)&handle->command.caddr,sizeof(handle->command.caddr))) < 0)
 	{
 #ifdef COSMOS_WIN_OS
@@ -216,10 +216,10 @@ int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
 	} while (nbytes <= 0 && ncount--);
 
-	handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-	handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-	handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
-	handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
 
 	if (nbytes != 12) return (GIGE_ERROR_NACK);
 
@@ -238,11 +238,11 @@ uint32_t gige_readreg(gige_handle *handle, uint32_t address)
 {
 	int32_t nbytes, ncount;
 
-	uint16to(0x4201,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-	uint16to(GIGE_CMD_READREG,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-	uint16to(0x0004,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-	uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
-	uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
+    uint16to(0x4201,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_READREG,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0004,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,sizeof(handle->command.caddr))) < 0)
 	{
 #ifdef COSMOS_WIN_OS
@@ -260,16 +260,16 @@ uint32_t gige_readreg(gige_handle *handle, uint32_t address)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
 	} while (nbytes <= 0 && ncount--);
 
-	handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
 	if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
 
-	handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-	handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-	handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
 
 	if (nbytes != 12) return (GIGE_ERROR_NACK);
 
-	handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ORDER_BIGENDIAN);
+    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ByteOrder::BIGENDIAN);
 	
 	return (handle->cack.data);
 }
@@ -285,14 +285,14 @@ uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size)
 {
 	int32_t nbytes, ncount;
 
-	uint16to(0x4201,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-	uint16to(GIGE_CMD_READMEM,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-	uint16to(0x0008,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-	uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
+    uint16to(0x4201,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_READMEM,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0008,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
 	address = 4 * (address / 4);
-	uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
 	size = 4 * (size / 4);
-	uint32to(size,(uint8_t *)&handle->creg.data,ORDER_BIGENDIAN);
+    uint32to(size,(uint8_t *)&handle->creg.data,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,16,0,(struct sockaddr *)&handle->command.caddr,sizeof(struct sockaddr_in))) < 0)
 	{
 #ifdef COSMOS_WIN_OS
@@ -310,13 +310,13 @@ uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,size+12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
 	} while (nbytes <= 0 && ncount--);
 
-	handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
 	if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
 
-	handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-	handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-	handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
-	handle->cack_mem.address = uint32from((uint8_t *)&handle->cack_mem.address,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
+    handle->cack_mem.address = uint32from((uint8_t *)&handle->cack_mem.address,ByteOrder::BIGENDIAN);
 
 	if ((uint32_t)nbytes != size+12) return (GIGE_ERROR_NACK);
 
@@ -351,10 +351,10 @@ std::vector<gige_acknowledge_ack> gige_discover()
 			continue;
 		}
 
-		uint16to(0x4201,(uint8_t *)&handle.creg.flag,ORDER_BIGENDIAN);
-		uint16to(GIGE_CMD_DISCOVERY,(uint8_t *)&handle.creg.command,ORDER_BIGENDIAN);
-		uint16to(0x0000,(uint8_t *)&handle.creg.length,ORDER_BIGENDIAN);
-		uint16to(++handle.req_id,(uint8_t *)&handle.creg.req_id,ORDER_BIGENDIAN);
+        uint16to(0x4201,(uint8_t *)&handle.creg.flag,ByteOrder::BIGENDIAN);
+        uint16to(GIGE_CMD_DISCOVERY,(uint8_t *)&handle.creg.command,ByteOrder::BIGENDIAN);
+        uint16to(0x0000,(uint8_t *)&handle.creg.length,ByteOrder::BIGENDIAN);
+        uint16to(++handle.req_id,(uint8_t *)&handle.creg.req_id,ByteOrder::BIGENDIAN);
 
 		if ((nbytes=sendto(tchan.cudp,(char *)handle.cbyte,8,0,(struct sockaddr *)&tchan.caddr,sizeof(tchan.caddr))) < 0)
 		{
@@ -366,23 +366,23 @@ std::vector<gige_acknowledge_ack> gige_discover()
 
 		while((nbytes=recvfrom(tchan.cudp,(char *)handle.cbyte,256,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
 		{
-			handle.cack.ack_id = uint16from((uint8_t *)&handle.cack.ack_id,ORDER_BIGENDIAN);
+            handle.cack.ack_id = uint16from((uint8_t *)&handle.cack.ack_id,ByteOrder::BIGENDIAN);
 			if (handle.cack.ack_id != handle.req_id) continue;
 
-			handle.cack.status = uint16from((uint8_t *)&handle.cack.status,ORDER_BIGENDIAN);
-			handle.cack.acknowledge = uint16from((uint8_t *)&handle.cack.acknowledge,ORDER_BIGENDIAN);
-			handle.cack.length = uint16from((uint8_t *)&handle.cack.length,ORDER_BIGENDIAN);
+            handle.cack.status = uint16from((uint8_t *)&handle.cack.status,ByteOrder::BIGENDIAN);
+            handle.cack.acknowledge = uint16from((uint8_t *)&handle.cack.acknowledge,ByteOrder::BIGENDIAN);
+            handle.cack.length = uint16from((uint8_t *)&handle.cack.length,ByteOrder::BIGENDIAN);
 
-			handle.cack_ack.spec_major = uint16from((uint8_t *)&handle.cack_ack.spec_major,ORDER_BIGENDIAN);
-			handle.cack_ack.spec_minor = uint16from((uint8_t *)&handle.cack_ack.spec_minor,ORDER_BIGENDIAN);
-			handle.cack_ack.device_mode = uint32from((uint8_t *)&handle.cack_ack.device_mode,ORDER_BIGENDIAN);
-			handle.cack_ack.mac_high = uint16from((uint8_t *)&handle.cack_ack.mac_high,ORDER_BIGENDIAN);
-			handle.cack_ack.mac_low = uint32from((uint8_t *)&handle.cack_ack.mac_low,ORDER_BIGENDIAN);
-			handle.cack_ack.ip_config_options = uint32from((uint8_t *)&handle.cack_ack.ip_config_options,ORDER_BIGENDIAN);
-			handle.cack_ack.ip_config_current = uint32from((uint8_t *)&handle.cack_ack.ip_config_current,ORDER_BIGENDIAN);
-			handle.cack_ack.address = uint32from((uint8_t *)&handle.cack_ack.address,ORDER_BIGENDIAN);
-			handle.cack_ack.subnet = uint32from((uint8_t *)&handle.cack_ack.subnet,ORDER_BIGENDIAN);
-			handle.cack_ack.gateway = uint32from((uint8_t *)&handle.cack_ack.gateway,ORDER_BIGENDIAN);
+            handle.cack_ack.spec_major = uint16from((uint8_t *)&handle.cack_ack.spec_major,ByteOrder::BIGENDIAN);
+            handle.cack_ack.spec_minor = uint16from((uint8_t *)&handle.cack_ack.spec_minor,ByteOrder::BIGENDIAN);
+            handle.cack_ack.device_mode = uint32from((uint8_t *)&handle.cack_ack.device_mode,ByteOrder::BIGENDIAN);
+            handle.cack_ack.mac_high = uint16from((uint8_t *)&handle.cack_ack.mac_high,ByteOrder::BIGENDIAN);
+            handle.cack_ack.mac_low = uint32from((uint8_t *)&handle.cack_ack.mac_low,ByteOrder::BIGENDIAN);
+            handle.cack_ack.ip_config_options = uint32from((uint8_t *)&handle.cack_ack.ip_config_options,ByteOrder::BIGENDIAN);
+            handle.cack_ack.ip_config_current = uint32from((uint8_t *)&handle.cack_ack.ip_config_current,ByteOrder::BIGENDIAN);
+            handle.cack_ack.address = uint32from((uint8_t *)&handle.cack_ack.address,ByteOrder::BIGENDIAN);
+            handle.cack_ack.subnet = uint32from((uint8_t *)&handle.cack_ack.subnet,ByteOrder::BIGENDIAN);
+            handle.cack_ack.gateway = uint32from((uint8_t *)&handle.cack_ack.gateway,ByteOrder::BIGENDIAN);
 			gige_list.push_back(handle.cack_ack);
 		}
 
@@ -679,11 +679,11 @@ uint32_t gige_readreg2(gige_handle *handle, uint32_t address)
 {
     int32_t nbytes, ncount;
 
-    uint16to(0x4200,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-    uint16to(GIGE_CMD_READREG,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-    uint16to(0x0004,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-    uint16to(0x0001,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
-    uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
+    uint16to(0x4200,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_READREG,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0004,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(0x0001,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,sizeof(handle->command.caddr))) < 0)
     {
 #ifdef COSMOS_WIN_OS
@@ -701,16 +701,16 @@ uint32_t gige_readreg2(gige_handle *handle, uint32_t address)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
     } while (nbytes <= 0 && ncount--);
 
-    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
     if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
 
-    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
 
     if (nbytes != 12) return (GIGE_ERROR_NACK);
 
-    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ORDER_BIGENDIAN);
+    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ByteOrder::BIGENDIAN);
 
     return (handle->cack.data);
 }
@@ -726,11 +726,11 @@ uint32_t gige_request(gige_handle *handle, uint32_t address)
 {
     int32_t nbytes, ncount;
 
-    uint16to(0x4200,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-    uint16to(GIGE_CMD_DISCOVERY,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-    uint16to(0x0004,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-    uint16to(0xC000,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
-    uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
+    uint16to(0x4200,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_DISCOVERY,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0004,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(0xC000,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,sizeof(handle->command.caddr))) < 0)
     {
 #ifdef COSMOS_WIN_OS
@@ -748,16 +748,16 @@ uint32_t gige_request(gige_handle *handle, uint32_t address)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
     } while (nbytes <= 0 && ncount--);
 
-    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
     if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
 
-    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
 
     if (nbytes != 12) return (GIGE_ERROR_NACK);
 
-    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ORDER_BIGENDIAN);
+    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ByteOrder::BIGENDIAN);
 
     return (handle->cack.data);
 }

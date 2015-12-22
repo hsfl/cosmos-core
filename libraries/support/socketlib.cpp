@@ -391,7 +391,7 @@ int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet)
     uint16_t csum = socket_calc_udp_checksum(packet);
 
     // Place it in checksum bytes
-    uint16to(csum, &packet[SOCKET_IP_BYTE_UDP_CS], ORDER_LITTLEENDIAN);
+    uint16to(csum, &packet[SOCKET_IP_BYTE_UDP_CS], ByteOrder::LITTLEENDIAN);
 
     return 0;
 }
