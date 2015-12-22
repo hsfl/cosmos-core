@@ -1949,7 +1949,7 @@ int32_t json_out_beatstruc(std::string &jstring,beatstruc value)
     // Output Ntype
     if ((iretn=json_out_name(jstring,(char *)"ntype")) < 0)
         return (iretn);
-    if ((iretn=json_out_int32(jstring,value.ntype)) < 0)
+    if ((iretn=json_out_uint16(jstring,(uint16_t)value.ntype)) < 0)
         return (iretn);
     if ((iretn=json_out_character(jstring,',')) < 0)
         return (iretn);

@@ -2,31 +2,28 @@
 #define _MATH_CONSTANTS_H
 
 #include <cstdint>
-//#include <iostream>
-//using std::uint8_t;
-
 
 //! \ingroup mathlib
 //! \defgroup mathlib_constants Math library constants
 //! @{
 
 //! PI
-#define PI 3.1415926535897932384626433832795028841971693993751
+const double PI=3.1415926535897932384626433832795028841971693993751;
 //! Double precision PI
-#define DPI 3.1415926535897932384626433832795028841971693993751
+const double DPI=3.1415926535897932384626433832795028841971693993751;
 //! Double precision 2*PI
-#define D2PI 6.2831853071795864769252867665590057683943387987502
+const double D2PI=6.2831853071795864769252867665590057683943387987502;
 //! Double precision PI/2
-#define DPI2 1.5707963267948966192313216916397514420985846996876
+const double DPI2=1.5707963267948966192313216916397514420985846996876;
 //! Multiplicand for Seconds of Time to Radians
-#define DS2R 7.2722052166430399038487115353692196393452995355905e-5
+const double DS2R=7.2722052166430399038487115353692196393452995355905e-5;
 //! Multiplicand for Seconds of Arc to Radians
-#define DAS2R 4.8481368110953599358991410235794797595635330237270e-6
+const double DAS2R=4.8481368110953599358991410235794797595635330237270e-6;
 
 //! Multiplicand for Degrees to Radians
-#define DTOR            (DPI / (double)180.)
+const double DTOR=(DPI / (double)180.);
 //! Multiplicand for Radians to Degrees
-#define RTOD            ((double)180. / DPI)
+const double RTOD=((double)180. / DPI);
 //! Radians of a Degree value
 #define RADOF(deg)  (double)(DTOR * (deg))
 //! Radians of a Degree value
@@ -36,10 +33,15 @@
 //! Degrees of a Radian value
 #define RAD2DEG(rad)  (double)(RTOD * (rad))
 
-#define O_UNDEFINED 999999.1
-#define O_INFINITE 10000000000000000000000000.9
-#define O_SMALL 0.00000001
-#define D_SMALL ((double)1e-76)
+const double O_UNDEFINED=999999.1;
+const double O_INFINITE=10000000000000000000000000.9;
+const double O_SMALL=0.00000001;
+const double D_SMALL=((double)1e-76);
+
+// BIGENDIAN and LITTLEENDIAN are defined somewhere else. This lets us place them in
+// the ByteOrder class.
+#undef BIGENDIAN
+#undef LITTLEENDIAN
 
 //! Enumeration of possible byte orders
 enum class ByteOrder : std::uint8_t {

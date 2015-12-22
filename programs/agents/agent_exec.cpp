@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
 	std::cout<<"Starting the executive agent...";
 	int32_t iretn;
-	int ntype = SOCKET_TYPE_UDP;
+    NetworkType ntype = NetworkType::UDP;
 
 	// Set node name to first argument
 	if (argc!=2)	{

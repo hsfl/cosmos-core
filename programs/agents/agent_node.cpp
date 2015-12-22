@@ -50,7 +50,7 @@ char ibuf[AGENTMAXBUFFER];
 
 int myagent();
 
-int ntype = SOCKET_TYPE_UDP;
+NetworkType ntype = NetworkType::UDP;
 int waitsec = 5;
 std::string reqjstring;
 std::string myjstring;

@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	case 3:
 		setEnvCosmosNodes(argv[2]);
 	case 2:
-		cdata = agent_setup_client(AGENT_TYPE_UDP, argv[1]);
+		cdata = agent_setup_client(NetworkType::UDP, argv[1]);
 		break;
 	default:
 		printf("Usage: namespace_speed node [node_directory]\n");

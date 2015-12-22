@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     std::vector<std::string> nl;
     data_list_nodes(nl);
 
-    cdata = agent_setup_client(SOCKET_TYPE_UDP, "", 1000);
+    cdata = agent_setup_client(NetworkType::UDP, "", 1000);
 
     // check command line arguments
     switch (argc)

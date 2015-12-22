@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 			exit(0);
 		}
 
-	if ((cdata=agent_setup_client(SOCKET_TYPE_BROADCAST, (char *)argv[1])) == NULL)
+	if ((cdata=agent_setup_client(NetworkType::BROADCAST, (char *)argv[1])) == NULL)
 		{
 			fprintf(stderr,"Error: %d\n",AGENT_ERROR_JSON_CREATE);
 			exit(AGENT_ERROR_JSON_CREATE);

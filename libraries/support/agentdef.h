@@ -42,17 +42,17 @@
 //! @{
 
 //! Type of network channel for agent to use.
-enum AGENT_TYPE
-    {
-    //! Agent socket using Multicast UDP
-    AGENT_TYPE_MULTICAST=0,
-    //! Agent socket using Broadcast UDP
-    AGENT_TYPE_BROADCAST=2,
-    //! Agent socket using Unicast UDP
-    AGENT_TYPE_UDP=2,
-    //! Agent socket using Broadcast CSP
-    AGENT_TYPE_CSP=3
-    } ;
+//enum class AgentType : std::uint16_t
+//    {
+//    //! Agent socket using Multicast UDP
+//    MULTICAST=0,
+//    //! Agent socket using Broadcast UDP
+//    BROADCAST=2,
+//    //! Agent socket using Unicast UDP
+//    UDP=2,
+//    //! Agent socket using Broadcast CSP
+//    CSP=3
+//    } ;
 
 enum AGENT_STATE
     {

@@ -72,13 +72,13 @@ int main(int argc, char* argv[])
 		break;
 	}
 
-    if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP, node, (std::string)"physics", .1, 0, AGENTMAXBUFFER, AGENT_SINGLE)))
+    if (!(cdata = agent_setup_server(NetworkType::UDP, node, (std::string)"physics", .1, 0, AGENTMAXBUFFER, AGENT_SINGLE)))
     {
         printf("Failed to setup server for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
         exit (AGENT_ERROR_JSON_CREATE);
     }
 
-//    if (!(cdata = agent_setup_client(SOCKET_TYPE_BROADCAST, node.c_str(), 1000)))
+//    if (!(cdata = agent_setup_client(NetworkType::BROADCAST, node.c_str(), 1000)))
 //	{
 //		printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
 //		exit (AGENT_ERROR_JSON_CREATE);

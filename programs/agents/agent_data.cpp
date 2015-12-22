@@ -169,7 +169,7 @@ for (i=0; i<nodes.size(); ++i)
 // Initialize the Agent
 // near future: support cubesat space protocol
 // port number = 0 in this case, automatic assignment of port
-if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)"hmoc",agentname,1.,0,MAXBUFFERSIZE)))
+if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)"hmoc",agentname,1.,0,MAXBUFFERSIZE)))
 	exit (iretn);
 
 // Add additional requests
