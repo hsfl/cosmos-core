@@ -77,7 +77,7 @@ if ((iretn=agent_get_server(cdata, NULL,agentname,waitsec,(beatstruc *)NULL)) > 
 
 
 // Initialize the Agent
-if (!(cdata = agent_setup_server(SOCKET_TYPE_BROADCAST,nullptr,agentname,.1,0,MAXBUFFERSIZE)))
+if (!(cdata = agent_setup_server(NetworkType::BROADCAST,nullptr,agentname,.1,0,MAXBUFFERSIZE)))
 	exit (iretn);
 
 // Add additional requests

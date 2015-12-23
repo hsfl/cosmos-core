@@ -81,7 +81,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
 	if (socket_usec < (uint32_t)(1024000000/streambps)) socket_usec = (uint32_t)(1024000000/streambps);
 
 	// Open Command socket
-	if ((iretn=socket_open(&handle->command, SOCKET_TYPE_UDP, address, 3956, SOCKET_TALK, true, socket_usec)) < 0)
+	if ((iretn=socket_open(&handle->command, NetworkType::UDP, address, 3956, SOCKET_TALK, true, socket_usec)) < 0)
 	{
 		delete(handle);
 		return nullptr;
@@ -102,7 +102,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
     if (socket_usec < (uint32_t)(16384000000./streambps)) socket_usec = (uint32_t)(16384000000/streambps);
 
 	// Open Stream socket
-	if ((iretn=socket_open(&handle->stream, SOCKET_TYPE_UDP, (char *)"", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
+	if ((iretn=socket_open(&handle->stream, NetworkType::UDP, (char *)"", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
 	{
 		close(handle->command.cudp);
 		return nullptr;
@@ -120,7 +120,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
 
 	// Find our own IP address to send to camera
 	theirip = (uint32_t)(*(uint32_t*)&handle->command.caddr.sin_addr);
-	ifaces = socket_find_addresses(SOCKET_TYPE_UDP);
+	ifaces = socket_find_addresses(NetworkType::UDP);
 	for (uint16_t i=0; i<ifaces.size(); ++i)
 	{
 		myip = (uint32_t)(*(uint32_t*)&ifaces[i].caddr.sin_addr);
@@ -338,12 +338,12 @@ std::vector<gige_acknowledge_ack> gige_discover()
 	int on = 1;
 	std::vector<socket_channel> ifaces;
 
-	ifaces = socket_find_addresses(SOCKET_TYPE_UDP);
+	ifaces = socket_find_addresses(NetworkType::UDP);
 	if (!ifaces.size()) return (gige_list);
 
 	for (uint16_t i=0; i<ifaces.size(); ++i)
 	{
-		if ((socket_open(&tchan, SOCKET_TYPE_UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
+		if ((socket_open(&tchan, NetworkType::UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
 
 		if ((setsockopt(tchan.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
 		{

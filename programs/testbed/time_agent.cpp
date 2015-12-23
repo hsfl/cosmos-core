@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	// Initialization stuff
 
 	// Initialize Agent
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_MULTICAST,argv[1],agentname,.1,0,MAXBUFFERSIZE)) != 0)
+	if (!(cdata = agent_setup_server(NetworkType::MULTICAST,argv[1],agentname,.1,0,MAXBUFFERSIZE)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Add internal requests

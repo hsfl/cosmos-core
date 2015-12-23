@@ -1444,9 +1444,9 @@ printf("\n");
 		char c[sizeof(int)];
 	} check;
 	check.x = 1;
-	if (check.c[0] == 1 && local_byte_order() == ORDER_LITTLEENDIAN)
+    if (check.c[0] == 1 && local_byte_order() == ByteOrder::LITTLEENDIAN)
 		printf("Little endian order\n");
-	else if(check.c[0] == 0 && local_byte_order() == ORDER_BIGENDIAN)
+    else if(check.c[0] == 0 && local_byte_order() == ByteOrder::BIGENDIAN)
 		printf("Big endian order\n");
 	else
 		printf("Error!\n");

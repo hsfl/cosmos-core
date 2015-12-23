@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 
 
 	// Begin Program, Initialize Socket, Blocking, Timeout set for 1 second
-	if ((iretn=socket_open(&chan, SOCKET_TYPE_UDP, address, port, AGENT_LISTEN, AGENT_BLOCKING, 2000000)) < 0)
+	if ((iretn=socket_open(&chan, NetworkType::UDP, address, port, AGENT_LISTEN, AGENT_BLOCKING, 2000000)) < 0)
 	{
 		printf("Err: Unable to open connection to [%s:%d]\n",address,port);
 	}

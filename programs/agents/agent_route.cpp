@@ -44,7 +44,7 @@ socket_channel rcvchan;
 int main(int argc, char *argv[])
 {
 	// Initialize the Agent
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)NULL,(char *)"route",1.,0,MAXBUFFERSIZE,AGENT_SINGLE)))
+    if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)NULL,(char *)"route",1.,0,MAXBUFFERSIZE,AGENT_SINGLE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
@@ -55,11 +55,11 @@ int main(int argc, char *argv[])
 	for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
 	{
 #ifdef COSMOS_WIN_OS
-		addr_out[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].caddr.sin_addr.S_un.S_addr, ORDER_NETWORK);
-//		addr_to[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].baddr.sin_addr.S_un.S_addr, ORDER_NETWORK);
+        addr_out[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].caddr.sin_addr.S_un.S_addr, ByteOrder::NETWORK);
+//		addr_to[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].baddr.sin_addr.S_un.S_addr, ByteOrder::NETWORK);
 #else
-		addr_out[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].caddr.sin_addr.s_addr, ORDER_NETWORK);
-//		addr_to[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].baddr.sin_addr.s_addr, ORDER_NETWORK);
+        addr_out[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].caddr.sin_addr.s_addr, ByteOrder::NETWORK);
+//		addr_to[i] = uint32from((uint8_t *)&cdata[0].agent[0].pub[i].baddr.sin_addr.s_addr, ByteOrder::NETWORK);
 #endif
 	}
 
@@ -72,9 +72,9 @@ int main(int argc, char *argv[])
 		if (nbytes > 0)
 		{
 #ifdef COSMOS_WIN_OS
-			uint32_t addr_in = uint32from((uint8_t *)&cdata[0].agent[0].sub.caddr.sin_addr.S_un.S_addr, ORDER_NETWORK);
+            uint32_t addr_in = uint32from((uint8_t *)&cdata[0].agent[0].sub.caddr.sin_addr.S_un.S_addr, ByteOrder::NETWORK);
 #else
-			uint32_t addr_in = uint32from((uint8_t *)&cdata[0].agent[0].sub.caddr.sin_addr.s_addr, ORDER_NETWORK);
+            uint32_t addr_in = uint32from((uint8_t *)&cdata[0].agent[0].sub.caddr.sin_addr.s_addr, ByteOrder::NETWORK);
 #endif
 			bool forward=true;
 			for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)

@@ -729,7 +729,7 @@ struct beatstruc
     //! Heartbeat Agent Name
     char proc[COSMOS_MAX_NAME+1];
     // Type of address protocol
-    uint16_t ntype;
+    NetworkType ntype;
     //! Protocol Address
     char addr[18];
     //! AGENT port

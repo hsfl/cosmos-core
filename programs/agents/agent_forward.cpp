@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)NULL,(char *)"forward",1.,AGENTRECVPORT,MAXBUFFERSIZE,AGENT_SINGLE)))
+	if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)NULL,(char *)"forward",1.,AGENTRECVPORT,MAXBUFFERSIZE,AGENT_SINGLE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
@@ -63,14 +63,14 @@ int main(int argc, char *argv[])
 	// Open sockets to each address to be used for outgoing forwarding.
 	for (uint16_t i=1; i<argc; ++i)
 	{
-		if ((iretn=socket_open(&tempchan, SOCKET_TYPE_UDP, argv[i], AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) == 0)
+		if ((iretn=socket_open(&tempchan, NetworkType::UDP, argv[i], AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) == 0)
 		{
 			sendchan.push_back(tempchan);
 		}
 	}
 
 	// Open the socket for incoming forwarding.
-	if ((iretn=socket_open(&rcvchan, SOCKET_TYPE_UDP, "", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, AGENTRCVTIMEO)) != 0)
+	if ((iretn=socket_open(&rcvchan, NetworkType::UDP, "", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, AGENTRCVTIMEO)) != 0)
 	{
 		for (uint16_t i=0; i<sendchan.size(); ++i)
 		{

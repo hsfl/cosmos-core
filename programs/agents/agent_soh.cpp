@@ -55,7 +55,7 @@ int32_t request_set_logstride(char* request, char* output, void *cdata);
 std::string jjstring;
 std::string myjstring;
 
-int ntype = SOCKET_TYPE_UDP;
+NetworkType ntype = NetworkType::UDP;
 int waitsec = 5;
 
 void collect_data_loop();

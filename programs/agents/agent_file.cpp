@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 	printf("- Setting up server...");
 	fflush(stdout);
 
-	if ((cosmos_data=agent_setup_server(SOCKET_TYPE_UDP, "", agentname, 1., 0, AGENTMAXBUFFER,false)) == NULL)
+	if ((cosmos_data=agent_setup_server(NetworkType::UDP, "", agentname, 1., 0, AGENTMAXBUFFER,false)) == NULL)
 	{
 		printf("- Could not setup server... exiting.\n\n");
 		exit (-1);
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 
 	int32_t iretn;
 
-	if((iretn = socket_open(&recvchan, SOCKET_TYPE_UDP, (char *)"", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, 5000000)) < 0)
+	if((iretn = socket_open(&recvchan, NetworkType::UDP, (char *)"", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, 5000000)) < 0)
 	{
 		std::cout << "iretn = " << iretn <<std::endl;
 		printf("- Could not successfully open recv socket... exiting \n");
@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	for (uint16_t i=0; i<send_channels; ++i)
 	{
-		if((iretn = socket_open(&send_channel[i].sendchan, SOCKET_TYPE_UDP, send_channel[i].destination_ip.c_str(), AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
+		if((iretn = socket_open(&send_channel[i].sendchan, NetworkType::UDP, send_channel[i].destination_ip.c_str(), AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
 		{
 			std::cout << "iretn = " << iretn <<std::endl;
 			printf("- Could not successfully open send socket %s at size %u ... exiting \n", send_channel[i].destination_ip.c_str(), send_channel[i].packet_size);

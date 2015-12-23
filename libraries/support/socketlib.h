@@ -60,16 +60,19 @@
 //! \defgroup socketlib_constants Socket library constants
 //! @{
 
-//! Agent socket using Multicast UDP
-#define SOCKET_TYPE_MULTICAST 0
-//! Agent socket using Broadcast UDP
-#define SOCKET_TYPE_BROADCAST 2
-//! Agent socket using Unicast UDP
-#define SOCKET_TYPE_UDP 2
-//! Agent socket using Unicast TCP
-#define SOCKET_TYPE_TCP 3
-//! Agent socket using Broadcast CSP
-#define SOCKET_TYPE_CSP 4
+enum class NetworkType : std::uint16_t
+    {
+    //! Agent socket using Multicast UDP
+    MULTICAST=0,
+    //! Agent socket using Broadcast UDP
+    BROADCAST=2,
+    //! Agent socket using Unicast UDP
+    UDP=2,
+    //! Agent socket using Unicast TCP
+    TCP=3,
+    //! Agent socket using Broadcast CSP
+    CSP=4
+    };
 
 //! Blocking Agent
 #define SOCKET_BLOCKING true
@@ -112,7 +115,7 @@
 struct socket_channel
 {
 	// Channel type
-	int32_t type;
+    NetworkType type;
 	// Channel UDP socket handle
 	int32_t cudp;
 	// Channel UDP INET4 address
@@ -142,13 +145,13 @@ struct socket_channel
 //! \defgroup socketlib_functions Socket library functions
 //! @{
 
-int32_t socket_open(socket_channel *channel, uint16_t ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
+int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
 uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet);
 int32_t socket_check_udp_checksum(std::vector<uint8_t> packet);
 int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet);
 int32_t socket_blocking(socket_channel *channel, bool blocking);
 int32_t socket_close(socket_channel *channel);
-std::vector<socket_channel> socket_find_addresses(uint16_t ntype);
+std::vector<socket_channel> socket_find_addresses(NetworkType ntype);
 
 //-------------------------------------------------------------------
 // Simple UDP class to send data
@@ -157,7 +160,7 @@ struct SocketOptions
 {
 	// set the defaults
 	// Channel type
-	int32_t type = SOCKET_TYPE_UDP;
+    NetworkType type = NetworkType::UDP;
 	// UDP socket handle
 	int32_t handle = 0;
 	// UDP INET4 address
