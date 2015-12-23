@@ -458,6 +458,8 @@ enum
     DEVICE_TYPE_CAM=26,
     //! Telemetry
     DEVICE_TYPE_TELEM=27,
+    //! Disk Drive
+    DEVICE_TYPE_DISK=28,
     //! List count
     DEVICE_TYPE_COUNT,
     //! Not a Component
@@ -1185,6 +1187,7 @@ struct mtrstruc
     float mom;
 };
 
+//! CPU information
 struct cpustruc
 {
 
@@ -1205,6 +1208,17 @@ struct cpustruc
     //! Current memory usage in GiB
     float mem;
 
+    //! Number of reboots
+    uint32_t boot_count;
+};
+
+//! Disk information
+struct diskstruc
+{
+
+    //! Generic info
+    genstruc gen;
+
     // disk
     //! Maximum disk capacity in GiB
     float maxdisk;  // TODO: rename to diskSize, consider bytes?
@@ -1213,10 +1227,7 @@ struct cpustruc
     // TODO: add diskFree
     //float diskFree;
 
-    //! Number of reboots
-    uint32_t boot_count;
 };
-
 
 // TODO: rename to GpsData
 struct gpsstruc
@@ -1584,6 +1595,7 @@ struct devicestruc
         busstruc bus;
         camstruc cam;
         cpustruc cpu;
+        diskstruc disk;
         gpsstruc gps;
         htrstruc htr;
         imustruc imu;
@@ -1620,6 +1632,7 @@ struct devspecstruc
     uint16_t bus_cnt;
     uint16_t cam_cnt;
     uint16_t cpu_cnt;
+    uint16_t disk_cnt;
     uint16_t gps_cnt;
     uint16_t htr_cnt;
     uint16_t imu_cnt;
@@ -1649,6 +1662,7 @@ struct devspecstruc
     std::vector<busstruc *>bus;
     std::vector<camstruc *>cam;
     std::vector<cpustruc *>cpu;
+    std::vector<diskstruc *>disk;
     std::vector<gpsstruc *>gps;
     std::vector<htrstruc *>htr;
     std::vector<imustruc *>imu;

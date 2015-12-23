@@ -56,18 +56,20 @@
 
 enum AGENT_STATE
     {
-    //! Shutting down Agent
+    //! Shut down Agent
     AGENT_STATE_SHUTDOWN=0,
     //! Agent Initializing
-    AGENT_STATE_INIT=1,
-    //! Agent Running
-    AGENT_STATE_RUN=2,
+    AGENT_STATE_INIT,
+    //! Do minimal necessary to run
+    AGENT_STATE_IDLE,
+    //! Run without monitoring
+    AGENT_STATE_RUN,
+    //! Run with monitoring
+    AGENT_STATE_MONITOR,
     //! Agent in Safe State
-    AGENT_STATE_SAFE=3,
+    AGENT_STATE_SAFE,
     //! Agent in Debug State
-    AGENT_STATE_DEBUG=4,
-    //! Agent in Idle State
-    AGENT_STATE_IDLE=4
+    AGENT_STATE_DEBUG
     };
 
 //! Multiple agents per name

@@ -5639,15 +5639,22 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
         json_addentry("device_cpu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_uptime",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,uptime)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
-        json_addentry("device_cpu_maxdisk",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxdisk)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_maxmem",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxmem)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_maxload",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxload)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_load",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,load)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_mem",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,mem)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-        json_addentry("device_cpu_disk",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,disk)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,boot_count)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
         cdata[0].devspec.cpu.push_back((cpustruc *)&cdata[0].device[i].cpu);
         cdata[0].devspec.cpu_cnt = (uint16_t)cdata[0].devspec.cpu.size();
+        break;
+    case DEVICE_TYPE_DISK:
+        json_addentry("device_disk_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
+        json_addentry("device_disk_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
+        json_addentry("device_disk_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+        json_addentry("device_disk_maxdisk",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,maxdisk)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+        json_addentry("device_disk_disk",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,disk)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+        cdata[0].devspec.disk.push_back((diskstruc *)&cdata[0].device[i].disk);
+        cdata[0].devspec.disk_cnt = (uint16_t)cdata[0].devspec.disk.size();
         break;
         //! GPS Unit
     case DEVICE_TYPE_GPS:
@@ -7954,7 +7961,7 @@ void create_databases(cosmosstruc *cdata)
     fprintf(op,"DeviceIndex\tComponentIndex\tLoad\tMemoryUse\tMemoryFree\tDiskUse\n");
     for (i=0; i<cdata[0].devspec.cpu_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.8g\t%.8g\t%.8g\t%.8g\t%.8g\n",i,cdata[0].devspec.cpu[i]->gen.cidx,cdata[0].devspec.cpu[i]->maxmem,cdata[0].devspec.cpu[i]->maxdisk,cdata[0].devspec.cpu[i]->load,cdata[0].devspec.cpu[i]->mem,cdata[0].devspec.cpu[i]->disk);
+        fprintf(op,"%d\t%d\t%.8g\t%.8g\t%.8g\n",i,cdata[0].devspec.cpu[i]->gen.cidx,cdata[0].devspec.cpu[i]->maxmem,cdata[0].devspec.cpu[i]->load,cdata[0].devspec.cpu[i]->mem);
     }
     fclose(op);
 
@@ -8273,7 +8280,7 @@ void load_databases(char *name, uint16_t type, cosmosstruc *cdata)
         i = 0;
         do
         {
-            iretn = fscanf(op,"%*d\t%hu\t%f\t%f\t%f\n",&cdata[0].devspec.cpu[i]->gen.cidx,&cdata[0].devspec.cpu[i]->maxmem,&cdata[0].devspec.cpu[i]->maxdisk,&cdata[0].devspec.cpu[i]->maxload);
+            iretn = fscanf(op,"%*d\t%hu\t%f\t%f\n",&cdata[0].devspec.cpu[i]->gen.cidx,&cdata[0].devspec.cpu[i]->maxmem,&cdata[0].devspec.cpu[i]->maxload);
             if (iretn > 0)
                 ++i;
         } while (iretn > 0);

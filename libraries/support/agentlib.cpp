@@ -31,6 +31,7 @@
     \brief Agent support functions
 */
 
+#include "cpu_lib.h"
 #include "agentlib.h"
 #include "socketlib.h"
 #if defined (COSMOS_MAC_OS)
@@ -716,8 +717,12 @@ void heartbeat_loop(cosmosstruc *cdata)
 
         // compute the jitter
         ((cosmosstruc *)cdata)->agent[0].beat.jitter = ep.split() - ((cosmosstruc *)cdata)->agent[0].beat.bprd;
-        ((cosmosstruc *)cdata)->agent[0].beat.cpu = 1;
-        ((cosmosstruc *)cdata)->agent[0].beat.memory = 2;
+        // Compute other monitored quantities if monitoring
+        if (((cosmosstruc *)cdata)->agent[0].stateflag == AGENT_STATE_MONITOR)
+        {
+            ((cosmosstruc *)cdata)->agent[0].beat.cpu = cpu_load();
+            ((cosmosstruc *)cdata)->agent[0].beat.memory = cpu_vmem();
+        }
 
         ep.start();
 
