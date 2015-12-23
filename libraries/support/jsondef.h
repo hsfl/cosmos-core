@@ -1187,22 +1187,32 @@ struct mtrstruc
 
 struct cpustruc
 {
+
     //! Generic info
     genstruc gen;
+
+    // cpu
     //! Seconds CPU has been up
     uint32_t uptime;
-    //! Maximum disk capacity in GiB
-    float maxdisk;
-    //! Maximum memory capacity in GiB
-    float maxmem;
-    //! Maximu load
-    float maxload;
-    //! Current disk usage in GiB
-    float disk;
-    //! Current memory usage in GiB
-    float mem;
     //! Current load
     float load;
+    //! Maximu load
+    float maxload;
+
+    // memory
+    //! Maximum memory capacity in GiB
+    float maxmem;
+    //! Current memory usage in GiB
+    float mem;
+
+    // disk
+    //! Maximum disk capacity in GiB
+    float maxdisk;  // TODO: rename to diskSize, consider bytes?
+    //! Current disk usage in GiB
+    float disk; // TODO: rename to diskUsed, consider bytes?
+    // TODO: add diskFree
+    //float diskFree;
+
     //! Number of reboots
     uint32_t boot_count;
 };
