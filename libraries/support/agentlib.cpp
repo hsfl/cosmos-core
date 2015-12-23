@@ -161,7 +161,7 @@ int32_t agent_start(cosmosstruc *cdata)
 //! Prepare Agent client
 /*! This is the first function to call when setting up a program as an Agent client. It establishes the
  * Subscription channel for collecting messages and sets up the Name Space for the requested Node.
-    \param ntype Type of network channel to use, taken from ::AGENT_TYPE.
+    \param ntype Type of network channel to use, taken from ::NetworkType.
     \param node Name of Node.
     \param usectimeo Blocking read timeout in micro seconds.
     \return Pointer to ::cosmosstruc to be used for all other calls, otherwise NULL.
@@ -217,7 +217,7 @@ cosmosstruc *agent_setup_client(NetworkType ntype, std::string node, uint32_t us
 /*! This is the first function to call when setting up a program as an Agent client. It establishes the
  * Subscription channel for collecting messages and sets up the Name Space for the requested Node. This
  * version sets the response timeout to 1 msec.
-    \param ntype Type of network channel to use, taken from ::AGENT_TYPE.
+    \param ntype Type of network channel to use, taken from ::NetworkType.
     \param node Name of Node.
     \return Pointer to ::cosmosstruc to be used for all other calls, otherwise NULL.
 */

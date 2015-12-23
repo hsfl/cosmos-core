@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
     }
 
     // Establish the command channel and heartbeat
-    if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,
+    if (!(cdata = agent_setup_server(NetworkType::UDP,
                                      nodename.c_str(),
                                      agentname.c_str(),
                                      5.0,
