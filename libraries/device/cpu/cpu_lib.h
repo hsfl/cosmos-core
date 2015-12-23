@@ -65,9 +65,9 @@ double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long 
 unsigned long long FileTimeToInt64(const FILETIME & ft);
 std::string getWindowsDeviceName();
 #else
-double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
-double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();
-static double CalculateLinuxCPULoad (float *out);
+//double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
+//double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();
+//double CalculateLinuxCPULoad (float *out);
 #endif
 
 

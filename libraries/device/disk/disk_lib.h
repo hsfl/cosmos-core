@@ -64,7 +64,7 @@ unsigned long long FileTimeToInt64(const FILETIME & ft);
 std::string getWindowsDeviceName();
 #else
 double GetLinuxUsedDisk();
-double GetLinuxTotalDisk()
+double GetLinuxTotalDisk();
 #endif
 
 
