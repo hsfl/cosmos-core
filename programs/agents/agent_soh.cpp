@@ -173,16 +173,10 @@ int myagent()
 		cmjd = currentmjd();
 		if (cdata[0].node.utc != 0.)
 		{
-
-#if !defined(COSMOS_WIN_OS)
-			if (cdata[0].devspec.cpu_cnt>0) {
-				fp = fopen("/proc/meminfo","r");
-				fscanf(fp,"MemTotal: %f kB\nMemFree: %f",
-					   &cdata[0].devspec.cpu[0]->maxmem,
-						&cdata[0].devspec.cpu[0]->mem);
-				fclose(fp);
-
+			if (cdata[0].devspec.cpu_cnt>0)
+			{
 				// get load average
+				cdata[0].devspec.cpu[0]->load = cpu.
 				fp = fopen("/proc/loadavg","r");
 				fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
 				fclose(fp);
@@ -198,8 +192,6 @@ int myagent()
 				fscanf(fp,"%u",&cdata[0].devspec.cpu[0]->boot_count);
 				fclose(fp);
 			}
-
-#endif
 
 			if (newlogstride != logstride )
 			{
