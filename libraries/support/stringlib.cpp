@@ -170,7 +170,7 @@ std::string StringParser::getFieldNumber(uint32_t index)
     std::string out;
 	uint32_t real_offset = index + offset;
 
-    if ( index>0 && numberOfFields >= (real_offset) ){
+    if ( index>0 && numberOfFields >= (real_offset) && real_offset < vect.size() ){
 
         out = vect.at(real_offset);
         //std::cout <<out << std::endl;

@@ -44,23 +44,24 @@
 #include "stringlib.h"
 
 // for current process CPU utilization
+#if defined (COSMOS_LINUX_OS)
 #include <sys/times.h>
 #include <sys/vtimes.h>
 #include <sys/sysinfo.h>
-
-
-//#ifndef COSMOS_MAC_OS
-//#if defined (COSMOS_WIN_OS)
-//#include "windows.h"
-//#include <tchar.h>
-//#else
 //#include <stdlib.h>
 //#include <sys/statvfs.h>
 //#include <sys/types.h>
-//#include <sys/sysinfo.h>
 //#include <unistd.h>
-//#endif
-//#endif
+#endif
+
+
+#if defined (COSMOS_WIN_OS)
+#include "windows.h"
+#include <tchar.h>
+#endif
+
+#include <fstream>      // std::ifstream
+
 
 class DeviceCpu
 {
@@ -73,6 +74,7 @@ public:
     // variables
     float load1minAverage;
     int numProcessors;
+    std::string processName;
 
     // functions
     double getLoad1minAverage();
@@ -81,6 +83,7 @@ public:
     void stress();
     double getVirtualMemory();
     double getVirtualMemoryTotal();
+    std::string getCurrentProcessName();
 };
 
 // TODO: move to class

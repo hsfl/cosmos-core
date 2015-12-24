@@ -30,7 +30,7 @@
 
 DeviceCpu::DeviceCpu()
 {
-   load1minAverage = 0.0;
+    load1minAverage = 0.0;
 }
 
 // ----------------------------------------------
@@ -39,7 +39,9 @@ DeviceCpu::DeviceCpu()
 
 // simple function to collect the results from an exectuted command
 // used to get the information from 'ps'
-std::string exec(const char* cmd) {
+std::string exec(std::string command) {
+
+    const char* cmd = command.c_str();
     std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
     if (!pipe) return "ERROR";
     char buffer[128];
@@ -75,10 +77,10 @@ double DeviceCpu::getLoad1minAverage()
 // this function is to be called before getPercentUseForCurrentProcess
 // not really working properly, using 'ps' for now
 void DeviceCpu::initCpuUtilization(){
+
     FILE* file;
     struct tms timeSample;
     char line[128];
-
 
     lastCPU = times(&timeSample);
     lastSysCPU = timeSample.tms_stime;
@@ -102,6 +104,36 @@ void DeviceCpu::initCpuUtilization(){
     if (foundProcessorTag == false) {
         numProcessors = 1.0;
     }
+}
+
+
+std::string DeviceCpu::getCurrentProcessName(){
+
+    std::ifstream ifs ("/proc/self/status");
+    std::string line;
+
+    if (ifs.is_open()) {
+        while ( getline (ifs,line) )
+        {
+//            std::cout << line << '\n';
+
+            std::size_t pos = line.find("Name");
+            if (pos!=std::string::npos) {
+               //std::cout << "-------------------" << std::endl;
+                StringParser sp(line,'\t');
+                processName = sp.getFieldNumber(2);
+                break;
+            }
+
+        }
+        ifs.close();
+    }
+    else {
+        std::cout << "Error opening file";
+    }
+
+    //processName = getenv("_");
+    return processName;
 }
 
 float DeviceCpu::getPercentUseForCurrentProcess()
@@ -133,19 +165,31 @@ float DeviceCpu::getPercentUseForCurrentProcess()
     //    lastSysCPU = timeSample.tms_stime;
     //    lastUserCPU = timeSample.tms_utime;
 
+    using std::string;
+
+    processName = getCurrentProcessName();
+    //string command = "ps -C "+ processName +" -o %cpu,%mem";
+    string procInfo = exec("ps -C "+ processName +" -o %cpu,%mem");
 
     // using 'ps' command
-    using std::string;
-    string procInfo = exec("ps -C agent_cpu -o %cpu,%mem");
-    std::size_t findNewLine = procInfo.find("\n");
-    procInfo = procInfo.substr(findNewLine);
+    // get the second line given by the process
+    std::size_t pos = procInfo.find("\n");
+    if(pos!=string::npos) {
+        procInfo = procInfo.substr(pos);
+    }
 
-    // remove '\n'
-    procInfo.replace(procInfo.find("\n"),1,"");
-    procInfo.replace(procInfo.find("\n"),1,"");
+    // go through every instance of '\n' and remove it
+    while ( (pos = procInfo.find("\n") ) !=string::npos) {
+        procInfo.erase(pos,1);
+    }
 
-    StringParser sp(procInfo);
-    percent = sp.getFieldNumberAsDouble(1);
+
+    if (procInfo.size() > 0) {
+        StringParser sp(procInfo);
+        percent = sp.getFieldNumberAsDouble(1);
+    } else {
+        percent = -1.0;
+    }
 
     //    cout << procInfo << endl;
 
@@ -187,9 +231,8 @@ double DeviceCpu::getVirtualMemoryTotal() // NOT TESTED
 
 // test function to sress cpu
 void DeviceCpu::stress(){
-    double temp;
     for (int i = 0; i< 40000; i++) {
-        temp = sqrt(i)*i/log(i);
+        double temp = sqrt(i)*i/log(i);
     }
 }
 
@@ -279,7 +322,9 @@ std::string getWindowsDeviceName()
         _tprintf(_T("Device name is %s\n"), nameBuf);
     }
 
-    return  std::string(nameBuf);
+    //TODO: fix this
+    //return  std::string(nameBuf);
+    return  "";
 }
 
 unsigned long long FileTimeToInt64(const FILETIME & ft)

@@ -228,8 +228,9 @@ int myagent()
 
         }
 
-        cpu.stress();
-        cpu.stress();
+        // for testing purposes only
+        // cpu.stress();
+        // cpu.stress();
 
     }
 
