@@ -173,6 +173,7 @@ public:
     int32_t shutdown();
 
     int32_t addRequest(std::string request, agent_request_function function);
+    int32_t addRequest(std::string request, agent_request_function function, std::string synopsis, std::string description);
     int32_t sendRequest(beatstruc beat, std::string request, std::string &response);
 
     int32_t post(uint8_t type, std::string message);
@@ -199,6 +200,7 @@ public:
 
     int32_t send(uint8_t address, std::string message);
     int32_t receive(uint8_t address, std::string &message);
+
 };
 
 

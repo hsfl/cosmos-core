@@ -29,6 +29,8 @@
 
 #include "disk_lib.h"
 
+// TODO: move to devicedisk
+
 #if defined(COSMOS_LINUX_OS)
 double disk_use(std::string path)
 {

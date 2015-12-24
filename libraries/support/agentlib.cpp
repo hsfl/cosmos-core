@@ -31,9 +31,10 @@
     \brief Agent support functions
 */
 
-#include "cpu_lib.h"
 #include "agentlib.h"
 #include "socketlib.h"
+//#include "device/cpu/cpu_lib.h"
+#include "device/cpu/devicecpu.h"
 #if defined (COSMOS_MAC_OS)
 #include <net/if.h>
 #include <net/if_dl.h>
@@ -69,6 +70,8 @@ static std::thread hthread;
 void heartbeat_loop(cosmosstruc *cdata);
 void request_loop(cosmosstruc *cdata);
 char * agent_parse_request(char *input);
+
+DeviceCpu cpu;
 
 //! \ingroup agentlib
 //! \defgroup agentlib_functions Agent Server and Client functions
@@ -720,8 +723,8 @@ void heartbeat_loop(cosmosstruc *cdata)
         // Compute other monitored quantities if monitoring
         if (((cosmosstruc *)cdata)->agent[0].stateflag == AGENT_STATE_MONITOR)
         {
-            ((cosmosstruc *)cdata)->agent[0].beat.cpu = cpu_load();
-            ((cosmosstruc *)cdata)->agent[0].beat.memory = cpu_vmem();
+            ((cosmosstruc *)cdata)->agent[0].beat.cpu = cpu.getLoad1minAverage();
+            ((cosmosstruc *)cdata)->agent[0].beat.memory = cpu.getVirtualMemory();
         }
 
         ep.start();
@@ -1917,13 +1920,18 @@ int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &res
 }
 
 // replica of agent_add_request
-int32_t Agent::addRequest(std::string request, agent_request_function function)
+int32_t Agent::addRequest(std::string request, agent_request_function function,  std::string synopsis, std::string description)
 {
-
-    int32_t iretn = agent_add_request(cdata, request, function);
-
+    int32_t iretn = agent_add_request(cdata, request, function, synopsis, description);
     return iretn;
 }
+
+int32_t Agent::addRequest(std::string request, agent_request_function function)
+{
+    int32_t iretn = agent_add_request(cdata, request, function, "", "");
+    return iretn;
+}
+
 
 
 //! Shutdown server gracefully
@@ -2013,5 +2021,7 @@ beatstruc Agent::find(std::string agent)
 
     return beat_agent;
 }
+
+
 
 //! @}

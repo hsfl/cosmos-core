@@ -26,29 +26,135 @@
 * Refer to the "licences" folder for further information on the
 * condititons and terms to use this software.
 ********************************************************************/
+#include "devicecpu.h"
 
-#include "cpu_lib.h"
+DeviceCpu::DeviceCpu()
+{
+   load1minAverage = 0.0;
+}
 
+// ----------------------------------------------
+// Linux
 #if defined(COSMOS_LINUX_OS)
-double cpu_load()
+
+// simple function to collect the results from an exectuted command
+// used to get the information from 'ps'
+std::string exec(const char* cmd) {
+    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) return "ERROR";
+    char buffer[128];
+    std::string result = "";
+    while (!feof(pipe.get())) {
+        if (fgets(buffer, 128, pipe.get()) != NULL)
+            result += buffer;
+    }
+    return result;
+}
+
+
+double DeviceCpu::getLoad1minAverage()
 {
     FILE *f;
-    double avg;
+    float load = 0.0;
     int	n;
 
     if ((f = fopen("/proc/loadavg", "r")) == NULL)
-        return 0.;
+        return -1;
 
-    n = fscanf(f, "%lf", &avg);
+    n = fscanf(f, "%f", &load);
     fclose(f);
 
     if (n != 1)
-        return 0.;
+        return -1;
 
-    return avg;
+    // update internal variable
+    load1minAverage = load;
+    return load;
 }
 
-double cpu_vmem()
+// this function is to be called before getPercentUseForCurrentProcess
+// not really working properly, using 'ps' for now
+void DeviceCpu::initCpuUtilization(){
+    FILE* file;
+    struct tms timeSample;
+    char line[128];
+
+
+    lastCPU = times(&timeSample);
+    lastSysCPU = timeSample.tms_stime;
+    lastUserCPU = timeSample.tms_utime;
+
+
+    file = fopen("/proc/cpuinfo", "r");
+    numProcessors = 0;
+
+    bool foundProcessorTag = false;
+    while(fgets(line, 128, file) != NULL){
+        if (strncmp(line, "processor", 9) == 0) {
+            numProcessors++;
+            foundProcessorTag = true;
+        }
+    }
+    fclose(file);
+
+    // if it didn't find the processor tag inside /proc/cpuinfo
+    // then assume that there is at least one cpu
+    if (foundProcessorTag == false) {
+        numProcessors = 1.0;
+    }
+}
+
+float DeviceCpu::getPercentUseForCurrentProcess()
+{
+    float percent;
+
+    // $ ps -C agent_cpu -o %cpu,%mem
+    // $ top -b -n 3 | grep agent_cpu
+
+    // the following core does not give
+    // same results as top ... so let's use 'ps' to get this information
+    //    struct tms timeSample;
+    //    clock_t now;
+
+    //    now = times(&timeSample);
+    //    if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
+    //            timeSample.tms_utime < lastUserCPU){
+    //        //Overflow detection. Just skip this value.
+    //        percent = -1.0;
+    //    }
+    //    else{
+    //        percent = (timeSample.tms_stime - lastSysCPU) +
+    //                (timeSample.tms_utime - lastUserCPU);
+    //        percent /= (now - lastCPU);
+    //        percent /= numProcessors;
+    //        percent *= 100.0;
+    //    }
+    //    lastCPU = now;
+    //    lastSysCPU = timeSample.tms_stime;
+    //    lastUserCPU = timeSample.tms_utime;
+
+
+    // using 'ps' command
+    using std::string;
+    string procInfo = exec("ps -C agent_cpu -o %cpu,%mem");
+    std::size_t findNewLine = procInfo.find("\n");
+    procInfo = procInfo.substr(findNewLine);
+
+    // remove '\n'
+    procInfo.replace(procInfo.find("\n"),1,"");
+    procInfo.replace(procInfo.find("\n"),1,"");
+
+    StringParser sp(procInfo);
+    percent = sp.getFieldNumberAsDouble(1);
+
+    //    cout << procInfo << endl;
+
+    return percent;
+
+}
+
+
+double DeviceCpu::getVirtualMemory()
 {
     struct sysinfo memInfo;
     sysinfo (&memInfo);
@@ -61,7 +167,7 @@ double cpu_vmem()
     return (virtualMemUsed) * 0.000976563; // convert byte to kibibyte
 }
 
-double cpu_vmemtotal() // NOT TESTED
+double DeviceCpu::getVirtualMemoryTotal() // NOT TESTED
 {
     struct sysinfo memInfo;
     sysinfo (&memInfo);
@@ -74,7 +180,26 @@ double cpu_vmemtotal() // NOT TESTED
     return (totalVirtualMem) * 0.000976563; // convert byte to kibibyte
 }
 
-#endif
+
+#endif // defined(COSMOS_LINUX_OS)
+
+
+
+// test function to sress cpu
+void DeviceCpu::stress(){
+    double temp;
+    for (int i = 0; i< 40000; i++) {
+        temp = sqrt(i)*i/log(i);
+    }
+}
+
+
+
+
+
+
+
+
 
 #if defined (COSMOS_MAC_OS)
 double cpu_load()

@@ -50,3 +50,9 @@ contains(MODULES, cssl_lib){
     SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.cpp)
     HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/device/cssl_lib.h)
 }
+
+HEADERS += \
+    $$PWD/cpu/devicecpu.h
+
+SOURCES += \
+    $$PWD/cpu/devicecpu.cpp

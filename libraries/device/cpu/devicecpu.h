@@ -26,40 +26,64 @@
 * Refer to the "licences" folder for further information on the
 * condititons and terms to use this software.
 ********************************************************************/
+#ifndef DEVICECPU_H
+#define DEVICECPU_H
 
-
-#ifndef CPU_LIB_H
-#define CPU_LIB_H
-
-/*! \file cpu_lib.h
-* \brief cpu_lib include file.
+/*! \file devicecpu.h
+* \brief devicecpu include file.
 */
 
 //! \ingroup devices
-//!	\defgroup cpu_lib Generic CPU device library.
+//!	\defgroup DeviceCpu Generic CPU device library.
 //! CPU Device Library.
 //!
 //! Device level support CPU.
 
+
 #include "configCosmos.h"
+#include "stringlib.h"
 
-#ifndef COSMOS_MAC_OS
-#if defined (COSMOS_WIN_OS)
-#include "windows.h"
-#include <tchar.h>
-#else
-#include <stdlib.h>
-#include <sys/statvfs.h>
-#include <sys/types.h>
+// for current process CPU utilization
+#include <sys/times.h>
+#include <sys/vtimes.h>
 #include <sys/sysinfo.h>
-#include <unistd.h>
-#endif
-#endif
 
-double cpu_load();
-double cpu_vmemtotal();
-double cpu_vmem();
 
+//#ifndef COSMOS_MAC_OS
+//#if defined (COSMOS_WIN_OS)
+//#include "windows.h"
+//#include <tchar.h>
+//#else
+//#include <stdlib.h>
+//#include <sys/statvfs.h>
+//#include <sys/types.h>
+//#include <sys/sysinfo.h>
+//#include <unistd.h>
+//#endif
+//#endif
+
+class DeviceCpu
+{
+    clock_t lastCPU, lastSysCPU, lastUserCPU;
+
+public:
+    DeviceCpu();
+
+
+    // variables
+    float load1minAverage;
+    int numProcessors;
+
+    // functions
+    double getLoad1minAverage();
+    float getPercentUseForCurrentProcess();
+    void initCpuUtilization();
+    void stress();
+    double getVirtualMemory();
+    double getVirtualMemoryTotal();
+};
+
+// TODO: move to class
 #ifdef COSMOS_WIN_OS
 double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
 unsigned long long FileTimeToInt64(const FILETIME & ft);
@@ -71,5 +95,4 @@ std::string getWindowsDeviceName();
 #endif
 
 
-#endif // CPU_LIB_H
-
+#endif // DEVICECPU_H
