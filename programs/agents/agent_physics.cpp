@@ -339,14 +339,3 @@ char* request_set_mtr_field(char* request, char* output)
 	return (output);
 }
 
-void soh_cpu()
-{
-	FILE *fp;
-
-	fp = fopen("/proc/meminfo","r");
-	fscanf(fp,"MemTotal: %f kB\n",&cdata[0].devspec.cpu[0]->mem);
-	fclose(fp);
-	fp = fopen("/proc/loadavg","r");
-	fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
-	fclose(fp);
-}

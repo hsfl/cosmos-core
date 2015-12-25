@@ -132,20 +132,6 @@ int myagent()
 		}
 
 
-		// Gather system information
-#ifdef COSMOS_LINUX_OS
-		FILE *fp;
-		fp = fopen("/proc/meminfo","r");
-		fscanf(fp,"MemTotal: %f kB\nMemFree: %f",&cdata[0].devspec.cpu[0]->maxmem,&cdata[0].devspec.cpu[0]->mem);
-		fclose(fp);
-		fp = fopen("/proc/loadavg","r");
-		fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
-		fclose(fp);
-		struct statfs fsbuf;
-		statfs("/",&fsbuf);
-		cdata[0].devspec.cpu[0]->disk = fsbuf.f_blocks;
-		diskfree = fsbuf.f_bfree;
-#endif
 
 		COSMOS_USLEEP(100000); // no support in win, 100ms reporting interval
 	}
