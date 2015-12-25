@@ -46,13 +46,13 @@ const double D_SMALL=((double)1e-76);
 //! Enumeration of possible byte orders
 enum class ByteOrder : std::uint8_t {
     //! Big Endian byte order
-    BIGENDIAN=0,
+    BIGENDIAN=0, // was previouly ORDER_BIGENDIAN
     //! PowerPC byte order
     PPC=ByteOrder::BIGENDIAN,
     //! Motorola byte order
     MOTOROLA=ByteOrder::BIGENDIAN,
     //! Little Endian byte order
-    LITTLEENDIAN=1,
+    LITTLEENDIAN=1, // was previouly ORDER_LITTLEENDIAN
     //! Intel byte order
     INTEL=ByteOrder::LITTLEENDIAN,
     //! Network byte order
