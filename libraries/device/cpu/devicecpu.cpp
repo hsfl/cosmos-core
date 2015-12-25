@@ -30,11 +30,74 @@
 
 DeviceCpu::DeviceCpu()
 {
-    load1minAverage = 0.0;
+
 }
+
+double DeviceCpu::getLoad(){
+
+#if defined(COSMOS_LINUX_OS)
+    DeviceCpuLinux cpu;
+    return cpu.getLoad1minAverage();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    DeviceCpuWindows cpu;
+    return cpu.getLoad();
+#endif
+
+}
+
+
+double DeviceCpu::getVirtualMemory(){
+
+#if defined(COSMOS_LINUX_OS)
+    DeviceCpuLinux cpu;
+    return cpu.getVirtualMemory();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    DeviceCpuWindows cpu;
+    return cpu.getVirtualMemory();
+#endif
+
+}
+
+
+double DeviceCpu::getVirtualMemoryTotal(){
+
+#if defined(COSMOS_LINUX_OS)
+    DeviceCpuLinux cpu;
+    return cpu.getVirtualMemoryTotal();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    DeviceCpuWindows cpu;
+    return cpu.getVirtualMemoryTotal();
+#endif
+
+}
+
+
+double DeviceCpu::getPercentUseForCurrentProcess(){
+
+#if defined(COSMOS_LINUX_OS)
+    DeviceCpuLinux cpu;
+    return cpu.getPercentUseForCurrentProcess();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    return 0;
+#endif
+
+}
+
+
+
+
 
 // ----------------------------------------------
 // Linux
+// ----------------------------------------------
 #if defined(COSMOS_LINUX_OS)
 
 // simple function to collect the results from an exectuted command
@@ -54,7 +117,12 @@ std::string exec(std::string command) {
 }
 
 
-double DeviceCpu::getLoad1minAverage()
+DeviceCpuLinux::DeviceCpuLinux()
+{
+    load1minAverage = 0.0;
+}
+
+double DeviceCpuLinux::getLoad1minAverage()
 {
     FILE *f;
     float load = 0.0;
@@ -76,7 +144,7 @@ double DeviceCpu::getLoad1minAverage()
 
 // this function is to be called before getPercentUseForCurrentProcess
 // not really working properly, using 'ps' for now
-void DeviceCpu::initCpuUtilization(){
+void DeviceCpuLinux::initCpuUtilization(){
 
     FILE* file;
     struct tms timeSample;
@@ -107,7 +175,7 @@ void DeviceCpu::initCpuUtilization(){
 }
 
 
-std::string DeviceCpu::getCurrentProcessName(){
+std::string DeviceCpuLinux::getCurrentProcessName(){
 
     std::ifstream ifs ("/proc/self/status");
     std::string line;
@@ -115,11 +183,11 @@ std::string DeviceCpu::getCurrentProcessName(){
     if (ifs.is_open()) {
         while ( getline (ifs,line) )
         {
-//            std::cout << line << '\n';
+            //            std::cout << line << '\n';
 
             std::size_t pos = line.find("Name");
             if (pos!=std::string::npos) {
-               //std::cout << "-------------------" << std::endl;
+                //std::cout << "-------------------" << std::endl;
                 StringParser sp(line,'\t');
                 processName = sp.getFieldNumber(2);
                 break;
@@ -136,7 +204,7 @@ std::string DeviceCpu::getCurrentProcessName(){
     return processName;
 }
 
-float DeviceCpu::getPercentUseForCurrentProcess()
+float DeviceCpuLinux::getPercentUseForCurrentProcess()
 {
     float percent;
 
@@ -198,7 +266,7 @@ float DeviceCpu::getPercentUseForCurrentProcess()
 }
 
 
-double DeviceCpu::getVirtualMemory()
+double DeviceCpuLinux::getVirtualMemory()
 {
     struct sysinfo memInfo;
     sysinfo (&memInfo);
@@ -211,7 +279,7 @@ double DeviceCpu::getVirtualMemory()
     return (virtualMemUsed) * 0.000976563; // convert byte to kibibyte
 }
 
-double DeviceCpu::getVirtualMemoryTotal() // NOT TESTED
+double DeviceCpuLinux::getVirtualMemoryTotal() // NOT TESTED
 {
     struct sysinfo memInfo;
     sysinfo (&memInfo);
@@ -233,6 +301,7 @@ double DeviceCpu::getVirtualMemoryTotal() // NOT TESTED
 void DeviceCpu::stress(){
     for (int i = 0; i< 40000; i++) {
         double temp = sqrt(i)*i/log(i);
+        temp = sqrt(temp);
     }
 }
 
@@ -243,7 +312,9 @@ void DeviceCpu::stress(){
 
 
 
-
+// ----------------------------------------------
+// MACOS
+// ----------------------------------------------
 #if defined (COSMOS_MAC_OS)
 double cpu_load()
 {
@@ -254,32 +325,23 @@ double cpu_load()
 }
 #endif
 
+
+// ----------------------------------------------
+// WINDOWS
+// ----------------------------------------------
 #if defined (COSMOS_WIN_OS)
-double cpu_load()
+DeviceCpuWindows::DeviceCpuWindows()
+{
+
+}
+
+double DeviceCpuWindows::getLoad()
 {
     FILETIME idleTime, kernelTime, userTime;
-    return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateWindowsCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime)+FileTimeToInt64(userTime)) : -1.0f;
+    return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime)+FileTimeToInt64(userTime)) : -1.0f;
 }
 
-double cpu_vmem()
-{
-    MEMORYSTATUSEX memInfo;
-    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-    GlobalMemoryStatusEx(&memInfo);
-    DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
-    return (virtualMemUsed) * 0.001; // convert byte to kilobyte
-}
-
-double cpu_vmemtotal()
-{
-    MEMORYSTATUSEX memInfo;
-    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-    GlobalMemoryStatusEx(&memInfo);
-    DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
-    return (totalVirtualMem) * 0.001; // convert byte to kilobyte
-}
-
-double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
+double DeviceCpuWindows::CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
 {
     static unsigned long long _previousTotalTicks = 0;
     static unsigned long long _previousIdleTicks = 0;
@@ -294,7 +356,7 @@ double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long 
     return ret;
 }
 
-double GetWindowsTotalVirtualMem()
+double DeviceCpuWindows::getVirtualMemoryTotal()
 {
     MEMORYSTATUSEX memInfo;
     memInfo.dwLength = sizeof(MEMORYSTATUSEX);
@@ -303,7 +365,7 @@ double GetWindowsTotalVirtualMem()
     return (totalVirtualMem) * 0.001; // convert byte to kilobyte
 }
 
-double GetWindowsVirtualMem()
+double DeviceCpuWindows::getVirtualMemory()
 {
     MEMORYSTATUSEX memInfo;
     memInfo.dwLength = sizeof(MEMORYSTATUSEX);
@@ -312,22 +374,22 @@ double GetWindowsVirtualMem()
     return (virtualMemUsed) * 0.001; // convert byte to kilobyte
 }
 
-//std::string getWindowsDeviceName()
-//{
-//    TCHAR nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
-//    DWORD nameBufSize;
+std::string DeviceCpuWindows::getDeviceName()
+{
+    TCHAR nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
+    DWORD nameBufSize;
 
-//    nameBufSize = sizeof nameBuf - 1;
-//    if (GetComputerName(nameBuf, &nameBufSize) == TRUE) {
-//        _tprintf(_T("Device name is %s\n"), nameBuf);
-//    }
+    nameBufSize = sizeof nameBuf - 1;
+    if (GetComputerName(nameBuf, &nameBufSize) == TRUE) {
+        _tprintf(_T("Device name is %s\n"), nameBuf);
+    }
 
-//    //TODO: fix this
-//    //return  std::string(nameBuf);
-//    return  "";
-//}
+    //TODO: fix this
+    //return  std::string(nameBuf);
+    return  "";
+}
 
-unsigned long long FileTimeToInt64(const FILETIME & ft)
+unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)
 {
     return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);
 }

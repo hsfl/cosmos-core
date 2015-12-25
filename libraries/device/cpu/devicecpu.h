@@ -54,7 +54,6 @@
 //#include <unistd.h>
 #endif
 
-
 #if defined (COSMOS_WIN_OS)
 #include "windows.h"
 #include <tchar.h>
@@ -63,13 +62,48 @@
 #include <fstream>      // std::ifstream
 
 
+#ifdef COSMOS_WIN_OS
+class DeviceCpuWindows
+{
+
+public:
+    DeviceCpuWindows();
+
+    double getLoad();
+    double CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
+    unsigned long long FileTimeToInt64(const FILETIME & ft);
+    std::string getDeviceName();
+    double getVirtualMemory();
+    double getVirtualMemoryTotal();
+};
+
+#endif
+
+
 class DeviceCpu
 {
-    clock_t lastCPU, lastSysCPU, lastUserCPU;
-
 public:
     DeviceCpu();
 
+
+
+    void stress();
+
+    // API functions (generic names)
+    double getLoad();
+    double getVirtualMemory();
+    double getVirtualMemoryTotal();
+    double getPercentUseForCurrentProcess();
+};
+
+
+
+#ifdef COSMOS_LINUX_OS
+class DeviceCpuLinux
+{
+    clock_t lastCPU, lastSysCPU, lastUserCPU;
+public:
+    DeviceCpuLinux();
 
     // variables
     float load1minAverage;
@@ -80,22 +114,19 @@ public:
     double getLoad1minAverage();
     float getPercentUseForCurrentProcess();
     void initCpuUtilization();
-    void stress();
     double getVirtualMemory();
     double getVirtualMemoryTotal();
     std::string getCurrentProcessName();
+    //double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
+    //double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();
+    //double CalculateLinuxCPULoad (float *out);
 };
 
-// TODO: move to class
-#ifdef COSMOS_WIN_OS
-double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
-unsigned long long FileTimeToInt64(const FILETIME & ft);
-//std::string getWindowsDeviceName();
-#else
-//double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
-//double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();
-//double CalculateLinuxCPULoad (float *out);
 #endif
+
+
+
+
 
 
 #endif // DEVICECPU_H

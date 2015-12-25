@@ -723,7 +723,7 @@ void heartbeat_loop(cosmosstruc *cdata)
         // Compute other monitored quantities if monitoring
         if (((cosmosstruc *)cdata)->agent[0].stateflag == AGENT_STATE_MONITOR)
         {
-            ((cosmosstruc *)cdata)->agent[0].beat.cpu = cpu.getLoad1minAverage();
+            ((cosmosstruc *)cdata)->agent[0].beat.cpu = cpu.getLoad();
             ((cosmosstruc *)cdata)->agent[0].beat.memory = cpu.getVirtualMemory();
         }
 

@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 		// Gather system information
         if (cdata[0].devspec.cpu_cnt)
         {
-            cdata[0].devspec.cpu[0]->load = cpu.getLoad1minAverage();
+            cdata[0].devspec.cpu[0]->load = cpu.getLoad();
             cdata[0].devspec.cpu[0]->mem = cpu.getVirtualMemory();
         }
 

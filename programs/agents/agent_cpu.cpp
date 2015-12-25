@@ -190,7 +190,7 @@ int myagent()
         if (agent.cdata[0].devspec.cpu_cnt)
         {
             // cpu
-            agent.cdata[0].devspec.cpu[0]->load   = cpu.getLoad1minAverage();
+            agent.cdata[0].devspec.cpu[0]->load   = cpu.getLoad();
             agent.cdata[0].devspec.cpu[0]->mem = cpu.getVirtualMemory();
             agent.cdata[0].devspec.cpu[0]->maxmem = cpu.getVirtualMemoryTotal();
         }

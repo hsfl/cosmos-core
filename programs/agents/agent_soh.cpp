@@ -180,7 +180,7 @@ int myagent()
             if (cdata[0].devspec.cpu_cnt > 0)
             {
                 // get load average
-                cdata[0].devspec.cpu[0]->load = cpu.getLoad1minAverage();
+                cdata[0].devspec.cpu[0]->load = cpu.getLoad();
                 // get memory
                 cdata[0].devspec.cpu[0]->mem = cpu.getVirtualMemory();
             }
