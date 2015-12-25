@@ -62,20 +62,20 @@ int32_t request_mempercent (char*request, char *response, void *cdata);
 int32_t request_printStatus(char *request, char *response, void */*cdata*/);
 
 
-#ifdef COSMOS_WIN_OS
-double GetWindowsCPULoad(), GetWindowsUsedDisk(), GetWindowsVirtualMem();
-double GetWindowsTotalDisk(), GetWindowsTotalVirtualMem();
-static double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
-static unsigned long long FileTimeToInt64(const FILETIME & ft) {return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);}
+//#ifdef COSMOS_WIN_OS
+//double GetWindowsCPULoad(), GetWindowsUsedDisk(), GetWindowsVirtualMem();
+//double GetWindowsTotalDisk(), GetWindowsTotalVirtualMem();
+//double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
+//unsigned long long FileTimeToInt64(const FILETIME & ft) {return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);}
 std::string getWindowsDeviceName();
-#else
+//#else
 
 
-// memory
-double GetLinuxVirtualMem();
-double GetLinuxTotalVirtualMem();
+//// memory
+//double GetLinuxVirtualMem();
+//double GetLinuxTotalVirtualMem();
 
-#endif
+//#endif
 
 std::string agentname  = "cpu_monitor";
 std::string nodename;
@@ -99,6 +99,9 @@ double diskSize;
 double diskFree;
 float cpuPercentUseCurrentProcess;
 
+DeviceCpu cpu;
+DeviceDisk disk;
+
 Agent agent;
 
 int main(int argc, char *argv[])
@@ -106,7 +109,7 @@ int main(int argc, char *argv[])
 
 #ifndef COSMOS_MAC_OS
     std::cout << "Starting agent cpu" << std::endl;
-    int iretn;
+//    int iretn;
 
     switch (argc)
     {
@@ -159,7 +162,7 @@ int main(int argc, char *argv[])
     agent_set_sohstring(agent.cdata, sohstring);
 
     // Start our own thread
-    iretn = myagent();
+    myagent();
 
     return 0;
 #endif //COSMOS_MAC_OS
@@ -174,50 +177,40 @@ int myagent()
     ElapsedTime et;
     et.start();
 
-    DeviceCpu cpu;
-    DeviceDisk disk;
-
 
 
     // Start performing the body of the agent
     while(agent.isRunning())
     {
 
-        COSMOS_SLEEP(1);
+        COSMOS_SLEEP(agent.cdata[0].agent[0].aprd);
 
         agent.cdata[0].devspec.cpu[0]->gen.utc = currentmjd();
 
-        // why ?
-        //		if (et.split() == 5.)
-        //		{
-        //			et.reset();
-#ifdef COSMOS_WIN_OS
-        agent.cdata[0].devspec.cpu[0]->load = GetWindowsCPULoad();
-        agent.cdata[0].devspec.cpu[0]->disk = GetWindowsUsedDisk();
-        agent.cdata[0].devspec.cpu[0]->mem = GetWindowsVirtualMem();
-        agent.cdata[0].devspec.cpu[0]->maxdisk = GetWindowsTotalDisk();
-        agent.cdata[0].devspec.cpu[0]->maxmem = GetWindowsTotalVirtualMem();
-#else
-        // cpu
-        agent.cdata[0].devspec.cpu[0]->load   = cpu.getLoad1minAverage();
+        if (agent.cdata[0].devspec.cpu_cnt)
+        {
+            // cpu
+            agent.cdata[0].devspec.cpu[0]->load   = cpu.getLoad1minAverage();
+            agent.cdata[0].devspec.cpu[0]->mem = cpu.getVirtualMemory();
+            agent.cdata[0].devspec.cpu[0]->maxmem = cpu.getVirtualMemoryTotal();
+        }
         cpuPercentUseCurrentProcess     = cpu.getPercentUseForCurrentProcess();
-        // disk
-
-        diskUsed = disk.getUsedGB();
-        diskSize = disk.getSizeGB();
-        diskFree = disk.getFreeGB();
 
         // TODO: add disk to node.ini
-        //agent.cdata[0].devspec.disk[0]->disk    = GetLinuxDiskUsedGB(); // TODO: rename disk to diskUsed
-        //agent.cdata[0].devspec.disk[0]->maxdisk = GetLinuxDiskSizeGB(); // TODO: rename disk to diskSize
-        //agent.cdata[0].devspec.disk[0]->diskFree    = GetLinuxDiskFree(); // TODO: rename disk to diskUsed
-
-        agent.cdata[0].devspec.cpu[0]->mem     = GetLinuxVirtualMem();
-        agent.cdata[0].devspec.cpu[0]->maxmem  = GetLinuxTotalVirtualMem();
-#endif
-        //		}
-        //		std::cout << et.lap() << "           " << mempercent << std::endl;
-        //		et.start();
+        // disk
+        diskUsed = 0;
+        diskSize = 0;
+        diskFree = 0;
+        if (agent.cdata[0].devspec.disk_cnt)
+        {
+            for (size_t i=0; i<agent.cdata[0].devspec.disk_cnt; ++i)
+            {
+                disk.getAll(agent.cdata[0].port[agent.cdata[0].devspec.disk[i]->gen.portidx].name);
+                diskUsed += disk.Used;
+                diskSize += disk.Size;
+                diskFree += disk.Free;
+            }
+        }
 
         if (printStatus) {
             cout << "Load," << agent.cdata[0].devspec.cpu[0]->load << ", ";
@@ -241,68 +234,68 @@ int myagent()
 
 #ifdef COSMOS_WIN_OS
 
-double GetWindowsCPULoad()
-{
-    FILETIME idleTime, kernelTime, userTime;
-    return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateWindowsCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime)+FileTimeToInt64(userTime)) : -1.0f;
-}
+//double GetWindowsCPULoad()
+//{
+//    FILETIME idleTime, kernelTime, userTime;
+//    return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateWindowsCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime)+FileTimeToInt64(userTime)) : -1.0f;
+//}
 
-double GetWindowsUsedDisk()
-{
-    int64_t freeSpace, totalSpace, totalFreeSpace;
+//double GetWindowsUsedDisk()
+//{
+//    int64_t freeSpace, totalSpace, totalFreeSpace;
 
-    GetDiskFreeSpaceEx( "C:",
-                        (PULARGE_INTEGER)&freeSpace,
-                        (PULARGE_INTEGER)&totalSpace,
-                        (PULARGE_INTEGER)&totalFreeSpace);
+//    GetDiskFreeSpaceEx( "C:",
+//                        (PULARGE_INTEGER)&freeSpace,
+//                        (PULARGE_INTEGER)&totalSpace,
+//                        (PULARGE_INTEGER)&totalFreeSpace);
 
-    return (totalSpace - totalFreeSpace) * 0.001; // convert byte to kilobyte
-}
+//    return (totalSpace - totalFreeSpace) * 0.001; // convert byte to kilobyte
+//}
 
-double GetWindowsTotalDisk()
-{
-    int64_t freeSpace, totalSpace, totalFreeSpace;
+//double GetWindowsTotalDisk()
+//{
+//    int64_t freeSpace, totalSpace, totalFreeSpace;
 
-    GetDiskFreeSpaceEx( "C:",
-                        (PULARGE_INTEGER)&freeSpace,
-                        (PULARGE_INTEGER)&totalSpace,
-                        (PULARGE_INTEGER)&totalFreeSpace);
+//    GetDiskFreeSpaceEx( "C:",
+//                        (PULARGE_INTEGER)&freeSpace,
+//                        (PULARGE_INTEGER)&totalSpace,
+//                        (PULARGE_INTEGER)&totalFreeSpace);
 
-    return (totalSpace) * 0.001; // convert byte to kilobyte
-}
+//    return (totalSpace) * 0.001; // convert byte to kilobyte
+//}
 
-double GetWindowsTotalVirtualMem()
-{
-    MEMORYSTATUSEX memInfo;
-    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-    GlobalMemoryStatusEx(&memInfo);
-    DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
-    return (totalVirtualMem) * 0.001; // convert byte to kilobyte
-}
+//double GetWindowsTotalVirtualMem()
+//{
+//    MEMORYSTATUSEX memInfo;
+//    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+//    GlobalMemoryStatusEx(&memInfo);
+//    DWORDLONG totalVirtualMem = memInfo.ullTotalPageFile;
+//    return (totalVirtualMem) * 0.001; // convert byte to kilobyte
+//}
 
-double GetWindowsVirtualMem()
-{
-    MEMORYSTATUSEX memInfo;
-    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
-    GlobalMemoryStatusEx(&memInfo);
-    DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
-    return (virtualMemUsed) * 0.001; // convert byte to kilobyte
-}
+//double GetWindowsVirtualMem()
+//{
+//    MEMORYSTATUSEX memInfo;
+//    memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+//    GlobalMemoryStatusEx(&memInfo);
+//    DWORDLONG virtualMemUsed = memInfo.ullTotalPageFile - memInfo.ullAvailPageFile;
+//    return (virtualMemUsed) * 0.001; // convert byte to kilobyte
+//}
 
-static double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
-{
-    static unsigned long long _previousTotalTicks = 0;
-    static unsigned long long _previousIdleTicks = 0;
+//static double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
+//{
+//    static unsigned long long _previousTotalTicks = 0;
+//    static unsigned long long _previousIdleTicks = 0;
 
-    unsigned long long totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
-    unsigned long long idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
+//    unsigned long long totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
+//    unsigned long long idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
 
-    float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
+//    float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
 
-    _previousTotalTicks = totalTicks;
-    _previousIdleTicks  = idleTicks;
-    return ret;
-}
+//    _previousTotalTicks = totalTicks;
+//    _previousIdleTicks  = idleTicks;
+//    return ret;
+//}
 std::string getWindowsDeviceName()
 {
     TCHAR nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
@@ -397,22 +390,14 @@ int32_t request_load (char *request, char* response, void *)
 
 int32_t request_diskFreePercent (char *request, char *response, void *)
 {
-#ifdef COSMOS_WIN_OS
-    float diskpercent = GetWindowsUsedDisk() / GetWindowsTotalDisk();
-#else
-    float diskpercent = diskUsed / diskSize;
-#endif
+    float diskpercent = disk.getAll();
     return (sprintf(response, "%f", diskpercent));
 }
 
 
 int32_t request_mempercent (char *request, char *response, void *)
 {
-#ifdef COSMOS_WIN_OS
-    float mempercent = GetWindowsVirtualMem() / GetWindowsTotalVirtualMem();
-#else
-    float mempercent = GetLinuxVirtualMem() / GetLinuxTotalVirtualMem();
-#endif
+    float mempercent = cpu.getVirtualMemory() / cpu.getVirtualMemoryTotal();
     return (sprintf(response, "%f", mempercent));
 }
 

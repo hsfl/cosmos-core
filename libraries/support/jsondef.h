@@ -960,8 +960,8 @@ struct portstruc
     //! Type of I/O as listed in ::PORT_TYPE.
     uint16_t type;
     //! Name information for port.
-    //!!! Change 'char' to 'string'
-    char name[COSMOS_MAX_NAME+1];
+    //!!! Do not make this std::string
+    char name[COSMOS_MAX_DATA+1];
 };
 
 //! Part structure: physical information for each piece of Node

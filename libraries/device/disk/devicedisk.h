@@ -23,10 +23,16 @@ static const double GB = 1024. * 1024. * 1024.;
 class DeviceDisk
 {
 public:
+    uint64_t Size;
+    uint64_t Used;
+    uint64_t Free;
+
     DeviceDisk();
+    double getAll(std::string path);
     uint64_t getSize(std::string path);
     uint64_t getUsed(std::string path);
     uint64_t getFree(std::string path);
+    double getAll();
     uint64_t getSize();
     uint64_t getUsed();
     uint64_t getFree();

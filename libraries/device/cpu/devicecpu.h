@@ -90,7 +90,7 @@ public:
 #ifdef COSMOS_WIN_OS
 double CalculateWindowsCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
 unsigned long long FileTimeToInt64(const FILETIME & ft);
-std::string getWindowsDeviceName();
+//std::string getWindowsDeviceName();
 #else
 //double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
 //double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();

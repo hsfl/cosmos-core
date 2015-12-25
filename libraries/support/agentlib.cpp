@@ -71,7 +71,7 @@ void heartbeat_loop(cosmosstruc *cdata);
 void request_loop(cosmosstruc *cdata);
 char * agent_parse_request(char *input);
 
-DeviceCpu cpu;
+static DeviceCpu cpu;
 
 //! \ingroup agentlib
 //! \defgroup agentlib_functions Agent Server and Client functions

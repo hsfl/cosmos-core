@@ -5,6 +5,51 @@ DeviceDisk::DeviceDisk()
 
 }
 
+// get the disk size percentage
+double DeviceDisk::getAll()
+{
+#if defined COSMOS_LINUX_OS
+    return getAll("/");
+#endif
+
+#if defined COSMOS_WIN_OS
+    return getAll("C:");
+#endif
+}
+
+double DeviceDisk::getAll(std::string path)
+{
+    Size = 0;
+    Free = 0;
+    Used = 0;
+
+#if defined COSMOS_LINUX_OS
+    struct statvfs buf;
+
+    statvfs(path.c_str(),&buf);
+
+    // disk size in bytes
+    // must add the casting otherwise there will be problems
+    Size = (uint64_t)buf.f_frsize * (uint64_t)buf.f_blocks;
+    Free = (uint64_t)buf.f_frsize * (uint64_t)buf.f_bfree;
+
+#endif
+
+
+#if defined COSMOS_WIN_OS
+    uint64_t freeSpace;
+
+    GetDiskFreeSpaceEx( path.c_str(),
+                        (PULARGE_INTEGER)&freeSpace,
+                        (PULARGE_INTEGER)&Size,
+                        (PULARGE_INTEGER)&Free);
+
+#endif
+
+    Used = Size - Free;
+    return (double)Free / Used;
+}
+
 uint64_t DeviceDisk::getSize()
 {
 #if defined COSMOS_LINUX_OS
@@ -16,35 +61,11 @@ uint64_t DeviceDisk::getSize()
 #endif
 }
 
-// get the disk size in bytes
+// get all disk information in bytes
 uint64_t DeviceDisk::getSize(std::string path)
 {
-    uint64_t disk_size = 0;
-    uint64_t disk_free = 0;
-
-#if defined COSMOS_LINUX_OS
-    struct statvfs buf;
-
-    statvfs(path.c_str(),&buf);
-
-    // disk size in bytes
-    // must add the casting otherwise there will be problems
-    disk_size = (uint64_t)buf.f_frsize * (uint64_t)buf.f_blocks;
-
-#endif
-
-
-#if defined COSMOS_WIN_OS
-    uint64_t freeSpace;
-
-    GetDiskFreeSpaceEx( path.c_str(),
-                        (PULARGE_INTEGER)&freeSpace,
-                        (PULARGE_INTEGER)&disk_size,
-                        (PULARGE_INTEGER)&disk_free);
-
-#endif
-
-    return disk_size;
+    getAll(path);
+    return Size;
 }
 
 
@@ -73,40 +94,8 @@ uint64_t DeviceDisk::getUsed()
 
 uint64_t DeviceDisk::getUsed(std::string path)
 {
-    uint64_t disk_size = 0;
-    uint64_t disk_used = 0;
-    uint64_t disk_free = 0;
-
-#if defined COSMOS_LINUX_OS
-    struct statvfs buf;
-
-    statvfs(path.c_str(),&buf);
-
-    // disk size in bytes
-    // must add the casting otherwise there will be problems
-    disk_size = (uint64_t)buf.f_frsize * (uint64_t)buf.f_blocks;
-//    disk_size = getSize(path);
-
-    // free disk in bytes
-     disk_free = (uint64_t)buf.f_frsize * (uint64_t)buf.f_bfree;
-//    disk_free = getFree(path);
-
-#endif
-
-
-#if defined COSMOS_WIN_OS
-    uint64_t freeSpace;
-
-    GetDiskFreeSpaceEx( path.c_str(),
-                        (PULARGE_INTEGER)&freeSpace,
-                        (PULARGE_INTEGER)&disk_size,
-                        (PULARGE_INTEGER)&disk_free);
-
-#endif
-
-    // total disk used in bytes
-    disk_used = disk_size - disk_free;
-    return (disk_used);
+    getAll(path);
+    return (Used);
 }
 
 
@@ -136,28 +125,9 @@ uint64_t DeviceDisk::getFree()
 
 uint64_t DeviceDisk::getFree(std::string path)
 {
-    uint64_t disk_free;
+    getAll(path);
 
-#if defined COSMOS_LINUX_OS
-    struct statvfs buf;
-
-    statvfs(path.c_str(),&buf);
-
-    disk_free = (uint64_t)buf.f_frsize * (uint64_t)buf.f_bfree;
-#endif
-
-#if defined COSMOS_WIN_OS
-    uint64_t freeSpace, totalSpace, totalFreeSpace;
-
-    GetDiskFreeSpaceEx( path.c_str(),
-                        (PULARGE_INTEGER)&freeSpace,
-                        (PULARGE_INTEGER)&totalSpace,
-                        (PULARGE_INTEGER)&totalFreeSpace);
-
-    disk_free = totalFreeSpace;
-#endif
-
-    return disk_free;
+    return Free;
 }
 
 

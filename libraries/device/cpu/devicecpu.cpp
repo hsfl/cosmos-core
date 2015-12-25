@@ -312,20 +312,20 @@ double GetWindowsVirtualMem()
     return (virtualMemUsed) * 0.001; // convert byte to kilobyte
 }
 
-std::string getWindowsDeviceName()
-{
-    TCHAR nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
-    DWORD nameBufSize;
+//std::string getWindowsDeviceName()
+//{
+//    TCHAR nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
+//    DWORD nameBufSize;
 
-    nameBufSize = sizeof nameBuf - 1;
-    if (GetComputerName(nameBuf, &nameBufSize) == TRUE) {
-        _tprintf(_T("Device name is %s\n"), nameBuf);
-    }
+//    nameBufSize = sizeof nameBuf - 1;
+//    if (GetComputerName(nameBuf, &nameBufSize) == TRUE) {
+//        _tprintf(_T("Device name is %s\n"), nameBuf);
+//    }
 
-    //TODO: fix this
-    //return  std::string(nameBuf);
-    return  "";
-}
+//    //TODO: fix this
+//    //return  std::string(nameBuf);
+//    return  "";
+//}
 
 unsigned long long FileTimeToInt64(const FILETIME & ft)
 {
