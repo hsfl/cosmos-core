@@ -168,7 +168,7 @@ int myagent()
         {
             // cpu
             agent.cdata[0].devspec.cpu[0]->load   = cpu.getLoad();
-            agent.cdata[0].devspec.cpu[0]->mem    = cpu.getVirtualMemory();
+            agent.cdata[0].devspec.cpu[0]->mem    = cpu.getVirtualMemoryUsed();
             agent.cdata[0].devspec.cpu[0]->maxmem = cpu.getVirtualMemoryTotal();
             cpu.getPercentUseForCurrentProcess();
         }
@@ -176,9 +176,9 @@ int myagent()
         // TODO: add disk to node.ini
         // disk
         // reset the values
-        disk.Used = 0;
-        disk.Free = 0;
-        disk.Size = 0;
+        //disk.Used = 0;
+        //disk.Free = 0;
+        //disk.Size = 0;
 
         if (agent.cdata[0].devspec.disk_cnt)
         {
@@ -193,9 +193,9 @@ int myagent()
 
         if (printStatus) {
             cout << "Load," << cpu.load << ", ";
-            cout << "DiskSize[GiB]," << disk.Size << ", ";
-            cout << "DiskUsed[GiB]," << disk.Used << ", ";
-            cout << "DiskFree[GiB]," << disk.Free << ", ";
+            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
+            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
+            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
             cout << "CPU Proc[%]," << cpu.percentUseForCurrentProcess << endl;
 
         }
@@ -221,21 +221,18 @@ int32_t request_soh(char *request, char* response, void *)
     return 0;
 }
 
-int32_t request_mem(char *request, char* response, void *)
-{
-    return (sprintf(response, "%f", cpu.virtualMemory));
-}
+
 
 // ----------------------------------------------
 // disk
 int32_t request_diskSize(char *request, char* response, void *)
 {
-    return (sprintf(response, "%f", disk.Size));
+    return (sprintf(response, "%f", disk.SizeGiB));
 }
 
 int32_t request_diskUsed(char *request, char* response, void *)
 {
-    return (sprintf(response, "%f", disk.Used));
+    return (sprintf(response, "%f", disk.UsedGiB));
 }
 
 int32_t request_diskFree(char *request, char* response, void *)
@@ -244,16 +241,9 @@ int32_t request_diskFree(char *request, char* response, void *)
     //return (sprintf(response, "%.1f", agent.cdata[0].devspec.cpu[0]->disk));
 
     // in the mean time use this
-    return (sprintf(response, "%f", disk.Free));
+    return (sprintf(response, "%f", disk.FreeGiB));
 
 }
-
-
-int32_t request_load (char *request, char* response, void *)
-{
-    return (sprintf(response, "%.2f", cpu.load));
-}
-
 
 int32_t request_diskFreePercent (char *request, char *response, void *)
 {
@@ -261,18 +251,36 @@ int32_t request_diskFreePercent (char *request, char *response, void *)
 }
 
 
-int32_t request_mempercent (char *request, char *response, void *)
+
+// ----------------------------------------------
+// cpu
+int32_t request_load (char *request, char* response, void *)
 {
-
-    return (sprintf(response, "%f", mempercent));
+    return (sprintf(response, "%.2f", cpu.load));
 }
-
 
 int32_t request_cpuProcess(char *request, char *response, void */*cdata*/){
 
     return (sprintf(response, "%f", cpu.percentUseForCurrentProcess));
 }
 
+// ----------------------------------------------
+// memory
+int32_t request_mem(char *request, char* response, void *)
+{
+    return (sprintf(response, "%f", cpu.virtualMemoryUsed));
+}
+
+int32_t request_mempercent (char *request, char *response, void *)
+{
+
+    return (sprintf(response, "%f", cpu.getVirtualMemoryUsedPercent()));
+}
+
+
+
+// ----------------------------------------------
+// debug info
 int32_t request_printStatus(char *request, char *response, void */*cdata*/){
 
     sscanf(request,"%*s %d",&printStatus);

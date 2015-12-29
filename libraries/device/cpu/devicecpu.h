@@ -114,6 +114,8 @@ public:
 
     // variables
     float load1minAverage;
+    int numProcessors = 0;
+    std::string processName;
 
     // functions
     double getLoad1minAverage();

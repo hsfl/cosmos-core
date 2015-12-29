@@ -49,6 +49,12 @@ double DeviceDisk::getAll(std::string path)
 
     Used = Size - Free;
     FreePercent = (double)Free / Used;
+
+    // convert to GiB
+    SizeGiB = Size/GiB;
+    FreeGiB = Free/GiB;
+    UsedGiB = Used/GiB;
+
     return FreePercent;
 }
 
@@ -71,16 +77,16 @@ uint64_t DeviceDisk::getSize(std::string path)
 }
 
 
-double DeviceDisk::getSizeGB(std::string path)
+double DeviceDisk::getSizeGiB(std::string path)
 {
-    // convert from Byte to GB
-    return (double)getSize(path)/GB;
+    // convert from Byte to GiB
+    return (double)getSize(path)/GiB;
 }
 
-double DeviceDisk::getSizeGB()
+double DeviceDisk::getSizeGiB()
 {
-    // convert from Byte to GB
-    return (double)getSize()/GB;
+    // convert from Byte to GiB
+    return (double)getSize()/GiB;
 }
 
 uint64_t DeviceDisk::getUsed()
@@ -101,16 +107,16 @@ uint64_t DeviceDisk::getUsed(std::string path)
 }
 
 
-double DeviceDisk::getUsedGB(std::string path)
+double DeviceDisk::getUsedGiB(std::string path)
 {
-    // convert from Byte to GB
-    return (double)getUsed(path)/GB;
+    // convert from Byte to GiB
+    return (double)getUsed(path)/GiB;
 }
 
-double DeviceDisk::getUsedGB()
+double DeviceDisk::getUsedGiB()
 {
-    // convert from Byte to GB
-    return (double)getUsed()/GB;
+    // convert from Byte to GiB
+    return (double)getUsed()/GiB;
 }
 
 // get the free disk in bytes
@@ -134,14 +140,14 @@ uint64_t DeviceDisk::getFree(std::string path)
 }
 
 
-double DeviceDisk::getFreeGB(std::string path)
+double DeviceDisk::getFreeGiB(std::string path)
 {
-    // convert from Byte to GB
-    return (double)getFree(path)/GB;
+    // convert from Byte to GiB
+    return (double)getFree(path)/GiB;
 }
 
-double DeviceDisk::getFreeGB()
+double DeviceDisk::getFreeGiB()
 {
-    // convert from Byte to GB
-    return (double)getFree()/GB;
+    // convert from Byte to GiB
+    return (double)getFree()/GiB;
 }

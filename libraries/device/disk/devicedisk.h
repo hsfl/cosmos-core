@@ -18,7 +18,7 @@
 #endif
 
 
-static const double GB = 1024. * 1024. * 1024.;
+static const double GiB = 1024. * 1024. * 1024.;
 
 class DeviceDisk
 {
@@ -26,6 +26,9 @@ public:
     uint64_t Size;
     uint64_t Used;
     uint64_t Free;
+    double SizeGiB;
+    double UsedGiB;
+    double FreeGiB;
     double FreePercent;
 
     DeviceDisk();
@@ -38,12 +41,12 @@ public:
     uint64_t getUsed();
     uint64_t getFree();
 
-    double getFreeGB(std::string path);
-    double getUsedGB(std::string path);
-    double getSizeGB(std::string path);
-    double getFreeGB();
-    double getUsedGB();
-    double getSizeGB();
+    double getFreeGiB(std::string path);
+    double getUsedGiB(std::string path);
+    double getSizeGiB(std::string path);
+    double getFreeGiB();
+    double getUsedGiB();
+    double getSizeGiB();
 };
 
 #endif // DEVICEDISK_H
