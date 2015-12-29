@@ -29,3 +29,4 @@ examples/namespace/build-*
 *.tmp
 programs/testbed/orbits/convert_test/iss_test.txt
 docs/doxygen/1.0.1/
+docs/doxygen/1.0.2/
