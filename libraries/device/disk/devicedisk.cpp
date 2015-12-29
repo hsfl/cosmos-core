@@ -22,6 +22,7 @@ double DeviceDisk::getAll(std::string path)
     Size = 0;
     Free = 0;
     Used = 0;
+    FreePercent = 0;
 
 #if defined COSMOS_LINUX_OS
     struct statvfs buf;
@@ -47,7 +48,8 @@ double DeviceDisk::getAll(std::string path)
 #endif
 
     Used = Size - Free;
-    return (double)Free / Used;
+    FreePercent = (double)Free / Used;
+    return FreePercent;
 }
 
 uint64_t DeviceDisk::getSize()
@@ -122,6 +124,7 @@ uint64_t DeviceDisk::getFree()
     return getFree("C:");
 #endif
 }
+
 
 uint64_t DeviceDisk::getFree(std::string path)
 {

@@ -73,7 +73,7 @@ public:
     double CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
     unsigned long long FileTimeToInt64(const FILETIME & ft);
     std::string getDeviceName();
-    double getVirtualMemory();
+    double getVirtualMemoryUsed();
     double getVirtualMemoryTotal();
 };
 
@@ -85,15 +85,22 @@ class DeviceCpu
 public:
     DeviceCpu();
 
-
+    double percentUseForCurrentProcess;
+    int numProcessors;
+    std::string processName;
+    double virtualMemoryUsed;
+    double virtualMemoryTotal;
+    double load;
 
     void stress();
 
     // API functions (generic names)
     double getLoad();
-    double getVirtualMemory();
     double getVirtualMemoryTotal();
+    double getVirtualMemoryUsed();
+    double getVirtualMemoryUsedPercent();
     double getPercentUseForCurrentProcess();
+
 };
 
 
@@ -107,14 +114,12 @@ public:
 
     // variables
     float load1minAverage;
-    int numProcessors;
-    std::string processName;
 
     // functions
     double getLoad1minAverage();
     float getPercentUseForCurrentProcess();
     void initCpuUtilization();
-    double getVirtualMemory();
+    double getVirtualMemoryUsed();
     double getVirtualMemoryTotal();
     std::string getCurrentProcessName();
     //double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();

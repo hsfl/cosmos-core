@@ -37,28 +37,32 @@ double DeviceCpu::getLoad(){
 
 #if defined(COSMOS_LINUX_OS)
     DeviceCpuLinux cpu;
-    return cpu.getLoad1minAverage();
+    load = cpu.getLoad1minAverage();
+
 #endif
 
 #if defined(COSMOS_WIN_OS)
     DeviceCpuWindows cpu;
-    return cpu.getLoad();
+    load = cpu.getLoad();
 #endif
 
+    return load;
 }
 
 
-double DeviceCpu::getVirtualMemory(){
+double DeviceCpu::getVirtualMemoryUsed(){
 
 #if defined(COSMOS_LINUX_OS)
     DeviceCpuLinux cpu;
-    return cpu.getVirtualMemory();
+    virtualMemoryUsed = cpu.getVirtualMemoryUsed();
+
 #endif
 
 #if defined(COSMOS_WIN_OS)
     DeviceCpuWindows cpu;
-    return cpu.getVirtualMemory();
+    virtualMemoryUsed = cpu.getVirtualMemoryUsed();
 #endif
+    return virtualMemoryUsed;
 
 }
 
@@ -67,14 +71,23 @@ double DeviceCpu::getVirtualMemoryTotal(){
 
 #if defined(COSMOS_LINUX_OS)
     DeviceCpuLinux cpu;
-    return cpu.getVirtualMemoryTotal();
+    virtualMemoryTotal = cpu.getVirtualMemoryTotal();
 #endif
 
 #if defined(COSMOS_WIN_OS)
     DeviceCpuWindows cpu;
-    return cpu.getVirtualMemoryTotal();
+    virtualMemoryTotal = cpu.getVirtualMemoryTotal();
 #endif
 
+    return virtualMemoryTotal;
+}
+
+
+double DeviceCpu::getVirtualMemoryUsedPercent(){
+
+    double virtualMemoryUsedPercent = getVirtualMemoryUsed() / getVirtualMemoryTotal();
+
+    return virtualMemoryUsedPercent;
 }
 
 
@@ -82,12 +95,14 @@ double DeviceCpu::getPercentUseForCurrentProcess(){
 
 #if defined(COSMOS_LINUX_OS)
     DeviceCpuLinux cpu;
-    return cpu.getPercentUseForCurrentProcess();
+    percentUseForCurrentProcess = cpu.getPercentUseForCurrentProcess();
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    return 0;
+    // TODO
+    percentUseForCurrentProcess = 0;
 #endif
+    return percentUseForCurrentProcess;
 
 }
 
@@ -266,7 +281,7 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
 }
 
 
-double DeviceCpuLinux::getVirtualMemory()
+double DeviceCpuLinux::getVirtualMemoryUsed()
 {
     struct sysinfo memInfo;
     sysinfo (&memInfo);
@@ -276,7 +291,9 @@ double DeviceCpuLinux::getVirtualMemory()
     virtualMemUsed += memInfo.totalswap - memInfo.freeswap;
     virtualMemUsed *= memInfo.mem_unit;
 
-    return (virtualMemUsed) * 0.000976563; // convert byte to kibibyte
+    // * 0.000976563 to convert byte to kibibyte
+    // MN: keep the basic functions in bytes
+    return (virtualMemUsed) ;
 }
 
 double DeviceCpuLinux::getVirtualMemoryTotal() // NOT TESTED
@@ -289,7 +306,9 @@ double DeviceCpuLinux::getVirtualMemoryTotal() // NOT TESTED
     totalVirtualMem += memInfo.totalswap;
     totalVirtualMem *= memInfo.mem_unit;
 
-    return (totalVirtualMem) * 0.000976563; // convert byte to kibibyte
+    // * 0.000976563 to convert byte to kibibyte
+    // MN: keep the basic functions in bytes
+    return (totalVirtualMem);
 }
 
 
@@ -365,7 +384,7 @@ double DeviceCpuWindows::getVirtualMemoryTotal()
     return (totalVirtualMem) * 0.001; // convert byte to kilobyte
 }
 
-double DeviceCpuWindows::getVirtualMemory()
+double DeviceCpuWindows::getVirtualMemoryUsed()
 {
     MEMORYSTATUSEX memInfo;
     memInfo.dwLength = sizeof(MEMORYSTATUSEX);

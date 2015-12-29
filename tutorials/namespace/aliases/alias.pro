@@ -8,10 +8,10 @@ SOURCES += alias.cpp
 
 # -------------------------------------
 # User defined folders
-COSMOS_SOURCE   = $$PWD/../../../../
+COSMOS_SOURCE_CORE = $$PWD/../../../
 
 MODULES += agentlib jsonlib
 
-include( $$COSMOS_SOURCE/core/cosmos-core.pri )
+include( $$COSMOS_SOURCE_CORE/cosmos-core.pri )
 
 

@@ -26,6 +26,7 @@ public:
     uint64_t Size;
     uint64_t Used;
     uint64_t Free;
+    double FreePercent;
 
     DeviceDisk();
     double getAll(std::string path);
