@@ -47,9 +47,9 @@ win32 {
 
 
         # include dirent for MSVC
-        INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent
-        SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent/dirent.c
-        HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent/dirent.h
+        INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent
+        SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/dirent.c
+        HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/dirent.h
     }
 
 }
@@ -60,9 +60,9 @@ win32 {
 #    #CONFIG += precompile_header
 
 #    win32{
-#    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty/dirent
-#    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/dirent/*.c)
-#    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/dirent/*.h)
+#    INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent
+#    SOURCES         += $$files($$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/*.c)
+#    HEADERS         += $$files($$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/*.h)
 #    }
 #    #SOURCES += $$COSMOS_SOURCE_CORE/programs/agents/agent_soh.cpp
 
@@ -95,17 +95,17 @@ unix:!macx {
 
 #--------------------------------------------------------------------
 #add COSMOS support to the path
-INCLUDEPATH += $$COSMOS_SOURCE/core/libraries # generic path to allow for math/types.h etc.
-INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/math
-INCLUDEPATH += $$COSMOS_SOURCE/core/libraries/support
+INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries # generic path to allow for math/types.h etc.
+INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/math
+INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/support
 
 
 # Add all COSMOS support libraries
 contains(MODULES, SUPPORT) {
     message( "Add library: SUPPORT" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/support
-    #SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/support/*.cpp)
-    #HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/support/*.h)
+    INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/support
+    #SOURCES         += $$files($$COSMOS_SOURCE_CORE/libraries/support/*.cpp)
+    #HEADERS         += $$files($$COSMOS_SOURCE_CORE/libraries/support/*.h)
     MODULES += ZLIB
 }
 
@@ -116,8 +116,8 @@ contains(MODULES, SUPPORT) {
 
 contains(MODULES, agentlib){
     message( "- support/agentlib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/agentlib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/agentlib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/agentlib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/agentlib.h
     MODULES += socketlib   # agentlib depends on socketlib
     MODULES += sliplib     # and sliplib
     MODULES += elapsedtime # and elapsedtime
@@ -131,41 +131,41 @@ contains(MODULES, agentlib){
 
 contains(MODULES, elapsedtime){
     message( "- support/elapsedtime" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/elapsedtime.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/elapsedtime.hpp
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/elapsedtime.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/elapsedtime.hpp
 }
 
 contains(MODULES, socketlib){
     message( "- support/socketlib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/socketlib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/socketlib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/socketlib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/socketlib.h
     MODULES += mathlib
 }
 
 contains(MODULES, jsondef){
     message( "- support/jsondef" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/jsondef.h
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/jsondef.h
 }
 
 contains(MODULES, jsonlib){
     message( "- support/jsonlib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/jsonlib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/jsonlib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/jsonlib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/jsonlib.h
     MODULES += convertlib
 }
 
 contains(MODULES, timelib){
     message( "- support/timelib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/timelib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/timelib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/timelib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/timelib.h
     MODULES += ephemlib
     MODULES += datalib
 }
 
 contains(MODULES, datalib){
     message( "- support/datalib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/datalib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/datalib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/datalib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/datalib.h
     MODULES += zlib
     MODULES += datadef
     MODULES += jsondef
@@ -175,40 +175,40 @@ contains(MODULES, datalib){
 
 contains(MODULES, convertlib){
     message( "- support/convertlib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/convertlib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/convertlib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/convertlib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/convertlib.h
     MODULES += geomag
 }
 
 contains(MODULES, convertdef){
     message( "- support/convertdef" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/convertdef.h
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/convertdef.h
 }
 
 contains(MODULES, ephemlib){
     message( "- support/ephemlib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/ephemlib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/ephemlib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/ephemlib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/ephemlib.h
     MODULES += jpleph
 }
 
 contains(MODULES, geomag){
     message( "- support/geomag" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/geomag.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/geomag.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/geomag.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/geomag.h
 }
 
 contains(MODULES, physicslib){
     message( "- support/physicslib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/physicslib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/physicslib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/physicslib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/physicslib.h
     MODULES += nrlmsise
 }
 
 contains(MODULES, demlib){
     message( "- support/demlib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/demlib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/demlib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/demlib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/demlib.h
 }
 
 # -----------------------------------------------
@@ -219,8 +219,8 @@ contains(MODULES, demlib){
 # more complext libraries such as agentlib
 contains(MODULES, gp_cosmostimeutils){
     message( "- support/gp_cosmostimeutils" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/gp_cosmostimeutils.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/gp_cosmostimeutils.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/gp_cosmostimeutils.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/gp_cosmostimeutils.h
 }
 
 
@@ -229,9 +229,9 @@ contains(MODULES, gp_cosmostimeutils){
 contains(MODULES, mathlib){
     message( "- math/mathlib" )
     #TODO: remove this later to force the use of #include "math/mathfile"
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/math
-    SOURCES += $$COSMOS_SOURCE/core/libraries/math/mathlib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/math/mathlib.h
+    INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/math
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/math/mathlib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/math/mathlib.h
     MODULES += math-vector
     MODULES += math-matrix
     MODULES += math-rotation
@@ -240,33 +240,33 @@ contains(MODULES, mathlib){
 
 contains(MODULES, math-lsfit){
     message( "- math/lsfit" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/math/lsfit.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/math/lsfit.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/math/lsfit.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/math/lsfit.cpp
 }
 
 contains(MODULES, math-matrix){
     message( "- math/matrix" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/math/matrix.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/math/matrix.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/math/matrix.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/math/matrix.cpp
     MODULES += math-vector
 }
 
 contains(MODULES, math-vector){
     message( "- math/vector" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/math/vector.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/math/vector.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/math/vector.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/math/vector.cpp
 }
 
 contains(MODULES, math-rotation){
     message( "- math/rotation" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/math/rotation.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/math/rotation.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/math/rotation.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/math/rotation.cpp
 }
 
 contains(MODULES, math-quaternion){
     message( "- math/quaternion" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/math/quaternion.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/math/quaternion.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/math/quaternion.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/math/quaternion.cpp
 }
 
 # -----------------------------------------------
@@ -275,15 +275,15 @@ message( "" )
 
 contains(MODULES, physics-keplerianorbit){
 #    message( "- physics/keplerianorbit" )
-#    HEADERS += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.h
-#    SOURCES += $$COSMOS_SOURCE/core/libraries/physics/keplerianorbit.cpp
+#    HEADERS += $$COSMOS_SOURCE_CORE/libraries/physics/keplerianorbit.h
+#    SOURCES += $$COSMOS_SOURCE_CORE/libraries/physics/keplerianorbit.cpp
 #    MODULES += physics-constants
 }
 
 contains(MODULES, physics-constants){
     message( "- physics/constants" )
-    HEADERS += $$COSMOS_SOURCE/core/libraries/physics/constants.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/physics/constants.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/physics/constants.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/physics/constants.cpp
 }
 
 
@@ -292,101 +292,101 @@ contains(MODULES, physics-constants){
 message( "- support/" )
 contains(MODULES, stringlib){
     message( "- support/stringlib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/stringlib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/stringlib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/stringlib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/stringlib.h
 }
 
 contains(MODULES, jpleph){
     message( "- support/jpleph" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/jpleph.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/jpleph.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/jpleph.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/jpleph.h
 }
 
 contains(MODULES, sliplib){
     message( "- support/sliplib" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/sliplib.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/sliplib.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/sliplib.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/sliplib.h
 }
 
 contains(MODULES, timeutils){
     message( "- support/timeutils" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/timeutils.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/timeutils.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/timeutils.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/timeutils.h
 }
 
 contains(MODULES, nrlmsise){
     message( "- support/nrlmsise" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00.h
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/nrlmsise-00_data.cpp
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/nrlmsise-00.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/nrlmsise-00.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/nrlmsise-00_data.cpp
 }
 
 contains(MODULES, print_utils){
     message( "- support/print_utils" )
-    SOURCES += $$COSMOS_SOURCE/core/libraries/support/print_utils.cpp
-    HEADERS += $$COSMOS_SOURCE/core/libraries/support/print_utils.h
+    SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/print_utils.cpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/print_utils.h
 }
 
 
 
 #--------------------------------------------------------------------
 # Add COSMOS core devices libraries
-include( $$COSMOS_SOURCE/core/libraries/device/cosmos-core-devices.pri )
+include( $$COSMOS_SOURCE_CORE/libraries/device/cosmos-core-devices.pri )
 
 
 
 #--------------------------------------------------------------------
 # Add COSMOS core thirdparty libraries
-INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty
+INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty
 #INCLUDEPATH     += $$COSMOS_SOURCE/thirdparty
 
 # Add Zlib
 contains(MODULES, zlib){
     message( "- thirdparty/zlib" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib
+    INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib
 
     # note: sometimes including all the files with * creates problems
-    #SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.c)
-    #HEADERS         += $$files( $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.h)
-    #SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.c
-    #HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/*.h
+    #SOURCES         += $$files($$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/*.c)
+    #HEADERS         += $$files( $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/*.h)
+    #SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/*.c
+    #HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/*.h
 
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/adler32.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/compress.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/crc32.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/deflate.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/gzclose.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/gzlib.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/gzread.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/gzwrite.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/infback.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/inffast.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/inflate.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/inftrees.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/trees.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/uncompr.c
-    SOURCES         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/zutil.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/adler32.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/compress.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/crc32.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/deflate.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/gzclose.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/gzlib.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/gzread.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/gzwrite.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/infback.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/inffast.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/inflate.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/inftrees.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/trees.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/uncompr.c
+    SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/zutil.c
 
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/crc32.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/deflate.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/gzguts.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/inffast.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/inffixed.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/inflate.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/inftrees.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/trees.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/zconf.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/zlib.h
-    HEADERS         += $$COSMOS_SOURCE/core/libraries/thirdparty/zlib/zutil.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/crc32.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/deflate.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/gzguts.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/inffast.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/inffixed.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/inflate.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/inftrees.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/trees.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/zconf.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/zlib.h
+    HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib/zutil.h
 
 }
 
 # Add JPEG
 contains(MODULES, jpeg){
     message( "- thirdparty/jpeg" )
-    INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty/jpeg
-    SOURCES         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/jpeg/*.c)
-    HEADERS         += $$files($$COSMOS_SOURCE/core/libraries/thirdparty/jpeg/*.h)
+    INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
+    SOURCES         += $$files($$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg/*.c)
+    HEADERS         += $$files($$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg/*.h)
 }
 
 # Add Eigen
@@ -396,7 +396,7 @@ contains(MODULES, thirdparty-Eigen){
     # We just need to inlcude the parent folder for Eigen
     # then in the code we alwas reference it using
     # #include <Eigen/Eigen>
-    #INCLUDEPATH     += $$COSMOS_SOURCE/core/libraries/thirdparty
+    #INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty
 }
 
 

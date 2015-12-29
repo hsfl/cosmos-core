@@ -724,7 +724,7 @@ void heartbeat_loop(cosmosstruc *cdata)
         if (((cosmosstruc *)cdata)->agent[0].stateflag == AGENT_STATE_MONITOR)
         {
             ((cosmosstruc *)cdata)->agent[0].beat.cpu = cpu.getLoad();
-            ((cosmosstruc *)cdata)->agent[0].beat.memory = cpu.getVirtualMemory();
+            ((cosmosstruc *)cdata)->agent[0].beat.memory = cpu.getVirtualMemoryUsed();
         }
 
         ep.start();

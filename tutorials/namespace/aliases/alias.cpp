@@ -25,7 +25,7 @@ int main()
     string nodename = "cubesat1";
 
     // Establish the agent inside the given node
-    if (!(cdata = agent_setup_client(AGENT_TYPE_UDP, nodename, 10000)))
+    if (!(cdata = agent_setup_client(NetworkType::UDP, nodename, 10000)))
     {
         cout << "agent_setup_client failed (error <" << AGENT_ERROR_JSON_CREATE << ">)"<<endl;
         exit (AGENT_ERROR_JSON_CREATE);
