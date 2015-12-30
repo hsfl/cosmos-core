@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <iostream>
 
-#ifndef COSMOS_MAC_OS
 #if defined (COSMOS_WIN_OS)
 #include "windows.h"
 #include <tchar.h>
@@ -55,31 +54,18 @@ int32_t request_diskFreePercent (char*request, char *response, void *cdata);
 
 // cpu
 int32_t request_cpuProcess(char*request, char *response, void *cdata);
-
 int32_t request_load(char *request, char *response, void *cdata);
 int32_t request_mem(char *request, char *response, void *cdata);
 int32_t request_mempercent (char*request, char *response, void *cdata);
 int32_t request_printStatus(char *request, char *response, void */*cdata*/);
 
 
-std::string getWindowsDeviceName();
-
 std::string agentname  = "cpu";
 std::string nodename;
-
-int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int loopmsec = 1; // period of heartbeat
-char buf4[512];
-
 char sohstring[] = "{\"device_cpu_utc_000\",\"device_cpu_disk_000\",\"device_cpu_maxdisk_000\",\"device_cpu_maxmem_000\",\"device_cpu_mem_000\",\"device_cpu_load_000\",\"}";
 
-#define MAXBUFFERSIZE 256 // comm buffer for agents
-
-//cosmosstruc *cdata;  // to access the cosmos data
+// cosmos classes
 ElapsedTime et;
-#endif //COSMOS_MAC_OS
-
-
 DeviceCpu cpu;
 DeviceDisk disk;
 
@@ -94,14 +80,7 @@ int main(int argc, char *argv[])
     {
     case 1:
     {
-#ifdef COSMOS_WIN_OS
-        std::string devicename = getWindowsDeviceName();
-        nodename = "cpu_" + devicename;
-#else
-        char devicename[128];
-        gethostname(devicename, sizeof devicename);
-        nodename = "cpu_" + (std::string)devicename;
-#endif
+        nodename = "cpu_" + cpu.getHostName();
     }
         break;
     case 2:

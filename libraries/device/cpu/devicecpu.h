@@ -62,22 +62,6 @@
 #include <fstream>      // std::ifstream
 
 
-#ifdef COSMOS_WIN_OS
-class DeviceCpuWindows
-{
-
-public:
-    DeviceCpuWindows();
-
-    double getLoad();
-    double CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
-    unsigned long long FileTimeToInt64(const FILETIME & ft);
-    std::string getDeviceName();
-    double getVirtualMemoryUsed();
-    double getVirtualMemoryTotal();
-};
-
-#endif
 
 
 class DeviceCpu
@@ -88,6 +72,7 @@ public:
     double percentUseForCurrentProcess;
     int numProcessors;
     std::string processName;
+    std::string hostName;
     double virtualMemoryUsed;
     double virtualMemoryTotal;
     double load;
@@ -100,9 +85,27 @@ public:
     double getVirtualMemoryUsed();
     double getVirtualMemoryUsedPercent();
     double getPercentUseForCurrentProcess();
+    std::string getHostName();
 
 };
 
+
+#ifdef COSMOS_WIN_OS
+class DeviceCpuWindows
+{
+
+public:
+    DeviceCpuWindows();
+
+    double getLoad();
+    double CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
+    unsigned long long FileTimeToInt64(const FILETIME & ft);
+    std::string getHostName();
+    double getVirtualMemoryUsed();
+    double getVirtualMemoryTotal();
+};
+
+#endif
 
 
 #ifdef COSMOS_LINUX_OS
@@ -124,16 +127,13 @@ public:
     double getVirtualMemoryUsed();
     double getVirtualMemoryTotal();
     std::string getCurrentProcessName();
+    std::string getHostName();
     //double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
     //double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();
     //double CalculateLinuxCPULoad (float *out);
 };
 
 #endif
-
-
-
-
 
 
 #endif // DEVICECPU_H

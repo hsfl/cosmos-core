@@ -106,6 +106,21 @@ double DeviceCpu::getPercentUseForCurrentProcess(){
 
 }
 
+std::string DeviceCpu::getHostName()
+{
+#if defined(COSMOS_LINUX_OS)
+    DeviceCpuLinux cpu;
+    hostName = cpu.getHostName();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    DeviceCpuWindows cpu;
+    hostName = cpu.getHostName();
+#endif
+
+    return hostName;
+}
+
 
 
 
@@ -311,7 +326,12 @@ double DeviceCpuLinux::getVirtualMemoryTotal() // NOT TESTED
     return (totalVirtualMem);
 }
 
-
+std::string DeviceCpuLinux::getHostName() // NOT TESTED
+{
+    char hostname[128];
+    gethostname(hostname, sizeof hostname);
+    return (std::string)hostname;
+}
 #endif // defined(COSMOS_LINUX_OS)
 
 
@@ -393,7 +413,7 @@ double DeviceCpuWindows::getVirtualMemoryUsed()
     return (virtualMemUsed) * 0.001; // convert byte to kilobyte
 }
 
-std::string DeviceCpuWindows::getDeviceName()
+std::string DeviceCpuWindows::getHostName()
 {
     TCHAR nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
     DWORD nameBufSize;
