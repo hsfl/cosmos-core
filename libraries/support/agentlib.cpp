@@ -1842,7 +1842,7 @@ bool Agent::setupServer()
     if ((cdata = agent_setup_client(NetworkType::UDP, nodeName, 1000)) == NULL)
     {
         std::cout << "Agent setup client failed" << std::endl;
-        return nullptr;
+        return false;
     }
 
     //cdata = agent_setup_server(nodeName, name);

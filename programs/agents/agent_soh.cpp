@@ -182,7 +182,7 @@ int myagent()
                 // get load average
                 cdata[0].devspec.cpu[0]->load = cpu.getLoad();
                 // get memory
-                cdata[0].devspec.cpu[0]->mem = cpu.getVirtualMemory();
+                cdata[0].devspec.cpu[0]->mem = cpu.getVirtualMemoryTotal();
             }
 
             if (cdata[0].devspec.disk_cnt > 0)
