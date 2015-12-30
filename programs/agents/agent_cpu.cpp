@@ -26,7 +26,10 @@
 #if defined (COSMOS_WIN_OS)
 #include "windows.h"
 #include <tchar.h>
-#else
+#endif
+
+// TODO: remove from here?
+#if defined (COSMSO_LINUX_OS)
 #include <stdlib.h>
 #include <sys/statvfs.h>
 #include <sys/types.h>
