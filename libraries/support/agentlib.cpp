@@ -1870,6 +1870,7 @@ bool Agent::setupServer()
 
     //std::cout << "================================================" << std::endl;
     std::cout << "------------------------------------------------------" << std::endl;
+    std::cout << mjdToGregorian(currentmjd()) << std::endl;
 
     // if setup server was sucessfull
     return true;
@@ -2022,6 +2023,33 @@ beatstruc Agent::find(std::string agent)
     return beat_agent;
 }
 
+/*!
+ * \brief Agent::find overloaded function to find an agent on another node
+ * \param agent
+ * \return
+ */
+beatstruc Agent::find(std::string node, std::string agent)
+{
+    float timeout = 1.0;
+
+    beatstruc beat_agent = agent_find_server(cdata, node, agent, timeout);
+
+    // TODO: improve the way we find the agent server
+    if (beat_agent.utc == 0)
+    {
+        if (printMessages) {
+            std::cout << "agent " << agent << " : not found" << std::endl;
+        }
+    }
+    else
+    {
+        if (printMessages) {
+            std::cout << "agent " << agent << " : found" << std::endl;
+        }
+    }
+
+    return beat_agent;
+}
 
 
 //! @}

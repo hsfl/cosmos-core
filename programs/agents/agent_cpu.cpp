@@ -45,6 +45,7 @@ bool printStatus;
 int myagent(), create_node();
 
 int32_t request_soh(char *request, char* response, void *cdata);
+int32_t request_bootCount(char *request, char* response, void *);
 
 // disk
 int32_t request_diskSize(char *request, char *response, void *cdata);
@@ -136,6 +137,7 @@ int main(int argc, char *argv[])
     agent.addRequest("mem_percent",request_mempercent);
     agent.addRequest("cpuProc",request_cpuProcess,"","get the % CPU for this process");
     agent.addRequest("printStatus",request_printStatus,"","print the status data");
+    agent.addRequest("bootCount",request_bootCount,"","count the number of reboots");
 
     agent_set_sohstring(agent.cdata, sohstring);
 
@@ -278,6 +280,24 @@ int32_t request_mempercent (char *request, char *response, void *)
 }
 
 
+// ----------------------------------------------
+// boot count
+int32_t request_bootCount(char *request, char* response, void *)
+{
+
+    std::ifstream ifs ("/hiakasat/nodes/hiakasat/boot.count");
+    std::string counts;
+
+    if (ifs.is_open()) {
+        getline (ifs,counts);
+        ifs.close();
+    }
+    else {
+        std::cout << "Error opening file";
+    }
+
+    return (sprintf(response, "%s", counts.c_str()));
+}
 
 // ----------------------------------------------
 // debug info

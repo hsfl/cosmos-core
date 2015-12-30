@@ -168,6 +168,7 @@ public:
     //beatstruc findServer(std::string agent);
     //beatstruc findAgent(std::string agent);
     beatstruc find(std::string agent);
+    beatstruc find(std::string node, std::string agent);
 
     uint16_t isRunning();
     int32_t shutdown();
@@ -200,6 +201,7 @@ public:
 
     int32_t send(uint8_t address, std::string message);
     int32_t receive(uint8_t address, std::string &message);
+
 
 };
 
