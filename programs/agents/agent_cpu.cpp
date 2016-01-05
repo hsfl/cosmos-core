@@ -14,7 +14,7 @@
 #include "agentlib.h"
 #include "timeutils.hpp"
 #include "jsonlib.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 #include "stringlib.h"
 
 #include "device/cpu/devicecpu.h"
