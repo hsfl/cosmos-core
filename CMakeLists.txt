@@ -205,10 +205,13 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 # MacOS specific
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+    message("Building on Mac")
+    message("Compiler is ${CMAKE_CXX_COMPILER_ID}")
+
     # Configure compiler arguments (GCC)
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         # Set Compiler flags
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
         message("Building with GCC")
@@ -217,8 +220,22 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
         # set the COSMOS_LIBS for GCC
         set(COSMOS_LIBS  )
-
     endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+
+    # Configure compiler arguments (Clang)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        # Set Compiler flags
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
+        message("Building with Clang")
+
+        set(COMPILER_IS_MACOS_CLANG 1)
+
+        # set the COSMOS_LIBS for GCC
+        set(COSMOS_LIBS  )
+    endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
 
     if("$ENV{COSMOS}" STREQUAL "")
         set(COSMOS_INSTALL_FOLDER "/Applications/cosmos")
