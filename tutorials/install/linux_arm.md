@@ -1,5 +1,4 @@
-Install COSMOS on Linux-ARM (crosscompile) {#install-arm} 
-=========================================
+# Install COSMOS on Linux-ARM (crosscompile) {#install-arm} 
 
 These instructions are to setup a cross-compiler environment so that you can compile COSMOS for embedded devices with different architectures (ARM, PowerPC, etc.). 
 We have tested these instructions on Windows 7 and also on Ubuntu 14.04 running on a Virtual Box.
@@ -7,22 +6,21 @@ We have tested these instructions on Windows 7 and also on Ubuntu 14.04 running 
 We have tested cross-compiling for the Gumstix Overo, Gumstix Duovero and RaspberryPi architectures but these instructions should work well for other architectures. 
 Let us know if you successfully compile COSMOS in other platforms.
 
-It is assumed you have installed the latest version of Qt and have downloaded the COSMOS source.
+It is assumed you have installed the latest version of Qt and have downloaded the COSMOS source (if you haven't go to [COSMOS 101 tutorial](http://bitbucket.org/cosmos/tutorial)).
 
-There are three ways to compile the code for the COSMOS tools and 
-the flight software:
+There are three main ways to compile the COSMOS software code:
 
-1. using Qt Creator and .pro files (probably the easiest)
-2. using Qt Creator and Cmake files
-3. using the command line and Cmake  (not recommended for beginners)
+1. using Qt Creator and .pro files  (probably the easiest)
+2. using Qt Creator and Cmake files (recommended)
+3. using the command line and Cmake (not recommended for beginners)
 
 In either case you will have to install the cross compiler tools for 
 the ARM. We recommend using the Linaro Toochain from the Linaro project. 
 The current version is 14.11 with GCC 4.9 with C++11 compatibility.
 
-Install Cross-compiler for Windows
-----------------------------------
-(Tested on Windows 7)
+# Install Cross-compiler for Windows 
+
+These instructions were tested on Windows 7.
 
 Choose a cross-toolchain for your particular device. In this example we use Linaro toolchain for ARM with hard float: linaro-toolchain-binaries 4.9 (little-endian). 
 The latest Linaro cross-compiler for the ARM (as of Feb 6 2015) 
@@ -38,23 +36,55 @@ Next, if you want to use .pro files to compile your project go to the section
 [Cross-compile using Qt Creator and .pro files](#markdown-header-cross-compile-using-qt-creator-and-pro-files)
 or go to [Cross-compile using Qt Creator and Cmake files](#markdown-header-cross-compile-using-qt-creator-and-cmake-files) if you want to use CMAKE files.
 
-Install Cross-compiler for Linux (Ubuntu)
------------------------------------------
 
-install crosscompiler:
+# Install Cross-compiler for Linux (Ubuntu 14)
+
+We recommend installing g++4.8 (g++-4.8-arm-linux-gnueabihf) or above. Also it is best if you are using Ubuntu 14 or later. To install the latest crosscompiler (g++-5.2 as of Dec 2015):
 ```
-#!sh
-apt-get install g++-arm-linux-gnueabi gcc-arm-linux-gnueabi g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf uboot-mkimage
+$ sudo apt-get install g++-arm-linux-gnueabihf
+# check the version
+$ arm-linux-gnueabihf-g++ --version
+# check the insllation path
+$ which arm-linux-gnueabihf-g++
 ```
+
+optional installs
+```
+$ sudo apt-get install g++-arm-linux-gnueabi gcc-arm-linux-gnueabi g++-arm-linux-gnueabihf gcc-arm-linux-gnueabihf uboot-mkimage
+```
+
+If you insist in using Ubuntu 12 please add the following line to your /etc/apt/sources.list
+```
+$ deb http://us.archive.ubuntu.com/ubuntu saucy main universe 
+ 
+$ sudo apt-get update
+$ sudo apt-get install g++-4.8-arm-linux-gnueabihf
+```
+
 
 installing GDB for cross debugging in qt (python support) on Ubuntu 12.04
 
-Configure
+1. download gdb from http://www.gnu.org/software/gdb/download/
+current release is gdb 7.10.1
+
+2. Extract and move to the extracted directory
+
+3. create a build folder 
+
+```
+$ mkdir -p build/gdb
+$ cd build/gdb
+```
+
+4. Configure with python enabled
 ```
 #!sh
-./gdb/configure --target=arm-linux-gnueabihf --with-python=/usr/bin/python
-./configure --prefix /usr/local/gdb-python2 --with-python
-./configure --target=arm-linux-gnueabihf --with-python=/usr/bin/python
+../../configure --target=arm-linux-gnueabihf --with-python
+```
+
+5. make
+```
+$ make -j5 # if you have 4 cores
 ```
 
 ** error1 **
@@ -81,8 +111,7 @@ sudo apt-get install python-dev
 sudo apt-get install python2.7-dev
 ```
 
-Cross-compile using Qt Creator and .pro files
----------------------------------------------
+# Cross-compile using Qt Creator and .pro files
 Using .pro files may be more convenient than Cmake files. We think of 
 Cmake more for command line compilation of code although it is 
 also possible to use Cmake files to load a COSMOS project in Qt 
@@ -197,4 +226,23 @@ On the Run configuration
 Now build it and run it to see if it works. You should be able to see the progress in the "compile output"
 
 
+
+# linux kernel compilation
+```
+$ git clone git://www.sakoman.com/git/linux.git linux"
+$ cd linux"
+$ git checkout omap-3.2"
+# copy appropriate config to arch/arm/configs/omap3_deconfig
+$ mkdir ../kernel-3.2.1+"
+$ make O=../kernel-3.2.1+ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- omap3_defconfig"
+$ make O=../kernel-3.2.1+ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig"
+$ make O=../kernel-3.2.1+ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- uImage -j4"
+$ make O=../kernel-3.2.1+ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules -j4"
+# Make sure /dev/sdb2 mounted as /media/flight1/rootfs
+# Make sure /dev/sdb1 mounted as /media/flight1/boot
+$ sudo make INSTALL_MOD_PATH=/media/flight1/rootfs O=../kernel-3.2.1+ ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules_install"
+$ cp ../kernel-3.2.1+/.config /media/flight1/boot/config-3.2.1+"
+$ cp ../kernel-3.2.1+/arch/arm/boot/uImage /media/flight1/boot/uImage.3.2.1+"
+$ cp ../kernel-3.2.1+/arch/arm/boot/uImage /media/flight1/boot"
+```
 

@@ -8,12 +8,11 @@ SOURCES += playground.cpp
 
 # -------------------------------------
 # User defined folders
-COSMOS_SOURCE   = $$PWD/../../../
+COSMOS_SOURCE_CORE   = $$PWD/../../
 
-MODULES += mathlib stringlib
-include( $$COSMOS_SOURCE/core/cosmos-core.pri )
+MODULES += mathlib stringlib elapsedtime
+include( $$COSMOS_SOURCE_CORE/cosmos-core.pri )
 include( $$COSMOS_SOURCE/thirdparty/cosmos-thirdparty.pri )
-
 
 # -------------------------------------
 # Deployment to remote device

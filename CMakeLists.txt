@@ -117,18 +117,18 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
     #  option(BUILD_ARM "Build for ARM architecture" OFF)
     if (${BUILD_TYPE} MATCHES "arm")
         if("$ENV{COSMOS}" STREQUAL "")
-            set(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/cross/arm")
+            set(COSMOS_INSTALL_FOLDER "~/cosmos/cross/arm")
         else()
-            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux_arm")
+            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/cross/arm")
         endif("$ENV{COSMOS}" STREQUAL "")
 
         set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_arm")
 
     else()
         if("$ENV{COSMOS}" STREQUAL "")
-            set(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux")
+            set(COSMOS_INSTALL_FOLDER "~/cosmos") #was /usr/local/cosmos/linux
         else()
-            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux")
+            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}")
         endif("$ENV{COSMOS}" STREQUAL "")
     endif()
 

@@ -27,12 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// ?? remove ElapsedTime from timelib.h and use this one instead
-
-// just for the old code for timeval, deprecated
-//#if defined(_MSC_VER) && (_MSC_VER >= 1020)
-//#include <winsock.h>
-//#endif
+//TODO: consider renaming this class to Timer or StopWatch
 
 #ifndef ELAPSED_TIME
 #define ELAPSED_TIME
@@ -74,6 +69,7 @@ class ElapsedTime {
 #endif
 
 public:
+    ElapsedTime();
     //int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
     //float elapsed_time(struct timeval a,struct timeval b);
     void printElapsedTime();
@@ -81,6 +77,8 @@ public:
 
     double getElapsedTimeMiliSeconds();
     double getElapsedTime();
+//    double getElapsedTimeSince(double startTimeMjd);
+    double getElapsedTime(double startMjd, double endMjd);
 
     double lap();
     double split();
@@ -99,6 +97,8 @@ public:
     bool print = true; //
     double elapsedTime = 0.; // equivalent to reset chrono
     void info();
+
+
 };
 
 

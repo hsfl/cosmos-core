@@ -84,7 +84,7 @@
 #include "sliplib.h"
 #include "socketlib.h"
 #include "jsonlib.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 
 #include <cstring>
 #include <errno.h>

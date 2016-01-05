@@ -3,6 +3,12 @@
 # if you are compiling with a GCC compiler we suggest that you add '-j'
 # to the make arguments to speed up the compilation time
 
+# The reason to keep the variable COSMOS_SOURCE_CORE instead of just COSMOS_SOURCE/core
+# is that if for any reason the core folder is not named "core" (ex: when downloading the master
+# from bitbucket and unzipping it out of place) then the user can still compile the code within core
+
+# define the COSMOS_SOURCE variable by default
+COSMOS_SOURCE = $$COSMOS_SOURCE_CORE/..
 
 #message(" ")
 message("cosmos-core.pri >>")
@@ -132,7 +138,7 @@ contains(MODULES, agentlib){
 contains(MODULES, elapsedtime){
     message( "- support/elapsedtime" )
     SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/elapsedtime.cpp
-    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/elapsedtime.hpp
+    HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/elapsedtime.h
 }
 
 contains(MODULES, socketlib){

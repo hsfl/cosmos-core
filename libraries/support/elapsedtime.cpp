@@ -33,7 +33,7 @@
 // - lap
 // - reset
 
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 
 using std::cout;
 using std::endl;
@@ -72,6 +72,17 @@ using std::endl;
 //    std::cout <<  test << " s" << std::endl;
 
 
+
+
+
+ElapsedTime::ElapsedTime()
+{
+    // by default start the timer
+    start();
+}
+
+// new function
+// combines toc and print, this simplifies the calling of functions
 void ElapsedTime::info(){
 #ifndef BUILD_TYPE_arm
     std::cout << "system_clock" << std::endl;
@@ -92,9 +103,6 @@ void ElapsedTime::info(){
 
 }
 
-
-// new function
-// combines toc and print, this simplifies the calling of functions
 void ElapsedTime::printElapsedTime()
 {
     if (print){
@@ -156,14 +164,6 @@ double ElapsedTime::toc(){
 
 
 // equivalent to matlab to stop a stopwatch timer
-//double ElapsedTime::toc(bool print_flag){
-
-//    print = print_flag;
-//    toc();
-
-//    return elapsedTime;
-//}
-
 double ElapsedTime::toc(std::string text)
 {
 
@@ -183,6 +183,8 @@ void ElapsedTime::start()
     //	clock_gettime(CLOCK_MONOTONIC, &timeStart);
     gettimeofday(&timeStart, nullptr);
 #else
+    // On windows using MinGw32 it does not get better than 1ms
+    // new c++11
     timeStart = std::chrono::steady_clock::now();
 #endif
     timeCheck = timeStart;
@@ -215,20 +217,29 @@ double ElapsedTime::split()
 
 double ElapsedTime::getElapsedTime(){
     //Get the elapsedTime from start
-    return lap();
+    return split();
+}
+
+
+/*!
+ * \brief compute the elapsed time since the given time in the function arguments
+ * \param startTimeMjd
+ * \return elapsed time in seconds
+ */
+//double ElapsedTime::getElapsedTimeSince(double startTimeMjd)
+//{
+//    // compute the elapsed time given the startTimeMjd
+//    return (currentmjd()-startTimeMjd)*86400;
+//}
+
+double ElapsedTime::getElapsedTime(double startMjd, double endMjd)
+{
+    // compute the elapsed time given the startTimeMjd
+    return (endMjd-startMjd)*86400;
 }
 
 void ElapsedTime::reset(){
-    // set elapsedTime to 0
-
-    // On windows using MinGw32 it does not get better than 1ms
-    // new c++11
-    //time2 = chrono::steady_clock::now();
-
-    //elapsedTime = getElapsedTime();
-    //timeStart = chrono::steady_clock::now();
     start();
-    //return elapsedTime;
 }
 
 // -------------OLD Code

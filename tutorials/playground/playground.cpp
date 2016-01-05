@@ -6,6 +6,7 @@ using namespace std;
 #include "math/mathlib.h"
 #include "support/stringlib.h"
 #include "device/cpu/devicecpu.h"
+#include "support/elapsedtime.h"
 
 //#define EIGEN_NO_DEBUG
 //#include <Eigen/Dense>
@@ -25,11 +26,12 @@ int main()
     // use this program to test your code
     cout << "COSMOS Playground" << endl;
 
-    DeviceCpu cpu;
+    ElapsedTime et;
 
-    cout << "Name: >>>> " << cpu.getCurrentProcessName() << endl;
-    cout << (float)cpu.getPercentUseForCurrentProcess() << endl;
-
+    while (1) {
+        cout << et.lap() << endl;
+        COSMOS_SLEEP(1.);
+    }
 
     // compute_quaternion_from_vectors();
 

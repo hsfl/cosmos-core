@@ -1168,9 +1168,15 @@ int32_t set_cosmosnodes()
 
 		// No environment variables set. Look in standard location.
 #ifdef COSMOS_LINUX_OS
-        if (data_isdir("/usr/local/cosmos/nodes"))
+        // the default path was /usr/local/cosmos/nodes
+        // but if the user is not able to write to the folder then
+        // he is stuck. Let's make the default folder somewhere where the
+        // user can write by default. Ex: ~/cosmos
+        const char* home = getenv("HOME");
+        std::string homepath(home);
+        if (data_isdir(homepath + "/cosmos/nodes"))
 		{
-            cosmosnodes = "/usr/local/cosmos/nodes";
+            cosmosnodes = homepath + "/cosmos/nodes";
 			return 0;
 		}
 #endif

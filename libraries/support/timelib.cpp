@@ -1334,7 +1334,7 @@ std::string mjdToGregorianDDMMMYYYY(double mjd)
     return std::string(gregorianDateTime);
 }
 
-// !!! Must fix milisecond accuracy
+// TODO: Must fix milisecond accuracy
 /*! Convert Modified Julian Date to US standard Gregorian Date-Time
  * with 3-letter month format in small caps:
  * DD mmm YYYY HH:MM:SS.FFF (15 Sep 2014 12:00:00.000)
