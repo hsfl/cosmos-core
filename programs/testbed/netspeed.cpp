@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "configCosmos.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 //#include <sys/types.h>
 //#include <sys/socket.h>
 //#include <netinet/in.h>

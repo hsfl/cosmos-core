@@ -43,7 +43,7 @@
 #include <chrono>
 #endif
 
-/*! \file elapsedtime.hpp
+/*! \file elapsedtime.h
 *	\brief Elapsed %Time header file
 */
 

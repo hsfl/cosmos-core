@@ -31,7 +31,7 @@
 #include "agentlib.h"
 #include "jsonlib.h"
 #include "datalib.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 
 int main(int argc, char *argv[])
 {

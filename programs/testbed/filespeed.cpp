@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "configCosmos.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 #include <errno.h>
 // #include <unistd.h>
 #include <stdio.h>
