@@ -76,7 +76,8 @@ int main(int argc, char *argv[])
 		agentname = (std::string)"radio_" + argv[2];
 		break;
 	default:
-		printf("Usage: agent_radio node radio");
+		printf("Usage: agent_radio node radio\n");
+
 		exit (1);
 		break;
 	}
@@ -477,7 +478,7 @@ int32_t connect_radio()
 	case DEVICE_MODEL_TS2000:
 		break;
 	default:
-		sprintf(lasterrormessage, "Unknow radio model: %d", cdata[0].device[deviceindex].all.gen.model);
+		sprintf(lasterrormessage, "Unknown radio model: %d", cdata[0].device[deviceindex].all.gen.model);
 		lasterrorcode = GENERAL_ERROR_UNDEFINED;
 		return GENERAL_ERROR_UNDEFINED;
 		break;
