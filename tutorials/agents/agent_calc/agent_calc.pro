@@ -1,6 +1,5 @@
-# DEFINE THE COSMOS SOFTWARE HOME FOLDER
-COSMOS                  = $$PWD/../../..
-PROJECT                 = $$PWD
+# define the COSMOS source folder
+COSMOS_SOURCE_CORE = $$PWD/../../..
 
 TEMPLATE = app
 CONFIG += console
@@ -8,7 +7,7 @@ CONFIG -= qt
 CONFIG -= app_bundle
 CONFIG += c++11
 
-include( $$COSMOS/core/qt/cosmos.pri )
+MODULES += agentlib
+include( $$COSMOS_SOURCE_CORE/cosmos-core.pri )
 
-#HEADERS +=
-SOURCES += $$COSMOS_CORE/programs/agents/agent_calc.cpp
+SOURCES += agent_calc.cpp

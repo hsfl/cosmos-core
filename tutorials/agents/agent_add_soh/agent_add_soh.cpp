@@ -39,7 +39,7 @@
 // test: agent telem 001 "getvalue {\"device_telem_vint16_000\"}"
 
 #include "configCosmos.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 #include "timeutils.hpp"
 #include "agentlib.h"
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     int iretn;
 
     // Establish the command channel and heartbeat
-    if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,
+    if (!(cdata = agent_setup_server(NetworkType::UDP,
                                      nodename.c_str(),
                                      agentname.c_str(),
                                      1.0,

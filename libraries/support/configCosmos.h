@@ -38,6 +38,7 @@
 //! \defgroup defs_macros Special COSMOS macros
 //!
 
+// ------------------------------------------------------------------
 // Building under Windows
 #ifdef _WIN32
 
@@ -48,8 +49,9 @@
 #define COSMOS_WIN_BUILD_MSVC
 #endif
 
-// ??? Explain the reason why this is here
+// TODO: Explain the reason why this is here
 #define NTDDI_VERSION NTDDI_WIN7
+
 #ifndef _WIN32_WINNT
     #define _WIN32_WINNT _WIN32_WINNT_WIN7
 #endif

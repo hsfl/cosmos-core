@@ -31,7 +31,7 @@
 // agent 001 makes request to get upon activation
 
 #include "configCosmos.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 #include "timeutils.hpp"
 #include "agentlib.h"
 

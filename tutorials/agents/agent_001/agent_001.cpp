@@ -39,7 +39,7 @@
 // test: agent telem 001 "getvalue {\"device_telem_vint16_000\"}"
 
 #include "configCosmos.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 #include "timeutils.hpp"
 #include "agentlib.h"
 

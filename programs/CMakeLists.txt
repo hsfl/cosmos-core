@@ -8,9 +8,15 @@ foreach(direct ${directs})
 
     elseif (${bext} MATCHES "DS_Store")
 
+    elseif (${bext} MATCHES "qbs")
+
     else()
         get_filename_component(bdirect ${direct} NAME_WE)
         add_subdirectory(${PROJECT_SOURCE_DIR}/programs/${bdirect})
     endif()
 
 endforeach()
+
+
+# to make it faster add only the agents folder
+# add_subdirectory(agents)

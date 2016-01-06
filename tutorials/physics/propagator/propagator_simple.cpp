@@ -36,12 +36,12 @@
 
 #include "physicslib.h"
 #include "mathlib.h"
-#include "nodelib.h"
 #include "agentlib.h"
 #include "jsonlib.h"
 #include "datalib.h"
 #include "print_utils.h"
 
+using namespace std;
 // ------------------------------------------------------------------
 // User config
 

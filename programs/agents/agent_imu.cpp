@@ -400,7 +400,7 @@ void run_imu_handle_open()
     else
     {
         // Wait 0.090 seconds between telemetry updates (Roughly 10Hz)
-        usleep(90000);
+        COSMOS_SLEEP(90000);
     }
 }
 
@@ -427,7 +427,7 @@ void run_imu_handle_closed()
         vn100_disconnect(&vn100handle); // Disconnect for cleanup
         IMU_MUTEX_UNLOCK;
 
-        sleep(1);           // Sleep to wait and try again in a few seconds
+        COSMOS_SLEEP(1);           // Sleep to wait and try again in a few seconds
     }
     else
     {

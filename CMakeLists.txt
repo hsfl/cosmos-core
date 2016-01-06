@@ -140,7 +140,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
     # Configure compiler arguments GCC (MinGw)
-    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
         # Set Compiler flags
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
         message("Building with G++ (MinGw)")
@@ -150,7 +150,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
         #TODO: remove redundancy libs, this can be resolved when building the libs
         set(COSMOS_LIBS  wsock32 winmm ws2_32 iphlpapi)
 
-    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") #or just MSVC
+    elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC") #or just MSVC
         message("Building with MSVC")
 
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W4")
@@ -315,3 +315,8 @@ message("CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 # -----------------------------------------------
 # now that the libraries have been compiled let's add the cosmos-core programs
 add_subdirectory(${PROJECT_SOURCE_DIR}/programs)
+
+
+# -----------------------------------------------
+# now that the libraries have been compiled let's add the cosmos-core programs
+add_subdirectory(${PROJECT_SOURCE_DIR}/tutorials)

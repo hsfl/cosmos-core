@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "configCosmos.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 #include "timeutils.hpp"
 #include "agentlib.h"
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	cout << "Starting agent CPU Device Test" << endl;
 
 	// Establish the command channel and heartbeat
-	if (!(cdata = agent_setup_server(AGENT_TYPE_UDP,
+    if (!(cdata = agent_setup_server(NetworkType::UDP,
 	nodename.c_str(),
 	agentname.c_str(),
 	1.0,
@@ -91,16 +91,15 @@ int myagent()
 		cout << "-------------------" << endl;
 		cout << "Cycle: \t\t\t\t" << count << endl;
 
-		agent_send_request(cdata,
-								   beat_agent_cpu,
+
+        agent_send_request(beat_agent_cpu,
 								   "mem",
 								   response,
 								   512,
 								   2);
 		cout << "Memory used in KB: \t\t" << response << endl;
 
-		agent_send_request(cdata,
-								   beat_agent_cpu,
+        agent_send_request(beat_agent_cpu,
 								   "disk",
 								   response,
 								   512,
@@ -108,8 +107,7 @@ int myagent()
 		cout << "Disk used in KB: \t\t" << response << endl;
 
 
-		agent_send_request(cdata,
-								   beat_agent_cpu,
+        agent_send_request(beat_agent_cpu,
 								   "load",
 								   response,
 								   512,

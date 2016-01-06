@@ -687,7 +687,7 @@ void run_command(command& cmd)
 	si.cb = sizeof(si);
 	ZeroMemory( &pi, sizeof(pi) );
 
-	if (CreateProcess(NULL, command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        if (CreateProcess(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 	{
 		//		int32_t pid = pi.dwProcessId;
 		CloseHandle( pi.hProcess );

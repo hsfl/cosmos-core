@@ -18,8 +18,6 @@ message("cosmos-core.pri >>")
 win32 {
     #message( "Building on Win32" )
 
-    #QMAKE_CXXFLAGS += -std=c++0x -pthread
-
     # add libraries for MinGW
     *-g++* {
         #message("Compiler: MinGW")
@@ -33,25 +31,6 @@ win32 {
 
         QMAKE_CXXFLAGS += -W4 -D_CRT_NONSTDC_NO_DEPRECATE
 
-        # available modules for MSVC 2013
-        #MODULES += elapsedtime
-        #MODULES += timeutils
-        #MODULES += socketlib
-        #MODULES += agentlib
-        #MODULES += jsonlib
-        #MODULES += mathlib
-        #MODULES += timelib
-        #MODULES += datalib
-        #MODULES += convertlib
-        #MODULES += convertdef
-        #MODULES += stringlib
-        #MODULES += jpleph
-        #MODULES += ephemlib
-        #MODULES += geomag
-        #MODULES += sliplib
-        #MODULES += zlib
-
-
         # include dirent for MSVC
         INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent
         SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/dirent.c
@@ -59,24 +38,6 @@ win32 {
     }
 
 }
-
-#contains(QMAKE_CC, cl) {
-#    # Visual Studio
-#    message("Compiler: Visual Studio")
-#    #CONFIG += precompile_header
-
-#    win32{
-#    INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent
-#    SOURCES         += $$files($$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/*.c)
-#    HEADERS         += $$files($$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/*.h)
-#    }
-#    #SOURCES += $$COSMOS_SOURCE_CORE/programs/agents/agent_soh.cpp
-
-#    #LIBS += -lpthread -lwsock32 -lwinmm -lws2_32 -liphlpapi
-#    LIBS += -lws2_32 -lwsock32 -liphlpapi
-
-#}
-
 
 
 ################################################################################

@@ -132,7 +132,7 @@ for (i=0; i<nodes.size(); ++i)
 	si.cb = sizeof(si);
 	ZeroMemory( &pi, sizeof(pi) );
 
-	if (CreateProcess(NULL, command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        if (CreateProcess(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 	{
 		strcpy(tempagent.beat.node,nodes[i].node.name);
 		tempagent.pid = pi.dwProcessId;
