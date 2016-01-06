@@ -23,7 +23,7 @@
  *   the first widely used release:
  *
  *    source                 png.h  png.h  shared-lib
- *    version                string   int  version
+ *    version                std::string   int  version
  *    -------                ------ -----  ----------
  *    0.89c "1.0 beta 3"     0.89      89  1.0.89
  *    0.90  "1.0 beta 4"     0.90      90  0.90  [should have been 2.0.90]
@@ -36,7 +36,7 @@
  *    0.99a-m                0.99      99  2.0.99
  *    1.00                   1.00     100  2.1.0 [100 should be 10000]
  *    1.0.0      (from here on, the   100  2.1.0 [100 should be 10000]
- *    1.0.1       png.h string is   10001  2.1.0
+ *    1.0.1       png.h std::string is   10001  2.1.0
  *    1.0.1a-e    identical to the  10002  from here on, the shared library
  *    1.0.2       source version)   10002  is 2.V where V is the source code
  *    1.0.2a-b                      10003  version, except as noted.
@@ -371,7 +371,7 @@
  *    The integer is
  *        "png_uint_16 year" in png_time_struct.
  *
- *    The string is
+ *    The std::string is
  *        "char time_buffer[29]" in png_struct.  This is no longer used
  *    in libpng-1.6.x and will be removed from libpng-1.7.0.
  *
@@ -688,7 +688,7 @@ typedef png_sPLT_t * * png_sPLT_tpp;
  * points to a regular zero-terminated C string.  The "text" fields can be a
  * regular C string, an empty string, or a NULL pointer.
  * However, the structure returned by png_get_text() will always contain
- * the "text" field as a regular zero-terminated C string (possibly
+ * the "text" field as a regular zero-terminated C std::string (possibly
  * empty), never a NULL pointer, so it can be safely used in printf() and
  * other string-handling functions.  Note that the "itxt_length", "lang", and
  * "lang_key" members of the structure only exist when the library is built
@@ -708,10 +708,10 @@ typedef struct png_text_struct
                               1: iTXt, none
                               2: iTXt, deflate  */
    png_charp key;          /* keyword, 1-79 character description of "text" */
-   png_charp text;         /* comment, may be an empty string (ie "")
+   png_charp text;         /* comment, may be an empty std::string (ie "")
                               or a NULL pointer */
-   png_size_t text_length; /* length of the text string */
-   png_size_t itxt_length; /* length of the itxt string */
+   png_size_t text_length; /* length of the text std::string */
+   png_size_t itxt_length; /* length of the itxt std::string */
    png_charp lang;         /* language code, 0-79 characters
                               or a NULL pointer */
    png_charp lang_key;     /* keyword translated UTF-8 string, 0 or more
@@ -1162,7 +1162,7 @@ PNG_EXPORT(22, void, png_read_info,
 #endif
 
 #ifdef PNG_TIME_RFC1123_SUPPORTED
-   /* Convert to a US string format: there is no localization support in this
+   /* Convert to a US std::string format: there is no localization support in this
     * routine.  The original implementation used a 29 character buffer in
     * png_struct, this will be removed in future versions.
     */
@@ -2079,7 +2079,7 @@ PNG_EXPORT(129, png_int_32, png_get_y_offset_microns,
 #endif /* EASY_ACCESS */
 
 #ifdef PNG_READ_SUPPORTED
-/* Returns pointer to signature string read from PNG header */
+/* Returns pointer to signature std::string read from PNG header */
 PNG_EXPORT(130, png_const_bytep, png_get_signature, (png_const_structrp png_ptr,
     png_const_inforp info_ptr));
 #endif
@@ -2817,7 +2817,7 @@ typedef struct
 
    /* In the event of an error or warning the following field will be set to a
     * non-zero value and the 'message' field will contain a '\0' terminated
-    * string with the libpng error or warning message.  If both warnings and
+    * std::string with the libpng error or warning message.  If both warnings and
     * an error were encountered, only the error is recorded.  If there
     * are multiple warnings, only the first one is recorded.
     *

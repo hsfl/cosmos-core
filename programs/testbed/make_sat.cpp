@@ -39,9 +39,9 @@ cosmosstruc *cdata;
 int main(int argc, char *argv[])
 {
 int16_t n;
-string output;
+std::string output;
 FILE *odes;
-string jstring;
+std::string jstring;
 
 cdata = json_create();
 load_databases(argv[1],(uint16_t)atol(argv[2]),cdata);

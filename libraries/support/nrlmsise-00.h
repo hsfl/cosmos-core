@@ -33,7 +33,7 @@
 
 //! \ingroup support
 //! \defgroup nrlmsise NRLMSISE-00 Library
-//! NRLMSISE-00 Atmospheric Model support library.
+//! NRLMSISE-00 Atmospheric Model.
 //!
 //! The Navy Research Laboratory's MSIS Atmospheric Model that extends from the ground
 //! to space. This model is used in COSMOS to provide estimates of atmospheric density.

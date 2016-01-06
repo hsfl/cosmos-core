@@ -43,10 +43,10 @@
 int main(int argc, char *argv[])
 {
 	cartpos eci;
-	vector <tlestruc> tle;
+	std::vector <tlestruc> tle;
 	stkstruc stk;
 	double utc = 0.;
-	string modelname;
+	std::string modelname;
 	int modeltype;
 
 	switch (argc)
@@ -135,8 +135,8 @@ int main(int argc, char *argv[])
 
 	gj_handle gjh;
 	cosmosstruc *cdata;
-	string node = "";
-	if (!(cdata = agent_setup_client(SOCKET_TYPE_BROADCAST, node.c_str(), 1000)))
+	std::string node = "";
+	if (!(cdata = agent_setup_client(NetworkType::BROADCAST, node.c_str(), 1000)))
 	{
 			printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
 			exit (AGENT_ERROR_JSON_CREATE);

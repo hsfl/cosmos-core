@@ -50,7 +50,7 @@ static prkx2su_state ant_state;
 * @see cssl_open
 * @see cssl_setflowcontrol
 */
-int32_t prkx2su_connect(string dev)
+int32_t prkx2su_connect(std::string dev)
 {
 	int32_t iretn;
 	cssl_start();
@@ -60,7 +60,7 @@ int32_t prkx2su_connect(string dev)
 		prkx2su_disconnect();
 	}
 
-	string device = dev + "_az";
+	std::string device = dev + "_az";
 	prkx2su_serial[PRKX2SU_AXIS_AZ] = cssl_open(device.c_str(), PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
 	if (prkx2su_serial[PRKX2SU_AXIS_AZ] == nullptr)
 	{

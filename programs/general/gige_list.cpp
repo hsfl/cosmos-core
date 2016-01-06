@@ -34,7 +34,7 @@
 
 int main(int argc, char *argv[])
 {
-	vector<gige_acknowledge_ack> gige_list;
+	std::vector<gige_acknowledge_ack> gige_list;
 
 	gige_list = gige_discover();
 	if (!gige_list.size())

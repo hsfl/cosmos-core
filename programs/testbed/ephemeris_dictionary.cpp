@@ -34,7 +34,7 @@ cosmosstruc *cdata;
 
 int main(int argc, char *argv[])
 {
-string ojstring;
+std::string ojstring;
 
 cdata = json_create();
 

@@ -44,7 +44,7 @@
 #include <mutex>
 #include <condition_variable>
 
-using namespace std;
+//using namespace std;
 
 //! \ingroup defs
 //! \defgroup defs_storage Constants defining limits on storage.
@@ -81,20 +81,24 @@ using namespace std;
 //! \ingroup defs
 //! \defgroup defs_node_type Constants defining Node types.
 //! @{
-#define NODE_TYPE_SATELLITE 0
-#define NODE_TYPE_GROUNDSTATION 1
-#define NODE_TYPE_MOC 2
-#define NODE_TYPE_VEHICLE 3
-#define NODE_TYPE_UAV 4
-#define NODE_TYPE_TARGET 5
-#define NODE_TYPE_BALLOON 6
-#define NODE_TYPE_SHIP 7
-#define NODE_TYPE_DATA 8
-#define NODE_TYPE_COMPUTER 9
-#define NODE_TYPE_SUN 10
-#define NODE_TYPE_MOON 11
-#define NODE_TYPE_MARS 12
-#define NODE_TYPE_LOCATION 13
+enum NODE_TYPE
+{
+NODE_TYPE_SATELLITE=0,
+NODE_TYPE_GROUNDSTATION=1,
+NODE_TYPE_MOC=2,
+NODE_TYPE_VEHICLE=3,
+NODE_TYPE_UAV=4,
+NODE_TYPE_TARGET=5,
+NODE_TYPE_BALLOON=6,
+NODE_TYPE_SHIP=7,
+NODE_TYPE_DATA=8,
+NODE_TYPE_COMPUTER=9,
+NODE_TYPE_SUN=10,
+NODE_TYPE_MOON=11,
+NODE_TYPE_MARS=12,
+NODE_TYPE_LOCATION=13
+    };
+
 //! @}
 
 //! \ingroup defs
@@ -201,39 +205,6 @@ using namespace std;
 #define EVENT_TYPE_MESSAGE 0x8000
 
 
-
-//! @}
-
-//! \ingroup defs
-//! \defgroup defs_agent Constants defining Agent values.
-//! @{
-#define AGENT_PORT_BASE 6100
-#define AGENT_PORT_EXECUTIVE (AGENT_PORT_BASE+1)
-#define AGENT_PORT_SOH (AGENT_PORT_BASE+2)
-#define AGENT_PORT_TIME (AGENT_PORT_BASE+3)
-#define AGENT_PORT_SIMULATOR (AGENT_PORT_BASE+4)
-
-//! Shutting down Agent
-#define AGENT_STATE_SHUTDOWN 0
-//! Agent Initializing
-#define AGENT_STATE_INIT 1
-//! Agent Running
-#define AGENT_STATE_RUN 2
-//! Agent in Safe State
-#define AGENT_STATE_SAFE 3
-//! Agent in Debug State
-#define AGENT_STATE_DEBUG 4
-//! Agent in Idle State
-#define AGENT_STATE_IDLE 4
-
-//! Multiple agents per name
-#define AGENT_MULTIPLE true
-//! Single agent per name
-#define AGENT_SINGLE false
-//! Blocking Agent
-#define AGENT_BLOCKING true
-//! Non-blocking Agent
-#define AGENT_NONBLOCKING false
 
 //! @}
 

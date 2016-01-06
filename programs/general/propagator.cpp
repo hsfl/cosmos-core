@@ -40,17 +40,17 @@
 
 cosmosstruc* cdata;
 gj_handle gjh;
-vector<shorteventstruc> eventdict;
-vector<shorteventstruc> events;
-string mainjstring;
+std::vector<shorteventstruc> eventdict;
+std::vector<shorteventstruc> events;
+std::string mainjstring;
 
 void endline(){
-    cout << endl;
+    std::cout << std::endl;
 }
 
 int main(int argc, char* argv[])
 {
-	string node;
+	std::string node;
 	int32_t order = 6;
     int32_t mode = 1; // attitude mode (0 - propagate?, 1-LVLH, ...)
 	double mjdnow;
@@ -67,18 +67,18 @@ int main(int argc, char* argv[])
 		node = argv[1];
 		break;
 	default:
-        cout << "Usage: propogator nodename [mjd|0]" << endl;
+        std::cout << "Usage: propogator nodename [mjd|0]" << std::endl;
 		exit (-1);
 		break;
 	}
 
-    if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP, node, (string)"physics", .1, 0, AGENTMAXBUFFER, AGENT_SINGLE)))
+    if (!(cdata = agent_setup_server(NetworkType::UDP, node, (std::string)"physics", .1, 0, AGENTMAXBUFFER, AGENT_SINGLE)))
     {
         printf("Failed to setup server for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
         exit (AGENT_ERROR_JSON_CREATE);
     }
 
-//    if (!(cdata = agent_setup_client(SOCKET_TYPE_BROADCAST, node.c_str(), 1000)))
+//    if (!(cdata = agent_setup_client(NetworkType::BROADCAST, node.c_str(), 1000)))
 //	{
 //		printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
 //		exit (AGENT_ERROR_JSON_CREATE);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
 	struct stat fstat;
 	FILE* fdes;
-	string fname = get_nodedir(node);
+	std::string fname = get_nodedir(node);
 	fname += "/state.ini";
 	if ((iretn=stat(fname.c_str(), &fstat)) == 0 && (fdes=fopen(fname.c_str(),"r")) != NULL)
 	{
@@ -115,9 +115,9 @@ int main(int argc, char* argv[])
 //		iloc.utc = cdata[0].node.loc.utc;
 
 //        print_vector("Initial State Vector Position: ", iloc.pos.eci.s.col[0], iloc.pos.eci.s.col[1], iloc.pos.eci.s.col[2], "km");
-        //cout << "Initial State Vector Pos: [" << iloc.pos.eci.s.col[0] << ", " << iloc.pos.eci.s.col[1] <<  ", " << iloc.pos.eci.s.col[2] << "] km " << endl;
-        cout << "Initial State Vector Vel: [" << iloc.pos.eci.v.col[0] << ", " << iloc.pos.eci.v.col[1] <<  ", " << iloc.pos.eci.v.col[2] << "] km" << endl;
-        cout << "Initial MJD: " << setprecision(10) << iloc.utc << endl;
+        //std::cout << "Initial State Vector Pos: [" << iloc.pos.eci.s.col[0] << ", " << iloc.pos.eci.s.col[1] <<  ", " << iloc.pos.eci.s.col[2] << "] km " << std::endl;
+        std::cout << "Initial State Vector Vel: [" << iloc.pos.eci.v.col[0] << ", " << iloc.pos.eci.v.col[1] <<  ", " << iloc.pos.eci.v.col[2] << "] km" << std::endl;
+        std::cout << "Initial MJD: " << std::setprecision(10) << iloc.utc << std::endl;
 	}
 	else
 	{
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
 	}
 
 #define POLLBUFSIZE 20000
-	string pollbuf;
+	std::string pollbuf;
 	pollstruc meta;
 
 	iretn = agent_poll(cdata, meta, pollbuf, AGENT_MESSAGE_ALL,1);
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 	case AGENT_MESSAGE_SOH:
 	case AGENT_MESSAGE_BEAT:
 		{
-			string tbuf = json_convert_string(json_extract_namedobject(pollbuf, "agent_name"));
+			std::string tbuf = json_convert_string(json_extract_namedobject(pollbuf, "agent_name"));
 			if (!tbuf.empty() && tbuf == "physics")
 			{
 				tbuf = json_convert_string(json_extract_namedobject(pollbuf, "node_utcoffset"));
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
 					cdata[0].node.utcoffset = mjdstart - currentmjd(0.);
 				}
 				//printf("master utcoffset: %f\n", cdata[0].node.utcoffset);
-				cout << "master utcoffset: " << setprecision(5) << cdata[0].node.utcoffset << endl;
+				std::cout << "master utcoffset: " << std::setprecision(5) << cdata[0].node.utcoffset << std::endl;
 //				master_timer = true;
 			}
 			break;
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
 			cdata[0].node.utcoffset = mjdstart - currentmjd(0.);
 		}
 		//printf("master utcoffset: %f\n", cdata[0].node.utcoffset);
-		cout << "master utcoffset: " << cdata[0].node.utcoffset << endl;
+		std::cout << "master utcoffset: " << cdata[0].node.utcoffset << std::endl;
 //		master_timer = true;
 		break;
 	}
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
         gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, cdata->physics, cdata->node.loc);
 
 		//printf("Initialize backwards %f days\n", (cdata[0].node.loc.utc-mjdnow));
-		cout << "Initialize backwards " << cdata[0].node.loc.utc-mjdnow << "days" << endl;
+		std::cout << "Initialize backwards " << cdata[0].node.loc.utc-mjdnow << "days" << std::endl;
 
         simulate_hardware(*cdata, cdata->node.loc);
         gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, mjdnow);
@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
 	}
 
     //printf("Initialize forwards %f days, steps of %f\n", (mjdnow-iloc.utc), step);
-    cout << "Initialize forwards " << (mjdnow-iloc.utc) << " days, steps of " << step << endl;
+    std::cout << "Initialize forwards " << (mjdnow-iloc.utc) << " days, steps of " << step << std::endl;
 
     hardware_init_eci(cdata[0].devspec, iloc);
     gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, cdata->physics, cdata->node.loc);
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
 	mjdnow = currentmjd(cdata[0].node.utcoffset);
 
 
-	string sohstring = json_list_of_soh(cdata);
+	std::string sohstring = json_list_of_soh(cdata);
 	agent_set_sohstring(cdata, sohstring.c_str());
 
 	while (agent_running(cdata))

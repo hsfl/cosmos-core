@@ -35,6 +35,7 @@
 #include <stdio.h>
 
 #include "agentlib.h"
+#include "devicecpu.h"
 
 int myagent();
 
@@ -54,6 +55,8 @@ int32_t diskfree;
 int32_t stateflag;
 int32_t myport;
 
+DeviceCpu cpu;
+
 int main(int argc, char *argv[])
 {
 	int32_t iretn;
@@ -68,7 +71,7 @@ int main(int argc, char *argv[])
 	// Initialize the Agent
 	// near future: support cubesat space protocol
 	// port number = 0 in this case, automatic assignment of port
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
+	if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Add additional requests
@@ -90,17 +93,11 @@ int main(int argc, char *argv[])
 		// Set beginning of next cycle;
 		nmjd += cdata[0].agent[0].aprd/86400.;
 		// Gather system information
-#if !defined(COSMOS_WIN_OS)
-		fp = fopen("/proc/meminfo","r");
-		fscanf(fp,"MemTotal: %f kB\nMemFree: %f",&cdata[0].devspec.cpu[0]->maxmem,&cdata[0].devspec.cpu[0]->mem);
-		fclose(fp);
-		fp = fopen("/proc/loadavg","r");
-		fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
-		fclose(fp);
-		statfs("/",&fsbuf);
-		cdata[0].devspec.cpu[0]->disk = fsbuf.f_blocks;
-		diskfree = fsbuf.f_bfree;
-#endif
+        if (cdata[0].devspec.cpu_cnt)
+        {
+            cdata[0].devspec.cpu[0]->load = cpu.getLoad();
+            cdata[0].devspec.cpu[0]->mem = cpu.getVirtualMemoryTotal();
+        }
 
 		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);
 		if (sleept < 0) sleept = 0;

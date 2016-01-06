@@ -40,7 +40,7 @@
 #include <sys/stat.h>
 
 svector azel;
-vector<nodestruc> track;
+std::vector<nodestruc> track;
 cosmosstruc *cdata;
 stkstruc stk;
 char buf[3000], fname[200];
@@ -74,7 +74,7 @@ alert_type alerts[22] = {
 	{"UMB_IN","U11321"},
 	{"UMB_OUT","U11321"}};
 
-string output;
+std::string output;
 char date[30];
 FILE *eout, *fout;
 
@@ -90,7 +90,7 @@ double mjdnow, lastlat, lastsunradiance, fd, lastgsel[MAXTRACK];
 int i, j, gsup[MAXTRACK];
 int year, month, day, hour, minute, second;
 struct stat sbuf;
-string jstring;
+std::string jstring;
 
 cdata = json_create();
 json_setup_node(argv[1],cdata);
@@ -102,7 +102,7 @@ if (argc == 3)
 else
 	{
 	agent_get_server(cdata, cdata[0].node.name,(char *)"engine",5,&imubeat);
-	agent_send_request(cdata, imubeat,(char *)"statevec",buf,1000,5);
+	agent_send_request(imubeat,(char *)"statevec",buf,1000,5);
 	json_parse(buf,cdata);
 
 	mjdnow = cdata[0].node.loc.utc;

@@ -33,7 +33,7 @@
 // - lap
 // - reset
 
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 
 using std::cout;
 using std::endl;
@@ -69,39 +69,47 @@ using std::endl;
 //    auto end = chrono::steady_clock::now();
 //    auto diff = end - start;
 //    double test = chrono::duration <double> (diff).count();
-//    cout <<  test << " s" << endl;
+//    std::cout <<  test << " s" << std::endl;
 
 
+
+
+
+ElapsedTime::ElapsedTime()
+{
+    // by default start the timer
+    start();
+}
+
+// new function
+// combines toc and print, this simplifies the calling of functions
 void ElapsedTime::info(){
 #ifndef BUILD_TYPE_arm
-    cout << "system_clock" << endl;
-    cout << std::chrono::system_clock::period::num << endl;
-    cout << std::chrono::system_clock::period::den << endl;
-    cout << "steady = " << std::boolalpha << std::chrono::system_clock::is_steady << endl << endl;
+    std::cout << "system_clock" << std::endl;
+    std::cout << std::chrono::system_clock::period::num << std::endl;
+    std::cout << std::chrono::system_clock::period::den << std::endl;
+    std::cout << "steady = " << std::boolalpha << std::chrono::system_clock::is_steady << std::endl << std::endl;
 
-    cout << "high_resolution_clock" << endl;
-    cout << std::chrono::high_resolution_clock::period::num << endl;
-    cout << std::chrono::high_resolution_clock::period::den << endl;
-    cout << "steady = " << std::boolalpha << std::chrono::high_resolution_clock::is_steady << endl << endl;
+    std::cout << "high_resolution_clock" << std::endl;
+    std::cout << std::chrono::high_resolution_clock::period::num << std::endl;
+    std::cout << std::chrono::high_resolution_clock::period::den << std::endl;
+    std::cout << "steady = " << std::boolalpha << std::chrono::high_resolution_clock::is_steady << std::endl << std::endl;
 
-    cout << "steady_clock" << endl;
-    cout << std::chrono::steady_clock::period::num << endl;
-    cout << std::chrono::steady_clock::period::den << endl;
-    cout << "steady = " << std::boolalpha << std::chrono::steady_clock::is_steady << endl << endl;
+    std::cout << "steady_clock" << std::endl;
+    std::cout << std::chrono::steady_clock::period::num << std::endl;
+    std::cout << std::chrono::steady_clock::period::den << std::endl;
+    std::cout << "steady = " << std::boolalpha << std::chrono::steady_clock::is_steady << std::endl << std::endl;
 #endif
 
 }
 
-
-// new function
-// combines toc and print, this simplifies the calling of functions
 void ElapsedTime::printElapsedTime()
 {
     if (print){
         //char buffer[50];
         //sprintf(buffer,"Elapsed Time: %.6f s",elapsedTime);
-        //cout << buffer << endl;
-        cout << "Elapsed Time "<< elapsedTime << " s" << endl;
+        //std::cout << buffer << std::endl;
+        std::cout << "Elapsed Time "<< elapsedTime << " s" << std::endl;
     }
 }
 
@@ -111,13 +119,13 @@ void ElapsedTime::printElapsedTime(std::string text)
         //toc();
         //char buffer[50];
         //sprintf(buffer,"Elapsed Time (%s): %.6f s",text.c_str(),elapsedTime);
-        //cout << buffer << endl;
-        cout << "Elapsed Time (" << text << "): "<< elapsedTime<< " s" << endl;
+        //std::cout << buffer << std::endl;
+        std::cout << "Elapsed Time (" << text << "): "<< elapsedTime<< " s" << std::endl;
     }
 }
 
 //! Lap Time
-/*! This is the elapsed time since the last Lap Time. ::timeCheck is set in order
+/*! This is the elapsed time since the last Lap Time. ::ElapsedTime::timeCheck is set in order
  * to keep track of this event.
  * \return Time since last call to lap(), reset(), or start(), in seconds.
 */
@@ -156,14 +164,6 @@ double ElapsedTime::toc(){
 
 
 // equivalent to matlab to stop a stopwatch timer
-//double ElapsedTime::toc(bool print_flag){
-
-//    print = print_flag;
-//    toc();
-
-//    return elapsedTime;
-//}
-
 double ElapsedTime::toc(std::string text)
 {
 
@@ -183,6 +183,8 @@ void ElapsedTime::start()
     //	clock_gettime(CLOCK_MONOTONIC, &timeStart);
     gettimeofday(&timeStart, nullptr);
 #else
+    // On windows using MinGw32 it does not get better than 1ms
+    // new c++11
     timeStart = std::chrono::steady_clock::now();
 #endif
     timeCheck = timeStart;
@@ -215,20 +217,29 @@ double ElapsedTime::split()
 
 double ElapsedTime::getElapsedTime(){
     //Get the elapsedTime from start
-    return lap();
+    return split();
+}
+
+
+/*!
+ * \brief compute the elapsed time since the given time in the function arguments
+ * \param startTimeMjd
+ * \return elapsed time in seconds
+ */
+//double ElapsedTime::getElapsedTimeSince(double startTimeMjd)
+//{
+//    // compute the elapsed time given the startTimeMjd
+//    return (currentmjd()-startTimeMjd)*86400;
+//}
+
+double ElapsedTime::getElapsedTime(double startMjd, double endMjd)
+{
+    // compute the elapsed time given the startTimeMjd
+    return (endMjd-startMjd)*86400;
 }
 
 void ElapsedTime::reset(){
-    // set elapsedTime to 0
-
-    // On windows using MinGw32 it does not get better than 1ms
-    // new c++11
-    //time2 = chrono::steady_clock::now();
-
-    //elapsedTime = getElapsedTime();
-    //timeStart = chrono::steady_clock::now();
     start();
-    //return elapsedTime;
 }
 
 // -------------OLD Code

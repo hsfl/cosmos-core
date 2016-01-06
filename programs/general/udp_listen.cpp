@@ -53,7 +53,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+//using namespace std;
 
 #include "agentlib.h"
 #include "jsonlib.h"
@@ -75,8 +75,8 @@ int main(int argc, char *argv[])
 {
     // **** Declare Variables
 
-    string input;
-    string token;
+    std::string input;
+    std::string token;
 
 	/*
     char gps_time[50];
@@ -102,8 +102,8 @@ int main(int argc, char *argv[])
     int received; // Num bytes received per UDP packet
     uint8_t buf1[BUFSIZE]; // RX Buffer
 
-	string myjstring;
-	string jjstring;
+    std::string myjstring;
+    std::string jjstring;
 
 
 	uint32_t i, j, tlen;
@@ -116,14 +116,14 @@ int main(int argc, char *argv[])
 
 
     // Begin Program, Initialize Socket, Blocking, Timeout set for 1 second
-    if ((iretn=socket_open(&chan, SOCKET_TYPE_UDP, address, port, AGENT_LISTEN, AGENT_BLOCKING, 1000000)) < 0)
+    if ((iretn=socket_open(&chan, NetworkType::UDP, address, port, AGENT_LISTEN, AGENT_BLOCKING, 1000000)) < 0)
     {
         printf("Err: Unable to open connection to [%s:%d]\n",address,port);
     } else {
         printf("Netperf Listen is now listening on port %d...\n\n",port);
     }
 
-	cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)"nps",(char *)"udp", 1., 0, AGENTMAXBUFFER);
+	cdata = agent_setup_server(NetworkType::UDP,(char *)"nps",(char *)"udp", 1., 0, AGENTMAXBUFFER);
 
 	// Create default logstring
 	strcpy(logstring,json_of_soh(jjstring,cdata));
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
             // 11- acc_y,
             // 12- acc_z (g)
 
-            //string string_input;
+            //std::string string_input;
             //string_input = buf1;
             //char string_input[100];
             //strcpy(input,string_input);

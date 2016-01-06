@@ -38,7 +38,7 @@
 *
 *	\defgroup gige GigE Vision support.
 * @{
-* GigE Vision support library.
+* GigE Vision.
 *
 * This library provides the functions necessary to any GigE Vision conforming camera.
 * @}
@@ -209,8 +209,11 @@
 #define PROSILICA_TriggerEvent					0x13418
 #define PROSILICA_TriggerDelay					0x1341C
 #define PROSILICA_ExposureMode					0x14104
+//! Do not automatically adjust exposure
 #define PROSILICA_ExposureMode_AutoOff	1
+//! Use one frame to calculate exposure
 #define PROSILICA_ExposureMode_AutoOnce	3
+//! Adjust exposure on each frame
 #define PROSILICA_ExposureMode_Auto	2
 #define PROSILICA_ExposureValueMin				0x14108
 #define PROSILICA_ExposureValueMax				0x1410C
@@ -370,7 +373,7 @@ typedef struct
 //! \defgroup gige_functions GigE Vision functions
 //! @{
 
-vector<gige_acknowledge_ack> gige_discover();
+std::vector<gige_acknowledge_ack> gige_discover();
 gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_msec, uint32_t socket_usec, uint32_t streambps);
 int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data);
 uint32_t gige_readreg(gige_handle *handle, uint32_t address);

@@ -103,7 +103,7 @@ int32_t geomag_front(gvector pos, double time, rvector *comp)
 
 	// this reads the coefficients, specify path if neccessary
     itime = 5 * (int)(time/5.);
-	string rname;
+	std::string rname;
 	int32_t iretn = get_cosmosresources(rname);
 	if (iretn < 0)
 	{

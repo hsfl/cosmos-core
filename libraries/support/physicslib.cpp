@@ -41,7 +41,7 @@ static double spmm[MAXDEGREE+1];
 static double lastx = 10.;
 static uint16_t lastm = 65535;
 static double initialutc;
-static string orbitfile;
+static std::string orbitfile;
 static stkstruc stkhandle;
 
 static locstruc sloc[MAXGJORDER+2];
@@ -691,7 +691,7 @@ rvector gravity_accel2(posstruc pos,int model,uint32_t degree)
     sloc.pos.geod.s.lat += .4448*(sloc.pos.geod.s.lat - sloc.pos.geos.s.phi);
     pos_geod2geoc(&sloc);
     accel1 = sloc.pos.geoc.s;
-    normalize_rv(&accel1);
+    normalize_rv(accel1);
     accel1 = rv_smult(v,accel1);
     return (accel1);
 }
@@ -721,7 +721,7 @@ int32_t gravity_params(int model)
         coef[0][0][1] = 0.;
         coef[1][0][0] = coef[1][0][1] = 0.;
         coef[1][1][0] = coef[1][1][1] = 0.;
-        string fname;
+        std::string fname;
         FILE *fi;
         switch (model)
         {
@@ -950,15 +950,15 @@ void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
 
     // Atmospheric and solar drag
     unitv = loc.pos.geoc.v;
-    normalize_rv(&unitv);
+    normalize_rv(unitv);
     unitv = transform_q((loc.att.geoc.s),unitv);
 
     units = rv_smult(-1.,loc.pos.icrf.s);
-    normalize_rv(&units);
+    normalize_rv(units);
     units = transform_q((loc.att.icrf.s),units);
 
     unite = rv_smult(-1.,loc.pos.eci.s);
-    normalize_rv(&unite);
+    normalize_rv(unite);
     unite = transform_q((loc.att.icrf.s),unite);
 
     geov = loc.pos.geoc.v;
@@ -1436,7 +1436,7 @@ void att_accel(physicsstruc &physics, locstruc &loc)
     // Now calculate Gravity Gradient Torque
     // Unit vector towards earth, rotated into body frame
     ue = transform_q((loc.att.icrf.s),rv_smult(-1.,loc.pos.eci.s));
-    normalize_rv(&ue);
+    normalize_rv(ue);
 
     physics.gtorque = rv_smult((3.*GM/pow(loc.pos.geos.s.r,3.)),rv_cross(ue,rv_mult(physics.moi,ue)));
 
@@ -3037,7 +3037,7 @@ void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &lo
     \return Returns 0 if succsessful, otherwise negative error.
 */
 
-int orbit_init(int32_t mode, double dt, double utc, string ofile, cosmosstruc &cdata)
+int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosstruc &cdata)
 {
     int32_t iretn;
     tlestruc tline;

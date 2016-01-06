@@ -46,8 +46,8 @@ char *output;
 
 gj_handle gjh;
 cosmosstruc *cdata;
-string reqjstring;
-string mainjstring;
+std::string reqjstring;
+std::string mainjstring;
 double logperiod=30, newlogperiod=30;
 
 char logstring[AGENTMAXBUFFER-20];
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
 	// Initialization stuff
 
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,node,(char *)"physics",2.,0,AGENTMAXBUFFER)))
+	if (!(cdata = agent_setup_server(NetworkType::UDP,node,(char *)"physics",2.,0,AGENTMAXBUFFER)))
 	{
 		printf("Failed to setup server: %d\n",AGENT_ERROR_JSON_CREATE);
 		exit (AGENT_ERROR_JSON_CREATE);
@@ -339,14 +339,3 @@ char* request_set_mtr_field(char* request, char* output)
 	return (output);
 }
 
-void soh_cpu()
-{
-	FILE *fp;
-
-	fp = fopen("/proc/meminfo","r");
-	fscanf(fp,"MemTotal: %f kB\n",&cdata[0].devspec.cpu[0]->mem);
-	fclose(fp);
-	fp = fopen("/proc/loadavg","r");
-	fscanf(fp,"%f",&cdata[0].devspec.cpu[0]->load);
-	fclose(fp);
-}

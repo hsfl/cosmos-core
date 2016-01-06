@@ -114,10 +114,10 @@ rmatrix rm_inverse(rmatrix m);
 rmatrix rm_from_m2(matrix2d m);
 
 double norm_rm(rmatrix a);
-double norm_rm2(rmatrix a);
+//double norm_rm2(rmatrix a);
 
 double trace_rm(rmatrix a);
-double trace_rm2(rmatrix a);
+//double trace_rm2(rmatrix a);
 double determinant_rm(rmatrix a);
 
 

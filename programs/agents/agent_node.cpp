@@ -42,7 +42,7 @@
 
 #include <iostream>
 
-using namespace std;
+//using namespace std;
 
 #define MAXEPHEM 3
 
@@ -50,19 +50,19 @@ char ibuf[AGENTMAXBUFFER];
 
 int myagent();
 
-int ntype = SOCKET_TYPE_UDP;
+NetworkType ntype = NetworkType::UDP;
 int waitsec = 5;
-string reqjstring;
-string myjstring;
+std::string reqjstring;
+std::string myjstring;
 
 typedef struct
 {
 	double mjd;
 	double utime;
 	uint32_t tindex;
-	vector<string> telem;
+    std::vector<std::string> telem;
 	uint32_t eindex;
-	vector<string> event;
+    std::vector<std::string> event;
 } cachestruc;
 
 cachestruc cache[3+MAXEPHEM+1];
@@ -75,8 +75,8 @@ int32_t mindex;
 nodestruc *node;
 
 //eventstruc tevent;
-vector<shorteventstruc> eventdict;
-vector<shorteventstruc> commanddict;
+std::vector<shorteventstruc> eventdict;
+std::vector<shorteventstruc> commanddict;
 
 cosmosstruc *cdata;
 nodestruc statnode;
@@ -289,7 +289,7 @@ void loadephemeris()
 	int j;
 	uint32_t k;
 	double stime, ctime, etime;
-	vector<shorteventstruc> events;
+    std::vector<shorteventstruc> events;
 
 	// Return immediately if we haven't loaded any data
 	if (cache[3].utime > 0.)

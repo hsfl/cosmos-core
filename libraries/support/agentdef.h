@@ -37,25 +37,49 @@
 #include "configCosmos.h"
 #include "jsondef.h"
 
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <errno.h>
-
-using namespace std;
-
 //! \ingroup agentlib
 //! \defgroup agentlib_constants Agent Server and Client Library constants
 //! @{
 
-//! Agent socket using Multicast UDP
-#define AGENT_TYPE_MULTICAST 0
-//! Agent socket using Broadcast UDP
-#define AGENT_TYPE_BROADCAST 2
-//! Agent socket using Unicast UDP
-#define AGENT_TYPE_UDP 2
-//! Agent socket using Broadcast CSP
-#define AGENT_TYPE_CSP 3
+//! Type of network channel for agent to use.
+//enum class AgentType : std::uint16_t
+//    {
+//    //! Agent socket using Multicast UDP
+//    MULTICAST=0,
+//    //! Agent socket using Broadcast UDP
+//    BROADCAST=2,
+//    //! Agent socket using Unicast UDP
+//    UDP=2,
+//    //! Agent socket using Broadcast CSP
+//    CSP=3
+//    } ;
 
+enum AGENT_STATE
+    {
+    //! Shut down Agent
+    AGENT_STATE_SHUTDOWN=0,
+    //! Agent Initializing
+    AGENT_STATE_INIT,
+    //! Do minimal necessary to run
+    AGENT_STATE_IDLE,
+    //! Run without monitoring
+    AGENT_STATE_RUN,
+    //! Run with monitoring
+    AGENT_STATE_MONITOR,
+    //! Agent in Safe State
+    AGENT_STATE_SAFE,
+    //! Agent in Debug State
+    AGENT_STATE_DEBUG
+    };
+
+//! Multiple agents per name
+#define AGENT_MULTIPLE true
+//! Single agent per name
+#define AGENT_SINGLE false
+//! Blocking Agent
+#define AGENT_BLOCKING true
+//! Non-blocking Agent
+#define AGENT_NONBLOCKING false
 //! Talk followed by optional listen (sendto address)
 #define AGENT_TALK 0
 //! Listen followed by optional talk (recvfrom INADDRANY)
@@ -80,20 +104,24 @@ using namespace std;
 //! Default AGENT socket RCVTIMEO (100 msec)
 #define AGENTRCVTIMEO 100000
 
-//! All Message types
-#define AGENT_MESSAGE_ALL 1
-//! Heartbeat Messages
-#define AGENT_MESSAGE_BEAT 2
-//! State of Health Messages
-#define AGENT_MESSAGE_SOH 3
-//! Generic Mesages
-#define AGENT_MESSAGE_GENERIC 4
-#define AGENT_MESSAGE_TIME 5
-#define AGENT_MESSAGE_LOCATION 6
-#define AGENT_MESSAGE_TRACK 7
-#define AGENT_MESSAGE_IMU 8
-//! Event Messsages
-#define AGENT_MESSAGE_EVENT 9
+//! Type of Agent Message. Types >128 are binary.
+enum AGENT_MESSAGE
+    {
+    //! All Message types
+    AGENT_MESSAGE_ALL=1,
+    //! Heartbeat Messages
+    AGENT_MESSAGE_BEAT=2,
+    //! State of Health Messages
+    AGENT_MESSAGE_SOH=3,
+    //! Generic Mesages
+    AGENT_MESSAGE_GENERIC=4,
+    AGENT_MESSAGE_TIME=5,
+    AGENT_MESSAGE_LOCATION=6,
+    AGENT_MESSAGE_TRACK=7,
+    AGENT_MESSAGE_IMU=8,
+    //! Event Messsages
+    AGENT_MESSAGE_EVENT=9
+    };
 
 //! @}
 
@@ -108,17 +136,17 @@ using namespace std;
 //! Heartbeats for multiple processes found on the multicast bus.
 struct beatstruc_list
 {
-	//! Number of heartbeats in list
-	int16_t count;
-	//! Pointer to an array of pointers to heartbeats
-	beatstruc *heartbeat[AGENTMAXLIST];
+    //! Number of heartbeats in list
+    int16_t count;
+    //! Pointer to an array of pointers to heartbeats
+    beatstruc *heartbeat[AGENTMAXLIST];
 };
 
 struct pollstruc
 {
-	uint8_t type;
-	uint16_t jlength;
-	beatstruc beat;
+    uint8_t type;
+    uint16_t jlength;
+    beatstruc beat;
 };
 
 //! @}

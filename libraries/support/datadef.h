@@ -31,7 +31,7 @@
 #define _DATADEF_H 1
 
 /*! \file datadef.h
-*	\brief Data Management support library definitions file
+*	\brief Data Management definitions file
 */
 
 #include "configCosmos.h"
@@ -39,7 +39,7 @@
 //#include <string>
 
 //! \ingroup datalib
-//! \defgroup datalib_constants Data Management support library contants
+//! \defgroup datalib_constants Data Management contants
 //! @{
 
 #define DATA_LOG_TYPE_SOH 0
@@ -49,15 +49,15 @@
 //! @}
 
 //! \ingroup datalib
-//! \defgroup datalib_typedefs Data Management support library type definitions
+//! \defgroup datalib_typedefs Data Management type definitions
 //! @{
 typedef struct
 {
-	string node;
-	string agent;
-	string name;
-	string type;
-	string path;
+    std::string node;
+    std::string agent;
+    std::string name;
+    std::string type;
+    std::string path;
 	size_t size;
 	uint16_t year;
 	uint16_t jday;

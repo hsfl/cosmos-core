@@ -171,7 +171,7 @@ enum
     JSON_TYPE_FLOAT,
     //! JSON double precision floating point type
     JSON_TYPE_DOUBLE,
-    //! JSON string type
+    //! JSON std::string type
     JSON_TYPE_STRING,
     //! JSON Name type
     JSON_TYPE_NAME,
@@ -458,6 +458,8 @@ enum
     DEVICE_TYPE_CAM=26,
     //! Telemetry
     DEVICE_TYPE_TELEM=27,
+    //! Disk Drive
+    DEVICE_TYPE_DISK=28,
     //! List count
     DEVICE_TYPE_COUNT,
     //! Not a Component
@@ -533,7 +535,7 @@ enum
 //! \defgroup defs_comp_port IO Port types.
 //! @{
 //!
-enum
+enum PORT_TYPE
     {
     PORT_TYPE_RS232 = 0,
     PORT_TYPE_RS422 = 1,
@@ -551,7 +553,7 @@ enum
 //! @{
 
 //! JSON unit type entry
-/*! To be used in the ::json_map table of units. Each entry represents
+/*! To be used in the ::cosmosstruc table of units. Each entry represents
  * one specific variant of one type of unit. Each entry includes:
  * - a name for the unit
  * - a type for the unit conversion: 0 = identity, 1 = linear, 2 = log
@@ -560,7 +562,7 @@ enum
 struct unitstruc
 {
     //! JSON Unit Name
-    string name;
+    std::string name;
     //! JSON Unit conversion type
     uint16_t type;
     //! 0th derivative term
@@ -574,7 +576,7 @@ struct unitstruc
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
  * to a single object, along with its data type.
- * - index: Index of this entry in the ::json_map.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonentry
@@ -584,13 +586,13 @@ struct jsonentry
     //! JSON Data Group
     uint16_t group;
     //! Name of entry
-    string name;
+    std::string name;
     //! offset to data storage
     ptrdiff_t offset;
     //! size of data storage
     size_t size;
     //! vector of actual data
-    vector <uint8_t> data;
+    std::vector <uint8_t> data;
     //! Index to JSON Unit Type
     uint16_t unit_index;
     //! Index to alert condition in Data Dictionary
@@ -624,7 +626,7 @@ struct jsonhandle
 struct jsontoken
 {
     jsonhandle handle;
-    string value;
+    std::string value;
     double utc;
 };
 
@@ -648,7 +650,7 @@ struct jsonoperand
 //! JSON equation entry
 /*! Single entry in a JSON equation map. Ties together a JSON equation and its
  * preparsed form.
- * - index: Index of this entry in the ::json_map.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonequation
@@ -671,7 +673,7 @@ struct jsonequation
 struct jsonmap
 {
     //! Array of entries
-    vector<vector<jsonentry> > entry;
+    std::vector<std::vector<jsonentry> > entry;
 };
 
 //! Agent Request Function
@@ -683,11 +685,11 @@ typedef int32_t (*agent_request_function)(char* request_string, char* output_str
 struct agent_request_entry
 {
     //! Character token for request
-    string token;
+    std::string token;
     //! Pointer to function to call with request string as argument and returning any error
     agent_request_function function;
-    string synopsis;
-    string description;
+    std::string synopsis;
+    std::string description;
 };
 
 //! Channel structure
@@ -712,7 +714,7 @@ struct agent_channel
     uint16_t msgsize;
     // Channel's protocol address in string form
     char address[18];
-    // Channel's broadcast address in string form
+    // Channel's broadcast address in std::string form
     char baddress[18];
     // Channel's interface name
     char name[COSMOS_MAX_NAME+1];
@@ -729,7 +731,7 @@ struct beatstruc
     //! Heartbeat Agent Name
     char proc[COSMOS_MAX_NAME+1];
     // Type of address protocol
-    uint16_t ntype;
+    NetworkType ntype;
     //! Protocol Address
     char addr[18];
     //! AGENT port
@@ -772,11 +774,11 @@ struct agentstruc
     //! State of Health report string
     //	char sohstring[AGENTMAXBUFFER];
     //! Agent request list
-    vector <agent_request_entry> reqs;
+    std::vector <agent_request_entry> reqs;
     //! Heartbeat
     beatstruc beat;
     //! State of Health element vector
-    vector<jsonentry*> sohtable;
+    std::vector<jsonentry*> sohtable;
 };
 
 //! Long COSMOS Event structure.
@@ -897,9 +899,9 @@ and types.
 struct glossarystruc
 {
     // Glossary entry name.
-    string name;
+    std::string name;
     // Glossary entry description, to be interpreted based on its type.
-    string description;
+    std::string description;
     // Glossary entry ::namespace type.
     uint16_t type;
 };
@@ -911,9 +913,11 @@ struct glossarystruc
 struct aliasstruc
 {
     // Alias name
-    string name;
+    std::string name;
     // Namespace handle
     jsonhandle handle;
+    //! JSON Data Type
+    uint16_t type;
 };
 
 //! Equation structure
@@ -922,9 +926,9 @@ struct aliasstruc
 struct equationstruc
 {
     // Equation name
-    string name;
+    std::string name;
     // Equation string
-    string value;
+    std::string value;
 };
 
 
@@ -948,16 +952,16 @@ struct targetstruc
 
 //! Port structure
 /*! Contains information about I/O ports available to devices. The
- * ::portidx entry in each device structure indicates which of these
+ * ::genstruc::portidx entry in each device structure indicates which of these
  * ports a device will use.
  */
 struct portstruc
 {
-    //! Type of I/O as listed in ::def_comp_port.
+    //! Type of I/O as listed in ::PORT_TYPE.
     uint16_t type;
     //! Name information for port.
-    //!!! Change 'char' to 'string'
-    char name[COSMOS_MAX_NAME+1];
+    //!!! Do not make this std::string
+    char name[COSMOS_MAX_DATA+1];
 };
 
 //! Part structure: physical information for each piece of Node
@@ -1183,28 +1187,47 @@ struct mtrstruc
     float mom;
 };
 
+//! CPU information
 struct cpustruc
 {
+
     //! Generic info
     genstruc gen;
+
+    // cpu
     //! Seconds CPU has been up
     uint32_t uptime;
-    //! Maximum disk capacity in GiB
-    float maxdisk;
-    //! Maximum memory capacity in GiB
-    float maxmem;
-    //! Maximu load
-    float maxload;
-    //! Current disk usage in GiB
-    float disk;
-    //! Current memory usage in GiB
-    float mem;
     //! Current load
     float load;
+    //! Maximu load
+    float maxload;
+
+    // memory
+    //! Maximum memory capacity in GiB
+    float maxmem;
+    //! Current memory usage in GiB
+    float mem;
+
     //! Number of reboots
     uint32_t boot_count;
 };
 
+//! Disk information
+struct diskstruc
+{
+
+    //! Generic info
+    genstruc gen;
+
+    // disk
+    //! Maximum disk capacity in GiB
+    float maxdisk;  // TODO: rename to diskSize, consider bytes?
+    //! Current disk usage in GiB
+    float disk; // TODO: rename to diskUsed, consider bytes?
+    // TODO: add diskFree
+    //float diskFree;
+
+};
 
 // TODO: rename to GpsData
 struct gpsstruc
@@ -1521,7 +1544,7 @@ struct nodestruc
 {
     //! Node Name.
     char name[COSMOS_MAX_NAME+1];
-    //! Node Type as listed in \ref defs_node.
+    //! Node Type as listed in \ref NODE_TYPE.
     uint16_t type;
     //! Operational state
     uint16_t state;
@@ -1572,6 +1595,7 @@ struct devicestruc
         busstruc bus;
         camstruc cam;
         cpustruc cpu;
+        diskstruc disk;
         gpsstruc gps;
         htrstruc htr;
         imustruc imu;
@@ -1608,6 +1632,7 @@ struct devspecstruc
     uint16_t bus_cnt;
     uint16_t cam_cnt;
     uint16_t cpu_cnt;
+    uint16_t disk_cnt;
     uint16_t gps_cnt;
     uint16_t htr_cnt;
     uint16_t imu_cnt;
@@ -1631,80 +1656,81 @@ struct devspecstruc
     uint16_t txr_cnt;
     uint16_t thst_cnt;
     uint16_t tsen_cnt;
-    vector<allstruc *>all;
-    vector<antstruc *>ant;
-    vector<battstruc *>batt;
-    vector<busstruc *>bus;
-    vector<camstruc *>cam;
-    vector<cpustruc *>cpu;
-    vector<gpsstruc *>gps;
-    vector<htrstruc *>htr;
-    vector<imustruc *>imu;
-    vector<mccstruc *>mcc;
-    vector<motrstruc *>motr;
-    vector<mtrstruc *>mtr;
-    vector<tcustruc *>tcu;
-    vector<ploadstruc *>pload;
-    vector<propstruc *>prop;
-    vector<psenstruc *>psen;
-    vector<rotstruc *>rot;
-    vector<rwstruc *>rw;
-    vector<ssenstruc *>ssen;
-    vector<strgstruc *>strg;
-    vector<sttstruc *>stt;
-    vector<suchistruc *>suchi;
-    vector<swchstruc *>swch;
-    vector<telemstruc *>telem;
-    vector<tcvstruc *>tcv;
-    vector<txrstruc *>txr;
-    vector<rxrstruc *>rxr;
-    vector<thststruc *>thst;
-    vector<tsenstruc *>tsen;
+    std::vector<allstruc *>all;
+    std::vector<antstruc *>ant;
+    std::vector<battstruc *>batt;
+    std::vector<busstruc *>bus;
+    std::vector<camstruc *>cam;
+    std::vector<cpustruc *>cpu;
+    std::vector<diskstruc *>disk;
+    std::vector<gpsstruc *>gps;
+    std::vector<htrstruc *>htr;
+    std::vector<imustruc *>imu;
+    std::vector<mccstruc *>mcc;
+    std::vector<motrstruc *>motr;
+    std::vector<mtrstruc *>mtr;
+    std::vector<tcustruc *>tcu;
+    std::vector<ploadstruc *>pload;
+    std::vector<propstruc *>prop;
+    std::vector<psenstruc *>psen;
+    std::vector<rotstruc *>rot;
+    std::vector<rwstruc *>rw;
+    std::vector<ssenstruc *>ssen;
+    std::vector<strgstruc *>strg;
+    std::vector<sttstruc *>stt;
+    std::vector<suchistruc *>suchi;
+    std::vector<swchstruc *>swch;
+    std::vector<telemstruc *>telem;
+    std::vector<tcvstruc *>tcv;
+    std::vector<txrstruc *>txr;
+    std::vector<rxrstruc *>rxr;
+    std::vector<thststruc *>thst;
+    std::vector<tsenstruc *>tsen;
 };
 
 //! JSON Name Space structure
 /*! A structure containing an element for every unique name in the COSMOS Name
- * Space. The static and dynamic components of this can then be mapped
- * separately to the name space using ::json_map_cosmosstruc.
+ * Space. The components of this can then be mapped to the Name Space
+ * using calls to ::json_addentry.
 */
 struct cosmosstruc
 {
     //! Structure for summary information in node
     nodestruc node;
     //! Vector of all pieces in node.
-    vector<piecestruc> piece;
+    std::vector<piecestruc> piece;
     //! Vector of all general (common) information for devices (components) in node.
-    vector<devicestruc> device;
+    std::vector<devicestruc> device;
     //! Structure for devices (components) special data in node, by type.
     devspecstruc devspec;
     //! Vector of all ports known to node.
-    vector<portstruc> port;
+    std::vector<portstruc> port;
     //! Structure for physics modelling.
     physicsstruc physics;
     //! Single entry vector for agent information.
-    vector<agentstruc> agent;
+    std::vector<agentstruc> agent;
     //! Single entry vector for event information.
-    vector<eventstruc> event;
+    std::vector<eventstruc> event;
     //! Vector of all targets known to node.
-    vector<targetstruc> target;
+    std::vector<targetstruc> target;
     //! Single entry vector for user information.
-    vector<userstruc> user;
+    std::vector<userstruc> user;
     //! Vector of glossary terms for node.
-    vector<glossarystruc> glossary;
+    std::vector<glossarystruc> glossary;
     //! Whether JSON map has been created.
     uint16_t jmapped;
     //! JSON Namespace Map matrix.
-    vector<vector<jsonentry> > jmap;
+    std::vector<std::vector<jsonentry> > jmap;
     //! JSON Equation Map matrix.
-    vector<vector<jsonequation> > emap;
+    std::vector<std::vector<jsonequation> > emap;
     //! JSON Unit Map matrix: first level is for type, second level is for variant.
-    vector<vector<unitstruc> > unit;
+    std::vector<std::vector<unitstruc> > unit;
     //! Array of Two Line Elements
-    vector<tlestruc> tle;
+    std::vector<tlestruc> tle;
     //! Array of Aliases
-    vector<aliasstruc> alias;
+    std::vector<aliasstruc> alias;
     //! Vector of Equations
-    vector<equationstruc> equation;
+    std::vector<equationstruc> equation;
 };
 
 //! @}

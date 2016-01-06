@@ -43,7 +43,7 @@ map_dem_body *bodies[20] = {NULL};
 char bodynames[20][15] = {"mercury","venus","earth","mars","jupiter","saturn","uranus","neptune","pluto","moon","sun","near","","","","","","","",""};
 static uint32_t maxalloc=300000000L, totalloc=0;
 //static sem_t *bsem,tsem;
-static mutex bsem;
+static std::mutex bsem;
 // running: 0 = uninitialized, 1 = ready, 2 = insufficient memory
 static int running = 0;
 
@@ -157,7 +157,7 @@ map_dem_body *map_dem_open(int bodynum)
 	int maxcount=0;
 	// int maxir, maxic;
 	char ttname[200];
-	string tname;
+	std::string tname;
 	FILE *fp, *fp1;
 	map_dem_body *body;
 	int iretn, iretn1, ir, ic, irmin, irmax, icmin, icmax;
@@ -240,7 +240,7 @@ map_dem_body *map_dem_open(int bodynum)
 			dc++;
 			break;
 		case DEM_TYPE_MULTI:
-			string tname;
+			std::string tname;
 			iretn = get_cosmosresources(tname);
 			if (iretn < 0)
 			{
@@ -449,7 +449,7 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 				}
 			}
 		}
-		string fname;
+		std::string fname;
 		int32_t iretn = get_cosmosresources(fname);
 		if (iretn < 0)
 		{

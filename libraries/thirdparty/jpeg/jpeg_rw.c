@@ -445,7 +445,7 @@ read_JPEG_file (char * filename, int image_width, int image_height, JSAMPLE *ima
 /*
 int main(){
 
-    //cout << "read JPEG" << endl;
+    //std::cout << "read JPEG" << std::endl;
     printf("read jpeg \n");
     int ret = read_JPEG_file("../programs/tests/test_jpeg.jpg");
     printf("return: %d \n",ret);

@@ -34,7 +34,7 @@
 #include <sys/stat.h>
 #include <iostream>
 
-using namespace std;
+//using namespace std;
 #include <stdio.h>
 
 #include "jsonlib.h"
@@ -83,12 +83,12 @@ int 	iretn ;
 // Initialize Agent
 if (argc == 2)
 {
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_MULTICAST,argv[1],agentname,1.,0,MAXBUFFERSIZE)) != 0)
+	if (!(cdata = agent_setup_server(NetworkType::MULTICAST,argv[1],agentname,1.,0,MAXBUFFERSIZE)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 }
 else
 {
-	if (!(cdata = agent_setup_server(SOCKET_TYPE_MULTICAST,(char *)"rover",agentname,1.,0,MAXBUFFERSIZE)) != 0)
+	if (!(cdata = agent_setup_server(NetworkType::MULTICAST,(char *)"rover",agentname,1.,0,MAXBUFFERSIZE)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 }
 
@@ -127,7 +127,7 @@ int myagent()
 rvector testv;
 double dt;
 int  	i;
-string jstring;
+std::string jstring;
 period = 1./86400.;
 fname[0] = 0;
 

@@ -47,7 +47,7 @@
 //#endif
 
 svector azel;
-vector<nodestruc> track;
+std::vector<nodestruc> track;
 cosmosstruc *cdata;
 stkstruc stk;
 char buf[3000], fname[200];
@@ -81,7 +81,7 @@ alert_type alerts[22] = {
 	{"UMB_IN","U11321"},
 	{"UMB_OUT","U11321"}};
 
-string output;
+std::string output;
 char date[30];
 FILE *eout, *fout, *tfd;
 

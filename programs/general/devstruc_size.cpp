@@ -39,7 +39,8 @@ int main(int argc, char *argv[])
 	printf("busstruc : %u\n", sizeof(busstruc));
 	printf("camstruc : %u\n", sizeof(camstruc));
 	printf("cpustruc : %u\n", sizeof(cpustruc));
-	printf("gpsstruc : %u\n", sizeof(gpsstruc));
+    printf("diskstruc : %u\n", sizeof(diskstruc));
+    printf("gpsstruc : %u\n", sizeof(gpsstruc));
 	printf("htrstruc : %u\n", sizeof(htrstruc));
 	printf("imustruc : %u\n", sizeof(imustruc));
 	printf("mccstruc : %u\n", sizeof(mccstruc));

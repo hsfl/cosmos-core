@@ -38,9 +38,9 @@ cosmosstruc* cdata;
 
 int main(int argc, char* argv[])
 {
-    string node = "hiakasat";
-    string agent = "soh";
-    string source = "incoming";
+    std::string node = "hiakasat";
+    std::string agent = "soh";
+    std::string source = "incoming";
 
     switch (argc)
     {
@@ -56,14 +56,14 @@ int main(int argc, char* argv[])
         exit (1);
     }
 
-    if (!(cdata=agent_setup_client(SOCKET_TYPE_UDP, node.c_str(), 1000)))
+    if (!(cdata=agent_setup_client(NetworkType::UDP, node.c_str(), 1000)))
     {
         printf("Couldn't establish client for node %s\n", node.c_str());
         exit (-1);
     }
 
     char buffer[8192];
-    vector<filestruc> srcfiles;
+    std::vector<filestruc> srcfiles;
     data_list_files(cdata[0].node.name, source.c_str(), agent.c_str(), srcfiles);
 
     for (filestruc srcfile: srcfiles)
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
                     srcfile.name = srcfile.name.substr(0, namelen-3);
                 }
 
-                string newpath = data_name_path(node, "data", agent, utc, srcfile.name);
+                std::string newpath = data_name_path(node, "data", agent, utc, srcfile.name);
                 if (!newpath.empty() && !data_exists(newpath))
                 {
                     FILE* fout;

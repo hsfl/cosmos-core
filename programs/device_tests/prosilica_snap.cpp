@@ -51,7 +51,7 @@ uint32_t et=50000;
 gige_handle *handle;
 FILE *op;
 char fname[50];
-vector<gige_acknowledge_ack> gige_list;
+std::vector<gige_acknowledge_ack> gige_list;
 
 switch (argc)
 {

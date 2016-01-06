@@ -31,7 +31,7 @@
 #include <iostream>
 //#include <Eigen/Dense>
 
-using namespace std;
+//using namespace std;
 //using namespace Eigen;
 
 #define EKF_NUM_STATES 7
@@ -41,10 +41,10 @@ using namespace std;
 //class kalman_struc
 //{
 //public:
-//	vector< double > time;
-//	vector< Matrix < double, EKF_NUM_STATES, EKF_NUM_STATES > > gain;
-//	vector< Matrix < double, EKF_NUM_STATES, 1              > > state;
-//	vector< Matrix < double, EKF_NUM_STATES, EKF_NUM_STATES > > error;
+//	std::vector< double > time;
+//	std::vector< Matrix < double, EKF_NUM_STATES, EKF_NUM_STATES > > gain;
+//	std::vector< Matrix < double, EKF_NUM_STATES, 1              > > state;
+//	std::vector< Matrix < double, EKF_NUM_STATES, EKF_NUM_STATES > > error;
 //};
 
 //void extended_kalman_filter

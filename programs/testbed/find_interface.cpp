@@ -33,9 +33,9 @@
 int main (int argc, const char* argv[])
 {
 
-	vector<socket_channel> interfaces;
+	std::vector<socket_channel> interfaces;
 
-	interfaces = socket_find_addresses(SOCKET_TYPE_UDP);
+	interfaces = socket_find_addresses(NetworkType::UDP);
 
 	for (uint16_t i=0; i<interfaces.size(); ++i)
 	{

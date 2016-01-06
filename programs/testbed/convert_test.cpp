@@ -40,7 +40,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>      // std::setprecision
-using namespace std;
+//using namespace std;
 
 cosmosstruc *cdata;
 locstruc tloc, loc, iloc;
@@ -60,9 +60,9 @@ double errorPercent(double a, double b){
     return (a-b)/b*100.;
 }
 
-void printError(string variable, double a, double b)
+void printError(std::string variable, double a, double b)
 {
-    cout << "error  "<< variable << " = " << setprecision(9) <<  difference(a, b) << " % error = " << errorPercent(a, b) << endl;
+    std::cout << "error  "<< variable << " = " << std::setprecision(9) <<  difference(a, b) << " % error = " << errorPercent(a, b) << std::endl;
 
 }
 
@@ -73,20 +73,20 @@ void test_tle2eci(){
 
 	loadTLE((char *)"E:/cosmos-source/documentation/stk-validation/stk_scenario/results/ISS-TLE-2015-06-29.txt", tle);
 
-    ofstream file;
+    std::ofstream file;
     file.open("E:/cosmos-source/documentation/stk-validation/stk_scenario/results/ISS_TLE-COSMOS-2015-07-01.csv");
 
     // create header
-    file << "Time (ModJDate),x (m),y (m),z (m),Pos Mag (m),vx (m/sec),vy (m/sec),vz (m/sec),Vel Mag (m/sec)" << endl;
+    file << "Time (ModJDate),x (m),y (m),z (m),Pos Mag (m),vx (m/sec),vy (m/sec),vz (m/sec),Vel Mag (m/sec)" << std::endl;
 
     for (int i=0; i< 10082; i++){
         double mjd = mjdStart + i*(60./86400.);
 		tle2eci(mjd, tle, teme_cosmos);
         //sgp4(mjd, tle, &teme_cosmos);
-        //cout << teme_cosmos << endl;
+        //std::cout << teme_cosmos << std::endl;
 
-        file <<  fixed << setprecision(8) << mjd << "," <<
-                 fixed << setprecision(6)
+        file <<  std::fixed << std::setprecision(8) << mjd << "," <<
+                 std::fixed << std::setprecision(6)
              << teme_cosmos.s.col[0] << ","
              << teme_cosmos.s.col[1] << ","
              << teme_cosmos.s.col[2] << ","
@@ -95,11 +95,11 @@ void test_tle2eci(){
              << teme_cosmos.v.col[1] << ","
              << teme_cosmos.v.col[2] << ","
              << length_rv(teme_cosmos.v) << ","
-             << endl;
+             << std::endl;
 
     }
 
-    cout << teme_cosmos << endl;
+    std::cout << teme_cosmos << std::endl;
 
     file.close();
 
@@ -128,17 +128,17 @@ void test_tle_valado(){
     teme_valado.v.col[1] = -4.110453490*1e3;
     teme_valado.v.col[2] = -3.157345433*1e3;
 
-    cout << teme_cosmos << endl;
-    cout << teme_valado << endl;
+    std::cout << teme_cosmos << std::endl;
+    std::cout << teme_valado << std::endl;
 
-    //    cout.setf( ios::fixed, ios::floatfield );
-    cout << "error r_x = " << setprecision(4) <<  difference(teme_cosmos.s.col[0], teme_valado.s.col[0]) << " % error = " << errorPercent(teme_cosmos.s.col[0], teme_valado.s.col[0]) << endl;
-    cout << "error r_y = " << setprecision(4) <<  difference(teme_cosmos.s.col[1], teme_valado.s.col[1]) << " % error = " << errorPercent(teme_cosmos.s.col[1], teme_valado.s.col[1]) << endl;
-    cout << "error r_z = " << setprecision(4) <<  difference(teme_cosmos.s.col[2], teme_valado.s.col[2]) << " % error = " << errorPercent(teme_cosmos.s.col[2], teme_valado.s.col[2]) << endl;
+    //    std::cout.setf( std::ios::fixed, std::ios::floatfield );
+    std::cout << "error r_x = " << std::setprecision(4) <<  difference(teme_cosmos.s.col[0], teme_valado.s.col[0]) << " % error = " << errorPercent(teme_cosmos.s.col[0], teme_valado.s.col[0]) << std::endl;
+    std::cout << "error r_y = " << std::setprecision(4) <<  difference(teme_cosmos.s.col[1], teme_valado.s.col[1]) << " % error = " << errorPercent(teme_cosmos.s.col[1], teme_valado.s.col[1]) << std::endl;
+    std::cout << "error r_z = " << std::setprecision(4) <<  difference(teme_cosmos.s.col[2], teme_valado.s.col[2]) << " % error = " << errorPercent(teme_cosmos.s.col[2], teme_valado.s.col[2]) << std::endl;
 
-    cout << "error v_x = " << setprecision(4) <<  difference(teme_cosmos.v.col[0], teme_valado.v.col[0]) << " % error = " << errorPercent(teme_cosmos.v.col[0], teme_valado.v.col[0]) << endl;
-    cout << "error v_y = " << setprecision(4) <<  difference(teme_cosmos.v.col[1], teme_valado.v.col[1]) << " % error = " << errorPercent(teme_cosmos.v.col[1], teme_valado.v.col[1]) << endl;
-    cout << "error v_z = " << setprecision(4) <<  difference(teme_cosmos.v.col[2], teme_valado.v.col[2]) << " % error = " << errorPercent(teme_cosmos.v.col[2], teme_valado.v.col[2]) << endl;
+    std::cout << "error v_x = " << std::setprecision(4) <<  difference(teme_cosmos.v.col[0], teme_valado.v.col[0]) << " % error = " << errorPercent(teme_cosmos.v.col[0], teme_valado.v.col[0]) << std::endl;
+    std::cout << "error v_y = " << std::setprecision(4) <<  difference(teme_cosmos.v.col[1], teme_valado.v.col[1]) << " % error = " << errorPercent(teme_cosmos.v.col[1], teme_valado.v.col[1]) << std::endl;
+    std::cout << "error v_z = " << std::setprecision(4) <<  difference(teme_cosmos.v.col[2], teme_valado.v.col[2]) << " % error = " << errorPercent(teme_cosmos.v.col[2], teme_valado.v.col[2]) << std::endl;
 
 
     // find precession terms
@@ -150,10 +150,10 @@ void test_tle_valado(){
     double theta_valado = 0.0027633;
     double z_valado     = 0.0031796;
 
-    cout << endl;
-    cout << "Precession values" << endl;
-    cout << "[zeta, theta, z] (COSMOS) = [" << setprecision(9)<< zeta_cosmos << ", " << theta_cosmos << ", " << z_cosmos << "]" << endl;
-    cout << "[zeta, theta, z] (VALADO) = [" << setprecision(9)<< zeta_valado << ", " << theta_valado << ", " << z_valado << "]" << endl;
+    std::cout << std::endl;
+    std::cout << "Precession values" << std::endl;
+    std::cout << "[zeta, theta, z] (COSMOS) = [" << std::setprecision(9)<< zeta_cosmos << ", " << theta_cosmos << ", " << z_cosmos << "]" << std::endl;
+    std::cout << "[zeta, theta, z] (VALADO) = [" << std::setprecision(9)<< zeta_valado << ", " << theta_valado << ", " << z_valado << "]" << std::endl;
 
     printError("zeta", zeta_cosmos, zeta_valado);
     printError("theta", theta_cosmos, theta_valado);

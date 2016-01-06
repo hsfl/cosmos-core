@@ -76,11 +76,11 @@ cosmosstruc* cdata;
 
 #define MAXCOMMANDWORD 20
 
-string incoming_dir;
-string outgoing_dir;
-string temp_dir;
+std::string incoming_dir;
+std::string outgoing_dir;
+std::string temp_dir;
 
-string nodename;
+std::string nodename;
 DIR *dir = NULL;
 struct dirent *dir_entry = NULL;
 double logdate_exec=0.;
@@ -107,33 +107,33 @@ int32_t request_set_logstring(char* request, char* output, void *cdata);
 int32_t request_get_logstring(char* request, char* output, void *cdata);
 int32_t request_set_logstride_soh(char* request, char* output, void *cdata);
 
-string jjstring;
-string myjstring;
+std::string jjstring;
+std::string myjstring;
 
-int ntype = SOCKET_TYPE_UDP;
+NetworkType ntype = NetworkType::UDP;
 int waitsec = 5;
 
 void collect_data_loop();
-thread cdthread;
+std::thread cdthread;
 
 int myagent();
 
-string logstring;
-vector<jsonentry*> logtable;
+std::string logstring;
+std::vector<jsonentry*> logtable;
 double logdate_soh=0.;
 int32_t newlogperiod = 10, logperiod = 0;
 double newlogstride_soh = 900. / 86400.;
 double logstride_soh = 0.;
 
-vector<shorteventstruc> eventdict;
-vector<shorteventstruc> events;
+std::vector<shorteventstruc> eventdict;
+std::vector<shorteventstruc> events;
 
 int pid;
 int state = 0;
 double cmjd;
 
 beatstruc iscbeat;
-string node = "hiakasat";
+std::string node = "hiakasat";
 char response[300];
 
 int main(int argc, char *argv[])
@@ -142,14 +142,14 @@ int main(int argc, char *argv[])
 	double lmjd, dmjd;
 	double nextmjd;
 
-	cout<<"Starting the executive/soh agent...";
+	std::cout<<"Starting the executive/soh agent...";
 	int32_t iretn;
-	int ntype = SOCKET_TYPE_UDP;
+    NetworkType ntype = NetworkType::UDP;
 
 	// Set node name to first argument
 	if (argc!=2)
 	{
-		cout<<"Usage: agent_exec_soh node"<<endl;
+		std::cout<<"Usage: agent_exec_soh node"<<std::endl;
 		exit(1);
 	}
 	nodename = argv[1];
@@ -158,14 +158,14 @@ int main(int argc, char *argv[])
 	cdata = agent_setup_server(ntype, (char *)nodename.c_str(), (char *)"execsoh", 1., 0, AGENTMAXBUFFER);
 	if(cdata == NULL)
 	{
-		cout<<"agent_exec: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+		std::cout<<"agent_exec: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
 	cdata[0].node.utc = 0.;
 	cdata[0].agent[0].aprd = .5;
 	json_clone(cdata);
 
-	cout<<"  started."<<endl;
+	std::cout<<"  started."<<std::endl;
 
 	// Establish Executive functions
 
@@ -173,25 +173,25 @@ int main(int argc, char *argv[])
 	incoming_dir = data_base_path(nodename, "incoming", "exec") + "/";
 	if (incoming_dir.empty())
 	{
-		cout<<"unable to create directory: <"<<(nodename+"/incoming")+"/exec"<<"> ... exiting."<<endl;
+		std::cout<<"unable to create directory: <"<<(nodename+"/incoming")+"/exec"<<"> ... exiting."<<std::endl;
 		exit(1);
 	}
 	outgoing_dir = data_base_path(nodename, "outgoing", "exec") + "/";
 	if (outgoing_dir.empty())
 	{
-		cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<endl;
+		std::cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<std::endl;
 		exit(1);
 	}
 	outgoing_dir = data_base_path(nodename, "outgoing", "exec") + "/";
 	if (outgoing_dir.empty())
 	{
-		cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<endl;
+		std::cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<std::endl;
 		exit(1);
 	}
 	temp_dir = data_base_path(nodename, "temp", "exec") + "/";
 	if (temp_dir.empty())
 	{
-		cout<<"unable to create directory: <"<<(nodename+"/temp")+"/exec"<<"> ... exiting."<<endl;
+		std::cout<<"unable to create directory: <"<<(nodename+"/temp")+"/exec"<<"> ... exiting."<<std::endl;
 		exit(1);
 	}
 
@@ -214,24 +214,24 @@ int main(int argc, char *argv[])
 		exit (iretn);
 
 	// Reload existing queue
-	string infilepath = temp_dir + ".queue";
-	ifstream infile(infilepath.c_str());
+	std::string infilepath = temp_dir + ".queue";
+    std::ifstream infile(infilepath.c_str());
 	if(!infile.is_open())
 	{
-		cout<<"unable to read file <"<<infilepath<<">"<<endl;
+		std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
 	}
 	else
 	{
 
 		//file is open for reading commands
-		string line;
+		std::string line;
 		command cmd;
 
 		while(getline(infile,line))
 		{
 			cmd.set_command(line);
 
-			cout<<cmd;
+			std::cout<<cmd;
 
 			if(cmd.is_command())
 			{
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				cout<<"Not a command!"<<endl;
+				std::cout<<"Not a command!"<<std::endl;
 			}
 		}
 		infile.close();
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
 	load_dictionary(eventdict, cdata, (char *)"events.dict");
 
 	// Start thread to collect SOH data
-	cdthread = thread(collect_data_loop);
+	cdthread = std::thread(collect_data_loop);
 
 	// Start performing the body of the agent
 	nextmjd = currentmjd();
@@ -377,7 +377,7 @@ int32_t request_get_queue_size(char *request, char* response, void *cdata)
 
 int32_t request_get_queue_entry(char *request, char* response, void *cdata)
 {
-	ostringstream ss;
+    std::ostringstream ss;
 
 	if(cmd_queue.get_size()==0)
 		ss << "the command queue is empty";
@@ -396,7 +396,7 @@ int32_t request_get_queue_entry(char *request, char* response, void *cdata)
 		// if no index given, return the entire queue
 		else if (iretn ==  -1)
 			for(unsigned long int i = 0; i < cmd_queue.get_size(); ++i)
-				ss << cmd_queue.get_command(i) << endl;
+				ss << cmd_queue.get_command(i) << std::endl;
 
 		// if the user supplied something that couldn't be turned into an integer
 		else if (iretn == 0)
@@ -411,7 +411,7 @@ int32_t request_get_queue_entry(char *request, char* response, void *cdata)
 int32_t request_del_queue_entry(char *request, char* response, void *cdata)
 {
 	command cmd;
-	string line(request);
+	std::string line(request);
 
 	// remove "del_queue_entry " from request string
 	line.erase(0, 16);
@@ -430,7 +430,7 @@ int32_t request_del_queue_entry(char *request, char* response, void *cdata)
 int32_t request_add_queue_entry(char *request, char* response, void *cdata)
 {
 	command cmd;
-	string line(request);
+	std::string line(request);
 
 	// remove "add_queue_entry " from request string
 	line.erase(0, 16);
@@ -537,7 +537,7 @@ int32_t request_set_logstride_soh(char* request, char* output, void *cdata)
 void collect_data_loop()
 {
 	int nbytes;
-	string message;
+	std::string message;
 	pollstruc meta;
 
 	while (agent_running(cdata))
@@ -564,7 +564,7 @@ void collect_data_loop()
 // Prints the command information stored in local the copy of cdata[0].event[0].l
 void print_command()
 {
-	string jsp;
+	std::string jsp;
 
 	json_out(jsp,(char*)"event_utc",cdata);
 	json_out(jsp,(char*)"event_utcexec",cdata);
@@ -573,7 +573,7 @@ void print_command()
 	json_out(jsp,(char*)"event_flag",cdata);
 	json_out(jsp,(char*)"event_data",cdata);
 	json_out(jsp,(char*)"event_condition",cdata);
-	cout<<"<"<<jsp<<">"<<endl;
+	std::cout<<"<"<<jsp<<">"<<std::endl;
 
 	return;
 }
@@ -585,9 +585,9 @@ void print_command()
 // *************************************************************************
 
 // Copies the current command object to the output stream using JSON format
-ostream& operator<<(ostream& out, const command& cmd)
+std::ostream& operator<<(std::ostream& out, const command& cmd)
 {
-	out	<< setprecision(15) <<"{\"event_utc\":"<< cmd.utc
+    out	<< std::setprecision(15) <<"{\"event_utc\":"<< cmd.utc
 		<< "}{\"event_utcexec\":" << cmd.utcexec
 		<< "}{\"event_name\":\"" << cmd.name
 		<< "\"}{\"event_type\":" << cmd.type
@@ -618,7 +618,7 @@ command::command() : utc(0), utcexec(0), name(""), type(0), flag(0), data(""), c
 
 // Copies the command information stored in the local copy
 // cdata[0].event[0].l into the current command object
-void command::set_command(string line)
+void command::set_command(std::string line)
 {
 	json_clear_cosmosstruc(JSON_GROUP_EVENT, &cdata[1]);
 	json_parse(line, &cdata[1]);
@@ -631,9 +631,9 @@ void command::set_command(string line)
 	condition = cdata[1].event[0].l.condition;
 }
 
-string command::get_json()
+std::string command::get_json()
 {
-	string jsp;
+	std::string jsp;
 
 	longeventstruc event;
 
@@ -656,10 +656,10 @@ string command::get_json()
 // *************************************************************************
 
 // Copies the current command_queue object to the output stream using JSON format
-ostream& operator<<(ostream& out, command_queue& cmdq)
+std::ostream& operator<<(std::ostream& out, command_queue& cmdq)
 {
-	for(list<command>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
-		out << *ii << endl;
+	for(std::list<command>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
+		out << *ii << std::endl;
 	return out;
 }
 
@@ -704,7 +704,7 @@ void run_command(command& cmd)
 		char *words[MAXCOMMANDWORD];
 		int devn;
 		string_parse(cmd.get_data(),words,MAXCOMMANDWORD);
-		string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
+		std::string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
 		if (outpath.empty())
 		{
 			devn = open("/dev/null",O_RDWR);
@@ -725,7 +725,7 @@ void run_command(command& cmd)
 #endif
 
 	// log to outfile
-	//	outfile << cmd <<endl;
+	//	outfile << cmd <<std::endl;
 	//	outfile.close();
 	// log to event file
 	log_write(nodename, "exec", logdate_exec, "event", cmd.get_json().c_str());
@@ -735,7 +735,7 @@ void run_command(command& cmd)
 // Manages the logic of when to run commands in the command queue.
 void command_queue::run_commands()
 {
-	for(list<command>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
+	for(std::list<command>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
 	{
 		if (ii->is_ready())
 		{
@@ -803,7 +803,7 @@ void command_queue::load_commands()
 	// open the incoming directory
 	if ((dir = opendir((char *)incoming_dir.c_str())) == NULL)
 	{
-		cout<<"error: unable to open node's incoming directory <"<<incoming_dir<<"> not found"<<endl;
+		std::cout<<"error: unable to open node's incoming directory <"<<incoming_dir<<"> not found"<<std::endl;
 		agent_shutdown_server(cdata);
 		exit(1);
 	}
@@ -811,48 +811,48 @@ void command_queue::load_commands()
 	// cycle through all the file names in the incoming directory
 	while((dir_entry = readdir(dir)) != NULL)
 	{
-		string filename = dir_entry->d_name;
+		std::string filename = dir_entry->d_name;
 
-		if (filename.find(".command") != string::npos)
+		if (filename.find(".command") != std::string::npos)
 		{
 
-			string infilepath = incoming_dir + filename;
-			ifstream infile(infilepath.c_str());
+			std::string infilepath = incoming_dir + filename;
+            std::ifstream infile(infilepath.c_str());
 			if(!infile.is_open())
 			{
-				cout<<"unable to read file <"<<infilepath<<">"<<endl;
+				std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
 				continue;
 			}
 
 			//file is open for reading commands
-			string line;
+			std::string line;
 			command cmd;
 
 			while(getline(infile,line))
 			{
 				//clear cdata[0].event[0].l, parse line into cdata[0].event[0].l, set command object, and add to command queue
 				//				json_parse("{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", cdata);
-				//				cout<<"<"<<line.c_str()<<">"<<endl;
-				//				cout<<"Returned "<<ireturn<<" And the command is: "<<endl;
+				//				std::cout<<"<"<<line.c_str()<<">"<<std::endl;
+				//				std::cout<<"Returned "<<ireturn<<" And the command is: "<<std::endl;
 
 				cmd.set_command(line);
 
-				cout<<cmd;
+				std::cout<<cmd;
 
 				if(cmd.is_command())
 					cmd_queue.add_command(cmd);
 				else
-					cout<<"Not a command!"<<endl;
+					std::cout<<"Not a command!"<<std::endl;
 			}
 			infile.close();
 
 			//remove the .command file from incoming directory
 			if(remove(infilepath.c_str()))	{
-				cout<<"unable to delete file <"<<filename<<">"<<endl;
+				std::cout<<"unable to delete file <"<<filename<<">"<<std::endl;
 				continue;
 			}
 
-			cout<<"The size of the command queue is: "<<cmd_queue.get_size()<<endl;
+			std::cout<<"The size of the command queue is: "<<cmd_queue.get_size()<<std::endl;
 		}
 	}
 
@@ -866,7 +866,7 @@ void command_queue::load_commands()
 int command_queue::del_command(command& c)
 {
 	int n = 0;
-	for(list<command>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
+	for(std::list<command>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
 	{
 		if(c==*ii)
 		{

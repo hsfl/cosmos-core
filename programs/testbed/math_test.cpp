@@ -970,7 +970,7 @@ int main(int argc, char *argv[])
 	uvec1.r = rv_zero(); uvec1.r.col[0] = 1.; //Vector (1, 0, 0)
 	uvec2.r = rv_zero(); uvec2.c.y = uvec2.c.z = 1.; //Vector (0, 1, 1)
 	uvec5.r = rv_cross(uvec1.r, uvec2.r);
-	normalize_cv(&uvec5.c);
+    normalize_cv(uvec5.c);
 	uvec5.q.w = cos(RADOF(45.)); uvec5.q.d = cv_smult(sin(RADOF(45.)),uvec5.q.d); //The quaternion we expect to get from the functions.
 	uvec3.q = q_change_between_cv(uvec1.c, uvec2.c);
 	uvec4.q = q_change_between_rv(uvec1.r, uvec2.r);
@@ -1381,14 +1381,14 @@ printf("\n");
 	printf("\n");
 	printf("Function: polyfit()\n");
 	//The X coordinates:
-	vector<double> x(5,0.);
+	std::vector<double> x(5,0.);
 	x[0] = 0.0005787042027805;
 	x[1] = 0.00059027828683611;
 	x[2] = 0.00060185237089172;
 	x[3] = 0.00061342645494733;
 	x[4] = 0.00062500053900294;
 	//The actual coefficients:
-	vector<double> a(5,0.);
+	std::vector<double> a(5,0.);
 	a[0] = -0.00047752;
 	a[1] = 93731000.;
 	a[2] = 5770600000.;
@@ -1397,8 +1397,8 @@ printf("\n");
 
 	a.resize(5);
 	// The Y values
-	vector<double> y;
-	vector<double> newy;
+	std::vector<double> y;
+	std::vector<double> newy;
 	y.resize(a.size());
 	newy.resize(a.size());
 	x.resize(a.size());
@@ -1414,7 +1414,7 @@ printf("\n");
 		}
 	}
 
-	vector<double> aback;
+	std::vector<double> aback;
 	aback.resize(a.size());
 	aback = polyfit(x,y);
 
@@ -1444,9 +1444,9 @@ printf("\n");
 		char c[sizeof(int)];
 	} check;
 	check.x = 1;
-	if (check.c[0] == 1 && local_byte_order() == ORDER_LITTLEENDIAN)
+    if (check.c[0] == 1 && local_byte_order() == ByteOrder::LITTLEENDIAN)
 		printf("Little endian order\n");
-	else if(check.c[0] == 0 && local_byte_order() == ORDER_BIGENDIAN)
+    else if(check.c[0] == 0 && local_byte_order() == ByteOrder::BIGENDIAN)
 		printf("Big endian order\n");
 	else
 		printf("Error!\n");

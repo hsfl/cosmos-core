@@ -45,7 +45,7 @@ struct iersstruc
     uint32_t ls;
 };
 
-static vector<iersstruc> iers;
+static std::vector<iersstruc> iers;
 static uint32_t iersbase=0;
 
 #define MAXLEAPS 26
@@ -66,7 +66,7 @@ double currentmjd(double offset)
 {
     double mjd;
 
-// unfortunatelly MSVC does not support gettimeofday
+    // unfortunatelly MSVC does not support gettimeofday
 #ifdef COSMOS_WIN_BUILD_MSVC
     TimeUtils tu;
     mjd = unix2utc(tu.secondsSinceEpoch() + _timezone);
@@ -91,28 +91,33 @@ double currentmjd()
 double unix2utc(struct timeval unixtime)
 {
     double utc;
-	utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.) / 86400.;
+    utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.) / 86400.;
 
     return utc;
 }
 
+//! Unix time to UTC
+/*! Convert Unix time in seconds to a double precision number representing Mofidied Julian Day.
+ * \param unixtime Unix time in decimal seconds.
+ * \return UTC as Modified Julian day.
+ */
 double unix2utc(double unixtime)
 {
-	double utc;
-	struct tm *mytm;
-	time_t thetime;
+    double utc;
+    struct tm *mytm;
+    time_t thetime;
 
-	thetime = (time_t)unixtime;
-	mytm = gmtime(&thetime);
-	utc = cal2mjd(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
-	utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + (unixtime-(time_t)unixtime)) / 60.) / 60.) / 24.);
+    thetime = (time_t)unixtime;
+    mytm = gmtime(&thetime);
+    utc = cal2mjd(mytm->tm_year+1900,mytm->tm_mon+1,mytm->tm_mday);
+    utc += ((mytm->tm_hour + (mytm->tm_min + (mytm->tm_sec + (unixtime-(time_t)unixtime)) / 60.) / 60.) / 24.);
 
-	return utc;
+    return utc;
 }
 
 //! UTC to Unix time
 /*! Convert UTC in Modified Julian Day to a timeval structure representing Unix time.
- * \param UTC as Modified Julian Day.
+ * \param utc as Modified Julian Day.
  * \return Timeval structure with Unix time.
  */
 struct timeval utc2unix(double utc)
@@ -133,30 +138,30 @@ struct timeval utc2unix(double utc)
 */
 calstruc mjd2cal(double mjd)
 {
-	static double lmjd = 0.;
-	static calstruc date;
+    static double lmjd = 0.;
+    static calstruc date;
 
-	if (lmjd != mjd)
-	{
-		double dom;
-		double doy;
+    if (lmjd != mjd)
+    {
+        double dom;
+        double doy;
 
-		lmjd = mjd;
+        lmjd = mjd;
 
-		mjd2ymd(mjd, date.year, date.month, dom, doy);
-		date.doy = (int32_t)doy;
-		date.dom = (int32_t)dom;
-		doy = (doy - date.doy) * 24.;
-		date.hour = (int32_t)doy;
-		doy = (doy - date.hour) * 60.;
-		date.minute = (int32_t)doy;
-		doy = (doy - date.minute) * 60.;
-		date.second = (int32_t)doy;
-		doy = (doy - date.second) * 1e9;
-		date.nsecond = (int32_t)(doy + .5);
-	}
+        mjd2ymd(mjd, date.year, date.month, dom, doy);
+        date.doy = (int32_t)doy;
+        date.dom = (int32_t)dom;
+        doy = (doy - date.doy) * 24.;
+        date.hour = (int32_t)doy;
+        doy = (doy - date.hour) * 60.;
+        date.minute = (int32_t)doy;
+        doy = (doy - date.minute) * 60.;
+        date.second = (int32_t)doy;
+        doy = (doy - date.second) * 1e9;
+        date.nsecond = (int32_t)(doy + .5);
+    }
 
-	return date;
+    return date;
 }
 
 //! MJD to Year, Month, and Decimal Day (overloaded)
@@ -170,8 +175,8 @@ calstruc mjd2cal(double mjd)
 */
 int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day)
 {
-	double doy;
-	return mjd2ymd(mjd, year, month, day, doy);
+    double doy;
+    return mjd2ymd(mjd, year, month, day, doy);
 }
 
 //! MJD to Year, Month, Decimal Day, and Julian Day (overloaded)
@@ -185,51 +190,51 @@ int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day)
 */
 int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy)
 {
-	static double lmjd = 0.;
-	static int32_t lyear = 1858;
-	static int32_t lmonth = 11;
-	static double lday = 17.;
-	static double ldoy = 321.;
+    static double lmjd = 0.;
+    static int32_t lyear = 1858;
+    static int32_t lmonth = 11;
+    static double lday = 17.;
+    static double ldoy = 321.;
 
-	if (mjd != lmjd)
-	{
-		int32_t a, b, c, d, e, z, alpha;
-		double f;
+    if (mjd != lmjd)
+    {
+        int32_t a, b, c, d, e, z, alpha;
+        double f;
 
-		lmjd = mjd;
-		mjd += 2400001.;
-		z = (int32_t)mjd;
-		f = mjd - z;
+        lmjd = mjd;
+        mjd += 2400001.;
+        z = (int32_t)mjd;
+        f = mjd - z;
 
-		if (z<2299161)
-			a = z;
-		else
-		{
-			alpha = (int32_t)((z - 1867216.25)/36524.25);
-			a = z +1 + alpha - (int32_t)(alpha/4);
-		}
+        if (z<2299161)
+            a = z;
+        else
+        {
+            alpha = (int32_t)((z - 1867216.25)/36524.25);
+            a = z +1 + alpha - (int32_t)(alpha/4);
+        }
 
-		b = a + 1524;
-		c = (int32_t)((b - 122.1)/365.25);
-		d = (int32_t)(365.25*c);
-		e = (int32_t)((b - d)/30.6001);
+        b = a + 1524;
+        c = (int32_t)((b - 122.1)/365.25);
+        d = (int32_t)(365.25*c);
+        e = (int32_t)((b - d)/30.6001);
 
-		lday = b - d - (int32_t)(30.6001 * e) + f;
-		if (e < 14)
-			lmonth = e - 1;
-		else
-			lmonth = e - 13;
-		if (lmonth > 2)
-			lyear = c - 4716;
-		else
-			lyear = c - 4715;
-		ldoy = (int32_t)((275 * lmonth)/9) - (2-isleap(lyear))*(int32_t)((lmonth+9)/12) + lday - 30;
-	}
+        lday = b - d - (int32_t)(30.6001 * e) + f;
+        if (e < 14)
+            lmonth = e - 1;
+        else
+            lmonth = e - 13;
+        if (lmonth > 2)
+            lyear = c - 4716;
+        else
+            lyear = c - 4715;
+        ldoy = (int32_t)((275 * lmonth)/9) - (2-isleap(lyear))*(int32_t)((lmonth+9)/12) + lday - 30;
+    }
 
-	year = lyear;
-	month = lmonth;
-	day = lday;
-	doy  = ldoy;
+    year = lyear;
+    month = lmonth;
+    day = lday;
+    doy  = ldoy;
     return 0;
 }
 
@@ -247,29 +252,29 @@ int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &
 */
 double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t minute, int32_t second, int32_t nsecond)
 {
-	double mjd;
-	calstruc date;
+    double mjd;
+    calstruc date;
 
-	date.year = year;
-	date.month = month;
-	if (month == 0)
-	{
-		date.dom = 0;
-		date.doy = day;
-	}
-	else
-	{
-		date.dom = day;
-		date.doy = 0;
-	}
-	date.hour = hour;
-	date.minute = minute;
-	date.second = second;
-	date.nsecond = nsecond;
+    date.year = year;
+    date.month = month;
+    if (month == 0)
+    {
+        date.dom = 0;
+        date.doy = day;
+    }
+    else
+    {
+        date.dom = day;
+        date.doy = 0;
+    }
+    date.hour = hour;
+    date.minute = minute;
+    date.second = second;
+    date.nsecond = nsecond;
 
-	mjd = cal2mjd(date);
+    mjd = cal2mjd(date);
 
-	return mjd;
+    return mjd;
 }
 
 //! Calendar representation YYYY,DDD.ffff to Modified Julian Day - overloaded
@@ -296,27 +301,27 @@ double cal2mjd(int32_t year, double dayOfYear)
 */
 double cal2mjd(int32_t year, int32_t month, double day)
 {
-	double mjd;
-	calstruc date;
+    double mjd;
+    calstruc date;
 
-	date.year = year;
-	date.month = month;
-	if (month == 0)
-	{
-		date.dom = 0;
-		date.doy = 1;
-	}
-	else
-	{
-		date.dom = 1;
-		date.doy = 0;
-	}
-	date.hour = date.minute = date.second = date.nsecond = 0;
+    date.year = year;
+    date.month = month;
+    if (month == 0)
+    {
+        date.dom = 0;
+        date.doy = 1;
+    }
+    else
+    {
+        date.dom = 1;
+        date.doy = 0;
+    }
+    date.hour = date.minute = date.second = date.nsecond = 0;
 
-	mjd = cal2mjd(date);
-	mjd += day - 1.;
+    mjd = cal2mjd(date);
+    mjd += day - 1.;
 
-	return mjd;
+    return mjd;
 }
 
 //! Calendar representation to Modified Julian Day - structure
@@ -330,17 +335,17 @@ double cal2mjd(calstruc date)
     double mjd;
     int32_t a, b;
 
-	if (date.year < -4712)
-		return (-2400001.);
+    if (date.year < -4712)
+        return (-2400001.);
 
-	switch (date.month)
+    switch (date.month)
     {
-	case 0:
-		++date.month;
+    case 0:
+        ++date.month;
     case 1:
     case 2:
-		date.year--;
-		date.month += 12;
+        date.year--;
+        date.month += 12;
     case 3:
     case 4:
     case 5:
@@ -351,37 +356,37 @@ double cal2mjd(calstruc date)
     case 10:
     case 11:
     case 12:
-		a = (int32_t)(date.year / 100);
-		if ((date.year > 1582) || (date.year == 1582 && date.month > 10) || (date.year == 1582 && date.month == 10 && date.dom > 4))
+        a = (int32_t)(date.year / 100);
+        if ((date.year > 1582) || (date.year == 1582 && date.month > 10) || (date.year == 1582 && date.month == 10 && date.dom > 4))
             b = 2 - a + (int32_t)(a/4);
         else
             b = 0;
         break;
     default:
-		return (-2400001.);
+        return (-2400001.);
     }
-	if (date.dom)
-	{
-		mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.dom + b - 2401525.;
-	}
-	else
-	{
-		mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.doy + b - 2401525.;
-	}
-	mjd += ((date.hour + (date.minute + (date.second + date.nsecond / 1e9) / 60.) / 60.) / 24.);
+    if (date.dom)
+    {
+        mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.dom + b - 2401525.;
+    }
+    else
+    {
+        mjd = (int32_t)(365.25 * (date.year+4716)) + (int32_t)(30.6001*(date.month+1)) + date.doy + b - 2401525.;
+    }
+    mjd += ((date.hour + (date.minute + (date.second + date.nsecond / 1e9) / 60.) / 60.) / 24.);
 
-	return (mjd);
+    return (mjd);
 }
 
 
 /*! Get Modified Julian Date from Gregorian Calendar Date in UTC
- * \param int_32 year
- * \param int_32 month
- * \param int_32 day
- * \param int_32 hours
- * \param int_32 minutes
- * \param double seconds (for high precision mjd)
- * \return double mjd (Modified Julian Date)
+ * \param year
+ * \param month
+ * \param day
+ * \param hour
+ * \param minute
+ * \param second (for high precision mjd)
+ * \return mjd (Modified Julian Date)
  */
 double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
                                 int32_t hour, int32_t minute, double second)
@@ -394,38 +399,38 @@ double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
 
 //! TT Julian Century
 /*! Caculate the number of centuries since J2000, Terrestrial Time, for the provided date.
-	\param mjd Date in Modified Julian Day.
-	\return Julian century in decimal form.
+    \param mjd Date in Modified Julian Day.
+    \return Julian century in decimal form.
 */
 double utc2jcentt(double mjd)
 {
-	static double lmjd=0.;
-	static double lcalc=0.;
+    static double lmjd=0.;
+    static double lcalc=0.;
 
-	if (mjd != lmjd)
-	{
-		lcalc = (utc2tt(mjd)-51544.5) / 36525.;
-		lmjd = mjd;
-	}
-	return (lcalc);
+    if (mjd != lmjd)
+    {
+        lcalc = (utc2tt(mjd)-51544.5) / 36525.;
+        lmjd = mjd;
+    }
+    return (lcalc);
 }
 
 //! UT1 Julian Century
 /*! Caculate the number of centuries since J2000, UT1, for the provided date.
-	\param mjd Date in Modified Julian Day.
-	\return Julian century in decimal form.
+    \param mjd Date in Modified Julian Day.
+    \return Julian century in decimal form.
 */
 double utc2jcenut1(double mjd)
 {
-	static double lmjd=0.;
-	static double lcalc=0.;
+    static double lmjd=0.;
+    static double lcalc=0.;
 
-	if (mjd != lmjd)
-	{
-		lcalc = (utc2ut1(mjd)-51544.5) / 36525.;
-		lmjd = mjd;
-	}
-	return (lcalc);
+    if (mjd != lmjd)
+    {
+        lcalc = (utc2ut1(mjd)-51544.5) / 36525.;
+        lmjd = mjd;
+    }
+    return (lcalc);
 }
 
 //! Nutation values
@@ -498,14 +503,14 @@ double utc2depsilon(double mjd)
 */
 double utc2epsilon(double mjd)
 {
-	// Vallado, et al, AAS-06_134, eq. 17
+    // Vallado, et al, AAS-06_134, eq. 17
     static double lmjd=0.;
     static double lcalc=0.;
     double jcen;
 
     if (mjd != lmjd)
     {
-		jcen = utc2jcentt(mjd);
+        jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(84381.406+jcen*(-46.836769+jcen*(-.0001831+jcen*(0.0020034+jcen*(-0.000000576+jcen*(-0.0000000434))))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -526,7 +531,7 @@ double utc2L(double mjd)
 
     if (mjd != lmjd)
     {
-		jcen = utc2jcentt(mjd);
+        jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(485868.249036+jcen*(1717915923.2178+jcen*(31.8792+jcen*(.051635+jcen*(-.0002447)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -547,7 +552,7 @@ double utc2Lp(double mjd)
 
     if (mjd != lmjd)
     {
-		jcen = utc2jcentt(mjd);
+        jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(1287104.79305+jcen*(129596581.0481+jcen*(-.5532+jcen*(.000136+jcen*(-.00001149)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -568,7 +573,7 @@ double utc2F(double mjd)
 
     if (mjd != lmjd)
     {
-		jcen = utc2jcentt(mjd);
+        jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(335779.526232+jcen*(1739527262.8478+jcen*(-12.7512+jcen*(-.001037+jcen*(.00000417)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -589,7 +594,7 @@ double utc2D(double mjd)
 
     if (mjd != lmjd)
     {
-		jcen = utc2jcentt(mjd);
+        jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(1072260.70369+jcen*(1602961601.209+jcen*(-6.3706+jcen*(.006593+jcen*(-.00003169)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -610,7 +615,7 @@ double utc2omega(double mjd)
 
     if (mjd != lmjd)
     {
-		jcen = utc2jcentt(mjd);
+        jcen = utc2jcentt(mjd);
         lcalc = DAS2R*(450160.398036+jcen*(-6962890.5431+jcen*(7.4722+jcen*(.007702+jcen*(-.00005939)))));
         lcalc = ranrm(lcalc);
         lmjd = mjd;
@@ -628,11 +633,11 @@ double utc2omega(double mjd)
 */
 double utc2zeta(double utc)
 {
-	double ttc = utc2jcentt(utc);
-//	double zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971 + ttc*(0.0000003173))))))*DAS2R;
-	// Vallado, eqn. 3-88
-	double zeta = (ttc*(2306.2181 + ttc*(0.30188 + ttc*(0.017998))))*DAS2R;
-	return zeta;
+    double ttc = utc2jcentt(utc);
+    //	double zeta = (2.650545 + ttc*(2306.083227 + ttc*(0.2988499 + ttc*(0.01801828 + ttc*(-0.000005971 + ttc*(0.0000003173))))))*DAS2R;
+    // Vallado, eqn. 3-88
+    double zeta = (ttc*(2306.2181 + ttc*(0.30188 + ttc*(0.017998))))*DAS2R;
+    return zeta;
 }
 
 //! Precession z value
@@ -645,11 +650,11 @@ double utc2zeta(double utc)
 */
 double utc2z(double utc)
 {
-	double ttc = utc2jcentt(utc);
-//	double z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596 + ttc*(0.0000002904))))))*DAS2R;
-	// Vallado, eqn. 3-88
-	double z = (ttc*(2306.2181 + ttc*(1.09468 + ttc*(0.018203))))*DAS2R;
-	return z;
+    double ttc = utc2jcentt(utc);
+    //	double z = (-2.650545 + ttc*(2306.077181 + ttc*(1.0927348 + ttc*(0.01826837 + ttc*(-0.000028596 + ttc*(0.0000002904))))))*DAS2R;
+    // Vallado, eqn. 3-88
+    double z = (ttc*(2306.2181 + ttc*(1.09468 + ttc*(0.018203))))*DAS2R;
+    return z;
 }
 
 //! Precession theta value
@@ -662,11 +667,11 @@ double utc2z(double utc)
 */
 double utc2theta(double utc)
 {
-	double ttc = utc2jcentt(utc);
-//	double theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
-	// Vallado, eqn. 3-88
-	double theta = ttc*(2004.3109 + ttc*(-0.42665 + ttc*(-0.041833)))*DAS2R;
-	return theta;
+    double ttc = utc2jcentt(utc);
+    //	double theta = ttc*(2004.191903 + ttc*(-0.4294934 + ttc*(-0.04182264 + ttc*(-0.000007089 + ttc*(-0.0000001274)))))*DAS2R;
+    // Vallado, eqn. 3-88
+    double theta = ttc*(2004.3109 + ttc*(-0.42665 + ttc*(-0.041833)))*DAS2R;
+    return theta;
 }
 
 //! Calculate DUT1
@@ -740,7 +745,7 @@ double utc2ut1(double mjd)
 */
 double julcen(double mjd)
 {
-	return ((mjd - 51544.5) / 36525.);
+    return ((mjd - 51544.5) / 36525.);
 }
 
 //! Convert UTC to TDB.
@@ -860,7 +865,7 @@ double utc2gps(double utc)
 /*! Convert GPS Time to Coordinated Universal Time, correcting for the appropriate
  * number of leap seconds. Leap Second table is first initialized from
  * disk if it hasn't yet been.
- * \param utc GPS Time expressed in Modified Julian Days
+ * \param gps GPS Time expressed in Modified Julian Days
  * \return UTC expressed in Modified Julian Days, otherwise 0.
  */
 double gps2utc(double gps)
@@ -919,7 +924,7 @@ double mjd2year(double mjd)
     double day, doy, dyear;
     int32_t month, year;
 
-	mjd2ymd(mjd,year,month,day,doy);
+    mjd2ymd(mjd,year,month,day,doy);
     dyear = year + (doy-1) / (365.+isleap(year));
     return (dyear);
 }
@@ -940,7 +945,7 @@ double utc2era(double mjd)
     {
         ut1 = utc2ut1(mjd);
         ltheta = D2PI * (.779057273264 + 1.00273781191135448 * (ut1 - 51544.5));
-//        ltheta = ranrm(ltheta);
+        //        ltheta = ranrm(ltheta);
     }
 
     return (ltheta);
@@ -962,7 +967,7 @@ double utc2gast(double mjd)
         omega = utc2omega(mjd);
         F = utc2F(mjd);
         D = utc2D(mjd);
-		lgast = utc2gmst1982(mjd) + utc2dpsi(mjd) * cos(utc2epsilon(mjd));
+        lgast = utc2gmst1982(mjd) + utc2dpsi(mjd) * cos(utc2epsilon(mjd));
         lgast += DAS2R * .00264096 * sin(omega);
         lgast += DAS2R * .00006352 * sin(2.*omega);
         lgast += DAS2R * .00001175 * sin(2.*F - 2.*D + 3.*omega);
@@ -986,8 +991,8 @@ double utc2gmst1982(double mjd)
 
     if (mjd != lmjd)
     {
-		jcen = utc2jcentt(mjd);
-		lcalc = utc2era(mjd) + DS2R*(.014506+jcen*(4612.156534+jcen*(1.3915817+jcen*(-.00000044+jcen*(-.000029956+jcen*(-.0000000368))))))/15.;
+        jcen = utc2jcentt(mjd);
+        lcalc = utc2era(mjd) + DS2R*(.014506+jcen*(4612.156534+jcen*(1.3915817+jcen*(-.00000044+jcen*(-.000029956+jcen*(-.0000000368))))))/15.;
         lcalc = ranrm(lcalc);
         lmjd = mjd;
     }
@@ -997,19 +1002,19 @@ double utc2gmst1982(double mjd)
 
 double utc2gmst2000(double utc)
 {
-	static double lutc=0.;
-	static double lgmst = 0.;
-	double tt;
+    static double lutc=0.;
+    static double lgmst = 0.;
+    double tt;
 
-	if (utc != lutc)
-	{
-//		ut1 = utc2ut1(utc);
-		tt = utc2jcentt(utc);
-		lgmst = 24110.54841 + 8640184.812866 * utc2jcenut1(utc) + tt * tt * (0.093104 + tt * (-0.0000062));
-		lgmst = ranrm(lgmst);
-	}
+    if (utc != lutc)
+    {
+        //		ut1 = utc2ut1(utc);
+        tt = utc2jcentt(utc);
+        lgmst = 24110.54841 + 8640184.812866 * utc2jcenut1(utc) + tt * tt * (0.093104 + tt * (-0.0000062));
+        lgmst = ranrm(lgmst);
+    }
 
-	return lgmst;
+    return lgmst;
 }
 
 double ranrm(double angle)
@@ -1055,13 +1060,13 @@ int32_t load_iers()
 
     if (iers.size() == 0)
     {
-		string fname;
-		int32_t iretn = get_cosmosresources(fname);
-		if (iretn < 0)
-		{
-			return iretn;
-		}
-		fname += "/general/iers_pm_dut_ls.txt";
+        std::string fname;
+        int32_t iretn = get_cosmosresources(fname);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+        fname += "/general/iers_pm_dut_ls.txt";
         if ((fdes=fopen(fname.c_str(),"r")) != NULL)
         {
             char data[100];
@@ -1151,44 +1156,41 @@ cvector polar_motion(double mjd)
  * \param utc Coordinated Universal Time expressed in Modified Julian Days.
  * \return C++ String containing the ISO 8601 date.
  */
-string utc2iso8601(double utc)
+std::string utc2iso8601(double utc)
 {
     char buffer[25];
-	int32_t iy=0, im=0, id=0, ihh, imm, iss;
+    int32_t iy=0, im=0, id=0, ihh, imm, iss;
     double fd=0.;
 
-	mjd2ymd(utc, iy, im, fd);
-	id = (int32_t)fd;
-	fd -= id;
-	ihh = (int32_t)(24 * fd);
+    mjd2ymd(utc, iy, im, fd);
+    id = (int32_t)fd;
+    fd -= id;
+    ihh = (int32_t)(24 * fd);
     fd -= ihh / 24.;
-	imm = (int32_t)(1440 * fd);
+    imm = (int32_t)(1440 * fd);
     fd -= imm / 1440.;
-	iss = (int32_t)(86400 * fd);
+    iss = (int32_t)(86400 * fd);
     sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d", iy, im, id, ihh, imm, iss);
 
-    return string(buffer);
+    return std::string(buffer);
 }
 
 // just call utc2iso8601(double utc)
-string mjd2iso8601(double mjd){
+std::string mjd2iso8601(double mjd){
     return utc2iso8601(mjd);
 }
 
 
 /*! Convert Modified Julian Date to Time of day (hour, minute, second.fff)
- * \param double mjd (Modified Julian Days)
- * \param double dayFraction
- * \param int32_t hour Pointer to return Hour of the day
- * \param int32_t minute Pointer to return Minute of the day
- * \param double second Pointer to return Second of the day (decimal)
- *
- * \return int32_t hour
- * \return int32_t minute
- * \return double second
+ * \param mjd (Modified Julian Days)
+ * \param dayFraction
+ * \param hour Pointer to return Hour of the day
+ * \param minute Pointer to return Minute of the day
+ * \param second Pointer to return Second of the day (decimal)
+ * \return 0 or negative error.
  */
 int32_t dayFraction2hms(double dayFraction,
-                int32_t *hour, int32_t *minute, int32_t *second) //, double *secondFraction
+                        int32_t *hour, int32_t *minute, int32_t *second) //, double *secondFraction
 {
     double secs;
     *hour = (int32_t)(24. * dayFraction);
@@ -1196,7 +1198,7 @@ int32_t dayFraction2hms(double dayFraction,
     *minute = (int32_t)(1440. * dayFraction);
     dayFraction -= *minute / 1440.;
     secs = (86400. * dayFraction);
-//    double secondOfMinute = (86400. * dayFraction);
+    //    double secondOfMinute = (86400. * dayFraction);
     *second = (int32_t)round(secs);
 
     // don't let seconds be 60
@@ -1215,30 +1217,24 @@ int32_t dayFraction2hms(double dayFraction,
 }
 
 /*! Convert Modified Julian Date to standard Gregorian Date-Time
- * \param double mjd (Modified Julian Days)
- * \param int32_t year Pointer to return Calendar Year
- * \param int32_t month Pointer to return Calendar Month
- * \param int32_t day Pointer to return Decimal Day of the Month
- * \param int32_t hour Pointer to return Hour of the day
- * \param int32_t minute Pointer to return Minute of the day
- * \param double second Pointer to return Second of the day (decimal)
- *
- * \return int32_t year
- * \return int32_t month
- * \return int32_t day
- * \return int32_t hour
- * \return int32_t minute
- * \return double second
+ * \param mjd (Modified Julian Days)
+ * \param year Pointer to return Calendar Year
+ * \param month Pointer to return Calendar Month
+ * \param  day Pointer to return Decimal Day of the Month
+ * \param  hour Pointer to return Hour of the day
+ * \param  minute Pointer to return Minute of the day
+ * \param second Pointer to return Second of the day (decimal)
+ * \return 0 or negative error.
  */
 int32_t mjdToGregorian(double mjd, int32_t &year, int32_t &month, int32_t &day,
-                      int32_t &hour, int32_t &minute, int32_t &second)
+                       int32_t &hour, int32_t &minute, int32_t &second)
 {
 
-//    double dayFraction;
-//    mjd2ymdf(mjd,year,month,&dayFraction);
-//    *day = (int)dayFraction;
+    //    double dayFraction;
+    //    mjd2ymdf(mjd,year,month,&dayFraction);
+    //    *day = (int)dayFraction;
 
-//    int j;
+    //    int j;
     calstruc cal = mjd2cal(mjd); //, year, month, day, &dayFraction, &j);
     year = cal.year;
     month = cal.month;
@@ -1248,8 +1244,8 @@ int32_t mjdToGregorian(double mjd, int32_t &year, int32_t &month, int32_t &day,
     second = cal.second;
 
     // now remove the day part and keep the fraction only
-//    dayFraction --;
-//    dayFraction2hms(dayFraction,hour,minute,second);
+    //    dayFraction --;
+    //    dayFraction2hms(dayFraction,hour,minute,second);
     return 0;
 }
 
@@ -1257,40 +1253,40 @@ int32_t mjdToGregorian(double mjd, int32_t &year, int32_t &month, int32_t &day,
 /*! Convert Modified Julian Date to international standard Gregorian
  * Date-Time in the format: YYYY-MM-DD HH:MM:SS (ex. 2014-09-15 12:00:00)
  * (previously this function was named mjd2human)
- * \param double mjd (Modified Julian Days)
- * \return string gregorianDateTime (YYYY-MM-DD HH:MM:SS)
+ * \param mjd Time in Modified Julian Days
+ * \return gregorianDateTime (YYYY-MM-DD HH:MM:SS)
  */
-string mjdToGregorian(double mjd)
+std::string mjdToGregorian(double mjd)
 {
     char gregorianDateTime[25];
     int year=0, month=0, day=0;
     int hour=0, minute=0, second=0;
-//    double seconds;
-//    int j;
-//    double fd=0.;
+    //    double seconds;
+    //    int j;
+    //    double fd=0.;
 
-//    mjd2cal(mjd, &year, &month, &day, &fd, &j);
+    //    mjd2cal(mjd, &year, &month, &day, &fd, &j);
 
-//    // !! create mjd2cal(mjd, &year, &month, &day, &hours, &minutes, &seconds)
-//    // and use this instead for all ToGregorian functions
-//    hours = (int)(24 * fd);
-//    fd -= hours / 24.;
-//    minutes = (int)(1440 * fd);
-//    fd -= minutes / 1440.;
-//    seconds = (86400 * fd);
-//    int int_seconds = (int)round(seconds);
+    //    // !! create mjd2cal(mjd, &year, &month, &day, &hours, &minutes, &seconds)
+    //    // and use this instead for all ToGregorian functions
+    //    hours = (int)(24 * fd);
+    //    fd -= hours / 24.;
+    //    minutes = (int)(1440 * fd);
+    //    fd -= minutes / 1440.;
+    //    seconds = (86400 * fd);
+    //    int int_seconds = (int)round(seconds);
 
-//    // don't let seconds be 60
-//    if (int_seconds == 60){
-//        int_seconds = 0;
-//        minutes ++;
-//    }
+    //    // don't let seconds be 60
+    //    if (int_seconds == 60){
+    //        int_seconds = 0;
+    //        minutes ++;
+    //    }
 
-//    // don't let minutes be 60
-//    if (minutes == 60){
-//        minutes = 0;
-//        hours ++;
-//    }
+    //    // don't let minutes be 60
+    //    if (minutes == 60){
+    //        minutes = 0;
+    //        hours ++;
+    //    }
 
     mjdToGregorian(mjd, year, month, day, hour, minute, second);
 
@@ -1298,7 +1294,7 @@ string mjdToGregorian(double mjd)
             year, month, day,
             hour, minute, second);
 
-    return string(gregorianDateTime);
+    return std::string(gregorianDateTime);
 }
 
 
@@ -1307,14 +1303,14 @@ string mjdToGregorian(double mjd)
  * with 3-letter month format:
  * DD-MMM-YYYY HH:MM:SS (ex. 15-SEP-2014 12:00:00)
  * (previously this function was named mjd2human2)
- * \param double mjd (Modified Julian Days)
- * \return string gregorianDateTime (DD-MMM-YYYY HH:MM:SS)
+ * \param mjd Time in Modified Julian Days
+ * \return gregorianDateTime (YYYY-MM-DD HH:MM:SS)
  */
-string mjdToGregorianDDMMMYYYY(double mjd)
+std::string mjdToGregorianDDMMMYYYY(double mjd)
 {
     char gregorianDateTime[25];
     int year=0, month=0, day=0, hour=0, minute=0, second=0;
-//    double fd=0.; //?? is this fraction of day
+    //    double fd=0.; //?? is this fraction of day
 
     static const char month_name[][4] = {
         "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -1325,66 +1321,65 @@ string mjdToGregorianDDMMMYYYY(double mjd)
 
     mjdToGregorian(mjd, year, month, day, hour, minute, second);
 
-//    hours = (int)(24 * fd);
-//    fd -= hours / 24.;
-//    minutes = (int)(1440 * fd);
-//    fd -= minutes / 1440.;
-//    seconds = (86400 * fd);
-//    int int_seconds = (int)round(seconds);
+    //    hours = (int)(24 * fd);
+    //    fd -= hours / 24.;
+    //    minutes = (int)(1440 * fd);
+    //    fd -= minutes / 1440.;
+    //    seconds = (86400 * fd);
+    //    int int_seconds = (int)round(seconds);
     sprintf(gregorianDateTime, "%02d-%3s-%04d %02d:%02d:%02d",
             day, month_name[month-1], year,
             hour, minute, second);
 
-    return string(gregorianDateTime);
+    return std::string(gregorianDateTime);
 }
 
-// !!! Must fix milisecond accuracy
+// TODO: Must fix milisecond accuracy
 /*! Convert Modified Julian Date to US standard Gregorian Date-Time
  * with 3-letter month format in small caps:
  * DD mmm YYYY HH:MM:SS.FFF (15 Sep 2014 12:00:00.000)
  * Used for STK remote
  * (previously this function was named mjd2human3)
- * \param double mjd (Modified Julian Days)
- * \return string gregorianDateTime (DD-MMM-YYYY HH:MM:SS)
+ * \param mjd Time in Modified Julian Days
+ * \return gregorianDateTime (YYYY-MM-DD HH:MM:SS)
  */
-string mjdToGregorianDDMmmYYYY(double mjd)
+std::string mjdToGregorianDDMmmYYYY(double mjd)
 {
     char gregorianDateTime[50];
     int year=0, month=0, day=0, hour=0, minute=0, second=0;
     int msec = 0;
-//    double fd=0.;
+    //    double fd=0.;
 
     static const char month_name[][4] = {
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };
 
-//    mjd2cal(mjd, &year, &month, &day, &fd, &j);
+    //    mjd2cal(mjd, &year, &month, &day, &fd, &j);
     mjdToGregorian(mjd, year, month, day, hour, minute, second);
-//    hh = (int)(24 * fd);
-//    fd -= hh / 24.;
-//    min = (int)(1440 * fd);
-//    fd -= min / 1440.;
-//    sec = (int)(86400 * fd);
-//    fd -= sec / 86400.;
-//    msec = (int)(86400*1000 * fd);
+    //    hh = (int)(24 * fd);
+    //    fd -= hh / 24.;
+    //    min = (int)(1440 * fd);
+    //    fd -= min / 1440.;
+    //    sec = (int)(86400 * fd);
+    //    fd -= sec / 86400.;
+    //    msec = (int)(86400*1000 * fd);
     sprintf(gregorianDateTime, "%02d %3s %04d %02d:%02d:%02d.%03d",
             day, month_name[month-1], year,
             hour, minute, second, msec);
 
-    return string(gregorianDateTime);
+    return std::string(gregorianDateTime);
 }
 
 
 
 //! Convert Elapsed Time in Seconds to Human Readable Format (used for GPS simulator)
 /*! UTC string in the format: DD HH:MM:SS
- * \param elapsed seconds
+ * \param elapsed_seconds
  * \return C++ String containing human readable formated date.
  */
-string seconds2DDHHMMSS(double elapsed_seconds){
+std::string seconds2DDHHMMSS(double elapsed_seconds){
 
-    //double temp;
     char buffer[50];
 
     if (elapsed_seconds < 0){
@@ -1424,30 +1419,26 @@ string seconds2DDHHMMSS(double elapsed_seconds){
     // specific format for SimGEN
     //sprintf(buffer,"%d %02d:%02d:%.2f", day, hour, min, sec);
     sprintf(buffer,"%02d:%02d:%02d.%03d", hour, min, sec, msec);
-    return string(buffer);
+    return std::string(buffer);
 }
 
+//! Modified Julian Day to Julian Day
+/*! Convert date in Modified Julian Day format to date in Julian Day format.
+ * \param mjd Date in Modified Julian Day format.
+ * \return Date in Julian Day format.
+*/
 double  mjd2jd(double mjd){
     return MJD2JD(mjd);
 }
+
+//! Julian Day to Modified Julian Day
+/*! Convert date in Julian Day format to date in Modified Julian Day format.
+ * \param jd Date in Julian Day format.
+ * \return Date in Modified Julian Day format.
+*/
 double  jd2mjd(double jd) {
     return JD2MJD(jd);
 }
-
-
-Time::Time()
-{
-}
-
-// compute the elapsed time given the startTimeMjd
-double Time::elapsedTimeSince(double startTimeMjd)
-{
-    double elapsedTimeSec = (currentmjd()-startTimeMjd)*86400;
-
-    return elapsedTimeSec;
-}
-
-
 
 //! @}
 

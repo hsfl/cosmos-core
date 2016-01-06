@@ -36,7 +36,7 @@
 #include <cstring>
 
 svector azel;
-vector<nodestruc> track;
+std::vector<nodestruc> track;
 cosmosstruc *cdata;
 char outputBuffer[3][400];//holds blocks of text so they can be generated in series and then displayed side by side.
 void printBufferLeftToRight(int blockCount, const char *indent, const char *spacer);

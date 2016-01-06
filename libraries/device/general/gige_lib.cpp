@@ -69,7 +69,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
 	struct sockaddr_in raddr;
 	gige_handle *handle;
 	uint8_t bufferin[GIGE_MAX_PACKET];
-	vector<socket_channel> ifaces;
+	std::vector<socket_channel> ifaces;
 
 	if ((handle=new (gige_handle)) == NULL) return nullptr;
 
@@ -81,7 +81,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
 	if (socket_usec < (uint32_t)(1024000000/streambps)) socket_usec = (uint32_t)(1024000000/streambps);
 
 	// Open Command socket
-	if ((iretn=socket_open(&handle->command, SOCKET_TYPE_UDP, address, 3956, SOCKET_TALK, true, socket_usec)) < 0)
+	if ((iretn=socket_open(&handle->command, NetworkType::UDP, address, 3956, SOCKET_TALK, true, socket_usec)) < 0)
 	{
 		delete(handle);
 		return nullptr;
@@ -102,7 +102,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
     if (socket_usec < (uint32_t)(16384000000./streambps)) socket_usec = (uint32_t)(16384000000/streambps);
 
 	// Open Stream socket
-	if ((iretn=socket_open(&handle->stream, SOCKET_TYPE_UDP, (char *)"", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
+	if ((iretn=socket_open(&handle->stream, NetworkType::UDP, (char *)"", 0, SOCKET_LISTEN,true,socket_usec)) < 0)
 	{
 		close(handle->command.cudp);
 		return nullptr;
@@ -120,7 +120,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
 
 	// Find our own IP address to send to camera
 	theirip = (uint32_t)(*(uint32_t*)&handle->command.caddr.sin_addr);
-	ifaces = socket_find_addresses(SOCKET_TYPE_UDP);
+	ifaces = socket_find_addresses(NetworkType::UDP);
 	for (uint16_t i=0; i<ifaces.size(); ++i)
 	{
 		myip = (uint32_t)(*(uint32_t*)&ifaces[i].caddr.sin_addr);
@@ -185,7 +185,7 @@ void gige_close(gige_handle *handle)
 //! Write Register
 /*! Write indicated GigE register with provided data.
 	\param handle Handle for GigE camera as returned from ::gige_open.
-	\param register Number of register.
+    \param address Address of register.
 	\param data Data to be written.
 	\return Zero or negative error.
 */
@@ -193,12 +193,12 @@ int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data)
 {
 	int32_t nbytes, ncount;
 
-	uint16to(0x4201,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-	uint16to(GIGE_CMD_WRITEREG,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-	uint16to(0x0008,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-	uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
-	uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
-	uint32to(data,(uint8_t *)&handle->creg.data,ORDER_BIGENDIAN);
+    uint16to(0x4201,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_WRITEREG,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0008,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
+    uint32to(data,(uint8_t *)&handle->creg.data,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,16,0,(struct sockaddr *)&handle->command.caddr,sizeof(handle->command.caddr))) < 0)
 	{
 #ifdef COSMOS_WIN_OS
@@ -216,10 +216,10 @@ int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
 	} while (nbytes <= 0 && ncount--);
 
-	handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-	handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-	handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
-	handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
 
 	if (nbytes != 12) return (GIGE_ERROR_NACK);
 
@@ -231,18 +231,18 @@ int gige_writereg(gige_handle *handle, uint32_t address, uint32_t data)
 //! Read GIGE Register
 /*! Read indicated GigE register and return data.
 	\param handle Handle for GigE camera as returned from ::gige_open.
-	\param register Number of register.
+    \param address Address of register.
 	\return Contents of register as 4 byte unsigned integer.
 */
 uint32_t gige_readreg(gige_handle *handle, uint32_t address)
 {
 	int32_t nbytes, ncount;
 
-	uint16to(0x4201,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-	uint16to(GIGE_CMD_READREG,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-	uint16to(0x0004,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-	uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
-	uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
+    uint16to(0x4201,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_READREG,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0004,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,sizeof(handle->command.caddr))) < 0)
 	{
 #ifdef COSMOS_WIN_OS
@@ -260,32 +260,39 @@ uint32_t gige_readreg(gige_handle *handle, uint32_t address)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
 	} while (nbytes <= 0 && ncount--);
 
-	handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
 	if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
 
-	handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-	handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-	handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
 
 	if (nbytes != 12) return (GIGE_ERROR_NACK);
 
-	handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ORDER_BIGENDIAN);
+    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ByteOrder::BIGENDIAN);
 	
 	return (handle->cack.data);
 }
 
+//! Read GIGE memory
+/*! Read indicated GigE memory and return data.
+    \param handle Handle for GigE camera as returned from ::gige_open.
+    \param address Address of memory.
+    \param size Size of memory area to read.
+    \return Contents of register as 4 byte unsigned integer.
+*/
 uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size)
 {
 	int32_t nbytes, ncount;
 
-	uint16to(0x4201,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-	uint16to(GIGE_CMD_READMEM,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-	uint16to(0x0008,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-	uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
+    uint16to(0x4201,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_READMEM,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0008,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(++handle->req_id,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
 	address = 4 * (address / 4);
-	uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
 	size = 4 * (size / 4);
-	uint32to(size,(uint8_t *)&handle->creg.data,ORDER_BIGENDIAN);
+    uint32to(size,(uint8_t *)&handle->creg.data,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,16,0,(struct sockaddr *)&handle->command.caddr,sizeof(struct sockaddr_in))) < 0)
 	{
 #ifdef COSMOS_WIN_OS
@@ -303,13 +310,13 @@ uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,size+12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
 	} while (nbytes <= 0 && ncount--);
 
-	handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
 	if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
 
-	handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-	handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-	handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
-	handle->cack_mem.address = uint32from((uint8_t *)&handle->cack_mem.address,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
+    handle->cack_mem.address = uint32from((uint8_t *)&handle->cack_mem.address,ByteOrder::BIGENDIAN);
 
 	if ((uint32_t)nbytes != size+12) return (GIGE_ERROR_NACK);
 
@@ -320,25 +327,23 @@ uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size)
 //! Discover GIGE Camera
 /*! Broadcast GIGE DISCOVERY_CMD, accepting all the reponses and returning them
  * in a vector of ::gige_acknowledge_ack.
-	\param handle Handle for GigE camera as returned from ::gige_open.
-	\param register Number of register.
-	\return Contents of register as 4 byte unsigned integer.
+    \return Vector of ::gige_acknowledge_ack containing responses.
 */
-vector<gige_acknowledge_ack> gige_discover()
+std::vector<gige_acknowledge_ack> gige_discover()
 {
 	int32_t nbytes;
-	vector<gige_acknowledge_ack> gige_list;
+	std::vector<gige_acknowledge_ack> gige_list;
 	socket_channel tchan;
 	gige_handle handle;
 	int on = 1;
-	vector<socket_channel> ifaces;
+	std::vector<socket_channel> ifaces;
 
-	ifaces = socket_find_addresses(SOCKET_TYPE_UDP);
+	ifaces = socket_find_addresses(NetworkType::UDP);
 	if (!ifaces.size()) return (gige_list);
 
 	for (uint16_t i=0; i<ifaces.size(); ++i)
 	{
-		if ((socket_open(&tchan, SOCKET_TYPE_UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
+		if ((socket_open(&tchan, NetworkType::UDP, ifaces[i].baddress, 3956, SOCKET_TALK, true, 100000)) < 0) return (gige_list);
 
 		if ((setsockopt(tchan.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
 		{
@@ -346,10 +351,10 @@ vector<gige_acknowledge_ack> gige_discover()
 			continue;
 		}
 
-		uint16to(0x4201,(uint8_t *)&handle.creg.flag,ORDER_BIGENDIAN);
-		uint16to(GIGE_CMD_DISCOVERY,(uint8_t *)&handle.creg.command,ORDER_BIGENDIAN);
-		uint16to(0x0000,(uint8_t *)&handle.creg.length,ORDER_BIGENDIAN);
-		uint16to(++handle.req_id,(uint8_t *)&handle.creg.req_id,ORDER_BIGENDIAN);
+        uint16to(0x4201,(uint8_t *)&handle.creg.flag,ByteOrder::BIGENDIAN);
+        uint16to(GIGE_CMD_DISCOVERY,(uint8_t *)&handle.creg.command,ByteOrder::BIGENDIAN);
+        uint16to(0x0000,(uint8_t *)&handle.creg.length,ByteOrder::BIGENDIAN);
+        uint16to(++handle.req_id,(uint8_t *)&handle.creg.req_id,ByteOrder::BIGENDIAN);
 
 		if ((nbytes=sendto(tchan.cudp,(char *)handle.cbyte,8,0,(struct sockaddr *)&tchan.caddr,sizeof(tchan.caddr))) < 0)
 		{
@@ -361,23 +366,23 @@ vector<gige_acknowledge_ack> gige_discover()
 
 		while((nbytes=recvfrom(tchan.cudp,(char *)handle.cbyte,256,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
 		{
-			handle.cack.ack_id = uint16from((uint8_t *)&handle.cack.ack_id,ORDER_BIGENDIAN);
+            handle.cack.ack_id = uint16from((uint8_t *)&handle.cack.ack_id,ByteOrder::BIGENDIAN);
 			if (handle.cack.ack_id != handle.req_id) continue;
 
-			handle.cack.status = uint16from((uint8_t *)&handle.cack.status,ORDER_BIGENDIAN);
-			handle.cack.acknowledge = uint16from((uint8_t *)&handle.cack.acknowledge,ORDER_BIGENDIAN);
-			handle.cack.length = uint16from((uint8_t *)&handle.cack.length,ORDER_BIGENDIAN);
+            handle.cack.status = uint16from((uint8_t *)&handle.cack.status,ByteOrder::BIGENDIAN);
+            handle.cack.acknowledge = uint16from((uint8_t *)&handle.cack.acknowledge,ByteOrder::BIGENDIAN);
+            handle.cack.length = uint16from((uint8_t *)&handle.cack.length,ByteOrder::BIGENDIAN);
 
-			handle.cack_ack.spec_major = uint16from((uint8_t *)&handle.cack_ack.spec_major,ORDER_BIGENDIAN);
-			handle.cack_ack.spec_minor = uint16from((uint8_t *)&handle.cack_ack.spec_minor,ORDER_BIGENDIAN);
-			handle.cack_ack.device_mode = uint32from((uint8_t *)&handle.cack_ack.device_mode,ORDER_BIGENDIAN);
-			handle.cack_ack.mac_high = uint16from((uint8_t *)&handle.cack_ack.mac_high,ORDER_BIGENDIAN);
-			handle.cack_ack.mac_low = uint32from((uint8_t *)&handle.cack_ack.mac_low,ORDER_BIGENDIAN);
-			handle.cack_ack.ip_config_options = uint32from((uint8_t *)&handle.cack_ack.ip_config_options,ORDER_BIGENDIAN);
-			handle.cack_ack.ip_config_current = uint32from((uint8_t *)&handle.cack_ack.ip_config_current,ORDER_BIGENDIAN);
-			handle.cack_ack.address = uint32from((uint8_t *)&handle.cack_ack.address,ORDER_BIGENDIAN);
-			handle.cack_ack.subnet = uint32from((uint8_t *)&handle.cack_ack.subnet,ORDER_BIGENDIAN);
-			handle.cack_ack.gateway = uint32from((uint8_t *)&handle.cack_ack.gateway,ORDER_BIGENDIAN);
+            handle.cack_ack.spec_major = uint16from((uint8_t *)&handle.cack_ack.spec_major,ByteOrder::BIGENDIAN);
+            handle.cack_ack.spec_minor = uint16from((uint8_t *)&handle.cack_ack.spec_minor,ByteOrder::BIGENDIAN);
+            handle.cack_ack.device_mode = uint32from((uint8_t *)&handle.cack_ack.device_mode,ByteOrder::BIGENDIAN);
+            handle.cack_ack.mac_high = uint16from((uint8_t *)&handle.cack_ack.mac_high,ByteOrder::BIGENDIAN);
+            handle.cack_ack.mac_low = uint32from((uint8_t *)&handle.cack_ack.mac_low,ByteOrder::BIGENDIAN);
+            handle.cack_ack.ip_config_options = uint32from((uint8_t *)&handle.cack_ack.ip_config_options,ByteOrder::BIGENDIAN);
+            handle.cack_ack.ip_config_current = uint32from((uint8_t *)&handle.cack_ack.ip_config_current,ByteOrder::BIGENDIAN);
+            handle.cack_ack.address = uint32from((uint8_t *)&handle.cack_ack.address,ByteOrder::BIGENDIAN);
+            handle.cack_ack.subnet = uint32from((uint8_t *)&handle.cack_ack.subnet,ByteOrder::BIGENDIAN);
+            handle.cack_ack.gateway = uint32from((uint8_t *)&handle.cack_ack.gateway,ByteOrder::BIGENDIAN);
 			gige_list.push_back(handle.cack_ack);
 		}
 
@@ -428,7 +433,7 @@ char *gige_value_to_address(uint32_t value)
 /*! Setup the basic image parameters for a a35 camera being used over GIGE.
  * The camera must first be opened with a call to ::gige_open.
  * \param handle Pointer to ::gige_handle returned by ::gige_open.
- * \param format Pixel format for output as defined in ::gige_a35_constants.
+ * \param format Pixel format for output as defined in \ref gige_a35_constants.
  * \param xsize Number of pixels in x direction.
  * \param ysize Number of pixels in y direction.
  * \param video_rate 30 or 60 Hz.
@@ -470,7 +475,7 @@ int a35_config(gige_handle *handle, uint32_t format, uint32_t xsize, uint32_t ys
  * \param frames Number of images to store.
  * \param buffer Pointer to buffer for storing image.
  * \param bsize Number of bytes to expect at a go.
- * \param Zero, or negative error.
+ * \return Zero, or negative error.
  */
 int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize)
 {
@@ -529,14 +534,13 @@ int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bs
 /*! Setup the basic image parameters for a Prosilica camera being used over GIGE.
  * The camera must first be opened with a call to ::gige_open.
  * \param handle Pointer to ::gige_handle returned by ::gige_open.
- * \param format Pixel format for output as defined in ::gige_prosilica_constants.
+ * \param format Pixel format for output as defined in \ref gige_prosilica_constants.
  * \param xbin Factor for binning in x direction.
  * \param ybin Factor for binning in y direction.
  * \param xsize Number of pixels in x direction.
  * \param ysize Number of pixels in y direction.
  * \param xoffset Starting pixel of sub-image in x direction.
  * \param yoffset Starting pixel of sub-image in y direction.
- * \param streambps Stream Bytes per Second for flow control.
  * \return Zero, or negative error.
  */
 int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32_t ybin, uint32_t xsize, uint32_t ysize, uint32_t xoffset, uint32_t yoffset)
@@ -579,9 +583,12 @@ int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32
 /*! Command Prosilica camera being used over GIGE to take a single image of the indicated
  * exposure length. The resulting image will be stored in the provided image buffer.
  * \param handle Pointer to ::gige_handle returned by ::gige_open.
+ * \param emode One of ::PROSILICA_ExposureMode_AutoOff, ::PROSILICA_ExposureMode_AutoOnce, ::PROSILICA_ExposureMode_Auto.
  * \param exposure Exposure time in usec.
+ * \param gain DN mutiplicative value.
  * \param buffer Pointer to buffer for storing image.
- * \param Zero, or negative error.
+ * \param bsize Maximum size of buffer.
+ * \return Zero, or negative error.
  */
 int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint32_t gain, uint8_t *buffer, uint16_t bsize)
 {
@@ -665,18 +672,18 @@ int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint
 //! Read GIGE Register for A35 with different flag
 /*! Read indicated GigE register and return data.
     \param handle Handle for GigE camera as returned from ::gige_open.
-    \param register Number of register.
+    \param address Address of register.
     \return Contents of register as 4 byte unsigned integer.
 */
 uint32_t gige_readreg2(gige_handle *handle, uint32_t address)
 {
     int32_t nbytes, ncount;
 
-    uint16to(0x4200,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-    uint16to(GIGE_CMD_READREG,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-    uint16to(0x0004,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-    uint16to(0x0001,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
-    uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
+    uint16to(0x4200,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_READREG,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0004,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(0x0001,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,sizeof(handle->command.caddr))) < 0)
     {
 #ifdef COSMOS_WIN_OS
@@ -694,16 +701,16 @@ uint32_t gige_readreg2(gige_handle *handle, uint32_t address)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
     } while (nbytes <= 0 && ncount--);
 
-    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
     if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
 
-    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
 
     if (nbytes != 12) return (GIGE_ERROR_NACK);
 
-    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ORDER_BIGENDIAN);
+    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ByteOrder::BIGENDIAN);
 
     return (handle->cack.data);
 }
@@ -712,18 +719,18 @@ uint32_t gige_readreg2(gige_handle *handle, uint32_t address)
 //! Send A35 discover message?
 /*! Read indicated GigE register and return data.
     \param handle Handle for GigE camera as returned from ::gige_open.
-    \param register Number of register.
+    \param address Address of register.
     \return Contents of register as 4 byte unsigned integer.
 */
 uint32_t gige_request(gige_handle *handle, uint32_t address)
 {
     int32_t nbytes, ncount;
 
-    uint16to(0x4200,(uint8_t *)&handle->creg.flag,ORDER_BIGENDIAN);
-    uint16to(GIGE_CMD_DISCOVERY,(uint8_t *)&handle->creg.command,ORDER_BIGENDIAN);
-    uint16to(0x0004,(uint8_t *)&handle->creg.length,ORDER_BIGENDIAN);
-    uint16to(0xC000,(uint8_t *)&handle->creg.req_id,ORDER_BIGENDIAN);
-    uint32to(address,(uint8_t *)&handle->creg.address,ORDER_BIGENDIAN);
+    uint16to(0x4200,(uint8_t *)&handle->creg.flag,ByteOrder::BIGENDIAN);
+    uint16to(GIGE_CMD_DISCOVERY,(uint8_t *)&handle->creg.command,ByteOrder::BIGENDIAN);
+    uint16to(0x0004,(uint8_t *)&handle->creg.length,ByteOrder::BIGENDIAN);
+    uint16to(0xC000,(uint8_t *)&handle->creg.req_id,ByteOrder::BIGENDIAN);
+    uint32to(address,(uint8_t *)&handle->creg.address,ByteOrder::BIGENDIAN);
     if ((nbytes=sendto(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,sizeof(handle->command.caddr))) < 0)
     {
 #ifdef COSMOS_WIN_OS
@@ -741,16 +748,16 @@ uint32_t gige_request(gige_handle *handle, uint32_t address)
         nbytes = recvfrom(handle->command.cudp,(char *)handle->cbyte,12,0,(struct sockaddr *)&handle->command.caddr,(socklen_t *)&handle->command.addrlen);
     } while (nbytes <= 0 && ncount--);
 
-    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ORDER_BIGENDIAN);
+    handle->cack.ack_id = uint16from((uint8_t *)&handle->cack.ack_id,ByteOrder::BIGENDIAN);
     if (handle->cack.ack_id != handle->req_id) return (GIGE_ERROR_NACK);
 
-    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ORDER_BIGENDIAN);
-    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ORDER_BIGENDIAN);
-    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ORDER_BIGENDIAN);
+    handle->cack.status = uint16from((uint8_t *)&handle->cack.status,ByteOrder::BIGENDIAN);
+    handle->cack.acknowledge = uint16from((uint8_t *)&handle->cack.acknowledge,ByteOrder::BIGENDIAN);
+    handle->cack.length = uint16from((uint8_t *)&handle->cack.length,ByteOrder::BIGENDIAN);
 
     if (nbytes != 12) return (GIGE_ERROR_NACK);
 
-    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ORDER_BIGENDIAN);
+    handle->cack.data = uint32from((uint8_t *)&handle->cack.data,ByteOrder::BIGENDIAN);
 
     return (handle->cack.data);
 }

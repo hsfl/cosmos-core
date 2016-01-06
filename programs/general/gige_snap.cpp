@@ -47,9 +47,9 @@ int main(int argc, char *argv[])
 	//uint32_t faddress, fsize;
 	uint32_t bsize;
 	FILE *fp;
-	vector<gige_acknowledge_ack> gige_list;
+	std::vector<gige_acknowledge_ack> gige_list;
 
-	string extra = "";
+	std::string extra = "";
 	uint32_t exposure=0;
 	uint32_t gain=1;
 	uint32_t binning=1;
@@ -87,9 +87,9 @@ int main(int argc, char *argv[])
 	uint32_t used_imagewidth=0;
 	uint32_t used_imageheight=0;
 
-	string imagename = "testimage.imgdata";
-	string metafilename = "testimage.imgmeta";
-	string fringename = "testimage.imgfringe";
+	std::string imagename = "testimage.imgdata";
+	std::string metafilename = "testimage.imgmeta";
+	std::string fringename = "testimage.imgfringe";
 
 
 

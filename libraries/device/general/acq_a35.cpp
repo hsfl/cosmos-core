@@ -36,7 +36,7 @@
 #include "agentlib.h"
 #include "gige_lib.h"
 #include "acq_a35.h"
-#include "elapsedtime.hpp"
+#include "elapsedtime.h"
 #ifndef COSMOS_WIN_BUILD_MSVC
 #include <sys/time.h>
 #endif
@@ -59,7 +59,7 @@ bool InitCamera(uint16_t width, uint16_t height, gige_handle* handle)
     uint16_t i;
     int16_t a35Index;
 //    uint32_t myip;
-    vector<gige_acknowledge_ack> gige_list;
+    std::vector<gige_acknowledge_ack> gige_list;
 //    struct timeval StartTime;
 //    struct timeval PresentTime;
 //    int64_t Duration, seconds, useconds;

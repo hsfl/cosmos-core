@@ -116,7 +116,7 @@
 #include "math/matrix.h"
 #include "math/quaternion.h"
 #include "math/rotation.h"
-#include "math/lsfit.h"
+//#include "math/lsfit.h"
 
 #include <cmath>
 #include <iostream>
@@ -252,9 +252,9 @@ struct estimatorstruc
 {
     double value[3];
     double error[3];
-    vector<double> a;
-    vector<double> x;
-    vector<double> y;
+    std::vector<double> a;
+    std::vector<double> x;
+    std::vector<double> y;
 };
 
 //! Estimator handle
@@ -266,7 +266,7 @@ struct estimatorstruc
 */
 struct estimatorhandle
 {
-    vector<estimatorstruc> r;
+    std::vector<estimatorstruc> r;
     int32_t index;
     uint32_t size;
     uint32_t degree;
@@ -283,7 +283,7 @@ struct estimatorhandle
 double gaussian_random(double mean, double stdev);
 
 double distance_rv(rvector p0, rvector p1, rvector p2);
-double distance_rv_1(rvector p0, rvector p1, rvector p2);
+//double distance_rv_1(rvector p0, rvector p1, rvector p2);
 double area_rv(rvector p0, rvector p1, rvector p2);
 double evaluate_poly(double x, rvector parms);
 double evaluate_poly_slope(double x, rvector parms);
@@ -298,30 +298,28 @@ rvector transform_q(quaternion q,rvector v);
 
 rvector rv_quaternion2axis(quaternion q);
 uvector rv_fitpoly(uvector x, uvector y, uint32_t order);
-vector<double> polyfit(vector<double> &x, vector<double> &y);
-void multisolve(vector< vector<double> > x, vector<double> y, vector<double>& a);
+std::vector<double> polyfit(std::vector<double> &x, std::vector<double> &y);
+void multisolve(std::vector< std::vector<double> > x, std::vector<double> y, std::vector<double>& a);
 void open_estimate(estimatorhandle *estimate, uint32_t size, uint32_t degree);
 int16_t set_estimate(estimatorhandle *estimate, double independent, double dependent);
 estimatorstruc get_estimate(estimatorhandle *estimate, double independent);
 
 
 
+ByteOrder local_byte_order();
 
-
-
-uint8_t local_byte_order();
-uint16_t uint16from(uint8_t *pointer, uint8_t order);
-int16_t int16from(uint8_t *pointer, uint8_t order);
-uint32_t uint32from(uint8_t *pointer, uint8_t order);
-int32_t int32from(uint8_t *pointer, uint8_t order);
-float floatfrom(uint8_t *pointer, uint8_t order);
-double doublefrom(uint8_t *pointer, uint8_t order);
-void uint32to(uint32_t value, uint8_t *pointer, uint8_t order);
-void int32to(int32_t value, uint8_t *pointer, uint8_t order);
-void uint16to(uint16_t value, uint8_t *pointer, uint8_t order);
-void int16to(int16_t value, uint8_t *pointer, uint8_t order);
-void floatto(float value, uint8_t *pointer, uint8_t order);
-void doubleto(double value, uint8_t *pointer, uint8_t order);
+uint16_t uint16from(uint8_t *pointer, ByteOrder order);
+int16_t int16from(uint8_t *pointer, ByteOrder order);
+uint32_t uint32from(uint8_t *pointer, ByteOrder order);
+int32_t int32from(uint8_t *pointer, ByteOrder order);
+float floatfrom(uint8_t *pointer, ByteOrder order);
+double doublefrom(uint8_t *pointer, ByteOrder order);
+void uint32to(uint32_t value, uint8_t *pointer, ByteOrder order);
+void int32to(int32_t value, uint8_t *pointer, ByteOrder order);
+void uint16to(uint16_t value, uint8_t *pointer, ByteOrder order);
+void int16to(int16_t value, uint8_t *pointer, ByteOrder order);
+void floatto(float value, uint8_t *pointer, ByteOrder order);
+void doubleto(double value, uint8_t *pointer, ByteOrder order);
 
 // Gauss-Jackson routines
 gj_kernel *gauss_jackson_kernel(int32_t order, double dvi);
@@ -344,7 +342,7 @@ class lsfit
 {
 private:
     //! Least Squares Fit Element
-    /*! Contains the dependent (x) and independent (y) values for a single element of a ::fitstruc.
+    /*! Contains the dependent (x) and independent (y) values for a single element of a ::lsfit.
          * The ::uvector allows both quaternions and rvector to be fit.
          */
     struct fitelement

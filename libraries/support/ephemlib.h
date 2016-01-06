@@ -35,8 +35,7 @@
 
 /*! \file ephemlib.h
         \brief ephemlib include file
-        A library providing functions for conversion between the various
-        position and attitude coordinate systems used in orbital mechanics.
+        JPL Ephemeris.
 */
 
 #include "math/mathlib.h"
@@ -44,7 +43,10 @@
 
 //! \ingroup support
 //! \defgroup ephemlib Ephemeris library
-//! Ephemeris support library.
+//! Functions to implement the ephemerides provided by the Jet Propulsion Laboratory. Currently uses DE405 and uses
+//! \def jpleph.
+//! Full information can be found at http://ssd.jpl.nasa.gov/?planet_eph_export.
+
 
 //! \ingroup ephemlib
 //! \defgroup ephemlib_functions Ephemeris functions

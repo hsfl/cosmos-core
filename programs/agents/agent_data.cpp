@@ -52,15 +52,15 @@
 
 int myagent();
 
-vector<agentstruc> agent;
+std::vector<agentstruc> agent;
 agentstruc tempagent;
 
 //what else?
 
-vector<cosmosstruc> nodes;
+std::vector<cosmosstruc> nodes;
 char tempname[100];
 char agentname[COSMOS_MAX_NAME+1] = "data";
-string dataDir;
+std::string dataDir;
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int32_t request_login(char *request, char* response, void *cdata);
 int32_t request_getnodelist(char *request, char* response, void *cdata);
@@ -169,7 +169,7 @@ for (i=0; i<nodes.size(); ++i)
 // Initialize the Agent
 // near future: support cubesat space protocol
 // port number = 0 in this case, automatic assignment of port
-if (!(cdata = agent_setup_server(SOCKET_TYPE_UDP,(char *)"hmoc",agentname,1.,0,MAXBUFFERSIZE)))
+if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)"hmoc",agentname,1.,0,MAXBUFFERSIZE)))
 	exit (iretn);
 
 // Add additional requests

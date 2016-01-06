@@ -9,230 +9,250 @@ option(USE_MSVC_STATIC_RUNTIME "USE Static Runtime with MSVC" "OFF")
 
 #--------------------------------------------------------------------
 # user config variables
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # define the project name
-SET(PROJECT_NAME                COSMOS_CORE)
+set(PROJECT_NAME                COSMOS_CORE)
 
 # Type of build
-SET(CMAKE_BUILD_TYPE Debug) # Release or Debug
+set(CMAKE_BUILD_TYPE Debug) # Release or Debug
 
 # Type of architecture (arm, ...)
 add_definitions( -DBUILD_TYPE_${BUILD_TYPE})
 
 # define folder where your programs are going to be installed
-#SET(INSTALL_DIR                run)
+#set(INSTALL_DIR                run)
 
 # by default
 
 
-#IF("$ENV{COSMOS}" STREQUAL "")
-#    SET(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux_arm")
-#ELSE()
-#    SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux_arm")
-#ENDIF("$ENV{COSMOS}" STREQUAL "")
+#if("$ENV{COSMOS}" STREQUAL "")
+#    set(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux_arm")
+#else()
+#    set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux_arm")
+#endif("$ENV{COSMOS}" STREQUAL "")
 
 #--------------------------------------------------------------------
 # automatic config
 
 # comment
-SET(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
+set(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
 cmake_minimum_required(VERSION 2.8.12)
 
 project(${PROJECT_NAME})
 
-SET(COSMOS_FOLDER ${PROJECT_SOURCE_DIR}/..)
-SET(COSMOS_CORE ${CMAKE_SOURCE_DIR})
+set(COSMOS_FOLDER ${PROJECT_SOURCE_DIR}/..)
+set(COSMOS_CORE ${CMAKE_SOURCE_DIR})
 
 # define what libraries you want to compile
-#SET(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
-SET(BUILD_COSMOS_CORE_MATH                 ON)          #ON/OFF
-SET(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
-SET(BUILD_COSMOS_CORE_DEVICES              ON)          #ON/OFF
-SET(BUILD_COSMOS_CORE_THIRDPARTY_JPEG      ON)          #ON/OFF
-SET(BUILD_COSMOS_CORE_THIRDPARTY_ZLIB      ON)          #ON/OFF
-SET(BUILD_COSMOS_CORE_THIRDPARTY_EIGEN      ON)          #ON/OFF
-SET(BUILD_COSMOS_PROJECT_USER              OFF)         #ON/OFF
-SET(BUILD_COSMOS_CORE_THIRDPARTY_PNG       ON)          #ON/OFF
-IF (MSVC)
-    SET(BUILD_COSMOS_CORE_THIRDPARTY_DIRENT     ON)          #ON/OFF
-ELSE()
-    SET(BUILD_COSMOS_CORE_THIRDPARTY_DIRENT     OFF)
-ENDIF()
+#set(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_MATH                 ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_DEVICES              ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_THIRDPARTY_JPEG      ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_THIRDPARTY_ZLIB      ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_THIRDPARTY_EIGEN      ON)          #ON/OFF
+set(BUILD_COSMOS_PROJECT_USER              OFF)         #ON/OFF
+set(BUILD_COSMOS_CORE_THIRDPARTY_PNG       ON)          #ON/OFF
+if (MSVC)
+    set(BUILD_COSMOS_CORE_THIRDPARTY_DIRENT     ON)          #ON/OFF
+else()
+    set(BUILD_COSMOS_CORE_THIRDPARTY_DIRENT     OFF)
+endif()
 
 #TODO: is COSMOS_CXX_FLAGS still being used?
-#SET(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
-SET(COSMOS_CXX_FLAGS "")
+#set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++0x -U__STRICT_ANSI__ -Wno-invalid-offsetof")
+set(COSMOS_CXX_FLAGS "")
 
 # Force strict ANSI
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -U__STRICT_ANSI__")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -U__STRICT_ANSI__")
 
 # Debugging?
-IF (CMAKE_BUILD_TYPE MATCHES "Debug")
-    IF (MSVC)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MTd")
-    ELSE()
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-    ENDIF()
-    MESSAGE("Building for Debugging")
-ENDIF()
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+    if (MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MTd")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    endif()
+    message("Building for Debugging")
+endif()
 
-Option(BUILD_GPROF "Build for Profiling" OFF)
-IF (BUILD_GPROF)
-    MESSAGE("Profiling")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg ${COSMOS_CXX_FLAGS}")
-ELSE ()
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COSMOS_CXX_FLAGS}")
-ENDIF ()
+option(BUILD_GPROF "Build for Profiling" OFF)
+if (BUILD_GPROF)
+    message("Profiling")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg ${COSMOS_CXX_FLAGS}")
+else ()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COSMOS_CXX_FLAGS}")
+endif ()
 
-Option(BUILD_STATIC "Build Static Executables" OFF)
-IF (BUILD_STATIC AND NOT MSVC)
-    MESSAGE("Building static executables")
-    SET(BUILD_SHARED_LIBS OFF)
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
-ENDIF ()
+option(BUILD_STATIC "Build Static Executables" OFF)
+if (BUILD_STATIC AND NOT MSVC)
+    message("Building static executables")
+    set(BUILD_SHARED_LIBS OFF)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
+endif ()
 
 # -----------------------------------------------
 # Linux specific
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
 
     # Configure compiler arguments (GCC)
-    IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         # Set Compiler flags
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
-        MESSAGE("Building with GCC (MinGw)")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
+        message("Building with GCC (MinGw)")
 
-        SET(COMPILER_IS_LINUX_GCC 1)
+        set(COMPILER_IS_LINUX_GCC 1)
 
         # set the COSMOS_LIBS for GCC
         #TODO: remove redundancy libs, this can be resolved when building the libs
-        SET(COSMOS_LIBS  )
+        set(COSMOS_LIBS  )
 
-    ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
-    #  Option(BUILD_ARM "Build for ARM architecture" OFF)
-    IF (${BUILD_TYPE} MATCHES "arm")
-        IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux_arm")
-        ELSE()
-            SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux_arm")
-        ENDIF("$ENV{COSMOS}" STREQUAL "")
+    #  option(BUILD_ARM "Build for ARM architecture" OFF)
+    if (${BUILD_TYPE} MATCHES "arm")
+        if("$ENV{COSMOS}" STREQUAL "")
+            set(COSMOS_INSTALL_FOLDER "~/cosmos/cross/arm")
+        else()
+            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/cross/arm")
+        endif("$ENV{COSMOS}" STREQUAL "")
 
-        SET(CMAKE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/build/toolchain_arm")
+        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_arm")
 
-    ELSE()
-        IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux")
-        ELSE()
-            SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux")
-        ENDIF("$ENV{COSMOS}" STREQUAL "")
-    ENDIF()
+    else()
+        if("$ENV{COSMOS}" STREQUAL "")
+            set(COSMOS_INSTALL_FOLDER "~/cosmos") #was /usr/local/cosmos/linux
+        else()
+            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}")
+        endif("$ENV{COSMOS}" STREQUAL "")
+    endif()
 
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 
 # -----------------------------------------------
 # Windows specific
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
     # Configure compiler arguments GCC (MinGw)
-    IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         # Set Compiler flags
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
-        MESSAGE("Building with G++ (MinGw)")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
+        message("Building with G++ (MinGw)")
         set (COMPILER_IS_WINDOWS_MINGW 1)
 
         # set the COSMOS_LIBS for MinGW
         #TODO: remove redundancy libs, this can be resolved when building the libs
-        SET(COSMOS_LIBS  wsock32 winmm ws2_32 iphlpapi)
+        set(COSMOS_LIBS  wsock32 winmm ws2_32 iphlpapi)
 
-    ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") #or just MSVC
-        MESSAGE("Building with MSVC")
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC") #or just MSVC
+        message("Building with MSVC")
 
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W4")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_NONSTDC_NO_DEPRECATE")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W4")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_NONSTDC_NO_DEPRECATE")
 
-        SET(COMPILER_IS_WINDOWS_MSVC 1)
+        set(COMPILER_IS_WINDOWS_MSVC 1)
 
         # set the COSMOS_LIBS for MSVC
         #TODO: remove redundancy libs, this can be resolved when building the libs
-        SET(COSMOS_LIBS  dirent wsock32 winmm ws2_32 iphlpapi)
+        set(COSMOS_LIBS  dirent wsock32 winmm ws2_32 iphlpapi)
 
-    ENDIF()
+    endif()
 
-    IF (${BUILD_TYPE} MATCHES "arm")
-        MESSAGE("Building for targe arm")
-        SET(COSMOS_INSTALL_FOLDER "c:/cosmos/windows_arm")
-        SET(CMAKE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
-    ELSE()
-        IF("$ENV{COSMOS}" STREQUAL "")
-            SET(COSMOS_INSTALL_FOLDER "c:/cosmos/windows")
-        ELSE()
-            SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/windows")
-        ENDIF("$ENV{COSMOS}" STREQUAL "")
-    ENDIF()
+    # default COSMOS install folder
+    set(COSMOS_INSTALL_FOLDER "c:/cosmos/")
 
-    IF(MSVC AND ((${USE_MSVC_STATIC_RUNTIME} MATCHES "ON")))
-        MESSAGE("Building MSVC Static")
+    # if we are cross compiling then put the files inside the "crosscompile" folder
+    if (${BUILD_TYPE} MATCHES "arm")
+        message("Building for targe arm")
+        set(COSMOS_INSTALL_FOLDER "c:/cosmos/cross/arm")
+        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
+    endif()
+
+    # if we have set an environment variable COSMOS_INSTALL (for specific reasons, not default)
+    if(NOT ("$ENV{COSMOS_INSTALL}" STREQUAL ""))
+        set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS_INSTALL}")
+    endif()
+
+    if(MSVC AND ((${USE_MSVC_STATIC_RUNTIME} MATCHES "ON")))
+        message("Building MSVC Static")
         # Below foreach is to remove the /MD from the linker settings to use a static runtime link
         # referenced from https://www.mail-archive.com/cmake@cmake.org/msg02225.html
-        FOREACH (MODE "_DEBUG" "_MINSIZEREL" "_RELEASE" "_RELWITHDEBINFO")
+        foreach (MODE "_DEBUG" "_MINSIZEREL" "_RELEASE" "_RELWITHDEBINFO")
             STRING(REPLACE "/MD" "/MT" TMP "${CMAKE_C_FLAGS${MODE}}")
-            SET(CMAKE_C_FLAGS${MODE} "${TMP}" CACHE STRING "" FORCE)
-            #MESSAGE(STATUS "C_${MODE}=${CMAKE_C_FLAGS${MODE}}")
+            set(CMAKE_C_FLAGS${MODE} "${TMP}" CACHE STRING "" FORCE)
+            #message(STATUS "C_${MODE}=${CMAKE_C_FLAGS${MODE}}")
             STRING(REPLACE "/MD" "/MT" TMP "${CMAKE_CXX_FLAGS${MODE}}")
-            SET(CMAKE_CXX_FLAGS${MODE} "${TMP}" CACHE STRING "" FORCE)
-            #MESSAGE(STATUS "CXX_${MODE}=${CMAKE_CXX_FLAGS${MODE}}")
-        ENDFOREACH (MODE)
+            set(CMAKE_CXX_FLAGS${MODE} "${TMP}" CACHE STRING "" FORCE)
+            #message(STATUS "CXX_${MODE}=${CMAKE_CXX_FLAGS${MODE}}")
+        endforeach (MODE)
 
-        MESSAGE("MSVC CXX Flags: ${CMAKE_CXX_FLAGS}")
+        message("MSVC CXX Flags: ${CMAKE_CXX_FLAGS}")
 
-    ELSEIF(MSVC)
-        MESSAGE("MSVC CXX Flags: ${CMAKE_CXX_FLAGS}")
+    elseif(MSVC)
+        message("MSVC CXX Flags: ${CMAKE_CXX_FLAGS}")
 
-    ENDIF()
+    endif()
 
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # -----------------------------------------------
 # MacOS specific
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+    message("Building on Mac")
+    message("Compiler is ${CMAKE_CXX_COMPILER_ID}")
 
     # Configure compiler arguments (GCC)
-    IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         # Set Compiler flags
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -Wno-invalid-offsetof")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
-        MESSAGE("Building with GCC")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
+        message("Building with GCC")
 
-        SET(COMPILER_IS_MACOS_GCC 1)
+        set(COMPILER_IS_MACOS_GCC 1)
 
         # set the COSMOS_LIBS for GCC
-        SET(COSMOS_LIBS  )
+        set(COSMOS_LIBS  )
+    endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
-    ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    # Configure compiler arguments (Clang)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        # Set Compiler flags
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
+        message("Building with Clang")
 
-    IF("$ENV{COSMOS}" STREQUAL "")
-        SET(COSMOS_INSTALL_FOLDER "/Applications/cosmos")
-    ELSE()
-        SET(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/macos")
-    ENDIF("$ENV{COSMOS}" STREQUAL "")
+        set(COMPILER_IS_MACOS_CLANG 1)
 
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        # set the COSMOS_LIBS for GCC
+        set(COSMOS_LIBS  )
+    endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
+
+    if("$ENV{COSMOS}" STREQUAL "")
+        set(COSMOS_INSTALL_FOLDER "/Applications/cosmos")
+    else()
+        set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/macos")
+    endif("$ENV{COSMOS}" STREQUAL "")
+
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 # -----------------------------------------------
 # Extend COSMOS_LIBS with standard libraries
-SET(COSMOS_LIBS  CosmosSupport CosmosMath zlib ${COSMOS_LIBS})
+set(COSMOS_LIBS  CosmosSupport CosmosMath zlib ${COSMOS_LIBS})
 
-MESSAGE("COSMOS_INSTALL_FOLDER: ${COSMOS_INSTALL_FOLDER}")
+message("COSMOS_INSTALL_FOLDER: ${COSMOS_INSTALL_FOLDER}")
 
-SET(CMAKE_INSTALL_PREFIX "${COSMOS_INSTALL_FOLDER}" CACHE PATH "default install path" FORCE )
+set(CMAKE_INSTALL_PREFIX "${COSMOS_INSTALL_FOLDER}" CACHE PATH "default install path" FORCE )
 message("Install: ${CMAKE_INSTALL_PREFIX}")
 
 
@@ -246,25 +266,25 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/math)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/support)
 
 # Device includes
-# Macro to find sub-directories
-MACRO(SUBDIRLIST result curdir)
-  FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
-  SET(dirlist "")
-  FOREACH(child ${children})
-    IF(IS_DIRECTORY ${curdir}/${child})
-        LIST(APPEND dirlist ${child})
-    ENDIF()
-  ENDFOREACH()
-  SET(${result} ${dirlist})
-ENDMACRO()
+# macro to find sub-directories
+macro(SUBDIRlist result curdir)
+  file(GLOB children RELATIVE ${curdir} ${curdir}/*)
+  set(dirlist "")
+  foreach(child ${children})
+    if(IS_DIRECTORY ${curdir}/${child})
+        list(APPEND dirlist ${child})
+    endif()
+  endforeach()
+  set(${result} ${dirlist})
+endmacro()
 
 # go into every device folder to find cmakelists
-SUBDIRLIST(DEVICEDIRS ${CMAKE_CURRENT_SOURCE_DIR}/libraries/device)
+SUBDIRlist(DEVICEDIRS ${CMAKE_CURRENT_SOURCE_DIR}/libraries/device)
 
 # Make sure includes in all folders are available
-FOREACH(subdir ${DEVICEDIRS})
+foreach(subdir ${DEVICEDIRS})
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/device/${subdir})
-ENDFOREACH()
+endforeach()
 
 
 # -----------------------------------------------
@@ -275,22 +295,22 @@ ENDFOREACH()
 
 # Establish libraries, both standard and device specific
 include(${CMAKE_SOURCE_DIR}/cmake/build_core_libs.cmake)
-SET(COSMOS_LIBS CosmosDeviceGeneral ${COSMOS_LIBS})
-FOREACH(subdir ${DEVICEDIRS})
+set(COSMOS_LIBS CosmosDeviceGeneral ${COSMOS_LIBS})
+foreach(subdir ${DEVICEDIRS})
     message(${subdir})
     add_subdirectory(${COSMOS_FOLDER}/core/libraries/device/${subdir} ${CMAKE_BINARY_DIR}/libraries/device/${subdir})
-    list(APPEND libraryList ${libraryName})
-    IF(${subdir} MATCHES "general")
-    ELSE()
-        SET(COSMOS_LIBS ${libraryName} ${COSMOS_LIBS})
+    list(APPEND librarylist ${libraryName})
+    if(${subdir} MATCHES "general")
+    else()
+        set(COSMOS_LIBS ${libraryName} ${COSMOS_LIBS})
 message("Setting " ${libraryName})
-    ENDIF()
-ENDFOREACH()
+    endif()
+endforeach()
 message("core: COSMOS_LIBS: " ${COSMOS_LIBS})
 
 # -----------------------------------------------
-MESSAGE("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-MESSAGE("CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
+message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+message("CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 
 # -----------------------------------------------
 # now that the libraries have been compiled let's add the cosmos-core programs

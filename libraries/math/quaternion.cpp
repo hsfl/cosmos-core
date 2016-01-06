@@ -31,252 +31,255 @@
 #include "math/quaternion.h"
 
 
+//! \addtogroup mathlib_functions
+//! @{
+
 namespace Cosmos {
-namespace Math {
+    namespace Math {
 
-Quaternion::Quaternion()
-{
-    // by default create the identity quaternion
-    x = 0;
-    y = 0;
-    z = 0;
-    w = 1;
-}
+        Quaternion::Quaternion()
+        {
+            // by default create the identity quaternion
+            x = 0;
+            y = 0;
+            z = 0;
+            w = 1;
+        }
 
-Quaternion::Quaternion(double qx, double qy, double qz, double qw)
-{
-    x = qx;
-    y = qy;
-    z = qz;
-    w = qw;
-}
+        Quaternion::Quaternion(double qx, double qy, double qz, double qw)
+        {
+            x = qx;
+            y = qy;
+            z = qz;
+            w = qw;
+        }
 
-// TODO: change to Vector
-cvector Quaternion::vector()
-{
-    cvector o; // output
+        // TODO: change to Vector
+        cvector Quaternion::vector()
+        {
+            cvector o; // output
 
-    o.x = x;
-    o.y = y;
-    o.z = z;
+            o.x = x;
+            o.y = y;
+            o.z = z;
 
-    return o;
-}
-
-
-// same as q_conjugate(quaternion q)
-Quaternion Quaternion::conjugate()
-{
-    Quaternion o; // output
-
-    o.w = w;
-    o.x = -x;
-    o.y = -y;
-    o.z = -z;
-
-    return o;
-}
-
-// same as q_smult(double a, quaternion b)
-Quaternion Quaternion::multiplyScalar(double a)
-{
-    Quaternion c;
-
-    c.w = a * w;
-    c.x = a * x;
-    c.y = a * y;
-    c.z = a * z;
-
-    return c;
-}
+            return o;
+        }
 
 
-// function to easily convert from the Quaternion to quaternion
-// hopefully this function will be removed when the quaternion type
-// has been fully converted to Quaternion
-quaternion Quaternion::Quaternion2quaternion(Quaternion Q)
-{
-    quaternion q;
+        // same as q_conjugate(quaternion q)
+        Quaternion Quaternion::conjugate()
+        {
+            Quaternion o; // output
 
-    q.d.x = Q.x;
-    q.d.y = Q.y;
-    q.d.z = Q.z;
-    q.w = Q.w;
+            o.w = w;
+            o.x = -x;
+            o.y = -y;
+            o.z = -z;
 
-    return q;
-}
+            return o;
+        }
 
-// function to easily convert from the quaternion type to Quaternion
-// hopefully this function will be removed when the quaternion type
-// has been fully converted to Quaternion
-Quaternion Quaternion::quaternion2Quaternion(quaternion q)
-{
-    Quaternion Q;
+        // same as q_smult(double a, quaternion b)
+        Quaternion Quaternion::multiplyScalar(double a)
+        {
+            Quaternion c;
 
-    Q.x = q.d.x;
-    Q.y = q.d.y;
-    Q.z = q.d.z;
-    Q.w = q.w;
+            c.w = a * w;
+            c.x = a * x;
+            c.y = a * y;
+            c.z = a * z;
 
-    return Q;
-}
-
-// adition operator for quaternion class
-Quaternion Quaternion::operator+(const Quaternion& q)
-{
-    Quaternion q1, q2, q3;
-
-    q1 = *this;
-    q2 = q;
-
-    //    q3->x = q1.x + q2.x;
-    //    q3->y = q1.y + q2.y;
-    //    q3->z = q1.z + q2.z;
-    //    q3->w = q1.w + q2.w;
-
-    q3.x = q1.x + q2.x;
-    q3.y = q1.y + q2.y;
-    q3.z = q1.z + q2.z;
-    q3.w = q1.w + q2.w;
-
-    return q3;
-}
-
-// substraction operator for quaternion class
-Quaternion Quaternion::operator-(const Quaternion& q)
-{
-    Quaternion q1,q2,q3;
-
-    q1 = *this;
-    q2 = q;
-
-    q3.x = q1.x - q2.x;
-    q3.y = q1.y - q2.y;
-    q3.z = q1.z - q2.z;
-    q3.w = q1.w - q2.w;
-
-    return q3;
-}
-
-// product operator for quaternion class
-Quaternion Quaternion::operator*(const Quaternion& q)
-{
-    Quaternion q1,q2,q3;
-
-    q1 = *this;
-    q2 = q;
-
-    q3.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
-    q3.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
-    q3.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
-    q3.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
-
-    return q3;
-}
+            return c;
+        }
 
 
-std::ostream& operator<<(std::ostream& os, const Quaternion& q)
-{
-    //out << "[(";
-    os << q.x << ",";
-    os << q.y << ",";
-    os << q.z << ", ";
-    os << q.w;
-    //out << "]"; //<< std::endl;
-    return os;
-}
+        // function to easily convert from the Quaternion to quaternion
+        // hopefully this function will be removed when the quaternion type
+        // has been fully converted to Quaternion
+        quaternion Quaternion::Quaternion2quaternion(Quaternion Q)
+        {
+            quaternion q;
+
+            q.d.x = Q.x;
+            q.d.y = Q.y;
+            q.d.z = Q.z;
+            q.w = Q.w;
+
+            return q;
+        }
+
+        // function to easily convert from the quaternion type to Quaternion
+        // hopefully this function will be removed when the quaternion type
+        // has been fully converted to Quaternion
+        Quaternion Quaternion::quaternion2Quaternion(quaternion q)
+        {
+            Quaternion Q;
+
+            Q.x = q.d.x;
+            Q.y = q.d.y;
+            Q.z = q.d.z;
+            Q.w = q.w;
+
+            return Q;
+        }
+
+        // adition operator for quaternion class
+        Quaternion Quaternion::operator+(const Quaternion& q)
+        {
+            Quaternion q1, q2, q3;
+
+            q1 = *this;
+            q2 = q;
+
+            //    q3->x = q1.x + q2.x;
+            //    q3->y = q1.y + q2.y;
+            //    q3->z = q1.z + q2.z;
+            //    q3->w = q1.w + q2.w;
+
+            q3.x = q1.x + q2.x;
+            q3.y = q1.y + q2.y;
+            q3.z = q1.z + q2.z;
+            q3.w = q1.w + q2.w;
+
+            return q3;
+        }
+
+        // substraction operator for quaternion class
+        Quaternion Quaternion::operator-(const Quaternion& q)
+        {
+            Quaternion q1,q2,q3;
+
+            q1 = *this;
+            q2 = q;
+
+            q3.x = q1.x - q2.x;
+            q3.y = q1.y - q2.y;
+            q3.z = q1.z - q2.z;
+            q3.w = q1.w - q2.w;
+
+            return q3;
+        }
+
+        // product operator for quaternion class
+        Quaternion Quaternion::operator*(const Quaternion& q)
+        {
+            Quaternion q1,q2,q3;
+
+            q1 = *this;
+            q2 = q;
+
+            q3.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+            q3.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
+            q3.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
+            q3.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+
+            return q3;
+        }
 
 
-// copy *this quaternion into a new Quaternion object
-// basically this collapses (x,y,z,w) into a Quaternion object
-Quaternion Quaternion::getQuaternion()
-{
-    Quaternion o;
-    o.x = x;
-    o.y = y;
-    o.z = z;
-    o.w = w;
-
-    return o;
-}
-
-// calculate the angular rate given the current quaternion and it's derivative
-cvector Quaternion::omegaFromDerivative(Quaternion dq)
-{
-    cvector o; // output
-    Quaternion q = getQuaternion();
-    o = (dq * q.conjugate()).multiplyScalar(2.).vector();
-
-    return o;
-}
-
-//! compute the quaternion that represents the rotation from vector a to vector b
-//! Ref: - http://lolengine.net/blog/2013/09/18/beautiful-maths-quaternion-from-vectors
-void Quaternion::fromTwoVectors(Vector a, Vector b)
-{
-    // normalize the vectors in place
-    a.normalize();
-    b.normalize();
-
-    Vector w = a.cross(b);
-    Quaternion q = Quaternion(w.x, w.y, w.z, 1.f + a.dot(b));
-
-    q.normalize();
-
-    *this = q;
-}
-
-//! Normalizes the quaternion in place (*this)
-void Quaternion::normalize()
-{
-    double norm;
-
-    this->w = round(this->w/D_SMALL)*D_SMALL;
-    this->x = round(this->x/D_SMALL)*D_SMALL;
-    this->y = round(this->y/D_SMALL)*D_SMALL;
-    this->z = round(this->z/D_SMALL)*D_SMALL;
-
-    norm = this->norm();
-
-    if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
-    {
-        this->w /= norm;
-        this->x /= norm;
-        this->y /= norm;
-        this->z /= norm;
-    }
-}
-
-// ref: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-Vector Quaternion::toEuler(){
-
-    Vector euler;
-
-    this->normalize();
-
-    double sqx = this->x * this->x;
-    double sqy = this->y * this->y;
-    double sqz = this->z * this->z;
-    double phi   = atan2( 2.*(this->w*this->x + this->y*this->z), 1. - 2.*(sqx + sqy));
-    double theta = asin(  2.*(this->x*this->y - this->z*this->x) );
-    double psi   = atan2( 2.*(this->w*this->z + this->x*this->y), 1. - 2.*(sqy + sqz));
-
-    euler.x = phi;
-    euler.y = theta;
-    euler.z = psi;
-
-    return (euler);
-}
+        std::ostream& operator<<(std::ostream& os, const Quaternion& q)
+        {
+            //out << "[(";
+            os << q.x << ",";
+            os << q.y << ",";
+            os << q.z << ", ";
+            os << q.w;
+            //out << "]"; //<< std::endl;
+            return os;
+        }
 
 
+        // copy *this quaternion into a new Quaternion object
+        // basically this collapses (x,y,z,w) into a Quaternion object
+        Quaternion Quaternion::getQuaternion()
+        {
+            Quaternion o;
+            o.x = x;
+            o.y = y;
+            o.z = z;
+            o.w = w;
 
-//! return the norm of the quaternion's coefficients
-double Quaternion::norm()
-{
-    return ( sqrt(this->w*this->w + this->x*this->x + this->y*this->y + this->z*this->z) ) ;
-}
+            return o;
+        }
 
-} // end namespace Math
+        // calculate the angular rate given the current quaternion and it's derivative
+        cvector Quaternion::omegaFromDerivative(Quaternion dq)
+        {
+            cvector o; // output
+            Quaternion q = getQuaternion();
+            o = (dq * q.conjugate()).multiplyScalar(2.).vector();
+
+            return o;
+        }
+
+        //! compute the quaternion that represents the rotation from vector a to vector b
+        //! Ref: - http://lolengine.net/blog/2013/09/18/beautiful-maths-quaternion-from-vectors
+        void Quaternion::fromTwoVectors(Vector a, Vector b)
+        {
+            // normalize the vectors in place
+            a.normalize();
+            b.normalize();
+
+            Vector w = a.cross(b);
+            Quaternion q = Quaternion(w.x, w.y, w.z, 1.f + a.dot(b));
+
+            q.normalize();
+
+            *this = q;
+        }
+
+        //! Normalizes the quaternion in place (*this)
+        void Quaternion::normalize()
+        {
+            double norm;
+
+            this->w = round(this->w/D_SMALL)*D_SMALL;
+            this->x = round(this->x/D_SMALL)*D_SMALL;
+            this->y = round(this->y/D_SMALL)*D_SMALL;
+            this->z = round(this->z/D_SMALL)*D_SMALL;
+
+            norm = this->norm();
+
+            if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
+            {
+                this->w /= norm;
+                this->x /= norm;
+                this->y /= norm;
+                this->z /= norm;
+            }
+        }
+
+        // ref: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+        Vector Quaternion::toEuler(){
+
+            Vector euler;
+
+            this->normalize();
+
+            double sqx = this->x * this->x;
+            double sqy = this->y * this->y;
+            double sqz = this->z * this->z;
+            double phi   = atan2( 2.*(this->w*this->x + this->y*this->z), 1. - 2.*(sqx + sqy));
+            double theta = asin(  2.*(this->x*this->y - this->z*this->x) );
+            double psi   = atan2( 2.*(this->w*this->z + this->x*this->y), 1. - 2.*(sqy + sqz));
+
+            euler.x = phi;
+            euler.y = theta;
+            euler.z = psi;
+
+            return (euler);
+        }
+
+
+
+        //! return the norm of the quaternion's coefficients
+        double Quaternion::norm()
+        {
+            return ( sqrt(this->w*this->w + this->x*this->x + this->y*this->y + this->z*this->z) ) ;
+        }
+
+    } // end namespace Math
 } // end namespace Cosmos
 
 
@@ -640,11 +643,11 @@ quaternion q_change_around_cv(cvector around, double angle)
     sa = sin(angle);
 
     // normalize vector
-    // before it was normalize_cv(&around);
+    // before it was normalize_cv(around);
 
     double mag = around.x*around.x
-            + around.y*around.y
-            + around.z*around.z;
+                 + around.y*around.y
+                 + around.z*around.z;
 
     if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
     {
@@ -766,6 +769,8 @@ quaternion q_change_around(int axis,double angle)
 }
 
 
+//! @}
+
 // default operator for printing the quaternion values
 std::ostream& operator << (std::ostream& out, const quaternion& a)
 {
@@ -777,7 +782,7 @@ std::ostream& operator << (std::ostream& out, const quaternion& a)
     //out << std::setw(6);
     out << a.d.y << ",";
     //out << std::setw(6);
-    out << a.d.z << ",,";
+    out << a.d.z << ", ";
     //out << std::setw(6)
     out << a.w;
     //   << "]";

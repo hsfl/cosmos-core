@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	string jsp;
+	std::string jsp;
 
 	json_out_commandevent(jsp, com);
 	printf("%s\n", jsp.c_str());
