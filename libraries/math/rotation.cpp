@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "math/rotation.h"
+#include "rotation.h"
 
 //! \addtogroup mathlib_functions
 //! @{

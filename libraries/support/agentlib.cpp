@@ -1858,19 +1858,11 @@ bool Agent::setupServer()
         return false;
     }
 
-    //std::cout << "Agent server is on for " << nodeName << ":" << name << std::endl;
-
     std::cout << "------------------------------------------------------" << std::endl;
-    std::cout << "COSMOS AGENT [" <<  name << " on node " << nodeName << "]" << std::endl;
+    std::cout << "COSMOS AGENT '" <<  name << "' on node '" << nodeName << "'" << std::endl;
     std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
-    //std::cout << "------------------------------------------------------" << std::endl;
-
-    //std::cout << "================================================" << std::endl;
-    std::cout << "Agent server is running" << std::endl;
-
-    //std::cout << "================================================" << std::endl;
+    std::cout << "Agent server started at " << mjdToGregorian(currentmjd()) << std::endl;
     std::cout << "------------------------------------------------------" << std::endl;
-    std::cout << mjdToGregorian(currentmjd()) << std::endl;
 
     // if setup server was sucessfull
     return true;

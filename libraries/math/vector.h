@@ -30,8 +30,8 @@
 #ifndef _MATH_VECTOR_H
 #define _MATH_VECTOR_H
 
-//#include "math/types.h"
-#include "math/constants.h"
+//#include "types.h"
+#include "constants.h"
 
 #include <iostream>
 #include <iomanip>      // std::setw

@@ -30,9 +30,9 @@
 #ifndef _MATH_ROTATE_H
 #define _MATH_ROTATE_H
 
-#include "math/vector.h"
-#include "math/matrix.h"
-#include "math/quaternion.h"
+#include "vector.h"
+#include "matrix.h"
+#include "quaternion.h"
 
 // these came from the quaternion lib because they depend on matrix types
 cmatrix cm_quaternion2dcm(quaternion q);

@@ -30,10 +30,10 @@
 #ifndef _MATH_LSFIT_H
 #define _MATH_LSFIT_H
 
-#include "math/vector.h"
-#include "math/quaternion.h"
+#include "vector.h"
+#include "quaternion.h"
 // TODO: remove dependency from mathlib (uvector)
-#include "math/mathlib.h"
+#include "mathlib.h"
 
 #include <cstdint>
 #include <deque>

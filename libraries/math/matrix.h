@@ -31,7 +31,7 @@
 #ifndef _MATH_MATRIX_H
 #define _MATH_MATRIX_H
 
-#include "math/vector.h"
+#include "vector.h"
 
 //! 3x3 element generic matrix
 /*! 3 rvector elements representing 3 rows of a matrix

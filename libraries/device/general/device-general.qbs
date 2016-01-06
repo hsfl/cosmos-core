@@ -5,15 +5,18 @@ Product  {
     name: "CosmosDeviceGeneral"
     files: [ "*.cpp", "*.h" ]
 
+    Depends { name: "cpp" }
     cpp.includePaths : [
         '../../support/',
         '../../thirdparty/',
     ]
+//    cpp.cxxStandardLibrary : "libc++"
+    cpp.commonCompilerFlags : ["-std=c++11", "-stdlib=libc++"]
 
 
     Depends { name: "support" }
     Depends { name: "math" }
-    Depends { name: "cpp" }
+
 
     Export {
         Depends { name: "cpp" }

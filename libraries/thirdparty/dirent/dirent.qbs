@@ -1,6 +1,9 @@
 import qbs
 
 Product {
+
+    condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")
+
     type: "staticlibrary"
     name: "dirent"
     files: [ "*.c", "*.h" ]

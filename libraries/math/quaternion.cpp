@@ -28,7 +28,7 @@
 ********************************************************************/
 
 // TODO: convert to class
-#include "math/quaternion.h"
+#include "quaternion.h"
 
 
 //! \addtogroup mathlib_functions

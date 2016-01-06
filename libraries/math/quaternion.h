@@ -38,8 +38,8 @@
 #include <iomanip>      // std::setw
 
 // TODO: remove dependency
-#include "math/vector.h"
-#include "math/constants.h"
+#include "vector.h"
+#include "constants.h"
 
 //! Quaternion, scalar last, using x, y, z.
 /*! Can be thought of as ::rvector with scalar last. One can be set equal to other.

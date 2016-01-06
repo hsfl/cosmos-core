@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "math/matrix.h"
+#include "matrix.h"
 
 //! \addtogroup mathlib_functions
 //! @{

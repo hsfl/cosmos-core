@@ -1,6 +1,7 @@
 import qbs
 
 Project {
+
     references: [
         "thirdparty/zlib",
         "thirdparty/dirent",
@@ -11,5 +12,4 @@ Project {
         "device/vn100",
         "device/general"
     ]
-
 }

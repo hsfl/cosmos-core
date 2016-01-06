@@ -14,7 +14,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # define the project name
-set(PROJECT_NAME                COSMOS_CORE)
+set(PROJECT_NAME                cosmos-core)
 
 # Type of build
 set(CMAKE_BUILD_TYPE Debug) # Release or Debug
