@@ -1,6 +1,6 @@
 # COSMOS core 1.0.2 (beta)
 
-**Please note that the software and it's documenation are work in progress. If you find problems or no documentation for something you're looking for please let us know.**
+**Please note that the software and it's documentation are work in progress. If you find problems or no documentation for something you're looking for please let us know.**
 
 If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutorial](http://bitbucket.org/cosmos/tutorial). Also for the latest information on COSMOS refer to our website:
 [http://www.cosmos-project.org/](http://www.cosmos-project.org/). The cosmos-core api documentation is available on [http://cosmos-project.org/docs/core/current/](http://cosmos-project.org/docs/core/current/). There you will find more detailed instructions on how to compile the code in different architectures, some tutorials and the description for most classes and functions.
