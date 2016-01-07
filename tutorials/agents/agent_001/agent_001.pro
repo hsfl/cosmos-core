@@ -10,11 +10,10 @@ CONFIG -= qt
 CONFIG -= app_bundle
 CONFIG += c++11
 
+include( $$COSMOS_SOURCE_CORE/common.pri )
 
-#include( $$COSMOS_SOURCE_CORE/common.pri )
-
-MODULES += agentlib
-include( $$COSMOS_SOURCE_CORE/cosmos-core.pri )
+#MODULES += agentlib
+#include( $$COSMOS_SOURCE_CORE/cosmos-core.pri )
 
 SOURCES += agent_001.cpp
 
