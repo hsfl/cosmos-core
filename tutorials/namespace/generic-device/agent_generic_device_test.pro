@@ -10,9 +10,8 @@ CONFIG -= qt
 CONFIG -= app_bundle
 CONFIG += c++11
 
-message("----------------------------------------")
+#message("----------------------------------------")
 
-MODULES += agentlib
-include( $$COSMOS_SOURCE_CORE/cosmos-core.pri )
+include( $$COSMOS_SOURCE_CORE/common.pri )
 
 SOURCES += agent_generic_device_test.cpp

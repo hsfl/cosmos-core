@@ -7,10 +7,6 @@ CONFIG -= qt
 CONFIG -= app_bundle
 CONFIG += c++11
 
-SUBDIRS += agents
-
-# namespace tutorials
-SUBDIRS += namespace
-
-# physics
-#SUBDIRS += physics/propagator/propagator_simple.pro
+SUBDIRS += alias
+SUBDIRS += generic-device/agent_generic_device_neighbour.pro
+SUBDIRS += generic-device/agent_generic_device_test.pro

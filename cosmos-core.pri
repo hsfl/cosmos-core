@@ -3,8 +3,6 @@
 # if you are compiling with a GCC compiler we suggest that you add '-j'
 # to the make arguments to speed up the compilation time
 
-BUILD_WITH_LIBS = "yes"
-
 # The reason to keep the variable COSMOS_SOURCE_CORE instead of just COSMOS_SOURCE/core
 # is that if for any reason the core folder is not named "core" (ex: when downloading the master
 # from bitbucket and unzipping it out of place) then the user can still compile the code within core
@@ -14,32 +12,6 @@ COSMOS_SOURCE = $$COSMOS_SOURCE_CORE/..
 
 #message(" ")
 message("cosmos-core.pri >>")
-#--------------------------------------------------------------------
-# Windows config
-#--------------------------------------------------------------------
-win32 {
-    #message( "Building on Win32" )
-
-    # add libraries for MinGW
-    *-g++* {
-        #message("Compiler: MinGW")
-        LIBS += -lpthread -lwsock32 -lwinmm -lws2_32 -liphlpapi
-        QMAKE_CXXFLAGS += -Wall -pedantic -std=c++11 -pthread
-    }
-
-    *-msvc* {
-        #message("Compiler: MSVC")
-        LIBS += -lwsock32 -lwinmm -lws2_32 -liphlpapi
-
-        QMAKE_CXXFLAGS += -W4 -D_CRT_NONSTDC_NO_DEPRECATE
-
-        # include dirent for MSVC
-        INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent
-        SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/dirent.c
-        HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/dirent.h
-    }
-
-}
 
 
 ################################################################################
@@ -70,14 +42,6 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/support
 INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty
 INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/zlib
 INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
-
-#--------------------------------------------------------------------
-equals(BUILD_WITH_LIBS, "yes") {
-    message("Building the libraries")
-    LIBRARIESFOLDER = $$OUT_PWD/../../../libraries
-    message($$LIBRARIESFOLDER)
-    LIBS += -L$$LIBRARIESFOLDER -lCosmosSupport -lCosmosMath -lCosmosDeviceCpu -lzlib
-} else {
 
     #--------------------------------------------------------------------
     # Add all COSMOS support libraries
@@ -372,6 +336,33 @@ equals(BUILD_WITH_LIBS, "yes") {
         #INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty
     }
 
-} # end else
+
+#--------------------------------------------------------------------
+# Windows config
+#--------------------------------------------------------------------
+win32 {
+    #message( "Building on Win32" )
+
+    # add libraries for MinGW
+    *-g++* {
+        #message("Compiler: MinGW")
+        LIBS += -lpthread -lwsock32 -lwinmm -lws2_32 -liphlpapi
+        QMAKE_CXXFLAGS += -Wall -pedantic -std=c++11 -pthread
+    }
+
+    *-msvc* {
+        #message("Compiler: MSVC")
+        LIBS += -lwsock32 -lwinmm -lws2_32 -liphlpapi
+
+        QMAKE_CXXFLAGS += -W4 -D_CRT_NONSTDC_NO_DEPRECATE
+
+        # include dirent for MSVC
+        INCLUDEPATH     += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent
+        SOURCES         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/dirent.c
+        HEADERS         += $$COSMOS_SOURCE_CORE/libraries/thirdparty/dirent/dirent.h
+    }
+
+}
+
 
 message("")
