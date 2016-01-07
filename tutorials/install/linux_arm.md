@@ -62,10 +62,11 @@ $ sudo apt-get install g++-4.8-arm-linux-gnueabihf
 ```
 
 
-installing GDB for cross debugging in qt (python support) on Ubuntu 12.04
+installing GDB for cross debugging in qt (python support) 
 
 1. download gdb from http://www.gnu.org/software/gdb/download/
-current release is gdb 7.10.1
+recommended version is gdb 7.8
+http://ftp.gnu.org/gnu/gdb/gdb-7.8.tar.gz
 
 2. Extract and move to the extracted directory
 

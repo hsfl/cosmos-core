@@ -4880,7 +4880,9 @@ int32_t json_setup_node(std::string node, cosmosstruc *cdata, bool create_flag)
 
     if ((iretn=stat(fname.c_str(),&fstat)) == -1)
     {
-        return (NODE_ERROR_NODE);
+        std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
+        return (DATA_ERROR_NODES_FOLDER);
+        //return (NODE_ERROR_NODE);
     }
 
     if (fstat.st_size)
