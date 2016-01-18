@@ -42,7 +42,7 @@ please read the [core/docs/README.md](https://bitbucket.org/cosmos/core/src/mast
 documentation folder.
 
 ## Note 1 ##
-This is only valid for MinGW and GCC compilers (msvc uses Jom to handle multiple cores). To compile the code faster using all the cores on your machine go to Qt Creator -> Projects (icon on left side bar) -> Build Steps -> Make : Details (expand the icon) on arguments add "-j4" or whatever number of cores that your computer supports. In some cases you may have to add a space in between "-j 4".
+This is only valid for MinGW and GCC compilers (msvc uses Jom to handle multiple cores). To compile the code faster using all the cores on your machine go to Qt Creator -> Projects (icon on left side bar) -> Build Steps -> Make : Details (expand the icon) on arguments add "-j4" or whatever number of cores that your computer supports. In some cases you may have to add a space in between "-j 4". In some cases it is also possible to just add '-j' and the compiler will automatically use as many processes it can to compile. This approach works well on Windows but in linux it seems to freeze the computer. Use it with caution. If you really need super compilation times then install MSVC 2013 or above. See the results and make your decision.
 
 Compilation tests from cosmos-core.pro using a Win7 with Qt 5.5.1 MinGW 32 bit, AMD FX(tm)-8120 Eight Core Processor 3.11 GHz, 16 GB Ram, 64 bit OS
 
@@ -54,4 +54,4 @@ Desktop Qt 5.5.1 MinGW 32bit    | mingw32-make.exe -j8       | 8           | 1m 
 Desktop Qt 5.5.1 MinGW 32bit    | mingw32-make.exe -j9       | 8           | 1m 4s         | 
 Desktop Qt 5.5.1 MinGW 32bit    | mingw32-make.exe -j        | 8           | 58 s          | 
 Desktop Qt 5.5.1 MinGW 32bit    | jom.exe (custom step)      | 8           | 1m 16s        | 
-Desktop Qt 5.5.1 MSVC2013 64bit | jom.exe (default)          | 8           | 30s           | 
+Desktop Qt 5.5.1 MSVC2013 64bit | jom.exe (default)          | 8           | 30s           |
