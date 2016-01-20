@@ -47,7 +47,8 @@
 */
 // TODO: rename to row_vector
 // TODO: create a generic type of vector like: vector3 that can be accessed wither by .x, .y, .z or with [0], [1], [2]
-// TODO: consider using Eigen
+// TODO: consider using Eigen, no because Eigen is a heavily templated library and takes a long time to compile and has way more than needed
+// it can be used for specific projects that require it
 struct rvector
 {
     double col[3];

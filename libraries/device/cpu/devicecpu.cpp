@@ -36,13 +36,10 @@ DeviceCpu::DeviceCpu()
 double DeviceCpu::getLoad(){
 
 #if defined(COSMOS_LINUX_OS)
-    DeviceCpuLinux cpu;
-    load = cpu.getLoad1minAverage();
-
+    load = cpuLinux.getLoad1minAverage();
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    DeviceCpuWindows cpu;
     load = cpu.getLoad();
 #endif
 
@@ -53,13 +50,10 @@ double DeviceCpu::getLoad(){
 double DeviceCpu::getVirtualMemoryUsed(){
 
 #if defined(COSMOS_LINUX_OS)
-    DeviceCpuLinux cpu;
-    virtualMemoryUsed = cpu.getVirtualMemoryUsed();
-
+    virtualMemoryUsed = cpuLinux.getVirtualMemoryUsed();
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    DeviceCpuWindows cpu;
     virtualMemoryUsed = cpu.getVirtualMemoryUsed();
 #endif
     return virtualMemoryUsed;
@@ -70,12 +64,11 @@ double DeviceCpu::getVirtualMemoryUsed(){
 double DeviceCpu::getVirtualMemoryTotal(){
 
 #if defined(COSMOS_LINUX_OS)
-    DeviceCpuLinux cpu;
-    virtualMemoryTotal = cpu.getVirtualMemoryTotal();
+    virtualMemoryTotal = cpuLinux.getVirtualMemoryTotal();
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    DeviceCpuWindows cpu;
+    ;
     virtualMemoryTotal = cpu.getVirtualMemoryTotal();
 #endif
 
@@ -94,8 +87,7 @@ double DeviceCpu::getVirtualMemoryUsedPercent(){
 double DeviceCpu::getPercentUseForCurrentProcess(){
 
 #if defined(COSMOS_LINUX_OS)
-    DeviceCpuLinux cpu;
-    percentUseForCurrentProcess = cpu.getPercentUseForCurrentProcess();
+    percentUseForCurrentProcess = cpuLinux.getPercentUseForCurrentProcess();
 #endif
 
 #if defined(COSMOS_WIN_OS)
@@ -109,12 +101,10 @@ double DeviceCpu::getPercentUseForCurrentProcess(){
 std::string DeviceCpu::getHostName()
 {
 #if defined(COSMOS_LINUX_OS)
-    DeviceCpuLinux cpu;
-    hostName = cpu.getHostName();
+    hostName = cpuLinux.getHostName();
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    DeviceCpuWindows cpu;
     hostName = cpu.getHostName();
 #endif
 
@@ -129,6 +119,20 @@ std::string DeviceCpu::getHostName()
 // Linux
 // ----------------------------------------------
 #if defined(COSMOS_LINUX_OS)
+
+static clock_t lastCPU, lastSysCPU, lastUserCPU, lastCPU_;
+
+
+double get_cpu_time(){
+    return (double)clock() / CLOCKS_PER_SEC;
+}
+
+double getTimeInSec() {
+    timeval t;
+    gettimeofday(&t, NULL);
+    return (double)t.tv_sec + (double)t.tv_usec / 1000000.0;;
+}
+
 
 // simple function to collect the results from an exectuted command
 // used to get the information from 'ps'
@@ -150,6 +154,10 @@ std::string exec(std::string command) {
 DeviceCpuLinux::DeviceCpuLinux()
 {
     load1minAverage = 0.0;
+    //initCpuUtilization();
+
+    tic = getTimeInSec();
+    lastCPUtime  = get_cpu_time();
 }
 
 double DeviceCpuLinux::getLoad1minAverage()
@@ -172,6 +180,10 @@ double DeviceCpuLinux::getLoad1minAverage()
     return load;
 }
 
+
+
+
+
 // this function is to be called before getPercentUseForCurrentProcess
 // not really working properly, using 'ps' for now
 void DeviceCpuLinux::initCpuUtilization(){
@@ -180,9 +192,16 @@ void DeviceCpuLinux::initCpuUtilization(){
     struct tms timeSample;
     char line[128];
 
-    lastCPU = times(&timeSample);
-    lastSysCPU = timeSample.tms_stime;
-    lastUserCPU = timeSample.tms_utime;
+
+    // times is not working properly for some reason
+    //lastCPU = times(&timeSample);
+    //lastSysCPU = timeSample.tms_stime;
+    //lastUserCPU = timeSample.tms_utime;
+
+    //    tic = getTimeInSec();
+    //    lastCPUtime  = get_cpu_time();
+    //std::clock_t lastCPU_ = std::clock();
+    //lastCPUtime = getTimeInSec();
 
 
     file = fopen("/proc/cpuinfo", "r");
@@ -236,16 +255,44 @@ std::string DeviceCpuLinux::getCurrentProcessName(){
 
 float DeviceCpuLinux::getPercentUseForCurrentProcess()
 {
-    float percent;
 
-    // $ ps -C agent_cpu -o %cpu,%mem
-    // $ top -b -n 3 | grep agent_cpu
+
+    // $ ps -C agent_cpu -o %cpu,%mem --> cpu % for entire lifetime
+    // $ top -b -n 1 | grep agent_cpu --> current cpu %
 
     // the following core does not give
     // same results as top ... so let's use 'ps' to get this information
     //    struct tms timeSample;
     //    clock_t now;
 
+    //CLOCKS_PER_SEC;
+    //rusage us;
+    //getrusage(RUSAGE_SELF,us);
+
+    //    double te_real = getTimeInSec() - lastCPUtime;
+    //    double te_cpu  = (double)(clock() - lastCPU_)/CLOCKS_PER_SEC;
+
+
+    // update every 2 seconds
+    toc = getTimeInSec();
+    double elapsedTime =  toc - tic;
+    if (elapsedTime > 2){
+
+        //double elapsedTime = getTimeInSec() - tic;
+        double elapsedTimeCpu = get_cpu_time() - lastCPUtime;
+
+        //cout << "It took me " << te << " clicks (" << (double)te_cpu << " seconds), real time ";
+        //cout << (double)elapsedTime << " seconds" << endl;
+
+        percentCpu = (float)elapsedTimeCpu/elapsedTime * 100;
+        //std::cout << "%CPU " << percentCpu << std::endl;
+
+        tic = getTimeInSec();
+        lastCPUtime = get_cpu_time();
+    }
+
+    // because the function times is not working
+    //    // ----
     //    now = times(&timeSample);
     //    if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
     //            timeSample.tms_utime < lastUserCPU){
@@ -263,10 +310,57 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
     //    lastSysCPU = timeSample.tms_stime;
     //    lastUserCPU = timeSample.tms_utime;
 
-    using std::string;
+    // ------
+    //    lastCPU_ = clock();
+    //    lastCPUtime = getTimeInSec();
 
-    processName = getCurrentProcessName();
-    //string command = "ps -C "+ processName +" -o %cpu,%mem";
+    //    percent = te_cpu/te_real * 100;
+
+
+    //    // ------------------------------------------
+    //    // using top or ps
+    //    using std::string;
+
+    //    processName = getCurrentProcessName();
+
+    //    //percent = getPercentUseForCurrentProcessOverLifetime();
+
+    //    string procInfo = exec("top -b -n 1 | grep " + processName);
+
+    //    // typical response
+    //    // $ 30501 root      20   0 24416 4000 2068 S  6.8  0.8   0:41.99 agent_imu
+
+
+    //    std::string::iterator new_end = std::unique(procInfo.begin(), procInfo.end(),
+    //                                                [](char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); } // lambda function
+    //    );
+    //    procInfo.erase(new_end, procInfo.end());
+
+    //    // erase first space in case there is one
+    //    if (procInfo.at(0) == ' ') {
+    //        procInfo.erase(0,1);
+    //    }
+
+    //    if (procInfo.size() > 0) {
+    //        StringParser sp(procInfo,' ');
+    //        percent = sp.getFieldNumberAsDouble(9);
+    //    } else {
+    //        percent = -1.0;
+    //    }
+
+    return percentCpu;
+
+}
+
+
+
+
+float DeviceCpuLinux::getPercentUseForCurrentProcessOverLifetime(){
+    // ps -C agent_cpu -o %cpu gives the cpu percentage over the lifetime of the process
+    // can be usefull as a metric but for now let's just use the current process cpu
+    using std::string;
+    float percent;
+
     string procInfo = exec("ps -C "+ processName +" -o %cpu,%mem");
 
     // using 'ps' command
@@ -281,7 +375,6 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
         procInfo.erase(pos,1);
     }
 
-
     if (procInfo.size() > 0) {
         StringParser sp(procInfo);
         percent = sp.getFieldNumberAsDouble(1);
@@ -289,10 +382,7 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
         percent = -1.0;
     }
 
-    //    cout << procInfo << endl;
-
     return percent;
-
 }
 
 
