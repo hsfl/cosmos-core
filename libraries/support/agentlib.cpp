@@ -71,7 +71,7 @@ void heartbeat_loop(cosmosstruc *cdata);
 void request_loop(cosmosstruc *cdata);
 char * agent_parse_request(char *input);
 
-static DeviceCpu cpu;
+DeviceCpu cpu;
 
 //! \ingroup agentlib
 //! \defgroup agentlib_functions Agent Server and Client functions
@@ -723,8 +723,16 @@ void heartbeat_loop(cosmosstruc *cdata)
         // Compute other monitored quantities if monitoring
         if (((cosmosstruc *)cdata)->agent[0].stateflag == AGENT_STATE_MONITOR)
         {
-            ((cosmosstruc *)cdata)->agent[0].beat.cpu = cpu.getLoad();
+            // TODO: rename beat.cpu to beat.cpu_percent
+            // add beat.cpu_load
+            ((cosmosstruc *)cdata)->agent[0].beat.cpu = cpu.getPercentUseForCurrentProcess();//cpu.getLoad();
             ((cosmosstruc *)cdata)->agent[0].beat.memory = cpu.getVirtualMemoryUsed();
+        }
+
+        if (((cosmosstruc *)cdata)->agent[0].stateflag == AGENT_STATE_SHUTDOWN)
+        {
+            ((cosmosstruc *)cdata)->agent[0].beat.cpu = 0;
+            ((cosmosstruc *)cdata)->agent[0].beat.memory = 0;
         }
 
         ep.start();
@@ -766,7 +774,7 @@ void request_loop(cosmosstruc *cdata)
     char request[AGENTMAXBUFFER+1];
     uint32_t i;
 
-    if ((iretn=socket_open(&((cosmosstruc *)cdata)->agent[0].req,NetworkType::UDP,(char *)"",((cosmosstruc *)cdata)->agent[0].beat.port,AGENT_LISTEN,AGENT_BLOCKING,2000000)) < 0)
+    if ((iretn = socket_open(&((cosmosstruc *)cdata)->agent[0].req, NetworkType::UDP, (char *)"", ((cosmosstruc *)cdata)->agent[0].beat.port, AGENT_LISTEN, AGENT_BLOCKING, 2000000)) < 0)
     {
         return;
     }
@@ -1054,178 +1062,103 @@ int32_t agent_publish(cosmosstruc *cdata, NetworkType type, uint16_t port)
     {
     case NetworkType::MULTICAST:
     case NetworkType::UDP:
+    {
+        for (uint32_t i=0; i<AGENTMAXIF; i++)
+            cdata[0].agent[0].pub[i].cudp = -1;
+
+        if ((cdata[0].agent[0].pub[0].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
         {
-            for (uint32_t i=0; i<AGENTMAXIF; i++)
-                cdata[0].agent[0].pub[i].cudp = -1;
+            return (AGENT_ERROR_SOCKET);
+        }
 
-            if ((cdata[0].agent[0].pub[0].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
-            {
-                return (AGENT_ERROR_SOCKET);
-            }
-
-            // Use above socket to find available interfaces and establish
-            // publication on each.
-            cdata[0].agent[0].ifcnt = 0;
+        // Use above socket to find available interfaces and establish
+        // publication on each.
+        cdata[0].agent[0].ifcnt = 0;
 
 #if defined(COSMOS_WIN_OS)
-            struct sockaddr_storage ss;
-            int sslen;
-            INTERFACE_INFO ilist[20];
-            unsigned long nbytes;
-            uint32_t nif;
-            if (WSAIoctl(cdata[0].agent[0].pub[0].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
-            {
-                CLOSE_SOCKET(cdata[0].agent[0].pub[0].cudp);
-                return (AGENT_ERROR_DISCOVERY);
-            }
+        struct sockaddr_storage ss;
+        int sslen;
+        INTERFACE_INFO ilist[20];
+        unsigned long nbytes;
+        uint32_t nif;
+        if (WSAIoctl(cdata[0].agent[0].pub[0].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+        {
+            CLOSE_SOCKET(cdata[0].agent[0].pub[0].cudp);
+            return (AGENT_ERROR_DISCOVERY);
+        }
 
-            nif = nbytes / sizeof(INTERFACE_INFO);
-            for (uint32_t i=0; i<nif; i++)
+        nif = nbytes / sizeof(INTERFACE_INFO);
+        for (uint32_t i=0; i<nif; i++)
+        {
+            inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address));
+            //            strcpy(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+            if (!strcmp(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,"127.0.0.1"))
             {
-                inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address));
-                //            strcpy(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
-                if (!strcmp(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,"127.0.0.1"))
+                if (cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp >= 0)
                 {
-                    if (cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp >= 0)
-                    {
-                        CLOSE_SOCKET(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp);
-                        cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp = -1;
-                    }
+                    CLOSE_SOCKET(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp);
+                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp = -1;
+                }
+                continue;
+            }
+            // No need to open first socket again
+            if (cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp < 0)
+            {
+                if ((cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                {
                     continue;
                 }
-                // No need to open first socket again
-                if (cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp < 0)
-                {
-                    if ((cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
-                    {
-                        continue;
-                    }
-                }
-
-                memset(&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr,0,sizeof(struct sockaddr_in));
-                cdata[0].agent[0].pub[i].caddr.sin_family = AF_INET;
-                cdata[0].agent[0].pub[i].baddr.sin_family = AF_INET;
-                if (type == NetworkType::MULTICAST)
-                {
-                    sslen = sizeof(ss);
-                    WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                }
-                else
-                {
-                    if ((iretn = setsockopt(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                    {
-                        CLOSE_SOCKET(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp);
-                        continue;
-                    }
-
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-
-                    uint32_t ip, net, bcast;
-                    ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
-                    net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
-                    bcast = ip | (~net);
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr.S_un.S_addr = bcast;
-                }
-                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_port = htons(port);
-                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_port = htons(port);
-                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].type = type;
-                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cport = port;
-                cdata[0].agent[0].ifcnt++;
             }
+
+            memset(&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr,0,sizeof(struct sockaddr_in));
+            cdata[0].agent[0].pub[i].caddr.sin_family = AF_INET;
+            cdata[0].agent[0].pub[i].baddr.sin_family = AF_INET;
+            if (type == NetworkType::MULTICAST)
+            {
+                sslen = sizeof(ss);
+                WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+            }
+            else
+            {
+                if ((iretn = setsockopt(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                {
+                    CLOSE_SOCKET(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp);
+                    continue;
+                }
+
+                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+
+                uint32_t ip, net, bcast;
+                ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
+                net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
+                bcast = ip | (~net);
+                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr.S_un.S_addr = bcast;
+            }
+            cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_port = htons(port);
+            cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_port = htons(port);
+            cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].type = type;
+            cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cport = port;
+            cdata[0].agent[0].ifcnt++;
+        }
 #elif defined(COSMOS_MAC_OS)
-            struct ifaddrs *if_addrs = NULL;
-            struct ifaddrs *if_addr = NULL;
-            if (0 == getifaddrs(&if_addrs))
+        struct ifaddrs *if_addrs = NULL;
+        struct ifaddrs *if_addr = NULL;
+        if (0 == getifaddrs(&if_addrs))
+        {
+            for (if_addr = if_addrs; if_addr != NULL; if_addr = if_addr->ifa_next)
             {
-                for (if_addr = if_addrs; if_addr != NULL; if_addr = if_addr->ifa_next)
-                {
 
-                    if (if_addr->ifa_addr->sa_family != AF_INET)
-                    {
-                        continue;
-                    }
-                    inet_ntop(if_addr->ifa_addr->sa_family,&((struct sockaddr_in*)if_addr->ifa_addr)->sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address));
-                    memcpy((char *)&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr, (char *)if_addr->ifa_addr, sizeof(if_addr->ifa_addr));
-
-                    if ((if_addr->ifa_flags & IFF_POINTOPOINT) || (if_addr->ifa_flags & IFF_UP) == 0 || (if_addr->ifa_flags & IFF_LOOPBACK) || (if_addr->ifa_flags & (IFF_BROADCAST)) == 0)
-                    {
-                        continue;
-                    }
-
-                    // No need to open first socket again
-                    if (cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp < 0)
-                    {
-                        if ((cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
-                        {
-                            continue;
-                        }
-                    }
-
-                    if (type == NetworkType::MULTICAST)
-                    {
-                        inet_pton(AF_INET,AGENTMCAST,&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_addr);
-                        inet_pton(AF_INET,AGENTMCAST,&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr);
-                    }
-                    else
-                    {
-                        if ((iretn = setsockopt(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                        {
-                            CLOSE_SOCKET(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp);
-                            continue;
-                        }
-
-                        //                    if (ioctl(cdata[0].agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
-                        //                    {
-                        //                        continue;
-                        //                    }
-                        //                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr = cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr;
-                        memcpy((char *)&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr, (char *)if_addr->ifa_netmask, sizeof(if_addr->ifa_netmask));
-
-                        uint32_t ip, net, bcast;
-                        ip = cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_addr.s_addr;
-                        net = cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr.s_addr;
-                        bcast = ip | (~net);
-                        cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr.s_addr = bcast;
-                        inet_ntop(if_addr->ifa_netmask->sa_family,&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress));
-                    }
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_port = htons(port);
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_port = htons(port);
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].type = type;
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cport = port;
-                    cdata[0].agent[0].ifcnt++;
-                }
-                freeifaddrs(if_addrs);
-                if_addrs = NULL;
-            }
-#else
-            struct ifconf confa;
-            struct ifreq *ifra;
-            char data[512];
-
-            confa.ifc_len = sizeof(data);
-            confa.ifc_buf = (caddr_t)data;
-            if (ioctl(cdata[0].agent[0].pub[0].cudp,SIOCGIFCONF,&confa) < 0)
-            {
-                CLOSE_SOCKET(cdata[0].agent[0].pub[0].cudp);
-                return (AGENT_ERROR_DISCOVERY);
-            }
-            // Use result to discover interfaces.
-            ifra = confa.ifc_req;
-            for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
-            {
-                if (ifra->ifr_addr.sa_family != AF_INET)
+                if (if_addr->ifa_addr->sa_family != AF_INET)
                 {
                     continue;
                 }
-                inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address));
-                memcpy((char *)&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+                inet_ntop(if_addr->ifa_addr->sa_family,&((struct sockaddr_in*)if_addr->ifa_addr)->sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address));
+                memcpy((char *)&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr, (char *)if_addr->ifa_addr, sizeof(if_addr->ifa_addr));
 
-                if (ioctl(cdata[0].agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
-
-                if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
+                if ((if_addr->ifa_flags & IFF_POINTOPOINT) || (if_addr->ifa_flags & IFF_UP) == 0 || (if_addr->ifa_flags & IFF_LOOPBACK) || (if_addr->ifa_flags & (IFF_BROADCAST)) == 0)
                 {
                     continue;
                 }
@@ -1252,13 +1185,19 @@ int32_t agent_publish(cosmosstruc *cdata, NetworkType type, uint16_t port)
                         continue;
                     }
 
-                    if (ioctl(cdata[0].agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
-                    {
-                        continue;
-                    }
-                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr = cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr;
-                    inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress));
-                    inet_pton(AF_INET,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress,&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr);
+                    //                    if (ioctl(cdata[0].agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                    //                    {
+                    //                        continue;
+                    //                    }
+                    //                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr = cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr;
+                    memcpy((char *)&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr, (char *)if_addr->ifa_netmask, sizeof(if_addr->ifa_netmask));
+
+                    uint32_t ip, net, bcast;
+                    ip = cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_addr.s_addr;
+                    net = cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr.s_addr;
+                    bcast = ip | (~net);
+                    cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr.s_addr = bcast;
+                    inet_ntop(if_addr->ifa_netmask->sa_family,&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress));
                 }
                 cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_port = htons(port);
                 cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_port = htons(port);
@@ -1266,8 +1205,77 @@ int32_t agent_publish(cosmosstruc *cdata, NetworkType type, uint16_t port)
                 cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cport = port;
                 cdata[0].agent[0].ifcnt++;
             }
-#endif // COSMOS_WIN_OS
+            freeifaddrs(if_addrs);
+            if_addrs = NULL;
         }
+#else
+        struct ifconf confa;
+        struct ifreq *ifra;
+        char data[512];
+
+        confa.ifc_len = sizeof(data);
+        confa.ifc_buf = (caddr_t)data;
+        if (ioctl(cdata[0].agent[0].pub[0].cudp,SIOCGIFCONF,&confa) < 0)
+        {
+            CLOSE_SOCKET(cdata[0].agent[0].pub[0].cudp);
+            return (AGENT_ERROR_DISCOVERY);
+        }
+        // Use result to discover interfaces.
+        ifra = confa.ifc_req;
+        for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
+        {
+            if (ifra->ifr_addr.sa_family != AF_INET)
+            {
+                continue;
+            }
+            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].address));
+            memcpy((char *)&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+
+            if (ioctl(cdata[0].agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+
+            if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
+            {
+                continue;
+            }
+
+            // No need to open first socket again
+            if (cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp < 0)
+            {
+                if ((cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                {
+                    continue;
+                }
+            }
+
+            if (type == NetworkType::MULTICAST)
+            {
+                inet_pton(AF_INET,AGENTMCAST,&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_addr);
+                inet_pton(AF_INET,AGENTMCAST,&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr);
+            }
+            else
+            {
+                if ((iretn = setsockopt(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                {
+                    CLOSE_SOCKET(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cudp);
+                    continue;
+                }
+
+                if (ioctl(cdata[0].agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                {
+                    continue;
+                }
+                cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr = cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr;
+                inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress,sizeof(cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress));
+                inet_pton(AF_INET,cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddress,&cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_addr);
+            }
+            cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].caddr.sin_port = htons(port);
+            cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].baddr.sin_port = htons(port);
+            cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].type = type;
+            cdata[0].agent[0].pub[cdata[0].agent[0].ifcnt].cport = port;
+            cdata[0].agent[0].ifcnt++;
+        }
+#endif // COSMOS_WIN_OS
+    }
         break;
     default:
         return SOCKET_ERROR_PROTOCOL;
@@ -1308,131 +1316,131 @@ std::vector<socket_channel> agent_find_addresses(NetworkType ntype)
     {
     case NetworkType::MULTICAST:
     case NetworkType::UDP:
+    {
+        if ((cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
         {
-            if ((cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
-            {
-                return (iface);
-            }
+            return (iface);
+        }
 
-            // Use above socket to find available interfaces and establish
-            // publication on each.
+        // Use above socket to find available interfaces and establish
+        // publication on each.
 #ifdef COSMOS_WIN_OS
-            if (WSAIoctl(cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+        if (WSAIoctl(cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+        {
+            CLOSE_SOCKET(cudp);
+            return (iface);
+        }
+
+        nif = nbytes / sizeof(INTERFACE_INFO);
+        PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+        PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+        pAddresses = (IP_ADAPTER_ADDRESSES *) calloc(sizeof(IP_ADAPTER_ADDRESSES), 2*nif);
+        ULONG outBufLen = sizeof(IP_ADAPTER_ADDRESSES) * 2 * nif;
+        DWORD dwRetVal;
+        if ((dwRetVal=GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen)) == ERROR_BUFFER_OVERFLOW)
+        {
+            free(pAddresses);
+            return (iface);
+        }
+
+        for (uint32_t i=0; i<nif; i++)
+        {
+            inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
+            //            strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+            if (!strcmp(tiface.address,"127.0.0.1"))
             {
-                CLOSE_SOCKET(cudp);
-                return (iface);
+                continue;
             }
 
-            nif = nbytes / sizeof(INTERFACE_INFO);
-            PIP_ADAPTER_ADDRESSES pAddresses = NULL;
-            PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
-            pAddresses = (IP_ADAPTER_ADDRESSES *) calloc(sizeof(IP_ADAPTER_ADDRESSES), 2*nif);
-            ULONG outBufLen = sizeof(IP_ADAPTER_ADDRESSES) * 2 * nif;
-            DWORD dwRetVal;
-            if ((dwRetVal=GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen)) == ERROR_BUFFER_OVERFLOW)
+            pCurrAddresses = pAddresses;
+            while (pAddresses)
             {
-                free(pAddresses);
-                return (iface);
+                if (((struct sockaddr_in *)(pCurrAddresses->FirstUnicastAddress->Address.lpSockaddr))->sin_addr.s_addr == ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.s_addr)
+                {
+                    strcpy(tiface.name, pCurrAddresses->AdapterName);
+                    break;
+                }
+                pCurrAddresses = pCurrAddresses->Next;
             }
-
-            for (uint32_t i=0; i<nif; i++)
+            memset(&tiface.caddr,0,sizeof(struct sockaddr_in));
+            memset(&tiface.baddr,0,sizeof(struct sockaddr_in));
+            tiface.caddr.sin_family = AF_INET;
+            tiface.baddr.sin_family = AF_INET;
+            if (ntype == NetworkType::MULTICAST)
             {
-                inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
-                //            strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
-                if (!strcmp(tiface.address,"127.0.0.1"))
+                sslen = sizeof(ss);
+                WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+                tiface.caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+                tiface.baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+            }
+            else
+            {
+                if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                {
+                    continue;
+                }
+                ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
+                net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
+                bcast = ip | (~net);
+
+                tiface.caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                tiface.caddr.sin_addr.S_un.S_addr = ip;
+                tiface.baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                tiface.baddr.sin_addr.S_un.S_addr = bcast;
+            }
+            ((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
+            ssize = strlen(tiface.address);
+            WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
+            ssize = strlen(tiface.baddress);
+            WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
+            tiface.type = ntype;
+            iface.push_back(tiface);
+        }
+#else
+        confa.ifc_len = sizeof(data);
+        confa.ifc_buf = (caddr_t)data;
+        if (ioctl(cudp,SIOCGIFCONF,&confa) < 0)
+        {
+            CLOSE_SOCKET(cudp);
+            return (iface);
+        }
+        // Use result to discover interfaces.
+        ifra = confa.ifc_req;
+        for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
+        {
+            if (ifra->ifr_addr.sa_family != AF_INET) continue;
+            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
+
+            if (ioctl(cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+
+            if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0) continue;
+
+            if (ntype == NetworkType::MULTICAST)
+            {
+                inet_pton(AF_INET,AGENTMCAST,&tiface.caddr.sin_addr);\
+                strcpy(tiface.baddress, AGENTMCAST);
+                inet_pton(AF_INET,AGENTMCAST,&tiface.baddr.sin_addr);\
+            }
+            else
+            {
+                if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                 {
                     continue;
                 }
 
-                pCurrAddresses = pAddresses;
-                while (pAddresses)
-                {
-                    if (((struct sockaddr_in *)(pCurrAddresses->FirstUnicastAddress->Address.lpSockaddr))->sin_addr.s_addr == ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.s_addr)
-                    {
-                        strcpy(tiface.name, pCurrAddresses->AdapterName);
-                        break;
-                    }
-                    pCurrAddresses = pCurrAddresses->Next;
-                }
-                memset(&tiface.caddr,0,sizeof(struct sockaddr_in));
-                memset(&tiface.baddr,0,sizeof(struct sockaddr_in));
-                tiface.caddr.sin_family = AF_INET;
-                tiface.baddr.sin_family = AF_INET;
-                if (ntype == NetworkType::MULTICAST)
-                {
-                    sslen = sizeof(ss);
-                    WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-                    tiface.caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                    tiface.baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                }
-                else
-                {
-                    if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                    {
-                        continue;
-                    }
-                    ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
-                    net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
-                    bcast = ip | (~net);
-
-                    tiface.caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                    tiface.caddr.sin_addr.S_un.S_addr = ip;
-                    tiface.baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                    tiface.baddr.sin_addr.S_un.S_addr = bcast;
-                }
-                ((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
-                ssize = strlen(tiface.address);
-                WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
-                ssize = strlen(tiface.baddress);
-                WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
-                tiface.type = ntype;
-                iface.push_back(tiface);
+                strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
+                if (ioctl(cudp,SIOCGIFBRDADDR,(char *)ifra) < 0) continue;
+                memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
+                if (ioctl(cudp,SIOCGIFADDR,(char *)ifra) < 0) continue;
+                memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+                inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
             }
-#else
-            confa.ifc_len = sizeof(data);
-            confa.ifc_buf = (caddr_t)data;
-            if (ioctl(cudp,SIOCGIFCONF,&confa) < 0)
-            {
-                CLOSE_SOCKET(cudp);
-                return (iface);
-            }
-            // Use result to discover interfaces.
-            ifra = confa.ifc_req;
-            for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
-            {
-                if (ifra->ifr_addr.sa_family != AF_INET) continue;
-                inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
-
-                if (ioctl(cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
-
-                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0) continue;
-
-                if (ntype == NetworkType::MULTICAST)
-                {
-                    inet_pton(AF_INET,AGENTMCAST,&tiface.caddr.sin_addr);\
-                    strcpy(tiface.baddress, AGENTMCAST);
-                    inet_pton(AF_INET,AGENTMCAST,&tiface.baddr.sin_addr);\
-                }
-                else
-                {
-                    if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                    {
-                        continue;
-                    }
-
-                    strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
-                    if (ioctl(cudp,SIOCGIFBRDADDR,(char *)ifra) < 0) continue;
-                    memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
-                    if (ioctl(cudp,SIOCGIFADDR,(char *)ifra) < 0) continue;
-                    memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
-                    inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
-                }
-                tiface.type = ntype;
-                iface.push_back(tiface);
-            }
+            tiface.type = ntype;
+            iface.push_back(tiface);
+        }
 
 #endif // COSMOS_WIN_OS
-        }
+    }
         break;
     default:
         break;
@@ -1611,7 +1619,7 @@ int32_t agent_poll(cosmosstruc *cdata, pollstruc &meta, std::string &message, ui
             for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
             {
                 if (cdata[0].agent[0].sub.caddr.sin_port == cdata[0].agent[0].pub[i].caddr.sin_port &&
-                    cdata[0].agent[0].sub.caddr.sin_addr.s_addr == cdata[0].agent[0].pub[i].caddr.sin_addr.s_addr)
+                        cdata[0].agent[0].sub.caddr.sin_addr.s_addr == cdata[0].agent[0].pub[i].caddr.sin_addr.s_addr)
                 {
                     return 0;
                     break;
@@ -1858,10 +1866,12 @@ bool Agent::setupServer()
         return false;
     }
 
+    timeStart = currentmjd();
+
     std::cout << "------------------------------------------------------" << std::endl;
     std::cout << "COSMOS AGENT '" <<  name << "' on node '" << nodeName << "'" << std::endl;
     std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
-    std::cout << "Agent server started at " << mjdToGregorian(currentmjd()) << std::endl;
+    std::cout << "Agent server started at " << mjdToGregorian(timeStart) << std::endl;
     std::cout << "------------------------------------------------------" << std::endl;
 
     // if setup server was sucessfull
@@ -1972,9 +1982,14 @@ int32_t Agent::poll(uint8_t type, std::string &message)
 
 int32_t Agent::receive(uint8_t address, std::string &message)
 {
-    return poll(address, message);
+    poll(address, message);
+    return pollParse(message);
 }
 
+int32_t Agent::receiveAll(uint8_t address, std::string &message)
+{
+    return poll(address, message);
+}
 
 
 int32_t Agent::pollParse(std::string &message)
@@ -1998,7 +2013,7 @@ beatstruc Agent::find(std::string agent)
 
     beatstruc beat_agent = agent_find_server(cdata, nodeName, agent, timeout);
 
-    // TODO: improve the way we find the agent server
+    // TODO: improve the way we find the agent server, dont use utc
     if (beat_agent.utc == 0)
     {
         if (printMessages) {
@@ -2042,6 +2057,35 @@ beatstruc Agent::find(std::string node, std::string agent)
 
     return beat_agent;
 }
+
+/*!
+ * \brief Agent::log, function to log specific entries
+ * \param log_entry
+ */
+void Agent::log(std::string log_entry)
+{
+    std::string log_string = "";
+
+    // compute elapsed seconds since agent started
+    log_string += std::to_string((int)round((currentmjd()-timeStart)*86400));
+    log_string += ": ";
+    log_string += log_entry;
+
+    if(printMessages)
+    {
+        std::cout << log_string << std::endl;
+    }
+
+    // TODO: add option to turn on/off log
+    log_write(nodeName, name, timeStart, "agent", "log", log_string);
+}
+
+bool Agent::setSoh(std::string sohFields)
+{
+    return agent_set_sohstring(cdata, sohFields);
+}
+
+
 
 
 //! @}

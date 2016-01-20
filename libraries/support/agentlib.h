@@ -193,16 +193,18 @@ public:
     bool     multiflag   = false;
     float    timeoutSec  = 1.0;
     bool printMessages   = true; // by default?
+    double timeStart; // UTC starting time for this agent in MJD
 
     // poll
     pollstruc metaRx;
     std::string metaHeader;
 
-
     int32_t send(uint8_t address, std::string message);
     int32_t receive(uint8_t address, std::string &message);
+    int32_t receiveAll(uint8_t address, std::string &message);
 
-
+    void log(std::string log_entry);
+    bool setSoh(std::string sohFields);
 };
 
 
