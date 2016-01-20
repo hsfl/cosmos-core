@@ -4,7 +4,10 @@ CONFIG -= qt
 CONFIG -= app_bundle
 CONFIG += c++11
 
-SUBDIRS += dirent zlib
+SUBDIRS += zlib
 
-
+# include dirent for MSVC
+*-msvc* {
+    SUBDIRS += dirent
+}
 
