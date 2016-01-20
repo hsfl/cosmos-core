@@ -776,7 +776,8 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 #INPUT += mainpage.dox  
-INPUT += ../../README.md # this is the new index.md or mainpage
+INPUT += ../../README.md
+INPUT += libraries.dox  
 
 # tutorials
 INPUT += ../../tutorials/
