@@ -33,8 +33,6 @@
 
 #include "agentlib.h"
 #include "socketlib.h"
-//#include "device/cpu/cpu_lib.h"
-#include "device/cpu/devicecpu.h"
 #if defined (COSMOS_MAC_OS)
 #include <net/if.h>
 #include <net/if_dl.h>
@@ -71,7 +69,7 @@ void heartbeat_loop(cosmosstruc *cdata);
 void request_loop(cosmosstruc *cdata);
 char * agent_parse_request(char *input);
 
-DeviceCpu cpu;
+DeviceCpu deviceCpu_;
 
 //! \ingroup agentlib
 //! \defgroup agentlib_functions Agent Server and Client functions
@@ -725,8 +723,8 @@ void heartbeat_loop(cosmosstruc *cdata)
         {
             // TODO: rename beat.cpu to beat.cpu_percent
             // add beat.cpu_load
-            ((cosmosstruc *)cdata)->agent[0].beat.cpu = cpu.getPercentUseForCurrentProcess();//cpu.getLoad();
-            ((cosmosstruc *)cdata)->agent[0].beat.memory = cpu.getVirtualMemoryUsed();
+            ((cosmosstruc *)cdata)->agent[0].beat.cpu    = deviceCpu_.getPercentUseForCurrentProcess();//cpu.getLoad();
+            ((cosmosstruc *)cdata)->agent[0].beat.memory = deviceCpu_.getVirtualMemoryUsed();
         }
 
         if (((cosmosstruc *)cdata)->agent[0].stateflag == AGENT_STATE_SHUTDOWN)

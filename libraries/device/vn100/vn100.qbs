@@ -5,9 +5,9 @@ Product {
     name: "CosmosDeviceVn100"
     files: [ "*.cpp", "*.h" ]
 
-    Depends { name: "support" }
+    Depends { name: "CosmosSupport" }
     Depends { name: "CosmosDeviceGeneral" }
-    Depends { name: "math" }
+    Depends { name: "CosmosMath" }
     Depends { name: "zlib" }
 
     Depends { name: "cpp" }

@@ -3,13 +3,9 @@ import qbs
 Project {
 
     references: [
-        "thirdparty/zlib",
-        "thirdparty/dirent",
+        "thirdparty",
         "support",
         "math",
-        "device/cpu",
-        "device/disk",
-        "device/vn100",
-        "device/general"
+        "device",
     ]
 }

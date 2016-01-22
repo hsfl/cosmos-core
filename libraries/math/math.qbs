@@ -2,7 +2,7 @@ import qbs
 
 Product {
     type: "staticlibrary"
-    name: "math"
+    name: "CosmosMath"
     files: [ "*.cpp", "*.h" ]
 
     Depends { name: "cpp" }

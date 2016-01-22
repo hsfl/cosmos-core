@@ -31,11 +31,6 @@
 
 #include "configCosmos.h"
 
-//#ifdef _MSC_BUILD
-//#include "dirent/dirent.h"
-//#else
-//#include <dirent.h>
-//#endif
 #include <sys/stat.h>
 
 #include <stdio.h>
