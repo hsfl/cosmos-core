@@ -16,8 +16,8 @@ maintain the code compatibile with Windows and MacOS but it is not
 always guaranteed. If you find some bug in any platform please 
 report it. We have also installed sucessfully COSMOS in RHEL6.
  
-* Debian Installation: go to [install/linux-ubuntu.md](https://bitbucket.org/cosmos/core/src/master/tutorials/install/linux-ubuntu.md)
-* RHEL6 Installation: go to [install/linux-redhat.pdf](https://bitbucket.org/cosmos/core/src/master/tutorials/install/linux-redhat.pdf)
+* Debian Installation: go to [install/linux_ubuntu.md](https://bitbucket.org/cosmos/core/src/master/tutorials/install/linux_ubuntu.md)
+* RHEL6 Installation: go to [install/linux_redhat.pdf](https://bitbucket.org/cosmos/core/src/master/tutorials/install/linux_redhat.pdf)
 
 Git client suggestion: 
 gitg 
