@@ -5,7 +5,7 @@
 The COSMOS core is the basic element of the COSMOS project with the essential libraries and programs. The api documentation includes the descriptions of the basic support functions necessary to make COSMOS core work, as well as the most useful agent and support programs. The cosmos core is broadly divided into \ref programs and \ref libraries. 
  
 If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutorial](http://bitbucket.org/cosmos/tutorial). Also for the latest information on COSMOS refer to our website:
-[http://www.cosmos-project.org/](http://www.cosmos-project.org/). The cosmos-core api documentation is available on [http://cosmos-project.org/docs/core/current/](http://cosmos-project.org/docs/core/current/)  with instructions on how to compile the code in different architectures, the api structure, some tutorials and the description for most classes and functions.
+[http://www.cosmos-project.org/](http://www.cosmos-project.org/). The cosmos-core api documentation is available on [http://cosmos-project.org/docs/core/current/](http://cosmos-project.org/docs/core/current/)  with instructions on how to compile the code in different architectures, the api structure, some tutorials and the description for most classes and functions. Also, remember to update the code regularly ($ git pull) or "Pull" from SourceTree.
 
 Quick-start:
 
@@ -14,6 +14,7 @@ Quick-start:
 * Open Qt Creator and open the project file 'cosmos-core.pro' 
 * Configure your project (ex: on Windows it will be something like `Desktop Qt 5.5.1 MinGW 32 bit')
 * Optional step to compile the code faster. Please read note 1 if interested
+* (For Linux check note 2)
 * Build the project by pressing the "Build" button (hammer icon on left side of Qt Creator), or press 'ctrl+b'
 * Select agent_001. Click on the "Project" button (computer icon on left side of Qt Creator) and select agent_001
 * Run agent_001. Click on the "Run" button (big green icon on left side of Qt Creator) or press 'ctrl+r'
@@ -33,7 +34,8 @@ make sure you have the latest version of Cmake from [http://www.cmake.org/](http
 * Select Generator : ex: MinGW Generator (Desktop Qt 5.5.1 MinGW 32 bit)
 * Hit "Run CMake"
 * Optional step to compile the code faster. Please read note 1 if interested
-* on Targets select "install"
+* (For Linux check note 2)
+* Go to projects on the left sidebar. Under build steps, click on "Details", under "Targets" select "Install"
 * Build the project : ctrl + b and wait some minutes to finish
 * Check your "cosmos" folder (ex: C:\cosmos) to see the files that were installed
 
@@ -56,3 +58,6 @@ Desktop Qt 5.5.1 MinGW 32bit    | mingw32-make.exe -j9       | 8           | 1m 
 Desktop Qt 5.5.1 MinGW 32bit    | mingw32-make.exe -j        | 8           | 58 s          | 
 Desktop Qt 5.5.1 MinGW 32bit    | jom.exe (custom step)      | 8           | 1m 16s        | 
 Desktop Qt 5.5.1 MSVC2013 64bit | jom.exe (default)          | 8           | 30s           |
+
+## Note 2 ##
+Qt creator on Linux has an option to close the programs automatically when running another program. You will need to disable this behavior to run the two agents at the same time. Go to Tools > Options > Build and Run > General.  Change “Stop applications before building:” to None.
