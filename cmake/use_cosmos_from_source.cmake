@@ -10,7 +10,13 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
 
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/support             ${CMAKE_BINARY_DIR}/libraries/support/)
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/math                ${CMAKE_BINARY_DIR}/libraries/math/)
+
+
+    # -----------------------------------------------
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/thirdparty/zlib     ${CMAKE_BINARY_DIR}/libraries/zlib/)
+    if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC") #or just MSVC
+        add_subdirectory(${COSMOS_SOURCE}/core/libraries/thirdparty/dirent     ${CMAKE_BINARY_DIR}/libraries/dirent/)
+    endif()
 
     # -----------------------------------------------
     # import devices

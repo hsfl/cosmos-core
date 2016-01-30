@@ -86,7 +86,6 @@
 #include "jsonlib.h"
 #include "elapsedtime.h"
 
-//#include "device/cpu/cpu_lib.h"
 #include "device/cpu/devicecpu.h"
 
 #include <cstring>
