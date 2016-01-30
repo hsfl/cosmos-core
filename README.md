@@ -41,6 +41,7 @@ For more detailed instructions to get started with COSMOS
 please read the [core/docs/README.md](https://bitbucket.org/cosmos/core/src/master/docs/README.md) inside the 
 documentation folder.
 
+
 ## Note 1 ##
 This is only valid for MinGW and GCC compilers (msvc uses Jom to handle multiple cores). To compile the code faster using all the cores on your machine go to Qt Creator -> Projects (icon on left side bar) -> Build Steps -> Make : Details (expand the icon) on arguments add "-j4" or whatever number of cores that your computer supports. In some cases you may have to add a space in between "-j 4". In some cases it is also possible to just add '-j' and the compiler will automatically use as many processes it can to compile. This approach works well on Windows but in linux it seems to freeze the computer. Use it with caution. If you really need super compilation times then install MSVC 2013 or above. See the results and make your decision.
 
