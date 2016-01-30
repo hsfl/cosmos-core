@@ -35,7 +35,7 @@ make sure you have the latest version of Cmake from [http://www.cmake.org/](http
 * Hit "Run CMake"
 * Optional step to compile the code faster. Please read note 1 if interested
 * (For Linux check note 2)
-* on Targets select "install"
+* Go to projects on the left sidebar. Under build steps, click on "Details", under "Targets" select "Install"
 * Build the project : ctrl + b and wait some minutes to finish
 * Check your "cosmos" folder (ex: C:\cosmos) to see the files that were installed
 
