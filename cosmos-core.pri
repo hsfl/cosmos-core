@@ -8,6 +8,7 @@
 # from bitbucket and unzipping it out of place) then the user can still compile the code within core
 
 # define the COSMOS_SOURCE variable by default
+COSMOS_SOURCE_CORE = $$PWD
 COSMOS_SOURCE = $$COSMOS_SOURCE_CORE/..
 
 #message(" ")
