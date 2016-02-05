@@ -103,6 +103,8 @@ enum AGENT_STATE
 #define AGENTMAXHEARTBEAT 200
 //! Default AGENT socket RCVTIMEO (100 msec)
 #define AGENTRCVTIMEO 100000
+//! Default minium heartbeat period (10 msec)
+#define AGENT_HEARTBEAT_PERIOD_MIN 0.01
 
 //! Type of Agent Message. Types >128 are binary.
 enum AGENT_MESSAGE

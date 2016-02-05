@@ -44,6 +44,7 @@ PrintUtils::PrintUtils()
 void PrintUtils::reset()
 {
     // default values
+    printOn        = true; // start with a default printing behaviour
     precision      = -1; // start with no set precision
     fieldwidth     = -1; // start with no set fieldwidth
     scale          = 1;  // start with no scale factor
@@ -67,7 +68,9 @@ void PrintUtils::text(std::string text)
         out = text;
     }
 
-    std::cout << out;
+    if (printOn) {
+        std::cout << out;
+    }
 
     // add to full message
     fullMessage += out;
@@ -140,7 +143,9 @@ void PrintUtils::vector(
         out << delimiter;
     }
 
-    std::cout << out.str();
+    if (printOn) {
+        std::cout << out.str();
+    }
 
     fullMessage += out.str();
 }
@@ -244,7 +249,9 @@ void PrintUtils::scalar(
         out << delimiter;
     }
 
-    std::cout << out.str();
+    if (printOn) {
+        std::cout << out.str();
+    }
 
     fullMessage += out.str();
 }
@@ -383,53 +390,63 @@ void PrintUtils::vectorAndMag(std::string vector_name, rvector v, std::string su
 
     double magnitude = length_rv(v)*scale;
 
+    std::ostringstream out;
+
     if (delimiter_flag)
     {
-        std::cout << " M,";
+        out << " M,";
     }
     else
     {
-        std::cout << ", M,";
+        out << ", M,";
     }
 
     if (use_brackets)
     {
-        std::cout << "[";
+        out << "[";
     }
 
     if (precision != -1)
     {
-        std::cout << std::fixed;
-        std::cout << std::setprecision(precision);
+        out << std::fixed;
+        out << std::setprecision(precision);
     }
 
     if (fieldwidth != -1)
     {
-        std::cout << std::fixed;
-        std::cout << std::setw(fieldwidth) << magnitude;
+        out << std::fixed;
+        out << std::setw(fieldwidth) << magnitude;
     }
     else
     {
-        std::cout << magnitude;
+        out << magnitude;
     }
 
 
-    std::cout << suffix;
+    out << suffix;
 
     if (use_brackets)
     {
-        std::cout << "]";
+        out << "]";
     }
 
     if (delimiter_flag)
     {
-        std::cout << ",";
+        out << ",";
     }
     else
     {
-        std::cout << "";
+        out << "";
     }
 
+    // reset scale so that the next prints are not affected
+    scale = 1;
+
+    if (printOn) {
+        std::cout << out.str();
+    }
+
+    fullMessage += out.str();
 
 }
 
@@ -438,7 +455,7 @@ void PrintUtils::vectorAndMag(std::string vector_name, rvector v, std::string su
 // ----------------------------------------------
 // Quaternion prints
 
-void PrintUtils::quat(
+std::string PrintUtils::quat(
         std::string prefix,
         quaternion q,
         std::string suffix,
@@ -517,19 +534,24 @@ void PrintUtils::quat(
         out << delimiter;
     }
 
-    std::cout << out.str();
+    if (printOn) {
+        std::cout << out.str();
+    }
 
+    // add to the message so it can be printed later
     fullMessage += out.str();
 
     //std::cout << prefix << "[[" << q.d.x*scale << "," << q.d.y*scale <<  "," << q.d.z*scale << "] " << q.w*scale << "]" << text_suffix;
 
+    // return the string produced
+    return out.str();
 }
 
-void PrintUtils::quat(quaternion q)
+std::string PrintUtils::quat(quaternion q)
 {
     // this prints the quaternion q enclosed in brackets like this: [[x,y,z] w]
     //std::cout << q;
-    quat(prefix, q, suffix, -1, fieldwidth);
+    return quat(prefix, q, suffix, -1, fieldwidth);
 }
 
 void PrintUtils::quat(quaternion q, int precision)

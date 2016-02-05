@@ -104,14 +104,15 @@ public:
     void endline();
 
     // quaternions
-    void quat(std::string prefix, quaternion q, std::string suffix, int precision, int fieldwidth);
-    void quat(quaternion q);
+    std::string quat(std::string prefix, quaternion q, std::string suffix, int precision, int fieldwidth);
+    std::string quat(quaternion q);
     void quat(quaternion q, int precision);
     void quat(std::string prefix, quaternion q);
     void quat(std::string prefix, quaternion q, int precision);
     void quat(std::string prefix, quaternion q, std::string suffix, int precision);
 
-    //
+    // control flags
+    bool printOn; // to control printing
     int precision;
     int fieldwidth;
     double scale;

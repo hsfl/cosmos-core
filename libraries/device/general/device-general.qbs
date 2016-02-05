@@ -10,9 +10,9 @@ Product  {
         '../../support/',
         '../../thirdparty/',
     ]
+    cpp.cxxLanguageVersion : "c++11"
 //    cpp.cxxStandardLibrary : "libc++"
-    cpp.commonCompilerFlags : ["-std=c++11", "-stdlib=libc++"]
-
+//    cpp.commonCompilerFlags : ["-std=c++11", "-stdlib=libc++"]
 
     Depends { name: "support" }
     Depends { name: "math" }
