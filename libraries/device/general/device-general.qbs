@@ -14,8 +14,8 @@ Product  {
 //    cpp.cxxStandardLibrary : "libc++"
 //    cpp.commonCompilerFlags : ["-std=c++11", "-stdlib=libc++"]
 
-    Depends { name: "support" }
-    Depends { name: "math" }
+    Depends { name: "CosmosSupport" }
+    Depends { name: "CosmosMath" }
 
 
     Export {

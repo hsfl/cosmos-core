@@ -2,7 +2,7 @@ import qbs
 
 Product {
     type: "staticlibrary"
-    name: "device-cpu"
+    name: "CosmosDeviceCpu"
     files: [ "*.cpp", "*.h" ]
 
     Depends { name: "cpp" }
@@ -13,6 +13,6 @@ Product {
         cpp.includePaths: [product.sourceDirectory]
     }
 
-    Depends { name: "support" }
+    Depends { name: "CosmosSupport" }
 
 }

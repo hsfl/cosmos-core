@@ -65,7 +65,7 @@ enum class NetworkType : std::uint16_t
     //! Agent socket using Multicast UDP
     MULTICAST=0,
     //! Agent socket using Broadcast UDP
-    BROADCAST=2,
+    BROADCAST=2, // was previously AGENT_TYPE_BROADCAST
     //! Agent socket using Unicast UDP
     UDP=2,
     //! Agent socket using Unicast TCP

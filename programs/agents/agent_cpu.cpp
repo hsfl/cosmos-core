@@ -69,8 +69,9 @@ char sohstring[] = "{\"device_cpu_utc_000\",\"device_cpu_disk_000\",\"device_cpu
 
 // cosmos classes
 ElapsedTime et;
-DeviceCpu cpu;
 DeviceDisk disk;
+DeviceCpu deviceCpu;
+DeviceCpu cpu;
 
 Agent agent;
 
@@ -83,7 +84,7 @@ int main(int argc, char *argv[])
     {
     case 1:
     {
-        nodename = "cpu_" + cpu.getHostName();
+        nodename = "cpu_" + deviceCpu.getHostName();
     }
         break;
     case 2:
@@ -135,10 +136,10 @@ int main(int argc, char *argv[])
 
 int myagent()
 {
-    std::cout << agentname << " ...online " << std::endl;
-    ElapsedTime et;
-    et.start();
 
+    ElapsedTime et;
+
+    et.start();
 
     // Start performing the body of the agent
     while(agent.isRunning())
@@ -151,10 +152,10 @@ int myagent()
         if (agent.cdata[0].devspec.cpu_cnt)
         {
             // cpu
-            agent.cdata[0].devspec.cpu[0]->load   = cpu.getLoad();
-            agent.cdata[0].devspec.cpu[0]->mem    = cpu.getVirtualMemoryUsed();
-            agent.cdata[0].devspec.cpu[0]->maxmem = cpu.getVirtualMemoryTotal();
-            cpu.getPercentUseForCurrentProcess();
+            agent.cdata[0].devspec.cpu[0]->load   = deviceCpu.getLoad();
+            agent.cdata[0].devspec.cpu[0]->mem    = deviceCpu.getVirtualMemoryUsed();
+            agent.cdata[0].devspec.cpu[0]->maxmem = deviceCpu.getVirtualMemoryTotal();
+            deviceCpu.getPercentUseForCurrentProcess();
         }
 
         // TODO: add disk to node.ini
@@ -176,11 +177,11 @@ int myagent()
         }
 
         if (printStatus) {
-            cout << "Load," << cpu.load << ", ";
+            cout << "Load," << deviceCpu.load << ", ";
             cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
             cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
             cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
-            cout << "CPU Proc[%]," << cpu.percentUseForCurrentProcess << endl;
+            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
 
         }
 
@@ -240,25 +241,25 @@ int32_t request_diskFreePercent (char *request, char *response, void *)
 // cpu
 int32_t request_load (char *request, char* response, void *)
 {
-    return (sprintf(response, "%.2f", cpu.load));
+    return (sprintf(response, "%.2f", deviceCpu.load));
 }
 
 int32_t request_cpuProcess(char *request, char *response, void */*cdata*/){
 
-    return (sprintf(response, "%f", cpu.percentUseForCurrentProcess));
+    return (sprintf(response, "%f", deviceCpu.percentUseForCurrentProcess));
 }
 
 // ----------------------------------------------
 // memory
 int32_t request_mem(char *request, char* response, void *)
 {
-    return (sprintf(response, "%f", cpu.virtualMemoryUsed));
+    return (sprintf(response, "%f", deviceCpu.virtualMemoryUsed));
 }
 
 int32_t request_mempercent (char *request, char *response, void *)
 {
 
-    return (sprintf(response, "%f", cpu.getVirtualMemoryUsedPercent()));
+    return (sprintf(response, "%f", deviceCpu.getVirtualMemoryUsedPercent()));
 }
 
 

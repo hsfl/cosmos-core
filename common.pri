@@ -19,7 +19,7 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
 #message("Building the libraries")
 LIBRARIESFOLDER = $$OUT_PWD/../../../libraries
 #message($$LIBRARIESFOLDER)
-LIBS += -L$$LIBRARIESFOLDER -lCosmosSupport -lCosmosMath -lCosmosDeviceCpu -lzlib -ldirent
+LIBS += -L$$LIBRARIESFOLDER -lCosmosSupport -lCosmosMath -lCosmosDeviceCpu -lzlib
 
 #--------------------------------------------------------------------
 # Mac config
@@ -54,7 +54,7 @@ win32 {
 
     *-msvc* {
         #message("Compiler: MSVC")
-        LIBS += -lwsock32 -lwinmm -lws2_32 -liphlpapi
+        LIBS += -lwsock32 -lwinmm -lws2_32 -liphlpapi -ldirent
 
         QMAKE_CXXFLAGS += -W4 -D_CRT_NONSTDC_NO_DEPRECATE
 

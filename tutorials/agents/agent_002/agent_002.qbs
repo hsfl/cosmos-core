@@ -9,7 +9,7 @@ CppApplication {
     Depends { name: "zlib" }
     Depends { name: "support" }
     Depends { name: "math" }
-    Depends { name: "device-cpu" }
+    Depends { name: "CosmosDeviceCpu" }
 
 
     Group {

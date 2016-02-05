@@ -40,7 +40,7 @@ double DeviceCpu::getLoad(){
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    load = cpu.getLoad();
+    load = cpuWin.getLoad();
 #endif
 
     return load;
@@ -54,7 +54,7 @@ double DeviceCpu::getVirtualMemoryUsed(){
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    virtualMemoryUsed = cpu.getVirtualMemoryUsed();
+    virtualMemoryUsed = cpuWin.getVirtualMemoryUsed();
 #endif
     return virtualMemoryUsed;
 
@@ -69,7 +69,7 @@ double DeviceCpu::getVirtualMemoryTotal(){
 
 #if defined(COSMOS_WIN_OS)
     ;
-    virtualMemoryTotal = cpu.getVirtualMemoryTotal();
+    virtualMemoryTotal = cpuWin.getVirtualMemoryTotal();
 #endif
 
     return virtualMemoryTotal;
@@ -105,7 +105,7 @@ std::string DeviceCpu::getHostName()
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    hostName = cpu.getHostName();
+    hostName = cpuWin.getHostName();
 #endif
 
     return hostName;
