@@ -12,3 +12,4 @@ message("Building cosmos-core")
 
 SUBDIRS += libraries
 SUBDIRS += tutorials
+
