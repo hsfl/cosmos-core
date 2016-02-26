@@ -195,6 +195,7 @@ public:
     bool     multiflag   = false;
     float    timeoutSec  = 1.0;
     bool printMessages   = true; // by default?
+    bool logTime         = true; // by default
     double timeStart; // UTC starting time for this agent in MJD
 
     // poll

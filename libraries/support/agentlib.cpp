@@ -2073,9 +2073,13 @@ void Agent::log(std::string log_entry)
 {
     std::string log_string = "";
 
-    // compute elapsed seconds since agent started
-    log_string += std::to_string((int)round((currentmjd()-timeStart)*86400));
-    log_string += ",";
+    if(logTime)
+    {
+        // compute elapsed seconds since agent started
+        log_string += std::to_string((int)round((currentmjd()-timeStart)*86400));
+        log_string += ",";
+    }
+
     log_string += log_entry;
 
     if(printMessages)

@@ -27,6 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: rename calss from ElapseTime to StopWatch
 // change class elapsedtime to stopwatch with functions jsut like a stop watch:
 // - start
 // - stop
@@ -74,15 +75,19 @@ using std::endl;
 
 
 
-
+/*!
+ * \brief ElapsedTime::ElapsedTime
+ */
 ElapsedTime::ElapsedTime()
 {
     // by default start the timer
     start();
 }
 
-// new function
-// combines toc and print, this simplifies the calling of functions
+//
+/*!
+ * \brief ElapsedTime::info, combines toc and print, this simplifies the calling of functions
+ */
 void ElapsedTime::info(){
 #ifndef BUILD_TYPE_arm
     std::cout << "system_clock" << std::endl;
@@ -103,6 +108,9 @@ void ElapsedTime::info(){
 
 }
 
+/*!
+ * \brief ElapsedTime::printElapsedTime
+ */
 void ElapsedTime::printElapsedTime()
 {
     if (print){
@@ -113,6 +121,10 @@ void ElapsedTime::printElapsedTime()
     }
 }
 
+/*!
+ * \brief ElapsedTime::printElapsedTime
+ * \param text
+ */
 void ElapsedTime::printElapsedTime(std::string text)
 {
     if (print){
@@ -147,12 +159,17 @@ double ElapsedTime::lap()
 }
 
 
-// equivalent to matlab to start a stopwatch timer
+/*!
+ * \brief ElapsedTime::tic, equivalent to matlab to start a stopwatch timer
+ */
 void ElapsedTime::tic(){
     start();
 }
 
-// equivalent to matlab to stop a stopwatch timer
+/*!
+ * \brief ElapsedTime::toc, equivalent to matlab to stop a stopwatch timer
+ * \return
+ */
 double ElapsedTime::toc(){
 
     //    stop();
@@ -163,7 +180,11 @@ double ElapsedTime::toc(){
 }
 
 
-// equivalent to matlab to stop a stopwatch timer
+/*!
+ * \brief ElapsedTime::toc, equivalent to matlab to stop a stopwatch timer
+ * \param text
+ * \return
+ */
 double ElapsedTime::toc(std::string text)
 {
 
@@ -175,7 +196,9 @@ double ElapsedTime::toc(std::string text)
     return elapsedTime;
 }
 
-
+/*!
+ * \brief ElapsedTime::start
+ */
 void ElapsedTime::start()
 {
     //Get the start time
@@ -191,12 +214,22 @@ void ElapsedTime::start()
     elapsedTime = 0;
 }
 
+/*!
+ * \brief ElapsedTime::stop
+ * \return
+ */
+// TODO: if calling start again it should allow you to continue from the previous stop time
 double ElapsedTime::stop()
 {
+    //elapsedTime = 0;
     return split();
 }
 
-//was previously stop(){
+/*!
+ * \brief ElapsedTime::split, gets the current elapsed time since the start()
+ * \return
+ * was previously stop()
+ */
 double ElapsedTime::split()
 {
     //Get the final time
@@ -231,13 +264,16 @@ double ElapsedTime::getElapsedTime(){
 //    // compute the elapsed time given the startTimeMjd
 //    return (currentmjd()-startTimeMjd)*86400;
 //}
-
 double ElapsedTime::getElapsedTime(double startMjd, double endMjd)
 {
     // compute the elapsed time given the startTimeMjd
     return (endMjd-startMjd)*86400;
 }
 
+/*!
+ * \brief ElapsedTime::reset
+ */
+//TODO: just reset the timer values, don't start counting again
 void ElapsedTime::reset(){
     start();
 }
