@@ -10,10 +10,6 @@ SOURCES = *.cpp
 INCLUDEPATH += ../
 INCLUDEPATH += ../thirdparty/ # for zlib
 
-macx {
-    #message( "Building on MAC OS X" )
-    QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
-}
 
 DESTDIR = ../
 
@@ -36,4 +32,14 @@ win32 {
         # include dirent for MSVC
     }
 
+}
+
+macx {
+    #message( "Building on MAC OS X" )
+    QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
+}
+
+unix {
+    #message( "Building on Linux" )
+    QMAKE_CXXFLAGS += -std=c++11  # -stdlib=libc++
 }
