@@ -177,6 +177,8 @@ public:
 
     int32_t addRequest(std::string request, agent_request_function function);
     int32_t addRequest(std::string request, agent_request_function function, std::string synopsis, std::string description);
+
+    int32_t sendRequest(beatstruc beat, std::string request, std::string &response, double waitSec);
     int32_t sendRequest(beatstruc beat, std::string request, std::string &response);
 
     int32_t post(uint8_t type, std::string message);

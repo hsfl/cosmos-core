@@ -371,10 +371,10 @@ cosmosstruc* agent_setup_server(cosmosstruc* cdata, std::string name, double bpr
     strncpy(cdata[0].agent[0].beat.node, cdata[0].node.name, COSMOS_MAX_NAME);
     strncpy(cdata[0].agent[0].beat.proc, tname, COSMOS_MAX_NAME);
     //	cdata[0].agent[0].beat.ntype = ntype;
-    if (bprd >= .1)
+    if (bprd >= AGENT_HEARTBEAT_PERIOD_MIN)
         cdata[0].agent[0].beat.bprd = bprd;
     else
-        cdata[0].agent[0].beat.bprd = .1;
+        cdata[0].agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
     cdata[0].agent[0].stateflag = (uint16_t)AGENT_STATE_INIT;
     cdata[0].agent[0].beat.port = (uint16_t)port;
     cdata[0].agent[0].beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
@@ -711,13 +711,27 @@ cosmosstruc *agent_get_cosmosstruc(cosmosstruc *cdata)
  */
 void heartbeat_loop(cosmosstruc *cdata)
 {
-    ElapsedTime ep;
+    ElapsedTime timer_beat;
 
     while (((cosmosstruc *)cdata)->agent[0].stateflag)
     {
 
         // compute the jitter
-        ((cosmosstruc *)cdata)->agent[0].beat.jitter = ep.split() - ((cosmosstruc *)cdata)->agent[0].beat.bprd;
+        ((cosmosstruc *)cdata)->agent[0].beat.jitter = timer_beat.split() - ((cosmosstruc *)cdata)->agent[0].beat.bprd;
+        timer_beat.start();
+
+        // post comes first
+        ((cosmosstruc *)cdata)->agent[0].beat.utc = currentmjd(0.);
+        if (((cosmosstruc*)cdata)->agent[0].stateflag != AGENT_STATE_IDLE && !((cosmosstruc*)cdata)->agent[0].sohtable.empty())
+        {
+            agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT, json_of_table(hbjstring, ((cosmosstruc *)cdata)->agent[0].sohtable, ((cosmosstruc *)cdata)));
+        }
+        else
+        {
+            agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT,"");
+        }
+
+        // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
         // Compute other monitored quantities if monitoring
         if (((cosmosstruc *)cdata)->agent[0].stateflag == AGENT_STATE_MONITOR)
         {
@@ -733,26 +747,15 @@ void heartbeat_loop(cosmosstruc *cdata)
             ((cosmosstruc *)cdata)->agent[0].beat.memory = 0;
         }
 
-        ep.start();
 
-        ((cosmosstruc *)cdata)->agent[0].beat.utc = currentmjd(0.);
-        if (((cosmosstruc*)cdata)->agent[0].stateflag != AGENT_STATE_IDLE && !((cosmosstruc*)cdata)->agent[0].sohtable.empty())
+        if (((cosmosstruc *)cdata)->agent[0].beat.bprd < AGENT_HEARTBEAT_PERIOD_MIN)
         {
-            agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT, json_of_table(hbjstring, ((cosmosstruc *)cdata)->agent[0].sohtable, ((cosmosstruc *)cdata)));
-        }
-        else
-        {
-            agent_post(((cosmosstruc *)cdata), AGENT_MESSAGE_BEAT,"");
+            ((cosmosstruc *)cdata)->agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
         }
 
-        if (((cosmosstruc *)cdata)->agent[0].beat.bprd < .1)
+        if (timer_beat.split() <= ((cosmosstruc *)cdata)->agent[0].beat.bprd)
         {
-            ((cosmosstruc *)cdata)->agent[0].beat.bprd = .1;
-        }
-
-        if (ep.split() <= ((cosmosstruc *)cdata)->agent[0].beat.bprd)
-        {
-            COSMOS_SLEEP(((cosmosstruc *)cdata)->agent[0].beat.bprd - ep.split());
+            COSMOS_SLEEP(((cosmosstruc *)cdata)->agent[0].beat.bprd - timer_beat.split());
         }
     }
     agent_unpublish(((cosmosstruc *)cdata));
@@ -1877,6 +1880,7 @@ bool Agent::setupServer()
 
     std::cout << "------------------------------------------------------" << std::endl;
     std::cout << "COSMOS AGENT '" <<  name << "' on node '" << nodeName << "'" << std::endl;
+    std::cout << "Beat Period is " << beat_period << " sec, using request port " << port << std::endl;
     std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
     std::cout << "Agent server started at " << mjdToGregorian(timeStart) << std::endl;
     std::cout << "------------------------------------------------------" << std::endl;
@@ -1919,14 +1923,19 @@ uint16_t Agent::isRunning()
 }
 
 // replica of agent_send_request
-int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &response)
+int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &response, double waitSec = 1)
 {
     char response_c_str[300];
-    int32_t iretn = agent_send_request(beat, request.c_str(), response_c_str, 512, 2 );
+    int32_t iretn = agent_send_request(beat, request.c_str(), response_c_str, 512, waitSec );
 
     response = std::string(response_c_str);
 
     return iretn;
+}
+
+int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &response)
+{
+    return sendRequest(beat,request,response,1);;
 }
 
 // replica of agent_add_request
