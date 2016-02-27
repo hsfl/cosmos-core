@@ -4,7 +4,10 @@ Product  { // could be DynamicLibrary but at this point loading a dll does not s
     type: "staticlibrary"
     name: "CosmosSupport"
 
-    files: [ "*.cpp", "*.h" ]
+    files: [
+        "*.cpp",
+        "*.h",
+    ]
 
     Depends { name: "zlib" }
     Depends { name: "CosmosMath" }
