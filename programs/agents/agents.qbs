@@ -9,8 +9,8 @@ Project {
         files: "agent.cpp"
 
         Depends { name: "zlib" }
-        Depends { name: "support" }
-        Depends { name: "math" }
+        Depends { name: "CosmosSupport" }
+        Depends { name: "CosmosMath" }
         Depends { name: "CosmosDeviceCpu" }
         Depends { name: "CosmosDeviceDisk" }
         Depends { name: "CosmosDeviceVn100" }
@@ -60,8 +60,8 @@ Project {
         files: "agent_cpu.cpp"
 
         Depends { name: "zlib" }
-        Depends { name: "support" }
-        Depends { name: "math" }
+        Depends { name: "CosmosSupport" }
+        Depends { name: "CosmosMath" }
         Depends { name: "CosmosDeviceCpu" }
         Depends { name: "CosmosDeviceDisk" }
         Depends { name: "CosmosDeviceGeneral" }
@@ -95,8 +95,8 @@ Project {
         files: "agent_data.cpp"
 
         Depends { name: "zlib" }
-        Depends { name: "support" }
-        Depends { name: "math" }
+        Depends { name: "CosmosSupport" }
+        Depends { name: "CosmosMath" }
         Depends { name: "CosmosDeviceCpu" }
         Depends { name: "CosmosDeviceDisk" }
         Depends { name: "CosmosDeviceGeneral" }

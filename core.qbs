@@ -1,6 +1,7 @@
 import qbs
 
 Project {
+    name: "core"
     references: [
         "libraries",
     ]
