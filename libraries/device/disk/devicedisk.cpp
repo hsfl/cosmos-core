@@ -40,7 +40,7 @@ double DeviceDisk::getAll(std::string path)
 #if defined COSMOS_WIN_OS
     uint64_t freeSpace;
 
-    GetDiskFreeSpaceEx( (LPCSTR) path.c_str(),
+    GetDiskFreeSpaceExA( (LPCSTR) path.c_str(),
                         (PULARGE_INTEGER)&freeSpace,
                         (PULARGE_INTEGER)&Size,
                         (PULARGE_INTEGER)&Free);
