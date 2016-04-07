@@ -127,7 +127,11 @@ for (i=0; i<nodes.size(); ++i)
 	si.cb = sizeof(si);
 	ZeroMemory( &pi, sizeof(pi) );
 
+#if defined(COSMOS_WIN_BUILD_MSVC)
+        if (CreateProcess(NULL, (LPWSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+#else
         if (CreateProcess(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+#endif
 	{
 		strcpy(tempagent.beat.node,nodes[i].node.name);
 		tempagent.pid = pi.dwProcessId;
