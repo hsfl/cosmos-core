@@ -2,9 +2,9 @@ import qbs
 
 Project {
     references: [
-        "tutorials",
-        "programs",
-        "libraries",
+        "tutorials/tutorials.qbs",
+        "programs/programs.qbs",
+        "libraries/libraries.qbs",
     ]
 
 }

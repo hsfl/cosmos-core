@@ -7,8 +7,8 @@ CppApplication {
     files: "agent_001.cpp"
 
     Depends { name: "zlib" }
-    Depends { name: "support" }
-    Depends { name: "math" }
+    Depends { name: "CosmosSupport" }
+    Depends { name: "CosmosMath" }
     Depends { name: "CosmosDeviceCpu" }
 
     Depends {
