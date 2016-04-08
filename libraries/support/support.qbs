@@ -10,12 +10,14 @@ Product  { // could be DynamicLibrary but at this point loading a dll does not s
     ]
 
     Depends { name: "cpp" }
+    Depends { name: "CosmosMath" }
+    Depends { name: "CosmosDeviceCpu" }
+    Depends { name: "zlib" }
     Properties {
         condition: qbs.targetOS.contains("windows")
         cpp.minimumWindowsVersion: "6.0"
     }
     cpp.cxxLanguageVersion : "c++11"
-//    cpp.cxxStandardLibrary : "libc++" // -stdlib=libc++
     cpp.commonCompilerFlags : "-std=c++11"
 
     Export {

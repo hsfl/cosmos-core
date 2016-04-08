@@ -22,8 +22,12 @@ Project {
         }
 
         Depends { name: "cpp" }
+        Properties {
+            condition: qbs.targetOS.contains("windows")
+            cpp.minimumWindowsVersion: "6.0"
+        }
         cpp.cxxLanguageVersion : "c++11"
-        //cpp.cppFlags: "-std=c++11"
+        cpp.staticLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
 
 
         cpp.includePaths : [
@@ -108,6 +112,9 @@ Project {
 
         Depends { name: "cpp" }
         cpp.cxxLanguageVersion : "c++11"
+
+//        cpp.dynamicLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
+        cpp.staticLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
 
         cpp.includePaths : [
             '../../support/',

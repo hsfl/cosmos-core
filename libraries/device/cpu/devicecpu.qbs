@@ -13,6 +13,7 @@ Product {
         cpp.includePaths: [product.sourceDirectory]
     }
 
-    Depends { name: "CosmosSupport" }
+//    Depends { name: "CosmosSupport" }
+    cpp.includePaths: ["../../support/"]
 
 }

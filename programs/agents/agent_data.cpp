@@ -120,7 +120,7 @@ for (i=0; i<nodes.size(); ++i)
 	char command_line[100];
 	sprintf(command_line, "agent_node %s", (const char*)nodes[i].node.name);
 
-	STARTUPINFO si;
+    STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
 
 	ZeroMemory( &si, sizeof(si) );
@@ -130,7 +130,7 @@ for (i=0; i<nodes.size(); ++i)
 #if defined(COSMOS_WIN_BUILD_MSVC)
         if (CreateProcess(NULL, (LPWSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 #else
-        if (CreateProcess(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 #endif
 	{
 		strcpy(tempagent.beat.node,nodes[i].node.name);
