@@ -75,7 +75,7 @@
 //! this loop, you should call ::agent_shutdown_server.
 
 #include "configCosmos.h"
-#include "agentdef.h"
+#include "agent/agentdef.h"
 
 #include "cosmos-errno.h"
 #include "stringlib.h"

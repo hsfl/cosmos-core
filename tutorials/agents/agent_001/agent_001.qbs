@@ -10,6 +10,7 @@ CppApplication {
     Depends { name: "CosmosSupport" }
     Depends { name: "CosmosMath" }
     Depends { name: "CosmosDeviceCpu" }
+    Depends { name: "CosmosAgent" }
 
     Depends {
         condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")

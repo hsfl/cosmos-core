@@ -31,7 +31,7 @@
     \brief Agent support functions
 */
 
-#include "agentlib.h"
+#include "agent/agentlib.h"
 #include "socketlib.h"
 #if defined (COSMOS_MAC_OS)
 #include <net/if.h>

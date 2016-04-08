@@ -38,7 +38,7 @@
 
 #include "math/mathlib.h"
 #include "convertdef.h"
-#include "physicsdef.h"
+#include "physics/physicsdef.h"
 #include "socketlib.h"
 
 //! \ingroup jsonlib

@@ -35,8 +35,8 @@
 
 #include <stdio.h>
 
-#include "agentlib.h"
-#include "physicslib.h" // long term we may move this away
+#include "agent/agentlib.h"
+#include "physics/physicslib.h" // long term we may move this away
 #include "jsonlib.h"
 #include "datalib.h"
 #include <cstring>

@@ -11,7 +11,6 @@ Product  { // could be DynamicLibrary but at this point loading a dll does not s
 
     Depends { name: "cpp" }
     Depends { name: "CosmosMath" }
-    Depends { name: "CosmosDeviceCpu" }
     Depends { name: "zlib" }
     Properties {
         condition: qbs.targetOS.contains("windows")

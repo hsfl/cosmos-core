@@ -10,6 +10,7 @@ Project {
 
         Depends { name: "zlib" }
         Depends { name: "CosmosSupport" }
+        Depends { name: "CosmosAgent" }
         Depends { name: "CosmosMath" }
         Depends { name: "CosmosDeviceCpu" }
         Depends { name: "CosmosDeviceDisk" }
@@ -22,9 +23,17 @@ Project {
         }
 
         Depends { name: "cpp" }
+        // define the libraries to use with MINGW
         Properties {
-            condition: qbs.targetOS.contains("windows")
-            cpp.minimumWindowsVersion: "6.0"
+            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("mingw")
+            cpp.dynamicLibraries: ["pthread", "wsock32", "winmm", "ws2_32", "iphlpapi"]
+            cpp.minimumWindowsVersion: "7.0"
+        }
+
+        // define the libraries to use with MSVC
+        Properties {
+            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")
+            cpp.dynamicLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
         }
         cpp.cxxLanguageVersion : "c++11"
         cpp.staticLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
@@ -65,6 +74,7 @@ Project {
 
         Depends { name: "zlib" }
         Depends { name: "CosmosSupport" }
+        Depends { name: "CosmosAgent" }
         Depends { name: "CosmosMath" }
         Depends { name: "CosmosDeviceCpu" }
         Depends { name: "CosmosDeviceDisk" }
@@ -76,6 +86,18 @@ Project {
         }
 
         Depends { name: "cpp" }
+        // define the libraries to use with MINGW
+        Properties {
+            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("mingw")
+            cpp.dynamicLibraries: ["pthread", "wsock32", "winmm", "ws2_32", "iphlpapi"]
+            cpp.minimumWindowsVersion: "7.0"
+        }
+
+        // define the libraries to use with MSVC
+        Properties {
+            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")
+            cpp.dynamicLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
+        }
         cpp.cxxLanguageVersion : "c++11"
 
         cpp.includePaths : [
@@ -100,6 +122,7 @@ Project {
 
         Depends { name: "zlib" }
         Depends { name: "CosmosSupport" }
+        Depends { name: "CosmosAgent" }
         Depends { name: "CosmosMath" }
         Depends { name: "CosmosDeviceCpu" }
         Depends { name: "CosmosDeviceDisk" }
@@ -110,11 +133,21 @@ Project {
             name: "dirent"
         }
 
+        // define the libraries to use with MINGW
+        Properties {
+            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("mingw")
+            cpp.dynamicLibraries: ["pthread", "wsock32", "winmm", "ws2_32", "iphlpapi"]
+            cpp.minimumWindowsVersion: "7.0"
+        }
+
+        // define the libraries to use with MSVC
+        Properties {
+            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")
+            cpp.dynamicLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
+        }
+
         Depends { name: "cpp" }
         cpp.cxxLanguageVersion : "c++11"
-
-//        cpp.dynamicLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
-        cpp.staticLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
 
         cpp.includePaths : [
             '../../support/',
@@ -129,29 +162,6 @@ Project {
     }
 
 
-    // define the libraries to use with MINGW
-    Properties {
-        condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("mingw")
-        cpp.dynamicLibraries: ["pthread", "wsock32", "winmm", "ws2_32", "iphlpapi"]
-        cpp.minimumWindowsVersion: "7.0"
-    }
-
-    // define the libraries to use with MSVC
-    Properties {
-        condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")
-        cpp.dynamicLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
-    }
-
 
 
 }
-
-//Product {
-
-//    name : "test"
-//    type: "application" // To suppress bundle generation on Mac
-//    consoleApplication: true
-//    files: "agent1.cpp"
-
-//}
-

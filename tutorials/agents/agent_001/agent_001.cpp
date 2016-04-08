@@ -41,7 +41,7 @@
 #include "configCosmos.h"
 #include "elapsedtime.h"
 #include "timeutils.hpp"
-#include "agentlib.h"
+#include "agent/agentlib.h"
 
 #include <iostream>
 #include <string>

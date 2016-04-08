@@ -9,6 +9,7 @@ CppApplication {
     Depends { name: "zlib" }
     Depends { name: "CosmosSupport" }
     Depends { name: "CosmosMath" }
+    Depends { name: "CosmosAgent" }
     Depends { name: "CosmosDeviceCpu" }
 
 
