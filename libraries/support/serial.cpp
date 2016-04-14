@@ -1,5 +1,7 @@
 #include "serial.h"
+#if defined(COSMOS_WIN_OS)
 #include "Windows.h"
+#endif
 
 using std::cout;
 using std::endl;
@@ -18,7 +20,7 @@ Serial::Serial(string port, uint32_t baudrate)
 void Serial::open(){
     //    fd = ::open (port_.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 
-#if defined(_WIN32)
+#if defined(COSMOS_WIN_OS)
     handle = CreateFileA(port.c_str(),
                          GENERIC_READ | GENERIC_WRITE,
                          0,                 // no share
