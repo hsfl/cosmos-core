@@ -17,6 +17,7 @@ Product {
     cpp.cxxLanguageVersion : "c++11"
 
     Export {
+        Depends { name: "CosmosSupport" }
         Depends { name: "cpp" }
         cpp.includePaths: [ "./", "../"]
     }
