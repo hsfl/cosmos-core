@@ -164,6 +164,7 @@ public:
 
     // agent functions
     bool setupServer();
+    bool setupServer(std::string nodename, std::string agentname, double bprd);
     bool setupServer(std::string nodename, std::string agentname);
     bool setupClient(std::string nodename);
 

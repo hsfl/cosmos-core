@@ -505,17 +505,18 @@ double DeviceCpuWindows::getVirtualMemoryUsed()
 
 std::string DeviceCpuWindows::getHostName()
 {
-    TCHAR nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
+    char nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
     DWORD nameBufSize;
 
     nameBufSize = sizeof nameBuf - 1;
-    if (GetComputerName(nameBuf, &nameBufSize) == TRUE) {
+    if (GetComputerNameA(nameBuf, &nameBufSize) == TRUE) {
         _tprintf(_T("Device name is %s\n"), nameBuf);
     }
 
     //TODO: fix this
-    //return  std::string(nameBuf);
-    return  "";
+//    return  std::string(nameBuf);
+    std::string hostname = nameBuf;
+    return  hostname;
 }
 
 unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)

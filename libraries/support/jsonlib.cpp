@@ -70,7 +70,8 @@ std::vector <std::string> device_type_string
     "psen",
     "suchi",
     "cam",
-    "telem"
+    "telem",
+    "disk"
 };
 
 std::vector <std::string> port_type_string
@@ -4114,6 +4115,44 @@ int32_t json_skip_value(const char* &ptr)
         return 0;
 }
 
+int32_t json_set_number(double val, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata)
+{
+    uint8_t *data;
+    int32_t iretn = 0;
+
+    data = json_ptr_of_offset(offset,group,cdata);
+
+    switch (type)
+    {
+    case JSON_TYPE_UINT8:
+        *(uint8_t *)data = (uint8_t)val;
+        break;
+    case JSON_TYPE_INT8:
+        *(int8_t *)data = (int8_t)val;
+        break;
+    case JSON_TYPE_UINT16:
+        *(uint16_t *)data = (uint16_t)val;
+        break;
+    case JSON_TYPE_UINT32:
+        *(uint32_t *)data = (uint32_t)val;
+        break;
+    case JSON_TYPE_INT16:
+        *(int16_t *)data = (int16_t)val;
+        break;
+    case JSON_TYPE_INT32:
+        *(int32_t *)data = (int32_t)val;
+        break;
+    case JSON_TYPE_FLOAT:
+        *(float *)data = (float)val;
+        break;
+    case JSON_TYPE_TIMESTAMP:
+    case JSON_TYPE_DOUBLE:
+        *(double *)data = (double)val;
+        break;
+    }
+    return (iretn);
+}
+
 int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata)
 {
     std::string input;
@@ -5422,6 +5461,7 @@ uint16_t json_addbaseentry(cosmosstruc *cdata)
     json_addentry("device_bus_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,bus_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
     json_addentry("device_cam_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,cam_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
     json_addentry("device_cpu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,cpu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
+    json_addentry("device_disk_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,disk_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
     json_addentry("device_gps_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,gps_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
     json_addentry("device_htr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,htr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
     json_addentry("device_imu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,imu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVSPEC,cdata);
@@ -5641,10 +5681,10 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
         json_addentry("device_cpu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_uptime",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,uptime)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
-        json_addentry("device_cpu_maxmem",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxmem)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+        json_addentry("device_cpu_maxgib",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxgib)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_maxload",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxload)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_load",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,load)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-        json_addentry("device_cpu_mem",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,mem)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+        json_addentry("device_cpu_gib",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gib)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,boot_count)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_GROUP_DEVICE,cdata);
         cdata[0].devspec.cpu.push_back((cpustruc *)&cdata[0].device[i].cpu);
         cdata[0].devspec.cpu_cnt = (uint16_t)cdata[0].devspec.cpu.size();
@@ -5653,8 +5693,8 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosstruc *cdata)
         json_addentry("device_disk_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_disk_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_GROUP_DEVICE,cdata);
         json_addentry("device_disk_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-        json_addentry("device_disk_maxdisk",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,maxdisk)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
-        json_addentry("device_disk_disk",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,disk)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+        json_addentry("device_disk_maxgib",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,maxgib)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
+        json_addentry("device_disk_gib",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gib)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_GROUP_DEVICE,cdata);
         cdata[0].devspec.disk.push_back((diskstruc *)&cdata[0].device[i].disk);
         cdata[0].devspec.disk_cnt = (uint16_t)cdata[0].devspec.disk.size();
         break;
@@ -6494,7 +6534,7 @@ std::string json_list_of_soh(cosmosstruc* cdata)
     {
         sprintf(tempstring, ",\"device_cpu_utc_%03d\",\"device_cpu_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_cpu_disk_%03d\",\"device_cpu_mem_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i,i);
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
         result += tempstring;
     }
 
@@ -6673,6 +6713,14 @@ std::string json_list_of_soh(cosmosstruc* cdata)
     for (uint16_t i=0; i<cdata[0].devspec.cam_cnt; ++i)
     {
         sprintf(tempstring, ",\"device_cam_utc_%03d\",\"device_cam_temp_%03d\"", i, i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cdata[0].devspec.disk_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_disk_utc_%03d\",\"device_disk_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_disk_gib_%03d\"",i);
         result += tempstring;
     }
 
@@ -6954,6 +7002,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                         json_out_2d(jstring,(char *)"device_pload_key_name",j,k,cdata);
                         json_out_character(jstring, '\n');
                     }
+                    continue;
                 }
 
                 // Dump Sun sensors
@@ -6961,6 +7010,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                 {
                     json_out_1d(jstring,(char *)"device_ssen_align",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump IMU's
@@ -6968,6 +7018,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                 {
                     json_out_1d(jstring,(char *)"device_imu_align",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Reaction Wheel
@@ -6983,6 +7034,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rw_tc",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Magtorque Rods
@@ -7004,22 +7056,23 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     }
                     json_out_1d(jstring,(char *)"device_mtr_tc",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Computer systems
                 if (!strcmp(device_type_string[i].c_str(),"cpu"))
                 {
-                    json_out_1d(jstring,(char *)"device_cpu_maxdisk",j,cdata);
-                    json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_cpu_maxmem",j,cdata);
+                    json_out_1d(jstring,(char *)"device_cpu_maxgib",j,cdata);
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_cpu_maxload",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump GPS's
                 if (!strcmp(device_type_string[i].c_str(),"gps"))
                 {
+                    continue;
                 }
 
                 // Dump Antennas
@@ -7029,6 +7082,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_ant_minelev",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Receivers
@@ -7044,6 +7098,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rxr_opmode",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Transmitters
@@ -7059,6 +7114,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_txr_maxpower",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Transceivers
@@ -7076,6 +7132,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_tcv_maxpower",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump solar strings
@@ -7087,6 +7144,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_strg_max",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump batteries
@@ -7096,11 +7154,13 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_batt_eff",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Heaters
                 if (!strcmp(device_type_string[i].c_str(),"htr"))
                 {
+                    continue;
                 }
 
                 // Dump motors
@@ -7110,11 +7170,13 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_motr_max",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump temperature sensor
                 if (!strcmp(device_type_string[i].c_str(),"tsen"))
                 {
+                    continue;
                 }
 
                 // Dump thsters
@@ -7124,6 +7186,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_thst_align",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump propellant tanks
@@ -7131,16 +7194,19 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                 {
                     json_out_1d(jstring,(char *)"device_prop_cap",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Switch info
                 if (!strcmp(device_type_string[i].c_str(),"swch"))
                 {
+                    continue;
                 }
 
                 // Dump Rotor info
                 if (!strcmp(device_type_string[i].c_str(),"rot"))
                 {
+                    continue;
                 }
 
                 // Dump STT's
@@ -7148,6 +7214,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                 {
                     json_out_1d(jstring,(char *)"device_stt_align",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Motion Capture info
@@ -7155,6 +7222,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                 {
                     json_out_1d(jstring,(char *)"device_mcc_align",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Torque Rod Control Unit info
@@ -7167,17 +7235,19 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                         json_out_2d(jstring,(char *)"device_tcu_mcidx",j,k,cdata);
                         json_out_character(jstring, '\n');
                     }
+                    continue;
                 }
 
                 // Dump power bus
                 if (!strcmp(device_type_string[i].c_str(),"bus"))
                 {
-
+                    continue;
                 }
 
                 // Dump pressure sensor
                 if (!strcmp(device_type_string[i].c_str(),"psen"))
                 {
+                    continue;
                 }
 
                 // Dump SUCHI
@@ -7185,6 +7255,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                 {
                     json_out_1d(jstring,(char *)"device_suchi_align",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Cameras
@@ -7200,6 +7271,7 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_cam_flength",j,cdata);
                     json_out_character(jstring, '\n');
+                    continue;
                 }
 
                 // Dump Telemetry
@@ -7246,6 +7318,15 @@ const char *json_devices_specific(std::string &jstring, cosmosstruc *cdata)
                         json_out_character(jstring, '\n');
                         break;
                     }
+                    continue;
+                }
+
+                // Dump Disks
+                if (!strcmp(device_type_string[i].c_str(),"disk"))
+                {
+                    json_out_1d(jstring,(char *)"device_disk_maxgib",j,cdata);
+                    json_out_character(jstring, '\n');
+                    continue;
                 }
 
             }
@@ -7963,7 +8044,7 @@ void create_databases(cosmosstruc *cdata)
     fprintf(op,"DeviceIndex\tComponentIndex\tLoad\tMemoryUse\tMemoryFree\tDiskUse\n");
     for (i=0; i<cdata[0].devspec.cpu_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.8g\t%.8g\t%.8g\n",i,cdata[0].devspec.cpu[i]->gen.cidx,cdata[0].devspec.cpu[i]->maxmem,cdata[0].devspec.cpu[i]->load,cdata[0].devspec.cpu[i]->mem);
+        fprintf(op,"%d\t%d\t%.8g\t%.8g\t%.8g\n",i,cdata[0].devspec.cpu[i]->gen.cidx,cdata[0].devspec.cpu[i]->maxgib,cdata[0].devspec.cpu[i]->load,cdata[0].devspec.cpu[i]->gib);
     }
     fclose(op);
 
@@ -8282,7 +8363,7 @@ void load_databases(char *name, uint16_t type, cosmosstruc *cdata)
         i = 0;
         do
         {
-            iretn = fscanf(op,"%*d\t%hu\t%f\t%f\n",&cdata[0].devspec.cpu[i]->gen.cidx,&cdata[0].devspec.cpu[i]->maxmem,&cdata[0].devspec.cpu[i]->maxload);
+            iretn = fscanf(op,"%*d\t%hu\t%f\t%f\n",&cdata[0].devspec.cpu[i]->gen.cidx,&cdata[0].devspec.cpu[i]->maxgib,&cdata[0].devspec.cpu[i]->maxload);
             if (iretn > 0)
                 ++i;
         } while (iretn > 0);

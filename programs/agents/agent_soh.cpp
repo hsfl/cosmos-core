@@ -182,7 +182,7 @@ int myagent()
                 // get load average
                 cdata[0].devspec.cpu[0]->load = cpu.getLoad();
                 // get memory
-                cdata[0].devspec.cpu[0]->mem = cpu.getVirtualMemoryTotal();
+                cdata[0].devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
             }
 
             if (cdata[0].devspec.disk_cnt > 0)
@@ -191,8 +191,8 @@ int myagent()
                 {
                     // get disk usage information
                     disk.getAll(cdata->port[cdata->devspec.disk[i]->gen.portidx].name);
-                    cdata[0].devspec.disk[i]->disk = disk.Used;
-                    cdata[0].devspec.disk[i]->maxdisk = disk.Size;
+                    cdata[0].devspec.disk[i]->gib = disk.Used;
+                    cdata[0].devspec.disk[i]->maxgib = disk.Size;
                 }
             }
 

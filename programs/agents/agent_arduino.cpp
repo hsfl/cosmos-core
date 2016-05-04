@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
     // Start main thread
 	double nmjd;
-	int32_t sleept;
+//	int32_t sleept;
 
     // Initialize connection to arduino
     cssl_start();
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 }
 
 // the name of this fn will always be changed
-int32_t request_run_program(char *request, char* response, void *cdata)
+int32_t request_run_program(char *request, char* response, void *)
 {
 	int i;
 	int32_t iretn = 0;
