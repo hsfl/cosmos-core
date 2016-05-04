@@ -201,6 +201,7 @@ int main(int argc, char *argv[])
 
 	// configure camera- moved up to reflect accurate data down below
 	iretn = gige_readmem(handle,GIGE_REG_MODEL_NAME,GIGE_MAX_MODEL_NAME);
+    printf("Model: %s\n", (char *)handle->cack_mem.data);
 	bsize = handle->bestsize;
 	if( strncmp((char *)handle->cack_mem.data, "FLIR AX5", 8) == 0 )
 	{

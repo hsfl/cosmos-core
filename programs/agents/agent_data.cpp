@@ -198,7 +198,7 @@ return 0;
 }
 
 //Verify Login Info
-int32_t request_login(char *request, char* response, void *cdata)
+int32_t request_login(char *request, char* response, void *)
 {
 char user[COSMOS_MAX_NAME+1];
 char pass[COSMOS_MAX_NAME+1];
@@ -227,7 +227,7 @@ return 0;
 }
 
 // the name of this fn will always be changed
-int32_t request_getnodelist(char *request, char* response, void *cdata)
+int32_t request_getnodelist(char *, char* response, void *)
 {
 uint32_t i;
 
@@ -240,7 +240,7 @@ return 0;
 }
 
 //Takes event and stores to log
-int32_t request_log(char *request, char* response, void *cdata)
+int32_t request_log(char *request, char* , void *cdata)
 {
 FILE *log;
 uint16_t i;

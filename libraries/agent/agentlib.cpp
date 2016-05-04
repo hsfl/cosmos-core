@@ -1889,6 +1889,15 @@ bool Agent::setupServer()
     return true;
 }
 
+bool Agent::setupServer(std::string nodename, std::string agentname, double bprd)
+{
+    nodeName = nodename;
+    name = agentname;
+    beat_period = bprd;
+
+    return setupServer();
+}
+
 bool Agent::setupServer(std::string nodename, std::string agentname)
 {
     nodeName = nodename;

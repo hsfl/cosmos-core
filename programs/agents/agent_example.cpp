@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
         if (cdata[0].devspec.cpu_cnt)
         {
             cdata[0].devspec.cpu[0]->load = cpu.getLoad();
-            cdata[0].devspec.cpu[0]->mem = cpu.getVirtualMemoryTotal();
+            cdata[0].devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
         }
 
 		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);

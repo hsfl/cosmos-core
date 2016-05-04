@@ -211,15 +211,16 @@ double json_get_double(jsonentry *entry, cosmosstruc *cdata);
 
 std::string json_get_string_name(std::string token, cosmosstruc *cdata);
 
-int32_t json_set_int_name(int32_t value,char *token, cosmosstruc *cdata);
-int32_t json_set_uint_name(uint32_t value,char *token, cosmosstruc *cdata);
-int32_t json_set_double_name(double value,char *token, cosmosstruc *cdata);
-int32_t json_set_int_name_1d(int32_t value,char *token, uint16_t index1, cosmosstruc *cdata);
-int32_t json_set_uint_name_1d(uint32_t value,char *token, uint16_t index1, cosmosstruc *cdata);
-int32_t json_set_double_name_1d(double value,char *token, uint16_t index1, cosmosstruc *cdata);
-int32_t json_set_int_name_2d(int32_t value,char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
-int32_t json_set_uint_name_2d(uint32_t value,char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
-int32_t json_set_double_name_2d(double value,char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+//int32_t json_set_int_name(int32_t value,char *token, cosmosstruc *cdata);
+//int32_t json_set_uint_name(uint32_t value,char *token, cosmosstruc *cdata);
+//int32_t json_set_double_name(double value,char *token, cosmosstruc *cdata);
+//int32_t json_set_int_name_1d(int32_t value,char *token, uint16_t index1, cosmosstruc *cdata);
+//int32_t json_set_uint_name_1d(uint32_t value,char *token, uint16_t index1, cosmosstruc *cdata);
+//int32_t json_set_double_name_1d(double value,char *token, uint16_t index1, cosmosstruc *cdata);
+//int32_t json_set_int_name_2d(int32_t value,char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+//int32_t json_set_uint_name_2d(uint32_t value,char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+//int32_t json_set_double_name_2d(double value,char *token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
+int32_t json_set_number(double val, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata);
 
 int32_t json_scan(char *istring);
 
