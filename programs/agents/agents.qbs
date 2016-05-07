@@ -219,10 +219,6 @@ Project {
         Depends { name: "zlib" }
         Depends { name: "CosmosSupport" }
         Depends { name: "CosmosAgent" }
-//        Depends { name: "CosmosMath" }
-//        Depends { name: "CosmosDeviceCpu" }
-//        Depends { name: "CosmosDeviceDisk" }
-//        Depends { name: "CosmosDeviceGeneral" }
 
         Depends {
             condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")
