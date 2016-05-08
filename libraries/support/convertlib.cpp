@@ -967,12 +967,6 @@ void geoc2geod(cartpos &geoc, geoidpos &geod)
 */
 void pos_geoc2geod(locstruc *loc)
 {
-    double e2;
-    double st;
-    double ct, cn, sn;
-    double c, rp, a1, a2, a3, b1, b2, c1, c2, c3, rbc;
-    double p, phi, h, nh, rn;
-
     // Synchronize time
     if (0. == loc->pos.geoc.utc)
     {

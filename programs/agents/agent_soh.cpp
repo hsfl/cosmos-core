@@ -148,10 +148,10 @@ int myagent()
 
     //double mjd_start = currentmjd();
 
-#if !defined(COSMOS_WIN_OS)
-    FILE *fp;
-    struct statfs fsbuf;
-#endif
+//#if !defined(COSMOS_WIN_OS)
+//    FILE *fp;
+//    struct statfs fsbuf;
+//#endif
 
     state = 1;
     //	fmjd = 0.;
