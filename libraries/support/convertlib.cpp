@@ -905,7 +905,7 @@ void pos_geos2geoc(locstruc *loc)
 	\param geoc Source Geocentric position.
 	\param geod Destination Geodetic position.
 */
-void pos_geoc2geod(locstruc *loc)
+void geoc2geod(cartpos &geoc, geoidpos &geod)
 {
 	double e2;
 	double st;
@@ -913,41 +913,16 @@ void pos_geoc2geod(locstruc *loc)
 	double c, rp, a1, a2, a3, b1, b2, c1, c2, c3, rbc;
 	double p, phi, h, nh, rn;
 
-	// Synchronize time
-	if (0. == loc->pos.geoc.utc)
-	{
-        if (!std::isfinite(loc->utc))
-		{
-			return;
-		}
-		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
-	}
-	else
-	{
-        if (!std::isfinite(loc->pos.geoc.utc))
-		{
-			return;
-		}
-		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
-	}
-	
-	// Update time
-	loc->pos.geod.utc = loc->utc;
-
-	// Update pass
-	loc->pos.geod.pass = loc->pos.geoc.pass;
-
     // calculate geodetic longitude = atan2(py/px)
-    loc->pos.geod.s.lon = atan2(loc->pos.geoc.s.col[1], loc->pos.geoc.s.col[0]);
+    geod.s.lon = atan2(geoc.s.col[1], geoc.s.col[0]);
 
     // Calculate effects of oblate spheroid
     // TODO: Explain math
     // e2 (square of first eccentricity) = 1 - (1 - f)^2
 	e2 = (1. - FRATIO2);
-    p = sqrt(loc->pos.geoc.s.col[0]*loc->pos.geoc.s.col[0] +
-             loc->pos.geoc.s.col[1]*loc->pos.geoc.s.col[1]);
-    nh = sqrt(p*p + loc->pos.geoc.s.col[2]*loc->pos.geoc.s.col[2]) - REARTHM;
-	phi = atan2(loc->pos.geoc.s.col[2],p);
+    p = sqrt(geoc.s.col[0]*geoc.s.col[0] + geoc.s.col[1]*geoc.s.col[1]);
+    nh = sqrt(p*p + geoc.s.col[2]*geoc.s.col[2]) - REARTHM;
+    phi = atan2(geoc.s.col[2],p);
 	do
 	{
 		h = nh;
@@ -955,42 +930,81 @@ void pos_geoc2geod(locstruc *loc)
         // rn = radius of curvature in the vertical prime
 		rn = REARTHM / sqrt(1.-e2*st*st);
 		nh = p/cos(phi) - rn;
-        phi = atan( (loc->pos.geoc.s.col[2]/p)/(1.-e2*rn/(rn+h) ) );
+        phi = atan( (geoc.s.col[2]/p)/(1.-e2*rn/(rn+h) ) );
 	} while (fabs(nh-h) > .01);
 
-	loc->pos.geod.s.lat = phi;
-	loc->pos.geod.s.h = h;
+    geod.s.lat = phi;
+    geod.s.h = h;
 
     // TODO: Explain math
-	st = sin(loc->pos.geod.s.lat);
-	ct = cos(loc->pos.geod.s.lat);
-	sn = sin(loc->pos.geod.s.lon);
-	cn = cos(loc->pos.geod.s.lon);
+    st = sin(geod.s.lat);
+    ct = cos(geod.s.lat);
+    sn = sin(geod.s.lon);
+    cn = cos(geod.s.lon);
 
 	c = 1./sqrt(ct * ct + FRATIO2 * st *st);
-	rp = loc->pos.geod.s.h + REARTHM * FRATIO2 * c * c * c;
+    rp = geod.s.h + REARTHM * FRATIO2 * c * c * c;
 	a1 = ct * cn;
-	b1 = -loc->pos.geoc.s.col[1];
+    b1 = -geoc.s.col[1];
 	c1 = -st * cn * rp;
 	a2 = ct * sn;
-	b2 = loc->pos.geoc.s.col[0];
+    b2 = geoc.s.col[0];
 	c2 = -st * sn * rp;
 	a3 = st;
 	c3 = ct * rp;
 	rbc = (b1*c2 - b2*c1)/c3;
-	loc->pos.geod.v.h = (b2 * loc->pos.geoc.v.col[0] - b1 * loc->pos.geoc.v.col[1]
-						+ rbc * loc->pos.geoc.v.col[2])/(b2 * a1 - b1 * a2 + rbc*a3);
-	loc->pos.geod.v.lat = (loc->pos.geoc.v.col[2] - a3 * loc->pos.geod.v.h) / c3;
+    geod.v.h = (b2 * geoc.v.col[0] - b1 * geoc.v.col[1] + rbc * geoc.v.col[2])/(b2 * a1 - b1 * a2 + rbc*a3);
+    geod.v.lat = (geoc.v.col[2] - a3 * geod.v.h) / c3;
 	if (fabs(b1) > fabs(b2))
-		loc->pos.geod.v.lon = (loc->pos.geoc.v.col[0] - a1 * loc->pos.geod.v.h - c1 * loc->pos.geod.v.lat) / b1;
+        geod.v.lon = (geoc.v.col[0] - a1 * geod.v.h - c1 * geod.v.lat) / b1;
 	else
-		loc->pos.geod.v.lon = (loc->pos.geoc.v.col[1] - a2 * loc->pos.geod.v.h - c2 * loc->pos.geod.v.lat) / b2;
+        geod.v.lon = (geoc.v.col[1] - a2 * geod.v.h - c2 * geod.v.lat) / b2;
+}
 
-	// Determine magnetic field in Topocentric system
-	geomag_front(loc->pos.geod.s,mjd2year(loc->utc),&loc->bearth);
+//! Update locstruc GEOC to GEOD
+/*! Convert a Geocentric ::cartpos to a Geodetic ::geoidpos in the provided locstruc.
+    \param loc ::locstruc to be updated.
+*/
+void pos_geoc2geod(locstruc *loc)
+{
+    double e2;
+    double st;
+    double ct, cn, sn;
+    double c, rp, a1, a2, a3, b1, b2, c1, c2, c3, rbc;
+    double p, phi, h, nh, rn;
 
-	// Transform to ITRS
-	loc->bearth = transform_q(q_change_around_z(-loc->pos.geod.s.lon),transform_q(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
+    // Synchronize time
+    if (0. == loc->pos.geoc.utc)
+    {
+        if (!std::isfinite(loc->utc))
+        {
+            return;
+        }
+        loc->pos.geoc.utc = loc->pos.utc = loc->utc;
+    }
+    else
+    {
+        if (!std::isfinite(loc->pos.geoc.utc))
+        {
+            return;
+        }
+        loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+    }
+
+    // Update time
+    loc->pos.geod.utc = loc->utc;
+
+    // Update pass
+    loc->pos.geod.pass = loc->pos.geoc.pass;
+
+    // Update geodetic position
+    geoc2geod(loc->pos.geoc, loc->pos.geod);
+
+    // Determine magnetic field in Topocentric system
+    geomag_front(loc->pos.geod.s,mjd2year(loc->utc),&loc->bearth);
+
+    // Transform to ITRS
+    loc->bearth = transform_q(q_change_around_z(-loc->pos.geod.s.lon),transform_q(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
 
 }
 
@@ -999,57 +1013,67 @@ void pos_geoc2geod(locstruc *loc)
 	\param geod Source Geodetic position.
 	\param geoc Destination Geocentric position.
 */
-void pos_geod2geoc(locstruc *loc)
+void geod2geoc(geoidpos &geod, cartpos &geoc)
 {
 	double lst, dlst, r, c, s, c2, rp;
 	double cn, ct, sn, st;
 
-	// Synchroniz time
-	if (0. == loc->pos.geod.utc)
-	{
-        if (!std::isfinite(loc->utc))
-		{
-			return;
-		}
-		loc->pos.geod.utc = loc->pos.utc = loc->utc;
-	}
-	else
-	{
-        if (!std::isfinite(loc->pos.geod.utc))
-		{
-			return;
-		}
-		loc->utc = loc->pos.utc = loc->pos.geod.utc;
-	}
-
-	// Update time
-	loc->pos.geoc.utc = loc->pos.geod.utc = loc->pos.utc = loc->utc;
-
-	// Update pass
-	loc->pos.geoc.pass = loc->pos.geod.pass;
-
 	// Determine effects of oblate spheroid
-	ct = cos(loc->pos.geod.s.lat);
-	st = sin(loc->pos.geod.s.lat);
+    ct = cos(geod.s.lat);
+    st = sin(geod.s.lat);
 	c = 1./sqrt(ct * ct + FRATIO2 * st * st);
 	c2 = c * c;
 	s = FRATIO2 * c;
-	r = (REARTHM * c + loc->pos.geod.s.h) * ct;
+    r = (REARTHM * c + geod.s.h) * ct;
 
-	loc->pos.geoc.s.col[2] = (REARTHM * s + loc->pos.geod.s.h) * st;
+    geoc.s.col[2] = (REARTHM * s + geod.s.h) * st;
 
-	lst = loc->pos.geod.s.lon;
+    lst = geod.s.lon;
 	cn = cos(lst);
 	sn = sin(lst);
-	loc->pos.geoc.s.col[0] = r * cn;
-	loc->pos.geoc.s.col[1] = r * sn;
+    geoc.s.col[0] = r * cn;
+    geoc.s.col[1] = r * sn;
 
-	rp = loc->pos.geod.s.h + REARTHM * s * c2;
-	loc->pos.geoc.v.col[2] = st * loc->pos.geod.v.h + rp * ct * loc->pos.geod.v.lat;
+    rp = geod.s.h + REARTHM * s * c2;
+    geoc.v.col[2] = st * geod.v.h + rp * ct * geod.v.lat;
 
-	dlst = loc->pos.geod.v.lon;
-	loc->pos.geoc.v.col[0] = cn * ct * loc->pos.geod.v.h - loc->pos.geoc.s.col[1] * dlst - rp * cn * st * loc->pos.geod.v.lat;
-	loc->pos.geoc.v.col[1] = sn * ct * loc->pos.geod.v.h + loc->pos.geoc.s.col[0] * dlst - rp * sn * st * loc->pos.geod.v.lat;
+    dlst = geod.v.lon;
+    geoc.v.col[0] = cn * ct * geod.v.h - geoc.s.col[1] * dlst - rp * cn * st * geod.v.lat;
+    geoc.v.col[1] = sn * ct * geod.v.h + geoc.s.col[0] * dlst - rp * sn * st * geod.v.lat;
+}
+
+//! Update GEOD to GEOC in locstruc
+/*! Update the Geodetic ::geoidpos to a Geocentric ::cartpos in the provided locstruc.
+    \param loc ::locstruc to be updated.
+*/
+void pos_geod2geoc(locstruc *loc)
+{
+    // Synchroniz time
+    if (0. == loc->pos.geod.utc)
+    {
+        if (!std::isfinite(loc->utc))
+        {
+            return;
+        }
+        loc->pos.geod.utc = loc->pos.utc = loc->utc;
+    }
+    else
+    {
+        if (!std::isfinite(loc->pos.geod.utc))
+        {
+            return;
+        }
+        loc->utc = loc->pos.utc = loc->pos.geod.utc;
+    }
+
+    // Update time
+    loc->pos.geoc.utc = loc->pos.geod.utc = loc->pos.utc = loc->utc;
+
+    // Update pass
+    loc->pos.geoc.pass = loc->pos.geod.pass;
+
+    // Update the geocentric position
+    geod2geoc(loc->pos.geod, loc->pos.geoc);
 }
 
 //! Convert SCI to SELC
