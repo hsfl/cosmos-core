@@ -2,6 +2,7 @@
 #define DEVICEDISK_H
 
 #include "configCosmos.h"
+#include "jsondef.h"
 
 #include <cstdint> // uint64_t
 #ifndef COSMOS_MAC_OS

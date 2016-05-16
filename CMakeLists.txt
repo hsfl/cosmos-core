@@ -47,7 +47,8 @@ set(COSMOS_FOLDER ${PROJECT_SOURCE_DIR}/..)
 set(COSMOS_CORE ${CMAKE_SOURCE_DIR})
 
 # define what libraries you want to compile
-#set(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_AGENT              ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_MATH                 ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_DEVICES              ON)          #ON/OFF
@@ -248,7 +249,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # -----------------------------------------------
 # Extend COSMOS_LIBS with standard libraries
-set(COSMOS_LIBS  CosmosSupport CosmosMath zlib ${COSMOS_LIBS})
+set(COSMOS_LIBS  CosmosAgent CosmosPhysics CosmosSupport CosmosMath zlib ${COSMOS_LIBS})
 
 message("COSMOS_INSTALL_FOLDER: ${COSMOS_INSTALL_FOLDER}")
 
@@ -263,6 +264,8 @@ message("Install: ${CMAKE_INSTALL_PREFIX}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/thirdparty)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/math)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/agent)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/physics)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/support)
 
 # Device includes

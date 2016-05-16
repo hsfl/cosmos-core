@@ -7,5 +7,7 @@ Project {
         "support",
         "math",
         "device",
+        "physics",
+        "agent",
     ]
 }

@@ -42,9 +42,9 @@
 
 #include "configCosmos.h"
 #include <stdlib.h>
-#include "agentlib.h"
+#include "agent/agentlib.h"
 #include "jsonlib.h"
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "datalib.h"
 #include "sys/stat.h"
 //#ifdef _MSC_BUILD

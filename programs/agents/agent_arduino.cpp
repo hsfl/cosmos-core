@@ -27,20 +27,21 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// code from testbed/blank_agent.cpp
+// Support JSON coming from an Arduino with various devices connected
 
 #include "configCosmos.h"
 
-//#include <sys/vfs.h>
 #include <stdio.h>
 
 #include "agentlib.h"
 #include "devicecpu.h"
+#include "cssl_lib.h"
 
 int myagent();
 
-char agentname[COSMOS_MAX_NAME+1] = "example";
-char node[50] = "null";
+std::string agentname = "arduino";
+std::string node = "null";
+std::string comport = "//./";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 int32_t request_run_program(char *request, char* response, void *cdata); // extra request
 
@@ -51,63 +52,76 @@ cosmosstruc *cdata; // to access the cosmos data, will change later
 #define REQUEST_RUN_PROGRAM 0 // mst check
 
 // Here are some variables we will map to JSON names
-int32_t diskfree;
 int32_t stateflag;
 int32_t myport;
 
-DeviceCpu cpu;
+uint8_t buffer[400];
 
 int main(int argc, char *argv[])
 {
 	int32_t iretn;
 
-	// Check for other instance of this agent
-	if (argc == 2)
-		strcpy(node,argv[1]);
-
-	// Initialization stuff
-
+    if (argc == 3)
+    {
+        node = argv[1];
+        comport += argv[2];
+    }
+    else
+    {
+        printf("Usage: arduino_agent node comport\n");
+        exit (1);
+    }
 
 	// Initialize the Agent
-	// near future: support cubesat space protocol
-	// port number = 0 in this case, automatic assignment of port
-	if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
+    if (!(cdata = agent_setup_server(NetworkType::UDP,node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
+    {
+        printf("Error starting server\n");
 		exit (AGENT_ERROR_JSON_CREATE);
+    }
 
 	// Add additional requests
 	if ((iretn=agent_add_request(cdata, "runprogram",request_run_program)))
 		exit (iretn);
 
-	// Start main thread
-#if !defined(COSMOS_WIN_OS)
-	FILE *fp;
-	struct statfs fsbuf;
-#endif
+    // Setup Heartbeat information
+    char arduino_soh[2000] = "{\"device_imu_utc_000\",\"device_imu_accel_000\",\"device_imu_omega_000\",\"device_imu_mag_000\",\"device_imu_temp_000\"}";
+    agent_set_sohstring(cdata, arduino_soh);
+
+    // Start main thread
 	double nmjd;
-	int32_t sleept;
+//	int32_t sleept;
+
+    // Initialize connection to arduino
+    cssl_start();
+    cssl_t *serial = cssl_open(comport.c_str(), 115200, 8, 0, 1);
+    cssl_settimeout(serial, 0, .1);
 
 	// Start performing the body of the agent
 	nmjd = currentmjd(0.);
+    uint32_t counter = 0;
 	while(agent_running(cdata))
 	{
 		// Set beginning of next cycle;
 		nmjd += cdata[0].agent[0].aprd/86400.;
-		// Gather system information
-        if (cdata[0].devspec.cpu_cnt)
+
+        // Gather arduino data
+        iretn = cssl_getdata(serial, buffer, 400);
+        if (iretn > 0)
         {
-            cdata[0].devspec.cpu[0]->load = cpu.getLoad();
-            cdata[0].devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
+            std::string message = (char *)buffer;
+            json_parse(message, cdata);
+            printf("%u: %s\n", ++counter, buffer);
         }
 
-		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);
-		if (sleept < 0) sleept = 0;
-		COSMOS_USLEEP(sleept);
+//		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);
+//		if (sleept < 0) sleept = 0;
+//		COSMOS_USLEEP(sleept);
 	}
 	return 0;
 }
 
 // the name of this fn will always be changed
-int32_t request_run_program(char *request, char* response, void *cdata)
+int32_t request_run_program(char *request, char* response, void *)
 {
 	int i;
 	int32_t iretn = 0;

@@ -38,7 +38,7 @@
 
 #include "math/mathlib.h"
 #include "convertdef.h"
-#include "physicsdef.h"
+#include "physics/physicsdef.h"
 #include "socketlib.h"
 
 //! \ingroup jsonlib
@@ -541,6 +541,7 @@ enum PORT_TYPE
     PORT_TYPE_RS422 = 1,
     PORT_TYPE_ETHERNET = 2,
     PORT_TYPE_USB = 3,
+    PORT_TYPE_DRIVE = 4,
     PORT_TYPE_COUNT,
     PORT_TYPE_NONE = 65535
     };
@@ -1204,9 +1205,9 @@ struct cpustruc
 
     // memory
     //! Maximum memory capacity in GiB
-    float maxmem;
+    float maxgib;
     //! Current memory usage in GiB
-    float mem;
+    float gib;
 
     //! Number of reboots
     uint32_t boot_count;
@@ -1221,9 +1222,9 @@ struct diskstruc
 
     // disk
     //! Maximum disk capacity in GiB
-    float maxdisk;  // TODO: rename to diskSize, consider bytes?
+    float maxgib;  // TODO: rename to diskSize, consider bytes?
     //! Current disk usage in GiB
-    float disk; // TODO: rename to diskUsed, consider bytes?
+    float gib; // TODO: rename to diskUsed, consider bytes?
     // TODO: add diskFree
     //float diskFree;
 

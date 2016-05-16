@@ -33,7 +33,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "agentlib.h"
+#include "agent/agentlib.h"
 #include "gige_lib.h"
 #include "acq_a35.h"
 #include "elapsedtime.h"

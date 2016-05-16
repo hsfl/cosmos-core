@@ -35,8 +35,8 @@
 
 #include <stdio.h>
 
-#include "agentlib.h"
-#include "physicslib.h" // long term we may move this away
+#include "agent/agentlib.h"
+#include "physics/physicslib.h" // long term we may move this away
 #include "jsonlib.h"
 #include "datalib.h"
 #include <cstring>
@@ -120,7 +120,7 @@ for (i=0; i<nodes.size(); ++i)
 	char command_line[100];
 	sprintf(command_line, "agent_node %s", (const char*)nodes[i].node.name);
 
-	STARTUPINFO si;
+    STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
 
 	ZeroMemory( &si, sizeof(si) );
@@ -130,7 +130,7 @@ for (i=0; i<nodes.size(); ++i)
 #if defined(COSMOS_WIN_BUILD_MSVC)
         if (CreateProcess(NULL, (LPWSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 #else
-        if (CreateProcess(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 #endif
 	{
 		strcpy(tempagent.beat.node,nodes[i].node.name);
@@ -198,7 +198,7 @@ return 0;
 }
 
 //Verify Login Info
-int32_t request_login(char *request, char* response, void *cdata)
+int32_t request_login(char *request, char* response, void *)
 {
 char user[COSMOS_MAX_NAME+1];
 char pass[COSMOS_MAX_NAME+1];
@@ -227,7 +227,7 @@ return 0;
 }
 
 // the name of this fn will always be changed
-int32_t request_getnodelist(char *request, char* response, void *cdata)
+int32_t request_getnodelist(char *, char* response, void *)
 {
 uint32_t i;
 
@@ -240,7 +240,7 @@ return 0;
 }
 
 //Takes event and stores to log
-int32_t request_log(char *request, char* response, void *cdata)
+int32_t request_log(char *request, char* , void *cdata)
 {
 FILE *log;
 uint16_t i;

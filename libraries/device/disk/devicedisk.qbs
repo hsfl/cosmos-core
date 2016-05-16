@@ -14,5 +14,6 @@ Product {
     }
 
     Depends { name: "CosmosSupport" }
+    Depends { name: "CosmosMath" }
 
 }

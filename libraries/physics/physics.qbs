@@ -2,11 +2,13 @@ import qbs
 
 Product {
     type: "staticlibrary"
-    name: "CosmosMath"
+    name: "CosmosPhysics"
     files: [ "*.cpp", "*.h" ]
 
     Depends { name: "cpp" }
     cpp.cxxLanguageVersion : "c++11"
+
+    Depends { name: "zlib" }
 
     Export {
         Depends { name: "cpp" }

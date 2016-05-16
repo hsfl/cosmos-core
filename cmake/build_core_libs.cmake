@@ -1,10 +1,17 @@
 # -----------------------------------------------
+# Build Agent Library
+IF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
+    MESSAGE("Building Agent Library")
+        add_subdirectory(${COSMOS_CORE}/libraries/agent ${CMAKE_BINARY_DIR}/libraries/agent)
+        SET(LINK_LIBRARY_COSMOS_CORE_AGENT CosmosAgent)
+ENDIF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
+
 # Build Physics Library
-#IF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
-#    MESSAGE("Building Physics Library")
-#	add_subdirectory(${COSMOS_CORE}/libraries/physics ${CMAKE_BINARY_DIR}/libraries/physics)
-#	SET(LINK_LIBRARY_COSMOS_CORE_PHYSICS CosmosPhysics)
-#ENDIF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
+IF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
+    MESSAGE("Building Physics Library")
+        add_subdirectory(${COSMOS_CORE}/libraries/physics ${CMAKE_BINARY_DIR}/libraries/physics)
+        SET(LINK_LIBRARY_COSMOS_CORE_PHYSICS CosmosPhysics)
+ENDIF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
 
 
 # Build Math Library

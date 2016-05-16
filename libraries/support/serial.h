@@ -1,10 +1,11 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
+#include "configCosmos.h"
 #include <iostream>
 #include <cstdint>
 
-#if defined(_WIN32)
+#if defined(COSMOS_WIN_OS)
 #include "windows.h"
 #endif
 
@@ -17,7 +18,7 @@ public:
     string port;
     uint32_t baudrate;
 
-#if defined(_WIN32)
+#if defined(COSMOS_WIN_OS)
     HANDLE handle;
 #endif
     Serial();

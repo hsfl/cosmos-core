@@ -31,7 +31,7 @@
     \brief Agent support functions
 */
 
-#include "agentlib.h"
+#include "agent/agentlib.h"
 #include "socketlib.h"
 #if defined (COSMOS_MAC_OS)
 #include <net/if.h>
@@ -1887,6 +1887,15 @@ bool Agent::setupServer()
 
     // if setup server was sucessfull
     return true;
+}
+
+bool Agent::setupServer(std::string nodename, std::string agentname, double bprd)
+{
+    nodeName = nodename;
+    name = agentname;
+    beat_period = bprd;
+
+    return setupServer();
 }
 
 bool Agent::setupServer(std::string nodename, std::string agentname)

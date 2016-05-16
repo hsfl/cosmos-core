@@ -41,13 +41,13 @@
 #include "configCosmos.h"
 #include "elapsedtime.h"
 #include "timeutils.hpp"
-#include "agentlib.h"
+#include "agent/agentlib.h"
 
 #include <iostream>
 #include <string>
 using namespace std;
 
-int main(int argc, char *argv[])
+int main(int, char *argv[])
 {
 
     int32_t iretn;

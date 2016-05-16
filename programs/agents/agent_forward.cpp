@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-	if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)NULL,(char *)"forward",1.,AGENTRECVPORT,MAXBUFFERSIZE,AGENT_SINGLE)))
+    if (!(cdata = agent_setup_server(NetworkType::UDP,"","forward",5.,AGENTRECVPORT,MAXBUFFERSIZE,AGENT_SINGLE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
