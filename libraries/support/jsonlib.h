@@ -120,6 +120,7 @@
 
 cosmosstruc *json_create();
 int32_t json_clone(cosmosstruc *cdata);
+int32_t json_clone(cosmosstruc *cdata1, cosmosstruc *cdata2);
 void json_destroy(cosmosstruc *cdata);
 
 //uint16_t json_addequation(const char *text, cosmosstruc *cdata, uint16_t unit);
