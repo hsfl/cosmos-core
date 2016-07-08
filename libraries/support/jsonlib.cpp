@@ -79,7 +79,8 @@ std::vector <std::string> port_type_string
     "rs232",
     "rs422",
     "ethernet",
-    "usb"
+    "usb",
+    "path"
 };
 
 /*! \ingroup jsonlib
@@ -7502,122 +7503,115 @@ int32_t json_equation_map(std::string equation, cosmosstruc *cdata, jsonhandle *
 */
 int32_t json_clone(cosmosstruc *cdata)
 {
-    if (!cdata || !cdata[0].jmapped) return (JSON_ERROR_NOJMAP);
-
-    //#ifdef COSMOS_WIN_BUILD_MSVC
-    //	cdata[1].agent = cdata[0].agent;
-    //	cdata[1].device = cdata[0].device;
-    //	cdata[1].devspec = cdata[0].devspec;
-    //	cdata[1].emap = cdata[0].emap;
-    //	cdata[1].event = cdata[0].event;
-    //	cdata[1].glossary = cdata[0].glossary;
-    //	cdata[1].jmap = cdata[0].jmap;
-    //	cdata[1].jmapped = cdata[0].jmapped;
-    //	cdata[1].node = cdata[0].node;
-    //	cdata[1].physics = cdata[0].physics;
-    //	cdata[1].piece = cdata[0].piece;
-    //	cdata[1].port = cdata[0].port;
-    //	cdata[1].target = cdata[0].target;
-    //	cdata[1].tle = cdata[0].tle;
-    //	cdata[1].unit = cdata[0].unit;
-    //	cdata[1].user = cdata[0].user;
-    //	if (cdata[0].amap.size())
-    //	{
-    //		for (auto &entry : cdata[0].amap)
-    //		{
-    //			cdata[1].amap[entry.first] = entry.second;
-    //		}
-    //	}
-    //#else
-    cdata[1] = cdata[0];
-    //#endif
-    for (uint16_t i=0; i<cdata[1].node.device_cnt; ++i)
+    int32_t iretn;
+    if (!cdata || !cdata[0].jmapped)
     {
-        switch(cdata[1].device[i].all.gen.type)
+        return (JSON_ERROR_NOJMAP);
+    }
+    iretn = json_clone(&cdata[0], &cdata[1]);
+    return iretn;
+}
+
+//! Get cosmosstruc clone
+/*! Get a pointer to a clone of the internally stored main ::cosmosstruc.
+    \param clone Pointer to clone ::cosmosstruc.
+    \return Zero, or negative error.
+*/
+int32_t json_clone(cosmosstruc *cdata1, cosmosstruc *cdata2)
+{
+    if (!cdata1 || !cdata2 || !cdata1->jmapped)
+    {
+        return (JSON_ERROR_NOJMAP);
+    }
+
+    *cdata2 = *cdata1;
+    for (uint16_t i=0; i<cdata2->node.device_cnt; ++i)
+    {
+        switch(cdata2->device[i].all.gen.type)
         {
         case DEVICE_TYPE_TELEM:
-            cdata[1].devspec.telem[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].telem;
+            cdata2->devspec.telem[cdata2->device[i].all.gen.didx] = &cdata2->device[i].telem;
             break;
         case DEVICE_TYPE_PLOAD:
-            cdata[1].devspec.pload[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].pload;
+            cdata2->devspec.pload[cdata2->device[i].all.gen.didx] = &cdata2->device[i].pload;
             break;
         case DEVICE_TYPE_SSEN:
-            cdata[1].devspec.ssen[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].ssen;
+            cdata2->devspec.ssen[cdata2->device[i].all.gen.didx] = &cdata2->device[i].ssen;
             break;
         case DEVICE_TYPE_IMU:
-            cdata[1].devspec.imu[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].imu;
+            cdata2->devspec.imu[cdata2->device[i].all.gen.didx] = &cdata2->device[i].imu;
             break;
         case DEVICE_TYPE_RW:
-            cdata[1].devspec.rw[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].rw;
+            cdata2->devspec.rw[cdata2->device[i].all.gen.didx] = &cdata2->device[i].rw;
             break;
         case DEVICE_TYPE_MTR:
-            cdata[1].devspec.mtr[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].mtr;
+            cdata2->devspec.mtr[cdata2->device[i].all.gen.didx] = &cdata2->device[i].mtr;
             break;
         case DEVICE_TYPE_CAM:
-            cdata[1].devspec.cam[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].cam;
+            cdata2->devspec.cam[cdata2->device[i].all.gen.didx] = &cdata2->device[i].cam;
             break;
         case DEVICE_TYPE_CPU:
-            cdata[1].devspec.cpu[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].cpu;
+            cdata2->devspec.cpu[cdata2->device[i].all.gen.didx] = &cdata2->device[i].cpu;
             break;
         case DEVICE_TYPE_GPS:
-            cdata[1].devspec.gps[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].gps;
+            cdata2->devspec.gps[cdata2->device[i].all.gen.didx] = &cdata2->device[i].gps;
             break;
         case DEVICE_TYPE_ANT:
-            cdata[1].devspec.ant[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].ant;
+            cdata2->devspec.ant[cdata2->device[i].all.gen.didx] = &cdata2->device[i].ant;
             break;
         case DEVICE_TYPE_RXR:
-            cdata[1].devspec.rxr[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].rxr;
+            cdata2->devspec.rxr[cdata2->device[i].all.gen.didx] = &cdata2->device[i].rxr;
             break;
         case DEVICE_TYPE_TXR:
-            cdata[1].devspec.txr[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].txr;
+            cdata2->devspec.txr[cdata2->device[i].all.gen.didx] = &cdata2->device[i].txr;
             break;
         case DEVICE_TYPE_TCV:
-            cdata[1].devspec.tcv[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].tcv;
+            cdata2->devspec.tcv[cdata2->device[i].all.gen.didx] = &cdata2->device[i].tcv;
             break;
         case DEVICE_TYPE_STRG:
-            cdata[1].devspec.strg[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].strg;
+            cdata2->devspec.strg[cdata2->device[i].all.gen.didx] = &cdata2->device[i].strg;
             break;
         case DEVICE_TYPE_BATT:
-            cdata[1].devspec.batt[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].batt;
+            cdata2->devspec.batt[cdata2->device[i].all.gen.didx] = &cdata2->device[i].batt;
             break;
         case DEVICE_TYPE_HTR:
-            cdata[1].devspec.htr[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].htr;
+            cdata2->devspec.htr[cdata2->device[i].all.gen.didx] = &cdata2->device[i].htr;
             break;
         case DEVICE_TYPE_MOTR:
-            cdata[1].devspec.motr[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].motr;
+            cdata2->devspec.motr[cdata2->device[i].all.gen.didx] = &cdata2->device[i].motr;
             break;
         case DEVICE_TYPE_PSEN:
-            cdata[1].devspec.psen[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].psen;
+            cdata2->devspec.psen[cdata2->device[i].all.gen.didx] = &cdata2->device[i].psen;
             break;
         case DEVICE_TYPE_TSEN:
-            cdata[1].devspec.tsen[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].tsen;
+            cdata2->devspec.tsen[cdata2->device[i].all.gen.didx] = &cdata2->device[i].tsen;
             break;
         case DEVICE_TYPE_THST:
-            cdata[1].devspec.thst[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].thst;
+            cdata2->devspec.thst[cdata2->device[i].all.gen.didx] = &cdata2->device[i].thst;
             break;
         case DEVICE_TYPE_PROP:
-            cdata[1].devspec.prop[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].prop;
+            cdata2->devspec.prop[cdata2->device[i].all.gen.didx] = &cdata2->device[i].prop;
             break;
         case DEVICE_TYPE_SWCH:
-            cdata[1].devspec.swch[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].swch;
+            cdata2->devspec.swch[cdata2->device[i].all.gen.didx] = &cdata2->device[i].swch;
             break;
         case DEVICE_TYPE_ROT:
-            cdata[1].devspec.rot[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].rot;
+            cdata2->devspec.rot[cdata2->device[i].all.gen.didx] = &cdata2->device[i].rot;
             break;
         case DEVICE_TYPE_STT:
-            cdata[1].devspec.stt[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].stt;
+            cdata2->devspec.stt[cdata2->device[i].all.gen.didx] = &cdata2->device[i].stt;
             break;
         case DEVICE_TYPE_MCC:
-            cdata[1].devspec.mcc[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].mcc;
+            cdata2->devspec.mcc[cdata2->device[i].all.gen.didx] = &cdata2->device[i].mcc;
             break;
         case DEVICE_TYPE_TCU:
-            cdata[1].devspec.tcu[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].tcu;
+            cdata2->devspec.tcu[cdata2->device[i].all.gen.didx] = &cdata2->device[i].tcu;
             break;
         case DEVICE_TYPE_BUS:
-            cdata[1].devspec.bus[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].bus;
+            cdata2->devspec.bus[cdata2->device[i].all.gen.didx] = &cdata2->device[i].bus;
             break;
         case DEVICE_TYPE_SUCHI:
-            cdata[1].devspec.suchi[cdata[1].device[i].all.gen.didx] = &cdata[1].device[i].suchi;
+            cdata2->devspec.suchi[cdata2->device[i].all.gen.didx] = &cdata2->device[i].suchi;
             break;
         }
     }
