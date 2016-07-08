@@ -60,8 +60,8 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
 
     contains(MODULES, agentlib){
         message( "- support/agentlib" )
-        SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/agentlib.cpp
-        HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/agentlib.h
+        SOURCES += $$COSMOS_SOURCE_CORE/libraries/agent/agentlib.cpp
+        HEADERS += $$COSMOS_SOURCE_CORE/libraries/agent/agentlib.h
         MODULES += socketlib   # agentlib depends on socketlib
         MODULES += sliplib     # and sliplib
         MODULES += elapsedtime # and elapsedtime
@@ -143,9 +143,9 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
     }
 
     contains(MODULES, physicslib){
-        message( "- support/physicslib" )
-        SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/physicslib.cpp
-        HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/physicslib.h
+        message( "- physics/physicslib" )
+        SOURCES += $$COSMOS_SOURCE_CORE/libraries/physics/physicslib.cpp
+        HEADERS += $$COSMOS_SOURCE_CORE/libraries/physics/physicslib.h
         MODULES += nrlmsise
     }
 

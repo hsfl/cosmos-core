@@ -1138,7 +1138,7 @@ int32_t set_cosmosnodes(std::string name)
     }
 }
 
-//! Find Nodes Directory
+//! Find COSMOS Nodes Directory on Windows, Linux or MacOS
 /*! Set the internal variable that points to where all COSMOS node files
  * are stored. This either uses the value in COSMOSNODES, or looks for the directory
  * up to 6 levels above the current directory, first in "cosmosnodes", and then in "nodes".
@@ -1151,6 +1151,9 @@ int32_t set_cosmosnodes()
 
     if (cosmosnodes.empty())
     {
+        // check if the COSMOSNODES environment variable exists
+        // ex: COSMOSNODES = C:/COSMOS/nodes/
+        // return: cosmosnodes = C:/COSMOS/nodes/
         char *croot = getenv("COSMOSNODES");
         if (croot != nullptr && data_isdir(croot))
         {
@@ -1158,7 +1161,9 @@ int32_t set_cosmosnodes()
             return 0;
         }
         else
-        {
+        {   // check if the COSMOS environment variable exists and add /nodes
+            // ex: COSMOS = C:/COSMOS/
+            // return: cosmosnodes = C:/COSMOS/nodes/
             croot = getenv("COSMOS");
             if (croot != nullptr && data_isdir(croot + (std::string)"/nodes"))
             {
@@ -1180,6 +1185,8 @@ int32_t set_cosmosnodes()
             return 0;
         }
 #endif
+
+        // if the COSMOS nodes folder has not been found use the default path
 #ifdef COSMOS_WIN_OS
         if (data_isdir("c:/cosmos/nodes"))
         {
@@ -1195,7 +1202,7 @@ int32_t set_cosmosnodes()
         }
 #endif
 
-        // No standard location. Search upward for "cosmosnodes"
+        // No standard location. Search up to 6 folders upwards for "cosmosnodes"
         aroot = "cosmosnodes";
         for (i=0; i<6; i++)
         {
@@ -1207,7 +1214,7 @@ int32_t set_cosmosnodes()
             aroot = "../" + aroot;
         }
 
-        // Still didn't find it. Search upward for "nodes"
+        // Still didn't find it. Search up to 6 folders upwards for "nodes"
         aroot = "nodes";
         for (i=0; i<6; i++)
         {
@@ -1222,7 +1229,17 @@ int32_t set_cosmosnodes()
 
     if (cosmosnodes.empty())
     {
-        std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
+        std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find the 'nodes' folder" << std::endl;
+        std::cerr << "the searched paths were:" << std::endl;
+
+#ifdef COSMOS_WIN_OS
+        std::cerr << "<<COSMOSNODES>>  environment variable (if set)" << std::endl;
+        std::cerr << "<<COSMOS>>/nodes environment variable (if set)" << std::endl;
+        std::cerr << "c:/cosmos/nodes" << std::endl;
+        std::cerr << "../cosmosnodes to ../../../../../../cosmosnodes (6 levels above current folder)" << std::endl;
+        std::cerr << "../nodes to ../../../../../../nodes (6 levels above current folder)" << std::endl;
+#endif
+
         return (DATA_ERROR_NODES_FOLDER);
     }
     else
@@ -1282,7 +1299,7 @@ std::string get_nodedir(std::string node, bool create_flag)
     {
         nodedir = cosmosnodes + "/" + node;
 
-        // check if the data folder exists
+        // if the node folder does not exist
         if (!data_isdir(nodedir))
         {
             // if the create folder flag is not on then

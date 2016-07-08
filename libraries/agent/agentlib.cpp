@@ -1880,6 +1880,7 @@ bool Agent::setupServer()
 
     std::cout << "------------------------------------------------------" << std::endl;
     std::cout << "COSMOS AGENT '" <<  name << "' on node '" << nodeName << "'" << std::endl;
+    std::cout << "Node folder " << get_nodedir(nodeName, 0) << std::endl;
     std::cout << "Beat Period is " << beat_period << " sec, using request port " << port << std::endl;
     std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
     std::cout << "Agent server started at " << mjdToGregorian(timeStart) << std::endl;
