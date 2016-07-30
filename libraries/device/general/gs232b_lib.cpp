@@ -145,7 +145,7 @@ int32_t gs232b_getdata(char *buf, int32_t buflen)
 	while ((j=cssl_getchar(gs232b_serial)) >= 0)
 	{
 		buf[i++] = j;
-		if (j == '\n')
+        if (j == '\n' || i == buflen)
 		{
 			break;
 		}

@@ -76,7 +76,7 @@ int32_t diskfree;
 int32_t stateflag;
 int32_t myport;
 
-int main(int argc, char *argv[])
+int main(int, char **)
 {
 int32_t iretn;
 uint32_t i;

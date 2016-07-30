@@ -542,7 +542,9 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
         {
             if (td->d_name[0] != '.')
             {
-                if (!json_setup_node(td->d_name,tnode))
+                std::string nodepath = td->d_name;
+                jsonnode tjson;
+                if (!json_setup_node_file(nodepath, tnode, tjson))
                 {
                     node.push_back(*tnode);
                 }

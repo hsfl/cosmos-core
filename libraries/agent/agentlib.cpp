@@ -180,7 +180,8 @@ cosmosstruc *agent_setup_client(NetworkType ntype, std::string node, uint32_t us
     }
 
     //! Next, set up node.
-    if (!node.empty() && (iretn=json_setup_node(node, cdata)) != 0)
+    jsonnode tjson;
+    if (!node.empty() && (iretn=json_setup_node_file(node, cdata, tjson)) != 0)
     {
         json_destroy(cdata);
         return nullptr;
@@ -1834,285 +1835,285 @@ imustruc agent_poll_imu(cosmosstruc *cdata, float waitsec)
     return (imu);
 }
 
-// default constructor
-Agent::Agent()
-{
-
-}
-
-// overloaded constructor
-Agent::Agent(std::string nodename, std::string agentname)
-{
-    nodeName = nodename;
-    name = agentname;
-}
-
-Agent::~Agent()
-{
-    shutdown();
-}
-
-// this function assumes you have initialized the node and agent names
-// with Agent::nodename and Agent::agentname
-bool Agent::setupServer()
-{
-    //! First, see if we can become a Client, as all Servers are also Clients.
-    if ((cdata = agent_setup_client(NetworkType::UDP, nodeName, 1000)) == NULL)
-    {
-        std::cout << "Agent setup client failed" << std::endl;
-        return false;
-    }
-
-    //cdata = agent_setup_server(nodeName, name);
-    //cdata = agent_setup_server(NetworkType::UDP, nodeName, beat_period, 0, AGENTSVR_MAXBUF_BYTES, (bool)false);
-    cdata = agent_setup_server(cdata, name, beat_period, port, buffer_size, multiflag, timeoutSec);
-
-    // if setup server was not sucessfull
-    if (cdata == NULL)
-    {
-        // TODO: improve error message with a more detailed description
-        // of the reason for failure
-        std::cout << "Agent setup server failed" << std::endl;
-        return false;
-    }
-
-    timeStart = currentmjd();
-
-    std::cout << "------------------------------------------------------" << std::endl;
-    std::cout << "COSMOS AGENT '" <<  name << "' on node '" << nodeName << "'" << std::endl;
-    std::cout << "Beat Period is " << beat_period << " sec, using request port " << port << std::endl;
-    std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
-    std::cout << "Agent server started at " << mjdToGregorian(timeStart) << std::endl;
-    std::cout << "------------------------------------------------------" << std::endl;
-
-    // if setup server was sucessfull
-    return true;
-}
-
-bool Agent::setupServer(std::string nodename, std::string agentname, double bprd)
-{
-    nodeName = nodename;
-    name = agentname;
-    beat_period = bprd;
-
-    return setupServer();
-}
-
-bool Agent::setupServer(std::string nodename, std::string agentname)
-{
-    nodeName = nodename;
-    name = agentname;
-
-    return setupServer();
-}
-
-
-bool Agent::setupClient(std::string nodename)
-{
-    nodeName = nodename;
-
-    if (!(cdata=agent_setup_client(NetworkType::UDP, nodeName.c_str(), 1000)))
-    {
-        std::cout << "Couldn't establish client for Node " << nodename << std::endl;
-        exit (AGENT_ERROR_NULL);
-    }
-
-    return true;
-}
-
-//! Check if we're supposed to be running
-/*!	Returns the value of the internal variable that indicates that
- * the threads are running.
-    \return Value of internal state flag, as taken from ::AGENT_STATE.
-*/
-// replica of agent_running
-uint16_t Agent::isRunning()
-{
-    return (cdata[0].agent[0].stateflag);
-}
-
-// replica of agent_send_request
-int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &response, double waitSec = 1)
-{
-    char response_c_str[300];
-    int32_t iretn = agent_send_request(beat, request.c_str(), response_c_str, 512, waitSec );
-
-    response = std::string(response_c_str);
-
-    return iretn;
-}
-
-int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &response)
-{
-    return sendRequest(beat,request,response,1);;
-}
-
-// replica of agent_add_request
-int32_t Agent::addRequest(std::string request, agent_request_function function,  std::string synopsis, std::string description)
-{
-    int32_t iretn = agent_add_request(cdata, request, function, synopsis, description);
-    return iretn;
-}
-
-int32_t Agent::addRequest(std::string request, agent_request_function function)
-{
-    int32_t iretn = agent_add_request(cdata, request, function, "", "");
-    return iretn;
-}
-
-
-
-//! Shutdown server gracefully
-/*! Waits for heartbeat and request loops to stop running before pulling the rug out from under them.
- */
-// replica from agent_shutdown_server
-int32_t Agent::shutdown()
-{
-    cdata[0].agent[0].stateflag = AGENT_STATE_SHUTDOWN;;
-    hthread.join();
-    cthread.join();
-    agent_unsubscribe(cdata);
-    agent_unpublish(cdata);
-    json_destroy(cdata);
-
-    std::cout << "------------------------------------------------------" << std::endl;
-    std::cout << "Agent is down" << std::endl;
-    std::cout << "------------------------------------------------------" << std::endl;
-    return 0;
-}
-
-
-int32_t Agent::post(uint8_t type, std::string message)
-{
-    return agent_post(cdata, type, message);
-}
-
-int32_t Agent::send(uint8_t address, std::string message)
-{
-    return post(address, message);
-}
-
-
-
-int32_t Agent::poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec)
-{
-    return agent_poll(cdata, meta, message, type, waitsec);
-}
-
-int32_t Agent::poll(uint8_t type, std::string &message)
-{
-    float waitsec = 1; // by default
-    return agent_poll(cdata, metaRx, message, type, waitsec);
-}
-
-int32_t Agent::receive(uint8_t address, std::string &message)
-{
-    poll(address, message);
-    return pollParse(message);
-}
-
-int32_t Agent::receiveAll(uint8_t address, std::string &message)
-{
-    return poll(address, message);
-}
-
-
-int32_t Agent::pollParse(std::string &message)
-{
-    // collect the header
-    metaHeader = message.substr(0, metaRx.jlength);
-    // collect the data
-    message.erase(0, metaRx.jlength);
-
-    return 0;
-}
-
-//beatstruc Agent::findAgent(std::string agent)
+//// default constructor
+//Agent::Agent()
 //{
-//    return findServer(agent);
+
 //}
 
-beatstruc Agent::find(std::string agent)
-{
-    float timeout = 1.0;
+//// overloaded constructor
+//Agent::Agent(std::string nodename, std::string agentname)
+//{
+//    nodeName = nodename;
+//    name = agentname;
+//}
 
-    beatstruc beat_agent = agent_find_server(cdata, nodeName, agent, timeout);
+//Agent::~Agent()
+//{
+//    shutdown();
+//}
 
-    // TODO: improve the way we find the agent server, dont use utc
-    if (beat_agent.utc == 0)
-    {
-        if (printMessages) {
-            std::cout << "agent " << agent << " : not found" << std::endl;
-        }
-    }
-    else
-    {
-        if (printMessages) {
-            std::cout << "agent " << agent << " : found" << std::endl;
-        }
-    }
+//// this function assumes you have initialized the node and agent names
+//// with Agent::nodename and Agent::agentname
+//bool Agent::setupServer()
+//{
+//    //! First, see if we can become a Client, as all Servers are also Clients.
+//    if ((cdata = agent_setup_client(NetworkType::UDP, nodeName, 1000)) == NULL)
+//    {
+//        std::cout << "Agent setup client failed" << std::endl;
+//        return false;
+//    }
 
-    return beat_agent;
-}
+//    //cdata = agent_setup_server(nodeName, name);
+//    //cdata = agent_setup_server(NetworkType::UDP, nodeName, beat_period, 0, AGENTSVR_MAXBUF_BYTES, (bool)false);
+//    cdata = agent_setup_server(cdata, name, beat_period, port, buffer_size, multiflag, timeoutSec);
 
-/*!
- * \brief Agent::find overloaded function to find an agent on another node
- * \param agent
- * \return
- */
-beatstruc Agent::find(std::string node, std::string agent)
-{
-    float timeout = 1.0;
+//    // if setup server was not sucessfull
+//    if (cdata == NULL)
+//    {
+//        // TODO: improve error message with a more detailed description
+//        // of the reason for failure
+//        std::cout << "Agent setup server failed" << std::endl;
+//        return false;
+//    }
 
-    beatstruc beat_agent = agent_find_server(cdata, node, agent, timeout);
+//    timeStart = currentmjd();
 
-    // TODO: improve the way we find the agent server
-    if (beat_agent.utc == 0)
-    {
-        if (printMessages) {
-            std::cout << "agent " << agent << " : not found" << std::endl;
-        }
-    }
-    else
-    {
-        if (printMessages) {
-            std::cout << "agent " << agent << " : found" << std::endl;
-        }
-    }
+//    std::cout << "------------------------------------------------------" << std::endl;
+//    std::cout << "COSMOS AGENT '" <<  name << "' on node '" << nodeName << "'" << std::endl;
+//    std::cout << "Beat Period is " << beat_period << " sec, using request port " << port << std::endl;
+//    std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
+//    std::cout << "Agent server started at " << mjdToGregorian(timeStart) << std::endl;
+//    std::cout << "------------------------------------------------------" << std::endl;
 
-    return beat_agent;
-}
+//    // if setup server was sucessfull
+//    return true;
+//}
 
-/*!
- * \brief Agent::log, function to log specific entries
- * \param log_entry
- */
-void Agent::log(std::string log_entry)
-{
-    std::string log_string = "";
+//bool Agent::setupServer(std::string nodename, std::string agentname, double bprd)
+//{
+//    nodeName = nodename;
+//    name = agentname;
+//    beat_period = bprd;
 
-    if(logTime)
-    {
-        // compute elapsed seconds since agent started
-        log_string += std::to_string((int)round((currentmjd()-timeStart)*86400));
-        log_string += ",";
-    }
+//    return setupServer();
+//}
 
-    log_string += log_entry;
+//bool Agent::setupServer(std::string nodename, std::string agentname)
+//{
+//    nodeName = nodename;
+//    name = agentname;
 
-    if(printMessages)
-    {
-        std::cout << log_string << std::endl;
-    }
+//    return setupServer();
+//}
 
-    // TODO: add option to turn on/off log
-    log_write(nodeName, name, timeStart, "agent", "log", log_string);
-}
 
-bool Agent::setSoh(std::string sohFields)
-{
-    return agent_set_sohstring(cdata, sohFields);
-}
+//bool Agent::setupClient(std::string nodename)
+//{
+//    nodeName = nodename;
+
+//    if (!(cdata=agent_setup_client(NetworkType::UDP, nodeName.c_str(), 1000)))
+//    {
+//        std::cout << "Couldn't establish client for Node " << nodename << std::endl;
+//        exit (AGENT_ERROR_NULL);
+//    }
+
+//    return true;
+//}
+
+////! Check if we're supposed to be running
+///*!	Returns the value of the internal variable that indicates that
+// * the threads are running.
+//    \return Value of internal state flag, as taken from ::AGENT_STATE.
+//*/
+//// replica of agent_running
+//uint16_t Agent::isRunning()
+//{
+//    return (cdata[0].agent[0].stateflag);
+//}
+
+//// replica of agent_send_request
+//int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &response, double waitSec = 1)
+//{
+//    char response_c_str[300];
+//    int32_t iretn = agent_send_request(beat, request.c_str(), response_c_str, 512, waitSec );
+
+//    response = std::string(response_c_str);
+
+//    return iretn;
+//}
+
+//int32_t Agent::sendRequest(beatstruc beat, std::string request, std::string &response)
+//{
+//    return sendRequest(beat,request,response,1);;
+//}
+
+//// replica of agent_add_request
+//int32_t Agent::addRequest(std::string request, agent_request_function function,  std::string synopsis, std::string description)
+//{
+//    int32_t iretn = agent_add_request(cdata, request, function, synopsis, description);
+//    return iretn;
+//}
+
+//int32_t Agent::addRequest(std::string request, agent_request_function function)
+//{
+//    int32_t iretn = agent_add_request(cdata, request, function, "", "");
+//    return iretn;
+//}
+
+
+
+////! Shutdown server gracefully
+///*! Waits for heartbeat and request loops to stop running before pulling the rug out from under them.
+// */
+//// replica from agent_shutdown_server
+//int32_t Agent::shutdown()
+//{
+//    cdata[0].agent[0].stateflag = AGENT_STATE_SHUTDOWN;;
+//    hthread.join();
+//    cthread.join();
+//    agent_unsubscribe(cdata);
+//    agent_unpublish(cdata);
+//    json_destroy(cdata);
+
+//    std::cout << "------------------------------------------------------" << std::endl;
+//    std::cout << "Agent is down" << std::endl;
+//    std::cout << "------------------------------------------------------" << std::endl;
+//    return 0;
+//}
+
+
+//int32_t Agent::post(uint8_t type, std::string message)
+//{
+//    return agent_post(cdata, type, message);
+//}
+
+//int32_t Agent::send(uint8_t address, std::string message)
+//{
+//    return post(address, message);
+//}
+
+
+
+//int32_t Agent::poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec)
+//{
+//    return agent_poll(cdata, meta, message, type, waitsec);
+//}
+
+//int32_t Agent::poll(uint8_t type, std::string &message)
+//{
+//    float waitsec = 1; // by default
+//    return agent_poll(cdata, metaRx, message, type, waitsec);
+//}
+
+//int32_t Agent::receive(uint8_t address, std::string &message)
+//{
+//    poll(address, message);
+//    return pollParse(message);
+//}
+
+//int32_t Agent::receiveAll(uint8_t address, std::string &message)
+//{
+//    return poll(address, message);
+//}
+
+
+//int32_t Agent::pollParse(std::string &message)
+//{
+//    // collect the header
+//    metaHeader = message.substr(0, metaRx.jlength);
+//    // collect the data
+//    message.erase(0, metaRx.jlength);
+
+//    return 0;
+//}
+
+////beatstruc Agent::findAgent(std::string agent)
+////{
+////    return findServer(agent);
+////}
+
+//beatstruc Agent::find(std::string agent)
+//{
+//    float timeout = 1.0;
+
+//    beatstruc beat_agent = agent_find_server(cdata, nodeName, agent, timeout);
+
+//    // TODO: improve the way we find the agent server, dont use utc
+//    if (beat_agent.utc == 0)
+//    {
+//        if (printMessages) {
+//            std::cout << "agent " << agent << " : not found" << std::endl;
+//        }
+//    }
+//    else
+//    {
+//        if (printMessages) {
+//            std::cout << "agent " << agent << " : found" << std::endl;
+//        }
+//    }
+
+//    return beat_agent;
+//}
+
+///*!
+// * \brief Agent::find overloaded function to find an agent on another node
+// * \param agent
+// * \return
+// */
+//beatstruc Agent::find(std::string node, std::string agent)
+//{
+//    float timeout = 1.0;
+
+//    beatstruc beat_agent = agent_find_server(cdata, node, agent, timeout);
+
+//    // TODO: improve the way we find the agent server
+//    if (beat_agent.utc == 0)
+//    {
+//        if (printMessages) {
+//            std::cout << "agent " << agent << " : not found" << std::endl;
+//        }
+//    }
+//    else
+//    {
+//        if (printMessages) {
+//            std::cout << "agent " << agent << " : found" << std::endl;
+//        }
+//    }
+
+//    return beat_agent;
+//}
+
+///*!
+// * \brief Agent::log, function to log specific entries
+// * \param log_entry
+// */
+//void Agent::log(std::string log_entry)
+//{
+//    std::string log_string = "";
+
+//    if(logTime)
+//    {
+//        // compute elapsed seconds since agent started
+//        log_string += std::to_string((int)round((currentmjd()-timeStart)*86400));
+//        log_string += ",";
+//    }
+
+//    log_string += log_entry;
+
+//    if(printMessages)
+//    {
+//        std::cout << log_string << std::endl;
+//    }
+
+//    // TODO: add option to turn on/off log
+//    log_write(nodeName, name, timeStart, "agent", "log", log_string);
+//}
+
+//bool Agent::setSoh(std::string sohFields)
+//{
+//    return agent_set_sohstring(cdata, sohFields);
+//}
 
 
 

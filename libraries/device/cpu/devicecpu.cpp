@@ -120,7 +120,7 @@ std::string DeviceCpu::getHostName()
 // ----------------------------------------------
 #if defined(COSMOS_LINUX_OS)
 
-static clock_t lastCPU, lastSysCPU, lastUserCPU, lastCPU_;
+//static clock_t lastCPU, lastSysCPU, lastUserCPU, lastCPU_;
 
 
 double get_cpu_time(){

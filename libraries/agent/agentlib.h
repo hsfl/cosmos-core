@@ -154,65 +154,6 @@ int json_map_agentstruc(cosmosstruc *cdata, agentstruc **agent);
 std::vector<socket_channel> agent_find_addresses(NetworkType ntype);
 
 
-// TODO: new agent class that will conventrate all of the above functions
-class Agent {
-
-public:
-    Agent();
-    Agent(std::string nodename, std::string agentname);
-    ~Agent();
-
-    // agent functions
-    bool setupServer();
-    bool setupServer(std::string nodename, std::string agentname, double bprd);
-    bool setupServer(std::string nodename, std::string agentname);
-    bool setupClient(std::string nodename);
-
-    //beatstruc findServer(std::string agent);
-    //beatstruc findAgent(std::string agent);
-    beatstruc find(std::string agent);
-    beatstruc find(std::string node, std::string agent);
-
-    uint16_t isRunning();
-    int32_t shutdown();
-
-    int32_t addRequest(std::string request, agent_request_function function);
-    int32_t addRequest(std::string request, agent_request_function function, std::string synopsis, std::string description);
-
-    int32_t sendRequest(beatstruc beat, std::string request, std::string &response, double waitSec);
-    int32_t sendRequest(beatstruc beat, std::string request, std::string &response);
-
-    int32_t post(uint8_t type, std::string message);
-    int32_t poll(uint8_t type, std::string &message);
-    int32_t poll(pollstruc &meta, std::string& message, uint8_t type, float waitsec);
-    int32_t pollParse(std::string &message);
-
-    // agent variables
-    cosmosstruc *cdata;
-    std::string nodeName;
-    std::string name;
-    std::string version  = "0.0";
-    double beat_period   = 1.0; // in seconds
-    int32_t  port        = 0;
-    uint32_t buffer_size = AGENTMAXBUFFER;
-    bool     multiflag   = false;
-    float    timeoutSec  = 1.0;
-    bool printMessages   = true; // by default?
-    bool logTime         = true; // by default
-    double timeStart; // UTC starting time for this agent in MJD
-
-    // poll
-    pollstruc metaRx;
-    std::string metaHeader;
-
-    int32_t send(uint8_t address, std::string message);
-    int32_t receive(uint8_t address, std::string &message);
-    int32_t receiveAll(uint8_t address, std::string &message);
-
-    void log(std::string log_entry);
-    bool setSoh(std::string sohFields);
-};
-
 
 //! @}
 

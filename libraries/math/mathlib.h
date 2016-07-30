@@ -381,12 +381,12 @@ public:
     double resolution;
 
     // constructors
-    lsfit();
-    lsfit(uint16_t element_cnt);
-    lsfit(uint16_t element_cnt, uint16_t ord);
-    lsfit(uint16_t cnt, uint16_t ord, double res);
+//    lsfit();
+//    lsfit(uint16_t element_cnt);
+//    lsfit(uint16_t element_cnt, uint16_t ord);
+    lsfit(uint16_t cnt=10, uint16_t ord=2, double res=0.);
 
-    void initialize(uint16_t cnt, uint16_t ord, double res);
+    void initialize(uint16_t cnt=10, uint16_t ord=2, double res=0.);
     void update(double x, double y);
     void update(double x, rvector y);
     void update(double x, quaternion y);
@@ -406,6 +406,7 @@ public:
     rvector jerkrvector(double x);
     quaternion jerkquaternion(double x);
     std::vector<std::vector<double> > getparms();
+    double getbasex();
 };
 
 

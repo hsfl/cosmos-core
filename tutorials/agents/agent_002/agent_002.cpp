@@ -31,36 +31,34 @@
 // agent 002 makes request to 002 upon activation
 
 #include "configCosmos.h"
-#include "agent/agentlib.h"
+//#include "agent/agentlib.h"
+#include "agent/agent.h"
 
 #include <iostream>
 #include <string>
 using namespace std;
 
 // function prototype of agent request
-int32_t request_hello(char *request, char* response, void *cdata);
+int32_t request_hello(char *request, char* response, cosmosAgent *cdata);
 
 // counter to test number of requests
 int countReq = 0;
 
-int main(int argc, char *argv[])
+int main(int, char **)
 {
     //setEnvCosmos(cosmosPath);
 
-    int32_t iretn;
-    Agent agent;
 
     cout << "Starting agent " << endl;
 
     string agentname     = "002";
     string nodename      = "telem";
+    cosmosAgent agent(NetworkType::UDP, nodename, agentname);
 
-    iretn = agent.setupServer(nodename,agentname);
-
-    iretn = agent.addRequest("request_hello", request_hello);
+    agent.add_request("request_hello", request_hello);
 
     // start main loop
-    while(agent.isRunning())
+    while(agent.running())
     {
         // sleep for 1 sec
         COSMOS_SLEEP(1.00);
@@ -69,7 +67,7 @@ int main(int argc, char *argv[])
 }
 
 // implement request function
-int32_t request_hello(char *request, char* response, void *cdata)
+int32_t request_hello(char *, char* response, cosmosAgent *)
 {
 
     sprintf(response,"hello %d ",countReq);

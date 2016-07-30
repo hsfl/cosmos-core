@@ -41,35 +41,32 @@
 #include "configCosmos.h"
 #include "elapsedtime.h"
 #include "timeutils.hpp"
-#include "agent/agentlib.h"
+//#include "agent/agentlib.h"
+#include "agent/agent.h"
 
 #include <iostream>
 #include <string>
 using namespace std;
 
-int main(int, char *argv[])
+int main(int, char **)
 {
 
-    int32_t iretn;
     string agentname = "001";
     string nodename  = "telem";
     string agent002  = "002"; //name of the agent that the request is directed to
-
-    Agent agent;
+    cosmosAgent agent(NetworkType::UDP, nodename, agentname);
 
     beatstruc beat_agent_002;
 
-    iretn = agent.setupServer(nodename,agentname);
-
-    beat_agent_002 = agent.find(agent002);
+    beat_agent_002 = agent.find_server(nodename, agent002, 2.);
 
     string requestString = "request_hello";
-    string response;
+    std::string response;
 
     // Start executing the agent
-    while(agent.isRunning())
+    while(agent.running())
     {
-        agent.sendRequest(beat_agent_002, requestString, response);
+        agent.send_request(beat_agent_002, requestString, response, 2.);
 
         if ( response.size() > 1) {
 
@@ -81,7 +78,7 @@ int main(int, char *argv[])
 
             cout << "What happened to agent_002 ??? let's try to find it ..." << endl;
             beat_agent_002.node[0] = '\0'; // reset
-            beat_agent_002 = agent.find(agent002);
+            beat_agent_002 = agent.find_server(nodename, agent002, 2.);
             cout << "beat agent 002 node: " << beat_agent_002.utc << endl;
 
         }

@@ -2239,20 +2239,20 @@ cmatrix cm_change_between_cv(cvector from, cvector to)
 /*! Constructor for default 10 element, 2nd order least squares fit.
  * \return Least squares fit object.
 */
-lsfit::lsfit()
-    : element_cnt(10), order(2), resolution(0.)
-{
-}
+//lsfit::lsfit()
+//    : element_cnt(10), order(2), resolution(0.)
+//{
+//}
 
 //! Multi element least squares fit.
 /*! Constructor for cnt element, 2nd order least squares fit.
  * \param cnt Number of elements to be fit.
  * \return Least squares fit object.
 */
-lsfit::lsfit(uint16_t cnt)
-    : element_cnt(cnt), order(2), resolution(0.)
-{
-}
+//lsfit::lsfit(uint16_t cnt)
+//    : element_cnt(cnt), order(2), resolution(0.)
+//{
+//}
 
 //! Multi element, variable order least squares fit.
 /*! Constructor for cnt element, ord order least squares fit.
@@ -2260,10 +2260,10 @@ lsfit::lsfit(uint16_t cnt)
  * \param ord Order of fit.
  * \return Least squares fit object.
 */
-lsfit::lsfit(uint16_t cnt, uint16_t ord)
-    : element_cnt(cnt), order(ord), resolution(0.)
-{
-}
+//lsfit::lsfit(uint16_t cnt, uint16_t ord)
+//    : element_cnt(cnt), order(ord), resolution(0.)
+//{
+//}
 
 //! Multi element, variable order, variable resolution least squares fit.
 /*! Constructor for cnt element, ord order, res resolution least squares fit.
@@ -2273,7 +2273,7 @@ lsfit::lsfit(uint16_t cnt, uint16_t ord)
  * \return Least squares fit object.
 */
 lsfit::lsfit(uint16_t cnt, uint16_t ord, double res)
-    : element_cnt(cnt), order(ord), resolution(res)
+//    : element_cnt(cnt), order(ord), resolution(res)
 {
     if (ord)
     {
@@ -2758,6 +2758,15 @@ quaternion lsfit::jerkquaternion(double x)
 std::vector<std::vector<double> > lsfit::getparms()
 {
     return parms;
+}
+
+//! Least Squares base
+/*! Return the values of the base independent variable for the latest ::lsfit::update.
+ * \return Parameters
+*/
+double lsfit::getbasex()
+{
+    return basex;
 }
 
 

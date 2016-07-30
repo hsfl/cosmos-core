@@ -574,6 +574,22 @@ struct unitstruc
     float p2;
 };
 
+//! JSON Node description strings
+//! Structure containing the JSON strings that describe the various aspects of a node. These
+//! can be loaded from disk, or transferred from another agent.
+struct jsonnode
+{
+    std::string node;
+    std::string state;
+    std::string utcstart;
+    std::string pieces;
+    std::string devgen;
+    std::string devspec;
+    std::string ports;
+    std::string targets;
+    std::string aliases;
+};
+
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
  * to a single object, along with its data type.
