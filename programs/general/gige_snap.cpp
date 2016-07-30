@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 		height = 256;
 		printf("Read A35_HEIGHT %d\n",height);
 
-		iretn = a35_config(handle, A35_PIXELFORMAT_14BIT, width, height, A35_SENSORVIDEOSTANDARD_30HZ);
+        iretn = a35_config(handle, width, height, A35_SENSORVIDEOSTANDARD_30HZ);
 		expbytes = width * height * exposure * 2;
 		tbytes = a35_image(handle, exposure, image, bsize);
 

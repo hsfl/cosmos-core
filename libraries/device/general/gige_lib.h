@@ -384,7 +384,7 @@ char *gige_value_to_address(uint32_t value);
 int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32_t ybin, uint32_t xsize, uint32_t ysize, uint32_t xoffset, uint32_t yoffset);
 int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint32_t gain, uint8_t *buffer, uint16_t bsize);
 int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bsize);
-int a35_config(gige_handle *handle, uint32_t format, uint32_t xsize, uint32_t ysize, uint32_t video_rate);
+int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t video_rate);
 //! @}
 
 

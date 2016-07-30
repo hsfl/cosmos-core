@@ -116,7 +116,7 @@ void incoming_thread()
 	{
 		if ((nbytes = recvfrom(rcvchan.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
 		{
-			for (uint16_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
+            for (size_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
 			{
 				sendto(cdata[0].agent[0].pub[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&((cosmosstruc *)cdata)->agent[0].pub[i].caddr,sizeof(struct sockaddr_in));
 			}

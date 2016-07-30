@@ -777,7 +777,7 @@ struct agentstruc
     //! Server initialized?
     bool server;
     //! Number of network interfaces
-    int ifcnt;
+    size_t ifcnt;
     //! Publication channels for each interface (for Server)
     socket_channel pub[AGENTMAXIF];
     //! Request channel (for Server)

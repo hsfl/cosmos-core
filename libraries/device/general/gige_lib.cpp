@@ -439,7 +439,7 @@ char *gige_value_to_address(uint32_t value)
  * \param video_rate 30 or 60 Hz.
  * \return Zero, or negative error.
  */
-int a35_config(gige_handle *handle, uint32_t format, uint32_t xsize, uint32_t ysize, uint32_t video_rate)
+int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t video_rate)
 {
 	uint32_t maxx, maxy;
 	int32_t iretn;

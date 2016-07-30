@@ -147,7 +147,7 @@ int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen)
 	while ((j=cssl_getchar(prkx2su_serial[axis])) >= 0)
 	{
 		buf[i++] = j;
-		if (j == ';')
+        if (j == ';' || i == buflen)
 		{
 			break;
 		}
