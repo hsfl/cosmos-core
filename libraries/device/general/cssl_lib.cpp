@@ -465,7 +465,11 @@ int32_t cssl_setflowcontrol(cssl_t *serial, int rtscts, int xonxoff)
 	\param minchar Minimum number of characters
 	\param timeout Minimum inter character time in seconds.
 */
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 int32_t cssl_settimeout(cssl_t *serial, int minchar, double timeout)
+#else // Windows
+int32_t cssl_settimeout(cssl_t *serial, int, double timeout)
+#endif
 {
 	if (!cssl_started)
 	{
