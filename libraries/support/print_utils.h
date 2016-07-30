@@ -109,6 +109,7 @@ public:
     void quat(quaternion q, int precision);
     void quat(std::string prefix, quaternion q);
     void quat(std::string prefix, quaternion q, int precision);
+    void quat(std::string prefix, quaternion q, std::string suffix);
     void quat(std::string prefix, quaternion q, std::string suffix, int precision);
 
     // control flags

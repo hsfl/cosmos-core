@@ -571,6 +571,13 @@ void PrintUtils::quat(std::string prefix, quaternion q, int precision)
 
 void PrintUtils::quat(std::string prefix,
                       quaternion q,
+                      std::string suffix)
+{
+    quat(prefix, q, suffix, precision, fieldwidth);
+}
+
+void PrintUtils::quat(std::string prefix,
+                      quaternion q,
                       std::string suffix,
                       int precision)
 {
