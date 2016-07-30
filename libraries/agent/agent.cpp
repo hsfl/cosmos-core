@@ -1596,13 +1596,13 @@ std::vector<socket_channel> cosmosAgent::find_addresses(NetworkType ntype)
 int32_t cosmosAgent::post(uint8_t type, std::string message)
 {
     size_t nbytes;
-    int32_t i, iretn=0;
+    int32_t iretn=0;
     uint8_t post[AGENTMAXBUFFER];
 
     cdata[0].agent[0].beat.utc = cdata[0].agent[0].beat.utc;
     post[0] = type;
     // this will broadcast messages to all external interfaces (ifcnt = interface count)
-    for (i=0; i<cdata[0].agent[0].ifcnt; i++)
+    for (size_t i=0; i<cdata[0].agent[0].ifcnt; i++)
     {
         sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
                 cdata[0].agent[0].beat.utc,
