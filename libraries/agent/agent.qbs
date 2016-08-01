@@ -10,7 +10,7 @@ Product {
     Depends { name: "CosmosSupport" }
     Properties {
         condition: qbs.targetOS.contains("windows")
-        cpp.minimumWindowsVersion: "6.0"
+        cpp.minimumWindowsVersion: "7.0"
     }
 
     Depends { name: "cpp" }

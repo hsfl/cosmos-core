@@ -5189,6 +5189,7 @@ int32_t json_setup_node(cosmosstruc *cdata, jsonnode &json, bool create_flag)
     if (!cdata || !cdata[0].jmapped)
         return (JSON_ERROR_NOJMAP);
 
+    cdata[0].node.utcoffset = 0.;
     // First: parse data for summary information - includes piece_cnt, device_cnt and port_cnt
     if (!json.node.empty())
     {

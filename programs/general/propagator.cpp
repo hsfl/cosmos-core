@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
 #include "agentlib.h"
