@@ -3045,14 +3045,37 @@ you call this function.
     \param cdata A pointer to the beginning of the ::cosmosstruc to use.
     \return Pointer to a char buffer containing the string.
 */
-std::string json_get_string_name(std::string token, cosmosstruc *cdata)
+std::string json_get_string(std::string token, cosmosstruc *cdata)
 {
     jsonentry *ptr;
     std::string tstring;
-    char tbuf[20];
 
-    if ((ptr=json_entry_of(token,cdata)) == NULL)
+    if ((ptr=json_entry_of(token,cdata)) != NULL)
+    {
+        tstring = json_get_string(ptr, cdata);
+    }
+
+    return tstring;
+}
+
+//! Return string from entry.
+/*! If the named value is a string, just copy it. Otherwise, print
+whatever numerical value as a string. Return a pointer to an internal
+storage buffer for the string. Note: this value is changed each time
+you call this function.
+    \param token Valid COSMOS Namespace name.
+    \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+    \return Pointer to a char buffer containing the string.
+*/
+std::string json_get_string(jsonentry *ptr, cosmosstruc *cdata)
+{
+    std::string tstring;
+    char tbuf[200];
+
+    if (ptr == NULL)
+    {
         return (tstring);
+    }
 
     switch (ptr->type)
     {
@@ -3085,6 +3108,14 @@ std::string json_get_string_name(std::string token, cosmosstruc *cdata)
     case JSON_TYPE_NAME:
         tstring = (char *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata));
         //		strcpy(tbuf,(char *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
+        break;
+    case JSON_TYPE_POS_ECI:
+        cartpos tval = (*(cartpos *)(json_ptr_of_offset(ptr->offset,ptr->group,cdata)));
+        sprintf(tbuf, "[%.17g %.17g %.17g] [%.17g %.17g %.17g] [%.17g %.17g %.17g]",
+                tval.s.col[0], tval.s.col[0], tval.s.col[0],
+                tval.v.col[0], tval.v.col[0], tval.v.col[0],
+                tval.a.col[0], tval.a.col[0], tval.a.col[0]);
+        tstring = tbuf;
         break;
     }
 
@@ -4170,6 +4201,47 @@ int32_t json_skip_value(const char* &ptr)
         return 0;
 }
 
+int32_t json_set_string(std::string val, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata)
+{
+    uint8_t *data;
+
+    data = json_ptr_of_offset(offset,group,cdata);
+    if (data == nullptr)
+    {
+        return JSON_ERROR_NAN;
+    }
+
+    switch (type)
+    {
+    case JSON_TYPE_UINT8:
+        *(uint8_t *)data = stoi(val);
+        break;
+    case JSON_TYPE_INT8:
+        *(int8_t *)data = stoi(val);
+        break;
+    case JSON_TYPE_UINT16:
+        *(uint16_t *)data = stoi(val);
+        break;
+    case JSON_TYPE_UINT32:
+        *(uint32_t *)data = stol(val);
+        break;
+    case JSON_TYPE_INT16:
+        *(int16_t *)data = stoi(val);
+        break;
+    case JSON_TYPE_INT32:
+        *(int32_t *)data = stol(val);
+        break;
+    case JSON_TYPE_FLOAT:
+        *(float *)data = stof(val);
+        break;
+    case JSON_TYPE_TIMESTAMP:
+    case JSON_TYPE_DOUBLE:
+        *(double *)data = stod(val);
+        break;
+    }
+    return 0;
+}
+
 int32_t json_set_number(double val, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cdata)
 {
     uint8_t *data;
@@ -5167,7 +5239,7 @@ int32_t json_load_node(std::string node, jsonnode &json, bool create_flag)
             free(ibuf);
         }
     }
-return 0;
+    return 0;
 }
 
 //! Map Name Space to global data structure components and pieces
@@ -9099,13 +9171,13 @@ size_t calc_events(std::vector<shorteventstruc> &dictionary, cosmosstruc *cdata,
         {
             dictionary[k].utc = cdata[0].node.loc.utc;
             events.push_back(dictionary[k]);
-            std::string tstring = json_get_string_name(dictionary[k].data, cdata);
+            std::string tstring = json_get_string(dictionary[k].data, cdata);
             strcpy(events[events.size()-1].data, tstring.c_str());
             strcpy(events[events.size()-1].node,cdata[0].node.name);
             if ((sptr=strstr(events[events.size()-1].name,"${")) != NULL && (eptr=strstr(sptr,"}")) != NULL)
             {
                 *eptr = 0;
-                tstring = json_get_string_name(sptr+2, cdata);
+                tstring = json_get_string(sptr+2, cdata);
                 strcpy(sptr, tstring.c_str());
             }
         }
