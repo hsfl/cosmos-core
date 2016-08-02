@@ -212,6 +212,9 @@ double json_get_double(std::string token, uint16_t index1, cosmosstruc *cdata);
 double json_get_double(std::string token, uint16_t index1, uint16_t index2, cosmosstruc *cdata);
 double json_get_double(jsonentry *entry, cosmosstruc *cdata);
 
+rvector json_get_rvector(jsonentry *entry, cosmosstruc *cdata);
+quaternion json_get_quaternion(jsonentry *entry, cosmosstruc *cdata);
+
 std::string json_get_string(std::string token, cosmosstruc *cdata);
 std::string json_get_string(jsonentry *entry, cosmosstruc *cdata);
 

@@ -2985,6 +2985,225 @@ double json_get_double(jsonentry *entry, cosmosstruc *cdata)
     }
 }
 
+//! Return rvector from entry.
+/*! If the named value can in any way be interepreted as three numbers,
+ * return it as an rvector.
+ \param ptr Pointer to a valid COSMOS Namespace entry.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as an rvector, or 0.
+*/
+rvector json_get_rvector(jsonentry *entry, cosmosstruc *cdata)
+{
+    uint8_t *dptr=nullptr;
+    rvector value={{0., 0., 0.}};
+
+    dptr = json_ptr_of_offset(entry->offset,entry->group,cdata);
+    if (dptr == nullptr)
+    {
+        return value;
+    }
+    else
+    {
+        switch (entry->type)
+        {
+        case JSON_TYPE_CARTPOS:
+        case JSON_TYPE_POS_GEOC:
+        case JSON_TYPE_POS_SELC:
+        case JSON_TYPE_POS_ECI:
+        case JSON_TYPE_POS_SCI:
+        case JSON_TYPE_POS_BARYC:
+            {
+            cartpos tpos = (cartpos)(*(cartpos *)(dptr));
+            value = tpos.s;
+            }
+            break;
+        case JSON_TYPE_RVECTOR:
+        case JSON_TYPE_TVECTOR:
+            value = (rvector)(*(rvector *)(dptr));
+            break;
+        case JSON_TYPE_UINT16:
+            value.col[0] = (double)(*(uint16_t *)(dptr));
+            break;
+        case JSON_TYPE_UINT32:
+            value.col[0] = (double)(*(uint32_t *)(dptr));
+            break;
+        case JSON_TYPE_INT16:
+            value.col[0] = (double)(*(int16_t *)(dptr));
+            break;
+        case JSON_TYPE_INT32:
+            value.col[0] = (double)(*(int32_t *)(dptr));
+            break;
+        case JSON_TYPE_FLOAT:
+            value.col[0] = (double)(*(float *)(dptr));
+            break;
+        case JSON_TYPE_DOUBLE:
+        case JSON_TYPE_TIMESTAMP:
+            value.col[0] = (double)(*(double *)(dptr));
+            break;
+        case JSON_TYPE_STRING:
+            value.col[0] = atof((char *)dptr);
+            break;
+        case JSON_TYPE_EQUATION:
+            {
+                const char *tpointer = (char *)dptr;
+                value.col[0] = (double)json_equation(tpointer, cdata);
+            }
+            break;
+        case JSON_TYPE_ALIAS:
+            {
+                aliasstruc *aptr = (aliasstruc *)dptr;
+                switch (aptr->type)
+                {
+                case JSON_TYPE_EQUATION:
+                    {
+                        jsonequation *eptr;
+                        if ((eptr=json_equation_of(aptr->handle, cdata)) == nullptr)
+                        {
+                            value.col[0] =  0;
+                        }
+                        else
+                        {
+                            value.col[0] = json_equation(eptr, cdata);
+                        }
+                    }
+                    break;
+                default:
+                    {
+                        jsonentry *eptr;
+                        if ((eptr=json_entry_of(aptr->handle, cdata)) == nullptr)
+                        {
+                            value.col[0] =  0;
+                        }
+                        else
+                        {
+                            value.col[0] = json_get_double(eptr, cdata);
+                        }
+                    }
+                    break;
+                }
+            }
+            break;
+        default:
+            value.col[0] = 0.;
+        }
+
+        return value;
+    }
+}
+
+//! Return quaternion from entry.
+/*! If the named value can in any way be interepreted as three numbers,
+ * return it as an quaternion.
+ \param ptr Pointer to a valid COSMOS Namespace entry.
+ \param cdata A pointer to the beginning of the ::cosmosstruc to use.
+ \return Value cast as an quaternion, or 0.
+*/
+quaternion json_get_quaternion(jsonentry *entry, cosmosstruc *cdata)
+{
+    uint8_t *dptr=nullptr;
+    quaternion value={{0., 0., 0.}, 0.};
+
+    dptr = json_ptr_of_offset(entry->offset,entry->group,cdata);
+    if (dptr == nullptr)
+    {
+        return value;
+    }
+    else
+    {
+        switch (entry->type)
+        {
+        case JSON_TYPE_QATT:
+        case JSON_TYPE_QATT_GEOC:
+        case JSON_TYPE_QATT_SELC:
+        case JSON_TYPE_QATT_ICRF:
+        case JSON_TYPE_QATT_LVLH:
+        case JSON_TYPE_QATT_TOPO:
+            {
+            value = (quaternion)(*(quaternion *)(dptr));
+            }
+            break;
+        case JSON_TYPE_QUATERNION:
+            value = (quaternion)(*(quaternion *)(dptr));
+            break;
+        case JSON_TYPE_RVECTOR:
+        case JSON_TYPE_TVECTOR:
+            {
+                rvector tvalue = (rvector)(*(rvector *)(dptr));
+                value.d.x = tvalue.col[0];
+                value.d.y = tvalue.col[1];
+                value.d.z = tvalue.col[2];
+            }
+            break;
+        case JSON_TYPE_UINT16:
+            value.d.x = (double)(*(uint16_t *)(dptr));
+            break;
+        case JSON_TYPE_UINT32:
+            value.d.x = (double)(*(uint32_t *)(dptr));
+            break;
+        case JSON_TYPE_INT16:
+            value.d.x = (double)(*(int16_t *)(dptr));
+            break;
+        case JSON_TYPE_INT32:
+            value.d.x = (double)(*(int32_t *)(dptr));
+            break;
+        case JSON_TYPE_FLOAT:
+            value.d.x = (double)(*(float *)(dptr));
+            break;
+        case JSON_TYPE_DOUBLE:
+        case JSON_TYPE_TIMESTAMP:
+            value.d.x = (double)(*(double *)(dptr));
+            break;
+        case JSON_TYPE_STRING:
+            value.d.x = atof((char *)dptr);
+            break;
+        case JSON_TYPE_EQUATION:
+            {
+                const char *tpointer = (char *)dptr;
+                value.d.x = (double)json_equation(tpointer, cdata);
+            }
+            break;
+        case JSON_TYPE_ALIAS:
+            {
+                aliasstruc *aptr = (aliasstruc *)dptr;
+                switch (aptr->type)
+                {
+                case JSON_TYPE_EQUATION:
+                    {
+                        jsonequation *eptr;
+                        if ((eptr=json_equation_of(aptr->handle, cdata)) == nullptr)
+                        {
+                            value.d.x =  0;
+                        }
+                        else
+                        {
+                            value.d.x = json_equation(eptr, cdata);
+                        }
+                    }
+                    break;
+                default:
+                    {
+                        jsonentry *eptr;
+                        if ((eptr=json_entry_of(aptr->handle, cdata)) == nullptr)
+                        {
+                            value.d.x =  0;
+                        }
+                        else
+                        {
+                            value.d.x = json_get_double(eptr, cdata);
+                        }
+                    }
+                    break;
+                }
+            }
+            break;
+        default:
+            value.d.x = 0.;
+        }
+
+        return value;
+    }
+}
+
 //! Return double from 1d name.
 /*! If the named 1d indexed value can in any way be interepreted as a number,
  * return it as a double.
@@ -5993,6 +6212,9 @@ uint16_t json_addbaseentry(cosmosstruc *cdata)
     json_addentry("node_loc_pos_geoc_s_z", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[2]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_GROUP_NODE,cdata);
     json_addentry("node_loc_pos_geos", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geos),COSMOS_SIZEOF(spherpos), (uint16_t)JSON_TYPE_POS_GEOS,JSON_GROUP_NODE,cdata);
     json_addentry("node_loc_pos_eci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ECI,JSON_GROUP_NODE,cdata);
+    json_addentry("node_loc_pos_eci_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.s),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+    json_addentry("node_loc_pos_eci_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.v),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
+    json_addentry("node_loc_pos_eci_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.a),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_GROUP_NODE,cdata);
     json_addentry("node_loc_pos_sci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sci),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_SCI,JSON_GROUP_NODE,cdata);
     json_addentry("node_loc_pos_selc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selc),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_SELC,JSON_GROUP_NODE,cdata);
     json_addentry("node_loc_pos_selg", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selg),COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_SELG,JSON_GROUP_NODE,cdata);
