@@ -44,7 +44,7 @@ char agentname[COSMOS_MAX_NAME+1] = "tunnel";
 char node[50] = "";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
-cosmosstruc *cdata; // to access the cosmos data, will change later
+cosmosstruc *cinfo; // to access the cosmos data, will change later
 
 void tcv_read_loop();
 void tcv_write_loop();
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-	if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)NULL,(char *)"tunnel",1.,0,MAXBUFFERSIZE,AGENT_MULTIPLE)))
+	if (!(cinfo = agent_setup_server(NetworkType::UDP,(char *)NULL,(char *)"tunnel",1.,0,MAXBUFFERSIZE,AGENT_MULTIPLE)))
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Start serial threads
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
 	memset(&ifr1, 0, sizeof(ifr1));
 	ifr1.ifr_flags = IFF_TUN | IFF_NO_PI;
-	strncpy(ifr1.ifr_name, cdata[0].agent[0].beat.proc, IFNAMSIZ);
+	strncpy(ifr1.ifr_name, cinfo->pdata.agent[0].beat.proc, IFNAMSIZ);
 	if (ioctl(tun_fd, TUNSETIFF, (void *)&ifr1) < 0)
 	{
 		perror("Error setting tunnel interface");
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Get ready to set things
-	strncpy(ifr2.ifr_name, cdata[0].agent[0].beat.proc, IFNAMSIZ);
+	strncpy(ifr2.ifr_name, cinfo->pdata.agent[0].beat.proc, IFNAMSIZ);
 	ifr2.ifr_addr.sa_family = AF_INET;
 
 	// Set interface address
@@ -196,10 +196,10 @@ int main(int argc, char *argv[])
 	int32_t sleept;
 
 	// Start performing the body of the agent
-	while(agent_running(cdata))
+	while(agent_running(cinfo))
 	{
 		// Set beginning of next cycle;
-		nmjd += cdata[0].agent[0].aprd/86400.;
+		nmjd += cinfo->pdata.agent[0].aprd/86400.;
 
 		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);
 		if (sleept < 0)
@@ -218,7 +218,7 @@ void tun_read_loop()
 	std::vector<uint8_t> buffer;
 	int32_t nbytes;
 
-	while (agent_running(cdata))
+	while (agent_running(cinfo))
 	{
 
 		buffer.resize(TUN_BUF_SIZE);
@@ -239,7 +239,7 @@ void tun_write_loop()
 	std::mutex tun_fifo_lock;
 	std::unique_lock<std::mutex> locker(tun_fifo_lock);
 
-	while (agent_running(cdata))
+	while (agent_running(cinfo))
 	{
 
 //			while (tun_fifo.empty())
@@ -264,7 +264,7 @@ void tcv_read_loop()
 	std::vector<uint8_t> buffer;
 	int32_t nbytes;
 
-	while (agent_running(cdata))
+	while (agent_running(cinfo))
 	{
 		// Read data from receiver port
 		buffer.resize(TUN_BUF_SIZE);
@@ -292,7 +292,7 @@ void tcv_write_loop()
 	std::unique_lock<std::mutex> locker(tcv_fifo_lock);
 	std::vector<uint8_t> buffer;
 
-	while (agent_running(cdata))
+	while (agent_running(cinfo))
 	{
 
 //			while (tcv_fifo.empty())

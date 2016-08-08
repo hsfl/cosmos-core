@@ -59,9 +59,9 @@ int myagent();
 char agentname[COSMOS_MAX_NAME+1] = "gs_tx2";
 char node[50] = "otb";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t transmit_kiss(char *request, char* response, void *cdata); // extra request
+int32_t transmit_kiss(char *request, char* response, void *cinfo); // extra request
 
-cosmosstruc *cdata; // to access the cosmos data, will change later
+cosmosstruc *cinfo; // to access the cosmos data, will change later
 
 #define MAXBUFFERSIZE 256 // comm buffe for agents
 
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 		strcpy(node,argv[1]);
 
 	// check if we are already running the agent
-	if ((iretn=agent_get_server(cdata, (char *)node,agentname,waitsec,(beatstruc *)NULL)) > 0)
+    if ((iretn=agent_get_server(cinfo, (char *)node,agentname,waitsec,(beatstruc *)NULL)) > 0)
 		exit (iretn);
 
 	// Initialization stuff
@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
 	// Initialize the Agent
 	// near future: support cubesat space protocol
 	// port number = 0 in this case, automatic assignment of port
-	if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE)))
+	if (!(cinfo = agent_setup_server(NetworkType::UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE)))
 		exit (iretn);
 
 	// Add additional requests
-	if ((iretn=agent_add_request(cdata, "tx",transmit_kiss)))
+	if ((iretn=agent_add_request(cinfo, "tx",transmit_kiss)))
 		exit (iretn);
 
 	// Start our own thread
@@ -111,7 +111,7 @@ int myagent()
 	//FILE *fp;
 
 	// Start performing the body of the agent
-	while(agent_running(cdata))
+	while(agent_running(cinfo))
 	{
 		unsigned int rxcount;
 		unsigned char serial_input[1000];
@@ -139,7 +139,7 @@ int myagent()
 }
 
 // the name of this fn will always be changed
-int32_t transmit_kiss(char *request, char* response, void *cdata)
+int32_t transmit_kiss(char *request, char* response, void *cinfo)
 {
 	int32_t iretn = 0;
 	unsigned char packet_buffer[600]; // w/c count will be 529 bytes (18+1+255*2)

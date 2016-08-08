@@ -33,7 +33,7 @@
 #include "astrodev_lib.h"
 #include "ic9100_lib.h"
 
-cosmosstruc *cdata;
+cosmosstruc *cinfo;
 std::string nodename;
 std::string agentname;
 size_t deviceindex;
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Establish the command channel and heartbeat
-	if (!(cdata = agent_setup_server(NetworkType::UDP, nodename.c_str(), agentname.c_str(), 1.0, 0, AGENTMAXBUFFER)))
+	if (!(cinfo = agent_setup_server(NetworkType::UDP, nodename.c_str(), agentname.c_str(), 1.0, 0, AGENTMAXBUFFER)))
 	{
 		std::cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
 		exit (AGENT_ERROR_JSON_CREATE);
@@ -94,30 +94,30 @@ int main(int argc, char *argv[])
 	}
 
 	// Add requests
-	if ((iretn=agent_add_request(cdata, (char *)"get_frequency",request_get_frequency,"", "returns the radio frequency")))
+	if ((iretn=agent_add_request(cinfo, (char *)"get_frequency",request_get_frequency,"", "returns the radio frequency")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"get_bandpass",request_get_bandpass,"", "returns the radio filter bandpass")))
+	if ((iretn=agent_add_request(cinfo, (char *)"get_bandpass",request_get_bandpass,"", "returns the radio filter bandpass")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"get_opmode",request_get_opmode,"", "returns the radio mode")))
+	if ((iretn=agent_add_request(cinfo, (char *)"get_opmode",request_get_opmode,"", "returns the radio mode")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"get_power",request_get_power,"", "returns the radio power")))
+	if ((iretn=agent_add_request(cinfo, (char *)"get_power",request_get_power,"", "returns the radio power")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"set_frequency",request_set_frequency,"", "sets the radio frequency")))
+	if ((iretn=agent_add_request(cinfo, (char *)"set_frequency",request_set_frequency,"", "sets the radio frequency")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"set_bandpass",request_set_bandpass,"", "sets the radio filter bandpass")))
+	if ((iretn=agent_add_request(cinfo, (char *)"set_bandpass",request_set_bandpass,"", "sets the radio filter bandpass")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"set_opmode",request_set_opmode,"", "sets the radio operating mode")))
+	if ((iretn=agent_add_request(cinfo, (char *)"set_opmode",request_set_opmode,"", "sets the radio operating mode")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"set_power",request_set_power,"", "sets the radio power")))
+	if ((iretn=agent_add_request(cinfo, (char *)"set_power",request_set_power,"", "sets the radio power")))
 		exit (iretn);
 
 
 	// Look for named radio so we can use the right one
-	for (size_t i=0; i<cdata[0].devspec.rxr_cnt; ++i)
+	for (size_t i=0; i<cinfo->pdata.devspec.rxr_cnt; ++i)
 	{
-		if (!strcmp(argv[2], cdata[0].piece[cdata[0].devspec.rxr[i]->gen.pidx].name))
+		if (!strcmp(argv[2], cinfo->pdata.piece[cinfo->pdata.devspec.rxr[i]->gen.pidx].name))
 		{
-			deviceindex = cdata[0].devspec.rxr[i]->gen.cidx;
+			deviceindex = cinfo->pdata.devspec.rxr[i]->gen.cidx;
 			radioindex = i;
 			radiotype = DEVICE_TYPE_RXR;
 			break;
@@ -126,11 +126,11 @@ int main(int argc, char *argv[])
 
 	if (radiotype == 9999)
 	{
-		for (size_t i=0; i<cdata[0].devspec.txr_cnt; ++i)
+		for (size_t i=0; i<cinfo->pdata.devspec.txr_cnt; ++i)
 		{
-			if (!strcmp(argv[2], cdata[0].piece[cdata[0].devspec.txr[i]->gen.pidx].name))
+			if (!strcmp(argv[2], cinfo->pdata.piece[cinfo->pdata.devspec.txr[i]->gen.pidx].name))
 			{
-				deviceindex = cdata[0].devspec.txr[i]->gen.cidx;
+				deviceindex = cinfo->pdata.devspec.txr[i]->gen.cidx;
 				radioindex = i;
 				radiotype = DEVICE_TYPE_TXR;
 				break;
@@ -140,11 +140,11 @@ int main(int argc, char *argv[])
 
 	if (radiotype == 9999)
 	{
-		for (size_t i=0; i<cdata[0].devspec.tcv_cnt; ++i)
+		for (size_t i=0; i<cinfo->pdata.devspec.tcv_cnt; ++i)
 		{
-			if (!strcmp(argv[2], cdata[0].piece[cdata[0].devspec.tcv[i]->gen.pidx].name))
+			if (!strcmp(argv[2], cinfo->pdata.piece[cinfo->pdata.devspec.tcv[i]->gen.pidx].name))
 			{
-				deviceindex = cdata[0].devspec.tcv[i]->gen.cidx;
+				deviceindex = cinfo->pdata.devspec.tcv[i]->gen.cidx;
 				radioindex = i;
 				radiotype = DEVICE_TYPE_TCV;
 				break;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 	if (radiotype == 9999)
 	{
 		std::cout<<"Exiting " << agentname << " for Node: " << nodename << " no radio found." << std::endl;
-		agent_shutdown_server(cdata);
+        agent_shutdown_server(cinfo);
 		exit (1);
 	}
 
@@ -172,21 +172,21 @@ int main(int argc, char *argv[])
 		sprintf(sohstring, "{\"device_tcv_freq_%03lu\",\"device_tcv_powerin_%03lu\",\"device_tcv_powerout_%03lu\",\"device_tcv_maxpower_%03lu\",\"device_tcv_band_%03lu\",\"device_tcv_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex, radioindex, radioindex);
 		break;
 	}
-	agent_set_sohstring(cdata, sohstring);
+    agent_set_sohstring(cinfo, sohstring);
 
-	radiodevice = cdata[0].port[cdata[0].device[deviceindex].all.gen.portidx].name;
-	radioaddr = cdata[0].device[deviceindex].all.gen.addr;
+	radiodevice = cinfo->pdata.port[cinfo->pdata.device[deviceindex].all.gen.portidx].name;
+	radioaddr = cinfo->pdata.device[deviceindex].all.gen.addr;
 
 	// Initialize values so connect_radio will work
-	target = cdata[0].device[deviceindex].tcv;
+	target = cinfo->pdata.device[deviceindex].tcv;
 
 	iretn = connect_radio();
 
-	while (agent_running(cdata))
+	while (agent_running(cinfo))
 	{
 		if (radioconnected)
 		{
-			switch (cdata[0].device[deviceindex].all.gen.model)
+			switch (cinfo->pdata.device[deviceindex].all.gen.model)
 			{
 			case DEVICE_MODEL_ASTRODEV:
 				break;
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_frequency(ic9100);
 				if (iretn >= 0)
 				{
-					cdata[0].device[deviceindex].tcv.freq = ic9100.frequency;
+					cinfo->pdata.device[deviceindex].tcv.freq = ic9100.frequency;
 					/*
 					if (ic9100_freq2band(target.freq) != ic9100.freqband)
 					{
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_bandpass(ic9100);
 				if (iretn >= 0)
 				{
-					cdata[0].device[deviceindex].tcv.band = ic9100.bandpass;
+					cinfo->pdata.device[deviceindex].tcv.band = ic9100.bandpass;
 					if (target.band != ic9100.bandpass)
 					{
 						iretn = ic9100_set_bandpass(ic9100, target.band);
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_mode(ic9100);
 				if (iretn >= 0)
 				{
-					cdata[0].device[deviceindex].tcv.opmode = ic9100.opmode;
+					cinfo->pdata.device[deviceindex].tcv.opmode = ic9100.opmode;
 					if (target.opmode != ic9100.opmode)
 					{
 						iretn = ic9100_set_mode(ic9100, target.opmode);
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_rfpower(ic9100);
 				if (iretn >= 0)
 				{
-					cdata[0].device[deviceindex].txr.maxpower = ic9100.maxpower;
+					cinfo->pdata.device[deviceindex].txr.maxpower = ic9100.maxpower;
 					if (target.maxpower != ic9100.maxpower)
 					{
 						iretn = ic9100_set_rfpower(ic9100, target.maxpower);
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_rfmeter(ic9100);
 				if (iretn >= 0)
 				{
-					cdata[0].device[deviceindex].tcv.powerout = ic9100.powerout;
+					cinfo->pdata.device[deviceindex].tcv.powerout = ic9100.powerout;
 				}
 				else
 				{
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
 				iretn = ic9100_get_smeter(ic9100);
 				if (iretn >= 0)
 				{
-					cdata[0].device[deviceindex].tcv.powerin = ic9100.powerin;
+					cinfo->pdata.device[deviceindex].tcv.powerin = ic9100.powerin;
 				}
 				else
 				{
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
 
 int32_t request_get_frequency(char *request, char* response, void *)
 {
-	sprintf(response,"%f", cdata[0].device[deviceindex].tcv.freq);
+	sprintf(response,"%f", cinfo->pdata.device[deviceindex].tcv.freq);
 	return 0;
 }
 
@@ -307,7 +307,7 @@ int32_t request_set_frequency(char *request, char* response, void *)
 
 int32_t request_get_bandpass(char *request, char* response, void *)
 {
-	sprintf(response,"%f", cdata[0].device[deviceindex].tcv.band);
+	sprintf(response,"%f", cinfo->pdata.device[deviceindex].tcv.band);
 	return 0;
 }
 
@@ -321,7 +321,7 @@ int32_t request_set_bandpass(char *request, char* response, void *)
 
 int32_t request_get_power(char *request, char* response, void *)
 {
-	sprintf(response,"%f", cdata[0].device[deviceindex].tcv.powerin);
+	sprintf(response,"%f", cinfo->pdata.device[deviceindex].tcv.powerin);
 	return 0;
 }
 
@@ -333,7 +333,7 @@ int32_t request_set_power(char *request, char* response, void *)
 
 int32_t request_get_opmode(char *request, char* response, void *)
 {
-	strcpy(response, opmode2string(cdata[0].device[deviceindex].tcv.opmode).c_str());
+	strcpy(response, opmode2string(cinfo->pdata.device[deviceindex].tcv.opmode).c_str());
 	return 0;
 }
 
@@ -424,7 +424,7 @@ int32_t connect_radio()
 	int32_t iretn;
 	radioconnected = false;
 
-	switch (cdata[0].device[deviceindex].all.gen.model)
+	switch (cinfo->pdata.device[deviceindex].all.gen.model)
 	{
 	case DEVICE_MODEL_ASTRODEV:
 		break;
@@ -478,7 +478,7 @@ int32_t connect_radio()
 	case DEVICE_MODEL_TS2000:
 		break;
 	default:
-		sprintf(lasterrormessage, "Unknown radio model: %d", cdata[0].device[deviceindex].all.gen.model);
+		sprintf(lasterrormessage, "Unknown radio model: %d", cinfo->pdata.device[deviceindex].all.gen.model);
 		lasterrorcode = GENERAL_ERROR_UNDEFINED;
 		return GENERAL_ERROR_UNDEFINED;
 		break;

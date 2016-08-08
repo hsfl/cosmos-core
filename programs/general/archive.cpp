@@ -34,7 +34,7 @@
 #include "zlib/zlib.h"
 #include <stdio.h>
 
-cosmosstruc* cdata;
+cosmosstruc *cinfo;
 
 int main(int argc, char* argv[])
 {
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
         exit (1);
     }
 
-    if (!(cdata=agent_setup_client(NetworkType::UDP, node.c_str(), 1000)))
+    if (!(cinfo=agent_setup_client(NetworkType::UDP, node.c_str(), 1000)))
     {
         printf("Couldn't establish client for node %s\n", node.c_str());
         exit (-1);
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
     char buffer[8192];
     std::vector<filestruc> srcfiles;
-    data_list_files(cdata[0].node.name, source.c_str(), agent.c_str(), srcfiles);
+    data_list_files(cinfo->pdata.node.name, source.c_str(), agent.c_str(), srcfiles);
 
     for (filestruc srcfile: srcfiles)
     {

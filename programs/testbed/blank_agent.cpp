@@ -49,9 +49,9 @@ int myagent();
 char agentname[COSMOS_MAX_NAME+1] = "blank";
 char ipaddress[16] = "192.168.150.1";
 int waitsec = 5;
-int32_t request_run_program(char *request, char* response, void *cdata);
+int32_t request_run_program(char *request, char* response, void *cinfo);
 
-cosmosstruc *cdata;
+cosmosstruc *cinfo;
 
 #define MAXBUFFERSIZE 256
 
@@ -70,18 +70,18 @@ int32_t iretn;
 if (argc == 2)
 	strcpy(agentname,argv[1]);
 
-if ((iretn=agent_get_server(cdata, NULL,agentname,waitsec,(beatstruc *)NULL)) > 0)
+if ((iretn=agent_get_server(cinfo, NULL,agentname,waitsec,(beatstruc *)NULL)) > 0)
 	exit (iretn);
 
 // Initialization stuff
 
 
 // Initialize the Agent
-if (!(cdata = agent_setup_server(NetworkType::BROADCAST,nullptr,agentname,.1,0,MAXBUFFERSIZE)))
+if (!(cinfo = agent_setup_server(NetworkType::BROADCAST,nullptr,agentname,.1,0,MAXBUFFERSIZE)))
 	exit (iretn);
 
 // Add additional requests
-if ((iretn=agent_add_request(cdata, "runprogram",request_run_program)))
+if ((iretn=agent_add_request(cinfo, "runprogram",request_run_program)))
 	exit (iretn);
 
 // Start our own thread
@@ -92,7 +92,7 @@ int myagent()
 {
 
 // Start performing the body of the agent
-while(agent_running(cdata))
+while(agent_running(cinfo))
 	{
 
 
@@ -101,7 +101,7 @@ while(agent_running(cdata))
 return 0;
 }
 
-int32_t request_run_program(char *request, char* response, void *cdata)
+int32_t request_run_program(char *request, char* response, void *cinfo)
 {
 int i;
 int32_t iretn = 0;

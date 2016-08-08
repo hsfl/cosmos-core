@@ -29,7 +29,7 @@
 
 #include "configCosmos.h"
 
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
 #include "convertlib.h"
 #include "datalib.h"
@@ -69,7 +69,8 @@
 #include <fstream>
 #include <sstream>
 
-cosmosstruc* cdata;
+//cosmosstruc* cinfo;
+cosmosAgent *agent;
 
 // Exuctive specfic declarations
 #include "agent_exec.h"
@@ -88,24 +89,23 @@ double newlogstride_exec = 900. / 86400.;
 double logstride_exec = 0.;
 bool queue_changed = false;
 
-int32_t request_get_queue_size(char *request, char* response, void *cdata);
-int32_t request_get_queue_entry(char *request, char* response, void *cdata);
-int32_t request_del_queue_entry(char *request, char* response, void *cdata);
-int32_t request_add_queue_entry(char *request, char* response, void *cdata);
-int32_t request_run(char *request, char* response, void *cdata);
-int32_t request_soh(char *request, char* response, void *cdata);
-int32_t request_reopen_exec(char* request, char* output, void *cdata);
-int32_t request_set_logstride_exec(char* request, char* output, void *cdata);
+int32_t request_get_queue_size(char *request, char* response, cosmosAgent *);
+int32_t request_get_queue_entry(char *request, char* response, cosmosAgent *agent);
+int32_t request_del_queue_entry(char *request, char* response, cosmosAgent *agent);
+int32_t request_add_queue_entry(char *request, char* response, cosmosAgent *agent);
+int32_t request_run(char *request, char* response, cosmosAgent *agent);
+int32_t request_soh(char *request, char* response, cosmosAgent *agent);
+int32_t request_reopen_exec(char* request, char* output, cosmosAgent *agent);
+int32_t request_set_logstride_exec(char* request, char* output, cosmosAgent *agent);
 
-void collect_data_loop();
 command_queue cmd_queue;
 
 // SOH specific declarations
-int32_t request_reopen_soh(char* request, char* output, void *cdata);
-int32_t request_set_logperiod(char* request, char* output, void *cdata);
-int32_t request_set_logstring(char* request, char* output, void *cdata);
-int32_t request_get_logstring(char* request, char* output, void *cdata);
-int32_t request_set_logstride_soh(char* request, char* output, void *cdata);
+int32_t request_reopen_soh(char* request, char* output, cosmosAgent *agent);
+int32_t request_set_logperiod(char* request, char* output, cosmosAgent *agent);
+int32_t request_set_logstring(char* request, char* output, cosmosAgent *agent);
+int32_t request_get_logstring(char* request, char* output, cosmosAgent *agent);
+int32_t request_set_logstride_soh(char* request, char* output, cosmosAgent *agent);
 
 std::string jjstring;
 std::string myjstring;
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 	double lmjd, dmjd;
 	double nextmjd;
 
-	std::cout<<"Starting the executive/soh agent...";
+    std::cout<<"Starting the executive/soh agent->..";
 	int32_t iretn;
     NetworkType ntype = NetworkType::UDP;
 
@@ -155,15 +155,9 @@ int main(int argc, char *argv[])
 	nodename = argv[1];
 
 	// Establish the command channel and heartbeat
-	cdata = agent_setup_server(ntype, (char *)nodename.c_str(), (char *)"execsoh", 1., 0, AGENTMAXBUFFER);
-	if(cdata == NULL)
-	{
-		std::cout<<"agent_exec: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
-		exit (AGENT_ERROR_JSON_CREATE);
-	}
-	cdata[0].node.utc = 0.;
-	cdata[0].agent[0].aprd = .5;
-	json_clone(cdata);
+    agent = new cosmosAgent(ntype, nodename, "execsoh");
+    agent->cinfo->pdata.node.utc = 0.;
+    agent->cinfo->pdata.agent[0].aprd = .5;
 
 	std::cout<<"  started."<<std::endl;
 
@@ -196,21 +190,19 @@ int main(int argc, char *argv[])
 	}
 
 	// Add agent request functions
-	if ((iretn=agent_add_request(cdata, (char *)"get_queue_size",request_get_queue_size,"", "returns the current size of the command queue")))
+    if ((iretn=agent->add_request("get_queue_size", request_get_queue_size, "", "returns the current size of the command queue")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"del_queue_entry",request_del_queue_entry,"entry #","deletes the specified command queue entry")))
+    if ((iretn=agent->add_request("del_queue_entry", request_del_queue_entry, "entry #", "deletes the specified command queue entry")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"get_queue_entry",request_get_queue_entry,"[ entry # ]","returns the requested command queue entry (or all if none specified)")))
+    if ((iretn=agent->add_request("get_queue_entry", request_get_queue_entry, "[ entry # ]", "returns the requested command queue entry (or all if none specified)")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"add_queue_entry",request_add_queue_entry,"{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}","adds the specified command queue entry")))
+    if ((iretn=agent->add_request("add_queue_entry", request_add_queue_entry, "{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", "adds the specified command queue entry")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"run",request_run,"","run the requested command")))
+    if ((iretn=agent->add_request("run", request_run, "", "run the requested command")))
 		exit (iretn);
-	//		if ((iretn=agent_add_request(cdata, (char *)"this_is_a_super_long_ass_name",request_run)))
-	//				exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"reopen_exec",request_reopen_exec)))
+    if ((iretn=agent->add_request("reopen_exec", request_reopen_exec)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"set_logstride_exec",request_set_logstride_exec)))
+    if ((iretn=agent->add_request("set_logstride_exec", request_set_logstride_exec)))
 		exit (iretn);
 
 	// Reload existing queue
@@ -248,24 +240,24 @@ int main(int argc, char *argv[])
 
 	// Establish SOH functions
 
-	if ((iretn=agent_add_request(cdata, (char *)"reopen_soh",request_reopen_soh)))
+    if ((iretn=agent->add_request("reopen_soh", request_reopen_soh)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"set_logperiod",request_set_logperiod)))
+    if ((iretn=agent->add_request("set_logperiod" ,request_set_logperiod)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"set_logstring",request_set_logstring)))
+    if ((iretn=agent->add_request("set_logstring", request_set_logstring)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"get_logstring",request_get_logstring)))
+    if ((iretn=agent->add_request("get_logstring", request_get_logstring)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cdata, (char *)"set_logstride_soh",request_set_logstride_soh)))
+    if ((iretn=agent->add_request("set_logstride_soh", request_set_logstride_soh)))
 		exit (iretn);
 
 	// Create default logstring
-	logstring = json_list_of_soh(cdata);
+    logstring = json_list_of_soh(agent->cinfo->pdata);
 	printf("logstring: %s\n", logstring.c_str());
-	json_table_of_list(logtable, logstring.c_str(), cdata);
-	//	agent_set_sohstring(cdata, logstring.c_str());
+    json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
+    //	agent_set_sohstring(agent->cinfo, logstring.c_str());
 
-	load_dictionary(eventdict, cdata, (char *)"events.dict");
+    load_dictionary(eventdict, agent->cinfo->meta, agent->cinfo->pdata, (const char *)"events.dict");
 
 	// Start thread to collect SOH data
 	cdthread = std::thread(collect_data_loop);
@@ -273,18 +265,18 @@ int main(int argc, char *argv[])
 	// Start performing the body of the agent
 	nextmjd = currentmjd();
 	lmjd = currentmjd();
-	while(agent_running(cdata))
+    while(agent->running())
 	{
-		nextmjd += cdata[0].agent[0].aprd/86400.;
+        nextmjd += agent->cinfo->pdata.agent[0].aprd/86400.;
 		dmjd = (cmjd-lmjd)*86400.;
-		cdata[0].node.utc = cmjd = currentmjd();
+        agent->cinfo->pdata.node.utc = cmjd = currentmjd();
 
 		// Check if the SOH logperiod has changed
 		if (newlogperiod != logperiod )
 		{
 			logperiod = newlogperiod;
-			logdate_soh = cdata[0].node.utc;
-			log_move(cdata[0].node.name, "soh");
+            logdate_soh = agent->cinfo->pdata.node.utc;
+            log_move(agent->cinfo->pdata.node.name, "soh");
 		}
 
 
@@ -317,17 +309,17 @@ int main(int argc, char *argv[])
 		}
 
 		// Perform SOH specific functions
-		if (cdata[0].node.utc != 0.)
+        if (agent->cinfo->pdata.node.utc != 0.)
 		{
-			loc_update(&cdata[0].node.loc);
-			update_target(cdata);
-			agent_post(cdata, AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, cdata));
-			calc_events(eventdict, cdata, events);
+            loc_update(&agent->cinfo->pdata.node.loc);
+            update_target(agent->cinfo->pdata);
+            agent->post(cosmosAgent::AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
+            calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
 			for (uint32_t k=0; k<events.size(); ++k)
 			{
-				memcpy(&cdata[0].event[0].s,&events[k],sizeof(shorteventstruc));
-				strcpy(cdata[0].event[0].l.condition,cdata[0].emap[events[k].handle.hash][events[k].handle.index].text);
-				log_write(cdata[0].node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring,cdata));
+                memcpy(&agent->cinfo->pdata.event[0].s,&events[k],sizeof(shorteventstruc));
+                strcpy(agent->cinfo->pdata.event[0].l.condition,agent->cinfo->meta.emap[events[k].handle.hash][events[k].handle.index].text);
+                log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo->meta, agent->cinfo->pdata));
 			}
 		}
 
@@ -335,9 +327,9 @@ int main(int argc, char *argv[])
 		if (dmjd-logperiod > -logperiod/20.)
 		{
 			lmjd = cmjd;
-			if (cdata[0].node.utc != 0. && logstring.size())
+            if (agent->cinfo->pdata.node.utc != 0. && logstring.size())
 			{
-				log_write(cdata[0].node.name,DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, cdata));
+                log_write(agent->cinfo->pdata.node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
 			}
 		}
 
@@ -351,31 +343,31 @@ int main(int argc, char *argv[])
 		COSMOS_USLEEP(sleept);
 	}
 
-	agent_shutdown_server(cdata);
+    agent->shutdown();
 	cdthread.join();
 }
 
 // Executive specific requests
-int32_t request_set_logstride_exec(char* request, char* output, void *cdata)
+int32_t request_set_logstride_exec(char* request, char* , cosmosAgent *)
 {
 	sscanf(request,"set_logstride_exec %lf",&newlogstride_exec);
 	return 0;
 }
 
-int32_t request_reopen_exec(char* request, char* output, void *cdata)
+int32_t request_reopen_exec(char* , char* , cosmosAgent *agent)
 {
-	logdate_exec = ((cosmosstruc *)cdata)->node.loc.utc;
-	log_move(((cosmosstruc *)cdata)->node.name, "exec");
+    logdate_exec = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
+    log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "exec");
 	return 0;
 }
 
-int32_t request_get_queue_size(char *request, char* response, void *cdata)
+int32_t request_get_queue_size(char *, char* response, cosmosAgent *)
 {
 	sprintf(response,"%" PRIu32 "", cmd_queue.get_size());
 	return 0;
 }
 
-int32_t request_get_queue_entry(char *request, char* response, void *cdata)
+int32_t request_get_queue_entry(char *request, char* response, cosmosAgent *)
 {
     std::ostringstream ss;
 
@@ -408,7 +400,7 @@ int32_t request_get_queue_entry(char *request, char* response, void *cdata)
 }
 
 // Delete Queue Entry - by date and contents
-int32_t request_del_queue_entry(char *request, char* response, void *cdata)
+int32_t request_del_queue_entry(char *request, char* response, cosmosAgent *)
 {
 	command cmd;
 	std::string line(request);
@@ -427,7 +419,7 @@ int32_t request_del_queue_entry(char *request, char* response, void *cdata)
 }
 
 // Add Queue Entry
-int32_t request_add_queue_entry(char *request, char* response, void *cdata)
+int32_t request_add_queue_entry(char *request, char* response, cosmosAgent *)
 {
 	command cmd;
 	std::string line(request);
@@ -445,7 +437,7 @@ int32_t request_add_queue_entry(char *request, char* response, void *cdata)
 	return 0;
 }
 
-int32_t request_run(char *request, char* response, void *cdata)
+int32_t request_run(char *request, char* response, cosmosAgent *)
 {
 	int i;
 	int32_t iretn = 0;
@@ -502,33 +494,33 @@ int32_t request_run(char *request, char* response, void *cdata)
 }
 
 // SOH specific requests
-int32_t request_reopen_soh(char* request, char* output, void *cdata)
+int32_t request_reopen_soh(char* , char* , cosmosAgent *)
 {
-	logdate_soh = ((cosmosstruc *)cdata)->node.loc.utc;
-	log_move(((cosmosstruc *)cdata)->node.name, "soh");
+    logdate_soh = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
+    log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "soh");
 	return 0;
 }
 
-int32_t request_set_logperiod(char* request, char* output, void *cdata)
+int32_t request_set_logperiod(char* request, char* , cosmosAgent *)
 {
 	sscanf(request,"set_logperiod %d",&newlogperiod);
 	return 0;
 }
 
-int32_t request_set_logstring(char* request, char* output, void *cdata)
+int32_t request_set_logstring(char* request, char* , cosmosAgent *)
 {
 	logstring = &request[strlen("set_logstring")+1];
-	json_table_of_list(logtable, logstring.c_str(), (cosmosstruc*)cdata);
+    json_table_of_list(logtable, logstring.c_str(), ((cosmosstruc*)agent->cinfo)->meta);
 	return 0;
 }
 
-int32_t request_get_logstring(char* request, char* output, void *cdata)
+int32_t request_get_logstring(char* , char* output, cosmosAgent *)
 {
 	strcpy(output, logstring.c_str());
 	return 0;
 }
 
-int32_t request_set_logstride_soh(char* request, char* output, void *cdata)
+int32_t request_set_logstride_soh(char* request, char* , cosmosAgent *)
 {
 	sscanf(request,"set_logstride_soh %lf",&newlogstride_soh);
 	return 0;
@@ -536,43 +528,44 @@ int32_t request_set_logstride_soh(char* request, char* output, void *cdata)
 
 void collect_data_loop()
 {
-	int nbytes;
-	std::string message;
-	pollstruc meta;
-
-	while (agent_running(cdata))
+    int32_t my_position = -1;
+    while (agent->running())
 	{
 		// Collect new data
-		if((nbytes=agent_poll(cdata, meta, message, AGENT_MESSAGE_BEAT, 0)))
-		{
-			if (json_convert_string(json_extract_namedobject(message.c_str(), "agent_node")) != cdata[0].node.name)
-			{
-				continue;
-			}
-			cdata[1].node = cdata[0].node;
-			cdata[1].device = cdata[0].device;
-			json_parse(message,&cdata[1]);
-			cdata[0].node  = cdata[1].node ;
-			cdata[0].device  = cdata[1].device ;
-			loc_update(&cdata[0].node.loc);
-			cdata[0].node.utc = currentmjd(0.);
-		}
+        while (my_position != agent->message_position)
+        {
+            ++my_position;
+            if (my_position >= agent->message_ring.size())
+            {
+                my_position = 0;
+            }
+            if (agent->cinfo->pdata.node.name == agent->message_ring[my_position].meta.beat.node)
+            {
+                agent->cinfo->sdata.node = agent->cinfo->pdata.node;
+                agent->cinfo->sdata.device = agent->cinfo->pdata.device;
+                json_parse(agent->message_ring[my_position].data, agent->cinfo->meta, agent->cinfo->sdata);
+                agent->cinfo->pdata.node  = agent->cinfo->sdata.node ;
+                agent->cinfo->pdata.device  = agent->cinfo->sdata.device ;
+                loc_update(&agent->cinfo->pdata.node.loc);
+                agent->cinfo->pdata.node.utc = currentmjd(0.);
+            }
+        }
 	}
 	return;
 }
 
-// Prints the command information stored in local the copy of cdata[0].event[0].l
+// Prints the command information stored in local the copy of agent->cinfo->pdata.event[0].l
 void print_command()
 {
 	std::string jsp;
 
-	json_out(jsp,(char*)"event_utc",cdata);
-	json_out(jsp,(char*)"event_utcexec",cdata);
-	json_out(jsp,(char*)"event_name",cdata);
-	json_out(jsp,(char*)"event_type",cdata);
-	json_out(jsp,(char*)"event_flag",cdata);
-	json_out(jsp,(char*)"event_data",cdata);
-	json_out(jsp,(char*)"event_condition",cdata);
+    json_out(jsp,(char*)"event_utc", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_utcexec", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_name", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_type", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_flag", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_data", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_condition", agent->cinfo->meta, agent->cinfo->pdata);
 	std::cout<<"<"<<jsp<<">"<<std::endl;
 
 	return;
@@ -617,18 +610,18 @@ command::command() : utc(0), utcexec(0), name(""), type(0), flag(0), data(""), c
 }
 
 // Copies the command information stored in the local copy
-// cdata[0].event[0].l into the current command object
+// agent->cinfo->pdata.event[0].l into the current command object
 void command::set_command(std::string line)
 {
-	json_clear_cosmosstruc(JSON_GROUP_EVENT, &cdata[1]);
-	json_parse(line, &cdata[1]);
-	utc = cdata[1].event[0].l.utc;
-	utcexec = cdata[1].event[0].l.utcexec;
-	name = cdata[1].event[0].l.name;
-	type = cdata[1].event[0].l.type;
-	flag = cdata[1].event[0].l.flag;
-	data = cdata[1].event[0].l.data;
-	condition = cdata[1].event[0].l.condition;
+    json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
+    json_parse(line, agent->cinfo->meta, agent->cinfo->sdata);
+    utc = agent->cinfo->sdata.event[0].l.utc;
+    utcexec = agent->cinfo->sdata.event[0].l.utcexec;
+    name = agent->cinfo->sdata.event[0].l.name;
+    type = agent->cinfo->sdata.event[0].l.type;
+    flag = agent->cinfo->sdata.event[0].l.flag;
+    data = agent->cinfo->sdata.event[0].l.data;
+    condition = agent->cinfo->sdata.event[0].l.condition;
 }
 
 std::string command::get_json()
@@ -680,14 +673,14 @@ void run_command(command& cmd)
 	char command_line[100];
 	strcpy(command_line, cmd.get_data());
 
-	STARTUPINFO si;
+    STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
 
 	ZeroMemory( &si, sizeof(si) );
 	si.cb = sizeof(si);
 	ZeroMemory( &pi, sizeof(pi) );
 
-        if (CreateProcess(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 	{
 		//		int32_t pid = pi.dwProcessId;
 		CloseHandle( pi.hProcess );
@@ -741,7 +734,7 @@ void command_queue::run_commands()
 		{
 			if (ii->is_conditional())
 			{
-				if(ii->condition_true())
+                if(ii->condition_true(agent->cinfo))
 				{
 					if(ii->is_repeat())
 					{
@@ -804,8 +797,7 @@ void command_queue::load_commands()
 	if ((dir = opendir((char *)incoming_dir.c_str())) == NULL)
 	{
 		std::cout<<"error: unable to open node's incoming directory <"<<incoming_dir<<"> not found"<<std::endl;
-		agent_shutdown_server(cdata);
-		exit(1);
+        return;
 	}
 
 	// cycle through all the file names in the incoming directory
@@ -830,10 +822,6 @@ void command_queue::load_commands()
 
 			while(getline(infile,line))
 			{
-				//clear cdata[0].event[0].l, parse line into cdata[0].event[0].l, set command object, and add to command queue
-				//				json_parse("{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", cdata);
-				//				std::cout<<"<"<<line.c_str()<<">"<<std::endl;
-				//				std::cout<<"Returned "<<ireturn<<" And the command is: "<<std::endl;
 
 				cmd.set_command(line);
 

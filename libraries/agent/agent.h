@@ -45,16 +45,7 @@
 class cosmosAgent
 {
 public:
-//    cosmosAgent();
-//    cosmosAgent(NetworkType ntype);
-//    cosmosAgent(NetworkType ntype, std::string &nname);
-//    cosmosAgent(NetworkType ntype, std::string &nname, std::string &aname);
-//    cosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd);
-//    cosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd, uint32_t bsize);
-//    cosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd, uint32_t bsize, bool mflag);
-//    cosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd, uint32_t bsize, bool mflag, int32_t port);
     cosmosAgent(NetworkType ntype = NetworkType::UDP, const std::string &nname = "", const std::string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-//    cosmosAgent(NetworkType ntype = NetworkType::UDP, std::string nname = "", std::string aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
     ~cosmosAgent();
 
     enum class AgentState : uint16_t
@@ -203,11 +194,25 @@ public:
 
     void log(std::string log_entry);
     bool setSoh(std::string sohFields);
-    cosmosstruc *cdata;
+    cosmosstruc *cinfo;
     jsonnode cjson;
 
     //! List of active agents
     std::vector <beatstruc> agent_list;
+
+    //! Storage for messages
+    struct message
+    {
+        pollstruc meta;
+        std::string data;
+    };
+    //! Ring buffer for incoming messages
+    std::vector <message> message_ring;
+    //! Size of message ring buffer
+    int32_t message_count = 100;
+    //! Current leading edge of message ring buffer
+    int32_t message_position;
+
     // agent variables
 private:
 
@@ -232,19 +237,6 @@ private:
     std::thread hthread;
     //! Handle for message thread
     std::thread mthread;
-
-    //! Storage for messages
-    struct message
-    {
-        pollstruc meta;
-        std::string data;
-    };
-    //! Ring buffer for incoming messages
-    std::vector <message> message_ring;
-    //! Size of message ring buffer
-    int32_t message_count = 100;
-    //! Current leading edge of message ring buffer
-    int32_t message_position;
 
     //! Agent Request Entry
     //! Structure representing a single Agent request.

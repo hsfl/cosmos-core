@@ -42,9 +42,9 @@ int myagent();
 char agentname[COSMOS_MAX_NAME+1] = "example";
 char node[50] = "null";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t request_run_program(char *request, char* response, void *cdata); // extra request
+int32_t request_run_program(char *request, char* response, void *cinfo); // extra request
 
-cosmosstruc *cdata; // to access the cosmos data, will change later
+cosmosstruc *cinfo; // to access the cosmos data, will change later
 
 #define MAXBUFFERSIZE 2560 // comm buffe for agents
 
@@ -71,11 +71,11 @@ int main(int argc, char *argv[])
 	// Initialize the Agent
 	// near future: support cubesat space protocol
 	// port number = 0 in this case, automatic assignment of port
-	if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
+    if (!(cinfo = agent_setup_server(NetworkType::UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Add additional requests
-	if ((iretn=agent_add_request(cdata, "runprogram",request_run_program)))
+    if ((iretn=agent_add_request(cinfo, "runprogram",request_run_program)))
 		exit (iretn);
 
 	// Start main thread
@@ -88,15 +88,15 @@ int main(int argc, char *argv[])
 
 	// Start performing the body of the agent
 	nmjd = currentmjd(0.);
-	while(agent_running(cdata))
+    while(agent_running(cinfo))
 	{
 		// Set beginning of next cycle;
-		nmjd += cdata[0].agent[0].aprd/86400.;
+        nmjd += cinfo->pdata.agent[0].aprd/86400.;
 		// Gather system information
-        if (cdata[0].devspec.cpu_cnt)
+        if (cinfo->pdata.devspec.cpu_cnt)
         {
-            cdata[0].devspec.cpu[0]->load = cpu.getLoad();
-            cdata[0].devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
+            cinfo->pdata.devspec.cpu[0]->load = cpu.getLoad();
+            cinfo->pdata.devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
         }
 
 		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 }
 
 // the name of this fn will always be changed
-int32_t request_run_program(char *request, char* response, void *cdata)
+int32_t request_run_program(char *request, char* response, void *cinfo)
 {
 	int i;
 	int32_t iretn = 0;

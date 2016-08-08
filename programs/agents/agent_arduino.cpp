@@ -43,9 +43,9 @@ std::string agentname = "arduino";
 std::string node = "null";
 std::string comport = "//./";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t request_run_program(char *request, char* response, void *cdata); // extra request
+int32_t request_run_program(char *request, char* response, void *cinfo); // extra request
 
-cosmosstruc *cdata; // to access the cosmos data, will change later
+cosmosstruc *cinfo; // to access the cosmos data, will change later
 
 #define MAXBUFFERSIZE 2560 // comm buffe for agents
 
@@ -73,19 +73,19 @@ int main(int argc, char *argv[])
     }
 
 	// Initialize the Agent
-    if (!(cdata = agent_setup_server(NetworkType::UDP,node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
+    if (!(cinfo = agent_setup_server(NetworkType::UDP,node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
     {
         printf("Error starting server\n");
 		exit (AGENT_ERROR_JSON_CREATE);
     }
 
 	// Add additional requests
-	if ((iretn=agent_add_request(cdata, "runprogram",request_run_program)))
+    if ((iretn=agent_add_request(cinfo, "runprogram",request_run_program)))
 		exit (iretn);
 
     // Setup Heartbeat information
     char arduino_soh[2000] = "{\"device_imu_utc_000\",\"device_imu_accel_000\",\"device_imu_omega_000\",\"device_imu_mag_000\",\"device_imu_temp_000\"}";
-    agent_set_sohstring(cdata, arduino_soh);
+    agent_set_sohstring(cinfo, arduino_soh);
 
     // Start main thread
 	double nmjd;
@@ -99,17 +99,17 @@ int main(int argc, char *argv[])
 	// Start performing the body of the agent
 	nmjd = currentmjd(0.);
     uint32_t counter = 0;
-	while(agent_running(cdata))
+    while(agent_running(cinfo))
 	{
 		// Set beginning of next cycle;
-		nmjd += cdata[0].agent[0].aprd/86400.;
+        nmjd += cinfo->pdata.agent[0].aprd/86400.;
 
         // Gather arduino data
         iretn = cssl_getdata(serial, buffer, 400);
         if (iretn > 0)
         {
             std::string message = (char *)buffer;
-            json_parse(message, cdata);
+            json_parse(message, cinfo->meta, cinfo->pdata);
             printf("%u: %s\n", ++counter, buffer);
         }
 

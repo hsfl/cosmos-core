@@ -27,6 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+#include "configCosmos.h"
+#include "agent/agent.h"
 #include "physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
@@ -35,7 +37,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-cosmosstruc *cdata;
 stkstruc stk;
 
 int main(int argc, char *argv[])
@@ -51,66 +52,65 @@ dt = atof(argv[2]);
 dp = atof(argv[3]);
 tp = atof(argv[4]);
 
-cdata = json_create();
-json_setup_node(argv[1],cdata);
+cosmosAgent agent(NetworkType::UDP, argv[1]);
 
-cdata[0].physics.mode = atol(argv[1]);
-//cdata[0].node.info.testflag = FLAG_ADRAG;
-//cdata[0].node.info.testflag = FLAG_GTORQUE;
+agent.cinfo->pdata.physics.mode = atol(argv[1]);
+//agent.cinfo->pdata.node.info.testflag = FLAG_ADRAG;
+//agent.cinfo->pdata.node.info.testflag = FLAG_GTORQUE;
 
 mjdbase = mjdnow = 55593.41666667;
-orbit_init(0, dt, mjdbase, (char *)"stk_cdr_j2000.txt", *cdata);
+orbit_init(0, dt, mjdbase, (char *)"stk_cdr_j2000.txt", agent.cinfo->pdata);
 
 
-//att_eci2lvlh(&cdata[0].node.loc.pos,&cdata[0].node.loc.att);
-//att_lvlh2eci(&cdata[0].node.loc.pos,&cdata[0].node.loc.att);
+//att_eci2lvlh(&agent.cinfo->pdata.node.loc.pos,&agent.cinfo->pdata.node.loc.att);
+//att_lvlh2eci(&agent.cinfo->pdata.node.loc.pos,&agent.cinfo->pdata.node.loc.att);
 
 cp = 0.;
 maxr = 0.;
-minr = 10. * cdata[0].node.loc.pos.geos.s.r;
-lastlat = cdata[0].node.loc.pos.geod.s.lat;
+minr = 10. * agent.cinfo->pdata.node.loc.pos.geos.s.r;
+lastlat = agent.cinfo->pdata.node.loc.pos.geod.s.lat;
 mjdbase = mjdnow;
 mjdlast = mjdnow + tp;
 do
 	{
-		printf("%16.10f %12.6f %8.3f %8.3f ",cdata[0].node.loc.utc,1440.*(cdata[0].node.loc.utc-mjdbase),cdata[0].node.loc.pos.geod.s.lat*180./M_PI,cdata[0].node.loc.pos.geod.s.lon*180./M_PI);
+        printf("%16.10f %12.6f %8.3f %8.3f ",agent.cinfo->pdata.node.loc.utc,1440.*(agent.cinfo->pdata.node.loc.utc-mjdbase),agent.cinfo->pdata.node.loc.pos.geod.s.lat*180./M_PI,agent.cinfo->pdata.node.loc.pos.geod.s.lon*180./M_PI);
 
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.pos.geod.s.h,cdata[0].node.loc.pos.geod.s.lat*180./M_PI,cdata[0].node.loc.pos.geod.s.lon*180./M_PI);
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.pos.geoc.s.col[0],cdata[0].node.loc.pos.geoc.s.col[1],cdata[0].node.loc.pos.geoc.s.col[2]);
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.pos.geoc.v.col[0],cdata[0].node.loc.pos.geoc.v.col[1],cdata[0].node.loc.pos.geoc.v.col[2]);
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.pos.geoc.a.col[0],cdata[0].node.loc.pos.geoc.a.col[1],cdata[0].node.loc.pos.geoc.a.col[2]);
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.pos.eci.s.col[0],cdata[0].node.loc.pos.eci.s.col[1],cdata[0].node.loc.pos.eci.s.col[2]);
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.pos.eci.v.col[0],cdata[0].node.loc.pos.eci.v.col[1],cdata[0].node.loc.pos.eci.v.col[2]);
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.pos.eci.a.col[0],cdata[0].node.loc.pos.eci.a.col[1],cdata[0].node.loc.pos.eci.a.col[2]);
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.att.eci.s.row[0].col[0],cdata[0].node.loc.att.eci.s.row[0].col[1],cdata[0].node.loc.att.eci.s.row[0].col[2]);
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.att.eci.s.row[1].col[0],cdata[0].node.loc.att.eci.s.row[1].col[1],cdata[0].node.loc.att.eci.s.row[1].col[2]);
-//		printf("%f\t%f\t%f\t",cdata[0].node.loc.att.eci.s.row[2].col[0],cdata[0].node.loc.att.eci.s.row[2].col[1],cdata[0].node.loc.att.eci.s.row[2].col[2]);
-//		vec = rv_normal(rv_mmult((cdata[0].node.loc.att.eci.s),cdata[0].node.loc.pos.eci.s));
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.pos.geod.s.h,agent.cinfo->pdata.node.loc.pos.geod.s.lat*180./M_PI,agent.cinfo->pdata.node.loc.pos.geod.s.lon*180./M_PI);
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.pos.geoc.s.col[0],agent.cinfo->pdata.node.loc.pos.geoc.s.col[1],agent.cinfo->pdata.node.loc.pos.geoc.s.col[2]);
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.pos.geoc.v.col[0],agent.cinfo->pdata.node.loc.pos.geoc.v.col[1],agent.cinfo->pdata.node.loc.pos.geoc.v.col[2]);
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.pos.geoc.a.col[0],agent.cinfo->pdata.node.loc.pos.geoc.a.col[1],agent.cinfo->pdata.node.loc.pos.geoc.a.col[2]);
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.pos.eci.s.col[0],agent.cinfo->pdata.node.loc.pos.eci.s.col[1],agent.cinfo->pdata.node.loc.pos.eci.s.col[2]);
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.pos.eci.v.col[0],agent.cinfo->pdata.node.loc.pos.eci.v.col[1],agent.cinfo->pdata.node.loc.pos.eci.v.col[2]);
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.pos.eci.a.col[0],agent.cinfo->pdata.node.loc.pos.eci.a.col[1],agent.cinfo->pdata.node.loc.pos.eci.a.col[2]);
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.att.eci.s.row[0].col[0],agent.cinfo->pdata.node.loc.att.eci.s.row[0].col[1],agent.cinfo->pdata.node.loc.att.eci.s.row[0].col[2]);
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.att.eci.s.row[1].col[0],agent.cinfo->pdata.node.loc.att.eci.s.row[1].col[1],agent.cinfo->pdata.node.loc.att.eci.s.row[1].col[2]);
+//		printf("%f\t%f\t%f\t",agent.cinfo->pdata.node.loc.att.eci.s.row[2].col[0],agent.cinfo->pdata.node.loc.att.eci.s.row[2].col[1],agent.cinfo->pdata.node.loc.att.eci.s.row[2].col[2]);
+//		vec = rv_normal(rv_mmult((agent.cinfo->pdata.node.loc.att.eci.s),agent.cinfo->pdata.node.loc.pos.eci.s));
 //		vec =
-//		rv_normal(rv_mmult((cdata[0].node.loc.att.eci.s),rv_smult(-1.,cdata[0].node.loc.pos.icrf.s)));
-//		vec = cdata[0].node.loc.att.eci.v;
+//		rv_normal(rv_mmult((agent.cinfo->pdata.node.loc.att.eci.s),rv_smult(-1.,agent.cinfo->pdata.node.loc.pos.icrf.s)));
+//		vec = agent.cinfo->pdata.node.loc.att.eci.v;
 //		printf("%f %f %f %f ",vec.col[0],vec.col[1],vec.col[2],length_rv(vec));
 //		printf("%f %f %f %f ",DEGOF(vec.col[0]),DEGOF(vec.col[1]),DEGOF(vec.col[2]),DEGOF(length_rv(vec)));
-//		vec = cdata[0].node.loc.att.body.a;
+//		vec = agent.cinfo->pdata.node.loc.att.body.a;
 //		printf("%f %f %f %f ",vec.col[0],vec.col[1],vec.col[2],length_rv(vec));
 //		printf("%f %f %f
-//		",cdata[0].node.info.powuse,cdata[0].node.info.powgen,cdata[0].node.info.battlev);
-//		printf("%f %f %f %f",cdata[0].devspec.rw[0]->omega,cdata[0].devspec.rw[0]->alpha,cdata[0].device[cdata[0].devspec.rw[0]->gen.cidx].gen.current,cdata[0].node.info.powuse);
-	localtime = atan2(cdata[0].node.loc.pos.icrf.s.col[1],cdata[0].node.loc.pos.icrf.s.col[0]);
+//		",agent.cinfo->pdata.node.info.powuse,agent.cinfo->pdata.node.info.powgen,agent.cinfo->pdata.node.info.battlev);
+//		printf("%f %f %f %f",agent.cinfo->pdata.devspec.rw[0]->omega,agent.cinfo->pdata.devspec.rw[0]->alpha,agent.cinfo->pdata.device[agent.cinfo->pdata.devspec.rw[0]->gen.cidx].gen.current,agent.cinfo->pdata.node.info.powuse);
+    localtime = atan2(agent.cinfo->pdata.node.loc.pos.icrf.s.col[1],agent.cinfo->pdata.node.loc.pos.icrf.s.col[0]);
 	if (localtime < 0.)
 		localtime += D2PI;
-	eci2kep(cdata[0].node.loc.pos.eci,kep);
+    eci2kep(agent.cinfo->pdata.node.loc.pos.eci,kep);
 	localtime = kep.raan + DPI - localtime;
 	if (localtime < 0.)
 		localtime += D2PI;
-//		printf("%f\t%f\t%f\t",DEGOF(cdata[0].node.loc.pos.sunsepangle),24.*localtime/D2PI,24.*cdata[0].node.loc.pos.localtime/D2PI);
+//		printf("%f\t%f\t%f\t",DEGOF(agent.cinfo->pdata.node.loc.pos.sunsepangle),24.*localtime/D2PI,24.*agent.cinfo->pdata.node.loc.pos.localtime/D2PI);
 
 	if (dp)
 		{
 		mjdnow += dp/86400.;
-		orbit_propagate(*cdata, mjdnow);
-//		att_eci2lvlh(&cdata[0].node.loc.pos,&cdata[0].node.loc.att);
-		ql = cdata[0].node.loc.att.lvlh.s;
+        orbit_propagate(agent.cinfo->pdata, mjdnow);
+//		att_eci2lvlh(&agent.cinfo->pdata.node.loc.pos,&agent.cinfo->pdata.node.loc.att);
+        ql = agent.cinfo->pdata.node.loc.att.lvlh.s;
 //		printf("%f\t%f\t%f\t%f\t",ql.d.col[0],ql.d.col[1],ql.d.col[2],ql.w);
 		el = a_quaternion2euler(ql);
 //		printf("%f\t%f\t%f\t",DEGOF(el.h),DEGOF(el.e),DEGOF(el.b));
@@ -120,20 +120,20 @@ do
 		{
 		do
 			{
-			lastlat = cdata[0].node.loc.pos.geod.s.lat;
+            lastlat = agent.cinfo->pdata.node.loc.pos.geod.s.lat;
 			mjdnow += dt/86400.;
-			orbit_propagate(*cdata, mjdnow);
+            orbit_propagate(agent.cinfo->pdata, mjdnow);
 			cp += dt/86400.;
 			}
-			while (!(lastlat < 0. && cdata[0].node.loc.pos.geod.s.lat >= 0.));
+            while (!(lastlat < 0. && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= 0.));
 		}
 
 		printf("\n");
 		fflush(stdout);
-	currentmjd(cdata[0].node.utcoffset);
-	if (cdata[0].node.loc.pos.geos.s.r < minr)
-		minr = cdata[0].node.loc.pos.geos.s.r;
-	if (cdata[0].node.loc.pos.geos.s.r > maxr)
-		maxr= cdata[0].node.loc.pos.geos.s.r;
-	} while (mjdnow < mjdlast && cdata[0].node.loc.pos.geod.s.h > 86000.);
+    currentmjd(agent.cinfo->pdata.node.utcoffset);
+    if (agent.cinfo->pdata.node.loc.pos.geos.s.r < minr)
+        minr = agent.cinfo->pdata.node.loc.pos.geos.s.r;
+    if (agent.cinfo->pdata.node.loc.pos.geos.s.r > maxr)
+        maxr= agent.cinfo->pdata.node.loc.pos.geos.s.r;
+    } while (mjdnow < mjdlast && agent.cinfo->pdata.node.loc.pos.geod.s.h > 86000.);
 }

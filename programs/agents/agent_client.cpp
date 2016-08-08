@@ -52,10 +52,8 @@
 
 //using namespace std;
 
-std::string output;
-
 const int REQUEST_WAIT_TIME = 2;
-const int SERVER_WAIT_TIME = 4;
+const int SERVER_WAIT_TIME = 6;
 
 //void print_node_list(std::vector<std::string>& nlp) {
 
@@ -70,6 +68,7 @@ const int SERVER_WAIT_TIME = 4;
 //    }
 //    return;
 //}
+std::string output;
 
 int main(int argc, char *argv[])
 {
@@ -77,7 +76,9 @@ int main(int argc, char *argv[])
     beatstruc cbeat;
     std::vector<std::string> nl;
     data_list_nodes(nl);
-    cosmosAgent agent;
+    cosmosAgent *agent;
+
+    agent = new cosmosAgent();
 
     // check command line arguments
     switch (argc)
@@ -131,7 +132,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent.poll(meta, message, cosmosAgent::AGENT_MESSAGE_ALL)) > 0)
+                if ((pretn=agent->poll(meta, message, cosmosAgent::AGENT_MESSAGE_ALL)) > 0)
                 {
                     header.resize(meta.jlength);
                     memcpy(&header[0], &message[3], meta.jlength);
@@ -142,9 +143,9 @@ int main(int argc, char *argv[])
 
                     if (pretn < 128)
                     {
-                        json_clear_cosmosstruc(JSON_GROUP_NODE,&agent.cdata[1]);
-                        json_clear_cosmosstruc(JSON_GROUP_DEVICE,&agent.cdata[1]);
-                        json_parse(message.c_str(),&agent.cdata[1]);
+                        json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
+                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
+                        json_parse(message.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
                     }
 
                     switch (pretn)
@@ -166,31 +167,31 @@ int main(int argc, char *argv[])
                     }
                     if ((channel=="info") && pretn == cosmosAgent::AGENT_MESSAGE_TRACK)
                     {
-                        if (agent.cdata[0].node.loc.utc > 0.)
+                        if (agent->cinfo->pdata.node.loc.utc > 0.)
                         {
                             if (lmjd > 0.)
-                                dmjd = 86400.*(agent.cdata[0].node.loc.utc-lmjd);
+                                dmjd = 86400.*(agent->cinfo->pdata.node.loc.utc-lmjd);
                             else
                                 dmjd = 0.;
-                            loc.pos.icrf.s = agent.cdata[0].node.loc.pos.icrf.s;
-                            loc.pos.utc = agent.cdata[0].node.loc.utc;
+                            loc.pos.icrf.s = agent->cinfo->pdata.node.loc.pos.icrf.s;
+                            loc.pos.utc = agent->cinfo->pdata.node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",agent.cdata[0].node.loc.utc,dmjd,agent.cdata[0].node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,agent.cdata[0].node.powgen,agent.cdata[0].node.powuse,agent.cdata[0].node.battlev);
-                            lmjd = agent.cdata[0].node.loc.utc;
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",agent->cinfo->pdata.node.loc.utc,dmjd,agent->cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,agent->cinfo->pdata.node.powgen,agent->cinfo->pdata.node.powuse,agent->cinfo->pdata.node.battlev);
+                            lmjd = agent->cinfo->pdata.node.loc.utc;
                         }
                     }
                     if ((channel=="imu") && pretn == cosmosAgent::AGENT_MESSAGE_IMU)
                     {
-                        for (i=0; i<agent.cdata[0].devspec.imu_cnt; i++)
+                        for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
                         {
-                            if (agent.cdata[0].agent[0].beat.utc > 0.)
+                            if (agent->cinfo->pdata.agent[0].beat.utc > 0.)
                             {
                                 if (lmjd > 0.)
-                                    dmjd = 86400.*(agent.cdata[0].agent[0].beat.utc-lmjd);
+                                    dmjd = 86400.*(agent->cinfo->pdata.agent[0].beat.utc-lmjd);
                                 else
                                     dmjd = 0.;
                                 printf("%.15g %.4g\n",loc.utc,dmjd);
-                                lmjd = agent.cdata[0].agent[0].beat.utc;
+                                lmjd = agent->cinfo->pdata.agent[0].beat.utc;
                             }
                         }
                     }
@@ -204,17 +205,17 @@ int main(int argc, char *argv[])
             ElapsedTime et;
             do
             {
-                if (agent.agent_list.size() > agent_count)
+                if (agent->agent_list.size() > agent_count)
                 {
-                    for (size_t i=agent_count; i<agent.agent_list.size(); ++i)
+                    for (size_t i=agent_count; i<agent->agent_list.size(); ++i)
                     {
-                        beatstruc cbeat = agent.agent_list[i];
-                        agent.send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
+                        beatstruc cbeat = agent->agent_list[i];
+                        agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
                         printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
                         printf("\t%s\n",output.c_str());
                         fflush(stdout);
                     }
-                    agent_count = agent.agent_list.size();
+                    agent_count = agent->agent_list.size();
                 }
                 COSMOS_SLEEP(.1);
             } while (et.split() < SERVER_WAIT_TIME);
@@ -260,7 +261,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent.poll(meta, message,  cosmosAgent::AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent->poll(meta, message,  cosmosAgent::AGENT_MESSAGE_ALL, 1)) > 0)
                 {
                     header.resize(meta.jlength);
                     memcpy(&header[0], &message[3], meta.jlength);
@@ -271,9 +272,9 @@ int main(int argc, char *argv[])
 
                     if (pretn < 128)
                     {
-                        json_clear_cosmosstruc(JSON_GROUP_NODE,&agent.cdata[1]);
-                        json_clear_cosmosstruc(JSON_GROUP_DEVICE,&agent.cdata[1]);
-                        json_parse(message.c_str(),&agent.cdata[1]);
+                        json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
+                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
+                        json_parse(message.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
                     }
 
                     switch (pretn)
@@ -295,31 +296,31 @@ int main(int argc, char *argv[])
                     }
                     if ((channel=="info") && pretn == cosmosAgent::AGENT_MESSAGE_TRACK)
                     {
-                        if (agent.cdata[0].node.loc.utc > 0.)
+                        if (agent->cinfo->pdata.node.loc.utc > 0.)
                         {
                             if (lmjd > 0.)
-                                dmjd = 86400.*(agent.cdata[0].node.loc.utc-lmjd);
+                                dmjd = 86400.*(agent->cinfo->pdata.node.loc.utc-lmjd);
                             else
                                 dmjd = 0.;
-                            loc.pos.icrf.s = agent.cdata[0].node.loc.pos.icrf.s;
-                            loc.pos.utc = agent.cdata[0].node.loc.utc;
+                            loc.pos.icrf.s = agent->cinfo->pdata.node.loc.pos.icrf.s;
+                            loc.pos.utc = agent->cinfo->pdata.node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",agent.cdata[0].node.loc.utc,dmjd,agent.cdata[0].node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,agent.cdata[0].node.powgen,agent.cdata[0].node.powuse,agent.cdata[0].node.battlev);
-                            lmjd = agent.cdata[0].node.loc.utc;
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",agent->cinfo->pdata.node.loc.utc,dmjd,agent->cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,agent->cinfo->pdata.node.powgen,agent->cinfo->pdata.node.powuse,agent->cinfo->pdata.node.battlev);
+                            lmjd = agent->cinfo->pdata.node.loc.utc;
                         }
                     }
                     if ((channel=="imu") && pretn == cosmosAgent::AGENT_MESSAGE_IMU)
                     {
-                        for (i=0; i<agent.cdata[0].devspec.imu_cnt; i++)
+                        for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
                         {
-                            if (agent.cdata[0].agent[0].beat.utc > 0.)
+                            if (agent->cinfo->pdata.agent[0].beat.utc > 0.)
                             {
                                 if (lmjd > 0.)
-                                    dmjd = 86400.*(agent.cdata[0].agent[0].beat.utc-lmjd);
+                                    dmjd = 86400.*(agent->cinfo->pdata.agent[0].beat.utc-lmjd);
                                 else
                                     dmjd = 0.;
                                 printf("%.15g %.4g\n",loc.utc,dmjd);
-                                lmjd = agent.cdata[0].agent[0].beat.utc;
+                                lmjd = agent->cinfo->pdata.agent[0].beat.utc;
                             }
                         }
                     }
@@ -331,12 +332,12 @@ int main(int argc, char *argv[])
         {
         nl.clear();
 
-        if ((nbytes = agent.get_server(argv[1], argv[2], SERVER_WAIT_TIME, &cbeat)) > 0)
+        if ((nbytes = agent->get_server(argv[1], argv[2], SERVER_WAIT_TIME, &cbeat)) > 0)
         {
             if(argc == 3)
             {
                 printf("List of available requests:\n");
-                nbytes = agent.send_request(cbeat,(char*)"help", output, REQUEST_WAIT_TIME);
+                nbytes = agent->send_request(cbeat,(char*)"help", std::ref(output), REQUEST_WAIT_TIME);
                 printf("%s [%d]\n", output.c_str(), nbytes);
             }
             else
@@ -348,7 +349,7 @@ int main(int argc, char *argv[])
                     request += " ";
                     request += argv[i+4];
                 }
-                nbytes = agent.send_request(cbeat,request.c_str(), output, REQUEST_WAIT_TIME);
+                nbytes = agent->send_request(cbeat,request.c_str(), output, REQUEST_WAIT_TIME);
                 printf("%s [%d]\n", output.c_str(), nbytes);
             }
         }

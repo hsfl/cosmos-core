@@ -36,12 +36,12 @@
 #include "jsonlib.h"
 
 int myagent();
-int32_t request_mjd(char *request, char* response, void *cdata);
+int32_t request_mjd(char *request, char* response, void *cinfo);
 
 char agentname[COSMOS_MAX_NAME+1] = "time";
 char ipaddress[16] = "192.168.150.1";
 int waitsec = 5;
-cosmosstruc *cdata;
+cosmosstruc *cinfo;
 
 
 #define MAXBUFFERSIZE 256
@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
 	// Initialization stuff
 
 	// Initialize Agent
-	if (!(cdata = agent_setup_server(NetworkType::MULTICAST,argv[1],agentname,.1,0,MAXBUFFERSIZE)) != 0)
+	if (!(cinfo = agent_setup_server(NetworkType::MULTICAST,argv[1],agentname,.1,0,MAXBUFFERSIZE)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Add internal requests
-	if ((iretn=agent_add_request(cdata, (char *)"mjd",request_mjd)) != 0)
+	if ((iretn=agent_add_request(cinfo, (char *)"mjd",request_mjd)) != 0)
 		exit (iretn);
 
 	// Start our own thread
@@ -86,11 +86,11 @@ int myagent()
 	nmjd = cmjd + period;
 
 	// Start performing the body of the agent
-	while(agent_running(cdata))
+	while(agent_running(cinfo))
 	{
 		// Calculate time and publish it
-		cdata[0].node.loc.utc = currentmjd(cdata[0].node.utcoffset);
-		agent_post(cdata, AGENT_MESSAGE_TIME,json_of_time(jstring, cdata));
+		cinfo->pdata.node.loc.utc = currentmjd(cinfo->pdata.node.utcoffset);
+        agent_post(cinfo, AGENT_MESSAGE_TIME,json_of_time(jstring, cinfo->meta, cinfo->pdata));
 
 		cmjd = currentmjd();
 		if (nmjd > cmjd)
@@ -103,10 +103,10 @@ int myagent()
 	return 0;
 }
 
-int32_t request_mjd(char *request, char* output, void *cdata)
+int32_t request_mjd(char *request, char* output, void *cinfo)
 {
 
-	sprintf(output,"%f",((cosmosstruc *)cdata)->node.loc.utc);
+    sprintf(output,"%f",((cosmosstruc *)cinfo)->pdata.node.loc.utc);
 
 	return 0;
 }

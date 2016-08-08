@@ -67,7 +67,7 @@ char address[] = "0.0.0.0";
 uint16_t port = 6868;
 uint16_t bsize = 10000;
 
-cosmosstruc *cdata;
+cosmosstruc *cinfo;
 
 
 
@@ -123,10 +123,10 @@ int main(int argc, char *argv[])
         printf("Netperf Listen is now listening on port %d...\n\n",port);
     }
 
-	cdata = agent_setup_server(NetworkType::UDP,(char *)"nps",(char *)"udp", 1., 0, AGENTMAXBUFFER);
+	cinfo = agent_setup_server(NetworkType::UDP,(char *)"nps",(char *)"udp", 1., 0, AGENTMAXBUFFER);
 
 	// Create default logstring
-	strcpy(logstring,json_of_soh(jjstring,cdata));
+    strcpy(logstring,json_of_soh(jjstring, cinfo->meta, cinfo->pdata));
 	j = 0;
 	tlen = strlen(logstring);
 	for (i=1; i<tlen-j; ++i)
@@ -221,46 +221,46 @@ int main(int argc, char *argv[])
 				   */
 
 			// IMU
-			cdata[0].devspec.imu[0]->accel.col[0] = accx;
-			cdata[0].node.loc.pos.geod.a.lon = (accx/REARTHM)/cos(cdata[0].node.loc.pos.geod.s.lat);
-			cdata[0].devspec.imu[0]->accel.col[1] = accy;
-			cdata[0].node.loc.pos.geod.a.lat = (accy/REARTHM);
-			cdata[0].devspec.imu[0]->accel.col[2] = accz;
-			cdata[0].node.loc.pos.geod.a.h = accz;
+			cinfo->pdata.devspec.imu[0]->accel.col[0] = accx;
+			cinfo->pdata.node.loc.pos.geod.a.lon = (accx/REARTHM)/cos(cinfo->pdata.node.loc.pos.geod.s.lat);
+			cinfo->pdata.devspec.imu[0]->accel.col[1] = accy;
+			cinfo->pdata.node.loc.pos.geod.a.lat = (accy/REARTHM);
+			cinfo->pdata.devspec.imu[0]->accel.col[2] = accz;
+			cinfo->pdata.node.loc.pos.geod.a.h = accz;
 
 			// Pressure sensor
-			cdata[0].devspec.psen[0]->press = press / 1000.;
+			cinfo->pdata.devspec.psen[0]->press = press / 1000.;
 
 			// Temperatures
-			cdata[0].devspec.tsen[0]->gen.temp = etemp;
-			cdata[0].devspec.tsen[1]->gen.temp = btemp;
-			cdata[0].devspec.tsen[2]->gen.temp = atemp + 273.15;
+			cinfo->pdata.devspec.tsen[0]->gen.temp = etemp;
+			cinfo->pdata.devspec.tsen[1]->gen.temp = btemp;
+			cinfo->pdata.devspec.tsen[2]->gen.temp = atemp + 273.15;
 
 			// GPS
 			if (fix == 1)
 			{
 			mjd = (int)currentmjd(0.) + hour / 24. + min / 1400. + sec / 86400. + hsec / 8640000.;;
-			cdata[0].devspec.gps[0]->gen.utc = cdata[0].node.loc.utc = cdata[0].node.loc.pos.geod.utc = mjd;
-			cdata[0].devspec.gps[0]->geocs = cdata[0].node.loc.pos.geoc.s;
-			cdata[0].node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
-			cdata[0].node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);
-			cdata[0].node.loc.pos.geod.s.h = alt;
-			cdata[0].devspec.gps[0]->geocv = rv_zero();
+			cinfo->pdata.devspec.gps[0]->gen.utc = cinfo->pdata.node.loc.utc = cinfo->pdata.node.loc.pos.geod.utc = mjd;
+			cinfo->pdata.devspec.gps[0]->geocs = cinfo->pdata.node.loc.pos.geoc.s;
+			cinfo->pdata.node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
+			cinfo->pdata.node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);
+			cinfo->pdata.node.loc.pos.geod.s.h = alt;
+			cinfo->pdata.devspec.gps[0]->geocv = rv_zero();
 
-			cdata[0].node.loc.pos.geod.v.lat = 0.;
-			cdata[0].node.loc.pos.geod.v.lon = 0.;
-			cdata[0].node.loc.pos.geod.v.h = 0.;
-			cdata[0].node.loc.att.geoc.s = q_eye();
-			cdata[0].node.loc.att.geoc.v = rv_zero();
-			cdata[0].node.loc.att.geoc.a = rv_zero();
+			cinfo->pdata.node.loc.pos.geod.v.lat = 0.;
+			cinfo->pdata.node.loc.pos.geod.v.lon = 0.;
+			cinfo->pdata.node.loc.pos.geod.v.h = 0.;
+			cinfo->pdata.node.loc.att.geoc.s = q_eye();
+			cinfo->pdata.node.loc.att.geoc.v = rv_zero();
+			cinfo->pdata.node.loc.att.geoc.a = rv_zero();
 
-			++cdata[0].node.loc.pos.geod.pass;
-			pos_geod(&cdata[0].node.loc);
+			++cinfo->pdata.node.loc.pos.geod.pass;
+			pos_geod(&cinfo->pdata.node.loc);
 			}
 
 			// Broadcast it
-			agent_post(cdata, AGENT_MESSAGE_SOH, json_of_list(myjstring, logstring, cdata));
-			log_write(cdata[0].node.name,DATA_LOG_TYPE_SOH,floor(cdata[0].node.loc.utc), json_of_list(jjstring,logstring,cdata));
+            agent_post(cinfo, AGENT_MESSAGE_SOH, json_of_list(myjstring, logstring, cinfo->meta, cinfo->pdata));
+            log_write(cinfo->pdata.node.name,DATA_LOG_TYPE_SOH,floor(cinfo->pdata.node.loc.utc), json_of_list(jjstring,logstring, cinfo->meta, cinfo->pdata));
 
         } // End If: packet reception / parse / idle cycle
 

@@ -27,6 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+#include "configCosmos.h"
+#include "agent/agent.h"
 #include "physicslib.h"
 #include "jsonlib.h"
 #include "jsonlib.h"
@@ -34,14 +36,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-cosmosstruc *cdata;
+cosmosstruc *cinfo;
 
 int main(int argc, char *argv[])
 {
 
-cdata = json_create();
-json_setup_node(argv[1],cdata);
+    cosmosAgent agent(NetworkType::UDP, argv[1]);
 
-create_databases(cdata);
+create_databases(agent.cinfo->pdata);
 
 }

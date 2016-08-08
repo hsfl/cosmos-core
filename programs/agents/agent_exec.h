@@ -33,6 +33,8 @@
 /*! \file agent_exec.h
 * \brief Executive Agent header file
 */
+#include "configCosmos.h"
+#include "jsonlib.h"
 
 
 // *************************************************************************
@@ -55,30 +57,36 @@ public:
     command();
     void set_command(std::string line);
     std::string get_json();
-    void set_utcexec()	{	utcexec = currentmjd(0.);	};
-    void set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	};
-    double get_utc()	{	return utc;	};
-    double get_utcexec()	{	return utcexec;	};
-    char*  get_data()	{	return (char*)data.c_str();	};
-    bool is_ready()		{	return (utc <= currentmjd(0.)); };
-    bool is_repeat()	{	return (flag & EVENT_FLAG_REPEAT);	};
-    bool is_command()	{	return (type & EVENT_TYPE_COMMAND);	};
-    bool is_conditional()	{	return (flag & EVENT_FLAG_CONDITIONAL);	};
+    void set_utcexec()	{	utcexec = currentmjd(0.);	}
+    void set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	}
+    double get_utc()	{	return utc;	}
+    double get_utcexec()	{	return utcexec;	}
+    char*  get_data()	{	return (char*)data.c_str();	}
+    bool is_ready()		{	return (utc <= currentmjd(0.)); }
+    bool is_repeat()	{	return (flag & EVENT_FLAG_REPEAT);	}
+    bool is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
+    bool is_conditional()	{	return (flag & EVENT_FLAG_CONDITIONAL);	}
     bool already_ran;
 
     //seems to return nan from json_equation...  how to use?
-    bool condition_true()	{
+    bool condition_true(cosmosstruc *cinfo)
+    {
         const char *cp = (char *)condition.c_str();
-//		std::cout <<"condition sent: <" << cp << ">" << std::endl;
-		double d= json_equation(cp,cdata);
-//		std::cout <<"condition returned: <" << d << ">" << std::endl;
-        return d;
-    };
+        if (cinfo != nullptr)
+        {
+            double d = json_equation(cp, cinfo->meta, cinfo->pdata);
+            return d;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
-	const std::string get_name()
-	{
-		return name;
-	};
+    const std::string get_name()
+    {
+        return name;
+    }
     friend std::ostream& operator<<(std::ostream& out, const command& cmd);
     friend bool operator==(const command& cmd1, const command& cmd2);
 };
@@ -106,19 +114,22 @@ private:
     std::list<command> commands;
 
 public:
-    const size_t get_size()	{ return commands.size(); };
+    const size_t get_size()
+    {
+        return commands.size();
+    }
     command& get_command(int i)
     {
         std::list<command>::iterator ii = commands.begin();
         std::advance(ii,i);
         return *ii;
-    };
+    }
     void load_commands();
     void save_commands();
     void run_commands();
-	void add_command(command& c);
-	int del_command(command& c);
-    void sort()	{ commands.sort(compare_command_times);	};
+    void add_command(command& c);
+    int del_command(command& c);
+    void sort()	{ commands.sort(compare_command_times);	}
     friend std::ostream& operator<<(std::ostream& out, command_queue& cmd);
 };
 

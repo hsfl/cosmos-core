@@ -35,14 +35,14 @@
 
 int main(int argc, char *argv[])
 {
-	cosmosstruc *cdata;
+	cosmosstruc *cinfo;
 
 	switch (argc)
 	{
 	case 3:
 		setEnvCosmosNodes(argv[2]);
 	case 2:
-		cdata = agent_setup_client(NetworkType::UDP, argv[1]);
+		cinfo = agent_setup_client(NetworkType::UDP, argv[1]);
 		break;
 	default:
 		printf("Usage: namespace_speed node [node_directory]\n");
@@ -52,12 +52,12 @@ int main(int argc, char *argv[])
 
 	std::vector <std::string> names;
     std::map <std::string,jsonentry*> testmap;
-	for (uint32_t i = 0; i < cdata[0].jmap.size(); i++)
+    for (uint32_t i = 0; i < cinfo->meta.jmap.size(); i++)
 	{
-		for (uint32_t j = 0; j < cdata[0].jmap[i].size(); j++)
+        for (uint32_t j = 0; j < cinfo->meta.jmap[i].size(); j++)
 		{
-			names.push_back(cdata[0].jmap[i][j].name);
-			testmap[cdata[0].jmap[i][j].name] = json_entry_of(cdata[0].jmap[i][j].name, cdata);
+            names.push_back(cinfo->meta.jmap[i][j].name);
+            testmap[cinfo->meta.jmap[i][j].name] = json_entry_of(cinfo->meta.jmap[i][j].name, cinfo->meta);
 		}
 	}
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
 		for (std::string name: names)
 		{
-			jsonentry *tentry = json_entry_of(name, cdata);
+            jsonentry *tentry = json_entry_of(name, cinfo->meta);
 			std::string tname = tentry->name;
 		}
 		printf("Standard Lookup: %d names, %f seconds\n", names.size(), et.lap());

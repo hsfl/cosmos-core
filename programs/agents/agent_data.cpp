@@ -57,11 +57,11 @@ char tempname[100];
 char agentname[COSMOS_MAX_NAME+1] = "data";
 std::string dataDir;
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t request_login(char *request, char* response, void *cdata);
-int32_t request_getnodelist(char *request, char* response, void *cdata);
-int32_t request_log(char *request, char* response, void *cdata);
+int32_t request_login(char *request, char* response, void *cinfo);
+int32_t request_getnodelist(char *request, char* response, void *cinfo);
+int32_t request_log(char *request, char* response, void *cinfo);
 
-cosmosstruc *cdata; // to access the cosmos data, will change later
+cosmosstruc *cinfo; // to access the cosmos data, will change later
 
 #define MAXBUFFERSIZE 256 // comm buffe for agents
 
@@ -91,7 +91,7 @@ if (set_cosmosnodes(dataDir) < 0)
 }
 
 // check if we are already running the agent
-if ((iretn=agent_get_server(cdata, (char *)"hmoc",agentname,waitsec,(beatstruc *)NULL)) > 0)
+if ((iretn=agent_get_server(cinfo, (char *)"hmoc",agentname,waitsec,(beatstruc *)NULL)) > 0)
 	exit (iretn);
 
 // Load user list
@@ -118,7 +118,7 @@ for (i=0; i<nodes.size(); ++i)
 	{
 #if defined(COSMOS_WIN_OS)
 	char command_line[100];
-	sprintf(command_line, "agent_node %s", (const char*)nodes[i].node.name);
+    sprintf(command_line, "agent_node %s", (const char*)nodes[i].pdata.node.name);
 
     STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
@@ -133,7 +133,7 @@ for (i=0; i<nodes.size(); ++i)
         if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 #endif
 	{
-		strcpy(tempagent.beat.node,nodes[i].node.name);
+        strcpy(tempagent.beat.node, nodes[i].pdata.node.name);
 		tempagent.pid = pi.dwProcessId;
 		agent.push_back(tempagent);
 		CloseHandle( pi.hProcess );
@@ -144,7 +144,7 @@ for (i=0; i<nodes.size(); ++i)
 	switch(pid)
 	{
 	case -1:
-		strcpy(tempagent.beat.node,nodes[i].node.name);
+        strcpy(tempagent.beat.node, nodes[i].pdata.node.name);
 		tempagent.pid=pid;
 		agent.push_back(tempagent);
 		break;
@@ -155,7 +155,7 @@ for (i=0; i<nodes.size(); ++i)
 		dup2(STDOUT_FILENO, devn);
 		dup2(STDERR_FILENO,	devn);
 		close(devn);
-		execl("agent_node",(const char*)nodes[i].node.name,(char*) NULL);
+        execl("agent_node", (const char*)nodes[i].pdata.node.name,(char*) NULL);
 
 		fflush(stdout);
 		exit(0);
@@ -168,15 +168,15 @@ for (i=0; i<nodes.size(); ++i)
 // Initialize the Agent
 // near future: support cubesat space protocol
 // port number = 0 in this case, automatic assignment of port
-if (!(cdata = agent_setup_server(NetworkType::UDP,(char *)"hmoc",agentname,1.,0,MAXBUFFERSIZE)))
+if (!(cinfo = agent_setup_server(NetworkType::UDP,(char *)"hmoc",agentname,1.,0,MAXBUFFERSIZE)))
 	exit (iretn);
 
 // Add additional requests
-if ((iretn=agent_add_request(cdata, "login",request_login)))
+if ((iretn=agent_add_request(cinfo, "login",request_login)))
 	exit (iretn);
-if ((iretn=agent_add_request(cdata, "getnodelist",request_getnodelist)))
+if ((iretn=agent_add_request(cinfo, "getnodelist",request_getnodelist)))
 	exit (iretn);
-if ((iretn=agent_add_request(cdata, "log",request_log)))
+if ((iretn=agent_add_request(cinfo, "log",request_log)))
 	exit (iretn);
 
 // Start our own thread
@@ -187,7 +187,7 @@ int myagent()
 {
 
 // Start performing the body of the agent
-while(agent_running(cdata))
+while(agent_running(cinfo))
 	{
 	// Gather system information
 
@@ -234,13 +234,13 @@ uint32_t i;
 response[0] = 0;
 for (i=0; i<nodes.size(); i++)
 	{
-	sprintf(&response[strlen(response)],"%s,%d,",nodes[i].node.name,nodes[i].node.type);
+    sprintf(&response[strlen(response)],"%s,%d,",nodes[i].pdata.node.name,nodes[i].pdata.node.type);
 	}
 return 0;
 }
 
 //Takes event and stores to log
-int32_t request_log(char *request, char* , void *cdata)
+int32_t request_log(char *request, char* , void *cinfo)
 {
 FILE *log;
 uint16_t i;
@@ -252,19 +252,19 @@ for (i=0; i<strlen(request); ++i)
 		break;
 }
 
-json_parse(&request[i],(cosmosstruc *) cdata); //cdata.stat.agent.user
+json_parse(&request[i], ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata); //cinfo.stat.agent.user
 													// .event
 													// .utc ->date
 													// .node
-utc = (int)(((cosmosstruc *)cdata)->event[0].s.utc);
-log = data_open(data_type_path(((cosmosstruc *)cdata)->event[0].s.node, (char *)"data", (char *)"outgoing", utc, (char*)"request_log"), (char*)"a");
+utc = (int)(((cosmosstruc *)cinfo)->pdata.event[0].s.utc);
+log = data_open(data_type_path(((cosmosstruc *)cinfo)->pdata.event[0].s.node, (char *)"data", (char *)"outgoing", utc, (char*)"request_log"), (char*)"a");
 fprintf(log,"%s\n",&request[i]);
 fclose(log);
 return 0;
 }
 
 //Request info
-/*int32_t request_pid(char *request, char*response, void *cdata)
+/*int32_t request_pid(char *request, char*response, void *cinfo)
 //{
 
 }*/

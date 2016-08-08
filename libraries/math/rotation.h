@@ -30,6 +30,7 @@
 #ifndef _MATH_ROTATE_H
 #define _MATH_ROTATE_H
 
+#include "configCosmos.h"
 #include "vector.h"
 #include "matrix.h"
 #include "quaternion.h"

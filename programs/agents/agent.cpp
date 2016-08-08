@@ -58,7 +58,7 @@
 //using namespace std;
 
 char output[AGENTMAXBUFFER];
-cosmosstruc *cdata;
+cosmosstruc *cinfo;
 
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 4;
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     std::vector<std::string> nl;
     data_list_nodes(nl);
 
-    cdata = agent_setup_client(NetworkType::UDP, "", 1000);
+    cinfo = agent_setup_client(NetworkType::UDP, "", 1000);
 
     // check command line arguments
     switch (argc)
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent_poll(cdata, meta, message,  AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent_poll(cinfo, meta, message,  AGENT_MESSAGE_ALL, 1)) > 0)
                 {
                     header.resize(meta.jlength);
                     memcpy(&header[0], &message[3], meta.jlength);
@@ -168,9 +168,9 @@ int main(int argc, char *argv[])
 
                     if (pretn < 128)
                     {
-                        json_clear_cosmosstruc(JSON_GROUP_NODE,&cdata[1]);
-                        json_clear_cosmosstruc(JSON_GROUP_DEVICE,&cdata[1]);
-                        json_parse(message.c_str(),&cdata[1]);
+                        json_clear_cosmosstruc(JSON_STRUCT_NODE, cinfo->meta, cinfo->sdata);
+                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, cinfo->meta, cinfo->sdata);
+                        json_parse(message.c_str(), cinfo->meta, cinfo->sdata);
                     }
 
                     switch (pretn)
@@ -192,31 +192,31 @@ int main(int argc, char *argv[])
                     }
                     if ((channel=="info") && pretn == AGENT_MESSAGE_TRACK)
                     {
-                        if (cdata[0].node.loc.utc > 0.)
+                        if (cinfo->pdata.node.loc.utc > 0.)
                         {
                             if (lmjd > 0.)
-                                dmjd = 86400.*(cdata[0].node.loc.utc-lmjd);
+                                dmjd = 86400.*(cinfo->pdata.node.loc.utc-lmjd);
                             else
                                 dmjd = 0.;
-                            loc.pos.icrf.s = cdata[0].node.loc.pos.icrf.s;
-                            loc.pos.utc = cdata[0].node.loc.utc;
+                            loc.pos.icrf.s = cinfo->pdata.node.loc.pos.icrf.s;
+                            loc.pos.utc = cinfo->pdata.node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",cdata[0].node.loc.utc,dmjd,cdata[0].node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,cdata[0].node.powgen,cdata[0].node.powuse,cdata[0].node.battlev);
-                            lmjd = cdata[0].node.loc.utc;
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",cinfo->pdata.node.loc.utc,dmjd,cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,cinfo->pdata.node.powgen,cinfo->pdata.node.powuse,cinfo->pdata.node.battlev);
+                            lmjd = cinfo->pdata.node.loc.utc;
                         }
                     }
                     if ((channel=="imu") && pretn == AGENT_MESSAGE_IMU)
                     {
-                        for (i=0; i<cdata[0].devspec.imu_cnt; i++)
+                        for (i=0; i<cinfo->pdata.devspec.imu_cnt; i++)
                         {
-                            if (cdata[0].agent[0].beat.utc > 0.)
+                            if (cinfo->pdata.agent[0].beat.utc > 0.)
                             {
                                 if (lmjd > 0.)
-                                    dmjd = 86400.*(cdata[0].agent[0].beat.utc-lmjd);
+                                    dmjd = 86400.*(cinfo->pdata.agent[0].beat.utc-lmjd);
                                 else
                                     dmjd = 0.;
                                 printf("%.15g %.4g\n",loc.utc,dmjd);
-                                lmjd = cdata[0].agent[0].beat.utc;
+                                lmjd = cinfo->pdata.agent[0].beat.utc;
                             }
                         }
                     }
@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
         else if (!strcmp(argv[1],"list"))
         {
             std::vector<beatstruc> cbeat;
-            cbeat = agent_find_servers(cdata, SERVER_WAIT_TIME);
+            cbeat = agent_find_servers(cinfo, SERVER_WAIT_TIME);
 
             if (cbeat.size() > 0)
             {
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
         //      if (is_node(nl,argv[1]))
         //      {
         //          std::vector<beatstruc> cbeat;
-        //          cbeat = agent_find_servers(cdata, SERVER_WAIT_TIME);
+        //          cbeat = agent_find_servers(cinfo, SERVER_WAIT_TIME);
 
         //          printf("\n    List of available agents:\n\n");
 
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent_poll(cdata, meta, message,  AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent_poll(cinfo, meta, message,  AGENT_MESSAGE_ALL, 1)) > 0)
                 {
                     header.resize(meta.jlength);
                     memcpy(&header[0], &message[3], meta.jlength);
@@ -334,9 +334,9 @@ int main(int argc, char *argv[])
 
                     if (pretn < 128)
                     {
-                        json_clear_cosmosstruc(JSON_GROUP_NODE,&cdata[1]);
-                        json_clear_cosmosstruc(JSON_GROUP_DEVICE,&cdata[1]);
-                        json_parse(message.c_str(),&cdata[1]);
+                        json_clear_cosmosstruc(JSON_STRUCT_NODE, cinfo->meta, cinfo->sdata);
+                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, cinfo->meta, cinfo->sdata);
+                        json_parse(message.c_str(), cinfo->meta, cinfo->sdata);
                     }
 
                     switch (pretn)
@@ -358,31 +358,31 @@ int main(int argc, char *argv[])
                     }
                     if ((channel=="info") && pretn == AGENT_MESSAGE_TRACK)
                     {
-                        if (cdata[0].node.loc.utc > 0.)
+                        if (cinfo->pdata.node.loc.utc > 0.)
                         {
                             if (lmjd > 0.)
-                                dmjd = 86400.*(cdata[0].node.loc.utc-lmjd);
+                                dmjd = 86400.*(cinfo->pdata.node.loc.utc-lmjd);
                             else
                                 dmjd = 0.;
-                            loc.pos.icrf.s = cdata[0].node.loc.pos.icrf.s;
-                            loc.pos.utc = cdata[0].node.loc.utc;
+                            loc.pos.icrf.s = cinfo->pdata.node.loc.pos.icrf.s;
+                            loc.pos.utc = cinfo->pdata.node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",cdata[0].node.loc.utc,dmjd,cdata[0].node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,cdata[0].node.powgen,cdata[0].node.powuse,cdata[0].node.battlev);
-                            lmjd = cdata[0].node.loc.utc;
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",cinfo->pdata.node.loc.utc,dmjd,cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,cinfo->pdata.node.powgen,cinfo->pdata.node.powuse,cinfo->pdata.node.battlev);
+                            lmjd = cinfo->pdata.node.loc.utc;
                         }
                     }
                     if ((channel=="imu") && pretn == AGENT_MESSAGE_IMU)
                     {
-                        for (i=0; i<cdata[0].devspec.imu_cnt; i++)
+                        for (i=0; i<cinfo->pdata.devspec.imu_cnt; i++)
                         {
-                            if (cdata[0].agent[0].beat.utc > 0.)
+                            if (cinfo->pdata.agent[0].beat.utc > 0.)
                             {
                                 if (lmjd > 0.)
-                                    dmjd = 86400.*(cdata[0].agent[0].beat.utc-lmjd);
+                                    dmjd = 86400.*(cinfo->pdata.agent[0].beat.utc-lmjd);
                                 else
                                     dmjd = 0.;
                                 printf("%.15g %.4g\n",loc.utc,dmjd);
-                                lmjd = cdata[0].agent[0].beat.utc;
+                                lmjd = cinfo->pdata.agent[0].beat.utc;
                             }
                         }
                     }
@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
         {
         nl.clear();
 
-        if ((nbytes = agent_get_server(cdata, argv[1],argv[2],SERVER_WAIT_TIME,&cbeat)) > 0)
+        if ((nbytes = agent_get_server(cinfo, argv[1],argv[2],SERVER_WAIT_TIME,&cbeat)) > 0)
         {
             if(argc == 3)
             {

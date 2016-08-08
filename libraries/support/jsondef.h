@@ -121,35 +121,35 @@ enum
 enum
     {
     //! Absolute pointer
-    JSON_GROUP_ABSOLUTE,
+    JSON_STRUCT_ABSOLUTE,
     //! ::nodestruc
-    JSON_GROUP_NODE,
+    JSON_STRUCT_NODE,
     //! ::agentstruc
-    JSON_GROUP_AGENT,
+    JSON_STRUCT_AGENT,
     //! ::devicestruc
-    JSON_GROUP_DEVICE,
+    JSON_STRUCT_DEVICE,
     //! ::devspecstruc
-    JSON_GROUP_DEVSPEC,
+    JSON_STRUCT_DEVSPEC,
     //! ::physstruc
-    JSON_GROUP_PHYSICS,
+    JSON_STRUCT_PHYSICS,
     //! ::eventstruc
-    JSON_GROUP_EVENT,
+    JSON_STRUCT_EVENT,
     //! ::piecestruc
-    JSON_GROUP_PIECE,
+    JSON_STRUCT_PIECE,
     //! ::targetstrunc
-    JSON_GROUP_TARGET,
+    JSON_STRUCT_TARGET,
     //! ::userstruc
-    JSON_GROUP_USER,
+    JSON_STRUCT_USER,
     //! ::portstruc
-    JSON_GROUP_PORT,
+    JSON_STRUCT_PORT,
     //! ::glossarystruc
-    JSON_GROUP_GLOSSARY,
+    JSON_STRUCT_GLOSSARY,
     //! ::tlestruc
-    JSON_GROUP_TLE,
+    JSON_STRUCT_TLE,
     //! ::aliasstruc
-    JSON_GROUP_ALIAS,
+    JSON_STRUCT_ALIAS,
     //! ::equationstruc
-    JSON_GROUP_EQUATION
+    JSON_STRUCT_EQUATION
     };
 
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
@@ -1705,12 +1705,12 @@ struct devspecstruc
     std::vector<tsenstruc *>tsen;
 };
 
-//! JSON Name Space structure
+//! JSON Name Space data structure
 /*! A structure containing an element for every unique name in the COSMOS Name
  * Space. The components of this can then be mapped to the Name Space
  * using calls to ::json_addentry.
 */
-struct cosmosstruc
+struct cosmosdatastruc
 {
     //! Structure for summary information in node
     nodestruc node;
@@ -1734,6 +1734,16 @@ struct cosmosstruc
     std::vector<userstruc> user;
     //! Vector of glossary terms for node.
     std::vector<glossarystruc> glossary;
+    //! Array of Two Line Elements
+    std::vector<tlestruc> tle;
+};
+
+//! JSON Name Space Meta structure
+/*! A structure containing the meta information that allows items in the ::cosmosdatastruc to
+ * be mapped to name sin the Namespace.
+*/
+struct cosmosmetastruc
+{
     //! Whether JSON map has been created.
     uint16_t jmapped;
     //! JSON Namespace Map matrix.
@@ -1742,12 +1752,25 @@ struct cosmosstruc
     std::vector<std::vector<jsonequation> > emap;
     //! JSON Unit Map matrix: first level is for type, second level is for variant.
     std::vector<std::vector<unitstruc> > unit;
-    //! Array of Two Line Elements
-    std::vector<tlestruc> tle;
-    //! Array of Aliases
-    std::vector<aliasstruc> alias;
     //! Vector of Equations
     std::vector<equationstruc> equation;
+    //! Array of Aliases
+    std::vector<aliasstruc> alias;
+};
+
+//! JSON Name Space structure
+/*! A structure containing an element for every unique name in the COSMOS Name
+ * Space. The components of this can then be mapped to the Name Space
+ * using calls to ::json_addentry.
+*/
+struct cosmosstruc
+{
+    //! Namespace meta information
+    cosmosmetastruc meta;
+    //! Primary Namespace data
+    cosmosdatastruc pdata;
+    //! Secondary Namespace data
+    cosmosdatastruc sdata;
 };
 
 //! @}

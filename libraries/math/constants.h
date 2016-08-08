@@ -1,6 +1,7 @@
 #ifndef _MATH_CONSTANTS_H
 #define _MATH_CONSTANTS_H
 
+#include "configCosmos.h"
 #include <cstdint>
 
 //! \ingroup mathlib

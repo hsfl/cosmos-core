@@ -1,6 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include "configCosmos.h"
 #include <cmath>
 
 class Constants

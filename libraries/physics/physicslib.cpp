@@ -929,7 +929,7 @@ void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
     \param dyn Structure holding dynamic specs on satellite
     \param loc Structure specifying location
 */
-void simulate_hardware(cosmosstruc &cdata, locstruc &loc)
+void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
 {
     double speed, density, sattemp;
     rvector vbody, vplanet;
@@ -1399,7 +1399,7 @@ void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &)
     \param loc Structure specifying location
     \param index Index of desired IMU.
 */
-void simulate_imu(int index, cosmosstruc &cdata, locstruc &loc)
+void simulate_imu(int index, cosmosdatastruc &cdata, locstruc &loc)
 {
     quaternion toimu;
 
@@ -1619,7 +1619,7 @@ double msis00_density(posstruc pos,float f107avg,float f107,float magidx)
     return((double)output.d[5]);
 }
 
-void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc &cdata)
+void orbit_init_tle(int32_t mode,double dt,double utc,cosmosdatastruc &cdata)
 {
 
     uint16_t i;
@@ -1709,7 +1709,7 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc &cdata)
     cdata.physics.mjdbase = loc.utc;
 }
 
-void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc &cdata)
+void orbit_init_eci(int32_t mode, double dt, double utc, cartpos ipos, cosmosdatastruc &cdata)
 {
     kepstruc kep;
     double dea;
@@ -1807,7 +1807,7 @@ void orbit_init_eci(int32_t mode,double dt,double utc,cartpos ipos, cosmosstruc 
     cdata.physics.mjdbase = loc.utc;
 }
 
-void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double angle,double hour,cosmosstruc &cdata)
+void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double angle,double hour,cosmosdatastruc &cdata)
 {
     double lon;
 
@@ -1952,7 +1952,7 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
     cdata.physics.mjdbase = loc.utc;
 }
 
-void propagate(cosmosstruc &cdata, double utc)
+void propagate(cosmosdatastruc &cdata, double utc)
 {
     locstruc lnew, lnewp;
     rvector ds, unitp, unitx;
@@ -2262,7 +2262,7 @@ void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt)
     \param sat Structure specifying satellite info
 */
 
-void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cosmosstruc &cdata, locstruc &loc)
+void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cosmosdatastruc &cdata, locstruc &loc)
 {
     uint32_t i;
 
@@ -3037,7 +3037,7 @@ void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &lo
     \return Returns 0 if succsessful, otherwise negative error.
 */
 
-int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosstruc &cdata)
+int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosdatastruc &cdata)
 {
     int32_t iretn;
     tlestruc tline;
@@ -3144,7 +3144,7 @@ int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosstr
     return 0;
 }
 
-int orbit_propagate(cosmosstruc &cdata, double utc)
+int orbit_propagate(cosmosdatastruc &cdata, double utc)
 {
     cartpos npos;
     int32_t chunks, i, iretn;
@@ -3180,7 +3180,7 @@ int orbit_propagate(cosmosstruc &cdata, double utc)
     return 0;
 }
 
-int update_eci(cosmosstruc &cdata, double utc, cartpos pos)
+int update_eci(cosmosdatastruc &cdata, double utc, cartpos pos)
 {
     quaternion dsq, q1, q2;
     uvector utemp;

@@ -153,7 +153,7 @@ int32_t data_load_archive(std::string node, std::string agent, double mjd, std::
 int32_t data_load_archive(double mjd, std::vector<std::string> &telem, std::vector<std::string> &event, cosmosstruc* root);
 double findlastday(std::string node);
 double findfirstday(std::string node);
-int32_t kml_write(cosmosstruc* cdata);
+int32_t kml_write(cosmosstruc* cinfo);
 bool data_isdir(std::string path);
 
 //! @}

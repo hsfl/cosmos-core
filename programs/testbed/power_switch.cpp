@@ -28,13 +28,13 @@
 ********************************************************************/
 
 #include "configCosmos.h"
+#include "agent/agent.h"
 #include <stdlib.h>
 #include "agentlib.h"
 #include "jsonlib.h"
 #include "jsonlib.h"
 
-char request[AGENTMAXBUFFER], output[AGENTMAXBUFFER];
-cosmosstruc *cdata;
+std::string request, output;
 
 int main(int argc, char *argv[])
 {
@@ -48,19 +48,22 @@ case 4:
 case 3:
 	bus = atol(argv[2]);
 case 2:
-	json_setup_node(argv[1],cdata);
-	break;
+    break;
 default:
 	printf("Usage: power_switch node{ bus {state}}\n");
 	exit (1);
 	break;
 	}
 
-if ((nbytes = agent_get_server(cdata, cdata[0].node.name,(char *)"engine",8,&cbeat)) > 0)
+cosmosAgent agent(NetworkType::UDP, argv[1]);
+
+if ((nbytes = agent.get_server(agent.cinfo->pdata.node.name,(char *)"engine",8,&cbeat)) > 0)
 	{
-	sprintf(request,"set_bus %d %d",bus,state);
-	nbytes = agent_send_request(cbeat,request,output,AGENTMAXBUFFER,5);
-	printf("%s [%d]\n",output,nbytes);
+    char ctemp[100];
+    sprintf(ctemp,"set_bus %d %d",bus,state);
+    request = ctemp;
+    nbytes = agent.send_request(cbeat, request, output, 5);
+    printf("%s [%d]\n",output.c_str(), nbytes);
 	}
 else
 	{

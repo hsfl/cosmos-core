@@ -321,4 +321,47 @@ Project {
         }
     }
 
+    Product {
+        name : "agent_exec_soh"
+        type: "application" // To suppress bundle generation on Mac
+        consoleApplication: true
+        files: "agent_exec_soh.cpp"
+
+        Depends { name: "zlib" }
+        Depends { name: "CosmosSupport" }
+        Depends { name: "CosmosAgent" }
+
+        Depends {
+            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")
+            name: "dirent"
+        }
+
+        // define the libraries to use with MINGW
+        Properties {
+            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("mingw")
+            cpp.dynamicLibraries: ["pthread", "wsock32", "winmm", "ws2_32", "iphlpapi"]
+            cpp.minimumWindowsVersion: "7.0"
+        }
+
+        // define the libraries to use with MSVC
+        Properties {
+            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")
+            cpp.dynamicLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
+        }
+
+        Depends { name: "cpp" }
+        cpp.cxxLanguageVersion : "c++11"
+
+        cpp.includePaths : [
+            '../../support/',
+            '../../../libraries/',
+            '../../../libraries/thirdparty/']
+
+        Group {
+            qbs.install: true
+            qbs.installDir: "bin"
+            fileTagsFilter: "application"
+        }
+    }
+
 }

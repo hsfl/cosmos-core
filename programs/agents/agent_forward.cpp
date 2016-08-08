@@ -37,7 +37,7 @@ void incoming_thread();
 char agentname[COSMOS_MAX_NAME+1] = "forward";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
-cosmosstruc *cdata;
+cosmosstruc *cinfo;
 socket_channel rcvchan;
 
 #define MAXBUFFERSIZE 2560 // comm buffer for agents
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-    if (!(cdata = agent_setup_server(NetworkType::UDP,"","forward",5.,AGENTRECVPORT,MAXBUFFERSIZE,AGENT_SINGLE)))
+    if (!(cinfo = agent_setup_server(NetworkType::UDP,"","forward",5.,AGENTRECVPORT,MAXBUFFERSIZE,AGENT_SINGLE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 		{
 			close(sendchan[i].cudp);
 		}
-		agent_shutdown_server(cdata);
+        agent_shutdown_server(cinfo);
 		printf("Could not open incoming socket for forwarding: %d\n", iretn);
 		exit (1);
 	}
@@ -88,10 +88,10 @@ int main(int argc, char *argv[])
 	// Start performing the body of the agent
 	int nbytes;
 	char input[AGENTMAXBUFFER];
-	while(agent_running(cdata))
+    while(agent_running(cinfo))
 	{
 
-		nbytes = recvfrom(cdata[0].agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL);
+        nbytes = recvfrom(cinfo->pdata.agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL);
 		for (uint16_t i=0; i<sendchan.size(); ++i)
 		{
 			iretn = sendto(sendchan[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&sendchan[i].caddr,sizeof(struct sockaddr_in));
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	{
 		close(sendchan[i].cudp);
 	}
-	agent_shutdown_server(cdata);
+    agent_shutdown_server(cinfo);
 }
 
 void incoming_thread()
@@ -112,13 +112,13 @@ void incoming_thread()
 	int32_t nbytes;
 	char input[AGENTMAXBUFFER];
 
-	while(agent_running(cdata))
+    while(agent_running(cinfo))
 	{
 		if ((nbytes = recvfrom(rcvchan.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
 		{
-            for (size_t i=0; i<cdata[0].agent[0].ifcnt; ++i)
+            for (size_t i=0; i<cinfo->pdata.agent[0].ifcnt; ++i)
 			{
-				sendto(cdata[0].agent[0].pub[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&((cosmosstruc *)cdata)->agent[0].pub[i].caddr,sizeof(struct sockaddr_in));
+                sendto(cinfo->pdata.agent[0].pub[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&((cosmosstruc *)cinfo)->pdata.agent[0].pub[i].caddr,sizeof(struct sockaddr_in));
 			}
 		}
 	}

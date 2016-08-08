@@ -544,7 +544,7 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
             {
                 std::string nodepath = td->d_name;
                 jsonnode tjson;
-                if (!json_setup_node_file(nodepath, tnode, tjson))
+                if (!json_setup_node_file(nodepath, tnode->meta, tnode->pdata, tjson))
                 {
                     node.push_back(*tnode);
                 }
@@ -1380,16 +1380,16 @@ int32_t data_load_archive(std::string node, std::string agent, double mjd, std::
     return iretn;
 }
 
-int32_t data_load_archive(double mjd, std::vector<std::string> &telem, std::vector<std::string> &event, cosmosstruc *cdata)
+int32_t data_load_archive(double mjd, std::vector<std::string> &telem, std::vector<std::string> &event, cosmosstruc *cinfo)
 {
     int32_t iretn;
 
-    iretn = data_load_archive(cdata[0].node.name, "soh", mjd, "telemetry", telem);
+    iretn = data_load_archive(cinfo->pdata.node.name, "soh", mjd, "telemetry", telem);
     if (iretn < 0)
     {
         return iretn;
     }
-    iretn = data_load_archive(cdata[0].node.name, "soh", mjd, "event", event);
+    iretn = data_load_archive(cinfo->pdata.node.name, "soh", mjd, "event", event);
 
     //    DIR *jdp;
     //    struct dirent *td;
@@ -1406,10 +1406,10 @@ int32_t data_load_archive(double mjd, std::vector<std::string> &telem, std::vect
     //    mjd = (int)mjd;
     //    mjd2ymd(mjd,&year,&month,&day,&jday);
 
-    //    get_nodedir(cdata[0].node.name);
+    //    get_nodedir(cinfo->pdata.node.name);
     //    if (nodedir.size())
     //    {
-    //        dlen = nodedir.size() + 33 + strlen(cdata[0].node.name);
+    //        dlen = nodedir.size() + 33 + strlen(cinfo->pdata.node.name);
     //        sprintf(dtemp,"%s/data/soh/%4d/%03d",nodedir.c_str(),year,(int32_t)jday);
     //        if ((jdp=opendir(dtemp))!=nullptr)
     //        {
@@ -1616,27 +1616,27 @@ double findfirstday(std::string name)
  \param name Name of file to write.
  \return 0, otherwise negative error.
 */
-int32_t kml_write(cosmosstruc *cdata)
+int32_t kml_write(cosmosstruc *cinfo)
 {
     char buf[500];
     FILE *fin, *fout;
     double utc;
 
-    utc = floor(cdata[0].node.loc.utc);
+    utc = floor(cinfo->pdata.node.loc.utc);
 
-    std::string path = data_type_path((std::string)cdata[0].node.name, "outgoing", "google", utc, "points");
+    std::string path = data_type_path((std::string)cinfo->pdata.node.name, "outgoing", "google", utc, "points");
     fin = data_open(path, (char *)"a+");
-    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cdata[0].node.loc.pos.geod.s.lon),DEGOF(cdata[0].node.loc.pos.geod.s.lat),cdata[0].node.loc.pos.geod.s.h);
+    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->pdata.node.loc.pos.geod.s.lon),DEGOF(cinfo->pdata.node.loc.pos.geod.s.lat),cinfo->pdata.node.loc.pos.geod.s.h);
 
-    path = data_type_path(cdata[0].node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
+    path = data_type_path(cinfo->pdata.node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
     fout = data_open(path, (char *)"w");
     fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
     fprintf(fout,"<Document>\n");
-    fprintf(fout,"<name>%s JD%5.0f</name>\n",cdata[0].node.name,utc);
+    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->pdata.node.name,utc);
     fprintf(fout,"<description>Track of node.</description>\n");
     fprintf(fout,"<Style id=\"yellowLineGreenPoly\">\n<LineStyle>\n<color>7f00ffff</color>\n<width>4</width>\n</LineStyle>\n");
     fprintf(fout,"<PolyStyle>\n<color>7f00ff00</color>\n</PolyStyle>\n</Style>\n");
-    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cdata[0].node.name,utc);
+    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->pdata.node.name,utc);
     fprintf(fout,"<styleUrl>#yellowLineGreenPoly</styleUrl>\n<LineString>\n<extrude>1</extrude>\n<tessellate>1</tessellate>\n<altitudeMode>absolute</altitudeMode>\n");
     fprintf(fout,"<coordinates>\n");
 

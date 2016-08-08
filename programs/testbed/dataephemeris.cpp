@@ -27,11 +27,13 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+#include "configCosmos.h"
 #include "jsonlib.h"
 #include "physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
 #include "agentlib.h"
+#include "agent/agent.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +50,6 @@
 
 svector azel;
 std::vector<nodestruc> track;
-cosmosstruc *cdata;
 stkstruc stk;
 char buf[3000], fname[200];
 typedef struct
@@ -97,9 +98,7 @@ int32_t year, month, day, hour, minute, second;
 DIR *ddp, *ydp, *jdp;
 struct dirent *td, *yd, *jd;
 
-cdata = json_create();
-json_setup_node(argv[1],cdata);
-json_clone(cdata);
+cosmosAgent agent(NetworkType::UDP, argv[1]);
 
 
 
@@ -133,9 +132,9 @@ if ((yd=readdir(ddp))==NULL)
 
 
 lastsunradiance = lastlat = -999.;
-for (j=0; j<cdata[0].node.target_cnt; j++)
+for (j=0; j<agent.cinfo->pdata.node.target_cnt; j++)
 	{
-	azel = groundstation(cdata[0].node.loc,track[j].loc);
+    azel = groundstation(agent.cinfo->pdata.node.loc,track[j].loc);
 	lastgsel[j] = azel.phi;
 	gsup[j] = 0;
 	}
@@ -165,14 +164,14 @@ do
 								printf("%s\n",dtemp);
 								while (fgets(tstring,5000,tfd)!=NULL)
 									{
-									json_parse(tstring,cdata);
+                                    json_parse(tstring, agent.cinfo->meta, agent.cinfo->pdata);
 									if (lastlat == -999.)
 										{
-										lastlat = cdata[0].node.loc.pos.geod.s.lat;
-										lastsunradiance = cdata[0].node.loc.pos.sunradiance;
+                                        lastlat = agent.cinfo->pdata.node.loc.pos.geod.s.lat;
+                                        lastsunradiance = agent.cinfo->pdata.node.loc.pos.sunradiance;
 										}
-									mjdnow = cdata[0].node.loc.utc;
-//	output = json_of_ephemeris(jstring, cdata);
+                                    mjdnow = agent.cinfo->pdata.node.loc.utc;
+//	output = json_of_ephemeris(jstring, agent.cinfo->meta, agent.cinfo->pdata);
 //	fprintf(fout,"%s\n",output);
 //	fflush(fout);
 //	mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
@@ -183,38 +182,38 @@ do
 	minute = (int)(1440. * fd - hour * 60.);
 	second = (int)(86400. * fd - hour * 3600. - minute * 60.);
 	sprintf(date,"%4d-%02d-%02d,%02d:%02d:%02d",year,month,day,hour,minute,second);
-	if (lastlat <= RADOF(-60.) && cdata[0].node.loc.pos.geod.s.lat >= RADOF(-60.))
+    if (lastlat <= RADOF(-60.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(-60.))
 		alertfor((char *)"S60A",(char *)"");
-	if (lastlat <= RADOF(-30.) && cdata[0].node.loc.pos.geod.s.lat >= RADOF(-30.))
+    if (lastlat <= RADOF(-30.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(-30.))
 		alertfor((char *)"S30A",(char *)"");
-	if (lastlat <= 0. && cdata[0].node.loc.pos.geod.s.lat >= 0.)
+    if (lastlat <= 0. && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= 0.)
 		alertfor((char *)"EQA",(char *)"");
-	if (lastlat <= RADOF(30.) && cdata[0].node.loc.pos.geod.s.lat >= RADOF(30.))
+    if (lastlat <= RADOF(30.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(30.))
 		alertfor((char *)"N30A",(char *)"");
-	if (lastlat <= RADOF(60.) && cdata[0].node.loc.pos.geod.s.lat >= RADOF(60.))
+    if (lastlat <= RADOF(60.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(60.))
 		alertfor((char *)"N60A",(char *)"");
-	if (lastlat >= RADOF(-60.) && cdata[0].node.loc.pos.geod.s.lat <= RADOF(-60.))
+    if (lastlat >= RADOF(-60.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(-60.))
 		alertfor((char *)"S60D",(char *)"");
-	if (lastlat >= RADOF(-30.) && cdata[0].node.loc.pos.geod.s.lat <= RADOF(-30.))
+    if (lastlat >= RADOF(-30.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(-30.))
 		alertfor((char *)"S30D",(char *)"");
-	if (lastlat >= 0. && cdata[0].node.loc.pos.geod.s.lat <= 0.)
+    if (lastlat >= 0. && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= 0.)
 		alertfor((char *)"EQD",(char *)"");
-	if (lastlat >= RADOF(30.) && cdata[0].node.loc.pos.geod.s.lat <= RADOF(30.))
+    if (lastlat >= RADOF(30.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(30.))
 		alertfor((char *)"N30D",(char *)"");
-	if (lastlat >= RADOF(60.) && cdata[0].node.loc.pos.geod.s.lat <= RADOF(60.))
+    if (lastlat >= RADOF(60.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(60.))
 		alertfor((char *)"N60D",(char *)"");
 
-	if (lastsunradiance == 0. && cdata[0].node.loc.pos.sunradiance > 0.)
+    if (lastsunradiance == 0. && agent.cinfo->pdata.node.loc.pos.sunradiance > 0.)
 		{
 		alertfor((char *)"UMB_OUT",(char *)"");
 		}
-	if (lastsunradiance > 0. && cdata[0].node.loc.pos.sunradiance == 0.)
+    if (lastsunradiance > 0. && agent.cinfo->pdata.node.loc.pos.sunradiance == 0.)
 		{
 		alertfor((char *)"UMB_IN",(char *)"");
 		}
-	lastlat = cdata[0].node.loc.pos.geod.s.lat;
-	lastsunradiance = cdata[0].node.loc.pos.sunradiance;
-	for (j=0; j<cdata[0].node.target_cnt; j++)
+    lastlat = agent.cinfo->pdata.node.loc.pos.geod.s.lat;
+    lastsunradiance = agent.cinfo->pdata.node.loc.pos.sunradiance;
+    for (j=0; j<agent.cinfo->pdata.node.target_cnt; j++)
 		{
 		if (azel.phi <= lastgsel[j] && azel.phi > 0.)
 			{

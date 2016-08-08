@@ -31,8 +31,8 @@
 #include "jsonlib.h"
 #include "physicslib.h"
 #include "timelib.h"
+#include "agent/agent.h"
 
-cosmosstruc *cdata;
 gj_handle gjh;
 
 int main(int argc, char *argv[])
@@ -41,12 +41,11 @@ int main(int argc, char *argv[])
 	kepstruc kep;
 	double imjd;
 
-	cdata = json_create();
-	json_setup_node(NULL,cdata);
+    cosmosAgent agent;
 
-	cdata[0].physics.moi.col[0] = 3.;
-	cdata[0].physics.moi.col[1] = 3.;
-	cdata[0].physics.moi.col[2] = 3.;
+    agent.cinfo->pdata.physics.moi.col[0] = 3.;
+    agent.cinfo->pdata.physics.moi.col[1] = 3.;
+    agent.cinfo->pdata.physics.moi.col[2] = 3.;
 
 	pos_clear(loc);
 
@@ -71,15 +70,15 @@ int main(int argc, char *argv[])
 	loc.att.icrf.a = rv_zero();
 	pos_eci(&loc);
 
-    hardware_init_eci(cdata[0].devspec, loc);
-    gauss_jackson_init_eci(gjh, 6, 0, .1, loc.utc, loc.pos.eci, loc.att.icrf, cdata->physics, cdata->node.loc);
+    hardware_init_eci(agent.cinfo->pdata.devspec, loc);
+    gauss_jackson_init_eci(gjh, 6, 0, .1, loc.utc, loc.pos.eci, loc.att.icrf, agent.cinfo->pdata.physics, agent.cinfo->pdata.node.loc);
 
 	for (uint16_t i=0; i<=1000; ++i)
 	{
-		printf("%f\t%f\t%f\t%f\t%f\n",86400.*(cdata[0].node.loc.utc-imjd),cdata[0].node.loc.att.icrf.v.col[0],cdata[0].node.loc.att.icrf.v.col[1],cdata[0].node.loc.att.icrf.v.col[2],length_rv(cdata[0].node.loc.att.icrf.v));
-//		cdata[0].physics.ftorque = transform_q(cdata[0].node.loc.att.icrf.s,rv_smult(-5.2359406e-4,rv_unity()));
-		cdata[0].physics.ftorque = transform_q(cdata[0].node.loc.att.icrf.s,rv_smult(-5.2359406e-3,rv_unity()));
-        gauss_jackson_propagate(gjh, cdata->physics, cdata->node.loc, cdata[0].node.loc.utc+10./86400.);
-        simulate_hardware(*cdata, cdata->node.loc);
+        printf("%f\t%f\t%f\t%f\t%f\n",86400.*(agent.cinfo->pdata.node.loc.utc-imjd),agent.cinfo->pdata.node.loc.att.icrf.v.col[0],agent.cinfo->pdata.node.loc.att.icrf.v.col[1],agent.cinfo->pdata.node.loc.att.icrf.v.col[2],length_rv(agent.cinfo->pdata.node.loc.att.icrf.v));
+//		agent.cinfo->pdata.physics.ftorque = transform_q(agent.cinfo->pdata.node.loc.att.icrf.s,rv_smult(-5.2359406e-4,rv_unity()));
+        agent.cinfo->pdata.physics.ftorque = transform_q(agent.cinfo->pdata.node.loc.att.icrf.s,rv_smult(-5.2359406e-3,rv_unity()));
+        gauss_jackson_propagate(gjh, agent.cinfo->pdata.physics, agent.cinfo->pdata.node.loc, agent.cinfo->pdata.node.loc.utc+10./86400.);
+        simulate_hardware(agent.cinfo->pdata, agent.cinfo->pdata.node.loc);
     }
 }

@@ -30,7 +30,7 @@
 #include "agentlib.h"
 #include "sliplib.h"
 
-cosmosstruc *cdata;
+cosmosstruc *cinfo;
 uint8_t data[32769];
 char buffer[AGENTMAXBUFFER], response[AGENTMAXBUFFER];
 
@@ -48,13 +48,13 @@ int main(int argc, char *argv[])
 			exit(0);
 		}
 
-	if ((cdata=agent_setup_client(NetworkType::BROADCAST, (char *)argv[1])) == NULL)
+    if ((cinfo=agent_setup_client(NetworkType::BROADCAST, (char *)argv[1])) == NULL)
 		{
 			fprintf(stderr,"Error: %d\n",AGENT_ERROR_JSON_CREATE);
 			exit(AGENT_ERROR_JSON_CREATE);
 		}
 
-	if ((iretn=agent_get_server(cdata, argv[1], argv[2], 3, &beat) <= 0))
+    if ((iretn=agent_get_server(cinfo, argv[1], argv[2], 3, &beat) <= 0))
 	{
 		fprintf(stderr,"Error: Could not find %s:%s\n",argv[1],argv[2]);
 		exit(iretn);

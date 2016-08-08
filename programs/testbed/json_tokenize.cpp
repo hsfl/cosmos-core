@@ -27,20 +27,19 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+#include "configCosmos.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
-
-cosmosstruc *cdata;
 
 int main(int argc, char *argv[])
 {
 
-	cdata = json_create();
-	json_setup_node(argv[1],cdata);
+    cosmosAgent agent(NetworkType::UDP, argv[1]);
 
-	std::vector <double> daylist = data_list_archive_days(cdata->node.name, "soh");
+    std::vector <double> daylist = data_list_archive_days(agent.cinfo->pdata.node.name, "soh");
 	for (double day: daylist)
 	{
-		std::vector <filestruc> files = data_list_archive(cdata->node.name, "soh", day);
+        std::vector <filestruc> files = data_list_archive(agent.cinfo->pdata.node.name, "soh", day);
 		for (filestruc file : files)
 		{
 			std::ifstream tfd;
@@ -51,7 +50,7 @@ int main(int argc, char *argv[])
 				std::vector <jsontoken> tokens;
 				while (getline(tfd,tstring))
 				{
-					json_tokenize(tstring, cdata, tokens);
+                    json_tokenize(tstring, agent.cinfo->meta, tokens);
 				}
 				tfd.close();
 			}
