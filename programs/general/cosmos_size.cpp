@@ -106,6 +106,95 @@ int main(int, char* argv[])
     printf("Glossarys: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(glossarystruc), count*COSMOS_SIZEOF(glossarystruc), total);
 
     count = 0;
+    for (size_t i=0; i<myagent->cinfo->pdata.tle.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(tlestruc);
+    }
+    printf("TLEs: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(tlestruc), count*COSMOS_SIZEOF(tlestruc), total);
+
+    printf("Total for pdata: %u\n\n", total);
+
+    total = 0;
+    count = 0;
+
+    total += COSMOS_SIZEOF(nodestruc);
+    printf("Node: %u : %u\n", COSMOS_SIZEOF(nodestruc), total);
+
+    count = 0;
+    for (size_t i=0; i<myagent->cinfo->sdata.piece.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(piecestruc);
+    }
+    printf("Pieces: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(piecestruc), count*COSMOS_SIZEOF(piecestruc), total);
+
+    count = 0;
+    for (size_t i=0; i<myagent->cinfo->sdata.device.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(devicestruc);
+    }
+    printf("Devices: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(devicestruc), count*COSMOS_SIZEOF(devicestruc), total);
+
+    total += COSMOS_SIZEOF(devspecstruc);
+    printf("Device Special: %u : %u\n", COSMOS_SIZEOF(devspecstruc), total);
+
+    count = 0;
+    for (size_t i=0; i<myagent->cinfo->sdata.port.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(portstruc);
+    }
+    printf("Ports: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(portstruc), count*COSMOS_SIZEOF(portstruc), total);
+
+    total += COSMOS_SIZEOF(physicsstruc);
+    printf("Physics: %u : %u\n", COSMOS_SIZEOF(physicsstruc), total);
+
+    count = 0;
+    for (size_t i=0; i<myagent->cinfo->sdata.agent.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(agentstruc);
+    }
+    printf("Agents: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(agentstruc), count*COSMOS_SIZEOF(agentstruc), total);
+
+    count = 0;
+    for (size_t i=0; i<myagent->cinfo->sdata.target.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(targetstruc);
+    }
+    printf("Targets: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(targetstruc), count*COSMOS_SIZEOF(targetstruc), total);
+
+    count = 0;
+    for (size_t i=0; i<myagent->cinfo->sdata.user.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(userstruc);
+    }
+    printf("Users: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(userstruc), count*COSMOS_SIZEOF(userstruc), total);
+
+    count = 0;
+    for (size_t i=0; i<myagent->cinfo->sdata.glossary.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(glossarystruc);
+    }
+    printf("Glossarys: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(glossarystruc), count*COSMOS_SIZEOF(glossarystruc), total);
+
+    count = 0;
+    for (size_t i=0; i<myagent->cinfo->sdata.tle.size(); ++i)
+    {
+        ++count;
+        total += COSMOS_SIZEOF(tlestruc);
+    }
+    printf("TLEs: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(tlestruc), count*COSMOS_SIZEOF(tlestruc), total);
+
+    printf("Total for sdata: %u\n\n", total);
+
+    total = 0;
+    count = 0;
     for (size_t i=0; i<myagent->cinfo->meta.jmap.size(); ++i)
     {
         for (size_t j=0; j<myagent->cinfo->meta.jmap[j].size(); ++j)
@@ -139,14 +228,6 @@ int main(int, char* argv[])
     printf("Units: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(unitstruc), count*COSMOS_SIZEOF(unitstruc), total);
 
     count = 0;
-    for (size_t i=0; i<myagent->cinfo->pdata.tle.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(tlestruc);
-    }
-    printf("TLEs: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(tlestruc), count*COSMOS_SIZEOF(tlestruc), total);
-
-    count = 0;
     for (size_t i=0; i<myagent->cinfo->meta.alias.size(); ++i)
     {
         ++count;
@@ -161,6 +242,8 @@ int main(int, char* argv[])
         total += COSMOS_SIZEOF(equationstruc);
     }
     printf("Equations: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(equationstruc), count*COSMOS_SIZEOF(equationstruc), total);
+
+    printf("Total for meta: %u\n\n", total);
 
     fflush(stdout);
 }

@@ -3331,9 +3331,9 @@ std::string json_get_string(jsonentry *ptr, cosmosmetastruc &cmeta, cosmosdatast
     case JSON_TYPE_POS_ECI:
         cartpos tval = (*(cartpos *)(json_ptr_of_offset(ptr->offset,ptr->group, cmeta, cdata)));
         sprintf(tbuf, "[%.17g %.17g %.17g] [%.17g %.17g %.17g] [%.17g %.17g %.17g]",
-                tval.s.col[0], tval.s.col[0], tval.s.col[0],
-                tval.v.col[0], tval.v.col[0], tval.v.col[0],
-                tval.a.col[0], tval.a.col[0], tval.a.col[0]);
+                tval.s.col[0], tval.s.col[1], tval.s.col[2],
+                tval.v.col[0], tval.v.col[1], tval.v.col[2],
+                tval.a.col[0], tval.a.col[1], tval.a.col[2]);
         tstring = tbuf;
         break;
     }
