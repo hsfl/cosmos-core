@@ -30,7 +30,7 @@
 /*! \file convert_test.cpp
 *   \brief Command line simulator
 */
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
 

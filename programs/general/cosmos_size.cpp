@@ -35,7 +35,7 @@ int main(int, char* argv[])
     cosmosAgent *myagent;
 
     myagent = new cosmosAgent();
-    json_setup_node_file(argv[1], myagent->cinfo->meta, myagent->cinfo->pdata, myagent->cjson, false);
+    json_setup_node(argv[1], myagent->cinfo, false);
 
     size_t total = 0;
     size_t count = 0;

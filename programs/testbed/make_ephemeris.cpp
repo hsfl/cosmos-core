@@ -30,7 +30,7 @@
 #include "configCosmos.h"
 #include "agent/agent.h"
 #include "jsonlib.h"
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
 #include "agentlib.h"

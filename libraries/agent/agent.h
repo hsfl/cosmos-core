@@ -195,7 +195,6 @@ public:
     void log(std::string log_entry);
     bool setSoh(std::string sohFields);
     cosmosstruc *cinfo;
-    jsonnode cjson;
 
     //! List of active agents
     std::vector <beatstruc> agent_list;

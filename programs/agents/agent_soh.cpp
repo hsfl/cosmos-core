@@ -37,7 +37,7 @@
 #include "jsonlib.h"
 #include "stringlib.h"
 #include "timelib.h"
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "jsonlib.h"
 #include "datalib.h"
 #include "zlib/zlib.h"

@@ -180,8 +180,7 @@ cosmosstruc *agent_setup_client(NetworkType ntype, std::string node, uint32_t us
     }
 
     //! Next, set up node.
-    jsonnode tjson;
-    if (!node.empty() && (iretn=json_setup_node_file(node, cinfo->meta, cinfo->pdata, tjson)) != 0)
+    if (!node.empty() && (iretn=json_setup_node(node, cinfo)) != 0)
     {
         json_destroy(cinfo);
         return nullptr;

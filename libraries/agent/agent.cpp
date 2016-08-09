@@ -122,7 +122,7 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
     }
 
     // Set up node if there is one.
-    if (nname.length()>COSMOS_MAX_NAME || (!nname.empty() && (iretn=json_setup_node_file(nname, cinfo->meta, cinfo->pdata, cjson)) != 0))
+    if (nname.length()>COSMOS_MAX_NAME || (!nname.empty() && (iretn=json_setup_node(nname, cinfo)) != 0))
     {
         cosmosAgent::shutdown();
         return;
@@ -1010,7 +1010,7 @@ int32_t cosmosAgent::req_listnames(char *, char* output, cosmosAgent* agent)
  */
 int32_t cosmosAgent::req_nodejson(char *, char* output, cosmosAgent* agent)
 {
-    strncpy(output, agent->cjson.node.c_str(), agent->cjson.node.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cjson.node.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
+    strncpy(output, agent->cinfo->json.node.c_str(), agent->cinfo->json.node.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.node.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
 }
@@ -1023,7 +1023,7 @@ int32_t cosmosAgent::req_nodejson(char *, char* output, cosmosAgent* agent)
  */
 int32_t cosmosAgent::req_statejson(char *, char* output, cosmosAgent* agent)
 {
-    strncpy(output, agent->cjson.state.c_str(), agent->cjson.state.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cjson.state.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
+    strncpy(output, agent->cinfo->json.state.c_str(), agent->cinfo->json.state.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.state.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
 }
@@ -1036,7 +1036,7 @@ int32_t cosmosAgent::req_statejson(char *, char* output, cosmosAgent* agent)
  */
 int32_t cosmosAgent::req_utcstartjson(char *, char* output, cosmosAgent* agent)
 {
-    strncpy(output, agent->cjson.utcstart.c_str(), agent->cjson.utcstart.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cjson.utcstart.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
+    strncpy(output, agent->cinfo->json.utcstart.c_str(), agent->cinfo->json.utcstart.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.utcstart.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
 }
@@ -1049,7 +1049,7 @@ int32_t cosmosAgent::req_utcstartjson(char *, char* output, cosmosAgent* agent)
  */
 int32_t cosmosAgent::req_piecesjson(char *, char* output, cosmosAgent* agent)
 {
-    strncpy(output, agent->cjson.pieces.c_str(), agent->cjson.pieces.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cjson.pieces.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
+    strncpy(output, agent->cinfo->json.pieces.c_str(), agent->cinfo->json.pieces.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.pieces.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
 }
@@ -1062,7 +1062,7 @@ int32_t cosmosAgent::req_piecesjson(char *, char* output, cosmosAgent* agent)
  */
 int32_t cosmosAgent::req_devgenjson(char *, char* output, cosmosAgent* agent)
 {
-    strncpy(output, agent->cjson.devgen.c_str(), agent->cjson.devgen.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cjson.devgen.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
+    strncpy(output, agent->cinfo->json.devgen.c_str(), agent->cinfo->json.devgen.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.devgen.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
 }
@@ -1075,7 +1075,7 @@ int32_t cosmosAgent::req_devgenjson(char *, char* output, cosmosAgent* agent)
  */
 int32_t cosmosAgent::req_devspecjson(char *, char* output, cosmosAgent* agent)
 {
-    strncpy(output, agent->cjson.devspec.c_str(), agent->cjson.devspec.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cjson.devspec.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
+    strncpy(output, agent->cinfo->json.devspec.c_str(), agent->cinfo->json.devspec.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.devspec.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
 }
@@ -1088,7 +1088,7 @@ int32_t cosmosAgent::req_devspecjson(char *, char* output, cosmosAgent* agent)
  */
 int32_t cosmosAgent::req_portsjson(char *, char* output, cosmosAgent* agent)
 {
-    strncpy(output, agent->cjson.ports.c_str(), agent->cjson.ports.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cjson.ports.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
+    strncpy(output, agent->cinfo->json.ports.c_str(), agent->cinfo->json.ports.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.ports.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
 }
@@ -1101,7 +1101,7 @@ int32_t cosmosAgent::req_portsjson(char *, char* output, cosmosAgent* agent)
  */
 int32_t cosmosAgent::req_targetsjson(char *, char* output, cosmosAgent* agent)
 {
-    strncpy(output, agent->cjson.targets.c_str(), agent->cjson.targets.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cjson.targets.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
+    strncpy(output, agent->cinfo->json.targets.c_str(), agent->cinfo->json.targets.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.targets.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
 }
@@ -1114,7 +1114,7 @@ int32_t cosmosAgent::req_targetsjson(char *, char* output, cosmosAgent* agent)
  */
 int32_t cosmosAgent::req_aliasesjson(char *, char* output, cosmosAgent* agent)
 {
-    strncpy(output, agent->cjson.aliases.c_str(), agent->cjson.aliases.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cjson.aliases.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
+    strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
 }

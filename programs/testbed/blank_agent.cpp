@@ -39,7 +39,7 @@
 #include <stdio.h>
 
 #include "agentlib.h"
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "jsonlib.h"
 //#include "stringlib.h"
 //#include "timelib.h"

@@ -30,7 +30,7 @@
 #include "configCosmos.h"
 #include "convertlib.h"
 #include "jsonlib.h"
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "agentlib.h"
 
 #define TLE 0

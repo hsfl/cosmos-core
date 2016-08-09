@@ -1771,6 +1771,8 @@ struct cosmosstruc
     cosmosdatastruc pdata;
     //! Secondary Namespace data
     cosmosdatastruc sdata;
+    //! JSON descriptive information
+    jsonnode json;
 };
 
 //! @}

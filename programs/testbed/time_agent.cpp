@@ -32,7 +32,7 @@
 
 #include "agentlib.h"
 #include "cosmos-defs.h"
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "jsonlib.h"
 
 int myagent();

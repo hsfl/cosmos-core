@@ -38,7 +38,7 @@
 #include "agentlib.h"
 #include "jsonlib.h"
 #include "jsonlib.h"
-#include "physicslib.h"
+#include "physics/physicslib.h"
 
 #include <iostream>
 

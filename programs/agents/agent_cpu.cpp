@@ -113,7 +113,6 @@ int main(int argc, char *argv[])
 
     // Add additional requests
 
-//    agent = new cosmosAgent(NetworkType::UDP, std::ref(nodename), std::ref(agentname), 5.);
     agent = new cosmosAgent(NetworkType::UDP, nodename, agentname, 5.);
 
     agent->add_request("soh",request_soh);

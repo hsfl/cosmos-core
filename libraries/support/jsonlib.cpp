@@ -5467,30 +5467,29 @@ int32_t json_load_node(std::string node, jsonnode &json, bool create_flag)
     return 0;
 }
 
-//! Map Name Space to global data structure components and pieces
+//! Setup JSON Namespace using Node description JSON
 /*! Create an entry in the JSON mapping tables between each name in the Name Space and the
- * \ref cosmosstruc.
- *	\param node Name and/or path of node directory. If name, then a path will be created
- * based on nodedir setting. If path, then name will be extracted from the end.
- *	\param cinfo Pointer to cinfo ::cosmosstruc.
+ * \ref cosmosstruc. Load descriptive information from a structure of JSON descriptions.
+ * \param json Structure containing JSON descriptions.
+ * \param cinfo Pointer to cinfo ::cosmosstruc.
  * \param create_flag Whether or not to create node directory if it doesn't already exist.
-    \return 0, or a negative ::error
+   \return 0, or a negative ::error
 */
-int32_t json_setup_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata, jsonnode &json, bool create_flag)
+int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 {
     int32_t iretn;
     struct stat fstat;
     std::ifstream ifs;
     std::string fname;
 
-    if (!cmeta.jmapped)
+    if (!cinfo->meta.jmapped)
         return (JSON_ERROR_NOJMAP);
 
-    cdata.node.utcoffset = 0.;
+    cinfo->pdata.node.utcoffset = 0.;
     // First: parse data for summary information - includes piece_cnt, device_cnt and port_cnt
     if (!json.node.empty())
     {
-        if ((iretn = json_parse(json.node, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+        if ((iretn = json_parse(json.node, cinfo->meta, cinfo->pdata)) < 0 && iretn != JSON_ERROR_EOS)
         {
             return (iretn);
         }
@@ -5501,23 +5500,23 @@ int32_t json_setup_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata, jsonnode
     }
 
     std::string nodepath;
-    std::string node = cdata.node.name;
+    std::string node = cinfo->pdata.node.name;
     nodepath = get_nodedir(node, create_flag);
 
     // 1A: load state vector, if it is present
     if (!json.state.empty())
     {
-        if ((iretn = json_parse(json.state, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+        if ((iretn = json_parse(json.state, cinfo->meta, cinfo->pdata)) < 0 && iretn != JSON_ERROR_EOS)
         {
             return (iretn);
         }
-        loc_update(&cdata.node.loc);
+        loc_update(&cinfo->pdata.node.loc);
     }
 
     // Set node_utcstart
     if (!json.utcstart.empty())
     {
-        if ((iretn = json_parse(json.utcstart, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+        if ((iretn = json_parse(json.utcstart, cinfo->meta, cinfo->pdata)) < 0 && iretn != JSON_ERROR_EOS)
         {
             return (iretn);
         }
@@ -5525,25 +5524,25 @@ int32_t json_setup_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata, jsonnode
 
     // Second: enter information for pieces
     // Resize, then add entries to map for pieces
-    if (cdata.node.piece_cnt)
+    if (cinfo->pdata.node.piece_cnt)
     {
-        cdata.piece.resize(cdata.node.piece_cnt);
-        if (cdata.piece.size() != cdata.node.piece_cnt)
+        cinfo->pdata.piece.resize(cinfo->pdata.node.piece_cnt);
+        if (cinfo->pdata.piece.size() != cinfo->pdata.node.piece_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
-        for (uint16_t i=0; i<cdata.node.piece_cnt; i++)
+        for (uint16_t i=0; i<cinfo->pdata.node.piece_cnt; i++)
         {
             //Add relevant names to namespace
-            json_addpieceentry(i, cmeta);
+            json_addpieceentry(i, cinfo->meta);
             // Initialize to no component
-            cdata.piece[i].cidx = DEVICE_TYPE_NONE;
+            cinfo->pdata.piece[i].cidx = DEVICE_TYPE_NONE;
         }
 
         // Parse data for piece information
         if (!json.pieces.empty())
         {
-            if ((iretn = json_parse(json.pieces, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+            if ((iretn = json_parse(json.pieces, cinfo->meta, cinfo->pdata)) < 0 && iretn != JSON_ERROR_EOS)
             {
                 return (iretn);
             }
@@ -5551,25 +5550,25 @@ int32_t json_setup_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata, jsonnode
 
         // Third: enter information for all devices
         // Resize, then add entries to map for devices
-        cdata.device.resize(cdata.node.device_cnt);
-        if (cdata.device.size() != cdata.node.device_cnt)
+        cinfo->pdata.device.resize(cinfo->pdata.node.device_cnt);
+        if (cinfo->pdata.device.size() != cinfo->pdata.node.device_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
 
         // Add entries to map for Devices and set pointers in nodestruc for comp
-        for (uint16_t i=0; i< cdata.node.device_cnt; i++)
+        for (uint16_t i=0; i< cinfo->pdata.node.device_cnt; i++)
         {
             // Add relevant names for generic device to namespace
-            json_addcompentry(i, cmeta, cdata);
+            json_addcompentry(i, cinfo->meta, cinfo->pdata);
             // Initialize to no port
-            cdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
+            cinfo->pdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
         }
 
         // Parse data for general device information
         if (!json.devgen.empty())
         {
-            if ((iretn = json_parse(json.devgen, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+            if ((iretn = json_parse(json.devgen, cinfo->meta, cinfo->pdata)) < 0 && iretn != JSON_ERROR_EOS)
             {
                 return (iretn);
             }
@@ -5577,55 +5576,55 @@ int32_t json_setup_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata, jsonnode
 
         // Fourth: enter information for specific devices
         // Add entries to map for Devices specific information
-        for (uint16_t i=0; i< cdata.node.device_cnt; i++)
+        for (uint16_t i=0; i< cinfo->pdata.node.device_cnt; i++)
         {
-            json_adddeviceentry(i, cmeta, cdata);
+            json_adddeviceentry(i, cinfo->meta, cinfo->pdata);
         }
 
         // Parse data for specific device information
         if (!json.devspec.empty())
         {
-            if ((iretn = json_parse(json.devspec, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+            if ((iretn = json_parse(json.devspec, cinfo->meta, cinfo->pdata)) < 0 && iretn != JSON_ERROR_EOS)
             {
                 return (iretn);
             }
         }
 
         // Clean up any errors
-        for (uint16_t i=0; i< cdata.node.device_cnt; i++)
+        for (uint16_t i=0; i< cinfo->pdata.node.device_cnt; i++)
         {
-            cdata.device[i].all.gen.cidx = i;
+            cinfo->pdata.device[i].all.gen.cidx = i;
         }
 
         // Fifth: enter information for ports
         // Resize, then add names for ports
-        cdata.port.resize(cdata.node.port_cnt);
-        if (cdata.port.size() != cdata.node.port_cnt)
+        cinfo->pdata.port.resize(cinfo->pdata.node.port_cnt);
+        if (cinfo->pdata.port.size() != cinfo->pdata.node.port_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
 
-        for (uint16_t i=0; i<cdata.node.port_cnt; i++)
+        for (uint16_t i=0; i<cinfo->pdata.node.port_cnt; i++)
         {
-            json_addentry("port_name",i,65535u,(ptrdiff_t)offsetof(portstruc,name)+i*sizeof(portstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PORT, cmeta);
-            json_addentry("port_type",i,65535u,(ptrdiff_t)offsetof(portstruc,type)+i*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PORT, cmeta);
+            json_addentry("port_name",i,65535u,(ptrdiff_t)offsetof(portstruc,name)+i*sizeof(portstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PORT, cinfo->meta);
+            json_addentry("port_type",i,65535u,(ptrdiff_t)offsetof(portstruc,type)+i*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PORT, cinfo->meta);
         }
 
         // Parse data for port information
         if (!json.ports.empty())
         {
-            if ((iretn = json_parse(json.ports, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+            if ((iretn = json_parse(json.ports, cinfo->meta, cinfo->pdata)) < 0 && iretn != JSON_ERROR_EOS)
             {
                 return (iretn);
             }
         }
 
-        node_calc(cdata);
+        node_calc(cinfo->pdata);
 
         //! Load targeting information
         if (!json.targets.empty())
         {
-            if ((iretn = json_parse(json.targets, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+            if ((iretn = json_parse(json.targets, cinfo->meta, cinfo->pdata)) < 0 && iretn != JSON_ERROR_EOS)
             {
                 return (iretn);
             }
@@ -5643,39 +5642,42 @@ int32_t json_setup_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata, jsonnode
                 {
                     std::string cname;
                     getline(ifs, cname);
-                    json_addentry(alias, cname, cmeta);
+                    json_addentry(alias, cname, cinfo->meta);
                 } ;
             }
         }
 
     }
 
+    cinfo->json = json;
+
     return 0;
 }
 
-//! Map Name Space to global data structure components and pieces
+//! Setup JSON Namespace using file.
 /*! Create an entry in the JSON mapping tables between each name in the Name Space and the
- * \ref cosmosstruc.
+ * \ref cosmosstruc. Load descriptive information from files in a Node directory of the goven name.
  *	\param node Name and/or path of node directory. If name, then a path will be created
  * based on nodedir setting. If path, then name will be extracted from the end.
  *	\param cinfo Pointer to cinfo ::cosmosstruc.
  * \param create_flag Whether or not to create node directory if it doesn't already exist.
     \return 0, or a negative ::error
 */
-int32_t json_setup_node_file(std::string node, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, jsonnode &json, bool create_flag)
+int32_t json_setup_node(std::string node, cosmosstruc *cinfo, bool create_flag)
 {
     int32_t iretn;
 
-    if (!cmeta.jmapped)
+    if (!cinfo->meta.jmapped)
         return (JSON_ERROR_NOJMAP);
 
+    jsonnode json;
     iretn = json_load_node(node, json, create_flag);
     if (iretn < 0)
     {
         return iretn;
     }
 
-    iretn = json_setup_node(cmeta, cdata, json, create_flag);
+    iretn = json_setup_node(json, cinfo, create_flag);
     if (iretn < 0)
     {
         return iretn;
@@ -5693,324 +5695,324 @@ int32_t json_setup_node_file(std::string node, cosmosmetastruc &cmeta, cosmosdat
  * \param create_flag Whether or not to create node directory if it doesn't already exist.
     \return 0, or a negative ::error
 */
-int32_t json_setup_node(std::string node, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, bool create_flag)
-{
-    int32_t iretn;
-    struct stat fstat;
-    std::ifstream ifs;
-    char *ibuf;
-    std::string fname;
-    std::string nodepath;
+//int32_t json_setup_node(std::string node, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, bool create_flag)
+//{
+//    int32_t iretn;
+//    struct stat fstat;
+//    std::ifstream ifs;
+//    char *ibuf;
+//    std::string fname;
+//    std::string nodepath;
 
-    if (!cmeta.jmapped)
-        return (JSON_ERROR_NOJMAP);
+//    if (!cmeta.jmapped)
+//        return (JSON_ERROR_NOJMAP);
 
-    size_t nodestart;
-    if ((nodestart = node.rfind('/')) == std::string::npos)
-    {
-        nodepath = get_nodedir(node, create_flag);
-    }
-    else
-    {
-        nodepath = node;
-        node = node.substr(nodestart+1, std::string::npos);
-    }
+//    size_t nodestart;
+//    if ((nodestart = node.rfind('/')) == std::string::npos)
+//    {
+//        nodepath = get_nodedir(node, create_flag);
+//    }
+//    else
+//    {
+//        nodepath = node;
+//        node = node.substr(nodestart+1, std::string::npos);
+//    }
 
-    // First: parse data for summary information - includes piece_cnt, device_cnt and port_cnt
-    fname = nodepath + "/node.ini";
+//    // First: parse data for summary information - includes piece_cnt, device_cnt and port_cnt
+//    fname = nodepath + "/node.ini";
 
-    if ((iretn=stat(fname.c_str(),&fstat)) == -1)
-    {
-        std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
-        return (DATA_ERROR_NODES_FOLDER);
-        //return (NODE_ERROR_NODE);
-    }
+//    if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+//    {
+//        std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
+//        return (DATA_ERROR_NODES_FOLDER);
+//        //return (NODE_ERROR_NODE);
+//    }
 
-    if (fstat.st_size)
-    {
-        ifs.open(fname);
-        if (!ifs.is_open())
-        {
-            return (NODE_ERROR_NODE);
-        }
+//    if (fstat.st_size)
+//    {
+//        ifs.open(fname);
+//        if (!ifs.is_open())
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
 
-        ibuf = (char *)calloc(1,fstat.st_size+1);
-        ifs.read(ibuf, fstat.st_size);
-        ifs.close();
-        ibuf[fstat.st_size] = 0;
-        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
-        {
-            free(ibuf);
-            return (iretn);
-        }
-        free(ibuf);
-    }
-    else
-    {
-        cdata.node.type = NODE_TYPE_DATA;
-    }
+//        ibuf = (char *)calloc(1,fstat.st_size+1);
+//        ifs.read(ibuf, fstat.st_size);
+//        ifs.close();
+//        ibuf[fstat.st_size] = 0;
+//        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+//        {
+//            free(ibuf);
+//            return (iretn);
+//        }
+//        free(ibuf);
+//    }
+//    else
+//    {
+//        cdata.node.type = NODE_TYPE_DATA;
+//    }
 
-    // 1A: load state vector, if it is present
-    fname = nodepath + "/state.ini";
+//    // 1A: load state vector, if it is present
+//    fname = nodepath + "/state.ini";
 
-    if (!stat(fname.c_str(),&fstat) && fstat.st_size)
-    {
-        ifs.open(fname);
-        if (ifs.is_open())
-        {
-            ibuf = (char *)calloc(1,fstat.st_size+1);
-            ifs.read(ibuf, fstat.st_size);
-            ifs.close();
-            ibuf[fstat.st_size] = 0;
-            if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
-            {
-                free(ibuf);
-                return (iretn);
-            }
-            free(ibuf);
-            loc_update(&cdata.node.loc);
-        }
-    }
-    // If not, use TLE if it is present
-    else
-    {
-        fname = nodepath + "/tle.ini";
+//    if (!stat(fname.c_str(),&fstat) && fstat.st_size)
+//    {
+//        ifs.open(fname);
+//        if (ifs.is_open())
+//        {
+//            ibuf = (char *)calloc(1,fstat.st_size+1);
+//            ifs.read(ibuf, fstat.st_size);
+//            ifs.close();
+//            ibuf[fstat.st_size] = 0;
+//            if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+//            {
+//                free(ibuf);
+//                return (iretn);
+//            }
+//            free(ibuf);
+//            loc_update(&cdata.node.loc);
+//        }
+//    }
+//    // If not, use TLE if it is present
+//    else
+//    {
+//        fname = nodepath + "/tle.ini";
 
-        if (!stat(fname.c_str(),&fstat) && fstat.st_size)
-        {
-            int32_t iretn;
-            std::vector <tlestruc> tles;
-            iretn = load_lines(fname, tles);
-            if (iretn > 0)
-            {
-                if ((iretn=lines2eci(currentmjd()-10./86400., tles, cdata.node.loc.pos.eci)) < 0)
-                {
-                    loc_update(&cdata.node.loc);
-                }
-            }
-        }
-    }
+//        if (!stat(fname.c_str(),&fstat) && fstat.st_size)
+//        {
+//            int32_t iretn;
+//            std::vector <tlestruc> tles;
+//            iretn = load_lines(fname, tles);
+//            if (iretn > 0)
+//            {
+//                if ((iretn=lines2eci(currentmjd()-10./86400., tles, cdata.node.loc.pos.eci)) < 0)
+//                {
+//                    loc_update(&cdata.node.loc);
+//                }
+//            }
+//        }
+//    }
 
-    // Set node_utcstart
-    fname = nodepath + "/node_utcstart.ini";
-    if ((iretn=stat(fname.c_str(),&fstat)) == -1)
-    {
-        // First time, so write it
-        FILE *ifp = fopen(fname.c_str(), "w");
-        if (ifp == nullptr)
-        {
-            return (NODE_ERROR_NODE);
-        }
-        fprintf(ifp, "%.15g", currentmjd());
-        fclose(ifp);
-    }
-    else
-    {
-        // Already set, so read it
-        FILE *ifp = fopen(fname.c_str(), "r");
-        if (ifp == nullptr)
-        {
-            // Still some problem, so just set it to current time
-            cdata.node.utcstart = currentmjd();
-        }
-        else
-        {
-            iretn = fscanf(ifp, "%lg", &cdata.node.utcstart);
-            if (iretn != 1)
-            {
-                cdata.node.utcstart = currentmjd();
-            }
-            fclose(ifp);
-        }
-    }
+//    // Set node_utcstart
+//    fname = nodepath + "/node_utcstart.ini";
+//    if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+//    {
+//        // First time, so write it
+//        FILE *ifp = fopen(fname.c_str(), "w");
+//        if (ifp == nullptr)
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
+//        fprintf(ifp, "%.15g", currentmjd());
+//        fclose(ifp);
+//    }
+//    else
+//    {
+//        // Already set, so read it
+//        FILE *ifp = fopen(fname.c_str(), "r");
+//        if (ifp == nullptr)
+//        {
+//            // Still some problem, so just set it to current time
+//            cdata.node.utcstart = currentmjd();
+//        }
+//        else
+//        {
+//            iretn = fscanf(ifp, "%lg", &cdata.node.utcstart);
+//            if (iretn != 1)
+//            {
+//                cdata.node.utcstart = currentmjd();
+//            }
+//            fclose(ifp);
+//        }
+//    }
 
-    // Set Node name from directory
-    strncpy(cdata.node.name, node.c_str(), COSMOS_MAX_NAME);
+//    // Set Node name from directory
+//    strncpy(cdata.node.name, node.c_str(), COSMOS_MAX_NAME);
 
-    // Second: enter information for pieces
-    // Resize, then add entries to map for pieces
-    if (cdata.node.piece_cnt)
-    {
-        cdata.piece.resize(cdata.node.piece_cnt);
-        if (cdata.piece.size() != cdata.node.piece_cnt)
-        {
-            return (AGENT_ERROR_MEMORY);
-        }
-        for (uint16_t i=0; i<cdata.node.piece_cnt; i++)
-        {
-            //Add relevant names to namespace
-            json_addpieceentry(i, cmeta);
-            // Initialize to no component
-            cdata.piece[i].cidx = DEVICE_TYPE_NONE;
-        }
+//    // Second: enter information for pieces
+//    // Resize, then add entries to map for pieces
+//    if (cdata.node.piece_cnt)
+//    {
+//        cdata.piece.resize(cdata.node.piece_cnt);
+//        if (cdata.piece.size() != cdata.node.piece_cnt)
+//        {
+//            return (AGENT_ERROR_MEMORY);
+//        }
+//        for (uint16_t i=0; i<cdata.node.piece_cnt; i++)
+//        {
+//            //Add relevant names to namespace
+//            json_addpieceentry(i, cmeta);
+//            // Initialize to no component
+//            cdata.piece[i].cidx = DEVICE_TYPE_NONE;
+//        }
 
-        // Parse data for piece information
-        fname = nodepath + "/pieces.ini";
-        if ((iretn=stat(fname.c_str(),&fstat)) == -1)
-        {
-            return (NODE_ERROR_NODE);
-        }
+//        // Parse data for piece information
+//        fname = nodepath + "/pieces.ini";
+//        if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
 
-        ifs.open(fname);
-        if (!ifs.is_open())
-        {
-            return (NODE_ERROR_NODE);
-        }
+//        ifs.open(fname);
+//        if (!ifs.is_open())
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
 
-        ibuf = (char *)calloc(1,fstat.st_size+1);
-        ifs.read(ibuf, fstat.st_size);
-        ifs.close();
-        ibuf[fstat.st_size] = 0;
-        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
-        {
-            free(ibuf);
-            return (iretn);
-        }
-        free(ibuf);
+//        ibuf = (char *)calloc(1,fstat.st_size+1);
+//        ifs.read(ibuf, fstat.st_size);
+//        ifs.close();
+//        ibuf[fstat.st_size] = 0;
+//        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+//        {
+//            free(ibuf);
+//            return (iretn);
+//        }
+//        free(ibuf);
 
-        // Third: enter information for all devices
-        // Resize, then add entries to map for devices
-        cdata.device.resize(cdata.node.device_cnt);
-        if (cdata.device.size() != cdata.node.device_cnt)
-        {
-            return (AGENT_ERROR_MEMORY);
-        }
+//        // Third: enter information for all devices
+//        // Resize, then add entries to map for devices
+//        cdata.device.resize(cdata.node.device_cnt);
+//        if (cdata.device.size() != cdata.node.device_cnt)
+//        {
+//            return (AGENT_ERROR_MEMORY);
+//        }
 
-        // Add entries to map for Devices and set pointers in nodestruc for comp
-        for (uint16_t i=0; i< cdata.node.device_cnt; i++)
-        {
-            // Add relevant names for generic device to namespace
-            json_addcompentry(i, cmeta, cdata);
-            // Initialize to no port
-            cdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
-        }
+//        // Add entries to map for Devices and set pointers in nodestruc for comp
+//        for (uint16_t i=0; i< cdata.node.device_cnt; i++)
+//        {
+//            // Add relevant names for generic device to namespace
+//            json_addcompentry(i, cmeta, cdata);
+//            // Initialize to no port
+//            cdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
+//        }
 
-        // Parse data for general device information
-        fname = nodepath + "/devices_general.ini";
-        if ((iretn=stat(fname.c_str(),&fstat)) == -1)
-        {
-            return (NODE_ERROR_NODE);
-        }
+//        // Parse data for general device information
+//        fname = nodepath + "/devices_general.ini";
+//        if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
 
-        ifs.open(fname);
-        if (!ifs.is_open())
-        {
-            return (NODE_ERROR_NODE);
-        }
+//        ifs.open(fname);
+//        if (!ifs.is_open())
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
 
-        ibuf = (char *)calloc(1,fstat.st_size+1);
-        ifs.read(ibuf, fstat.st_size);
-        ifs.close();
-        ibuf[fstat.st_size] = 0;
-        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
-        {
-            free(ibuf);
-            return (iretn);
-        }
-        free(ibuf);
+//        ibuf = (char *)calloc(1,fstat.st_size+1);
+//        ifs.read(ibuf, fstat.st_size);
+//        ifs.close();
+//        ibuf[fstat.st_size] = 0;
+//        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+//        {
+//            free(ibuf);
+//            return (iretn);
+//        }
+//        free(ibuf);
 
-        // Fourth: enter information for specific devices
-        // Add entries to map for Devices specific information
-        for (uint16_t i=0; i< cdata.node.device_cnt; i++)
-        {
-            json_adddeviceentry(i, cmeta, cdata);
-        }
+//        // Fourth: enter information for specific devices
+//        // Add entries to map for Devices specific information
+//        for (uint16_t i=0; i< cdata.node.device_cnt; i++)
+//        {
+//            json_adddeviceentry(i, cmeta, cdata);
+//        }
 
-        // Parse data for specific device information
-        fname = nodepath + "/devices_specific.ini";
-        if ((iretn=stat(fname.c_str(),&fstat)) == -1)
-        {
-            return (NODE_ERROR_NODE);
-        }
+//        // Parse data for specific device information
+//        fname = nodepath + "/devices_specific.ini";
+//        if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
 
-        ifs.open(fname);
-        if (!ifs.is_open())
-        {
-            return (NODE_ERROR_NODE);
-        }
+//        ifs.open(fname);
+//        if (!ifs.is_open())
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
 
-        ibuf = (char *)calloc(1,fstat.st_size+1);
-        ifs.read(ibuf, fstat.st_size);
-        ifs.close();
-        ibuf[fstat.st_size] = 0;
-        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
-        {
-            free(ibuf);
-            return (iretn);
-        }
-        free(ibuf);
+//        ibuf = (char *)calloc(1,fstat.st_size+1);
+//        ifs.read(ibuf, fstat.st_size);
+//        ifs.close();
+//        ibuf[fstat.st_size] = 0;
+//        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+//        {
+//            free(ibuf);
+//            return (iretn);
+//        }
+//        free(ibuf);
 
-        // Clean up any errors
-        for (uint16_t i=0; i< cdata.node.device_cnt; i++)
-        {
-            cdata.device[i].all.gen.cidx = i;
-        }
+//        // Clean up any errors
+//        for (uint16_t i=0; i< cdata.node.device_cnt; i++)
+//        {
+//            cdata.device[i].all.gen.cidx = i;
+//        }
 
-        // Fifth: enter information for ports
-        // Resize, then add names for ports
-        cdata.port.resize(cdata.node.port_cnt);
-        if (cdata.port.size() != cdata.node.port_cnt)
-        {
-            free(ibuf);
-            return (AGENT_ERROR_MEMORY);
-        }
+//        // Fifth: enter information for ports
+//        // Resize, then add names for ports
+//        cdata.port.resize(cdata.node.port_cnt);
+//        if (cdata.port.size() != cdata.node.port_cnt)
+//        {
+//            free(ibuf);
+//            return (AGENT_ERROR_MEMORY);
+//        }
 
-        for (uint16_t i=0; i<cdata.node.port_cnt; i++)
-        {
-            json_addentry("port_name",i,65535u,(ptrdiff_t)offsetof(portstruc,name)+i*sizeof(portstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PORT, cmeta);
-            json_addentry("port_type",i,65535u,(ptrdiff_t)offsetof(portstruc,type)+i*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PORT, cmeta);
-        }
+//        for (uint16_t i=0; i<cdata.node.port_cnt; i++)
+//        {
+//            json_addentry("port_name",i,65535u,(ptrdiff_t)offsetof(portstruc,name)+i*sizeof(portstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PORT, cmeta);
+//            json_addentry("port_type",i,65535u,(ptrdiff_t)offsetof(portstruc,type)+i*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PORT, cmeta);
+//        }
 
-        // Parse data for port information
-        fname = nodepath + "/ports.ini";
-        if ((iretn=stat(fname.c_str(),&fstat)) == -1)
-        {
-            return (NODE_ERROR_NODE);
-        }
+//        // Parse data for port information
+//        fname = nodepath + "/ports.ini";
+//        if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
 
-        ifs.open(fname);
-        if (!ifs.is_open())
-        {
-            return (NODE_ERROR_NODE);
-        }
+//        ifs.open(fname);
+//        if (!ifs.is_open())
+//        {
+//            return (NODE_ERROR_NODE);
+//        }
 
-        ibuf = (char *)calloc(1,fstat.st_size+1);
-        ifs.read(ibuf, fstat.st_size);
-        ifs.close();
-        ibuf[fstat.st_size] = 0;
-        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
-        {
-            free(ibuf);
-            return (iretn);
-        }
-        free(ibuf);
+//        ibuf = (char *)calloc(1,fstat.st_size+1);
+//        ifs.read(ibuf, fstat.st_size);
+//        ifs.close();
+//        ibuf[fstat.st_size] = 0;
+//        if ((iretn = json_parse(ibuf, cmeta, cdata)) < 0 && iretn != JSON_ERROR_EOS)
+//        {
+//            free(ibuf);
+//            return (iretn);
+//        }
+//        free(ibuf);
 
-        node_calc(cdata);
+//        node_calc(cdata);
 
-        //! Load targeting information
-        cdata.node.target_cnt = (uint16_t)load_target(cmeta, cdata);
+//        //! Load targeting information
+//        cdata.node.target_cnt = (uint16_t)load_target(cmeta, cdata);
 
-        //! Load alias map
-        fname = nodepath + "/aliases.ini";
-        if ((iretn=stat(fname.c_str(),&fstat)) == 0)
-        {
-            ifs.open(fname);
-            if (ifs.is_open())
-            {
-                std::string alias;
-                while (getline(ifs, alias, ' '))
-                {
-                    std::string cname;
-                    getline(ifs, cname);
-                    json_addentry(alias, cname, cmeta);
-                } ;
-            }
-        }
+//        //! Load alias map
+//        fname = nodepath + "/aliases.ini";
+//        if ((iretn=stat(fname.c_str(),&fstat)) == 0)
+//        {
+//            ifs.open(fname);
+//            if (ifs.is_open())
+//            {
+//                std::string alias;
+//                while (getline(ifs, alias, ' '))
+//                {
+//                    std::string cname;
+//                    getline(ifs, cname);
+//                    json_addentry(alias, cname, cmeta);
+//                } ;
+//            }
+//        }
 
-    }
+//    }
 
-    return 0;
-}
+//    return 0;
+//}
 
 //! Save Node entries to disk
 /*! Create all of the initialization files that represent the Node in the provided
@@ -8454,7 +8456,7 @@ int32_t node_init(std::string node, cosmosstruc *cinfo)
     if (cinfo == nullptr || !cinfo->meta.jmapped)
         return (JSON_ERROR_NOJMAP);
 
-    iretn = json_setup_node_file(node, cinfo->meta, cinfo->pdata, json);
+    iretn = json_setup_node(node, cinfo);
     if (iretn < 0)
     {
         return iretn;

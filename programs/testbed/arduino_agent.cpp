@@ -41,7 +41,7 @@
 #include "jsonlib.h"
 #include "agentlib.h"
 #include "cosmos-defs.h"
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
 //#include "arduino_lib.h"
