@@ -123,7 +123,7 @@ cosmosstruc *json_create()
     }
 
     // Make sure it's clear
-    memset(cinfo, 0, sizeof(cosmosstruc));
+//    memset(cinfo, 0, sizeof(cosmosstruc));
 
 
     cinfo->meta.jmapped = 0;
@@ -143,9 +143,11 @@ cosmosstruc *json_create()
 
     cinfo->pdata.glossary.resize(1);
     cinfo->pdata.agent.resize(1);
-    memset(cinfo->pdata.agent.data(), 0, sizeof(agentstruc));
     cinfo->pdata.event.resize(1);
     cinfo->pdata.user.resize(1);
+    memset(&cinfo->pdata.node, 0, sizeof(nodestruc));
+    memset(&cinfo->pdata.physics, 0, sizeof(physicsstruc));
+    memset(&cinfo->pdata.devspec, 0, sizeof(devspecstruc));
 
     // Make sure we aren't running out of memory
     if (cinfo->pdata.glossary.size() != 1 ||

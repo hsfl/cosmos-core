@@ -6,6 +6,11 @@ Product  { // could be DynamicLibrary but at this point loading a dll does not s
     files: [ "*.c", "*.h" ]
 
     Depends { name: "cpp" }
+    Properties {
+        condition: qbs.targetOS.contains("windows")
+        cpp.minimumWindowsVersion: "7.0"
+    }
+    cpp.cxxLanguageVersion : "c++11"
 
     Export {
         Depends { name: "cpp" }
