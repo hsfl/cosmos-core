@@ -45,12 +45,12 @@
 #define PACKETMAX 1024
 
 
-class kissHandle
+class KissHandle
 {
 
 public:
-	kissHandle(); // default constructor
-	kissHandle( 		int port,
+    KissHandle(); // default constructor
+    KissHandle( 		int port,
 				int comm,
 				const char dest_call[],
 				char dest_stat,
@@ -86,19 +86,19 @@ private:
 	unsigned char control;
 	unsigned char protocolID;
 
-    friend std::ostream& operator<<(std::ostream& out, kissHandle& K);
+    friend std::ostream& operator<<(std::ostream& out, KissHandle& K);
 };
 
 //old encode (to be deleted)**********************************************
 int kissEncode(uint8_t *input, uint32_t count, uint8_t *encoded_packet);
 //new encode
-int kissEncode(uint8_t *input, uint32_t count, uint8_t *encoded_packet, kissHandle* handle);
+int kissEncode(uint8_t *input, uint32_t count, uint8_t *encoded_packet, KissHandle* handle);
 
 //int kissDecode(uint8_t *input, uint32_t count, uint8_t *decoded_packet);
 
 int kissDecode(uint8_t* kissed_input, uint32_t count, uint8_t* decoded_payload);
 
-kissHandle kissInspect(const unsigned char* input);
+KissHandle kissInspect(const unsigned char* input);
 
 //Functions to print packets
 void print_ascii(unsigned char* packet, unsigned int count);

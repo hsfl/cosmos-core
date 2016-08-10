@@ -42,11 +42,11 @@
 #include "device/cpu/devicecpu.h"
 
 
-class cosmosAgent
+class CosmosAgent
 {
 public:
-    cosmosAgent(NetworkType ntype = NetworkType::UDP, const std::string &nname = "", const std::string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-    ~cosmosAgent();
+    CosmosAgent(NetworkType ntype = NetworkType::UDP, const std::string &nname = "", const std::string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
+    ~CosmosAgent();
 
     enum class AgentState : uint16_t
         {
@@ -147,8 +147,8 @@ public:
 
     //! Agent Request Function
     //! Format of a user supplied function to handle a given request
-    typedef int32_t (cosmosAgent::*internal_request_function)(char* request_string, char* output_string);
-    typedef int32_t (*external_request_function)(char* request_string, char* output_string, cosmosAgent* agent);
+    typedef int32_t (CosmosAgent::*internal_request_function)(char* request_string, char* output_string);
+    typedef int32_t (*external_request_function)(char* request_string, char* output_string, CosmosAgent* agent);
 
     //! @}
     //!
@@ -259,26 +259,26 @@ private:
     char * parse_request(char *input);
     DeviceCpu deviceCpu_;
 
-    static int32_t req_forward(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_echo(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_help(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_shutdown(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_idle(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_monitor(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_run(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_status(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_getvalue(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_setvalue(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_listnames(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_nodejson(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_statejson(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_utcstartjson(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_piecesjson(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_devgenjson(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_devspecjson(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_portsjson(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_targetsjson(char *request, char* response, cosmosAgent *agent);
-    static int32_t req_aliasesjson(char *request, char* response, cosmosAgent *agent);
+    static int32_t req_forward(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_echo(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_help(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_shutdown(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_idle(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_monitor(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_run(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_status(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_getvalue(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_setvalue(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_listnames(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_nodejson(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_statejson(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_utcstartjson(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_piecesjson(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_devgenjson(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_devspecjson(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_portsjson(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_targetsjson(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_aliasesjson(char *request, char* response, CosmosAgent *agent);
 
 };
 

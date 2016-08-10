@@ -39,9 +39,9 @@
 #include <cstdint>
 #include <deque>
 
-// TODO: bring lsfit from mathlib
+// TODO: bring LsFit from mathlib
 
-//class lsfit
+//class LsFit
 //{
 //private:
 //        //! Least Squares Fit Element
@@ -84,10 +84,10 @@
 //        double resolution;
 
 //    // constructors
-//        lsfit();
-//        lsfit(uint16_t element_cnt);
-//        lsfit(uint16_t element_cnt, uint16_t ord);
-//        lsfit(uint16_t cnt, uint16_t ord, double res);
+//        LsFit();
+//        LsFit(uint16_t element_cnt);
+//        LsFit(uint16_t element_cnt, uint16_t ord);
+//        LsFit(uint16_t cnt, uint16_t ord, double res);
 
 //        void update(double x, double y);
 //        void update(double x, rvector y);

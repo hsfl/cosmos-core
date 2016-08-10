@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	kepstruc kep;
 	double imjd;
 
-    cosmosAgent agent;
+    CosmosAgent agent;
 
     agent.cinfo->pdata.physics.moi.col[0] = 3.;
     agent.cinfo->pdata.physics.moi.col[1] = 3.;

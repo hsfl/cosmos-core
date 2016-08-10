@@ -34,7 +34,7 @@
 int main(int argc, char *argv[])
 {
 
-    cosmosAgent agent(NetworkType::UDP, argv[1]);
+    CosmosAgent agent(NetworkType::UDP, argv[1]);
 
     std::vector <double> daylist = data_list_archive_days(agent.cinfo->pdata.node.name, "soh");
 	for (double day: daylist)

@@ -52,7 +52,7 @@ dt = atof(argv[2]);
 dp = atof(argv[3]);
 tp = atof(argv[4]);
 
-cosmosAgent agent(NetworkType::UDP, argv[1]);
+CosmosAgent agent(NetworkType::UDP, argv[1]);
 
 agent.cinfo->pdata.physics.mode = atol(argv[1]);
 //agent.cinfo->pdata.node.info.testflag = FLAG_ADRAG;

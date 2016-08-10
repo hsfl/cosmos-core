@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "lsfit.h"
+#include "LsFit.h"
 
 
 

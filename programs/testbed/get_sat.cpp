@@ -41,7 +41,7 @@ cosmosstruc *cinfo;
 int main(int argc, char *argv[])
 {
 
-    cosmosAgent agent(NetworkType::UDP, argv[1]);
+    CosmosAgent agent(NetworkType::UDP, argv[1]);
 
 create_databases(agent.cinfo->pdata);
 

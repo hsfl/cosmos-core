@@ -95,7 +95,7 @@ int year, month, day, hour, minute, second;
 struct stat sbuf;
 std::string jstring;
 
-cosmosAgent agent(NetworkType::UDP, argv[1]);
+CosmosAgent agent(NetworkType::UDP, argv[1]);
 if (argc == 3)
 	{
 	mjdnow = atof(argv[2]);

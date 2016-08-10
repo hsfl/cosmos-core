@@ -32,110 +32,110 @@
 //#include <stdio.h>
 //#include <iomanip>
 
-kissHandle::kissHandle( int port, int comm, const char dest_call[], char dest_stat, const char sour_call[], char sour_stat, char cont, char prot)
+KissHandle::KissHandle( int port, int comm, const char dest_call[], char dest_stat, const char sour_call[], char sour_stat, char cont, char prot)
 : port_number(port), command(comm), destination_stationID(dest_stat), source_stationID(sour_stat), control(cont), protocolID(prot)
 {
 	strcpy((char*)destination_callsign, (const char*)dest_call);
 	strcpy((char*)source_callsign, (const char*)sour_call);
 }
 
-kissHandle::kissHandle() : port_number(1), command(0), destination_stationID('\x60'), source_stationID('\x61'), control('\x31'), protocolID('\xF0')
+KissHandle::KissHandle() : port_number(1), command(0), destination_stationID('\x60'), source_stationID('\x61'), control('\x31'), protocolID('\xF0')
 {
 	destination_callsign[0]='\0';
 	source_callsign[0]='\0';
 }
 
-//Set and get functions for all members of the kissHandle class
-void kissHandle::set_port_number(unsigned int P)
+//Set and get functions for all members of the KissHandle class
+void KissHandle::set_port_number(unsigned int P)
 {
 	port_number = P;
 	return;
 }
 
-unsigned int kissHandle::get_port_number()
+unsigned int KissHandle::get_port_number()
 {
 	return port_number;
 }
 
-void kissHandle::set_command(unsigned int C)
+void KissHandle::set_command(unsigned int C)
 {
 	command = C;
 	return;	
 }
 
-unsigned int kissHandle::get_command()
+unsigned int KissHandle::get_command()
 {
 	return command;
 
 }
 
-void kissHandle::set_destination_callsign(const char destination[])
+void KissHandle::set_destination_callsign(const char destination[])
 { 
 	strcpy((char*)destination_callsign, (const char*) destination);
 	return;
 }
 
-unsigned char* kissHandle::get_destination_callsign()
+unsigned char* KissHandle::get_destination_callsign()
 {
 	return destination_callsign;
 }
 
-void kissHandle::set_destination_stationID(unsigned int ID)
+void KissHandle::set_destination_stationID(unsigned int ID)
 {
 	destination_stationID = ID;
 	return;
 }
 
-unsigned int kissHandle::get_destination_stationID()
+unsigned int KissHandle::get_destination_stationID()
 {
 	return destination_stationID;
 }
 
-void kissHandle::set_source_callsign(const char source[])
+void KissHandle::set_source_callsign(const char source[])
 {
 	strcpy((char*)source_callsign, (const char*) source);
 	return; 
 }
 
-unsigned char* kissHandle::get_source_callsign()
+unsigned char* KissHandle::get_source_callsign()
 {
 	return source_callsign;
 }
 
-void kissHandle::set_source_stationID(unsigned int ID)
+void KissHandle::set_source_stationID(unsigned int ID)
 {
 	source_stationID = ID;
 	return;
 }
 
-unsigned int kissHandle::get_source_stationID()
+unsigned int KissHandle::get_source_stationID()
 {
 	return source_stationID;
 }
 
-void kissHandle::set_control(unsigned int control_number)
+void KissHandle::set_control(unsigned int control_number)
 {
 	control = control_number;
 	return;
 }
 
-unsigned int kissHandle::get_control()
+unsigned int KissHandle::get_control()
 {
 	return control;
 }
 
-void kissHandle::set_protocolID(unsigned int protocol)
+void KissHandle::set_protocolID(unsigned int protocol)
 {
 	protocolID = protocol;
 	return;
 }
 
-unsigned int kissHandle::get_protocolID()
+unsigned int KissHandle::get_protocolID()
 {
 	return protocolID;
 }
 
-std::ostream& operator<< (std::ostream& out, kissHandle& K)	{
+std::ostream& operator<< (std::ostream& out, KissHandle& K)	{
     out<<"port_number= "<< K.port_number<<std::endl;
     out<<"command="<< K.command<<std::endl;
     out<<"destination callsign=<"<< K.destination_callsign<<">"<<std::endl;
@@ -232,7 +232,7 @@ int kissEncode(uint8_t *input, uint32_t count, uint8_t *encoded_packet)
 
 //*************New kissEncode Starts Here*********************************************************************************************************************************************************************************************************************************
 
-int kissEncode(uint8_t* input, uint32_t count, uint8_t* encoded_packet, kissHandle* handle)
+int kissEncode(uint8_t* input, uint32_t count, uint8_t* encoded_packet, KissHandle* handle)
 {
 	uint32_t payload_bytes = 0;
 
@@ -319,10 +319,10 @@ int kissEncode(uint8_t* input, uint32_t count, uint8_t* encoded_packet, kissHand
 }
 //***********New kissEncode Ends Here***********************************************************************************************************************************************************************************************************************************
 
-kissHandle kissInspect(const unsigned char* input)	{
+KissHandle kissInspect(const unsigned char* input)	{
 
 	//fill me up with goodness
-	kissHandle KKK;
+	KissHandle KKK;
 
 //	uint8_t port_command;
 	unsigned char destination_call_sign[6];
@@ -349,11 +349,11 @@ kissHandle kissInspect(const unsigned char* input)	{
 		destination_call_sign[i-2] = input[i] >> 1;
 		//printf("%c", destination_call_sign[i-2]);
 	}
-	//Copying destination callsign into kissHandle
+	//Copying destination callsign into KissHandle
 	KKK.set_destination_callsign((const char*) destination_call_sign);
 	//strcpy((char *)KKK.destination_callsign, (const char *) destination_call_sign);
 	
-	//Copying destination callsign ID into kissHandle
+	//Copying destination callsign ID into KissHandle
 	KKK.set_destination_stationID((unsigned int) destination_station_id);
 	//KKK.destination_stationID = destination_station_id;
 
@@ -366,19 +366,19 @@ kissHandle kissInspect(const unsigned char* input)	{
 		source_call_sign[i-9] = input[i] >> 1;
 		//printf("%c", source_call_sign[i-9]);
 	}
-	//Copying source callsign into kissHandle
+	//Copying source callsign into KissHandle
 	KKK.set_source_callsign((const char*) source_call_sign);
 	//strcpy((char *)KKK.source_callsign, (const char *) source_call_sign);
 	
-	//Copying source station ID into kissHandle
+	//Copying source station ID into KissHandle
 	KKK.set_source_stationID((unsigned int) source_station_id);
 	//KKK.source_stationID = source_station_id;
 	
-	//Copying control into kissHandle
+	//Copying control into KissHandle
 	KKK.set_control((unsigned int) control_id);
 	//KKK.control = control_id;
 
-	//Copying protocol ID into kissHandle
+	//Copying protocol ID into KissHandle
 	KKK.set_protocolID((unsigned int) protocol_id);
 	//KKK.protocolID = protocol_id;
 	

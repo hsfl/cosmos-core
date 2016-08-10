@@ -116,7 +116,7 @@
 #include "matrix.h"
 #include "quaternion.h"
 #include "rotation.h"
-//#include "lsfit.h"
+//#include "LsFit.h"
 
 #include <cmath>
 #include <iostream>
@@ -338,11 +338,11 @@ double actan(double y, double x);
 double fixprecision(double number, double precision);
 uint16_t calc_crc16ccitt(uint8_t *buf, int size);
 
-class lsfit
+class LsFit
 {
 private:
     //! Least Squares Fit Element
-    /*! Contains the dependent (x) and independent (y) values for a single element of a ::lsfit.
+    /*! Contains the dependent (x) and independent (y) values for a single element of a ::LsFit.
          * The ::uvector allows both quaternions and rvector to be fit.
          */
     struct fitelement
@@ -381,10 +381,10 @@ public:
     double resolution;
 
     // constructors
-//    lsfit();
-//    lsfit(uint16_t element_cnt);
-//    lsfit(uint16_t element_cnt, uint16_t ord);
-    lsfit(uint16_t cnt=10, uint16_t ord=2, double res=0.);
+//    LsFit();
+//    LsFit(uint16_t element_cnt);
+//    LsFit(uint16_t element_cnt, uint16_t ord);
+    LsFit(uint16_t cnt=10, uint16_t ord=2, double res=0.);
 
     void initialize(uint16_t cnt=10, uint16_t ord=2, double res=0.);
     void update(double x, double y);

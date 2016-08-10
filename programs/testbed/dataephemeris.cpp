@@ -98,7 +98,7 @@ int32_t year, month, day, hour, minute, second;
 DIR *ddp, *ydp, *jdp;
 struct dirent *td, *yd, *jd;
 
-cosmosAgent agent(NetworkType::UDP, argv[1]);
+CosmosAgent agent(NetworkType::UDP, argv[1]);
 
 
 

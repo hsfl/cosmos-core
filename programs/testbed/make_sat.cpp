@@ -43,7 +43,7 @@ std::string output;
 FILE *odes;
 std::string jstring;
 
-cosmosAgent agent(NetworkType::UDP, argv[1]);
+CosmosAgent agent(NetworkType::UDP, argv[1]);
 
 load_databases(argv[1], (uint16_t)atol(argv[2]), agent.cinfo->pdata);
 

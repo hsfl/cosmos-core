@@ -58,49 +58,49 @@
 //! Constructor
 //! Sets up minimum framework for an agent. This makes a nodeless client. Additional functions
 //! allow tieing the agent to a node, and making it a server.
-//cosmosAgent::cosmosAgent()
+//CosmosAgent::CosmosAgent()
 //    : networkType(NetworkType::UDP), nodeName(""), agentName(""), beatPeriod(1.), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
 //{
 
 //}
 
-//cosmosAgent::cosmosAgent(NetworkType ntype)
+//CosmosAgent::CosmosAgent(NetworkType ntype)
 //    : networkType(ntype), nodeName(""), agentName(""), beatPeriod(1.), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
 //{
 
 //}
 
-//cosmosAgent::cosmosAgent(NetworkType ntype, std::string &nname)
+//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname)
 //    : networkType(ntype), nodeName(nname), agentName(""), beatPeriod(1.), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
 //{
 
 //}
 
-//cosmosAgent::cosmosAgent(NetworkType ntype, std::string &nname, std::string &aname)
+//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname, std::string &aname)
 //    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(1.), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
 //{
 
 //}
 
-//cosmosAgent::cosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd)
+//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd)
 //    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(bprd), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
 //{
 
 //}
 
-//cosmosAgent::cosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd, uint32_t bsize)
+//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd, uint32_t bsize)
 //    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(bprd), bufferSize(bsize), multiflag(false), portNumber(0)
 //{
 
 //}
 
-//cosmosAgent::cosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd, uint32_t bsize, bool mflag)
+//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd, uint32_t bsize, bool mflag)
 //    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(bprd), bufferSize(bsize), multiflag(mflag), portNumber(0)
 //{
 
 //}
 
-cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std::string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
+CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std::string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
 //    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(bprd), bufferSize(bsize), multiflag(mflag), portNumber(portnum)
 {
     int32_t iretn;
@@ -110,10 +110,10 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
     {
         return;
     }
-    cinfo->pdata.agent[0].stateflag = (uint16_t)cosmosAgent::AgentState::INIT;
+    cinfo->pdata.agent[0].stateflag = (uint16_t)CosmosAgent::AgentState::INIT;
 
     // Establish subscribe channel
-    iretn = cosmosAgent::subscribe(ntype, (char *)AGENTMCAST, AGENTSENDPORT, 1000);
+    iretn = CosmosAgent::subscribe(ntype, (char *)AGENTMCAST, AGENTSENDPORT, 1000);
     if (iretn)
     {
         json_destroy(cinfo);
@@ -124,7 +124,7 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
     // Set up node if there is one.
     if (nname.length()>COSMOS_MAX_NAME || (!nname.empty() && (iretn=json_setup_node(nname, cinfo)) != 0))
     {
-        cosmosAgent::shutdown();
+        CosmosAgent::shutdown();
         return;
     }
 
@@ -140,7 +140,7 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
     // Make copies
     if ((iretn=json_clone(cinfo->pdata, cinfo->sdata)) != 0)
     {
-        cosmosAgent::shutdown();
+        CosmosAgent::shutdown();
         return;
     }
 
@@ -157,9 +157,9 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
     char tname[COSMOS_MAX_NAME+1];
     if (!mflag)
     {
-        if (strlen(cinfo->pdata.node.name)>COSMOS_MAX_NAME || aname.length()>COSMOS_MAX_NAME || cosmosAgent::get_server(cinfo->pdata.node.name, aname, timeoutSec, (beatstruc *)NULL))
+        if (strlen(cinfo->pdata.node.name)>COSMOS_MAX_NAME || aname.length()>COSMOS_MAX_NAME || CosmosAgent::get_server(cinfo->pdata.node.name, aname, timeoutSec, (beatstruc *)NULL))
         {
-            cosmosAgent::shutdown();
+            CosmosAgent::shutdown();
             return;
         }
         strcpy(tname,aname.c_str());
@@ -168,7 +168,7 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
     {
         if (strlen(cinfo->pdata.node.name)>COSMOS_MAX_NAME-4 || aname.size()>COSMOS_MAX_NAME-4)
         {
-            cosmosAgent::shutdown();
+            CosmosAgent::shutdown();
             return;
         }
 
@@ -176,7 +176,7 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
         do
         {
             sprintf(tname,"%s_%03d",aname.c_str(),i);
-            if (!cosmosAgent::get_server(cinfo->pdata.node.name, tname, timeoutSec, (beatstruc *)NULL))
+            if (!CosmosAgent::get_server(cinfo->pdata.node.name, tname, timeoutSec, (beatstruc *)NULL))
             {
                 break;
             }
@@ -192,7 +192,7 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
         cinfo->pdata.agent[0].beat.bprd = bprd;
     else
         cinfo->pdata.agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
-    cinfo->pdata.agent[0].stateflag = (uint16_t)cosmosAgent::AgentState::INIT;
+    cinfo->pdata.agent[0].stateflag = (uint16_t)CosmosAgent::AgentState::INIT;
     cinfo->pdata.agent[0].beat.port = (uint16_t)portnum;
     cinfo->pdata.agent[0].beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
 
@@ -206,10 +206,10 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
     //	cinfo->pdata.agent[0].sohstring[0] = 0;
 
     // Establish publish channel
-    iretn = cosmosAgent::publish(cinfo->pdata.agent[0].beat.ntype, AGENTSENDPORT);
+    iretn = CosmosAgent::publish(cinfo->pdata.agent[0].beat.ntype, AGENTSENDPORT);
     if (iretn)
     {
-        cosmosAgent::shutdown();
+        CosmosAgent::shutdown();
         return;
     }
 
@@ -219,41 +219,41 @@ cosmosAgent::cosmosAgent(NetworkType ntype, const std::string &nname, const std:
     cthread = std::thread([=] { request_loop(); });
     if (!hthread.joinable() || !cthread.joinable())
     {
-        cosmosAgent::shutdown();
+        CosmosAgent::shutdown();
         return;
     }
 
     //! Set up initial requests
-    cosmosAgent::add_request("help",req_help,"","list of available requests for this agent");
-    cosmosAgent::add_request("shutdown",cosmosAgent::req_shutdown,"","request to shutdown this agent");
-    cosmosAgent::add_request("idle",cosmosAgent::req_idle,"","request to transition this agent to idle state");
-    cosmosAgent::add_request("monitor",cosmosAgent::req_monitor,"","request to transition this agent to monitor state");
-    cosmosAgent::add_request("run",cosmosAgent::req_run,"","request to transition this agent to run state");
-    cosmosAgent::add_request("status",cosmosAgent::req_status,"","request the status of this agent");
-    cosmosAgent::add_request("getvalue",cosmosAgent::req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
-    cosmosAgent::add_request("setvalue",cosmosAgent::req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
-    cosmosAgent::add_request("listnames",cosmosAgent::req_listnames,"","list the Namespace of the agent");
-    cosmosAgent::add_request("forward",cosmosAgent::req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
-    cosmosAgent::add_request("echo",cosmosAgent::req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
-    cosmosAgent::add_request("nodejson",cosmosAgent::req_nodejson,"","return description JSON for Node");
-    cosmosAgent::add_request("statejson",cosmosAgent::req_statejson,"","return description JSON for State vector");
-    cosmosAgent::add_request("utcstartjson",cosmosAgent::req_utcstartjson,"","return description JSON for UTC Start time");
-    cosmosAgent::add_request("piecesjson",cosmosAgent::req_piecesjson,"","return description JSON for Pieces");
-    cosmosAgent::add_request("devgenjson",cosmosAgent::req_devgenjson,"","return description JSON for General Devices");
-    cosmosAgent::add_request("devspecjson",cosmosAgent::req_devspecjson,"","return description JSON for Specific Devices");
-    cosmosAgent::add_request("portsjson",cosmosAgent::req_portsjson,"","return description JSON for Ports");
-    cosmosAgent::add_request("targetsjson",cosmosAgent::req_targetsjson,"","return description JSON for Targets");
-    cosmosAgent::add_request("aliasesjson",cosmosAgent::req_aliasesjson,"","return description JSON for Aliases");
+    CosmosAgent::add_request("help",req_help,"","list of available requests for this agent");
+    CosmosAgent::add_request("shutdown",CosmosAgent::req_shutdown,"","request to shutdown this agent");
+    CosmosAgent::add_request("idle",CosmosAgent::req_idle,"","request to transition this agent to idle state");
+    CosmosAgent::add_request("monitor",CosmosAgent::req_monitor,"","request to transition this agent to monitor state");
+    CosmosAgent::add_request("run",CosmosAgent::req_run,"","request to transition this agent to run state");
+    CosmosAgent::add_request("status",CosmosAgent::req_status,"","request the status of this agent");
+    CosmosAgent::add_request("getvalue",CosmosAgent::req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
+    CosmosAgent::add_request("setvalue",CosmosAgent::req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
+    CosmosAgent::add_request("listnames",CosmosAgent::req_listnames,"","list the Namespace of the agent");
+    CosmosAgent::add_request("forward",CosmosAgent::req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
+    CosmosAgent::add_request("echo",CosmosAgent::req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
+    CosmosAgent::add_request("nodejson",CosmosAgent::req_nodejson,"","return description JSON for Node");
+    CosmosAgent::add_request("statejson",CosmosAgent::req_statejson,"","return description JSON for State vector");
+    CosmosAgent::add_request("utcstartjson",CosmosAgent::req_utcstartjson,"","return description JSON for UTC Start time");
+    CosmosAgent::add_request("piecesjson",CosmosAgent::req_piecesjson,"","return description JSON for Pieces");
+    CosmosAgent::add_request("devgenjson",CosmosAgent::req_devgenjson,"","return description JSON for General Devices");
+    CosmosAgent::add_request("devspecjson",CosmosAgent::req_devspecjson,"","return description JSON for Specific Devices");
+    CosmosAgent::add_request("portsjson",CosmosAgent::req_portsjson,"","return description JSON for Ports");
+    CosmosAgent::add_request("targetsjson",CosmosAgent::req_targetsjson,"","return description JSON for Targets");
+    CosmosAgent::add_request("aliasesjson",CosmosAgent::req_aliasesjson,"","return description JSON for Aliases");
 
     cinfo->pdata.agent[0].server = 1;
-    cinfo->pdata.agent[0].stateflag = (uint16_t)cosmosAgent::AgentState::RUN;
+    cinfo->pdata.agent[0].stateflag = (uint16_t)CosmosAgent::AgentState::RUN;
 
 
 }
 
-cosmosAgent::~cosmosAgent()
+CosmosAgent::~CosmosAgent()
 {
-    cosmosAgent::shutdown();
+    CosmosAgent::shutdown();
 }
 
 //! Add internal request to Agent request list with description and synopsis.
@@ -267,9 +267,9 @@ cosmosAgent::~cosmosAgent()
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-int32_t cosmosAgent::add_request_internal(std::string token, cosmosAgent::internal_request_function function, std::string synopsis, std::string description)
+int32_t CosmosAgent::add_request_internal(std::string token, CosmosAgent::internal_request_function function, std::string synopsis, std::string description)
 {
-    if (cosmosAgent::reqs.size() > AGENTMAXREQUESTCOUNT)
+    if (CosmosAgent::reqs.size() > AGENTMAXREQUESTCOUNT)
         return (AGENT_ERROR_REQ_COUNT);
 
     request_entry tentry;
@@ -282,7 +282,7 @@ int32_t cosmosAgent::add_request_internal(std::string token, cosmosAgent::intern
     tentry.efunction = nullptr;
     tentry.synopsis = synopsis;
     tentry.description = description;
-    cosmosAgent::reqs.push_back(tentry);
+    CosmosAgent::reqs.push_back(tentry);
     return 0;
 }
 
@@ -297,9 +297,9 @@ int32_t cosmosAgent::add_request_internal(std::string token, cosmosAgent::intern
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-int32_t cosmosAgent::add_request(std::string token, cosmosAgent::external_request_function function, std::string synopsis, std::string description)
+int32_t CosmosAgent::add_request(std::string token, CosmosAgent::external_request_function function, std::string synopsis, std::string description)
 {
-    if (cosmosAgent::reqs.size() > AGENTMAXREQUESTCOUNT)
+    if (CosmosAgent::reqs.size() > AGENTMAXREQUESTCOUNT)
         return (AGENT_ERROR_REQ_COUNT);
 
     request_entry tentry;
@@ -312,17 +312,17 @@ int32_t cosmosAgent::add_request(std::string token, cosmosAgent::external_reques
     tentry.efunction = function;
     tentry.synopsis = synopsis;
     tentry.description = description;
-    cosmosAgent::reqs.push_back(tentry);
+    CosmosAgent::reqs.push_back(tentry);
     return 0;
 }
 
 //! Start Agent Request and Heartbeat loops
 /*!	Starts the request and heartbeat threads for an Agent server initialized with
- * ::cosmosAgent::setup_server. The Agent will open its request and heartbeat channels using the
+ * ::CosmosAgent::setup_server. The Agent will open its request and heartbeat channels using the
  * address and port supplied in cinfo. The heartbeat will cycle with the period requested in cinfo.
     \return value returned by request thread create
 */
-int32_t cosmosAgent::start()
+int32_t CosmosAgent::start()
 {
 
     // start heartbeat thread
@@ -335,13 +335,13 @@ int32_t cosmosAgent::start()
 /*! Waits for threads to stop running if we are a server, then releases everything.
  * \return 0 or negative error.
  */
-int32_t cosmosAgent::shutdown()
+int32_t CosmosAgent::shutdown()
 {
     if (agentName.size())
     {
         if (cinfo != nullptr)
         {
-            cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(cosmosAgent::AgentState::SHUTDOWN);
+            cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::SHUTDOWN);
         }
         if (hthread.joinable())
         {
@@ -351,13 +351,13 @@ int32_t cosmosAgent::shutdown()
         {
             cthread.join();
         }
-        cosmosAgent::unpublish();
+        CosmosAgent::unpublish();
     }
     if (mthread.joinable())
     {
         mthread.join();
     }
-    cosmosAgent::unsubscribe();
+    CosmosAgent::unsubscribe();
     json_destroy(cinfo);
     cinfo = nullptr;
     return 0;
@@ -368,7 +368,7 @@ int32_t cosmosAgent::shutdown()
  * the threads are running.
     \return Value of internal state variable, as enumerated in ::AGENT_STATE.
 */
-uint16_t cosmosAgent::running()
+uint16_t CosmosAgent::running()
 {
     return (cinfo->pdata.agent[0].stateflag);
 }
@@ -382,7 +382,7 @@ uint16_t cosmosAgent::running()
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
-int32_t cosmosAgent::send_request(beatstruc hbeat, std::string request, std::string &output, float waitsec)
+int32_t CosmosAgent::send_request(beatstruc hbeat, std::string request, std::string &output, float waitsec)
 {
     static socket_channel sendchan;
     int32_t iretn;
@@ -441,7 +441,7 @@ int32_t cosmosAgent::send_request(beatstruc hbeat, std::string request, std::str
     \param rbeat pointer to a location to store the heartbeat
     \return 1 if found, otherwise 0, or an error number
 */
-int32_t cosmosAgent::get_server(std::string node, std::string name, float waitsec, beatstruc *rbeat)
+int32_t CosmosAgent::get_server(std::string node, std::string name, float waitsec, beatstruc *rbeat)
 {
     beatstruc cbeat;
 
@@ -452,7 +452,7 @@ int32_t cosmosAgent::get_server(std::string node, std::string name, float waitse
 
     do
     {
-        cbeat = cosmosAgent::poll_beat(1);
+        cbeat = CosmosAgent::poll_beat(1);
 
         if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
         {
@@ -480,7 +480,7 @@ int32_t cosmosAgent::get_server(std::string node, std::string name, float waitse
     \param proc Name of agent.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-beatstruc cosmosAgent::find_agent(std::string node, std::string proc)
+beatstruc CosmosAgent::find_agent(std::string node, std::string proc)
 {
     for (beatstruc &it : agent_list)
     {
@@ -501,7 +501,7 @@ beatstruc cosmosAgent::find_agent(std::string node, std::string proc)
     \param waitsec Maximum number of seconds to wait.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-beatstruc cosmosAgent::find_server(std::string node, std::string proc, float waitsec)
+beatstruc CosmosAgent::find_server(std::string node, std::string proc, float waitsec)
 {
     beatstruc cbeat = {0.,"","",NetworkType::MULTICAST,"",0,0,0.,"",0.,0.,0.};
 
@@ -512,7 +512,7 @@ beatstruc cosmosAgent::find_server(std::string node, std::string proc, float wai
 
     do
     {
-        cbeat = cosmosAgent::poll_beat(1);
+        cbeat = CosmosAgent::poll_beat(1);
         if (cbeat.utc != 0.)
         {
             if (!strcmp(cbeat.proc, proc.c_str()) && !strcmp(cbeat.node, node.c_str()))
@@ -535,7 +535,7 @@ beatstruc cosmosAgent::find_server(std::string node, std::string proc, float wai
     \param waitsec Maximum number of seconds to wait.
     \return A vector of ::beatstruc entries listing the unique servers found.
 */
-std::vector<beatstruc> cosmosAgent::find_servers(float waitsec)
+std::vector<beatstruc> CosmosAgent::find_servers(float waitsec)
 {
     beatstruc cbeat, tbeat;
     uint32_t i, j;
@@ -547,7 +547,7 @@ std::vector<beatstruc> cosmosAgent::find_servers(float waitsec)
 
     do
     {
-        cbeat = cosmosAgent::poll_beat(1);
+        cbeat = CosmosAgent::poll_beat(1);
         if (cbeat.utc != 0.)
         {
             for (i=0; i<slist.size(); i++)
@@ -581,7 +581,7 @@ std::vector<beatstruc> cosmosAgent::find_servers(float waitsec)
     \param list Properly formatted list of JSON names.
     \return 0, otherwise a negative error.
 */
-int32_t cosmosAgent::set_sohstring(std::string list)
+int32_t CosmosAgent::set_sohstring(std::string list)
 {
 
     if (!cinfo->pdata.agent[0].sohtable.empty())
@@ -597,17 +597,17 @@ int32_t cosmosAgent::set_sohstring(std::string list)
 /*! Return a pointer to the Agent's internal copy of the ::cosmosstruc.
     \return A pointer to the ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc *cosmosAgent::get_cosmosstruc()
+cosmosstruc *CosmosAgent::get_cosmosstruc()
 {
     return (cinfo);
 }
 
 //! Heartbeat Loop
 /*! This function is run as a thread to provide the Heartbeat for the Agent. The Heartbeat will
- * consist of the contents of ::AGENT_MESSAGE_BEAT in ::cosmosAgent::poll, plus the contents of the
+ * consist of the contents of ::AGENT_MESSAGE_BEAT in ::CosmosAgent::poll, plus the contents of the
  * ::sohstring. It will come every ::bprd seconds.
  */
-void cosmosAgent::heartbeat_loop()
+void CosmosAgent::heartbeat_loop()
 {
     ElapsedTime timer_beat;
 
@@ -620,18 +620,18 @@ void cosmosAgent::heartbeat_loop()
 
         // post comes first
         cinfo->pdata.agent[0].beat.utc = currentmjd(0.);
-        if ((cosmosAgent::AgentState)(cinfo->pdata.agent[0].stateflag) != cosmosAgent::AgentState::IDLE && !cinfo->pdata.agent[0].sohtable.empty())
+        if ((CosmosAgent::AgentState)(cinfo->pdata.agent[0].stateflag) != CosmosAgent::AgentState::IDLE && !cinfo->pdata.agent[0].sohtable.empty())
         {
-            cosmosAgent::post(AGENT_MESSAGE_BEAT, json_of_table(hbjstring, cinfo->pdata.agent[0].sohtable, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
+            CosmosAgent::post(AGENT_MESSAGE_BEAT, json_of_table(hbjstring, cinfo->pdata.agent[0].sohtable, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
         }
         else
         {
-            cosmosAgent::post(AGENT_MESSAGE_BEAT,"");
+            CosmosAgent::post(AGENT_MESSAGE_BEAT,"");
         }
 
         // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
         // Compute other monitored quantities if monitoring
-        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(cosmosAgent::AgentState::MONITOR))
+        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(CosmosAgent::AgentState::MONITOR))
         {
             // TODO: rename beat.cpu to beat.cpu_percent
             // add beat.cpu_load
@@ -639,7 +639,7 @@ void cosmosAgent::heartbeat_loop()
             cinfo->pdata.agent[0].beat.memory = deviceCpu_.getVirtualMemoryUsed();
         }
 
-        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(cosmosAgent::AgentState::SHUTDOWN))
+        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(CosmosAgent::AgentState::SHUTDOWN))
         {
             cinfo->pdata.agent[0].beat.cpu = 0;
             cinfo->pdata.agent[0].beat.memory = 0;
@@ -656,7 +656,7 @@ void cosmosAgent::heartbeat_loop()
             COSMOS_SLEEP(cinfo->pdata.agent[0].beat.bprd - timer_beat.split());
         }
     }
-    cosmosAgent::unpublish();
+    CosmosAgent::unpublish();
 }
 
 //! Request Loop
@@ -664,7 +664,7 @@ void cosmosAgent::heartbeat_loop()
  * it assigned port number, matches the first word of the request against its set of requests,
  * and then either performs the matched function, or returns [NOK].
  */
-void cosmosAgent::request_loop()
+void CosmosAgent::request_loop()
 {
     char ebuffer[6]="[NOK]";
     int32_t iretn, nbytes;
@@ -693,7 +693,7 @@ void cosmosAgent::request_loop()
         {
             bufferin[iretn] = 0;
 
-            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(cosmosAgent::AgentState::DEBUG))
+            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(CosmosAgent::AgentState::DEBUG))
             {
                 printf("Request: [%d] %s ",iretn,bufferin);
             }
@@ -707,18 +707,18 @@ void cosmosAgent::request_loop()
             }
             request[i] = 0;
 
-            for (i=0; i<cosmosAgent::reqs.size(); i++)
+            for (i=0; i<CosmosAgent::reqs.size(); i++)
             {
-                if (!strcmp(request,cosmosAgent::reqs[i].token.c_str()))
+                if (!strcmp(request,CosmosAgent::reqs[i].token.c_str()))
                     break;
             }
 
-            if (i < cosmosAgent::reqs.size())
+            if (i < CosmosAgent::reqs.size())
             {
                 iretn = -1;
                 if (reqs[i].ifunction)
                 {
-                    iretn = (this->*cosmosAgent::reqs[i].ifunction)(bufferin, request);
+                    iretn = (this->*CosmosAgent::reqs[i].ifunction)(bufferin, request);
                 }
                 else
                 {
@@ -748,7 +748,7 @@ void cosmosAgent::request_loop()
                 bufferout[cinfo->pdata.agent[0].beat.bsz+3] = 0;
             }
             nbytes = sendto(cinfo->pdata.agent[0].req.cudp,bufferout,strlen(bufferout),0,(struct sockaddr *)&cinfo->pdata.agent[0].req.caddr,sizeof(struct sockaddr_in));
-            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(cosmosAgent::AgentState::DEBUG))
+            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(CosmosAgent::AgentState::DEBUG))
             {
                 printf("[%d] %s\n",nbytes,bufferout);
             }
@@ -758,7 +758,7 @@ void cosmosAgent::request_loop()
     return;
 }
 
-void cosmosAgent::message_loop()
+void CosmosAgent::message_loop()
 {
     pollstruc meta;
     std::string message;
@@ -768,9 +768,9 @@ void cosmosAgent::message_loop()
     message_ring.resize(message_count);
     message_position = -1;
 
-    while (cosmosAgent::running())
+    while (CosmosAgent::running())
     {
-        iretn = cosmosAgent::poll(meta, message, AGENT_MESSAGE_ALL, 5.);
+        iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_ALL, 5.);
         if (iretn > 0)
         {
             bool found = false;
@@ -809,7 +809,7 @@ void cosmosAgent::message_loop()
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_forward(char* request, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_forward(char* request, char* output, CosmosAgent* agent)
 {
     uint16_t count;
     int32_t iretn=-1;
@@ -830,7 +830,7 @@ int32_t cosmosAgent::req_forward(char* request, char* output, cosmosAgent* agent
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_echo(char* request, char* output, cosmosAgent*)
+int32_t CosmosAgent::req_echo(char* request, char* output, CosmosAgent*)
 {
     double mjd;
     uint16_t crc, count;
@@ -847,7 +847,7 @@ int32_t cosmosAgent::req_echo(char* request, char* output, cosmosAgent*)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_help(char*, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_help(char*, char* output, CosmosAgent* agent)
 {
     std::string help_string;
     help_string += "\n";
@@ -876,9 +876,9 @@ int32_t cosmosAgent::req_help(char*, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_run(char*, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_run(char*, char* output, CosmosAgent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(cosmosAgent::AgentState::RUN);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::RUN);
     output[0] = 0;
     return(0);
 }
@@ -889,9 +889,9 @@ int32_t cosmosAgent::req_run(char*, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_idle(char*, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_idle(char*, char* output, CosmosAgent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(cosmosAgent::AgentState::IDLE);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::IDLE);
     output[0] = 0;
     return(0);
 }
@@ -902,9 +902,9 @@ int32_t cosmosAgent::req_idle(char*, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_monitor(char*, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_monitor(char*, char* output, CosmosAgent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(cosmosAgent::AgentState::MONITOR);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::MONITOR);
     output[0] = 0;
     return(0);
 }
@@ -915,9 +915,9 @@ int32_t cosmosAgent::req_monitor(char*, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_shutdown(char*, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_shutdown(char*, char* output, CosmosAgent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(cosmosAgent::AgentState::SHUTDOWN);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::SHUTDOWN);
     output[0] = 0;
     return(0);
 }
@@ -930,7 +930,7 @@ int32_t cosmosAgent::req_shutdown(char*, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_status(char*, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_status(char*, char* output, CosmosAgent* agent)
 {
     std::string jstring;
 
@@ -955,7 +955,7 @@ int32_t cosmosAgent::req_status(char*, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_getvalue(char *request, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_getvalue(char *request, char* output, CosmosAgent* agent)
 {
     std::string jstring;
 
@@ -976,7 +976,7 @@ int32_t cosmosAgent::req_getvalue(char *request, char* output, cosmosAgent* agen
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_setvalue(char *request, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_setvalue(char *request, char* output, CosmosAgent* agent)
 {
     int32_t iretn;
     iretn = json_parse(request,agent->cinfo->meta, agent->cinfo->pdata);
@@ -992,7 +992,7 @@ int32_t cosmosAgent::req_setvalue(char *request, char* output, cosmosAgent* agen
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_listnames(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_listnames(char *, char* output, CosmosAgent* agent)
 {
     //    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
 
@@ -1008,7 +1008,7 @@ int32_t cosmosAgent::req_listnames(char *, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_nodejson(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_nodejson(char *, char* output, CosmosAgent* agent)
 {
     strncpy(output, agent->cinfo->json.node.c_str(), agent->cinfo->json.node.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.node.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1021,7 +1021,7 @@ int32_t cosmosAgent::req_nodejson(char *, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_statejson(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_statejson(char *, char* output, CosmosAgent* agent)
 {
     strncpy(output, agent->cinfo->json.state.c_str(), agent->cinfo->json.state.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.state.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1034,7 +1034,7 @@ int32_t cosmosAgent::req_statejson(char *, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_utcstartjson(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_utcstartjson(char *, char* output, CosmosAgent* agent)
 {
     strncpy(output, agent->cinfo->json.utcstart.c_str(), agent->cinfo->json.utcstart.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.utcstart.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1047,7 +1047,7 @@ int32_t cosmosAgent::req_utcstartjson(char *, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_piecesjson(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_piecesjson(char *, char* output, CosmosAgent* agent)
 {
     strncpy(output, agent->cinfo->json.pieces.c_str(), agent->cinfo->json.pieces.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.pieces.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1060,7 +1060,7 @@ int32_t cosmosAgent::req_piecesjson(char *, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_devgenjson(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_devgenjson(char *, char* output, CosmosAgent* agent)
 {
     strncpy(output, agent->cinfo->json.devgen.c_str(), agent->cinfo->json.devgen.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.devgen.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1073,7 +1073,7 @@ int32_t cosmosAgent::req_devgenjson(char *, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_devspecjson(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_devspecjson(char *, char* output, CosmosAgent* agent)
 {
     strncpy(output, agent->cinfo->json.devspec.c_str(), agent->cinfo->json.devspec.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.devspec.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1086,7 +1086,7 @@ int32_t cosmosAgent::req_devspecjson(char *, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_portsjson(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_portsjson(char *, char* output, CosmosAgent* agent)
 {
     strncpy(output, agent->cinfo->json.ports.c_str(), agent->cinfo->json.ports.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.ports.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1099,7 +1099,7 @@ int32_t cosmosAgent::req_portsjson(char *, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_targetsjson(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_targetsjson(char *, char* output, CosmosAgent* agent)
 {
     strncpy(output, agent->cinfo->json.targets.c_str(), agent->cinfo->json.targets.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.targets.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1112,7 +1112,7 @@ int32_t cosmosAgent::req_targetsjson(char *, char* output, cosmosAgent* agent)
  * \param cdata Pointer to ::cosmosstruc to use.
  * \return 0, or negative error.
  */
-int32_t cosmosAgent::req_aliasesjson(char *, char* output, cosmosAgent* agent)
+int32_t CosmosAgent::req_aliasesjson(char *, char* output, CosmosAgent* agent)
 {
     strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1127,7 +1127,7 @@ int32_t cosmosAgent::req_aliasesjson(char *, char* output, cosmosAgent* agent)
  * \param port Port number to publish on.
  * \return 0, otherwise negative error.
 */
-int32_t cosmosAgent::publish(NetworkType type, uint16_t port)
+int32_t CosmosAgent::publish(NetworkType type, uint16_t port)
 {
 #ifdef COSMOS_WIN_OS
 #else
@@ -1373,7 +1373,7 @@ int32_t cosmosAgent::publish(NetworkType type, uint16_t port)
     \param ntype Type of network (Multicast, Broadcast UDP, CSP)
     \return Vector of interfaces
     */
-std::vector<socket_channel> cosmosAgent::find_addresses(NetworkType ntype)
+std::vector<socket_channel> CosmosAgent::find_addresses(NetworkType ntype)
 {
     std::vector<socket_channel> iface;
     socket_channel tiface;
@@ -1538,7 +1538,7 @@ std::vector<socket_channel> cosmosAgent::find_addresses(NetworkType ntype)
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
 */
-int32_t cosmosAgent::post(uint8_t type, std::string message)
+int32_t CosmosAgent::post(uint8_t type, std::string message)
 {
     size_t nbytes;
     int32_t iretn=0;
@@ -1596,7 +1596,7 @@ int32_t cosmosAgent::post(uint8_t type, std::string message)
  * \param cdata Pointer to ::cosmosstruc to use.
     \return 0, otherwise negative error.
     */
-int32_t cosmosAgent::unpublish()
+int32_t CosmosAgent::unpublish()
 {
     if (cinfo == nullptr)
     {
@@ -1618,7 +1618,7 @@ int32_t cosmosAgent::unpublish()
     \param usectimeo Blocking read timeout in micro seconds.
     \return 0, otherwise negative error.
 */
-int32_t cosmosAgent::subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo)
+int32_t CosmosAgent::subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo)
 {
     int32_t iretn = 0;
 
@@ -1645,11 +1645,11 @@ int32_t cosmosAgent::subscribe(NetworkType type, char *address, uint16_t port, u
     \param port The port to use for the channel.
     \return 0, otherwise negative error.
 */
-int32_t cosmosAgent::subscribe(NetworkType type, char *address, uint16_t port)
+int32_t CosmosAgent::subscribe(NetworkType type, char *address, uint16_t port)
 {
     int32_t iretn = 0;
 
-    if ((iretn=cosmosAgent::subscribe(type, address, port, 100)) < 0)
+    if ((iretn=CosmosAgent::subscribe(type, address, port, 100)) < 0)
     {
         return (iretn);
     }
@@ -1661,7 +1661,7 @@ int32_t cosmosAgent::subscribe(NetworkType type, char *address, uint16_t port)
     \param cdata Pointer to ::cosmosstruc to use.
     \return 0, otherwise negative error.
 */
-int32_t cosmosAgent::unsubscribe()
+int32_t CosmosAgent::unsubscribe()
 {
     if (cinfo != nullptr)
     {
@@ -1680,10 +1680,15 @@ int32_t cosmosAgent::unsubscribe()
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
 // TODO: instead of type (AGENT_MESSAGE_ALL) replace by header ex: 0xBB
-int32_t cosmosAgent::poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec)
+int32_t CosmosAgent::poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec)
 {
     int nbytes;
     uint8_t input[AGENTMAXBUFFER+1];
+
+    if (cinfo == nullptr)
+    {
+        return AGENT_ERROR_NULL;
+    }
 
     if (!cinfo->pdata.agent[0].sub.cport)
         return (AGENT_ERROR_CHANNEL);
@@ -1784,14 +1789,14 @@ int32_t cosmosAgent::poll(pollstruc &meta, std::string &message, uint8_t type, f
     \return ::beatstruc with acquired heartbeat. The UTC will be set to 0 if no heartbeat was
     acquired.
 */
-beatstruc cosmosAgent::poll_beat(float waitsec)
+beatstruc CosmosAgent::poll_beat(float waitsec)
 {
     int32_t iretn;
     beatstruc beat;
     pollstruc meta;
     std::string message;
 
-    iretn = cosmosAgent::poll(meta, message, AGENT_MESSAGE_BEAT, waitsec);
+    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_BEAT, waitsec);
 
     beat.utc = 0.;
     if (iretn == AGENT_MESSAGE_BEAT)
@@ -1809,14 +1814,14 @@ beatstruc cosmosAgent::poll_beat(float waitsec)
     \return ::timestruc with acquired time. The UTC will be set to 0 if no heartbeat was
     acquired.
 */
-timestruc cosmosAgent::poll_time(float waitsec)
+timestruc CosmosAgent::poll_time(float waitsec)
 {
     int32_t iretn;
     timestruc time;
     pollstruc meta;
     std::string message;
 
-    iretn = cosmosAgent::poll(meta, message, AGENT_MESSAGE_TIME, waitsec);
+    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_TIME, waitsec);
 
     if (iretn == AGENT_MESSAGE_TIME)
     {
@@ -1837,14 +1842,14 @@ timestruc cosmosAgent::poll_time(float waitsec)
     \return ::locstruc with acquired location. The UTC will be set to 0 if no heartbeat was
     acquired.
 */
-locstruc cosmosAgent::poll_location(float waitsec)
+locstruc CosmosAgent::poll_location(float waitsec)
 {
     int32_t iretn;
     locstruc loc;
     pollstruc meta;
     std::string message;
 
-    iretn = cosmosAgent::poll(meta, message, AGENT_MESSAGE_LOCATION, waitsec);
+    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_LOCATION, waitsec);
 
     if (iretn == AGENT_MESSAGE_LOCATION)
     {
@@ -1865,7 +1870,7 @@ locstruc cosmosAgent::poll_location(float waitsec)
     \return ::infostruc with acquired info. The UTC will be set to 0 if no info was
     acquired.
 */
-nodestruc cosmosAgent::poll_info(float waitsec)
+nodestruc CosmosAgent::poll_info(float waitsec)
 {
     int32_t iretn;
     //summarystruc info;
@@ -1873,7 +1878,7 @@ nodestruc cosmosAgent::poll_info(float waitsec)
     pollstruc meta;
     std::string message;
 
-    iretn = cosmosAgent::poll(meta, message, AGENT_MESSAGE_TRACK, waitsec);
+    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_TRACK, waitsec);
 
     if (iretn == AGENT_MESSAGE_TRACK)
     {
@@ -1901,14 +1906,14 @@ nodestruc cosmosAgent::poll_info(float waitsec)
     \return ::beatstruc with acquired heartbeat. The UTC will be set to 0 if no heartbeat was
     acquired.
 */
-imustruc cosmosAgent::poll_imu(float waitsec)
+imustruc CosmosAgent::poll_imu(float waitsec)
 {
     int32_t iretn;
     imustruc imu;
     pollstruc meta;
     std::string message;
 
-    iretn = cosmosAgent::poll(meta, message, AGENT_MESSAGE_IMU, waitsec);
+    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_IMU, waitsec);
 
     if (iretn == AGENT_MESSAGE_IMU)
     {

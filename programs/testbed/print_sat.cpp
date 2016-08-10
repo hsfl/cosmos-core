@@ -95,7 +95,7 @@ if (satellite==NULL) {
     json_parse(jsonfile);
     fclose(satellite);
 }*/
-cosmosAgent agent(NetworkType::UDP, argv[1]);
+CosmosAgent agent(NetworkType::UDP, argv[1]);
 
 switch (jumpto) {
 case -1:

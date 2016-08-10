@@ -54,7 +54,7 @@ int main(int, char **)
     string agentname = "001";
     string nodename  = "telem";
     string agent002  = "002"; //name of the agent that the request is directed to
-    cosmosAgent agent(NetworkType::UDP, nodename, agentname);
+    CosmosAgent agent(NetworkType::UDP, nodename, agentname);
 
     beatstruc beat_agent_002;
 

@@ -951,7 +951,7 @@ void multisolve(std::vector< std::vector<double> > x, std::vector<double> y, std
  * \param parms Vector of parameters for Nth order polynomial to be evaluated.
  * \return Value of the variable, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 double evaluate_poly(double x, std::vector<double> parms)
 {
     double result;
@@ -977,7 +977,7 @@ double evaluate_poly(double x, std::vector<double> parms)
  * \param parms Vector of parameters for Nth order polynomial to be evaluated.
  * \return Value of the slope, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 double evaluate_poly_slope(double x, std::vector<double> parms)
 {
     double result;
@@ -1003,7 +1003,7 @@ double evaluate_poly_slope(double x, std::vector<double> parms)
  * \param parms Vector of parameters for Nth order polynomial to be evaluated.
  * \return Value of the acceleration, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 double evaluate_poly_accel(double x, std::vector<double> parms)
 {
     double result;
@@ -1029,7 +1029,7 @@ double evaluate_poly_accel(double x, std::vector<double> parms)
  * \param parms Vector of parameters for Nth order polynomial to be evaluated.
  * \return Value of the jerk, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 double evaluate_poly_jerk(double x, std::vector<double> parms)
 {
     double result;
@@ -1055,7 +1055,7 @@ double evaluate_poly_jerk(double x, std::vector<double> parms)
  * \param parms Vector of parameters for Nth order vector polynomial to be evaluated.
  * \return Values, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 rvector rv_evaluate_poly(double x, std::vector< std::vector<double> > parms)
 {
     uvector result;
@@ -1086,7 +1086,7 @@ rvector rv_evaluate_poly(double x, std::vector< std::vector<double> > parms)
  * \param parms Vector of parameters for Nth order vector polynomial to be evaluated.
  * \return Values of the slope, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 rvector rv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms)
 {
     uvector result;
@@ -1117,7 +1117,7 @@ rvector rv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parm
  * \param parms Vector of parameters for Nth order vector polynomial to be evaluated.
  * \return Values of the acceleration, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 rvector rv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms)
 {
     uvector result;
@@ -1148,7 +1148,7 @@ rvector rv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parm
  * \param parms Vector of parameters for Nth order vector polynomial to be evaluated.
  * \return Values of the jerk, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms)
 {
     uvector result;
@@ -1179,7 +1179,7 @@ rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms
  * \param parms Vector of parameters for Nth order quaternion polynomial to be evaluated.
  * \return Values, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 quaternion q_evaluate_poly(double x, std::vector< std::vector<double> > parms)
 {
     uvector result;
@@ -1210,7 +1210,7 @@ quaternion q_evaluate_poly(double x, std::vector< std::vector<double> > parms)
  * \param parms Vector of parameters for Nth order quaternion polynomial to be evaluated.
  * \return Values of the slope, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 quaternion q_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms)
 {
     uvector result;
@@ -1241,7 +1241,7 @@ quaternion q_evaluate_poly_slope(double x, std::vector< std::vector<double> > pa
  * \param parms Vector of parameters for Nth order quaternion polynomial to be evaluated.
  * \return Values of the acceleration, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 quaternion q_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms)
 {
     uvector result;
@@ -1272,7 +1272,7 @@ quaternion q_evaluate_poly_accel(double x, std::vector< std::vector<double> > pa
  * \param parms Vector of parameters for Nth order quaternion polynomial to be evaluated.
  * \return Values of the jerk, evaluated at the location of the independent variable.
  */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 quaternion q_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms)
 {
     uvector result;
@@ -1306,7 +1306,7 @@ quaternion q_evaluate_poly_jerk(double x, std::vector< std::vector<double> > par
     \param y Order+1 number of y values
     \return Order+1 number of polynomial coefficients
 */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 std::vector<double> polyfit(std::vector<double> &x, std::vector<double> &y)
 {
     uint32_t order;
@@ -1379,7 +1379,7 @@ std::vector<double> polyfit(std::vector<double> &x, std::vector<double> &y)
     \param order The order of the polynomial (< 5)
     \return The n resulting coefficients
 */
-// TODO: move to lsfit.cpp
+// TODO: move to LsFit.cpp
 uvector rv_fitpoly(uvector x, uvector y, uint32_t order)
 {
     uvector a = {{{0.,0.,0.},0.}};
@@ -2239,7 +2239,7 @@ cmatrix cm_change_between_cv(cvector from, cvector to)
 /*! Constructor for default 10 element, 2nd order least squares fit.
  * \return Least squares fit object.
 */
-//lsfit::lsfit()
+//LsFit::LsFit()
 //    : element_cnt(10), order(2), resolution(0.)
 //{
 //}
@@ -2249,7 +2249,7 @@ cmatrix cm_change_between_cv(cvector from, cvector to)
  * \param cnt Number of elements to be fit.
  * \return Least squares fit object.
 */
-//lsfit::lsfit(uint16_t cnt)
+//LsFit::LsFit(uint16_t cnt)
 //    : element_cnt(cnt), order(2), resolution(0.)
 //{
 //}
@@ -2260,7 +2260,7 @@ cmatrix cm_change_between_cv(cvector from, cvector to)
  * \param ord Order of fit.
  * \return Least squares fit object.
 */
-//lsfit::lsfit(uint16_t cnt, uint16_t ord)
+//LsFit::LsFit(uint16_t cnt, uint16_t ord)
 //    : element_cnt(cnt), order(ord), resolution(0.)
 //{
 //}
@@ -2272,7 +2272,7 @@ cmatrix cm_change_between_cv(cvector from, cvector to)
  * \param res Resolution of fit.
  * \return Least squares fit object.
 */
-lsfit::lsfit(uint16_t cnt, uint16_t ord, double res)
+LsFit::LsFit(uint16_t cnt, uint16_t ord, double res)
 //    : element_cnt(cnt), order(ord), resolution(res)
 {
     if (ord)
@@ -2294,16 +2294,16 @@ lsfit::lsfit(uint16_t cnt, uint16_t ord, double res)
     resolution = res;
     var.resize(0);
     depth = 0;
-    //	printf("lsfit(%u %u %f)\n",cnt,ord,res);
+    //	printf("LsFit(%u %u %f)\n",cnt,ord,res);
 }
 
 //! Initialize Least Squares Fit
-/*! Perform setting of variables in ::lsfit so that it can be ready for use.
+/*! Perform setting of variables in ::LsFit so that it can be ready for use.
  * \param cnt Number of elements to be fit.
  * \param ord Order of fit.
  * \param res Resolution of fit.
 */
-void lsfit::initialize(uint16_t cnt, uint16_t ord, double res)
+void LsFit::initialize(uint16_t cnt, uint16_t ord, double res)
 {
     if (ord)
     {
@@ -2327,12 +2327,12 @@ void lsfit::initialize(uint16_t cnt, uint16_t ord, double res)
 }
 
 //! Update scalar Least Squares Fit
-/*! Add independent and dependent value pair to existing ::lsfit, updating the fit. If the number
+/*! Add independent and dependent value pair to existing ::LsFit, updating the fit. If the number
  * of elements in the fit has been reached, the oldest element is dropped before fitting.
  * \param x Dependent value.
  * \param y Independent value.
 */
-void lsfit::update(double x, double y)
+void LsFit::update(double x, double y)
 {
     fitelement cfit;
 
@@ -2346,12 +2346,12 @@ void lsfit::update(double x, double y)
 }
 
 //! Update ::rvector Least Squares Fit
-/*! Add independent and dependent value pair to existing ::lsfit, updating the fit. If the number
+/*! Add independent and dependent value pair to existing ::LsFit, updating the fit. If the number
  * of elements in the fit has been reached, the oldest element is dropped before fitting.
  * \param x Dependent value.
  * \param y Independent values.
 */
-void lsfit::update(double x, rvector y)
+void LsFit::update(double x, rvector y)
 {
     fitelement cfit;
 
@@ -2365,12 +2365,12 @@ void lsfit::update(double x, rvector y)
 }
 
 //! Update ::quaternion Least Squares Fit
-/*! Add independent and dependent value pair to existing ::lsfit, updating the fit. If the number
+/*! Add independent and dependent value pair to existing ::LsFit, updating the fit. If the number
  * of elements in the fit has been reached, the oldest element is dropped before fitting.
  * \param x Dependent value.
  * \param y Independent values.
 */
-void lsfit::update(double x, quaternion y)
+void LsFit::update(double x, quaternion y)
 {
     fitelement cfit;
 
@@ -2396,12 +2396,12 @@ void lsfit::update(double x, quaternion y)
 }
 
 //! Update generic Least Squares Fit
-/*! Add ::fitelement containing independent and dependent value pair to existing ::lsfit, updating the fit. If the number
+/*! Add ::fitelement containing independent and dependent value pair to existing ::LsFit, updating the fit. If the number
  * of elements in the fit has been reached, the oldest element is dropped before fitting.
  * \param x Dependent value.
  * \param y Independent values.
 */
-void lsfit::update(fitelement cfit, uint16_t dep)
+void LsFit::update(fitelement cfit, uint16_t dep)
 {
     if (var.size() && cfit.x == var[var.size()-1].x)
     {
@@ -2435,15 +2435,15 @@ void lsfit::update(fitelement cfit, uint16_t dep)
     // More than order elements collected and we can start fitting
     if (var.size() > order)
     {
-        lsfit::fit();
+        LsFit::fit();
     }
 }
 
 //! Calculate least squares fit
-/*! Calculate least squares fit for each axis of exsiting ::lsfit. Parameters are updated
+/*! Calculate least squares fit for each axis of exsiting ::LsFit. Parameters are updated
  * to reflect new fit.
 */
-void lsfit::fit()
+void LsFit::fit()
 {
     // Minimize independent variable by zero offsetting
     basex = var[0].x;
@@ -2503,10 +2503,10 @@ void lsfit::fit()
 }
 
 //! Least squares last independent value.
-/*! Return the value of the independent value added at the most recent ::lsfit::update.
+/*! Return the value of the independent value added at the most recent ::LsFit::update.
  * \return Most recently updated independent value.
 */
-double lsfit::lastx()
+double LsFit::lastx()
 {
     if (var.size())
     {
@@ -2519,10 +2519,10 @@ double lsfit::lastx()
 }
 
 //! Least squares first independent value.
-/*! Return the value of the independent value added at the least recent ::lsfit::update.
+/*! Return the value of the independent value added at the least recent ::LsFit::update.
  * \return Least recently updated independent value.
 */
-double lsfit::firstx()
+double LsFit::firstx()
 {
     if (var.size())
     {
@@ -2536,11 +2536,11 @@ double lsfit::firstx()
 
 //! Least squares dependent scalar value.
 /*! Return the value of the dependent scalar, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated scalar dependent value.
 */
-double lsfit::eval(double x)
+double LsFit::eval(double x)
 {
     if (var.size() > order)
     {
@@ -2555,11 +2555,11 @@ double lsfit::eval(double x)
 
 //! Least squares dependent ::rvector value.
 /*! Return the value of the dependent ::rvector, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated ::rvector dependent value.
 */
-rvector lsfit::evalrvector(double x)
+rvector LsFit::evalrvector(double x)
 {
     if (var.size() > order)
     {
@@ -2573,11 +2573,11 @@ rvector lsfit::evalrvector(double x)
 
 //! Least squares dependent ::quaternion value.
 /*! Return the value of the dependent ::quaternion, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated ::quaternion dependent value.
 */
-quaternion lsfit::evalquaternion(double x)
+quaternion LsFit::evalquaternion(double x)
 {
     if (var.size() > order)
     {
@@ -2591,11 +2591,11 @@ quaternion lsfit::evalquaternion(double x)
 
 //! Least squares dependent scalar 1st derivative.
 /*! Return the value of the dependent scalar 1st derivative, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated scalar dependent 1st derivative.
 */
-double lsfit::slope(double x)
+double LsFit::slope(double x)
 {
     if (var.size() > order)
     {
@@ -2609,11 +2609,11 @@ double lsfit::slope(double x)
 
 //! Least squares dependent ::rvector 1st derivative.
 /*! Return the value of the dependent ::rvector 1st derivative, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated ::rvector dependent 1st derivative.
 */
-rvector lsfit::slopervector(double x)
+rvector LsFit::slopervector(double x)
 {
     if (var.size() > order)
     {
@@ -2627,11 +2627,11 @@ rvector lsfit::slopervector(double x)
 
 //! Least squares dependent ::quaternion 1st derivative.
 /*! Return the value of the dependent ::quaternion 1st derivative, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated ::quaternion dependent 1st derivative.
 */
-quaternion lsfit::slopequaternion(double x)
+quaternion LsFit::slopequaternion(double x)
 {
     if (var.size() > order)
     {
@@ -2645,11 +2645,11 @@ quaternion lsfit::slopequaternion(double x)
 
 //! Least squares dependent scalar 2nd derivative.
 /*! Return the value of the dependent scalar 2nd derivative, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated scalar dependent 2nd derivative.
 */
-double lsfit::accel(double x)
+double LsFit::accel(double x)
 {
     if (var.size() > order)
     {
@@ -2663,11 +2663,11 @@ double lsfit::accel(double x)
 
 //! Least squares dependent ::rvector 2nd derivative.
 /*! Return the value of the dependent ::rvector 2nd derivative, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated ::rvector dependent 2nd derivative.
 */
-rvector lsfit::accelrvector(double x)
+rvector LsFit::accelrvector(double x)
 {
     if (var.size() > order)
     {
@@ -2681,11 +2681,11 @@ rvector lsfit::accelrvector(double x)
 
 //! Least squares dependent ::quaternion 2nd derivative.
 /*! Return the value of the dependent ::quaternion 2nd derivative, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated ::quaternion dependent 2nd derivative.
 */
-quaternion lsfit::accelquaternion(double x)
+quaternion LsFit::accelquaternion(double x)
 {
     if (var.size() > order)
     {
@@ -2699,11 +2699,11 @@ quaternion lsfit::accelquaternion(double x)
 
 //! Least squares dependent scalar 3rd derivative.
 /*! Return the value of the dependent scalar 3rd derivative, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated scalar dependent 3rd derivative.
 */
-double lsfit::jerk(double x)
+double LsFit::jerk(double x)
 {
     if (var.size() > order)
     {
@@ -2717,11 +2717,11 @@ double lsfit::jerk(double x)
 
 //! Least squares dependent ::rvector 3rd derivative.
 /*! Return the value of the dependent ::rvector 3rd derivative, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated ::rvector dependent 3rd derivative.
 */
-rvector lsfit::jerkrvector(double x)
+rvector LsFit::jerkrvector(double x)
 {
     if (var.size() > order)
     {
@@ -2735,11 +2735,11 @@ rvector lsfit::jerkrvector(double x)
 
 //! Least squares dependent ::quaternion 3rd derivative.
 /*! Return the value of the dependent ::quaternion 3rd derivative, calculated for the provided independent value, using the parameters from
- * the latest ::lsfit::update.
+ * the latest ::LsFit::update.
  * \param x Independent value.
  * \return Calculated ::quaternion dependent 3rd derivative.
 */
-quaternion lsfit::jerkquaternion(double x)
+quaternion LsFit::jerkquaternion(double x)
 {
     if (var.size() > order)
     {
@@ -2752,19 +2752,19 @@ quaternion lsfit::jerkquaternion(double x)
 }
 
 //! Least Squares parameters
-/*! Return the values of the parameters for all axes of generated from the latest ::lsfit::update.
+/*! Return the values of the parameters for all axes of generated from the latest ::LsFit::update.
  * \return Parameters
 */
-std::vector<std::vector<double> > lsfit::getparms()
+std::vector<std::vector<double> > LsFit::getparms()
 {
     return parms;
 }
 
 //! Least Squares base
-/*! Return the values of the base independent variable for the latest ::lsfit::update.
+/*! Return the values of the base independent variable for the latest ::LsFit::update.
  * \return Parameters
 */
-double lsfit::getbasex()
+double LsFit::getbasex()
 {
     return basex;
 }

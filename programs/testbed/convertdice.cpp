@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 	tsenstruc tsen[14];
 
 
-    cosmosAgent agent(NetworkType::UDP, "dice");
+    CosmosAgent agent(NetworkType::UDP, "dice");
     agent.cinfo->pdata.physics.mode = atol(argv[1]);
 
     load_lines("tle_dice1.tle", agent.cinfo->pdata.tle);

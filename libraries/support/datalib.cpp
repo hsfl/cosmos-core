@@ -1276,18 +1276,6 @@ int32_t get_cosmosnodes(std::string &result)
 
 //! Get Current Node Directory
 /*! Get the internal variable that points to where node files are
- * stored for the current Node. This overloaded version will NOT create the directory
- * if it does not exist.
- * \param node Name of current Node
- * \return Pointer to character std::string containing path to Node, otherwise nullptr.
-*/
-std::string get_nodedir(std::string node)
-{
-    return get_nodedir(node, false);
-}
-
-//! Get Current Node Directory
-/*! Get the internal variable that points to where node files are
  * stored for the current Node.
  * \param node Name of current Node
  * \param create_flag Whether or not to create node directory if it doesn't already exist.

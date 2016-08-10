@@ -434,7 +434,7 @@ void json_destroy(cosmosstruc *cinfo)
 //        cdata.device.resize(0);
 //    }
 
-    delete [] cinfo;
+    delete cinfo;
     cinfo = nullptr;
 }
 
@@ -8453,7 +8453,6 @@ uint32_t json_get_name_list_count(cosmosmetastruc &cmeta)
 int32_t node_init(std::string node, cosmosstruc *cinfo)
 {
     int32_t iretn;
-    jsonnode json;
 
     if (cinfo == nullptr || !cinfo->meta.jmapped)
         return (JSON_ERROR_NOJMAP);
