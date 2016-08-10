@@ -58,50 +58,7 @@
 //! Constructor
 //! Sets up minimum framework for an agent. This makes a nodeless client. Additional functions
 //! allow tieing the agent to a node, and making it a server.
-//CosmosAgent::CosmosAgent()
-//    : networkType(NetworkType::UDP), nodeName(""), agentName(""), beatPeriod(1.), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
-//{
-
-//}
-
-//CosmosAgent::CosmosAgent(NetworkType ntype)
-//    : networkType(ntype), nodeName(""), agentName(""), beatPeriod(1.), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
-//{
-
-//}
-
-//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname)
-//    : networkType(ntype), nodeName(nname), agentName(""), beatPeriod(1.), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
-//{
-
-//}
-
-//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname, std::string &aname)
-//    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(1.), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
-//{
-
-//}
-
-//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd)
-//    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(bprd), bufferSize(AGENTMAXBUFFER), multiflag(false), portNumber(0)
-//{
-
-//}
-
-//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd, uint32_t bsize)
-//    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(bprd), bufferSize(bsize), multiflag(false), portNumber(0)
-//{
-
-//}
-
-//CosmosAgent::CosmosAgent(NetworkType ntype, std::string &nname, std::string &aname, double bprd, uint32_t bsize, bool mflag)
-//    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(bprd), bufferSize(bsize), multiflag(mflag), portNumber(0)
-//{
-
-//}
-
 CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std::string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
-//    : networkType(ntype), nodeName(nname), agentName(aname), beatPeriod(bprd), bufferSize(bsize), multiflag(mflag), portNumber(portnum)
 {
     int32_t iretn;
 
@@ -761,7 +718,7 @@ void CosmosAgent::request_loop()
 void CosmosAgent::message_loop()
 {
     pollstruc meta;
-    std::string message;
+    std::vector <uint8_t> message;
     int32_t iretn;
 
     // Initialize things
@@ -788,16 +745,28 @@ void CosmosAgent::message_loop()
                 agent_list.push_back(meta.beat);
             }
 
+            int32_t new_position;
             if (message_position < message_count - 1)
             {
-                ++message_position;
+                new_position = message_position + 1;
             }
             else
             {
-                message_position = 0;
+                new_position = 0;
             }
-            message_ring[message_position].meta = meta;
-            message_ring[message_position].data = message;
+            message_ring[new_position].meta = meta;
+            if (meta.type < 128)
+            {
+                message.push_back(0);
+                message_ring[new_position].sdata = (char *)message.data();
+                message_ring[new_position].bdata.clear();
+            }
+            else
+            {
+                message_ring[new_position].sdata.clear();
+                message_ring[new_position].bdata = message;
+            }
+            message_position = new_position;
         }
     }
 }
@@ -1532,13 +1501,29 @@ std::vector<socket_channel> CosmosAgent::find_addresses(NetworkType ntype)
 }
 
 //! Post a JSON message
-/*! Post a JSON string on the previously opened publication channel.
+/*! Post a vector of bytes on the previously opened publication channel.
  * \param cdata Pointer to ::cosmosstruc to use.
     \param type A byte indicating the type of message.
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
 */
 int32_t CosmosAgent::post(uint8_t type, std::string message)
+{
+    int32_t iretn;
+    std::vector<uint8_t> bytes(message.begin(), message.end());
+    bytes.push_back(0);
+    iretn = post(type, bytes);
+    return iretn;
+}
+
+//! Post a binary message
+/*! Post a vector of bytes on the previously opened publication channel.
+ * \param cdata Pointer to ::cosmosstruc to use.
+    \param type A byte indicating the type of message.
+    \param message A NULL terminated JSON text string to post.
+    \return 0, otherwise negative error.
+*/
+int32_t CosmosAgent::post(uint8_t type, std::vector <uint8_t> message)
 {
     size_t nbytes;
     int32_t iretn=0;
@@ -1670,17 +1655,39 @@ int32_t CosmosAgent::unsubscribe()
     return 0;
 }
 
-//! Listen for message
+//! Listen for string message
 /*! Poll the subscription channel for the requested amount of time. Return as soon as a single message
  * comes in, or the timer runs out.
-    \param cdata Pointer to ::cosmosstruc to use.
+ * \param meta ::pollstruc for storing meta information.
     \param message String for storing incoming message.
     \param type Type of message to look for, taken from ::AGENT_MESSAGE.
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-// TODO: instead of type (AGENT_MESSAGE_ALL) replace by header ex: 0xBB
 int32_t CosmosAgent::poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec)
+{
+    std::vector <uint8_t> bytes;
+    int32_t iretn;
+
+    iretn = poll(meta, bytes, type, waitsec);
+    if (iretn > 0)
+    {
+        bytes.push_back(0);
+        message = (char *)bytes.data();
+    }
+    return iretn;
+}
+
+//! Listen for binary message
+/*! Poll the subscription channel for the requested amount of time. Return as soon as a single message
+ * comes in, or the timer runs out.
+ * \param meta ::pollstruc for storing meta information.
+    \param message Vector for storing incoming message.
+    \param type Type of message to look for, taken from ::AGENT_MESSAGE.
+    \param waitsec Number of seconds in timer.
+    \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
+*/
+int32_t CosmosAgent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8_t type, float waitsec)
 {
     int nbytes;
     uint8_t input[AGENTMAXBUFFER+1];
@@ -1756,10 +1763,10 @@ int32_t CosmosAgent::poll(pollstruc &meta, std::string &message, uint8_t type, f
                     input[nbytes] = 0;
                 }
                 message.resize(nbytes+1-start_byte);
-                memcpy(&message[0], &input[start_byte], nbytes+1-start_byte);
+                memcpy(message.data(), &input[start_byte], nbytes+1-start_byte);
 
                 // Extract meta data
-                sscanf(message.c_str(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
+                sscanf((const char *)message.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
                        &meta.beat.utc,
                        meta.beat.node,
                        meta.beat.proc,
@@ -1782,6 +1789,50 @@ int32_t CosmosAgent::poll(pollstruc &meta, std::string &message, uint8_t type, f
     return 0;
 }
 
+//! Check Ring for message
+/*! Check the message ring for the requested amount of time. Return as soon as a single new message
+ * comes in, or the timer runs out.
+ * \param meta ::pollstruc for storing meta information.
+    \param message Vector for storing incoming message.
+    \param type Type of message to look for, taken from ::AGENT_MESSAGE.
+    \param waitsec Number of seconds in timer. If 0, return last message in ring immediatelly.
+    \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
+*/
+int32_t CosmosAgent::readring(messstruc &message, uint8_t type, float waitsec)
+{
+    if (cinfo == nullptr)
+    {
+        return AGENT_ERROR_NULL;
+    }
+
+    if (!message_ring.size() || message_position == -1)
+    {
+        return (0);
+    }
+
+    int32_t cposition = message_position;
+    ElapsedTime ep;
+    ep.start();
+    do
+    {
+       if (message_position != cposition || waitsec == 0.)
+        {
+            if (type == AGENT_MESSAGE_ALL || type == message_ring[message_position].meta.type)
+            {
+                // Copy message.
+                message = message_ring[message_position];
+                return ((int)message.meta.type);
+            }
+        }
+       if (ep.split() < waitsec)
+       {
+           COSMOS_SLEEP(.1);
+       }
+    } while (ep.split() < waitsec);
+
+    return 0;
+}
+
 //! Listen for heartbeat
 /*! Poll the subscription channel until you receive a heartbeat message, or the timer runs out.
     \param cdata Pointer to ::cosmosstruc to use.
@@ -1794,7 +1845,7 @@ beatstruc CosmosAgent::poll_beat(float waitsec)
     int32_t iretn;
     beatstruc beat;
     pollstruc meta;
-    std::string message;
+    std::vector <uint8_t> message;
 
     iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_BEAT, waitsec);
 

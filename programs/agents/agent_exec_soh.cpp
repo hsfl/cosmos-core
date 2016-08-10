@@ -543,7 +543,7 @@ void collect_data_loop()
             {
                 agent->cinfo->sdata.node = agent->cinfo->pdata.node;
                 agent->cinfo->sdata.device = agent->cinfo->pdata.device;
-                json_parse(agent->message_ring[my_position].data, agent->cinfo->meta, agent->cinfo->sdata);
+                json_parse(agent->message_ring[my_position].sdata, agent->cinfo->meta, agent->cinfo->sdata);
                 agent->cinfo->pdata.node  = agent->cinfo->sdata.node ;
                 agent->cinfo->pdata.device  = agent->cinfo->sdata.device ;
                 loc_update(&agent->cinfo->pdata.node.loc);

@@ -145,6 +145,14 @@ public:
         beatstruc beat;
     };
 
+    //! Storage for messages
+    struct messstruc
+    {
+        pollstruc meta;
+        std::vector <uint8_t> bdata;
+        std::string sdata;
+    };
+
     //! Agent Request Function
     //! Format of a user supplied function to handle a given request
     typedef int32_t (CosmosAgent::*internal_request_function)(char* request_string, char* output_string);
@@ -170,11 +178,14 @@ public:
     void get_ip_list(uint16_t port);
     int32_t unpublish();
     int32_t post(uint8_t type, std::string message);
+    int32_t post(uint8_t type, std::vector <uint8_t> message);
     int32_t publish(NetworkType type, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo);
     int32_t unsubscribe();
-    int32_t poll(pollstruc &meta, std::string& message, uint8_t type, float waitsec = 1.);
+    int32_t poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec = 1.);
+    int32_t poll(pollstruc &meta, std::vector<uint8_t> &message, uint8_t type, float waitsec = 1.);
+    int32_t readring(messstruc &message, uint8_t type, float waitsec = 1.);
     timestruc poll_time(float waitsec);
     beatstruc poll_beat(float waitsec);
     locstruc poll_location(float waitsec);
@@ -199,14 +210,8 @@ public:
     //! List of active agents
     std::vector <beatstruc> agent_list;
 
-    //! Storage for messages
-    struct message
-    {
-        pollstruc meta;
-        std::string data;
-    };
     //! Ring buffer for incoming messages
-    std::vector <message> message_ring;
+    std::vector <messstruc> message_ring;
     //! Size of message ring buffer
     int32_t message_count = 100;
     //! Current leading edge of message ring buffer

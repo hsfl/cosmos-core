@@ -114,7 +114,7 @@ private:
     std::list<command> commands;
 
 public:
-    const size_t get_size()
+    size_t get_size()
     {
         return commands.size();
     }
