@@ -274,7 +274,7 @@ int32_t request_bootCount(char *, char* response, CosmosAgent *)
     std::string counts;
 
     if (ifs.is_open()) {
-        getline (ifs,counts);
+        std::getline(ifs,counts);
         ifs.close();
     }
     else {

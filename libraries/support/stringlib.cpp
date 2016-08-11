@@ -149,7 +149,7 @@ void StringParser::splitString(std::string str, char delimiter)
     std::stringstream ss(str);
     std::string token;
 
-    while(getline(ss, token, delimiter))
+    while(std::getline(ss, token, delimiter))
     {
         //std::cout << token << '\n';
         vect.push_back(token);
