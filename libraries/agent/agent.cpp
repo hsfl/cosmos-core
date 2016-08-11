@@ -755,19 +755,20 @@ void CosmosAgent::message_loop()
                 new_position = 0;
             }
             message_ring[new_position].meta = meta;
-            if (meta.type < 128)
+            if (meta.type < AGENT_MESSAGE_BINARY)
             {
                 message.push_back(0);
-                message_ring[new_position].sdata = (char *)message.data();
+                message_ring[new_position].adata = (char *)message.data();
                 message_ring[new_position].bdata.clear();
             }
             else
             {
-                message_ring[new_position].sdata.clear();
+                message_ring[new_position].adata.clear();
                 message_ring[new_position].bdata = message;
             }
             message_position = new_position;
         }
+        COSMOS_SLEEP(.01);
     }
 }
 
@@ -1757,13 +1758,9 @@ int32_t CosmosAgent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8
                     meta.jlength = nbytes;
                 }
 
-                // Copy message. Could have binary data, so copy safe way
-                if (nbytes > 0)
-                {
-                    input[nbytes] = 0;
-                }
-                message.resize(nbytes+1-start_byte);
-                memcpy(message.data(), &input[start_byte], nbytes+1-start_byte);
+                // Copy message.
+                message.resize(nbytes-start_byte);
+                memcpy(message.data(), &input[start_byte], nbytes-start_byte);
 
                 // Extract meta data
                 sscanf((const char *)message.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",

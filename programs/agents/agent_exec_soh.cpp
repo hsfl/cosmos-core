@@ -539,11 +539,11 @@ void collect_data_loop()
             {
                 my_position = 0;
             }
-            if (agent->cinfo->pdata.node.name == agent->message_ring[my_position].meta.beat.node)
+            if (agent->cinfo->pdata.node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < CosmosAgent::AGENT_MESSAGE_BINARY)
             {
                 agent->cinfo->sdata.node = agent->cinfo->pdata.node;
                 agent->cinfo->sdata.device = agent->cinfo->pdata.device;
-                json_parse(agent->message_ring[my_position].sdata, agent->cinfo->meta, agent->cinfo->sdata);
+                json_parse(agent->message_ring[my_position].adata, agent->cinfo->meta, agent->cinfo->sdata);
                 agent->cinfo->pdata.node  = agent->cinfo->sdata.node ;
                 agent->cinfo->pdata.device  = agent->cinfo->sdata.device ;
                 loc_update(&agent->cinfo->pdata.node.loc);

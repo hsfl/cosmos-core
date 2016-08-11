@@ -99,9 +99,8 @@ int main(int argc, char *argv[])
             double lmjd = 0., dmjd;
             std::string channel;
             uint8_t cnum;
-            std::string message;
+            CosmosAgent::messstruc message;
             std::string header;
-            CosmosAgent::pollstruc meta;
             int i, pretn;
             locstruc loc;
 
@@ -132,21 +131,24 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->poll(meta, message, CosmosAgent::AGENT_MESSAGE_ALL)) > 0)
+                if ((pretn=agent->readring(message, CosmosAgent::AGENT_MESSAGE_ALL)) > 0)
                 {
-                    header.resize(meta.jlength);
-                    memcpy(&header[0], &message[3], meta.jlength);
+                    // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
                     }
 
-                    if (pretn < 128)
+                    header.resize(message.meta.jlength);
+                    if (pretn < CosmosAgent::AGENT_MESSAGE_BINARY)
                     {
-                        json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_parse(message.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                        memcpy(&header[0], message.adata.data(), message.meta.jlength);
                     }
+                    else
+                    {
+                        memcpy(&header[0], message.bdata.data(), message.meta.jlength);
+                    }
+
 
                     switch (pretn)
                     {
@@ -160,11 +162,20 @@ int main(int argc, char *argv[])
                         printf("[%d]",pretn);
                         break;
                     }
-                    printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",meta.beat.utc, meta.beat.node, meta.beat.proc, meta.beat.addr, meta.beat.port, header.size(), message.size());
-                    if (pretn < 128 && !channel.empty())
+
+                    if (pretn < CosmosAgent::AGENT_MESSAGE_BINARY)
                     {
-                        printf("%s\n",message.c_str());
+                        printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.adata.size());
+                        if (!channel.empty())
+                        {
+                            printf("%s\n",message.adata.c_str());
+                        }
                     }
+                    else
+                    {
+                        printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.bdata.size());
+                    }
+
                     if ((channel=="info") && pretn == CosmosAgent::AGENT_MESSAGE_TRACK)
                     {
                         if (agent->cinfo->pdata.node.loc.utc > 0.)
@@ -180,6 +191,7 @@ int main(int argc, char *argv[])
                             lmjd = agent->cinfo->pdata.node.loc.utc;
                         }
                     }
+
                     if ((channel=="imu") && pretn == CosmosAgent::AGENT_MESSAGE_IMU)
                     {
                         for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
@@ -228,9 +240,8 @@ int main(int argc, char *argv[])
             double lmjd = 0., dmjd;
             std::string channel;
             uint8_t cnum;
-            std::string message;
+            CosmosAgent::messstruc message;
             std::string header;
-            CosmosAgent::pollstruc meta;
             int i, pretn;
             locstruc loc;
 
@@ -261,20 +272,25 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->poll(meta, message,  CosmosAgent::AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent->readring(message, CosmosAgent::AGENT_MESSAGE_ALL)) > 0)
                 {
-                    header.resize(meta.jlength);
-                    memcpy(&header[0], &message[3], meta.jlength);
+                    // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
                     }
 
-                    if (pretn < 128)
+                    header.resize(message.meta.jlength);
+                    if (pretn < CosmosAgent::AGENT_MESSAGE_BINARY)
                     {
+                        memcpy(&header[0], message.adata.data(), message.meta.jlength);
                         json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
                         json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_parse(message.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                        json_parse(message.adata.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                    }
+                    else
+                    {
+                        memcpy(&header[0], message.bdata.data(), message.meta.jlength);
                     }
 
                     switch (pretn)
@@ -289,11 +305,14 @@ int main(int argc, char *argv[])
                         printf("[%d]",pretn);
                         break;
                     }
+
                     printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
-                    if (pretn < 128 && !channel.empty())
+
+                    if (pretn < CosmosAgent::AGENT_MESSAGE_BINARY && !channel.empty())
                     {
-                        printf("%s\n",message.c_str());
+                        printf("%s\n",message.adata.c_str());
                     }
+
                     if ((channel=="info") && pretn == CosmosAgent::AGENT_MESSAGE_TRACK)
                     {
                         if (agent->cinfo->pdata.node.loc.utc > 0.)
@@ -309,6 +328,7 @@ int main(int argc, char *argv[])
                             lmjd = agent->cinfo->pdata.node.loc.utc;
                         }
                     }
+
                     if ((channel=="imu") && pretn == CosmosAgent::AGENT_MESSAGE_IMU)
                     {
                         for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)

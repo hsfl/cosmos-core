@@ -100,7 +100,7 @@ public:
     //! Default minium heartbeat period (10 msec)
     #define AGENT_HEARTBEAT_PERIOD_MIN 0.01
 
-    //! Type of Agent Message. Types >128 are binary.
+    //! Type of Agent Message. Types > 127 are binary.
     enum AGENT_MESSAGE
         {
         //! All Message types
@@ -116,7 +116,8 @@ public:
         AGENT_MESSAGE_TRACK=7,
         AGENT_MESSAGE_IMU=8,
         //! Event Messsages
-        AGENT_MESSAGE_EVENT=9
+        AGENT_MESSAGE_EVENT=9,
+        AGENT_MESSAGE_BINARY=128
         };
 
     //! @}
@@ -150,7 +151,7 @@ public:
     {
         pollstruc meta;
         std::vector <uint8_t> bdata;
-        std::string sdata;
+        std::string adata;
     };
 
     //! Agent Request Function
