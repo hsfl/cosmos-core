@@ -1349,7 +1349,7 @@ int32_t data_load_archive(std::string node, std::string agent, double utcbegin, 
             tfd.open(files[i].path);
             if (tfd.is_open())
             {
-                while (getline(tfd,tstring))
+                while (std::getline(tfd,tstring))
                 {
                     result.push_back(tstring);
                 }
@@ -1378,73 +1378,6 @@ int32_t data_load_archive(double mjd, std::vector<std::string> &telem, std::vect
     }
     iretn = data_load_archive(cinfo->pdata.node.name, "soh", mjd, "event", event);
 
-    //    DIR *jdp;
-    //    struct dirent *td;
-    //    int year, month;
-    //    double day, jday;
-    //    int len, dlen;
-    //    char dtemp[356];
-    //    std::ifstream tfd;
-    //    std::string tstring;
-
-    //    telem.clear();
-    //    event.clear();
-
-    //    mjd = (int)mjd;
-    //    mjd2ymd(mjd,&year,&month,&day,&jday);
-
-    //    get_nodedir(cinfo->pdata.node.name);
-    //    if (nodedir.size())
-    //    {
-    //        dlen = nodedir.size() + 33 + strlen(cinfo->pdata.node.name);
-    //        sprintf(dtemp,"%s/data/soh/%4d/%03d",nodedir.c_str(),year,(int32_t)jday);
-    //        if ((jdp=opendir(dtemp))!=nullptr)
-    //        {
-    //            while ((td=readdir(jdp))!=nullptr)
-    //            {
-    //                if (td->d_name[0] != '.')
-    //                {
-    //                    sprintf(dtemp,"%s/data/soh/%04d/%03d/%s",nodedir.c_str(),year,(int32_t)jday,td->d_name);
-    //                    if (((len=strlen(dtemp)) > dlen))
-    //                        tfd.open(dtemp);
-    //                    if (tfd.is_open())
-    //                    {
-    //                        while (getline(tfd,tstring))
-    //                        {
-    //                            switch (dtemp[dlen])
-    //                            {
-    //                            //! Telemetry file
-    //                            case 't':
-    //                                if (!strcmp(&dtemp[dlen],"telemetry"))
-    //                                {
-    //                                    telem.push_back(tstring);
-    //                                }
-    //                                break;
-    //                                //! Event file
-    //                            case 'e':
-    //                                //! Log file
-    //                            case 'l':
-    //                                //! Command file
-    //                            case 'c':
-    //                                //! Message file
-    //                            case 'm':
-    //                                if (!strcmp(&dtemp[dlen],"event") || !strcmp(&dtemp[dlen],"log") || !strcmp(&dtemp[dlen],"command") || !strcmp(&dtemp[dlen],"message"))
-    //                                {
-    //                                    event.push_back(tstring);
-    //                                }
-    //                                break;
-    //                            }
-    //                        }
-    //                        tfd.close();
-    //                    }
-    //                }
-    //            }
-    //            closedir(jdp);
-
-    //            return 0;
-    //        }
-    //    }
-    //    return (DATA_ERROR_ARCHIVE);
     return iretn;
 }
 

@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
 		std::string line;
 		command cmd;
 
-		while(getline(infile,line))
+        while(std::getline(infile,line))
 		{
 			cmd.set_command(line);
 

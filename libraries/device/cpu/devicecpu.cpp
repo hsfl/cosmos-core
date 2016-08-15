@@ -230,7 +230,7 @@ std::string DeviceCpuLinux::getCurrentProcessName(){
     std::string line;
 
     if (ifs.is_open()) {
-        while ( getline (ifs,line) )
+        while ( std::getline(ifs,line) )
         {
             //            std::cout << line << '\n';
 
