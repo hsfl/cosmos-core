@@ -91,6 +91,7 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
     }
 
     cinfo->pdata.agent[0].client = 1;
+    cinfo->pdata.node.utc = 0.;
     strncpy(cinfo->pdata.agent[0].beat.node, cinfo->pdata.node.name ,COSMOS_MAX_NAME);
     cinfo->pdata.agent[0].beat.ntype = ntype;
 

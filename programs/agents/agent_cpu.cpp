@@ -17,8 +17,8 @@
 #include "elapsedtime.h"
 #include "stringlib.h"
 
-#include "device/cpu/devicecpu.h"
-#include "device/disk/devicedisk.h"
+#include "devicecpu.h"
+#include "devicedisk.h"
 
 #include <stdio.h>
 #include <iostream>
