@@ -144,7 +144,9 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
     // Initialize important server variables
 
     strncpy(cinfo->pdata.agent[0].beat.node, cinfo->pdata.node.name, COSMOS_MAX_NAME);
+    nodeName = cinfo->pdata.agent[0].beat.node;
     strncpy(cinfo->pdata.agent[0].beat.proc, tname, COSMOS_MAX_NAME);
+    agentName = cinfo->pdata.agent[0].beat.proc;
     //	cinfo->pdata.agent[0].beat.ntype = ntype;
     if (bprd >= AGENT_HEARTBEAT_PERIOD_MIN)
         cinfo->pdata.agent[0].beat.bprd = bprd;
@@ -295,12 +297,12 @@ int32_t CosmosAgent::start()
  */
 int32_t CosmosAgent::shutdown()
 {
+    if (cinfo != nullptr)
+    {
+        cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::SHUTDOWN);
+    }
     if (agentName.size())
     {
-        if (cinfo != nullptr)
-        {
-            cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::SHUTDOWN);
-        }
         if (hthread.joinable())
         {
             hthread.join();
