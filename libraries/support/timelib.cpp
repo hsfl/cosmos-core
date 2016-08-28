@@ -1037,10 +1037,23 @@ int16_t isleap(int32_t year)
         if (!(year%100))
         {
             if (!(year%400))
+            {
                 return (1);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            return 1;
         }
     }
-    return 0;
+    else
+    {
+        return 0;
+    }
 }
 
 //! Load IERS Polar Motion, UT1-UTC, Leap Seconds.
