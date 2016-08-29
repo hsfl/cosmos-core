@@ -404,29 +404,34 @@ int32_t CosmosAgent::send_request(beatstruc hbeat, std::string request, std::str
 int32_t CosmosAgent::get_server(std::string node, std::string name, float waitsec, beatstruc *rbeat)
 {
     beatstruc cbeat;
+    messstruc message;
 
-    //! 3. Loop for ::waitsec seconds, filling list with any discovered heartbeats.
+    //! 3. Loop for ::waitsec seconds, or until we discover desired heartbeat.
 
     ElapsedTime ep;
     ep.start();
 
     do
     {
-        cbeat = CosmosAgent::poll_beat(1);
+        CosmosAgent::readring(message, AGENT_MESSAGE_BEAT, waitsec-ep.split());
 
-        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
+        if (name == message.meta.beat.proc && node == message.meta.beat.node)
         {
             if (rbeat != NULL)
-                *rbeat = cbeat;
+            {
+                *rbeat = message.meta.beat;
+            }
             return (1);
         }
 
-        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
-        {
-            if (rbeat != NULL)
-                *rbeat = cbeat;
-            return (1);
-        }
+//        cbeat = CosmosAgent::poll_beat(1);
+
+//        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
+//        {
+//            if (rbeat != NULL)
+//                *rbeat = cbeat;
+//            return (1);
+//        }
 
     } while (ep.split() <= waitsec);
 
@@ -1800,6 +1805,11 @@ int32_t CosmosAgent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8
 */
 int32_t CosmosAgent::readring(messstruc &message, uint8_t type, float waitsec)
 {
+    if (waitsec < 0.)
+    {
+        waitsec = 0.;
+    }
+
     if (cinfo == nullptr)
     {
         return AGENT_ERROR_NULL;

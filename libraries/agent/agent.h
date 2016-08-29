@@ -230,7 +230,7 @@ private:
     int32_t  portNumber        = 0;
 
     std::string version  = "0.0";
-    float    timeoutSec  = 1.0;
+    float    timeoutSec  = 5.0;
     bool printMessages   = true; // by default?
     bool logTime         = true; // by default
     double timeStart; // UTC starting time for this agent in MJD
