@@ -403,7 +403,6 @@ int32_t CosmosAgent::send_request(beatstruc hbeat, std::string request, std::str
 */
 int32_t CosmosAgent::get_server(std::string node, std::string name, float waitsec, beatstruc *rbeat)
 {
-    beatstruc cbeat;
     messstruc message;
 
     //! 3. Loop for ::waitsec seconds, or until we discover desired heartbeat.
@@ -413,16 +412,28 @@ int32_t CosmosAgent::get_server(std::string node, std::string name, float waitse
 
     do
     {
-        CosmosAgent::readring(message, AGENT_MESSAGE_BEAT, waitsec-ep.split());
-
-        if (name == message.meta.beat.proc && node == message.meta.beat.node)
+        for (size_t i=0; i<agent_list.size(); ++i)
         {
-            if (rbeat != NULL)
+            if (name == agent_list[i].proc && node == agent_list[i].node)
             {
-                *rbeat = message.meta.beat;
+                if (rbeat != NULL)
+                {
+                    *rbeat = agent_list[i];
+                }
+                return (1);
             }
-            return (1);
         }
+        COSMOS_SLEEP(.1);
+//        int32_t type = CosmosAgent::readring(message, AGENT_MESSAGE_BEAT, waitsec-ep.split());
+
+//        if (type == AGENT_MESSAGE_BEAT && name == message.meta.beat.proc && node == message.meta.beat.node)
+//        {
+//            if (rbeat != NULL)
+//            {
+//                *rbeat = message.meta.beat;
+//            }
+//            return (1);
+//        }
 
 //        cbeat = CosmosAgent::poll_beat(1);
 
