@@ -21,6 +21,7 @@ Product  {
 
     Depends { name: "CosmosSupport" }
     Depends { name: "CosmosMath" }
+    Depends { name: "CosmosDeviceCpu" }
 
 
     Export {

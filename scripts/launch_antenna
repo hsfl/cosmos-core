@@ -1,0 +1,12 @@
+#!/bin/bash
+#export COSMOS=/kauaicc
+mkdir -p $COSMOS/log
+
+#finally start agent antenna
+agent_antenna kauaicc $1 >> $COSMOS/log/agent_antenna_$1.log 2>&1 &
+echo "agent_antenna started"
+
+# Exit 0 for rc.local success
+exit 0
+
+
