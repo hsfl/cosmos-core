@@ -1,0 +1,9 @@
+#!/bin/bash
+#export COSMOS=/kauaicc
+mkdir -p $COSMOS/log
+agent_exec_soh kauaicc >> $COSMOS/log/agent_soh.log 2>&1 &
+
+# Exit 0 for rc.local success
+exit 0
+
+

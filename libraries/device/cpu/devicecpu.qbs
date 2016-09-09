@@ -14,7 +14,7 @@ Product {
 
     Export {
         Depends { name: "cpp" }
-        cpp.includePaths: [product.sourceDirectory]
+        cpp.includePaths: [product.sourceDirectory, "../../device/cpu/"]
     }
 
 //    Depends { name: "CosmosSupport" }

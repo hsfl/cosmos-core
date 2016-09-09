@@ -1,0 +1,7 @@
+#!/bin/bash
+launch_file
+launch_exec
+launch_antenna yagi
+launch_radio uhf
+launch_radio vhf
+launch_control
