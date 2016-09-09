@@ -26,6 +26,7 @@ Product {
         './',
         '../',
         '../support/',
+        '../device/cpu/',
     ]
 
 

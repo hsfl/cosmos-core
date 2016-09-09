@@ -13,6 +13,7 @@ Product  {
     cpp.includePaths : [
         '../../support/',
         '../../thirdparty/',
+        '../../device/cpu/',
     ]
     cpp.cxxLanguageVersion : "c++11"
 //    cpp.cxxStandardLibrary : "libc++"
