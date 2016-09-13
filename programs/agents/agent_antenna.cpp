@@ -174,6 +174,9 @@ int main(int argc, char *argv[])
 			// Find most recent position
             switch (agent->cinfo->pdata.device[devindex].all.gen.model)
 			{
+            case DEVICE_MODEL_LOOPBACK:
+                iretn = 0;
+                break;
 			case DEVICE_MODEL_GS232B:
 				iretn = gs232b_get_az_el(current.azim, current.elev);
 				break;
@@ -398,14 +401,13 @@ int32_t connect_antenna()
 
 int32_t request_debug(char *req, char* response, CosmosAgent *)
 {
-	switch (debug)
+    if (debug)
 	{
-	case true:
 		debug = false;
-		break;
-	case false:
-		debug = true;
-		break;
+}
+    else
+    {
+        debug = true;
 	}
 
 	return 0;

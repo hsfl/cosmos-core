@@ -51,6 +51,7 @@ ts2000_state ts2000;
 ic9100_handle ic9100;
 
 tcvstruc target;
+tcvstruc actual;
 
 int32_t lasterrorcode;
 char lasterrormessage[300];
@@ -195,6 +196,7 @@ int main(int argc, char *argv[])
 
 	// Initialize values so connect_radio will work
     target = agent->cinfo->pdata.device[deviceindex].tcv;
+    actual = agent->cinfo->pdata.device[deviceindex].tcv;
 
 	iretn = connect_radio();
 
@@ -204,6 +206,26 @@ int main(int argc, char *argv[])
 		{
             switch (agent->cinfo->pdata.device[deviceindex].all.gen.model)
 			{
+            case DEVICE_MODEL_LOOPBACK:
+                {
+                    agent->cinfo->pdata.device[deviceindex].tcv.freq = actual.freq - freqoffset;
+                    if (radioenabled && target.freq != actual.freq)
+                    {
+                        actual.freq = target.freq;
+                    }
+                    agent->cinfo->pdata.device[deviceindex].tcv.band = actual.band;
+                    if (radioenabled && target.band != actual.band)
+                    {
+                        actual.band = target.band;
+                    }
+                    actual.band = target.band;
+                    agent->cinfo->pdata.device[deviceindex].tcv.opmode = actual.opmode;
+                    if (radioenabled && target.opmode != actual.opmode)
+                    {
+                        actual.opmode = target.opmode;
+                    }
+                }
+                break;
 			case DEVICE_MODEL_ASTRODEV:
 				break;
 			case DEVICE_MODEL_IC9100:
@@ -498,6 +520,11 @@ int32_t connect_radio()
 
     switch (agent->cinfo->pdata.device[deviceindex].all.gen.model)
 	{
+    case DEVICE_MODEL_LOOPBACK:
+        {
+            radioconnected = true;
+        }
+        break;
 	case DEVICE_MODEL_ASTRODEV:
 		break;
 	case DEVICE_MODEL_IC9100:
