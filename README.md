@@ -29,6 +29,7 @@ The two COSMOS agents should be talking to each other at this point.
 ![agent_001_agent_002.PNG](https://bitbucket.org/repo/EpA5jo/images/402568663-agent_001_agent_002.PNG)
 
 Alternatively you can use the cosmos-core.pro file (qmake) or cosmos-core.qbs (QBS) but these are just experimental build options for the moment.
+
 * Open Qt Creator and open the project file 'cosmos-core.pro' 
 * Configure your project (ex: on Windows it will be something like `Desktop Qt 5.5.1 MinGW 32 bit')
 * Optional step to compile the code faster. Please read note 1 if interested. (For Linux check note 2)
