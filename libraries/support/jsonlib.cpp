@@ -80,7 +80,9 @@ std::vector <std::string> port_type_string
     "rs422",
     "ethernet",
     "usb",
-    "path"
+    "path",
+    "loopback",
+    "propagator"
 };
 
 /*! \ingroup jsonlib

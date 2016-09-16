@@ -363,6 +363,9 @@ int32_t connect_antenna()
 
     switch (agent->cinfo->pdata.device[devindex].all.gen.model)
 	{
+    case DEVICE_MODEL_LOOPBACK:
+        antconnected = true;
+        break;
 	case DEVICE_MODEL_GS232B:
 		iretn = gs232b_connect(antdevice);
 
