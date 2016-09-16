@@ -1,0 +1,7 @@
+#!/bin/bash
+launch_file $2
+launch_exec $1
+launch_antenna $1 yagi
+launch_radio $1 uhf
+launch_radio $1 vhf
+launch_control $1
