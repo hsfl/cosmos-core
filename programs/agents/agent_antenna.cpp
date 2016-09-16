@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-    if (!(agent = new CosmosAgent(NetworkType::UDP,nodename.c_str(),agentname.c_str(),1.,0,AGENTMAXBUFFER)))
+    if (!(agent = new CosmosAgent(NetworkType::UDP, nodename, agentname))
 	{
 		printf("Error %d: Setting up Agent antenna\n",JSON_ERROR_NOJMAP);
 		exit (JSON_ERROR_NOJMAP);
