@@ -1,10 +1,9 @@
 #!/bin/bash
-#export COSMOS=/kauaicc
 mkdir -p $COSMOS/log
 
 #finally start agent radio
-agent_radio kauaicc $1 >> $COSMOS/log/agent_radio_$1.log 2>&1 &
-echo "agent_radio started"
+agent_radio $1 $2 >> $COSMOS/log/agent_radio_$2.log 2>&1 &
+echo "agent_radio started for $1:$2"
 
 # Exit 0 for rc.local success
 exit 0

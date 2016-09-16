@@ -1,9 +1,8 @@
 #!/bin/bash
-#export COSMOS=/kauaicc
 mkdir -p $COSMOS/log
 
 #finally start agent control
-agent_control kauaicc >> $COSMOS/log/agent_control.log 2>&1 &
+agent_control $1 >> $COSMOS/log/agent_control.log 2>&1 &
 echo "agent_control started"
 
 # Exit 0 for rc.local success
