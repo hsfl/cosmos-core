@@ -1868,7 +1868,7 @@ imustruc agent_poll_imu(cosmosstruc *cinfo, float waitsec)
 //    cinfo = agent_setup_server(cinfo, name, beat_period, port, buffer_size, multiflag, timeoutSec);
 
 //    // if setup server was not sucessfull
-//    if (cinfo == NULL)
+//    if (cinfo == nullptr)
 //    {
 //        // TODO: improve error message with a more detailed description
 //        // of the reason for failure

@@ -46,21 +46,21 @@ bool printStatus;
 
 int myagent(), create_node();
 
-int32_t request_soh(char *request, char* response, CosmosAgent *agent);
+int32_t request_soh(char *request, char* response, CosmosAgent *);
 int32_t request_bootCount(char *request, char* response, CosmosAgent *);
 
 // disk
-int32_t request_diskSize(char *request, char *response, CosmosAgent *agent);
-int32_t request_diskUsed(char *request, char *response, CosmosAgent *agent);
-int32_t request_diskFree(char *request, char *response, CosmosAgent *agent);
-int32_t request_diskFreePercent (char*request, char *response, CosmosAgent *agent);
+int32_t request_diskSize(char *request, char *response, CosmosAgent *);
+int32_t request_diskUsed(char *request, char *response, CosmosAgent *);
+int32_t request_diskFree(char *request, char *response, CosmosAgent *);
+int32_t request_diskFreePercent (char*request, char *response, CosmosAgent *);
 
 // cpu
-int32_t request_cpuProcess(char*request, char *response, CosmosAgent *agent);
-int32_t request_load(char *request, char *response, CosmosAgent *agent);
-int32_t request_mem(char *request, char *response, CosmosAgent *agent);
-int32_t request_mempercent (char*request, char *response, CosmosAgent *agent);
-int32_t request_printStatus(char *request, char *response, CosmosAgent *agent);
+int32_t request_cpuProcess(char*request, char *response, CosmosAgent *);
+int32_t request_load(char *request, char *response, CosmosAgent *);
+int32_t request_mem(char *request, char *response, CosmosAgent *);
+int32_t request_mempercent (char*request, char *response, CosmosAgent *);
+int32_t request_printStatus(char *request, char *response, CosmosAgent *);
 
 
 std::string agentname  = "cpu";

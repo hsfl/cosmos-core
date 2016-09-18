@@ -173,85 +173,85 @@ printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"e
 	for (int i=0; i<100; ++i)
 	{
 		// Target in view
-		sprintf(cinfo->pdata.event[0].l.name,"TIV_${target_name_%03d}",i);
-		cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT | EVENT_FLAG_PAIR;
-		cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (2*EVENT_SCALE_COLOR);
-		cinfo->pdata.event[0].l.type = EVENT_TYPE_TARG;
-		sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
-		sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=5)&(\\\"target_elto_%03d\\\">\\\"target_min_%03d\\\"))",i,i,i);
+        sprintf(cinfo->pdata.event[0].l.name,"TIV_${target_name_%03d}",i);
+        cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT | EVENT_FLAG_PAIR;
+        cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (2*EVENT_SCALE_COLOR);
+        cinfo->pdata.event[0].l.type = EVENT_TYPE_TARG;
+        sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
+        sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=5)&(\\\"target_elto_%03d\\\">\\\"target_min_%03d\\\"))",i,i,i);
         printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"event_flag\",\"event_condition\",\"event_data\"}", cinfo->meta, cinfo->pdata));
 
 		// Target out of view
-		sprintf(cinfo->pdata.event[0].l.name,"TOV_${target_name_%03d}",i);
-		cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
-		cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (2*EVENT_SCALE_COLOR);
-		cinfo->pdata.event[0].l.type = EVENT_TYPE_TARG;
-		sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
-		sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=5)&(\\\"target_elto_%03d\\\"<\\\"target_min_%03d\\\"))",i,i,i);
+        sprintf(cinfo->pdata.event[0].l.name,"TOV_${target_name_%03d}",i);
+        cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (2*EVENT_SCALE_COLOR);
+        cinfo->pdata.event[0].l.type = EVENT_TYPE_TARG;
+        sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
+        sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=5)&(\\\"target_elto_%03d\\\"<\\\"target_min_%03d\\\"))",i,i,i);
         printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"event_flag\",\"event_condition\",\"event_data\"}", cinfo->meta, cinfo->pdata));
 
 		// Target minimum range
-		sprintf(cinfo->pdata.event[0].l.name,"TMR_${target_name_%03d}",i);
-		cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
-		cinfo->pdata.event[0].l.flag |= (3*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (0*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (2*EVENT_SCALE_COLOR);
-		cinfo->pdata.event[0].l.flag |= EVENT_FLAG_COUNTDOWN;
-		cinfo->pdata.event[0].l.type = EVENT_TYPE_TARG;
-		sprintf(cinfo->pdata.event[0].l.data,"target_range_%03d",i);
-		sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=5)&(\\\"target_close_%03d\\\"<0))",i,i);
+        sprintf(cinfo->pdata.event[0].l.name,"TMR_${target_name_%03d}",i);
+        cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
+        cinfo->pdata.event[0].l.flag |= (3*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (0*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (2*EVENT_SCALE_COLOR);
+        cinfo->pdata.event[0].l.flag |= EVENT_FLAG_COUNTDOWN;
+        cinfo->pdata.event[0].l.type = EVENT_TYPE_TARG;
+        sprintf(cinfo->pdata.event[0].l.data,"target_range_%03d",i);
+        sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=5)&(\\\"target_close_%03d\\\"<0))",i,i);
         printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"event_flag\",\"event_condition\",\"event_data\"}", cinfo->meta, cinfo->pdata));
 
 		// Acquisition of Signal
-		sprintf(cinfo->pdata.event[0].l.name,"AOS_${target_name_%03d}",i);
-		cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT | EVENT_FLAG_PAIR;
-		cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
-		cinfo->pdata.event[0].l.type = EVENT_TYPE_GS;
-		sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
-		sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\">\\\"target_min_%03d\\\"))",i,i,i);
+        sprintf(cinfo->pdata.event[0].l.name,"AOS_${target_name_%03d}",i);
+        cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT | EVENT_FLAG_PAIR;
+        cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
+        cinfo->pdata.event[0].l.type = EVENT_TYPE_GS;
+        sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
+        sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\">\\\"target_min_%03d\\\"))",i,i,i);
         printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"event_flag\",\"event_condition\",\"event_data\"}", cinfo->meta, cinfo->pdata));
 
 		// Acquisition of Signal + 5 degrees
-		sprintf(cinfo->pdata.event[0].l.name,"AOS+5_${target_name_%03d}",i);
-		cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
-		cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
-		cinfo->pdata.event[0].l.type = EVENT_TYPE_GS5;
-		sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
-		sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\">(\\\"target_min_%03d\\\"+.0873)))",i,i,i);
+        sprintf(cinfo->pdata.event[0].l.name,"AOS+5_${target_name_%03d}",i);
+        cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
+        cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
+        cinfo->pdata.event[0].l.type = EVENT_TYPE_GS5;
+        sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
+        sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\">(\\\"target_min_%03d\\\"+.0873)))",i,i,i);
         printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"event_flag\",\"event_condition\",\"event_data\"}", cinfo->meta, cinfo->pdata));
 
 		// Acquisition of Signal + 10 degrees
-		sprintf(cinfo->pdata.event[0].l.name,"AOS+10_${target_name_%03d}",i);
-		cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
-		cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
-		cinfo->pdata.event[0].l.type = EVENT_TYPE_GS10;
-		sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
-		sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\">(\\\"target_min_%03d\\\"+.1745)))",i,i,i);
+        sprintf(cinfo->pdata.event[0].l.name,"AOS+10_${target_name_%03d}",i);
+        cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
+        cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
+        cinfo->pdata.event[0].l.type = EVENT_TYPE_GS10;
+        sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
+        sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\">(\\\"target_min_%03d\\\"+.1745)))",i,i,i);
         printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"event_flag\",\"event_condition\",\"event_data\"}", cinfo->meta, cinfo->pdata));
 
 		// Loss of Signal
-		sprintf(cinfo->pdata.event[0].l.name,"LOS_${target_name_%03d}",i);
-		cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
-		cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
-		cinfo->pdata.event[0].l.type = EVENT_TYPE_GS;
-		sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
-		sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\"<\\\"target_min_%03d\\\"))",i,i,i);
+        sprintf(cinfo->pdata.event[0].l.name,"LOS_${target_name_%03d}",i);
+        cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT | EVENT_FLAG_PAIR | EVENT_FLAG_EXIT;
+        cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
+        cinfo->pdata.event[0].l.type = EVENT_TYPE_GS;
+        sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
+        sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\"<\\\"target_min_%03d\\\"))",i,i,i);
         printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"event_flag\",\"event_condition\",\"event_data\"}", cinfo->meta, cinfo->pdata));
 
 		// Loss of Signal + 5 degrees
-		sprintf(cinfo->pdata.event[0].l.name,"LOS+5_${target_name_%03d}",i);
-		cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
-		cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
-		cinfo->pdata.event[0].l.type = EVENT_TYPE_GS5;
-		sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
-		sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\"<(\\\"target_min_%03d\\\"+.0873)))",i,i,i);
+        sprintf(cinfo->pdata.event[0].l.name,"LOS+5_${target_name_%03d}",i);
+        cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
+        cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
+        cinfo->pdata.event[0].l.type = EVENT_TYPE_GS5;
+        sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
+        sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\"<(\\\"target_min_%03d\\\"+.0873)))",i,i,i);
         printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"event_flag\",\"event_condition\",\"event_data\"}", cinfo->meta, cinfo->pdata));
 
 		// Loss of Signal + 10 degrees
-		sprintf(cinfo->pdata.event[0].l.name,"LOS+10_${target_name_%03d}",i);
-		cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
-		cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
-		cinfo->pdata.event[0].l.type = EVENT_TYPE_GS10;
-		sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
-		sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\"<(\\\"target_min_%03d\\\"+.1745)))",i,i,i);
+        sprintf(cinfo->pdata.event[0].l.name,"LOS+10_${target_name_%03d}",i);
+        cinfo->pdata.event[0].l.flag = EVENT_FLAG_ACTUAL | EVENT_FLAG_CONDITIONAL | EVENT_FLAG_REPEAT;
+        cinfo->pdata.event[0].l.flag |= (1*EVENT_SCALE_PRIORITY) | (1*EVENT_FLAG_COUNTDOWN) | (3*EVENT_SCALE_WARNING) | (0*EVENT_SCALE_ALARM) | (3*EVENT_SCALE_COLOR);
+        cinfo->pdata.event[0].l.type = EVENT_TYPE_GS10;
+        sprintf(cinfo->pdata.event[0].l.data,"target_elto_%03d",i);
+        sprintf(cinfo->pdata.event[0].l.condition,"((\\\"target_type_%03d\\\"=1)&(\\\"target_elto_%03d\\\"<(\\\"target_min_%03d\\\"+.1745)))",i,i,i);
         printf("%s\n",json_of_list(ojstring, (char *)"{\"event_name\",\"event_type\",\"event_flag\",\"event_condition\",\"event_data\"}", cinfo->meta, cinfo->pdata));
 	}
 }

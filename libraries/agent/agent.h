@@ -30,6 +30,68 @@
 #ifndef COSMOSAGENT_H
 #define COSMOSAGENT_H
 
+/*! \file agent.h
+*	\brief Agent Server and Client header file
+*
+*/
+
+//! \ingroup support
+//! \defgroup agentlib Agent Server and Client Library
+//! %Agent Server and Client.
+//!
+//! These functions support the transformation of a generic program into a COSMOS aware program. The first level of transformation
+//! creates a COSMOS Client that is able to speak the COSMOS language and communicate with any active COSMOS Agents. The second level
+//! of transformation created a full COSMOS Agent.
+//!
+//! Clients are COSMOS aware programs that are made aware of the ::namespace, and are given an independent thread that collects
+//! messages broadcast by any Agents on the same ::NetworkType. This allows them to communicate with Agents.
+//! Agents are persistent programs that provide the system framework for any
+//! COSMOS implementation. They are similar to UNIX Daemons or Windows Services in that
+//! they run continuously until commanded to stop, and serve a constant function, either
+//! automatically or on demand.
+//!
+//! In addition to the Message thread created for Clients, Agents are provided with two additional threads of execution.
+//! These threads provide the following services:
+//!
+//! - "Heartbeat": Delivered to a system specified Multicast (::AGENTMCAST), or Broadcast address as a \ref json_packet,
+//! at some regular interval.
+//!     - Provides the time, the name of the Node and %Agent, the IP address and
+//! Port at which it can be reached, the size of its communication buffer, and the jitter in heartbeat period.
+//!     - Provides any additional information you care to send, established through ::set_sohstring.
+//!
+//! - "Requests": available at the IP Port reported in the Heartbeat.
+//! Requests are received as plain text commands and arguments. They are processed and
+//! any response is sent back. The response, even if empty, always ends with [OK], if understood,
+//! or [NOK] if not. Requests and their responses must be less than the size of the communications
+//! buffer. Built in requests include:
+//!     - "help" - list available requests for this %Agent.
+//!     - "shutdown" - causes the %Agent to stop what it is doing and exit.
+//!     - "idle" - causes the %Agent to transition to ::AgentState::IDLE.
+//!     - "monitor" - causes the %Agent to transition to ::AgentState::MONITOR.
+//!     - "run" - causes the %Agent to transition to ::AgentState::RUN.
+//!     - "status" - causes the agent to dump any \ref jsonlib variables it is monitoring.
+//!     - "getvalue {\"json_name_000\"[,\"json_name_001\"]}" - requests the %Agent to return the values
+//! of the indicated JSON names.
+//!     - "setvalue {\"json_name_000\":value0[,\"json_name_001\":value1]}" - requests the %Agent to set
+//! the values of the indicated JSON names.
+//!     - "echo utc crc nbytes bytes" - requests the %Agent to echo the local time the request was received,
+//! the CRC calculated for the bytes, and the bytes themselves.
+//!     - "nodejson" - return the JSON representing the contents of node.ini.
+//!     - "statejson" - return the JSON representing the contents of state.ini.
+//!     - "utcstartjson" - return the JSON representing the contents of utcstart.ini.
+//!     - "piecesjson" - return the JSON representing the contents of pieces.ini.
+//!     - "devgenjson" - return the JSON representing the contents of devgen.ini.
+//!     - "devspecjson" - return the JSON representing the contents of devspec.ini.
+//!     - "portsjson" - return the JSON representing the contents of ports.ini.
+//!     - "aliasesjson" - return the JSON representing the contents of aliases.ini.
+//!     - "targetsjson" - return the JSON representing the contents of targets.ini.
+//!     - Additional requests can be added using ::add_request, that tie together user defined
+//! functions with user defined ASCII strings.
+//!
+//! Both Clients and Agents are formed using ::CosmosAgent. Once you have performed any initializations necessary, you should
+//! enter a continuous loop protected by ::agent_running. Upon exiting from
+//! this loop, you should call ::agent_shutdown_server.
+
 #include "configCosmos.h"
 #include "cosmos-errno.h"
 #include "stringlib.h"
@@ -67,38 +129,41 @@ public:
         };
 
     //! Multiple agents per name
-    #define AGENT_MULTIPLE true
+#define AGENT_MULTIPLE true
     //! Single agent per name
-    #define AGENT_SINGLE false
+#define AGENT_SINGLE false
     //! Blocking Agent
-    #define AGENT_BLOCKING true
+#define AGENT_BLOCKING true
     //! Non-blocking Agent
-    #define AGENT_NONBLOCKING false
+#define AGENT_NONBLOCKING false
     //! Talk followed by optional listen (sendto address)
-    #define AGENT_TALK 0
+#define AGENT_TALK 0
     //! Listen followed by optional talk (recvfrom INADDRANY)
-    #define AGENT_LISTEN 1
+#define AGENT_LISTEN 1
     //! Communicate socket (sendto followed by recvfrom)
-    #define AGENT_COMMUNICATE 2
+#define AGENT_COMMUNICATE 2
     //! Talk over multiple interfaces
-    #define AGENT_JABBER 3
+#define AGENT_JABBER 3
 
     //! Base AGENT port number
-    #define AGENTBASE 10020
+#define AGENTBASE 10020
     //! Default SEND port
-    #define AGENTSENDPORT 10020
+#define AGENTSENDPORT 10020
     //! Default RECV port
-    #define AGENTRECVPORT 10021
+#define AGENTRECVPORT 10021
     //! AGENT heartbeat Multicast address
-    #define AGENTMCAST "225.1.1.1"
+#define AGENTMCAST "225.1.1.1"
     //! Maximum AGENT server list count
-    #define AGENTMAXLIST 500
+#define AGENTMAXLIST 500
     //! Maximum AGENT heartbeat size
-    #define AGENTMAXHEARTBEAT 200
+#define AGENTMAXHEARTBEAT 200
     //! Default AGENT socket RCVTIMEO (100 msec)
-    #define AGENTRCVTIMEO 100000
+#define AGENTRCVTIMEO 100000
     //! Default minium heartbeat period (10 msec)
-    #define AGENT_HEARTBEAT_PERIOD_MIN 0.01
+#define AGENT_HEARTBEAT_PERIOD_MIN 0.01
+
+    //! Default size of message ring buffer
+#define MESSAGE_RING_SIZE 100
 
     //! Type of Agent Message. Types > 127 are binary.
     enum AGENT_MESSAGE
@@ -122,7 +187,7 @@ public:
 
     //! @}
 
-    #define MAXARGCOUNT 100
+#define MAXARGCOUNT 100
 
     //! \ingroup agentlib
     //! \defgroup agentlib_typedefs Agent Server and Client Library typedefs
@@ -163,8 +228,8 @@ public:
     //!
     // agent functions
     int32_t start();
-//    int32_t add_request(std::string token, request_function function);
-//    int32_t add_request(std::string token, request_function function, std::string description);
+    //    int32_t add_request(std::string token, request_function function);
+    //    int32_t add_request(std::string token, request_function function, std::string description);
     int32_t add_request_internal(std::string token, internal_request_function function, std::string synopsis="", std::string description="");
     int32_t add_request(std::string token, external_request_function function, std::string synopsis="", std::string description="");
     int32_t send_request(beatstruc cbeat, std::string request, std::string &output, float waitsec);
@@ -186,7 +251,9 @@ public:
     int32_t unsubscribe();
     int32_t poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec = 1.);
     int32_t poll(pollstruc &meta, std::vector<uint8_t> &message, uint8_t type, float waitsec = 1.);
-    int32_t readring(messstruc &message, uint8_t type, float waitsec = 1.);
+    int32_t readring(messstruc &message, uint8_t type = AGENT_MESSAGE_ALL, float waitsec = 1.);
+    int32_t resizering(size_t newsize);
+    int32_t clearring();
     timestruc poll_time(float waitsec);
     beatstruc poll_beat(float waitsec);
     locstruc poll_location(float waitsec);
@@ -213,10 +280,10 @@ public:
 
     //! Ring buffer for incoming messages
     std::vector <messstruc> message_ring;
-    //! Size of message ring buffer
-    int32_t message_count = 100;
-    //! Current leading edge of message ring buffer
-    int32_t message_position;
+    //! Last message placed in message ring buffer
+    size_t message_head = MESSAGE_RING_SIZE;
+    //! Last message rad in message ring buffer
+    size_t message_tail = MESSAGE_RING_SIZE;
 
     // agent variables
 private:

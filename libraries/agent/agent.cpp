@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file agentlib.cpp
+/*! \file agent.cpp
     \brief Agent support functions
 */
 
@@ -55,9 +55,19 @@
 //! \defgroup agentlib_functions Agent Server and Client functions
 //! @{
 
-//! Constructor
-//! Sets up minimum framework for an agent. This makes a nodeless client. Additional functions
-//! allow tieing the agent to a node, and making it a server.
+//! Add COSMOS awareness.
+//! Sets up minimum framework for COSMOS awareness. The minimum call makes a nodeless client, setting up the
+//! message ring buffer thread, and a main thread of execution. Additional parameters are related to making
+//! the program a true Agent by tieing it to a node, and starting the request and heartbeat threads.
+//! \param ntype Transport Layer protocol to be used, taken from ::NetworkType. Defaults to UDP Broadcast.
+//! \param nname Node name. Defaults to empty.
+//! \param aname Agent name. Defaults to empty. If this is defined, the full Agent code will be started.
+//! \param bprd Period, in seconds, for heartbeat. Defaults to 1.
+//! \param bsize Size of interagent communication buffer. Defaults to ::AGENTMAXBUFFER.
+//! \param mflag Boolean controlling weyher or not multiple instances of the same Agent can start. If true, then Agent names
+//! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
+//! the Agent already running.
+//! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
 CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std::string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
 {
     int32_t iretn;
@@ -424,25 +434,25 @@ int32_t CosmosAgent::get_server(std::string node, std::string name, float waitse
             }
         }
         COSMOS_SLEEP(.1);
-//        int32_t type = CosmosAgent::readring(message, AGENT_MESSAGE_BEAT, waitsec-ep.split());
+        //        int32_t type = CosmosAgent::readring(message, AGENT_MESSAGE_BEAT, waitsec-ep.split());
 
-//        if (type == AGENT_MESSAGE_BEAT && name == message.meta.beat.proc && node == message.meta.beat.node)
-//        {
-//            if (rbeat != NULL)
-//            {
-//                *rbeat = message.meta.beat;
-//            }
-//            return (1);
-//        }
+        //        if (type == AGENT_MESSAGE_BEAT && name == message.meta.beat.proc && node == message.meta.beat.node)
+        //        {
+        //            if (rbeat != NULL)
+        //            {
+        //                *rbeat = message.meta.beat;
+        //            }
+        //            return (1);
+        //        }
 
-//        cbeat = CosmosAgent::poll_beat(1);
+        //        cbeat = CosmosAgent::poll_beat(1);
 
-//        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
-//        {
-//            if (rbeat != NULL)
-//                *rbeat = cbeat;
-//            return (1);
-//        }
+        //        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
+        //        {
+        //            if (rbeat != NULL)
+        //                *rbeat = cbeat;
+        //            return (1);
+        //        }
 
     } while (ep.split() <= waitsec);
 
@@ -741,8 +751,7 @@ void CosmosAgent::message_loop()
     int32_t iretn;
 
     // Initialize things
-    message_ring.resize(message_count);
-    message_position = -1;
+    message_ring.resize(MESSAGE_RING_SIZE);
 
     while (CosmosAgent::running())
     {
@@ -764,12 +773,9 @@ void CosmosAgent::message_loop()
                 agent_list.push_back(meta.beat);
             }
 
-            int32_t new_position;
-            if (message_position < message_count - 1)
-            {
-                new_position = message_position + 1;
-            }
-            else
+            size_t new_position;
+            new_position = message_head + 1;
+            if (new_position >= message_ring.size())
             {
                 new_position = 0;
             }
@@ -785,7 +791,7 @@ void CosmosAgent::message_loop()
                 message_ring[new_position].adata.clear();
                 message_ring[new_position].bdata = message;
             }
-            message_position = new_position;
+            message_head = new_position;
         }
         COSMOS_SLEEP(.01);
     }
@@ -1806,8 +1812,8 @@ int32_t CosmosAgent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8
 }
 
 //! Check Ring for message
-/*! Check the message ring for the requested amount of time. Return as soon as a single new message
- * comes in, or the timer runs out.
+/*! Check the message ring for the requested amount of time. Return as soon as a message of the right type
+ * is available, or the timer runs out.
  * \param meta ::pollstruc for storing meta information.
     \param message Vector for storing incoming message.
     \param type Type of message to look for, taken from ::AGENT_MESSAGE.
@@ -1826,31 +1832,63 @@ int32_t CosmosAgent::readring(messstruc &message, uint8_t type, float waitsec)
         return AGENT_ERROR_NULL;
     }
 
-    if (!message_ring.size() || message_position == -1)
-    {
-        return (0);
-    }
-
-    int32_t cposition = message_position;
     ElapsedTime ep;
     ep.start();
     do
     {
-       if (message_position != cposition || waitsec == 0.)
+        if (message_head != message_tail || waitsec == 0.)
         {
-            if (type == AGENT_MESSAGE_ALL || type == message_ring[message_position].meta.type)
+            ++message_tail;
+            if (message_tail >= message_ring.size())
+            {
+                message_tail = 0;
+            }
+
+            if (type == AGENT_MESSAGE_ALL || type == message_ring[message_tail].meta.type)
             {
                 // Copy message.
-                message = message_ring[message_position];
+                message = message_ring[message_tail];
                 return ((int)message.meta.type);
             }
         }
-       if (ep.split() < waitsec)
-       {
-           COSMOS_SLEEP(.1);
-       }
+
+        if (ep.split() < waitsec)
+        {
+            COSMOS_SLEEP(.1);
+        }
     } while (ep.split() < waitsec);
 
+    return 0;
+}
+
+//! Change size of message ring.
+//! Resize the message ring to hold a new maximum number of messages. Adjust the message pointers in the
+//! ring to be appropriate.
+//! \param newsize New maximum message count.
+//! \return Negative error, or zero.
+int32_t CosmosAgent::resizering(size_t newsize)
+{
+    if (message_head >= newsize)
+    {
+        message_head = 0;
+    }
+
+    if (message_tail >= newsize)
+    {
+        message_tail = newsize - 1;
+    }
+
+    return 0;
+}
+
+//! Empty message ring.
+//! Set the internal pointers such that it appears that we have read any messages that are
+//! in the message ring. This has the effect of emptying the message ring as far as ::readring
+//! is concerned.
+//! \return Negative error or zero.
+int32_t CosmosAgent::clearring()
+{
+    message_tail = message_head;
     return 0;
 }
 

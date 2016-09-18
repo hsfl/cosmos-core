@@ -33,7 +33,7 @@
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
-#include "agentlib.h"
+#include "agent/agent.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,6 +46,8 @@ gj_handle gjh;
 char fname[200];
 std::string buf;
 svector azel;
+
+CosmosAgent *agent;
 
 int main(int argc, char *argv[])
 {
@@ -60,14 +62,14 @@ int main(int argc, char *argv[])
 	struct stat sbuf;
 	std::string jstring;
 
-    CosmosAgent agent(NetworkType::UDP, argv[1]);
-    agent.get_server(agent.cinfo->pdata.node.name,(char *)"simulator",5,&imubeat);
-    agent.send_request(imubeat, "statevec", buf, 5);
-    json_parse(buf, agent.cinfo->meta, agent.cinfo->pdata);
-    agent.send_request(imubeat, "value node_name", buf, 5);
-    json_parse(buf, agent.cinfo->meta, agent.cinfo->pdata);
+    agent = new CosmosAgent(NetworkType::UDP, argv[1]);
+    agent->get_server(agent->cinfo->pdata.node.name,(char *)"simulator",5,&imubeat);
+    agent->send_request(imubeat, "statevec", buf, 5);
+    json_parse(buf, agent->cinfo->meta, agent->cinfo->pdata);
+    agent->send_request(imubeat, "value node_name", buf, 5);
+    json_parse(buf, agent->cinfo->meta, agent->cinfo->pdata);
 
-    mjdnow = agent.cinfo->pdata.node.loc.utc;
+    mjdnow = agent->cinfo->pdata.node.loc.utc;
 	fyear = mjd2year(mjdnow);
 	year = (int)fyear;
 	day = (int)(365.26 * (fyear-year)) + 1;
@@ -86,25 +88,25 @@ int main(int argc, char *argv[])
 	}
 
 
-    hardware_init_eci(agent.cinfo->pdata.devspec, agent.cinfo->pdata.node.loc);
-    gauss_jackson_init_eci(gjh, 4, 0, 5., mjdnow, agent.cinfo->pdata.node.loc.pos.eci, agent.cinfo->pdata.node.loc.att.icrf, agent.cinfo->pdata.physics, agent.cinfo->pdata.node.loc);
-    simulate_hardware(agent.cinfo->pdata, agent.cinfo->pdata.node.loc);
-    mjdnow = agent.cinfo->pdata.node.loc.utc;
-    lastlat = agent.cinfo->pdata.node.loc.pos.geod.s.lat;
+    hardware_init_eci(agent->cinfo->pdata.devspec, agent->cinfo->pdata.node.loc);
+    gauss_jackson_init_eci(gjh, 4, 0, 5., mjdnow, agent->cinfo->pdata.node.loc.pos.eci, agent->cinfo->pdata.node.loc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+    simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+    mjdnow = agent->cinfo->pdata.node.loc.utc;
+    lastlat = agent->cinfo->pdata.node.loc.pos.geod.s.lat;
 	for (j=0; j<3; j++)
 	{
 		lastgsel[j] = azel.phi;
 		gsup[j] = 0;
 	}
-    lastsunradiance = agent.cinfo->pdata.node.loc.pos.sunradiance;
+    lastsunradiance = agent->cinfo->pdata.node.loc.pos.sunradiance;
 	fout = fopen("ephemeris","w");
 	eout = fopen("orbitalevents","w");
 	for (i=0; i<8640; i++)
 	{
 		mjdnow += 10./86400.;
-        gauss_jackson_propagate(gjh, agent.cinfo->pdata.physics, agent.cinfo->pdata.node.loc, mjdnow);
-        simulate_hardware(agent.cinfo->pdata, agent.cinfo->pdata.node.loc);
-        output = json_of_ephemeris(jstring,  agent.cinfo->meta, agent.cinfo->pdata);
+        gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
+        simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+        output = json_of_ephemeris(jstring,  agent->cinfo->meta, agent->cinfo->pdata);
 		fprintf(fout,"%s\n",output.c_str());
 		fflush(fout);
 //		mjd2cal(mjdnow,&year,&month,&day,&fd,&iretn);
@@ -115,39 +117,39 @@ int main(int argc, char *argv[])
 		minute = (int)(1440. * fd - hour * 60.);
 		second = (int)(86400. * fd - hour * 3600. - minute * 60.);
 		sprintf(date,"%4d-%02d-%02d,%02d:%02d:%02d,O00000,",year,month,day,hour,minute,second);
-        if (lastlat <= RADOF(-60.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(-60.))
+        if (lastlat <= RADOF(-60.) && agent->cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(-60.))
 			fprintf(eout,"%sS60A\n",date);
-        if (lastlat <= RADOF(-30.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(-30.))
+        if (lastlat <= RADOF(-30.) && agent->cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(-30.))
 			fprintf(eout,"%sS30A\n",date);
-        if (lastlat <= 0. && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= 0.)
+        if (lastlat <= 0. && agent->cinfo->pdata.node.loc.pos.geod.s.lat >= 0.)
 			fprintf(eout,"%sEQA\n",date);
-        if (lastlat <= RADOF(30.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(30.))
+        if (lastlat <= RADOF(30.) && agent->cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(30.))
 			fprintf(eout,"%sN30A\n",date);
-        if (lastlat <= RADOF(60.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(60.))
+        if (lastlat <= RADOF(60.) && agent->cinfo->pdata.node.loc.pos.geod.s.lat >= RADOF(60.))
 			fprintf(eout,"%sN60A\n",date);
-        if (lastlat >= RADOF(-60.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(-60.))
+        if (lastlat >= RADOF(-60.) && agent->cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(-60.))
 			fprintf(eout,"%sS60D\n",date);
-        if (lastlat >= RADOF(-30.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(-30.))
+        if (lastlat >= RADOF(-30.) && agent->cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(-30.))
 			fprintf(eout,"%sS30D\n",date);
-        if (lastlat >= 0. && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= 0.)
+        if (lastlat >= 0. && agent->cinfo->pdata.node.loc.pos.geod.s.lat <= 0.)
 			fprintf(eout,"%sEQD\n",date);
-        if (lastlat >= RADOF(30.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(30.))
+        if (lastlat >= RADOF(30.) && agent->cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(30.))
 			fprintf(eout,"%sN30D\n",date);
-        if (lastlat >= RADOF(60.) && agent.cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(60.))
+        if (lastlat >= RADOF(60.) && agent->cinfo->pdata.node.loc.pos.geod.s.lat <= RADOF(60.))
 			fprintf(eout,"%sN60D\n",date);
 
-        if (lastsunradiance == 0. && agent.cinfo->pdata.node.loc.pos.sunradiance > 0.)
+        if (lastsunradiance == 0. && agent->cinfo->pdata.node.loc.pos.sunradiance > 0.)
 		{
 			date[20] = JSON_TYPE_UINT32;
 			fprintf(eout,"%sUMB_OUT\n",date);
 		}
-        if (lastsunradiance > 0. && agent.cinfo->pdata.node.loc.pos.sunradiance == 0.)
+        if (lastsunradiance > 0. && agent->cinfo->pdata.node.loc.pos.sunradiance == 0.)
 		{
 			date[20] = JSON_TYPE_UINT32;
 			fprintf(eout,"%sUMB_IN\n",date);
 		}
-        lastlat = agent.cinfo->pdata.node.loc.pos.geod.s.lat;
-        lastsunradiance = agent.cinfo->pdata.node.loc.pos.sunradiance;
+        lastlat = agent->cinfo->pdata.node.loc.pos.geod.s.lat;
+        lastsunradiance = agent->cinfo->pdata.node.loc.pos.sunradiance;
 		for (j=0; j<3; j++)
 		{
 			if (azel.phi <= lastgsel[j] && azel.phi > 0.)

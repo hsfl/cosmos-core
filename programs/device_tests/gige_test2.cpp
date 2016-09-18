@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "gige_lib.h"
-#include "agentlib.h"
+#include "agent/agent.h"
 
 uint8_t image[11000000];
 

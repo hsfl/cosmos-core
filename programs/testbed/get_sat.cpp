@@ -36,13 +36,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-cosmosstruc *cinfo;
+CosmosAgent *agent;
 
 int main(int argc, char *argv[])
 {
 
-    CosmosAgent agent(NetworkType::UDP, argv[1]);
+agent = new CosmosAgent(NetworkType::UDP, argv[1]);
 
-create_databases(agent.cinfo->pdata);
+create_databases(agent->cinfo->pdata);
 
 }

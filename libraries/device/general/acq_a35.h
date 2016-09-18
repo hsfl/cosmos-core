@@ -33,7 +33,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "agent/agentlib.h"
+#include "agent/agent.h"
 #include "gige_lib.h"
 
 //! \ingroup devices

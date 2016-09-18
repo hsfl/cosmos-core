@@ -41,7 +41,7 @@
 //! Usage: agent_file destination_ip_address_lo [destination_ip_address_hi]
 
 #include "configCosmos.h"
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
 #include "transferlib.h"
 #include "sliplib.h"
@@ -93,7 +93,7 @@ std::string agentname = "file_";
 /** the (global) name of the heartbeat structure */
 beatstruc cbeat;
 /** the (global) name of the cosmos data structure */
-cosmosstruc *cosmos_data;
+CosmosAgent *agent;
 /** the (global) number of agent sending channels */
 uint16_t send_channels=0;
 uint16_t use_channel = 0;
@@ -167,12 +167,12 @@ int32_t active_node = -1;
 //int32_t node = -1;
 
 
-int32_t request_use_channel(char* request, char* response, void* cosmos_data);
-int32_t request_remove_file(char* request, char* response, void* cosmos_data);
-//int32_t request_send_file(char* request, char* response, void* cosmos_data);
-int32_t request_ls(char* request, char* response, void* cosmos_data);
-int32_t request_list_incoming(char* request, char* response, void* cosmos_data);
-int32_t request_list_outgoing(char* request, char* response, void* cosmos_data);
+int32_t request_use_channel(char* request, char* response, CosmosAgent *agent);
+int32_t request_remove_file(char* request, char* response, CosmosAgent *agent);
+//int32_t request_send_file(char* request, char* response, CosmosAgent *agent);
+int32_t request_ls(char* request, char* response, CosmosAgent *agent);
+int32_t request_list_incoming(char* request, char* response, CosmosAgent *agent);
+int32_t request_list_outgoing(char* request, char* response, CosmosAgent *agent);
 int32_t outgoing_tx_add(tx_progress tx_out);
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name);
 int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 	printf("- Setting up server...");
 	fflush(stdout);
 
-	if ((cosmos_data=agent_setup_server(NetworkType::UDP, "", agentname, 1., 0, AGENTMAXBUFFER,false)) == NULL)
+    if ((agent = new CosmosAgent(NetworkType::UDP, "", agentname)) == NULL)
 	{
 		printf("- Could not setup server... exiting.\n\n");
 		exit (-1);
@@ -323,17 +323,17 @@ int main(int argc, char *argv[])
 	}
 
 	// add agent_file requests
-	if ((iretn=agent_add_request(cosmos_data, (char *)"use_channel",request_use_channel,"{0|1}", "choose slow or fast channel")))
+    if ((iretn=agent->add_request("use_channel",request_use_channel,"{0|1}", "choose slow or fast channel")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cosmos_data, (char *)"remove_file",request_remove_file,"in|out tx_id", "removes file from indicated queue")))
+    if ((iretn=agent->add_request("remove_file",request_remove_file,"in|out tx_id", "removes file from indicated queue")))
 		exit (iretn);
-//	if ((iretn=agent_add_request(cosmos_data, (char *)"send_file",request_send_file,"", "creates and sends metadata/data packets")))
+//	if ((iretn=agent->add_request("send_file",request_send_file,"", "creates and sends metadata/data packets")))
 //		exit (iretn);
-	if ((iretn=agent_add_request(cosmos_data, (char *)"ls",request_ls,"", "lists contents of directory")))
+    if ((iretn=agent->add_request("ls",request_ls,"", "lists contents of directory")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cosmos_data, (char *)"list_incoming",request_list_incoming,"", "lists contents incoming queue")))
+    if ((iretn=agent->add_request("list_incoming",request_list_incoming,"", "lists contents incoming queue")))
 		exit (iretn);
-	if ((iretn=agent_add_request(cosmos_data, (char *)"list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
+    if ((iretn=agent->add_request("list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
 		exit (iretn);
 
 	std::thread send_loop_thread(send_loop);
@@ -343,7 +343,7 @@ int main(int argc, char *argv[])
 	double nextdiskcheck = currentmjd(0.);
 
 	// start the agent
-	while(agent_running(cosmos_data))
+    while(agent->running())
 	{
 		double sleepsec = 86400. * (nextdiskcheck - currentmjd());
 		if (sleepsec > 0.)
@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
 	transmit_queue_check.notify_one();
 	transmit_loop_thread.join();
 
-	agent_shutdown_server(cosmos_data);
+    agent->shutdown();
 
 	exit (0);
 }
@@ -422,7 +422,7 @@ void recv_loop()
 	std::vector<PACKET_BYTE> recvbuf;
 	std::string partial_filepath;
 
-	while (agent_running(cosmos_data))
+    while (agent->running())
 	{
 		COSMOS_USLEEP(1);
 		int32_t nbytes = 0;
@@ -952,7 +952,7 @@ void send_loop()
 
 	current_time = currentmjd();
 
-	while (agent_running(cosmos_data))
+    while (agent->running())
 	{
 		// If we did nothing last loop, wait at least 100 msec
 		if (next_data_time == 0.)
@@ -1120,7 +1120,7 @@ void transmit_loop()
 	std::mutex transmit_queue_lock;
     std::unique_lock<std::mutex> locker(transmit_queue_lock);
 
-	while (agent_running(cosmos_data))
+    while (agent->running())
 	{
 
 		transmit_queue_check.wait(locker);
@@ -1471,7 +1471,7 @@ std::vector<file_progress> find_chunks_missing(tx_progress& tx)
 	return (missing);
 }
 
-int32_t request_ls(char* request, char* response, void* cosmos_data)
+int32_t request_ls(char* request, char* response, CosmosAgent *agent)
 {
 
 	//the request std::string == "ls directoryname"
@@ -1499,7 +1499,7 @@ int32_t request_ls(char* request, char* response, void* cosmos_data)
 	return 0;
 }
 
-int32_t request_list_incoming(char* request, char* response, void* cosmos_data)
+int32_t request_list_incoming(char* request, char* response, CosmosAgent *agent)
 {
 	response[0] = 0;
 	for (uint16_t node = 0; node<txq.size(); ++node)
@@ -1517,7 +1517,7 @@ int32_t request_list_incoming(char* request, char* response, void* cosmos_data)
 	return 0;
 }
 
-int32_t request_list_outgoing(char* request, char* response, void* cosmos_data)
+int32_t request_list_outgoing(char* request, char* response, CosmosAgent *agent)
 {
 	response[0] = 0;
 	for (uint16_t node=0; node<txq.size(); ++node)
@@ -1535,7 +1535,7 @@ int32_t request_list_outgoing(char* request, char* response, void* cosmos_data)
 	return 0;
 }
 
-int32_t request_use_channel(char* request, char* response, void* cosmos_data)
+int32_t request_use_channel(char* request, char* response, CosmosAgent *agent)
 {
 	uint16_t channel;
 
@@ -1552,7 +1552,7 @@ int32_t request_use_channel(char* request, char* response, void* cosmos_data)
 
 }
 
-int32_t request_remove_file(char* request, char* response, void* cosmos_data)
+int32_t request_remove_file(char* request, char* response, CosmosAgent *agent)
 {
 	char type;
 	uint32_t tx_id;
@@ -1573,7 +1573,7 @@ int32_t request_remove_file(char* request, char* response, void* cosmos_data)
 	return 0;
 }
 
-//int32_t request_send_file(char* request, char* response, void* cosmos_data)
+//int32_t request_send_file(char* request, char* response, CosmosAgent *agent)
 //{
 
 //	//the request string == "send_file agent_name file_name packet_size"

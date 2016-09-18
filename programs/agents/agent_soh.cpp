@@ -33,7 +33,7 @@
 //#include <cstring>
 
 #include "configCosmos.h"
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
 #include "stringlib.h"
 #include "timelib.h"
@@ -48,11 +48,11 @@
 
 #include <iostream>
 
-int32_t request_reopen(char* request, char* output, void *cinfo);
-int32_t request_set_logperiod(char* request, char* output, void *cinfo);
-int32_t request_set_logstring(char* request, char* output, void *cinfo);
-int32_t request_get_logstring(char* request, char* output, void *cinfo);
-int32_t request_set_logstride(char* request, char* output, void *cinfo);
+int32_t request_reopen(char* request, char* output, CosmosAgent *agent);
+int32_t request_set_logperiod(char* request, char* output, CosmosAgent *agent);
+int32_t request_set_logstring(char* request, char* output, CosmosAgent *agent);
+int32_t request_get_logstring(char* request, char* output, CosmosAgent *agent);
+int32_t request_set_logstride(char* request, char* output, CosmosAgent *agent);
 
 std::string jjstring;
 std::string myjstring;
@@ -80,7 +80,7 @@ int pid;
 int state = 0;
 double cmjd;
 //timestruc systime;
-cosmosstruc *cinfo;
+CosmosAgent *agent;
 
 beatstruc iscbeat;
 std::string node = "hiakasat";
@@ -97,35 +97,35 @@ int main(int argc, char *argv[])
     }
 
     // Establish the command channel and heartbeat
-    if (!(cinfo = agent_setup_server(ntype,argv[1],(char *)"soh",1.,0,AGENTMAXBUFFER)))
+    if (!(agent = new CosmosAgent(ntype, argv[1], "soh")))
     {
         std::cout<<"agent_soh: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
         exit (AGENT_ERROR_JSON_CREATE);
     }
 
-    cinfo->pdata.node.utc = 0.;
-    json_clone (cinfo) ;
-    cinfo->pdata.agent[0].aprd = .5;
+    agent->cinfo->pdata.node.utc = 0.;
+    json_clone (agent->cinfo) ;
+    agent->cinfo->pdata.agent[0].aprd = .5;
 
 
-    if ((iretn=agent_add_request(cinfo, (char *)"reopen",request_reopen)))
+    if ((iretn=agent->add_request("reopen",request_reopen)))
         exit (iretn);
-    if ((iretn=agent_add_request(cinfo, (char *)"set_logperiod",request_set_logperiod)))
+    if ((iretn=agent->add_request("set_logperiod",request_set_logperiod)))
         exit (iretn);
-    if ((iretn=agent_add_request(cinfo, (char *)"set_logstring",request_set_logstring)))
+    if ((iretn=agent->add_request("set_logstring",request_set_logstring)))
         exit (iretn);
-    if ((iretn=agent_add_request(cinfo, (char *)"get_logstring",request_get_logstring)))
+    if ((iretn=agent->add_request("get_logstring",request_get_logstring)))
         exit (iretn);
-    if ((iretn=agent_add_request(cinfo, (char *)"set_logstride",request_set_logstride)))
+    if ((iretn=agent->add_request("set_logstride",request_set_logstride)))
         exit (iretn);
 
     // Create default logstring
-    logstring = json_list_of_soh(cinfo->pdata);
+    logstring = json_list_of_soh(agent->cinfo->pdata);
     printf("logstring: %s\n", logstring.c_str());
-    json_table_of_list(logtable, logstring.c_str(), cinfo->meta);
-    //	agent_set_sohstring(cinfo, logstring.c_str());
+    json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
+    //	agent->set_sohstring(logstring.c_str());
 
-    load_dictionary(eventdict, cinfo->meta, cinfo->pdata, (char *)"events.dict");
+    load_dictionary(eventdict, agent->cinfo->meta, agent->cinfo->pdata, (char *)"events.dict");
 
     // Start SOH collection thread
     cdthread = std::thread(collect_data_loop);
@@ -164,35 +164,35 @@ int myagent()
 
     do
     {
-        nextmjd += cinfo->pdata.agent[0].aprd/86400.;
+        nextmjd += agent->cinfo->pdata.agent[0].aprd/86400.;
         dmjd = (cmjd-lmjd)*86400.;
 
         if (newlogperiod != logperiod )
         {
             logperiod = newlogperiod;
-            logdate = cinfo->pdata.node.utc;
-            log_move(cinfo->pdata.node.name, "soh");
+            logdate = agent->cinfo->pdata.node.utc;
+            log_move(agent->cinfo->pdata.node.name, "soh");
         }
 
         cmjd = currentmjd();
-        if (cinfo->pdata.node.utc != 0.)
+        if (agent->cinfo->pdata.node.utc != 0.)
         {
-            if (cinfo->pdata.devspec.cpu_cnt > 0)
+            if (agent->cinfo->pdata.devspec.cpu_cnt > 0)
             {
                 // get load average
-                cinfo->pdata.devspec.cpu[0]->load = cpu.getLoad();
+                agent->cinfo->pdata.devspec.cpu[0]->load = cpu.getLoad();
                 // get memory
-                cinfo->pdata.devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
+                agent->cinfo->pdata.devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
             }
 
-            if (cinfo->pdata.devspec.disk_cnt > 0)
+            if (agent->cinfo->pdata.devspec.disk_cnt > 0)
             {
-                for (size_t i=0; i<cinfo->pdata.devspec.disk_cnt; ++i)
+                for (size_t i=0; i<agent->cinfo->pdata.devspec.disk_cnt; ++i)
                 {
                     // get disk usage information
-                    disk.getAll(cinfo->pdata.port[cinfo->pdata.devspec.disk[i]->gen.portidx].name);
-                    cinfo->pdata.devspec.disk[i]->gib = disk.Used;
-                    cinfo->pdata.devspec.disk[i]->maxgib = disk.Size;
+                    disk.getAll(agent->cinfo->pdata.port[agent->cinfo->pdata.devspec.disk[i]->gen.portidx].name);
+                    agent->cinfo->pdata.devspec.disk[i]->gib = disk.Used;
+                    agent->cinfo->pdata.devspec.disk[i]->maxgib = disk.Size;
                 }
             }
 
@@ -200,7 +200,7 @@ int myagent()
             FILE *fp = fopen("/flight_software/cosmosroot/nodes/hiakasat/boot.count","r");
             if (fp != nullptr)
             {
-                fscanf(fp,"%u",&cinfo->pdata.devspec.cpu[0]->boot_count);
+                fscanf(fp,"%u",&agent->cinfo->pdata.devspec.cpu[0]->boot_count);
                 fclose(fp);
             }
 
@@ -208,32 +208,32 @@ int myagent()
             {
                 logstride = newlogstride;
                 logdate = currentmjd(0.);
-                log_move(cinfo->pdata.node.name, "soh");
+                log_move(agent->cinfo->pdata.node.name, "soh");
             }
 
             if ((dtemp=floor(cmjd/logstride)*logstride) > logdate)
             {
                 logdate = dtemp;
-                log_move(cinfo->pdata.node.name, "soh");
+                log_move(agent->cinfo->pdata.node.name, "soh");
             }
 
-            loc_update(&cinfo->pdata.node.loc);
-            update_target(cinfo->pdata);
-            agent_post(cinfo, AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, cinfo->meta, cinfo->pdata));
-            calc_events(eventdict, cinfo->meta, cinfo->pdata, events);
+            loc_update(&agent->cinfo->pdata.node.loc);
+            update_target(agent->cinfo->pdata);
+            agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
+            calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
             for (uint32_t k=0; k<events.size(); ++k)
             {
-                memcpy(&cinfo->pdata.event[0].s,&events[k],sizeof(shorteventstruc));
-                strcpy(cinfo->pdata.event[0].l.condition,cinfo->meta.emap[events[k].handle.hash][events[k].handle.index].text);
-                log_write(cinfo->pdata.node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(jjstring, cinfo->meta, cinfo->pdata));
+                memcpy(&agent->cinfo->pdata.event[0].s,&events[k],sizeof(shorteventstruc));
+                strcpy(agent->cinfo->pdata.event[0].l.condition, agent->cinfo->meta.emap[events[k].handle.hash][events[k].handle.index].text);
+                log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(jjstring, agent->cinfo->meta, agent->cinfo->pdata));
             }
         }
         if (dmjd-logperiod > -logperiod/20.)
         {
             lmjd = cmjd;
-            if (cinfo->pdata.node.utc != 0. && logstring.size())
+            if (agent->cinfo->pdata.node.utc != 0. && logstring.size())
             {
-                log_write(cinfo->pdata.node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(jjstring, logtable, cinfo->meta, cinfo->pdata));
+                log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(jjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
             }
         }
 
@@ -254,7 +254,7 @@ int myagent()
         //                {
         //                    std::string requestString = "beacon_data_update ";
         //                    requestString += beacon.message;
-        //                    agent_send_request(iscbeat, requestString.c_str(), response, 300, 2.);
+        //                    agent->send_request(iscbeat, requestString.c_str(), response, 300, 2.);
         //                }
 
         //                // Take down tunnel interface
@@ -268,43 +268,43 @@ int myagent()
         sleept = (int)((nextmjd-currentmjd())*86400000000.);
         if (sleept < 0) sleept = 0;
         COSMOS_USLEEP(sleept);
-    } while (agent_running(cinfo));
+    } while (agent->running());
 
-    //	sprintf(tname,"%s/outgoing/%s",get_nodedir(cinfo->pdata.node.name),data_name(cinfo->pdata.node.name,fmjd,(char *)"telemetry"));
-    //	rename(data_base_path(cinfo->pdata.node.name,fmjd,(char *)"telemetry"),tname);
+    //	sprintf(tname,"%s/outgoing/%s",get_nodedir(agent->cinfo->pdata.node.name),data_name(agent->cinfo->pdata.node.name,fmjd,(char *)"telemetry"));
+    //	rename(data_base_path(agent->cinfo->pdata.node.name,fmjd,(char *)"telemetry"),tname);
     cdthread.join();
-    agent_shutdown_server(cinfo);
+    agent->shutdown();
 
     return 0;
 }
 
-int32_t request_reopen(char* request, char* output, void *cinfo)
+int32_t request_reopen(char* request, char* output, CosmosAgent *agent)
 {
-    logdate = ((cosmosstruc *)cinfo)->pdata.node.loc.utc;
-    log_move(((cosmosstruc *)cinfo)->pdata.node.name, "soh");
+    logdate = agent->cinfo->pdata.node.loc.utc;
+    log_move(agent->cinfo->pdata.node.name, "soh");
     return 0;
 }
 
-int32_t request_set_logperiod(char* request, char* output, void *cinfo)
+int32_t request_set_logperiod(char* request, char* output, CosmosAgent *agent)
 {
     sscanf(request,"set_logperiod %d",&newlogperiod);
     return 0;
 }
 
-int32_t request_set_logstring(char* request, char* output, void *cinfo)
+int32_t request_set_logstring(char* request, char* output, CosmosAgent *agent)
 {
     logstring = &request[strlen("set_logstring")+1];
-    json_table_of_list(logtable, logstring.c_str(), ((cosmosstruc*)cinfo)->meta);
+    json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
     return 0;
 }
 
-int32_t request_get_logstring(char* request, char* output, void *cinfo)
+int32_t request_get_logstring(char* request, char* output, CosmosAgent *agent)
 {
     strcpy(output, logstring.c_str());
     return 0;
 }
 
-int32_t request_set_logstride(char* request, char* output, void *cinfo)
+int32_t request_set_logstride(char* request, char* output, CosmosAgent *agent)
 {
     sscanf(request,"set_logstride %lf",&newlogstride);
     return 0;
@@ -314,37 +314,37 @@ void collect_data_loop()
 {
     int nbytes;
     std::string message;
-    pollstruc meta;
+    CosmosAgent::pollstruc meta;
 
-    while (agent_running(cinfo))
+    while (agent->running())
     {
         // Collect new data
-        if((nbytes=agent_poll(cinfo, meta, message, AGENT_MESSAGE_BEAT,0)))
+        if((nbytes=agent->poll(meta, message, CosmosAgent::AGENT_MESSAGE_BEAT,0)))
         {
             std::string tstring;
-            if ((tstring=json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"))) != cinfo->pdata.node.name)
+            if ((tstring=json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"))) != agent->cinfo->pdata.node.name)
             {
                 continue;
             }
-            cinfo->sdata.node = cinfo->pdata.node;
-            cinfo->sdata.device = cinfo->pdata.device;
-            json_parse(message, cinfo->meta, cinfo->sdata);
-            cinfo->pdata.node  = cinfo->sdata.node ;
-            cinfo->pdata.device  = cinfo->sdata.device ;
-            loc_update(&cinfo->pdata.node.loc);
-            if (cinfo->pdata.node.loc.utc > cinfo->pdata.node.utc)
+            agent->cinfo->sdata.node = agent->cinfo->pdata.node;
+            agent->cinfo->sdata.device = agent->cinfo->pdata.device;
+            json_parse(message, agent->cinfo->meta, agent->cinfo->sdata);
+            agent->cinfo->pdata.node  = agent->cinfo->sdata.node ;
+            agent->cinfo->pdata.device  = agent->cinfo->sdata.device ;
+            loc_update(&agent->cinfo->pdata.node.loc);
+            if (agent->cinfo->pdata.node.loc.utc > agent->cinfo->pdata.node.utc)
             {
-                cinfo->pdata.node.utc = cinfo->pdata.node.loc.utc;
+                agent->cinfo->pdata.node.utc = agent->cinfo->pdata.node.loc.utc;
             }
-            for (devicestruc device: cinfo->pdata.device)
+            for (devicestruc device: agent->cinfo->pdata.device)
             {
-                if (device.all.gen.utc > cinfo->pdata.node.utc)
+                if (device.all.gen.utc > agent->cinfo->pdata.node.utc)
                 {
-                    cinfo->pdata.node.utc = device.all.gen.utc;
+                    agent->cinfo->pdata.node.utc = device.all.gen.utc;
                 }
             }
-            cinfo->pdata.node.utc = currentmjd();
-            //			update_target(cinfo->pdata);
+            agent->cinfo->pdata.node.utc = currentmjd();
+            //			update_target(agent->cinfo->pdata);
         }
     }
     return;

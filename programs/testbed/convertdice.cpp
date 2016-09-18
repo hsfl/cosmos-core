@@ -47,6 +47,8 @@ shorteventstruc events[20];
 std::string mainjstring;
 int ecount;
 
+CosmosAgent *agent;
+
 int main(int argc, char *argv[])
 {
 	int i;
@@ -60,10 +62,10 @@ int main(int argc, char *argv[])
 	tsenstruc tsen[14];
 
 
-    CosmosAgent agent(NetworkType::UDP, "dice");
-    agent.cinfo->pdata.physics.mode = atol(argv[1]);
+    agent = new CosmosAgent(NetworkType::UDP, "dice");
+    agent->cinfo->pdata.physics.mode = atol(argv[1]);
 
-    load_lines("tle_dice1.tle", agent.cinfo->pdata.tle);
+    load_lines("tle_dice1.tle", agent->cinfo->pdata.tle);
 
 	fp1 = fopen("dice_attitude_mag_gpsweek_1691.txt","r");
 	fp2 = fopen("dice_attitude_sun_gpsweek_1691.txt","r");
@@ -75,22 +77,22 @@ int main(int argc, char *argv[])
 
 	for (utc=nmjd; utc<lmjd; utc+=10./86400.)
 	{
-        agent.cinfo->pdata.node.loc.utc = currentmjd(agent.cinfo->pdata.node.utcoffset);
-        if (lines2eci(utc, agent.cinfo->pdata.tle, npos) < 0)
+        agent->cinfo->pdata.node.loc.utc = currentmjd(agent->cinfo->pdata.node.utcoffset);
+        if (lines2eci(utc, agent->cinfo->pdata.tle, npos) < 0)
 			exit (1);
-        agent.cinfo->pdata.node.loc.utc = utc;
-        update_eci(agent.cinfo->pdata, agent.cinfo->pdata.node.loc.utc, npos);
-        log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(mainjstring, agent.cinfo->meta, agent.cinfo->pdata));
+        agent->cinfo->pdata.node.loc.utc = utc;
+        update_eci(agent->cinfo->pdata, agent->cinfo->pdata.node.loc.utc, npos);
+        log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(mainjstring, agent->cinfo->meta, agent->cinfo->pdata));
         //		ecount = check_events(events,20,cinfo);
 		for (i=0; i<ecount; i++)
 		{
-            agent.cinfo->pdata.event[0].s = events[i];
-            strcpy(agent.cinfo->pdata.event[0].l.condition,agent.cinfo->meta.emap[events[i].handle.hash][events[i].handle.index].text);
-            log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, agent.cinfo->meta, agent.cinfo->pdata));
+            agent->cinfo->pdata.event[0].s = events[i];
+            strcpy(agent->cinfo->pdata.event[0].l.condition,agent->cinfo->meta.emap[events[i].handle.hash][events[i].handle.index].text);
+            log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, agent->cinfo->meta, agent->cinfo->pdata));
 		}
 	}
 
-    agent.cinfo->pdata.node.loc.utc = lmjd;
+    agent->cinfo->pdata.node.loc.utc = lmjd;
 
 	while (1)
 	{
@@ -123,45 +125,45 @@ int main(int argc, char *argv[])
 		if (feof(fp1))
 			break;
 
-        agent.cinfo->pdata.node.loc.utc = currentmjd(agent.cinfo->pdata.node.utcoffset);
-        if (lines2eci(utc, agent.cinfo->pdata.tle, npos) < 0)
+        agent->cinfo->pdata.node.loc.utc = currentmjd(agent->cinfo->pdata.node.utcoffset);
+        if (lines2eci(utc, agent->cinfo->pdata.tle, npos) < 0)
 			exit (1);
-        agent.cinfo->pdata.node.loc.utc = utc;
-        update_eci(agent.cinfo->pdata, agent.cinfo->pdata.node.loc.utc, npos);
+        agent->cinfo->pdata.node.loc.utc = utc;
+        update_eci(agent->cinfo->pdata, agent->cinfo->pdata.node.loc.utc, npos);
 		bearth.col[2] = 0.;
-        agent.cinfo->pdata.node.loc.bearth = bearth;
-        agent.cinfo->pdata.devspec.imu[0]->mag = bearth;
-        *agent.cinfo->pdata.devspec.ssen[0] = ssen[0];
+        agent->cinfo->pdata.node.loc.bearth = bearth;
+        agent->cinfo->pdata.devspec.imu[0]->mag = bearth;
+        *agent->cinfo->pdata.devspec.ssen[0] = ssen[0];
 		for (i=0; i<14; i++)
 		{
-            *agent.cinfo->pdata.devspec.tsen[i] = tsen[i];
+            *agent->cinfo->pdata.devspec.tsen[i] = tsen[i];
 		}
-        log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,(char *)json_of_soh(mainjstring, agent.cinfo->meta, agent.cinfo->pdata));
+        log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,(char *)json_of_soh(mainjstring, agent->cinfo->meta, agent->cinfo->pdata));
 		lmjd += 10./86400.;
         //		ecount = check_events(events,20,cinfo);
 		for (i=0; i<ecount; i++)
 		{
-            agent.cinfo->pdata.event[0].s = events[i];
-            strcpy(agent.cinfo->pdata.event[0].l.condition,agent.cinfo->meta.emap[events[i].handle.hash][events[i].handle.index].text);
-            log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, agent.cinfo->meta, agent.cinfo->pdata));
+            agent->cinfo->pdata.event[0].s = events[i];
+            strcpy(agent->cinfo->pdata.event[0].l.condition,agent->cinfo->meta.emap[events[i].handle.hash][events[i].handle.index].text);
+            log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, agent->cinfo->meta, agent->cinfo->pdata));
 		}
 	}
 
 	nmjd = (int)(lmjd+1);
 	for (utc=lmjd; utc<nmjd; utc+=10./86400.)
 	{
-        agent.cinfo->pdata.node.loc.utc = currentmjd(agent.cinfo->pdata.node.utcoffset);
-        if (lines2eci(utc, agent.cinfo->pdata.tle, npos) < 0)
+        agent->cinfo->pdata.node.loc.utc = currentmjd(agent->cinfo->pdata.node.utcoffset);
+        if (lines2eci(utc, agent->cinfo->pdata.tle, npos) < 0)
 			exit (1);
-        agent.cinfo->pdata.node.loc.utc = utc;
-        update_eci(agent.cinfo->pdata, agent.cinfo->pdata.node.loc.utc, npos);
-        log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(mainjstring, agent.cinfo->meta, agent.cinfo->pdata));
+        agent->cinfo->pdata.node.loc.utc = utc;
+        update_eci(agent->cinfo->pdata, agent->cinfo->pdata.node.loc.utc, npos);
+        log_write((char *)"dice",DATA_LOG_TYPE_SOH,utc,json_of_soh(mainjstring, agent->cinfo->meta, agent->cinfo->pdata));
         //		ecount = check_events(events,20,cinfo);
 		for (i=0; i<ecount; i++)
 		{
-            agent.cinfo->pdata.event[0].s = events[i];
-            strcpy(agent.cinfo->pdata.event[0].l.condition,agent.cinfo->meta.emap[events[i].handle.hash][events[i].handle.index].text);
-            log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, agent.cinfo->meta, agent.cinfo->pdata));
+            agent->cinfo->pdata.event[0].s = events[i];
+            strcpy(agent->cinfo->pdata.event[0].l.condition,agent->cinfo->meta.emap[events[i].handle.hash][events[i].handle.index].text);
+            log_write((char *)"dice",DATA_LOG_TYPE_EVENT,utc,json_of_event(mainjstring, agent->cinfo->meta, agent->cinfo->pdata));
 		}
 	}
 

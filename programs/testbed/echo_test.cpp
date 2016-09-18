@@ -27,12 +27,13 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "sliplib.h"
 
-cosmosstruc *cinfo;
+CosmosAgent *agent;
 uint8_t data[32769];
-char buffer[AGENTMAXBUFFER], response[AGENTMAXBUFFER];
+char buffer[AGENTMAXBUFFER];
+std::string response;
 
 int main(int argc, char *argv[])
 {
@@ -48,13 +49,13 @@ int main(int argc, char *argv[])
 			exit(0);
 		}
 
-    if ((cinfo=agent_setup_client(NetworkType::BROADCAST, (char *)argv[1])) == NULL)
+    if ((agent = new CosmosAgent(NetworkType::BROADCAST, (char *)argv[1])) == NULL)
 		{
 			fprintf(stderr,"Error: %d\n",AGENT_ERROR_JSON_CREATE);
 			exit(AGENT_ERROR_JSON_CREATE);
 		}
 
-    if ((iretn=agent_get_server(cinfo, argv[1], argv[2], 3, &beat) <= 0))
+    if ((iretn=agent->get_server(argv[1], argv[2], 3, &beat) <= 0))
 	{
 		fprintf(stderr,"Error: Could not find %s:%s\n",argv[1],argv[2]);
 		exit(iretn);
@@ -79,9 +80,9 @@ int main(int argc, char *argv[])
 			mjd = currentmjd(0);
 			sprintf(buffer,"echo %.17g %4x %5u ",mjd,crc,count);
 			strncpy(&buffer[strlen(buffer)],(char *)data,count+1);
-			agent_send_request(beat,buffer,response,AGENTMAXBUFFER,3);
+            agent->send_request(beat, buffer, response, 3.);
 			cmjd = currentmjd(0);
-			sscanf(response,"%lf %hx %hu",&rmjd,&rcrc,&rcount);
+            sscanf(response.c_str(),"%lf %hx %hu",&rmjd,&rcrc,&rcount);
 			dt1 += (rmjd - mjd);
 			sdt1 += (rmjd - mjd)*(rmjd - mjd);
 			dt2 += (cmjd - rmjd);

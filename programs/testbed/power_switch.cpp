@@ -30,7 +30,7 @@
 #include "configCosmos.h"
 #include "agent/agent.h"
 #include <stdlib.h>
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
 #include "jsonlib.h"
 
@@ -55,14 +55,15 @@ default:
 	break;
 	}
 
-CosmosAgent agent(NetworkType::UDP, argv[1]);
+CosmosAgent *agent;
+agent = new CosmosAgent(NetworkType::UDP, argv[1]);
 
-if ((nbytes = agent.get_server(agent.cinfo->pdata.node.name,(char *)"engine",8,&cbeat)) > 0)
+if ((nbytes = agent->get_server(agent->cinfo->pdata.node.name,(char *)"engine",8,&cbeat)) > 0)
 	{
     char ctemp[100];
     sprintf(ctemp,"set_bus %d %d",bus,state);
     request = ctemp;
-    nbytes = agent.send_request(cbeat, request, output, 5);
+    nbytes = agent->send_request(cbeat, request, output, 5);
     printf("%s [%d]\n",output.c_str(), nbytes);
 	}
 else

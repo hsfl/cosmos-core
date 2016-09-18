@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsondef.h"
 #include "sliplib.h"
 

@@ -36,32 +36,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+CosmosAgent *agent;
+
 int main(int argc, char *argv[])
 {
-int16_t n;
-std::string output;
-FILE *odes;
-std::string jstring;
+    int16_t n;
+    std::string output;
+    FILE *odes;
+    std::string jstring;
 
-CosmosAgent agent(NetworkType::UDP, argv[1]);
+    agent = new CosmosAgent(NetworkType::UDP, argv[1]);
 
-load_databases(argv[1], (uint16_t)atol(argv[2]), agent.cinfo->pdata);
+    load_databases(argv[1], (uint16_t)atol(argv[2]), agent->cinfo->pdata);
 
-// Battery capacity
-agent.cinfo->pdata.node.battcap = 0.;
-for (n=0; n<agent.cinfo->pdata.devspec.batt_cnt; n++)
-	{
-    agent.cinfo->pdata.node.battcap += agent.cinfo->pdata.devspec.batt[n]->capacity;
-	}
-agent.cinfo->pdata.node.battlev = agent.cinfo->pdata.node.battcap;
+    // Battery capacity
+    agent->cinfo->pdata.node.battcap = 0.;
+    for (n=0; n<agent->cinfo->pdata.devspec.batt_cnt; n++)
+    {
+        agent->cinfo->pdata.node.battcap += agent->cinfo->pdata.devspec.batt[n]->capacity;
+    }
+    agent->cinfo->pdata.node.battlev = agent->cinfo->pdata.node.battcap;
 
-output = json_of_node(jstring, agent.cinfo->meta, agent.cinfo->pdata);
-odes = fopen("node.ini","w");
-fputs(output.c_str(),odes);
-fclose(odes);
-//output = json_groundstation(jstring, cinfo->meta, agent.cinfo->pdata);
-//odes = fopen("groundstation.ini","w");
-//fputs(output,odes);
-//fclose(odes);
-//create_ui_tcs();
+    output = json_of_node(jstring, agent->cinfo->meta, agent->cinfo->pdata);
+    odes = fopen("node.ini","w");
+    fputs(output.c_str(),odes);
+    fclose(odes);
+    //output = json_groundstation(jstring, agent->cinfo->meta, agent->cinfo->pdata);
+    //odes = fopen("groundstation.ini","w");
+    //fputs(output,odes);
+    //fclose(odes);
+    //create_ui_tcs();
 }

@@ -35,7 +35,7 @@
 //#include <dirent.h>
 //#endif
 
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
 #include "jsonlib.h"
 #include "physics/physicslib.h"
@@ -78,7 +78,7 @@ nodestruc *node;
 std::vector<shorteventstruc> eventdict;
 std::vector<shorteventstruc> commanddict;
 
-cosmosstruc *cinfo;
+CosmosAgent *agent;
 nodestruc statnode;
 gj_handle gjh;
 
@@ -93,14 +93,14 @@ void loadephemeris();
 void loanode();
 
 // Function declarations for internal requests
-int32_t request_loadmjd(char *request, char* response, void *cinfo);
-int32_t request_counts(char *request, char* response, void *cinfo);
-int32_t request_indexes(char *request, char* response, void *cinfo);
-int32_t request_days(char *request, char* response, void *cinfo);
-int32_t request_rewind(char *request, char* response, void *cinfo);
-int32_t request_next(char *request, char* response, void *cinfo);
-int32_t request_getmjd(char *request, char* response, void *cinfo);
-int32_t request_getnode(char *request, char* response, void *cinfo);
+int32_t request_loadmjd(char *request, char* response, CosmosAgent *);
+int32_t request_counts(char *request, char* response, CosmosAgent *);
+int32_t request_indexes(char *request, char* response, CosmosAgent *);
+int32_t request_days(char *request, char* response, CosmosAgent *);
+int32_t request_rewind(char *request, char* response, CosmosAgent *);
+int32_t request_next(char *request, char* response, CosmosAgent *);
+int32_t request_getmjd(char *request, char* response, CosmosAgent *);
+int32_t request_getnode(char *request, char* response, CosmosAgent *);
 
 int main(int argc, char *argv[])
 {
@@ -116,46 +116,43 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-	if (!(cinfo = agent_setup_server(ntype,argv[1],(char *)"node",1.,0,AGENTMAXBUFFER)))
+    if (!(agent = new CosmosAgent(ntype, argv[1], "node")))
 		exit (JSON_ERROR_NOJMAP);
 
 	// Set period of broadcasting SOH
-	cinfo->pdata.agent[0].aprd = 1.;
-
-	// temp cosmosstruc for next track requests
-    json_clone (cinfo) ;
+    agent->cinfo->pdata.agent[0].aprd = 1.;
 
 	// Add additional requests
-	if ((iretn=agent_add_request(cinfo, (char *)"loadmjd",request_loadmjd)))
+    if ((iretn=agent->add_request("loadmjd",request_loadmjd)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cinfo, (char *)"counts",request_counts)))
+    if ((iretn=agent->add_request("counts",request_counts)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cinfo, (char *)"indexes",request_indexes)))
+    if ((iretn=agent->add_request("indexes",request_indexes)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cinfo, (char *)"days",request_days)))
+    if ((iretn=agent->add_request("days",request_days)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cinfo, (char *)"rewind",request_rewind)))
+    if ((iretn=agent->add_request("rewind",request_rewind)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cinfo, (char *)"next",request_next)))
+    if ((iretn=agent->add_request("next",request_next)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cinfo, (char *)"getmjd",request_getmjd)))
+    if ((iretn=agent->add_request("getmjd",request_getmjd)))
 		exit (iretn);
-	if ((iretn=agent_add_request(cinfo, (char *)"getnode",request_getnode)))
+    if ((iretn=agent->add_request("getnode",request_getnode)))
 		exit (iretn);
 
 
 	// Check Node directory
-	if (get_nodedir(cinfo->pdata.node.name).empty())
+    if (get_nodedir(agent->cinfo->pdata.node.name).empty())
 	{
 		printf("Couldn't find Node directory %s\n",argv[1]);
 		exit (1);
 	}
 
 	// Find most recent day in archive
-	lastday = findlastday(cinfo->pdata.node.name);
+    lastday = findlastday(agent->cinfo->pdata.node.name);
 
 	// Find oldest day in archive
-	firstday = findfirstday(cinfo->pdata.node.name);
+    firstday = findfirstday(agent->cinfo->pdata.node.name);
 
 	printf("Found days %f to %f\n",firstday, lastday);
 
@@ -166,18 +163,18 @@ int main(int argc, char *argv[])
 		cache[i].telem.resize(0);
 		cache[i].event.resize(0);
 	}
-	if (loadmjd(lastday) == 0. && cinfo->pdata.node.type == NODE_TYPE_GROUNDSTATION)
+    if (loadmjd(lastday) == 0. && agent->cinfo->pdata.node.type == NODE_TYPE_GROUNDSTATION)
 	{
-		cinfo->pdata.node.loc.utc = currentmjd(0.);
-        cache[3].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_geod\",\"node_loc_att_topo\",\"node_powgen\",\"node_powuse\",\"node_battlev\"", cinfo->meta, cinfo->pdata));
+        agent->cinfo->pdata.node.loc.utc = currentmjd(0.);
+        cache[3].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_geod\",\"node_loc_att_topo\",\"node_powgen\",\"node_powuse\",\"node_battlev\"", agent->cinfo->meta, agent->cinfo->pdata));
 	}
 
 	printf("Loaded day %f\n",lastday);
 
 	// Load Event and Command dictionaries
 	//	loadevents();
-    load_dictionary(eventdict,  cinfo->meta, cinfo->pdata, (char *)"events.dict");
-    load_dictionary(commanddict,  cinfo->meta, cinfo->pdata, (char *)"commands.dict");
+    load_dictionary(eventdict,  agent->cinfo->meta, agent->cinfo->pdata, (char *)"events.dict");
+    load_dictionary(commanddict,  agent->cinfo->meta, agent->cinfo->pdata, (char *)"commands.dict");
 
 	printf("Loaded events\n");
 
@@ -187,65 +184,65 @@ int main(int argc, char *argv[])
 	printf("Loaded Ephemeris\n");
 
 	// Start performing the body of the agent
-    json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()), cinfo->meta, cinfo->pdata);
-	loc_update(&cinfo->pdata.node.loc);
+    json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()), agent->cinfo->meta, agent->cinfo->pdata);
+    loc_update(&agent->cinfo->pdata.node.loc);
 
-	switch (cinfo->pdata.node.type)
+    switch (agent->cinfo->pdata.node.type)
 	{
 	case NODE_TYPE_SATELLITE:
 		// Initialize hardware
-		hardware_init_eci(cinfo->pdata.devspec, cinfo->pdata.node.loc);
+        hardware_init_eci(agent->cinfo->pdata.devspec, agent->cinfo->pdata.node.loc);
 		// Initialize orbit
-        gauss_jackson_init_eci(gjh, 8, 0, .1, cinfo->pdata.node.loc.utc, cinfo->pdata.node.loc.pos.eci, cinfo->pdata.node.loc.att.icrf, cinfo->pdata.physics, cinfo->pdata.node.loc);
-        simulate_hardware(cinfo->pdata, cinfo->pdata.node.loc);
-        cinfo->pdata.node.utcoffset = cinfo->pdata.node.loc.utc - currentmjd(0.);
-        agent_set_sohstring(cinfo, (char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"}");
-		printf("Initialized satellite starting at %.15g [%.8g %.8g %.8g]\n",cinfo->pdata.node.loc.pos.eci.utc,cinfo->pdata.node.loc.pos.eci.s.col[0],cinfo->pdata.node.loc.pos.eci.s.col[1],cinfo->pdata.node.loc.pos.eci.s.col[2]);
+        gauss_jackson_init_eci(gjh, 8, 0, .1, agent->cinfo->pdata.node.loc.utc, agent->cinfo->pdata.node.loc.pos.eci, agent->cinfo->pdata.node.loc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+        simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+        agent->cinfo->pdata.node.utcoffset = agent->cinfo->pdata.node.loc.utc - currentmjd(0.);
+        agent->set_sohstring((char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"}");
+        printf("Initialized satellite starting at %.15g [%.8g %.8g %.8g]\n", agent->cinfo->pdata.node.loc.pos.eci.utc, agent->cinfo->pdata.node.loc.pos.eci.s.col[0], agent->cinfo->pdata.node.loc.pos.eci.s.col[1], agent->cinfo->pdata.node.loc.pos.eci.s.col[2]);
 		break;
 	case NODE_TYPE_GROUNDSTATION:
 	case NODE_TYPE_MOC:
 	case NODE_TYPE_UAV:
 	case NODE_TYPE_VEHICLE:
 	default:
-		cinfo->pdata.node.utcoffset = cinfo->pdata.node.loc.utc - currentmjd(0.);
-        agent_set_sohstring(cinfo, (char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_geod\",\"node_loc_att_topo\"}");
-		printf("Initialized ground node starting at %.15g [%.8g %.8g %.8g]\n",cinfo->pdata.node.loc.pos.geod.utc,cinfo->pdata.node.loc.pos.geod.s.lon,cinfo->pdata.node.loc.pos.geod.s.lat,cinfo->pdata.node.loc.pos.geod.s.h);
+        agent->cinfo->pdata.node.utcoffset = agent->cinfo->pdata.node.loc.utc - currentmjd(0.);
+        agent->set_sohstring((char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_geod\",\"node_loc_att_topo\"}");
+        printf("Initialized ground node starting at %.15g [%.8g %.8g %.8g]\n", agent->cinfo->pdata.node.loc.pos.geod.utc, agent->cinfo->pdata.node.loc.pos.geod.s.lon, agent->cinfo->pdata.node.loc.pos.geod.s.lat, agent->cinfo->pdata.node.loc.pos.geod.s.h);
 		break;
 	}
 
 	nextmjd = currentmjd(0.);
-	while(agent_running(cinfo))
+    while(agent->running())
 	{
-		nextmjd += cinfo->pdata.agent[0].aprd/86400.;
-		if ((newlastday=findlastday(cinfo->pdata.node.name)) != lastday)
+        nextmjd += agent->cinfo->pdata.agent[0].aprd/86400.;
+        if ((newlastday=findlastday(agent->cinfo->pdata.node.name)) != lastday)
 		{
 
 		}
-		switch (cinfo->pdata.node.type)
+        switch (agent->cinfo->pdata.node.type)
 		{
 		case NODE_TYPE_SATELLITE:
-            gauss_jackson_propagate(gjh, cinfo->pdata.physics, cinfo->pdata.node.loc, currentmjd(cinfo->pdata.node.utcoffset));
-            simulate_hardware(cinfo->pdata, cinfo->pdata.node.loc);
+            gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, currentmjd(agent->cinfo->pdata.node.utcoffset));
+            simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
             break;
 		default:
-			cinfo->pdata.node.loc.utc = cinfo->pdata.node.loc.pos.geod.utc = currentmjd(cinfo->pdata.node.utcoffset);
-			++cinfo->pdata.node.loc.pos.geod.pass;
-			pos_geod(&cinfo->pdata.node.loc);
-            update_target(cinfo->pdata);
-			cinfo->pdata.node.loc.att.topo.s = q_eye();
-			for (uint32_t i=0; i<cinfo->pdata.node.target_cnt; ++i)
+            agent->cinfo->pdata.node.loc.utc = agent->cinfo->pdata.node.loc.pos.geod.utc = currentmjd(agent->cinfo->pdata.node.utcoffset);
+            ++agent->cinfo->pdata.node.loc.pos.geod.pass;
+            pos_geod(&agent->cinfo->pdata.node.loc);
+            update_target(agent->cinfo->pdata);
+            agent->cinfo->pdata.node.loc.att.topo.s = q_eye();
+            for (uint32_t i=0; i<agent->cinfo->pdata.node.target_cnt; ++i)
 			{
-				if (cinfo->pdata.target[i].elfrom > 0.)
+                if (agent->cinfo->pdata.target[i].elfrom > 0.)
 				{
-					cinfo->pdata.node.loc.att.topo.s = q_mult(q_change_around_x(cinfo->pdata.target[i].elfrom),q_change_around_z(cinfo->pdata.target[i].azfrom));
+                    agent->cinfo->pdata.node.loc.att.topo.s = q_mult(q_change_around_x(agent->cinfo->pdata.target[i].elfrom),q_change_around_z(agent->cinfo->pdata.target[i].azfrom));
 				}
 			}
-			++cinfo->pdata.node.loc.att.topo.pass;
-			att_topo(&cinfo->pdata.node.loc);
+            ++agent->cinfo->pdata.node.loc.att.topo.pass;
+            att_topo(&agent->cinfo->pdata.node.loc);
 			break;
 		}
-//		agent_post(cinfo, AGENT_MESSAGE_SOH, json_of_list(myjstring,cinfo->pdata.agent[0].sohstring,cinfo));
-        agent_post(cinfo, AGENT_MESSAGE_SOH, json_of_table(myjstring, cinfo->pdata.agent[0].sohtable,  cinfo->meta, cinfo->pdata));
+//		agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_list(myjstring, agent->cinfo->pdata.agent[0].sohstring,cinfo));
+        agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_table(myjstring, agent->cinfo->pdata.agent[0].sohtable,  agent->cinfo->meta, agent->cinfo->pdata));
 		sleept = (int)((nextmjd-currentmjd(0.))*86400000000.);
 		if (sleept < 0) sleept = 0;
 		COSMOS_USLEEP(sleept);
@@ -266,13 +263,13 @@ void loadevents()
 	FILE *ifh;
 	char dtemp[100];
 
-	sprintf(dtemp,"%s/events.dict",get_nodedir(cinfo->pdata.node.name));
+    sprintf(dtemp,"%s/events.dict",get_nodedir(agent->cinfo->pdata.node.name));
 	if ((ifh=fopen(dtemp,"r")) != NULL)
 	{
 		while (fgets(ibuf,AGENTMAXBUFFER,ifh) != NULL)
 		{
-            json_parse(ibuf, cinfo->meta, cinfo->pdata);
-			eventdict.push_back(cinfo->pdata.event[0]);
+            json_parse(ibuf, agent->cinfo->meta, agent->cinfo->pdata);
+            eventdict.push_back(agent->cinfo->pdata.event[0]);
 		}
 		fclose(ifh);
 	}
@@ -302,8 +299,8 @@ void loadephemeris()
 	}
 
 	// Cache[j] holds most recent day
-    json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()), cinfo->meta, cinfo->pdata);
-	loc_update(&cinfo->pdata.node.loc);
+    json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()), agent->cinfo->meta, agent->cinfo->pdata);
+    loc_update(&agent->cinfo->pdata.node.loc);
 
 	for (j=4; j<MAXEPHEM+4; ++j)
 	{
@@ -312,28 +309,28 @@ void loadephemeris()
 	}
 
 	// Load Ephemeris with most recent data, calculated from last point of most recent day
-	ctime = cinfo->pdata.node.loc.utc;
+    ctime = agent->cinfo->pdata.node.loc.utc;
 	stime = (int)ctime;
 	etime = stime + MAXEPHEM + 1;
-    gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, cinfo->pdata.node.loc.pos.eci, cinfo->pdata.node.loc.att.icrf, cinfo->pdata.physics, cinfo->pdata.node.loc);
-    simulate_hardware(cinfo->pdata, cinfo->pdata.node.loc);
-    update_target(cinfo->pdata);
+    gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, agent->cinfo->pdata.node.loc.pos.eci, agent->cinfo->pdata.node.loc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+    simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+    update_target(agent->cinfo->pdata);
 	do
 	{
-        cache[3+(int)(ctime-stime)].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_eci\",\"node_loc_att_icrf\",\"node_powgen\",\"node_powuse\",\"node_battlev\"", cinfo->meta, cinfo->pdata));
-        calc_events(eventdict,  cinfo->meta, cinfo->pdata, events);
+        cache[3+(int)(ctime-stime)].telem.push_back(json_of_list(myjstring,(char *)"{\"node_utc\",\"node_loc_pos_eci\",\"node_loc_att_icrf\",\"node_powgen\",\"node_powuse\",\"node_battlev\"", agent->cinfo->meta, agent->cinfo->pdata));
+        calc_events(eventdict,  agent->cinfo->meta, agent->cinfo->pdata, events);
 		for (k=0; k<events.size(); ++k)
 		{
-			memcpy(&cinfo->pdata.event[0].s,&events[k],sizeof(shorteventstruc));
-            strcpy(cinfo->pdata.event[0].l.condition, cinfo->meta.emap[events[k].handle.hash][events[k].handle.index].text);
-            cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring, cinfo->meta, cinfo->pdata));
+            memcpy(&agent->cinfo->pdata.event[0].s,&events[k],sizeof(shorteventstruc));
+            strcpy(agent->cinfo->pdata.event[0].l.condition, agent->cinfo->meta.emap[events[k].handle.hash][events[k].handle.index].text);
+            cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring, agent->cinfo->meta, agent->cinfo->pdata));
 		}
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
 		cache[3+(int)(ctime-stime)].utime = ctime;
 		ctime += 20./86400.;
-        gauss_jackson_propagate(gjh, cinfo->pdata.physics, cinfo->pdata.node.loc, ctime);
-        simulate_hardware(cinfo->pdata, cinfo->pdata.node.loc);
-        update_target(cinfo->pdata);
+        gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, ctime);
+        simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+        update_target(agent->cinfo->pdata);
 	} while (ctime < etime);
 
 }
@@ -385,10 +382,10 @@ double loadmjd(double mjd)
 		}
 	}
 
-    if (!data_load_archive(mjd, cache[cindex].telem, cache[cindex].event, cinfo))
+    if (!data_load_archive(mjd, cache[cindex].telem, cache[cindex].event, agent->cinfo))
 	{
 		cache[cindex].mjd = (int)mjd;
-		cache[cindex].utime = currentmjd(cinfo->pdata.node.utcoffset);
+        cache[cindex].utime = currentmjd(agent->cinfo->pdata.node.utcoffset);
 		cache[cindex].tindex = cache[cindex].eindex = 0;
 		return (mjd);
 	}
@@ -399,7 +396,7 @@ double loadmjd(double mjd)
 //! Load a given day's data
 /*! 
 */
-int32_t request_loadmjd(char *request, char* response, void *cinfo)
+int32_t request_loadmjd(char *request, char* response, CosmosAgent *)
 {
 	double value;
 
@@ -414,16 +411,16 @@ int32_t request_loadmjd(char *request, char* response, void *cinfo)
 //! Gives the number of event and telemetry records
 /*! 
 */
-int32_t request_counts(char *, char* response, void *cinfo)
+int32_t request_counts(char *, char* response, CosmosAgent *)
 {
-    sprintf(response,"%" PRIu32 " %" PRIu32 " %" PRIu32 " %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),((cosmosstruc *)cinfo)->pdata.node.target_cnt);
+    sprintf(response,"%" PRIu32 " %" PRIu32 " %" PRIu32 " %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),agent->cinfo->pdata.node.target_cnt);
 	return 0;
 }
 
 //! Tells first and last day in archive
 /*! 
 */
-int32_t request_days(char *request, char* response, void *cinfo)
+int32_t request_days(char *request, char* response, CosmosAgent *)
 {
 	sprintf(response,"%d %d",(int)firstday,(int)lastday);
 	return 0;
@@ -432,7 +429,7 @@ int32_t request_days(char *request, char* response, void *cinfo)
 //! Goes to the first record for either events or telemetry for the loaded day
 /*! 
 */
-int32_t request_rewind(char *request, char* response, void *cinfo)
+int32_t request_rewind(char *request, char* response, CosmosAgent *)
 {
 	char arg[50];
 
@@ -463,7 +460,7 @@ int32_t request_rewind(char *request, char* response, void *cinfo)
 //! Returns the current record of both event and telemetry data
 /*! 
 */
-int32_t request_indexes(char *, char* response, void *cinfo)
+int32_t request_indexes(char *, char* response, CosmosAgent *)
 {
 	sprintf(response,"%d %d %d %d",cache[cindex].tindex,cache[cindex].eindex,dindex,mindex);
 	return 0;
@@ -472,7 +469,7 @@ int32_t request_indexes(char *, char* response, void *cinfo)
 //! Returns the day that is loaded
 /*! 
 */
-int32_t request_getmjd(char *, char* response, void *cinfo)
+int32_t request_getmjd(char *, char* response, CosmosAgent *)
 {
 	sprintf(response,"%f",cache[cindex].mjd);
 	return 0;
@@ -481,7 +478,7 @@ int32_t request_getmjd(char *, char* response, void *cinfo)
 //! Gets next event, telemetry or data dictionary record entry.
 /*! 
 */
-int32_t request_next(char *request, char* response, void *cinfo)
+int32_t request_next(char *request, char* response, CosmosAgent *)
 {
 	char arg[50];
 
@@ -513,8 +510,8 @@ int32_t request_next(char *request, char* response, void *cinfo)
 		case 'r':
 			if (mindex >= 0)
 			{
-                strcpy(response,json_of_target(reqjstring, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata, mindex));
-                if (mindex < ((cosmosstruc *)cinfo)->pdata.node.target_cnt-1)
+                strcpy(response,json_of_target(reqjstring, agent->cinfo->meta, agent->cinfo->pdata, mindex));
+                if (mindex < agent->cinfo->pdata.node.target_cnt-1)
 					++mindex;
 				return 0;
 			}
@@ -524,8 +521,8 @@ int32_t request_next(char *request, char* response, void *cinfo)
 	case 'd':
 		if (dindex <= commanddict.size())
 		{
-            ((cosmosstruc *)cinfo)->pdata.event[0].s = commanddict[dindex];
-            strcpy(response,json_of_event(myjstring, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
+            agent->cinfo->pdata.event[0].s = commanddict[dindex];
+            strcpy(response,json_of_event(myjstring, agent->cinfo->meta, agent->cinfo->pdata));
 			if (dindex < commanddict.size()-1)
 				++dindex;
 			return 0;
@@ -539,8 +536,8 @@ int32_t request_next(char *request, char* response, void *cinfo)
 //! Returns the current node.ini
 /*! 
 */
-int32_t request_getnode(char *request, char* response, void *cinfo)
+int32_t request_getnode(char *request, char* response, CosmosAgent *)
 {
-    strcpy(response,json_of_node(reqjstring, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
+    strcpy(response,json_of_node(reqjstring, agent->cinfo->meta, agent->cinfo->pdata));
 	return 0;
 }

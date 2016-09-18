@@ -47,6 +47,7 @@
 #include <iostream>
 #include <string>
 using namespace std;
+CosmosAgent *agent;
 
 int main(int, char **)
 {
@@ -54,19 +55,19 @@ int main(int, char **)
     string agentname = "001";
     string nodename  = "telem";
     string agent002  = "002"; //name of the agent that the request is directed to
-    CosmosAgent agent(NetworkType::UDP, nodename, agentname);
+    agent = new CosmosAgent(NetworkType::UDP, nodename, agentname);
 
     beatstruc beat_agent_002;
 
-    beat_agent_002 = agent.find_server(nodename, agent002, 2.);
+    beat_agent_002 = agent->find_server(nodename, agent002, 2.);
 
     string requestString = "request_hello";
     std::string response;
 
     // Start executing the agent
-    while(agent.running())
+    while(agent->running())
     {
-        agent.send_request(beat_agent_002, requestString, response, 2.);
+        agent->send_request(beat_agent_002, requestString, response, 2.);
 
         if ( response.size() > 1) {
 
@@ -78,7 +79,7 @@ int main(int, char **)
 
             cout << "What happened to agent_002 ??? let's try to find it ..." << endl;
             beat_agent_002.node[0] = '\0'; // reset
-            beat_agent_002 = agent.find_server(nodename, agent002, 2.);
+            beat_agent_002 = agent->find_server(nodename, agent002, 2.);
             cout << "beat agent 002 node: " << beat_agent_002.utc << endl;
 
         }

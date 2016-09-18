@@ -69,7 +69,7 @@
 #include <fstream>
 #include <sstream>
 
-//cosmosstruc* cinfo;
+//CosmosAgent *agent;
 CosmosAgent *agent;
 
 // Exuctive specfic declarations
@@ -90,11 +90,11 @@ double logstride_exec = 0.;
 bool queue_changed = false;
 
 int32_t request_get_queue_size(char *request, char* response, CosmosAgent *);
-int32_t request_get_queue_entry(char *request, char* response, CosmosAgent *agent);
-int32_t request_del_queue_entry(char *request, char* response, CosmosAgent *agent);
-int32_t request_add_queue_entry(char *request, char* response, CosmosAgent *agent);
-int32_t request_run(char *request, char* response, CosmosAgent *agent);
-int32_t request_soh(char *request, char* response, CosmosAgent *agent);
+int32_t request_get_queue_entry(char *request, char* response, CosmosAgent *);
+int32_t request_del_queue_entry(char *request, char* response, CosmosAgent *);
+int32_t request_add_queue_entry(char *request, char* response, CosmosAgent *);
+int32_t request_run(char *request, char* response, CosmosAgent *);
+int32_t request_soh(char *request, char* response, CosmosAgent *);
 int32_t request_reopen_exec(char* request, char* output, CosmosAgent *agent);
 int32_t request_set_logstride_exec(char* request, char* output, CosmosAgent *agent);
 
@@ -510,7 +510,7 @@ int32_t request_set_logperiod(char* request, char* , CosmosAgent *)
 int32_t request_set_logstring(char* request, char* , CosmosAgent *)
 {
 	logstring = &request[strlen("set_logstring")+1];
-    json_table_of_list(logtable, logstring.c_str(), ((cosmosstruc*)agent->cinfo)->meta);
+    json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
 	return 0;
 }
 
@@ -532,7 +532,7 @@ void collect_data_loop()
     while (agent->running())
 	{
 		// Collect new data
-        while (my_position != agent->message_position)
+        while (my_position != agent->message_head)
         {
             ++my_position;
             if (my_position >= agent->message_ring.size())

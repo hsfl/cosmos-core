@@ -31,7 +31,7 @@
 #include "convertlib.h"
 #include "jsonlib.h"
 #include "physics/physicslib.h"
-#include "agentlib.h"
+#include "agent/agent.h"
 
 #define TLE 0
 #define STK 1
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 						break;
 					}
 				}
-//				json_parse(ibuf, cinfo->meta, cinfo->pdata);
+//				json_parse(ibuf, agent->cinfo->meta, agent->cinfo->pdata);
 				free(ibuf);
 				eci = loc.pos.eci;
 			}
@@ -134,9 +134,9 @@ int main(int argc, char *argv[])
 	eci.utc = utc;
 
 	gj_handle gjh;
-	cosmosstruc *cinfo;
+	CosmosAgent *agent;
 	std::string node = "";
-	if (!(cinfo = agent_setup_client(NetworkType::BROADCAST, node.c_str(), 1000)))
+    if (!(agent = new CosmosAgent(NetworkType::BROADCAST, node)))
 	{
 			printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
 			exit (AGENT_ERROR_JSON_CREATE);
@@ -146,19 +146,19 @@ int main(int argc, char *argv[])
 	att.s = q_eye();
 	att.v = rv_zero();
 	att.a = rv_zero();
-    cinfo->pdata.physics.mass = 400000.;
-    cinfo->pdata.physics.area = 200.;
-//	cinfo->pdata.physics.mass = 55.;
-//	cinfo->pdata.physics.area = .01;
+    agent->cinfo->pdata.physics.mass = 400000.;
+    agent->cinfo->pdata.physics.area = 200.;
+//	agent->cinfo->pdata.physics.mass = 55.;
+//	agent->cinfo->pdata.physics.area = .01;
 
     locstruc loc;
     loc.pos.eci = eci;
     loc.att.icrf = att;
     loc.pos.eci.pass++;
     pos_eci(&loc);
-    hardware_init_eci(cinfo->pdata.devspec, loc);
-    gauss_jackson_init_eci(gjh, 12, 0, DT, utc, eci, att, cinfo->pdata.physics, cinfo->pdata.node.loc);
-    simulate_hardware(cinfo->pdata, cinfo->pdata.node.loc);
+    hardware_init_eci(agent->cinfo->pdata.devspec, loc);
+    gauss_jackson_init_eci(gjh, 12, 0, DT, utc, eci, att, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+    simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
 
 	size_t total_count;
 	switch (modeltype)
@@ -184,25 +184,25 @@ int main(int argc, char *argv[])
 		case TLE:
 			{
 				cmjd = utc + i*DT*MT/86400.;
-                gauss_jackson_propagate(gjh, cinfo->pdata.physics, cinfo->pdata.node.loc, cmjd);
-                simulate_hardware(cinfo->pdata, cinfo->pdata.node.loc);
+                gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, cmjd);
+                simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
 				tle2eci(cmjd, tle[0], eci);
 			}
 			break;
 		case STK:
 			{
 				cmjd = stk.pos[i].utc;
-                gauss_jackson_propagate(gjh, cinfo->pdata.physics, cinfo->pdata.node.loc, cmjd);
-                simulate_hardware(cinfo->pdata, cinfo->pdata.node.loc);
+                gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, cmjd);
+                simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
 				stk2eci(cmjd, stk, eci);
 			}
 			break;
 		case INI:
 			{
 				cmjd = utc + i*DT*MT/86400.;
-                gauss_jackson_propagate(gjh, cinfo->pdata.physics, cinfo->pdata.node.loc, cmjd);
-                simulate_hardware(cinfo->pdata, cinfo->pdata.node.loc);
-                eci = cinfo->pdata.node.loc.pos.eci;
+                gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, cmjd);
+                simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+                eci = agent->cinfo->pdata.node.loc.pos.eci;
 			}
 			break;
 		}
@@ -212,23 +212,23 @@ int main(int argc, char *argv[])
 //		locstruc station;
 //		svector ground;
 //		station.pos.geod.s = {0.383658276, -2.788325796, 107.};
-//		ground = groundstation(cinfo->pdata.node.loc, station);
+//		ground = groundstation(agent->cinfo->pdata.node.loc, station);
 //		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
 //		station.pos.geod.s = {RADOF(64.8589), RADOF(-147.8356), 190.};
-//		ground = groundstation(cinfo->pdata.node.loc, station);
+//		ground = groundstation(agent->cinfo->pdata.node.loc, station);
 //		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
 //		station.pos.geod.s = {RADOF(51.2437), RADOF(-0.58896), 55.};
-//		ground = groundstation(cinfo->pdata.node.loc, station);
+//		ground = groundstation(agent->cinfo->pdata.node.loc, station);
 //		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
 //		station.pos.geod.s = {RADOF(19.826236), RADOF(-155.471951), 4160.};
-//		ground = groundstation(cinfo->pdata.node.loc, station);
+//		ground = groundstation(agent->cinfo->pdata.node.loc, station);
 //		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
 //		station.pos.geod.s = {RADOF(20.708137), RADOF(-156.2567), 3034.};
-//		ground = groundstation(cinfo->pdata.node.loc, station);
+//		ground = groundstation(agent->cinfo->pdata.node.loc, station);
 //		printf("%.10g\t%.10g\t", ground.lambda, ground.phi);
-        printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.s.col[0], eci.s.col[1], eci.s.col[2], cinfo->pdata.node.loc.pos.eci.s.col[0], cinfo->pdata.node.loc.pos.eci.s.col[1], cinfo->pdata.node.loc.pos.eci.s.col[2]);
-        printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], cinfo->pdata.node.loc.pos.eci.v.col[0], cinfo->pdata.node.loc.pos.eci.v.col[1], cinfo->pdata.node.loc.pos.eci.v.col[2]);
-        printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.a.col[0], eci.a.col[1], eci.a.col[2], cinfo->pdata.node.loc.pos.eci.a.col[0], cinfo->pdata.node.loc.pos.eci.a.col[1], cinfo->pdata.node.loc.pos.eci.a.col[2]);
+        printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.s.col[0], eci.s.col[1], eci.s.col[2], agent->cinfo->pdata.node.loc.pos.eci.s.col[0], agent->cinfo->pdata.node.loc.pos.eci.s.col[1], agent->cinfo->pdata.node.loc.pos.eci.s.col[2]);
+        printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.v.col[0], eci.v.col[1], eci.v.col[2], agent->cinfo->pdata.node.loc.pos.eci.v.col[0], agent->cinfo->pdata.node.loc.pos.eci.v.col[1], agent->cinfo->pdata.node.loc.pos.eci.v.col[2]);
+        printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t", eci.a.col[0], eci.a.col[1], eci.a.col[2], agent->cinfo->pdata.node.loc.pos.eci.a.col[0], agent->cinfo->pdata.node.loc.pos.eci.a.col[1], agent->cinfo->pdata.node.loc.pos.eci.a.col[2]);
 		printf("%.10g\t%.10g\t%.10g\t%.10g\t%.10g\t%.10g\n", kep.ea, kep.e, kep.a, kep.raan, kep.i, kep.ap);
 	}
 }

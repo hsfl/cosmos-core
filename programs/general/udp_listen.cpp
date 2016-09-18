@@ -55,7 +55,7 @@
 
 //using namespace std;
 
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
 #include "convertlib.h"
 
@@ -67,7 +67,7 @@ char address[] = "0.0.0.0";
 uint16_t port = 6868;
 uint16_t bsize = 10000;
 
-cosmosstruc *cinfo;
+CosmosAgent *agent;
 
 
 
@@ -123,10 +123,10 @@ int main(int argc, char *argv[])
         printf("Netperf Listen is now listening on port %d...\n\n",port);
     }
 
-	cinfo = agent_setup_server(NetworkType::UDP,(char *)"nps",(char *)"udp", 1., 0, AGENTMAXBUFFER);
+    agent = new CosmosAgent(NetworkType::UDP, "nps", "udp");
 
 	// Create default logstring
-    strcpy(logstring,json_of_soh(jjstring, cinfo->meta, cinfo->pdata));
+    strcpy(logstring,json_of_soh(jjstring, agent->cinfo->meta, agent->cinfo->pdata));
 	j = 0;
 	tlen = strlen(logstring);
 	for (i=1; i<tlen-j; ++i)
@@ -221,46 +221,46 @@ int main(int argc, char *argv[])
 				   */
 
 			// IMU
-			cinfo->pdata.devspec.imu[0]->accel.col[0] = accx;
-			cinfo->pdata.node.loc.pos.geod.a.lon = (accx/REARTHM)/cos(cinfo->pdata.node.loc.pos.geod.s.lat);
-			cinfo->pdata.devspec.imu[0]->accel.col[1] = accy;
-			cinfo->pdata.node.loc.pos.geod.a.lat = (accy/REARTHM);
-			cinfo->pdata.devspec.imu[0]->accel.col[2] = accz;
-			cinfo->pdata.node.loc.pos.geod.a.h = accz;
+            agent->cinfo->pdata.devspec.imu[0]->accel.col[0] = accx;
+            agent->cinfo->pdata.node.loc.pos.geod.a.lon = (accx/REARTHM)/cos(agent->cinfo->pdata.node.loc.pos.geod.s.lat);
+            agent->cinfo->pdata.devspec.imu[0]->accel.col[1] = accy;
+            agent->cinfo->pdata.node.loc.pos.geod.a.lat = (accy/REARTHM);
+            agent->cinfo->pdata.devspec.imu[0]->accel.col[2] = accz;
+            agent->cinfo->pdata.node.loc.pos.geod.a.h = accz;
 
 			// Pressure sensor
-			cinfo->pdata.devspec.psen[0]->press = press / 1000.;
+            agent->cinfo->pdata.devspec.psen[0]->press = press / 1000.;
 
 			// Temperatures
-			cinfo->pdata.devspec.tsen[0]->gen.temp = etemp;
-			cinfo->pdata.devspec.tsen[1]->gen.temp = btemp;
-			cinfo->pdata.devspec.tsen[2]->gen.temp = atemp + 273.15;
+            agent->cinfo->pdata.devspec.tsen[0]->gen.temp = etemp;
+            agent->cinfo->pdata.devspec.tsen[1]->gen.temp = btemp;
+            agent->cinfo->pdata.devspec.tsen[2]->gen.temp = atemp + 273.15;
 
 			// GPS
 			if (fix == 1)
 			{
 			mjd = (int)currentmjd(0.) + hour / 24. + min / 1400. + sec / 86400. + hsec / 8640000.;;
-			cinfo->pdata.devspec.gps[0]->gen.utc = cinfo->pdata.node.loc.utc = cinfo->pdata.node.loc.pos.geod.utc = mjd;
-			cinfo->pdata.devspec.gps[0]->geocs = cinfo->pdata.node.loc.pos.geoc.s;
-			cinfo->pdata.node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
-			cinfo->pdata.node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);
-			cinfo->pdata.node.loc.pos.geod.s.h = alt;
-			cinfo->pdata.devspec.gps[0]->geocv = rv_zero();
+            agent->cinfo->pdata.devspec.gps[0]->gen.utc = agent->cinfo->pdata.node.loc.utc = agent->cinfo->pdata.node.loc.pos.geod.utc = mjd;
+            agent->cinfo->pdata.devspec.gps[0]->geocs = agent->cinfo->pdata.node.loc.pos.geoc.s;
+            agent->cinfo->pdata.node.loc.pos.geod.s.lat = RADOF(lat / 1.e5);
+            agent->cinfo->pdata.node.loc.pos.geod.s.lon = RADOF(lon / 1.e5);
+            agent->cinfo->pdata.node.loc.pos.geod.s.h = alt;
+            agent->cinfo->pdata.devspec.gps[0]->geocv = rv_zero();
 
-			cinfo->pdata.node.loc.pos.geod.v.lat = 0.;
-			cinfo->pdata.node.loc.pos.geod.v.lon = 0.;
-			cinfo->pdata.node.loc.pos.geod.v.h = 0.;
-			cinfo->pdata.node.loc.att.geoc.s = q_eye();
-			cinfo->pdata.node.loc.att.geoc.v = rv_zero();
-			cinfo->pdata.node.loc.att.geoc.a = rv_zero();
+            agent->cinfo->pdata.node.loc.pos.geod.v.lat = 0.;
+            agent->cinfo->pdata.node.loc.pos.geod.v.lon = 0.;
+            agent->cinfo->pdata.node.loc.pos.geod.v.h = 0.;
+            agent->cinfo->pdata.node.loc.att.geoc.s = q_eye();
+            agent->cinfo->pdata.node.loc.att.geoc.v = rv_zero();
+            agent->cinfo->pdata.node.loc.att.geoc.a = rv_zero();
 
-			++cinfo->pdata.node.loc.pos.geod.pass;
-			pos_geod(&cinfo->pdata.node.loc);
+            ++agent->cinfo->pdata.node.loc.pos.geod.pass;
+            pos_geod(&agent->cinfo->pdata.node.loc);
 			}
 
 			// Broadcast it
-            agent_post(cinfo, AGENT_MESSAGE_SOH, json_of_list(myjstring, logstring, cinfo->meta, cinfo->pdata));
-            log_write(cinfo->pdata.node.name,DATA_LOG_TYPE_SOH,floor(cinfo->pdata.node.loc.utc), json_of_list(jjstring,logstring, cinfo->meta, cinfo->pdata));
+            agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_list(myjstring, logstring, agent->cinfo->meta, agent->cinfo->pdata));
+            log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_SOH,floor(agent->cinfo->pdata.node.loc.utc), json_of_list(jjstring,logstring, agent->cinfo->meta, agent->cinfo->pdata));
 
         } // End If: packet reception / parse / idle cycle
 

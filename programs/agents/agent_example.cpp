@@ -34,7 +34,7 @@
 //#include <sys/vfs.h>
 #include <stdio.h>
 
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "devicecpu.h"
 
 int myagent();
@@ -42,9 +42,9 @@ int myagent();
 char agentname[COSMOS_MAX_NAME+1] = "example";
 char node[50] = "null";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t request_run_program(char *request, char* response, void *cinfo); // extra request
+int32_t request_run_program(char *request, char* response, CosmosAgent *); // extra request
 
-cosmosstruc *cinfo; // to access the cosmos data, will change later
+CosmosAgent *agent; // to access the cosmos data, will change later
 
 #define MAXBUFFERSIZE 2560 // comm buffe for agents
 
@@ -71,11 +71,11 @@ int main(int argc, char *argv[])
 	// Initialize the Agent
 	// near future: support cubesat space protocol
 	// port number = 0 in this case, automatic assignment of port
-    if (!(cinfo = agent_setup_server(NetworkType::UDP,(char *)node,agentname,1.,0,MAXBUFFERSIZE,(bool)true)))
+    if (!(agent = new CosmosAgent(NetworkType::UDP, node, agentname, 1., MAXBUFFERSIZE, (bool)true)))
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Add additional requests
-    if ((iretn=agent_add_request(cinfo, "runprogram",request_run_program)))
+    if ((iretn=agent->add_request("runprogram",request_run_program)))
 		exit (iretn);
 
 	// Start main thread
@@ -88,15 +88,15 @@ int main(int argc, char *argv[])
 
 	// Start performing the body of the agent
 	nmjd = currentmjd(0.);
-    while(agent_running(cinfo))
+    while(agent->running())
 	{
 		// Set beginning of next cycle;
-        nmjd += cinfo->pdata.agent[0].aprd/86400.;
+        nmjd += agent->cinfo->pdata.agent[0].aprd/86400.;
 		// Gather system information
-        if (cinfo->pdata.devspec.cpu_cnt)
+        if (agent->cinfo->pdata.devspec.cpu_cnt)
         {
-            cinfo->pdata.devspec.cpu[0]->load = cpu.getLoad();
-            cinfo->pdata.devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
+            agent->cinfo->pdata.devspec.cpu[0]->load = cpu.getLoad();
+            agent->cinfo->pdata.devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
         }
 
 		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 }
 
 // the name of this fn will always be changed
-int32_t request_run_program(char *request, char* response, void *cinfo)
+int32_t request_run_program(char *request, char* response, CosmosAgent *)
 {
 	int i;
 	int32_t iretn = 0;

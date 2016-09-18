@@ -25,7 +25,7 @@
 #include "configCosmos.h"
 
 // COSMOS Core Libraries
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
 #include "vn100_lib.h"
 #include "print_utils.h"
@@ -49,7 +49,7 @@ bool broadcast_flag = false;
 #define COSMOS_NODE_NAME    "hiakasat"
 #define COSMOS_AGENT_NAME   "imu"
 
-cosmosstruc *cinfo;
+CosmosAgent *agent;
 #define AGENTSVR_MAXBUF_BYTES 10000
 
 // IMU Broadcast POST TYPE: HS1_CPOST_TYPE_HIAKASAT_IMU
@@ -59,15 +59,15 @@ cosmosstruc *cinfo;
 // *********************************************************************
 // IMU Specific Info
 // *********************************************************************
-//#define ACCELX  (cinfo->pdata.devspec.imu[0]->accel.col[0])
-//#define ACCELY  (cinfo->pdata.devspec.imu[0]->accel.col[1])
-//#define ACCELZ  (cinfo->pdata.devspec.imu[0]->accel.col[2])
-//#define OX      (cinfo->pdata.devspec.imu[0]->omega.col[0])
-//#define OY      (cinfo->pdata.devspec.imu[0]->omega.col[1])
-//#define OZ      (cinfo->pdata.devspec.imu[0]->omega.col[2])
-//#define MAGX    (cinfo->pdata.devspec.imu[0]->mag.col[0])
-//#define MAGY    (cinfo->pdata.devspec.imu[0]->mag.col[1])
-//#define MAGZ    (cinfo->pdata.devspec.imu[0]->mag.col[2])
+//#define ACCELX  (agent->cinfo->pdata.devspec.imu[0]->accel.col[0])
+//#define ACCELY  (agent->cinfo->pdata.devspec.imu[0]->accel.col[1])
+//#define ACCELZ  (agent->cinfo->pdata.devspec.imu[0]->accel.col[2])
+//#define OX      (agent->cinfo->pdata.devspec.imu[0]->omega.col[0])
+//#define OY      (agent->cinfo->pdata.devspec.imu[0]->omega.col[1])
+//#define OZ      (agent->cinfo->pdata.devspec.imu[0]->omega.col[2])
+//#define MAGX    (agent->cinfo->pdata.devspec.imu[0]->mag.col[0])
+//#define MAGY    (agent->cinfo->pdata.devspec.imu[0]->mag.col[1])
+//#define MAGZ    (agent->cinfo->pdata.devspec.imu[0]->mag.col[2])
 
 #define ACCELX  (newimu.accel.col[0])
 #define ACCELY  (newimu.accel.col[1])
@@ -182,10 +182,10 @@ void run_imu_simulated();
 
 // COSMOS Agent Server
 //#define REQ_VMT_STATE_CHECK if (vmt_fsm_state != VMT_STATE_OPEN) { sprintf(response, "[ERROR] ST Disconnected.  Aborting.\n"); return 0; }
-int32_t request_mag(char *request, char* response, void *cinfo);
-int32_t request_all(char *request, char* response, void *cinfo);
-int32_t request_imufltdata(char *request, char* response, void *root);
-int32_t request_debug(char *request, char *response, void *cinfo);
+int32_t request_mag(char *request, char* response, CosmosAgent *);
+int32_t request_all(char *request, char* response, CosmosAgent *);
+int32_t request_imufltdata(char *request, char* response, CosmosAgent *);
+int32_t request_debug(char *request, char *response, CosmosAgent *);
 
 int main(int argc, char *argv[])
 {
@@ -215,23 +215,23 @@ int main(int argc, char *argv[])
     // Set-Up COSMOS Agent Server
     // *********************************************************************
     // Initialize the Agent
-    if (!(cinfo = agent_setup_server(NetworkType::UDP, COSMOS_NODE_NAME, COSMOS_AGENT_NAME, .2, 0, AGENTSVR_MAXBUF_BYTES,(bool)false)))
+    if (!(agent = new CosmosAgent(NetworkType::UDP, COSMOS_NODE_NAME, COSMOS_AGENT_NAME, .2, AGENTSVR_MAXBUF_BYTES, (bool)false)))
         exit (AGENT_ERROR_JSON_CREATE);
     printf("- Agent server started\n");
 
     // Add Requests
-    if ((iretn=agent_add_request(cinfo,"mag",request_mag,"Magnetic Field Data Only\n\t\tRespFormat: MAGxyz(+mag)[uT],MJD")))
+    if ((iretn=agent->add_request("mag",request_mag,"Magnetic Field Data Only\n\t\tRespFormat: MAGxyz(+mag)[uT],MJD")))
         exit (iretn);
-    if ((iretn=agent_add_request(cinfo,"all",request_all,"All IMU Data\n\t\tRespFormat: MAGxyz(+mag)[uT],Accel[g]xyz,AngRatesXYZ[r/s],MJD")))
+    if ((iretn=agent->add_request("all",request_all,"All IMU Data\n\t\tRespFormat: MAGxyz(+mag)[uT],Accel[g]xyz,AngRatesXYZ[r/s],MJD")))
         exit (iretn);
-    if ((iretn=agent_add_request(cinfo,"fltdata",request_imufltdata,"Only IMU Flight Data\n\t\tRespFormat: MAG[uT]xyz,AngRates[r/s]xyz,MJD")))
+    if ((iretn=agent->add_request("fltdata",request_imufltdata,"Only IMU Flight Data\n\t\tRespFormat: MAG[uT]xyz,AngRates[r/s]xyz,MJD")))
         exit (iretn);
-    if ((iretn=agent_add_request(cinfo,"debug",request_debug,"IMU Debug information")))
+    if ((iretn=agent->add_request("debug",request_debug,"IMU Debug information")))
         exit (iretn);
 
     // Setup Heartbeat information
     char imu_soh[2000] = "{\"device_imu_utc_000\",\"device_imu_omega_000\",\"device_imu_mag_000\",\"device_imu_bdot_000\"}";
-    agent_set_sohstring(cinfo, imu_soh);
+    agent->set_sohstring(imu_soh);
 
 
 
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
     utc_agent_start = currentmjd();
 
     // Open calibration file for scaling of VN100
-    std::string cnodedir = get_nodedir(cinfo->pdata.node.name);
+    std::string cnodedir = get_nodedir(agent->cinfo->pdata.node.name);
     std::string filename = cnodedir + "/vn100.ini";
 
     FILE *fp;
@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
     // *********************************************************************
     // Main Loop
     // *********************************************************************
-    while (agent_running(cinfo))
+    while (agent->running())
     {
         // Manage connection to IMU
         switch (imu_fsm_state)
@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
 
 
     // Close out
-    agent_shutdown_server(cinfo);
+    agent->shutdown();
     return 0;
 }
 
@@ -414,7 +414,7 @@ void run_imu_handle_closed()
     // Phase 1: Attempt to connect to handle
     IMU_MUTEX_LOCK;
     vn100_disconnect(&vn100handle); // Disconnect just in case it was connected
-    iretn = vn100_connect(cinfo->pdata.port[cinfo->pdata.devspec.imu[0]->gen.portidx].name, &vn100handle);
+    iretn = vn100_connect(agent->cinfo->pdata.port[agent->cinfo->pdata.devspec.imu[0]->gen.portidx].name, &vn100handle);
     IMU_MUTEX_UNLOCK;
     if (iretn < 0)
     {
@@ -454,8 +454,8 @@ void imu_state_to_open()
     imu_fsm_state = IMU_STATE_OPEN;
 
     // Flag COSMOS Active
-    cinfo->pdata.devspec.imu[0]->gen.flag = DEVICE_FLAG_ON;
-    cinfo->pdata.devspec.imu[0]->gen.flag |= DEVICE_FLAG_ACTIVE;
+    agent->cinfo->pdata.devspec.imu[0]->gen.flag = DEVICE_FLAG_ON;
+    agent->cinfo->pdata.devspec.imu[0]->gen.flag |= DEVICE_FLAG_ACTIVE;
 
     IMU_MUTEX_UNLOCK;
 }
@@ -465,8 +465,8 @@ void imu_state_to_closed()
     IMU_MUTEX_LOCK;
 
     // Flag COSMOS Inactive
-    cinfo->pdata.devspec.imu[0]->gen.flag = DEVICE_FLAG_OFF;
-    cinfo->pdata.devspec.imu[0]->gen.flag &= ~DEVICE_FLAG_ACTIVE;
+    agent->cinfo->pdata.devspec.imu[0]->gen.flag = DEVICE_FLAG_OFF;
+    agent->cinfo->pdata.devspec.imu[0]->gen.flag &= ~DEVICE_FLAG_ACTIVE;
 
     // Disconnect from serial port
     vn100_disconnect(&vn100handle);
@@ -502,7 +502,7 @@ int32_t imu_init_data()
     R_body_from_imu = dcm.base1_from_base2(frame_body,frame_imu);
 
     // IMU cinfo
-    //newimu = *(cinfo->pdata.devspec.imu[0]);
+    //newimu = *(agent->cinfo->pdata.devspec.imu[0]);
 
     return 0;
 }
@@ -521,7 +521,7 @@ int32_t imu_take_measurement()
     //imu_init_data();
 
     // IMU cinfo
-    newimu = *(cinfo->pdata.devspec.imu[0]);
+    newimu = *(agent->cinfo->pdata.devspec.imu[0]);
 
     if ((iretn=vn100_measurements(&vn100handle)) >= 0)      // 20150805JC: @~10Hz Runs, This line takes up about 6.1% CPU, rest of program takes about 1.3% CPU
     {
@@ -572,16 +572,16 @@ int32_t imu_take_measurement()
         magTotal = length_rv(newimu.mag);
 
         MEAS_TIMESTAMP = currentmjd();
-        cinfo->pdata.devspec.imu[0]->gen.utc = MEAS_TIMESTAMP;
+        agent->cinfo->pdata.devspec.imu[0]->gen.utc = MEAS_TIMESTAMP;
 
         // put data into cinfo to be broadcasted
         lastimumag.update(MEAS_TIMESTAMP, newimu.mag);
         newimu.mag = lastimumag.evalrvector(MEAS_TIMESTAMP);
         newimu.bdot = rv_smult(1./86400., lastimumag.slopervector(MEAS_TIMESTAMP));
-        *(cinfo->pdata.devspec.imu[0]) = newimu;
-        //        cinfo->pdata.devspec.imu[0]->omega = newimu.omega;
-        //        cinfo->pdata.devspec.imu[0]->mag = newimu.mag;
-        //        cinfo->pdata.devspec.imu[0]->accel = newimu.accel;
+        *(agent->cinfo->pdata.devspec.imu[0]) = newimu;
+        //        agent->cinfo->pdata.devspec.imu[0]->omega = newimu.omega;
+        //        agent->cinfo->pdata.devspec.imu[0]->mag = newimu.mag;
+        //        agent->cinfo->pdata.devspec.imu[0]->accel = newimu.accel;
 
     }
     IMU_MUTEX_UNLOCK;
@@ -594,7 +594,7 @@ int32_t imu_take_measurement()
 int32_t imu_post_to_user_screen()
 {
     IMU_MUTEX_LOCK;
-    double mjd = cinfo->pdata.devspec.imu[0]->gen.utc;
+    double mjd = agent->cinfo->pdata.devspec.imu[0]->gen.utc;
     std::string mjdString = mjdToGregorian(mjd);
 
     if (debug_flag)
@@ -641,7 +641,7 @@ int32_t imu_post_to_broadcast()
 
     // post imu information on the network
     // 0xBE for IMU
-    iretn = agent_post(cinfo, 0xBE, imuDataString);
+    iretn = agent->post(0xBE, imuDataString);
 
     IMU_MUTEX_UNLOCK;
     // *****************************************************
@@ -650,11 +650,8 @@ int32_t imu_post_to_broadcast()
 }
 
 
-int32_t request_mag(char *request, char* response, void *cinfo)
+int32_t request_mag(char *request, char* response, CosmosAgent *)
 {
-    UNUSED_VARIABLE(request);
-    UNUSED_VARIABLE(cinfo);
-
     // *****************************************************
     IMU_MUTEX_LOCK;
     sprintf(response,"%.17f,%.17f,%.17f,%.17f,%.17f\n",
@@ -668,11 +665,8 @@ int32_t request_mag(char *request, char* response, void *cinfo)
     return 0;
 }
 
-int32_t request_all(char *request, char* response, void *root)
+int32_t request_all(char *request, char* response, CosmosAgent *)
 {
-    UNUSED_VARIABLE(request);
-    UNUSED_VARIABLE(root);
-
     // *****************************************************
     // Start Locking Attitude Data
     IMU_MUTEX_LOCK;
@@ -690,11 +684,8 @@ int32_t request_all(char *request, char* response, void *root)
 }
 
 
-int32_t request_imufltdata(char *request, char* response, void *root)
+int32_t request_imufltdata(char *request, char* response, CosmosAgent *)
 {
-    UNUSED_VARIABLE(request);
-    UNUSED_VARIABLE(root);
-
     // *****************************************************
     // Start Locking Attitude Data
     IMU_MUTEX_LOCK;
@@ -713,7 +704,7 @@ int32_t request_imufltdata(char *request, char* response, void *root)
 
 
 // agent hiakasat imu "debug [0/1]"
-int32_t request_debug(char *request, char *response, void *cinfo)
+int32_t request_debug(char *request, char *response, CosmosAgent *)
 {
 
     std::string requestString = std::string(request);
@@ -726,7 +717,7 @@ int32_t request_debug(char *request, char *response, void *cinfo)
 }
 
 // agent hiakasat imu "broadcast [0/1]"
-int32_t request_broadcast(char *request, char *response, void *cinfo)
+int32_t request_broadcast(char *request, char *response, CosmosAgent *)
 {
 
     std::string requestString = std::string(request);

@@ -31,31 +31,33 @@
 #include "agent/agent.h"
 #include "jsonlib.h"
 
+CosmosAgent *agent;
+
 int main(int argc, char *argv[])
 {
 
-    CosmosAgent agent(NetworkType::UDP, argv[1]);
+    agent = new CosmosAgent(NetworkType::UDP, argv[1]);
 
-    std::vector <double> daylist = data_list_archive_days(agent.cinfo->pdata.node.name, "soh");
-	for (double day: daylist)
-	{
-        std::vector <filestruc> files = data_list_archive(agent.cinfo->pdata.node.name, "soh", day);
-		for (filestruc file : files)
-		{
-			std::ifstream tfd;
-			tfd.open(file.path);
-			if (tfd.is_open())
-			{
-				std::string tstring;
-				std::vector <jsontoken> tokens;
-				while (getline(tfd,tstring))
-				{
-                    json_tokenize(tstring, agent.cinfo->meta, tokens);
-				}
-				tfd.close();
-			}
-		}
-	}
+    std::vector <double> daylist = data_list_archive_days(agent->cinfo->pdata.node.name, "soh");
+    for (double day: daylist)
+    {
+        std::vector <filestruc> files = data_list_archive(agent->cinfo->pdata.node.name, "soh", day);
+        for (filestruc file : files)
+        {
+            std::ifstream tfd;
+            tfd.open(file.path);
+            if (tfd.is_open())
+            {
+                std::string tstring;
+                std::vector <jsontoken> tokens;
+                while (getline(tfd,tstring))
+                {
+                    json_tokenize(tstring, agent->cinfo->meta, tokens);
+                }
+                tfd.close();
+            }
+        }
+    }
 
 }
 

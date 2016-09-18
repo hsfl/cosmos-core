@@ -37,25 +37,25 @@
 //#include <dirent.h>
 //#endif
 
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
+
+CosmosAgent *agent;
 
 int main(int argc, char *argv[])
 {
 char direc[20] = "telemetry";
 char yearname[5], dayname[4];
-char fromname[150], toname[150];
+std::string  answer;
+char toname[150], fromname[150];
 int i;
 DIR *cdir;
 struct dirent *nextdir;
 beatstruc hbeat;
-cosmosstruc *cinfo;
 
-cinfo = json_create();
-
-if ((i = agent_get_server(cinfo, NULL,(char *)"soh",2,&hbeat)) > 0)
+if ((i = agent->get_server("", "soh", 2, &hbeat)) > 0)
 	{
-	i = agent_send_request(hbeat,(char *)"reopen",fromname,150,1);
+    i = agent->send_request(hbeat, "reopen", answer, 1.);
 	COSMOS_USLEEP(2000000);
 	}
 

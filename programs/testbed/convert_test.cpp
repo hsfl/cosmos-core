@@ -42,7 +42,6 @@
 #include <iomanip>      // std::setprecision
 //using namespace std;
 
-cosmosstruc *cinfo;
 locstruc tloc, loc, iloc;
 rvector ilvlh;
 double utc, value;

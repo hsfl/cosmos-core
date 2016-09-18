@@ -14,7 +14,6 @@
 #include "gs232b_lib.h"
 #include "prkx2su_lib.h"
 #include "convertlib.h"
-#include "agentlib.h"
 #include "elapsedtime.h"
 
 int32_t request_debug(char *req, char* response, CosmosAgent *);
@@ -91,7 +90,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-    if (!(agent = new CosmosAgent(NetworkType::UDP, nodename, agentname))
+    if (!(agent = new CosmosAgent(NetworkType::UDP, nodename, agentname)))
 	{
 		printf("Error %d: Setting up Agent antenna\n",JSON_ERROR_NOJMAP);
 		exit (JSON_ERROR_NOJMAP);

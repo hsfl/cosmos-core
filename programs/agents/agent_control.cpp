@@ -161,16 +161,16 @@ int main(int argc, char *argv[])
 				if (iretn == 0)
 				{
 					// Valid node. Initialize tracking and push it to list
-                    ttrack.target.type = cinfo->pdata.node.type;
-                    ttrack.target.loc = cinfo->pdata.node.loc;
-                    ttrack.physics = cinfo->pdata.physics;
+                    ttrack.target.type = agent->cinfo->pdata.node.type;
+                    ttrack.target.loc = agent->cinfo->pdata.node.loc;
+                    ttrack.physics = agent->cinfo->pdata.physics;
 
 					// Build up table of radios
-                    ttrack.radios.resize(cinfo->pdata.devspec.tcv_cnt);
+                    ttrack.radios.resize(agent->cinfo->pdata.devspec.tcv_cnt);
 					for (size_t i=0; i<ttrack.radios.size(); ++i)
 					{
-                        ttrack.radios[i].name = cinfo->pdata.piece[cinfo->pdata.devspec.tcv[i]->gen.pidx].name;
-                        ttrack.radios[i].info = *cinfo->pdata.devspec.tcv[i];
+                        ttrack.radios[i].name = agent->cinfo->pdata.piece[agent->cinfo->pdata.devspec.tcv[i]->gen.pidx].name;
+                        ttrack.radios[i].info = *agent->cinfo->pdata.devspec.tcv[i];
 						ttrack.radios[i].otherradioindex = 9999;
 					}
 
@@ -623,14 +623,13 @@ int32_t request_get_highest(char *req, char* response, CosmosAgent *)
 
 int32_t request_debug(char *req, char* response, CosmosAgent *)
 {
-	switch (debug)
+    if (debug)
 	{
-	case true:
 		debug = false;
-		break;
-	case false:
-		debug = true;
-		break;
+}
+    else
+    {
+        debug = true;
 	}
 
 	return 0;

@@ -30,16 +30,16 @@
 #include "configCosmos.h"
 #include "datalib.h"
 #include "timelib.h"
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "zlib/zlib.h"
 #include <stdio.h>
 
-cosmosstruc *cinfo;
+CosmosAgent *agent;
 
 int main(int argc, char* argv[])
 {
     std::string node = "hiakasat";
-    std::string agent = "soh";
+    std::string agentname = "soh";
     std::string source = "incoming";
 
     switch (argc)
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     case 4:
         source = argv[3];
     case 3:
-        agent = argv[2];
+        agentname = argv[2];
     case 2:
         node = argv[1];
         break;
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
         exit (1);
     }
 
-    if (!(cinfo=agent_setup_client(NetworkType::UDP, node.c_str(), 1000)))
+    if (!(agent = new CosmosAgent(NetworkType::UDP, node)))
     {
         printf("Couldn't establish client for node %s\n", node.c_str());
         exit (-1);
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
     char buffer[8192];
     std::vector<filestruc> srcfiles;
-    data_list_files(cinfo->pdata.node.name, source.c_str(), agent.c_str(), srcfiles);
+    data_list_files(agent->cinfo->pdata.node.name, source, agentname, srcfiles);
 
     for (filestruc srcfile: srcfiles)
     {
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
                     srcfile.name = srcfile.name.substr(0, namelen-3);
                 }
 
-                std::string newpath = data_name_path(node, "data", agent, utc, srcfile.name);
+                std::string newpath = data_name_path(node, "data", agentname, utc, srcfile.name);
                 if (!newpath.empty() && !data_exists(newpath))
                 {
                     FILE* fout;

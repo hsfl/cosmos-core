@@ -28,21 +28,21 @@
 ********************************************************************/
 
 #include "configCosmos.h"
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
 #include "datalib.h"
 #include "elapsedtime.h"
 
 int main(int argc, char *argv[])
 {
-	cosmosstruc *cinfo;
+    CosmosAgent *agent;
 
 	switch (argc)
 	{
 	case 3:
 		setEnvCosmosNodes(argv[2]);
 	case 2:
-		cinfo = agent_setup_client(NetworkType::UDP, argv[1]);
+        agent = new CosmosAgent(NetworkType::UDP, argv[1]);
 		break;
 	default:
 		printf("Usage: namespace_speed node [node_directory]\n");
@@ -52,12 +52,12 @@ int main(int argc, char *argv[])
 
 	std::vector <std::string> names;
     std::map <std::string,jsonentry*> testmap;
-    for (uint32_t i = 0; i < cinfo->meta.jmap.size(); i++)
+    for (uint32_t i = 0; i < agent->cinfo->meta.jmap.size(); i++)
 	{
-        for (uint32_t j = 0; j < cinfo->meta.jmap[i].size(); j++)
+        for (uint32_t j = 0; j < agent->cinfo->meta.jmap[i].size(); j++)
 		{
-            names.push_back(cinfo->meta.jmap[i][j].name);
-            testmap[cinfo->meta.jmap[i][j].name] = json_entry_of(cinfo->meta.jmap[i][j].name, cinfo->meta);
+            names.push_back(agent->cinfo->meta.jmap[i][j].name);
+            testmap[agent->cinfo->meta.jmap[i][j].name] = json_entry_of(agent->cinfo->meta.jmap[i][j].name, agent->cinfo->meta);
 		}
 	}
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
 		for (std::string name: names)
 		{
-            jsonentry *tentry = json_entry_of(name, cinfo->meta);
+            jsonentry *tentry = json_entry_of(name, agent->cinfo->meta);
 			std::string tname = tentry->name;
 		}
 		printf("Standard Lookup: %d names, %f seconds\n", names.size(), et.lap());

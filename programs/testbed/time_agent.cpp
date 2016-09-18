@@ -30,18 +30,18 @@
 #include "configCosmos.h"
 #include <stdio.h>
 
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "cosmos-defs.h"
 #include "physics/physicslib.h"
 #include "jsonlib.h"
 
 int myagent();
-int32_t request_mjd(char *request, char* response, void *cinfo);
+int32_t request_mjd(char *request, char* response, CosmosAgent *);
 
-char agentname[COSMOS_MAX_NAME+1] = "time";
+std::string agentname = "time";
 char ipaddress[16] = "192.168.150.1";
 int waitsec = 5;
-cosmosstruc *cinfo;
+CosmosAgent *agent;
 
 
 #define MAXBUFFERSIZE 256
@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
 	// Initialization stuff
 
 	// Initialize Agent
-	if (!(cinfo = agent_setup_server(NetworkType::MULTICAST,argv[1],agentname,.1,0,MAXBUFFERSIZE)) != 0)
+    if (!(agent = new CosmosAgent(NetworkType::MULTICAST, argv[1], agentname, .1, MAXBUFFERSIZE)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Add internal requests
-	if ((iretn=agent_add_request(cinfo, (char *)"mjd",request_mjd)) != 0)
+    if ((iretn=agent->add_request("mjd",request_mjd)) != 0)
 		exit (iretn);
 
 	// Start our own thread
@@ -86,11 +86,11 @@ int myagent()
 	nmjd = cmjd + period;
 
 	// Start performing the body of the agent
-	while(agent_running(cinfo))
+    while(agent->running())
 	{
 		// Calculate time and publish it
-		cinfo->pdata.node.loc.utc = currentmjd(cinfo->pdata.node.utcoffset);
-        agent_post(cinfo, AGENT_MESSAGE_TIME,json_of_time(jstring, cinfo->meta, cinfo->pdata));
+        agent->cinfo->pdata.node.loc.utc = currentmjd(agent->cinfo->pdata.node.utcoffset);
+        agent->post(CosmosAgent::AGENT_MESSAGE_TIME,json_of_time(jstring, agent->cinfo->meta, agent->cinfo->pdata));
 
 		cmjd = currentmjd();
 		if (nmjd > cmjd)
@@ -103,10 +103,10 @@ int myagent()
 	return 0;
 }
 
-int32_t request_mjd(char *request, char* output, void *cinfo)
+int32_t request_mjd(char *request, char* output, CosmosAgent *agent)
 {
 
-    sprintf(output,"%f",((cosmosstruc *)cinfo)->pdata.node.loc.utc);
+    sprintf(output,"%f",agent->cinfo->pdata.node.loc.utc);
 
 	return 0;
 }

@@ -43,6 +43,7 @@ int32_t request_hello(char *request, char* response, CosmosAgent *cdata);
 
 // counter to test number of requests
 int countReq = 0;
+CosmosAgent *agent;
 
 int main(int, char **)
 {
@@ -53,12 +54,12 @@ int main(int, char **)
 
     string agentname     = "002";
     string nodename      = "telem";
-    CosmosAgent agent(NetworkType::UDP, nodename, agentname);
+    agent = new CosmosAgent(NetworkType::UDP, nodename, agentname);
 
-    agent.add_request("request_hello", request_hello);
+    agent->add_request("request_hello", request_hello);
 
     // start main loop
-    while(agent.running())
+    while(agent->running())
     {
         // sleep for 1 sec
         COSMOS_SLEEP(1.00);
