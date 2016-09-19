@@ -42,7 +42,7 @@
 
 #include "configCosmos.h"
 #include <stdlib.h>
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsonlib.h"
 #include "physics/physicslib.h"
 #include "datalib.h"
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
                 {
                     agent->send_request(cbeat[i],(char *)"getvalue {\"agent_pid\"}",output, REQUEST_WAIT_TIME);
                     printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat[i].utc,cbeat[i].node,cbeat[i].proc,cbeat[i].addr,cbeat[i].port,cbeat[i].bsz);
-                    printf("\t%s\n",output);
+                    printf("\t%s\n",output.c_str());
                 }
             }
             exit(0);
@@ -400,7 +400,7 @@ int main(int argc, char *argv[])
             {
                 printf("List of available requests:\n");
                 nbytes = agent->send_request(cbeat, "help", output, REQUEST_WAIT_TIME);
-                printf("%s [%d]\n",output,nbytes);
+                printf("%s [%d]\n",output.c_str(), nbytes);
             }
             else
             {
@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
                     request += argv[i+4];
                 }
                 nbytes = agent->send_request(cbeat ,request , output, REQUEST_WAIT_TIME);
-                printf("%s [%d]\n",output,nbytes);
+                printf("%s [%d]\n",output.c_str(), nbytes);
             }
         }
         else

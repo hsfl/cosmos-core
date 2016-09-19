@@ -36,7 +36,7 @@
 //! DEM (Digital Elevation Model).
 //!
 //! The COSMOS system integrates Digital Elevation Models (DEMs)for a variety of planetary surfaces.
-//! Full globe support at 30" resolution is available for Earth, Mars, and Moon. Additional higher
+//! Full globe support at 30 arc sec resolution is available for Earth, Mars, and Moon. Additional higher
 //! resolution DEMs of select areas can be added. Additional placeholders are available for other major
 //! planetary bodies, as well as targets of opportunity, such as asteroids can be used as the data
 //! available.
@@ -55,12 +55,6 @@
 #define MAP_DEM_H
 
 #include "configCosmos.h"
-
-//#include <math.h>
-//#include <semaphore.h>
-
-//#include "datalib.h"
-//#include "math/mathlib.h"
 
 //! \ingroup demlib
 //! \defgroup demlib_constants DEM library constants
@@ -146,5 +140,6 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res);
 dem_pixel map_dem_pixel(int body,double lon, double lat, double res);
 double map_dem_alt(int body, double lon, double lat, double res);
 int map_dem_init();
+//! @}
 
 #endif

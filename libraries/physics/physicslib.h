@@ -54,8 +54,7 @@
 //! subsystems.
 //!
 //! The goal of this library is to provide for as full a simulation as
-//! possible of the complete spacecraft. The \ref physicslib_typdefs and \ref
-//! orbit_contants are used to define the structure of the spacecraft.
+//! possible of the complete spacecraft. The \ref physicslib_typedefs are used to define the structure of the spacecraft.
 //! Both Static and Dynamic definitions exist for element. The elements
 //! are described using the following categories:
 //! - Structures: Physical elements of the spacecraft. These are

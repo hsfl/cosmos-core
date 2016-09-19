@@ -42,7 +42,7 @@
 
 #include "configCosmos.h"
 #include <stdlib.h>
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsonlib.h"
 #include "physics/physicslib.h"
 #include "datalib.h"

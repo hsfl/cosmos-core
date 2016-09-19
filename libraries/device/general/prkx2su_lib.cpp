@@ -135,6 +135,7 @@ int32_t prkx2su_disconnect()
 /**
 * Routine to use in blocking mode. Reads the serial port until a New
 * Line is received, then returns entire buffer.
+* @param axis Axis to read.
 * @param buf Pointer to a char buffer
 * @param buflen ::int32_t indicating the maximum size of the buffer
 * @return ::int32_t containing the number of bytes read.

@@ -56,7 +56,7 @@
 */
 
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsondef.h"
 #include "sliplib.h"
 

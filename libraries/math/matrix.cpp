@@ -1072,8 +1072,8 @@ matrix1d m1_cross(matrix1d Vector1, matrix1d Vector2)
 
 //! matrix1d dot product
 /*! Computes the vector dot product (A x B) of two 1d vectors.
-        \param Vector1 vector A
-        \param Vector2 vector B
+        \param a vector A
+        \param b vector B
 \return Vector cross product as 1d vector.
 */
 double m1_dot(matrix1d a, matrix1d b)

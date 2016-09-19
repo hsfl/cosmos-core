@@ -29,7 +29,7 @@
 
 #include "configCosmos.h"
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsonlib.h"
 #include "convertlib.h"
 #include "datalib.h"

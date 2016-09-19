@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file convertlib.c
+/*! \file convertlib.cpp
 	\brief Coordinate conversion library source file
 */
 
@@ -75,7 +75,7 @@ void pos_clear(locstruc &loc)
 //! Initialize ::attstruc.
 /*! Set entire structure to zero so that we can
  * properly propagate changes.
-	\param loc Pointer to ::locstruc that contains attitudes.
+    \param att Pointer to ::attstruc that contains attitudes.
 */
 void att_clear(attstruc &att)
 {
@@ -85,8 +85,7 @@ void att_clear(attstruc &att)
 //! Calculate Extra position information
 /*! Calculate things like sun position and insolation, and elements that are used in
  * conversion, like libration and J2000 rotation matrices.
-	\param pos ::posstruc with the current position and those to be updated.
-	\param utc Universal time of extra information
+    \param loc ::locstruc with the current position and those to be updated.
 */
 void pos_extra(locstruc *loc)
 {
@@ -120,8 +119,8 @@ void pos_extra(locstruc *loc)
 
 //! Set Barycentric position
 /*! Set the current time and position to whatever is in the Barycentric position of the
- * ::posstruc. Then propagate to all the other positions.
-	\param pos ::posstruc with the current position and those to be updated.
+ * ::locstruc. Then propagate to all the other positions.
+    \param loc ::locstruc with the current position and those to be updated.
 */
 void pos_icrf(locstruc *loc)
 {
@@ -206,8 +205,8 @@ void pos_icrf(locstruc *loc)
 
 //! Set ECI position
 /*! Set the current time and position to whatever is in the Earth Centered Inertial position of the
- * ::posstruc. Then propagate to all the other positions.
-	\param pos ::posstruc with the current position and those to be updated.
+ * ::locstruc. Then propagate to all the other positions.
+    \param loc ::locstruc with the current position and those to be updated.
 */
 void pos_eci(locstruc *loc)
 {
@@ -250,8 +249,8 @@ void pos_eci(locstruc *loc)
 
 //! Set SCI position
 /*! Set the current time and position to whatever is in the Selene Centered Inertial position of the
- * ::posstruc. Then propagate to all the other positions.
-	\param pos ::posstruc with the current position and those to be updated.
+ * ::locstruc. Then propagate to all the other positions.
+    \param loc ::locstruc with the current position and those to be updated.
 */
 void pos_sci(locstruc *loc)
 {
@@ -294,8 +293,8 @@ void pos_sci(locstruc *loc)
 
 //! Set Geocentric position
 /*! Set the current time and position to whatever is in the Geocentric position of the
- * ::posstruc. Then propagate to all the other positions.
-	\param pos ::posstruc with the current position and those to be updated.
+ * ::locstruc. Then propagate to all the other positions.
+    \param loc ::locstruc with the current position and those to be updated.
 */
 void pos_geoc(locstruc *loc)
 {
@@ -345,8 +344,8 @@ void pos_geoc(locstruc *loc)
 
 //! Set Selenocentric position
 /*! Set the current time and position to whatever is in the Selenocentric position of the
- * ::posstruc. Then propagate to all the other positions.
-	\param pos ::posstruc with the current position and those to be updated.
+ * ::locstruc. Then propagate to all the other positions.
+    \param loc ::locstruc with the current position and those to be updated.
 */
 void pos_selc(locstruc *loc)
 {
@@ -390,8 +389,8 @@ void pos_selc(locstruc *loc)
 
 //! Set Selenographic position
 /*! Set the current time and position to whatever is in the Selenographic position of the
- * ::posstruc. Then propagate to all the other positions.
-	\param pos ::posstruc with the current position and those to be updated.
+ * ::locstruc. Then propagate to all the other positions.
+    \param loc ::locstruc with the current position and those to be updated.
 */
 void pos_selg(locstruc *loc)
 {
@@ -425,8 +424,8 @@ void pos_selg(locstruc *loc)
 
 //! Set Geographic position
 /*! Set the current time and position to whatever is in the Geographic position of the
- * ::posstruc. Then propagate to all the other positions.
-	\param pos ::posstruc with the current position and those to be updated.
+ * ::locstruc. Then propagate to all the other positions.
+    \param loc ::locstruc with the current position and those to be updated.
 */
 void pos_geos(locstruc *loc)
 {
@@ -460,8 +459,8 @@ void pos_geos(locstruc *loc)
 
 //! Set Geodetic position
 /*! Set the current time and position to whatever is in the Geodetic position of the
- * ::posstruc. Then propagate to all the other positions.
-	\param pos ::posstruc with the current position and those to be updated.
+ * ::locstruc. Then propagate to all the other positions.
+    \param loc ::locstruc with the current position and those to be updated.
 */
 void pos_geod(locstruc *loc)
 {
@@ -498,9 +497,9 @@ void pos_geod(locstruc *loc)
 }
 
 //! Convert Barycentric to ECI
-/*! Propogate the position found in the Barycentric slot of the supplied ::posstruc to
+/*! Propagate the position found in the Barycentric slot of the supplied ::locstruc to
  * the Earth Centered Inertial slot, performing all relevant updates.
-	\param pos Working ::posstruc
+    \param loc Working ::locstruc
 */
 void pos_icrf2eci(locstruc *loc)
 {
@@ -540,9 +539,9 @@ void pos_icrf2eci(locstruc *loc)
 }
 
 //! Convert ECI to Barycentric
-/*! Propogate the position found in the Earth Centered Inertial slot of the supplied ::posstruc to
+/*! Propagate the position found in the Earth Centered Inertial slot of the supplied ::locstruc to
  * the Barycentric slot, performing all relevant updates.
-	\param pos Working ::posstruc
+    \param loc Working ::locstruc
 */
 void pos_eci2icrf(locstruc *loc)
 {
@@ -580,9 +579,9 @@ void pos_eci2icrf(locstruc *loc)
 }
 
 //! Convert Barycentric to SCI
-/*! Propogate the position found in the Barycentric slot of the supplied ::posstruc to
+/*! Propagate the position found in the Barycentric slot of the supplied ::locstruc to
  * the Selene Centered Inertial slot, performing all relevant updates.
-	\param pos Working ::posstruc
+    \param loc Working ::locstruc
 */
 void pos_icrf2sci(locstruc *loc)
 {
@@ -623,9 +622,9 @@ void pos_icrf2sci(locstruc *loc)
 }
 
 //! Convert SCI to Barycentric
-/*! Propogate the position found in the Selene Centered Inertial slot of the supplied ::posstruc to
+/*! Propagate the position found in the Selene Centered Inertial slot of the supplied ::locstruc to
  * the Barycentric slot, performing all relevant updates.
-	\param pos Working ::posstruc
+    \param loc Working ::locstruc
 */
 void pos_sci2icrf(locstruc *loc)
 {
@@ -664,9 +663,9 @@ void pos_sci2icrf(locstruc *loc)
 }
 
 //! Convert ECI to GEOC
-/*! Propogate the position found in the Earth Centered Inertial slot of the supplied ::posstruc to
+/*! Propagate the position found in the Earth Centered Inertial slot of the supplied ::locstruc to
  * the Geocentric slot, performing all relevant updates.
-	\param pos Working ::posstruc
+    \param loc Working ::locstruc
 */
 void pos_eci2geoc(locstruc *loc)
 {
@@ -730,9 +729,9 @@ void pos_eci2geoc(locstruc *loc)
 }
 
 //! Convert GEOC to ECI
-/*! Propogate the position found in the Geocentric slot of the supplied ::posstruc to
+/*! Propagate the position found in the Geocentric slot of the supplied ::locstruc to
  * the Earth Centered Inertial slot, performing all relevant updates.
-	\param pos Working ::posstruc
+    \param loc Working ::locstruc
 */
 void pos_geoc2eci(locstruc *loc)
 {
@@ -791,8 +790,7 @@ void pos_geoc2eci(locstruc *loc)
 
 //! Convert GEOC to GEOS
 /*! Convert a Geocentric ::cartpos to a Geographic ::spherpos.
-	\param geoc Source Geocentric position.
-	\param geos Destination Geographic position.
+    \param loc ::locastruc containing position.
 */
 void pos_geoc2geos(locstruc *loc)
 {
@@ -850,8 +848,7 @@ void pos_geoc2geos(locstruc *loc)
 
 //! Convert GEOS to GEOC
 /*! Convert a Geographic ::spherpos to a Geocentric ::cartpos.
-	\param geos Source Geographic position.
-	\param geoc Destination Geocentric position.
+    \param loc ::locstruc containing position.
 */
 void pos_geos2geoc(locstruc *loc)
 {
@@ -1071,9 +1068,9 @@ void pos_geod2geoc(locstruc *loc)
 }
 
 //! Convert SCI to SELC
-/*! Propogate the position found in the Selene Centered Inertial slot of the supplied ::posstruc to
+/*! Propagate the position found in the Selene Centered Inertial slot of the supplied ::locstruc to
  * the Selenocentric slot, performing all relevant updates.
-	\param pos Working ::posstruc
+    \param loc Working ::locstruc
 */
 void pos_sci2selc(locstruc *loc)
 {
@@ -1134,9 +1131,9 @@ void pos_sci2selc(locstruc *loc)
 }
 
 //! Convert SELC to SCI
-/*! Propogate the position found in the Selenocentric slot of the supplied ::posstruc to
+/*! Propagate the position found in the Selenocentric slot of the supplied ::locstruc to
  * the Selene Centered Inertial slot, performing all relevant updates.
-	\param pos Working ::posstruc
+    \param loc Working ::locstruc
 */
 void pos_selc2sci(locstruc *loc)
 {
@@ -1189,9 +1186,9 @@ void pos_selc2sci(locstruc *loc)
 }
 
 //! Convert SELC to SELG
-/*! Propogate the position found in the Selenocentric slot of the supplied ::posstruc to
+/*! Propagate the position found in the Selenocentric slot of the supplied ::locstruc to
  * the Selenographic slot, performing all relevant updates.
-	\param pos Working ::posstruc
+    \param loc Working ::locstruc
 */
 void pos_selc2selg(locstruc *loc)
 {
@@ -2200,7 +2197,8 @@ void mean2j2000(double ep0, rmatrix *pm)
 /*! Rotation matrix for transformation from an ITRS coordinate system of date to the
  * J2000 system. Includes all effects of Precession, Nutation, Sidereal Time and Polar Motion.
 	\param utc Epoch to change from, UTC in MJD
-	\param rm pointer to rotation matrix
+    \param rnp Pointer to ITRF rotation matrix.
+    \param rm pointer to rotation matrix
 	\param drm pointer to rotation matrix derivative
 	\param ddrm pointer to rotation matrix 2nd derivative
 */
@@ -2232,8 +2230,10 @@ void itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddr
  * International Terrestrial Reference System of date. Includes all effects of Precession,
  * Nutation, Sidereal Time and Polar Motion.
 	\param utc Epoch to change to, UTC in MJD
+    \param rnp Pointer to ITRF rotation matrix.
 	\param rm pointer to rotation matrix
 	\param drm pointer to rotation matrix derivative
+    \param ddrm pointer to rotation matrix second derivative
 */
 void gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm)
 {
@@ -2953,7 +2953,7 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
 /**
 * Convert a Two Line Element into a location at the specified time.
 * @param utc Specified time as Modified Julian Date
-* @param line Two Line Element, given as pointer to a ::tlestruc
+* @param tle Two Line Element, given as pointer to a ::tlestruc
 * @param eci Converted location, given as pointer to a ::cartpos
 */
 int tle2eci(double utc, tlestruc tle, cartpos &eci)
@@ -3252,6 +3252,7 @@ int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 /*! Load a table of locations calculated in STK. Format is expected to be J2000; position,
  * velocity and acceleration; in X, Y, and Z; all in meters.
 	\param filename Name of file containing positions.
+    \param stkdata ::stkstruc holding satellite position.
 	\return The number of entries in the table, otherwise a negative error.
 */
 int32_t load_stk(std::string filename, stkstruc &stkdata)
@@ -3297,12 +3298,6 @@ int32_t load_stk(std::string filename, stkstruc &stkdata)
 	return (stkdata.count);
 }
 
-/**
-* Convert a set of STK data into a location at the specified time.
-* @param utc Specified time as Modified Julian Date
-* @param line Two Line Element, given as pointer to a ::tlestruc
-* @param eci Converted locition, given as pointer to a ::cartpos
-*/
 //! ECI from STK data
 /*! Return an interpolated cartpos from time and STK data
 	\param utc UTC in Modified Julian Days

@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 #include "configCosmos.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "physics/physicslib.h"
 #include "jsonlib.h"
 #include "ephemlib.h"

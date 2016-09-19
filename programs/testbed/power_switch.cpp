@@ -28,9 +28,9 @@
 ********************************************************************/
 
 #include "configCosmos.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include <stdlib.h>
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsonlib.h"
 #include "jsonlib.h"
 

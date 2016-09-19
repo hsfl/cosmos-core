@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "configCosmos.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 
 int main(int, char* argv[])
 {

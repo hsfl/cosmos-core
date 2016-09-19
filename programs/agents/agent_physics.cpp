@@ -30,7 +30,7 @@
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsonlib.h"
 #include "datalib.h"
 #include "socketlib.h"

@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "gige_lib.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "datalib.h"
 #include "time.h"
 

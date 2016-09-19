@@ -1,6 +1,5 @@
 /*! \file
  *	\brief Example to demonstrate use of cosmos namespace aliases
- *  \include ../../examples/namespace/alias.cpp
  *  Follow this tutorial for more information tutorial-alias
  */
 
@@ -8,7 +7,7 @@
 using namespace std;
 
 // cosmos includes
-#include "agentlib.h"
+#include "agent/agent.h"
 #include "jsonlib.h"
 
 cosmosstruc *cdata; // to access the cosmos data, will change later

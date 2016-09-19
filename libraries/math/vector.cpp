@@ -339,7 +339,7 @@ rvector rv_add(rvector a, rvector b)
 /*! Subtract two vectors in ::rvector form, returning a ::rvector.
         \param a vector to be subtracted from, in ::rvector form
         \param b vector to be subtracted, in ::rvector form
-        \result the transformed vector, in ::rvector form
+        \return the transformed vector, in ::rvector form
 */
 rvector rv_sub(rvector a, rvector b)
 {
@@ -765,7 +765,7 @@ double sum_rv(rvector vec)
 //! Row vector square root
 /*! ::rvector whose elements are the square roots of the elements of a
  * ::rvector.
-        \param a ::rvector to take the square root of.
+        \param vec ::rvector to take the square root of.
         \return ::rvector of resultant square roots.
 */
 rvector rv_sqrt(rvector vec)

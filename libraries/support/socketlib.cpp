@@ -38,7 +38,7 @@
 flags are set, and the socket is bound, if necessary. Support is
 provided for the extra steps necessary for MS Windows.
     \param channel Pointer to ::socket_channel holding final configuration.
-    \param type type of casting (NetworkType::BROADCAST, NetworkType::MULTICAST, NetworkType::TCP)
+    \param ntype type of casting (NetworkType::BROADCAST, NetworkType::MULTICAST, NetworkType::TCP)
     \param address Destination address
     \param port Source port. If zero, automatically assigned.
     \param role Publish, subscribe, communicate.
@@ -289,8 +289,7 @@ int32_t socket_open(socket_channel *channel,
 //! Calculate UDP Checksum
 /*! Calculate UDP Checksum, as detailed in RFC 768, based on the provided IP packet.
  * \param packet IP packet
- * \param csum Location to store calculated Checksum.
- * \return Zero or negative error.
+ * \return Calculated checksum.
  * */
 uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet)
 {

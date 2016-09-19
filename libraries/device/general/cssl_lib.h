@@ -19,7 +19,7 @@
 #endif
 
 //! \ingroup cssl_lib
-//! \defgroup cssl_lib_constants
+//! \defgroup cssl_lib_constants Smple Serial Library Constants
 //! @{
 #define XMODEM_SOH 0x01
 #define XMODEM_EOT 0x04
@@ -29,7 +29,7 @@
 
 //! @}
 //! \ingroup cssl_lib
-//! \defgroup cssl_lib_typedefs
+//! \defgroup cssl_lib_typedefs Smple Serial Library Typedefs
 //! @{
 typedef struct __cssl_t {
 
@@ -64,7 +64,7 @@ typedef enum {
 
 //! @}
 //! \ingroup cssl_lib
-//! \defgroup cssl_lib_functions
+//! \defgroup cssl_lib_functions Smple Serial Library Functions
 //! @{
 /* get the error message */
 const char *cssl_geterrormsg();

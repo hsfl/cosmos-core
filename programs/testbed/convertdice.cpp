@@ -33,7 +33,7 @@
 #include "datalib.h"
 #include "jsonlib.h"
 #include "timelib.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 
 #include <cmath>
 #include <cstdio>

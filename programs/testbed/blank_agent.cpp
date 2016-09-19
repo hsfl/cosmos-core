@@ -38,7 +38,7 @@
 
 #include <stdio.h>
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "physics/physicslib.h"
 #include "jsonlib.h"
 //#include "stringlib.h"

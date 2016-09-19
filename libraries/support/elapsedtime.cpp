@@ -255,15 +255,11 @@ double ElapsedTime::getElapsedTime(){
 
 
 /*!
- * \brief compute the elapsed time since the given time in the function arguments
- * \param startTimeMjd
+ * \brief compute the elapsed time between the two provided times
+ * \param startMjd First time.
+ * \param endMjd Second time.
  * \return elapsed time in seconds
  */
-//double ElapsedTime::getElapsedTimeSince(double startTimeMjd)
-//{
-//    // compute the elapsed time given the startTimeMjd
-//    return (currentmjd()-startTimeMjd)*86400;
-//}
 double ElapsedTime::getElapsedTime(double startMjd, double endMjd)
 {
     // compute the elapsed time given the startTimeMjd

@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*!	\file sliplib.c
+/*!	\file sliplib.cpp
 	\brief Support functions for COSMOS SLIP encoding
 */
 

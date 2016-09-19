@@ -29,7 +29,7 @@
 
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsonlib.h"
 #include "datalib.h"
 #include <sys/stat.h>

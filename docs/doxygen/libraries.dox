@@ -1,4 +1,4 @@
-//! \defgroup programs
+//! \defgroup programs COSMOS Programs
 //! COSMOS Programs.
 //!
 //! All the programs available in the COSMOS Core. These are broken into the following categories:
@@ -33,18 +33,19 @@
  * are broadly divide into general support libraries and specific device libraries. The
  * support libraries include:
  * - \ref agentlib
- * - \ref controllib
  * - \ref convertlib
  * - \ref datalib
  * - \ref demlib
+ * - \ref elapsedtime
+ * - \ref ephemlib
  * - \ref geomag
  * - \ref jpleph
  * - \ref jsonlib
  * - \ref mathlib
- * - \ref nodelib
  * - \ref nrlmsise
  * - \ref physicslib
  * - \ref sliplib
+ * - \ref socketlib
  * - \ref stringlib
  * - \ref timelib
  * - \ref transferlib

@@ -1,5 +1,5 @@
 #include "configCosmos.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include <sys/stat.h>
 #include <fcntl.h>
 //#include <sys/types.h>

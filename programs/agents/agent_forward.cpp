@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 
 void incoming_thread();
 char agentname[COSMOS_MAX_NAME+1] = "forward";

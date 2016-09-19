@@ -35,7 +35,7 @@
 //#include <dirent.h>
 //#endif
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsonlib.h"
 #include "jsonlib.h"
 #include "physics/physicslib.h"

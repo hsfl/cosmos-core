@@ -38,7 +38,7 @@
 #include <stdio.h>
 
 #include "jsonlib.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "cosmos-defs.h"
 #include "physics/physicslib.h"
 #include "math/mathlib.h"

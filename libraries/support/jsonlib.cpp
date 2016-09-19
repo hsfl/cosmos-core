@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file jsonlib.c
+/*! \file jsonlib.cpp
     \brief JSON support source file
 */
 
@@ -89,7 +89,7 @@ std::vector <std::string> port_type_string
 * \defgroup jsonlib_namespace JSON Name Space
 * @{
 * A hierarchical set of variable names meant to describe everything in COSMOS. Each name
-* maps to a variable of a type specified in \ref json_type. Names are restricted to
+* maps to a variable of a type specified in \ref jsonlib_type. Names are restricted to
 * alphabetic characters, and can be no longer than ::COSMOS_MAX_NAME. Once mapped through use
 * of ::json_setup, these names will be tied to elements of the ::cosmosstruc.
 */
@@ -99,7 +99,7 @@ std::vector <std::string> port_type_string
 /*! \ingroup jsonlib
 * \defgroup jsonlib_packet JSON Packet
 * @{
-* A JSON object constructed only of members present in the \ref jsonlib_namespace. Each \ref json_type in the JSON
+* A JSON object constructed only of members present in the \ref jsonlib_namespace. Each \ref jsonlib_type in the JSON
 * packet is a separate JSON Object to aid in parsing.
 */
 
@@ -109,10 +109,9 @@ std::vector <std::string> port_type_string
 //! @{
 
 //! Initialize JSON pointer map
-/*! Using the supplied ::cosmosstruc, assign storage for each of the groups and entries
+/*! Create a ::cosmosstruc and use it to assign storage for each of the groups and entries
  * for each of the non Node based elements to the JSON Name Map.
-    \param cinfo Pointer to ::cosmosstruc to be mapped.
-    \return 0, or a negative ::error.
+    \return Pointer to new ::cosmosstruc or nullptr.
 */
 cosmosstruc *json_create()
 {
@@ -125,12 +124,12 @@ cosmosstruc *json_create()
     }
 
     // Make sure it's clear
-//    memset(cinfo, 0, sizeof(cosmosstruc));
+    //    memset(cinfo, 0, sizeof(cosmosstruc));
 
 
     cinfo->meta.jmapped = 0;
     cinfo->meta.unit.resize(JSON_UNIT_COUNT);
-//    cinfo->pdata.target.resize(100);
+    //    cinfo->pdata.target.resize(100);
     cinfo->meta.jmap.resize(JSON_MAX_HASH);
     cinfo->meta.emap.resize(JSON_MAX_HASH);
 
@@ -403,38 +402,38 @@ void json_destroy(cosmosstruc *cinfo)
     {
         return;
     }
-//    for (uint16_t i=0; i<2; ++i)
-//    {
-//        cdata.devspec.ant.resize(0);
-//        cdata.devspec.batt.resize(0);
-//        cdata.devspec.bus.resize(0);
-//        cdata.devspec.cam.resize(0);
-//        cdata.devspec.cpu.resize(0);
-//        cdata.devspec.gps.resize(0);
-//        cdata.devspec.htr.resize(0);
-//        cdata.devspec.imu.resize(0);
-//        cdata.devspec.mcc.resize(0);
-//        cdata.devspec.motr.resize(0);
-//        cdata.devspec.mtr.resize(0);
-//        cdata.devspec.tcu.resize(0);
-//        cdata.devspec.pload.resize(0);
-//        cdata.devspec.prop.resize(0);
-//        cdata.devspec.psen.resize(0);
-//        cdata.devspec.rot.resize(0);
-//        cdata.devspec.rw.resize(0);
-//        cdata.devspec.ssen.resize(0);
-//        cdata.devspec.strg.resize(0);
-//        cdata.devspec.stt.resize(0);
-//        cdata.devspec.suchi.resize(0);
-//        cdata.devspec.swch.resize(0);
-//        cdata.devspec.tcv.resize(0);
-//        cdata.devspec.txr.resize(0);
-//        cdata.devspec.rxr.resize(0);
-//        cdata.devspec.telem.resize(0);
-//        cdata.devspec.thst.resize(0);
-//        cdata.devspec.tsen.resize(0);
-//        cdata.device.resize(0);
-//    }
+    //    for (uint16_t i=0; i<2; ++i)
+    //    {
+    //        cdata.devspec.ant.resize(0);
+    //        cdata.devspec.batt.resize(0);
+    //        cdata.devspec.bus.resize(0);
+    //        cdata.devspec.cam.resize(0);
+    //        cdata.devspec.cpu.resize(0);
+    //        cdata.devspec.gps.resize(0);
+    //        cdata.devspec.htr.resize(0);
+    //        cdata.devspec.imu.resize(0);
+    //        cdata.devspec.mcc.resize(0);
+    //        cdata.devspec.motr.resize(0);
+    //        cdata.devspec.mtr.resize(0);
+    //        cdata.devspec.tcu.resize(0);
+    //        cdata.devspec.pload.resize(0);
+    //        cdata.devspec.prop.resize(0);
+    //        cdata.devspec.psen.resize(0);
+    //        cdata.devspec.rot.resize(0);
+    //        cdata.devspec.rw.resize(0);
+    //        cdata.devspec.ssen.resize(0);
+    //        cdata.devspec.strg.resize(0);
+    //        cdata.devspec.stt.resize(0);
+    //        cdata.devspec.suchi.resize(0);
+    //        cdata.devspec.swch.resize(0);
+    //        cdata.devspec.tcv.resize(0);
+    //        cdata.devspec.txr.resize(0);
+    //        cdata.devspec.rxr.resize(0);
+    //        cdata.devspec.telem.resize(0);
+    //        cdata.devspec.thst.resize(0);
+    //        cdata.devspec.tsen.resize(0);
+    //        cdata.device.resize(0);
+    //    }
 
     delete cinfo;
     cinfo = nullptr;
@@ -442,7 +441,7 @@ void json_destroy(cosmosstruc *cinfo)
 
 //! Calculate JSON HASH
 /*! Simple hash function (TCPL Section 6.6 Table Lookup)
-    \param std::string String to calculate the hash for.
+    \param hstring String to calculate the hash for.
     \return The hash, as an unsigned 16 bit number.
 */
 
@@ -467,7 +466,7 @@ uint16_t json_hash(std::string hstring)
  * \param alias Name to add as an alias.
  * \param value Either the contents of an equation, or a Namespace name that
  * should already exist in the Namespace
- * \param cinfo Pointer to ::cosmosstruc.
+ * \param cmeta Reference to ::cosmosmetastruc to use.
  * \return The current number of entries, if successful, otherwise negative error.
 */
 int32_t json_addentry(std::string alias, std::string value, cosmosmetastruc &cmeta)
@@ -524,7 +523,7 @@ int32_t json_addentry(std::string alias, std::string value, cosmosmetastruc &cme
 //! Enter an entry into the JSON Namespace.
 /*! Enters a ::jsonentry in the JSON Data Name Space.
     \param entry The entry to be entered.
-    \param cinfo Pointer to ::cosmosstruc.
+    \param cmeta Reference to ::cosmosmetastruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
     added.
 */
@@ -552,9 +551,10 @@ int32_t json_addentry(jsonentry entry, cosmosmetastruc &cmeta)
     \param d1 array index for first level, otherwise -1
     \param d2 array index for second level, otherwise -1
     \param offset Offset to the data from the beginning of its group.
+    \param size Number of bytes ::jsonetnry take up.
     \param type COSMOS JSON Data Type.
     \param group COSMOS JSON Data Group.
-    \param cinfo Pointer to ::cosmosstruc.
+    \param cmeta Reference to ::cosmosmetastruc to use.
     \param unit Index into JMAP unit table.
     \return The current number of entries, if successful, 0 if the entry could not be
     added, or if enough memory could not be allocated to hold the JSON stream.
@@ -595,9 +595,10 @@ int32_t json_addentry(std::string name, uint16_t d1, uint16_t d2, ptrdiff_t offs
     \param d1 array index for first level, otherwise -1
     \param d2 array index for second level, otherwise -1
     \param offset Offset to the data from the beginning of its group.
+    \param size Number of bytes ::jsonetnry take up.
     \param type COSMOS JSON Data Type.
     \param group COSMOS JSON Data Group.
-    \param cinfo Pointer to ::cosmosstruc.
+    \param cmeta Reference to ::cosmosmetastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
     added, or if enough memory could not be allocated to hold the JSON stream.
 */
@@ -609,7 +610,7 @@ int32_t json_addentry(std::string name, uint16_t d1, uint16_t d2, ptrdiff_t offs
 //! Number of items in current JSON map
 /*! Returns the number of JSON items currently mapped.
     \param hash JSON HASH value.
-    \param cinfo Pointer to ::cosmosstruc being used.
+    \param cmeta Reference to ::cosmosmetastruc to use.
     \return Number of JSON items mapped, otherwise zero.
 */
 size_t json_count_hash(uint16_t hash, cosmosmetastruc &cmeta)
@@ -619,7 +620,7 @@ size_t json_count_hash(uint16_t hash, cosmosmetastruc &cmeta)
 
 //! Number of items in the current JSON map
 /*! Returns the number of JSON items currently mapped.
-    \param cinfo Pointer to ::cosmosstruc being used.
+    \param cmeta Reference to ::cosmosmetastruc to use.
     \return total number of JSON items mapped, otherwise zero.
 */
 
@@ -633,11 +634,12 @@ size_t json_count_total(cosmosmetastruc &cmeta)
     return i;
 }
 
-//! Perform JSON output for a single indexed JSON item
-/*! Populates the jstring for the indicated ::jsonmap by index.
-    \param hash The JSON HASH of the desired variable.
-    \param index The JSON index of the desired variable for that hash.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+//! Perform JSON output for a JSON item by handle
+/*! Appends the indicated JSON object to the supplied JSON Stream.
+    \param jstring Reference to JSON stream.
+    \param handle The ::jsonhandle of the desired object.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return  0 if successful, negative error otherwise
 */
 int32_t json_out_handle(std::string &jstring, jsonhandle handle, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -654,8 +656,10 @@ int32_t json_out_handle(std::string &jstring, jsonhandle handle, cosmosmetastruc
 
 //! Perform JSON output for a single JSON entry
 /*! Populates the jstring for the indicated ::jsonmap by ::jsonentry.
+    \param jstring Reference to JSON stream.
     \param entry The ::jsonentry of the desired variable.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return  0 if successful, negative error otherwise
 */
 int32_t json_out_entry(std::string &jstring, jsonentry* entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -663,8 +667,8 @@ int32_t json_out_entry(std::string &jstring, jsonentry* entry, cosmosmetastruc &
     int32_t iretn;
     uint8_t *data;
 
-//    if (!cmeta.jmapped)
-//        return (JSON_ERROR_NOJMAP);
+    //    if (!cmeta.jmapped)
+    //        return (JSON_ERROR_NOJMAP);
 
     if ((iretn=json_out_character(jstring,'{')) != 0)
         return (iretn);
@@ -686,7 +690,8 @@ int32_t json_out_entry(std::string &jstring, jsonentry* entry, cosmosmetastruc &
  * \param name Namespace name of variable.
  * \param data Pointer to location in ::cosmosstruc of variable.
  * \param type Type of variable.
- * \param cinfo Pointer to ::cosmosstruc representing Namespace.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  * \return Zero or negative error.
 */
 int32_t json_out_value(std::string &jstring, std::string name, uint8_t *data, uint16_t type, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -717,6 +722,8 @@ int32_t json_out_value(std::string &jstring, std::string name, uint8_t *data, ui
  * \param jstring Reference to JSON String to append to.
  * \param data Pointer to location of variable.
  * \param type Type of variable.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  * \return Zero or negative error.
 */
 int32_t json_out_type(std::string &jstring, uint8_t *data, uint16_t type, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -884,7 +891,8 @@ int32_t json_out_type(std::string &jstring, uint8_t *data, uint16_t type, cosmos
 
 //! Extend JSON stream
 /*! Append the indicated string to the current JSON stream, extending it if necessary.
-    \param string String to be appended.
+ * \param jstring JSON stting to be appended to.
+    \param tstring String to be appended.
     \return 0 if successful, negative error number otherwise.
 */
 int32_t json_append(std::string &jstring, const char *tstring)
@@ -895,6 +903,7 @@ int32_t json_append(std::string &jstring, const char *tstring)
 
 //! Single character to JSON
 /*! Appends an entry for the single character to the current JSON stream.
+    \param jstring Reference to JSON stream.
     \param character Character to be added to string in the raw.
     \return 0 if successful, otherwise negative error.
 */
@@ -913,6 +922,7 @@ int32_t json_out_character(std::string &jstring,char character)
 //! Object name to JSON
 /*! Appends an entry for the name piece of a JSON object (including ":") to the current JSON
  * string.
+    \param jstring Reference to JSON stream.
     \param name The Object Name
     \return  0 if successful, otherwise negative error.
 */
@@ -929,6 +939,7 @@ int32_t json_out_name(std::string &jstring, std::string name)
 
 //! Signed 8 bit integer to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated 8 bit signed integer.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -945,6 +956,7 @@ int32_t json_out_int8(std::string &jstring,int8_t value)
 
 //! Signed 16 bit integer to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated 16 bit signed integer.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -961,6 +973,7 @@ int32_t json_out_int16(std::string &jstring,int16_t value)
 
 //! Signed 32 bit integer to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated 32 bit signed integer.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -977,10 +990,11 @@ int32_t json_out_int32(std::string &jstring,int32_t value)
 
 //! Unsigned 8 bit integer to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated 8 bit unsigned integer.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_uint8(std::string &jstring,uint8_t value)
+int32_t json_out_uint8(std::string &jstring, uint8_t value)
 {
     int32_t iretn;
     char tstring[15];
@@ -993,6 +1007,7 @@ int32_t json_out_uint8(std::string &jstring,uint8_t value)
 
 //! Unsigned 16 bit integer to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated 16 bit unsigned integer.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1009,6 +1024,7 @@ int32_t json_out_uint16(std::string &jstring,uint16_t value)
 
 //! Unsigned 32 bit integer to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated 32 bit unsigned integer.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1025,6 +1041,7 @@ int32_t json_out_uint32(std::string &jstring,uint32_t value)
 
 //! Single precision floating point32_t to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated float.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1044,6 +1061,7 @@ int32_t json_out_float(std::string &jstring,float value)
 
 //! Perform JSON output for a single nonindexed double
 /*! Appends a JSON entry to the current JSON stream for the indicated double.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1063,7 +1081,9 @@ int32_t json_out_double(std::string &jstring,double value)
 
 //! String to JSON
 /*! Appends a JSON entry to the current JSON stream for the string variable.
-    \param value The JSON data of the desired variable
+    \param jstring Reference to JSON stream.
+    \param ostring String to append.
+    \param len Maximum allowed size.
     \return  0 if successful, negative error otherwise
 */
 int32_t json_out_string(std::string &jstring, std::string ostring, uint16_t len)
@@ -1150,6 +1170,7 @@ int32_t json_out_string(std::string &jstring, std::string ostring, uint16_t len)
 
 //! ::gvector to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated ::gvector.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1189,6 +1210,7 @@ int32_t json_out_gvector(std::string &jstring,gvector value)
 
 //! ::svector to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated ::svector.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1228,6 +1250,7 @@ int32_t json_out_svector(std::string &jstring,svector value)
 
 //! ::rvector to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated ::rvector.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1263,6 +1286,7 @@ int32_t json_out_rvector(std::string &jstring,rvector value)
 //! ::quaternion to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::quaternion.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1294,6 +1318,7 @@ int32_t json_out_quaternion(std::string &jstring,quaternion value)
 
 //! ::cvector to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated ::cvector.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1333,6 +1358,7 @@ int32_t json_out_cvector(std::string &jstring,cvector value)
 
 //! ::cartpos to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated ::cartpos.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1381,6 +1407,7 @@ int32_t json_out_cartpos(std::string &jstring,cartpos value)
 //! ::geoidpos to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::geoidpos.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1429,6 +1456,7 @@ int32_t json_out_geoidpos(std::string &jstring,geoidpos value)
 //! ::spherpos to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::spherpos.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1553,6 +1581,7 @@ int32_t json_out_ecipos(std::string &jstring, cartpos value)
 //! ::posstruc to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::posstruc.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1643,6 +1672,7 @@ int32_t json_out_posstruc(std::string &jstring,posstruc value)
 //! ::attstruc to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::attstruc.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1707,6 +1737,7 @@ int32_t json_out_attstruc(std::string &jstring,attstruc value)
 //! ::locstruc to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::locstruc.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1755,6 +1786,7 @@ int32_t json_out_locstruc(std::string &jstring,locstruc value)
 //! Command event to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::longeventstruc specific ti a command event.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1836,6 +1868,7 @@ int32_t json_out_commandevent(std::string &jstring,longeventstruc value)
 }
 
 /*! Appends a JSON entry to the current JSON stream for the indicated ::dcmatt.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1876,6 +1909,7 @@ int32_t json_out_dcmatt(std::string &jstring,dcmatt value)
 //! ::qatt to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::qatt.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1923,6 +1957,7 @@ int32_t json_out_qatt(std::string &jstring,qatt value)
 
 //! ::dcm to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated ::dcm.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1957,6 +1992,7 @@ int32_t json_out_dcm(std::string &jstring,rmatrix value)
 //! ::rmatrix to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
  * ::rmatrix.
+    \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
@@ -1996,7 +2032,8 @@ int32_t json_out_rmatrix(std::string &jstring,rmatrix value)
 
 //! ::beatstruc to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated ::beatstruc.
-    \param value The JSON data of the desired variable
+    \param jstring Reference to JSON stream.
+   \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
 int32_t json_out_beatstruc(std::string &jstring,beatstruc value)
@@ -2051,9 +2088,11 @@ int32_t json_out_beatstruc(std::string &jstring,beatstruc value)
 
 //! Perform JSON output for a single element of a 1D named JSON item.
 /*! Calls ::json_out for the indexed element of the named JSON vector.
+    \param jstring Reference to JSON stream.
     \param token The JSON name for the desired variable
     \param index The desired element number
-    \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return  0 if successful, negative error otherwise
 */
 int32_t json_out_1d(std::string &jstring, const char *token, uint16_t index, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2074,10 +2113,12 @@ int32_t json_out_1d(std::string &jstring, const char *token, uint16_t index, cos
 
 //! Perform JSON output for a single element of a 2D named JSON item.
 /*! Calls ::json_out for the indexed element of the named JSON matrix.
+    \param jstring Reference to JSON stream.
     \param token The JSON name for the desired variable
     \param row The desired row number
     \param col The desired column number
-    \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return  0 if successful, negative error otherwise
 */
 int32_t json_out_2d(std::string &jstring, const char *token, uint16_t row, uint16_t col, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2100,7 +2141,8 @@ int32_t json_out_2d(std::string &jstring, const char *token, uint16_t row, uint1
 /*! Populates the jstring for the indicated ::jsonmap through reference to JSON name.
     \param jstring The jstring into which to store the result.
     \param token The JSON name for the desired variable.
-    \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return  0 if successful, negative error otherwise
 */
 int32_t json_out(std::string &jstring, std::string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2130,6 +2172,8 @@ int32_t json_out(std::string &jstring, std::string token, cosmosmetastruc &cmeta
  * names.
     \param jstring The jstring into which to store the result.
     \param tokens The comma separated list of JSON names for the desired variables.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return  0 if successful, negative error otherwise
 */
 int32_t json_out_list(std::string &jstring,std::string tokens, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2166,6 +2210,8 @@ int32_t json_out_list(std::string &jstring,std::string tokens, cosmosmetastruc &
  * names.
     \param jstring The jstring into which to store the result.
     \param wildcard The regular expression to match against.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return  0 if successful, negative error otherwise
 */
 
@@ -2192,7 +2238,8 @@ int32_t json_out_wildcard(std::string &jstring, std::string wildcard, cosmosmeta
  * dynamic space, using the provide cdata static and dynamic addresses.
  \param offset An offset taken from a ::jsonentry
  \param group The structure group from which the offset is measured.
- \param cdata The ::cosmosdatastruc Containing the structure group
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  \return A pointer, castable into any desired type.
 */
 uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2253,8 +2300,9 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosmetastruc &c
 //! Output a vector of JSON entries.
 /*! Populates the provided vector for the indicated ::jsonmap through reference to a list of JSON
  * names.
-    \param entry The vector of ::jsonentry into which to store the result.
+    \param table The vector of ::jsonentry into which to store the result.
     \param tokens The comma separated list of JSON names for the desired variables.
+    \param cmeta Reference to ::cosmosmetastruc to use.
     \return  0 if successful, negative error otherwise
 */
 int32_t json_table_of_list(std::vector<jsonentry*> &table, std::string tokens, cosmosmetastruc &cmeta)
@@ -2291,7 +2339,8 @@ int32_t json_table_of_list(std::vector<jsonentry*> &table, std::string tokens, c
 /*! Return a pointer to the Namespace Entry structure containing the
  * information for a the namespace value that matches a given memory address.
  \param ptr Address of a variable that may match a namespace name.
- \param cinfo Address of the ::cosmosstruc that may contain the ptr.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  \return Pointer to the ::jsonentry for the token, or NULL.
 */
 jsonentry *json_entry_of(uint8_t *ptr, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2361,6 +2410,7 @@ jsonentry *json_entry_of(uint8_t *ptr, cosmosmetastruc &cmeta, cosmosdatastruc &
 /*! Return a pointer to the Namespace Entry structure containing the
  * information for a given name.
  \param token Namespace name to look up
+    \param cmeta Reference to ::cosmosmetastruc to use.
  \return Pointer to the ::jsonentry for the token, or NULL.
 */
 jsonentry *json_entry_of(std::string token, cosmosmetastruc &cmeta)
@@ -2390,7 +2440,7 @@ jsonentry *json_entry_of(std::string token, cosmosmetastruc &cmeta)
 /*! Return a pointer to the Namespace Equation structure containing the
  * information for a given equation.
  \param handle ::jsonhandle for the entry in the global emap
- \param cinfo Pointer to ::cosmosstruc where global emap is stored
+    \param cmeta Reference to ::cosmosmetastruc to use.
  \return Pointer to the ::jsonequation for the token, or NULL.
 */
 jsonequation *json_equation_of(jsonhandle handle, cosmosmetastruc &cmeta)
@@ -2409,7 +2459,7 @@ jsonequation *json_equation_of(jsonhandle handle, cosmosmetastruc &cmeta)
 /*! Return a pointer to the Namespace Entry structure containing the
  * information for a given name.
  \param handle ::jsonhandle for the entry in the global jmap
- \param cinfo Pointer to ::cosmosstruc where global jmap is stored
+    \param cmeta Reference to ::cosmosmetastruc to use.
  \return Pointer to the ::jsonentry for the token, or NULL.
 */
 jsonentry *json_entry_of(jsonhandle handle, cosmosmetastruc &cmeta)
@@ -2425,9 +2475,10 @@ jsonentry *json_entry_of(jsonhandle handle, cosmosmetastruc &cmeta)
 }
 
 //! Type of namespace name.
-/*! Return the ::json_type of the token in the ::jsonmap.
+/*! Return the ::jsonlib_type of the token in the ::jsonmap.
  \param token the JSON name for the desired variable
- \return The ::json_type, otherwise 0.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+ \return The ::jsonlib_type, otherwise 0.
 */
 uint16_t json_type_of_name(std::string token, cosmosmetastruc &cmeta)
 {
@@ -2447,7 +2498,8 @@ uint16_t json_type_of_name(std::string token, cosmosmetastruc &cmeta)
 /*! Look up the provided JSON data name in the indicated ::jsonmap and return the
  * associated data pointer.
  \param token the JSON name for the desired variable
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  \return The associated data pointer, if succesful, otherwise NULL
 */
 uint8_t *json_ptrto(std::string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2465,6 +2517,8 @@ uint8_t *json_ptrto(std::string token, cosmosmetastruc &cmeta, cosmosdatastruc &
  * and return the associated data pointer.
     \param token the JSON name for the desired variable
     \param index1 Primary index.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return The associated data pointer, if succesful, otherwise NULL
 */
 uint8_t *json_ptrto_1d(std::string token, uint16_t index1, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2487,7 +2541,8 @@ uint8_t *json_ptrto_1d(std::string token, uint16_t index1, cosmosmetastruc &cmet
     \param token the JSON name for the desired variable
     \param index1 Primary index.
     \param index2 Secondary index.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return The associated data pointer, if succesful, otherwise NULL
 */
 uint8_t *json_ptrto_2d(std::string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2509,7 +2564,8 @@ uint8_t *json_ptrto_2d(std::string token, uint16_t index1, uint16_t index2, cosm
 /*! If the value at this ::jsonhandle can in any way be interepreted as a number,
  * return it as an int32_t.
  \param handle ::jsonhandle for a valid COSMOS Namespace entry.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  \return Value cast as an int32_t, or 0.
 */
 int32_t json_get_int(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2529,7 +2585,8 @@ int32_t json_get_int(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastruc
 /*! If the value stored in this ::jsonentry can in any way be interepreted as a number,
  * return it as an int32_t.
  \param entry A valid COSMOS Namespace entry.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  \return Value cast as an int32_t, or 0.
 */
 int32_t json_get_int(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2596,7 +2653,8 @@ int32_t json_get_int(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &
 /*! If the named value can in any way be interepreted as a number,
  * return it as a signed 32 bit integer.
  \param token Valid COSMOS Namespace name.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  \return Value cast as a signed 32 bit integer, or 0.
 */
 int32_t json_get_int(std::string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2619,7 +2677,8 @@ int32_t json_get_int(std::string token, cosmosmetastruc &cmeta, cosmosdatastruc 
  * return it as a signed 32 bit integer.
  \param token Valid COSMOS Namespace name.
  \param index1 1d index.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  \return Value cast as a signed 32 bit integer, or 0.
 */
 int32_t json_get_int(std::string token, uint16_t index1, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2644,7 +2703,8 @@ int32_t json_get_int(std::string token, uint16_t index1, cosmosmetastruc &cmeta,
  \param token Valid COSMOS Namespace name.
  \param index1 1d index.
  \param index2 2d index.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  \return Value cast as a signed 32 bit integer, or 0.
 */
 int32_t json_get_int(std::string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2667,7 +2727,9 @@ int32_t json_get_int(std::string token, uint16_t index1, uint16_t index2, cosmos
 /*! If the value at this ::jsonhandle can in any way be interepreted as a number,
  * return it as an uint32_t.
  \param handle ::jsonhandle for a valid COSMOS Namespace entry.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as an uint32_t, or 0.
 */
 uint32_t json_get_uint(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2687,7 +2749,9 @@ uint32_t json_get_uint(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastr
 /*! If the value stored in this ::jsonentry can in any way be interepreted as a number,
  * return it as an uint32_t.
  \param entry A valid COSMOS Namespace entry.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as an uint32_t, or 0.
 */
 uint32_t json_get_uint(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2775,7 +2839,9 @@ uint32_t json_get_uint(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc
 /*! If the named value can in any way be interepreted as a number,
  * return it as a signed 32 bit unsigned integer.
  \param token Valid COSMOS Namespace name.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as a signed 32 bit unsigned integer, or 0.
 */
 uint32_t json_get_uint(std::string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2798,7 +2864,9 @@ uint32_t json_get_uint(std::string token, cosmosmetastruc &cmeta, cosmosdatastru
  * return it as a signed 32 bit unsigned integer.
  \param token Valid COSMOS Namespace name.
  \param index1 1d index.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as a signed 32 bit unsigned integer, or 0.
 */
 uint32_t json_get_uint(std::string token, uint16_t index1, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2823,7 +2891,9 @@ uint32_t json_get_uint(std::string token, uint16_t index1, cosmosmetastruc &cmet
  \param token Valid COSMOS Namespace name.
  \param index1 1d index.
  \param index2 2d index.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as a signed 32 bit unsigned integer, or 0.
 */
 uint32_t json_get_uint(std::string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2846,7 +2916,9 @@ uint32_t json_get_uint(std::string token, uint16_t index1, uint16_t index2, cosm
 /*! If the value at this ::jsonhandle can in any way be interepreted as a number,
  * return it as a double.
  \param handle ::jsonhandle for a valid COSMOS Namespace entry.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as an double, or 0.
 */
 double json_get_double(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2866,7 +2938,9 @@ double json_get_double(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastr
 /*! If the named value can in any way be interepreted as a number,
  * return it as a double.
  \param token Valid COSMOS Namespace name.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as a double, or 0.
 */
 double json_get_double(std::string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2892,8 +2966,10 @@ double json_get_double(std::string token, cosmosmetastruc &cmeta, cosmosdatastru
 //! Return double from entry.
 /*! If the named value can in any way be interepreted as a number,
  * return it as a double.
- \param ptr Pointer to a valid COSMOS Namespace entry.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+ \param entry Pointer to a valid ::jsonentry.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as a double, or 0.
 */
 double json_get_double(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -2992,8 +3068,10 @@ double json_get_double(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc
 //! Return rvector from entry.
 /*! If the named value can in any way be interepreted as three numbers,
  * return it as an rvector.
- \param ptr Pointer to a valid COSMOS Namespace entry.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+ \param entry Pointer to a valid ::jsonentry..
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as an rvector, or 0.
 */
 rvector json_get_rvector(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3017,8 +3095,8 @@ rvector json_get_rvector(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastr
         case JSON_TYPE_POS_SCI:
         case JSON_TYPE_POS_BARYC:
             {
-            cartpos tpos = (cartpos)(*(cartpos *)(dptr));
-            value = tpos.s;
+                cartpos tpos = (cartpos)(*(cartpos *)(dptr));
+                value = tpos.s;
             }
             break;
         case JSON_TYPE_RVECTOR:
@@ -3098,8 +3176,10 @@ rvector json_get_rvector(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastr
 //! Return quaternion from entry.
 /*! If the named value can in any way be interepreted as three numbers,
  * return it as an quaternion.
- \param ptr Pointer to a valid COSMOS Namespace entry.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+ \param entry Pointer to a valid ::jsonentry.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as an quaternion, or 0.
 */
 quaternion json_get_quaternion(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3123,7 +3203,7 @@ quaternion json_get_quaternion(jsonentry *entry, cosmosmetastruc &cmeta, cosmosd
         case JSON_TYPE_QATT_LVLH:
         case JSON_TYPE_QATT_TOPO:
             {
-            value = (quaternion)(*(quaternion *)(dptr));
+                value = (quaternion)(*(quaternion *)(dptr));
             }
             break;
         case JSON_TYPE_QUATERNION:
@@ -3213,7 +3293,9 @@ quaternion json_get_quaternion(jsonentry *entry, cosmosmetastruc &cmeta, cosmosd
  * return it as a double.
  \param token Valid COSMOS Namespace name.
  \param index1 1d index.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as a double, or 0.
 */
 double json_get_double(std::string token, uint16_t index1, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3239,7 +3321,9 @@ double json_get_double(std::string token, uint16_t index1, cosmosmetastruc &cmet
  \param token Valid COSMOS Namespace name.
  \param index1 1d index.
  \param index2 2d index.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Value cast as a double, or 0.
 */
 double json_get_double(std::string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3265,7 +3349,9 @@ whatever numerical value as a string. Return a pointer to an internal
 storage buffer for the string. Note: this value is changed each time
 you call this function.
     \param token Valid COSMOS Namespace name.
-    \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Pointer to a char buffer containing the string.
 */
 std::string json_get_string(std::string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3286,8 +3372,9 @@ std::string json_get_string(std::string token, cosmosmetastruc &cmeta, cosmosdat
 whatever numerical value as a string. Return a pointer to an internal
 storage buffer for the string. Note: this value is changed each time
 you call this function.
-    \param token Valid COSMOS Namespace name.
-    \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param ptr Pointer to a valid ::jsonentry..
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return Pointer to a char buffer containing the string.
 */
 std::string json_get_string(jsonentry *ptr, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3350,7 +3437,9 @@ std::string json_get_string(jsonentry *ptr, cosmosmetastruc &cmeta, cosmosdatast
  * will.
  \param value Double precision value to be stored in the name space.
  \param token Valid COSMOS Namespace name.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Negative error or zero.
 */
 int32_t json_set_double_name(double value, char *token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3406,7 +3495,9 @@ int32_t json_set_double_name(double value, char *token, cosmosmetastruc &cmeta, 
     - '=': logical Equal
     - '^': power
   \param ptr Pointer to a pointer to a JSON stream.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
   \return Result of the equation, or NAN.
 */
 double json_equation(const char* &ptr, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3432,7 +3523,9 @@ double json_equation(const char* &ptr, cosmosmetastruc &cmeta, cosmosdatastruc &
 //! Return the results of a known JSON equation handle
 /*! Calculate a ::json_equation using already looked up values for the hash and index.
     \param handle Values for hash and index that point to an entry in the map.
-    \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Result of the equation, or NAN.
 */
 double json_equation(jsonhandle *handle, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3443,7 +3536,9 @@ double json_equation(jsonhandle *handle, cosmosmetastruc &cmeta, cosmosdatastruc
 //! Return the results of a known JSON equation entry
 /*! Calculate a ::json_equation using already looked up entry from the map.
     \param ptr Pointer to a ::jsonequation from the map.
-    \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Result of the equation, or NAN.
 */
 double json_equation(jsonequation *ptr, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3577,6 +3672,7 @@ std::string json_extract_namedobject(std::string json, std::string token)
 /*! Extract the next JSON value from the provided string. If it is found,
  * return its value as a string.
     \param ptr Pointer to a pointer to a JSON stream.
+    \param value Reference to extracted string.
     \return The length of the returned string.
 */
 int32_t json_extract_value(const char *&ptr, std::string &value)
@@ -3699,7 +3795,7 @@ double json_convert_double(std::string object)
  * of tokens.
  * \param jstring string containing JSON stream.
  * \param tokens vector of ::jsontoken.
- * \param cinfo Pointer to the ::cosmosstruc containing the name space.
+    \param cmeta Reference to ::cosmosmetastruc to use.
  * \return Zero or negative error.
  */
 int32_t json_tokenize(std::string jstring, cosmosmetastruc &cmeta, std::vector<jsontoken> &tokens)
@@ -3750,8 +3846,8 @@ int32_t json_tokenize(std::string jstring, cosmosmetastruc &cmeta, std::vector<j
 //! Tokenize next JSON Named Pair
 /*! Extract the next Named Pair from the provided JSON stream and place it in a ::jsontoken.
  * Leave pointer at the next Object in the string.
- * \param pointer Pointer to a pointer to a JSON stream.
- * \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+ * \param ptr Pointer to a pointer to a JSON stream.
+ *    \param cmeta Reference to ::cosmosmetastruc to use.
  * \param token ::jsontoken to return.
  * \return Zero, or a negative error.
 */
@@ -3896,7 +3992,9 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosmetastruc &cmeta, json
  * each match that is found, load the associated data item with the accompanying data.
  * This function supports complex data types.
     \param jstring A string of JSON data
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Zero or negative error.
 */
 int32_t json_parse(std::string jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -3937,8 +4035,9 @@ int32_t json_parse(std::string jstring, cosmosmetastruc &cmeta, cosmosdatastruc 
 //! Parse next JSON Named Pair
 /*! Extract the next Named Pair from the provided JSON stream. Return a pointer to the next
  * Object in the string, and an error flag.
-    \param pointer Pointer to a pointer to a JSON stream.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param ptr Pointer to a pointer to a JSON stream.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return Zero, or a negative error.
 */
 int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -4046,7 +4145,7 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosd
 /*! Look for the specified character in the provided JSON stream and
  * flag an error if it's not there. Otherwise, increment the pointer
  * to the next byte in the string.
- \param pointer Pointer to a pointer to a JSON stream.
+ \param ptr Pointer to a pointer to a JSON stream.
  \param character The character to look for.
  \return Zero or a negative error.
 */
@@ -4066,8 +4165,8 @@ int32_t json_skip_character(const char* &ptr, const char character)
 //! Parse the next variable name out of a JSON stream.
 /*! Look for a valid JSON string, followed by a ':' and copy that
  * name to the provided buffer, otherwise flag an error.
- \param pointer Pointer to a pointer to a JSON stream.
- \param string Pointer to a location to copy the string.
+ \param ptr Pointer to a pointer to a JSON stream.
+ \param ostring Pointer to a location to copy the string.
  \return Zero, otherwise negative error.
 */
 int32_t json_parse_name(const char* &ptr, std::string& ostring)
@@ -4109,7 +4208,7 @@ int32_t json_parse_name(const char* &ptr, std::string& ostring)
 /*! Look for a valid JSON equation in the provided JSON stream and copy
  * it to the provided buffer. Otherwise flag an error.
  \param ptr Pointer to a pointer to a JSON stream.
- \param string Pointer to a location to copy the equation.
+ \param equation Reference to a location to copy the equation.
  \return Zero, otherwise negative error.
 */
 int32_t json_parse_equation(const char* &ptr, std::string& equation)
@@ -4184,6 +4283,7 @@ int32_t json_parse_equation(const char* &ptr, std::string& equation)
  * copy it to a ::jsonoperand.
  \param ptr Pointer to a pointer to a JSON stream.
  \param operand Pointer to a ::jsonoperand.
+    \param cmeta Reference to ::cosmosmetastruc to use.
  \return Zero, otherwise negative error.
 */
 int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosmetastruc &cmeta)
@@ -4247,7 +4347,7 @@ int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosmetastr
 /*! Look for a valid JSON string in the provided JSON stream and copy
  * it to the provided buffer. Otherwise flag an error.
  \param ptr Pointer to a pointer to a JSON stream.
- \param string Pointer to a location to copy the string.
+ \param ostring Pointer to a location to copy the string.
  \return Zero, otherwise negative error.
 */
 int32_t json_extract_string(const char* &ptr, std::string &ostring)
@@ -5173,7 +5273,9 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
  * the effects of previous calls to ::json_parse.
     \param type One of JSON_MAP_ALL, JSON_MAP_AGENT, JSON_MAP_BEACON, JSON_MAP_NODESTATIC, or
     JSON_MAP_NODEDYNAMIC
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return 0, or a negative \ref error.
 */
 int32_t json_clear_cosmosstruc(int32_t type, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -5231,7 +5333,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosmetastruc &cmeta, cosmosdatas
  * \ref cosmosstruc.
  *	\param node Name and/or path of node directory. If name, then a path will be created
  * based on nodedir setting. If path, then name will be extracted from the end.
- *	\param cinfo Pointer to cinfo ::cosmosstruc.
+ *	\param json ::jsonnode for storing JSON.
  * \param create_flag Whether or not to create node directory if it doesn't already exist.
     \return 0, or a negative ::error
 */
@@ -5693,7 +5795,8 @@ int32_t json_setup_node(std::string node, cosmosstruc *cinfo, bool create_flag)
 //! Save Node entries to disk
 /*! Create all of the initialization files that represent the Node in the provided
  * ::cosmosstruc.
- * \param cinfo Pointer to ::cosmosstruc.
+ * \param cmeta Reference to ::cosmosmetastruc to use.
+ * \param cdata Reference to ::cosmosdatastruc to use.
  * \return Zero if successful, otherwise negative error.
  */
 int32_t json_dump_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -5785,7 +5888,7 @@ int32_t json_dump_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
 
 //! Add base entries to JMAP
 /*! Add all of the base entries to the Namespace map.
- \param cinfo Pointer to cinfo ::cosmosstruc.
+*	\param cmeta Reference to ::cosmosmetastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
 uint16_t json_addbaseentry(cosmosmetastruc &cmeta)
@@ -5975,7 +6078,7 @@ uint16_t json_addbaseentry(cosmosmetastruc &cmeta)
 //! Add piece entry.
 /*! Add an entry for piece number i to the JSON Namespace map.
  \param i Piece number.
- \param cinfo Pointer to cinfo ::cosmosstruc.
+*	\param cmeta Reference to ::cosmosmetastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
 uint16_t json_addpieceentry(uint16_t i, cosmosmetastruc &cmeta)
@@ -6003,7 +6106,8 @@ uint16_t json_addpieceentry(uint16_t i, cosmosmetastruc &cmeta)
 //! Add component entry.
 /*! Add an entry for component number i to the JSON Namespace map.
  \param i Component number.
- \param cinfo Pointer to cinfo ::cosmosstruc.
+*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cdata Reference to ::cosmosdatastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
 uint16_t json_addcompentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6033,7 +6137,8 @@ uint16_t json_addcompentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc &
 //! Add device entry.
 /*! Add entries specific to device number i to the JSON Namespace map.
  \param i Device number.
- \param cinfo Pointer to ::cosmosstruc.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be added.
  */
 uint16_t json_adddeviceentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6452,10 +6557,11 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc
 
 //! Create JSON stream from wildcard
 /*! Generate a JSON stream based on a character string representing
- * all the ::namespace names you wish to match.
+ * all the ::jsonlib_namespace names you wish to match.
     \param jstring Pointer to a string large enough to hold the end result.
-    \param wildcard Character string representing a regular expression to be matched to all names in the ::namespace.
-    \param cinfo Pointer to cinfo ::cosmosstruc to be used.
+    \param wildcard Character string representing a regular expression to be matched to all names in the ::jsonlib_namespace.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return Pointer to the string if successful, otherwise NULL.
 */
 const char *json_of_wildcard(std::string &jstring, std::string wildcard, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6473,9 +6579,11 @@ const char *json_of_wildcard(std::string &jstring, std::string wildcard, cosmosm
 }
 
 //! Create JSON stream from list
-/*! Generate a JSON stream based on a comma separated list of ::namespace names.
+/*! Generate a JSON stream based on a comma separated list of ::jsonlib_namespace names.
     \param jstring Pointer to a string large enough to hold the end result.
-    \param cinfo Pointer to cinfo ::cosmosstruc to be used.
+    \param list List to convert.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return Pointer to the string if successful, otherwise NULL.
 */
 const char *json_of_list(std::string &jstring, std::string list, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6491,10 +6599,11 @@ const char *json_of_list(std::string &jstring, std::string list, cosmosmetastruc
 }
 
 //! Create JSON stream from entries
-/*! Generate a JSON stream based on a vector of entries of ::namespace names.
+/*! Generate a JSON stream based on a vector of entries of ::jsonlib_namespace names.
     \param jstring Pointer to a string large enough to hold the end result.
-    \param entries Vector of pointers to entries from ::jsonmap.
-    \param cinfo Pointer to cinfo ::cosmosstruc to be used.
+    \param table Vector of pointers to entries from ::jsonmap.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return Pointer to the string if successful, otherwise NULL.
 */
 const char *json_of_table(std::string &jstring, std::vector<jsonentry*> table, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6514,7 +6623,8 @@ const char *json_of_table(std::string &jstring, std::vector<jsonentry*> table, c
 //! Create JSON Track string
 /*! Generate a JSON stream showing the variables stored in an ::nodestruc.
     \param jstring Pointer to a string large enough to hold the end result.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  \param num Target index.
     \return Pointer to the string if successful, otherwise NULL.
 */
@@ -6585,7 +6695,8 @@ const char *json_of_target(std::string &jstring, cosmosmetastruc &cmeta, cosmosd
 //! Create JSON Node string
 /*! Generate a JSON stream showing the variables stored in an ::nodestruc.
     \param jstring Pointer to a string large enough to hold the end result.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return Pointer to the string if successful, otherwise NULL.
 */
 const char *json_of_node(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6665,7 +6776,9 @@ const char *json_of_node(std::string &jstring, cosmosmetastruc &cmeta, cosmosdat
 //! Create JSON Agent string
 /*! Generate a JSON stream showing the variables stored in an ::agentstruc.
     \param jstring Pointer to a string large enough to hold the end result.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Pointer to the string if successful, otherwise NULL.
 */
 const char *json_of_agent(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6752,7 +6865,9 @@ const char *json_of_agent(std::string &jstring, cosmosmetastruc &cmeta, cosmosda
  * in the global COSMOS data structure.
     \param jstring Pointer to a string large enough to hold the end
     result.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Pointer to the string if successful, otherwise NULL.
 */
 const char *json_of_time(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6777,7 +6892,9 @@ const char *json_of_time(std::string &jstring, cosmosmetastruc &cmeta, cosmosdat
 /*! Create a complete JSON formatted Heartbeat string using the data currently in the global COSMOS
  * structure.
     \param jstring Pointer to a ::jstring structure to be used to build out the JSON string.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Pointer to the string if successful, otherwise NULL.
 */
 const char *json_of_beat(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6795,7 +6912,9 @@ const char *json_of_beat(std::string &jstring, cosmosmetastruc &cmeta, cosmosdat
 //! Create JSON Beacon string
 /*! Create a complete JSON formatted Beacon string using the data currently in the global COSMOS structure.
     \param jstring Pointer to a ::jstring structure to be used to build out the JSON string.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Pointer to the string if successful, otherwise NULL.
 */
 const char *json_of_beacon(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -6866,7 +6985,9 @@ const char *json_of_beacon(std::string &jstring, cosmosmetastruc &cmeta, cosmosd
 /*! Create a complete JSON formatted IMU string for the indicated IMU using the data currently in the global COSMOS structure.
     \param jstring Pointer to a ::jstring structure to be used to build out the JSON string.
     \param num Number of the IMU.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Pointer to the string if successful, otherwise NULL.
 */
 const char *json_of_imu(std::string &jstring, uint16_t num, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -7234,7 +7355,9 @@ const char *json_of_soh(std::string &jstring, cosmosmetastruc &cmeta, cosmosdata
 /*! Generate a JSON stream that represents the current state of the
  * ::eventstruc in ::cosmosstruc.
     \param jstring User provided ::jstring for creating the JSON stream
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Pointer to the string created.
 */
 const char *json_of_event(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -7338,7 +7461,9 @@ const char *json_of_state_geoc(std::string &jstring, cosmosmetastruc &cmeta, cos
 /*! Create a JSON stream for general Node variables. Does not include any
  * derivative data (eg. area).
  \param jstring Pointer to a ::jstring to build the JSON stream in.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Pointer to the created JSON stream.
 */
 const char *json_node(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -7361,7 +7486,9 @@ const char *json_node(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatast
 /*! Create a JSON stream for variables specific to the Pieces of the Node. Does not include any
  * derivative data (eg. area).
  \param jstring Pointer to a ::jstring to build the JSON stream in.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Pointer to the created JSON stream.
 */
 const char *json_pieces(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -7412,7 +7539,9 @@ const char *json_pieces(std::string &jstring, cosmosmetastruc &cmeta, cosmosdata
 /*! Create a JSON stream for variables common to all Devices in the Node. Does not include any
  * derivative data (eg. area).
  \param jstring Pointer to a ::jstring to build the JSON stream in.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Pointer to the created JSON stream.
 */
 const char *json_devices_general(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -7454,7 +7583,9 @@ const char *json_devices_general(std::string &jstring, cosmosmetastruc &cmeta, c
 /*! Create a JSON stream for variables specific to particular Devices in the Node. Does not include any
  * derivative data (eg. area).
  \param jstring Pointer to a ::jstring to build the JSON stream in.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Pointer to the created JSON stream.
 */
 const char *json_devices_specific(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -7823,7 +7954,9 @@ const char *json_devices_specific(std::string &jstring, cosmosmetastruc &cmeta, 
 /*! Create a JSON stream for the Port information of the Node. Does not include any
  * derivative data (eg. area).
  \param jstring Pointer to a ::jstring to build the JSON stream in.
- \param cinfo A pointer to the beginning of the ::cosmosstruc to use.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
  \return Pointer to the created JSON stream.
 */
 const char *json_ports(std::string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
@@ -7867,7 +8000,7 @@ void json_test(cosmosmetastruc &cmeta)
 /*! Using the provided name, find it's location in the provided Namespace map and set the
  * values for the hash and index.
     \param name Namespace name.
-    \param cinfo ::cosmosstruc containing map.
+    \param cmeta Reference to ::cosmosmetastruc to use.
     \param handle Pointer to ::jsonhandle of name.
     \return Zero, or negative error number.
 */
@@ -7895,7 +8028,7 @@ int32_t json_name_map(std::string name, cosmosmetastruc &cmeta, jsonhandle &hand
 /*! Using the provided text, find it's location in the provided Equation map and set the
  * values for the hash and index. If the equation is not already in the table, add it.
     \param equation Equation text.
-    \param cinfo Pointer to ::cosmosstruc containing map.
+    \param cmeta Reference to ::cosmosmetastruc to use.
     \param handle Pointer to ::jsonhandle of name.
     \return Zero, or negative error number.
 */
@@ -8122,6 +8255,7 @@ uint32_t json_get_name_list_count(cosmosmetastruc &cmeta)
 /*! Load initial Node configuration file. Then calculate all derivative values (eg. COM)
     \param node Node to be initialized using node.ini. Node must be a directory in
     ::nodedir. If NULL, node.ini must be in current directory.
+    \param cinfo Reference to ::cosmosstruc to use.
     \return 0, or negative error.
 */
 int32_t node_init(std::string node, cosmosstruc *cinfo)
@@ -8148,7 +8282,7 @@ int32_t node_init(std::string node, cosmosstruc *cinfo)
 //! Calculate Satellite configuration values.
 /*! Using the provided satellite structure, populate the derivative static quantities and initialize any
  * reasonable dynamic quantities.
-    \param sat Pointer to satellite structure
+    \param cdata Reference to ::cosmosdatastruc to use.
     \return 0
 */
 int32_t node_calc(cosmosdatastruc &cdata)
@@ -8592,7 +8726,8 @@ void create_databases(cosmosdatastruc &cdata)
 //! Load Track list
 /*! Load the file target.ini into an array of ::targetstruc. Space for the array is automatically allocated
  * and the number of items returned.
- *	\param cinfo Pointer to ::cosmosstruc holding the vector of targets.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  *	\return Number of items loaded.
 */
 
@@ -8645,7 +8780,7 @@ int32_t load_target(cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
 //! Update Track list
 /*! For each entry in the Track list, calculate the azimuth, elevation and range to and
  *from the current base location.
- *	\param cinfo Pointer to ::cosmosstruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  *	\return 0, otherwise negative error.
  */
 int32_t update_target(cosmosdatastruc &cdata)
@@ -8696,8 +8831,9 @@ int32_t update_target(locstruc source, targetstruc &target)
 * dictionary is stored as multiple condition based JSON event strings
 * in a file of the specified name, in the cinfo directory of the specified node.
 * The result is a vector of event structures.
- *	\param cinfo Pointer to ::cosmosstruc to use.
  *	\param dict Reference to vector of ::shorteventstruc.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
  *	\param file Name of dictionary file.
  *	\return Number of items loaded.
 */
@@ -8738,6 +8874,8 @@ size_t load_dictionary(std::vector<shorteventstruc> &dict, cosmosmetastruc &cmet
  * the various elements of the satellite. Tables represent Parts, Components,
  * Devices, Temperature Sensors and Power Buses.
     \param name Node name
+    \param type Type of database.
+    \param cdata Reference to ::cosmosdatastruc to use.
 */
 void load_databases(char *name, uint16_t type, cosmosdatastruc &cdata)
 {
@@ -9060,7 +9198,8 @@ void load_databases(char *name, uint16_t type, cosmosdatastruc &cdata)
 * updated with any new values so that repeating Events can be properly
 * assessed.
 *	\param dictionary Reference to vector of ::shortenventstruc representing event dictionary.
-*	\param cinfo Pointer to ::cosmosstruc.
+*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cdata Reference to ::cosmosdatastruc to use.
 *	\param events Reference to vector of ::shortenventstruc representing events.
 *	\return Number of events created.
 */

@@ -51,7 +51,7 @@ static int running = 0;
 //! Body for DEM
 /*! Provides the basic information used by the DEM engine for the requested planetary body.
 	\param  body Integer value of planetary body. See \ref
-	conversion_constants for values.
+    convertlib_constants for values.
 	\return ::map_dem_body for the requested planetary body.
 */
 map_dem_body *planet_dem(int body)
@@ -344,8 +344,7 @@ double map_dem_alt(int body, double lon, double lat, double res)
 //! Height in DEM
 /*! If the Lat:Lon is within one of the provided DEM's, return the
  * data for that pixel.
-	\param body Integer value of planetary body. See \ref
-	conversion_constants for values.
+    \param body Integer value of planetary body. See \ref convertlib_constants for values.
 	\param lon Longitude in readians.
 	\param lat Latitude in radians.
 	\param res Best resolution required, in radians.

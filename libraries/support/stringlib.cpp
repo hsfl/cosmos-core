@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file stringlib.c
+/*! \file stringlib.cpp
     \brief String handling library source file
 */
 

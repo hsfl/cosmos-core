@@ -34,7 +34,7 @@
 //#include <sys/vfs.h>
 #include <stdio.h>
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "devicecpu.h"
 
 int myagent();

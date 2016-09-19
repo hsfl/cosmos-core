@@ -30,7 +30,7 @@
 #include "configCosmos.h"
 #include "datalib.h"
 #include "timelib.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "zlib/zlib.h"
 #include <stdio.h>
 

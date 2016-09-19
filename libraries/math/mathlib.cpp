@@ -330,7 +330,7 @@ double distance_rv(rvector p0, rvector p1, rvector p2)
 /*! Calculates the area of a triangle defined by three points.
     \param p0 First point defining triangle.
     \param p1 Second point defining triangle.
-    \param p3 Third point defining triangle.
+    \param p2 Third point defining triangle.
     \return Area of triangle. Zero if any problems.
 */
 double area_rv(rvector p0, rvector p1, rvector p2)
@@ -348,7 +348,7 @@ double area_rv(rvector p0, rvector p1, rvector p2)
  * three sequential vertices.
     \param p0 First point defining polygon.
     \param p1 Second point defining polygon.
-    \param p3 Third point defining polygon.
+    \param p2 Third point defining polygon.
     \return ::rvector representing normal in a normalized form.
 */
 rvector rv_normalto(rvector p0, rvector p1, rvector p2)
@@ -1821,6 +1821,7 @@ int gauss_jackson_setstep(gj_instance *gji, double vi, double *vd0, double *vd1,
     \param vd0 Pointer to array of Dependent variable for all axes at given step
     \param vd1 Pointer to array of First derivative of Dependent variable for all axes at given step
     \param vd2 Pointer to array of Second derivative of Dependent variable for all axes at given step
+    \param istep Index of step to get.
     \return 0, otherwise negative error.
 */
 int gauss_jackson_getstep(gj_instance *gji, double *vi, double *vd0, double *vd1, double *vd2, int32_t istep)
@@ -2043,10 +2044,10 @@ double fixangle(double angle)
 //! ArcTan, limited to range 0-2PI.
 /*! Calculate Arc Tangent of y/x, ennsuring that angle represents equivalent value within a range of 0 to 2*PI.
  * \param y Numerator.
- * \param y Denominator.
+ * \param x Denominator.
  * \return Output angle adjusted to range 0 to 2*PI.
 */
-double actan(double y,double x)
+double actan(double y, double x)
 {
     double actan;
 
@@ -2398,8 +2399,8 @@ void LsFit::update(double x, quaternion y)
 //! Update generic Least Squares Fit
 /*! Add ::fitelement containing independent and dependent value pair to existing ::LsFit, updating the fit. If the number
  * of elements in the fit has been reached, the oldest element is dropped before fitting.
- * \param x Dependent value.
- * \param y Independent values.
+ * \param cfit Independent and dependent values.
+ * \param dep Depth of fit.
 */
 void LsFit::update(fitelement cfit, uint16_t dep)
 {

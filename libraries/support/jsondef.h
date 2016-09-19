@@ -922,7 +922,7 @@ struct glossarystruc
     std::string name;
     // Glossary entry description, to be interpreted based on its type.
     std::string description;
-    // Glossary entry ::namespace type.
+    // Glossary entry ::jsonlib_namespace type.
     uint16_t type;
 };
 

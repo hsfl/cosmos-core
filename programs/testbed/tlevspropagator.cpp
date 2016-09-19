@@ -31,7 +31,7 @@
 #include "convertlib.h"
 #include "jsonlib.h"
 #include "physics/physicslib.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 
 #define TLE 0
 #define STK 1

@@ -28,12 +28,12 @@
 ********************************************************************/
 
 #include "configCosmos.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsonlib.h"
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
 #include "jsonlib.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -30,7 +30,7 @@
 #ifndef COSMOSAGENT_H
 #define COSMOSAGENT_H
 
-/*! \file agent.h
+/*! \file agentclass.h
 *	\brief Agent Server and Client header file
 *
 */
@@ -43,7 +43,7 @@
 //! creates a COSMOS Client that is able to speak the COSMOS language and communicate with any active COSMOS Agents. The second level
 //! of transformation created a full COSMOS Agent.
 //!
-//! Clients are COSMOS aware programs that are made aware of the ::namespace, and are given an independent thread that collects
+//! Clients are COSMOS aware programs that are made aware of the ::jsonlib_namespace, and are given an independent thread that collects
 //! messages broadcast by any Agents on the same ::NetworkType. This allows them to communicate with Agents.
 //! Agents are persistent programs that provide the system framework for any
 //! COSMOS implementation. They are similar to UNIX Daemons or Windows Services in that
@@ -53,7 +53,7 @@
 //! In addition to the Message thread created for Clients, Agents are provided with two additional threads of execution.
 //! These threads provide the following services:
 //!
-//! - "Heartbeat": Delivered to a system specified Multicast (::AGENTMCAST), or Broadcast address as a \ref json_packet,
+//! - "Heartbeat": Delivered to a system specified Multicast (::AGENTMCAST), or Broadcast address as a JSON stream,
 //! at some regular interval.
 //!     - Provides the time, the name of the Node and %Agent, the IP address and
 //! Port at which it can be reached, the size of its communication buffer, and the jitter in heartbeat period.
@@ -89,8 +89,8 @@
 //! functions with user defined ASCII strings.
 //!
 //! Both Clients and Agents are formed using ::CosmosAgent. Once you have performed any initializations necessary, you should
-//! enter a continuous loop protected by ::agent_running. Upon exiting from
-//! this loop, you should call ::agent_shutdown_server.
+//! enter a continuous loop protected by ::CosmosAgent::running. Upon exiting from
+//! this loop, you should call ::CosmosAgent::shutdown.
 
 #include "configCosmos.h"
 #include "cosmos-errno.h"

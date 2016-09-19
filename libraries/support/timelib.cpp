@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file timelib.c
+/*! \file timelib.cpp
     \brief Time handling library source file
 */
 
@@ -281,7 +281,7 @@ double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t m
 /*! Convert a shortened calendar representation of date to MJD.
  * Day argument is day of year.
  * \param year Full representation of year.
- * \param day of year.
+ * \param dayOfYear day of year.
  * \return Modified Julian Day
 */
 double cal2mjd(int32_t year, double dayOfYear)
@@ -1195,15 +1195,13 @@ std::string mjd2iso8601(double mjd){
 
 
 /*! Convert Modified Julian Date to Time of day (hour, minute, second.fff)
- * \param mjd (Modified Julian Days)
  * \param dayFraction
  * \param hour Pointer to return Hour of the day
  * \param minute Pointer to return Minute of the day
  * \param second Pointer to return Second of the day (decimal)
  * \return 0 or negative error.
  */
-int32_t dayFraction2hms(double dayFraction,
-                        int32_t *hour, int32_t *minute, int32_t *second) //, double *secondFraction
+int32_t dayFraction2hms(double dayFraction, int32_t *hour, int32_t *minute, int32_t *second) //, double *secondFraction
 {
     double secs;
     *hour = (int32_t)(24. * dayFraction);

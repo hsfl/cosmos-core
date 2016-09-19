@@ -31,8 +31,8 @@
 // agent 002 makes request to 002 upon activation
 
 #include "configCosmos.h"
-//#include "agent/agentlib.h"
-#include "agent/agent.h"
+//#include "agent/agentclasslib.h"
+#include "agent/agentclass.h"
 
 #include <iostream>
 #include <string>

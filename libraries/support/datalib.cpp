@@ -63,7 +63,7 @@ std::string nodedir;
 /*! Append the provided string to a file in the {node}/{location}/{agent} directory. The file name
  * is created as {node}_yyyyjjjsssss_{extra}.{type}
  * \param node Node name.
- * ]param location Location name.
+ * \param location Location name.
  * \param agent Agent name.
  * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
  * \param extra Extra part  of name.
@@ -201,6 +201,7 @@ void log_write(std::string node, int type, double utc, const char *record)
  * \param agent Agent name.
  * \param srclocation Source location name.
  * \param dstlocation Destination location name.
+ * \param compress Wether or not to compress with gzip.
  */
 void log_move(std::string node, std::string agent, std::string srclocation, std::string dstlocation, bool compress)
 {
@@ -411,6 +412,7 @@ std::vector<filestruc> data_list_files(std::string node, std::string location, s
  * \param node Node to search.
  * \param location Subdirectory of Node to search.
  * \param agent Subdirectory of location to search.
+ * \param files List of ::filestruc.
  * \return Number of files found, otherwise negative error.
  */
 size_t data_list_files(std::string node, std::string location, std::string agent, std::vector<filestruc>& files)
@@ -556,10 +558,12 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
 
 //! Create data file name
 /*! Builds a filename up from the date of creation and its type. Format is:
-*    yyyyjjjsssss.type, where yyyy is the Year, jjj is the Julian Day, sssss is
+*    yyyyjjjsssss_extra.type, where yyyy is the Year, jjj is the Julian Day, sssss is
 *    the Seconds, and type is any accepted COSMOS file type (eg. log, event,
 *    telemetry, message, command.)
+* \param node Node name.
 *    \param mjd UTC of creation date in Modified Julian Day
+* \param extra Extra part of file name.
 *    \param type Any valid extension type
 *    \return Filename string, otherwise nullptr
 */
@@ -593,7 +597,8 @@ std::string data_name(std::string node, double mjd, std::string type)
 //! Get date from file name.
 /*! Assuming the COSMOS standard filename format from ::data_name, extract
  * the date portion and return it as year, julian day and seconds.
- * \param name File name.
+ * \param node Name of Node.
+ * \param filename Name of File.
  * \param year Holder for integer year.
  * \param jday Holder for integer julian day.
  * \param seconds Holder for integer julian seconds.
@@ -614,7 +619,8 @@ int32_t data_name_date(std::string node, std::string filename, uint16_t &year, u
 //! Get date from file name.
 /*! Assuming the COSMOS standard filename format from ::data_name, extract
  * the date portion and return it as a Modified Julian Day.
- * \param name File name.
+ * \param node Name of Node.
+ * \param filename Name of File.
  * \param utc Holder for returned utc.
  * \return 0 or negative error.
  */
@@ -869,7 +875,7 @@ bool data_exists(std::string& path)
  * directory element will be created if it is missing. The final file will be
  * opened with the requested mode.
  * \param path Full path to file, absolute or relative.
- * \mode fopen style mode
+ * \param mode fopen style mode.
  * \return fopen style file handle, or nullptr if either a directory element can not be
  * created, or the file can not be opened.
  */
@@ -1051,7 +1057,7 @@ int32_t get_cosmosresources(std::string &result)
 }
 
 //! Set Environment Variable for COSMOS resources
-/*! \param resourcesPath full path of the COSMOS resources folder.
+/*! \param path Full path of the COSMOS resources folder.
     \return Zero, or negative error.
 */
 int32_t setEnvCosmosResources(std::string path){
@@ -1061,7 +1067,7 @@ int32_t setEnvCosmosResources(std::string path){
 
 
 //! Set Environment Variable for COSMOS nodes
-/*! \param path full path of the COSMOS nodes folder.
+/*! \param path Full path of the COSMOS nodes folder.
     \return Zero, or negative error.
 */
 int32_t setEnvCosmosNodes(std::string path){
@@ -1071,7 +1077,7 @@ int32_t setEnvCosmosNodes(std::string path){
 
 //! Set Environment Variable for COSMOS
 /*! \param var environment variable to set (ex. COSMOSRESOURCES)
- *  \param path full path of the COSMOS variable folder.
+ *  \param path Full path of the COSMOS variable folder.
     \return Zero, or negative error.
 */
 int32_t setEnv(std::string var, std::string path){
@@ -1316,7 +1322,7 @@ std::string get_nodedir(std::string node, bool create_flag)
  * Will return all data that is available within specified date range, in files
  * {COSMOSNODES}/{Node}/date/{Agent}/{yyyy}/{ddd}/{*}.type.
  * \param node Name of Node.
- * \param Agent Name of Agent.
+ * \param agent Name of Agent.
  * \param utcbegin Starting UTC.
  * \param utcend Ending UTC.
  * \param type Type extension.
@@ -1532,8 +1538,7 @@ double findfirstday(std::string name)
 //! Add to KML path
 /*! Write a KML file to keep track of the path the node is following. Create the file if it doesn't alreay exist.
  * Append to it if it already exists.
- \param cdata COSMOS data structure.
- \param name Name of file to write.
+ \param cinfo Pointer to ::cosmosstruc to use.
  \return 0, otherwise negative error.
 */
 int32_t kml_write(cosmosstruc *cinfo)

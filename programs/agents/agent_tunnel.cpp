@@ -37,7 +37,7 @@
 #endif
 
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "cssl_lib.h"
 
 char agentname[COSMOS_MAX_NAME+1] = "tunnel";

@@ -31,7 +31,7 @@
 #include "jsonlib.h"
 #include "physics/physicslib.h"
 #include "timelib.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 
 gj_handle gjh;
 cosmosstruc *cinfo;

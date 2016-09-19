@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "configCosmos.h"
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "ts2000_lib.h"
 #include "astrodev_lib.h"
 #include "ic9100_lib.h"

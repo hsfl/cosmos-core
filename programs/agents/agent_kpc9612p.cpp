@@ -38,7 +38,7 @@
 #endif
 
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "cssl_lib.h"
 #include "kpc9612p_lib.h"
 

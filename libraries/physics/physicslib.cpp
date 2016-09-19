@@ -864,8 +864,7 @@ svector groundstation(locstruc &satellite,locstruc &groundstation)
 //! Initialize Hardware
 /*! Set up the hardware simulation by initializing the various
  * components to their base values.
-    \param stat Structure holding static specs on satellite
-    \param dyn Structure holding dynamic specs on satellite
+    \param devspec Pointer to structure holding specs on devices.
     \param loc Structure specifying location
 */
 void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
@@ -925,8 +924,7 @@ void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
 //! Simulate Hardware data
 /*! Simulate the behavior of all the hardware in the indicated satellite, at the
  * indicated location.
-    \param stat Structure holding static specs on satellite
-    \param dyn Structure holding dynamic specs on satellite
+    \param cdata Reference to ::cosmosdatastruc to use.
     \param loc Structure specifying location
 */
 void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
@@ -1379,12 +1377,11 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
  * logic that the current attitude and position are equivalent to the
  * origin of the position frame and the identity attitude. Set
  * all velocities and accelerations to zero.
-    \param stat Structure holding static specs on satellite
-    \param dyn Structure holding dynamic specs on satellite
-    \param loc Structure specifying location
     \param index Index of desired IMU.
+    \param devspec Pointer to structure holding specs on imu.
+    \param loc Structure specifying location
 */
-void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &)
+void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &loc)
 {
     if (index >= devspec.imu_cnt)
         return;
@@ -1394,8 +1391,8 @@ void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &)
 //! Simulate IMU
 /*! Turn the current attitude into likely values for the indicated
  * IMU. Inject any likely noise due to the nature of the IMU.
-    \param stat Structure holding static specs on satellite
-    \param dyn Structure holding dynamic specs on satellite
+    \param index Which IMU to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
     \param loc Structure specifying location
     \param index Index of desired IMU.
 */
@@ -1420,7 +1417,7 @@ void simulate_imu(int index, cosmosdatastruc &cdata, locstruc &loc)
 
 //! Attitude acceleration
 /*! Calculate the torque forces on the specified satellite at the specified location/
-    \param sat Structure specifying satellite.
+    \param physics Pointer to structure specifying satellite.
     \param loc Structure specifying location.
 */
 void att_accel(physicsstruc &physics, locstruc &loc)
@@ -1472,7 +1469,7 @@ void att_accel(physicsstruc &physics, locstruc &loc)
 
 //! Position acceleration
 /*! Calculate the linear forces on the specified sattelite at the specified location/
-    \param sat Structure specifying satellite.
+    \param physics Pointer to structure specifying satellite.
     \param loc Structure specifying location.
 */
 void pos_accel(physicsstruc &physics, locstruc &loc)
@@ -2120,7 +2117,9 @@ void propagate(cosmosdatastruc &cdata, double utc)
 /*!
 * Initializes Gauss-Jackson integration parameters for indicated
 * order (must be even). Binomial coefficients are initialized first time through.
+    \param gjh ::gj_handle containing Gauss-Jackson inforation.
     \param order The order at which the integration will be performed
+    \param utc Initial Modified Julian Day.
     \param dt Step size in seconds.
 */
 void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt)
@@ -2256,10 +2255,13 @@ void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt)
 //! Initialize Gauss-Jackson orbit using Two Line Elements
 /*! Initializes Gauss-Jackson structures using starting time and position from a Two
  * Line Element set.
+ * \param gjh Reference to Gauss-Jackson variables.
     \param order the order at which the integration will be performed (must be even)
+    \param mode Type of physical modelling. Zero is direct.
     \param dt Step size in seconds
     \param utc Initial step time as UTC in Modified Julian Days
-    \param sat Structure specifying satellite info
+    \param cdata Reference to ::cosmosdatastruc to use.
+    \param loc Initial location.
 */
 
 void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cosmosdatastruc &cdata, locstruc &loc)
@@ -2367,12 +2369,15 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
 
 //! Initialize Gauss-Jackson orbit using ECI state vector
 /*! Initializes Gauss-Jackson structures using supplied initial state vector.
+    \param gjh Reference to ::gj_handle for Gauss-Jackson integration.
     \param order the order at which the integration will be performed (must be even)
+    \param mode Mode of physics propagation. Zero is free propagation.
     \param dt Step size in seconds
     \param utc Initial step time as UTC in Modified Julian Days
     \param ipos Initial ECI Position
     \param iatt Initial ICRF Attitude
-    \param sat Structure specifying satellite
+    \param physics Reference to ::physicsstruc to use.
+    \param loc Reference to ::locstruc to use.
 */
 // TODO: split the orbit from the attitude propagation sections of the code
 void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, cartpos ipos, qatt iatt, physicsstruc &physics, locstruc &loc)
@@ -3027,13 +3032,14 @@ void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &lo
 
 //! Initialize orbit from orbital data
 /*! Initializes satellite structure using orbital data
-    \param order the order at which the integration will be performed (must be even)
+    \param mode The style of propagation. Zero is free propagation.
     \param dt Step size in seconds
     \param utc Initial step time as UTC in Modified Julian Days. If set to 0., first time in the orbital data
     will be used.
-    \param orbitfile Name of the file containing orbital data. Two Line Element set if first letter is 't',
+    \param ofile Name of the file containing orbital data. Two Line Element set if first letter is 't',
     STK data if first letter is 's'.
-    \param sat Structure specifying satellite info
+    \param cdata Reference to ::cosmosdatastruc to use.
+
     \return Returns 0 if succsessful, otherwise negative error.
 */
 

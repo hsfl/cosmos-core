@@ -27,11 +27,11 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file agent.cpp
+/*! \file agentclass.cpp
     \brief Agent support functions
 */
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "socketlib.h"
 #if defined (COSMOS_MAC_OS)
 #include <net/if.h>
@@ -348,7 +348,6 @@ uint16_t CosmosAgent::running()
     \param hbeat The agent ::beatstruc
     \param request the request and its arguments
     \param output any output returned by the request
-    \param clen the size of the return buffer
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
@@ -801,7 +800,7 @@ void CosmosAgent::message_loop()
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_forward(char* request, char* output, CosmosAgent* agent)
@@ -822,10 +821,10 @@ int32_t CosmosAgent::req_forward(char* request, char* output, CosmosAgent* agent
 /*! Returns the received packet, reaclculating the CRC, and adding the time.
  * \param request Text of echo packet.
  * \param output Text of echoed packet.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_echo(char* request, char* output, CosmosAgent*)
+int32_t CosmosAgent::req_echo(char* request, char* output, CosmosAgent* agent)
 {
     double mjd;
     uint16_t crc, count;
@@ -838,8 +837,9 @@ int32_t CosmosAgent::req_echo(char* request, char* output, CosmosAgent*)
 
 //! Built-in Help request
 /*! Send help response.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_help(char*, char* output, CosmosAgent* agent)
@@ -867,8 +867,9 @@ int32_t CosmosAgent::req_help(char*, char* output, CosmosAgent* agent)
 
 //! Built-in Set state to Run request
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_run(char*, char* output, CosmosAgent* agent)
@@ -880,8 +881,9 @@ int32_t CosmosAgent::req_run(char*, char* output, CosmosAgent* agent)
 
 //! Built-in Set state to Idle request
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_idle(char*, char* output, CosmosAgent* agent)
@@ -893,8 +895,9 @@ int32_t CosmosAgent::req_idle(char*, char* output, CosmosAgent* agent)
 
 //! Built-in Set state to Idle request
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_monitor(char*, char* output, CosmosAgent* agent)
@@ -906,8 +909,9 @@ int32_t CosmosAgent::req_monitor(char*, char* output, CosmosAgent* agent)
 
 //! Built-in Set state to Shutdown request
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_shutdown(char*, char* output, CosmosAgent* agent)
@@ -921,8 +925,9 @@ int32_t CosmosAgent::req_shutdown(char*, char* output, CosmosAgent* agent)
 // this makes it easier to read
 //! Built-in Status request
 /*! Returns agent status.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_status(char*, char* output, CosmosAgent* agent)
@@ -947,7 +952,7 @@ int32_t CosmosAgent::req_status(char*, char* output, CosmosAgent* agent)
 /*! Returns the current value of the requested Name Space values. Names are expressed as a JSON object.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_getvalue(char *request, char* output, CosmosAgent* agent)
@@ -968,7 +973,7 @@ int32_t CosmosAgent::req_getvalue(char *request, char* output, CosmosAgent* agen
 /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_setvalue(char *request, char* output, CosmosAgent* agent)
@@ -983,8 +988,9 @@ int32_t CosmosAgent::req_setvalue(char *request, char* output, CosmosAgent* agen
 
 //! Built-in List Name Space Names request
 /*! Returns a list of all names in the JSON Name Space.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_listnames(char *, char* output, CosmosAgent* agent)
@@ -999,8 +1005,9 @@ int32_t CosmosAgent::req_listnames(char *, char* output, CosmosAgent* agent)
 
 //! Built-in Return Node JSON request
 /*! Returns a JSON string representing the Node description.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_nodejson(char *, char* output, CosmosAgent* agent)
@@ -1012,8 +1019,9 @@ int32_t CosmosAgent::req_nodejson(char *, char* output, CosmosAgent* agent)
 
 //! Built-in Return State Vector JSON request
 /*! Returns a JSON string representing the Node description.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_statejson(char *, char* output, CosmosAgent* agent)
@@ -1025,8 +1033,9 @@ int32_t CosmosAgent::req_statejson(char *, char* output, CosmosAgent* agent)
 
 //! Built-in Return Node JSON request
 /*! Returns a JSON string representing the Node description.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_utcstartjson(char *, char* output, CosmosAgent* agent)
@@ -1038,8 +1047,9 @@ int32_t CosmosAgent::req_utcstartjson(char *, char* output, CosmosAgent* agent)
 
 //! Built-in Return Node JSON request
 /*! Returns a JSON string representing the Node description.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_piecesjson(char *, char* output, CosmosAgent* agent)
@@ -1051,8 +1061,9 @@ int32_t CosmosAgent::req_piecesjson(char *, char* output, CosmosAgent* agent)
 
 //! Built-in Return Node JSON request
 /*! Returns a JSON string representing the Node description.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_devgenjson(char *, char* output, CosmosAgent* agent)
@@ -1064,8 +1075,9 @@ int32_t CosmosAgent::req_devgenjson(char *, char* output, CosmosAgent* agent)
 
 //! Built-in Return Node JSON request
 /*! Returns a JSON string representing the Node description.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_devspecjson(char *, char* output, CosmosAgent* agent)
@@ -1077,8 +1089,9 @@ int32_t CosmosAgent::req_devspecjson(char *, char* output, CosmosAgent* agent)
 
 //! Built-in Return Node JSON request
 /*! Returns a JSON string representing the Node description.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_portsjson(char *, char* output, CosmosAgent* agent)
@@ -1090,8 +1103,9 @@ int32_t CosmosAgent::req_portsjson(char *, char* output, CosmosAgent* agent)
 
 //! Built-in Return Node JSON request
 /*! Returns a JSON string representing the Node description.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_targetsjson(char *, char* output, CosmosAgent* agent)
@@ -1103,8 +1117,9 @@ int32_t CosmosAgent::req_targetsjson(char *, char* output, CosmosAgent* agent)
 
 //! Built-in Return Node JSON request
 /*! Returns a JSON string representing the Node description.
+ * \param request Text of request.
  * \param output Text of response to request.
- * \param cdata Pointer to ::cosmosstruc to use.
+ * \param agent Pointer to ::CosmosAgent to use.
  * \return 0, or negative error.
  */
 int32_t CosmosAgent::req_aliasesjson(char *, char* output, CosmosAgent* agent)
@@ -1117,7 +1132,6 @@ int32_t CosmosAgent::req_aliasesjson(char *, char* output, CosmosAgent* agent)
 //! Open COSMOS output channel
 /*! Establish a multicast socket for publishing COSMOS messages using the specified address and
  * port.
- * \param cdata Pointer to ::cosmosstruc to use.
  * \param type One of ::NetworkType.
  * \param port Port number to publish on.
  * \return 0, otherwise negative error.
@@ -1528,7 +1542,6 @@ std::vector<socket_channel> CosmosAgent::find_addresses(NetworkType ntype)
 
 //! Post a JSON message
 /*! Post a vector of bytes on the previously opened publication channel.
- * \param cdata Pointer to ::cosmosstruc to use.
     \param type A byte indicating the type of message.
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
@@ -1544,7 +1557,6 @@ int32_t CosmosAgent::post(uint8_t type, std::string message)
 
 //! Post a binary message
 /*! Post a vector of bytes on the previously opened publication channel.
- * \param cdata Pointer to ::cosmosstruc to use.
     \param type A byte indicating the type of message.
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
@@ -1604,7 +1616,6 @@ int32_t CosmosAgent::post(uint8_t type, std::vector <uint8_t> message)
 
 //! Close COSMOS output channel
 /*! Close previously opened publication channels and recover any allocated resources.
- * \param cdata Pointer to ::cosmosstruc to use.
     \return 0, otherwise negative error.
     */
 int32_t CosmosAgent::unpublish()
@@ -1622,7 +1633,6 @@ int32_t CosmosAgent::unpublish()
 
 //! Open COSMOS channel for polling
 /*! This establishes a multicast channel for subscribing to COSMOS messages.
-    \param cdata Pointer to ::cosmosstruc to use.
     \param type 0=Multicast, 1=Broadcast UDP, 2=Broadcast CSP.
     \param address The IP Multicast address of the channel.
     \param port The port to use for the channel.
@@ -1650,7 +1660,6 @@ int32_t CosmosAgent::subscribe(NetworkType type, char *address, uint16_t port, u
 //! Open COSMOS channel for polling with 100 usec timeout.
 /*! This establishes a multicast channel for subscribing to COSMOS messages. The timeout is set to
  * 100 usec.
-    \param cdata Pointer to ::cosmosstruc to use.
     \param type 0=Multicast, 1=Broadcast UDP, 2=Broadcast CSP.
     \param address The IP Multicast address of the channel.
     \param port The port to use for the channel.
@@ -1669,7 +1678,6 @@ int32_t CosmosAgent::subscribe(NetworkType type, char *address, uint16_t port)
 }
 //! Close COSMOS subscription channel
 /*! Close channel previously opened for polling for messages and recover resources.
-    \param cdata Pointer to ::cosmosstruc to use.
     \return 0, otherwise negative error.
 */
 int32_t CosmosAgent::unsubscribe()
@@ -1814,7 +1822,6 @@ int32_t CosmosAgent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8
 //! Check Ring for message
 /*! Check the message ring for the requested amount of time. Return as soon as a message of the right type
  * is available, or the timer runs out.
- * \param meta ::pollstruc for storing meta information.
     \param message Vector for storing incoming message.
     \param type Type of message to look for, taken from ::AGENT_MESSAGE.
     \param waitsec Number of seconds in timer. If 0, return last message in ring immediatelly.
@@ -1894,7 +1901,6 @@ int32_t CosmosAgent::clearring()
 
 //! Listen for heartbeat
 /*! Poll the subscription channel until you receive a heartbeat message, or the timer runs out.
-    \param cdata Pointer to ::cosmosstruc to use.
     \param waitsec Number of seconds to wait before timing out.
     \return ::beatstruc with acquired heartbeat. The UTC will be set to 0 if no heartbeat was
     acquired.
@@ -1919,7 +1925,6 @@ beatstruc CosmosAgent::poll_beat(float waitsec)
 
 //! Listen for Time
 /*! Poll the subscription channel until you receive a time message, or the timer runs out.
-    \param cdata Pointer to ::cosmosstruc to use.
     \param waitsec Number of seconds to wait before timing out.
     \return ::timestruc with acquired time. The UTC will be set to 0 if no heartbeat was
     acquired.
@@ -1947,7 +1952,6 @@ timestruc CosmosAgent::poll_time(float waitsec)
 
 //! Listen for Location
 /*! Poll the subscription channel until you receive a location message, or the timer runs out.
-    \param cdata Pointer to ::cosmosstruc to use.
     \param waitsec Number of seconds to wait before timing out.
     \return ::locstruc with acquired location. The UTC will be set to 0 if no heartbeat was
     acquired.
@@ -1975,7 +1979,6 @@ locstruc CosmosAgent::poll_location(float waitsec)
 
 //! Listen for Beacon
 /*! Poll the subscription channel until you receive a info message, or the timer runs out.
-    \param cdata Pointer to ::cosmosstruc to use.
     \param waitsec Number of seconds to wait before timing out.
     \return ::infostruc with acquired info. The UTC will be set to 0 if no info was
     acquired.
@@ -2011,7 +2014,6 @@ nodestruc CosmosAgent::poll_info(float waitsec)
 
 //! Listen for IMU device
 /*! Poll the subscription channel until you receive a IMU device message, or the timer runs out.
-    \param cdata Pointer to ::cosmosstruc to use.
     \param waitsec Number of seconds to wait before timing out.
     \return ::beatstruc with acquired heartbeat. The UTC will be set to 0 if no heartbeat was
     acquired.
@@ -2037,3 +2039,4 @@ imustruc CosmosAgent::poll_imu(float waitsec)
     return (imu);
 }
 
+//! @}

@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 
 char agentname[COSMOS_MAX_NAME+1] = "route";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds

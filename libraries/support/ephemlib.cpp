@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file ephemlib.c
+/*! \file ephemlib.cpp
 		\brief Ephemeris library source file
 */
 

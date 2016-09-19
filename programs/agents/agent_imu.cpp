@@ -25,7 +25,7 @@
 #include "configCosmos.h"
 
 // COSMOS Core Libraries
-#include "agent/agent.h"
+#include "agent/agentclass.h"
 #include "jsonlib.h"
 #include "vn100_lib.h"
 #include "print_utils.h"

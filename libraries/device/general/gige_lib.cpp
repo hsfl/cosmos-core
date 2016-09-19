@@ -433,7 +433,6 @@ char *gige_value_to_address(uint32_t value)
 /*! Setup the basic image parameters for a a35 camera being used over GIGE.
  * The camera must first be opened with a call to ::gige_open.
  * \param handle Pointer to ::gige_handle returned by ::gige_open.
- * \param format Pixel format for output as defined in \ref gige_a35_constants.
  * \param xsize Number of pixels in x direction.
  * \param ysize Number of pixels in y direction.
  * \param video_rate 30 or 60 Hz.
