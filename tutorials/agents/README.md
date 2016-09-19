@@ -1,4 +1,4 @@
-# Agents {#tutorials-agents} 
+# COSMOS Agents {#tutorials-agents} 
 
 COSMOS Agents are persistent programs that can run in almost any computer architecture (ex: Intel, Arm). With the agents you can quickly send data across different platforms to collect data from your remote sensors or even send commands to control your spacecraft. 
 
