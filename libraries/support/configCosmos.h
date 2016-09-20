@@ -34,10 +34,6 @@
 //! \file configCosmos.h
 //! \brief Headers and definitions common to all COSMOS
 
-//! \ingroup defs
-//! \defgroup defs_macros Special COSMOS macros
-//!
-
 // ------------------------------------------------------------------
 // Building under Windows
 #ifdef _WIN32
@@ -87,6 +83,9 @@
 #include "cosmos-errno.h"
 #include "cosmos-defs.h"
 
+//! \ingroup defs
+//! \defgroup defs_macros Special COSMOS macros
+//!
 //! @{
 #define COSMOS_SIZEOF(element) ((ptrdiff_t)(((element*)0)+1))
 //! @}
@@ -99,7 +98,7 @@
 // linux definition can be UNIX or __unix__ or LINUX or __linux__.
 // For GCC on Linux: __GNUC__
 #ifdef __linux__
-//! \addtogroup defs_macros
+//! \addtogroup defs_macros More Special COSMOS macros
 //! @{
 #define COSMOS_LINUX_OS
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
@@ -124,12 +123,11 @@
 // Windows (x64 and x86)
 
 #ifdef COSMOS_WIN_OS // Defined for both 32-bit and 64-bit environments 1
-//! \addtogroup defs_macros
-//! @{
-//!
 
 #include <winsock2.h> // must come before <windows.h>
 
+//! \addtogroup defs_macros More Special COSMOS macros
+//! @{
 #ifdef COSMOS_WIN_BUILD_MSVC
 #include <direct.h>
 #define COSMOS_MKDIR(dtemp, mode) _mkdir((char *)dtemp)
@@ -163,9 +161,9 @@
 // --------------------- MAC ------------------------------------
 // For Mac OS: #ifdef __APPLE__
 #ifdef __MACH__
-//! \addtogroup defs_macros
-//! @{
 #define COSMOS_MAC_OS
+//! \addtogroup defs_macros More Special COSMOS macros
+//! @{
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
 //#define COSMOS_SLEEP(sec) sleep((uint32_t)(sec>=0.?sec:0))
 #define COSMOS_SLEEP(sec) usleep((uint32_t)((sec>=0.?sec:0)*1e6))
@@ -185,9 +183,9 @@
 
 // --------------------- CYGWIN ------------------------------------
 #ifdef __CYGWIN__
-//! \addtogroup defs_macros
-//! @{
 #define COSMOS_CYGWIN_OS
+//! \addtogroup defs_macros More Special COSMOS macros
+//! @{
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
 #define COSMOS_SLEEP(sec) sleep((uint32_t)(sec>=0.?sec:0))
 #define CLOSE_SOCKET(socket) close(socket)

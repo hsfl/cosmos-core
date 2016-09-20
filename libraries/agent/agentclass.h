@@ -39,31 +39,54 @@
 //! \defgroup agentlib Agent Server and Client Library
 //! %Agent Server and Client.
 //!
-//! These functions support the transformation of a generic program into a COSMOS aware program. The first level of transformation
-//! creates a COSMOS Client that is able to speak the COSMOS language and communicate with any active COSMOS Agents. The second level
-//! of transformation created a full COSMOS Agent.
+//! These functions support the transformation of a generic program into a COSMOS aware program. The first level of
+//! transformation creates a COSMOS Client that is able to speak the COSMOS language and communicate with any active
+//! COSMOS Agents, while the second level of transformation creates a full COSMOS Agent.
 //!
-//! Clients are COSMOS aware programs that are made aware of the ::jsonlib_namespace, and are given an independent thread that collects
-//! messages broadcast by any Agents on the same ::NetworkType. This allows them to communicate with Agents.
-//! Agents are persistent programs that provide the system framework for any
+//! Clients are COSMOS aware programs that are made aware of the \ref jsonlib_namespace, and are capable of receiving
+//! messages broadcast by any Agents on the same ::NetworkType. These messages, composed of JSON from the \ref jsonlib_namespace,
+//! contain an initial header containing key information about the sending Agent, plus any additional \ref jsonlib_namespace values
+//! that the particular Agent cares to make available. This allows the Clients to collect information about the local system,
+//! and make requests of Agents. COSMOS Clients are equipped with a background thread that collects COSMOS messages and
+//! stores them in a ring. Reading of messages is accomplised through ::CosmosAgent::readring, which gives you the next
+//! message in the ring until you reach the most recent message. Ring size defaults to 100 messages, but can by changed
+//! with ::CosmosAgent::resizering. The ring can be flushed at any time with ::CosmosAgent::clearring. Requests to agents
+//! are made with ::CosmosAgent::send_request. As part of its message collection thread, the Client also keeps a list of
+//! discovered Agents. This list can be used to provide the Agent information required by ::CosmosAgent::send_request through
+//! use of ::CosmosAgent::find_agent. Finally, Clients open a Publication Channel for the sending of messages to other
+//! COSMOS aware software. Messages are broadcast, using whatever mechanism is appropriate for the ::NetworkType chosen,
+//! using ::CosmosAgent::post. They can be assigned any of 256 types, following the rules of ::CosmosAgent::AGENT_MESSAGE.
+//! The actual content over the network will be a single type byte, a 2 byte unsigned integer in little_endian order
+//! containing the length in bytes of the header, a JSON header using values from the \ref jsonlib_namespace to represent
+//! meta information about the Agent, and optional data, either as bytes (if type > 127), or additional JSON values. The
+//! header contains the following fields from the ::beatstruc, returned from either ::CosmosAgent::readring or
+//! ::CosmosAgent::find_agent:
+//! - ::beatstruc::utc: The time of posting, expressed in Modified Julian Day.
+//! - ::beatstruc::node: The name of the associated Node.
+//! - ::beatstruc::proc: The name of the associated Agent.
+//! - ::beatstruc::address: The appropriate address for the ::NetworkType of the sending machine.
+//! - ::beatstruc::port: The network port the Agent is listening on.
+//! - ::beatstruc::bsz: The size, in bytes, of the Agents request buffer.
+//! - ::beatstruc::cpu: The CPU load of the machine the Agent is running on.
+//! - ::beatstruc::memory: The memory usage of the machine the Agent is running on.
+//! - ::beatstruc::jitter: The residual jitter, in seconds, of the Agents heartbeat loop.
+//! - ::nodestruc::utcoffset: The offset, in Days, being applied to this times to time shift it.
+//!
+//! Agents are persistent COSMOS aware programs that provide the system framework for any
 //! COSMOS implementation. They are similar to UNIX Daemons or Windows Services in that
 //! they run continuously until commanded to stop, and serve a constant function, either
-//! automatically or on demand.
+//! automatically or on demand. In addition to the features listed for Clients, Agents are provided with two
+//! additional features, implemented as two additional threads of execution.
 //!
-//! In addition to the Message thread created for Clients, Agents are provided with two additional threads of execution.
-//! These threads provide the following services:
+//! - "Heartbeat": This is a Message, as described above, sent at regular intervals, with type AGENT_MESSAGE_BEAT.
+//! The optional data can be filled with State of Health information, established through ::CosmosAgent::set_sohstring.
 //!
-//! - "Heartbeat": Delivered to a system specified Multicast (::AGENTMCAST), or Broadcast address as a JSON stream,
-//! at some regular interval.
-//!     - Provides the time, the name of the Node and %Agent, the IP address and
-//! Port at which it can be reached, the size of its communication buffer, and the jitter in heartbeat period.
-//!     - Provides any additional information you care to send, established through ::set_sohstring.
-//!
-//! - "Requests": available at the IP Port reported in the Heartbeat.
-//! Requests are received as plain text commands and arguments. They are processed and
-//! any response is sent back. The response, even if empty, always ends with [OK], if understood,
+//! - "Requests": Requests are received as plain text commands and arguments, at the IP Port reported in the Heartbeat.
+//! They are processed and any response is sent back. The response, even if empty, always ends with [OK], if understood,
 //! or [NOK] if not. Requests and their responses must be less than the size of the communications
-//! buffer. Built in requests include:
+//! buffer. There are a number of requests already built in to the Agent. Additional requests can be
+//! added using ::CosmosAgent::add_request, by tieing together user defined
+//! functions with user defined ASCII strings. Built in requests include:
 //!     - "help" - list available requests for this %Agent.
 //!     - "shutdown" - causes the %Agent to stop what it is doing and exit.
 //!     - "idle" - causes the %Agent to transition to ::AgentState::IDLE.
@@ -85,12 +108,10 @@
 //!     - "portsjson" - return the JSON representing the contents of ports.ini.
 //!     - "aliasesjson" - return the JSON representing the contents of aliases.ini.
 //!     - "targetsjson" - return the JSON representing the contents of targets.ini.
-//!     - Additional requests can be added using ::add_request, that tie together user defined
-//! functions with user defined ASCII strings.
 //!
 //! Both Clients and Agents are formed using ::CosmosAgent. Once you have performed any initializations necessary, you should
-//! enter a continuous loop protected by ::CosmosAgent::running. Upon exiting from
-//! this loop, you should call ::CosmosAgent::shutdown.
+//! enter a continuous loop, protected by ::CosmosAgent::running, and preferably surrendering control periodically
+//! with ::COSMOS_SLEEP. Upon exiting from this loop, you should call ::CosmosAgent::shutdown.
 
 #include "configCosmos.h"
 #include "cosmos-errno.h"
@@ -251,7 +272,7 @@ public:
     int32_t unsubscribe();
     int32_t poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec = 1.);
     int32_t poll(pollstruc &meta, std::vector<uint8_t> &message, uint8_t type, float waitsec = 1.);
-    int32_t readring(messstruc &message, uint8_t type = AGENT_MESSAGE_ALL, float waitsec = 1.);
+    int32_t readring(messstruc &message, uint8_t type = CosmosAgent::AGENT_MESSAGE_ALL, float waitsec = 1.);
     int32_t resizering(size_t newsize);
     int32_t clearring();
     timestruc poll_time(float waitsec);

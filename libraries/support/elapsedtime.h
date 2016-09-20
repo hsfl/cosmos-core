@@ -48,8 +48,8 @@
 */
 
 //! \ingroup support
-//! \defgroup elapsedtime Elapsed %Time
-//! Elapsed Time.
+//! \defgroup elapsedtime Elapsed Time
+//! %Elapsed Time.
 //! The functions in this library support the measurement of various types of elapsed time. Suppoert is provided
 //! for both absolute elapsed time (ElapsedTime::split()) and relative elapsed time (ElapsedTime::lap()).
 

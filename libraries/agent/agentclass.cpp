@@ -1558,7 +1558,7 @@ int32_t CosmosAgent::post(uint8_t type, std::string message)
 //! Post a binary message
 /*! Post a vector of bytes on the previously opened publication channel.
     \param type A byte indicating the type of message.
-    \param message A NULL terminated JSON text string to post.
+    \param message An array of bytes to post.
     \return 0, otherwise negative error.
 */
 int32_t CosmosAgent::post(uint8_t type, std::vector <uint8_t> message)
