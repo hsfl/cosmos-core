@@ -16,4 +16,4 @@ add_library(CosmosDeviceArduino STATIC ${SOURCES} ${INCLUDES})
 target_link_libraries(CosmosDeviceArduino CosmosDeviceGeneral)
 
 install(TARGETS CosmosDeviceArduino DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include/device)
+install(FILES ${INCLUDES} DESTINATION include/device/arduino)

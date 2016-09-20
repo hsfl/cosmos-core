@@ -16,4 +16,4 @@ add_library(CosmosDeviceCpu STATIC ${SOURCES} ${INCLUDES})
 target_link_libraries(CosmosDeviceCpu CosmosDeviceGeneral)
 
 install(TARGETS CosmosDeviceCpu DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include/device)
+install(FILES ${INCLUDES} DESTINATION include/device/cpu)

@@ -16,4 +16,4 @@ add_library(CosmosDeviceVn100 STATIC ${SOURCES} ${INCLUDES})
 target_link_libraries(CosmosDeviceVn100 CosmosDeviceGeneral)
 
 install(TARGETS CosmosDeviceVn100 DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include/device)
+install(FILES ${INCLUDES} DESTINATION include/device/sensor/imu)

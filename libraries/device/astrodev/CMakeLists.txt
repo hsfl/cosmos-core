@@ -15,4 +15,4 @@ set(libraryName CosmosDeviceAstrodev PARENT_SCOPE)
 add_library(CosmosDeviceAstrodev STATIC ${SOURCES} ${INCLUDES})
 
 install(TARGETS CosmosDeviceAstrodev DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include/device)
+install(FILES ${INCLUDES} DESTINATION include/device/radio/astrodev)
