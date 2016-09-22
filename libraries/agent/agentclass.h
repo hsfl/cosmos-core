@@ -122,7 +122,7 @@
 #include "socketlib.h"
 #include "jsonlib.h"
 #include "elapsedtime.h"
-#include "devicecpu.h"
+#include "device/cpu/devicecpu.h"
 
 
 class CosmosAgent
