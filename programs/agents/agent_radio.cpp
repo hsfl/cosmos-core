@@ -27,6 +27,13 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+/*! Agent Radio for Satellite Ground Station
+*/
+
+//! \ingroup agents
+//! \defgroup agent_radio Agent Radio
+//! This agent controls the ground station radio (frequency, doppler shift, etc.)
+
 #include "configCosmos.h"
 #include "agent/agentclass.h"
 #include "ts2000_lib.h"

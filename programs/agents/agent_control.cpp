@@ -26,6 +26,14 @@
 * Refer to the "licences" folder for further information on the
 * condititons and terms to use this software.
 ********************************************************************/
+
+/*! Agent Control for Satellite Ground Station
+*/
+
+//! \ingroup agents
+//! \defgroup agent_control Agent Control
+//! This is the main agent that controls the ground station. It it the channel for the T&C and it is also responsible for the \ref agent_antenna and \ref agent_radio
+
 #include "configCosmos.h"
 #include "agent/agentclass.h"
 #include "physics/physicslib.h"
