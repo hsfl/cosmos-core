@@ -158,19 +158,19 @@ int main(int argc, char *argv[])
 				ttrack.name = nodes[i];
                 cosmosstruc *cinfo = json_create();
                 iretn = json_setup_node(ttrack.name, cinfo);
-				if (iretn == 0)
+                if (iretn == 0 && (currentmjd()-ttrack.target.loc.pos.eci.utc) < 10.)
 				{
 					// Valid node. Initialize tracking and push it to list
-                    ttrack.target.type = agent->cinfo->pdata.node.type;
-                    ttrack.target.loc = agent->cinfo->pdata.node.loc;
-                    ttrack.physics = agent->cinfo->pdata.physics;
+                    ttrack.target.type = cinfo->pdata.node.type;
+                    ttrack.target.loc = cinfo->pdata.node.loc;
+                    ttrack.physics = cinfo->pdata.physics;
 
 					// Build up table of radios
-                    ttrack.radios.resize(agent->cinfo->pdata.devspec.tcv_cnt);
+                    ttrack.radios.resize(cinfo->pdata.devspec.tcv_cnt);
 					for (size_t i=0; i<ttrack.radios.size(); ++i)
 					{
-                        ttrack.radios[i].name = agent->cinfo->pdata.piece[agent->cinfo->pdata.devspec.tcv[i]->gen.pidx].name;
-                        ttrack.radios[i].info = *agent->cinfo->pdata.devspec.tcv[i];
+                        ttrack.radios[i].name = cinfo->pdata.piece[cinfo->pdata.devspec.tcv[i]->gen.pidx].name;
+                        ttrack.radios[i].info = *cinfo->pdata.devspec.tcv[i];
 						ttrack.radios[i].otherradioindex = 9999;
 					}
 

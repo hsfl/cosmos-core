@@ -1,3 +1,3 @@
 #!/bin/csh
 cd $COSMOS/nodes
-awk '{print "wget https://celestrak.com/cgi-bin/TLE.pl\\?CATNR=" $2 " -O " $1 "/tle.ini"}' $COSMOS/nodes/amateur.ini | csh
+awk '{print "wget https://celestrak.com/cgi-bin/TLE.pl\\\?CATNR=" $2 " -qO- \| awk '/\^\\\\[12A-Z\]/' > " $1 "/tle.ini"}' $COSMOS/nodes/amateur.ini | csh

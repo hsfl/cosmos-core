@@ -3483,6 +3483,8 @@ int32_t json_set_double_name(double value, char *token, cosmosmetastruc &cmeta, 
  * matching operation, and name or bracketed equation. The result will
  * always be assumed to be double precision, even in the case of
  * booleans. Valid operations are:
+    - '!': logical NOT
+    - '~': bitwise complement
     - '+': addition
     - '-': subtraction
     - '*': multiplication
@@ -4307,6 +4309,7 @@ int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosmetastr
         operand->type = JSON_OPERAND_EQUATION;
         break;
     case '"':
+        // It's a string
         if ((iretn=json_extract_string(ptr, tstring)) < 0)
         {
             return (JSON_ERROR_SCAN);
@@ -4331,6 +4334,7 @@ int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosmetastr
     case '-':
     case '.':
     case '%':
+        // It's a constant
         operand->type = JSON_OPERAND_CONSTANT;
         if ((iretn=json_parse_number(ptr,&operand->value)) < 0)
             return (JSON_ERROR_SCAN);
@@ -5413,7 +5417,7 @@ int32_t json_load_node(std::string node, jsonnode &json, bool create_flag)
             iretn = load_lines(fname, tles);
             if (iretn > 0)
             {
-                if ((iretn=lines2eci(currentmjd()-10./86400., tles, eci)) < 0)
+                if ((iretn=lines2eci(currentmjd()-10./86400., tles, eci)) == 0)
                 {
                     json_out_ecipos(json.state, eci);
                 }
