@@ -57,11 +57,11 @@ char tempname[100];
 char agentname[COSMOS_MAX_NAME+1] = "data";
 std::string dataDir;
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t request_login(char *request, char* response, CosmosAgent *);
-int32_t request_getnodelist(char *request, char* response, CosmosAgent *);
-int32_t request_log(char *request, char* response, CosmosAgent *);
+int32_t request_login(char *request, char* response, Agent *);
+int32_t request_getnodelist(char *request, char* response, Agent *);
+int32_t request_log(char *request, char* response, Agent *);
 
-CosmosAgent *agent; // to access the cosmos data, will change later
+Agent *agent; // to access the cosmos data, will change later
 
 #define MAXBUFFERSIZE 256 // comm buffe for agents
 
@@ -168,7 +168,7 @@ for (i=0; i<nodes.size(); ++i)
 // Initialize the Agent
 // near future: support cubesat space protocol
 // port number = 0 in this case, automatic assignment of port
-if (!(agent = new CosmosAgent(NetworkType::UDP, "hmoc", agentname, 1., MAXBUFFERSIZE)))
+if (!(agent = new Agent(NetworkType::UDP, "hmoc", agentname, 1., MAXBUFFERSIZE)))
 	exit (iretn);
 
 // Add additional requests
@@ -198,7 +198,7 @@ return 0;
 }
 
 //Verify Login Info
-int32_t request_login(char *request, char* response, CosmosAgent *)
+int32_t request_login(char *request, char* response, Agent *)
 {
 char user[COSMOS_MAX_NAME+1];
 char pass[COSMOS_MAX_NAME+1];
@@ -227,7 +227,7 @@ return 0;
 }
 
 // the name of this fn will always be changed
-int32_t request_getnodelist(char *, char* response, CosmosAgent *)
+int32_t request_getnodelist(char *, char* response, Agent *)
 {
 uint32_t i;
 
@@ -240,7 +240,7 @@ return 0;
 }
 
 //Takes event and stores to log
-int32_t request_log(char *request, char* , CosmosAgent *)
+int32_t request_log(char *request, char* , Agent *)
 {
 FILE *log;
 uint16_t i;
@@ -264,7 +264,7 @@ return 0;
 }
 
 //Request info
-/*int32_t request_pid(char *request, char*response, CosmosAgent *agent)
+/*int32_t request_pid(char *request, char*response, Agent *agent)
 //{
 
 }*/

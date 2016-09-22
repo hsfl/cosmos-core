@@ -36,7 +36,7 @@
 char agentname[COSMOS_MAX_NAME+1] = "route";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
-CosmosAgent *agent;
+Agent *agent;
 socket_channel rcvchan;
 
 #define MAXBUFFERSIZE 2560 // comm buffer for agents
@@ -44,7 +44,7 @@ socket_channel rcvchan;
 int main(int argc, char *argv[])
 {
 	// Initialize the Agent
-    if (!(agent = new CosmosAgent(NetworkType::UDP, "", "route", 1., MAXBUFFERSIZE)))
+    if (!(agent = new Agent(NetworkType::UDP, "", "route", 1., MAXBUFFERSIZE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}

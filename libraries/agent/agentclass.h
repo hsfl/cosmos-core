@@ -48,19 +48,19 @@
 //! contain an initial header containing key information about the sending Agent, plus any additional \ref jsonlib_namespace values
 //! that the particular Agent cares to make available. This allows the Clients to collect information about the local system,
 //! and make requests of Agents. COSMOS Clients are equipped with a background thread that collects COSMOS messages and
-//! stores them in a ring. Reading of messages is accomplised through ::CosmosAgent::readring, which gives you the next
+//! stores them in a ring. Reading of messages is accomplised through ::Agent::readring, which gives you the next
 //! message in the ring until you reach the most recent message. Ring size defaults to 100 messages, but can by changed
-//! with ::CosmosAgent::resizering. The ring can be flushed at any time with ::CosmosAgent::clearring. Requests to agents
-//! are made with ::CosmosAgent::send_request. As part of its message collection thread, the Client also keeps a list of
-//! discovered Agents. This list can be used to provide the Agent information required by ::CosmosAgent::send_request through
-//! use of ::CosmosAgent::find_agent. Finally, Clients open a Publication Channel for the sending of messages to other
+//! with ::Agent::resizering. The ring can be flushed at any time with ::Agent::clearring. Requests to agents
+//! are made with ::Agent::send_request. As part of its message collection thread, the Client also keeps a list of
+//! discovered Agents. This list can be used to provide the Agent information required by ::Agent::send_request through
+//! use of ::Agent::find_agent. Finally, Clients open a Publication Channel for the sending of messages to other
 //! COSMOS aware software. Messages are broadcast, using whatever mechanism is appropriate for the ::NetworkType chosen,
-//! using ::CosmosAgent::post. They can be assigned any of 256 types, following the rules of ::CosmosAgent::AGENT_MESSAGE.
+//! using ::Agent::post. They can be assigned any of 256 types, following the rules of ::Agent::AGENT_MESSAGE.
 //! The actual content over the network will be a single type byte, a 2 byte unsigned integer in little_endian order
 //! containing the length in bytes of the header, a JSON header using values from the \ref jsonlib_namespace to represent
 //! meta information about the Agent, and optional data, either as bytes (if type > 127), or additional JSON values. The
-//! header contains the following fields from the ::beatstruc, returned from either ::CosmosAgent::readring or
-//! ::CosmosAgent::find_agent:
+//! header contains the following fields from the ::beatstruc, returned from either ::Agent::readring or
+//! ::Agent::find_agent:
 //! - ::beatstruc::utc: The time of posting, expressed in Modified Julian Day.
 //! - ::beatstruc::node: The name of the associated Node.
 //! - ::beatstruc::proc: The name of the associated Agent.
@@ -79,13 +79,13 @@
 //! additional features, implemented as two additional threads of execution.
 //!
 //! - "Heartbeat": This is a Message, as described above, sent at regular intervals, with type AGENT_MESSAGE_BEAT.
-//! The optional data can be filled with State of Health information, established through ::CosmosAgent::set_sohstring.
+//! The optional data can be filled with State of Health information, established through ::Agent::set_sohstring.
 //!
 //! - "Requests": Requests are received as plain text commands and arguments, at the IP Port reported in the Heartbeat.
 //! They are processed and any response is sent back. The response, even if empty, always ends with [OK], if understood,
 //! or [NOK] if not. Requests and their responses must be less than the size of the communications
 //! buffer. There are a number of requests already built in to the Agent. Additional requests can be
-//! added using ::CosmosAgent::add_request, by tieing together user defined
+//! added using ::Agent::add_request, by tieing together user defined
 //! functions with user defined ASCII strings. Built in requests include:
 //!     - "help" - list available requests for this %Agent.
 //!     - "shutdown" - causes the %Agent to stop what it is doing and exit.
@@ -109,9 +109,9 @@
 //!     - "aliasesjson" - return the JSON representing the contents of aliases.ini.
 //!     - "targetsjson" - return the JSON representing the contents of targets.ini.
 //!
-//! Both Clients and Agents are formed using ::CosmosAgent. Once you have performed any initializations necessary, you should
-//! enter a continuous loop, protected by ::CosmosAgent::running, and preferably surrendering control periodically
-//! with ::COSMOS_SLEEP. Upon exiting from this loop, you should call ::CosmosAgent::shutdown.
+//! Both Clients and Agents are formed using ::Agent. Once you have performed any initializations necessary, you should
+//! enter a continuous loop, protected by ::Agent::running, and preferably surrendering control periodically
+//! with ::COSMOS_SLEEP. Upon exiting from this loop, you should call ::Agent::shutdown.
 
 #include "configCosmos.h"
 #include "cosmos-errno.h"
@@ -124,12 +124,12 @@
 #include "elapsedtime.h"
 #include "device/cpu/devicecpu.h"
 
-
-class CosmosAgent
+namespace Cosmos {
+class Agent
 {
 public:
-    CosmosAgent(NetworkType ntype = NetworkType::UDP, const std::string &nname = "", const std::string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-    ~CosmosAgent();
+    Agent(NetworkType ntype = NetworkType::UDP, const std::string &nname = "", const std::string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
+    ~Agent();
 
     enum class AgentState : uint16_t
         {
@@ -242,8 +242,8 @@ public:
 
     //! Agent Request Function
     //! Format of a user supplied function to handle a given request
-    typedef int32_t (CosmosAgent::*internal_request_function)(char* request_string, char* output_string);
-    typedef int32_t (*external_request_function)(char* request_string, char* output_string, CosmosAgent* agent);
+    typedef int32_t (Agent::*internal_request_function)(char* request_string, char* output_string);
+    typedef int32_t (*external_request_function)(char* request_string, char* output_string, Agent* agent);
 
     //! @}
     //!
@@ -272,7 +272,7 @@ public:
     int32_t unsubscribe();
     int32_t poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec = 1.);
     int32_t poll(pollstruc &meta, std::vector<uint8_t> &message, uint8_t type, float waitsec = 1.);
-    int32_t readring(messstruc &message, uint8_t type = CosmosAgent::AGENT_MESSAGE_ALL, float waitsec = 1.);
+    int32_t readring(messstruc &message, uint8_t type = Agent::AGENT_MESSAGE_ALL, float waitsec = 1.);
     int32_t resizering(size_t newsize);
     int32_t clearring();
     timestruc poll_time(float waitsec);
@@ -353,27 +353,29 @@ private:
     char * parse_request(char *input);
     DeviceCpu deviceCpu_;
 
-    static int32_t req_forward(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_echo(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_help(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_shutdown(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_idle(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_monitor(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_run(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_status(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_getvalue(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_setvalue(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_listnames(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_nodejson(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_statejson(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_utcstartjson(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_piecesjson(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_devgenjson(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_devspecjson(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_portsjson(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_targetsjson(char *request, char* response, CosmosAgent *agent);
-    static int32_t req_aliasesjson(char *request, char* response, CosmosAgent *agent);
+    static int32_t req_forward(char *request, char* response, Agent *agent);
+    static int32_t req_echo(char *request, char* response, Agent *agent);
+    static int32_t req_help(char *request, char* response, Agent *agent);
+    static int32_t req_shutdown(char *request, char* response, Agent *agent);
+    static int32_t req_idle(char *request, char* response, Agent *agent);
+    static int32_t req_monitor(char *request, char* response, Agent *agent);
+    static int32_t req_run(char *request, char* response, Agent *agent);
+    static int32_t req_status(char *request, char* response, Agent *agent);
+    static int32_t req_getvalue(char *request, char* response, Agent *agent);
+    static int32_t req_setvalue(char *request, char* response, Agent *agent);
+    static int32_t req_listnames(char *request, char* response, Agent *agent);
+    static int32_t req_nodejson(char *request, char* response, Agent *agent);
+    static int32_t req_statejson(char *request, char* response, Agent *agent);
+    static int32_t req_utcstartjson(char *request, char* response, Agent *agent);
+    static int32_t req_piecesjson(char *request, char* response, Agent *agent);
+    static int32_t req_devgenjson(char *request, char* response, Agent *agent);
+    static int32_t req_devspecjson(char *request, char* response, Agent *agent);
+    static int32_t req_portsjson(char *request, char* response, Agent *agent);
+    static int32_t req_targetsjson(char *request, char* response, Agent *agent);
+    static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
 
 };
+
+} // end of namepsace Cosmos
 
 #endif // COSMOSAGENT_H

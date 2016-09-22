@@ -44,16 +44,16 @@
 #include "math/mathlib.h"
 #include "jsonlib.h"
 
-CosmosAgent *agent;
+Agent *agent;
 
 int myagent();
 
 // request functions 
 
-int32_t request_setspeed (char *request, char *response, CosmosAgent *agent) ;
-int32_t request_setheading (char *request, char *response, CosmosAgent *agent) ;
-int32_t request_getpos (char *request, char *response, CosmosAgent *agent) ;
-int32_t request_getutc (char *request, char *response, CosmosAgent *agent) ;
+int32_t request_setspeed (char *request, char *response, Agent *agent) ;
+int32_t request_setheading (char *request, char *response, Agent *agent) ;
+int32_t request_getpos (char *request, char *response, Agent *agent) ;
+int32_t request_getutc (char *request, char *response, Agent *agent) ;
 
 char fname[100], base[100];
 double year, day;
@@ -83,12 +83,12 @@ int 	iretn ;
 // Initialize Agent
 if (argc == 2)
 {
-    if (!(agent = new CosmosAgent(NetworkType::MULTICAST, argv[1], agentname, 1., MAXBUFFERSIZE)) != 0)
+    if (!(agent = new Agent(NetworkType::MULTICAST, argv[1], agentname, 1., MAXBUFFERSIZE)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 }
 else
 {
-    if (!(agent = new CosmosAgent(NetworkType::MULTICAST, "rover", agentname, 1., MAXBUFFERSIZE)) != 0)
+    if (!(agent = new Agent(NetworkType::MULTICAST, "rover", agentname, 1., MAXBUFFERSIZE)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 }
 
@@ -222,7 +222,7 @@ while(agent->running())
 	// Simulate hardware
     agent->cinfo->pdata.physics.dt = dt;
     simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
-    agent->post(CosmosAgent::AGENT_MESSAGE_SOH,json_of_soh(jstring, agent->cinfo->meta, agent->cinfo->pdata));
+    agent->post(Agent::AGENT_MESSAGE_SOH,json_of_soh(jstring, agent->cinfo->meta, agent->cinfo->pdata));
 
 	// Broadcast and Log SOH
 	if (cmjd > nmjd)
@@ -263,7 +263,7 @@ while(agent->running())
 return 0;
 }
 
-int32_t request_setheading (char *request, char *output, CosmosAgent *agent)
+int32_t request_setheading (char *request, char *output, Agent *agent)
 {
 double value;
 
@@ -274,7 +274,7 @@ printf("Setheading: %f\n",value);
 return 0 ;
 }
 
-int32_t request_setspeed (char *request, char *output, CosmosAgent *agent)
+int32_t request_setspeed (char *request, char *output, Agent *agent)
 {
 double value;
 
@@ -286,14 +286,14 @@ return 0 ;
 
 }
 
-int32_t request_getutc(char *request, char* output, CosmosAgent *agent)
+int32_t request_getutc(char *request, char* output, Agent *agent)
 {
 
 sprintf(output,"%f",agent->cinfo->pdata.node.loc.utc);
 return 0;
 }
 
-int32_t request_getpos(char *request, char *output, CosmosAgent *agent)
+int32_t request_getpos(char *request, char *output, Agent *agent)
 {
 
 sprintf(output,"%.15g %.15g %.15g",DEGOF(agent->cinfo->pdata.node.loc.pos.geod.s.lat),DEGOF(agent->cinfo->pdata.node.loc.pos.geod.s.lon),agent->cinfo->pdata.node.loc.pos.geod.s.h);

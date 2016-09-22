@@ -134,9 +134,9 @@ int main(int argc, char *argv[])
 	eci.utc = utc;
 
 	gj_handle gjh;
-	CosmosAgent *agent;
+	Agent *agent;
 	std::string node = "";
-    if (!(agent = new CosmosAgent(NetworkType::BROADCAST, node)))
+    if (!(agent = new Agent(NetworkType::BROADCAST, node)))
 	{
 			printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
 			exit (AGENT_ERROR_JSON_CREATE);

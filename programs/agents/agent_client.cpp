@@ -70,15 +70,16 @@ const int SERVER_WAIT_TIME = 6;
 //}
 std::string output;
 
+
 int main(int argc, char *argv[])
 {
     int nbytes;
     beatstruc cbeat;
     std::vector<std::string> nl;
     data_list_nodes(nl);
-    CosmosAgent *agent;
+    Agent *agent;
 
-    agent = new CosmosAgent();
+    agent = new Agent();
 
     // check command line arguments
     switch (argc)
@@ -99,7 +100,7 @@ int main(int argc, char *argv[])
             double lmjd = 0., dmjd;
             std::string channel;
             uint8_t cnum;
-            CosmosAgent::messstruc message;
+            Agent::messstruc message;
             std::string header;
             int i, pretn;
             locstruc loc;
@@ -109,13 +110,13 @@ int main(int argc, char *argv[])
                 channel = argv[2];
                 if (channel == "soh")
                 {
-                    cnum = CosmosAgent::AGENT_MESSAGE_SOH;
+                    cnum = Agent::AGENT_MESSAGE_SOH;
                 }
                 else
                 {
                     if (channel == "beat")
                     {
-                        cnum = CosmosAgent::AGENT_MESSAGE_BEAT;
+                        cnum = Agent::AGENT_MESSAGE_BEAT;
                     }
                     else
                     {
@@ -126,12 +127,12 @@ int main(int argc, char *argv[])
             else
             {
                 channel.clear();
-                cnum = CosmosAgent::AGENT_MESSAGE_ALL;
+                cnum = Agent::AGENT_MESSAGE_ALL;
             }
 
             while (1)
             {
-                if ((pretn=agent->readring(message, CosmosAgent::AGENT_MESSAGE_ALL)) > 0)
+                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL)) > 0)
                 {
                     // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
@@ -140,7 +141,7 @@ int main(int argc, char *argv[])
                     }
 
                     header.resize(message.meta.jlength);
-                    if (pretn < CosmosAgent::AGENT_MESSAGE_BINARY)
+                    if (pretn < Agent::AGENT_MESSAGE_BINARY)
                     {
                         memcpy(&header[0], message.adata.data(), message.meta.jlength);
                     }
@@ -152,10 +153,10 @@ int main(int argc, char *argv[])
 
                     switch (pretn)
                     {
-                    case CosmosAgent::AGENT_MESSAGE_SOH:
+                    case Agent::AGENT_MESSAGE_SOH:
                         printf("[SOH]");
                         break;
-                    case CosmosAgent::AGENT_MESSAGE_BEAT:
+                    case Agent::AGENT_MESSAGE_BEAT:
                         printf("[BEAT]");
                         break;
                     default:
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    if (pretn < CosmosAgent::AGENT_MESSAGE_BINARY)
+                    if (pretn < Agent::AGENT_MESSAGE_BINARY)
                     {
                         printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.adata.size());
                         if (!channel.empty())
@@ -176,7 +177,7 @@ int main(int argc, char *argv[])
                         printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.bdata.size());
                     }
 
-                    if ((channel=="info") && pretn == CosmosAgent::AGENT_MESSAGE_TRACK)
+                    if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
                     {
                         if (agent->cinfo->pdata.node.loc.utc > 0.)
                         {
@@ -192,7 +193,7 @@ int main(int argc, char *argv[])
                         }
                     }
 
-                    if ((channel=="imu") && pretn == CosmosAgent::AGENT_MESSAGE_IMU)
+                    if ((channel=="imu") && pretn == Agent::AGENT_MESSAGE_IMU)
                     {
                         for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
                         {
@@ -240,7 +241,7 @@ int main(int argc, char *argv[])
             double lmjd = 0., dmjd;
             std::string channel;
             uint8_t cnum;
-            CosmosAgent::messstruc message;
+            Agent::messstruc message;
             std::string header;
             int i, pretn;
             locstruc loc;
@@ -250,13 +251,13 @@ int main(int argc, char *argv[])
                 channel = argv[2];
                 if (channel == "soh")
                 {
-                    cnum = CosmosAgent::AGENT_MESSAGE_SOH;
+                    cnum = Agent::AGENT_MESSAGE_SOH;
                 }
                 else
                 {
                     if (channel == "beat")
                     {
-                        cnum = CosmosAgent::AGENT_MESSAGE_BEAT;
+                        cnum = Agent::AGENT_MESSAGE_BEAT;
                     }
                     else
                     {
@@ -267,12 +268,12 @@ int main(int argc, char *argv[])
             else
             {
                 channel.clear();
-                cnum = CosmosAgent::AGENT_MESSAGE_ALL;
+                cnum = Agent::AGENT_MESSAGE_ALL;
             }
 
             while (1)
             {
-                if ((pretn=agent->readring(message, CosmosAgent::AGENT_MESSAGE_ALL)) > 0)
+                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL)) > 0)
                 {
                     // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
@@ -281,7 +282,7 @@ int main(int argc, char *argv[])
                     }
 
                     header.resize(message.meta.jlength);
-                    if (pretn < CosmosAgent::AGENT_MESSAGE_BINARY)
+                    if (pretn < Agent::AGENT_MESSAGE_BINARY)
                     {
                         memcpy(&header[0], message.adata.data(), message.meta.jlength);
                         json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
@@ -295,10 +296,10 @@ int main(int argc, char *argv[])
 
                     switch (pretn)
                     {
-                    case CosmosAgent::AGENT_MESSAGE_SOH:
+                    case Agent::AGENT_MESSAGE_SOH:
                         printf("[SOH]");
                         break;
-                    case CosmosAgent::AGENT_MESSAGE_BEAT:
+                    case Agent::AGENT_MESSAGE_BEAT:
                         printf("[BEAT]");
                         break;
                     default:
@@ -308,12 +309,12 @@ int main(int argc, char *argv[])
 
                     printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
 
-                    if (pretn < CosmosAgent::AGENT_MESSAGE_BINARY && !channel.empty())
+                    if (pretn < Agent::AGENT_MESSAGE_BINARY && !channel.empty())
                     {
                         printf("%s\n",message.adata.c_str());
                     }
 
-                    if ((channel=="info") && pretn == CosmosAgent::AGENT_MESSAGE_TRACK)
+                    if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
                     {
                         if (agent->cinfo->pdata.node.loc.utc > 0.)
                         {
@@ -329,7 +330,7 @@ int main(int argc, char *argv[])
                         }
                     }
 
-                    if ((channel=="imu") && pretn == CosmosAgent::AGENT_MESSAGE_IMU)
+                    if ((channel=="imu") && pretn == Agent::AGENT_MESSAGE_IMU)
                     {
                         for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
                         {

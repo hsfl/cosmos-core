@@ -55,8 +55,8 @@ default:
 	break;
 	}
 
-CosmosAgent *agent;
-agent = new CosmosAgent(NetworkType::UDP, argv[1]);
+Agent *agent;
+agent = new Agent(NetworkType::UDP, argv[1]);
 
 if ((nbytes = agent->get_server(agent->cinfo->pdata.node.name,(char *)"engine",8,&cbeat)) > 0)
 	{

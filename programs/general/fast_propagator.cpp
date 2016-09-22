@@ -37,7 +37,7 @@
 #include <iomanip>
 
 gj_handle gjh;
-CosmosAgent *agent;
+Agent *agent;
 std::vector<shorteventstruc> eventdict;
 std::vector<shorteventstruc> events;
 std::string mainjstring;
@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
 		break;
 	}
 
-    if (!(agent = new CosmosAgent(NetworkType::BROADCAST, node)))
+    if (!(agent = new Agent(NetworkType::BROADCAST, node)))
 	{
 		printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
 		exit (AGENT_ERROR_JSON_CREATE);
@@ -124,13 +124,13 @@ int main(int argc, char* argv[])
 
 #define POLLBUFSIZE 20000
 	std::string pollbuf;
-    CosmosAgent::pollstruc meta;
+    Agent::pollstruc meta;
 
-    iretn = agent->poll(meta, pollbuf, CosmosAgent::AGENT_MESSAGE_ALL,1);
+    iretn = agent->poll(meta, pollbuf, Agent::AGENT_MESSAGE_ALL,1);
 	switch (iretn)
 	{
-    case CosmosAgent::AGENT_MESSAGE_SOH:
-    case CosmosAgent::AGENT_MESSAGE_BEAT:
+    case Agent::AGENT_MESSAGE_SOH:
+    case Agent::AGENT_MESSAGE_BEAT:
 		{
 			std::string tbuf = json_convert_string(json_extract_namedobject(pollbuf, "agent_name"));
 			if (!tbuf.empty() && tbuf == "physics")
@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
 		{
             log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(mainjstring,  logtable, agent->cinfo->meta, agent->cinfo->pdata));
 		}
-        //		agent->post(CosmosAgent::AGENT_MESSAGE_SOH,json_of_table(mainjstring,  agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+        //		agent->post(Agent::AGENT_MESSAGE_SOH,json_of_table(mainjstring,  agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
 	}
     agent->shutdown();
 }

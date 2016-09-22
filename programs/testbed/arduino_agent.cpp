@@ -61,29 +61,29 @@ typedef struct {
 int myagent();
 
 // request functions 
-int32_t request_mjd(char *request, char* response, CosmosAgent *);
-int32_t request_type(char *request, char* response, CosmosAgent *);
-int32_t request_pitch(char *request, char* response, CosmosAgent *);
-int32_t request_yaw(char *request, char* response, CosmosAgent *);
-int32_t request_roll(char *request, char* response, CosmosAgent *);
-int32_t request_motor(char *request, char* response, CosmosAgent *);
-int32_t request_speed (char *request, char* response, CosmosAgent *);
-int32_t request_throttle (char *request, char* response, CosmosAgent *);
-int32_t request_throttlemin (char *request, char* response, CosmosAgent *);
-int32_t request_throttlemax (char *request, char* response, CosmosAgent *);
-int32_t request_printangles (char *request, char* response, CosmosAgent *);
-int32_t request_printthrottle (char *request, char* response, CosmosAgent *);
-int32_t request_pidroll (char *request, char* response, CosmosAgent *);
-int32_t request_pidpitch (char *request, char* response, CosmosAgent *);
-int32_t request_pidyaw (char *request, char* response, CosmosAgent *);
-int32_t request_typepitch (char *request, char* response, CosmosAgent *);
-int32_t request_typeroll (char *request, char* response, CosmosAgent *);
-int32_t request_typeyaw (char *request, char* response, CosmosAgent *);
-int32_t request_printpidpitch (char *request, char* response, CosmosAgent *);
-int32_t request_printpidroll (char *request, char* response, CosmosAgent *);
-int32_t request_printpidyaw (char *request, char* response, CosmosAgent *);
-int32_t request_typeall (char *request, char* response, CosmosAgent *);
-int32_t request_controller (char *request, char *response, CosmosAgent *agent) ;
+int32_t request_mjd(char *request, char* response, Agent *);
+int32_t request_type(char *request, char* response, Agent *);
+int32_t request_pitch(char *request, char* response, Agent *);
+int32_t request_yaw(char *request, char* response, Agent *);
+int32_t request_roll(char *request, char* response, Agent *);
+int32_t request_motor(char *request, char* response, Agent *);
+int32_t request_speed (char *request, char* response, Agent *);
+int32_t request_throttle (char *request, char* response, Agent *);
+int32_t request_throttlemin (char *request, char* response, Agent *);
+int32_t request_throttlemax (char *request, char* response, Agent *);
+int32_t request_printangles (char *request, char* response, Agent *);
+int32_t request_printthrottle (char *request, char* response, Agent *);
+int32_t request_pidroll (char *request, char* response, Agent *);
+int32_t request_pidpitch (char *request, char* response, Agent *);
+int32_t request_pidyaw (char *request, char* response, Agent *);
+int32_t request_typepitch (char *request, char* response, Agent *);
+int32_t request_typeroll (char *request, char* response, Agent *);
+int32_t request_typeyaw (char *request, char* response, Agent *);
+int32_t request_printpidpitch (char *request, char* response, Agent *);
+int32_t request_printpidroll (char *request, char* response, Agent *);
+int32_t request_printpidyaw (char *request, char* response, Agent *);
+int32_t request_typeall (char *request, char* response, Agent *);
+int32_t request_controller (char *request, char *response, Agent *agent) ;
 
 
 void init_copterstruc () ;
@@ -100,7 +100,7 @@ char agentname[COSMOS_MAX_NAME+1] = "arduino";
 char ipaddress[16] = "192.168.150.1";
 int waitsec = 5;
 copterstruc myCopter ;
-CosmosAgent *agent;
+Agent *agent;
 float tiltval = 0 ;
  
  // flags that will be used 
@@ -134,7 +134,7 @@ setMotorFlag = 0 ;
 init_copterstruc () ;
 
 // Initialize Agent
-if (!(agent = new CosmosAgent(NetworkType::BROADCAST, "arduino", agentname, .1, MAXBUFFERSIZE)) != 0)
+if (!(agent = new Agent(NetworkType::BROADCAST, "arduino", agentname, .1, MAXBUFFERSIZE)) != 0)
 	exit (AGENT_ERROR_JSON_CREATE);
 
 agent->cinfo->pdata.node.loc.pos.geod.v.lat = agent->cinfo->pdata.node.loc.pos.geod.v.lon = agent->cinfo->pdata.node.loc.pos.geod.v.h = 0.;
@@ -302,29 +302,29 @@ while(agent->running())
     agent->cinfo->pdata.node.loc.pos.geod.utc = currentmjd(0);
     pos_geod(&agent->cinfo->pdata.node.loc);
 
-    agent->post(CosmosAgent::AGENT_MESSAGE_SOH,json_of_soh(jstring, agent->cinfo->meta, agent->cinfo->pdata));
+    agent->post(Agent::AGENT_MESSAGE_SOH,json_of_soh(jstring, agent->cinfo->meta, agent->cinfo->pdata));
 	fprintf (fout, "%s", jstring.c_str()) ;
-    agent->post(CosmosAgent::AGENT_MESSAGE_TIME,json_of_time(jstring, agent->cinfo->meta, agent->cinfo->pdata));
+    agent->post(Agent::AGENT_MESSAGE_TIME,json_of_time(jstring, agent->cinfo->meta, agent->cinfo->pdata));
 	fprintf (fout, "%s", jstring.c_str()) ;
 
 	//json_startout (&jstring) ;
 	//json_out (jstring,  "timestamp") ;
 	//json_out_1d (jstring,  "imu_att", 0) ;
 	//strcpy (outstrbig, jstring) ;
-    //iretn = agent->post(CosmosAgent::AGENT_MESSAGE_GENERIC,outstrbig) ;
+    //iretn = agent->post(Agent::AGENT_MESSAGE_GENERIC,outstrbig) ;
 	//fprintf (fout, "%s", outstrbig) ;
 	//json_out (jstring,  "motr_cnt") ;
 	//for (i=0; i<4; i++)
 	//json_out_1d (jstring,  "motr_spd", i) ;
 	//strcpy (outstrbig, jstring) ;
-    //iretn = agent->post(CosmosAgent::AGENT_MESSAGE_GENERIC,outstrbig) ;
+    //iretn = agent->post(Agent::AGENT_MESSAGE_GENERIC,outstrbig) ;
 	//fprintf (fout, "%s\r\n", outstrbig) ;
 	fflush (fout) ;
 
 	/*
-    iretn = agent->post(CosmosAgent::AGENT_MESSAGE_GENERIC,json_out(jstring, "motr_cnt"));
+    iretn = agent->post(Agent::AGENT_MESSAGE_GENERIC,json_out(jstring, "motr_cnt"));
 	for (i=0; i<4; i++)
-    iretn = agent->post(CosmosAgent::AGENT_MESSAGE_GENERIC,json_out_1d(jstring, "motr_spd",i));
+    iretn = agent->post(Agent::AGENT_MESSAGE_GENERIC,json_out_1d(jstring, "motr_spd",i));
 	*/
 	//fprintf (flog, "%s\r\n", outstrbig) ;
 
@@ -342,14 +342,14 @@ fclose (fout) ;
 return 0;
 }
 
-int32_t request_mjd(char *request, char* output, CosmosAgent *agent)
+int32_t request_mjd(char *request, char* output, Agent *agent)
 {
 
 sprintf(output,"%f",agent->cinfo->pdata.node.loc.utc);
 return(0);
 }
 
-int32_t request_controller(char *request, char* output, CosmosAgent *agent)
+int32_t request_controller(char *request, char* output, Agent *agent)
 {
 	int onval ;
 	char locstr [30] ;
@@ -361,7 +361,7 @@ int32_t request_controller(char *request, char* output, CosmosAgent *agent)
 	return(0);
 }
 
-int32_t request_speed (char *request, char *output, CosmosAgent *agent)
+int32_t request_speed (char *request, char *output, Agent *agent)
 {
 	float fval ;
 	sscanf (request, "speed %f", &fval) ;
@@ -372,7 +372,7 @@ int32_t request_speed (char *request, char *output, CosmosAgent *agent)
 
 }
 
-int32_t request_motor(char *request, char *output, CosmosAgent *agent)
+int32_t request_motor(char *request, char *output, Agent *agent)
 {
 	// activates motors
 	int  motor_number ;
@@ -383,7 +383,7 @@ int32_t request_motor(char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 
-int32_t request_throttle(char *request, char *output, CosmosAgent *agent)
+int32_t request_throttle(char *request, char *output, Agent *agent)
 {
 	float val ;
 	sscanf (request, "throttle %f", &val) ;
@@ -393,7 +393,7 @@ int32_t request_throttle(char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 	
-int32_t request_throttlemin(char *request, char *output, CosmosAgent *agent)
+int32_t request_throttlemin(char *request, char *output, Agent *agent)
 {
 	float val ;
 	sscanf (request, "throttle_min %f", &val) ;
@@ -403,7 +403,7 @@ int32_t request_throttlemin(char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 
-int32_t request_throttlemax(char *request, char *output, CosmosAgent *agent)
+int32_t request_throttlemax(char *request, char *output, Agent *agent)
 {
 	float val ;
 	sscanf (request, "throttle_max %f", &val) ;
@@ -414,7 +414,7 @@ int32_t request_throttlemax(char *request, char *output, CosmosAgent *agent)
 }
 
 
-int32_t request_pidpitch(char *request, char *output, CosmosAgent *agent)
+int32_t request_pidpitch(char *request, char *output, Agent *agent)
 {
 	float fval, fval1, fval2 ;
 	sscanf (request, "pid_pitch %f %f %f", &fval, &fval1, &fval2) ;
@@ -428,28 +428,28 @@ int32_t request_pidpitch(char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 
-int32_t request_printpidpitch (char*request, char *output, CosmosAgent *agent)
+int32_t request_printpidpitch (char*request, char *output, Agent *agent)
 {
 	sprintf (output,"$PID_PITCH,%f,%f,%f*", myCopter.pidPitch[0], myCopter.pidPitch[1],
 		myCopter.pidPitch[2]) ;
 	return(0) ;
 }
 
-int32_t request_printpidroll (char*request, char *output, CosmosAgent *agent)
+int32_t request_printpidroll (char*request, char *output, Agent *agent)
 {
 	sprintf (output,"$PID_ROLL,%f,%f,%f*", myCopter.pidRoll[0], myCopter.pidRoll[1],
 		myCopter.pidRoll[2]) ;
 	return(0) ;
 }
 
-int32_t request_printpidyaw(char*request, char *output, CosmosAgent *agent)
+int32_t request_printpidyaw(char*request, char *output, Agent *agent)
 {
 	sprintf (output,"$PID_YAW,%f,%f,%f*", myCopter.pidYaw[0], myCopter.pidYaw[1],
 		myCopter.pidYaw[2]) ;
 	return(0) ;
 }
 
-int32_t request_pidroll(char *request, char *output, CosmosAgent *agent)
+int32_t request_pidroll(char *request, char *output, Agent *agent)
 {
 	float fval, fval1, fval2 ;
 	sscanf (request, "pid_roll %f %f %f", &fval, &fval1, &fval2) ;
@@ -460,7 +460,7 @@ int32_t request_pidroll(char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 
-int32_t request_pidyaw (char *request, char *output, CosmosAgent *agent)
+int32_t request_pidyaw (char *request, char *output, Agent *agent)
 {
 	float fval, fval1, fval2 ;
 	sscanf (request, "pid_yaw %f %f %f", &fval, &fval1, &fval2) ;
@@ -471,7 +471,7 @@ int32_t request_pidyaw (char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 
-int32_t request_typepitch (char *request, char *output, CosmosAgent *agent)
+int32_t request_typepitch (char *request, char *output, Agent *agent)
 {
 	int onval ;
 	sscanf (request, "typepitch %d", &onval) ;
@@ -481,7 +481,7 @@ int32_t request_typepitch (char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 
-int32_t request_typeroll (char *request, char *output, CosmosAgent *agent)
+int32_t request_typeroll (char *request, char *output, Agent *agent)
 {
 	int onval ;
 	sscanf (request, "typeroll %d", &onval) ;
@@ -491,7 +491,7 @@ int32_t request_typeroll (char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 
-int32_t request_typeyaw (char *request, char *output, CosmosAgent *agent)
+int32_t request_typeyaw (char *request, char *output, Agent *agent)
 {
 	int onval ;
 	sscanf (request, "typeyaw %d", &onval) ;
@@ -501,7 +501,7 @@ int32_t request_typeyaw (char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 
-int32_t request_typeall (char *request, char *output, CosmosAgent *agent)
+int32_t request_typeall (char *request, char *output, Agent *agent)
 {
 	int onval ;
 	sscanf (request, "typeall %d", &onval) ;
@@ -513,28 +513,28 @@ int32_t request_typeall (char *request, char *output, CosmosAgent *agent)
 
 
 
-int32_t request_pitch (char *request, char *output, CosmosAgent *agent)
+int32_t request_pitch (char *request, char *output, Agent *agent)
 {
 	//sendToSerial ("#PRINT,PID_PITCH,1*", output) ;
 	sprintf (output,"PID_PITCH,%f,%f,%f*",myCopter.pidPitch[0],myCopter.pidPitch[1], myCopter.pidPitch[2]) ;
 	return(0) ;
 }
 
-int32_t request_roll (char *request, char *output, CosmosAgent *agent)
+int32_t request_roll (char *request, char *output, Agent *agent)
 {
 	sprintf (output,"PID_ROLL,%f,%f,%f*",myCopter.pidRoll[0],myCopter.pidRoll[1],
 		myCopter.pidRoll[2]) ;
 	return(0) ;
 }
 
-int32_t request_yaw (char *request, char *output, CosmosAgent *agent)
+int32_t request_yaw (char *request, char *output, Agent *agent)
 {
 	sprintf (output,"PID_YAW,%f,%f,%f*",myCopter.pidYaw[0],myCopter.pidYaw[1],
 		myCopter.pidYaw[2]) ;
 	return(0) ;
 }
 
-int32_t request_type (char *request, char *output, CosmosAgent *agent)
+int32_t request_type (char *request, char *output, Agent *agent)
 {
 	//sendToSerial ("#PRINT,PID_TYPE,1*", output) ;
 	//sprintf (output,"PID_YAW,%f,%f,%f*",myCopter.pid_yaw[0],myCopter.pid_yaw[1],
@@ -542,13 +542,13 @@ int32_t request_type (char *request, char *output, CosmosAgent *agent)
 	return(0) ;
 }
 
-int32_t request_printangles (char *request, char *output, CosmosAgent *agent) {
+int32_t request_printangles (char *request, char *output, Agent *agent) {
 	sprintf (output,"ANGLES,%f,%f,%f*",myCopter.angles[0],myCopter.angles[1],
 		myCopter.angles[2]) ;
 	return(0) ;
 }
 
-int32_t request_printthrottle (char *request, char *output, CosmosAgent *agent) {
+int32_t request_printthrottle (char *request, char *output, Agent *agent) {
 	sprintf (output,"THROTTLE,%f*", myCopter.throttle) ;
 	return(0) ;
 }

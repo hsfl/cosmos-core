@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include <cstring>
 
-CosmosAgent *agent;
+Agent *agent;
 
 svector azel;
 std::vector<nodestruc> track;
@@ -98,7 +98,7 @@ if (satellite==NULL) {
     json_parse(jsonfile);
     fclose(satellite);
 }*/
-agent = new CosmosAgent(NetworkType::UDP, argv[1]);
+agent = new Agent(NetworkType::UDP, argv[1]);
 
 switch (jumpto) {
 case -1:

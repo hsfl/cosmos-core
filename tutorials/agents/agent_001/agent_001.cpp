@@ -47,7 +47,7 @@
 #include <iostream>
 #include <string>
 using namespace std;
-CosmosAgent *agent;
+Agent *agent;
 
 int main(int, char **)
 {
@@ -55,7 +55,7 @@ int main(int, char **)
     string agentname = "001";
     string nodename  = "telem";
     string agent002  = "002"; //name of the agent that the request is directed to
-    agent = new CosmosAgent(NetworkType::UDP, nodename, agentname);
+    agent = new Agent(NetworkType::UDP, nodename, agentname);
 
     beatstruc beat_agent_002;
 

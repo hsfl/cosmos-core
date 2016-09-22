@@ -48,11 +48,11 @@
 
 #include <iostream>
 
-int32_t request_reopen(char* request, char* output, CosmosAgent *agent);
-int32_t request_set_logperiod(char* request, char* output, CosmosAgent *agent);
-int32_t request_set_logstring(char* request, char* output, CosmosAgent *agent);
-int32_t request_get_logstring(char* request, char* output, CosmosAgent *agent);
-int32_t request_set_logstride(char* request, char* output, CosmosAgent *agent);
+int32_t request_reopen(char* request, char* output, Agent *agent);
+int32_t request_set_logperiod(char* request, char* output, Agent *agent);
+int32_t request_set_logstring(char* request, char* output, Agent *agent);
+int32_t request_get_logstring(char* request, char* output, Agent *agent);
+int32_t request_set_logstride(char* request, char* output, Agent *agent);
 
 std::string jjstring;
 std::string myjstring;
@@ -80,7 +80,7 @@ int pid;
 int state = 0;
 double cmjd;
 //timestruc systime;
-CosmosAgent *agent;
+Agent *agent;
 
 beatstruc iscbeat;
 std::string node = "hiakasat";
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     }
 
     // Establish the command channel and heartbeat
-    if (!(agent = new CosmosAgent(ntype, argv[1], "soh")))
+    if (!(agent = new Agent(ntype, argv[1], "soh")))
     {
         std::cout<<"agent_soh: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
         exit (AGENT_ERROR_JSON_CREATE);
@@ -219,7 +219,7 @@ int myagent()
 
             loc_update(&agent->cinfo->pdata.node.loc);
             update_target(agent->cinfo->pdata);
-            agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
+            agent->post(Agent::AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
             calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
             for (uint32_t k=0; k<events.size(); ++k)
             {
@@ -278,33 +278,33 @@ int myagent()
     return 0;
 }
 
-int32_t request_reopen(char* request, char* output, CosmosAgent *agent)
+int32_t request_reopen(char* request, char* output, Agent *agent)
 {
     logdate = agent->cinfo->pdata.node.loc.utc;
     log_move(agent->cinfo->pdata.node.name, "soh");
     return 0;
 }
 
-int32_t request_set_logperiod(char* request, char* output, CosmosAgent *agent)
+int32_t request_set_logperiod(char* request, char* output, Agent *agent)
 {
     sscanf(request,"set_logperiod %d",&newlogperiod);
     return 0;
 }
 
-int32_t request_set_logstring(char* request, char* output, CosmosAgent *agent)
+int32_t request_set_logstring(char* request, char* output, Agent *agent)
 {
     logstring = &request[strlen("set_logstring")+1];
     json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
     return 0;
 }
 
-int32_t request_get_logstring(char* request, char* output, CosmosAgent *agent)
+int32_t request_get_logstring(char* request, char* output, Agent *agent)
 {
     strcpy(output, logstring.c_str());
     return 0;
 }
 
-int32_t request_set_logstride(char* request, char* output, CosmosAgent *agent)
+int32_t request_set_logstride(char* request, char* output, Agent *agent)
 {
     sscanf(request,"set_logstride %lf",&newlogstride);
     return 0;
@@ -314,12 +314,12 @@ void collect_data_loop()
 {
     int nbytes;
     std::string message;
-    CosmosAgent::pollstruc meta;
+    Agent::pollstruc meta;
 
     while (agent->running())
     {
         // Collect new data
-        if((nbytes=agent->poll(meta, message, CosmosAgent::AGENT_MESSAGE_BEAT,0)))
+        if((nbytes=agent->poll(meta, message, Agent::AGENT_MESSAGE_BEAT,0)))
         {
             std::string tstring;
             if ((tstring=json_convert_string(json_extract_namedobject(message.c_str(), "agent_node"))) != agent->cinfo->pdata.node.name)

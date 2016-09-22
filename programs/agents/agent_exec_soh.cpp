@@ -69,8 +69,8 @@
 #include <fstream>
 #include <sstream>
 
-//CosmosAgent *agent;
-CosmosAgent *agent;
+//Agent *agent;
+Agent *agent;
 
 // Exuctive specfic declarations
 #include "agent_exec.h"
@@ -89,23 +89,23 @@ double newlogstride_exec = 900. / 86400.;
 double logstride_exec = 0.;
 bool queue_changed = false;
 
-int32_t request_get_queue_size(char *request, char* response, CosmosAgent *);
-int32_t request_get_queue_entry(char *request, char* response, CosmosAgent *);
-int32_t request_del_queue_entry(char *request, char* response, CosmosAgent *);
-int32_t request_add_queue_entry(char *request, char* response, CosmosAgent *);
-int32_t request_run(char *request, char* response, CosmosAgent *);
-int32_t request_soh(char *request, char* response, CosmosAgent *);
-int32_t request_reopen_exec(char* request, char* output, CosmosAgent *agent);
-int32_t request_set_logstride_exec(char* request, char* output, CosmosAgent *agent);
+int32_t request_get_queue_size(char *request, char* response, Agent *);
+int32_t request_get_queue_entry(char *request, char* response, Agent *);
+int32_t request_del_queue_entry(char *request, char* response, Agent *);
+int32_t request_add_queue_entry(char *request, char* response, Agent *);
+int32_t request_run(char *request, char* response, Agent *);
+int32_t request_soh(char *request, char* response, Agent *);
+int32_t request_reopen_exec(char* request, char* output, Agent *agent);
+int32_t request_set_logstride_exec(char* request, char* output, Agent *agent);
 
 command_queue cmd_queue;
 
 // SOH specific declarations
-int32_t request_reopen_soh(char* request, char* output, CosmosAgent *agent);
-int32_t request_set_logperiod(char* request, char* output, CosmosAgent *agent);
-int32_t request_set_logstring(char* request, char* output, CosmosAgent *agent);
-int32_t request_get_logstring(char* request, char* output, CosmosAgent *agent);
-int32_t request_set_logstride_soh(char* request, char* output, CosmosAgent *agent);
+int32_t request_reopen_soh(char* request, char* output, Agent *agent);
+int32_t request_set_logperiod(char* request, char* output, Agent *agent);
+int32_t request_set_logstring(char* request, char* output, Agent *agent);
+int32_t request_get_logstring(char* request, char* output, Agent *agent);
+int32_t request_set_logstride_soh(char* request, char* output, Agent *agent);
 
 std::string jjstring;
 std::string myjstring;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 	nodename = argv[1];
 
 	// Establish the command channel and heartbeat
-    agent = new CosmosAgent(ntype, nodename, "execsoh");
+    agent = new Agent(ntype, nodename, "execsoh");
     agent->cinfo->pdata.node.utc = 0.;
     agent->cinfo->pdata.agent[0].aprd = .5;
 
@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
 		{
             loc_update(&agent->cinfo->pdata.node.loc);
             update_target(agent->cinfo->pdata);
-            agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
+            agent->post(Agent::AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
             calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
 			for (uint32_t k=0; k<events.size(); ++k)
 			{
@@ -348,26 +348,26 @@ int main(int argc, char *argv[])
 }
 
 // Executive specific requests
-int32_t request_set_logstride_exec(char* request, char* , CosmosAgent *)
+int32_t request_set_logstride_exec(char* request, char* , Agent *)
 {
 	sscanf(request,"set_logstride_exec %lf",&newlogstride_exec);
 	return 0;
 }
 
-int32_t request_reopen_exec(char* , char* , CosmosAgent *agent)
+int32_t request_reopen_exec(char* , char* , Agent *agent)
 {
     logdate_exec = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
     log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "exec");
 	return 0;
 }
 
-int32_t request_get_queue_size(char *, char* response, CosmosAgent *)
+int32_t request_get_queue_size(char *, char* response, Agent *)
 {
 	sprintf(response,"%" PRIu32 "", cmd_queue.get_size());
 	return 0;
 }
 
-int32_t request_get_queue_entry(char *request, char* response, CosmosAgent *)
+int32_t request_get_queue_entry(char *request, char* response, Agent *)
 {
     std::ostringstream ss;
 
@@ -400,7 +400,7 @@ int32_t request_get_queue_entry(char *request, char* response, CosmosAgent *)
 }
 
 // Delete Queue Entry - by date and contents
-int32_t request_del_queue_entry(char *request, char* response, CosmosAgent *)
+int32_t request_del_queue_entry(char *request, char* response, Agent *)
 {
 	command cmd;
 	std::string line(request);
@@ -419,7 +419,7 @@ int32_t request_del_queue_entry(char *request, char* response, CosmosAgent *)
 }
 
 // Add Queue Entry
-int32_t request_add_queue_entry(char *request, char* response, CosmosAgent *)
+int32_t request_add_queue_entry(char *request, char* response, Agent *)
 {
 	command cmd;
 	std::string line(request);
@@ -437,7 +437,7 @@ int32_t request_add_queue_entry(char *request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_run(char *request, char* response, CosmosAgent *)
+int32_t request_run(char *request, char* response, Agent *)
 {
 	int i;
 	int32_t iretn = 0;
@@ -494,33 +494,33 @@ int32_t request_run(char *request, char* response, CosmosAgent *)
 }
 
 // SOH specific requests
-int32_t request_reopen_soh(char* , char* , CosmosAgent *)
+int32_t request_reopen_soh(char* , char* , Agent *)
 {
     logdate_soh = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
     log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "soh");
 	return 0;
 }
 
-int32_t request_set_logperiod(char* request, char* , CosmosAgent *)
+int32_t request_set_logperiod(char* request, char* , Agent *)
 {
 	sscanf(request,"set_logperiod %d",&newlogperiod);
 	return 0;
 }
 
-int32_t request_set_logstring(char* request, char* , CosmosAgent *)
+int32_t request_set_logstring(char* request, char* , Agent *)
 {
 	logstring = &request[strlen("set_logstring")+1];
     json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
 	return 0;
 }
 
-int32_t request_get_logstring(char* , char* output, CosmosAgent *)
+int32_t request_get_logstring(char* , char* output, Agent *)
 {
 	strcpy(output, logstring.c_str());
 	return 0;
 }
 
-int32_t request_set_logstride_soh(char* request, char* , CosmosAgent *)
+int32_t request_set_logstride_soh(char* request, char* , Agent *)
 {
 	sscanf(request,"set_logstride_soh %lf",&newlogstride_soh);
 	return 0;
@@ -539,7 +539,7 @@ void collect_data_loop()
             {
                 my_position = 0;
             }
-            if (agent->cinfo->pdata.node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < CosmosAgent::AGENT_MESSAGE_BINARY)
+            if (agent->cinfo->pdata.node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AGENT_MESSAGE_BINARY)
             {
                 agent->cinfo->sdata.node = agent->cinfo->pdata.node;
                 agent->cinfo->sdata.device = agent->cinfo->pdata.device;

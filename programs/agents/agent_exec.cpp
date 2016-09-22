@@ -69,7 +69,7 @@
 #include <fstream>
 #include <sstream>
 
-CosmosAgent *agent;
+Agent *agent;
 #include "agent_exec.h"
 
 #define LOOPMSEC 100
@@ -99,14 +99,14 @@ double newlogstride = 900. / 86400.;
 double logstride = 0.;
 bool queue_changed = false;
 
-int32_t request_get_queue_size(char *request, char* response, CosmosAgent *);
-int32_t request_get_queue_entry(char *request, char* response, CosmosAgent *);
-int32_t request_del_queue_entry(char *request, char* response, CosmosAgent *);
-int32_t request_add_queue_entry(char *request, char* response, CosmosAgent *);
-int32_t request_run(char *request, char* response, CosmosAgent *);
-int32_t request_soh(char *request, char* response, CosmosAgent *);
-int32_t request_reopen(char* request, char* output, CosmosAgent *agent);
-int32_t request_set_logstride(char* request, char* output, CosmosAgent *agent);
+int32_t request_get_queue_size(char *request, char* response, Agent *);
+int32_t request_get_queue_entry(char *request, char* response, Agent *);
+int32_t request_del_queue_entry(char *request, char* response, Agent *);
+int32_t request_add_queue_entry(char *request, char* response, Agent *);
+int32_t request_run(char *request, char* response, Agent *);
+int32_t request_soh(char *request, char* response, Agent *);
+int32_t request_reopen(char* request, char* output, Agent *agent);
+int32_t request_set_logstride(char* request, char* output, Agent *agent);
 
 void collect_data_loop();
 std::thread cdthread;
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	nodename = argv[1];
 
 	// Establish the command channel and heartbeat
-    agent = new CosmosAgent(ntype, nodename, "exec");
+    agent = new Agent(ntype, nodename, "exec");
     if(agent == nullptr)	{
 		std::cout<<"agent_exec: agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
 		exit (AGENT_ERROR_JSON_CREATE);
@@ -248,26 +248,26 @@ int main(int argc, char *argv[])
 	cdthread.join();
 }
 
-int32_t request_set_logstride(char* request, char* output, CosmosAgent *agent)
+int32_t request_set_logstride(char* request, char* output, Agent *agent)
 {
 	sscanf(request,"set_logstride %lf",&newlogstride);
 	return 0;
 }
 
-int32_t request_reopen(char* request, char* output, CosmosAgent *agent)
+int32_t request_reopen(char* request, char* output, Agent *agent)
 {
     logdate = ((cosmosstruc *)agent)->pdata.node.loc.utc;
     log_move(((cosmosstruc *)agent)->pdata.node.name, "exec");
 	return 0;
 }
 
-int32_t request_get_queue_size(char *request, char* response, CosmosAgent *)
+int32_t request_get_queue_size(char *request, char* response, Agent *)
 {
 	sprintf(response,"%" PRIu32 "", cmd_queue.get_size());
 	return 0;
 }
 
-int32_t request_get_queue_entry(char *request, char* response, CosmosAgent *)
+int32_t request_get_queue_entry(char *request, char* response, Agent *)
 {
     std::ostringstream ss;
 
@@ -300,7 +300,7 @@ int32_t request_get_queue_entry(char *request, char* response, CosmosAgent *)
 }
 
 // Delete Queue Entry - by date and contents
-int32_t request_del_queue_entry(char *request, char* response, CosmosAgent *)
+int32_t request_del_queue_entry(char *request, char* response, Agent *)
 {
 	command cmd;
 	std::string line(request);
@@ -319,7 +319,7 @@ int32_t request_del_queue_entry(char *request, char* response, CosmosAgent *)
 }
 
 // Add Queue Entry
-int32_t request_add_queue_entry(char *request, char* response, CosmosAgent *)
+int32_t request_add_queue_entry(char *request, char* response, Agent *)
 {
 	command cmd;
 	std::string line(request);
@@ -337,7 +337,7 @@ int32_t request_add_queue_entry(char *request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_run(char *request, char* response, CosmosAgent *)
+int32_t request_run(char *request, char* response, Agent *)
 {
 	int i;
 	int32_t iretn = 0;
@@ -397,12 +397,12 @@ void collect_data_loop()
 {
 	int nbytes;
 	std::string message;
-    CosmosAgent::pollstruc meta;
+    Agent::pollstruc meta;
 
     while (agent->running())
 	{
 		// Collect new data
-        if((nbytes=agent->poll(meta, message, CosmosAgent::AGENT_MESSAGE_BEAT, 0)))
+        if((nbytes=agent->poll(meta, message, Agent::AGENT_MESSAGE_BEAT, 0)))
 		{
             if (json_convert_string(json_extract_namedobject(message.c_str(), "agent_node")) != agent->cinfo->pdata.node.name)
 			{

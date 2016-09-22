@@ -35,14 +35,14 @@
 
 int main(int argc, char *argv[])
 {
-    CosmosAgent *agent;
+    Agent *agent;
 
 	switch (argc)
 	{
 	case 3:
 		setEnvCosmosNodes(argv[2]);
 	case 2:
-        agent = new CosmosAgent(NetworkType::UDP, argv[1]);
+        agent = new Agent(NetworkType::UDP, argv[1]);
 		break;
 	default:
 		printf("Usage: namespace_speed node [node_directory]\n");

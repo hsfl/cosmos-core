@@ -85,7 +85,7 @@ alert_type alerts[22] = {
 std::string output;
 char date[30];
 FILE *eout, *fout, *tfd;
-CosmosAgent *agent;
+Agent *agent;
 
 void alertfor(char *string1, char *string2);
 
@@ -99,7 +99,7 @@ int32_t year, month, day, hour, minute, second;
 DIR *ddp, *ydp, *jdp;
 struct dirent *td, *yd, *jd;
 
-agent = new CosmosAgent(NetworkType::UDP, argv[1]);
+agent = new Agent(NetworkType::UDP, argv[1]);
 
 
 

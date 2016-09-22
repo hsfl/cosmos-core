@@ -52,19 +52,19 @@
 #include "convertlib.h"
 #include "elapsedtime.h"
 
-int32_t request_debug(char *req, char* response, CosmosAgent *);
-int32_t request_get_offset(char *req, char* response, CosmosAgent *);
-int32_t request_get_state(char *req, char* response, CosmosAgent *);
-int32_t request_set_azel(char *req, char* response, CosmosAgent *);
-int32_t request_track_azel(char *req, char* response, CosmosAgent *);
-int32_t request_get_azel(char *req, char* response, CosmosAgent *);
-int32_t request_jog(char *req, char* response, CosmosAgent *);
-int32_t request_get_horizon(char *req, char* response, CosmosAgent *);
-int32_t request_enable(char *req, char* response, CosmosAgent *);
-int32_t request_disable(char *req, char* response, CosmosAgent *);
-int32_t request_stop(char *req, char* response, CosmosAgent *);
-int32_t request_pause(char *req, char* response, CosmosAgent *);
-int32_t request_set_offset(char *req, char* response, CosmosAgent *);
+int32_t request_debug(char *req, char* response, Agent *);
+int32_t request_get_offset(char *req, char* response, Agent *);
+int32_t request_get_state(char *req, char* response, Agent *);
+int32_t request_set_azel(char *req, char* response, Agent *);
+int32_t request_track_azel(char *req, char* response, Agent *);
+int32_t request_get_azel(char *req, char* response, Agent *);
+int32_t request_jog(char *req, char* response, Agent *);
+int32_t request_get_horizon(char *req, char* response, Agent *);
+int32_t request_enable(char *req, char* response, Agent *);
+int32_t request_disable(char *req, char* response, Agent *);
+int32_t request_stop(char *req, char* response, Agent *);
+int32_t request_pause(char *req, char* response, Agent *);
+int32_t request_set_offset(char *req, char* response, Agent *);
 
 int32_t connect_antenna();
 
@@ -90,7 +90,7 @@ int load_tle_info(char *file);
 // Here are variables for internal use
 static std::vector<tlestruc> tle;
 int32_t numlines, bestn;
-CosmosAgent *agent;
+Agent *agent;
 
 struct azelstruc
 {
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-    if (!(agent = new CosmosAgent(NetworkType::UDP, nodename, agentname)))
+    if (!(agent = new Agent(NetworkType::UDP, nodename, agentname)))
 	{
 		printf("Error %d: Setting up Agent antenna\n",JSON_ERROR_NOJMAP);
 		exit (JSON_ERROR_NOJMAP);
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
     agent->shutdown();
 }
 
-int32_t request_get_state(char *req, char* response, CosmosAgent *)
+int32_t request_get_state(char *req, char* response, Agent *)
 {
     sprintf(response,"[%.6f] Cx: %u En: %u Target: %6.1f %6.1f (%6.1f %6.1f) Actual: %6.1f %6.1f Offset: %6.1f %6.1f",
             currentmjd(),
@@ -298,7 +298,7 @@ int32_t request_get_state(char *req, char* response, CosmosAgent *)
 	return (0);
 }
 
-int32_t request_stop(char *req, char* response, CosmosAgent *)
+int32_t request_stop(char *req, char* response, Agent *)
 {
 
     target = agent->cinfo->pdata.device[devindex].ant;
@@ -317,7 +317,7 @@ int32_t request_stop(char *req, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_pause(char *req, char* response, CosmosAgent *)
+int32_t request_pause(char *req, char* response, Agent *)
 {
 
     target = agent->cinfo->pdata.device[devindex].ant;
@@ -325,7 +325,7 @@ int32_t request_pause(char *req, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_set_offset(char *req, char* response, CosmosAgent *)
+int32_t request_set_offset(char *req, char* response, Agent *)
 {
 	float targetaz;
 	float targetel;
@@ -336,7 +336,7 @@ int32_t request_set_offset(char *req, char* response, CosmosAgent *)
 	return (0);
 }
 
-int32_t request_get_offset(char *req, char* response, CosmosAgent *)
+int32_t request_get_offset(char *req, char* response, Agent *)
 {
 	float az = antennaoffset.az;
 	float el = antennaoffset.el;
@@ -344,7 +344,7 @@ int32_t request_get_offset(char *req, char* response, CosmosAgent *)
 	return (0);
 }
 
-int32_t request_set_azel(char *req, char* response, CosmosAgent *)
+int32_t request_set_azel(char *req, char* response, Agent *)
 {
 	float targetaz;
 	float targetel;
@@ -356,7 +356,7 @@ int32_t request_set_azel(char *req, char* response, CosmosAgent *)
 	return (0);
 }
 
-int32_t request_get_azel(char *req, char* response, CosmosAgent *)
+int32_t request_get_azel(char *req, char* response, Agent *)
 {
     double az = agent->cinfo->pdata.device[devindex].ant.azim;
     double el = agent->cinfo->pdata.device[devindex].ant.elev;
@@ -364,7 +364,7 @@ int32_t request_get_azel(char *req, char* response, CosmosAgent *)
 	return (0);
 }
 
-int32_t request_jog(char *req, char* response, CosmosAgent *)
+int32_t request_jog(char *req, char* response, Agent *)
 {
 	float az, el;
 	sscanf(req,"%*s %f %f", &az, &el);
@@ -373,19 +373,19 @@ int32_t request_jog(char *req, char* response, CosmosAgent *)
 	return (0);
 }
 
-int32_t request_get_horizon(char *req, char* response, CosmosAgent *)
+int32_t request_get_horizon(char *req, char* response, Agent *)
 {
 	sscanf(req,"%*s %f",&gsmin);
 	return (0);
 }
 
-int32_t request_enable(char *req, char* response, CosmosAgent *)
+int32_t request_enable(char *req, char* response, Agent *)
 {
 	antenabled = true;
 	return 0;
 }
 
-int32_t request_disable(char *req, char* response, CosmosAgent *)
+int32_t request_disable(char *req, char* response, Agent *)
 {
 	antenabled = false;
 	return 0;
@@ -437,7 +437,7 @@ int32_t connect_antenna()
 
 }
 
-int32_t request_debug(char *req, char* response, CosmosAgent *)
+int32_t request_debug(char *req, char* response, Agent *)
 {
     if (debug)
 	{
@@ -451,7 +451,7 @@ int32_t request_debug(char *req, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_track_azel(char *req, char* response, CosmosAgent *)
+int32_t request_track_azel(char *req, char* response, Agent *)
 {
 	float az;
 	float el;

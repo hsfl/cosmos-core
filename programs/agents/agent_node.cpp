@@ -78,7 +78,7 @@ nodestruc *node;
 std::vector<shorteventstruc> eventdict;
 std::vector<shorteventstruc> commanddict;
 
-CosmosAgent *agent;
+Agent *agent;
 nodestruc statnode;
 gj_handle gjh;
 
@@ -93,14 +93,14 @@ void loadephemeris();
 void loanode();
 
 // Function declarations for internal requests
-int32_t request_loadmjd(char *request, char* response, CosmosAgent *);
-int32_t request_counts(char *request, char* response, CosmosAgent *);
-int32_t request_indexes(char *request, char* response, CosmosAgent *);
-int32_t request_days(char *request, char* response, CosmosAgent *);
-int32_t request_rewind(char *request, char* response, CosmosAgent *);
-int32_t request_next(char *request, char* response, CosmosAgent *);
-int32_t request_getmjd(char *request, char* response, CosmosAgent *);
-int32_t request_getnode(char *request, char* response, CosmosAgent *);
+int32_t request_loadmjd(char *request, char* response, Agent *);
+int32_t request_counts(char *request, char* response, Agent *);
+int32_t request_indexes(char *request, char* response, Agent *);
+int32_t request_days(char *request, char* response, Agent *);
+int32_t request_rewind(char *request, char* response, Agent *);
+int32_t request_next(char *request, char* response, Agent *);
+int32_t request_getmjd(char *request, char* response, Agent *);
+int32_t request_getnode(char *request, char* response, Agent *);
 
 int main(int argc, char *argv[])
 {
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-    if (!(agent = new CosmosAgent(ntype, argv[1], "node")))
+    if (!(agent = new Agent(ntype, argv[1], "node")))
 		exit (JSON_ERROR_NOJMAP);
 
 	// Set period of broadcasting SOH
@@ -241,8 +241,8 @@ int main(int argc, char *argv[])
             att_topo(&agent->cinfo->pdata.node.loc);
 			break;
 		}
-//		agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_list(myjstring, agent->cinfo->pdata.agent[0].sohstring,cinfo));
-        agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_table(myjstring, agent->cinfo->pdata.agent[0].sohtable,  agent->cinfo->meta, agent->cinfo->pdata));
+//		agent->post(Agent::AGENT_MESSAGE_SOH, json_of_list(myjstring, agent->cinfo->pdata.agent[0].sohstring,cinfo));
+        agent->post(Agent::AGENT_MESSAGE_SOH, json_of_table(myjstring, agent->cinfo->pdata.agent[0].sohtable,  agent->cinfo->meta, agent->cinfo->pdata));
 		sleept = (int)((nextmjd-currentmjd(0.))*86400000000.);
 		if (sleept < 0) sleept = 0;
 		COSMOS_USLEEP(sleept);
@@ -396,7 +396,7 @@ double loadmjd(double mjd)
 //! Load a given day's data
 /*! 
 */
-int32_t request_loadmjd(char *request, char* response, CosmosAgent *)
+int32_t request_loadmjd(char *request, char* response, Agent *)
 {
 	double value;
 
@@ -411,7 +411,7 @@ int32_t request_loadmjd(char *request, char* response, CosmosAgent *)
 //! Gives the number of event and telemetry records
 /*! 
 */
-int32_t request_counts(char *, char* response, CosmosAgent *)
+int32_t request_counts(char *, char* response, Agent *)
 {
     sprintf(response,"%" PRIu32 " %" PRIu32 " %" PRIu32 " %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),agent->cinfo->pdata.node.target_cnt);
 	return 0;
@@ -420,7 +420,7 @@ int32_t request_counts(char *, char* response, CosmosAgent *)
 //! Tells first and last day in archive
 /*! 
 */
-int32_t request_days(char *request, char* response, CosmosAgent *)
+int32_t request_days(char *request, char* response, Agent *)
 {
 	sprintf(response,"%d %d",(int)firstday,(int)lastday);
 	return 0;
@@ -429,7 +429,7 @@ int32_t request_days(char *request, char* response, CosmosAgent *)
 //! Goes to the first record for either events or telemetry for the loaded day
 /*! 
 */
-int32_t request_rewind(char *request, char* response, CosmosAgent *)
+int32_t request_rewind(char *request, char* response, Agent *)
 {
 	char arg[50];
 
@@ -460,7 +460,7 @@ int32_t request_rewind(char *request, char* response, CosmosAgent *)
 //! Returns the current record of both event and telemetry data
 /*! 
 */
-int32_t request_indexes(char *, char* response, CosmosAgent *)
+int32_t request_indexes(char *, char* response, Agent *)
 {
 	sprintf(response,"%d %d %d %d",cache[cindex].tindex,cache[cindex].eindex,dindex,mindex);
 	return 0;
@@ -469,7 +469,7 @@ int32_t request_indexes(char *, char* response, CosmosAgent *)
 //! Returns the day that is loaded
 /*! 
 */
-int32_t request_getmjd(char *, char* response, CosmosAgent *)
+int32_t request_getmjd(char *, char* response, Agent *)
 {
 	sprintf(response,"%f",cache[cindex].mjd);
 	return 0;
@@ -478,7 +478,7 @@ int32_t request_getmjd(char *, char* response, CosmosAgent *)
 //! Gets next event, telemetry or data dictionary record entry.
 /*! 
 */
-int32_t request_next(char *request, char* response, CosmosAgent *)
+int32_t request_next(char *request, char* response, Agent *)
 {
 	char arg[50];
 
@@ -536,7 +536,7 @@ int32_t request_next(char *request, char* response, CosmosAgent *)
 //! Returns the current node.ini
 /*! 
 */
-int32_t request_getnode(char *request, char* response, CosmosAgent *)
+int32_t request_getnode(char *request, char* response, Agent *)
 {
     strcpy(response,json_of_node(reqjstring, agent->cinfo->meta, agent->cinfo->pdata));
 	return 0;

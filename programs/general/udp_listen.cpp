@@ -67,7 +67,7 @@ char address[] = "0.0.0.0";
 uint16_t port = 6868;
 uint16_t bsize = 10000;
 
-CosmosAgent *agent;
+Agent *agent;
 
 
 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
         printf("Netperf Listen is now listening on port %d...\n\n",port);
     }
 
-    agent = new CosmosAgent(NetworkType::UDP, "nps", "udp");
+    agent = new Agent(NetworkType::UDP, "nps", "udp");
 
 	// Create default logstring
     strcpy(logstring,json_of_soh(jjstring, agent->cinfo->meta, agent->cinfo->pdata));
@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 			}
 
 			// Broadcast it
-            agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_list(myjstring, logstring, agent->cinfo->meta, agent->cinfo->pdata));
+            agent->post(Agent::AGENT_MESSAGE_SOH, json_of_list(myjstring, logstring, agent->cinfo->meta, agent->cinfo->pdata));
             log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_SOH,floor(agent->cinfo->pdata.node.loc.utc), json_of_list(jjstring,logstring, agent->cinfo->meta, agent->cinfo->pdata));
 
         } // End If: packet reception / parse / idle cycle

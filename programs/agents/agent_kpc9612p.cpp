@@ -46,7 +46,7 @@ char agentname[COSMOS_MAX_NAME+1] = "tunnel";
 char node[50] = "";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
-CosmosAgent *agent; // to access the cosmos data, will change later
+Agent *agent; // to access the cosmos data, will change later
 
 void tcv_read_loop();
 void tcv_write_loop();
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-    if (!(agent = new CosmosAgent(NetworkType::UDP, "", ("tunnel_"+tunnel_ip), 1., MAXBUFFERSIZE)))
+    if (!(agent = new Agent(NetworkType::UDP, "", ("tunnel_"+tunnel_ip), 1., MAXBUFFERSIZE)))
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Start serial threads

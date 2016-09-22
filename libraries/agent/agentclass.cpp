@@ -50,6 +50,8 @@
 
 #include<iostream>
 
+namespace Cosmos {
+
 //! \ingroup agentlib
 //! \ingroup agentlib
 //! \defgroup agentlib_functions Agent Server and Client functions
@@ -68,7 +70,7 @@
 //! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
 //! the Agent already running.
 //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
-CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std::string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
+Agent::Agent(NetworkType ntype, const std::string &nname, const std::string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
 {
     int32_t iretn;
 
@@ -77,10 +79,10 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
     {
         return;
     }
-    cinfo->pdata.agent[0].stateflag = (uint16_t)CosmosAgent::AgentState::INIT;
+    cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::AgentState::INIT;
 
     // Establish subscribe channel
-    iretn = CosmosAgent::subscribe(ntype, (char *)AGENTMCAST, AGENTSENDPORT, 1000);
+    iretn = Agent::subscribe(ntype, (char *)AGENTMCAST, AGENTSENDPORT, 1000);
     if (iretn)
     {
         json_destroy(cinfo);
@@ -91,7 +93,7 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
     // Set up node if there is one.
     if (nname.length()>COSMOS_MAX_NAME || (!nname.empty() && (iretn=json_setup_node(nname, cinfo)) != 0))
     {
-        CosmosAgent::shutdown();
+        Agent::shutdown();
         return;
     }
 
@@ -108,7 +110,7 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
     // Make copies
     if ((iretn=json_clone(cinfo->pdata, cinfo->sdata)) != 0)
     {
-        CosmosAgent::shutdown();
+        Agent::shutdown();
         return;
     }
 
@@ -125,9 +127,9 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
     char tname[COSMOS_MAX_NAME+1];
     if (!mflag)
     {
-        if (strlen(cinfo->pdata.node.name)>COSMOS_MAX_NAME || aname.length()>COSMOS_MAX_NAME || CosmosAgent::get_server(cinfo->pdata.node.name, aname, timeoutSec, (beatstruc *)NULL))
+        if (strlen(cinfo->pdata.node.name)>COSMOS_MAX_NAME || aname.length()>COSMOS_MAX_NAME || Agent::get_server(cinfo->pdata.node.name, aname, timeoutSec, (beatstruc *)NULL))
         {
-            CosmosAgent::shutdown();
+            Agent::shutdown();
             return;
         }
         strcpy(tname,aname.c_str());
@@ -136,7 +138,7 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
     {
         if (strlen(cinfo->pdata.node.name)>COSMOS_MAX_NAME-4 || aname.size()>COSMOS_MAX_NAME-4)
         {
-            CosmosAgent::shutdown();
+            Agent::shutdown();
             return;
         }
 
@@ -144,7 +146,7 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
         do
         {
             sprintf(tname,"%s_%03d",aname.c_str(),i);
-            if (!CosmosAgent::get_server(cinfo->pdata.node.name, tname, timeoutSec, (beatstruc *)NULL))
+            if (!Agent::get_server(cinfo->pdata.node.name, tname, timeoutSec, (beatstruc *)NULL))
             {
                 break;
             }
@@ -162,7 +164,7 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
         cinfo->pdata.agent[0].beat.bprd = bprd;
     else
         cinfo->pdata.agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
-    cinfo->pdata.agent[0].stateflag = (uint16_t)CosmosAgent::AgentState::INIT;
+    cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::AgentState::INIT;
     cinfo->pdata.agent[0].beat.port = (uint16_t)portnum;
     cinfo->pdata.agent[0].beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
 
@@ -176,10 +178,10 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
     //	cinfo->pdata.agent[0].sohstring[0] = 0;
 
     // Establish publish channel
-    iretn = CosmosAgent::publish(cinfo->pdata.agent[0].beat.ntype, AGENTSENDPORT);
+    iretn = Agent::publish(cinfo->pdata.agent[0].beat.ntype, AGENTSENDPORT);
     if (iretn)
     {
-        CosmosAgent::shutdown();
+        Agent::shutdown();
         return;
     }
 
@@ -189,41 +191,41 @@ CosmosAgent::CosmosAgent(NetworkType ntype, const std::string &nname, const std:
     cthread = std::thread([=] { request_loop(); });
     if (!hthread.joinable() || !cthread.joinable())
     {
-        CosmosAgent::shutdown();
+        Agent::shutdown();
         return;
     }
 
     //! Set up initial requests
-    CosmosAgent::add_request("help",req_help,"","list of available requests for this agent");
-    CosmosAgent::add_request("shutdown",CosmosAgent::req_shutdown,"","request to shutdown this agent");
-    CosmosAgent::add_request("idle",CosmosAgent::req_idle,"","request to transition this agent to idle state");
-    CosmosAgent::add_request("monitor",CosmosAgent::req_monitor,"","request to transition this agent to monitor state");
-    CosmosAgent::add_request("run",CosmosAgent::req_run,"","request to transition this agent to run state");
-    CosmosAgent::add_request("status",CosmosAgent::req_status,"","request the status of this agent");
-    CosmosAgent::add_request("getvalue",CosmosAgent::req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
-    CosmosAgent::add_request("setvalue",CosmosAgent::req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
-    CosmosAgent::add_request("listnames",CosmosAgent::req_listnames,"","list the Namespace of the agent");
-    CosmosAgent::add_request("forward",CosmosAgent::req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
-    CosmosAgent::add_request("echo",CosmosAgent::req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
-    CosmosAgent::add_request("nodejson",CosmosAgent::req_nodejson,"","return description JSON for Node");
-    CosmosAgent::add_request("statejson",CosmosAgent::req_statejson,"","return description JSON for State vector");
-    CosmosAgent::add_request("utcstartjson",CosmosAgent::req_utcstartjson,"","return description JSON for UTC Start time");
-    CosmosAgent::add_request("piecesjson",CosmosAgent::req_piecesjson,"","return description JSON for Pieces");
-    CosmosAgent::add_request("devgenjson",CosmosAgent::req_devgenjson,"","return description JSON for General Devices");
-    CosmosAgent::add_request("devspecjson",CosmosAgent::req_devspecjson,"","return description JSON for Specific Devices");
-    CosmosAgent::add_request("portsjson",CosmosAgent::req_portsjson,"","return description JSON for Ports");
-    CosmosAgent::add_request("targetsjson",CosmosAgent::req_targetsjson,"","return description JSON for Targets");
-    CosmosAgent::add_request("aliasesjson",CosmosAgent::req_aliasesjson,"","return description JSON for Aliases");
+    Agent::add_request("help",req_help,"","list of available requests for this agent");
+    Agent::add_request("shutdown",Agent::req_shutdown,"","request to shutdown this agent");
+    Agent::add_request("idle",Agent::req_idle,"","request to transition this agent to idle state");
+    Agent::add_request("monitor",Agent::req_monitor,"","request to transition this agent to monitor state");
+    Agent::add_request("run",Agent::req_run,"","request to transition this agent to run state");
+    Agent::add_request("status",Agent::req_status,"","request the status of this agent");
+    Agent::add_request("getvalue",Agent::req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
+    Agent::add_request("setvalue",Agent::req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
+    Agent::add_request("listnames",Agent::req_listnames,"","list the Namespace of the agent");
+    Agent::add_request("forward",Agent::req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
+    Agent::add_request("echo",Agent::req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
+    Agent::add_request("nodejson",Agent::req_nodejson,"","return description JSON for Node");
+    Agent::add_request("statejson",Agent::req_statejson,"","return description JSON for State vector");
+    Agent::add_request("utcstartjson",Agent::req_utcstartjson,"","return description JSON for UTC Start time");
+    Agent::add_request("piecesjson",Agent::req_piecesjson,"","return description JSON for Pieces");
+    Agent::add_request("devgenjson",Agent::req_devgenjson,"","return description JSON for General Devices");
+    Agent::add_request("devspecjson",Agent::req_devspecjson,"","return description JSON for Specific Devices");
+    Agent::add_request("portsjson",Agent::req_portsjson,"","return description JSON for Ports");
+    Agent::add_request("targetsjson",Agent::req_targetsjson,"","return description JSON for Targets");
+    Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
 
     cinfo->pdata.agent[0].server = 1;
-    cinfo->pdata.agent[0].stateflag = (uint16_t)CosmosAgent::AgentState::RUN;
+    cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::AgentState::RUN;
 
 
 }
 
-CosmosAgent::~CosmosAgent()
+Agent::~Agent()
 {
-    CosmosAgent::shutdown();
+    Agent::shutdown();
 }
 
 //! Add internal request to Agent request list with description and synopsis.
@@ -237,9 +239,9 @@ CosmosAgent::~CosmosAgent()
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-int32_t CosmosAgent::add_request_internal(std::string token, CosmosAgent::internal_request_function function, std::string synopsis, std::string description)
+int32_t Agent::add_request_internal(std::string token, Agent::internal_request_function function, std::string synopsis, std::string description)
 {
-    if (CosmosAgent::reqs.size() > AGENTMAXREQUESTCOUNT)
+    if (Agent::reqs.size() > AGENTMAXREQUESTCOUNT)
         return (AGENT_ERROR_REQ_COUNT);
 
     request_entry tentry;
@@ -252,7 +254,7 @@ int32_t CosmosAgent::add_request_internal(std::string token, CosmosAgent::intern
     tentry.efunction = nullptr;
     tentry.synopsis = synopsis;
     tentry.description = description;
-    CosmosAgent::reqs.push_back(tentry);
+    Agent::reqs.push_back(tentry);
     return 0;
 }
 
@@ -267,9 +269,9 @@ int32_t CosmosAgent::add_request_internal(std::string token, CosmosAgent::intern
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-int32_t CosmosAgent::add_request(std::string token, CosmosAgent::external_request_function function, std::string synopsis, std::string description)
+int32_t Agent::add_request(std::string token, Agent::external_request_function function, std::string synopsis, std::string description)
 {
-    if (CosmosAgent::reqs.size() > AGENTMAXREQUESTCOUNT)
+    if (Agent::reqs.size() > AGENTMAXREQUESTCOUNT)
         return (AGENT_ERROR_REQ_COUNT);
 
     request_entry tentry;
@@ -282,17 +284,17 @@ int32_t CosmosAgent::add_request(std::string token, CosmosAgent::external_reques
     tentry.efunction = function;
     tentry.synopsis = synopsis;
     tentry.description = description;
-    CosmosAgent::reqs.push_back(tentry);
+    Agent::reqs.push_back(tentry);
     return 0;
 }
 
 //! Start Agent Request and Heartbeat loops
 /*!	Starts the request and heartbeat threads for an Agent server initialized with
- * ::CosmosAgent::setup_server. The Agent will open its request and heartbeat channels using the
+ * ::Agent::setup_server. The Agent will open its request and heartbeat channels using the
  * address and port supplied in cinfo. The heartbeat will cycle with the period requested in cinfo.
     \return value returned by request thread create
 */
-int32_t CosmosAgent::start()
+int32_t Agent::start()
 {
 
     // start heartbeat thread
@@ -305,11 +307,11 @@ int32_t CosmosAgent::start()
 /*! Waits for threads to stop running if we are a server, then releases everything.
  * \return 0 or negative error.
  */
-int32_t CosmosAgent::shutdown()
+int32_t Agent::shutdown()
 {
     if (cinfo != nullptr)
     {
-        cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::SHUTDOWN);
+        cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::SHUTDOWN);
     }
     if (agentName.size())
     {
@@ -321,13 +323,13 @@ int32_t CosmosAgent::shutdown()
         {
             cthread.join();
         }
-        CosmosAgent::unpublish();
+        Agent::unpublish();
     }
     if (mthread.joinable())
     {
         mthread.join();
     }
-    CosmosAgent::unsubscribe();
+    Agent::unsubscribe();
     json_destroy(cinfo);
     cinfo = nullptr;
     return 0;
@@ -338,7 +340,7 @@ int32_t CosmosAgent::shutdown()
  * the threads are running.
     \return Value of internal state variable, as enumerated in ::AGENT_STATE.
 */
-uint16_t CosmosAgent::running()
+uint16_t Agent::running()
 {
     return (cinfo->pdata.agent[0].stateflag);
 }
@@ -351,7 +353,7 @@ uint16_t CosmosAgent::running()
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
-int32_t CosmosAgent::send_request(beatstruc hbeat, std::string request, std::string &output, float waitsec)
+int32_t Agent::send_request(beatstruc hbeat, std::string request, std::string &output, float waitsec)
 {
     static socket_channel sendchan;
     int32_t iretn;
@@ -410,7 +412,7 @@ int32_t CosmosAgent::send_request(beatstruc hbeat, std::string request, std::str
     \param rbeat pointer to a location to store the heartbeat
     \return 1 if found, otherwise 0, or an error number
 */
-int32_t CosmosAgent::get_server(std::string node, std::string name, float waitsec, beatstruc *rbeat)
+int32_t Agent::get_server(std::string node, std::string name, float waitsec, beatstruc *rbeat)
 {
     messstruc message;
 
@@ -433,7 +435,7 @@ int32_t CosmosAgent::get_server(std::string node, std::string name, float waitse
             }
         }
         COSMOS_SLEEP(.1);
-        //        int32_t type = CosmosAgent::readring(message, AGENT_MESSAGE_BEAT, waitsec-ep.split());
+        //        int32_t type = Agent::readring(message, AGENT_MESSAGE_BEAT, waitsec-ep.split());
 
         //        if (type == AGENT_MESSAGE_BEAT && name == message.meta.beat.proc && node == message.meta.beat.node)
         //        {
@@ -444,7 +446,7 @@ int32_t CosmosAgent::get_server(std::string node, std::string name, float waitse
         //            return (1);
         //        }
 
-        //        cbeat = CosmosAgent::poll_beat(1);
+        //        cbeat = Agent::poll_beat(1);
 
         //        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
         //        {
@@ -465,7 +467,7 @@ int32_t CosmosAgent::get_server(std::string node, std::string name, float waitse
     \param proc Name of agent.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-beatstruc CosmosAgent::find_agent(std::string node, std::string proc)
+beatstruc Agent::find_agent(std::string node, std::string proc)
 {
     for (beatstruc &it : agent_list)
     {
@@ -486,7 +488,7 @@ beatstruc CosmosAgent::find_agent(std::string node, std::string proc)
     \param waitsec Maximum number of seconds to wait.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-beatstruc CosmosAgent::find_server(std::string node, std::string proc, float waitsec)
+beatstruc Agent::find_server(std::string node, std::string proc, float waitsec)
 {
     beatstruc cbeat = {0.,"","",NetworkType::MULTICAST,"",0,0,0.,"",0.,0.,0.};
 
@@ -497,7 +499,7 @@ beatstruc CosmosAgent::find_server(std::string node, std::string proc, float wai
 
     do
     {
-        cbeat = CosmosAgent::poll_beat(1);
+        cbeat = Agent::poll_beat(1);
         if (cbeat.utc != 0.)
         {
             if (!strcmp(cbeat.proc, proc.c_str()) && !strcmp(cbeat.node, node.c_str()))
@@ -520,7 +522,7 @@ beatstruc CosmosAgent::find_server(std::string node, std::string proc, float wai
     \param waitsec Maximum number of seconds to wait.
     \return A vector of ::beatstruc entries listing the unique servers found.
 */
-std::vector<beatstruc> CosmosAgent::find_servers(float waitsec)
+std::vector<beatstruc> Agent::find_servers(float waitsec)
 {
     beatstruc cbeat, tbeat;
     uint32_t i, j;
@@ -532,7 +534,7 @@ std::vector<beatstruc> CosmosAgent::find_servers(float waitsec)
 
     do
     {
-        cbeat = CosmosAgent::poll_beat(1);
+        cbeat = Agent::poll_beat(1);
         if (cbeat.utc != 0.)
         {
             for (i=0; i<slist.size(); i++)
@@ -566,7 +568,7 @@ std::vector<beatstruc> CosmosAgent::find_servers(float waitsec)
     \param list Properly formatted list of JSON names.
     \return 0, otherwise a negative error.
 */
-int32_t CosmosAgent::set_sohstring(std::string list)
+int32_t Agent::set_sohstring(std::string list)
 {
 
     if (!cinfo->pdata.agent[0].sohtable.empty())
@@ -582,17 +584,17 @@ int32_t CosmosAgent::set_sohstring(std::string list)
 /*! Return a pointer to the Agent's internal copy of the ::cosmosstruc.
     \return A pointer to the ::cosmosstruc, otherwise NULL.
 */
-cosmosstruc *CosmosAgent::get_cosmosstruc()
+cosmosstruc *Agent::get_cosmosstruc()
 {
     return (cinfo);
 }
 
 //! Heartbeat Loop
 /*! This function is run as a thread to provide the Heartbeat for the Agent. The Heartbeat will
- * consist of the contents of ::AGENT_MESSAGE_BEAT in ::CosmosAgent::poll, plus the contents of the
+ * consist of the contents of ::AGENT_MESSAGE_BEAT in ::Agent::poll, plus the contents of the
  * ::sohstring. It will come every ::bprd seconds.
  */
-void CosmosAgent::heartbeat_loop()
+void Agent::heartbeat_loop()
 {
     ElapsedTime timer_beat;
 
@@ -605,18 +607,18 @@ void CosmosAgent::heartbeat_loop()
 
         // post comes first
         cinfo->pdata.agent[0].beat.utc = currentmjd(0.);
-        if ((CosmosAgent::AgentState)(cinfo->pdata.agent[0].stateflag) != CosmosAgent::AgentState::IDLE && !cinfo->pdata.agent[0].sohtable.empty())
+        if ((Agent::AgentState)(cinfo->pdata.agent[0].stateflag) != Agent::AgentState::IDLE && !cinfo->pdata.agent[0].sohtable.empty())
         {
-            CosmosAgent::post(AGENT_MESSAGE_BEAT, json_of_table(hbjstring, cinfo->pdata.agent[0].sohtable, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
+            Agent::post(AGENT_MESSAGE_BEAT, json_of_table(hbjstring, cinfo->pdata.agent[0].sohtable, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
         }
         else
         {
-            CosmosAgent::post(AGENT_MESSAGE_BEAT,"");
+            Agent::post(AGENT_MESSAGE_BEAT,"");
         }
 
         // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
         // Compute other monitored quantities if monitoring
-        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(CosmosAgent::AgentState::MONITOR))
+        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::AgentState::MONITOR))
         {
             // TODO: rename beat.cpu to beat.cpu_percent
             // add beat.cpu_load
@@ -624,7 +626,7 @@ void CosmosAgent::heartbeat_loop()
             cinfo->pdata.agent[0].beat.memory = deviceCpu_.getVirtualMemoryUsed();
         }
 
-        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(CosmosAgent::AgentState::SHUTDOWN))
+        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::AgentState::SHUTDOWN))
         {
             cinfo->pdata.agent[0].beat.cpu = 0;
             cinfo->pdata.agent[0].beat.memory = 0;
@@ -641,7 +643,7 @@ void CosmosAgent::heartbeat_loop()
             COSMOS_SLEEP(cinfo->pdata.agent[0].beat.bprd - timer_beat.split());
         }
     }
-    CosmosAgent::unpublish();
+    Agent::unpublish();
 }
 
 //! Request Loop
@@ -649,7 +651,7 @@ void CosmosAgent::heartbeat_loop()
  * it assigned port number, matches the first word of the request against its set of requests,
  * and then either performs the matched function, or returns [NOK].
  */
-void CosmosAgent::request_loop()
+void Agent::request_loop()
 {
     char ebuffer[6]="[NOK]";
     int32_t iretn, nbytes;
@@ -678,7 +680,7 @@ void CosmosAgent::request_loop()
         {
             bufferin[iretn] = 0;
 
-            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(CosmosAgent::AgentState::DEBUG))
+            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::AgentState::DEBUG))
             {
                 printf("Request: [%d] %s ",iretn,bufferin);
             }
@@ -692,18 +694,18 @@ void CosmosAgent::request_loop()
             }
             request[i] = 0;
 
-            for (i=0; i<CosmosAgent::reqs.size(); i++)
+            for (i=0; i<Agent::reqs.size(); i++)
             {
-                if (!strcmp(request,CosmosAgent::reqs[i].token.c_str()))
+                if (!strcmp(request,Agent::reqs[i].token.c_str()))
                     break;
             }
 
-            if (i < CosmosAgent::reqs.size())
+            if (i < Agent::reqs.size())
             {
                 iretn = -1;
                 if (reqs[i].ifunction)
                 {
-                    iretn = (this->*CosmosAgent::reqs[i].ifunction)(bufferin, request);
+                    iretn = (this->*Agent::reqs[i].ifunction)(bufferin, request);
                 }
                 else
                 {
@@ -733,7 +735,7 @@ void CosmosAgent::request_loop()
                 bufferout[cinfo->pdata.agent[0].beat.bsz+3] = 0;
             }
             nbytes = sendto(cinfo->pdata.agent[0].req.cudp,bufferout,strlen(bufferout),0,(struct sockaddr *)&cinfo->pdata.agent[0].req.caddr,sizeof(struct sockaddr_in));
-            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(CosmosAgent::AgentState::DEBUG))
+            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::AgentState::DEBUG))
             {
                 printf("[%d] %s\n",nbytes,bufferout);
             }
@@ -743,7 +745,7 @@ void CosmosAgent::request_loop()
     return;
 }
 
-void CosmosAgent::message_loop()
+void Agent::message_loop()
 {
     pollstruc meta;
     std::vector <uint8_t> message;
@@ -752,9 +754,9 @@ void CosmosAgent::message_loop()
     // Initialize things
     message_ring.resize(MESSAGE_RING_SIZE);
 
-    while (CosmosAgent::running())
+    while (Agent::running())
     {
-        iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_ALL, 5.);
+        iretn = Agent::poll(meta, message, AGENT_MESSAGE_ALL, 5.);
         if (iretn > 0)
         {
             bool found = false;
@@ -800,10 +802,10 @@ void CosmosAgent::message_loop()
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_forward(char* request, char* output, CosmosAgent* agent)
+int32_t Agent::req_forward(char* request, char* output, Agent* agent)
 {
     uint16_t count;
     int32_t iretn=-1;
@@ -821,10 +823,10 @@ int32_t CosmosAgent::req_forward(char* request, char* output, CosmosAgent* agent
 /*! Returns the received packet, reaclculating the CRC, and adding the time.
  * \param request Text of echo packet.
  * \param output Text of echoed packet.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_echo(char* request, char* output, CosmosAgent* agent)
+int32_t Agent::req_echo(char* request, char* output, Agent* agent)
 {
     double mjd;
     uint16_t crc, count;
@@ -839,10 +841,10 @@ int32_t CosmosAgent::req_echo(char* request, char* output, CosmosAgent* agent)
 /*! Send help response.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_help(char*, char* output, CosmosAgent* agent)
+int32_t Agent::req_help(char*, char* output, Agent* agent)
 {
     std::string help_string;
     help_string += "\n";
@@ -869,12 +871,12 @@ int32_t CosmosAgent::req_help(char*, char* output, CosmosAgent* agent)
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_run(char*, char* output, CosmosAgent* agent)
+int32_t Agent::req_run(char*, char* output, Agent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::RUN);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::RUN);
     output[0] = 0;
     return(0);
 }
@@ -883,12 +885,12 @@ int32_t CosmosAgent::req_run(char*, char* output, CosmosAgent* agent)
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_idle(char*, char* output, CosmosAgent* agent)
+int32_t Agent::req_idle(char*, char* output, Agent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::IDLE);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::IDLE);
     output[0] = 0;
     return(0);
 }
@@ -897,12 +899,12 @@ int32_t CosmosAgent::req_idle(char*, char* output, CosmosAgent* agent)
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_monitor(char*, char* output, CosmosAgent* agent)
+int32_t Agent::req_monitor(char*, char* output, Agent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::MONITOR);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::MONITOR);
     output[0] = 0;
     return(0);
 }
@@ -911,12 +913,12 @@ int32_t CosmosAgent::req_monitor(char*, char* output, CosmosAgent* agent)
 /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_shutdown(char*, char* output, CosmosAgent* agent)
+int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(CosmosAgent::AgentState::SHUTDOWN);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::SHUTDOWN);
     output[0] = 0;
     return(0);
 }
@@ -927,10 +929,10 @@ int32_t CosmosAgent::req_shutdown(char*, char* output, CosmosAgent* agent)
 /*! Returns agent status.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_status(char*, char* output, CosmosAgent* agent)
+int32_t Agent::req_status(char*, char* output, Agent* agent)
 {
     std::string jstring;
 
@@ -952,10 +954,10 @@ int32_t CosmosAgent::req_status(char*, char* output, CosmosAgent* agent)
 /*! Returns the current value of the requested Name Space values. Names are expressed as a JSON object.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_getvalue(char *request, char* output, CosmosAgent* agent)
+int32_t Agent::req_getvalue(char *request, char* output, Agent* agent)
 {
     std::string jstring;
 
@@ -973,10 +975,10 @@ int32_t CosmosAgent::req_getvalue(char *request, char* output, CosmosAgent* agen
 /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_setvalue(char *request, char* output, CosmosAgent* agent)
+int32_t Agent::req_setvalue(char *request, char* output, Agent* agent)
 {
     int32_t iretn;
     iretn = json_parse(request,agent->cinfo->meta, agent->cinfo->pdata);
@@ -990,10 +992,10 @@ int32_t CosmosAgent::req_setvalue(char *request, char* output, CosmosAgent* agen
 /*! Returns a list of all names in the JSON Name Space.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_listnames(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_listnames(char *, char* output, Agent* agent)
 {
     //    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
 
@@ -1007,10 +1009,10 @@ int32_t CosmosAgent::req_listnames(char *, char* output, CosmosAgent* agent)
 /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_nodejson(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
 {
     strncpy(output, agent->cinfo->json.node.c_str(), agent->cinfo->json.node.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.node.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1021,10 +1023,10 @@ int32_t CosmosAgent::req_nodejson(char *, char* output, CosmosAgent* agent)
 /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_statejson(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_statejson(char *, char* output, Agent* agent)
 {
     strncpy(output, agent->cinfo->json.state.c_str(), agent->cinfo->json.state.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.state.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1035,10 +1037,10 @@ int32_t CosmosAgent::req_statejson(char *, char* output, CosmosAgent* agent)
 /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_utcstartjson(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_utcstartjson(char *, char* output, Agent* agent)
 {
     strncpy(output, agent->cinfo->json.utcstart.c_str(), agent->cinfo->json.utcstart.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.utcstart.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1049,10 +1051,10 @@ int32_t CosmosAgent::req_utcstartjson(char *, char* output, CosmosAgent* agent)
 /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_piecesjson(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
 {
     strncpy(output, agent->cinfo->json.pieces.c_str(), agent->cinfo->json.pieces.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.pieces.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1063,10 +1065,10 @@ int32_t CosmosAgent::req_piecesjson(char *, char* output, CosmosAgent* agent)
 /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_devgenjson(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
 {
     strncpy(output, agent->cinfo->json.devgen.c_str(), agent->cinfo->json.devgen.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.devgen.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1077,10 +1079,10 @@ int32_t CosmosAgent::req_devgenjson(char *, char* output, CosmosAgent* agent)
 /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_devspecjson(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
 {
     strncpy(output, agent->cinfo->json.devspec.c_str(), agent->cinfo->json.devspec.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.devspec.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1091,10 +1093,10 @@ int32_t CosmosAgent::req_devspecjson(char *, char* output, CosmosAgent* agent)
 /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_portsjson(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_portsjson(char *, char* output, Agent* agent)
 {
     strncpy(output, agent->cinfo->json.ports.c_str(), agent->cinfo->json.ports.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.ports.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1105,10 +1107,10 @@ int32_t CosmosAgent::req_portsjson(char *, char* output, CosmosAgent* agent)
 /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_targetsjson(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_targetsjson(char *, char* output, Agent* agent)
 {
     strncpy(output, agent->cinfo->json.targets.c_str(), agent->cinfo->json.targets.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.targets.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1119,10 +1121,10 @@ int32_t CosmosAgent::req_targetsjson(char *, char* output, CosmosAgent* agent)
 /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::CosmosAgent to use.
+ * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-int32_t CosmosAgent::req_aliasesjson(char *, char* output, CosmosAgent* agent)
+int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
 {
     strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->pdata.agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->pdata.agent[0].beat.bsz-1);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1136,7 +1138,7 @@ int32_t CosmosAgent::req_aliasesjson(char *, char* output, CosmosAgent* agent)
  * \param port Port number to publish on.
  * \return 0, otherwise negative error.
 */
-int32_t CosmosAgent::publish(NetworkType type, uint16_t port)
+int32_t Agent::publish(NetworkType type, uint16_t port)
 {
 #ifdef COSMOS_WIN_OS
 #else
@@ -1153,178 +1155,103 @@ int32_t CosmosAgent::publish(NetworkType type, uint16_t port)
     {
     case NetworkType::MULTICAST:
     case NetworkType::UDP:
+    {
+        for (uint32_t i=0; i<AGENTMAXIF; i++)
+            cinfo->pdata.agent[0].pub[i].cudp = -1;
+
+        if ((cinfo->pdata.agent[0].pub[0].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
         {
-            for (uint32_t i=0; i<AGENTMAXIF; i++)
-                cinfo->pdata.agent[0].pub[i].cudp = -1;
+            return (AGENT_ERROR_SOCKET);
+        }
 
-            if ((cinfo->pdata.agent[0].pub[0].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
-            {
-                return (AGENT_ERROR_SOCKET);
-            }
-
-            // Use above socket to find available interfaces and establish
-            // publication on each.
-            cinfo->pdata.agent[0].ifcnt = 0;
+        // Use above socket to find available interfaces and establish
+        // publication on each.
+        cinfo->pdata.agent[0].ifcnt = 0;
 
 #if defined(COSMOS_WIN_OS)
-            struct sockaddr_storage ss;
-            int sslen;
-            INTERFACE_INFO ilist[20];
-            unsigned long nbytes;
-            uint32_t nif;
-            if (WSAIoctl(cinfo->pdata.agent[0].pub[0].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
-            {
-                CLOSE_SOCKET(cinfo->pdata.agent[0].pub[0].cudp);
-                return (AGENT_ERROR_DISCOVERY);
-            }
+        struct sockaddr_storage ss;
+        int sslen;
+        INTERFACE_INFO ilist[20];
+        unsigned long nbytes;
+        uint32_t nif;
+        if (WSAIoctl(cinfo->pdata.agent[0].pub[0].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+        {
+            CLOSE_SOCKET(cinfo->pdata.agent[0].pub[0].cudp);
+            return (AGENT_ERROR_DISCOVERY);
+        }
 
-            nif = nbytes / sizeof(INTERFACE_INFO);
-            for (uint32_t i=0; i<nif; i++)
+        nif = nbytes / sizeof(INTERFACE_INFO);
+        for (uint32_t i=0; i<nif; i++)
+        {
+            inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address));
+            //            strcpy(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+            if (!strcmp(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,"127.0.0.1"))
             {
-                inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address));
-                //            strcpy(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
-                if (!strcmp(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,"127.0.0.1"))
+                if (cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp >= 0)
                 {
-                    if (cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp >= 0)
-                    {
-                        CLOSE_SOCKET(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp);
-                        cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp = -1;
-                    }
+                    CLOSE_SOCKET(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp);
+                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp = -1;
+                }
+                continue;
+            }
+            // No need to open first socket again
+            if (cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp < 0)
+            {
+                if ((cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                {
                     continue;
                 }
-                // No need to open first socket again
-                if (cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp < 0)
-                {
-                    if ((cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
-                    {
-                        continue;
-                    }
-                }
-
-                memset(&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr,0,sizeof(struct sockaddr_in));
-                cinfo->pdata.agent[0].pub[i].caddr.sin_family = AF_INET;
-                cinfo->pdata.agent[0].pub[i].baddr.sin_family = AF_INET;
-                if (type == NetworkType::MULTICAST)
-                {
-                    sslen = sizeof(ss);
-                    WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                }
-                else
-                {
-                    if ((iretn = setsockopt(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                    {
-                        CLOSE_SOCKET(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp);
-                        continue;
-                    }
-
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-
-                    uint32_t ip, net, bcast;
-                    ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
-                    net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
-                    bcast = ip | (~net);
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr.S_un.S_addr = bcast;
-                }
-                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_port = htons(port);
-                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_port = htons(port);
-                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].type = type;
-                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cport = port;
-                cinfo->pdata.agent[0].ifcnt++;
             }
+
+            memset(&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr,0,sizeof(struct sockaddr_in));
+            cinfo->pdata.agent[0].pub[i].caddr.sin_family = AF_INET;
+            cinfo->pdata.agent[0].pub[i].baddr.sin_family = AF_INET;
+            if (type == NetworkType::MULTICAST)
+            {
+                sslen = sizeof(ss);
+                WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+            }
+            else
+            {
+                if ((iretn = setsockopt(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                {
+                    CLOSE_SOCKET(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp);
+                    continue;
+                }
+
+                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+
+                uint32_t ip, net, bcast;
+                ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
+                net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
+                bcast = ip | (~net);
+                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr.S_un.S_addr = bcast;
+            }
+            cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_port = htons(port);
+            cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_port = htons(port);
+            cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].type = type;
+            cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cport = port;
+            cinfo->pdata.agent[0].ifcnt++;
+        }
 #elif defined(COSMOS_MAC_OS)
-            struct ifaddrs *if_addrs = NULL;
-            struct ifaddrs *if_addr = NULL;
-            if (0 == getifaddrs(&if_addrs))
+        struct ifaddrs *if_addrs = NULL;
+        struct ifaddrs *if_addr = NULL;
+        if (0 == getifaddrs(&if_addrs))
+        {
+            for (if_addr = if_addrs; if_addr != NULL; if_addr = if_addr->ifa_next)
             {
-                for (if_addr = if_addrs; if_addr != NULL; if_addr = if_addr->ifa_next)
-                {
 
-                    if (if_addr->ifa_addr->sa_family != AF_INET)
-                    {
-                        continue;
-                    }
-                    inet_ntop(if_addr->ifa_addr->sa_family,&((struct sockaddr_in*)if_addr->ifa_addr)->sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address));
-                    memcpy((char *)&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr, (char *)if_addr->ifa_addr, sizeof(if_addr->ifa_addr));
-
-                    if ((if_addr->ifa_flags & IFF_POINTOPOINT) || (if_addr->ifa_flags & IFF_UP) == 0 || (if_addr->ifa_flags & IFF_LOOPBACK) || (if_addr->ifa_flags & (IFF_BROADCAST)) == 0)
-                    {
-                        continue;
-                    }
-
-                    // No need to open first socket again
-                    if (cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp < 0)
-                    {
-                        if ((cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
-                        {
-                            continue;
-                        }
-                    }
-
-                    if (type == NetworkType::MULTICAST)
-                    {
-                        inet_pton(AF_INET,AGENTMCAST,&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_addr);
-                        inet_pton(AF_INET,AGENTMCAST,&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr);
-                    }
-                    else
-                    {
-                        if ((iretn = setsockopt(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                        {
-                            CLOSE_SOCKET(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp);
-                            continue;
-                        }
-
-                        //                    if (ioctl(cinfo->pdata.agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
-                        //                    {
-                        //                        continue;
-                        //                    }
-                        //                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr = cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr;
-                        memcpy((char *)&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr, (char *)if_addr->ifa_netmask, sizeof(if_addr->ifa_netmask));
-
-                        uint32_t ip, net, bcast;
-                        ip = cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_addr.s_addr;
-                        net = cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr.s_addr;
-                        bcast = ip | (~net);
-                        cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr.s_addr = bcast;
-                        inet_ntop(if_addr->ifa_netmask->sa_family,&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress));
-                    }
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_port = htons(port);
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_port = htons(port);
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].type = type;
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cport = port;
-                    cinfo->pdata.agent[0].ifcnt++;
-                }
-                freeifaddrs(if_addrs);
-                if_addrs = NULL;
-            }
-#else
-            struct ifconf confa;
-            struct ifreq *ifra;
-            char data[512];
-
-            confa.ifc_len = sizeof(data);
-            confa.ifc_buf = (caddr_t)data;
-            if (ioctl(cinfo->pdata.agent[0].pub[0].cudp,SIOCGIFCONF,&confa) < 0)
-            {
-                CLOSE_SOCKET(cinfo->pdata.agent[0].pub[0].cudp);
-                return (AGENT_ERROR_DISCOVERY);
-            }
-            // Use result to discover interfaces.
-            ifra = confa.ifc_req;
-            for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
-            {
-                if (ifra->ifr_addr.sa_family != AF_INET)
+                if (if_addr->ifa_addr->sa_family != AF_INET)
                 {
                     continue;
                 }
-                inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address));
-                memcpy((char *)&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+                inet_ntop(if_addr->ifa_addr->sa_family,&((struct sockaddr_in*)if_addr->ifa_addr)->sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address));
+                memcpy((char *)&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr, (char *)if_addr->ifa_addr, sizeof(if_addr->ifa_addr));
 
-                if (ioctl(cinfo->pdata.agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
-
-                if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
+                if ((if_addr->ifa_flags & IFF_POINTOPOINT) || (if_addr->ifa_flags & IFF_UP) == 0 || (if_addr->ifa_flags & IFF_LOOPBACK) || (if_addr->ifa_flags & (IFF_BROADCAST)) == 0)
                 {
                     continue;
                 }
@@ -1351,13 +1278,19 @@ int32_t CosmosAgent::publish(NetworkType type, uint16_t port)
                         continue;
                     }
 
-                    if (ioctl(cinfo->pdata.agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
-                    {
-                        continue;
-                    }
-                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr = cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr;
-                    inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress));
-                    inet_pton(AF_INET,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress,&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr);
+                    //                    if (ioctl(cinfo->pdata.agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                    //                    {
+                    //                        continue;
+                    //                    }
+                    //                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr = cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr;
+                    memcpy((char *)&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr, (char *)if_addr->ifa_netmask, sizeof(if_addr->ifa_netmask));
+
+                    uint32_t ip, net, bcast;
+                    ip = cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_addr.s_addr;
+                    net = cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr.s_addr;
+                    bcast = ip | (~net);
+                    cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr.s_addr = bcast;
+                    inet_ntop(if_addr->ifa_netmask->sa_family,&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress));
                 }
                 cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_port = htons(port);
                 cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_port = htons(port);
@@ -1365,8 +1298,77 @@ int32_t CosmosAgent::publish(NetworkType type, uint16_t port)
                 cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cport = port;
                 cinfo->pdata.agent[0].ifcnt++;
             }
-#endif // COSMOS_WIN_OS
+            freeifaddrs(if_addrs);
+            if_addrs = NULL;
         }
+#else
+        struct ifconf confa;
+        struct ifreq *ifra;
+        char data[512];
+
+        confa.ifc_len = sizeof(data);
+        confa.ifc_buf = (caddr_t)data;
+        if (ioctl(cinfo->pdata.agent[0].pub[0].cudp,SIOCGIFCONF,&confa) < 0)
+        {
+            CLOSE_SOCKET(cinfo->pdata.agent[0].pub[0].cudp);
+            return (AGENT_ERROR_DISCOVERY);
+        }
+        // Use result to discover interfaces.
+        ifra = confa.ifc_req;
+        for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
+        {
+            if (ifra->ifr_addr.sa_family != AF_INET)
+            {
+                continue;
+            }
+            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].address));
+            memcpy((char *)&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+
+            if (ioctl(cinfo->pdata.agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+
+            if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
+            {
+                continue;
+            }
+
+            // No need to open first socket again
+            if (cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp < 0)
+            {
+                if ((cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                {
+                    continue;
+                }
+            }
+
+            if (type == NetworkType::MULTICAST)
+            {
+                inet_pton(AF_INET,AGENTMCAST,&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_addr);
+                inet_pton(AF_INET,AGENTMCAST,&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr);
+            }
+            else
+            {
+                if ((iretn = setsockopt(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                {
+                    CLOSE_SOCKET(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cudp);
+                    continue;
+                }
+
+                if (ioctl(cinfo->pdata.agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                {
+                    continue;
+                }
+                cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr = cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr;
+                inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress,sizeof(cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress));
+                inet_pton(AF_INET,cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddress,&cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_addr);
+            }
+            cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].caddr.sin_port = htons(port);
+            cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].baddr.sin_port = htons(port);
+            cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].type = type;
+            cinfo->pdata.agent[0].pub[cinfo->pdata.agent[0].ifcnt].cport = port;
+            cinfo->pdata.agent[0].ifcnt++;
+        }
+#endif // COSMOS_WIN_OS
+    }
         break;
     default:
         return SOCKET_ERROR_PROTOCOL;
@@ -1382,7 +1384,7 @@ int32_t CosmosAgent::publish(NetworkType type, uint16_t port)
     \param ntype Type of network (Multicast, Broadcast UDP, CSP)
     \return Vector of interfaces
     */
-std::vector<socket_channel> CosmosAgent::find_addresses(NetworkType ntype)
+std::vector<socket_channel> Agent::find_addresses(NetworkType ntype)
 {
     std::vector<socket_channel> iface;
     socket_channel tiface;
@@ -1407,131 +1409,131 @@ std::vector<socket_channel> CosmosAgent::find_addresses(NetworkType ntype)
     {
     case NetworkType::MULTICAST:
     case NetworkType::UDP:
+    {
+        if ((cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
         {
-            if ((cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
-            {
-                return (iface);
-            }
+            return (iface);
+        }
 
-            // Use above socket to find available interfaces and establish
-            // publication on each.
+        // Use above socket to find available interfaces and establish
+        // publication on each.
 #ifdef COSMOS_WIN_OS
-            if (WSAIoctl(cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+        if (WSAIoctl(cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+        {
+            CLOSE_SOCKET(cudp);
+            return (iface);
+        }
+
+        nif = nbytes / sizeof(INTERFACE_INFO);
+        PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+        PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+        pAddresses = (IP_ADAPTER_ADDRESSES *) calloc(sizeof(IP_ADAPTER_ADDRESSES), 2*nif);
+        ULONG outBufLen = sizeof(IP_ADAPTER_ADDRESSES) * 2 * nif;
+        DWORD dwRetVal;
+        if ((dwRetVal=GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen)) == ERROR_BUFFER_OVERFLOW)
+        {
+            free(pAddresses);
+            return (iface);
+        }
+
+        for (uint32_t i=0; i<nif; i++)
+        {
+            inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
+            //            strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+            if (!strcmp(tiface.address,"127.0.0.1"))
             {
-                CLOSE_SOCKET(cudp);
-                return (iface);
+                continue;
             }
 
-            nif = nbytes / sizeof(INTERFACE_INFO);
-            PIP_ADAPTER_ADDRESSES pAddresses = NULL;
-            PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
-            pAddresses = (IP_ADAPTER_ADDRESSES *) calloc(sizeof(IP_ADAPTER_ADDRESSES), 2*nif);
-            ULONG outBufLen = sizeof(IP_ADAPTER_ADDRESSES) * 2 * nif;
-            DWORD dwRetVal;
-            if ((dwRetVal=GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, NULL, pAddresses, &outBufLen)) == ERROR_BUFFER_OVERFLOW)
+            pCurrAddresses = pAddresses;
+            while (pAddresses)
             {
-                free(pAddresses);
-                return (iface);
+                if (((struct sockaddr_in *)(pCurrAddresses->FirstUnicastAddress->Address.lpSockaddr))->sin_addr.s_addr == ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.s_addr)
+                {
+                    strcpy(tiface.name, pCurrAddresses->AdapterName);
+                    break;
+                }
+                pCurrAddresses = pCurrAddresses->Next;
             }
-
-            for (uint32_t i=0; i<nif; i++)
+            memset(&tiface.caddr,0,sizeof(struct sockaddr_in));
+            memset(&tiface.baddr,0,sizeof(struct sockaddr_in));
+            tiface.caddr.sin_family = AF_INET;
+            tiface.baddr.sin_family = AF_INET;
+            if (ntype == NetworkType::MULTICAST)
             {
-                inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
-                //            strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
-                if (!strcmp(tiface.address,"127.0.0.1"))
+                sslen = sizeof(ss);
+                WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
+                tiface.caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+                tiface.baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+            }
+            else
+            {
+                if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                {
+                    continue;
+                }
+                ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
+                net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
+                bcast = ip | (~net);
+
+                tiface.caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                tiface.caddr.sin_addr.S_un.S_addr = ip;
+                tiface.baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                tiface.baddr.sin_addr.S_un.S_addr = bcast;
+            }
+            ((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
+            ssize = strlen(tiface.address);
+            WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
+            ssize = strlen(tiface.baddress);
+            WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
+            tiface.type = ntype;
+            iface.push_back(tiface);
+        }
+#else
+        confa.ifc_len = sizeof(data);
+        confa.ifc_buf = (caddr_t)data;
+        if (ioctl(cudp,SIOCGIFCONF,&confa) < 0)
+        {
+            CLOSE_SOCKET(cudp);
+            return (iface);
+        }
+        // Use result to discover interfaces.
+        ifra = confa.ifc_req;
+        for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
+        {
+            if (ifra->ifr_addr.sa_family != AF_INET) continue;
+            inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
+
+            if (ioctl(cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+
+            if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0) continue;
+
+            if (ntype == NetworkType::MULTICAST)
+            {
+                inet_pton(AF_INET,AGENTMCAST,&tiface.caddr.sin_addr);\
+                strcpy(tiface.baddress, AGENTMCAST);
+                inet_pton(AF_INET,AGENTMCAST,&tiface.baddr.sin_addr);\
+            }
+            else
+            {
+                if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                 {
                     continue;
                 }
 
-                pCurrAddresses = pAddresses;
-                while (pAddresses)
-                {
-                    if (((struct sockaddr_in *)(pCurrAddresses->FirstUnicastAddress->Address.lpSockaddr))->sin_addr.s_addr == ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.s_addr)
-                    {
-                        strcpy(tiface.name, pCurrAddresses->AdapterName);
-                        break;
-                    }
-                    pCurrAddresses = pCurrAddresses->Next;
-                }
-                memset(&tiface.caddr,0,sizeof(struct sockaddr_in));
-                memset(&tiface.baddr,0,sizeof(struct sockaddr_in));
-                tiface.caddr.sin_family = AF_INET;
-                tiface.baddr.sin_family = AF_INET;
-                if (ntype == NetworkType::MULTICAST)
-                {
-                    sslen = sizeof(ss);
-                    WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-                    tiface.caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                    tiface.baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                }
-                else
-                {
-                    if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                    {
-                        continue;
-                    }
-                    ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
-                    net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
-                    bcast = ip | (~net);
-
-                    tiface.caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                    tiface.caddr.sin_addr.S_un.S_addr = ip;
-                    tiface.baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                    tiface.baddr.sin_addr.S_un.S_addr = bcast;
-                }
-                ((struct sockaddr_in *)&ss)->sin_addr = tiface.caddr.sin_addr;
-                ssize = strlen(tiface.address);
-                WSAAddressToStringA((struct sockaddr *)&tiface.caddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.address, (LPDWORD)&ssize);
-                ssize = strlen(tiface.baddress);
-                WSAAddressToStringA((struct sockaddr *)&tiface.baddr.sin_addr, sizeof(struct sockaddr_in), 0, tiface.baddress, (LPDWORD)&ssize);
-                tiface.type = ntype;
-                iface.push_back(tiface);
+                strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
+                if (ioctl(cudp,SIOCGIFBRDADDR,(char *)ifra) < 0) continue;
+                memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
+                if (ioctl(cudp,SIOCGIFADDR,(char *)ifra) < 0) continue;
+                memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+                inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
             }
-#else
-            confa.ifc_len = sizeof(data);
-            confa.ifc_buf = (caddr_t)data;
-            if (ioctl(cudp,SIOCGIFCONF,&confa) < 0)
-            {
-                CLOSE_SOCKET(cudp);
-                return (iface);
-            }
-            // Use result to discover interfaces.
-            ifra = confa.ifc_req;
-            for (int32_t n=confa.ifc_len/sizeof(struct ifreq); --n >= 0; ifra++)
-            {
-                if (ifra->ifr_addr.sa_family != AF_INET) continue;
-                inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,tiface.address,sizeof(tiface.address));
-
-                if (ioctl(cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
-
-                if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0) continue;
-
-                if (ntype == NetworkType::MULTICAST)
-                {
-                    inet_pton(AF_INET,AGENTMCAST,&tiface.caddr.sin_addr);\
-                    strcpy(tiface.baddress, AGENTMCAST);
-                    inet_pton(AF_INET,AGENTMCAST,&tiface.baddr.sin_addr);\
-                }
-                else
-                {
-                    if ((iretn = setsockopt(cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
-                    {
-                        continue;
-                    }
-
-                    strncpy(tiface.name, ifra->ifr_name, COSMOS_MAX_NAME);
-                    if (ioctl(cudp,SIOCGIFBRDADDR,(char *)ifra) < 0) continue;
-                    memcpy((char *)&tiface.baddr, (char *)&ifra->ifr_broadaddr, sizeof(ifra->ifr_broadaddr));
-                    if (ioctl(cudp,SIOCGIFADDR,(char *)ifra) < 0) continue;
-                    memcpy((char *)&tiface.caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
-                    inet_ntop(tiface.baddr.sin_family,&tiface.baddr.sin_addr,tiface.baddress,sizeof(tiface.baddress));
-                }
-                tiface.type = ntype;
-                iface.push_back(tiface);
-            }
+            tiface.type = ntype;
+            iface.push_back(tiface);
+        }
 
 #endif // COSMOS_WIN_OS
-        }
+    }
         break;
     default:
         break;
@@ -1546,7 +1548,7 @@ std::vector<socket_channel> CosmosAgent::find_addresses(NetworkType ntype)
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
 */
-int32_t CosmosAgent::post(uint8_t type, std::string message)
+int32_t Agent::post(uint8_t type, std::string message)
 {
     int32_t iretn;
     std::vector<uint8_t> bytes(message.begin(), message.end());
@@ -1561,7 +1563,7 @@ int32_t CosmosAgent::post(uint8_t type, std::string message)
     \param message An array of bytes to post.
     \return 0, otherwise negative error.
 */
-int32_t CosmosAgent::post(uint8_t type, std::vector <uint8_t> message)
+int32_t Agent::post(uint8_t type, std::vector <uint8_t> message)
 {
     size_t nbytes;
     int32_t iretn=0;
@@ -1618,7 +1620,7 @@ int32_t CosmosAgent::post(uint8_t type, std::vector <uint8_t> message)
 /*! Close previously opened publication channels and recover any allocated resources.
     \return 0, otherwise negative error.
     */
-int32_t CosmosAgent::unpublish()
+int32_t Agent::unpublish()
 {
     if (cinfo == nullptr)
     {
@@ -1639,7 +1641,7 @@ int32_t CosmosAgent::unpublish()
     \param usectimeo Blocking read timeout in micro seconds.
     \return 0, otherwise negative error.
 */
-int32_t CosmosAgent::subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo)
+int32_t Agent::subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo)
 {
     int32_t iretn = 0;
 
@@ -1665,11 +1667,11 @@ int32_t CosmosAgent::subscribe(NetworkType type, char *address, uint16_t port, u
     \param port The port to use for the channel.
     \return 0, otherwise negative error.
 */
-int32_t CosmosAgent::subscribe(NetworkType type, char *address, uint16_t port)
+int32_t Agent::subscribe(NetworkType type, char *address, uint16_t port)
 {
     int32_t iretn = 0;
 
-    if ((iretn=CosmosAgent::subscribe(type, address, port, 100)) < 0)
+    if ((iretn=Agent::subscribe(type, address, port, 100)) < 0)
     {
         return (iretn);
     }
@@ -1680,7 +1682,7 @@ int32_t CosmosAgent::subscribe(NetworkType type, char *address, uint16_t port)
 /*! Close channel previously opened for polling for messages and recover resources.
     \return 0, otherwise negative error.
 */
-int32_t CosmosAgent::unsubscribe()
+int32_t Agent::unsubscribe()
 {
     if (cinfo != nullptr)
     {
@@ -1698,7 +1700,7 @@ int32_t CosmosAgent::unsubscribe()
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-int32_t CosmosAgent::poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec)
+int32_t Agent::poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec)
 {
     std::vector <uint8_t> bytes;
     int32_t iretn;
@@ -1721,7 +1723,7 @@ int32_t CosmosAgent::poll(pollstruc &meta, std::string &message, uint8_t type, f
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-int32_t CosmosAgent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8_t type, float waitsec)
+int32_t Agent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8_t type, float waitsec)
 {
     int nbytes;
     uint8_t input[AGENTMAXBUFFER+1];
@@ -1754,7 +1756,7 @@ int32_t CosmosAgent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8
             for (uint16_t i=0; i<cinfo->pdata.agent[0].ifcnt; ++i)
             {
                 if (cinfo->pdata.agent[0].sub.caddr.sin_port == cinfo->pdata.agent[0].pub[i].caddr.sin_port &&
-                    cinfo->pdata.agent[0].sub.caddr.sin_addr.s_addr == cinfo->pdata.agent[0].pub[i].caddr.sin_addr.s_addr)
+                        cinfo->pdata.agent[0].sub.caddr.sin_addr.s_addr == cinfo->pdata.agent[0].pub[i].caddr.sin_addr.s_addr)
                 {
                     return 0;
                     break;
@@ -1827,7 +1829,7 @@ int32_t CosmosAgent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8
     \param waitsec Number of seconds in timer. If 0, return last message in ring immediatelly.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-int32_t CosmosAgent::readring(messstruc &message, uint8_t type, float waitsec)
+int32_t Agent::readring(messstruc &message, uint8_t type, float waitsec)
 {
     if (waitsec < 0.)
     {
@@ -1873,7 +1875,7 @@ int32_t CosmosAgent::readring(messstruc &message, uint8_t type, float waitsec)
 //! ring to be appropriate.
 //! \param newsize New maximum message count.
 //! \return Negative error, or zero.
-int32_t CosmosAgent::resizering(size_t newsize)
+int32_t Agent::resizering(size_t newsize)
 {
     if (message_head >= newsize)
     {
@@ -1893,7 +1895,7 @@ int32_t CosmosAgent::resizering(size_t newsize)
 //! in the message ring. This has the effect of emptying the message ring as far as ::readring
 //! is concerned.
 //! \return Negative error or zero.
-int32_t CosmosAgent::clearring()
+int32_t Agent::clearring()
 {
     message_tail = message_head;
     return 0;
@@ -1905,14 +1907,14 @@ int32_t CosmosAgent::clearring()
     \return ::beatstruc with acquired heartbeat. The UTC will be set to 0 if no heartbeat was
     acquired.
 */
-beatstruc CosmosAgent::poll_beat(float waitsec)
+beatstruc Agent::poll_beat(float waitsec)
 {
     int32_t iretn;
     beatstruc beat;
     pollstruc meta;
     std::vector <uint8_t> message;
 
-    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_BEAT, waitsec);
+    iretn = Agent::poll(meta, message, AGENT_MESSAGE_BEAT, waitsec);
 
     beat.utc = 0.;
     if (iretn == AGENT_MESSAGE_BEAT)
@@ -1929,14 +1931,14 @@ beatstruc CosmosAgent::poll_beat(float waitsec)
     \return ::timestruc with acquired time. The UTC will be set to 0 if no heartbeat was
     acquired.
 */
-timestruc CosmosAgent::poll_time(float waitsec)
+timestruc Agent::poll_time(float waitsec)
 {
     int32_t iretn;
     timestruc time;
     pollstruc meta;
     std::string message;
 
-    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_TIME, waitsec);
+    iretn = Agent::poll(meta, message, AGENT_MESSAGE_TIME, waitsec);
 
     if (iretn == AGENT_MESSAGE_TIME)
     {
@@ -1956,14 +1958,14 @@ timestruc CosmosAgent::poll_time(float waitsec)
     \return ::locstruc with acquired location. The UTC will be set to 0 if no heartbeat was
     acquired.
 */
-locstruc CosmosAgent::poll_location(float waitsec)
+locstruc Agent::poll_location(float waitsec)
 {
     int32_t iretn;
     locstruc loc;
     pollstruc meta;
     std::string message;
 
-    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_LOCATION, waitsec);
+    iretn = Agent::poll(meta, message, AGENT_MESSAGE_LOCATION, waitsec);
 
     if (iretn == AGENT_MESSAGE_LOCATION)
     {
@@ -1983,7 +1985,7 @@ locstruc CosmosAgent::poll_location(float waitsec)
     \return ::infostruc with acquired info. The UTC will be set to 0 if no info was
     acquired.
 */
-nodestruc CosmosAgent::poll_info(float waitsec)
+nodestruc Agent::poll_info(float waitsec)
 {
     int32_t iretn;
     //summarystruc info;
@@ -1991,7 +1993,7 @@ nodestruc CosmosAgent::poll_info(float waitsec)
     pollstruc meta;
     std::string message;
 
-    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_TRACK, waitsec);
+    iretn = Agent::poll(meta, message, AGENT_MESSAGE_TRACK, waitsec);
 
     if (iretn == AGENT_MESSAGE_TRACK)
     {
@@ -2018,14 +2020,14 @@ nodestruc CosmosAgent::poll_info(float waitsec)
     \return ::beatstruc with acquired heartbeat. The UTC will be set to 0 if no heartbeat was
     acquired.
 */
-imustruc CosmosAgent::poll_imu(float waitsec)
+imustruc Agent::poll_imu(float waitsec)
 {
     int32_t iretn;
     imustruc imu;
     pollstruc meta;
     std::string message;
 
-    iretn = CosmosAgent::poll(meta, message, AGENT_MESSAGE_IMU, waitsec);
+    iretn = Agent::poll(meta, message, AGENT_MESSAGE_IMU, waitsec);
 
     if (iretn == AGENT_MESSAGE_IMU)
     {
@@ -2038,5 +2040,7 @@ imustruc CosmosAgent::poll_imu(float waitsec)
 
     return (imu);
 }
+
+} // end namespace Cosmos
 
 //! @}

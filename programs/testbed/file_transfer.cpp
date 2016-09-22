@@ -40,7 +40,7 @@
 #include "agent/agentclass.h"
 #include "jsonlib.h"
 
-CosmosAgent *agent;
+Agent *agent;
 
 int main(int argc, char *argv[])
 {

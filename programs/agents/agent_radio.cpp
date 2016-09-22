@@ -40,7 +40,7 @@
 #include "astrodev_lib.h"
 #include "ic9100_lib.h"
 
-CosmosAgent *agent;
+Agent *agent;
 std::string nodename;
 std::string agentname;
 size_t deviceindex;
@@ -63,19 +63,19 @@ tcvstruc actual;
 int32_t lasterrorcode;
 char lasterrormessage[300];
 
-int32_t request_enable(char *request, char* response, CosmosAgent *);
-int32_t request_disable(char *request, char* response, CosmosAgent *);
-int32_t request_get_state(char *request, char* response, CosmosAgent *);
-int32_t request_get_bandpass(char *request, char* response, CosmosAgent *);
-int32_t request_get_frequency(char *request, char* response, CosmosAgent *);
-int32_t request_get_opmode(char *request, char* response, CosmosAgent *);
-int32_t request_get_powerin(char *request, char* response, CosmosAgent *);
-int32_t request_get_powerout(char *request, char* response, CosmosAgent *);
-int32_t request_set_bandpass(char *request, char* response, CosmosAgent *);
-int32_t request_set_frequency(char *request, char* response, CosmosAgent *);
-int32_t request_set_opmode(char *request, char* response, CosmosAgent *);
-int32_t request_set_maxpower(char *request, char* response, CosmosAgent *);
-int32_t request_set_offset(char *request, char* response, CosmosAgent *);
+int32_t request_enable(char *request, char* response, Agent *);
+int32_t request_disable(char *request, char* response, Agent *);
+int32_t request_get_state(char *request, char* response, Agent *);
+int32_t request_get_bandpass(char *request, char* response, Agent *);
+int32_t request_get_frequency(char *request, char* response, Agent *);
+int32_t request_get_opmode(char *request, char* response, Agent *);
+int32_t request_get_powerin(char *request, char* response, Agent *);
+int32_t request_get_powerout(char *request, char* response, Agent *);
+int32_t request_set_bandpass(char *request, char* response, Agent *);
+int32_t request_set_frequency(char *request, char* response, Agent *);
+int32_t request_set_opmode(char *request, char* response, Agent *);
+int32_t request_set_maxpower(char *request, char* response, Agent *);
+int32_t request_set_offset(char *request, char* response, Agent *);
 
 int32_t connect_radio();
 std::string opmode2string(uint8_t opmode);
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Establish the command channel and heartbeat
-    if (!(agent = new CosmosAgent(NetworkType::UDP, nodename, agentname)))
+    if (!(agent = new Agent(NetworkType::UDP, nodename, agentname)))
 	{
         std::cout << agentname << ": agent->setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
 		exit (AGENT_ERROR_JSON_CREATE);
@@ -339,19 +339,19 @@ int main(int argc, char *argv[])
     agent->shutdown();
 }
 
-int32_t request_enable(char *req, char* response, CosmosAgent *)
+int32_t request_enable(char *req, char* response, Agent *)
 {
 	radioenabled = true;
 	return 0;
 }
 
-int32_t request_disable(char *req, char* response, CosmosAgent *)
+int32_t request_disable(char *req, char* response, Agent *)
 {
 	radioenabled = false;
 	return 0;
 }
 
-int32_t request_get_state(char *req, char* response, CosmosAgent *)
+int32_t request_get_state(char *req, char* response, Agent *)
 {
     sprintf(response,"[%.6f] Cx: %u En: %u Mode: %s TFreq: %.0f AFreq: %.0f Offset: %.0f PowerIn: %.2f PowerOut: %.2f MaxPower: %.2f",
             currentmjd(),
@@ -366,13 +366,13 @@ int32_t request_get_state(char *req, char* response, CosmosAgent *)
     return (0);
 }
 
-int32_t request_get_frequency(char *request, char* response, CosmosAgent *)
+int32_t request_get_frequency(char *request, char* response, Agent *)
 {
     sprintf(response,"%f", agent->cinfo->pdata.device[deviceindex].tcv.freq);
 	return 0;
 }
 
-int32_t request_set_frequency(char *request, char* response, CosmosAgent *)
+int32_t request_set_frequency(char *request, char* response, Agent *)
 {
 	//	int32_t iretn;
 
@@ -380,13 +380,13 @@ int32_t request_set_frequency(char *request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_get_bandpass(char *request, char* response, CosmosAgent *)
+int32_t request_get_bandpass(char *request, char* response, Agent *)
 {
     sprintf(response,"%f", agent->cinfo->pdata.device[deviceindex].tcv.band);
 	return 0;
 }
 
-int32_t request_set_bandpass(char *request, char* response, CosmosAgent *)
+int32_t request_set_bandpass(char *request, char* response, Agent *)
 {
 	int32_t iretn = 0;
 
@@ -394,37 +394,37 @@ int32_t request_set_bandpass(char *request, char* response, CosmosAgent *)
 	return iretn;
 }
 
-int32_t request_get_powerin(char *request, char* response, CosmosAgent *)
+int32_t request_get_powerin(char *request, char* response, Agent *)
 {
     sprintf(response,"%f", agent->cinfo->pdata.device[deviceindex].tcv.powerin);
 	return 0;
 }
 
-int32_t request_get_powerout(char *request, char* response, CosmosAgent *)
+int32_t request_get_powerout(char *request, char* response, Agent *)
 {
     sprintf(response,"%f", agent->cinfo->pdata.device[deviceindex].tcv.powerout);
     return 0;
 }
 
-int32_t request_set_maxpower(char *request, char* response, CosmosAgent *)
+int32_t request_set_maxpower(char *request, char* response, Agent *)
 {
     sscanf(request, "set_power %f", &target.maxpower);
 	return 0;
 }
 
-int32_t request_set_offset(char *request, char* response, CosmosAgent *)
+int32_t request_set_offset(char *request, char* response, Agent *)
 {
 	sscanf(request, "set_offset %f", &freqoffset);
 	return 0;
 }
 
-int32_t request_get_opmode(char *request, char* response, CosmosAgent *)
+int32_t request_get_opmode(char *request, char* response, Agent *)
 {
     strcpy(response, opmode2string(agent->cinfo->pdata.device[deviceindex].tcv.opmode).c_str());
 	return 0;
 }
 
-int32_t request_set_opmode(char *request, char* response, CosmosAgent *)
+int32_t request_set_opmode(char *request, char* response, Agent *)
 {
 	char mode[20];
 	sscanf(request, "set_opmode %s", mode);

@@ -37,7 +37,7 @@ void incoming_thread();
 char agentname[COSMOS_MAX_NAME+1] = "forward";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
-CosmosAgent *agent;
+Agent *agent;
 socket_channel rcvchan;
 
 #define MAXBUFFERSIZE 2560 // comm buffer for agents
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-    if (!(agent = new CosmosAgent(NetworkType::UDP, "", "forward", 5., MAXBUFFERSIZE, false, AGENTRECVPORT)))
+    if (!(agent = new Agent(NetworkType::UDP, "", "forward", 5., MAXBUFFERSIZE, false, AGENTRECVPORT)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}

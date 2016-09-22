@@ -49,9 +49,9 @@ int myagent();
 char agentname[COSMOS_MAX_NAME+1] = "blank";
 char ipaddress[16] = "192.168.150.1";
 int waitsec = 5;
-int32_t request_run_program(char *request, char* response, CosmosAgent *);
+int32_t request_run_program(char *request, char* response, Agent *);
 
-CosmosAgent *agent;
+Agent *agent;
 
 #define MAXBUFFERSIZE 256
 
@@ -77,7 +77,7 @@ if ((iretn=agent->get_server(NULL,agentname,waitsec,(beatstruc *)NULL)) > 0)
 
 
 // Initialize the Agent
-if (!(agent = new CosmosAgent(NetworkType::BROADCAST, "", agentname, .1, MAXBUFFERSIZE)))
+if (!(agent = new Agent(NetworkType::BROADCAST, "", agentname, .1, MAXBUFFERSIZE)))
 	exit (iretn);
 
 // Add additional requests
@@ -101,7 +101,7 @@ while(agent->running())
 return 0;
 }
 
-int32_t request_run_program(char *request, char* response, CosmosAgent *)
+int32_t request_run_program(char *request, char* response, Agent *)
 {
 int i;
 int32_t iretn = 0;

@@ -39,11 +39,11 @@
 using namespace std;
 
 // function prototype of agent request
-int32_t request_hello(char *request, char* response, CosmosAgent *cdata);
+int32_t request_hello(char *request, char* response, Agent *cdata);
 
 // counter to test number of requests
 int countReq = 0;
-CosmosAgent *agent;
+Agent *agent;
 
 int main(int, char **)
 {
@@ -54,7 +54,7 @@ int main(int, char **)
 
     string agentname     = "002";
     string nodename      = "telem";
-    agent = new CosmosAgent(NetworkType::UDP, nodename, agentname);
+    agent = new Agent(NetworkType::UDP, nodename, agentname);
 
     agent->add_request("request_hello", request_hello);
 
@@ -68,7 +68,7 @@ int main(int, char **)
 }
 
 // implement request function
-int32_t request_hello(char *, char* response, CosmosAgent *)
+int32_t request_hello(char *, char* response, Agent *)
 {
 
     sprintf(response,"hello %d ",countReq);

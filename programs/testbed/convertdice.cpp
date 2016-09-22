@@ -47,7 +47,7 @@ shorteventstruc events[20];
 std::string mainjstring;
 int ecount;
 
-CosmosAgent *agent;
+Agent *agent;
 
 int main(int argc, char *argv[])
 {
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	tsenstruc tsen[14];
 
 
-    agent = new CosmosAgent(NetworkType::UDP, "dice");
+    agent = new Agent(NetworkType::UDP, "dice");
     agent->cinfo->pdata.physics.mode = atol(argv[1]);
 
     load_lines("tle_dice1.tle", agent->cinfo->pdata.tle);

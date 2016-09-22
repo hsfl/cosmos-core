@@ -32,9 +32,9 @@
 
 int main(int, char* argv[])
 {
-    CosmosAgent *myagent;
+    Agent *myagent;
 
-    myagent = new CosmosAgent();
+    myagent = new Agent();
     json_setup_node(argv[1], myagent->cinfo, false);
 
     size_t total = 0;

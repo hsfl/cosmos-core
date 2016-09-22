@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-CosmosAgent *agent;
+Agent *agent;
 
 int main(int argc, char *argv[])
 {
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     FILE *odes;
     std::string jstring;
 
-    agent = new CosmosAgent(NetworkType::UDP, argv[1]);
+    agent = new Agent(NetworkType::UDP, argv[1]);
 
     load_databases(argv[1], (uint16_t)atol(argv[2]), agent->cinfo->pdata);
 

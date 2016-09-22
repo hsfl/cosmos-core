@@ -42,7 +42,7 @@
 
 std::string nodename;
 std::string agentname;
-CosmosAgent *agent;
+Agent *agent;
 std::mutex cdata_mutex;
 
 std::vector <double> lastantutc;
@@ -81,16 +81,16 @@ std::vector <antennastruc> myantennas;
 
 bool debug;
 
-int32_t request_debug(char* request, char* response, CosmosAgent *);
-int32_t request_get_state(char* request, char* response, CosmosAgent *);
-int32_t request_list_tracks(char* request, char* response, CosmosAgent *);
-int32_t request_set_track(char* request, char* response, CosmosAgent *);
-int32_t request_get_track(char* request, char* response, CosmosAgent *);
-int32_t request_list_radios(char* request, char* response, CosmosAgent *);
-int32_t request_match_radio(char* request, char* response, CosmosAgent *);
-int32_t request_list_antennas(char* request, char* response, CosmosAgent *);
-int32_t request_get_highest(char *req, char* response, CosmosAgent *);
-int32_t request_unmatch_radio(char* request, char* response, CosmosAgent *);
+int32_t request_debug(char* request, char* response, Agent *);
+int32_t request_get_state(char* request, char* response, Agent *);
+int32_t request_list_tracks(char* request, char* response, Agent *);
+int32_t request_set_track(char* request, char* response, Agent *);
+int32_t request_get_track(char* request, char* response, Agent *);
+int32_t request_list_radios(char* request, char* response, Agent *);
+int32_t request_match_radio(char* request, char* response, Agent *);
+int32_t request_list_antennas(char* request, char* response, Agent *);
+int32_t request_get_highest(char *req, char* response, Agent *);
+int32_t request_unmatch_radio(char* request, char* response, Agent *);
 
 void monitor();
 std::string opmode2string(uint8_t opmode);
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Establish the command channel and heartbeat
-    if (!(agent = new CosmosAgent(NetworkType::UDP, nodename, agentname)))
+    if (!(agent = new Agent(NetworkType::UDP, nodename, agentname)))
 	{
         std::cout << agentname << ": agent->setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
 		exit (AGENT_ERROR_JSON_CREATE);
@@ -354,13 +354,13 @@ void monitor()
 
     while (agent->running())
 	{
-        CosmosAgent::pollstruc p;
+        Agent::pollstruc p;
         std::string message;
 
-        iretn = agent->poll(p, message, CosmosAgent::AGENT_MESSAGE_BEAT, 5.0);
+        iretn = agent->poll(p, message, Agent::AGENT_MESSAGE_BEAT, 5.0);
 
 		// Only process if this is a heartbeat message for our node
-        if (iretn == CosmosAgent::AGENT_MESSAGE_BEAT && !strcmp(p.beat.node, agent->cinfo->pdata.node.name))
+        if (iretn == Agent::AGENT_MESSAGE_BEAT && !strcmp(p.beat.node, agent->cinfo->pdata.node.name))
 		{
 			cdata_mutex.lock();
 			// Extract telemetry
@@ -392,7 +392,7 @@ void monitor()
 
 }
 
-int32_t request_list_tracks(char* request, char* response, CosmosAgent *)
+int32_t request_list_tracks(char* request, char* response, Agent *)
 {
 	for (size_t i=0; i<track.size(); ++i)
 	{
@@ -403,7 +403,7 @@ int32_t request_list_tracks(char* request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_set_track(char* request, char* response, CosmosAgent *)
+int32_t request_set_track(char* request, char* response, Agent *)
 {
 	size_t tracki;
 
@@ -452,7 +452,7 @@ int32_t request_set_track(char* request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_get_track(char* request, char* response, CosmosAgent *)
+int32_t request_get_track(char* request, char* response, Agent *)
 {
 	if (trackindex != 9999)
 	{
@@ -462,7 +462,7 @@ int32_t request_get_track(char* request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_list_radios(char* request, char* response, CosmosAgent *)
+int32_t request_list_radios(char* request, char* response, Agent *)
 {
 	sprintf(response, "My Radios\n");
 	for (size_t i=0; i<myradios.size(); ++i)
@@ -479,7 +479,7 @@ int32_t request_list_radios(char* request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_match_radio(char* request, char* response, CosmosAgent *)
+int32_t request_match_radio(char* request, char* response, Agent *)
 {
 	char fromname[41];
 	char toname[41];
@@ -532,7 +532,7 @@ int32_t request_match_radio(char* request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_unmatch_radio(char* request, char* response, CosmosAgent *)
+int32_t request_unmatch_radio(char* request, char* response, Agent *)
 {
 	char fromname[41];
 	uint16_t fromi = 9999;
@@ -574,7 +574,7 @@ int32_t request_unmatch_radio(char* request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_list_antennas(char* request, char* response, CosmosAgent *)
+int32_t request_list_antennas(char* request, char* response, Agent *)
 {
 	for (size_t i=0; i<myantennas.size(); ++i)
 	{
@@ -584,7 +584,7 @@ int32_t request_list_antennas(char* request, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_get_state(char *req, char* response, CosmosAgent *)
+int32_t request_get_state(char *req, char* response, Agent *)
 {
 	if (trackindex == 0)
 	{
@@ -620,7 +620,7 @@ int32_t request_get_state(char *req, char* response, CosmosAgent *)
 	return (0);
 }
 
-int32_t request_get_highest(char *req, char* response, CosmosAgent *)
+int32_t request_get_highest(char *req, char* response, Agent *)
 {
 	if (highestindex != 9999)
 	{
@@ -629,7 +629,7 @@ int32_t request_get_highest(char *req, char* response, CosmosAgent *)
 	return 0;
 }
 
-int32_t request_debug(char *req, char* response, CosmosAgent *)
+int32_t request_debug(char *req, char* response, Agent *)
 {
     if (debug)
 	{

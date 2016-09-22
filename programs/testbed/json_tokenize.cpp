@@ -31,12 +31,12 @@
 #include "agent/agentclass.h"
 #include "jsonlib.h"
 
-CosmosAgent *agent;
+Agent *agent;
 
 int main(int argc, char *argv[])
 {
 
-    agent = new CosmosAgent(NetworkType::UDP, argv[1]);
+    agent = new Agent(NetworkType::UDP, argv[1]);
 
     std::vector <double> daylist = data_list_archive_days(agent->cinfo->pdata.node.name, "soh");
     for (double day: daylist)

@@ -45,7 +45,7 @@
 char *output;
 
 gj_handle gjh;
-CosmosAgent *agent;
+Agent *agent;
 std::string reqjstring;
 std::string mainjstring;
 double logperiod=30, newlogperiod=30;
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
 	// Initialization stuff
 
-    if (!(agent = new CosmosAgent(NetworkType::UDP, node, "physics", 2.)))
+    if (!(agent = new Agent(NetworkType::UDP, node, "physics", 2.)))
 	{
 		printf("Failed to setup server: %d\n",AGENT_ERROR_JSON_CREATE);
 		exit (AGENT_ERROR_JSON_CREATE);

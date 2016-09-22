@@ -42,9 +42,9 @@ int myagent();
 char agentname[COSMOS_MAX_NAME+1] = "example";
 char node[50] = "null";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t request_run_program(char *request, char* response, CosmosAgent *); // extra request
+int32_t request_run_program(char *request, char* response, Agent *); // extra request
 
-CosmosAgent *agent; // to access the cosmos data, will change later
+Agent *agent; // to access the cosmos data, will change later
 
 #define MAXBUFFERSIZE 2560 // comm buffe for agents
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	// Initialize the Agent
 	// near future: support cubesat space protocol
 	// port number = 0 in this case, automatic assignment of port
-    if (!(agent = new CosmosAgent(NetworkType::UDP, node, agentname, 1., MAXBUFFERSIZE, (bool)true)))
+    if (!(agent = new Agent(NetworkType::UDP, node, agentname, 1., MAXBUFFERSIZE, (bool)true)))
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Add additional requests
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 }
 
 // the name of this fn will always be changed
-int32_t request_run_program(char *request, char* response, CosmosAgent *)
+int32_t request_run_program(char *request, char* response, Agent *)
 {
 	int i;
 	int32_t iretn = 0;

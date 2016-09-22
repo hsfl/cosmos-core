@@ -49,7 +49,7 @@ bool broadcast_flag = false;
 #define COSMOS_NODE_NAME    "hiakasat"
 #define COSMOS_AGENT_NAME   "imu"
 
-CosmosAgent *agent;
+Agent *agent;
 #define AGENTSVR_MAXBUF_BYTES 10000
 
 // IMU Broadcast POST TYPE: HS1_CPOST_TYPE_HIAKASAT_IMU
@@ -182,10 +182,10 @@ void run_imu_simulated();
 
 // COSMOS Agent Server
 //#define REQ_VMT_STATE_CHECK if (vmt_fsm_state != VMT_STATE_OPEN) { sprintf(response, "[ERROR] ST Disconnected.  Aborting.\n"); return 0; }
-int32_t request_mag(char *request, char* response, CosmosAgent *);
-int32_t request_all(char *request, char* response, CosmosAgent *);
-int32_t request_imufltdata(char *request, char* response, CosmosAgent *);
-int32_t request_debug(char *request, char *response, CosmosAgent *);
+int32_t request_mag(char *request, char* response, Agent *);
+int32_t request_all(char *request, char* response, Agent *);
+int32_t request_imufltdata(char *request, char* response, Agent *);
+int32_t request_debug(char *request, char *response, Agent *);
 
 int main(int argc, char *argv[])
 {
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
     // Set-Up COSMOS Agent Server
     // *********************************************************************
     // Initialize the Agent
-    if (!(agent = new CosmosAgent(NetworkType::UDP, COSMOS_NODE_NAME, COSMOS_AGENT_NAME, .2, AGENTSVR_MAXBUF_BYTES, (bool)false)))
+    if (!(agent = new Agent(NetworkType::UDP, COSMOS_NODE_NAME, COSMOS_AGENT_NAME, .2, AGENTSVR_MAXBUF_BYTES, (bool)false)))
         exit (AGENT_ERROR_JSON_CREATE);
     printf("- Agent server started\n");
 
@@ -650,7 +650,7 @@ int32_t imu_post_to_broadcast()
 }
 
 
-int32_t request_mag(char *request, char* response, CosmosAgent *)
+int32_t request_mag(char *request, char* response, Agent *)
 {
     // *****************************************************
     IMU_MUTEX_LOCK;
@@ -665,7 +665,7 @@ int32_t request_mag(char *request, char* response, CosmosAgent *)
     return 0;
 }
 
-int32_t request_all(char *request, char* response, CosmosAgent *)
+int32_t request_all(char *request, char* response, Agent *)
 {
     // *****************************************************
     // Start Locking Attitude Data
@@ -684,7 +684,7 @@ int32_t request_all(char *request, char* response, CosmosAgent *)
 }
 
 
-int32_t request_imufltdata(char *request, char* response, CosmosAgent *)
+int32_t request_imufltdata(char *request, char* response, Agent *)
 {
     // *****************************************************
     // Start Locking Attitude Data
@@ -704,7 +704,7 @@ int32_t request_imufltdata(char *request, char* response, CosmosAgent *)
 
 
 // agent hiakasat imu "debug [0/1]"
-int32_t request_debug(char *request, char *response, CosmosAgent *)
+int32_t request_debug(char *request, char *response, Agent *)
 {
 
     std::string requestString = std::string(request);
@@ -717,7 +717,7 @@ int32_t request_debug(char *request, char *response, CosmosAgent *)
 }
 
 // agent hiakasat imu "broadcast [0/1]"
-int32_t request_broadcast(char *request, char *response, CosmosAgent *)
+int32_t request_broadcast(char *request, char *response, Agent *)
 {
 
     std::string requestString = std::string(request);

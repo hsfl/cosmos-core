@@ -93,7 +93,7 @@ std::string agentname = "file_";
 /** the (global) name of the heartbeat structure */
 beatstruc cbeat;
 /** the (global) name of the cosmos data structure */
-CosmosAgent *agent;
+Agent *agent;
 /** the (global) number of agent sending channels */
 uint16_t send_channels=0;
 uint16_t use_channel = 0;
@@ -167,12 +167,12 @@ int32_t active_node = -1;
 //int32_t node = -1;
 
 
-int32_t request_use_channel(char* request, char* response, CosmosAgent *agent);
-int32_t request_remove_file(char* request, char* response, CosmosAgent *agent);
-//int32_t request_send_file(char* request, char* response, CosmosAgent *agent);
-int32_t request_ls(char* request, char* response, CosmosAgent *agent);
-int32_t request_list_incoming(char* request, char* response, CosmosAgent *agent);
-int32_t request_list_outgoing(char* request, char* response, CosmosAgent *agent);
+int32_t request_use_channel(char* request, char* response, Agent *agent);
+int32_t request_remove_file(char* request, char* response, Agent *agent);
+//int32_t request_send_file(char* request, char* response, Agent *agent);
+int32_t request_ls(char* request, char* response, Agent *agent);
+int32_t request_list_incoming(char* request, char* response, Agent *agent);
+int32_t request_list_outgoing(char* request, char* response, Agent *agent);
 int32_t outgoing_tx_add(tx_progress tx_out);
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name);
 int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 	printf("- Setting up server...");
 	fflush(stdout);
 
-    if ((agent = new CosmosAgent(NetworkType::UDP, "", agentname)) == NULL)
+    if ((agent = new Agent(NetworkType::UDP, "", agentname)) == NULL)
 	{
 		printf("- Could not setup server... exiting.\n\n");
 		exit (-1);
@@ -1471,7 +1471,7 @@ std::vector<file_progress> find_chunks_missing(tx_progress& tx)
 	return (missing);
 }
 
-int32_t request_ls(char* request, char* response, CosmosAgent *agent)
+int32_t request_ls(char* request, char* response, Agent *agent)
 {
 
 	//the request std::string == "ls directoryname"
@@ -1499,7 +1499,7 @@ int32_t request_ls(char* request, char* response, CosmosAgent *agent)
 	return 0;
 }
 
-int32_t request_list_incoming(char* request, char* response, CosmosAgent *agent)
+int32_t request_list_incoming(char* request, char* response, Agent *agent)
 {
 	response[0] = 0;
 	for (uint16_t node = 0; node<txq.size(); ++node)
@@ -1517,7 +1517,7 @@ int32_t request_list_incoming(char* request, char* response, CosmosAgent *agent)
 	return 0;
 }
 
-int32_t request_list_outgoing(char* request, char* response, CosmosAgent *agent)
+int32_t request_list_outgoing(char* request, char* response, Agent *agent)
 {
 	response[0] = 0;
 	for (uint16_t node=0; node<txq.size(); ++node)
@@ -1535,7 +1535,7 @@ int32_t request_list_outgoing(char* request, char* response, CosmosAgent *agent)
 	return 0;
 }
 
-int32_t request_use_channel(char* request, char* response, CosmosAgent *agent)
+int32_t request_use_channel(char* request, char* response, Agent *agent)
 {
 	uint16_t channel;
 
@@ -1552,7 +1552,7 @@ int32_t request_use_channel(char* request, char* response, CosmosAgent *agent)
 
 }
 
-int32_t request_remove_file(char* request, char* response, CosmosAgent *agent)
+int32_t request_remove_file(char* request, char* response, Agent *agent)
 {
 	char type;
 	uint32_t tx_id;
@@ -1573,7 +1573,7 @@ int32_t request_remove_file(char* request, char* response, CosmosAgent *agent)
 	return 0;
 }
 
-//int32_t request_send_file(char* request, char* response, CosmosAgent *agent)
+//int32_t request_send_file(char* request, char* response, Agent *agent)
 //{
 
 //	//the request string == "send_file agent_name file_name packet_size"

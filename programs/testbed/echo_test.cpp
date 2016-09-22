@@ -30,7 +30,7 @@
 #include "agent/agentclass.h"
 #include "sliplib.h"
 
-CosmosAgent *agent;
+Agent *agent;
 uint8_t data[32769];
 char buffer[AGENTMAXBUFFER];
 std::string response;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 			exit(0);
 		}
 
-    if ((agent = new CosmosAgent(NetworkType::BROADCAST, (char *)argv[1])) == NULL)
+    if ((agent = new Agent(NetworkType::BROADCAST, (char *)argv[1])) == NULL)
 		{
 			fprintf(stderr,"Error: %d\n",AGENT_ERROR_JSON_CREATE);
 			exit(AGENT_ERROR_JSON_CREATE);

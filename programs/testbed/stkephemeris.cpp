@@ -95,8 +95,8 @@ int year, month, day, hour, minute, second;
 struct stat sbuf;
 std::string jstring;
 
-CosmosAgent *agent;
-agent = new CosmosAgent(NetworkType::UDP, argv[1]);
+Agent *agent;
+agent = new Agent(NetworkType::UDP, argv[1]);
 
 if (argc == 3)
 	{

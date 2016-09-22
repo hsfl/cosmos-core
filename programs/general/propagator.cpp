@@ -38,7 +38,7 @@
 #include <iostream>
 #include <iomanip>
 
-CosmosAgent *agent;
+Agent *agent;
 gj_handle gjh;
 std::vector<shorteventstruc> eventdict;
 std::vector<shorteventstruc> events;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 		break;
 	}
 
-    if (!(agent = new CosmosAgent(NetworkType::UDP, node, "physics", .1, AGENTMAXBUFFER)))
+    if (!(agent = new Agent(NetworkType::UDP, node, "physics", .1, AGENTMAXBUFFER)))
     {
         printf("Failed to setup server for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
         exit (AGENT_ERROR_JSON_CREATE);
@@ -120,13 +120,13 @@ int main(int argc, char* argv[])
 
 #define POLLBUFSIZE 20000
 	std::string pollbuf;
-    CosmosAgent::pollstruc meta;
+    Agent::pollstruc meta;
 
-    iretn = agent->poll(meta, pollbuf, CosmosAgent::AGENT_MESSAGE_ALL,1);
+    iretn = agent->poll(meta, pollbuf, Agent::AGENT_MESSAGE_ALL,1);
 	switch (iretn)
 	{
-    case CosmosAgent::AGENT_MESSAGE_SOH:
-    case CosmosAgent::AGENT_MESSAGE_BEAT:
+    case Agent::AGENT_MESSAGE_SOH:
+    case Agent::AGENT_MESSAGE_BEAT:
 		{
 			std::string tbuf = json_convert_string(json_extract_namedobject(pollbuf, "agent_name"));
 			if (!tbuf.empty() && tbuf == "physics")
@@ -235,7 +235,7 @@ int main(int argc, char* argv[])
 
         update_target(agent->cinfo->pdata);
         calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
-        agent->post(CosmosAgent::AGENT_MESSAGE_SOH, json_of_table(mainjstring, agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+        agent->post(Agent::AGENT_MESSAGE_SOH, json_of_table(mainjstring, agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
 		double dsleep = 1000000. * 86400.*(sohtimer - mjdnow);
 		if (dsleep > 0.)
 		{

@@ -59,9 +59,9 @@ int myagent();
 char agentname[COSMOS_MAX_NAME+1] = "gs_tx2";
 char node[50] = "otb";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t transmit_kiss(char *request, char* response, CosmosAgent *); // extra request
+int32_t transmit_kiss(char *request, char* response, Agent *); // extra request
 
-CosmosAgent *agent; // to access the cosmos data, will change later
+Agent *agent; // to access the cosmos data, will change later
 
 #define MAXBUFFERSIZE 256 // comm buffe for agents
 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	// Initialize the Agent
 	// near future: support cubesat space protocol
 	// port number = 0 in this case, automatic assignment of port
-    if (!(agent = new CosmosAgent(NetworkType::UDP, node, agentname, 1., MAXBUFFERSIZE)))
+    if (!(agent = new Agent(NetworkType::UDP, node, agentname, 1., MAXBUFFERSIZE)))
 		exit (iretn);
 
 	// Add additional requests
@@ -139,7 +139,7 @@ int myagent()
 }
 
 // the name of this fn will always be changed
-int32_t transmit_kiss(char *request, char* response, CosmosAgent *)
+int32_t transmit_kiss(char *request, char* response, Agent *)
 {
 	int32_t iretn = 0;
 	unsigned char packet_buffer[600]; // w/c count will be 529 bytes (18+1+255*2)

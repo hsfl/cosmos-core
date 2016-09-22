@@ -46,21 +46,21 @@ bool printStatus;
 
 int myagent(), create_node();
 
-int32_t request_soh(char *request, char* response, CosmosAgent *);
-int32_t request_bootCount(char *request, char* response, CosmosAgent *);
+int32_t request_soh(char *request, char* response, Agent *);
+int32_t request_bootCount(char *request, char* response, Agent *);
 
 // disk
-int32_t request_diskSize(char *request, char *response, CosmosAgent *);
-int32_t request_diskUsed(char *request, char *response, CosmosAgent *);
-int32_t request_diskFree(char *request, char *response, CosmosAgent *);
-int32_t request_diskFreePercent (char*request, char *response, CosmosAgent *);
+int32_t request_diskSize(char *request, char *response, Agent *);
+int32_t request_diskUsed(char *request, char *response, Agent *);
+int32_t request_diskFree(char *request, char *response, Agent *);
+int32_t request_diskFreePercent (char*request, char *response, Agent *);
 
 // cpu
-int32_t request_cpuProcess(char*request, char *response, CosmosAgent *);
-int32_t request_load(char *request, char *response, CosmosAgent *);
-int32_t request_mem(char *request, char *response, CosmosAgent *);
-int32_t request_mempercent (char*request, char *response, CosmosAgent *);
-int32_t request_printStatus(char *request, char *response, CosmosAgent *);
+int32_t request_cpuProcess(char*request, char *response, Agent *);
+int32_t request_load(char *request, char *response, Agent *);
+int32_t request_mem(char *request, char *response, Agent *);
+int32_t request_mempercent (char*request, char *response, Agent *);
+int32_t request_printStatus(char *request, char *response, Agent *);
 
 
 std::string agentname  = "cpu";
@@ -77,7 +77,7 @@ DeviceDisk disk;
 DeviceCpu deviceCpu;
 DeviceCpu cpu;
 
-CosmosAgent *agent;
+Agent *agent;
 
 int main(int argc, char *argv[])
 {
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 
     // Add additional requests
 
-    agent = new CosmosAgent(NetworkType::UDP, nodename, agentname, 5.);
+    agent = new Agent(NetworkType::UDP, nodename, agentname, 5.);
 
     agent->add_request("soh",request_soh);
     agent->add_request("diskSize",request_diskSize,"","get disk size in GB");
@@ -199,7 +199,7 @@ int myagent()
 }
 
 
-int32_t request_soh(char *, char* response, CosmosAgent *)
+int32_t request_soh(char *, char* response, Agent *)
 {
     std::string rjstring;
     //	strcpy(response,json_of_list(rjstring,sohstring,agent->cinfo));
@@ -212,17 +212,17 @@ int32_t request_soh(char *, char* response, CosmosAgent *)
 
 // ----------------------------------------------
 // disk
-int32_t request_diskSize(char *, char* response, CosmosAgent *)
+int32_t request_diskSize(char *, char* response, Agent *)
 {
     return (sprintf(response, "%f", disk.SizeGiB));
 }
 
-int32_t request_diskUsed(char *, char* response, CosmosAgent *)
+int32_t request_diskUsed(char *, char* response, Agent *)
 {
     return (sprintf(response, "%f", disk.UsedGiB));
 }
 
-int32_t request_diskFree(char *, char* response, CosmosAgent *)
+int32_t request_diskFree(char *, char* response, Agent *)
 {
     // TODO: implement diskFree
     //return (sprintf(response, "%.1f", agent->cinfo->pdata.devspec.cpu[0]->gib));
@@ -232,7 +232,7 @@ int32_t request_diskFree(char *, char* response, CosmosAgent *)
 
 }
 
-int32_t request_diskFreePercent (char *, char *response, CosmosAgent *)
+int32_t request_diskFreePercent (char *, char *response, Agent *)
 {
     return (sprintf(response, "%f", disk.FreePercent));
 }
@@ -241,24 +241,24 @@ int32_t request_diskFreePercent (char *, char *response, CosmosAgent *)
 
 // ----------------------------------------------
 // cpu
-int32_t request_load (char *, char* response, CosmosAgent *)
+int32_t request_load (char *, char* response, Agent *)
 {
     return (sprintf(response, "%.2f", deviceCpu.load));
 }
 
-int32_t request_cpuProcess(char *, char *response, CosmosAgent *){
+int32_t request_cpuProcess(char *, char *response, Agent *){
 
     return (sprintf(response, "%f", deviceCpu.percentUseForCurrentProcess));
 }
 
 // ----------------------------------------------
 // memory
-int32_t request_mem(char *, char* response, CosmosAgent *)
+int32_t request_mem(char *, char* response, Agent *)
 {
     return (sprintf(response, "%f", deviceCpu.virtualMemoryUsed));
 }
 
-int32_t request_mempercent (char *, char *response, CosmosAgent *)
+int32_t request_mempercent (char *, char *response, Agent *)
 {
 
     return (sprintf(response, "%f", deviceCpu.getVirtualMemoryUsedPercent()));
@@ -267,7 +267,7 @@ int32_t request_mempercent (char *, char *response, CosmosAgent *)
 
 // ----------------------------------------------
 // boot count
-int32_t request_bootCount(char *, char* response, CosmosAgent *)
+int32_t request_bootCount(char *, char* response, Agent *)
 {
 
     std::ifstream ifs ("/hiakasat/nodes/hiakasat/boot.count");
@@ -286,7 +286,7 @@ int32_t request_bootCount(char *, char* response, CosmosAgent *)
 
 // ----------------------------------------------
 // debug info
-int32_t request_printStatus(char *request, char *, CosmosAgent *)
+int32_t request_printStatus(char *request, char *, Agent *)
 {
 
     sscanf(request,"%*s %d",&printStatus);

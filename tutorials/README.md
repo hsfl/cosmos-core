@@ -16,6 +16,9 @@ This section combines the tutorials and examples to help you get started with CO
 
 * @subpage tutorial-gs
 
+# COSMOS Commanding
+* @subpage tutorial-commanding
+
 # Generic Tutorials
 * Getting Started 1 : @subpage tutorial-getting-started-1
 * Getting Started 2 : @subpage tutorial-getting-started-2
