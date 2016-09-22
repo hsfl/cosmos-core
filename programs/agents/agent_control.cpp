@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
 				ttrack.name = nodes[i];
                 cosmosstruc *cinfo = json_create();
                 iretn = json_setup_node(ttrack.name, cinfo);
-                if (iretn == 0 && (currentmjd()-ttrack.target.loc.pos.eci.utc) < 10.)
+                if (iretn == 0 && (currentmjd()-cinfo->pdata.node.loc.pos.eci.utc) < 10.)
 				{
 					// Valid node. Initialize tracking and push it to list
                     ttrack.target.type = cinfo->pdata.node.type;

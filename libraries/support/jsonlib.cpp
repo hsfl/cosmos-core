@@ -35,6 +35,7 @@
 #include "jsonlib.h"
 #include "convertlib.h"
 #include "timelib.h"
+#include "ephemlib.h"
 
 #include <sys/stat.h>
 #include <iostream>
@@ -5791,6 +5792,27 @@ int32_t json_setup_node(std::string node, cosmosstruc *cinfo, bool create_flag)
     if (iretn < 0)
     {
         return iretn;
+    }
+
+    if (cinfo->pdata.node.type == NODE_TYPE_SUN)
+    {
+        jplpos(JPL_EARTH, JPL_SUN, currentmjd(cinfo->pdata.node.utcoffset), &cinfo->pdata.node.loc.pos.eci);
+        cinfo->pdata.node.loc.pos.eci.pass++;
+        pos_eci(&cinfo->pdata.node.loc);
+    }
+
+    if (cinfo->pdata.node.type == NODE_TYPE_MOON)
+    {
+        jplpos(JPL_EARTH, JPL_MOON, currentmjd(cinfo->pdata.node.utcoffset), &cinfo->pdata.node.loc.pos.eci);
+        cinfo->pdata.node.loc.pos.eci.pass++;
+        pos_eci(&cinfo->pdata.node.loc);
+    }
+
+    if (cinfo->pdata.node.type == NODE_TYPE_MARS)
+    {
+        jplpos(JPL_EARTH, JPL_MARS, currentmjd(cinfo->pdata.node.utcoffset), &cinfo->pdata.node.loc.pos.eci);
+        cinfo->pdata.node.loc.pos.eci.pass++;
+        pos_eci(&cinfo->pdata.node.loc);
     }
 
     return 0;
