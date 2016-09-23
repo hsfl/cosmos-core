@@ -27,91 +27,19 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file agent_antenna.cpp
-    \brief A Documented file.
+/*! \file
+    \brief Agent Antenna for Satellite Ground Station
 
-    Details.
+    This agent controls the ground station antenna (set elevatiom, azimuth, etc.).
+    To read more about how this agent operates go to \ref agent_antenna
 */
 
-/*! Agent Antenna for Satellite Ground Station
-*/
+/*! \ingroup agents
+ \defgroup agent_antenna Agent Antenna
+ This agent is listed in agent_antenna.cpp
 
-
-
-//! \ingroup agents
-//! \defgroup agent_antenna Agent Antenna
-//! This agent controls the ground station antenna (set elevatiom, azimuth, etc.)
-//!
-//! List of available requests:
-//! - \b help
-//!     - list of available requests for this agent
-//! - \b shutdown
-//!     - request to shutdown this agent
-//! - \b idle
-//!     - request to transition this agent to idle state
-//! - \b monitor
-//!     - request to transition this agent to monitor state
-//! - \b run
-//!     - request to transition this agent to run state
-//! - \b status
-//!     - request the status of this agent
-//! - \b getvalue {"name1","name2",...}
-//!     - get specified value(s) from agent
-//! - \b setvalue {"name1":value},{"name2":value},...}
-//!       - set specified value(s) in agent
-//! - \b listnames
-//!       - list the Namespace of the agent
-//! - \b forward nbytes packet
-//!       - Broadcast JSON packet to the default SEND port on local network
-//! - \b echo utc crc nbytes bytes
-//!       - echo array of nbytes bytes, sent at time utc, with CRC crc.
-//! - \b nodejson
-//!       - return description JSON for Node
-//! - \b statejson
-//!       - return description JSON for State vector
-//! - \b utcstartjson
-//!       - return description JSON for UTC Start time
-//! - \b piecesjson
-//!       - return description JSON for Pieces
-//! - \b devgenjson
-//!       - return description JSON for General Devices
-//! - \b devspecjson
-//!       - return description JSON for Specific Devices
-//! - \b portsjson
-//!       - return description JSON for Ports
-//! - \b targetsjson
-//!       - return description JSON for Targets
-//! - \b aliasesjson
-//!       - return description JSON for Aliases
-//! - \b track_azel track_azel (\ref request_track_azel)
-//!       - Supply next azimuth and elevation for tracking.
-//! - \b debug debug (\ref request_debug)
-//!       - Toggle debug messages.
-//! - \b get_offset get_offset (\ref request_get_offset)
-//!       - Return a report on the offset of the agent.
-//! - \b get_state get_state (\ref request_get_state)
-//!       - Return a report on the state of the agent.
-//! - \b jog jog {degrees aziumth} {degrees elevation} (\ref request_jog)
-//!       - Jog the antenna azimuth and elevation in degrees.
-//! - \b get_horizon get_horizon (\ref request_get_horizon)
-//!       - Return the antennas minimu elevation in degrees.
-//! - \b get_azel get_azel (\ref request_get_azel)
-//!       - Return the antenna azimuth and elevation in degrees.
-//! - \b set_azel set_azel aaa.a eee.e (\ref request_set_azel)
-//!       - Set the antenna azimuth and elevation in degrees.
-//! - \b enable enable (\ref request_enable)
-//!       - Enable antenna motion.
-//! - \b disable disable (\ref request_disable)
-//!       - Disable antenna motion.
-//! - \b pause pause (\ref request_pause)
-//!       - Stop where you are and make it your new target.
-//! - \b stop stop (\ref request_stop)
-//!       - Stop where you are, make it your new target AND disable antenna motion.
-//! - \b set_offset set_offset aaa.a eee.e (\ref request_set_offset)
-//!       - Set the antenna azimuth and elevation correction in degrees.
-//!
-
-/*! List of available requests:
+ @code
+List of available requests:
         help
                 list of available requests for this agent
         shutdown
@@ -178,7 +106,10 @@
                 Stop where you are, make it your new target AND disable antenna motion.
         set_offset set_offset aaa.a eee.e
                 Set the antenna azimuth and elevation correction in degrees.
+ @endcode
+
 */
+
 
 
 #include "configCosmos.h"
@@ -202,6 +133,12 @@
 int32_t request_debug(char *req, char* response, Agent *);
 int32_t request_get_offset(char *req, char* response, Agent *);
 int32_t request_get_state(char *req, char* response, Agent *);
+
+//! \brief request command to set the azimuth and elevation
+//! \param req
+//! \param response
+//! \param
+//! \return zero 0
 int32_t request_set_azel(char *req, char* response, Agent *);
 int32_t request_track_azel(char *req, char* response, Agent *);
 int32_t request_get_azel(char *req, char* response, Agent *);
