@@ -31,6 +31,7 @@
 #include "datalib.h"
 #include "jsonlib.h"
 #include "timelib.h"
+#include "command.h"
 
 int main(int argc, char *argv[])
 {
@@ -43,21 +44,30 @@ int main(int argc, char *argv[])
 	com.utc = 0;
 	com.utcexec = 0.;
 
+    //
+//    std::string condition = argv[4];
+//    double time_mjd = argv[3];
+//    double time_seconds = argv[3][1];
+//    std::string command_data = argv[2];
+//    std::string command_name = argv[1];
+
+
 	switch (argc)
 	{
-	case 6:
+    case 6: // set repeat flag
 		{
 			com.flag |= EVENT_FLAG_REPEAT;
 		}
-	case 5:
+    case 5: // set conditions
 		{
-			strcpy(com.condition, argv[4]);
+            strcpy(com.condition, argv[4]);
 			com.flag |= EVENT_FLAG_CONDITIONAL;
 		}
-	case 4:
+    case 4: // set time utc in mjd
 		{
 			switch (argv[3][0])
 			{
+            // add a few seconds to current time
 			case '+':
 				{
 					double seconds = atof(&argv[3][1]);
@@ -65,30 +75,56 @@ int main(int argc, char *argv[])
 					break;
 				}
 			default:
+                // use set time
 				{
-					com.utc = atof(argv[3]);
+                    com.utc = atof(argv[3]);
 					break;
 				}
 			}
 		}
-	case 3:
+    case 3: // set command data
 		{
-			strcpy(com.data, argv[2]);
+            //std::string command_data = argv[2];
+            strcpy(com.data, argv[2]);
 		}
-	case 2:
+    case 2: // set command name
 		{
+            //std::string command_name = argv[1];
 			strcpy(com.name, argv[1]);
 			break;
 		}
 	default:
 		{
-			printf("Usage: submit_command name command_string [time [condition [repeat_flag]]]\n");
+            printf("Usage: submit_command name command_string [time | +sec [condition [repeat_flag]]]\n");
 			break;
 		}
 	}
 
-	std::string jsp;
+//    std::string jsp;
 
-	json_out_commandevent(jsp, com);
-	printf("%s\n", jsp.c_str());
+//    json_out_commandevent(jsp, com);
+//    printf("%s\n", jsp.c_str());
+
+    // using new class
+    Command command;
+    command.generator(com.name, com.data, com.utc, com.condition, com.flag);
+
+    std::cout << command.command_string << std::endl;
+
+    //com.set_command(line);
+    Agent agent(NetworkType::UDP,"kauaicc_sim","test");
+    beatstruc agent_exec_soh = agent.find_agent("kauaicc_sim","execsoh");
+
+    using std::cout;
+    using std::endl;
+
+    if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
+        std::cout << "could not find agent execsoh" << std::endl;
+    }
+
+    std::string out;
+    agent.send_request(agent_exec_soh, "add_queue_entry "+ command.command_string, out, 0);
+
+    cout << "response: " << out << endl;
+
 }

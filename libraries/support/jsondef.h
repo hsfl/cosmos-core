@@ -768,6 +768,8 @@ struct beatstruc
     float memory;
     //! Agent heartbeat jitter [sec]
     double jitter;
+    //! Existence Flag (if beat exists then flag is set to true, false otherwise)
+    bool exists;
 };
 
 //! Agent control structure
@@ -805,6 +807,7 @@ struct agentstruc
 /*! This is the structure that holds each Event, along with associated
  * resources.
  */
+// TODO: rename longeventstruc to CosmosEvent
 struct longeventstruc
 {
     //! Time event is to start.
@@ -814,6 +817,7 @@ struct longeventstruc
     //! Node for event
     char node[COSMOS_MAX_NAME+1];
     //! Name of event.
+    // TODO: change char to std::string
     char name[COSMOS_MAX_NAME+1];
     //! User of event.
     char user[COSMOS_MAX_NAME+1];

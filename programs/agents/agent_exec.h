@@ -27,6 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: delete this file
 #ifndef AGENT_EXEC_H
 #define AGENT_EXEC_H
 
@@ -35,103 +36,9 @@
 */
 #include "configCosmos.h"
 #include "jsonlib.h"
+#include "command.h"
 
 
-// *************************************************************************
-// Class: command
-// *************************************************************************
-
-// Class to manage information about a single command event
-class command
-{
-private:
-    double	utc;
-    double	utcexec;
-    std::string name;
-    uint32_t type;
-    uint32_t flag;
-    std::string data;
-    std::string condition;
-
-public:
-    command();
-    void set_command(std::string line);
-    std::string get_json();
-    void set_utcexec()	{	utcexec = currentmjd(0.);	}
-    void set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	}
-    double get_utc()	{	return utc;	}
-    double get_utcexec()	{	return utcexec;	}
-    char*  get_data()	{	return (char*)data.c_str();	}
-    bool is_ready()		{	return (utc <= currentmjd(0.)); }
-    bool is_repeat()	{	return (flag & EVENT_FLAG_REPEAT);	}
-    bool is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
-    bool is_conditional()	{	return (flag & EVENT_FLAG_CONDITIONAL);	}
-    bool already_ran;
-
-    //seems to return nan from json_equation...  how to use?
-    bool condition_true(cosmosstruc *cinfo)
-    {
-        const char *cp = (char *)condition.c_str();
-        if (cinfo != nullptr)
-        {
-            double d = json_equation(cp, agent->cinfo->meta, agent->cinfo->pdata);
-            return d;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    const std::string get_name()
-    {
-        return name;
-    }
-    friend std::ostream& operator<<(std::ostream& out, const command& cmd);
-    friend bool operator==(const command& cmd1, const command& cmd2);
-};
-
-
-
-
-
-// *************************************************************************
-// Class: command_queue
-// *************************************************************************
-
-
-// Predicate function for comparing command objects, used by command_queue.sort()
-bool compare_command_times(command command1, command command2)
-{
-    return command1.get_utc()<command2.get_utc();
-}
-
-
-// Class to manage information about a list of commands
-class command_queue
-{
-private:
-    std::list<command> commands;
-
-public:
-    size_t get_size()
-    {
-        return commands.size();
-    }
-    command& get_command(int i)
-    {
-        std::list<command>::iterator ii = commands.begin();
-        std::advance(ii,i);
-        return *ii;
-    }
-    void load_commands();
-    void save_commands();
-    void run_commands();
-    void add_command(command& c);
-    int del_command(command& c);
-    void sort()	{ commands.sort(compare_command_times);	}
-    friend std::ostream& operator<<(std::ostream& out, command_queue& cmd);
-};
 
 
 #endif // AGENT_EXEC_H

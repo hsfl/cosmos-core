@@ -33,6 +33,7 @@
 #include "jsonlib.h"
 #include "convertlib.h"
 #include "datalib.h"
+#include "command_queue.h"
 
 #include <iostream>
 #include <iomanip>
@@ -60,11 +61,7 @@
 //! set to the actual time of execution.
 //!
 //! Usage: agent_exec node_name
-//#ifdef _MSC_BUILD
-//#include "dirent/dirent.h"
-//#else
-//#include <dirent.h>
-//#endif
+
 #include <list>
 #include <fstream>
 #include <sstream>
@@ -72,22 +69,19 @@
 //Agent *agent;
 Agent *agent;
 
-// Exuctive specfic declarations
-#include "agent_exec.h"
+// Executive specfic declarations
+//#include "agent_exec.h"
 
-#define MAXCOMMANDWORD 20
 
 std::string incoming_dir;
 std::string outgoing_dir;
 std::string temp_dir;
 
 std::string nodename;
-DIR *dir = NULL;
-struct dirent *dir_entry = NULL;
+
 double logdate_exec=0.;
 double newlogstride_exec = 900. / 86400.;
 double logstride_exec = 0.;
-bool queue_changed = false;
 
 int32_t request_get_queue_size(char *request, char* response, Agent *);
 int32_t request_get_queue_entry(char *request, char* response, Agent *);
@@ -217,11 +211,11 @@ int main(int argc, char *argv[])
 
 		//file is open for reading commands
 		std::string line;
-		command cmd;
+        Command cmd;
 
         while(std::getline(infile,line))
 		{
-			cmd.set_command(line);
+            cmd.set_command(line, agent);
 
 			std::cout<<cmd;
 
@@ -334,9 +328,9 @@ int main(int argc, char *argv[])
 		}
 
 		// Perform Executive specific functions
-		cmd_queue.load_commands();
-		cmd_queue.run_commands();
-		cmd_queue.save_commands();
+        cmd_queue.load_commands(incoming_dir, agent);
+        cmd_queue.run_commands(agent, nodename, logdate_exec);
+        cmd_queue.save_commands(temp_dir);
 
 		sleept = (int)((nextmjd-currentmjd())*86400000000.);
 		if (sleept < 0) sleept = 0;
@@ -402,13 +396,13 @@ int32_t request_get_queue_entry(char *request, char* response, Agent *)
 // Delete Queue Entry - by date and contents
 int32_t request_del_queue_entry(char *request, char* response, Agent *)
 {
-	command cmd;
+    Command cmd;
 	std::string line(request);
 
 	// remove "del_queue_entry " from request string
 	line.erase(0, 16);
 
-	cmd.set_command(line);
+    cmd.set_command(line, agent);
 
 	//delete command
 	int n = cmd_queue.del_command(cmd);
@@ -421,13 +415,13 @@ int32_t request_del_queue_entry(char *request, char* response, Agent *)
 // Add Queue Entry
 int32_t request_add_queue_entry(char *request, char* response, Agent *)
 {
-	command cmd;
+    Command cmd;
 	std::string line(request);
 
 	// remove "add_queue_entry " from request string
 	line.erase(0, 16);
 
-	cmd.set_command(line);
+    cmd.set_command(line, agent);
 
 	// add command
 	if(cmd.is_command())
@@ -573,301 +567,7 @@ void print_command()
 
 
 
-// *************************************************************************
-// Class: command
-// *************************************************************************
-
-// Copies the current command object to the output stream using JSON format
-std::ostream& operator<<(std::ostream& out, const command& cmd)
-{
-    out	<< std::setprecision(15) <<"{\"event_utc\":"<< cmd.utc
-		<< "}{\"event_utcexec\":" << cmd.utcexec
-		<< "}{\"event_name\":\"" << cmd.name
-		<< "\"}{\"event_type\":" << cmd.type
-		<< "}{\"event_flag\":" << cmd.flag
-		<< "}{\"event_data\":\"" << cmd.data
-		<< "\"}{\"event_condition\":\"" << cmd.condition
-		<< "\"}";
-	return out;
-}
-
-// Equality Operator for command objects
-bool operator==(const command& cmd1, const command& cmd2)
-{
-	return (	cmd1.name==cmd2.name &&
-				cmd1.utc==cmd2.utc &&
-				cmd1.utcexec==cmd2.utcexec &&
-				cmd1.type==cmd2.type &&
-				cmd1.flag==cmd2.flag &&
-				cmd1.data==cmd2.data &&
-				cmd1.condition==cmd2.condition);
-}
-
-
-// Default Constructor for command objects
-command::command() : utc(0), utcexec(0), name(""), type(0), flag(0), data(""), condition(""), already_ran(false)
-{
-}
-
-// Copies the command information stored in the local copy
-// agent->cinfo->pdata.event[0].l into the current command object
-void command::set_command(std::string line)
-{
-    json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
-    json_parse(line, agent->cinfo->meta, agent->cinfo->sdata);
-    utc = agent->cinfo->sdata.event[0].l.utc;
-    utcexec = agent->cinfo->sdata.event[0].l.utcexec;
-    name = agent->cinfo->sdata.event[0].l.name;
-    type = agent->cinfo->sdata.event[0].l.type;
-    flag = agent->cinfo->sdata.event[0].l.flag;
-    data = agent->cinfo->sdata.event[0].l.data;
-    condition = agent->cinfo->sdata.event[0].l.condition;
-}
-
-std::string command::get_json()
-{
-	std::string jsp;
-
-	longeventstruc event;
-
-	event.utc = utc;
-	event.utcexec = utcexec;
-	strcpy(event.name, name.c_str());
-	event.type = type;
-	event.flag = flag;
-	strcpy(event.data, data.c_str());
-	strcpy(event.condition, condition.c_str());
-
-	json_out_commandevent(jsp, event);
-	return jsp;
-}
 
 
 
-// *************************************************************************
-// Class: command_queue
-// *************************************************************************
 
-// Copies the current command_queue object to the output stream using JSON format
-std::ostream& operator<<(std::ostream& out, command_queue& cmdq)
-{
-	for(std::list<command>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
-		out << *ii << std::endl;
-	return out;
-}
-
-
-// Executes a command using fork().  For each command run, the time of
-// execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
-// and this updated command information is logged to the OUTPUT directory.
-void run_command(command& cmd)
-{
-	queue_changed = true;
-
-	// set time executed & actual flag
-	cmd.set_utcexec();
-	cmd.set_actual();
-
-	// execute command
-#if defined(COSMOS_WIN_OS)
-	char command_line[100];
-	strcpy(command_line, cmd.get_data());
-
-    STARTUPINFOA si;
-	PROCESS_INFORMATION pi;
-
-	ZeroMemory( &si, sizeof(si) );
-	si.cb = sizeof(si);
-	ZeroMemory( &pi, sizeof(pi) );
-
-        if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-	{
-		//		int32_t pid = pi.dwProcessId;
-		CloseHandle( pi.hProcess );
-		CloseHandle( pi.hThread );
-	}
-#else
-	signal(SIGCHLD, SIG_IGN);
-	int32_t pid = fork();
-	switch(pid)
-	{
-	case -1:
-		break;
-	case 0:
-		char *words[MAXCOMMANDWORD];
-		int devn;
-		string_parse(cmd.get_data(),words,MAXCOMMANDWORD);
-		std::string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
-		if (outpath.empty())
-		{
-			devn = open("/dev/null",O_RDWR);
-		}
-		else
-		{
-			devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
-		}
-		dup2(devn, STDIN_FILENO);
-		dup2(devn, STDOUT_FILENO);
-		dup2(devn, STDERR_FILENO);
-		close(devn);
-		execvp(words[0],&(words[0]));
-		fflush(stdout);
-		exit (0);
-		break;
-	}
-#endif
-
-	// log to outfile
-	//	outfile << cmd <<std::endl;
-	//	outfile.close();
-	// log to event file
-	log_write(nodename, "exec", logdate_exec, "event", cmd.get_json().c_str());
-}
-
-
-// Manages the logic of when to run commands in the command queue.
-void command_queue::run_commands()
-{
-	for(std::list<command>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
-	{
-		if (ii->is_ready())
-		{
-			if (ii->is_conditional())
-			{
-                if(ii->condition_true(agent->cinfo))
-				{
-					if(ii->is_repeat())
-					{
-						if(!ii->already_ran)	{
-							run_command(*ii);
-							ii->already_ran = true;
-						}
-					}
-					else // non-repeatable
-					{
-						run_command(*ii);
-						commands.erase(ii--);
-					}
-				} // condition is false
-				else
-				{
-					ii->already_ran = false;
-				}
-			}
-			else  // non-conditional
-			{
-				run_command(*ii);
-				commands.erase(ii--);
-			}
-		}
-	}
-	return;
-}
-
-// Saves commands to .queue file located in the temp directory
-// Commands are taken from the global command queue
-// Command queue is sorted by utc after loading
-void command_queue::save_commands()
-{
-	if (!queue_changed)
-	{
-		return;
-	}
-	queue_changed = false;
-
-	// Open the outgoing file
-	FILE *fd = fopen((temp_dir+".queue").c_str(), "w");
-	if (fd != NULL)
-	{
-		for (command cmd: commands)
-		{
-			fprintf(fd, "%s\n", cmd.get_json().c_str());
-		}
-		fclose(fd);
-	}
-}
-
-// Loads new commands from *.command files located in the incoming directory
-// Commands are loaded into the global command_queue object (cmd_queue),
-// *.command files are removed, and the command list is sorted by utc.
-void command_queue::load_commands()
-{
-
-	// open the incoming directory
-	if ((dir = opendir((char *)incoming_dir.c_str())) == NULL)
-	{
-		std::cout<<"error: unable to open node's incoming directory <"<<incoming_dir<<"> not found"<<std::endl;
-        return;
-	}
-
-	// cycle through all the file names in the incoming directory
-	while((dir_entry = readdir(dir)) != NULL)
-	{
-		std::string filename = dir_entry->d_name;
-
-		if (filename.find(".command") != std::string::npos)
-		{
-
-			std::string infilepath = incoming_dir + filename;
-            std::ifstream infile(infilepath.c_str());
-			if(!infile.is_open())
-			{
-				std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
-				continue;
-			}
-
-			//file is open for reading commands
-			std::string line;
-			command cmd;
-
-			while(getline(infile,line))
-			{
-
-				cmd.set_command(line);
-
-				std::cout<<cmd;
-
-				if(cmd.is_command())
-					cmd_queue.add_command(cmd);
-				else
-					std::cout<<"Not a command!"<<std::endl;
-			}
-			infile.close();
-
-			//remove the .command file from incoming directory
-			if(remove(infilepath.c_str()))	{
-				std::cout<<"unable to delete file <"<<filename<<">"<<std::endl;
-				continue;
-			}
-
-			std::cout<<"The size of the command queue is: "<<cmd_queue.get_size()<<std::endl;
-		}
-	}
-
-	cmd_queue.sort();
-	closedir(dir);
-
-	return;
-}
-
-// Remove command object from the command queue, uses command == operator)
-int command_queue::del_command(command& c)
-{
-	int n = 0;
-	for(std::list<command>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
-	{
-		if(c==*ii)
-		{
-			commands.erase(ii--);
-			n++;
-		}
-	}
-	queue_changed = true;
-	return n;
-}
-
-void command_queue::add_command(command& c)
-{
-	commands.push_back(c);
-	queue_changed = true;
-}
