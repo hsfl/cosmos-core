@@ -68,9 +68,9 @@ public:
         return *ii;
     }
     void load_commands(std::string incoming_dir, Agent *agent);
-    void save_commands(std::__1::string temp_dir);
-    void run_command(Command &cmd, std::__1::string nodename, double logdate_exec);
-    void run_commands(Agent *agent, std::__1::string nodename, double logdate_exec);
+    void save_commands(std::string temp_dir);
+    void run_command(Command &cmd, std::string nodename, double logdate_exec);
+    void run_commands(Agent *agent, std::string nodename, double logdate_exec);
     void add_command(Command& c);
     int del_command(Command& c);
     void sort()	{ commands.sort([](Command & c1, Command & c2) { return c1.get_utc() < c2.get_utc(); });	}
