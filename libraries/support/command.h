@@ -42,7 +42,7 @@
 
 #include "configCosmos.h"
 #include "jsonlib.h"
-#include "agent/agentclass.h"
+#include "agent/agentclass.h" // TODO: remove dependency
 
 #define MAXCOMMANDWORD 20
 

@@ -32,6 +32,7 @@
 #include "jsonlib.h"
 #include "timelib.h"
 #include "command.h"
+#include "scheduler.h"
 
 int main(int argc, char *argv[])
 {
@@ -105,26 +106,8 @@ int main(int argc, char *argv[])
 //    json_out_commandevent(jsp, com);
 //    printf("%s\n", jsp.c_str());
 
-    // using new class
-    Command command;
-    command.generator(com.name, com.data, com.utc, com.condition, com.flag);
+    Scheduler scheduler("kauaicc_sim");
+    scheduler.addCommand(com.name,com.data, com.utc, com.condition, com.flag);
 
-    std::cout << command.command_string << std::endl;
-
-    //com.set_command(line);
-    Agent agent(NetworkType::UDP,"kauaicc_sim","test");
-    beatstruc agent_exec_soh = agent.find_agent("kauaicc_sim","execsoh");
-
-    using std::cout;
-    using std::endl;
-
-    if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
-        std::cout << "could not find agent execsoh" << std::endl;
-    }
-
-    std::string out;
-    agent.send_request(agent_exec_soh, "add_queue_entry "+ command.command_string, out, 0);
-
-    cout << "response: " << out << endl;
 
 }
