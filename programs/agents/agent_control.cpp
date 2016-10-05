@@ -27,12 +27,111 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! Agent Control for Satellite Ground Station
+/*! \file
+    \brief Agent Control for Satellite Ground Station
+
+    This is the main agent that controls the ground station. It it the channel for the T&C and it is also responsible for the \ref agent_antenna and \ref agent_radio
+
 */
 
-//! \ingroup agents
-//! \defgroup agent_control Agent Control
-//! This is the main agent that controls the ground station. It it the channel for the T&C and it is also responsible for the \ref agent_antenna and \ref agent_radio
+/*! \ingroup agents
+    \defgroup agent_control Agent Control
+    This agent is listed in agent_control.cpp
+
+@code
+List of available requests:
+
+        help
+                list of available requests for this agent
+
+        shutdown
+                request to shutdown this agent
+
+        idle
+                request to transition this agent to idle state
+
+        monitor
+                request to transition this agent to monitor state
+
+        run
+                request to transition this agent to run state
+
+        status
+                request the status of this agent
+
+        getvalue {"name1","name2",...}
+                get specified value(s) from agent
+
+        setvalue {"name1":value},{"name2":value},...}
+                set specified value(s) in agent
+
+        listnames
+                list the Namespace of the agent
+
+        forward nbytes packet
+                Broadcast JSON packet to the default SEND port on local network
+
+        echo utc crc nbytes bytes
+                echo array of nbytes bytes, sent at time utc, with CRC crc.
+
+        nodejson
+                return description JSON for Node
+
+        statejson
+                return description JSON for State vector
+
+        utcstartjson
+                return description JSON for UTC Start time
+
+        piecesjson
+                return description JSON for Pieces
+
+        devgenjson
+                return description JSON for General Devices
+
+        devspecjson
+                return description JSON for Specific Devices
+
+        portsjson
+                return description JSON for Ports
+
+        targetsjson
+                return description JSON for Targets
+
+        aliasesjson
+                return description JSON for Aliases
+
+        get_state
+                returns current state
+
+        list_tracks
+                returns the list of possible tracks
+
+        set_track
+                sets the desired track
+
+        get_track
+                returns current setting for desired track
+
+        list_radios
+                returns the list of possible radios, mine and others
+
+        match_radio
+                matches one of my radios with one of other radios
+
+        unmatch_radio
+                matches one of my radios with one of other radios
+
+        list_antennas
+                returns the list of my antennas
+
+        get_highest
+                returns the highes trackable object
+
+        debug
+                TUrn debugging on or off.
+@endcode
+*/
 
 #include "configCosmos.h"
 #include "agent/agentclass.h"

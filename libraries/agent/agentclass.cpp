@@ -473,11 +473,13 @@ beatstruc Agent::find_agent(std::string node, std::string proc)
     {
         if (it.node == node && it.proc == proc)
         {
+            it.exists = true;
             return it;
         }
     }
-    beatstruc none;
-    return none;
+    beatstruc nobeat;
+    nobeat.exists = false;
+    return nobeat;
 }
 
 //! Find single server

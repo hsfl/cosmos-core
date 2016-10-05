@@ -8,7 +8,6 @@ build/windows*
 build/cygwin/*
 build/centos*
 CMakeLists.txt.*
-/install/
 documentation/doxygen/latex/
 documentation/doxygen/html/
 documentation/doxygen/man/

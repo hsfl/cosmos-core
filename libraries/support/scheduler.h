@@ -27,18 +27,38 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// TODO: delete this file
-#ifndef AGENT_EXEC_H
-#define AGENT_EXEC_H
+#ifndef COSMOS_SCHEDULER_QUEUE_H
+#define COSMOS_SCHEDULER_QUEUE_H
 
-/*! \file agent_exec.h
-* \brief Executive Agent header file
+/*! \file scheduler.h
+*	\brief Scheduler Class
 */
+
+//! \ingroup support
+//! \defgroup agentlib Agent Server and Client Library
+//! %Agent Server and Client.
+//!
+
 #include "configCosmos.h"
-#include "jsonlib.h"
 #include "command.h"
 
+namespace Cosmos {
 
+// Class
+class Scheduler
+{
+private:
+    Agent *agent;
+    beatstruc agent_exec_soh;
+public:
 
+    Scheduler(std::string node_name);
+    ~Scheduler();
 
-#endif // AGENT_EXEC_H
+    void addCommand(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
+
+}; // end of Command Queue Class
+
+} // end of namepsace Cosmos
+
+#endif // COSMOS_SCHEDULER_QUEUE_H

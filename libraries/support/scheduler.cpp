@@ -27,18 +27,52 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// TODO: delete this file
-#ifndef AGENT_EXEC_H
-#define AGENT_EXEC_H
-
-/*! \file agent_exec.h
-* \brief Executive Agent header file
+/*! \file scheduler.cpp
+    \brief Agent support functions
 */
-#include "configCosmos.h"
-#include "jsonlib.h"
-#include "command.h"
+
+#include "scheduler.h"
 
 
+namespace Cosmos {
+
+Scheduler::Scheduler(std::string node_name) {
+
+    agent = new Agent(NetworkType::UDP, node_name, "test");
+    agent_exec_soh = agent->find_agent("kauaicc_sim","execsoh");
+
+}
+
+Scheduler::~Scheduler() {
+
+}
+
+void Scheduler::addCommand(std::string name,
+                           std::string data,
+                           double utc,
+                           std::string condition,
+                           uint32_t flag) {
+
+    Command command;
+    command.generator(name, data, utc, condition, flag);
+
+    //com.set_command(line);
+
+    using std::cout;
+    using std::endl;
+
+    if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
+        std::cout << "could not find agent execsoh" << std::endl;
+    }
+
+    std::string out;
+    agent->send_request(agent_exec_soh, "add_queue_entry "+ command.command_string, out, 0);
+
+    cout << "response: " << out << endl;
+
+}
 
 
-#endif // AGENT_EXEC_H
+} // end namespace Cosmos
+
+//! @}
