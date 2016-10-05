@@ -106,8 +106,8 @@ int main(int argc, char *argv[])
 //    json_out_commandevent(jsp, com);
 //    printf("%s\n", jsp.c_str());
 
-    Scheduler scheduler("kauaicc_sim");
-    scheduler.addCommand(com.name,com.data, com.utc, com.condition, com.flag);
+//    Scheduler scheduler("kauaicc_sim");
+//    scheduler.addCommand(com.name,com.data, com.utc, com.condition, com.flag);
 
 
 }

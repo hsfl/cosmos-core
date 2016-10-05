@@ -52,11 +52,11 @@ private:
     beatstruc agent_exec_soh;
 public:
 
-    Scheduler(std::__1::string node_name);
+    Scheduler(std::string node_name);
     ~Scheduler();
 
-
     void addCommand(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
+
 }; // end of Command Queue Class
 
 } // end of namepsace Cosmos
