@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 		}
 	default:
 		{
-			printf("Usage: submit_command name command_string [time [condition [repeat_flag]]]\n");
+            printf("Usage: submit_command name command_string [utc|+seconds [condition [repeat_flag]]]\n");
 			break;
 		}
 	}
