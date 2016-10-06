@@ -46,40 +46,35 @@
 
 namespace Cosmos {
 
-
-
 // Class to manage information about a list of commands
 class command_queue
 {
 private:
-    std::list<Command> commands;
-    bool queue_changed = false;
+	std::list<Command> commands;
+	bool queue_changed = false;
 
 public:
-    size_t get_size()
-    {
-        return commands.size();
-    }
+	size_t get_size() { return commands.size(); }
 
-    Command& get_command(int i)
-    {
-        std::list<Command>::iterator ii = commands.begin();
-        std::advance(ii,i);
-        return *ii;
-    }
-    void load_commands(string incoming_dir, Agent *agent);
-    void save_commands(string temp_dir);
-    void run_command(Command &cmd, string nodename, double logdate_exec);
-    void run_commands(Agent *agent, string nodename, double logdate_exec);
-    void add_command(Command& c);
-    int del_command(Command& c);
-    void sort()	{ commands.sort([](Command & c1, Command & c2) { return c1.get_utc() < c2.get_utc(); });	}
-    friend std::ostream& operator<<(std::ostream& out, command_queue& cmd);
+	Command& get_command(int i)
+	{
+		std::list<Command>::iterator ii = commands.begin();
+		std::advance(ii,i);
+		return *ii;
+	}
+	void load_commands(string incoming_dir, Agent *agent);
+	void save_commands(string temp_dir);
+	void run_command(Command &cmd, string nodename, double logdate_exec);
+	void run_commands(Agent *agent, string nodename, double logdate_exec);
+	void add_command(Command& c);
+	int del_command(Command& c);
+	void sort()	{ commands.sort([](Command & c1, Command & c2) { return c1.get_utc() < c2.get_utc(); });	}
+	friend std::ostream& operator<<(std::ostream& out, command_queue& cmd);
 
-//    bool compare_command_times(Command command1, Command command2);
-//    string incoming_dir;
-//    string outgoing_dir;
-//    string temp_dir;
+//	bool compare_command_times(Command command1, Command command2);
+//	string incoming_dir;
+//	string outgoing_dir;
+//	string temp_dir;
 
 }; // end of Command Queue Class
 
