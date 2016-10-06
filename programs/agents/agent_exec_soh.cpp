@@ -164,12 +164,12 @@ int main(int argc, char *argv[])
 		std::cout<<"unable to create directory: <"<<(nodename+"/incoming")+"/exec"<<"> ... exiting."<<std::endl;
 		exit(1);
 	}
-	outgoing_dir = data_base_path(nodename, "outgoing", "exec") + "/";
-	if (outgoing_dir.empty())
-	{
-		std::cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<std::endl;
-		exit(1);
-	}
+//	outgoing_dir = data_base_path(nodename, "outgoing", "exec") + "/";
+//	if (outgoing_dir.empty())
+//	{
+//		std::cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<std::endl;
+//		exit(1);
+//	}
 	outgoing_dir = data_base_path(nodename, "outgoing", "exec") + "/";
 	if (outgoing_dir.empty())
 	{
