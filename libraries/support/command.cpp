@@ -46,10 +46,10 @@ Command::~Command()
 
 }
 
-std::string Command::generator(std::string name,
-                        std::string data,
+string Command::generator(string name,
+                        string data,
                         double utc,
-                        std::string condition,
+                        string condition,
                         uint32_t flag){
 
     longeventstruc command;
@@ -75,7 +75,7 @@ std::string Command::generator(std::string name,
     // TODO: command.condition = condition;
     command.flag = flag;
 
-    //std::string jsp;
+    //string jsp;
 
     json_out_commandevent(command_string, command);
 
@@ -120,7 +120,7 @@ bool operator==(const Command& cmd1, const Command& cmd2)
 
 // Copies the command information stored in the local copy
 // agent->cinfo->pdata.event[0].l into the current command object
-void Command::set_command(std::string line, Agent *agent)
+void Command::set_command(string line, Agent *agent)
 {
     json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
     json_parse(line, agent->cinfo->meta, agent->cinfo->sdata);
@@ -133,9 +133,9 @@ void Command::set_command(std::string line, Agent *agent)
     condition = agent->cinfo->sdata.event[0].l.condition;
 }
 
-std::string Command::get_json()
+string Command::get_json()
 {
-    std::string jsp;
+    string jsp;
 
     longeventstruc event;
 

@@ -44,6 +44,8 @@
 #include "jsonlib.h"
 #include "agent/agentclass.h" // TODO: remove dependency
 
+using std::string;
+
 #define MAXCOMMANDWORD 20
 
 namespace Cosmos {
@@ -58,18 +60,18 @@ class Command
 private:
     double	utc;
     double	utcexec;
-    std::string name;
+    string name;
     uint32_t type;
     uint32_t flag;
-    std::string data;
-    std::string condition;
+    string data;
+    string condition;
 
 public:
     Command();
     ~Command();
 
-    void set_command(std::string line, Agent *agent);
-    std::string get_json();
+    void set_command(string line, Agent *agent);
+    string get_json();
     void set_utcexec()	{	utcexec = currentmjd(0.);	}
     void set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	}
     double get_utc()	{	return utc;	}
@@ -81,12 +83,12 @@ public:
     bool is_conditional()	{	return (flag & EVENT_FLAG_CONDITIONAL);	}
     bool already_ran;
 
-    std::string generator(std::string name,
-                   std::string data,
+    string generator(string name,
+                   string data,
                    double utc,
-                   std::string condition,
+                   string condition,
                    uint32_t flag);
-    std::string command_string;
+    string command_string;
 
     //seems to return nan from json_equation...  how to use?
     bool condition_true(cosmosstruc *cinfo)
@@ -105,7 +107,7 @@ public:
         }
     }
 
-    const std::string get_name()
+    const string get_name()
     {
         return name;
     }
