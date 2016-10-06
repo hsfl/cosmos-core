@@ -28,7 +28,7 @@
 ********************************************************************/
 
 /*! \file agentclass.cpp
-    \brief Agent support functions
+	\brief Agent support functions
 */
 
 #include "command.h"
@@ -36,54 +36,58 @@
 namespace Cosmos {
 
 
-// Default Constructor for command objects
-Command::Command() : utc(0), utcexec(0), name(""), type(0), flag(0), data(""), condition(""), already_ran(false)
-{
-}
+	// Default Constructor for command objects
+	Command::Command() :
+		utc(0),
+		utcexec(0),
+		name(""),
+		type(0),
+		flag(0),
+		data(""),
+		condition(""),
+		already_ran(false)
+	{}
 
-Command::~Command()
-{
+	Command::~Command() {}
 
-}
+	string Command::generator(
+		string name,
+		string data,
+		double utc,
+		string condition,
+		uint32_t flag
+	) {
 
-string Command::generator(string name,
-                        string data,
-                        double utc,
-                        string condition,
-                        uint32_t flag){
+		longeventstruc command;
 
-    longeventstruc command;
+		command.type = EVENT_TYPE_COMMAND;
+		command.flag = 0;
+		command.data[0] = 0;
+		command.condition[0] = 0;
+		command.utc = 0;
+		command.utcexec = 0.;
 
-    command.type = EVENT_TYPE_COMMAND;
-    command.flag = 0;
-    command.data[0] = 0;
-    command.condition[0] = 0;
-    command.utc = 0;
-    command.utcexec = 0.;
+		// submit_command name command_string [time [condition [repeat_flag]]]
 
-    // submit_command name command_string [time [condition [repeat_flag]]]
+		strcpy(command.name, name.c_str());
+		// TODO: command.name = name.c_str();
 
-    strcpy(command.name, name.c_str());
-    // TODO: command.name = name.c_str();
+		strcpy(command.data, data.c_str());
+		// TODO: command.data = data;
 
-    strcpy(command.data, data.c_str());
-    // TODO: command.data = data;
+		command.utc  = utc;
 
-    command.utc  = utc;
+		strcpy(command.condition, condition.c_str());
+		// TODO: command.condition = condition;
+		command.flag = flag;
 
-    strcpy(command.condition, condition.c_str());
-    // TODO: command.condition = condition;
-    command.flag = flag;
+		//string jsp;
 
-    //string jsp;
+		json_out_commandevent(command_string, command);
 
-    json_out_commandevent(command_string, command);
-
-    return command_string;
-    //printf("%s\n", jsp.c_str());
-
-}
-
+		return command_string;
+		//printf("%s\n", jsp.c_str());
+	}
 
 // *************************************************************************
 // Class: command
@@ -92,27 +96,27 @@ string Command::generator(string name,
 // Copies the current command object to the output stream using JSON format
 std::ostream& operator<<(std::ostream& out, const Command& cmd)
 {
-    out	<< std::setprecision(15) <<"{\"event_utc\":"<< cmd.utc
-        << "}{\"event_utcexec\":" << cmd.utcexec
-        << "}{\"event_name\":\"" << cmd.name
-        << "\"}{\"event_type\":" << cmd.type
-        << "}{\"event_flag\":" << cmd.flag
-        << "}{\"event_data\":\"" << cmd.data
-        << "\"}{\"event_condition\":\"" << cmd.condition
-        << "\"}";
-    return out;
+	out	<< std::setprecision(15) <<"{\"event_utc\":"<< cmd.utc
+		<< "}{\"event_utcexec\":" << cmd.utcexec
+		<< "}{\"event_name\":\"" << cmd.name
+		<< "\"}{\"event_type\":" << cmd.type
+		<< "}{\"event_flag\":" << cmd.flag
+		<< "}{\"event_data\":\"" << cmd.data
+		<< "\"}{\"event_condition\":\"" << cmd.condition
+		<< "\"}";
+	return out;
 }
 
 // Equality Operator for command objects
 bool operator==(const Command& cmd1, const Command& cmd2)
 {
-    return (	cmd1.name==cmd2.name &&
-                cmd1.utc==cmd2.utc &&
-                cmd1.utcexec==cmd2.utcexec &&
-                cmd1.type==cmd2.type &&
-                cmd1.flag==cmd2.flag &&
-                cmd1.data==cmd2.data &&
-                cmd1.condition==cmd2.condition);
+	return (	cmd1.name==cmd2.name &&
+				cmd1.utc==cmd2.utc &&
+				cmd1.utcexec==cmd2.utcexec &&
+				cmd1.type==cmd2.type &&
+				cmd1.flag==cmd2.flag &&
+				cmd1.data==cmd2.data &&
+				cmd1.condition==cmd2.condition);
 }
 
 
@@ -122,36 +126,34 @@ bool operator==(const Command& cmd1, const Command& cmd2)
 // agent->cinfo->pdata.event[0].l into the current command object
 void Command::set_command(string line, Agent *agent)
 {
-    json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
-    json_parse(line, agent->cinfo->meta, agent->cinfo->sdata);
-    utc = agent->cinfo->sdata.event[0].l.utc;
-    utcexec = agent->cinfo->sdata.event[0].l.utcexec;
-    name = agent->cinfo->sdata.event[0].l.name;
-    type = agent->cinfo->sdata.event[0].l.type;
-    flag = agent->cinfo->sdata.event[0].l.flag;
-    data = agent->cinfo->sdata.event[0].l.data;
-    condition = agent->cinfo->sdata.event[0].l.condition;
+	json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
+	json_parse(line, agent->cinfo->meta, agent->cinfo->sdata);
+	utc = agent->cinfo->sdata.event[0].l.utc;
+	utcexec = agent->cinfo->sdata.event[0].l.utcexec;
+	name = agent->cinfo->sdata.event[0].l.name;
+	type = agent->cinfo->sdata.event[0].l.type;
+	flag = agent->cinfo->sdata.event[0].l.flag;
+	data = agent->cinfo->sdata.event[0].l.data;
+	condition = agent->cinfo->sdata.event[0].l.condition;
 }
 
 string Command::get_json()
 {
-    string jsp;
+	string jsp;
 
-    longeventstruc event;
+	longeventstruc event;
 
-    event.utc = utc;
-    event.utcexec = utcexec;
-    strcpy(event.name, name.c_str());
-    event.type = type;
-    event.flag = flag;
-    strcpy(event.data, data.c_str());
-    strcpy(event.condition, condition.c_str());
+	event.utc = utc;
+	event.utcexec = utcexec;
+	strcpy(event.name, name.c_str());
+	event.type = type;
+	event.flag = flag;
+	strcpy(event.data, data.c_str());
+	strcpy(event.condition, condition.c_str());
 
-    json_out_commandevent(jsp, event);
-    return jsp;
+	json_out_commandevent(jsp, event);
+	return jsp;
 }
-
-
 
 } // end namespace Cosmos
 

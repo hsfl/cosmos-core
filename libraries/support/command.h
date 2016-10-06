@@ -55,67 +55,65 @@ namespace Cosmos {
 // *************************************************************************
 
 // Class to manage information about a single command event
-class Command
-{
+class Command {
+
 private:
-    double	utc;
-    double	utcexec;
-    string name;
-    uint32_t type;
-    uint32_t flag;
-    string data;
-    string condition;
+	double		utc;
+	double		utcexec;
+	string		name;
+	uint32_t	type;
+	uint32_t	flag;
+	string		data;
+	string		condition;
 
 public:
-    Command();
-    ~Command();
+	Command();
+	~Command();
 
-    void set_command(string line, Agent *agent);
-    string get_json();
-    void set_utcexec()	{	utcexec = currentmjd(0.);	}
-    void set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	}
-    double get_utc()	{	return utc;	}
-    double get_utcexec()	{	return utcexec;	}
-    char*  get_data()	{	return (char*)data.c_str();	}
-    bool is_ready()		{	return (utc <= currentmjd(0.)); }
-    bool is_repeat()	{	return (flag & EVENT_FLAG_REPEAT);	}
-    bool is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
-    bool is_conditional()	{	return (flag & EVENT_FLAG_CONDITIONAL);	}
-    bool already_ran;
+	void	set_command(string line, Agent *agent);
+	string	get_json();
+	void	set_utcexec()	{	utcexec = currentmjd(0.);	}
+	void	set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	}
+	double	get_utc()		{	return utc;	}
+	double	get_utcexec()	{	return utcexec;	}
+	char*	get_data()		{	return (char*)data.c_str();	}
+	bool	is_ready()		{	return (utc <= currentmjd(0.)); }
+	bool	is_repeat()		{	return (flag & EVENT_FLAG_REPEAT);	}
+	bool	is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
+	bool	is_conditional(){	return (flag & EVENT_FLAG_CONDITIONAL);	}
+	bool	already_ran;
 
-    string generator(string name,
-                   string data,
-                   double utc,
-                   string condition,
-                   uint32_t flag);
-    string command_string;
+	string generator(
+		string name,
+		string data,
+		double utc,
+		string condition,
+		uint32_t flag
+	);
 
-    //seems to return nan from json_equation...  how to use?
-    bool condition_true(cosmosstruc *cinfo)
-    {
-        const char *cp = (char *)condition.c_str();
-        if (cinfo != nullptr)
-        {
-            // TODO: remove from this class, to keep it modular
-//            double d = json_equation(cp, agent->cinfo->meta, agent->cinfo->pdata);
-            double d;
-            return d;
-        }
-        else
-        {
-            return false;
-        }
-    }
+	string command_string;
 
-    const string get_name()
-    {
-        return name;
-    }
-    friend std::ostream& operator<<(std::ostream& out, const Command& cmd);
-    friend bool operator==(const Command& cmd1, const Command& cmd2);
+	// JIMNOTE: this function (condition_true)  needs a look at....
 
+	//seems to return nan from json_equation...  how to use?
+	bool condition_true(cosmosstruc *cinfo) {
+		const char *cp = (char *)condition.c_str();
+		if (cinfo != nullptr) {
+			// TODO: remove from this class, to keep it modular
+//			double d = json_equation(cp, agent->cinfo->meta, agent->cinfo->pdata);
+			double d;
+			return d;
+		} else {
+			return false;
+		}
+	}
 
-}; // end of Commanding Class
+	const string get_name() { return name; }
+
+	friend std::ostream& operator<<(std::ostream& out, const Command& cmd);
+	friend bool operator==(const Command& cmd1, const Command& cmd2);
+
+}; // end of class Command
 
 } // end of namepsace Cosmos
 
