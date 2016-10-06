@@ -67,19 +67,19 @@ public:
         std::advance(ii,i);
         return *ii;
     }
-    void load_commands(std::string incoming_dir, Agent *agent);
-    void save_commands(std::string temp_dir);
-    void run_command(Command &cmd, std::string nodename, double logdate_exec);
-    void run_commands(Agent *agent, std::string nodename, double logdate_exec);
+    void load_commands(string incoming_dir, Agent *agent);
+    void save_commands(string temp_dir);
+    void run_command(Command &cmd, string nodename, double logdate_exec);
+    void run_commands(Agent *agent, string nodename, double logdate_exec);
     void add_command(Command& c);
     int del_command(Command& c);
     void sort()	{ commands.sort([](Command & c1, Command & c2) { return c1.get_utc() < c2.get_utc(); });	}
     friend std::ostream& operator<<(std::ostream& out, command_queue& cmd);
 
 //    bool compare_command_times(Command command1, Command command2);
-//    std::string incoming_dir;
-//    std::string outgoing_dir;
-//    std::string temp_dir;
+//    string incoming_dir;
+//    string outgoing_dir;
+//    string temp_dir;
 
 }; // end of Command Queue Class
 

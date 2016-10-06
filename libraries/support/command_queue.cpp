@@ -55,7 +55,7 @@ namespace Cosmos {
 // Executes a command using fork().  For each command run, the time of
 // execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
 // and this updated command information is logged to the OUTPUT directory.
-void command_queue::run_command(Command& cmd, std::string nodename, double logdate_exec)
+void command_queue::run_command(Command& cmd, string nodename, double logdate_exec)
 {
     queue_changed = true;
 
@@ -92,7 +92,7 @@ void command_queue::run_command(Command& cmd, std::string nodename, double logda
         char *words[MAXCOMMANDWORD];
         int devn;
         string_parse(cmd.get_data(),words,MAXCOMMANDWORD);
-        std::string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
+        string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
         if (outpath.empty())
         {
             devn = open("/dev/null",O_RDWR);
@@ -121,7 +121,7 @@ void command_queue::run_command(Command& cmd, std::string nodename, double logda
 
 
 // Manages the logic of when to run commands in the command queue.
-void command_queue::run_commands(Agent *agent, std::string nodename, double logdate_exec) // TODO: remove dependency to pointer to agent
+void command_queue::run_commands(Agent *agent, string nodename, double logdate_exec) // TODO: remove dependency to pointer to agent
 {
     for(std::list<Command>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
     {
@@ -162,7 +162,7 @@ void command_queue::run_commands(Agent *agent, std::string nodename, double logd
 // Saves commands to .queue file located in the temp directory
 // Commands are taken from the global command queue
 // Command queue is sorted by utc after loading
-void command_queue::save_commands(std::string temp_dir)
+void command_queue::save_commands(string temp_dir)
 {
     if (!queue_changed)
     {
@@ -185,7 +185,7 @@ void command_queue::save_commands(std::string temp_dir)
 // Loads new commands from *.command files located in the incoming directory
 // Commands are loaded into the global command_queue object (cmd_queue),
 // *.command files are removed, and the command list is sorted by utc.
-void command_queue::load_commands(std::string incoming_dir, Agent *agent) // TODO: change arguments so that we don't need to pass the separate directories
+void command_queue::load_commands(string incoming_dir, Agent *agent) // TODO: change arguments so that we don't need to pass the separate directories
 {
     DIR *dir = NULL;
     struct dirent *dir_entry = NULL;
@@ -200,12 +200,12 @@ void command_queue::load_commands(std::string incoming_dir, Agent *agent) // TOD
     // cycle through all the file names in the incoming directory
     while((dir_entry = readdir(dir)) != NULL)
     {
-        std::string filename = dir_entry->d_name;
+        string filename = dir_entry->d_name;
 
-        if (filename.find(".command") != std::string::npos)
+        if (filename.find(".command") != string::npos)
         {
 
-            std::string infilepath = incoming_dir + filename;
+            string infilepath = incoming_dir + filename;
             std::ifstream infile(infilepath.c_str());
             if(!infile.is_open())
             {
@@ -214,7 +214,7 @@ void command_queue::load_commands(std::string incoming_dir, Agent *agent) // TOD
             }
 
             //file is open for reading commands
-            std::string line;
+            string line;
             Command cmd;
 
             while(getline(infile,line))
