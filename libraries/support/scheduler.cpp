@@ -68,7 +68,36 @@ void Scheduler::addCommand(std::string name,
     std::string out;
     agent->send_request(agent_exec_soh, "add_queue_entry "+ command.command_string, out, 0);
 
-    cout << "response: " << out << endl;
+    cout << "command set: " << out << endl;
+
+}
+
+void Scheduler::addCommand(longeventstruc command) {
+    addCommand(command.name, command.data, command.utc, command.condition, command.flag);
+}
+
+void Scheduler::deleteCommand(std::string name,
+                           std::string data,
+                           double utc,
+                           std::string condition,
+                           uint32_t flag) {
+
+    Command command;
+    command.generator(name, data, utc, condition, flag);
+
+    //com.set_command(line);
+
+    using std::cout;
+    using std::endl;
+
+    if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
+        std::cout << "could not find agent execsoh" << std::endl;
+    }
+
+    std::string out;
+    agent->send_request(agent_exec_soh, "del_queue_entry "+ command.command_string, out, 0);
+
+    cout << "command deleted: " << out << endl;
 
 }
 
