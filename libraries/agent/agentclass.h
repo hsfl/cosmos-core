@@ -124,11 +124,14 @@
 #include "elapsedtime.h"
 #include "device/cpu/devicecpu.h"
 
+using std::string;
+using std::vector;
+
 namespace Cosmos {
 class Agent
 {
 public:
-    Agent(NetworkType ntype = NetworkType::UDP, const std::string &nname = "", const std::string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
+    Agent(NetworkType ntype = NetworkType::UDP, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
     ~Agent();
 
     enum class AgentState : uint16_t
@@ -236,8 +239,8 @@ public:
     struct messstruc
     {
         pollstruc meta;
-        std::vector <uint8_t> bdata;
-        std::string adata;
+        vector <uint8_t> bdata;
+        string adata;
     };
 
     //! Agent Request Function
@@ -249,29 +252,29 @@ public:
     //!
     // agent functions
     int32_t start();
-    //    int32_t add_request(std::string token, request_function function);
-    //    int32_t add_request(std::string token, request_function function, std::string description);
-    int32_t add_request_internal(std::string token, internal_request_function function, std::string synopsis="", std::string description="");
-    int32_t add_request(std::string token, external_request_function function, std::string synopsis="", std::string description="");
-    int32_t send_request(beatstruc cbeat, std::string request, std::string &output, float waitsec);
-    int32_t get_server(std::string node, std::string name, float waitsec, beatstruc *cbeat);
-    std::vector<beatstruc> find_servers(float waitsec);
-    beatstruc find_server(std::string node, std::string proc, float waitsec);
-    beatstruc find_agent(std::string node, std::string proc);
+    //    int32_t add_request(string token, request_function function);
+    //    int32_t add_request(string token, request_function function, string description);
+    int32_t add_request_internal(string token, internal_request_function function, string synopsis="", string description="");
+    int32_t add_request(string token, external_request_function function, string synopsis="", string description="");
+    int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec);
+    int32_t get_server(string node, string name, float waitsec, beatstruc *cbeat);
+    vector<beatstruc> find_servers(float waitsec);
+    beatstruc find_server(string node, string proc, float waitsec);
+    beatstruc find_agent(string node, string proc);
     uint16_t running();
-    int32_t set_sohstring(std::string list);
+    int32_t set_sohstring(string list);
     cosmosstruc *get_cosmosstruc();
     void get_ip(char* buffer, size_t buflen);
     void get_ip_list(uint16_t port);
     int32_t unpublish();
-    int32_t post(uint8_t type, std::string message);
-    int32_t post(uint8_t type, std::vector <uint8_t> message);
+    int32_t post(uint8_t type, string message);
+    int32_t post(uint8_t type, vector <uint8_t> message);
     int32_t publish(NetworkType type, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo);
     int32_t unsubscribe();
-    int32_t poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec = 1.);
-    int32_t poll(pollstruc &meta, std::vector<uint8_t> &message, uint8_t type, float waitsec = 1.);
+    int32_t poll(pollstruc &meta, string &message, uint8_t type, float waitsec = 1.);
+    int32_t poll(pollstruc &meta, vector<uint8_t> &message, uint8_t type, float waitsec = 1.);
     int32_t readring(messstruc &message, uint8_t type = Agent::AGENT_MESSAGE_ALL, float waitsec = 1.);
     int32_t resizering(size_t newsize);
     int32_t clearring();
@@ -281,26 +284,26 @@ public:
     nodestruc poll_info(float waitsec);
     imustruc poll_imu(float waitsec);
     int json_map_agentstruc(agentstruc **agent);
-    std::vector<socket_channel> find_addresses(NetworkType ntype);
+    vector<socket_channel> find_addresses(NetworkType ntype);
     int32_t shutdown();
-    int32_t send(uint8_t address, std::string message);
-    int32_t receive(uint8_t address, std::string &message);
-    int32_t receiveAll(uint8_t address, std::string &message);
+    int32_t send(uint8_t address, string message);
+    int32_t receive(uint8_t address, string &message);
+    int32_t receiveAll(uint8_t address, string &message);
 
     // poll
     pollstruc metaRx;
-    std::string metaHeader;
+    string metaHeader;
 
 
-    void log(std::string log_entry);
-    bool setSoh(std::string sohFields);
+    void log(string log_entry);
+    bool setSoh(string sohFields);
     cosmosstruc *cinfo;
 
     //! List of active agents
-    std::vector <beatstruc> agent_list;
+    vector <beatstruc> agent_list;
 
     //! Ring buffer for incoming messages
-    std::vector <messstruc> message_ring;
+    vector <messstruc> message_ring;
     //! Last message placed in message ring buffer
     size_t message_head = MESSAGE_RING_SIZE;
     //! Last message rad in message ring buffer
@@ -310,20 +313,20 @@ public:
 private:
 
     NetworkType networkType = NetworkType::UDP;
-    std::string nodeName;
-    std::string agentName;
+    string nodeName;
+    string agentName;
     double beatPeriod   = 1.0; // in seconds
     uint32_t bufferSize = AGENTMAXBUFFER;
     bool     multiflag   = false;
     int32_t  portNumber        = 0;
 
-    std::string version  = "0.0";
+    string version  = "0.0";
     float    timeoutSec  = 5.0;
     bool printMessages   = true; // by default?
     bool logTime         = true; // by default
     double timeStart; // UTC starting time for this agent in MJD
-    std::string hbjstring;
-    std::vector<beatstruc> slist;
+    string hbjstring;
+    vector<beatstruc> slist;
     //! Handle for request thread
     std::thread cthread;
     //! Handle for heartbeat thread
@@ -336,15 +339,15 @@ private:
     struct request_entry
     {
         //! Character token for request
-        std::string token;
+        string token;
         //! Pointer to function to call with request string as argument and returning any error
         internal_request_function ifunction;
         external_request_function efunction;
-        std::string synopsis;
-        std::string description;
+        string synopsis;
+        string description;
     };
 
-    std::vector <request_entry> reqs;
+    vector <request_entry> reqs;
 
     void heartbeat_loop();
     void request_loop();
