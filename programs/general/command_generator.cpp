@@ -34,6 +34,9 @@
 #include "command.h"
 #include "scheduler.h"
 
+using std::cout;
+using std::endl;
+
 int main(int argc, char *argv[])
 {
 	longeventstruc com;
@@ -44,14 +47,6 @@ int main(int argc, char *argv[])
 	com.condition[0] = 0;
 	com.utc = 0;
 	com.utcexec = 0.;
-
-    //
-//    std::string condition = argv[4];
-//    double time_mjd = argv[3];
-//    double time_seconds = argv[3][1];
-//    std::string command_data = argv[2];
-//    std::string command_name = argv[1];
-
 
 	switch (argc)
 	{
@@ -101,13 +96,14 @@ int main(int argc, char *argv[])
 		}
 	}
 
-//    std::string jsp;
+    Command command;
+    cout << command.generator(com) << endl;
 
-//    json_out_commandevent(jsp, com);
-//    printf("%s\n", jsp.c_str());
+    Scheduler scheduler("kauaicc_sim");
+    scheduler.addCommand(com);
 
-//    Scheduler scheduler("kauaicc_sim");
-//    scheduler.addCommand(com.name,com.data, com.utc, com.condition, com.flag);
+    sleep(1);
 
+    scheduler.deleteCommand(com.name, com.data, com.utc, com.condition, com.flag);
 
 }

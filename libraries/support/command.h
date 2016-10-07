@@ -91,6 +91,8 @@ public:
 		uint32_t flag
 	);
 
+    string generator(longeventstruc command);
+
 	string command_string;
 
 	// JIMNOTE: this function (condition_true)  needs a look at....
