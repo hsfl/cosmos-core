@@ -91,7 +91,7 @@ public:
 		uint32_t flag
 	);
 
-    string generator(longeventstruc command);
+	string generator(longeventstruc command);
 
 	string command_string;
 
