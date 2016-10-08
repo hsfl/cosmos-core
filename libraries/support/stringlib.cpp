@@ -201,4 +201,8 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
     return out;
 }
 
+int StringParser::getFieldNumberAsInteger(uint32_t index)
+{
+    return getFieldNumberAsDouble(index);
+}
 //! @}

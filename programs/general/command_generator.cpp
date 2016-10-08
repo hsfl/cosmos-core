@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
 
     sleep(1);
 
-    scheduler.deleteCommand(com.name, com.data, com.utc, com.condition, com.flag);
+    //scheduler.deleteCommand(com.name, com.data, com.utc, com.condition, com.flag);
 
+    scheduler.getQueueSize();
 }

@@ -33,6 +33,8 @@
 
 #include "agent/scheduler.h"
 
+using std::cout;
+using std::endl;
 
 namespace Cosmos {
 
@@ -58,11 +60,9 @@ void Scheduler::addCommand(std::string name,
 
     //com.set_command(line);
 
-    using std::cout;
-    using std::endl;
-
     if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
-        std::cout << "could not find agent execsoh" << std::endl;
+        cout << "could not find agent execsoh" << endl;
+        return;
     }
 
     std::string out;
@@ -77,29 +77,42 @@ void Scheduler::addCommand(longeventstruc command) {
 }
 
 void Scheduler::deleteCommand(std::string name,
-                           std::string data,
-                           double utc,
-                           std::string condition,
-                           uint32_t flag) {
+                              std::string data,
+                              double utc,
+                              std::string condition,
+                              uint32_t flag) {
 
     Command command;
     command.generator(name, data, utc, condition, flag);
 
-    //com.set_command(line);
-
-    using std::cout;
-    using std::endl;
-
-    if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
-        std::cout << "could not find agent execsoh" << std::endl;
+    if (!agent_exec_soh.exists) {
+        cout << "could not find agent execsoh" << endl;
+        return;
     }
 
-    std::string out;
+    string out;
     agent->send_request(agent_exec_soh, "del_queue_entry "+ command.command_string, out, 0);
 
     cout << "command deleted: " << out << endl;
 
 }
+
+int Scheduler::getQueueSize() {
+    if (!agent_exec_soh.exists) {
+        cout << "could not find agent execsoh" << endl;
+        return 0 ;
+    }
+
+    string out;
+    agent->send_request(agent_exec_soh, "get_queue_size", out, 0);
+
+    StringParser str(out,'[');
+    int queue_size = str.getFieldNumberAsInteger(1);
+    cout << "queue size: " << queue_size << endl;
+
+    return queue_size;
+}
+
 
 
 } // end namespace Cosmos
