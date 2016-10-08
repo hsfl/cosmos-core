@@ -29,13 +29,13 @@
 
 // Support JSON coming from an Arduino with various devices connected
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include <stdio.h>
 
 #include "agent/agentclass.h"
-#include "devicecpu.h"
-#include "cssl_lib.h"
+#include "device/cpu/devicecpu.h"
+#include "device/general/cssl_lib.h"
 
 int myagent();
 

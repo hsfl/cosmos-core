@@ -27,10 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
-#include "astrodev_lib.h"
-#include "timelib.h"
+#include "device/astrodev/astrodev_lib.h"
+#include "support/timelib.h"
 
 #include <cstring>
 

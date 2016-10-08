@@ -51,12 +51,12 @@
 #ifndef _TIMELIB_H
 #define _TIMELIB_H 1
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include "math/mathlib.h"
 
 #ifdef COSMOS_WIN_BUILD_MSVC
-#include "timeutils.hpp"
+#include "support/timeutils.h"
 #endif
 
 #include <cmath>

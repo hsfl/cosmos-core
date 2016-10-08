@@ -30,7 +30,7 @@
 #ifndef _MATH_LSFIT_H
 #define _MATH_LSFIT_H
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "vector.h"
 #include "quaternion.h"
 // TODO: remove dependency from mathlib (uvector)

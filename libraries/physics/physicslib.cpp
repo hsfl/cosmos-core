@@ -28,8 +28,8 @@
 ********************************************************************/
 
 #include "physicslib.h"
-#include "timelib.h"
-#include "datalib.h"
+#include "support/timelib.h"
+#include "support/datalib.h"
 
 #define MAXDEGREE 360
 #define ASTEP 1

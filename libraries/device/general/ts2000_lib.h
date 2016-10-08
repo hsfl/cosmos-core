@@ -37,14 +37,14 @@
 #ifndef _TS2000LIB_H
 #define _TS2000LIB_H 1
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include <stdio.h>
 #include <errno.h>
 
 #include "math/mathlib.h"
-#include "cssl_lib.h"
-#include "cosmos-errno.h"
+#include "device/general/cssl_lib.h"
+#include "support/cosmos-errno.h"
 
 #define TS2000_ID 1
 #define TS2000_BAUD 9600

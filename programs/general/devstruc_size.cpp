@@ -27,8 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
-#include "jsondef.h"
+#include "support/configCosmos.h"
+#include "support/jsondef.h"
 
 int main(int argc, char *argv[])
 {

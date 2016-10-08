@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.12)
 
 message("Building device/astrodev")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
@@ -15,4 +15,4 @@ set(libraryName CosmosDeviceAstrodev PARENT_SCOPE)
 add_library(CosmosDeviceAstrodev STATIC ${SOURCES} ${INCLUDES})
 
 install(TARGETS CosmosDeviceAstrodev DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include/device/radio/astrodev)
+install(FILES ${INCLUDES} DESTINATION include/device/astrodev)

@@ -30,7 +30,7 @@
 #ifndef KISSLIB
 #define KISSLIB
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include <cstring>
 #include <iostream>

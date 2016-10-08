@@ -27,8 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "ic9100_lib.h"
-#include "jsondef.h"
+#include "device/general/ic9100_lib.h"
+#include "support/jsondef.h"
 
 int32_t ic9100_connect(std::string device, uint8_t address, ic9100_handle &handle)
 {

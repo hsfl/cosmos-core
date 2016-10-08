@@ -31,13 +31,13 @@
 #define _DATALIB_H 1
 
 // COSMOS libs
-#include "configCosmos.h"
-#include "cosmos-errno.h"
-#include "datadef.h"
-#include "jsondef.h"
-#include "jsonlib.h"
-#include "zlib/zlib.h"
-#include "timelib.h"
+#include "support/configCosmos.h"
+#include "support/cosmos-errno.h"
+#include "support/datadef.h"
+#include "support/jsondef.h"
+#include "support/jsonlib.h"
+#include "thirdparty/zlib/zlib.h"
+#include "support/timelib.h"
 
 // C libs
 #include <sys/stat.h>

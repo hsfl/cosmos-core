@@ -27,14 +27,14 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 ////#include <sys/types.h>
 //#include <stdint.h>
 //#include <stdio.h>
 //// #include <unistd.h>
 //#include <cstring>
-#include "gige_lib.h"
-#include "timelib.h"
+#include "device/general/gige_lib.h"
+#include "support/timelib.h"
 
 uint8_t image[20000000];
 

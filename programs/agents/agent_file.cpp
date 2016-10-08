@@ -40,11 +40,11 @@
 //!
 //! Usage: agent_file destination_ip_address_lo [destination_ip_address_hi]
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "agent/agentclass.h"
-#include "jsonlib.h"
-#include "transferlib.h"
-#include "sliplib.h"
+#include "support/jsonlib.h"
+#include "support/transferlib.h"
+#include "support/sliplib.h"
 
 #include <algorithm>
 #include <cstring>

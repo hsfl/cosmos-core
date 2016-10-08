@@ -27,9 +27,9 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
-#include "prkx2su_lib.h"
+#include "device/general/prkx2su_lib.h"
 #include <cstring>
 #include <cmath>
 

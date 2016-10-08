@@ -34,9 +34,9 @@
  * only works for Mac and Linux, Windows support must be added
  */
 
-#include "configCosmos.h"
-#include "arduino_lib.h"
-#include "cssl_lib.h"
+#include "support/configCosmos.h"
+#include "device/arduino/arduino_lib.h"
+#include "device/general/cssl_lib.h"
 
 #if defined(COSMOS_WIN_OS)
 

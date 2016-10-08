@@ -40,8 +40,8 @@
 //! Device level support CPU.
 
 
-#include "configCosmos.h"
-#include "stringlib.h"
+#include "support/configCosmos.h"
+#include "support/stringlib.h"
 
 // for current process CPU utilization
 #if defined (COSMOS_LINUX_OS)

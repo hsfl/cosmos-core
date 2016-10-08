@@ -1,7 +1,7 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include <iostream>
 #include <cstdint>
 

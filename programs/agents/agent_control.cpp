@@ -133,11 +133,11 @@ List of available requests:
 @endcode
 */
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "agent/agentclass.h"
 #include "physics/physicslib.h"
-#include "jsonlib.h"
-#include "ephemlib.h"
+#include "support/jsonlib.h"
+#include "support/ephemlib.h"
 
 std::string nodename;
 std::string agentname;

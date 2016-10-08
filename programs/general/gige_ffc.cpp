@@ -1,5 +1,5 @@
-#include "configCosmos.h"
-#include "gige_lib.h"
+#include "support/configCosmos.h"
+#include "device/general/gige_lib.h"
 
 int main(int argc, char *argv[])
 {

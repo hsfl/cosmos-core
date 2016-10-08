@@ -27,8 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "jsonlib.h"
-#include "jsonlib.h"
+#include "support/jsonlib.h"
+#include "support/jsonlib.h"
 
 cosmosstruc *cinfo;
 

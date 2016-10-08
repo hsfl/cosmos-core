@@ -27,8 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "kpc9612p_lib.h"
-#include "timelib.h"
+#include "device/general/kpc9612p_lib.h"
+#include "support/timelib.h"
 
 kpc9612p_handle handle;
 char device[15]="/dev/ttyUSB3";

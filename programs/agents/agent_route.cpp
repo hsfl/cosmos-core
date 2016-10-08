@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include <stdio.h>
 

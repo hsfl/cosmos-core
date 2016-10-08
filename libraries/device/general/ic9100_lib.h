@@ -31,8 +31,8 @@
 #ifndef IC9100_LIB_H
 #define IC9100_LIB_H
 
-#include "configCosmos.h"
-#include "cssl_lib.h"
+#include "support/configCosmos.h"
+#include "device/general/cssl_lib.h"
 
 #define IC9100_BAUD 19200
 #define IC9100_BITS 8

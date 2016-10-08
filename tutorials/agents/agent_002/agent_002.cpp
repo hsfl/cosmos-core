@@ -30,7 +30,7 @@
 // Example of an agent making a request to another agent 
 // agent 002 makes request to 002 upon activation
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 //#include "agent/agentclasslib.h"
 #include "agent/agentclass.h"
 

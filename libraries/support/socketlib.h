@@ -47,7 +47,7 @@
 //! - COMMUNICATE: Send a message to a specific port, and then optionally receive a reply.
 //! - JABBER: Broadcast packets over multiple interfaces.
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #ifdef COSMOS_WIN_OS
 #include <io.h>
 #else

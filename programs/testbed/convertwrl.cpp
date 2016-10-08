@@ -27,14 +27,14 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include <cstdio>
 #include <cstring>
 #include <cmath>
 
 #include "math/mathlib.h"
-#include "cosmos-defs.h"
-#include "jsondef.h"
+#include "support/cosmos-defs.h"
+#include "support/jsondef.h"
 
 rvector vert[200][10000];
 rvector vcenter[200], tvert[20], con;

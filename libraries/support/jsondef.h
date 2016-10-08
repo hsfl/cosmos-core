@@ -34,12 +34,12 @@
 * \brief JSON Support definitions
 */
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include "math/mathlib.h"
-#include "convertdef.h"
+#include "support/convertdef.h"
 #include "physics/physicsdef.h"
-#include "socketlib.h"
+#include "support/socketlib.h"
 
 //! \ingroup jsonlib
 //! \defgroup jsonlib_type JSON Name Space variable type constants

@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "kpc9612p_lib.h"
+#include "device/general/kpc9612p_lib.h"
 
 uint16_t kpc9612p_fcstab[256] = {
 	0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,

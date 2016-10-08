@@ -47,7 +47,7 @@
  ****************************************************************************
 */
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -56,8 +56,8 @@
 //using namespace std;
 
 #include "agent/agentclass.h"
-#include "jsonlib.h"
-#include "convertlib.h"
+#include "support/jsonlib.h"
+#include "support/convertlib.h"
 
 
 #define BUFSIZE 10000

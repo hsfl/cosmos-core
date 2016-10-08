@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "gige_lib.h"
+#include "device/general/gige_lib.h"
 #include "agent/agentclass.h"
 #include <cstring>
 

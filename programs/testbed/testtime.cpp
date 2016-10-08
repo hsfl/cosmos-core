@@ -27,9 +27,9 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "timelib.h"
-#include "convertlib.h"
-#include "datalib.h"
+#include "support/timelib.h"
+#include "support/convertlib.h"
+#include "support/datalib.h"
 
 #include <cmath>
 #include <cstdio>

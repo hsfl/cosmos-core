@@ -80,15 +80,15 @@
 //! -
 //! Many of the elements used in the ::cosmosstruc are defined here.
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
-#include "cosmos-defs.h"
+#include "support/cosmos-defs.h"
 #include "math/mathlib.h"
-#include "nrlmsise-00.h"
-#include "convertlib.h"
-#include "demlib.h"
-#include "physicsdef.h"
-#include "jsondef.h"
+#include "support/nrlmsise-00.h"
+#include "support/convertlib.h"
+#include "support/demlib.h"
+#include "physics/physicsdef.h"
+#include "support/jsondef.h"
 
 #include <fcntl.h>
 #include <cmath>

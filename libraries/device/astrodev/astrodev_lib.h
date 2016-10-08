@@ -40,11 +40,10 @@
 #ifndef _ASTRODEVLIB_H
 #define _ASTRODEVLIB_H 1
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
-//#include "math/mathlib.h"
-#include "cssl_lib.h"
-#include "cosmos-errno.h"
+#include "device/general/cssl_lib.h"
+#include "support/cosmos-errno.h"
 
 //! \ingroup astrodev
 //! \defgroup astrodev_defines Astrodev library definitions

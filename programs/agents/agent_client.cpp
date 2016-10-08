@@ -40,12 +40,12 @@
 //! - command specific Agents
 //! - monitor Agent traffic
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include <stdlib.h>
 #include "agent/agentclass.h"
-#include "jsonlib.h"
+#include "support/jsonlib.h"
 #include "physics/physicslib.h"
-#include "datalib.h"
+#include "support/datalib.h"
 #include "sys/stat.h"
 #include "limits.h"
 #include <iostream>

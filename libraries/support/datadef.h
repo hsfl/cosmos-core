@@ -34,9 +34,7 @@
 *	\brief Data Management definitions file
 */
 
-#include "configCosmos.h"
-//#include <cstring>
-//#include <string>
+#include "support/configCosmos.h"
 
 //! \ingroup datalib
 //! \defgroup datalib_constants Data Management contants

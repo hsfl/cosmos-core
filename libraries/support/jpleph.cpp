@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 /*****************************************************************************
 *        *****    jpl planetary and lunar ephemerides    *****     C ver.1.2 *
 ******************************************************************************
@@ -63,7 +63,7 @@ details of the implementation encapsulated.
 
 /**** include variable and type definitions, specific for this C version */
 
-#include "jpleph.h"
+#include "support/jpleph.h"
 
 #define TRUE 1
 #define FALSE 0

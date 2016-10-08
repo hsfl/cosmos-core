@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "pic_lib.h"
+#include "device/general/pic_lib.h"
 
 //! Connect to PIC.
 /*! Connect to a PIC speaking NMEA protocol, connected to the

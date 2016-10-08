@@ -27,11 +27,11 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "gige_lib.h"
+#include "device/general/gige_lib.h"
 #include "agent/agentclass.h"
-#include "datalib.h"
+#include "support/datalib.h"
 #include "time.h"
-#include "elapsedtime.h"
+#include "support/elapsedtime.h"
 
 int main(int argc, char *argv[])
 {

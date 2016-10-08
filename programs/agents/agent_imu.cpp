@@ -22,13 +22,13 @@
 // *********************************************************************
 // Libraries
 // *********************************************************************
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 // COSMOS Core Libraries
 #include "agent/agentclass.h"
-#include "jsonlib.h"
-#include "vn100_lib.h"
-#include "print_utils.h"
+#include "support/jsonlib.h"
+#include "device/vn100/vn100_lib.h"
+#include "support/print_utils.h"
 #include "math/rotation.h"
 #include "math/mathlib.h"
 

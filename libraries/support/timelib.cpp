@@ -31,9 +31,9 @@
     \brief Time handling library source file
 */
 
-#include "timelib.h"
-#include "datalib.h"
-#include "ephemlib.h"
+#include "support/timelib.h"
+#include "support/datalib.h"
+#include "support/ephemlib.h"
 #include "math/mathlib.h"
 
 struct iersstruc

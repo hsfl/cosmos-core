@@ -28,8 +28,8 @@
 ********************************************************************/
 
 #include "agent/agentclass.h"
-#include "jsondef.h"
-#include "sliplib.h"
+#include "support/jsondef.h"
+#include "support/sliplib.h"
 
 char address[] = "127.0.0.1";
 uint16_t port = 6868;

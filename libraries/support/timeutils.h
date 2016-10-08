@@ -35,7 +35,7 @@
 #ifndef TIME_UTILS
 #define TIME_UTILS
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include <iostream>
 #include <string>
 

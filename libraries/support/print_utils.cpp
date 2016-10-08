@@ -27,10 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 // COSMOS Library for Printing Vector and stuff like that to the stream
 
-#include "print_utils.h"
+#include "support/print_utils.h"
 
 //-------------------------------------------------------------
 // print functions to help visualize vectors and other data

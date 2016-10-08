@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
@@ -8,5 +8,5 @@ FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 add_library(jpeg STATIC ${SOURCES} ${INCLUDES})
 
 install(TARGETS jpeg DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include/jpeg)
+install(FILES ${INCLUDES} DESTINATION include/thirdparty/jpeg)
 

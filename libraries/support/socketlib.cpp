@@ -29,9 +29,9 @@
 
 // TODO: add TCP class
 
-#include "socketlib.h"
+#include "support/socketlib.h"
 #include "math/mathlib.h"
-#include "elapsedtime.h"
+#include "support/elapsedtime.h"
 
 //! Open UDP socket
 /*! Open a UDP socket and configure it for the specified use. Various

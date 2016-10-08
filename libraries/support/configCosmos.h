@@ -80,8 +80,8 @@
 #endif
 #include <fcntl.h>
 
-#include "cosmos-errno.h"
-#include "cosmos-defs.h"
+#include "support/cosmos-errno.h"
+#include "support/cosmos-defs.h"
 
 namespace Cosmos {}
 

@@ -30,19 +30,19 @@
 /**********************************************************************************************
  * arduino_agent.cpp
  * ********************************************************************************************/
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include <sys/stat.h>
 #include <iostream>
 
 //using namespace std;
 #include <stdio.h>
 
-#include "jsonlib.h"
+#include "support/jsonlib.h"
 #include "agent/agentclass.h"
-#include "cosmos-defs.h"
+#include "support/cosmos-defs.h"
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
-#include "jsonlib.h"
+#include "support/jsonlib.h"
 
 Agent *agent;
 

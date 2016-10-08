@@ -31,7 +31,7 @@
     \brief Data support functions
 */
 
-#include "datalib.h"
+#include "support/datalib.h"
 #include <algorithm>
 
 //! \ingroup datalib

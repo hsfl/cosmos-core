@@ -29,7 +29,7 @@
 
 // code from testbed/blank_agent.cpp
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #ifdef COSMOS_MAC_OS
 #include <sys/param.h>
@@ -42,15 +42,15 @@
 
 #include "agent/agentclass.h"
 #include "physics/physicslib.h" // long term we may move this away
-#include "jsonlib.h"
-//#include "stringlib.h"
-//#include "timelib.h"
+#include "support/jsonlib.h"
+//#include "support/stringlib.h"
+//#include "support/timelib.h"
 
 // Added 20130223JC: Libraries
 #include <cstring>
-#include "kisslib.h"
+#include "device/general/kisslib.h"
 //#include "rs232_lib.h"
-#include "cssl_lib.h"
+#include "device/general/cssl_lib.h"
 #define SERIAL_USB0 16
 
 int myagent();

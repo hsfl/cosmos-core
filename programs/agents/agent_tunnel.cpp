@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include <stdio.h>
 
@@ -38,7 +38,7 @@
 
 
 #include "agent/agentclass.h"
-#include "cssl_lib.h"
+#include "device/general/cssl_lib.h"
 
 char agentname[COSMOS_MAX_NAME+1] = "tunnel";
 char node[50] = "";

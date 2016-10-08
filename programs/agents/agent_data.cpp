@@ -29,7 +29,7 @@
 
 // code from testbed/blank_agent.cpp
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include <sys/stat.h>
 
@@ -37,13 +37,13 @@
 
 #include "agent/agentclass.h"
 #include "physics/physicslib.h" // long term we may move this away
-#include "jsonlib.h"
-#include "datalib.h"
+#include "support/jsonlib.h"
+#include "support/datalib.h"
 #include <cstring>
 #include <fstream>
 #include <iostream>
-//#include "stringlib.h"
-//#include "timelib.h"
+//#include "support/stringlib.h"
+//#include "support/timelib.h"
 
 int myagent();
 

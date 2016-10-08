@@ -106,8 +106,8 @@
 // TODO: change configCosmos.h to support/configCosmos.h or even
 // cosmos/support/configCosmos.h
 
-#include "configCosmos.h"
-#include "cosmos-errno.h"
+#include "support/configCosmos.h"
+#include "support/cosmos-errno.h"
 
 // include all math modules
 //#include "types.h"

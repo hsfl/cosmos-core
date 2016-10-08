@@ -30,8 +30,8 @@
 #ifndef _GIGE_H
 #define _GIGE_H 1
 
-#include "configCosmos.h"
-#include "socketlib.h"
+#include "support/configCosmos.h"
+#include "support/socketlib.h"
 
 /*! \file gige_lib.cpp
 *	\brief gige_lib include file.

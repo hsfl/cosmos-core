@@ -108,11 +108,11 @@
 
 //#pragma GCC diagnostic ignored "-Wwrite-strings"
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
-#include "jsondef.h"
-#include "datalib.h"
-#include "stringlib.h"
+#include "support/jsondef.h"
+#include "support/datalib.h"
+#include "support/stringlib.h"
 
 //! \ingroup jsonlib
 //! \defgroup jsonlib_functions JSON functions

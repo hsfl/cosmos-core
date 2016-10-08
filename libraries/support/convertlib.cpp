@@ -31,11 +31,11 @@
 	\brief Coordinate conversion library source file
 */
 
-#include "convertlib.h"
-#include "timelib.h"
-#include "geomag.h"
-#include "jsondef.h"
-#include "ephemlib.h"
+#include "support/convertlib.h"
+#include "support/timelib.h"
+#include "support/geomag.h"
+#include "support/jsondef.h"
+#include "support/ephemlib.h"
 
 // Used to mark unused variables as known
 #ifndef UNUSED_VARIABLE_LOCALDEF

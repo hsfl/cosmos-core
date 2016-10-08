@@ -34,7 +34,7 @@
 // - lap
 // - reset
 
-#include "elapsedtime.h"
+#include "support/elapsedtime.h"
 
 using std::cout;
 using std::endl;

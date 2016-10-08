@@ -35,7 +35,7 @@
 #ifndef _MATH_QUATERNION_H
 #define _MATH_QUATERNION_H
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include <iomanip>      // std::setw
 
 // TODO: remove dependency

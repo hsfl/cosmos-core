@@ -41,7 +41,7 @@
 //! Geophysical Data Center. Requires an appropriate model file for the requested datae range in resources/general.
 //! COSMOS currently provides wmm_2005_cof, wmm_2010_cof and wmm_2015_cof.
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include "math/mathlib.h"
 

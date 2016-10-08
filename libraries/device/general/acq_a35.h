@@ -34,7 +34,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "agent/agentclass.h"
-#include "gige_lib.h"
+#include "device/general/gige_lib.h"
 
 //! \ingroup devices
 //! \defgroup acq_a35 A35 camera support

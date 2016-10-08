@@ -27,8 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
-#include "elapsedtime.h"
+#include "support/configCosmos.h"
+#include "support/elapsedtime.h"
 #include <errno.h>
 // #include <unistd.h>
 #include <stdio.h>

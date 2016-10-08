@@ -29,10 +29,10 @@
 
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
-#include "jsonlib.h"
-#include "datalib.h"
-#include "jsonlib.h"
-#include "timelib.h"
+#include "support/jsonlib.h"
+#include "support/datalib.h"
+#include "support/jsonlib.h"
+#include "support/timelib.h"
 #include "agent/agentclass.h"
 
 #include <cmath>

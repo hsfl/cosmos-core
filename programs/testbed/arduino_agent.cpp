@@ -30,7 +30,7 @@
 /**********************************************************************************************
  * arduino_agent.cpp
  * ********************************************************************************************/
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #if !defined(COSMOS_MAC_OS) && !defined(COSMOS_WIN_OS)
 //#include <sys/vfs.h>
@@ -38,13 +38,13 @@
 
 #include <stdio.h>
 
-#include "jsonlib.h"
+#include "support/jsonlib.h"
 #include "agent/agentclass.h"
-#include "cosmos-defs.h"
+#include "support/cosmos-defs.h"
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
-#include "jsonlib.h"
-#include "arduino_lib.h"
+#include "support/jsonlib.h"
+#include "device/arduino/arduino_lib.h"
 
 typedef struct {
 	int 	controllerFlag ;

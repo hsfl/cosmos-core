@@ -32,17 +32,17 @@
 //#include <sys/types.h>
 //#include <cstring>
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "agent/agentclass.h"
-#include "jsonlib.h"
-#include "stringlib.h"
-#include "timelib.h"
+#include "support/jsonlib.h"
+#include "support/stringlib.h"
+#include "support/timelib.h"
 #include "physics/physicslib.h"
-#include "jsonlib.h"
-#include "datalib.h"
-#include "zlib/zlib.h"
-#include "devicecpu.h"
-#include "devicedisk.h"
+#include "support/jsonlib.h"
+#include "support/datalib.h"
+#include "thirdparty/zlib/zlib.h"
+#include "device/cpu/devicecpu.h"
+#include "device/disk/devicedisk.h"
 #include <sys/stat.h>
 //#include "beacon.h"
 

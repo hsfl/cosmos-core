@@ -27,10 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 //#if defined(COSMOS_WIN_OS) || defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 
-#include "gs232b_lib.h"
+#include "device/general/gs232b_lib.h"
 #include <cstring>
 #include <cmath>
 

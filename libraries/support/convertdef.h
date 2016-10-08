@@ -36,18 +36,9 @@
 #ifndef _CONVERTDEF_H
 #define _CONVERTDEF_H 1
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include "math/mathlib.h"
-//#include "jpleph.h"
-//#include "timelib.h"
-
-//#include <cmath>
-//#include <ctime>
-//#include <cerrno>
-//#include <cstring>
-//#include <iostream>
-//using namespace std; // don't use this as it may cause conflicts with other namespaces
 
 //! \ingroup convertlib
 //! \defgroup convertlib_constants Coordinate conversion constants

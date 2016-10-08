@@ -81,11 +81,9 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
 endif()
 
 option(BUILD_GPROF "Build for Profiling" OFF)
-if (BUILD_GPROF)
+if (BUILD_GPROF MATCHES ON)
     message("Profiling")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg ${COSMOS_CXX_FLAGS}")
-else ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COSMOS_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
 endif ()
 
 option(BUILD_STATIC "Build Static Executables" OFF)
@@ -262,11 +260,6 @@ message("Install: ${CMAKE_INSTALL_PREFIX}")
 # Establish includes, both standard and device specific
 # Standard inludes
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/thirdparty)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/math)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/agent)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/physics)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/support)
 
 # Device includes
 # macro to find sub-directories
@@ -282,12 +275,12 @@ macro(SUBDIRlist result curdir)
 endmacro()
 
 # go into every device folder to find cmakelists
-SUBDIRlist(DEVICEDIRS ${CMAKE_CURRENT_SOURCE_DIR}/libraries/device)
+subdirlist(DEVICEDIRS ${CMAKE_CURRENT_SOURCE_DIR}/libraries/device)
 
 # Make sure includes in all folders are available
-foreach(subdir ${DEVICEDIRS})
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/device/${subdir})
-endforeach()
+#foreach(subdir ${DEVICEDIRS})
+#    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries/device/${subdir})
+#endforeach()
 
 
 # -----------------------------------------------

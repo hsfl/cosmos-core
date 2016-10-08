@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #ifdef COSMOS_MAC_OS
 #include <sys/param.h>
@@ -40,9 +40,9 @@
 
 #include "agent/agentclass.h"
 #include "physics/physicslib.h"
-#include "jsonlib.h"
-//#include "stringlib.h"
-//#include "timelib.h"
+#include "support/jsonlib.h"
+//#include "support/stringlib.h"
+//#include "support/timelib.h"
 
 int myagent();
 

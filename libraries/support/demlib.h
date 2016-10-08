@@ -54,7 +54,7 @@
 #ifndef MAP_DEM_H
 #define MAP_DEM_H
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 //! \ingroup demlib
 //! \defgroup demlib_constants DEM library constants

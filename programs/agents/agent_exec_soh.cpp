@@ -27,13 +27,13 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include "agent/agentclass.h"
-#include "jsonlib.h"
-#include "convertlib.h"
-#include "datalib.h"
-#include "command_queue.h"
+#include "support/jsonlib.h"
+#include "support/convertlib.h"
+#include "support/datalib.h"
+#include "support/command_queue.h"
 
 #include <iostream>
 #include <iomanip>

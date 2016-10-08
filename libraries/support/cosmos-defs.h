@@ -45,8 +45,6 @@
 #include <mutex>
 #include <condition_variable>
 
-//using namespace std;
-
 //! \ingroup defs
 //! \defgroup defs_storage Constants defining limits on storage.
 //! @{

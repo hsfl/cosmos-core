@@ -10,15 +10,15 @@
 //! - disk space percentage
 //! - load
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "agent/agentclass.h"
-#include "timeutils.hpp"
-#include "jsonlib.h"
-#include "elapsedtime.h"
-#include "stringlib.h"
+#include "support/timeutils.h"
+#include "support/jsonlib.h"
+#include "support/elapsedtime.h"
+#include "support/stringlib.h"
 
-#include "devicecpu.h"
-#include "devicedisk.h"
+#include "device/cpu/devicecpu.h"
+#include "device/disk/devicedisk.h"
 
 #include <stdio.h>
 #include <iostream>

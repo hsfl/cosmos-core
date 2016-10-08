@@ -39,8 +39,8 @@
 //! %Agent Server and Client.
 //!
 
-#include "configCosmos.h"
-#include "command.h"
+#include "support/configCosmos.h"
+#include "support/command.h"
 
 namespace Cosmos {
 

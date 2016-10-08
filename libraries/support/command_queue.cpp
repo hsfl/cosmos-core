@@ -31,7 +31,7 @@
     \brief Agent support functions
 */
 
-#include "command_queue.h"
+#include "support/command_queue.h"
 
 namespace Cosmos {
 

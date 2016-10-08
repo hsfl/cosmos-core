@@ -27,11 +27,11 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
-#include "jsonlib.h"
+#include "support/configCosmos.h"
+#include "support/jsonlib.h"
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
-#include "jsonlib.h"
+#include "support/jsonlib.h"
 #include "agent/agentclass.h"
 #include "agent/agentclass.h"
 #include <math.h>

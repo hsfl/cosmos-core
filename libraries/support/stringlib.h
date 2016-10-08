@@ -38,12 +38,11 @@
 #ifndef _STRINGLIB_H
 #define _STRINGLIB_H 1
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include <errno.h>
 #include <string>
 #include <sstream>
-//using namespace std;  // don't use this as it may cause conflicts with other namespaces
 
 //! \ingroup stringlib
 //! \defgroup stringlib_functions String handling functions

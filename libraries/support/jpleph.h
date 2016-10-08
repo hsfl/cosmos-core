@@ -59,7 +59,7 @@
    be useful to people who want to use the functions from languages other
    than C. */
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 //#ifdef _WIN32
 //#define DLL_FUNC __stdcall

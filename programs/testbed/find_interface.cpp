@@ -27,8 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
-#include "socketlib.h"
+#include "support/configCosmos.h"
+#include "support/socketlib.h"
 
 int main (int argc, const char* argv[])
 {

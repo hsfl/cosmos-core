@@ -31,8 +31,8 @@
 	\brief Support routines for GigE Vision cameras.
 */
 
-#include "gige_lib.h"
-#include "timelib.h"
+#include "device/general/gige_lib.h"
+#include "support/timelib.h"
 #include "math/mathlib.h"
 #include <cstring>
 

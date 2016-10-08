@@ -31,7 +31,7 @@
 	\brief Support functions for COSMOS SLIP encoding
 */
 
-#include "sliplib.h"
+#include "support/sliplib.h"
 #include <stdio.h>
 
 //! \addtogroup sliplib_functions

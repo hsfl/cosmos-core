@@ -7,18 +7,16 @@
  * event driven serial port communication library for Linux.
  * Project website: http://sourceforge.net/projects/cssl/ */
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 
 #include <stdio.h>
 #include <cstring>
-//#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
-// #include <unistd.h>
 
-#include "cssl_lib.h"
+#include "device/general/cssl_lib.h"
 
 /*
  * Static variables and constants

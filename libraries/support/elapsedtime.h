@@ -32,7 +32,7 @@
 #ifndef ELAPSED_TIME
 #define ELAPSED_TIME
 
-//#include "configCosmos.h" // avoid including this if not really needed
+#include "support/configCosmos.h"
 #include <iostream>
 #include <string>
 #include <ctime>

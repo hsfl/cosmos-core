@@ -7,8 +7,8 @@
 /* Copyright 2003 Marcin Siennicki <m.siennicki@cloos.pl>
  * see COPYING file for details */
 
-#include "configCosmos.h"
-#include "sliplib.h"
+#include "support/configCosmos.h"
+#include "support/sliplib.h"
 
 #ifndef __CSSL_H__
 #define __CSSL_H__

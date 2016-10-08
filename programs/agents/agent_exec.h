@@ -34,9 +34,9 @@
 /*! \file agent_exec.h
 * \brief Executive Agent header file
 */
-#include "configCosmos.h"
-#include "jsonlib.h"
-#include "command.h"
+#include "support/configCosmos.h"
+#include "support/jsonlib.h"
+#include "support/command.h"
 
 
 

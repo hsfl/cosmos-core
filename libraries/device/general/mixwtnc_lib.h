@@ -38,13 +38,13 @@
 #define _MIXWTNCLIB_H 1
 
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 #include <stdio.h>
 #include <errno.h>
 
-#include "cssl_lib.h"
-#include "cosmos-errno.h"
+#include "device/general/cssl_lib.h"
+#include "support/cosmos-errno.h"
 
 #define MIXWTNC_MTU 254
 #define MIXWTNC_PAYLOAD_SIZE MIXWTNC_MTU

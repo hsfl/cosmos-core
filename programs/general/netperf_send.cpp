@@ -28,8 +28,8 @@
 ********************************************************************/
 
 #include "agent/agentclass.h"
-#include "jsondef.h"
-#include "sliplib.h"
+#include "support/jsondef.h"
+#include "support/sliplib.h"
 
 #define INFO_SIZE 32
 

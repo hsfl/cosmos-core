@@ -34,9 +34,9 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "agent/agentclass.h"
-#include "gige_lib.h"
-#include "acq_a35.h"
-#include "elapsedtime.h"
+#include "device/general/gige_lib.h"
+#include "device/general/acq_a35.h"
+#include "support/elapsedtime.h"
 #ifndef COSMOS_WIN_BUILD_MSVC
 #include <sys/time.h>
 #endif

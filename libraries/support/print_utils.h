@@ -38,7 +38,7 @@
 
 //---------------------------------------------------------------
 // Print class
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "math/mathlib.h"
 
 #include <iostream>     // std::cout

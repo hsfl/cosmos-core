@@ -57,8 +57,8 @@
 
 
 #include "agent/agentclass.h"
-#include "jsondef.h"
-#include "sliplib.h"
+#include "support/jsondef.h"
+#include "support/sliplib.h"
 
 #define BUFSIZE 10000
 #define MJD_TO_SECONDS 86400

@@ -42,10 +42,10 @@
 #ifndef _VN100LIB_H
 #define _VN100LIB_H
 
-#include "configCosmos.h"
-#include "cssl_lib.h"
-#include "jsonlib.h"
-#include "timelib.h"
+#include "support/configCosmos.h"
+#include "device/general/cssl_lib.h"
+#include "support/jsonlib.h"
+#include "support/timelib.h"
 
 #define VN100_BAUD 115200
 #define VN100_BITS 8

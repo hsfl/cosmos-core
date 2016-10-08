@@ -147,11 +147,11 @@ List of available requests:
     @endcode
 */
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "agent/agentclass.h"
-#include "ts2000_lib.h"
-#include "astrodev_lib.h"
-#include "ic9100_lib.h"
+#include "device/general/ts2000_lib.h"
+#include "device/astrodev/astrodev_lib.h"
+#include "device/general/ic9100_lib.h"
 
 Agent *agent;
 std::string nodename;

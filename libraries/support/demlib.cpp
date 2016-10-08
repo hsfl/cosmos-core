@@ -27,11 +27,11 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
-#include "demlib.h"
-#include "timelib.h"
-#include "datalib.h"
+#include "support/demlib.h"
+#include "support/timelib.h"
+#include "support/datalib.h"
 //#ifdef _MSC_BUILD
 //#include "dirent/dirent.h"
 //#else

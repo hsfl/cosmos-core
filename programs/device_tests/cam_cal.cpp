@@ -27,13 +27,13 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 //#include <sys/types.h>
 //#include <stdint.h>
 //#include <stdio.h>
 //// #include <unistd.h>
 //#include <cstring>
-#include "gige_lib.h"
+#include "device/general/gige_lib.h"
 
 
 char cbuf[100];

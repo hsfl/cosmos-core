@@ -31,7 +31,7 @@
 #define _MATH_VECTOR_H
 
 //#include "types.h"
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "constants.h"
 
 #include <iostream>

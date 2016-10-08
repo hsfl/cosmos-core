@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "pic_lib.h"
+#include "device/general/pic_lib.h"
 
 	char device[150] = "/dev/ttyUSB0";
 

@@ -57,7 +57,7 @@
 //! - PACKET_QUEUE: node_name,tx_ids[]
 
 // cosmos includes
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 // c++ includes
 //#include <cstring>

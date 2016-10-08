@@ -112,7 +112,7 @@ List of available requests:
 
 
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "agent/agentclass.h"
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -122,13 +122,13 @@ List of available requests:
 //#include <mqueue.h>
 #include <semaphore.h>
 //#include <sys/vfs.h>
-#include "jsonlib.h"
-#include "stringlib.h"
-#include "timelib.h"
-#include "gs232b_lib.h"
-#include "prkx2su_lib.h"
-#include "convertlib.h"
-#include "elapsedtime.h"
+#include "support/jsonlib.h"
+#include "support/stringlib.h"
+#include "support/timelib.h"
+#include "device/general/gs232b_lib.h"
+#include "device/general/prkx2su_lib.h"
+#include "support/convertlib.h"
+#include "support/elapsedtime.h"
 
 int32_t request_debug(char *req, char* response, Agent *);
 int32_t request_get_offset(char *req, char* response, Agent *);

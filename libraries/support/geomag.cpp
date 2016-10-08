@@ -65,8 +65,8 @@
 	- goal of calling from a matlab routine
 */
 
-#include "geomag.h"
-#include "datalib.h"
+#include "support/geomag.h"
+#include "support/datalib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>

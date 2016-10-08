@@ -26,7 +26,7 @@
 * Refer to the "licences" folder for further information on the
 * condititons and terms to use this software.
 ********************************************************************/
-#include "devicecpu.h"
+#include "device/cpu/devicecpu.h"
 
 DeviceCpu::DeviceCpu()
 {

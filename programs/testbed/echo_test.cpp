@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #include "agent/agentclass.h"
-#include "sliplib.h"
+#include "support/sliplib.h"
 
 Agent *agent;
 uint8_t data[32769];

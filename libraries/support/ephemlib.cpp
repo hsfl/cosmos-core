@@ -31,9 +31,9 @@
 		\brief Ephemeris library source file
 */
 
-#include "ephemlib.h"
-#include "jpleph.h"
-#include "datalib.h"
+#include "support/ephemlib.h"
+#include "support/jpleph.h"
+#include "support/datalib.h"
 
 #include <cmath>
 

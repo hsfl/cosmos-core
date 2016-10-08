@@ -27,11 +27,11 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
-#include "datalib.h"
-#include "timelib.h"
+#include "support/configCosmos.h"
+#include "support/datalib.h"
+#include "support/timelib.h"
 #include "agent/agentclass.h"
-#include "zlib/zlib.h"
+#include "thirdparty/zlib/zlib.h"
 #include <stdio.h>
 
 Agent *agent;

@@ -27,8 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "cssl_lib.h"
-#include "timelib.h"
+#include "device/general/cssl_lib.h"
+#include "support/timelib.h"
 
 cssl_t *serial_in, *serial_out;
 float stride;

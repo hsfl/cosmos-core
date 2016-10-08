@@ -27,10 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "convertlib.h"
-#include "jsonlib.h"
+#include "support/convertlib.h"
+#include "support/jsonlib.h"
 #include "physics/physicslib.h"
-#include "timelib.h"
+#include "support/timelib.h"
 #include "agent/agentclass.h"
 
 gj_handle gjh;

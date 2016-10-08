@@ -31,11 +31,11 @@
     \brief JSON support source file
 */
 
-#include "configCosmos.h"
-#include "jsonlib.h"
-#include "convertlib.h"
-#include "timelib.h"
-#include "ephemlib.h"
+#include "support/configCosmos.h"
+#include "support/jsonlib.h"
+#include "support/convertlib.h"
+#include "support/timelib.h"
+#include "support/ephemlib.h"
 
 #include <sys/stat.h>
 #include <iostream>

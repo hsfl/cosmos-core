@@ -32,7 +32,7 @@
 */
 
 #include "agent/agentclass.h"
-#include "socketlib.h"
+#include "support/socketlib.h"
 #if defined (COSMOS_MAC_OS)
 #include <net/if.h>
 #include <net/if_dl.h>

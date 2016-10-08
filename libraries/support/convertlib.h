@@ -56,14 +56,10 @@
 #ifndef _CONVERTLIB_H
 #define _CONVERTLIB_H 1
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
-//#include "datalib.h"
 #include "math/mathlib.h"
-//#include "jpleph.h"
-//#include "timelib.h"
-#include "convertdef.h"
-//#include "geomag.h"
+#include "support/convertdef.h"
 
 //#include <fcntl.h>
 //#include <cmath>

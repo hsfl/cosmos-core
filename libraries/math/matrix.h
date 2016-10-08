@@ -31,7 +31,7 @@
 #ifndef _MATH_MATRIX_H
 #define _MATH_MATRIX_H
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "vector.h"
 
 //! 3x3 element generic matrix

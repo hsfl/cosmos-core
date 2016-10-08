@@ -27,12 +27,12 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
-#include "datalib.h"
-#include "jsonlib.h"
-#include "timelib.h"
-#include "command.h"
-#include "scheduler.h"
+#include "support/configCosmos.h"
+#include "support/datalib.h"
+#include "support/jsonlib.h"
+#include "support/timelib.h"
+#include "support/command.h"
+#include "support/scheduler.h"
 
 int main(int argc, char *argv[])
 {

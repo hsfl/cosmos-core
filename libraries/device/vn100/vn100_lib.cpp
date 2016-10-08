@@ -29,7 +29,7 @@
 
 // TODO: validate the firmware version for this lib (1.1)
 
-#include "vn100_lib.h"
+#include "device/vn100/vn100_lib.h"
 
 
 //! Connect to VN100

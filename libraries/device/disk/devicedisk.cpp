@@ -1,4 +1,4 @@
-#include "devicedisk.h"
+#include "device/disk/devicedisk.h"
 
 DeviceDisk::DeviceDisk()
 {

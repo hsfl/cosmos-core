@@ -39,7 +39,7 @@
 */
 
 #include "math/mathlib.h"
-#include "convertdef.h"
+#include "support/convertdef.h"
 
 //! \ingroup support
 //! \defgroup ephemlib Ephemeris library

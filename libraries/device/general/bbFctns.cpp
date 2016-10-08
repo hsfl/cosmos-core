@@ -28,7 +28,7 @@
 ********************************************************************/
 
 // #include <unistd.h> //for COSMOS_USLEEP
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -37,8 +37,8 @@
 #include <time.h>       /* for mktime()       */
 //#include <sys/time.h>   /* for settimeofday() */
 
-#include "cssl_lib.h"
-#include "bbFctns.h"
+#include "device/general/cssl_lib.h"
+#include "device/general/bbFctns.h"
 
 
 extern cssl_t *SerialBb;

@@ -34,9 +34,9 @@
 * \brief Orbit library support definitions
 */
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
-//#include "convertdef.h"
+//#include "support/convertdef.h"
 
 //#include <fcntl.h>
 //#include <math.h>

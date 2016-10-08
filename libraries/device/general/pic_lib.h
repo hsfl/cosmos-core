@@ -44,9 +44,9 @@
 #ifndef _PICLIB_H
 #define _PICLIB_H
 
-#include "configCosmos.h"
-#include "cssl_lib.h"
-#include "jsonlib.h"
+#include "support/configCosmos.h"
+#include "device/general/cssl_lib.h"
+#include "support/jsonlib.h"
 
 #define PIC_BAUD 9600
 #define PIC_BITS 8

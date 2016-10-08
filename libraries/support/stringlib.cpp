@@ -31,7 +31,7 @@
     \brief String handling library source file
 */
 
-#include "stringlib.h"
+#include "support/stringlib.h"
 
 //! \addtogroup stringlib_functions
 //! @{

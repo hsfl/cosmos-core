@@ -1,7 +1,7 @@
 #ifndef _MATH_TYPES_H
 #define _MATH_TYPES_H
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include <cmath>
 #include <iostream>
 #include <vector>

@@ -39,9 +39,9 @@
 //! A library providing support functions for the COSMOS specific SLIP protocol.
 
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
-#include "cosmos-errno.h"
+#include "support/cosmos-errno.h"
 #include <cstring>
 
 //! \ingroup sliplib

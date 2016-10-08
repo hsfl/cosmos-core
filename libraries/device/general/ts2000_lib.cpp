@@ -27,10 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #if defined(COSMOS_WIN_OS) || defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 
-#include "ts2000_lib.h"
+#include "device/general/ts2000_lib.h"
 
 /**
 * Internal descriptor for cssl serial control of Kenwood TS-2000 radio.

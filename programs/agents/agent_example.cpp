@@ -29,13 +29,13 @@
 
 // code from testbed/blank_agent.cpp
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 
 //#include <sys/vfs.h>
 #include <stdio.h>
 
 #include "agent/agentclass.h"
-#include "devicecpu.h"
+#include "device/cpu/devicecpu.h"
 
 int myagent();
 

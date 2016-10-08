@@ -27,8 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "transferlib.h"
-#include "timelib.h"
+#include "support/transferlib.h"
+#include "support/timelib.h"
 #include <iostream>
 #include <sys/stat.h>
 
