@@ -70,7 +70,7 @@ namespace Cosmos {
 //! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
 //! the Agent already running.
 //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
-Agent::Agent(NetworkType ntype, const std::string &nname, const std::string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
+Agent::Agent(NetworkType ntype, const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
 {
     int32_t iretn;
 
@@ -239,7 +239,7 @@ Agent::~Agent()
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-int32_t Agent::add_request_internal(std::string token, Agent::internal_request_function function, std::string synopsis, std::string description)
+int32_t Agent::add_request_internal(string token, Agent::internal_request_function function, string synopsis, string description)
 {
     if (Agent::reqs.size() > AGENTMAXREQUESTCOUNT)
         return (AGENT_ERROR_REQ_COUNT);
@@ -269,7 +269,7 @@ int32_t Agent::add_request_internal(std::string token, Agent::internal_request_f
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-int32_t Agent::add_request(std::string token, Agent::external_request_function function, std::string synopsis, std::string description)
+int32_t Agent::add_request(string token, Agent::external_request_function function, string synopsis, string description)
 {
     if (Agent::reqs.size() > AGENTMAXREQUESTCOUNT)
         return (AGENT_ERROR_REQ_COUNT);
@@ -353,13 +353,13 @@ uint16_t Agent::running()
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
-int32_t Agent::send_request(beatstruc hbeat, std::string request, std::string &output, float waitsec)
+int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec)
 {
     static socket_channel sendchan;
     int32_t iretn;
     int32_t nbytes;
 
-    std::vector <char> toutput;
+    vector <char> toutput;
     toutput.resize(AGENTMAXBUFFER+1);
 
     if (hbeat.utc == 0. || hbeat.addr == 0 || hbeat.port == 0)
@@ -394,7 +394,7 @@ int32_t Agent::send_request(beatstruc hbeat, std::string request, std::string &o
 
     toutput[nbytes] = 0;
     toutput.resize(nbytes+1);
-    std::string reply(toutput.begin(), toutput.end());
+    string reply(toutput.begin(), toutput.end());
     output = reply;
 
     CLOSE_SOCKET(sendchan.cudp);
@@ -412,7 +412,7 @@ int32_t Agent::send_request(beatstruc hbeat, std::string request, std::string &o
     \param rbeat pointer to a location to store the heartbeat
     \return 1 if found, otherwise 0, or an error number
 */
-int32_t Agent::get_server(std::string node, std::string name, float waitsec, beatstruc *rbeat)
+int32_t Agent::get_server(string node, string name, float waitsec, beatstruc *rbeat)
 {
     messstruc message;
 
@@ -467,7 +467,7 @@ int32_t Agent::get_server(std::string node, std::string name, float waitsec, bea
     \param proc Name of agent.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-beatstruc Agent::find_agent(std::string node, std::string proc)
+beatstruc Agent::find_agent(string node, string proc)
 {
     for (beatstruc &it : agent_list)
     {
@@ -490,7 +490,7 @@ beatstruc Agent::find_agent(std::string node, std::string proc)
     \param waitsec Maximum number of seconds to wait.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-beatstruc Agent::find_server(std::string node, std::string proc, float waitsec)
+beatstruc Agent::find_server(string node, string proc, float waitsec)
 {
     beatstruc cbeat = {0.,"","",NetworkType::MULTICAST,"",0,0,0.,"",0.,0.,0.};
 
@@ -524,7 +524,7 @@ beatstruc Agent::find_server(std::string node, std::string proc, float waitsec)
     \param waitsec Maximum number of seconds to wait.
     \return A vector of ::beatstruc entries listing the unique servers found.
 */
-std::vector<beatstruc> Agent::find_servers(float waitsec)
+vector<beatstruc> Agent::find_servers(float waitsec)
 {
     beatstruc cbeat, tbeat;
     uint32_t i, j;
@@ -570,7 +570,7 @@ std::vector<beatstruc> Agent::find_servers(float waitsec)
     \param list Properly formatted list of JSON names.
     \return 0, otherwise a negative error.
 */
-int32_t Agent::set_sohstring(std::string list)
+int32_t Agent::set_sohstring(string list)
 {
 
     if (!cinfo->pdata.agent[0].sohtable.empty())
@@ -750,7 +750,7 @@ void Agent::request_loop()
 void Agent::message_loop()
 {
     pollstruc meta;
-    std::vector <uint8_t> message;
+    vector <uint8_t> message;
     int32_t iretn;
 
     // Initialize things
@@ -848,7 +848,7 @@ int32_t Agent::req_echo(char* request, char* output, Agent* agent)
  */
 int32_t Agent::req_help(char*, char* output, Agent* agent)
 {
-    std::string help_string;
+    string help_string;
     help_string += "\n";
     for(uint32_t i = 0; i < agent->reqs.size(); ++i)
     {
@@ -936,7 +936,7 @@ int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
  */
 int32_t Agent::req_status(char*, char* output, Agent* agent)
 {
-    std::string jstring;
+    string jstring;
 
     if (json_of_agent(jstring, agent->cinfo->meta, agent->cinfo->pdata) != NULL)
     {
@@ -961,7 +961,7 @@ int32_t Agent::req_status(char*, char* output, Agent* agent)
  */
 int32_t Agent::req_getvalue(char *request, char* output, Agent* agent)
 {
-    std::string jstring;
+    string jstring;
 
     if (json_of_list(jstring, request, agent->cinfo->meta, agent->cinfo->pdata) != NULL)
     {
@@ -1001,7 +1001,7 @@ int32_t Agent::req_listnames(char *, char* output, Agent* agent)
 {
     //    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
 
-    std::string result = json_list_of_all(agent->cinfo->meta);
+    string result = json_list_of_all(agent->cinfo->meta);
     strncpy(output, result.c_str(), agent->cinfo->pdata.agent[0].beat.bsz);
     output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
     return 0;
@@ -1386,9 +1386,9 @@ int32_t Agent::publish(NetworkType type, uint16_t port)
     \param ntype Type of network (Multicast, Broadcast UDP, CSP)
     \return Vector of interfaces
     */
-std::vector<socket_channel> Agent::find_addresses(NetworkType ntype)
+vector<socket_channel> Agent::find_addresses(NetworkType ntype)
 {
-    std::vector<socket_channel> iface;
+    vector<socket_channel> iface;
     socket_channel tiface;
 
 #ifdef COSMOS_WIN_OS
@@ -1550,10 +1550,10 @@ std::vector<socket_channel> Agent::find_addresses(NetworkType ntype)
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
 */
-int32_t Agent::post(uint8_t type, std::string message)
+int32_t Agent::post(uint8_t type, string message)
 {
     int32_t iretn;
-    std::vector<uint8_t> bytes(message.begin(), message.end());
+    vector<uint8_t> bytes(message.begin(), message.end());
     bytes.push_back(0);
     iretn = post(type, bytes);
     return iretn;
@@ -1565,7 +1565,7 @@ int32_t Agent::post(uint8_t type, std::string message)
     \param message An array of bytes to post.
     \return 0, otherwise negative error.
 */
-int32_t Agent::post(uint8_t type, std::vector <uint8_t> message)
+int32_t Agent::post(uint8_t type, vector <uint8_t> message)
 {
     size_t nbytes;
     int32_t iretn=0;
@@ -1702,9 +1702,9 @@ int32_t Agent::unsubscribe()
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-int32_t Agent::poll(pollstruc &meta, std::string &message, uint8_t type, float waitsec)
+int32_t Agent::poll(pollstruc &meta, string &message, uint8_t type, float waitsec)
 {
-    std::vector <uint8_t> bytes;
+    vector <uint8_t> bytes;
     int32_t iretn;
 
     iretn = poll(meta, bytes, type, waitsec);
@@ -1725,7 +1725,7 @@ int32_t Agent::poll(pollstruc &meta, std::string &message, uint8_t type, float w
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-int32_t Agent::poll(pollstruc &meta, std::vector <uint8_t> &message, uint8_t type, float waitsec)
+int32_t Agent::poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec)
 {
     int nbytes;
     uint8_t input[AGENTMAXBUFFER+1];
@@ -1914,7 +1914,7 @@ beatstruc Agent::poll_beat(float waitsec)
     int32_t iretn;
     beatstruc beat;
     pollstruc meta;
-    std::vector <uint8_t> message;
+    vector <uint8_t> message;
 
     iretn = Agent::poll(meta, message, AGENT_MESSAGE_BEAT, waitsec);
 
@@ -1938,7 +1938,7 @@ timestruc Agent::poll_time(float waitsec)
     int32_t iretn;
     timestruc time;
     pollstruc meta;
-    std::string message;
+    string message;
 
     iretn = Agent::poll(meta, message, AGENT_MESSAGE_TIME, waitsec);
 
@@ -1965,7 +1965,7 @@ locstruc Agent::poll_location(float waitsec)
     int32_t iretn;
     locstruc loc;
     pollstruc meta;
-    std::string message;
+    string message;
 
     iretn = Agent::poll(meta, message, AGENT_MESSAGE_LOCATION, waitsec);
 
@@ -1993,7 +1993,7 @@ nodestruc Agent::poll_info(float waitsec)
     //summarystruc info;
     nodestruc info;
     pollstruc meta;
-    std::string message;
+    string message;
 
     iretn = Agent::poll(meta, message, AGENT_MESSAGE_TRACK, waitsec);
 
@@ -2027,7 +2027,7 @@ imustruc Agent::poll_imu(float waitsec)
     int32_t iretn;
     imustruc imu;
     pollstruc meta;
-    std::string message;
+    string message;
 
     iretn = Agent::poll(meta, message, AGENT_MESSAGE_IMU, waitsec);
 
