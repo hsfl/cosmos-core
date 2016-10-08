@@ -16,6 +16,6 @@ add_library(CosmosDeviceDisk STATIC ${SOURCES} ${INCLUDES})
 target_link_libraries(CosmosDeviceDisk CosmosDeviceGeneral)
 
 install(TARGETS CosmosDeviceDisk DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include/device)
+install(FILES ${INCLUDES} DESTINATION include/device/disk)
 
 

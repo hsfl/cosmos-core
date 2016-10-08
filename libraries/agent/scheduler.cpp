@@ -31,7 +31,7 @@
     \brief Agent support functions
 */
 
-#include "support/scheduler.h"
+#include "agent/scheduler.h"
 
 
 namespace Cosmos {

@@ -32,7 +32,7 @@
 #include "support/jsonlib.h"
 #include "support/timelib.h"
 #include "support/command.h"
-#include "support/scheduler.h"
+#include "agent/scheduler.h"
 
 using std::cout;
 using std::endl;

@@ -12,6 +12,6 @@ add_library(CosmosSupport STATIC ${SOURCES} ${INCLUDES})
 target_link_libraries(CosmosSupport CosmosMath CosmosDeviceCpu CosmosDeviceDisk)
 
 install(TARGETS CosmosSupport DESTINATION lib)
-install(FILES ${INCLUDES} DESTINATION include)
-install(FILES ${INCLUDESPP} DESTINATION include)
+install(FILES ${INCLUDES} DESTINATION include/support)
+install(FILES ${INCLUDESPP} DESTINATION include/support)
 
