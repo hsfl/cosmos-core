@@ -68,7 +68,8 @@ void Scheduler::addCommand(std::string name,
     std::string out;
     agent->send_request(agent_exec_soh, "add_queue_entry "+ command.command_string, out, 0);
 
-    cout << "command set: " << out << endl;
+    cout << "command set: " << endl;
+    cout << "  " << out << endl;
 
 }
 
@@ -111,6 +112,22 @@ int Scheduler::getQueueSize() {
     cout << "queue size: " << queue_size << endl;
 
     return queue_size;
+}
+
+void Scheduler::getQueueList() {
+    if (!agent_exec_soh.exists) {
+        cout << "could not find agent execsoh" << endl;
+        return ;
+    }
+
+    string out;
+    agent->send_request(agent_exec_soh, "get_queue_entry", out, 0);
+
+    //StringParser str(out,'[');
+    //int queue_size = str.getFieldNumberAsInteger(1);
+    cout << endl << "queue list: " << endl << out << endl;
+
+//    return queue_size;
 }
 
 
