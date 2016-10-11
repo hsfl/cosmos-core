@@ -49,14 +49,14 @@ Scheduler::~Scheduler() {
 
 }
 
-void Scheduler::addCommand(std::string name,
+void Scheduler::addEvent(std::string name,
                            std::string data,
                            double utc,
                            std::string condition,
                            uint32_t flag) {
 
-    Command command;
-    command.generator(name, data, utc, condition, flag);
+    Command event;
+    event.generator(name, data, utc, condition, flag);
 
     //com.set_command(line);
 
@@ -66,25 +66,25 @@ void Scheduler::addCommand(std::string name,
     }
 
     std::string out;
-    agent->send_request(agent_exec_soh, "add_queue_entry "+ command.command_string, out, 0);
+    agent->send_request(agent_exec_soh, "add_queue_entry "+ event.command_string, out, 0);
 
-    cout << "command set: " << endl;
+    cout << "event set: " << endl;
     cout << "  " << out << endl;
 
 }
 
-void Scheduler::addCommand(longeventstruc command) {
-    addCommand(command.name, command.data, command.utc, command.condition, command.flag);
+void Scheduler::addEvent(longeventstruc event) {
+    addEvent(event.name, event.data, event.utc, event.condition, event.flag);
 }
 
-void Scheduler::deleteCommand(std::string name,
+void Scheduler::deleteEvent(std::string name,
                               std::string data,
                               double utc,
                               std::string condition,
                               uint32_t flag) {
 
-    Command command;
-    command.generator(name, data, utc, condition, flag);
+    Command event;
+    event.generator(name, data, utc, condition, flag);
 
     if (!agent_exec_soh.exists) {
         cout << "could not find agent execsoh" << endl;
@@ -92,13 +92,13 @@ void Scheduler::deleteCommand(std::string name,
     }
 
     string out;
-    agent->send_request(agent_exec_soh, "del_queue_entry "+ command.command_string, out, 0);
+    agent->send_request(agent_exec_soh, "del_queue_entry "+ event.command_string, out, 0);
 
-    cout << "command deleted: " << out << endl;
+    cout << "event deleted: " << out << endl;
 
 }
 
-int Scheduler::getQueueSize() {
+int Scheduler::getEventQueueSize() {
     if (!agent_exec_soh.exists) {
         cout << "could not find agent execsoh" << endl;
         return 0 ;
@@ -114,7 +114,7 @@ int Scheduler::getQueueSize() {
     return queue_size;
 }
 
-void Scheduler::getQueueList() {
+void Scheduler::getEventQueue() {
     if (!agent_exec_soh.exists) {
         cout << "could not find agent execsoh" << endl;
         return ;

@@ -39,14 +39,14 @@ using std::endl;
 
 int main(int argc, char *argv[])
 {
-    longeventstruc com;
+    longeventstruc ev;
 
-    com.type = EVENT_TYPE_COMMAND;
-    com.flag = 0;
-    com.data[0] = 0;
-    com.condition[0] = 0;
-    com.utc = 0;
-    com.utcexec = 0.;
+    ev.type = EVENT_TYPE_COMMAND;
+    ev.flag = 0;
+    ev.data[0] = 0;
+    ev.condition[0] = 0;
+    ev.utc = 0;
+    ev.utcexec = 0.;
 
     string node = "";
 
@@ -54,12 +54,12 @@ int main(int argc, char *argv[])
     {
     case 7: // set repeat flag
     {
-        com.flag |= EVENT_FLAG_REPEAT;
+        ev.flag |= EVENT_FLAG_REPEAT;
     }
     case 6: // set conditions
     {
-        strcpy(com.condition, argv[5]);
-        com.flag |= EVENT_FLAG_CONDITIONAL;
+        strcpy(ev.condition, argv[5]);
+        ev.flag |= EVENT_FLAG_CONDITIONAL;
     }
     case 5: // add command to the scheduler
     {
@@ -73,13 +73,13 @@ int main(int argc, char *argv[])
         case '+':
         {
             double seconds = atof(&argv[3][1]);
-            com.utc = currentmjd() + seconds / 86400.;
+            ev.utc = currentmjd() + seconds / 86400.;
             break;
         }
         default:
             // use set time
         {
-            com.utc = atof(argv[3]);
+            ev.utc = atof(argv[3]);
             break;
         }
         }
@@ -87,12 +87,12 @@ int main(int argc, char *argv[])
     case 3: // set command string
     {
         //std::string command_data = argv[2];
-        strcpy(com.data, argv[2]);
+        strcpy(ev.data, argv[2]);
     }
     case 2: // set command name
     {
         //std::string command_name = argv[1];
-        strcpy(com.name, argv[1]);
+        strcpy(ev.name, argv[1]);
         break;
     }
     default:
@@ -127,19 +127,29 @@ int main(int argc, char *argv[])
     }
     }
 
-    Command command;
+    Command event;
     cout << "Command string:" << endl;
-    cout << command.generator(com) << endl << endl;
+    cout << event.generator(ev) << endl << endl;
 
     if (!node.empty()) {
-        cout << "Adding command to node " << node << endl;
+        cout << "Adding command/event to node " << node << endl;
         Scheduler scheduler(node);
 
         // Examples on how to use the scheduler class:
-        scheduler.addCommand(com);
-        sleep(1);
-        //scheduler.deleteCommand(com.name, com.data, com.utc, com.condition, com.flag);
+        //ev.name = "Track;FS701;20160930.145000;20160930.145500";
+        strcpy(ev.name, "Track;FS701;20160930.145000;20160930.145500");
+        //ev.data = "agent_tracker FS701 20160930.145000 20160930.145500";
+        strcpy(ev.data, "agent_tracker FS701 20160930.145000 20160930.145500");
+        ev.utc  = cal2mjd(2016, 9, 30, 14, 50, 0, 0);
+
+        cout << event.getName() << endl;
+        cout << event.getEvent() << endl;
+        cout << event.getTime() << endl;
+
+        scheduler.addEvent(ev);
+        sleep(0.1);
+        //scheduler.deleteCommand(ev.name, ev.data, ev.utc, ev.condition, ev.flag);
         //scheduler.getQueueSize();
-        scheduler.getQueueList();
+        scheduler.getEventQueue();
     }
 }

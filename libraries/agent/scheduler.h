@@ -55,11 +55,11 @@ public:
     Scheduler(std::string node_name);
     ~Scheduler();
 
-    void addCommand(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
-    void addCommand(longeventstruc command);
-    void deleteCommand(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
-    int getQueueSize();
-    void getQueueList();
+    void addEvent(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
+    void addEvent(longeventstruc command);
+    void deleteEvent(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
+    int getEventQueueSize();
+    void getEventQueue();
 }; // end of Command Queue Class
 
 } // end of namepsace Cosmos
