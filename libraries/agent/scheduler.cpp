@@ -33,6 +33,8 @@
 
 #include "agent/scheduler.h"
 
+using std::cout;
+using std::endl;
 
 namespace Cosmos {
 
@@ -47,59 +49,87 @@ Scheduler::~Scheduler() {
 
 }
 
-void Scheduler::addCommand(std::string name,
+void Scheduler::addEvent(std::string name,
                            std::string data,
                            double utc,
                            std::string condition,
                            uint32_t flag) {
 
-    Command command;
-    command.generator(name, data, utc, condition, flag);
+    Command event;
+    event.generator(name, data, utc, condition, flag);
 
     //com.set_command(line);
 
-    using std::cout;
-    using std::endl;
-
     if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
-        std::cout << "could not find agent execsoh" << std::endl;
+        cout << "could not find agent execsoh" << endl;
+        return;
     }
 
     std::string out;
-    agent->send_request(agent_exec_soh, "add_queue_entry "+ command.command_string, out, 0);
+    agent->send_request(agent_exec_soh, "add_queue_entry "+ event.command_string, out, 0);
 
-    cout << "command set: " << out << endl;
+    cout << "event set: " << endl;
+    cout << "  " << out << endl;
 
 }
 
-void Scheduler::addCommand(longeventstruc command) {
-    addCommand(command.name, command.data, command.utc, command.condition, command.flag);
+void Scheduler::addEvent(longeventstruc event) {
+    addEvent(event.name, event.data, event.utc, event.condition, event.flag);
 }
 
-void Scheduler::deleteCommand(std::string name,
-                           std::string data,
-                           double utc,
-                           std::string condition,
-                           uint32_t flag) {
+void Scheduler::deleteEvent(std::string name,
+                              std::string data,
+                              double utc,
+                              std::string condition,
+                              uint32_t flag) {
 
-    Command command;
-    command.generator(name, data, utc, condition, flag);
+    Command event;
+    event.generator(name, data, utc, condition, flag);
 
-    //com.set_command(line);
-
-    using std::cout;
-    using std::endl;
-
-    if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
-        std::cout << "could not find agent execsoh" << std::endl;
+    if (!agent_exec_soh.exists) {
+        cout << "could not find agent execsoh" << endl;
+        return;
     }
 
-    std::string out;
-    agent->send_request(agent_exec_soh, "del_queue_entry "+ command.command_string, out, 0);
+    string out;
+    agent->send_request(agent_exec_soh, "del_queue_entry "+ event.command_string, out, 0);
 
-    cout << "command deleted: " << out << endl;
+    cout << "event deleted: " << out << endl;
 
 }
+
+int Scheduler::getEventQueueSize() {
+    if (!agent_exec_soh.exists) {
+        cout << "could not find agent execsoh" << endl;
+        return 0 ;
+    }
+
+    string out;
+    agent->send_request(agent_exec_soh, "get_queue_size", out, 0);
+
+    StringParser str(out,'[');
+    int queue_size = str.getFieldNumberAsInteger(1);
+    cout << "queue size: " << queue_size << endl;
+
+    return queue_size;
+}
+
+void Scheduler::getEventQueue() {
+    if (!agent_exec_soh.exists) {
+        cout << "could not find agent execsoh" << endl;
+        return ;
+    }
+
+    string out;
+    agent->send_request(agent_exec_soh, "get_queue_entry", out, 0);
+
+    //StringParser str(out,'[');
+    //int queue_size = str.getFieldNumberAsInteger(1);
+    cout << endl << "queue list: " << endl << out << endl;
+
+//    return queue_size;
+}
+
 
 
 } // end namespace Cosmos

@@ -39,71 +39,117 @@ using std::endl;
 
 int main(int argc, char *argv[])
 {
-	longeventstruc com;
+    longeventstruc ev;
 
-	com.type = EVENT_TYPE_COMMAND;
-	com.flag = 0;
-	com.data[0] = 0;
-	com.condition[0] = 0;
-	com.utc = 0;
-	com.utcexec = 0.;
+    ev.type = EVENT_TYPE_COMMAND;
+    ev.flag = 0;
+    ev.data[0] = 0;
+    ev.condition[0] = 0;
+    ev.utc = 0;
+    ev.utcexec = 0.;
 
-	switch (argc)
-	{
-    case 6: // set repeat flag
-		{
-			com.flag |= EVENT_FLAG_REPEAT;
-		}
-    case 5: // set conditions
-		{
-            strcpy(com.condition, argv[4]);
-			com.flag |= EVENT_FLAG_CONDITIONAL;
-		}
+    string node = "";
+
+    switch (argc)
+    {
+    case 7: // set repeat flag
+    {
+        ev.flag |= EVENT_FLAG_REPEAT;
+    }
+    case 6: // set conditions
+    {
+        strcpy(ev.condition, argv[5]);
+        ev.flag |= EVENT_FLAG_CONDITIONAL;
+    }
+    case 5: // add command to the scheduler
+    {
+        node = string(argv[4]);
+    }
     case 4: // set time utc in mjd
-		{
-			switch (argv[3][0])
-			{
-            // add a few seconds to current time
-			case '+':
-				{
-					double seconds = atof(&argv[3][1]);
-					com.utc = currentmjd() + seconds / 86400.;
-					break;
-				}
-			default:
-                // use set time
-				{
-                    com.utc = atof(argv[3]);
-					break;
-				}
-			}
-		}
-    case 3: // set command data
-		{
-            //std::string command_data = argv[2];
-            strcpy(com.data, argv[2]);
-		}
+    {
+        switch (argv[3][0])
+        {
+        // add a few seconds to current time
+        case '+':
+        {
+            double seconds = atof(&argv[3][1]);
+            ev.utc = currentmjd() + seconds / 86400.;
+            break;
+        }
+        default:
+            // use set time
+        {
+            ev.utc = atof(argv[3]);
+            break;
+        }
+        }
+    }
+    case 3: // set command string
+    {
+        //std::string command_data = argv[2];
+        strcpy(ev.data, argv[2]);
+    }
     case 2: // set command name
-		{
-            //std::string command_name = argv[1];
-			strcpy(com.name, argv[1]);
-			break;
-		}
-	default:
-		{
-            printf("Usage: submit_command name command_string [time | +sec [condition [repeat_flag]]]\n");
-			break;
-		}
-	}
+    {
+        //std::string command_name = argv[1];
+        strcpy(ev.name, argv[1]);
+        break;
+    }
+    default:
+    {
+        cout << "The command generator produces the command string to be fed into the command queue\n"
+                "which is managed by the agent_exec_soh. Commands are a subset of events in COSMOS." << endl << endl;
 
-    Command command;
-    cout << command.generator(com) << endl;
+        cout << "Usage" << endl << endl;
+        cout << "  command_generator [options]" << endl;
+        cout << "  command_generator name command [time | +sec] [node] [condition] [repeat_flag]" << endl << endl;
 
-    Scheduler scheduler("kauaicc_sim");
-    scheduler.addCommand(com);
 
-    sleep(1);
+        cout << "Example" << endl << endl;
+        cout << "  $ command_generator myCmd1 \"agent kauaicc_sim execsoh get_queue_size\" +10" << endl;
+        cout << "   (this will run the command \"agent kauaicc_sim execsoh get_queue_size\" \n"
+                "    with name 'myCmd' within 10 seconds from now)" << endl << endl;
 
-    scheduler.deleteCommand(com.name, com.data, com.utc, com.condition, com.flag);
+        cout << "Options" << endl << endl;
 
+        cout << "  -name   \t = name of the command, can be a string or combination of \n "
+                "          \t   alphanumeric characters (ex: myCmd1)" << endl;
+        cout << "  -command\t = the actual command to be executed, if more than one word \n"
+                "          \t   enclose the command string in quotes \n"
+                "          \t   (ex: \"agent kauaicc_sim execsoh get_queue_size\"" << endl;
+        cout << "  -time   \t = optional argument to enter the desired modified julian date (mjd)\n"
+                "          \t   if not entered it will use the current time. \n"
+                "          \t   If '+' is used instead then the number of seconds can be inserted.\n"
+                "          \t   For 10 seconds in the future use +10" << endl;
+        cout << "  -node   \t = optional argument to add the generated command to the command queue\n "
+                "          \t   on the specified node (ex: kauaicc_sim) " << endl;
+        return 0;
+    }
+    }
+
+    Command event;
+    cout << "Command string:" << endl;
+    cout << event.generator(ev) << endl << endl;
+
+    if (!node.empty()) {
+        cout << "Adding command/event to node " << node << endl;
+        Scheduler scheduler(node);
+
+        // Examples on how to use the scheduler class:
+        //ev.name = "Track;FS701;20160930.145000;20160930.145500";
+        strcpy(ev.name, "Track;FS701;20160930.145000;20160930.145500");
+        //ev.data = "agent_tracker FS701 20160930.145000 20160930.145500";
+        strcpy(ev.data, "agent_tracker FS701 20160930.145000 20160930.145500");
+        ev.utc  = cal2mjd(2016, 9, 30, 14, 50, 0, 0);
+
+        cout << event.getName() << endl;
+        cout << event.getEvent() << endl;
+        cout << event.getTime() << endl;
+
+        scheduler.addEvent(ev);
+        sleep(0.1);
+        //scheduler.deleteCommand(ev.name, ev.data, ev.utc, ev.condition, ev.flag);
+        //scheduler.getQueueSize();
+        scheduler.getEventQueue();
+    }
 }

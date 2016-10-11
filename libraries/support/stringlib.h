@@ -66,7 +66,8 @@ public:
     std::string getFieldNumber(uint32_t index);
 	double getFieldNumberAsDouble(uint32_t index);
     void splitString(std::string str, char delimiter);
-	size_t numberOfFields;
+    size_t numberOfFields;
+    int getFieldNumberAsInteger(uint32_t index);
 };
 
 //! @}

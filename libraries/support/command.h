@@ -70,13 +70,22 @@ public:
 	Command();
 	~Command();
 
+    // sets
 	void	set_command(string line, Agent *agent);
+    void	set_utcexec()	{	utcexec = currentmjd(0.);	}
+    void	set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	}
+
+    // gets
+    const string get_name() { return name; } // TODO: replace by getName
+    string getName() { return name; }
 	string	get_json();
-	void	set_utcexec()	{	utcexec = currentmjd(0.);	}
-	void	set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	}
-	double	get_utc()		{	return utc;	}
+    double	get_utc()		{	return utc;	} // TODO: replace by getTime
+    double	getTime()		{	return utc;	}
 	double	get_utcexec()	{	return utcexec;	}
-	char*	get_data()		{	return (char*)data.c_str();	}
+    char*	get_data()		{	return (char*)data.c_str();	} // TOTO: change to string, replace with getEvent
+    string  getEvent()      {   return data; }
+
+    // status
 	bool	is_ready()		{	return (utc <= currentmjd(0.)); }
 	bool	is_repeat()		{	return (flag & EVENT_FLAG_REPEAT);	}
 	bool	is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
@@ -110,7 +119,7 @@ public:
 		}
 	}
 
-	const string get_name() { return name; }
+
 
 	friend std::ostream& operator<<(std::ostream& out, const Command& cmd);
 	friend bool operator==(const Command& cmd1, const Command& cmd2);
