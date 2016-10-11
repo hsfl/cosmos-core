@@ -35,6 +35,7 @@
 // - reset
 
 #include "support/elapsedtime.h"
+#include "support/timelib.h"
 
 using std::cout;
 using std::endl;
@@ -253,6 +254,11 @@ double ElapsedTime::getElapsedTime(){
     return split();
 }
 
+double ElapsedTime::getElapsedTimeSince(double startMjd){
+    //Get the elapsedTime from start to now
+    return (currentmjd()-startMjd)*86400;
+}
+
 
 /*!
  * \brief compute the elapsed time between the two provided times
@@ -262,7 +268,7 @@ double ElapsedTime::getElapsedTime(){
  */
 double ElapsedTime::getElapsedTime(double startMjd, double endMjd)
 {
-    // compute the elapsed time given the startTimeMjd
+    // compute the elapsed time between start and end
     return (endMjd-startMjd)*86400;
 }
 

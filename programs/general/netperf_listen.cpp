@@ -59,11 +59,11 @@
 #include "agent/agentclass.h"
 #include "support/jsondef.h"
 #include "support/sliplib.h"
+#include "support/timelib.h"
 
 #define BUFSIZE 10000
-#define MJD_TO_SECONDS 86400
-#define CURRENT_TIME_us currentmjd(0.0)*MJD_TO_SECONDS*1000*1000
 #define INFO_SIZE 32
+#define CURRENT_TIME_us currentmjd()*DAY_TO_SECONDS*1000*1000
 
 bool debug_verbose = false;
 char address[] = "0.0.0.0";

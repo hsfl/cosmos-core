@@ -91,7 +91,7 @@ double currentmjd()
 double unix2utc(struct timeval unixtime)
 {
     double utc;
-    utc = 40587. + (unixtime.tv_sec + unixtime.tv_usec / 1000000.) / 86400.;
+    utc = MJD_UNIX_OFFSET + (unixtime.tv_sec + unixtime.tv_usec / 1000000.) / 86400.;
 
     return utc;
 }
@@ -123,7 +123,7 @@ double unix2utc(double unixtime)
 struct timeval utc2unix(double utc)
 {
     struct timeval unixtime;
-    double unixseconds = 86400. * (utc - 40587.);
+    double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
     unixtime.tv_sec = (int)unixseconds;
     unixtime.tv_usec = 1000000. * (unixseconds - unixtime.tv_sec);
 

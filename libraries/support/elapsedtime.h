@@ -77,7 +77,7 @@ public:
 
     double getElapsedTimeMiliSeconds();
     double getElapsedTime();
-//    double getElapsedTimeSince(double startTimeMjd);
+    double getElapsedTimeSince(double startTimeMjd);
     double getElapsedTime(double startMjd, double endMjd);
 
     double lap();

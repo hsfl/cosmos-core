@@ -89,9 +89,9 @@
 //! functions with user defined ASCII strings. Built in requests include:
 //!     - "help" - list available requests for this %Agent.
 //!     - "shutdown" - causes the %Agent to stop what it is doing and exit.
-//!     - "idle" - causes the %Agent to transition to ::AgentState::IDLE.
-//!     - "monitor" - causes the %Agent to transition to ::AgentState::MONITOR.
-//!     - "run" - causes the %Agent to transition to ::AgentState::RUN.
+//!     - "idle" - causes the %Agent to transition to ::State::IDLE.
+//!     - "monitor" - causes the %Agent to transition to ::State::MONITOR.
+//!     - "run" - causes the %Agent to transition to ::State::RUN.
 //!     - "status" - causes the agent to dump any \ref jsonlib variables it is monitoring.
 //!     - "getvalue {\"json_name_000\"[,\"json_name_001\"]}" - requests the %Agent to return the values
 //! of the indicated JSON names.
@@ -134,7 +134,7 @@ public:
     Agent(NetworkType ntype = NetworkType::UDP, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
     ~Agent();
 
-    enum class AgentState : uint16_t
+    enum class State : uint16_t
         {
         //! Shut down Agent
         SHUTDOWN=0,
@@ -260,7 +260,7 @@ public:
     int32_t get_server(string node, string name, float waitsec, beatstruc *cbeat);
     vector<beatstruc> find_servers(float waitsec);
     beatstruc find_server(string node, string proc, float waitsec);
-    beatstruc find_agent(string node, string proc);
+    beatstruc find_agent(string agent, string node="");
     uint16_t running();
     int32_t set_sohstring(string list);
     cosmosstruc *get_cosmosstruc();
@@ -289,6 +289,8 @@ public:
     int32_t send(uint8_t address, string message);
     int32_t receive(uint8_t address, string &message);
     int32_t receiveAll(uint8_t address, string &message);
+    std::string getNode();
+    std::string getAgent();
 
     // poll
     pollstruc metaRx;

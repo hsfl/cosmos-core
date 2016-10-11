@@ -39,7 +39,7 @@ namespace Cosmos {
 Scheduler::Scheduler(std::string node_name) {
 
     agent = new Agent(NetworkType::UDP, node_name, "test");
-    agent_exec_soh = agent->find_agent("kauaicc_sim","execsoh");
+    agent_exec_soh = agent->find_agent("execsoh", "kauaicc_sim");
 
 }
 

@@ -79,7 +79,7 @@ Agent::Agent(NetworkType ntype, const string &nname, const string &aname, double
     {
         return;
     }
-    cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::AgentState::INIT;
+    cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::State::INIT;
 
     // Establish subscribe channel
     iretn = Agent::subscribe(ntype, (char *)AGENTMCAST, AGENTSENDPORT, 1000);
@@ -164,7 +164,7 @@ Agent::Agent(NetworkType ntype, const string &nname, const string &aname, double
         cinfo->pdata.agent[0].beat.bprd = bprd;
     else
         cinfo->pdata.agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
-    cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::AgentState::INIT;
+    cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::State::INIT;
     cinfo->pdata.agent[0].beat.port = (uint16_t)portnum;
     cinfo->pdata.agent[0].beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
 
@@ -218,7 +218,7 @@ Agent::Agent(NetworkType ntype, const string &nname, const string &aname, double
     Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
 
     cinfo->pdata.agent[0].server = 1;
-    cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::AgentState::RUN;
+    cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::State::RUN;
 
 
 }
@@ -311,7 +311,7 @@ int32_t Agent::shutdown()
 {
     if (cinfo != nullptr)
     {
-        cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::SHUTDOWN);
+        cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
     }
     if (agentName.size())
     {
@@ -467,11 +467,15 @@ int32_t Agent::get_server(string node, string name, float waitsec, beatstruc *rb
     \param proc Name of agent.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-beatstruc Agent::find_agent(string node, string proc)
+beatstruc Agent::find_agent(string agent, string node)
 {
+    if (node.empty())
+    {
+        node = nodeName;
+    }
     for (beatstruc &it : agent_list)
     {
-        if (it.node == node && it.proc == proc)
+        if (it.node == node && it.proc == agent)
         {
             it.exists = true;
             return it;
@@ -609,7 +613,7 @@ void Agent::heartbeat_loop()
 
         // post comes first
         cinfo->pdata.agent[0].beat.utc = currentmjd(0.);
-        if ((Agent::AgentState)(cinfo->pdata.agent[0].stateflag) != Agent::AgentState::IDLE && !cinfo->pdata.agent[0].sohtable.empty())
+        if ((Agent::State)(cinfo->pdata.agent[0].stateflag) != Agent::State::IDLE && !cinfo->pdata.agent[0].sohtable.empty())
         {
             Agent::post(AGENT_MESSAGE_BEAT, json_of_table(hbjstring, cinfo->pdata.agent[0].sohtable, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
         }
@@ -620,7 +624,7 @@ void Agent::heartbeat_loop()
 
         // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
         // Compute other monitored quantities if monitoring
-        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::AgentState::MONITOR))
+        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::State::MONITOR))
         {
             // TODO: rename beat.cpu to beat.cpu_percent
             // add beat.cpu_load
@@ -628,7 +632,7 @@ void Agent::heartbeat_loop()
             cinfo->pdata.agent[0].beat.memory = deviceCpu_.getVirtualMemoryUsed();
         }
 
-        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::AgentState::SHUTDOWN))
+        if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::State::SHUTDOWN))
         {
             cinfo->pdata.agent[0].beat.cpu = 0;
             cinfo->pdata.agent[0].beat.memory = 0;
@@ -682,7 +686,7 @@ void Agent::request_loop()
         {
             bufferin[iretn] = 0;
 
-            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::AgentState::DEBUG))
+            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG))
             {
                 printf("Request: [%d] %s ",iretn,bufferin);
             }
@@ -737,7 +741,7 @@ void Agent::request_loop()
                 bufferout[cinfo->pdata.agent[0].beat.bsz+3] = 0;
             }
             nbytes = sendto(cinfo->pdata.agent[0].req.cudp,bufferout,strlen(bufferout),0,(struct sockaddr *)&cinfo->pdata.agent[0].req.caddr,sizeof(struct sockaddr_in));
-            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::AgentState::DEBUG))
+            if (cinfo->pdata.agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG))
             {
                 printf("[%d] %s\n",nbytes,bufferout);
             }
@@ -878,7 +882,7 @@ int32_t Agent::req_help(char*, char* output, Agent* agent)
  */
 int32_t Agent::req_run(char*, char* output, Agent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::RUN);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
     output[0] = 0;
     return(0);
 }
@@ -892,7 +896,7 @@ int32_t Agent::req_run(char*, char* output, Agent* agent)
  */
 int32_t Agent::req_idle(char*, char* output, Agent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::IDLE);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::IDLE);
     output[0] = 0;
     return(0);
 }
@@ -906,7 +910,7 @@ int32_t Agent::req_idle(char*, char* output, Agent* agent)
  */
 int32_t Agent::req_monitor(char*, char* output, Agent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::MONITOR);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::MONITOR);
     output[0] = 0;
     return(0);
 }
@@ -920,7 +924,7 @@ int32_t Agent::req_monitor(char*, char* output, Agent* agent)
  */
 int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
 {
-    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::AgentState::SHUTDOWN);
+    agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
     output[0] = 0;
     return(0);
 }
@@ -2041,6 +2045,16 @@ imustruc Agent::poll_imu(float waitsec)
     }
 
     return (imu);
+}
+
+std::string Agent::getNode()
+{
+    return nodeName;
+}
+
+std::string Agent::getAgent()
+{
+    return agentName;
 }
 
 } // end namespace Cosmos

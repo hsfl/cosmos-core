@@ -50,7 +50,7 @@ for (ut1=49809.; ut1<=53809.; ut1+=100.)
 	dut1 = utc2dut1(utc);
 	utc = ut1 - dut1;
 	dt = utc2tt(utc) - ut1;
-	printf("%14.6f %7.3f %7.3f ",ut1+2400000.5,dt*86400.,dut1*86400.);
+	printf("%14.6f %7.3f %7.3f ",ut1+JD_MJD_OFFSET,dt*86400.,dut1*86400.);
 	theta = utc2theta(utc);
 	deg = DEGOF(theta);
 	amin = 60.*(deg - (int)deg);

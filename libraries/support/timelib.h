@@ -70,8 +70,23 @@
 //! \defgroup timelib_constants Time handling constants
 //! @{
 
-#define MJD2JD(mjd) (double)((mjd) + 2400000.5)
-#define JD2MJD(jd) (double)((jd) - 2400000.5)
+#define MJD_UNIX_OFFSET 40587.
+#define JD_MJD_OFFSET 2400000.5
+#define MJD2JD(mjd) (double)((mjd) + JD_MJD_OFFSET)
+#define JD2MJD(jd) (double)((jd) - JD_MJD_OFFSET)
+#define DAY_TO_SECONDS 86400.
+//#define CURR_MJD current_mjd()
+//#define CURRENT_TIME_us CURR_MJD*DAY_TO_SECONDS*1000*1000
+#define SECONDS_TO_DAYS(x)              ((double)(x) / DAY_TO_SECONDS)
+#define DAYS_TO_SECONDS(x)              ((double)(x) * DAY_TO_SECONDS)
+#define TIME_SECS_TO_DAYS(x)            ((double)(x) / DAY_TO_SECONDS)
+#define TIME_DAYS_TO_SECS(x)            ((double)(x) * DAY_TO_SECONDS)
+#define TIME_SECS_SINCE_MJD(x)          (  ( (currentmjd(0.)-(x)) ) * DAY_TO_SECONDS   )
+#define TIME_UNIXs_TO_MJD(unixSecs)     (  ( (unixSecs) / DAY_TO_SECONDS ) + MJD_UNIX_OFFSET  )            // From http://stackoverflow.com/questions/466321/convert-unix-timestamp-to-julian
+#define TIME_MJD_TO_UNIXs(mjd)          (((mjd) - MJD_UNIX_OFFSET) * DAY_TO_SECONDS)                       // Inverse operation of above
+#define TIME_UNIX_TV_TO_DOUBLE_SECS(x)  ( ((double)(x.tv_sec)) + ((double)(x.tv_usec)  / 1000000. ) )
+#define UPTIME (DAY_TO_SECONDS*(currentmjd(0.)-mjd_start_time))
+
 //! @}
 
 //! \ingroup timelib

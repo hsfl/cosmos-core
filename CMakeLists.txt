@@ -163,8 +163,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
     endif()
 
-    # default COSMOS install folder
-    set(COSMOS_INSTALL_FOLDER "c:/cosmos/")
+    if("$ENV{COSMOS}" STREQUAL "")
+        set(COSMOS_INSTALL_FOLDER "c:/cosmos") #was /usr/local/cosmos/linux
+    else()
+        set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}")
+    endif("$ENV{COSMOS}" STREQUAL "")
 
     # if we are cross compiling then put the files inside the "crosscompile" folder
     if (${BUILD_TYPE} MATCHES "arm")
