@@ -41,7 +41,7 @@ namespace Cosmos {
 Scheduler::Scheduler(std::string node_name) {
 
     agent = new Agent(NetworkType::UDP, node_name, "test");
-    agent_exec_soh = agent->find_agent("execsoh", "kauaicc_sim");
+    agent_exec_soh = agent->find_agent("exec", "kauaicc_sim");
 
 }
 
@@ -55,25 +55,25 @@ void Scheduler::addEvent(std::string name,
                            std::string condition,
                            uint32_t flag) {
 
-    Command event;
+    Event event;
     event.generator(name, data, utc, condition, flag);
 
     //com.set_command(line);
 
     if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
-        cout << "could not find agent execsoh" << endl;
+        cout << "could not find agent exec" << endl;
         return;
     }
 
     std::string out;
-    agent->send_request(agent_exec_soh, "add_queue_entry "+ event.command_string, out, 0);
+    agent->send_request(agent_exec_soh, "add_queue_entry "+ event.event_string, out, 0);
 
     cout << "event set: " << endl;
-    cout << "  " << out << endl;
+    cout << out << endl;
 
 }
 
-void Scheduler::addEvent(longeventstruc event) {
+void Scheduler::addEvent(Event event) {
     addEvent(event.name, event.data, event.utc, event.condition, event.flag);
 }
 
@@ -83,24 +83,28 @@ void Scheduler::deleteEvent(std::string name,
                               std::string condition,
                               uint32_t flag) {
 
-    Command event;
+    Event event;
     event.generator(name, data, utc, condition, flag);
 
     if (!agent_exec_soh.exists) {
-        cout << "could not find agent execsoh" << endl;
+        cout << "could not find agent exec" << endl;
         return;
     }
 
     string out;
-    agent->send_request(agent_exec_soh, "del_queue_entry "+ event.command_string, out, 0);
+    agent->send_request(agent_exec_soh, "del_queue_entry "+ event.event_string, out, 0);
 
     cout << "event deleted: " << out << endl;
 
 }
 
+void Scheduler::deleteEvent(Event event) {
+    deleteEvent(event.name,event.data, event.utc, event.condition, event.flag);
+}
+
 int Scheduler::getEventQueueSize() {
     if (!agent_exec_soh.exists) {
-        cout << "could not find agent execsoh" << endl;
+        cout << "could not find agent exec" << endl;
         return 0 ;
     }
 
@@ -109,14 +113,14 @@ int Scheduler::getEventQueueSize() {
 
     StringParser str(out,'[');
     int queue_size = str.getFieldNumberAsInteger(1);
-    cout << "queue size: " << queue_size << endl;
+    cout << "Event queue size: " << queue_size << endl;
 
     return queue_size;
 }
 
 void Scheduler::getEventQueue() {
     if (!agent_exec_soh.exists) {
-        cout << "could not find agent execsoh" << endl;
+        cout << "could not find agent exec" << endl;
         return ;
     }
 

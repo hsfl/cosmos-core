@@ -27,10 +27,10 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#ifndef COSMOS_COMMAND_QUEUE_H
-#define COSMOS_COMMAND_QUEUE_H
+#ifndef COSMOS_CommandQueue_H
+#define COSMOS_CommandQueue_H
 
-/*! \file command_queue.h
+/*! \file CommandQueue.h
 *	\brief Command Queue Class
 */
 
@@ -42,36 +42,36 @@
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"
 #include "agent/agentclass.h"
-#include "support/command.h"
+#include "support/event.h"
 
 namespace Cosmos {
 
 // Class to manage information about a list of commands
-class command_queue
+class CommandQueue
 {
 private:
-	std::list<Command> commands;
+    std::list<Event> commands;
 	bool queue_changed = false;
 
 public:
 	size_t get_size() { return commands.size(); }
 
-	Command& get_command(int i)
+    Event& get_command(int i)
 	{
-		std::list<Command>::iterator ii = commands.begin();
+        std::list<Event>::iterator ii = commands.begin();
 		std::advance(ii,i);
 		return *ii;
 	}
 	void load_commands(string incoming_dir, Agent *agent);
 	void save_commands(string temp_dir);
-	void run_command(Command &cmd, string nodename, double logdate_exec);
+    void run_command(Event &cmd, string nodename, double logdate_exec);
 	void run_commands(Agent *agent, string nodename, double logdate_exec);
-	void add_command(Command& c);
-	int del_command(Command& c);
-	void sort()	{ commands.sort([](Command & c1, Command & c2) { return c1.get_utc() < c2.get_utc(); });	}
-	friend std::ostream& operator<<(std::ostream& out, command_queue& cmd);
+    void add_command(Event& c);
+    int del_command(Event& c);
+    void sort()	{ commands.sort([](Event & c1, Event & c2) { return c1.getTime() < c2.getTime(); });	}
+    friend std::ostream& operator<<(std::ostream& out, CommandQueue& cmd);
 
-//	bool compare_command_times(Command command1, Command command2);
+//	bool compare_command_times(Event command1, Event command2);
 //	string incoming_dir;
 //	string outgoing_dir;
 //	string temp_dir;
@@ -80,4 +80,4 @@ public:
 
 } // end of namepsace Cosmos
 
-#endif // COSMOS_COMMAND_QUEUE_H
+#endif // COSMOS_CommandQueue_H

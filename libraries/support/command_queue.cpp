@@ -36,24 +36,15 @@
 namespace Cosmos {
 
 
-//// Default Constructor for command objects
-//Command::Command() : utc(0), utcexec(0), name(""), type(0), flag(0), data(""), condition(""), already_ran(false)
-//{
-//}
-
-//Command::~Command()
-//{
-
-//}
 
 // *************************************************************************
-// Class: command_queue
+// Class: CommandQueue
 // *************************************************************************
 
 // Executes a command using fork().  For each command run, the time of
 // execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
 // and this updated command information is logged to the OUTPUT directory.
-void command_queue::run_command(Command& cmd, string nodename, double logdate_exec)
+void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 {
 	queue_changed = true;
 
@@ -89,7 +80,7 @@ void command_queue::run_command(Command& cmd, string nodename, double logdate_ex
 	case 0:
 		char *words[MAXCOMMANDWORD];
 		int devn;
-		string_parse(cmd.get_data(),words,MAXCOMMANDWORD);
+        string_parse((char *)cmd.getData().c_str(),words,MAXCOMMANDWORD);
 		string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
 		if (outpath.empty())
 		{
@@ -114,14 +105,14 @@ void command_queue::run_command(Command& cmd, string nodename, double logdate_ex
 	//	outfile << cmd <<std::endl;
 	//	outfile.close();
 	// log to event file
-	log_write(nodename, "exec", logdate_exec, "event", cmd.get_json().c_str());
+    log_write(nodename, "exec", logdate_exec, "event", cmd.getJson().c_str());
 }
 
 
 // Manages the logic of when to run commands in the command queue.
-void command_queue::run_commands(Agent *agent, string nodename, double logdate_exec) // TODO: remove dependency to pointer to agent
+void CommandQueue::run_commands(Agent *agent, string nodename, double logdate_exec) // TODO: remove dependency to pointer to agent
 {
-	for(std::list<Command>::iterator ii = commands.begin(); ii != commands.end(); ++ii) {
+    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii) {
 		// if command is ready
 		if (ii->is_ready()) {
 			// if command is conditional
@@ -157,7 +148,7 @@ void command_queue::run_commands(Agent *agent, string nodename, double logdate_e
 // Saves commands to .queue file located in the temp directory
 // Commands are taken from the global command queue
 // Command queue is sorted by utc after loading
-void command_queue::save_commands(string temp_dir)
+void CommandQueue::save_commands(string temp_dir)
 {
 	if (!queue_changed)
 	{
@@ -169,18 +160,18 @@ void command_queue::save_commands(string temp_dir)
 	FILE *fd = fopen((temp_dir+".queue").c_str(), "w");
 	if (fd != NULL)
 	{
-		for (Command cmd: commands)
+        for (Event cmd: commands)
 		{
-			fprintf(fd, "%s\n", cmd.get_json().c_str());
+            fprintf(fd, "%s\n", cmd.getJson().c_str());
 		}
 		fclose(fd);
 	}
 }
 
 // Loads new commands from *.command files located in the incoming directory
-// Commands are loaded into the global command_queue object (cmd_queue),
+// Commands are loaded into the global CommandQueue object (cmd_queue),
 // *.command files are removed, and the command list is sorted by utc.
-void command_queue::load_commands(string incoming_dir, Agent *agent) // TODO: change arguments so that we don't need to pass the separate directories
+void CommandQueue::load_commands(string incoming_dir, Agent *agent) // TODO: change arguments so that we don't need to pass the separate directories
 {
 	DIR *dir = NULL;
 	struct dirent *dir_entry = NULL;
@@ -210,7 +201,7 @@ void command_queue::load_commands(string incoming_dir, Agent *agent) // TODO: ch
 
 			//file is open for reading commands
 			string line;
-			Command cmd;
+            Event cmd;
 
 			while(getline(infile,line))
 			{
@@ -243,10 +234,10 @@ void command_queue::load_commands(string incoming_dir, Agent *agent) // TODO: ch
 }
 
 // Remove command object from the command queue, uses command == operator)
-int command_queue::del_command(Command& c)
+int CommandQueue::del_command(Event& c)
 {
 	int n = 0;
-	for(std::list<Command>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
+    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
 	{
 		if(c==*ii)
 		{
@@ -258,22 +249,22 @@ int command_queue::del_command(Command& c)
 	return n;
 }
 
-void command_queue::add_command(Command& c)
+void CommandQueue::add_command(Event& c)
 {
 	commands.push_back(c);
 	queue_changed = true;
 }
 
-//// Predicate function for comparing command objects, used by command_queue.sort()
-//bool command_queue::compare_command_times(Command command1, Command command2)
+//// Predicate function for comparing command objects, used by CommandQueue.sort()
+//bool CommandQueue::compare_command_times(Event command1, Event command2)
 //{
 //	return command1.get_utc()<command2.get_utc();
 //}
 
-// Copies the current command_queue object to the output stream using JSON format
-std::ostream& operator<<(std::ostream& out, command_queue& cmdq)
+// Copies the current CommandQueue object to the output stream using JSON format
+std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq)
 {
-	for(std::list<Command>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
+    for(std::list<Event>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
 		out << *ii << std::endl;
 	return out;
 }

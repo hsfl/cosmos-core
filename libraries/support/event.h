@@ -50,14 +50,10 @@ using std::string;
 
 namespace Cosmos {
 
-// *************************************************************************
-// Class: command
-// *************************************************************************
+// Class to manage information about an event (commands are special cases of events)
+class Event {
 
-// Class to manage information about a single command event
-class Command {
-
-private:
+public: // TODO: consider private?
 	double		utc;
 	double		utcexec;
 	string		name;
@@ -67,8 +63,8 @@ private:
 	string		condition;
 
 public:
-	Command();
-	~Command();
+    Event();
+    ~Event();
 
     // sets
 	void	set_command(string line, Agent *agent);
@@ -76,14 +72,14 @@ public:
     void	set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	}
 
     // gets
-    const string get_name() { return name; } // TODO: replace by getName
-    string getName() { return name; }
-	string	get_json();
-    double	get_utc()		{	return utc;	} // TODO: replace by getTime
-    double	getTime()		{	return utc;	}
-	double	get_utcexec()	{	return utcexec;	}
-    char*	get_data()		{	return (char*)data.c_str();	} // TOTO: change to string, replace with getEvent
-    string  getEvent()      {   return data; }
+
+    string  getName() { return name; }
+    string	getJson();
+    double	getUtc()		{	return utc;	}
+    string	getTime()		{	return mjd2iso8601( getUtc() ); }
+    double	getUtcExec()	{	return utcexec;	}
+    string	getData()		{	return data; }
+    string	getEvent()		{	return getData(); }
 
     // status
 	bool	is_ready()		{	return (utc <= currentmjd(0.)); }
@@ -100,9 +96,9 @@ public:
 		uint32_t flag
 	);
 
-	string generator(longeventstruc command);
+    string generator(longeventstruc event);
 
-	string command_string;
+    string event_string;
 
 	// JIMNOTE: this function (condition_true)  needs a look at....
 
@@ -121,10 +117,10 @@ public:
 
 
 
-	friend std::ostream& operator<<(std::ostream& out, const Command& cmd);
-	friend bool operator==(const Command& cmd1, const Command& cmd2);
+    friend std::ostream& operator<<(std::ostream& out, const Event& cmd);
+    friend bool operator==(const Event& cmd1, const Event& cmd2);
 
-}; // end of class Command
+}; // end of class Event
 
 } // end of namepsace Cosmos
 

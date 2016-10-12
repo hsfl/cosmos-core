@@ -40,7 +40,7 @@
 //!
 
 #include "support/configCosmos.h"
-#include "support/command.h"
+#include "support/event.h"
 
 namespace Cosmos {
 
@@ -56,8 +56,9 @@ public:
     ~Scheduler();
 
     void addEvent(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
-    void addEvent(longeventstruc command);
+    void addEvent(Event event);
     void deleteEvent(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
+    void deleteEvent(Event event);
     int getEventQueueSize();
     void getEventQueue();
 }; // end of Command Queue Class

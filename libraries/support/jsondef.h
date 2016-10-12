@@ -807,7 +807,7 @@ struct agentstruc
 /*! This is the structure that holds each Event, along with associated
  * resources.
  */
-// TODO: rename longeventstruc to CosmosEvent
+// TODO: use Event class instead, delete this one
 struct longeventstruc
 {
     //! Time event is to start.
