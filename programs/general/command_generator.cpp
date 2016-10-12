@@ -137,10 +137,10 @@ int main(int argc, char *argv[])
 
         // Examples on how to use the scheduler class:
         //ev.name = "Track;FS701;20160930.145000;20160930.145500";
-        strcpy(ev.name, "Track;FS701;20160930.145000;20160930.145500");
+//        strcpy(ev.name, "Track;FS701;20160930.145000;20160930.145500");
         //ev.data = "agent_tracker FS701 20160930.145000 20160930.145500";
-        strcpy(ev.data, "agent_tracker FS701 20160930.145000 20160930.145500");
-        ev.utc  = cal2mjd(2016, 9, 30, 14, 50, 0, 0);
+//        strcpy(ev.data, "agent_tracker FS701 20160930.145000 20160930.145500");
+//        ev.utc  = cal2mjd(2016, 9, 30, 14, 50, 0, 0);
 
         cout << event.getName() << endl;
         cout << event.getEvent() << endl;

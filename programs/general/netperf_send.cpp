@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	if ((iretn=socket_open(&chan, NetworkType::UDP, address, 6101, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
+	if ((iretn=socket_open(&chan, NetworkType::UDP, address, 6101, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
 	{
 		printf("Unable to open connection to [%s:6101]\n",address);
 	}

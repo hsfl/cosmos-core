@@ -66,7 +66,6 @@
 #include <fstream>
 #include <sstream>
 
-//Agent *agent;
 Agent *agent;
 
 // Executive specfic declarations
@@ -408,7 +407,7 @@ int32_t request_del_queue_entry_id(char *request, char* response, Agent *)
         ss << "the command queue is empty";
     else
     {
-         int j;
+        int j;
         int32_t iretn = sscanf(request,"del_queue_entry_id %d",&j);
 
         // if valid index then return command

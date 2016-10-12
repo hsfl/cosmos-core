@@ -63,14 +63,14 @@ int main(int argc, char *argv[])
 	// Open sockets to each address to be used for outgoing forwarding.
 	for (uint16_t i=1; i<argc; ++i)
 	{
-		if ((iretn=socket_open(&tempchan, NetworkType::UDP, argv[i], AGENTRECVPORT, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) == 0)
+		if ((iretn=socket_open(&tempchan, NetworkType::UDP, argv[i], AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) == 0)
 		{
 			sendchan.push_back(tempchan);
 		}
 	}
 
 	// Open the socket for incoming forwarding.
-	if ((iretn=socket_open(&rcvchan, NetworkType::UDP, "", AGENTRECVPORT, AGENT_LISTEN, AGENT_BLOCKING, AGENTRCVTIMEO)) != 0)
+	if ((iretn=socket_open(&rcvchan, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, AGENTRCVTIMEO)) != 0)
 	{
 		for (uint16_t i=0; i<sendchan.size(); ++i)
 		{
