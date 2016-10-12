@@ -1454,3 +1454,13 @@ double  jd2mjd(double jd) {
 //! @}
 
 
+
+DateTime::DateTime()
+{
+    mjd = currentmjd();
+}
+
+DateTime::DateTime(int year, int month, int day, int hour, int minute, double seconds)
+{
+    mjd = cal2mjd(year, month, day, hour, minute, seconds, 0);
+}

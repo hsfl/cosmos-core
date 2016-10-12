@@ -31,7 +31,7 @@
 #include "support/datalib.h"
 #include "support/jsonlib.h"
 #include "support/timelib.h"
-#include "support/command.h"
+#include "support/event.h"
 #include "agent/scheduler.h"
 
 using std::cout;
@@ -97,8 +97,9 @@ int main(int argc, char *argv[])
     }
     default:
     {
-        cout << "The command generator produces the command string to be fed into the command queue\n"
-                "which is managed by the agent_exec_soh. Commands are a subset of events in COSMOS." << endl << endl;
+        cout << "The command generator produces the command string to be fed into the command\n"
+                "queue which is managed by the agent_exec_soh. Commands are a subset of events\n"
+                "in COSMOS." << endl << endl;
 
         cout << "Usage" << endl << endl;
         cout << "  command_generator [options]" << endl;
@@ -106,9 +107,9 @@ int main(int argc, char *argv[])
 
 
         cout << "Example" << endl << endl;
-        cout << "  $ command_generator myCmd1 \"agent kauaicc_sim execsoh get_queue_size\" +10" << endl;
-        cout << "   (this will run the command \"agent kauaicc_sim execsoh get_queue_size\" \n"
-                "    with name 'myCmd' within 10 seconds from now)" << endl << endl;
+        cout << "  $ command_generator myCmd1 \"agent kauaicc_sim execsoh get_queue_size\" +10" << endl << endl;
+        cout << "  This will run the command \"agent kauaicc_sim execsoh get_queue_size\" \n"
+                "  with name 'myCmd' within 10 seconds from now." << endl << endl;
 
         cout << "Options" << endl << endl;
 
@@ -117,17 +118,17 @@ int main(int argc, char *argv[])
         cout << "  -command\t = the actual command to be executed, if more than one word \n"
                 "          \t   enclose the command string in quotes \n"
                 "          \t   (ex: \"agent kauaicc_sim execsoh get_queue_size\"" << endl;
-        cout << "  -time   \t = optional argument to enter the desired modified julian date (mjd)\n"
-                "          \t   if not entered it will use the current time. \n"
-                "          \t   If '+' is used instead then the number of seconds can be inserted.\n"
-                "          \t   For 10 seconds in the future use +10" << endl;
-        cout << "  -node   \t = optional argument to add the generated command to the command queue\n "
-                "          \t   on the specified node (ex: kauaicc_sim) " << endl;
+        cout << "  -time   \t = optional argument to enter the desired modified julian date\n"
+                "          \t   (mjd). If not entered it will use the current time. \n"
+                "          \t   If '+' is used instead then the number of seconds can be\n"
+                "          \t   inserted. For 10 seconds in the future use +10" << endl;
+        cout << "  -node   \t = optional argument to add the generated command to the command\n"
+                "          \t   queue on the specified node (ex: kauaicc_sim) " << endl;
         return 0;
     }
     }
 
-    Command event;
+    Event event;
     cout << "Command string:" << endl;
     cout << event.generator(ev) << endl << endl;
 
@@ -136,20 +137,20 @@ int main(int argc, char *argv[])
         Scheduler scheduler(node);
 
         // Examples on how to use the scheduler class:
-        //ev.name = "Track;FS701;20160930.145000;20160930.145500";
-//        strcpy(ev.name, "Track;FS701;20160930.145000;20160930.145500");
-        //ev.data = "agent_tracker FS701 20160930.145000 20160930.145500";
-//        strcpy(ev.data, "agent_tracker FS701 20160930.145000 20160930.145500");
-//        ev.utc  = cal2mjd(2016, 9, 30, 14, 50, 0, 0);
+        //        event.name = "Track;FS701;20160930.145000;20160930.145500";
+        //        event.data = "agent_tracker FS701 20160930.145000 20160930.145500";
+        //        event.mjd  = cal2mjd(2016, 9, 30, 14, 50, 0, 0);
+        //        DateTime time( 2016, 10, 12, 14, 50, 1 );
+        //        event.mjd = time.mjd;
 
-        cout << event.getName() << endl;
-        cout << event.getEvent() << endl;
-        cout << event.getTime() << endl;
+        //        cout << event.getName() << endl;
+        //        cout << event.getEvent() << endl;
+        //        cout << event.getTime() << endl;
 
-        scheduler.addEvent(ev);
-        sleep(0.1);
-        //scheduler.deleteCommand(ev.name, ev.data, ev.utc, ev.condition, ev.flag);
-        //scheduler.getQueueSize();
+        scheduler.addEvent(event);
+        COSMOS_SLEEP(0.1);
+        //        scheduler.deleteEvent(event);
+        //        scheduler.getEventQueueSize();
         scheduler.getEventQueue();
     }
 }

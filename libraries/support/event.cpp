@@ -31,14 +31,14 @@
 	\brief Agent support functions
 */
 
-#include "support/command.h"
+#include "support/event.h"
 
 namespace Cosmos {
 
 
 // Default Constructor for command objects
-Command::Command() :
-	utc(0),
+Event::Event() :
+    mjd(0),
 	utcexec(0),
 	name(""),
 	type(0),
@@ -48,63 +48,62 @@ Command::Command() :
 	already_ran(false)
 {}
 
-Command::~Command() {}
+Event::~Event() {}
 
-string Command::generator(
+string Event::generator(
 		string name,
 		string data,
-		double utc,
+        double mjd,
 		string condition,
 		uint32_t flag
 		) {
 
-	longeventstruc command;
 
-	command_string = ""; // reset string
-	command.type = EVENT_TYPE_COMMAND;
-	command.flag = 0;
-	command.data[0] = 0;
-	command.condition[0] = 0;
-	command.utc = 0;
-	command.utcexec = 0.;
+    this->name = name;
+    this->data = data;
+    this->mjd  = mjd;
+    this->condition = condition;
+    this->flag = flag;
 
-	// submit_command name command_string [time [condition [repeat_flag]]]
+    //string jsp;
 
-	strcpy(command.name, name.c_str());
-	// TODO: command.name = name.c_str();
+    // TODO: this is temporary, later will only use Event class
+    // no more longeventstruc
 
-	strcpy(command.data, data.c_str());
-	// TODO: command.data = data;
+    longeventstruc event;
 
-	command.utc  = utc;
+    // reset
+    event_string = "";
+    event.type = EVENT_TYPE_COMMAND;
+    event.flag = 0;
+    event.data[0] = 0;
+    event.condition[0] = 0;
+    event.utc = 0;
+    event.utcexec = 0.;
 
-	strcpy(command.condition, condition.c_str());
-	// TODO: command.condition = condition;
-	command.flag = flag;
+    strcpy(event.name, name.c_str());
+    strcpy(event.data, data.c_str());
+    strcpy(event.condition, condition.c_str());
+    event.utc  = mjd;
+    event.flag = flag;
 
-	//string jsp;
+    json_out_commandevent(event_string, event);
 
-	json_out_commandevent(command_string, command);
-
-	return command_string;
+    return event_string;
 	//printf("%s\n", jsp.c_str());
 }
 
-string Command::generator(longeventstruc command) {
+string Event::generator(longeventstruc event) {
 
-	// returns a string with the command and also puts the string in "command_string"
-	return generator(command.name, command.data, command.utc, command.condition, command.flag);;
+    // returns a string with the event and also puts the string in "event_string"
+    return generator(event.name, event.data, event.utc, event.condition, event.flag);;
 }
 
 
-// *************************************************************************
-// Class: command
-// *************************************************************************
-
-// Copies the current command object to the output stream using JSON format
-std::ostream& operator<<(std::ostream& out, const Command& cmd)
+// Copies the current event object to the output stream using JSON format
+std::ostream& operator<<(std::ostream& out, const Event& cmd)
 {
-	out	<< std::setprecision(15) <<"{\"event_utc\":"<< cmd.utc
+    out	<< std::setprecision(15) <<"{\"event_utc\":"<< cmd.mjd
 		<< "}{\"event_utcexec\":" << cmd.utcexec
 		<< "}{\"event_name\":\"" << cmd.name
 		<< "\"}{\"event_type\":" << cmd.type
@@ -116,10 +115,10 @@ std::ostream& operator<<(std::ostream& out, const Command& cmd)
 }
 
 // Equality Operator for command objects
-bool operator==(const Command& cmd1, const Command& cmd2)
+bool operator==(const Event& cmd1, const Event& cmd2)
 {
 	return (	cmd1.name==cmd2.name &&
-				cmd1.utc==cmd2.utc &&
+                cmd1.mjd==cmd2.mjd &&
 				cmd1.utcexec==cmd2.utcexec &&
 				cmd1.type==cmd2.type &&
 				cmd1.flag==cmd2.flag &&
@@ -132,11 +131,11 @@ bool operator==(const Command& cmd1, const Command& cmd2)
 
 // Copies the command information stored in the local copy
 // agent->cinfo->pdata.event[0].l into the current command object
-void Command::set_command(string line, Agent *agent)
+void Event::set_command(string line, Agent *agent)
 {
 	json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
 	json_parse(line, agent->cinfo->meta, agent->cinfo->sdata);
-	utc = agent->cinfo->sdata.event[0].l.utc;
+    mjd = agent->cinfo->sdata.event[0].l.utc;
 	utcexec = agent->cinfo->sdata.event[0].l.utcexec;
 	name = agent->cinfo->sdata.event[0].l.name;
 	type = agent->cinfo->sdata.event[0].l.type;
@@ -145,13 +144,13 @@ void Command::set_command(string line, Agent *agent)
 	condition = agent->cinfo->sdata.event[0].l.condition;
 }
 
-string Command::get_json()
+string Event::getJson()
 {
 	string jsp;
 
 	longeventstruc event;
 
-	event.utc = utc;
+    event.utc = mjd;
 	event.utcexec = utcexec;
 	strcpy(event.name, name.c_str());
 	event.type = type;
