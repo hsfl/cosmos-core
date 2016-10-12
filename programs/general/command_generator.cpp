@@ -139,14 +139,16 @@ int main(int argc, char *argv[])
         // Examples on how to use the scheduler class:
         //        event.name = "Track;FS701;20160930.145000;20160930.145500";
         //        event.data = "agent_tracker FS701 20160930.145000 20160930.145500";
-        //        event.utc  = cal2mjd(2016, 9, 30, 14, 50, 0, 0);
+        //        event.mjd  = cal2mjd(2016, 9, 30, 14, 50, 0, 0);
+        //        DateTime time( 2016, 10, 12, 14, 50, 1 );
+        //        event.mjd = time.mjd;
 
         //        cout << event.getName() << endl;
         //        cout << event.getEvent() << endl;
         //        cout << event.getTime() << endl;
 
         scheduler.addEvent(event);
-        sleep(0.1);
+        COSMOS_SLEEP(0.1);
         //        scheduler.deleteEvent(event);
         //        scheduler.getEventQueueSize();
         scheduler.getEventQueue();
