@@ -51,16 +51,16 @@ Scheduler::~Scheduler() {
 
 void Scheduler::addEvent(std::string name,
                            std::string data,
-                           double utc,
+                           double mjd,
                            std::string condition,
                            uint32_t flag) {
 
     Event event;
-    event.generator(name, data, utc, condition, flag);
+    event.generator(name, data, mjd, condition, flag);
 
     //com.set_command(line);
 
-    if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no utc)
+    if (!agent_exec_soh.exists) { // TODO: change the way to find if another beat exists (no mjd)
         cout << "could not find agent exec" << endl;
         return;
     }
@@ -74,17 +74,17 @@ void Scheduler::addEvent(std::string name,
 }
 
 void Scheduler::addEvent(Event event) {
-    addEvent(event.name, event.data, event.utc, event.condition, event.flag);
+    addEvent(event.name, event.data, event.mjd, event.condition, event.flag);
 }
 
 void Scheduler::deleteEvent(std::string name,
                               std::string data,
-                              double utc,
+                              double mjd,
                               std::string condition,
                               uint32_t flag) {
 
     Event event;
-    event.generator(name, data, utc, condition, flag);
+    event.generator(name, data, mjd, condition, flag);
 
     if (!agent_exec_soh.exists) {
         cout << "could not find agent exec" << endl;
@@ -99,7 +99,7 @@ void Scheduler::deleteEvent(std::string name,
 }
 
 void Scheduler::deleteEvent(Event event) {
-    deleteEvent(event.name,event.data, event.utc, event.condition, event.flag);
+    deleteEvent(event.name,event.data, event.mjd, event.condition, event.flag);
 }
 
 int Scheduler::getEventQueueSize() {

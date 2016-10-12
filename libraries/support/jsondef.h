@@ -811,7 +811,7 @@ struct agentstruc
 struct longeventstruc
 {
     //! Time event is to start.
-    double utc;
+    double utc; //TODO: replace for mjd
     //! Time event was executed.
     double utcexec;
     //! Node for event

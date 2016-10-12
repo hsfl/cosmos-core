@@ -115,6 +115,17 @@ struct calstruc
     int32_t nsecond;
 };
 
+class DateTime {
+
+public:
+    double mjd; // represented in Modified Julian Date
+
+    DateTime();
+    DateTime(int year, int month, int day, int hour, int minute, double seconds);
+//    ~DateTime();
+
+};
+
 //! @}
 
 //! \ingroup timelib

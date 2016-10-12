@@ -54,7 +54,7 @@ namespace Cosmos {
 class Event {
 
 public: // TODO: consider private?
-	double		utc;
+    double		mjd; // was utc
 	double		utcexec;
 	string		name;
 	uint32_t	type;
@@ -75,14 +75,14 @@ public:
 
     string  getName() { return name; }
     string	getJson();
-    double	getUtc()		{	return utc;	}
+    double	getUtc()		{	return mjd;	}
     string	getTime()		{	return mjd2iso8601( getUtc() ); }
     double	getUtcExec()	{	return utcexec;	}
     string	getData()		{	return data; }
     string	getEvent()		{	return getData(); }
 
     // status
-	bool	is_ready()		{	return (utc <= currentmjd(0.)); }
+    bool	is_ready()		{	return (mjd <= currentmjd(0.)); }
 	bool	is_repeat()		{	return (flag & EVENT_FLAG_REPEAT);	}
 	bool	is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
 	bool	is_conditional(){	return (flag & EVENT_FLAG_CONDITIONAL);	}

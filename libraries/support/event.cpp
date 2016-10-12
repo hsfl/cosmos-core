@@ -38,7 +38,7 @@ namespace Cosmos {
 
 // Default Constructor for command objects
 Event::Event() :
-	utc(0),
+    mjd(0),
 	utcexec(0),
 	name(""),
 	type(0),
@@ -53,7 +53,7 @@ Event::~Event() {}
 string Event::generator(
 		string name,
 		string data,
-		double utc,
+        double mjd,
 		string condition,
 		uint32_t flag
 		) {
@@ -61,7 +61,7 @@ string Event::generator(
 
     this->name = name;
     this->data = data;
-    this->utc  = utc;
+    this->mjd  = mjd;
     this->condition = condition;
     this->flag = flag;
 
@@ -84,7 +84,7 @@ string Event::generator(
     strcpy(event.name, name.c_str());
     strcpy(event.data, data.c_str());
     strcpy(event.condition, condition.c_str());
-    event.utc  = utc;
+    event.utc  = mjd;
     event.flag = flag;
 
     json_out_commandevent(event_string, event);
@@ -103,7 +103,7 @@ string Event::generator(longeventstruc event) {
 // Copies the current event object to the output stream using JSON format
 std::ostream& operator<<(std::ostream& out, const Event& cmd)
 {
-	out	<< std::setprecision(15) <<"{\"event_utc\":"<< cmd.utc
+    out	<< std::setprecision(15) <<"{\"event_utc\":"<< cmd.mjd
 		<< "}{\"event_utcexec\":" << cmd.utcexec
 		<< "}{\"event_name\":\"" << cmd.name
 		<< "\"}{\"event_type\":" << cmd.type
@@ -118,7 +118,7 @@ std::ostream& operator<<(std::ostream& out, const Event& cmd)
 bool operator==(const Event& cmd1, const Event& cmd2)
 {
 	return (	cmd1.name==cmd2.name &&
-				cmd1.utc==cmd2.utc &&
+                cmd1.mjd==cmd2.mjd &&
 				cmd1.utcexec==cmd2.utcexec &&
 				cmd1.type==cmd2.type &&
 				cmd1.flag==cmd2.flag &&
@@ -135,7 +135,7 @@ void Event::set_command(string line, Agent *agent)
 {
 	json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
 	json_parse(line, agent->cinfo->meta, agent->cinfo->sdata);
-	utc = agent->cinfo->sdata.event[0].l.utc;
+    mjd = agent->cinfo->sdata.event[0].l.utc;
 	utcexec = agent->cinfo->sdata.event[0].l.utcexec;
 	name = agent->cinfo->sdata.event[0].l.name;
 	type = agent->cinfo->sdata.event[0].l.type;
@@ -150,7 +150,7 @@ string Event::getJson()
 
 	longeventstruc event;
 
-	event.utc = utc;
+    event.utc = mjd;
 	event.utcexec = utcexec;
 	strcpy(event.name, name.c_str());
 	event.type = type;
