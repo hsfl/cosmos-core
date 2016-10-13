@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 	struct stat sbuf;
 	std::string jstring;
 
-    agent = new Agent(NetworkType::UDP, argv[1]);
+    agent = new Agent(argv[1]);
     agent->get_server(agent->cinfo->pdata.node.name,(char *)"simulator",5,&imubeat);
     agent->send_request(imubeat, "statevec", buf, 5);
     json_parse(buf, agent->cinfo->meta, agent->cinfo->pdata);

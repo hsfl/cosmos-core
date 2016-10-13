@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
         printf("Netperf Listen is now listening on port %d...\n\n",port);
     }
 
-    agent = new Agent(NetworkType::UDP, "nps", "udp");
+    agent = new Agent("nps", "udp");
 
 	// Create default logstring
     strcpy(logstring,json_of_soh(jjstring, agent->cinfo->meta, agent->cinfo->pdata));

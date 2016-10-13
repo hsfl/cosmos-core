@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Establish the command channel and heartbeat
-    if (!(agent = new Agent(NetworkType::UDP, nodename, agentname)))
+    if (!(agent = new Agent(nodename, agentname)))
 	{
         std::cout << agentname << ": agent->setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
 		exit (AGENT_ERROR_JSON_CREATE);

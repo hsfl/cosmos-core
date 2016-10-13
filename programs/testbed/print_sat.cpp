@@ -98,7 +98,7 @@ if (satellite==NULL) {
     json_parse(jsonfile);
     fclose(satellite);
 }*/
-agent = new Agent(NetworkType::UDP, argv[1]);
+agent = new Agent(argv[1]);
 
 switch (jumpto) {
 case -1:

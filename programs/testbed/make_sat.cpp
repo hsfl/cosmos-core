@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     FILE *odes;
     std::string jstring;
 
-    agent = new Agent(NetworkType::UDP, argv[1]);
+    agent = new Agent(argv[1]);
 
     load_databases(argv[1], (uint16_t)atol(argv[2]), agent->cinfo->pdata);
 

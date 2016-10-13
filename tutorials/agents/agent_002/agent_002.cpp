@@ -54,7 +54,7 @@ int main(int, char **)
 
     string agentname     = "002";
     string nodename      = "telem";
-    agent = new Agent(NetworkType::UDP, nodename, agentname);
+    agent = new Agent(nodename, agentname);
 
     agent->add_request("request_hello", request_hello);
 

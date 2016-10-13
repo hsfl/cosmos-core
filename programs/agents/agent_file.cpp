@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
     printf("- Setting up server...");
     fflush(stdout);
 
-    if ((agent = new Agent(NetworkType::UDP, "", agentname)) == NULL)
+    if ((agent = new Agent("", agentname)) == NULL)
     {
         printf("- Could not setup server... exiting.\n\n");
         exit (-1);
@@ -361,11 +361,11 @@ int main(int argc, char *argv[])
                 if (txq[node].outgoing.size < TRANSFER_QUEUE_LIMIT)
                 {
                     std::vector<filestruc> file_names;
-                    for (filestruc agent : data_list_files(txq[node].node_name, "outgoing", ""))
+                    for (filestruc file : data_list_files(txq[node].node_name, "outgoing", ""))
                     {
-                        if (agent.type == "directory")
+                        if (file.type == "directory")
                         {
-                            iretn = data_list_files(txq[node].node_name, "outgoing", agent.name, file_names);
+                            iretn = data_list_files(txq[node].node_name, "outgoing", file.name, file_names);
                         }
                     }
 

@@ -319,6 +319,7 @@ double cal2mjd(int32_t year, int32_t month, double day)
     date.hour = date.minute = date.second = date.nsecond = 0;
 
     mjd = cal2mjd(date);
+    // Add day-1 because absolute date starts at day 0, but JD and DOM start at 1
     mjd += day - 1.;
 
     return mjd;

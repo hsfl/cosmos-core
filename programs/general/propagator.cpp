@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 		break;
 	}
 
-    if (!(agent = new Agent(NetworkType::UDP, node, "physics", .1, AGENTMAXBUFFER)))
+    if (!(agent = new Agent(node, "physics", .1, AGENTMAXBUFFER)))
     {
         printf("Failed to setup server for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
         exit (AGENT_ERROR_JSON_CREATE);

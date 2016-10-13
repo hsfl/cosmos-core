@@ -55,7 +55,7 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 	// execute command
 #if defined(COSMOS_WIN_OS)
 	char command_line[100];
-	strcpy(command_line, cmd.get_data());
+    strcpy(command_line, cmd.getData().c_str());
 
 	STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
@@ -258,7 +258,7 @@ void CommandQueue::add_command(Event& c)
 //// Predicate function for comparing command objects, used by CommandQueue.sort()
 //bool CommandQueue::compare_command_times(Event command1, Event command2)
 //{
-//	return command1.get_utc()<command2.get_utc();
+//	return command1.getUtc()<command2.getUtc();
 //}
 
 // Copies the current CommandQueue object to the output stream using JSON format

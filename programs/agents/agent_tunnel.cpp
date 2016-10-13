@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-    if (!(agent = new Agent(NetworkType::UDP, "", "tunnel", 1., MAXBUFFERSIZE, true)))
+    if (!(agent = new Agent("", "tunnel", 1., MAXBUFFERSIZE, true)))
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Start serial threads

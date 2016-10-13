@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-    if (!(agent = new Agent(NetworkType::UDP, "", "forward", 5., MAXBUFFERSIZE, false, AGENTRECVPORT)))
+    if (!(agent = new Agent("", "forward", 5., MAXBUFFERSIZE, false, AGENTRECVPORT)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}

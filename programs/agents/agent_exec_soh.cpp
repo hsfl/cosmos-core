@@ -92,7 +92,7 @@ int32_t request_soh(char *request, char* response, Agent *);
 int32_t request_reopen_exec(char* request, char* output, Agent *agent);
 int32_t request_set_logstride_exec(char* request, char* output, Agent *agent);
 
-command_queue cmd_queue;
+CommandQueue cmd_queue;
 
 // SOH specific declarations
 int32_t request_reopen_soh(char* request, char* output, Agent *agent);
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 
         //file is open for reading commands
         std::string line;
-        Command cmd;
+        Event cmd;
 
         while(std::getline(infile,line))
         {
@@ -385,8 +385,8 @@ int32_t request_get_queue_entry(char *request, char* response, Agent *)
         else if (iretn ==  -1)
             for(unsigned long int i = 0; i < cmd_queue.get_size(); ++i)
             {
-                Command cmd = cmd_queue.get_command(i);
-                ss << "[" << i << "]" << "[" << mjd2iso8601(cmd.get_utc()) << "]" << cmd << std::endl;
+                Event cmd = cmd_queue.get_command(i);
+                ss << "[" << i << "]" << "[" << mjd2iso8601(cmd.getUtc()) << "]" << cmd << std::endl;
             }
         // if the user supplied something that couldn't be turned into an integer
         else if (iretn == 0)
@@ -400,7 +400,7 @@ int32_t request_get_queue_entry(char *request, char* response, Agent *)
 // Delete Queue Entry - by #
 int32_t request_del_queue_entry_id(char *request, char* response, Agent *)
 {
-    Command cmd;
+    Event cmd;
     std::ostringstream ss;
 
     if(cmd_queue.get_size()==0)
@@ -436,7 +436,7 @@ int32_t request_del_queue_entry_id(char *request, char* response, Agent *)
 // Delete Queue Entry - by date and contents
 int32_t request_del_queue_entry(char *request, char* response, Agent *)
 {
-    Command cmd;
+    Event cmd;
     std::string line(request);
 
     // remove "del_queue_entry " from request string
@@ -455,7 +455,7 @@ int32_t request_del_queue_entry(char *request, char* response, Agent *)
 // Add Queue Entry
 int32_t request_add_queue_entry(char *request, char* response, Agent *)
 {
-    Command cmd;
+    Event cmd;
     std::string line(request);
 
     // remove "add_queue_entry " from request string

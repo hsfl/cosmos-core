@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 	// Initialize the Agent
 	// near future: support cubesat space protocol
 	// port number = 0 in this case, automatic assignment of port
-    if (!(agent = new Agent(NetworkType::UDP, node, agentname, 1., MAXBUFFERSIZE)))
+    if (!(agent = new Agent(node, agentname, 1., MAXBUFFERSIZE)))
 		exit (iretn);
 
 	// Add additional requests

@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
 	// Initialization stuff
 
-    if (!(agent = new Agent(NetworkType::UDP, node, "physics", 2.)))
+    if (!(agent = new Agent(node, "physics", 2.)))
 	{
 		printf("Failed to setup server: %d\n",AGENT_ERROR_JSON_CREATE);
 		exit (AGENT_ERROR_JSON_CREATE);

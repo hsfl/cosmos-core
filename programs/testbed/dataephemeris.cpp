@@ -99,7 +99,7 @@ int32_t year, month, day, hour, minute, second;
 DIR *ddp, *ydp, *jdp;
 struct dirent *td, *yd, *jd;
 
-agent = new Agent(NetworkType::UDP, argv[1]);
+agent = new Agent(argv[1]);
 
 
 
