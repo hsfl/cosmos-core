@@ -96,7 +96,7 @@ struct stat sbuf;
 std::string jstring;
 
 Agent *agent;
-agent = new Agent(NetworkType::UDP, argv[1]);
+agent = new Agent(argv[1]);
 
 if (argc == 3)
 	{

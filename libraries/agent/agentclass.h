@@ -131,7 +131,8 @@ namespace Cosmos {
 class Agent
 {
 public:
-    Agent(NetworkType ntype = NetworkType::UDP, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
+    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
+    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP);
     ~Agent();
 
     enum class State : uint16_t
@@ -157,17 +158,17 @@ public:
     //! Single agent per name
 #define AGENT_SINGLE false
     //! Blocking Agent
-#define AGENT_BLOCKING true
+#define AGENT_BLOCKING SOCKET_BLOCKING
     //! Non-blocking Agent
-#define AGENT_NONBLOCKING false
+#define AGENT_NONBLOCKING SOCKET_NONBLOCKING
     //! Talk followed by optional listen (sendto address)
-#define AGENT_TALK 0
+#define AGENT_TALK SOCKET_TALK
     //! Listen followed by optional talk (recvfrom INADDRANY)
-#define AGENT_LISTEN 1
+#define AGENT_LISTEN SOCKET_LISTEN
     //! Communicate socket (sendto followed by recvfrom)
-#define AGENT_COMMUNICATE 2
+#define AGENT_COMMUNICATE SOCKET_COMMUNICATE
     //! Talk over multiple interfaces
-#define AGENT_JABBER 3
+#define AGENT_JABBER SOCKET_JABBER
 
     //! Base AGENT port number
 #define AGENTBASE 10020

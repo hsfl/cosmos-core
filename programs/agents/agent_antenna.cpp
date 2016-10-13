@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
         break;
     }
 
-    if (!(agent = new Agent(NetworkType::UDP, nodename, agentname)))
+    if (!(agent = new Agent(nodename, agentname)))
     {
         printf("Error %d: Setting up Agent antenna\n",JSON_ERROR_NOJMAP);
         exit (JSON_ERROR_NOJMAP);

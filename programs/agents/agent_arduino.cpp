@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     }
 
 	// Initialize the Agent
-    if (!(agent = new Agent(NetworkType::UDP, node, agentname, 1., MAXBUFFERSIZE, true)))
+    if (!(agent = new Agent(node, agentname, 1., MAXBUFFERSIZE, true)))
     {
         printf("Error starting server\n");
 		exit (AGENT_ERROR_JSON_CREATE);

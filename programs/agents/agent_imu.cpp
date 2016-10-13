@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
     // Set-Up COSMOS Agent Server
     // *********************************************************************
     // Initialize the Agent
-    if (!(agent = new Agent(NetworkType::UDP, COSMOS_NODE_NAME, COSMOS_AGENT_NAME, .2, AGENTSVR_MAXBUF_BYTES, (bool)false)))
+    if (!(agent = new Agent(COSMOS_NODE_NAME, COSMOS_AGENT_NAME, .2, AGENTSVR_MAXBUF_BYTES, (bool)false)))
         exit (AGENT_ERROR_JSON_CREATE);
     printf("- Agent server started\n");
 

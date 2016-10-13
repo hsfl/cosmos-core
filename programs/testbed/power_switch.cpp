@@ -56,7 +56,7 @@ default:
 	}
 
 Agent *agent;
-agent = new Agent(NetworkType::UDP, argv[1]);
+agent = new Agent(argv[1]);
 
 if ((nbytes = agent->get_server(agent->cinfo->pdata.node.name,(char *)"engine",8,&cbeat)) > 0)
 	{

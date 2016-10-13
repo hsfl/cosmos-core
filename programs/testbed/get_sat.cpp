@@ -41,7 +41,7 @@ Agent *agent;
 int main(int argc, char *argv[])
 {
 
-agent = new Agent(NetworkType::UDP, argv[1]);
+agent = new Agent(argv[1]);
 
 create_databases(agent->cinfo->pdata);
 

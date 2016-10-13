@@ -1039,6 +1039,8 @@ EXTERN(void) jpeg_destroy JPP((j_common_ptr cinfo));
 EXTERN(boolean) jpeg_resync_to_restart JPP((j_decompress_ptr cinfo,
 					    int desired));
 
+EXTERN(int) read_JPEG_file (char * filename, int image_width, int image_height, JSAMPLE *image_buffer);
+EXTERN(void) write_JPEG_file (char * filename, int quality, J_COLOR_SPACE in_color_space, int image_width, int image_height, JSAMPLE *image_buffer);
 
 /* These marker codes are exported since applications and data source modules
  * are likely to want to use them.

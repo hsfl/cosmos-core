@@ -319,6 +319,7 @@ double cal2mjd(int32_t year, int32_t month, double day)
     date.hour = date.minute = date.second = date.nsecond = 0;
 
     mjd = cal2mjd(date);
+    // Add day-1 because absolute date starts at day 0, but JD and DOM start at 1
     mjd += day - 1.;
 
     return mjd;
@@ -1182,7 +1183,7 @@ std::string utc2iso8601(double utc)
     fd -= ihh / 24.;
     imm = (int32_t)(1440 * fd);
     fd -= imm / 1440.;
-    iss = (int32_t)(86400 * fd);
+    iss = (int32_t)(86400 * fd + .5);
     sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d", iy, im, id, ihh, imm, iss);
 
     return std::string(buffer);

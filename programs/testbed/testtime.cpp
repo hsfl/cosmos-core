@@ -40,11 +40,15 @@ int main(int argc, char *argv[])
 double utc, hour, min, sec;
 double ut1, dut1, dt, theta, gmst, gast, eps, deps, dpsi;
 double deg, amin, asec;
+calstruc date;
 
 //get_cosmosresources();
 
 for (ut1=49809.; ut1<=53809.; ut1+=100.)
 	{
+    date = mjd2cal(ut1);
+    cal2mjd(date);
+    printf("%4d:%02d:%03d:%02d:%02d:%02d:%08d ", date.year, date.month, date.dom, date.hour, date.minute, date.second, date.nsecond);
 	dut1 = utc2dut1(ut1);
 	utc = ut1 - dut1;
 	dut1 = utc2dut1(utc);

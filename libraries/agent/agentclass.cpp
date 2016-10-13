@@ -70,7 +70,7 @@ namespace Cosmos {
 //! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
 //! the Agent already running.
 //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
-Agent::Agent(NetworkType ntype, const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
+Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype)
 {
     int32_t iretn;
 
@@ -223,6 +223,11 @@ Agent::Agent(NetworkType ntype, const string &nname, const string &aname, double
 
 }
 
+Agent::Agent(NetworkType ntype, const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
+{
+    Agent(nname, aname, bprd, bsize, mflag, portnum, ntype);
+}
+
 Agent::~Agent()
 {
     Agent::shutdown();
@@ -368,7 +373,7 @@ int32_t Agent::send_request(beatstruc hbeat, string request, string &output, flo
     ElapsedTime ep;
     ep.start();
 
-    if ((iretn=socket_open(&sendchan, NetworkType::UDP, hbeat.addr, hbeat.port, AGENT_TALK, AGENT_BLOCKING, AGENTRCVTIMEO)) < 0)
+    if ((iretn=socket_open(&sendchan, NetworkType::UDP, hbeat.addr, hbeat.port, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
     {
         return (-errno);
     }
@@ -665,7 +670,7 @@ void Agent::request_loop()
     char request[AGENTMAXBUFFER+1];
     uint32_t i;
 
-    if ((iretn = socket_open(&cinfo->pdata.agent[0].req, NetworkType::UDP, (char *)"", cinfo->pdata.agent[0].beat.port, AGENT_LISTEN, AGENT_BLOCKING, 2000000)) < 0)
+    if ((iretn = socket_open(&cinfo->pdata.agent[0].req, NetworkType::UDP, (char *)"", cinfo->pdata.agent[0].beat.port, SOCKET_LISTEN, SOCKET_BLOCKING, 2000000)) < 0)
     {
         return;
     }
@@ -1657,7 +1662,7 @@ int32_t Agent::subscribe(NetworkType type, char *address, uint16_t port, uint32_
     if (cinfo->pdata.agent[0].sub.cport)
         return 0;
 #endif
-    if ((iretn=socket_open(&cinfo->pdata.agent[0].sub,type,address,port,AGENT_LISTEN,AGENT_BLOCKING, usectimeo)) < 0)
+    if ((iretn=socket_open(&cinfo->pdata.agent[0].sub,type,address,port,SOCKET_LISTEN,SOCKET_BLOCKING, usectimeo)) < 0)
     {
         return (iretn);
     }

@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
         exit (1);
     }
 
-    if (!(agent = new Agent(NetworkType::UDP, node)))
+    if (!(agent = new Agent(node)))
     {
         printf("Couldn't establish client for node %s\n", node.c_str());
         exit (-1);

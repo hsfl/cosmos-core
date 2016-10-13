@@ -116,14 +116,14 @@ int main(int argc, char *argv[])
 
 
     // Begin Program, Initialize Socket, Blocking, Timeout set for 1 second
-    if ((iretn=socket_open(&chan, NetworkType::UDP, address, port, AGENT_LISTEN, AGENT_BLOCKING, 1000000)) < 0)
+    if ((iretn=socket_open(&chan, NetworkType::UDP, address, port, SOCKET_LISTEN, SOCKET_BLOCKING, 1000000)) < 0)
     {
         printf("Err: Unable to open connection to [%s:%d]\n",address,port);
     } else {
         printf("Netperf Listen is now listening on port %d...\n\n",port);
     }
 
-    agent = new Agent(NetworkType::UDP, "nps", "udp");
+    agent = new Agent("nps", "udp");
 
 	// Create default logstring
     strcpy(logstring,json_of_soh(jjstring, agent->cinfo->meta, agent->cinfo->pdata));

@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 
     // Add additional requests
 
-    agent = new Agent(NetworkType::UDP, nodename, agentname, 5.);
+    agent = new Agent(nodename, agentname, 5.);
 
     agent->add_request("soh",request_soh);
     agent->add_request("diskSize",request_diskSize,"","get disk size in GB");
