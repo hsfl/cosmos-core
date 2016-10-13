@@ -387,7 +387,7 @@ int32_t request_get_queue_entry(char *request, char* response, Agent *)
             for(unsigned long int i = 0; i < cmd_queue.get_size(); ++i)
             {
                 Event cmd = cmd_queue.get_command(i);
-                ss << "[" << i << "]" << "[" << mjd2iso8601(cmd.get_utc()) << "]" << cmd << std::endl;
+                ss << "[" << i << "]" << "[" << mjd2iso8601(cmd.getUtc()) << "]" << cmd << std::endl;
             }
         // if the user supplied something that couldn't be turned into an integer
         else if (iretn == 0)
