@@ -41,7 +41,7 @@ namespace Cosmos {
 Scheduler::Scheduler(std::string node_name) {
 
     agent = new Agent(node_name, "test");
-    agent_exec_soh = agent->find_agent("exec", "kauaicc_sim");
+    agent_exec_soh = agent->find_agent("exec", node_name);
 
 }
 
