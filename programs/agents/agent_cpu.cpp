@@ -59,6 +59,7 @@ int32_t request_diskFreePercent (char*request, char *response, Agent *);
 int32_t request_cpuProcess(char*request, char *response, Agent *);
 int32_t request_load(char *request, char *response, Agent *);
 int32_t request_mem(char *request, char *response, Agent *);
+int32_t request_mem_kib(char *request, char *response, Agent *);
 int32_t request_mempercent (char*request, char *response, Agent *);
 int32_t request_printStatus(char *request, char *response, Agent *);
 
@@ -82,7 +83,7 @@ Agent *agent;
 int main(int argc, char *argv[])
 {
 
-    std::cout << "Starting agent cpu" << std::endl;
+    cout << "Starting agent cpu" << endl;
 
     switch (argc)
     {
@@ -105,7 +106,7 @@ int main(int argc, char *argv[])
 
     if (create_node())
     {
-        std::cout << "Unable to make node " << std::endl;
+        cout << "Unable to make node " << endl;
         exit(1);
     }
 
@@ -115,17 +116,18 @@ int main(int argc, char *argv[])
 
     agent = new Agent(nodename, agentname, 5.);
 
-    agent->add_request("soh",request_soh);
-    agent->add_request("diskSize",request_diskSize,"","get disk size in GB");
-    agent->add_request("diskUsed",request_diskUsed,"","get disk used in GB");
-    agent->add_request("diskFree",request_diskFree,"","get disk free in GB");
-    agent->add_request("diskFreePercent",request_diskFreePercent,"","get disk free in %");
-    agent->add_request("mem",request_mem);
-    agent->add_request("load",request_load);
-    agent->add_request("mem_percent",request_mempercent);
-    agent->add_request("cpuProc",request_cpuProcess,"","get the % CPU for this process");
+    agent->add_request("soh",request_soh,"","current state of health message");
+    agent->add_request("diskSize",request_diskSize,"","disk size in GB");
+    agent->add_request("diskUsed",request_diskUsed,"","disk used in GB");
+    agent->add_request("diskFree",request_diskFree,"","disk free in GB");
+    agent->add_request("diskFreePercent",request_diskFreePercent,"","disk free in %");
+    agent->add_request("mem",request_mem,"","current virtual memory used in Bytes");
+    agent->add_request("mem_kib",request_mem_kib,"","current virtual memory used in KiB");
+    agent->add_request("mem_percent",request_mempercent,"","memory percentage");
+    agent->add_request("load",request_load,"","current CPU load (0-1 is good, >1 is overloaded)");
+    agent->add_request("cpuProc",request_cpuProcess,"","the %CPU usage for this process");
     agent->add_request("printStatus",request_printStatus,"","print the status data");
-    agent->add_request("bootCount",request_bootCount,"","count the number of reboots");
+    agent->add_request("bootCount",request_bootCount,"","reboot count");
 
     char tempstring[200];
 
@@ -252,11 +254,18 @@ int32_t request_cpuProcess(char *, char *response, Agent *){
 }
 
 // ----------------------------------------------
-// memory
+// memory in Bytes
 int32_t request_mem(char *, char* response, Agent *)
 {
     return (sprintf(response, "%f", deviceCpu.virtualMemoryUsed));
 }
+
+// used memory in KiB
+int32_t request_mem_kib(char *, char* response, Agent *)
+{
+    return (sprintf(response, "%f", deviceCpu.virtualMemoryUsed/1000.));
+}
+
 
 int32_t request_mempercent (char *, char *response, Agent *)
 {
@@ -278,7 +287,7 @@ int32_t request_bootCount(char *, char* response, Agent *)
         ifs.close();
     }
     else {
-        std::cout << "Error opening file";
+        cout << "Error opening file";
     }
 
     return (sprintf(response, "%s", counts.c_str()));
@@ -303,13 +312,13 @@ int create_node () // only use when unsure what the node is
     //	std::string node_directory;
 
     // Ensure node is present
-    std::cout << "Node name is " << nodename << std::endl;
+    cout << "Node name is " << nodename << endl;
     if (get_nodedir(nodename).empty())
     {
-        std::cout << "Couldn't find Node directory, making directory now..." << std::endl;
+        cout << endl << "Couldn't find Node directory, making directory now...";
         if (get_nodedir(nodename, true).empty())
         {
-            std::cout << "Couldn't create Node directory." << std::endl;
+            cout << "Couldn't create Node directory." << endl;
             return 1;
         }
         cinfo = json_create();
@@ -381,6 +390,8 @@ int create_node () // only use when unsure what the node is
 
         int32_t iretn = json_dump_node(cinfo->meta, cinfo->pdata);
         json_destroy(cinfo);
+
+        cout << " done!" << endl;
         return iretn;
     }
     else
