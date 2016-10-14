@@ -134,7 +134,7 @@ setMotorFlag = 0 ;
 init_copterstruc () ;
 
 // Initialize Agent
-if (!(agent = new Agent(NetworkType::BROADCAST, "arduino", agentname, .1, MAXBUFFERSIZE)) != 0)
+if (!(agent = new Agent("arduino", agentname, .1, MAXBUFFERSIZE)) != 0)
 	exit (AGENT_ERROR_JSON_CREATE);
 
 agent->cinfo->pdata.node.loc.pos.geod.v.lat = agent->cinfo->pdata.node.loc.pos.geod.v.lon = agent->cinfo->pdata.node.loc.pos.geod.v.h = 0.;

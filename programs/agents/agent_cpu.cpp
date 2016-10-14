@@ -29,13 +29,13 @@
 #endif
 
 // TODO: remove from here?
-#if defined (COSMSO_LINUX_OS)
-#include <stdlib.h>
-#include <sys/statvfs.h>
-#include <sys/types.h>
-#include <sys/sysinfo.h>
-#include <unistd.h>
-#endif
+//#if defined (COSMOS_LINUX_OS)
+//#include <stdlib.h>
+//#include <sys/statvfs.h>
+//#include <sys/types.h>
+//#include <sys/sysinfo.h>
+//#include <unistd.h>
+//#endif
 
 //using namespace std;
 using std::cout;
@@ -299,6 +299,7 @@ int32_t request_printStatus(char *request, char *, Agent *)
 
 int create_node () // only use when unsure what the node is
 {
+    cosmosstruc *cinfo;
     //	std::string node_directory;
 
     // Ensure node is present
@@ -311,75 +312,75 @@ int create_node () // only use when unsure what the node is
             std::cout << "Couldn't create Node directory." << std::endl;
             return 1;
         }
-        agent->cinfo = json_create();
-        strcpy(agent->cinfo->pdata.node.name, nodename.c_str());
-        agent->cinfo->pdata.node.type = NODE_TYPE_COMPUTER;
+        cinfo = json_create();
+        strcpy(cinfo->pdata.node.name, nodename.c_str());
+        cinfo->pdata.node.type = NODE_TYPE_COMPUTER;
 
-        agent->cinfo->pdata.node.piece_cnt = 11;
-        agent->cinfo->pdata.piece.resize(agent->cinfo->pdata.node.piece_cnt);
-        agent->cinfo->pdata.node.device_cnt = agent->cinfo->pdata.node.piece_cnt;
-        agent->cinfo->pdata.device.resize(agent->cinfo->pdata.node.device_cnt);
-        agent->cinfo->pdata.devspec.cpu_cnt = 1;
-        agent->cinfo->pdata.devspec.disk_cnt = 10;
-        agent->cinfo->pdata.node.port_cnt = 10;
-        agent->cinfo->pdata.port.resize(agent->cinfo->pdata.node.port_cnt);
-        //        json_addbaseentry(agent->cinfo);
+        cinfo->pdata.node.piece_cnt = 11;
+        cinfo->pdata.piece.resize(cinfo->pdata.node.piece_cnt);
+        cinfo->pdata.node.device_cnt = cinfo->pdata.node.piece_cnt;
+        cinfo->pdata.device.resize(cinfo->pdata.node.device_cnt);
+        cinfo->pdata.devspec.cpu_cnt = 1;
+        cinfo->pdata.devspec.disk_cnt = 10;
+        cinfo->pdata.node.port_cnt = 10;
+        cinfo->pdata.port.resize(cinfo->pdata.node.port_cnt);
+        //        json_addbaseentry(cinfo);
 
-        for (size_t i=0; i<agent->cinfo->pdata.node.piece_cnt; ++i)
+        for (size_t i=0; i<cinfo->pdata.node.piece_cnt; ++i)
         {
-            agent->cinfo->pdata.piece[i].cidx = i;
+            cinfo->pdata.piece[i].cidx = i;
             switch (i)
             {
             case 0:
-                strcpy(agent->cinfo->pdata.piece[i].name, "Main CPU");
+                strcpy(cinfo->pdata.piece[i].name, "Main CPU");
                 break;
             default:
-                sprintf(agent->cinfo->pdata.piece[i].name, "Drive %d", i);
-//                strcpy(agent->cinfo->pdata.piece[i].name, "Main Drive");
+                sprintf(cinfo->pdata.piece[i].name, "Drive %d", i);
+//                strcpy(cinfo->pdata.piece[i].name, "Main Drive");
                 break;
             }
 
-            agent->cinfo->pdata.piece[i].type = PIECE_TYPE_DIMENSIONLESS;
-            agent->cinfo->pdata.piece[i].emi = .8;
-            agent->cinfo->pdata.piece[i].abs = .88;
-            agent->cinfo->pdata.piece[i].hcap = 800;
-            agent->cinfo->pdata.piece[i].hcon = 237;
-            agent->cinfo->pdata.piece[i].pnt_cnt = 1;
+            cinfo->pdata.piece[i].type = PIECE_TYPE_DIMENSIONLESS;
+            cinfo->pdata.piece[i].emi = .8;
+            cinfo->pdata.piece[i].abs = .88;
+            cinfo->pdata.piece[i].hcap = 800;
+            cinfo->pdata.piece[i].hcon = 237;
+            cinfo->pdata.piece[i].pnt_cnt = 1;
             for (uint16_t j=0; j<3; ++j)
             {
-                agent->cinfo->pdata.piece[i].points[0].col[j] = 0.;
+                cinfo->pdata.piece[i].points[0].col[j] = 0.;
             }
-            json_addpieceentry(i, agent->cinfo->meta);
+            json_addpieceentry(i, cinfo->meta);
 
-            agent->cinfo->pdata.device[i].all.gen.pidx = i;
-            agent->cinfo->pdata.device[i].all.gen.cidx = i;
+            cinfo->pdata.device[i].all.gen.pidx = i;
+            cinfo->pdata.device[i].all.gen.cidx = i;
             switch (i)
             {
             case 0:
-                agent->cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_CPU;
-                agent->cinfo->pdata.device[i].all.gen.didx = 0;
-                agent->cinfo->pdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
+                cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_CPU;
+                cinfo->pdata.device[i].all.gen.didx = 0;
+                cinfo->pdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
                 break;
             default:
-                agent->cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_DISK;
-                agent->cinfo->pdata.device[i].all.gen.didx = i-1;
-                agent->cinfo->pdata.device[i].all.gen.portidx = agent->cinfo->pdata.device[i].all.gen.didx;
-                agent->cinfo->pdata.port[agent->cinfo->pdata.device[i].all.gen.didx].type = PORT_TYPE_DRIVE;
+                cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_DISK;
+                cinfo->pdata.device[i].all.gen.didx = i-1;
+                cinfo->pdata.device[i].all.gen.portidx = cinfo->pdata.device[i].all.gen.didx;
+                cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].type = PORT_TYPE_DRIVE;
 #ifdef COSMOS_WIN_OS
-                strcpy(agent->cinfo->pdata.port[agent->cinfo->pdata.device[i].all.gen.didx].name, "c:/");
+                strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "c:/");
 #else
-                strcpy(agent->cinfo->pdata.port[agent->cinfo->pdata.device[i].all.gen.didx].name, "/");
+                strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "/");
 #endif
-                json_addentry("port_name",agent->cinfo->pdata.device[i].all.gen.didx,65535u,(ptrdiff_t)offsetof(portstruc,name)+(agent->cinfo->pdata.device[i].all.gen.didx)*sizeof(portstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PORT,agent->cinfo->meta);
-                json_addentry("port_type",agent->cinfo->pdata.device[i].all.gen.didx,65535u,(ptrdiff_t)offsetof(portstruc,type)+(agent->cinfo->pdata.device[i].all.gen.didx)*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PORT,agent->cinfo->meta);
+                json_addentry("port_name",cinfo->pdata.device[i].all.gen.didx,65535u,(ptrdiff_t)offsetof(portstruc,name)+(cinfo->pdata.device[i].all.gen.didx)*sizeof(portstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PORT,cinfo->meta);
+                json_addentry("port_type",cinfo->pdata.device[i].all.gen.didx,65535u,(ptrdiff_t)offsetof(portstruc,type)+(cinfo->pdata.device[i].all.gen.didx)*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PORT,cinfo->meta);
                 break;
             }
-            json_addcompentry(i, agent->cinfo->meta, agent->cinfo->pdata);
-            json_adddeviceentry(i, agent->cinfo->meta, agent->cinfo->pdata);
+            json_addcompentry(i, cinfo->meta, cinfo->pdata);
+            json_adddeviceentry(i, cinfo->meta, cinfo->pdata);
         }
 
-        int32_t iretn = json_dump_node(agent->cinfo->meta, agent->cinfo->pdata);
-        json_destroy(agent->cinfo);
+        int32_t iretn = json_dump_node(cinfo->meta, cinfo->pdata);
+        json_destroy(cinfo);
         return iretn;
     }
     else

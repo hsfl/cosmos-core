@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
 		break;
 	}
 
-    if (!(agent = new Agent(NetworkType::BROADCAST, node)))
+    if (!(agent = new Agent(node)))
 	{
 		printf("Failed to setup client for node %s: %d\n", node.c_str(), AGENT_ERROR_JSON_CREATE);
 		exit (AGENT_ERROR_JSON_CREATE);

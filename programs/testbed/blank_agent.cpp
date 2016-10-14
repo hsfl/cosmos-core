@@ -77,7 +77,7 @@ if ((iretn=agent->get_server(NULL,agentname,waitsec,(beatstruc *)NULL)) > 0)
 
 
 // Initialize the Agent
-if (!(agent = new Agent(NetworkType::BROADCAST, "", agentname, .1, MAXBUFFERSIZE)))
+if (!(agent = new Agent("", agentname, .1, MAXBUFFERSIZE)))
 	exit (iretn);
 
 // Add additional requests

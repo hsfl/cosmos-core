@@ -139,18 +139,22 @@ int main(int argc, char *argv[])
 
     std::cout<<"Starting the executive/soh agent->..";
     int32_t iretn;
-    NetworkType ntype = NetworkType::UDP;
 
     // Set node name to first argument
     if (argc!=2)
     {
-        std::cout<<"Usage: agent_exec_soh node"<<std::endl;
+        std::cout<<"Usage: agent_exec node"<<std::endl;
         exit(1);
     }
     nodename = argv[1];
 
     // Establish the command channel and heartbeat
-    agent = new Agent(ntype, nodename, "exec");
+    agent = new Agent(nodename, "exec");
+    if (agent->cinfo == nullptr)
+    {
+        std::cout<<"unable to start agent_exec: "<<std::endl;
+        exit(1);
+    }
     agent->cinfo->pdata.node.utc = 0.;
     agent->cinfo->pdata.agent[0].aprd = .5;
 
@@ -563,7 +567,7 @@ int32_t request_set_logstride_soh(char* request, char* , Agent *)
 
 void collect_data_loop()
 {
-    int32_t my_position = -1;
+    size_t my_position = -1;
     while (agent->running())
     {
         // Collect new data
@@ -585,6 +589,7 @@ void collect_data_loop()
                 agent->cinfo->pdata.node.utc = currentmjd(0.);
             }
         }
+        COSMOS_SLEEP(.1);
     }
     return;
 }

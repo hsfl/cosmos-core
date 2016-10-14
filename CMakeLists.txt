@@ -80,9 +80,9 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
     message("Building for Debugging")
 endif()
 
-option(BUILD_GPROF "Build for Profiling" OFF)
-if (BUILD_GPROF MATCHES ON)
-    message("Profiling")
+#option(BUILD_GPROF "Build for Profiling" OFF)
+if (BUILD_GPROF MATCHES OFF)
+    message("Building for Profiling")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
 endif ()
 
