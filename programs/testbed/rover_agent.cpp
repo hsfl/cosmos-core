@@ -83,12 +83,12 @@ int 	iretn ;
 // Initialize Agent
 if (argc == 2)
 {
-    if (!(agent = new Agent(NetworkType::MULTICAST, argv[1], agentname, 1., MAXBUFFERSIZE)) != 0)
+    if (!(agent = new Agent(argv[1], agentname, 1., MAXBUFFERSIZE, false, 0, NetworkType::MULTICAST)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 }
 else
 {
-    if (!(agent = new Agent(NetworkType::MULTICAST, "rover", agentname, 1., MAXBUFFERSIZE)) != 0)
+    if (!(agent = new Agent("rover", agentname, 1., MAXBUFFERSIZE, false, 0, NetworkType::MULTICAST)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 }
 

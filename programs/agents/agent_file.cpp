@@ -228,8 +228,9 @@ int main(int argc, char *argv[])
     // port number = 0 in this case, automatic assignment of port
     printf("- Setting up server...");
     fflush(stdout);
+    agent = new Agent("", agentname);
 
-    if ((agent = new Agent("", agentname)) == NULL)
+    if (agent->cinfo == nullptr)
     {
         printf("- Could not setup server... exiting.\n\n");
         exit (-1);

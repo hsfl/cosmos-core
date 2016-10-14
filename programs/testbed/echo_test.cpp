@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
 			fprintf(stderr,"Usage: echo_test node agent\n");
 			exit(0);
 		}
-
-    if ((agent = new Agent(NetworkType::BROADCAST, (char *)argv[1])) == NULL)
+    agent = new Agent(argv[1]);
+    if (agent->cinfo == nullptr)
 		{
 			fprintf(stderr,"Error: %d\n",AGENT_ERROR_JSON_CREATE);
 			exit(AGENT_ERROR_JSON_CREATE);

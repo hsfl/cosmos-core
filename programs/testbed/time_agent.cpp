@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	// Initialization stuff
 
 	// Initialize Agent
-    if (!(agent = new Agent(NetworkType::MULTICAST, argv[1], agentname, .1, MAXBUFFERSIZE)) != 0)
+    if (!(agent = new Agent(argv[1], agentname, .1, MAXBUFFERSIZE, false, 0, NetworkType::MULTICAST)) != 0)
 		exit (AGENT_ERROR_JSON_CREATE);
 
 	// Add internal requests

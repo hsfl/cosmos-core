@@ -103,17 +103,7 @@ public:
 	// JIMNOTE: this function (condition_true)  needs a look at....
 
 	//seems to return nan from json_equation...  how to use?
-	bool condition_true(cosmosstruc *cinfo) {
-		const char *cp = (char *)condition.c_str();
-		if (cinfo != nullptr) {
-			// TODO: remove from this class, to keep it modular
-//			double d = json_equation(cp, agent->cinfo->meta, agent->cinfo->pdata);
-			double d;
-			return d;
-		} else {
-			return false;
-		}
-	}
+    bool condition_true(cosmosstruc *cinfo);
 
 
 

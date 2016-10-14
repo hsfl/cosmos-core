@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize the Agent
-    if (!(agent = new Agent(ntype, argv[1], "node")))
+    if (!(agent = new Agent(argv[1], "node")))
 		exit (JSON_ERROR_NOJMAP);
 
 	// Set period of broadcasting SOH

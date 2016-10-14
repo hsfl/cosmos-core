@@ -27,12 +27,12 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-/*! \file agent.cpp
+/*! \file agent_client.cpp
 * \brief Agent control program source
 */
 
 //! \ingroup general
-//! \defgroup agent Agent control program
+//! \defgroup agent_client Agent control program
 //! This program allows communication with any of the Agents on the local network.
 //! With it you can:
 //! - list available Agents
@@ -47,49 +47,29 @@
 #include "physics/physicslib.h"
 #include "support/datalib.h"
 #include "sys/stat.h"
-//#ifdef _MSC_BUILD
-//#include "dirent/dirent.h"
-//#else
-//#include <dirent.h>
-//#endif
 #include "limits.h"
 #include <iostream>
 
 //using namespace std;
 
-std::string output;
-Agent *agent;
-
 const int REQUEST_WAIT_TIME = 2;
-const int SERVER_WAIT_TIME = 4;
+const int SERVER_WAIT_TIME = 6;
 
-bool is_node(std::vector<std::string> nl, std::string node_name)
-{
+//void print_node_list(std::vector<std::string>& nlp) {
 
-    for (std::string node: nl)
-    {
-        if(node == node_name)
-        {
-            return true;
-        }
-    }
-    return false;
-}
+//    if(nlp.empty())
+//    {
+//        return;
+//    }
 
+//    for(std::string n: nlp)
+//    {
+//        printf("    %s\n", n.c_str());
+//    }
+//    return;
+//}
+std::string output;
 
-void print_node_list(std::vector<std::string>& nlp) {
-
-    if(nlp.empty())
-    {
-        return;
-    }
-
-    for(std::string n: nlp)
-    {
-        printf("    %s\n", n.c_str());
-    }
-    return;
-}
 
 int main(int argc, char *argv[])
 {
@@ -97,6 +77,7 @@ int main(int argc, char *argv[])
     beatstruc cbeat;
     std::vector<std::string> nl;
     data_list_nodes(nl);
+    Agent *agent;
 
     agent = new Agent();
 
@@ -119,9 +100,8 @@ int main(int argc, char *argv[])
             double lmjd = 0., dmjd;
             std::string channel;
             uint8_t cnum;
-            std::string message;
+            Agent::messstruc message;
             std::string header;
-            Agent::pollstruc meta;
             int i, pretn;
             locstruc loc;
 
@@ -152,26 +132,24 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->poll(meta, message,  Agent::AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL)) > 0)
                 {
-                    header.resize(meta.jlength);
-                    memcpy(&header[0], &message[3], meta.jlength);
-                    std::string utc = json_extract_namedobject(header.c_str(), "agent_utc");
-                    std::string node = json_convert_string(json_extract_namedobject(header.c_str(), "agent_node"));
-                    std::string proc = json_extract_namedobject(header.c_str(), "agent_proc");
-                    std::string addr = json_convert_string(json_extract_namedobject(header.c_str(), "agent_addr"));
-                    std::string port = json_extract_namedobject(header.c_str(), "agent_port");
+                    // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
                     }
 
-                    if (pretn < 128)
+                    header.resize(message.meta.jlength);
+                    if (pretn < Agent::AGENT_MESSAGE_BINARY)
                     {
-                        json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_parse(message.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                        memcpy(&header[0], message.adata.data(), message.meta.jlength);
                     }
+                    else
+                    {
+                        memcpy(&header[0], message.bdata.data(), message.meta.jlength);
+                    }
+
 
                     switch (pretn)
                     {
@@ -185,11 +163,20 @@ int main(int argc, char *argv[])
                         printf("[%d]",pretn);
                         break;
                     }
-                    printf("%s:[%s:%s][%s:%s](%" PRIu32 ":%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), header.size(), message.size());
-                    if (pretn < 128 && !channel.empty())
+
+                    if (pretn < Agent::AGENT_MESSAGE_BINARY)
                     {
-                        printf("%s\n",message.c_str());
+                        printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.adata.size());
+                        if (!channel.empty())
+                        {
+                            printf("%s\n",message.adata.c_str());
+                        }
                     }
+                    else
+                    {
+                        printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.bdata.size());
+                    }
+
                     if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
                     {
                         if (agent->cinfo->pdata.node.loc.utc > 0.)
@@ -201,10 +188,11 @@ int main(int argc, char *argv[])
                             loc.pos.icrf.s = agent->cinfo->pdata.node.loc.pos.icrf.s;
                             loc.pos.utc = agent->cinfo->pdata.node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->pdata.node.loc.utc,dmjd, agent->cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->pdata.node.powgen, agent->cinfo->pdata.node.powuse, agent->cinfo->pdata.node.battlev);
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",agent->cinfo->pdata.node.loc.utc,dmjd,agent->cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,agent->cinfo->pdata.node.powgen,agent->cinfo->pdata.node.powuse,agent->cinfo->pdata.node.battlev);
                             lmjd = agent->cinfo->pdata.node.loc.utc;
                         }
                     }
+
                     if ((channel=="imu") && pretn == Agent::AGENT_MESSAGE_IMU)
                     {
                         for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
@@ -226,68 +214,35 @@ int main(int argc, char *argv[])
         }
         else if (!strcmp(argv[1],"list"))
         {
-            std::vector<beatstruc> cbeat;
-            cbeat = agent->find_servers(SERVER_WAIT_TIME);
-
-            if (cbeat.size() > 0)
+            size_t agent_count = 0;
+            ElapsedTime et;
+            do
             {
-                std::cout<<"Number of Agents found: "<<cbeat.size()<<std::endl;
-                for (unsigned int i=0; i<cbeat.size(); i++)
+                if (agent->agent_list.size() > agent_count)
                 {
-                    agent->send_request(cbeat[i],(char *)"getvalue {\"agent_pid\"}",output, REQUEST_WAIT_TIME);
-                    printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat[i].utc,cbeat[i].node,cbeat[i].proc,cbeat[i].addr,cbeat[i].port,cbeat[i].bsz);
-                    printf("\t%s\n",output.c_str());
+                    for (size_t i=agent_count; i<agent->agent_list.size(); ++i)
+                    {
+                        beatstruc cbeat = agent->agent_list[i];
+                        agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
+                        printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
+                        printf("\t%s\n",output.c_str());
+                        fflush(stdout);
+                    }
+                    agent_count = agent->agent_list.size();
                 }
-            }
+                COSMOS_SLEEP(.1);
+            } while (et.split() < SERVER_WAIT_TIME);
             exit(0);
         }
         break;
     default:
-
-        //  if (argc == 2)
-        //  {
-        //      if (is_node(nl,argv[1]))
-        //      {
-        //          std::vector<beatstruc> cbeat;
-        //          cbeat = agent->find_servers(SERVER_WAIT_TIME);
-
-        //          printf("\n    List of available agents:\n\n");
-
-        //              if (!cbeat.empty()) {
-        //              std::cout<<"Number of Agents found: "<<cbeat.size()<<std::endl;
-        //              for (unsigned int i=0; i<cbeat.size(); i++)
-        //                  if(!strcmp(argv[1],cbeat[i].node))
-        //                      printf("    %s\n", cbeat[i].proc);
-
-        //              }
-        //          printf("\n");
-        //      }
-        //      else
-        //      {
-        //          printf("\n  Node <%s> not found.\n",argv[1]);
-        //          printf("\n    List of available nodes:\n\n");
-        //          print_node_list(nl);
-        //          printf("\n");
-        //      }
-        //      exit(1);
-        //  }
-
-
-        //  if (argc != 4)
-        //  {
-        //      printf("Usage: agent [ list | dump [soh, beat, ###] | node_name agent_name \"request [ arguments ]\" ]\n");
-        //      user_is_clueless = true;
-        //      //exit (1);
-        //  }
-
         if (!strcmp(argv[1],"dump"))
         {
             double lmjd = 0., dmjd;
             std::string channel;
             uint8_t cnum;
-            std::string message;
+            Agent::messstruc message;
             std::string header;
-            Agent::pollstruc meta;
             int i, pretn;
             locstruc loc;
 
@@ -318,25 +273,25 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->poll(meta, message,  Agent::AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL)) > 0)
                 {
-                    header.resize(meta.jlength);
-                    memcpy(&header[0], &message[3], meta.jlength);
-                    std::string utc = json_extract_namedobject(header.c_str(), "agent_utc");
-                    std::string node = json_convert_string(json_extract_namedobject(header.c_str(), "agent_node"));
-                    std::string proc = json_extract_namedobject(header.c_str(), "agent_proc");
-                    std::string addr = json_convert_string(json_extract_namedobject(header.c_str(), "agent_addr"));
-                    std::string port = json_extract_namedobject(header.c_str(), "agent_port");
+                    // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
                     }
 
-                    if (pretn < 128)
+                    header.resize(message.meta.jlength);
+                    if (pretn < Agent::AGENT_MESSAGE_BINARY)
                     {
+                        memcpy(&header[0], message.adata.data(), message.meta.jlength);
                         json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
                         json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_parse(message.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                        json_parse(message.adata.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                    }
+                    else
+                    {
+                        memcpy(&header[0], message.bdata.data(), message.meta.jlength);
                     }
 
                     switch (pretn)
@@ -351,11 +306,14 @@ int main(int argc, char *argv[])
                         printf("[%d]",pretn);
                         break;
                     }
-                    printf("%s:[%s:%s][%s:%s](%" PRIu32 ":%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), header.size(), message.size());
-                    if (pretn < 128 && !channel.empty())
+
+                    printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
+
+                    if (pretn < Agent::AGENT_MESSAGE_BINARY && !channel.empty())
                     {
-                        printf("%s\n",message.c_str());
+                        printf("%s\n",message.adata.c_str());
                     }
+
                     if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
                     {
                         if (agent->cinfo->pdata.node.loc.utc > 0.)
@@ -367,10 +325,11 @@ int main(int argc, char *argv[])
                             loc.pos.icrf.s = agent->cinfo->pdata.node.loc.pos.icrf.s;
                             loc.pos.utc = agent->cinfo->pdata.node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->pdata.node.loc.utc,dmjd, agent->cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->pdata.node.powgen, agent->cinfo->pdata.node.powuse, agent->cinfo->pdata.node.battlev);
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n",agent->cinfo->pdata.node.loc.utc,dmjd,agent->cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h,agent->cinfo->pdata.node.powgen,agent->cinfo->pdata.node.powuse,agent->cinfo->pdata.node.battlev);
                             lmjd = agent->cinfo->pdata.node.loc.utc;
                         }
                     }
+
                     if ((channel=="imu") && pretn == Agent::AGENT_MESSAGE_IMU)
                     {
                         for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
@@ -394,13 +353,13 @@ int main(int argc, char *argv[])
         {
         nl.clear();
 
-        if ((nbytes = agent->get_server(argv[1],argv[2],SERVER_WAIT_TIME,&cbeat)) > 0)
+        if ((nbytes = agent->get_server(argv[1], argv[2], SERVER_WAIT_TIME, &cbeat)) > 0)
         {
             if(argc == 3)
             {
                 printf("List of available requests:\n");
-                nbytes = agent->send_request(cbeat, "help", output, REQUEST_WAIT_TIME);
-                printf("%s [%d]\n",output.c_str(), nbytes);
+                nbytes = agent->send_request(cbeat,(char*)"help", std::ref(output), REQUEST_WAIT_TIME);
+                printf("%s [%d]\n", output.c_str(), nbytes);
             }
             else
             {
@@ -411,8 +370,8 @@ int main(int argc, char *argv[])
                     request += " ";
                     request += argv[i+4];
                 }
-                nbytes = agent->send_request(cbeat ,request , output, REQUEST_WAIT_TIME);
-                printf("%s [%d]\n",output.c_str(), nbytes);
+                nbytes = agent->send_request(cbeat,request.c_str(), output, REQUEST_WAIT_TIME);
+                printf("%s [%d]\n", output.c_str(), nbytes);
             }
         }
         else
@@ -420,7 +379,7 @@ int main(int argc, char *argv[])
             if (!nbytes)
                 fprintf(stderr,"node-agent pair [%s:%s] not found\n",argv[1],argv[2]);
             else
-                printf("Error: %d\n",nbytes);
+                printf("Error: %d\n", nbytes);
         }
     }
     }
