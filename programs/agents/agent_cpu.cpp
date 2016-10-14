@@ -58,9 +58,14 @@ int32_t request_diskFreePercent (char*request, char *response, Agent *);
 // cpu
 int32_t request_cpuProcess(char*request, char *response, Agent *);
 int32_t request_load(char *request, char *response, Agent *);
+
+// memory
 int32_t request_mem(char *request, char *response, Agent *);
 int32_t request_mem_kib(char *request, char *response, Agent *);
-int32_t request_mempercent (char*request, char *response, Agent *);
+int32_t request_mem_percent (char*request, char *response, Agent *);
+int32_t request_mem_total(char *request, char *response, Agent *);
+int32_t request_mem_total_kib(char *request, char *response, Agent *);
+
 int32_t request_printStatus(char *request, char *response, Agent *);
 
 
@@ -123,7 +128,9 @@ int main(int argc, char *argv[])
     agent->add_request("diskFreePercent",request_diskFreePercent,"","disk free in %");
     agent->add_request("mem",request_mem,"","current virtual memory used in Bytes");
     agent->add_request("mem_kib",request_mem_kib,"","current virtual memory used in KiB");
-    agent->add_request("mem_percent",request_mempercent,"","memory percentage");
+    agent->add_request("mem_percent",request_mem_percent,"","memory percentage");
+    agent->add_request("mem_total",request_mem_total,"","total memory in Bytes");
+    agent->add_request("mem_total_kib",request_mem_total_kib,"","total memory in KiB");
     agent->add_request("load",request_load,"","current CPU load (0-1 is good, >1 is overloaded)");
     agent->add_request("cpuProc",request_cpuProcess,"","the %CPU usage for this process");
     agent->add_request("printStatus",request_printStatus,"","print the status data");
@@ -257,21 +264,34 @@ int32_t request_cpuProcess(char *, char *response, Agent *){
 // memory in Bytes
 int32_t request_mem(char *, char* response, Agent *)
 {
-    return (sprintf(response, "%f", deviceCpu.virtualMemoryUsed));
+    return (sprintf(response, "%.0f", deviceCpu.virtualMemoryUsed));
 }
 
 // used memory in KiB
 int32_t request_mem_kib(char *, char* response, Agent *)
 {
-    return (sprintf(response, "%f", deviceCpu.virtualMemoryUsed/1000.));
+    return (sprintf(response, "%.0f", deviceCpu.virtualMemoryUsed/1024.));
 }
 
 
-int32_t request_mempercent (char *, char *response, Agent *)
+int32_t request_mem_percent (char *, char *response, Agent *)
 {
 
-    return (sprintf(response, "%f", deviceCpu.getVirtualMemoryUsedPercent()));
+    return (sprintf(response, "%.0f", deviceCpu.getVirtualMemoryUsedPercent()));
 }
+
+// total memory in Bytes
+int32_t request_mem_total(char *, char* response, Agent *)
+{
+    return (sprintf(response, "%.0f", deviceCpu.getVirtualMemoryTotal()));
+}
+
+// total memory in Bytes
+int32_t request_mem_total_kib(char *, char* response, Agent *)
+{
+    return (sprintf(response, "%.0f", deviceCpu.getVirtualMemoryTotal()/1024));
+}
+
 
 
 // ----------------------------------------------

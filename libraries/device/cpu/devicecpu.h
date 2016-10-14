@@ -105,6 +105,7 @@ public:
     void initCpuUtilization();
     double getVirtualMemoryUsed();
     double getVirtualMemoryTotal();
+    double getVirtualMemoryFree();
     std::string getCurrentProcessName();
     std::string getHostName();
     //double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
@@ -127,6 +128,7 @@ public:
     std::string hostName;
     double virtualMemoryUsed;
     double virtualMemoryTotal;
+    double virtualMemoryFree;
     double load;
 
     void stress();
@@ -135,6 +137,7 @@ public:
     double getLoad();
     double getVirtualMemoryTotal();
     double getVirtualMemoryUsed();
+    double getVirtualMemoryFree();
     double getVirtualMemoryUsedPercent();
     double getPercentUseForCurrentProcess();
     std::string getHostName();

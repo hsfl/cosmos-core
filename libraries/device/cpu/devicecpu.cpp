@@ -385,7 +385,7 @@ float DeviceCpuLinux::getPercentUseForCurrentProcessOverLifetime(){
     return percent;
 }
 
-
+// virtual memory used in Bytes
 double DeviceCpuLinux::getVirtualMemoryUsed()
 {
     struct sysinfo memInfo;
@@ -396,12 +396,11 @@ double DeviceCpuLinux::getVirtualMemoryUsed()
     virtualMemUsed += memInfo.totalswap - memInfo.freeswap;
     virtualMemUsed *= memInfo.mem_unit;
 
-    // * 0.000976563 to convert byte to kibibyte
-    // MN: keep the basic functions in bytes
     return (virtualMemUsed) ;
 }
 
-double DeviceCpuLinux::getVirtualMemoryTotal() // NOT TESTED
+// total virtual memory in Bytes
+double DeviceCpuLinux::getVirtualMemoryTotal()
 {
     struct sysinfo memInfo;
     sysinfo (&memInfo);
@@ -411,9 +410,21 @@ double DeviceCpuLinux::getVirtualMemoryTotal() // NOT TESTED
     totalVirtualMem += memInfo.totalswap;
     totalVirtualMem *= memInfo.mem_unit;
 
-    // * 0.000976563 to convert byte to kibibyte
-    // MN: keep the basic functions in bytes
     return (totalVirtualMem);
+}
+
+double DeviceCpuLinux::getVirtualMemoryFree()
+{
+    struct sysinfo memInfo;
+    sysinfo (&memInfo);
+
+    long long virtualMemFree = memInfo.freeram;
+
+    //virtualMemFree += memInfo.totalswap - memInfo.freeswap;
+    virtualMemFree *= memInfo.mem_unit;
+
+    return (virtualMemFree) ;
+
 }
 
 std::string DeviceCpuLinux::getHostName() // NOT TESTED
