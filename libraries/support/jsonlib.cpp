@@ -1786,7 +1786,7 @@ int32_t json_out_locstruc(std::string &jstring,locstruc value)
 
 //! Command event to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
- * ::longeventstruc specific ti a command event.
+ * ::longeventstruc specific to a command event.
     \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
