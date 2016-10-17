@@ -5276,8 +5276,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
 /*! Zero out elements of the ::cosmosstruc. The entire structure can be cleared, or the
  * clearing can be confined to either the Dynamic or Static piece. This allows you to remove
  * the effects of previous calls to ::json_parse.
-    \param type One of JSON_MAP_ALL, JSON_MAP_AGENT, JSON_MAP_BEACON, JSON_MAP_NODESTATIC, or
-    JSON_MAP_NODEDYNAMIC
+    \param type Instance of JSON_STRUCT_* enumeration.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
