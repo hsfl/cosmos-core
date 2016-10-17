@@ -46,29 +46,85 @@
 
 namespace Cosmos {
 
-// Class to manage information about a list of commands
+/// Class to manage information about a queue of Events
 class CommandQueue
 {
 private:
+	/**	An std::list of members of the Event class	*/
     std::list<Event> commands;
+	/** A boolean indicator that the queue has changed	*/
 	bool queue_changed = false;
 
 public:
+
+	///	Retrieve the size of the queue
+	/**
+		\return	The size of the queue
+	*/
 	size_t get_size() { return commands.size(); }
 
+	///
+	/**
+		
+	*/
     Event& get_command(int i)
 	{
         std::list<Event>::iterator ii = commands.begin();
 		std::advance(ii,i);
 		return *ii;
 	}
+	///
+	/**
+		
+	*/
 	void load_commands(string incoming_dir, Agent *agent);
+	///
+	/**
+		
+	*/
 	void save_commands(string temp_dir);
+	///
+	/**
+		
+	*/
     void run_command(Event &cmd, string nodename, double logdate_exec);
+	///
+	/**
+		
+	*/
 	void run_commands(Agent *agent, string nodename, double logdate_exec);
+
+	///
+	/**	Add Event to the queue
+		\param	c	 Event to add
+
+		JIMNOTE:	this only adds given Event to the queue if the Event has flag for EVENT_TYPE_COMMAND set to true
+	*/
     void add_command(Event& c);
+
+	///	Remove Event from the queue
+	/**
+		\param	c	Event to remove
+		\return	The number of Events removed
+
+		This function only removes events from the queue if the are exactly equal to the given Event.
+	*/
     int del_command(Event& c);
+
+	///	Sort the events in the queue by Event exectution time
+	/**
+		This function is called after new Events are loaded.
+	*/
     void sort()	{ commands.sort([](Event & c1, Event & c2) { return c1.getTime() < c2.getTime(); });	}
+	///	Extraction operator
+	/**
+		\param	out	Reference to ostream
+		\param	cmd	Reference to CommandQueue (JIMNOTE: should be const, ya?)
+		\return	Reference to modified ostream
+
+		Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
+		
+	*/
     friend std::ostream& operator<<(std::ostream& out, CommandQueue& cmd);
 
 //	bool compare_command_times(Event command1, Event command2);
