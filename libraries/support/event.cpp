@@ -35,7 +35,6 @@
 
 namespace Cosmos {
 
-
 // Default Constructor for command objects
 Event::Event() :
     mjd(0),
@@ -168,6 +167,9 @@ bool Event::condition_true(cosmosstruc *cinfo)
     if (cinfo != nullptr) {
         // TODO: remove from this class, to keep it modular
 //			double d = json_equation(cp, agent->cinfo->meta, agent->cinfo->pdata);
+
+		// JIMNOTE:  this can't be right...  because uninitialized (non-static) local variables have no default value and lead to undefined behavior...
+		// and why is a double even being used? it just gets cast to bool (which I get, will rarely be zero, i.e. false, but seriously... make it explicit what is going on)
         double d;
         return d;
     } else {
