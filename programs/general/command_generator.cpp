@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
         //        event.mjd = time.mjd;
 
         //        cout << event.getName() << endl;
-        //        cout << event.getEvent() << endl;
+        //        cout << event.getData() << endl;
         //        cout << event.getTime() << endl;
 
         scheduler.addEvent(event);
