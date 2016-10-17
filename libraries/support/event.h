@@ -50,43 +50,122 @@ using std::string;
 
 namespace Cosmos {
 
-// Class to manage information about an event (commands are special cases of events)
+/// Class to manage %Event information
+/**
+	An %Event is...
+*/
 class Event {
 
 public: // TODO: consider private?
-    double		mjd; // was utc
+
+	/**	%Event start time (Modified Julian Date) */
+    double		mjd;
+	/** %Event execution time (Coordinated Universal Time) -- JIMNOTE: but appears to be using MJD in the code? should it be named mjdexec? */
 	double		utcexec;
+	/**	%Event name */
 	string		name;
+	/** %Event type */
 	uint32_t	type;
+	/** %Event flag */
 	uint32_t	flag;
+	/** %Event data */
 	string		data;
+	/** %Event condition */
 	string		condition;
+	/**	%Event run indicator */
+	bool	already_ran;
+	/** %Event information stored as a JSON string */
+    string event_string;
 
 public:
+
+	/// Default constructor
     Event();
+
+	///	Destructor
     ~Event();
 
-    // sets
-	void	set_command(string line, Agent *agent);
+	///	Sets %Event information from a JSON formatted string
+	/**
+		\param	jstring	Event information string formatted as JSON
+		\param	agent	pointer to Agent (to simplify implementation)
+
+		This function copies all Event information (from a JSON formatted string) into the current Event object
+	*/
+	void	set_command(string jstring, Agent *agent);
+
+	///	Sets Event::utcexec to current time
+	/**
+		This function is called after event execution and updates the execution time.
+	*/
     void	set_utcexec()	{	utcexec = currentmjd(0.);	}
+
+	///	Sets Event::flag to indicate the event has actually executed (i.e. EVENT_FLAG_ACTUAL)
+	/**
+		This function is called after event execution and updates the execution status.
+	*/
     void	set_actual()	{	flag |= EVENT_FLAG_ACTUAL;	}
 
-    // gets
+	///	Retrieves Event::name
+	/**
+		\return string representing %Event name
+	*/
+    string  getName()		{	return name; }
 
-    string  getName() { return name; }
+	/// Retrieves Event information
+	/**
+		\return	string representing Event information (as a JSON formatted string)
+	*/
     string	getJson();
-    double	getUtc()		{	return mjd;	}
-    string	getTime()		{	return mjd2iso8601( getUtc() ); }
-    double	getUtcExec()	{	return utcexec;	}
-    string	getData()		{	return data; }
-    string	getEvent()		{	return getData(); }
 
-    // status
+	///	Retrieves Event::mjd
+	/**
+		\return double representing %Event start time
+	*/
+    double	getUtc()		{	return mjd;	}
+
+	///	Retrieves Event::mjd
+	/**
+		\return double representing %Event start time
+	*/
+    string	getTime()		{	return mjd2iso8601( getUtc() ); }
+
+	///	Retrieves Event::utcexec
+	/**
+		\return double representing %Event execution time
+	*/
+    double	getUtcExec()	{	return utcexec;	}
+
+	///	Retrieves Event::data
+	/**
+		\return string representing %Event data
+	*/
+    string	getData()		{	return data; }
+
+	///	Determines if it is time for the %Event to execute
+	/**
+		\return	True if %Event is ready to execute, other false
+	*/
     bool	is_ready()		{	return (mjd <= currentmjd(0.)); }
+
+	///	Determines if the %Event repeatable
+	/**
+		\return	True if %Event is repeatable, other false
+	*/
 	bool	is_repeat()		{	return (flag & EVENT_FLAG_REPEAT);	}
+
+
+	///	Determines if the %Event is a command
+	/**
+		\return	True if %Event is a command, other false
+	*/
 	bool	is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
+
+	///	Determines if the %Event is a conditional command
+	/**
+		\return	True if %Event is a conditional command, other false
+	*/
 	bool	is_conditional(){	return (flag & EVENT_FLAG_CONDITIONAL);	}
-	bool	already_ran;
 
 	string generator(
 		string name,
@@ -98,16 +177,26 @@ public:
 
     string generator(longeventstruc event);
 
-    string event_string;
-
 	// JIMNOTE: this function (condition_true)  needs a look at....
-
 	//seems to return nan from json_equation...  how to use?
     bool condition_true(cosmosstruc *cinfo);
 
+	///	Extraction operator
+	/**
+		\param	out	Reference to ostream
+		\param	cmd	Reference to const Event
+		\return	Reference to modified ostream
 
-
+		Writes the given Event to the given output stream (in JSON format) and returns a reference to the modified ostream.
+	*/
     friend std::ostream& operator<<(std::ostream& out, const Event& cmd);
+
+	///	Equality operator
+	/**
+		\param	cmd1	First event
+		\param	cmd2	Second event
+		\return	True if events are exactly the same, other false
+	*/
     friend bool operator==(const Event& cmd1, const Event& cmd2);
 
 }; // end of class Event
