@@ -35,8 +35,7 @@
 
 namespace Cosmos {
 
-
-// Default Constructor for command objects
+/// Default constructor
 Event::Event() :
     mjd(0),
 	utcexec(0),
@@ -48,24 +47,22 @@ Event::Event() :
 	already_ran(false)
 {}
 
+/// Destructor
 Event::~Event() {}
 
 string Event::generator(
-		string name,
-		string data,
-        double mjd,
-		string condition,
-		uint32_t flag
-		) {
-
+	string name,
+	string data,
+	double mjd,
+	string condition,
+	uint32_t flag
+) {
 
     this->name = name;
     this->data = data;
     this->mjd  = mjd;
     this->condition = condition;
     this->flag = flag;
-
-    //string jsp;
 
     // TODO: this is temporary, later will only use Event class
     // no more longeventstruc
@@ -90,7 +87,6 @@ string Event::generator(
     json_out_commandevent(event_string, event);
 
     return event_string;
-	//printf("%s\n", jsp.c_str());
 }
 
 string Event::generator(longeventstruc event) {
@@ -126,15 +122,14 @@ bool operator==(const Event& cmd1, const Event& cmd2)
 				cmd1.condition==cmd2.condition);
 }
 
-
-
-
-// Copies the command information stored in the local copy
-// agent->cinfo->pdata.event[0].l into the current command object
-void Event::set_command(string line, Agent *agent)
+void Event::set_command(string jstring, Agent *agent)
 {
+	// clear Event information in agent
 	json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
-	json_parse(line, agent->cinfo->meta, agent->cinfo->sdata);
+	// load Event information (from jstring) into agent
+	json_parse(jstring, agent->cinfo->meta, agent->cinfo->sdata);
+
+	// set Event data members from agent
     mjd = agent->cinfo->sdata.event[0].l.utc;
 	utcexec = agent->cinfo->sdata.event[0].l.utcexec;
 	name = agent->cinfo->sdata.event[0].l.name;
@@ -146,10 +141,9 @@ void Event::set_command(string line, Agent *agent)
 
 string Event::getJson()
 {
-	string jsp;
-
 	longeventstruc event;
 
+	// set Event members
     event.utc = mjd;
 	event.utcexec = utcexec;
 	strcpy(event.name, name.c_str());
@@ -158,6 +152,8 @@ string Event::getJson()
 	strcpy(event.data, data.c_str());
 	strcpy(event.condition, condition.c_str());
 
+	// return Event data as JSON string
+	string jsp;
 	json_out_commandevent(jsp, event);
 	return jsp;
 }
@@ -168,6 +164,9 @@ bool Event::condition_true(cosmosstruc *cinfo)
     if (cinfo != nullptr) {
         // TODO: remove from this class, to keep it modular
 //			double d = json_equation(cp, agent->cinfo->meta, agent->cinfo->pdata);
+
+		// JIMNOTE:  this can't be right...  because uninitialized (non-static) local variables have no default value and lead to undefined behavior...
+		// and why is a double even being used? it just gets cast to bool (which I get, will rarely be zero, i.e. false, but seriously... make it explicit what is going on)
         double d;
         return d;
     } else {

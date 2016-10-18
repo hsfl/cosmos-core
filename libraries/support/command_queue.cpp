@@ -35,8 +35,6 @@
 
 namespace Cosmos {
 
-
-
 // *************************************************************************
 // Class: CommandQueue
 // *************************************************************************
@@ -228,6 +226,7 @@ void CommandQueue::load_commands(string incoming_dir, Agent *agent) // TODO: cha
 	}
 
 	sort();
+
 	closedir(dir);
 
 	return;
@@ -268,7 +267,6 @@ std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq)
 		out << *ii << std::endl;
 	return out;
 }
-
 
 } // end namespace Cosmos
 
