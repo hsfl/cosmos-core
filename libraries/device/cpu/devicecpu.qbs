@@ -18,6 +18,6 @@ Product {
     }
 
 //    Depends { name: "CosmosSupport" }
-    cpp.includePaths: ["../../support/"]
+    cpp.includePaths: ["../../"]
 
 }

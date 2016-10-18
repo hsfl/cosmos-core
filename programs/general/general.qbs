@@ -37,23 +37,8 @@ Project {
 
 
         cpp.includePaths : [
-            '../../support/',
-            '../../../libraries/',
-            '../../../libraries/thirdparty/']
+            '../../']
 
-
-        //        // define the libraries to use with MINGW
-        //        Properties {
-        //            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("mingw")
-        //            cpp.dynamicLibraries: ["pthread", "wsock32", "winmm", "ws2_32", "iphlpapi"]
-        //            cpp.minimumWindowsVersion: "7.0"
-        //        }
-
-        //        // define the libraries to use with MSVC
-        //        Properties {
-        //            condition: qbs.targetOS.contains("windows") && qbs.toolchain.contains("msvc")
-        //            cpp.dynamicLibraries: ["wsock32", "winmm", "ws2_32", "iphlpapi"]
-        //        }
 
         Group {
             qbs.install: true
@@ -96,9 +81,7 @@ Project {
         cpp.cxxLanguageVersion : "c++11"
 
         cpp.includePaths : [
-            '../../support/',
-            '../../../libraries/',
-            '../../../libraries/thirdparty/']
+            '../../support/']
 
         //        Group {
         //         qbs.install: true
@@ -143,9 +126,7 @@ Project {
         cpp.cxxLanguageVersion : "c++11"
 
         cpp.includePaths : [
-            '../../support/',
-            '../../../libraries/',
-            '../../../libraries/thirdparty/']
+            '../../support/']
 
         Group {
             qbs.install: true
@@ -189,9 +170,7 @@ Project {
         cpp.cxxLanguageVersion : "c++11"
 
         cpp.includePaths : [
-            '../../support/',
-            '../../../libraries/',
-            '../../../libraries/thirdparty/']
+            '../../support/']
 
         Group {
             qbs.install: true
@@ -237,9 +216,7 @@ Project {
         cpp.cxxLanguageVersion : "c++11"
 
         cpp.includePaths : [
-            '../../support/',
-            '../../../libraries/',
-            '../../../libraries/thirdparty/']
+            '../../support/']
 
         Group {
             qbs.install: true
@@ -285,9 +262,7 @@ Project {
         cpp.cxxLanguageVersion : "c++11"
 
         cpp.includePaths : [
-            '../../support/',
-            '../../../libraries/',
-            '../../../libraries/thirdparty/']
+            '../../support/']
 
         Group {
             qbs.install: true

@@ -1,8 +1,10 @@
 import qbs
 
 Project {
-    name: "core"
+    name: "core-all"
     references: [
+        "tutorials",
+        "programs",
         "libraries",
     ]
 
