@@ -63,4 +63,5 @@ int main(int argc, char *argv[])
 	printf("rxrstruc : %u\n", sizeof(rxrstruc));
 	printf("thststruc : %u\n", sizeof(thststruc));
 	printf("tsenstruc : %u\n", sizeof(tsenstruc));
+    printf("tncstruc : %u\n", sizeof(tncstruc));
 }

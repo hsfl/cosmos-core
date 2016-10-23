@@ -4031,7 +4031,12 @@ int32_t json_parse(std::string jstring, cosmosmetastruc &cmeta, cosmosdatastruc 
             iretn = JSON_ERROR_EOS;
     } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
 
-    if (!iretn) iretn = count;
+    if (!iretn)
+    {
+
+        cdata.timestamp = currentmjd();
+        iretn = count;
+    }
     return (iretn);
 }
 
@@ -6574,6 +6579,13 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc
         json_addentry("device_bus_wdt",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,wdt)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         cdata.devspec.bus.push_back((busstruc *)&cdata.device[i].bus);
         cdata.devspec.bus_cnt = (uint16_t)cdata.devspec.bus.size();
+        break;
+    case DEVICE_TYPE_TNC:
+        json_addentry("device_tnc_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tnc_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tnc_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        cdata.devspec.tnc.push_back((tncstruc *)&cdata.device[i].tnc);
+        cdata.devspec.tnc_cnt = (uint16_t)cdata.devspec.tnc.size();
         break;
     }
 

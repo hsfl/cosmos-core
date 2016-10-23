@@ -460,6 +460,8 @@ enum
     DEVICE_TYPE_TELEM=27,
     //! Disk Drive
     DEVICE_TYPE_DISK=28,
+    //! TNC
+    DEVICE_TYPE_TNC=29,
     //! List count
     DEVICE_TYPE_COUNT,
     //! Not a Component
@@ -1559,6 +1561,15 @@ struct camstruc
     float flength;
 };
 
+//! TNC Structure definition
+/*! This structure holds the description of a TNC.
+*/
+struct tncstruc
+{
+    //! Generic info
+    genstruc gen;
+};
+
 // End of Device Specific structures
 
 //! Node Structure
@@ -1643,6 +1654,7 @@ struct devicestruc
         rxrstruc rxr;
         thststruc thst;
         tsenstruc tsen;
+        tncstruc tnc;
     };
 };
 
@@ -1680,6 +1692,7 @@ struct devspecstruc
     uint16_t txr_cnt;
     uint16_t thst_cnt;
     uint16_t tsen_cnt;
+    uint16_t tnc_cnt;
     std::vector<allstruc *>all;
     std::vector<antstruc *>ant;
     std::vector<battstruc *>batt;
@@ -1710,6 +1723,7 @@ struct devspecstruc
     std::vector<rxrstruc *>rxr;
     std::vector<thststruc *>thst;
     std::vector<tsenstruc *>tsen;
+    std::vector<tncstruc *>tnc;
 };
 
 //! JSON Name Space data structure
@@ -1719,6 +1733,8 @@ struct devspecstruc
 */
 struct cosmosdatastruc
 {
+    //! Timestamp for last change to data
+    double timestamp;
     //! Structure for summary information in node
     nodestruc node;
     //! Vector of all pieces in node.
@@ -1751,6 +1767,8 @@ struct cosmosdatastruc
 */
 struct cosmosmetastruc
 {
+    //! Timestamp for last change to data
+    double timestamp;
     //! Whether JSON map has been created.
     uint16_t jmapped;
     //! JSON Namespace Map matrix.
