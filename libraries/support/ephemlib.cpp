@@ -39,6 +39,8 @@
 
 static void *jplephem = NULL;
 
+std::mutex eph_mutex;
+
 //! \addtogroup ephemlib_functions
 //! @{
 

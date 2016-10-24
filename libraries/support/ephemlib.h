@@ -47,13 +47,6 @@
 //! \def jpleph.
 //! Full information can be found at http://ssd.jpl.nasa.gov/?planet_eph_export.
 
-//! \ingroup ephemlib
-//! \defgroup ephemlib_variables Ephemeris variables
-//! @{
-
-std::mutex eph_mutex;
-
-//! @}
 //!
 //! \ingroup ephemlib
 //! \defgroup ephemlib_functions Ephemeris functions
