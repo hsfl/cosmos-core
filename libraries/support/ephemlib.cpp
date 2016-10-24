@@ -60,7 +60,9 @@ int32_t jpllib(double utc,rmatrix *rm, rmatrix *drm)
 		return iretn;
 	}
 
+    eph_mutex.lock();
 	iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET,15,0,pvec,1);
+    eph_mutex.unlock();
 	if (iretn < 0)
 	{
 		return iretn;
@@ -93,8 +95,10 @@ int32_t jplnut(double utc, double nuts[])
 		return iretn;
 	}
 
-	iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET,(int)JPL_NUTATIONS,0,pvec,1);
-	if (iretn < 0)
+    eph_mutex.lock();
+    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET,(int)JPL_NUTATIONS,0,pvec,1);
+    eph_mutex.unlock();
+    if (iretn < 0)
 	{
 		return iretn;
 	}
@@ -126,20 +130,26 @@ int32_t jplpos(long from, long to, double utc, cartpos *pos)
 		return iretn;
 	}
 
-	iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET - .05/86400.,(int)to,(int)from,pvec[0],1);
-	if (iretn < 0)
+    eph_mutex.lock();
+    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET - .05/86400.,(int)to,(int)from,pvec[0],1);
+    eph_mutex.unlock();
+    if (iretn < 0)
 	{
 		return iretn;
 	}
 
-	iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET,(int)to,(int)from,pvec[1],1);
-	if (iretn < 0)
+    eph_mutex.lock();
+    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET,(int)to,(int)from,pvec[1],1);
+    eph_mutex.unlock();
+    if (iretn < 0)
 	{
 		return iretn;
 	}
 
-	iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET + .05/86400.,(int)to,(int)from,pvec[2],1);
-	if (iretn < 0)
+    eph_mutex.lock();
+    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET + .05/86400.,(int)to,(int)from,pvec[2],1);
+    eph_mutex.unlock();
+    if (iretn < 0)
 	{
 		return iretn;
 	}
