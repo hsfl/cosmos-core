@@ -53,7 +53,7 @@
 #include "device/general/cssl_lib.h"
 #define SERIAL_USB0 16
 
-int myagent();
+int agent_transmitter();
 
 char agentname[COSMOS_MAX_NAME+1] = "gs_tx";
 char node[50] = "otb";
@@ -106,10 +106,10 @@ int main(int argc, char *argv[])
 		exit (iretn);
 
 	// Start our own thread
-	iretn = myagent();
+    iretn = agent_transmitter();
 }
 
-int myagent()
+int agent_transmitter()
 {
 	//FILE *fp;
 

@@ -111,8 +111,6 @@ int waitsec = 5;
 void collect_data_loop();
 std::thread cdthread;
 
-int myagent();
-
 std::string logstring;
 std::vector<jsonentry*> logtable;
 double logdate_soh=0.;
@@ -549,6 +547,7 @@ int32_t request_set_logperiod(char* request, char* , Agent *)
 int32_t request_set_logstring(char* request, char* , Agent *)
 {
     logstring = &request[strlen("set_logstring")+1];
+    logtable.clear();
     json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
     return 0;
 }
@@ -587,6 +586,14 @@ void collect_data_loop()
                 agent->cinfo->pdata.device  = agent->cinfo->sdata.device ;
                 loc_update(&agent->cinfo->pdata.node.loc);
                 agent->cinfo->pdata.node.utc = currentmjd(0.);
+
+                for (devicestruc device: agent->cinfo->pdata.device)
+                {
+                    if (device.all.gen.utc > agent->cinfo->pdata.node.utc)
+                    {
+                        agent->cinfo->pdata.node.utc = device.all.gen.utc;
+                    }
+                }
             }
         }
         COSMOS_SLEEP(.1);

@@ -61,8 +61,10 @@
 #include <fstream>   // std::ifstream
 #include <algorithm> // std::unique
 
-
-
+using std::string;
+using std::ifstream;
+using std::cout;
+using std::endl;
 
 #ifdef COSMOS_WIN_OS
 class DeviceCpuWindows
@@ -74,7 +76,7 @@ public:
     double getLoad();
     double CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks);
     unsigned long long FileTimeToInt64(const FILETIME & ft);
-    std::string getHostName();
+    string getHostName();
     double getVirtualMemoryUsed();
     double getVirtualMemoryTotal();
 };
@@ -96,7 +98,7 @@ public:
     // variables
     float load1minAverage;
     int numProcessors = 0;
-    std::string processName;
+    string processName;
 
     // functions
     double getLoad1minAverage();
@@ -106,11 +108,51 @@ public:
     double getVirtualMemoryUsed();
     double getVirtualMemoryTotal();
     double getVirtualMemoryFree();
-    std::string getCurrentProcessName();
-    std::string getHostName();
+    string getCurrentProcessName();
+    string getHostName();
     //double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
     //double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();
     //double CalculateLinuxCPULoad (float *out);
+    double getMemoryUsed();
+    double getMemoryTotal();
+    pid_t getPidOf(string processName);
+    double getMemoryUsedOf(string processName);
+    float getPercentCpuOf(string processName);
+
+    class procPidStat {
+
+        struct stat {
+            // stat vars
+            string pid, comm, state, ppid, pgrp, session, tty_nr;
+            string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+            string utime, stime, cutime, cstime, priority, nice;
+            string O, itrealvalue, starttime;
+            unsigned long vsize;
+            long rss;
+        };
+
+
+
+    public:
+        //int pid, comm, state, ppid, pgrp, session, tty_nr;
+        //int tpgid, flags, minflt, cminflt, majflt, cmajflt;
+        float utime, stime; //, cutime, cstime, priority, nice;
+        //string O, itrealvalue, starttime;
+
+        bool fileExists = false;
+
+        procPidStat(string processName);
+    };
+
+    class procStat {
+
+    public:
+        // stat vars
+        string cpu, user, nice, system, idle, iowait, irq, softirq, steal,guest, guest_nice;
+        int time_total;
+        procStat();
+    };
+    float getPercentMemoryOf(string processName);
 };
 
 #endif
@@ -124,8 +166,12 @@ public:
 
     double percentUseForCurrentProcess;
     int numProcessors;
-    std::string processName;
-    std::string hostName;
+    string processName;
+    string hostName;
+    double memoryUsed;
+    double memoryTotal;
+    double memoryFree;
+    double memoryBuffers;
     double virtualMemoryUsed;
     double virtualMemoryTotal;
     double virtualMemoryFree;
@@ -140,7 +186,12 @@ public:
     double getVirtualMemoryFree();
     double getVirtualMemoryUsedPercent();
     double getPercentUseForCurrentProcess();
-    std::string getHostName();
+    string getHostName();
+
+    // move to math_cpu.cpp?
+    double BytesToKiB(double bytes);
+    double BytesToMiB(double bytes);
+    double BytesToMB(double bytes);
 
 #if defined(COSMOS_LINUX_OS)
     DeviceCpuLinux cpuLinux;
@@ -150,8 +201,23 @@ public:
     DeviceCpuWindows cpuWin;
 #endif
 
-};
+    double getVirtualMemoryUsedKiB();
+    double getVirtualMemoryUsedMiB();
 
+    double getVirtualMemoryUsedMB();
+    double getMemoryUsed();
+    double getMemoryTotal();
+    double getMemoryUsedKiB();
+    double getMemoryUsedMiB();
+    double getMemoryTotalKiB();
+    double getMemoryTotalMiB();
+    double getMemoryUsedMB();
+    double getMemoryTotalMB();
+    pid_t getPidOf(string processName);
+    pid_t getMemoryUsedOf(string processName);
+    float getPercentCpuOf(string processName);
+    float getPercentMemoryOf(string processName);
+};
 
 
 #endif // DEVICECPU_H

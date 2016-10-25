@@ -37,7 +37,7 @@
 #include "agent/agentclass.h"
 #include "device/cpu/devicecpu.h"
 
-int myagent();
+//int agent_example();
 
 char agentname[COSMOS_MAX_NAME+1] = "example";
 char node[50] = "null";

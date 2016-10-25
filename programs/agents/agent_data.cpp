@@ -45,7 +45,7 @@
 //#include "support/stringlib.h"
 //#include "support/timelib.h"
 
-int myagent();
+int agent_data();
 
 std::vector<agentstruc> agents;
 agentstruc tempagent;
@@ -180,10 +180,10 @@ if ((iretn=agent->add_request("log",request_log)))
 	exit (iretn);
 
 // Start our own thread
-iretn = myagent();
+iretn = agent_data();
 }
 
-int myagent()
+int agent_data()
 {
 
 // Start performing the body of the agent

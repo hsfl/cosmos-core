@@ -37,7 +37,7 @@
 #include "device/cpu/devicecpu.h"
 #include "device/general/cssl_lib.h"
 
-int myagent();
+//int agent_arduino();
 
 std::string agentname = "arduino";
 std::string node = "null";

@@ -44,7 +44,7 @@
 //#include "support/stringlib.h"
 //#include "support/timelib.h"
 
-int myagent();
+int agent_blank();
 
 char agentname[COSMOS_MAX_NAME+1] = "blank";
 char ipaddress[16] = "192.168.150.1";
@@ -85,10 +85,10 @@ if ((iretn=agent->add_request("runprogram",request_run_program)))
 	exit (iretn);
 
 // Start our own thread
-iretn = myagent();
+iretn = agent_blank();
 }
 
-int myagent()
+int agent_blank()
 {
 
 // Start performing the body of the agent

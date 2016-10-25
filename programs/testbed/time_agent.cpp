@@ -35,7 +35,7 @@
 #include "physics/physicslib.h"
 #include "support/jsonlib.h"
 
-int myagent();
+int agent_time();
 int32_t request_mjd(char *request, char* response, Agent *);
 
 std::string agentname = "time";
@@ -71,10 +71,10 @@ int main(int argc, char *argv[])
 		exit (iretn);
 
 	// Start our own thread
-	iretn = myagent();
+    iretn = agent_time();
 }
 
-int myagent()
+int agent_time()
 {
 	double cmjd, nmjd, period;
 	unsigned long usec;
