@@ -51,7 +51,7 @@ class CommandQueue
 {
 private:
 	/**	An std::list of members of the Event class	*/
-    std::list<Event> commands;
+	std::list<Event> commands;
 	/** A boolean indicator that the queue has changed	*/
 	bool queue_changed = false;
 
@@ -63,9 +63,10 @@ public:
 	*/
 	size_t get_size() { return commands.size(); }
 
-	///
+	///	Retrieve an Event by its position in the queue
 	/**
-		
+		\param	i	Integer representing the position in the queue	
+		\return	Reference to the ith Event
 	*/
     Event& get_command(int i)
 	{
@@ -73,29 +74,55 @@ public:
 		std::advance(ii,i);
 		return *ii;
 	}
-	///
+
+	///	Load queue of Events from a file
 	/**
+
+		Reads new Events from *.command files in the incoming directory,
+		adds them to the queue of Events, and deletes the *.command files.
+		Events in the queue are then sorted by their execution time.
+
+		\param	incoming_dir	Directory where the .queue file will be read from
+		\param	agent	Pointer to Agent object (needed to parse JSON input)
 		
 	*/
 	void load_commands(string incoming_dir, Agent *agent);
-	///
+
+	///	Save the queue of Events to a file
 	/**
-		
+		Save the queue of Events to the file temp_dir/.queue
+
+		\param	temp_dir	Directory where the .queue file will be written
 	*/
 	void save_commands(string temp_dir);
-	///
+
+	/// Run the given Event
 	/**
-		
+		Execute an event using ford().  For each event run, the time of 
+		execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
+		and this updated command information is logged to the OUTPUT directory.
+
+		\param	cmd	Reference to event to run
+		\param	nodename	Name of node
+		\param	logdate_exec	Time of execution (for logging purposes)
 	*/
     void run_command(Event &cmd, string nodename, double logdate_exec);
-	///
+
+	///	Traverse the entire queue of Events, and run those which qualify.
 	/**
-		
+
+		An %Event only qualifies to run if the current time is greater than or equal to
+		the execution time of the %Event.  Further, if the %Event is conditional, then the
+		%Event condition must be true.
+
+		\param	agent	Pointer to Agent object (for call to condition_true(..))
+		\param	nodename	Name of the node
+		\param	logdate_exec	Time of execution (for logging purposes)
 	*/
 	void run_commands(Agent *agent, string nodename, double logdate_exec);
 
-	///
-	/**	Add Event to the queue
+	///	Add Event to the queue
+	/**
 		\param	c	 Event to add
 
 		JIMNOTE:	this only adds given Event to the queue if the Event has flag for EVENT_TYPE_COMMAND set to true
@@ -111,7 +138,7 @@ public:
 	*/
     int del_command(Event& c);
 
-	///	Sort the events in the queue by Event exectution time
+	///	Sort the Events in the queue by Event exectution time
 	/**
 		This function is called after new Events are loaded.
 	*/

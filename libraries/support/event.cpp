@@ -167,8 +167,12 @@ bool Event::condition_true(cosmosstruc *cinfo)
 
 		// JIMNOTE:  this can't be right...  because uninitialized (non-static) local variables have no default value and lead to undefined behavior...
 		// and why is a double even being used? it just gets cast to bool (which I get, will rarely be zero, i.e. false, but seriously... make it explicit what is going on)
-        double d;
-        return d;
+        //double d;
+        //return d;
+
+		// JIMNOTE: just going to return true for now (until we can talk about what is correct behavior)
+		return true;
+
     } else {
         return false;
     }

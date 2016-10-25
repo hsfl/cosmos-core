@@ -62,7 +62,7 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 	si.cb = sizeof(si);
 	ZeroMemory( &pi, sizeof(pi) );
 
-		if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+	if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 	{
 		//		int32_t pid = pi.dwProcessId;
 		CloseHandle( pi.hProcess );
@@ -99,9 +99,6 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 	}
 #endif
 
-	// log to outfile
-	//	outfile << cmd <<std::endl;
-	//	outfile.close();
 	// log to event file
     log_write(nodename, "exec", logdate_exec, "event", cmd.getJson().c_str());
 }
@@ -203,9 +200,7 @@ void CommandQueue::load_commands(string incoming_dir, Agent *agent) // TODO: cha
 
 			while(getline(infile,line))
 			{
-
 				cmd.set_command(line, agent); // TODO: is it really necessary to pass *agent?
-
 				std::cout<<cmd;
 
 				if(cmd.is_command())

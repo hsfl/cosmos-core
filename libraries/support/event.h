@@ -178,7 +178,7 @@ public:
     string generator(longeventstruc event);
 
 	// JIMNOTE: this function (condition_true)  needs a look at....
-	//seems to return nan from json_equation...  how to use?
+	// OLDNOTE: seems to return nan from json_equation...  how to use?
     bool condition_true(cosmosstruc *cinfo);
 
 	///	Extraction operator
