@@ -1370,6 +1370,8 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
         cdata.node.battlev = cdata.node.battcap;
     }
 
+
+    cdata.timestamp = currentmjd();
 }
 
 //! Initialize IMU
@@ -1413,6 +1415,8 @@ void simulate_imu(int index, cosmosdatastruc &cdata, locstruc &loc)
 
     //! Set magnetic field in IMU frame
     cdata.devspec.imu[index]->mag = transform_q(q_conjugate(cdata.devspec.imu[index]->align),transform_q(loc.att.geoc.s,loc.bearth));
+
+    cdata.timestamp = currentmjd();
 }
 
 //! Attitude acceleration
@@ -1704,6 +1708,8 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosdatastruc &cdata)
         att_accel(cdata.physics, sloc[i]);
     }
     cdata.physics.mjdbase = loc.utc;
+
+    cdata.timestamp = currentmjd();
 }
 
 void orbit_init_eci(int32_t mode, double dt, double utc, cartpos ipos, cosmosdatastruc &cdata)
@@ -1802,6 +1808,8 @@ void orbit_init_eci(int32_t mode, double dt, double utc, cartpos ipos, cosmosdat
         att_accel(cdata.physics, sloc[i]);
     }
     cdata.physics.mjdbase = loc.utc;
+
+    cdata.timestamp = currentmjd();
 }
 
 void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double angle,double hour,cosmosdatastruc &cdata)
@@ -1947,6 +1955,8 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
     simulate_hardware(cdata, sloc[3]);
     att_accel(cdata.physics, sloc[3]);
     cdata.physics.mjdbase = loc.utc;
+
+    cdata.timestamp = currentmjd();
 }
 
 void propagate(cosmosdatastruc &cdata, double utc)
@@ -2111,6 +2121,8 @@ void propagate(cosmosdatastruc &cdata, double utc)
     }
 
     cdata.node.loc = sloc[0];
+
+    cdata.timestamp = currentmjd();
 }
 
 //! Prepare for Gauss-Jackson integration
@@ -2365,6 +2377,8 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
     gauss_jackson_converge_hardware(gjh, cdata.physics);
 
     cdata.physics.mjdbase = loc.utc;
+
+    cdata.timestamp = currentmjd();
 }
 
 //! Initialize Gauss-Jackson orbit using ECI state vector
@@ -3147,6 +3161,8 @@ int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosdat
     //	groundstations(cdata,&cdata.node.loc);
 
     cdata.physics.mjdbase = cdata.node.loc.utc;
+
+    cdata.timestamp = currentmjd();
     return 0;
 }
 
@@ -3183,6 +3199,8 @@ int orbit_propagate(cosmosdatastruc &cdata, double utc)
 
     }
 
+
+    cdata.timestamp = currentmjd();
     return 0;
 }
 
@@ -3377,5 +3395,7 @@ int update_eci(cosmosdatastruc &cdata, double utc, cartpos pos)
 
     // Simulate at new position
     //	groundstations(cdata,&cdata.node.loc);
+
+    cdata.timestamp = currentmjd();
     return 0;
 }
