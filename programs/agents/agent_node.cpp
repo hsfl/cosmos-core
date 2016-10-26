@@ -48,7 +48,7 @@
 
 char ibuf[AGENTMAXBUFFER];
 
-int myagent();
+//int agent_node();
 
 NetworkType ntype = NetworkType::UDP;
 int waitsec = 5;

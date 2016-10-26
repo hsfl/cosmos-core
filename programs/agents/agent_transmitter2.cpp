@@ -54,7 +54,7 @@
 #define SERIAL_USB0 16
 #define SERIAL_USB1 17
 
-int myagent();
+int agent_transmitter2();
 
 char agentname[COSMOS_MAX_NAME+1] = "gs_tx2";
 char node[50] = "otb";
@@ -103,10 +103,10 @@ int main(int argc, char *argv[])
 		exit (iretn);
 
 	// Start our own thread
-	iretn = myagent();
+    iretn = agent_transmitter2();
 }
 
-int myagent()
+int agent_transmitter2()
 {
 	//FILE *fp;
 

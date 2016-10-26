@@ -216,8 +216,6 @@ void PrintUtils::scalar(
         }
     }
 
-
-
     if (use_brackets)
     {
         out << "[";
@@ -236,6 +234,18 @@ void PrintUtils::scalar(
     }
 
     out << s*scale;
+
+    if (suffix == "")
+    {
+        // don't print delimiter
+    }
+    else
+    {
+        if (delimiter_flag)
+        {
+            out << delimiter;
+        }
+    }
 
     out << suffix;
 

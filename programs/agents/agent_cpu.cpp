@@ -44,7 +44,7 @@ using std::endl;
 // flag to turn on/off print
 bool printStatus;
 
-int myagent(), create_node();
+int agent_cpu(), create_node();
 
 int32_t request_soh(char *request, char* response, Agent *);
 int32_t request_bootCount(char *request, char* response, Agent *);
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
     agent->set_sohstring(sohstring);
 
     // Start our own thread
-    myagent();
+    agent_cpu();
 
     return 0;
 
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 
 
 
-int myagent()
+int agent_cpu()
 {
 
     ElapsedTime et;

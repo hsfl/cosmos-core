@@ -46,7 +46,33 @@ double DeviceCpu::getLoad(){
     return load;
 }
 
+// in bytes
+double DeviceCpu::getMemoryTotal(){
 
+#if defined(COSMOS_LINUX_OS)
+    memoryTotal = cpuLinux.getMemoryTotal();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    memoryTotal = cpuWin.getMemoryTotal();
+#endif
+    return memoryTotal;
+}
+
+// in bytes
+double DeviceCpu::getMemoryUsed(){
+
+#if defined(COSMOS_LINUX_OS)
+    memoryUsed = cpuLinux.getMemoryUsed();
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    memoryUsed = cpuWin.getMemoryUsed();
+#endif
+    return memoryUsed;
+}
+
+// in bytes
 double DeviceCpu::getVirtualMemoryUsed(){
 
 #if defined(COSMOS_LINUX_OS)
@@ -60,6 +86,50 @@ double DeviceCpu::getVirtualMemoryUsed(){
 
 }
 
+double DeviceCpu::getMemoryUsedKiB()
+{
+    return BytesToKiB(getMemoryUsed());
+}
+
+double DeviceCpu::getMemoryUsedMiB()
+{
+    return BytesToMiB(getMemoryUsed());
+}
+
+double DeviceCpu::getMemoryUsedMB()
+{
+    return BytesToMB(getMemoryUsed());
+}
+
+double DeviceCpu::getMemoryTotalKiB()
+{
+    return BytesToKiB(getMemoryTotal());
+}
+
+double DeviceCpu::getMemoryTotalMiB()
+{
+    return BytesToMiB(getMemoryTotal());
+}
+
+double DeviceCpu::getMemoryTotalMB()
+{
+    return BytesToMB(getMemoryTotal());
+}
+
+double DeviceCpu::getVirtualMemoryUsedKiB()
+{
+    return BytesToKiB(getVirtualMemoryUsed());
+}
+
+double DeviceCpu::getVirtualMemoryUsedMiB()
+{
+    return BytesToMiB(getVirtualMemoryUsed());
+}
+
+double DeviceCpu::getVirtualMemoryUsedMB()
+{
+    return BytesToMB(getVirtualMemoryUsed());
+}
 
 double DeviceCpu::getVirtualMemoryTotal(){
 
@@ -98,7 +168,7 @@ double DeviceCpu::getPercentUseForCurrentProcess(){
 
 }
 
-std::string DeviceCpu::getHostName()
+string DeviceCpu::getHostName()
 {
 #if defined(COSMOS_LINUX_OS)
     hostName = cpuLinux.getHostName();
@@ -109,6 +179,68 @@ std::string DeviceCpu::getHostName()
 #endif
 
     return hostName;
+}
+
+pid_t DeviceCpu::getPidOf(string processName)
+{
+#if defined(COSMOS_LINUX_OS)
+    return cpuLinux.getPidOf(processName);
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    //    return cpuWin.getPidOf(processName);
+#endif
+
+}
+
+pid_t DeviceCpu::getMemoryUsedOf(string processName)
+{
+#if defined(COSMOS_LINUX_OS)
+    return cpuLinux.getMemoryUsedOf(processName);
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    //    return cpuWin.getMemoryUsedOf(processName);
+#endif
+
+}
+
+float DeviceCpu::getPercentCpuOf(string processName)
+{
+#if defined(COSMOS_LINUX_OS)
+    return cpuLinux.getPercentCpuOf(processName);
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    //    return cpuWin.getPercentCpuOf(processName);
+#endif
+}
+
+float DeviceCpu::getPercentMemoryOf(string processName)
+{
+#if defined(COSMOS_LINUX_OS)
+    return cpuLinux.getPercentMemoryOf(processName);
+#endif
+
+#if defined(COSMOS_WIN_OS)
+    //    return cpuWin.getPercentMemoryOf(processName);
+#endif
+
+}
+
+double DeviceCpu::BytesToKiB(double bytes)
+{
+    return bytes/1024.;
+}
+
+double DeviceCpu::BytesToMiB(double bytes)
+{
+    return bytes/1024./1024.;
+}
+
+double DeviceCpu::BytesToMB(double bytes)
+{
+    return bytes/1000./1000.;
 }
 
 
@@ -135,14 +267,14 @@ double getTimeInSec() {
 
 
 // simple function to collect the results from an exectuted command
-// used to get the information from 'ps'
-std::string exec(std::string command) {
+// used to get the information from 'ps' or other commands
+string exec(string command) {
 
     const char* cmd = command.c_str();
     std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
     if (!pipe) return "ERROR";
     char buffer[128];
-    std::string result = "";
+    string result = "";
     while (!feof(pipe.get())) {
         if (fgets(buffer, 128, pipe.get()) != NULL)
             result += buffer;
@@ -224,24 +356,20 @@ void DeviceCpuLinux::initCpuUtilization(){
 }
 
 
-std::string DeviceCpuLinux::getCurrentProcessName(){
+string DeviceCpuLinux::getCurrentProcessName(){
 
     std::ifstream ifs ("/proc/self/status");
-    std::string line;
+    string line;
 
     if (ifs.is_open()) {
         while ( std::getline(ifs,line) )
         {
-            //            std::cout << line << '\n';
-
             std::size_t pos = line.find("Name");
-            if (pos!=std::string::npos) {
-                //std::cout << "-------------------" << std::endl;
+            if (pos!=string::npos) {
                 StringParser sp(line,'\t');
                 processName = sp.getFieldNumber(2);
                 break;
             }
-
         }
         ifs.close();
     }
@@ -319,7 +447,7 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
 
     //    // ------------------------------------------
     //    // using top or ps
-    //    using std::string;
+    //    using string;
 
     //    processName = getCurrentProcessName();
 
@@ -331,7 +459,7 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
     //    // $ 30501 root      20   0 24416 4000 2068 S  6.8  0.8   0:41.99 agent_imu
 
 
-    //    std::string::iterator new_end = std::unique(procInfo.begin(), procInfo.end(),
+    //    string::iterator new_end = std::unique(procInfo.begin(), procInfo.end(),
     //                                                [](char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); } // lambda function
     //    );
     //    procInfo.erase(new_end, procInfo.end());
@@ -355,10 +483,12 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
 
 
 
-float DeviceCpuLinux::getPercentUseForCurrentProcessOverLifetime(){
+float DeviceCpuLinux::getPercentUseForCurrentProcessOverLifetime()
+{
+    // NOTE: this is not the same as %CPU reported by top
+    // see: http://unix.stackexchange.com/questions/58539/top-and-ps-not-showing-the-same-cpu-result
     // ps -C agent_cpu -o %cpu gives the cpu percentage over the lifetime of the process
     // can be usefull as a metric but for now let's just use the current process cpu
-    using std::string;
     float percent;
 
     string procInfo = exec("ps -C "+ processName +" -o %cpu,%mem");
@@ -385,6 +515,34 @@ float DeviceCpuLinux::getPercentUseForCurrentProcessOverLifetime(){
     return percent;
 }
 
+
+// memory used in Bytes
+double DeviceCpuLinux::getMemoryTotal()
+{
+    struct sysinfo memInfo;
+    sysinfo (&memInfo);
+
+    long long memTotal = memInfo.totalram;
+    memTotal *= memInfo.mem_unit;
+
+    return (memTotal) ;
+}
+
+// memory used in Bytes
+double DeviceCpuLinux::getMemoryUsed()
+{
+    struct sysinfo memInfo;
+    sysinfo (&memInfo);
+
+    long long memUsed = memInfo.totalram - memInfo.freeram;
+    memUsed *= memInfo.mem_unit;
+
+    return (memUsed) ;
+}
+
+
+
+
 // virtual memory used in Bytes
 double DeviceCpuLinux::getVirtualMemoryUsed()
 {
@@ -398,6 +556,7 @@ double DeviceCpuLinux::getVirtualMemoryUsed()
 
     return (virtualMemUsed) ;
 }
+
 
 // total virtual memory in Bytes
 double DeviceCpuLinux::getVirtualMemoryTotal()
@@ -413,6 +572,7 @@ double DeviceCpuLinux::getVirtualMemoryTotal()
     return (totalVirtualMem);
 }
 
+// free virtual memory in Bytes
 double DeviceCpuLinux::getVirtualMemoryFree()
 {
     struct sysinfo memInfo;
@@ -427,12 +587,115 @@ double DeviceCpuLinux::getVirtualMemoryFree()
 
 }
 
-std::string DeviceCpuLinux::getHostName() // NOT TESTED
+string DeviceCpuLinux::getHostName() // NOT TESTED
 {
     char hostname[128];
     gethostname(hostname, sizeof hostname);
-    return (std::string)hostname;
+    return (string)hostname;
 }
+
+pid_t DeviceCpuLinux::getPidOf(string processName)
+{
+    char buf[512] = {'\0'};
+    string tmp = "pidof " + processName;
+    FILE *cmd_pipe = popen(tmp.c_str(), "r");
+
+    fgets(buf, 512, cmd_pipe);
+    pid_t pid = strtoul(buf, NULL, 10);
+
+    pclose( cmd_pipe );
+
+    return pid;
+}
+
+// in bytes
+double DeviceCpuLinux::getMemoryUsedOf(string processName)
+{
+    //    char buf[512];
+    //    string tmp = "pmap -x " + std::to_string(getPidOf(processName)) + " | grep total";
+    //    FILE *cmd_pipe = popen(tmp.c_str(), "r");
+
+    //    fgets(buf, 512, cmd_pipe);
+    //    pclose( cmd_pipe );
+
+    //    tmp = string(buf);
+    //    StringParser sp(tmp);
+
+    //    return sp.getFieldNumberAsInteger(3);;
+
+    //    ifstream stat_stream("/proc/" + std::to_string(getPidOf(processName)) + "/stat",ios_base::in);
+    //    string pid, comm, state, ppid, pgrp, session, tty_nr;
+    if (processName.empty()) {
+        return 0;
+    }
+
+    string pid = std::to_string(getPidOf(processName));
+
+    if (pid.empty() || pid == "0") {
+        return 0;
+    }
+
+    string status_child = "/proc/" + pid + "/status" ;
+
+    int fd, data, stack;
+    char buf[4096]; //, status_child[50];
+    char *vm;
+
+    //sprintf(status_child, tmp.c_str(), pid);
+    if ((fd = open(status_child.c_str(), O_RDONLY)) < 0)
+        return -1;
+
+    read(fd, buf, 4095);
+    buf[4095] = '\0';
+    close(fd);
+
+    data = stack = 0;
+
+    vm = strstr(buf, "VmData:");
+    if (vm) {
+        sscanf(vm, "%*s %d", &data);
+    }
+    vm = strstr(buf, "VmStk:");
+    if (vm) {
+        sscanf(vm, "%*s %d", &stack);
+    }
+
+    // convert kB to bytes
+    return (data + stack)*1024;
+
+}
+
+
+
+float DeviceCpuLinux::getPercentCpuOf(string processName)
+{
+    procStat pStat1;
+    procPidStat p1(processName);
+
+    if (!p1.fileExists) {
+        return 0;
+    }
+
+    COSMOS_SLEEP(1.0);
+
+    procStat pStat2;
+    procPidStat p2(processName);
+
+    float user_util = 100 * (p2.utime - p1.utime) / (pStat2.time_total - pStat1.time_total);
+    float sys_util = 100 * (p2.stime - p1.stime) / (pStat2.time_total - pStat1.time_total);
+
+    float percent = user_util + sys_util;
+
+    return percent;
+}
+
+
+float DeviceCpuLinux::getPercentMemoryOf(string processName)
+{
+    return 100*getMemoryUsedOf(processName)/getMemoryTotal();
+}
+
+
 #endif // defined(COSMOS_LINUX_OS)
 
 
@@ -514,7 +777,7 @@ double DeviceCpuWindows::getVirtualMemoryUsed()
     return (virtualMemUsed) * 0.001; // convert byte to kilobyte
 }
 
-std::string DeviceCpuWindows::getHostName()
+string DeviceCpuWindows::getHostName()
 {
     char nameBuf[MAX_COMPUTERNAME_LENGTH + 2];
     DWORD nameBufSize;
@@ -525,8 +788,8 @@ std::string DeviceCpuWindows::getHostName()
     }
 
     //TODO: fix this
-//    return  std::string(nameBuf);
-    std::string hostname = nameBuf;
+    //    return  string(nameBuf);
+    string hostname = nameBuf;
     return  hostname;
 }
 
@@ -536,3 +799,64 @@ unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)
 }
 
 #endif
+
+DeviceCpuLinux::procPidStat::procPidStat(string processName)
+{
+    DeviceCpu dev;
+    stat s;
+    // read /proc/<pid>/stat
+
+    //    cout << processName << endl;
+
+    fileExists = false;
+
+    if (processName.empty()) {
+        return;
+    }
+
+    string pid = std::to_string(dev.getPidOf(processName));
+
+//    cout << pid << endl;
+
+    if (pid.empty() || pid == "0") {
+        return;
+    }
+
+    // TODO: improve logic
+    fileExists = true;
+
+    string proc = "/proc/" + pid + "/stat";
+    ifstream stat_pid_stream(proc,std::ios_base::in);
+
+//    cout << stat_pid_stream.good() << endl;
+
+    if (!stat_pid_stream.good()) {
+        stat_pid_stream.close();
+        return;
+    }
+
+    stat_pid_stream >> s.pid >> s.comm >> s.state >> s.ppid >> s.pgrp >> s.session >> s.tty_nr
+            >> s.tpgid >> s.flags >> s.minflt >> s.cminflt >> s.majflt >> s.cmajflt
+            >> s.utime >> s.stime >> s.cutime >> s.cstime >> s.priority >> s.nice
+            >> s.O >> s.itrealvalue >> s.starttime >> s.vsize >> s.rss; // don't care about the rest
+
+
+    stat_pid_stream.close();
+
+    utime = stoi(s.utime);
+    stime = stoi(s.stime);
+
+}
+
+DeviceCpuLinux::procStat::procStat()
+{
+    // read /proc/stat
+    ifstream stat_stream("/proc/stat",std::ios_base::in);
+
+    stat_stream >> cpu >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal >> guest >> guest_nice;
+
+    stat_stream.close();
+
+    time_total = stoi(user) + stoi(nice) + stoi(system) + stoi(idle) + stoi(iowait) + stoi(irq) + stoi(softirq) + stoi(steal) + stoi(guest) + stoi(guest_nice);
+
+}
