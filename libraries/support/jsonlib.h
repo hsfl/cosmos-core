@@ -218,6 +218,8 @@ quaternion json_get_quaternion(jsonentry *entry, cosmosmetastruc &cmeta, cosmosd
 std::string json_get_string(std::string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 std::string json_get_string(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 
+posstruc json_get_posstruc(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
+
 int32_t json_set_number(double val, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 int32_t json_set_string(std::string val, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 

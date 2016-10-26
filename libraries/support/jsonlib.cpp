@@ -3433,6 +3433,107 @@ std::string json_get_string(jsonentry *ptr, cosmosmetastruc &cmeta, cosmosdatast
     return (tstring);
 }
 
+//! Return ::posstruc from entry.
+/*! If the named value can in any way be interepreted as a ::posstruc,
+ * return it as a posstruc.
+ \param entry Pointer to a valid ::jsonentry..
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
+ \return Value cast as a ::posstruc, or 0.
+*/
+posstruc json_get_posstruc(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
+{
+    uint8_t *dptr=nullptr;
+    locstruc value;
+
+    memset((void *) &value, 0, COSMOS_SIZEOF(locstruc));
+
+    dptr = json_ptr_of_offset(entry->offset,entry->group, cmeta, cdata);
+    if (dptr == nullptr)
+    {
+        return value.pos;
+    }
+    else
+    {
+        switch (entry->type)
+        {
+        case JSON_TYPE_POSSTRUC:
+            {
+            value.pos = (posstruc)(*(posstruc *)(dptr));
+            }
+            break;
+        case JSON_TYPE_RVECTOR:
+            {
+                value.pos.eci.s = (rvector)(*(rvector *)(dptr));
+                value.pos.eci.v = rv_zero();
+                value.pos.eci.a = rv_zero();
+                ++value.pos.eci.pass;
+                pos_eci(&value);
+            }
+            break;
+        case JSON_TYPE_CARTPOS:
+            {
+                value.pos.eci = (cartpos)(*(cartpos *)(dptr));
+                ++value.pos.eci.pass;
+                pos_eci(&value);
+            }
+            break;
+        case JSON_TYPE_POS_GEOC:
+            {
+                value.pos.geoc = (cartpos)(*(cartpos *)(dptr));
+                ++value.pos.geoc.pass;
+                pos_geoc(&value);
+            }
+            break;
+        case JSON_TYPE_POS_GEOD:
+            {
+                value.pos.geod = (geoidpos)(*(geoidpos *)(dptr));
+                ++value.pos.geod.pass;
+                pos_geod(&value);
+            }
+            break;
+        case JSON_TYPE_POS_SELC:
+            {
+                value.pos.selc = (cartpos)(*(cartpos *)(dptr));
+                ++value.pos.selc.pass;
+                pos_selc(&value);
+            }
+            break;
+        case JSON_TYPE_POS_SELG:
+            {
+                value.pos.selg = (geoidpos)(*(geoidpos *)(dptr));
+                ++value.pos.selg.pass;
+                pos_selg(&value);
+            }
+            break;
+        case JSON_TYPE_POS_ECI:
+            {
+                value.pos.eci = (cartpos)(*(cartpos *)(dptr));
+                ++value.pos.eci.pass;
+                pos_eci(&value);
+            }
+            break;
+        case JSON_TYPE_POS_SCI:
+            {
+                value.pos.sci = (cartpos)(*(cartpos *)(dptr));
+                ++value.pos.sci.pass;
+                pos_sci(&value);
+            }
+            break;
+        case JSON_TYPE_POS_BARYC:
+            {
+                value.pos.icrf = (cartpos)(*(cartpos *)(dptr));
+                ++value.pos.icrf.pass;
+                pos_icrf(&value);
+            }
+            break;
+        }
+
+        return value.pos;
+    }
+}
+
 //! Set name from double.
 /*! If the provided double can in any way be placed in the name it
  * will.

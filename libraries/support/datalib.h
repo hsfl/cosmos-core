@@ -139,6 +139,7 @@ bool data_exists(std::string& path);
 int32_t set_cosmosresources(std::string name);
 int32_t set_cosmosresources();
 int32_t get_cosmosresources(std::string &result);
+std::string get_cosmosresources();
 int32_t setEnvCosmosResources(std::string path);
 int32_t setEnvCosmosNodes(std::string path);
 int32_t setEnv(std::string var, std::string path);
