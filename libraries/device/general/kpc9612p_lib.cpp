@@ -186,7 +186,7 @@ int32_t kpc9612p_unloadframe(kpc9612p_handle *handle, uint8_t *data, uint16_t si
 	return (tsize);
 }
 
-int32_t kpc9612p_unloadframe(kpc9612p_handle *handle, std::vector<uint8_t>& data)
+int32_t kpc9612p_unloadframe(kpc9612p_handle *handle, std::vector<uint8_t> &data)
 {
 	uint16_t tsize;
 

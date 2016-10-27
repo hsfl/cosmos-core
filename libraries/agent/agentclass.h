@@ -207,7 +207,8 @@ public:
         AGENT_MESSAGE_IMU=8,
         //! Event Messsages
         AGENT_MESSAGE_EVENT=9,
-        AGENT_MESSAGE_BINARY=128
+        AGENT_MESSAGE_BINARY=128,
+        AGENT_MESSAGE_COMM=129
         };
 
     //! @}
