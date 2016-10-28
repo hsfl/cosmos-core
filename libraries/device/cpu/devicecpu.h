@@ -84,7 +84,7 @@ public:
 #endif
 
 
-#ifdef COSMOS_LINUX_OS
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
 class DeviceCpuLinux
 {
 
