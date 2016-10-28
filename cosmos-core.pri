@@ -38,6 +38,7 @@ unix:!macx {
 #--------------------------------------------------------------------
 #add COSMOS support to the path
 INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries # generic path to allow for math/types.h etc.
+INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/agent
 INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/math
 INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/support
 INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty
@@ -60,8 +61,8 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
 
     contains(MODULES, agentlib){
         message( "- support/agentlib" )
-        SOURCES += $$COSMOS_SOURCE_CORE/libraries/agent/agentlib.cpp
-        HEADERS += $$COSMOS_SOURCE_CORE/libraries/agent/agentlib.h
+        SOURCES += $$COSMOS_SOURCE_CORE/libraries/agent/agentclass.cpp
+        HEADERS += $$COSMOS_SOURCE_CORE/libraries/agent/agentclass.h
         MODULES += socketlib   # agentlib depends on socketlib
         MODULES += sliplib     # and sliplib
         MODULES += elapsedtime # and elapsedtime
