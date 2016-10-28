@@ -223,10 +223,10 @@ Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsi
 
 }
 
-Agent::Agent(NetworkType ntype, const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
-{
-    Agent(nname, aname, bprd, bsize, mflag, portnum, ntype);
-}
+//Agent::Agent(NetworkType ntype, const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum)
+//{
+//    Agent(nname, aname, bprd, bsize, mflag, portnum, ntype);
+//}
 
 Agent::~Agent()
 {
