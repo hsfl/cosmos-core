@@ -2464,8 +2464,10 @@ void kep2eci(kepstruc &kep, cartpos &eci)
 	qpos.col[1] = kep.a * sqe * sea;
 	qpos.col[2] = 0.;
 
-	kep.mm = sqrt(GM/pow(kep.a,3.));
-	qvel.col[0] = -kep.mm * kep.a * sea / (1. - kep.e*cea);
+    // find mean motion and period
+    kep.mm = sqrt(GM/pow(kep.a,3.));
+    kep.period = 2. * DPI / kep.mm;
+    qvel.col[0] = -kep.mm * kep.a * sea / (1. - kep.e*cea);
 	qvel.col[1] = kep.mm * kep.a * sqe * cea / (1. - kep.e*cea);
 	qvel.col[2] = 0.;
 

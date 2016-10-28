@@ -1037,6 +1037,19 @@ int32_t set_cosmosresources()
  * \param result Full path to Resources directory.
  * \return Length of string, otherwise negative error.
 */
+std::string get_cosmosresources()
+{
+    std::string result;
+    get_cosmosresources(result);
+    return result;
+}
+
+//! Return COSMOS Resources Directory
+/*! Get the internal variable that points to where all COSMOS Resource files are
+ * stored. Initialize variable if this is the first call to the function.
+ * \param result Full path to Resources directory.
+ * \return Length of string, otherwise negative error.
+*/
 int32_t get_cosmosresources(std::string &result)
 {
     int32_t iretn;

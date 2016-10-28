@@ -68,17 +68,30 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
-#include <string>
-#include <condition_variable>
-#include <mutex>
 #include <cmath>
 #include <iostream>
+using std::cout;
+using std::endl;
 #ifdef COSMOS_WIN_BUILD_MSVC
 #include <io.h> // replaces in someways unistd for windows
 #else
 #include <unistd.h>
 #endif
 #include <fcntl.h>
+
+#include <string>
+using std::string;
+#include <vector>
+using std::vector;
+#include <mutex>
+using std::mutex;
+using std::unique_lock;
+#include <thread>
+using std::thread;
+#include <condition_variable>
+using std::condition_variable;
+#include <queue>
+using std::queue;
 
 #include "support/cosmos-errno.h"
 #include "support/cosmos-defs.h"

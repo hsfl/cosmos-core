@@ -54,7 +54,7 @@ double DeviceCpu::getMemoryTotal(){
 #endif
 
 #if defined(COSMOS_WIN_OS)
-//    memoryTotal = cpuWin.getMemoryTotal(); // TODO: implement
+    memoryTotal = cpuWin.getVirtualMemoryTotal();
 #endif
     return memoryTotal;
 }
@@ -67,7 +67,7 @@ double DeviceCpu::getMemoryUsed(){
 #endif
 
 #if defined(COSMOS_WIN_OS)
-//    memoryUsed = cpuWin.getMemoryUsed(); // TODO: implement
+    memoryUsed = cpuWin.getVirtualMemoryUsed();
 #endif
     return memoryUsed;
 }
@@ -798,9 +798,7 @@ unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)
     return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);
 }
 
-#endif
-
-#if defined(COSMOS_LINUX_OS)
+#else
 DeviceCpuLinux::procPidStat::procPidStat(string processName)
 {
     DeviceCpu dev;
@@ -861,5 +859,4 @@ DeviceCpuLinux::procStat::procStat()
     time_total = stoi(user) + stoi(nice) + stoi(system) + stoi(idle) + stoi(iowait) + stoi(irq) + stoi(softirq) + stoi(steal) + stoi(guest) + stoi(guest_nice);
 
 }
-
 #endif
