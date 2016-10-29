@@ -1317,7 +1317,10 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
             {
                 cdata.piece[cdata.device[i].all.gen.pidx].heat += .8 * watts * cdata.physics.dt;
             }
-            cdata.node.powuse += watts;
+            if (cdata.device[i].all.gen.type != DEVICE_TYPE_BUS)
+            {
+                cdata.node.powuse += watts;
+            }
         }
     }
 

@@ -42,38 +42,39 @@
 #include <limits>
 #include <fstream>
 
-std::vector <std::string> device_type_string
-{
-    "pload",
-    "ssen",
-    "imu",
-    "rw",
-    "mtr",
-    "cpu",
-    "gps",
-    "ant",
-    "rxr",
-    "txr",
-    "tcv",
-    "strg",
-    "batt",
-    "htr",
-    "motr",
-    "tsen",
-    "thst",
-    "prop",
-    "swch",
-    "rot",
-    "stt",
-    "mcc",
-    "tcu",
-    "bus",
-    "psen",
-    "suchi",
-    "cam",
-    "telem",
-    "disk"
-};
+std::vector <std::string> device_type_string;
+//{
+//    "pload",
+//    "ssen",
+//    "imu",
+//    "rw",
+//    "mtr",
+//    "cpu",
+//    "gps",
+//    "ant",
+//    "rxr",
+//    "txr",
+//    "tcv",
+//    "strg",
+//    "batt",
+//    "htr",
+//    "motr",
+//    "tsen",
+//    "thst",
+//    "prop",
+//    "swch",
+//    "rot",
+//    "stt",
+//    "mcc",
+//    "tcu",
+//    "bus",
+//    "psen",
+//    "suchi",
+//    "cam",
+//    "telem",
+//    "disk",
+//    "tnc"
+//};
 
 std::vector <std::string> port_type_string
 {
@@ -386,6 +387,39 @@ cosmosstruc *json_create()
             break;
         }
     }
+
+    // Create component names
+    device_type_string.clear();
+    device_type_string.push_back("pload");
+    device_type_string.push_back("ssen");
+    device_type_string.push_back("imu");
+    device_type_string.push_back("rw");
+    device_type_string.push_back("mtr");
+    device_type_string.push_back("cpu");
+    device_type_string.push_back("gps");
+    device_type_string.push_back("ant");
+    device_type_string.push_back("rxr");
+    device_type_string.push_back("txr");
+    device_type_string.push_back("tcv");
+    device_type_string.push_back("strg");
+    device_type_string.push_back("batt");
+    device_type_string.push_back("htr");
+    device_type_string.push_back("motr");
+    device_type_string.push_back("tsen");
+    device_type_string.push_back("thst");
+    device_type_string.push_back("prop");
+    device_type_string.push_back("swch");
+    device_type_string.push_back("rot");
+    device_type_string.push_back("stt");
+    device_type_string.push_back("mcc");
+    device_type_string.push_back("tcu");
+    device_type_string.push_back("bus");
+    device_type_string.push_back("psen");
+    device_type_string.push_back("suchi");
+    device_type_string.push_back("cam");
+    device_type_string.push_back("telem");
+    device_type_string.push_back("disk");
+    device_type_string.push_back("tnc");
 
     // Here is where we add entries for all the single element names.
     json_addbaseentry(cinfo->meta);
@@ -5806,10 +5840,12 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             }
         }
 
-        // Clean up any errors
+        // Clean up any errors and perform some initializations
         for (uint16_t i=0; i< cinfo->pdata.node.device_cnt; i++)
         {
             cinfo->pdata.device[i].all.gen.cidx = i;
+            cinfo->pdata.device[i].all.gen.amp = cinfo->pdata.device[i].all.gen.namp;
+            cinfo->pdata.device[i].all.gen.volt = cinfo->pdata.device[i].all.gen.nvolt;
         }
 
         // Fifth: enter information for ports
@@ -6255,7 +6291,7 @@ uint16_t json_addcompentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc &
     json_addentry("comp_bidx",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,bidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
     json_addentry("comp_portidx",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,portidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
     json_addentry("comp_namp",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,namp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_nvolt",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,volt)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_nvolt",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,nvolt)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
     json_addentry("comp_amp",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,amp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
     json_addentry("comp_volt",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,volt)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
     json_addentry("comp_temp",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7710,6 +7746,8 @@ const char *json_devices_general(std::string &jstring, cosmosmetastruc &cmeta, c
             json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"comp_namp",i, cmeta, cdata);
             json_out_character(jstring, '\n');
+            json_out_1d(jstring,(char *)"comp_flag",i, cmeta, cdata);
+            json_out_character(jstring, '\n');
         }
     }
 
@@ -8557,9 +8595,9 @@ int32_t node_calc(cosmosdatastruc &cdata)
     cdata.node.mass += cdata.device[n].all.gen.mass;
     */
         cdata.device[n].all.gen.temp = 300.;
-        cdata.device[n].all.gen.flag |= DEVICE_FLAG_ON;
-        cdata.device[n].all.gen.amp = cdata.device[n].all.gen.amp;
-        cdata.device[n].all.gen.volt = cdata.device[n].all.gen.volt;
+//        cdata.device[n].all.gen.flag |= DEVICE_FLAG_ON;
+        cdata.device[n].all.gen.amp = cdata.device[n].all.gen.namp;
+        cdata.device[n].all.gen.volt = cdata.device[n].all.gen.nvolt;
         if (cdata.device[n].all.gen.bidx < cdata.devspec.bus_cnt && cdata.devspec.bus[cdata.device[n].all.gen.bidx]->gen.volt < cdata.device[n].all.gen.volt)
             cdata.devspec.bus[cdata.device[n].all.gen.bidx]->gen.volt = cdata.device[n].all.gen.volt;
     }
@@ -9374,6 +9412,17 @@ size_t calc_events(std::vector<shorteventstruc> &dictionary, cosmosmetastruc &cm
 std::string device_type_name(uint32_t type)
 {
     std::string result;
+    if (device_type_string.size() < DEVICE_TYPE_COUNT)
+    {
+        device_type_string.resize(DEVICE_TYPE_COUNT);
+        for (size_t i=0; i<DEVICE_TYPE_COUNT; ++i)
+        {
+            if (device_type_string[i] == "")
+            {
+                device_type_string[i] = "unknown";
+            }
+        }
+    }
 
     if (type < DEVICE_TYPE_COUNT)
     {
