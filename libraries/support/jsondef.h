@@ -41,6 +41,9 @@
 #include "physics/physicsdef.h"
 #include "support/socketlib.h"
 
+using std::string;
+using std::vector;
+
 //! \ingroup jsonlib
 //! \defgroup jsonlib_type JSON Name Space variable type constants
 //! @{
@@ -568,7 +571,7 @@ enum PORT_TYPE
 struct unitstruc
 {
     //! JSON Unit Name
-    std::string name;
+    string name;
     //! JSON Unit conversion type
     uint16_t type;
     //! 0th derivative term
@@ -584,15 +587,15 @@ struct unitstruc
 //! can be loaded from disk, or transferred from another agent.
 struct jsonnode
 {
-    std::string node;
-    std::string state;
-    std::string utcstart;
-    std::string pieces;
-    std::string devgen;
-    std::string devspec;
-    std::string ports;
-    std::string targets;
-    std::string aliases;
+    string node;
+    string state;
+    string utcstart;
+    string pieces;
+    string devgen;
+    string devspec;
+    string ports;
+    string targets;
+    string aliases;
 };
 
 //! JSON map offset entry
@@ -608,13 +611,13 @@ struct jsonentry
     //! JSON Data Group
     uint16_t group;
     //! Name of entry
-    std::string name;
+    string name;
     //! offset to data storage
     ptrdiff_t offset;
     //! size of data storage
     size_t size;
     //! vector of actual data
-    std::vector <uint8_t> data;
+    vector <uint8_t> data;
     //! Index to JSON Unit Type
     uint16_t unit_index;
     //! Index to alert condition in Data Dictionary
@@ -648,7 +651,7 @@ struct jsonhandle
 struct jsontoken
 {
     jsonhandle handle;
-    std::string value;
+    string value;
     double utc;
 };
 
@@ -695,7 +698,7 @@ struct jsonequation
 struct jsonmap
 {
     //! Array of entries
-    std::vector<std::vector<jsonentry> > entry;
+    vector<vector<jsonentry> > entry;
 };
 
 //! Agent Request Function
@@ -707,11 +710,11 @@ typedef int32_t (*agent_request_function)(char* request_string, char* output_str
 struct agent_request_entry
 {
     //! Character token for request
-    std::string token;
+    string token;
     //! Pointer to function to call with request string as argument and returning any error
     agent_request_function function;
-    std::string synopsis;
-    std::string description;
+    string synopsis;
+    string description;
 };
 
 //! Channel structure
@@ -736,7 +739,7 @@ struct agent_channel
     uint16_t msgsize;
     // Channel's protocol address in string form
     char address[18];
-    // Channel's broadcast address in std::string form
+    // Channel's broadcast address in string form
     char baddress[18];
     // Channel's interface name
     char name[COSMOS_MAX_NAME+1];
@@ -798,11 +801,11 @@ struct agentstruc
     //! State of Health report string
     //	char sohstring[AGENTMAXBUFFER];
     //! Agent request list
-    std::vector <agent_request_entry> reqs;
+    vector <agent_request_entry> reqs;
     //! Heartbeat
     beatstruc beat;
     //! State of Health element vector
-    std::vector<jsonentry*> sohtable;
+    vector<jsonentry*> sohtable;
 };
 
 //! Long COSMOS Event structure.
@@ -925,9 +928,9 @@ and types.
 struct glossarystruc
 {
     // Glossary entry name.
-    std::string name;
+    string name;
     // Glossary entry description, to be interpreted based on its type.
-    std::string description;
+    string description;
     // Glossary entry ::jsonlib_namespace type.
     uint16_t type;
 };
@@ -939,7 +942,7 @@ struct glossarystruc
 struct aliasstruc
 {
     // Alias name
-    std::string name;
+    string name;
     // Namespace handle
     jsonhandle handle;
     //! JSON Data Type
@@ -952,9 +955,9 @@ struct aliasstruc
 struct equationstruc
 {
     // Equation name
-    std::string name;
+    string name;
     // Equation string
-    std::string value;
+    string value;
 };
 
 
@@ -1693,37 +1696,37 @@ struct devspecstruc
     uint16_t thst_cnt;
     uint16_t tsen_cnt;
     uint16_t tnc_cnt;
-    std::vector<allstruc *>all;
-    std::vector<antstruc *>ant;
-    std::vector<battstruc *>batt;
-    std::vector<busstruc *>bus;
-    std::vector<camstruc *>cam;
-    std::vector<cpustruc *>cpu;
-    std::vector<diskstruc *>disk;
-    std::vector<gpsstruc *>gps;
-    std::vector<htrstruc *>htr;
-    std::vector<imustruc *>imu;
-    std::vector<mccstruc *>mcc;
-    std::vector<motrstruc *>motr;
-    std::vector<mtrstruc *>mtr;
-    std::vector<tcustruc *>tcu;
-    std::vector<ploadstruc *>pload;
-    std::vector<propstruc *>prop;
-    std::vector<psenstruc *>psen;
-    std::vector<rotstruc *>rot;
-    std::vector<rwstruc *>rw;
-    std::vector<ssenstruc *>ssen;
-    std::vector<strgstruc *>strg;
-    std::vector<sttstruc *>stt;
-    std::vector<suchistruc *>suchi;
-    std::vector<swchstruc *>swch;
-    std::vector<telemstruc *>telem;
-    std::vector<tcvstruc *>tcv;
-    std::vector<txrstruc *>txr;
-    std::vector<rxrstruc *>rxr;
-    std::vector<thststruc *>thst;
-    std::vector<tsenstruc *>tsen;
-    std::vector<tncstruc *>tnc;
+    vector<allstruc *>all;
+    vector<antstruc *>ant;
+    vector<battstruc *>batt;
+    vector<busstruc *>bus;
+    vector<camstruc *>cam;
+    vector<cpustruc *>cpu;
+    vector<diskstruc *>disk;
+    vector<gpsstruc *>gps;
+    vector<htrstruc *>htr;
+    vector<imustruc *>imu;
+    vector<mccstruc *>mcc;
+    vector<motrstruc *>motr;
+    vector<mtrstruc *>mtr;
+    vector<tcustruc *>tcu;
+    vector<ploadstruc *>pload;
+    vector<propstruc *>prop;
+    vector<psenstruc *>psen;
+    vector<rotstruc *>rot;
+    vector<rwstruc *>rw;
+    vector<ssenstruc *>ssen;
+    vector<strgstruc *>strg;
+    vector<sttstruc *>stt;
+    vector<suchistruc *>suchi;
+    vector<swchstruc *>swch;
+    vector<telemstruc *>telem;
+    vector<tcvstruc *>tcv;
+    vector<txrstruc *>txr;
+    vector<rxrstruc *>rxr;
+    vector<thststruc *>thst;
+    vector<tsenstruc *>tsen;
+    vector<tncstruc *>tnc;
 };
 
 //! JSON Name Space data structure
@@ -1738,32 +1741,32 @@ struct cosmosdatastruc
     //! Structure for summary information in node
     nodestruc node;
     //! Vector of all pieces in node.
-    std::vector<piecestruc> piece;
+    vector<piecestruc> piece;
     //! Vector of all general (common) information for devices (components) in node.
-    std::vector<devicestruc> device;
+    vector<devicestruc> device;
     //! Structure for devices (components) special data in node, by type.
     devspecstruc devspec;
     //! Vector of all ports known to node.
-    std::vector<portstruc> port;
+    vector<portstruc> port;
     //! Structure for physics modelling.
     physicsstruc physics;
     //! Single entry vector for agent information.
-    std::vector<agentstruc> agent;
+    vector<agentstruc> agent;
     //! Single entry vector for event information.
-    std::vector<eventstruc> event;
+    vector<eventstruc> event;
     //! Vector of all targets known to node.
-    std::vector<targetstruc> target;
+    vector<targetstruc> target;
     //! Single entry vector for user information.
-    std::vector<userstruc> user;
+    vector<userstruc> user;
     //! Vector of glossary terms for node.
-    std::vector<glossarystruc> glossary;
+    vector<glossarystruc> glossary;
     //! Array of Two Line Elements
-    std::vector<tlestruc> tle;
+    vector<tlestruc> tle;
 };
 
 //! JSON Name Space Meta structure
 /*! A structure containing the meta information that allows items in the ::cosmosdatastruc to
- * be mapped to name sin the Namespace.
+ * be mapped to names in the Namespace.
 */
 struct cosmosmetastruc
 {
@@ -1772,15 +1775,15 @@ struct cosmosmetastruc
     //! Whether JSON map has been created.
     uint16_t jmapped;
     //! JSON Namespace Map matrix.
-    std::vector<std::vector<jsonentry> > jmap;
+    vector<vector<jsonentry> > jmap;
     //! JSON Equation Map matrix.
-    std::vector<std::vector<jsonequation> > emap;
+    vector<vector<jsonequation> > emap;
     //! JSON Unit Map matrix: first level is for type, second level is for variant.
-    std::vector<std::vector<unitstruc> > unit;
+    vector<vector<unitstruc> > unit;
     //! Vector of Equations
-    std::vector<equationstruc> equation;
+    vector<equationstruc> equation;
     //! Array of Aliases
-    std::vector<aliasstruc> alias;
+    vector<aliasstruc> alias;
 };
 
 //! JSON Name Space structure
