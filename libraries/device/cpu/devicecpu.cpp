@@ -798,7 +798,9 @@ unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)
     return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);
 }
 
-#else
+#endif
+
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
 DeviceCpuLinux::procPidStat::procPidStat(string processName)
 {
     DeviceCpu dev;
