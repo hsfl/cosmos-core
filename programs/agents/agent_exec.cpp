@@ -409,8 +409,6 @@ int32_t request_del_event_id(char *request, char* response, Agent *agent)
         int j;
         int32_t iretn = sscanf(request,"del_event_id %d",&j);
 
-// JIMNOTE: fix the logic here, it isn't right.  Also, ss never gets used
-
         // if valid index then return command
         if (iretn == 1) {
 			cout<<"j = "<<j<<endl;
