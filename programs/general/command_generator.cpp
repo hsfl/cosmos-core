@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     default:
     {
         cout << "The command generator produces the command string to be fed into the command\n"
-                "queue which is managed by the agent_exec_soh. Commands are a subset of events\n"
+                "queue which is managed by agent_exec. Commands are a subset of events\n"
                 "in COSMOS." << endl << endl;
 
         cout << "Usage" << endl << endl;
@@ -130,6 +130,7 @@ int main(int argc, char *argv[])
 
     Event event;
     cout << "Command string:" << endl;
+	// JIMNOTE: this could be done in the constructor
     cout << event.generator(ev) << endl << endl;
 
     if (!node.empty()) {
@@ -143,8 +144,8 @@ int main(int argc, char *argv[])
         //        DateTime time( 2016, 10, 12, 14, 50, 1 );
         //        event.mjd = time.mjd;
 
-        //        cout << event.getName() << endl;
-        //        cout << event.getData() << endl;
+        //        cout << event.get_name() << endl;
+        //        cout << event.get_data() << endl;
         //        cout << event.getTime() << endl;
 
         scheduler.addEvent(event);

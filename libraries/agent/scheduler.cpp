@@ -33,12 +33,9 @@
 
 #include "agent/scheduler.h"
 
-using std::cout;
-using std::endl;
-
 namespace Cosmos {
 
-Scheduler::Scheduler(std::string node_name) {
+Scheduler::Scheduler(string node_name) {
 
     agent = new Agent(node_name, "test");
     agent_exec_soh = agent->find_agent("exec", node_name);
@@ -49,10 +46,10 @@ Scheduler::~Scheduler() {
 
 }
 
-void Scheduler::addEvent(std::string name,
-                           std::string data,
+void Scheduler::addEvent(string name,
+                           string data,
                            double mjd,
-                           std::string condition,
+                           string condition,
                            uint32_t flag) {
 
     Event event;
@@ -65,8 +62,8 @@ void Scheduler::addEvent(std::string name,
         return;
     }
 
-    std::string out;
-    agent->send_request(agent_exec_soh, "add_queue_entry "+ event.event_string, out, 0);
+    string out;
+    agent->send_request(agent_exec_soh, "add_event "+ event.event_string, out, 0);
 
     cout << "event set: " << endl;
     cout << out << endl;
@@ -77,13 +74,16 @@ void Scheduler::addEvent(Event event) {
     addEvent(event.name, event.data, event.mjd, event.condition, event.flag);
 }
 
-void Scheduler::deleteEvent(std::string name,
-                              std::string data,
+void Scheduler::deleteEvent(string name,
+                              string data,
                               double mjd,
-                              std::string condition,
+                              string condition,
                               uint32_t flag) {
 
     Event event;
+
+	// set the event_string
+	// JIMNOTE: this could be done in a constructor
     event.generator(name, data, mjd, condition, flag);
 
     if (!agent_exec_soh.exists) {
@@ -92,7 +92,7 @@ void Scheduler::deleteEvent(std::string name,
     }
 
     string out;
-    agent->send_request(agent_exec_soh, "del_queue_entry "+ event.event_string, out, 0);
+    agent->send_request(agent_exec_soh, "del_event "+ event.event_string, out, 0);
 
     cout << "event deleted: " << out << endl;
 
@@ -125,7 +125,7 @@ void Scheduler::getEventQueue() {
     }
 
     string out;
-    agent->send_request(agent_exec_soh, "get_queue_entry", out, 0);
+    agent->send_request(agent_exec_soh, "get_event", out, 0);
 
     //StringParser str(out,'[');
     //int queue_size = str.getFieldNumberAsInteger(1);
@@ -133,8 +133,6 @@ void Scheduler::getEventQueue() {
 
 //    return queue_size;
 }
-
-
 
 } // end namespace Cosmos
 

@@ -40,7 +40,12 @@
 //!
 
 #include "support/configCosmos.h"
+#include "agent/agentclass.h"
 #include "support/event.h"
+
+using std::cout;
+using std::endl;
+using std::string;
 
 namespace Cosmos {
 
@@ -52,16 +57,16 @@ private:
     beatstruc agent_exec_soh;
 public:
 
-    Scheduler(std::string node_name);
+    Scheduler(string node_name);
     ~Scheduler();
 
-    void addEvent(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
+    void addEvent(string name, string data, double utc, string condition, uint32_t flag);
     void addEvent(Event event);
-    void deleteEvent(std::string name, std::string data, double utc, std::string condition, uint32_t flag);
+    void deleteEvent(string name, string data, double utc, string condition, uint32_t flag);
     void deleteEvent(Event event);
     int getEventQueueSize();
     void getEventQueue();
-}; // end of Command Queue Class
+}; // end of Scheduler Class
 
 } // end of namepsace Cosmos
 
