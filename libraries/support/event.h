@@ -42,7 +42,7 @@
 
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"
-#include "agent/agentclass.h" // TODO: remove dependency
+//#include "agent/agentclass.h" // TODO: remove dependency 
 
 using std::string;
 
@@ -52,7 +52,7 @@ namespace Cosmos {
 
 /// Class to manage %Event information
 /**
-	An %Event is...
+	An %Event is a collection of information related to a single occurance.
 */
 class Event {
 
@@ -73,9 +73,9 @@ public: // TODO: consider private?
 	/** %Event condition */
 	string		condition;
 	/**	%Event run indicator */
-	bool	already_ran;
+	bool		already_ran;
 	/** %Event information stored as a JSON string */
-    string event_string;
+    string		event_string;
 
 public:
 
@@ -92,7 +92,8 @@ public:
 
 		This function copies all Event information (from a JSON formatted string) into the current Event object
 	*/
-	void	set_command(string jstring, Agent *agent);
+	//void	set_command(string jstring, Agent *agent);
+	void	set_command(string jstring);
 
 	///	Sets Event::utcexec to current time
 	/**
@@ -110,13 +111,13 @@ public:
 	/**
 		\return string representing %Event name
 	*/
-    string  getName()		{	return name; }
+    string  get_name()		{	return name; }
 
 	/// Retrieves Event information
 	/**
 		\return	string representing Event information (as a JSON formatted string)
 	*/
-    string	getJson();
+    string	get_event_string();
 
 	///	Retrieves Event::mjd
 	/**
@@ -140,7 +141,7 @@ public:
 	/**
 		\return string representing %Event data
 	*/
-    string	getData()		{	return data; }
+    string	get_data()		{	return data; }
 
 	///	Determines if it is time for the %Event to execute
 	/**
@@ -153,7 +154,6 @@ public:
 		\return	True if %Event is repeatable, other false
 	*/
 	bool	is_repeat()		{	return (flag & EVENT_FLAG_REPEAT);	}
-
 
 	///	Determines if the %Event is a command
 	/**

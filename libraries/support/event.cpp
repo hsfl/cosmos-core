@@ -84,6 +84,7 @@ string Event::generator(
     event.utc  = mjd;
     event.flag = flag;
 
+	// set event_string
     json_out_commandevent(event_string, event);
 
     return event_string;
@@ -122,13 +123,35 @@ bool operator==(const Event& cmd1, const Event& cmd2)
 				cmd1.condition==cmd2.condition);
 }
 
-void Event::set_command(string jstring, Agent *agent)
+// JIMNOTE:  trying to take out the Agent dependency for the Event class
+//				(because an Event and a queue of command Events has nothing
+//				to do with the concept of Agents)
+//void Event::set_command(string jstring, Agent *agent)
+void Event::set_command(string jstring)
 {
 	// clear Event information in agent
-	json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
-	// load Event information (from jstring) into agent
-	json_parse(jstring, agent->cinfo->meta, agent->cinfo->sdata);
+	//json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
 
+	// this doesn't work
+	//cosmosmetastruc cosmos_meta = {};
+	//cosmosdatastruc cosmos_data = {};
+
+	// this doesn't work
+	//cosmosmetastruc* cosmos_meta = new cosmosmetastruc;
+	//cosmosdatastruc* cosmos_data = new cosmosdatastruc;
+
+	// this works!!!  JIMNOTE: it is possible to have constructors for structs, just sayin'
+	cosmosstruc * dummy = json_create();
+	cosmosmetastruc cosmos_meta = dummy->meta;
+	cosmosdatastruc cosmos_data = dummy->sdata;
+
+	json_clear_cosmosstruc(JSON_STRUCT_EVENT, cosmos_meta, cosmos_data);
+
+	// load Event information (from jstring) into agent
+	//json_parse(jstring, agent->cinfo->meta, agent->cinfo->sdata);
+	json_parse(jstring, cosmos_meta, cosmos_data);
+
+/*
 	// set Event data members from agent
     mjd = agent->cinfo->sdata.event[0].l.utc;
 	utcexec = agent->cinfo->sdata.event[0].l.utcexec;
@@ -137,9 +160,20 @@ void Event::set_command(string jstring, Agent *agent)
 	flag = agent->cinfo->sdata.event[0].l.flag;
 	data = agent->cinfo->sdata.event[0].l.data;
 	condition = agent->cinfo->sdata.event[0].l.condition;
+
+*/
+///*
+    mjd = cosmos_data.event[0].l.utc;
+	utcexec = cosmos_data.event[0].l.utcexec;
+	name = cosmos_data.event[0].l.name;
+	type = cosmos_data.event[0].l.type;
+	flag = cosmos_data.event[0].l.flag;
+	data = cosmos_data.event[0].l.data;
+	condition = cosmos_data.event[0].l.condition;
+//*/
 }
 
-string Event::getJson()
+string Event::get_event_string()
 {
 	longeventstruc event;
 
