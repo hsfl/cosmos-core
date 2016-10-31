@@ -37,6 +37,14 @@
 
 #include <iostream>
 #include <iomanip>
+#include <list>
+#include <fstream>
+#include <sstream>
+
+using std::string;
+using std::vector;
+using std::cout;
+using std::endl;
 
 /*! \file agent_exec.cpp
 * \brief Executive Agent source file
@@ -44,7 +52,7 @@
 
 //! \ingroup agents
 //! \defgroup agent_exec Executive Agent program
-//! This Agent manages commanding within the COSMOS system.
+//! This Agent manages the execution of commands within the COSMOS system.
 //! A single command queue is kept containing both time, and time and condition driven
 //! commands. Commands can be added or removed from this queue, either through direct requests
 //! or through command files.
@@ -62,48 +70,40 @@
 //!
 //! Usage: agent_exec node_name
 
-#include <list>
-#include <fstream>
-#include <sstream>
 
-//Agent *agent;
 Agent *agent;
 
-// Executive specfic declarations
-//#include "agent_exec.h"
+string incoming_dir;
+string outgoing_dir;
+string temp_dir;
 
-
-std::string incoming_dir;
-std::string outgoing_dir;
-std::string temp_dir;
-
-std::string nodename;
+string nodename;
 
 double logdate_exec=0.;
 double newlogstride_exec = 900. / 86400.;
 double logstride_exec = 0.;
 
-int32_t request_get_queue_size(char *request, char* response, Agent *);
-int32_t request_get_queue_entry(char *request, char* response, Agent *);
-int32_t request_del_queue_entry(char *request, char* response, Agent *);
-int32_t request_del_queue_entry_id(char *request, char* response, Agent *);
-int32_t request_add_queue_entry(char *request, char* response, Agent *);
-int32_t request_run(char *request, char* response, Agent *);
-int32_t request_soh(char *request, char* response, Agent *);
-int32_t request_reopen_exec(char* request, char* output, Agent *agent);
-int32_t request_set_logstride_exec(char* request, char* output, Agent *agent);
+int32_t request_get_queue_size(char* request, char* response, Agent* agent);
+int32_t request_get_event(char* request, char* response, Agent* agent);
+int32_t request_del_event(char* request, char* response, Agent* agent);
+int32_t request_del_event_id(char* request, char* response, Agent* agent);
+int32_t request_add_event(char* request, char* response, Agent* agent);
+int32_t request_run(char *request, char* response, Agent* agent);
+int32_t request_soh(char *request, char* response, Agent* agent);
+int32_t request_reopen_exec(char* request, char* response, Agent* agent);
+int32_t request_set_logstride_exec(char* request, char* response, Agent* agent);
 
 CommandQueue cmd_queue;
 
 // SOH specific declarations
-int32_t request_reopen_soh(char* request, char* output, Agent *agent);
-int32_t request_set_logperiod(char* request, char* output, Agent *agent);
-int32_t request_set_logstring(char* request, char* output, Agent *agent);
-int32_t request_get_logstring(char* request, char* output, Agent *agent);
-int32_t request_set_logstride_soh(char* request, char* output, Agent *agent);
+int32_t request_reopen_soh(char* request, char* response, Agent *agent);
+int32_t request_set_logperiod(char* request, char* response, Agent *agent);
+int32_t request_set_logstring(char* request, char* response, Agent *agent);
+int32_t request_get_logstring(char* request, char* response, Agent *agent);
+int32_t request_set_logstride_soh(char* request, char* response, Agent *agent);
 
-std::string jjstring;
-std::string myjstring;
+string jjstring;
+string myjstring;
 
 NetworkType ntype = NetworkType::UDP;
 int waitsec = 5;
@@ -111,22 +111,24 @@ int waitsec = 5;
 void collect_data_loop();
 std::thread cdthread;
 
-std::string logstring;
-std::vector<jsonentry*> logtable;
+string logstring;
+vector<jsonentry*> logtable;
 double logdate_soh=0.;
 int32_t newlogperiod = 10, logperiod = 0;
 double newlogstride_soh = 900. / 86400.;
 double logstride_soh = 0.;
 
-std::vector<shorteventstruc> eventdict;
-std::vector<shorteventstruc> events;
+vector<shorteventstruc> eventdict;
+vector<shorteventstruc> events;
 
 int pid;
 int state = 0;
 double cmjd;
 
 beatstruc iscbeat;
-std::string node = "hiakasat";
+
+// default node name
+string node = "hiakasat";
 char response[300];
 
 int main(int argc, char *argv[])
@@ -135,13 +137,13 @@ int main(int argc, char *argv[])
     double lmjd, dmjd;
     double nextmjd;
 
-    std::cout<<"Starting the executive/soh agent->..";
+    cout<<"Starting the executive/soh agent->..";
     int32_t iretn;
 
     // Set node name to first argument
     if (argc!=2)
     {
-        std::cout<<"Usage: agent_exec node"<<std::endl;
+        cout<<"Usage: agent_exec node"<<endl;
         exit(1);
     }
     nodename = argv[1];
@@ -150,13 +152,13 @@ int main(int argc, char *argv[])
     agent = new Agent(nodename, "exec");
     if (agent->cinfo == nullptr)
     {
-        std::cout<<"unable to start agent_exec: "<<std::endl;
+        cout<<"unable to start agent_exec: "<<endl;
         exit(1);
     }
     agent->cinfo->pdata.node.utc = 0.;
     agent->cinfo->pdata.agent[0].aprd = .5;
 
-    std::cout<<"  started."<<std::endl;
+    cout<<"  started."<<endl;
 
     // Establish Executive functions
 
@@ -164,38 +166,34 @@ int main(int argc, char *argv[])
     incoming_dir = data_base_path(nodename, "incoming", "exec") + "/";
     if (incoming_dir.empty())
     {
-        std::cout<<"unable to create directory: <"<<(nodename+"/incoming")+"/exec"<<"> ... exiting."<<std::endl;
+        cout<<"unable to create directory: <"<<(nodename+"/incoming")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
-    //	outgoing_dir = data_base_path(nodename, "outgoing", "exec") + "/";
-    //	if (outgoing_dir.empty())
-    //	{
-    //		std::cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<std::endl;
-    //		exit(1);
-    //	}
+
     outgoing_dir = data_base_path(nodename, "outgoing", "exec") + "/";
     if (outgoing_dir.empty())
     {
-        std::cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<std::endl;
+        cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
+
     temp_dir = data_base_path(nodename, "temp", "exec") + "/";
     if (temp_dir.empty())
     {
-        std::cout<<"unable to create directory: <"<<(nodename+"/temp")+"/exec"<<"> ... exiting."<<std::endl;
+        cout<<"unable to create directory: <"<<(nodename+"/temp")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
     // Add agent request functions
     if ((iretn=agent->add_request("get_queue_size", request_get_queue_size, "", "returns the current size of the command queue")))
         exit (iretn);
-    if ((iretn=agent->add_request("del_queue_entry", request_del_queue_entry, "entry string", "deletes the specified command queue entry string")))
+    if ((iretn=agent->add_request("del_event", request_del_event, "entry string", "deletes the specified command event from the queue according to its JSON string")))
         exit (iretn);
-    if ((iretn=agent->add_request("del_queue_entry_id", request_del_queue_entry_id, "entry #", "deletes the specified command queue entry")))
+    if ((iretn=agent->add_request("del_event_id", request_del_event_id, "entry #", "deletes the specified command event from the queue according to its position")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_queue_entry", request_get_queue_entry, "[ entry # ]", "returns the requested command queue entry (or all if none specified)")))
+    if ((iretn=agent->add_request("get_event", request_get_event, "[ entry # ]", "returns the requested command queue entry (or all if none specified)")))
         exit (iretn);
-    if ((iretn=agent->add_request("add_queue_entry", request_add_queue_entry, "{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", "adds the specified command queue entry")))
+    if ((iretn=agent->add_request("add_event", request_add_event, "{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", "adds the specified command event to the queue")))
         exit (iretn);
     if ((iretn=agent->add_request("run", request_run, "", "run the requested command")))
         exit (iretn);
@@ -205,24 +203,24 @@ int main(int argc, char *argv[])
         exit (iretn);
 
     // Reload existing queue
-    std::string infilepath = temp_dir + ".queue";
+    string infilepath = temp_dir + ".queue";
     std::ifstream infile(infilepath.c_str());
     if(!infile.is_open())
     {
-        std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
+        cout<<"unable to read file <"<<infilepath<<">"<<endl;
     }
     else
     {
-
         //file is open for reading commands
-        std::string line;
+        string line;
         Event cmd;
 
         while(std::getline(infile,line))
         {
-            cmd.set_command(line, agent);
+            //cmd.set_command(line, agent);
+            cmd.set_command(line);
 
-            std::cout<<cmd;
+            cout<<cmd;
 
             if(cmd.is_command())
             {
@@ -231,7 +229,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                std::cout<<"Not a command!"<<std::endl;
+                cout<<"Not a command!"<<endl;
             }
         }
         infile.close();
@@ -277,7 +275,6 @@ int main(int argc, char *argv[])
             logdate_soh = agent->cinfo->pdata.node.utc;
             log_move(agent->cinfo->pdata.node.name, "soh");
         }
-
 
         // Check if either of the logstride have changed
         if (newlogstride_exec != logstride_exec )
@@ -333,7 +330,8 @@ int main(int argc, char *argv[])
         }
 
         // Perform Executive specific functions
-        cmd_queue.load_commands(incoming_dir, agent);
+        //cmd_queue.load_commands(incoming_dir, agent);
+        cmd_queue.load_commands(incoming_dir);
         cmd_queue.run_commands(agent, nodename, logdate_exec);
         cmd_queue.save_commands(temp_dir);
 
@@ -347,35 +345,34 @@ int main(int argc, char *argv[])
 }
 
 // Executive specific requests
-int32_t request_set_logstride_exec(char* request, char* , Agent *)
+int32_t request_set_logstride_exec(char* request, char* response, Agent *agent)
 {
     sscanf(request,"set_logstride_exec %lf",&newlogstride_exec);
     return 0;
 }
 
-int32_t request_reopen_exec(char* , char* , Agent *agent)
+int32_t request_reopen_exec(char* request, char* response, Agent *agent)
 {
     logdate_exec = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
     log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "exec");
     return 0;
 }
 
-int32_t request_get_queue_size(char *, char* response, Agent *)
+int32_t request_get_queue_size(char *request, char* response, Agent *agent)
 {
     sprintf(response,"%" PRIu32 "", cmd_queue.get_size());
     return 0;
 }
 
-int32_t request_get_queue_entry(char *request, char* response, Agent *)
+int32_t request_get_event(char *request, char* response, Agent *agent)
 {
     std::ostringstream ss;
 
-    if(cmd_queue.get_size()==0)
+    if(cmd_queue.get_size()==0)	{
         ss << "the command queue is empty";
-    else
-    {
+	} else {
         int j;
-        int32_t iretn = sscanf(request,"get_queue_entry %d",&j);
+        int32_t iretn = sscanf(request,"get_event %d",&j);
 
         // if valid index then return command
         if (iretn == 1)
@@ -389,11 +386,11 @@ int32_t request_get_queue_entry(char *request, char* response, Agent *)
             for(unsigned long int i = 0; i < cmd_queue.get_size(); ++i)
             {
                 Event cmd = cmd_queue.get_command(i);
-                ss << "[" << i << "]" << "[" << mjd2iso8601(cmd.getUtc()) << "]" << cmd << std::endl;
+                ss << "[" << i << "]" << "[" << mjd2iso8601(cmd.getUtc()) << "]" << cmd << endl;
             }
         // if the user supplied something that couldn't be turned into an integer
         else if (iretn == 0)
-            ss << "Usage:\tget_queue_entry [ index ]\t";
+            ss << "Usage:\tget_event [ index ]\t";
     }
 
     strcpy(response, ss.str().c_str());
@@ -401,51 +398,53 @@ int32_t request_get_queue_entry(char *request, char* response, Agent *)
 }
 
 // Delete Queue Entry - by #
-int32_t request_del_queue_entry_id(char *request, char* response, Agent *)
+int32_t request_del_event_id(char *request, char* response, Agent *agent)
 {
     Event cmd;
     std::ostringstream ss;
 
-    if(cmd_queue.get_size()==0)
+    if(cmd_queue.get_size()==0)	{
         ss << "the command queue is empty";
-    else
-    {
-         int j;
-        int32_t iretn = sscanf(request,"del_queue_entry_id %d",&j);
+	} else {
+        int j;
+        int32_t iretn = sscanf(request,"del_event_id %d",&j);
+
+// JIMNOTE: fix the logic here, it isn't right.  Also, ss never gets used
 
         // if valid index then return command
-        if (iretn == 1)
-        {
-            if(j >= 0 && j < (int)cmd_queue.get_size() )
-            {
+        if (iretn == 1) {
+			cout<<"j = "<<j<<endl;
+            if(j >= 0 && j < (int)cmd_queue.get_size() ) {
+				//lookup command
                 cmd = cmd_queue.get_command(j);
-            }
-            else
-            {
+        		//delete command
+        		int n = cmd_queue.del_command(cmd);
+        		sprintf(response,"%d commands deleted from the queue",n);
+            } else {
                 ss << "<" << j << "> is not a valid command queue index (current range between 0 and " << cmd_queue.get_size()-1 << ")";
             }
         }
-
-        //delete command
-        int n = cmd_queue.del_command(cmd);
-
-        sprintf(response,"%d commands deleted from the queue",n);
+        // if the user supplied something that couldn't be turned into an integer
+        else if (iretn == 0)	{
+            ss << "Usage:\tdel_event_id [ index ]\t";
+		}
     }
 
-
+    strcpy(response, ss.str().c_str());
     return 0;
 }
 
 // Delete Queue Entry - by date and contents
-int32_t request_del_queue_entry(char *request, char* response, Agent *)
+int32_t request_del_event(char *request, char* response, Agent *agent)
 {
     Event cmd;
-    std::string line(request);
+    string line(request);
 
-    // remove "del_queue_entry " from request string
-    line.erase(0, 16);
+    // remove "del_event " from request string
+    line.erase(0, 10);
 
-    cmd.set_command(line, agent);
+    //cmd.set_command(line, agent);
+    cmd.set_command(line);
 
     //delete command
     int n = cmd_queue.del_command(cmd);
@@ -456,25 +455,28 @@ int32_t request_del_queue_entry(char *request, char* response, Agent *)
 }
 
 // Add Queue Entry
-int32_t request_add_queue_entry(char *request, char* response, Agent *)
+int32_t request_add_event(char *request, char* response, Agent *agent)
 {
     Event cmd;
-    std::string line(request);
+    string line(request);
 
-    // remove "add_queue_entry " from request string
-    line.erase(0, 16);
+    // remove "add_event " from request string
+    line.erase(0, 10);
 
-    cmd.set_command(line, agent);
+    //cmd.set_command(line, agent);
+    cmd.set_command(line);
 
     // add command
     if(cmd.is_command())
         cmd_queue.add_command(cmd);
 
+	// sort the queue
+	cmd_queue.sort();
     strcpy(response, line.c_str());
     return 0;
 }
 
-int32_t request_run(char *request, char* response, Agent *)
+int32_t request_run(char *request, char* response, Agent *agent)
 {
     int i;
     int32_t iretn = 0;
@@ -531,20 +533,20 @@ int32_t request_run(char *request, char* response, Agent *)
 }
 
 // SOH specific requests
-int32_t request_reopen_soh(char* , char* , Agent *)
+int32_t request_reopen_soh(char* request, char* response, Agent *agent)
 {
     logdate_soh = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
     log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "soh");
     return 0;
 }
 
-int32_t request_set_logperiod(char* request, char* , Agent *)
+int32_t request_set_logperiod(char* request, char* response, Agent *agent)
 {
     sscanf(request,"set_logperiod %d",&newlogperiod);
     return 0;
 }
 
-int32_t request_set_logstring(char* request, char* , Agent *)
+int32_t request_set_logstring(char* request, char* response, Agent *agent)
 {
     logstring = &request[strlen("set_logstring")+1];
     logtable.clear();
@@ -552,13 +554,13 @@ int32_t request_set_logstring(char* request, char* , Agent *)
     return 0;
 }
 
-int32_t request_get_logstring(char* , char* output, Agent *)
+int32_t request_get_logstring(char* request, char* response, Agent *agent)
 {
-    strcpy(output, logstring.c_str());
+    strcpy(response, logstring.c_str());
     return 0;
 }
 
-int32_t request_set_logstride_soh(char* request, char* , Agent *)
+int32_t request_set_logstride_soh(char* request, char* response, Agent *agent)
 {
     sscanf(request,"set_logstride_soh %lf",&newlogstride_soh);
     return 0;
@@ -601,10 +603,10 @@ void collect_data_loop()
     return;
 }
 
-// Prints the command information stored in local the copy of agent->cinfo->pdata.event[0].l
+/// Prints the command information stored in local the copy of agent->cinfo->pdata.event[0].l
 void print_command()
 {
-    std::string jsp;
+    string jsp;
 
     json_out(jsp,(char*)"event_utc", agent->cinfo->meta, agent->cinfo->pdata);
     json_out(jsp,(char*)"event_utcexec", agent->cinfo->meta, agent->cinfo->pdata);
@@ -613,14 +615,7 @@ void print_command()
     json_out(jsp,(char*)"event_flag", agent->cinfo->meta, agent->cinfo->pdata);
     json_out(jsp,(char*)"event_data", agent->cinfo->meta, agent->cinfo->pdata);
     json_out(jsp,(char*)"event_condition", agent->cinfo->meta, agent->cinfo->pdata);
-    std::cout<<"<"<<jsp<<">"<<std::endl;
+    cout<<"<"<<jsp<<">"<<endl;
 
     return;
 }
-
-
-
-
-
-
-
