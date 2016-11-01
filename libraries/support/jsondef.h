@@ -68,8 +68,12 @@ enum
     JSON_UNIT_LENGTH,
     //! Mass
     JSON_UNIT_MASS,
+    //! Moment of Inertia
+    JSON_UNIT_MOI,
     //! Time
     JSON_UNIT_TIME,
+    //! Date
+    JSON_UNIT_DATE,
     //! Current
     JSON_UNIT_CURRENT,
     //! Temperature
@@ -92,16 +96,22 @@ enum
     JSON_UNIT_LUMINANCE,
     //! Angle
     JSON_UNIT_ANGLE,
+    //! Angular rate
+    JSON_UNIT_ANGULAR_RATE,
     //! Solid Angle
     JSON_UNIT_SOLIDANGLE,
     //! Frequency
     JSON_UNIT_FREQUENCY,
     //! Force
     JSON_UNIT_FORCE,
+    //! Torque
+    JSON_UNIT_TORQUE,
     //! Pressure
     JSON_UNIT_PRESSURE,
     //! Energy
     JSON_UNIT_ENERGY,
+    //! Power
+    JSON_UNIT_POWER,
     //! Charge
     JSON_UNIT_CHARGE,
     //! Electric Potential
@@ -116,6 +126,10 @@ enum
     JSON_UNIT_MAGDENSITY,
     //! Specific Impulse
     JSON_UNIT_ISP,
+    //! Random Access Memory and Disk Storage
+    JSON_UNIT_BYTES,
+    //! Fraction
+    JSON_UNIT_FRACTION,
     //! Holder for number of entries
     JSON_UNIT_COUNT
     } ;

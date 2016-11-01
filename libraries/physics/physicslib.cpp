@@ -1347,7 +1347,7 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
         cdata.devspec.tsen[i]->gen.utc = loc.utc;
     }
 
-    dcharge = (cdata.physics.dt/3600.) * ((cdata.node.powgen-cdata.node.powuse)) / cdata.devspec.batt_cnt;
+    dcharge = (cdata.physics.dt/3600.) * ((cdata.node.powgen-cdata.node.powuse) / cdata.devspec.batt[0]->gen.volt) / cdata.devspec.batt_cnt;
     for (i=0; i<cdata.devspec.batt_cnt; i++)
     {
         cdata.devspec.batt[i]->charge += dcharge;
