@@ -86,7 +86,8 @@ public:
 		\param	agent	Pointer to Agent object (needed to parse JSON input)
 		
 	*/
-	void load_commands(string incoming_dir, Agent *agent);
+	//void load_commands(string incoming_dir, Agent *agent);
+	void load_commands(string incoming_dir);
 
 	///	Save the queue of Events to a file
 	/**

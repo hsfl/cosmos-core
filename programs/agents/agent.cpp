@@ -105,6 +105,8 @@ int main(int argc, char *argv[])
             int i, pretn;
             locstruc loc;
 
+// JIMNOTE: this block will never be entered
+
             if(argc == 3)
             {
                 channel = argv[2];

@@ -53,7 +53,7 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 	// execute command
 #if defined(COSMOS_WIN_OS)
 	char command_line[100];
-    strcpy(command_line, cmd.getData().c_str());
+    strcpy(command_line, cmd.get_data().c_str());
 
 	STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
@@ -78,7 +78,7 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 	case 0:
 		char *words[MAXCOMMANDWORD];
 		int devn;
-        string_parse((char *)cmd.getData().c_str(),words,MAXCOMMANDWORD);
+        string_parse((char *)cmd.get_data().c_str(),words,MAXCOMMANDWORD);
 		string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
 		if (outpath.empty())
 		{
@@ -100,7 +100,7 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 #endif
 
 	// log to event file
-    log_write(nodename, "exec", logdate_exec, "event", cmd.getJson().c_str());
+    log_write(nodename, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
 }
 
 
@@ -135,6 +135,8 @@ void CommandQueue::run_commands(Agent *agent, string nodename, double logdate_ex
 				run_command(*ii, nodename, logdate_exec);
 				commands.erase(ii--);
 			}
+		} else {
+			;//cout<<"This command is *NOT* ready to run! ";
 		}
 	}
 	return;
@@ -157,7 +159,7 @@ void CommandQueue::save_commands(string temp_dir)
 	{
         for (Event cmd: commands)
 		{
-            fprintf(fd, "%s\n", cmd.getJson().c_str());
+            fprintf(fd, "%s\n", cmd.get_event_string().c_str());
 		}
 		fclose(fd);
 	}
@@ -166,7 +168,8 @@ void CommandQueue::save_commands(string temp_dir)
 // Loads new commands from *.command files located in the incoming directory
 // Commands are loaded into the global CommandQueue object (cmd_queue),
 // *.command files are removed, and the command list is sorted by utc.
-void CommandQueue::load_commands(string incoming_dir, Agent *agent) // TODO: change arguments so that we don't need to pass the separate directories
+//void CommandQueue::load_commands(string incoming_dir, Agent *agent) // TODO: change arguments so that we don't need to pass the separate directories
+void CommandQueue::load_commands(string incoming_dir) 
 {
 	DIR *dir = NULL;
 	struct dirent *dir_entry = NULL;
@@ -200,7 +203,8 @@ void CommandQueue::load_commands(string incoming_dir, Agent *agent) // TODO: cha
 
 			while(getline(infile,line))
 			{
-				cmd.set_command(line, agent); // TODO: is it really necessary to pass *agent?
+				//cmd.set_command(line, agent); // TODO: is it really necessary to pass *agent?
+				cmd.set_command(line); // TODO: is it really necessary to pass *agent?  NOPE!
 				std::cout<<cmd;
 
 				if(cmd.is_command())
