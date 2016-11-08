@@ -6399,7 +6399,7 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc
         json_addentry("device_pload_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_pload_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_pload_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(ploadstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_pload_bps",didx, UINT16_MAX, (ptrdiff_t)offsetof(ploadstruc,bps)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_pload_drate",didx, UINT16_MAX, (ptrdiff_t)offsetof(ploadstruc,drate)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_pload_key_cnt",didx, UINT16_MAX, (ptrdiff_t)offsetof(ploadstruc,key_cnt)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         for (uint16_t j=0; j<MAXPLOADKEYCNT; j++)
         {
@@ -7844,7 +7844,7 @@ const char *json_devices_specific(std::string &jstring, cosmosmetastruc &cmeta, 
                 // Dump ploads
                 if (!strcmp(device_type_string[i].c_str(),"pload"))
                 {
-                    json_out_1d(jstring,(char *)"device_pload_bps",j, cmeta, cdata);
+                    json_out_1d(jstring,(char *)"device_pload_drate",j, cmeta, cdata);
                     json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_pload_key_cnt",j, cmeta, cdata);
                     json_out_character(jstring, '\n');
@@ -9272,7 +9272,7 @@ void load_databases(char *name, uint16_t type, cosmosdatastruc &cdata)
         i = 0;
         do
         {
-            iretn = fscanf(op,"%*d\t%hu\t%u\t%hu",&cdata.devspec.pload[i]->gen.cidx,&cdata.devspec.pload[i]->bps,&cdata.devspec.pload[i]->key_cnt);
+            iretn = fscanf(op,"%*d\t%hu\t%u\t%hu",&cdata.devspec.pload[i]->gen.cidx,&cdata.devspec.pload[i]->drate,&cdata.devspec.pload[i]->key_cnt);
             for (j=0; j<cdata.devspec.pload[i]->key_cnt; j++)
             {
                 //				iretn = fscanf(op,"\t%s",&cdata.devspec.pload[i]->key[j][0]);

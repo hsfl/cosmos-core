@@ -1145,7 +1145,7 @@ struct ploadstruc
     //! Name for each key.
     uint16_t keyidx[MAXPLOADKEYCNT];
     //! Rate at which the payload generates data.
-    uint32_t bps;
+    float drate;
     //! Value for each key.
     float keyval[MAXPLOADKEYCNT];
 };
