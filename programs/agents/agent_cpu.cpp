@@ -120,6 +120,11 @@ int main(int argc, char *argv[])
     // Add additional requests
 
     agent = new Agent(nodename, agentname, 5.);
+    if (!agent->running() || agent->cinfo == nullptr)
+    {
+        cout << "Unable to start agent" << endl;
+        exit(1);
+    }
 
     agent->add_request("soh",request_soh,"","current state of health message");
     agent->add_request("diskSize",request_diskSize,"","disk size in GB");
@@ -343,6 +348,7 @@ int create_node () // only use when unsure what the node is
         }
         cinfo = json_create();
         strcpy(cinfo->pdata.node.name, nodename.c_str());
+        cinfo->meta.node = nodename;
         cinfo->pdata.node.type = NODE_TYPE_COMPUTER;
 
         cinfo->pdata.node.piece_cnt = 2;
