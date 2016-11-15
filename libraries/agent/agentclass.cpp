@@ -407,6 +407,63 @@ int32_t Agent::send_request(beatstruc hbeat, string request, string &output, flo
     return (nbytes);
 }
 
+//! Send request for Node JSON
+/*! Send a set of requests to return the various JSON strings that make up a ::jsonnode.
+    \param hbeat The agent ::beatstruc
+    \param request the request and its arguments
+    \param output any output returned by the request
+    \param waitsec Maximum number of seconds to wait
+    \return Either the number of bytes returned, or an error number.
+*/
+int32_t Agent::send_request_jsonnode(beatstruc hbeat, jsonnode &jnode, float waitsec)
+{
+    int32_t iretn;
+
+    iretn = send_request(hbeat, "nodejson", jnode.node, waitsec);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = send_request(hbeat, "statejson", jnode.state, waitsec);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = send_request(hbeat, "utcstartjson", jnode.utcstart, waitsec);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = send_request(hbeat, "piecesjson", jnode.pieces, waitsec);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = send_request(hbeat, "devgenjson", jnode.devgen, waitsec);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = send_request(hbeat, "devspecjson", jnode.devspec, waitsec);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = send_request(hbeat, "portsjson", jnode.ports, waitsec);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = send_request(hbeat, "aliasesjson", jnode.aliases, waitsec);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = send_request(hbeat, "targetsjson", jnode.targets, waitsec);
+    return iretn;
+
+}
+
 //! Get specific server.
 /*! Listen to the multicast/broadcast traffic for a set amount of time,
  * waiting for a specific named server to appear, then return its

@@ -258,7 +258,8 @@ public:
     //    int32_t add_request(string token, request_function function, string description);
     int32_t add_request_internal(string token, internal_request_function function, string synopsis="", string description="");
     int32_t add_request(string token, external_request_function function, string synopsis="", string description="");
-    int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec);
+    int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec=5.);
+    int32_t send_request_jsonnode(beatstruc cbeat, jsonnode &jnode, float waitsec=5.);
     int32_t get_server(string node, string name, float waitsec, beatstruc *cbeat);
     vector<beatstruc> find_servers(float waitsec);
     beatstruc find_server(string node, string proc, float waitsec);

@@ -253,8 +253,8 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosmetastruc &cmeta, cosmosdatas
 //int32_t json_setup(cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 //int32_t json_setup_node(std::string node, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, bool create_flag = false);
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag = false);
-int32_t json_setup_node(std::string node, cosmosstruc *cinfo, bool create_flag = false);
-int32_t json_load_node(std::string node, jsonnode &json, bool create_flag = false);
+int32_t json_setup_node(std::string node, cosmosstruc *cinfo);
+int32_t json_load_node(std::string node, jsonnode &json);
 int32_t json_dump_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 
 const char *json_of_wildcard(std::string &jstring, std::string wildcard, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);

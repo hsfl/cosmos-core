@@ -194,7 +194,7 @@ string Event::get_event_string()
 
 bool Event::condition_true(cosmosstruc *cinfo)
 {
-    const char *cp = (char *)condition.c_str();
+//    const char *cp = (char *)condition.c_str();
     if (cinfo != nullptr) {
         // TODO: remove from this class, to keep it modular
 //			double d = json_equation(cp, agent->cinfo->meta, agent->cinfo->pdata);

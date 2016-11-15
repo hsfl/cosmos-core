@@ -921,9 +921,23 @@ void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
     }
 }
 
-//! Simulate Hardware data
+//! Simulate Hardware data - multiple
+/*! Simulate the behavior of all the hardware in the indicated satellite, for each
+ * indicated location in the array.
+    \param cdata Reference to ::cosmosdatastruc to use.
+    \param locvec Array of ::locstruc specifying locations.
+*/
+void simulate_hardware(cosmosdatastruc &cdata, vector <locstruc> &locvec)
+{
+    for (size_t i=0; i<locvec.size(); ++i)
+    {
+        simulate_hardware(cdata, locvec[i]);
+    }
+}
+
+//! Simulate Hardware data - single
 /*! Simulate the behavior of all the hardware in the indicated satellite, at the
- * indicated location.
+ * indicated location, assuming a timestep of dt.
     \param cdata Reference to ::cosmosdatastruc to use.
     \param loc Structure specifying location
 */
@@ -932,7 +946,7 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     double speed, density, sattemp;
     rvector vbody, vplanet;
     double adrag, edot, sdot, vdot, ddrag;
-    double energy, watts, efficiency, energyd, dcharge, dheat;
+    double energy, efficiency, energyd, dcharge, dheat;
     double sdheat;
     rvector geov, vec;
     rvector unitv, units, unite, dtorque, da;
@@ -1023,11 +1037,11 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
                     if (cdata.devspec.strg[j]->effbase > 0.)
                     {
                         efficiency = cdata.devspec.strg[j]->effbase + cdata.devspec.strg[j]->effslope * cdata.piece[i].temp;
-                        cdata.devspec.strg[j]->power = cdata.piece[i].area*efficiency*cdata.piece[i].insol;
-                        cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.volt = 35.;
-                        cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.amp = -cdata.devspec.strg[j]->power / cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.volt;
-                        cdata.node.powgen += .4 * cdata.devspec.strg[j]->power;
-                        cdata.piece[i].heat += (cdata.piece[i].abs * cdata.piece[i].area * cdata.piece[i].insol - cdata.devspec.strg[j]->power) * cdata.physics.dt;
+                        cdata.devspec.strg[j]->gen.power = cdata.piece[i].area*efficiency*cdata.piece[i].insol;
+                        cdata.devspec.strg[j]->gen.volt = cdata.devspec.strg[j]->gen.nvolt;
+                        cdata.devspec.strg[j]->gen.amp = -cdata.devspec.strg[j]->gen.power / cdata.devspec.strg[j]->gen.volt;
+                        cdata.node.powgen += .4 * cdata.devspec.strg[j]->gen.power;
+                        cdata.piece[i].heat += (cdata.piece[i].abs * cdata.piece[i].area * cdata.piece[i].insol - cdata.devspec.strg[j]->gen.power) * cdata.physics.dt;
                         cdata.piece[i].heat -= cdata.piece[i].emi * cdata.piece[i].area * energyd;
                     }
                 }
@@ -1036,11 +1050,11 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
             {
                 for (j=0; j<cdata.devspec.strg_cnt; j++)
                 {
-                    if (cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.pidx == i)
+                    if (cdata.devspec.strg[j]->gen.pidx == i)
                     {
-                        cdata.devspec.strg[j]->power = 0.;
-                        cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.volt = 0.;
-                        cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.amp = 0.;
+                        cdata.devspec.strg[j]->gen.power = 0.;
+                        cdata.devspec.strg[j]->gen.volt = 0.;
+                        cdata.devspec.strg[j]->gen.amp = 0.;
                         cdata.piece[i].heat -= cdata.piece[i].emi * cdata.piece[i].area * energyd;
                     }
                 }
@@ -1056,7 +1070,7 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
                 cdata.piece[i].heat += cdata.piece[i].abs*cdata.piece[i].area * energyd;
                 for (j=0; j<cdata.devspec.strg_cnt; j++)
                 {
-                    if (cdata.device[cdata.devspec.strg[j]->gen.cidx].all.gen.pidx == i)
+                    if (cdata.devspec.strg[j]->gen.pidx == i)
                     {
                         energy += cdata.piece[i].abs * cdata.piece[i].area * energyd;
                     }
@@ -1293,6 +1307,15 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
         cdata.devspec.motr[i]->gen.utc = loc.utc;
     }
 
+    // Disk drive details
+    for (i=0; i<cdata.devspec.pload_cnt; i++)
+    {
+        if (cdata.devspec.pload[i]->gen.flag&DEVICE_FLAG_ON && cdata.devspec.pload[i]->gen.drate != 0.)
+        {
+            cdata.devspec.disk[0]->gib += cdata.devspec.pload[i]->gen.drate;
+        }
+    }
+
     // Power details
     cdata.node.powuse = 0.;
     for (i=0; i<cdata.devspec.bus_cnt; i++)
@@ -1304,23 +1327,31 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     {
         index = cdata.device[i].all.gen.bidx;
         if (index >= cdata.devspec.bus_cnt)
+        {
             index = 0;
+        }
         if (cdata.devspec.bus_cnt && cdata.device[i].all.gen.flag&DEVICE_FLAG_ON && cdata.devspec.bus[index]->gen.flag&DEVICE_FLAG_ON)
         {
+            cdata.device[i].all.gen.power = cdata.device[i].all.gen.amp * cdata.device[i].all.gen.volt;
             cdata.devspec.bus[index]->gen.amp += cdata.device[i].all.gen.amp;
             if (cdata.device[i].all.gen.volt > cdata.devspec.bus[index]->gen.volt)
+            {
                 cdata.devspec.bus[index]->gen.volt = cdata.device[i].all.gen.volt;
-            watts = cdata.device[i].all.gen.amp * cdata.device[i].all.gen.volt;
-            if (watts <= 0.)
+            }
+            if (cdata.device[i].all.gen.power <= 0.)
                 continue;
             if (cdata.device[i].all.gen.pidx < cdata.node.piece_cnt)
             {
-                cdata.piece[cdata.device[i].all.gen.pidx].heat += .8 * watts * cdata.physics.dt;
+                cdata.piece[cdata.device[i].all.gen.pidx].heat += .8 * cdata.device[i].all.gen.power * cdata.physics.dt;
             }
             if (cdata.device[i].all.gen.type != DEVICE_TYPE_BUS)
             {
-                cdata.node.powuse += watts;
+                cdata.node.powuse += cdata.device[i].all.gen.power;
             }
+        }
+        else
+        {
+            cdata.device[i].all.gen.power = 0.;
         }
     }
 
@@ -1334,6 +1365,10 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
             //	cdata.piece[i].heat += sdheat/cdata.piece.size();
             cdata.physics.heat += cdata.piece[i].heat;
             cdata.piece[i].temp = cdata.piece[i].heat / (cdata.piece[i].mass * cdata.piece[i].hcap);
+            if (cdata.piece[i].cidx < cdata.device.size())
+            {
+                cdata.device[cdata.piece[i].cidx].all.gen.temp = cdata.piece[i].temp;
+            }
         }
         else
         {
@@ -1347,6 +1382,7 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
         cdata.devspec.tsen[i]->gen.utc = loc.utc;
     }
 
+    // More Power details
     dcharge = (cdata.physics.dt/3600.) * ((cdata.node.powgen-cdata.node.powuse) / cdata.devspec.batt[0]->gen.volt) / cdata.devspec.batt_cnt;
     for (i=0; i<cdata.devspec.batt_cnt; i++)
     {
@@ -2789,7 +2825,7 @@ void gauss_jackson_converge_hardware(gj_handle &gjh, physicsstruc &physics)
     }
 }
 
-void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &loc, double tomjd)
+vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &loc, double tomjd)
 {
     uint32_t i,chunks , astep;
     uint32_t j, k;
@@ -2808,11 +2844,15 @@ void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &lo
     uvector tvector1;
     matrix2d tmatrix2;
     rvector tvector;
+    vector <locstruc> locvec;
+
+    // Initial location
+    locvec.push_back(loc);
 
     // Don't bother if too low
     if (gjh.step[gjh.order].sloc.pos.geod.s.h < 100.)
     {
-        return;
+        return locvec;
     }
     //	if (qs[0].w == 0.)
     //	{
@@ -2823,7 +2863,7 @@ void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &lo
     // Return immediately if we are trying to propagate earlier but dt is positive or vice versa
     if ((tomjd < gjh.step[gjh.order].sloc.utc && physics.dt > 0.) || (tomjd > gjh.step[gjh.order].sloc.utc && physics.dt < 0.))
     {
-        return;
+        return locvec;
     }
     chunks = (uint32_t)(.5 + 86400.*(tomjd - gjh.step[gjh.order].sloc.utc)/physics.dt);
     if (chunks > 100000)
@@ -3042,9 +3082,13 @@ void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &lo
         for (j=0; j<=gjh.order; j++)
             gjh.step[j] = gjh.step[j+1];
 
+        // Add latest calculation
+        locvec.push_back(gjh.step[gjh.order].sloc);
+
     }
 
     loc = gjh.step[gjh.order].sloc;
+    return locvec;
 }
 
 //! Initialize orbit from orbital data

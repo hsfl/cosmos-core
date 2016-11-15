@@ -251,8 +251,9 @@ int main(int argc, char* argv[])
 	while (mjdend < 0. || mjdend-mjdstart > 0)
 	{
 		mjdnow += logperiod/86400.;
-        gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
-        simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+        vector <locstruc> locvec = gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
+        simulate_hardware(agent->cinfo->pdata, locvec);
+        agent->cinfo->pdata.node.loc = locvec[locvec.size()-1];
         if (agent->cinfo->pdata.node.loc.utc > agent->cinfo->pdata.node.utc)
 		{
             agent->cinfo->pdata.node.utc = agent->cinfo->pdata.node.loc.utc;

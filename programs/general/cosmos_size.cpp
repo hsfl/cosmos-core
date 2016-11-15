@@ -35,7 +35,7 @@ int main(int, char* argv[])
     Agent *myagent;
 
     myagent = new Agent();
-    json_setup_node(argv[1], myagent->cinfo, false);
+    json_setup_node(argv[1], myagent->cinfo);
 
     size_t total = 0;
     size_t count = 0;

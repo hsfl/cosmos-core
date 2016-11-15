@@ -345,13 +345,13 @@ int create_node () // only use when unsure what the node is
         strcpy(cinfo->pdata.node.name, nodename.c_str());
         cinfo->pdata.node.type = NODE_TYPE_COMPUTER;
 
-        cinfo->pdata.node.piece_cnt = 11;
+        cinfo->pdata.node.piece_cnt = 2;
         cinfo->pdata.piece.resize(cinfo->pdata.node.piece_cnt);
         cinfo->pdata.node.device_cnt = cinfo->pdata.node.piece_cnt;
         cinfo->pdata.device.resize(cinfo->pdata.node.device_cnt);
         cinfo->pdata.devspec.cpu_cnt = 1;
-        cinfo->pdata.devspec.disk_cnt = 10;
-        cinfo->pdata.node.port_cnt = 10;
+        cinfo->pdata.devspec.disk_cnt = 1;
+        cinfo->pdata.node.port_cnt = 1;
         cinfo->pdata.port.resize(cinfo->pdata.node.port_cnt);
         //        json_addbaseentry(cinfo);
 
@@ -389,8 +389,11 @@ int create_node () // only use when unsure what the node is
                 cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_CPU;
                 cinfo->pdata.device[i].all.gen.didx = 0;
                 cinfo->pdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
+                cinfo->pdata.device[i].cpu.maxload = 1.;
+                cinfo->pdata.device[i].cpu.maxgib = 1.;
                 break;
             default:
+                cinfo->pdata.device[i].disk.maxgib = 1000.;
                 cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_DISK;
                 cinfo->pdata.device[i].all.gen.didx = i-1;
                 cinfo->pdata.device[i].all.gen.portidx = cinfo->pdata.device[i].all.gen.didx;

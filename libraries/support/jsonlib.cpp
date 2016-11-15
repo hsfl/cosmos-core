@@ -5542,7 +5542,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosmetastruc &cmeta, cosmosdatas
  * \param create_flag Whether or not to create node directory if it doesn't already exist.
     \return 0, or a negative ::error
 */
-int32_t json_load_node(std::string node, jsonnode &json, bool create_flag)
+int32_t json_load_node(std::string node, jsonnode &json)
 {
     int32_t iretn;
     struct stat fstat;
@@ -5554,7 +5554,7 @@ int32_t json_load_node(std::string node, jsonnode &json, bool create_flag)
     size_t nodestart;
     if ((nodestart = node.rfind('/')) == std::string::npos)
     {
-        nodepath = get_nodedir(node, create_flag);
+        nodepath = get_nodedir(node);
     }
     else
     {
@@ -5811,8 +5811,16 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     }
 
     std::string nodepath;
-    std::string node = cinfo->pdata.node.name;
-    nodepath = get_nodedir(node, create_flag);
+    cinfo->meta.node = cinfo->pdata.node.name;
+    bool dump_flag = false;
+    if (create_flag)
+    {
+        if ((nodepath = get_nodedir(cinfo->meta.node)).empty())
+        {
+            dump_flag = true;
+        }
+    }
+    nodepath = get_nodedir(cinfo->meta.node, create_flag);
 
     // 1A: load state vector, if it is present
     if (!json.state.empty())
@@ -5964,38 +5972,6 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
     cinfo->json = json;
 
-    return 0;
-}
-
-//! Setup JSON Namespace using file.
-/*! Create an entry in the JSON mapping tables between each name in the Name Space and the
- * \ref cosmosstruc. Load descriptive information from files in a Node directory of the goven name.
- *	\param node Name and/or path of node directory. If name, then a path will be created
- * based on nodedir setting. If path, then name will be extracted from the end.
- *	\param cinfo Pointer to cinfo ::cosmosstruc.
- * \param create_flag Whether or not to create node directory if it doesn't already exist.
-    \return 0, or a negative ::error
-*/
-int32_t json_setup_node(std::string node, cosmosstruc *cinfo, bool create_flag)
-{
-    int32_t iretn;
-
-    if (!cinfo->meta.jmapped)
-        return (JSON_ERROR_NOJMAP);
-
-    jsonnode json;
-    iretn = json_load_node(node, json, create_flag);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-
-    iretn = json_setup_node(json, cinfo, create_flag);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-
     if (cinfo->pdata.node.type == NODE_TYPE_SUN)
     {
         jplpos(JPL_EARTH, JPL_SUN, currentmjd(cinfo->pdata.node.utcoffset), &cinfo->pdata.node.loc.pos.eci);
@@ -6017,6 +5993,44 @@ int32_t json_setup_node(std::string node, cosmosstruc *cinfo, bool create_flag)
         pos_eci(&cinfo->pdata.node.loc);
     }
 
+    if (dump_flag && !nodepath.empty())
+    {
+        json_dump_node(cinfo->meta, cinfo->pdata);
+    }
+
+    return 0;
+}
+
+//! Setup JSON Namespace using file.
+/*! Create an entry in the JSON mapping tables between each name in the Name Space and the
+ * \ref cosmosstruc. Load descriptive information from files in a Node directory of the goven name.
+ *	\param node Name and/or path of node directory. If name, then a path will be created
+ * based on nodedir setting. If path, then name will be extracted from the end.
+ *	\param cinfo Pointer to cinfo ::cosmosstruc.
+ * \param create_flag Whether or not to create node directory if it doesn't already exist.
+    \return 0, or a negative ::error
+*/
+int32_t json_setup_node(std::string node, cosmosstruc *cinfo)
+{
+    int32_t iretn;
+
+    if (cinfo == nullptr || !cinfo->meta.jmapped)
+        return (JSON_ERROR_NOJMAP);
+
+    jsonnode json;
+    cinfo->meta.node.clear();
+    iretn = json_load_node(node, json);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    iretn = json_setup_node(json, cinfo);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
     return 0;
 }
 
@@ -6033,7 +6047,7 @@ int32_t json_dump_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
 
     // Node
     std::string output = json_node(jst, cmeta, cdata);
-    std::string fileloc = get_nodedir(cdata.node.name);
+    std::string fileloc = get_nodedir(cdata.node.name, true);
     if (fileloc.empty())
     {
         return DATA_ERROR_NODES_FOLDER;
@@ -6355,6 +6369,8 @@ uint16_t json_addcompentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc &
     json_addentry("comp_nvolt",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,nvolt)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
     json_addentry("comp_amp",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,amp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_CURRENT);
     json_addentry("comp_volt",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,volt)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
+    json_addentry("comp_power",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,power)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
+    json_addentry("comp_drate",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,drate)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
     json_addentry("comp_temp",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_TEMPERATURE);
     json_addentry("comp_utc",i, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_DATE);
     cdata.devspec.all.push_back((allstruc *)&cdata.device[i].all);
@@ -6398,8 +6414,9 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc
     case DEVICE_TYPE_PLOAD:
         json_addentry("device_pload_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_pload_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_pload_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(ploadstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_pload_drate",didx, UINT16_MAX, (ptrdiff_t)offsetof(ploadstruc,drate)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_pload_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_pload_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,power)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_pload_drate",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,drate)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_pload_key_cnt",didx, UINT16_MAX, (ptrdiff_t)offsetof(ploadstruc,key_cnt)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         for (uint16_t j=0; j<MAXPLOADKEYCNT; j++)
         {
@@ -6483,6 +6500,8 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc
         json_addentry("device_cam_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cam_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cam_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.power)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_drate",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.drate)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cam_pwidth",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,pwidth)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cam_pheight",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,pheight)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cam_width",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,width)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -6625,10 +6644,10 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc
         json_addentry("device_strg_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.utc)+i*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_strg_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.cidx)+i*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_strg_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_strg_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.power)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_strg_efi",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,effbase)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_strg_efs",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,effslope)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_strg_max",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,maxpower)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_strg_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,power)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         cdata.devspec.strg.push_back((strgstruc *)&cdata.device[i].strg);
         cdata.devspec.strg_cnt = (uint16_t)cdata.devspec.strg.size();
         break;
@@ -6773,6 +6792,7 @@ uint16_t json_adddeviceentry(uint16_t i, cosmosmetastruc &cmeta, cosmosdatastruc
         json_addentry("device_bus_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.temp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_bus_amp",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.amp)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_bus_volt",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.volt)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_bus_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.power)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_bus_energy",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,energy)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_bus_wdt",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,wdt)+i*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         cdata.devspec.bus.push_back((busstruc *)&cdata.device[i].bus);
@@ -7529,7 +7549,7 @@ std::string json_list_of_soh(cosmosdatastruc &cdata)
     {
         sprintf(tempstring, ",\"device_bus_utc_%03d\",\"device_bus_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_bus_utc_%03d\",\"device_bus_energy_%03d\",\"device_bus_amp_%03d\",\"device_bus_volt_%03d\"",i,i,i,i);
+        sprintf(tempstring, ",\"device_bus_utc_%03d\",\"device_bus_energy_%03d\",\"device_bus_amp_%03d\",\"device_bus_volt_%03d\",\"device_bus_power_%03d\"",i,i,i,i,i);
         result += tempstring;
     }
 
@@ -8657,10 +8677,16 @@ int32_t node_calc(cosmosdatastruc &cdata)
     */
         cdata.device[n].all.gen.temp = 300.;
 //        cdata.device[n].all.gen.flag |= DEVICE_FLAG_ON;
-        cdata.device[n].all.gen.amp = cdata.device[n].all.gen.namp;
-        cdata.device[n].all.gen.volt = cdata.device[n].all.gen.nvolt;
+        if (cdata.device[n].all.gen.flag & DEVICE_FLAG_ON)
+        {
+            cdata.device[n].all.gen.amp = cdata.device[n].all.gen.namp;
+            cdata.device[n].all.gen.volt = cdata.device[n].all.gen.nvolt;
+            cdata.device[n].all.gen.power = cdata.device[n].all.gen.amp * cdata.device[n].all.gen.volt;
+        }
         if (cdata.device[n].all.gen.bidx < cdata.devspec.bus_cnt && cdata.devspec.bus[cdata.device[n].all.gen.bidx]->gen.volt < cdata.device[n].all.gen.volt)
+        {
             cdata.devspec.bus[cdata.device[n].all.gen.bidx]->gen.volt = cdata.device[n].all.gen.volt;
+        }
     }
 
     cdata.physics.com = rv_smult(1./cdata.physics.mass,cdata.physics.com);
@@ -8834,7 +8860,7 @@ void create_databases(cosmosdatastruc &cdata)
     fprintf(op,"DeviceIndex\tComponentIndex\tEfficiencyB\tEfficiencyM\tMaxPower\tPower\n");
     for (i=0; i<cdata.devspec.strg_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cdata.devspec.strg[i]->gen.cidx,cdata.devspec.strg[i]->effbase,cdata.devspec.strg[i]->effslope,cdata.devspec.strg[i]->maxpower,cdata.devspec.strg[i]->power);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cdata.devspec.strg[i]->gen.cidx,cdata.devspec.strg[i]->effbase,cdata.devspec.strg[i]->effslope,cdata.devspec.strg[i]->maxpower,cdata.devspec.strg[i]->gen.power);
     }
     fclose(op);
 
@@ -9272,7 +9298,7 @@ void load_databases(char *name, uint16_t type, cosmosdatastruc &cdata)
         i = 0;
         do
         {
-            iretn = fscanf(op,"%*d\t%hu\t%u\t%hu",&cdata.devspec.pload[i]->gen.cidx,&cdata.devspec.pload[i]->drate,&cdata.devspec.pload[i]->key_cnt);
+            iretn = fscanf(op,"%*d\t%hu\t%u\t%hu",&cdata.devspec.pload[i]->gen.cidx,&cdata.devspec.pload[i]->gen.drate,&cdata.devspec.pload[i]->key_cnt);
             for (j=0; j<cdata.devspec.pload[i]->key_cnt; j++)
             {
                 //				iretn = fscanf(op,"\t%s",&cdata.devspec.pload[i]->key[j][0]);

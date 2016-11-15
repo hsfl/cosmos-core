@@ -121,6 +121,7 @@ void power(cosmosdatastruc *root);
 svector groundstation(locstruc &satellite, locstruc &groundstation);
 //! Simulate all devices
 void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc);
+void simulate_hardware(cosmosdatastruc &cdata, vector <locstruc> &locvec);
 //! Initialize IMU simulation
 void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &loc);
 //! Simulated IMU values
@@ -148,7 +149,7 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double
 void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, double altitude, double angle, double hour, locstruc &iloc, physicsstruc &physics, locstruc &loc);
 locstruc gauss_jackson_converge_orbit(gj_handle &gjh, physicsstruc &physics);
 void gauss_jackson_converge_hardware(gj_handle &gjh, physicsstruc &physics);
-void gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &loc, double mjd);
+vector<locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics, locstruc &loc, double mjd);
 //! Load TLE's from file
 int orbit_propagate(cosmosdatastruc &root, double mjd);
 int orbit_init(int32_t mode, double dt, double mjd, std::string ofile, cosmosdatastruc &root);

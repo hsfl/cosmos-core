@@ -1086,6 +1086,10 @@ struct genstruc
     float amp; // TODO: rename to current
     //! Current Voltage
     float volt; // TODO: rename to voltage
+    //! Current Power
+    float power; // TODO: rename to voltage
+    //! Current data rate
+    float drate;
     //! Current Temperature
     float temp; // TODO: rename to temperature
     //! Device information time stamp
@@ -1144,8 +1148,6 @@ struct ploadstruc
     uint16_t key_cnt;
     //! Name for each key.
     uint16_t keyidx[MAXPLOADKEYCNT];
-    //! Rate at which the payload generates data.
-    float drate;
     //! Value for each key.
     float keyval[MAXPLOADKEYCNT];
 };
@@ -1786,6 +1788,8 @@ struct cosmosmetastruc
 {
     //! Timestamp for last change to data
     double timestamp;
+    //! Node name
+    string node;
     //! Whether JSON map has been created.
     uint16_t jmapped;
     //! JSON Namespace Map matrix.
