@@ -169,6 +169,7 @@ int agent_cpu()
 
     ElapsedTime et;
     static const double GiB = 1024. * 1024. * 1024.;
+    deviceCpu.numProcessors = agent->cinfo->pdata.devspec.cpu[0]->maxload;
 
     et.start();
 

@@ -39,14 +39,16 @@ int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
 Agent *agent;
 socket_channel rcvchan;
+std::vector<socket_channel> sendchan;
+
+int32_t request_add_forward(char *req, char* response, Agent *);
+int32_t request_del_forward(char *req, char* response, Agent *);
 
 #define MAXBUFFERSIZE 2560 // comm buffer for agents
 
 int main(int argc, char *argv[])
 {
 	int32_t iretn;
-	socket_channel tempchan;
-	std::vector<socket_channel> sendchan;
 
 	if (argc < 2)
 	{
@@ -60,10 +62,15 @@ int main(int argc, char *argv[])
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
 
-	// Open sockets to each address to be used for outgoing forwarding.
+    // Add requests
+    if ((iretn=agent->add_request("add_forward",request_add_forward,"add_forward xxx.xxx.xxx.xxx", "Add address to forwarding list.")))
+        exit (iretn);
+
+    // Open sockets to each address to be used for outgoing forwarding.
 	for (uint16_t i=1; i<argc; ++i)
 	{
-		if ((iretn=socket_open(&tempchan, NetworkType::UDP, argv[i], AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) == 0)
+        socket_channel tempchan;
+        if ((iretn=socket_open(&tempchan, NetworkType::UDP, argv[i], AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) == 0)
 		{
 			sendchan.push_back(tempchan);
 		}
@@ -94,7 +101,10 @@ int main(int argc, char *argv[])
         nbytes = recvfrom(agent->cinfo->pdata.agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL);
 		for (uint16_t i=0; i<sendchan.size(); ++i)
 		{
-			iretn = sendto(sendchan[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&sendchan[i].caddr,sizeof(struct sockaddr_in));
+            if (sendchan[i].address[0])
+            {
+                iretn = sendto(sendchan[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&sendchan[i].caddr,sizeof(struct sockaddr_in));
+            }
 		}
 	}
 
@@ -122,4 +132,42 @@ void incoming_thread()
 			}
 		}
 	}
+}
+
+int32_t request_add_forward(char *req, char* response, Agent *)
+{
+    int32_t iretn;
+    char address[50];
+    sscanf(req, "%*s %s", address);
+    socket_channel tempchan;
+    if ((iretn=socket_open(&tempchan, NetworkType::UDP, address, AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) == 0)
+    {
+        for (size_t i=0; i<sendchan.size(); ++i)
+        {
+            if (sendchan[i].address[0] == 0)
+            {
+                sendchan[i] = tempchan;
+                return 0;
+            }
+        }
+        sendchan.push_back(tempchan);
+    }
+    return 0;
+}
+
+int32_t request_del_forward(char *req, char* response, Agent *)
+{
+    int32_t iretn;
+    char address[50];
+    sscanf(req, "%*s %s", address);
+
+    for (size_t i=0; i<sendchan.size(); ++i)
+    {
+        if (!strcmp(sendchan[i].address, address))
+        {
+            socket_close(&sendchan[i]);
+            sendchan[0].address[0] = 0;
+        }
+    }
+    return 0;
 }

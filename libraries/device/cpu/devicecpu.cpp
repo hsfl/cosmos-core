@@ -40,7 +40,7 @@ double DeviceCpu::getLoad(){
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    load = cpuWin.getLoad();
+    load = cpuWin.getLoad() * numProcessors;
 #endif
 
     return load;

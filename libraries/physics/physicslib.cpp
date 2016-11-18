@@ -1383,7 +1383,14 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     }
 
     // More Power details
-    dcharge = (cdata.physics.dt/3600.) * ((cdata.node.powgen-cdata.node.powuse) / cdata.devspec.batt[0]->gen.volt) / cdata.devspec.batt_cnt;
+    if (cdata.devspec.batt_cnt)
+    {
+        dcharge = (cdata.physics.dt/3600.) * ((cdata.node.powgen-cdata.node.powuse) / cdata.devspec.batt[0]->gen.volt) / cdata.devspec.batt_cnt;
+    }
+    else
+    {
+        dcharge = 0.;
+    }
     for (i=0; i<cdata.devspec.batt_cnt; i++)
     {
         cdata.devspec.batt[i]->charge += dcharge;
