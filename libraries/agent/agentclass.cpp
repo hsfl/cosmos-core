@@ -74,6 +74,16 @@ Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsi
 {
     int32_t iretn;
 
+    double timeStart = currentmjd();
+
+    std::cout << "------------------------------------------------------" << std::endl;
+    std::cout << "COSMOS AGENT '" << aname << "' on node '" << nname << "'" << std::endl;
+//    std::cout << "Beat Period is " << beat_period << " sec, using request port " << port << std::endl;
+    std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
+    std::cout << "Agent started at " << mjdToGregorian(timeStart) << std::endl;
+    std::cout << "------------------------------------------------------" << std::endl;
+
+
     // Initialize COSMOS data space
     if ((cinfo = json_create()) == nullptr)
     {
@@ -219,6 +229,9 @@ Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsi
 
     cinfo->pdata.agent[0].server = 1;
     cinfo->pdata.agent[0].stateflag = (uint16_t)Agent::State::RUN;
+
+
+
 
 
 }
