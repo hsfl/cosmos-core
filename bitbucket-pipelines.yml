@@ -9,7 +9,9 @@ pipelines:
   default:
     - step:
         script: # Modify the commands below to build your repository.
-          - apt-get install cmake
-          - cmake .
+          - apt-get update
+          - apt-get -y install cmake
+          - cd build
+          - cmake ..
           - make
           #- make test
