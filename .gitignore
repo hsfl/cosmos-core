@@ -2,6 +2,7 @@
 *.autosave
 build/qtarm/*
 build/arm/*
+build/armtest/*
 build/linux/*
 build/macos/*
 build/windows*

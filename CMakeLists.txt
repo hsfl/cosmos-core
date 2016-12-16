@@ -63,9 +63,9 @@ else()
     set(BUILD_COSMOS_CORE_THIRDPARTY_DIRENT     OFF)
 endif()
 
-#TODO: is COSMOS_CXX_FLAGS still being used?
-#set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++11 -U__STRICT_ANSI__ -Wno-invalid-offsetof")
-set(COSMOS_CXX_FLAGS "")
+#Note: Actual flags are COSMOS_CXX_FLAGS + COSMOS_CXX_FLAGS_RELEASE/DEBUG?
+set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++11 -U__STRICT_ANSI__ -Wno-invalid-offsetof")
+#set(COSMOS_CXX_FLAGS "")
 
 # Force strict ANSI
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -U__STRICT_ANSI__")
@@ -73,9 +73,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -U__STRICT_ANSI__")
 # Debugging?
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     if (MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MTd")
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
     else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+        if (${BUILD_TYPE} MATCHES "arm")
+            set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2")
+        endif()
     endif()
     message("Building for Debugging")
 endif()
@@ -92,6 +94,42 @@ if (BUILD_STATIC AND NOT MSVC)
     set(BUILD_SHARED_LIBS OFF)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
 endif ()
+
+# run this to create QtCreatorDeployment.txt for remote device deployment
+# http://qt-project.org/doc/qtcreator-3.0/creator-project-cmake.html
+file(WRITE "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "/cosmos\n")
+
+macro(add_deployment_binary SRC DEST)
+    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+    file(APPEND "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "${path}/${SRC}:${DEST}\n")
+endmacro()
+
+macro(add_deployment_source SRC DEST)
+    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+    file(APPEND "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "${path}/${SRC}:${DEST}\n")
+endmacro()
+
+macro(add_deployment_directory SRC DEST)
+    file(GLOB_RECURSE files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*")
+    foreach(filename ${files})
+        get_filename_component(path ${filename} PATH)
+        add_deployment_binary("${filename}" "${DEST}/${path}")
+    endforeach(filename)
+endmacro()
+
+macro(add_deployment_source_directory SRC DEST)
+    message("add_deployment_source_directory ${SRC} ${DEST}")
+    file(GLOB files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*.cpp")
+    foreach(filename ${files})
+        get_filename_component(path ${filename} PATH)
+        add_deployment_source("${filename}" "${DEST}/${path}")
+    endforeach(filename)
+    file(GLOB files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*.h")
+    foreach(filename ${files})
+        get_filename_component(path ${filename} PATH)
+        add_deployment_source("${filename}" "${DEST}/${path}")
+    endforeach(filename)
+endmacro()
 
 # -----------------------------------------------
 # Linux specific
@@ -121,7 +159,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
             set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/cross/arm")
         endif("$ENV{COSMOS}" STREQUAL "")
 
-        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_arm")
+        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_arm_linux.cmake")
 
     else()
         if("$ENV{COSMOS}" STREQUAL "")
@@ -322,36 +360,36 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/tutorials)
 
 # -----------------------------------------------
 # to deploy on a remote device
-file(WRITE "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "cosmos\n")
+#file(WRITE "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "cosmos\n")
 
-macro(add_deployment_file SRC DEST)
-    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-    file(APPEND "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "${path}/${SRC}:${DEST}\n")
-endmacro()
+#macro(add_deployment_file SRC DEST)
+#    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+#    file(APPEND "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "${path}/${SRC}:${DEST}\n")
+#endmacro()
 
-macro(add_deployment_directory SRC DEST)
-    file(GLOB_RECURSE files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*")
-    foreach(filename ${files})
-        get_filename_component(path ${filename} PATH)
-        add_deployment_file("${filename}" "${DEST}/${path}")
-    endforeach(filename)
-endmacro()
+#macro(add_deployment_directory SRC DEST)
+#    file(GLOB_RECURSE files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*")
+#    foreach(filename ${files})
+#        get_filename_component(path ${filename} PATH)
+#        add_deployment_file("${filename}" "${DEST}/${path}")
+#    endforeach(filename)
+#endmacro()
 
-set(program_name programs/agents/agent_exec)
-file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/${program_name})
-add_deployment_file(${relativeDir} "bin")
+#set(program_name programs/agents/agent_exec)
+#file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/${program_name})
+#add_deployment_file(${relativeDir} "bin")
 
-set(program_name programs/agents/agent_cpu)
-file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/${program_name})
-add_deployment_file(${relativeDir} "bin")
+#set(program_name programs/agents/agent_cpu)
+#file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/${program_name})
+#add_deployment_file(${relativeDir} "bin")
 
-set(program_name programs/general/command_generator)
-file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/${program_name})
-add_deployment_file(${relativeDir} "bin")
+#set(program_name programs/general/command_generator)
+#file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/${program_name})
+#add_deployment_file(${relativeDir} "bin")
 
 #file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/programs/agents)
 #add_deployment_directory(${relativeDir} "")
 
-add_deployment_file(scripts/setupCosmosCore.sh "")
+#add_deployment_file(scripts/setupCosmosCore.sh "")
 
 

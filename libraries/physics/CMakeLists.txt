@@ -15,3 +15,5 @@ install(TARGETS CosmosPhysics DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/physics)
 install(FILES ${INCLUDESPP} DESTINATION include/physics)
 
+
+add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")

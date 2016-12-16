@@ -14,4 +14,7 @@ foreach(file ${files})
 
     install(TARGETS ${bfile} DESTINATION bin)
 
+    add_deployment_binary(${bfile} "bin")
+    add_deployment_source(${bfile}.cpp "src")
+
 endforeach()

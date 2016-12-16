@@ -10,3 +10,4 @@ add_library(CosmosAgent STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS CosmosAgent DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/agent)
 
+add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")

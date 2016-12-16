@@ -9,4 +9,7 @@ foreach(file ${files})
     add_executable(${bfile} ${bfile}.cpp)
     target_link_libraries(${bfile} ${COSMOS_LIBS})
     install(TARGETS ${bfile} DESTINATION bin)
+        add_deployment_binary(${bfile} "bin")
+        add_deployment_source(${bfile}.cpp "src")
+
 endforeach()
