@@ -31,12 +31,10 @@
 // agent 002 makes request to 002 upon activation
 
 #include "support/configCosmos.h"
-//#include "agent/agentclasslib.h"
 #include "agent/agentclass.h"
 
 #include <iostream>
 #include <string>
-using namespace std;
 
 // function prototype of agent request
 int32_t request_hello(char *request, char* response, Agent *cdata);

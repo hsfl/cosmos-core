@@ -42,8 +42,6 @@
 
 #include <iostream>
 
-//using namespace std;
-
 #define MAXEPHEM 3
 
 char ibuf[AGENTMAXBUFFER];

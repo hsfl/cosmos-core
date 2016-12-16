@@ -40,7 +40,6 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>      // std::setprecision
-//using namespace std;
 
 locstruc tloc, loc, iloc;
 rvector ilvlh;

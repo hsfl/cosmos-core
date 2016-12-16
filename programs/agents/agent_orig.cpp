@@ -55,9 +55,7 @@
 #include "limits.h"
 #include <iostream>
 
-//using namespace std;
-
-std::string output;
+string output;
 Agent *agent;
 
 const int REQUEST_WAIT_TIME = 2;

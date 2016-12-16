@@ -34,7 +34,6 @@
 #include <sys/stat.h>
 #include <iostream>
 
-//using namespace std;
 #include <stdio.h>
 
 #include "support/jsonlib.h"

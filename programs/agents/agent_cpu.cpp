@@ -37,9 +37,8 @@
 //#include <unistd.h>
 //#endif
 
-//using namespace std;
-using std::cout;
-using std::endl;
+//using std::cout;
+//using std::endl;
 
 // flag to turn on/off print
 bool printStatus;

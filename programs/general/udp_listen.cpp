@@ -53,8 +53,6 @@
 #include <string>
 #include <vector>
 
-//using namespace std;
-
 #include "agent/agentclass.h"
 #include "support/jsonlib.h"
 #include "support/convertlib.h"

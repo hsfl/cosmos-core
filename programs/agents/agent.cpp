@@ -50,8 +50,6 @@
 #include "limits.h"
 #include <iostream>
 
-//using namespace std;
-
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 6;
 
