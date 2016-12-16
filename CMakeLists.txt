@@ -278,7 +278,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
     if("$ENV{COSMOS}" STREQUAL "")
-        set(COSMOS_INSTALL_FOLDER "/Applications/cosmos")
+        set(COSMOS_INSTALL_FOLDER "~/cosmos")
     else()
         set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/macos")
     endif("$ENV{COSMOS}" STREQUAL "")

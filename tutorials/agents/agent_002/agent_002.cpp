@@ -47,7 +47,6 @@ int main(int, char **)
 {
     //setEnvCosmos(cosmosPath);
 
-
     cout << "Starting agent " << endl;
 
     string agentname     = "002";
