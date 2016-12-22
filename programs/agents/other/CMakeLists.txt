@@ -18,11 +18,3 @@ foreach(file ${files})
     add_deployment_source(${bfile}.cpp "src")
 
 endforeach()
-
-if(${BUILD_AGENTS_TYPE} MATCHES "ALL")
-    add_subdirectory(ground-station)
-endif()
-
-if(${BUILD_AGENTS_TYPE} MATCHES "ALL")
-    add_subdirectory(other)
-endif()

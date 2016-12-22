@@ -9,12 +9,48 @@ option(USE_MSVC_STATIC_RUNTIME "USE Static Runtime with MSVC" "OFF")
 
 #--------------------------------------------------------------------
 # user config variables
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    # Linux specific code
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+#--------------------------------------------------------------------
 
 # define the project name
 set(PROJECT_NAME                cosmos-core)
+
+# a complete build will build all the essential libraries and programs
+# but also every acessory program in core
+# COMPLETE - everything is built
+# BASIC    - only the essential libraries and prgram agents are build
+# MINIMAL  - only the libraries are built (no agents, no programs)
+set(BUILD_TYPE BASIC) # COMPLETE, BASIC, MINIMAL
+
+# Build agents type list
+# CORE - build the essential agents for COSMOS/core (default)
+# NONE - doesn't build any agent
+# GS   - builds ground station agents
+if(${BUILD_TYPE} MATCHES "COMPLETE")
+    set(BUILD_PROGRAMS YES) # YES, NO
+    set(BUILD_PROGRAMS_AGENTS YES) # YES, NO
+    set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
+    set(BUILD_PROGRAMS_GENERAL YES) # YES, NO
+
+    set(BUILD_TUTORIALS YES) # YES, NO
+endif()
+
+if(${BUILD_TYPE} MATCHES "BASIC")
+    set(BUILD_PROGRAMS YES) # YES, NO
+    set(BUILD_PROGRAMS_AGENTS YES) # YES, NO
+    set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
+    set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
+
+    set(BUILD_TUTORIALS NO) # YES, NO
+endif()
+
+if(${BUILD_TYPE} MATCHES "MINIMAL")
+    set(BUILD_PROGRAMS NO) # YES, NO
+    set(BUILD_PROGRAMS_AGENTS NO) # YES, NO
+    set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
+    set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
+
+    set(BUILD_TUTORIALS NO) # YES, NO
+endif()
 
 # Type of build
 set(CMAKE_BUILD_TYPE Debug) # Release or Debug
@@ -351,12 +387,15 @@ message("CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 
 # -----------------------------------------------
 # now that the libraries have been compiled let's add the cosmos-core programs
-add_subdirectory(${PROJECT_SOURCE_DIR}/programs)
-
+if(${BUILD_PROGRAMS} MATCHES "YES")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/programs)
+endif()
 
 # -----------------------------------------------
 # now that the libraries have been compiled let's add the cosmos-core programs
-add_subdirectory(${PROJECT_SOURCE_DIR}/tutorials)
+if(${BUILD_TUTORIALS} MATCHES "YES")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/tutorials)
+endif()
 
 # -----------------------------------------------
 # to deploy on a remote device
