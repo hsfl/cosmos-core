@@ -28,4 +28,4 @@ Qt kit setup for MSVC.
 
 Cross-compiling on Windows for ARM
 ----------------------------------
-please open the file [install-arm.txt](https://bitbucket.org/cosmos/core/src/master/tutorials/install/linux_arm.md)
+please open the file [install-arm.txt](https://bitbucket.org/cosmos/core/src/325e785eac494d12e7d75caa5c36ac376c9fc64d/install/linux_arm.md?at=master&fileviewer=file-view-default)
