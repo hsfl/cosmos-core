@@ -791,10 +791,10 @@ int32_t ic9100_check_address(ic9100_handle &handle)
 		return iretn;
 	}
 
-	if (handle.address != handle.response[0])
-	{
-		return IC9100_ERROR_OUTOFRANGE;
-	}
+//	if (handle.address != handle.response[0])
+//	{
+//		return IC9100_ERROR_OUTOFRANGE;
+//	}
 
 	return 0;
 }
