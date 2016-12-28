@@ -151,6 +151,7 @@ int32_t socket_check_udp_checksum(std::vector<uint8_t> packet);
 int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet);
 int32_t socket_blocking(socket_channel *channel, bool blocking);
 int32_t socket_close(socket_channel *channel);
+int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags);
 std::vector<socket_channel> socket_find_addresses(NetworkType ntype);
 
 //-------------------------------------------------------------------
