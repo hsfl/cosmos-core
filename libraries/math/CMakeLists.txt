@@ -10,3 +10,5 @@ add_library(CosmosMath STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS CosmosMath DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/math)
 
+
+add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")

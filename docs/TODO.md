@@ -1,1 +1,0 @@
-- move device_tests to the new devices modules

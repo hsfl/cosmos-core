@@ -1215,9 +1215,10 @@ int32_t set_cosmosnodes()
         }
 #endif
 #ifdef COSMOS_MAC_OS
-        if (data_isdir("/Applications/cosmos/nodes/"))
+        croot = getenv("HOME");
+        if (croot != nullptr && data_isdir(croot + (std::string)"/cosmos/nodes"))
         {
-            cosmosnodes = "/Applications/cosmos/nodes/";
+            cosmosnodes = croot + (std::string)"/cosmos/nodes";
             return 0;
         }
 #endif
@@ -1260,6 +1261,13 @@ int32_t set_cosmosnodes()
         std::cerr << "../nodes to ../../../../../../nodes (6 levels above current folder)" << std::endl;
 #endif
 
+#ifdef COSMOS_MAC_OS
+        std::cerr << "<COSMOSNODES>  environment variable (if set)" << std::endl;
+        std::cerr << "<COSMOS>/nodes environment variable (if set)" << std::endl;
+        std::cerr << "~/cosmos/nodes" << std::endl;
+        std::cerr << "../cosmosnodes to ../../../../../../cosmosnodes (6 levels above current folder)" << std::endl;
+        std::cerr << "../nodes to ../../../../../../nodes (6 levels above current folder)" << std::endl;
+#endif
         return (DATA_ERROR_NODES_FOLDER);
     }
     else

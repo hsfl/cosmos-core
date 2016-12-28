@@ -17,3 +17,5 @@ target_link_libraries(CosmosDeviceVn100 CosmosDeviceGeneral)
 
 install(TARGETS CosmosDeviceVn100 DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/vn100)
+
+add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
