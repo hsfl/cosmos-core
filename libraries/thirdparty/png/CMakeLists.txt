@@ -11,3 +11,5 @@ add_library(png STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS png DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/thirdparty/png)
 
+
+add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")

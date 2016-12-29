@@ -11,3 +11,5 @@ add_library(jpeg STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS jpeg DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/thirdparty/jpeg)
 
+
+add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")

@@ -8,4 +8,6 @@
 #    endif()
 #endforeach()
 
-add_subdirectory(agents)
+if(${BUILD_TUTORIALS} MATCHES "YES")
+    add_subdirectory(agents)
+endif()

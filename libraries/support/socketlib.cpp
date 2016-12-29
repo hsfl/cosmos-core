@@ -644,6 +644,19 @@ std::vector<socket_channel> socket_find_addresses(NetworkType ntype)
     return (iface);
 }
 
+int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
+{
+    int32_t nbytes;
+    buffer.resize(maxlen);
+    if ((nbytes = recvfrom(channel.cudp, (char *)buffer.data(), maxlen, flags, (struct sockaddr *)&channel.caddr, (socklen_t *)&channel.addrlen)) > 0)
+    {
+        buffer.resize(nbytes);
+        inet_ntop(channel.caddr.sin_family, &channel.caddr.sin_addr, channel.address, sizeof(channel.address));
+    }
+    return nbytes;
+}
+
+
 //! Open UDP socket
 /*! Open a UDP socket and configure it for the specified use. Various
 flags are set, and the socket is bound, if necessary. Support is

@@ -19,3 +19,5 @@ install(TARGETS CosmosDeviceDisk DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/disk)
 
 
+add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
+

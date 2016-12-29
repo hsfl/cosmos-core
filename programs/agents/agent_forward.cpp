@@ -120,15 +120,52 @@ void incoming_thread()
 {
 	//	int32_t iretn;
 	int32_t nbytes;
-	char input[AGENTMAXBUFFER];
+    int32_t iretn;
+    vector <uint8_t> input;
 
     while(agent->running())
 	{
-		if ((nbytes = recvfrom(rcvchan.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
-		{
+//        if ((nbytes = recvfrom(rcvchan.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&rcvchan.caddr,(socklen_t *)&rcvchan.addrlen)) > 0)
+            if ((nbytes = socket_recvfrom(rcvchan, input, AGENTMAXBUFFER, 0)) > 0)
+        {
+            // New forwarder? Add to forwarding list
+            bool found = false;
+            for (size_t i=0; i<sendchan.size(); ++i)
+            {
+                if (!strcmp(sendchan[i].address, rcvchan.address))
+                {
+                    found = true;
+                }
+            }
+
+            if (!found)
+            {
+                socket_channel tempchan;
+                if ((iretn=socket_open(&tempchan, NetworkType::UDP, rcvchan.address, AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) == 0)
+                {
+                    bool added = false;
+                    for (size_t i=0; i<sendchan.size(); ++i)
+                    {
+                        if (!sendchan[i].address[0])
+                        {
+                            sendchan[i] = tempchan;
+                            added = true;
+                            break;
+                        }
+                    }
+
+                    if (!added)
+                    {
+                        {
+                            sendchan.push_back(tempchan);
+                        }
+                    }
+                }
+            }
+
             for (size_t i=0; i<agent->cinfo->pdata.agent[0].ifcnt; ++i)
 			{
-                sendto(agent->cinfo->pdata.agent[0].pub[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&agent->cinfo->pdata.agent[0].pub[i].caddr,sizeof(struct sockaddr_in));
+                sendto(agent->cinfo->pdata.agent[0].pub[i].cudp, (const char *)input.data(), nbytes, 0, (struct sockaddr *)&agent->cinfo->pdata.agent[0].pub[i].caddr, sizeof(struct sockaddr_in));
 			}
 		}
 	}
@@ -142,22 +179,29 @@ int32_t request_add_forward(char *req, char* response, Agent *)
     socket_channel tempchan;
     if ((iretn=socket_open(&tempchan, NetworkType::UDP, address, AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) == 0)
     {
+        bool added = false;
         for (size_t i=0; i<sendchan.size(); ++i)
         {
-            if (sendchan[i].address[0] == 0)
+            if (!sendchan[i].address[0])
             {
                 sendchan[i] = tempchan;
-                return 0;
+                added = true;
+                break;
             }
         }
-        sendchan.push_back(tempchan);
+
+        if (!added)
+        {
+            {
+                sendchan.push_back(tempchan);
+            }
+        }
     }
     return 0;
 }
 
 int32_t request_del_forward(char *req, char* response, Agent *)
 {
-    int32_t iretn;
     char address[50];
     sscanf(req, "%*s %s", address);
 

@@ -46,7 +46,6 @@
 
 #include <iostream>
 #include <string>
-using namespace std;
 Agent *agent;
 
 int main(int, char **)

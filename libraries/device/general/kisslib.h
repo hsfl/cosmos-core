@@ -35,8 +35,6 @@
 #include <cstring>
 #include <iostream>
 
-//using namespace std;
-
 #define FEND  0xC0
 #define FESC  0xDB
 #define TFEND 0xDC

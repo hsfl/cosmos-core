@@ -10,3 +10,5 @@ add_library(zlib STATIC ${SOURCES} ${INCLUDES})
 install(TARGETS zlib DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/thirdparty/zlib)
 
+
+add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")

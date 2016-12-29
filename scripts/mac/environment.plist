@@ -9,8 +9,8 @@
     <string>sh</string>
     <string>-c</string>
     <string>
-    launchctl setenv COSMOSNODES "/Applications/COSMOS/nodes/"
-    launchctl setenv COSMOSRESOURCES "/Applications/COSMOS/resources/"
+    launchctl setenv COSMOSNODES "~/cosmos/nodes/"
+    launchctl setenv COSMOSRESOURCES "~/cosmos/resources/"
     </string>
 
   </array>

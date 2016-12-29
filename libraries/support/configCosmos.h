@@ -92,6 +92,8 @@ using std::thread;
 using std::condition_variable;
 #include <queue>
 using std::queue;
+#include <sstream>
+using std::istringstream;
 
 #include "support/cosmos-errno.h"
 #include "support/cosmos-defs.h"
