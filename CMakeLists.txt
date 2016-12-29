@@ -19,7 +19,8 @@ set(PROJECT_NAME                cosmos-core)
 # COMPLETE - everything is built
 # BASIC    - only the essential libraries and prgram agents are build
 # MINIMAL  - only the libraries are built (no agents, no programs)
-set(BUILD_TYPE BASIC) # COMPLETE, BASIC, MINIMAL
+set(BUILD_TYPE COMPLETE) # COMPLETE, BASIC, MINIMAL
+set(BUILD_AGENTS_TYPE ALL)
 
 # Build agents type list
 # CORE - build the essential agents for COSMOS/core (default)
