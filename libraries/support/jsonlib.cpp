@@ -5491,10 +5491,12 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosmetastruc &cmeta, cosmosdatas
         memset(&(cdata.node),0,sizeof(nodestruc));
         break;
     case JSON_STRUCT_EVENT:
-        memset(cdata.event.data(),0,cdata.event.size()*sizeof(eventstruc));
+        cdata.event.clear();
+//        memset(cdata.event.data(),0,cdata.event.size()*sizeof(eventstruc));
         break;
     case JSON_STRUCT_PIECE:
-        memset(cdata.piece.data(),0,cdata.piece.size()*sizeof(piecestruc));
+        cdata.piece.clear();
+//        memset(cdata.piece.data(),0,cdata.piece.size()*sizeof(piecestruc));
         break;
     case JSON_STRUCT_DEVICE:
         cdata.device.clear();
@@ -5506,28 +5508,42 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosmetastruc &cmeta, cosmosdatas
         memset(&(cdata.physics),0,sizeof(physicsstruc));
         break;
     case JSON_STRUCT_AGENT:
-        memset(cdata.agent.data(),0,cdata.agent.size()*sizeof(agentstruc));
+        cdata.agent.clear();
+//        memset(cdata.agent.data(),0,cdata.agent.size()*sizeof(agentstruc));
         break;
     case JSON_STRUCT_USER:
-        memset(cdata.user.data(),0,cdata.user.size()*sizeof(userstruc));
+        cdata.user.clear();
+//        memset(cdata.user.data(),0,cdata.user.size()*sizeof(userstruc));
         break;
     case JSON_STRUCT_PORT:
-        memset(cdata.port.data(),0,cdata.port.size()*sizeof(portstruc));
+        cdata.port.clear();
+//        memset(cdata.port.data(),0,cdata.port.size()*sizeof(portstruc));
         break;
     case JSON_STRUCT_TARGET:
-        memset(cdata.target.data(),0,cdata.target.size()*sizeof(targetstruc));
+        cdata.target.clear();
+//        memset(cdata.target.data(),0,cdata.target.size()*sizeof(targetstruc));
         break;
     case JSON_STRUCT_GLOSSARY:
-        memset(cdata.glossary.data(),0,cdata.glossary.size()*sizeof(glossarystruc));
+        cdata.glossary.clear();
+//        memset(cdata.glossary.data(),0,cdata.glossary.size()*sizeof(glossarystruc));
         break;
     case JSON_STRUCT_TLE:
-        memset(cdata.tle.data(),0,cdata.tle.size()*sizeof(tlestruc));
+        cdata.tle.clear();
+//        memset(cdata.tle.data(),0,cdata.tle.size()*sizeof(tlestruc));
         break;
     case JSON_STRUCT_ALIAS:
-        memset(cmeta.alias.data(),0,cmeta.alias.size()*sizeof(aliasstruc));
+        cmeta.alias.clear();
+//        memset(cmeta.alias.data(),0,cmeta.alias.size()*sizeof(aliasstruc));
         break;
     case JSON_STRUCT_EQUATION:
-        memset(cmeta.equation.data(),0,cmeta.equation.size()*sizeof(equationstruc));
+        cmeta.equation.clear();
+//        memset(cmeta.equation.data(),0,cmeta.equation.size()*sizeof(equationstruc));
+        break;
+    case JSON_STRUCT_ALL:
+        for (int32_t i=1; i<(int32_t)JSON_STRUCT_ALL; ++i)
+        {
+            json_clear_cosmosstruc(i, cmeta, cdata);
+        }
         break;
     }
     return 0;

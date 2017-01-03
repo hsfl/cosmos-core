@@ -1874,9 +1874,17 @@ int32_t Agent::poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, fl
                     meta.jlength = nbytes;
                 }
 
-                // Copy message.
-                message.resize(nbytes-start_byte);
-                memcpy(message.data(), &input[start_byte], nbytes-start_byte);
+                // Copy message to ring. Strip JSON if message is binary.
+                if (meta.type < AGENT_MESSAGE_BINARY)
+                {
+                    message.resize(nbytes-start_byte);
+                    memcpy(message.data(), &input[start_byte], nbytes-start_byte);
+                }
+                else
+                {
+                    message.resize(nbytes-(start_byte+meta.jlength));
+                    memcpy(message.data(), &input[start_byte+meta.jlength], nbytes-(start_byte+meta.jlength));
+                }
 
                 // Extract meta data
                 sscanf((const char *)message.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
