@@ -166,7 +166,9 @@ enum
     //! ::aliasstruc
     JSON_STRUCT_ALIAS,
     //! ::equationstruc
-    JSON_STRUCT_EQUATION
+    JSON_STRUCT_EQUATION,
+    //! entirety
+    JSON_STRUCT_ALL
     };
 
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
@@ -383,21 +385,21 @@ enum
 #define MAX_COSMOSSTRUC 20
 
 //! Entire ::cosmosstruc
-#define JSON_MAP_ALL 0
-//! ::agentstruc part of ::cosmosstruc
-#define JSON_MAP_AGENT 1
-//! ::beaconstruc part of ::cosmosstruc
-#define JSON_MAP_BEACON 2
-//! ::nodestruc part of ::cosmosstruc
-#define JSON_MAP_NODESTATIC 3
-//! ::nodestruc part of ::cosmosstruc
-#define JSON_MAP_NODEDYNAMIC 4
-//! ::eventstruc part of ::cosmosstruc
-#define JSON_MAP_EVENT 5
-//! ::cosmosstruc_s part of ::cosmosstruc
-#define JSON_MAP_STATIC 7
-//! ::cosmosstruc_d part of ::cosmosstruc
-#define JSON_MAP_DYNAMIC 8
+//#define JSON_MAP_ALL 0
+////! ::agentstruc part of ::cosmosstruc
+//#define JSON_MAP_AGENT 1
+////! ::beaconstruc part of ::cosmosstruc
+//#define JSON_MAP_BEACON 2
+////! ::nodestruc part of ::cosmosstruc
+//#define JSON_MAP_NODESTATIC 3
+////! ::nodestruc part of ::cosmosstruc
+//#define JSON_MAP_NODEDYNAMIC 4
+////! ::eventstruc part of ::cosmosstruc
+//#define JSON_MAP_EVENT 5
+////! ::cosmosstruc_s part of ::cosmosstruc
+//#define JSON_MAP_STATIC 7
+////! ::cosmosstruc_d part of ::cosmosstruc
+//#define JSON_MAP_DYNAMIC 8
 
 //! Maximum AGENT transfer buffer size
 #define AGENTMAXBUFFER 60000
