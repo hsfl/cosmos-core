@@ -37,7 +37,7 @@
 #include <string>
 #include <ctime>
 
-#ifdef BUILD_TYPE_arm
+#ifdef CROSS_TYPE_arm
 #include <sys/time.h>
 #else
 #include <chrono>
@@ -61,7 +61,7 @@
 // On windows using MinGw32 it does not get better than 1ms
 class ElapsedTime {
     //new for c++11
-#ifdef BUILD_TYPE_arm
+#ifdef CROSS_TYPE_arm
     //	struct timespec timeStart, timeNow, timeCheck;
     timeval timeStart, timeStop, timeNow, timeCheck;
 #else

@@ -57,7 +57,7 @@ endif()
 set(CMAKE_BUILD_TYPE Debug) # Release or Debug
 
 # Type of architecture (arm, ...)
-add_definitions( -DBUILD_TYPE_${BUILD_TYPE})
+add_definitions( -DCROSS_TYPE_${CROSS_TYPE})
 
 # define folder where your programs are going to be installed
 #set(INSTALL_DIR                run)
@@ -107,12 +107,14 @@ set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++11 -U__STRICT_ANSI__ -Wno-invalid-
 # Force strict ANSI
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -U__STRICT_ANSI__")
 
+find_package (Threads)
+
 # Debugging?
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     if (MSVC)
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
     else()
-        if (${BUILD_TYPE} MATCHES "arm")
+        if (${CROSS_TYPE} MATCHES "arm")
             set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-2")
         endif()
     endif()
@@ -129,7 +131,7 @@ option(BUILD_STATIC "Build Static Executables" OFF)
 if (BUILD_STATIC AND NOT MSVC)
     message("Building static executables")
     set(BUILD_SHARED_LIBS OFF)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
 endif ()
 
 # run this to create QtCreatorDeployment.txt for remote device deployment
@@ -177,7 +179,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
         # Set Compiler flags
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm -lpthread")
         message("Building with GCC (MinGw)")
 
         set(COMPILER_IS_LINUX_GCC 1)
@@ -189,11 +191,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
     endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
     #  option(BUILD_ARM "Build for ARM architecture" OFF)
-    if (${BUILD_TYPE} MATCHES "arm")
+    if (${CROSS_TYPE} MATCHES "arm")
         if("$ENV{COSMOS}" STREQUAL "")
-            set(COSMOS_INSTALL_FOLDER "~/cosmos/cross/arm")
+            set(COSMOS_INSTALL_FOLDER "~/cosmos/arm")
         else()
-            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/cross/arm")
+            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/arm")
         endif("$ENV{COSMOS}" STREQUAL "")
 
         set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_arm_linux.cmake")
@@ -245,9 +247,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
     endif("$ENV{COSMOS}" STREQUAL "")
 
     # if we are cross compiling then put the files inside the "crosscompile" folder
-    if (${BUILD_TYPE} MATCHES "arm")
+    if (${CROSS_TYPE} MATCHES "arm")
         message("Building for targe arm")
-        set(COSMOS_INSTALL_FOLDER "c:/cosmos/cross/arm")
+        set(COSMOS_INSTALL_FOLDER "c:/cosmos/arm")
         set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
     endif()
 
@@ -315,7 +317,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
     if("$ENV{COSMOS}" STREQUAL "")
-        set(COSMOS_INSTALL_FOLDER "~/cosmos")
+        set(COSMOS_INSTALL_FOLDER "~/cosmos/${CROSS_TYPE}")
     else()
         set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/macos")
     endif("$ENV{COSMOS}" STREQUAL "")
