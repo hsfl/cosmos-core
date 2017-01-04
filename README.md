@@ -4,35 +4,57 @@
 progress. If you find problems or no documentation for something
 you're looking for please let us know.**
 
-The COSMOS core is the basic element of the COSMOS project with the
+The COSMOS/core is the basic element of the COSMOS project with the
 essential libraries and programs. The api documentation includes the
-descriptions of the basic support functions necessary to make COSMOS
-core work, as well as the most useful agent and support programs. The
+descriptions of the basic support functions necessary to make 
+COSMOS/core work, as well as the most useful agent and support programs. The
 cosmos core is broadly divided into \ref programs and \ref libraries. 
  
 If you haven't downloaded or setup the COSMOS software please go to the [COSMOS
 101 tutorial](https://bitbucket.org/cosmos/tutorial/wiki/Home). Also for the
-latest information on COSMOS refer to our website:
-[http://www.cosmos-project.org/](http://www.cosmos-project.org/). The
-cosmos-core api documentation is available on
-[http://cosmos-project.org/docs/core/current/](http://cosmos-project.org/docs/core/current/)
- with instructions on how to compile the code in different
+latest information on COSMOS refer to the website:
+[http://www.cosmos-project.org/](http://www.cosmos-project.org/). 
+The cosmos-core api documentation is available on
+[http://cosmos-project.org/docs/core/current/](http://cosmos-project.org/docs/core/current/) 
+with instructions on how to compile the code in different
 architectures, the api structure, some tutorials and the description
-for most classes and functions. Also, remember to update the code
-regularly ($ git pull) or "Pull" from SourceTree.
+for most classes and functions. Note: remember to update the code
+regularly (git pull). 
 
-Quick-start:
-
-1) Build and install cosmos-core and run two agents that talk to each
+Build and install cosmos/core and run two agents that talk to each
 other. These instructions assume that you are in the
-**cosmos-source/core** folder. Make sure you have all the tools
+**cosmos/src/core** folder. Make sure you have all the tools
 required to build COSMOS including Cmake (please check the required
 setup from
 [https://bitbucket.org/cosmos/tutorial/wiki/Setup](https://bitbucket.org/cosmos/tutorial/wiki/Setup))
 
+Quick-start:
+
+**1) Using the terminal **
+
+Open a terminal and type
+
+```
+#!shell
+
+cd cosmos/src/core/build
+cmake ..
+make
+```
+
+you can make the code compile faster by using multiple cores.
+This example shows how to use 8 cores:
+```
+#!shell
+
+make -j8
+```
+
+**2) Using Qt Creator**
+
 * Start Qt Creator
-* Open the core CMakeLists.txt file (File -> Open File or Project ->
-Open project : cosmos-source/core/CMakeLists.txt)
+* Open the CMakeLists.txt file (File -> Open File or Project ->
+Open project : cosmos/src/core/CMakeLists.txt)
 * Select a build directory (or use the default)
 * Select Generator. Ex: MinGW Generator (Desktop Qt 5.5.1 MinGW 32
 bit)
