@@ -9,7 +9,7 @@ If you haven't downloaded the COSMOS software please go to the [COSMOS 101 tutor
 
 Quick-start:
 
-1) Build and install cosmos-core and run two agents that talk to each other. These instructions assume that you are in the **cosmos-source/core** folder. Make sure you have the latest version of Cmake from [http://www.cmake.org/](http://www.cmake.org/)
+1) Build and install cosmos-core and run two agents that talk to each other. These instructions assume that you are in the **cosmos-source/core** folder. Make sure you have all the tools required to build COSMOS including Cmake (please check the required setup from [https://bitbucket.org/cosmos/tutorial/wiki/Setup](https://bitbucket.org/cosmos/tutorial/wiki/Setup))
 
 * Start Qt Creator
 * Open the core CMakeLists.txt file (File -> Open File or Project -> Open project : cosmos-source/core/CMakeLists.txt)
