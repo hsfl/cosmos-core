@@ -10,8 +10,8 @@ descriptions of the basic support functions necessary to make COSMOS
 core work, as well as the most useful agent and support programs. The
 cosmos core is broadly divided into \ref programs and \ref libraries. 
  
-If you haven't downloaded the COSMOS software please go to the [COSMOS
-101 tutorial](http://bitbucket.org/cosmos/tutorial). Also for the
+If you haven't downloaded or setup the COSMOS software please go to the [COSMOS
+101 tutorial](https://bitbucket.org/cosmos/tutorial/wiki/Home). Also for the
 latest information on COSMOS refer to our website:
 [http://www.cosmos-project.org/](http://www.cosmos-project.org/). The
 cosmos-core api documentation is available on
