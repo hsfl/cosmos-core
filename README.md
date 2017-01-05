@@ -52,17 +52,12 @@ make -j8
 
 **2) Using Qt Creator**
 
-* Start Qt Creator
+* Make sure you are using the latest version of Qt and Start Qt Creator
 * Open the CMakeLists.txt file (File -> Open File or Project ->
 Open project : cosmos/src/core/CMakeLists.txt)
 * Select a build directory (or use the default)
-* Select Generator. Ex: MinGW Generator (Desktop Qt 5.5.1 MinGW 32
-bit)
-* Hit "Run CMake"
 * Optional step to compile the code faster. Please read note 1 if
 you're interested. (For Linux check note 2)
-* Go to projects on the left sidebar. Under build steps, click on
-"Details", under "Targets" select "Install"
 * Build the project : ctrl + b
 * Check your "cosmos" folder (ex: C:\cosmos) to see the files that
 were installed
@@ -71,7 +66,7 @@ left side of Qt Creator) and select agent_001
 * Run agent_001. Click on the "Run" button (big green icon on left
 side of Qt Creator) or press 'ctrl+r'
 * Select agent_002. 
-* Run agent_002. 
+* Run agent_002. If running agent_002 stops the run of agent_001 see Note 2. 
 
 The two COSMOS agents should be talking to each other at this point. 
 ![agent_001_agent_002.PNG](https://bitbucket.org/repo/EpA5jo/images/402568663-agent_001_agent_002.PNG)
@@ -123,8 +118,8 @@ Desktop Qt 5.5.1 MinGW 32bit    | jom.exe (custom step)      | 8           | 1m 
 Desktop Qt 5.5.1 MSVC2013 64bit | jom.exe (default)          | 8           | 30s           |
 
 ## Note 2 ##
-Qt creator on Linux has an option to close the programs automatically
+Qt creator on Linux and Windows has an option to close the programs automatically
 when running another program. You will need to disable this behavior
 to run the two agents at the same time. Go to Tools > Options > Build
-and Run > General.  Change â€œStop applications before building:â€ to
+and Run > General.  Change “Stop applications before building:” to
 None.
