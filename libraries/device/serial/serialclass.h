@@ -38,6 +38,7 @@ class Serial
 {
 public:
     Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+    ~Serial();
     int32_t configure(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
     int32_t get_error();
 

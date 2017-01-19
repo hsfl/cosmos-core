@@ -120,7 +120,7 @@ namespace Cosmos {
     }
 
     // Set baud rate
-    serial->baud = baud;
+//    serial->baud = baud;
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
     size_t baud_index;
     bool baud_high_flag = false;
@@ -223,26 +223,26 @@ namespace Cosmos {
     }
 
     /* now we setup the values in port's termios */
-    serial->tio.c_cflag=baudrate|databits|checkparity|stopbits|CLOCAL|CREAD;
-    serial->tio.c_iflag=IGNPAR;
-    serial->tio.c_oflag=0;
-    serial->tio.c_lflag=0;
-    serial->tio.c_cc[VMIN]=1;
-    serial->tio.c_cc[VTIME]=0;
+    tio.c_cflag=baudrate|databits|checkparity|stopbits|CLOCAL|CREAD;
+    tio.c_iflag=IGNPAR;
+    tio.c_oflag=0;
+    tio.c_lflag=0;
+    tio.c_cc[VMIN]=1;
+    tio.c_cc[VTIME]=0;
 
     /* we flush the port */
-    tcflush(serial->fd,TCOFLUSH);
-    tcflush(serial->fd,TCIFLUSH);
+    tcflush(fd,TCOFLUSH);
+    tcflush(fd,TCIFLUSH);
 
     /* we send new config to the port */
-    tcsetattr(serial->fd,TCSANOW,&(serial->tio));
+    tcsetattr(fd,TCSANOW,&(tio));
 #else // windows
-    serial->dcb.BaudRate = baud;
-    serial->dcb.Parity = parity;
-    serial->dcb.StopBits = stop;
-    serial->dcb.ByteSize = bits;
-    serial->dcb.DCBlength = sizeof(DCB);
-    SetCommState(serial->handle, &(serial->dcb));
+    dcb.BaudRate = baud;
+    dcb.Parity = parity;
+    dcb.StopBits = stop;
+    dcb.ByteSize = bits;
+    dcb.DCBlength = sizeof(DCB);
+    SetCommState(handle, &(dcb));
 #endif
 
 
