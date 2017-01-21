@@ -108,10 +108,10 @@ namespace Cosmos {
     int32_t Serial::configure(int32_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-        tcflag_t baudrate;
-        tcflag_t databits;
-        tcflag_t stopbits;
-        tcflag_t checkparity;
+        tcflag_t trate;
+        tcflag_t tbits;
+        tcflag_t tstop;
+        tcflag_t tparity;
 #endif
 
         if (fd < 0)
@@ -124,14 +124,14 @@ namespace Cosmos {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         size_t baud_index;
         bool baud_speed_index = 0;
-        if (baud > (38400+57600)/2))
+        if (dbaud > (38400+57600)/2))
         {
             baud_speed_index = 1;
-            baud_index = (log10f((float)baud) - 4.7604) / .118 + .5;
+            baud_index = (log10f((float)dbaud) - 4.7604) / .118 + .5;
         }
         else
         {
-            baud_index = (log10f((float)baud) - 1.699) / .2025 + .5;
+            baud_index = (log10f((float)dbaud) - 1.699) / .2025 + .5;
         }
 
         do
@@ -164,54 +164,54 @@ namespace Cosmos {
     switch (baud_index)
     {
         case 1:
-            baudrate = B57600 + baud_index;
+            trate = B57600 + baud_index;
             break;
         default:
-            baudrate = baud_index;
+            trate = baud_index;
             break;
     }
 
     /* databits */
     switch (dbits) {
         case 7:
-            bits=CS7;
+            tbits=CS7;
             break;
         case 8:
-            bits=CS8;
+            tbits=CS8;
             break;
         default:
-            bits=CS8;
+            tbits=CS8;
     }
 
     /* parity, */
     switch (dparity) {
         case 0:
-            parity=0;
+            tparity=0;
             break;
         case 1:   /* odd */
-            parity=PARENB|PARODD;
+            tparity=PARENB|PARODD;
             break;
         case 2:
-            parity=PARENB;
+            tparity=PARENB;
             break;
         default:
-            parity=0;
+            tparity=0;
     }
 
     /* and stop bits */
     switch (dstop) {
         case 1:
-            stop=0;
+            tstop=0;
             break;
         case 2:
-            stop=CSTOPB;
+            tstop=CSTOPB;
             break;
         default:
-            stop=0;
+            tstop=0;
     }
 
     /* now we setup the values in port's termios */
-    tio.c_cflag=baudrate|databits|checkparity|stopbits|CLOCAL|CREAD;
+    tio.c_cflag=trate|tbits|tparity|tstop|CLOCAL|CREAD;
     tio.c_iflag=IGNPAR;
     tio.c_oflag=0;
     tio.c_lflag=0;
