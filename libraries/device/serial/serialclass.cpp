@@ -44,7 +44,7 @@ namespace Cosmos {
     //! \param bits Number of data bits.
     //! \param parity 0 = even, 1 = odd.
     //! \param stop Number of stop bits.
-    Serial::Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
+    Serial::Serial(string dname, int32_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
         int32_t iretn;
 
@@ -105,121 +105,109 @@ namespace Cosmos {
         return error;
     }
 
-    int32_t Serial::configure(size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
+    int32_t Serial::configure(int32_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-    tcflag_t baudrate;
-    tcflag_t databits;
-    tcflag_t stopbits;
-    tcflag_t checkparity;
+        tcflag_t baudrate;
+        tcflag_t databits;
+        tcflag_t stopbits;
+        tcflag_t checkparity;
 #endif
 
-    if (fd < 0)
-    {
-        return SERIAL_ERROR_OPEN;
-    }
+        if (fd < 0)
+        {
+            return SERIAL_ERROR_OPEN;
+        }
 
-    // Set baud rate
-//    serial->baud = baud;
+        // Set baud rate
+        //    serial->baud = baud;
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-    size_t baud_index;
-    bool baud_high_flag = false;
-    if (baud > (38400+57600)/2))
-    {
-        baud_high_flag = true;
-        baud_index = (log10f((float)baud) - 4.7604) / .118 + .5;
-    }
-    else
-    {
-        baud_index = (log10f((float)baud) - 1.699) / .2025 + .5;
-    }
+        size_t baud_index;
+        bool baud_speed_index = 0;
+        if (baud > (38400+57600)/2))
+        {
+            baud_speed_index = 1;
+            baud_index = (log10f((float)baud) - 4.7604) / .118 + .5;
+        }
+        else
+        {
+            baud_index = (log10f((float)baud) - 1.699) / .2025 + .5;
+        }
 
-    do
+        do
+        {
+            bool baud_adjust = false;
+            int32_t baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index]);
+            if (baud_index > 0)
+            {
+                int32_t new_baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index-1]);
+                if (new_baud_diff < baud_diff)
+                {
+                    --baud_index;
+                    baud_diff = new_baud_diff;
+                    baud_adjust = true;
+                }
+            }
+            if (baud_index < baud_speed.size()-1)
+            {
+                int32_t new_baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index+1]);
+                if (new_baud_diff < baud_diff)
+                {
+                    ++baud_index;
+                    baud_diff = new_baud_diff;
+                    baud_adjust = true;
+                }
+            }
+        }
+    } while (baud_adjust);
+
+    switch (baud_index)
     {
-
-    } while
-
-    switch (baud) {
-    case 75:
-        baudrate=B75;
-        break;
-    case 110:
-        baudrate=B110;
-        break;
-    case 150:
-        baudrate=B150;
-        break;
-    case 300:
-        baudrate=B300;
-        break;
-    case 600:
-        baudrate=B600;
-        break;
-    case 1200:
-        baudrate=B1200;
-        break;
-    case 2400:
-        baudrate=B2400;
-        break;
-    case 4800:
-        baudrate=B4800;
-        break;
-    case 9600:
-        baudrate=B9600;
-        break;
-    case 19200:
-        baudrate=B19200;
-        break;
-    case 38400:
-        baudrate=B38400;
-        break;
-    case 57600:
-        baudrate=B57600;
-        break;
-    case 115200:
-        baudrate=B115200;
-        break;
-    default:
-        baudrate=B9600;
+        case 1:
+            baudrate = B57600 + baud_index;
+            break;
+        default:
+            baudrate = baud_index;
+            break;
     }
 
     /* databits */
-    switch (bits) {
-    case 7:
-        databits=CS7;
-        break;
-    case 8:
-        databits=CS8;
-        break;
-    default:
-        databits=CS8;
+    switch (dbits) {
+        case 7:
+            bits=CS7;
+            break;
+        case 8:
+            bits=CS8;
+            break;
+        default:
+            bits=CS8;
     }
 
     /* parity, */
-    switch (parity) {
-    case 0:
-        checkparity=0;
-        break;
-    case 1:   /* odd */
-        checkparity=PARENB|PARODD;
-        break;
-    case 2:
-        checkparity=PARENB;
-        break;
-    default:
-        checkparity=0;
+    switch (dparity) {
+        case 0:
+            parity=0;
+            break;
+        case 1:   /* odd */
+            parity=PARENB|PARODD;
+            break;
+        case 2:
+            parity=PARENB;
+            break;
+        default:
+            parity=0;
     }
 
     /* and stop bits */
-    switch (stop) {
-    case 1:
-        stopbits=0;
-        break;
-    case 2:
-        stopbits=CSTOPB;
-        break;
-    default:
-        stopbits=0;
+    switch (dstop) {
+        case 1:
+            stop=0;
+            break;
+        case 2:
+            stop=CSTOPB;
+            break;
+        default:
+            stop=0;
     }
 
     /* now we setup the values in port's termios */
@@ -237,12 +225,12 @@ namespace Cosmos {
     /* we send new config to the port */
     tcsetattr(fd,TCSANOW,&(tio));
 #else // windows
-    dcb.BaudRate = baud;
-    dcb.Parity = parity;
-    dcb.StopBits = stop;
-    dcb.ByteSize = bits;
-    dcb.DCBlength = sizeof(DCB);
-    SetCommState(handle, &(dcb));
+        dcb.BaudRate = baud;
+        dcb.Parity = parity;
+        dcb.StopBits = stop;
+        dcb.ByteSize = bits;
+        dcb.DCBlength = sizeof(DCB);
+        SetCommState(handle, &(dcb));
 #endif
 
 

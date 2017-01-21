@@ -37,17 +37,19 @@ namespace Cosmos {
 class Serial
 {
 public:
-    Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+    Serial(string dname, int32_t dbaud, size_t dbits, size_t dparity, size_t dstop);
     ~Serial();
-    int32_t configure(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+    int32_t configure(int32_t dbaud, size_t dbits, size_t dparity, size_t dstop);
     int32_t get_error();
 
 
 private:
     int fd = -1;                   /* tty file descriptor */
     int32_t error;
-    vector <size_t> baud_low = {0, 50, 75, 110, 134, 150, 200, 300, 500, 1200, 1800, 2400, 4800, 9600, 19200, 38400};
-    vector <size_t> baud_high = {57600, 115200, 230400, 460800, 500000, 576000, 921600, 1000000, 1152000, 1500000, 2000000, 2500000, 3000000, 3500000, 4000000};
+    vector <int32_t> baud_speed[2] = {
+        {0, 50, 75, 110, 134, 150, 200, 300, 500, 1200, 1800, 2400, 4800, 9600, 19200, 38400},
+        {57600, 115200, 230400, 460800, 500000, 576000, 921600, 1000000, 1152000, 1500000, 2000000, 2500000, 3000000, 3500000, 4000000}
+    };
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
     struct termios tio;       /* termios structure for the port */
