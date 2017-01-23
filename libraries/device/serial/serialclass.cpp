@@ -124,7 +124,7 @@ namespace Cosmos {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         size_t baud_index;
         bool baud_speed_index = 0;
-        if (dbaud > (38400+57600)/2))
+        if (dbaud > (38400+57600)/2)
         {
             baud_speed_index = 1;
             baud_index = (log10f((float)dbaud) - 4.7604) / .118 + .5;
@@ -134,9 +134,10 @@ namespace Cosmos {
             baud_index = (log10f((float)dbaud) - 1.699) / .2025 + .5;
         }
 
+        bool baud_adjust = false;
         do
         {
-            bool baud_adjust = false;
+            baud_adjust = false;
             int32_t baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index]);
             if (baud_index > 0)
             {
@@ -148,7 +149,7 @@ namespace Cosmos {
                     baud_adjust = true;
                 }
             }
-            if (baud_index < baud_speed.size()-1)
+            if (baud_index < baud_speed[baud_speed_index].size()-1)
             {
                 int32_t new_baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index+1]);
                 if (new_baud_diff < baud_diff)
@@ -158,21 +159,20 @@ namespace Cosmos {
                     baud_adjust = true;
                 }
             }
-        }
-    } while (baud_adjust);
+        } while (baud_adjust);
 
-    switch (baud_index)
-    {
+        switch (baud_index)
+        {
         case 1:
             trate = B57600 + baud_index;
             break;
         default:
             trate = baud_index;
             break;
-    }
+        }
 
-    /* databits */
-    switch (dbits) {
+        /* databits */
+        switch (dbits) {
         case 7:
             tbits=CS7;
             break;
@@ -181,10 +181,10 @@ namespace Cosmos {
             break;
         default:
             tbits=CS8;
-    }
+        }
 
-    /* parity, */
-    switch (dparity) {
+        /* parity, */
+        switch (dparity) {
         case 0:
             tparity=0;
             break;
@@ -196,10 +196,10 @@ namespace Cosmos {
             break;
         default:
             tparity=0;
-    }
+        }
 
-    /* and stop bits */
-    switch (dstop) {
+        /* and stop bits */
+        switch (dstop) {
         case 1:
             tstop=0;
             break;
@@ -208,22 +208,22 @@ namespace Cosmos {
             break;
         default:
             tstop=0;
-    }
+        }
 
-    /* now we setup the values in port's termios */
-    tio.c_cflag=trate|tbits|tparity|tstop|CLOCAL|CREAD;
-    tio.c_iflag=IGNPAR;
-    tio.c_oflag=0;
-    tio.c_lflag=0;
-    tio.c_cc[VMIN]=1;
-    tio.c_cc[VTIME]=0;
+        /* now we setup the values in port's termios */
+        tio.c_cflag=trate|tbits|tparity|tstop|CLOCAL|CREAD;
+        tio.c_iflag=IGNPAR;
+        tio.c_oflag=0;
+        tio.c_lflag=0;
+        tio.c_cc[VMIN]=1;
+        tio.c_cc[VTIME]=0;
 
-    /* we flush the port */
-    tcflush(fd,TCOFLUSH);
-    tcflush(fd,TCIFLUSH);
+        /* we flush the port */
+        tcflush(fd,TCOFLUSH);
+        tcflush(fd,TCIFLUSH);
 
-    /* we send new config to the port */
-    tcsetattr(fd,TCSANOW,&(tio));
+        /* we send new config to the port */
+        tcsetattr(fd,TCSANOW,&(tio));
 #else // windows
         dcb.BaudRate = baud;
         dcb.Parity = parity;
