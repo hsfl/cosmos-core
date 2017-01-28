@@ -25,3 +25,7 @@ endif()
 if(${BUILD_PROGRAMS_GENERAL} MATCHES "YES")
     add_subdirectory(general)
 endif()
+
+if(${BUILD_PROGRAMS_GENERAL} MATCHES "YES")
+    add_subdirectory(tests)
+endif()

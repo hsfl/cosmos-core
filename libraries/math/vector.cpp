@@ -831,6 +831,19 @@ rvector operator * (rvector v, double scalar)
     return v;
 }
 
+// multiply vector by scalar operator
+int operator == (rvector a, rvector b)
+{
+    if(a.col[0] == b.col[0] && a.col[1] == b.col[1] &&
+            a.col[2] == b.col[2])
+    {
+        return 1;
+    }else
+    {
+        return 0;
+    }
+}
+
 // divide vector by scalar operator
 rvector operator / (rvector v, double scalar)
 {
