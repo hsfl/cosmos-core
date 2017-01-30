@@ -132,7 +132,7 @@ class Agent
 {
 public:
 //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP);
+    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP, size_t dlevel = 0);
     ~Agent();
 
     enum class State : uint16_t
@@ -333,11 +333,13 @@ private:
     string hbjstring;
     vector<beatstruc> slist;
     //! Handle for request thread
-    std::thread cthread;
+    thread cthread;
     //! Handle for heartbeat thread
-    std::thread hthread;
+    thread hthread;
     //! Handle for message thread
-    std::thread mthread;
+    thread mthread;
+    //! Flag for level of debugging
+    size_t debug_level;
 
     //! Agent Request Entry
     //! Structure representing a single Agent request.

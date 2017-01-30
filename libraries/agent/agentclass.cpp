@@ -70,18 +70,21 @@ namespace Cosmos {
 //! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
 //! the Agent already running.
 //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
-Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype)
+Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, size_t dlevel)
 {
     int32_t iretn;
 
     double timeStart = currentmjd();
+    debug_level = dlevel;
 
-    std::cout << "------------------------------------------------------" << std::endl;
-    std::cout << "COSMOS AGENT '" << aname << "' on node '" << nname << "'" << std::endl;
-//    std::cout << "Beat Period is " << beat_period << " sec, using request port " << port << std::endl;
-    std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
-    std::cout << "Agent started at " << mjdToGregorian(timeStart) << std::endl;
-    std::cout << "------------------------------------------------------" << std::endl;
+    if (dlevel)
+    {
+        std::cout << "------------------------------------------------------" << std::endl;
+        std::cout << "COSMOS AGENT '" << aname << "' on node '" << nname << "'" << std::endl;
+        std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
+        std::cout << "Agent started at " << mjdToGregorian(timeStart) << std::endl;
+        std::cout << "------------------------------------------------------" << std::endl;
+    }
 
 
     // Initialize COSMOS data space
@@ -125,7 +128,7 @@ Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsi
     }
 
     // Start message listening thread
-    mthread = std::thread([=] { message_loop(); });
+    mthread = thread([=] { message_loop(); });
 
     // Return if all we are doing is setting up client.
     if (aname.length() == 0)
@@ -197,8 +200,8 @@ Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsi
 
     // Start the heartbeat and request threads running
     //    iretn = start();
-    hthread = std::thread([=] { heartbeat_loop(); });
-    cthread = std::thread([=] { request_loop(); });
+    hthread = thread([=] { heartbeat_loop(); });
+    cthread = thread([=] { request_loop(); });
     if (!hthread.joinable() || !cthread.joinable())
     {
         Agent::shutdown();
@@ -316,8 +319,8 @@ int32_t Agent::start()
 {
 
     // start heartbeat thread
-    hthread = std::thread([=] { heartbeat_loop(); });
-    cthread = std::thread([=] { request_loop(); });
+    hthread = thread([=] { heartbeat_loop(); });
+    cthread = thread([=] { request_loop(); });
     return 0;
 }
 
@@ -1827,11 +1830,7 @@ int32_t Agent::poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, fl
         case NetworkType::MULTICAST:
         case NetworkType::UDP:
 
-            nbytes = recvfrom(cinfo->pdata.agent[0].sub.cudp,
-                    (char *)input,AGENTMAXBUFFER,
-                    0,
-                    (struct sockaddr *)&cinfo->pdata.agent[0].sub.caddr,
-                    (socklen_t *)&cinfo->pdata.agent[0].sub.addrlen);
+            nbytes = recvfrom(cinfo->pdata.agent[0].sub.cudp, (char *)input,AGENTMAXBUFFER, 0, (struct sockaddr *)&cinfo->pdata.agent[0].sub.caddr, (socklen_t *)&cinfo->pdata.agent[0].sub.addrlen);
 
             // Return if port and address are our own
             for (uint16_t i=0; i<cinfo->pdata.agent[0].ifcnt; ++i)
