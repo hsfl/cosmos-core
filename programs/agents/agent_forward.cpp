@@ -50,9 +50,9 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
 
-    if (argc < 2)
+    if (argc < 1)
     {
-        printf("Usage: agent_forward {ipaddresses1} [{ipaddress2} {ipaddress3} ...]\n");
+        printf("Usage: agent_forward [{ipaddresses1} {ipaddress2} {ipaddress3} ...]\n");
         exit (1);
     }
 
