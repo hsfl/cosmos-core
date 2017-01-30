@@ -137,9 +137,9 @@ int main(int argc, char *argv[])
         exit (iretn);
 
     // Start serial threads
-    std::thread port_read_thread(port_read_loop);
-    std::thread tcv_read_thread(tcv_read_loop);
-    std::thread tcv_write_thread(tcv_write_loop);
+    thread port_read_thread(port_read_loop);
+    thread tcv_read_thread(tcv_read_loop);
+    thread tcv_write_thread(tcv_write_loop);
 
 #if defined(COSMOS_LINUX_OS)
     if (open_tunnel)
@@ -219,8 +219,8 @@ int main(int argc, char *argv[])
 #endif
 
     // Start tunnel threads
-    std::thread tun_read_thread(tun_read_loop);
-    std::thread tun_write_thread(tun_write_loop);
+    thread tun_read_thread(tun_read_loop);
+    thread tun_write_thread(tun_write_loop);
 
     double nmjd = currentmjd(0.);
     int32_t sleept;

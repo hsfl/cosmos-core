@@ -142,7 +142,7 @@ typedef gz_header FAR *gz_headerp;
 
      zalloc must return Z_NULL if there is not enough memory for the object.
    If zlib is used in a multi-threaded application, zalloc and zfree must be
-   std::thread safe.
+   thread safe.
 
      On 16-bit systems, the functions zalloc and zfree must be able to allocate
    exactly 65536 bytes, but will not be required to allocate more than this if

@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
 		exit (iretn);
 
 	// Start monitoring thread
-	std::thread monitor_thread(monitor);
+	thread monitor_thread(monitor);
 	ElapsedTime et;
 
 	// Start main thread

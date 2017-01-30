@@ -109,7 +109,7 @@ NetworkType ntype = NetworkType::UDP;
 int waitsec = 5;
 
 void collect_data_loop();
-std::thread cdthread;
+thread cdthread;
 
 string logstring;
 vector<jsonentry*> logtable;
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
     load_dictionary(eventdict, agent->cinfo->meta, agent->cinfo->pdata, (const char *)"events.dict");
 
     // Start thread to collect SOH data
-    cdthread = std::thread(collect_data_loop);
+    cdthread = thread(collect_data_loop);
 
     // Start performing the body of the agent
     nextmjd = currentmjd();

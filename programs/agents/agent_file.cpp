@@ -331,9 +331,9 @@ int main(int argc, char *argv[])
     if ((iretn=agent->add_request("list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
         exit (iretn);
 
-    std::thread send_loop_thread(send_loop);
-    std::thread recv_loop_thread(recv_loop);
-    std::thread transmit_loop_thread(transmit_loop);
+    thread send_loop_thread(send_loop);
+    thread recv_loop_thread(recv_loop);
+    thread transmit_loop_thread(transmit_loop);
 
     double nextdiskcheck = currentmjd(0.);
 
