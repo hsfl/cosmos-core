@@ -94,20 +94,46 @@ int main(int argc, char *argv[])
 
     // Start performing the body of the agent
     //	char input[AGENTMAXBUFFER];
+    uint8_t post[AGENTMAXBUFFER];
+    size_t nbytes;
+
     while(agent->running())
     {
         Agent::messstruc mess;
         iretn = agent->readring(mess);
 
-        //        nbytes = recvfrom(agent->cinfo->pdata.agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&agent->cinfo->sdata.agent[0].req.caddr,(socklen_t *)&agent->cinfo->sdata.agent[0].req.addrlen);
+//        nbytes = recvfrom(agent->cinfo->pdata.agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&agent->cinfo->sdata.agent[0].req.caddr,(socklen_t *)&agent->cinfo->sdata.agent[0].req.addrlen);
         if (iretn > 0)
         {
+            post[0] = mess.meta.type;
+            sprintf((char *)&post[3], "%s", mess.jdata.c_str());
+            size_t hlength = strlen((char *)&post[3]);
+            post[1] = hlength%256;
+            post[2] = hlength / 256;
+            nbytes = hlength + 3;
+
+            if (mess.meta.type < Agent::AGENT_MESSAGE_BINARY && mess.adata.size())
+            {
+                if (nbytes+mess.adata.size() > AGENTMAXBUFFER)
+                    continue;
+                memcpy(&post[nbytes], &mess.adata[0], mess.adata.size());
+                nbytes += mess.adata.size();
+            }
+
+            if (mess.meta.type >= Agent::AGENT_MESSAGE_BINARY && mess.bdata.size())
+            {
+                if (nbytes+mess.bdata.size() > AGENTMAXBUFFER)
+                    continue;
+                memcpy(&post[nbytes], &mess.bdata[0], mess.bdata.size());
+                nbytes += mess.bdata.size();
+            }
+
+            // Forward to all connected forwarders
             for (uint16_t i=0; i<sendchan.size(); ++i)
             {
                 if (sendchan[i].address[0])
                 {
-                    agent->post(mess);
-                    //                    iretn = sendto(sendchan[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&sendchan[i].caddr,sizeof(struct sockaddr_in));
+                    iretn = sendto(sendchan[i].cudp, (const char *)post, nbytes, 0, (struct sockaddr *)&sendchan[i].caddr, sizeof(struct sockaddr_in));
                 }
             }
         }
