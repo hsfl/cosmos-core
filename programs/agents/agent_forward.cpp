@@ -106,15 +106,8 @@ int main(int argc, char *argv[])
             {
                 if (sendchan[i].address[0])
                 {
+                    agent->post(mess);
                     //                    iretn = sendto(sendchan[i].cudp,(const char *)input,nbytes,0,(struct sockaddr *)&sendchan[i].caddr,sizeof(struct sockaddr_in));
-                    if (iretn < Agent::AGENT_MESSAGE_BINARY)
-                    {
-                        iretn = sendto(sendchan[i].cudp,mess.adata.data(),mess.adata.length(),0,(struct sockaddr *)&sendchan[i].caddr,sizeof(struct sockaddr_in));
-                    }
-                    else
-                    {
-                        iretn = sendto(sendchan[i].cudp,(const char *)mess.bdata.data(),mess.bdata.size(),0,(struct sockaddr *)&sendchan[i].caddr,sizeof(struct sockaddr_in));
-                    }
                 }
             }
         }
