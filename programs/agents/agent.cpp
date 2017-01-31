@@ -99,7 +99,6 @@ int main(int argc, char *argv[])
             std::string channel;
             uint8_t cnum;
             Agent::messstruc message;
-            std::string header;
             int i, pretn;
             locstruc loc;
 
@@ -140,17 +139,6 @@ int main(int argc, char *argv[])
                         continue;
                     }
 
-                    header.resize(message.meta.jlength);
-                    if (pretn < Agent::AGENT_MESSAGE_BINARY)
-                    {
-                        memcpy(&header[0], message.adata.data(), message.meta.jlength);
-                    }
-                    else
-                    {
-                        memcpy(&header[0], message.bdata.data(), message.meta.jlength);
-                    }
-
-
                     switch (pretn)
                     {
                     case Agent::AGENT_MESSAGE_SOH:
@@ -164,17 +152,14 @@ int main(int argc, char *argv[])
                         break;
                     }
 
+                    printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
+                    printf("%s\n",message.jdata.c_str());
                     if (pretn < Agent::AGENT_MESSAGE_BINARY)
                     {
-                        printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.adata.size());
                         if (!channel.empty())
                         {
                             printf("%s\n",message.adata.c_str());
                         }
-                    }
-                    else
-                    {
-                        printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.bdata.size());
                     }
 
                     if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
@@ -307,7 +292,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
+                    printf("[%d] %.15g %s %s %s %hu %u\n",i,message.meta.beat.utc,message.meta.beat.node,message.meta.beat.proc,message.meta.beat.addr,message.meta.beat.port,message.meta.beat.bsz);
 
                     if (pretn < Agent::AGENT_MESSAGE_BINARY && !channel.empty())
                     {
