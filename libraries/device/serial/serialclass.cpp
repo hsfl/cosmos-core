@@ -44,7 +44,7 @@ namespace Cosmos {
     //! \param bits Number of data bits.
     //! \param parity 0 = even, 1 = odd.
     //! \param stop Number of stop bits.
-    Serial::Serial(string dname, int32_t dbaud, size_t dbits, size_t dparity, size_t dstop)
+    Serial::Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS)
         fd=open(dname.c_str(), O_RDWR | O_NOCTTY);
@@ -103,7 +103,7 @@ namespace Cosmos {
         return error;
     }
 
-    int32_t Serial::set_params(int32_t dbaud, size_t dbits, size_t dparity, size_t dstop)
+    int32_t Serial::set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         tcflag_t trate;
@@ -158,14 +158,13 @@ namespace Cosmos {
             }
         } while (baud_adjust);
 
-        switch (baud_index)
+        if (baud_speed_index)
         {
-        case 1:
             trate = B57600 + baud_index;
-            break;
-        default:
+}
+        else
+        {
             trate = baud_index;
-            break;
         }
 
         /* databits */

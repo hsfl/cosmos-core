@@ -41,9 +41,9 @@ namespace Cosmos {
     class Serial
     {
     public:
-        Serial(string dname, int32_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+        Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
         ~Serial();
-        int32_t set_params(int32_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
         int32_t set_flowcontrol(bool rtscts, bool xonxoff);
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         int32_t set_timeout(int minchar, double timeout);
