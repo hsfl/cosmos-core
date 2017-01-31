@@ -8,8 +8,10 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
 
     include_directories(${COSMOS_SOURCE}/core/libraries/thirdparty)
 
-    add_subdirectory(${COSMOS_SOURCE}/core/libraries/support             ${CMAKE_BINARY_DIR}/libraries/support/)
-    add_subdirectory(${COSMOS_SOURCE}/core/libraries/math                ${CMAKE_BINARY_DIR}/libraries/math/)
+    add_subdirectory(${COSMOS_SOURCE}/core/libraries/agent     ${CMAKE_BINARY_DIR}/libraries/agent/)
+    add_subdirectory(${COSMOS_SOURCE}/core/libraries/support   ${CMAKE_BINARY_DIR}/libraries/support/)
+    add_subdirectory(${COSMOS_SOURCE}/core/libraries/math      ${CMAKE_BINARY_DIR}/libraries/math/)
+    add_subdirectory(${COSMOS_SOURCE}/core/libraries/physics   ${CMAKE_BINARY_DIR}/libraries/physics/)
 
 
     # -----------------------------------------------
