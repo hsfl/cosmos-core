@@ -453,35 +453,34 @@ void monitor()
 
     while (agent->running())
 	{
-        Agent::pollstruc p;
-        std::string message;
+        Agent::messstruc mess;
 
-        iretn = agent->poll(p, message, Agent::AGENT_MESSAGE_BEAT, 5.0);
+        iretn = agent->poll(mess, Agent::AGENT_MESSAGE_BEAT, 5.0);
 
 		// Only process if this is a heartbeat message for our node
-        if (iretn == Agent::AGENT_MESSAGE_BEAT && !strcmp(p.beat.node, agent->cinfo->pdata.node.name))
+        if (iretn == Agent::AGENT_MESSAGE_BEAT && !strcmp(mess.meta.beat.node, agent->cinfo->pdata.node.name))
 		{
 			cdata_mutex.lock();
 			// Extract telemetry
             agent->cinfo->sdata.node   = agent->cinfo->pdata.node;
             agent->cinfo->sdata.device = agent->cinfo->pdata.device;
-            json_parse(message, agent->cinfo->meta, agent->cinfo->sdata);
+            json_parse(mess.adata, agent->cinfo->meta, agent->cinfo->sdata);
             agent->cinfo->pdata.node   = agent->cinfo->sdata.node;
             agent->cinfo->pdata.device = agent->cinfo->sdata.device;
 
 			// Extract agent information
 			for (size_t i=0; i<myantennas.size(); ++i)
 			{
-				if (!strcmp(p.beat.proc, myantennas[i].name.c_str()))
+                if (!strcmp(mess.meta.beat.proc, myantennas[i].name.c_str()))
 				{
-					myantennas[i].beat = p.beat;
+                    myantennas[i].beat = mess.meta.beat;
 				}
 			}
 			for (size_t i=0; i<myradios.size(); ++i)
 			{
-				if (!strcmp(p.beat.proc, myradios[i].name.c_str()))
+                if (!strcmp(mess.meta.beat.proc, myradios[i].name.c_str()))
 				{
-					myradios[i].beat = p.beat;
+                    myradios[i].beat = mess.meta.beat;
 				}
 			}
 			cdata_mutex.unlock();

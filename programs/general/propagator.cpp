@@ -119,19 +119,18 @@ int main(int argc, char* argv[])
 	}
 
 #define POLLBUFSIZE 20000
-	std::string pollbuf;
-    Agent::pollstruc meta;
+    Agent::messstruc mess;
 
-    iretn = agent->poll(meta, pollbuf, Agent::AGENT_MESSAGE_ALL,1);
+    iretn = agent->poll(mess, Agent::AGENT_MESSAGE_ALL,1);
 	switch (iretn)
 	{
     case Agent::AGENT_MESSAGE_SOH:
     case Agent::AGENT_MESSAGE_BEAT:
 		{
-			std::string tbuf = json_convert_string(json_extract_namedobject(pollbuf, "agent_name"));
+            std::string tbuf = json_convert_string(json_extract_namedobject(mess.jdata, "agent_name"));
 			if (!tbuf.empty() && tbuf == "physics")
 			{
-				tbuf = json_convert_string(json_extract_namedobject(pollbuf, "node_utcoffset"));
+                tbuf = json_convert_string(json_extract_namedobject(mess.jdata, "node_utcoffset"));
 				if (!tbuf.empty())
 				{
                     agent->cinfo->pdata.node.utcoffset = atof(tbuf.c_str());

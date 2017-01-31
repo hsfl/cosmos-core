@@ -61,10 +61,10 @@ Agent *agent;
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 4;
 
-bool is_node(std::vector<std::string> nl, std::string node_name)
+bool is_node(std::vector<string> nl, string node_name)
 {
 
-    for (std::string node: nl)
+    for (string node: nl)
     {
         if(node == node_name)
         {
@@ -75,14 +75,14 @@ bool is_node(std::vector<std::string> nl, std::string node_name)
 }
 
 
-void print_node_list(std::vector<std::string>& nlp) {
+void print_node_list(std::vector<string>& nlp) {
 
     if(nlp.empty())
     {
         return;
     }
 
-    for(std::string n: nlp)
+    for(string n: nlp)
     {
         printf("    %s\n", n.c_str());
     }
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 {
     int nbytes;
     beatstruc cbeat;
-    std::vector<std::string> nl;
+    std::vector<string> nl;
     data_list_nodes(nl);
 
     agent = new Agent();
@@ -115,11 +115,9 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1],"dump"))
         {
             double lmjd = 0., dmjd;
-            std::string channel;
+            string channel;
             uint8_t cnum;
-            std::string message;
-            std::string header;
-            Agent::pollstruc meta;
+            Agent::messstruc mess;
             int i, pretn;
             locstruc loc;
 
@@ -150,15 +148,13 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->poll(meta, message,  Agent::AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent->poll(mess,  Agent::AGENT_MESSAGE_ALL, 1)) > 0)
                 {
-                    header.resize(meta.jlength);
-                    memcpy(&header[0], &message[3], meta.jlength);
-                    std::string utc = json_extract_namedobject(header.c_str(), "agent_utc");
-                    std::string node = json_convert_string(json_extract_namedobject(header.c_str(), "agent_node"));
-                    std::string proc = json_extract_namedobject(header.c_str(), "agent_proc");
-                    std::string addr = json_convert_string(json_extract_namedobject(header.c_str(), "agent_addr"));
-                    std::string port = json_extract_namedobject(header.c_str(), "agent_port");
+                    string utc = json_extract_namedobject(mess.jdata.c_str(), "agent_utc");
+                    string node = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_node"));
+                    string proc = json_extract_namedobject(mess.jdata.c_str(), "agent_proc");
+                    string addr = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_addr"));
+                    string port = json_extract_namedobject(mess.jdata.c_str(), "agent_port");
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
@@ -168,7 +164,7 @@ int main(int argc, char *argv[])
                     {
                         json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
                         json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_parse(message.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                        json_parse(mess.adata.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
                     }
 
                     switch (pretn)
@@ -183,10 +179,10 @@ int main(int argc, char *argv[])
                         printf("[%d]",pretn);
                         break;
                     }
-                    printf("%s:[%s:%s][%s:%s](%" PRIu32 ":%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), header.size(), message.size());
+                    printf("%s:[%s:%s][%s:%s](%" PRIu32 ":%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), mess.jdata.size(), mess.adata.size());
                     if (pretn < 128 && !channel.empty())
                     {
-                        printf("%s\n",message.c_str());
+                        printf("%s\n",mess.adata.c_str());
                     }
                     if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
                     {
@@ -281,11 +277,9 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1],"dump"))
         {
             double lmjd = 0., dmjd;
-            std::string channel;
+            string channel;
             uint8_t cnum;
-            std::string message;
-            std::string header;
-            Agent::pollstruc meta;
+            Agent::messstruc mess;
             int i, pretn;
             locstruc loc;
 
@@ -316,15 +310,13 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->poll(meta, message,  Agent::AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent->poll(mess,  Agent::AGENT_MESSAGE_ALL, 1)) > 0)
                 {
-                    header.resize(meta.jlength);
-                    memcpy(&header[0], &message[3], meta.jlength);
-                    std::string utc = json_extract_namedobject(header.c_str(), "agent_utc");
-                    std::string node = json_convert_string(json_extract_namedobject(header.c_str(), "agent_node"));
-                    std::string proc = json_extract_namedobject(header.c_str(), "agent_proc");
-                    std::string addr = json_convert_string(json_extract_namedobject(header.c_str(), "agent_addr"));
-                    std::string port = json_extract_namedobject(header.c_str(), "agent_port");
+                    string utc = json_extract_namedobject(mess.jdata.c_str(), "agent_utc");
+                    string node = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_node"));
+                    string proc = json_extract_namedobject(mess.jdata.c_str(), "agent_proc");
+                    string addr = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_addr"));
+                    string port = json_extract_namedobject(mess.jdata.c_str(), "agent_port");
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
@@ -334,7 +326,7 @@ int main(int argc, char *argv[])
                     {
                         json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
                         json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_parse(message.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                        json_parse(mess.adata.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
                     }
 
                     switch (pretn)
@@ -349,10 +341,10 @@ int main(int argc, char *argv[])
                         printf("[%d]",pretn);
                         break;
                     }
-                    printf("%s:[%s:%s][%s:%s](%" PRIu32 ":%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), header.size(), message.size());
+                    printf("%s:[%s:%s][%s:%s](%" PRIu32 ":%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), mess.jdata.size(), mess.adata.size());
                     if (pretn < 128 && !channel.empty())
                     {
-                        printf("%s\n",message.c_str());
+                        printf("%s\n",mess.adata.c_str());
                     }
                     if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
                     {
@@ -402,7 +394,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                std::string request;
+                string request;
                 request = argv[3];
                 for (size_t i=0; i<(size_t)argc-4; ++i)
                 {
