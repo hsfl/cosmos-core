@@ -831,8 +831,7 @@ void Agent::request_loop()
 
 void Agent::message_loop()
 {
-    pollstruc meta;
-    vector <uint8_t> message;
+    messstruc mess;
     int32_t iretn;
 
     // Initialize things
@@ -840,22 +839,22 @@ void Agent::message_loop()
 
     while (Agent::running())
     {
-        iretn = Agent::poll(meta, message, AGENT_MESSAGE_ALL, 5.);
+        iretn = Agent::poll(mess, AGENT_MESSAGE_ALL, 5.);
         if (iretn > 0)
         {
             bool found = false;
             for (beatstruc &i : agent_list)
             {
-                if (!strcmp(i.node, meta.beat.node) && !strcmp(i.proc, meta.beat.proc))
+                if (!strcmp(i.node, mess.meta.beat.node) && !strcmp(i.proc, mess.meta.beat.proc))
                 {
-                    i = meta.beat;
+                    i = mess.meta.beat;
                     found = true;
                     break;
                 }
             }
             if (!found)
             {
-                agent_list.push_back(meta.beat);
+                agent_list.push_back(mess.meta.beat);
             }
 
             size_t new_position;
@@ -864,18 +863,7 @@ void Agent::message_loop()
             {
                 new_position = 0;
             }
-            message_ring[new_position].meta = meta;
-            if (meta.type < AGENT_MESSAGE_BINARY)
-            {
-                message.push_back(0);
-                message_ring[new_position].adata = (char *)message.data();
-                message_ring[new_position].bdata.clear();
-            }
-            else
-            {
-                message_ring[new_position].adata.clear();
-                message_ring[new_position].bdata = message;
-            }
+            message_ring[new_position] = mess;
             message_head = new_position;
         }
         COSMOS_SLEEP(.01);
@@ -1626,6 +1614,57 @@ vector<socket_channel> Agent::find_addresses(NetworkType ntype)
     return (iface);
 }
 
+//! Post a ::messstruc
+/*! Post an already defined message on the previously opened publication channel.
+    \param mess ::messstruc containing everything necessary, including type, header and data.
+    \return 0, otherwise negative error.
+*/
+int32_t Agent::post(messstruc mess)
+{
+    size_t nbytes;
+    int32_t iretn=0;
+    uint8_t post[AGENTMAXBUFFER];
+
+    cinfo->pdata.agent[0].beat.utc = cinfo->pdata.agent[0].beat.utc;
+    post[0] = mess.meta.type;
+    // this will broadcast messages to all external interfaces (ifcnt = interface count)
+    for (size_t i=0; i<cinfo->pdata.agent[0].ifcnt; i++)
+    {
+        sprintf((char *)&post[3], "%s", mess.jdata.c_str());
+        size_t hlength = strlen((char *)&post[3]);
+        post[1] = hlength%256;
+        post[2] = hlength / 256;
+        nbytes = hlength + 3;
+
+        if (mess.meta.type < AGENT_MESSAGE_BINARY && mess.adata.size())
+        {
+            if (nbytes+mess.adata.size() > AGENTMAXBUFFER)
+                return (AGENT_ERROR_BUFLEN);
+            memcpy(&post[nbytes], &mess.adata[0], mess.adata.size());
+            nbytes += mess.adata.size();
+        }
+
+        if (mess.meta.type >= AGENT_MESSAGE_BINARY && mess.bdata.size())
+        {
+            if (nbytes+mess.bdata.size() > AGENTMAXBUFFER)
+                return (AGENT_ERROR_BUFLEN);
+            memcpy(&post[nbytes], &mess.bdata[0], mess.bdata.size());
+            nbytes += mess.bdata.size();
+        }
+
+        iretn = sendto(cinfo->pdata.agent[0].pub[i].cudp, (const char *)post, nbytes, 0,(struct sockaddr *)&cinfo->pdata.agent[0].pub[i].baddr, sizeof(struct sockaddr_in));
+    }
+    if (iretn<0)
+    {
+#ifdef COSMOS_WIN_OS
+        return(-WSAGetLastError());
+#else
+        return (-errno);
+#endif
+    }
+    return 0;
+}
+
 //! Post a JSON message
 /*! Post a vector of bytes on the previously opened publication channel.
     \param type A byte indicating the type of message.
@@ -1784,30 +1823,30 @@ int32_t Agent::unsubscribe()
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-int32_t Agent::poll(pollstruc &meta, string &message, uint8_t type, float waitsec)
-{
-    vector <uint8_t> bytes;
-    int32_t iretn;
+//int32_t Agent::poll(pollstruc &meta, string &message, uint8_t type, float waitsec)
+//{
+//    vector <uint8_t> bytes;
+//    int32_t iretn;
 
-    iretn = poll(meta, bytes, type, waitsec);
-    if (iretn > 0)
-    {
-        bytes.push_back(0);
-        message = (char *)bytes.data();
-    }
-    return iretn;
-}
+//    iretn = poll(meta, bytes, type, waitsec);
+//    if (iretn > 0)
+//    {
+//        bytes.push_back(0);
+//        message = (char *)bytes.data();
+//    }
+//    return iretn;
+//}
 
 //! Listen for binary message
 /*! Poll the subscription channel for the requested amount of time. Return as soon as a single message
  * comes in, or the timer runs out.
  * \param meta ::pollstruc for storing meta information.
-    \param message Vector for storing incoming message.
+    \param mess ::messstruc for storing incoming message.
     \param type Type of message to look for, taken from ::AGENT_MESSAGE.
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-int32_t Agent::poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec)
+int32_t Agent::poll(messstruc &mess, uint8_t type, float waitsec)
 {
     int nbytes;
     uint8_t input[AGENTMAXBUFFER+1];
@@ -1864,40 +1903,43 @@ int32_t Agent::poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, fl
                 // Provide support for older messages that did not include jlength
                 if (start_byte > 1)
                 {
-                    meta.type = (uint16_t)input[0];
-                    meta.jlength = input[1] + 256 * input[2];
+                    mess.meta.type = (uint16_t)input[0];
+                    mess.meta.jlength = input[1] + 256 * input[2];
                 }
                 else
                 {
-                    meta.type = (uint16_t)input[0] + 1;
-                    meta.jlength = nbytes;
+                    mess.meta.type = (uint16_t)input[0] + 1;
+                    mess.meta.jlength = nbytes;
                 }
 
-                // Copy message to ring. Strip JSON if message is binary.
-                if (meta.type < AGENT_MESSAGE_BINARY)
+                // Copy message parts to ring, placing in appropriate buffers.
+                // First: JSON header
+                mess.jdata.assign((const char *)&input[start_byte], mess.meta.jlength);
+
+                // Next: ASCII or BINARY message, depending on message type.
+                if (mess.meta.type < AGENT_MESSAGE_BINARY)
                 {
-                    message.resize(nbytes-start_byte);
-                    memcpy(message.data(), &input[start_byte], nbytes-start_byte);
+                    mess.adata.assign((const char *)&input[start_byte+mess.meta.jlength], nbytes - (start_byte + mess.meta.jlength));
                 }
                 else
                 {
-                    message.resize(nbytes-(start_byte+meta.jlength));
-                    memcpy(message.data(), &input[start_byte+meta.jlength], nbytes-(start_byte+meta.jlength));
+                    mess.bdata.resize(nbytes - (start_byte + mess.meta.jlength));
+                    memcpy(mess.bdata.data(), &input[start_byte + mess.meta.jlength], nbytes - (start_byte + mess.meta.jlength));
                 }
 
                 // Extract meta data
-                sscanf((const char *)message.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
-                       &meta.beat.utc,
-                       meta.beat.node,
-                       meta.beat.proc,
-                       meta.beat.addr,
-                       &meta.beat.port,
-                       &meta.beat.bsz,
-                       &meta.beat.cpu,
-                       &meta.beat.memory,
-                       &meta.beat.jitter);
+                sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
+                       &mess.meta.beat.utc,
+                       mess.meta.beat.node,
+                       mess.meta.beat.proc,
+                       mess.meta.beat.addr,
+                       &mess.meta.beat.port,
+                       &mess.meta.beat.bsz,
+                       &mess.meta.beat.cpu,
+                       &mess.meta.beat.memory,
+                       &mess.meta.beat.jitter);
 
-                return ((int)meta.type);
+                return ((int)mess.meta.type);
             }
         }
         if (ep.split() >= waitsec)
@@ -1999,15 +2041,14 @@ beatstruc Agent::poll_beat(float waitsec)
 {
     int32_t iretn;
     beatstruc beat;
-    pollstruc meta;
-    vector <uint8_t> message;
+    messstruc mess;
 
-    iretn = Agent::poll(meta, message, AGENT_MESSAGE_BEAT, waitsec);
+    iretn = Agent::poll(mess, AGENT_MESSAGE_BEAT, waitsec);
 
     beat.utc = 0.;
     if (iretn == AGENT_MESSAGE_BEAT)
     {
-        beat = meta.beat;
+        beat = mess.meta.beat;
     }
 
     return (beat);
@@ -2023,14 +2064,13 @@ timestruc Agent::poll_time(float waitsec)
 {
     int32_t iretn;
     timestruc time;
-    pollstruc meta;
-    string message;
+    messstruc mess;
 
-    iretn = Agent::poll(meta, message, AGENT_MESSAGE_TIME, waitsec);
+    iretn = Agent::poll(mess, AGENT_MESSAGE_TIME, waitsec);
 
     if (iretn == AGENT_MESSAGE_TIME)
     {
-        iretn = json_parse(message, cinfo->meta, cinfo->sdata);
+        iretn = json_parse(mess.adata, cinfo->meta, cinfo->sdata);
         if (iretn >= 0)
         {
             time.mjd = cinfo->sdata.node.loc.utc;
@@ -2050,14 +2090,13 @@ locstruc Agent::poll_location(float waitsec)
 {
     int32_t iretn;
     locstruc loc;
-    pollstruc meta;
-    string message;
+    messstruc mess;
 
-    iretn = Agent::poll(meta, message, AGENT_MESSAGE_LOCATION, waitsec);
+    iretn = Agent::poll(mess, AGENT_MESSAGE_LOCATION, waitsec);
 
     if (iretn == AGENT_MESSAGE_LOCATION)
     {
-        iretn = json_parse(message, cinfo->meta, cinfo->sdata);
+        iretn = json_parse(mess.adata, cinfo->meta, cinfo->sdata);
         if (iretn >= 0)
         {
             loc = cinfo->sdata.node.loc;
@@ -2078,14 +2117,13 @@ nodestruc Agent::poll_info(float waitsec)
     int32_t iretn;
     //summarystruc info;
     nodestruc info;
-    pollstruc meta;
-    string message;
+    messstruc mess;
 
-    iretn = Agent::poll(meta, message, AGENT_MESSAGE_TRACK, waitsec);
+    iretn = Agent::poll(mess, AGENT_MESSAGE_TRACK, waitsec);
 
     if (iretn == AGENT_MESSAGE_TRACK)
     {
-        iretn = json_parse(message, cinfo->meta, cinfo->sdata);
+        iretn = json_parse(mess.adata, cinfo->meta, cinfo->sdata);
         if (iretn >= 0)
         {
             strcpy(info.name,cinfo->sdata.node.name);
@@ -2112,14 +2150,13 @@ imustruc Agent::poll_imu(float waitsec)
 {
     int32_t iretn;
     imustruc imu;
-    pollstruc meta;
-    string message;
+    messstruc mess;
 
-    iretn = Agent::poll(meta, message, AGENT_MESSAGE_IMU, waitsec);
+    iretn = Agent::poll(mess, AGENT_MESSAGE_IMU, waitsec);
 
     if (iretn == AGENT_MESSAGE_IMU)
     {
-        iretn = json_parse(message, cinfo->meta, cinfo->sdata);
+        iretn = json_parse(mess.adata, cinfo->meta, cinfo->sdata);
         if (iretn >= 0)
         {
             imu = *cinfo->sdata.devspec.imu[0];
