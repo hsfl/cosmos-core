@@ -75,8 +75,8 @@ cmake_minimum_required(VERSION 2.8.12)
 
 project(${PROJECT_NAME})
 
-set(COSMOS_DEVEL ${PROJECT_SOURCE_DIR}/..)
-message ("COSMOS_DEVEL: ${COSMOS_DEVEL}")
+set(COSMOS_SOURCE ${PROJECT_SOURCE_DIR}/..)
+message ("COSMOS_SOURCE: ${COSMOS_SOURCE}")
 #set(COSMOS_CORE ${CMAKE_SOURCE_DIR})
 
 # define what libraries you want to compile
