@@ -66,12 +66,6 @@ add_definitions( -DCROSS_TYPE_${CROSS_TYPE})
 # by default
 
 
-#if("$ENV{COSMOS}" STREQUAL "")
-#    set(COSMOS_INSTALL_FOLDER "/usr/local/cosmos/linux_arm")
-#else()
-#    set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/linux_arm")
-#endif("$ENV{COSMOS}" STREQUAL "")
-
 #--------------------------------------------------------------------
 # automatic config
 
@@ -81,8 +75,9 @@ cmake_minimum_required(VERSION 2.8.12)
 
 project(${PROJECT_NAME})
 
-set(COSMOS_FOLDER ${PROJECT_SOURCE_DIR}/..)
-set(COSMOS_CORE ${CMAKE_SOURCE_DIR})
+set(COSMOS_DEVEL ${PROJECT_SOURCE_DIR}/..)
+message ("COSMOS_DEVEL: ${COSMOS_DEVEL}")
+#set(COSMOS_CORE ${CMAKE_SOURCE_DIR})
 
 # define what libraries you want to compile
 set(BUILD_COSMOS_CORE_AGENT              ON)          #ON/OFF
@@ -375,7 +370,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/build_core_libs.cmake)
 set(COSMOS_LIBS CosmosDeviceGeneral ${COSMOS_LIBS})
 foreach(subdir ${DEVICEDIRS})
     message(${subdir})
-    add_subdirectory(${COSMOS_CORE}/libraries/device/${subdir} ${CMAKE_BINARY_DIR}/libraries/device/${subdir})
+    add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/device/${subdir} ${CMAKE_BINARY_DIR}/libraries/device/${subdir})
     list(APPEND librarylist ${libraryName})
     if(${subdir} MATCHES "general")
     else()
