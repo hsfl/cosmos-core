@@ -13,3 +13,10 @@ foreach(file ${files})
         add_deployment_source(${bfile}.cpp "src")
 
 endforeach()
+
+include(CTest)
+enable_testing()
+add_executable(VecSubTestExecutable testmath1.cpp)
+target_link_libraries(VecSubTestExecutable ${COSMOS_LIBS})
+add_test (VecSubTest ${EXECUTABLE_OUTPUT_PATH}/VecSubTest 0 0 0 1 1 1 -1 -1 -1)
+
