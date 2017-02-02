@@ -11,7 +11,7 @@ pipelines:
         script: # Modify the commands below to build your repository.
           - apt-get update
           - apt-get -y install cmake
-#          - cd build
+          - cd build
           - cmake ..
           - make
           #- make test
