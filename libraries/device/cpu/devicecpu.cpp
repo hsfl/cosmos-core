@@ -188,7 +188,7 @@ pid_t DeviceCpu::getPidOf(string processName)
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    //    return cpuWin.getPidOf(processName);
+    return cpuWin.getPidOf(processName);
 #endif
 
 }
@@ -796,6 +796,11 @@ string DeviceCpuWindows::getHostName()
 unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)
 {
     return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);
+}
+
+pid_t DeviceCpuWindows::getPidOf(string processName)
+{
+    return 0;
 }
 
 #endif
