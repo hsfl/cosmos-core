@@ -37,7 +37,7 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     include_directories(${COSMOS_SOURCE}/core/libraries/device/cpu)
     add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/cpu      ${CMAKE_BINARY_DIR}/libraries/device/cpu)
 
-    #add_library(myzlib STATIC IMPORTED)
-    #set_property(TARGET myzlib PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib/libzlib.a)
+    #add_library(localzlib STATIC IMPORTED)
+    #set_property(TARGET localzlib PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib/libzlib.a)
 
 endif()

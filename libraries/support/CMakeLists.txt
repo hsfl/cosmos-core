@@ -11,7 +11,7 @@ FILE(GLOB INCLUDESPP ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp)
 add_library(CosmosSupport STATIC ${SOURCES} ${INCLUDES})
 
 # support depends on math, so link here
-target_link_libraries(CosmosSupport CosmosMath CosmosDeviceCpu CosmosDeviceDisk zlib)
+target_link_libraries(CosmosSupport CosmosMath CosmosDeviceCpu CosmosDeviceDisk localzlib)
 
 install(TARGETS CosmosSupport DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/support)
