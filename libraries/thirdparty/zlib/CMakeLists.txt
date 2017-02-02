@@ -5,9 +5,9 @@ cmake_minimum_required(VERSION 2.8.12)
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
-add_library(zlib STATIC ${SOURCES} ${INCLUDES})
+add_library(localzlib STATIC ${SOURCES} ${INCLUDES})
 
-install(TARGETS zlib DESTINATION lib)
+install(TARGETS localzlib DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/thirdparty/zlib)
 
 
