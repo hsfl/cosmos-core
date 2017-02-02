@@ -75,7 +75,7 @@ cmake_minimum_required(VERSION 2.8.12)
 
 project(${PROJECT_NAME})
 
-set(COSMOS_SOURCE ${PROJECT_SOURCE_DIR}/..)
+set(COSMOS_SOURCE ${CMAKE_SOURCE_DIR}/..)
 message ("COSMOS_SOURCE: ${COSMOS_SOURCE}")
 #set(COSMOS_CORE ${CMAKE_SOURCE_DIR})
 
