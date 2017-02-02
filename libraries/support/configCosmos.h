@@ -94,6 +94,8 @@ using std::condition_variable;
 using std::queue;
 #include <sstream>
 using std::istringstream;
+#include <map>
+using std::map;
 
 #include "support/cosmos-errno.h"
 #include "support/cosmos-defs.h"
