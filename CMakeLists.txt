@@ -323,7 +323,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # -----------------------------------------------
 # Extend COSMOS_LIBS with standard libraries
-set(COSMOS_LIBS  CosmosAgent CosmosPhysics CosmosSupport CosmosMath zlib ${COSMOS_LIBS})
+set(COSMOS_LIBS  CosmosAgent CosmosPhysics CosmosSupport CosmosMath localzlib ${COSMOS_LIBS})
 
 message("COSMOS_INSTALL_FOLDER: ${COSMOS_INSTALL_FOLDER}")
 

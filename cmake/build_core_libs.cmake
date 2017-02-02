@@ -48,9 +48,9 @@ ENDIF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
 # -----------------------------------------------
 # Build Thirdparty-zlib Library
 IF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
-    MESSAGE("Building zlib Library")
+    MESSAGE("Building local zlib Library")
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/thirdparty/zlib ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib)
-    SET(LINK_LIBRARY_COSMOS_CORE_ZLIB zlib )
+    SET(LINK_LIBRARY_COSMOS_CORE_ZLIB localzlib )
 ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
 
 # -----------------------------------------------
