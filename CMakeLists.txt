@@ -77,6 +77,8 @@ project(${PROJECT_NAME})
 
 set(COSMOS_SOURCE ${CMAKE_SOURCE_DIR}/..)
 message ("COSMOS_SOURCE: ${COSMOS_SOURCE}")
+set (COSMOS_CORE_SOURCE ${CMAKE_SOURCE_DIR})
+message ("COSMOS_CORE_SOURCE: ${COSMOS_CORE_SOURCE}")
 #set(COSMOS_CORE ${CMAKE_SOURCE_DIR})
 
 # define what libraries you want to compile
