@@ -20,3 +20,6 @@ add_executable(VecSubTestExecutable testmath1.cpp)
 target_link_libraries(VecSubTestExecutable ${COSMOS_LIBS})
 add_test (VecSubTest ${EXECUTABLE_OUTPUT_PATH}/VecSubTest 0 0 0 1 1 1 -1 -1 -1)
 
+add_executable(serialTestExecutable serialSendChar.cpp)
+target_link_libraries(serialTestExecutable ${COSMOS_LIBS})
+add_test (serialSendChar ${EXECUTABLE_OUTPUT_PATH}/serialTestExecutable)

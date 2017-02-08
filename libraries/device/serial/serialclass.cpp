@@ -330,7 +330,11 @@ namespace Cosmos {
 #ifdef COSMOS_WIN_OS
         int n=0;
         WriteFile(handle, &c, 1, (LPDWORD)((void *)&n), NULL);
-        if(n<0)  return(-errno);
+        if(n<0)
+        {
+            return(-errno);
+        }
+
 #else
         if (write(fd, &c, 1) < 0)
         {
@@ -338,8 +342,12 @@ namespace Cosmos {
         }
 #endif
 
+//        TODO: Check with Eric why 100000000/baud is needed
+//        The COSMOS_USLEEP causes a fail on windows
+//        COSMOS_SLEEP(0.01) -> Seems to work on windows
         COSMOS_USLEEP(10000000/baud);
         error = 0;
+
         return error;
     }
 
@@ -574,6 +582,7 @@ namespace Cosmos {
 
     int32_t Serial::get_char()
     {
+        // if file descirptor return error (<0) then fail
         if (fd < 0)
         {
             error = SERIAL_ERROR_OPEN;

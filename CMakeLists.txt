@@ -19,7 +19,7 @@ set(PROJECT_NAME                cosmos-core)
 # COMPLETE - everything is built
 # BASIC    - only the essential libraries and prgram agents are build
 # MINIMAL  - only the libraries are built (no agents, no programs)
-set(BUILD_TYPE COMPLETE) # COMPLETE, BASIC, MINIMAL
+set(BUILD_TYPE COMPLETE) # COMPLETE, BASIC, MINIMAL, TESTS
 set(BUILD_AGENTS_TYPE ALL)
 
 # Build agents type list
@@ -51,6 +51,15 @@ if(${BUILD_TYPE} MATCHES "MINIMAL")
     set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
     set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
 
+    set(BUILD_TUTORIALS NO) # YES, NO
+endif()
+
+if(${BUILD_TYPE} MATCHES "TESTS")
+    set(BUILD_TESTS YES) # YES, NO
+    set(BUILD_PROGRAMS NO) # YES, NO
+    set(BUILD_PROGRAMS_AGENTS NO) # YES, NO
+    set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
+    set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
     set(BUILD_TUTORIALS NO) # YES, NO
 endif()
 
@@ -391,6 +400,13 @@ message("CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 if(${BUILD_PROGRAMS} MATCHES "YES")
     add_subdirectory(${PROJECT_SOURCE_DIR}/programs)
 endif()
+
+# -----------------------------------------------
+# now that the libraries have been compiled let's add the cosmos-core programs
+if(${BUILD_TESTS} MATCHES "YES")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/programs/tests)
+endif()
+
 
 # -----------------------------------------------
 # now that the libraries have been compiled let's add the cosmos-core programs

@@ -11,6 +11,7 @@ int main(int argc, const char* argv[])
     if(argc != 10)
     {
         printf("%d arguments is not allowed 10 are required", argc);
+        return 1;
     }else
     {
         for(i= 1; i < 4; i++)//Load rvectors
