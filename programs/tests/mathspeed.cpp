@@ -14,21 +14,21 @@ char *srcbuf;
 ElapsedTime et;
 //struct timeval tp;
 unsigned long size, count;
-long start_s, start_u, diff_u, time1, time2, time3, time4;
+long start_s, start_u, diff_u, time1, time2, time3, time4, time5;
 double start_t;
 long i, j, k, ii;
 int inb;
 struct stat sbuf;
-double answer, base, speed1, speed2, speed3, speed4;
+double answer, base, speed1, speed2, speed3, speed4, speed5;
 
 main(int argc, char **argv)
 {
     speed1 = speed2 = speed3 = 0.;
-    time1 = time2 = time3 =time4 = 1000000000L;
+    time1 = time2 = time3 =time4 = time5 = 1000000000L;
 
     for (i=0;i<10001;i++)
         for (j=0; j<1000; j++)
-            buffer[i][j] = j%256;
+            buffer[i][j] = j%256/100.;
 
     for (k=0; k<5; k++)
     {
@@ -52,7 +52,7 @@ main(int argc, char **argv)
         base = 5000000./diff_u;
         if (speed1 < base)
             speed1 = base;
-        fflush(stdout);
+//        fflush(stdout);
         //gettimeofday(&tp,NULL);
         //start_s = tp.tv_sec;
         //start_u = tp.tv_usec;
@@ -72,7 +72,7 @@ main(int argc, char **argv)
         base = 5000000./(time2);
         if (speed2 < base)
             speed2 = base;
-        fflush(stdout);
+//        fflush(stdout);
         //gettimeofday(&tp,NULL);
         //start_s = tp.tv_sec;
         //start_u = tp.tv_usec;
@@ -115,11 +115,28 @@ main(int argc, char **argv)
         base = 5000000./(time4);
         if (speed4 < base)
             speed4 = base;
-        fflush(stdout);
+//        fflush(stdout);
+        et.reset();
+        for (i=0; i<5000; i++)
+        {
+            for (j=0; j<1000; j++)
+            {
+                answer = cos(buffer[i][j] * buffer[i+5000][j]);
+            }
+        }
+        //gettimeofday(&tp,NULL);
+        //diff_u = 1000000L*(tp.tv_sec-start_s)+(tp.tv_usec-start_u);
+        diff_u = 1000000L * et.lap();
+        if (time5 > diff_u)
+            time5 = diff_u;
+        base = 5000000./(time5);
+        if (speed5 < base)
+            speed5 = base;
     }
     printf("%6.3lf MNops ",speed1);
     printf("%6.3lf Mflops (%.1lf) ",speed2,speed1/speed2);
     printf("%6.3lf Mflops (%.1lf) ",speed3,speed1/speed3);
     printf("%6.3lf Mflops (%.1lf)",speed4,speed1/speed4);
+    printf("%6.3lf Mflops (%.1lf)",speed5,speed1/speed5);
     printf("\n");
 }
