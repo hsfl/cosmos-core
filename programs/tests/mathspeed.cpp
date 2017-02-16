@@ -25,7 +25,7 @@ struct stat sbuf;
 double answer, base, speed1, speed2, speed3, speed4, speed5;
 size_t loopcnt;
 
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     speed1 = speed2 = speed3 = 0.;
     time1 = time2 = time3 =time4 = time5 = 1000000000L;
