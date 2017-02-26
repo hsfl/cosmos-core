@@ -148,6 +148,7 @@
 #define DATA_ERROR_FORMAT -364
 #define DATA_ERROR_RESOURCES_FOLDER -365 // if agent can't find the cosmos/resources folder
 #define DATA_ERROR_NODES_FOLDER -366
+#define DATA_ERROR_ROOT_FOLDER -367
 
 #define GIGE_ERROR_NACK -371
 
