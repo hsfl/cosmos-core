@@ -40,12 +40,14 @@
 
 //static std::vector<cosmosstruc> nodes;
 
-//! Path to Project Nodes directory
-std::string cosmosnodes;
+//! Path to COSMOS root directory
+string cosmosroot;
+//! Path to COSMOS Nodes directory
+string cosmosnodes;
 //! Path to COSMOS Resources directory
-std::string cosmosresources;
+string cosmosresources;
 //! Path to current COSMOS Node directory
-std::string nodedir;
+string nodedir;
 
 //! @}
 
@@ -70,10 +72,10 @@ std::string nodedir;
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(std::string node, std::string location, std::string agent, double utc, std::string extra, std::string type, std::string record)
+void log_write(string node, string location, string agent, double utc, string extra, string type, string record)
 {
     FILE *fout;
-    std::string path;
+    string path;
 
     if (utc == 0.)
         return;
@@ -104,11 +106,11 @@ void log_write(std::string node, std::string location, std::string agent, double
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(std::string node, std::string agent, double utc, std::string extra, std::string type, std::string record)
+void log_write(string node, string agent, double utc, string extra, string type, string record)
 {
     log_write(node, "temp", agent, utc, extra, type, record);
     //    FILE *fout;
-    //    std::string path;
+    //    string path;
 
     //    if (utc == 0.)
     //        return;
@@ -123,7 +125,7 @@ void log_write(std::string node, std::string agent, double utc, std::string extr
 }
 
 //! Write log entry - fixed location, no extra
-/*! Append the provided std::string to a file in the {node}/temp/{agent} directory. The file name
+/*! Append the provided string to a file in the {node}/temp/{agent} directory. The file name
  * is created as {node}_yyyyjjjsssss.{type}
  * \param node Node name.
  * \param agent Agent name.
@@ -131,11 +133,11 @@ void log_write(std::string node, std::string agent, double utc, std::string extr
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(std::string node, std::string agent, double utc, std::string type, const char *record)
+void log_write(string node, string agent, double utc, string type, const char *record)
 {
     log_write(node, "temp", agent, utc, "", type, record);
     //    FILE *fout;
-    //    std::string path;
+    //    string path;
 
     //    if (utc == 0.)
     //        return;
@@ -150,17 +152,17 @@ void log_write(std::string node, std::string agent, double utc, std::string type
 }
 
 //! Write log entry - fixed location, no extra, integer type and agent
-/*! Append the provided std::string to a file in the {node}/temp/{agent_name} directory. The file name
+/*! Append the provided string to a file in the {node}/temp/{agent_name} directory. The file name
  * is created as {node}_yyyyjjjsssss.{type_name}
  * \param node Node name.
  * \param type Integer specifying what type and agent of file.
  * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
  * \param record String to be appended to file.
  */
-void log_write(std::string node, int type, double utc, const char *record)
+void log_write(string node, int type, double utc, const char *record)
 {
     //    FILE *fout;
-    //    std::string path;
+    //    string path;
 
     //    if (utc == 0.)
     //        return;
@@ -203,19 +205,19 @@ void log_write(std::string node, int type, double utc, const char *record)
  * \param dstlocation Destination location name.
  * \param compress Wether or not to compress with gzip.
  */
-void log_move(std::string node, std::string agent, std::string srclocation, std::string dstlocation, bool compress)
+void log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
 {
     char buffer[8192];
     std::vector<filestruc> oldfiles;
     data_list_files(node, srclocation, agent, oldfiles);
     for (auto oldfile: oldfiles)
     {
-        std::string oldpath = oldfile.path;
+        string oldpath = oldfile.path;
 
         if (compress)
         {
-            std::string temppath = oldfile.path + ".gz";
-            std::string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
+            string temppath = oldfile.path + ".gz";
+            string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
             FILE *fin = data_open(oldpath, (char *)"rb");
             FILE *fout = data_open(temppath, (char *)"wb");
             gzFile gzfout;
@@ -237,7 +239,7 @@ void log_move(std::string node, std::string agent, std::string srclocation, std:
         }
         else
         {
-            std::string newpath = data_base_path(node, dstlocation, agent, oldfile.name);
+            string newpath = data_base_path(node, dstlocation, agent, oldfile.name);
             rename(oldpath.c_str(), newpath.c_str());
         }
         remove(oldpath.c_str());
@@ -252,7 +254,7 @@ void log_move(std::string node, std::string agent, std::string srclocation, std:
  * \param node Node name.
  * \param agent Agent name.
  */
-void log_move(std::string node, std::string agent)
+void log_move(string node, string agent)
 {
     log_move(node, agent, "temp", "outgoing", true);
 }
@@ -261,12 +263,12 @@ void log_move(std::string node, std::string agent)
 /*! Generate a list of days available in the archive of the indicated Node and Agent.
  * The result is returned as a vector of Modified Julian Days.
  */
-std::vector <double> data_list_archive_days(std::string node, std::string agent)
+std::vector <double> data_list_archive_days(string node, string agent)
 {
     std::vector <double> days;
 
     // Check Base Path
-    std::string bpath = data_base_path(node, "data", agent);
+    string bpath = data_base_path(node, "data", agent);
     DIR *jdp;
     if ((jdp=opendir(bpath.c_str())) != nullptr)
     {
@@ -276,7 +278,7 @@ std::vector <double> data_list_archive_days(std::string node, std::string agent)
             // Check Year Path
             if (td->d_name[0] != '.' && atof(td->d_name) > 1900 && atof(td->d_name) < 3000)
             {
-                std::string ypath = (bpath + "/") + td->d_name;
+                string ypath = (bpath + "/") + td->d_name;
                 DIR *jdp;
                 if ((jdp=opendir(ypath.c_str())) != nullptr)
                 {
@@ -287,7 +289,7 @@ std::vector <double> data_list_archive_days(std::string node, std::string agent)
                         // Check Day Path
                         if (td->d_name[0] != '.' && atof(td->d_name) > 0 && atof(td->d_name) < 367)
                         {
-                            std::string dpath = (ypath + "/") + td->d_name;
+                            string dpath = (ypath + "/") + td->d_name;
                             //                            struct stat st;
                             //                            stat(dpath.c_str(), &st);
                             //                            if (S_ISDIR(st.st_mode))
@@ -318,11 +320,11 @@ std::vector <double> data_list_archive_days(std::string node, std::string agent)
  * \param type File extension.
  * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
-std::vector<filestruc> data_list_archive(std::string node, std::string agent, double utc, std::string type)
+std::vector<filestruc> data_list_archive(string node, string agent, double utc, string type)
 {
     std::vector<filestruc> files;
 
-    std::string dtemp;
+    string dtemp;
     DIR *jdp;
     struct dirent *td;
     filestruc tf;
@@ -383,7 +385,7 @@ std::vector<filestruc> data_list_archive(std::string node, std::string agent, do
     return files;
 }
 
-std::vector<filestruc> data_list_archive(std::string node, std::string agent, double utc)
+std::vector<filestruc> data_list_archive(string node, string agent, double utc)
 {
     return data_list_archive(node, agent, utc, "");
 }
@@ -396,7 +398,7 @@ std::vector<filestruc> data_list_archive(std::string node, std::string agent, do
  * \param agent Subdirectory of location to search.
  * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
-std::vector<filestruc> data_list_files(std::string node, std::string location, std::string agent)
+std::vector<filestruc> data_list_files(string node, string location, string agent)
 {
     std::vector<filestruc> files;
 
@@ -415,9 +417,9 @@ std::vector<filestruc> data_list_files(std::string node, std::string location, s
  * \param files List of ::filestruc.
  * \return Number of files found, otherwise negative error.
  */
-size_t data_list_files(std::string node, std::string location, std::string agent, std::vector<filestruc>& files)
+size_t data_list_files(string node, string location, string agent, std::vector<filestruc>& files)
 {
-    std::string dtemp;
+    string dtemp;
     DIR *jdp;
     struct dirent *td;
     filestruc tf;
@@ -465,9 +467,9 @@ size_t data_list_files(std::string node, std::string location, std::string agent
  * Node that is found.
  * \return Any Nodes that are found.
  */
-std::vector<std::string> data_list_nodes()
+std::vector<string> data_list_nodes()
 {
-    std::vector<std::string> nodes;
+    std::vector<string> nodes;
 
     data_list_nodes(nodes);
 
@@ -480,13 +482,13 @@ std::vector<std::string> data_list_nodes()
  * \param nodes Vector of strings with Node names.
  * \return Zero or negative error.
  */
-int32_t data_list_nodes(std::vector<std::string>& nodes)
+int32_t data_list_nodes(std::vector<string>& nodes)
 {
     DIR *jdp;
-    std::string dtemp;
-    std::string rootd;
+    string dtemp;
+    string rootd;
     struct dirent *td;
-    std::string tnode;
+    string tnode;
     //    struct stat statbuf;
 
     int32_t iretn = get_cosmosnodes(rootd);
@@ -521,8 +523,8 @@ int32_t data_list_nodes(std::vector<std::string>& nodes)
 int32_t data_get_nodes(std::vector<cosmosstruc> &node)
 {
     DIR *jdp;
-    std::string dtemp;
-    std::string rootd;
+    string dtemp;
+    string rootd;
     struct dirent *td;
     cosmosstruc *tnode;
 
@@ -544,7 +546,7 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
         {
             if (td->d_name[0] != '.')
             {
-                std::string nodepath = td->d_name;
+                string nodepath = td->d_name;
                 if (!json_setup_node(nodepath, tnode))
                 {
                     node.push_back(*tnode);
@@ -567,9 +569,9 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
 *    \param type Any valid extension type
 *    \return Filename string, otherwise nullptr
 */
-std::string data_name(std::string node, double mjd, std::string extra, std::string type)
+string data_name(string node, double mjd, string extra, string type)
 {
-    std::string name;
+    string name;
     char ntemp[100];
 
     int year, month, seconds;
@@ -589,7 +591,7 @@ std::string data_name(std::string node, double mjd, std::string extra, std::stri
     return (name);
 }
 
-std::string data_name(std::string node, double mjd, std::string type)
+string data_name(string node, double mjd, string type)
 {
     return data_name(node, mjd, "", type);
 }
@@ -604,7 +606,7 @@ std::string data_name(std::string node, double mjd, std::string type)
  * \param seconds Holder for integer julian seconds.
  * \return 0 or negative error.
  */
-int32_t data_name_date(std::string node, std::string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds)
+int32_t data_name_date(string node, string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds)
 {
     if (sscanf(filename.substr(node.size()+1).c_str(), "%4" SCNu16 "%3" SCNu16 "%5" SCNu32 "", &year, &jday, &seconds) == 3 && seconds < 86400 && jday < 367)
     {
@@ -624,7 +626,7 @@ int32_t data_name_date(std::string node, std::string filename, uint16_t &year, u
  * \param utc Holder for returned utc.
  * \return 0 or negative error.
  */
-int32_t data_name_date(std::string node, std::string filename, double &utc)
+int32_t data_name_date(string node, string filename, double &utc)
 {
     uint16_t year;
     uint16_t jday;
@@ -649,10 +651,10 @@ int32_t data_name_date(std::string node, std::string filename, double &utc)
  * of a "data" location, {cosmosnodes}/{node}/{location}/{agent}/{yyyy}/{jjj}/{filename}. If
  * {cosmosnodes} is not defined, or cannot be found, it will be left blank.
  */
-std::string data_base_path(std::string node, std::string location, std::string agent, std::string filename)
+string data_base_path(string node, string location, string agent, string filename)
 {
-    std::string path;
-    std::string tpath;
+    string path;
+    string tpath;
 
     tpath = data_base_path(node, location, agent);
 
@@ -690,10 +692,10 @@ std::string data_base_path(std::string node, std::string location, std::string a
     return path;
 }
 
-std::string data_base_path(std::string node, std::string location, std::string agent)
+string data_base_path(string node, string location, string agent)
 {
-    std::string tpath;
-    std::string path;
+    string tpath;
+    string path;
 
     tpath = data_base_path(node, location);
     if (!tpath.empty())
@@ -715,10 +717,10 @@ std::string data_base_path(std::string node, std::string location, std::string a
 
 }
 
-std::string data_base_path(std::string node, std::string location)
+string data_base_path(string node, string location)
 {
-    std::string tpath;
-    std::string path;
+    string tpath;
+    string path;
 
     tpath = data_base_path(node);
     if (!tpath.empty())
@@ -733,10 +735,10 @@ std::string data_base_path(std::string node, std::string location)
 
 }
 
-std::string data_base_path(std::string node)
+string data_base_path(string node)
 {
-    std::string tpath;
-    std::string path;
+    string tpath;
+    string path;
 
     int32_t iretn = get_cosmosnodes(tpath);
     if (iretn >= 0)
@@ -753,11 +755,11 @@ std::string data_base_path(std::string node)
 
 }
 
-std::string data_archive_path(std::string node, std::string agent, double mjd)
+string data_archive_path(string node, string agent, double mjd)
 {
-    std::string tpath;
+    string tpath;
     char ntemp[COSMOS_MAX_NAME+1];
-    std::string path;
+    string path;
 
     tpath = data_base_path(node, "data", agent);
     if (!tpath.empty())
@@ -792,9 +794,9 @@ std::string data_archive_path(std::string node, std::string agent, double mjd)
 *    \param type Any valid extension type
 *    \return File path string, otherwise nullptr
 */
-std::string data_type_path(std::string node, std::string location, std::string agent, double mjd, std::string type)
+string data_type_path(string node, string location, string agent, double mjd, string type)
 {
-    std::string path;
+    string path;
 
     path = data_type_path(node, location, agent, mjd, "", type);
 
@@ -812,10 +814,10 @@ std::string data_type_path(std::string node, std::string location, std::string a
  * \param type Any valid extension type
  * \return File path string, otherwise nullptr
 */
-std::string data_type_path(std::string node, std::string location, std::string agent, double mjd, std::string extra, std::string type)
+string data_type_path(string node, string location, string agent, double mjd, string extra, string type)
 {
-    std::string path;
-    std::string tpath;
+    string path;
+    string tpath;
 
     tpath = data_name_path(node, location, agent, mjd, data_name(node, mjd, extra, type));
 
@@ -836,10 +838,10 @@ std::string data_type_path(std::string node, std::string location, std::string a
  * \param name File name.
  * \return File path string, otherwise nullptr
 */
-std::string data_name_path(std::string node, std::string location, std::string agent, double mjd, std::string name)
+string data_name_path(string node, string location, string agent, double mjd, string name)
 {
-    std::string path;
-    std::string tpath;
+    string path;
+    string tpath;
 
     if (location == "data")
     {
@@ -861,10 +863,10 @@ std::string data_name_path(std::string node, std::string location, std::string a
 
 //! Check existence of path.
 /*! Check whether a path exists, within the limits of permissions.
- * \param path std::string containing full path.
+ * \param path string containing full path.
  * \return TRUE or FALSE
  */
-bool data_exists(std::string& path)
+bool data_exists(string& path)
 {
     struct stat buffer;
     return (stat (path.c_str(), &buffer) == 0);
@@ -880,7 +882,7 @@ bool data_exists(std::string& path)
  * created, or the file can not be opened.
  */
 
-FILE *data_open(std::string path, char *mode)
+FILE *data_open(string path, char *mode)
 {
     char dtemp[1024];
     uint32_t index, dindex, length;
@@ -918,14 +920,187 @@ FILE *data_open(std::string path, char *mode)
     return (nullptr);
 }
 
-//! Set Resources Directory
-/*! Set the internal variable that points to where all COSMOS resource files
+//! Set Root Directory
+/*! Set the internal variable that points to where all COSMOS files
  * are stored.
     \param name Absolute or relative pathname of directory.
     \return Zero, or negative error.
 */
-int32_t set_cosmosresources(std::string name)
+int32_t set_cosmosroot(string name, bool create_flag)
 {
+    cosmosroot.clear();
+    if (data_isdir(name))
+    {
+        cosmosroot = name;
+        return 0;
+    }
+    else
+    {
+        if (create_flag)
+        {
+            if (COSMOS_MKDIR(name.c_str(), 00777) == 0 || errno == EEXIST)
+            {
+                cosmosroot = name;
+                return 0;
+            }
+            else
+            {
+                return -errno;
+            }
+        }
+        else
+        {
+            return DATA_ERROR_RESOURCES_FOLDER;
+        }
+    }
+}
+
+//! Find Root Directory
+/*! Set the internal variable that points to where all COSMOS
+ * resource files are stored. This checks, in succession:
+ * - a folder named "root" in a path specified by the COSMOS environment variable
+ * - the path specified by the COSMOSRESOURCES environment variable
+ * - "~/cosmos/root" (Unix); "c:\cosmos\root" (Windows)
+ * - up to 6 levels above the current directory, first in "cosmosroot", and then in "root".
+ * \return Zero, or negative error.
+*/
+int32_t set_cosmosroot(bool create_flag)
+{
+    string croot;
+    char *troot;
+    int32_t iretn;
+
+    if (cosmosroot.empty())
+    {
+        if ((troot = getenv("COSMOS")) != nullptr)
+        {
+            croot = troot;
+            if (!set_cosmosroot(croot, create_flag))
+            {
+                return 0;
+            }
+        }
+
+        // No environment variables set. Look in standard location.
+#ifdef COSMOS_LINUX_OS
+        if ((troot = getenv("HOME")) != nullptr)
+        {
+            croot = troot + (string)"/cosmos";
+        }
+        else
+        {
+            croot = "";
+            return (DATA_ERROR_ROOT_FOLDER);
+        }
+#endif
+
+#ifdef COSMOS_MAC_OS
+        croot = "/Applications/cosmos";
+#endif
+
+#ifdef COSMOS_WIN_OS
+        croot = "c:/cosmos";
+#endif
+        if (!set_cosmosroot(croot, false))
+        {
+            return 0;
+        }
+
+        // No standard location. Search upward for "cosmosroot"
+        croot = "cosmos";
+        for (size_t i=0; i<6; i++)
+        {
+            if (!set_cosmosroot(croot, false))
+            {
+                return 0;
+            }
+            croot = "../" + croot;
+        }
+    }
+
+    // if cosmosroot is still empty then try to create standard location, otherwise fail
+    if (cosmosroot.empty() && create_flag)
+    {
+#ifdef COSMOS_LINUX_OS
+        if ((troot = getenv("HOME")) != nullptr)
+        {
+            croot = troot + (string)"/cosmos";
+        }
+        else
+        {
+            croot = "";
+            return (DATA_ERROR_ROOT_FOLDER);
+        }
+#endif
+
+#ifdef COSMOS_MAC_OS
+        croot = "/Applications/cosmos";
+#endif
+
+#ifdef COSMOS_WIN_OS
+        croot = "c:/cosmos";
+#endif
+        if ((iretn=set_cosmosroot(croot, create_flag)) == 0)
+        {
+            return 0;
+        }
+        else
+        {
+            return iretn;
+        }
+    }
+    else
+    {
+        return (DATA_ERROR_ROOT_FOLDER);
+    }
+}
+
+//! Return COSMOS Root Directory
+/*! Get the internal variable that points to where all COSMOS Resource files are
+             * stored. Initialize variable if this is the first call to the function.
+             * \param result Full path to Root directory.
+             * \return Length of string, otherwise negative error.
+            */
+string get_cosmosroot(bool create_flag)
+{
+    string result;
+    get_cosmosroot(result, create_flag);
+    return result;
+}
+
+//! Return COSMOS Root Directory
+/*! Get the internal variable that points to where all COSMOS Resource files are
+             * stored. Initialize variable if this is the first call to the function.
+             * \param result Full path to Root directory.
+             * \return Length of string, otherwise negative error.
+            */
+int32_t get_cosmosroot(string &result, bool create_flag)
+{
+    int32_t iretn;
+
+    result.clear();
+    if (cosmosroot.empty())
+    {
+        iretn = set_cosmosroot(create_flag);
+        if (iretn < 0)
+        {
+            return (DATA_ERROR_ROOT_FOLDER);
+        }
+    }
+    result = cosmosroot;
+    return 0;
+}
+
+
+//! Set Resources Directory
+/*! Set the internal variable that points to where all COSMOS resource files
+             * are stored.
+                \param name Absolute or relative pathname of directory.
+                \return Zero, or negative error.
+            */
+int32_t set_cosmosresources(string name, bool create_flag)
+{
+    cosmosresources.clear();
     if (data_isdir(name))
     {
         cosmosresources = name;
@@ -933,99 +1108,67 @@ int32_t set_cosmosresources(std::string name)
     }
     else
     {
-        cosmosresources.clear();
-        return DATA_ERROR_RESOURCES_FOLDER;
+        if (create_flag)
+        {
+            if (COSMOS_MKDIR(name.c_str(), 00777) == 0 || errno == EEXIST)
+            {
+                cosmosresources = name;
+                return 0;
+            }
+            else
+            {
+                return -errno;
+            }
+        }
+        else
+        {
+            return DATA_ERROR_RESOURCES_FOLDER;
+        }
     }
 }
 
 //! Find Resources Directory
 /*! Set the internal variable that points to where all COSMOS
- * resource files are stored. This checks, in succession:
- * - a folder named "resources" in a path specified by the COSMOS environment variable
- * - the path specified by the COSMOSRESOURCES environment variable
- * - "~/cosmos/resources" (Unix); "c:\cosmos\resources" (Windows)
- * - up to 6 levels above the current directory, first in "cosmosresources", and then in "resources".
- * \return Zero, or negative error.
-*/
-int32_t set_cosmosresources()
+             * resource files are stored. This checks, in succession:
+             * - a folder named "resources" in a path specified by the COSMOS environment variable
+             * - the path specified by the COSMOSRESOURCES environment variable
+             * - "~/cosmos/resources" (Unix); "c:\cosmos\resources" (Windows)
+             * - up to 6 levels above the current directory, first in "cosmosresources", and then in "resources".
+             * \return Zero, or negative error.
+            */
+int32_t set_cosmosresources(bool create_flag)
 {
-    std::string aroot;
-    int i;
+    string croot;
+    char *troot;
+    int32_t iretn;
 
     if (cosmosresources.empty())
     {
-        char *croot = getenv("COSMOSRESOURCES");
-        if (croot != nullptr && data_isdir(croot))
+        if ((troot = getenv("COSMOSRESOURCES")) != nullptr)
         {
-            cosmosresources = croot;
-            return 0;
+            croot = troot;
+            if ((iretn=set_cosmosresources(croot, create_flag)) == 0)
+            {
+                return 0;
+            }
+            else
+            {
+                return iretn;
+            }
         }
         else
         {
-            croot = getenv("COSMOS");
-            if (croot != nullptr && data_isdir(croot + (std::string)"/resources"))
+            if ((iretn = set_cosmosroot(create_flag)) == 0)
             {
-                cosmosresources = croot + (std::string)"/resources";
-                return 0;
+                croot = cosmosroot + "/resources";
+                iretn = set_cosmosresources(croot, create_flag);
+                return iretn;
+            }
+            else
+            {
+                return iretn;
             }
         }
-
-        // No environment variables set. Look in standard location.
-#ifdef COSMOS_LINUX_OS
-        croot = getenv("HOME");
-        if (croot != nullptr && data_isdir(croot + (std::string)"/cosmos/resources"))
-        {
-            cosmosresources = croot + (std::string)"/cosmos/resources";
-            return 0;
-        }
-#endif
-
-#ifdef COSMOS_MAC_OS
-        if (data_isdir("/Applications/cosmos/resources"))
-        {
-            cosmosresources = "/Applications/cosmos/resources";
-            return 0;
-        }
-#endif
-
-#ifdef COSMOS_WIN_OS
-        if (data_isdir("c:/cosmos/resources"))
-        {
-            cosmosresources = "c:/cosmos/resources";
-            return 0;
-        }
-#endif
-
-        // No standard location. Search upward for "cosmosresources"
-        aroot = "cosmosresources";
-        for (i=0; i<6; i++)
-        {
-            if (data_isdir(aroot))
-            {
-                cosmosresources = aroot;
-                return 0;
-            }
-            aroot = "../" + aroot;
-        }
-
-        // Still didn't find it. Search upward for "resources"
-        aroot = "resources";
-        for (i=0; i<6; i++)
-        {
-            if (data_isdir(aroot))
-            {
-                cosmosresources = aroot;
-                return 0;
-            }
-            aroot = "../" + aroot;
-        }
-    }
-
-    // if cosmosresources is still empty then fail the program and inform the user
-    if (cosmosresources.empty())
-    {
-        std::cerr << "error " << DATA_ERROR_RESOURCES_FOLDER << ": could not find cosmos/resources folder" << std::endl;
-        return (DATA_ERROR_RESOURCES_FOLDER);
     }
 
     return 0;
@@ -1033,47 +1176,48 @@ int32_t set_cosmosresources()
 
 //! Return COSMOS Resources Directory
 /*! Get the internal variable that points to where all COSMOS Resource files are
- * stored. Initialize variable if this is the first call to the function.
- * \param result Full path to Resources directory.
- * \return Length of string, otherwise negative error.
-*/
-std::string get_cosmosresources()
+             * stored. Initialize variable if this is the first call to the function.
+             * \param result Full path to Resources directory.
+             * \return Length of string, otherwise negative error.
+            */
+string get_cosmosresources(bool create_flag)
 {
-    std::string result;
-    get_cosmosresources(result);
+    string result;
+    get_cosmosresources(result, create_flag);
     return result;
 }
 
 //! Return COSMOS Resources Directory
 /*! Get the internal variable that points to where all COSMOS Resource files are
- * stored. Initialize variable if this is the first call to the function.
- * \param result Full path to Resources directory.
- * \return Length of string, otherwise negative error.
-*/
-int32_t get_cosmosresources(std::string &result)
+             * stored. Initialize variable if this is the first call to the function.
+             * \param result Full path to Resources directory.
+             * \return Length of string, otherwise negative error.
+            */
+int32_t get_cosmosresources(string &result, bool create_flag)
 {
     int32_t iretn;
 
     result.clear();
     if (cosmosresources.empty())
     {
-        iretn = set_cosmosresources();
+        iretn = set_cosmosresources(create_flag);
         if (iretn < 0)
         {
             // if cosmosresources is still empty then fail the program and inform the user
-            std::cerr << "error " << DATA_ERROR_RESOURCES_FOLDER << ": could not find cosmos/resources folder" << std::endl;
+//            std::cerr << "error " << DATA_ERROR_RESOURCES_FOLDER << ": could not find cosmos/resources folder" << std::endl;
             return (DATA_ERROR_RESOURCES_FOLDER);
         }
     }
+
     result = cosmosresources;
     return 0;
 }
 
 //! Set Environment Variable for COSMOS resources
 /*! \param path Full path of the COSMOS resources folder.
-    \return Zero, or negative error.
-*/
-int32_t setEnvCosmosResources(std::string path){
+                \return Zero, or negative error.
+            */
+int32_t setEnvCosmosResources(string path){
 
     return setEnv("COSMOSRESOURCES", path);
 }
@@ -1081,19 +1225,19 @@ int32_t setEnvCosmosResources(std::string path){
 
 //! Set Environment Variable for COSMOS nodes
 /*! \param path Full path of the COSMOS nodes folder.
-    \return Zero, or negative error.
-*/
-int32_t setEnvCosmosNodes(std::string path){
+                \return Zero, or negative error.
+            */
+int32_t setEnvCosmosNodes(string path){
 
     return setEnv("COSMOSNODES", path);
 }
 
 //! Set Environment Variable for COSMOS
 /*! \param var environment variable to set (ex. COSMOSRESOURCES)
- *  \param path Full path of the COSMOS variable folder.
-    \return Zero, or negative error.
-*/
-int32_t setEnv(std::string var, std::string path){
+             *  \param path Full path of the COSMOS variable folder.
+                \return Zero, or negative error.
+            */
+int32_t setEnv(string var, string path){
 
     uint32_t iretn;
 
@@ -1125,9 +1269,9 @@ int32_t setEnv(std::string var, std::string path){
 //! These variables are just temporarily created while the
 //! program runs.
 /*! \param path full path of the COSMOS variable folder.
-    \return Zero, or negative error.
-*/
-int32_t setEnvCosmos(std::string path){
+                \return Zero, or negative error.
+            */
+int32_t setEnvCosmos(string path){
 
     uint32_t iretn;
 
@@ -1140,12 +1284,13 @@ int32_t setEnvCosmos(std::string path){
 
 //! Set Nodes Directory
 /*! Set the internal variable that points to where all COSMOS resource files
- * are stored.
-    \param name Absolute or relative pathname of directory.
-    \return Zero, or negative error.
-*/
-int32_t set_cosmosnodes(std::string name)
+             * are stored.
+                \param name Absolute or relative pathname of directory.
+                \return Zero, or negative error.
+            */
+int32_t set_cosmosnodes(string name, bool create_flag)
 {
+    cosmosnodes.clear();
     if (data_isdir(name))
     {
         cosmosnodes = name;
@@ -1153,146 +1298,99 @@ int32_t set_cosmosnodes(std::string name)
     }
     else
     {
-        cosmosnodes.clear();
-        return DATA_ERROR_RESOURCES_FOLDER;
+        if (create_flag)
+        {
+            if (COSMOS_MKDIR(name.c_str(), 00777) == 0 || errno == EEXIST)
+            {
+                cosmosnodes = name;
+                return 0;
+            }
+            else
+            {
+                return -errno;
+            }
+        }
+        else
+        {
+            return DATA_ERROR_NODES_FOLDER;
+        }
     }
 }
 
 //! Find COSMOS Nodes Directory on Windows, Linux or MacOS
 /*! Set the internal variable that points to where all COSMOS node files
- * are stored. This either uses the value in COSMOSNODES, or looks for the directory
- * up to 6 levels above the current directory, first in "cosmosnodes", and then in "nodes".
- * \return Zero, or negative error.
-*/
-int32_t set_cosmosnodes()
+             * are stored. This either uses the value in COSMOSNODES, or looks for the directory
+             * up to 6 levels above the current directory, first in "cosmosnodes", and then in "nodes".
+             * \return Zero, or negative error.
+            */
+int32_t set_cosmosnodes(bool create_flag)
 {
-    std::string aroot;
-    int i;
+    string croot;
+    char *troot;
+    int32_t iretn;
 
     if (cosmosnodes.empty())
     {
-        // check if the COSMOSNODES environment variable exists
-        // ex: COSMOSNODES = C:/COSMOS/nodes/
-        // return: cosmosnodes = C:/COSMOS/nodes/
-        char *croot = getenv("COSMOSNODES");
-        if (croot != nullptr && data_isdir(croot))
+        if ((troot = getenv("COSMOSRESOURCES")) != nullptr)
         {
-            cosmosnodes = croot;
-            return 0;
+            croot = troot;
+            if ((iretn=set_cosmosnodes(croot, create_flag)) == 0)
+            {
+                return 0;
+            }
+            else
+            {
+                return iretn;
+            }
         }
         else
-        {   // check if the COSMOS environment variable exists and add /nodes
-            // ex: COSMOS = C:/COSMOS/
-            // return: cosmosnodes = C:/COSMOS/nodes/
-            croot = getenv("COSMOS");
-            if (croot != nullptr && data_isdir(croot + (std::string)"/nodes"))
+        {
+            if ((iretn = set_cosmosroot(create_flag)) == 0)
             {
-                cosmosnodes = croot + (std::string)"/nodes";
-                return 0;
+                croot = cosmosroot + "/nodes";
+                iretn = set_cosmosnodes(croot, create_flag);
+                return iretn;
             }
-        }
-
-        // No environment variables set. Look in standard location.
-#ifdef COSMOS_LINUX_OS
-        // the default path was /usr/local/cosmos/nodes
-        // but if the user is not able to write to the folder then
-        // he is stuck. Let's make the default folder somewhere where the
-        // user can write by default. Ex: ~/cosmos
-        croot = getenv("HOME");
-        if (croot != nullptr && data_isdir(croot + (std::string)"/cosmos/nodes"))
-        {
-            cosmosnodes = croot + (std::string)"/cosmos/nodes";
-            return 0;
-        }
-#endif
-
-        // if the COSMOS nodes folder has not been found use the default path
-#ifdef COSMOS_WIN_OS
-        if (data_isdir("c:/cosmos/nodes"))
-        {
-            cosmosnodes = "c:/cosmos/nodes";
-            return 0;
-        }
-#endif
-#ifdef COSMOS_MAC_OS
-        croot = getenv("HOME");
-        if (croot != nullptr && data_isdir(croot + (std::string)"/cosmos/nodes"))
-        {
-            cosmosnodes = croot + (std::string)"/cosmos/nodes";
-            return 0;
-        }
-#endif
-
-        // No standard location. Search up to 6 folders upwards for "cosmosnodes"
-        aroot = "cosmosnodes";
-        for (i=0; i<6; i++)
-        {
-            if (data_isdir(aroot))
+            else
             {
-                cosmosnodes = aroot;
-                return 0;
+                return iretn;
             }
-            aroot = "../" + aroot;
-        }
-
-        // Still didn't find it. Search up to 6 folders upwards for "nodes"
-        aroot = "nodes";
-        for (i=0; i<6; i++)
-        {
-            if (data_isdir(aroot))
-            {
-                cosmosnodes = aroot;
-                return 0;
-            }
-            aroot = "../" + aroot;
         }
     }
 
-    if (cosmosnodes.empty())
-    {
-        std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find the 'nodes' folder" << std::endl;
-        std::cerr << "the searched paths were:" << std::endl;
+    return 0;
+}
 
-#ifdef COSMOS_WIN_OS
-        std::cerr << "<<COSMOSNODES>>  environment variable (if set)" << std::endl;
-        std::cerr << "<<COSMOS>>/nodes environment variable (if set)" << std::endl;
-        std::cerr << "c:/cosmos/nodes" << std::endl;
-        std::cerr << "../cosmosnodes to ../../../../../../cosmosnodes (6 levels above current folder)" << std::endl;
-        std::cerr << "../nodes to ../../../../../../nodes (6 levels above current folder)" << std::endl;
-#endif
-
-#ifdef COSMOS_MAC_OS
-        std::cerr << "<COSMOSNODES>  environment variable (if set)" << std::endl;
-        std::cerr << "<COSMOS>/nodes environment variable (if set)" << std::endl;
-        std::cerr << "~/cosmos/nodes" << std::endl;
-        std::cerr << "../cosmosnodes to ../../../../../../cosmosnodes (6 levels above current folder)" << std::endl;
-        std::cerr << "../nodes to ../../../../../../nodes (6 levels above current folder)" << std::endl;
-#endif
-        return (DATA_ERROR_NODES_FOLDER);
-    }
-    else
-    {
-        return 0;
-    }
+//! Return COSMOS Nodes Directory
+/*! Get the internal variable that points to where all COSMOS Node files are
+             * stored. Initialize variable if this is the first call to the function.
+             * \param result Full path to Nodes directory.
+             * \return Length of string, otherwise negative error.
+            */
+string get_cosmosnodes(bool create_flag)
+{
+    string result;
+    get_cosmosnodes(result, create_flag);
+    return result;
 }
 
 //! Get COSMOS Nodes Directory
 /*! Get the internal variable that points to where all COSMOS files are
- * stored.
- * \param result String to place path in.
- * \return Zero, or negative error.
-*/
-int32_t get_cosmosnodes(std::string &result)
+             * stored.
+             * \param result String to place path in.
+             * \return Zero, or negative error.
+            */
+int32_t get_cosmosnodes(string &result, bool create_flag)
 {
     int32_t iretn;
 
     result.clear();
     if (cosmosnodes.empty())
     {
-        iretn = set_cosmosnodes();
+        iretn = set_cosmosnodes(create_flag);
         if (iretn < 0)
         {
-            std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
+//            std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
             return (DATA_ERROR_NODES_FOLDER);
         }
     }
@@ -1303,15 +1401,15 @@ int32_t get_cosmosnodes(std::string &result)
 
 //! Get Current Node Directory
 /*! Get the internal variable that points to where node files are
- * stored for the current Node.
- * \param node Name of current Node
- * \param create_flag Whether or not to create node directory if it doesn't already exist.
- * \return Pointer to character std::string containing path to Node, otherwise nullptr.
-*/
-std::string get_nodedir(std::string node, bool create_flag)
+             * stored for the current Node.
+             * \param node Name of current Node
+             * \param create_flag Whether or not to create node directory if it doesn't already exist.
+             * \return Pointer to character string containing path to Node, otherwise nullptr.
+            */
+string get_nodedir(string node, bool create_flag)
 {
     nodedir.clear();
-    if (!set_cosmosnodes())
+    if (!set_cosmosnodes(create_flag))
     {
         nodedir = cosmosnodes + "/" + node;
 
@@ -1340,20 +1438,20 @@ std::string get_nodedir(std::string node, bool create_flag)
 
 //! Load data from archive
 /*! Load JSON entries of specified type from data archive for specified Node and Agent.
- * Will return all data that is available within specified date range, in files
- * {COSMOSNODES}/{Node}/date/{Agent}/{yyyy}/{ddd}/{*}.type.
- * \param node Name of Node.
- * \param agent Name of Agent.
- * \param utcbegin Starting UTC.
- * \param utcend Ending UTC.
- * \param type Type extension.
- * \param result Vector of JSON strings.
- * \return 0 or negative error.
- */
-int32_t data_load_archive(std::string node, std::string agent, double utcbegin, double utcend, std::string type, std::vector<std::string> &result)
+             * Will return all data that is available within specified date range, in files
+             * {COSMOSNODES}/{Node}/date/{Agent}/{yyyy}/{ddd}/{*}.type.
+             * \param node Name of Node.
+             * \param agent Name of Agent.
+             * \param utcbegin Starting UTC.
+             * \param utcend Ending UTC.
+             * \param type Type extension.
+             * \param result Vector of JSON strings.
+             * \return 0 or negative error.
+             */
+int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, std::vector<string> &result)
 {
     std::ifstream tfd;
-    std::string tstring;
+    string tstring;
     std::vector <filestruc> files;
 
 
@@ -1387,14 +1485,14 @@ int32_t data_load_archive(std::string node, std::string agent, double utcbegin, 
     return 0;
 }
 
-int32_t data_load_archive(std::string node, std::string agent, double mjd, std::string type, std::vector<std::string> &result)
+int32_t data_load_archive(string node, string agent, double mjd, string type, std::vector<string> &result)
 {
     int32_t iretn;
     iretn = data_load_archive(node, agent, floor(mjd), floor(mjd)+.999999, type, result);
     return iretn;
 }
 
-int32_t data_load_archive(double mjd, std::vector<std::string> &telem, std::vector<std::string> &event, cosmosstruc *cinfo)
+int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<string> &event, cosmosstruc *cinfo)
 {
     int32_t iretn;
 
@@ -1410,10 +1508,10 @@ int32_t data_load_archive(double mjd, std::vector<std::string> &telem, std::vect
 
 //! Find last day in archive
 /*! Searches through data archives for this Node to find most recent
- * day for which data is available. This is then stored in lastday.
- \return MJD of last day in archive, or zero.
-*/
-double findlastday(std::string name)
+             * day for which data is available. This is then stored in lastday.
+             \return MJD of last day in archive, or zero.
+            */
+double findlastday(string name)
 {
     DIR *jdp;
     struct dirent *td;
@@ -1485,10 +1583,10 @@ double findlastday(std::string name)
 
 //! Find first day in archive
 /*! Searches through data archives for this Node to find oldest
- * day for which data is available. This is then stored in firstday.
- \return MJD of last day in archive.
-*/
-double findfirstday(std::string name)
+             * day for which data is available. This is then stored in firstday.
+             \return MJD of last day in archive.
+            */
+double findfirstday(string name)
 {
     DIR *jdp;
     struct dirent *td;
@@ -1558,10 +1656,10 @@ double findfirstday(std::string name)
 
 //! Add to KML path
 /*! Write a KML file to keep track of the path the node is following. Create the file if it doesn't alreay exist.
- * Append to it if it already exists.
- \param cinfo Pointer to ::cosmosstruc to use.
- \return 0, otherwise negative error.
-*/
+             * Append to it if it already exists.
+             \param cinfo Pointer to ::cosmosstruc to use.
+             \return 0, otherwise negative error.
+            */
 int32_t kml_write(cosmosstruc *cinfo)
 {
     char buf[500];
@@ -1570,7 +1668,7 @@ int32_t kml_write(cosmosstruc *cinfo)
 
     utc = floor(cinfo->pdata.node.loc.utc);
 
-    std::string path = data_type_path((std::string)cinfo->pdata.node.name, "outgoing", "google", utc, "points");
+    string path = data_type_path((string)cinfo->pdata.node.name, "outgoing", "google", utc, "points");
     fin = data_open(path, (char *)"a+");
     fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->pdata.node.loc.pos.geod.s.lon),DEGOF(cinfo->pdata.node.loc.pos.geod.s.lat),cinfo->pdata.node.loc.pos.geod.s.h);
 
@@ -1599,7 +1697,7 @@ int32_t kml_write(cosmosstruc *cinfo)
     return 0;
 }
 
-bool data_isdir(std::string path)
+bool data_isdir(string path)
 {
     struct stat st;
 
