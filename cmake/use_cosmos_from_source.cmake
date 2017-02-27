@@ -37,6 +37,16 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     include_directories(${COSMOS_SOURCE}/core/libraries/device/cpu)
     add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/cpu      ${CMAKE_BINARY_DIR}/libraries/device/cpu)
 
+    # -----------------------------------------------
+    # import device i2c
+    include_directories(${COSMOS_SOURCE}/core/libraries/device/i2c)
+    add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/i2c      ${CMAKE_BINARY_DIR}/libraries/device/i2c)
+
+    # -----------------------------------------------
+    # import device serial
+    include_directories(${COSMOS_SOURCE}/core/libraries/device/serial)
+    add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/serial      ${CMAKE_BINARY_DIR}/libraries/device/serial)
+
     #add_library(localzlib STATIC IMPORTED)
     #set_property(TARGET localzlib PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib/libzlib.a)
 
