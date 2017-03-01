@@ -44,6 +44,7 @@ namespace Cosmos {
 //! Create a i2c port object to be used for reading and writing to a physical port.
 //! \param dname Name of physical serial port.
 
+
 I2C::I2C(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
 {
     int fh;

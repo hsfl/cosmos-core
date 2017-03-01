@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-message("Building device/i2c")
+message("Build device/i2c")
 
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)

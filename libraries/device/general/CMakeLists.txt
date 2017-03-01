@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-message("Building device/general")
+message("Build device/general")
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

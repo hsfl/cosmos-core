@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
