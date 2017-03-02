@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-message("Building device/serial")
+message("Build device/serial")
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
