@@ -28,8 +28,8 @@
 ********************************************************************/
 
 /*!	\file cosmos-defs.h
-	\brief COSMOS definitions
-	Definitions specific to the COSMOS environement
+    \brief COSMOS definitions
+    Definitions specific to the COSMOS environement
 */
 //!	\defgroup  defs COSMOS Definitions
 //! Constant definitions useful throughout COSMOS.
@@ -59,21 +59,26 @@
 //! \defgroup defs_piece Constants defining Part types.
 //! @{
 //! These constants define the different Part types that a Node can be made of.
+enum PIECE
+{
+    //! External Panel: n vertices and a thickness, subject to external forces
+    PIECE_TYPE_EXTERNAL_PANEL=0,
+    //! Internal Panel: n vertices and a thickness
+    PIECE_TYPE_INTERNAL_PANEL=1,
+    //! Box: 8 vertices defining 2 parallel sides and a wall thickness, first set curled pointing out, second set pointing in
+    PIECE_TYPE_BOX=2,
+    //! Cylinder: 3 points and a wall thickness, first end, second end, point on radius of second end
+    PIECE_TYPE_CYLINDER=3,
+    //! Sphere: 2 points and a wall thickness; center and point on surface.
+    PIECE_TYPE_SPHERE=4,
+    //! Dimensionless:
+    PIECE_TYPE_DIMENSIONLESS=5,
+    //! Cone: same as Cylinder except first end is a point.
+    PIECE_TYPE_CONE=6,
+    PIECE_TYPE_COUNT,
+    PIECE_TYPE_NONE=UINT16_MAX
+};
 
-//! External Panel: n vertices and a thickness, subject to external forces
-#define PIECE_TYPE_EXTERNAL_PANEL 0
-//! Internal Panel: n vertices and a thickness
-#define PIECE_TYPE_INTERNAL_PANEL 1
-//! Box: 8 vertices defining 2 parallel sides and a wall thickness, first set curled pointing out, second set pointing in
-#define PIECE_TYPE_BOX 2
-//! Cylinder: 3 points and a wall thickness, first end, second end, point on radius of second end
-#define PIECE_TYPE_CYLINDER 3
-//! Sphere: 2 points and a wall thickness; center and point on surface.
-#define PIECE_TYPE_SPHERE 4
-//! Dimensionless:
-#define PIECE_TYPE_DIMENSIONLESS 5
-//! Cone: same as Cylinder except first end is a point.
-#define PIECE_TYPE_CONE 6
 //! @}
 
 
@@ -82,21 +87,23 @@
 //! @{
 enum NODE_TYPE
 {
-NODE_TYPE_SATELLITE=0,
-NODE_TYPE_GROUNDSTATION=1,
-NODE_TYPE_MOC=2,
-NODE_TYPE_VEHICLE=3,
-NODE_TYPE_UAV=4,
-NODE_TYPE_TARGET=5,
-NODE_TYPE_BALLOON=6,
-NODE_TYPE_SHIP=7,
-NODE_TYPE_DATA=8,
-NODE_TYPE_COMPUTER=9,
-NODE_TYPE_SUN=10,
-NODE_TYPE_MOON=11,
-NODE_TYPE_MARS=12,
-NODE_TYPE_LOCATION=13
-    };
+    NODE_TYPE_SATELLITE=0,
+    NODE_TYPE_GROUNDSTATION=1,
+    NODE_TYPE_MOC=2,
+    NODE_TYPE_VEHICLE=3,
+    NODE_TYPE_UAV=4,
+    NODE_TYPE_TARGET=5,
+    NODE_TYPE_BALLOON=6,
+    NODE_TYPE_SHIP=7,
+    NODE_TYPE_DATA=8,
+    NODE_TYPE_COMPUTER=9,
+    NODE_TYPE_SUN=10,
+    NODE_TYPE_MOON=11,
+    NODE_TYPE_MARS=12,
+    NODE_TYPE_LOCATION=13,
+    NODE_TYPE_COUNT,
+    NODE_TYPE_NONE=UINT16_MAX
+};
 
 //! @}
 

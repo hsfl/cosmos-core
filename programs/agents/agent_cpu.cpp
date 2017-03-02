@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     // Add additional requests
 
     agent = new Agent(nodename, agentname, 5.);
-    if (!agent->running() || agent->cinfo == nullptr)
+    if (agent->cinfo == nullptr || !agent->running())
     {
         cout << "Unable to start agent" << endl;
         exit(1);
@@ -409,8 +409,7 @@ int create_node () // only use when unsure what the node is
 #else
                 strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "/");
 #endif
-                json_addentry("port_name",cinfo->pdata.device[i].all.gen.didx,65535u,(ptrdiff_t)offsetof(portstruc,name)+(cinfo->pdata.device[i].all.gen.didx)*sizeof(portstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PORT,cinfo->meta);
-                json_addentry("port_type",cinfo->pdata.device[i].all.gen.didx,65535u,(ptrdiff_t)offsetof(portstruc,type)+(cinfo->pdata.device[i].all.gen.didx)*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PORT,cinfo->meta);
+                json_addportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta, cinfo->pdata);
                 break;
             }
             json_addcompentry(i, cinfo->meta, cinfo->pdata);

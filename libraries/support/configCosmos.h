@@ -97,7 +97,7 @@ using std::istringstream;
 #include <map>
 using std::map;
 
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 #include "support/cosmos-defs.h"
 
 namespace Cosmos {}

@@ -738,7 +738,7 @@ string data_base_path(string node, string location)
 string data_base_path(string node)
 {
     string tpath;
-    string path;
+    string path="";
 
     int32_t iretn = get_cosmosnodes(tpath);
     if (iretn >= 0)
@@ -1084,7 +1084,7 @@ int32_t get_cosmosroot(string &result, bool create_flag)
         iretn = set_cosmosroot(create_flag);
         if (iretn < 0)
         {
-            return (DATA_ERROR_ROOT_FOLDER);
+            return iretn;
         }
     }
     result = cosmosroot;
@@ -1182,7 +1182,7 @@ int32_t set_cosmosresources(bool create_flag)
             */
 string get_cosmosresources(bool create_flag)
 {
-    string result;
+    string result="";
     get_cosmosresources(result, create_flag);
     return result;
 }
@@ -1203,9 +1203,7 @@ int32_t get_cosmosresources(string &result, bool create_flag)
         iretn = set_cosmosresources(create_flag);
         if (iretn < 0)
         {
-            // if cosmosresources is still empty then fail the program and inform the user
-//            std::cerr << "error " << DATA_ERROR_RESOURCES_FOLDER << ": could not find cosmos/resources folder" << std::endl;
-            return (DATA_ERROR_RESOURCES_FOLDER);
+            return iretn;
         }
     }
 
@@ -1369,7 +1367,7 @@ int32_t set_cosmosnodes(bool create_flag)
             */
 string get_cosmosnodes(bool create_flag)
 {
-    string result;
+    string result="";
     get_cosmosnodes(result, create_flag);
     return result;
 }
@@ -1391,7 +1389,7 @@ int32_t get_cosmosnodes(string &result, bool create_flag)
         if (iretn < 0)
         {
 //            std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
-            return (DATA_ERROR_NODES_FOLDER);
+            return iretn;
         }
     }
 
