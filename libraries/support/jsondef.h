@@ -484,7 +484,7 @@ enum
     //! List count
     DEVICE_TYPE_COUNT,
     //! Not a Component
-    DEVICE_TYPE_NONE=65535
+    DEVICE_TYPE_NONE=UINT16_MAX
     };
 
 enum
@@ -567,7 +567,7 @@ enum PORT_TYPE
     PORT_TYPE_DRIVE = 4,
     PORT_TYPE_SIM = 5,
     PORT_TYPE_COUNT,
-    PORT_TYPE_NONE = 65535
+    PORT_TYPE_NONE = UINT16_MAX
     };
 
 //! @}
@@ -622,6 +622,8 @@ struct jsonnode
 */
 struct jsonentry
 {
+    //! Enabled?
+    bool enabled;
     //! JSON Data Type
     uint16_t type;
     //! JSON Data Group
@@ -1014,6 +1016,8 @@ struct piecestruc
 {
     //! Name of piece
     char name[COSMOS_MAX_NAME+1];
+    //! Enabled?
+    bool enabled;
     //! Type of piece from \ref defs_piece.
     uint16_t type;
     //! Component index: -1 if not a Component
@@ -1062,6 +1066,8 @@ union as a ::devicestruc.
 */
 struct genstruc
 {
+    //! Enabled?
+    bool enabled;
     //! Component Type
     uint16_t type;
     //! Device Model

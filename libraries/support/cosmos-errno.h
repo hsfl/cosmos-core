@@ -30,17 +30,20 @@
 #ifndef _COSMOS_ERROR_H
 #define _COSMOS_ERROR_H 1
 
+#include "support/configCosmos.h"
 #include <errno.h>
 
 /*!	\file cosmos-errno.h
 	\brief COSMOS Error Codes
-	\defgroup  error COSMOS Error codes
-	@{
-	Definitions of the error codes used throughout all COSMOS related software. These codes
-	are guaranteed to lie outside the range of general error codes, and further divided in to
-	groups of ten by area of applicability.
-	@}
-*/
+    */
+//! \ingroup support
+//! \defgroup  error COSMOS Error codes
+//! Error Codes.
+//!
+//! Definitions of the error codes used throughout all COSMOS related software. These codes
+//! are guaranteed to lie outside the range of general error codes, and further divided in to
+//! groups of ten by area of applicability. Support functions are provided for string
+//! versiosn of the error codes.
 
 //! \ingroup error
 //! \defgroup error_defines COSMOS Error Code definitions
@@ -152,6 +155,7 @@
 
 #define GIGE_ERROR_NACK -371
 
+#define CSSL_ERROR_BASE -380
 #define CSSL_ERROR_CHECKSUM -381
 #define CSSL_ERROR_READ -382
 #define CSSL_ERROR_TIMEOUT -383
@@ -180,14 +184,6 @@
 #define IC9100_ERROR_READ -396
 #define IC9100_ERROR_ADDR -397
 
-#define ASTRODEV_ERROR_HEADER_CS -391
-#define ASTRODEV_ERROR_SYNC0 -392
-#define ASTRODEV_ERROR_NACK -393
-#define ASTRODEV_ERROR_PAYLOAD_CS -394
-#define ASTRODEV_ERROR_SYNC1 -395
-#define ASTRODEV_ERROR_HEADER -396
-#define ASTRODEV_ERROR_PAYLOAD -397
-
 #define GPS_ERROR_OPEN -401
 #define GPS_ERROR_CLOSED -402
 
@@ -204,7 +200,13 @@
 #define PIC_ERROR_ERR -426
 #define PIC_ERROR_TYPE -427
 
-#define CSSL_ERROR_BASE -439
+#define ASTRODEV_ERROR_HEADER_CS -431
+#define ASTRODEV_ERROR_SYNC0 -432
+#define ASTRODEV_ERROR_NACK -433
+#define ASTRODEV_ERROR_PAYLOAD_CS -434
+#define ASTRODEV_ERROR_SYNC1 -435
+#define ASTRODEV_ERROR_HEADER -436
+#define ASTRODEV_ERROR_PAYLOAD -437
 
 #define SUCHI_ERROR_CLOSED -441
 
@@ -265,4 +267,12 @@
 #define GENERAL_ERROR_UNDEFINED           -2018
 
 //! @}
+
+
+//! \ingroup error
+//! \defgroup error_defines COSMOS Error Code definitions
+//! @{
+string cosmos_error_string(int32_t cosmos_errno);
+//! @}
+
 #endif
