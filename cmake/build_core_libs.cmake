@@ -121,7 +121,7 @@ IF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
     MESSAGE("- local zlib Library")
     add_subdirectory(${COSMOS_CORE_SOURCE}/libraries/thirdparty/zlib ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib)
     SET(LINK_LIBRARY_COSMOS_CORE_ZLIB localzlib )
-    set(COSMOS_LIBS localzlib ${COSMOS_LIBS})
+#    set(COSMOS_LIBS localzlib ${COSMOS_LIBS})
 ENDIF(${BUILD_COSMOS_CORE_THIRDPARTY_ZLIB} MATCHES "ON")
 
 # -----------------------------------------------
