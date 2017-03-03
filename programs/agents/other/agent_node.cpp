@@ -411,7 +411,7 @@ int32_t request_loadmjd(char *request, char* response, Agent *)
 */
 int32_t request_counts(char *, char* response, Agent *)
 {
-    sprintf(response,"%" PRIu32 " %" PRIu32 " %" PRIu32 " %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),agent->cinfo->pdata.node.target_cnt);
+    sprintf(response,"%" PRIu64 " %" PRIu64 " %" PRIu64 " %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),agent->cinfo->pdata.node.target_cnt);
 	return 0;
 }
 

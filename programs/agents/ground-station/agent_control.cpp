@@ -691,7 +691,7 @@ int32_t request_get_state(char *req, char* response, Agent *)
 	}
 	else
 	{
-        sprintf(response, "[%.6f] %u: %s [%6.1f %6.1f] CxTime: ",
+        sprintf(response, "[%.6f] %lu: %s [%6.1f %6.1f] CxTime: ",
                 currentmjd(),
                 trackindex,
                 track[trackindex].name.c_str(),
@@ -722,7 +722,7 @@ int32_t request_get_highest(char *req, char* response, Agent *)
 {
 	if (highestindex != 9999)
 	{
-		sprintf(response, "%u: %s [%6.1f %6.1f]", highestindex, track[highestindex].name.c_str(), DEGOF(fixangle(track[highestindex].target.azfrom)), DEGOF((track[highestindex].target.elfrom)));
+        sprintf(response, "%lu: %s [%6.1f %6.1f]", highestindex, track[highestindex].name.c_str(), DEGOF(fixangle(track[highestindex].target.azfrom)), DEGOF((track[highestindex].target.elfrom)));
 	}
 	return 0;
 }

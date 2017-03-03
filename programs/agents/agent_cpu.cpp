@@ -370,7 +370,7 @@ int create_node () // only use when unsure what the node is
                 strcpy(cinfo->pdata.piece[i].name, "Main CPU");
                 break;
             default:
-                sprintf(cinfo->pdata.piece[i].name, "Drive %d", i);
+                sprintf(cinfo->pdata.piece[i].name, "Drive %lu", i);
 //                strcpy(cinfo->pdata.piece[i].name, "Main Drive");
                 break;
             }

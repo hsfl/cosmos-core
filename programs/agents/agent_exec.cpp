@@ -360,7 +360,7 @@ int32_t request_reopen_exec(char* request, char* response, Agent *agent)
 
 int32_t request_get_queue_size(char *request, char* response, Agent *agent)
 {
-    sprintf(response,"%" PRIu32 "", cmd_queue.get_size());
+    sprintf(response,"%" PRIu64 "", cmd_queue.get_size());
     return 0;
 }
 
