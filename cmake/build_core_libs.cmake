@@ -1,12 +1,33 @@
 MESSAGE("")
 MESSAGE("Libraries:")
+#set(COSMOS_LIBS  CosmosAgent CosmosPhysics CosmosSupport CosmosMath localzlib ${COSMOS_LIBS})
+IF(${BUILD_COSMOS_CORE_ZLIB} MATCHES "ON")
+    set(COSMOS_LIBS  localzlib ${COSMOS_LIBS})
+ENDIF(${BUILD_COSMOS_CORE_ZLIB} MATCHES "ON")
+
+IF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
+    set(COSMOS_LIBS  CosmosMath ${COSMOS_LIBS})
+ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
+
+IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
+    set(COSMOS_LIBS  CosmosSupport ${COSMOS_LIBS})
+ENDIF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
+
+IF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
+    set(COSMOS_LIBS  CosmosPhysics ${COSMOS_LIBS})
+ENDIF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
+
+IF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
+    set(COSMOS_LIBS  CosmosAgent ${COSMOS_LIBS})
+ENDIF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
+
 # -----------------------------------------------
 # Build Agent Library
 IF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
     MESSAGE("- Agent Library")
     add_subdirectory(${COSMOS_CORE_SOURCE}/libraries/agent ${CMAKE_BINARY_DIR}/libraries/agent)
     SET(LINK_LIBRARY_COSMOS_CORE_AGENT CosmosAgent)
-    set(COSMOS_LIBS  CosmosAgent ${COSMOS_LIBS})
+#    set(COSMOS_LIBS  CosmosAgent ${COSMOS_LIBS})
 ENDIF(${BUILD_COSMOS_CORE_AGENT} MATCHES "ON")
 
 # Build Physics Library
@@ -14,7 +35,7 @@ IF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
     MESSAGE("- Physics Library")
     add_subdirectory(${COSMOS_CORE_SOURCE}/libraries/physics ${CMAKE_BINARY_DIR}/libraries/physics)
     SET(LINK_LIBRARY_COSMOS_CORE_PHYSICS CosmosPhysics)
-    set(COSMOS_LIBS  CosmosPhysics ${COSMOS_LIBS})
+#    set(COSMOS_LIBS  CosmosPhysics ${COSMOS_LIBS})
 ENDIF(${BUILD_COSMOS_CORE_PHYSICS} MATCHES "ON")
 
 
@@ -23,7 +44,7 @@ IF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
     MESSAGE("- Math Library")
     add_subdirectory(${COSMOS_CORE_SOURCE}/libraries/math ${CMAKE_BINARY_DIR}/libraries/math)
     SET(LINK_LIBRARY_COSMOS_CORE_MATH CosmosMath)
-    set(COSMOS_LIBS CosmosMath ${COSMOS_LIBS})
+#    set(COSMOS_LIBS CosmosMath ${COSMOS_LIBS})
 ENDIF(${BUILD_COSMOS_CORE_MATH} MATCHES "ON")
 
 # -----------------------------------------------
@@ -32,7 +53,7 @@ IF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
     MESSAGE("- Support Library")
     add_subdirectory(${COSMOS_CORE_SOURCE}/libraries/support ${CMAKE_BINARY_DIR}/libraries/support)
     SET(LINK_LIBRARY_COSMOS_CORE_SUPPORT CosmosSupport)
-    set(COSMOS_LIBS CosmosSupport ${COSMOS_LIBS})
+#    set(COSMOS_LIBS CosmosSupport ${COSMOS_LIBS})
 ENDIF(${BUILD_COSMOS_CORE_SUPPORT} MATCHES "ON")
 
 # -----------------------------------------------

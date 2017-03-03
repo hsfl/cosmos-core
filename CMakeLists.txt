@@ -371,7 +371,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 include(${CMAKE_SOURCE_DIR}/cmake/build_core_libs.cmake)
 
 # print libraries to link
-#message("COSMOS/core libraries: ${COSMOS_LIBS}")
+message("COSMOS/core libraries: ${COSMOS_LIBS}")
 
 # -----------------------------------------------
 #message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
