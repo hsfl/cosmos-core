@@ -386,6 +386,8 @@ int create_node () // only use when unsure what the node is
                 cinfo->pdata.piece[i].points[0].col[j] = 0.;
             }
             json_addpieceentry(i, cinfo->meta);
+            json_togglepieceentry(i, cinfo->meta, true);
+            cinfo->pdata.piece[i].enabled = true;
 
             cinfo->pdata.device[i].all.gen.pidx = i;
             cinfo->pdata.device[i].all.gen.cidx = i;
@@ -397,6 +399,7 @@ int create_node () // only use when unsure what the node is
                 cinfo->pdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
                 cinfo->pdata.device[i].cpu.maxload = 1.;
                 cinfo->pdata.device[i].cpu.maxgib = 1.;
+                json_adddeviceentry(i, 0, DEVICE_TYPE_CPU, cinfo->meta);
                 break;
             default:
                 cinfo->pdata.device[i].disk.maxgib = 1000.;
@@ -404,16 +407,20 @@ int create_node () // only use when unsure what the node is
                 cinfo->pdata.device[i].all.gen.didx = i-1;
                 cinfo->pdata.device[i].all.gen.portidx = cinfo->pdata.device[i].all.gen.didx;
                 cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].type = PORT_TYPE_DRIVE;
+                json_adddeviceentry(i, i-1, DEVICE_TYPE_DISK, cinfo->meta);
+                json_toggledeviceentry(i-1, DEVICE_TYPE_DISK, cinfo->meta, true);
 #ifdef COSMOS_WIN_OS
                 strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "c:/");
 #else
                 strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "/");
 #endif
-                json_addportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta, cinfo->pdata);
+                json_addportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta);
+                json_toggleportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta, true);
                 break;
             }
-            json_addcompentry(i, cinfo->meta, cinfo->pdata);
-            json_adddeviceentry(i, cinfo->meta, cinfo->pdata);
+            json_addcompentry(i, cinfo->meta);
+            json_togglecompentry(i, cinfo->meta, true);
+            cinfo->pdata.device[i].all.gen.enabled = true;
         }
 
         int32_t iretn = json_dump_node(cinfo->meta, cinfo->pdata);
