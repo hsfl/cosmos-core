@@ -61,12 +61,12 @@ IF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
 
         set(COSMOS_LIBS CosmosDeviceGeneral ${COSMOS_LIBS})
 
-        cmake_policy(SET CMP0057 NEW)
+        #cmake_policy(SET CMP0057 NEW)
         #message("libs:" "${BUILD_LIBRARIES_DEVICES}")
 
         foreach(subdir ${DEVICEDIRS})
             #message("${subdir}")
-            if(${subdir} IN_LIST BUILD_LIBRARIES_DEVICES OR BUILD_LIBRARIES_DEVICES MATCHES "all") # requires cmake 3.3
+            #if(${subdir} IN_LIST BUILD_LIBRARIES_DEVICES OR BUILD_LIBRARIES_DEVICES MATCHES "all") # requires cmake 3.3
                 #message("${subdir}")
                 add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/device/${subdir} ${CMAKE_BINARY_DIR}/libraries/device/${subdir})
                 list(APPEND librarylist ${libraryName})
@@ -75,7 +75,7 @@ IF(${BUILD_COSMOS_CORE_DEVICES} MATCHES "ON")
                     set(COSMOS_LIBS ${libraryName} ${COSMOS_LIBS})
                     #message("Setting " ${libraryName})
                 endif()
-            endif()
+            #endif()
         endforeach()
     #endif()
 

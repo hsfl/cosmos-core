@@ -65,6 +65,8 @@ if(${BUILD_TYPE} MATCHES "TESTS")
     set(BUILD_TUTORIALS NO) # YES, NO
 endif()
 
+#set(BUILD_LIBRARIES all)
+
 # available options: all, arduino, astrodev cpu disk general i2c serial vn100
 # if the BUILD_LIBRARIES_DEVICES was not set then include all device libraries by default
 if (NOT BUILD_LIBRARIES_DEVICES)
@@ -88,8 +90,8 @@ add_definitions( -DCROSS_TYPE_${CROSS_TYPE})
 
 # comment
 #set(CMAKE_LEGACY_CYGWIN_WIN32 0) # Remove when CMake >= 2.8.4 is required
-#cmake_minimum_required(VERSION 2.8.12)
-cmake_minimum_required(VERSION 3.3) # if ( ... IN_LIST ...)
+cmake_minimum_required(VERSION 2.8.12)
+#cmake_minimum_required(VERSION 3.3) # if ( ... IN_LIST ...)
 
 project(${PROJECT_NAME})
 
