@@ -203,6 +203,7 @@ pid_t DeviceCpu::getMemoryUsedOf(string processName)
     //    return cpuWin.getMemoryUsedOf(processName);
 #endif
 
+    return -1;
 }
 
 float DeviceCpu::getPercentCpuOf(string processName)
@@ -214,6 +215,7 @@ float DeviceCpu::getPercentCpuOf(string processName)
 #if defined(COSMOS_WIN_OS)
     //    return cpuWin.getPercentCpuOf(processName);
 #endif
+    return 0.;
 }
 
 float DeviceCpu::getPercentMemoryOf(string processName)
@@ -226,6 +228,7 @@ float DeviceCpu::getPercentMemoryOf(string processName)
     //    return cpuWin.getPercentMemoryOf(processName);
 #endif
 
+    return 0.;
 }
 
 double DeviceCpu::BytesToKiB(double bytes)
@@ -321,7 +324,7 @@ double DeviceCpuLinux::getLoad1minAverage()
 void DeviceCpuLinux::initCpuUtilization(){
 
     FILE* file;
-    struct tms timeSample;
+//    struct tms timeSample;
     char line[128];
 
 
