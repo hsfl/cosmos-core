@@ -19,7 +19,7 @@ int main()
     int32_t baudArray[]= {115200, 128000, 25600, 9600,
                          19200, 38400, 56000, 115200, 128000, 256000};
 
-    for(int currBaudIndex = 0 ; currBaudIndex < sizeof(baudArray); currBaudIndex++)//Test at various baud rates
+    for(size_t currBaudIndex = 0 ; currBaudIndex < sizeof(baudArray); currBaudIndex++)//Test at various baud rates
     {
         baud = baudArray[currBaudIndex];
         vector<uint8_t> sendData;

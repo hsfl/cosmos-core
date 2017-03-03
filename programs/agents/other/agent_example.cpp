@@ -80,8 +80,8 @@ int main(int argc, char *argv[])
 
 	// Start main thread
 #if !defined(COSMOS_WIN_OS)
-	FILE *fp;
-	struct statfs fsbuf;
+//	FILE *fp;
+//	struct statfs fsbuf;
 #endif
 	double nmjd;
 	int32_t sleept;

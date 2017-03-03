@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
                         printf("[%d]",pretn);
                         break;
                     }
-                    printf("%s:[%s:%s][%s:%s](%" PRIu32 ":%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), mess.jdata.size(), mess.adata.size());
+                    printf("%s:[%s:%s][%s:%s](%" PRIu64 ":%" PRIu64 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), mess.jdata.size(), mess.adata.size());
                     if (pretn < 128 && !channel.empty())
                     {
                         printf("%s\n",mess.adata.c_str());
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
                         printf("[%d]",pretn);
                         break;
                     }
-                    printf("%s:[%s:%s][%s:%s](%" PRIu32 ":%" PRIu32 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), mess.jdata.size(), mess.adata.size());
+                    printf("%s:[%s:%s][%s:%s](%" PRIu64 ":%" PRIu64 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), mess.jdata.size(), mess.adata.size());
                     if (pretn < 128 && !channel.empty())
                     {
                         printf("%s\n",mess.adata.c_str());
