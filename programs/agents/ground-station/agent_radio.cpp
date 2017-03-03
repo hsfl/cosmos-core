@@ -658,6 +658,21 @@ int32_t connect_radio()
     case DEVICE_MODEL_ASTRODEV:
         break;
     case DEVICE_MODEL_IC9100:
+        iretn = ic9100_connect(radiodevice, radioaddr, ic9100);
+        if (iretn < 0)
+        {
+            sprintf(lasterrormessage, "Unable to connect to IC9100: %d", iretn);
+            lasterrorcode = iretn;
+            return iretn;
+        }
+        iretn = ic9100_set_channel(ic9100, 0);
+        if (iretn < 0)
+        {
+            sprintf(lasterrormessage, "Unable to set IC9100 to Main: %d", iretn);
+            lasterrorcode = iretn;
+            return iretn;
+        }
+
         if (!initialized)
         {
             initialized = true;
@@ -678,22 +693,6 @@ int32_t connect_radio()
             }
             initial = actual;
         }
-        iretn = ic9100_connect(radiodevice, radioaddr, ic9100);
-        if (iretn < 0)
-        {
-            sprintf(lasterrormessage, "Unable to connect to IC9100: %d", iretn);
-            lasterrorcode = iretn;
-            return iretn;
-        }
-        iretn = ic9100_set_channel(ic9100, 0);
-        if (iretn < 0)
-        {
-            sprintf(lasterrormessage, "Unable to set IC9100 to Main: %d", iretn);
-            lasterrorcode = iretn;
-            return iretn;
-        }
-
-        //		iretn = ic9100_set_freqband(ic9100, 13);
 
         iretn = ic9100_set_mode(ic9100, target.opmode);
         if (iretn < 0)
