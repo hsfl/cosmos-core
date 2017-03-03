@@ -31,7 +31,9 @@
 #define COSMOS_DEVICE_I2C_CLASS_H
 
 #include "support/configCosmos.h"
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 #include <linux/i2c-dev.h> /* for I2C_SLAVE */
+#endif
 
 namespace Cosmos {
     class I2C

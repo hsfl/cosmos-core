@@ -58,10 +58,12 @@ I2C::I2C(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
         //return 1;
     }
 
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
     if (ioctl(fh, I2C_SLAVE, ARDUINO_I2C_ADDRESS) < 0) {
         perror("ioctl");
         //return 1;
     }
+#endif
 
 }
 
