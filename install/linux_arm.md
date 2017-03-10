@@ -42,6 +42,7 @@ or go to [Cross-compile using Qt Creator and Cmake files](#markdown-header-cross
 We recommend installing g++4.8 (g++-4.8-arm-linux-gnueabihf) or above. Also it is best if you are using Ubuntu 14 or later. To install the latest crosscompiler (g++-5.2 as of Dec 2015):
 ```
 $ sudo apt-get install g++-arm-linux-gnueabihf
+$ sudo apt-get install gperf bison flex texinfo
 # check the version
 $ arm-linux-gnueabihf-g++ --version
 # check the insllation path
