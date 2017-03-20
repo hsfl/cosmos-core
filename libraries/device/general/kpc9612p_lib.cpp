@@ -77,13 +77,26 @@ uint16_t kpc9612p_calc_fcs(uint8_t *data, uint16_t length)
 
 int32_t kpc9612p_connect(char *dev, kpc9612p_handle *handle, uint8_t flag)
 {
+    int32_t iretn;
 	cssl_start();
 	handle->serial = cssl_open(dev,KPC9612P_BAUD, KPC9612P_BITS,KPC9612P_PARITY,KPC9612P_STOPBITS);
 	if (handle->serial == NULL) return (CSSL_ERROR_OPEN);
 	cssl_settimeout(handle->serial, 0, 1.);
 	cssl_setflowcontrol(handle->serial, 0, 0);
 	handle->flag = flag;
-	
+
+    iretn = kpc9612p_entercmd(handle);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    iretn = kpc9612p_enterkiss(handle);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
 	return 0;
 }
 
@@ -217,4 +230,72 @@ int32_t kpc9612p_enterkiss(kpc9612p_handle *handle)
 	cssl_putstring(handle->serial, (char *)"INTFACE KISS\r");
 	cssl_putstring(handle->serial, (char *)"RESET\r");
 	return 0;
+}
+
+int32_t kpc9612p_entercmd(kpc9612p_handle *handle)
+{
+    int32_t iretn;
+    uint8_t buffer[100];
+
+    // Check if we are in COMMAND mode already
+    cssl_drain(handle->serial);
+    iretn = cssl_putchar(handle->serial, '\r');
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = cssl_getdata(handle->serial, buffer, 100);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    if (iretn > 4 && !strcmp((char *)&buffer[iretn-4], "cmd:"))
+    {
+        return 0;
+    }
+    // If not, check if we are in KISS mode
+    iretn = kpc9612p_exitkiss(handle);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    COSMOS_SLEEP(1.);
+    iretn = cssl_getdata(handle->serial, buffer, 10);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    if (iretn > 4 && !strcmp((char *)&buffer[iretn-4], "cmd:"))
+    {
+        return 0;
+    }
+    // If still not, check if we are in TRANSPARENT mode
+    COSMOS_SLEEP(1.);
+    iretn = cssl_putchar(handle->serial, 0x03);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = cssl_putchar(handle->serial, 0x03);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = cssl_putchar(handle->serial, 0x03);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    COSMOS_SLEEP(1.);
+    iretn = cssl_getdata(handle->serial, buffer, 10);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    if (iretn > 4 && !strcmp((char *)&buffer[iretn-4], "cmd:"))
+    {
+        return 0;
+    }
+    // Failure
+    return GENERAL_ERROR_UNDEFINED;
 }
