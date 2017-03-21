@@ -55,7 +55,7 @@
 #define AX25_NOLAYER3 0xF0
 
 #define KPC9612P_ID 1
-#define KPC9612P_BAUD 19200
+#define KPC9612P_BAUD 9600
 #define KPC9612P_BITS 8
 #define KPC9612P_PARITY 0
 #define KPC9612P_STOPBITS 1
@@ -103,6 +103,7 @@ int32_t kpc9612p_unloadframe(kpc9612p_handle *handle, std::vector<uint8_t> &data
 uint16_t kpc9612p_calc_fcs(uint8_t *data, uint16_t length);
 int32_t kpc9612p_exitkiss(kpc9612p_handle *handle);
 int32_t kpc9612p_enterkiss(kpc9612p_handle *handle);
+int32_t kpc9612p_entercmd(kpc9612p_handle *handle);
 
 
 #endif

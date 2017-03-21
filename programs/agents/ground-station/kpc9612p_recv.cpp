@@ -31,17 +31,34 @@
 #include "support/timelib.h"
 
 kpc9612p_handle handle;
-char device[15]="/dev/ttyUSB3";
+char device[35]="/dev/ttyUSB3";
 char source[15], destination[15];
 
 int main(int argc, char *argv[])
 {
-	int32_t iretn, count;
+	int32_t count;
 	uint8_t buf[500];
 	double lmjd, mean;
 	bool waited;
 	
-	if (argc == 2) strcpy(device,argv[1]);
+    int32_t iretn;
+    size_t tcount;
+
+    switch (argc)
+    {
+    case 3:
+        tcount = atol(argv[2]);
+    case 2:
+        strcpy(device,argv[1]);
+    case 1:
+        break;
+    default:
+        printf("Usage: kpc9612p_recv [device [tcount]]\n");
+        exit(-1);
+        break;
+    }
+
+
 
 	if ((iretn=kpc9612p_connect(device, &handle, 0x00)) < 0)
 	{
@@ -51,7 +68,7 @@ int main(int argc, char *argv[])
 
 	lmjd = currentmjd(0.);
 	count = 0;
-	for (uint16_t i=0; i<2000; ++i)
+	for (uint16_t i=0; i<tcount; ++i)
 	{
 		waited = false;
 		while ((iretn=kpc9612p_recvframe(&handle)) < 0)
