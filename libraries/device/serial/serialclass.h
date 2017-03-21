@@ -57,6 +57,7 @@ namespace Cosmos {
         int32_t put_nmea(vector <uint8_t> data);
         int32_t drain();
         int32_t get_char();
+        int32_t get_char(uint8_t &buffer);
         int32_t get_data(vector <uint8_t> &data, size_t size);
         int32_t get_slip(vector <uint8_t> &data, size_t size);
         int32_t get_nmea(vector <uint8_t> &data, size_t size);
@@ -64,6 +65,10 @@ namespace Cosmos {
         int32_t get_error();
 
 
+        int32_t SendByte(uint8_t byte);
+        int32_t ReceiveBuffer(uint8_t *buf, int size);
+        int32_t ReceiveByte(uint8_t &buf);
+        int32_t SendBuffer(uint8_t *buffer, int size);
     private:
         int fd = -1;                   /* tty file descriptor */
         int32_t error;
@@ -76,8 +81,7 @@ namespace Cosmos {
         struct termios tio;       /* termios structure for the port */
         struct termios oldtio;    /* old termios structure */
 #else // windows
-        struct _DCB dcb;
-        struct _DCB olddcb;
+        DCB dcb; // port settings
         HANDLE handle;
 #endif
 
