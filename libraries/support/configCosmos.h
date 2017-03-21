@@ -70,7 +70,6 @@
 #include <cstring>
 #include <cmath>
 using std::isfinite;
-using std::isnan;
 #include <iostream>
 using std::ifstream;
 using std::cout;

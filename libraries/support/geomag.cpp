@@ -75,7 +75,7 @@
 /* This function, which returns '1' if the number is NaN and 0*/
 /* otherwise, could be hand-written if not available. */
 /* Comment out one of the two following lines, as applicable */
-#include <math.h>               /* for gcc */
+#include <cmath>               /* for gcc */
 //#include <mathimf.h>            /* for Intel icc */
 
 #define NaN log(-1.0)

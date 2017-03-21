@@ -34,13 +34,9 @@
 #include "support/jsonlib.h"
 #include "support/datalib.h"
 #include "support/socketlib.h"
-//#include <semaphore.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-// #include <unistd.h>
 #include <sys/stat.h>
-//#include <sys/types.h>
 
 char *output;
 

@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include <math.h>
+//#include <math.h>
 #include <time.h>       /* for mktime()       */
 //#include <sys/time.h>   /* for settimeofday() */
 
