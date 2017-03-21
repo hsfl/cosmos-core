@@ -31,16 +31,28 @@
 #include "support/timelib.h"
 
 kpc9612p_handle handle;
-char device[15]="/dev/ttyUSB0";
+char device[35]="/dev/ttyUSB0";
 char source[15], destination[15];
 uint8_t message[300];
+size_t count = 2000;
 
 int main(int argc, char *argv[])
 {
-	int32_t iretn;
-//	double lmjd;
+    int32_t iretn;
 	
-	if (argc == 2) strcpy(device,argv[1]);
+    switch (argc)
+    {
+    case 3:
+        count = atol(argv[2]);
+    case 2:
+	strcpy(device,argv[1]);
+    case 1:
+        break;
+    default:
+        printf("Usage: kpc9612p_send [device [count]]\n");
+        exit(-1);
+        break;
+    }
 
 	if ((iretn=kpc9612p_connect(device, &handle, 0x00)) < 0)
 	{
@@ -50,7 +62,7 @@ int main(int argc, char *argv[])
 
 //	lmjd = currentmjd(0.);
 	handle.frame.size = 255;
-	for (uint16_t i=0; i<2000; ++i)
+	for (uint16_t i=0; i<count; ++i)
 	{
 
 		for (uint16_t j=1; j<=handle.frame.size; ++j)
@@ -69,4 +81,6 @@ int main(int argc, char *argv[])
 		COSMOS_USLEEP(2000000);
 //		lmjd = currentmjd(0.);
 	}
+
+//    kpc9612p_exitkiss(&handle);
 }

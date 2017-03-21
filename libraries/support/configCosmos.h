@@ -69,7 +69,10 @@
 #include <cerrno>
 #include <cstring>
 #include <cmath>
+using std::isfinite;
+using std::isnan;
 #include <iostream>
+using std::ifstream;
 using std::cout;
 using std::endl;
 #ifdef COSMOS_WIN_BUILD_MSVC

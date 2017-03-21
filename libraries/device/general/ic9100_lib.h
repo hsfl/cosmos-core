@@ -65,30 +65,30 @@
 
 struct ic9100_handle
 {
-	uint8_t address;
-	uint8_t channelnum;
-	cssl_t *serial;
+    uint8_t address;
+    uint8_t channelnum;
+    cssl_t *serial;
     std::mutex mut;
-	std::vector <uint8_t> response;
-	uint8_t freqband;
-	uint8_t filtband;
-	uint8_t mode;
-	uint8_t datamode;
-	uint8_t bps9600mode;
-	uint8_t rfgain;
-	uint8_t squelch;
-	uint8_t rfpower;
-	uint8_t smeter;
-	uint8_t rfmeter;
-	uint8_t swrmeter;
-	uint8_t alcmeter;
-	uint8_t compmeter;
-	uint16_t opmode;
-	float bandpass;
-	float powerin;
-	float powerout;
-	float maxpower;
-	double frequency;
+    std::vector <uint8_t> response;
+    uint8_t freqband;
+    uint8_t filtband;
+    uint8_t mode;
+    uint8_t datamode;
+    uint8_t bps9600mode;
+    uint8_t rfgain;
+    uint8_t squelch;
+    uint8_t rfpower;
+    uint8_t smeter;
+    uint8_t rfmeter;
+    uint8_t swrmeter;
+    uint8_t alcmeter;
+    uint8_t compmeter;
+    uint16_t opmode;
+    float bandpass;
+    float powerin;
+    float powerout;
+    float maxpower;
+    double frequency;
 };
 
 int32_t ic9100_connect(std::string device, uint8_t address, ic9100_handle &handle);
