@@ -694,21 +694,6 @@ int32_t connect_radio()
             actual = initial;
             target = actual;
         }
-
-//        iretn = ic9100_set_mode(ic9100, target.opmode);
-//        if (iretn < 0)
-//        {
-//            sprintf(lasterrormessage, "Unable to set IC9100 to %s: %d", opmode2string(target.opmode).c_str(), iretn);
-//            lasterrorcode = iretn;
-//            return iretn;
-//        }
-//        iretn = ic9100_set_bandpass(ic9100, target.band);
-//        if (iretn < 0)
-//        {
-//            sprintf(lasterrormessage, "Unable to set IC9100 bandpass to %f: %d", target.band, iretn);
-//            lasterrorcode = iretn;
-//            return iretn;
-//        }
         break;
     case DEVICE_MODEL_TS2000:
         break;

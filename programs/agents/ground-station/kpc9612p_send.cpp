@@ -82,5 +82,5 @@ int main(int argc, char *argv[])
 //		lmjd = currentmjd(0.);
 	}
 
-    kpc9612p_exitkiss(&handle);
+//    kpc9612p_exitkiss(&handle);
 }

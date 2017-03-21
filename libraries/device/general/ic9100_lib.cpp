@@ -1085,14 +1085,14 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband)
 
 	handle.filtband = filtband;
 
-	if (handle.datamode != datamode)
-	{
+//	if (handle.datamode != datamode)
+//	{
 		iretn = ic9100_set_datamode(handle, datamode);
 		if (iretn < 0)
 		{
 			return iretn;
 		}
-	}
+//	}
 
 
 	handle.opmode = opmode;

@@ -222,6 +222,8 @@ int32_t kpc9612p_exitkiss(kpc9612p_handle *handle)
 	cssl_putchar(handle->serial, 0xc0);
 	cssl_putchar(handle->serial, 0xff);
 	cssl_putchar(handle->serial, 0xc0);
+    COSMOS_SLEEP(1.);
+    cssl_putchar(handle->serial, '\r');
 	return 0;
 }
 
@@ -235,7 +237,7 @@ int32_t kpc9612p_enterkiss(kpc9612p_handle *handle)
 int32_t kpc9612p_entercmd(kpc9612p_handle *handle)
 {
     int32_t iretn;
-    uint8_t buffer[100];
+    uint8_t buffer[256];
 
     // Check if we are in COMMAND mode already
     cssl_drain(handle->serial);
@@ -244,7 +246,7 @@ int32_t kpc9612p_entercmd(kpc9612p_handle *handle)
     {
         return iretn;
     }
-    iretn = cssl_getdata(handle->serial, buffer, 100);
+    iretn = cssl_getdata(handle->serial, buffer, 255);
     if (iretn < 0)
     {
         return iretn;
@@ -259,8 +261,7 @@ int32_t kpc9612p_entercmd(kpc9612p_handle *handle)
     {
         return iretn;
     }
-    COSMOS_SLEEP(1.);
-    iretn = cssl_getdata(handle->serial, buffer, 10);
+    iretn = cssl_getdata(handle->serial, buffer, 255);
     if (iretn < 0)
     {
         return iretn;
@@ -287,7 +288,7 @@ int32_t kpc9612p_entercmd(kpc9612p_handle *handle)
         return iretn;
     }
     COSMOS_SLEEP(1.);
-    iretn = cssl_getdata(handle->serial, buffer, 10);
+    iretn = cssl_getdata(handle->serial, buffer, 255);
     if (iretn < 0)
     {
         return iretn;
