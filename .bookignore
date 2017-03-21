@@ -1,0 +1,13 @@
+build
+docs
+cmake
+libraries
+licences
+programs
+scripts
+*.yml
+*.txt
+*.pri
+*.pro
+*.xml
+*.qbs
