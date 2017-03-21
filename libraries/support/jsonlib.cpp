@@ -42,7 +42,7 @@
 #include <limits>
 #include <fstream>
 
-std::vector <string> device_type_string;
+vector <string> device_type_string;
 //{
 //    "pload",
 //    "ssen",
@@ -76,7 +76,7 @@ std::vector <string> device_type_string;
 //    "tnc"
 //};
 
-std::vector <string> port_type_string
+vector <string> port_type_string
 {
     "rs232",
     "rs422",
@@ -1216,7 +1216,7 @@ int32_t json_out_float(string &jstring,float value)
     int32_t iretn = 0;
     char tstring[15];
 
-    if (std::isfinite(value))
+    if (isfinite(value))
     {
         sprintf(tstring,"%.8g",value);
         iretn = json_append(jstring,tstring);
@@ -1236,7 +1236,7 @@ int32_t json_out_double(string &jstring,double value)
     int32_t iretn = 0;
     char tstring[30];
 
-    if (std::isfinite(value))
+    if (isfinite(value))
     {
         sprintf(tstring,"%.17g",value);
         iretn = json_append(jstring,tstring);
@@ -2471,7 +2471,7 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosmetastruc &c
     \param cmeta Reference to ::cosmosmetastruc to use.
     \return  0 if successful, negative error otherwise
 */
-int32_t json_table_of_list(std::vector<jsonentry*> &table, string tokens, cosmosmetastruc &cmeta)
+int32_t json_table_of_list(vector<jsonentry*> &table, string tokens, cosmosmetastruc &cmeta)
 {
     string tstring;
     const char *ptr;
@@ -2528,7 +2528,7 @@ jsonentry *json_entry_of(uint8_t *ptr, cosmosmetastruc &cmeta, cosmosdatastruc &
     {
         offset = -1;
         //#undef max;
-        offset = (std::numeric_limits<std::ptrdiff_t>::max)();
+        offset = (numeric_limits<ptrdiff_t>::max)();
 
     }
     if (offset < 0 && (offset=(uint8_t *)ptr - (uint8_t *)&(cdata.node)) > 0 && offset < (ptrdiff_t)sizeof(agentstruc))
@@ -3115,7 +3115,7 @@ double json_get_double(string token, cosmosmetastruc &cmeta, cosmosdatastruc &cd
     jsonentry *entry;
     const char* tokenp = &token[0];
 
-    if (!std::isnan(value=json_equation(tokenp, cmeta, cdata)))
+    if (!isnan(value=json_equation(tokenp, cmeta, cdata)))
         return (value);
 
     if ((entry=json_entry_of(token, cmeta)) == nullptr)
@@ -3123,7 +3123,7 @@ double json_get_double(string token, cosmosmetastruc &cmeta, cosmosdatastruc &cd
         return (NAN);
     }
 
-    if (!std::isnan(value=json_get_double(entry, cmeta, cdata)))
+    if (!isnan(value=json_get_double(entry, cmeta, cdata)))
         return (value);
 
     return (NAN);
@@ -4067,7 +4067,7 @@ double json_convert_double(string object)
     \param cmeta Reference to ::cosmosmetastruc to use.
  * \return Zero or negative error.
  */
-int32_t json_tokenize(string jstring, cosmosmetastruc &cmeta, std::vector<jsontoken> &tokens)
+int32_t json_tokenize(string jstring, cosmosmetastruc &cmeta, vector<jsontoken> &tokens)
 {
     const char *cpoint;
     size_t length;
@@ -4911,7 +4911,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
     switch (type)
     {
     case JSON_TYPE_UINT8:
-        if (std::isnan(val=json_equation(ptr, cmeta, cdata)))
+        if (isnan(val=json_equation(ptr, cmeta, cdata)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
                 return (iretn);
@@ -4920,7 +4920,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         break;
 
     case JSON_TYPE_INT8:
-        if (std::isnan(val=json_equation(ptr, cmeta, cdata)))
+        if (isnan(val=json_equation(ptr, cmeta, cdata)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
                 return (iretn);
@@ -4929,7 +4929,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         break;
 
     case JSON_TYPE_UINT16:
-        if (std::isnan(val=json_equation(ptr, cmeta, cdata)))
+        if (isnan(val=json_equation(ptr, cmeta, cdata)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
                 return (iretn);
@@ -4937,7 +4937,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         *(uint16_t *)data = (uint16_t)val;
         break;
     case JSON_TYPE_UINT32:
-        if (std::isnan(val=json_equation(ptr, cmeta, cdata)))
+        if (isnan(val=json_equation(ptr, cmeta, cdata)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
                 return (iretn);
@@ -4945,7 +4945,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         *(uint32_t *)data = (uint32_t)val;
         break;
     case JSON_TYPE_INT16:
-        if (std::isnan(val=json_equation(ptr, cmeta, cdata)))
+        if (isnan(val=json_equation(ptr, cmeta, cdata)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
                 return (iretn);
@@ -4953,7 +4953,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         *(int16_t *)data = (int16_t)val;
         break;
     case JSON_TYPE_INT32:
-        if (std::isnan(val=json_equation(ptr, cmeta, cdata)))
+        if (isnan(val=json_equation(ptr, cmeta, cdata)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
                 return (iretn);
@@ -4961,7 +4961,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         *(int32_t *)data = (int32_t)val;
         break;
     case JSON_TYPE_FLOAT:
-        if (std::isnan(val=json_equation(ptr, cmeta, cdata)))
+        if (isnan(val=json_equation(ptr, cmeta, cdata)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
                 return (iretn);
@@ -4969,7 +4969,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         *(float *)data = (float)val;
         break;
     case JSON_TYPE_TIMESTAMP:
-        if (std::isnan(val=json_equation(ptr, cmeta, cdata)))
+        if (isnan(val=json_equation(ptr, cmeta, cdata)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
                 return (iretn);
@@ -4977,7 +4977,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         *(double *)data = (double)val;
         break;
     case JSON_TYPE_DOUBLE:
-        if (std::isnan(val=json_equation(ptr, cmeta, cdata)))
+        if (isnan(val=json_equation(ptr, cmeta, cdata)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
                 return (iretn);
@@ -5637,7 +5637,7 @@ int32_t json_load_node(string node, jsonnode &json)
 {
     int32_t iretn;
     struct stat fstat;
-    std::ifstream ifs;
+    ifstream ifs;
     char *ibuf;
     string fname;
     string nodepath;
@@ -5658,7 +5658,7 @@ int32_t json_load_node(string node, jsonnode &json)
 
     if ((iretn=stat(fname.c_str(),&fstat)) == -1)
     {
-        //        std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
+        //        cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << endl;
         return (DATA_ERROR_NODES_FOLDER);
         //return (NODE_ERROR_NODE);
     }
@@ -5705,7 +5705,7 @@ int32_t json_load_node(string node, jsonnode &json)
         {
             int32_t iretn;
             cartpos eci;
-            std::vector <tlestruc> tles;
+            vector <tlestruc> tles;
             iretn = load_lines(fname, tles);
             if (iretn > 0)
             {
@@ -6034,7 +6034,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 {
     int32_t iretn;
     struct stat fstat;
-    std::ifstream ifs;
+    ifstream ifs;
     string fname;
 
     if (!cinfo->meta.jmapped)
@@ -6221,10 +6221,10 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             if (ifs.is_open())
             {
                 string alias;
-                while (std::getline(ifs, alias, ' '))
+                while (getline(ifs, alias, ' '))
                 {
                     string cname;
-                    std::getline(ifs, cname);
+                    getline(ifs, cname);
                     json_addentry(alias, cname, cinfo->meta);
                 } ;
             }
@@ -7544,7 +7544,7 @@ const char *json_of_list(string &jstring, string list, cosmosmetastruc &cmeta, c
     \param cdata Reference to ::cosmosdatastruc to use.
     \return Pointer to the string if successful, otherwise NULL.
 */
-const char *json_of_table(string &jstring, std::vector<jsonentry*> table, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
+const char *json_of_table(string &jstring, vector<jsonentry*> table, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
 {
     jstring.clear();
     for (auto entry: table)
@@ -8005,7 +8005,7 @@ string json_list_of_all(cosmosmetastruc &cmeta)
     string result;
 
     result = "{";
-    for (std::vector<jsonentry> entryrow : cmeta.jmap)
+    for (vector<jsonentry> entryrow : cmeta.jmap)
     {
         for (jsonentry entry : entryrow)
         {
@@ -9783,7 +9783,7 @@ int32_t update_target(locstruc source, targetstruc &target)
  *	\param file Name of dictionary file.
  *	\return Number of items loaded.
 */
-size_t load_dictionary(std::vector<shorteventstruc> &dict, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, const char *file)
+size_t load_dictionary(vector<shorteventstruc> &dict, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, const char *file)
 {
     FILE *op;
     char inb[JSON_MAX_DATA];
@@ -10149,7 +10149,7 @@ size_t load_dictionary(std::vector<shorteventstruc> &dict, cosmosmetastruc &cmet
 *	\param events Reference to vector of ::shortenventstruc representing events.
 *	\return Number of events created.
 */
-size_t calc_events(std::vector<shorteventstruc> &dictionary, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, std::vector<shorteventstruc> &events)
+size_t calc_events(vector<shorteventstruc> &dictionary, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, vector<shorteventstruc> &events)
 {
     double value;
     //	const char *cp;
@@ -10158,7 +10158,7 @@ size_t calc_events(std::vector<shorteventstruc> &dictionary, cosmosmetastruc &cm
     events.resize(0);
     for (uint32_t k=0; k<dictionary.size(); ++k)
     {
-        if (!std::isnan(value=json_equation(&dictionary[k].handle, cmeta, cdata)) && value != 0. && dictionary[k].value == 0.)
+        if (!isnan(value=json_equation(&dictionary[k].handle, cmeta, cdata)) && value != 0. && dictionary[k].value == 0.)
         {
             dictionary[k].utc = cdata.node.loc.utc;
             events.push_back(dictionary[k]);
