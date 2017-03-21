@@ -430,7 +430,7 @@ int32_t Serial::SendByte(uint8_t byte)
     }
 
 #else
-    if (write(fd, &c, 1) < 0)
+    if (write(fd, &byte, 1) < 0)
     {
         return (-errno);
     }
@@ -444,6 +444,8 @@ int32_t Serial::SendByte(uint8_t byte)
 
 int32_t Serial::SendBuffer(uint8_t *buffer, int size)
 {
+    size_t n=0;
+
     if (fd < 0)
     {
         error = SERIAL_ERROR_OPEN;
@@ -451,7 +453,6 @@ int32_t Serial::SendBuffer(uint8_t *buffer, int size)
     }
 
 #ifdef COSMOS_WIN_OS
-    int n=0;
     // write to port
     WriteFile(handle, buffer, size, (LPDWORD)((void *)&n), NULL);
 
@@ -461,7 +462,7 @@ int32_t Serial::SendBuffer(uint8_t *buffer, int size)
     }
 
 #else
-    if (write(fd, &c, 1) < 0)
+    if ((n = write(fd, &buffer, size)) < 0)
     {
         return (-errno);
     }
@@ -776,7 +777,9 @@ int32_t Serial::ReceiveByte(uint8_t &buf) {
     int size = 1;
     buf = '\0'; // emtpy buffer
     //n = ReceiveBuffer(&buf, size);
+#ifdef COSMOS_WIN_OS
     ReadFile(handle, &buf, size, (LPDWORD)((void *)&n), NULL);
+#endif
 
     return(n);
 }
@@ -787,7 +790,9 @@ int32_t Serial::ReceiveBuffer(uint8_t *buf, int size) {
     if(size>4096)  size = 4096;
 
     //uint8_t *data_rx;
+#ifdef COSMOS_WIN_OS
     ReadFile(handle, buf, size, (LPDWORD)((void *)&n), NULL);
+#endif
 
     return(n);
 }
