@@ -195,10 +195,11 @@ On Qt Creator you can open the CMakeLists.txt as a project, this is very conveni
 for developing large applications using cosmos. If you go this route use following 
 arguments when running the cmake wizard in Qt Creator. 
 
--DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain_arm -DBUILD_ARM=ON
+-DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain_arm -DBUILD_ARM=ON //No longer  necessary 
 
 On the generator list select:
-Unix Generator (FlightComputer-Overo), you must configure your remote device before 
+
+The remote device you configured before, Unix Generator (FlightComputer-Overo)
 
 Hit the button "Run Cmake". This will configure your project using cmake. Another option would be to use a *.pro file to configure this project. At this moment it isn't configured that way. The .pro file would be listed in hiakasat/qt/hiakasat.pro. Maybe this is prefererd, to use the .pro when working using Qt Creator and use cmake when compiling on the command line interface. But try to consolidate the build directories. This will help.
 
