@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	bool waited;
 	
     int32_t iretn;
-    size_t tcount;
+    size_t tcount = 2000;
 
     switch (argc)
     {
