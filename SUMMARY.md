@@ -2,7 +2,7 @@
 
 * [Introduction](README.md)
 * [Installation](install/README.md)
-  * \[Linux\]
+  * Linux
     * [Linux Ubuntu](install/linux_ubuntu.md)
     * [Linux Ubuntu \(Virtual Box\)](install/linux_ubuntu_vb.md)
     * [Linux CentOS](install/linux_centos.md)
@@ -10,12 +10,13 @@
   * [Windows](install/windows.md)
   * [macOS](install/mac.md)
   * [ARM](install/linux_arm.md)
-* [3. Tutorials/Examples](tutorials/README.md)
+* [Tutorials/Examples](tutorials/README.md)
   * [3.1 Agents](tutorials/agents/README.md)
     * [Agent Talk Free](tutorials/agents/agent_talkfree/agent_talkfree.md)
     * [Agent 001 and 002](tutorials/agents/agent_001/README.md)
     * [Agent CPU](tutorials/agents/agent_talkfree/agent-cpu.md)
     * [Agent Calc](tutorials/agents/agent_calc/README.md)
+    * [Agent Radio](tutorials/agents/agent_talkfree/agent-radio.md)
   * [3.2 Namespace tutorials](tutorials/namespace/README.md)
     * [Add a new device](tutorials/namespace/new-device/add-new-device.md)
     * [Generic device](tutorials/namespace/generic-device/agent_generic_device.md)
