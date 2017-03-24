@@ -15,7 +15,7 @@
     * [Agent Talk Free](tutorials/agents/agent_talkfree/agent_talkfree.md)
     * [Agent 001 and 002](tutorials/agents/agent_001/README.md)
     * [Agent Calc](tutorials/agents/agent_calc/README.md)
-    * [Agent CPU](tutorials/agents/agent_talkfree/agent-cpu.md)
+    * [Agent CPU](tutorials/agents/agent-cpu.md)
   * [3.2 Namespace tutorials](tutorials/namespace/README.md)
     * [Add a new device](tutorials/namespace/new-device/add-new-device.md)
     * [Generic device](tutorials/namespace/generic-device/agent_generic_device.md)
