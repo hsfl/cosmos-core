@@ -1,7 +1,7 @@
 # Summary
 
-* [1. Introduction](README.md)
-* [2. Installation](install/README.md)
+* [Introduction](README.md)
+* [Installation](install/README.md)
   * \[Linux\]
     * [Linux Ubuntu](install/linux_ubuntu.md)
     * [Linux Ubuntu \(Virtual Box\)](install/linux_ubuntu_vb.md)
