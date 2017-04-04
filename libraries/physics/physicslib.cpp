@@ -1522,8 +1522,9 @@ void att_accel(physicsstruc &physics, locstruc &loc)
     \param physics Pointer to structure specifying satellite.
     \param loc Structure specifying location.
 */
-void pos_accel(physicsstruc &physics, locstruc &loc)
+int32_t pos_accel(physicsstruc &physics, locstruc &loc)
 {
+    int32_t iretn;
     double radius;
     rvector ctpos, da, tda;
     cartpos bodypos;
@@ -1611,9 +1612,16 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
     }
 
     loc.pos.eci.pass++;
-    pos_eci(&loc);
+    iretn = pos_eci(&loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
     if (std::isnan(loc.pos.eci.a.col[0]))
+    {
         loc.pos.eci.a.col[0] = 0.;
+    }
+    return 0;
 }
 
 //! Calculate atmospheric density

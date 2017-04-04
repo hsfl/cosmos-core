@@ -246,6 +246,8 @@
 #define PRKX2SU_ERROR_OUTOFRANGE -523
 #define	PRKX2SU_ERROR_SEND -524
 
+#define CONVERT_ERROR_UTC -531
+
 #define GENERAL_OK                        0     /* everything is all right */
 #define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
 #define GENERAL_ERROR_NOTSTARTED       -2002     /* uninitialized error */

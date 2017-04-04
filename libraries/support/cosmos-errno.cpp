@@ -511,6 +511,9 @@ string cosmos_error_string(int32_t cosmos_errno)
         case PRKX2SU_ERROR_SEND:
             error_string = "PRKX2SU_ERROR_SEND";
             break;
+        case CONVERT_ERROR_UTC:
+            error_string = "CONVERT_ERROR_UTC";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);
