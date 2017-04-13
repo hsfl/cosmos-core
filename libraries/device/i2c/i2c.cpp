@@ -29,96 +29,110 @@
 
 #include "support/configCosmos.h"
 #include "device/i2c/i2c.h"
+#include "support/elapsedtime.h"
 
 #define ARDUINO_I2C_ADDRESS 0x10
 #define ARDUINO_I2C_BUFFER_LIMIT 32
 
 namespace Cosmos {
 
-//! \ingroup i2c
-//! \ingroup i2c
-//! \defgroup seriallib_functions Serial Port functions
-//! @{
+    //! \ingroup i2c
+    //! \ingroup i2c
+    //! \defgroup seriallib_functions Serial Port functions
+    //! @{
 
-//! Create i2c port instance.
-//! Create a i2c port object to be used for reading and writing to a physical port.
-//! \param dname Name of physical serial port.
+    //! Create i2c port instance.
+    //! Create a i2c port object to be used for reading and writing to a physical port.
+    //! \param dname Name of physical serial port.
 
 
-I2C::I2C(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
-{
-    int fh;
-    char buff[ARDUINO_I2C_BUFFER_LIMIT + 4];
-    int len, sent, rcvd;
+    I2C::I2C(uint8_t bus, long address, double delay)
+    {
+        handle.device = "/dev/i2c-" + std::to_string(bus);
+        handle.fh = open(handle.device.c_str(), O_RDWR);
 
-    fh = open("/dev/i2c-2", O_RDWR);
-
-    if (fh < 0) {
-        perror("open");
-        //return 1;
-    }
-
-#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-    if (ioctl(fh, I2C_SLAVE, ARDUINO_I2C_ADDRESS) < 0) {
-        perror("ioctl");
-        //return 1;
-    }
-#endif
-
-}
-
-I2C::~I2C()
-{
-
-}
-
-int I2C::send(std::string data)
-{
-
-    int fh;
-    char buff[ARDUINO_I2C_BUFFER_LIMIT + 4];
-    strcpy(buff, "hello");
-
-    int len, sent, rcvd;
-    len = strlen(buff);
-
-    sent = write(fh, buff, len);
-
-    if (sent != len) {
-        perror("write");
-        return 1;
-    }
-}
-
-int I2C::receive(std::string data)
-{
-    int fh;
-    char buff[ARDUINO_I2C_BUFFER_LIMIT + 4];
-    int len, sent, rcvd;
-    printf("Sent: %s\n", buff);
-
-    memset(buff, 0, sizeof(buff));
-    rcvd = read(fh, buff, sent);
-
-    while (rcvd < sent) {
-        usleep(50000);
-        len = read(fh, buff + rcvd, sent - rcvd);
-
-        if (len <= 0) {
-            if (len < 0)
-                perror("read");
-
-            break;
+        if (handle.fh < 0)
+        {
+            handle.fh = -1;
+            return;
         }
 
-        rcvd += len;
+        if (ioctl(handle.fh, I2C_FUNCS, &handle.funcs) < 0)
+        {
+            close(handle.fh);
+            handle.fh = -1;
+            return;
+        }
+
+        handle.address = address;
+        handle.delay = delay;
+        return;
     }
 
-    if (rcvd > 0)
-        printf("Received: %s\n", buff);
-}
+    I2C::~I2C()
+    {
+        if (handle.fh >= 0)
+        {
+            close(handle.fh);
+        }
+    }
 
+    int32_t I2C::connect()
+    {
+        int32_t iretn = 0;
 
+        if (ioctl(handle.fh, I2C_SLAVE, handle.address) < 0)
+        {
+            handle.connected = false;
+            iretn = - errno;
+            return iretn;
+        }
 
+        handle.connected = true;
+        return iretn;
+    }
 
+    int32_t I2C::write(uint8_t *data, size_t len)
+    {
+
+        int32_t iretn = ::write(handle.fh, data, len);
+
+        if (iretn < 0)
+        {
+            iretn = -errno;
+        }
+
+        return iretn;
+    }
+
+    int32_t I2C::read(uint8_t *data, size_t len)
+    {
+        int32_t iretn;
+        size_t count = 0;
+
+        ElapsedTime et;
+        do
+        {
+            int32_t rcvd = ::read(handle.fh, data, len - count);
+            if (rcvd < 0)
+            {
+                iretn = -errno;
+                return iretn;
+            }
+            else if (rcvd == 0)
+            {
+                if (et.split() > handle.delay)
+                {
+                    iretn = count;
+                    return iretn;
+                }
+            }
+            else
+            {
+                et.reset();
+                count += rcvd;
+            }
+        } while(count < len);
+        return count;
+    }
 } // end of namepsace Cosmos

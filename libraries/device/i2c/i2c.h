@@ -31,27 +31,39 @@
 #define COSMOS_DEVICE_I2C_CLASS_H
 
 #include "support/configCosmos.h"
-#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 #include <linux/i2c-dev.h> /* for I2C_SLAVE */
-#endif
 
 namespace Cosmos {
     class I2C
     {
     public:
-        I2C(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+        I2C(uint8_t bus, long address, double delay=2e-4);
         ~I2C();
-//        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+        //        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
 
-//        int32_t put_char(uint8_t c);
-//        int32_t put_string(string data);
-//        int32_t put_data(vector <uint8_t> data);
-//        int32_t get_char();
-//        int32_t get_data(vector <uint8_t> &data, size_t size);
+        //        int32_t put_char(uint8_t c);
+        //        int32_t put_string(string data);
+        //        int32_t put_data(vector <uint8_t> data);
+        //        int32_t get_char();
+        //        int32_t get_data(vector <uint8_t> &data, size_t size);
 
-//        string name;
-        int send(std::string data);
-        int receive(std::string data);
+        //        string name;
+        int32_t connect();
+        int32_t get_funcs();
+        int32_t set_address(ulong address);
+        int32_t write(uint8_t *data, size_t len);
+        int32_t read(uint8_t *data, size_t len);
+
+    private:
+        struct
+        {
+            string device;
+            long address;
+            int fh = -1;
+            ulong funcs;
+            bool connected = false;
+            double delay = 1e-4;
+        } handle;
 
     };
 
