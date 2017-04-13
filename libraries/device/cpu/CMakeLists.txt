@@ -18,4 +18,6 @@ target_link_libraries(CosmosDeviceCpu CosmosDeviceGeneral)
 install(TARGETS CosmosDeviceCpu DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/cpu)
 
-add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
+if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
+    add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
+endif()

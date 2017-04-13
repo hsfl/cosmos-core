@@ -30,14 +30,14 @@
 #include "support/configCosmos.h"
 #include "device/i2c/i2c.h"
 
-#define ARDUINO_I2C_ADDRESS 0x10
-#define ARDUINO_I2C_BUFFER_LIMIT 32
+//#define I2C_ADDRESS 0x57 // CubeADCS
+#define I2C_BUFFER_LIMIT 32
 
 namespace Cosmos {
 
 //! \ingroup i2c
 //! \ingroup i2c
-//! \defgroup seriallib_functions Serial Port functions
+//! \defgroup i2clib_functions I2C functions
 //! @{
 
 //! Create i2c port instance.
@@ -45,13 +45,14 @@ namespace Cosmos {
 //! \param dname Name of physical serial port.
 
 
-I2C::I2C(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
+I2C::I2C(string i2c_bus, uint8_t i2c_address)
 {
     int fh;
-    char buff[ARDUINO_I2C_BUFFER_LIMIT + 4];
+    char buff[I2C_BUFFER_LIMIT + 4];
     int len, sent, rcvd;
+    //i2c_address = 0x10;
 
-    fh = open("/dev/i2c-2", O_RDWR);
+    fh = open(i2c_bus.c_str(), O_RDWR);
 
     if (fh < 0) {
         perror("open");
@@ -59,7 +60,7 @@ I2C::I2C(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     }
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-    if (ioctl(fh, I2C_SLAVE, ARDUINO_I2C_ADDRESS) < 0) {
+    if (ioctl(fh, I2C_SLAVE, i2c_address) < 0) {
         perror("ioctl");
         //return 1;
     }
@@ -76,7 +77,7 @@ int I2C::send(std::string data)
 {
 
     int fh;
-    char buff[ARDUINO_I2C_BUFFER_LIMIT + 4];
+    char buff[I2C_BUFFER_LIMIT + 4];
     strcpy(buff, "hello");
 
     int len, sent, rcvd;
@@ -93,7 +94,7 @@ int I2C::send(std::string data)
 int I2C::receive(std::string data)
 {
     int fh;
-    char buff[ARDUINO_I2C_BUFFER_LIMIT + 4];
+    char buff[I2C_BUFFER_LIMIT + 4];
     int len, sent, rcvd;
     printf("Sent: %s\n", buff);
 
@@ -118,6 +119,10 @@ int I2C::receive(std::string data)
         printf("Received: %s\n", buff);
 }
 
+int I2C::test(std::string data)
+{
+    cout << data << endl;
+}
 
 
 

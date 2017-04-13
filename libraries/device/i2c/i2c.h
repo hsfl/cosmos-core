@@ -35,25 +35,29 @@
 #include <linux/i2c-dev.h> /* for I2C_SLAVE */
 #endif
 
+using std::cout;
+using std::string;
+
 namespace Cosmos {
-    class I2C
-    {
-    public:
-        I2C(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
-        ~I2C();
-//        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+  class I2C
+  {
+  public:
+    I2C(std::string i2c_bus, uint8_t i2c_address);
+    ~I2C();
+    //        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
 
-//        int32_t put_char(uint8_t c);
-//        int32_t put_string(string data);
-//        int32_t put_data(vector <uint8_t> data);
-//        int32_t get_char();
-//        int32_t get_data(vector <uint8_t> &data, size_t size);
+    //        int32_t put_char(uint8_t c);
+    //        int32_t put_string(string data);
+    //        int32_t put_data(vector <uint8_t> data);
+    //        int32_t get_char();
+    //        int32_t get_data(vector <uint8_t> &data, size_t size);
 
-//        string name;
-        int send(std::string data);
-        int receive(std::string data);
+    //        string name;
+    int send(std::string data);
+    int receive(std::string data);
 
-    };
+    int test(std::string data);
+  };
 
 
 } // end of namepsace Cosmos
