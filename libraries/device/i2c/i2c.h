@@ -40,7 +40,7 @@ namespace Cosmos {
     class I2C
     {
     public:
-        I2C(uint8_t bus, long address, double delay=2e-4);
+        I2C(string bus, uint8_t address, double delay=2e-4);
         ~I2C();
         //        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
 
@@ -54,14 +54,14 @@ namespace Cosmos {
         int32_t connect();
         int32_t get_funcs();
         int32_t set_address(ulong address);
-        int32_t write(uint8_t *data, size_t len);
-        int32_t read(uint8_t *data, size_t len);
+        int32_t send(uint8_t *data, size_t len);
+        int32_t receive(uint8_t *data, size_t len);
 
     private:
         struct
         {
-            string device;
-            long address;
+            string bus;
+            uint8_t address;
             int fh = -1;
             ulong funcs;
             bool connected = false;
