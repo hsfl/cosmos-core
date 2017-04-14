@@ -774,7 +774,6 @@ int32_t Serial::get_char(uint8_t &buffer)
 
 int32_t Serial::ReceiveByte(uint8_t &buf) {
     int n = 0;
-    int size = 1;
     buf = '\0'; // emtpy buffer
     //n = ReceiveBuffer(&buf, size);
 #ifdef COSMOS_WIN_OS
