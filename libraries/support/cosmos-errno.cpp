@@ -514,6 +514,9 @@ string cosmos_error_string(int32_t cosmos_errno)
         case CONVERT_ERROR_UTC:
             error_string = "CONVERT_ERROR_UTC";
             break;
+        case CUBEADCS_SERIALCOMM_RESPONSE:
+            error_string = "CUBEADCS SERIALCOMM: ADCS REPLY DID NOT MATCH EXPECTED REPLY";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);

@@ -248,7 +248,14 @@
 
 #define CONVERT_ERROR_UTC -531
 
-#define GENERAL_OK                        0     /* everything is all right */
+
+#define CUBEADCS_SERIALCOMM_RESPONSE    -601
+
+
+
+
+
+#define GENERAL_OK                        0      /* everything is all right */
 #define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
 #define GENERAL_ERROR_NOTSTARTED       -2002     /* uninitialized error */
 #define GENERAL_ERROR_NULLPOINTER      -2003     /* you gave a null pointer to the function */
@@ -266,7 +273,10 @@
 #define GENERAL_ERROR_TIMEOUT          -2015     /* a timer expired */
 #define GENERAL_ERROR_INPUT            -2016     /* invalid input was provided */
 #define GENERAL_ERROR_OUTPUT           -2017     /* output from a routine returned bad output, possibly related to bad input */
-#define GENERAL_ERROR_UNDEFINED           -2018
+#define GENERAL_ERROR_UNDEFINED        -2018
+
+
+
 
 //! @}
 
