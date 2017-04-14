@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ -d arm ]; then
+echo "Configuring "arm
+cd $1
+if [ -e ../../cmake/toolchain_arm_linux.cmake ]; then
+cmake $2 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../../cmake/toolchain_arm_linux.cmake -DCROSS_TYPE=arm ../..
+fi
+fi

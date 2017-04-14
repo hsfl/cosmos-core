@@ -1,6 +1,4 @@
-
-add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
-cmake_minimum_required(VERSION 2.8.12)
+#cmake_minimum_required(VERSION 2.8.12)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -17,3 +15,6 @@ install(TARGETS CosmosSupport DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/support)
 install(FILES ${INCLUDESPP} DESTINATION include/support)
 
+if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
+    add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
+endif()
