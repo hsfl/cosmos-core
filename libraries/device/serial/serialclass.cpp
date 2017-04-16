@@ -548,6 +548,27 @@ int32_t Serial::put_data(vector<uint8_t> data)
     }
 }
 
+int32_t Serial::put_data(uint8_t *data, size_t size)
+{
+    if (fd < 0)
+    {
+        error = SERIAL_ERROR_OPEN;
+        return (error);
+    }
+
+    int nbytes = write(fd, data, size);
+    if (nbytes < 0)
+    {
+        error = -errno;
+        return error;
+    }
+    else
+    {
+        error = 0;
+        return nbytes;
+    }
+}
+
 int32_t Serial::put_slip(vector<uint8_t> data)
 {
     int32_t iretn;

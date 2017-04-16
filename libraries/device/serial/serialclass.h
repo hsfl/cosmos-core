@@ -53,6 +53,7 @@ namespace Cosmos {
         int32_t put_char(uint8_t c);
         int32_t put_string(string data);
         int32_t put_data(vector <uint8_t> data);
+        int32_t put_data(uint8_t *data, size_t size);
         int32_t put_slip(vector <uint8_t> data);
         int32_t put_nmea(vector <uint8_t> data);
         int32_t drain();
