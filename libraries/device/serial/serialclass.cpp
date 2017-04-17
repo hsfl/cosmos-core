@@ -48,10 +48,19 @@ Serial::Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t 
 {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS)
     fd=open(dname.c_str(), O_RDWR | O_NOCTTY);
+    if (fd == -1)
+    {
+        error = -errno;
+    }
 #endif
 
 #if  defined(COSMOS_MAC_OS)
     fd=open(dname.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+    fd=open(dname.c_str(), O_RDWR | O_NOCTTY);
+    if (fd == -1)
+    {
+        error = -errno;
+    }
 #endif
 
 #if defined(COSMOS_WIN_OS)
@@ -75,14 +84,14 @@ Serial::Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t 
     } else {
         // sucess opening serial port
         fd = _open_osfhandle((intptr_t)handle, _O_RDONLY); // flag = 0
+        fd=open(dname.c_str(), O_RDWR | O_NOCTTY);
+        if (fd == -1)
+        {
+            error = -WSAGetLastError();
+        }
     }
 
 #endif
-
-    if (fd == -1)
-    {
-        error = SERIAL_ERROR_OPEN;
-    }
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 
