@@ -56,7 +56,7 @@ string cosmos_error_string(int32_t cosmos_errno)
     }
     else
     {
-        switch (-cosmos_errno)
+        switch (cosmos_errno)
         {
         case GS232B_ERROR_OPEN:
             error_string = "GS232B Open";

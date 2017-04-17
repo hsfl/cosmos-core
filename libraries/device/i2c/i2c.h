@@ -56,6 +56,7 @@ namespace Cosmos {
         int32_t set_address(ulong address);
         int32_t send(uint8_t *data, size_t len);
         int32_t receive(uint8_t *data, size_t len);
+        int32_t get_error();
 
     private:
         struct
@@ -67,6 +68,8 @@ namespace Cosmos {
             bool connected = false;
             double delay = 1e-4;
         } handle;
+
+        int32_t error;
 
     };
 

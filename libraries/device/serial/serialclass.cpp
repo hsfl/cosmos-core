@@ -580,8 +580,6 @@ int32_t Serial::put_data(uint8_t *data, size_t size)
 
 int32_t Serial::put_slip(vector<uint8_t> data)
 {
-    int32_t iretn;
-
     if (fd < 0)
     {
         error = SERIAL_ERROR_OPEN;
@@ -589,63 +587,61 @@ int32_t Serial::put_slip(vector<uint8_t> data)
     }
 
     size_t i = 0;
-    iretn = put_char(SLIP_FEND);
-    if (iretn < 0)
+    error = put_char(SLIP_FEND);
+    if (error < 0)
     {
-        return iretn;
+        return error;
     }
     for (size_t j=0; j<data.size(); j++)
     {
         switch (data[j])
         {
         case SLIP_FEND:
-            iretn = put_char(SLIP_FESC);
-            if (iretn < 0)
+            error = put_char(SLIP_FESC);
+            if (error < 0)
             {
-                return iretn;
+                return error;
             }
-            iretn = put_char(SLIP_TFEND);
-            if (iretn < 0)
+            error = put_char(SLIP_TFEND);
+            if (error < 0)
             {
-                return iretn;
+                return error;
             }
             i+=2;
             break;
         case SLIP_FESC:
-            iretn = put_char(SLIP_FESC);
-            if (iretn < 0)
+            error = put_char(SLIP_FESC);
+            if (error < 0)
             {
-                return iretn;
+                return error;
             }
-            iretn = put_char(SLIP_TFESC);
-            if (iretn < 0)
+            error = put_char(SLIP_TFESC);
+            if (error < 0)
             {
-                return iretn;
+                return error;
             }
             i+=2;
             break;
         default:
-            iretn = put_char(data[j]);
-            if (iretn < 0)
+            error = put_char(data[j]);
+            if (error < 0)
             {
-                return iretn;
+                return error;
             }
             i++;
             break;
         }
     }
-    iretn = put_char(SLIP_FEND);
-    if (iretn < 0)
+    error = put_char(SLIP_FEND);
+    if (error < 0)
     {
-        return iretn;
+        return error;
     }
     return (i);
 }
 
 int32_t Serial::put_nmea(vector<uint8_t> data)
 {
-    int32_t iretn;
-
     if (fd < 0)
     {
         error = SERIAL_ERROR_OPEN;
@@ -664,23 +660,23 @@ int32_t Serial::put_nmea(vector<uint8_t> data)
     // $VNRRG,11*73
 
     // start command '$'
-    iretn = put_char('$');
+    error = put_char('$');
     message_sent = '$';
 
     // iterate through the buffer to send each charcter to serial port
     size_t j;
     for (j=0; j<data.size(); j++)
     {
-        iretn = put_char(data[j]);
+        error = put_char(data[j]);
         message_sent += data[j];
         // check sum (xor?)
         cs_in ^= (uint8_t)data[j];
     }
     // end of command '*'
-    iretn = put_char('*');
-    if (iretn < 0)
+    error = put_char('*');
+    if (error < 0)
     {
-        return iretn;
+        return error;
     }
     message_sent += '*';
 
@@ -689,29 +685,29 @@ int32_t Serial::put_nmea(vector<uint8_t> data)
         digit1 = cs_in/16;
         if (digit1 < 10)
         {
-            iretn = put_char( '0'+digit1);
-            if (iretn < 0)
+            error = put_char( '0'+digit1);
+            if (error < 0)
             {
-                return iretn;
+                return error;
             }
             message_sent += '0'+digit1;
         }
         else
         {
-            iretn = put_char( 'A'+digit1-10);
-            if (iretn < 0)
+            error = put_char( 'A'+digit1-10);
+            if (error < 0)
             {
-                return iretn;
+                return error;
             }
             message_sent += 'A'+digit1-10;
         }
     }
     else
     {
-        iretn = put_char( '0');
-        if (iretn < 0)
+        error = put_char( '0');
+        if (error < 0)
         {
-            return iretn;
+            return error;
         }
         message_sent += '0';
     }
@@ -720,27 +716,27 @@ int32_t Serial::put_nmea(vector<uint8_t> data)
     digit2 = cs_in%16;
     if (digit2 <10 )
     {
-        iretn = put_char( '0'+digit2);
-        if (iretn < 0)
+        error = put_char( '0'+digit2);
+        if (error < 0)
         {
-            return iretn;
+            return error;
         }
         message_sent += '0'+digit2;
     }
     else
     {
-        iretn = put_char( 'A'+digit2-10);
-        if (iretn < 0)
+        error = put_char( 'A'+digit2-10);
+        if (error < 0)
         {
-            return iretn;
+            return error;
         }
         message_sent += 'A'+digit2-10;
     }
     ++j;
-    iretn = put_char( '\n');
-    if (iretn < 0)
+    error = put_char( '\n');
+    if (error < 0)
     {
-        return iretn;
+        return error;
     }
     message_sent += "<CR><LF>";
     return (j+3);
@@ -870,24 +866,22 @@ int32_t Serial::get_data(vector <uint8_t> &data, size_t size)
         return (error);
     }
 
-    int32_t iretn;
-
     for (uint16_t i=0; i<size; ++i)
     {
-        if ((iretn=get_char()) < 0)
+        if ((error=get_char()) < 0)
         {
-            if (iretn == SERIAL_ERROR_TIMEOUT)
+            if (error == SERIAL_ERROR_TIMEOUT)
             {
                 return(i);
             }
             else
             {
-                return iretn;
+                return error;
             }
         }
         else
         {
-            data.push_back((uint8_t)iretn);
+            data.push_back((uint8_t)error);
         }
     }
     return (size);
@@ -901,24 +895,22 @@ int32_t Serial::get_data(uint8_t *data, size_t size)
         return (error);
     }
 
-    int32_t iretn;
-
     for (uint16_t i=0; i<size; ++i)
     {
-        if ((iretn=get_char()) < 0)
+        if ((error=get_char()) < 0)
         {
-            if (iretn == SERIAL_ERROR_TIMEOUT)
+            if (error == SERIAL_ERROR_TIMEOUT)
             {
                 return(i);
             }
             else
             {
-                return iretn;
+                return error;
             }
         }
         else
         {
-            data[i] = (uint8_t)iretn;
+            data[i] = (uint8_t)error;
         }
     }
     return (size);

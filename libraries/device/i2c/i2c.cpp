@@ -79,35 +79,34 @@ namespace Cosmos {
 
     int32_t I2C::connect()
     {
-        int32_t iretn = 0;
+        error = 0;
 
         if (ioctl(handle.fh, I2C_SLAVE, handle.address) < 0)
         {
             handle.connected = false;
-            iretn = - errno;
-            return iretn;
+            error = - errno;
+            return error;
         }
 
         handle.connected = true;
-        return iretn;
+        return error;
     }
 
     int32_t I2C::send(uint8_t *data, size_t len)
     {
 
-        int32_t iretn = ::write(handle.fh, data, len);
+        error = ::write(handle.fh, data, len);
 
-        if (iretn < 0)
+        if (error < 0)
         {
-            iretn = -errno;
+            error = -errno;
         }
 
-        return iretn;
+        return error;
     }
 
     int32_t I2C::receive(uint8_t *data, size_t len)
     {
-        int32_t iretn;
         size_t count = 0;
 
         ElapsedTime et;
@@ -116,15 +115,15 @@ namespace Cosmos {
             int32_t rcvd = ::read(handle.fh, data, len - count);
             if (rcvd < 0)
             {
-                iretn = -errno;
-                return iretn;
+                error = -errno;
+                return error;
             }
             else if (rcvd == 0)
             {
                 if (et.split() > handle.delay)
                 {
-                    iretn = count;
-                    return iretn;
+                    error = count;
+                    return error;
                 }
             }
             else
@@ -135,4 +134,11 @@ namespace Cosmos {
         } while(count < len);
         return count;
     }
+
+    int32_t I2C::get_error()
+    {
+        return error;
+    }
+
+
 } // end of namepsace Cosmos
