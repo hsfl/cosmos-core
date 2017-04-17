@@ -884,6 +884,37 @@ int32_t Serial::get_data(vector <uint8_t> &data, size_t size)
     return (size);
 }
 
+int32_t Serial::get_data(uint8_t *data, size_t size)
+{
+    if (fd < 0)
+    {
+        error = SERIAL_ERROR_OPEN;
+        return (error);
+    }
+
+    int32_t iretn;
+
+    for (uint16_t i=0; i<size; ++i)
+    {
+        if ((iretn=get_char()) < 0)
+        {
+            if (iretn == SERIAL_ERROR_TIMEOUT)
+            {
+                return(i);
+            }
+            else
+            {
+                return iretn;
+            }
+        }
+        else
+        {
+            data[i] = (uint8_t)iretn;
+        }
+    }
+    return (size);
+}
+
 //! Read Xmodem frame.
 /*! Read one Xmodem block (frame) of data, removing control characters
      * and calculating checksum. Supplied buffer is assumed to be at least 128
