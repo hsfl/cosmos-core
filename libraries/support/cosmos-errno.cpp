@@ -520,6 +520,9 @@ string cosmos_error_string(int32_t cosmos_errno)
         case CUBEADCS_INVALID_RESPONSE:
             error_string = "Invalid Protocol Response";
             break;
+        case CUBEADCS_NOT_CONNECTED:
+            error_string = "Not Actively Connected";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);
