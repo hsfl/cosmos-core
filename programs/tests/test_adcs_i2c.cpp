@@ -8,6 +8,7 @@ int main(int, char *argv[])
     string bus = argv[1];
     uint8_t address = atoi(argv[2]);
     adcs->init(bus, address);
+    adcs->connect();
 
     double mjd1 = currentmjd();
 
