@@ -54,9 +54,13 @@ namespace Cosmos {
         int32_t connect();
         int32_t get_funcs();
         int32_t set_address(ulong address);
+        int32_t send(std::string data);
         int32_t send(uint8_t *data, size_t len);
+        int32_t receive(std::string &data);
         int32_t receive(uint8_t *data, size_t len);
         int32_t get_error();
+
+
 
     private:
         struct

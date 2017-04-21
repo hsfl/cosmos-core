@@ -26,7 +26,7 @@ set(CMAKE_BUILD_TYPE Debug) # Release or Debug
 add_definitions( -DCROSS_TYPE_${CROSS_TYPE})
 
 # define folder where your programs are going to be installed
-#set(INSTALL_DIR                run)
+#set(INSTALL_DIR run)
 
 # by default
 
@@ -301,6 +301,8 @@ endif()
 # now that the libraries have been compiled let's add the cosmos-core programs
 if(${BUILD_TESTS} MATCHES "YES")
     add_subdirectory(${PROJECT_SOURCE_DIR}/programs/tests)
+    # TODO change if condition to a separate one with only devices
+    add_subdirectory(${PROJECT_SOURCE_DIR}/programs/devices)
 endif()
 
 

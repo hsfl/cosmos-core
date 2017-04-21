@@ -16,9 +16,9 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     install(TARGETS CosmosDeviceI2C DESTINATION lib)
     install(FILES ${INCLUDES} DESTINATION include/device/i2c)
 
-    add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
+    if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
+        add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
+    endif()
+
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
-    add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
-endif()
