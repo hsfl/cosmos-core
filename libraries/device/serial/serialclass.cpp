@@ -84,7 +84,7 @@ Serial::Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t 
     } else {
         // sucess opening serial port
         fd = _open_osfhandle((intptr_t)handle, _O_RDONLY); // flag = 0
-        fd=open(dname.c_str(), O_RDWR | O_NOCTTY);
+//        fd=open(dname.c_str(), O_RDWR | O_NOCTTY);
         if (fd == -1)
         {
             error = -WSAGetLastError();
@@ -803,7 +803,7 @@ int32_t Serial::ReceiveByte(uint8_t &buf) {
     buf = '\0'; // emtpy buffer
     //n = ReceiveBuffer(&buf, size);
 #ifdef COSMOS_WIN_OS
-    ReadFile(handle, &buf, size, (LPDWORD)((void *)&n), NULL);
+    ReadFile(handle, &buf, 1, (LPDWORD)((void *)&n), NULL);
 #endif
 
     return(n);
