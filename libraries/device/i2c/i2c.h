@@ -31,7 +31,8 @@
 #define COSMOS_DEVICE_I2C_CLASS_H
 
 #include "support/configCosmos.h"
-#include <linux/i2c-dev.h> /* for I2C_SLAVE */
+//#include <linux/i2c-dev.h> /* for I2C_SLAVE */
+#include "device/i2c/i2c-dev-smbus.h"
 
 using std::cout;
 using std::string;
@@ -51,7 +52,7 @@ namespace Cosmos {
         //        int32_t get_data(vector <uint8_t> &data, size_t size);
 
         //        string name;
-        int32_t connect();
+//        int32_t connect();
         int32_t get_funcs();
         int32_t set_address(ulong address);
         int32_t send(std::string data);
