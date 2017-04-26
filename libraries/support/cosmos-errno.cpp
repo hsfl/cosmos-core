@@ -523,6 +523,12 @@ string cosmos_error_string(int32_t cosmos_errno)
         case CUBEADCS_NOT_CONNECTED:
             error_string = "Not Actively Connected";
             break;
+        case CUBEADCS_SERIAL_PROTOCOL:
+            error_string = "Error in Serial Protocol";
+            break;
+        case CLYDEEPS_NOT_CONNECTED:
+            error_string = "EPS Not Connected";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);
