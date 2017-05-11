@@ -27,436 +27,555 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-//! \ingroup agents
-//! \defgroup agent_cpu CPU monitoring agent
-//! This program accepts requests to return the machines:
-//! - virtual memory
-//! - virtual memory percentage
-//! - disk space used
-//! - disk space percentage
-//! - load
-
 #include "support/configCosmos.h"
+
 #include "agent/agentclass.h"
-#include "support/timeutils.h"
 #include "support/jsonlib.h"
-#include "support/elapsedtime.h"
-#include "support/stringlib.h"
+#include "support/convertlib.h"
+#include "support/datalib.h"
+#include "support/command_queue.h"
 
-#include "device/cpu/devicecpu.h"
-#include "device/disk/devicedisk.h"
-
-#include <stdio.h>
 #include <iostream>
+#include <iomanip>
+#include <list>
+#include <fstream>
+#include <sstream>
 
-#if defined (COSMOS_WIN_OS)
-#include "windows.h"
-#include <tchar.h>
-#endif
+using std::string;
+using std::vector;
+using std::cout;
+using std::endl;
 
-// TODO: remove from here?
-//#if defined (COSMOS_LINUX_OS)
-//#include <stdlib.h>
-//#include <sys/statvfs.h>
-//#include <sys/types.h>
-//#include <sys/sysinfo.h>
-//#include <unistd.h>
-//#endif
+/*! \file agent_exec.cpp
+* \brief Monitor Agent source file
+*/
 
-//using std::cout;
-//using std::endl;
+//! \ingroup agents
+//! \defgroup agent_exec Executive Agent program
+//! This Agent manages the execution of commands within the COSMOS system.
+//! A single command queue is kept containing both time, and time and condition driven
+//! commands. Commands can be added or removed from this queue, either through direct requests
+//! or through command files.
+//!
+//! Commands are represented as a ::eventstruc. If EVENT_FLAG_CONDITIONAL is set, the condition
+//! part of the ::eventstruc is evaluated as a COSMOS equation to determine whether the command
+//! should be executed. Either way, commands are only executed if their time has passed. Once a
+//! command has executed, it is either remove from the queue, or if EVENT_FLAG_REPEAT is set,
+//! it is disabled from executing until such time as the condition goes false again, after which
+//! it can once again execute.
+//!
+//! Any execution of a command is reflected in two log files, one of which tracks the results of the
+//! command, and the other of which logs the actual ::eventstruc for the command, with the utcexec field
+//! set to the actual time of execution.
+//!
+//! Usage: agent_monitor
 
-// flag to turn on/off print
-bool printStatus;
-
-int agent_cpu(), create_node();
-
-int32_t request_soh(char *request, char* response, Agent *);
-int32_t request_bootCount(char *request, char* response, Agent *);
-
-// disk
-int32_t request_diskSize(char *request, char *response, Agent *);
-int32_t request_diskUsed(char *request, char *response, Agent *);
-int32_t request_diskFree(char *request, char *response, Agent *);
-int32_t request_diskFreePercent (char*request, char *response, Agent *);
-
-// cpu
-int32_t request_cpuProcess(char*request, char *response, Agent *);
-int32_t request_load(char *request, char *response, Agent *);
-
-// memory
-int32_t request_mem(char *request, char *response, Agent *);
-int32_t request_mem_kib(char *request, char *response, Agent *);
-int32_t request_mem_percent (char*request, char *response, Agent *);
-int32_t request_mem_total(char *request, char *response, Agent *);
-int32_t request_mem_total_kib(char *request, char *response, Agent *);
-
-int32_t request_printStatus(char *request, char *response, Agent *);
-
-
-std::string agentname  = "cpu";
-std::string nodename;
-std::string sohstring = "{\"device_cpu_utc_000\","
-                        "\"device_cpu_maxgib_000\","
-                        "\"device_cpu_gib_000\","
-                        "\"device_cpu_maxload_000\","
-                        "\"device_cpu_load_000\"";
-
-// cosmos classes
-ElapsedTime et;
-DeviceDisk disk;
-DeviceCpu deviceCpu;
-DeviceCpu cpu;
 
 Agent *agent;
 
+string incoming_dir;
+string outgoing_dir;
+string temp_dir;
+
+string nodename;
+
+double logdate_exec=0.;
+double newlogstride_exec = 900. / 86400.;
+double logstride_exec = 0.;
+
+int32_t request_get_queue_size(char* request, char* response, Agent* agent);
+int32_t request_get_event(char* request, char* response, Agent* agent);
+int32_t request_del_event(char* request, char* response, Agent* agent);
+int32_t request_del_event_id(char* request, char* response, Agent* agent);
+int32_t request_add_event(char* request, char* response, Agent* agent);
+int32_t request_run(char *request, char* response, Agent* agent);
+int32_t request_soh(char *request, char* response, Agent* agent);
+int32_t request_reopen_exec(char* request, char* response, Agent* agent);
+int32_t request_set_logstride_exec(char* request, char* response, Agent* agent);
+
+CommandQueue cmd_queue;
+
+// SOH specific declarations
+int32_t request_reopen_soh(char* request, char* response, Agent *agent);
+int32_t request_set_logperiod(char* request, char* response, Agent *agent);
+int32_t request_set_logstring(char* request, char* response, Agent *agent);
+int32_t request_get_logstring(char* request, char* response, Agent *agent);
+int32_t request_set_logstride_soh(char* request, char* response, Agent *agent);
+
+string jjstring;
+string myjstring;
+
+NetworkType ntype = NetworkType::UDP;
+int waitsec = 5;
+
+void collect_data_loop();
+thread cdthread;
+
+string logstring;
+vector<jsonentry*> logtable;
+double logdate_soh=0.;
+int32_t newlogperiod = 10, logperiod = 0;
+double newlogstride_soh = 900. / 86400.;
+double logstride_soh = 0.;
+
+vector<shorteventstruc> eventdict;
+vector<shorteventstruc> events;
+
+int pid;
+int state = 0;
+double cmjd;
+
+beatstruc iscbeat;
+
+// default node name
+string node = "hiakasat";
+char response[300];
+
 int main(int argc, char *argv[])
 {
+    int sleept;
+    double lmjd, dmjd;
+    double nextmjd;
 
-    cout << "Starting agent cpu" << endl;
+    cout<<"Starting the monitor agent->..";
+    int32_t iretn;
 
-    switch (argc)
+    // Set node name to first argument
+    nodename = "null";
+
+    // Establish the command channel and heartbeat
+    agent = new Agent(nodename, "monitor");
+    if (agent->cinfo == nullptr)
     {
-    case 1:
-        {
-            nodename = "cpu_" + deviceCpu.getHostName();
-        }
-        break;
-    case 2:
-        {
-            nodename = argv[1];
-        }
-        break;
-    default:
-        {
-            printf("Usage: agent_cpu {node}\n");
-        }
-        break;
+        cout<<"unable to start agent_monitor: "<<endl;
+        exit(1);
     }
+    agent->cinfo->pdata.node.utc = 0.;
+    agent->cinfo->pdata.agent[0].aprd = .5;
 
-    if (create_node())
+    cout<<"  started."<<endl;
+
+    // Establish Executive functions
+
+    // Set the incoming, outgoing, and temp directories
+    incoming_dir = data_base_path(nodename, "incoming", "exec") + "/";
+    if (incoming_dir.empty())
     {
-        cout << "Unable to make node " << endl;
+        cout<<"unable to create directory: <"<<(nodename+"/incoming")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
-//    agent->version = "1.0";
-
-    // Add additional requests
-
-    agent = new Agent(nodename, agentname, 5.);
-    if (agent->cinfo == nullptr || !agent->running())
+    outgoing_dir = data_base_path(nodename, "outgoing", "exec") + "/";
+    if (outgoing_dir.empty())
     {
-        cout << "Unable to start agent" << endl;
+        cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
-    agent->add_request("soh",request_soh,"","current state of health message");
-    agent->add_request("diskSize",request_diskSize,"","disk size in GB");
-    agent->add_request("diskUsed",request_diskUsed,"","disk used in GB");
-    agent->add_request("diskFree",request_diskFree,"","disk free in GB");
-    agent->add_request("diskFreePercent",request_diskFreePercent,"","disk free in %");
-    agent->add_request("mem",request_mem,"","current virtual memory used in Bytes");
-    agent->add_request("mem_kib",request_mem_kib,"","current virtual memory used in KiB");
-    agent->add_request("mem_percent",request_mem_percent,"","memory percentage");
-    agent->add_request("mem_total",request_mem_total,"","total memory in Bytes");
-    agent->add_request("mem_total_kib",request_mem_total_kib,"","total memory in KiB");
-    agent->add_request("load",request_load,"","current CPU load (0-1 is good, >1 is overloaded)");
-    agent->add_request("cpuProc",request_cpuProcess,"","the %CPU usage for this process");
-    agent->add_request("printStatus",request_printStatus,"","print the status data");
-    agent->add_request("bootCount",request_bootCount,"","reboot count");
-
-    char tempstring[200];
-
-    for (uint16_t i=0; i<agent->cinfo->pdata.devspec.disk_cnt; ++i)
+    temp_dir = data_base_path(nodename, "temp", "exec") + "/";
+    if (temp_dir.empty())
     {
-        sprintf(tempstring, ",\"device_disk_utc_%03d\",\"device_disk_temp_%03d\"", i, i);
-        sohstring += tempstring;
-        sprintf(tempstring, ",\"device_disk_gib_%03d\",\"device_disk_maxgib_%03d\"",i,i);
-        sohstring += tempstring;
+        cout<<"unable to create directory: <"<<(nodename+"/temp")+"/exec"<<"> ... exiting."<<endl;
+        exit(1);
     }
 
-    sohstring += "}";
-    agent->set_sohstring(sohstring);
+    // Add agent request functions
+    if ((iretn=agent->add_request("get_queue_size", request_get_queue_size, "", "returns the current size of the command queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("del_event", request_del_event, "entry string", "deletes the specified command event from the queue according to its JSON string")))
+        exit (iretn);
+    if ((iretn=agent->add_request("del_event_id", request_del_event_id, "entry #", "deletes the specified command event from the queue according to its position")))
+        exit (iretn);
+    if ((iretn=agent->add_request("get_event", request_get_event, "[ entry # ]", "returns the requested command queue entry (or all if none specified)")))
+        exit (iretn);
+    if ((iretn=agent->add_request("add_event", request_add_event, "{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", "adds the specified command event to the queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("run", request_run, "", "run the requested command")))
+        exit (iretn);
+    if ((iretn=agent->add_request("reopen_exec", request_reopen_exec)))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_logstride_exec", request_set_logstride_exec)))
+        exit (iretn);
 
-    // Start our own thread
-    agent_cpu();
+    // Establish SOH functions
 
-    return 0;
+    if ((iretn=agent->add_request("reopen_soh", request_reopen_soh)))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_logperiod" ,request_set_logperiod)))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_logstring", request_set_logstring)))
+        exit (iretn);
+    if ((iretn=agent->add_request("get_logstring", request_get_logstring)))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_logstride_soh", request_set_logstride_soh)))
+        exit (iretn);
 
-}
+    // Create default logstring
+    logstring = json_list_of_soh(agent->cinfo->pdata);
+    printf("logstring: %s\n", logstring.c_str());
+    json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
+    //	agent_set_sohstring(agent->cinfo, logstring.c_str());
 
+    load_dictionary(eventdict, agent->cinfo->meta, agent->cinfo->pdata, (const char *)"events.dict");
 
-
-
-int agent_cpu()
-{
-
-    ElapsedTime et;
-    static const double GiB = 1024. * 1024. * 1024.;
-    deviceCpu.numProcessors = agent->cinfo->pdata.devspec.cpu[0]->maxload;
-
-    et.start();
+    // Start thread to collect SOH data
+    cdthread = thread(collect_data_loop);
 
     // Start performing the body of the agent
+    nextmjd = currentmjd();
+    lmjd = currentmjd();
     while(agent->running())
     {
+        nextmjd += agent->cinfo->pdata.agent[0].aprd/86400.;
+        dmjd = (cmjd-lmjd)*86400.;
+        agent->cinfo->pdata.node.utc = cmjd = currentmjd();
 
-        COSMOS_SLEEP(agent->cinfo->pdata.agent[0].aprd);
-
-        agent->cinfo->pdata.devspec.cpu[0]->gen.utc = currentmjd();
-
-        if (agent->cinfo->pdata.devspec.cpu_cnt)
+        // Check if the SOH logperiod has changed
+        if (newlogperiod != logperiod )
         {
-            // cpu
-            agent->cinfo->pdata.devspec.cpu[0]->load   = deviceCpu.getLoad();
-            agent->cinfo->pdata.devspec.cpu[0]->gib    = deviceCpu.getVirtualMemoryUsed()/GiB;
-            agent->cinfo->pdata.devspec.cpu[0]->maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
-            deviceCpu.getPercentUseForCurrentProcess();
+            logperiod = newlogperiod;
+            logdate_soh = agent->cinfo->pdata.node.utc;
+            log_move(agent->cinfo->pdata.node.name, "soh");
         }
 
-        for (size_t i=0; i<agent->cinfo->pdata.devspec.disk_cnt; ++i)
+        // Check if either of the logstride have changed
+        if (newlogstride_exec != logstride_exec )
         {
-            agent->cinfo->pdata.devspec.disk[i]->gen.utc = currentmjd();
-            agent->cinfo->pdata.devspec.disk[i]->gib = disk.getUsedGiB(agent->cinfo->pdata.port[agent->cinfo->pdata.devspec.disk[i]->gen.portidx].name);
-            agent->cinfo->pdata.devspec.disk[i]->maxgib = disk.getSizeGiB(agent->cinfo->pdata.port[agent->cinfo->pdata.devspec.disk[i]->gen.portidx].name);
+            logstride_exec = newlogstride_exec;
+            logdate_exec = currentmjd(0.);
+            log_move(nodename, "exec");
         }
 
-        if (printStatus) {
-            cout << "Load," << deviceCpu.load << ", ";
-            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
-            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
-            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
-            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
-
+        if (newlogstride_soh != logstride_soh )
+        {
+            logstride_soh = newlogstride_soh;
+            logdate_soh = currentmjd(0.);
+            log_move(nodename, "soh");
         }
 
+        // Check if either of the logstride have expired
+        if (floor(cmjd/logstride_exec)*logstride_exec > logdate_exec)
+        {
+            logdate_exec = floor(cmjd/logstride_exec)*logstride_exec;
+            log_move(nodename, "exec");
+        }
+
+        if (floor(cmjd/logstride_soh)*logstride_soh > logdate_soh)
+        {
+            logdate_soh = floor(cmjd/logstride_soh)*logstride_soh;
+            log_move(nodename, "soh");
+        }
+
+        // Perform SOH specific functions
+        if (agent->cinfo->pdata.node.utc != 0.)
+        {
+            loc_update(&agent->cinfo->pdata.node.loc);
+            update_target(agent->cinfo->pdata);
+            agent->post(Agent::AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
+            calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
+            for (uint32_t k=0; k<events.size(); ++k)
+            {
+                memcpy(&agent->cinfo->pdata.event[0].s,&events[k],sizeof(shorteventstruc));
+                strcpy(agent->cinfo->pdata.event[0].l.condition,agent->cinfo->meta.emap[events[k].handle.hash][events[k].handle.index].text);
+                log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo->meta, agent->cinfo->pdata));
+            }
+        }
+
+        // Check if SOH logperiod has expired
+        if (dmjd-logperiod > -logperiod/20.)
+        {
+            lmjd = cmjd;
+            if (agent->cinfo->pdata.node.utc != 0. && logstring.size())
+            {
+                log_write(agent->cinfo->pdata.node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
+            }
+        }
+
+        // Perform Executive specific functions
+        //cmd_queue.load_commands(incoming_dir, agent);
+        cmd_queue.load_commands(incoming_dir);
+        cmd_queue.run_commands(agent, nodename, logdate_exec);
+        cmd_queue.save_commands(temp_dir);
+
+        sleept = (int)((nextmjd-currentmjd())*86400000000.);
+        if (sleept < 0) sleept = 0;
+        COSMOS_USLEEP(sleept);
     }
 
     agent->shutdown();
+    cdthread.join();
+}
 
+// Executive specific requests
+int32_t request_set_logstride_exec(char* request, char* response, Agent *agent)
+{
+    sscanf(request,"set_logstride_exec %lf",&newlogstride_exec);
     return 0;
 }
 
-
-int32_t request_soh(char *, char* response, Agent *)
+int32_t request_reopen_exec(char* request, char* response, Agent *agent)
 {
-    std::string rjstring;
-    //	strcpy(response,json_of_list(rjstring,sohstring,agent->cinfo));
-    strcpy(response,json_of_table(rjstring, agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
-
+    logdate_exec = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
+    log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "exec");
     return 0;
 }
 
-
-
-// ----------------------------------------------
-// disk
-int32_t request_diskSize(char *, char* response, Agent *)
+int32_t request_get_queue_size(char *request, char* response, Agent *agent)
 {
-    return (sprintf(response, "%f", disk.SizeGiB));
+    sprintf(response,"%" PRIu64 "", cmd_queue.get_size());
+    return 0;
 }
 
-int32_t request_diskUsed(char *, char* response, Agent *)
+int32_t request_get_event(char *request, char* response, Agent *agent)
 {
-    return (sprintf(response, "%f", disk.UsedGiB));
-}
+    std::ostringstream ss;
 
-int32_t request_diskFree(char *, char* response, Agent *)
-{
-    // TODO: implement diskFree
-    //return (sprintf(response, "%.1f", agent->cinfo->pdata.devspec.cpu[0]->gib));
+    if(cmd_queue.get_size()==0)	{
+        ss << "the command queue is empty";
+    } else {
+        int j;
+        int32_t iretn = sscanf(request,"get_event %d",&j);
 
-    // in the mean time use this
-    return (sprintf(response, "%f", disk.FreeGiB));
+        // if valid index then return command
+        if (iretn == 1)
+            if(j >= 0 && j < (int)cmd_queue.get_size() )
+                ss << cmd_queue.get_command(j);
+            else
+                ss << "<" << j << "> is not a valid command queue index (current range between 0 and " << cmd_queue.get_size()-1 << ")";
 
-}
-
-int32_t request_diskFreePercent (char *, char *response, Agent *)
-{
-    return (sprintf(response, "%f", disk.FreePercent));
-}
-
-
-
-// ----------------------------------------------
-// cpu
-int32_t request_load (char *, char* response, Agent *)
-{
-    return (sprintf(response, "%.2f", deviceCpu.load));
-}
-
-int32_t request_cpuProcess(char *, char *response, Agent *){
-
-    return (sprintf(response, "%f", deviceCpu.percentUseForCurrentProcess));
-}
-
-// ----------------------------------------------
-// memory in Bytes
-int32_t request_mem(char *, char* response, Agent *)
-{
-    return (sprintf(response, "%.0f", deviceCpu.virtualMemoryUsed));
-}
-
-// used memory in KiB
-int32_t request_mem_kib(char *, char* response, Agent *)
-{
-    return (sprintf(response, "%.0f", deviceCpu.virtualMemoryUsed/1024.));
-}
-
-
-int32_t request_mem_percent (char *, char *response, Agent *)
-{
-
-    return (sprintf(response, "%.0f", deviceCpu.getVirtualMemoryUsedPercent()));
-}
-
-// total memory in Bytes
-int32_t request_mem_total(char *, char* response, Agent *)
-{
-    return (sprintf(response, "%.0f", deviceCpu.getVirtualMemoryTotal()));
-}
-
-// total memory in Bytes
-int32_t request_mem_total_kib(char *, char* response, Agent *)
-{
-    return (sprintf(response, "%.0f", deviceCpu.getVirtualMemoryTotal()/1024));
-}
-
-
-
-// ----------------------------------------------
-// boot count
-int32_t request_bootCount(char *, char* response, Agent *)
-{
-
-    std::ifstream ifs ("/hiakasat/nodes/hiakasat/boot.count");
-    std::string counts;
-
-    if (ifs.is_open()) {
-        std::getline(ifs,counts);
-        ifs.close();
-    }
-    else {
-        cout << "Error opening file";
+        // if no index given, return the entire queue
+        else if (iretn ==  -1)
+            for(unsigned long int i = 0; i < cmd_queue.get_size(); ++i)
+            {
+                Event cmd = cmd_queue.get_command(i);
+                ss << "[" << i << "]" << "[" << mjd2iso8601(cmd.getUtc()) << "]" << cmd << endl;
+            }
+        // if the user supplied something that couldn't be turned into an integer
+        else if (iretn == 0)
+            ss << "Usage:\tget_event [ index ]\t";
     }
 
-    return (sprintf(response, "%s", counts.c_str()));
+    strcpy(response, ss.str().c_str());
+    return 0;
 }
 
-// ----------------------------------------------
-// debug info
-int32_t request_printStatus(char *request, char *, Agent *)
+// Delete Queue Entry - by #
+int32_t request_del_event_id(char *request, char* response, Agent *agent)
 {
+    Event cmd;
+    std::ostringstream ss;
 
-    sscanf(request,"%*s %d",&printStatus);
-    cout << "printStatus is " << printStatus <<  endl;
+    if(cmd_queue.get_size()==0)	{
+        ss << "the command queue is empty";
+    } else {
+        int j;
+        int32_t iretn = sscanf(request,"del_event_id %d",&j);
+
+        // if valid index then return command
+        if (iretn == 1) {
+            cout<<"j = "<<j<<endl;
+            if(j >= 0 && j < (int)cmd_queue.get_size() ) {
+                //lookup command
+                cmd = cmd_queue.get_command(j);
+                //delete command
+                int n = cmd_queue.del_command(cmd);
+                sprintf(response,"%d commands deleted from the queue",n);
+            } else {
+                ss << "<" << j << "> is not a valid command queue index (current range between 0 and " << cmd_queue.get_size()-1 << ")";
+            }
+        }
+        // if the user supplied something that couldn't be turned into an integer
+        else if (iretn == 0)	{
+            ss << "Usage:\tdel_event_id [ index ]\t";
+        }
+    }
+
+    strcpy(response, ss.str().c_str());
+    return 0;
+}
+
+// Delete Queue Entry - by date and contents
+int32_t request_del_event(char *request, char* response, Agent *agent)
+{
+    Event cmd;
+    string line(request);
+
+    // remove "del_event " from request string
+    line.erase(0, 10);
+
+    //cmd.set_command(line, agent);
+    cmd.set_command(line);
+
+    //delete command
+    int n = cmd_queue.del_command(cmd);
+
+    sprintf(response,"%d commands deleted from the queue",n);
 
     return 0;
 }
 
-
-
-int create_node () // only use when unsure what the node is
+// Add Queue Entry
+int32_t request_add_event(char *request, char* response, Agent *agent)
 {
-    cosmosstruc *cinfo;
-    //	std::string node_directory;
+    Event cmd;
+    string line(request);
 
-    // Ensure node is present
-    cout << "Node name is " << nodename << endl;
-    if (get_nodedir(nodename).empty())
+    // remove "add_event " from request string
+    line.erase(0, 10);
+
+    //cmd.set_command(line, agent);
+    cmd.set_command(line);
+
+    // add command
+    if(cmd.is_command())
+        cmd_queue.add_command(cmd);
+
+    // sort the queue
+    cmd_queue.sort();
+    strcpy(response, line.c_str());
+    return 0;
+}
+
+int32_t request_run(char *request, char* response, Agent *agent)
+{
+    int i;
+    int32_t iretn = 0;
+    FILE *pd;
+    bool flag;
+
+    // Run Program
+    flag = false;
+
+    for (i=0; i<AGENTMAXBUFFER-1; i++)
     {
-        cout << endl << "Couldn't find Node directory, making directory now...";
-        if (get_nodedir(nodename, true).empty())
+        if (flag)
         {
-            cout << "Couldn't create Node directory." << endl;
-            return 1;
+            if (request[i] != ' ')
+                break;
         }
-        cinfo = json_create();
-        strcpy(cinfo->pdata.node.name, nodename.c_str());
-        cinfo->meta.node = nodename;
-        cinfo->pdata.node.type = NODE_TYPE_COMPUTER;
-
-        cinfo->pdata.node.piece_cnt = 2;
-        cinfo->pdata.piece.resize(cinfo->pdata.node.piece_cnt);
-        cinfo->pdata.node.device_cnt = cinfo->pdata.node.piece_cnt;
-        cinfo->pdata.device.resize(cinfo->pdata.node.device_cnt);
-        cinfo->pdata.devspec.cpu_cnt = 1;
-        cinfo->pdata.devspec.disk_cnt = 1;
-        cinfo->pdata.node.port_cnt = 1;
-        cinfo->pdata.port.resize(cinfo->pdata.node.port_cnt);
-        //        json_addbaseentry(cinfo);
-
-        for (size_t i=0; i<cinfo->pdata.node.piece_cnt; ++i)
+        else
         {
-            cinfo->pdata.piece[i].cidx = i;
-            switch (i)
-            {
-            case 0:
-                strcpy(cinfo->pdata.piece[i].name, "Main CPU");
-                break;
-            default:
-                sprintf(cinfo->pdata.piece[i].name, "Drive %lu", i);
-//                strcpy(cinfo->pdata.piece[i].name, "Main Drive");
-                break;
-            }
-
-            cinfo->pdata.piece[i].type = PIECE_TYPE_DIMENSIONLESS;
-            cinfo->pdata.piece[i].emi = .8;
-            cinfo->pdata.piece[i].abs = .88;
-            cinfo->pdata.piece[i].hcap = 800;
-            cinfo->pdata.piece[i].hcon = 237;
-            cinfo->pdata.piece[i].pnt_cnt = 1;
-            for (uint16_t j=0; j<3; ++j)
-            {
-                cinfo->pdata.piece[i].points[0].col[j] = 0.;
-            }
-            json_addpieceentry(i, cinfo->meta);
-            json_togglepieceentry(i, cinfo->meta, true);
-            cinfo->pdata.piece[i].enabled = true;
-
-            cinfo->pdata.device[i].all.gen.pidx = i;
-            cinfo->pdata.device[i].all.gen.cidx = i;
-            switch (i)
-            {
-            case 0:
-                cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_CPU;
-                cinfo->pdata.device[i].all.gen.didx = 0;
-                cinfo->pdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
-                cinfo->pdata.device[i].cpu.maxload = 1.;
-                cinfo->pdata.device[i].cpu.maxgib = 1.;
-                json_adddeviceentry(i, 0, DEVICE_TYPE_CPU, cinfo->meta);
-                break;
-            default:
-                cinfo->pdata.device[i].disk.maxgib = 1000.;
-                cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_DISK;
-                cinfo->pdata.device[i].all.gen.didx = i-1;
-                cinfo->pdata.device[i].all.gen.portidx = cinfo->pdata.device[i].all.gen.didx;
-                cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].type = PORT_TYPE_DRIVE;
-                json_adddeviceentry(i, i-1, DEVICE_TYPE_DISK, cinfo->meta);
-                json_toggledeviceentry(i-1, DEVICE_TYPE_DISK, cinfo->meta, true);
-#ifdef COSMOS_WIN_OS
-                strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "c:/");
-#else
-                strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "/");
-#endif
-                json_addportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta);
-                json_toggleportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta, true);
-                break;
-            }
-            json_addcompentry(i, cinfo->meta);
-            json_togglecompentry(i, cinfo->meta, true);
-            cinfo->pdata.device[i].all.gen.enabled = true;
+            if (request[i] == ' ')
+                flag = true;
         }
+    }
 
-        int32_t iretn = json_dump_node(cinfo->meta, cinfo->pdata);
-        json_destroy(cinfo);
-
-        cout << " done!" << endl;
-        return iretn;
+    if (i == AGENTMAXBUFFER-1)
+    {
+        sprintf(response,"unmatched");
     }
     else
     {
-        return 0;
+#ifdef COSMOS_WIN_BUILD_MSVC
+        if ((pd=_popen(&request[i], "r")) != NULL)
+#else
+        if ((pd=popen(&request[i],"r")) != NULL)
+#endif
+        {
+            iretn = fread(response,1,AGENTMAXBUFFER-1,pd);
+            response[iretn] = 0;
+
+            iretn = 0;
+#ifdef COSMOS_WIN_BUILD_MSVC
+            _pclose(pd);
+#else
+            pclose(pd); // close process
+#endif
+        }
+        else
+        {
+            response[0] = 0;
+            iretn = 0;
+        }
     }
+
+    return (iretn);
+}
+
+// SOH specific requests
+int32_t request_reopen_soh(char* request, char* response, Agent *agent)
+{
+    logdate_soh = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
+    log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "soh");
+    return 0;
+}
+
+int32_t request_set_logperiod(char* request, char* response, Agent *agent)
+{
+    sscanf(request,"set_logperiod %d",&newlogperiod);
+    return 0;
+}
+
+int32_t request_set_logstring(char* request, char* response, Agent *agent)
+{
+    logstring = &request[strlen("set_logstring")+1];
+    logtable.clear();
+    json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
+    return 0;
+}
+
+int32_t request_get_logstring(char* request, char* response, Agent *agent)
+{
+    strcpy(response, logstring.c_str());
+    return 0;
+}
+
+int32_t request_set_logstride_soh(char* request, char* response, Agent *agent)
+{
+    sscanf(request,"set_logstride_soh %lf",&newlogstride_soh);
+    return 0;
+}
+
+void collect_data_loop()
+{
+    size_t my_position = -1;
+    while (agent->running())
+    {
+        // Collect new data
+        while (my_position != agent->message_head)
+        {
+            ++my_position;
+            if (my_position >= agent->message_ring.size())
+            {
+                my_position = 0;
+            }
+            if (agent->cinfo->pdata.node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AGENT_MESSAGE_BINARY)
+            {
+                agent->cinfo->sdata.node = agent->cinfo->pdata.node;
+                agent->cinfo->sdata.device = agent->cinfo->pdata.device;
+                json_parse(agent->message_ring[my_position].adata, agent->cinfo->meta, agent->cinfo->sdata);
+                agent->cinfo->pdata.node  = agent->cinfo->sdata.node ;
+                agent->cinfo->pdata.device  = agent->cinfo->sdata.device ;
+                loc_update(&agent->cinfo->pdata.node.loc);
+                agent->cinfo->pdata.node.utc = currentmjd(0.);
+
+                for (devicestruc device: agent->cinfo->pdata.device)
+                {
+                    if (device.all.gen.utc > agent->cinfo->pdata.node.utc)
+                    {
+                        agent->cinfo->pdata.node.utc = device.all.gen.utc;
+                    }
+                }
+            }
+        }
+        COSMOS_SLEEP(.1);
+    }
+    return;
+}
+
+/// Prints the command information stored in local the copy of agent->cinfo->pdata.event[0].l
+void print_command()
+{
+    string jsp;
+
+    json_out(jsp,(char*)"event_utc", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_utcexec", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_name", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_type", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_flag", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_data", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_condition", agent->cinfo->meta, agent->cinfo->pdata);
+    cout<<"<"<<jsp<<">"<<endl;
+
+    return;
 }
