@@ -48,10 +48,17 @@ string cosmos_error_string(int32_t cosmos_errno)
 
     if (cosmos_errno > -256)
     {
-        char *unix_error_string = strerror(-cosmos_errno);
-        if (unix_error_string != nullptr)
+        if (cosmos_errno >= 0)
         {
-            error_string = unix_error_string;
+            error_string = "Success";
+        }
+        else
+        {
+            char *unix_error_string = strerror(-cosmos_errno);
+            if (unix_error_string != nullptr)
+            {
+                error_string = unix_error_string;
+            }
         }
     }
     else
