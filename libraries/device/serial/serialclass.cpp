@@ -858,6 +858,36 @@ int32_t Serial::get_char()
     return 0;
 }
 
+int32_t Serial::get_string(string &data, size_t size)
+{
+    if (fd < 0)
+    {
+        error = SERIAL_ERROR_OPEN;
+        return (error);
+    }
+
+    data.clear();
+    for (uint16_t i=0; i<size; ++i)
+    {
+        if ((error=get_char()) < 0)
+        {
+            if (error == SERIAL_ERROR_TIMEOUT)
+            {
+                return(i);
+            }
+            else
+            {
+                return error;
+            }
+        }
+        else
+        {
+            data.append(1, (char)error);
+        }
+    }
+    return (size);
+}
+
 int32_t Serial::get_data(vector <uint8_t> &data, size_t size)
 {
     if (fd < 0)

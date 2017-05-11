@@ -41,7 +41,7 @@ namespace Cosmos {
     class Serial
     {
     public:
-        Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+        Serial(string dname, size_t dbaud=9600, size_t dbits=8, size_t dparity=0, size_t dstop=1);
         ~Serial();
         int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
         int32_t set_flowcontrol(bool rtscts, bool xonxoff);
@@ -59,7 +59,8 @@ namespace Cosmos {
         int32_t drain();
         int32_t get_char();
         int32_t get_char(uint8_t &buffer);
-        int32_t get_data(vector <uint8_t> &data, size_t size);
+        int32_t get_data(vector <uint8_t> &data, size_t size=MAXSIZE_T);
+        int32_t get_string(string &data, size_t size=MAXSIZE_T);
         int32_t get_data(uint8_t *data, size_t size);
         int32_t get_slip(vector <uint8_t> &data, size_t size);
         int32_t get_nmea(vector <uint8_t> &data, size_t size);
