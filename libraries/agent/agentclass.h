@@ -266,6 +266,7 @@ public:
     beatstruc find_server(string node, string proc, float waitsec);
     beatstruc find_agent(string agent, string node="");
     uint16_t running();
+    int32_t last_error();
     int32_t set_sohstring(string list);
     cosmosstruc *get_cosmosstruc();
     void get_ip(char* buffer, size_t buflen);
@@ -343,6 +344,8 @@ private:
     thread mthread;
     //! Flag for level of debugging
     size_t debug_level;
+    //! Last error
+    int32_t error_value;
 
     //! Agent Request Entry
     //! Structure representing a single Agent request.
