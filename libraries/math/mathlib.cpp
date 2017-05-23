@@ -34,7 +34,7 @@
 /*! \file mathlib.cpp
     \brief mathlib source file
 */
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 //! \addtogroup mathlib_functions
 //! @{

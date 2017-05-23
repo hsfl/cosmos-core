@@ -34,7 +34,7 @@
 #include "vector.h"
 #include "quaternion.h"
 // TODO: remove dependency from mathlib (uvector)
-#include "mathlib.h"
+#include "math/mathlib.h"
 
 #include <cstdint>
 #include <deque>

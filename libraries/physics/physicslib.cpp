@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "support/timelib.h"
 #include "support/datalib.h"
 
