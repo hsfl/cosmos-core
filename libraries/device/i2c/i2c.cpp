@@ -153,7 +153,7 @@ namespace Cosmos {
         //        count ++;
         //    }while (buff[0] != 0x00); //end tranmission with null byte
 
-        //    return 0;
+            return 0;
     }
 
     int32_t I2C::receive(uint8_t *data, size_t len)
