@@ -854,6 +854,7 @@ namespace Cosmos {
         return;
     }
 
+    // TODO: describe function, what does it do?
     void Agent::message_loop()
     {
         messstruc mess;
