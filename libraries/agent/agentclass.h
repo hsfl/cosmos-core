@@ -240,10 +240,10 @@ public:
     //! Storage for messages
     struct messstruc
     {
-        pollstruc meta;
-        vector <uint8_t> bdata;
-        string adata;
-        string jdata;
+        pollstruc meta; // TODO: what is meta?
+        vector <uint8_t> bdata; // TODO: what is bdata?
+        string adata; // TODO: what is adata?
+        string jdata; // TODO: what is jdata?
     };
 
     //! Agent Request Function
