@@ -232,7 +232,7 @@ public:
 
     struct pollstruc
     {
-        uint8_t type;
+        uint8_t type; // TODO: what are the available types?
         uint16_t jlength;
         beatstruc beat;
     };
