@@ -6784,6 +6784,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_imu_accel_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+sizeof(double)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_imu_accel_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+2*sizeof(double)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_imu_omega",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,omega)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_imu_alpha",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,alpha)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_imu_mag",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_imu_mag_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_imu_mag_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+sizeof(double)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
@@ -7081,6 +7082,9 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_tnc_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_tnc_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
+    default:
+        iretn = JSON_ERROR_NOENTRY;
+        break;
     }
 
     if (iretn >= 0)
@@ -7153,6 +7157,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_imu_accel_y",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_imu_accel_z",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_imu_omega",didx, UINT16_MAX, cmeta, state);
+        json_toggleentry("device_imu_alpha",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_imu_mag",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_imu_mag_x",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_imu_mag_y",didx, UINT16_MAX, cmeta, state);
