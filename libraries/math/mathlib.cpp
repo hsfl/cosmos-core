@@ -2234,47 +2234,13 @@ cmatrix cm_change_between_cv(cvector from, cvector to)
     return cm_quaternion2dcm(q_change_between_cv(from,to));
 }
 
-
-
-//! Default least squares fit.
-/*! Constructor for default 10 element, 2nd order least squares fit.
- * \return Least squares fit object.
-*/
-//LsFit::LsFit()
-//    : element_cnt(10), order(2), resolution(0.)
-//{
-//}
-
-//! Multi element least squares fit.
-/*! Constructor for cnt element, 2nd order least squares fit.
- * \param cnt Number of elements to be fit.
- * \return Least squares fit object.
-*/
-//LsFit::LsFit(uint16_t cnt)
-//    : element_cnt(cnt), order(2), resolution(0.)
-//{
-//}
-
 //! Multi element, variable order least squares fit.
 /*! Constructor for cnt element, ord order least squares fit.
  * \param cnt Number of elements to be fit.
  * \param ord Order of fit.
  * \return Least squares fit object.
 */
-//LsFit::LsFit(uint16_t cnt, uint16_t ord)
-//    : element_cnt(cnt), order(ord), resolution(0.)
-//{
-//}
-
-//! Multi element, variable order, variable resolution least squares fit.
-/*! Constructor for cnt element, ord order, res resolution least squares fit.
- * \param cnt Number of elements to be fit.
- * \param ord Order of fit.
- * \param res Resolution of fit.
- * \return Least squares fit object.
-*/
-LsFit::LsFit(uint16_t cnt, uint16_t ord, double res)
-//    : element_cnt(cnt), order(ord), resolution(res)
+LsFit::LsFit(uint16_t cnt, uint16_t ord)
 {
     if (ord)
     {
@@ -2292,7 +2258,6 @@ LsFit::LsFit(uint16_t cnt, uint16_t ord, double res)
     {
         element_cnt = order + 1;
     }
-    resolution = res;
     var.resize(0);
     depth = 0;
     //	printf("LsFit(%u %u %f)\n",cnt,ord,res);
@@ -2302,9 +2267,8 @@ LsFit::LsFit(uint16_t cnt, uint16_t ord, double res)
 /*! Perform setting of variables in ::LsFit so that it can be ready for use.
  * \param cnt Number of elements to be fit.
  * \param ord Order of fit.
- * \param res Resolution of fit.
 */
-void LsFit::initialize(uint16_t cnt, uint16_t ord, double res)
+void LsFit::initialize(uint16_t cnt, uint16_t ord)
 {
     if (ord)
     {
@@ -2322,7 +2286,6 @@ void LsFit::initialize(uint16_t cnt, uint16_t ord, double res)
     {
         element_cnt = order + 1;
     }
-    resolution = res;
     var.resize(0);
     depth = 0;
 }
