@@ -1465,7 +1465,7 @@ int32_t att_icrf2geoc(locstruc *loc)
 
 	// Use to rotate ECI into ITRS
 	loc->att.geoc.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.j2e),loc->att.icrf.s);
-	q_normalize(&loc->att.geoc.s);
+	normalize_q(&loc->att.geoc.s);
 	loc->att.geoc.v = rv_mmult(loc->pos.extra.j2e,loc->att.icrf.v);
 	loc->att.geoc.a = rv_mmult(loc->pos.extra.j2e,loc->att.icrf.a);
 
@@ -1503,7 +1503,7 @@ void att_geoc2icrf(locstruc *loc)
 
 	// Perform first order rotation of ITRS frame into ECI frame
 	loc->att.icrf.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.e2j),loc->att.geoc.s);
-	q_normalize(&loc->att.icrf.s);
+	normalize_q(&loc->att.icrf.s);
 	loc->att.icrf.v = rv_mmult(loc->pos.extra.e2j,loc->att.geoc.v);
 	loc->att.icrf.a = rv_mmult(loc->pos.extra.e2j,loc->att.geoc.a);
 
@@ -1561,7 +1561,7 @@ int32_t att_icrf2selc(locstruc *loc)
 
 	// Use to rotate ICRF into SELC
 	loc->att.selc.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.j2s),loc->att.icrf.s);
-	q_normalize(&loc->att.selc.s);
+	normalize_q(&loc->att.selc.s);
 	loc->att.selc.v = rv_mmult(loc->pos.extra.j2s,loc->att.icrf.v);
 	loc->att.selc.a = rv_mmult(loc->pos.extra.j2s,loc->att.icrf.a);
 
@@ -1601,7 +1601,7 @@ void att_selc2icrf(locstruc *loc)
 
 	// Perform first order rotation of SELC frame into ICRF frame
 	loc->att.icrf.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.s2j),loc->att.selc.s);
-	q_normalize(&loc->att.icrf.s);
+	normalize_q(&loc->att.icrf.s);
 	loc->att.icrf.v = rv_mmult(loc->pos.extra.s2j,loc->att.selc.v);
 	loc->att.icrf.a = rv_mmult(loc->pos.extra.s2j,loc->att.selc.a);
 
@@ -1706,7 +1706,7 @@ void att_planec2lvlh(locstruc *loc)
 
 	// Combine to determine transformation of ITRF into LVLH
 	fqe = q_mult(qe_z,qe_y);
-	q_normalize(&fqe);
+	normalize_q(&fqe);
 	rqe = q_conjugate(fqe);
 
 	// Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
@@ -1780,7 +1780,7 @@ void att_lvlh2planec(locstruc *loc)
 
 	// Multiply to determine transformation of ITRF frame into LVLH frame
 	fqe = q_mult(qe_z,qe_y);
-	q_normalize(&fqe);
+	normalize_q(&fqe);
 	rqe = q_conjugate(fqe);
 
 	// LVLH Z is opposite of earth to satellite vector
@@ -1915,7 +1915,7 @@ void att_planec2topo(locstruc *loc)
 
 	// Multiply to determine rotation of Topo frame into ITRS frame
 	t2g = q_mult(t2g_z,t2g_x);
-	q_normalize(&t2g);
+	normalize_q(&t2g);
 	g2t = q_conjugate(t2g);
 
 	// Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
@@ -1977,7 +1977,7 @@ void att_topo2planec(locstruc *loc)
 
 	// Multiply to determine rotation of Topo frame into ITRS frame
 	t2g = q_mult(t2g_z,t2g_x);
-	q_normalize(&t2g);
+	normalize_q(&t2g);
 	g2t = q_conjugate(t2g);
 
 	// Rotate Topo frame into ITRS frame

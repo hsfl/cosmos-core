@@ -113,7 +113,7 @@ quaternion q_change_between_rv(rvector from, rvector to)
         rq.q.w = 1. + dot_rv(from,to);
     }
 
-    q_normalize(&rq.q);
+    normalize_q(&rq.q);
     return (rq.q);
 }
 
@@ -136,7 +136,7 @@ quaternion q_change_around_rv(rvector around, double angle)
 
     rq.r = rv_smult(sa,around);
     rq.q.w = cos(angle);
-    q_normalize(&rq.q);
+    normalize_q(&rq.q);
     return (rq.q);
 }
 
@@ -180,7 +180,7 @@ quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rv
 
     // Combine to determine complete transformation of source into target
     fqe = q_mult(qe_a,qe_b);
-    q_normalize(&fqe);
+    normalize_q(&fqe);
 
     return fqe;
 }
@@ -196,7 +196,7 @@ rvector rv_quaternion2axis(quaternion q)
     double ca, sa;
     uvector rq = {{{0.,0.,0.},0.}};
 
-    q_normalize(&q);
+    normalize_q(&q);
     ca = 2.*acos(q.w);
     if (ca > 0. && ca < D2PI)
     {
@@ -221,7 +221,7 @@ rmatrix rm_quaternion2dcm(quaternion q)
     rmatrix m = {{{{0.}}}};;
     double yy, xx, zz, xy, xz, xw, yz, yw, zw;
 
-    q_normalize(&q);
+    normalize_q(&q);
 
     xx = 2. * q.d.x;
     xy = xx * q.d.y;
@@ -274,7 +274,7 @@ quaternion q_axis2quaternion_rv(rvector v)
         q.d.x = q.d.y = q.d.z = 0.;
     q.w =cos(length/2);
 
-    q_normalize(&q);
+    normalize_q(&q);
     return (q);
 }
 
@@ -2212,7 +2212,7 @@ quaternion q_change_between_cv(cvector from, cvector to)
         rq.q.w = 1. + dot_cv(from,to);
     }
 
-    q_normalize(&rq.q);
+    normalize_q(&rq.q);
     return (rq.q);
 }
 
