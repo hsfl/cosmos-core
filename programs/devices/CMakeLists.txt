@@ -17,4 +17,5 @@ endforeach()
 #add_executable(i2ctalk i2ctalk.cpp)
 #target_link_libraries(i2ctalk CosmosDeviceI2C)
 
+add_deployment_binary(i2ctalk "bin")
 
