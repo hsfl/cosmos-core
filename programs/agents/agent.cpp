@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL)) > 0)
+                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL, 1., Agent::Where::TAIL)) > 0)
                 {
                     // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL)) > 0)
+                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL, 1., Agent::Where::TAIL)) > 0)
                 {
                     // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)

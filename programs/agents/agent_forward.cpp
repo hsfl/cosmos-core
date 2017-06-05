@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     while(agent->running())
     {
         Agent::messstruc mess;
-        iretn = agent->readring(mess);
+        iretn = agent->readring(mess, Agent::AGENT_MESSAGE_ALL, 1., Agent::Where::TAIL);
 
 //        nbytes = recvfrom(agent->cinfo->pdata.agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&agent->cinfo->sdata.agent[0].req.caddr,(socklen_t *)&agent->cinfo->sdata.agent[0].req.addrlen);
         if (iretn > 0)

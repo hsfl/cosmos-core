@@ -401,7 +401,7 @@ double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
 //! TT Julian Century
 /*! Caculate the number of centuries since J2000, Terrestrial Time, for the provided date.
     \param mjd Date in Modified Julian Day.
-    \return Julian century in decimal form.
+    \return Julian century in decimal form, otherwise negative error.
 */
 double utc2jcentt(double mjd)
 {
@@ -410,8 +410,16 @@ double utc2jcentt(double mjd)
 
     if (mjd != lmjd)
     {
-        lcalc = (utc2tt(mjd)-51544.5) / 36525.;
-        lmjd = mjd;
+        double tt = utc2tt(mjd);
+        if (tt <= 0.)
+        {
+            lcalc = tt;
+        }
+        else
+        {
+            lcalc = (tt - 51544.5) / 36525.;
+            lmjd = mjd;
+        }
     }
     return (lcalc);
 }
@@ -448,8 +456,12 @@ rvector utc2nuts(double mjd)
 
     if (mjd != lmjd)
     {
-        jplnut(utc2tt(mjd),(double *)&lcalc.a4);
-        lmjd = mjd;
+        double tt = utc2tt(mjd);
+        if (tt > 0.)
+        {
+            jplnut(tt,(double *)&lcalc.a4);
+            lmjd = mjd;
+        }
     }
     return (lcalc.r);
 }
@@ -764,9 +776,12 @@ double utc2tdb(double mjd)
     if (mjd != lmjd)
     {
         tt = utc2tt(mjd);
-        g = 6.2400756746 + .0172019703436*(mjd-51544.5);
-        ltdb = (tt + (.001658*sin(g)+.000014*sin(2*g))/86400.);
-        lmjd = mjd;
+        if (tt > 0.)
+        {
+            g = 6.2400756746 + .0172019703436*(mjd-51544.5);
+            ltdb = (tt + (.001658*sin(g)+.000014*sin(2*g))/86400.);
+            lmjd = mjd;
+        }
     }
     return (ltdb);
 }
@@ -781,8 +796,9 @@ double utc2tdb(double mjd)
 double tt2utc(double mjd)
 {
     uint32_t iersidx;
+    int32_t iretn;
 
-    if (load_iers() && iers.size() > 1)
+    if ((iretn=load_iers()) && iers.size() > 1)
     {
         if ((uint32_t)mjd >= iersbase)
         {
@@ -794,6 +810,7 @@ double tt2utc(double mjd)
         else
         {
             iersidx = 0;
+            return ((double)iretn);
         }
         return (mjd-(32.184+iers[iersidx].ls)/86400.);
     }
@@ -806,17 +823,18 @@ double tt2utc(double mjd)
  * the appropriate number of Leap Seconds. Leap Second table is first initialized from
  * disk if it hasn't yet been.
  \param mjd UTC in Modified Julian Day.
- \return TT in Modified Julian Day, otherwise 0.
+ \return TT in Modified Julian Day, otherwise negative error
 */
 double utc2tt(double mjd)
 {
     static double lmjd=0.;
     static double ltt=0.;
     uint32_t iersidx=0;
+    int32_t iretn;
 
     if (mjd != lmjd)
     {
-        if (load_iers() && iers.size() > 1)
+        if ((iretn=load_iers()) && iers.size() > 1)
         {
             if ((uint32_t)mjd >= iersbase)
             {
@@ -835,7 +853,7 @@ double utc2tt(double mjd)
         }
         else
         {
-            return (0.);
+            return ((double)iretn);
         }
     }
     return (ltt);
@@ -846,15 +864,15 @@ double utc2tt(double mjd)
  * number of leap seconds. Leap Second table is first initialized from
  * disk if it hasn't yet been.
  * \param utc UTC expressed in Modified Julian Days
- * \return GPS Time expressed in Modified Julian Days, otherwise 0.
+ * \return GPS Time expressed in Modified Julian Days, otherwise negative error
  */
 double utc2gps(double utc)
 {
     double gps;
 
-    if ((gps=utc2tt(utc)) == 0.)
+    if ((gps=utc2tt(utc)) <= 0.)
     {
-        return (0.);
+        return (gps);
     }
 
     gps -= 51.184 / 86400.;
@@ -875,9 +893,9 @@ double gps2utc(double gps)
 
     gps += 51.184 / 86400.;
 
-    if ((utc=tt2utc(gps)) == 0.)
+    if ((utc=tt2utc(gps)) <= 0.)
     {
-        return (0.);
+        return (utc);
     }
 
     return (utc);

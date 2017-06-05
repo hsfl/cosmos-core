@@ -1019,40 +1019,44 @@ int32_t set_cosmosroot(bool create_flag)
     }
 
     // if cosmosroot is still empty then try to create standard location, otherwise fail
-    if (cosmosroot.empty() && create_flag)
+    if (cosmosroot.empty())
     {
+        if (create_flag)
+        {
 #ifdef COSMOS_LINUX_OS
-        if ((troot = getenv("HOME")) != nullptr)
-        {
-            croot = troot + (string)"/cosmos";
-        }
-        else
-        {
-            croot = "";
-            return (DATA_ERROR_ROOT_FOLDER);
-        }
+            if ((troot = getenv("HOME")) != nullptr)
+            {
+                croot = troot + (string)"/cosmos";
+            }
+            else
+            {
+                croot = "";
+                return (DATA_ERROR_ROOT_FOLDER);
+            }
 #endif
 
 #ifdef COSMOS_MAC_OS
-        croot = "/Applications/cosmos";
+            croot = "/Applications/cosmos";
 #endif
 
 #ifdef COSMOS_WIN_OS
-        croot = "c:/cosmos";
+            croot = "c:/cosmos";
 #endif
-        if ((iretn=set_cosmosroot(croot, create_flag)) == 0)
-        {
-            return 0;
+            if ((iretn=set_cosmosroot(croot, create_flag)) == 0)
+            {
+                return 0;
+            }
+            else
+            {
+                return iretn;
+            }
         }
         else
         {
-            return iretn;
+            return (DATA_ERROR_ROOT_FOLDER);
         }
     }
-    else
-    {
-        return (DATA_ERROR_ROOT_FOLDER);
-    }
+    return 0;
 }
 
 //! Return COSMOS Root Directory
@@ -1388,7 +1392,7 @@ int32_t get_cosmosnodes(string &result, bool create_flag)
         iretn = set_cosmosnodes(create_flag);
         if (iretn < 0)
         {
-//            std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
+            //            std::cerr << "error " << DATA_ERROR_NODES_FOLDER << ": could not find cosmos/nodes folder" << std::endl;
             return iretn;
         }
     }

@@ -66,10 +66,11 @@ void loc_clear(locstruc *loc)
 	\param loc Pointer to ::locstruc that contains positions.
 	attitudes.
 */
-void pos_clear(locstruc &loc)
+int32_t pos_clear(locstruc &loc)
 {
 	memset((void*) &loc.pos, 0, sizeof(posstruc));
 	att_clear(loc.att);
+    return 0;
 }
 
 //! Initialize ::attstruc.
@@ -87,16 +88,29 @@ void att_clear(attstruc &att)
  * conversion, like libration and J2000 rotation matrices.
     \param loc ::locstruc with the current position and those to be updated.
 */
-void pos_extra(locstruc *loc)
+int32_t pos_extra(locstruc *loc)
 {
-    // avoid expensive calculations
-    // ?? not sure why the second condition is here
-    if (!std::isfinite(loc->utc) || loc->pos.extra.utc == loc->utc)
-		return;
+    // Don't perform if time is invalid
+    if (!std::isfinite(loc->utc))
+    {
+        return CONVERT_ERROR_UTC;
+    }
 
-	loc->pos.extra.utc = loc->utc;
-	loc->pos.extra.tt = utc2tt(loc->utc);
-	loc->pos.extra.tdb = utc2tdb(loc->utc);
+    // These are all based on time, so they don't need to be repeated if time hasn't changed.
+    if (loc->pos.extra.utc == loc->utc)
+    {
+        return 0;
+    }
+
+    double tt = utc2tt(loc->utc);
+    if (tt <= 0.)
+    {
+        return (int32_t)tt;
+    }
+    loc->pos.extra.tt = tt;
+
+    loc->pos.extra.utc = loc->utc;
+    loc->pos.extra.tdb = utc2tdb(loc->utc);
 	loc->pos.extra.ut = utc2ut1(loc->utc);
 
 	gcrf2itrs(loc->utc,&loc->pos.extra.j2t,&loc->pos.extra.j2e,&loc->pos.extra.dj2e,&loc->pos.extra.ddj2e);
@@ -115,6 +129,8 @@ void pos_extra(locstruc *loc)
 
 	jplpos(JPL_SUN_BARY,JPL_EARTH,loc->pos.extra.tt,&loc->pos.extra.sun2earth);
 	jplpos(JPL_SUN_BARY,JPL_MOON,loc->pos.extra.tt,&loc->pos.extra.sun2moon);
+
+    return 0;
 }
 
 //! Set Barycentric position
@@ -122,9 +138,10 @@ void pos_extra(locstruc *loc)
  * ::locstruc. Then propagate to all the other positions.
     \param loc ::locstruc with the current position and those to be updated.
 */
-void pos_icrf(locstruc *loc)
+int32_t pos_icrf(locstruc *loc)
 {
-	double distance, theta;
+    int32_t iretn;
+    double distance, theta;
 	rvector sat2body;
 
 	// Synchronize time
@@ -132,7 +149,7 @@ void pos_icrf(locstruc *loc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
 	}
@@ -140,12 +157,16 @@ void pos_icrf(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.icrf.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
 	}
 	
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Determine closest planetary body
 	loc->pos.extra.closest = COSMOS_EARTH;
@@ -200,7 +221,7 @@ void pos_icrf(locstruc *loc)
 		pos_icrf2sci(loc);
 		pos_sci(loc);
 	}
-
+    return 0;
 }
 
 //! Set ECI position
@@ -208,14 +229,15 @@ void pos_icrf(locstruc *loc)
  * ::locstruc. Then propagate to all the other positions.
     \param loc ::locstruc with the current position and those to be updated.
 */
-void pos_eci(locstruc *loc)
+int32_t pos_eci(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (0. == loc->pos.eci.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.eci.utc = loc->pos.utc = loc->utc;
 	}
@@ -223,12 +245,16 @@ void pos_eci(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.eci.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.eci.utc;
 	}
 	
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Set adjoining positions
 	if (loc->pos.eci.pass > loc->pos.icrf.pass)
@@ -244,7 +270,7 @@ void pos_eci(locstruc *loc)
 
 	// Set related attitude
 	loc->att.icrf.pass = loc->pos.eci.pass;
-
+    return 0;
 }
 
 //! Set SCI position
@@ -252,14 +278,15 @@ void pos_eci(locstruc *loc)
  * ::locstruc. Then propagate to all the other positions.
     \param loc ::locstruc with the current position and those to be updated.
 */
-void pos_sci(locstruc *loc)
+int32_t pos_sci(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (0. == loc->pos.sci.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.sci.utc = loc->pos.utc = loc->utc;
 	}
@@ -267,12 +294,16 @@ void pos_sci(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.sci.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.sci.utc;
 	}
 
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Set adjoining positions
 	if (loc->pos.sci.pass > loc->pos.icrf.pass)
@@ -288,7 +319,7 @@ void pos_sci(locstruc *loc)
 
 	// Set related attitude
 	loc->att.icrf.pass = loc->pos.sci.pass;
-
+    return 0;
 }
 
 //! Set Geocentric position
@@ -296,14 +327,15 @@ void pos_sci(locstruc *loc)
  * ::locstruc. Then propagate to all the other positions.
     \param loc ::locstruc with the current position and those to be updated.
 */
-void pos_geoc(locstruc *loc)
+int32_t pos_geoc(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (0. == loc->pos.geoc.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
 	}
@@ -311,12 +343,16 @@ void pos_geoc(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.geoc.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
 	}
 	
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Go to ECI if necessary
 	if (loc->pos.geoc.pass > loc->pos.eci.pass)
@@ -340,6 +376,7 @@ void pos_geoc(locstruc *loc)
 	// Set related attitude
 	loc->att.geoc.pass = loc->pos.geoc.pass;
 
+    return 0;
 }
 
 //! Set Selenocentric position
@@ -347,14 +384,15 @@ void pos_geoc(locstruc *loc)
  * ::locstruc. Then propagate to all the other positions.
     \param loc ::locstruc with the current position and those to be updated.
 */
-void pos_selc(locstruc *loc)
+int32_t pos_selc(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (0. == loc->pos.selc.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.selc.utc = loc->pos.utc = loc->utc;
 	}
@@ -362,12 +400,16 @@ void pos_selc(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.selc.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.selc.utc;
 	}
 
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Go to SCI if necessary
 	if (loc->pos.selc.pass > loc->pos.sci.pass)
@@ -385,6 +427,7 @@ void pos_selc(locstruc *loc)
 	// Set related attitude
 	loc->att.selc.pass = loc->pos.selc.pass;
 
+    return 0;
 }
 
 //! Set Selenographic position
@@ -392,14 +435,15 @@ void pos_selc(locstruc *loc)
  * ::locstruc. Then propagate to all the other positions.
     \param loc ::locstruc with the current position and those to be updated.
 */
-void pos_selg(locstruc *loc)
+int32_t pos_selg(locstruc *loc)
 {
-	// Synchroniz time
+    int32_t iretn;
+    // Synchroniz time
 	if (0. == loc->pos.selg.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.selg.utc = loc->pos.utc = loc->utc;
 	}
@@ -407,12 +451,16 @@ void pos_selg(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.selg.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.selg.utc;
 	}
 
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	if (loc->pos.selg.pass > loc->pos.selc.pass)
 	{
@@ -420,6 +468,7 @@ void pos_selg(locstruc *loc)
 		pos_selc(loc);
 	}
 
+    return 0;
 }
 
 //! Set Geographic position
@@ -427,14 +476,15 @@ void pos_selg(locstruc *loc)
  * ::locstruc. Then propagate to all the other positions.
     \param loc ::locstruc with the current position and those to be updated.
 */
-void pos_geos(locstruc *loc)
+int32_t pos_geos(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (0. == loc->pos.geos.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.geos.utc = loc->pos.utc = loc->utc;
 	}
@@ -442,12 +492,16 @@ void pos_geos(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.geos.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.geos.utc;
 	}
 
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	if (loc->pos.geos.pass > loc->pos.geoc.pass)
 	{
@@ -455,6 +509,7 @@ void pos_geos(locstruc *loc)
 		pos_geoc(loc);
 	}
 
+    return 0;
 }
 
 //! Set Geodetic position
@@ -462,14 +517,15 @@ void pos_geos(locstruc *loc)
  * ::locstruc. Then propagate to all the other positions.
     \param loc ::locstruc with the current position and those to be updated.
 */
-void pos_geod(locstruc *loc)
+int32_t pos_geod(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (0. == loc->pos.geod.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.geod.utc = loc->pos.utc = loc->utc;
 	}
@@ -477,12 +533,16 @@ void pos_geod(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.geod.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.geod.utc;
 	}
 
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	if (loc->pos.geod.pass > loc->pos.geoc.pass)
 	{
@@ -494,6 +554,7 @@ void pos_geod(locstruc *loc)
 
 	// Transform to ITRS
 	loc->bearth = transform_q(q_change_around_z(-loc->pos.geod.s.lon),transform_q(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
+    return 0;
 }
 
 //! Convert Barycentric to ECI
@@ -501,14 +562,15 @@ void pos_geod(locstruc *loc)
  * the Earth Centered Inertial slot, performing all relevant updates.
     \param loc Working ::locstruc
 */
-void pos_icrf2eci(locstruc *loc)
+int32_t pos_icrf2eci(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (loc->pos.icrf.utc == 0.)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
 	}
@@ -516,13 +578,17 @@ void pos_icrf2eci(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.icrf.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
 	}
 	
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update time
 	loc->pos.eci.utc = loc->utc;
@@ -536,6 +602,7 @@ void pos_icrf2eci(locstruc *loc)
 	loc->pos.eci.s = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s);
 	loc->pos.eci.v = rv_sub(loc->pos.icrf.v,loc->pos.extra.sun2earth.v);
 	loc->pos.eci.a = rv_sub(loc->pos.icrf.a,loc->pos.extra.sun2earth.a);
+    return 0;
 }
 
 //! Convert ECI to Barycentric
@@ -543,14 +610,15 @@ void pos_icrf2eci(locstruc *loc)
  * the Barycentric slot, performing all relevant updates.
     \param loc Working ::locstruc
 */
-void pos_eci2icrf(locstruc *loc)
+int32_t pos_eci2icrf(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (0. == loc->pos.eci.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.eci.utc = loc->pos.utc = loc->utc;
 	}
@@ -558,13 +626,17 @@ void pos_eci2icrf(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.eci.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.eci.utc;
 	}
 	
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update pass
 	loc->pos.icrf.pass = loc->pos.eci.pass;
@@ -576,6 +648,7 @@ void pos_eci2icrf(locstruc *loc)
 	loc->pos.icrf.s = rv_add(loc->pos.eci.s,loc->pos.extra.sun2earth.s);
 	loc->pos.icrf.v = rv_add(loc->pos.eci.v,loc->pos.extra.sun2earth.v);
 	loc->pos.icrf.a = rv_add(loc->pos.eci.a,loc->pos.extra.sun2earth.a);
+    return 0;
 }
 
 //! Convert Barycentric to SCI
@@ -583,14 +656,15 @@ void pos_eci2icrf(locstruc *loc)
  * the Selene Centered Inertial slot, performing all relevant updates.
     \param loc Working ::locstruc
 */
-void pos_icrf2sci(locstruc *loc)
+int32_t pos_icrf2sci(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (loc->pos.icrf.utc == 0.)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
 	}
@@ -598,13 +672,17 @@ void pos_icrf2sci(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.icrf.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
 	}
 
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update time
 	loc->pos.sci.utc = loc->utc;
@@ -619,6 +697,7 @@ void pos_icrf2sci(locstruc *loc)
 	loc->pos.sci.v = rv_sub(loc->pos.icrf.v,loc->pos.extra.sun2moon.v);
 	loc->pos.sci.a = rv_sub(loc->pos.icrf.a,loc->pos.extra.sun2moon.a);
 
+    return 0;
 }
 
 //! Convert SCI to Barycentric
@@ -626,14 +705,15 @@ void pos_icrf2sci(locstruc *loc)
  * the Barycentric slot, performing all relevant updates.
     \param loc Working ::locstruc
 */
-void pos_sci2icrf(locstruc *loc)
+int32_t pos_sci2icrf(locstruc *loc)
 {
-	// Synchronize time
+    int32_t iretn;
+    // Synchronize time
 	if (0. == loc->pos.sci.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.sci.utc = loc->pos.utc = loc->utc;
 	}
@@ -641,13 +721,17 @@ void pos_sci2icrf(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.sci.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.sci.utc;
 	}
 
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update time
 	loc->pos.icrf.utc = loc->utc;
@@ -660,6 +744,7 @@ void pos_sci2icrf(locstruc *loc)
 	loc->pos.icrf.v = rv_add(loc->pos.sci.v,loc->pos.extra.sun2moon.v);
 	loc->pos.icrf.a = rv_add(loc->pos.sci.a,loc->pos.extra.sun2moon.a);
 
+    return 0;
 }
 
 //! Convert ECI to GEOC
@@ -667,16 +752,17 @@ void pos_sci2icrf(locstruc *loc)
  * the Geocentric slot, performing all relevant updates.
     \param loc Working ::locstruc
 */
-void pos_eci2geoc(locstruc *loc)
+int32_t pos_eci2geoc(locstruc *loc)
 {
-	rvector v2 = {{0.}};
+    int32_t iretn;
+    rvector v2 = {{0.}};
 
 	// Synchronize time
 	if (0. == loc->pos.eci.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.eci.utc = loc->pos.utc = loc->utc;
 	}
@@ -684,13 +770,17 @@ void pos_eci2geoc(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.eci.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.eci.utc;
 	}
 	
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update time
 	loc->pos.geoc.utc = loc->utc;
@@ -726,6 +816,7 @@ void pos_eci2geoc(locstruc *loc)
 
 	// Convert ITRF Attitude to LVLH
 	att_planec2lvlh(loc);
+    return 0;
 }
 
 //! Convert GEOC to ECI
@@ -733,16 +824,17 @@ void pos_eci2geoc(locstruc *loc)
  * the Earth Centered Inertial slot, performing all relevant updates.
     \param loc Working ::locstruc
 */
-void pos_geoc2eci(locstruc *loc)
+int32_t pos_geoc2eci(locstruc *loc)
 {
-	rvector ds;
+    int32_t iretn;
+    rvector ds;
 
 	// Synchronize time
 	if (0. == loc->pos.geoc.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
 	}
@@ -750,13 +842,17 @@ void pos_geoc2eci(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.geoc.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
 	}
 	
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update time
 	loc->pos.eci.utc = loc->utc;
@@ -786,13 +882,14 @@ void pos_geoc2eci(locstruc *loc)
 
 	// Convert ITRF Attitude to TOPO
 	att_planec2topo(loc);
+    return 0;
 }
 
 //! Convert GEOC to GEOS
 /*! Convert a Geocentric ::cartpos to a Geographic ::spherpos.
     \param loc ::locastruc containing position.
 */
-void pos_geoc2geos(locstruc *loc)
+int32_t pos_geoc2geos(locstruc *loc)
 {
 	double xvx, yvy, r2, r, minir, minir2;
 	double cp, cl, sl, sp;
@@ -802,7 +899,7 @@ void pos_geoc2geos(locstruc *loc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
 	}
@@ -810,7 +907,7 @@ void pos_geoc2geos(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.geoc.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
 	}
@@ -844,13 +941,14 @@ void pos_geoc2geos(locstruc *loc)
 	else
 		loc->pos.geos.v.lambda = (loc->pos.geoc.v.col[1] - cp * sl * loc->pos.geos.v.r + loc->pos.geoc.s.col[2] * sl * loc->pos.geos.v.phi) / loc->pos.geoc.s.col[0];
 
+    return 0;
 }
 
 //! Convert GEOS to GEOC
 /*! Convert a Geographic ::spherpos to a Geocentric ::cartpos.
     \param loc ::locstruc containing position.
 */
-void pos_geos2geoc(locstruc *loc)
+int32_t pos_geos2geoc(locstruc *loc)
 {
 	double sp, cp, sl, cl, cpr;
 
@@ -859,7 +957,7 @@ void pos_geos2geoc(locstruc *loc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.geos.utc = loc->pos.utc = loc->utc;
 	}
@@ -867,7 +965,7 @@ void pos_geos2geoc(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.geoc.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.geos.utc;
 	}
@@ -895,6 +993,7 @@ void pos_geos2geoc(locstruc *loc)
 	loc->pos.geoc.v.col[0] = loc->pos.geos.v.r * cp * cl - loc->pos.geos.v.lambda * cpr * sl - loc->pos.geos.v.phi * loc->pos.geos.s.r * sp * cl;
 	loc->pos.geoc.v.col[1] = loc->pos.geos.v.r * cp * sl + loc->pos.geos.v.lambda * cpr * cl - loc->pos.geos.v.phi * loc->pos.geos.s.r * sp * sl;
 	loc->pos.geoc.v.col[2] = loc->pos.geos.v.r * sp + loc->pos.geos.v.phi * cpr;
+    return 0;
 }
 
 //! Convert GEOC to GEOD
@@ -1037,14 +1136,14 @@ void geod2geoc(geoidpos &geod, cartpos &geoc)
 /*! Update the Geodetic ::geoidpos to a Geocentric ::cartpos in the provided locstruc.
     \param loc ::locstruc to be updated.
 */
-void pos_geod2geoc(locstruc *loc)
+int32_t pos_geod2geoc(locstruc *loc)
 {
-    // Synchroniz time
+    // Synchronize time
     if (0. == loc->pos.geod.utc)
     {
         if (!std::isfinite(loc->utc))
         {
-            return;
+            return CONVERT_ERROR_UTC;
         }
         loc->pos.geod.utc = loc->pos.utc = loc->utc;
     }
@@ -1052,7 +1151,7 @@ void pos_geod2geoc(locstruc *loc)
     {
         if (!std::isfinite(loc->pos.geod.utc))
         {
-            return;
+            return CONVERT_ERROR_UTC;
         }
         loc->utc = loc->pos.utc = loc->pos.geod.utc;
     }
@@ -1065,6 +1164,7 @@ void pos_geod2geoc(locstruc *loc)
 
     // Update the geocentric position
     geod2geoc(loc->pos.geod, loc->pos.geoc);
+    return 0;
 }
 
 //! Convert SCI to SELC
@@ -1072,9 +1172,10 @@ void pos_geod2geoc(locstruc *loc)
  * the Selenocentric slot, performing all relevant updates.
     \param loc Working ::locstruc
 */
-void pos_sci2selc(locstruc *loc)
+int32_t pos_sci2selc(locstruc *loc)
 {
-	rvector v2 = {{0.}};
+    int32_t iretn;
+    rvector v2 = {{0.}};
 	rmatrix m1;
 
 	// Synchronize time
@@ -1082,7 +1183,7 @@ void pos_sci2selc(locstruc *loc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.sci.utc = loc->pos.utc = loc->utc;
 	}
@@ -1090,13 +1191,17 @@ void pos_sci2selc(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.sci.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.sci.utc;
 	}
 
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update time
 	loc->pos.selc.utc = loc->utc;
@@ -1128,6 +1233,8 @@ void pos_sci2selc(locstruc *loc)
 
 	// Convert ITRF Attitude to LVLH
 	att_planec2lvlh(loc);
+
+    return iretn;
 }
 
 //! Convert SELC to SCI
@@ -1135,9 +1242,10 @@ void pos_sci2selc(locstruc *loc)
  * the Selene Centered Inertial slot, performing all relevant updates.
     \param loc Working ::locstruc
 */
-void pos_selc2sci(locstruc *loc)
+int32_t pos_selc2sci(locstruc *loc)
 {
-	rvector v2;
+    int32_t iretn;
+    rvector v2;
 	rmatrix m1;
 
 	// Synchroniz time
@@ -1145,7 +1253,7 @@ void pos_selc2sci(locstruc *loc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.selc.utc = loc->pos.utc = loc->utc;
 	}
@@ -1153,13 +1261,17 @@ void pos_selc2sci(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.selc.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.selc.utc;
 	}
 
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update time
 	loc->pos.sci.utc = loc->utc;
@@ -1183,6 +1295,7 @@ void pos_selc2sci(locstruc *loc)
 
 	// Convert SCI Attitude to ICRF
 	att_selc2icrf(loc);
+    return 0;
 }
 
 //! Convert SELC to SELG
@@ -1190,16 +1303,17 @@ void pos_selc2sci(locstruc *loc)
  * the Selenographic slot, performing all relevant updates.
     \param loc Working ::locstruc
 */
-void pos_selc2selg(locstruc *loc)
+int32_t pos_selc2selg(locstruc *loc)
 {
-	double xvx, yvy, r2, r, minir, minir2;
+    int32_t iretn;
+    double xvx, yvy, r2, r, minir, minir2;
 
 	// Synchroniz time
 	if (0. == loc->pos.selc.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.selc.utc = loc->pos.utc = loc->utc;
 	}
@@ -1207,13 +1321,17 @@ void pos_selc2selg(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.selc.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.selc.utc;
 	}
 
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update time
 	loc->pos.selg.utc = loc->utc;
@@ -1239,18 +1357,20 @@ void pos_selc2selg(locstruc *loc)
 	// Indicate we have set SELG position
 	loc->pos.selg.s.lat = fixprecision(loc->pos.selg.s.lat,.1/r);
 	loc->pos.selg.s.lon = fixprecision(loc->pos.selg.s.lon,.1/r);
+    return 0;
 }
 
-void pos_selg2selc(locstruc *loc)
+int32_t pos_selg2selc(locstruc *loc)
 {
-	double sp, cp, sl, cl, cpr, r;
+    int32_t iretn;
+    double sp, cp, sl, cl, cpr, r;
 
 	// Synchroniz time
 	if (0. == loc->pos.selg.utc)
 	{
         if (!std::isfinite(loc->utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->pos.selg.utc = loc->pos.utc = loc->utc;
 	}
@@ -1258,13 +1378,17 @@ void pos_selg2selc(locstruc *loc)
 	{
         if (!std::isfinite(loc->pos.selg.utc))
 		{
-			return;
+            return CONVERT_ERROR_UTC;
 		}
 		loc->utc = loc->pos.utc = loc->pos.selg.utc;
 	}
 
 	// Update extra information
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Update time
 	loc->pos.selc.utc = loc->utc;
@@ -1290,6 +1414,7 @@ void pos_selg2selc(locstruc *loc)
 	loc->pos.selc.v.col[1] = loc->pos.selg.v.h * cp * sl - loc->pos.selg.v.lat * r * sp * sl + loc->pos.selg.v.lon * cpr * cl;
 	loc->pos.selc.v.col[2] = loc->pos.selg.v.h * sp + loc->pos.selg.v.lat * cpr;
 
+    return 0;
 }
 
 double rearth(double lat)
@@ -1318,15 +1443,19 @@ void att_extra(locstruc *loc)
 	loc->att.extra.utc = loc->att.icrf.utc;
 }
 
-void att_icrf2geoc(locstruc *loc)
+int32_t att_icrf2geoc(locstruc *loc)
 {
-	//	rmatrix fpm = {{{{0.}}}}, dpm = {{{{0.}}}};
+    int32_t iretn;
 	rvector alpha;
 	double radius;
 
 	// Update extra
-	pos_extra(loc);
-	att_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    att_extra(loc);
 
 	// Update time
 	loc->att.geoc.utc = loc->att.icrf.utc = loc->utc;
@@ -1336,7 +1465,7 @@ void att_icrf2geoc(locstruc *loc)
 
 	// Use to rotate ECI into ITRS
 	loc->att.geoc.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.j2e),loc->att.icrf.s);
-	q_normalize(&loc->att.geoc.s);
+	normalize_q(&loc->att.geoc.s);
 	loc->att.geoc.v = rv_mmult(loc->pos.extra.j2e,loc->att.icrf.v);
 	loc->att.geoc.a = rv_mmult(loc->pos.extra.j2e,loc->att.icrf.a);
 
@@ -1354,6 +1483,7 @@ void att_icrf2geoc(locstruc *loc)
 
 	// Convert ITRF attitude to LVLH
 	att_planec2lvlh(loc);
+    return 0;
 }
 
 void att_geoc2icrf(locstruc *loc)
@@ -1373,7 +1503,7 @@ void att_geoc2icrf(locstruc *loc)
 
 	// Perform first order rotation of ITRS frame into ECI frame
 	loc->att.icrf.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.e2j),loc->att.geoc.s);
-	q_normalize(&loc->att.icrf.s);
+	normalize_q(&loc->att.icrf.s);
 	loc->att.icrf.v = rv_mmult(loc->pos.extra.e2j,loc->att.geoc.v);
 	loc->att.icrf.a = rv_mmult(loc->pos.extra.e2j,loc->att.geoc.a);
 
@@ -1409,9 +1539,10 @@ void att_geoc(locstruc *loc)
 	}
 }
 
-void att_icrf2selc(locstruc *loc)
+int32_t att_icrf2selc(locstruc *loc)
 {
-	rmatrix dpm = {{{{0.}}}};
+    int32_t iretn;
+    rmatrix dpm = {{{{0.}}}};
 	rvector alpha;
 	double radius;
 
@@ -1422,11 +1553,15 @@ void att_icrf2selc(locstruc *loc)
 	loc->att.selc.pass = loc->att.icrf.pass;
 
 	att_extra(loc);
-	pos_extra(loc);
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
 	// Use to rotate ICRF into SELC
 	loc->att.selc.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.j2s),loc->att.icrf.s);
-	q_normalize(&loc->att.selc.s);
+	normalize_q(&loc->att.selc.s);
 	loc->att.selc.v = rv_mmult(loc->pos.extra.j2s,loc->att.icrf.v);
 	loc->att.selc.a = rv_mmult(loc->pos.extra.j2s,loc->att.icrf.a);
 
@@ -1446,6 +1581,7 @@ void att_icrf2selc(locstruc *loc)
 
 	// Synchronize Topo
 	att_planec2topo(loc);
+    return 0;
 }
 
 void att_selc2icrf(locstruc *loc)
@@ -1465,7 +1601,7 @@ void att_selc2icrf(locstruc *loc)
 
 	// Perform first order rotation of SELC frame into ICRF frame
 	loc->att.icrf.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.s2j),loc->att.selc.s);
-	q_normalize(&loc->att.icrf.s);
+	normalize_q(&loc->att.icrf.s);
 	loc->att.icrf.v = rv_mmult(loc->pos.extra.s2j,loc->att.selc.v);
 	loc->att.icrf.a = rv_mmult(loc->pos.extra.s2j,loc->att.selc.a);
 
@@ -1570,7 +1706,7 @@ void att_planec2lvlh(locstruc *loc)
 
 	// Combine to determine transformation of ITRF into LVLH
 	fqe = q_mult(qe_z,qe_y);
-	q_normalize(&fqe);
+	normalize_q(&fqe);
 	rqe = q_conjugate(fqe);
 
 	// Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
@@ -1644,7 +1780,7 @@ void att_lvlh2planec(locstruc *loc)
 
 	// Multiply to determine transformation of ITRF frame into LVLH frame
 	fqe = q_mult(qe_z,qe_y);
-	q_normalize(&fqe);
+	normalize_q(&fqe);
 	rqe = q_conjugate(fqe);
 
 	// LVLH Z is opposite of earth to satellite vector
@@ -1676,10 +1812,15 @@ void att_lvlh2planec(locstruc *loc)
  * Body given the similar quaternion for LVLH
 	\param loc Location structure to propagate the changes in
 */
-void att_lvlh2icrf(locstruc *loc)
+int32_t att_lvlh2icrf(locstruc *loc)
 {
-	pos_extra(loc);
-	att_extra(loc);
+    int32_t iretn;
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    att_extra(loc);
 
 	att_lvlh2planec(loc);
 	switch (loc->pos.extra.closest)
@@ -1692,12 +1833,18 @@ void att_lvlh2icrf(locstruc *loc)
 		att_selc2icrf(loc);
 		break;
 	}
+    return 0;
 }
 
-void att_lvlh(locstruc *loc)
+int32_t att_lvlh(locstruc *loc)
 {
-	pos_extra(loc);
-	att_extra(loc);
+    int32_t iretn;
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    att_extra(loc);
 
 	switch (loc->pos.extra.closest)
 	{
@@ -1717,6 +1864,7 @@ void att_lvlh(locstruc *loc)
 		}
 		break;
 	}
+    return 0;
 }
 
 //! Planetocentric to Topo attitude
@@ -1767,7 +1915,7 @@ void att_planec2topo(locstruc *loc)
 
 	// Multiply to determine rotation of Topo frame into ITRS frame
 	t2g = q_mult(t2g_z,t2g_x);
-	q_normalize(&t2g);
+	normalize_q(&t2g);
 	g2t = q_conjugate(t2g);
 
 	// Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
@@ -1829,7 +1977,7 @@ void att_topo2planec(locstruc *loc)
 
 	// Multiply to determine rotation of Topo frame into ITRS frame
 	t2g = q_mult(t2g_z,t2g_x);
-	q_normalize(&t2g);
+	normalize_q(&t2g);
 	g2t = q_conjugate(t2g);
 
 	// Rotate Topo frame into ITRS frame
@@ -1856,10 +2004,15 @@ void att_topo2planec(locstruc *loc)
 	att_planec2lvlh(loc);
 }
 
-void att_topo(locstruc *loc)
+int32_t att_topo(locstruc *loc)
 {
-	pos_extra(loc);
-	att_extra(loc);
+    int32_t iretn;
+    iretn = pos_extra(loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    att_extra(loc);
 
 	switch (loc->pos.extra.closest)
 	{
@@ -1879,6 +2032,7 @@ void att_topo(locstruc *loc)
 		}
 		break;
 	}
+    return 0;
 }
 
 //! Synchronize all frames in location structure.

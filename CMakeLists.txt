@@ -16,62 +16,8 @@ option(USE_MSVC_STATIC_RUNTIME "USE Static Runtime with MSVC" "OFF")
 # define the project name
 set(PROJECT_NAME cosmos-core)
 
-# a complete build will build all the essential libraries and programs
-# but also every acessory program in core
-# COMPLETE - everything is built
-# BASIC    - only the essential libraries and prgram agents are build
-# MINIMAL  - only the libraries are built (no agents, no programs)
-set(BUILD_TYPE COMPLETE) # COMPLETE, BASIC, MINIMAL, TESTS
-set(BUILD_AGENTS_TYPE ALL)
-
-# Build agents type list
-# CORE - build the essential agents for COSMOS/core (default)
-# NONE - doesn't build any agent
-# GS   - builds ground station agents
-if(${BUILD_TYPE} MATCHES "COMPLETE")
-    set(BUILD_PROGRAMS YES) # YES, NO
-    set(BUILD_PROGRAMS_AGENTS YES) # YES, NO
-    set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
-    set(BUILD_PROGRAMS_GENERAL YES) # YES, NO
-    set(BUILD_PROGRAMS_TESTS YES)
-
-    set(BUILD_TUTORIALS YES) # YES, NO
-endif()
-
-if(${BUILD_TYPE} MATCHES "BASIC")
-    set(BUILD_PROGRAMS YES) # YES, NO
-    set(BUILD_PROGRAMS_AGENTS YES) # YES, NO
-    set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
-    set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
-
-    set(BUILD_TUTORIALS NO) # YES, NO
-endif()
-
-if(${BUILD_TYPE} MATCHES "MINIMAL")
-    set(BUILD_PROGRAMS NO) # YES, NO
-    set(BUILD_PROGRAMS_AGENTS NO) # YES, NO
-    set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
-    set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
-
-    set(BUILD_TUTORIALS NO) # YES, NO
-endif()
-
-if(${BUILD_TYPE} MATCHES "TESTS")
-    set(BUILD_TESTS YES) # YES, NO
-    set(BUILD_PROGRAMS NO) # YES, NO
-    set(BUILD_PROGRAMS_AGENTS NO) # YES, NO
-    set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
-    set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
-    set(BUILD_TUTORIALS NO) # YES, NO
-endif()
-
-#set(BUILD_LIBRARIES all)
-
-# available options: all, arduino, astrodev cpu disk general i2c serial vn100
-# if the BUILD_LIBRARIES_DEVICES was not set then include all device libraries by default
-if (NOT BUILD_LIBRARIES_DEVICES)
-    set(BUILD_LIBRARIES_DEVICES all)
-endif()
+# configure the COSMOS/core project here!
+include(${CMAKE_SOURCE_DIR}/cmake/config.cmake)
 
 # Type of build
 set(CMAKE_BUILD_TYPE Debug) # Release or Debug
@@ -80,7 +26,7 @@ set(CMAKE_BUILD_TYPE Debug) # Release or Debug
 add_definitions( -DCROSS_TYPE_${CROSS_TYPE})
 
 # define folder where your programs are going to be installed
-#set(INSTALL_DIR                run)
+#set(INSTALL_DIR run)
 
 # by default
 
@@ -153,41 +99,9 @@ if (BUILD_STATIC AND NOT MSVC)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed")
 endif ()
 
-# run this to create QtCreatorDeployment.txt for remote device deployment
-# http://qt-project.org/doc/qtcreator-3.0/creator-project-cmake.html
-file(WRITE "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "/cosmos\n")
 
-macro(add_deployment_binary SRC DEST)
-    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-    file(APPEND "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "${path}/${SRC}:${DEST}\n")
-endmacro()
-
-macro(add_deployment_source SRC DEST)
-    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-    file(APPEND "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "${path}/${SRC}:${DEST}\n")
-endmacro()
-
-macro(add_deployment_directory SRC DEST)
-    file(GLOB_RECURSE files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*")
-    foreach(filename ${files})
-        get_filename_component(path ${filename} PATH)
-        add_deployment_binary("${filename}" "${DEST}/${path}")
-    endforeach(filename)
-endmacro()
-
-macro(add_deployment_source_directory SRC DEST)
-    #message("add_deployment_source_directory ${SRC} ${DEST}")
-    file(GLOB files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*.cpp")
-    foreach(filename ${files})
-        get_filename_component(path ${filename} PATH)
-        add_deployment_source("${filename}" "${DEST}/${path}")
-    endforeach(filename)
-    file(GLOB files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*.h")
-    foreach(filename ${files})
-        get_filename_component(path ${filename} PATH)
-        add_deployment_source("${filename}" "${DEST}/${path}")
-    endforeach(filename)
-endmacro()
+# Cmake macros, files to deploy, etc
+include(${CMAKE_SOURCE_DIR}/cmake/macros.cmake)
 
 # -----------------------------------------------
 # Linux specific
@@ -371,7 +285,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 include(${CMAKE_SOURCE_DIR}/cmake/build_core_libs.cmake)
 
 # print libraries to link
-message("COSMOS/core libraries: ${COSMOS_LIBS}")
+#message("COSMOS/core libraries: ${COSMOS_LIBS}")
 
 # -----------------------------------------------
 #message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
@@ -387,6 +301,9 @@ endif()
 # now that the libraries have been compiled let's add the cosmos-core programs
 if(${BUILD_TESTS} MATCHES "YES")
     add_subdirectory(${PROJECT_SOURCE_DIR}/programs/tests)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/programs/unix_tests)
+    # TODO change if condition to a separate one with only devices
+    add_subdirectory(${PROJECT_SOURCE_DIR}/programs/devices)
 endif()
 
 
@@ -396,38 +313,10 @@ if(${BUILD_TUTORIALS} MATCHES "YES")
     add_subdirectory(${PROJECT_SOURCE_DIR}/tutorials)
 endif()
 
+
 # -----------------------------------------------
 # to deploy on a remote device
-#file(WRITE "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "cosmos\n")
+#include(${CMAKE_SOURCE_DIR}/cmake/deploy_files.cmake)
 
-#macro(add_deployment_file SRC DEST)
-#    file(RELATIVE_PATH path ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-#    file(APPEND "${CMAKE_SOURCE_DIR}/QtCreatorDeployment.txt" "${path}/${SRC}:${DEST}\n")
-#endmacro()
-
-#macro(add_deployment_directory SRC DEST)
-#    file(GLOB_RECURSE files RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${SRC}/*")
-#    foreach(filename ${files})
-#        get_filename_component(path ${filename} PATH)
-#        add_deployment_file("${filename}" "${DEST}/${path}")
-#    endforeach(filename)
-#endmacro()
-
-#set(program_name programs/agents/agent_exec)
-#file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/${program_name})
-#add_deployment_file(${relativeDir} "bin")
-
-#set(program_name programs/agents/agent_cpu)
-#file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/${program_name})
-#add_deployment_file(${relativeDir} "bin")
-
-#set(program_name programs/general/command_generator)
-#file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/${program_name})
-#add_deployment_file(${relativeDir} "bin")
-
-#file(RELATIVE_PATH relativeDir ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR}/programs/agents)
-#add_deployment_directory(${relativeDir} "")
-
-#add_deployment_file(scripts/setupCosmosCore.sh "")
 
 

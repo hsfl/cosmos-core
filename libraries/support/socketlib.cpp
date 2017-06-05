@@ -653,6 +653,20 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
         buffer.resize(nbytes);
         inet_ntop(channel.caddr.sin_family, &channel.caddr.sin_addr, channel.address, sizeof(channel.address));
     }
+    else
+    {
+        nbytes = -errno;
+    }
+    return nbytes;
+}
+
+int32_t socket_sendto(socket_channel &channel, vector<uint8_t> &buffer, int flags)
+{
+    int32_t nbytes;
+    if ((nbytes = sendto(channel.cudp, (char *)buffer.data(), buffer.size(), flags, (struct sockaddr *)&channel.caddr, (socklen_t)channel.addrlen)) < 0)
+    {
+        nbytes = -errno;
+    }
     return nbytes;
 }
 

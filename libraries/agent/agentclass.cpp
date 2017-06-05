@@ -33,6 +33,7 @@
 
 #include "agent/agentclass.h"
 #include "support/socketlib.h"
+#include "support/cosmos-errno.h"
 #if defined (COSMOS_MAC_OS)
 #include <net/if.h>
 #include <net/if_dl.h>
@@ -106,6 +107,7 @@ namespace Cosmos {
         // Set up node if there is one.
         if (nname.length()>COSMOS_MAX_NAME || (!nname.empty() && (iretn=json_setup_node(nname, cinfo)) != 0))
         {
+            error_value = iretn;
             Agent::shutdown();
             return;
         }
@@ -330,6 +332,12 @@ namespace Cosmos {
  */
     int32_t Agent::shutdown()
     {
+        if (debug_level)
+        {
+            printf("Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
+            fflush(stdout);
+        }
+
         if (cinfo != nullptr)
         {
             cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
@@ -374,6 +382,12 @@ namespace Cosmos {
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
+
+    int32_t Agent::last_error()
+    {
+        return (error_value);
+    }
+
     int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec)
     {
         static socket_channel sendchan;
@@ -840,6 +854,7 @@ namespace Cosmos {
         return;
     }
 
+    // TODO: describe function, what does it do?
     void Agent::message_loop()
     {
         messstruc mess;
@@ -1970,7 +1985,7 @@ namespace Cosmos {
     \param waitsec Number of seconds in timer. If 0, return last message in ring immediatelly.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-    int32_t Agent::readring(messstruc &message, uint8_t type, float waitsec)
+    int32_t Agent::readring(messstruc &message, uint8_t type, float waitsec, Where where)
     {
         if (waitsec < 0.)
         {
@@ -1982,6 +1997,14 @@ namespace Cosmos {
             return AGENT_ERROR_NULL;
         }
 
+        if (where == Where::HEAD)
+        {
+            message_tail = message_head - 1;
+            if (message_tail >= message_ring.size())
+            {
+                message_tail = message_ring.size() - 1;
+            }
+        }
         ElapsedTime ep;
         ep.start();
         do

@@ -183,8 +183,8 @@ struct azelstruc
 };
 azelstruc antennaoffset = {0., 0.};
 
-LsFit trackaz(5, 2, .001);
-LsFit trackel(5, 2, .001);
+LsFit trackaz(5, 2);
+LsFit trackel(5, 2);
 bool trackflag = false;
 
 int main(int argc, char *argv[])

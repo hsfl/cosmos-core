@@ -18,4 +18,6 @@ target_link_libraries(CosmosDeviceSerial CosmosDeviceGeneral)
 install(TARGETS CosmosDeviceSerial DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/serial)
 
-add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
+if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
+    add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
+endif()

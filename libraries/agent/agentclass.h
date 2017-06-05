@@ -211,6 +211,12 @@ public:
         AGENT_MESSAGE_COMM=129
         };
 
+    enum class Where : size_t
+        {
+        HEAD = 0,
+        TAIL = 1
+        };
+
     //! @}
 
 #define MAXARGCOUNT 100
@@ -232,7 +238,7 @@ public:
 
     struct pollstruc
     {
-        uint8_t type;
+        uint8_t type; // TODO: what are the available types?
         uint16_t jlength;
         beatstruc beat;
     };
@@ -240,10 +246,10 @@ public:
     //! Storage for messages
     struct messstruc
     {
-        pollstruc meta;
-        vector <uint8_t> bdata;
-        string adata;
-        string jdata;
+        pollstruc meta; // TODO: what is meta?
+        vector <uint8_t> bdata; // TODO: what is bdata?
+        string adata; // TODO: what is adata?
+        string jdata; // TODO: what is jdata?
     };
 
     //! Agent Request Function
@@ -266,6 +272,7 @@ public:
     beatstruc find_server(string node, string proc, float waitsec);
     beatstruc find_agent(string agent, string node="");
     uint16_t running();
+    int32_t last_error();
     int32_t set_sohstring(string list);
     cosmosstruc *get_cosmosstruc();
     void get_ip(char* buffer, size_t buflen);
@@ -281,7 +288,7 @@ public:
 //    int32_t poll(pollstruc &meta, string &message, uint8_t type, float waitsec = 1.);
 //    int32_t poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec = 1.);
     int32_t poll(messstruc &mess, uint8_t type, float waitsec = 1.);
-    int32_t readring(messstruc &message, uint8_t type = Agent::AGENT_MESSAGE_ALL, float waitsec = 1.);
+    int32_t readring(messstruc &message, uint8_t type = Agent::AGENT_MESSAGE_ALL, float waitsec = 1., Where where=Where::HEAD);
     int32_t resizering(size_t newsize);
     int32_t clearring();
     timestruc poll_time(float waitsec);
@@ -343,6 +350,8 @@ private:
     thread mthread;
     //! Flag for level of debugging
     size_t debug_level;
+    //! Last error
+    int32_t error_value;
 
     //! Agent Request Entry
     //! Structure representing a single Agent request.

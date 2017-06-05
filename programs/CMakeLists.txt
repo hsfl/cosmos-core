@@ -29,3 +29,7 @@ endif()
 if(${BUILD_PROGRAMS_TESTS} MATCHES "YES")
     add_subdirectory(tests)
 endif()
+
+if(${BUILD_PROGRAMS_UNIX_TESTS} MATCHES "YES" AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    add_subdirectory(unix_tests)
+endif()

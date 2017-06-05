@@ -224,6 +224,7 @@ enum
     JSON_TYPE_HBEAT,
     //! JSON Solar Barycentric Position
     JSON_TYPE_POS_BARYC,
+    JSON_TYPE_POS_FIRST = JSON_TYPE_POS_BARYC,
     //! JSON Earth Centered Inertial Position
     JSON_TYPE_POS_ECI,
     //! JSON Lunar Centered Inertial Position
@@ -238,6 +239,7 @@ enum
     JSON_TYPE_POS_GEOS,
     //! JSON Selenographic Position
     JSON_TYPE_POS_SELG,
+    JSON_TYPE_POS_LAST = JSON_TYPE_POS_SELG,
     //! JSON Topocentric Attitude
     JSON_TYPE_QATT_TOPO,
     //! JSON Geocentric Attitude
@@ -259,7 +261,9 @@ enum
     //! JSON Equation
     JSON_TYPE_EQUATION,
     //! JSON Alias
-    JSON_TYPE_ALIAS
+    JSON_TYPE_ALIAS,
+    //! Not defined
+    JSON_TYPE_NONE=UINT16_MAX
     };
 
 //! Types of equation operands
@@ -770,9 +774,9 @@ struct beatstruc
     // Heartbeat timestamp
     double utc;
     // Heartbeat Node Name
-    char node[COSMOS_MAX_NAME+1];
+    char node[COSMOS_MAX_NAME+1];  // TODO: change to string
     //! Heartbeat Agent Name
-    char proc[COSMOS_MAX_NAME+1];
+    char proc[COSMOS_MAX_NAME+1]; // TODO: change to string
     // Type of address protocol
     NetworkType ntype;
     //! Protocol Address

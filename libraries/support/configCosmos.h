@@ -31,6 +31,10 @@
 #ifndef CONFIGCOSMOS_H
 #define CONFIGCOSMOS_H
 
+// NB: EJP 20170403 - added to suppress the ocean of format errors that will never be correct for all
+// platforms. We will just have to get the formatting right on our own.
+#pragma GCC diagnostic ignored "-Wformat="
+
 //! \file configCosmos.h
 //! \brief Headers and definitions common to all COSMOS
 

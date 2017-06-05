@@ -127,7 +127,7 @@ void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &loc);
 //! Simulated IMU values
 void simulate_imu(int index, cosmosdatastruc &root, locstruc &loc);
 //! Acceleration
-void pos_accel(physicsstruc &physics, locstruc &loc);
+int32_t pos_accel(physicsstruc &physics, locstruc &loc);
 //! Torque
 void att_accel(physicsstruc &physics, locstruc &loc);
 //! Geodetic to Heliocentric

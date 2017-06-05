@@ -65,9 +65,9 @@ enum class NetworkType : std::uint16_t
     //! Agent socket using Multicast UDP
     MULTICAST=0,
     //! Agent socket using Broadcast UDP
-    BROADCAST=2, // was previously AGENT_TYPE_BROADCAST
+    BROADCAST=2, // was previously NetworkType::BROADCAST
     //! Agent socket using Unicast UDP
-    UDP=2, // was previously AGENT_TYPE_UDP
+    UDP=2, // was previously NetworkType::UDP
     //! Agent socket using Unicast TCP
     TCP=3,
     //! Agent socket using Broadcast CSP
@@ -151,8 +151,9 @@ int32_t socket_check_udp_checksum(std::vector<uint8_t> packet);
 int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet);
 int32_t socket_blocking(socket_channel *channel, bool blocking);
 int32_t socket_close(socket_channel *channel);
-int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags);
-std::vector<socket_channel> socket_find_addresses(NetworkType ntype);
+int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);
+int32_t socket_sendto(socket_channel &channel, vector<uint8_t> &buffer, int flags=0);
+vector <socket_channel> socket_find_addresses(NetworkType ntype);
 
 //-------------------------------------------------------------------
 // Simple UDP class to send data

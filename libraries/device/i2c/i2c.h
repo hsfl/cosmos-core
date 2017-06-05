@@ -31,27 +31,50 @@
 #define COSMOS_DEVICE_I2C_CLASS_H
 
 #include "support/configCosmos.h"
-#if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-#include <linux/i2c-dev.h> /* for I2C_SLAVE */
-#endif
+//#include <linux/i2c-dev.h> /* for I2C_SLAVE */
+#include "device/i2c/i2c-dev-smbus.h"
+
+using std::cout;
+using std::string;
 
 namespace Cosmos {
     class I2C
     {
     public:
-        I2C(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+        I2C(string bus, uint8_t address, double delay=2e-4);
         ~I2C();
-//        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
+        //        int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
 
-//        int32_t put_char(uint8_t c);
-//        int32_t put_string(string data);
-//        int32_t put_data(vector <uint8_t> data);
-//        int32_t get_char();
-//        int32_t get_data(vector <uint8_t> &data, size_t size);
+        //        int32_t put_char(uint8_t c);
+        //        int32_t put_string(string data);
+        //        int32_t put_data(vector <uint8_t> data);
+        //        int32_t get_char();
+        //        int32_t get_data(vector <uint8_t> &data, size_t size);
 
-//        string name;
-        int send(std::string data);
-        int receive(std::string data);
+        //        string name;
+//        int32_t connect();
+        int32_t get_funcs();
+        int32_t set_address(ulong address);
+        int32_t send(std::string data);
+        int32_t send(uint8_t *data, size_t len);
+        int32_t receive(std::string &data);
+        int32_t receive(uint8_t *data, size_t len);
+        int32_t get_error();
+
+
+
+    private:
+        struct
+        {
+            string bus;
+            uint8_t address;
+            int fh = -1;
+            ulong funcs;
+            bool connected = false;
+            double delay = 1e-4;
+        } handle;
+
+        int32_t error;
 
     };
 

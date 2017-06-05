@@ -53,7 +53,7 @@ cmatrix cm_quaternion2dcm(quaternion q)
     cmatrix m;
     double yy, xx, zz, xy, xz, xw, yz, yw, zw;
 
-    q_normalize(&q);
+    normalize_q(&q);
 
     xx = 2. * q.d.x;
     xy = xx * q.d.y;
@@ -150,7 +150,7 @@ quaternion q_dcm2quaternion_cm(cmatrix dcm)
         }
     }
 
-    q_normalize(&q);
+    normalize_q(&q);
     return(q);
 }
 
@@ -219,7 +219,7 @@ quaternion q_dcm2quaternion_rm(rmatrix m)
         }
     }
 
-    q_normalize(&q);
+    normalize_q(&q);
     return(q);
 }
 

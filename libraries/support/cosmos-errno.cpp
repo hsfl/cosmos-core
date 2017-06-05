@@ -48,15 +48,22 @@ string cosmos_error_string(int32_t cosmos_errno)
 
     if (cosmos_errno > -256)
     {
-        char *unix_error_string = strerror(-cosmos_errno);
-        if (unix_error_string != nullptr)
+        if (cosmos_errno >= 0)
         {
-            error_string = unix_error_string;
+            error_string = "Success";
+        }
+        else
+        {
+            char *unix_error_string = strerror(-cosmos_errno);
+            if (unix_error_string != nullptr)
+            {
+                error_string = unix_error_string;
+            }
         }
     }
     else
     {
-        switch (-cosmos_errno)
+        switch (cosmos_errno)
         {
         case GS232B_ERROR_OPEN:
             error_string = "GS232B Open";
@@ -510,6 +517,24 @@ string cosmos_error_string(int32_t cosmos_errno)
             break;
         case PRKX2SU_ERROR_SEND:
             error_string = "PRKX2SU_ERROR_SEND";
+            break;
+        case CONVERT_ERROR_UTC:
+            error_string = "CONVERT_ERROR_UTC";
+            break;
+        case CUBEADCS_SERIALCOMM_RESPONSE:
+            error_string = "CUBEADCS SERIALCOMM: ADCS REPLY DID NOT MATCH EXPECTED REPLY";
+            break;
+        case CUBEADCS_INVALID_RESPONSE:
+            error_string = "Invalid Protocol Response";
+            break;
+        case CUBEADCS_NOT_CONNECTED:
+            error_string = "Not Actively Connected";
+            break;
+        case CUBEADCS_SERIAL_PROTOCOL:
+            error_string = "Error in Serial Protocol";
+            break;
+        case CLYDEEPS_NOT_CONNECTED:
+            error_string = "EPS Not Connected";
             break;
         default:
             char tval[30];

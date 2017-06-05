@@ -50,7 +50,7 @@ int main(int, char **)
     cout << "Starting agent " << endl;
 
     string agentname     = "002";
-    string nodename      = "telem";
+    string nodename      = "cubesat1";
     agent = new Agent(nodename, agentname);
 
     agent->add_request("request_hello", request_hello);
