@@ -43,7 +43,7 @@
 //! Path to COSMOS root directory
 string cosmosroot;
 //! Path to COSMOS Nodes directory
-string cosmosnodes;
+string cosmosnodes="";
 //! Path to COSMOS Resources directory
 string cosmosresources;
 //! Path to current COSMOS Node directory
@@ -1333,7 +1333,7 @@ int32_t set_cosmosnodes(bool create_flag)
 
     if (cosmosnodes.empty())
     {
-        if ((troot = getenv("COSMOSRESOURCES")) != nullptr)
+        if ((troot = getenv("COSMOSNODES")) != nullptr)
         {
             croot = troot;
             if ((iretn=set_cosmosnodes(croot, create_flag)) == 0)
