@@ -129,7 +129,19 @@ namespace Cosmos {
     {
 
         error = ::write(handle.fh, data, len);
-//        error = i2c_smbus_write_block_data(handle.fh, handle.address, len, data);
+
+        if (error < 0)
+        {
+            error = -errno;
+        }
+
+        return error;
+    }
+
+    int32_t I2C::send(vector <uint8_t> data)
+    {
+
+        error = ::write(handle.fh, data.data(), data.size());
 
         if (error < 0)
         {
@@ -201,9 +213,43 @@ namespace Cosmos {
         return count;
     }
 
+    int32_t I2C::receive(vector <uint8_t> &data)
+    {
+	uint8_t tbuf[256];
+	data.clear();
+
+        ElapsedTime et;
+        do
+        {
+            int32_t rcvd = 0;
+            rcvd = ::read(handle.fh, tbuf, 256);
+
+            if (rcvd < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+            {
+                error = -errno;
+                return error;
+            }
+            else if (rcvd > 0)
+            {
+                for (size_t i=0; i<rcvd; ++i)
+                {
+                    data.push_back(tbuf[i]);
+                }
+                et.reset();
+            }
+        } while(et.split() <= handle.delay);
+
+        return data.size();
+    }
+
     int32_t I2C::get_error()
     {
         return error;
+    }
+
+    int32_t I2C::get_fh()
+    {
+        return handle.fh;
     }
 
 
