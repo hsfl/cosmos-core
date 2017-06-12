@@ -1986,7 +1986,7 @@ namespace Cosmos {
     \param waitsec Number of seconds in timer. If 0, return last message in ring immediatelly.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-    int32_t Agent::readring(messstruc &message, uint8_t type, float waitsec)
+    int32_t Agent::readring(messstruc &message, uint8_t type, float waitsec, Where where)
     {
         if (waitsec < 0.)
         {
@@ -1998,6 +1998,14 @@ namespace Cosmos {
             return AGENT_ERROR_NULL;
         }
 
+        if (where == Where::HEAD)
+        {
+            message_tail = message_head - 1;
+            if (message_tail >= message_ring.size())
+            {
+                message_tail = message_ring.size() - 1;
+            }
+        }
         ElapsedTime ep;
         ep.start();
         do

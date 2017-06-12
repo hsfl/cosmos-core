@@ -95,8 +95,8 @@ public:
 
 
 
-LsFit lastimuomega(4, 2, .0003);
-LsFit lastimumag(4, 2, .001);
+LsFit lastimuomega(4, 2);
+LsFit lastimumag(4, 2);
 
 double log_period=0.;
 std::string imuDataString;

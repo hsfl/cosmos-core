@@ -774,9 +774,9 @@ struct beatstruc
     // Heartbeat timestamp
     double utc;
     // Heartbeat Node Name
-    char node[COSMOS_MAX_NAME+1];
+    char node[COSMOS_MAX_NAME+1];  // TODO: change to string
     //! Heartbeat Agent Name
-    char proc[COSMOS_MAX_NAME+1];
+    char proc[COSMOS_MAX_NAME+1]; // TODO: change to string
     // Type of address protocol
     NetworkType ntype;
     //! Protocol Address

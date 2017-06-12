@@ -78,6 +78,7 @@ public:
 
     void normalize();
     double norm();
+    double norm2();
 } ;
 
 //! 3 element spherical vector

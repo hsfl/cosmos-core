@@ -2539,7 +2539,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 
         q1 = q_axis2quaternion_rv(rv_smult(-dt,gjh.step[i].sloc.att.icrf.v));
         gjh.step[i].sloc.att.icrf.s = q_mult(q1,gjh.step[i].sloc.att.icrf.s);
-        q_normalize(&gjh.step[i].sloc.att.icrf.s);
+        normalize_q(&gjh.step[i].sloc.att.icrf.s);
         // Calculate new v from da
         gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(-dt,gjh.step[i].sloc.att.icrf.a));
         //		gjh.step[i].sloc.att.icrf.utc -= dt/86400.;
@@ -2571,7 +2571,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 
         q1 = q_axis2quaternion_rv(rv_smult(dt,gjh.step[i].sloc.att.icrf.v));
         gjh.step[i].sloc.att.icrf.s = q_mult(q1,gjh.step[i].sloc.att.icrf.s);
-        q_normalize(&gjh.step[i].sloc.att.icrf.s);
+        normalize_q(&gjh.step[i].sloc.att.icrf.s);
         // Calculate new v from da
         gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(dt,gjh.step[i].sloc.att.icrf.a));
         //		gjh.step[i].sloc.att.icrf.utc += dt/86400.;
@@ -2968,7 +2968,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
 
                 //					q1 = q_axis2quaternion_rv(rv_smult(dtuse,gjh.step[gjh.order+1].sloc.att.icrf.v));
                 //					gjh.step[gjh.order+1].sloc.att.icrf.s = q_mult(q1,gjh.step[gjh.order+1].sloc.att.icrf.s);
-                q_normalize(&gjh.step[gjh.order+1].sloc.att.icrf.s);
+                normalize_q(&gjh.step[gjh.order+1].sloc.att.icrf.s);
 
                 // Calculate new v from da
                 gjh.step[gjh.order+1].sloc.att.icrf.v = rv_add(gjh.step[gjh.order+1].sloc.att.icrf.v,rv_smult(dtuse,gjh.step[gjh.order+1].sloc.att.icrf.a));
@@ -3342,7 +3342,7 @@ int update_eci(cosmosdatastruc &cdata, double utc, cartpos pos)
         {
             q1 = q_axis2quaternion_rv(rv_smult(cdata.physics.dt/10.,cdata.node.loc.att.icrf.v));
             cdata.node.loc.att.icrf.s = q_mult(q1,cdata.node.loc.att.icrf.s);
-            q_normalize(&cdata.node.loc.att.icrf.s);
+            normalize_q(&cdata.node.loc.att.icrf.s);
             cdata.node.loc.att.icrf.v = rv_add(cdata.node.loc.att.icrf.v,rv_smult(cdata.physics.dt/10.,cdata.node.loc.att.icrf.a));
         }
         att_icrf2lvlh(&cdata.node.loc);

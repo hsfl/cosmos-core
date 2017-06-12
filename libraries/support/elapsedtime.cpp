@@ -245,7 +245,6 @@ double ElapsedTime::split()
     elapsedTime =  std::chrono::duration<double>(timeNow - timeStart).count();
 #endif
 
-    timeCheck = timeNow;
     return elapsedTime;
 }
 

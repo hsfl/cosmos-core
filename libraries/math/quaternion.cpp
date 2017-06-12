@@ -285,12 +285,12 @@ namespace Cosmos {
 
 // ----------------------------------------------
 
-double q_norm(quaternion q)
+double norm_q(quaternion q)
 {
     return length_q(q);
 }
 
-void q_normalize(quaternion *q)
+void normalize_q(quaternion *q)
 {
     double mag;
 
@@ -309,6 +309,23 @@ void q_normalize(quaternion *q)
         q->d.y /= mag;
         q->d.z /= mag;
     }
+}
+
+//! Angular separation between quaternions.
+/*! Calculates the separation angle between two quaternions, in radians.
+        \param q1 the first quaternion
+        \param q2 the second quaternion
+        \return The separation angle in radians as a double precision
+*/
+double sep_q(quaternion q1, quaternion q2)
+{
+
+    normalize_q(&q1);
+    normalize_q(&q2);
+
+    double inner = inner_q(q1, q2);
+    double sepangle = acos(2. * inner * inner - 1);
+    return (sepangle);
 }
 
 //! Zero quaternion
@@ -350,6 +367,21 @@ quaternion q_times(quaternion q1, quaternion q2)
     o.w = q1.w * q2.w;
 
     return (o);
+}
+
+//! Inner product of two quaternions
+/*! Multiply each element of one quaternion by the same element of the other,
+ * and sum.
+ * \param q1 First quaternion
+ * \param q2 second quaternion
+ * \return Double result
+ */
+double inner_q(quaternion q1, quaternion q2)
+{
+    quaternion q = q_times(q1, q2);
+    double result = q.d.x + q.d.y + q.d.z + q.w;
+
+    return result;
 }
 
 //! Square root of the elements of a quaternion
@@ -512,7 +544,7 @@ quaternion q_euler2quaternion(avector rpw)
     q.d.z = cr * cp * sy - sr * sp * cy;
     q.w = (cr * cp * cy + sr * sp * sy);
 
-    q_normalize(&q);
+    normalize_q(&q);
 
     return (q);
 }
@@ -522,7 +554,7 @@ avector a_quaternion2euler(quaternion q)
 {
     avector rpw;
 
-    q_normalize(&q);
+    normalize_q(&q);
     /*
         rpw.b = atan2(q.d.y*q.d.z+q.w*q.d.x,q.w*q.w+q.d.z*q.d.z-.5);
         rpw.e = asin(-2.*(q.d.x*q.d.z-q.w*q.d.y));
@@ -561,7 +593,7 @@ quaternion q_axis2quaternion_cv(cvector v)
         q.d.x = q.d.y = q.d.z = 0.;
     q.w =cos(length/2);
 
-    q_normalize(&q);
+    normalize_q(&q);
     return (q);
 }
 
@@ -590,7 +622,7 @@ quaternion q_identity()
         \param q Quaternion to find the length of.
         \return Length of quaternion.
 */
-// TODO: check the redundancy with q_normalize
+// TODO: check the redundancy with normalize_q
 double length_q(quaternion q)
 {
     double length;
@@ -661,7 +693,7 @@ quaternion q_change_around_cv(cvector around, double angle)
     rq.d.y = around.y * sa;
     rq.d.z = around.z * sa;
     rq.w = cos(angle);
-    q_normalize(&rq);
+    normalize_q(&rq);
     return (rq);
 }
 

@@ -211,6 +211,12 @@ public:
         AGENT_MESSAGE_COMM=129
         };
 
+    enum class Where : size_t
+        {
+        HEAD = 0,
+        TAIL = 1
+        };
+
     //! @}
 
 #define MAXARGCOUNT 100
@@ -232,7 +238,7 @@ public:
 
     struct pollstruc
     {
-        uint8_t type;
+        uint8_t type; // TODO: what are the available types?
         uint16_t jlength;
         beatstruc beat;
     };
@@ -282,7 +288,7 @@ public:
 //    int32_t poll(pollstruc &meta, string &message, uint8_t type, float waitsec = 1.);
 //    int32_t poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec = 1.);
     int32_t poll(messstruc &mess, uint8_t type, float waitsec = 1.);
-    int32_t readring(messstruc &message, uint8_t type = Agent::AGENT_MESSAGE_ALL, float waitsec = 1.);
+    int32_t readring(messstruc &message, uint8_t type = Agent::AGENT_MESSAGE_ALL, float waitsec = 1., Where where=Where::HEAD);
     int32_t resizering(size_t newsize);
     int32_t clearring();
     timestruc poll_time(float waitsec);
