@@ -39,11 +39,9 @@
 #include <iostream>
 #include <string>
 
-#ifndef BUILD_TYPE_arm
+#ifndef CROSS_TYPE_arm
 #include <chrono>
 #include <ctime>
-
-//using namespace std;
 
 class TimeUtils {
 

@@ -27,7 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "physicslib.h"
+#include "physics/physicslib.h"
 #include "support/timelib.h"
 #include "support/datalib.h"
 
@@ -1522,8 +1522,9 @@ void att_accel(physicsstruc &physics, locstruc &loc)
     \param physics Pointer to structure specifying satellite.
     \param loc Structure specifying location.
 */
-void pos_accel(physicsstruc &physics, locstruc &loc)
+int32_t pos_accel(physicsstruc &physics, locstruc &loc)
 {
+    int32_t iretn;
     double radius;
     rvector ctpos, da, tda;
     cartpos bodypos;
@@ -1611,9 +1612,16 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
     }
 
     loc.pos.eci.pass++;
-    pos_eci(&loc);
+    iretn = pos_eci(&loc);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
     if (std::isnan(loc.pos.eci.a.col[0]))
+    {
         loc.pos.eci.a.col[0] = 0.;
+    }
+    return 0;
 }
 
 //! Calculate atmospheric density
@@ -2531,7 +2539,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 
         q1 = q_axis2quaternion_rv(rv_smult(-dt,gjh.step[i].sloc.att.icrf.v));
         gjh.step[i].sloc.att.icrf.s = q_mult(q1,gjh.step[i].sloc.att.icrf.s);
-        q_normalize(&gjh.step[i].sloc.att.icrf.s);
+        normalize_q(&gjh.step[i].sloc.att.icrf.s);
         // Calculate new v from da
         gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(-dt,gjh.step[i].sloc.att.icrf.a));
         //		gjh.step[i].sloc.att.icrf.utc -= dt/86400.;
@@ -2563,7 +2571,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 
         q1 = q_axis2quaternion_rv(rv_smult(dt,gjh.step[i].sloc.att.icrf.v));
         gjh.step[i].sloc.att.icrf.s = q_mult(q1,gjh.step[i].sloc.att.icrf.s);
-        q_normalize(&gjh.step[i].sloc.att.icrf.s);
+        normalize_q(&gjh.step[i].sloc.att.icrf.s);
         // Calculate new v from da
         gjh.step[i].sloc.att.icrf.v = rv_add(gjh.step[i].sloc.att.icrf.v,rv_smult(dt,gjh.step[i].sloc.att.icrf.a));
         //		gjh.step[i].sloc.att.icrf.utc += dt/86400.;
@@ -2960,7 +2968,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
 
                 //					q1 = q_axis2quaternion_rv(rv_smult(dtuse,gjh.step[gjh.order+1].sloc.att.icrf.v));
                 //					gjh.step[gjh.order+1].sloc.att.icrf.s = q_mult(q1,gjh.step[gjh.order+1].sloc.att.icrf.s);
-                q_normalize(&gjh.step[gjh.order+1].sloc.att.icrf.s);
+                normalize_q(&gjh.step[gjh.order+1].sloc.att.icrf.s);
 
                 // Calculate new v from da
                 gjh.step[gjh.order+1].sloc.att.icrf.v = rv_add(gjh.step[gjh.order+1].sloc.att.icrf.v,rv_smult(dtuse,gjh.step[gjh.order+1].sloc.att.icrf.a));
@@ -3334,7 +3342,7 @@ int update_eci(cosmosdatastruc &cdata, double utc, cartpos pos)
         {
             q1 = q_axis2quaternion_rv(rv_smult(cdata.physics.dt/10.,cdata.node.loc.att.icrf.v));
             cdata.node.loc.att.icrf.s = q_mult(q1,cdata.node.loc.att.icrf.s);
-            q_normalize(&cdata.node.loc.att.icrf.s);
+            normalize_q(&cdata.node.loc.att.icrf.s);
             cdata.node.loc.att.icrf.v = rv_add(cdata.node.loc.att.icrf.v,rv_smult(cdata.physics.dt/10.,cdata.node.loc.att.icrf.a));
         }
         att_icrf2lvlh(&cdata.node.loc);

@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
 
                         if (tbytes)
                         {
-                            printf("Success: %s: %" PRIu32 "\n", newpath.c_str(), tbytes);
+                            printf("Success: %s: %" PRIu64 "\n", newpath.c_str(), tbytes);
                         }
                         else
                         {

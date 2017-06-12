@@ -55,6 +55,17 @@ int32_t slip_check_crc(uint8_t *sbuf, uint16_t ssize)
 	return 0;
 	}
 
+int32_t slip_check_crc(slip_t &sbuf)
+    {
+    uint16_t crc, crc2;
+
+    crc = slip_get_crc(sbuf);
+    crc2 = slip_calc_crc(sbuf);
+    if (crc != crc2)
+        return (SLIP_ERROR_CRC);
+    return 0;
+    }
+
 //! Unpack SLIP packet
 /*! Convert SLIP data in one buffer to raw ASCII data in second buffer and return
  * length.
@@ -67,9 +78,22 @@ int32_t slip_check_crc(uint8_t *sbuf, uint16_t ssize)
 
 int32_t slip_unpack(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize)
 {
-	if (slip_check_crc(sbuf, ssize)) return (SLIP_ERROR_CRC);
+    if (slip_check_crc(sbuf, ssize))
+    {
+        return (SLIP_ERROR_CRC);
+    }
 
 	return (slip_decode(sbuf, ssize-2, rbuf, rsize));
+}
+
+int32_t slip_unpack(slip_t &sbuf, slip_t &rbuf)
+{
+    if (slip_check_crc(sbuf))
+    {
+        return (SLIP_ERROR_CRC);
+    }
+
+    return (slip_decode(sbuf, rbuf));
 }
 
 //! Decode SLIP packet
@@ -97,7 +121,7 @@ int32_t slip_decode(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize
 			switch (ch)
 			{
 			case SLIP_FESC:
-				if (ssize > j+3)
+                if (j > ssize-3)
 					return (SLIP_ERROR_PACKING);
 				ch = sbuf[j++];
 				switch (ch)
@@ -124,6 +148,46 @@ int32_t slip_decode(uint8_t *sbuf, uint16_t ssize, uint8_t *rbuf, uint16_t rsize
 	} while (ch != SLIP_FEND);
 
 	return (i);
+}
+
+int32_t slip_decode(slip_t &sbuf, slip_t &rbuf)
+{
+    size_t j, ch;
+    rbuf.clear();
+
+    j = 0;
+    do
+    {
+        if (j > sbuf.size()-3)
+        {
+            return (SLIP_ERROR_PACKING);
+        }
+        ch = sbuf[j++];
+        switch (ch)
+        {
+        case SLIP_FESC:
+            if (j > sbuf.size()-3)
+                return (SLIP_ERROR_PACKING);
+            ch = sbuf[j++];
+            switch (ch)
+            {
+            case SLIP_TFEND:
+                rbuf.push_back(SLIP_FEND);
+                break;
+            case SLIP_TFESC:
+                rbuf.push_back(SLIP_FESC);
+                break;
+            }
+            break;
+        case SLIP_FEND:
+            break;
+        default:
+            rbuf.push_back(ch);
+            break;
+        }
+    } while (ch != SLIP_FEND);
+
+    return (rbuf.size());
 }
 
 //! Encode data in to SLIP packet
@@ -174,6 +238,34 @@ int32_t slip_encode(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize
 	return (i);
 }
 
+int32_t slip_encode(slip_t &rbuf, slip_t &sbuf)
+{
+    sbuf.clear();
+    sbuf.push_back(SLIP_FEND);
+
+    for (size_t j=0; j<rbuf.size(); ++j)
+    {
+        switch (rbuf[j])
+        {
+        case SLIP_FEND:
+            sbuf.push_back(SLIP_FESC);
+            sbuf.push_back(SLIP_TFEND);
+            break;
+        case SLIP_FESC:
+            sbuf.push_back(SLIP_FESC);
+            sbuf.push_back(SLIP_TFESC);
+            break;
+        default:
+            sbuf.push_back(rbuf[j]);
+            break;
+        }
+    }
+    sbuf.push_back(SLIP_FEND);
+    sbuf.push_back(0);
+    sbuf.push_back(0);
+    return (sbuf.size());
+}
+
 //! Pack data in to SLIP packet
 /*! Convert raw ASCII in one buffer to SLIP encoded data in second
  * buffer, appending a 16 bit CCITT CRC.
@@ -194,6 +286,20 @@ int32_t slip_pack(uint8_t *rbuf, uint16_t rsize, uint8_t *sbuf, uint16_t ssize)
 	slip_set_crc(sbuf,i);
 	i+=2;
 	return (i);
+}
+
+int32_t slip_pack(slip_t &rbuf, slip_t &sbuf)
+{
+    int32_t iretn;
+
+    iretn = slip_encode(rbuf, sbuf);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    slip_set_crc(sbuf);
+    return sbuf.size();
 }
 
 //! Calculate CRC-16-CCITT
@@ -222,6 +328,23 @@ uint16_t slip_calc_crc(uint8_t *buf, uint16_t size)
 	return (crc);
 }
 
+uint16_t slip_calc_crc(slip_t &buf)
+{
+    uint16_t crc = 0xffff;
+    uint8_t ch;
+
+    for (size_t i=0; i<buf.size()-2; ++i)
+    {
+        ch = buf[i];
+        for (size_t j=0; j<8; ++j)
+        {
+            crc = (crc >> 1)^(((ch^crc)&0x01)?0x8408:0);
+            ch >>= 1;
+        }
+    }
+    return (crc);
+}
+
 //! Get CRC from SLIP buffer
 /*! Extract the CRC from the specified point in a SLIP buffer and return it as an
  * unsigned integer.
@@ -233,9 +356,18 @@ uint16_t slip_get_crc(uint8_t *buf, uint16_t index)
 {
 	uint16_t crc;
 
-	memcpy(&crc,&buf[index],2);
+    memcpy(&crc, &buf[index], 2);
 
 	return (crc);
+}
+
+uint16_t slip_get_crc(slip_t &buf)
+{
+    uint16_t crc;
+
+    memcpy(&crc, &buf[buf.size()-2], 2);
+
+    return (crc);
 }
 
 //! Set CRC for SLIP buffer
@@ -248,9 +380,20 @@ uint16_t slip_set_crc(uint8_t *buf, uint16_t index)
 {
 	uint16_t crc;
 
-	crc = slip_calc_crc(buf,index);
-	memcpy(&buf[index],&crc,2);
+    crc = slip_calc_crc(buf, index);
+    memcpy(&buf[index], &crc, 2);
 
 	return (crc);
 }
+
+uint16_t slip_set_crc(slip_t &buf)
+{
+    uint16_t crc;
+
+    crc = slip_calc_crc(buf);
+    memcpy(&buf[buf.size()-2], &crc, 2);
+
+    return (crc);
+}
+
 //! @}

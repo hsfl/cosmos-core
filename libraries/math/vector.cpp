@@ -35,7 +35,7 @@
 //! Angular separation between row vectors.
 /*! Calculates the separation angle between two row order vectors, in radians.
         \param v1 the first vector, in ::rvector format
-        \param v2 the first vector, in ::rvector format
+        \param v2 the second vector, in ::rvector format
         \return The separation angle in radians as a double precision
 */
 double sep_rv(rvector v1, rvector v2)
@@ -678,6 +678,15 @@ double cvector::norm()
         return (norm);
 }
 
+double cvector::norm2()
+{
+    double norm = (this->x*this->x + this->y*this->y + this->z*this->z);
+    if (norm < D_SMALL)
+        return (0.);
+    else
+        return (norm);
+}
+
 
 // TODO: what norm is this?
 // TODO: replace by cv_norm?
@@ -829,6 +838,19 @@ rvector operator * (rvector v, double scalar)
     v.col[2] = scalar * v.col[2];
 
     return v;
+}
+
+// multiply vector by scalar operator
+int operator == (rvector a, rvector b)
+{
+    if(a.col[0] == b.col[0] && a.col[1] == b.col[1] &&
+            a.col[2] == b.col[2])
+    {
+        return 1;
+    }else
+    {
+        return 0;
+    }
 }
 
 // divide vector by scalar operator

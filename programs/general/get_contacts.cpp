@@ -47,7 +47,7 @@ struct trackstruc
     float highest;
     double startutc;
     std::mutex *control_mutex;
-    std::thread *control_thread;
+    thread *control_thread;
     bool running;
 };
 std::vector <trackstruc> track;
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     {
         track[i].control_mutex = new std::mutex;
         track[i].control_mutex->lock();
-        track[i].control_thread = new std::thread(propthread, i);
+        track[i].control_thread = new thread(propthread, i);
     }
 
     double utc;

@@ -50,8 +50,6 @@
 #include "limits.h"
 #include <iostream>
 
-//using namespace std;
-
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 6;
 
@@ -101,7 +99,6 @@ int main(int argc, char *argv[])
             std::string channel;
             uint8_t cnum;
             Agent::messstruc message;
-            std::string header;
             int i, pretn;
             locstruc loc;
 
@@ -134,24 +131,13 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL)) > 0)
+                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL, 1., Agent::Where::TAIL)) > 0)
                 {
                     // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
                     }
-
-                    header.resize(message.meta.jlength);
-                    if (pretn < Agent::AGENT_MESSAGE_BINARY)
-                    {
-                        memcpy(&header[0], message.adata.data(), message.meta.jlength);
-                    }
-                    else
-                    {
-                        memcpy(&header[0], message.bdata.data(), message.meta.jlength);
-                    }
-
 
                     switch (pretn)
                     {
@@ -166,17 +152,14 @@ int main(int argc, char *argv[])
                         break;
                     }
 
+                    printf("%.15g:[%s:%s][%s:%u](%" PRIu64 ":%" PRIu64 ":%" PRIu64 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
+                    printf("%s\n",message.jdata.c_str());
                     if (pretn < Agent::AGENT_MESSAGE_BINARY)
                     {
-                        printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.adata.size());
                         if (!channel.empty())
                         {
                             printf("%s\n",message.adata.c_str());
                         }
-                    }
-                    else
-                    {
-                        printf("%.15g:[%s:%s][%s:%u](%" PRIu32 ":%" PRIu32 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, header.size(), message.bdata.size());
                     }
 
                     if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
@@ -226,7 +209,7 @@ int main(int argc, char *argv[])
                     {
                         beatstruc cbeat = agent->agent_list[i];
                         agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
-                        printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
+                        printf("[%lu] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
                         printf("\t%s\n",output.c_str());
                         fflush(stdout);
                     }
@@ -275,7 +258,7 @@ int main(int argc, char *argv[])
 
             while (1)
             {
-                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL)) > 0)
+                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL, 1., Agent::Where::TAIL)) > 0)
                 {
                     // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
@@ -309,7 +292,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    printf("[%d] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
+                    printf("[%d] %.15g %s %s %s %hu %u\n",i,message.meta.beat.utc,message.meta.beat.node,message.meta.beat.proc,message.meta.beat.addr,message.meta.beat.port,message.meta.beat.bsz);
 
                     if (pretn < Agent::AGENT_MESSAGE_BINARY && !channel.empty())
                     {

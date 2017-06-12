@@ -2,6 +2,7 @@
 *.autosave
 build/qtarm/*
 build/arm/*
+build/armtest/*
 build/linux/*
 build/macos/*
 build/windows*
@@ -34,3 +35,6 @@ tutorials/agents/build-agent_002-Desktop_Qt_5_4_2_MinGW_32bit2-Debug/
 tutorials/agents/build-agent_cpu_device_test-Desktop_Qt_5_4_2_MinGW_32bit2-Debug/
 docs/doxygen/1.0.2-new/
 QtCreatorDeployment.txt
+*.swp
+_book
+node_modules/gitbook-plugin-expandable-chapters

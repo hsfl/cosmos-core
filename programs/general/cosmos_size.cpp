@@ -41,7 +41,7 @@ int main(int, char* argv[])
     size_t count = 0;
 
     total += COSMOS_SIZEOF(nodestruc);
-    printf("Node: %u : %u\n", COSMOS_SIZEOF(nodestruc), total);
+    printf("Node: %lu : %lu\n", COSMOS_SIZEOF(nodestruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->pdata.piece.size(); ++i)
@@ -49,7 +49,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(piecestruc);
     }
-    printf("Pieces: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(piecestruc), count*COSMOS_SIZEOF(piecestruc), total);
+    printf("Pieces: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(piecestruc), count*COSMOS_SIZEOF(piecestruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->pdata.device.size(); ++i)
@@ -57,10 +57,10 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(devicestruc);
     }
-    printf("Devices: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(devicestruc), count*COSMOS_SIZEOF(devicestruc), total);
+    printf("Devices: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(devicestruc), count*COSMOS_SIZEOF(devicestruc), total);
 
     total += COSMOS_SIZEOF(devspecstruc);
-    printf("Device Special: %u : %u\n", COSMOS_SIZEOF(devspecstruc), total);
+    printf("Device Special: %ld : %lu\n", COSMOS_SIZEOF(devspecstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->pdata.port.size(); ++i)
@@ -68,10 +68,10 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(portstruc);
     }
-    printf("Ports: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(portstruc), count*COSMOS_SIZEOF(portstruc), total);
+    printf("Ports: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(portstruc), count*COSMOS_SIZEOF(portstruc), total);
 
     total += COSMOS_SIZEOF(physicsstruc);
-    printf("Physics: %u : %u\n", COSMOS_SIZEOF(physicsstruc), total);
+    printf("Physics: %ld : %lu\n", COSMOS_SIZEOF(physicsstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->pdata.agent.size(); ++i)
@@ -79,7 +79,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(agentstruc);
     }
-    printf("Agents: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(agentstruc), count*COSMOS_SIZEOF(agentstruc), total);
+    printf("Agents: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(agentstruc), count*COSMOS_SIZEOF(agentstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->pdata.target.size(); ++i)
@@ -87,7 +87,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(targetstruc);
     }
-    printf("Targets: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(targetstruc), count*COSMOS_SIZEOF(targetstruc), total);
+    printf("Targets: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(targetstruc), count*COSMOS_SIZEOF(targetstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->pdata.user.size(); ++i)
@@ -95,7 +95,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(userstruc);
     }
-    printf("Users: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(userstruc), count*COSMOS_SIZEOF(userstruc), total);
+    printf("Users: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(userstruc), count*COSMOS_SIZEOF(userstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->pdata.glossary.size(); ++i)
@@ -103,7 +103,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(glossarystruc);
     }
-    printf("Glossarys: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(glossarystruc), count*COSMOS_SIZEOF(glossarystruc), total);
+    printf("Glossarys: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(glossarystruc), count*COSMOS_SIZEOF(glossarystruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->pdata.tle.size(); ++i)
@@ -111,15 +111,15 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(tlestruc);
     }
-    printf("TLEs: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(tlestruc), count*COSMOS_SIZEOF(tlestruc), total);
+    printf("TLEs: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(tlestruc), count*COSMOS_SIZEOF(tlestruc), total);
 
-    printf("Total for pdata: %u\n\n", total);
+    printf("Total for pdata: %lu\n\n", total);
 
     total = 0;
     count = 0;
 
     total += COSMOS_SIZEOF(nodestruc);
-    printf("Node: %u : %u\n", COSMOS_SIZEOF(nodestruc), total);
+    printf("Node: %ld : %lu\n", COSMOS_SIZEOF(nodestruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->sdata.piece.size(); ++i)
@@ -127,7 +127,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(piecestruc);
     }
-    printf("Pieces: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(piecestruc), count*COSMOS_SIZEOF(piecestruc), total);
+    printf("Pieces: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(piecestruc), count*COSMOS_SIZEOF(piecestruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->sdata.device.size(); ++i)
@@ -135,10 +135,10 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(devicestruc);
     }
-    printf("Devices: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(devicestruc), count*COSMOS_SIZEOF(devicestruc), total);
+    printf("Devices: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(devicestruc), count*COSMOS_SIZEOF(devicestruc), total);
 
     total += COSMOS_SIZEOF(devspecstruc);
-    printf("Device Special: %u : %u\n", COSMOS_SIZEOF(devspecstruc), total);
+    printf("Device Special: %ld : %lu\n", COSMOS_SIZEOF(devspecstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->sdata.port.size(); ++i)
@@ -146,10 +146,10 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(portstruc);
     }
-    printf("Ports: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(portstruc), count*COSMOS_SIZEOF(portstruc), total);
+    printf("Ports: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(portstruc), count*COSMOS_SIZEOF(portstruc), total);
 
     total += COSMOS_SIZEOF(physicsstruc);
-    printf("Physics: %u : %u\n", COSMOS_SIZEOF(physicsstruc), total);
+    printf("Physics: %ld : %lu\n", COSMOS_SIZEOF(physicsstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->sdata.agent.size(); ++i)
@@ -157,7 +157,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(agentstruc);
     }
-    printf("Agents: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(agentstruc), count*COSMOS_SIZEOF(agentstruc), total);
+    printf("Agents: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(agentstruc), count*COSMOS_SIZEOF(agentstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->sdata.target.size(); ++i)
@@ -165,7 +165,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(targetstruc);
     }
-    printf("Targets: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(targetstruc), count*COSMOS_SIZEOF(targetstruc), total);
+    printf("Targets: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(targetstruc), count*COSMOS_SIZEOF(targetstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->sdata.user.size(); ++i)
@@ -173,7 +173,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(userstruc);
     }
-    printf("Users: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(userstruc), count*COSMOS_SIZEOF(userstruc), total);
+    printf("Users: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(userstruc), count*COSMOS_SIZEOF(userstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->sdata.glossary.size(); ++i)
@@ -181,7 +181,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(glossarystruc);
     }
-    printf("Glossarys: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(glossarystruc), count*COSMOS_SIZEOF(glossarystruc), total);
+    printf("Glossarys: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(glossarystruc), count*COSMOS_SIZEOF(glossarystruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->sdata.tle.size(); ++i)
@@ -189,9 +189,9 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(tlestruc);
     }
-    printf("TLEs: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(tlestruc), count*COSMOS_SIZEOF(tlestruc), total);
+    printf("TLEs: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(tlestruc), count*COSMOS_SIZEOF(tlestruc), total);
 
-    printf("Total for sdata: %u\n\n", total);
+    printf("Total for sdata: %lu\n\n", total);
 
     total = 0;
     count = 0;
@@ -203,7 +203,7 @@ int main(int, char* argv[])
             total += COSMOS_SIZEOF(jsonentry);
         }
     }
-    printf("Jmap: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(jsonentry), count*COSMOS_SIZEOF(jsonentry), total);
+    printf("Jmap: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(jsonentry), count*COSMOS_SIZEOF(jsonentry), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->meta.emap.size(); ++i)
@@ -214,7 +214,7 @@ int main(int, char* argv[])
             total += COSMOS_SIZEOF(jsonequation);
         }
     }
-    printf("Emap: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(jsonequation), count*COSMOS_SIZEOF(jsonequation), total);
+    printf("Emap: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(jsonequation), count*COSMOS_SIZEOF(jsonequation), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->meta.unit.size(); ++i)
@@ -225,7 +225,7 @@ int main(int, char* argv[])
             total += COSMOS_SIZEOF(jsonequation);
         }
     }
-    printf("Units: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(unitstruc), count*COSMOS_SIZEOF(unitstruc), total);
+    printf("Units: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(unitstruc), count*COSMOS_SIZEOF(unitstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->meta.alias.size(); ++i)
@@ -233,7 +233,7 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(aliasstruc);
     }
-    printf("Aliass: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(aliasstruc), count*COSMOS_SIZEOF(aliasstruc), total);
+    printf("Aliass: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(aliasstruc), count*COSMOS_SIZEOF(aliasstruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->meta.equation.size(); ++i)
@@ -241,9 +241,9 @@ int main(int, char* argv[])
         ++count;
         total += COSMOS_SIZEOF(equationstruc);
     }
-    printf("Equations: %u x %u = %u : %u\n", count, COSMOS_SIZEOF(equationstruc), count*COSMOS_SIZEOF(equationstruc), total);
+    printf("Equations: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(equationstruc), count*COSMOS_SIZEOF(equationstruc), total);
 
-    printf("Total for meta: %u\n\n", total);
+    printf("Total for meta: %lu\n\n", total);
 
     fflush(stdout);
 }

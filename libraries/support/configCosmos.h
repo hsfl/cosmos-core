@@ -31,6 +31,10 @@
 #ifndef CONFIGCOSMOS_H
 #define CONFIGCOSMOS_H
 
+// NB: EJP 20170403 - added to suppress the ocean of format errors that will never be correct for all
+// platforms. We will just have to get the formatting right on our own.
+#pragma GCC diagnostic ignored "-Wformat="
+
 //! \file configCosmos.h
 //! \brief Headers and definitions common to all COSMOS
 
@@ -69,7 +73,9 @@
 #include <cerrno>
 #include <cstring>
 #include <cmath>
+using std::isfinite;
 #include <iostream>
+using std::ifstream;
 using std::cout;
 using std::endl;
 #ifdef COSMOS_WIN_BUILD_MSVC
@@ -92,8 +98,12 @@ using std::thread;
 using std::condition_variable;
 #include <queue>
 using std::queue;
+#include <sstream>
+using std::istringstream;
+#include <map>
+using std::map;
 
-#include "support/cosmos-errno.h"
+//#include "support/cosmos-errno.h"
 #include "support/cosmos-defs.h"
 
 namespace Cosmos {}

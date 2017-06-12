@@ -188,7 +188,7 @@ pid_t DeviceCpu::getPidOf(string processName)
 #endif
 
 #if defined(COSMOS_WIN_OS)
-    //    return cpuWin.getPidOf(processName);
+    return cpuWin.getPidOf(processName);
 #endif
 
 }
@@ -203,6 +203,7 @@ pid_t DeviceCpu::getMemoryUsedOf(string processName)
     //    return cpuWin.getMemoryUsedOf(processName);
 #endif
 
+    return -1;
 }
 
 float DeviceCpu::getPercentCpuOf(string processName)
@@ -214,6 +215,7 @@ float DeviceCpu::getPercentCpuOf(string processName)
 #if defined(COSMOS_WIN_OS)
     //    return cpuWin.getPercentCpuOf(processName);
 #endif
+    return 0.;
 }
 
 float DeviceCpu::getPercentMemoryOf(string processName)
@@ -226,6 +228,7 @@ float DeviceCpu::getPercentMemoryOf(string processName)
     //    return cpuWin.getPercentMemoryOf(processName);
 #endif
 
+    return 0.;
 }
 
 double DeviceCpu::BytesToKiB(double bytes)
@@ -321,7 +324,7 @@ double DeviceCpuLinux::getLoad1minAverage()
 void DeviceCpuLinux::initCpuUtilization(){
 
     FILE* file;
-    struct tms timeSample;
+//    struct tms timeSample;
     char line[128];
 
 
@@ -796,6 +799,11 @@ string DeviceCpuWindows::getHostName()
 unsigned long long DeviceCpuWindows::FileTimeToInt64(const FILETIME & ft)
 {
     return (((unsigned long long)(ft.dwHighDateTime))<<32)|((unsigned long long)ft.dwLowDateTime);
+}
+
+pid_t DeviceCpuWindows::getPidOf(string processName)
+{
+    return 0;
 }
 
 #endif

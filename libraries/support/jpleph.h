@@ -60,6 +60,7 @@
    than C. */
 
 #include "support/configCosmos.h"
+#include "support/cosmos-errno.h"
 
 //#ifdef _WIN32
 //#define DLL_FUNC __stdcall

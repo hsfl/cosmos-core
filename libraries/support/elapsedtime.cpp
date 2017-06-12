@@ -90,7 +90,7 @@ ElapsedTime::ElapsedTime()
  * \brief ElapsedTime::info, combines toc and print, this simplifies the calling of functions
  */
 void ElapsedTime::info(){
-#ifndef BUILD_TYPE_arm
+#ifndef CROSS_TYPE_arm
     std::cout << "system_clock" << std::endl;
     std::cout << std::chrono::system_clock::period::num << std::endl;
     std::cout << std::chrono::system_clock::period::den << std::endl;
@@ -144,7 +144,7 @@ void ElapsedTime::printElapsedTime(std::string text)
 */
 double ElapsedTime::lap()
 {
-#ifdef BUILD_TYPE_arm
+#ifdef CROSS_TYPE_arm
     //	clock_gettime(CLOCK_MONOTONIC, &timeNow);
     //	elapsedTime = (timeNow.tv_sec - timeCheck.tv_sec) + (timeNow.tv_nsec - timeCheck.tv_nsec) / 1e9;
     gettimeofday(&timeNow, nullptr);
@@ -203,7 +203,7 @@ double ElapsedTime::toc(std::string text)
 void ElapsedTime::start()
 {
     //Get the start time
-#ifdef BUILD_TYPE_arm
+#ifdef CROSS_TYPE_arm
     //	clock_gettime(CLOCK_MONOTONIC, &timeStart);
     gettimeofday(&timeStart, nullptr);
 #else
@@ -235,7 +235,7 @@ double ElapsedTime::split()
 {
     //Get the final time
 
-#ifdef BUILD_TYPE_arm
+#ifdef CROSS_TYPE_arm
     //	clock_gettime(CLOCK_MONOTONIC, &timeNow);
     //	elapsedTime = (timeNow.tv_sec - timeStart.tv_sec) + (timeNow.tv_nsec - timeStart.tv_nsec) / 1e9;
     gettimeofday(&timeNow, nullptr);
@@ -245,7 +245,6 @@ double ElapsedTime::split()
     elapsedTime =  std::chrono::duration<double>(timeNow - timeStart).count();
 #endif
 
-    timeCheck = timeNow;
     return elapsedTime;
 }
 

@@ -14,4 +14,17 @@ foreach(file ${files})
 
     install(TARGETS ${bfile} DESTINATION bin)
 
+    if(${DEPLOY_FILES_TO_REMOTE} MATCHES "yes")
+        add_deployment_binary(${bfile} "bin")
+        add_deployment_source(${bfile}.cpp "src")
+    endif()
+
 endforeach()
+
+if(${BUILD_AGENTS_TYPE} MATCHES "ALL")
+    add_subdirectory(ground-station)
+endif()
+
+if(${BUILD_AGENTS_TYPE} MATCHES "ALL")
+    add_subdirectory(other)
+endif()

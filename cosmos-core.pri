@@ -71,6 +71,7 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
         MODULES += timeutils
         MODULES += stringlib
         MODULES += datalib
+        MODULES += cosmoserrno
 
     }
 
@@ -155,6 +156,13 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
         SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/demlib.cpp
         HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/demlib.h
     }
+
+    contains(MODULES, cosmoserrno){
+        message( "- support/cosmos-errno" )
+        SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/cosmos-errno.cpp
+        HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/cosmos-errno.h
+    }
+
 
     # -----------------------------------------------
     # Tier 0 libraries

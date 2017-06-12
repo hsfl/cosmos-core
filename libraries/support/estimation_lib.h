@@ -31,9 +31,6 @@
 #include <iostream>
 //#include <Eigen/Dense>
 
-//using namespace std;
-//using namespace Eigen;
-
 #define EKF_NUM_STATES 7
 #define EKF_NUM_ACTUATORS 4
 #define EKF_NUM_SENSORS 3

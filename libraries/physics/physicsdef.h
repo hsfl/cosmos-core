@@ -39,7 +39,6 @@
 //#include "support/convertdef.h"
 
 //#include <fcntl.h>
-//#include <math.h>
 //#include <time.h>
 //#include <errno.h>
 

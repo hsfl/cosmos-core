@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 
-message("Building device/vn100")
+message("Build device/vn100")
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -17,3 +17,7 @@ target_link_libraries(CosmosDeviceVn100 CosmosDeviceGeneral)
 
 install(TARGETS CosmosDeviceVn100 DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/vn100)
+
+if(${DEPLOY_SOURCE_FILES_TO_REMOTE} MATCHES "yes")
+    add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
+endif()

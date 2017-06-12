@@ -46,14 +46,13 @@
 
 #include <iostream>
 #include <string>
-using namespace std;
 Agent *agent;
 
 int main(int, char **)
 {
 
     string agentname = "001";
-    string nodename  = "telem";
+    string nodename  = "cubesat1";
     string agent002  = "002"; //name of the agent that the request is directed to
     agent = new Agent(nodename, agentname);
 

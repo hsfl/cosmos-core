@@ -57,7 +57,7 @@ details of the implementation encapsulated.
 *****************************************************************************/
 
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 #include <cstring>
 #include <stdlib.h>
 

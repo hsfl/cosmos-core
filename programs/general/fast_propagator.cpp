@@ -124,9 +124,9 @@ int main(int argc, char* argv[])
 
 #define POLLBUFSIZE 20000
 	std::string pollbuf;
-    Agent::pollstruc meta;
+    Agent::messstruc mess;
 
-    iretn = agent->poll(meta, pollbuf, Agent::AGENT_MESSAGE_ALL,1);
+    iretn = agent->poll(mess, Agent::AGENT_MESSAGE_ALL,1);
 	switch (iretn)
 	{
     case Agent::AGENT_MESSAGE_SOH:

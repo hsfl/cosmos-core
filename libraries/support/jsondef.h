@@ -166,7 +166,9 @@ enum
     //! ::aliasstruc
     JSON_STRUCT_ALIAS,
     //! ::equationstruc
-    JSON_STRUCT_EQUATION
+    JSON_STRUCT_EQUATION,
+    //! entirety
+    JSON_STRUCT_ALL
     };
 
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
@@ -222,6 +224,7 @@ enum
     JSON_TYPE_HBEAT,
     //! JSON Solar Barycentric Position
     JSON_TYPE_POS_BARYC,
+    JSON_TYPE_POS_FIRST = JSON_TYPE_POS_BARYC,
     //! JSON Earth Centered Inertial Position
     JSON_TYPE_POS_ECI,
     //! JSON Lunar Centered Inertial Position
@@ -236,6 +239,7 @@ enum
     JSON_TYPE_POS_GEOS,
     //! JSON Selenographic Position
     JSON_TYPE_POS_SELG,
+    JSON_TYPE_POS_LAST = JSON_TYPE_POS_SELG,
     //! JSON Topocentric Attitude
     JSON_TYPE_QATT_TOPO,
     //! JSON Geocentric Attitude
@@ -257,7 +261,9 @@ enum
     //! JSON Equation
     JSON_TYPE_EQUATION,
     //! JSON Alias
-    JSON_TYPE_ALIAS
+    JSON_TYPE_ALIAS,
+    //! Not defined
+    JSON_TYPE_NONE=UINT16_MAX
     };
 
 //! Types of equation operands
@@ -383,21 +389,21 @@ enum
 #define MAX_COSMOSSTRUC 20
 
 //! Entire ::cosmosstruc
-#define JSON_MAP_ALL 0
-//! ::agentstruc part of ::cosmosstruc
-#define JSON_MAP_AGENT 1
-//! ::beaconstruc part of ::cosmosstruc
-#define JSON_MAP_BEACON 2
-//! ::nodestruc part of ::cosmosstruc
-#define JSON_MAP_NODESTATIC 3
-//! ::nodestruc part of ::cosmosstruc
-#define JSON_MAP_NODEDYNAMIC 4
-//! ::eventstruc part of ::cosmosstruc
-#define JSON_MAP_EVENT 5
-//! ::cosmosstruc_s part of ::cosmosstruc
-#define JSON_MAP_STATIC 7
-//! ::cosmosstruc_d part of ::cosmosstruc
-#define JSON_MAP_DYNAMIC 8
+//#define JSON_MAP_ALL 0
+////! ::agentstruc part of ::cosmosstruc
+//#define JSON_MAP_AGENT 1
+////! ::beaconstruc part of ::cosmosstruc
+//#define JSON_MAP_BEACON 2
+////! ::nodestruc part of ::cosmosstruc
+//#define JSON_MAP_NODESTATIC 3
+////! ::nodestruc part of ::cosmosstruc
+//#define JSON_MAP_NODEDYNAMIC 4
+////! ::eventstruc part of ::cosmosstruc
+//#define JSON_MAP_EVENT 5
+////! ::cosmosstruc_s part of ::cosmosstruc
+//#define JSON_MAP_STATIC 7
+////! ::cosmosstruc_d part of ::cosmosstruc
+//#define JSON_MAP_DYNAMIC 8
 
 //! Maximum AGENT transfer buffer size
 #define AGENTMAXBUFFER 60000
@@ -482,7 +488,7 @@ enum
     //! List count
     DEVICE_TYPE_COUNT,
     //! Not a Component
-    DEVICE_TYPE_NONE=65535
+    DEVICE_TYPE_NONE=UINT16_MAX
     };
 
 enum
@@ -565,7 +571,7 @@ enum PORT_TYPE
     PORT_TYPE_DRIVE = 4,
     PORT_TYPE_SIM = 5,
     PORT_TYPE_COUNT,
-    PORT_TYPE_NONE = 65535
+    PORT_TYPE_NONE = UINT16_MAX
     };
 
 //! @}
@@ -620,6 +626,8 @@ struct jsonnode
 */
 struct jsonentry
 {
+    //! Enabled?
+    bool enabled;
     //! JSON Data Type
     uint16_t type;
     //! JSON Data Group
@@ -766,9 +774,9 @@ struct beatstruc
     // Heartbeat timestamp
     double utc;
     // Heartbeat Node Name
-    char node[COSMOS_MAX_NAME+1];
+    char node[COSMOS_MAX_NAME+1];  // TODO: change to string
     //! Heartbeat Agent Name
-    char proc[COSMOS_MAX_NAME+1];
+    char proc[COSMOS_MAX_NAME+1]; // TODO: change to string
     // Type of address protocol
     NetworkType ntype;
     //! Protocol Address
@@ -1012,6 +1020,8 @@ struct piecestruc
 {
     //! Name of piece
     char name[COSMOS_MAX_NAME+1];
+    //! Enabled?
+    bool enabled;
     //! Type of piece from \ref defs_piece.
     uint16_t type;
     //! Component index: -1 if not a Component
@@ -1060,6 +1070,8 @@ union as a ::devicestruc.
 */
 struct genstruc
 {
+    //! Enabled?
+    bool enabled;
     //! Component Type
     uint16_t type;
     //! Device Model

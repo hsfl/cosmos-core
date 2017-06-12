@@ -79,6 +79,7 @@ public:
     string getHostName();
     double getVirtualMemoryUsed();
     double getVirtualMemoryTotal();
+    pid_t getPidOf(string processName);
 };
 
 #endif

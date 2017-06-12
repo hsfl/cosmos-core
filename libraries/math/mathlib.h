@@ -116,7 +116,7 @@
 #include "matrix.h"
 #include "quaternion.h"
 #include "rotation.h"
-//#include "lsfit.h"
+//#include "lsFit.h"
 
 #include <cmath>
 #include <iostream>
@@ -384,9 +384,9 @@ public:
 //    LsFit();
 //    LsFit(uint16_t element_cnt);
 //    LsFit(uint16_t element_cnt, uint16_t ord);
-    LsFit(uint16_t cnt=10, uint16_t ord=2, double res=0.);
+    LsFit(uint16_t cnt=10, uint16_t ord=2);
 
-    void initialize(uint16_t cnt=10, uint16_t ord=2, double res=0.);
+    void initialize(uint16_t cnt=10, uint16_t ord=2);
     void update(double x, double y);
     void update(double x, rvector y);
     void update(double x, quaternion y);

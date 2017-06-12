@@ -107,7 +107,7 @@ std::istream& operator >> (std::istream& out, qfirst& a);
 
 
 cvector cv_quaternion2axis(quaternion q);
-void q_normalize(quaternion *q);
+void normalize_q(quaternion *q);
 quaternion q_zero();
 quaternion q_conjugate(quaternion q);
 quaternion q_times(quaternion q1, quaternion q2);
@@ -142,7 +142,9 @@ quaternion q_evaluate_poly_accel(double x, std::vector< std::vector<double> > pa
 quaternion q_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
 
 double length_q(quaternion q);
-double q_norm(quaternion q);
+double norm_q(quaternion q);
+double sep_q(quaternion q1, quaternion q2);
+double inner_q(quaternion q1, quaternion q2);
 
 void qrotate(double ipos[3], double rpos[3], double angle, double *opos);
 avector a_quaternion2euler(quaternion q);

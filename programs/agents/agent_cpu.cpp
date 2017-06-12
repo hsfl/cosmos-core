@@ -37,9 +37,8 @@
 //#include <unistd.h>
 //#endif
 
-//using namespace std;
-using std::cout;
-using std::endl;
+//using std::cout;
+//using std::endl;
 
 // flag to turn on/off print
 bool printStatus;
@@ -120,7 +119,7 @@ int main(int argc, char *argv[])
     // Add additional requests
 
     agent = new Agent(nodename, agentname, 5.);
-    if (!agent->running() || agent->cinfo == nullptr)
+    if (agent->cinfo == nullptr || !agent->running())
     {
         cout << "Unable to start agent" << endl;
         exit(1);
@@ -371,7 +370,7 @@ int create_node () // only use when unsure what the node is
                 strcpy(cinfo->pdata.piece[i].name, "Main CPU");
                 break;
             default:
-                sprintf(cinfo->pdata.piece[i].name, "Drive %d", i);
+                sprintf(cinfo->pdata.piece[i].name, "Drive %lu", i);
 //                strcpy(cinfo->pdata.piece[i].name, "Main Drive");
                 break;
             }
@@ -387,6 +386,8 @@ int create_node () // only use when unsure what the node is
                 cinfo->pdata.piece[i].points[0].col[j] = 0.;
             }
             json_addpieceentry(i, cinfo->meta);
+            json_togglepieceentry(i, cinfo->meta, true);
+            cinfo->pdata.piece[i].enabled = true;
 
             cinfo->pdata.device[i].all.gen.pidx = i;
             cinfo->pdata.device[i].all.gen.cidx = i;
@@ -398,6 +399,7 @@ int create_node () // only use when unsure what the node is
                 cinfo->pdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
                 cinfo->pdata.device[i].cpu.maxload = 1.;
                 cinfo->pdata.device[i].cpu.maxgib = 1.;
+                json_adddeviceentry(i, 0, DEVICE_TYPE_CPU, cinfo->meta);
                 break;
             default:
                 cinfo->pdata.device[i].disk.maxgib = 1000.;
@@ -405,17 +407,20 @@ int create_node () // only use when unsure what the node is
                 cinfo->pdata.device[i].all.gen.didx = i-1;
                 cinfo->pdata.device[i].all.gen.portidx = cinfo->pdata.device[i].all.gen.didx;
                 cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].type = PORT_TYPE_DRIVE;
+                json_adddeviceentry(i, i-1, DEVICE_TYPE_DISK, cinfo->meta);
+                json_toggledeviceentry(i-1, DEVICE_TYPE_DISK, cinfo->meta, true);
 #ifdef COSMOS_WIN_OS
                 strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "c:/");
 #else
                 strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "/");
 #endif
-                json_addentry("port_name",cinfo->pdata.device[i].all.gen.didx,65535u,(ptrdiff_t)offsetof(portstruc,name)+(cinfo->pdata.device[i].all.gen.didx)*sizeof(portstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PORT,cinfo->meta);
-                json_addentry("port_type",cinfo->pdata.device[i].all.gen.didx,65535u,(ptrdiff_t)offsetof(portstruc,type)+(cinfo->pdata.device[i].all.gen.didx)*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PORT,cinfo->meta);
+                json_addportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta);
+                json_toggleportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta, true);
                 break;
             }
-            json_addcompentry(i, cinfo->meta, cinfo->pdata);
-            json_adddeviceentry(i, cinfo->meta, cinfo->pdata);
+            json_addcompentry(i, cinfo->meta);
+            json_togglecompentry(i, cinfo->meta, true);
+            cinfo->pdata.device[i].all.gen.enabled = true;
         }
 
         int32_t iretn = json_dump_node(cinfo->meta, cinfo->pdata);

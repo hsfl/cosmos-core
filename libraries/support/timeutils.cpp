@@ -32,7 +32,7 @@
 //typedef std::chrono::duration<int, std::ratio_multiply<std::chrono::hours::period, std::ratio<8>>::type> Days; /* UTC: +8:00 */
 
 
-#ifndef BUILD_TYPE_arm
+#ifndef CROSS_TYPE_arm
 // Convert time_t value to string
 std::string TimeUtils::timeString(const std::chrono::system_clock::time_point& tp)
 {

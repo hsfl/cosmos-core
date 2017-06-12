@@ -24,7 +24,7 @@ These instructions were tested on Windows 7.
 
 Choose a cross-toolchain for your particular device. In this example we use Linaro toolchain for ARM with hard float: linaro-toolchain-binaries 4.9 (little-endian). 
 The latest Linaro cross-compiler for the ARM (as of Feb 6 2015) 
-can be directly downloaded from  [http://releases.linaro.org/14.09/components/toolchain/binaries/](https://releases.linaro.org/archive/14.09/components/toolchain/binaries/) then 
+can be directly downloaded from  [http://releases.linaro.org/14.09/components/toolchain/binaries/](http://releases.linaro.org/archive/14.09/components/toolchain/binaries/) then 
 choose **gcc-linaro-arm-linux-gnueabihf-4.9-2014.09-20140911_win32.exe**
 
 This will install the cross compiler in a path like *

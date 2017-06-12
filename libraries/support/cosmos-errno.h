@@ -30,17 +30,20 @@
 #ifndef _COSMOS_ERROR_H
 #define _COSMOS_ERROR_H 1
 
+#include "support/configCosmos.h"
 #include <errno.h>
 
 /*!	\file cosmos-errno.h
 	\brief COSMOS Error Codes
-	\defgroup  error COSMOS Error codes
-	@{
-	Definitions of the error codes used throughout all COSMOS related software. These codes
-	are guaranteed to lie outside the range of general error codes, and further divided in to
-	groups of ten by area of applicability.
-	@}
-*/
+    */
+//! \ingroup support
+//! \defgroup  error COSMOS Error codes
+//! Error Codes.
+//!
+//! Definitions of the error codes used throughout all COSMOS related software. These codes
+//! are guaranteed to lie outside the range of general error codes, and further divided in to
+//! groups of ten by area of applicability. Support functions are provided for string
+//! versiosn of the error codes.
 
 //! \ingroup error
 //! \defgroup error_defines COSMOS Error Code definitions
@@ -148,9 +151,11 @@
 #define DATA_ERROR_FORMAT -364
 #define DATA_ERROR_RESOURCES_FOLDER -365 // if agent can't find the cosmos/resources folder
 #define DATA_ERROR_NODES_FOLDER -366
+#define DATA_ERROR_ROOT_FOLDER -367
 
 #define GIGE_ERROR_NACK -371
 
+#define CSSL_ERROR_BASE -380
 #define CSSL_ERROR_CHECKSUM -381
 #define CSSL_ERROR_READ -382
 #define CSSL_ERROR_TIMEOUT -383
@@ -160,6 +165,16 @@
 #define CSSL_ERROR_BUFFER_SIZE_EXCEEDED -387 
 #define CSSL_ERROR_BAD_ESCAPE -388
 
+#define SERIAL_ERROR_CHECKSUM -381
+#define SERIAL_ERROR_READ -382
+#define SERIAL_ERROR_TIMEOUT -383
+#define SERIAL_ERROR_EOT -384
+#define SERIAL_ERROR_SLIPIN -385
+#define SERIAL_ERROR_SLIPOUT -386
+#define SERIAL_ERROR_BUFFER_SIZE_EXCEEDED -387
+#define SERIAL_ERROR_BAD_ESCAPE -388
+#define SERIAL_ERROR_OPEN -389
+
 
 #define IC9100_ERROR_OPEN -391
 #define IC9100_ERROR_CLOSED -392
@@ -168,14 +183,6 @@
 #define IC9100_ERROR_NG -395
 #define IC9100_ERROR_READ -396
 #define IC9100_ERROR_ADDR -397
-
-#define ASTRODEV_ERROR_HEADER_CS -391
-#define ASTRODEV_ERROR_SYNC0 -392
-#define ASTRODEV_ERROR_NACK -393
-#define ASTRODEV_ERROR_PAYLOAD_CS -394
-#define ASTRODEV_ERROR_SYNC1 -395
-#define ASTRODEV_ERROR_HEADER -396
-#define ASTRODEV_ERROR_PAYLOAD -397
 
 #define GPS_ERROR_OPEN -401
 #define GPS_ERROR_CLOSED -402
@@ -193,7 +200,13 @@
 #define PIC_ERROR_ERR -426
 #define PIC_ERROR_TYPE -427
 
-#define CSSL_ERROR_BASE -439
+#define ASTRODEV_ERROR_HEADER_CS -431
+#define ASTRODEV_ERROR_SYNC0 -432
+#define ASTRODEV_ERROR_NACK -433
+#define ASTRODEV_ERROR_PAYLOAD_CS -434
+#define ASTRODEV_ERROR_SYNC1 -435
+#define ASTRODEV_ERROR_HEADER -436
+#define ASTRODEV_ERROR_PAYLOAD -437
 
 #define SUCHI_ERROR_CLOSED -441
 
@@ -233,7 +246,19 @@
 #define PRKX2SU_ERROR_OUTOFRANGE -523
 #define	PRKX2SU_ERROR_SEND -524
 
-#define GENERAL_OK                        0     /* everything is all right */
+#define CONVERT_ERROR_UTC -531
+
+
+#define CUBEADCS_SERIALCOMM_RESPONSE    -601
+#define CUBEADCS_INVALID_RESPONSE -602
+#define CUBEADCS_NOT_CONNECTED -603
+#define CUBEADCS_SERIAL_PROTOCOL -604
+
+#define CLYDEEPS_NOT_CONNECTED -611
+
+
+
+#define GENERAL_OK                        0      /* everything is all right */
 #define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
 #define GENERAL_ERROR_NOTSTARTED       -2002     /* uninitialized error */
 #define GENERAL_ERROR_NULLPOINTER      -2003     /* you gave a null pointer to the function */
@@ -251,7 +276,18 @@
 #define GENERAL_ERROR_TIMEOUT          -2015     /* a timer expired */
 #define GENERAL_ERROR_INPUT            -2016     /* invalid input was provided */
 #define GENERAL_ERROR_OUTPUT           -2017     /* output from a routine returned bad output, possibly related to bad input */
-#define GENERAL_ERROR_UNDEFINED           -2018
+#define GENERAL_ERROR_UNDEFINED        -2018
+
+
+
 
 //! @}
+
+
+//! \ingroup error
+//! \defgroup error_defines COSMOS Error Code definitions
+//! @{
+string cosmos_error_string(int32_t cosmos_errno);
+//! @}
+
 #endif
