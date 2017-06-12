@@ -64,6 +64,9 @@
 #define THROUGHPUT_HI 150000
 //#define TRANSFER_QUEUE_LIMIT 10
 
+// Debug Var
+bool debug_flag = false;
+
 #ifdef COSMOS_CYGWIN_OS
 #include<sstream>
 template <typename T>
@@ -161,6 +164,7 @@ int32_t active_node = -1;
 //int32_t node = -1;
 
 
+int32_t request_debug(char *request, char *response, Agent *agent);
 int32_t request_use_channel(char* request, char* response, Agent *agent);
 int32_t request_remove_file(char* request, char* response, Agent *agent);
 //int32_t request_send_file(char* request, char* response, Agent *agent);
@@ -228,9 +232,8 @@ int main(int argc, char *argv[])
     // port number = 0 in this case, automatic assignment of port
     printf("- Setting up server...");
     fflush(stdout);
-    agent = new Agent("", agentname);
 
-    if (agent->cinfo == nullptr)
+    if ((agent = new Agent("", agentname)) == NULL)
     {
         printf("- Could not setup server... exiting.\n\n");
         exit (-1);
@@ -330,12 +333,16 @@ int main(int argc, char *argv[])
         exit (iretn);
     if ((iretn=agent->add_request("list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
         exit (iretn);
+    if ((iretn=agent->add_request("debug",request_debug,"{0|1}","Toggle Debug information")))
+        exit (iretn);
 
-    thread send_loop_thread(send_loop);
-    thread recv_loop_thread(recv_loop);
-    thread transmit_loop_thread(transmit_loop);
+    std::thread send_loop_thread(send_loop);
+    std::thread recv_loop_thread(recv_loop);
+    std::thread transmit_loop_thread(transmit_loop);
 
     double nextdiskcheck = currentmjd(0.);
+    ElapsedTime etloop;
+    etloop.start();
 
     // start the agent
     while(agent->running())
@@ -401,6 +408,10 @@ int main(int argc, char *argv[])
                         {
                             nextdiskcheck = currentmjd();
                             outgoing_tx_add(file.node, file.agent, file.name);
+                            if (debug_flag)
+                            {
+                                printf("[%f] outgoing_tx_add: %s\n", etloop.split(), file.path.c_str());
+                            }
                         }
                     }
                 }
@@ -602,7 +613,10 @@ void recv_loop()
                                         }
                                         std::string final_filepath = tx_in.temppath + ".file";
                                         int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
-                                        printf("Renamed: %d %s\n", iret, tx_in.filepath.c_str());
+                                        if (debug_flag)
+                                        {
+                                            printf("Renamed: %d %s\n", iret, tx_in.filepath.c_str());
+                                        }
                                         // Mark complete
                                         txq[node].incoming.progress[tx_id].complete = true;
                                     }
@@ -649,7 +663,7 @@ void recv_loop()
                             // Add first entry
                             txq[node].outgoing.progress[tx_id].file_info.push_back(tp);
                             txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                            //							std::cout<<"[Send] In (new): "<<"["<<0<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[0].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[0].chunk_end<< std::endl;
+                            //							cout<<"[Send] In (new): "<<"["<<0<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[0].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[0].chunk_end<< std::endl;
                         }
                         else
                         {
@@ -669,7 +683,7 @@ void recv_loop()
                                     {
                                         txq[node].outgoing.progress[tx_id].file_info.insert(txq[node].outgoing.progress[tx_id].file_info.begin()+j, tp);
                                         txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                                        //										std::cout<<"[Send] In (insert): "<<"["<<j<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
+                                        //										cout<<"[Send] In (insert): "<<"["<<j<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
                                         break;
                                     }
                                     // Otherwise, extend the near end
@@ -679,7 +693,7 @@ void recv_loop()
                                         txq[node].outgoing.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
                                         byte_count = (tp.chunk_end - tp.chunk_start) + 1;
                                         txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                                        //										std::cout<<"[Send] In (extend near): "<<"["<<j<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
+                                        //										cout<<"[Send] In (extend near): "<<"["<<j<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
                                         break;
                                     }
                                 }
@@ -694,7 +708,7 @@ void recv_loop()
                                             tp.chunk_start = txq[node].outgoing.progress[tx_id].file_info[j].chunk_end + 1;
                                             txq[node].outgoing.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
                                             txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                                            //											std::cout<<"[Send] In (extend far): "<<"["<<j<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
+                                            //											cout<<"[Send] In (extend far): "<<"["<<j<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
                                             break;
                                         }
                                     }
@@ -708,7 +722,7 @@ void recv_loop()
                             {
                                 txq[node].outgoing.progress[tx_id].file_info.push_back(tp);
                                 txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                                //								std::cout<<"[Send] In (append): "<<"["<<check<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[check].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[check].chunk_end<< std::endl;
+                                //								cout<<"[Send] In (append): "<<"["<<check<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[check].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[check].chunk_end<< std::endl;
                             }
 
                         }
@@ -1218,57 +1232,60 @@ int32_t myrecvfrom(std::string type, socket_channel channel, std::vector<PACKET_
 
 void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
 {
-    printf("[%.15g %s (%" PRIu64 ")] ", currentmjd(), type.c_str(), buf.size());
-    switch (buf[0] & 0x0f)
+    if (debug_flag)
     {
-    case PACKET_METADATA:
+        printf("[%.15g %s (%" PRIu32 ")] ", currentmjd(), type.c_str(), buf.size());
+        switch (buf[0] & 0x0f)
         {
-            std::string file_name(&buf[PACKET_METASHORT_FILE_NAME], &buf[PACKET_METASHORT_FILE_NAME+TRANSFER_MAX_FILENAME]);
-            printf("[METADATA] %u %u %s ", buf[PACKET_METASHORT_NODE_ID], buf[PACKET_METASHORT_TX_ID], file_name.c_str());
-            break;
+        case PACKET_METADATA:
+            {
+                std::string file_name(&buf[PACKET_METASHORT_FILE_NAME], &buf[PACKET_METASHORT_FILE_NAME+TRANSFER_MAX_FILENAME]);
+                printf("[METADATA] %u %u %s ", buf[PACKET_METASHORT_NODE_ID], buf[PACKET_METASHORT_TX_ID], file_name.c_str());
+                break;
+            }
+        case PACKET_DATA:
+            {
+                printf("[DATA] %u %u %u %u ", buf[PACKET_DATA_NODE_ID], buf[PACKET_DATA_TX_ID], buf[PACKET_DATA_CHUNK_START]+256U*(buf[PACKET_DATA_CHUNK_START+1]+256U*(buf[PACKET_DATA_CHUNK_START+2]+256U*buf[PACKET_DATA_CHUNK_START+3])), buf[PACKET_DATA_BYTE_COUNT]+256U*buf[PACKET_DATA_BYTE_COUNT+1]);
+                break;
+            }
+        case PACKET_REQDATA:
+            {
+                printf("[REQDATA] %u %u %u %u ", buf[PACKET_REQDATA_NODE_ID], buf[PACKET_REQDATA_TX_ID], buf[PACKET_REQDATA_HOLE_START]+256U*(buf[PACKET_REQDATA_HOLE_START+1]+256U*(buf[PACKET_REQDATA_HOLE_START+2]+256U*buf[PACKET_REQDATA_HOLE_START+3])), buf[PACKET_REQDATA_HOLE_END]+256U*(buf[PACKET_REQDATA_HOLE_END+1]+256U*(buf[PACKET_REQDATA_HOLE_END+2]+256U*buf[PACKET_REQDATA_HOLE_END+3])));
+                break;
+            }
+        case PACKET_REQMETA:
+            {
+                printf("[REQMETA] %u %s ", buf[PACKET_REQMETA_NODE_ID], &buf[PACKET_REQMETA_NODE_NAME]);
+                for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
+                    if (buf[PACKET_REQMETA_TX_ID+i])
+                    {
+                        printf("%u ", buf[PACKET_REQMETA_TX_ID+i]);
+                    }
+                break;
+            }
+        case PACKET_COMPLETE:
+            {
+                printf("[COMPLETE] %u %u ", buf[PACKET_COMPLETE_NODE_ID], buf[PACKET_COMPLETE_TX_ID]);
+                break;
+            }
+        case PACKET_CANCEL:
+            {
+                printf("[CANCEL] %u %u ", buf[PACKET_CANCEL_NODE_ID], buf[PACKET_CANCEL_TX_ID]);
+                break;
+            }
+        case PACKET_QUEUE:
+            {
+                printf("[QUEUE] %u %s ", buf[PACKET_QUEUE_NODE_ID], &buf[PACKET_QUEUE_NODE_NAME]);
+                for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
+                    if (buf[PACKET_QUEUE_TX_ID+i])
+                    {
+                        printf("%u ", buf[PACKET_QUEUE_TX_ID+i]);
+                    }
+            }
         }
-    case PACKET_DATA:
-        {
-            printf("[DATA] %u %u %u %u ", buf[PACKET_DATA_NODE_ID], buf[PACKET_DATA_TX_ID], buf[PACKET_DATA_CHUNK_START]+256U*(buf[PACKET_DATA_CHUNK_START+1]+256U*(buf[PACKET_DATA_CHUNK_START+2]+256U*buf[PACKET_DATA_CHUNK_START+3])), buf[PACKET_DATA_BYTE_COUNT]+256U*buf[PACKET_DATA_BYTE_COUNT+1]);
-            break;
-        }
-    case PACKET_REQDATA:
-        {
-            printf("[REQDATA] %u %u %u %u ", buf[PACKET_REQDATA_NODE_ID], buf[PACKET_REQDATA_TX_ID], buf[PACKET_REQDATA_HOLE_START]+256U*(buf[PACKET_REQDATA_HOLE_START+1]+256U*(buf[PACKET_REQDATA_HOLE_START+2]+256U*buf[PACKET_REQDATA_HOLE_START+3])), buf[PACKET_REQDATA_HOLE_END]+256U*(buf[PACKET_REQDATA_HOLE_END+1]+256U*(buf[PACKET_REQDATA_HOLE_END+2]+256U*buf[PACKET_REQDATA_HOLE_END+3])));
-            break;
-        }
-    case PACKET_REQMETA:
-        {
-            printf("[REQMETA] %u %s ", buf[PACKET_REQMETA_NODE_ID], &buf[PACKET_REQMETA_NODE_NAME]);
-            for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                if (buf[PACKET_REQMETA_TX_ID+i])
-                {
-                    printf("%u ", buf[PACKET_REQMETA_TX_ID+i]);
-                }
-            break;
-        }
-    case PACKET_COMPLETE:
-        {
-            printf("[COMPLETE] %u %u ", buf[PACKET_COMPLETE_NODE_ID], buf[PACKET_COMPLETE_TX_ID]);
-            break;
-        }
-    case PACKET_CANCEL:
-        {
-            printf("[CANCEL] %u %u ", buf[PACKET_CANCEL_NODE_ID], buf[PACKET_CANCEL_TX_ID]);
-            break;
-        }
-    case PACKET_QUEUE:
-        {
-            printf("[QUEUE] %u %s ", buf[PACKET_QUEUE_NODE_ID], &buf[PACKET_QUEUE_NODE_NAME]);
-            for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                if (buf[PACKET_QUEUE_TX_ID+i])
-                {
-                    printf("%u ", buf[PACKET_QUEUE_TX_ID+i]);
-                }
-        }
+        printf("\n");
+        fflush(stdout);
     }
-    printf("\n");
-    fflush(stdout);
 }
 
 int32_t write_meta(tx_progress& tx)
@@ -1378,7 +1395,10 @@ int32_t read_meta(tx_progress& tx)
         tx.file_info.push_back(progress_info);
     } while(!file_name.eof());
     file_name.close();
-    printf("read_meta: %s tx_id: %u chunks: %" PRIu64 "\n", (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+    if (debug_flag)
+    {
+        printf("read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+    }
 
     // fix any overlaps and count total bytes
     merge_chunks_overlap(tx);
@@ -1493,7 +1513,7 @@ std::vector<file_progress> find_chunks_missing(tx_progress& tx)
 int32_t request_ls(char* request, char* response, Agent *agent)
 {
 
-    //the request std::string == "ls directoryname"
+    //the request string == "ls directoryname"
     //get the directory name
 //    char directoryname[COSMOS_MAX_NAME+1];
 //    memmove(directoryname, request+3, COSMOS_MAX_NAME);
@@ -1600,9 +1620,9 @@ int32_t request_remove_file(char* request, char* response, Agent *agent)
 //	//the request string == "send_file agent_name file_name packet_size"
 
 //	//get the agent, file name and packet_size
-//	char file_name[COSMOS_MAX_NAME+1];
-//	char agent_name[COSMOS_MAX_NAME+1];
-//	char node_name[COSMOS_MAX_NAME+1];
+//	char file_name[COSMOS_MAX_NAME];
+//	char agent_name[COSMOS_MAX_NAME];
+//	char node_name[COSMOS_MAX_NAME];
 //	uint16_t channel=0;
 
 //	sscanf(request+10, "%40s %40s %40s %hu", node_name, agent_name, file_name, &channel);
@@ -1656,7 +1676,10 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     ++txq[node].outgoing.size;
     outgoing_tx_lock.unlock();
 
-    printf("Add outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+    if (debug_flag)
+    {
+        printf("Add outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+    }
 
     return 0;
 }
@@ -1771,7 +1794,10 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     std::string meta_filepath = tx_out.temppath + ".meta";
     remove(meta_filepath.c_str());
 
-    printf("Del outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+    if (debug_flag)
+    {
+        printf("Del outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+    }
 
     return 0;
 }
@@ -1801,7 +1827,10 @@ int32_t incoming_tx_add(tx_progress tx_in)
     txq[node].incoming.progress[tx_in.tx_id] = tx_in;
     ++txq[node].incoming.size;
 
-    printf("Add incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+    if (debug_flag)
+    {
+        printf("Add incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+    }
 
     return 0;
 }
@@ -1859,7 +1888,10 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
         write_meta(txq[node].incoming.progress[meta.tx_id]);
     }
 
-    printf("Update incoming: %u %s %s %s\n", txq[node].incoming.progress[meta.tx_id].tx_id, txq[node].incoming.progress[meta.tx_id].node_name.c_str(), txq[node].incoming.progress[meta.tx_id].agent_name.c_str(), txq[node].incoming.progress[meta.tx_id].file_name.c_str());
+    if (debug_flag)
+    {
+        printf("Update incoming: %u %s %s %s\n", txq[node].incoming.progress[meta.tx_id].tx_id, txq[node].incoming.progress[meta.tx_id].node_name.c_str(), txq[node].incoming.progress[meta.tx_id].agent_name.c_str(), txq[node].incoming.progress[meta.tx_id].file_name.c_str());
+    }
 
     return meta.tx_id;
 }
@@ -1905,7 +1937,10 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
         txq[node].incoming.id = 0;
     }
 
-    printf("Del incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+    if (debug_flag)
+    {
+        printf("Del incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+    }
 
     return 0;
 
@@ -2062,4 +2097,16 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
         }
     }
     return tx_id;
+}
+
+int32_t request_debug(char *request, char *response, Agent *agent)
+{
+
+    std::string requestString = std::string(request);
+    StringParser sp(requestString, ' ');
+
+    debug_flag = sp.getFieldNumberAsDouble(2); // should be getFieldNumberAsBoolean
+
+    std::cout << "debug_flag: " << debug_flag << std::endl;
+    return 0;
 }
