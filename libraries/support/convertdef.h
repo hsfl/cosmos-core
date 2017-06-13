@@ -92,6 +92,7 @@
 //! Geocentric location of Honolulu
 #define GEOC_HONOLULU {{-5588871.,-2278876.,2353191.}}
 
+// TODO: create SGP4 module
 // SGP4 constants
 #define SGP4_CK2 5.413080E-4
 #define SGP4_CK4 0.62098875E-6

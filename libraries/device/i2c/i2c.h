@@ -54,7 +54,7 @@ namespace Cosmos {
         //        string name;
 //        int32_t connect();
         int32_t get_funcs();
-        int32_t set_address(ulong address);
+        int32_t set_address(uint64_t address);
         int32_t send(std::string data);
         int32_t send(uint8_t *data, size_t len);
         int32_t send(vector <uint8_t> data);
@@ -72,7 +72,7 @@ namespace Cosmos {
             string bus;
             uint8_t address;
             int fh = -1;
-            ulong funcs;
+            uint64_t funcs;
             bool connected = false;
             double delay = 1e-4;
         } handle;
