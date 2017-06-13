@@ -972,6 +972,7 @@ int32_t set_cosmosroot(bool create_flag)
 
     if (cosmosroot.empty())
     {
+        // if the COSMOS environment variable was set, use it
         if ((troot = getenv("COSMOS")) != nullptr)
         {
             croot = troot;
@@ -982,7 +983,9 @@ int32_t set_cosmosroot(bool create_flag)
         }
 
         // No environment variables set. Look in standard location.
-#ifdef COSMOS_LINUX_OS
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
+        // default path on macOS and linux is home folder for running user
+
         if ((troot = getenv("HOME")) != nullptr)
         {
             croot = troot + (string)"/cosmos";
@@ -992,10 +995,6 @@ int32_t set_cosmosroot(bool create_flag)
             croot = "";
             return (DATA_ERROR_ROOT_FOLDER);
         }
-#endif
-
-#ifdef COSMOS_MAC_OS
-        croot = "/Applications/cosmos";
 #endif
 
 #ifdef COSMOS_WIN_OS
@@ -1333,6 +1332,7 @@ int32_t set_cosmosnodes(bool create_flag)
 
     if (cosmosnodes.empty())
     {
+        // find environment variable COSMOSNODES
         if ((troot = getenv("COSMOSNODES")) != nullptr)
         {
             croot = troot;
@@ -1345,7 +1345,7 @@ int32_t set_cosmosnodes(bool create_flag)
                 return iretn;
             }
         }
-        else
+        else // look for the default path ~/cosmos/nodes
         {
             if ((iretn = set_cosmosroot(create_flag)) == 0)
             {

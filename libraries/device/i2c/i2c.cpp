@@ -57,7 +57,9 @@ namespace Cosmos {
             handle.fh = -1;
             return;
         }
-
+        // only works for linux for now
+        // TODO: expand to mac and windows
+#ifdef COSMOS_LINUX_OS
         if (ioctl(handle.fh, I2C_FUNCS, &handle.funcs) < 0)
         {
             error = - errno;
@@ -86,7 +88,7 @@ namespace Cosmos {
             handle.fh = -1;
             return;
         }
-
+#endif
         handle.connected = true;
         return;
     }
