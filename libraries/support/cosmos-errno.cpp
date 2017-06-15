@@ -224,6 +224,9 @@ string cosmos_error_string(int32_t cosmos_errno)
         case MATH_ERROR_GJ_OUTOFRANGE:
             error_string = "MATH_ERROR_GJ_OUTOFRANGE";
             break;
+        case AGENT_ERROR_SERVER_RUNNING:
+            error_string = "Agent Server was running in another instance";
+            break;
         case AGENT_ERROR_LCM_CREATE:
             error_string = "AGENT_ERROR_LCM_CREATE";
             break;

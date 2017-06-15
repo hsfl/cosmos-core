@@ -56,6 +56,12 @@ int main(int, char **)
     string agent002  = "002"; //name of the agent that the request is directed to
     agent = new Agent(nodename, agentname);
 
+    if (agent->last_error()<0)
+    {
+        cout<<"unable to start agent_exec (" << agent->last_error() << ") " << cosmos_error_string(agent->last_error()) <<endl;
+        exit(1);
+    }
+
     beatstruc beat_agent_002;
 
     beat_agent_002 = agent->find_server(nodename, agent002, 2.);
