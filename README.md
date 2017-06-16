@@ -129,3 +129,40 @@ when running another program. You will need to disable this behavior
 to run the two agents at the same time. Go to Tools > Options > Build
 and Run > General.  Change 'Stop applications before building:' to
 None.
+
+##Troubleshooting
+**Cmake was not found**: This means that Qt was not able to find Cmake. To fix it (assuming that Cmake is installed), in your Qt window go to Tools -> Options -> Build and Run -> Cmake.  If nothing is listed under Auto-detected then click Add, give it a name, and under path put C:\Program Files\CMake\bin\cmake.exe (if you installed Cmake into a different folder or you are using a different OS then change the path appropriately).
+
+**Path not found**: This means that the path the built programs wasn't made. To fix, open a terminal and enter the following commands for your respective OS.
+
+**Linux**:
+```
+#!shell
+
+cd
+vi .profile
+```
+this should open up a text file. Using the arrow keys, go to the bottom of the file and add a new line (hit "**Esc**" to switch to typing mode):
+
+PATH="HOME/cosmos/bin:$PATH"
+
+Then hit "**Esc**" (to exit typing mode) **: x** "**Enter**" (to exit). Once you are outside of the file, type in
+```
+#!shell
+
+source .profile
+```
+to check that the path was updated, use
+```
+#!shell
+
+echo $PATH
+```
+
+**Windows**
+
+**path=C:\cosmos\bin**
+**path=C:\Qt\Tools\mingw530_32\bin**
+
+These two commands will link to the bin in your cosmos folder and the compiler that you use in Qt respectively.
+If your cosmos or Qt folder is in a different location, or if you are using a different compiler in Qt, change the entered path appropriately.
