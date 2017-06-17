@@ -161,9 +161,9 @@ echo $PATH
 
 **Windows**
 
-**path=C:\cosmos\bin**
+**path=%PATH%;C:\cosmos\bin**
 
-**path=C:\Qt\Tools\mingw530_32\bin**
+**path=%PATH%;C:\Qt\Tools\mingw530_32\bin**
 
 These two commands will link to the bin in your cosmos folder and the compiler that you use in Qt respectively.
 If your cosmos or Qt folder is in a different location, or if you are using a different compiler in Qt, change the entered path appropriately.
