@@ -71,6 +71,7 @@ namespace Cosmos {
     //! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
     //! the Agent already running.
     //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
+    //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it.
     Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, size_t dlevel)
     {
         int32_t iretn;
@@ -138,12 +139,21 @@ namespace Cosmos {
             return;
         }
 
+        if (strlen(cinfo->pdata.node.name)>COSMOS_MAX_NAME || aname.length()>COSMOS_MAX_NAME)
+        {
+            error_value = JSON_ERROR_NAME_LENGTH;
+            Agent::shutdown();
+            return;
+        }
+
+
         // If not Multi, check if this Agent is already running
         char tname[COSMOS_MAX_NAME+1];
         if (!mflag)
         {
-            if (strlen(cinfo->pdata.node.name)>COSMOS_MAX_NAME || aname.length()>COSMOS_MAX_NAME || Agent::get_server(cinfo->pdata.node.name, aname, timeoutSec, (beatstruc *)NULL))
+            if (Agent::get_server(cinfo->pdata.node.name, aname, timeoutSec, (beatstruc *)NULL))
             {
+                error_value = AGENT_ERROR_SERVER_RUNNING;
                 Agent::shutdown();
                 return;
             }
@@ -153,6 +163,7 @@ namespace Cosmos {
         {
             if (strlen(cinfo->pdata.node.name)>COSMOS_MAX_NAME-4 || aname.size()>COSMOS_MAX_NAME-4)
             {
+                error_value = JSON_ERROR_NAME_LENGTH;
                 Agent::shutdown();
                 return;
             }
@@ -196,6 +207,7 @@ namespace Cosmos {
         iretn = Agent::publish(cinfo->pdata.agent[0].beat.ntype, AGENTSENDPORT);
         if (iretn)
         {
+            error_value = iretn;
             Agent::shutdown();
             return;
         }
@@ -206,6 +218,8 @@ namespace Cosmos {
         cthread = thread([=] { request_loop(); });
         if (!hthread.joinable() || !cthread.joinable())
         {
+            // TODO: create error value
+            //error_value = iretn;
             Agent::shutdown();
             return;
         }

@@ -1,5 +1,4 @@
-Install COSMOS on Mac OS X {#install-mac}
-==========================
+# Install COSMOS on Mac OS X {#install-mac}
 
 The COSMOS software has been tested with Qt5.4 on MacOX 10.10 
 with Xcode clang 64bit
@@ -7,8 +6,8 @@ with Xcode clang 64bit
 We assume (and strongly suggest) that you have the COSMOS folder in 
 /Applications/COSMOS/
 
-Getting Started
---------------
+## Getting Started
+
 1. install the latest Qt version for Mac from 
 	http://www.qt.io/download-open-source/
 
