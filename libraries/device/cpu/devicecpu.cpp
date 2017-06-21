@@ -170,7 +170,7 @@ double DeviceCpu::getPercentUseForCurrentProcess(){
 
 string DeviceCpu::getHostName()
 {
-#if defined(COSMOS_LINUX_OS)
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
     hostName = cpuLinux.getHostName();
 #endif
 
@@ -245,8 +245,6 @@ double DeviceCpu::BytesToMB(double bytes)
 {
     return bytes/1000./1000.;
 }
-
-
 
 
 
@@ -722,6 +720,26 @@ void DeviceCpu::stress(){
 // MACOS
 // ----------------------------------------------
 #if defined (COSMOS_MAC_OS)
+double getTimeInSec() {
+    timeval t;
+    gettimeofday(&t, NULL);
+    return (double)t.tv_sec + (double)t.tv_usec / 1000000.0;;
+}
+
+double get_cpu_time(){
+    return (double)clock() / CLOCKS_PER_SEC;
+}
+
+DeviceCpuLinux::DeviceCpuLinux()
+{
+    load1minAverage = 0.0;
+    //initCpuUtilization();
+
+    tic = getTimeInSec();
+    lastCPUtime  = get_cpu_time();
+}
+
+
 double cpu_load()
 {
     double avg;
@@ -729,6 +747,15 @@ double cpu_load()
     return avg;
 
 }
+
+string DeviceCpuLinux::getHostName() // NOT TESTED
+{
+    char hostname[128];
+    gethostname(hostname, sizeof hostname);
+    return (string)hostname;
+}
+
+
 #endif
 
 
