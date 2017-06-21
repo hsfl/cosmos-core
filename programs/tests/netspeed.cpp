@@ -1,12 +1,8 @@
-#include "configCosmos.h"
-//#include <sys/types.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <cstring>
-#include <math.h>
+#include "support/configCosmos.h"
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <cstring>
+//#include <math.h>
 #include <signal.h>
 #include <sys/time.h>
 

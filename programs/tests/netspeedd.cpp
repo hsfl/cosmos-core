@@ -1,11 +1,10 @@
-#include "configCosmos.h"
-//#include <sys/types.h>
+#include "support/configCosmos.h"
 #include <sys/timeb.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <sys/time.h>
 #include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
+//#include <stdlib.h>
+//#include <unistd.h>
 
 /*
 void abort_func(int sig, int code, struct sigcontext *scp, char *addr);
