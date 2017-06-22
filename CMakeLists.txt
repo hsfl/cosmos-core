@@ -225,7 +225,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         # Set Compiler flags
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+#        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
         message("Build with GCC")
 
