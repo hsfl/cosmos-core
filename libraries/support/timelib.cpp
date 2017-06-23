@@ -1291,32 +1291,6 @@ std::string mjdToGregorian(double mjd)
     char gregorianDateTime[25];
     int year=0, month=0, day=0;
     int hour=0, minute=0, second=0;
-    //    double seconds;
-    //    int j;
-    //    double fd=0.;
-
-    //    mjd2cal(mjd, &year, &month, &day, &fd, &j);
-
-    //    // !! create mjd2cal(mjd, &year, &month, &day, &hours, &minutes, &seconds)
-    //    // and use this instead for all ToGregorian functions
-    //    hours = (int)(24 * fd);
-    //    fd -= hours / 24.;
-    //    minutes = (int)(1440 * fd);
-    //    fd -= minutes / 1440.;
-    //    seconds = (86400 * fd);
-    //    int int_seconds = (int)round(seconds);
-
-    //    // don't let seconds be 60
-    //    if (int_seconds == 60){
-    //        int_seconds = 0;
-    //        minutes ++;
-    //    }
-
-    //    // don't let minutes be 60
-    //    if (minutes == 60){
-    //        minutes = 0;
-    //        hours ++;
-    //    }
 
     mjdToGregorian(mjd, year, month, day, hour, minute, second);
 
@@ -1326,6 +1300,30 @@ std::string mjdToGregorian(double mjd)
 
     return std::string(gregorianDateTime);
 }
+
+
+// TODO: modifiy this function to accept a generic format as input.
+// example: "YYYY-MM-DDTHHMMSS"
+/*! Convert Modified Julian Date to international standard Gregorian
+ * Date-Time in the format: YYYY-MM-DDTHHMMSS (ex. 2014-09-15T120000)
+ * \param mjd Time in Modified Julian Days
+ * \return gregorianDateTime in the format (YYYY-MM-DDTHHMMSS)
+ */
+std::string mjdToGregorianFormat(double mjd)
+{
+    char gregorianDateTime[25];
+    int year=0, month=0, day=0;
+    int hour=0, minute=0, second=0;
+
+    mjdToGregorian(mjd, year, month, day, hour, minute, second);
+
+    sprintf(gregorianDateTime, "%04d-%02d-%02dT%02d%02d%02d",
+            year, month, day,
+            hour, minute, second);
+
+    return std::string(gregorianDateTime);
+}
+
 
 
 

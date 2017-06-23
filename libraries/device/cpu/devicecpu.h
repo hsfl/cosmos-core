@@ -194,7 +194,7 @@ public:
     double BytesToMiB(double bytes);
     double BytesToMB(double bytes);
 
-#if defined(COSMOS_LINUX_OS)
+#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
     DeviceCpuLinux cpuLinux;
 #endif
 

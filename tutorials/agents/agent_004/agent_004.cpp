@@ -28,15 +28,15 @@
 ********************************************************************/
 
 // Example of an agent making a request to another agent
-// agent 001 makes request to 002 upon activation
+// agent 004 makes request to 002 upon activation
 
 // the single quote only works on linux
-// test: agent telem 001 'setvalue {"device_telem_vint16_000":10}'
-// test: agent telem 001 'getvalue {"device_telem_vint16_000"}'
+// test: agent telem 004 'setvalue {"device_telem_vint16_000":10}'
+// test: agent telem 004 'getvalue {"device_telem_vint16_000"}'
 
 // the single quote only works on windows
-// test: agent telem 001 "setvalue {\"device_telem_vint16_000\":10}"
-// test: agent telem 001 "getvalue {\"device_telem_vint16_000\"}"
+// test: agent telem 004 "setvalue {\"device_telem_vint16_000\":10}"
+// test: agent telem 004 "getvalue {\"device_telem_vint16_000\"}"
 
 #include "support/configCosmos.h"
 #include "support/elapsedtime.h"
@@ -51,16 +51,10 @@ Agent *agent;
 int main(int, char **)
 {
 
-    string agentname = "001";
+    string agentname = "004";
     string nodename  = "cubesat1";
     string agent002  = "002"; //name of the agent that the request is directed to
     agent = new Agent(nodename, agentname);
-
-    if (agent->last_error()<0)
-    {
-        cout<<"unable to start agent_exec (" << agent->last_error() << ") " << cosmos_error_string(agent->last_error()) <<endl;
-        exit(1);
-    }
 
     beatstruc beat_agent_002;
 

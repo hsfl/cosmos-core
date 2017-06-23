@@ -44,15 +44,16 @@ PrintUtils::PrintUtils()
 void PrintUtils::reset()
 {
     // default values
-    printOn        = true; // start with a default printing behaviour
-    precision      = -1; // start with no set precision
-    fieldwidth     = -1; // start with no set fieldwidth
-    scale          = 1;  // start with no scale factor
-    prefix         = ""; // start with no prefix text
-    suffix         = ""; // start with no suffix text
-    use_brackets   = false; // start with no brackets around text
-    delimiter      = ","; // start with coma delimiter
+    printOn = true; // start with a default printing behaviour
+    precision = -1; // start with no set precision
+    fieldwidth = -1; // start with no set fieldwidth
+    scale = 1;  // start with no scale factor
+    prefix = ""; // start with no prefix text
+    suffix = ""; // start with no suffix text
+    use_brackets = false; // start with no brackets around text
+    delimiter = ","; // start with coma delimiter
     delimiter_flag = false; // start with no delimiter flags, user has to turn on this flag for use
+    fullMessage = ""; // clear the full message
 }
 
 void PrintUtils::text(std::string text)
