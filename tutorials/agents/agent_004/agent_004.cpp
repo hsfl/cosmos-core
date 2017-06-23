@@ -28,7 +28,7 @@
 ********************************************************************/
 
 // Example of an agent making a request to another agent
-// agent 004 makes request to 002 upon activation
+// agent 004 makes request to any agent upon activation
 
 // the single quote only works on linux
 // test: agent telem 004 'setvalue {"device_telem_vint16_000":10}'
@@ -54,11 +54,17 @@ int main(int, char **)
     string agentname = "004";
     string nodename  = "cubesat1";
     string agent002  = "002"; //name of the agent that the request is directed to
+    string agent005  = "005"; //name of the agent that the request is directed to
+    string agent008  = "008"; //name of the agent that the request is directed to
     agent = new Agent(nodename, agentname);
 
     beatstruc beat_agent_002;
+    beatstruc beat_agent_005;
+    beatstruc beat_agent_008;
 
     beat_agent_002 = agent->find_server(nodename, agent002, 2.);
+    beat_agent_005 = agent->find_server(nodename, agent002, 2.);
+    beat_agent_008 = agent->find_server(nodename, agent002, 2.);
 
     string requestString = "request_hello";
     std::string response;
@@ -67,6 +73,8 @@ int main(int, char **)
     while(agent->running())
     {
         agent->send_request(beat_agent_002, requestString, response, 2.);
+        agent->send_request(beat_agent_005, requestString, response, 2.);
+        agent->send_request(beat_agent_008, requestString, response, 2.);
 
         if ( response.size() > 1) {
 
@@ -76,10 +84,10 @@ int main(int, char **)
 
         } else {
 
-            cout << "What happened to agent_002 ??? let's try to find it ..." << endl;
+            cout << "Any agents out there??" << endl;
             beat_agent_002.node[0] = '\0'; // reset
             beat_agent_002 = agent->find_server(nodename, agent002, 2.);
-            cout << "beat agent 002 node: " << beat_agent_002.utc << endl;
+//            cout << "beat agent 002 node: " << beat_agent_002.utc << endl;
 
         }
 
