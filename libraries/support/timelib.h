@@ -184,6 +184,7 @@ int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &
 std::string mjdToGregorian(double mjd);
 int32_t mjdToGregorian(double mjd, int32_t *year, int32_t *month, int32_t *day,
                        int32_t *hour, int32_t *minute, int32_t *second);
+std::string mjdToGregorianFormat(double mjd);
 std::string  mjdToGregorianDDMMMYYYY(double mjd);
 std::string  mjdToGregorianDDMmmYYYY(double mjd);
 std::string  mjd2iso8601(double mjd);
