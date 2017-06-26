@@ -10,4 +10,5 @@
 
 if(${BUILD_TUTORIALS} MATCHES "YES")
     add_subdirectory(agents)
+    add_subdirectory(physics)
 endif()

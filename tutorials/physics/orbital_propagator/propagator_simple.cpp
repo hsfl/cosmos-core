@@ -34,12 +34,12 @@
 #include <sys/stat.h>
 #include <typeinfo>
 
-#include "physicslib.h"
-#include "mathlib.h"
-#include "agentlib.h"
-#include "jsonlib.h"
-#include "datalib.h"
-#include "print_utils.h"
+#include "physics/physicslib.h"
+#include "math/mathlib.h"
+#include "agent/agentclass.h"
+#include "support/jsonlib.h"
+#include "support/datalib.h"
+#include "support/print_utils.h"
 
 using namespace std;
 // ------------------------------------------------------------------
@@ -61,10 +61,14 @@ char buffer[255] = "";
 cosmosstruc* cdata;
 vector<shorteventstruc> eventdict;
 vector<shorteventstruc> events;
-jstring mainjstring={0,0,0};
+// EH 2017-06-26: changed jstring to string
+// but this is still not working, Eric must check!!!
+string mainjstring={0,0,0};
 
 void printMjdAndDateTime(double mjd){
-    cout << setprecision(10) << mjd << " (" << mjd2human(mjd) << ")"; // << endl;
+    // EH 2017-06-26: I have no idea of what mjd2human is ... Miguel please check this
+    // update: I included time_utils and jounf mjd2human
+    cout << setprecision(10) << mjd << " (" << mjdToGregorian(mjd) << ")"; // << endl;
 }
 
 int main(int argc, char* argv[]){
