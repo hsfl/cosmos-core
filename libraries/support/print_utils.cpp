@@ -186,6 +186,10 @@ void PrintUtils::vector(std::string vector_name,
     vector(vector_name, v, scale, suffix, precision, fieldwidth);
 }
 
+void PrintUtils::vector(std::string prefix, rvector v, std::string suffix, int precision)
+{
+    vector(prefix, v, scale, suffix, precision, fieldwidth);
+}
 
 // ----------------------------------------------
 // Scalar prints
