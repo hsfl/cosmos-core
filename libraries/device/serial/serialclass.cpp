@@ -120,8 +120,21 @@ namespace Cosmos {
 
             /* and close the file */
             close(fd);
+			fd = -1;
         }
     }
+
+	bool Serial::get_open()
+	{
+		if (fd >= 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 
     int32_t Serial::get_error()
     {
