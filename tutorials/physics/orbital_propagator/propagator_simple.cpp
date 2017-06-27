@@ -74,6 +74,7 @@ void printMjdAndDateTime(double mjd){
 int main(int argc, char* argv[]){
 
     // for propagator
+    gj_handle gjh; //CT 2017-06-27:added for later use
     int32_t order   = 6; // integration order
     int32_t mode    = 1; // attitude mode (0 - propagate?, 1-LVLH, ...)
     double dt       = 1; // >> check with Eric .1 or 1?
@@ -208,20 +209,28 @@ int main(int argc, char* argv[]){
     initState.pos.eci.pass++;
     pos_eci(&initState);
 
+    // initializing gj_handle
+    //CT 2017-06-27:setting up the gj_handle
+    gauss_jackson_setup(gjh, order, initState.utc, dt);
+
     // initialize propagator
     //CT 2017-06-26: couldn't find a gj_handle data type for this function to use
-    gauss_jackson_init_eci(order,
+    //CT 2017-06-27: adjusting arguments to match function call (might be "state" instead of "cdata->pdata.node.loc")
+    gauss_jackson_init_eci(gjh,
+                           order,
                            mode,
                            dt,
                            currentmjd(),// use curretn time instead of initState.utc for this demo, otherwise it will take a long time to update
                            initState.pos.eci,
                            initState.att.icrf,
-                           cdata);
+                           cdata->pdata.physics,
+                           cdata->pdata.node.loc);
 
     // propagate state to current time so we get an updated state vector
     // to initialize the GPS sim
     //CT 2017-06-26: couldn't find a gj_handle data type for this function to use
-    gauss_jackson_propagate(cdata, currentmjd());
+    //CT 2017-06-27: does this need a variable to store the vector it's about to create?(might be "state" instead of "cdata->pdata.node.loc")
+    gauss_jackson_propagate(gjh, cdata->pdata.physics, cdata->pdata.node.loc, currentmjd());
 
     //get initial sim tim
     double mjd_start_sim = currentmjd();
@@ -241,7 +250,8 @@ int main(int argc, char* argv[]){
 
             // propagate
             //CT 2017-06-26: cannot find gj_handle data type for function to use
-            gauss_jackson_propagate(cdata, utc_now);
+            //CT 2017-06-27: added gj_handle and adjusted arguments (might be "state" or "initState" instead of "cdata->pdata.node.loc")
+            gauss_jackson_propagate(gjh, cdata->pdata.physics, cdata->pdata.node.loc, utc_now);
             state = cdata->pdata.node.loc;
 
             // break down state vector for this demo
