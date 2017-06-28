@@ -38,3 +38,4 @@ QtCreatorDeployment.txt
 *.swp
 _book
 node_modules/gitbook-plugin-expandable-chapters
+*.orig
