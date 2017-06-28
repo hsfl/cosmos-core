@@ -265,7 +265,7 @@ int main(int argc, char* argv[]){
 			q4 = state.att.geoc.s.w;
 
 			sprintf(buffer,"%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
-			mjdToGregorianDDMmmYYYY(utc_now),   //CT 2017-06-26 changed "mjd2human3" to "mjdToGregorianDDMmmYYYY" and removed "c_str()"
+			mjdToGregorianDDMmmYYYY(utc_now).c_str(),   //CT 2017-06-26 changed "mjd2human3" to "mjdToGregorianDDMmmYYYY" and removed "c_str()"
 			x,y,z,
 			vx,vy,vz,
 			q1,q2,q3,q4);
