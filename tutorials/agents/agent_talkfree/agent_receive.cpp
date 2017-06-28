@@ -29,7 +29,7 @@
 
 // Example of an agent poll collecting the broadcasted data on the network
 
-#include "agentlib.h"
+#include "agent/agentclass.h"
 #include <iostream>
 
 using std::string;
@@ -39,22 +39,20 @@ using std::endl;
 int main()
 {
 
-    int32_t iretn;
 
-    Agent agent;
+    Agent *agent;
 
     // TODO: remove telem node, replace by node on the fly
-    if ( agent.setupServer("telem","receive") )
+    agent = new Agent("telem","receive");
+    if (agent->cinfo != nullptr && agent->running())
     {
-        while (agent.isRunning())
+        while (agent->running())
         {
-            string message;
+            Agent::messstruc mess;
 
-//            iretn = agent.poll(0xBB, message);
-            iretn = agent.receive(0xBB, message);
-            agent.pollParse(message);
+            agent->readring(mess, 0xBB);
 
-            cout << "rx: " << message << endl;
+            cout << "rx: " << mess.adata << endl;
 
             //COSMOS_SLEEP(0.1);
         }

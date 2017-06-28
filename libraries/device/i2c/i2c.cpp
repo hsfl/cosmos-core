@@ -233,7 +233,7 @@ namespace Cosmos {
             }
             else if (rcvd > 0)
             {
-                for (size_t i=0; i<rcvd; ++i)
+				for (int32_t i=0; i<rcvd; ++i)
                 {
                     data.push_back(tbuf[i]);
                 }

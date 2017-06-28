@@ -27,17 +27,17 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-#include "configCosmos.h"
-#include "elapsedtime.h"
-#include "timeutils.hpp"
-#include "agentlib.h"
+#include "support/configCosmos.h"
+#include "support/elapsedtime.h"
+#include "support/timeutils.h"
+#include "agent/agentclass.h"
 
 #include <iostream>
 #include <string>
 using namespace std;
 
 int myagent();
-int32_t request_start(char *request, char* response_r, void *cdata); // function prototype of agent request
+int32_t request_start(char *request, char* response_r, Agent *agent); // function prototype of agent request
 
 string agentname     = "agent_cpu_device_test";
 string nodename      = "computer";
@@ -47,7 +47,7 @@ int loopmsec = 1; // period of heartbeat
 char buf4[512];
 
 beatstruc beat_agent_cpu;
-cosmosstruc *cdata; // to access the cosmos data, will change later
+Agent *agent; // to access the cosmos data, will change later
 ElapsedTime et;
 
 #define MAXBUFFERSIZE 256 // comm buffe for agents
@@ -57,21 +57,17 @@ int main(int argc, char *argv[])
 	cout << "Starting agent CPU Device Test" << endl;
 
 	// Establish the command channel and heartbeat
-    if (!(cdata = agent_setup_server(NetworkType::UDP,
-	nodename.c_str(),
-	agentname.c_str(),
-	1.0,
-	0,
-	AGENTMAXBUFFER)))
-	{
+    agent = new Agent(nodename, agentname);
+    if (agent->cinfo == nullptr || !agent->running())
+    {
 		cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
 		exit (AGENT_ERROR_JSON_CREATE);
 	} else {
 		cout<<"Starting " << agentname << " ... OK" << endl;
-		//        cdata->agent[0].sub
+		//        agent->cinfo->pdata.agent[0].sub
 	}
 
-	beat_agent_cpu = agent_find_server(cdata, nodename, "agent_cpu", 10.);
+    beat_agent_cpu = agent->find_server(nodename, "agent_cpu", 10.);
 
 	// Start our own thread
 	myagent();
@@ -82,35 +78,32 @@ int main(int argc, char *argv[])
 int myagent()
 {
 	cout << "agent " << agentname <<  " ...online " << endl;
-	char response[300];
+    string response;
 	int count = 1;
 
 	// Start executing the agent
-	while(agent_running(cdata))
+	while(agent->running())
 	{
 		cout << "-------------------" << endl;
 		cout << "Cycle: \t\t\t\t" << count << endl;
 
 
-        agent_send_request(beat_agent_cpu,
+        agent->send_request(beat_agent_cpu,
 								   "mem",
 								   response,
-								   512,
 								   2);
 		cout << "Memory used in KB: \t\t" << response << endl;
 
-        agent_send_request(beat_agent_cpu,
+        agent->send_request(beat_agent_cpu,
 								   "disk",
 								   response,
-								   512,
 								   2);
 		cout << "Disk used in KB: \t\t" << response << endl;
 
 
-        agent_send_request(beat_agent_cpu,
+        agent->send_request(beat_agent_cpu,
 								   "load",
 								   response,
-								   512,
 								   2);
 		cout << "Load data in %: \t\t" << response << endl;
 

@@ -66,11 +66,10 @@ endif()
 
 
 #Note: Actual flags are COSMOS_CXX_FLAGS + COSMOS_CXX_FLAGS_RELEASE/DEBUG?
-set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++11 -U__STRICT_ANSI__ -Wno-invalid-offsetof")
-#set(COSMOS_CXX_FLAGS "")
+set(COSMOS_CXX_FLAGS "-Wall -pedantic -std=c++11 -U__STRICT_ANSI__ -Wno-invalid-offsetof -Wno-format")
 
 # Force strict ANSI
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -U__STRICT_ANSI__")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -U__STRICT_ANSI__")
 
 find_package (Threads)
 
@@ -110,7 +109,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
     # Configure compiler arguments (GCC)
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         # Set Compiler flags
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COSMOS_CXX_FLAGS}")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm -lpthread")
         message("Build Compiler: GCC")
@@ -152,7 +151,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
     # Configure compiler arguments GCC (MinGw)
     if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
         # Set Compiler flags
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COSMOS_CXX_FLAGS}")
         message("Build with G++ (MinGw)")
         set (COMPILER_IS_WINDOWS_MINGW 1)
 
@@ -224,7 +223,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # Configure compiler arguments (GCC)
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         # Set Compiler flags
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COSMOS_CXX_FLAGS}")
 #        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
         message("Build with GCC")
@@ -238,7 +237,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # Configure compiler arguments (Clang)
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         # Set Compiler flags
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++11 -Wno-invalid-offsetof")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COSMOS_CXX_FLAGS}")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm")
         message("Build with Clang")

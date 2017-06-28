@@ -4,7 +4,7 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     # -----------------------------------------------
     # add the cosmos libraries
     include_directories(${COSMOS_SOURCE}/core/libraries/)
-    include_directories(${COSMOS_SOURCE}/core/libraries/support)
+#    include_directories(${COSMOS_SOURCE}/core/libraries/support)
 
     include_directories(${COSMOS_SOURCE}/core/libraries/thirdparty)
 

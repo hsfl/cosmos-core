@@ -466,7 +466,9 @@ int32_t request_add_event(char *request, char* response, Agent *agent)
 
     // add command
     if(cmd.is_command())
+	{
         cmd_queue.add_command(cmd);
+	}
 
 	// sort the queue
 	cmd_queue.sort();
