@@ -39,8 +39,6 @@ using std::endl;
 int main()
 {
 
-    int32_t iretn;
-
     Agent *agent;
 
     // TODO: remove telem node, replace by node on the fly
@@ -51,7 +49,7 @@ int main()
         {
             Agent::messstruc mess;
 
-            iretn = agent->readring(mess, 0xBB);
+			agent->readring(mess, 0xBB);
 
             cout << "rx: " << mess.adata << endl;
 

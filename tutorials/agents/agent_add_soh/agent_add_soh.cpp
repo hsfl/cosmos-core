@@ -66,8 +66,6 @@ int main(int argc, char *argv[])
 {
     cout << "Starting agent " << endl;
 
-    int iretn;
-
     // Establish the command channel and heartbeat
     agent = new Agent(nodename, agentname);
     if (agent->cinfo == nullptr || !agent->running())
@@ -87,7 +85,7 @@ int main(int argc, char *argv[])
     agent->set_sohstring(sohstring);
 
     // Start our own thread
-    iretn = myagent();
+	myagent();
 
     return 0;
 }

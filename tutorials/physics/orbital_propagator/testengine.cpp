@@ -51,19 +51,16 @@ int main(int argc, char *argv[])
 	kepstruc kep;
 	cartpos ipos;
 	locstruc tloc, iloc;
-	double localtime, lastlat;
+	double localtime;
 	double dt, dp, maxr, minr, mjdnow, mjdbase, mjdlast, tp, cp;
-	double mjdnext;
-	double radius, angvel;
+	double radius;
 	double deltas, deltav;
 	double rwomg,ralp, mtrx, mtry, mtrz;
 	uint32_t order = 8;
 	rvector torque, mtorque, rtorque1, rtorque2, bearth, mmoment, ftorque;
-	int i, mode;
+	int mode;
 	char stkname[50], tstring[100];
 	const char *tpointer;
-
-	i = sizeof(cosmosstruc);
 
 	if (argc != 6)
 	{
@@ -105,7 +102,7 @@ int main(int argc, char *argv[])
 		exit(iretn);
 	}
 	radius = length_rv(ipos.s);
-	angvel = sqrt(GM/(radius*radius*radius));
+	sqrt(GM/(radius*radius*radius));
 
 	// JERS
 	/*
@@ -192,7 +189,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 
 	maxr = 0.;
 	minr = 10. * cosmos_data->sdata.node.loc.pos.geos.s.r;
-	lastlat = cosmos_data->sdata.node.loc.pos.geod.s.lat;
+	cosmos_data->sdata.node.loc.pos.geod.s.lat;
 	mjdbase = mjdnow;
 	mjdlast = mjdnow + tp/86400.;
 	cp = 0;
@@ -271,7 +268,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 			printf("\n");
 			fflush(stdout);
 		}
-		mjdnext = currentmjd(cosmos_data->sdata.node.utcoffset);
+//		mjdnext = currentmjd(cosmos_data->sdata.node.utcoffset);
 		if (cosmos_data->sdata.node.loc.pos.geos.s.r < minr)
 			minr = cosmos_data->sdata.node.loc.pos.geos.s.r;
 		if (cosmos_data->sdata.node.loc.pos.geos.s.r > maxr)

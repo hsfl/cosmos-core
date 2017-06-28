@@ -37,8 +37,6 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 
-    int32_t iretn;
-
     Agent *agent;
 
     agent = new Agent("telem","send");
@@ -48,7 +46,7 @@ int main(int argc, char *argv[])
         {
             string message {"helloBB"};
 
-            iretn = agent->post(0xBB, message);
+			agent->post(0xBB, message);
 
             cout << "tx: " <<  message << endl;
 
