@@ -28,7 +28,9 @@
                     ********************************************************************/
 
 #include "support/configCosmos.h"
+#if !defined(COSMOS_WIN_OS)
 #include "device/i2c/i2c.h"
+#endif
 #include "support/elapsedtime.h"
 
 #define ARDUINO_I2C_ADDRESS 0x10
