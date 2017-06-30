@@ -31,15 +31,15 @@
 // , it starts propagating from a given state
 // (load from cosmosroot-state.ini?)
 
-#include <sys/stat.h>
-#include <typeinfo>
-
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
 #include "agent/agentclass.h"
 #include "support/jsonlib.h"
 #include "support/datalib.h"
 #include "support/print_utils.h"
+
+#include <sys/stat.h>
+#include <typeinfo>
 
 using namespace std;
 // ------------------------------------------------------------------

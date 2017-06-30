@@ -190,9 +190,9 @@ void propthread(size_t index)
         {
             highest = track[index].target.elfrom;
         }
-        switch (track[index].visible)
+        switch ((uint8_t)track[index].visible)
         {
-        case false:
+        case 0:
             if (track[index].target.elfrom > 0.)
             {
                 track[index].highest = 0.;
@@ -203,7 +203,7 @@ void propthread(size_t index)
                 fflush(stdout);
             }
             break;
-        case true:
+        case 1:
             if (track[index].target.elfrom > track[index].highest)
             {
                 track[index].highest = track[index].target.elfrom;
