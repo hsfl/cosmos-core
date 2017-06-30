@@ -1661,48 +1661,58 @@ namespace Cosmos {
 */
     int32_t Agent::post(messstruc mess)
     {
-        size_t nbytes;
-        int32_t iretn=0;
-        uint8_t post[AGENTMAXBUFFER];
+        int32_t iretn;
 
-        cinfo->pdata.agent[0].beat.utc = cinfo->pdata.agent[0].beat.utc;
-        post[0] = mess.meta.type;
-        // this will broadcast messages to all external interfaces (ifcnt = interface count)
-        for (size_t i=0; i<cinfo->pdata.agent[0].ifcnt; i++)
+        if (mess.meta.type < AGENT_MESSAGE_BINARY)
         {
-            sprintf((char *)&post[3], "%s", mess.jdata.c_str());
-            size_t hlength = strlen((char *)&post[3]);
-            post[1] = hlength%256;
-            post[2] = hlength / 256;
-            nbytes = hlength + 3;
-
-            if (mess.meta.type < AGENT_MESSAGE_BINARY && mess.adata.size())
-            {
-                if (nbytes+mess.adata.size() > AGENTMAXBUFFER)
-                    return (AGENT_ERROR_BUFLEN);
-                memcpy(&post[nbytes], &mess.adata[0], mess.adata.size());
-                nbytes += mess.adata.size();
-            }
-
-            if (mess.meta.type >= AGENT_MESSAGE_BINARY && mess.bdata.size())
-            {
-                if (nbytes+mess.bdata.size() > AGENTMAXBUFFER)
-                    return (AGENT_ERROR_BUFLEN);
-                memcpy(&post[nbytes], &mess.bdata[0], mess.bdata.size());
-                nbytes += mess.bdata.size();
-            }
-
-            iretn = sendto(cinfo->pdata.agent[0].pub[i].cudp, (const char *)post, nbytes, 0,(struct sockaddr *)&cinfo->pdata.agent[0].pub[i].baddr, sizeof(struct sockaddr_in));
+            iretn = post(mess.meta.type, mess.adata);
         }
-        if (iretn<0)
+        else
         {
-#ifdef COSMOS_WIN_OS
-            return(-WSAGetLastError());
-#else
-            return (-errno);
-#endif
+            iretn = post(mess.meta.type, mess.bdata);
         }
-        return 0;
+//        size_t nbytes;
+//        int32_t iretn=0;
+//        uint8_t post[AGENTMAXBUFFER];
+
+//        cinfo->pdata.agent[0].beat.utc = cinfo->pdata.agent[0].beat.utc;
+//        post[0] = mess.meta.type;
+//        // this will broadcast messages to all external interfaces (ifcnt = interface count)
+//        for (size_t i=0; i<cinfo->pdata.agent[0].ifcnt; i++)
+//        {
+//            sprintf((char *)&post[3], "%s", mess.jdata.c_str());
+//            size_t hlength = strlen((char *)&post[3]);
+//            post[1] = hlength%256;
+//            post[2] = hlength / 256;
+//            nbytes = hlength + 3;
+
+//            if (mess.meta.type < AGENT_MESSAGE_BINARY && mess.adata.size())
+//            {
+//                if (nbytes+mess.adata.size() > AGENTMAXBUFFER)
+//                    return (AGENT_ERROR_BUFLEN);
+//                memcpy(&post[nbytes], &mess.adata[0], mess.adata.size());
+//                nbytes += mess.adata.size();
+//            }
+
+//            if (mess.meta.type >= AGENT_MESSAGE_BINARY && mess.bdata.size())
+//            {
+//                if (nbytes+mess.bdata.size() > AGENTMAXBUFFER)
+//                    return (AGENT_ERROR_BUFLEN);
+//                memcpy(&post[nbytes], &mess.bdata[0], mess.bdata.size());
+//                nbytes += mess.bdata.size();
+//            }
+
+//            iretn = sendto(cinfo->pdata.agent[0].pub[i].cudp, (const char *)post, nbytes, 0,(struct sockaddr *)&cinfo->pdata.agent[0].pub[i].baddr, sizeof(struct sockaddr_in));
+//        }
+//        if (iretn<0)
+//        {
+//#ifdef COSMOS_WIN_OS
+//            return(-WSAGetLastError());
+//#else
+//            return (-errno);
+//#endif
+//        }
+        return iretn;
     }
 
     //! Post a JSON message
