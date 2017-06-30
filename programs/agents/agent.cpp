@@ -67,6 +67,8 @@ const int SERVER_WAIT_TIME = 6;
 //    return;
 //}
 std::string output;
+string node_name = "";
+string agent_name = "";
 
 
 int main(int argc, char *argv[])
@@ -92,6 +94,9 @@ int main(int argc, char *argv[])
         }
         break;
     case 2:
+    case 3:
+    case 4:
+    case 5:
         // agent dump request
         if (!strcmp(argv[1],"dump"))
         {
@@ -104,8 +109,13 @@ int main(int argc, char *argv[])
 
 // JIMNOTE: this block will never be entered
 
-            if(argc == 3)
+            switch(argc)
             {
+            case 5:
+                agent_name = argv[4];
+            case 4:
+                node_name = argv[3];
+            case 3:
                 channel = argv[2];
                 if (channel == "soh")
                 {
@@ -122,19 +132,29 @@ int main(int argc, char *argv[])
                         cnum = atoi(channel.c_str());
                     }
                 }
-            }
-            else
-            {
+                break;
+            case 2:
                 channel.clear();
                 cnum = Agent::AGENT_MESSAGE_ALL;
+                break;
             }
 
             while (1)
             {
-                if ((pretn=agent->readring(message, Agent::AGENT_MESSAGE_ALL, 1., Agent::Where::TAIL)) > 0)
+                if ((pretn=agent->readring(message, cnum, 1., Agent::Where::TAIL)) > 0)
                 {
                     // Skip if either not AGENT_MESSAGE_ALL, or not desited AGENT_MESSAGE
                     if (!channel.empty() && cnum != pretn)
+                    {
+                        continue;
+                    }
+
+                    if (!node_name.empty() && node_name != message.meta.beat.node)
+                    {
+                        continue;
+                    }
+
+                    if (!agent_name.empty() && agent_name != message.meta.beat.proc)
                     {
                         continue;
                     }
