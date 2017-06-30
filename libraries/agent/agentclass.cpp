@@ -613,7 +613,7 @@ namespace Cosmos {
  */
     beatstruc Agent::find_server(string node, string proc, float waitsec)
     {
-        beatstruc cbeat = {0.,"","",NetworkType::MULTICAST,"",0,0,0.,"",0.,0.,0.};
+        beatstruc cbeat = {0.,"","",NetworkType::MULTICAST,"",0,0,0.,"",0.,0.,0.,false};
 
         //! Loop for ::waitsec seconds, looking for desired agent.
 
@@ -938,7 +938,7 @@ namespace Cosmos {
  * \param agent Pointer to ::Agent to use.
  * \return 0, or negative error.
  */
-    int32_t Agent::req_echo(char* request, char* output, Agent* agent)
+    int32_t Agent::req_echo(char* request, char* output, Agent*)
     {
         double mjd;
         uint16_t crc, count;

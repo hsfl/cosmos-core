@@ -110,16 +110,6 @@ rvector rv_zero()
     return (v);
 }
 
-//! Unit x row vector
-/*! Creates a row order vector with the X value set to one.
-        \return the vector
-*/
-rvector rv_unitx()
-{
-    rvector v={{1.,0.,0.}};
-    return (v);
-}
-
 //! Scaled x row vector
 /*! Creates a row order vector with the X value set to scale.
         \return the vector
@@ -131,16 +121,6 @@ rvector rv_unitx(double scale)
     return (v);
 }
 
-//! Unit y row vector
-/*! Creates a row order vector with the Y value set to one.
-        \return the vector
-*/
-rvector rv_unity()
-{
-    rvector v={{0.,1.,0.}};
-    return (v);
-}
-
 //! Scaled y row vector
 /*! Creates a row order vector with the Y value set to scale.
         \return the vector
@@ -149,16 +129,6 @@ rvector rv_unity(double scale)
 {
     rvector v={{0.,1.,0.}};
     v.col[1] *= scale;
-    return (v);
-}
-
-//! Unit z row vector
-/*! Creates a row order vector with the Z value set to one.
-        \return the vector
-*/
-rvector rv_unitz()
-{
-    rvector v={{0.,0.,1.}};
     return (v);
 }
 
