@@ -28,9 +28,7 @@
                     ********************************************************************/
 
 #include "support/configCosmos.h"
-#if !defined(COSMOS_WIN_OS)
 #include "device/i2c/i2c.h"
-#endif
 #include "support/elapsedtime.h"
 
 #define ARDUINO_I2C_ADDRESS 0x10
@@ -51,7 +49,9 @@ namespace Cosmos {
     I2C::I2C(string bus, uint8_t address, double delay)
     {
         handle.bus = bus;
+#if !defined(COSMOS_WIN_OS)
         handle.fh = open(handle.bus.c_str(), O_RDWR|O_NONBLOCK);
+#endif
 
         if (handle.fh < 0)
         {
@@ -61,8 +61,8 @@ namespace Cosmos {
         }
         // only works for linux for now
         // TODO: expand to mac and windows
-#ifdef COSMOS_LINUX_OS
-        if (ioctl(handle.fh, I2C_FUNCS, &handle.funcs) < 0)
+#if !defined(COSMOS_WIN_OS)
+		if (ioctl(handle.fh, I2C_FUNCS, &handle.funcs) < 0)
         {
             error = - errno;
             close(handle.fh);
