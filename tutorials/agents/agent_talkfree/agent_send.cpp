@@ -30,25 +30,25 @@
 // Example of an agent post broadcasting genetic data to the network
 // the data is not in the COSMOS namespace
 
-#include "agentlib.h"
+#include "agent/agentclass.h"
 #include <iostream>
 using namespace std;
 
 int main(int argc, char *argv[])
 {
 
-    int32_t iretn;
+//    int32_t iretn;
 
-    Agent agent;
+    Agent *agent;
 
-    if ( agent.setupServer("telem","send") )
+    agent = new Agent("telem","send");
+    if (agent->cinfo != nullptr && agent->running())
     {
-        while (agent.isRunning())
+        while (agent->running())
         {
             string message {"helloBB"};
 
-            iretn = agent.post(0xBB, message);
-//            iretn = agent.send(0xBB, message);
+            agent->post(0xBB, message);
 
             cout << "tx: " <<  message << endl;
 

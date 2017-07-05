@@ -80,6 +80,7 @@ public:
     void vector(std::string prefix, rvector v);
     //void vector(std::string vector_name, rvector v, int precision);
     void vector(std::string vector_name, rvector v, std::string suffix);
+    void vector(std::string prefix, rvector v, std::string suffix, int precision);
 
     void vectorAndMag(std::string vector_name, rvector v);
     void vectorAndMag(std::string vector_name, rvector v, std::string suffix);

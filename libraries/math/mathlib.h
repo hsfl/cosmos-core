@@ -103,9 +103,6 @@
 //! between conventions. As an example, one can define a Vector/Scalar
 //! quaternion, and then use an equation that expects Scalar Last.
 
-// TODO: change configCosmos.h to support/configCosmos.h or even
-// cosmos/support/configCosmos.h
-
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
 

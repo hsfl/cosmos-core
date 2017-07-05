@@ -38,10 +38,10 @@
 // test: agent telem 001 "setvalue {\"device_telem_vint16_000\":10}"
 // test: agent telem 001 "getvalue {\"device_telem_vint16_000\"}"
 
-#include "configCosmos.h"
-#include "elapsedtime.h"
-#include "timeutils.hpp"
-#include "agentlib.h"
+#include "support/configCosmos.h"
+#include "support/elapsedtime.h"
+#include "support/timeutils.h"
+#include "agent/agentclass.h"
 
 #include <iostream>
 #include <string>
@@ -58,7 +58,7 @@ int loopmsec = 1; // period of heartbeat
 char buf4[512];
 
 beatstruc beat_agent_002;
-cosmosstruc *cdata; // to access the cosmos data, will change later
+Agent *agent; // to access the cosmos data, will change later
 
 #define MAXBUFFERSIZE 256 // comm buffer for agents
 
@@ -69,12 +69,8 @@ int main(int argc, char *argv[])
     int iretn;
 
     // Establish the command channel and heartbeat
-    if (!(cdata = agent_setup_server(NetworkType::UDP,
-                                     nodename.c_str(),
-                                     agentname.c_str(),
-                                     1.0,
-                                     0,
-                                     AGENTMAXBUFFER)))
+    agent = new Agent(nodename, agentname);
+    if (agent->cinfo == nullptr || !agent->running())
     {
         cout << "agent_setup_server failed (error <" << AGENT_ERROR_JSON_CREATE << ">)"<<endl;
         exit (AGENT_ERROR_JSON_CREATE);
@@ -88,12 +84,12 @@ int main(int argc, char *argv[])
                            "\"node_loc_pos_eci\","
                            "\"node_loc_att_icrf\"}"
                            ;
-    agent_set_sohstring(cdata, sohstring);
+    agent->set_sohstring(sohstring);
 
     // Start our own thread
     iretn = myagent();
 
-    return 0;
+    return iretn;
 }
 
 int myagent()
@@ -108,10 +104,10 @@ int myagent()
     pos_eci.v = {0.1,0,0};
 
     // Start executing the agent
-    while(agent_running(cdata))
+    while(agent->running())
     {
         pos_eci.utc = currentmjd(0);
-        cdata->node.loc.pos.eci = pos_eci;
+        agent->cinfo->pdata.node.loc.pos.eci = pos_eci;
     }
 
     return (0);

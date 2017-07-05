@@ -28,65 +28,70 @@
 ********************************************************************/
 
 // Example of an agent making a request to another agent
-// agent 004 makes request to 002 upon activation
+// agent 001 makes request to 002 upon activation
 
 // the single quote only works on linux
-// test: agent telem 004 'setvalue {"device_telem_vint16_000":10}'
-// test: agent telem 004 'getvalue {"device_telem_vint16_000"}'
+// test: agent telem 001 'setvalue {"device_telem_vint16_000":10}'
+// test: agent telem 001 'getvalue {"device_telem_vint16_000"}'
 
 // the single quote only works on windows
-// test: agent telem 004 "setvalue {\"device_telem_vint16_000\":10}"
-// test: agent telem 004 "getvalue {\"device_telem_vint16_000\"}"
+// test: agent telem 001 "setvalue {\"device_telem_vint16_000\":10}"
+// test: agent telem 001 "getvalue {\"device_telem_vint16_000\"}"
 
 #include "support/configCosmos.h"
 #include "support/elapsedtime.h"
 #include "support/timeutils.h"
+//#include "agent/agentclasslib.h"
 #include "agent/agentclass.h"
-// agent 002 makes request to 002 upon activation
-
-#include "support/configCosmos.h"
 
 #include <iostream>
 #include <string>
-
-// function prototype of agent request
-int32_t request_hello(char *request, char* response, Agent *cdata);
-
-// counter to test number of requests
-int countReq = 0;
 Agent *agent;
 
 int main(int, char **)
 {
-    //setEnvCosmos(cosmosPath);
 
-    cout << "Starting agent " << endl;
-
-    string agentname     = "004";
-    string nodename      = "cubesat1";
+    string agentname = "001";
+    string nodename  = "cubesat1";
+    string agent002  = "002"; //name of the agent that the request is directed to
     agent = new Agent(nodename, agentname);
 
-    agent->add_request("request_hello", request_hello);
+    if (agent->last_error()<0)
+    {
+        cout<<"unable to start agent_exec (" << agent->last_error() << ") " << cosmos_error_string(agent->last_error()) <<endl;
+        exit(1);
+    }
 
-    // start main loop
+    beatstruc beat_agent_002;
+
+    beat_agent_002 = agent->find_server(nodename, agent002, 2.);
+
+    string requestString = "request_hello";
+    std::string response;
+
+    // Start executing the agent
     while(agent->running())
     {
+        agent->send_request(beat_agent_002, requestString, response, 2.);
+
+        if ( response.size() > 1) {
+
+            cout << "Received from agent_002: " << response.size() << " bytes : " << response << endl;
+            // clear the response for next time
+            response.clear();
+
+        } else {
+
+            cout << "What happened to agent_002 ??? let's try to find it ..." << endl;
+            beat_agent_002.node[0] = '\0'; // reset
+            beat_agent_002 = agent->find_server(nodename, agent002, 2.);
+            cout << "beat agent 002 node: " << beat_agent_002.utc << endl;
+
+        }
+
         // sleep for 1 sec
-        COSMOS_SLEEP(1.00);
+        COSMOS_SLEEP(1);
     }
-    return 0;
-}
-
-// implement request function
-int32_t request_hello(char *, char* response, Agent *)
-{
-
-    sprintf(response,"hello %d ",countReq);
-
-    cout << "agent 004 got request! response is: " << response << endl;
-
-    // add counter
-    countReq ++;
 
     return 0;
 }

@@ -38,3 +38,4 @@ QtCreatorDeployment.txt
 *.swp
 _book
 node_modules/gitbook-plugin-expandable-chapters
+tutorials/agents/agent_004/agent_004.cpp.orig
