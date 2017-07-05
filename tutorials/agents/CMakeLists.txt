@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-add_subdirectory(agent_001)
-add_subdirectory(agent_002)
-add_subdirectory(agent_006)
-add_subdirectory(agent_004)
-=======
 #add_subdirectory(agent_001)
 #add_subdirectory(agent_002)
 #add_subdirectory(agent_004)
@@ -23,4 +17,3 @@ foreach(direct ${directs})
     endif()
 
 endforeach()
->>>>>>> dccac9dc5af3d207728361847d1d04adbd558e3e
