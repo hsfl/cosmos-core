@@ -216,6 +216,7 @@ int main(int argc, char *argv[])
                 }
                 fflush(stdout);
             } //end infinite while loop
+            break;
         }
         else if (!strcmp(argv[1],"list"))
         {
@@ -238,8 +239,9 @@ int main(int argc, char *argv[])
                 COSMOS_SLEEP(.1);
             } while (et.split() < SERVER_WAIT_TIME);
             exit(0);
+            break;
         }
-        break;
+
     default:
         if (!strcmp(argv[1],"dump"))
         {
