@@ -2350,9 +2350,13 @@ int32_t json_out_list(string &jstring,string tokens, cosmosmetastruc &cmeta, cos
 
     ptr = &tokens[0];
     while (ptr[0] != 0 && ptr[0] != '{')
+    {
         ptr++;
+    }
     if ((iretn=json_skip_character(ptr,'{')) != 0)
+    {
         return (iretn);
+    }
     do
     {
         if ((iretn=json_extract_string(ptr, tstring)) != 0)
