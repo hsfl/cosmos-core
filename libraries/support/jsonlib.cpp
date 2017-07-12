@@ -7055,6 +7055,8 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_mcc_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_mcc_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_mcc_q",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,q)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mcc_o",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,o)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mcc_a",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,a)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_mcc_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
         break;
     case DEVICE_TYPE_TCU:
@@ -7428,6 +7430,8 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_mcc_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_mcc_temp",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_mcc_q",didx, UINT16_MAX, cmeta, state);
+        json_toggleentry("device_mcc_o",didx, UINT16_MAX, cmeta, state);
+        json_toggleentry("device_mcc_a",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_mcc_align",didx, UINT16_MAX, cmeta, state);
         break;
     case DEVICE_TYPE_TCU:
@@ -8224,6 +8228,10 @@ string json_list_of_soh(cosmosdatastruc &cdata)
         sprintf(tempstring, ",\"device_mcc_utc_%03d\",\"device_mcc_temp_%03d\"", i, i);
         result += tempstring;
         sprintf(tempstring, ",\"device_mcc_q_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mcc_o_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mcc_a_%03d\"",i);
         result += tempstring;
     }
 

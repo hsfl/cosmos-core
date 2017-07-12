@@ -1537,6 +1537,8 @@ struct mccstruc
     quaternion align;
     //! attitude
     quaternion q;
+    rvector o;
+    rvector a;
 };
 
 //! Torque Rod Control Unit
