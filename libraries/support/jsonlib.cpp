@@ -1216,12 +1216,13 @@ int32_t json_out_float(string &jstring,float value)
     int32_t iretn = 0;
     char tstring[15];
 
-    if (isfinite(value))
+    if (!isfinite(value))             //CT:11/07/2017: changing invalid floats to 0.
     {
-        sprintf(tstring,"%.8g",value);
-        iretn = json_append(jstring,tstring);
+        value=0.0;
     }
 
+    sprintf(tstring,"%.8g",value);
+    iretn = json_append(jstring,tstring);
     return (iretn);
 }
 
@@ -1236,11 +1237,13 @@ int32_t json_out_double(string &jstring,double value)
     int32_t iretn = 0;
     char tstring[30];
 
-    if (isfinite(value))
+    if (!isfinite(value))           //CT:11/07/2017: changing invalid doubles to 0.
     {
-        sprintf(tstring,"%.17g",value);
-        iretn = json_append(jstring,tstring);
+        value=0.0.;
     }
+
+    sprintf(tstring,"%.17g",value);
+    iretn = json_append(jstring,tstring);
 
     return (iretn);
 }
