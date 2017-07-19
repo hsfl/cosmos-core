@@ -27,6 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: rename to serial.cpp only
 #include "support/configCosmos.h"
 #include "device/serial/serialclass.h"
 #include "support/elapsedtime.h"
