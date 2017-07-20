@@ -1216,7 +1216,7 @@ int32_t json_out_float(string &jstring,float value)
     int32_t iretn = 0;
     char tstring[15];
 
-    if (isfinite(value)==false)             //CT:11/07/2017: changing invalid floats to 0.
+    if (!isfinite(value))             //CT:11/07/2017: changing invalid floats to 0.
     {
         value=0.0;
     }
@@ -1237,7 +1237,7 @@ int32_t json_out_double(string &jstring,double value)
     int32_t iretn = 0;
     char tstring[30];
 
-    if (!isfinite(value)==false)           //CT:11/07/2017: changing invalid doubles to 0.
+    if (!isfinite(value))           //CT:11/07/2017: changing invalid doubles to 0.
     {
         value=0.0;
     }
