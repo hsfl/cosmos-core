@@ -3241,7 +3241,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
             tle.raan = RADOF(tle.raan);
             tle.ap = RADOF(tle.ap);
             tle.ma = RADOF(tle.ma);
-            tle.mm *= D2PI/86400.;
+            tle.mm *= D2PI/1440.;
             tle.e = ecc / 1.e7;
         }
     }
@@ -3319,7 +3319,7 @@ int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 			tle.raan = RADOF(tle.raan);
 			tle.ap = RADOF(tle.ap);
 			tle.ma = RADOF(tle.ma);
-            tle.mm *= D2PI/86400.;
+            tle.mm *= D2PI/1440.;
 			tle.e = ecc / 1.e7;
 			lines.push_back(tle);
 		}
@@ -3395,7 +3395,7 @@ int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 			tle.raan = RADOF(tle.raan);
 			tle.ap = RADOF(tle.ap);
 			tle.ma = RADOF(tle.ma);
-            tle.mm *= D2PI/86400.;
+            tle.mm *= D2PI/1440.;
 			tle.e = ecc / 1.e7;
 			lines.push_back(tle);
 		}
