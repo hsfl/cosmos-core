@@ -111,7 +111,7 @@ int32_t socket_open(socket_channel *channel,
     if (blocking == SOCKET_NONBLOCKING)
     {
         iretn = 0;
-#ifdef COSMOS_WIN_OSUDP
+#ifdef COSMOS_WIN_OS
         if (ioctlsocket(channel->cudp, FIONBIO, &nonblocking) != 0)
         {
             iretn = -WSAGetLastError();
