@@ -79,8 +79,15 @@ int32_t socket_open(socket_channel *channel,
 
     switch (ntype)
     {
-    case NetworkType::BROADCAST:
     case NetworkType::MULTICAST:
+        {
+            if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_IP)) <0)
+            {
+                return (-errno);
+            }
+        }
+        break;
+    case NetworkType::BROADCAST:
         {
             if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) <0)
             {
@@ -104,7 +111,7 @@ int32_t socket_open(socket_channel *channel,
     if (blocking == SOCKET_NONBLOCKING)
     {
         iretn = 0;
-#ifdef COSMOS_WIN_OS
+#ifdef COSMOS_WIN_OSUDP
         if (ioctlsocket(channel->cudp, FIONBIO, &nonblocking) != 0)
         {
             iretn = -WSAGetLastError();
@@ -157,8 +164,18 @@ int32_t socket_open(socket_channel *channel,
 
         switch (ntype)
         {
-        case NetworkType::BROADCAST:
         case NetworkType::MULTICAST:
+            {
+                channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+                if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
+                {
+                    CLOSE_SOCKET(channel->cudp);
+                    channel->cudp = -errno;
+                    return (-errno);
+                }
+            }
+            break;
+        case NetworkType::BROADCAST:
             {
                 channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
                 if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
