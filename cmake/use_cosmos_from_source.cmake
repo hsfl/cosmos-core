@@ -47,10 +47,10 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     include_directories(${COSMOS_SOURCE}/core/libraries/device/serial)
     add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/serial      ${CMAKE_BINARY_DIR}/libraries/device/serial)
 
-    # -----------------------------------------------
-    # import device vn100
-    include_directories(${COSMOS_SOURCE}/core/libraries/device/vn100)
-    add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/vn100      ${CMAKE_BINARY_DIR}/libraries/device/vn100)
+#    # -----------------------------------------------
+#    # import device vn100
+#    include_directories(${COSMOS_SOURCE}/core/libraries/device/vn100)
+#    add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/vn100      ${CMAKE_BINARY_DIR}/libraries/device/vn100)
 
     #add_library(localzlib STATIC IMPORTED)
     #set_property(TARGET localzlib PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/libraries/thirdparty/zlib/libzlib.a)
