@@ -1109,8 +1109,6 @@ namespace Cosmos {
  */
     int32_t Agent::req_listnames(char *, char* output, Agent* agent)
     {
-        //    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
-
         string result = json_list_of_all(agent->cinfo->meta);
         strncpy(output, result.c_str(), agent->cinfo->pdata.agent[0].beat.bsz);
         output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
