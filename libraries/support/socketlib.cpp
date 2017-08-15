@@ -46,13 +46,8 @@ provided for the extra steps necessary for MS Windows.
     \param usectimeo Blocking read timeout in micro seconds.
     \return Zero, or negative error.
 */
-int32_t socket_open(socket_channel *channel,
-                    NetworkType ntype,
-                    const char *address,
-                    uint16_t port,
-                    uint16_t role,
-                    bool blocking,
-                    uint32_t usectimeo)
+int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *address, uint16_t port, uint16_t role,
+                    bool blocking, uint32_t usectimeo, uint32_t rcvbuf, uint32_t sndbuf)
 {
     socklen_t namelen;
     int32_t iretn;
@@ -88,6 +83,7 @@ int32_t socket_open(socket_channel *channel,
         }
         break;
     case NetworkType::BROADCAST:
+    case NetworkType::UDP:
         {
             if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) <0)
             {
@@ -165,17 +161,18 @@ int32_t socket_open(socket_channel *channel,
         switch (ntype)
         {
         case NetworkType::MULTICAST:
-            {
-                channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
-                if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
-                {
-                    CLOSE_SOCKET(channel->cudp);
-                    channel->cudp = -errno;
-                    return (-errno);
-                }
-            }
-            break;
+//            {
+//                channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+//                if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
+//                {
+//                    CLOSE_SOCKET(channel->cudp);
+//                    channel->cudp = -errno;
+//                    return (-errno);
+//                }
+//            }
+//            break;
         case NetworkType::BROADCAST:
+        case NetworkType::UDP:
             {
                 channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
                 if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
@@ -244,7 +241,7 @@ int32_t socket_open(socket_channel *channel,
     case SOCKET_JABBER:
         switch (ntype)
         {
-        case NetworkType::UDP:
+        case NetworkType::BROADCAST:
             if ((iretn=setsockopt(channel->cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
             {
                 CLOSE_SOCKET(channel->cudp);
@@ -294,6 +291,16 @@ int32_t socket_open(socket_channel *channel,
             }
         }
         break;
+    }
+
+    if (rcvbuf)
+    {
+        setsockopt(channel->cudp, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbuf, 4);
+    }
+
+    if (sndbuf)
+    {
+        setsockopt(channel->cudp, SOL_SOCKET, SO_SNDBUF, (char *)&sndbuf, 4);
     }
 
     strncpy(channel->address,address,17);
