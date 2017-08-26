@@ -1747,7 +1747,7 @@ namespace Cosmos {
         // this will broadcast messages to all external interfaces (ifcnt = interface count)
         for (size_t i=0; i<cinfo->pdata.agent[0].ifcnt; i++)
         {
-            sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
+            sprintf((char *)&post[3],"{\"agent_utc\":%.15g , \"agent_node\":\"%s\" , \"agent_proc\":\"%s\" , \"agent_addr\":\"%s\" , \"agent_port\":%u , \"agent_bsz\":%u , \"agent_cpu\":%f , \"agent_memory\":%f , \"agent_jitter\":%f , \"node_utcoffset\":%.15g}",
                     cinfo->pdata.agent[0].beat.utc,
                     cinfo->pdata.agent[0].beat.node,
                     cinfo->pdata.agent[0].beat.proc,
@@ -1978,7 +1978,7 @@ namespace Cosmos {
                     }
 
                     // Extract meta data
-                    sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
+                    sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg , \"agent_node\":\"%40[^\"]\" , \"agent_proc\":\"%40[^\"]\" , \"agent_addr\":\"%17[^\"]\" , \"agent_port\":%hu , \"agent_bsz\":%u , \"agent_cpu\":%f , \"agent_memory\":%f , \"agent_jitter\":%lf}",
                            &mess.meta.beat.utc,
                            mess.meta.beat.node,
                            mess.meta.beat.proc,
