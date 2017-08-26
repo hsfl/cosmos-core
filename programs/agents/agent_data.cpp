@@ -27,6 +27,8 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: add descrition of what this agent does
+
 // code from testbed/blank_agent.cpp
 
 #include "support/configCosmos.h"
