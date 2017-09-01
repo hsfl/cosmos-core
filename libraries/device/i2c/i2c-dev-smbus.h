@@ -25,6 +25,7 @@
 #ifndef LIB_I2CDEV_H
 #define LIB_I2CDEV_H
 
+#if defined(COSMOS_LINUX_OS)
 #include <linux/types.h>
 #include <sys/ioctl.h>
 
@@ -330,5 +331,7 @@ static inline __s32 i2c_smbus_block_process_call(int file, __u8 command,
 		return data.block[0];
 	}
 }
+
+#endif
 
 #endif /* LIB_I2CDEV_H */

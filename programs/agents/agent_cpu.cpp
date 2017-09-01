@@ -16,6 +16,7 @@
 #include "support/jsonlib.h"
 #include "support/elapsedtime.h"
 #include "support/stringlib.h"
+#include "support/print_utils.h"
 
 #include "device/cpu/devicecpu.h"
 #include "device/disk/devicedisk.h"
@@ -41,7 +42,7 @@
 //using std::endl;
 
 // flag to turn on/off print
-bool printStatus;
+bool printStatus = true;
 
 int agent_cpu(), create_node();
 
@@ -87,7 +88,7 @@ Agent *agent;
 int main(int argc, char *argv[])
 {
 
-    cout << "Starting agent cpu" << endl;
+//    cout << "Starting agent cpu" << endl;
 
     switch (argc)
     {
@@ -170,6 +171,11 @@ int agent_cpu()
     static const double GiB = 1024. * 1024. * 1024.;
     deviceCpu.numProcessors = agent->cinfo->pdata.devspec.cpu[0]->maxload;
 
+    // TODO: determine number of disks automatically
+    PrintUtils print;
+    print.scalar("Number of Disks: ",agent->cinfo->pdata.devspec.disk_cnt);
+    print.endline();
+
     et.start();
 
     // Start performing the body of the agent
@@ -180,25 +186,34 @@ int agent_cpu()
 
         agent->cinfo->pdata.devspec.cpu[0]->gen.utc = currentmjd();
 
+        // get cpu info
         if (agent->cinfo->pdata.devspec.cpu_cnt)
         {
-            // cpu
-            agent->cinfo->pdata.devspec.cpu[0]->load   = deviceCpu.getLoad();
-            agent->cinfo->pdata.devspec.cpu[0]->gib    = deviceCpu.getVirtualMemoryUsed()/GiB;
+            agent->cinfo->pdata.devspec.cpu[0]->load = deviceCpu.getLoad();
+            agent->cinfo->pdata.devspec.cpu[0]->gib = deviceCpu.getVirtualMemoryUsed()/GiB;
             agent->cinfo->pdata.devspec.cpu[0]->maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
             deviceCpu.getPercentUseForCurrentProcess();
         }
 
+        // get disk info
         for (size_t i=0; i<agent->cinfo->pdata.devspec.disk_cnt; ++i)
         {
             agent->cinfo->pdata.devspec.disk[i]->gen.utc = currentmjd();
-            agent->cinfo->pdata.devspec.disk[i]->gib = disk.getUsedGiB(agent->cinfo->pdata.port[agent->cinfo->pdata.devspec.disk[i]->gen.portidx].name);
-            agent->cinfo->pdata.devspec.disk[i]->maxgib = disk.getSizeGiB(agent->cinfo->pdata.port[agent->cinfo->pdata.devspec.disk[i]->gen.portidx].name);
+
+            std::string node_path = agent->cinfo->pdata.port[agent->cinfo->pdata.devspec.disk[i]->gen.portidx].name;
+
+            agent->cinfo->pdata.devspec.disk[i]->gib = disk.getUsedGiB(node_path);
+            agent->cinfo->pdata.devspec.disk[i]->maxgib = disk.getSizeGiB(node_path);
         }
 
+        // if printStatus is true then print in a loop
         if (printStatus) {
-            cout << "Load," << deviceCpu.load << ", ";
-            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
+            PrintUtils print;
+            print.delimiter_flag = true;
+            print.scalar("Load",deviceCpu.load ,1,"",4,4);
+            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
+
+//            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
             cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
             cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
             cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
@@ -337,7 +352,7 @@ int create_node () // only use when unsure what the node is
     //	std::string node_directory;
 
     // Ensure node is present
-    cout << "Node name is " << nodename << endl;
+    //cout << "Node name is " << nodename << endl;
     if (get_nodedir(nodename).empty())
     {
         cout << endl << "Couldn't find Node directory, making directory now...";
