@@ -3818,3 +3818,38 @@ std::istream& operator >> (std::istream& in, locstruc& a)
 }
 
 //! @}
+
+void tle2sgp4(tlestruc tle, sgp4struc sgp4)
+{
+    sgp4.i = DEGOF(tle.i);
+    sgp4.ap = DEGOF(tle.ap);
+    sgp4.bstar = tle.bstar;
+    sgp4.e = tle.e;
+    sgp4.ma = DEGOF(tle.ma);
+    sgp4.mm = tle.mm * 1440. / D2PI;
+    calstruc cal = mjd2cal(tle.utc);
+    sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + cal.second / 86400.;
+    sgp4.raan = DEGOF(tle.raan);
+    return;
+}
+
+void sgp42tle(sgp4struc sgp4, tlestruc &tle)
+{
+    tle.i = RADOF(sgp4.i);
+    tle.ap = RADOF(sgp4.ap);
+    tle.bstar = sgp4.bstar;
+    tle.e = sgp4.e;
+    tle.ma = RADOF(sgp4.ma);
+    tle.mm = sgp4.mm * D2PI / 1440. ;
+    tle.raan = RADOF(sgp4.raan);
+    int year = sgp4.ep / 1000;
+    if (year < 57)
+        year += 2000;
+    else
+        year += 1900;
+    double jday = sgp4.ep - (year *1000);
+    tle.utc = cal2mjd((int)year,1,0.);
+    tle.utc += jday;
+
+    return;
+}

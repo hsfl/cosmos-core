@@ -472,4 +472,24 @@ typedef struct
 
 //! @}
 
+struct sgp4struc
+{
+    // Inclination (deg)
+    double i;
+    // Eccentricity
+    double e;
+    // Right-ascension of the Asceding Node (deg)
+    double raan;
+    // Argument of Perigee (deg)
+    double ap;
+    //B-Star drag term
+    double bstar;
+    // Mean Motion (deg)
+    double mm;
+    // Mean Anomaly (deg)
+    double ma;
+    // Epoch (year.day)
+    double ep;
+};
+
 #endif
