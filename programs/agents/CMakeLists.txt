@@ -28,3 +28,7 @@ endif()
 if(${BUILD_AGENTS_TYPE} MATCHES "ALL")
     add_subdirectory(other)
 endif()
+
+
+#add_executable(agent_cpu agent_cpu.cpp)
+#target_link_libraries(agent_cpu ${COSMOS_LIBS})

@@ -79,7 +79,9 @@ int main(int argc, char *argv[])
     data_list_nodes(nl);
     Agent *agent;
 
-    agent = new Agent();
+    // dont' print debug messages
+    //agent->debug_level = 0;
+    agent = new Agent("","",1,AGENTMAXBUFFER,false,0,NetworkType::UDP,0);
 
     // check command line arguments
     switch (argc)

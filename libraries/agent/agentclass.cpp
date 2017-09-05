@@ -71,20 +71,21 @@ namespace Cosmos {
     //! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
     //! the Agent already running.
     //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
-    //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it.
-    Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, size_t dlevel)
+    //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it. also initialized in the namespace variables
+    Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, int32_t dlevel)
     {
         int32_t iretn;
 
         double timeStart = currentmjd();
         debug_level = dlevel;
 
-        if (dlevel)
+        if (debug_level)
         {
             std::cout << "------------------------------------------------------" << std::endl;
             std::cout << "COSMOS AGENT '" << aname << "' on node '" << nname << "'" << std::endl;
             std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
             std::cout << "Agent started at " << mjdToGregorian(timeStart) << std::endl;
+            std::cout << "Debug level " << debug_level << endl;
             std::cout << "------------------------------------------------------" << std::endl;
         }
 
