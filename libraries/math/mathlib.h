@@ -292,6 +292,12 @@ rvector rotate_q(quaternion q,rvector v);
 cvector rotate_q(quaternion q, cvector v);
 rvector transform_q(quaternion q,rvector v);
 
+// Moving to new naming convention: drotate is Direct Rotation of vector, irotate is rotation of coordinate axes
+rvector drotate(quaternion q,rvector v);
+cvector drotate(quaternion q, cvector v);
+rvector irotate(quaternion q,rvector v);
+cvector irotate(quaternion q, cvector v);
+
 
 rvector rv_quaternion2axis(quaternion q);
 uvector rv_fitpoly(uvector x, uvector y, uint32_t order);

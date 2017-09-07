@@ -18,6 +18,12 @@
 #endif
 #endif
 
+#if defined(COSMOS_MAC_OS)
+    #include <sys/disk.h>
+    #include <sys/ioctl.h>
+    #include <fcntl.h>
+#endif
+
 
 static const double GiB = 1024. * 1024. * 1024.;
 

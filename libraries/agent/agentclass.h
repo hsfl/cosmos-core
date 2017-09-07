@@ -132,7 +132,7 @@ class Agent
 {
 public:
 //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP, size_t dlevel = 1);
+    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 1);
     ~Agent();
 
     enum class State : uint16_t
@@ -324,21 +324,24 @@ public:
     //! Last message rad in message ring buffer
     size_t message_tail = MESSAGE_RING_SIZE;
 
+    //! Flag for level of debugging, keep it public so that it can be controlled from the outside
+    size_t debug_level = 1;
+
     // agent variables
 private:
 
     NetworkType networkType = NetworkType::UDP;
     string nodeName;
     string agentName;
-    double beatPeriod   = 1.0; // in seconds
+    double beatPeriod = 1.0; // in seconds
     uint32_t bufferSize = AGENTMAXBUFFER;
-    bool     multiflag   = false;
-    int32_t  portNumber        = 0;
+    bool multiflag = false;
+    int32_t portNumber = 0;
 
-    string version  = "0.0";
-    float    timeoutSec  = 5.0;
-    bool printMessages   = true; // by default?
-    bool logTime         = true; // by default
+    string version = "0.0";
+    float timeoutSec = 5.0;
+    bool printMessages = true; // by default?
+    bool logTime = true; // by default
     double timeStart; // UTC starting time for this agent in MJD
     string hbjstring;
     vector<beatstruc> slist;
@@ -348,8 +351,6 @@ private:
     thread hthread;
     //! Handle for message thread
     thread mthread;
-    //! Flag for level of debugging
-    size_t debug_level;
     //! Last error
     int32_t error_value;
 

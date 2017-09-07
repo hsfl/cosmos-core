@@ -916,7 +916,7 @@ void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
     for (i=0; i<devspec.stt_cnt; i++)
     {
         devspec.stt[i]->att = q_mult(devspec.stt[i]->align,q_conjugate(loc.att.icrf.s));
-        devspec.stt[i]->omega = transform_q(q_conjugate(devspec.stt[i]->align),loc.att.icrf.v);
+        devspec.stt[i]->omega = irotate(q_conjugate(devspec.stt[i]->align),loc.att.icrf.v);
         devspec.stt[i]->gen.utc = loc.utc;
     }
 }
@@ -963,15 +963,15 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     // Atmospheric and solar drag
     unitv = loc.pos.geoc.v;
     normalize_rv(unitv);
-    unitv = transform_q((loc.att.geoc.s),unitv);
+    unitv = irotate((loc.att.geoc.s),unitv);
 
     units = rv_smult(-1.,loc.pos.icrf.s);
     normalize_rv(units);
-    units = transform_q((loc.att.icrf.s),units);
+    units = irotate((loc.att.icrf.s),units);
 
     unite = rv_smult(-1.,loc.pos.eci.s);
     normalize_rv(unite);
-    unite = transform_q((loc.att.icrf.s),unite);
+    unite = irotate((loc.att.icrf.s),unite);
 
     geov = loc.pos.geoc.v;
     speed = geov.col[0]*geov.col[0]+geov.col[1]*geov.col[1]+geov.col[2]*geov.col[2];
@@ -1100,12 +1100,12 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
         //tskew = rm_skew(loc.att.icrf.v);
 
         wmomentum = rv_mmult(mom,rv_smult(cdata.devspec.rw[i]->omg,rv_unitz()));
-        wmomentum = transform_q(cdata.devspec.rw[i]->align,wmomentum);
+        wmomentum = irotate(cdata.devspec.rw[i]->align,wmomentum);
         cdata.physics.hmomentum = rv_add(cdata.physics.hmomentum,wmomentum);
 
         // Calculate Torque in Body frame and transform to ICRF
         wtorque = rv_mmult(mom,rv_smult(cdata.devspec.rw[i]->alp,rv_unitz()));
-        wtorque = transform_q(cdata.devspec.rw[i]->align,wtorque);
+        wtorque = irotate(cdata.devspec.rw[i]->align,wtorque);
         cdata.physics.ctorque = rv_sub(cdata.physics.ctorque,wtorque);
 
         // Term for exponential change
@@ -1152,7 +1152,7 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     for (i=0; i<cdata.devspec.mtr_cnt; i++)
     {
         // Magnetic Moments in Body frame
-        mag_moment = rv_add(mag_moment,transform_q(cdata.devspec.mtr[i]->align,rv_smult(cdata.devspec.mtr[i]->mom,rv_unitz())));
+        mag_moment = rv_add(mag_moment,irotate(cdata.devspec.mtr[i]->align,rv_smult(cdata.devspec.mtr[i]->mom,rv_unitz())));
 
         tcexp = exp(-cdata.physics.dt/cdata.devspec.mtr[i]->tc);
 
@@ -1183,10 +1183,10 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     }
 
     // Get magnetic field in body frame
-    bearth = transform_q(loc.att.geoc.s,loc.bearth);
+    bearth = irotate(loc.att.geoc.s,loc.bearth);
 
     mtorque = rv_cross(mag_moment,bearth);
-    //	mtorque = transform_q(q_conjugate(loc.att.icrf.s),mtorque);
+    //	mtorque = irotate(q_conjugate(loc.att.icrf.s),mtorque);
     cdata.physics.ctorque = rv_add(cdata.physics.ctorque,mtorque);
 
     // Star Trackers
@@ -1195,7 +1195,7 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
         cdata.devspec.stt[i]->gen.utc = loc.utc;
         tq = q_mult(q_conjugate(cdata.devspec.stt[i]->align),loc.att.icrf.s);
         cdata.devspec.stt[i]->att = tq;
-        cdata.devspec.stt[i]->omega = transform_q(tq,loc.att.icrf.v);
+        cdata.devspec.stt[i]->omega = irotate(tq,loc.att.icrf.v);
         cdata.devspec.stt[i]->gen.utc = loc.utc;
     }
 
@@ -1222,9 +1222,9 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     for (i=0; i<cdata.devspec.ssen_cnt; i++)
     {
         // Get sun vector in body frame
-        vec = transform_q(loc.att.icrf.s,rv_smult(-1.,loc.pos.icrf.s));
+        vec = irotate(loc.att.icrf.s,rv_smult(-1.,loc.pos.icrf.s));
         // Rotate into sun sensor frame
-        vec = transform_q(q_conjugate(cdata.devspec.ssen[i]->align),vec);
+        vec = irotate(q_conjugate(cdata.devspec.ssen[i]->align),vec);
         // Convert this to az and el
         topo2azel(vec,&cdata.devspec.ssen[i]->azimuth,&cdata.devspec.ssen[i]->elevation);
         if (cdata.devspec.ssen[i]->azimuth < 0.)
@@ -1295,11 +1295,11 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
             switch (loc.pos.extra.closest)
             {
             case COSMOS_EARTH:
-                vplanet = transform_q(q_conjugate(loc.att.geoc.s),vbody);
+                vplanet = irotate(q_conjugate(loc.att.geoc.s),vbody);
                 loc.pos.geoc.s = rv_add(loc.pos.geoc.s,vplanet);
                 break;
             case COSMOS_MOON:
-                vplanet = transform_q(q_conjugate(loc.att.selc.s),vbody);
+                vplanet = irotate(q_conjugate(loc.att.selc.s),vbody);
                 loc.pos.selc.s = rv_add(loc.pos.selc.s,vplanet);
                 break;
             }
@@ -1456,11 +1456,11 @@ void simulate_imu(int index, cosmosdatastruc &cdata, locstruc &loc)
     cdata.devspec.imu[index]->gen.utc = loc.utc;
 
     //! Set raw values for accelerometer and gyros
-    cdata.devspec.imu[index]->accel = transform_q(toimu,loc.pos.icrf.a);
-    cdata.devspec.imu[index]->omega = transform_q(toimu,loc.att.icrf.v);
+    cdata.devspec.imu[index]->accel = irotate(toimu,loc.pos.icrf.a);
+    cdata.devspec.imu[index]->omega = irotate(toimu,loc.att.icrf.v);
 
     //! Set magnetic field in IMU frame
-    cdata.devspec.imu[index]->mag = transform_q(q_conjugate(cdata.devspec.imu[index]->align),transform_q(loc.att.geoc.s,loc.bearth));
+    cdata.devspec.imu[index]->mag = irotate(q_conjugate(cdata.devspec.imu[index]->align),irotate(loc.att.geoc.s,loc.bearth));
 
     cdata.timestamp = currentmjd();
 }
@@ -1482,7 +1482,7 @@ void att_accel(physicsstruc &physics, locstruc &loc)
 
     // Now calculate Gravity Gradient Torque
     // Unit vector towards earth, rotated into body frame
-    ue = transform_q((loc.att.icrf.s),rv_smult(-1.,loc.pos.eci.s));
+    ue = irotate((loc.att.icrf.s),rv_smult(-1.,loc.pos.eci.s));
     normalize_rv(ue);
 
     physics.gtorque = rv_smult((3.*GM/pow(loc.pos.geos.s.r,3.)),rv_cross(ue,rv_mult(physics.moi,ue)));
@@ -1498,7 +1498,7 @@ void att_accel(physicsstruc &physics, locstruc &loc)
     // Moment of Inertia in Body frame
     mom = rm_diag(physics.moi);
     // Attitude rate in Body frame
-    tv = transform_q(loc.att.icrf.s,loc.att.icrf.v);
+    tv = irotate(loc.att.icrf.s,loc.att.icrf.v);
 
     // Torque from cross product of angular velocity and angular momentum
     physics.htorque = rv_smult(-1., rv_cross(tv,rv_add(rv_mmult(mom,tv),physics.hmomentum)));
@@ -1510,11 +1510,11 @@ void att_accel(physicsstruc &physics, locstruc &loc)
     ta = rv_mmult(rm_inverse(mom),ttorque);
 
     // Convert body frame acceleration back to other frames.
-    loc.att.icrf.a = transform_q(q_conjugate(loc.att.icrf.s),ta);
-    loc.att.topo.a = transform_q(q_conjugate(loc.att.topo.s),ta);
-    loc.att.lvlh.a = transform_q(q_conjugate(loc.att.lvlh.s),ta);
-    loc.att.geoc.a = transform_q(q_conjugate(loc.att.geoc.s),ta);
-    loc.att.selc.a = transform_q(q_conjugate(loc.att.selc.s),ta);
+    loc.att.icrf.a = irotate(q_conjugate(loc.att.icrf.s),ta);
+    loc.att.topo.a = irotate(q_conjugate(loc.att.topo.s),ta);
+    loc.att.lvlh.a = irotate(q_conjugate(loc.att.lvlh.s),ta);
+    loc.att.geoc.a = irotate(q_conjugate(loc.att.geoc.s),ta);
+    loc.att.selc.a = irotate(q_conjugate(loc.att.selc.s),ta);
 }
 
 //! Position acceleration
@@ -1595,19 +1595,19 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
     // Atmospheric drag
     if (length_rv(physics.adrag))
     {
-        da = transform_q(q_conjugate(loc.att.icrf.s),physics.adrag);
+        da = irotate(q_conjugate(loc.att.icrf.s),physics.adrag);
         loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
     }
     // Solar drag
     if (length_rv(physics.rdrag))
     {
-        da = transform_q(q_conjugate(loc.att.icrf.s),physics.rdrag);
+        da = irotate(q_conjugate(loc.att.icrf.s),physics.rdrag);
         loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
     }
     // Fictitious drag
     if (length_rv(physics.fdrag))
     {
-        da = transform_q(q_conjugate(loc.att.icrf.s),physics.fdrag);
+        da = irotate(q_conjugate(loc.att.icrf.s),physics.fdrag);
         loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
     }
 
@@ -2948,7 +2948,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
             att_accel(physics, gjh.step[gjh.order+1].sloc);
             for (k=0; k<astep; k++)
             {
-                tvector = transform_q(gjh.step[gjh.order+1].sloc.att.icrf.s,rv_smult(dtuse,gjh.step[gjh.order+1].sloc.att.icrf.v));
+                tvector = irotate(gjh.step[gjh.order+1].sloc.att.icrf.s,rv_smult(dtuse,gjh.step[gjh.order+1].sloc.att.icrf.v));
                 tskew = rm_skew(tvector);
                 tmatrix2.rows = tmatrix2.cols = 4;
                 for (int l=0; l<3; ++l)
@@ -3014,7 +3014,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
             }
             q1 = q_change_between_rv(rv_unitz(),normal);
             unitx = rv_cross(normal,rv_unity());
-            unitx = transform_q(q1,unitx);
+            unitx = irotate(q1,unitx);
             q2 = q_change_between_rv(unitx,unitv);
             //		gjh.step[gjh.order+1].sloc.att.topo.s = q_mult(q2,q1);
             gjh.step[gjh.order+1].sloc.att.topo.s = q1;
@@ -3048,7 +3048,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
             unitp2.col[0] += .1*(val.nmap[0]-unitp2.col[0]);
             unitp2.col[1] += .1*(val.nmap[1]-unitp2.col[1]);
             unitp2.col[2] += .1*(val.nmap[2]-unitp2.col[2]);
-            q2 = q_change_between_rv(transform_q(q1,rv_unitz()),unitp2);
+            q2 = q_change_between_rv(irotate(q1,rv_unitz()),unitp2);
             gjh.step[gjh.order+1].sloc.att.selc.s = q_conjugate(q_mult(q2,q1));
             gjh.step[gjh.order+1].sloc.att.selc.v = rv_zero();
             att_selc2icrf(&gjh.step[gjh.order+1].sloc);
@@ -3381,7 +3381,7 @@ int update_eci(cosmosdatastruc &cdata, double utc, cartpos pos)
         }
         q1 = q_change_between_rv(rv_unitz(),normal);
         unitx = rv_cross(normal,rv_unity());
-        unitx = transform_q(q1,unitx);
+        unitx = irotate(q1,unitx);
         q2 = q_change_between_rv(unitx,unitv);
         //		cdata.node.loc.att.topo.s = q_mult(q2,q1);
         cdata.node.loc.att.topo.s = q1;
@@ -3415,7 +3415,7 @@ int update_eci(cosmosdatastruc &cdata, double utc, cartpos pos)
         unitp2.col[0] += .1*(val.nmap[0]-unitp2.col[0]);
         unitp2.col[1] += .1*(val.nmap[1]-unitp2.col[1]);
         unitp2.col[2] += .1*(val.nmap[2]-unitp2.col[2]);
-        q2 = q_change_between_rv(transform_q(q1,rv_unitz()),unitp2);
+        q2 = q_change_between_rv(irotate(q1,rv_unitz()),unitp2);
         cdata.node.loc.att.selc.s = q_conjugate(q_mult(q2,q1));
         cdata.node.loc.att.selc.v = rv_zero();
         att_selc2icrf(&cdata.node.loc);

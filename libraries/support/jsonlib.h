@@ -216,11 +216,11 @@ uint32_t json_get_uint(string token, uint16_t index1, cosmosmetastruc &cmeta, co
 uint32_t json_get_uint(string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 uint32_t json_get_uint(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 
-double json_get_double(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
-double json_get_double(string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
-double json_get_double(string token, uint16_t index1, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
-double json_get_double(string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
-double json_get_double(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
+double json_get_double(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
+double json_get_double(string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
+double json_get_double(string token, uint16_t index1, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
+double json_get_double(string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
+double json_get_double(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
 
 rvector json_get_rvector(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 quaternion json_get_quaternion(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
