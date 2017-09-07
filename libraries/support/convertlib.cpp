@@ -3819,7 +3819,7 @@ std::istream& operator >> (std::istream& in, locstruc& a)
 
 //! @}
 
-void tle2sgp4(tlestruc tle, sgp4struc sgp4)
+void tle2sgp4(tlestruc tle, sgp4struc &sgp4)
 {
     sgp4.i = DEGOF(tle.i);
     sgp4.ap = DEGOF(tle.ap);
