@@ -586,7 +586,7 @@ void collect_data_loop()
                 json_parse(agent->message_ring[my_position].adata, agent->cinfo->meta, agent->cinfo->sdata);
                 agent->cinfo->pdata.node  = agent->cinfo->sdata.node ;
                 agent->cinfo->pdata.device  = agent->cinfo->sdata.device ;
-                loc_update(&agent->cinfo->pdata.node.loc);
+//                loc_update(&agent->cinfo->pdata.node.loc);
                 agent->cinfo->pdata.node.utc = currentmjd(0.);
 
                 for (devicestruc device: agent->cinfo->pdata.device)

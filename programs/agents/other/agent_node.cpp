@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 
 	// Start performing the body of the agent
     json_parse((char *)(cache[3].telem[cache[3].telem.size()-1].c_str()), agent->cinfo->meta, agent->cinfo->pdata);
-    loc_update(&agent->cinfo->pdata.node.loc);
+//    loc_update(&agent->cinfo->pdata.node.loc);
 
     switch (agent->cinfo->pdata.node.type)
 	{
