@@ -316,6 +316,8 @@ public:
 
     //! List of active agents
     vector <beatstruc> agent_list;
+    //! List of active Nodes
+    vector <jsonnode> node_list;
 
     //! Ring buffer for incoming messages
     vector <messstruc> message_ring;
@@ -381,6 +383,7 @@ private:
     static int32_t req_help(char *request, char* response, Agent *agent);
     static int32_t req_shutdown(char *request, char* response, Agent *agent);
     static int32_t req_idle(char *request, char* response, Agent *agent);
+    static int32_t req_init(char *request, char* response, Agent *agent);
     static int32_t req_monitor(char *request, char* response, Agent *agent);
     static int32_t req_run(char *request, char* response, Agent *agent);
     static int32_t req_status(char *request, char* response, Agent *agent);

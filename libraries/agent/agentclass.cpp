@@ -229,6 +229,7 @@ namespace Cosmos {
         Agent::add_request("help",req_help,"","list of available requests for this agent");
         Agent::add_request("shutdown",Agent::req_shutdown,"","request to shutdown this agent");
         Agent::add_request("idle",Agent::req_idle,"","request to transition this agent to idle state");
+        Agent::add_request("init",Agent::req_init,"","request to transition this agent to init state");
         Agent::add_request("monitor",Agent::req_monitor,"","request to transition this agent to monitor state");
         Agent::add_request("run",Agent::req_run,"","request to transition this agent to run state");
         Agent::add_request("status",Agent::req_status,"","request the status of this agent");
@@ -475,6 +476,7 @@ namespace Cosmos {
     {
         int32_t iretn;
 
+        jnode.name = hbeat.node;
         iretn = send_request(hbeat, "nodejson", jnode.node, waitsec);
         if (iretn < 0)
         {
@@ -883,19 +885,32 @@ namespace Cosmos {
             iretn = Agent::poll(mess, AGENT_MESSAGE_ALL, 5.);
             if (iretn > 0)
             {
-                bool found = false;
+                bool agent_found = false;
                 for (beatstruc &i : agent_list)
                 {
                     if (!strcmp(i.node, mess.meta.beat.node) && !strcmp(i.proc, mess.meta.beat.proc))
                     {
-                        i = mess.meta.beat;
-                        found = true;
+                        agent_found = true;
                         break;
                     }
                 }
-                if (!found)
+                if (!agent_found)
                 {
                     agent_list.push_back(mess.meta.beat);
+                    bool node_found = false;
+                    for (jsonnode &i : node_list)
+                    {
+                        if (!i.name.compare(mess.meta.beat.node))
+                        {
+                            node_found = true;
+                        }
+                    }
+                    if (!node_found)
+                    {
+                        jsonnode jnode;
+                        send_request_jsonnode(mess.meta.beat, jnode);
+                        node_list.push_back(jnode);
+                    }
                 }
 
                 size_t new_position;
@@ -990,6 +1005,20 @@ namespace Cosmos {
     int32_t Agent::req_run(char*, char* output, Agent* agent)
     {
         agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
+        output[0] = 0;
+        return(0);
+    }
+
+    //! Built-in Set state to Init request
+    /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to ::Agent to use.
+ * \return 0, or negative error.
+ */
+    int32_t Agent::req_init(char*, char* output, Agent* agent)
+    {
+        agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::INIT);
         output[0] = 0;
         return(0);
     }
