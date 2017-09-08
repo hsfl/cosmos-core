@@ -238,18 +238,18 @@ public:
 
     struct pollstruc
     {
-        uint8_t type; // TODO: what are the available types?
-        uint16_t jlength;
-        beatstruc beat;
+        uint8_t type; // > 128 is binary, <128 is json, look for AGENT_MESSAGE in agentclass.h
+        uint16_t jlength; // lenght of JSON header
+        beatstruc beat; // all the information of the heartbeat (name, ip, etc.)
     };
 
     //! Storage for messages
     struct messstruc
     {
-        pollstruc meta; // TODO: what is meta?
-        vector <uint8_t> bdata; // TODO: what is bdata?
-        string adata; // TODO: what is adata?
-        string jdata; // TODO: what is jdata?
+        pollstruc meta; // agent control information
+        vector <uint8_t> bdata; // binary data if present
+        string adata; // ascii data if present
+        string jdata; // json header data, always present
     };
 
     //! Agent Request Function
