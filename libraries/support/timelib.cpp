@@ -85,8 +85,8 @@ double currentmjd()
 
 unsigned long int get_unix_time()
 {
-    unsigned long int unix= time(NULL);
-    return unix;
+    unsigned long int unix_time = time(NULL);
+    return unix_time;
 }
 
 string get_local_time()
