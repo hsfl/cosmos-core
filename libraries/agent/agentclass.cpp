@@ -891,6 +891,7 @@ namespace Cosmos {
                     if (!strcmp(i.node, mess.meta.beat.node) && !strcmp(i.proc, mess.meta.beat.proc))
                     {
                         agent_found = true;
+                        i.utc = mess.meta.beat.utc;
                         break;
                     }
                 }
@@ -1775,12 +1776,13 @@ namespace Cosmos {
         // this will broadcast messages to all external interfaces (ifcnt = interface count)
         for (size_t i=0; i<cinfo->pdata.agent[0].ifcnt; i++)
         {
-            sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
+            sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bprd\":%f}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
                     cinfo->pdata.agent[0].beat.utc,
                     cinfo->pdata.agent[0].beat.node,
                     cinfo->pdata.agent[0].beat.proc,
                     cinfo->pdata.agent[0].pub[i].address,
                     cinfo->pdata.agent[0].beat.port,
+                    cinfo->pdata.agent[0].beat.bprd,
                     cinfo->pdata.agent[0].beat.bsz,
                     cinfo->pdata.agent[0].beat.cpu,
                     cinfo->pdata.agent[0].beat.memory,
@@ -2006,12 +2008,13 @@ namespace Cosmos {
                     }
 
                     // Extract meta data
-                    sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
+                    sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bprd\":%lf}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
                            &mess.meta.beat.utc,
                            mess.meta.beat.node,
                            mess.meta.beat.proc,
                            mess.meta.beat.addr,
                            &mess.meta.beat.port,
+                           &mess.meta.beat.bprd,
                            &mess.meta.beat.bsz,
                            &mess.meta.beat.cpu,
                            &mess.meta.beat.memory,
