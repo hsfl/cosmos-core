@@ -406,7 +406,7 @@ namespace Cosmos {
 
     int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec)
     {
-        static socket_channel sendchan;
+        socket_channel sendchan;
         int32_t iretn;
         int32_t nbytes;
 
@@ -2008,17 +2008,33 @@ namespace Cosmos {
                     }
 
                     // Extract meta data
-                    sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bprd\":%lf}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
-                           &mess.meta.beat.utc,
-                           mess.meta.beat.node,
-                           mess.meta.beat.proc,
-                           mess.meta.beat.addr,
-                           &mess.meta.beat.port,
-                           &mess.meta.beat.bprd,
-                           &mess.meta.beat.bsz,
-                           &mess.meta.beat.cpu,
-                           &mess.meta.beat.memory,
-                           &mess.meta.beat.jitter);
+                    if (mess.jdata.find("agent_bprd"))
+                    {
+                        sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
+                               &mess.meta.beat.utc,
+                               mess.meta.beat.node,
+                               mess.meta.beat.proc,
+                               mess.meta.beat.addr,
+                               &mess.meta.beat.port,
+                               &mess.meta.beat.bsz,
+                               &mess.meta.beat.cpu,
+                               &mess.meta.beat.memory,
+                               &mess.meta.beat.jitter);
+                    }
+                    else
+                    {
+                        sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bprd\":%lf}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
+                               &mess.meta.beat.utc,
+                               mess.meta.beat.node,
+                               mess.meta.beat.proc,
+                               mess.meta.beat.addr,
+                               &mess.meta.beat.port,
+                               &mess.meta.beat.bprd,
+                               &mess.meta.beat.bsz,
+                               &mess.meta.beat.cpu,
+                               &mess.meta.beat.memory,
+                               &mess.meta.beat.jitter);
+                    }
 
                     return ((int)mess.meta.type);
                 }
