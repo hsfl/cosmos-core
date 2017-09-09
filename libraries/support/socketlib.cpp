@@ -496,6 +496,7 @@ int32_t socket_close(socket_channel *channel)
     }
 #endif
     channel->address[0] = 0;
+    channel->cudp = -1;
     return iretn;
 }
 

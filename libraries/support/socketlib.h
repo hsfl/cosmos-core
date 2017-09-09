@@ -117,7 +117,7 @@ struct socket_channel
 	// Channel type
     NetworkType type;
 	// Channel UDP socket handle
-	int32_t cudp;
+    int32_t cudp=-1;
 	// Channel UDP INET4 address
 	struct sockaddr_in caddr;
 	// Channel UDP INET4 broadcast address
