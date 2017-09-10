@@ -861,6 +861,27 @@ string data_name_path(string node, string location, string agent, double mjd, st
 
 }
 
+//! Create resource file path
+/*! Build a path to a resource file using its filename and the current resource
+ * directory.
+ * \param name File name.
+ * \return File path string, otherwise nullptr
+*/
+string data_resource_path(string name)
+{
+    string path;
+
+    path = get_cosmosresources() + "/" + name;
+    if (data_isfile(path))
+    {
+        return path;
+    }
+    else
+    {
+        return "";
+    }
+}
+
 //! Check existence of path.
 /*! Check whether a path exists, within the limits of permissions.
  * \param path string containing full path.
@@ -929,6 +950,13 @@ FILE *data_open(string path, char *mode)
 int32_t set_cosmosroot(string name, bool create_flag)
 {
     cosmosroot.clear();
+    for (size_t i=0; i<name.length(); ++i)
+    {
+        if (name[i] == '\\')
+        {
+            name.replace(i, 1, "/");
+        }
+    }
     if (data_isdir(name))
     {
         cosmosroot = name;
@@ -1104,6 +1132,13 @@ int32_t get_cosmosroot(string &result, bool create_flag)
 int32_t set_cosmosresources(string name, bool create_flag)
 {
     cosmosresources.clear();
+    for (size_t i=0; i<name.length(); ++i)
+    {
+        if (name[i] == '\\')
+        {
+            name.replace(i, 1, "/");
+        }
+    }
     if (data_isdir(name))
     {
         cosmosresources = name;
@@ -1292,6 +1327,13 @@ int32_t setEnvCosmos(string path){
 int32_t set_cosmosnodes(string name, bool create_flag)
 {
     cosmosnodes.clear();
+    for (size_t i=0; i<name.length(); ++i)
+    {
+        if (name[i] == '\\')
+        {
+            name.replace(i, 1, "/");
+        }
+    }
     if (data_isdir(name))
     {
         cosmosnodes = name;
@@ -1704,6 +1746,21 @@ bool data_isdir(string path)
     struct stat st;
 
     if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
+bool data_isfile(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode))
     {
         return true;
     }
