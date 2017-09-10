@@ -2117,7 +2117,7 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size)
         \param v Row vector to be rotated.
         \return Rotated row vector in the same system.
 */
-rvector rotate_q(quaternion q, rvector v)
+rvector drotate(quaternion q, rvector v)
 {
     // TODO: remove uvector, use quaternion
     uvector t = {{{0.,0.,0.},0.}};
@@ -2128,6 +2128,11 @@ rvector rotate_q(quaternion q, rvector v)
     return (t.r);
 }
 
+rvector rotate_q(quaternion q, rvector v)
+{
+    return drotate(q, v);
+}
+
 //! Rotate a cartesian vector using a quaternion
 /*! Rotate a cartesian vector from one coordinate system to another using the
  * provided quaternion.
@@ -2135,30 +2140,31 @@ rvector rotate_q(quaternion q, rvector v)
         \param v cartesian vector to be rotated
         \return cartesian vector in the rotated system
 */
-cvector rotate_q(quaternion q, cvector v)
+cvector drotate(quaternion q, cvector v)
 {
     uvector qt;
-    quaternion qc;
 
     qt.c = v;
     qt.q.w = 0.0;
 
-    qc = q_conjugate(q);
-    qt.q = q_mult(qt.q,qc);
-    qt.q = q_mult(q,qt.q);
+    qt.q = q_mult(q,q_mult(qt.r,q_conjugate(q)));
 
     return (qt.c);
 }
 
+cvector rotate_q(quaternion q, cvector v)
+{
+    return drotate(q, v);
+}
 
-//! Transform a row vector using a quaternion
-/*! Transform a row vector from one coordinate system to another using the
+//! Indirectly rotate a row vector using a quaternion
+/*! Indirectly rotate a row vector from one coordinate system to another using the
  * provided left quaternion.
         \param q quaternion representing the transformation
         \param v row vector to be rotated
         \return row vector in the transformed system
 */
-rvector transform_q(quaternion q, rvector v)
+rvector irotate(quaternion q, rvector v)
 {
     uvector t = {{{0.,0.,0.},0.}};
 
@@ -2167,7 +2173,29 @@ rvector transform_q(quaternion q, rvector v)
     return (t.r);
 }
 
+rvector transform_q(quaternion q, rvector v)
+{
+    return irotate(q, v);
+}
 
+//! Indirectly rotate a cartesian vector using a quaternion
+/*! Indirectly rotate a cartesian vector from one coordinate system to another using the
+ * provided left quaternion.
+        \param q quaternion representing the transformation
+        \param v cartesian vector to be rotated
+        \return cartesian vector in the transformed system
+*/
+cvector irotate(quaternion q, cvector v)
+{
+    uvector qt;
+
+    qt.c = v;
+    qt.q.w = 0.0;
+
+    qt.q = q_mult(q_conjugate(q),q_mult(qt.r,q));
+
+    return (qt.c);
+}
 
 //! Create rotation quaternion from 2 vectors
 /*! Generate the quaternion that represents a rotation of from one cartesian vector

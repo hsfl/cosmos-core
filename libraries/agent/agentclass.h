@@ -132,7 +132,7 @@ class Agent
 {
 public:
 //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP, size_t dlevel = 1);
+    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 1);
     ~Agent();
 
     enum class State : uint16_t
@@ -238,18 +238,18 @@ public:
 
     struct pollstruc
     {
-        uint8_t type; // TODO: what are the available types?
-        uint16_t jlength;
-        beatstruc beat;
+        uint8_t type; // > 128 is binary, <128 is json, look for AGENT_MESSAGE in agentclass.h
+        uint16_t jlength; // lenght of JSON header
+        beatstruc beat; // all the information of the heartbeat (name, ip, etc.)
     };
 
     //! Storage for messages
     struct messstruc
     {
-        pollstruc meta; // TODO: what is meta?
-        vector <uint8_t> bdata; // TODO: what is bdata?
-        string adata; // TODO: what is adata?
-        string jdata; // TODO: what is jdata?
+        pollstruc meta; // agent control information
+        vector <uint8_t> bdata; // binary data if present
+        string adata; // ascii data if present
+        string jdata; // json header data, always present
     };
 
     //! Agent Request Function
@@ -316,6 +316,8 @@ public:
 
     //! List of active agents
     vector <beatstruc> agent_list;
+    //! List of active Nodes
+    vector <jsonnode> node_list;
 
     //! Ring buffer for incoming messages
     vector <messstruc> message_ring;
@@ -324,21 +326,24 @@ public:
     //! Last message rad in message ring buffer
     size_t message_tail = MESSAGE_RING_SIZE;
 
+    //! Flag for level of debugging, keep it public so that it can be controlled from the outside
+    size_t debug_level = 1;
+
     // agent variables
 private:
 
     NetworkType networkType = NetworkType::UDP;
     string nodeName;
     string agentName;
-    double beatPeriod   = 1.0; // in seconds
+    double beatPeriod = 1.0; // in seconds
     uint32_t bufferSize = AGENTMAXBUFFER;
-    bool     multiflag   = false;
-    int32_t  portNumber        = 0;
+    bool multiflag = false;
+    int32_t portNumber = 0;
 
-    string version  = "0.0";
-    float    timeoutSec  = 5.0;
-    bool printMessages   = true; // by default?
-    bool logTime         = true; // by default
+    string version = "0.0";
+    float timeoutSec = 5.0;
+    bool printMessages = true; // by default?
+    bool logTime = true; // by default
     double timeStart; // UTC starting time for this agent in MJD
     string hbjstring;
     vector<beatstruc> slist;
@@ -348,8 +353,6 @@ private:
     thread hthread;
     //! Handle for message thread
     thread mthread;
-    //! Flag for level of debugging
-    size_t debug_level;
     //! Last error
     int32_t error_value;
 
@@ -380,6 +383,7 @@ private:
     static int32_t req_help(char *request, char* response, Agent *agent);
     static int32_t req_shutdown(char *request, char* response, Agent *agent);
     static int32_t req_idle(char *request, char* response, Agent *agent);
+    static int32_t req_init(char *request, char* response, Agent *agent);
     static int32_t req_monitor(char *request, char* response, Agent *agent);
     static int32_t req_run(char *request, char* response, Agent *agent);
     static int32_t req_status(char *request, char* response, Agent *agent);

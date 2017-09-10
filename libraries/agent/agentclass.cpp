@@ -71,20 +71,21 @@ namespace Cosmos {
     //! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
     //! the Agent already running.
     //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
-    //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it.
-    Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, size_t dlevel)
+    //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it. also initialized in the namespace variables
+    Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, int32_t dlevel)
     {
         int32_t iretn;
 
         double timeStart = currentmjd();
         debug_level = dlevel;
 
-        if (dlevel)
+        if (debug_level)
         {
             std::cout << "------------------------------------------------------" << std::endl;
             std::cout << "COSMOS AGENT '" << aname << "' on node '" << nname << "'" << std::endl;
             std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
             std::cout << "Agent started at " << mjdToGregorian(timeStart) << std::endl;
+            std::cout << "Debug level " << debug_level << endl;
             std::cout << "------------------------------------------------------" << std::endl;
         }
 
@@ -228,6 +229,7 @@ namespace Cosmos {
         Agent::add_request("help",req_help,"","list of available requests for this agent");
         Agent::add_request("shutdown",Agent::req_shutdown,"","request to shutdown this agent");
         Agent::add_request("idle",Agent::req_idle,"","request to transition this agent to idle state");
+        Agent::add_request("init",Agent::req_init,"","request to transition this agent to init state");
         Agent::add_request("monitor",Agent::req_monitor,"","request to transition this agent to monitor state");
         Agent::add_request("run",Agent::req_run,"","request to transition this agent to run state");
         Agent::add_request("status",Agent::req_status,"","request the status of this agent");
@@ -404,7 +406,7 @@ namespace Cosmos {
 
     int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec)
     {
-        static socket_channel sendchan;
+        socket_channel sendchan;
         int32_t iretn;
         int32_t nbytes;
 
@@ -474,6 +476,7 @@ namespace Cosmos {
     {
         int32_t iretn;
 
+        jnode.name = hbeat.node;
         iretn = send_request(hbeat, "nodejson", jnode.node, waitsec);
         if (iretn < 0)
         {
@@ -882,19 +885,33 @@ namespace Cosmos {
             iretn = Agent::poll(mess, AGENT_MESSAGE_ALL, 5.);
             if (iretn > 0)
             {
-                bool found = false;
+                bool agent_found = false;
                 for (beatstruc &i : agent_list)
                 {
                     if (!strcmp(i.node, mess.meta.beat.node) && !strcmp(i.proc, mess.meta.beat.proc))
                     {
-                        i = mess.meta.beat;
-                        found = true;
+                        agent_found = true;
+                        i.utc = mess.meta.beat.utc;
                         break;
                     }
                 }
-                if (!found)
+                if (!agent_found)
                 {
                     agent_list.push_back(mess.meta.beat);
+                    bool node_found = false;
+                    for (jsonnode &i : node_list)
+                    {
+                        if (!i.name.compare(mess.meta.beat.node))
+                        {
+                            node_found = true;
+                        }
+                    }
+                    if (!node_found)
+                    {
+                        jsonnode jnode;
+                        send_request_jsonnode(mess.meta.beat, jnode);
+                        node_list.push_back(jnode);
+                    }
                 }
 
                 size_t new_position;
@@ -989,6 +1006,20 @@ namespace Cosmos {
     int32_t Agent::req_run(char*, char* output, Agent* agent)
     {
         agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
+        output[0] = 0;
+        return(0);
+    }
+
+    //! Built-in Set state to Init request
+    /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to ::Agent to use.
+ * \return 0, or negative error.
+ */
+    int32_t Agent::req_init(char*, char* output, Agent* agent)
+    {
+        agent->cinfo->pdata.agent[0].stateflag = static_cast <uint16_t>(Agent::State::INIT);
         output[0] = 0;
         return(0);
     }
@@ -1109,8 +1140,6 @@ namespace Cosmos {
  */
     int32_t Agent::req_listnames(char *, char* output, Agent* agent)
     {
-        //    UNUSED_VARIABLE_LOCALDEF(request);  // Unused: Assumed already checked by calling function, no parameters
-
         string result = json_list_of_all(agent->cinfo->meta);
         strncpy(output, result.c_str(), agent->cinfo->pdata.agent[0].beat.bsz);
         output[agent->cinfo->pdata.agent[0].beat.bsz-1] = 0;
@@ -1747,12 +1776,13 @@ namespace Cosmos {
         // this will broadcast messages to all external interfaces (ifcnt = interface count)
         for (size_t i=0; i<cinfo->pdata.agent[0].ifcnt; i++)
         {
-            sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
+            sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bprd\":%f}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
                     cinfo->pdata.agent[0].beat.utc,
                     cinfo->pdata.agent[0].beat.node,
                     cinfo->pdata.agent[0].beat.proc,
                     cinfo->pdata.agent[0].pub[i].address,
                     cinfo->pdata.agent[0].beat.port,
+                    cinfo->pdata.agent[0].beat.bprd,
                     cinfo->pdata.agent[0].beat.bsz,
                     cinfo->pdata.agent[0].beat.cpu,
                     cinfo->pdata.agent[0].beat.memory,
@@ -1978,16 +2008,33 @@ namespace Cosmos {
                     }
 
                     // Extract meta data
-                    sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
-                           &mess.meta.beat.utc,
-                           mess.meta.beat.node,
-                           mess.meta.beat.proc,
-                           mess.meta.beat.addr,
-                           &mess.meta.beat.port,
-                           &mess.meta.beat.bsz,
-                           &mess.meta.beat.cpu,
-                           &mess.meta.beat.memory,
-                           &mess.meta.beat.jitter);
+                    if (mess.jdata.find("agent_bprd"))
+                    {
+                        sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
+                               &mess.meta.beat.utc,
+                               mess.meta.beat.node,
+                               mess.meta.beat.proc,
+                               mess.meta.beat.addr,
+                               &mess.meta.beat.port,
+                               &mess.meta.beat.bsz,
+                               &mess.meta.beat.cpu,
+                               &mess.meta.beat.memory,
+                               &mess.meta.beat.jitter);
+                    }
+                    else
+                    {
+                        sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bprd\":%lf}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
+                               &mess.meta.beat.utc,
+                               mess.meta.beat.node,
+                               mess.meta.beat.proc,
+                               mess.meta.beat.addr,
+                               &mess.meta.beat.port,
+                               &mess.meta.beat.bprd,
+                               &mess.meta.beat.bsz,
+                               &mess.meta.beat.cpu,
+                               &mess.meta.beat.memory,
+                               &mess.meta.beat.jitter);
+                    }
 
                     return ((int)mess.meta.type);
                 }

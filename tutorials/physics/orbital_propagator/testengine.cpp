@@ -227,21 +227,21 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 //		torque = calc_control_torque(dt,tloc,cosmos_data);
 //		calc_hardware_torque(cosmos_data->sdata.node.loc,torque,&rtorque1,&rtorque2,&mtorque,&ralp,&mtrx,&mtry,&mtrz,cosmos_data);
 		ftorque = rv_add(rtorque1,rv_add(rtorque2,mtorque));
-		ftorque = rotate_q(q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s),ftorque);
+		ftorque = drotate(q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s),ftorque);
 
 		rwomg += ralp * dt;
 		//	cosmos_data->dnode[0].rw[0].omg += cosmos_data->dnode[0].rw[0].ralp * dt;
 		//	cosmos_data->dnode[0].rw[0].ralp = length_rv(rtorque2) / cosmos_data->sdata.node.rw[0].mom.col[2];
 
-		bearth =  rotate_q(cosmos_data->sdata.node.loc.att.icrf.s,cosmos_data->sdata.node.loc.bearth);
+		bearth =  drotate(cosmos_data->sdata.node.loc.att.icrf.s,cosmos_data->sdata.node.loc.bearth);
 		mmoment = rv_smult(length_rv(mtorque)/length_rv(bearth),rv_normal(rv_cross(bearth,mtorque)));
 		//	cosmos_data->dnode[0].mtr[0].rfld = mmoment.col[0];
 		//	cosmos_data->dnode[0].mtr[1].rfld = mmoment.col[1];
 		//	cosmos_data->dnode[0].mtr[2].rfld = mmoment.col[2];
 
-		rtorque1 = rotate_q(q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s),rtorque1);
-		rtorque2 = rotate_q(q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s),rtorque2);
-		mtorque = rotate_q(q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s),mtorque);
+		rtorque1 = drotate(q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s),rtorque1);
+		rtorque2 = drotate(q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s),rtorque2);
+		mtorque = drotate(q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s),mtorque);
 
 		//	cosmos_data->pdata.physics.ftorque = rv_zero();
 		cosmos_data->pdata.physics.ftorque = torque;

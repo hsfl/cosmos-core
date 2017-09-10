@@ -553,7 +553,7 @@ int32_t pos_geod(locstruc *loc)
 	geomag_front(loc->pos.geod.s,mjd2year(loc->utc),&loc->bearth);
 
 	// Transform to ITRS
-	loc->bearth = transform_q(q_change_around_z(-loc->pos.geod.s.lon),transform_q(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
+	loc->bearth = irotate(q_change_around_z(-loc->pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
     return 0;
 }
 
@@ -1094,7 +1094,7 @@ void pos_geoc2geod(locstruc *loc)
     geomag_front(loc->pos.geod.s,mjd2year(loc->utc),&loc->bearth);
 
     // Transform to ITRS
-    loc->bearth = transform_q(q_change_around_z(-loc->pos.geod.s.lon),transform_q(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
+    loc->bearth = irotate(q_change_around_z(-loc->pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
 
 }
 
@@ -1698,8 +1698,8 @@ void att_planec2lvlh(locstruc *loc)
 	qe_z = q_conjugate(q_change_between_rv(geoc_z,lvlh_z));
 
 	// Use to transform ITRF Y into intermediate Y
-	//	geoc_y = rotate_q(qe_z,geoc_y);
-	geoc_y = transform_q(qe_z,geoc_y);
+	//	geoc_y = drotate(qe_z,geoc_y);
+	geoc_y = irotate(qe_z,geoc_y);
 
 	// Determine transformation of this intermediate Y into LVLH Y
 	qe_y = q_conjugate(q_change_between_rv(geoc_y,lvlh_y));
@@ -1715,11 +1715,11 @@ void att_planec2lvlh(locstruc *loc)
 
 	// Transform ITRS into LVLH
 	//	loc->att.lvlh.s = q_mult(patt->s,fqe);
-	//	loc->att.lvlh.v = transform_q(fqe,loc->att.lvlh.v);
-	//	loc->att.lvlh.a = transform_q(fqe,patt->a);
+	//	loc->att.lvlh.v = irotate(fqe,loc->att.lvlh.v);
+	//	loc->att.lvlh.a = irotate(fqe,patt->a);
 	loc->att.lvlh.s = q_mult(rqe,patt->s);
-	loc->att.lvlh.v = transform_q(fqe,loc->att.lvlh.v);
-	loc->att.lvlh.a = transform_q(fqe,patt->a);
+	loc->att.lvlh.v = irotate(fqe,loc->att.lvlh.v);
+	loc->att.lvlh.a = irotate(fqe,patt->a);
 
 }
 
@@ -1769,11 +1769,11 @@ void att_lvlh2planec(locstruc *loc)
 
 	// Determine rotation of ITRF Z  into LVLH Z
 	qe_z = q_conjugate(q_change_between_rv(geoc_z,lvlh_z));
-	geoc_z = transform_q(qe_z,geoc_z);
+	geoc_z = irotate(qe_z,geoc_z);
 
 	// Use to rotate LVLH Y into intermediate LVLH Y
-	//	geoc_y = rotate_q(qe_z,geoc_y);
-	geoc_y = transform_q(qe_z,geoc_y);
+	//	geoc_y = drotate(qe_z,geoc_y);
+	geoc_y = irotate(qe_z,geoc_y);
 
 	// Determine rotation of this LVLH Y into ITRF Y
 	qe_y = q_conjugate(q_change_between_rv(geoc_y,lvlh_y));
@@ -1793,11 +1793,11 @@ void att_lvlh2planec(locstruc *loc)
 
 	// Rotate LVLH frame into ITRS frame
 	//	patt->s = q_mult(rqe,loc->att.lvlh.s);
-	//	patt->v = transform_q(fqe,loc->att.lvlh.v);
-	//	patt->a = transform_q(fqe,loc->att.lvlh.a);
+	//	patt->v = irotate(fqe,loc->att.lvlh.v);
+	//	patt->a = irotate(fqe,loc->att.lvlh.a);
 	patt->s = q_mult(fqe,loc->att.lvlh.s);
-	patt->v = transform_q(rqe,loc->att.lvlh.v);
-	patt->a = transform_q(rqe,loc->att.lvlh.a);
+	patt->v = irotate(rqe,loc->att.lvlh.v);
+	patt->a = irotate(rqe,loc->att.lvlh.a);
 
 	// Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
 	alpha = rv_smult(1./(radius*radius),rv_cross(ppos->s,ppos->v));
@@ -1904,7 +1904,7 @@ void att_planec2topo(locstruc *loc)
 	t2g_z = q_conjugate(q_change_between_rv(rv_unitz(),ppos->s));
 
 	// Use to rotate Topo unit X into intermediate Topo X
-	topo_x = transform_q(t2g_z,rv_unitx());
+	topo_x = irotate(t2g_z,rv_unitx());
 
 	// Define ITRS unit x as x=-Topo.y and y=Topo.x
 	geoc_x.col[0] = -ppos->s.col[1];
@@ -1924,8 +1924,8 @@ void att_planec2topo(locstruc *loc)
 
 	// Rotate ITRS frame into Topo frame
 	loc->att.topo.s = q_mult(g2t, patt->s);
-	loc->att.topo.v = transform_q(t2g,loc->att.topo.v);
-	loc->att.topo.a = transform_q(t2g,patt->a);
+	loc->att.topo.v = irotate(t2g,loc->att.topo.v);
+	loc->att.topo.a = irotate(t2g,patt->a);
 
 }
 
@@ -1966,7 +1966,7 @@ void att_topo2planec(locstruc *loc)
 	t2g_z = q_conjugate(q_change_between_rv(rv_unitz(),ppos->s));
 
 	// Use to rotate Topo unit X into intermediate Topo X
-	topo_x = transform_q(t2g_z,rv_unitx());
+	topo_x = irotate(t2g_z,rv_unitx());
 
 	// Define ITRS unit x as x=-Topo.y and y=Topo.x
 	geoc_x.col[0] = -ppos->s.col[1];
@@ -1982,8 +1982,8 @@ void att_topo2planec(locstruc *loc)
 
 	// Rotate Topo frame into ITRS frame
 	patt->s = q_mult(loc->att.topo.s,t2g);
-	patt->v = transform_q(g2t,loc->att.topo.v);
-	patt->a = transform_q(g2t,loc->att.topo.a);
+	patt->v = irotate(g2t,loc->att.topo.v);
+	patt->a = irotate(g2t,loc->att.topo.a);
 
 	// Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
 	alpha = rv_smult(-1./(length_rv(ppos->s)*length_rv(ppos->s)),rv_cross(ppos->s,ppos->v));
@@ -3818,3 +3818,38 @@ std::istream& operator >> (std::istream& in, locstruc& a)
 }
 
 //! @}
+
+void tle2sgp4(tlestruc tle, sgp4struc &sgp4)
+{
+    sgp4.i = DEGOF(tle.i);
+    sgp4.ap = DEGOF(tle.ap);
+    sgp4.bstar = tle.bstar;
+    sgp4.e = tle.e;
+    sgp4.ma = DEGOF(tle.ma);
+    sgp4.mm = tle.mm * 1440. / D2PI;
+    calstruc cal = mjd2cal(tle.utc);
+    sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + cal.second / 86400.;
+    sgp4.raan = DEGOF(tle.raan);
+    return;
+}
+
+void sgp42tle(sgp4struc sgp4, tlestruc &tle)
+{
+    tle.i = RADOF(sgp4.i);
+    tle.ap = RADOF(sgp4.ap);
+    tle.bstar = sgp4.bstar;
+    tle.e = sgp4.e;
+    tle.ma = RADOF(sgp4.ma);
+    tle.mm = sgp4.mm * D2PI / 1440. ;
+    tle.raan = RADOF(sgp4.raan);
+    int year = sgp4.ep / 1000;
+    if (year < 57)
+        year += 2000;
+    else
+        year += 1900;
+    double jday = sgp4.ep - (year *1000);
+    tle.utc = cal2mjd((int)year,1,0.);
+    tle.utc += jday;
+
+    return;
+}
