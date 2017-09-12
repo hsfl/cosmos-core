@@ -200,6 +200,8 @@ enum
     JSON_TYPE_NAME,
     //! JSON ::rvector
     JSON_TYPE_RVECTOR,
+    //! JSON ::rvector
+    JSON_TYPE_AVECTOR,
     //! JSON 3 element ::rvector
     JSON_TYPE_TVECTOR,
     //! JSON ::cvector
@@ -227,8 +229,8 @@ enum
     //! JSON Agent Heartbeat
     JSON_TYPE_HBEAT,
     //! JSON Solar Barycentric Position
-    JSON_TYPE_POS_BARYC,
-    JSON_TYPE_POS_FIRST = JSON_TYPE_POS_BARYC,
+    JSON_TYPE_POS_ICRF,
+    JSON_TYPE_POS_FIRST = JSON_TYPE_POS_ICRF,
     //! JSON Earth Centered Inertial Position
     JSON_TYPE_POS_ECI,
     //! JSON Lunar Centered Inertial Position
@@ -1201,6 +1203,10 @@ struct imustruc
     quaternion align;
     //! Position acceleration vector
     rvector accel;
+    //! Attitude quaternion
+    quaternion theta;
+    //! Attitude Euler angles
+    avector euler;
     //! Attitude rate vector
     rvector omega;
     //! Attitude acceleration vector

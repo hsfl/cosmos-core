@@ -175,6 +175,7 @@ int32_t json_out_float(string &jstring,float value);
 int32_t json_out_double(string &jstring,double value);
 int32_t json_out_string(string &jstring, string ostring, uint16_t len);
 int32_t json_out_svector(string &jstring,svector value);
+int32_t json_out_avector(string &jstring,avector value);
 int32_t json_out_gvector(string &jstring,gvector value);
 int32_t json_out_cvector(string &jstring,cvector value);
 int32_t json_out_rvector(string &jstring,rvector value);
@@ -216,11 +217,11 @@ uint32_t json_get_uint(string token, uint16_t index1, cosmosmetastruc &cmeta, co
 uint32_t json_get_uint(string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 uint32_t json_get_uint(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 
-double json_get_double(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
-double json_get_double(string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
-double json_get_double(string token, uint16_t index1, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
-double json_get_double(string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
-double json_get_double(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, string unit="");
+double json_get_double(jsonhandle &handle, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
+double json_get_double(string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
+double json_get_double(string token, uint16_t index1, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
+double json_get_double(string token, uint16_t index1, uint16_t index2, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
+double json_get_double(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 
 rvector json_get_rvector(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
 quaternion json_get_quaternion(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
