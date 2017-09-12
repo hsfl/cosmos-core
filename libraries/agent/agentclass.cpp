@@ -2080,7 +2080,7 @@ namespace Cosmos {
         ep.start();
         do
         {
-            if (message_head != message_tail || waitsec == 0.)
+            if (message_head != message_tail)
             {
                 ++message_tail;
                 if (message_tail >= message_ring.size())

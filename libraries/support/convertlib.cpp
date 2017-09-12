@@ -2074,7 +2074,7 @@ void loc_update(locstruc *loc)
 	if (loc->pos.icrf.pass > ppass)
 	{
 		ppass = loc->pos.icrf.pass;
-		ptype = JSON_TYPE_POS_BARYC;
+		ptype = JSON_TYPE_POS_ICRF;
 	}
 	if (loc->pos.eci.pass > ppass)
 	{
@@ -2114,7 +2114,7 @@ void loc_update(locstruc *loc)
 
 	switch (ptype)
 	{
-	case JSON_TYPE_POS_BARYC:
+	case JSON_TYPE_POS_ICRF:
 		pos_icrf(loc);
 		break;
 	case JSON_TYPE_POS_ECI:
