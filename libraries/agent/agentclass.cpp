@@ -895,9 +895,9 @@ namespace Cosmos {
                         break;
                     }
                 }
+
                 if (!agent_found)
                 {
-                    agent_list.push_back(mess.meta.beat);
                     bool node_found = false;
                     for (jsonnode &i : node_list)
                     {
@@ -906,11 +906,20 @@ namespace Cosmos {
                             node_found = true;
                         }
                     }
+
                     if (!node_found)
                     {
                         jsonnode jnode;
-                        send_request_jsonnode(mess.meta.beat, jnode);
-                        node_list.push_back(jnode);
+                        if ((iretn=send_request_jsonnode(mess.meta.beat, jnode)) >= 0)
+                        {
+                            node_list.push_back(jnode);
+                            node_found = true;
+                        }
+                    }
+
+                    if (node_found)
+                    {
+                        agent_list.push_back(mess.meta.beat);
                     }
                 }
 
