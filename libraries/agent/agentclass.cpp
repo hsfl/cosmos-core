@@ -133,6 +133,7 @@ namespace Cosmos {
 
         // Start message listening thread
         mthread = thread([=] { message_loop(); });
+        COSMOS_SLEEP(.1);
 
         // Return if all we are doing is setting up client.
         if (aname.length() == 0)
@@ -152,6 +153,7 @@ namespace Cosmos {
         char tname[COSMOS_MAX_NAME+1];
         if (!mflag)
         {
+            COSMOS_SLEEP(timeoutSec);
             if (Agent::get_server(cinfo->pdata.node.name, aname, timeoutSec, (beatstruc *)NULL))
             {
                 error_value = AGENT_ERROR_SERVER_RUNNING;
@@ -534,7 +536,6 @@ namespace Cosmos {
 */
     int32_t Agent::get_server(string node, string name, float waitsec, beatstruc *rbeat)
     {
-        messstruc message;
 
         //! 3. Loop for ::waitsec seconds, or until we discover desired heartbeat.
 
@@ -555,25 +556,6 @@ namespace Cosmos {
                 }
             }
             COSMOS_SLEEP(.1);
-            //        int32_t type = Agent::readring(message, AGENT_MESSAGE_BEAT, waitsec-ep.split());
-
-            //        if (type == AGENT_MESSAGE_BEAT && name == message.meta.beat.proc && node == message.meta.beat.node)
-            //        {
-            //            if (rbeat != NULL)
-            //            {
-            //                *rbeat = message.meta.beat;
-            //            }
-            //            return (1);
-            //        }
-
-            //        cbeat = Agent::poll_beat(1);
-
-            //        if (!strcmp(cbeat.proc,name.c_str()) && !strcmp(cbeat.node,node.c_str()))
-            //        {
-            //            if (rbeat != NULL)
-            //                *rbeat = cbeat;
-            //            return (1);
-            //        }
 
         } while (ep.split() <= waitsec);
 
@@ -882,7 +864,7 @@ namespace Cosmos {
 
         while (Agent::running())
         {
-            iretn = Agent::poll(mess, AGENT_MESSAGE_ALL, 5.);
+            iretn = Agent::poll(mess, AGENT_MESSAGE_ALL, 0.);
             if (iretn > 0)
             {
                 bool agent_found = false;
@@ -932,7 +914,10 @@ namespace Cosmos {
                 message_ring[new_position] = mess;
                 message_head = new_position;
             }
-            COSMOS_SLEEP(.01);
+            else
+            {
+                COSMOS_SLEEP(1);
+            }
         }
     }
 
@@ -2051,6 +2036,10 @@ namespace Cosmos {
             if (ep.split() >= waitsec)
             {
                 nbytes = 0;
+            }
+            else
+            {
+                COSMOS_SLEEP(.1);
             }
         } while (nbytes != 0);
 
