@@ -140,18 +140,18 @@ quaternion q_change_around_rv(rvector around, double angle)
     return (rq.q);
 }
 
-//! Create transform quaternion from two orthogonal vectors
+//! Create irotate quaternion from two orthogonal vectors
 /*! Using two vectors, represented in both the original and target frames,
- * calculate the quaternion that will transform any vector from the original
+ * calculate the quaternion that will irotate any vector from the original
  * to the target frame.
  * \param sourcea First vector in source frame
  * \param sourceb Second vector in source frame
  * \param targeta First vector in target frame
  * \param targetb Second vector in target frame
- * \return Quaternion to use with ::transform_q to transform from source to target.
+ * \return Quaternion to use with ::irotate to irotate from source to target.
  */
 // TODO: move to quaternion.cpp
-quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb)
+quaternion q_irotate_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb)
 {
     quaternion qe_a;
     quaternion qe_b;
@@ -160,8 +160,8 @@ quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rv
     // Determine rotation of source A into target A
     qe_a = q_conjugate(q_change_between_rv(sourcea,targeta));
 
-    // Use to transform source B into intermediate B
-    sourceb = transform_q(qe_a,sourceb);
+    // Use to irotate source B into intermediate B
+    sourceb = irotate(qe_a,sourceb);
     normalize_rv(sourceb);
     normalize_rv(targetb);
     if (length_rv(rv_add(sourceb,targetb)) < 1e-14)
@@ -174,11 +174,11 @@ quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rv
     }
     else
     {
-        // Determine transformation of this intermediate B into target B
+        // Determine intrinsic rotation of this intermediate B into target B
         qe_b = q_conjugate(q_change_between_rv(sourceb,targetb));
     }
 
-    // Combine to determine complete transformation of source into target
+    // Combine to determine complete intrinsic rotation of source into target
     fqe = q_mult(qe_a,qe_b);
     normalize_q(&fqe);
 
@@ -2160,9 +2160,9 @@ cvector rotate_q(quaternion q, cvector v)
 //! Indirectly rotate a row vector using a quaternion
 /*! Indirectly rotate a row vector from one coordinate system to another using the
  * provided left quaternion.
-        \param q quaternion representing the transformation
+        \param q quaternion representing the intrinsic rotation
         \param v row vector to be rotated
-        \return row vector in the transformed system
+        \return row vector in the intrinsically rotated system
 */
 rvector irotate(quaternion q, rvector v)
 {
@@ -2181,9 +2181,9 @@ rvector transform_q(quaternion q, rvector v)
 //! Indirectly rotate a cartesian vector using a quaternion
 /*! Indirectly rotate a cartesian vector from one coordinate system to another using the
  * provided left quaternion.
-        \param q quaternion representing the transformation
+        \param q quaternion representing the intrinsic rotation
         \param v cartesian vector to be rotated
-        \return cartesian vector in the transformed system
+        \return cartesian vector in the intrinsically rotated system
 */
 cvector irotate(quaternion q, cvector v)
 {
