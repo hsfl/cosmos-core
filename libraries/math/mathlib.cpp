@@ -71,14 +71,14 @@ double gaussian_random(double mean, double stdev)
 
 
 //! Create rotation quaternion from 2 row vectors
-/*! Generate the quaternion that represents a rotation from one row order vector
+/*! Generate the quaternion that represents a direct rotation from one row order vector
  * to a second row order vector.
     \param from initial row order vector
     \param to final row order vector
     \return quaternion that can be used to rotate points
 */
 // TODO: move to quaternion.cpp
-quaternion q_change_between_rv(rvector from, rvector to)
+quaternion q_drotate_between_rv(rvector from, rvector to)
 {
     uvector rq = {{{0.,0.,0.},0.}};
     rvector vec1 = {{0.}}, vec2 = {{0.}};
@@ -158,7 +158,7 @@ quaternion q_irotate_for(rvector sourcea, rvector sourceb, rvector targeta, rvec
     quaternion fqe;
 
     // Determine rotation of source A into target A
-    qe_a = q_conjugate(q_change_between_rv(sourcea,targeta));
+    qe_a = q_conjugate(q_drotate_between_rv(sourcea,targeta));
 
     // Use to irotate source B into intermediate B
     sourceb = irotate(qe_a,sourceb);
@@ -175,11 +175,11 @@ quaternion q_irotate_for(rvector sourcea, rvector sourceb, rvector targeta, rvec
     else
     {
         // Determine intrinsic rotation of this intermediate B into target B
-        qe_b = q_conjugate(q_change_between_rv(sourceb,targetb));
+        qe_b = q_conjugate(q_drotate_between_rv(sourceb,targetb));
     }
 
     // Combine to determine complete intrinsic rotation of source into target
-    fqe = q_mult(qe_a,qe_b);
+    fqe = q_fmult(qe_a,qe_b);
     normalize_q(&fqe);
 
     return fqe;
@@ -2122,7 +2122,7 @@ rvector drotate(quaternion q, rvector v)
     // TODO: remove uvector, use quaternion
     uvector t = {{{0.,0.,0.},0.}};
 
-    t.q = q_mult(q,q_mult(v,q_conjugate(q)));
+    t.q = q_fmult(q,q_fmult(v,q_conjugate(q)));
 
     // TODO: how is this supposed to work?
     return (t.r);
@@ -2147,7 +2147,7 @@ cvector drotate(quaternion q, cvector v)
     qt.c = v;
     qt.q.w = 0.0;
 
-    qt.q = q_mult(q,q_mult(qt.r,q_conjugate(q)));
+    qt.q = q_fmult(q,q_fmult(qt.r,q_conjugate(q)));
 
     return (qt.c);
 }
@@ -2168,7 +2168,7 @@ rvector irotate(quaternion q, rvector v)
 {
     uvector t = {{{0.,0.,0.},0.}};
 
-    t.q = q_mult(q_conjugate(q),q_mult(v,q));
+    t.q = q_fmult(q_conjugate(q),q_fmult(v,q));
 
     return (t.r);
 }
@@ -2192,7 +2192,7 @@ cvector irotate(quaternion q, cvector v)
     qt.c = v;
     qt.q.w = 0.0;
 
-    qt.q = q_mult(q_conjugate(q),q_mult(qt.r,q));
+    qt.q = q_fmult(q_conjugate(q),q_fmult(qt.r,q));
 
     return (qt.c);
 }
