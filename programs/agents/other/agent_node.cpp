@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
 			{
                 if (agent->cinfo->pdata.target[i].elfrom > 0.)
 				{
-                    agent->cinfo->pdata.node.loc.att.topo.s = q_mult(q_change_around_x(agent->cinfo->pdata.target[i].elfrom),q_change_around_z(agent->cinfo->pdata.target[i].azfrom));
+                    agent->cinfo->pdata.node.loc.att.topo.s = q_fmult(q_change_around_x(agent->cinfo->pdata.target[i].elfrom),q_change_around_z(agent->cinfo->pdata.target[i].azfrom));
 				}
 			}
             ++agent->cinfo->pdata.node.loc.att.topo.pass;

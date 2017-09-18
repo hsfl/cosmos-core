@@ -250,9 +250,9 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 		if (cp >= dp)
 		{
 			cp = 0;
-			deltas = length_rv(rv_quaternion2axis(q_mult(tloc.att.icrf.s,q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s))));
+            deltas = length_rv(rv_quaternion2axis(q_fmult(tloc.att.icrf.s,q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s))));
 			if (deltas > DPI)
-				deltas = length_rv(rv_quaternion2axis(q_smult(-1.,q_mult(tloc.att.icrf.s,q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s)))));
+                deltas = length_rv(rv_quaternion2axis(q_smult(-1.,q_fmult(tloc.att.icrf.s,q_conjugate(cosmos_data->sdata.node.loc.att.icrf.s)))));
 			deltav = length_rv(rv_sub(tloc.att.icrf.v,cosmos_data->sdata.node.loc.att.icrf.v));
 			printf("%.15g\t%12.6f\t",cosmos_data->sdata.node.utc,1440.*(cosmos_data->sdata.node.utc-mjdbase));
 			printf("%.10g\t%.10g\t%.5g\t",DEGOF(cosmos_data->sdata.node.loc.pos.geod.s.lat),DEGOF(cosmos_data->sdata.node.loc.pos.geod.s.lon),cosmos_data->sdata.node.loc.pos.geod.s.h/1000.);
