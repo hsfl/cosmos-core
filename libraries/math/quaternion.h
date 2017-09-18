@@ -112,8 +112,10 @@ quaternion q_zero();
 quaternion q_conjugate(quaternion q);
 quaternion q_times(quaternion q1, quaternion q2);
 quaternion q_sqrt(quaternion q1);
-quaternion q_mult(rvector r1, quaternion q2);
+quaternion q_fmult(rvector r1, quaternion q2);
+quaternion q_fmult(quaternion q1, quaternion q2);
 quaternion q_mult(quaternion q1, quaternion q2);
+quaternion q_rmult(quaternion q1, quaternion q2);
 quaternion q_smult(double a, quaternion q);
 quaternion q_add(quaternion q1, quaternion q2);
 quaternion q_sub(quaternion q1, quaternion q2);
@@ -121,7 +123,7 @@ quaternion q_euler2quaternion(avector rpw);
 quaternion q_axis2quaternion_cv(cvector v);
 quaternion q_axis2quaternion_rv(rvector v);
 
-quaternion q_change_between_rv(rvector from, rvector to);
+quaternion q_drotate_between_rv(rvector from, rvector to);
 
 quaternion q_change_around_cv(cvector around, double angle);
 quaternion q_change_around_rv(rvector around, double angle);

@@ -408,7 +408,7 @@ quaternion q_sqrt(quaternion q1)
  * \param q2 second quaternion
  * \return Quaternion result
  */
-quaternion q_mult(rvector r1, quaternion q2)
+quaternion q_fmult(rvector r1, quaternion q2)
 {
     quaternion o;
 
@@ -421,13 +421,14 @@ quaternion q_mult(rvector r1, quaternion q2)
 }
 
 //! Quaternion multiplication. The result of multiplying two quaternions is the
-//! composition of two rotations (not commutative).
+//! composition of two rotations (not commutative). This function creates a result
+//! that would behave like rotating first by q1, then by q2.
 /*! Quaternion multiply two quaternions.
  * \param q1 First quaternion
  * \param q2 Second quaternion
  * \return Quaternion result.
  */
-quaternion q_mult(quaternion q1, quaternion q2)
+quaternion q_fmult(quaternion q1, quaternion q2)
 {
     quaternion o;
 
@@ -435,6 +436,40 @@ quaternion q_mult(quaternion q1, quaternion q2)
     o.d.y = q1.w * q2.d.y + q1.d.y * q2.w + q1.d.z * q2.d.x - q1.d.x * q2.d.z;
     o.d.z = q1.w * q2.d.z + q1.d.z * q2.w + q1.d.x * q2.d.y - q1.d.y * q2.d.x;
     o.w = q1.w * q2.w - q1.d.x * q2.d.x - q1.d.y * q2.d.y - q1.d.z * q2.d.z;
+
+    return (o);
+}
+
+//! Quaternion multiplication. The result of multiplying two quaternions is the
+//! composition of two rotations (not commutative). This function creates a result
+//! that would behave like rotating first by q1, then by q2.
+/*! Quaternion multiply two quaternions.
+ * \param q1 First quaternion
+ * \param q2 Second quaternion
+ * \return Quaternion result.
+ */
+quaternion q_mult(quaternion q1, quaternion q2)
+{
+    return q_fmult(q1, q2);
+}
+
+//! Quaternion multiplication. The result of multiplying two quaternions is the
+//! composition of two rotations (not commutative). This function creates a result
+//! that would behave like rotating first by q2, then by q1. It is the conjugate
+//! of ::q_fmult().
+/*! Quaternion multiply two quaternions.
+ * \param q1 First quaternion
+ * \param q2 Second quaternion
+ * \return Quaternion result.
+ */
+quaternion q_rmult(quaternion q1, quaternion q2)
+{
+    quaternion o;
+
+    o.d.x = q1.w * q2.d.x + q1.d.x * q2.w + q1.d.y * q2.d.z - q1.d.z * q2.d.y;
+    o.d.y = q1.w * q2.d.y + q1.d.y * q2.w + q1.d.z * q2.d.x - q1.d.x * q2.d.z;
+    o.d.z = q1.w * q2.d.z + q1.d.z * q2.w + q1.d.x * q2.d.y - q1.d.y * q2.d.x;
+    o.w = -q1.w * q2.w + q1.d.x * q2.d.x + q1.d.y * q2.d.y + q1.d.z * q2.d.z;
 
     return (o);
 }
@@ -564,9 +599,9 @@ avector a_quaternion2euler(quaternion q)
     double sqx = q.d.x * q.d.x;
     double sqy = q.d.y * q.d.y;
     double sqz = q.d.z * q.d.z;
-    rpw.b = atan2((q.d.z*q.d.y + q.d.x*q.w), .5 - (sqx + sqy));
+    rpw.b = atan2(2.*(q.d.z*q.d.y + q.d.x*q.w), 1. - 2.*(sqx + sqy));
     rpw.e = asin(-2.*(q.d.x*q.d.z - q.d.y*q.w));
-    rpw.h = atan2((q.d.x*q.d.y + q.d.z*q.w), .5 - (sqy + sqz));
+    rpw.h = atan2(2.*(q.d.x*q.d.y + q.d.z*q.w), 1. - 2.*(sqy + sqz));
 
     return (rpw);
 }
