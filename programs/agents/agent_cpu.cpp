@@ -205,6 +205,10 @@ int agent_cpu()
 
         }
 
+        //testing json1.1 soh
+        agent->post(Agent::AGENT_MESSAGE_SOH, agent->message_ring.back().jdata);
+        agent->post(Agent::AGENT_MESSAGE_BEAT, agent->message_ring.back().adata);
+
     }
 
     agent->shutdown();

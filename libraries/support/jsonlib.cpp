@@ -836,14 +836,18 @@ int32_t json_out_entry(string &jstring, jsonentry* entry, cosmosmetastruc &cmeta
     //    if (!cmeta.jmapped)
     //        return (JSON_ERROR_NOJMAP);
 
-    if ((iretn=json_out_character(jstring,'{')) != 0)
+    if (jstring.back() =='}')       //replaces '}' with ',' to allow the continuation of the json object (if node json is to remain separate, input ' ' at end?
+    {
+        jstring.back()=',';
+    }
+    else if ((iretn=json_out_character(jstring,'{')) != 0) //still inputs '{' if it is the first entry into the string
         return (iretn);
 
     data = json_ptr_of_offset(entry->offset, entry->group, cmeta, cdata);
     if ((iretn=json_out_value(jstring, entry->name, data, entry->type, cmeta, cdata)) != 0)
         return (iretn);
 
-    if ((iretn=json_out_character(jstring,'}')) != 0)
+    if ((iretn=json_out_character(jstring,'}')) != 0)       //closes json object. if json continues it will be overwritten with ','
         return (iretn);
 
     return (iretn);
@@ -1265,7 +1269,9 @@ int32_t json_out_string(string &jstring, string ostring, uint16_t len)
         len = JSON_MAX_DATA;
 
     if ((iretn=json_out_character(jstring,'"')) < 0)
+    {
         return (iretn);
+    }
 
     for (i=0; i<ostring.size(); i++)
     {
@@ -1963,7 +1969,7 @@ int32_t json_out_commandevent(string &jstring,longeventstruc value)
 {
     int32_t iretn;
 
-
+    //CT-JSON: keep as a separate object? or have it combine?
     if ((iretn=json_out_character(jstring, '{')) < 0)
         return (iretn);
     if ((iretn=json_out_name(jstring, (char *)"event_utc")) < 0)
@@ -2486,9 +2492,9 @@ int32_t json_table_of_list(vector<jsonentry*> &table, string tokens, cosmosmetas
     jsonentry* tentry;
 
     ptr = &tokens[0];
-    while (ptr[0] != 0 && ptr[0] != '{')
+    while (ptr[0] != 0 && ptr[0] != '{') //move forward until '{'
         ptr++;
-    if ((iretn=json_skip_character(ptr,'{')) != 0)
+    if ((iretn=json_skip_character(ptr,'{')) != 0) //skip over '{'
         return (iretn);
     do
     {
@@ -4282,7 +4288,7 @@ int32_t json_parse(string jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdat
 
     length = jstring.size();
     cpoint = &jstring[0];
-    while (*cpoint != 0 && *cpoint != '{')
+    while (*cpoint != 0 && *cpoint != '{' && *cpoint != ',' )  //advance until you find a '{' or ','
         cpoint++;
     do
     {
@@ -4332,7 +4338,7 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosd
         return (JSON_ERROR_NOJMAP);
     }
 
-    if (ptr[0] != '{')
+    if (ptr[0] != '{' && ptr[0] != ',')      //verify that there is a '{' or ','
     {
         if ((iretn = json_skip_value(ptr)) < 0)
             return (iretn);
@@ -4340,7 +4346,7 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosd
             return (JSON_ERROR_SCAN);
     }
 
-    ptr++;
+    ptr++;      //move forward from '{' or ',' to '"' ?
 
     // Extract string that should hold name of this object.
     if ((iretn = json_extract_string(ptr, ostring)) < 0)
@@ -4360,14 +4366,15 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosd
     hash = json_hash(ostring);
 
     // See if there is a match in the ::jsonmap.
-    for (n=0; n<cmeta.jmap[hash].size(); ++n)	{
+    for (n=0; n<cmeta.jmap[hash].size(); ++n)	//check through every column in the row (using hash) exit loop if the name matches
+    {
         if (ostring == cmeta.jmap[hash][n].name)
         {
             break;
         }
     }
 
-    if (n == cmeta.jmap[hash].size())
+    if (n == cmeta.jmap[hash].size())       //if there was no match
     {
         if ((iretn = json_skip_value(ptr)) < 0 && iretn != JSON_ERROR_EOS)
         {
@@ -4376,9 +4383,9 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosd
         else
             return (JSON_ERROR_NOENTRY);
     }
-    else
+    else                            //if a match was found
     {
-        if ((iretn = json_skip_white(ptr)) < 0)
+        if ((iretn = json_skip_white(ptr)) < 0)     //skip the white space
         {
             if (iretn != JSON_ERROR_EOS)
             {
@@ -4390,7 +4397,7 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosd
             else
                 return (iretn);
         }
-        if ((iretn = json_skip_character(ptr,':')) < 0)
+        if ((iretn = json_skip_character(ptr,':')) < 0)   //skip the ':' before the value
         {
             if (iretn != JSON_ERROR_EOS)
             {
@@ -4401,7 +4408,7 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosd
             }
             else
                 return (iretn);
-        }
+        }                                           //enter value into the structs using offsets?
         if ((iretn = json_parse_value(ptr,cmeta.jmap[hash][n].type,cmeta.jmap[hash][n].offset,cmeta.jmap[hash][n].group, cmeta, cdata)) < 0)
         {
             if (iretn != JSON_ERROR_EOS)
@@ -4657,10 +4664,10 @@ int32_t json_extract_string(const char* &ptr, string &ostring)
 
     // Start of object, get string
     ostring.clear();
-    for (i2=1; i2<ilen; i2++)
+    for (i2=1; i2<ilen; i2++) //start from ptr[1] rather than ptr[0] which is a '"'?
     {
         if (ptr[i2] == '"')
-            break;
+            break;  //exits for loop?
         if (ptr[i2] == '\\')
         {
             switch (ptr[i2+1])
