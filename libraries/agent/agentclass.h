@@ -304,6 +304,7 @@ public:
     int32_t receiveAll(uint8_t address, string &message);
     std::string getNode();
     std::string getAgent();
+    int32_t getJson(string node, jsonnode &jnode);
 
     // poll
     pollstruc metaRx;
