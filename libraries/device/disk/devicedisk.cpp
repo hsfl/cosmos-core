@@ -36,6 +36,30 @@ double DeviceDisk::getAll(std::string path)
 
 #endif
 
+#if defined COSMOS_MAC_OS
+    // Open disk
+     uint32_t dev = open("/dev/disk0", O_RDONLY);
+
+     if (dev == -1) {
+         perror("Failed to open disk");
+         return -1;
+     }
+
+     uint64_t sector_count = 0;
+     // Query the number of sectors on the disk
+     ioctl(dev, DKIOCGETBLOCKCOUNT, &sector_count);
+
+     uint32_t sector_size = 0;
+     // Query the size of each sector
+     ioctl(dev, DKIOCGETBLOCKSIZE, &sector_size);
+
+     uint64_t disk_size = sector_count * sector_size;
+     printf("%ld", disk_size);
+
+     Size = disk_size;
+
+     return 0;
+#endif
 
 #if defined COSMOS_WIN_OS
     uint64_t freeSpace;

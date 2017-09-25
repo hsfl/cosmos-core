@@ -134,6 +134,8 @@ public:
 
 double currentmjd(double offset);
 double currentmjd();
+unsigned long get_unix_time();
+string get_local_time();
 
 // gregorian calendar (year, month, day) to another format
 double cal2mjd(calstruc date);

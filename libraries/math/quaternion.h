@@ -112,8 +112,10 @@ quaternion q_zero();
 quaternion q_conjugate(quaternion q);
 quaternion q_times(quaternion q1, quaternion q2);
 quaternion q_sqrt(quaternion q1);
-quaternion q_mult(rvector r1, quaternion q2);
+quaternion q_fmult(rvector r1, quaternion q2);
+quaternion q_fmult(quaternion q1, quaternion q2);
 quaternion q_mult(quaternion q1, quaternion q2);
+quaternion q_rmult(quaternion q1, quaternion q2);
 quaternion q_smult(double a, quaternion q);
 quaternion q_add(quaternion q1, quaternion q2);
 quaternion q_sub(quaternion q1, quaternion q2);
@@ -121,7 +123,7 @@ quaternion q_euler2quaternion(avector rpw);
 quaternion q_axis2quaternion_cv(cvector v);
 quaternion q_axis2quaternion_rv(rvector v);
 
-quaternion q_change_between_rv(rvector from, rvector to);
+quaternion q_drotate_between_rv(rvector from, rvector to);
 
 quaternion q_change_around_cv(cvector around, double angle);
 quaternion q_change_around_rv(rvector around, double angle);
@@ -133,7 +135,7 @@ quaternion q_change_around_z(double angle);
 // TODO: check this function, does not seem to be implemented
 //quaternion q_rotate_around(int axis, double angle);
 
-quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb);
+quaternion q_irotate_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb);
 quaternion q_eye();
 quaternion q_identity();
 quaternion q_evaluate_poly(double x, std::vector< std::vector<double> > parms);
@@ -153,7 +155,7 @@ avector a_quaternion2euler(quaternion q);
 quaternion q_change_between_cv(cvector from, cvector to);
 //cvector rotate_q(quaternion q, rvector v);
 //cvector rotate_q(quaternion q, cvector v);
-//cvector transform_q(quaternion q,cvector v); // doesn't exist in .cpp?
+//cvector irotate(quaternion q,cvector v); // doesn't exist in .cpp?
 
 
 namespace Cosmos {

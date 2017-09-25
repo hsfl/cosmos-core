@@ -175,6 +175,7 @@ int32_t json_out_float(string &jstring,float value);
 int32_t json_out_double(string &jstring,double value);
 int32_t json_out_string(string &jstring, string ostring, uint16_t len);
 int32_t json_out_svector(string &jstring,svector value);
+int32_t json_out_avector(string &jstring,avector value);
 int32_t json_out_gvector(string &jstring,gvector value);
 int32_t json_out_cvector(string &jstring,cvector value);
 int32_t json_out_rvector(string &jstring,rvector value);

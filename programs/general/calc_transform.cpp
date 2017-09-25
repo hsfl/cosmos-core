@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 		break;
 	}
 
-	quaternion tq = q_transform_for(sourcea, sourceb, targeta, targetb);
+    quaternion tq = q_irotate_for(sourcea, sourceb, targeta, targetb);
 
 	printf("%f [ %f, %f, %f ]\n", tq.w, tq.d.x, tq.d.y, tq.d.z);
 }

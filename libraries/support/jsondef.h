@@ -90,14 +90,14 @@ enum
     JSON_UNIT_ACCELERATION,
     //! Density
     JSON_UNIT_DENSITY,
-    //! Magnetic Field Strengh
-    JSON_UNIT_MAGFIELD,
     //! Luminance
     JSON_UNIT_LUMINANCE,
     //! Angle
     JSON_UNIT_ANGLE,
     //! Angular rate
     JSON_UNIT_ANGULAR_RATE,
+    //! Angular acceleration
+    JSON_UNIT_ANGULAR_ACCELERATION,
     //! Solid Angle
     JSON_UNIT_SOLIDANGLE,
     //! Frequency
@@ -120,10 +120,14 @@ enum
     JSON_UNIT_CAPACITANCE,
     //! Electrical Resistance
     JSON_UNIT_RESISTANCE,
+    //! Magnetic Field Strengh
+    JSON_UNIT_MAGFIELD,
     //! Magnetic FLux
     JSON_UNIT_MAGFLUX,
     //! Magnetic Flux Density
     JSON_UNIT_MAGDENSITY,
+    //! Magnetic Moment
+    JSON_UNIT_MAGMOMENT,
     //! Specific Impulse
     JSON_UNIT_ISP,
     //! Random Access Memory and Disk Storage
@@ -196,6 +200,8 @@ enum
     JSON_TYPE_NAME,
     //! JSON ::rvector
     JSON_TYPE_RVECTOR,
+    //! JSON ::rvector
+    JSON_TYPE_AVECTOR,
     //! JSON 3 element ::rvector
     JSON_TYPE_TVECTOR,
     //! JSON ::cvector
@@ -223,8 +229,8 @@ enum
     //! JSON Agent Heartbeat
     JSON_TYPE_HBEAT,
     //! JSON Solar Barycentric Position
-    JSON_TYPE_POS_BARYC,
-    JSON_TYPE_POS_FIRST = JSON_TYPE_POS_BARYC,
+    JSON_TYPE_POS_ICRF,
+    JSON_TYPE_POS_FIRST = JSON_TYPE_POS_ICRF,
     //! JSON Earth Centered Inertial Position
     JSON_TYPE_POS_ECI,
     //! JSON Lunar Centered Inertial Position
@@ -264,6 +270,14 @@ enum
     JSON_TYPE_ALIAS,
     //! Not defined
     JSON_TYPE_NONE=UINT16_MAX
+    };
+
+//! Things to update
+enum class JSON_UPDATE : int32_t
+    {
+    NONE,
+    POS,
+    ATT
     };
 
 //! Types of equation operands
@@ -607,6 +621,7 @@ struct unitstruc
 //! can be loaded from disk, or transferred from another agent.
 struct jsonnode
 {
+    string name;
     string node;
     string state;
     string utcstart;
@@ -1188,6 +1203,10 @@ struct imustruc
     quaternion align;
     //! Position acceleration vector
     rvector accel;
+    //! Attitude quaternion
+    quaternion theta;
+    //! Attitude Euler angles
+    avector euler;
     //! Attitude rate vector
     rvector omega;
     //! Attitude acceleration vector

@@ -71,14 +71,14 @@ double gaussian_random(double mean, double stdev)
 
 
 //! Create rotation quaternion from 2 row vectors
-/*! Generate the quaternion that represents a rotation from one row order vector
+/*! Generate the quaternion that represents a direct rotation from one row order vector
  * to a second row order vector.
     \param from initial row order vector
     \param to final row order vector
     \return quaternion that can be used to rotate points
 */
 // TODO: move to quaternion.cpp
-quaternion q_change_between_rv(rvector from, rvector to)
+quaternion q_drotate_between_rv(rvector from, rvector to)
 {
     uvector rq = {{{0.,0.,0.},0.}};
     rvector vec1 = {{0.}}, vec2 = {{0.}};
@@ -140,28 +140,28 @@ quaternion q_change_around_rv(rvector around, double angle)
     return (rq.q);
 }
 
-//! Create transform quaternion from two orthogonal vectors
+//! Create irotate quaternion from two orthogonal vectors
 /*! Using two vectors, represented in both the original and target frames,
- * calculate the quaternion that will transform any vector from the original
+ * calculate the quaternion that will irotate any vector from the original
  * to the target frame.
  * \param sourcea First vector in source frame
  * \param sourceb Second vector in source frame
  * \param targeta First vector in target frame
  * \param targetb Second vector in target frame
- * \return Quaternion to use with ::transform_q to transform from source to target.
+ * \return Quaternion to use with ::irotate to irotate from source to target.
  */
 // TODO: move to quaternion.cpp
-quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb)
+quaternion q_irotate_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb)
 {
     quaternion qe_a;
     quaternion qe_b;
     quaternion fqe;
 
     // Determine rotation of source A into target A
-    qe_a = q_conjugate(q_change_between_rv(sourcea,targeta));
+    qe_a = q_conjugate(q_drotate_between_rv(sourcea,targeta));
 
-    // Use to transform source B into intermediate B
-    sourceb = transform_q(qe_a,sourceb);
+    // Use to irotate source B into intermediate B
+    sourceb = irotate(qe_a,sourceb);
     normalize_rv(sourceb);
     normalize_rv(targetb);
     if (length_rv(rv_add(sourceb,targetb)) < 1e-14)
@@ -174,12 +174,12 @@ quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rv
     }
     else
     {
-        // Determine transformation of this intermediate B into target B
-        qe_b = q_conjugate(q_change_between_rv(sourceb,targetb));
+        // Determine intrinsic rotation of this intermediate B into target B
+        qe_b = q_conjugate(q_drotate_between_rv(sourceb,targetb));
     }
 
-    // Combine to determine complete transformation of source into target
-    fqe = q_mult(qe_a,qe_b);
+    // Combine to determine complete intrinsic rotation of source into target
+    fqe = q_fmult(qe_a,qe_b);
     normalize_q(&fqe);
 
     return fqe;
@@ -2122,7 +2122,7 @@ rvector drotate(quaternion q, rvector v)
     // TODO: remove uvector, use quaternion
     uvector t = {{{0.,0.,0.},0.}};
 
-    t.q = q_mult(q,q_mult(v,q_conjugate(q)));
+    t.q = q_fmult(q,q_fmult(v,q_conjugate(q)));
 
     // TODO: how is this supposed to work?
     return (t.r);
@@ -2147,7 +2147,7 @@ cvector drotate(quaternion q, cvector v)
     qt.c = v;
     qt.q.w = 0.0;
 
-    qt.q = q_mult(q,q_mult(qt.r,q_conjugate(q)));
+    qt.q = q_fmult(q,q_fmult(qt.r,q_conjugate(q)));
 
     return (qt.c);
 }
@@ -2160,15 +2160,15 @@ cvector rotate_q(quaternion q, cvector v)
 //! Indirectly rotate a row vector using a quaternion
 /*! Indirectly rotate a row vector from one coordinate system to another using the
  * provided left quaternion.
-        \param q quaternion representing the transformation
+        \param q quaternion representing the intrinsic rotation
         \param v row vector to be rotated
-        \return row vector in the transformed system
+        \return row vector in the intrinsically rotated system
 */
 rvector irotate(quaternion q, rvector v)
 {
     uvector t = {{{0.,0.,0.},0.}};
 
-    t.q = q_mult(q_conjugate(q),q_mult(v,q));
+    t.q = q_fmult(q_conjugate(q),q_fmult(v,q));
 
     return (t.r);
 }
@@ -2181,9 +2181,9 @@ rvector transform_q(quaternion q, rvector v)
 //! Indirectly rotate a cartesian vector using a quaternion
 /*! Indirectly rotate a cartesian vector from one coordinate system to another using the
  * provided left quaternion.
-        \param q quaternion representing the transformation
+        \param q quaternion representing the intrinsic rotation
         \param v cartesian vector to be rotated
-        \return cartesian vector in the transformed system
+        \return cartesian vector in the intrinsically rotated system
 */
 cvector irotate(quaternion q, cvector v)
 {
@@ -2192,7 +2192,7 @@ cvector irotate(quaternion q, cvector v)
     qt.c = v;
     qt.q.w = 0.0;
 
-    qt.q = q_mult(q_conjugate(q),q_mult(qt.r,q));
+    qt.q = q_fmult(q_conjugate(q),q_fmult(qt.r,q));
 
     return (qt.c);
 }

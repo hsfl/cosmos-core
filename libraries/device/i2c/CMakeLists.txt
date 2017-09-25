@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.8.12)
 #if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    message("Build device/i2c")
-
     FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
     FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
@@ -20,5 +18,6 @@ cmake_minimum_required(VERSION 2.8.12)
         add_deployment_source_directory(${CMAKE_CURRENT_SOURCE_DIR} "src")
     endif()
 
+    message("Build ${libraryName} from ${CMAKE_CURRENT_SOURCE_DIR}")
 #endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 

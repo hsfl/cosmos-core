@@ -39,6 +39,10 @@ double DeviceCpu::getLoad(){
     load = cpuLinux.getLoad1minAverage();
 #endif
 
+#if defined(COSMOS_MAC_OS)
+    load = cpuMac.getLoad1minAverage();
+#endif
+
 #if defined(COSMOS_WIN_OS)
     load = cpuWin.getLoad() * numProcessors;
 #endif
@@ -729,6 +733,27 @@ double cpu_load()
     return avg;
 
 }
+
+DeviceCpuMac::DeviceCpuMac()
+{
+    load1minAverage = 0.0;
+    //initCpuUtilization();
+
+//    tic = getTimeInSec();
+//    lastCPUtime  = get_cpu_time();
+}
+
+double DeviceCpuMac::getLoad1minAverage()
+{
+    double loadavg[3];
+
+    // same as running $sysctl vm.loadavg
+    getloadavg(loadavg,3);
+
+    // update internal variable
+    load1minAverage = loadavg[0];
+    return load1minAverage;
+}
 #endif
 
 
@@ -808,7 +833,7 @@ pid_t DeviceCpuWindows::getPidOf(string processName)
 
 #endif
 
-#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
+#if defined(COSMOS_LINUX_OS)
 DeviceCpuLinux::procPidStat::procPidStat(string processName)
 {
     DeviceCpu dev;
