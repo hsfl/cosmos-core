@@ -5,9 +5,9 @@ include_directories(${COSMOS_SOURCE}/core/libraries/thirdparty/zlib)
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
-add_library(png STATIC ${SOURCES} ${INCLUDES})
+add_library(localpng STATIC ${SOURCES} ${INCLUDES})
 
-install(TARGETS png DESTINATION lib)
+install(TARGETS localpng DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/thirdparty/png)
 
 

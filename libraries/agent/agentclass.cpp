@@ -880,29 +880,29 @@ namespace Cosmos {
 
                 if (!agent_found)
                 {
-                    bool node_found = false;
-                    for (jsonnode &i : node_list)
-                    {
-                        if (!i.name.compare(mess.meta.beat.node))
-                        {
-                            node_found = true;
-                        }
-                    }
+//                    bool node_found = false;
+//                    for (jsonnode &i : node_list)
+//                    {
+//                        if (!i.name.compare(mess.meta.beat.node))
+//                        {
+//                            node_found = true;
+//                        }
+//                    }
 
-                    if (!node_found)
-                    {
-                        jsonnode jnode;
-                        if ((iretn=send_request_jsonnode(mess.meta.beat, jnode)) >= 0)
-                        {
-                            node_list.push_back(jnode);
-                            node_found = true;
-                        }
-                    }
+//                    if (!node_found)
+//                    {
+//                        jsonnode jnode;
+//                        if ((iretn=send_request_jsonnode(mess.meta.beat, jnode)) >= 0)
+//                        {
+//                            node_list.push_back(jnode);
+//                            node_found = true;
+//                        }
+//                    }
 
-                    if (node_found)
-                    {
+//                    if (node_found)
+//                    {
                         agent_list.push_back(mess.meta.beat);
-                    }
+//                    }
                 }
 
                 size_t new_position;
@@ -2288,6 +2288,45 @@ namespace Cosmos {
         return agentName;
     }
 
-} // end namespace Cosmos
+}
+
+int32_t Agent::getJson(std::string node, jsonnode &jnode)
+{
+    int32_t iretn=0;
+
+    bool node_found = false;
+    for (jsonnode json : node_list)
+    {
+        if (!node.compare(json.name))
+        {
+            node_found = true;
+        }
+    }
+
+    if (!node_found)
+    {
+        for (beatstruc beat : agent_list)
+        {
+            if (!node.compare(beat.node))
+            {
+                if ((iretn=send_request_jsonnode(beat, jnode)) >= 0)
+                {
+                    node_list.push_back(jnode);
+                    node_found = true;
+                }
+            }
+        }
+    }
+
+    if (!node_found)
+    {
+        iretn = GENERAL_ERROR_UNDEFINED;
+    }
+
+    return iretn;
+}
+
+
+// end namespace Cosmos
 
 //! @}
