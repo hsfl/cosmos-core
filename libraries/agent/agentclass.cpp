@@ -2002,7 +2002,7 @@ namespace Cosmos {
                     }
 
                     // Extract meta data
-                    if (mess.jdata.find("agent_bprd"))
+                    if (mess.jdata.find("agent_bprd") == string::npos)
                     {
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
                                &mess.meta.beat.utc,
