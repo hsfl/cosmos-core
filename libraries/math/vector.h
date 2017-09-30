@@ -79,6 +79,26 @@ public:
     void normalize();
     double norm();
     double norm2();
+
+    inline cvector operator + (const cvector &b) const
+    {
+        cvector c;
+        c.x = b.x + x;
+        c.y = b.y + y;
+        c.z = b.z + z;
+        return ( c );
+    }
+
+    inline bool operator == (const cvector &b) const
+    {
+        return ( (b.x==x) && (b.y==y) && (b.z==z));
+    }
+
+    inline bool operator != (const cvector &b) const
+    {
+        return ( (b.x!=x) || (b.y!=y) || (b.z!=z));
+    }
+
 } ;
 
 //! 3 element spherical vector
