@@ -111,14 +111,17 @@ typedef struct
   */
 typedef struct
 {
-	char name[50];
+    string name;
 	double orbit;
 	double radius;
 	double highest;
 	double vscale;
 	double hscale;
 	double htov;
-	uint16_t demcount;
+    double alt1;
+    double alt2;
+    double alt3;
+    uint16_t demcount;
 	map_dem_dem dems[30000];
 	int16_t demindexi[200][400][MAX_DEMINDEX];
 	uint16_t demindexc[200][400];
