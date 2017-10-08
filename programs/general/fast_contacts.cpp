@@ -96,8 +96,7 @@ int main(int argc, char *argv[])
 
     // Load Nodes
 
-    int32_t iretn;
-    iretn = load_lines_multi(tlename, tlelist);
+    load_lines_multi(tlename, tlelist);
     for (size_t i=0; i<tlelist.size(); ++i)
     {
         trackstruc ttrack;
