@@ -13,7 +13,10 @@
 #ifndef JPEGLIB_H
 #define JPEGLIB_H
 
+#include <vector>
+using std::vector;
 #include <stdint.h>
+#include <stdio.h>
 
 /*
  * First we include the configuration files that record how this
@@ -1039,7 +1042,8 @@ EXTERN(void) jpeg_destroy JPP((j_common_ptr cinfo));
 EXTERN(boolean) jpeg_resync_to_restart JPP((j_decompress_ptr cinfo,
 					    int desired));
 
-EXTERN(int) read_JPEG_file (char * filename, int image_width, int image_height, JSAMPLE *image_buffer);
+EXTERN(int) read_JPEG_file (char * filename, vector < vector < uint8_t > > &image_buffer);
+EXTERN(int) read_JPEG_file (char * filename, JSAMPLE *image_buffer);
 EXTERN(void) write_JPEG_file (char * filename, int quality, J_COLOR_SPACE in_color_space, int image_width, int image_height, JSAMPLE *image_buffer);
 
 /* These marker codes are exported since applications and data source modules
