@@ -153,6 +153,7 @@ avector a_quaternion2euler(quaternion q);
 
 // TODO: bring these functions from mathlib
 quaternion q_change_between_cv(cvector from, cvector to);
+quaternion q_change_between_rv(rvector from, rvector to);
 //cvector rotate_q(quaternion q, rvector v);
 //cvector rotate_q(quaternion q, cvector v);
 //cvector irotate(quaternion q,cvector v); // doesn't exist in .cpp?

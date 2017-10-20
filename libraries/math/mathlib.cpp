@@ -2244,7 +2244,17 @@ quaternion q_change_between_cv(cvector from, cvector to)
     return (rq.q);
 }
 
+quaternion q_change_between_rv(rvector from, rvector to)
+{
+    uvector uvfrom, uvto;
+    quaternion result;
 
+    uvfrom.r = from;
+    uvto.r = to;
+    result = q_change_between_cv(uvfrom.c, uvto.c);
+
+    return result;
+}
 
 //! Create rotation matrix from 2 vectors
 /*! Generate the direction cosine matrix that represents a rotation from one cartesian vector
