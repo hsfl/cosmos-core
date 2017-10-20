@@ -2464,7 +2464,7 @@ void LsFit::fit()
         }
     }
     meanx = sumx[1] / sumx[0];
-    stdevx = sqrt(sumx[2] - sumx[1]*sumx[1]/sumx[0])/(sumx[0]-1);
+    stdevx = sqrt((sumx[2] - sumx[1]*sumx[1]/sumx[0])/(sumx[0]-1));
 
     // Calculate sums of products of dependent and independent and do least squares fit
     parms.resize(depth);
@@ -2484,7 +2484,7 @@ void LsFit::fit()
             }
         }
         meany.a4[i] = sumxy[0] / var.size();
-        stdevy.a4[i] = sqrt(stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1);
+        stdevy.a4[i] = sqrt((stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1));
 
         std::vector< std::vector<double> > xs(order+1, std::vector<double>(order+1));
         std::vector<double> ys(order+1);
@@ -2534,6 +2534,15 @@ double LsFit::firstx()
     {
         return 0.;
     }
+}
+
+//! Least squares number of values.
+/*! Return the number of data values in the fit as of the last ::LsFit::update.
+ * \return Last size of fit.
+*/
+size_t LsFit::size()
+{
+    return var.size();
 }
 
 //! Least squares dependent scalar value.
