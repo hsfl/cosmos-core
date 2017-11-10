@@ -455,10 +455,10 @@ void monitor()
 	{
         Agent::messstruc mess;
 
-        iretn = agent->poll(mess, Agent::AGENT_MESSAGE_BEAT, 5.0);
+        iretn = agent->poll(mess, (uint8_t)Agent::AgentMessage::BEAT, 5.0);
 
 		// Only process if this is a heartbeat message for our node
-        if (iretn == Agent::AGENT_MESSAGE_BEAT && !strcmp(mess.meta.beat.node, agent->cinfo->pdata.node.name))
+        if (iretn == (uint8_t)Agent::AgentMessage::BEAT && !strcmp(mess.meta.beat.node, agent->cinfo->pdata.node.name))
 		{
 			cdata_mutex.lock();
 			// Extract telemetry

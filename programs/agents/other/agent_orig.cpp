@@ -126,13 +126,13 @@ int main(int argc, char *argv[])
                 channel = argv[2];
                 if (channel == "soh")
                 {
-                    cnum = Agent::AGENT_MESSAGE_SOH;
+                    cnum = (uint8_t)Agent::AgentMessage::SOH;
                 }
                 else
                 {
                     if (channel == "beat")
                     {
-                        cnum = Agent::AGENT_MESSAGE_BEAT;
+                        cnum = (uint8_t)Agent::AgentMessage::BEAT;
                     }
                     else
                     {
@@ -143,12 +143,12 @@ int main(int argc, char *argv[])
             else
             {
                 channel.clear();
-                cnum = Agent::AGENT_MESSAGE_ALL;
+                cnum = (uint8_t)Agent::AgentMessage::ALL;
             }
 
             while (1)
             {
-                if ((pretn=agent->poll(mess,  Agent::AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent->poll(mess,  (uint8_t)Agent::AgentMessage::ALL, 1)) > 0)
                 {
                     string utc = json_extract_namedobject(mess.jdata.c_str(), "agent_utc");
                     string node = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_node"));
@@ -169,10 +169,10 @@ int main(int argc, char *argv[])
 
                     switch (pretn)
                     {
-                    case Agent::AGENT_MESSAGE_SOH:
+                    case (uint8_t)Agent::AgentMessage::SOH:
                         printf("[SOH]");
                         break;
-                    case Agent::AGENT_MESSAGE_BEAT:
+                    case (uint8_t)Agent::AgentMessage::BEAT:
                         printf("[BEAT]");
                         break;
                     default:
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
                     {
                         printf("%s\n",mess.adata.c_str());
                     }
-                    if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
+                    if ((channel=="info") && pretn == (uint8_t)Agent::AgentMessage::TRACK)
                     {
                         if (agent->cinfo->pdata.node.loc.utc > 0.)
                         {
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
                             lmjd = agent->cinfo->pdata.node.loc.utc;
                         }
                     }
-                    if ((channel=="imu") && pretn == Agent::AGENT_MESSAGE_IMU)
+                    if ((channel=="imu") && pretn == (uint8_t)Agent::AgentMessage::IMU)
                     {
                         for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
                         {
@@ -288,13 +288,13 @@ int main(int argc, char *argv[])
                 channel = argv[2];
                 if (channel == "soh")
                 {
-                    cnum = Agent::AGENT_MESSAGE_SOH;
+                    cnum = (uint8_t)Agent::AgentMessage::SOH;
                 }
                 else
                 {
                     if (channel == "beat")
                     {
-                        cnum = Agent::AGENT_MESSAGE_BEAT;
+                        cnum = (uint8_t)Agent::AgentMessage::BEAT;
                     }
                     else
                     {
@@ -305,12 +305,12 @@ int main(int argc, char *argv[])
             else
             {
                 channel.clear();
-                cnum = Agent::AGENT_MESSAGE_ALL;
+                cnum = (uint8_t)Agent::AgentMessage::ALL;
             }
 
             while (1)
             {
-                if ((pretn=agent->poll(mess,  Agent::AGENT_MESSAGE_ALL, 1)) > 0)
+                if ((pretn=agent->poll(mess,  (uint8_t)Agent::AgentMessage::ALL, 1)) > 0)
                 {
                     string utc = json_extract_namedobject(mess.jdata.c_str(), "agent_utc");
                     string node = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_node"));
@@ -331,10 +331,10 @@ int main(int argc, char *argv[])
 
                     switch (pretn)
                     {
-                    case Agent::AGENT_MESSAGE_SOH:
+                    case (uint8_t)Agent::AgentMessage::SOH:
                         printf("[SOH]");
                         break;
-                    case Agent::AGENT_MESSAGE_BEAT:
+                    case (uint8_t)Agent::AgentMessage::BEAT:
                         printf("[BEAT]");
                         break;
                     default:
@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
                     {
                         printf("%s\n",mess.adata.c_str());
                     }
-                    if ((channel=="info") && pretn == Agent::AGENT_MESSAGE_TRACK)
+                    if ((channel=="info") && pretn == (uint8_t)Agent::AgentMessage::TRACK)
                     {
                         if (agent->cinfo->pdata.node.loc.utc > 0.)
                         {
@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
                             lmjd = agent->cinfo->pdata.node.loc.utc;
                         }
                     }
-                    if ((channel=="imu") && pretn == Agent::AGENT_MESSAGE_IMU)
+                    if ((channel=="imu") && pretn == (uint8_t)Agent::AgentMessage::IMU)
                     {
                         for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
                         {

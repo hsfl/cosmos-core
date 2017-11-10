@@ -166,7 +166,7 @@ enum NODE_TYPE
 //! \defgroup defs_event_type Constants defining Event types.
 //! @{
 /*! These constants are for defining Events. TYPEs represent what
- * inititiated the event. If the type is ::EVENT_TYPE_CALCULATED, then it
+ * inititiated the event. If the type is EVENT_TYPE_CALCULATED, then it
  * was initiiated by some generic equation.
  */
 

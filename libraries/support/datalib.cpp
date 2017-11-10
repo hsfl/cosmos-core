@@ -57,7 +57,7 @@ string nodedir;
 #endif
 
 //! \ingroup datalib
-//! \defgroup datalib_functions Data Management support functions
+//! \defgroup datalib_functions Data Management function declarations
 //! @{
 
 
@@ -945,6 +945,7 @@ FILE *data_open(string path, char *mode)
 /*! Set the internal variable that points to where all COSMOS files
  * are stored.
     \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
     \return Zero, or negative error.
 */
 int32_t set_cosmosroot(string name, bool create_flag)
@@ -1089,7 +1090,7 @@ int32_t set_cosmosroot(bool create_flag)
 //! Return COSMOS Root Directory
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
-             * \param result Full path to Root directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 string get_cosmosroot(bool create_flag)
@@ -1103,6 +1104,7 @@ string get_cosmosroot(bool create_flag)
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
              * \param result Full path to Root directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 int32_t get_cosmosroot(string &result, bool create_flag)
@@ -1127,6 +1129,7 @@ int32_t get_cosmosroot(string &result, bool create_flag)
 /*! Set the internal variable that points to where all COSMOS resource files
              * are stored.
                 \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
                 \return Zero, or negative error.
             */
 int32_t set_cosmosresources(string name, bool create_flag)
@@ -1215,7 +1218,7 @@ int32_t set_cosmosresources(bool create_flag)
 //! Return COSMOS Resources Directory
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
-             * \param result Full path to Resources directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 string get_cosmosresources(bool create_flag)
@@ -1229,6 +1232,7 @@ string get_cosmosresources(bool create_flag)
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
              * \param result Full path to Resources directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 int32_t get_cosmosresources(string &result, bool create_flag)
@@ -1322,6 +1326,7 @@ int32_t setEnvCosmos(string path){
 /*! Set the internal variable that points to where all COSMOS resource files
              * are stored.
                 \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
                 \return Zero, or negative error.
             */
 int32_t set_cosmosnodes(string name, bool create_flag)
@@ -1408,7 +1413,7 @@ int32_t set_cosmosnodes(bool create_flag)
 //! Return COSMOS Nodes Directory
 /*! Get the internal variable that points to where all COSMOS Node files are
              * stored. Initialize variable if this is the first call to the function.
-             * \param result Full path to Nodes directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 string get_cosmosnodes(bool create_flag)
@@ -1422,6 +1427,7 @@ string get_cosmosnodes(bool create_flag)
 /*! Get the internal variable that points to where all COSMOS files are
              * stored.
              * \param result String to place path in.
+    \param create_flag Create directory if not already present.
              * \return Zero, or negative error.
             */
 int32_t get_cosmosnodes(string &result, bool create_flag)

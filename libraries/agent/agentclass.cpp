@@ -53,9 +53,9 @@
 
 namespace Cosmos {
 
-    //! \ingroup agentlib
-    //! \ingroup agentlib
-    //! \defgroup agentlib_functions Agent Server and Client functions
+    //! \ingroup agentclass
+    //! \ingroup agentclass
+    //! \defgroup agentclass_functions Agent Server and Client functions
     //! @{
 
     //! Add COSMOS awareness.
@@ -331,7 +331,7 @@ namespace Cosmos {
 
     //! Start Agent Request and Heartbeat loops
     /*!	Starts the request and heartbeat threads for an Agent server initialized with
- * ::Agent::setup_server. The Agent will open its request and heartbeat channels using the
+ * Cosmos::Agent::Agent. The Agent will open its request and heartbeat channels using the
  * address and port supplied in cinfo. The heartbeat will cycle with the period requested in cinfo.
     \return value returned by request thread create
 */
@@ -385,11 +385,19 @@ namespace Cosmos {
     //! Check if we're supposed to be running
     /*!	Returns the value of the internal variable that indicates that
  * the threads are running.
-    \return Value of internal state variable, as enumerated in ::AGENT_STATE.
+    \return Value of internal state variable, as enumerated in Cosmos::Agent:State.
 */
     uint16_t Agent::running()
     {
         return (cinfo->pdata.agent[0].stateflag);
+    }
+
+
+    //! Last error value.
+    //! Get value of last error returned by any function.
+    int32_t Agent::last_error()
+    {
+        return (error_value);
     }
 
     //! Send a request over AGENT
@@ -400,12 +408,6 @@ namespace Cosmos {
     \param waitsec Maximum number of seconds to wait
     \return Either the number of bytes returned, or an error number.
 */
-
-    int32_t Agent::last_error()
-    {
-        return (error_value);
-    }
-
     int32_t Agent::send_request(beatstruc hbeat, string request, string &output, float waitsec)
     {
         socket_channel sendchan;
@@ -469,9 +471,8 @@ namespace Cosmos {
     //! Send request for Node JSON
     /*! Send a set of requests to return the various JSON strings that make up a ::jsonnode.
     \param hbeat The agent ::beatstruc
-    \param request the request and its arguments
-    \param output any output returned by the request
-    \param waitsec Maximum number of seconds to wait
+    \param jnode ::jsonnode cotaining Node information.
+    \param waitsec Maximum number of seconds to wait.
     \return Either the number of bytes returned, or an error number.
 */
     int32_t Agent::send_request_jsonnode(beatstruc hbeat, jsonnode &jnode, float waitsec)
@@ -563,10 +564,10 @@ namespace Cosmos {
     }
 
     //! Find agent
-    /*! Check the ::agent_list for the particular agent,
+    /*! Check the Cosmos::Agent::agent_list for the particular agent,
  * returning its heartbeat if found.
+    \param agent Name of agent.
     \param node Node that agent is in.
-    \param proc Name of agent.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
     beatstruc Agent::find_agent(string agent, string node)
@@ -699,8 +700,8 @@ namespace Cosmos {
 
     //! Heartbeat Loop
     /*! This function is run as a thread to provide the Heartbeat for the Agent. The Heartbeat will
- * consist of the contents of ::AGENT_MESSAGE_BEAT in ::Agent::poll, plus the contents of the
- * ::sohstring. It will come every ::bprd seconds.
+ * consist of the contents of Agent::AGENT_MESSAG::BEAT in Cosmos::Agent::poll, plus the contents of the
+ * Cosmos::Agent::sohstring. It will come every beatstruc::bprd seconds.
  */
     void Agent::heartbeat_loop()
     {
@@ -717,11 +718,11 @@ namespace Cosmos {
             cinfo->pdata.agent[0].beat.utc = currentmjd(0.);
             if ((Agent::State)(cinfo->pdata.agent[0].stateflag) != Agent::State::IDLE && !cinfo->pdata.agent[0].sohtable.empty())
             {
-                Agent::post(AGENT_MESSAGE_BEAT, json_of_table(hbjstring, cinfo->pdata.agent[0].sohtable, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
+				Agent::post((uint8_t)Agent::AgentMessage::BEAT, json_of_table(hbjstring, cinfo->pdata.agent[0].sohtable, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
             }
             else
             {
-                Agent::post(AGENT_MESSAGE_BEAT,"");
+				Agent::post((uint8_t)Agent::AgentMessage::BEAT,"");
             }
 
             // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
@@ -864,7 +865,7 @@ namespace Cosmos {
 
         while (Agent::running())
         {
-            iretn = Agent::poll(mess, AGENT_MESSAGE_ALL, 0.);
+			iretn = Agent::poll(mess, (uint8_t)Agent::AgentMessage::ALL, 0.);
             if (iretn > 0)
             {
                 bool agent_found = false;
@@ -925,7 +926,7 @@ namespace Cosmos {
     /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_forward(char* request, char* output, Agent* agent)
@@ -946,7 +947,7 @@ namespace Cosmos {
     /*! Returns the received packet, reaclculating the CRC, and adding the time.
  * \param request Text of echo packet.
  * \param output Text of echoed packet.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_echo(char* request, char* output, Agent*)
@@ -964,7 +965,7 @@ namespace Cosmos {
     /*! Send help response.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_help(char*, char* output, Agent* agent)
@@ -994,7 +995,7 @@ namespace Cosmos {
     /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_run(char*, char* output, Agent* agent)
@@ -1008,7 +1009,7 @@ namespace Cosmos {
     /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_init(char*, char* output, Agent* agent)
@@ -1022,7 +1023,7 @@ namespace Cosmos {
     /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_idle(char*, char* output, Agent* agent)
@@ -1036,7 +1037,7 @@ namespace Cosmos {
     /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_monitor(char*, char* output, Agent* agent)
@@ -1050,7 +1051,7 @@ namespace Cosmos {
     /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
@@ -1066,7 +1067,7 @@ namespace Cosmos {
     /*! Returns agent status.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_status(char*, char* output, Agent* agent)
@@ -1091,7 +1092,7 @@ namespace Cosmos {
     /*! Returns the current value of the requested Name Space values. Names are expressed as a JSON object.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_getvalue(char *request, char* output, Agent* agent)
@@ -1112,7 +1113,7 @@ namespace Cosmos {
     /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_setvalue(char *request, char* output, Agent* agent)
@@ -1129,7 +1130,7 @@ namespace Cosmos {
     /*! Returns a list of all names in the JSON Name Space.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_listnames(char *, char* output, Agent* agent)
@@ -1144,7 +1145,7 @@ namespace Cosmos {
     /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
@@ -1158,7 +1159,7 @@ namespace Cosmos {
     /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_statejson(char *, char* output, Agent* agent)
@@ -1172,7 +1173,7 @@ namespace Cosmos {
     /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_utcstartjson(char *, char* output, Agent* agent)
@@ -1186,7 +1187,7 @@ namespace Cosmos {
     /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
@@ -1200,7 +1201,7 @@ namespace Cosmos {
     /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
@@ -1214,7 +1215,7 @@ namespace Cosmos {
     /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
@@ -1228,7 +1229,7 @@ namespace Cosmos {
     /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_portsjson(char *, char* output, Agent* agent)
@@ -1242,7 +1243,7 @@ namespace Cosmos {
     /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_targetsjson(char *, char* output, Agent* agent)
@@ -1256,7 +1257,7 @@ namespace Cosmos {
     /*! Returns a JSON string representing the Node description.
  * \param request Text of request.
  * \param output Text of response to request.
- * \param agent Pointer to ::Agent to use.
+ * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
     int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
@@ -1677,16 +1678,16 @@ namespace Cosmos {
         return (iface);
     }
 
-    //! Post a ::messstruc
+    //! Post a Cosmos::Agent::messstruc
     /*! Post an already defined message on the previously opened publication channel.
-    \param mess ::messstruc containing everything necessary, including type, header and data.
+    \param mess Cosmos::Agent::messstruc containing everything necessary, including type, header and data.
     \return 0, otherwise negative error.
 */
     int32_t Agent::post(messstruc mess)
     {
         int32_t iretn;
 
-        if (mess.meta.type < AGENT_MESSAGE_BINARY)
+		if (mess.meta.type < (uint8_t)Agent::AgentMessage::BINARY)
         {
             iretn = post(mess.meta.type, mess.adata);
         }
@@ -1709,7 +1710,7 @@ namespace Cosmos {
 //            post[2] = hlength / 256;
 //            nbytes = hlength + 3;
 
-//            if (mess.meta.type < AGENT_MESSAGE_BINARY && mess.adata.size())
+//            if (mess.meta.type < (uint8_t)Agent::AgentMessage::BINARY && mess.adata.size())
 //            {
 //                if (nbytes+mess.adata.size() > AGENTMAXBUFFER)
 //                    return (AGENT_ERROR_BUFLEN);
@@ -1717,7 +1718,7 @@ namespace Cosmos {
 //                nbytes += mess.adata.size();
 //            }
 
-//            if (mess.meta.type >= AGENT_MESSAGE_BINARY && mess.bdata.size())
+//            if (mess.meta.type >= (uint8_t)Agent::AgentMessage::BINARY && mess.bdata.size())
 //            {
 //                if (nbytes+mess.bdata.size() > AGENTMAXBUFFER)
 //                    return (AGENT_ERROR_BUFLEN);
@@ -1888,35 +1889,11 @@ namespace Cosmos {
         return 0;
     }
 
-    //! Listen for string message
+    //! Listen for message
     /*! Poll the subscription channel for the requested amount of time. Return as soon as a single message
  * comes in, or the timer runs out.
- * \param meta ::pollstruc for storing meta information.
-    \param message String for storing incoming message.
-    \param type Type of message to look for, taken from ::AGENT_MESSAGE.
-    \param waitsec Number of seconds in timer.
-    \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
-*/
-    //int32_t Agent::poll(pollstruc &meta, string &message, uint8_t type, float waitsec)
-    //{
-    //    vector <uint8_t> bytes;
-    //    int32_t iretn;
-
-    //    iretn = poll(meta, bytes, type, waitsec);
-    //    if (iretn > 0)
-    //    {
-    //        bytes.push_back(0);
-    //        message = (char *)bytes.data();
-    //    }
-    //    return iretn;
-    //}
-
-    //! Listen for binary message
-    /*! Poll the subscription channel for the requested amount of time. Return as soon as a single message
- * comes in, or the timer runs out.
- * \param meta ::pollstruc for storing meta information.
-    \param mess ::messstruc for storing incoming message.
-    \param type Type of message to look for, taken from ::AGENT_MESSAGE.
+    \param mess Cosmos::Agent::messstruc for storing incoming message.
+	\param type Type of message to look for, taken from Cosmos::Agent::AgentMessage.
     \param waitsec Number of seconds in timer.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
@@ -1962,7 +1939,7 @@ namespace Cosmos {
 
             if (nbytes > 0)
             {
-                if (type == AGENT_MESSAGE_ALL || type == input[0])
+				if (type == (uint8_t)Agent::AgentMessage::ALL || type == input[0])
                 {
                     // Determine if old or new message
                     uint8_t start_byte;
@@ -1991,7 +1968,7 @@ namespace Cosmos {
                     mess.jdata.assign((const char *)&input[start_byte], mess.meta.jlength);
 
                     // Next: ASCII or BINARY message, depending on message type.
-                    if (mess.meta.type < AGENT_MESSAGE_BINARY)
+					if (mess.meta.type < (uint8_t)Agent::AgentMessage::BINARY)
                     {
                         mess.adata.assign((const char *)&input[start_byte+mess.meta.jlength], nbytes - (start_byte + mess.meta.jlength));
                     }
@@ -2050,8 +2027,9 @@ namespace Cosmos {
     /*! Check the message ring for the requested amount of time. Return as soon as a message of the right type
  * is available, or the timer runs out.
     \param message Vector for storing incoming message.
-    \param type Type of message to look for, taken from ::AGENT_MESSAGE.
+	\param type Type of message to look for, taken from Cosmos::Agent::AgentMessage.
     \param waitsec Number of seconds in timer. If 0, return last message in ring immediatelly.
+    \param where One of Where::HEAD or Where::TAIL, indicating whether to start at the head or tail of the ring.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
     int32_t Agent::readring(messstruc &message, uint8_t type, float waitsec, Where where)
@@ -2086,7 +2064,7 @@ namespace Cosmos {
                     message_tail = 0;
                 }
 
-                if (type == AGENT_MESSAGE_ALL || type == message_ring[message_tail].meta.type)
+				if (type == (uint8_t)Agent::AgentMessage::ALL || type == message_ring[message_tail].meta.type)
                 {
                     // Copy message.
                     message = message_ring[message_tail];
@@ -2125,7 +2103,7 @@ namespace Cosmos {
 
     //! Empty message ring.
     //! Set the internal pointers such that it appears that we have read any messages that are
-    //! in the message ring. This has the effect of emptying the message ring as far as ::readring
+    //! in the message ring. This has the effect of emptying the message ring as far as Cosmos::Agent::readring
     //! is concerned.
     //! \return Negative error or zero.
     int32_t Agent::clearring()
@@ -2146,10 +2124,10 @@ namespace Cosmos {
         beatstruc beat;
         messstruc mess;
 
-        iretn = Agent::poll(mess, AGENT_MESSAGE_BEAT, waitsec);
+		iretn = Agent::poll(mess, (uint8_t)Agent::AgentMessage::BEAT, waitsec);
 
         beat.utc = 0.;
-        if (iretn == AGENT_MESSAGE_BEAT)
+		if (iretn == (uint8_t)Agent::AgentMessage::BEAT)
         {
             beat = mess.meta.beat;
         }
@@ -2169,9 +2147,9 @@ namespace Cosmos {
         timestruc time;
         messstruc mess;
 
-        iretn = Agent::poll(mess, AGENT_MESSAGE_TIME, waitsec);
+		iretn = Agent::poll(mess, (uint8_t)Agent::AgentMessage::TIME, waitsec);
 
-        if (iretn == AGENT_MESSAGE_TIME)
+		if (iretn == (uint8_t)Agent::AgentMessage::TIME)
         {
             iretn = json_parse(mess.adata, cinfo->meta, cinfo->sdata);
             if (iretn >= 0)
@@ -2195,9 +2173,9 @@ namespace Cosmos {
         locstruc loc;
         messstruc mess;
 
-        iretn = Agent::poll(mess, AGENT_MESSAGE_LOCATION, waitsec);
+		iretn = Agent::poll(mess, (uint8_t)Agent::AgentMessage::LOCATION, waitsec);
 
-        if (iretn == AGENT_MESSAGE_LOCATION)
+		if (iretn == (uint8_t)Agent::AgentMessage::LOCATION)
         {
             iretn = json_parse(mess.adata, cinfo->meta, cinfo->sdata);
             if (iretn >= 0)
@@ -2212,7 +2190,7 @@ namespace Cosmos {
     //! Listen for Beacon
     /*! Poll the subscription channel until you receive a info message, or the timer runs out.
     \param waitsec Number of seconds to wait before timing out.
-    \return ::infostruc with acquired info. The UTC will be set to 0 if no info was
+    \return ::nodestruc with acquired info. The UTC will be set to 0 if no info was
     acquired.
 */
     nodestruc Agent::poll_info(float waitsec)
@@ -2222,9 +2200,9 @@ namespace Cosmos {
         nodestruc info;
         messstruc mess;
 
-        iretn = Agent::poll(mess, AGENT_MESSAGE_TRACK, waitsec);
+		iretn = Agent::poll(mess, (uint8_t)Agent::AgentMessage::TRACK, waitsec);
 
-        if (iretn == AGENT_MESSAGE_TRACK)
+		if (iretn == (uint8_t)Agent::AgentMessage::TRACK)
         {
             iretn = json_parse(mess.adata, cinfo->meta, cinfo->sdata);
             if (iretn >= 0)
@@ -2255,9 +2233,9 @@ namespace Cosmos {
         imustruc imu;
         messstruc mess;
 
-        iretn = Agent::poll(mess, AGENT_MESSAGE_IMU, waitsec);
+		iretn = Agent::poll(mess, (uint8_t)Agent::AgentMessage::IMU, waitsec);
 
-        if (iretn == AGENT_MESSAGE_IMU)
+		if (iretn == (uint8_t)Agent::AgentMessage::IMU)
         {
             iretn = json_parse(mess.adata, cinfo->meta, cinfo->sdata);
             if (iretn >= 0)

@@ -239,8 +239,8 @@ int main(int argc, char *argv[])
             att_topo(&agent->cinfo->pdata.node.loc);
 			break;
 		}
-//		agent->post(Agent::AGENT_MESSAGE_SOH, json_of_list(myjstring, agent->cinfo->pdata.agent[0].sohstring,cinfo));
-        agent->post(Agent::AGENT_MESSAGE_SOH, json_of_table(myjstring, agent->cinfo->pdata.agent[0].sohtable,  agent->cinfo->meta, agent->cinfo->pdata));
+//		agent->post((uint8_t)Agent::AgentMessage::SOH, json_of_list(myjstring, agent->cinfo->pdata.agent[0].sohstring,cinfo));
+        agent->post((uint8_t)Agent::AgentMessage::SOH, json_of_table(myjstring, agent->cinfo->pdata.agent[0].sohtable,  agent->cinfo->meta, agent->cinfo->pdata));
 		sleept = (int)((nextmjd-currentmjd(0.))*86400000000.);
 		if (sleept < 0) sleept = 0;
 		COSMOS_USLEEP(sleept);

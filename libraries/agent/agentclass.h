@@ -36,7 +36,7 @@
 */
 
 //! \ingroup support
-//! \defgroup agentlib Agent Server and Client Library
+//! \defgroup agentclass Agent Server and Client Library
 //! %Agent Server and Client.
 //!
 //! These functions support the transformation of a generic program into a COSMOS aware program. The first level of
@@ -48,23 +48,23 @@
 //! contain an initial header containing key information about the sending Agent, plus any additional \ref jsonlib_namespace values
 //! that the particular Agent cares to make available. This allows the Clients to collect information about the local system,
 //! and make requests of Agents. COSMOS Clients are equipped with a background thread that collects COSMOS messages and
-//! stores them in a ring. Reading of messages is accomplised through ::Agent::readring, which gives you the next
+//! stores them in a ring. Reading of messages is accomplised through Cosmos::Agent::readring, which gives you the next
 //! message in the ring until you reach the most recent message. Ring size defaults to 100 messages, but can by changed
-//! with ::Agent::resizering. The ring can be flushed at any time with ::Agent::clearring. Requests to agents
-//! are made with ::Agent::send_request. As part of its message collection thread, the Client also keeps a list of
-//! discovered Agents. This list can be used to provide the Agent information required by ::Agent::send_request through
-//! use of ::Agent::find_agent. Finally, Clients open a Publication Channel for the sending of messages to other
+//! with Cosmos::Agent::resizering. The ring can be flushed at any time with Cosmos::Agent::clearring. Requests to agents
+//! are made with Cosmos::Agent::send_request. As part of its message collection thread, the Client also keeps a list of
+//! discovered Agents. This list can be used to provide the Agent information required by Cosmos::Agent::send_request through
+//! use of Cosmos::Agent::find_agent. Finally, Clients open a Publication Channel for the sending of messages to other
 //! COSMOS aware software. Messages are broadcast, using whatever mechanism is appropriate for the ::NetworkType chosen,
-//! using ::Agent::post. They can be assigned any of 256 types, following the rules of ::Agent::AGENT_MESSAGE.
+//! using Cosmos::Agent::post. They can be assigned any of 256 types, following the rules of Cosmos::Agent::AgentMessage.
 //! The actual content over the network will be a single type byte, a 2 byte unsigned integer in little_endian order
 //! containing the length in bytes of the header, a JSON header using values from the \ref jsonlib_namespace to represent
 //! meta information about the Agent, and optional data, either as bytes (if type > 127), or additional JSON values. The
-//! header contains the following fields from the ::beatstruc, returned from either ::Agent::readring or
-//! ::Agent::find_agent:
+//! header contains the following fields from the ::beatstruc, returned from either Cosmos::Agent::readring or
+//! Cosmos::Agent::find_agent:
 //! - ::beatstruc::utc: The time of posting, expressed in Modified Julian Day.
 //! - ::beatstruc::node: The name of the associated Node.
 //! - ::beatstruc::proc: The name of the associated Agent.
-//! - ::beatstruc::address: The appropriate address for the ::NetworkType of the sending machine.
+//! - ::beatstruc::addr: The appropriate address for the ::NetworkType of the sending machine.
 //! - ::beatstruc::port: The network port the Agent is listening on.
 //! - ::beatstruc::bsz: The size, in bytes, of the Agents request buffer.
 //! - ::beatstruc::cpu: The CPU load of the machine the Agent is running on.
@@ -78,20 +78,20 @@
 //! automatically or on demand. In addition to the features listed for Clients, Agents are provided with two
 //! additional features, implemented as two additional threads of execution.
 //!
-//! - "Heartbeat": This is a Message, as described above, sent at regular intervals, with type AGENT_MESSAGE_BEAT.
-//! The optional data can be filled with State of Health information, established through ::Agent::set_sohstring.
+//! - "Heartbeat": This is a Message, as described above, sent at regular intervals, with type Agent::AgentMessage::BEAT.
+//! The optional data can be filled with State of Health information, established through Cosmos::Agent::set_sohstring.
 //!
 //! - "Requests": Requests are received as plain text commands and arguments, at the IP Port reported in the Heartbeat.
 //! They are processed and any response is sent back. The response, even if empty, always ends with [OK], if understood,
 //! or [NOK] if not. Requests and their responses must be less than the size of the communications
 //! buffer. There are a number of requests already built in to the Agent. Additional requests can be
-//! added using ::Agent::add_request, by tieing together user defined
+//! added using Cosmos::Agent::add_request, by tieing together user defined
 //! functions with user defined ASCII strings. Built in requests include:
 //!     - "help" - list available requests for this %Agent.
 //!     - "shutdown" - causes the %Agent to stop what it is doing and exit.
-//!     - "idle" - causes the %Agent to transition to ::State::IDLE.
-//!     - "monitor" - causes the %Agent to transition to ::State::MONITOR.
-//!     - "run" - causes the %Agent to transition to ::State::RUN.
+//!     - "idle" - causes the %Agent to transition to Cosmos::Agent::State::IDLE.
+//!     - "monitor" - causes the %Agent to transition to Cosmos::Agent::State::MONITOR.
+//!     - "run" - causes the %Agent to transition to Cosmos::Agent::State::RUN.
 //!     - "status" - causes the agent to dump any \ref jsonlib variables it is monitoring.
 //!     - "getvalue {\"json_name_000\"[,\"json_name_001\"]}" - requests the %Agent to return the values
 //! of the indicated JSON names.
@@ -109,9 +109,9 @@
 //!     - "aliasesjson" - return the JSON representing the contents of aliases.ini.
 //!     - "targetsjson" - return the JSON representing the contents of targets.ini.
 //!
-//! Both Clients and Agents are formed using ::Agent. Once you have performed any initializations necessary, you should
-//! enter a continuous loop, protected by ::Agent::running, and preferably surrendering control periodically
-//! with ::COSMOS_SLEEP. Upon exiting from this loop, you should call ::Agent::shutdown.
+//! Both Clients and Agents are formed using Cosmos::Agent. Once you have performed any initializations necessary, you should
+//! enter a continuous loop, protected by Cosmos::Agent::running, and preferably surrendering control periodically
+//! with Cosmos::COSMOS_SLEEP. Upon exiting from this loop, you should call Cosmos::Agent::shutdown.
 
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
@@ -191,24 +191,24 @@ public:
 #define MESSAGE_RING_SIZE 100
 
     //! Type of Agent Message. Types > 127 are binary.
-    enum AGENT_MESSAGE
+	enum class AgentMessage : uint8_t
         {
         //! All Message types
-        AGENT_MESSAGE_ALL=1,
+        ALL=1,
         //! Heartbeat Messages
-        AGENT_MESSAGE_BEAT=2,
+        BEAT=2,
         //! State of Health Messages
-        AGENT_MESSAGE_SOH=3,
+        SOH=3,
         //! Generic Mesages
-        AGENT_MESSAGE_GENERIC=4,
-        AGENT_MESSAGE_TIME=5,
-        AGENT_MESSAGE_LOCATION=6,
-        AGENT_MESSAGE_TRACK=7,
-        AGENT_MESSAGE_IMU=8,
+        GENERIC=4,
+        TIME=5,
+        LOCATION=6,
+        TRACK=7,
+        IMU=8,
         //! Event Messsages
-        AGENT_MESSAGE_EVENT=9,
-        AGENT_MESSAGE_BINARY=128,
-        AGENT_MESSAGE_COMM=129
+        EVENT=9,
+        BINARY=128,
+        COMM=129
         };
 
     enum class Where : size_t
@@ -221,8 +221,8 @@ public:
 
 #define MAXARGCOUNT 100
 
-    //! \ingroup agentlib
-    //! \defgroup agentlib_typedefs Agent Server and Client Library typedefs
+    //! \ingroup agentclass
+    //! \defgroup agentclass_typedefs Agent Server and Client Library typedefs
     //! @{
 
 
@@ -239,7 +239,7 @@ public:
     struct pollstruc
     {
         uint8_t type; // > 128 is binary, <128 is json, look for AGENT_MESSAGE in agentclass.h
-        uint16_t jlength; // lenght of JSON header
+        uint16_t jlength; // length of JSON header
         beatstruc beat; // all the information of the heartbeat (name, ip, etc.)
     };
 
@@ -288,7 +288,7 @@ public:
 //    int32_t poll(pollstruc &meta, string &message, uint8_t type, float waitsec = 1.);
 //    int32_t poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec = 1.);
     int32_t poll(messstruc &mess, uint8_t type, float waitsec = 1.);
-    int32_t readring(messstruc &message, uint8_t type = Agent::AGENT_MESSAGE_ALL, float waitsec = 1., Where where=Where::HEAD);
+	int32_t readring(messstruc &message, uint8_t type = (uint8_t)Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::HEAD);
     int32_t resizering(size_t newsize);
     int32_t clearring();
     timestruc poll_time(float waitsec);

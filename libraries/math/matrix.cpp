@@ -49,6 +49,12 @@ rvector rv_mmult(rmatrix m, rvector v)
     return (o);
 }
 
+// multiply matrix by vector
+rvector operator * (rmatrix m, rvector v)
+{
+    return rv_mmult(m, v);
+}
+
 //! Matrix diagonal
 /*! ::rvector representing the diagonal of a ::rmatrix
         \param a :rmatrix to get diagonal from.

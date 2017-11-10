@@ -887,7 +887,7 @@ int32_t pos_geoc2eci(locstruc *loc)
 
 //! Convert GEOC to GEOS
 /*! Convert a Geocentric ::cartpos to a Geographic ::spherpos.
-    \param loc ::locastruc containing position.
+    \param loc ::locstruc containing position.
 */
 int32_t pos_geoc2geos(locstruc *loc)
 {
@@ -3255,7 +3255,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
 * Load Two Line Element file into array of TLE's
 * \param fname Name of file containing elements
 * \param lines Array of ::tlestruc structures to contain elements
-* \return A ::int32_t indicating number of elements, otherwise a negative error.
+* \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
 int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 {
@@ -3331,7 +3331,7 @@ int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 /*! Load Two Line Element file for multiple satellites into array of TLE's
 * \param fname Name of file containing elements
 * \param lines Array of ::tlestruc structures to contain elements
-* \return A ::int32_t indicating number of elements, otherwise a negative error.
+* \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
 int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 {

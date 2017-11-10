@@ -134,11 +134,6 @@ int32_t request_debug(char *req, char* response, Agent *);
 int32_t request_get_offset(char *req, char* response, Agent *);
 int32_t request_get_state(char *req, char* response, Agent *);
 
-//! \brief request command to set the azimuth and elevation
-//! \param req
-//! \param response
-//! \param
-//! \return zero 0
 int32_t request_set_azel(char *req, char* response, Agent *);
 int32_t request_track_azel(char *req, char* response, Agent *);
 int32_t request_get_azel(char *req, char* response, Agent *);

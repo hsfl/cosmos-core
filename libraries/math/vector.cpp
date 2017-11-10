@@ -28,6 +28,7 @@
 ********************************************************************/
 
 #include "vector.h"
+#include "matrix.h"
 
 //! \addtogroup mathlib_functions
 //! @{
@@ -485,16 +486,28 @@ void normalize_cv(cvector &v)
 }
 
 //! Normalize cartesian vector in place, i.e. divides it by its own norm.
-void cvector::normalize()
+void cvector::normalize(double scale)
 {
-    double norm = this->norm();
+    double weight = scale / norm();
 
-    if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
+    if (fabs(weight - (double)0.) > D_SMALL && fabs(weight - (double)1.) > D_SMALL)
     {
-        this->x /= norm;
-        this->y /= norm;
-        this->z /= norm;
+        x *= weight;
+        y *= weight;
+        z *= weight;
     }
+}
+
+//! Normalize cartesian vector
+/*! Returns a normalized version of the requested cartesian vector.
+        \param scale the weight to be applied after normalizing
+        \return the normalized version of the vector as ::cvector
+        */
+cvector cvector::normalized(double scale)
+{
+    cvector newv = *this;
+    newv.normalize(scale);
+    return newv;
 }
 
 
@@ -639,15 +652,6 @@ double cv_norm(cvector v)
         return (length);
 }
 
-double cvector::norm()
-{
-    double norm = sqrt(this->x*this->x + this->y*this->y + this->z*this->z);
-    if (norm < D_SMALL)
-        return (0.);
-    else
-        return (norm);
-}
-
 double cvector::norm2()
 {
     double norm = (this->x*this->x + this->y*this->y + this->z*this->z);
@@ -655,6 +659,20 @@ double cvector::norm2()
         return (0.);
     else
         return (norm);
+}
+
+double cvector::norm()
+{
+    double norm = sqrt(this->norm2());
+    if (norm < D_SMALL)
+        return (0.);
+    else
+        return (norm);
+}
+
+double cvector::length()
+{
+    return (this->norm());
 }
 
 
@@ -802,15 +820,22 @@ std::istream& operator >> (std::istream& in, rvector& a)
 // multiply vector by scalar operator
 rvector operator * (rvector v, double scalar)
 {
-    //rvector v = *this;
-    v.col[0] = scalar * v.col[0];
-    v.col[1] = scalar * v.col[1];
-    v.col[2] = scalar * v.col[2];
-
-    return v;
+    return rv_smult(scalar, v);
 }
 
-// multiply vector by scalar operator
+// multiply vector by vector operator
+rvector operator * (rvector v1, rvector v2)
+{
+    return rv_mult(v1, v2);
+}
+
+// divide vector by scalar operator
+rvector operator / (rvector v, double scalar)
+{
+    return rv_smult(1./scalar, v);
+}
+
+// compare vector to vector operator
 int operator == (rvector a, rvector b)
 {
     if(a.col[0] == b.col[0] && a.col[1] == b.col[1] &&
@@ -821,16 +846,6 @@ int operator == (rvector a, rvector b)
     {
         return 0;
     }
-}
-
-// divide vector by scalar operator
-rvector operator / (rvector v, double scalar)
-{
-    v.col[0] = v.col[0] / scalar;
-    v.col[1] = v.col[1] / scalar;
-    v.col[2] = v.col[2] / scalar;
-
-    return v;
 }
 
 std::ostream& operator << (std::ostream& out, const cvector& a)

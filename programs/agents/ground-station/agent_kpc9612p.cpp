@@ -293,7 +293,7 @@ void tun_write_loop()
         while (!tun_fifo.empty())
         {
             buffer = tun_fifo.front();
-            nbytes = agent->post(Agent::AGENT_MESSAGE_COMM, buffer);
+            nbytes = agent->post((uint8_t)Agent::AgentMessage::COMM, buffer);
             if (open_tunnel)
             {
                 nbytes = write(tun_fd, &buffer[0], buffer.size());

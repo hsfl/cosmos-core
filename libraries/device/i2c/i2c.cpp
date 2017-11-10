@@ -43,7 +43,9 @@ namespace Cosmos {
 
     //! Create i2c port instance.
     //! Create a i2c port object to be used for reading and writing to a physical port.
-    //! \param dname Name of physical serial port.
+    //! \param bus Name of physical I2C device.
+    //! \param address Address of physical I2C port.
+    //! \param delay Time in seconds to wait for reading after writing.
 
 
     I2C::I2C(string bus, uint8_t address, double delay)

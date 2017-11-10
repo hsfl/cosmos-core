@@ -126,11 +126,11 @@ int main(int argc, char* argv[])
 	std::string pollbuf;
     Agent::messstruc mess;
 
-    iretn = agent->poll(mess, Agent::AGENT_MESSAGE_ALL,1);
+    iretn = agent->poll(mess, (uint8_t)Agent::AgentMessage::ALL,1);
 	switch (iretn)
 	{
-    case Agent::AGENT_MESSAGE_SOH:
-    case Agent::AGENT_MESSAGE_BEAT:
+    case (uint8_t)Agent::AgentMessage::SOH:
+    case (uint8_t)Agent::AgentMessage::BEAT:
 		{
 			std::string tbuf = json_convert_string(json_extract_namedobject(pollbuf, "agent_name"));
 			if (!tbuf.empty() && tbuf == "physics")
@@ -284,7 +284,7 @@ int main(int argc, char* argv[])
 		{
             log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(mainjstring,  logtable, agent->cinfo->meta, agent->cinfo->pdata));
 		}
-        //		agent->post(Agent::AGENT_MESSAGE_SOH,json_of_table(mainjstring,  agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+        //		agent->post((uint8_t)Agent::AgentMessage::SOH,json_of_table(mainjstring,  agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
 	}
     agent->shutdown();
 }

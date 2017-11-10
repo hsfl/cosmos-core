@@ -409,21 +409,21 @@ int create_node () // only use when unsure what the node is
             switch (i)
             {
             case 0:
-                cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_CPU;
+                cinfo->pdata.device[i].all.gen.type = (uint16_t)DeviceType::CPU;
                 cinfo->pdata.device[i].all.gen.didx = 0;
                 cinfo->pdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
                 cinfo->pdata.device[i].cpu.maxload = 1.;
                 cinfo->pdata.device[i].cpu.maxgib = 1.;
-                json_adddeviceentry(i, 0, DEVICE_TYPE_CPU, cinfo->meta);
+                json_adddeviceentry(i, 0, (uint16_t)DeviceType::CPU, cinfo->meta);
                 break;
             default:
                 cinfo->pdata.device[i].disk.maxgib = 1000.;
-                cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_DISK;
+                cinfo->pdata.device[i].all.gen.type = (uint16_t)DeviceType::DISK;
                 cinfo->pdata.device[i].all.gen.didx = i-1;
                 cinfo->pdata.device[i].all.gen.portidx = cinfo->pdata.device[i].all.gen.didx;
                 cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].type = PORT_TYPE_DRIVE;
-                json_adddeviceentry(i, i-1, DEVICE_TYPE_DISK, cinfo->meta);
-                json_toggledeviceentry(i-1, DEVICE_TYPE_DISK, cinfo->meta, true);
+                json_adddeviceentry(i, i-1, (uint16_t)DeviceType::DISK, cinfo->meta);
+                json_toggledeviceentry(i-1, (uint16_t)DeviceType::DISK, cinfo->meta, true);
 #ifdef COSMOS_WIN_OS
                 strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "c:/");
 #else

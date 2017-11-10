@@ -44,7 +44,7 @@
 //! \ingroup support
 //! \defgroup ephemlib Ephemeris library
 //! Functions to implement the ephemerides provided by the Jet Propulsion Laboratory. Currently uses DE405 and uses
-//! \def jpleph.
+//! jpleph.
 //! Full information can be found at http://ssd.jpl.nasa.gov/?planet_eph_export.
 
 //!

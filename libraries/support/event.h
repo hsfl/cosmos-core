@@ -30,7 +30,7 @@
 #ifndef COSMOS_COMMAND_H
 #define COSMOS_COMMAND_H
 
-/*! \file commanding.h
+/*! \file event.h
 *	\brief Commanding Class
 */
 
@@ -88,11 +88,9 @@ public:
 	///	Sets %Event information from a JSON formatted string
 	/**
 		\param	jstring	Event information string formatted as JSON
-		\param	agent	pointer to Agent (to simplify implementation)
 
 		This function copies all Event information (from a JSON formatted string) into the current Event object
 	*/
-	//void	set_command(string jstring, Agent *agent);
 	void	set_command(string jstring);
 
 	///	Sets Event::utcexec to current time

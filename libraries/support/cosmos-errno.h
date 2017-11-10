@@ -287,7 +287,7 @@
 
 
 //! \ingroup error
-//! \defgroup error_defines COSMOS Error Code definitions
+//! \defgroup error_functions Errno support functions
 //! @{
 string cosmos_error_string(int32_t cosmos_errno);
 //! @}

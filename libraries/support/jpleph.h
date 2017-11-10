@@ -40,7 +40,7 @@
 //!
 //! The JPL Ephemeris provides information about the locations of all the
 //! solar system planets, and the Moon. This information is used to support
-//! the ::convertlib.
+//! the \ref convertlib.
 
 /***************************************************************************
 *******                  JPLEPH.H                                  *********

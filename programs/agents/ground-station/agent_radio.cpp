@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
         {
             deviceindex = agent->cinfo->pdata.devspec.rxr[i]->gen.cidx;
             radioindex = i;
-            radiotype = DEVICE_TYPE_RXR;
+            radiotype = (uint16_t)DeviceType::RXR;
             break;
         }
     }
@@ -272,7 +272,7 @@ int main(int argc, char *argv[])
             {
                 deviceindex = agent->cinfo->pdata.devspec.txr[i]->gen.cidx;
                 radioindex = i;
-                radiotype = DEVICE_TYPE_TXR;
+                radiotype = (uint16_t)DeviceType::TXR;
                 break;
             }
         }
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
             {
                 deviceindex = agent->cinfo->pdata.devspec.tcv[i]->gen.cidx;
                 radioindex = i;
-                radiotype = DEVICE_TYPE_TCV;
+                radiotype = (uint16_t)DeviceType::TCV;
                 break;
             }
         }
@@ -303,12 +303,12 @@ int main(int argc, char *argv[])
     char sohstring[200];
     switch (radiotype)
     {
-    case DEVICE_TYPE_TXR:
+    case (uint16_t)DeviceType::TXR:
         sprintf(sohstring, "{\"device_txr_freq_%03lu\",\"device_txr_maxpower_%03lu\",\"device_txr_power_%03lu\",\"device_txr_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex);
         break;
-    case DEVICE_TYPE_RXR:
+    case (uint16_t)DeviceType::RXR:
         sprintf(sohstring, "{\"device_rxr_freq_%03lu\",\"device_rxr_power_%03lu\",\"device_rxr_band_%03lu\",\"device_rxr_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex);
-    case DEVICE_TYPE_TCV:
+    case (uint16_t)DeviceType::TCV:
         sprintf(sohstring, "{\"device_tcv_freq_%03lu\",\"device_tcv_powerin_%03lu\",\"device_tcv_powerout_%03lu\",\"device_tcv_maxpower_%03lu\",\"device_tcv_band_%03lu\",\"device_tcv_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex, radioindex, radioindex);
         break;
     }

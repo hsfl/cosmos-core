@@ -1031,7 +1031,7 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
                 cdata.piece[i].insol = loc.pos.sunradiance * sdot/length_rv(cdata.piece[i].normal);
                 energyd =  cdata.piece[i].insol * cdata.physics.dt;
                 cdata.piece[i].heat += cdata.piece[i].area * cdata.piece[i].abs * energyd;
-                if (cdata.piece[i].cidx<DEVICE_TYPE_NONE && cdata.device[cdata.piece[i].cidx].all.gen.type == DEVICE_TYPE_STRG)
+                if (cdata.piece[i].cidx<(uint16_t)DeviceType::NONE && cdata.device[cdata.piece[i].cidx].all.gen.type == (uint16_t)DeviceType::STRG)
                 {
                     j = cdata.device[cdata.piece[i].cidx].all.gen.didx;
                     if (cdata.devspec.strg[j]->effbase > 0.)
@@ -1344,7 +1344,7 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
             {
                 cdata.piece[cdata.device[i].all.gen.pidx].heat += .8 * cdata.device[i].all.gen.power * cdata.physics.dt;
             }
-            if (cdata.device[i].all.gen.type != DEVICE_TYPE_BUS)
+            if (cdata.device[i].all.gen.type != (uint16_t)DeviceType::BUS)
             {
                 cdata.node.powuse += cdata.device[i].all.gen.power;
             }

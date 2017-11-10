@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 			}
 
 			// Broadcast it
-            agent->post(Agent::AGENT_MESSAGE_SOH, json_of_list(myjstring, logstring, agent->cinfo->meta, agent->cinfo->pdata));
+            agent->post((uint8_t)Agent::AgentMessage::SOH, json_of_list(myjstring, logstring, agent->cinfo->meta, agent->cinfo->pdata));
             log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_SOH,floor(agent->cinfo->pdata.node.loc.utc), json_of_list(jjstring,logstring, agent->cinfo->meta, agent->cinfo->pdata));
 
         } // End If: packet reception / parse / idle cycle

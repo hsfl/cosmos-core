@@ -58,8 +58,9 @@ struct rvector
 std::ostream& operator << (std::ostream& out, const rvector& a);
 std::ostream& operator << (std::ostream& out, const std::vector<rvector>& a);
 std::istream& operator >> (std::istream& out, rvector& a);
-rvector operator * (rvector v, double scalar); // multiply vector by scalar operator
-rvector operator / (rvector v, double scalar); // multiply vector by scalar operator
+rvector operator * (rvector v, double scalar); // multiply vector by vector operator
+rvector operator * (rvector v1, rvector v2); // multiply vector by vector operator
+rvector operator / (rvector v, double scalar); // divide vector by scalar operator
 int operator == (rvector a, rvector b); // Compares two vectors
 
 //! 3 element cartesian vector
@@ -76,9 +77,11 @@ public:
     //! Z value
     double z;
 
-    void normalize();
+    void normalize(double scale=1.);
+    double length();
     double norm();
     double norm2();
+    cvector normalized(double scale=1.);
 } ;
 
 //! 3 element spherical vector

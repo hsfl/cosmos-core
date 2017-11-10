@@ -261,8 +261,6 @@ int32_t json_skip_character(const char* &ptr, char character);
 int32_t json_skip_value(const char* &ptr);
 int32_t json_skip_white(const char* &ptr);
 int32_t json_clear_cosmosstruc(int32_t type, cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
-//int32_t json_setup(cosmosmetastruc &cmeta, cosmosdatastruc &cdata);
-//int32_t json_setup_node(string node, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, bool create_flag = false);
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag = false);
 int32_t json_setup_node(string node, cosmosstruc *cinfo);
 int32_t json_load_node(string node, jsonnode &json);

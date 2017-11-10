@@ -87,14 +87,13 @@ vector <string> port_type_string
     "propagator"
 };
 
-/*! \ingroup jsonlib
-* \defgroup jsonlib_namespace JSON Name Space
-* @{
-* A hierarchical set of variable names meant to describe everything in COSMOS. Each name
-* maps to a variable of a type specified in \ref jsonlib_type. Names are restricted to
-* alphabetic characters, and can be no longer than ::COSMOS_MAX_NAME. Once mapped through use
-* of ::json_setup, these names will be tied to elements of the ::cosmosstruc.
-*/
+//! \ingroup jsonlib
+//! \defgroup jsonlib_namespace JSON Name Space
+//! @{
+//! A hierarchical set of variable names meant to describe everything in COSMOS. Each name
+//! maps to a variable of a type specified in \ref jsonlib_type. Names are restricted to
+//! alphabetic characters, and can be no longer than ::COSMOS_MAX_NAME. Once mapped through use
+//! of ::json_setup_node, these names will be tied to elements of the ::cosmosstruc.
 
 //! @}
 
@@ -656,7 +655,7 @@ int32_t json_addentry(jsonentry entry, cosmosmetastruc &cmeta)
     \param d1 array index for first level, otherwise -1
     \param d2 array index for second level, otherwise -1
     \param offset Offset to the data from the beginning of its group.
-    \param size Number of bytes ::jsonetnry take up.
+    \param size Number of bytes ::jsonentry take up.
     \param type COSMOS JSON Data Type.
     \param group COSMOS JSON Data Group.
     \param cmeta Reference to ::cosmosmetastruc to use.
@@ -770,7 +769,7 @@ bool json_checkentry(string name, uint16_t d1, uint16_t d2, cosmosmetastruc &cme
     \param d1 array index for first level, otherwise -1
     \param d2 array index for second level, otherwise -1
     \param offset Offset to the data from the beginning of its group.
-    \param size Number of bytes ::jsonetnry take up.
+    \param size Number of bytes ::jsonentry take up.
     \param type COSMOS JSON Data Type.
     \param group COSMOS JSON Data Group.
     \param cmeta Reference to ::cosmosmetastruc to use.
@@ -2177,8 +2176,8 @@ int32_t json_out_qatt(string &jstring,qatt value)
     return 0;
 }
 
-//! ::dcm to JSON
-/*! Appends a JSON entry to the current JSON stream for the indicated ::dcm.
+//! ::rmatrix to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated ::rmatrix.
     \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
@@ -2701,10 +2700,10 @@ jsonentry *json_entry_of(jsonhandle handle, cosmosmetastruc &cmeta)
 }
 
 //! Type of namespace name.
-/*! Return the ::jsonlib_type of the token in the ::jsonmap.
+/*! Return the \ref jsonlib_type of the token in the ::jsonmap.
  \param token the JSON name for the desired variable
     \param cmeta Reference to ::cosmosmetastruc to use.
- \return The ::jsonlib_type, otherwise 0.
+ \return The \ref jsonlib_type, otherwise 0.
 */
 uint16_t json_type_of_name(string token, cosmosmetastruc &cmeta)
 {
@@ -4146,7 +4145,7 @@ double json_convert_double(string object)
 }
 
 //! Tokenize using JSON Name Space.
-/*! Scan through the provided JSON stream, matching names to the ::json_name_list.
+/*! Scan through the provided JSON stream, matching names to the ::jsonmap.
  * for each match that is found, create a ::jsontoken entry and add it to a vector
  * of tokens.
  * \param jstring string containing JSON stream.
@@ -4344,7 +4343,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosmetastruc &cmeta, json
 }
 
 //! Parse JSON using Name Space.
-/*! Scan through the provided JSON stream, matching names to the ::json_name_list. For
+/*! Scan through the provided JSON stream, matching names to the ::jsonmap. For
  * each match that is found, load the associated data item with the accompanying data.
  * This function supports complex data types.
     \param jstring A string of JSON data
@@ -5785,8 +5784,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosmetastruc &cmeta, cosmosdatas
  *	\param node Name and/or path of node directory. If name, then a path will be created
  * based on nodedir setting. If path, then name will be extracted from the end.
  *	\param json ::jsonnode for storing JSON.
- * \param create_flag Whether or not to create node directory if it doesn't already exist.
-    \return 0, or a negative ::error
+    \return 0, or a negative value from \ref error_defines.
 */
 int32_t json_load_node(string node, jsonnode &json)
 {
@@ -6028,148 +6026,148 @@ int32_t json_pushdevspec(uint16_t cidx, cosmosdatastruc &cdata)
 {
     switch (cdata.device[cidx].all.gen.type)
     {
-    case DEVICE_TYPE_TELEM:
+    case (uint16_t)DeviceType::TELEM:
         cdata.devspec.telem.push_back((telemstruc *)&cdata.device[cidx].telem);
         cdata.devspec.telem_cnt = (uint16_t)cdata.devspec.telem.size();
         break;
-    case DEVICE_TYPE_PLOAD:
+    case (uint16_t)DeviceType::PLOAD:
         cdata.devspec.pload.push_back((ploadstruc *)&cdata.device[cidx].pload);
         cdata.devspec.pload_cnt = (uint16_t)cdata.devspec.pload.size();
         break;
         //! Elevation and Azimuth Sun Sensor
-    case DEVICE_TYPE_SSEN:
+    case (uint16_t)DeviceType::SSEN:
         cdata.devspec.ssen.push_back((ssenstruc *)&cdata.device[cidx].ssen);
         cdata.devspec.ssen_cnt = (uint16_t)cdata.devspec.ssen.size();
         break;
         //! Inertial Measurement Unit
-    case DEVICE_TYPE_IMU:
+    case (uint16_t)DeviceType::IMU:
         cdata.devspec.imu.push_back((imustruc *)&cdata.device[cidx].imu);
         cdata.devspec.imu_cnt = (uint16_t)cdata.devspec.imu.size();
         break;
         //! Reaction Wheel
-    case DEVICE_TYPE_RW:
+    case (uint16_t)DeviceType::RW:
         cdata.devspec.rw.push_back((rwstruc *)&cdata.device[cidx].rw);
         cdata.devspec.rw_cnt = (uint16_t)cdata.devspec.rw.size();
         break;
         //! Magnetic Torque Rod
-    case DEVICE_TYPE_MTR:
+    case (uint16_t)DeviceType::MTR:
         cdata.devspec.mtr.push_back((mtrstruc *)&cdata.device[cidx].mtr);
         cdata.devspec.mtr_cnt = (uint16_t)cdata.devspec.mtr.size();
         break;
         //! Camera
-    case DEVICE_TYPE_CAM:
+    case (uint16_t)DeviceType::CAM:
         cdata.devspec.cam.push_back((camstruc *)&cdata.device[cidx].cam);
         cdata.devspec.cam_cnt = (uint16_t)cdata.devspec.cam.size();
         break;
         //! Processing Unit
-    case DEVICE_TYPE_CPU:
+    case (uint16_t)DeviceType::CPU:
         cdata.devspec.cpu.push_back((cpustruc *)&cdata.device[cidx].cpu);
         cdata.devspec.cpu_cnt = (uint16_t)cdata.devspec.cpu.size();
         break;
-    case DEVICE_TYPE_DISK:
+    case (uint16_t)DeviceType::DISK:
         cdata.devspec.disk.push_back((diskstruc *)&cdata.device[cidx].disk);
         cdata.devspec.disk_cnt = (uint16_t)cdata.devspec.disk.size();
         break;
         //! GPS Unit
-    case DEVICE_TYPE_GPS:
+    case (uint16_t)DeviceType::GPS:
         cdata.devspec.gps.push_back((gpsstruc *)&cdata.device[cidx].gps);
         cdata.devspec.gps_cnt = (uint16_t)cdata.devspec.gps.size();
         break;
         //! Antenna
-    case DEVICE_TYPE_ANT:
+    case (uint16_t)DeviceType::ANT:
         cdata.devspec.ant.push_back((antstruc *)&cdata.device[cidx].ant);
         cdata.devspec.ant_cnt = (uint16_t)cdata.devspec.ant.size();
         break;
         //! Radio Receiver
-    case DEVICE_TYPE_RXR:
+    case (uint16_t)DeviceType::RXR:
         cdata.devspec.rxr.push_back((rxrstruc *)&cdata.device[cidx].rxr);
         cdata.devspec.rxr_cnt = (uint16_t)cdata.devspec.rxr.size();
         break;
         //! Radio Transmitter
-    case DEVICE_TYPE_TXR:
+    case (uint16_t)DeviceType::TXR:
         cdata.devspec.txr.push_back((txrstruc *)&cdata.device[cidx].txr);
         cdata.devspec.txr_cnt = (uint16_t)cdata.devspec.txr.size();
         break;
         //! Radio Transceiver
-    case DEVICE_TYPE_TCV:
+    case (uint16_t)DeviceType::TCV:
         cdata.devspec.tcv.push_back((tcvstruc *)&cdata.device[cidx].tcv);
         cdata.devspec.tcv_cnt = (uint16_t)cdata.devspec.tcv.size();
         break;
         //! Photo Voltaic String
-    case DEVICE_TYPE_STRG:
+    case (uint16_t)DeviceType::STRG:
         cdata.devspec.strg.push_back((strgstruc *)&cdata.device[cidx].strg);
         cdata.devspec.strg_cnt = (uint16_t)cdata.devspec.strg.size();
         break;
         //! Battery
-    case DEVICE_TYPE_BATT:
+    case (uint16_t)DeviceType::BATT:
         cdata.devspec.batt.push_back((battstruc *)&cdata.device[cidx].batt);
         cdata.devspec.batt_cnt = (uint16_t)cdata.devspec.batt.size();
         break;
         //! Heater
-    case DEVICE_TYPE_HTR:
+    case (uint16_t)DeviceType::HTR:
         cdata.devspec.htr.push_back((htrstruc *)&cdata.device[cidx].htr);
         cdata.devspec.htr_cnt = (uint16_t)cdata.devspec.htr.size();
         break;
         //! Motor
-    case DEVICE_TYPE_MOTR:
+    case (uint16_t)DeviceType::MOTR:
         cdata.devspec.motr.push_back((motrstruc *)&cdata.device[cidx].motr);
         cdata.devspec.motr_cnt = (uint16_t)cdata.devspec.motr.size();
         break;
         //! Pressure Sensor
-    case DEVICE_TYPE_PSEN:
+    case (uint16_t)DeviceType::PSEN:
         cdata.devspec.psen.push_back((psenstruc *)&cdata.device[cidx].psen);
         cdata.devspec.psen_cnt = (uint16_t)cdata.devspec.psen.size();
         break;
         //! Temperature Sensor
-    case DEVICE_TYPE_TSEN:
+    case (uint16_t)DeviceType::TSEN:
         cdata.devspec.tsen.push_back((tsenstruc *)&cdata.device[cidx].tsen);
         cdata.devspec.tsen_cnt = (uint16_t)cdata.devspec.tsen.size();
         break;
         //! Thruster
-    case DEVICE_TYPE_THST:
+    case (uint16_t)DeviceType::THST:
         cdata.devspec.thst.push_back((thststruc *)&cdata.device[cidx].thst);
         cdata.devspec.thst_cnt = (uint16_t)cdata.devspec.thst.size();
         break;
         //! Propellant Tank
-    case DEVICE_TYPE_PROP:
+    case (uint16_t)DeviceType::PROP:
         cdata.devspec.prop.push_back((propstruc *)&cdata.device[cidx].prop);
         cdata.devspec.prop_cnt = (uint16_t)cdata.devspec.prop.size();
         break;
         //! Switch
-    case DEVICE_TYPE_SWCH:
+    case (uint16_t)DeviceType::SWCH:
         cdata.devspec.swch.push_back((swchstruc *)&cdata.device[cidx].swch);
         cdata.devspec.swch_cnt = (uint16_t)cdata.devspec.swch.size();
         break;
         //! Rotor
-    case DEVICE_TYPE_ROT:
+    case (uint16_t)DeviceType::ROT:
         cdata.devspec.rot.push_back((rotstruc *)&cdata.device[cidx].rot);
         cdata.devspec.rot_cnt = (uint16_t)cdata.devspec.rot.size();
         break;
         //! Star Tracker
-    case DEVICE_TYPE_STT:
+    case (uint16_t)DeviceType::STT:
         cdata.devspec.stt.push_back((sttstruc *)&cdata.device[cidx].stt);
         cdata.devspec.stt_cnt = (uint16_t)cdata.devspec.stt.size();
         break;
         //! Star Tracker
-    case DEVICE_TYPE_SUCHI:
+    case (uint16_t)DeviceType::SUCHI:
         {
             cdata.devspec.suchi.push_back((suchistruc *)&cdata.device[cidx].suchi);
             cdata.devspec.suchi_cnt = (uint16_t)cdata.devspec.suchi.size();
             break;
         }
-    case DEVICE_TYPE_MCC:
+    case (uint16_t)DeviceType::MCC:
         cdata.devspec.mcc.push_back((mccstruc *)&cdata.device[cidx].mcc);
         cdata.devspec.mcc_cnt = (uint16_t)cdata.devspec.mcc.size();
         break;
-    case DEVICE_TYPE_TCU:
+    case (uint16_t)DeviceType::TCU:
         cdata.devspec.tcu.push_back((tcustruc *)&cdata.device[cidx].tcu);
         cdata.devspec.tcu_cnt = (uint16_t)cdata.devspec.tcu.size();
         break;
-    case DEVICE_TYPE_BUS:
+    case (uint16_t)DeviceType::BUS:
         cdata.devspec.bus.push_back((busstruc *)&cdata.device[cidx].bus);
         cdata.devspec.bus_cnt = (uint16_t)cdata.devspec.bus.size();
         break;
-    case DEVICE_TYPE_TNC:
+    case (uint16_t)DeviceType::TNC:
         cdata.devspec.tnc.push_back((tncstruc *)&cdata.device[cidx].tnc);
         cdata.devspec.tnc_cnt = (uint16_t)cdata.devspec.tnc.size();
         break;
@@ -6183,7 +6181,7 @@ int32_t json_pushdevspec(uint16_t cidx, cosmosdatastruc &cdata)
  * \param json Structure containing JSON descriptions.
  * \param cinfo Pointer to cinfo ::cosmosstruc.
  * \param create_flag Whether or not to create node directory if it doesn't already exist.
-   \return 0, or a negative ::error
+   \return 0, or a negative \ref error_defines
 */
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 {
@@ -6256,7 +6254,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             //Add relevant names to namespace
             json_addpieceentry(i, cinfo->meta);
             // Initialize to no component
-            cinfo->pdata.piece[i].cidx = DEVICE_TYPE_NONE;
+            cinfo->pdata.piece[i].cidx = (uint16_t)DeviceType::NONE;
         }
 
         // Parse data for piece information
@@ -6424,8 +6422,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
  *	\param node Name and/or path of node directory. If name, then a path will be created
  * based on nodedir setting. If path, then name will be extracted from the end.
  *	\param cinfo Pointer to cinfo ::cosmosstruc.
- * \param create_flag Whether or not to create node directory if it doesn't already exist.
-    \return 0, or a negative ::error
+    \return 0, or a negative value from \ref error_defines.
 */
 int32_t json_setup_node(string node, cosmosstruc *cinfo)
 {
@@ -6741,8 +6738,8 @@ int32_t json_addbaseentry(cosmosmetastruc &cmeta)
 }
 
 //! Add piece entry.
-/*! Add an entry for piece number i to the JSON Namespace map.
- \param i Piece number.
+/*! Add an entry for piece number pidx to the JSON Namespace map.
+ \param pidx Piece number.
 *	\param cmeta Reference to ::cosmosmetastruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
@@ -6775,10 +6772,9 @@ int32_t json_addpieceentry(uint16_t pidx, cosmosmetastruc &cmeta)
 }
 
 //! Toggle piece entry.
-/*! Toggle the enable state of an entry for piece number i in the JSON Namespace map.
- \param i Piece number.
+/*! Toggle the enable state of an entry for piece number pidx in the JSON Namespace map.
+ \param pidx Piece number.
 *	\param cmeta Reference to ::cosmosmetastruc to use.
-*	\param cdata Reference to ::cosmosdatastruc to use.
 * \param state Desired enable state.
     \return 0 or negative error.
  */
@@ -6807,10 +6803,9 @@ int32_t json_togglepieceentry(uint16_t pidx, cosmosmetastruc &cmeta, bool state)
 }
 
 //! Add component entry.
-/*! Add an entry for component number i to the JSON Namespace map.
- \param i Component number.
+/*! Add an entry for component number cidx to the JSON Namespace map.
+ \param cidx Component number.
 *	\param cmeta Reference to ::cosmosmetastruc to use.
-*	\param cdata Reference to ::cosmosdatastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
 int32_t json_addcompentry(uint16_t cidx, cosmosmetastruc &cmeta)
@@ -6843,10 +6838,9 @@ int32_t json_addcompentry(uint16_t cidx, cosmosmetastruc &cmeta)
 }
 
 //! Toggle component entry.
-/*! Toggle the enable state of an entry for component number i in the JSON Namespace map.
- \param i Component number.
+/*! Toggle the enable state of an entry for component number cidx in the JSON Namespace map.
+ \param cidx Component number.
 *	\param cmeta Reference to ::cosmosmetastruc to use.
-*	\param cdata Reference to ::cosmosdatastruc to use.
 * \param state Desired enable state.
     \return 0 or negative error.
  */
@@ -6877,9 +6871,10 @@ int32_t json_togglecompentry(uint16_t cidx, cosmosmetastruc &cmeta, bool state)
 
 //! Add device entry.
 /*! Add entries specific to device number i to the JSON Namespace map.
- \param i Device number.
+ * \param cidx Component number.
+ \param didx Device number.
+ \param type Device type number taken from ::DeviceType.
     \param cmeta Reference to ::cosmosmetastruc to use.
-    \param cdata Reference to ::cosmosdatastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be added.
  */
 uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmosmetastruc &cmeta)
@@ -6888,7 +6883,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
 
     switch (type)
     {
-    case DEVICE_TYPE_TELEM:
+    case (uint16_t)DeviceType::TELEM:
         iretn = json_addentry("device_telem_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_telem_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_telem_type",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,type)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
@@ -6902,7 +6897,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_telem_vdouble",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vdouble)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_telem_vstring",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vstring)+cidx*sizeof(devicestruc), COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_STRING,JSON_STRUCT_DEVICE, cmeta);
         break;
-    case DEVICE_TYPE_PLOAD:
+    case (uint16_t)DeviceType::PLOAD:
         iretn = json_addentry("device_pload_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_pload_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_pload_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -6916,7 +6911,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         }
         break;
         //! Elevation and Azimuth Sun Sensor
-    case DEVICE_TYPE_SSEN:
+    case (uint16_t)DeviceType::SSEN:
         iretn = json_addentry("device_ssen_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_ssen_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_ssen_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -6929,7 +6924,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_ssen_elevation",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,elevation)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Inertial Measurement Unit
-    case DEVICE_TYPE_IMU:
+    case (uint16_t)DeviceType::IMU:
         iretn = json_addentry("device_imu_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_imu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_imu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_TEMPERATURE);
@@ -6952,7 +6947,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_imu_bdot",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,bdot)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Reaction Wheel
-    case DEVICE_TYPE_RW:
+    case (uint16_t)DeviceType::RW:
         iretn = json_addentry("device_rw_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_rw_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_rw_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_TEMPERATURE);
@@ -6967,7 +6962,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_rw_ralp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,ralp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Magnetic Torque Rod
-    case DEVICE_TYPE_MTR:
+    case (uint16_t)DeviceType::MTR:
         iretn = json_addentry("device_mtr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_mtr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_mtr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -6983,7 +6978,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_mtr_rmom",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,rmom)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Camera
-    case DEVICE_TYPE_CAM:
+    case (uint16_t)DeviceType::CAM:
         iretn = json_addentry("device_cam_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cam_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cam_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -6996,7 +6991,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_cam_flength",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,flength)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Processing Unit
-    case DEVICE_TYPE_CPU:
+    case (uint16_t)DeviceType::CPU:
         iretn = json_addentry("device_cpu_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cpu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cpu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7007,7 +7002,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_cpu_gib",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,boot_count)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
         break;
-    case DEVICE_TYPE_DISK:
+    case (uint16_t)DeviceType::DISK:
         iretn = json_addentry("device_disk_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_disk_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_disk_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7015,7 +7010,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_disk_gib",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! GPS Unit
-    case DEVICE_TYPE_GPS:
+    case (uint16_t)DeviceType::GPS:
         iretn = json_addentry("device_gps_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_gps_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_gps_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7060,7 +7055,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_gps_solution_status",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,solution_status)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Antenna
-    case DEVICE_TYPE_ANT:
+    case (uint16_t)DeviceType::ANT:
         iretn = json_addentry("device_ant_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_ant_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_ant_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7070,7 +7065,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_ant_minelev",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,minelev)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Radio Receiver
-    case DEVICE_TYPE_RXR:
+    case (uint16_t)DeviceType::RXR:
         json_addentry("device_rxr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_rxr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_rxr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7083,7 +7078,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_rxr_band",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,band)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Radio Transmitter
-    case DEVICE_TYPE_TXR:
+    case (uint16_t)DeviceType::TXR:
         iretn = json_addentry("device_txr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_txr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_txr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7096,7 +7091,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_txr_maxpower",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,maxpower)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Radio Transceiver
-    case DEVICE_TYPE_TCV:
+    case (uint16_t)DeviceType::TCV:
         iretn = json_addentry("device_tcv_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_tcv_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_tcv_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7110,7 +7105,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_tcv_band",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,band)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Photo Voltaic String
-    case DEVICE_TYPE_STRG:
+    case (uint16_t)DeviceType::STRG:
         iretn = json_addentry("device_strg_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_strg_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_strg_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7120,7 +7115,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_strg_max",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,maxpower)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Battery
-    case DEVICE_TYPE_BATT:
+    case (uint16_t)DeviceType::BATT:
         iretn = json_addentry("device_batt_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_batt_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_batt_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7129,13 +7124,13 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_batt_lev",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,charge)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Heater
-    case DEVICE_TYPE_HTR:
+    case (uint16_t)DeviceType::HTR:
         iretn = json_addentry("device_htr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(htrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_htr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(htrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_htr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(htrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Motor
-    case DEVICE_TYPE_MOTR:
+    case (uint16_t)DeviceType::MOTR:
         iretn = json_addentry("device_motr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_motr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_motr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7144,20 +7139,20 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_motr_spd",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,spd)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Pressure Sensor
-    case DEVICE_TYPE_PSEN:
+    case (uint16_t)DeviceType::PSEN:
         iretn = json_addentry("device_psen_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_psen_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_psen_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_psen_press",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,press)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Temperature Sensor
-    case DEVICE_TYPE_TSEN:
+    case (uint16_t)DeviceType::TSEN:
         iretn = json_addentry("device_tsen_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tsenstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_tsen_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tsenstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_tsen_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tsenstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Thruster
-    case DEVICE_TYPE_THST:
+    case (uint16_t)DeviceType::THST:
         iretn = json_addentry("device_thst_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_thst_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_thst_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7166,7 +7161,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_thst_flw",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,flw)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Propellant Tank
-    case DEVICE_TYPE_PROP:
+    case (uint16_t)DeviceType::PROP:
         iretn = json_addentry("device_prop_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_prop_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_prop_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7174,19 +7169,19 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_prop_lev",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,lev)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Switch
-    case DEVICE_TYPE_SWCH:
+    case (uint16_t)DeviceType::SWCH:
         iretn = json_addentry("device_swch_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(swchstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_swch_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(swchstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_swch_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(swchstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Rotor
-    case DEVICE_TYPE_ROT:
+    case (uint16_t)DeviceType::ROT:
         iretn = json_addentry("device_rot_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rotstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_rot_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(rotstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_rot_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rotstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Star Tracker
-    case DEVICE_TYPE_STT:
+    case (uint16_t)DeviceType::STT:
         iretn = json_addentry("device_stt_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_stt_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_stt_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7197,7 +7192,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_stt_status",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,status)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Star Tracker
-    case DEVICE_TYPE_SUCHI:
+    case (uint16_t)DeviceType::SUCHI:
         {
             iretn = json_addentry("device_suchi_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
             json_addentry("device_suchi_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
@@ -7210,7 +7205,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
             }
             break;
         }
-    case DEVICE_TYPE_MCC:
+    case (uint16_t)DeviceType::MCC:
         iretn = json_addentry("device_mcc_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_mcc_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_mcc_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7219,7 +7214,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_mcc_a",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,a)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_mcc_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
         break;
-    case DEVICE_TYPE_TCU:
+    case (uint16_t)DeviceType::TCU:
         iretn = json_addentry("device_tcu_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_tcu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_tcu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7229,7 +7224,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
             json_addentry("device_tcu_mcidx",didx,j,(ptrdiff_t)offsetof(tcustruc,mcidx)+cidx*sizeof(devicestruc)+j*sizeof(int16_t), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         }
         break;
-    case DEVICE_TYPE_BUS:
+    case (uint16_t)DeviceType::BUS:
         iretn = json_addentry("device_bus_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_bus_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_bus_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7239,7 +7234,7 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
         json_addentry("device_bus_energy",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,energy)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_bus_wdt",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,wdt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
         break;
-    case DEVICE_TYPE_TNC:
+    case (uint16_t)DeviceType::TNC:
         iretn = json_addentry("device_tnc_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_tnc_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
         json_addentry("device_tnc_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
@@ -7258,9 +7253,9 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
 
 //! Toggle device entry.
 /*! Toggle the enable state of the entries specific to device number i in the JSON Namespace map.
- \param i Device number.
+ * \param type Device type number taken from ::DeviceType.
+ \param didx Device number.
     \param cmeta Reference to ::cosmosmetastruc to use.
-    \param cdata Reference to ::cosmosdatastruc to use.
     \param state Desired enable state.
     \return 0 or negative error.
  */
@@ -7268,7 +7263,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
 {
     switch (type)
     {
-    case DEVICE_TYPE_TELEM:
+    case (uint16_t)DeviceType::TELEM:
         json_toggleentry("device_telem_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_telem_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_telem_type",didx, UINT16_MAX, cmeta, state);
@@ -7282,7 +7277,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_telem_vdouble",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_telem_vstring",didx, UINT16_MAX, cmeta, state);
         break;
-    case DEVICE_TYPE_PLOAD:
+    case (uint16_t)DeviceType::PLOAD:
         json_toggleentry("device_pload_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_pload_cidx",didx, UINT16_MAX,cmeta, state);
         json_toggleentry("device_pload_temp",didx, UINT16_MAX, cmeta, state);
@@ -7296,7 +7291,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         }
         break;
         //! Elevation and Azimuth Sun Sensor
-    case DEVICE_TYPE_SSEN:
+    case (uint16_t)DeviceType::SSEN:
         json_toggleentry("device_ssen_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_ssen_cidx",didx, UINT16_MAX,cmeta, state);
         json_toggleentry("device_ssen_temp",didx, UINT16_MAX, cmeta, state);
@@ -7309,7 +7304,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_ssen_elevation",didx, UINT16_MAX, cmeta, state);
         break;
         //! Inertial Measurement Unit
-    case DEVICE_TYPE_IMU:
+    case (uint16_t)DeviceType::IMU:
         json_toggleentry("device_imu_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_imu_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_imu_temp",didx, UINT16_MAX, cmeta, state);
@@ -7327,7 +7322,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_imu_bdot",didx, UINT16_MAX, cmeta, state);
         break;
         //! Reaction Wheel
-    case DEVICE_TYPE_RW:
+    case (uint16_t)DeviceType::RW:
         json_toggleentry("device_rw_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_rw_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_rw_temp",didx, UINT16_MAX, cmeta, state);
@@ -7342,7 +7337,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_rw_ralp",didx, UINT16_MAX, cmeta, state);
         break;
         //! Magnetic Torque Rod
-    case DEVICE_TYPE_MTR:
+    case (uint16_t)DeviceType::MTR:
         json_toggleentry("device_mtr_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_mtr_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_mtr_temp",didx, UINT16_MAX, cmeta, state);
@@ -7358,7 +7353,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_mtr_rmom",didx, UINT16_MAX, cmeta, state);
         break;
         //! Camera
-    case DEVICE_TYPE_CAM:
+    case (uint16_t)DeviceType::CAM:
         json_toggleentry("device_cam_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_cam_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_cam_temp",didx, UINT16_MAX, cmeta, state);
@@ -7371,7 +7366,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_cam_flength",didx, UINT16_MAX, cmeta, state);
         break;
         //! Processing Unit
-    case DEVICE_TYPE_CPU:
+    case (uint16_t)DeviceType::CPU:
         json_toggleentry("device_cpu_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_cpu_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_cpu_temp",didx, UINT16_MAX, cmeta, state);
@@ -7382,7 +7377,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_cpu_gib",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_cpu_boot_count",didx, UINT16_MAX, cmeta, state);
         break;
-    case DEVICE_TYPE_DISK:
+    case (uint16_t)DeviceType::DISK:
         json_toggleentry("device_disk_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_disk_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_disk_temp",didx, UINT16_MAX, cmeta, state);
@@ -7390,7 +7385,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_disk_gib",didx, UINT16_MAX, cmeta, state);
         break;
         //! GPS Unit
-    case DEVICE_TYPE_GPS:
+    case (uint16_t)DeviceType::GPS:
         json_toggleentry("device_gps_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_gps_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_gps_temp",didx, UINT16_MAX, cmeta, state);
@@ -7435,7 +7430,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_gps_solution_status",didx, UINT16_MAX, cmeta, state);
         break;
         //! Antenna
-    case DEVICE_TYPE_ANT:
+    case (uint16_t)DeviceType::ANT:
         json_toggleentry("device_ant_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_ant_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_ant_temp",didx, UINT16_MAX, cmeta, state);
@@ -7445,7 +7440,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_ant_minelev",didx, UINT16_MAX, cmeta, state);
         break;
         //! Radio Receiver
-    case DEVICE_TYPE_RXR:
+    case (uint16_t)DeviceType::RXR:
         json_toggleentry("device_rxr_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_rxr_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_rxr_temp",didx, UINT16_MAX, cmeta, state);
@@ -7458,7 +7453,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_rxr_band",didx, UINT16_MAX, cmeta, state);
         break;
         //! Radio Transmitter
-    case DEVICE_TYPE_TXR:
+    case (uint16_t)DeviceType::TXR:
         json_toggleentry("device_txr_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_txr_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_txr_temp",didx, UINT16_MAX, cmeta, state);
@@ -7471,7 +7466,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_txr_maxpower",didx, UINT16_MAX, cmeta, state);
         break;
         //! Radio Transceiver
-    case DEVICE_TYPE_TCV:
+    case (uint16_t)DeviceType::TCV:
         json_toggleentry("device_tcv_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_tcv_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_tcv_temp",didx, UINT16_MAX, cmeta, state);
@@ -7485,7 +7480,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_tcv_band",didx, UINT16_MAX, cmeta, state);
         break;
         //! Photo Voltaic String
-    case DEVICE_TYPE_STRG:
+    case (uint16_t)DeviceType::STRG:
         json_toggleentry("device_strg_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_strg_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_strg_temp",didx, UINT16_MAX, cmeta, state);
@@ -7495,7 +7490,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_strg_max",didx, UINT16_MAX, cmeta, state);
         break;
         //! Battery
-    case DEVICE_TYPE_BATT:
+    case (uint16_t)DeviceType::BATT:
         json_toggleentry("device_batt_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_batt_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_batt_temp",didx, UINT16_MAX, cmeta, state);
@@ -7504,13 +7499,13 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_batt_lev",didx, UINT16_MAX, cmeta, state);
         break;
         //! Heater
-    case DEVICE_TYPE_HTR:
+    case (uint16_t)DeviceType::HTR:
         json_toggleentry("device_htr_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_htr_temp",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_htr_cidx",didx, UINT16_MAX, cmeta, state);
         break;
         //! Motor
-    case DEVICE_TYPE_MOTR:
+    case (uint16_t)DeviceType::MOTR:
         json_toggleentry("device_motr_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_motr_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_motr_temp",didx, UINT16_MAX, cmeta, state);
@@ -7519,20 +7514,20 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_motr_spd",didx, UINT16_MAX, cmeta, state);
         break;
         //! Pressure Sensor
-    case DEVICE_TYPE_PSEN:
+    case (uint16_t)DeviceType::PSEN:
         json_toggleentry("device_psen_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_psen_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_psen_temp",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_psen_press",didx, UINT16_MAX, cmeta, state);;
         break;
         //! Temperature Sensor
-    case DEVICE_TYPE_TSEN:
+    case (uint16_t)DeviceType::TSEN:
         json_toggleentry("device_tsen_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_tsen_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_tsen_temp",didx, UINT16_MAX, cmeta, state);
         break;
         //! Thruster
-    case DEVICE_TYPE_THST:
+    case (uint16_t)DeviceType::THST:
         json_toggleentry("device_thst_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_thst_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_thst_temp",didx, UINT16_MAX, cmeta, state);
@@ -7541,7 +7536,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_thst_flw",didx, UINT16_MAX, cmeta, state);
         break;
         //! Propellant Tank
-    case DEVICE_TYPE_PROP:
+    case (uint16_t)DeviceType::PROP:
         json_toggleentry("device_prop_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_prop_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_prop_temp",didx, UINT16_MAX, cmeta, state);
@@ -7549,19 +7544,19 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_prop_lev",didx, UINT16_MAX, cmeta, state);
         break;
         //! Switch
-    case DEVICE_TYPE_SWCH:
+    case (uint16_t)DeviceType::SWCH:
         json_toggleentry("device_swch_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_swch_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_swch_temp",didx, UINT16_MAX, cmeta, state);
         break;
         //! Rotor
-    case DEVICE_TYPE_ROT:
+    case (uint16_t)DeviceType::ROT:
         json_toggleentry("device_rot_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_rot_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_rot_temp",didx, UINT16_MAX, cmeta, state);
         break;
         //! Star Tracker
-    case DEVICE_TYPE_STT:
+    case (uint16_t)DeviceType::STT:
         json_toggleentry("device_stt_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_stt_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_stt_temp",didx, UINT16_MAX, cmeta, state);
@@ -7572,7 +7567,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_stt_status",didx, UINT16_MAX, cmeta, state);
         break;
         //! Star Tracker
-    case DEVICE_TYPE_SUCHI:
+    case (uint16_t)DeviceType::SUCHI:
         {
             json_toggleentry("device_suchi_utc",didx, UINT16_MAX, cmeta, state);
             json_toggleentry("device_suchi_cidx",didx, UINT16_MAX, cmeta, state);
@@ -7585,7 +7580,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
             }
             break;
         }
-    case DEVICE_TYPE_MCC:
+    case (uint16_t)DeviceType::MCC:
         json_toggleentry("device_mcc_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_mcc_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_mcc_temp",didx, UINT16_MAX, cmeta, state);
@@ -7594,7 +7589,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_mcc_a",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_mcc_align",didx, UINT16_MAX, cmeta, state);
         break;
-    case DEVICE_TYPE_TCU:
+    case (uint16_t)DeviceType::TCU:
         json_toggleentry("device_tcu_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_tcu_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_tcu_temp",didx, UINT16_MAX, cmeta, state);
@@ -7604,7 +7599,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
             json_toggleentry("device_tcu_mcidx",didx,j,cmeta, state);
         }
         break;
-    case DEVICE_TYPE_BUS:
+    case (uint16_t)DeviceType::BUS:
         json_toggleentry("device_bus_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_bus_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_bus_temp",didx, UINT16_MAX, cmeta, state);
@@ -7614,7 +7609,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
         json_toggleentry("device_bus_energy",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_bus_wdt",didx, UINT16_MAX, cmeta, state);
         break;
-    case DEVICE_TYPE_TNC:
+    case (uint16_t)DeviceType::TNC:
         json_toggleentry("device_tnc_utc",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_tnc_cidx",didx, UINT16_MAX, cmeta, state);
         json_toggleentry("device_tnc_temp",didx, UINT16_MAX, cmeta, state);
@@ -7625,10 +7620,9 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosmetastruc &cm
 }
 
 //! Add port entry.
-/*! Add entries specific to port number i to the JSON Namespace map.
- \param i Device number.
+/*! Add entries specific to port number portidx to the JSON Namespace map.
+ \param portidx Port number.
     \param cmeta Reference to ::cosmosmetastruc to use.
-    \param cdata Reference to ::cosmosdatastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be added.
  */
 uint16_t json_addportentry(uint16_t portidx, cosmosmetastruc &cmeta)
@@ -7647,7 +7641,7 @@ uint16_t json_addportentry(uint16_t portidx, cosmosmetastruc &cmeta)
 
 //! Toggle port entry.
 /*! Toggle enable state of entries specific to port number i in the JSON Namespace map.
- \param i Device number.
+ \param portidx Port number.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param state Enable state.
     \return The current number of entries, if successful, 0 if the entry could not be added.
@@ -7664,9 +7658,9 @@ int32_t json_toggleportentry(uint16_t portidx, cosmosmetastruc &cmeta, bool stat
 
 //! Create JSON stream from wildcard
 /*! Generate a JSON stream based on a character string representing
- * all the ::jsonlib_namespace names you wish to match.
+ * all the \ref jsonlib_namespace names you wish to match.
     \param jstring Pointer to a string large enough to hold the end result.
-    \param wildcard Character string representing a regular expression to be matched to all names in the ::jsonlib_namespace.
+    \param wildcard Character string representing a regular expression to be matched to all names in the \ref jsonlib_namespace.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
     \return Pointer to the string if successful, otherwise NULL.
@@ -7686,7 +7680,7 @@ const char *json_of_wildcard(string &jstring, string wildcard, cosmosmetastruc &
 }
 
 //! Create JSON stream from list
-/*! Generate a JSON stream based on a comma separated list of ::jsonlib_namespace names.
+/*! Generate a JSON stream based on a comma separated list of \ref jsonlib_namespace names.
     \param jstring Pointer to a string large enough to hold the end result.
     \param list List to convert.
     \param cmeta Reference to ::cosmosmetastruc to use.
@@ -7706,7 +7700,7 @@ const char *json_of_list(string &jstring, string list, cosmosmetastruc &cmeta, c
 }
 
 //! Create JSON stream from entries
-/*! Generate a JSON stream based on a vector of entries of ::jsonlib_namespace names.
+/*! Generate a JSON stream based on a vector of entries of \ref jsonlib_namespace names.
     \param jstring Pointer to a string large enough to hold the end result.
     \param table Vector of pointers to entries from ::jsonmap.
     \param cmeta Reference to ::cosmosmetastruc to use.
@@ -7998,7 +7992,7 @@ const char *json_of_time(string &jstring, cosmosmetastruc &cmeta, cosmosdatastru
 //! Create JSON Heart Beat string
 /*! Create a complete JSON formatted Heartbeat string using the data currently in the global COSMOS
  * structure.
-    \param jstring Pointer to a ::jstring structure to be used to build out the JSON string.
+    \param jstring Reference to a string structure to be used to build out the JSON string.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
@@ -8018,7 +8012,7 @@ const char *json_of_beat(string &jstring, cosmosmetastruc &cmeta, cosmosdatastru
 
 //! Create JSON Beacon string
 /*! Create a complete JSON formatted Beacon string using the data currently in the global COSMOS structure.
-    \param jstring Pointer to a ::jstring structure to be used to build out the JSON string.
+    \param jstring Reference to a string structure to be used to build out the JSON string.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
@@ -8090,7 +8084,7 @@ const char *json_of_beacon(string &jstring, cosmosmetastruc &cmeta, cosmosdatast
 
 //! Create JSON IMU string
 /*! Create a complete JSON formatted IMU string for the indicated IMU using the data currently in the global COSMOS structure.
-    \param jstring Pointer to a ::jstring structure to be used to build out the JSON string.
+    \param jstring Reference to a string structure to be used to build out the JSON string.
     \param num Number of the IMU.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
@@ -8465,7 +8459,7 @@ const char *json_of_soh(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc
 //! Create JSON for an event
 /*! Generate a JSON stream that represents the current state of the
  * ::eventstruc in ::cosmosstruc.
-    \param jstring User provided ::jstring for creating the JSON stream
+    \param jstring User provided string for creating the JSON stream
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
@@ -8571,7 +8565,7 @@ const char *json_of_state_geoc(string &jstring, cosmosmetastruc &cmeta, cosmosda
 //! Dump Node description
 /*! Create a JSON stream for general Node variables. Does not include any
  * derivative data (eg. area).
- \param jstring Pointer to a ::jstring to build the JSON stream in.
+ \param jstring Reference to a string to build the JSON stream in.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
@@ -8596,7 +8590,7 @@ const char *json_node(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &
 //! Dump Piece description
 /*! Create a JSON stream for variables specific to the Pieces of the Node. Does not include any
  * derivative data (eg. area).
- \param jstring Pointer to a ::jstring to build the JSON stream in.
+ \param jstring Reference to a string to build the JSON stream in.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
@@ -8649,7 +8643,7 @@ const char *json_pieces(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc
 //! Dump General Device description
 /*! Create a JSON stream for variables common to all Devices in the Node. Does not include any
  * derivative data (eg. area).
- \param jstring Pointer to a ::jstring to build the JSON stream in.
+ \param jstring Reference to a string to build the JSON stream in.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
@@ -8695,7 +8689,7 @@ const char *json_devices_general(string &jstring, cosmosmetastruc &cmeta, cosmos
 //! Dump Specific Device description
 /*! Create a JSON stream for variables specific to particular Devices in the Node. Does not include any
  * derivative data (eg. area).
- \param jstring Pointer to a ::jstring to build the JSON stream in.
+ \param jstring Reference to a string to build the JSON stream in.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
@@ -8708,7 +8702,7 @@ const char *json_devices_specific(string &jstring, cosmosmetastruc &cmeta, cosmo
 
     jstring.clear();
     // Dump device specific info
-    for (uint16_t i=0; i<DEVICE_TYPE_COUNT; ++i)
+    for (uint16_t i=0; i<(uint16_t)DeviceType::COUNT; ++i)
     {
         // Create Namespace name for Device Specific count
         sprintf(tstring,"device_%s_cnt",device_type_string[i].c_str());
@@ -9066,7 +9060,7 @@ const char *json_devices_specific(string &jstring, cosmosmetastruc &cmeta, cosmo
 //! Dump Port description
 /*! Create a JSON stream for the Port information of the Node. Does not include any
  * derivative data (eg. area).
- \param jstring Pointer to a ::jstring to build the JSON stream in.
+ \param jstring Reference to a string to build the JSON stream in.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
@@ -9229,7 +9223,7 @@ int32_t json_equation_map(string equation, cosmosmetastruc &cmeta, jsonhandle *h
 }
 
 //! Clone ::cosmosstruc data areas, indirect
-/*! Copy the secondary ::cosmosdatastruc to the primary ::cosmosdatasruc.
+/*! Copy the secondary ::cosmosdatastruc to the primary ::cosmosdatastruc.
     \param cinfo Pointer to clone ::cosmosstruc.
     \return Zero, or negative error.
 */
@@ -9258,88 +9252,88 @@ int32_t json_clone(cosmosdatastruc &cdata1, cosmosdatastruc &cdata2)
     {
         switch(cdata2.device[i].all.gen.type)
         {
-        case DEVICE_TYPE_TELEM:
+        case (uint16_t)DeviceType::TELEM:
             cdata2.devspec.telem[cdata2.device[i].all.gen.didx] = &cdata2.device[i].telem;
             break;
-        case DEVICE_TYPE_PLOAD:
+        case (uint16_t)DeviceType::PLOAD:
             cdata2.devspec.pload[cdata2.device[i].all.gen.didx] = &cdata2.device[i].pload;
             break;
-        case DEVICE_TYPE_SSEN:
+        case (uint16_t)DeviceType::SSEN:
             cdata2.devspec.ssen[cdata2.device[i].all.gen.didx] = &cdata2.device[i].ssen;
             break;
-        case DEVICE_TYPE_IMU:
+        case (uint16_t)DeviceType::IMU:
             cdata2.devspec.imu[cdata2.device[i].all.gen.didx] = &cdata2.device[i].imu;
             break;
-        case DEVICE_TYPE_RW:
+        case (uint16_t)DeviceType::RW:
             cdata2.devspec.rw[cdata2.device[i].all.gen.didx] = &cdata2.device[i].rw;
             break;
-        case DEVICE_TYPE_MTR:
+        case (uint16_t)DeviceType::MTR:
             cdata2.devspec.mtr[cdata2.device[i].all.gen.didx] = &cdata2.device[i].mtr;
             break;
-        case DEVICE_TYPE_CAM:
+        case (uint16_t)DeviceType::CAM:
             cdata2.devspec.cam[cdata2.device[i].all.gen.didx] = &cdata2.device[i].cam;
             break;
-        case DEVICE_TYPE_CPU:
+        case (uint16_t)DeviceType::CPU:
             cdata2.devspec.cpu[cdata2.device[i].all.gen.didx] = &cdata2.device[i].cpu;
             break;
-        case DEVICE_TYPE_GPS:
+        case (uint16_t)DeviceType::GPS:
             cdata2.devspec.gps[cdata2.device[i].all.gen.didx] = &cdata2.device[i].gps;
             break;
-        case DEVICE_TYPE_ANT:
+        case (uint16_t)DeviceType::ANT:
             cdata2.devspec.ant[cdata2.device[i].all.gen.didx] = &cdata2.device[i].ant;
             break;
-        case DEVICE_TYPE_RXR:
+        case (uint16_t)DeviceType::RXR:
             cdata2.devspec.rxr[cdata2.device[i].all.gen.didx] = &cdata2.device[i].rxr;
             break;
-        case DEVICE_TYPE_TXR:
+        case (uint16_t)DeviceType::TXR:
             cdata2.devspec.txr[cdata2.device[i].all.gen.didx] = &cdata2.device[i].txr;
             break;
-        case DEVICE_TYPE_TCV:
+        case (uint16_t)DeviceType::TCV:
             cdata2.devspec.tcv[cdata2.device[i].all.gen.didx] = &cdata2.device[i].tcv;
             break;
-        case DEVICE_TYPE_STRG:
+        case (uint16_t)DeviceType::STRG:
             cdata2.devspec.strg[cdata2.device[i].all.gen.didx] = &cdata2.device[i].strg;
             break;
-        case DEVICE_TYPE_BATT:
+        case (uint16_t)DeviceType::BATT:
             cdata2.devspec.batt[cdata2.device[i].all.gen.didx] = &cdata2.device[i].batt;
             break;
-        case DEVICE_TYPE_HTR:
+        case (uint16_t)DeviceType::HTR:
             cdata2.devspec.htr[cdata2.device[i].all.gen.didx] = &cdata2.device[i].htr;
             break;
-        case DEVICE_TYPE_MOTR:
+        case (uint16_t)DeviceType::MOTR:
             cdata2.devspec.motr[cdata2.device[i].all.gen.didx] = &cdata2.device[i].motr;
             break;
-        case DEVICE_TYPE_PSEN:
+        case (uint16_t)DeviceType::PSEN:
             cdata2.devspec.psen[cdata2.device[i].all.gen.didx] = &cdata2.device[i].psen;
             break;
-        case DEVICE_TYPE_TSEN:
+        case (uint16_t)DeviceType::TSEN:
             cdata2.devspec.tsen[cdata2.device[i].all.gen.didx] = &cdata2.device[i].tsen;
             break;
-        case DEVICE_TYPE_THST:
+        case (uint16_t)DeviceType::THST:
             cdata2.devspec.thst[cdata2.device[i].all.gen.didx] = &cdata2.device[i].thst;
             break;
-        case DEVICE_TYPE_PROP:
+        case (uint16_t)DeviceType::PROP:
             cdata2.devspec.prop[cdata2.device[i].all.gen.didx] = &cdata2.device[i].prop;
             break;
-        case DEVICE_TYPE_SWCH:
+        case (uint16_t)DeviceType::SWCH:
             cdata2.devspec.swch[cdata2.device[i].all.gen.didx] = &cdata2.device[i].swch;
             break;
-        case DEVICE_TYPE_ROT:
+        case (uint16_t)DeviceType::ROT:
             cdata2.devspec.rot[cdata2.device[i].all.gen.didx] = &cdata2.device[i].rot;
             break;
-        case DEVICE_TYPE_STT:
+        case (uint16_t)DeviceType::STT:
             cdata2.devspec.stt[cdata2.device[i].all.gen.didx] = &cdata2.device[i].stt;
             break;
-        case DEVICE_TYPE_MCC:
+        case (uint16_t)DeviceType::MCC:
             cdata2.devspec.mcc[cdata2.device[i].all.gen.didx] = &cdata2.device[i].mcc;
             break;
-        case DEVICE_TYPE_TCU:
+        case (uint16_t)DeviceType::TCU:
             cdata2.devspec.tcu[cdata2.device[i].all.gen.didx] = &cdata2.device[i].tcu;
             break;
-        case DEVICE_TYPE_BUS:
+        case (uint16_t)DeviceType::BUS:
             cdata2.devspec.bus[cdata2.device[i].all.gen.didx] = &cdata2.device[i].bus;
             break;
-        case DEVICE_TYPE_SUCHI:
+        case (uint16_t)DeviceType::SUCHI:
             cdata2.devspec.suchi[cdata2.device[i].all.gen.didx] = &cdata2.device[i].suchi;
             break;
         }
@@ -10316,10 +10310,10 @@ size_t load_dictionary(vector<shorteventstruc> &dict, cosmosmetastruc &cmeta, co
 * current state of the provided Node. The Event Dictionary will be
 * updated with any new values so that repeating Events can be properly
 * assessed.
-*	\param dictionary Reference to vector of ::shortenventstruc representing event dictionary.
+*	\param dictionary Reference to vector of ::shorteventstruc representing event dictionary.
 *	\param cmeta Reference to ::cosmosmetastruc to use.
 *	\param cdata Reference to ::cosmosdatastruc to use.
-*	\param events Reference to vector of ::shortenventstruc representing events.
+*	\param events Reference to vector of ::shorteventstruc representing events.
 *	\return Number of events created.
 */
 size_t calc_events(vector<shorteventstruc> &dictionary, cosmosmetastruc &cmeta, cosmosdatastruc &cdata, vector<shorteventstruc> &events)
@@ -10355,10 +10349,10 @@ size_t calc_events(vector<shorteventstruc> &dictionary, cosmosmetastruc &cmeta, 
 string device_type_name(uint32_t type)
 {
     string result;
-    if (device_type_string.size() < DEVICE_TYPE_COUNT)
+    if (device_type_string.size() < (uint16_t)DeviceType::COUNT)
     {
-        device_type_string.resize(DEVICE_TYPE_COUNT);
-        for (size_t i=0; i<DEVICE_TYPE_COUNT; ++i)
+        device_type_string.resize((uint16_t)DeviceType::COUNT);
+        for (size_t i=0; i<(uint16_t)DeviceType::COUNT; ++i)
         {
             if (device_type_string[i] == "")
             {
@@ -10367,7 +10361,7 @@ string device_type_name(uint32_t type)
         }
     }
 
-    if (type < DEVICE_TYPE_COUNT)
+    if (type < (uint16_t)DeviceType::COUNT)
     {
         result =  device_type_string[type];
     }

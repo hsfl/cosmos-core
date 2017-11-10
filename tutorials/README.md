@@ -9,8 +9,6 @@ This section combines the tutorials and examples to help you get started with CO
 # Namespace
 
 * @subpage tutorials-namespace
-* Alias : @subpage example-alias alias.cpp
-\include ../../examples/namespace/alias.cpp
 
 # Ground Station
 
@@ -20,9 +18,9 @@ This section combines the tutorials and examples to help you get started with CO
 * @subpage tutorial-commanding
 
 # Generic Tutorials
-* Getting Started 1 : @subpage tutorial-getting-started-1
-* Getting Started 2 : @subpage tutorial-getting-started-2
-* How to document : @subpage tutorial-how-to-document
+* Getting Started 1 : @subpage tutorials-getting-started-1
+* Getting Started 2 : @subpage tutorials-getting-started-2
+* How to document : @subpage tutorials-how-to-document
 * @subpage tutorial-coding-style
-* @subpage tutorial-software-profiler
+* @subpage tutorials-software-profiler
 
