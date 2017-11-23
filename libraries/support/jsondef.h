@@ -1153,8 +1153,10 @@ union as a ::devicestruc.
 */
 struct genstruc
 {
-	//! Enabled?
+    //! Enabled? -- Actual
 	bool enabled;
+    //! Enable -- Expected
+    bool enable;
 	//! Component Type
 	uint16_t type;
 	//! Device Model
@@ -1585,6 +1587,8 @@ struct swchstruc
 {
 	//! Generic info
 	genstruc gen;
+    //! Watch Dog Timer (MJD)
+    float wdt;
 };
 
 //! Rotor Structure definition
