@@ -61,7 +61,8 @@ std::istream& operator >> (std::istream& out, rvector& a);
 rvector operator * (rvector v, double scalar); // multiply vector by vector operator
 rvector operator * (rvector v1, rvector v2); // multiply vector by vector operator
 rvector operator / (rvector v, double scalar); // divide vector by scalar operator
-int operator == (rvector a, rvector b); // Compares two vectors
+bool operator == (rvector a, rvector b); // Compares two vectors
+bool operator != (rvector a, rvector b); // Compares two vectors
 
 //! 3 element cartesian vector
 /*! 3 double precision numbers representing a vector in a right handed
@@ -82,6 +83,7 @@ public:
     double norm();
     double norm2();
     cvector normalized(double scale=1.);
+    double& operator[] (const int index);
 } ;
 
 //! 3 element spherical vector
@@ -210,13 +212,15 @@ namespace Cosmos {
  * do we really need to differentiate between cvector and rvector in the future?
  * maybe we can have vector type = {'c', 'r'}
 */
-        class Vector{
+        class Vector
+        {
 
         public:
 
             // default constructor
             Vector();
             Vector(double x, double y, double z);
+            Vector(double x, double y, double z, double w);
 
             // TODO: check if we can iterated the vector
             double at(int i);
@@ -227,6 +231,8 @@ namespace Cosmos {
             double y;
             //! Z value
             double z;
+            //! W value
+            double w;
 
             // convert from cartesian vector to row vector
             rvector from_cv(cvector v);
@@ -235,12 +241,16 @@ namespace Cosmos {
             void normalize();
             double norm();
 
+            double& operator[] (const int index);
             Vector operator * (double scale); // multiply vector by scalar operator
-
+            Vector operator / (double scale); // multiply vector by scalar operator
+            Vector operator * (Vector v2); // multiply vector by vector operator
+            bool operator == (Vector v2); // Compares two vectors
+            bool operator != (Vector v2); // Compares two vectors
         };
 
-        std::ostream& operator << (std::ostream& out, const Vector& v);
         Vector operator * (double scale, Vector v);
+        std::ostream& operator << (std::ostream& out, const Vector& v);
 
 
     } // end namespace Math

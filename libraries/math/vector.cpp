@@ -675,6 +675,24 @@ double cvector::length()
     return (this->norm());
 }
 
+//! Index into cvector
+double& cvector::operator[] (const int index)
+{
+    switch (index)
+    {
+    case 0:
+    default:
+        return x;
+        break;
+    case 1:
+        return y;
+        break;
+    case 2:
+        return z;
+        break;
+    }
+}
+
 
 // TODO: what norm is this?
 // TODO: replace by cv_norm?
@@ -823,6 +841,12 @@ rvector operator * (rvector v, double scalar)
     return rv_smult(scalar, v);
 }
 
+// multiply vector by scalar operator
+rvector operator * (double scalar, rvector v)
+{
+    return rv_smult(scalar, v);
+}
+
 // multiply vector by vector operator
 rvector operator * (rvector v1, rvector v2)
 {
@@ -836,15 +860,28 @@ rvector operator / (rvector v, double scalar)
 }
 
 // compare vector to vector operator
-int operator == (rvector a, rvector b)
+bool operator == (rvector a, rvector b)
 {
-    if(a.col[0] == b.col[0] && a.col[1] == b.col[1] &&
-            a.col[2] == b.col[2])
+    if(a.col[0] == b.col[0] && a.col[1] == b.col[1] && a.col[2] == b.col[2])
     {
-        return 1;
-    }else
+        return true;
+    }
+    else
     {
-        return 0;
+        return false;
+    }
+}
+
+// compare vector to vector operator
+bool operator != (rvector a, rvector b)
+{
+    if(a.col[0] != b.col[0] || a.col[1] != b.col[1] || a.col[2] != b.col[2])
+    {
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
 
@@ -924,9 +961,10 @@ namespace Cosmos {
         // default constructor sets x,y,z members to 0
         Vector::Vector()
         {
-            this->x = 0;
-            this->y = 0;
-            this->z = 0;
+            x = 0;
+            y = 0;
+            z = 0;
+            w = 0;
         }
 
         Vector::Vector(double x, double y, double z)
@@ -934,19 +972,31 @@ namespace Cosmos {
             this->x = x;
             this->y = y;
             this->z = z;
+            this->w = 0.;
+        }
+
+        Vector::Vector(double x, double y, double z, double w)
+        {
+            this->x = x;
+            this->y = y;
+            this->z = z;
+            this->w = w;
         }
 
         double Vector::at(int i)
         {
             switch (i) {
             case 0:
-                return this->x;
+                return x;
                 break;
             case 1:
-                return this->y;
+                return y;
                 break;
             case 2:
-                return this->z;
+                return z;
+                break;
+            case 3:
+                return w;
                 break;
             default:
                 return 0;
@@ -969,28 +1019,29 @@ namespace Cosmos {
         {
             Vector c;
 
-            c.x = this->y*b.z - this->z*b.y;
-            c.y = this->z*b.x - this->x*b.z;
-            c.z = this->x*b.y - this->y*b.x;
+            c.x = y*b.z - z*b.y;
+            c.y = z*b.x - x*b.z;
+            c.z = x*b.y - y*b.x;
 
             return c;
         }
 
         double Vector::dot(Vector b)
         {
-            return (this->x*b.x + this->y*b.y + this->z*b.z);
+            return (x*b.x + y*b.y + z*b.z);
         }
 
         //! normalize vector in place
         void Vector::normalize()
         {
-            double norm = this->norm();
+            double tnorm = norm();
 
-            if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
+            if (fabs(tnorm - (double)0.) > D_SMALL && fabs(tnorm - (double)1.) > D_SMALL)
             {
-                this->x /= norm;
-                this->y /= norm;
-                this->z /= norm;
+                x /= tnorm;
+                y /= tnorm;
+                z /= tnorm;
+                w /= tnorm;
             }
 
         }
@@ -998,7 +1049,7 @@ namespace Cosmos {
         //! return the norm of the vector
         double Vector::norm()
         {
-            double norm = sqrt(this->x*this->x + this->y*this->y + this->z*this->z);
+            double norm = sqrt(x*x + y*y + z*z + w*w);
             if (norm < D_SMALL)
                 return (0.);
             else
@@ -1006,17 +1057,53 @@ namespace Cosmos {
         }
 
 
-        // multiply vector with scalar operator
+        //! multiply ::Vector with scalar operator
         // result = Vector * scale
         Vector Vector::operator * (double scale)
         {
             Vector vo;
 
-            vo.x = scale * this->x;
-            vo.y = scale * this->y;
-            vo.z = scale * this->z;
+            vo.x = scale * x;
+            vo.y = scale * y;
+            vo.z = scale * z;
+            vo.w = scale * w;
 
             return vo;
+        }
+
+        //! multiply ::Vector with scalar operator
+        // result = Vector * scale
+        Vector Vector::operator / (double scale)
+        {
+            Vector vo;
+
+            vo.x = x / scale;
+            vo.y = y / scale;
+            vo.z = z / scale;
+            vo.w = w / scale;
+
+            return vo;
+        }
+
+        //! Index into Vector
+        double& Vector::operator[] (const int index)
+        {
+            switch (index)
+            {
+            case 0:
+            default:
+                return x;
+                break;
+            case 1:
+                return y;
+                break;
+            case 2:
+                return z;
+                break;
+            case 3:
+                return w;
+                break;
+            }
         }
 
         // multiply scalar with vector operator
@@ -1024,9 +1111,51 @@ namespace Cosmos {
         // TODO: is is possible to add this as a member function of Vector?
         Vector operator * (double scale, Vector v)
         {
-            return v*scale;
+            return v * scale;
         }
 
+        //! Multiply two ::Vector
+        /*! Multiply two vectors in ::Vector form, returning a ::Vector.
+                \param a first vector to be multiplied, in ::Vector form
+                \param b second vector to be multiplied, in ::Vector form
+                \result the transformed vector, in ::Vector form
+        */
+        Vector Vector::operator * (Vector b)
+        {
+            Vector c;
+
+            c.x = this->x * b.x;
+            c.y = this->y * b.y;
+            c.z = this->z * b.z;
+            c.w = this->w * b.w;
+            return (c);
+        }
+
+        // compare vector to vector operator
+        bool Vector::operator == (Vector b)
+        {
+            if((*this)[0] == b[0] && (*this)[1] == b[1] && (*this)[2] == b[2] && (*this)[3] == b[3])
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        // compare vector to vector operator
+        bool Vector::operator != (Vector b)
+        {
+            if((*this)[0] != b[0] || (*this)[1] != b[1] || (*this)[2] != b[2] || (*this)[3] != b[3])
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         std::ostream& operator << (std::ostream& out, const Vector& v)
         {
