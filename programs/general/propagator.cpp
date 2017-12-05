@@ -208,38 +208,58 @@ int main(int argc, char* argv[])
     //printf("Initialize forwards %f days, steps of %f\n", (mjdnow-iloc.utc), step);
     std::cout << "Initialize forwards " << (mjdnow-iloc.utc) << " days, steps of " << step << std::endl;
 
+    std::cout << "Initialize Hardware Simulation " << std::endl;
     hardware_init_eci(agent->cinfo->pdata.devspec, iloc);
+
+    std::cout << "Initialize Gauss Jackson Propagator " << std::endl;
     gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+
+    std::cout << "Start Hardware Simulation " << std::endl;
     simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+
+    std::cout << "Start Orbital Propagator " << std::endl;
     gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
+
+    std::cout << "Start Hardware Simulation 2" << std::endl;
     simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+
     pos_clear(iloc);
     iloc.pos.eci = agent->cinfo->pdata.node.loc.pos.eci;
     iloc.att.icrf = agent->cinfo->pdata.node.loc.att.icrf;
     iloc.utc = agent->cinfo->pdata.node.loc.pos.eci.utc;
-    hardware_init_eci(agent->cinfo->pdata.devspec, iloc);
-    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
-    mjdnow = currentmjd(agent->cinfo->pdata.node.utcoffset);
 
+    std::cout << "Start Hardware Simulation 3" << std::endl;
+    hardware_init_eci(agent->cinfo->pdata.devspec, iloc);
+
+    std::cout << "Initialize Gauss Jackson Propagator" << std::endl;
+    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+
+    mjdnow = currentmjd(agent->cinfo->pdata.node.utcoffset);
 
     std::string sohstring = json_list_of_soh(agent->cinfo->pdata);
     agent->set_sohstring(sohstring.c_str());
 
+    std::cout << "Start Agent" << std::endl;
     while (agent->running())
 	{
 		sohtimer += 1./86400.;
         mjdnow = currentmjd(agent->cinfo->pdata.node.utcoffset);
         gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
+
         simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
 
         update_target(agent->cinfo->pdata);
         calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
+
         agent->post((uint8_t)Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
 		double dsleep = 1000000. * 86400.*(sohtimer - mjdnow);
-		if (dsleep > 0.)
-		{
-			COSMOS_USLEEP(dsleep);
-		}
+
+        if (dsleep > 0.)
+        {
+            COSMOS_USLEEP(dsleep);
+        }
+
+        COSMOS_SLEEP(0.01);
 	}
     agent->shutdown();
 }
