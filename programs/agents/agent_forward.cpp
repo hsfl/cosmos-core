@@ -100,19 +100,19 @@ int main(int argc, char *argv[])
     while(agent->running())
     {
         Agent::messstruc mess;
-        iretn = agent->readring(mess, (uint8_t)Agent::AgentMessage::ALL, 1., Agent::Where::TAIL);
+        iretn = agent->readring(mess, Agent::AgentMessage::ALL, 1., Agent::Where::TAIL);
 
 //        nbytes = recvfrom(agent->cinfo->pdata.agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&agent->cinfo->sdata.agent[0].req.caddr,(socklen_t *)&agent->cinfo->sdata.agent[0].req.addrlen);
         if (iretn > 0)
         {
-            post[0] = mess.meta.type;
+            post[0] = (uint8_t)mess.meta.type;
             sprintf((char *)&post[3], "%s", mess.jdata.c_str());
             size_t hlength = strlen((char *)&post[3]);
             post[1] = hlength%256;
             post[2] = hlength / 256;
             nbytes = hlength + 3;
 
-            if (mess.meta.type < (uint8_t)Agent::AgentMessage::BINARY && mess.adata.size())
+            if (mess.meta.type < Agent::AgentMessage::BINARY && mess.adata.size())
             {
                 if (nbytes+mess.adata.size() > AGENTMAXBUFFER)
                     continue;
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
                 nbytes += mess.adata.size();
             }
 
-            if (mess.meta.type >= (uint8_t)Agent::AgentMessage::BINARY && mess.bdata.size())
+            if (mess.meta.type >= Agent::AgentMessage::BINARY && mess.bdata.size())
             {
                 if (nbytes+mess.bdata.size() > AGENTMAXBUFFER)
                     continue;

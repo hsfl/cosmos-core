@@ -129,9 +129,12 @@ int main(int argc, char *argv[])
 
     agent->cinfo->pdata.node.loc.utc = mjdnow;
     ++agent->cinfo->pdata.node.loc.pos.eci.pass;
-    agent->cinfo->pdata.physics.moi.col[0] = 1.;
-    agent->cinfo->pdata.physics.moi.col[1] = 3.;
-    agent->cinfo->pdata.physics.moi.col[2] = 5.;
+//    agent->cinfo->pdata.physics.moi[0] = 1.;
+//    agent->cinfo->pdata.physics.moi[1] = 3.;
+//    agent->cinfo->pdata.physics.moi[2] = 5.;
+    agent->cinfo->pdata.physics.moi[0] = 1.;
+    agent->cinfo->pdata.physics.moi[1] = 3.;
+    agent->cinfo->pdata.physics.moi[2] = 5.;
     agent->cinfo->pdata.node.loc.att.icrf.v = rv_smult(.017453293,rv_unity());
     agent->cinfo->pdata.node.loc.att.icrf.s = q_eye();
     agent->cinfo->pdata.node.loc.att.icrf.a = rv_zero();

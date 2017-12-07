@@ -242,9 +242,9 @@ int main(int argc, char *argv[])
     // Look for named antenna so we can use the right one
     for (size_t i=0; i<agent->cinfo->pdata.devspec.ant_cnt; ++i)
     {
-        std::string aname = agent->cinfo->pdata.piece[agent->cinfo->pdata.devspec.ant[i]->gen.pidx].name;
+        std::string aname = agent->cinfo->pdata.pieces[agent->cinfo->pdata.devspec.ant[i]->gen.pidx].name;
         if (aname == argv[2])
-            //      if (!strcmp(argv[2], agent->cinfo->pdata.piece[agent->cinfo->pdata.devspec.ant[i]->gen.pidx].name))
+            //      if (!strcmp(argv[2], agent->cinfo->pdata.pieces[agent->cinfo->pdata.devspec.ant[i]->gen.pidx].name))
         {
             devindex = agent->cinfo->pdata.devspec.ant[i]->gen.cidx;
             antindex = i;

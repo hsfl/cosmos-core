@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
         {
             string message {"helloBB"};
 
-			agent->post(0xBB, message);
+            agent->post((Agent::AgentMessage)0xBB, message);
 
             cout << "tx: " <<  message << endl;
 

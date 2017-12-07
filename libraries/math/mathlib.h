@@ -111,7 +111,7 @@
 #include "constants.h"
 #include "vector.h"
 #include "matrix.h"
-#include "quaternion.h"
+// #include "quaternion.h"
 #include "rotation.h"
 //#include "lsFit.h"
 

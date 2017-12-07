@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
         {
             loc_update(&agent->cinfo->pdata.node.loc);
             update_target(agent->cinfo->pdata);
-            agent->post((uint8_t)Agent::AgentMessage::SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
+            agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
             calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
             for (uint32_t k=0; k<events.size(); ++k)
             {
@@ -539,7 +539,7 @@ void collect_data_loop()
             {
                 my_position = 0;
             }
-            if (agent->cinfo->pdata.node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < (uint8_t)Agent::AgentMessage::BINARY)
+            if (agent->cinfo->pdata.node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AgentMessage::BINARY)
             {
                 agent->cinfo->sdata.node = agent->cinfo->pdata.node;
                 agent->cinfo->sdata.device = agent->cinfo->pdata.device;

@@ -232,7 +232,7 @@ int32_t request_soh(char *, char* response, Agent *)
 {
     std::string rjstring;
     //	strcpy(response,json_of_list(rjstring,sohstring,agent->cinfo));
-    strcpy(response,json_of_table(rjstring, agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+    strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo->meta, agent->cinfo->pdata));
 
     return 0;
 }
@@ -366,43 +366,51 @@ int create_node () // only use when unsure what the node is
         cinfo->meta.node = nodename;
         cinfo->pdata.node.type = NODE_TYPE_COMPUTER;
 
-        cinfo->pdata.node.piece_cnt = 2;
-        cinfo->pdata.piece.resize(cinfo->pdata.node.piece_cnt);
         cinfo->pdata.node.device_cnt = cinfo->pdata.node.piece_cnt;
         cinfo->pdata.device.resize(cinfo->pdata.node.device_cnt);
         cinfo->pdata.devspec.cpu_cnt = 1;
         cinfo->pdata.devspec.disk_cnt = 1;
         cinfo->pdata.node.port_cnt = 1;
         cinfo->pdata.port.resize(cinfo->pdata.node.port_cnt);
-        //        json_addbaseentry(cinfo);
 
+        json_addpiece(cinfo->pdata, "main_cpu", PIECE_TYPE_BOX, 0);
+        json_addpieceentry(cinfo->pdata.pieces.size()-1, cinfo->meta);
+        json_togglepieceentry(cinfo->pdata.pieces.size()-1, cinfo->meta, true);
+
+        json_addpiece(cinfo->pdata, "main_drive", PIECE_TYPE_BOX, 1);
+        json_addpieceentry(cinfo->pdata.pieces.size()-1, cinfo->meta);
+        json_togglepieceentry(cinfo->pdata.pieces.size()-1, cinfo->meta, true);
+
+//        cinfo->pdata.node.piece_cnt = 2;
+//        cinfo->pdata.pieces.resize(cinfo->pdata.node.piece_cnt);
         for (size_t i=0; i<cinfo->pdata.node.piece_cnt; ++i)
         {
-            cinfo->pdata.piece[i].cidx = i;
-            switch (i)
-            {
-            case 0:
-                strcpy(cinfo->pdata.piece[i].name, "Main CPU");
-                break;
-            default:
-                sprintf(cinfo->pdata.piece[i].name, "Drive %lu", i);
-//                strcpy(cinfo->pdata.piece[i].name, "Main Drive");
-                break;
-            }
+//            cinfo->pdata.pieces[i].cidx = i;
+//            switch (i)
+//            {
+//            case 0:
+//                strcpy(cinfo->pdata.pieces[i].name, "Main CPU");
+//                break;
+//            default:
+//                sprintf(cinfo->pdata.pieces[i].name, "Drive %lu", i);
+//                break;
+//            }
 
-            cinfo->pdata.piece[i].type = PIECE_TYPE_DIMENSIONLESS;
-            cinfo->pdata.piece[i].emi = .8;
-            cinfo->pdata.piece[i].abs = .88;
-            cinfo->pdata.piece[i].hcap = 800;
-            cinfo->pdata.piece[i].hcon = 237;
-            cinfo->pdata.piece[i].pnt_cnt = 1;
-            for (uint16_t j=0; j<3; ++j)
-            {
-                cinfo->pdata.piece[i].points[0].col[j] = 0.;
-            }
-            json_addpieceentry(i, cinfo->meta);
-            json_togglepieceentry(i, cinfo->meta, true);
-            cinfo->pdata.piece[i].enabled = true;
+//            cinfo->pdata.pieces[i].type = PIECE_TYPE_DIMENSIONLESS;
+//            cinfo->pdata.pieces[i].emi = .8;
+//            cinfo->pdata.pieces[i].abs = .88;
+//            cinfo->pdata.pieces[i].hcap = 800;
+//            cinfo->pdata.pieces[i].hcon = 237;
+//            cinfo->pdata.pieces[i].density = 1000;
+//            cinfo->pdata.pieces[i].pnt_cnt = 1;
+//            for (uint16_t j=0; j<3; ++j)
+//            {
+//                cinfo->pdata.pieces[i].points[0].col[j] = 0.;
+//            }
+
+//            json_addpieceentry(i, cinfo->meta);
+//            json_togglepieceentry(i, cinfo->meta, true);
+//            cinfo->pdata.pieces[i].enabled = true;
 
             cinfo->pdata.device[i].all.gen.pidx = i;
             cinfo->pdata.device[i].all.gen.cidx = i;

@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
     // Look for named radio so we can use the right one
     for (size_t i=0; i<agent->cinfo->pdata.devspec.rxr_cnt; ++i)
     {
-        if (!strcmp(argv[2], agent->cinfo->pdata.piece[agent->cinfo->pdata.devspec.rxr[i]->gen.pidx].name))
+        if (!strcmp(argv[2], agent->cinfo->pdata.pieces[agent->cinfo->pdata.devspec.rxr[i]->gen.pidx].name))
         {
             deviceindex = agent->cinfo->pdata.devspec.rxr[i]->gen.cidx;
             radioindex = i;
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->pdata.devspec.txr_cnt; ++i)
         {
-            if (!strcmp(argv[2], agent->cinfo->pdata.piece[agent->cinfo->pdata.devspec.txr[i]->gen.pidx].name))
+            if (!strcmp(argv[2], agent->cinfo->pdata.pieces[agent->cinfo->pdata.devspec.txr[i]->gen.pidx].name))
             {
                 deviceindex = agent->cinfo->pdata.devspec.txr[i]->gen.cidx;
                 radioindex = i;
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->pdata.devspec.tcv_cnt; ++i)
         {
-            if (!strcmp(argv[2], agent->cinfo->pdata.piece[agent->cinfo->pdata.devspec.tcv[i]->gen.pidx].name))
+            if (!strcmp(argv[2], agent->cinfo->pdata.pieces[agent->cinfo->pdata.devspec.tcv[i]->gen.pidx].name))
             {
                 deviceindex = agent->cinfo->pdata.devspec.tcv[i]->gen.cidx;
                 radioindex = i;

@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         {
             double lmjd = 0., dmjd;
             std::string channel;
-            uint8_t cnum;
+            Agent::AgentMessage cnum;
             Agent::messstruc message;
             int i, pretn;
             locstruc loc;
@@ -121,23 +121,23 @@ int main(int argc, char *argv[])
                 channel = argv[2];
                 if (channel == "soh")
                 {
-                    cnum = (uint8_t)Agent::AgentMessage::SOH;
+                    cnum = Agent::AgentMessage::SOH;
                 }
                 else
                 {
                     if (channel == "beat")
                     {
-                        cnum = (uint8_t)Agent::AgentMessage::BEAT;
+                        cnum = Agent::AgentMessage::BEAT;
                     }
                     else
                     {
-                        cnum = atoi(channel.c_str());
+                        cnum = (Agent::AgentMessage)atoi(channel.c_str());
                     }
                 }
                 break;
             case 2:
                 channel.clear();
-                cnum = (uint8_t)Agent::AgentMessage::ALL;
+                cnum = Agent::AgentMessage::ALL;
                 break;
             }
 
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
                 if ((pretn=agent->readring(message, cnum, 1., Agent::Where::TAIL)) > 0)
                 {
                     // Skip if either not (uint8_t)Agent::AgentMessage::ALL, or not desired AGENT_MESSAGE
-                    if (!channel.empty() && cnum != pretn)
+                    if (!channel.empty() && (uint8_t)cnum != pretn)
                     {
                         continue;
                     }
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
         {
             double lmjd = 0., dmjd;
             std::string channel;
-            uint8_t cnum;
+            Agent::AgentMessage cnum;
             Agent::messstruc message;
             std::string header;
             int i, pretn;
@@ -260,32 +260,32 @@ int main(int argc, char *argv[])
                 channel = argv[2];
                 if (channel == "soh")
                 {
-                    cnum = (uint8_t)Agent::AgentMessage::SOH;
+                    cnum = Agent::AgentMessage::SOH;
                 }
                 else
                 {
                     if (channel == "beat")
                     {
-                        cnum = (uint8_t)Agent::AgentMessage::BEAT;
+                        cnum = Agent::AgentMessage::BEAT;
                     }
                     else
                     {
-                        cnum = atoi(channel.c_str());
+                        cnum = (Agent::AgentMessage)atoi(channel.c_str());
                     }
                 }
             }
             else
             {
                 channel.clear();
-                cnum = (uint8_t)Agent::AgentMessage::ALL;
+                cnum = Agent::AgentMessage::ALL;
             }
 
             while (1)
             {
-                if ((pretn=agent->readring(message, (uint8_t)Agent::AgentMessage::ALL, 1., Agent::Where::TAIL)) > 0)
+                if ((pretn=agent->readring(message, Agent::AgentMessage::ALL, 1., Agent::Where::TAIL)) > 0)
                 {
                     // Skip if either not (uint8_t)Agent::AgentMessage::ALL, or not desired AGENT_MESSAGE
-                    if (!channel.empty() && cnum != pretn)
+                    if (!channel.empty() && (uint8_t)cnum != pretn)
                     {
                         continue;
                     }

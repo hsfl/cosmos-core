@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 
         update_target(agent->cinfo->pdata);
         calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
-        agent->post((uint8_t)Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+        agent->post(Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->sohtable, agent->cinfo->meta, agent->cinfo->pdata));
 		double dsleep = 1000000. * 86400.*(sohtimer - mjdnow);
 		if (dsleep > 0.)
 		{

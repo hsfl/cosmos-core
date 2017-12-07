@@ -949,7 +949,8 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     double energy, efficiency, energyd, dcharge, dheat;
     double sdheat;
     rvector geov, vec;
-    rvector unitv, units, unite, dtorque, da;
+//    rvector unitv, units, unite, dtorque, da;
+    Vector unitv, units, unite, dtorque, da;
     uint16_t i, j, index;
     rmatrix mom;
     //	rmatrix tskew;
@@ -961,17 +962,20 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
 
 
     // Atmospheric and solar drag
-    unitv = loc.pos.geoc.v;
-    normalize_rv(unitv);
-    unitv = irotate((loc.att.geoc.s),unitv);
+//    unitv = loc.pos.geoc.v;
+//    normalize_rv(unitv);
+//    unitv = irotate((loc.att.geoc.s),unitv);
+    unitv = Math::Quaternion(loc.att.geoc.s).irotate(Vector(loc.pos.geoc.v).normalize());
 
-    units = rv_smult(-1.,loc.pos.icrf.s);
-    normalize_rv(units);
-    units = irotate((loc.att.icrf.s),units);
+//    units = rv_smult(-1.,loc.pos.icrf.s);
+//    normalize_rv(units);
+//    units = irotate((loc.att.icrf.s),units);
+    units = Math::Quaternion(loc.att.icrf.s).irotate(-1. * Vector(loc.pos.icrf.s).normalize());
 
-    unite = rv_smult(-1.,loc.pos.eci.s);
-    normalize_rv(unite);
-    unite = irotate((loc.att.icrf.s),unite);
+//    unite = rv_smult(-1.,loc.pos.eci.s);
+//    normalize_rv(unite);
+//    unite = irotate((loc.att.icrf.s),unite);
+    unite = Math::Quaternion(loc.att.icrf.s).irotate(-1. * Vector(loc.pos.eci.s).normalize());
 
     geov = loc.pos.geoc.v;
     speed = geov.col[0]*geov.col[0]+geov.col[1]*geov.col[1]+geov.col[2]*geov.col[2];
@@ -988,21 +992,22 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     cdata.physics.adrag = cdata.physics.rdrag = rv_zero();
     sdheat = 0;
     sattemp = cdata.physics.heat / (cdata.physics.mass * cdata.physics.hcap);
-    for (i=0; i<cdata.piece.size(); i++)
+    for (i=0; i<cdata.pieces.size(); i++)
     {
-        cdata.piece[i].heat = cdata.piece[i].mass * cdata.piece[i].temp * cdata.piece[i].hcap;
-        energyd = cdata.physics.dt * SIGMA * pow(cdata.piece[i].temp,4);
-        dheat = (cdata.piece[i].temp-sattemp)/100000.*cdata.piece[i].heat;
-        cdata.piece[i].heat -= dheat;
+        cdata.pieces[i].heat = cdata.pieces[i].mass * cdata.pieces[i].temp * cdata.pieces[i].hcap;
+        energyd = cdata.physics.dt * SIGMA * pow(cdata.pieces[i].temp,4);
+        dheat = (cdata.pieces[i].temp-sattemp)/100000.*cdata.pieces[i].heat;
+        cdata.pieces[i].heat -= dheat;
         sdheat += dheat;
-        dheat = cdata.piece[i].emi*cdata.piece[i].area * energyd;
-        cdata.piece[i].heat -= dheat;
+        dheat = cdata.pieces[i].emi*cdata.pieces[i].area * energyd;
+        cdata.pieces[i].heat -= dheat;
         sdheat += dheat;
 
-        if (cdata.piece[i].type == PIECE_TYPE_EXTERNAL_PANEL)
+        if (cdata.pieces[i].face_cnt == 1)
         {
-            cdata.piece[i].heat -= dheat;
-            vdot = dot_rv(unitv,cdata.piece[i].normal);
+            cdata.pieces[i].heat -= dheat;
+//            vdot = dot_rv(unitv,cdata.pieces[i].normal);
+            vdot = unitv.dot(cdata.faces[abs(cdata.pieces[i].face_idx[0])].normal);
             if (vdot > 0)
             {
                 if (cdata.physics.mass)
@@ -1013,36 +1018,46 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
                 {
                     ddrag = 0.;
                 }
-                dtorque = rv_smult(ddrag,cdata.piece[i].twist);
-                cdata.physics.atorque = rv_add(cdata.physics.atorque,dtorque);
-                da = rv_smult(ddrag,cdata.piece[i].shove);
-                cdata.physics.adrag = rv_add(cdata.physics.adrag,da);
+//                dtorque = rv_smult(ddrag,cdata.pieces[i].twist);
+                dtorque = ddrag * cdata.pieces[i].twist;
+//                cdata.physics.atorque = rv_add(cdata.physics.atorque,dtorque);
+                cdata.physics.atorque += dtorque;
+//                da = rv_smult(ddrag,cdata.pieces[i].shove);
+                da = ddrag * cdata.pieces[i].shove;
+//                cdata.physics.adrag = rv_add(cdata.physics.adrag,da);
+                cdata.physics.adrag += da;
             }
 
-            sdot = dot_rv(units,cdata.piece[i].normal);
+//            sdot = dot_rv(units,cdata.pieces[i].normal);
+            sdot = units.dot(cdata.faces[abs(cdata.pieces[i].face_idx[0])].normal);
             if (loc.pos.sunradiance && sdot > 0)
             {
                 ddrag = loc.pos.sunradiance * sdot / (3e8*cdata.physics.mass);
-                dtorque = rv_smult(ddrag,cdata.piece[i].twist);
-                cdata.physics.rtorque = rv_add(cdata.physics.rtorque,dtorque);
-                da = rv_smult(ddrag,cdata.piece[i].shove);
-                cdata.physics.rdrag = rv_add(cdata.physics.rdrag,da);
+//                dtorque = rv_smult(ddrag,cdata.pieces[i].twist);
+                dtorque = ddrag * cdata.pieces[i].twist;
+//                dtorque = rv_smult(ddrag,cdata.pieces[i].twist);
+                cdata.physics.rtorque += dtorque;
+//                da = rv_smult(ddrag,cdata.pieces[i].shove);
+                da = ddrag * cdata.pieces[i].shove;
+//                cdata.physics.rdrag = rv_add(cdata.physics.rdrag,da);
+                cdata.physics.rdrag += da;
 
-                cdata.piece[i].insol = loc.pos.sunradiance * sdot/length_rv(cdata.piece[i].normal);
-                energyd =  cdata.piece[i].insol * cdata.physics.dt;
-                cdata.piece[i].heat += cdata.piece[i].area * cdata.piece[i].abs * energyd;
-                if (cdata.piece[i].cidx<(uint16_t)DeviceType::NONE && cdata.device[cdata.piece[i].cidx].all.gen.type == (uint16_t)DeviceType::STRG)
+//                cdata.pieces[i].insol = loc.pos.sunradiance * sdot/length_rv(cdata.pieces[i].normal);
+                cdata.pieces[i].insol = loc.pos.sunradiance * sdot / cdata.faces[abs(cdata.pieces[i].face_idx[0])].normal.norm();
+                energyd =  cdata.pieces[i].insol * cdata.physics.dt;
+                cdata.pieces[i].heat += cdata.pieces[i].area * cdata.pieces[i].abs * energyd;
+                if (cdata.pieces[i].cidx<(uint16_t)DeviceType::NONE && cdata.device[cdata.pieces[i].cidx].all.gen.type == (uint16_t)DeviceType::STRG)
                 {
-                    j = cdata.device[cdata.piece[i].cidx].all.gen.didx;
+                    j = cdata.device[cdata.pieces[i].cidx].all.gen.didx;
                     if (cdata.devspec.strg[j]->effbase > 0.)
                     {
-                        efficiency = cdata.devspec.strg[j]->effbase + cdata.devspec.strg[j]->effslope * cdata.piece[i].temp;
-                        cdata.devspec.strg[j]->gen.power = cdata.piece[i].area*efficiency*cdata.piece[i].insol;
+                        efficiency = cdata.devspec.strg[j]->effbase + cdata.devspec.strg[j]->effslope * cdata.pieces[i].temp;
+                        cdata.devspec.strg[j]->gen.power = cdata.pieces[i].area*efficiency*cdata.pieces[i].insol;
                         cdata.devspec.strg[j]->gen.volt = cdata.devspec.strg[j]->gen.nvolt;
                         cdata.devspec.strg[j]->gen.amp = -cdata.devspec.strg[j]->gen.power / cdata.devspec.strg[j]->gen.volt;
                         cdata.node.powgen += .4 * cdata.devspec.strg[j]->gen.power;
-                        cdata.piece[i].heat += (cdata.piece[i].abs * cdata.piece[i].area * cdata.piece[i].insol - cdata.devspec.strg[j]->gen.power) * cdata.physics.dt;
-                        cdata.piece[i].heat -= cdata.piece[i].emi * cdata.piece[i].area * energyd;
+                        cdata.pieces[i].heat += (cdata.pieces[i].abs * cdata.pieces[i].area * cdata.pieces[i].insol - cdata.devspec.strg[j]->gen.power) * cdata.physics.dt;
+                        cdata.pieces[i].heat -= cdata.pieces[i].emi * cdata.pieces[i].area * energyd;
                     }
                 }
             }
@@ -1055,11 +1070,12 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
                         cdata.devspec.strg[j]->gen.power = 0.;
                         cdata.devspec.strg[j]->gen.volt = 0.;
                         cdata.devspec.strg[j]->gen.amp = 0.;
-                        cdata.piece[i].heat -= cdata.piece[i].emi * cdata.piece[i].area * energyd;
+                        cdata.pieces[i].heat -= cdata.pieces[i].emi * cdata.pieces[i].area * energyd;
                     }
                 }
             }
-            edot = acos(dot_rv(unite,cdata.piece[i].normal)/length_rv(cdata.piece[i].normal)) - RADOF(5.);
+//            edot = acos(dot_rv(unite,cdata.pieces[i].normal)/length_rv(cdata.pieces[i].normal)) - RADOF(5.);
+            edot = acos(unite.dot(cdata.faces[abs(cdata.pieces[i].face_idx[0])].normal) / cdata.faces[abs(cdata.pieces[i].face_idx[0])].normal.norm()) - RADOF(5.);
             if (edot < 0.)
                 edot = 1.;
             else
@@ -1067,12 +1083,12 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
             if (edot > 0)
             {
                 energyd = edot * cdata.physics.dt * SIGMA * pow(290.,4);
-                cdata.piece[i].heat += cdata.piece[i].abs*cdata.piece[i].area * energyd;
+                cdata.pieces[i].heat += cdata.pieces[i].abs*cdata.pieces[i].area * energyd;
                 for (j=0; j<cdata.devspec.strg_cnt; j++)
                 {
                     if (cdata.devspec.strg[j]->gen.pidx == i)
                     {
-                        energy += cdata.piece[i].abs * cdata.piece[i].area * energyd;
+                        energy += cdata.pieces[i].abs * cdata.pieces[i].area * energyd;
                     }
                 }
             }
@@ -1101,12 +1117,14 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
 
         wmomentum = rv_mmult(mom,rv_smult(cdata.devspec.rw[i]->omg,rv_unitz()));
         wmomentum = irotate(cdata.devspec.rw[i]->align,wmomentum);
-        cdata.physics.hmomentum = rv_add(cdata.physics.hmomentum,wmomentum);
+//        cdata.physics.hmomentum = rv_add(cdata.physics.hmomentum,wmomentum);
+        cdata.physics.hmomentum += Vector(wmomentum);
 
         // Calculate Torque in Body frame and transform to ICRF
         wtorque = rv_mmult(mom,rv_smult(cdata.devspec.rw[i]->alp,rv_unitz()));
         wtorque = irotate(cdata.devspec.rw[i]->align,wtorque);
-        cdata.physics.ctorque = rv_sub(cdata.physics.ctorque,wtorque);
+//        cdata.physics.ctorque = rv_sub(cdata.physics.ctorque,wtorque);
+        cdata.physics.ctorque += Vector(wtorque);
 
         // Term for exponential change
         tcexp = exp(-cdata.physics.dt/cdata.devspec.rw[i]->tc);
@@ -1187,7 +1205,8 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
 
     mtorque = rv_cross(mag_moment,bearth);
     //	mtorque = irotate(q_conjugate(loc.att.icrf.s),mtorque);
-    cdata.physics.ctorque = rv_add(cdata.physics.ctorque,mtorque);
+//    cdata.physics.ctorque = rv_add(cdata.physics.ctorque,mtorque);
+    cdata.physics.ctorque += Vector(mtorque);
 
     // Star Trackers
     for (i=0; i<cdata.devspec.stt_cnt; i++)
@@ -1277,7 +1296,8 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
     // Simulate thsters
     for (i=0; i<cdata.devspec.thst_cnt; i++)
     {
-        cdata.devspec.thst[i]->flw = (length_rv(cdata.physics.thrust) / cdata.devspec.thst_cnt) / cdata.devspec.thst[i]->isp;
+//        cdata.devspec.thst[i]->flw = (length_rv(cdata.physics.thrust) / cdata.devspec.thst_cnt) / cdata.devspec.thst[i]->isp;
+        cdata.devspec.thst[i]->flw = (cdata.physics.thrust.norm() / cdata.devspec.thst_cnt) / cdata.devspec.thst[i]->isp;
         if (cdata.devspec.thst[i]->flw < .002)
             cdata.devspec.thst[i]->flw = 0.;
         cdata.devspec.prop[0]->lev -= cdata.physics.dt * cdata.devspec.thst[i]->flw;
@@ -1342,7 +1362,7 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
                 continue;
             if (cdata.device[i].all.gen.pidx < cdata.node.piece_cnt)
             {
-                cdata.piece[cdata.device[i].all.gen.pidx].heat += .8 * cdata.device[i].all.gen.power * cdata.physics.dt;
+                cdata.pieces[cdata.device[i].all.gen.pidx].heat += .8 * cdata.device[i].all.gen.power * cdata.physics.dt;
             }
             if (cdata.device[i].all.gen.type != (uint16_t)DeviceType::BUS)
             {
@@ -1357,28 +1377,28 @@ void simulate_hardware(cosmosdatastruc &cdata, locstruc &loc)
 
     // Heat details
     cdata.physics.heat = 0.;
-    for (i=0; i<cdata.piece.size(); i++)
+    for (i=0; i<cdata.pieces.size(); i++)
     {
         if (cdata.physics.mass)
         {
-            cdata.piece[i].heat += sdheat*cdata.piece[i].mass/cdata.physics.mass;
-            //	cdata.piece[i].heat += sdheat/cdata.piece.size();
-            cdata.physics.heat += cdata.piece[i].heat;
-            cdata.piece[i].temp = cdata.piece[i].heat / (cdata.piece[i].mass * cdata.piece[i].hcap);
-            if (cdata.piece[i].cidx < cdata.device.size())
+            cdata.pieces[i].heat += sdheat*cdata.pieces[i].mass/cdata.physics.mass;
+            //	cdata.pieces[i].heat += sdheat/cdata.pieces.size();
+            cdata.physics.heat += cdata.pieces[i].heat;
+            cdata.pieces[i].temp = cdata.pieces[i].heat / (cdata.pieces[i].mass * cdata.pieces[i].hcap);
+            if (cdata.pieces[i].cidx < cdata.device.size())
             {
-                cdata.device[cdata.piece[i].cidx].all.gen.temp = cdata.piece[i].temp;
+                cdata.device[cdata.pieces[i].cidx].all.gen.temp = cdata.pieces[i].temp;
             }
         }
         else
         {
-            cdata.piece[i].temp = 0.;
+            cdata.pieces[i].temp = 0.;
         }
     }
 
     for (i=0; i<cdata.devspec.tsen_cnt; i++)
     {
-        cdata.devspec.tsen[i]->gen.temp = cdata.piece[cdata.device[cdata.devspec.tsen[i]->gen.cidx].all.gen.pidx].temp;
+        cdata.devspec.tsen[i]->gen.temp = cdata.pieces[cdata.device[cdata.devspec.tsen[i]->gen.cidx].all.gen.pidx].temp;
         cdata.devspec.tsen[i]->gen.utc = loc.utc;
     }
 
@@ -1472,8 +1492,10 @@ void simulate_imu(int index, cosmosdatastruc &cdata, locstruc &loc)
 */
 void att_accel(physicsstruc &physics, locstruc &loc)
 {
-    rvector ue, ta, tv;
-    rvector ttorque;
+//    rvector ue, ta, tv;
+//    rvector ttorque;
+    Vector ue, ta, tv;
+    Vector ttorque;
     rmatrix mom;
 
     att_extra(&loc);
@@ -1482,12 +1504,15 @@ void att_accel(physicsstruc &physics, locstruc &loc)
 
     // Now calculate Gravity Gradient Torque
     // Unit vector towards earth, rotated into body frame
-    ue = irotate((loc.att.icrf.s),rv_smult(-1.,loc.pos.eci.s));
-    normalize_rv(ue);
+//    ue = irotate((loc.att.icrf.s),rv_smult(-1.,loc.pos.eci.s));
+//    normalize_rv(ue);
+    ue = Quaternion(loc.att.icrf.s).irotate(-1. * Vector(loc.pos.eci.s)).normalize();
 
-    physics.gtorque = rv_smult((3.*GM/pow(loc.pos.geos.s.r,3.)),rv_cross(ue,rv_mult(physics.moi,ue)));
+//    physics.gtorque = rv_smult((3.*GM/pow(loc.pos.geos.s.r,3.)),rv_cross(ue,rv_mult(physics.moi,ue)));
+    physics.gtorque = (3. * GM / pow(loc.pos.geos.s.r,3.)) * ue.cross(physics.moi * ue);
 
-    ttorque = rv_add(ttorque,physics.gtorque);
+//    ttorque = rv_add(ttorque,physics.gtorque);
+    ttorque += physics.gtorque;
 
     // Atmospheric and solar torque
     //	ttorque = rv_add(ttorque,physics.atorque);
@@ -1496,25 +1521,28 @@ void att_accel(physicsstruc &physics, locstruc &loc)
     // Torque from rotational effects
 
     // Moment of Inertia in Body frame
-    mom = rm_diag(physics.moi);
+    mom = rm_diag(physics.moi.to_rv());
     // Attitude rate in Body frame
     tv = irotate(loc.att.icrf.s,loc.att.icrf.v);
 
     // Torque from cross product of angular velocity and angular momentum
-    physics.htorque = rv_smult(-1., rv_cross(tv,rv_add(rv_mmult(mom,tv),physics.hmomentum)));
-    ttorque = rv_add(ttorque,physics.htorque);
+//    physics.htorque = rv_smult(-1., rv_cross(tv,rv_add(rv_mmult(mom,tv),physics.hmomentum)));
+//    ttorque = rv_add(ttorque,physics.htorque);
+    physics.htorque = -1. * tv.cross(Vector(rv_mmult(mom, tv.to_rv())) + physics.hmomentum);
+    ttorque += physics.htorque;
 
     // Convert torque into accelerations, doing math in Body frame
 
     // I x alpha = tau, so alpha = I inverse x tau
-    ta = rv_mmult(rm_inverse(mom),ttorque);
+//    ta = rv_mmult(rm_inverse(mom),ttorque);
+    ta = Vector(rv_mmult(rm_inverse(mom),ttorque.to_rv()));
 
     // Convert body frame acceleration back to other frames.
-    loc.att.icrf.a = irotate(q_conjugate(loc.att.icrf.s),ta);
-    loc.att.topo.a = irotate(q_conjugate(loc.att.topo.s),ta);
-    loc.att.lvlh.a = irotate(q_conjugate(loc.att.lvlh.s),ta);
-    loc.att.geoc.a = irotate(q_conjugate(loc.att.geoc.s),ta);
-    loc.att.selc.a = irotate(q_conjugate(loc.att.selc.s),ta);
+    loc.att.icrf.a = irotate(q_conjugate(loc.att.icrf.s), ta.to_rv());
+    loc.att.topo.a = irotate(q_conjugate(loc.att.topo.s), ta.to_rv());
+    loc.att.lvlh.a = irotate(q_conjugate(loc.att.lvlh.s), ta.to_rv());
+    loc.att.geoc.a = irotate(q_conjugate(loc.att.geoc.s), ta.to_rv());
+    loc.att.selc.a = irotate(q_conjugate(loc.att.selc.s), ta.to_rv());
 }
 
 //! Position acceleration
@@ -1593,21 +1621,21 @@ da = rv_smult(GJUPITER/(radius*radius*radius),ctpos);
 */
 
     // Atmospheric drag
-    if (length_rv(physics.adrag))
+    if (length_rv(physics.adrag.to_rv()))
     {
-        da = irotate(q_conjugate(loc.att.icrf.s),physics.adrag);
+        da = irotate(q_conjugate(loc.att.icrf.s),physics.adrag.to_rv());
         loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
     }
     // Solar drag
-    if (length_rv(physics.rdrag))
+    if (length_rv(physics.rdrag.to_rv()))
     {
-        da = irotate(q_conjugate(loc.att.icrf.s),physics.rdrag);
+        da = irotate(q_conjugate(loc.att.icrf.s),physics.rdrag.to_rv());
         loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
     }
     // Fictitious drag
-    if (length_rv(physics.fdrag))
+    if (length_rv(physics.fdrag.to_rv()))
     {
-        da = irotate(q_conjugate(loc.att.icrf.s),physics.fdrag);
+        da = irotate(q_conjugate(loc.att.icrf.s),physics.fdrag.to_rv());
         loc.pos.eci.a = rv_add(loc.pos.eci.a,da);
     }
 
@@ -1725,8 +1753,8 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosdatastruc &cdata)
     case 10:
     case 11:
     case 12:
-        loc.att.icrf.s = q_drotate_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
-        //	loc.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+        loc.att.icrf.s = q_drotate_between_rv(cdata.faces[abs(cdata.pieces[cdata.physics.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,loc.pos.icrf.s));
+        //	loc.att.icrf.s = rm_change_between_rv(cdata.pieces[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
         loc.att.icrf.v = rv_zero();
         att_icrf2lvlh(&loc);
         break;
@@ -1820,8 +1848,8 @@ void orbit_init_eci(int32_t mode, double dt, double utc, cartpos ipos, cosmosdat
     case 10:
     case 11:
     case 12:
-        loc.att.icrf.s = q_drotate_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
-        //	loc.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+        loc.att.icrf.s = q_drotate_between_rv(cdata.faces[abs(cdata.pieces[cdata.physics.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,loc.pos.icrf.s));
+        //	loc.att.icrf.s = rm_change_between_rv(cdata.pieces[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
         loc.att.icrf.v = rv_zero();
         att_icrf2lvlh(&loc);
         break;
@@ -1934,8 +1962,8 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
     case 10:
     case 11:
     case 12:
-        sloc[0].att.icrf.s = q_drotate_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,sloc[0].pos.icrf.s));
-        //	sloc[0].att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+        sloc[0].att.icrf.s = q_drotate_between_rv(cdata.faces[abs(cdata.pieces[cdata.physics.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,sloc[0].pos.icrf.s));
+        //	sloc[0].att.icrf.s = rm_change_between_rv(cdata.pieces[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
         sloc[0].att.icrf.v = rv_zero();
         att_icrf2lvlh(&sloc[0]);
         break;
@@ -2127,8 +2155,8 @@ void propagate(cosmosdatastruc &cdata, double utc)
         case 9:
         case 10:
         case 11:
-            lnew.att.icrf.s = q_drotate_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,lnew.pos.icrf.s));
-            //		lnew.att.icrf.s = rm_change_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,lnew.pos.icrf.s));
+            lnew.att.icrf.s = q_drotate_between_rv(cdata.faces[abs(cdata.pieces[cdata.physics.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,lnew.pos.icrf.s));
+            //		lnew.att.icrf.s = rm_change_between_rv(cdata.pieces[cdata.physics.mode-2].normal,rv_smult(-1.,lnew.pos.icrf.s));
             lnew.att.icrf.v = rv_zero();
             att_icrf2lvlh(&lnew);
             break;
@@ -2377,7 +2405,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
     case 10:
     case 11:
     case 12:
-        loc.att.icrf.s = q_drotate_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+        loc.att.icrf.s = q_drotate_between_rv(cdata.faces[abs(cdata.pieces[cdata.physics.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,loc.pos.icrf.s));
         loc.att.icrf.v = rv_zero();
         att_icrf2lvlh(&loc);
         break;
@@ -2504,7 +2532,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
     case 10:
     case 11:
     case 12:
-        //		loc.att.icrf.s = q_drotate_between_rv(cdata.piece[physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+        //		loc.att.icrf.s = q_drotate_between_rv(cdata.pieces[physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
         loc.att.icrf.v = rv_zero();
         pos_eci2geoc(&loc);
         att_icrf2lvlh(&loc);
@@ -2636,7 +2664,7 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double
     case 10:
     case 11:
     case 12:
-        //        loc.att.icrf.s = q_drotate_between_rv(physics.piece[physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
+        //        loc.att.icrf.s = q_drotate_between_rv(physics.pieces[physics.mode-2].normal,rv_smult(-1.,loc.pos.icrf.s));
         loc.att.icrf.v = rv_zero();
         att_icrf2lvlh(&loc);
         break;
@@ -3025,7 +3053,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
         case 3:
             gjh.step[gjh.order+1].sloc.att.icrf.utc = gjh.step[gjh.order+1].sloc.utc;
             q1 = gjh.step[gjh.order+1].sloc.att.icrf.s;
-            gjh.step[gjh.order+1].sloc.att.icrf.s = q_drotate_between_rv(physics.thrust,rv_unitz());
+            gjh.step[gjh.order+1].sloc.att.icrf.s = q_drotate_between_rv(physics.thrust.to_rv(),rv_unitz());
             dsq = q_sub(gjh.step[gjh.order+1].sloc.att.icrf.s,q1);
             angle = 2. * atan(length_q(dsq)/2.);
             q2 = q_smult(1./cos(angle),gjh.step[gjh.order+1].sloc.att.icrf.s);
@@ -3067,7 +3095,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
         case 9:
         case 10:
         case 11:
-            //				gjh.step[gjh.order+1].sloc.att.icrf.s = q_drotate_between_rv(cdata.piece[physics.mode-2].normal,rv_smult(-1.,gjh.step[gjh.order+1].sloc.pos.icrf.s));
+            //				gjh.step[gjh.order+1].sloc.att.icrf.s = q_drotate_between_rv(cdata.pieces[physics.mode-2].normal,rv_smult(-1.,gjh.step[gjh.order+1].sloc.pos.icrf.s));
             gjh.step[gjh.order+1].sloc.att.icrf.v = rv_zero();
             att_icrf2lvlh(&gjh.step[gjh.order+1].sloc);
             break;
@@ -3210,7 +3238,7 @@ int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosdat
     case 10:
     case 11:
     case 12:
-        cdata.node.loc.att.icrf.s = q_drotate_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.icrf.s));
+        cdata.node.loc.att.icrf.s = q_drotate_between_rv(cdata.faces[abs(cdata.pieces[cdata.physics.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,cdata.node.loc.pos.icrf.s));
         cdata.node.loc.att.icrf.v = rv_zero();
         att_icrf2lvlh(&cdata.node.loc);
         break;
@@ -3305,13 +3333,13 @@ int update_eci(cosmosdatastruc &cdata, double utc, cartpos pos)
     if (cdata.devspec.thst_cnt)
     {
         cdata.physics.thrust = rv_sub(cdata.node.loc.pos.eci.a,tloc.pos.eci.a);
-        if (length_rv(cdata.physics.thrust) < 5.)
+        if (length_rv(cdata.physics.thrust.to_rv()) < 5.)
         {
             cdata.physics.thrust = rv_zero();
         }
         else
         {
-            cdata.physics.thrust = rv_smult(cdata.physics.mass,cdata.physics.thrust);
+            cdata.physics.thrust = rv_smult(cdata.physics.mass,cdata.physics.thrust.to_rv());
         }
     }
 
@@ -3392,7 +3420,7 @@ int update_eci(cosmosdatastruc &cdata, double utc, cartpos pos)
     case 3:
         cdata.node.loc.att.icrf.utc = cdata.node.loc.utc;
         q1 = cdata.node.loc.att.icrf.s;
-        cdata.node.loc.att.icrf.s = q_drotate_between_rv(cdata.physics.thrust,rv_unitz());
+        cdata.node.loc.att.icrf.s = q_drotate_between_rv(cdata.physics.thrust.to_rv(),rv_unitz());
         dsq = q_sub(cdata.node.loc.att.icrf.s,q1);
         angle = 2. * atan(length_q(dsq)/2.);
         q2 = q_smult(1./cos(angle),cdata.node.loc.att.icrf.s);
@@ -3434,7 +3462,7 @@ int update_eci(cosmosdatastruc &cdata, double utc, cartpos pos)
     case 9:
     case 10:
     case 11:
-        cdata.node.loc.att.icrf.s = q_drotate_between_rv(cdata.piece[cdata.physics.mode-2].normal,rv_smult(-1.,cdata.node.loc.pos.icrf.s));
+        cdata.node.loc.att.icrf.s = q_drotate_between_rv(cdata.faces[abs(cdata.pieces[cdata.physics.mode-2].face_idx[0])].normal.to_rv(),rv_smult(-1.,cdata.node.loc.pos.icrf.s));
         cdata.node.loc.att.icrf.v = rv_zero();
         att_icrf2lvlh(&cdata.node.loc);
         break;

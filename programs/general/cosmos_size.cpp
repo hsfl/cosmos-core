@@ -44,7 +44,7 @@ int main(int, char* argv[])
     printf("Node: %lu : %lu\n", COSMOS_SIZEOF(nodestruc), total);
 
     count = 0;
-    for (size_t i=0; i<myagent->cinfo->pdata.piece.size(); ++i)
+    for (size_t i=0; i<myagent->cinfo->pdata.pieces.size(); ++i)
     {
         ++count;
         total += COSMOS_SIZEOF(piecestruc);
@@ -122,7 +122,7 @@ int main(int, char* argv[])
     printf("Node: %ld : %lu\n", COSMOS_SIZEOF(nodestruc), total);
 
     count = 0;
-    for (size_t i=0; i<myagent->cinfo->sdata.piece.size(); ++i)
+    for (size_t i=0; i<myagent->cinfo->sdata.pieces.size(); ++i)
     {
         ++count;
         total += COSMOS_SIZEOF(piecestruc);
