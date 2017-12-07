@@ -135,6 +135,9 @@ public:
     Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 1);
     ~Agent();
 
+    //! State of Health element vector
+    vector<jsonentry*> sohtable;
+
     enum class State : uint16_t
         {
         //! Shut down Agent
@@ -238,7 +241,7 @@ public:
 
     struct pollstruc
     {
-        uint8_t type; // > 128 is binary, <128 is json, look for AGENT_MESSAGE in agentclass.h
+        AgentMessage type; // > 128 is binary, <128 is json, look for AGENT_MESSAGE in agentclass.h
         uint16_t jlength; // length of JSON header
         beatstruc beat; // all the information of the heartbeat (name, ip, etc.)
     };
@@ -279,8 +282,8 @@ public:
     void get_ip_list(uint16_t port);
     int32_t unpublish();
     int32_t post(messstruc mess);
-    int32_t post(uint8_t type, string message);
-    int32_t post(uint8_t type, vector <uint8_t> message);
+    int32_t post(AgentMessage type, string message);
+    int32_t post(AgentMessage type, vector <uint8_t> message);
     int32_t publish(NetworkType type, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo);
@@ -288,7 +291,7 @@ public:
 //    int32_t poll(pollstruc &meta, string &message, uint8_t type, float waitsec = 1.);
 //    int32_t poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec = 1.);
     int32_t poll(messstruc &mess, uint8_t type, float waitsec = 1.);
-	int32_t readring(messstruc &message, uint8_t type = (uint8_t)Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::HEAD);
+    int32_t readring(messstruc &message, AgentMessage type = Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::HEAD);
     int32_t resizering(size_t newsize);
     int32_t clearring();
     timestruc poll_time(float waitsec);

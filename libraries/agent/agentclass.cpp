@@ -680,12 +680,12 @@ namespace Cosmos {
     int32_t Agent::set_sohstring(string list)
     {
 
-        if (!cinfo->pdata.agent[0].sohtable.empty())
+        if (!sohtable.empty())
         {
-            cinfo->pdata.agent[0].sohtable.clear();
+            sohtable.clear();
         }
 
-        json_table_of_list(cinfo->pdata.agent[0].sohtable, list, cinfo->meta);
+        json_table_of_list(sohtable, list, cinfo->meta);
         return 0;
     }
 
@@ -716,13 +716,13 @@ namespace Cosmos {
 
             // post comes first
             cinfo->pdata.agent[0].beat.utc = currentmjd(0.);
-            if ((Agent::State)(cinfo->pdata.agent[0].stateflag) != Agent::State::IDLE && !cinfo->pdata.agent[0].sohtable.empty())
+            if ((Agent::State)(cinfo->pdata.agent[0].stateflag) != Agent::State::IDLE && !sohtable.empty())
             {
-				Agent::post((uint8_t)Agent::AgentMessage::BEAT, json_of_table(hbjstring, cinfo->pdata.agent[0].sohtable, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
+                Agent::post(Agent::AgentMessage::BEAT, json_of_table(hbjstring, sohtable, ((cosmosstruc *)cinfo)->meta, ((cosmosstruc *)cinfo)->pdata));
             }
             else
             {
-				Agent::post((uint8_t)Agent::AgentMessage::BEAT,"");
+                Agent::post(Agent::AgentMessage::BEAT,"");
             }
 
             // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
@@ -1687,7 +1687,7 @@ namespace Cosmos {
     {
         int32_t iretn;
 
-		if (mess.meta.type < (uint8_t)Agent::AgentMessage::BINARY)
+        if (mess.meta.type < Agent::AgentMessage::BINARY)
         {
             iretn = post(mess.meta.type, mess.adata);
         }
@@ -1745,7 +1745,7 @@ namespace Cosmos {
     \param message A NULL terminated JSON text string to post.
     \return 0, otherwise negative error.
 */
-    int32_t Agent::post(uint8_t type, string message)
+    int32_t Agent::post(AgentMessage type, string message)
     {
         int32_t iretn;
         vector<uint8_t> bytes(message.begin(), message.end());
@@ -1760,14 +1760,14 @@ namespace Cosmos {
     \param message An array of bytes to post.
     \return 0, otherwise negative error.
 */
-    int32_t Agent::post(uint8_t type, vector <uint8_t> message)
+    int32_t Agent::post(AgentMessage type, vector <uint8_t> message)
     {
         size_t nbytes;
         int32_t iretn=0;
         uint8_t post[AGENTMAXBUFFER];
 
         cinfo->pdata.agent[0].beat.utc = cinfo->pdata.agent[0].beat.utc;
-        post[0] = type;
+        post[0] = (uint8_t)type;
         // this will broadcast messages to all external interfaces (ifcnt = interface count)
         for (size_t i=0; i<cinfo->pdata.agent[0].ifcnt; i++)
         {
@@ -1954,12 +1954,12 @@ namespace Cosmos {
                     // Provide support for older messages that did not include jlength
                     if (start_byte > 1)
                     {
-                        mess.meta.type = (uint16_t)input[0];
+                        mess.meta.type = (AgentMessage)input[0];
                         mess.meta.jlength = input[1] + 256 * input[2];
                     }
                     else
                     {
-                        mess.meta.type = (uint16_t)input[0] + 1;
+                        mess.meta.type = (AgentMessage)(input[0] + 1);
                         mess.meta.jlength = nbytes;
                     }
 
@@ -1968,7 +1968,7 @@ namespace Cosmos {
                     mess.jdata.assign((const char *)&input[start_byte], mess.meta.jlength);
 
                     // Next: ASCII or BINARY message, depending on message type.
-					if (mess.meta.type < (uint8_t)Agent::AgentMessage::BINARY)
+                    if (mess.meta.type < Agent::AgentMessage::BINARY)
                     {
                         mess.adata.assign((const char *)&input[start_byte+mess.meta.jlength], nbytes - (start_byte + mess.meta.jlength));
                     }
@@ -2032,7 +2032,7 @@ namespace Cosmos {
     \param where One of Where::HEAD or Where::TAIL, indicating whether to start at the head or tail of the ring.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-    int32_t Agent::readring(messstruc &message, uint8_t type, float waitsec, Where where)
+    int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Where where)
     {
         if (waitsec < 0.)
         {
@@ -2064,7 +2064,7 @@ namespace Cosmos {
                     message_tail = 0;
                 }
 
-				if (type == (uint8_t)Agent::AgentMessage::ALL || type == message_ring[message_tail].meta.type)
+                if (type == Agent::AgentMessage::ALL || type == (Agent::AgentMessage)message_ring[message_tail].meta.type)
                 {
                     // Copy message.
                     message = message_ring[message_tail];
