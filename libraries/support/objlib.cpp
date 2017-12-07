@@ -142,7 +142,7 @@ namespace Cosmos {
                     vertex tvertex;
                     if (tval.size())
                     {
-                        int iretn = sscanf(tval.data(), "%lu/%lu/%lu", &tvertex.v, &tvertex.vt, &tvertex.vn);
+                        sscanf(tval.data(), "%lu/%lu/%lu", &tvertex.v, &tvertex.vt, &tvertex.vn);
                         tface.vertices.push_back(tvertex);
                     }
                 } while (index < input.size());
@@ -292,11 +292,12 @@ namespace Cosmos {
         }
     }
 
-    void wavefront::load_file(string path)
+    int32_t wavefront::load_file(string path)
     {
+
         if (!data_isfile(path))
         {
-            return;
+            return -errno;
         }
 
         ifstream infile(path);
@@ -305,6 +306,93 @@ namespace Cosmos {
         {
             parse(sinput);
         }
+
+        // Calculate centroid for each line
+        for (size_t i=0; i<Lines.size(); ++i)
+        {
+            Lines[i].centroid = Math::Vector();
+            for (size_t j=0; j<Lines[i].vertices.size(); ++j)
+            {
+                Lines[i].centroid += Vg[Lines[i].vertices[j].v];
+            }
+            Lines[i].centroid /= Lines[i].vertices.size();
+        }
+
+        // Calculate length for each line
+        for (size_t i=0; i<Lines.size(); ++i)
+        {
+            Lines[i].length = 0.;
+            for (size_t j=1; j<Lines[i].vertices.size(); ++j)
+            {
+                Lines[i].length += (Vg[Lines[i].vertices[j].v] - Vg[Lines[i].vertices[j-1].v]).norm();
+            }
+        }
+
+        // Calculate centroid and area for each face
+        for (size_t i=0; i<Faces.size(); ++i)
+        {
+            Vector fcentroid = Math::Vector();
+            for (size_t j=0; j<Faces[i].vertices.size(); ++j)
+            {
+                fcentroid += Vg[Faces[i].vertices[j].v];
+            }
+            fcentroid /= Faces[i].vertices.size();
+
+            Faces[i].com = Math::Vector();
+            Faces[i].area = 0.;
+            Vector v1 = Vg[Faces[i].vertices[Faces[i].vertices.size()-1].v] - fcentroid;
+            for (size_t j=0; j<Faces[i].vertices.size(); ++j)
+            {
+                Vector v2 = Vg[Faces[i].vertices[j].v] - fcentroid;
+                // Area of triangle made by v1, v2 and Face centroid
+                double tarea = v1.area(v2);
+                // Sum
+                Faces[i].area += tarea;
+                // Centroid of triangle made by v1, v2 amd Face centroid
+                Vector tcentroid = (v1 + v2 + fcentroid) / 3.;
+                // Weighted sum
+                Faces[i].com += tarea * tcentroid;
+                v1 = v2;
+            }
+            // Divide by summed weights
+            Faces[i].com /= Faces[i].area;
+        }
+
+        // Calculate center of mass for each Group using Points, Lines and Faces
+        for (size_t i=0; i<Groups.size(); ++i)
+        {
+            Groups[i].com = Math::Vector();
+
+            for (size_t j=0; j<Groups[i].pointidx.size(); ++j)
+            {
+                Groups[i].com += Vg[Points[Groups[i].pointidx[j]].vertex];
+            }
+
+            for (size_t j=0; j<Groups[i].lineidx.size(); ++j)
+            {
+                Groups[i].com += Lines[Groups[i].lineidx[j]].centroid;
+            }
+
+            for (size_t j=0; j<Groups[i].faceidx.size(); ++j)
+            {
+                Groups[i].com += Faces[Groups[i].faceidx[j]].com;
+            }
+
+            Groups[i].com /= (Groups[i].pointidx.size() + Groups[i].lineidx.size() + Groups[i].faceidx.size());
+        }
+
+        // Calculate volume for each Group using center of mass for each face
+        for (size_t i=0; i<Groups.size(); ++i)
+        {
+            Groups[i].volume = 0.;
+            for (size_t j=0; j<Groups[i].faceidx.size(); ++j)
+            {
+                Vector dv = Faces[Groups[i].faceidx[j]].com - Groups[i].com;
+                Groups[i].volume += Faces[Groups[i].faceidx[j]].area * dv.norm() / 3.;
+            }
+        }
+
+        return 0;
     }
 
     vector <string> wavefront::split(string str, char c)

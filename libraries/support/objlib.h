@@ -31,12 +31,16 @@ namespace Cosmos
         {
             vector <size_t> groups;
             vector <vertex> vertices;
+            Math::Vector centroid;
+            double length;
         };
 
         struct face
         {
             vector <size_t> groups;
             vector <vertex> vertices;
+            Math::Vector com;
+            double area;
         };
 
         struct group
@@ -45,6 +49,8 @@ namespace Cosmos
             vector <size_t> pointidx;
             vector <size_t> lineidx;
             vector <size_t> faceidx;
+            Math::Vector com;
+            double volume;
         };
 
         void add_geometric_vertex(Math::Vector v);
@@ -55,7 +61,7 @@ namespace Cosmos
         void add_line(line line);
         void add_face(face face);
         void add_groups(vector <string> groups);
-        void load_file(string path);
+        int32_t load_file(string path);
         vector<string> split(string str, char c = ' ');
 
         vector <Math::Vector> Vg;

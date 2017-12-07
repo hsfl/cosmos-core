@@ -116,6 +116,7 @@ vector <string> port_type_string
 */
 cosmosstruc *json_create()
 {
+    extern char etext;
     cosmosstruc *cinfo = nullptr;
     unitstruc tunit;
 
@@ -127,7 +128,7 @@ cosmosstruc *json_create()
     // Make sure it's clear
     //    memset(cinfo, 0, sizeof(cosmosstruc));
 
-
+    cinfo->meta.jmapbase = &etext;
     cinfo->meta.jmapped = 0;
     cinfo->meta.unit.resize(JSON_UNIT_COUNT);
     //    cinfo->pdata.target.resize(100);
@@ -566,7 +567,7 @@ uint16_t json_hash(string hstring)
 
 //! Enter an alias into the JSON Namespace.
 /*! See if the provided name is in the Namespace. If so, add an entry
- * for the provided alias that points to the same location.
+ * for the provided alias that vertexs to the same location.
  * \param alias Name to add as an alias.
  * \param value Either the contents of an equation, or a Namespace name that
  * should already exist in the Namespace
@@ -609,7 +610,7 @@ int32_t json_addentry(string alias, string value, cosmosmetastruc &cmeta)
             talias.type = cmeta.jmap[handle.hash][handle.index].type;
             break;
         }
-        // Place it in the Alias vector and point to it in the map
+        // Place it in the Alias vector and vertex to it in the map
         cmeta.alias.push_back(talias);
         tentry.type = JSON_TYPE_ALIAS;
         tentry.group = JSON_STRUCT_ALIAS;
@@ -690,6 +691,32 @@ int32_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, s
     return json_addentry(tentry, cmeta);
 }
 
+int32_t json_addentry(string name, uint16_t d1, uint16_t d2, const cosmosdatastrucVoid &ptr, uint16_t type, cosmosmetastruc &cmeta, uint16_t unit)
+{
+    jsonentry tentry;
+    char ename[COSMOS_MAX_NAME+1];
+
+    // Determine extended name
+    strcpy(ename,name.c_str());
+    if (d1 < 65535)
+        sprintf(&ename[strlen(ename)],"_%03u",d1);
+    if (d2 < 65535)
+        sprintf(&ename[strlen(ename)],"_%03u",d2);
+
+    // Populate the entry
+    tentry.alarm_index = 0;
+    tentry.alert_index = 0;
+    tentry.maximum_index = 0;
+    tentry.minimum_index = 0;
+    tentry.unit_index = unit;
+    tentry.type = type;
+    tentry.group = JSON_STRUCT_PTM;
+    tentry.name = ename;
+    tentry.ptr = ptr;
+
+    return json_addentry(tentry, cmeta);
+}
+
 //! Toggle the enable state of an entry in the JSON Namespace map.
 /*! Sets or clears the enabled flag for an entry in the name table.
  * The name will be of form "name" if it is a
@@ -758,27 +785,6 @@ bool json_checkentry(string name, uint16_t d1, uint16_t d2, cosmosmetastruc &cme
     {
         return false;
     }
-}
-
-//! Add an entry to the JSON Namespace map without units.
-/*! Allocates the space for a new ::jsonentry and then enters the information
- * associating a pointer with an entry in the name table. The name will be of form "name" if it is a
- * scalar, "name_iii" if it is a first level array, "name_iii_iii" if it is second
- * level, where "iii" is the zero filled index for the appropriate level.
-    \param name variable name from the JSON Data Name Space
-    \param d1 array index for first level, otherwise -1
-    \param d2 array index for second level, otherwise -1
-    \param offset Offset to the data from the beginning of its group.
-    \param size Number of bytes ::jsonentry take up.
-    \param type COSMOS JSON Data Type.
-    \param group COSMOS JSON Data Group.
-    \param cmeta Reference to ::cosmosmetastruc to use.
-    \return The current number of entries, if successful, 0 if the entry could not be
-    added, or if enough memory could not be allocated to hold the JSON stream.
-*/
-int32_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, size_t size, uint16_t type, uint16_t group, cosmosmetastruc &cmeta)
-{
-    return (json_addentry(name, d1, d2, offset, size, type, group, cmeta, 0));
 }
 
 //! Number of items in current JSON map
@@ -947,6 +953,10 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosmetas
         if ((iretn=json_out_string(jstring,(char *)data,COSMOS_MAX_NAME)) != 0)
             return (iretn);
         break;
+    case JSON_TYPE_VECTOR:
+        if ((iretn=json_out_vector(jstring,*(Vector *)data)) != 0)
+            return (iretn);
+        break;
     case JSON_TYPE_GVECTOR:
         if ((iretn=json_out_gvector(jstring,*(gvector *)data)) != 0)
             return (iretn);
@@ -967,20 +977,22 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosmetas
         if ((iretn=json_out_rmatrix(jstring,*(rmatrix *)data)) != 0)
             return (iretn);
         break;
-    case JSON_TYPE_DCM:
-        if ((iretn=json_out_dcm(jstring,*(rmatrix *)data)) != 0)
-            return (iretn);
-        break;
+//    case JSON_TYPE_DCM:
+//        if ((iretn=json_out_dcm(jstring,*(rmatrix *)data)) != 0)
+//            return (iretn);
+//        break;
     case JSON_TYPE_RVECTOR:
-    case JSON_TYPE_TVECTOR:
+//    case JSON_TYPE_TVECTOR:
         if ((iretn=json_out_rvector(jstring,*(rvector *)data)) != 0)
             return (iretn);
         break;
+    case JSON_TYPE_GEOIDPOS:
     case JSON_TYPE_POS_SELG:
     case JSON_TYPE_POS_GEOD:
         if ((iretn=json_out_geoidpos(jstring,*(geoidpos *)data)) != 0)
             return (iretn);
         break;
+    case JSON_TYPE_SPHERPOS:
     case JSON_TYPE_POS_GEOS:
         if ((iretn=json_out_spherpos(jstring,*(spherpos *)data)) != 0)
             return (iretn);
@@ -1021,7 +1033,7 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosmetas
                 return (iretn);
             break;
         }
-    case JSON_TYPE_LOC:
+    case JSON_TYPE_LOCSTRUC:
         {
             if ((iretn=json_out_locstruc(jstring,*(locstruc *)data)) != 0)
                 return (iretn);
@@ -1217,7 +1229,7 @@ int32_t json_out_uint32(string &jstring,uint32_t value)
     return (iretn);
 }
 
-//! Single precision floating point32_t to JSON
+//! Single precision floating vertex32_t to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated float.
     \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
@@ -1466,6 +1478,50 @@ int32_t json_out_avector(string &jstring, avector value)
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
         return (iretn);
+    return 0;
+}
+
+//! ::Vector to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated ::Vector.
+    \param jstring Reference to JSON stream.
+    \param value The JSON data of the desired variable
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_vector(string &jstring,Vector value)
+{
+    int32_t iretn;
+
+    if ((iretn=json_out_character(jstring,'[')) < 0)
+        return (iretn);
+
+    // Output x
+    if ((iretn=json_out_double(jstring,value.x)) < 0)
+        return (iretn);
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return (iretn);
+
+    // Output y
+    if ((iretn=json_out_double(jstring,value.y)) < 0)
+        return (iretn);
+    if ((iretn=json_out_character(jstring,',')) < 0)
+        return (iretn);
+
+    // Output z
+    if ((iretn=json_out_double(jstring,value.z)) < 0)
+        return (iretn);
+
+    // Optionally output w
+    if (value.w != 0.)
+    {
+        if ((iretn=json_out_character(jstring,',')) < 0)
+            return (iretn);
+        if ((iretn=json_out_double(jstring,value.w)) < 0)
+            return (iretn);
+    }
+
+    if ((iretn=json_out_character(jstring,']')) < 0)
+        return (iretn);
+
     return 0;
 }
 
@@ -2458,6 +2514,172 @@ int32_t json_out_wildcard(string &jstring, string wildcard, cosmosmetastruc &cme
     return (iretn);
 }
 
+//! Address from entry
+/*! Calculate the actual address of a value from its entry in the ::jmap.
+ \param entry A ::jsonentry
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+ \return A pointer, castable into any desired type.
+*/
+uint8_t *json_ptr_of_entry(const jsonentry &entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
+{
+    uint8_t *data=nullptr;
+
+    if (entry.group == JSON_STRUCT_PTM)
+    {
+        data = json_ptr_of_ptm(entry.ptr, entry.type, cdata);
+    }
+    else
+    {
+        data = json_ptr_of_offset(entry.offset, entry.group, cmeta, cdata);
+    }
+
+    return data;
+}
+
+//! Address from pointer to member
+/*! Calculate the actual address of a a member given its pointer to member.
+ \param ptm Pointer to member taken from a ::jsonentry
+    \param cdata Reference to ::cosmosdatastruc to use.
+ \return A pointer, castable into any desired type.
+*/
+uint8_t *json_ptr_of_ptm(cosmosdatastrucVoid ptm, uint16_t type, cosmosdatastruc &cdata)
+{
+    uint8_t *data=nullptr;
+
+    switch (type)
+    {
+    case JSON_TYPE_BOOL:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucBool) ptm));
+        break;
+    case JSON_TYPE_CHAR:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucChar) ptm));
+        break;
+    case JSON_TYPE_STRING:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucString) ptm));
+        break;
+    case JSON_TYPE_UINT8:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucUint8) ptm));
+        break;
+    case JSON_TYPE_UINT16:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucUint16) ptm));
+        break;
+    case JSON_TYPE_UINT32:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucUint32) ptm));
+        break;
+    case JSON_TYPE_INT16:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucInt16) ptm));
+        break;
+    case JSON_TYPE_INT32:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucInt32) ptm));
+        break;
+    case JSON_TYPE_FLOAT:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucFloat) ptm));
+        break;
+    case JSON_TYPE_DOUBLE:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucDouble) ptm));
+        break;
+    case JSON_TYPE_RVECTOR:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucRvector) ptm));
+        break;
+    case JSON_TYPE_CVECTOR:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucCvector) ptm));
+        break;
+    case JSON_TYPE_AVECTOR:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucAvector) ptm));
+        break;
+    case JSON_TYPE_SVECTOR:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucSvector) ptm));
+        break;
+    case JSON_TYPE_GVECTOR:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucGvector) ptm));
+        break;
+    case JSON_TYPE_VECTOR:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucVector) ptm));
+        break;
+    case JSON_TYPE_QUATERNION:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucQuaternion) ptm));
+        break;
+    case JSON_TYPE_RMATRIX:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucRmatrix) ptm));
+        break;
+    case JSON_TYPE_LOCSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucLocstruc) ptm));
+        break;
+    case JSON_TYPE_POSSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucPosstruc) ptm));
+        break;
+    case JSON_TYPE_CARTPOS:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucCartpos) ptm));
+        break;
+    case JSON_TYPE_GEOIDPOS:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucGeoidpos) ptm));
+        break;
+    case JSON_TYPE_SPHERPOS:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucSpherpos) ptm));
+        break;
+    case JSON_TYPE_EXTRAPOS:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucExtrapos) ptm));
+        break;
+    case JSON_TYPE_ATTSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucAttstruc) ptm));
+        break;
+    case JSON_TYPE_QATT:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucQatt) ptm));
+        break;
+    case JSON_TYPE_DCMATT:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucDcmatt) ptm));
+        break;
+    case JSON_TYPE_EXTRAATT:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucExtraatt) ptm));
+        break;
+    case JSON_TYPE_NODESTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucNodestruc) ptm));
+        break;
+    case JSON_TYPE_VERTEXSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucVertexstruc) ptm));
+        break;
+    case JSON_TYPE_FACESTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucFacestruc) ptm));
+        break;
+    case JSON_TYPE_PIECESTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucPiecestruc) ptm));
+        break;
+    case JSON_TYPE_DEVICESTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucDevicestruc) ptm));
+        break;
+    case JSON_TYPE_DEVSPECSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucDevspecstruc) ptm));
+        break;
+    case JSON_TYPE_PORTSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucPortstruc) ptm));
+        break;
+    case JSON_TYPE_PHYSICSSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucPhysicsstruc) ptm));
+        break;
+    case JSON_TYPE_AGENTSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucAgentstruc) ptm));
+        break;
+    case JSON_TYPE_EVENTSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucEventstruc) ptm));
+        break;
+    case JSON_TYPE_TARGETSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucTargetstruc) ptm));
+        break;
+    case JSON_TYPE_USERSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucUserstruc) ptm));
+        break;
+    case JSON_TYPE_GLOSSARYSTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucGlossarystruc) ptm));
+        break;
+    case JSON_TYPE_TLESTRUC:
+        data = (uint8_t *)&(cdata.*((cosmosdatastrucTlestruc) ptm));
+        break;
+    }
+
+    return data;
+}
+
 //! Address from offset
 /*! Calculate the actual address of an offset into either static or
  * dynamic space, using the provide cdata static and dynamic addresses.
@@ -2477,25 +2699,25 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosmetastruc &c
         data = offset + (uint8_t *)&cdata;
         break;
     case JSON_STRUCT_AGENT:
-        data = offset+(uint8_t *)cdata.agent.data();
+        data =  offset + (uint8_t *)cdata.agent.data();
         break;
     case JSON_STRUCT_PHYSICS:
-        data = offset+(uint8_t *)&(cdata.physics);
+        data =  offset + (uint8_t *)&(cdata.physics);
         break;
     case JSON_STRUCT_EVENT:
-        data = offset+(uint8_t *)cdata.event.data();
+        data =  offset + (uint8_t *)cdata.event.data();
         break;
     case JSON_STRUCT_NODE:
-        data = offset+(uint8_t *)&(cdata.node);
+        data =  offset + (uint8_t *)&(cdata.node);
         break;
     case JSON_STRUCT_DEVICE:
-        data = offset+(uint8_t *)cdata.device.data();
+        data =  offset + (uint8_t *)cdata.device.data();
         break;
     case JSON_STRUCT_DEVSPEC:
-        data = offset+(uint8_t *)&(cdata.devspec);
+        data =  offset + (uint8_t *)&(cdata.devspec);
         break;
     case JSON_STRUCT_PIECE:
-        data = offset + (uint8_t *)cdata.piece.data();
+        data = offset + (uint8_t *)cdata.pieces.data();
         break;
     case JSON_STRUCT_TARGET:
         data = offset + (uint8_t *)cdata.target.data();
@@ -2504,13 +2726,13 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosmetastruc &c
         data = offset + (uint8_t *)cdata.user.data();
         break;
     case JSON_STRUCT_PORT:
-        data = offset+(uint8_t *)cdata.port.data();
+        data =  offset + (uint8_t *)cdata.port.data();
         break;
     case JSON_STRUCT_GLOSSARY:
-        data = offset+(uint8_t *)cdata.glossary.data();
+        data =  offset + (uint8_t *)cdata.glossary.data();
         break;
     case JSON_STRUCT_TLE:
-        data = offset+(uint8_t *)cdata.tle.data();
+        data =  offset + (uint8_t *)cdata.tle.data();
         break;
     case JSON_STRUCT_ALIAS:
         data = (uint8_t *)&cmeta.alias[(size_t)offset];
@@ -2570,7 +2792,7 @@ int32_t json_table_of_list(vector<jsonentry*> &table, string tokens, cosmosmetas
 */
 jsonentry *json_entry_of(uint8_t *ptr, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
 {
-    uint16_t n, m;
+    uint16_t m;
     uint16_t group = UINT16_MAX;
     ptrdiff_t offset;
 
@@ -2620,7 +2842,7 @@ jsonentry *json_entry_of(uint8_t *ptr, cosmosmetastruc &cmeta, cosmosdatastruc &
 
     for (m=0; m<cmeta.jmap.size(); m++)
     {
-        for (n=0; n<cmeta.jmap[m].size(); n++)
+        for (size_t n=0; n<cmeta.jmap[m].size(); n++)
         {
             if (cmeta.jmap[m][n].group == group && cmeta.jmap[m][n].offset == offset)
             {
@@ -2641,7 +2863,7 @@ jsonentry *json_entry_of(uint8_t *ptr, cosmosmetastruc &cmeta, cosmosdatastruc &
 jsonentry *json_entry_of(string token, cosmosmetastruc &cmeta)
 {
     int16_t hash;
-    uint16_t n;
+    //    uint16_t n;
 
     if (!cmeta.jmapped)
         return nullptr;
@@ -2651,7 +2873,7 @@ jsonentry *json_entry_of(string token, cosmosmetastruc &cmeta)
     if (cmeta.jmap[hash].size() == 0)
         return ((jsonentry *)NULL);
 
-    for (n=0; n<cmeta.jmap[hash].size(); n++)
+    for (size_t n=0; n<cmeta.jmap[hash].size(); n++)
     {
         if (token == cmeta.jmap[hash][n].name)
         {
@@ -2734,7 +2956,16 @@ uint8_t *json_ptrto(string token, cosmosmetastruc &cmeta, cosmosdatastruc &cdata
     if ((ptr=json_entry_of(token, cmeta)) == NULL)
         return ((uint8_t *)NULL);
     else
-        return (json_ptr_of_offset(ptr->offset,ptr->group, cmeta, cdata));
+    {
+        if (ptr->group == JSON_STRUCT_PTM)
+        {
+            return json_ptr_of_ptm(ptr->ptr, ptr->type, cdata);
+        }
+        else
+        {
+            return (json_ptr_of_offset(ptr->offset,ptr->group, cmeta, cdata));
+        }
+    }
 }
 
 //! Return the data pointer that matches a singly indexed JSON name
@@ -3313,6 +3544,25 @@ rvector json_get_rvector(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastr
     {
         switch (entry->type)
         {
+        case JSON_TYPE_SPHERPOS:
+        case JSON_TYPE_POS_GEOS:
+            {
+                spherpos tpos = (spherpos)(*(spherpos *)(dptr));
+                value.col[0] = tpos.s.phi;
+                value.col[1] = tpos.s.lambda;
+                value.col[2] = tpos.s.r;
+            }
+            break;
+        case JSON_TYPE_GEOIDPOS:
+        case JSON_TYPE_POS_GEOD:
+        case JSON_TYPE_POS_SELG:
+            {
+                geoidpos tpos = (geoidpos)(*(geoidpos *)(dptr));
+                value.col[0] = tpos.s.lat;
+                value.col[1] = tpos.s.lon;
+                value.col[2] = tpos.s.h;
+            }
+            break;
         case JSON_TYPE_CARTPOS:
         case JSON_TYPE_POS_GEOC:
         case JSON_TYPE_POS_SELC:
@@ -3324,8 +3574,9 @@ rvector json_get_rvector(jsonentry *entry, cosmosmetastruc &cmeta, cosmosdatastr
                 value = tpos.s;
             }
             break;
+        case JSON_TYPE_VECTOR:
         case JSON_TYPE_RVECTOR:
-        case JSON_TYPE_TVECTOR:
+//        case JSON_TYPE_TVECTOR:
         case JSON_TYPE_CVECTOR:
         case JSON_TYPE_SVECTOR:
         case JSON_TYPE_AVECTOR:
@@ -3438,7 +3689,7 @@ quaternion json_get_quaternion(jsonentry *entry, cosmosmetastruc &cmeta, cosmosd
             value = (quaternion)(*(quaternion *)(dptr));
             break;
         case JSON_TYPE_RVECTOR:
-        case JSON_TYPE_TVECTOR:
+//        case JSON_TYPE_TVECTOR:
             {
                 rvector tvalue = (rvector)(*(rvector *)(dptr));
                 value.d.x = tvalue.col[0];
@@ -3877,7 +4128,7 @@ double json_equation(const char* &ptr, cosmosmetastruc &cmeta, cosmosdatastruc &
 
 //! Return the results of a known JSON equation handle
 /*! Calculate a ::json_equation using already looked up values for the hash and index.
-    \param handle Values for hash and index that point to an entry in the map.
+    \param handle Values for hash and index that vertex to an entry in the map.
     \param cmeta Reference to ::cosmosmetastruc to use.
     \param cdata Reference to ::cosmosdatastruc to use.
 
@@ -4155,7 +4406,7 @@ double json_convert_double(string object)
  */
 int32_t json_tokenize(string jstring, cosmosmetastruc &cmeta, vector<jsontoken> &tokens)
 {
-    const char *cpoint;
+    const char *cvertex;
     size_t length;
     int32_t iretn;
     jsontoken ttoken;
@@ -4172,15 +4423,15 @@ int32_t json_tokenize(string jstring, cosmosmetastruc &cmeta, vector<jsontoken> 
     }
 
     length = jstring.size();
-    cpoint = &jstring[0];
-    while (*cpoint != 0 && *cpoint != '{')
-        cpoint++;
+    cvertex = &jstring[0];
+    while (*cvertex != 0 && *cvertex != '{')
+        cvertex++;
     tokens.clear();
     do
     {
-        if (*cpoint != 0)
+        if (*cvertex != 0)
         {
-            if ((iretn = json_tokenize_namedobject(cpoint, cmeta, ttoken)) < 0)
+            if ((iretn = json_tokenize_namedobject(cvertex, cmeta, ttoken)) < 0)
             {
                 if (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP)
                     iretn = 0;
@@ -4192,7 +4443,7 @@ int32_t json_tokenize(string jstring, cosmosmetastruc &cmeta, vector<jsontoken> 
         }
         else
             iretn = JSON_ERROR_EOS;
-    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
+    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cvertex != 0 && (size_t)(cvertex-&jstring[0]) <= length);
 
     if (!iretn) iretn = (int32_t)tokens.size();
     return (iretn);
@@ -4354,22 +4605,22 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosmetastruc &cmeta, json
 */
 int32_t json_parse(string jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
 {
-    const char *cpoint;
+    const char *cvertex;
     size_t length;
     int32_t iretn;
     uint32_t count = 0;
 
     length = jstring.size();
-    cpoint = &jstring[0];
-    while (*cpoint != 0 && *cpoint != '{')
-        cpoint++;
+    cvertex = &jstring[0];
+    while (*cvertex != 0 && *cvertex != '{')
+        cvertex++;
     do
     {
         // is this the only reference to endlines?
-        if (*cpoint != 0)// && *cpoint != '\r' && *cpoint != '\n')
-            //if (*cpoint != 0 && *cpoint != '\r' && *cpoint != '\n')
+        if (*cvertex != 0)// && *cvertex != '\r' && *cvertex != '\n')
+            //if (*cvertex != 0 && *cvertex != '\r' && *cvertex != '\n')
         {
-            if ((iretn = json_parse_namedobject(cpoint, cmeta, cdata)) < 0)
+            if ((iretn = json_parse_namedobject(cvertex, cmeta, cdata)) < 0)
             {
                 if (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP)
                     iretn = 0;
@@ -4381,7 +4632,7 @@ int32_t json_parse(string jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdat
         }
         else
             iretn = JSON_ERROR_EOS;
-    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
+    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cvertex != 0 && (size_t)(cvertex-&jstring[0]) <= length);
 
     if (iretn >= 0)
     {
@@ -4402,7 +4653,7 @@ int32_t json_parse(string jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdat
 */
 int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
 {
-    uint32_t hash, n;
+    uint32_t hash;
     int32_t iretn=0;
     string ostring;
 
@@ -4439,6 +4690,7 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosd
     hash = json_hash(ostring);
 
     // See if there is a match in the ::jsonmap.
+    size_t n;
     for (n=0; n<cmeta.jmap[hash].size(); ++n)	{
         if (ostring == cmeta.jmap[hash][n].name)
         {
@@ -4516,12 +4768,23 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosmetastruc &cmeta, cosmosd
 */
 int32_t json_skip_character(const char* &ptr, const char character)
 {
+    int32_t iretn;
+
+    iretn = json_skip_white(ptr);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
 
     if (ptr[0] == 0)
+    {
         return (JSON_ERROR_EOS);
+    }
 
     if (ptr[0] != character)
+    {
         return (JSON_ERROR_SCAN);
+    }
     ptr++;
 
     return (0);
@@ -4970,23 +5233,49 @@ int32_t json_set_number(double val, uint16_t type, ptrdiff_t offset, uint16_t gr
     return (iretn);
 }
 
+int32_t json_parse_value(const char* &ptr, const jsonentry &entry, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
+{
+    uint8_t *data;
+    int32_t iretn=0;
+
+    if (entry.group == JSON_STRUCT_PTM)
+    {
+        data = json_ptr_of_ptm(entry.ptr, entry.type, cdata);
+    }
+    else
+    {
+        data = json_ptr_of_offset(entry.offset, entry.group, cmeta, cdata);
+    }
+
+    iretn = json_parse_value(ptr, entry.type, data, cmeta, cdata);
+    return iretn;
+}
+
 int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
 {
-    string input;
+    uint8_t *data;
     int32_t iretn = 0;
+
+    if (ptr[0] == 0)
+        return (JSON_ERROR_EOS);
+
+    data = json_ptr_of_offset(offset, group, cmeta, cdata);
+
+    iretn = json_parse_value(ptr, type, data, cmeta, cdata);
+    return iretn;
+}
+
+int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
+{
+    int32_t iretn=0;
+    string input;
     double val;
     cartpos *rp;
     geoidpos *gp;
     spherpos *sp;
     dcmatt *ra;
     qatt *qa;
-    uint8_t *data;
     string empty;
-
-    if (ptr[0] == 0)
-        return (JSON_ERROR_EOS);
-
-    data = json_ptr_of_offset(offset, group, cmeta, cdata);
 
     //Skip whitespace before value
     if ((iretn = json_skip_white(ptr)) < 0)
@@ -5098,19 +5387,19 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(gvector,lat),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(gvector,lat), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(gvector,lon),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(gvector,lon), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(gvector,h),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(gvector,h), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5120,19 +5409,19 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(avector,h),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(avector,h), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(avector,e),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(avector,e), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(avector,b),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(avector,b), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5142,36 +5431,61 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(cvector,x),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cvector,x), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(cvector,y),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cvector,y), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(cvector,z),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cvector,z), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
         break;
-    case JSON_TYPE_RVECTOR:
-    case JSON_TYPE_TVECTOR:
+    case JSON_TYPE_VECTOR:
         if ((iretn = json_skip_character(ptr,'[')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(rvector,col[0]),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Vector,x), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(rvector,col[1]),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Vector,y), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(rvector,col[2]),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Vector,z), cmeta, cdata)) < 0)
+            return (iretn);
+        if ((iretn = json_skip_character(ptr,']')) < 0)
+        {
+            if ((iretn = json_skip_character(ptr,',')) < 0)
+                return (iretn);
+            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Vector,w), cmeta, cdata)) < 0)
+                return (iretn);
+            if ((iretn = json_skip_character(ptr,']')) < 0)
+            {
+                return (iretn);
+            }
+        }
+        break;
+    case JSON_TYPE_RVECTOR:
+//    case JSON_TYPE_TVECTOR:
+        if ((iretn = json_skip_character(ptr,'[')) < 0)
+            return (iretn);
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(rvector,col[0]), cmeta, cdata)) < 0)
+            return (iretn);
+        if ((iretn = json_skip_character(ptr,',')) < 0)
+            return (iretn);
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(rvector,col[1]), cmeta, cdata)) < 0)
+            return (iretn);
+        if ((iretn = json_skip_character(ptr,',')) < 0)
+            return (iretn);
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(rvector,col[2]), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,']')) < 0)
             return (iretn);
@@ -5181,13 +5495,13 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CVECTOR,offset+(ptrdiff_t)offsetof(quaternion,d),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CVECTOR, data+(ptrdiff_t)offsetof(quaternion,d), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(quaternion,w),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(quaternion,w), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5195,39 +5509,40 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
     case JSON_TYPE_RMATRIX:
         if ((iretn = json_skip_character(ptr,'[')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(rmatrix,row[0]),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[0]), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(rmatrix,row[1]),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[1]), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(rmatrix,row[2]),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[2]), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(rmatrix,row[3]),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[3]), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,']')) < 0)
             return (iretn);
         break;
-    case JSON_TYPE_DCM:
-        if ((iretn = json_skip_character(ptr,'[')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(rmatrix,row[0]),group, cmeta, cdata)) < 0)
-            return (iretn);
-        if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(rmatrix,row[1]),group, cmeta, cdata)) < 0)
-            return (iretn);
-        if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(rmatrix,row[2]),group, cmeta, cdata)) < 0)
-            return (iretn);
-        if ((iretn = json_skip_character(ptr,']')) < 0)
-            return (iretn);
-        break;
+//    case JSON_TYPE_DCM:
+//        if ((iretn = json_skip_character(ptr,'[')) < 0)
+//            return (iretn);
+//        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[0]), cmeta, cdata)) < 0)
+//            return (iretn);
+//        if ((iretn = json_skip_character(ptr,',')) < 0)
+//            return (iretn);
+//        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[1]), cmeta, cdata)) < 0)
+//            return (iretn);
+//        if ((iretn = json_skip_character(ptr,',')) < 0)
+//            return (iretn);
+//        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[2]), cmeta, cdata)) < 0)
+//            return (iretn);
+//        if ((iretn = json_skip_character(ptr,']')) < 0)
+//            return (iretn);
+//        break;
+    case JSON_TYPE_GEOIDPOS:
     case JSON_TYPE_POS_SELG:
     case JSON_TYPE_POS_GEOD:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
@@ -5239,7 +5554,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         gp->utc = 0.;
         if (input == "utc")
         {
-            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(cartpos,utc),group, cmeta, cdata)) < 0)
+            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cartpos,utc), cmeta, cdata)) < 0)
                 return (iretn);
             if ((iretn = json_skip_character(ptr,',')) < 0)
                 return (iretn);
@@ -5251,19 +5566,19 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             gp->utc = currentmjd(cdata.node.utcoffset);
         }
 
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR,offset+(ptrdiff_t)offsetof(geoidpos,s),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(geoidpos,s), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR,offset+(ptrdiff_t)offsetof(geoidpos,v),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(geoidpos,v), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR,offset+(ptrdiff_t)offsetof(geoidpos,a),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(geoidpos,a), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5278,6 +5593,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             break;
         }
         break;
+    case JSON_TYPE_SPHERPOS:
     case JSON_TYPE_POS_GEOS:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
             return (iretn);
@@ -5288,7 +5604,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         sp->utc = 0.;
         if (input == "utc")
         {
-            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(cartpos,utc),group, cmeta, cdata)) < 0)
+            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cartpos,utc), cmeta, cdata)) < 0)
                 return (iretn);
             if ((iretn = json_skip_character(ptr,',')) < 0)
                 return (iretn);
@@ -5300,19 +5616,19 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             sp->utc = currentmjd(cdata.node.utcoffset);
         }
 
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR,offset+(ptrdiff_t)offsetof(spherpos,s),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(spherpos,s), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR,offset+(ptrdiff_t)offsetof(spherpos,v),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(spherpos,v), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR,offset+(ptrdiff_t)offsetof(spherpos,a),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(spherpos,a), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5334,7 +5650,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         rp->utc = 0.;
         if (input == "utc")
         {
-            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(cartpos,utc),group, cmeta, cdata)) < 0)
+            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cartpos,utc), cmeta, cdata)) < 0)
                 return (iretn);
             if ((iretn = json_skip_character(ptr,',')) < 0)
                 return (iretn);
@@ -5346,19 +5662,19 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             rp->utc = currentmjd(cdata.node.utcoffset);
         }
 
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(cartpos,s),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(cartpos,s), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(cartpos,v),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(cartpos,v), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(cartpos,a),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(cartpos,a), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5387,19 +5703,19 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DCM,offset+(ptrdiff_t)offsetof(dcmatt,s),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RMATRIX, data+(ptrdiff_t)offsetof(dcmatt,s), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(dcmatt,v),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(dcmatt,v), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(dcmatt,a),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(dcmatt,a), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5421,7 +5737,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
         qa->utc = 0.;
         if (input == "utc")
         {
-            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(qatt,utc),group, cmeta, cdata)) < 0)
+            if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(qatt,utc), cmeta, cdata)) < 0)
                 return (iretn);
             if ((iretn = json_skip_character(ptr,',')) < 0)
                 return (iretn);
@@ -5433,19 +5749,19 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             qa->utc = currentmjd(cdata.node.utcoffset);
         }
 
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_QUATERNION,offset+(ptrdiff_t)offsetof(qatt,s),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_QUATERNION, data+(ptrdiff_t)offsetof(qatt,s), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(qatt,v),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(qatt,v), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
         if ((iretn = json_parse_name(ptr, empty)) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(qatt,a),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(qatt,a), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5478,7 +5794,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(beatstruc,utc),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(beatstruc,utc), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5488,7 +5804,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_STRING,offset+(ptrdiff_t)offsetof(beatstruc,node),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_STRING, data+(ptrdiff_t)offsetof(beatstruc,node), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5498,7 +5814,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_STRING,offset+(ptrdiff_t)offsetof(beatstruc,proc),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_STRING, data+(ptrdiff_t)offsetof(beatstruc,proc), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5508,7 +5824,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_INT32,offset+(ptrdiff_t)offsetof(beatstruc,ntype),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_INT32, data+(ptrdiff_t)offsetof(beatstruc,ntype), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5518,7 +5834,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_STRING,offset+(ptrdiff_t)offsetof(beatstruc,addr),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_STRING, data+(ptrdiff_t)offsetof(beatstruc,addr), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5528,7 +5844,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_INT32,offset+(ptrdiff_t)offsetof(beatstruc,port),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_INT32, data+(ptrdiff_t)offsetof(beatstruc,port), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5538,7 +5854,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_INT32,offset+(ptrdiff_t)offsetof(beatstruc,bsz),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_INT32, data+(ptrdiff_t)offsetof(beatstruc,bsz), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5548,7 +5864,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(beatstruc,bprd),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(beatstruc,bprd), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5562,7 +5878,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(posstruc,utc),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(posstruc,utc), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5572,7 +5888,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS,offset+(ptrdiff_t)offsetof(posstruc,icrf),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,icrf), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5582,7 +5898,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS,offset+(ptrdiff_t)offsetof(posstruc,eci),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,eci), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5592,7 +5908,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS,offset+(ptrdiff_t)offsetof(posstruc,sci),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,sci), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5602,7 +5918,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS,offset+(ptrdiff_t)offsetof(posstruc,geoc),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,geoc), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5612,7 +5928,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS,offset+(ptrdiff_t)offsetof(posstruc,selc),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,selc), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5622,7 +5938,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD,offset+(ptrdiff_t)offsetof(posstruc,geod),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD, data+(ptrdiff_t)offsetof(posstruc,geod), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5632,7 +5948,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD,offset+(ptrdiff_t)offsetof(posstruc,selg),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD, data+(ptrdiff_t)offsetof(posstruc,selg), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5642,12 +5958,12 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOS,offset+(ptrdiff_t)offsetof(posstruc,geos),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOS, data+(ptrdiff_t)offsetof(posstruc,geos), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
         break;
-    case JSON_TYPE_LOC:
+    case JSON_TYPE_LOCSTRUC:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
             return (iretn);
         if ((iretn = json_extract_string(ptr, empty)) < 0)
@@ -5656,7 +5972,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE,offset+(ptrdiff_t)offsetof(locstruc,utc),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(locstruc,utc), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5666,7 +5982,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POSSTRUC,offset+(ptrdiff_t)offsetof(locstruc,pos),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POSSTRUC, data+(ptrdiff_t)offsetof(locstruc,pos), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5676,7 +5992,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_ATTSTRUC,offset+(ptrdiff_t)offsetof(locstruc,att),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_ATTSTRUC, data+(ptrdiff_t)offsetof(locstruc,att), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,',')) < 0)
             return (iretn);
@@ -5686,7 +6002,7 @@ int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint
             return (iretn);
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return (iretn);
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR,offset+(ptrdiff_t)offsetof(locstruc,bearth),group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(locstruc,bearth), cmeta, cdata)) < 0)
             return (iretn);
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return (iretn);
@@ -5724,8 +6040,8 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosmetastruc &cmeta, cosmosdatas
         //        memset(cdata.event.data(),0,cdata.event.size()*sizeof(eventstruc));
         break;
     case JSON_STRUCT_PIECE:
-        cdata.piece.clear();
-        //        memset(cdata.piece.data(),0,cdata.piece.size()*sizeof(piecestruc));
+        cdata.pieces.clear();
+        //        memset(cdata.pieces.data(),0,cdata.pieces.size()*sizeof(piecestruc));
         break;
     case JSON_STRUCT_DEVICE:
         cdata.device.clear();
@@ -5907,6 +6223,44 @@ int32_t json_load_node(string node, jsonnode &json)
     json_out_utcstart(json.utcstart, utcstart);
 
     // Second: enter information for pieces
+    fname = nodepath + "/vertices.ini";
+    if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+    {
+        return (NODE_ERROR_NODE);
+    }
+
+    ifs.open(fname);
+    if (!ifs.is_open())
+    {
+        return (NODE_ERROR_NODE);
+    }
+
+    ibuf = (char *)calloc(1,fstat.st_size+1);
+    ifs.read(ibuf, fstat.st_size);
+    ifs.close();
+    ibuf[fstat.st_size] = 0;
+    json.pieces = ibuf;
+    free(ibuf);
+
+    fname = nodepath + "/faces.ini";
+    if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+    {
+        return (NODE_ERROR_NODE);
+    }
+
+    ifs.open(fname);
+    if (!ifs.is_open())
+    {
+        return (NODE_ERROR_NODE);
+    }
+
+    ibuf = (char *)calloc(1,fstat.st_size+1);
+    ifs.read(ibuf, fstat.st_size);
+    ifs.close();
+    ibuf[fstat.st_size] = 0;
+    json.pieces = ibuf;
+    free(ibuf);
+
     fname = nodepath + "/pieces.ini";
     if ((iretn=stat(fname.c_str(),&fstat)) == -1)
     {
@@ -6018,6 +6372,118 @@ int32_t json_load_node(string node, jsonnode &json)
             json.aliases = ibuf;
             free(ibuf);
         }
+    }
+    return 0;
+}
+
+int32_t json_recenter_node(cosmosdatastruc &cdata)
+{
+    // Calculate centroid, normal and area for each face
+    for (size_t i=0; i<cdata.faces.size(); ++i)
+    {
+        Vector fcentroid = cdata.vertexs[cdata.faces[i].vertex_idx[0]];
+        Vector v1 = cdata.vertexs[cdata.faces[i].vertex_idx[0]] - cdata.vertexs[cdata.faces[i].vertex_idx[cdata.faces[i].vertex_cnt-1]];
+        Vector v2 = cdata.vertexs[cdata.faces[i].vertex_idx[1]] - cdata.vertexs[cdata.faces[i].vertex_idx[0]];
+        Vector fnormal = v1.cross(v2);
+        for (size_t j=1; j<cdata.faces[i].vertex_cnt; ++j)
+        {
+            fcentroid += cdata.vertexs[cdata.faces[i].vertex_idx[j]];
+            v1 = v2;
+            v2 = cdata.vertexs[cdata.faces[i].vertex_idx[j]] - cdata.vertexs[cdata.faces[i].vertex_idx[j-1]];
+            fnormal += v1.cross(v2);
+        }
+        fcentroid /= cdata.faces[i].vertex_cnt;
+        cdata.faces[i].normal = fnormal.normalize();
+
+        cdata.faces[i].com = Math::Vector();
+        cdata.faces[i].area = 0.;
+        v1 = cdata.vertexs[cdata.faces[i].vertex_idx[cdata.faces[i].vertex_cnt-1]] - fcentroid;
+        for (size_t j=0; j<cdata.faces[i].vertex_cnt; ++j)
+        {
+            v2 = cdata.vertexs[cdata.faces[i].vertex_idx[j]] - fcentroid;
+            // Area of triangle made by v1, v2 and Face centroid
+            double tarea = v1.area(v2);
+            // Sum
+            cdata.faces[i].area += tarea;
+            // Centroid of triangle made by v1, v2 amd Face centroid
+            Vector tcentroid = (v1 + v2 + fcentroid) / 3.;
+            // Weighted sum
+            cdata.faces[i].com += tarea * tcentroid;
+            v1 = v2;
+        }
+        // Divide by summed weights
+        if (cdata.faces[i].area)
+        {
+            cdata.faces[i].com /= cdata.faces[i].area;
+        }
+    }
+
+    Vector tcom = Vector();
+    double tvolume = 0.;
+    for (size_t i=0; i<cdata.pieces.size(); ++i)
+    {
+        // Calculate center of mass for each Piece using Faces
+        cdata.pieces[i].com = Math::Vector();
+        if (cdata.pieces[i].face_cnt)
+        {
+            for (size_t j=0; j<cdata.pieces[i].face_cnt; ++j)
+            {
+                cdata.pieces[i].com += cdata.faces[abs(cdata.pieces[i].face_idx[j])].com;
+            }
+            cdata.pieces[i].com /= cdata.pieces[i].face_cnt;
+        }
+
+        // Calculate volume for each Piece using center of mass for each Face
+        // Calculate normal for each Face that faces away from center of piece, or center of object
+        cdata.pieces[i].volume = 0.;
+        for (size_t j=0; j<cdata.pieces[i].face_cnt; ++j)
+        {
+            Vector dv = cdata.faces[abs(cdata.pieces[i].face_idx[j])].com - cdata.pieces[i].com;
+            if (dv.norm() != 0.)
+            {
+                cdata.pieces[i].volume += cdata.faces[abs(cdata.pieces[i].face_idx[j])].area * dv.norm() / 3.;
+                if (dv.separation(cdata.faces[abs(cdata.pieces[i].face_idx[j])].normal) > DPI2)
+                {
+                    cdata.pieces[i].face_idx[j] = -abs(cdata.pieces[i].face_idx[j]);
+                }
+            }
+        }
+        tvolume += cdata.pieces[i].volume;
+        tcom += cdata.pieces[i].volume * cdata.pieces[i].com;
+    }
+    if (tvolume)
+    {
+        tcom /= tvolume;
+    }
+
+    // Calculate special norm for external panels
+    for (size_t i=0; i<cdata.pieces.size(); ++i)
+    {
+        if (cdata.pieces[i].face_cnt == 1)
+        {
+            Vector dv = cdata.faces[abs(cdata.pieces[i].face_idx[0])].com - tcom;
+            if (dv.separation(cdata.faces[abs(cdata.pieces[i].face_idx[0])].normal) > DPI2)
+            {
+                cdata.pieces[i].face_idx[0] = -abs(cdata.pieces[i].face_idx[0]);
+            }
+        }
+    }
+
+    // Recenter all vectors to object center of mass
+    for (size_t i=0; i<cdata.vertexs.size(); ++i)
+    {
+        cdata.vertexs[i] -= tcom;
+    }
+
+    for (size_t i=0; i<cdata.faces.size(); ++i)
+    {
+        cdata.faces[i].com -= tcom;
+        cdata.faces[i].normal -= tcom;
+    }
+
+    for (size_t i=0; i<cdata.pieces.size(); ++i)
+    {
+        cdata.pieces[i].com -= tcom;
     }
     return 0;
 }
@@ -6240,21 +6706,23 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
     // Second: enter information for pieces
     // Resize, then add entries to map for pieces
+    cinfo->pdata.pieces.clear();
     if (cinfo->pdata.node.piece_cnt)
     {
-        cinfo->pdata.piece.resize(cinfo->pdata.node.piece_cnt);
-        if (cinfo->pdata.piece.size() != cinfo->pdata.node.piece_cnt)
+        cinfo->pdata.pieces.resize(cinfo->pdata.node.piece_cnt);
+        if (cinfo->pdata.pieces.size() != cinfo->pdata.node.piece_cnt)
         {
             return (AGENT_ERROR_MEMORY);
         }
         for (uint16_t i=0; i<cinfo->pdata.node.piece_cnt; i++)
         {
             // Initialize to disabled
-            cinfo->pdata.piece[i].enabled = false;
+            cinfo->pdata.pieces[i].enabled = false;
+            cinfo->pdata.pieces[i].face_cnt = 0;
             //Add relevant names to namespace
             json_addpieceentry(i, cinfo->meta);
             // Initialize to no component
-            cinfo->pdata.piece[i].cidx = (uint16_t)DeviceType::NONE;
+            cinfo->pdata.pieces[i].cidx = (uint16_t)DeviceType::NONE;
         }
 
         // Parse data for piece information
@@ -6269,7 +6737,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         // Work through jmap, enabling each piece for which piece_type has been enabled
         for (size_t i=0; i<cinfo->pdata.node.piece_cnt; i++)
         {
-            cinfo->pdata.piece[i].enabled = json_checkentry("piece_type", i, UINT16_MAX, cinfo->meta);
+            cinfo->pdata.pieces[i].enabled = json_checkentry("piece_type", i, UINT16_MAX, cinfo->meta);
         }
 
         // Third: enter information for all devices
@@ -6475,6 +6943,28 @@ int32_t json_dump_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
     fputs(output.c_str(), file);
     fclose(file);
 
+    // Vertices
+    output = json_vertices(jst, cmeta, cdata);
+    filename = fileloc + "/vertices.ini";
+    file = fopen(filename.c_str(), "w");
+    if (file == NULL)
+    {
+        return -errno;
+    }
+    fputs(output.c_str(), file);
+    fclose(file);
+
+    // cdata.faces
+    output = json_faces(jst, cmeta, cdata);
+    filename = fileloc + "/faces.ini";
+    file = fopen(filename.c_str(), "w");
+    if (file == NULL)
+    {
+        return -errno;
+    }
+    fputs(output.c_str(), file);
+    fclose(file);
+
     // Pieces
     output = json_pieces(jst, cmeta, cdata);
     filename = fileloc + "/pieces.ini";
@@ -6542,6 +7032,44 @@ int32_t json_dump_node(cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
     return 0;
 }
 
+//! Create new piece
+/*! Take an empty ::piecestruc and fill it with the provided information, generating the vertexs for
+ * the indicated type.
+ * \param type JSON PIECE_TYPE
+ * \param emi Emissivity
+ * \param abs Absorbtivity
+ * \param hcap Heat capacity
+ * \param hcon Heat conductivity
+ * \param density Density
+ * \return Zero, or negative error
+ */
+int32_t json_addpiece(cosmosdatastruc &cdata, string name, uint16_t type, uint16_t cidx, double emi, double abs, double hcap, double hcon, double density)
+{
+    for (size_t i=0; i<cdata.pieces.size(); ++i)
+    {
+        if (name == cdata.pieces[i].name)
+        {
+            return i;
+        }
+    }
+
+    piecestruc piece;
+    strncpy(piece.name, name.c_str(), COSMOS_MAX_NAME);
+    piece.emi = emi;
+    piece.abs = abs;
+    piece.density = density;
+    piece.hcap = hcap;
+    piece.hcon = hcon;
+    piece.type = type;
+    piece.cidx = cidx;
+    piece.enabled = true;
+    piece.face_cnt = 0;
+    cdata.pieces.push_back(piece);
+    cdata.node.piece_cnt = cdata.pieces.size();
+
+    return (cdata.pieces.size() - 1);
+}
+
 //! Add base entries to JMAP
 /*! Add all of the base entries to the Namespace map.
 *	\param cmeta Reference to ::cosmosmetastruc to use.
@@ -6552,183 +7080,233 @@ int32_t json_addbaseentry(cosmosmetastruc &cmeta)
     int32_t iretn;
 
     // User structure
-    iretn = json_addentry("user_node", UINT16_MAX, UINT16_MAX,offsetof(userstruc,node),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_USER, cmeta);
-    json_addentry("user_name", UINT16_MAX, UINT16_MAX,offsetof(userstruc,name),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_USER, cmeta);
-    json_addentry("user_tool", UINT16_MAX, UINT16_MAX,offsetof(userstruc,tool),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_USER, cmeta);
-    json_addentry("user_cpu", UINT16_MAX, UINT16_MAX,offsetof(userstruc,cpu),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_USER, cmeta);
+    iretn = json_addentry("user_node", UINT16_MAX, UINT16_MAX,offsetof(userstruc,node),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_USER, cmeta);
+    json_addentry("user_name", UINT16_MAX, UINT16_MAX,offsetof(userstruc,name),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_USER, cmeta);
+    json_addentry("user_tool", UINT16_MAX, UINT16_MAX,offsetof(userstruc,tool),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_USER, cmeta);
+    json_addentry("user_cpu", UINT16_MAX, UINT16_MAX,offsetof(userstruc,cpu),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_USER, cmeta);
 
 
     // Agent structure
-    json_addentry("agent_addr", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,addr),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_aprd", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,aprd),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_AGENT, cmeta, JSON_UNIT_TIME);
-    json_addentry("agent_beat", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat),COSMOS_SIZEOF(beatstruc), (uint16_t)JSON_TYPE_HBEAT,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_bprd", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,bprd),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_AGENT, cmeta, JSON_UNIT_TIME);
-    json_addentry("agent_bsz", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,bsz), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_AGENT, cmeta, JSON_UNIT_BYTES);
-    json_addentry("agent_node", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,node),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_ntype", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,ntype), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_pid", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,pid),4, (uint16_t)JSON_TYPE_INT32,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_port", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,port), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_proc", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,proc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_stateflag", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,stateflag), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_user", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,user),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_utc", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,utc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_AGENT, cmeta, JSON_UNIT_DATE);
-    json_addentry("agent_cpu", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,cpu),COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_AGENT, cmeta);
-    json_addentry("agent_memory", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,memory),COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_AGENT, cmeta, JSON_UNIT_BYTES);
-    json_addentry("agent_jitter", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,jitter),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_addr", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,addr),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_aprd", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,aprd), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_AGENT, cmeta, JSON_UNIT_TIME);
+    json_addentry("agent_beat", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat), COSMOS_SIZEOF(beatstruc), (uint16_t)JSON_TYPE_HBEAT, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_bprd", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,bprd), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_AGENT, cmeta, JSON_UNIT_TIME);
+    json_addentry("agent_bsz", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,bsz), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_AGENT, cmeta, JSON_UNIT_BYTES);
+    json_addentry("agent_node", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,node),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_ntype", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,ntype), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_pid", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,pid),4, (uint16_t)JSON_TYPE_INT32, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_port", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,port), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_proc", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,proc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_stateflag", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,stateflag), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_user", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,user),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_utc", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,utc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_AGENT, cmeta, JSON_UNIT_DATE);
+    json_addentry("agent_cpu", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,cpu), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_AGENT, cmeta);
+    json_addentry("agent_memory", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,memory), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_AGENT, cmeta, JSON_UNIT_BYTES);
+    json_addentry("agent_jitter", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,jitter), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_AGENT, cmeta);
 
     // Event structure
-    json_addentry("event_cbytes", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cbytes), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_BYTES);
-    json_addentry("event_cenergy", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cenergy), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_ENERGY);
-    json_addentry("event_cmass", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cmass), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_MASS);
-    json_addentry("event_condition", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,condition),COSMOS_MAX_DATA, (uint16_t)JSON_TYPE_STRING,JSON_STRUCT_EVENT, cmeta);
-    json_addentry("event_ctime", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,ctime),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_TIME);
-    json_addentry("event_data", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,data),COSMOS_MAX_DATA, (uint16_t)JSON_TYPE_STRING,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_BYTES);
-    json_addentry("event_dbytes", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,dbytes), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_BYTES);
-    json_addentry("event_denergy", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,denergy), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_ENERGY);
-    json_addentry("event_dmass", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,dmass), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_MASS);
-    json_addentry("event_dtime", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,dtime),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_TIME);
-    json_addentry("event_flag", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,flag), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_EVENT, cmeta);
-    json_addentry("event_name", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,name),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_EVENT, cmeta);
-    json_addentry("event_node", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,node),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_EVENT, cmeta);
-    json_addentry("event_type", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,type), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_EVENT, cmeta);
-    json_addentry("event_user", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,user),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_EVENT, cmeta);
-    json_addentry("event_utc", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,utc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_DATE);
-    json_addentry("event_utcexec", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,utcexec),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_EVENT, cmeta, JSON_UNIT_DATE);
-    json_addentry("event_value", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,value),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_EVENT, cmeta);
+    json_addentry("event_cbytes", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cbytes), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_BYTES);
+    json_addentry("event_cenergy", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cenergy), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_ENERGY);
+    json_addentry("event_cmass", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cmass), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_MASS);
+    json_addentry("event_condition", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,condition),COSMOS_MAX_DATA, (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_EVENT, cmeta);
+    json_addentry("event_ctime", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,ctime), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_TIME);
+    json_addentry("event_data", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,data),COSMOS_MAX_DATA, (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_BYTES);
+    json_addentry("event_dbytes", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,dbytes), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_BYTES);
+    json_addentry("event_denergy", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,denergy), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_ENERGY);
+    json_addentry("event_dmass", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,dmass), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_MASS);
+    json_addentry("event_dtime", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,dtime), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_TIME);
+    json_addentry("event_flag", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,flag), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_EVENT, cmeta);
+    json_addentry("event_name", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,name),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_EVENT, cmeta);
+    json_addentry("event_node", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,node),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_EVENT, cmeta);
+    json_addentry("event_type", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,type), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_EVENT, cmeta);
+    json_addentry("event_user", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,user),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_EVENT, cmeta);
+    json_addentry("event_utc", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,utc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_DATE);
+    json_addentry("event_utcexec", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,utcexec), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cmeta, JSON_UNIT_DATE);
+    json_addentry("event_value", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,value), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cmeta);
 
     // Physics structure
-    json_addentry("physics_dt", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,dt),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TIME);
-    json_addentry("physics_dtj", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,dtj),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_DATE);
-    json_addentry("physics_mjdbase", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mjdbase),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_DATE);
-    json_addentry("physics_mjdaccel", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mjdaccel),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_DATE);
-    json_addentry("physics_mjddiff", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mjddiff),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_DATE);
-    json_addentry("physics_mode", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mode),4, (uint16_t)JSON_TYPE_INT32,JSON_STRUCT_PHYSICS, cmeta);
-    json_addentry("physics_thrust", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,thrust),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_FORCE);
-    json_addentry("physics_adrag", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,adrag),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_FORCE);
-    json_addentry("physics_rdrag", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,rdrag),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_FORCE);
-    json_addentry("physics_atorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,atorque),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
-    json_addentry("physics_rtorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,rtorque),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
-    json_addentry("physics_gtorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,gtorque),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
-    json_addentry("physics_htorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,htorque),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
-    json_addentry("physics_ctorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ctorque),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
-    json_addentry("physics_ftorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
-    json_addentry("physics_ftorque_x", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque.col[0]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
-    json_addentry("physics_ftorque_y", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque.col[1]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
-    json_addentry("physics_ftorque_z", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque.col[2]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
-    json_addentry("physics_hcap", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,hcap), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PHYSICS, cmeta);
-    json_addentry("physics_area", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,area), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_AREA);
-    json_addentry("physics_moi", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,moi),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_MOI);
-    json_addentry("physics_com", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,com),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_LENGTH);
-    json_addentry("physics_mass", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mass), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_MASS);
-    json_addentry("physics_heat", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,heat), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PHYSICS, cmeta);
+    json_addentry("physics_dt", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,dt), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TIME);
+    json_addentry("physics_dtj", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,dtj), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_DATE);
+    json_addentry("physics_mjdbase", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mjdbase), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_DATE);
+    json_addentry("physics_mjdaccel", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mjdaccel), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_DATE);
+    json_addentry("physics_mjddiff", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mjddiff), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_DATE);
+    json_addentry("physics_mode", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mode),4, (uint16_t)JSON_TYPE_INT32, JSON_STRUCT_PHYSICS, cmeta);
+    json_addentry("physics_thrust", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,thrust), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_FORCE);
+    json_addentry("physics_adrag", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,adrag), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_FORCE);
+    json_addentry("physics_rdrag", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,rdrag), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_FORCE);
+    json_addentry("physics_atorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,atorque), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
+    json_addentry("physics_rtorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,rtorque), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
+    json_addentry("physics_gtorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,gtorque), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
+    json_addentry("physics_htorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,htorque), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
+    json_addentry("physics_ctorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ctorque), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
+    json_addentry("physics_ftorque", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
+    json_addentry("physics_ftorque_x", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque.x), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
+    json_addentry("physics_ftorque_y", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque.y), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
+    json_addentry("physics_ftorque_z", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque.z), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_TORQUE);
+    json_addentry("physics_hcap", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,hcap), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cmeta);
+    json_addentry("physics_area", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,area), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_AREA);
+    json_addentry("physics_moi", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,moi), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_MOI);
+    json_addentry("physics_com", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,com), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_LENGTH);
+    json_addentry("physics_mass", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mass), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cmeta, JSON_UNIT_MASS);
+    json_addentry("physics_heat", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,heat), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cmeta);
 
     // Node Structure
-    json_addentry("node_utcoffset", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,utcoffset),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_DATE);
-    json_addentry("node_name", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,name),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_type", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,type), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_state", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,state), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_hcap", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,hcap), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_mass", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,mass), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_MASS);
-    json_addentry("node_area", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,area), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_AREA);
-    json_addentry("node_moi", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,moi),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta, JSON_UNIT_MOI);
-    json_addentry("node_battcap", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,battcap), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_CHARGE);
-    json_addentry("node_charging", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,charging), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_powgen", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,powgen), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_POWER);
-    json_addentry("node_powuse", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,powuse), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_POWER);
-    json_addentry("node_battlev", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,battlev), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_CHARGE);
-    json_addentry("node_utc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,utc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_DATE);
-    json_addentry("node_utcstart", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,utcstart),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_DATE);
-    json_addentry("node_loc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc),COSMOS_SIZEOF(locstruc), (uint16_t)JSON_TYPE_LOC,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_utc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.utc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos),COSMOS_SIZEOF(posstruc), (uint16_t)JSON_TYPE_POSSTRUC,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos_geod", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod),COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_GEOD,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos_geod_v_lat", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lat),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_pos_geod_v_lon", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lon),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_pos_geod_v_h", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.h),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_geod_s_lat", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lat),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_geod_s_lon", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lon),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_geod_s_h", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.h),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_geoc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_GEOC,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos_geoc_v_x", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[0]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_geoc_v_y", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[1]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_geoc_v_z", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[2]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_geoc_s_x", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[0]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_geoc_s_y", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[1]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_geoc_s_z", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[2]),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_geos", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geos),COSMOS_SIZEOF(spherpos), (uint16_t)JSON_TYPE_POS_GEOS,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos_eci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ECI,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos_eci_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.s),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_eci_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.v),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_eci_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.a),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ACCELERATION);
-    json_addentry("node_loc_pos_sci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sci),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_SCI,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos_selc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selc),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_SELC,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos_selg", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selg),COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_SELG,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos_icrf", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.icrf),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ICRF,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_pos_sunsize", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sunsize), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_sunradiance", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sunradiance), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_earthsep", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.earthsep), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_moonsep", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.moonsep), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att),COSMOS_SIZEOF(attstruc), (uint16_t)JSON_TYPE_ATTSTRUC,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_icrf", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf),COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_ICRF,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_icrf_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf.s),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_icrf_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf.v),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_icrf_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf.a),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_topo", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo),COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_TOPO,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_topo_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo.s),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_topo_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo.v),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_topo_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo.a),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_geoc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc),COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_GEOC,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_geoc_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc.s),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_geoc_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc.v),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_geoc_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc.a),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_lvlh", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh),COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_LVLH,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_lvlh_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh.s),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_lvlh_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh.v),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_lvlh_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh.a),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_selc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc),COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_SELC,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_selc_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc.s),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_att_selc_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc.v),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_selc_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc.a),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_loc_bearth", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.bearth),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_azfrom", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,azfrom), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
-    json_addentry("node_azto", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,azto), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
-    json_addentry("node_elfrom", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,elfrom), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
-    json_addentry("node_elto", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,elto), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
-    json_addentry("node_range", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,range), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
-    json_addentry("comp_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,device_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_NODE, cmeta);
-    json_addentry("piece_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,piece_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_NODE, cmeta);
-    json_addentry("port_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,port_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_NODE, cmeta);
-    json_addentry("target_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,target_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_NODE, cmeta);
-    json_addentry("node_glossary_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,glossary_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_NODE, cmeta);
-    json_addentry("device_ant_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,ant_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_batt_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,batt_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_bus_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,bus_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_cam_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,cam_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_cpu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,cpu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_disk_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,disk_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_gps_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,gps_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_htr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,htr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_imu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,imu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_mcc_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,mcc_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_motr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,motr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_mtr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,mtr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_pload_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,pload_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_prop_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,prop_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_psen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,psen_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_rot_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,rot_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_rw_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,rw_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_rxr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,rxr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_ssen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,ssen_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_strg_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,strg_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_stt_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,stt_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_suchi_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,suchi_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_swch_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,swch_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_tcu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tcu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_tcv_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tcv_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_telem_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,telem_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_thst_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,thst_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_tsen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tsen_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
-    json_addentry("device_txr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,txr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("node_utcoffset", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,utcoffset), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_DATE);
+    json_addentry("node_name", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,name),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_type", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,type), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_state", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,state), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_hcap", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,hcap), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_mass", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,mass), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_MASS);
+    json_addentry("node_area", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,area), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_AREA);
+    json_addentry("node_moi", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,moi), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta, JSON_UNIT_MOI);
+    json_addentry("node_battcap", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,battcap), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_CHARGE);
+    json_addentry("node_charging", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,charging), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_powgen", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,powgen), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_POWER);
+    json_addentry("node_powuse", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,powuse), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_POWER);
+    json_addentry("node_battlev", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,battlev), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_CHARGE);
+    json_addentry("node_utc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,utc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_DATE);
+    json_addentry("node_utcstart", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,utcstart), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_DATE);
+    json_addentry("node_loc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc), COSMOS_SIZEOF(locstruc), (uint16_t)JSON_TYPE_LOCSTRUC, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_utc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.utc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos), COSMOS_SIZEOF(posstruc), (uint16_t)JSON_TYPE_POSSTRUC, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos_geod", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod), COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_GEOD, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos_geod_v_lat", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lat), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_pos_geod_v_lon", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lon), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_pos_geod_v_h", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.h), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_geod_s_lat", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lat), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_geod_s_lon", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lon), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_geod_s_h", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.h), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_geoc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc), COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_GEOC, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos_geoc_v_x", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[0]), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_geoc_v_y", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[1]), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_geoc_v_z", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[2]), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_geoc_s_x", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[0]), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_geoc_s_y", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[1]), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_geoc_s_z", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[2]), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_geos", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geos), COSMOS_SIZEOF(spherpos), (uint16_t)JSON_TYPE_POS_GEOS, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos_eci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci), COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ECI, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos_eci_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.s), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_eci_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.v), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_eci_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.a), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ACCELERATION);
+    json_addentry("node_loc_pos_sci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sci), COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_SCI, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos_selc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selc), COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_SELC, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos_selg", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selg), COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_SELG, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos_icrf", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.icrf), COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ICRF, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_pos_sunsize", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sunsize), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_sunradiance", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sunradiance), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_earthsep", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.earthsep), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_moonsep", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.moonsep), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att), COSMOS_SIZEOF(attstruc), (uint16_t)JSON_TYPE_ATTSTRUC, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_icrf", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf), COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_ICRF, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_icrf_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf.s), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_icrf_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf.v), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_icrf_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf.a), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_topo", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo), COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_TOPO, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_topo_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo.s), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_topo_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo.v), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_topo_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo.a), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_geoc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc), COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_GEOC, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_geoc_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc.s), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_geoc_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc.v), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_geoc_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc.a), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_lvlh", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh), COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_LVLH, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_lvlh_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh.s), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_lvlh_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh.v), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_lvlh_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh.a), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_selc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc), COSMOS_SIZEOF(qatt), (uint16_t)JSON_TYPE_QATT_SELC, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_selc_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc.s), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_att_selc_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc.v), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_selc_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc.a), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_loc_bearth", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.bearth), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_azfrom", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,azfrom), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
+    json_addentry("node_azto", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,azto), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
+    json_addentry("node_elfrom", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,elfrom), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
+    json_addentry("node_elto", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,elto), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_ANGLE);
+    json_addentry("node_range", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,range), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cmeta, JSON_UNIT_LENGTH);
+    json_addentry("comp_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,device_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_vertex_cnt", UINT16_MAX, UINT16_MAX, (cosmosdatastrucVoid) &cosmosdatastruc::node, (uint16_t)JSON_TYPE_UINT16, cmeta);
+    json_addentry("node_face_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,face_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cmeta);
+    json_addentry("piece_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,piece_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cmeta);
+    json_addentry("port_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,port_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cmeta);
+    json_addentry("target_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,target_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cmeta);
+    json_addentry("node_glossary_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,glossary_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cmeta);
+    json_addentry("device_ant_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,ant_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_batt_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,batt_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_bus_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,bus_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_cam_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,cam_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_cpu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,cpu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_disk_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,disk_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_gps_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,gps_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_htr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,htr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_imu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,imu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_mcc_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,mcc_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_motr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,motr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_mtr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,mtr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_pload_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,pload_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_prop_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,prop_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_psen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,psen_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_rot_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,rot_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_rw_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,rw_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_rxr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,rxr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_ssen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,ssen_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_strg_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,strg_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_stt_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,stt_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_suchi_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,suchi_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_swch_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,swch_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_tcu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tcu_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_tcv_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tcv_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_telem_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,telem_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_thst_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,thst_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_tsen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tsen_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+    json_addentry("device_txr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,txr_cnt), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cmeta);
+
+    if (iretn >= 0)
+    {
+        iretn = cmeta.jmapped;
+    }
+    return iretn;
+}
+
+//! Add vertex entry.
+/*! Add an entry for vertex number pidx to the JSON Namespace map.
+ \param pidx Piece number.
+*	\param cmeta Reference to ::cosmosmetastruc to use.
+    \return The current number of entries, if successful, negative error if the entry could not be
+ */
+int32_t json_addvertexentry(uint16_t pidx, cosmosmetastruc &cmeta)
+{
+    int32_t iretn=0;
+
+    iretn = json_addentry("vertex", pidx, UINT16_MAX, (ptrdiff_t)pidx*sizeof(vertexstruc), COSMOS_SIZEOF(Vector), (uint16_t)JSON_TYPE_VECTOR, JSON_STRUCT_POINT, cmeta);
+    iretn = json_addentry("vertex_x", pidx, UINT16_MAX, (ptrdiff_t)(offsetof(vertexstruc,x)+pidx*sizeof(vertexstruc)), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_POINT, cmeta);
+    iretn = json_addentry("vertex_y", pidx, UINT16_MAX, (ptrdiff_t)(offsetof(vertexstruc,y)+pidx*sizeof(vertexstruc)), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_POINT, cmeta);
+    iretn = json_addentry("vertex_z", pidx, UINT16_MAX, (ptrdiff_t)(offsetof(vertexstruc,z)+pidx*sizeof(vertexstruc)), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_POINT, cmeta);
+
+    if (iretn >= 0)
+    {
+        iretn = cmeta.jmapped;
+    }
+    return iretn;
+}
+
+//! Add face entry.
+/*! Add an entry for face number pidx to the JSON Namespace map.
+ \param pidx Piece number.
+*	\param cmeta Reference to ::cosmosmetastruc to use.
+    \return The current number of entries, if successful, negative error if the entry could not be
+ */
+int32_t json_addfaceentry(uint16_t pidx, cosmosmetastruc &cmeta)
+{
+    int32_t iretn=0;
+
+    iretn = json_addentry("face_com", pidx, UINT16_MAX, (ptrdiff_t)offsetof(facestruc,com)+pidx*sizeof(facestruc), COSMOS_SIZEOF(Vector), (uint16_t)JSON_TYPE_VECTOR, JSON_STRUCT_FACE, cmeta);
+    iretn = json_addentry("face_normal", pidx, UINT16_MAX, (ptrdiff_t)offsetof(facestruc,normal)+pidx*sizeof(facestruc), COSMOS_SIZEOF(Vector), (uint16_t)JSON_TYPE_VECTOR, JSON_STRUCT_FACE, cmeta);
+    iretn = json_addentry("face_area", pidx, UINT16_MAX, (ptrdiff_t)offsetof(facestruc,area)+pidx*sizeof(facestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_FACE, cmeta);
+    iretn = json_addentry("face_vcnt", pidx, UINT16_MAX, (ptrdiff_t)offsetof(facestruc,vertex_cnt)+pidx*sizeof(facestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_FACE, cmeta);
+    for (uint16_t j=0; j<MAXPNT; ++j)
+    {
+        iretn = json_addentry("face_vidx", pidx,j,(ptrdiff_t)offsetof(facestruc,vertex_idx)+pidx*sizeof(facestruc)+j*sizeof(uint16_t), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_FACE, cmeta);
+    }
 
     if (iretn >= 0)
     {
@@ -6747,21 +7325,22 @@ int32_t json_addpieceentry(uint16_t pidx, cosmosmetastruc &cmeta)
 {
     int32_t iretn;
 
-    json_addentry("piece_name",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,name)+pidx*sizeof(piecestruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PIECE, cmeta);
-    iretn = json_addentry("piece_type",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,type)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_cidx",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,cidx)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_mass",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,mass)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_emi",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,emi)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_abs",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,abs)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_dim",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,dim)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_hcap",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,hcap)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_hcon",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,hcon)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_area",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,area)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_com",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,centroid)+pidx*sizeof(piecestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PIECE, cmeta);
-    json_addentry("piece_pnt_cnt",pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,pnt_cnt)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PIECE, cmeta);
-    for (uint16_t j=0; j<MAXPNT; ++j)
+    json_addentry("piece_name", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,name)+pidx*sizeof(piecestruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_PIECE, cmeta);
+    iretn = json_addentry("piece_type", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,type)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_cidx", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,cidx)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_mass", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,mass)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_density", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,density)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_emi", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,emi)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_abs", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,abs)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_dim", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,dim)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_hcap", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,hcap)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_hcon", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,hcon)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_area", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,area)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_com", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,com)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PIECE, cmeta);
+    json_addentry("piece_fcnt", pidx, UINT16_MAX, (ptrdiff_t)offsetof(piecestruc,face_cnt)+pidx*sizeof(piecestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_PIECE, cmeta);
+    for (uint16_t j=0; j<MAXFACE; ++j)
     {
-        json_addentry("piece_pnt",pidx,j,(ptrdiff_t)offsetof(piecestruc,points)+pidx*sizeof(piecestruc)+j*sizeof(rvector),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_PIECE, cmeta);
+        json_addentry("piece_fidx", pidx,j,(ptrdiff_t)offsetof(piecestruc,face_idx)+pidx*sizeof(piecestruc)+j*sizeof(uint16_t), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_PIECE, cmeta);
     }
 
     if (iretn >= 0)
@@ -6782,21 +7361,22 @@ int32_t json_togglepieceentry(uint16_t pidx, cosmosmetastruc &cmeta, bool state)
 {
     int32_t iretn;
 
-    json_toggleentry("piece_name",pidx, UINT16_MAX, cmeta, state);
-    iretn = json_toggleentry("piece_type",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_cidx",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_mass",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_emi",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_abs",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_dim",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_hcap",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_hcon",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_area",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_com",pidx, UINT16_MAX, cmeta, state);
-    json_toggleentry("piece_pnt_cnt",pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_name", pidx, UINT16_MAX, cmeta, state);
+    iretn = json_toggleentry("piece_type", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_cidx", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_mass", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_density", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_emi", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_abs", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_dim", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_hcap", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_hcon", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_area", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_com", pidx, UINT16_MAX, cmeta, state);
+    json_toggleentry("piece_pnt_cnt", pidx, UINT16_MAX, cmeta, state);
     for (uint16_t j=0; j<MAXPNT; ++j)
     {
-        json_toggleentry("piece_pnt",pidx,j, cmeta, state);
+        json_toggleentry("piece_pnt", pidx,j, cmeta, state);
     }
 
     return iretn;
@@ -6812,23 +7392,23 @@ int32_t json_addcompentry(uint16_t cidx, cosmosmetastruc &cmeta)
 {
     int32_t iretn;
 
-    iretn = json_addentry("comp_type",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,type)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_model",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,model)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_flag",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,flag)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_addr",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,addr)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_cidx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_didx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,didx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_pidx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,pidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_bidx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,bidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_portidx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,portidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-    json_addentry("comp_namp",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,namp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_CURRENT);
-    json_addentry("comp_nvolt",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,nvolt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
-    json_addentry("comp_amp",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,amp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_CURRENT);
-    json_addentry("comp_volt",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,volt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
-    json_addentry("comp_power",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
-    json_addentry("comp_drate",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,drate)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
-    json_addentry("comp_temp",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_TEMPERATURE);
-    json_addentry("comp_utc",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_DATE);
+    iretn = json_addentry("comp_type",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,type)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_model",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,model)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_flag",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,flag)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_addr",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,addr)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_cidx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_didx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,didx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_pidx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc, pidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_bidx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,bidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_portidx",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,portidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+    json_addentry("comp_namp",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,namp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_CURRENT);
+    json_addentry("comp_nvolt",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,nvolt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
+    json_addentry("comp_amp",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,amp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_CURRENT);
+    json_addentry("comp_volt",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,volt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
+    json_addentry("comp_power",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
+    json_addentry("comp_drate",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,drate)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_VOLTAGE);
+    json_addentry("comp_temp",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_TEMPERATURE);
+    json_addentry("comp_utc",cidx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_DATE);
 
     if (iretn >= 0)
     {
@@ -6884,360 +7464,360 @@ uint16_t json_adddeviceentry(uint16_t cidx, uint16_t didx, uint16_t type, cosmos
     switch (type)
     {
     case (uint16_t)DeviceType::TELEM:
-        iretn = json_addentry("device_telem_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_type",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,type)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_vuint8",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vuint8)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint8_t), (uint16_t)JSON_TYPE_UINT8,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_vint8",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vint8)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint8_t), (uint16_t)JSON_TYPE_INT8,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_vuint16",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vuint16)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_vint16",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vint16)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_INT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_vuint32",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vuint32)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_vint32",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vint32)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_INT32,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_vfloat",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vfloat)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_vdouble",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vdouble)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_telem_vstring",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vstring)+cidx*sizeof(devicestruc), COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_STRING,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_telem_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_type",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,type)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_vuint8",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vuint8)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint8_t), (uint16_t)JSON_TYPE_UINT8, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_vint8",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vint8)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint8_t), (uint16_t)JSON_TYPE_INT8, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_vuint16",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vuint16)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_vint16",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vint16)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_INT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_vuint32",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vuint32)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_vint32",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vint32)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_INT32, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_vfloat",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vfloat)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_vdouble",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vdouble)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_telem_vstring",didx, UINT16_MAX, (ptrdiff_t)offsetof(telemstruc,vstring)+cidx*sizeof(devicestruc), COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_DEVICE, cmeta);
         break;
     case (uint16_t)DeviceType::PLOAD:
-        iretn = json_addentry("device_pload_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_pload_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_pload_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_pload_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_pload_drate",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,drate)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_pload_key_cnt",didx, UINT16_MAX, (ptrdiff_t)offsetof(ploadstruc,key_cnt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_pload_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_pload_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_pload_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_pload_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_pload_drate",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,drate)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_pload_key_cnt",didx, UINT16_MAX, (ptrdiff_t)offsetof(ploadstruc,key_cnt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
         for (uint16_t j=0; j<MAXPLOADKEYCNT; j++)
         {
-            json_addentry("device_pload_keyidx",didx,j,(ptrdiff_t)offsetof(ploadstruc,keyidx)+cidx*sizeof(devicestruc)+j*sizeof(uint16_t), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-            json_addentry("device_pload_keyval",didx,j,(ptrdiff_t)offsetof(ploadstruc,keyval)+cidx*sizeof(devicestruc)+j*sizeof(float), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+            json_addentry("device_pload_keyidx",didx,j,(ptrdiff_t)offsetof(ploadstruc,keyidx)+cidx*sizeof(devicestruc)+j*sizeof(uint16_t), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+            json_addentry("device_pload_keyval",didx,j,(ptrdiff_t)offsetof(ploadstruc,keyval)+cidx*sizeof(devicestruc)+j*sizeof(float), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         }
         break;
         //! Elevation and Azimuth Sun Sensor
     case (uint16_t)DeviceType::SSEN:
-        iretn = json_addentry("device_ssen_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ssen_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ssen_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ssen_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ssen_qva",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,qva)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ssen_qvb",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,qvb)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ssen_qvc",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,qvc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ssen_qvd",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,qvd)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ssen_azimuth",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,azimuth)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ssen_elevation",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,elevation)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_ssen_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ssen_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(genstruc,cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ssen_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ssen_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,align)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ssen_qva",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,qva)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ssen_qvb",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,qvb)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ssen_qvc",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,qvc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ssen_qvd",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,qvd)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ssen_azimuth",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,azimuth)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ssen_elevation",didx, UINT16_MAX, (ptrdiff_t)offsetof(ssenstruc,elevation)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Inertial Measurement Unit
     case (uint16_t)DeviceType::IMU:
-        iretn = json_addentry("device_imu_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_imu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_imu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_TEMPERATURE);
-        json_addentry("device_imu_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_imu_accel",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ACCELERATION);
-        json_addentry("device_imu_accel_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ACCELERATION);
-        json_addentry("device_imu_accel_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+sizeof(double)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ACCELERATION);
-        json_addentry("device_imu_accel_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+2*sizeof(double)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ACCELERATION);
-        json_addentry("device_imu_theta",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,theta)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_NONE);
-        json_addentry("device_imu_euler",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,euler)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_AVECTOR,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGLE);
-        json_addentry("device_imu_euler_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,euler)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGLE);
-        json_addentry("device_imu_euler_e",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,euler)+sizeof(double)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGLE);
-        json_addentry("device_imu_euler_b",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,euler)+2*sizeof(double)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGLE);
-        json_addentry("device_imu_omega",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,omega)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGULAR_RATE);
-        json_addentry("device_imu_alpha",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,alpha)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_imu_mag",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGFIELD);
-        json_addentry("device_imu_mag_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGFIELD);
-        json_addentry("device_imu_mag_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+sizeof(double)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGFIELD);
-        json_addentry("device_imu_mag_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+2*sizeof(double)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGFIELD);
-        json_addentry("device_imu_bdot",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,bdot)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_imu_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_imu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_imu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_TEMPERATURE);
+        json_addentry("device_imu_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,align)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_imu_accel",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ACCELERATION);
+        json_addentry("device_imu_accel_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ACCELERATION);
+        json_addentry("device_imu_accel_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+sizeof(double)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ACCELERATION);
+        json_addentry("device_imu_accel_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,accel)+2*sizeof(double)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ACCELERATION);
+        json_addentry("device_imu_theta",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,theta)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_NONE);
+        json_addentry("device_imu_euler",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,euler)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_AVECTOR, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGLE);
+        json_addentry("device_imu_euler_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,euler)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGLE);
+        json_addentry("device_imu_euler_e",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,euler)+sizeof(double)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGLE);
+        json_addentry("device_imu_euler_b",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,euler)+2*sizeof(double)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGLE);
+        json_addentry("device_imu_omega",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,omega)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGULAR_RATE);
+        json_addentry("device_imu_alpha",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,alpha)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_imu_mag",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGFIELD);
+        json_addentry("device_imu_mag_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGFIELD);
+        json_addentry("device_imu_mag_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+sizeof(double)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGFIELD);
+        json_addentry("device_imu_mag_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,mag)+2*sizeof(double)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGFIELD);
+        json_addentry("device_imu_bdot",didx, UINT16_MAX, (ptrdiff_t)offsetof(imustruc,bdot)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Reaction Wheel
     case (uint16_t)DeviceType::RW:
-        iretn = json_addentry("device_rw_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rw_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rw_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_TEMPERATURE);
-        json_addentry("device_rw_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rw_mom",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,mom)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rw_mxomg",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,mxomg)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rw_mxalp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,mxalp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rw_tc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,tc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rw_omg",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,omg)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGULAR_RATE);
-        json_addentry("device_rw_alp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,alp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGULAR_RATE);
-        json_addentry("device_rw_romg",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,romg)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rw_ralp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,ralp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_rw_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rw_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rw_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_TEMPERATURE);
+        json_addentry("device_rw_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,align)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rw_mom",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,mom)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rw_mxomg",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,mxomg)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rw_mxalp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,mxalp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rw_tc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,tc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rw_omg",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,omg)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGULAR_RATE);
+        json_addentry("device_rw_alp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,alp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_ANGULAR_RATE);
+        json_addentry("device_rw_romg",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,romg)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rw_ralp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rwstruc,ralp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Magnetic Torque Rod
     case (uint16_t)DeviceType::MTR:
-        iretn = json_addentry("device_mtr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mtr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mtr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mtr_mxmom",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,mxmom)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mtr_tc",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,tc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mtr_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_mtr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mtr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mtr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mtr_mxmom",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,mxmom)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mtr_tc",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,tc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mtr_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,align)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
         for (uint16_t j=0; j<7; j++)
         {
-            json_addentry("device_mtr_npoly",didx,j,(ptrdiff_t)offsetof(mtrstruc,npoly)+cidx*sizeof(devicestruc)+j*sizeof(float), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-            json_addentry("device_mtr_ppoly",didx,j,(ptrdiff_t)offsetof(mtrstruc,ppoly)+cidx*sizeof(devicestruc)+j*sizeof(float), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+            json_addentry("device_mtr_npoly",didx,j,(ptrdiff_t)offsetof(mtrstruc,npoly)+cidx*sizeof(devicestruc)+j*sizeof(float), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+            json_addentry("device_mtr_ppoly",didx,j,(ptrdiff_t)offsetof(mtrstruc,ppoly)+cidx*sizeof(devicestruc)+j*sizeof(float), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         }
-        json_addentry("device_mtr_mom",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,mom)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGMOMENT);
-        json_addentry("device_mtr_rmom",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,rmom)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mtr_mom",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,mom)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta, JSON_UNIT_MAGMOMENT);
+        json_addentry("device_mtr_rmom",didx, UINT16_MAX, (ptrdiff_t)offsetof(mtrstruc,rmom)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Camera
     case (uint16_t)DeviceType::CAM:
-        iretn = json_addentry("device_cam_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cam_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cam_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cam_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cam_drate",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.drate)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cam_pwidth",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,pwidth)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cam_pheight",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,pheight)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cam_width",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,width)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cam_height",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,height)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cam_flength",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,flength)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_cam_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_drate",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,gen.drate)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_pwidth",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,pwidth)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_pheight",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,pheight)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_width",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,width)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_height",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,height)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cam_flength",didx, UINT16_MAX, (ptrdiff_t)offsetof(camstruc,flength)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Processing Unit
     case (uint16_t)DeviceType::CPU:
-        iretn = json_addentry("device_cpu_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cpu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cpu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cpu_uptime",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,uptime)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cpu_maxgib",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxgib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cpu_maxload",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxload)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cpu_load",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,load)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cpu_gib",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,boot_count)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_cpu_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cpu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cpu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cpu_uptime",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,uptime)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cpu_maxgib",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxgib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cpu_maxload",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,maxload)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cpu_load",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,load)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cpu_gib",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,gib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (ptrdiff_t)offsetof(cpustruc,boot_count)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_DEVICE, cmeta);
         break;
     case (uint16_t)DeviceType::DISK:
-        iretn = json_addentry("device_disk_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_disk_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_disk_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_disk_maxgib",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,maxgib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_disk_gib",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_disk_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_disk_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_disk_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_disk_maxgib",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,maxgib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_disk_gib",didx, UINT16_MAX, (ptrdiff_t)offsetof(diskstruc,gib)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! GPS Unit
     case (uint16_t)DeviceType::GPS:
-        iretn = json_addentry("device_gps_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dutc",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dutc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geocs",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocs)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geocs_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocs.col[0])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geocs_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocs.col[1])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geocs_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocs.col[2])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geocv",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocv)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geocv_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocv.col[0])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geocv_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocv.col[1])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geocv_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocv.col[2])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeocs",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocs)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeocs_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocs.col[0])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeocs_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocs.col[1])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeocs_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocs.col[2])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeocv",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocv)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeocv_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocv.col[0])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeocv_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocv.col[1])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeocv_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocv.col[2])+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geods",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geods)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(gvector), (uint16_t)JSON_TYPE_GVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geods_lat",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geods.lat)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geods_lon",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geods.lon)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geods_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geods.h)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geodv",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geodv)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(gvector), (uint16_t)JSON_TYPE_GVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geodv_lat",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geodv.lat)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geodv_lon",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geodv.lon)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_geodv_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geodv.h)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeods",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeods)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(gvector), (uint16_t)JSON_TYPE_GVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeods_lat",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeods.lat)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeods_lon",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeods.lon)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeods_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeods.h)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeodv",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeodv)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(gvector), (uint16_t)JSON_TYPE_GVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeodv_lat",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeodv.lat)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeodv_lon",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeodv.lon)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_dgeodv_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeodv.h)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_heading",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,heading)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_sats_used",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,sats_used)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_sats_visible",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,sats_visible)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_time_status",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,time_status)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_position_type",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,position_type)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_gps_solution_status",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,solution_status)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_gps_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dutc",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dutc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geocs",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocs)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geocs_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocs.col[0])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geocs_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocs.col[1])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geocs_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocs.col[2])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geocv",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocv)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geocv_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocv.col[0])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geocv_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocv.col[1])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geocv_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geocv.col[2])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeocs",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocs)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeocs_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocs.col[0])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeocs_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocs.col[1])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeocs_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocs.col[2])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeocv",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocv)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeocv_x",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocv.col[0])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeocv_y",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocv.col[1])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeocv_z",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeocv.col[2])+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geods",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geods)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(gvector), (uint16_t)JSON_TYPE_GVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geods_lat",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geods.lat)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geods_lon",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geods.lon)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geods_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geods.h)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geodv",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geodv)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(gvector), (uint16_t)JSON_TYPE_GVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geodv_lat",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geodv.lat)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geodv_lon",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geodv.lon)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_geodv_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,geodv.h)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeods",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeods)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(gvector), (uint16_t)JSON_TYPE_GVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeods_lat",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeods.lat)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeods_lon",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeods.lon)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeods_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeods.h)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeodv",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeodv)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(gvector), (uint16_t)JSON_TYPE_GVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeodv_lat",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeodv.lat)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeodv_lon",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeodv.lon)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_dgeodv_h",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,dgeodv.h)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_heading",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,heading)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_sats_used",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,sats_used)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_sats_visible",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,sats_visible)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_time_status",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,time_status)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_position_type",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,position_type)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_gps_solution_status",didx, UINT16_MAX, (ptrdiff_t)offsetof(gpsstruc,solution_status)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Antenna
     case (uint16_t)DeviceType::ANT:
-        iretn = json_addentry("device_ant_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ant_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ant_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ant_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ant_azim",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,azim)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ant_elev",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,elev)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_ant_minelev",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,minelev)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_ant_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ant_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ant_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ant_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,align)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ant_azim",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,azim)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ant_elev",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,elev)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_ant_minelev",didx, UINT16_MAX, (ptrdiff_t)offsetof(antstruc,minelev)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Radio Receiver
     case (uint16_t)DeviceType::RXR:
-        json_addentry("device_rxr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rxr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rxr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rxr_opmode",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,opmode)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rxr_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rxr_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rxr_maxfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,maxfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rxr_minfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,minfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rxr_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rxr_band",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,band)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_opmode",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,opmode)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_maxfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,maxfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_minfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,minfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rxr_band",didx, UINT16_MAX, (ptrdiff_t)offsetof(rxrstruc,band)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Radio Transmitter
     case (uint16_t)DeviceType::TXR:
-        iretn = json_addentry("device_txr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_txr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_txr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_txr_opmode",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,opmode)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_txr_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_txr_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_txr_maxfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,maxfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_txr_minfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,minfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_txr_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_txr_maxpower",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,maxpower)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_txr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_txr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_txr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_txr_opmode",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,opmode)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_txr_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_txr_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_txr_maxfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,maxfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_txr_minfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,minfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_txr_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_txr_maxpower",didx, UINT16_MAX, (ptrdiff_t)offsetof(txrstruc,maxpower)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Radio Transceiver
     case (uint16_t)DeviceType::TCV:
-        iretn = json_addentry("device_tcv_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_opmode",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,opmode)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_maxfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_minfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,minfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_powerin",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,powerin)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_powerout",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,powerout)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_maxpower",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxpower)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcv_band",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,band)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_tcv_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_opmode",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,opmode)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_freq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,freq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_maxfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_minfreq",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,minfreq)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_powerin",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,powerin)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_powerout",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,powerout)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_maxpower",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,maxpower)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcv_band",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcvstruc,band)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Photo Voltaic String
     case (uint16_t)DeviceType::STRG:
-        iretn = json_addentry("device_strg_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_strg_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_strg_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_strg_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_strg_efi",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,effbase)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_strg_efs",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,effslope)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_strg_max",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,maxpower)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_strg_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_strg_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_strg_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_strg_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,gen.power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_strg_efi",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,effbase)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_strg_efs",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,effslope)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_strg_max",didx, UINT16_MAX, (ptrdiff_t)offsetof(strgstruc,maxpower)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Battery
     case (uint16_t)DeviceType::BATT:
-        iretn = json_addentry("device_batt_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_batt_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_batt_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_batt_cap",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,capacity)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_batt_eff",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,efficiency)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_batt_lev",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,charge)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_batt_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_batt_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_batt_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_batt_cap",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,capacity)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_batt_eff",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,efficiency)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_batt_lev",didx, UINT16_MAX, (ptrdiff_t)offsetof(battstruc,charge)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Heater
     case (uint16_t)DeviceType::HTR:
-        iretn = json_addentry("device_htr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(htrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_htr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(htrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_htr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(htrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_htr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(htrstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_htr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(htrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_htr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(htrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Motor
     case (uint16_t)DeviceType::MOTR:
-        iretn = json_addentry("device_motr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_motr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_motr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_motr_rat",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,rat)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_motr_max",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,max)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_motr_spd",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,spd)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_motr_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_motr_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_motr_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_motr_rat",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,rat)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_motr_max",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,max)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_motr_spd",didx, UINT16_MAX, (ptrdiff_t)offsetof(motrstruc,spd)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Pressure Sensor
     case (uint16_t)DeviceType::PSEN:
-        iretn = json_addentry("device_psen_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_psen_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_psen_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_psen_press",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,press)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_psen_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_psen_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_psen_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_psen_press",didx, UINT16_MAX, (ptrdiff_t)offsetof(psenstruc,press)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Temperature Sensor
     case (uint16_t)DeviceType::TSEN:
-        iretn = json_addentry("device_tsen_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tsenstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tsen_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tsenstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tsen_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tsenstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_tsen_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tsenstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tsen_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tsenstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tsen_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tsenstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Thruster
     case (uint16_t)DeviceType::THST:
-        iretn = json_addentry("device_thst_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_thst_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_thst_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_thst_isp",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,isp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_thst_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_thst_flw",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,flw)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_thst_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_thst_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_thst_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_thst_isp",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,isp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_thst_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,align)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_thst_flw",didx, UINT16_MAX, (ptrdiff_t)offsetof(thststruc,flw)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Propellant Tank
     case (uint16_t)DeviceType::PROP:
-        iretn = json_addentry("device_prop_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_prop_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_prop_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_prop_cap",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,cap)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_prop_lev",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,lev)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_prop_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_prop_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_prop_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_prop_cap",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,cap)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_prop_lev",didx, UINT16_MAX, (ptrdiff_t)offsetof(propstruc,lev)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Switch
     case (uint16_t)DeviceType::SWCH:
-        iretn = json_addentry("device_swch_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(swchstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_swch_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(swchstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_swch_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(swchstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_swch_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(swchstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_swch_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(swchstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_swch_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(swchstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Rotor
     case (uint16_t)DeviceType::ROT:
-        iretn = json_addentry("device_rot_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rotstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rot_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(rotstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_rot_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rotstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_rot_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(rotstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rot_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(rotstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_rot_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(rotstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Star Tracker
     case (uint16_t)DeviceType::STT:
-        iretn = json_addentry("device_stt_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_stt_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_stt_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_stt_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_stt_att",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,att)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_stt_omega",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,omega)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_stt_retcode",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,retcode)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_stt_status",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,status)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_stt_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_stt_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_stt_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_stt_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,align)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_stt_att",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,att)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_stt_omega",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,omega)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_stt_retcode",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,retcode)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_stt_status",didx, UINT16_MAX, (ptrdiff_t)offsetof(sttstruc,status)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint32_t), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_DEVICE, cmeta);
         break;
         //! Star Tracker
     case (uint16_t)DeviceType::SUCHI:
         {
-            iretn = json_addentry("device_suchi_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-            json_addentry("device_suchi_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-            json_addentry("device_suchi_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-            json_addentry("device_suchi_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
-            json_addentry("device_suchi_press",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,press)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+            iretn = json_addentry("device_suchi_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+            json_addentry("device_suchi_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+            json_addentry("device_suchi_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+            json_addentry("device_suchi_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,align)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
+            json_addentry("device_suchi_press",didx, UINT16_MAX, (ptrdiff_t)offsetof(suchistruc,press)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
             for (uint16_t j=0; j<8; j++)
             {
-                json_addentry("device_suchi_temps",didx,j,(ptrdiff_t)offsetof(suchistruc,temps)+cidx*sizeof(devicestruc)+j*sizeof(float), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+                json_addentry("device_suchi_temps",didx,j,(ptrdiff_t)offsetof(suchistruc,temps)+cidx*sizeof(devicestruc)+j*sizeof(float), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
             }
             break;
         }
     case (uint16_t)DeviceType::MCC:
-        iretn = json_addentry("device_mcc_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mcc_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mcc_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mcc_q",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,q)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mcc_o",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,o)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mcc_a",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,a)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_mcc_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,align)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_mcc_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mcc_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mcc_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mcc_q",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,q)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mcc_o",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,o)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mcc_a",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,a)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(rvector), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_mcc_align",didx, UINT16_MAX, (ptrdiff_t)offsetof(mccstruc,align)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(quaternion), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_DEVICE, cmeta);
         break;
     case (uint16_t)DeviceType::TCU:
-        iretn = json_addentry("device_tcu_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tcu_mcnt",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,mcnt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_tcu_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcu_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcu_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tcu_mcnt",didx, UINT16_MAX, (ptrdiff_t)offsetof(tcustruc,mcnt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
         for (uint16_t j=0; j<3; j++)
         {
-            json_addentry("device_tcu_mcidx",didx,j,(ptrdiff_t)offsetof(tcustruc,mcidx)+cidx*sizeof(devicestruc)+j*sizeof(int16_t), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
+            json_addentry("device_tcu_mcidx",didx,j,(ptrdiff_t)offsetof(tcustruc,mcidx)+cidx*sizeof(devicestruc)+j*sizeof(int16_t), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
         }
         break;
     case (uint16_t)DeviceType::BUS:
-        iretn = json_addentry("device_bus_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_bus_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_bus_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_bus_amp",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.amp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_bus_volt",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.volt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_bus_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_bus_energy",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,energy)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_bus_wdt",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,wdt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_bus_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_bus_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_bus_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_bus_amp",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.amp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_bus_volt",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.volt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_bus_power",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,gen.power)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_bus_energy",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,energy)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_bus_wdt",didx, UINT16_MAX, (ptrdiff_t)offsetof(busstruc,wdt)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
     case (uint16_t)DeviceType::TNC:
-        iretn = json_addentry("device_tnc_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.utc)+cidx*sizeof(devicestruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tnc_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_DEVICE, cmeta);
-        json_addentry("device_tnc_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT,JSON_STRUCT_DEVICE, cmeta);
+        iretn = json_addentry("device_tnc_utc",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.utc)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tnc_cidx",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.cidx)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVICE, cmeta);
+        json_addentry("device_tnc_temp",didx, UINT16_MAX, (ptrdiff_t)offsetof(tncstruc,gen.temp)+cidx*sizeof(devicestruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_DEVICE, cmeta);
         break;
     default:
         iretn = JSON_ERROR_NOENTRY;
@@ -7629,8 +8209,8 @@ uint16_t json_addportentry(uint16_t portidx, cosmosmetastruc &cmeta)
 {
     int32_t iretn;
 
-    json_addentry("port_name", portidx, UINT16_MAX, (ptrdiff_t)offsetof(portstruc,name)+portidx*sizeof(portstruc), COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME,JSON_STRUCT_PORT, cmeta);
-    iretn = json_addentry("port_type", portidx, UINT16_MAX, (ptrdiff_t)offsetof(portstruc,type)+portidx*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16,JSON_STRUCT_PORT, cmeta);
+    json_addentry("port_name", portidx, UINT16_MAX, (ptrdiff_t)offsetof(portstruc,name)+portidx*sizeof(portstruc), COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_PORT, cmeta);
+    iretn = json_addentry("port_type", portidx, UINT16_MAX, (ptrdiff_t)offsetof(portstruc,type)+portidx*sizeof(portstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_PORT, cmeta);
 
     if (iretn >= 0)
     {
@@ -8321,7 +8901,7 @@ string json_list_of_soh(cosmosdatastruc &cdata)
     {
         sprintf(tempstring, ",\"device_htr_utc_%03d\",\"device_htr_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_htr_setpoint_%03d\"",i);
+        sprintf(tempstring, ",\"device_htr_setvertex_%03d\"",i);
         result += tempstring;
     }
 
@@ -8587,6 +9167,72 @@ const char *json_node(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &
     return jstring.data();
 }
 
+//! Dump Vertex description
+/*! Create a JSON stream for variables specific to the Vertices of the Node. Does not include any
+ * derivative data (eg. area).
+ \param jstring Reference to a string to build the JSON stream in.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
+ \return Pointer to the created JSON stream.
+*/
+const char *json_vertices(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
+{
+    jstring.clear();
+    // Dump vertices
+    uint16_t *vertex_cnt = (uint16_t *)json_ptrto((char *)"vertex_cnt", cmeta, cdata);
+    if (vertex_cnt != nullptr)
+    {
+        for (uint16_t i=0; i<*vertex_cnt; i++)
+        {
+            json_out_1d(jstring,(char *)"vertex",i, cmeta, cdata);
+            json_out_character(jstring, '\n');
+        }
+    }
+
+
+    return jstring.data();
+}
+
+//! Dump Face description
+/*! Create a JSON stream for variables specific to the cdata.faces of the Node. Does not include any
+ * derivative data (eg. area).
+ \param jstring Reference to a string to build the JSON stream in.
+    \param cmeta Reference to ::cosmosmetastruc to use.
+    \param cdata Reference to ::cosmosdatastruc to use.
+
+ \return Pointer to the created JSON stream.
+*/
+const char *json_faces(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
+{
+    jstring.clear();
+    // Dump faces
+    uint16_t *face_cnt = (uint16_t *)json_ptrto((char *)"face_cnt", cmeta, cdata);
+    if (face_cnt != nullptr)
+    {
+        for (uint16_t i=0; i<*face_cnt; i++)
+        {
+            json_out_1d(jstring,(char *)"face_normal",i, cmeta, cdata);
+            json_out_character(jstring, '\n');
+            json_out_1d(jstring,(char *)"face_com",i, cmeta, cdata);
+            json_out_character(jstring, '\n');
+            json_out_1d(jstring,(char *)"face_area",i, cmeta, cdata);
+            json_out_character(jstring, '\n');
+            json_out_1d(jstring,(char *)"face_vcnt",i, cmeta, cdata);
+            json_out_character(jstring, '\n');
+            uint16_t cnt = (uint16_t)json_get_int((char *)"face_vcnt",i, cmeta, cdata);
+            for (uint16_t j=0; j<cnt; j++)
+            {
+                json_out_2d(jstring,(char *)"face_vidx",i,j, cmeta, cdata);
+                json_out_character(jstring, '\n');
+            }
+        }
+    }
+
+
+    return jstring.data();
+}
+
 //! Dump Piece description
 /*! Create a JSON stream for variables specific to the Pieces of the Node. Does not include any
  * derivative data (eg. area).
@@ -8598,8 +9244,6 @@ const char *json_node(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &
 */
 const char *json_pieces(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
 {
-    uint16_t cnt;
-
     jstring.clear();
     // Dump structures
     uint16_t *piece_cnt = (uint16_t *)json_ptrto((char *)"piece_cnt", cmeta, cdata);
@@ -8615,6 +9259,8 @@ const char *json_pieces(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc
             json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_mass",i, cmeta, cdata);
             json_out_character(jstring, '\n');
+            json_out_1d(jstring,(char *)"piece_density",i, cmeta, cdata);
+            json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_emi",i, cmeta, cdata);
             json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_abs",i, cmeta, cdata);
@@ -8625,12 +9271,16 @@ const char *json_pieces(string &jstring, cosmosmetastruc &cmeta, cosmosdatastruc
             json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_dim",i, cmeta, cdata);
             json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_pnt_cnt",i, cmeta, cdata);
+            json_out_1d(jstring,(char *)"piece_area",i, cmeta, cdata);
             json_out_character(jstring, '\n');
-            cnt = (uint16_t)json_get_int((char *)"piece_pnt_cnt",i, cmeta, cdata);
+            json_out_1d(jstring,(char *)"piece_com",i, cmeta, cdata);
+            json_out_character(jstring, '\n');
+            json_out_1d(jstring,(char *)"piece_fcnt",i, cmeta, cdata);
+            json_out_character(jstring, '\n');
+            uint16_t cnt = (uint16_t)json_get_int((char *)"piece_fcnt",i, cmeta, cdata);
             for (uint16_t j=0; j<cnt; j++)
             {
-                json_out_2d(jstring,(char *)"piece_pnt",i,j, cmeta, cdata);
+                json_out_2d(jstring,(char *)"piece_fidx",i,j, cmeta, cdata);
                 json_out_character(jstring, '\n');
             }
         }
@@ -9394,105 +10044,30 @@ int32_t node_init(string node, cosmosstruc *cinfo)
 */
 int32_t node_calc(cosmosdatastruc &cdata)
 {
-    uint16_t n, i, j, k;
-    double dm, ta, tb, tc;
-    rvector tv0, tv1, tv2, tv3, dv, sv;
+    //    uint16_t n, i, j, k;
+    //    double dm, ta, tb, tc;
+    //    rvector tv0, tv1, tv2, tv3, dv, sv;
 
     cdata.physics.hcap = cdata.physics.heat = 0.;
     cdata.physics.mass = 0.;
     cdata.physics.moi = rv_zero();
     cdata.physics.com = rv_zero();
 
-    for (n=0; n<cdata.piece.size(); n++)
+    json_recenter_node(cdata);
+
+    for (size_t n=0; n<cdata.pieces.size(); n++)
     {
-        if (cdata.piece[n].mass == 0.)
-            cdata.piece[n].mass = .001f;
-        cdata.piece[n].temp = 300.;
-        cdata.piece[n].heat = 300.f * cdata.piece[n].hcap;
-        cdata.physics.heat += cdata.piece[n].heat;
-        cdata.physics.mass += cdata.piece[n].mass;
-        cdata.physics.hcap += cdata.piece[n].hcap * cdata.piece[n].mass;
-        cdata.piece[n].area = 0.;
-        if (cdata.piece[n].pnt_cnt)
-        {
-            dm = cdata.piece[n].mass / cdata.piece[n].pnt_cnt;
-            cdata.piece[n].centroid = rv_zero();
-            for (i=0; i<cdata.piece[n].pnt_cnt; i++)
-            {
-                cdata.piece[n].centroid.col[0] += cdata.piece[n].points[i].col[0] * dm;
-                cdata.piece[n].centroid.col[1] += cdata.piece[n].points[i].col[1] * dm;
-                cdata.piece[n].centroid.col[2] += cdata.piece[n].points[i].col[2] * dm;
-            }
-            cdata.physics.com.col[0] += cdata.piece[n].centroid.col[0];
-            cdata.physics.com.col[1] += cdata.piece[n].centroid.col[1];
-            cdata.physics.com.col[2] += cdata.piece[n].centroid.col[2];
-            cdata.piece[n].centroid.col[0] /= cdata.piece[n].mass;
-            cdata.piece[n].centroid.col[1] /= cdata.piece[n].mass;
-            cdata.piece[n].centroid.col[2] /= cdata.piece[n].mass;
-            switch (cdata.piece[n].type)
-            {
-            case PIECE_TYPE_EXTERNAL_PANEL:
-                for (i=0; i<cdata.piece[n].pnt_cnt-1; i++)
-                {
-                    tv0 = rv_sub(cdata.piece[n].points[i],cdata.piece[n].centroid);
-                    tv1 = rv_sub(cdata.piece[n].points[i+1],cdata.piece[n].centroid);
-                    dv = rv_sub(tv1,tv0);
-                    sv = rv_add(tv1,tv0);
-                    cdata.piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]))/2.f;
-                }
-                tv0 = rv_sub(cdata.piece[n].points[cdata.piece[n].pnt_cnt-1],cdata.piece[n].centroid);
-                tv1 = rv_sub(cdata.piece[n].points[0],cdata.piece[n].centroid);
-                dv = rv_sub(tv1,tv0);
-                sv = rv_add(tv1,tv0);
-                cdata.piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]))/2.f;
-                tv0 = cdata.piece[n].points[0];
-                tv1 = cdata.piece[n].points[1];
-                tv2 = cdata.piece[n].points[2];
-                ta = tv0.col[1]*(tv1.col[2]-tv2.col[2])+tv1.col[1]*(tv2.col[2]-tv0.col[2])+tv2.col[1]*(tv0.col[2]-tv1.col[2]);
-                tb = tv0.col[2]*(tv1.col[0]-tv2.col[0])+tv1.col[2]*(tv2.col[0]-tv0.col[0])+tv2.col[2]*(tv0.col[0]-tv1.col[0]);
-                tc = tv0.col[0]*(tv1.col[1]-tv2.col[1])+tv1.col[0]*(tv2.col[1]-tv0.col[1])+tv2.col[0]*(tv0.col[1]-tv1.col[1]);
-                //				td = -(tv0.col[0]*(tv1.col[1]*tv2.col[2]-tv2.col[1]*tv1.col[2])+tv1.col[0]*(tv2.col[1]*tv0.col[2]-tv0.col[1]*tv2.col[2])+tv2.col[0]*(tv0.col[1]*tv1.col[2]-tv1.col[1]*tv0.col[2]));
-                cdata.piece[n].normal.col[0] = ta;
-                cdata.piece[n].normal.col[1] = tb;
-                cdata.piece[n].normal.col[2] = tc;
-                break;
-            case PIECE_TYPE_INTERNAL_PANEL:
-                for (i=0; i<cdata.piece[n].pnt_cnt-1; i++)
-                {
-                    tv0 = rv_sub(cdata.piece[n].points[i],cdata.piece[n].centroid);
-                    tv1 = rv_sub(cdata.piece[n].points[i+1],cdata.piece[n].centroid);
-                    dv = rv_sub(tv1,tv0);
-                    sv = rv_add(tv1,tv0);
-                    cdata.piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]));
-                }
-                tv0 = rv_sub(cdata.piece[n].points[cdata.piece[n].pnt_cnt-1],cdata.piece[n].centroid);
-                tv1 = rv_sub(cdata.piece[n].points[0],cdata.piece[n].centroid);
-                dv = rv_sub(tv1,tv0);
-                sv = rv_add(tv1,tv0);
-                cdata.piece[n].area += (float)sqrt((dv.col[0]*dv.col[0]+dv.col[1]*dv.col[1]+dv.col[2]*dv.col[2])*(sv.col[0]*sv.col[0]+sv.col[1]*sv.col[1]+sv.col[2]*sv.col[2]))/2.f;
-                break;
-            case PIECE_TYPE_BOX:
-                tv0 = cdata.piece[n].points[0];
-                tv1 = cdata.piece[n].points[1];
-                tv2 = cdata.piece[n].points[2];
-                tv3 = cdata.piece[n].points[6];
-                ta = length_rv(rv_sub(tv1,tv0));
-                tb = length_rv(rv_sub(tv2,tv1));
-                tc = length_rv(rv_sub(tv3,tv0));
-                cdata.piece[n].area = (float)(2. * ta * tb + 4. * ta * tc);
-                break;
-            case PIECE_TYPE_CYLINDER:
-                tv0 = cdata.piece[n].points[0];
-                tv1 = cdata.piece[n].points[1];
-                ta = length_rv(rv_sub(tv1,tv0));
-                cdata.piece[n].area = (float)(DPI * cdata.piece[n].dim * cdata.piece[n].dim * ta);
-                break;
-            case PIECE_TYPE_SPHERE:
-                cdata.piece[n].area = (float)((4./3.) *DPI * pow(cdata.piece[n].dim,3.));
-                break;
-            }
-        }
+        cdata.pieces[n].mass = cdata.pieces[n].volume * cdata.pieces[n].density;
+        if (cdata.pieces[n].mass == 0.)
+            cdata.pieces[n].mass = .001f;
+        cdata.pieces[n].temp = 300.;
+        cdata.pieces[n].heat = 300.f * cdata.pieces[n].hcap;
+        cdata.physics.heat += cdata.pieces[n].heat;
+        cdata.physics.mass += cdata.pieces[n].mass;
+        cdata.physics.hcap += cdata.pieces[n].hcap * cdata.pieces[n].mass;
+
     }
+
     if (cdata.node.mass == 0.)
     {
         cdata.node.mass = cdata.physics.mass;
@@ -9503,25 +10078,25 @@ int32_t node_calc(cosmosdatastruc &cdata)
     }
 
     // Turn on power buses
-    for (n=0; n<cdata.devspec.bus_cnt; n++)
+    for (size_t n=0; n<cdata.devspec.bus_cnt; n++)
     {
         cdata.devspec.bus[n]->gen.flag |= DEVICE_FLAG_ON;
     }
 
 
-    for (n=0; n<cdata.node.device_cnt; n++)
+    for (size_t n=0; n<cdata.node.device_cnt; n++)
     {
         /*
     if (cdata.device[n].all.gen.pidx >= 0)
         {
-        cdata.node.com.col[0] += cdata.piece[cdata.device[n].all.gen.pidx].centroid.col[0] * cdata.device[n].all.gen.mass;
-        cdata.node.com.col[1] += cdata.piece[cdata.device[n].all.gen.pidx].centroid.col[1] * cdata.device[n].all.gen.mass;
-        cdata.node.com.col[2] += cdata.piece[cdata.device[n].all.gen.pidx].centroid.col[2] * cdata.device[n].all.gen.mass;
+        cdata.node.com.col[0] += cdata.pieces[cdata.device[n].all.gen.pidx].centroid.col[0] * cdata.device[n].all.gen.mass;
+        cdata.node.com.col[1] += cdata.pieces[cdata.device[n].all.gen.pidx].centroid.col[1] * cdata.device[n].all.gen.mass;
+        cdata.node.com.col[2] += cdata.pieces[cdata.device[n].all.gen.pidx].centroid.col[2] * cdata.device[n].all.gen.mass;
         }
     if (cdata.device[n].all.gen.pidx >= 0)
         {
-        cdata.piece[cdata.device[n].all.gen.pidx].heat += 300. * cdata.piece[cdata.device[n].all.gen.pidx].hcap * cdata.device[n].all.gen.mass;
-        cdata.node.heat += 300. * cdata.piece[cdata.device[n].all.gen.pidx].hcap * cdata.device[n].all.gen.mass;
+        cdata.pieces[cdata.device[n].all.gen.pidx].heat += 300. * cdata.pieces[cdata.device[n].all.gen.pidx].hcap * cdata.device[n].all.gen.mass;
+        cdata.node.heat += 300. * cdata.pieces[cdata.device[n].all.gen.pidx].hcap * cdata.device[n].all.gen.mass;
         }
     cdata.node.mass += cdata.device[n].all.gen.mass;
     */
@@ -9539,63 +10114,40 @@ int32_t node_calc(cosmosdatastruc &cdata)
         }
     }
 
-    cdata.physics.com = rv_smult(1./cdata.physics.mass,cdata.physics.com);
+    //    cdata.physics.com = rv_smult(1./cdata.physics.mass,cdata.physics.com);
     cdata.physics.hcap /= cdata.physics.mass;
 
-    for (n=0; n<cdata.piece.size(); n++)
+    for (size_t n=0; n<cdata.pieces.size(); n++)
     {
-        if (cdata.piece[n].pnt_cnt)
+        piecestruc *tpiece = &cdata.pieces[n];
+        tpiece->shove = Vector();
+        tpiece->twist = Vector();
+        switch (cdata.pieces[n].face_cnt)
         {
-            cdata.piece[n].centroid = rv_sub(cdata.piece[n].centroid,cdata.physics.com);
-            cdata.piece[n].normal = rv_sub(cdata.piece[n].normal,cdata.physics.com);
-            tv0 = cdata.piece[n].centroid;
-            tv0.col[0] = 0.;
-            ta = length_rv(tv0);
-            cdata.physics.moi.col[0] += cdata.piece[n].mass * ta * ta;
-            tv0 = cdata.piece[n].centroid;
-            tv0.col[1] = 0.;
-            ta = length_rv(tv0);
-            cdata.physics.moi.col[1] += cdata.piece[n].mass * ta * ta;
-            tv0 = cdata.piece[n].centroid;
-            tv0.col[2] = 0.;
-            ta = length_rv(tv0);
-            cdata.physics.moi.col[2] += cdata.piece[n].mass * ta * ta;
-            for (i=0; i<cdata.piece[n].pnt_cnt; i++)
+        default:
             {
-                cdata.piece[n].points[i] = rv_sub(cdata.piece[n].points[i],cdata.physics.com);
+                double ta = tpiece->com.flattenx().norm();
+                cdata.physics.moi.x += tpiece->mass * ta * ta;
+                ta = tpiece->com.flatteny().norm();
+                cdata.physics.moi.y += tpiece->mass * ta * ta;
+                ta = tpiece->com.flattenz().norm();
+                cdata.physics.moi.z += tpiece->mass * ta * ta;
             }
-            if (cdata.piece[n].type == PIECE_TYPE_EXTERNAL_PANEL)
+            break;
+        case 1:
             {
-                cdata.piece[n].twist = rv_cross(rv_sub(cdata.piece[n].centroid,cdata.piece[n].normal),cdata.piece[n].normal);
-                cdata.piece[n].twist = rv_smult(-cdata.piece[n].area/(length_rv(cdata.piece[n].normal)*length_rv(cdata.piece[n].normal)),cdata.piece[n].twist);
-                cdata.piece[n].shove = rv_zero();
-                for (i=0; i<cdata.piece[n].pnt_cnt-1; i++)
-                {
-                    tv0 = rv_sub(cdata.piece[n].points[i],cdata.piece[n].centroid);
-                    tv1 = rv_sub(cdata.piece[n].points[i+1],cdata.piece[n].centroid);
-                    ta = length_rv(tv0);
-                    for (j=0; j<=ta*100; j++)
-                    {
-                        tv2 = rv_smult(.01*j/ta,tv0);
-                        tv3 = rv_smult(.01*j/ta,tv1);
-                        dv = rv_sub(tv3,tv2);
-                        tb = length_rv(dv);
-                        for (k=0; k<tb*100; k++)
-                        {
-                            sv = rv_add(cdata.piece[n].centroid,rv_add(tv2,rv_smult(.01*k/tb,dv)));
-                            tc = 1./(length_rv(sv)*length_rv(sv));
-                            cdata.piece[n].shove = rv_add(cdata.piece[n].shove,rv_smult(tc,sv));
-                        }
-                    }
-                }
-                cdata.piece[n].shove = rv_smult(-1./10000.,cdata.piece[n].shove);
+                tpiece->shove = -tpiece->area * (cdata.faces[tpiece->face_idx[0]].normal.dot(tpiece->com)) * tpiece->com / (tpiece->com.norm() * tpiece->com.norm());
+                tpiece->twist = -tpiece->area * tpiece->com.norm() * cdata.faces[tpiece->face_idx[0]].normal - tpiece->com.norm() * tpiece->shove;
             }
+            break;
+        case 0:
+            break;
         }
     }
 
     if (length_rv(cdata.node.moi) == 0.)
     {
-        cdata.node.moi = cdata.physics.moi;
+        cdata.node.moi = cdata.physics.moi.to_rv();
     }
     else
     {
@@ -9603,25 +10155,25 @@ int32_t node_calc(cosmosdatastruc &cdata)
     }
 
     // Turn all CPU's on
-    for (n=0; n<cdata.devspec.cpu_cnt; n++)
+    for (size_t n=0; n<cdata.devspec.cpu_cnt; n++)
     {
         cdata.device[cdata.devspec.cpu[n]->gen.cidx].all.gen.flag |= DEVICE_FLAG_ON;
     }
 
     // Turn on all IMU's
-    for (n=0; n<cdata.devspec.imu_cnt; n++)
+    for (size_t n=0; n<cdata.devspec.imu_cnt; n++)
     {
         cdata.device[cdata.devspec.imu[n]->gen.cidx].all.gen.flag |= DEVICE_FLAG_ON;
     }
 
     // Turn on all GPS's
-    for (n=0; n<cdata.devspec.gps_cnt; n++)
+    for (size_t n=0; n<cdata.devspec.gps_cnt; n++)
     {
         cdata.device[cdata.devspec.gps[n]->gen.cidx].all.gen.flag |= DEVICE_FLAG_ON;
     }
 
     cdata.node.battcap = 0.;
-    for (n=0; n<cdata.devspec.batt_cnt; n++)
+    for (size_t n=0; n<cdata.devspec.batt_cnt; n++)
     {
         cdata.node.battcap += cdata.devspec.batt[n]->capacity;
         cdata.devspec.batt[n]->charge = cdata.devspec.batt[n]->capacity;
@@ -9629,7 +10181,7 @@ int32_t node_calc(cosmosdatastruc &cdata)
     cdata.node.battlev = cdata.node.battcap;
 
     // Turn off reaction wheels
-    for (i=0; i<cdata.devspec.rw_cnt; i++)
+    for (size_t i=0; i<cdata.devspec.rw_cnt; i++)
     {
         cdata.devspec.rw[i]->alp = cdata.devspec.rw[i]->omg = 0.;
     }
@@ -9666,19 +10218,19 @@ void create_databases(cosmosdatastruc &cdata)
     fclose(op);
 */
 
-    op = fopen("piece.txt","w");
-    fprintf(op,"PartIndex\tName\tType\tTemperatureIndex\tComponentIndex\tMass\tEmissivity\tAbsorptivity\tDimension\tHeatCapacity\tHeatConductivity\tArea\tTemp\tHeat\tPointCount\tPoint1X\tPoint1Y\tPoint1Z\tPoint2X\tPoint2Y\tPoint2Z\tPoint3X\tPoint3Y\tPoint3Z\tPoint4X\tPoint4Y\tPoint4Z\tPoint5X\tPoint5Y\tPoint5Z\tPoint6X\tPoint6Y\tPoint6Z\tPoint7X\tPoint7Y\tPoint7Z\tPoint8X\tPoint8Y\tPoint8Z\n");
-    for (i=0; i<cdata.piece.size(); i++)
-    {
-        s = cdata.piece[i];
-        fprintf(op,"%d\t%s\t%d\t%d\t%.4f\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.6f\t%u",i,s.name,s.type,s.cidx,s.mass,s.emi,s.abs,s.dim,s.hcap,s.hcon,s.area,s.pnt_cnt);
-        for (j=0; j<s.pnt_cnt; j++)
-        {
-            fprintf(op,"\t%.6f\t%.6f\t%.6f",s.points[j].col[0],s.points[j].col[1],s.points[j].col[2]);
-        }
-        fprintf(op,"\n");
-    }
-    fclose(op);
+    //    op = fopen("piece.txt","w");
+    //    fprintf(op,"PartIndex\tName\tType\tTemperatureIndex\tComponentIndex\tMass\tEmissivity\tAbsorptivity\tDimension\tHeatCapacity\tHeatConductivity\tArea\tTemp\tHeat\tPointCount\tPoint1X\tPoint1Y\tPoint1Z\tPoint2X\tPoint2Y\tPoint2Z\tPoint3X\tPoint3Y\tPoint3Z\tPoint4X\tPoint4Y\tPoint4Z\tPoint5X\tPoint5Y\tPoint5Z\tPoint6X\tPoint6Y\tPoint6Z\tPoint7X\tPoint7Y\tPoint7Z\tPoint8X\tPoint8Y\tPoint8Z\n");
+    //    for (i=0; i<cdata.pieces.size(); i++)
+    //    {
+    //        s = cdata.pieces[i];
+    //        fprintf(op,"%d\t%s\t%d\t%d\t%.4f\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.6f\t%u",i,s.name,s.type,s.cidx,s.mass,s.emi,s.abs,s.dim,s.hcap,s.hcon,s.area,s.pnt_cnt);
+    //        for (j=0; j<s.face_cnt; j++)
+    //        {
+    //            fprintf(op,"\t%.6f\t%.6f\t%.6f",s.vertex_idx[j].col[0],s.vertex_idx[j].col[1],s.vertex_idx[j].col[2]);
+    //        }
+    //        fprintf(op,"\n");
+    //    }
+    //    fclose(op);
 
     op = fopen("comp.txt","w");
     fprintf(op,"comp_idx\tcomp_type\tcomp_didx\tcomp_pidx\tcomp_bidx\tcomp_namp\tcomp_nvolt\tcomp_amp\tcomp_volt\tcomp_temp\tcomp_on\n");
@@ -9858,9 +10410,9 @@ int32_t load_target(cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
         cdata.target.resize(100);
         while (count < cdata.target.size() && fgets(inb,JSON_MAX_DATA,op) != NULL)
         {
-            json_addentry("target_range",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cmeta);
-            json_addentry("target_close",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,close)+count*sizeof(targetstruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cmeta);
-            json_addentry("target_utc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,utc)+count*sizeof(targetstruc),COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cmeta);
+            json_addentry("target_range",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cmeta);
+            json_addentry("target_close",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,close)+count*sizeof(targetstruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cmeta);
+            json_addentry("target_utc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,utc)+count*sizeof(targetstruc), COSMOS_SIZEOF(double), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cmeta);
             json_addentry("target_name",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,name)+count*sizeof(targetstruc),COSMOS_MAX_NAME, (uint16_t)JSON_TYPE_NAME, (uint16_t)JSON_STRUCT_TARGET, cmeta);
             json_addentry("target_type",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,type)+count*sizeof(targetstruc), COSMOS_SIZEOF(uint16_t), (uint16_t)JSON_TYPE_UINT16, (uint16_t)JSON_STRUCT_TARGET, cmeta);
             json_addentry("target_azfrom",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,azfrom)+count*sizeof(targetstruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cmeta);
@@ -9868,9 +10420,9 @@ int32_t load_target(cosmosmetastruc &cmeta, cosmosdatastruc &cdata)
             json_addentry("target_elfrom",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elfrom)+count*sizeof(targetstruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cmeta);
             json_addentry("target_elto",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,elto)+count*sizeof(targetstruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cmeta);
             json_addentry("target_min",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,min)+count*sizeof(targetstruc), COSMOS_SIZEOF(float), (uint16_t)JSON_TYPE_FLOAT, (uint16_t)JSON_STRUCT_TARGET, cmeta);
-            json_addentry("target_loc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc),COSMOS_SIZEOF(locstruc), (uint16_t)JSON_TYPE_LOC, (uint16_t)JSON_STRUCT_TARGET, cmeta);
-            json_addentry("target_loc_pos_geod",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc),COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_GEOD, (uint16_t)JSON_STRUCT_TARGET, cmeta);
-            json_addentry("target_loc_pos_eci",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc),COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ECI, (uint16_t)JSON_STRUCT_TARGET, cmeta);
+            json_addentry("target_loc",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc)+count*sizeof(targetstruc), COSMOS_SIZEOF(locstruc), (uint16_t)JSON_TYPE_LOCSTRUC, (uint16_t)JSON_STRUCT_TARGET, cmeta);
+            json_addentry("target_loc_pos_geod",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.geod)+count*sizeof(targetstruc), COSMOS_SIZEOF(geoidpos), (uint16_t)JSON_TYPE_POS_GEOD, (uint16_t)JSON_STRUCT_TARGET, cmeta);
+            json_addentry("target_loc_pos_eci",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,loc.pos.eci)+count*sizeof(targetstruc), COSMOS_SIZEOF(cartpos), (uint16_t)JSON_TYPE_POS_ECI, (uint16_t)JSON_STRUCT_TARGET, cmeta);
             if (json_parse(inb, cmeta, cdata) >= 0)
             {
                 if (cdata.target[count].loc.utc == 0.)
@@ -10026,13 +10578,13 @@ size_t load_dictionary(vector<shorteventstruc> &dict, cosmosmetastruc &cmeta, co
 //        i = 0;
 //        do
 //        {
-//            s = &cdata.piece[i];
+//            s = &cdata.pieces[i];
 //            iretn = fscanf(op,"%*d\t%s\t%hu\t%hu\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%hu",&s->name[0],&s->type,&s->cidx,&s->mass,&s->emi,&s->abs,&s->dim,&s->hcap,&s->hcon,&s->area,&s->pnt_cnt);
 //            if (iretn > 0)
 //            {
 //                for (j=0; j<s->pnt_cnt; j++)
 //                {
-//                    iretn = fscanf(op,"\t%lg\t%lg\t%lg",&s->points[j].col[0],&s->points[j].col[1],&s->points[j].col[2]);
+//                    iretn = fscanf(op,"\t%lg\t%lg\t%lg",&s->vertex_idx[j].col[0],&s->vertex_idx[j].col[1],&s->vertex_idx[j].col[2]);
 //                }
 //                iretn = fscanf(op,"\n");
 //                ++i;

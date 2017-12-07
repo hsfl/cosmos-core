@@ -40,6 +40,7 @@
 #include "support/convertdef.h"
 #include "physics/physicsdef.h"
 #include "support/socketlib.h"
+#include "support/objlib.h"
 
 using std::string;
 using std::vector;
@@ -141,7 +142,7 @@ enum
 //! JSON Namelist Group
 enum
 {
-	//! Absolute pointer
+    //! Absolute pointer
 	JSON_STRUCT_ABSOLUTE,
 	//! ::nodestruc
 	JSON_STRUCT_NODE,
@@ -171,6 +172,12 @@ enum
 	JSON_STRUCT_ALIAS,
 	//! ::equationstruc
 	JSON_STRUCT_EQUATION,
+    //! ::vertexstruc
+    JSON_STRUCT_POINT,
+    //! ::facestruc
+    JSON_STRUCT_FACE,
+    //! Pointer to member
+    JSON_STRUCT_PTM,
 	//! entirety
 	JSON_STRUCT_ALL
 };
@@ -182,7 +189,11 @@ enum
 	JSON_TYPE_UINT8=1,
 	//! JSON 8 bit signed integer type
 	JSON_TYPE_INT8,
-	//! JSON 32 bit unsigned integer type
+    //! JSON char type
+    JSON_TYPE_CHAR,
+    //! JSON Boolean
+    JSON_TYPE_BOOL,
+    //! JSON 32 bit unsigned integer type
 	JSON_TYPE_UINT32,
 	//! JSON 16 bit unsigned integer type
 	JSON_TYPE_UINT16,
@@ -190,20 +201,24 @@ enum
 	JSON_TYPE_INT16,
 	//! JSON 32 bit integer type
 	JSON_TYPE_INT32,
-	//! JSON single precision floating point type
+    //! JSON single precision floating vertex type
 	JSON_TYPE_FLOAT,
-	//! JSON double precision floating point type
+    //! JSON double precision floating vertex type
 	JSON_TYPE_DOUBLE,
-	//! JSON std::string type
-	JSON_TYPE_STRING,
-	//! JSON Name type
+    //! JSON char* type
+    JSON_TYPE_CHARP,
+    //! JSON std::string type
+    JSON_TYPE_STRING,
+    //! JSON Name type
 	JSON_TYPE_NAME,
+    //! JSON ::Vector
+    JSON_TYPE_VECTOR,
 	//! JSON ::rvector
 	JSON_TYPE_RVECTOR,
 	//! JSON ::rvector
 	JSON_TYPE_AVECTOR,
 	//! JSON 3 element ::rvector
-	JSON_TYPE_TVECTOR,
+//	JSON_TYPE_TVECTOR,
 	//! JSON ::cvector
 	JSON_TYPE_CVECTOR,
 	//! JSON ::quaternion type
@@ -213,16 +228,24 @@ enum
 	//! JSON ::svector
 	JSON_TYPE_SVECTOR,
 	//! JSON 3x3 ::rmatrix
-	JSON_TYPE_DCM,
+//	JSON_TYPE_DCM,
 	//! JSON ::rmatrix
 	JSON_TYPE_RMATRIX,
 	//! JSON ::cartpos
 	JSON_TYPE_CARTPOS,
-	//! JSON ::qatt
+    //! JSON ::cartpos
+    JSON_TYPE_GEOIDPOS,
+    //! JSON ::cartpos
+    JSON_TYPE_SPHERPOS,
+    //! JSON ::extrapos
+    JSON_TYPE_EXTRAPOS,
+    //! JSON ::qatt
 	JSON_TYPE_QATT,
 	//! JSON ::dcmatt
 	JSON_TYPE_DCMATT,
-	//! JSON ::posstruc
+    //! JSON ::extraatt
+    JSON_TYPE_EXTRAATT,
+    //! JSON ::posstruc
 	JSON_TYPE_POSSTRUC,
 	//! JSON ::attstruc
 	JSON_TYPE_ATTSTRUC,
@@ -261,7 +284,21 @@ enum
 	//! JSON Satellite Attitude Structure
 	JSON_TYPE_LOC_ATT,
 	//! JSON ::locstruc type
-	JSON_TYPE_LOC,
+    JSON_TYPE_LOCSTRUC,
+    JSON_TYPE_NODESTRUC,
+    JSON_TYPE_VERTEXSTRUC,
+    JSON_TYPE_FACESTRUC,
+    JSON_TYPE_PIECESTRUC,
+    JSON_TYPE_DEVICESTRUC,
+    JSON_TYPE_DEVSPECSTRUC,
+    JSON_TYPE_PORTSTRUC,
+    JSON_TYPE_PHYSICSSTRUC,
+    JSON_TYPE_AGENTSTRUC,
+    JSON_TYPE_EVENTSTRUC,
+    JSON_TYPE_TARGETSTRUC,
+    JSON_TYPE_USERSTRUC,
+    JSON_TYPE_GLOSSARYSTRUC,
+    JSON_TYPE_TLESTRUC,
 	//! JSON Timestamp
 	JSON_TYPE_TIMESTAMP,
 	//! JSON Equation
@@ -340,8 +377,10 @@ enum
 #define MAXSTRING 20
 //! maximum number of batteries
 #define MAXBATT 15
-//! Maximum number of points in a structure
+//! Maximum number of vertexs in a structure
 #define MAXPNT 8
+//! Maximum number of faces in a Piece
+#define MAXFACE 20
 //! Maximum number of components
 #define MAXCOMP 128
 //! Maximum number of Ground Stations
@@ -701,42 +740,6 @@ struct jsonnode
 	string aliases;
 };
 
-//! JSON map offset entry
-/*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
- * to a single object, along with its data type.
- * - index: Index of this entry in the ::cosmosmetastruc::jmap.
- * - data: Offset to appropriate storage for this data type.
-*/
-struct jsonentry
-{
-	//! Enabled?
-	bool enabled;
-	//! JSON Data Type
-	uint16_t type;
-	//! JSON Data Group
-	uint16_t group;
-	//! Name of entry
-	string name;
-	//! offset to data storage
-	ptrdiff_t offset;
-	//! size of data storage
-	size_t size;
-	//! vector of actual data
-	vector <uint8_t> data;
-	//! Index to JSON Unit Type
-	uint16_t unit_index;
-	//! Index to alert condition in Data Dictionary
-	uint16_t alert_index;
-	//! Index to alarm condition in Data Dictionary
-	uint16_t alarm_index;
-	//! Index to maximum condition in Data Dictionary
-	uint16_t maximum_index;
-	//! Index to minimum condition in Data Dictionary
-	uint16_t minimum_index;
-	//! Index to subsystem
-	uint16_t subsystem;
-};
-
 //! JSON handle
 /*! Structure representing the location of a single JSON Equation or Name in its respective
 	hash table.
@@ -793,17 +796,6 @@ struct jsonequation
 	uint16_t operation;
 	//! JSON equation operands
 	jsonoperand operand[2];
-};
-
-//! JSON pointer map
-/*! The complete JSON offset map consists of an array of ::jsonentry elements, along
- * with their count. It also provides a dynamically sized char string, used by
- * the JSON output functions, and an index of its length.
-*/
-struct jsonmap
-{
-	//! Array of entries
-	vector<vector<jsonentry> > entry;
 };
 
 //! Agent Request Function
@@ -885,32 +877,30 @@ struct beatstruc
 //! Agent control structure
 struct agentstruc
 {
-	//! Client initialized?
-	bool client;
-	//! Subscription channel (for Client)
-	socket_channel sub;
-	//! Server initialized?
-	bool server;
-	//! Number of network interfaces
-	size_t ifcnt;
-	//! Publication channels for each interface (for Server)
-	socket_channel pub[AGENTMAXIF];
-	//! Request channel (for Server)
-	socket_channel req;
-	//! Agent process ID
-	int32_t pid;
-	//! Activity period in seconds
-	double aprd;
-	//! Agent Running State Flag
-	uint16_t stateflag;
-	//! State of Health report string
-	//	char sohstring[AGENTMAXBUFFER];
-	//! Agent request list
-	vector <agent_request_entry> reqs;
-	//! Heartbeat
-	beatstruc beat;
-	//! State of Health element vector
-	vector<jsonentry*> sohtable;
+    //! Client initialized?
+    bool client;
+    //! Subscription channel (for Client)
+    socket_channel sub;
+    //! Server initialized?
+    bool server;
+    //! Number of network interfaces
+    size_t ifcnt;
+    //! Publication channels for each interface (for Server)
+    socket_channel pub[AGENTMAXIF];
+    //! Request channel (for Server)
+    socket_channel req;
+    //! Agent process ID
+    int32_t pid;
+    //! Activity period in seconds
+    double aprd;
+    //! Agent Running State Flag
+    uint16_t stateflag;
+    //! State of Health report string
+    //	char sohstring[AGENTMAXBUFFER];
+    //! Agent request list
+    vector <agent_request_entry> reqs;
+    //! Heartbeat
+    beatstruc beat;
 };
 
 //! Long COSMOS Event structure.
@@ -1041,7 +1031,7 @@ struct glossarystruc
 };
 
 //! Alias structure
-/*! Contains the name of an alias and the ::jsonmap entry it points to,
+/*! Contains the name of an alias and the ::jsonmap entry it vertexs to,
  * stored as a ::jsonhandle.
 */
 struct aliasstruc
@@ -1055,7 +1045,7 @@ struct aliasstruc
 };
 
 //! Equation structure
-/*! Contains the name of an equation and the Equation string it points to.
+/*! Contains the name of an equation and the Equation string it vertexs to.
 */
 struct equationstruc
 {
@@ -1098,6 +1088,19 @@ struct portstruc
 	char name[COSMOS_MAX_DATA+1];
 };
 
+//! Point structure: information on each vertex in a face
+typedef Math::Vector vertexstruc;
+
+//! Face structure: information on each face of a piece
+struct facestruc
+{
+    uint16_t vertex_cnt;
+    vector <uint16_t> vertex_idx;
+    Vector com;
+    Vector normal;
+    double area;
+};
+
 //! Part structure: physical information for each piece of Node
 struct piecestruc
 {
@@ -1109,6 +1112,8 @@ struct piecestruc
 	uint16_t type;
 	//! Component index: -1 if not a Component
 	uint16_t cidx;
+    //! Density in kg/cu m
+    float density;
 	//! Mass in kg
 	float mass;
 	//! Emissivity: 0-1
@@ -1123,18 +1128,18 @@ struct piecestruc
 	float dim;
 	//! Area in square meters
 	float area;
-	//! Number of vertices/points
-	uint16_t pnt_cnt;
-	//! Array of vertices/points
-	rvector points[MAXPNT];
-	//! Normal to panel if external
-	rvector normal;
-	//! Centroid of piece
-	rvector centroid;
+    //! Volume in cubic meters
+    float volume;
+    //! Number of faces
+    uint16_t face_cnt;
+    //! Array of vertices/vertexs
+    int32_t face_idx[MAXFACE];
+    //! Centroid of piece
+    Vector com;
 	//! Contribution of piece to linear forces
-	rvector shove;
+    Vector shove;
 	//! Contribution of piece to angular forces
-	rvector twist;
+    Vector twist;
 	//! Stored thermal energy
 	float heat;
 	//! Temperature in Kelvins
@@ -1153,10 +1158,8 @@ union as a ::devicestruc.
 */
 struct genstruc
 {
-    //! Enabled? -- Actual
+	//! Enabled?
 	bool enabled;
-    //! Enable -- Expected
-    bool enable;
 	//! Component Type
 	uint16_t type;
 	//! Device Model
@@ -1198,7 +1201,7 @@ struct genstruc
  */
 struct allstruc
 {
-	genstruc gen;
+    genstruc gen;
 };
 
 // End of Device General structures
@@ -1535,8 +1538,8 @@ struct htrstruc
 {
 	//! Generic info
 	genstruc gen;
-	//! Temperature set point
-	float setpoint;
+    //! Temperature set vertex
+    float setvertex;
 };
 
 struct motrstruc
@@ -1587,8 +1590,6 @@ struct swchstruc
 {
 	//! Generic info
 	genstruc gen;
-    //! Watch Dog Timer (MJD)
-    float wdt;
 };
 
 //! Rotor Structure definition
@@ -1707,6 +1708,8 @@ struct nodestruc
 	uint16_t type;
 	//! Operational state
 	uint16_t state;
+    uint16_t vertex_cnt;
+    uint16_t face_cnt;
 	uint16_t piece_cnt;
 	uint16_t device_cnt;
 	uint16_t port_cnt;
@@ -1857,32 +1860,181 @@ struct devspecstruc
 */
 struct cosmosdatastruc
 {
-	//! Timestamp for last change to data
-	double timestamp;
-	//! Structure for summary information in node
-	nodestruc node;
-	//! Vector of all pieces in node.
-	vector<piecestruc> piece;
-	//! Vector of all general (common) information for devices (components) in node.
-	vector<devicestruc> device;
-	//! Structure for devices (components) special data in node, by type.
-	devspecstruc devspec;
-	//! Vector of all ports known to node.
-	vector<portstruc> port;
-	//! Structure for physics modelling.
-	physicsstruc physics;
-	//! Single entry vector for agent information.
-	vector<agentstruc> agent;
-	//! Single entry vector for event information.
-	vector<eventstruc> event;
-	//! Vector of all targets known to node.
-	vector<targetstruc> target;
-	//! Single entry vector for user information.
-	vector<userstruc> user;
-	//! Vector of glossary terms for node.
-	vector<glossarystruc> glossary;
-	//! Array of Two Line Elements
-	vector<tlestruc> tle;
+    //! Timestamp for last change to data
+    double timestamp;
+    //! Structure for summary information in node
+    nodestruc node;
+    //! Vector of all vertexs in node.
+    vector <vertexstruc> vertexs;
+    //! Vector of all vertexs in node.
+    vector <vertexstruc> normals;
+    //! Vector of all faces in node.
+    vector <facestruc> faces;
+    //! Vector of all pieces in node.
+    vector<piecestruc> pieces;
+    //! Wavefront obj structure
+    wavefront obj;
+    //! Vector of all general (common) information for devices (components) in node.
+    vector<devicestruc> device;
+    //! Structure for devices (components) special data in node, by type.
+    devspecstruc devspec;
+    //! Vector of all ports known to node.
+    vector<portstruc> port;
+    //! Structure for physics modelling.
+    physicsstruc physics;
+    //! Single entry vector for agent information.
+    vector<agentstruc> agent;
+    //! Single entry vector for event information.
+    vector<eventstruc> event;
+    //! Vector of all targets known to node.
+    vector<targetstruc> target;
+    //! Single entry vector for user information.
+    vector<userstruc> user;
+    //! Vector of glossary terms for node.
+    vector<glossarystruc> glossary;
+    //! Array of Two Line Elements
+    vector<tlestruc> tle;
+};
+
+//reinterpret_cast<void (Queue::*)>(func));
+typedef void* (cosmosdatastruc::*cosmosdatastrucVoid);
+typedef bool (cosmosdatastruc::*cosmosdatastrucBool);
+typedef char* (cosmosdatastruc::*cosmosdatastrucChar);
+typedef string (cosmosdatastruc::*cosmosdatastrucString);
+typedef uint8_t (cosmosdatastruc::*cosmosdatastrucUint8);
+typedef uint16_t (cosmosdatastruc::*cosmosdatastrucUint16);
+typedef uint32_t (cosmosdatastruc::*cosmosdatastrucUint32);
+typedef int16_t (cosmosdatastruc::*cosmosdatastrucInt16);
+typedef int32_t (cosmosdatastruc::*cosmosdatastrucInt32);
+typedef float (cosmosdatastruc::*cosmosdatastrucFloat);
+typedef double (cosmosdatastruc::*cosmosdatastrucDouble);
+typedef rvector (cosmosdatastruc::*cosmosdatastrucRvector);
+typedef cvector (cosmosdatastruc::*cosmosdatastrucCvector);
+typedef avector (cosmosdatastruc::*cosmosdatastrucAvector);
+typedef gvector (cosmosdatastruc::*cosmosdatastrucGvector);
+typedef svector (cosmosdatastruc::*cosmosdatastrucSvector);
+typedef Vector (cosmosdatastruc::*cosmosdatastrucVector);
+typedef quaternion (cosmosdatastruc::*cosmosdatastrucQuaternion);
+typedef rmatrix (cosmosdatastruc::*cosmosdatastrucRmatrix);
+typedef locstruc (cosmosdatastruc::*cosmosdatastrucLocstruc);
+typedef posstruc (cosmosdatastruc::*cosmosdatastrucPosstruc);
+typedef cartpos (cosmosdatastruc::*cosmosdatastrucCartpos);
+typedef geoidpos (cosmosdatastruc::*cosmosdatastrucGeoidpos);
+typedef spherpos (cosmosdatastruc::*cosmosdatastrucSpherpos);
+typedef extrapos (cosmosdatastruc::*cosmosdatastrucExtrapos);
+typedef attstruc (cosmosdatastruc::*cosmosdatastrucAttstruc);
+typedef qatt (cosmosdatastruc::*cosmosdatastrucQatt);
+typedef dcmatt (cosmosdatastruc::*cosmosdatastrucDcmatt);
+typedef extraatt (cosmosdatastruc::*cosmosdatastrucExtraatt);
+typedef nodestruc (cosmosdatastruc::*cosmosdatastrucNodestruc);
+typedef vertexstruc (cosmosdatastruc::*cosmosdatastrucVertexstruc);
+typedef facestruc (cosmosdatastruc::*cosmosdatastrucFacestruc);
+typedef piecestruc (cosmosdatastruc::*cosmosdatastrucPiecestruc);
+typedef devicestruc (cosmosdatastruc::*cosmosdatastrucDevicestruc);
+typedef devspecstruc (cosmosdatastruc::*cosmosdatastrucDevspecstruc);
+typedef portstruc (cosmosdatastruc::*cosmosdatastrucPortstruc);
+typedef physicsstruc (cosmosdatastruc::*cosmosdatastrucPhysicsstruc);
+typedef agentstruc (cosmosdatastruc::*cosmosdatastrucAgentstruc);
+typedef eventstruc (cosmosdatastruc::*cosmosdatastrucEventstruc);
+typedef targetstruc (cosmosdatastruc::*cosmosdatastrucTargetstruc);
+typedef userstruc (cosmosdatastruc::*cosmosdatastrucUserstruc);
+typedef glossarystruc (cosmosdatastruc::*cosmosdatastrucGlossarystruc);
+typedef tlestruc (cosmosdatastruc::*cosmosdatastrucTlestruc);
+
+union cosmosdatastrucupointer
+{
+    cosmosdatastrucVoid Void;
+    cosmosdatastrucBool Bool;
+    cosmosdatastrucChar Char;
+    cosmosdatastrucString String;
+    cosmosdatastrucUint8 Uint8;
+    cosmosdatastrucUint16 Uint16;
+    cosmosdatastrucUint32 Uint32;
+    cosmosdatastrucUint16 Int16;
+    cosmosdatastrucUint32 Int32;
+    cosmosdatastrucFloat Float;
+    cosmosdatastrucDouble Double;
+    cosmosdatastrucRvector Rvector;
+    cosmosdatastrucCvector Cvector;
+    cosmosdatastrucAvector Avector;
+    cosmosdatastrucGvector Gvector;
+    cosmosdatastrucSvector Svector;
+    cosmosdatastrucVector Vector;
+    cosmosdatastrucQuaternion Quaternion;
+    cosmosdatastrucRmatrix Rmatrix;
+    cosmosdatastrucLocstruc Locstruc;
+    cosmosdatastrucPosstruc Posstruc;
+    cosmosdatastrucCartpos Cartpos;
+    cosmosdatastrucGeoidpos Geoidpos;
+    cosmosdatastrucSpherpos Spherpos;
+    cosmosdatastrucExtrapos Extrapos;
+    cosmosdatastrucAttstruc Attstruc;
+    cosmosdatastrucQatt Qatt;
+    cosmosdatastrucDcmatt Dcmatt;
+    cosmosdatastrucExtraatt Extraatt;
+    cosmosdatastrucNodestruc Nodestruc;
+    cosmosdatastrucVertexstruc Vertexstruc;
+    cosmosdatastrucFacestruc Facestruc;
+    cosmosdatastrucPiecestruc Piecestruc;
+    cosmosdatastrucDevicestruc Devicestruc;
+    cosmosdatastrucDevspecstruc Devspecstruc;
+    cosmosdatastrucPortstruc Portstruc;
+    cosmosdatastrucPhysicsstruc Physicsstruc;
+    cosmosdatastrucAgentstruc Agentstruc;
+    cosmosdatastrucEventstruc Eventstruc;
+    cosmosdatastrucTargetstruc Targetstruc;
+    cosmosdatastrucUserstruc Userstruc;
+    cosmosdatastrucGlossarystruc Glossarystruc;
+    cosmosdatastrucTlestruc Tlestruc;
+};
+
+//! JSON map offset entry
+/*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
+ * to a single object, along with its data type.
+ * - index: Index of this entry in the ::cosmosmetastruc::jmap.
+ * - data: Offset to appropriate storage for this data type.
+*/
+struct jsonentry
+{
+    //! Enabled?
+    bool enabled;
+    //! JSON Data Type
+    uint16_t type;
+    //! JSON Data Group
+    uint16_t group;
+    //! Name of entry
+    string name;
+    //! offset to data storage
+    ptrdiff_t offset;
+    //! pointer to member
+    cosmosdatastrucVoid ptr;
+    //! size of data storage
+    size_t size;
+    //! vector of actual data
+    vector <uint8_t> data;
+    //! Index to JSON Unit Type
+    uint16_t unit_index;
+    //! Index to alert condition in Data Dictionary
+    uint16_t alert_index;
+    //! Index to alarm condition in Data Dictionary
+    uint16_t alarm_index;
+    //! Index to maximum condition in Data Dictionary
+    uint16_t maximum_index;
+    //! Index to minimum condition in Data Dictionary
+    uint16_t minimum_index;
+    //! Index to subsystem
+    uint16_t subsystem;
+};
+
+//! JSON pointer map
+/*! The complete JSON offset map consists of an array of ::jsonentry elements, along
+ * with their count. It also provides a dynamically sized char string, used by
+ * the JSON output functions, and an index of its length.
+*/
+struct jsonmap
+{
+    //! Array of entries
+    vector<vector<jsonentry> > entry;
 };
 
 //! JSON Name Space Meta structure
@@ -1891,22 +2043,23 @@ struct cosmosdatastruc
 */
 struct cosmosmetastruc
 {
-	//! Timestamp for last change to data
-	double timestamp;
-	//! Node name
-	string node;
-	//! Whether JSON map has been created.
-	uint16_t jmapped;
-	//! JSON Namespace Map matrix.
-	vector<vector<jsonentry> > jmap;
-	//! JSON Equation Map matrix.
-	vector<vector<jsonequation> > emap;
-	//! JSON Unit Map matrix: first level is for type, second level is for variant.
-	vector<vector<unitstruc> > unit;
-	//! Vector of Equations
-	vector<equationstruc> equation;
-	//! Array of Aliases
-	vector<aliasstruc> alias;
+    //! Timestamp for last change to data
+    double timestamp;
+    //! Node name
+    string node;
+    void* jmapbase;
+    //! Whether JSON map has been created.
+    uint16_t jmapped;
+    //! JSON Namespace Map matrix.
+    vector<vector<jsonentry> > jmap;
+    //! JSON Equation Map matrix.
+    vector<vector<jsonequation> > emap;
+    //! JSON Unit Map matrix: first level is for type, second level is for variant.
+    vector<vector<unitstruc> > unit;
+    //! Vector of Equations
+    vector<equationstruc> equation;
+    //! Array of Aliases
+    vector<aliasstruc> alias;
 };
 
 //! JSON Name Space structure
@@ -1916,14 +2069,14 @@ struct cosmosmetastruc
 */
 struct cosmosstruc
 {
-	//! Namespace meta information
-	cosmosmetastruc meta;
-	//! Primary Namespace data
-	cosmosdatastruc pdata;
-	//! Secondary Namespace data
-	cosmosdatastruc sdata;
-	//! JSON descriptive information
-	jsonnode json;
+    //! Namespace meta information
+    cosmosmetastruc meta;
+    //! Primary Namespace data
+    cosmosdatastruc pdata;
+    //! Secondary Namespace data
+    cosmosdatastruc sdata;
+    //! JSON descriptive information
+    jsonnode json;
 };
 
 //! @}
