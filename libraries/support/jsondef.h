@@ -607,6 +607,8 @@ enum class DeviceType : uint16_t
 	DISK=28,
 	//! TNC
 	TNC=29,
+    //! PVREG
+    PVREG=30,
 	//! List count
 	COUNT,
 	//! Not a Component
@@ -1792,6 +1794,7 @@ struct devicestruc
 		thststruc thst;
 		tsenstruc tsen;
 		tncstruc tnc;
+        pvregstruc pvreg;
 	};
 };
 
@@ -1830,6 +1833,7 @@ struct devspecstruc
 	uint16_t thst_cnt;
 	uint16_t tsen_cnt;
 	uint16_t tnc_cnt;
+    uint16_t pvreg_cnt;
 	vector<allstruc *>all;
 	vector<antstruc *>ant;
 	vector<battstruc *>batt;
@@ -1861,6 +1865,7 @@ struct devspecstruc
 	vector<thststruc *>thst;
 	vector<tsenstruc *>tsen;
 	vector<tncstruc *>tnc;
+    vector<pvregstruc *>pvreg;
 };
 
 //! JSON Name Space data structure
