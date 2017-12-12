@@ -146,9 +146,9 @@ int main(int argc, char* argv[]){
     }
 
     //agent->cinfo->physics.mode = mode;
-    //json_clone(cdata);
+    //json_clone(cinfo);
 
-    //load_dictionary(eventdict, cdata, (char *)"events.dict");
+    //load_dictionary(eventdict, cinfo, (char *)"events.dict");
 
     //}
 
@@ -175,14 +175,14 @@ int main(int argc, char* argv[]){
         //size_t nbytes =
         fread(ibuf, 1, fstat.st_size, fdes);
         //		fgets(ibuf,fstat.st_size,fdes);
-        json_parse(ibuf,agent->cinfo->meta,agent->cinfo->pdata);
-        //CT 2017-06-26 changed "cdata" to "agent->cinfo->meta, agent->cinfo->pdata"
+        json_parse(ibuf, agent->cinfo);
+        //CT 2017-06-26 changed "cdata" to "agent->cinfo"
         free(ibuf);
 
-        initState.pos.eci   = agent->cinfo->pdata.node.loc.pos.eci;
+        initState.pos.eci   = agent->cinfo->node.loc.pos.eci;
         //initState.att.icrf  = agent->cinfo->node.loc.att.icrf;
-        initState.utc       = agent->cinfo->pdata.node.loc.pos.eci.utc;
-        //CT 2017-06-26  changing in lines 178/180 "agent->cinfo->node" to "agent->cinfo->pdata.node"
+        initState.utc       = agent->cinfo->node.loc.pos.eci.utc;
+        //CT 2017-06-26  changing in lines 178/180 "agent->cinfo->node" to "agent->cinfo->node"
 
         cout << "Sucessfully found state.ini"  << endl;
 
@@ -221,13 +221,13 @@ int main(int argc, char* argv[]){
                            currentmjd(),// use curretn time instead of initState.utc for this demo, otherwise it will take a long time to update
                            initState.pos.eci,
                            initState.att.icrf,
-                           agent->cinfo->pdata.physics,
-                           agent->cinfo->pdata.node.loc);
+                           agent->cinfo->physics,
+                           agent->cinfo->node.loc);
 
     // propagate state to current time so we get an updated state vector
     // to initialize the GPS sim
     //CT 2017-06-26: couldn't find a gj_handle data type for this function to use
-    gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, currentmjd());
+    gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, currentmjd());
 
     //get initial sim tim
     double mjd_start_sim = currentmjd();
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]){
 
     // --------------------------------------------------------------
     //while(1){ // for general purpose
-    //CT 2017-06-26: seems like command was changed/moved from "agent_running" to "Agent::running". consider changing cdata to an agent, or change statement to "cdata.pdata.agent.stateflag == RUNNING"? or w/e running value is
+    //CT 2017-06-26: seems like command was changed/moved from "agent_running" to "Agent::running". consider changing cdata to an agent, or change statement to "cinfo->agent.stateflag == RUNNING"? or w/e running value is
     while (agent->running()){ //for agent use
         // get the elapsed seconds from the sim start
         utc_now = currentmjd(0);
@@ -255,8 +255,8 @@ int main(int argc, char* argv[]){
 
             // propagate
             //CT 2017-06-26: cannot find gj_handle data type for function to use
-            gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc,  utc_now);
-            state = agent->cinfo->pdata.node.loc;
+            gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc,  utc_now);
+            state = agent->cinfo->node.loc;
 
             // break down state vector for this demo
             x = state.pos.eci.s.col[0];
@@ -289,10 +289,10 @@ int main(int argc, char* argv[]){
             print.vector("pos:", state.pos.geoc.s, " m | ", 3);
             print.vector("vel:", state.pos.geoc.v, " m/s | ", 3);
             // magnetic field in nano-Tesla
-            print.vector("mag field:", agent->cinfo->pdata.node.loc.bearth,  " nT", 3);  //CT 2017-06-26: possible to add ", -1" as another arguement to call main vector function, or overload
+            print.vector("mag field:", agent->cinfo->node.loc.bearth,  " nT", 3);  //CT 2017-06-26: possible to add ", -1" as another arguement to call main vector function, or overload
             print.endline();
 
-            agent->post((uint8_t)Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+            agent->post(Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->sohtable, agent->cinfo));
 
 
             COSMOS_SLEEP(sleep_time); // sleep for 70% of the iteration time

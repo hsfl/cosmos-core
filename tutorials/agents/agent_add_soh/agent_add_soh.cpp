@@ -105,7 +105,7 @@ int myagent()
     while(agent->running())
     {
         pos_eci.utc = currentmjd(0);
-        agent->cinfo->pdata.node.loc.pos.eci = pos_eci;
+        agent->cinfo->node.loc.pos.eci = pos_eci;
     }
 
     return (0);

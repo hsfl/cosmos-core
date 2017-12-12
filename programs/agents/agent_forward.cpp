@@ -102,7 +102,6 @@ int main(int argc, char *argv[])
         Agent::messstruc mess;
         iretn = agent->readring(mess, Agent::AgentMessage::ALL, 1., Agent::Where::TAIL);
 
-//        nbytes = recvfrom(agent->cinfo->pdata.agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&agent->cinfo->sdata.agent[0].req.caddr,(socklen_t *)&agent->cinfo->sdata.agent[0].req.addrlen);
         if (iretn > 0)
         {
             post[0] = (uint8_t)mess.meta.type;
@@ -194,9 +193,9 @@ void incoming_thread()
                 }
             }
 
-            for (size_t i=0; i<agent->cinfo->pdata.agent[0].ifcnt; ++i)
+            for (size_t i=0; i<agent->cinfo->agent[0].ifcnt; ++i)
             {
-                sendto(agent->cinfo->pdata.agent[0].pub[i].cudp, (const char *)input.data(), nbytes, 0, (struct sockaddr *)&agent->cinfo->pdata.agent[0].pub[i].caddr, sizeof(struct sockaddr_in));
+                sendto(agent->cinfo->agent[0].pub[i].cudp, (const char *)input.data(), nbytes, 0, (struct sockaddr *)&agent->cinfo->agent[0].pub[i].caddr, sizeof(struct sockaddr_in));
             }
         }
     }

@@ -120,7 +120,7 @@ for (i=0; i<nodes.size(); ++i)
 	{
 #if defined(COSMOS_WIN_OS)
 	char command_line[100];
-    sprintf(command_line, "agent_node %s", (const char*)nodes[i].pdata.node.name);
+    sprintf(command_line, "agent_node %s", (const char*)nodes[i].node.name);
 
     STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
@@ -135,7 +135,7 @@ for (i=0; i<nodes.size(); ++i)
         if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 #endif
 	{
-        strcpy(tempagent.beat.node, nodes[i].pdata.node.name);
+        strcpy(tempagent.beat.node, nodes[i].node.name);
 		tempagent.pid = pi.dwProcessId;
         agents.push_back(tempagent);
 		CloseHandle( pi.hProcess );
@@ -146,7 +146,7 @@ for (i=0; i<nodes.size(); ++i)
 	switch(pid)
 	{
 	case -1:
-        strcpy(tempagent.beat.node, nodes[i].pdata.node.name);
+        strcpy(tempagent.beat.node, nodes[i].node.name);
 		tempagent.pid=pid;
         agents.push_back(tempagent);
 		break;
@@ -157,7 +157,7 @@ for (i=0; i<nodes.size(); ++i)
 		dup2(STDOUT_FILENO, devn);
 		dup2(STDERR_FILENO,	devn);
 		close(devn);
-        execl("agent_node", (const char*)nodes[i].pdata.node.name,(char*) NULL);
+        execl("agent_node", (const char*)nodes[i].node.name,(char*) NULL);
 
 		fflush(stdout);
 		exit(0);
@@ -236,7 +236,7 @@ uint32_t i;
 response[0] = 0;
 for (i=0; i<nodes.size(); i++)
 	{
-    sprintf(&response[strlen(response)],"%s,%d,",nodes[i].pdata.node.name,nodes[i].pdata.node.type);
+    sprintf(&response[strlen(response)],"%s,%d,",nodes[i].node.name,nodes[i].node.type);
 	}
 return 0;
 }
@@ -254,12 +254,12 @@ for (i=0; i<strlen(request); ++i)
 		break;
 }
 
-json_parse(&request[i], agent->cinfo->meta, agent->cinfo->pdata); //cinfo.stat.agent.user
+json_parse(&request[i], agent->cinfo); //cinfo->stat.agent.user
 													// .event
 													// .utc ->date
 													// .node
-utc = (int)(agent->cinfo->pdata.event[0].s.utc);
-log = data_open(data_type_path(agent->cinfo->pdata.event[0].s.node, (char *)"data", (char *)"outgoing", utc, (char*)"request_log"), (char*)"a");
+utc = (int)(agent->cinfo->event[0].s.utc);
+log = data_open(data_type_path(agent->cinfo->event[0].s.node, (char *)"data", (char *)"outgoing", utc, (char*)"request_log"), (char*)"a");
 fprintf(log,"%s\n",&request[i]);
 fclose(log);
 return 0;

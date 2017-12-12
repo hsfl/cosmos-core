@@ -177,8 +177,9 @@ enum
     //! ::facestruc
     JSON_STRUCT_FACE,
     //! Pointer to member
-    JSON_STRUCT_PTM,
-	//! entirety
+//    JSON_STRUCT_PTM,
+    JSON_STRUCT_PTR,
+    //! entirety
 	JSON_STRUCT_ALL
 };
 
@@ -1133,7 +1134,7 @@ struct piecestruc
     //! Number of faces
     uint16_t face_cnt;
     //! Array of vertices/vertexs
-    int32_t face_idx[MAXFACE];
+    vector <uint16_t> face_idx;
     //! Centroid of piece
     Vector com;
 	//! Contribution of piece to linear forces
@@ -1199,9 +1200,9 @@ struct genstruc
 //! All structures.
 /*! This structure can be used for all devices. It contains only a ::genstruc
  */
-struct allstruc
+struct allstruc : public genstruc
 {
-    genstruc gen;
+//    genstruc gen;
 };
 
 // End of Device General structures
@@ -1214,10 +1215,10 @@ struct allstruc
  * is then accessible as all supported data types, both in the structure and the
  * Namespace.
  */
-struct telemstruc
+struct telemstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 	//! Data type
 	uint16_t type;
 	//! Union of data
@@ -1240,10 +1241,10 @@ struct telemstruc
  * names. You can then set double precision values for these keys in
  * the dynamic structure.
  */
-struct ploadstruc
+struct ploadstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 	//! Number of keys being used.
 	uint16_t key_cnt;
 	//! Name for each key.
@@ -1253,10 +1254,10 @@ struct ploadstruc
 };
 
 //! Sun Sensor (SSEN) Sructure
-struct ssenstruc
+struct ssenstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 	//! Sensor alignment quaternion.
 	quaternion align;
 	float qva;
@@ -1268,10 +1269,10 @@ struct ssenstruc
 };
 
 //! Inertial Measurement Unit (IMU) structure
-struct imustruc
+struct imustruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 	//! alignment quaternion
 	quaternion align;
 	//! Position acceleration vector
@@ -1291,10 +1292,10 @@ struct imustruc
 };
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
-struct rwstruc
+struct rwstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 	//! Rotates vectors from RW frame (axis of rotation = z) to body frame.
 	quaternion align;
 	//! Moments of inertia in RW frame.
@@ -1316,10 +1317,10 @@ struct rwstruc
 };
 
 //! Magnetic Torque Rod structure: z axis is aligned with rod.
-struct mtrstruc
+struct mtrstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 	//! Rotates vectors from MTR frame to Body frame.
 	quaternion align;
 	//! Terms of 6th order polynomial converting negative moment to current
@@ -1337,11 +1338,11 @@ struct mtrstruc
 };
 
 //! CPU information
-struct cpustruc
+struct cpustruc : public genstruc
 {
 
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 
 	// cpu
 	//! Seconds CPU has been up
@@ -1362,11 +1363,11 @@ struct cpustruc
 };
 
 //! Disk information
-struct diskstruc
+struct diskstruc : public genstruc
 {
 
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 
 	// disk
 	//! Maximum disk capacity in GiB
@@ -1379,10 +1380,10 @@ struct diskstruc
 };
 
 // TODO: rename to GpsData
-struct gpsstruc
+struct gpsstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 	//! UTC time error
 	double dutc;
 	//! Geocentric position: x, y, z
@@ -1420,10 +1421,10 @@ struct gpsstruc
 //! Antenna information
 /*! This structure holds the information concerning antennas.
 */
-struct antstruc
+struct antstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 	//! Alignment
 	quaternion align;
 	//! Azimuth;
@@ -1437,10 +1438,10 @@ struct antstruc
 //! Receiver information
 /*! This structure holds the information concerning receivers.
 */
-struct rxrstruc
+struct rxrstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+////	genstruc gen;
 	//! Operating mode
 	uint16_t opmode;
 	//! Frequency
@@ -1458,10 +1459,10 @@ struct rxrstruc
 //! Transmitter information
 /*! This structure holds the information concerning transmitters.
 */
-struct txrstruc
+struct txrstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Operating mode
 	uint16_t opmode;
 	//! Frequency
@@ -1479,10 +1480,10 @@ struct txrstruc
 //! Transceiver information
 /*! This structure holds the information concerning transceivers.
 */
-struct tcvstruc
+struct tcvstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Operating mode
 	uint16_t opmode;
 	//! Input Frequency
@@ -1504,10 +1505,10 @@ struct tcvstruc
 //! PV String (STRG) structure.
 /*! Efficiency is goven as effbase + effslope * Tkelvin.
 */
-struct strgstruc
+struct strgstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Efficiency 0th order term
 	float effbase;
 	//! Efficiency 1st order term
@@ -1519,10 +1520,10 @@ struct strgstruc
 };
 
 //! Battery (BATT) structure.
-struct battstruc
+struct battstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Capacity in amp hours
 	float capacity;
 	//! Charge conversion efficiency
@@ -1534,18 +1535,18 @@ struct battstruc
 //! Heater Structure definition
 /*! This structure holds the description of a heaters.
 */
-struct htrstruc
+struct htrstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
     //! Temperature set vertex
     float setvertex;
 };
 
-struct motrstruc
+struct motrstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Maximum speed in revolutions per second
 	float max;
 	//!
@@ -1553,17 +1554,17 @@ struct motrstruc
 	float spd;
 };
 
-struct tsenstruc
+struct tsenstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 };
 
 //! Thruster (THST) dynamic structure
-struct thststruc
+struct thststruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Flow
 	quaternion align;
 	//! Specific Impulse in dynes per kg per second
@@ -1573,10 +1574,10 @@ struct thststruc
 };
 
 //! Propellant Tank (PROP) structure.
-struct propstruc
+struct propstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Propellant capacity in kg
 	float cap;
 	//! Propellant level in kg
@@ -1586,29 +1587,29 @@ struct propstruc
 //! Switch Structure definition
 /*! This structure holds the description of a switches.
 */
-struct swchstruc
+struct swchstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 };
 
 //! Rotor Structure definition
 /*! This structure holds the description of a rotors.
 */
-struct rotstruc
+struct rotstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Angular position
 	float angle;
 };
 
 //! Star Tracker (STT) Sructure
 // TODO: rename to ST
-struct sttstruc
+struct sttstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! alignment quaternion
 	quaternion align;
 	//! includes 0 and 1st order derivative
@@ -1621,10 +1622,10 @@ struct sttstruc
 };
 
 //! Motion Capture Camera (MCC) Structure
-struct mccstruc
+struct mccstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Sensor alignment quaternion.
 	quaternion align;
 	//! attitude
@@ -1634,39 +1635,39 @@ struct mccstruc
 };
 
 //! Torque Rod Control Unit
-struct tcustruc
+struct tcustruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Torque Rod count
 	uint16_t mcnt;
 	//! Torque Rod Component indices
 	uint16_t mcidx[3];
 };
 
-struct busstruc
+struct busstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Total energy usage
 	float energy;
 	//! Watch Dog Timer (MJD)
 	float wdt;
 };
 
-struct psenstruc
+struct psenstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! Current Pressure
 	float press;
 };
 
 //! SUCHI Sructure
-struct suchistruc
+struct suchistruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	//! alignment quaternion
 	quaternion align;
 	//! Internal pressure
@@ -1675,10 +1676,10 @@ struct suchistruc
 	float temps[8];
 };
 
-struct camstruc
+struct camstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
 	uint16_t pwidth;
 	uint16_t pheight;
 	float width;
@@ -1689,10 +1690,19 @@ struct camstruc
 //! TNC Structure definition
 /*! This structure holds the description of a TNC.
 */
-struct tncstruc
+struct tncstruc : public genstruc
 {
 	//! Generic info
-	genstruc gen;
+//	genstruc gen;
+};
+
+//! PVREG (PV Regulator) Structure definition
+/*! This structure holds the description of a PVREG.
+*/
+struct pvregstruc : public genstruc
+{
+    //! Generic info
+////	genstruc gen;
 };
 
 // End of Device Specific structures
@@ -2006,10 +2016,10 @@ struct jsonentry
     string name;
     //! offset to data storage
     ptrdiff_t offset;
-    //! pointer to member
-    cosmosdatastrucVoid ptr;
+    //! pointer to data storage
+    uint8_t* ptr;
     //! size of data storage
-    size_t size;
+//    size_t size;
     //! vector of actual data
     vector <uint8_t> data;
     //! Index to JSON Unit Type
@@ -2047,7 +2057,6 @@ struct cosmosmetastruc
     double timestamp;
     //! Node name
     string node;
-    void* jmapbase;
     //! Whether JSON map has been created.
     uint16_t jmapped;
     //! JSON Namespace Map matrix.
@@ -2069,12 +2078,60 @@ struct cosmosmetastruc
 */
 struct cosmosstruc
 {
+    //! Timestamp for last change to data
+    double timestamp;
+    //! Node name
+    string name;
+    //! Whether JSON map has been created.
+    uint16_t jmapped;
+    //! JSON Namespace Map matrix.
+    vector<vector<jsonentry> > jmap;
+    //! JSON Equation Map matrix.
+    vector<vector<jsonequation> > emap;
+    //! JSON Unit Map matrix: first level is for type, second level is for variant.
+    vector<vector<unitstruc> > unit;
+    //! Vector of Equations
+    vector<equationstruc> equation;
+    //! Array of Aliases
+    vector<aliasstruc> alias;
+    //! Structure for summary information in node
+    nodestruc node;
+    //! Vector of all vertexs in node.
+    vector <vertexstruc> vertexs;
+    //! Vector of all vertexs in node.
+    vector <vertexstruc> normals;
+    //! Vector of all faces in node.
+    vector <facestruc> faces;
+    //! Vector of all pieces in node.
+    vector<piecestruc> pieces;
+    //! Wavefront obj structure
+    wavefront obj;
+    //! Vector of all general (common) information for devices (components) in node.
+    vector<devicestruc> device;
+    //! Structure for devices (components) special data in node, by type.
+    devspecstruc devspec;
+    //! Vector of all ports known to node.
+    vector<portstruc> port;
+    //! Structure for physics modelling.
+    physicsstruc physics;
+    //! Single entry vector for agent information.
+    vector<agentstruc> agent;
+    //! Single entry vector for event information.
+    vector<eventstruc> event;
+    //! Vector of all targets known to node.
+    vector<targetstruc> target;
+    //! Single entry vector for user information.
+    vector<userstruc> user;
+    //! Vector of glossary terms for node.
+    vector<glossarystruc> glossary;
+    //! Array of Two Line Elements
+    vector<tlestruc> tle;
     //! Namespace meta information
-    cosmosmetastruc meta;
+//    cosmosmetastruc meta;
     //! Primary Namespace data
-    cosmosdatastruc pdata;
+//    cosmosdatastruc pdata;
     //! Secondary Namespace data
-    cosmosdatastruc sdata;
+//    cosmosdatastruc sdata;
     //! JSON descriptive information
     jsonnode json;
 };
