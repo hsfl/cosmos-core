@@ -2251,17 +2251,16 @@ namespace Cosmos {
     //        return (imu);
     //    }
 
-    //    std::string Agent::getNode()
-    //    {
-    //        return nodeName;
-    //    }
+        std::string Agent::getNode()
+        {
+            return nodeName;
+        }
 
-    //    std::string Agent::getAgent()
-    //    {
-    //        return agentName;
-    //    }
+        std::string Agent::getAgent()
+        {
+            return agentName;
+        }
 
-    //}
 
     int32_t Agent::getJson(std::string node, jsonnode &jnode)
     {
