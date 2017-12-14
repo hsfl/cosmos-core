@@ -233,10 +233,11 @@ int main(int argc, char *argv[])
     printf("- Setting up server...");
     fflush(stdout);
 
-    if ((agent = new Agent("", agentname)) == NULL)
+    agent = new Agent("", agentname, 5.);
+    if (agent->cinfo == nullptr || !agent->running())
     {
-        printf("- Could not setup server... exiting.\n\n");
-        exit (-1);
+        cout << "Unable to start agent" << endl;
+        exit(1);
     }
     printf("\t\tSuccess.\n");
     fflush(stdout); // Ensure this gets printed before blocking call
@@ -407,10 +408,10 @@ int main(int argc, char *argv[])
                         if (addtoqueue)
                         {
                             nextdiskcheck = currentmjd();
-                            outgoing_tx_add(file.node, file.agent, file.name);
+                            iretn = outgoing_tx_add(file.node, file.agent, file.name);
                             if (debug_flag)
                             {
-                                printf("[%f] outgoing_tx_add: %s\n", etloop.split(), file.path.c_str());
+                                printf("[%f] outgoing_tx_add: [%d] %s\n", etloop.split(), iretn, file.path.c_str());
                             }
                         }
                     }
@@ -1645,6 +1646,7 @@ int32_t request_remove_file(char* request, char* response, Agent *agent)
 
 int32_t outgoing_tx_add(tx_progress tx_out)
 {
+    int32_t iretn;
     int32_t node = check_node_id(tx_out.node_name);
     if (node <0)
     {
@@ -1661,7 +1663,12 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     tx_out.total_bytes = 0;
     tx_out.filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
     //get the file size
-    tx_out.file_size = get_file_size(tx_out.filepath);
+    iretn = get_file_size(tx_out.filepath);
+    if(iretn < 0)
+    {
+        return DATA_ERROR_SIZE_MISMATCH;
+    }
+    tx_out.file_size = iretn;
     tx_out.temppath = data_base_path(tx_out.node_name, "temp", "file", "out_"+std::to_string(tx_out.tx_id));
     tx_out.savetime = 0.;
 
@@ -1686,6 +1693,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
 
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name)
 {
+    int32_t iretn=0;
     // BEGIN GATHERING THE METADATA
     tx_progress tx_out;
 
@@ -1733,15 +1741,16 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
         std::ifstream filename;
 
         // set the file path
-        std::string 	filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
+        string filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
 
         //get the file size
-        tx_out.file_size = get_file_size(filepath);
+        iretn = get_file_size(filepath);
 
-        if(!tx_out.file_size)
+        if(iretn < 0)
         {
             return DATA_ERROR_SIZE_MISMATCH;
         }
+        tx_out.file_size = iretn;
 
         // see if file can be opened
         filename.open(filepath, std::ios::in|std::ios::binary);
@@ -1753,7 +1762,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
 
         write_meta(tx_out);
 
-        int32_t iretn = outgoing_tx_add(tx_out);
+        iretn = outgoing_tx_add(tx_out);
         return iretn;
     }
     else
@@ -1963,7 +1972,7 @@ PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node)
     if (node >= 0 && (uint32_t)node < txq.size())
     {
         // Choose file with least data left to send
-        PACKET_FILE_SIZE_TYPE nsize = ULONG_MAX;
+        PACKET_FILE_SIZE_TYPE nsize = LONG_MAX;
         for (PACKET_FILE_SIZE_TYPE i=0; i < txq[node].incoming.progress.size(); ++i)
         {
             // calculate bytes so far
