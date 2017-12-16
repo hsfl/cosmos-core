@@ -236,8 +236,8 @@ int main(int argc, char *argv[])
     agent = new Agent("", agentname, 5.);
     if (agent->cinfo == nullptr || !agent->running())
     {
-        cout << "Unable to start agent" << endl;
-        exit(1);
+        cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+        exit (AGENT_ERROR_JSON_CREATE);
     }
     printf("\t\tSuccess.\n");
     fflush(stdout); // Ensure this gets printed before blocking call
@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
     }
 
     // add agent_file requests
-    if ((iretn=agent->add_request("use_channel",request_use_channel,"{0|1}", "choose slow or fast channel")))
+    if ((iretn=agent->add_request("use_channel",request_use_channel,"{0|1} [throughput]", "choose slow or fast channel")))
         exit (iretn);
     if ((iretn=agent->add_request("remove_file",request_remove_file,"in|out tx_id", "removes file from indicated queue")))
         exit (iretn);
@@ -408,10 +408,10 @@ int main(int argc, char *argv[])
                         if (addtoqueue)
                         {
                             nextdiskcheck = currentmjd();
-                            iretn = outgoing_tx_add(file.node, file.agent, file.name);
+                            outgoing_tx_add(file.node, file.agent, file.name);
                             if (debug_flag)
                             {
-                                printf("[%f] outgoing_tx_add: [%d] %s\n", etloop.split(), iretn, file.path.c_str());
+                                printf("[%f] outgoing_tx_add: %s\n", etloop.split(), file.path.c_str());
                             }
                         }
                     }
@@ -644,6 +644,7 @@ void recv_loop()
                         break;
                     }
 
+                    active_node = node;
                     outgoing_tx_lock.lock();
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, reqdata.tx_id);
@@ -845,7 +846,7 @@ void recv_loop()
                         // Set remote node_id
                         txq[node].node_id = queue.node_id + 1;
                         // Set active_node
-                        active_node = node;
+//                        active_node = node;
                         // Sort through incoming queue and remove anything not in sent queue
                         for (uint16_t tx_id=0; tx_id<TRANSFER_QUEUE_SIZE; ++tx_id)
                         {
@@ -855,17 +856,19 @@ void recv_loop()
                                 if (txq[node].incoming.progress[tx_id].tx_id == queue.tx_id[i])
                                 {
                                     // Incoming transaction is in outgoing queue
+                                    active_node = node;
                                     valid = true;
                                     break;
                                 }
-                                if (valid)
-                                {
-                                    break;
-                                }
+//                                if (valid)
+//                                {
+//                                    break;
+//                                }
                             }
 
-                            if (!valid)
+                            if (tx_id && !valid)
                             {
+                                active_node = node;
                                 incoming_tx_del(node, tx_id);
                             }
                         }
@@ -879,6 +882,7 @@ void recv_loop()
 
                                 if (tx_id == 0)
                                 {
+                                    active_node = node;
                                     incoming_tx_add(queue.node_name, queue.tx_id[i]);
                                 }
                             }
@@ -905,6 +909,7 @@ void recv_loop()
                             if (iq)
                             {
                                 std::vector<PACKET_BYTE> packet;
+                                active_node = node;
                                 make_reqmeta_packet(packet, node, txq[node].node_name, tqueue);
                                 queuesendto("rx", use_channel, packet);
                             }
@@ -1579,12 +1584,17 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
 
 int32_t request_use_channel(char* request, char* response, Agent *agent)
 {
-    uint16_t channel;
+    uint16_t channel=0;
+    uint32_t throughput=0;
 
-    sscanf(request, "%*s %hu\n", &channel);
+    sscanf(request, "%*s %hu %u\n", &channel, &throughput);
     if (channel < send_channels)
     {
         use_channel = channel;
+        if (throughput)
+        {
+            send_channel[channel].throughput = throughput;
+        }
     }
     else
     {
@@ -1646,7 +1656,6 @@ int32_t request_remove_file(char* request, char* response, Agent *agent)
 
 int32_t outgoing_tx_add(tx_progress tx_out)
 {
-    int32_t iretn;
     int32_t node = check_node_id(tx_out.node_name);
     if (node <0)
     {
@@ -1663,12 +1672,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     tx_out.total_bytes = 0;
     tx_out.filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
     //get the file size
-    iretn = get_file_size(tx_out.filepath);
-    if(iretn < 0)
-    {
-        return DATA_ERROR_SIZE_MISMATCH;
-    }
-    tx_out.file_size = iretn;
+    tx_out.file_size = get_file_size(tx_out.filepath);
     tx_out.temppath = data_base_path(tx_out.node_name, "temp", "file", "out_"+std::to_string(tx_out.tx_id));
     tx_out.savetime = 0.;
 
@@ -1693,7 +1697,6 @@ int32_t outgoing_tx_add(tx_progress tx_out)
 
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name)
 {
-    int32_t iretn=0;
     // BEGIN GATHERING THE METADATA
     tx_progress tx_out;
 
@@ -1741,16 +1744,15 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
         std::ifstream filename;
 
         // set the file path
-        string filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
+        std::string 	filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
 
         //get the file size
-        iretn = get_file_size(filepath);
+        tx_out.file_size = get_file_size(filepath);
 
-        if(iretn < 0)
+        if(!tx_out.file_size)
         {
             return DATA_ERROR_SIZE_MISMATCH;
         }
-        tx_out.file_size = iretn;
 
         // see if file can be opened
         filename.open(filepath, std::ios::in|std::ios::binary);
@@ -1762,7 +1764,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
 
         write_meta(tx_out);
 
-        iretn = outgoing_tx_add(tx_out);
+        int32_t iretn = outgoing_tx_add(tx_out);
         return iretn;
     }
     else
@@ -1972,7 +1974,7 @@ PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node)
     if (node >= 0 && (uint32_t)node < txq.size())
     {
         // Choose file with least data left to send
-        PACKET_FILE_SIZE_TYPE nsize = LONG_MAX;
+        PACKET_FILE_SIZE_TYPE nsize = INT32_MAX;
         for (PACKET_FILE_SIZE_TYPE i=0; i < txq[node].incoming.progress.size(); ++i)
         {
             // calculate bytes so far
