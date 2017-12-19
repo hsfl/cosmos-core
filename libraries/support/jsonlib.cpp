@@ -6256,42 +6256,39 @@ int32_t json_load_node(string node, jsonnode &json)
 
     // Second: enter information for pieces
     fname = nodepath + "/vertices.ini";
-    if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+    if (!stat(fname.c_str(),&fstat) && fstat.st_size)
     {
-        return (NODE_ERROR_NODE);
-    }
+        ifs.open(fname);
+        if (!ifs.is_open())
+        {
+            return (NODE_ERROR_NODE);
+        }
 
-    ifs.open(fname);
-    if (!ifs.is_open())
-    {
-        return (NODE_ERROR_NODE);
+        ibuf = (char *)calloc(1,fstat.st_size+1);
+        ifs.read(ibuf, fstat.st_size);
+        ifs.close();
+        ibuf[fstat.st_size] = 0;
+        json.pieces = ibuf;
+        free(ibuf);
     }
-
-    ibuf = (char *)calloc(1,fstat.st_size+1);
-    ifs.read(ibuf, fstat.st_size);
-    ifs.close();
-    ibuf[fstat.st_size] = 0;
-    json.pieces = ibuf;
-    free(ibuf);
 
     fname = nodepath + "/faces.ini";
-    if ((iretn=stat(fname.c_str(),&fstat)) == -1)
+    if (!stat(fname.c_str(),&fstat) && fstat.st_size)
     {
-        return (NODE_ERROR_NODE);
+        ifs.open(fname);
+        if (!ifs.is_open())
+        {
+            return (NODE_ERROR_NODE);
+        }
+
+        ibuf = (char *)calloc(1,fstat.st_size+1);
+        ifs.read(ibuf, fstat.st_size);
+        ifs.close();
+        ibuf[fstat.st_size] = 0;
+        json.pieces = ibuf;
+        free(ibuf);
     }
 
-    ifs.open(fname);
-    if (!ifs.is_open())
-    {
-        return (NODE_ERROR_NODE);
-    }
-
-    ibuf = (char *)calloc(1,fstat.st_size+1);
-    ifs.read(ibuf, fstat.st_size);
-    ifs.close();
-    ibuf[fstat.st_size] = 0;
-    json.pieces = ibuf;
-    free(ibuf);
 
     fname = nodepath + "/pieces.ini";
     if ((iretn=stat(fname.c_str(),&fstat)) == -1)
