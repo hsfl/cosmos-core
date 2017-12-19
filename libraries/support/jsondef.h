@@ -539,7 +539,9 @@ enum
 	DEVICE_TYPE_DISK=28,
 	//! TNC
 	DEVICE_TYPE_TNC=29,
-	//! List count
+    //! TNC
+    DEVICE_TYPE_PVREG=30,
+    //! List count
 	DEVICE_TYPE_COUNT,
 	//! Not a Component
 	DEVICE_TYPE_NONE=UINT16_MAX
@@ -1721,12 +1723,17 @@ struct nodestruc
 	//! Operational state
 	uint16_t state;
     uint16_t vertex_cnt;
+    uint16_t normal_cnt;
     uint16_t face_cnt;
 	uint16_t piece_cnt;
 	uint16_t device_cnt;
 	uint16_t port_cnt;
+    uint16_t agent_cnt;
+    uint16_t event_cnt;
 	uint16_t target_cnt;
+    uint16_t user_cnt;
 	uint16_t glossary_cnt;
+    uint16_t tle_cnt;
 	uint16_t charging;
 	//! Total Heat Capacity
 	float hcap;
@@ -1776,26 +1783,26 @@ struct devicestruc
 		mccstruc mcc;
 		motrstruc motr;
 		mtrstruc mtr;
-		tcustruc tcu;
 		ploadstruc pload;
 		propstruc prop;
 		psenstruc psen;
-		rotstruc rot;
+        pvregstruc pvreg;
+        rotstruc rot;
 		rwstruc rw;
-		ssenstruc ssen;
+        rxrstruc rxr;
+        ssenstruc ssen;
 		strgstruc strg;
 		sttstruc stt;
 		suchistruc suchi;
 		swchstruc swch;
-		tcvstruc tcv;
+        tcustruc tcu;
+        tcvstruc tcv;
 		telemstruc telem;
-		txrstruc txr;
-		rxrstruc rxr;
 		thststruc thst;
-		tsenstruc tsen;
-		tncstruc tnc;
-        pvregstruc pvreg;
-	};
+        tncstruc tnc;
+        tsenstruc tsen;
+        txrstruc txr;
+    };
 };
 
 //! Specific Device structure

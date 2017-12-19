@@ -492,7 +492,7 @@ cosmosstruc *json_create()
     device_type_string.push_back("tnc");
 
     // Here is where we add entries for all the single element names.
-    json_addbaseentry(cinfo);
+    json_mapbaseentries(cinfo);
 
     return (cinfo);
 }
@@ -613,10 +613,10 @@ int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
         // Place it in the Alias vector and point to it in the map
         cinfo->alias.push_back(talias);
         tentry.type = JSON_TYPE_ALIAS;
-        tentry.group = JSON_STRUCT_ALIAS;
+//        tentry.group = JSON_STRUCT_ALIAS;
+        tentry.group = JSON_STRUCT_PTR;
         tentry.offset = cinfo->alias.size() - 1;
         tentry.ptr = (uint8_t *)&cinfo->alias[tentry.offset];
-//        tentry.size = COSMOS_SIZEOF(aliasstruc);
         iretn = json_addentry(tentry, cinfo);
         if (iretn < 0)
         {
@@ -637,6 +637,16 @@ int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo)
 {
     uint16_t hash = json_hash(entry.name);
     size_t csize = cinfo->jmap[hash].size();
+
+    for (size_t i=0; i<csize; ++i)
+    {
+        if (entry.name == cinfo->jmap[hash][i].name)
+        {
+            cinfo->jmap[hash][i] = entry;
+            return cinfo->jmapped;
+        }
+    }
+
     cinfo->jmap[hash].push_back(entry);
     if (cinfo->jmap[hash].size() != csize+1)
     {
@@ -644,7 +654,6 @@ int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo)
     }
 
     ++cinfo->jmapped;
-
     return (cinfo->jmapped);
 }
 
@@ -6744,7 +6753,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             cinfo->pieces[i].enabled = false;
             cinfo->pieces[i].face_cnt = 0;
             //Add relevant names to namespace
-            json_addpieceentry(i, cinfo);
+            json_mappieceentry(i, cinfo);
             // Initialize to no component
             cinfo->pieces[i].cidx = (uint16_t)DeviceType::NONE;
         }
@@ -6779,7 +6788,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             // Initialize to disabled
             cinfo->device[i].all.enabled = false;
             // Add relevant names for generic device to namespace
-            json_addcompentry(i, cinfo);
+            json_mapcompentry(i, cinfo);
             //            cinfo->devspec.all[i] = ((allstruc *)&cinfo->device[cidx].all);
             // Initialize to no port
             cinfo->device[i].all.portidx = PORT_TYPE_NONE;
@@ -6804,7 +6813,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         // Add entries to map for Devices specific information
         for (uint16_t i=0; i< cinfo->node.device_cnt; i++)
         {
-            json_adddeviceentry(cinfo->device[i], cinfo);
+            json_mapdeviceentry(cinfo->device[i], cinfo);
             json_pushdevspec(i, cinfo);
         }
 
@@ -6835,7 +6844,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 
         for (uint16_t i=0; i<cinfo->node.port_cnt; i++)
         {
-            json_addportentry(i, cinfo);
+            json_mapportentry(i, cinfo);
         }
 
         // Parse data for port information
@@ -7094,12 +7103,43 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t type, uint16_t c
     return (cinfo->pieces.size() - 1);
 }
 
+//! Map all entries in JMAP
+//! Add or update all possible entries in the Nemspace map.
+//! \param cinfo Reference to ::cosmosstruc to use.
+//! \return The current number of entries, if successful, 0 if the entry could not be mapped.
+int32_t json_mapentries(cosmosstruc *cinfo)
+{
+    json_mapbaseentries(cinfo);
+
+    for (size_t i=0; i<cinfo->node.piece_cnt; i++)
+    {
+        json_mappieceentry(i, cinfo);
+    }
+
+    for (size_t i=0; i<cinfo->node.device_cnt; i++)
+    {
+        json_mapcompentry(i, cinfo);
+    }
+
+    for (size_t i=0; i<cinfo->node.device_cnt; i++)
+    {
+        json_mapdeviceentry(cinfo->device[i], cinfo);
+    }
+
+    for (size_t i=0; i<cinfo->node.port_cnt; i++)
+    {
+        json_mapportentry(i, cinfo);
+    }
+
+    return cinfo->jmapped;
+}
+
 //! Add base entries to JMAP
 /*! Add all of the base entries to the Namespace map.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cinfo Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
-int32_t json_addbaseentry(cosmosstruc *cinfo)
+int32_t json_mapbaseentries(cosmosstruc *cinfo)
 {
     int32_t iretn;
 
@@ -7175,114 +7215,120 @@ int32_t json_addbaseentry(cosmosstruc *cinfo)
     json_addentry("physics_heat", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,heat), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo);
 
     // Node Structure
-    json_addentry("node_utcoffset", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,utcoffset), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_DATE);
-    json_addentry("node_name", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,name), (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_type", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,type), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_state", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,state), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_hcap", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,hcap), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_mass", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,mass), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_MASS);
-    json_addentry("node_area", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,area), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_AREA);
-    json_addentry("node_moi", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,moi), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo, JSON_UNIT_MOI);
-    json_addentry("node_battcap", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,battcap), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_CHARGE);
-    json_addentry("node_charging", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,charging), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_powgen", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,powgen), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_POWER);
-    json_addentry("node_powuse", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,powuse), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_POWER);
-    json_addentry("node_battlev", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,battlev), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_CHARGE);
-    json_addentry("node_utc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,utc), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_DATE);
-    json_addentry("node_utcstart", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,utcstart), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_DATE);
-    json_addentry("node_loc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc), (uint16_t)JSON_TYPE_LOCSTRUC, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_utc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.utc), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos), (uint16_t)JSON_TYPE_POSSTRUC, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos_geod", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod), (uint16_t)JSON_TYPE_POS_GEOD, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos_geod_v_lat", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lat), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_pos_geod_v_lon", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lon), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_pos_geod_v_h", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.h), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_geod_s_lat", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lat), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_geod_s_lon", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.lon), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_geod_s_h", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geod.s.h), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_geoc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc), (uint16_t)JSON_TYPE_POS_GEOC, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos_geoc_v_x", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[0]), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_geoc_v_y", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[1]), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_geoc_v_z", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.v.col[2]), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_geoc_s_x", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[0]), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_geoc_s_y", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[1]), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_geoc_s_z", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geoc.s.col[2]), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_NODE, cinfo, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_geos", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.geos), (uint16_t)JSON_TYPE_POS_GEOS, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos_eci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci), (uint16_t)JSON_TYPE_POS_ECI, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos_eci_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.s), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo, JSON_UNIT_LENGTH);
-    json_addentry("node_loc_pos_eci_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.v), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo, JSON_UNIT_SPEED);
-    json_addentry("node_loc_pos_eci_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.eci.a), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ACCELERATION);
-    json_addentry("node_loc_pos_sci", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sci), (uint16_t)JSON_TYPE_POS_SCI, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos_selc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selc), (uint16_t)JSON_TYPE_POS_SELC, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos_selg", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.selg), (uint16_t)JSON_TYPE_POS_SELG, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos_icrf", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.icrf), (uint16_t)JSON_TYPE_POS_ICRF, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_pos_sunsize", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sunsize), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_sunradiance", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.sunradiance), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_earthsep", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.earthsep), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGLE);
-    json_addentry("node_loc_pos_moonsep", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.pos.moonsep), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att), (uint16_t)JSON_TYPE_ATTSTRUC, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_icrf", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf), (uint16_t)JSON_TYPE_QATT_ICRF, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_icrf_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf.s), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_icrf_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf.v), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_icrf_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.icrf.a), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_topo", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo), (uint16_t)JSON_TYPE_QATT_TOPO, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_topo_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo.s), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_topo_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo.v), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_topo_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.topo.a), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_geoc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc), (uint16_t)JSON_TYPE_QATT_GEOC, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_geoc_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc.s), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_geoc_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc.v), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_geoc_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.geoc.a), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_lvlh", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh), (uint16_t)JSON_TYPE_QATT_LVLH, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_lvlh_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh.s), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_lvlh_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh.v), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_lvlh_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.lvlh.a), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_selc", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc), (uint16_t)JSON_TYPE_QATT_SELC, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_selc_s", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc.s), (uint16_t)JSON_TYPE_QUATERNION, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_att_selc_v", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc.v), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGULAR_RATE);
-    json_addentry("node_loc_att_selc_a", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.att.selc.a), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_loc_bearth", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,loc.bearth), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_azfrom", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,azfrom), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGLE);
-    json_addentry("node_azto", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,azto), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGLE);
-    json_addentry("node_elfrom", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,elfrom), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGLE);
-    json_addentry("node_elto", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,elto), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_ANGLE);
-    json_addentry("node_range", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,range), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_NODE, cinfo, JSON_UNIT_LENGTH);
-    json_addentry("comp_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,device_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_vertex_cnt", UINT16_MAX, UINT16_MAX, offsetof(nodestruc,vertex_cnt),(uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_face_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,face_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("piece_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,piece_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("port_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,port_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("target_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,target_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("node_glossary_cnt", UINT16_MAX, UINT16_MAX,offsetof(nodestruc,glossary_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_NODE, cinfo);
-    json_addentry("device_ant_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,ant_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_batt_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,batt_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_bus_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,bus_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_cam_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,cam_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_cpu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,cpu_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_disk_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,disk_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_gps_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,gps_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_htr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,htr_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_imu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,imu_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_mcc_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,mcc_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_motr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,motr_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_mtr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,mtr_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_pload_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,pload_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_prop_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,prop_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_psen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,psen_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_rot_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,rot_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_rw_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,rw_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_rxr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,rxr_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_ssen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,ssen_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_strg_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,strg_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_stt_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,stt_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_suchi_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,suchi_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_swch_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,swch_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_tcu_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tcu_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_tcv_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tcv_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_telem_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,telem_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_thst_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,thst_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_tsen_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,tsen_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
-    json_addentry("device_txr_cnt", UINT16_MAX, UINT16_MAX,offsetof(devspecstruc,txr_cnt), (uint16_t)JSON_TYPE_UINT16, JSON_STRUCT_DEVSPEC, cinfo);
+    json_addentry("node_utcoffset", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcoffset, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
+    json_addentry("node_name", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.name, (uint16_t)JSON_TYPE_NAME, cinfo);
+    json_addentry("node_type", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.type, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_state", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.state, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_hcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.hcap, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+    json_addentry("node_mass", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.mass, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_MASS);
+    json_addentry("node_area", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.area, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_AREA);
+    json_addentry("node_moi", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.moi, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_MOI);
+    json_addentry("node_battcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battcap, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
+    json_addentry("node_charging", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.charging, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_powgen", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powgen, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
+    json_addentry("node_powuse", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powuse, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
+    json_addentry("node_battlev", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battlev, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
+    json_addentry("node_utc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
+    json_addentry("node_utcstart", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcstart, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
+    json_addentry("node_loc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc, (uint16_t)JSON_TYPE_LOCSTRUC, cinfo);
+    json_addentry("node_loc_utc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+    json_addentry("node_loc_pos", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos, (uint16_t)JSON_TYPE_POSSTRUC, cinfo);
+    json_addentry("node_loc_pos_geod", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geod, (uint16_t)JSON_TYPE_POS_GEOD, cinfo);
+    json_addentry("node_loc_pos_geod_v_lat", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geod.s.lat, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_pos_geod_v_lon", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geod.s.lon, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_pos_geod_v_h", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geod.s.h, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_geod_s_lat", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geod.s.lat, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_geod_s_lon", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geod.s.lon, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_geod_s_h", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geod.s.h, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_geoc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geoc, (uint16_t)JSON_TYPE_POS_GEOC, cinfo);
+    json_addentry("node_loc_pos_geoc_v_x", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geoc.v.col[0], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_geoc_v_y", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geoc.v.col[1], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_geoc_v_z", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geoc.v.col[2], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_geoc_s_x", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geoc.s.col[0], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_geoc_s_y", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geoc.s.col[1], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_geoc_s_z", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geoc.s.col[2], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_geos", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.geos, (uint16_t)JSON_TYPE_POS_GEOS, cinfo);
+    json_addentry("node_loc_pos_eci", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci, (uint16_t)JSON_TYPE_POS_ECI, cinfo);
+    json_addentry("node_loc_pos_eci_s", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci.s, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_LENGTH);
+    json_addentry("node_loc_pos_eci_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_SPEED);
+    json_addentry("node_loc_pos_eci_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.eci.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ACCELERATION);
+    json_addentry("node_loc_pos_sci", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.sci, (uint16_t)JSON_TYPE_POS_SCI, cinfo);
+    json_addentry("node_loc_pos_selc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.selc, (uint16_t)JSON_TYPE_POS_SELC, cinfo);
+    json_addentry("node_loc_pos_selg", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.selg, (uint16_t)JSON_TYPE_POS_SELG, cinfo);
+    json_addentry("node_loc_pos_icrf", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.icrf, (uint16_t)JSON_TYPE_POS_ICRF, cinfo);
+    json_addentry("node_loc_pos_sunsize", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.sunsize, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_sunradiance", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.sunradiance, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_earthsep", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.earthsep, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
+    json_addentry("node_loc_pos_moonsep", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.moonsep, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+    json_addentry("node_loc_att", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att, (uint16_t)JSON_TYPE_ATTSTRUC, cinfo);
+    json_addentry("node_loc_att_icrf", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.icrf, (uint16_t)JSON_TYPE_QATT_ICRF, cinfo);
+    json_addentry("node_loc_att_icrf_s", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.icrf.s, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
+    json_addentry("node_loc_att_icrf_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.icrf.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_icrf_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.icrf.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+    json_addentry("node_loc_att_topo", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.topo, (uint16_t)JSON_TYPE_QATT_TOPO, cinfo);
+    json_addentry("node_loc_att_topo_s", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.topo.s, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
+    json_addentry("node_loc_att_topo_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.topo.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_topo_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.topo.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+    json_addentry("node_loc_att_geoc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.geoc, (uint16_t)JSON_TYPE_QATT_GEOC, cinfo);
+    json_addentry("node_loc_att_geoc_s", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.geoc.s, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
+    json_addentry("node_loc_att_geoc_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.geoc.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_geoc_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.geoc.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+    json_addentry("node_loc_att_lvlh", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.lvlh, (uint16_t)JSON_TYPE_QATT_LVLH, cinfo);
+    json_addentry("node_loc_att_lvlh_s", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.lvlh.s, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
+    json_addentry("node_loc_att_lvlh_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.lvlh.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_lvlh_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.lvlh.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+    json_addentry("node_loc_att_selc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc, (uint16_t)JSON_TYPE_QATT_SELC, cinfo);
+    json_addentry("node_loc_att_selc_s", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.s, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
+    json_addentry("node_loc_att_selc_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
+    json_addentry("node_loc_att_selc_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+    json_addentry("node_loc_bearth", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.bearth, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+    json_addentry("node_azfrom", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.azfrom, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
+    json_addentry("node_azto", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.azto, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
+    json_addentry("node_elfrom", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.elfrom, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
+    json_addentry("node_elto", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.elto, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
+    json_addentry("node_range", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.range, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_LENGTH);
+    json_addentry("node_device_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.device_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_vertex_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.vertex_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_normal_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.normal_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_face_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.face_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_piece_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.piece_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_port_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.port_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_target_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.target_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_agent_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.agent_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_event_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.event_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_user_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.user_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_glossary_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.glossary_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_ant_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.ant_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_batt_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.batt_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_bus_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.bus_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_cam_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.cam_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_cpu_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.cpu_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_disk_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.disk_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_gps_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.gps_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_htr_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.htr_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_imu_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.imu_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_mcc_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.mcc_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_motr_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.motr_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_mtr_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.mtr_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_pload_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.pload_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_prop_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.prop_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_psen_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.psen_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_pvreg_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.pvreg_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_rot_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.rot_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_rw_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.rw_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_rxr_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.rxr_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_ssen_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.ssen_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_strg_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.strg_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_stt_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.stt_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_suchi_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.suchi_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_swch_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.swch_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_tcu_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.tcu_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_tcv_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.tcv_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_telem_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.telem_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_thst_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.thst_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_tnc_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.tnc_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_tsen_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.tsen_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("device_txr_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.txr_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
 
     if (iretn >= 0)
     {
@@ -7346,7 +7392,7 @@ int32_t json_addfaceentry(uint16_t fidx, cosmosstruc *cinfo)
 *	\param cmeta Reference to ::cosmosmetastruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
-int32_t json_addpieceentry(uint16_t pidx, cosmosstruc *cinfo)
+int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
 {
     int32_t iretn;
 
@@ -7416,7 +7462,7 @@ int32_t json_togglepieceentry(uint16_t pidx, cosmosstruc *cinfo, bool state)
 *	\param cmeta Reference to ::cosmosmetastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
-int32_t json_addcompentry(uint16_t cidx, cosmosstruc *cinfo)
+int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
 {
     int32_t iretn;
 
@@ -7485,7 +7531,7 @@ int32_t json_togglecompentry(uint16_t cidx, cosmosstruc *cinfo, bool state)
     \param cmeta Reference to ::cosmosmetastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be added.
  */
-uint16_t json_adddeviceentry(const devicestruc &device, cosmosstruc *cinfo)
+uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
 {
     int32_t iretn;
     uint16_t didx = device.all.didx;
@@ -8239,7 +8285,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosstruc *cinfo,
     \param cmeta Reference to ::cosmosmetastruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be added.
  */
-uint16_t json_addportentry(uint16_t portidx, cosmosstruc *cinfo)
+uint16_t json_mapportentry(uint16_t portidx, cosmosstruc *cinfo)
 {
     int32_t iretn;
 

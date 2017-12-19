@@ -367,11 +367,11 @@ int create_node () // only use when unsure what the node is
         cinfo->node.type = NODE_TYPE_COMPUTER;
 
         json_addpiece(cinfo, "main_cpu", PIECE_TYPE_BOX, 0);
-        json_addpieceentry(cinfo->pieces.size()-1, cinfo);
+        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
         json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
         json_addpiece(cinfo, "main_drive", PIECE_TYPE_BOX, 1);
-        json_addpieceentry(cinfo->pieces.size()-1, cinfo);
+        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
         json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
         cinfo->node.device_cnt = cinfo->node.piece_cnt;
@@ -408,7 +408,7 @@ int create_node () // only use when unsure what the node is
 //                cinfo->pieces[i].points[0].col[j] = 0.;
 //            }
 
-//            json_addpieceentry(i, cinfo);
+//            json_mappieceentry(i, cinfo);
 //            json_togglepieceentry(i, cinfo, true);
 //            cinfo->pieces[i].enabled = true;
 
@@ -422,7 +422,7 @@ int create_node () // only use when unsure what the node is
                 cinfo->device[i].all.portidx = PORT_TYPE_NONE;
                 cinfo->device[i].cpu.maxload = 1.;
                 cinfo->device[i].cpu.maxgib = 1.;
-                json_adddeviceentry(cinfo->device[i], cinfo);
+                json_mapdeviceentry(cinfo->device[i], cinfo);
                 break;
             default:
                 cinfo->device[i].disk.maxgib = 1000.;
@@ -430,18 +430,18 @@ int create_node () // only use when unsure what the node is
                 cinfo->device[i].all.didx = i-1;
                 cinfo->device[i].all.portidx = cinfo->device[i].all.didx;
                 cinfo->port[cinfo->device[i].all.didx].type = PORT_TYPE_DRIVE;
-                json_adddeviceentry(cinfo->device[i], cinfo);
+                json_mapdeviceentry(cinfo->device[i], cinfo);
                 json_toggledeviceentry(i-1, (uint16_t)DeviceType::DISK, cinfo, true);
 #ifdef COSMOS_WIN_OS
                 strcpy(cinfo->port[cinfo->device[i].all.didx].name, "c:/");
 #else
                 strcpy(cinfo->port[cinfo->device[i].all.didx].name, "/");
 #endif
-                json_addportentry(cinfo->device[i].all.portidx, cinfo);
+                json_mapportentry(cinfo->device[i].all.portidx, cinfo);
                 json_toggleportentry(cinfo->device[i].all.portidx, cinfo, true);
                 break;
             }
-            json_addcompentry(i, cinfo);
+            json_mapcompentry(i, cinfo);
             json_togglecompentry(i, cinfo, true);
             cinfo->device[i].all.enabled = true;
         }
