@@ -394,7 +394,7 @@ namespace Cosmos {
             double &operator [] (const int &index);
 
             Vector operator * (const double &scale); // multiply vector by scalar operator
-            friend Vector operator * (const double &scale, const Vector &v); // Multiply scalar by vector
+//            friend Vector operator * (const double &scale, const Vector &v); // Multiply scalar by vector
             Vector &operator *=( const double &scale); // multiply vector by scalar operator in place
             Vector operator * (const Vector &v2); // multiply vector by vector operator
 
