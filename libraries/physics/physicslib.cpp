@@ -1046,30 +1046,30 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
                 cinfo->pieces[i].insol = loc.pos.sunradiance * sdot / cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal.norm();
                 energyd =  cinfo->pieces[i].insol * cinfo->physics.dt;
                 cinfo->pieces[i].heat += cinfo->pieces[i].area * cinfo->pieces[i].abs * energyd;
-                if (cinfo->pieces[i].cidx<(uint16_t)DeviceType::NONE && cinfo->device[cinfo->pieces[i].cidx].all.type == (uint16_t)DeviceType::STRG)
+                if (cinfo->pieces[i].cidx<(uint16_t)DeviceType::NONE && cinfo->device[cinfo->pieces[i].cidx].all.type == (uint16_t)DeviceType::PVSTRG)
                 {
                     j = cinfo->device[cinfo->pieces[i].cidx].all.didx;
-                    if (cinfo->devspec.strg[j]->effbase > 0.)
+                    if (cinfo->devspec.pvstrg[j]->effbase > 0.)
                     {
-                        efficiency = cinfo->devspec.strg[j]->effbase + cinfo->devspec.strg[j]->effslope * cinfo->pieces[i].temp;
-                        cinfo->devspec.strg[j]->power = cinfo->pieces[i].area*efficiency*cinfo->pieces[i].insol;
-                        cinfo->devspec.strg[j]->volt = cinfo->devspec.strg[j]->nvolt;
-                        cinfo->devspec.strg[j]->amp = -cinfo->devspec.strg[j]->power / cinfo->devspec.strg[j]->volt;
-                        cinfo->node.powgen += .4 * cinfo->devspec.strg[j]->power;
-                        cinfo->pieces[i].heat += (cinfo->pieces[i].abs * cinfo->pieces[i].area * cinfo->pieces[i].insol - cinfo->devspec.strg[j]->power) * cinfo->physics.dt;
+                        efficiency = cinfo->devspec.pvstrg[j]->effbase + cinfo->devspec.pvstrg[j]->effslope * cinfo->pieces[i].temp;
+                        cinfo->devspec.pvstrg[j]->power = cinfo->pieces[i].area*efficiency*cinfo->pieces[i].insol;
+                        cinfo->devspec.pvstrg[j]->volt = cinfo->devspec.pvstrg[j]->nvolt;
+                        cinfo->devspec.pvstrg[j]->amp = -cinfo->devspec.pvstrg[j]->power / cinfo->devspec.pvstrg[j]->volt;
+                        cinfo->node.powgen += .4 * cinfo->devspec.pvstrg[j]->power;
+                        cinfo->pieces[i].heat += (cinfo->pieces[i].abs * cinfo->pieces[i].area * cinfo->pieces[i].insol - cinfo->devspec.pvstrg[j]->power) * cinfo->physics.dt;
                         cinfo->pieces[i].heat -= cinfo->pieces[i].emi * cinfo->pieces[i].area * energyd;
                     }
                 }
             }
             else
             {
-                for (j=0; j<cinfo->devspec.strg_cnt; j++)
+                for (j=0; j<cinfo->devspec.pvstrg_cnt; j++)
                 {
-                    if (cinfo->devspec.strg[j]->pidx == i)
+                    if (cinfo->devspec.pvstrg[j]->pidx == i)
                     {
-                        cinfo->devspec.strg[j]->power = 0.;
-                        cinfo->devspec.strg[j]->volt = 0.;
-                        cinfo->devspec.strg[j]->amp = 0.;
+                        cinfo->devspec.pvstrg[j]->power = 0.;
+                        cinfo->devspec.pvstrg[j]->volt = 0.;
+                        cinfo->devspec.pvstrg[j]->amp = 0.;
                         cinfo->pieces[i].heat -= cinfo->pieces[i].emi * cinfo->pieces[i].area * energyd;
                     }
                 }
@@ -1084,9 +1084,9 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
             {
                 energyd = edot * cinfo->physics.dt * SIGMA * pow(290.,4);
                 cinfo->pieces[i].heat += cinfo->pieces[i].abs*cinfo->pieces[i].area * energyd;
-                for (j=0; j<cinfo->devspec.strg_cnt; j++)
+                for (j=0; j<cinfo->devspec.pvstrg_cnt; j++)
                 {
-                    if (cinfo->devspec.strg[j]->pidx == i)
+                    if (cinfo->devspec.pvstrg[j]->pidx == i)
                     {
                         energy += cinfo->pieces[i].abs * cinfo->pieces[i].area * energyd;
                     }

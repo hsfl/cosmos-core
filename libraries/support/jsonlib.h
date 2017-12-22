@@ -146,6 +146,8 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo);
 int32_t json_toggledeviceentry(uint16_t didx, uint16_t type, cosmosstruc *cinfo, bool state);
 uint16_t json_mapportentry(uint16_t portidx, cosmosstruc *cinfo);
 int32_t json_toggleportentry(uint16_t portidx, cosmosstruc *cinfo, bool state);
+int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo);
+int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo);
 size_t json_count_hash(uint16_t hash, cosmosstruc *cinfo);
 size_t json_count_total(cosmosstruc *cinfo);
 
@@ -163,7 +165,7 @@ int32_t json_append(string &jstring, const char *tstring);
 
 int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t type, cosmosstruc *cinfo);
 int32_t json_out_handle(string &jstring, jsonhandle handle,cosmosstruc *cinfo);
-int32_t json_out_entry(string &jstring, jsonentry* entry, cosmosstruc *cinfo);
+int32_t json_out_entry(string &jstring, const jsonentry &entry, cosmosstruc *cinfo);
 int32_t json_out(string &jstring, string token,cosmosstruc *cinfo);
 int32_t json_out_list(string &jstring, string tokens, cosmosstruc *cinfo);
 int32_t json_out_1d(string &jstring, const char *token, uint16_t col, cosmosstruc *cinfo);
@@ -216,30 +218,30 @@ int32_t json_get_int(jsonhandle &handle, cosmosstruc *cinfo);
 int32_t json_get_int(string token, cosmosstruc *cinfo);
 int32_t json_get_int(string token, uint16_t index1, cosmosstruc *cinfo);
 int32_t json_get_int(string token, uint16_t index1, uint16_t index2, cosmosstruc *cinfo);
-int32_t json_get_int(jsonentry *entry, cosmosstruc *cinfo);
+int32_t json_get_int(const jsonentry &entry, cosmosstruc *cinfo);
 
 uint32_t json_get_uint(jsonhandle &handle, cosmosstruc *cinfo);
 uint32_t json_get_uint(string token, cosmosstruc *cinfo);
 uint32_t json_get_uint(string token, uint16_t index1, cosmosstruc *cinfo);
 uint32_t json_get_uint(string token, uint16_t index1, uint16_t index2, cosmosstruc *cinfo);
-uint32_t json_get_uint(jsonentry *entry, cosmosstruc *cinfo);
+uint32_t json_get_uint(const jsonentry &entry, cosmosstruc *cinfo);
 
 double json_get_double(jsonhandle &handle, cosmosstruc *cinfo);
 double json_get_double(string token, cosmosstruc *cinfo);
 double json_get_double(string token, uint16_t index1, cosmosstruc *cinfo);
 double json_get_double(string token, uint16_t index1, uint16_t index2, cosmosstruc *cinfo);
-double json_get_double(jsonentry *entry, cosmosstruc *cinfo);
+double json_get_double(const jsonentry &entry, cosmosstruc *cinfo);
 
-rvector json_get_rvector(jsonentry *entry, cosmosstruc *cinfo);
-quaternion json_get_quaternion(jsonentry *entry, cosmosstruc *cinfo);
+rvector json_get_rvector(const jsonentry &entry, cosmosstruc *cinfo);
+quaternion json_get_quaternion(const jsonentry &entry, cosmosstruc *cinfo);
 
 string json_get_string(string token, cosmosstruc *cinfo);
-string json_get_string(jsonentry *entry, cosmosstruc *cinfo);
+string json_get_string(const jsonentry &entry, cosmosstruc *cinfo);
 
-posstruc json_get_posstruc(jsonentry *entry, cosmosstruc *cinfo);
+posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo);
 
-int32_t json_set_number(double val, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cinfo);
-int32_t json_set_string(string val, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cinfo);
+int32_t json_set_number(double val, uint16_t type, const jsonentry &entry, cosmosstruc *cinfo);
+int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmosstruc *cinfo);
 
 int32_t json_scan(char *istring);
 

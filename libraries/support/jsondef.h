@@ -477,75 +477,75 @@ enum
 //! \ingroup defs_comp
 //! \defgroup defs_comp_type Type of Component.
 //! @{
-enum
-{
-	//! Payload
-	DEVICE_TYPE_PLOAD=0,
-	//! Elevation and Azimuth Sun Sensor
-	DEVICE_TYPE_SSEN=1,
-	//! Inertial Measurement Unit
-	DEVICE_TYPE_IMU=2,
-	//! Reaction Wheel
-	DEVICE_TYPE_RW=3,
-	//! Magnetic Torque Rod
-	DEVICE_TYPE_MTR=4,
-	//! Processing Unit
-	DEVICE_TYPE_CPU=5,
-	//! GPS Unit
-	DEVICE_TYPE_GPS=6,
-	//! Antenna
-	DEVICE_TYPE_ANT=7,
-	//! Radio Receiver
-	DEVICE_TYPE_RXR=8,
-	//! Radio Transmitter
-	DEVICE_TYPE_TXR=9,
-	//! Radio Transceiver
-	DEVICE_TYPE_TCV=10,
-	//! Photo Voltaic String
-	DEVICE_TYPE_STRG=11,
-	//! Battery
-	DEVICE_TYPE_BATT=12,
-	//! Heater
-	DEVICE_TYPE_HTR=13,
-	//! Motor
-	DEVICE_TYPE_MOTR=14,
-	//! Temperature Sensor
-	DEVICE_TYPE_TSEN=15,
-	//! Thruster
-	DEVICE_TYPE_THST=16,
-	//! Propellant Tank
-	DEVICE_TYPE_PROP=17,
-	//! Switch
-	DEVICE_TYPE_SWCH=18,
-	//! Rotor
-	DEVICE_TYPE_ROT=19,
-	//! Star Tracker
-	DEVICE_TYPE_STT=20,
-	//! Motion Capture Camera
-	DEVICE_TYPE_MCC=21,
-	//! Torque rod Control Unit
-	DEVICE_TYPE_TCU=22,
-	//! Power Bus
-	DEVICE_TYPE_BUS=23,
-	//! Pressure sensor
-	DEVICE_TYPE_PSEN=24,
-	//! SUCHI
-	DEVICE_TYPE_SUCHI=25,
-	//! Camera
-	DEVICE_TYPE_CAM=26,
-	//! Telemetry
-	DEVICE_TYPE_TELEM=27,
-	//! Disk Drive
-	DEVICE_TYPE_DISK=28,
-	//! TNC
-	DEVICE_TYPE_TNC=29,
-    //! TNC
-    DEVICE_TYPE_PVREG=30,
-    //! List count
-	DEVICE_TYPE_COUNT,
-	//! Not a Component
-	DEVICE_TYPE_NONE=UINT16_MAX
-};
+//enum
+//{
+//	//! Payload
+//	DeviceType::PLOAD=0,
+//	//! Elevation and Azimuth Sun Sensor
+//	DeviceType::SSEN=1,
+//	//! Inertial Measurement Unit
+//	DeviceType::IMU=2,
+//	//! Reaction Wheel
+//	DeviceType::RW=3,
+//	//! Magnetic Torque Rod
+//	DeviceType::MTR=4,
+//	//! Processing Unit
+//	DeviceType::CPU=5,
+//	//! GPS Unit
+//	DeviceType::GPS=6,
+//	//! Antenna
+//	DeviceType::ANT=7,
+//	//! Radio Receiver
+//	DeviceType::RXR=8,
+//	//! Radio Transmitter
+//	DeviceType::TXR=9,
+//	//! Radio Transceiver
+//	DeviceType::TCV=10,
+//	//! Photo Voltaic String
+//    DeviceType::PVSTRG=11,
+//	//! Battery
+//	DeviceType::BATT=12,
+//	//! Heater
+//	DeviceType::HTR=13,
+//	//! Motor
+//	DeviceType::MOTR=14,
+//	//! Temperature Sensor
+//	DeviceType::TSEN=15,
+//	//! Thruster
+//	DeviceType::THST=16,
+//	//! Propellant Tank
+//	DeviceType::PROP=17,
+//	//! Switch
+//	DeviceType::SWCH=18,
+//	//! Rotor
+//	DeviceType::ROT=19,
+//	//! Star Tracker
+//	DeviceType::STT=20,
+//	//! Motion Capture Camera
+//	DeviceType::MCC=21,
+//	//! Torque rod Control Unit
+//	DeviceType::TCU=22,
+//	//! Power Bus
+//	DeviceType::BUS=23,
+//	//! Pressure sensor
+//	DeviceType::PSEN=24,
+//	//! SUCHI
+//	DeviceType::SUCHI=25,
+//	//! Camera
+//	DeviceType::CAM=26,
+//	//! Telemetry
+//	DeviceType::TELEM=27,
+//	//! Disk Drive
+//	DeviceType::DISK=28,
+//	//! TNC
+//	DeviceType::TNC=29,
+//    //! TNC
+//    DeviceType::BCREG=30,
+//    //! List count
+//	DeviceType::COUNT,
+//	//! Not a Component
+//	DeviceType::NONE=UINT16_MAX
+//};
 
 enum class DeviceType : uint16_t
 {
@@ -572,7 +572,7 @@ enum class DeviceType : uint16_t
 	//! Radio Transceiver
 	TCV=10,
 	//! Photo Voltaic String
-	STRG=11,
+    PVSTRG=11,
 	//! Battery
 	BATT=12,
 	//! Heater
@@ -609,8 +609,8 @@ enum class DeviceType : uint16_t
 	DISK=28,
 	//! TNC
 	TNC=29,
-    //! PVREG
-    PVREG=30,
+    //! BCREG
+    BCREG=30,
 	//! List count
 	COUNT,
 	//! Not a Component
@@ -737,6 +737,8 @@ struct jsonnode
 	string node;
 	string state;
 	string utcstart;
+    string vertexs;
+    string faces;
 	string pieces;
 	string devgen;
 	string devspec;
@@ -1081,7 +1083,7 @@ struct targetstruc
 
 //! Port structure
 /*! Contains information about I/O ports available to devices. The
- * ::genstruc::portidx entry in each device structure indicates which of these
+ * ::allstruc::portidx entry in each device structure indicates which of these
  * ports a device will use.
  */
 struct portstruc
@@ -1155,13 +1157,13 @@ struct piecestruc
 
 // Beginning of Device General structures
 
-//! General Component structure
+//! All Component structure
 /*! These are the elements that are repeated in all devices. Each
 device specific structure has these as its first elements, followed by
 any specific elements. They are all then combined together in one grand
 union as a ::devicestruc.
 */
-struct genstruc
+struct allstruc
 {
 	//! Enabled?
 	bool enabled;
@@ -1201,14 +1203,6 @@ struct genstruc
 	double utc;
 };
 
-//! All structures.
-/*! This structure can be used for all devices. It contains only a ::genstruc
- */
-struct allstruc : public genstruc
-{
-//    genstruc gen;
-};
-
 // End of Device General structures
 
 // Beginning of Device Specific structures
@@ -1219,10 +1213,8 @@ struct allstruc : public genstruc
  * is then accessible as all supported data types, both in the structure and the
  * Namespace.
  */
-struct telemstruc : public genstruc
+struct telemstruc : public allstruc
 {
-	//! Generic info
-////	genstruc gen;
 	//! Data type
 	uint16_t type;
 	//! Union of data
@@ -1245,10 +1237,8 @@ struct telemstruc : public genstruc
  * names. You can then set double precision values for these keys in
  * the dynamic structure.
  */
-struct ploadstruc : public genstruc
+struct ploadstruc : public allstruc
 {
-	//! Generic info
-////	genstruc gen;
 	//! Number of keys being used.
 	uint16_t key_cnt;
 	//! Name for each key.
@@ -1258,10 +1248,8 @@ struct ploadstruc : public genstruc
 };
 
 //! Sun Sensor (SSEN) Sructure
-struct ssenstruc : public genstruc
+struct ssenstruc : public allstruc
 {
-	//! Generic info
-////	genstruc gen;
 	//! Sensor alignment quaternion.
 	quaternion align;
 	float qva;
@@ -1273,10 +1261,8 @@ struct ssenstruc : public genstruc
 };
 
 //! Inertial Measurement Unit (IMU) structure
-struct imustruc : public genstruc
+struct imustruc : public allstruc
 {
-	//! Generic info
-////	genstruc gen;
 	//! alignment quaternion
 	quaternion align;
 	//! Position acceleration vector
@@ -1296,10 +1282,8 @@ struct imustruc : public genstruc
 };
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
-struct rwstruc : public genstruc
+struct rwstruc : public allstruc
 {
-	//! Generic info
-////	genstruc gen;
 	//! Rotates vectors from RW frame (axis of rotation = z) to body frame.
 	quaternion align;
 	//! Moments of inertia in RW frame.
@@ -1321,10 +1305,8 @@ struct rwstruc : public genstruc
 };
 
 //! Magnetic Torque Rod structure: z axis is aligned with rod.
-struct mtrstruc : public genstruc
+struct mtrstruc : public allstruc
 {
-	//! Generic info
-////	genstruc gen;
 	//! Rotates vectors from MTR frame to Body frame.
 	quaternion align;
 	//! Terms of 6th order polynomial converting negative moment to current
@@ -1342,12 +1324,8 @@ struct mtrstruc : public genstruc
 };
 
 //! CPU information
-struct cpustruc : public genstruc
+struct cpustruc : public allstruc
 {
-
-	//! Generic info
-////	genstruc gen;
-
 	// cpu
 	//! Seconds CPU has been up
 	uint32_t uptime;
@@ -1367,12 +1345,8 @@ struct cpustruc : public genstruc
 };
 
 //! Disk information
-struct diskstruc : public genstruc
+struct diskstruc : public allstruc
 {
-
-	//! Generic info
-////	genstruc gen;
-
 	// disk
 	//! Maximum disk capacity in GiB
 	float maxgib;  // TODO: rename to diskSize, consider bytes?
@@ -1384,10 +1358,8 @@ struct diskstruc : public genstruc
 };
 
 // TODO: rename to GpsData
-struct gpsstruc : public genstruc
+struct gpsstruc : public allstruc
 {
-	//! Generic info
-////	genstruc gen;
 	//! UTC time error
 	double dutc;
 	//! Geocentric position: x, y, z
@@ -1425,10 +1397,8 @@ struct gpsstruc : public genstruc
 //! Antenna information
 /*! This structure holds the information concerning antennas.
 */
-struct antstruc : public genstruc
+struct antstruc : public allstruc
 {
-	//! Generic info
-////	genstruc gen;
 	//! Alignment
 	quaternion align;
 	//! Azimuth;
@@ -1442,10 +1412,8 @@ struct antstruc : public genstruc
 //! Receiver information
 /*! This structure holds the information concerning receivers.
 */
-struct rxrstruc : public genstruc
+struct rxrstruc : public allstruc
 {
-	//! Generic info
-////	genstruc gen;
 	//! Operating mode
 	uint16_t opmode;
 	//! Frequency
@@ -1463,10 +1431,8 @@ struct rxrstruc : public genstruc
 //! Transmitter information
 /*! This structure holds the information concerning transmitters.
 */
-struct txrstruc : public genstruc
+struct txrstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Operating mode
 	uint16_t opmode;
 	//! Frequency
@@ -1484,10 +1450,8 @@ struct txrstruc : public genstruc
 //! Transceiver information
 /*! This structure holds the information concerning transceivers.
 */
-struct tcvstruc : public genstruc
+struct tcvstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Operating mode
 	uint16_t opmode;
 	//! Input Frequency
@@ -1509,10 +1473,10 @@ struct tcvstruc : public genstruc
 //! PV String (STRG) structure.
 /*! Efficiency is goven as effbase + effslope * Tkelvin.
 */
-struct strgstruc : public genstruc
+struct pvstrgstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
+    //! BCREG index
+    uint16_t pvidx;
 	//! Efficiency 0th order term
 	float effbase;
 	//! Efficiency 1st order term
@@ -1524,10 +1488,8 @@ struct strgstruc : public genstruc
 };
 
 //! Battery (BATT) structure.
-struct battstruc : public genstruc
+struct battstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Capacity in amp hours
 	float capacity;
 	//! Charge conversion efficiency
@@ -1539,18 +1501,14 @@ struct battstruc : public genstruc
 //! Heater Structure definition
 /*! This structure holds the description of a heaters.
 */
-struct htrstruc : public genstruc
+struct htrstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
     //! Temperature set vertex
     float setvertex;
 };
 
-struct motrstruc : public genstruc
+struct motrstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Maximum speed in revolutions per second
 	float max;
 	//!
@@ -1558,17 +1516,13 @@ struct motrstruc : public genstruc
 	float spd;
 };
 
-struct tsenstruc : public genstruc
+struct tsenstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 };
 
 //! Thruster (THST) dynamic structure
-struct thststruc : public genstruc
+struct thststruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Flow
 	quaternion align;
 	//! Specific Impulse in dynes per kg per second
@@ -1578,10 +1532,8 @@ struct thststruc : public genstruc
 };
 
 //! Propellant Tank (PROP) structure.
-struct propstruc : public genstruc
+struct propstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Propellant capacity in kg
 	float cap;
 	//! Propellant level in kg
@@ -1591,29 +1543,23 @@ struct propstruc : public genstruc
 //! Switch Structure definition
 /*! This structure holds the description of a switches.
 */
-struct swchstruc : public genstruc
+struct swchstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 };
 
 //! Rotor Structure definition
 /*! This structure holds the description of a rotors.
 */
-struct rotstruc : public genstruc
+struct rotstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Angular position
 	float angle;
 };
 
 //! Star Tracker (STT) Sructure
 // TODO: rename to ST
-struct sttstruc : public genstruc
+struct sttstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! alignment quaternion
 	quaternion align;
 	//! includes 0 and 1st order derivative
@@ -1626,10 +1572,8 @@ struct sttstruc : public genstruc
 };
 
 //! Motion Capture Camera (MCC) Structure
-struct mccstruc : public genstruc
+struct mccstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Sensor alignment quaternion.
 	quaternion align;
 	//! attitude
@@ -1639,39 +1583,31 @@ struct mccstruc : public genstruc
 };
 
 //! Torque Rod Control Unit
-struct tcustruc : public genstruc
+struct tcustruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Torque Rod count
 	uint16_t mcnt;
 	//! Torque Rod Component indices
 	uint16_t mcidx[3];
 };
 
-struct busstruc : public genstruc
+struct busstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Total energy usage
 	float energy;
 	//! Watch Dog Timer (MJD)
 	float wdt;
 };
 
-struct psenstruc : public genstruc
+struct psenstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! Current Pressure
 	float press;
 };
 
 //! SUCHI Sructure
-struct suchistruc : public genstruc
+struct suchistruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	//! alignment quaternion
 	quaternion align;
 	//! Internal pressure
@@ -1680,10 +1616,8 @@ struct suchistruc : public genstruc
 	float temps[8];
 };
 
-struct camstruc : public genstruc
+struct camstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 	uint16_t pwidth;
 	uint16_t pheight;
 	float width;
@@ -1694,19 +1628,15 @@ struct camstruc : public genstruc
 //! TNC Structure definition
 /*! This structure holds the description of a TNC.
 */
-struct tncstruc : public genstruc
+struct tncstruc : public allstruc
 {
-	//! Generic info
-//	genstruc gen;
 };
 
-//! PVREG (PV Regulator) Structure definition
-/*! This structure holds the description of a PVREG.
+//! BCREG (PV Regulator) Structure definition
+/*! This structure holds the description of a BCREG.
 */
-struct pvregstruc : public genstruc
+struct bcregstruc : public allstruc
 {
-    //! Generic info
-////	genstruc gen;
 };
 
 // End of Device Specific structures
@@ -1773,7 +1703,8 @@ struct devicestruc
 		allstruc all;
 		antstruc ant;
 		battstruc batt;
-		busstruc bus;
+        bcregstruc bcreg;
+        busstruc bus;
 		camstruc cam;
 		cpustruc cpu;
 		diskstruc disk;
@@ -1786,12 +1717,11 @@ struct devicestruc
 		ploadstruc pload;
 		propstruc prop;
 		psenstruc psen;
-        pvregstruc pvreg;
+        pvstrgstruc pvstrg;
         rotstruc rot;
 		rwstruc rw;
         rxrstruc rxr;
         ssenstruc ssen;
-		strgstruc strg;
 		sttstruc stt;
 		suchistruc suchi;
 		swchstruc swch;
@@ -1825,23 +1755,23 @@ struct devspecstruc
 	uint16_t pload_cnt;
 	uint16_t prop_cnt;
 	uint16_t psen_cnt;
-	uint16_t rot_cnt;
+    uint16_t bcreg_cnt;
+    uint16_t rot_cnt;
 	uint16_t rw_cnt;
 	uint16_t rxr_cnt;
 	uint16_t ssen_cnt;
-	uint16_t strg_cnt;
+    uint16_t pvstrg_cnt;
 	uint16_t stt_cnt;
 	uint16_t suchi_cnt;
 	uint16_t swch_cnt;
 	uint16_t tcu_cnt;
 	uint16_t tcv_cnt;
 	uint16_t telem_cnt;
-	uint16_t txr_cnt;
 	uint16_t thst_cnt;
 	uint16_t tsen_cnt;
 	uint16_t tnc_cnt;
-    uint16_t pvreg_cnt;
-	vector<allstruc *>all;
+    uint16_t txr_cnt;
+    vector<allstruc *>all;
 	vector<antstruc *>ant;
 	vector<battstruc *>batt;
 	vector<busstruc *>bus;
@@ -1861,7 +1791,7 @@ struct devspecstruc
 	vector<rotstruc *>rot;
 	vector<rwstruc *>rw;
 	vector<ssenstruc *>ssen;
-	vector<strgstruc *>strg;
+    vector<pvstrgstruc *>pvstrg;
 	vector<sttstruc *>stt;
 	vector<suchistruc *>suchi;
 	vector<swchstruc *>swch;
@@ -1872,7 +1802,7 @@ struct devspecstruc
 	vector<thststruc *>thst;
 	vector<tsenstruc *>tsen;
 	vector<tncstruc *>tnc;
-    vector<pvregstruc *>pvreg;
+    vector<bcregstruc *>bcreg;
 };
 
 //! JSON Name Space data structure
