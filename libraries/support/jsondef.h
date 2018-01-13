@@ -480,71 +480,71 @@ enum
 //enum
 //{
 //	//! Payload
-//	DeviceType::PLOAD=0,
+//	DEVICE_TYPE_PLOAD=0,
 //	//! Elevation and Azimuth Sun Sensor
-//	DeviceType::SSEN=1,
+//	DEVICE_TYPE_SSEN=1,
 //	//! Inertial Measurement Unit
-//	DeviceType::IMU=2,
+//	DEVICE_TYPE_IMU=2,
 //	//! Reaction Wheel
-//	DeviceType::RW=3,
+//	DEVICE_TYPE_RW=3,
 //	//! Magnetic Torque Rod
-//	DeviceType::MTR=4,
+//	DEVICE_TYPE_MTR=4,
 //	//! Processing Unit
-//	DeviceType::CPU=5,
+//	DEVICE_TYPE_CPU=5,
 //	//! GPS Unit
-//	DeviceType::GPS=6,
+//	DEVICE_TYPE_GPS=6,
 //	//! Antenna
-//	DeviceType::ANT=7,
+//	DEVICE_TYPE_ANT=7,
 //	//! Radio Receiver
-//	DeviceType::RXR=8,
+//	DEVICE_TYPE_RXR=8,
 //	//! Radio Transmitter
-//	DeviceType::TXR=9,
+//	DEVICE_TYPE_TXR=9,
 //	//! Radio Transceiver
-//	DeviceType::TCV=10,
+//	DEVICE_TYPE_TCV=10,
 //	//! Photo Voltaic String
-//    DeviceType::PVSTRG=11,
+//    DEVICE_TYPE_PVSTRG=11,
 //	//! Battery
-//	DeviceType::BATT=12,
+//	DEVICE_TYPE_BATT=12,
 //	//! Heater
-//	DeviceType::HTR=13,
+//	DEVICE_TYPE_HTR=13,
 //	//! Motor
-//	DeviceType::MOTR=14,
+//	DEVICE_TYPE_MOTR=14,
 //	//! Temperature Sensor
-//	DeviceType::TSEN=15,
+//	DEVICE_TYPE_TSEN=15,
 //	//! Thruster
-//	DeviceType::THST=16,
+//	DEVICE_TYPE_THST=16,
 //	//! Propellant Tank
-//	DeviceType::PROP=17,
+//	DEVICE_TYPE_PROP=17,
 //	//! Switch
-//	DeviceType::SWCH=18,
+//	DEVICE_TYPE_SWCH=18,
 //	//! Rotor
-//	DeviceType::ROT=19,
+//	DEVICE_TYPE_ROT=19,
 //	//! Star Tracker
-//	DeviceType::STT=20,
+//	DEVICE_TYPE_STT=20,
 //	//! Motion Capture Camera
-//	DeviceType::MCC=21,
+//	DEVICE_TYPE_MCC=21,
 //	//! Torque rod Control Unit
-//	DeviceType::TCU=22,
+//	DEVICE_TYPE_TCU=22,
 //	//! Power Bus
-//	DeviceType::BUS=23,
+//	DEVICE_TYPE_BUS=23,
 //	//! Pressure sensor
-//	DeviceType::PSEN=24,
+//	DEVICE_TYPE_PSEN=24,
 //	//! SUCHI
-//	DeviceType::SUCHI=25,
+//	DEVICE_TYPE_SUCHI=25,
 //	//! Camera
-//	DeviceType::CAM=26,
+//	DEVICE_TYPE_CAM=26,
 //	//! Telemetry
-//	DeviceType::TELEM=27,
+//	DEVICE_TYPE_TELEM=27,
 //	//! Disk Drive
-//	DeviceType::DISK=28,
+//	DEVICE_TYPE_DISK=28,
 //	//! TNC
-//	DeviceType::TNC=29,
+//	DEVICE_TYPE_TNC=29,
 //    //! TNC
-//    DeviceType::BCREG=30,
+//    DEVICE_TYPE_BCREG=30,
 //    //! List count
-//	DeviceType::COUNT,
+//	DEVICE_TYPE_COUNT,
 //	//! Not a Component
-//	DeviceType::NONE=UINT16_MAX
+//	DEVICE_TYPE_NONE=UINT16_MAX
 //};
 
 enum class DeviceType : uint16_t
@@ -1476,7 +1476,7 @@ struct tcvstruc : public allstruc
 struct pvstrgstruc : public allstruc
 {
     //! BCREG index
-    uint16_t pvidx;
+    uint16_t bcidx;
 	//! Efficiency 0th order term
 	float effbase;
 	//! Efficiency 1st order term
