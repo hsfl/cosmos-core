@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
                     tx_out.temppath = file.path.substr(0,file.path.find(".meta"));
                     if (read_meta(tx_out) >= 0)
                     {
-                        outgoing_tx_add(tx_out);
+                        iretn = outgoing_tx_add(tx_out);
                     }
                 }
             }
@@ -407,11 +407,14 @@ int main(int argc, char *argv[])
 
                         if (addtoqueue)
                         {
-                            nextdiskcheck = currentmjd();
-                            outgoing_tx_add(file.node, file.agent, file.name);
+                            iretn = outgoing_tx_add(file.node, file.agent, file.name);
+                            if (iretn >= 0)
+                            {
+                                nextdiskcheck = currentmjd();
+                            }
                             if (debug_flag)
                             {
-                                printf("[%f] outgoing_tx_add: %s\n", etloop.split(), file.path.c_str());
+                                printf("[%f] outgoing_tx_add: %s [%d]\n", etloop.split(), file.path.c_str(), iretn);
                             }
                         }
                     }
@@ -1749,7 +1752,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
         //get the file size
         tx_out.file_size = get_file_size(filepath);
 
-        if(!tx_out.file_size)
+        if(tx_out.file_size < 0)
         {
             return DATA_ERROR_SIZE_MISMATCH;
         }
