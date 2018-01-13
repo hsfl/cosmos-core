@@ -301,6 +301,15 @@ namespace Cosmos {
             return -errno;
         }
 
+        Vg.clear();
+        Vt.clear();
+        Vn.clear();
+        Vp.clear();
+        Points.clear();
+        Lines.clear();
+        Faces.clear();
+        Groups.clear();
+
         ifstream infile(path);
         string sinput;
         while (std::getline(infile, sinput))

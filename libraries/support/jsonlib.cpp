@@ -6183,7 +6183,7 @@ int32_t json_load_node(string node, jsonnode &json)
         ifs.read(ibuf, fstat.st_size);
         ifs.close();
         ibuf[fstat.st_size] = 0;
-        json.pieces = ibuf;
+        json.vertexs = ibuf;
         free(ibuf);
     }
 
@@ -6200,7 +6200,7 @@ int32_t json_load_node(string node, jsonnode &json)
         ifs.read(ibuf, fstat.st_size);
         ifs.close();
         ibuf[fstat.st_size] = 0;
-        json.pieces = ibuf;
+        json.faces = ibuf;
         free(ibuf);
     }
 
@@ -6326,16 +6326,21 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     for (size_t i=0; i<cinfo->faces.size(); ++i)
     {
         Vector fcentroid = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
+        fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[1]];
         Vector v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
         Vector v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[1]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
         Vector fnormal = v1.cross(v2);
-        for (size_t j=1; j<cinfo->faces[i].vertex_cnt; ++j)
+        for (size_t j=2; j<cinfo->faces[i].vertex_cnt; ++j)
         {
             fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[j]];
             v1 = v2;
             v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[j-1]];
             fnormal += v1.cross(v2);
         }
+        v1 = v2;
+        v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
+        fnormal += v1.cross(v2);
+
         fcentroid /= cinfo->faces[i].vertex_cnt;
         cinfo->faces[i].normal = fnormal.normalize();
 
@@ -6386,15 +6391,25 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
             if (dv.norm() != 0.)
             {
                 cinfo->pieces[i].volume += cinfo->faces[(cinfo->pieces[i].face_idx[j])].area * dv.norm() / 3.;
-                if (dv.separation(cinfo->faces[(cinfo->pieces[i].face_idx[j])].normal) > DPI2)
+                double sepangle = dv.separation(cinfo->faces[(cinfo->pieces[i].face_idx[j])].normal);
+//                double msepangle = dv.separation(cinfo->faces[(cinfo->pieces[i].face_idx[j])].normal * -1.);
+                if (sepangle > DPI2)
                 {
-                    facestruc tface = cinfo->faces[(cinfo->pieces[i].face_idx[j])];
-                    tface.normal *= -1.;
-                    cinfo->faces.push_back(tface);
-                    cinfo->pieces[i].face_idx[j] = cinfo->faces.size() - 1;
+                    if (cinfo->pieces[i].face_idx[j] < cinfo->faces.size())
+                    {
+                        facestruc tface = cinfo->faces[(cinfo->pieces[i].face_idx[j])];
+                        tface.normal *= -1.;
+                        for (size_t k=0; k<tface.vertex_idx.size(); ++k)
+                        {
+                            tface.vertex_idx[k] = cinfo->faces[(cinfo->pieces[i].face_idx[j])].vertex_idx[tface.vertex_idx.size()-(k+1)];
+                        }
+                        cinfo->faces.push_back(tface);
+                        cinfo->pieces[i].face_idx[j] = cinfo->faces.size() - 1;
+                    }
                 }
             }
         }
+        cinfo->node.face_cnt = cinfo->faces.size();
         tvolume += cinfo->pieces[i].volume;
         tcom +=  cinfo->pieces[i].com * cinfo->pieces[i].volume;
     }
@@ -6699,9 +6714,27 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             return (AGENT_ERROR_MEMORY);
         }
+
         for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
         {
             //Add relevant names to namespace
+            json_mapfaceentry(i, cinfo);
+        }
+
+        // Parse data for face information
+        if (!json.faces.empty())
+        {
+            if ((iretn = json_parse(json.faces, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+            {
+                return (iretn);
+            }
+        }
+
+        // Do it a second time because now we know how many vertices in each face.
+        for (uint16_t i=0; i<cinfo->node.face_cnt; i++)
+        {
+            //Add relevant names to namespace
+            cinfo->faces[i].vertex_idx.resize(cinfo->faces[i].vertex_cnt);
             json_mapfaceentry(i, cinfo);
         }
 
@@ -6724,6 +6757,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             return (AGENT_ERROR_MEMORY);
         }
+
         for (uint16_t i=0; i<cinfo->node.piece_cnt; i++)
         {
             // Initialize to disabled
@@ -6743,6 +6777,23 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
                 return (iretn);
             }
         }
+
+        // Do it a second time, now that we know how many faces in each piece
+        for (uint16_t i=0; i<cinfo->node.piece_cnt; i++)
+        {
+            cinfo->pieces[i].face_idx.resize(cinfo->pieces[i].face_cnt);
+            json_mappieceentry(i, cinfo);
+        }
+
+        // Parse data for piece information
+        if (!json.pieces.empty())
+        {
+            if ((iretn = json_parse(json.pieces, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
+            {
+                return (iretn);
+            }
+        }
+
 
         // Work through jmap, enabling each piece for which piece_type has been enabled
         for (size_t i=0; i<cinfo->node.piece_cnt; i++)
@@ -7082,7 +7133,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t type, uint16_t c
 }
 
 //! Map all entries in JMAP
-//! Add or update all possible entries in the Nemspace map.
+//! Add or update all possible entries in the Namespace map.
 //! \param cinfo Reference to ::cosmosstruc to use.
 //! \return The current number of entries, if successful, 0 if the entry could not be mapped.
 int32_t json_mapentries(cosmosstruc *cinfo)
@@ -7212,7 +7263,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_area", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.area, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_AREA);
     json_addentry("node_moi", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.moi, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_MOI);
     json_addentry("node_battcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battcap, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
-    json_addentry("node_charging", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.charging, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_powchg", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.charging, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_powgen", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powgen, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
     json_addentry("node_powuse", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powuse, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
     json_addentry("node_battlev", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battlev, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
@@ -7730,13 +7781,14 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         break;
         //! Photo Voltaic String
     case (uint16_t)DeviceType::PVSTRG:
-        iretn = json_addentry("device_strg_utc",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-        json_addentry("device_strg_cidx",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
-        json_addentry("device_strg_temp",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_strg_power",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_strg_efi",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.effbase, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_strg_efs",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.effslope, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_strg_max",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.maxpower, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        iretn = json_addentry("device_pvstrg_utc",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_pvstrg_cidx",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_pvstrg_bcidx",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.bcidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_pvstrg_temp",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_pvstrg_power",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_pvstrg_efi",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.effbase, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_pvstrg_efs",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.effslope, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_pvstrg_max",didx, UINT16_MAX, (uint8_t *)&device.pvstrg.maxpower, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
         //! Rotor
     case (uint16_t)DeviceType::ROT:
@@ -8129,13 +8181,13 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosstruc *cinfo,
         break;
         //! Photo Voltaic String
     case (uint16_t)DeviceType::PVSTRG:
-        json_toggleentry("device_strg_utc",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_strg_cidx",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_strg_temp",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_strg_power",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_strg_efi",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_strg_efs",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_strg_max",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_pvstrg_utc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_pvstrg_cidx",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_pvstrg_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_pvstrg_power",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_pvstrg_efi",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_pvstrg_efs",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_pvstrg_max",didx, UINT16_MAX, cinfo, state);
         break;
         //! Battery
     case (uint16_t)DeviceType::BATT:
@@ -8843,7 +8895,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     string result;
     char tempstring[200];
 
-    result = "{\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_charging\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
     {
@@ -8951,9 +9003,9 @@ string json_list_of_soh(cosmosstruc *cinfo)
 
     for (uint16_t i=0; i<cinfo->devspec.pvstrg_cnt; ++i)
     {
-        sprintf(tempstring, ",\"device_strg_utc_%03d\",\"device_strg_temp_%03d\"", i, i);
+        sprintf(tempstring, ",\"device_pvstrg_utc_%03d\",\"device_pvstrg_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_strg_power_%03d\"",i);
+        sprintf(tempstring, ",\"device_pvstrg_power_%03d\"",i);
         result += tempstring;
     }
 
@@ -9227,6 +9279,10 @@ const char *json_node(string &jstring, cosmosstruc *cinfo)
     json_out_character(jstring, '\n');
     json_out(jstring,(char *)"node_piece_cnt", cinfo);
     json_out_character(jstring, '\n');
+    json_out(jstring,(char *)"node_vertex_cnt", cinfo);
+    json_out_character(jstring, '\n');
+    json_out(jstring,(char *)"node_face_cnt", cinfo);
+    json_out_character(jstring, '\n');
     json_out(jstring,(char *)"node_device_cnt", cinfo);
     json_out_character(jstring, '\n');
     json_out(jstring,(char *)"node_port_cnt", cinfo);
@@ -9286,12 +9342,12 @@ const char *json_faces(string &jstring, cosmosstruc *cinfo)
             json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"face_area",i, cinfo);
             json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"face_vcnt",i, cinfo);
+            json_out_1d(jstring,(char *)"face_vertex_cnt",i, cinfo);
             json_out_character(jstring, '\n');
-            uint16_t cnt = (uint16_t)json_get_int((char *)"face_vcnt",i, cinfo);
+            uint16_t cnt = (uint16_t)json_get_int((char *)"face_vertex_cnt",i, cinfo);
             for (uint16_t j=0; j<cnt; j++)
             {
-                json_out_2d(jstring,(char *)"face_vidx",i,j, cinfo);
+                json_out_2d(jstring,(char *)"face_vertex_idx",i,j, cinfo);
                 json_out_character(jstring, '\n');
             }
         }
@@ -9343,12 +9399,12 @@ const char *json_pieces(string &jstring, cosmosstruc *cinfo)
             json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_com",i, cinfo);
             json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_fcnt",i, cinfo);
+            json_out_1d(jstring,(char *)"piece_face_cnt",i, cinfo);
             json_out_character(jstring, '\n');
-            uint16_t cnt = (uint16_t)json_get_int((char *)"piece_fcnt",i, cinfo);
+            uint16_t cnt = (uint16_t)json_get_int((char *)"piece_face_cnt",i, cinfo);
             for (uint16_t j=0; j<cnt; j++)
             {
-                json_out_2d(jstring,(char *)"piece_fidx",i,j, cinfo);
+                json_out_2d(jstring,(char *)"piece_face_idx",i,j, cinfo);
                 json_out_character(jstring, '\n');
             }
         }
@@ -9577,11 +9633,11 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump solar strings
                 if (!strcmp(device_type_string[i].c_str(),"strg"))
                 {
-                    json_out_1d(jstring,(char *)"device_strg_efi",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_pvstrg_efi",j, cinfo);
                     json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_strg_efs",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_pvstrg_efs",j, cinfo);
                     json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_strg_max",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_pvstrg_max",j, cinfo);
                     json_out_character(jstring, '\n');
                     continue;
                 }
