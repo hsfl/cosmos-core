@@ -292,7 +292,7 @@ int main(int argc, char* argv[]){
             print.vector("mag field:", agent->cinfo->pdata.node.loc.bearth,  " nT", 3);  //CT 2017-06-26: possible to add ", -1" as another arguement to call main vector function, or overload
             print.endline();
 
-            agent->post((uint8_t)Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+            agent->post(Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->sohtable, agent->cinfo->meta, agent->cinfo->pdata));
 
 
             COSMOS_SLEEP(sleep_time); // sleep for 70% of the iteration time
