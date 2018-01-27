@@ -6988,6 +6988,7 @@ int32_t json_setup_node(string node, cosmosstruc *cinfo)
 int32_t json_dump_node(cosmosstruc *cinfo)
 {
     string jst;
+    string filename;
 
     // Node
     string output = json_node(jst, cinfo);
@@ -6996,8 +6997,9 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     {
         return DATA_ERROR_NODES_FOLDER;
     }
-    string filename = fileloc + "/node.ini";
-    FILE *file = fopen(filename.c_str(), "w");
+    rename((fileloc+"/node.ini").c_str(), (fileloc+"/node.ini.old").c_str());
+//    string filename = fileloc + "/node.ini";
+    FILE *file = fopen((fileloc+"/node.ini").c_str(), "w");
     if (file == NULL)
     {
         return -errno;
@@ -7007,8 +7009,9 @@ int32_t json_dump_node(cosmosstruc *cinfo)
 
     // Vertices
     output = json_vertices(jst, cinfo);
-    filename = fileloc + "/vertices.ini";
-    file = fopen(filename.c_str(), "w");
+    rename((fileloc+"/vertices.ini").c_str(), (fileloc+"/vertices.ini.old").c_str());
+//    filename = fileloc + "/vertices.ini";
+    file = fopen((fileloc + "/vertices.ini").c_str(), "w");
     if (file == NULL)
     {
         return -errno;
@@ -7018,8 +7021,9 @@ int32_t json_dump_node(cosmosstruc *cinfo)
 
     // cinfo->faces
     output = json_faces(jst, cinfo);
-    filename = fileloc + "/faces.ini";
-    file = fopen(filename.c_str(), "w");
+    rename((fileloc+"/faces.ini").c_str(), (fileloc+"/faces.ini.old").c_str());
+//    filename = fileloc + "/faces.ini";
+    file = fopen((fileloc + "/faces.ini").c_str(), "w");
     if (file == NULL)
     {
         return -errno;
@@ -7029,8 +7033,9 @@ int32_t json_dump_node(cosmosstruc *cinfo)
 
     // Pieces
     output = json_pieces(jst, cinfo);
-    filename = fileloc + "/pieces.ini";
-    file = fopen(filename.c_str(), "w");
+    rename((fileloc+"/pieces.ini").c_str(), (fileloc+"/pieces.ini.old").c_str());
+//    filename = fileloc + "/pieces.ini";
+    file = fopen((fileloc + "/pieces.ini").c_str(), "w");
     if (file == NULL)
     {
         return -errno;
@@ -7040,8 +7045,9 @@ int32_t json_dump_node(cosmosstruc *cinfo)
 
     // General Devices
     output = json_devices_general(jst, cinfo);
-    filename = fileloc + "/devices_general.ini";
-    file = fopen(filename.c_str(), "w");
+    rename((fileloc+"/devices_general.ini").c_str(), (fileloc+"/devices_general.ini.old").c_str());
+//    filename = fileloc + "/devices_general.ini";
+    file = fopen((fileloc + "/devices_general.ini").c_str(), "w");
     if (file == NULL)
     {
         return -errno;
@@ -7051,8 +7057,9 @@ int32_t json_dump_node(cosmosstruc *cinfo)
 
     // Specific Devices
     output = json_devices_specific(jst, cinfo);
-    filename = fileloc + "/devices_specific.ini";
-    file = fopen(filename.c_str(), "w");
+    rename((fileloc+"/devices_specific.ini").c_str(), (fileloc+"/devices_specific.ini.old").c_str());
+//    filename = fileloc + "/devices_specific.ini";
+    file = fopen((fileloc + "/devices_specific.ini").c_str(), "w");
     if (file == NULL)
     {
         return -errno;
@@ -7062,8 +7069,9 @@ int32_t json_dump_node(cosmosstruc *cinfo)
 
     // Ports
     output = json_ports(jst, cinfo);
-    filename = fileloc + "/ports.ini";
-    file = fopen(filename.c_str(), "w");
+    rename((fileloc+"/ports.ini").c_str(), (fileloc+"/ports.ini.old").c_str());
+//    filename = fileloc + "/ports.ini";
+    file = fopen((fileloc + "/ports.ini").c_str(), "w");
     if (file == NULL)
     {
         return -errno;
@@ -7074,8 +7082,9 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     // Aliases
     if (cinfo->alias.size() || cinfo->equation.size())
     {
-        filename = fileloc + "/aliases.ini";
-        file = fopen(filename.c_str(), "w");
+        rename((fileloc+"/aliases.ini").c_str(), (fileloc+"/aliases.ini.old").c_str());
+//        filename = fileloc + "/aliases.ini";
+        file = fopen((fileloc + "/aliases.ini").c_str(), "w");
         if (file == NULL)
         {
             return -errno;
@@ -7594,12 +7603,16 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_batt_temp",didx, UINT16_MAX, (uint8_t *)&device.batt.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_cap",didx, UINT16_MAX, (uint8_t *)&device.batt.capacity, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_eff",didx, UINT16_MAX, (uint8_t *)&device.batt.efficiency, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_batt_lev",didx, UINT16_MAX, (uint8_t *)&device.batt.charge, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_charge",didx, UINT16_MAX, (uint8_t *)&device.batt.charge, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_volt",didx, UINT16_MAX, (uint8_t *)&device.batt.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_nvolt",didx, UINT16_MAX, (uint8_t *)&device.batt.nvolt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     case (uint16_t)DeviceType::BCREG:
-        iretn = json_addentry("device_tnc_utc",didx, UINT16_MAX, (uint8_t *)&device.bcreg.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
-        json_addentry("device_tnc_cidx",didx, UINT16_MAX, (uint8_t *)&device.bcreg.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
-        json_addentry("device_tnc_temp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        iretn = json_addentry("device_bcreg_utc",didx, UINT16_MAX, (uint8_t *)&device.bcreg.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_bcreg_cidx",didx, UINT16_MAX, (uint8_t *)&device.bcreg.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_bcreg_temp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_bcreg_volt",didx, UINT16_MAX, (uint8_t *)&device.bcreg.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_bcreg_amp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     case (uint16_t)DeviceType::BUS:
         iretn = json_addentry("device_bus_utc",didx, UINT16_MAX, (uint8_t *)&device.bus.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -7607,6 +7620,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_bus_temp",didx, UINT16_MAX, (uint8_t *)&device.bus.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bus_amp",didx, UINT16_MAX, (uint8_t *)&device.bus.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bus_volt",didx, UINT16_MAX, (uint8_t *)&device.bus.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_bus_nvolt",didx, UINT16_MAX, (uint8_t *)&device.bus.nvolt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bus_power",didx, UINT16_MAX, (uint8_t *)&device.bus.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bus_energy",didx, UINT16_MAX, (uint8_t *)&device.bus.energy, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bus_wdt",didx, UINT16_MAX, (uint8_t *)&device.bus.wdt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8196,7 +8210,7 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosstruc *cinfo,
         json_toggleentry("device_batt_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_batt_cap",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_batt_eff",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_batt_lev",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_batt_charge",didx, UINT16_MAX, cinfo, state);
         break;
         //! Heater
     case (uint16_t)DeviceType::HTR:
