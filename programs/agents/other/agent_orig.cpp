@@ -116,9 +116,9 @@ int main(int argc, char *argv[])
         {
             double lmjd = 0., dmjd;
             string channel;
-            uint8_t cnum;
+            Agent::AgentMessage cnum;
             Agent::messstruc mess;
-            int i, pretn;
+            int i;
             locstruc loc;
 
             if(argc == 3)
@@ -126,30 +126,32 @@ int main(int argc, char *argv[])
                 channel = argv[2];
                 if (channel == "soh")
                 {
-                    cnum = (uint8_t)Agent::AgentMessage::SOH;
+                    cnum = Agent::AgentMessage::SOH;
                 }
                 else
                 {
                     if (channel == "beat")
                     {
-                        cnum = (uint8_t)Agent::AgentMessage::BEAT;
+                        cnum = Agent::AgentMessage::BEAT;
                     }
                     else
                     {
-                        cnum = atoi(channel.c_str());
+                        cnum = (Agent::AgentMessage)atoi(channel.c_str());
                     }
                 }
             }
             else
             {
                 channel.clear();
-                cnum = (uint8_t)Agent::AgentMessage::ALL;
+                cnum = Agent::AgentMessage::ALL;
             }
 
             while (1)
             {
-                if ((pretn=agent->poll(mess,  (uint8_t)Agent::AgentMessage::ALL, 1)) > 0)
+                int32_t iretn;
+                if ((iretn=agent->readring(mess,  Agent::AgentMessage::ALL, 1)) > 0)
                 {
+                    Agent::AgentMessage pretn = (Agent::AgentMessage)iretn;
                     string utc = json_extract_namedobject(mess.jdata.c_str(), "agent_utc");
                     string node = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_node"));
                     string proc = json_extract_namedobject(mess.jdata.c_str(), "agent_proc");
@@ -160,19 +162,19 @@ int main(int argc, char *argv[])
                         continue;
                     }
 
-                    if (pretn < 128)
+                    if (pretn < Agent::AgentMessage::BINARY)
                     {
-                        json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_parse(mess.adata.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                        json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo);
+                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo);
+                        json_parse(mess.adata.c_str(), agent->cinfo);
                     }
 
                     switch (pretn)
                     {
-                    case (uint8_t)Agent::AgentMessage::SOH:
+                    case Agent::AgentMessage::SOH:
                         printf("[SOH]");
                         break;
-                    case (uint8_t)Agent::AgentMessage::BEAT:
+                    case Agent::AgentMessage::BEAT:
                         printf("[BEAT]");
                         break;
                     default:
@@ -180,37 +182,37 @@ int main(int argc, char *argv[])
                         break;
                     }
                     printf("%s:[%s:%s][%s:%s](%" PRIu64 ":%" PRIu64 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), mess.jdata.size(), mess.adata.size());
-                    if (pretn < 128 && !channel.empty())
+                    if (pretn < Agent::AgentMessage::BINARY && !channel.empty())
                     {
                         printf("%s\n",mess.adata.c_str());
                     }
-                    if ((channel=="info") && pretn == (uint8_t)Agent::AgentMessage::TRACK)
+                    if ((channel=="info") && pretn == Agent::AgentMessage::TRACK)
                     {
-                        if (agent->cinfo->pdata.node.loc.utc > 0.)
+                        if (agent->cinfo->node.loc.utc > 0.)
                         {
                             if (lmjd > 0.)
-                                dmjd = 86400.*(agent->cinfo->pdata.node.loc.utc-lmjd);
+                                dmjd = 86400.*(agent->cinfo->node.loc.utc-lmjd);
                             else
                                 dmjd = 0.;
-                            loc.pos.icrf.s = agent->cinfo->pdata.node.loc.pos.icrf.s;
-                            loc.pos.utc = agent->cinfo->pdata.node.loc.utc;
+                            loc.pos.icrf.s = agent->cinfo->node.loc.pos.icrf.s;
+                            loc.pos.utc = agent->cinfo->node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->pdata.node.loc.utc,dmjd, agent->cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->pdata.node.powgen, agent->cinfo->pdata.node.powuse, agent->cinfo->pdata.node.battlev);
-                            lmjd = agent->cinfo->pdata.node.loc.utc;
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->node.loc.utc,dmjd, agent->cinfo->node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->node.powgen, agent->cinfo->node.powuse, agent->cinfo->node.battlev);
+                            lmjd = agent->cinfo->node.loc.utc;
                         }
                     }
-                    if ((channel=="imu") && pretn == (uint8_t)Agent::AgentMessage::IMU)
+                    if ((channel=="imu") && pretn == Agent::AgentMessage::IMU)
                     {
-                        for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
+                        for (i=0; i<agent->cinfo->devspec.imu_cnt; i++)
                         {
-                            if (agent->cinfo->pdata.agent[0].beat.utc > 0.)
+                            if (agent->cinfo->agent[0].beat.utc > 0.)
                             {
                                 if (lmjd > 0.)
-                                    dmjd = 86400.*(agent->cinfo->pdata.agent[0].beat.utc-lmjd);
+                                    dmjd = 86400.*(agent->cinfo->agent[0].beat.utc-lmjd);
                                 else
                                     dmjd = 0.;
                                 printf("%.15g %.4g\n",loc.utc,dmjd);
-                                lmjd = agent->cinfo->pdata.agent[0].beat.utc;
+                                lmjd = agent->cinfo->agent[0].beat.utc;
                             }
                         }
                     }
@@ -278,9 +280,9 @@ int main(int argc, char *argv[])
         {
             double lmjd = 0., dmjd;
             string channel;
-            uint8_t cnum;
+            Agent::AgentMessage cnum;
             Agent::messstruc mess;
-            int i, pretn;
+            int i;
             locstruc loc;
 
             if(argc == 3)
@@ -288,30 +290,32 @@ int main(int argc, char *argv[])
                 channel = argv[2];
                 if (channel == "soh")
                 {
-                    cnum = (uint8_t)Agent::AgentMessage::SOH;
+                    cnum = Agent::AgentMessage::SOH;
                 }
                 else
                 {
                     if (channel == "beat")
                     {
-                        cnum = (uint8_t)Agent::AgentMessage::BEAT;
+                        cnum = Agent::AgentMessage::BEAT;
                     }
                     else
                     {
-                        cnum = atoi(channel.c_str());
+                        cnum = (Agent::AgentMessage)atoi(channel.c_str());
                     }
                 }
             }
             else
             {
                 channel.clear();
-                cnum = (uint8_t)Agent::AgentMessage::ALL;
+                cnum = Agent::AgentMessage::ALL;
             }
 
             while (1)
             {
-                if ((pretn=agent->poll(mess,  (uint8_t)Agent::AgentMessage::ALL, 1)) > 0)
+                int32_t iretn;
+                if ((iretn=agent->readring(mess,  Agent::AgentMessage::ALL, 1)) > 0)
                 {
+                    Agent::AgentMessage pretn = (Agent::AgentMessage)iretn;
                     string utc = json_extract_namedobject(mess.jdata.c_str(), "agent_utc");
                     string node = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_node"));
                     string proc = json_extract_namedobject(mess.jdata.c_str(), "agent_proc");
@@ -322,19 +326,19 @@ int main(int argc, char *argv[])
                         continue;
                     }
 
-                    if (pretn < 128)
+                    if (pretn < Agent::AgentMessage::BINARY)
                     {
-                        json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo->meta, agent->cinfo->sdata);
-                        json_parse(mess.adata.c_str(), agent->cinfo->meta, agent->cinfo->sdata);
+                        json_clear_cosmosstruc(JSON_STRUCT_NODE, agent->cinfo);
+                        json_clear_cosmosstruc(JSON_STRUCT_DEVICE, agent->cinfo);
+                        json_parse(mess.adata.c_str(), agent->cinfo);
                     }
 
                     switch (pretn)
                     {
-                    case (uint8_t)Agent::AgentMessage::SOH:
+                    case Agent::AgentMessage::SOH:
                         printf("[SOH]");
                         break;
-                    case (uint8_t)Agent::AgentMessage::BEAT:
+                    case Agent::AgentMessage::BEAT:
                         printf("[BEAT]");
                         break;
                     default:
@@ -342,37 +346,37 @@ int main(int argc, char *argv[])
                         break;
                     }
                     printf("%s:[%s:%s][%s:%s](%" PRIu64 ":%" PRIu64 ")\n",utc.c_str(), node.c_str(), proc.c_str(), addr.c_str(), port.c_str(), mess.jdata.size(), mess.adata.size());
-                    if (pretn < 128 && !channel.empty())
+                    if (pretn < Agent::AgentMessage::BINARY && !channel.empty())
                     {
                         printf("%s\n",mess.adata.c_str());
                     }
-                    if ((channel=="info") && pretn == (uint8_t)Agent::AgentMessage::TRACK)
+                    if ((channel=="info") && pretn == Agent::AgentMessage::TRACK)
                     {
-                        if (agent->cinfo->pdata.node.loc.utc > 0.)
+                        if (agent->cinfo->node.loc.utc > 0.)
                         {
                             if (lmjd > 0.)
-                                dmjd = 86400.*(agent->cinfo->pdata.node.loc.utc-lmjd);
+                                dmjd = 86400.*(agent->cinfo->node.loc.utc-lmjd);
                             else
                                 dmjd = 0.;
-                            loc.pos.icrf.s = agent->cinfo->pdata.node.loc.pos.icrf.s;
-                            loc.pos.utc = agent->cinfo->pdata.node.loc.utc;
+                            loc.pos.icrf.s = agent->cinfo->node.loc.pos.icrf.s;
+                            loc.pos.utc = agent->cinfo->node.loc.utc;
                             pos_eci(&loc);
-                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->pdata.node.loc.utc,dmjd, agent->cinfo->pdata.node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->pdata.node.powgen, agent->cinfo->pdata.node.powuse, agent->cinfo->pdata.node.battlev);
-                            lmjd = agent->cinfo->pdata.node.loc.utc;
+                            printf("%16.15g %6.4g %s %8.3f %8.3f %8.3f %5.1f %5.1f %5.1f\n", agent->cinfo->node.loc.utc,dmjd, agent->cinfo->node.name,DEGOF(loc.pos.geod.s.lon),DEGOF(loc.pos.geod.s.lat),loc.pos.geod.s.h, agent->cinfo->node.powgen, agent->cinfo->node.powuse, agent->cinfo->node.battlev);
+                            lmjd = agent->cinfo->node.loc.utc;
                         }
                     }
-                    if ((channel=="imu") && pretn == (uint8_t)Agent::AgentMessage::IMU)
+                    if ((channel=="imu") && pretn == Agent::AgentMessage::IMU)
                     {
-                        for (i=0; i<agent->cinfo->pdata.devspec.imu_cnt; i++)
+                        for (i=0; i<agent->cinfo->devspec.imu_cnt; i++)
                         {
-                            if (agent->cinfo->pdata.agent[0].beat.utc > 0.)
+                            if (agent->cinfo->agent[0].beat.utc > 0.)
                             {
                                 if (lmjd > 0.)
-                                    dmjd = 86400.*(agent->cinfo->pdata.agent[0].beat.utc-lmjd);
+                                    dmjd = 86400.*(agent->cinfo->agent[0].beat.utc-lmjd);
                                 else
                                     dmjd = 0.;
                                 printf("%.15g %.4g\n",loc.utc,dmjd);
-                                lmjd = agent->cinfo->pdata.agent[0].beat.utc;
+                                lmjd = agent->cinfo->agent[0].beat.utc;
                             }
                         }
                     }

@@ -1546,12 +1546,12 @@ int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<st
 {
     int32_t iretn;
 
-    iretn = data_load_archive(cinfo->pdata.node.name, "soh", mjd, "telemetry", telem);
+    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "telemetry", telem);
     if (iretn < 0)
     {
         return iretn;
     }
-    iretn = data_load_archive(cinfo->pdata.node.name, "soh", mjd, "event", event);
+    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "event", event);
 
     return iretn;
 }
@@ -1716,21 +1716,21 @@ int32_t kml_write(cosmosstruc *cinfo)
     FILE *fin, *fout;
     double utc;
 
-    utc = floor(cinfo->pdata.node.loc.utc);
+    utc = floor(cinfo->node.loc.utc);
 
-    string path = data_type_path((string)cinfo->pdata.node.name, "outgoing", "google", utc, "points");
+    string path = data_type_path((string)cinfo->node.name, "outgoing", "google", utc, "points");
     fin = data_open(path, (char *)"a+");
-    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->pdata.node.loc.pos.geod.s.lon),DEGOF(cinfo->pdata.node.loc.pos.geod.s.lat),cinfo->pdata.node.loc.pos.geod.s.h);
+    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->node.loc.pos.geod.s.lon),DEGOF(cinfo->node.loc.pos.geod.s.lat),cinfo->node.loc.pos.geod.s.h);
 
-    path = data_type_path(cinfo->pdata.node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
+    path = data_type_path(cinfo->node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
     fout = data_open(path, (char *)"w");
     fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
     fprintf(fout,"<Document>\n");
-    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->pdata.node.name,utc);
+    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->node.name,utc);
     fprintf(fout,"<description>Track of node.</description>\n");
     fprintf(fout,"<Style id=\"yellowLineGreenPoly\">\n<LineStyle>\n<color>7f00ffff</color>\n<width>4</width>\n</LineStyle>\n");
     fprintf(fout,"<PolyStyle>\n<color>7f00ff00</color>\n</PolyStyle>\n</Style>\n");
-    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->pdata.node.name,utc);
+    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->node.name,utc);
     fprintf(fout,"<styleUrl>#yellowLineGreenPoly</styleUrl>\n<LineString>\n<extrude>1</extrude>\n<tessellate>1</tessellate>\n<altitudeMode>absolute</altitudeMode>\n");
     fprintf(fout,"<coordinates>\n");
 

@@ -131,10 +131,10 @@ void propcalc(size_t index)
 //    mut2.lock();
     pos_eci(&track[index].loc);
 //    mut2.unlock();
-//    geoc2topo(track[index].loc.pos.geod.s, agent->cinfo->pdata.node.loc.pos.geoc.s,track[index].topo);
+//    geoc2topo(track[index].loc.pos.geod.s, agent->cinfo->node.loc.pos.geoc.s,track[index].topo);
 //    topo2azel(track[index].topo, &track[index].azto, &track[index].elto);
 //    mut3.lock();
-    geoc2topo(agent->cinfo->pdata.node.loc.pos.geod.s, track[index].loc.pos.geoc.s, track[index].topo);
+    geoc2topo(agent->cinfo->node.loc.pos.geod.s, track[index].loc.pos.geoc.s, track[index].topo);
 //    mut3.unlock();
 //    mut4.lock();
     topo2azel(track[index].topo, &track[index].azfrom, &track[index].elfrom);

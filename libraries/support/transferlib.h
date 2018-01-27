@@ -122,7 +122,7 @@ typedef uint8_t PACKET_TYPE;
 typedef uint8_t PACKET_NODE_ID_TYPE;
 typedef uint8_t PACKET_TX_ID_TYPE;
 typedef uint16_t PACKET_CHUNK_SIZE_TYPE;
-typedef uint32_t PACKET_FILE_SIZE_TYPE;
+typedef int32_t PACKET_FILE_SIZE_TYPE;
 
 //typedef struct
 //{
@@ -371,8 +371,8 @@ void extract_request(uint8_t* packet, PACKET_TX_ID_TYPE tx_id, char* filename, c
 
 void show_fstream_state(std::ifstream& out);
 //Function which gets the size of a file
-uint32_t get_file_size(std::string filename);
-uint32_t get_file_size(const char* filename);
+int32_t get_file_size(std::string filename);
+int32_t get_file_size(const char* filename);
 
 void print_cstring(uint8_t* buf, int siz);
 void print_cstring_with_index(uint8_t* buf, int siz);

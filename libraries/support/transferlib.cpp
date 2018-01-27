@@ -279,21 +279,30 @@ time_t get_file_age(std::string filename)
 }
 
 //Function which gets the size of a file
-uint32_t get_file_size(std::string filename)
+//! Get size of file
+/*! Looks up the size of the file on the filesystem. This returns a 32 bit signed
+ * integer so that it works for most files we want to transfer. If the file is larger
+ * than 2^32/2, then it will turn negative and be treated as an error.
+ * \param filename Full path to file
+ * \return Size, or negative error.
+ */
+int32_t get_file_size(string filename)
 {
+    int32_t iretn;
     struct stat stat_buf;
 
     if ((stat(filename.c_str(), &stat_buf)) == 0)
     {
-        return  stat_buf.st_size;
+        iretn = stat_buf.st_size;
+        return  iretn;
     }
     else
     {
-        return 0;
+        return -errno;
     }
 }
 
-uint32_t get_file_size(const char* filename)
+int32_t get_file_size(const char* filename)
 {
     std::string sfilename = filename;
     return get_file_size(sfilename);

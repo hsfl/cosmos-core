@@ -284,6 +284,7 @@ namespace Cosmos {
             default:
                 if (i == 3 || i == 4)
                 {
+                    tvec /= 1000.;
                     Vg.push_back(tvec);
                 }
                 break;
@@ -299,6 +300,15 @@ namespace Cosmos {
         {
             return -errno;
         }
+
+        Vg.clear();
+        Vt.clear();
+        Vn.clear();
+        Vp.clear();
+        Points.clear();
+        Lines.clear();
+        Faces.clear();
+        Groups.clear();
 
         ifstream infile(path);
         string sinput;
@@ -351,7 +361,8 @@ namespace Cosmos {
                 // Centroid of triangle made by v1, v2 amd Face centroid
                 Vector tcentroid = (v1 + v2 + fcentroid) / 3.;
                 // Weighted sum
-                Faces[i].com += tarea * tcentroid;
+//                Vector test = tarea * tcentroid;
+                Faces[i].com += tcentroid * tarea;
                 v1 = v2;
             }
             // Divide by summed weights

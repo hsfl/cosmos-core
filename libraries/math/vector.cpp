@@ -1800,7 +1800,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return Scale times this.
         */
-        Vector operator * (double scale, Vector v)
+        Vector operator * (const double &scale, const Vector &v)
         {
             return v * scale;
         }
@@ -1922,7 +1922,6 @@ namespace Cosmos {
 
         //! Subtract two ::Vector
         /*! Subtract two vectors in ::Vector form, returning a ::Vector.
-                \param a minuend vector, in ::Vector form
                 \param b subtrahend vector, in ::Vector form
                 \result the transformed vector, in ::Vector form
         */
@@ -1934,6 +1933,21 @@ namespace Cosmos {
             c.y = this->y - b.y;
             c.z = this->z - b.z;
             c.w = this->w - b.w;
+            return (c);
+        }
+
+        //! Negate ::Vector
+        /*! Return a ::Vector with all elements negated.
+                \result the transformed vector, in ::Vector form
+        */
+        Vector Vector::operator - ()
+        {
+            Vector c;
+
+            c.x = -x;
+            c.y = -y;
+            c.z = -z;
+            c.w = -w;
             return (c);
         }
 

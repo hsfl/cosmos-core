@@ -78,9 +78,9 @@ int main(int argc, char* argv[])
         exit (AGENT_ERROR_JSON_CREATE);
     }
 
-    agent->cinfo->pdata.physics.mode = mode;
+    agent->cinfo->physics.mode = mode;
 
-    load_dictionary(eventdict, agent->cinfo->meta, agent->cinfo->pdata, (char *)"events.dict");
+    load_dictionary(eventdict, agent->cinfo, (char *)"events.dict");
 
 	// Set initial state
 	locstruc iloc;
@@ -98,14 +98,14 @@ int main(int argc, char* argv[])
 //		fgets(ibuf,fstat.st_size,fdes);
 		if (nbytes)
 		{
-            json_parse(ibuf, agent->cinfo->meta, agent->cinfo->pdata);
+            json_parse(ibuf, agent->cinfo);
 		}
 		free(ibuf);
-        loc_update(&agent->cinfo->pdata.node.loc);
-        iloc = agent->cinfo->pdata.node.loc;
-//		iloc.pos.eci = agent->cinfo->pdata.node.loc.pos.eci;
-//		iloc.att.icrf = agent->cinfo->pdata.node.loc.att.icrf;
-//		iloc.utc = agent->cinfo->pdata.node.loc.utc;
+        loc_update(&agent->cinfo->node.loc);
+        iloc = agent->cinfo->node.loc;
+//		iloc.pos.eci = agent->cinfo->node.loc.pos.eci;
+//		iloc.att.icrf = agent->cinfo->node.loc.att.icrf;
+//		iloc.utc = agent->cinfo->node.loc.utc;
 
 //        print_vector("Initial State Vector Position: ", iloc.pos.eci.s.col[0], iloc.pos.eci.s.col[1], iloc.pos.eci.s.col[2], "km");
         //std::cout << "Initial State Vector Pos: [" << iloc.pos.eci.s.col[0] << ", " << iloc.pos.eci.s.col[1] <<  ", " << iloc.pos.eci.s.col[2] << "] km " << std::endl;
@@ -121,11 +121,11 @@ int main(int argc, char* argv[])
 #define POLLBUFSIZE 20000
     Agent::messstruc mess;
 
-    iretn = agent->poll(mess, (uint8_t)Agent::AgentMessage::ALL,1);
-	switch (iretn)
+    iretn = agent->readring(mess, Agent::AgentMessage::ALL,1);
+    switch ((Agent::AgentMessage)iretn)
 	{
-    case (uint8_t)Agent::AgentMessage::SOH:
-    case (uint8_t)Agent::AgentMessage::BEAT:
+    case Agent::AgentMessage::SOH:
+    case Agent::AgentMessage::BEAT:
 		{
             std::string tbuf = json_convert_string(json_extract_namedobject(mess.jdata, "agent_name"));
 			if (!tbuf.empty() && tbuf == "physics")
@@ -133,26 +133,26 @@ int main(int argc, char* argv[])
                 tbuf = json_convert_string(json_extract_namedobject(mess.jdata, "node_utcoffset"));
 				if (!tbuf.empty())
 				{
-                    agent->cinfo->pdata.node.utcoffset = atof(tbuf.c_str());
-                    printf("slave utcoffset: %f\n", agent->cinfo->pdata.node.utcoffset);
+                    agent->cinfo->node.utcoffset = atof(tbuf.c_str());
+                    printf("slave utcoffset: %f\n", agent->cinfo->node.utcoffset);
 				}
 			}
 			else
 			{
 				if (mjdstart == -1.)
 				{
-                    agent->cinfo->pdata.node.utcoffset = agent->cinfo->pdata.node.loc.utc - currentmjd(0.);
+                    agent->cinfo->node.utcoffset = agent->cinfo->node.loc.utc - currentmjd(0.);
 				}
 				else if (mjdstart == 0.)
 				{
-                    agent->cinfo->pdata.node.utcoffset = 0.;
+                    agent->cinfo->node.utcoffset = 0.;
 				}
 				else
 				{
-                    agent->cinfo->pdata.node.utcoffset = mjdstart - currentmjd(0.);
+                    agent->cinfo->node.utcoffset = mjdstart - currentmjd(0.);
 				}
-                //printf("master utcoffset: %f\n", agent->cinfo->pdata.node.utcoffset);
-                std::cout << "master utcoffset: " << std::setprecision(5) << agent->cinfo->pdata.node.utcoffset << std::endl;
+                //printf("master utcoffset: %f\n", agent->cinfo->node.utcoffset);
+                std::cout << "master utcoffset: " << std::setprecision(5) << agent->cinfo->node.utcoffset << std::endl;
 //				master_timer = true;
 			}
 			break;
@@ -160,39 +160,39 @@ int main(int argc, char* argv[])
 	default:
 		if (mjdstart == -1.)
 		{
-            agent->cinfo->pdata.node.utcoffset = agent->cinfo->pdata.node.loc.utc - currentmjd(0.);
+            agent->cinfo->node.utcoffset = agent->cinfo->node.loc.utc - currentmjd(0.);
 		}
 		else if (mjdstart == 0.)
 		{
-            agent->cinfo->pdata.node.utcoffset = 0.;
+            agent->cinfo->node.utcoffset = 0.;
 		}
 		else
 		{
-            agent->cinfo->pdata.node.utcoffset = mjdstart - currentmjd(0.);
+            agent->cinfo->node.utcoffset = mjdstart - currentmjd(0.);
 		}
-        //printf("master utcoffset: %f\n", agent->cinfo->pdata.node.utcoffset);
-        std::cout << "master utcoffset: " << agent->cinfo->pdata.node.utcoffset << std::endl;
+        //printf("master utcoffset: %f\n", agent->cinfo->node.utcoffset);
+        std::cout << "master utcoffset: " << agent->cinfo->node.utcoffset << std::endl;
 //		master_timer = true;
 		break;
 	}
 
-    mjdnow =  currentmjd(agent->cinfo->pdata.node.utcoffset);
+    mjdnow =  currentmjd(agent->cinfo->node.utcoffset);
 	double sohtimer = mjdnow;
 
 	if (mjdnow < iloc.utc)
 	{
-        hardware_init_eci(agent->cinfo->pdata.devspec, iloc);
-        gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+        hardware_init_eci(agent->cinfo->devspec, iloc);
+        gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
 
-        //printf("Initialize backwards %f days\n", (agent->cinfo->pdata.node.loc.utc-mjdnow));
-        std::cout << "Initialize backwards " << agent->cinfo->pdata.node.loc.utc-mjdnow << "days" << std::endl;
+        //printf("Initialize backwards %f days\n", (agent->cinfo->node.loc.utc-mjdnow));
+        std::cout << "Initialize backwards " << agent->cinfo->node.loc.utc-mjdnow << "days" << std::endl;
 
-        simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
-        gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
-        simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
-        iloc.utc = agent->cinfo->pdata.node.loc.utc;
-        iloc.pos.eci = agent->cinfo->pdata.node.loc.pos.eci;
-        iloc.att.icrf = agent->cinfo->pdata.node.loc.att.icrf;
+        simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+        gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
+        simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+        iloc.utc = agent->cinfo->node.loc.utc;
+        iloc.pos.eci = agent->cinfo->node.loc.pos.eci;
+        iloc.att.icrf = agent->cinfo->node.loc.att.icrf;
 	}
 	
 	double step = 8.64 * (mjdnow-iloc.utc);
@@ -209,48 +209,48 @@ int main(int argc, char* argv[])
     std::cout << "Initialize forwards " << (mjdnow-iloc.utc) << " days, steps of " << step << std::endl;
 
     std::cout << "Initialize Hardware Simulation " << std::endl;
-    hardware_init_eci(agent->cinfo->pdata.devspec, iloc);
+    hardware_init_eci(agent->cinfo->devspec, iloc);
 
     std::cout << "Initialize Gauss Jackson Propagator " << std::endl;
-    gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+    gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
 
     std::cout << "Start Hardware Simulation " << std::endl;
-    simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+    simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
 
     std::cout << "Start Orbital Propagator " << std::endl;
-    gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
+    gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
 
     std::cout << "Start Hardware Simulation 2" << std::endl;
-    simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+    simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
 
     pos_clear(iloc);
-    iloc.pos.eci = agent->cinfo->pdata.node.loc.pos.eci;
-    iloc.att.icrf = agent->cinfo->pdata.node.loc.att.icrf;
-    iloc.utc = agent->cinfo->pdata.node.loc.pos.eci.utc;
+    iloc.pos.eci = agent->cinfo->node.loc.pos.eci;
+    iloc.att.icrf = agent->cinfo->node.loc.att.icrf;
+    iloc.utc = agent->cinfo->node.loc.pos.eci.utc;
 
     std::cout << "Start Hardware Simulation 3" << std::endl;
-    hardware_init_eci(agent->cinfo->pdata.devspec, iloc);
+    hardware_init_eci(agent->cinfo->devspec, iloc);
 
     std::cout << "Initialize Gauss Jackson Propagator" << std::endl;
-    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
 
-    mjdnow = currentmjd(agent->cinfo->pdata.node.utcoffset);
+    mjdnow = currentmjd(agent->cinfo->node.utcoffset);
 
-    std::string sohstring = json_list_of_soh(agent->cinfo->pdata);
+    std::string sohstring = json_list_of_soh(agent->cinfo);
     agent->set_sohstring(sohstring.c_str());
 
     std::cout << "Start Agent" << std::endl;
     while (agent->running())
 	{
 		sohtimer += 1./86400.;
-        mjdnow = currentmjd(agent->cinfo->pdata.node.utcoffset);
-        gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
+        mjdnow = currentmjd(agent->cinfo->node.utcoffset);
+        gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
 
-        simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+        simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
 
-        update_target(agent->cinfo->pdata);
-        calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
-        agent->post(Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+        update_target(agent->cinfo);
+        calc_events(eventdict, agent->cinfo, events);
+        agent->post(Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->sohtable, agent->cinfo));
 		double dsleep = 1000000. * 86400.*(sohtimer - mjdnow);
 
         if (dsleep > 0.)

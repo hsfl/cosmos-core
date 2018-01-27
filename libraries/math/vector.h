@@ -391,21 +391,28 @@ namespace Cosmos {
             Vector flatteny();
             Vector flattenz();
 
-            double &operator [](const int &index);
-            Vector operator *(const double &scale); // multiply vector by scalar operator
-            Vector &operator *=(const double &scale); // multiply vector by scalar operator
-            Vector operator /(double scale); // multiply vector by scalar operator
-            Vector &operator /=(const double &scale); // multiply vector by scalar operator
-            Vector operator *(const Vector &v2); // multiply vector by vector operator
-            Vector operator -(const Vector &v2); // multiply vector by vector operator
-            Vector &operator -=(const Vector &v2); // multiply vector by vector operator
-            Vector operator +(const Vector &v2); // multiply vector by vector operator
-            Vector &operator +=(const Vector &v2); // multiply vector by vector operator
-            bool operator ==(const Vector &v2); // Compares two vectors
-            bool operator !=(const Vector &v2); // Compares two vectors
+            double &operator [] (const int &index);
+
+            Vector operator * (const double &scale); // multiply vector by scalar operator
+//            friend Vector operator * (const double &scale, const Vector &v); // Multiply scalar by vector
+            Vector &operator *=( const double &scale); // multiply vector by scalar operator in place
+            Vector operator * (const Vector &v2); // multiply vector by vector operator
+
+            Vector operator / (double scale); // multiply vector by scalar operator
+            Vector &operator /= (const double &scale); // multiply vector by scalar operator in place
+
+            Vector operator - (const Vector &v2); // Subtract vector by vector operator
+            Vector &operator -= (const Vector &v2); // subtract vector by vector operator in place
+            Vector operator - (); // Negate vector operator
+
+            Vector operator + (const Vector &v2); // add vector by vector operator
+            Vector &operator += (const Vector &v2); // add vector by vector operator in place
+
+            bool operator == (const Vector &v2); // Compares two vectors
+            bool operator != (const Vector &v2); // Compares two vectors
         };
 
-        Vector operator *(double scale, Vector v);
+        Vector operator * (const double &scale, const Vector &v);
         std::ostream& operator << (std::ostream& out, const Vector& v);
 
         class Quaternion : public Vector

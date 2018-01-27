@@ -233,10 +233,11 @@ int main(int argc, char *argv[])
     printf("- Setting up server...");
     fflush(stdout);
 
-    if ((agent = new Agent("", agentname)) == NULL)
+    agent = new Agent("", agentname, 5.);
+    if (agent->cinfo == nullptr || !agent->running())
     {
-        printf("- Could not setup server... exiting.\n\n");
-        exit (-1);
+        cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+        exit (AGENT_ERROR_JSON_CREATE);
     }
     printf("\t\tSuccess.\n");
     fflush(stdout); // Ensure this gets printed before blocking call
@@ -313,7 +314,7 @@ int main(int argc, char *argv[])
                     tx_out.temppath = file.path.substr(0,file.path.find(".meta"));
                     if (read_meta(tx_out) >= 0)
                     {
-                        outgoing_tx_add(tx_out);
+                        iretn = outgoing_tx_add(tx_out);
                     }
                 }
             }
@@ -321,7 +322,7 @@ int main(int argc, char *argv[])
     }
 
     // add agent_file requests
-    if ((iretn=agent->add_request("use_channel",request_use_channel,"{0|1}", "choose slow or fast channel")))
+    if ((iretn=agent->add_request("use_channel",request_use_channel,"{0|1} [throughput]", "choose slow or fast channel")))
         exit (iretn);
     if ((iretn=agent->add_request("remove_file",request_remove_file,"in|out tx_id", "removes file from indicated queue")))
         exit (iretn);
@@ -406,11 +407,14 @@ int main(int argc, char *argv[])
 
                         if (addtoqueue)
                         {
-                            nextdiskcheck = currentmjd();
-                            outgoing_tx_add(file.node, file.agent, file.name);
+                            iretn = outgoing_tx_add(file.node, file.agent, file.name);
+                            if (iretn >= 0)
+                            {
+                                nextdiskcheck = currentmjd();
+                            }
                             if (debug_flag)
                             {
-                                printf("[%f] outgoing_tx_add: %s\n", etloop.split(), file.path.c_str());
+                                printf("[%f] outgoing_tx_add: %s [%d]\n", etloop.split(), file.path.c_str(), iretn);
                             }
                         }
                     }
@@ -643,6 +647,7 @@ void recv_loop()
                         break;
                     }
 
+                    active_node = node;
                     outgoing_tx_lock.lock();
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, reqdata.tx_id);
@@ -844,7 +849,7 @@ void recv_loop()
                         // Set remote node_id
                         txq[node].node_id = queue.node_id + 1;
                         // Set active_node
-                        active_node = node;
+//                        active_node = node;
                         // Sort through incoming queue and remove anything not in sent queue
                         for (uint16_t tx_id=0; tx_id<TRANSFER_QUEUE_SIZE; ++tx_id)
                         {
@@ -854,17 +859,19 @@ void recv_loop()
                                 if (txq[node].incoming.progress[tx_id].tx_id == queue.tx_id[i])
                                 {
                                     // Incoming transaction is in outgoing queue
+                                    active_node = node;
                                     valid = true;
                                     break;
                                 }
-                                if (valid)
-                                {
-                                    break;
-                                }
+//                                if (valid)
+//                                {
+//                                    break;
+//                                }
                             }
 
-                            if (!valid)
+                            if (tx_id && !valid)
                             {
+                                active_node = node;
                                 incoming_tx_del(node, tx_id);
                             }
                         }
@@ -878,6 +885,7 @@ void recv_loop()
 
                                 if (tx_id == 0)
                                 {
+                                    active_node = node;
                                     incoming_tx_add(queue.node_name, queue.tx_id[i]);
                                 }
                             }
@@ -904,6 +912,7 @@ void recv_loop()
                             if (iq)
                             {
                                 std::vector<PACKET_BYTE> packet;
+                                active_node = node;
                                 make_reqmeta_packet(packet, node, txq[node].node_name, tqueue);
                                 queuesendto("rx", use_channel, packet);
                             }
@@ -1578,12 +1587,17 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
 
 int32_t request_use_channel(char* request, char* response, Agent *agent)
 {
-    uint16_t channel;
+    uint16_t channel=0;
+    uint32_t throughput=0;
 
-    sscanf(request, "%*s %hu\n", &channel);
+    sscanf(request, "%*s %hu %u\n", &channel, &throughput);
     if (channel < send_channels)
     {
         use_channel = channel;
+        if (throughput)
+        {
+            send_channel[channel].throughput = throughput;
+        }
     }
     else
     {
@@ -1738,7 +1752,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
         //get the file size
         tx_out.file_size = get_file_size(filepath);
 
-        if(!tx_out.file_size)
+        if(tx_out.file_size < 0)
         {
             return DATA_ERROR_SIZE_MISMATCH;
         }
@@ -1963,7 +1977,7 @@ PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node)
     if (node >= 0 && (uint32_t)node < txq.size())
     {
         // Choose file with least data left to send
-        PACKET_FILE_SIZE_TYPE nsize = ULONG_MAX;
+        PACKET_FILE_SIZE_TYPE nsize = INT32_MAX;
         for (PACKET_FILE_SIZE_TYPE i=0; i < txq[node].incoming.progress.size(); ++i)
         {
             // calculate bytes so far
