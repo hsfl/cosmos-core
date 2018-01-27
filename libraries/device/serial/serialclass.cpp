@@ -174,10 +174,10 @@ namespace Cosmos {
         do
         {
             baud_adjust = false;
-            int32_t baud_diff = dbaud - baud_speed[baud_speed_index][baud_index];
+            int32_t baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index]);
             if (baud_index > 0)
             {
-                int32_t new_baud_diff = dbaud - baud_speed[baud_speed_index][baud_index-1];
+                int32_t new_baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index-1]);
                 if (new_baud_diff < baud_diff)
                 {
                     --baud_index;
@@ -187,7 +187,7 @@ namespace Cosmos {
             }
             if (baud_index < baud_speed[baud_speed_index].size()-1)
             {
-                int32_t new_baud_diff = dbaud - baud_speed[baud_speed_index][baud_index+1];
+                int32_t new_baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index+1]);
                 if (new_baud_diff < baud_diff)
                 {
                     ++baud_index;
