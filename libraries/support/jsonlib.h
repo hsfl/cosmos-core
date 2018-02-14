@@ -241,7 +241,7 @@ string json_get_string(const jsonentry &entry, cosmosstruc *cinfo);
 posstruc json_get_posstruc(const jsonentry &entry, cosmosstruc *cinfo);
 
 int32_t json_set_number(double val, uint16_t type, const jsonentry &entry, cosmosstruc *cinfo);
-int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmosstruc *cinfo);
+int32_t json_set_string(string val, const jsonentry &entry, cosmosstruc *cinfo);
 
 int32_t json_scan(char *istring);
 

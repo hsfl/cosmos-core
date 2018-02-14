@@ -5118,7 +5118,7 @@ int32_t json_skip_value(const char* &ptr)
         return 0;
 }
 
-int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmosstruc *cinfo)
+int32_t json_set_string(string val, const jsonentry &entry, cosmosstruc *cinfo)
 {
     uint8_t *data;
 
@@ -5128,7 +5128,7 @@ int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmo
         return JSON_ERROR_NAN;
     }
 
-    switch (type)
+    switch (entry.type)
     {
     case JSON_TYPE_UINT8:
         *(uint8_t *)data = stoi(val);
