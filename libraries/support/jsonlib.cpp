@@ -5118,7 +5118,7 @@ int32_t json_skip_value(const char* &ptr)
         return 0;
 }
 
-int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmosstruc *cinfo)
+int32_t json_set_string(string val, const jsonentry &entry, cosmosstruc *cinfo)
 {
     uint8_t *data;
 
@@ -5128,7 +5128,7 @@ int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmo
         return JSON_ERROR_NAN;
     }
 
-    switch (type)
+    switch (entry.type)
     {
     case JSON_TYPE_UINT8:
         *(uint8_t *)data = stoi(val);
@@ -5159,14 +5159,14 @@ int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmo
     return 0;
 }
 
-int32_t json_set_number(double val, uint16_t type, const jsonentry &entry, cosmosstruc *cinfo)
+int32_t json_set_number(double val, const jsonentry &entry, cosmosstruc *cinfo)
 {
     uint8_t *data;
     int32_t iretn = 0;
 
     data = json_ptr_of_entry(entry, cinfo);
 
-    switch (type)
+    switch (entry.type)
     {
     case JSON_TYPE_UINT8:
         *(uint8_t *)data = (uint8_t)val;
@@ -6325,45 +6325,48 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     // Calculate centroid, normal and area for each face
     for (size_t i=0; i<cinfo->faces.size(); ++i)
     {
-        Vector fcentroid = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
-        fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[1]];
-        Vector v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
-        Vector v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[1]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
-        Vector fnormal = v1.cross(v2);
-        for (size_t j=2; j<cinfo->faces[i].vertex_cnt; ++j)
+        if (cinfo->faces[i].vertex_cnt)
         {
-            fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[j]];
+            Vector fcentroid = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
+            fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[1]];
+            Vector v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
+            Vector v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[1]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
+            Vector fnormal = v1.cross(v2);
+            for (size_t j=2; j<cinfo->faces[i].vertex_cnt; ++j)
+            {
+                fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[j]];
+                v1 = v2;
+                v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[j-1]];
+                fnormal += v1.cross(v2);
+            }
             v1 = v2;
-            v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[j-1]];
+            v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
             fnormal += v1.cross(v2);
-        }
-        v1 = v2;
-        v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
-        fnormal += v1.cross(v2);
 
-        fcentroid /= cinfo->faces[i].vertex_cnt;
-        cinfo->faces[i].normal = fnormal.normalize();
+            fcentroid /= cinfo->faces[i].vertex_cnt;
+            cinfo->faces[i].normal = fnormal.normalize();
 
-        cinfo->faces[i].com = Math::Vector();
-        cinfo->faces[i].area = 0.;
-        v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]] - fcentroid;
-        for (size_t j=0; j<cinfo->faces[i].vertex_cnt; ++j)
-        {
-            v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - fcentroid;
-            // Area of triangle made by v1, v2 and Face centroid
-            double tarea = v1.area(v2);
-            // Sum
-            cinfo->faces[i].area += tarea;
-            // Centroid of triangle made by v1, v2 amd Face centroid
-            Vector tcentroid = (v1 + v2 + fcentroid) / 3.;
-            // Weighted sum
-            cinfo->faces[i].com += tcentroid * tarea;
-            v1 = v2;
-        }
-        // Divide by summed weights
-        if (cinfo->faces[i].area)
-        {
-            cinfo->faces[i].com /= cinfo->faces[i].area;
+            cinfo->faces[i].com = Math::Vector();
+            cinfo->faces[i].area = 0.;
+            v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]] - fcentroid;
+            for (size_t j=0; j<cinfo->faces[i].vertex_cnt; ++j)
+            {
+                v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - fcentroid;
+                // Area of triangle made by v1, v2 and Face centroid
+                double tarea = v1.area(v2);
+                // Sum
+                cinfo->faces[i].area += tarea;
+                // Centroid of triangle made by v1, v2 amd Face centroid
+                Vector tcentroid = (v1 + v2 + fcentroid) / 3.;
+                // Weighted sum
+                cinfo->faces[i].com += tcentroid * tarea;
+                v1 = v2;
+            }
+            // Divide by summed weights
+            if (cinfo->faces[i].area)
+            {
+                cinfo->faces[i].com /= cinfo->faces[i].area;
+            }
         }
     }
 
