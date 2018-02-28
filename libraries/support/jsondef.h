@@ -2068,12 +2068,6 @@ struct cosmosstruc
     vector<glossarystruc> glossary;
     //! Array of Two Line Elements
     vector<tlestruc> tle;
-    //! Namespace meta information
-//    cosmosmetastruc meta;
-    //! Primary Namespace data
-//    cosmosdatastruc pdata;
-    //! Secondary Namespace data
-//    cosmosdatastruc sdata;
     //! JSON descriptive information
     jsonnode json;
 };
