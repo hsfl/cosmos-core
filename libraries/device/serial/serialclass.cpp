@@ -856,11 +856,11 @@ namespace Cosmos {
                 }
                 else
                 {
-                    iretn = -EAGAIN;
+                    iretn = SERIAL_ERROR_TIMEOUT;
                 }
             }
             COSMOS_SLEEP(ictimeout/10.);
-        } while (iretn == -EAGAIN && et.split() < ictimeout);
+        } while (iretn == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
 
         return iretn;
     }
@@ -893,6 +893,37 @@ namespace Cosmos {
             }
         }
         return (size);
+    }
+
+    int32_t Serial::get_string(string &data, char endc)
+    {
+        if (fd < 0)
+        {
+            error = SERIAL_ERROR_OPEN;
+            return (error);
+        }
+
+        data.clear();
+        do
+        {
+            if ((error=get_char()) < 0)
+            {
+                if (error == SERIAL_ERROR_TIMEOUT)
+                {
+                    return(data.size());
+                }
+                else
+                {
+                    return error;
+                }
+            }
+            else
+            {
+                data.append(1, (char)error);
+            }
+        } while (error != endc);
+
+        return (data.size());
     }
 
     int32_t Serial::get_data(vector <uint8_t> &data, size_t size)
