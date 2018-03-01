@@ -16,7 +16,7 @@ install:
   #- set PATH=%QTDIR%\bin;C:\MinGW\bin;%PATH%
   #- set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
   - rename "C:\Program Files\Git\usr\bin\sh.exe" "sh-ignored.exe"
-  - set PATH=C:\Qt\Tools\mingw492_32;%PATH%
+  - set PATH=C:\Qt\Tools\mingw492_32\bin;%PATH%
 
 # scripts to run before build
 before_build:
