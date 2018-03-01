@@ -38,3 +38,7 @@ test_script:
   #- c:\cosmos\bin\agent
   #- cmake -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "%GENERATOR%" ..
 
+
+artifacts:
+  - path: ../../bin/agent.exe
+    name: agent
