@@ -25,10 +25,10 @@ before_build:
   #- cmd: dir C:\MinGW\bin
   
 build_script:
-  - cmake ../ --config Release --target INSTALL
+  - cmake ../ --config Release
   #- cmake --build . --config Release --target INSTALL
+  - mingw32-make install
 
 test_script:
   - c:\cosmos\bin\agent
-  #- mingw32-make
   #- cmake -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "%GENERATOR%" ..
