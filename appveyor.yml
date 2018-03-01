@@ -18,6 +18,8 @@ before_build:
   - cmd: cd build
   - cmd: cmake --version
   - cmd: cmake .. -G "MinGW Makefiles"
+  - cmd: dir %QTDIR%\bin
+  - cmd: dir C:\MinGW\bin
   
 build_script:
   - cmake ../
