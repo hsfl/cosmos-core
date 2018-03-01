@@ -17,7 +17,7 @@ install:
 before_build:
   - cmd: cd build
   - cmd: cmake --version
-  - cmd: cmake .. -G %generator%
+  - cmd: cmake .. -G "MinGW Makefiles"
   
 build_script:
   - qmake QtTest.pro
