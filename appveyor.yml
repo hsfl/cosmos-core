@@ -16,7 +16,7 @@ install:
   #- set PATH=%QTDIR%\bin;C:\MinGW\bin;%PATH%
   #- set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
   - rename "C:\Program Files\Git\usr\bin\sh.exe" "sh-ignored.exe"
-  - set PATH=%PATH%;C:\Qt\Tools\mingw492_32
+  - set PATH=C:\Qt\Tools\mingw492_32;%PATH%
 
 # scripts to run before build
 before_build:
@@ -29,9 +29,9 @@ before_build:
 
 build_script:
   #- cmake --build . --config Release
-  - cmake --build . --config Release --target all -- -j 8
-  #- mingw32-make
-  #- mingw32-make install
+  #- cmake --build . --config Release --target all -- -j 8
+   mingw32-make
+   mingw32-make install
   # - cmake --build build\mingw --use-stderr --target all -- -j%NUMBER_OF_PROCESSORS%
 
 test_script:
