@@ -20,13 +20,14 @@ install:
 before_build:
   - cmd: cd build
   - cmd: cmake --version
-  - cmd: cmake .. -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND"
+  - cmd: cmake -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -DCMAKE_BUILD_TYPE=Release
   #- cmd: dir %QTDIR%\bin
   #- cmd: dir C:\MinGW\bin
-  
+
 build_script:
-  - cmake ../ --config Release
+  - cmake --build .. --config Release
   #- cmake --build . --config Release --target INSTALL
+  - mingw32-make
   - mingw32-make install
 
 test_script:
