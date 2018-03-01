@@ -20,5 +20,5 @@ before_build:
   - cmd: cmake .. -G "MinGW Makefiles"
   
 build_script:
-  - qmake QtTest.pro
+  - cmake ../
   - mingw32-make
