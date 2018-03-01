@@ -20,7 +20,7 @@ install:
 before_build:
   - cmd: cd build
   - cmd: cmake --version
-  - cmd: cmake -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -DCMAKE_BUILD_TYPE=Release
+  - cmd: cmake -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -DCMAKE_BUILD_TYPE=Release ..
   #- cmd: dir %QTDIR%\bin
   #- cmd: dir C:\MinGW\bin
 
