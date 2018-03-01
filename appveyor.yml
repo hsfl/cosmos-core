@@ -25,7 +25,7 @@ before_build:
   #- cmd: dir C:\MinGW\bin
 
 build_script:
-  - cmake --build .. --config Release
+  - cmake --build . --config Release
   #- cmake --build . --config Release --target INSTALL
   - mingw32-make
   - mingw32-make install
