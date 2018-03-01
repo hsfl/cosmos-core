@@ -11,7 +11,7 @@ build_script:
   - mingw32-make
 before_build:
 - cmd: |-
-    mkdir build
+    #mkdir build
     cd build
     cmake --version
     cmake .. -G %generator%
