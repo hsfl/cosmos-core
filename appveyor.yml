@@ -40,5 +40,5 @@ test_script:
 
 
 artifacts:
-  - path: ../../bin/agent.exe
+  - path: build/programs/agents/agent.exe
     name: agent
