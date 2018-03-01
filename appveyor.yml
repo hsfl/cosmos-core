@@ -2,16 +2,23 @@ version: '{build}'
 branches:
   only:
   - master
+  
+# clone directory
 clone_folder: c:\cosmos\source\core
+
+# fetch repository as zip archive
+shallow_clone: true
+
 install:
   - set QTDIR=C:\Qt\5.5\mingw492_32
   - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
+
+# scripts to run before build
+before_build:
+  - cmd: cd build
+  - cmd: cmake --version
+  - cmd: cmake .. -G %generator%
+  
 build_script:
   - qmake QtTest.pro
   - mingw32-make
-before_build:
-- cmd: |-
-    #mkdir build
-    cd build
-    cmake --version
-    cmake .. -G %generator%
