@@ -1,0 +1,17 @@
+version: '{build}'
+branches:
+  only:
+  - master
+clone_folder: c:\cosmos\source\core
+install:
+  - set QTDIR=C:\Qt\5.5\mingw492_32
+  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
+build_script:
+  - qmake QtTest.pro
+  - mingw32-make
+before_build:
+- cmd: |-
+    mkdir build
+    cd build
+    cmake --version
+    cmake .. -G %generator%
