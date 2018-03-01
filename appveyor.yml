@@ -10,12 +10,13 @@ clone_folder: c:\cosmos\source\core
 shallow_clone: true
 
 install:
-  - set QTDIR=C:\Qt\5.5\mingw492_32
+  #- set QTDIR=C:\Qt\5.5\mingw492_32
   # Workaround for CMake not wanting sh.exe on PATH for MinGW
   #- set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
   #- set PATH=%QTDIR%\bin;C:\MinGW\bin;%PATH%
-  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
-  - rename "C:\Program Files\Git\usr\bin\sh.exe" "sh-ignored.exe"
+  #- set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
+  #- rename "C:\Program Files\Git\usr\bin\sh.exe" "sh-ignored.exe"\
+  set PATH=%PATH%;C:\Qt\Tools\mingw492_32
 
 # scripts to run before build
 before_build:
@@ -28,7 +29,7 @@ before_build:
 
 build_script:
   #- cmake --build . --config Release
-  - cmake --build . --config Release --target all
+  - cmake --build . --config Release --target all -- -j 8
   #- mingw32-make
   #- mingw32-make install
   # - cmake --build build\mingw --use-stderr --target all -- -j%NUMBER_OF_PROCESSORS%
