@@ -35,5 +35,6 @@ build_script:
   # - cmake --build build\mingw --use-stderr --target all -- -j%NUMBER_OF_PROCESSORS%
 
 test_script:
-  - c:\cosmos\bin\agent
+  #- c:\cosmos\bin\agent
   #- cmake -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "%GENERATOR%" ..
+
