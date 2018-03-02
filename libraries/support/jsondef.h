@@ -1821,6 +1821,7 @@ struct cosmosmetastruc
  * Space. The components of this can then be mapped to the Name Space
  * using calls to ::json_addentry.
 */
+// TODO: explain primary and secondary data
 struct cosmosstruc
 {
     //! Namespace meta information

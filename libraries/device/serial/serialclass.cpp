@@ -467,7 +467,7 @@ namespace Cosmos {
 
     int32_t Serial::SendBuffer(uint8_t *buffer, int size)
     {
-        size_t n=0;
+        int32_t n=0;
 
         if (fd < 0)
         {
