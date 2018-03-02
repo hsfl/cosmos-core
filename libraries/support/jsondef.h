@@ -1496,6 +1496,14 @@ struct battstruc : public allstruc
 	float efficiency;
 	//! Charge in amp hours
 	float charge;
+    //! Resistance in
+    float r_in;
+    //! Resistance out
+    float r_out;
+    //! Battery Percentage Remaining
+    float percentage;
+    //! Time Remaining
+    float time_remaining;
 };
 
 //! Heater Structure definition
