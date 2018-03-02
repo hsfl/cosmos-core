@@ -1,0 +1,44 @@
+version: '{build}'
+branches:
+  only:
+  - dev
+  
+# clone directory
+clone_folder: c:\cosmos\source\core
+
+# fetch repository as zip archive
+shallow_clone: true
+
+install:
+  #- set QTDIR=C:\Qt\5.5\mingw492_32
+  # Workaround for CMake not wanting sh.exe on PATH for MinGW
+  #- set PATH=%PATH:C:\Program Files (x86)\Git\bin;=%
+  #- set PATH=%QTDIR%\bin;C:\MinGW\bin;%PATH%
+  #- set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
+  - rename "C:\Program Files\Git\usr\bin\sh.exe" "sh-ignored.exe"
+  - set PATH=C:\Qt\Tools\mingw492_32\bin;%PATH%
+
+# scripts to run before build
+before_build:
+  - cmd: cd build
+  - cmd: cmake --version
+  #- cmd: cmake -G "MinGW Makefiles" -DCMAKE_SH="CMAKE_SH-NOTFOUND" -DCMAKE_BUILD_TYPE=Release ..
+  - cmd: cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+  #- cmd: dir %QTDIR%\bin
+  #- cmd: dir C:\MinGW\bin
+
+build_script:
+  #- cmake --build . --config Release
+  #- cmake --build . --config Release --target all -- -j 8
+  - mingw32-make -j8
+  - mingw32-make install
+  # - cmake --build build\mingw --use-stderr --target all -- -j%NUMBER_OF_PROCESSORS%
+
+test_script:
+  #- c:\cosmos\bin\agent
+  #- cmake -DCMAKE_BUILD_TYPE=%CONFIGURATION% -G "%GENERATOR%" ..
+
+
+artifacts:
+  - path: build/programs/agents/agent.exe
+    name: agent

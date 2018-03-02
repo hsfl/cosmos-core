@@ -120,14 +120,14 @@ int main(int argc, char *argv[])
                     iretn = json_setup_node(ttrack.name, cinfo);
                     if (iretn == 0)
                     {
-                        if (iretn == 0 && (currentmjd()-cinfo->pdata.node.loc.pos.eci.utc) < 10.)
+                        if (iretn == 0 && (currentmjd()-cinfo->node.loc.pos.eci.utc) < 10.)
                         {
                             // Valid node. Initialize tracking and push it to list
                             ttrack.visible = false;
                             ttrack.peaked = false;
-                            ttrack.target.type = cinfo->pdata.node.type;
-                            ttrack.target.loc = cinfo->pdata.node.loc;
-                            ttrack.physics = cinfo->pdata.physics;
+                            ttrack.target.type = cinfo->node.type;
+                            ttrack.target.loc = cinfo->node.loc;
+                            ttrack.physics = cinfo->physics;
 //                            if (type == NODE_TYPE_SATELLITE)
 //                            {
 //                                printf("Propagating Node %s forward %f seconds\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
@@ -185,14 +185,14 @@ void propthread(size_t index)
     {
         track[index].control_mutex->lock();
         gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
-        update_target(agent->cinfo->pdata.node.loc, track[index].target);
+        update_target(agent->cinfo->node.loc, track[index].target);
         if (track[index].target.elfrom > highest)
         {
             highest = track[index].target.elfrom;
         }
-        switch (track[index].visible)
+        switch ((uint8_t)track[index].visible)
         {
-        case false:
+        case 0:
             if (track[index].target.elfrom > 0.)
             {
                 track[index].highest = 0.;
@@ -203,7 +203,7 @@ void propthread(size_t index)
                 fflush(stdout);
             }
             break;
-        case true:
+        case 1:
             if (track[index].target.elfrom > track[index].highest)
             {
                 track[index].highest = track[index].target.elfrom;

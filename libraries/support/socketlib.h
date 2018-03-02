@@ -67,7 +67,7 @@ enum class NetworkType : std::uint16_t
     //! Agent socket using Broadcast UDP
     BROADCAST=2, // was previously NetworkType::BROADCAST
     //! Agent socket using Unicast UDP
-    UDP=2, // was previously NetworkType::UDP
+    UDP=5, // was previously NetworkType::UDP
     //! Agent socket using Unicast TCP
     TCP=3,
     //! Agent socket using Broadcast CSP
@@ -117,7 +117,7 @@ struct socket_channel
 	// Channel type
     NetworkType type;
 	// Channel UDP socket handle
-	int32_t cudp;
+    int32_t cudp=-1;
 	// Channel UDP INET4 address
 	struct sockaddr_in caddr;
 	// Channel UDP INET4 broadcast address
@@ -145,7 +145,7 @@ struct socket_channel
 //! \defgroup socketlib_functions Socket library functions
 //! @{
 
-int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *address, uint16_t port, uint16_t direction, bool blocking, uint32_t usectimeo);
+int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *address, uint16_t port, uint16_t direction, bool blocking=true, uint32_t usectimeo=0, uint32_t rcvbuf=0, uint32_t sndbuf=0);
 uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet);
 int32_t socket_check_udp_checksum(std::vector<uint8_t> packet);
 int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet);

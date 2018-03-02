@@ -27,6 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+// TODO: rename to serial.cpp only
 #include "support/configCosmos.h"
 #include "device/serial/serialclass.h"
 #include "support/elapsedtime.h"
@@ -41,10 +42,10 @@ namespace Cosmos {
     //! Create serial port instance.
     //! Create a serial port object to be used for reading and writing to a physical serial port.
     //! \param dname Name of physical serial port.
-    //! \param baud Baud rate. Will be rounded to nearest of 75, 110, 150, 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200.
-    //! \param bits Number of data bits.
-    //! \param parity 0 = even, 1 = odd.
-    //! \param stop Number of stop bits.
+    //! \param dbaud Baud rate. Will be rounded to nearest of 75, 110, 150, 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200.
+    //! \param dbits Number of data bits.
+    //! \param dparity 0 = even, 1 = odd.
+    //! \param dstop Number of stop bits.
     Serial::Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS)
@@ -855,11 +856,11 @@ namespace Cosmos {
                 }
                 else
                 {
-                    iretn = -EAGAIN;
+                    iretn = SERIAL_ERROR_TIMEOUT;
                 }
             }
             COSMOS_SLEEP(ictimeout/10.);
-        } while (iretn == -EAGAIN && et.split() < ictimeout);
+        } while (iretn == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
 
         return iretn;
     }
@@ -892,6 +893,37 @@ namespace Cosmos {
             }
         }
         return (size);
+    }
+
+    int32_t Serial::get_string(string &data, char endc)
+    {
+        if (fd < 0)
+        {
+            error = SERIAL_ERROR_OPEN;
+            return (error);
+        }
+
+        data.clear();
+        do
+        {
+            if ((error=get_char()) < 0)
+            {
+                if (error == SERIAL_ERROR_TIMEOUT)
+                {
+                    return(data.size());
+                }
+                else
+                {
+                    return error;
+                }
+            }
+            else
+            {
+                data.append(1, (char)error);
+            }
+        } while (error != endc);
+
+        return (data.size());
     }
 
     int32_t Serial::get_data(vector <uint8_t> &data, size_t size)
@@ -956,8 +988,8 @@ namespace Cosmos {
     /*! Read one Xmodem block (frame) of data, removing control characters
      * and calculating checksum. Supplied buffer is assumed to be at least 128
      * bytes.
-        \param serial Handle returned from :cssl_open.
-        \param buf Byte array to store incoming data.
+        \param data Byte array to store incoming data.
+        \param size Size , in bytes, of byte array.
         \return Packet number or negative error.
     */
     int32_t Serial::get_xmodem(vector <uint8_t> &data, size_t size)
@@ -1010,9 +1042,8 @@ namespace Cosmos {
     /*! Read an entire frame of SLIP encoded data from the serial port.
      * Special SLIP characters are removed on the fly. Will stop early if
      * supplied buffer size is exceeded.
-        \param serial Handle returned from :cssl_open.
-        \param buf Byte array to store incoming data.
-        \param size Size of byte array.
+        \param data Byte array to store incoming data.
+        \param size Size , in bytes, of byte array.
         \return Number of bytes read, up to maximum.
     */
     int32_t Serial::get_slip(vector <uint8_t> &data, size_t size)
@@ -1086,9 +1117,8 @@ namespace Cosmos {
      * The leading $ and trailing * and checksum are removed, and only the
      * payload of the response is returned. Will stop early if
      * supplied buffer size is exceeded.
-        \param serial Handle returned from :cssl_open.
-        \param buf Byte array to store incoming data.
-        \param size Size of byte array.
+        \param data Byte array to store incoming data.
+        \param size Size , in bytes, of byte array.
         \return Number of bytes read, up to maximum.
     */
     int32_t Serial::get_nmea(vector <uint8_t> &data, size_t size)

@@ -14,7 +14,7 @@ go to examples/profiler
 2) run to completion, exit normally 
 this will create file gmon.out
 
-3) gprof <program>
+3) gprof testprofiler
 it reads gmon.out and prints a report
 
 ## Mac OS

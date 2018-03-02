@@ -40,7 +40,7 @@
 //! Errno string
 //! Return the string equivalent of a COSMOS Error Number. If the error number is greater than
 //! -256, then use strerror.
-//! \param cerrno COSMOS Error Number
+//! \param cosmos_errno COSMOS Error Number
 //! \return String of error number, or empty string.
 string cosmos_error_string(int32_t cosmos_errno)
 {
@@ -548,3 +548,4 @@ string cosmos_error_string(int32_t cosmos_errno)
     }
     return error_string;
 }
+//! @}

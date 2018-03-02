@@ -83,6 +83,35 @@ double currentmjd()
     return currentmjd(0.);
 }
 
+unsigned long int get_unix_time()
+{
+    unsigned long int unix_time = time(NULL);
+    return unix_time;
+}
+
+string get_local_time()
+{
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    //printf ("Current local time and date: %s", asctime(timeinfo));
+
+    int year = 1900 + timeinfo->tm_year;
+    int month = 1 + timeinfo->tm_mon;
+    int day = timeinfo->tm_mday;
+    int hour = timeinfo->tm_hour;
+    int minute = timeinfo->tm_min;
+    int second = timeinfo->tm_sec;
+
+    char time_string[25];
+
+    sprintf(time_string, "%04d-%02d-%02dT%02d%02d%02d", year, month, day, hour, minute, second);
+
+    return string(time_string);
+}
+
 //! Unix time to UTC
 /*! Convert Unix time in a timeval structure to a double precision number representing Mofidied Julian Day.
  * \param unixtime Unix time to be converted.

@@ -32,7 +32,7 @@
 #define _MATH_MATRIX_H
 
 #include "support/configCosmos.h"
-#include "vector.h"
+#include "math/vector.h"
 
 //! 3x3 element generic matrix
 /*! 3 rvector elements representing 3 rows of a matrix
@@ -45,6 +45,8 @@ struct rmatrix
 std::ostream& operator << (std::ostream& out, const rmatrix& a);
 std::ostream& operator << (std::ostream& out, const std::vector<rmatrix>& a);
 std::istream& operator >> (std::istream& out, rmatrix& a);
+
+rvector operator * (rmatrix m, rvector v); // multiply matrix by vector operator
 
 
 

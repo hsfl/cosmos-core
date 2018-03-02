@@ -32,7 +32,7 @@
 
 #include "support/configCosmos.h"
 #include "vector.h"
-#include "quaternion.h"
+// #include "quaternion.h"
 // TODO: remove dependency from mathlib (uvector)
 #include "math/mathlib.h"
 

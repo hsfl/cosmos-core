@@ -253,12 +253,6 @@ void CommandQueue::add_command(Event& c)
 	queue_changed = true;
 }
 
-//// Predicate function for comparing command objects, used by CommandQueue.sort()
-//bool CommandQueue::compare_command_times(Event command1, Event command2)
-//{
-//	return command1.getUtc()<command2.getUtc();
-//}
-
 // Copies the current CommandQueue object to the output stream using JSON format
 std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq)
 {

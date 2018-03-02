@@ -83,9 +83,9 @@ int main(int argc, char* argv[])
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
 
-    agent->cinfo->pdata.physics.mode = mode;
+    agent->cinfo->physics.mode = mode;
 
-    load_dictionary(eventdict, agent->cinfo->meta, agent->cinfo->pdata, (char *)"events.dict");
+    load_dictionary(eventdict, agent->cinfo, (char *)"events.dict");
 
 	// Set initial state
 	locstruc iloc;
@@ -102,14 +102,14 @@ int main(int argc, char* argv[])
 		size_t nbytes = fread(ibuf, 1, fstat.st_size, fdes);
 		if (nbytes)
 		{
-            json_parse(ibuf, agent->cinfo->meta, agent->cinfo->pdata);
+            json_parse(ibuf, agent->cinfo);
 		}
 		free(ibuf);
-        loc_update(&agent->cinfo->pdata.node.loc);
-        iloc = agent->cinfo->pdata.node.loc;
-//		iloc.pos.eci = agent->cinfo->pdata.node.loc.pos.eci;
-//		iloc.att.icrf = agent->cinfo->pdata.node.loc.att.icrf;
-//		iloc.utc = agent->cinfo->pdata.node.loc.pos.eci.utc;
+        loc_update(&agent->cinfo->node.loc);
+        iloc = agent->cinfo->node.loc;
+//		iloc.pos.eci = agent->cinfo->node.loc.pos.eci;
+//		iloc.att.icrf = agent->cinfo->node.loc.att.icrf;
+//		iloc.utc = agent->cinfo->node.loc.pos.eci.utc;
 
 		//        print_vector("Initial State Vector Position: ", iloc.pos.eci.s.col[0], iloc.pos.eci.s.col[1], iloc.pos.eci.s.col[2], "km");
 		//std::cout << "Initial State Vector Pos: [" << iloc.pos.eci.s.col[0] << ", " << iloc.pos.eci.s.col[1] <<  ", " << iloc.pos.eci.s.col[2] << "] km " << std::endl;
@@ -126,11 +126,11 @@ int main(int argc, char* argv[])
 	std::string pollbuf;
     Agent::messstruc mess;
 
-    iretn = agent->poll(mess, Agent::AGENT_MESSAGE_ALL,1);
-	switch (iretn)
+    iretn = agent->readring(mess, Agent::AgentMessage::ALL,1);
+    switch ((Agent::AgentMessage)iretn)
 	{
-    case Agent::AGENT_MESSAGE_SOH:
-    case Agent::AGENT_MESSAGE_BEAT:
+    case Agent::AgentMessage::SOH:
+    case Agent::AgentMessage::BEAT:
 		{
 			std::string tbuf = json_convert_string(json_extract_namedobject(pollbuf, "agent_name"));
 			if (!tbuf.empty() && tbuf == "physics")
@@ -138,26 +138,26 @@ int main(int argc, char* argv[])
 				tbuf = json_convert_string(json_extract_namedobject(pollbuf, "node_utcoffset"));
 				if (!tbuf.empty())
 				{
-                    agent->cinfo->pdata.node.utcoffset = atof(tbuf.c_str());
-                    printf("slave utcoffset: %f\n", agent->cinfo->pdata.node.utcoffset);
+                    agent->cinfo->node.utcoffset = atof(tbuf.c_str());
+                    printf("slave utcoffset: %f\n", agent->cinfo->node.utcoffset);
 				}
 			}
 			else
 			{
 				if (mjdstart == -1.)
 				{
-                    agent->cinfo->pdata.node.utcoffset = agent->cinfo->pdata.node.loc.utc - currentmjd(0.);
+                    agent->cinfo->node.utcoffset = agent->cinfo->node.loc.utc - currentmjd(0.);
 				}
 				else if (mjdstart == 0.)
 				{
-                    agent->cinfo->pdata.node.utcoffset = 0.;
+                    agent->cinfo->node.utcoffset = 0.;
 				}
 				else
 				{
-                    agent->cinfo->pdata.node.utcoffset = mjdstart - currentmjd(0.);
+                    agent->cinfo->node.utcoffset = mjdstart - currentmjd(0.);
 				}
-                //printf("master utcoffset: %f\n", agent->cinfo->pdata.node.utcoffset);
-                std::cout << "master utcoffset: " << std::setprecision(5) << agent->cinfo->pdata.node.utcoffset << std::endl;
+                //printf("master utcoffset: %f\n", agent->cinfo->node.utcoffset);
+                std::cout << "master utcoffset: " << std::setprecision(5) << agent->cinfo->node.utcoffset << std::endl;
 				//				master_timer = true;
 			}
 			break;
@@ -165,37 +165,37 @@ int main(int argc, char* argv[])
 	default:
 		if (mjdstart == -1.)
 		{
-            agent->cinfo->pdata.node.utcoffset = agent->cinfo->pdata.node.loc.utc - currentmjd(0.);
+            agent->cinfo->node.utcoffset = agent->cinfo->node.loc.utc - currentmjd(0.);
 		}
 		else if (mjdstart == 0.)
 		{
-            agent->cinfo->pdata.node.utcoffset = 0.;
+            agent->cinfo->node.utcoffset = 0.;
 		}
 		else
 		{
-            agent->cinfo->pdata.node.utcoffset = mjdstart - currentmjd(0.);
+            agent->cinfo->node.utcoffset = mjdstart - currentmjd(0.);
 		}
-        //printf("master utcoffset: %f\n", agent->cinfo->pdata.node.utcoffset);
-        std::cout << "master utcoffset: " << agent->cinfo->pdata.node.utcoffset << std::endl;
+        //printf("master utcoffset: %f\n", agent->cinfo->node.utcoffset);
+        std::cout << "master utcoffset: " << agent->cinfo->node.utcoffset << std::endl;
 		//		master_timer = true;
 		break;
 	}
 
-    mjdnow =  currentmjd(agent->cinfo->pdata.node.utcoffset);
+    mjdnow =  currentmjd(agent->cinfo->node.utcoffset);
 
 	if (mjdnow < iloc.utc)
 	{
-        hardware_init_eci(agent->cinfo->pdata.devspec, iloc);
-        gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
+        hardware_init_eci(agent->cinfo->devspec, iloc);
+        gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
 
-        //printf("Initialize backwards %f days\n", (agent->cinfo->pdata.node.loc.utc-mjdnow));
-        std::cout << "Initialize backwards " << agent->cinfo->pdata.node.loc.utc-mjdnow << "days" << std::endl;
+        //printf("Initialize backwards %f days\n", (agent->cinfo->node.loc.utc-mjdnow));
+        std::cout << "Initialize backwards " << agent->cinfo->node.loc.utc-mjdnow << "days" << std::endl;
 
-        gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
-        simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
-        iloc.utc = agent->cinfo->pdata.node.loc.utc;
-        iloc.pos.eci = agent->cinfo->pdata.node.loc.pos.eci;
-        iloc.att.icrf = agent->cinfo->pdata.node.loc.att.icrf;
+        gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
+        simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+        iloc.utc = agent->cinfo->node.loc.utc;
+        iloc.pos.eci = agent->cinfo->node.loc.pos.eci;
+        iloc.att.icrf = agent->cinfo->node.loc.att.icrf;
 	}
 	
 	double step = 8.64 * (mjdnow-iloc.utc);
@@ -216,75 +216,75 @@ int main(int argc, char* argv[])
 //	gauss_jackson_preset(&gji);
 //	gauss_jackson_extrapolate(&gji, mjdnow);
 
-    hardware_init_eci(agent->cinfo->pdata.devspec, iloc);
-    gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
-    simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
-    gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
-    simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
+    hardware_init_eci(agent->cinfo->devspec, iloc);
+    gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+    simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+    gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
+    simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
     pos_clear(iloc);
-    iloc.pos.eci = agent->cinfo->pdata.node.loc.pos.eci;
-    iloc.att.icrf = agent->cinfo->pdata.node.loc.att.icrf;
-    iloc.utc = agent->cinfo->pdata.node.loc.pos.eci.utc;
-    hardware_init_eci(agent->cinfo->pdata.devspec, iloc);
-    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc);
-    simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.node.loc);
-    mjdnow = currentmjd(agent->cinfo->pdata.node.utcoffset);
+    iloc.pos.eci = agent->cinfo->node.loc.pos.eci;
+    iloc.att.icrf = agent->cinfo->node.loc.att.icrf;
+    iloc.utc = agent->cinfo->node.loc.pos.eci.utc;
+    hardware_init_eci(agent->cinfo->devspec, iloc);
+    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+    simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
+    mjdnow = currentmjd(agent->cinfo->node.utcoffset);
 
-    std::vector <gj_handle> tgjh(agent->cinfo->pdata.target.size());
-    std::vector <cosmosstruc *> tcinfo(agent->cinfo->pdata.target.size());
+    std::vector <gj_handle> tgjh(agent->cinfo->target.size());
+    std::vector <cosmosstruc *> tcinfo(agent->cinfo->target.size());
 
-    for (uint16_t i=0; i<agent->cinfo->pdata.target.size(); ++i)
+    for (uint16_t i=0; i<agent->cinfo->target.size(); ++i)
 	{
         tcinfo[i] = json_create();
-        hardware_init_eci(agent->cinfo->pdata.devspec, agent->cinfo->pdata.target[i].loc);
-        gauss_jackson_init_eci(tgjh[i], order, 0, dt, agent->cinfo->pdata.target[i].loc.utc, agent->cinfo->pdata.target[i].loc.pos.eci, agent->cinfo->pdata.target[i].loc.att.icrf, tcinfo[i]->pdata.physics, tcinfo[i]->pdata.node.loc);
-        simulate_hardware(agent->cinfo->pdata, agent->cinfo->pdata.target[i].loc);
+        hardware_init_eci(agent->cinfo->devspec, agent->cinfo->target[i].loc);
+        gauss_jackson_init_eci(tgjh[i], order, 0, dt, agent->cinfo->target[i].loc.utc, agent->cinfo->target[i].loc.pos.eci, agent->cinfo->target[i].loc.att.icrf, tcinfo[i]->physics, tcinfo[i]->node.loc);
+        simulate_hardware(agent->cinfo, agent->cinfo->target[i].loc);
     }
 
-    std::string sohstring = json_list_of_soh(agent->cinfo->pdata);
+    std::string sohstring = json_list_of_soh(agent->cinfo);
     agent->set_sohstring(sohstring.c_str());
 	std::vector<jsonentry*> logtable;
-    json_table_of_list(logtable, sohstring.c_str(), agent->cinfo->meta);
+    json_table_of_list(logtable, sohstring.c_str(), agent->cinfo);
 
 	double logdate = floor(mjdnow/logstride)*logstride;
 
 	while (mjdend < 0. || mjdend-mjdstart > 0)
 	{
 		mjdnow += logperiod/86400.;
-        vector <locstruc> locvec = gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, mjdnow);
-        simulate_hardware(agent->cinfo->pdata, locvec);
-        agent->cinfo->pdata.node.loc = locvec[locvec.size()-1];
-        if (agent->cinfo->pdata.node.loc.utc > agent->cinfo->pdata.node.utc)
+        vector <locstruc> locvec = gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
+        simulate_hardware(agent->cinfo, locvec);
+        agent->cinfo->node.loc = locvec[locvec.size()-1];
+        if (agent->cinfo->node.loc.utc > agent->cinfo->node.utc)
 		{
-            agent->cinfo->pdata.node.utc = agent->cinfo->pdata.node.loc.utc;
+            agent->cinfo->node.utc = agent->cinfo->node.loc.utc;
 		}
 
 		double dtemp;
 		if ((dtemp=floor(mjdnow/logstride)*logstride) > logdate)
 		{
 			logdate = dtemp;
-            log_move(agent->cinfo->pdata.node.name, "soh");
+            log_move(agent->cinfo->node.name, "soh");
 		}
 
-        for (uint16_t i=0; i<agent->cinfo->pdata.target.size(); ++i)
+        for (uint16_t i=0; i<agent->cinfo->target.size(); ++i)
 		{
-            gauss_jackson_propagate(tgjh[i], tcinfo[i]->pdata.physics, tcinfo[i]->pdata.node.loc, mjdnow);
-            simulate_hardware(tcinfo[i]->pdata, tcinfo[i]->pdata.node.loc);
+            gauss_jackson_propagate(tgjh[i], tcinfo[i]->physics, tcinfo[i]->node.loc, mjdnow);
+            simulate_hardware(tcinfo[i], tcinfo[i]->node.loc);
         }
-        update_target(agent->cinfo->pdata);
-        calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
+        update_target(agent->cinfo);
+        calc_events(eventdict, agent->cinfo, events);
 		for (uint32_t k=0; k<events.size(); ++k)
 		{
-            memcpy(&agent->cinfo->pdata.event[0].s,&events[k],sizeof(shorteventstruc));
-            strcpy(agent->cinfo->pdata.event[0].l.condition, agent->cinfo->meta.emap[events[k].handle.hash][events[k].handle.index].text);
-            log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(mainjstring, agent->cinfo->meta, agent->cinfo->pdata));
+            memcpy(&agent->cinfo->event[0].s,&events[k],sizeof(shorteventstruc));
+            strcpy(agent->cinfo->event[0].l.condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+            log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(mainjstring, agent->cinfo));
 		}
 
-        if (agent->cinfo->pdata.node.utc != 0. && sohstring.size())
+        if (agent->cinfo->node.utc != 0. && sohstring.size())
 		{
-            log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(mainjstring,  logtable, agent->cinfo->meta, agent->cinfo->pdata));
+            log_write(agent->cinfo->node.name,DATA_LOG_TYPE_SOH, logdate, json_of_table(mainjstring,  logtable, agent->cinfo));
 		}
-        //		agent->post(Agent::AGENT_MESSAGE_SOH,json_of_table(mainjstring,  agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+        //		agent->post(Agent::AgentMessage::SOH,json_of_table(mainjstring,  agent->sohtable, agent->cinfo));
 	}
     agent->shutdown();
 }

@@ -20,7 +20,7 @@ int main()
 {
     cout << "Example for COSMOS Namespace (elements) Aliases" << endl;
 
-    //! define the node name (it must be installed in <COSMOS>/nodes
+    //! define the node name (it must be installed in COSMOS/nodes
     string nodename = "cubesat1";
 
     // Establish the agent inside the given node

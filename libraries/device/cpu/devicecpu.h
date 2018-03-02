@@ -85,7 +85,7 @@ public:
 #endif
 
 
-#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
+#if defined(COSMOS_LINUX_OS)
 class DeviceCpuLinux
 {
 
@@ -95,6 +95,80 @@ class DeviceCpuLinux
 
 public:
     DeviceCpuLinux();
+
+    // variables
+    float load1minAverage;
+    int numProcessors = 0;
+    string processName;
+
+    // functions
+    double getLoad1minAverage();
+    float getPercentUseForCurrentProcess();
+    float getPercentUseForCurrentProcessOverLifetime();
+    void initCpuUtilization();
+    double getVirtualMemoryUsed();
+    double getVirtualMemoryTotal();
+    double getVirtualMemoryFree();
+    string getCurrentProcessName();
+    string getHostName();
+    //double GetLinuxCPULoad(), GetLinuxUsedDisk(), GetLinuxVirtualMem();
+    //double GetLinuxTotalDisk(), GetLinuxTotalVirtualMem();
+    //double CalculateLinuxCPULoad (float *out);
+    double getMemoryUsed();
+    double getMemoryTotal();
+    pid_t getPidOf(string processName);
+    double getMemoryUsedOf(string processName);
+    float getPercentCpuOf(string processName);
+
+    class procPidStat {
+
+        struct stat {
+            // stat vars
+            string pid, comm, state, ppid, pgrp, session, tty_nr;
+            string tpgid, flags, minflt, cminflt, majflt, cmajflt;
+            string utime, stime, cutime, cstime, priority, nice;
+            string O, itrealvalue, starttime;
+            unsigned long vsize;
+            long rss;
+        };
+
+
+
+    public:
+        //int pid, comm, state, ppid, pgrp, session, tty_nr;
+        //int tpgid, flags, minflt, cminflt, majflt, cmajflt;
+        float utime, stime; //, cutime, cstime, priority, nice;
+        //string O, itrealvalue, starttime;
+
+        bool fileExists = false;
+
+        procPidStat(string processName);
+    };
+
+    class procStat {
+
+    public:
+        // stat vars
+        string cpu, user, nice, system, idle, iowait, irq, softirq, steal,guest, guest_nice;
+        int time_total;
+        procStat();
+    };
+    float getPercentMemoryOf(string processName);
+};
+
+#endif
+
+
+#if defined(COSMOS_MAC_OS)
+class DeviceCpuMac
+{
+
+    double lastCPUtime;
+    double tic, toc;
+    float percentCpu;
+
+public:
+    DeviceCpuMac();
 
     // variables
     float load1minAverage;
@@ -196,6 +270,10 @@ public:
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
     DeviceCpuLinux cpuLinux;
+#endif
+
+#if defined(COSMOS_MAC_OS)
+    DeviceCpuMac cpuMac;
 #endif
 
 #if defined(COSMOS_WIN_OS)

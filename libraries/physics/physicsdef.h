@@ -35,6 +35,9 @@
 */
 
 #include "support/configCosmos.h"
+#include "math/vector.h"
+using Cosmos::Math::Vector;
+using Cosmos::Math::Quaternion;
 
 //#include "support/convertdef.h"
 
@@ -127,19 +130,19 @@ typedef struct
 	//! Simulation mode as listed in \def defs_physics
 	int32_t mode;
 	float heat;
-	rvector ftorque;
-	rvector atorque;
-	rvector rtorque;
-	rvector gtorque;
-	rvector htorque;
-	rvector hmomentum;
-	rvector ctorque;
-	rvector fdrag;
-	rvector adrag;
-	rvector rdrag;
-	rvector thrust;
-	rvector moi;
-	rvector com;
+    Math::Vector ftorque;
+    Math::Vector atorque;
+    Math::Vector rtorque;
+    Math::Vector gtorque;
+    Math::Vector htorque;
+    Math::Vector hmomentum;
+    Math::Vector ctorque;
+    Math::Vector fdrag;
+    Math::Vector adrag;
+    Math::Vector rdrag;
+    Math::Vector thrust;
+    Math::Vector moi;
+    Math::Vector com;
 	float hcap;
 	float mass;
 	float area;

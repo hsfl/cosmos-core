@@ -111,7 +111,7 @@
 #include "constants.h"
 #include "vector.h"
 #include "matrix.h"
-#include "quaternion.h"
+// #include "quaternion.h"
 #include "rotation.h"
 //#include "lsFit.h"
 
@@ -292,6 +292,12 @@ rvector rotate_q(quaternion q,rvector v);
 cvector rotate_q(quaternion q, cvector v);
 rvector transform_q(quaternion q,rvector v);
 
+// Moving to new naming convention: drotate is Direct Rotation of vector, irotate is rotation of coordinate axes
+rvector drotate(quaternion q,rvector v);
+cvector drotate(quaternion q, cvector v);
+rvector irotate(quaternion q,rvector v);
+cvector irotate(quaternion q, cvector v);
+
 
 rvector rv_quaternion2axis(quaternion q);
 uvector rv_fitpoly(uvector x, uvector y, uint32_t order);
@@ -390,6 +396,7 @@ public:
     void update(fitelement cfit, uint16_t dep);
     double lastx();
     double firstx();
+    size_t size();
     double eval(double x);
     rvector evalrvector(double x);
     quaternion evalquaternion(double x);
@@ -402,7 +409,7 @@ public:
     double jerk(double x);
     rvector jerkrvector(double x);
     quaternion jerkquaternion(double x);
-    std::vector<std::vector<double> > getparms();
+    vector < vector <double> > getparms();
     double getbasex();
 };
 

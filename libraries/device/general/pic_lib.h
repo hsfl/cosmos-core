@@ -28,10 +28,10 @@
 ********************************************************************/
 
 /*! \file pic_lib.h
- * 	\brief pic_lib include file.
+ * 	\brief pic include file.
 */
 
-/*!	\defgroup pic_lib PIC16 Communications device library.
+/*!	\defgroup pic PIC16 Communications device library.
  * @{
  * PIC16 Device Library.
  *
@@ -47,6 +47,10 @@
 #include "support/configCosmos.h"
 #include "device/general/cssl_lib.h"
 #include "support/jsonlib.h"
+
+//! \ingroup pic
+//!	\defgroup pic_constants PIC constants
+//!	@{
 
 #define PIC_BAUD 9600
 #define PIC_BITS 8
@@ -78,6 +82,12 @@
 #define SUCHI_STATE_SHUTTER_OPEN_4 0x0080
 #define SUCHI_STATE_CAMERA_ON 0x0100
 
+//! @}
+
+
+//! \ingroup pic
+//! \defgroup pic_typedefs PIC type definitions
+//! @{
 enum
 {
 	ISC_CMD_SET_BUS='a',
@@ -139,14 +149,14 @@ typedef struct
 } __attribute__((__may_alias__)) picstruc;
 #endif
 
-typedef struct
+struct pic_handle
 {
 	cssl_t *serial;
 	picstruc buffer;
 #ifdef COSMOS_WIN_BUILD_MSVC
-} pic_handle;
+};
 #else
-} __attribute__((__may_alias__)) pic_handle;
+} __attribute__((__may_alias__));
 #endif
 
 int32_t pic_connect(char *dev, pic_handle *handle);
@@ -161,3 +171,6 @@ int32_t isc_put(pic_handle *handle);
 int32_t isc_get(pic_handle *handle);
 
 #endif
+
+//! @}
+

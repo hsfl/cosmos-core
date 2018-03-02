@@ -57,7 +57,7 @@ string nodedir;
 #endif
 
 //! \ingroup datalib
-//! \defgroup datalib_functions Data Management support functions
+//! \defgroup datalib_functions Data Management function declarations
 //! @{
 
 
@@ -861,6 +861,27 @@ string data_name_path(string node, string location, string agent, double mjd, st
 
 }
 
+//! Create resource file path
+/*! Build a path to a resource file using its filename and the current resource
+ * directory.
+ * \param name File name.
+ * \return File path string, otherwise nullptr
+*/
+string data_resource_path(string name)
+{
+    string path;
+
+    path = get_cosmosresources() + "/" + name;
+    if (data_isfile(path))
+    {
+        return path;
+    }
+    else
+    {
+        return "";
+    }
+}
+
 //! Check existence of path.
 /*! Check whether a path exists, within the limits of permissions.
  * \param path string containing full path.
@@ -924,11 +945,19 @@ FILE *data_open(string path, char *mode)
 /*! Set the internal variable that points to where all COSMOS files
  * are stored.
     \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
     \return Zero, or negative error.
 */
 int32_t set_cosmosroot(string name, bool create_flag)
 {
     cosmosroot.clear();
+    for (size_t i=0; i<name.length(); ++i)
+    {
+        if (name[i] == '\\')
+        {
+            name.replace(i, 1, "/");
+        }
+    }
     if (data_isdir(name))
     {
         cosmosroot = name;
@@ -1061,7 +1090,7 @@ int32_t set_cosmosroot(bool create_flag)
 //! Return COSMOS Root Directory
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
-             * \param result Full path to Root directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 string get_cosmosroot(bool create_flag)
@@ -1075,6 +1104,7 @@ string get_cosmosroot(bool create_flag)
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
              * \param result Full path to Root directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 int32_t get_cosmosroot(string &result, bool create_flag)
@@ -1099,11 +1129,19 @@ int32_t get_cosmosroot(string &result, bool create_flag)
 /*! Set the internal variable that points to where all COSMOS resource files
              * are stored.
                 \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
                 \return Zero, or negative error.
             */
 int32_t set_cosmosresources(string name, bool create_flag)
 {
     cosmosresources.clear();
+    for (size_t i=0; i<name.length(); ++i)
+    {
+        if (name[i] == '\\')
+        {
+            name.replace(i, 1, "/");
+        }
+    }
     if (data_isdir(name))
     {
         cosmosresources = name;
@@ -1180,7 +1218,7 @@ int32_t set_cosmosresources(bool create_flag)
 //! Return COSMOS Resources Directory
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
-             * \param result Full path to Resources directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 string get_cosmosresources(bool create_flag)
@@ -1194,6 +1232,7 @@ string get_cosmosresources(bool create_flag)
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
              * \param result Full path to Resources directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 int32_t get_cosmosresources(string &result, bool create_flag)
@@ -1287,11 +1326,19 @@ int32_t setEnvCosmos(string path){
 /*! Set the internal variable that points to where all COSMOS resource files
              * are stored.
                 \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
                 \return Zero, or negative error.
             */
 int32_t set_cosmosnodes(string name, bool create_flag)
 {
     cosmosnodes.clear();
+    for (size_t i=0; i<name.length(); ++i)
+    {
+        if (name[i] == '\\')
+        {
+            name.replace(i, 1, "/");
+        }
+    }
     if (data_isdir(name))
     {
         cosmosnodes = name;
@@ -1366,7 +1413,7 @@ int32_t set_cosmosnodes(bool create_flag)
 //! Return COSMOS Nodes Directory
 /*! Get the internal variable that points to where all COSMOS Node files are
              * stored. Initialize variable if this is the first call to the function.
-             * \param result Full path to Nodes directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 string get_cosmosnodes(bool create_flag)
@@ -1380,6 +1427,7 @@ string get_cosmosnodes(bool create_flag)
 /*! Get the internal variable that points to where all COSMOS files are
              * stored.
              * \param result String to place path in.
+    \param create_flag Create directory if not already present.
              * \return Zero, or negative error.
             */
 int32_t get_cosmosnodes(string &result, bool create_flag)
@@ -1498,12 +1546,12 @@ int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<st
 {
     int32_t iretn;
 
-    iretn = data_load_archive(cinfo->pdata.node.name, "soh", mjd, "telemetry", telem);
+    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "telemetry", telem);
     if (iretn < 0)
     {
         return iretn;
     }
-    iretn = data_load_archive(cinfo->pdata.node.name, "soh", mjd, "event", event);
+    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "event", event);
 
     return iretn;
 }
@@ -1668,21 +1716,21 @@ int32_t kml_write(cosmosstruc *cinfo)
     FILE *fin, *fout;
     double utc;
 
-    utc = floor(cinfo->pdata.node.loc.utc);
+    utc = floor(cinfo->node.loc.utc);
 
-    string path = data_type_path((string)cinfo->pdata.node.name, "outgoing", "google", utc, "points");
+    string path = data_type_path((string)cinfo->node.name, "outgoing", "google", utc, "points");
     fin = data_open(path, (char *)"a+");
-    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->pdata.node.loc.pos.geod.s.lon),DEGOF(cinfo->pdata.node.loc.pos.geod.s.lat),cinfo->pdata.node.loc.pos.geod.s.h);
+    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->node.loc.pos.geod.s.lon),DEGOF(cinfo->node.loc.pos.geod.s.lat),cinfo->node.loc.pos.geod.s.h);
 
-    path = data_type_path(cinfo->pdata.node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
+    path = data_type_path(cinfo->node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
     fout = data_open(path, (char *)"w");
     fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
     fprintf(fout,"<Document>\n");
-    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->pdata.node.name,utc);
+    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->node.name,utc);
     fprintf(fout,"<description>Track of node.</description>\n");
     fprintf(fout,"<Style id=\"yellowLineGreenPoly\">\n<LineStyle>\n<color>7f00ffff</color>\n<width>4</width>\n</LineStyle>\n");
     fprintf(fout,"<PolyStyle>\n<color>7f00ff00</color>\n</PolyStyle>\n</Style>\n");
-    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->pdata.node.name,utc);
+    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->node.name,utc);
     fprintf(fout,"<styleUrl>#yellowLineGreenPoly</styleUrl>\n<LineString>\n<extrude>1</extrude>\n<tessellate>1</tessellate>\n<altitudeMode>absolute</altitudeMode>\n");
     fprintf(fout,"<coordinates>\n");
 
@@ -1704,6 +1752,21 @@ bool data_isdir(string path)
     struct stat st;
 
     if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
+bool data_isfile(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode))
     {
         return true;
     }

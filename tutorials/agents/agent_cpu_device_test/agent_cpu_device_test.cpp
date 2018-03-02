@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 		exit (AGENT_ERROR_JSON_CREATE);
 	} else {
 		cout<<"Starting " << agentname << " ... OK" << endl;
-		//        agent->cinfo->pdata.agent[0].sub
+		//        agent->cinfo->agent[0].sub
 	}
 
     beat_agent_cpu = agent->find_server(nodename, "agent_cpu", 10.);

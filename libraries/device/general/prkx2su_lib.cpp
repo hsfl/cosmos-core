@@ -137,8 +137,8 @@ int32_t prkx2su_disconnect()
 * Line is received, then returns entire buffer.
 * @param axis Axis to read.
 * @param buf Pointer to a char buffer
-* @param buflen ::int32_t indicating the maximum size of the buffer
-* @return ::int32_t containing the number of bytes read.
+* @param buflen 32 bit signed integer indicating the maximum size of the buffer
+* @return 32 bit signed integer containing the number of bytes read.
 */
 int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen)
 {
@@ -180,7 +180,7 @@ int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen)
 /**
 * Poll controller for Status and Heading. Turns
 * calibration mode on in prkx2su.
-* @param axis ::int32_t , 0 = Azimuth, 1 = Elevation
+* @param axis 32 bit signed integer , 0 = Azimuth, 1 = Elevation
 */
 int32_t prkx2su_status(int8_t axis)
 {

@@ -135,7 +135,10 @@ string data_archive_path(string node, string agent, double mjd);
 string data_type_path(string node, string location, string agent, double mjd, string type);
 string data_type_path(string node, string location, string agent, double mjd, string extra, string type);
 string data_name_path(string node, string location, string agent, double mjd, string name);
+string data_resource_path(string name);
 bool data_exists(string& path);
+bool data_isdir(string path);
+bool data_isfile(string path);
 int32_t set_cosmosroot(string name, bool create_flag=false);
 int32_t set_cosmosroot(bool create_flag=false);
 int32_t get_cosmosroot(string &result, bool create_flag=false);
@@ -159,7 +162,6 @@ int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<st
 double findlastday(string node);
 double findfirstday(string node);
 int32_t kml_write(cosmosstruc* cinfo);
-bool data_isdir(string path);
 
 //! @}
 

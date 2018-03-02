@@ -30,7 +30,7 @@
 #ifndef COSMOS_CommandQueue_H
 #define COSMOS_CommandQueue_H
 
-/*! \file CommandQueue.h
+/*! \file command_queue.h
 *	\brief Command Queue Class
 */
 
@@ -83,10 +83,8 @@ public:
 		Events in the queue are then sorted by their execution time.
 
 		\param	incoming_dir	Directory where the .queue file will be read from
-		\param	agent	Pointer to Agent object (needed to parse JSON input)
 		
 	*/
-	//void load_commands(string incoming_dir, Agent *agent);
 	void load_commands(string incoming_dir);
 
 	///	Save the queue of Events to a file
@@ -147,13 +145,13 @@ public:
 	///	Extraction operator
 	/**
 		\param	out	Reference to ostream
-		\param	cmd	Reference to CommandQueue (JIMNOTE: should be const, ya?)
+        \param	cmdq	Reference to CommandQueue (JIMNOTE: should be const, ya?)
 		\return	Reference to modified ostream
 
 		Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
 		
 	*/
-    friend std::ostream& operator<<(std::ostream& out, CommandQueue& cmd);
+    friend std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq);
 
 //	bool compare_command_times(Event command1, Event command2);
 //	string incoming_dir;

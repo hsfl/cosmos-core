@@ -95,10 +95,10 @@ void PrintUtils::vector(
 
     out << prefix;
 
-    if (delimiter_flag)
-    {
-        out << delimiter;
-    }
+    //    if (delimiter_flag)
+    //    {
+    //        out << delimiter;
+    //    }
 
     if (use_brackets)
     {
@@ -120,16 +120,16 @@ void PrintUtils::vector(
         // std::cout.width(filedwidth);
 
         out << std::setw(fieldwidth) << v.col[0]*scale << ","
-             << std::setw(fieldwidth) << v.col[1]*scale <<  ","
-             << std::setw(fieldwidth) << v.col[2]*scale;
+            << std::setw(fieldwidth) << v.col[1]*scale <<  ","
+            << std::setw(fieldwidth) << v.col[2]*scale;
 
     }
     else
     {
         // simple print, no fixed width
         out << v.col[0]*scale << ","
-            << v.col[1]*scale <<  ","
-            << v.col[2]*scale;
+                              << v.col[1]*scale <<  ","
+                              << v.col[2]*scale;
     }
 
     if (use_brackets)
@@ -151,7 +151,7 @@ void PrintUtils::vector(
     fullMessage += out.str();
 }
 
-
+//TODO: add vector(rvector v, precision)
 void PrintUtils::vector(rvector v)
 {
     // simple print
@@ -482,10 +482,10 @@ std::string PrintUtils::quat(
 
     out << prefix;
 
-    if (delimiter_flag)
-    {
-        out << delimiter;
-    }
+    //    if (delimiter_flag)
+    //    {
+    //        out << delimiter;
+    //    }
 
     if (use_brackets)
     {
@@ -498,7 +498,11 @@ std::string PrintUtils::quat(
         out << std::setprecision(precision);
     }
 
-    out << "[xyzw],"; // "[["
+    if (use_brackets)
+    {
+        out << "[xyzw],";
+    }
+
     if (fieldwidth != -1)
     {
         // print with fixed width

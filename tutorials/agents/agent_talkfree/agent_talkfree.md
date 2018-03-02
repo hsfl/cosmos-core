@@ -2,7 +2,7 @@
 
 Send generic messages to the network.
 
-You can use \ref agent_post to broadcast specific information that does not fit into the COSMOS namespace format (ex: your payload counts the number of reboots and you want to collect that information easily over the network)
+You can use \ref Cosmos::Agent::post to broadcast specific information that does not fit into the COSMOS namespace format (ex: your payload counts the number of reboots and you want to collect that information easily over the network)
 
 Just define your specific message type in one byte (ex: 0xBF), generate your data in a custom format for your parser and send it using agent_post.
 ```

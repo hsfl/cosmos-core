@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
     char buffer[8192];
     std::vector<filestruc> srcfiles;
-    data_list_files(agent->cinfo->pdata.node.name, source, agentname, srcfiles);
+    data_list_files(agent->cinfo->node.name, source, agentname, srcfiles);
 
     for (filestruc srcfile: srcfiles)
     {
