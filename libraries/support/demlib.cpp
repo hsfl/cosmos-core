@@ -204,10 +204,14 @@ map_dem_body *map_dem_open(int bodynum)
 	}
 
 
-	iretn = fscanf(fp,"%lf %lf %lf",&body->orbit,&body->radius,&body->highest);
+    iretn = fscanf(fp,"%lf %lf %lf %lf %lf %lf",&body->orbit,&body->radius,&body->highest, &body->alt1, &body->alt2, &body->alt3);
+    if (iretn == 3)
+    {
+        body->alt1 = body->alt2 = body->alt3 = 0.;
+    }
 	body->highest = body->radius + body->highest/1000.;
 	fclose(fp);
-	strcpy(body->name,bodynames[bodynum-1]);
+    body->name = bodynames[bodynum-1];
 	body->vscale = body->hscale = body->htov = 1.;
 
 	iretn = get_cosmosresources(tname);

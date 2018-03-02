@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     printf("rotstruc : %lu\n", sizeof(rotstruc));
     printf("rwstruc : %lu\n", sizeof(rwstruc));
     printf("ssenstruc : %lu\n", sizeof(ssenstruc));
-    printf("strgstruc : %lu\n", sizeof(strgstruc));
+    printf("strgstruc : %lu\n", sizeof(pvstrgstruc));
     printf("sttstruc : %lu\n", sizeof(sttstruc));
     printf("suchistruc : %lu\n", sizeof(suchistruc));
     printf("swchstruc : %lu\n", sizeof(swchstruc));

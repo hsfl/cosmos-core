@@ -43,13 +43,17 @@ namespace Cosmos {
 
     //! Create i2c port instance.
     //! Create a i2c port object to be used for reading and writing to a physical port.
-    //! \param dname Name of physical serial port.
+    //! \param bus Name of physical I2C device.
+    //! \param address Address of physical I2C port.
+    //! \param delay Time in seconds to wait for reading after writing.
 
 
     I2C::I2C(string bus, uint8_t address, double delay)
     {
         handle.bus = bus;
+#if !defined(COSMOS_WIN_OS)
         handle.fh = open(handle.bus.c_str(), O_RDWR|O_NONBLOCK);
+#endif
 
         if (handle.fh < 0)
         {
@@ -59,8 +63,8 @@ namespace Cosmos {
         }
         // only works for linux for now
         // TODO: expand to mac and windows
-#ifdef COSMOS_LINUX_OS
-        if (ioctl(handle.fh, I2C_FUNCS, &handle.funcs) < 0)
+#if defined(COSMOS_LINUX_OS)
+		if (ioctl(handle.fh, I2C_FUNCS, &handle.funcs) < 0)
         {
             error = - errno;
             close(handle.fh);

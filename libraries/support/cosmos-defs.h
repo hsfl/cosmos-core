@@ -101,6 +101,7 @@ enum NODE_TYPE
     NODE_TYPE_MOON=11,
     NODE_TYPE_MARS=12,
     NODE_TYPE_LOCATION=13,
+    NODE_TYPE_TESTBED=14,
     NODE_TYPE_COUNT,
     NODE_TYPE_NONE=UINT16_MAX
 };
@@ -165,7 +166,7 @@ enum NODE_TYPE
 //! \defgroup defs_event_type Constants defining Event types.
 //! @{
 /*! These constants are for defining Events. TYPEs represent what
- * inititiated the event. If the type is ::EVENT_TYPE_CALCULATED, then it
+ * inititiated the event. If the type is EVENT_TYPE_CALCULATED, then it
  * was initiiated by some generic equation.
  */
 

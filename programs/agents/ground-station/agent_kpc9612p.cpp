@@ -124,9 +124,9 @@ int main(int argc, char *argv[])
         exit (AGENT_ERROR_JSON_CREATE);
 
     // If ip_address is our own, then don't form Tunnel interface.
-    for (size_t i=0; i<agent->cinfo->pdata.agent[0].ifcnt; i++)
+    for (size_t i=0; i<agent->cinfo->agent[0].ifcnt; i++)
     {
-        if (agent->cinfo->pdata.agent[0].pub[i].address == tunnel_ip)
+        if (agent->cinfo->agent[0].pub[i].address == tunnel_ip)
         {
             open_tunnel = false;
         }
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 
         memset(&ifr1, 0, sizeof(ifr1));
         ifr1.ifr_flags = IFF_TUN | IFF_NO_PI;
-        strncpy(ifr1.ifr_name, agent->cinfo->pdata.agent[0].beat.proc, IFNAMSIZ);
+        strncpy(ifr1.ifr_name, agent->cinfo->agent[0].beat.proc, IFNAMSIZ);
         if (ioctl(tun_fd, TUNSETIFF, (void *)&ifr1) < 0)
         {
             perror("Error setting tunnel interface");
@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
         }
 
         // Get ready to set things
-        strncpy(ifr2.ifr_name, agent->cinfo->pdata.agent[0].beat.proc, IFNAMSIZ);
+        strncpy(ifr2.ifr_name, agent->cinfo->agent[0].beat.proc, IFNAMSIZ);
         ifr2.ifr_addr.sa_family = AF_INET;
 
         // Set interface address
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
     while(agent->running())
     {
         // Set beginning of next cycle;
-        nmjd += agent->cinfo->pdata.agent[0].aprd/86400.;
+        nmjd += agent->cinfo->agent[0].aprd/86400.;
 
         sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);
         if (sleept < 0)
@@ -293,7 +293,7 @@ void tun_write_loop()
         while (!tun_fifo.empty())
         {
             buffer = tun_fifo.front();
-            nbytes = agent->post(Agent::AGENT_MESSAGE_COMM, buffer);
+            nbytes = agent->post(Agent::AgentMessage::COMM, buffer);
             if (open_tunnel)
             {
                 nbytes = write(tun_fd, &buffer[0], buffer.size());

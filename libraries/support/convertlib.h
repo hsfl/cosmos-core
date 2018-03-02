@@ -156,6 +156,8 @@ int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& tle);
 int32_t loadTLE(char *fname, tlestruc &tle);
 int32_t load_stk(std::string filename, stkstruc &stkdata);
 int stk2eci(double utc, stkstruc &stk, cartpos &eci);
+void tle2sgp4(tlestruc tle, sgp4struc &sgp4);
+void sgp42tle(sgp4struc sgp4, tlestruc &tle);
 
 //! @}
 

@@ -6,9 +6,9 @@ FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
-add_library(jpeg STATIC ${SOURCES} ${INCLUDES})
+add_library(localjpeg STATIC ${SOURCES} ${INCLUDES})
 
-install(TARGETS jpeg DESTINATION lib)
+install(TARGETS localjpeg DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/thirdparty/jpeg)
 
 

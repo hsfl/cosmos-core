@@ -71,14 +71,14 @@ double gaussian_random(double mean, double stdev)
 
 
 //! Create rotation quaternion from 2 row vectors
-/*! Generate the quaternion that represents a rotation from one row order vector
+/*! Generate the quaternion that represents a direct rotation from one row order vector
  * to a second row order vector.
     \param from initial row order vector
     \param to final row order vector
     \return quaternion that can be used to rotate points
 */
 // TODO: move to quaternion.cpp
-quaternion q_change_between_rv(rvector from, rvector to)
+quaternion q_drotate_between_rv(rvector from, rvector to)
 {
     uvector rq = {{{0.,0.,0.},0.}};
     rvector vec1 = {{0.}}, vec2 = {{0.}};
@@ -140,28 +140,28 @@ quaternion q_change_around_rv(rvector around, double angle)
     return (rq.q);
 }
 
-//! Create transform quaternion from two orthogonal vectors
+//! Create irotate quaternion from two orthogonal vectors
 /*! Using two vectors, represented in both the original and target frames,
- * calculate the quaternion that will transform any vector from the original
+ * calculate the quaternion that will irotate any vector from the original
  * to the target frame.
  * \param sourcea First vector in source frame
  * \param sourceb Second vector in source frame
  * \param targeta First vector in target frame
  * \param targetb Second vector in target frame
- * \return Quaternion to use with ::transform_q to transform from source to target.
+ * \return Quaternion to use with ::irotate to irotate from source to target.
  */
 // TODO: move to quaternion.cpp
-quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb)
+quaternion q_irotate_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb)
 {
     quaternion qe_a;
     quaternion qe_b;
     quaternion fqe;
 
     // Determine rotation of source A into target A
-    qe_a = q_conjugate(q_change_between_rv(sourcea,targeta));
+    qe_a = q_conjugate(q_drotate_between_rv(sourcea,targeta));
 
-    // Use to transform source B into intermediate B
-    sourceb = transform_q(qe_a,sourceb);
+    // Use to irotate source B into intermediate B
+    sourceb = irotate(qe_a,sourceb);
     normalize_rv(sourceb);
     normalize_rv(targetb);
     if (length_rv(rv_add(sourceb,targetb)) < 1e-14)
@@ -174,12 +174,12 @@ quaternion q_transform_for(rvector sourcea, rvector sourceb, rvector targeta, rv
     }
     else
     {
-        // Determine transformation of this intermediate B into target B
-        qe_b = q_conjugate(q_change_between_rv(sourceb,targetb));
+        // Determine intrinsic rotation of this intermediate B into target B
+        qe_b = q_conjugate(q_drotate_between_rv(sourceb,targetb));
     }
 
-    // Combine to determine complete transformation of source into target
-    fqe = q_mult(qe_a,qe_b);
+    // Combine to determine complete intrinsic rotation of source into target
+    fqe = q_fmult(qe_a,qe_b);
     normalize_q(&fqe);
 
     return fqe;
@@ -368,7 +368,7 @@ rvector rv_normalto(rvector p0, rvector p1, rvector p2)
 
 //! Determine local byte order
 /*! Investigate a locally stored number to determine the byte order of the local machine.
-    \return Order as provided in ::BYTE_ORDER.
+    \return Order as provided in ::ByteOrder.
 */
 
 //std::uint8_t local_byte_order()
@@ -388,7 +388,7 @@ ByteOrder local_byte_order()
 //! Memory to 16 bit unsigned integer
 /*! Return the 16 bit unsigned integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 16 bit unsigned integer
 */
 
@@ -417,7 +417,7 @@ uint16_t uint16from(uint8_t *pointer, ByteOrder order)
 //! Memory to 16 bit signed integer
 /*! Return the 16 bit signed integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 16 bit signed integer
 */
 
@@ -435,7 +435,7 @@ int16_t int16from(uint8_t *pointer, ByteOrder order)
 //! Memory to 32 bit unsigned integer
 /*! Return the 32 bit unsigned integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 32 bit unsigned integer
 */
 
@@ -466,7 +466,7 @@ uint32_t uint32from(uint8_t *pointer, ByteOrder order)
 //! Memory to 32 bit signed integer
 /*! Return the 32 bit signed integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 32 bit signed integer
 */
 
@@ -484,7 +484,7 @@ int32_t int32from(uint8_t *pointer, ByteOrder order)
 //! Memory to 32 bit float
 /*! Return the 32 bit float equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 32 bit float
 */
 
@@ -512,7 +512,7 @@ float floatfrom(uint8_t *pointer, ByteOrder order)
 //! Memory to 64 bit float
 /*! Return the 64 bit float equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 64 bit float
 */
 
@@ -545,7 +545,7 @@ double doublefrom(uint8_t *pointer, ByteOrder order)
 /*! Cast a 32 bit unsigned integer equivalent into a location in memory, corrected for the local byte order.
     \param value integer to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void uint32to(uint32_t value, uint8_t *pointer, ByteOrder order)
@@ -576,7 +576,7 @@ void uint32to(uint32_t value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 32 bit signed integer equivalent into a location in memory, corrected for the local byte order.
     \param value integer to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void int32to(int32_t value, uint8_t *pointer, ByteOrder order)
@@ -607,7 +607,7 @@ void int32to(int32_t value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 16 bit unsigned integer equivalent into a location in memory, corrected for the local byte order.
     \param value integer to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void uint16to(uint16_t value, uint8_t *pointer, ByteOrder order)
@@ -636,7 +636,7 @@ void uint16to(uint16_t value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 16 bit signed integer equivalent into a location in memory, corrected for the local byte order.
     \param value integer to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void int16to(int16_t value, uint8_t *pointer, ByteOrder order)
@@ -665,7 +665,7 @@ void int16to(int16_t value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 32 bit floating point equivalent into a location in memory, corrected for the local byte order.
     \param value float to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void floatto(float value, uint8_t *pointer, ByteOrder order)
@@ -696,7 +696,7 @@ void floatto(float value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 64 bit floating point equivalent into a location in memory, corrected for the local byte order.
     \param value float to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void doubleto(double value, uint8_t *pointer, ByteOrder order)
@@ -2117,15 +2117,20 @@ uint16_t calc_crc16ccitt(uint8_t *buf, int size)
         \param v Row vector to be rotated.
         \return Rotated row vector in the same system.
 */
-rvector rotate_q(quaternion q, rvector v)
+rvector drotate(quaternion q, rvector v)
 {
     // TODO: remove uvector, use quaternion
     uvector t = {{{0.,0.,0.},0.}};
 
-    t.q = q_mult(q,q_mult(v,q_conjugate(q)));
+    t.q = q_fmult(q,q_fmult(v,q_conjugate(q)));
 
     // TODO: how is this supposed to work?
     return (t.r);
+}
+
+rvector rotate_q(quaternion q, rvector v)
+{
+    return drotate(q, v);
 }
 
 //! Rotate a cartesian vector using a quaternion
@@ -2135,39 +2140,62 @@ rvector rotate_q(quaternion q, rvector v)
         \param v cartesian vector to be rotated
         \return cartesian vector in the rotated system
 */
-cvector rotate_q(quaternion q, cvector v)
+cvector drotate(quaternion q, cvector v)
 {
     uvector qt;
-    quaternion qc;
 
     qt.c = v;
     qt.q.w = 0.0;
 
-    qc = q_conjugate(q);
-    qt.q = q_mult(qt.q,qc);
-    qt.q = q_mult(q,qt.q);
+    qt.q = q_fmult(q,q_fmult(qt.r,q_conjugate(q)));
 
     return (qt.c);
 }
 
+cvector rotate_q(quaternion q, cvector v)
+{
+    return drotate(q, v);
+}
 
-//! Transform a row vector using a quaternion
-/*! Transform a row vector from one coordinate system to another using the
+//! Indirectly rotate a row vector using a quaternion
+/*! Indirectly rotate a row vector from one coordinate system to another using the
  * provided left quaternion.
-        \param q quaternion representing the transformation
+        \param q quaternion representing the intrinsic rotation
         \param v row vector to be rotated
-        \return row vector in the transformed system
+        \return row vector in the intrinsically rotated system
 */
-rvector transform_q(quaternion q, rvector v)
+rvector irotate(quaternion q, rvector v)
 {
     uvector t = {{{0.,0.,0.},0.}};
 
-    t.q = q_mult(q_conjugate(q),q_mult(v,q));
+    t.q = q_fmult(q_conjugate(q),q_fmult(v,q));
 
     return (t.r);
 }
 
+rvector transform_q(quaternion q, rvector v)
+{
+    return irotate(q, v);
+}
 
+//! Indirectly rotate a cartesian vector using a quaternion
+/*! Indirectly rotate a cartesian vector from one coordinate system to another using the
+ * provided left quaternion.
+        \param q quaternion representing the intrinsic rotation
+        \param v cartesian vector to be rotated
+        \return cartesian vector in the intrinsically rotated system
+*/
+cvector irotate(quaternion q, cvector v)
+{
+    uvector qt;
+
+    qt.c = v;
+    qt.q.w = 0.0;
+
+    qt.q = q_fmult(q_conjugate(q),q_fmult(qt.r,q));
+
+    return (qt.c);
+}
 
 //! Create rotation quaternion from 2 vectors
 /*! Generate the quaternion that represents a rotation of from one cartesian vector
@@ -2216,7 +2244,17 @@ quaternion q_change_between_cv(cvector from, cvector to)
     return (rq.q);
 }
 
+quaternion q_change_between_rv(rvector from, rvector to)
+{
+    uvector uvfrom, uvto;
+    quaternion result;
 
+    uvfrom.r = from;
+    uvto.r = to;
+    result = q_change_between_cv(uvfrom.c, uvto.c);
+
+    return result;
+}
 
 //! Create rotation matrix from 2 vectors
 /*! Generate the direction cosine matrix that represents a rotation from one cartesian vector
@@ -2360,7 +2398,7 @@ void LsFit::update(double x, quaternion y)
 }
 
 //! Update generic Least Squares Fit
-/*! Add ::fitelement containing independent and dependent value pair to existing ::LsFit, updating the fit. If the number
+/*! Add LsFit::fitelement containing independent and dependent value pair to existing ::LsFit, updating the fit. If the number
  * of elements in the fit has been reached, the oldest element is dropped before fitting.
  * \param cfit Independent and dependent values.
  * \param dep Depth of fit.
@@ -2426,7 +2464,7 @@ void LsFit::fit()
         }
     }
     meanx = sumx[1] / sumx[0];
-    stdevx = sqrt(sumx[2] - sumx[1]*sumx[1]/sumx[0])/(sumx[0]-1);
+    stdevx = sqrt((sumx[2] - sumx[1]*sumx[1]/sumx[0])/(sumx[0]-1));
 
     // Calculate sums of products of dependent and independent and do least squares fit
     parms.resize(depth);
@@ -2446,7 +2484,7 @@ void LsFit::fit()
             }
         }
         meany.a4[i] = sumxy[0] / var.size();
-        stdevy.a4[i] = sqrt(stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1);
+        stdevy.a4[i] = sqrt((stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1));
 
         std::vector< std::vector<double> > xs(order+1, std::vector<double>(order+1));
         std::vector<double> ys(order+1);
@@ -2496,6 +2534,15 @@ double LsFit::firstx()
     {
         return 0.;
     }
+}
+
+//! Least squares number of values.
+/*! Return the number of data values in the fit as of the last ::LsFit::update.
+ * \return Last size of fit.
+*/
+size_t LsFit::size()
+{
+    return var.size();
 }
 
 //! Least squares dependent scalar value.

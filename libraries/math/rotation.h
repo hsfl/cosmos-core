@@ -33,7 +33,7 @@
 #include "support/configCosmos.h"
 #include "vector.h"
 #include "matrix.h"
-#include "quaternion.h"
+// #include "quaternion.h"
 
 // these came from the quaternion lib because they depend on matrix types
 cmatrix cm_quaternion2dcm(quaternion q);

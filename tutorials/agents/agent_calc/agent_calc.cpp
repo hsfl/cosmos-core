@@ -112,14 +112,14 @@ int main(int argc, char *argv[])
 	}
 
 
-    for (uint16_t i=0; i<agent->cinfo->meta.jmap.size(); ++i)
+    for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i)
 	{
-        if (agent->cinfo->meta.jmap[i].size())
+        if (agent->cinfo->jmap[i].size())
 		{
-            cout<<"jmap["<<i<<"]:"<<agent->cinfo->meta.jmap[i][0].name<<endl;
+            cout<<"jmap["<<i<<"]:"<<agent->cinfo->jmap[i][0].name<<endl;
 		}
 	}
-    cout<<agent->cinfo->pdata.node.name<<endl;
+    cout<<agent->cinfo->node.name<<endl;
 
 	string jsp;
 	json_out_name(jsp,(char *)"node_name");
@@ -196,8 +196,8 @@ int32_t request_change_node_name(char *request, char* response, Agent *agent)
 	char new_name[41];
 	sscanf(request,"%*s %40s", new_name);
 
-    strcpy(agent->cinfo->pdata.node.name, new_name);
-    cout<<"The new node name is <"<< agent->cinfo->pdata.node.name <<">"<<endl;
+    strcpy(agent->cinfo->node.name, new_name);
+    cout<<"The new node name is <"<< agent->cinfo->node.name <<">"<<endl;
 
 	return 0;
 }

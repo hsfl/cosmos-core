@@ -39,7 +39,6 @@ using std::endl;
 int main()
 {
 
-
     Agent *agent;
 
     // TODO: remove telem node, replace by node on the fly
@@ -50,7 +49,7 @@ int main()
         {
             Agent::messstruc mess;
 
-            agent->readring(mess, 0xBB);
+            agent->readring(mess, (Agent::AgentMessage)0xBB);
 
             cout << "rx: " << mess.adata << endl;
 

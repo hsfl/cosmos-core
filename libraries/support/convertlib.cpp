@@ -553,7 +553,7 @@ int32_t pos_geod(locstruc *loc)
 	geomag_front(loc->pos.geod.s,mjd2year(loc->utc),&loc->bearth);
 
 	// Transform to ITRS
-	loc->bearth = transform_q(q_change_around_z(-loc->pos.geod.s.lon),transform_q(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
+	loc->bearth = irotate(q_change_around_z(-loc->pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
     return 0;
 }
 
@@ -887,7 +887,7 @@ int32_t pos_geoc2eci(locstruc *loc)
 
 //! Convert GEOC to GEOS
 /*! Convert a Geocentric ::cartpos to a Geographic ::spherpos.
-    \param loc ::locastruc containing position.
+    \param loc ::locstruc containing position.
 */
 int32_t pos_geoc2geos(locstruc *loc)
 {
@@ -1094,7 +1094,7 @@ void pos_geoc2geod(locstruc *loc)
     geomag_front(loc->pos.geod.s,mjd2year(loc->utc),&loc->bearth);
 
     // Transform to ITRS
-    loc->bearth = transform_q(q_change_around_z(-loc->pos.geod.s.lon),transform_q(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
+    loc->bearth = irotate(q_change_around_z(-loc->pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
 
 }
 
@@ -1464,7 +1464,7 @@ int32_t att_icrf2geoc(locstruc *loc)
 	loc->att.geoc.pass = loc->att.icrf.pass;
 
 	// Use to rotate ECI into ITRS
-	loc->att.geoc.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.j2e),loc->att.icrf.s);
+    loc->att.geoc.s = q_fmult(q_dcm2quaternion_rm(loc->pos.extra.j2e),loc->att.icrf.s);
 	normalize_q(&loc->att.geoc.s);
 	loc->att.geoc.v = rv_mmult(loc->pos.extra.j2e,loc->att.icrf.v);
 	loc->att.geoc.a = rv_mmult(loc->pos.extra.j2e,loc->att.icrf.a);
@@ -1502,7 +1502,7 @@ void att_geoc2icrf(locstruc *loc)
 	att_extra(loc);
 
 	// Perform first order rotation of ITRS frame into ECI frame
-	loc->att.icrf.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.e2j),loc->att.geoc.s);
+    loc->att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc->pos.extra.e2j),loc->att.geoc.s);
 	normalize_q(&loc->att.icrf.s);
 	loc->att.icrf.v = rv_mmult(loc->pos.extra.e2j,loc->att.geoc.v);
 	loc->att.icrf.a = rv_mmult(loc->pos.extra.e2j,loc->att.geoc.a);
@@ -1560,7 +1560,7 @@ int32_t att_icrf2selc(locstruc *loc)
     }
 
 	// Use to rotate ICRF into SELC
-	loc->att.selc.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.j2s),loc->att.icrf.s);
+    loc->att.selc.s = q_fmult(q_dcm2quaternion_rm(loc->pos.extra.j2s),loc->att.icrf.s);
 	normalize_q(&loc->att.selc.s);
 	loc->att.selc.v = rv_mmult(loc->pos.extra.j2s,loc->att.icrf.v);
 	loc->att.selc.a = rv_mmult(loc->pos.extra.j2s,loc->att.icrf.a);
@@ -1600,7 +1600,7 @@ void att_selc2icrf(locstruc *loc)
 	//	fpm = loc->pos.extra.s2j;
 
 	// Perform first order rotation of SELC frame into ICRF frame
-	loc->att.icrf.s = q_mult(q_dcm2quaternion_rm(loc->pos.extra.s2j),loc->att.selc.s);
+    loc->att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc->pos.extra.s2j),loc->att.selc.s);
 	normalize_q(&loc->att.icrf.s);
 	loc->att.icrf.v = rv_mmult(loc->pos.extra.s2j,loc->att.selc.v);
 	loc->att.icrf.a = rv_mmult(loc->pos.extra.s2j,loc->att.selc.a);
@@ -1694,18 +1694,18 @@ void att_planec2lvlh(locstruc *loc)
 	geoc_y = rv_cross(geoc_z,ppos->v);
 	normalize_rv(geoc_y);
 
-	// Determine rotation of ITRF Z  into LVLH Z
-	qe_z = q_conjugate(q_change_between_rv(geoc_z,lvlh_z));
+    // Determine intrinsic rotation of ITRF Z  into LVLH Z
+    qe_z = q_conjugate(q_drotate_between_rv(geoc_z,lvlh_z));
 
-	// Use to transform ITRF Y into intermediate Y
-	//	geoc_y = rotate_q(qe_z,geoc_y);
-	geoc_y = transform_q(qe_z,geoc_y);
+    // Use to intrinsically rotate ITRF Y into intermediate Y
+	//	geoc_y = drotate(qe_z,geoc_y);
+	geoc_y = irotate(qe_z,geoc_y);
 
-	// Determine transformation of this intermediate Y into LVLH Y
-	qe_y = q_conjugate(q_change_between_rv(geoc_y,lvlh_y));
+    // Determine intrinsic rotation of this intermediate Y into LVLH Y
+    qe_y = q_conjugate(q_drotate_between_rv(geoc_y,lvlh_y));
 
-	// Combine to determine transformation of ITRF into LVLH
-	fqe = q_mult(qe_z,qe_y);
+    // Combine to determine intrinsic rotation of ITRF into LVLH
+    fqe = q_fmult(qe_z,qe_y);
 	normalize_q(&fqe);
 	rqe = q_conjugate(fqe);
 
@@ -1714,12 +1714,12 @@ void att_planec2lvlh(locstruc *loc)
 	loc->att.lvlh.v = rv_sub(patt->v,alpha);
 
 	// Transform ITRS into LVLH
-	//	loc->att.lvlh.s = q_mult(patt->s,fqe);
-	//	loc->att.lvlh.v = transform_q(fqe,loc->att.lvlh.v);
-	//	loc->att.lvlh.a = transform_q(fqe,patt->a);
-	loc->att.lvlh.s = q_mult(rqe,patt->s);
-	loc->att.lvlh.v = transform_q(fqe,loc->att.lvlh.v);
-	loc->att.lvlh.a = transform_q(fqe,patt->a);
+    //	loc->att.lvlh.s = q_fmult(patt->s,fqe);
+	//	loc->att.lvlh.v = irotate(fqe,loc->att.lvlh.v);
+	//	loc->att.lvlh.a = irotate(fqe,patt->a);
+    loc->att.lvlh.s = q_fmult(rqe,patt->s);
+	loc->att.lvlh.v = irotate(fqe,loc->att.lvlh.v);
+	loc->att.lvlh.a = irotate(fqe,patt->a);
 
 }
 
@@ -1768,18 +1768,18 @@ void att_lvlh2planec(locstruc *loc)
 	normalize_rv(geoc_y);
 
 	// Determine rotation of ITRF Z  into LVLH Z
-	qe_z = q_conjugate(q_change_between_rv(geoc_z,lvlh_z));
-	geoc_z = transform_q(qe_z,geoc_z);
+    qe_z = q_conjugate(q_drotate_between_rv(geoc_z,lvlh_z));
+	geoc_z = irotate(qe_z,geoc_z);
 
 	// Use to rotate LVLH Y into intermediate LVLH Y
-	//	geoc_y = rotate_q(qe_z,geoc_y);
-	geoc_y = transform_q(qe_z,geoc_y);
+	//	geoc_y = drotate(qe_z,geoc_y);
+	geoc_y = irotate(qe_z,geoc_y);
 
 	// Determine rotation of this LVLH Y into ITRF Y
-	qe_y = q_conjugate(q_change_between_rv(geoc_y,lvlh_y));
+    qe_y = q_conjugate(q_drotate_between_rv(geoc_y,lvlh_y));
 
 	// Multiply to determine transformation of ITRF frame into LVLH frame
-	fqe = q_mult(qe_z,qe_y);
+    fqe = q_fmult(qe_z,qe_y);
 	normalize_q(&fqe);
 	rqe = q_conjugate(fqe);
 
@@ -1792,12 +1792,12 @@ void att_lvlh2planec(locstruc *loc)
 	normalize_rv(geoc_y);
 
 	// Rotate LVLH frame into ITRS frame
-	//	patt->s = q_mult(rqe,loc->att.lvlh.s);
-	//	patt->v = transform_q(fqe,loc->att.lvlh.v);
-	//	patt->a = transform_q(fqe,loc->att.lvlh.a);
-	patt->s = q_mult(fqe,loc->att.lvlh.s);
-	patt->v = transform_q(rqe,loc->att.lvlh.v);
-	patt->a = transform_q(rqe,loc->att.lvlh.a);
+    //	patt->s = q_fmult(rqe,loc->att.lvlh.s);
+	//	patt->v = irotate(fqe,loc->att.lvlh.v);
+	//	patt->a = irotate(fqe,loc->att.lvlh.a);
+    patt->s = q_fmult(fqe,loc->att.lvlh.s);
+	patt->v = irotate(rqe,loc->att.lvlh.v);
+	patt->a = irotate(rqe,loc->att.lvlh.a);
 
 	// Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
 	alpha = rv_smult(1./(radius*radius),rv_cross(ppos->s,ppos->v));
@@ -1901,20 +1901,20 @@ void att_planec2topo(locstruc *loc)
 	att_extra(loc);
 
 	// Determine rotation of Topo unit Z  into ITRS Z
-	t2g_z = q_conjugate(q_change_between_rv(rv_unitz(),ppos->s));
+    t2g_z = q_conjugate(q_drotate_between_rv(rv_unitz(),ppos->s));
 
 	// Use to rotate Topo unit X into intermediate Topo X
-	topo_x = transform_q(t2g_z,rv_unitx());
+	topo_x = irotate(t2g_z,rv_unitx());
 
 	// Define ITRS unit x as x=-Topo.y and y=Topo.x
 	geoc_x.col[0] = -ppos->s.col[1];
 	geoc_x.col[1] = ppos->s.col[0];
 
 	// Determine rotation of intermediate Topo X into ITRS unit X
-	t2g_x = q_conjugate(q_change_between_rv(topo_x,geoc_x));
+    t2g_x = q_conjugate(q_drotate_between_rv(topo_x,geoc_x));
 
 	// Multiply to determine rotation of Topo frame into ITRS frame
-	t2g = q_mult(t2g_z,t2g_x);
+    t2g = q_fmult(t2g_z,t2g_x);
 	normalize_q(&t2g);
 	g2t = q_conjugate(t2g);
 
@@ -1923,9 +1923,9 @@ void att_planec2topo(locstruc *loc)
 	loc->att.topo.v = rv_add(patt->v, alpha);
 
 	// Rotate ITRS frame into Topo frame
-	loc->att.topo.s = q_mult(g2t, patt->s);
-	loc->att.topo.v = transform_q(t2g,loc->att.topo.v);
-	loc->att.topo.a = transform_q(t2g,patt->a);
+    loc->att.topo.s = q_fmult(g2t, patt->s);
+	loc->att.topo.v = irotate(t2g,loc->att.topo.v);
+	loc->att.topo.a = irotate(t2g,patt->a);
 
 }
 
@@ -1963,27 +1963,27 @@ void att_topo2planec(locstruc *loc)
 	att_extra(loc);
 
 	// Determine rotation of Topo unit Z  into ITRS Z
-	t2g_z = q_conjugate(q_change_between_rv(rv_unitz(),ppos->s));
+    t2g_z = q_conjugate(q_drotate_between_rv(rv_unitz(),ppos->s));
 
 	// Use to rotate Topo unit X into intermediate Topo X
-	topo_x = transform_q(t2g_z,rv_unitx());
+	topo_x = irotate(t2g_z,rv_unitx());
 
 	// Define ITRS unit x as x=-Topo.y and y=Topo.x
 	geoc_x.col[0] = -ppos->s.col[1];
 	geoc_x.col[1] = ppos->s.col[0];
 
 	// Determine rotation of intermediate Topo X into ITRS unit X
-	t2g_x = q_conjugate(q_change_between_rv(topo_x,geoc_x));
+    t2g_x = q_conjugate(q_drotate_between_rv(topo_x,geoc_x));
 
 	// Multiply to determine rotation of Topo frame into ITRS frame
-	t2g = q_mult(t2g_z,t2g_x);
+    t2g = q_fmult(t2g_z,t2g_x);
 	normalize_q(&t2g);
 	g2t = q_conjugate(t2g);
 
 	// Rotate Topo frame into ITRS frame
-	patt->s = q_mult(loc->att.topo.s,t2g);
-	patt->v = transform_q(g2t,loc->att.topo.v);
-	patt->a = transform_q(g2t,loc->att.topo.a);
+    patt->s = q_fmult(loc->att.topo.s,t2g);
+	patt->v = irotate(g2t,loc->att.topo.v);
+	patt->a = irotate(g2t,loc->att.topo.a);
 
 	// Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
 	alpha = rv_smult(-1./(length_rv(ppos->s)*length_rv(ppos->s)),rv_cross(ppos->s,ppos->v));
@@ -2074,7 +2074,7 @@ void loc_update(locstruc *loc)
 	if (loc->pos.icrf.pass > ppass)
 	{
 		ppass = loc->pos.icrf.pass;
-		ptype = JSON_TYPE_POS_BARYC;
+		ptype = JSON_TYPE_POS_ICRF;
 	}
 	if (loc->pos.eci.pass > ppass)
 	{
@@ -2114,7 +2114,7 @@ void loc_update(locstruc *loc)
 
 	switch (ptype)
 	{
-	case JSON_TYPE_POS_BARYC:
+	case JSON_TYPE_POS_ICRF:
 		pos_icrf(loc);
 		break;
 	case JSON_TYPE_POS_ECI:
@@ -3255,7 +3255,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
 * Load Two Line Element file into array of TLE's
 * \param fname Name of file containing elements
 * \param lines Array of ::tlestruc structures to contain elements
-* \return A ::int32_t indicating number of elements, otherwise a negative error.
+* \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
 int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 {
@@ -3319,7 +3319,7 @@ int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 			tle.raan = RADOF(tle.raan);
 			tle.ap = RADOF(tle.ap);
 			tle.ma = RADOF(tle.ma);
-			tle.mm *= D2PI/1440.;
+            tle.mm *= D2PI/1440.;
 			tle.e = ecc / 1.e7;
 			lines.push_back(tle);
 		}
@@ -3331,7 +3331,7 @@ int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 /*! Load Two Line Element file for multiple satellites into array of TLE's
 * \param fname Name of file containing elements
 * \param lines Array of ::tlestruc structures to contain elements
-* \return A ::int32_t indicating number of elements, otherwise a negative error.
+* \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
 int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 {
@@ -3395,7 +3395,7 @@ int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 			tle.raan = RADOF(tle.raan);
 			tle.ap = RADOF(tle.ap);
 			tle.ma = RADOF(tle.ma);
-			tle.mm *= D2PI/1440.;
+            tle.mm *= D2PI/1440.;
 			tle.e = ecc / 1.e7;
 			lines.push_back(tle);
 		}
@@ -3818,3 +3818,38 @@ std::istream& operator >> (std::istream& in, locstruc& a)
 }
 
 //! @}
+
+void tle2sgp4(tlestruc tle, sgp4struc &sgp4)
+{
+    sgp4.i = DEGOF(tle.i);
+    sgp4.ap = DEGOF(tle.ap);
+    sgp4.bstar = tle.bstar;
+    sgp4.e = tle.e;
+    sgp4.ma = DEGOF(tle.ma);
+    sgp4.mm = tle.mm * 1440. / D2PI;
+    calstruc cal = mjd2cal(tle.utc);
+    sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + cal.second / 86400.;
+    sgp4.raan = DEGOF(tle.raan);
+    return;
+}
+
+void sgp42tle(sgp4struc sgp4, tlestruc &tle)
+{
+    tle.i = RADOF(sgp4.i);
+    tle.ap = RADOF(sgp4.ap);
+    tle.bstar = sgp4.bstar;
+    tle.e = sgp4.e;
+    tle.ma = RADOF(sgp4.ma);
+    tle.mm = sgp4.mm * D2PI / 1440. ;
+    tle.raan = RADOF(sgp4.raan);
+    int year = sgp4.ep / 1000;
+    if (year < 57)
+        year += 2000;
+    else
+        year += 1900;
+    double jday = sgp4.ep - (year *1000);
+    tle.utc = cal2mjd((int)year,1,0.);
+    tle.utc += jday;
+
+    return;
+}
