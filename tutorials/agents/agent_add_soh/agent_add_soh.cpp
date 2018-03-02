@@ -64,6 +64,7 @@ Agent *agent; // to access the cosmos data, will change later
 
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
     cout << "Starting agent " << endl;
 
     // Establish the command channel and heartbeat
