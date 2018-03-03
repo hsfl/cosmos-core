@@ -162,7 +162,6 @@ public:
 #if defined(COSMOS_MAC_OS)
 class DeviceCpuMac
 {
-
     double lastCPUtime;
     double tic, toc;
     float percentCpu;
@@ -268,7 +267,7 @@ public:
     double BytesToMiB(double bytes);
     double BytesToMB(double bytes);
 
-#if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
+#if defined(COSMOS_LINUX_OS)
     DeviceCpuLinux cpuLinux;
 #endif
 
