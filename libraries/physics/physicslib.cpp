@@ -735,7 +735,7 @@ int32_t gravity_params(int model)
             fname += "/general/egm2008_coef.txt";
             fi = fopen(fname.c_str(),"r");
 
-            if (fi < 0)
+            if (fi==NULL)
             {
                 cout << "could not load file " << fname << endl;
                 return iretn;
