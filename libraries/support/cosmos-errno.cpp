@@ -536,8 +536,14 @@ string cosmos_error_string(int32_t cosmos_errno)
         case CUBEADCS_SERIAL_PROTOCOL:
             error_string = "Error in Serial Protocol";
             break;
-        case CLYDEEPS_NOT_CONNECTED:
-            error_string = "EPS Not Connected";
+        case CLYDE_EPS_NOT_CONNECTED:
+            error_string = "Clyde EPS Not Connected";
+            break;
+        case CLYDE_BATTERY_NOT_CONNECTED:
+            error_string = "Clyde Battery Not Connected";
+            break;
+        case CLYDE_GENERAL_BAD_ADDRESS:
+            error_string = "Clyde Bad Address";
             break;
         default:
             char tval[30];
