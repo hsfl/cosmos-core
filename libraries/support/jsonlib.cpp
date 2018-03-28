@@ -6374,14 +6374,21 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     double tvolume = 0.;
     for (size_t i=0; i<cinfo->pieces.size(); ++i)
     {
-        // Calculate center of mass for each Piece using Faces
+        // Clean up any missing faces and calculate center of mass for each Piece using Faces
         cinfo->pieces[i].com = Math::Vector();
+        for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
+        {
+            if (cinfo->faces.size() <= cinfo->pieces[i].face_idx[j])
+            {
+                cinfo->faces.resize(cinfo->pieces[i].face_idx[j]+1);
+                cinfo->faces[cinfo->pieces[i].face_idx[j]].com = Math::Vector();
+                cinfo->faces[cinfo->pieces[i].face_idx[j]].area = 0.;
+                cinfo->faces[cinfo->pieces[i].face_idx[j]].normal = Math::Vector();
+            }
+            cinfo->pieces[i].com += cinfo->faces[cinfo->pieces[i].face_idx[j]].com;
+        }
         if (cinfo->pieces[i].face_cnt)
         {
-            for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
-            {
-                cinfo->pieces[i].com += cinfo->faces[cinfo->pieces[i].face_idx[j]].com;
-            }
             cinfo->pieces[i].com /= cinfo->pieces[i].face_cnt;
         }
 
