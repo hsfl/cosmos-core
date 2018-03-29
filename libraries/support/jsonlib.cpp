@@ -616,9 +616,9 @@ int32_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, u
 
     // Determine extended name
     strcpy(ename,name.c_str());
-    if (d1 < 65535)
+    if (d1 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d1);
-    if (d2 < 65535)
+    if (d2 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d2);
 
     // Populate the entry
@@ -644,9 +644,9 @@ int32_t json_addentry(string name, uint16_t d1, uint16_t d2, uint8_t* ptr, uint1
 
     // Determine extended name
     strcpy(ename,name.c_str());
-    if (d1 < 65535)
+    if (d1 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d1);
-    if (d2 < 65535)
+    if (d2 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d2);
 
     // Populate the entry
@@ -672,9 +672,9 @@ int32_t json_addentry(string name, uint16_t d1, uint16_t d2, uint8_t* ptr, uint1
 
 //    // Determine extended name
 //    strcpy(ename,name.c_str());
-//    if (d1 < 65535)
+//    if (d1 < UINT16_MAX)
 //        sprintf(&ename[strlen(ename)],"_%03u",d1);
-//    if (d2 < 65535)
+//    if (d2 < UINT16_MAX)
 //        sprintf(&ename[strlen(ename)],"_%03u",d2);
 
 //    // Populate the entry
@@ -709,9 +709,9 @@ int32_t json_toggleentry(string name, uint16_t d1, uint16_t d2, cosmosstruc *cin
 
     // Determine extended name
     strcpy(ename,name.c_str());
-    if (d1 < 65535)
+    if (d1 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d1);
-    if (d2 < 65535)
+    if (d2 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d2);
 
     // Find the name in the map
@@ -6837,6 +6837,22 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             if ((iretn = json_parse(json.devgen, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
                 return (iretn);
+            }
+        }
+
+        // Fix any mis registered pieces
+        for (size_t i=0; i < cinfo->node.piece_cnt; ++i)
+        {
+            if (cinfo->pieces[i].cidx != UINT16_MAX)
+            {
+                if (cinfo->device.size() <= i)
+                {
+                    cinfo->pieces[i].cidx = UINT16_MAX;
+                }
+                else
+                {
+                    cinfo->device[cinfo->pieces[i].cidx].all.pidx = i;
+                }
             }
         }
 
