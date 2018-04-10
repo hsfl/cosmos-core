@@ -411,6 +411,11 @@ namespace Cosmos {
     int32_t Serial::set_timeout(int, double timeout)
 #endif
     {
+        set_timeout(timeout);
+    }
+
+    int32_t Serial::set_timeout(double timeout)
+    {
         if (fd < 0)
         {
             return SERIAL_ERROR_OPEN;
