@@ -545,6 +545,12 @@ string cosmos_error_string(int32_t cosmos_errno)
         case CLYDE_GENERAL_BAD_ADDRESS:
             error_string = "Clyde Bad Address";
             break;
+        case MEADE_MOUNT_BAD_RESPONSE:
+            error_string = "Meade Mount Bad Address";
+            break;
+        case MEADE_MOUNT_NOT_CONNECTED:
+            error_string = "Meade Mount Not Connected";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);

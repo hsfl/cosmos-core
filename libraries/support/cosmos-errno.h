@@ -259,6 +259,9 @@
 #define CLYDE_BATTERY_NOT_CONNECTED -612
 #define CLYDE_GENERAL_BAD_ADDRESS -613
 
+#define MEADE_MOUNT_NOT_CONNECTED -620
+#define MEADE_MOUNT_BAD_RESPONSE -621
+#define MEADE_MOUNT_VALUE_INVALID -622
 
 #define GENERAL_OK                        0      /* everything is all right */
 #define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
