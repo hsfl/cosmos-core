@@ -864,7 +864,7 @@ namespace Cosmos {
                     iretn = SERIAL_ERROR_TIMEOUT;
                 }
             }
-            COSMOS_SLEEP(ictimeout/10.);
+            COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
         } while (iretn == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
 
         return iretn;
