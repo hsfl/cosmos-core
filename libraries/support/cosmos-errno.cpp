@@ -551,6 +551,12 @@ string cosmos_error_string(int32_t cosmos_errno)
         case MEADE_MOUNT_NOT_CONNECTED:
             error_string = "Meade Mount Not Connected";
             break;
+        case MEADE_MOUNT_VALUE_INVALID:
+            error_string = "Meade Mount Value Invalid";
+            break;
+        case MEADE_MOUNT_OUTSIDE_LIMITS:
+            error_string = "Meade Mount Request Outside Limits";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);
