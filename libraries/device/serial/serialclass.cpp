@@ -144,6 +144,7 @@ namespace Cosmos {
 
     int32_t Serial::set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
+    baud = dbaud;
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         tcflag_t trate;
         tcflag_t tbits;
@@ -196,6 +197,7 @@ namespace Cosmos {
                 }
             }
         } while (baud_adjust);
+        baud = baud_speed[baud_speed_index][baud_index];
 
         if (baud_speed_index)
         {
@@ -525,11 +527,15 @@ namespace Cosmos {
         }
 #endif
 
-        //        TODO: Check with Eric why 100000000/baud is needed
-        //        The COSMOS_USLEEP causes a fail on windows
-        //        COSMOS_SLEEP(0.01) -> Seems to work on windows
-        //    COSMOS_USLEEP(10000000./baud);
+        // These sleeps are necessary to keep from overrunning the serial output buffer
+        // Windows seem to have trouble with anything shorter than 1/100 second (we should explore this)
+        // Unix is set to sleep just a little longer than it would take to send a character (could be shorter?)
+#ifdef COSMOS_WIN_OS
         COSMOS_SLEEP(0.010);
+#else
+        COSMOS_USLEEP(10000000. / baud);
+#endif
+        //
         error = 0;
 
         return error;
