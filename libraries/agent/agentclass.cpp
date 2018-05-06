@@ -244,6 +244,8 @@ namespace Cosmos {
         Agent::add_request("statejson",Agent::req_statejson,"","return description JSON for State vector");
         Agent::add_request("utcstartjson",Agent::req_utcstartjson,"","return description JSON for UTC Start time");
         Agent::add_request("piecesjson",Agent::req_piecesjson,"","return description JSON for Pieces");
+        Agent::add_request("vertexsjson",Agent::req_vertexsjson,"","return description JSON for Pieces");
+        Agent::add_request("facesjson",Agent::req_facesjson,"","return description JSON for Pieces");
         Agent::add_request("devgenjson",Agent::req_devgenjson,"","return description JSON for General Devices");
         Agent::add_request("devspecjson",Agent::req_devspecjson,"","return description JSON for Specific Devices");
         Agent::add_request("portsjson",Agent::req_portsjson,"","return description JSON for Ports");
@@ -496,6 +498,16 @@ namespace Cosmos {
             return iretn;
         }
         iretn = send_request(hbeat, "piecesjson", jnode.pieces, waitsec);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+        iretn = send_request(hbeat, "facesjson", jnode.faces, waitsec);
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+        iretn = send_request(hbeat, "vertexsjson", jnode.vertexs, waitsec);
         if (iretn < 0)
         {
             return iretn;
@@ -1160,7 +1172,7 @@ namespace Cosmos {
     }
 
     //! Built-in Return State Vector JSON request
-    /*! Returns a JSON string representing the Node description.
+    /*! Returns a JSON string representing the State Vector.
  * \param request Text of request.
  * \param output Text of response to request.
  * \param agent Pointer to Cosmos::Agent to use.
@@ -1173,8 +1185,8 @@ namespace Cosmos {
         return 0;
     }
 
-    //! Built-in Return Node JSON request
-    /*! Returns a JSON string representing the Node description.
+    //! Built-in Return UTC Start Time JSON request
+    /*! Returns a JSON string representing the UTC Start Time.
  * \param request Text of request.
  * \param output Text of response to request.
  * \param agent Pointer to Cosmos::Agent to use.
@@ -1187,8 +1199,8 @@ namespace Cosmos {
         return 0;
     }
 
-    //! Built-in Return Node JSON request
-    /*! Returns a JSON string representing the Node description.
+    //! Built-in Return Pieces JSON request
+    /*! Returns a JSON string representing the Piece information.
  * \param request Text of request.
  * \param output Text of response to request.
  * \param agent Pointer to Cosmos::Agent to use.
@@ -1201,8 +1213,36 @@ namespace Cosmos {
         return 0;
     }
 
-    //! Built-in Return Node JSON request
-    /*! Returns a JSON string representing the Node description.
+    //! Built-in Return Face JSON request
+    /*! Returns a JSON string representing the Face information.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to Cosmos::Agent to use.
+ * \return 0, or negative error.
+ */
+    int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
+    {
+        strncpy(output, agent->cinfo->json.faces.c_str(), agent->cinfo->json.faces.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.faces.size():agent->cinfo->agent[0].beat.bsz-1);
+        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+        return 0;
+    }
+
+    //! Built-in Return Vertex JSON request
+    /*! Returns a JSON string representing the Vertex information.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to Cosmos::Agent to use.
+ * \return 0, or negative error.
+ */
+    int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
+    {
+        strncpy(output, agent->cinfo->json.vertexs.c_str(), agent->cinfo->json.vertexs.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.vertexs.size():agent->cinfo->agent[0].beat.bsz-1);
+        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+        return 0;
+    }
+
+    //! Built-in Return devgen JSON request
+    /*! Returns a JSON string representing the generic device information.
  * \param request Text of request.
  * \param output Text of response to request.
  * \param agent Pointer to Cosmos::Agent to use.
@@ -1215,8 +1255,8 @@ namespace Cosmos {
         return 0;
     }
 
-    //! Built-in Return Node JSON request
-    /*! Returns a JSON string representing the Node description.
+    //! Built-in Return devspec JSON request
+    /*! Returns a JSON string representing the special device information.
  * \param request Text of request.
  * \param output Text of response to request.
  * \param agent Pointer to Cosmos::Agent to use.
@@ -1229,8 +1269,8 @@ namespace Cosmos {
         return 0;
     }
 
-    //! Built-in Return Node JSON request
-    /*! Returns a JSON string representing the Node description.
+    //! Built-in Return Ports JSON request
+    /*! Returns a JSON string representing the Port information.
  * \param request Text of request.
  * \param output Text of response to request.
  * \param agent Pointer to Cosmos::Agent to use.
@@ -1243,8 +1283,8 @@ namespace Cosmos {
         return 0;
     }
 
-    //! Built-in Return Node JSON request
-    /*! Returns a JSON string representing the Node description.
+    //! Built-in Return Target JSON request
+    /*! Returns a JSON string representing the Target information.
  * \param request Text of request.
  * \param output Text of response to request.
  * \param agent Pointer to Cosmos::Agent to use.
@@ -1257,8 +1297,8 @@ namespace Cosmos {
         return 0;
     }
 
-    //! Built-in Return Node JSON request
-    /*! Returns a JSON string representing the Node description.
+    //! Built-in Return Alias JSON request
+    /*! Returns a JSON string representing the alias information.
  * \param request Text of request.
  * \param output Text of response to request.
  * \param agent Pointer to Cosmos::Agent to use.

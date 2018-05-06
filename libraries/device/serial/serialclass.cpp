@@ -144,6 +144,7 @@ namespace Cosmos {
 
     int32_t Serial::set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
+    baud = dbaud;
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         tcflag_t trate;
         tcflag_t tbits;
@@ -174,10 +175,10 @@ namespace Cosmos {
         do
         {
             baud_adjust = false;
-            int32_t baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index]);
+            int32_t baud_diff = std::abs((int32_t)dbaud - baud_speed[baud_speed_index][baud_index]);
             if (baud_index > 0)
             {
-                int32_t new_baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index-1]);
+                int32_t new_baud_diff = std::abs((int32_t)dbaud - baud_speed[baud_speed_index][baud_index-1]);
                 if (new_baud_diff < baud_diff)
                 {
                     --baud_index;
@@ -187,7 +188,7 @@ namespace Cosmos {
             }
             if (baud_index < baud_speed[baud_speed_index].size()-1)
             {
-                int32_t new_baud_diff = abs(dbaud - baud_speed[baud_speed_index][baud_index+1]);
+                int32_t new_baud_diff = std::abs((int32_t)dbaud - baud_speed[baud_speed_index][baud_index+1]);
                 if (new_baud_diff < baud_diff)
                 {
                     ++baud_index;
@@ -196,6 +197,7 @@ namespace Cosmos {
                 }
             }
         } while (baud_adjust);
+        baud = baud_speed[baud_speed_index][baud_index];
 
         if (baud_speed_index)
         {
@@ -411,6 +413,11 @@ namespace Cosmos {
     int32_t Serial::set_timeout(int, double timeout)
 #endif
     {
+        set_timeout(timeout);
+    }
+
+    int32_t Serial::set_timeout(double timeout)
+    {
         if (fd < 0)
         {
             return SERIAL_ERROR_OPEN;
@@ -468,7 +475,7 @@ namespace Cosmos {
 
     int32_t Serial::SendBuffer(uint8_t *buffer, int size)
     {
-        size_t n=0;
+        int32_t n=0;
 
         if (fd < 0)
         {
@@ -520,11 +527,15 @@ namespace Cosmos {
         }
 #endif
 
-        //        TODO: Check with Eric why 100000000/baud is needed
-        //        The COSMOS_USLEEP causes a fail on windows
-        //        COSMOS_SLEEP(0.01) -> Seems to work on windows
-        //    COSMOS_USLEEP(10000000./baud);
+        // These sleeps are necessary to keep from overrunning the serial output buffer
+        // Windows seem to have trouble with anything shorter than 1/100 second (we should explore this)
+        // Unix is set to sleep just a little longer than it would take to send a character (could be shorter?)
+#ifdef COSMOS_WIN_OS
         COSMOS_SLEEP(0.010);
+#else
+        COSMOS_USLEEP(10000000. / baud);
+#endif
+        //
         error = 0;
 
         return error;
@@ -856,11 +867,11 @@ namespace Cosmos {
                 }
                 else
                 {
-                    iretn = -EAGAIN;
+                    iretn = SERIAL_ERROR_TIMEOUT;
                 }
             }
-            COSMOS_SLEEP(ictimeout/10.);
-        } while (iretn == -EAGAIN && et.split() < ictimeout);
+            COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
+        } while (iretn == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
 
         return iretn;
     }
@@ -893,6 +904,37 @@ namespace Cosmos {
             }
         }
         return (size);
+    }
+
+    int32_t Serial::get_string(string &data, char endc)
+    {
+        if (fd < 0)
+        {
+            error = SERIAL_ERROR_OPEN;
+            return (error);
+        }
+
+        data.clear();
+        do
+        {
+            if ((error=get_char()) < 0)
+            {
+                if (error == SERIAL_ERROR_TIMEOUT)
+                {
+                    return(data.size());
+                }
+                else
+                {
+                    return error;
+                }
+            }
+            else
+            {
+                data.append(1, (char)error);
+            }
+        } while (error != endc);
+
+        return (data.size());
     }
 
     int32_t Serial::get_data(vector <uint8_t> &data, size_t size)

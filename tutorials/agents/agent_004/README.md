@@ -2,12 +2,12 @@
 
 start both agents
 
-$ ./agent_001
+$ ./agent_005
 $ ./agent_002
 
 try to shut them down
-$ ./agent cubesat1 001 shutdown
-$ ./agent cubesat1 002 shutdown
+$ ./agent hiakasat 005 shutdown
+$ ./agent hiakasat 002 shutdown
 
 examples to set values
 $ agent otb imu 'setvalue {"agent_stateflag":4}'

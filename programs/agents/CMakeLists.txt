@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 2.8.12)
 
 file(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
+message("COSMOS_AGENST_LIBS: ${COSMOS_LIBS}")
+
 foreach(file ${files})
 
     get_filename_component(bfile ${file} NAME_WE)

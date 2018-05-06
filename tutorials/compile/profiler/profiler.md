@@ -19,7 +19,7 @@ it reads gmon.out and prints a report
 
 ## Mac OS
 
-To profile on the the Mac use ``Instruments" budled with Xcode
+To profile on the Mac use ``Instruments" budled with Xcode
 or install http://valgrind.org
 
 Here is a list of profiling tools recomended by Qt: http://qt-project.org/wiki/Profiling-and-Memory-Checking-Tools

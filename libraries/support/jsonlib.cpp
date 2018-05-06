@@ -616,9 +616,9 @@ int32_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, u
 
     // Determine extended name
     strcpy(ename,name.c_str());
-    if (d1 < 65535)
+    if (d1 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d1);
-    if (d2 < 65535)
+    if (d2 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d2);
 
     // Populate the entry
@@ -644,9 +644,9 @@ int32_t json_addentry(string name, uint16_t d1, uint16_t d2, uint8_t* ptr, uint1
 
     // Determine extended name
     strcpy(ename,name.c_str());
-    if (d1 < 65535)
+    if (d1 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d1);
-    if (d2 < 65535)
+    if (d2 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d2);
 
     // Populate the entry
@@ -672,9 +672,9 @@ int32_t json_addentry(string name, uint16_t d1, uint16_t d2, uint8_t* ptr, uint1
 
 //    // Determine extended name
 //    strcpy(ename,name.c_str());
-//    if (d1 < 65535)
+//    if (d1 < UINT16_MAX)
 //        sprintf(&ename[strlen(ename)],"_%03u",d1);
-//    if (d2 < 65535)
+//    if (d2 < UINT16_MAX)
 //        sprintf(&ename[strlen(ename)],"_%03u",d2);
 
 //    // Populate the entry
@@ -709,9 +709,9 @@ int32_t json_toggleentry(string name, uint16_t d1, uint16_t d2, cosmosstruc *cin
 
     // Determine extended name
     strcpy(ename,name.c_str());
-    if (d1 < 65535)
+    if (d1 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d1);
-    if (d2 < 65535)
+    if (d2 < UINT16_MAX)
         sprintf(&ename[strlen(ename)],"_%03u",d2);
 
     // Find the name in the map
@@ -5118,7 +5118,7 @@ int32_t json_skip_value(const char* &ptr)
         return 0;
 }
 
-int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmosstruc *cinfo)
+int32_t json_set_string(string val, const jsonentry &entry, cosmosstruc *cinfo)
 {
     uint8_t *data;
 
@@ -5128,7 +5128,7 @@ int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmo
         return JSON_ERROR_NAN;
     }
 
-    switch (type)
+    switch (entry.type)
     {
     case JSON_TYPE_UINT8:
         *(uint8_t *)data = stoi(val);
@@ -5159,14 +5159,14 @@ int32_t json_set_string(string val, uint16_t type, const jsonentry &entry, cosmo
     return 0;
 }
 
-int32_t json_set_number(double val, uint16_t type, const jsonentry &entry, cosmosstruc *cinfo)
+int32_t json_set_number(double val, const jsonentry &entry, cosmosstruc *cinfo)
 {
     uint8_t *data;
     int32_t iretn = 0;
 
     data = json_ptr_of_entry(entry, cinfo);
 
-    switch (type)
+    switch (entry.type)
     {
     case JSON_TYPE_UINT8:
         *(uint8_t *)data = (uint8_t)val;
@@ -6325,45 +6325,48 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     // Calculate centroid, normal and area for each face
     for (size_t i=0; i<cinfo->faces.size(); ++i)
     {
-        Vector fcentroid = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
-        fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[1]];
-        Vector v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
-        Vector v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[1]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
-        Vector fnormal = v1.cross(v2);
-        for (size_t j=2; j<cinfo->faces[i].vertex_cnt; ++j)
+        if (cinfo->faces[i].vertex_cnt)
         {
-            fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[j]];
+            Vector fcentroid = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
+            fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[1]];
+            Vector v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
+            Vector v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[1]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[0]];
+            Vector fnormal = v1.cross(v2);
+            for (size_t j=2; j<cinfo->faces[i].vertex_cnt; ++j)
+            {
+                fcentroid += cinfo->vertexs[cinfo->faces[i].vertex_idx[j]];
+                v1 = v2;
+                v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[j-1]];
+                fnormal += v1.cross(v2);
+            }
             v1 = v2;
-            v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[j-1]];
+            v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
             fnormal += v1.cross(v2);
-        }
-        v1 = v2;
-        v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[0]] - cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]];
-        fnormal += v1.cross(v2);
 
-        fcentroid /= cinfo->faces[i].vertex_cnt;
-        cinfo->faces[i].normal = fnormal.normalize();
+            fcentroid /= cinfo->faces[i].vertex_cnt;
+            cinfo->faces[i].normal = fnormal.normalize();
 
-        cinfo->faces[i].com = Math::Vector();
-        cinfo->faces[i].area = 0.;
-        v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]] - fcentroid;
-        for (size_t j=0; j<cinfo->faces[i].vertex_cnt; ++j)
-        {
-            v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - fcentroid;
-            // Area of triangle made by v1, v2 and Face centroid
-            double tarea = v1.area(v2);
-            // Sum
-            cinfo->faces[i].area += tarea;
-            // Centroid of triangle made by v1, v2 amd Face centroid
-            Vector tcentroid = (v1 + v2 + fcentroid) / 3.;
-            // Weighted sum
-            cinfo->faces[i].com += tcentroid * tarea;
-            v1 = v2;
-        }
-        // Divide by summed weights
-        if (cinfo->faces[i].area)
-        {
-            cinfo->faces[i].com /= cinfo->faces[i].area;
+            cinfo->faces[i].com = Math::Vector();
+            cinfo->faces[i].area = 0.;
+            v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]] - fcentroid;
+            for (size_t j=0; j<cinfo->faces[i].vertex_cnt; ++j)
+            {
+                v2 = cinfo->vertexs[cinfo->faces[i].vertex_idx[j]] - fcentroid;
+                // Area of triangle made by v1, v2 and Face centroid
+                double tarea = v1.area(v2);
+                // Sum
+                cinfo->faces[i].area += tarea;
+                // Centroid of triangle made by v1, v2 amd Face centroid
+                Vector tcentroid = (v1 + v2 + fcentroid) / 3.;
+                // Weighted sum
+                cinfo->faces[i].com += tcentroid * tarea;
+                v1 = v2;
+            }
+            // Divide by summed weights
+            if (cinfo->faces[i].area)
+            {
+                cinfo->faces[i].com /= cinfo->faces[i].area;
+            }
         }
     }
 
@@ -6371,14 +6374,21 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     double tvolume = 0.;
     for (size_t i=0; i<cinfo->pieces.size(); ++i)
     {
-        // Calculate center of mass for each Piece using Faces
+        // Clean up any missing faces and calculate center of mass for each Piece using Faces
         cinfo->pieces[i].com = Math::Vector();
+        for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
+        {
+            if (cinfo->faces.size() <= cinfo->pieces[i].face_idx[j])
+            {
+                cinfo->faces.resize(cinfo->pieces[i].face_idx[j]+1);
+                cinfo->faces[cinfo->pieces[i].face_idx[j]].com = Math::Vector();
+                cinfo->faces[cinfo->pieces[i].face_idx[j]].area = 0.;
+                cinfo->faces[cinfo->pieces[i].face_idx[j]].normal = Math::Vector();
+            }
+            cinfo->pieces[i].com += cinfo->faces[cinfo->pieces[i].face_idx[j]].com;
+        }
         if (cinfo->pieces[i].face_cnt)
         {
-            for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
-            {
-                cinfo->pieces[i].com += cinfo->faces[cinfo->pieces[i].face_idx[j]].com;
-            }
             cinfo->pieces[i].com /= cinfo->pieces[i].face_cnt;
         }
 
@@ -6827,6 +6837,22 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             if ((iretn = json_parse(json.devgen, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
                 return (iretn);
+            }
+        }
+
+        // Fix any mis registered pieces
+        for (size_t i=0; i < cinfo->node.piece_cnt; ++i)
+        {
+            if (cinfo->pieces[i].cidx != UINT16_MAX)
+            {
+                if (cinfo->device.size() <= i)
+                {
+                    cinfo->pieces[i].cidx = UINT16_MAX;
+                }
+                else
+                {
+                    cinfo->device[cinfo->pieces[i].cidx].all.pidx = i;
+                }
             }
         }
 
@@ -7604,8 +7630,14 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_batt_cap",didx, UINT16_MAX, (uint8_t *)&device.batt.capacity, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_eff",didx, UINT16_MAX, (uint8_t *)&device.batt.efficiency, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_charge",didx, UINT16_MAX, (uint8_t *)&device.batt.charge, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_current",didx, UINT16_MAX, (uint8_t *)&device.batt.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_volt",didx, UINT16_MAX, (uint8_t *)&device.batt.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_nvolt",didx, UINT16_MAX, (uint8_t *)&device.batt.nvolt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_power",didx, UINT16_MAX, (uint8_t *)&device.batt.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_r_in",didx, UINT16_MAX, (uint8_t *)&device.batt.r_in, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_r_out",didx, UINT16_MAX, (uint8_t *)&device.batt.r_out, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_percentage",didx, UINT16_MAX, (uint8_t *)&device.batt.percentage, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_time_remaining",didx, UINT16_MAX, (uint8_t *)&device.batt.time_remaining, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     case (uint16_t)DeviceType::BCREG:
         iretn = json_addentry("device_bcreg_utc",didx, UINT16_MAX, (uint8_t *)&device.bcreg.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -9027,7 +9059,9 @@ string json_list_of_soh(cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_batt_utc_%03d\",\"device_batt_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_batt_charge_%03d\"",i);
+        sprintf(tempstring, ",\"device_batt_current_%03d\",\"device_batt_volt_%03d\", \"device_batt_power_%03d\"",i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_batt_charge_%03d\",\"device_batt_percentage_%03d\", \"device_batt_time_remaining_%03d\"",i,i,i);
         result += tempstring;
     }
 

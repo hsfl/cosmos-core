@@ -40,6 +40,7 @@
 //!
 //! Usage: agent_file destination_ip_address_lo [destination_ip_address_hi]
 
+
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
 #include "support/jsonlib.h"
@@ -1716,6 +1717,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
     }
 
     // Locate next empty space
+    //get the file size
     outgoing_tx_lock.lock();
     tx_out.tx_id = 0;
     PACKET_TX_ID_TYPE id = txq[node].outgoing.next_id;

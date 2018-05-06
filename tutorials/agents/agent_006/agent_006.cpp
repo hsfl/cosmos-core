@@ -27,24 +27,11 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// Example of an agent making a request to another agent
-// agent 004 makes request to 002 upon activation
-
-// the single quote only works on linux
-// test: agent telem 004 'setvalue {"device_telem_vint16_000":10}'
-// test: agent telem 004 'getvalue {"device_telem_vint16_000"}'
-
-// the single quote only works on windows
-// test: agent telem 004 "setvalue {\"device_telem_vint16_000\":10}"
-// test: agent telem 004 "getvalue {\"device_telem_vint16_000\"}"
+// Example of an agent making a request to another agent 
+// agent 006 makes request to 006 upon activation
 
 #include "support/configCosmos.h"
-#include "support/elapsedtime.h"
-#include "support/timeutils.h"
 #include "agent/agentclass.h"
-// agent 002 makes request to 002 upon activation
-
-#include "support/configCosmos.h"
 
 #include <iostream>
 #include <string>
@@ -62,8 +49,8 @@ int main(int, char **)
 
     cout << "Starting agent " << endl;
 
-    string agentname     = "004";
-    string nodename      = "cubesat1";
+    string agentname     = "006";
+    string nodename      = "cubesat6";
     agent = new Agent(nodename, agentname);
 
     agent->add_request("request_hello", request_hello);
@@ -83,7 +70,7 @@ int32_t request_hello(char *, char* response, Agent *)
 
     sprintf(response,"hello %d ",countReq);
 
-    cout << "agent 004 got request! response is: " << response << endl;
+    cout << "agent 006 got request! response is: " << response << endl;
 
     // add counter
     countReq ++;

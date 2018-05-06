@@ -1496,6 +1496,14 @@ struct battstruc : public allstruc
 	float efficiency;
 	//! Charge in amp hours
 	float charge;
+    //! Resistance in
+    float r_in;
+    //! Resistance out
+    float r_out;
+    //! Battery Percentage Remaining
+    float percentage;
+    //! Time Remaining
+    float time_remaining;
 };
 
 //! Heater Structure definition
@@ -2018,6 +2026,7 @@ struct cosmosmetastruc
  * Space. The components of this can then be mapped to the Name Space
  * using calls to ::json_addentry.
 */
+// TODO: explain primary and secondary data
 struct cosmosstruc
 {
     //! Timestamp for last change to data
@@ -2068,12 +2077,6 @@ struct cosmosstruc
     vector<glossarystruc> glossary;
     //! Array of Two Line Elements
     vector<tlestruc> tle;
-    //! Namespace meta information
-//    cosmosmetastruc meta;
-    //! Primary Namespace data
-//    cosmosdatastruc pdata;
-    //! Secondary Namespace data
-//    cosmosdatastruc sdata;
     //! JSON descriptive information
     jsonnode json;
 };

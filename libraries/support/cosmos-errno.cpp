@@ -536,8 +536,26 @@ string cosmos_error_string(int32_t cosmos_errno)
         case CUBEADCS_SERIAL_PROTOCOL:
             error_string = "Error in Serial Protocol";
             break;
-        case CLYDEEPS_NOT_CONNECTED:
-            error_string = "EPS Not Connected";
+        case CLYDE_EPS_NOT_CONNECTED:
+            error_string = "Clyde EPS Not Connected";
+            break;
+        case CLYDE_BATTERY_NOT_CONNECTED:
+            error_string = "Clyde Battery Not Connected";
+            break;
+        case CLYDE_GENERAL_BAD_ADDRESS:
+            error_string = "Clyde Bad Address";
+            break;
+        case MEADE_MOUNT_BAD_RESPONSE:
+            error_string = "Meade Mount Bad Address";
+            break;
+        case MEADE_MOUNT_NOT_CONNECTED:
+            error_string = "Meade Mount Not Connected";
+            break;
+        case MEADE_MOUNT_VALUE_INVALID:
+            error_string = "Meade Mount Value Invalid";
+            break;
+        case MEADE_MOUNT_OUTSIDE_LIMITS:
+            error_string = "Meade Mount Request Outside Limits";
             break;
         default:
             char tval[30];
