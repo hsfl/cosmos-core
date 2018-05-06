@@ -280,7 +280,7 @@
 #define GENERAL_ERROR_UNDEFINED        -2018
 #define GENERAL_ERROR_OUTOFRANGE        -2019
 
-
+#define GPHOTO2_ERROR -3000
 
 
 //! @}
