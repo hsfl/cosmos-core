@@ -48,6 +48,7 @@
 //! \defgroup stringlib_functions String handling functions
 //! @{
 
+vector < string > string_split(string in, string delimeters);
 uint16_t string_parse(char *string, char *word[], uint16_t size);
 int string_cmp(const char *wild, const char *string);
 
