@@ -286,7 +286,7 @@
 #define GENERAL_ERROR_OUTOFRANGE        -2019
 #define GENERAL_ERROR_NOTREADY          -2020
 
-
+#define GPHOTO2_ERROR -3000
 
 
 //! @}

@@ -289,7 +289,7 @@ my_error_exit (j_common_ptr cinfo)
  */
 
 GLOBAL(int)
-read_JPEG_file (char * filename, JSAMPLE *image_buffer)
+read_JPEG_file (const char * filename, JSAMPLE *image_buffer)
 {
     FILE *infile;
 /* This struct contains the JPEG decompression parameters and pointers to
@@ -418,7 +418,7 @@ read_JPEG_file (char * filename, JSAMPLE *image_buffer)
 }
 
 GLOBAL(int)
-read_JPEG_file (char * filename, vector < vector < uint8_t > > &image_buffer)
+read_JPEG_file (const char * filename, vector < vector < uint8_t > > &image_buffer)
 {
     FILE *infile;
 /* This struct contains the JPEG decompression parameters and pointers to
