@@ -362,6 +362,7 @@ int create_node () // only use when unsure what the node is
             return 1;
         }
         cinfo = json_create();
+        json_mapbaseentries(cinfo);
         strcpy(cinfo->node.name, nodename.c_str());
         cinfo->name = nodename;
         cinfo->node.type = NODE_TYPE_COMPUTER;
