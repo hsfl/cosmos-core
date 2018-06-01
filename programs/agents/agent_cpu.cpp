@@ -353,6 +353,7 @@ int create_node () // only use when unsure what the node is
 
     // Ensure node is present
     //cout << "Node name is " << nodename << endl;
+    // If could not find node directory then make one on the fly
     if (get_nodedir(nodename).empty())
     {
         cout << endl << "Couldn't find Node directory, making directory now...";

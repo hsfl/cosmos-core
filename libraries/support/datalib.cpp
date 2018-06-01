@@ -1479,6 +1479,8 @@ string get_nodedir(string node, bool create_flag)
                     nodedir.clear();
                 }
             }
+        } else {
+            // node folder exists
         }
     }
 
