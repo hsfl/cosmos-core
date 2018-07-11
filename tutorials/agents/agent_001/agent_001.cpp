@@ -47,12 +47,22 @@
 #include <string>
 Agent *agent;
 
-int main(int, char **)
+int main(int argc, char **argv)
 {
 
     string agentname = "001";
     string nodename  = "cubesat1";
     string agent002  = "002"; //name of the agent that the request is directed to
+
+    switch (argc)
+    {
+    case 3:
+        nodename = argv[2];
+    case 2:
+        agentname = (string)argv[1] + "_001";
+        agent002  = (string)argv[1] + "_002";
+    }
+
     agent = new Agent(nodename, agentname);
 
     if (agent->last_error()<0)

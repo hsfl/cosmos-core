@@ -87,6 +87,7 @@ Agent *agent;
 
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
 
 //    cout << "Starting agent cpu" << endl;
 
@@ -109,7 +110,7 @@ int main(int argc, char *argv[])
         break;
     }
 
-    if (create_node())
+    if ((iretn=create_node()))
     {
         cout << "Unable to make node " << endl;
         exit(1);
