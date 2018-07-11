@@ -27,8 +27,6 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
-// TODO: delete agent.cpp?
-// TODO: move to another folder
 /*! \file agent.cpp
 * \brief Agent control program source
 */
@@ -85,19 +83,13 @@ int main(int argc, char *argv[])
     //agent->debug_level = 0;
     agent = new Agent("","",1,AGENTMAXBUFFER,false,0,NetworkType::UDP,0);
 
-
-    if (!strcmp(argv[1],"dump"))
-    {
-
-    }
-
     // check command line arguments
     switch (argc)
     {
     case 1:
         {
-            printf("Usage: cosmos [ list | dump [soh, beat, ###] | node_name agent_name \"request [ arguments ]\" ]\n");
-            printf("Usage (future): cosmos [-node -makenode -updatetle ...]\n");
+            printf("Usage: cosmos [ list | dump [soh, beat, ###] | node_name agent_name \"request [ arguments ]\" ]\n"); 
+            printf("Usage (future): cosmos [-node -makenode -updatetle ...]\n"); 
             //      printf("\n    List of available nodes:\n\n");
             //      print_node_list(nl);
             //      printf("\n");
