@@ -36,6 +36,46 @@
 //! \addtogroup stringlib_functions
 //! @{
 
+//! Parse a string
+/*! Divide a string into substrings based on a delimeter and return a vector of the
+ * results.
+    \param in Zero terminated character string.
+    \param delimeter string of delimeters.
+    \return vector of sub strings.
+*/
+vector < string > string_split(string in, string delimeters)
+{
+    vector<string> result;
+    const char *str = in.data();
+
+    do
+    {
+        const char *begin = str;
+
+        while(*str)
+        {
+            bool match = false;
+
+            for (size_t i=0; i<delimeters.size(); ++i)
+            {
+                if (*str == delimeters[i])
+                {
+                    match = true;
+                    break;
+                }
+            }
+            if (match)
+            {
+                break;
+            }
+            str++;
+        }
+        result.push_back(string(begin, str));
+    } while (0 != *str++);
+
+    return result;
+}
+
 //! Parse a string into words
 /*! Divide a string into words separated by white space and return an array of the
  * results.

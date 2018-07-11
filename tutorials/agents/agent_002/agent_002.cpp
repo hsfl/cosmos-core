@@ -43,7 +43,7 @@ int32_t request_hello(char *request, char* response, Agent *cdata);
 int countReq = 0;
 Agent *agent;
 
-int main(int, char **)
+int main(int argc, char **argv)
 {
     //setEnvCosmos(cosmosPath);
 
@@ -51,6 +51,15 @@ int main(int, char **)
 
     string agentname     = "002";
     string nodename      = "cubesat1";
+
+    switch (argc)
+    {
+    case 3:
+        nodename = argv[2];
+    case 2:
+        agentname = (string)argv[1] + "_002";
+    }
+
     agent = new Agent(nodename, agentname);
 
     agent->add_request("request_hello", request_hello);
