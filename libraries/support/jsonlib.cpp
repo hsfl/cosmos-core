@@ -2404,7 +2404,7 @@ int32_t json_out(string &jstring, string token, cosmosstruc *cinfo)
     if (cinfo->jmap.size() == 0)
         return (JSON_ERROR_NOJMAP);
 
-    for (h.index=0; h.index<cinfo->jmap[h.hash].size(); ++h.index)
+    for (h.index=0; h.index < cinfo->jmap[h.hash].size(); ++h.index)
         //		if (!strcmp(token.c_str(), cinfo->jmap[h.hash][h.index].name))
         if (token == cinfo->jmap[h.hash][h.index].name)
         {

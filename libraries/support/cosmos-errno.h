@@ -259,10 +259,10 @@
 #define CLYDE_BATTERY_NOT_CONNECTED -612
 #define CLYDE_GENERAL_BAD_ADDRESS -613
 
-#define MEADE_MOUNT_NOT_CONNECTED -620
-#define MEADE_MOUNT_BAD_RESPONSE -621
-#define MEADE_MOUNT_VALUE_INVALID -622
-#define MEADE_MOUNT_OUTSIDE_LIMITS -623
+#define MEADE_MOUNT_ERROR_NOT_CONNECTED -620
+#define MEADE_MOUNT_ERROR_BAD_RESPONSE -621
+#define MEADE_MOUNT_ERROR_VALUE_INVALID -622
+#define MEADE_MOUNT_ERROR_OUTSIDE_LIMITS -623
 
 #define GENERAL_OK                        0      /* everything is all right */
 #define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
@@ -284,6 +284,7 @@
 #define GENERAL_ERROR_OUTPUT           -2017     /* output from a routine returned bad output, possibly related to bad input */
 #define GENERAL_ERROR_UNDEFINED        -2018
 #define GENERAL_ERROR_OUTOFRANGE        -2019
+#define GENERAL_ERROR_NOTREADY          -2020
 
 #define GPHOTO2_ERROR -3000
 

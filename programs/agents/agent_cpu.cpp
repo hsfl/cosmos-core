@@ -87,6 +87,7 @@ Agent *agent;
 
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
 
 //    cout << "Starting agent cpu" << endl;
 
@@ -109,7 +110,7 @@ int main(int argc, char *argv[])
         break;
     }
 
-    if (create_node())
+    if ((iretn=create_node()))
     {
         cout << "Unable to make node " << endl;
         exit(1);
@@ -353,6 +354,7 @@ int create_node () // only use when unsure what the node is
 
     // Ensure node is present
     //cout << "Node name is " << nodename << endl;
+    // If could not find node directory then make one on the fly
     if (get_nodedir(nodename).empty())
     {
         cout << endl << "Couldn't find Node directory, making directory now...";
@@ -362,6 +364,7 @@ int create_node () // only use when unsure what the node is
             return 1;
         }
         cinfo = json_create();
+        json_mapbaseentries(cinfo);
         strcpy(cinfo->node.name, nodename.c_str());
         cinfo->name = nodename;
         cinfo->node.type = NODE_TYPE_COMPUTER;
