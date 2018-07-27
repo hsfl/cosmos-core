@@ -1762,11 +1762,11 @@ bool data_isdir(string path)
 
 }
 
-bool data_isfile(string path)
+bool data_isfile(string path, size_t size)
 {
     struct stat st;
 
-    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode))
+    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
     {
         return true;
     }
