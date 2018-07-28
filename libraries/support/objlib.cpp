@@ -284,7 +284,7 @@ namespace Cosmos {
             default:
                 if (i == 3 || i == 4)
                 {
-                    tvec /= 1000.;
+//                    tvec /= 1000.;
                     Vg.push_back(tvec);
                 }
                 break;
