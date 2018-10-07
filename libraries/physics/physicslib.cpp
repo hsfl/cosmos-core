@@ -972,17 +972,17 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
 //    unitv = loc.pos.geoc.v;
 //    normalize_rv(unitv);
 //    unitv = irotate((loc.att.geoc.s),unitv);
-    unitv = Math::Quaternion(loc.att.geoc.s).irotate(Vector(loc.pos.geoc.v).normalize());
+    unitv = Quaternion(loc.att.geoc.s).irotate(Vector(loc.pos.geoc.v).normalize());
 
 //    units = rv_smult(-1.,loc.pos.icrf.s);
 //    normalize_rv(units);
 //    units = irotate((loc.att.icrf.s),units);
-    units = Math::Quaternion(loc.att.icrf.s).irotate(-1. * Vector(loc.pos.icrf.s).normalize());
+    units = Quaternion(loc.att.icrf.s).irotate(-1. * Vector(loc.pos.icrf.s).normalize());
 
 //    unite = rv_smult(-1.,loc.pos.eci.s);
 //    normalize_rv(unite);
 //    unite = irotate((loc.att.icrf.s),unite);
-    unite = Math::Quaternion(loc.att.icrf.s).irotate(-1. * Vector(loc.pos.eci.s).normalize());
+    unite = Quaternion(loc.att.icrf.s).irotate(-1. * Vector(loc.pos.eci.s).normalize());
 
     geov = loc.pos.geoc.v;
     speed = geov.col[0]*geov.col[0]+geov.col[1]*geov.col[1]+geov.col[2]*geov.col[2];

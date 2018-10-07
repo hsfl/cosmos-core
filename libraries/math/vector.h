@@ -323,6 +323,7 @@ quaternion q_change_between_rv(rvector from, rvector to);
 
 namespace Cosmos {
     namespace Math {
+        namespace Vectors {
         //! Vector Class
         /*! eventually this is where all row vector stuff would come?
  * do we really need to differentiate between cvector and rvector in the future?
@@ -333,9 +334,8 @@ namespace Cosmos {
 
         public:
 
-            // default constructor
-//            Vector();
-//            Vector(double x, double y, double z);
+            //! Constructor and initializer.
+            //! Initialize ::Vector to zero.
             Vector(double x0=0., double y0=0., double z0=0., double w0=0.)
             {
                 x = x0;
@@ -394,7 +394,6 @@ namespace Cosmos {
             double &operator [] (const int &index);
 
             Vector operator * (const double &scale); // multiply vector by scalar operator
-//            friend Vector operator * (const double &scale, const Vector &v); // Multiply scalar by vector
             Vector &operator *=( const double &scale); // multiply vector by scalar operator in place
             Vector operator * (const Vector &v2); // multiply vector by vector operator
 
@@ -412,15 +411,22 @@ namespace Cosmos {
             bool operator != (const Vector &v2); // Compares two vectors
         };
 
-        Vector operator * (const double &scale, const Vector &v);
+        Vector operator * (const double &scale, Vector &v);
         std::ostream& operator << (std::ostream& out, const Vector& v);
+        Vector eyeV(double scale=1.);
+        Vector unitxV(double scale=1.);
+        Vector unityV(double scale=1.);
+        Vector unitzV(double scale=1.);
+        }
 
-        class Quaternion : public Vector
+
+        namespace Quaternions {
+        class Quaternion : public Vectors::Vector
         {
 
         public:
 
-            double x,y,z,w;
+//            double x,y,z,w;
 
             Quaternion(double qx=0., double qy=0., double qz=0., double qw=0.) : Vector(qx, qy, qz, qw)
             {
@@ -459,30 +465,41 @@ namespace Cosmos {
 
 
             // operators
-//            Quaternion operator+(const Quaternion& );
-//            Quaternion operator-(const Quaternion& );
-            Quaternion operator *(const Quaternion &q2);
+            Quaternion operator * (const double &scale); // multiply vector by scalar operator
+            Quaternion &operator *= ( const double &scale); // multiply vector by scalar operator in place
+            Quaternion operator * (const Quaternion &q2);
+
+//            Quaternion operator / (double scale); // multiply vector by scalar operator
+//            Quaternion &operator /= (const double &scale); // multiply vector by scalar operator in place
+
+            Quaternion operator - (const Quaternion &q2); // Subtract vector by vector operator
+            Quaternion &operator -= (const Quaternion &q2); // subtract vector by vector operator in place
+            Quaternion operator - (); // Negate vector operator
+
+            Quaternion operator + (const Quaternion &q2); // add vector by vector operator
+            Quaternion &operator += (const Quaternion &q2); // add vector by vector operator in place
             //std::ostream& operator<<(std::ostream& os, const Quaternion& q);
             //friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
             //std::istream& operator >> (std::istream& out, Quaternion& a);
 
             Quaternion multiplyScalar(double a);
             Quaternion conjugate();
-//            Vector vector();
             Vector omegaFromDerivative(Quaternion dq);
-            void fromTwoVectors(Vector a, Vector b);
-//            void normalize();
+//            Quaternion &normalize();
 //            double norm();
             Vector toEuler();
             Vector irotate(const Vector &v);
         };
 
         // declared outside class because it does not need to access members of the class Quaternion
-        Quaternion operator *(const Vector &v, const Quaternion &q);
+        Quaternion operator *(const Vectors::Vector &v, const Quaternion &q);
         Quaternion operator *(const double &s, const Quaternion &q);
-        std::ostream& operator << (std::ostream& os, const Cosmos::Math::Quaternion& q);
+        std::ostream& operator << (std::ostream& os, const Quaternion& q);
+        Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb);
+        Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b);
+        Quaternion eyeQ();
 
-
+        }
     } // end namespace Math
 } // end namespace COSMOS
 
