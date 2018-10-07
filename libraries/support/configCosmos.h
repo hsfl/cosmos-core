@@ -74,8 +74,10 @@
 #include <cstring>
 #include <cmath>
 using std::isfinite;
-#include <iostream>
+#include <iosfwd>
 using std::ifstream;
+using std::ofstream;
+#include <iostream>
 using std::cout;
 using std::endl;
 #ifdef COSMOS_WIN_BUILD_MSVC
