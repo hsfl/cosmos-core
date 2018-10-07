@@ -6344,9 +6344,10 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
             fnormal += v1.cross(v2);
 
             fcentroid /= cinfo->faces[i].vertex_cnt;
-            cinfo->faces[i].normal = fnormal.normalize();
+            fnormal.normalize();
+            cinfo->faces[i].normal = fnormal;
 
-            cinfo->faces[i].com = Math::Vector();
+            cinfo->faces[i].com = Vector();
             cinfo->faces[i].area = 0.;
             v1 = cinfo->vertexs[cinfo->faces[i].vertex_idx[cinfo->faces[i].vertex_cnt-1]] - fcentroid;
             for (size_t j=0; j<cinfo->faces[i].vertex_cnt; ++j)
@@ -6375,15 +6376,15 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     for (size_t i=0; i<cinfo->pieces.size(); ++i)
     {
         // Clean up any missing faces and calculate center of mass for each Piece using Faces
-        cinfo->pieces[i].com = Math::Vector();
+        cinfo->pieces[i].com = Vector ();
         for (size_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
         {
             if (cinfo->faces.size() <= cinfo->pieces[i].face_idx[j])
             {
                 cinfo->faces.resize(cinfo->pieces[i].face_idx[j]+1);
-                cinfo->faces[cinfo->pieces[i].face_idx[j]].com = Math::Vector();
+                cinfo->faces[cinfo->pieces[i].face_idx[j]].com = Vector ();
                 cinfo->faces[cinfo->pieces[i].face_idx[j]].area = 0.;
-                cinfo->faces[cinfo->pieces[i].face_idx[j]].normal = Math::Vector();
+                cinfo->faces[cinfo->pieces[i].face_idx[j]].normal = Vector ();
             }
             cinfo->pieces[i].com += cinfo->faces[cinfo->pieces[i].face_idx[j]].com;
         }
@@ -6401,22 +6402,6 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
             if (dv.norm() != 0.)
             {
                 cinfo->pieces[i].volume += cinfo->faces[(cinfo->pieces[i].face_idx[j])].area * dv.norm() / 3.;
-                double sepangle = dv.separation(cinfo->faces[(cinfo->pieces[i].face_idx[j])].normal);
-//                double msepangle = dv.separation(cinfo->faces[(cinfo->pieces[i].face_idx[j])].normal * -1.);
-                if (sepangle > DPI2)
-                {
-                    if (cinfo->pieces[i].face_idx[j] < cinfo->faces.size())
-                    {
-                        facestruc tface = cinfo->faces[(cinfo->pieces[i].face_idx[j])];
-                        tface.normal *= -1.;
-                        for (size_t k=0; k<tface.vertex_idx.size(); ++k)
-                        {
-                            tface.vertex_idx[k] = cinfo->faces[(cinfo->pieces[i].face_idx[j])].vertex_idx[tface.vertex_idx.size()-(k+1)];
-                        }
-                        cinfo->faces.push_back(tface);
-                        cinfo->pieces[i].face_idx[j] = cinfo->faces.size() - 1;
-                    }
-                }
             }
         }
         cinfo->node.face_cnt = cinfo->faces.size();
@@ -7117,7 +7102,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
         }
         for (aliasstruc &alias : cinfo->alias)
         {
-            fprintf(file, "%s %s\n", alias.name.c_str(), cinfo->jmap[alias.handle.hash][alias.handle.index].name.c_str());
+            fprintf(file, "%s %s\n", alias.name.c_str(), cinfo->emap[alias.handle.hash][alias.handle.index].text);
         }
         for (equationstruc &equation : cinfo->equation)
         {

@@ -1096,7 +1096,7 @@ struct portstruc
 };
 
 //! Point structure: information on each vertex in a face
-typedef Math::Vector vertexstruc;
+typedef Vector vertexstruc;
 
 //! Face structure: information on each face of a piece
 struct facestruc
@@ -1105,7 +1105,7 @@ struct facestruc
     vector <uint16_t> vertex_idx;
     Vector com;
     Vector normal;
-    double area;
+    double area=0.;
 };
 
 //! Part structure: physical information for each piece of Node
@@ -1153,6 +1153,14 @@ struct piecestruc
 	float temp;
 	//! Insolation in Watts/sq m
 	float insol;
+    //! Material density (1. - transparency)
+    float material_density;
+    //! Material ambient reflective qualities
+    Vector material_ambient;
+    //! Material diffuse reflective qualities
+    Vector material_diffuse;
+    //! Material specular reflective qualities
+    Vector material_specular;
 };
 
 // Beginning of Device General structures

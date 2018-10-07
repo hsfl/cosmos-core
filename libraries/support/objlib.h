@@ -4,7 +4,8 @@
 #include "support/configCosmos.h"
 #include "math/mathlib.h"
 #include "math/vector.h"
-using Cosmos::Math::Vector;
+using namespace Cosmos::Math::Vectors;
+using namespace Cosmos::Math::Quaternions;
 
 
 namespace Cosmos
@@ -16,9 +17,9 @@ namespace Cosmos
 
         struct vertex
         {
-            size_t v;
-            size_t vt;
-            size_t vn;
+            size_t v=0;
+            size_t vt=0;
+            size_t vn=0;
         };
 
         struct point
@@ -31,7 +32,7 @@ namespace Cosmos
         {
             vector <size_t> groups;
             vector <vertex> vertices;
-            Math::Vector centroid;
+            Vector centroid;
             double length;
         };
 
@@ -39,36 +40,57 @@ namespace Cosmos
         {
             vector <size_t> groups;
             vector <vertex> vertices;
-            Math::Vector com;
+            Vector com;
+            Vector normal;
             double area;
         };
 
         struct group
         {
             string name;
+            size_t materialidx;
             vector <size_t> pointidx;
             vector <size_t> lineidx;
             vector <size_t> faceidx;
-            Math::Vector com;
+            Vector com;
             double volume;
         };
 
-        void add_geometric_vertex(Math::Vector v);
-        void add_texture_vertex(Math::Vector v);
-        void add_normal_vertex(Math::Vector v);
-        void add_parameter_vertex(Math::Vector v);
+        struct material
+        {
+            string name;
+            float density;
+            Vector ambient;
+            Vector diffuse;
+            Vector specular;
+        };
+
+        size_t add_geometric_vertex(Vector v);
+        size_t add_texture_vertex(Vector v);
+        size_t add_normal_vertex(Vector v);
+        size_t add_parameter_vertex(Vector v);
+        void add_material(material material);
         void add_point(point point);
         void add_line(line line);
         void add_face(face face);
-        void add_groups(vector <string> groups);
-        int32_t load_file(string path);
+        void update_line(line &cline);
+        void update_face(face &cface);
+        void update_group(group &cgroup);
+        void modify_groups(vector <string> groups);
+        void modify_groups(string group);
+        void add_cuboid(string name, Vector size, Quaternion orientation, Vector offset);
+        void add_1u(string basename, Vector offset);
+        int32_t load_file(string loc, string name);
+        int32_t save_file(string loc, string name);
+        void rebase();
         vector<string> split(string str, char c = ' ');
 
-        vector <Math::Vector> Vg;
-        vector <Math::Vector> Vt;
-        vector <Math::Vector> Vn;
-        vector <Math::Vector> Vp;
+        vector <Vector> Vg;
+        vector <Vector> Vt;
+        vector <Vector> Vn;
+        vector <Vector> Vp;
 
+        vector <material> Materials;
         vector <point> Points;
         vector <line> Lines;
         vector <face> Faces;
@@ -77,7 +99,9 @@ namespace Cosmos
 
     private:
         vector <size_t> cGroups;
-        void parse(string input);
+        void parseobj(string input);
+        void parsemtl(string input);
+        string location;
     };
 }
 
