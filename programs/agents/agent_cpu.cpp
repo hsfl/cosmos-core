@@ -391,11 +391,11 @@ int create_node () // only use when unsure what the node is
         cinfo->name = nodename;
         cinfo->node.type = NODE_TYPE_COMPUTER;
 
-        json_addpiece(cinfo, "main_cpu", PIECE_TYPE_BOX, 0);
+        json_addpiece(cinfo, "main_cpu", (uint16_t)DeviceType::CPU);
         json_mappieceentry(cinfo->pieces.size()-1, cinfo);
         json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
-        json_addpiece(cinfo, "main_drive", PIECE_TYPE_BOX, 1);
+        json_addpiece(cinfo, "main_drive", (uint16_t)DeviceType::DISK);
         json_mappieceentry(cinfo->pieces.size()-1, cinfo);
         json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
