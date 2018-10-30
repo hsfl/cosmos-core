@@ -252,36 +252,70 @@ namespace Cosmos {
         string name;
 
         // Verticals
-        name = "cosmos." + basename + "_z+x+y";
+        name = "cosmos.none." + basename + "_z+x+y";
         add_cuboid(name, Vector(.003, .003, .1), eyeQ(), offset + Vector(.0485, .0485, 0.));
-        name = "cosmos." + basename + "_z+x-y";
+        name = "cosmos.none." + basename + "_z+x-y";
         add_cuboid(name, Vector(.003, .003, .1), eyeQ(), offset + Vector(.0485, -.0485, 0.));
-        name = "cosmos." + basename + "_z-x-y";
+        name = "cosmos.none." + basename + "_z-x-y";
         add_cuboid(name, Vector(.003, .003, .1), eyeQ(), offset + Vector(-.0485, -.0485, 0.));
-        name = "cosmos." + basename + "_z-x+y";
+        name = "cosmos.none." + basename + "_z-x+y";
         add_cuboid(name, Vector(.003, .003, .1), eyeQ(), offset + Vector(-.0485, .0485, 0.));
 
         // Horizontals
-        name = "cosmos." + basename + "_+y+z";
+        name = "cosmos.none." + basename + "_+y+z";
         add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., .0485, .0485));
-        name = "cosmos." + basename + "_-y+z";
+        name = "cosmos.none." + basename + "_-y+z";
         add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., -.0485, .0485));
-        name = "cosmos." + basename + "_+x+z";
+        name = "cosmos.none." + basename + "_+x+z";
         add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(.0485, 0., .0485));
-        name = "cosmos." + basename + "_-x+z";
+        name = "cosmos.none." + basename + "_-x+z";
         add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(-.0485, 0., .0485));
 
-        name = "cosmos." + basename + "_+y-z";
+        name = "cosmos.none." + basename + "_+y-z";
         add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., .0485, -.0485));
-        name = "cosmos." + basename + "_-y-z";
+        name = "cosmos.none." + basename + "_-y-z";
         add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., -.0485, -.0485));
-        name = "cosmos." + basename + "_+x-z";
+        name = "cosmos.none." + basename + "_+x-z";
         add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(.0485, 0., -.0485));
-        name = "cosmos." + basename + "_-x-z";
+        name = "cosmos.none." + basename + "_-x-z";
         add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(-.0485, 0., -.0485));
 
     }
 
+    void wavefront::add_3u(string basename, Vector offset)
+    {
+        string name;
+
+        // Verticals
+        name = "cosmos.none." + basename + "_z+x+y";
+        add_cuboid(name, Vector(.003, .003, .3), eyeQ(), offset + Vector(.0485, .0485, 0.));
+        name = "cosmos.none." + basename + "_z+x-y";
+        add_cuboid(name, Vector(.003, .003, .3), eyeQ(), offset + Vector(.0485, -.0485, 0.));
+        name = "cosmos.none." + basename + "_z-x-y";
+        add_cuboid(name, Vector(.003, .003, .3), eyeQ(), offset + Vector(-.0485, -.0485, 0.));
+        name = "cosmos.none." + basename + "_z-x+y";
+        add_cuboid(name, Vector(.003, .003, .3), eyeQ(), offset + Vector(-.0485, .0485, 0.));
+
+        // Horizontals
+        name = "cosmos.none." + basename + "_+y+z";
+        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., .0485, .1485));
+        name = "cosmos.none." + basename + "_-y+z";
+        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., -.0485, .1485));
+        name = "cosmos.none." + basename + "_+x+z";
+        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(.0485, 0., .1485));
+        name = "cosmos.none." + basename + "_-x+z";
+        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(-.0485, 0., .1485));
+
+        name = "cosmos.none." + basename + "_+y-z";
+        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., .0485, -.1485));
+        name = "cosmos.none." + basename + "_-y-z";
+        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., -.0485, -.1485));
+        name = "cosmos.none." + basename + "_+x-z";
+        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(.0485, 0., -.1485));
+        name = "cosmos.none." + basename + "_-x-z";
+        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(-.0485, 0., -.1485));
+
+    }
 
     void wavefront::parseobj(string input)
     {
@@ -746,23 +780,23 @@ namespace Cosmos {
         outfile << "mtllib material.mtl" << endl;
         outfile << endl;
 
-        for (Vector &nextvg : Vg)
+        for (size_t i=1; i<Vg.size(); ++i)
         {
-            sprintf(outbuf, "v %f %f %f", nextvg.x, nextvg.y, nextvg.z);
+            sprintf(outbuf, "v %f %f %f", Vg[i].x, Vg[i].y, Vg[i].z);
             outfile << outbuf << endl;
         }
         outfile << endl;
 
-        for (Vector &nextvt : Vt)
+        for (size_t i=1; i<Vt.size(); ++i)
         {
-            sprintf(outbuf, "vt %f %f", nextvt.x, nextvt.y);
+            sprintf(outbuf, "vt %f %f", Vt[i].x, Vt[i].y);
             outfile << outbuf << endl;
         }
         outfile << endl;
 
-        for (Vector &nextvn : Vn)
+        for (size_t i=1; i<Vn.size(); ++i)
         {
-            sprintf(outbuf, "vn %f %f %f", nextvn.x, nextvn.y, nextvn.z);
+            sprintf(outbuf, "vn %f %f %f", Vn[i].x, Vn[i].y, Vn[i].z);
             outfile << outbuf << endl;
         }
         outfile << endl;

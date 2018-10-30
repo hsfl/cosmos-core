@@ -80,6 +80,7 @@ namespace Cosmos
         void modify_groups(string group);
         void add_cuboid(string name, Vector size, Quaternion orientation, Vector offset);
         void add_1u(string basename, Vector offset);
+        void add_3u(string basename, Vector offset);
         int32_t load_file(string loc, string name);
         int32_t save_file(string loc, string name);
         void rebase();
