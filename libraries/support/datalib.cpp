@@ -390,6 +390,81 @@ std::vector<filestruc> data_list_archive(string node, string agent, double utc)
     return data_list_archive(node, agent, utc, "");
 }
 
+//! Get list of files in a directory, directly.
+/*! Generate a list of files for the indicated directory.
+ * The result is returned as a vector of ::filestruc, one entry for each file found.
+ * \param directory Directory to search.
+ * \return A C++ vector of ::filestruc. Zero size if no files are found.
+ */
+std::vector<filestruc> data_list_files(string directory)
+{
+    std::vector<filestruc> files;
+
+    data_list_files(directory, files);
+
+    return files;
+}
+
+//! Get list of files in a directory, indirectly.
+/*! Generate a list of files for the indicated directory.
+ * The result is returned as a vector of ::filestruc, one entry for each file found.
+ * Repeated calls to this function will append entries.
+ * \param directory Directory to search.
+ * \return Number of files found, otherwise negative error.
+ */
+size_t data_list_files(string directory, vector<filestruc>& files)
+{
+    DIR *jdp;
+    struct dirent *td;
+    filestruc tf;
+
+    tf.node = "";
+    tf.agent = "";
+    if ((jdp=opendir(directory.c_str())) != nullptr)
+    {
+        while ((td=readdir(jdp)) != nullptr)
+        {
+            if (td->d_name[0] != '.')
+            {
+                tf.name = td->d_name;
+                tf.path = directory + "/" + tf.name;
+                struct stat st;
+                stat(tf.path.c_str(), &st);
+                tf.size = st.st_size;
+                tf.utc = unix2utc((double)st.st_ctim.tv_sec);
+                if (S_ISDIR(st.st_mode))
+                {
+                    tf.type = "directory";
+                }
+                else
+                {
+                    for (size_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
+                    {
+                        if (td->d_name[i] == '.')
+                        {
+                            tf.type = &td->d_name[i+1];
+                            break;
+                        }
+                    }
+                }
+                files.push_back(tf);
+                for (size_t i=files.size()-1; i>1; --i)
+                {
+                    if (files[i].name < files[i-1].name)
+                    {
+                        filestruc tfile = files[i-1];
+                        files[i-1] = files[i];
+                        files[i] = tfile;
+                    }
+                }
+            }
+        }
+        closedir(jdp);
+    }
+
+    return files.size();
+}
+
 //! Get list of files in a Node, directly.
 /*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
  * and Agent. The result is returned as a vector of ::filestruc, one entry for each file found.
@@ -398,7 +473,7 @@ std::vector<filestruc> data_list_archive(string node, string agent, double utc)
  * \param agent Subdirectory of location to search.
  * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
-std::vector<filestruc> data_list_files(string node, string location, string agent)
+vector<filestruc> data_list_files(string node, string location, string agent)
 {
     std::vector<filestruc> files;
 
@@ -420,43 +495,12 @@ std::vector<filestruc> data_list_files(string node, string location, string agen
 size_t data_list_files(string node, string location, string agent, std::vector<filestruc>& files)
 {
     string dtemp;
-    DIR *jdp;
-    struct dirent *td;
-    filestruc tf;
-
-    tf.node = node;
-    tf.agent = agent;
     dtemp = data_base_path(node, location, agent);
-    if ((jdp=opendir(dtemp.c_str())) != nullptr)
+    data_list_files(dtemp, files);
+    for (filestruc &tf : files)
     {
-        while ((td=readdir(jdp)) != nullptr)
-        {
-            if (td->d_name[0] != '.')
-            {
-                tf.name = td->d_name;
-                tf.path = dtemp + "/" + tf.name;
-                struct stat st;
-                stat(tf.path.c_str(), &st);
-                tf.size = st.st_size;
-                if (S_ISDIR(st.st_mode))
-                {
-                    tf.type = "directory";
-                }
-                else
-                {
-                    for (size_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
-                    {
-                        if (td->d_name[i] == '.')
-                        {
-                            tf.type = &td->d_name[i+1];
-                            break;
-                        }
-                    }
-                }
-                files.push_back(tf);
-            }
-        }
-        closedir(jdp);
+        tf.agent = agent;
+        tf.node = node;
     }
 
     return (files.size());
@@ -1764,7 +1808,7 @@ bool data_isdir(string path)
 
 }
 
-bool data_isfile(string path, size_t size)
+bool data_isfile(string path, off_t size)
 {
     struct stat st;
 
