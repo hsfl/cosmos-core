@@ -266,6 +266,8 @@ public:
     //!
     // agent functions
     int32_t start();
+    int32_t start_active_loop();
+    int32_t finish_active_loop();
     //    int32_t add_request(string token, request_function function);
     //    int32_t add_request(string token, request_function function, string description);
     int32_t add_request_internal(string token, internal_request_function function, string synopsis="", string description="");
@@ -334,6 +336,7 @@ public:
 
     //! Flag for level of debugging, keep it public so that it can be controlled from the outside
     size_t debug_level = 1;
+    FILE *get_debug_fd();
 
     // agent variables
 private:
@@ -341,10 +344,11 @@ private:
     NetworkType networkType = NetworkType::UDP;
     string nodeName;
     string agentName;
-    double beatPeriod = 1.0; // in seconds
+    double activeTimeout = 0.0; // in MJD
     uint32_t bufferSize = AGENTMAXBUFFER;
     bool multiflag = false;
     int32_t portNumber = 0;
+    FILE *debug_fd = nullptr;
 
     string version = "0.0";
     float timeoutSec = 5.0;
