@@ -7114,44 +7114,6 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     return 0;
 }
 
-//! Create new piece
-/*! Take an empty ::piecestruc and fill it with the provided information, generating the vertexs for
- * the indicated type.
- * \param type JSON PIECE_TYPE
- * \param emi Emissivity
- * \param abs Absorbtivity
- * \param hcap Heat capacity
- * \param hcon Heat conductivity
- * \param density Density
- * \return Zero, or negative error
- */
-int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t type, uint16_t cidx, double emi, double abs, double hcap, double hcon, double density)
-{
-    for (size_t i=0; i<cinfo->pieces.size(); ++i)
-    {
-        if (name == cinfo->pieces[i].name)
-        {
-            return i;
-        }
-    }
-
-    piecestruc piece;
-    strncpy(piece.name, name.c_str(), COSMOS_MAX_NAME);
-    piece.emi = emi;
-    piece.abs = abs;
-    piece.density = density;
-    piece.hcap = hcap;
-    piece.hcon = hcon;
-    piece.type = type;
-    piece.cidx = cidx;
-    piece.enabled = true;
-    piece.face_cnt = 0;
-    cinfo->pieces.push_back(piece);
-    cinfo->node.piece_cnt = cinfo->pieces.size();
-
-    return (cinfo->pieces.size() - 1);
-}
-
 //! Map all entries in JMAP
 //! Add or update all possible entries in the Namespace map.
 //! \param cinfo Reference to ::cosmosstruc to use.
@@ -7456,7 +7418,7 @@ int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
     int32_t iretn;
 
     iretn = json_addentry("piece_name", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].name, (uint16_t)JSON_TYPE_NAME, cinfo);
-    json_addentry("piece_type", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].type, (uint16_t)JSON_TYPE_UINT16, cinfo);
+//    json_addentry("piece_type", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].type, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("piece_cidx", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("piece_mass", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].mass, (uint16_t)JSON_TYPE_FLOAT, cinfo);
     json_addentry("piece_density", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].density, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -10731,6 +10693,19 @@ size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cinfo, vect
 
     events.shrink_to_fit();
     return (events.size());
+}
+
+uint16_t device_type_index(string name)
+{
+    for (size_t i=0; i<device_type_string.size(); ++i)
+    {
+        if (device_type_string[i] == name)
+        {
+            return i;
+        }
+    }
+
+    return (uint16_t)DeviceType::NONE;
 }
 
 string device_type_name(uint32_t type)

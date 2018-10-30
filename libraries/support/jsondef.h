@@ -1116,7 +1116,7 @@ struct piecestruc
 	//! Enabled?
 	bool enabled;
 	//! Type of piece from \ref defs_piece.
-	uint16_t type;
+//	uint16_t type;
 	//! Component index: -1 if not a Component
 	uint16_t cidx;
     //! Density in kg/cu m

@@ -128,7 +128,6 @@ void json_destroy(cosmosstruc *cinfo);
 int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo);
 
 //uint16_t json_addequation(const char *text, cosmosstruc *cinfo, uint16_t unit);
-int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t type=PIECE_TYPE_DIMENSIONLESS, uint16_t cidx=UINT16_MAX, double emi=.8, double abs=.88, double hcap=800., double hcon=237., double density=1000.);
 int32_t json_addentry(string name, string value, cosmosstruc *cinfo);
 int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo);
 int32_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, uint16_t type, uint16_t group, cosmosstruc *cinfo, uint16_t unit=0);
@@ -331,7 +330,7 @@ int32_t load_target(cosmosstruc *cinfo);
 int32_t update_target(cosmosstruc *cinfo);
 int32_t update_target(locstruc source, targetstruc &target);
 size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cinfo, vector<shorteventstruc> &events);
-
+uint16_t device_type_index(string name);
 string device_type_name(uint32_t type);
 string port_type_name(uint32_t type);
 
