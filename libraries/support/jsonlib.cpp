@@ -500,6 +500,237 @@ uint16_t json_hash(string hstring)
     return (hashval % JSON_MAX_HASH);
 }
 
+
+//! Create new piece
+/*! Take an empty ::piecestruc and fill it with the provided information, generating the vertexs for
+ * the indicated type.
+ * \param type JSON PIECE_TYPE
+ * \param emi Emissivity
+ * \param abs Absorbtivity
+ * \param hcap Heat capacity
+ * \param hcon Heat conductivity
+ * \param density Density
+ * \return Zero, or negative error
+ */
+int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t ctype, double emi, double abs, double hcap, double hcon, double density)
+{
+    for (size_t i=0; i<cinfo->pieces.size(); ++i)
+    {
+        if (name == cinfo->pieces[i].name)
+        {
+            return i;
+        }
+    }
+
+    piecestruc piece;
+    strncpy(piece.name, name.c_str(), COSMOS_MAX_NAME);
+    piece.emi = emi;
+    piece.abs = abs;
+    piece.density = density;
+    piece.hcap = hcap;
+    piece.hcon = hcon;
+    if (ctype < (uint16_t)DeviceType::COUNT)
+    {
+        cinfo->device.resize(cinfo->device.size() + 1);
+        cinfo->node.device_cnt = cinfo->device.size();
+        cinfo->device[cinfo->device.size()-1].all.pidx = cinfo->pieces.size();
+        cinfo->device[cinfo->device.size()-1].all.cidx = cinfo->device.size()-1;
+        piece.cidx = cinfo->device.size()-1;
+        cinfo->device[cinfo->device.size()-1].all.type = ctype;
+        switch((DeviceType)ctype)
+        {
+        case DeviceType::ANT:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.ant.size();
+            cinfo->devspec.ant.resize(cinfo->devspec.ant_cnt+1);
+            cinfo->devspec.ant_cnt = cinfo->devspec.ant.size();
+            break;
+        case DeviceType::BATT:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.batt.size();
+            cinfo->devspec.batt.resize(cinfo->devspec.batt_cnt+1);
+            cinfo->devspec.batt_cnt = cinfo->devspec.batt.size();
+            break;
+        case DeviceType::BUS:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.bus.size();
+            cinfo->devspec.bus.resize(cinfo->devspec.bus_cnt+1);
+            cinfo->devspec.bus_cnt = cinfo->devspec.bus.size();
+            break;
+            //! Camera
+        case DeviceType::CAM:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.cam.size();
+            cinfo->devspec.cam.resize(cinfo->devspec.cam_cnt+1);
+            cinfo->devspec.cam_cnt = (uint16_t)cinfo->devspec.cam.size();
+            break;
+            //! Processing Unit
+        case DeviceType::CPU:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.cpu.size();
+            cinfo->devspec.cpu.resize(cinfo->devspec.cpu_cnt+1);
+            cinfo->devspec.cpu_cnt = (uint16_t)cinfo->devspec.cpu.size();
+            break;
+        case DeviceType::DISK:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.disk.size();
+            cinfo->devspec.disk.resize(cinfo->devspec.disk_cnt+1);
+            cinfo->devspec.disk_cnt = (uint16_t)cinfo->devspec.disk.size();
+            break;
+            //! GPS Unit
+        case DeviceType::GPS:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.gps.size();
+            cinfo->devspec.gps.resize(cinfo->devspec.gps_cnt+1);
+            cinfo->devspec.gps_cnt = (uint16_t)cinfo->devspec.gps.size();
+            break;
+            //! Heater
+        case DeviceType::HTR:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.htr.size();
+            cinfo->devspec.htr.resize(cinfo->devspec.htr_cnt+1);
+            cinfo->devspec.htr_cnt = (uint16_t)cinfo->devspec.htr.size();
+            break;
+            //! Inertial Measurement Unit
+        case DeviceType::IMU:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.imu.size();
+            cinfo->devspec.imu.resize(cinfo->devspec.imu_cnt+1);
+            cinfo->devspec.imu_cnt = (uint16_t)cinfo->devspec.imu.size();
+            break;
+        case DeviceType::MCC:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.mcc.size();
+            cinfo->devspec.mcc.resize(cinfo->devspec.mcc_cnt+1);
+            cinfo->devspec.mcc_cnt = (uint16_t)cinfo->devspec.mcc.size();
+            break;
+            //! Motor
+        case DeviceType::MOTR:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.motr.size();
+            cinfo->devspec.motr.resize(cinfo->devspec.motr_cnt+1);
+            cinfo->devspec.motr_cnt = (uint16_t)cinfo->devspec.motr.size();
+            break;
+            //! Magnetic Torque Rod
+        case DeviceType::MTR:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.mtr.size();
+            cinfo->devspec.mtr.resize(cinfo->devspec.mtr_cnt+1);
+            cinfo->devspec.mtr_cnt = (uint16_t)cinfo->devspec.mtr.size();
+            break;
+        case DeviceType::PLOAD:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.pload.size();
+            cinfo->devspec.pload.resize(cinfo->devspec.pload_cnt+1);
+            cinfo->devspec.pload_cnt = (uint16_t)cinfo->devspec.pload.size();
+            break;
+            //! Propellant Tank
+        case DeviceType::PROP:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.prop.size();
+            cinfo->devspec.prop.resize(cinfo->devspec.prop_cnt+1);
+            cinfo->devspec.prop_cnt = (uint16_t)cinfo->devspec.prop.size();
+            break;
+            //! Pressure Sensor
+        case DeviceType::PSEN:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.psen.size();
+            cinfo->devspec.psen.resize(cinfo->devspec.psen_cnt+1);
+            cinfo->devspec.psen_cnt = (uint16_t)cinfo->devspec.psen.size();
+            break;
+        case DeviceType::BCREG:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.bcreg.size();
+            cinfo->devspec.bcreg.resize(cinfo->devspec.bcreg_cnt+1);
+            cinfo->devspec.bcreg_cnt = (uint16_t)cinfo->devspec.bcreg.size();
+            break;
+            //! Rotor
+        case DeviceType::ROT:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.rot.size();
+            cinfo->devspec.rot.resize(cinfo->devspec.rot_cnt+1);
+            cinfo->devspec.rot_cnt = (uint16_t)cinfo->devspec.rot.size();
+            break;
+            //! Reaction Wheel
+        case DeviceType::RW:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.rw.size();
+            cinfo->devspec.rw.resize(cinfo->devspec.rw_cnt+1);
+            cinfo->devspec.rw_cnt = (uint16_t)cinfo->devspec.rw.size();
+            break;
+            //! Radio Receiver
+        case DeviceType::RXR:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.rxr.size();
+            cinfo->devspec.rxr.resize(cinfo->devspec.rxr_cnt+1);
+            cinfo->devspec.rxr_cnt = (uint16_t)cinfo->devspec.rxr.size();
+            break;
+            //! Elevation and Azimuth Sun Sensor
+        case DeviceType::SSEN:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.ssen.size();
+            cinfo->devspec.ssen.resize(cinfo->devspec.ssen_cnt+1);
+            cinfo->devspec.ssen_cnt = (uint16_t)cinfo->devspec.ssen.size();
+            break;
+            //! Photo Voltaic String
+        case DeviceType::PVSTRG:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.pvstrg.size();
+            cinfo->devspec.pvstrg.resize(cinfo->devspec.pvstrg_cnt+1);
+            cinfo->devspec.pvstrg_cnt = (uint16_t)cinfo->devspec.pvstrg.size();
+            break;
+            //! Star Tracker
+        case DeviceType::STT:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.stt.size();
+            cinfo->devspec.stt.resize(cinfo->devspec.stt_cnt+1);
+            cinfo->devspec.stt_cnt = (uint16_t)cinfo->devspec.stt.size();
+            break;
+        case DeviceType::SUCHI:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.suchi.size();
+            cinfo->devspec.suchi.resize(cinfo->devspec.suchi_cnt+1);
+            cinfo->devspec.suchi_cnt = (uint16_t)cinfo->devspec.suchi.size();
+            break;
+            //! Switch
+        case DeviceType::SWCH:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.swch.size();
+            cinfo->devspec.swch.resize(cinfo->devspec.swch_cnt+1);
+            cinfo->devspec.swch_cnt = (uint16_t)cinfo->devspec.swch.size();
+            break;
+        case DeviceType::TCU:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.tcu.size();
+            cinfo->devspec.tcu.resize(cinfo->devspec.tcu_cnt+1);
+            cinfo->devspec.tcu_cnt = (uint16_t)cinfo->devspec.tcu.size();
+            break;
+            //! Radio Transceiver
+        case DeviceType::TCV:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.tcv.size();
+            cinfo->devspec.tcv.resize(cinfo->devspec.tcv_cnt+1);
+            cinfo->devspec.tcv_cnt = (uint16_t)cinfo->devspec.tcv.size();
+            break;
+        case DeviceType::TELEM:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.telem.size();
+            cinfo->devspec.telem.resize(cinfo->devspec.telem_cnt+1);
+            cinfo->devspec.telem_cnt = (uint16_t)cinfo->devspec.telem.size();
+            break;
+            //! Thruster
+        case DeviceType::THST:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.thst.size();
+            cinfo->devspec.thst.resize(cinfo->devspec.thst_cnt+1);
+            cinfo->devspec.thst_cnt = (uint16_t)cinfo->devspec.thst.size();
+            break;
+            //! Temperature Sensor
+        case DeviceType::TSEN:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.tsen.size();
+            cinfo->devspec.tsen.resize(cinfo->devspec.tsen_cnt+1);
+            cinfo->devspec.tsen_cnt = (uint16_t)cinfo->devspec.tsen.size();
+            break;
+        case DeviceType::TNC:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.tnc.size();
+            cinfo->devspec.tnc.resize(cinfo->devspec.tnc_cnt+1);
+            cinfo->devspec.tnc_cnt = (uint16_t)cinfo->devspec.tnc.size();
+            break;
+            //! Radio Transmitter
+        case DeviceType::TXR:
+            cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.txr.size();
+            cinfo->devspec.txr.resize(cinfo->devspec.txr_cnt+1);
+            cinfo->devspec.txr_cnt = (uint16_t)cinfo->devspec.txr.size();
+            break;
+        }
+
+    }
+    else
+    {
+        piece.cidx = (uint16_t)DeviceType::NONE;
+    }
+
+    piece.enabled = true;
+    piece.face_cnt = 0;
+    cinfo->pieces.push_back(piece);
+    cinfo->node.piece_cnt = cinfo->pieces.size();
+
+
+    return (cinfo->pieces.size() - 1);
+}
+
 //! Enter an alias into the JSON Namespace.
 /*! See if the provided name is in the Namespace. If so, add an entry
  * for the provided alias that points to the same location.
