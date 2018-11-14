@@ -1,6 +1,6 @@
 #cmake_minimum_required(VERSION 2.8.12)
 
-include_directories(${COSMOS_SOURCE}/core/libraries/thirdparty/zlib)
+include_directories(${COSMOS_CORE}/libraries/thirdparty/zlib)
 
 FILE(GLOB SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 FILE(GLOB INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
