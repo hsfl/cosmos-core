@@ -861,7 +861,7 @@ svector groundstation(locstruc &satellite,locstruc &groundstation)
 	pos_icrf2eci(&satellite);
 	pos_eci2geoc(&satellite);
 	geoc2topo(groundstation.pos.geod.s,satellite.pos.geoc.s,topo);
-    topo2azel(topo,&lambda,&phi);
+    topo2azel(topo, lambda, phi);
     azel.lambda = lambda;
     azel.phi = phi;
     azel.r = length_rv(topo);
@@ -977,12 +977,14 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
 //    units = rv_smult(-1.,loc.pos.icrf.s);
 //    normalize_rv(units);
 //    units = irotate((loc.att.icrf.s),units);
-    units = Quaternion(loc.att.icrf.s).irotate(-1. * Vector(loc.pos.icrf.s).normalize());
+    units = Quaternion(loc.att.icrf.s).irotate(Vector(loc.pos.icrf.s).normalize());
 
 //    unite = rv_smult(-1.,loc.pos.eci.s);
 //    normalize_rv(unite);
 //    unite = irotate((loc.att.icrf.s),unite);
-    unite = Quaternion(loc.att.icrf.s).irotate(-1. * Vector(loc.pos.eci.s).normalize());
+    unite = Vector(loc.pos.eci.s).normalize(-1.);
+    unite = Vector(loc.pos.eci.s).normalize(-1.);
+    unite = Quaternion(loc.att.icrf.s).irotate(Vector(loc.pos.eci.s).normalize(-1.));
 
     geov = loc.pos.geoc.v;
     speed = geov.col[0]*geov.col[0]+geov.col[1]*geov.col[1]+geov.col[2]*geov.col[2];
@@ -995,8 +997,8 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
 
     cinfo->node.powgen = 0.;
 
-    cinfo->physics.atorque = cinfo->physics.rtorque = rv_zero();
-    cinfo->physics.adrag = cinfo->physics.rdrag = rv_zero();
+    cinfo->physics.atorque = cinfo->physics.rtorque = Vector();
+    cinfo->physics.adrag = cinfo->physics.rdrag = Vector();
     sdheat = 0;
     sattemp = cinfo->physics.heat / (cinfo->physics.mass * cinfo->physics.hcap);
     for (i=0; i<cinfo->pieces.size(); i++)
@@ -1025,31 +1027,21 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
                 {
                     ddrag = 0.;
                 }
-//                dtorque = rv_smult(ddrag,cinfo->pieces[i].twist);
                 dtorque = ddrag * cinfo->pieces[i].twist;
-//                cinfo->physics.atorque = rv_add(cinfo->physics.atorque,dtorque);
                 cinfo->physics.atorque += dtorque;
-//                da = rv_smult(ddrag,cinfo->pieces[i].shove);
                 da = ddrag * cinfo->pieces[i].shove;
-//                cinfo->physics.adrag = rv_add(cinfo->physics.adrag,da);
                 cinfo->physics.adrag += da;
             }
 
-//            sdot = dot_rv(units,cinfo->pieces[i].normal);
             sdot = units.dot(cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal);
             if (loc.pos.sunradiance && sdot > 0)
             {
                 ddrag = loc.pos.sunradiance * sdot / (3e8*cinfo->physics.mass);
-//                dtorque = rv_smult(ddrag,cinfo->pieces[i].twist);
                 dtorque = ddrag * cinfo->pieces[i].twist;
-//                dtorque = rv_smult(ddrag,cinfo->pieces[i].twist);
                 cinfo->physics.rtorque += dtorque;
-//                da = rv_smult(ddrag,cinfo->pieces[i].shove);
                 da = ddrag * cinfo->pieces[i].shove;
-//                cinfo->physics.rdrag = rv_add(cinfo->physics.rdrag,da);
                 cinfo->physics.rdrag += da;
 
-//                cinfo->pieces[i].insol = loc.pos.sunradiance * sdot/length_rv(cinfo->pieces[i].normal);
                 cinfo->pieces[i].insol = loc.pos.sunradiance * sdot / cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal.norm();
                 energyd =  cinfo->pieces[i].insol * cinfo->physics.dt;
                 cinfo->pieces[i].heat += cinfo->pieces[i].area * cinfo->pieces[i].abs * energyd;
@@ -1081,7 +1073,6 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
                     }
                 }
             }
-//            edot = acos(dot_rv(unite,cinfo->pieces[i].normal)/length_rv(cinfo->pieces[i].normal)) - RADOF(5.);
             edot = acos(unite.dot(cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal) / cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].normal.norm()) - RADOF(5.);
             if (edot < 0.)
                 edot = 1.;
@@ -1104,8 +1095,8 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
 
     // Simulate devices
 
-    cinfo->physics.ctorque = rv_zero();
-    cinfo->physics.hmomentum = rv_zero();
+    cinfo->physics.ctorque = Vector();
+    cinfo->physics.hmomentum = Vector();
     cinfo->physics.ctorque = cinfo->physics.ftorque;
 
     // Start with Reaction Wheel Torque
@@ -1252,9 +1243,11 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
         // Rotate into sun sensor frame
         vec = irotate(q_conjugate(cinfo->devspec.ssen[i]->align),vec);
         // Convert this to az and el
-        topo2azel(vec,&cinfo->devspec.ssen[i]->azimuth,&cinfo->devspec.ssen[i]->elevation);
+        topo2azel(vec, cinfo->devspec.ssen[i]->azimuth, cinfo->devspec.ssen[i]->elevation);
         if (cinfo->devspec.ssen[i]->azimuth < 0.)
+        {
             cinfo->devspec.ssen[i]->azimuth += D2PI;
+        }
         cinfo->devspec.ssen[i]->qva = cinfo->devspec.ssen[i]->qvb = cinfo->devspec.ssen[i]->qvc = cinfo->devspec.ssen[i]->qvd = 0.;
         if (cinfo->devspec.ssen[i]->elevation > RADOF(70.))
         {
@@ -3495,4 +3488,121 @@ int update_eci(cosmosstruc *cinfo, double utc, cartpos pos)
 
     cinfo->timestamp = currentmjd();
     return 0;
+}
+
+int32_t triangularize(cosmosstruc *cinfo)
+{
+    cinfo->physics.triangles.clear();
+
+    // Initialize with existing faces broken into triangles
+    for (uint16_t i=0; i<cinfo->pieces.size(); ++i)
+    {
+        for (uint16_t j=0; j<cinfo->pieces[i].face_cnt; ++j)
+        {
+            facestruc tface = cinfo->faces[cinfo->pieces[i].face_idx[j]];
+            cinfo->physics.vertices.push_back(tface.com);
+            cinfo->physics.vertices.push_back(cinfo->vertexs[tface.vertex_idx[tface.vertex_cnt-1]]);
+            for (uint16_t k=0; k<tface.vertex_cnt; ++k)
+            {
+                cinfo->physics.vertices.push_back(cinfo->vertexs[tface.vertex_idx[k]]);
+                trianglestruc ttriangle;
+                ttriangle.pidx = j;
+                ttriangle.normal = tface.normal;
+
+                ttriangle.tidx[0] = cinfo->physics.vertices.size() - (k+2);
+                ttriangle.tidx[1] = cinfo->physics.vertices.size() - 2;
+                ttriangle.tidx[2] = cinfo->physics.vertices.size() - 1;
+
+                ttriangle.com = cinfo->physics.vertices[ttriangle.tidx[0]].cross(cinfo->physics.vertices[ttriangle.tidx[1]]);
+                ttriangle.area = cinfo->physics.vertices[ttriangle.tidx[0]].area(cinfo->physics.vertices[ttriangle.tidx[1]]);
+                ttriangle.heat = cinfo->pieces[i].heat * ttriangle.area / cinfo->pieces[i].area;
+
+                cinfo->physics.triangles.push_back(ttriangle);
+            }
+        }
+    }
+
+    // Loop, breaking triangles into ever smaller triangles, until we are below required resolution (5mm squared)
+    bool modified = true;
+    while (modified)
+    {
+        modified = false;
+        for (size_t i=0; i<cinfo->physics.triangles.size(); ++i)
+        {
+            trianglestruc tface = cinfo->physics.triangles[i];
+            if (tface.area > 2.5e-5)
+            {
+                cinfo->physics.vertices.push_back(tface.com);
+                trianglestruc ttriangle = tface;
+                ttriangle.tidx[0] = cinfo->physics.vertices.size() - 1;
+
+                ttriangle.tidx[1] = tface.tidx[2];
+                ttriangle.tidx[2] = tface.tidx[0];
+                ttriangle.com = cinfo->physics.vertices[ttriangle.tidx[0]].cross(cinfo->physics.vertices[ttriangle.tidx[1]]);
+                ttriangle.area = cinfo->physics.vertices[ttriangle.tidx[0]].area(cinfo->physics.vertices[ttriangle.tidx[1]]);
+                ttriangle.heat = tface.heat * ttriangle.area / tface.area;
+                cinfo->physics.triangles.push_back(ttriangle);
+
+                ttriangle.tidx[1] = tface.tidx[0];
+                ttriangle.tidx[2] = tface.tidx[1];
+                ttriangle.com = cinfo->physics.vertices[ttriangle.tidx[0]].cross(cinfo->physics.vertices[ttriangle.tidx[1]]);
+                ttriangle.area = cinfo->physics.vertices[ttriangle.tidx[0]].area(cinfo->physics.vertices[ttriangle.tidx[1]]);
+                ttriangle.heat = tface.heat * ttriangle.area / tface.area;
+                cinfo->physics.triangles.push_back(ttriangle);
+
+                ttriangle.tidx[1] = tface.tidx[1];
+                ttriangle.tidx[2] = tface.tidx[2];
+                ttriangle.com = cinfo->physics.vertices[ttriangle.tidx[0]].cross(cinfo->physics.vertices[ttriangle.tidx[1]]);
+                ttriangle.area = cinfo->physics.vertices[ttriangle.tidx[0]].area(cinfo->physics.vertices[ttriangle.tidx[1]]);
+                ttriangle.heat = tface.heat * ttriangle.area / tface.area;
+                cinfo->physics.triangles.push_back(ttriangle);
+
+                modified = true;
+            }
+        }
+    }
+
+    // For each triangle, identify what is in its field of view in 10 degree resolution grid
+    for (size_t i=0; i<cinfo->physics.triangles.size(); ++i)
+    {
+        trianglestruc tface = cinfo->physics.triangles[i];
+        if (cinfo->physics.triangles[i].triangleindex.empty())
+        {
+            cinfo->physics.triangles[i].triangleindex.resize(9);
+            for (size_t j=0; j<9; ++j)
+            {
+                float cel = cos(RADOF(90.-(10.*j+5.)));
+                cinfo->physics.triangles[i].triangleindex[j].resize((int)(cel*18+.5));
+            }
+        }
+
+        for (size_t j=0; j<cinfo->physics.triangles.size(); ++j)
+        {
+            if (j != i)
+            {
+                double sep = cinfo->physics.triangles[i].com.separation(cinfo->physics.triangles[j].com);
+                if (sep > DPI2)
+                {
+                    float az;
+                    float el;
+                    Vector topo;
+                    body2topo(cinfo->physics.triangles[i].com, cinfo->physics.triangles[j].com, topo);
+                    topo2azel(topo, az, el);
+                    float alt = (int16_t)((DPI2 - el) / 9.) + RADOF(.5);
+                    uint16_t rowi = 9 * alt / DPI2;
+                    uint16_t coli = 9 * cos(alt) * az / DPI2;
+                    if (cinfo->physics.triangles[i].triangleindex[rowi][coli])
+                    {
+                        cinfo->physics.triangles[i].triangleindex[rowi][coli] = j;
+                    }
+                    else
+                    {
+
+                    }
+                }
+            }
+        }
+    }
+
+    return cinfo->physics.triangles.size();
 }
