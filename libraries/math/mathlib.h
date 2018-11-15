@@ -107,13 +107,10 @@
 #include "support/cosmos-errno.h"
 
 // include all math modules
-//#include "types.h"
 #include "constants.h"
 #include "vector.h"
 #include "matrix.h"
-// #include "quaternion.h"
 #include "rotation.h"
-//#include "lsFit.h"
 
 #include <cmath>
 #include <iostream>
