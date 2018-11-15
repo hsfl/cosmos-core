@@ -10806,9 +10806,9 @@ int32_t update_target(cosmosstruc *cinfo)
     {
         loc_update(&cinfo->target[i].loc);
         geoc2topo(cinfo->target[i].loc.pos.geod.s,cinfo->node.loc.pos.geoc.s,topo);
-        topo2azel(topo,&cinfo->target[i].azto,&cinfo->target[i].elto);
+        topo2azel(topo, cinfo->target[i].azto, cinfo->target[i].elto);
         geoc2topo(cinfo->node.loc.pos.geod.s,cinfo->target[i].loc.pos.geoc.s,topo);
-        topo2azel(topo,&cinfo->target[i].azfrom,&cinfo->target[i].elfrom);
+        topo2azel(topo, cinfo->target[i].azfrom, cinfo->target[i].elfrom);
         ds = rv_sub(cinfo->target[i].loc.pos.geoc.s,cinfo->node.loc.pos.geoc.s);
         cinfo->target[i].range = length_rv(ds);
         dv = rv_sub(cinfo->target[i].loc.pos.geoc.v,cinfo->node.loc.pos.geoc.v);
@@ -10832,9 +10832,9 @@ int32_t update_target(locstruc source, targetstruc &target)
 
     loc_update(&target.loc);
     geoc2topo(target.loc.pos.geod.s, source.pos.geoc.s,topo);
-    topo2azel(topo, &target.azto, &target.elto);
+    topo2azel(topo, target.azto, target.elto);
     geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
-    topo2azel(topo, &target.azfrom, &target.elfrom);
+    topo2azel(topo, target.azfrom, target.elfrom);
     ds = rv_sub(target.loc.pos.geoc.s, source.pos.geoc.s);
     target.range = length_rv(ds);
     dv = rv_sub(target.loc.pos.geoc.v, source.pos.geoc.v);
