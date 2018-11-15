@@ -431,7 +431,7 @@ size_t data_list_files(string directory, vector<filestruc>& files)
                 struct stat st;
                 stat(tf.path.c_str(), &st);
                 tf.size = st.st_size;
-                tf.utc = unix2utc((double)st.st_ctim.tv_sec);
+                tf.utc = unix2utc((double)st.st_ctime);
                 if (S_ISDIR(st.st_mode))
                 {
                     tf.type = "directory";
