@@ -21,8 +21,8 @@ namespace Cosmos {
         material tmaterial;
         tmaterial.name = "Any";
         tmaterial.density = 1.;
-        tmaterial.ambient = {.5, .5, .5, 1.};
-        tmaterial.diffuse = {.5, .5, .5, 1.};
+        tmaterial.ambient = Vector(.5, .5, .5, 1.);
+        tmaterial.diffuse = Vector(.5, .5, .5, 1.);
         Materials.push_back(tmaterial);
 
         Groups.clear();
@@ -153,25 +153,25 @@ namespace Cosmos {
             tvector += offset;
             tvertex.vn = add_normal_vertex(tvector);
 
-            tvector = {i*size.x/2., size.y/2., -i*size.z/2.};
+            tvector = Vector(i*size.x/2., size.y/2., -i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
             tface.vertices.push_back(tvertex);
 
-            tvector = {i*size.x/2., size.y/2., i*size.z/2.};
+            tvector = Vector(i*size.x/2., size.y/2., i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
             tface.vertices.push_back(tvertex);
 
-            tvector = {i*size.x/2., -size.y/2., i*size.z/2.};
+            tvector = Vector(i*size.x/2., -size.y/2., i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
             tface.vertices.push_back(tvertex);
 
-            tvector = {i*size.x/2., -size.y/2., -i*size.z/2.};
+            tvector = Vector(i*size.x/2., -size.y/2., -i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
@@ -186,25 +186,25 @@ namespace Cosmos {
             tvector += offset;
             tvertex.vn = add_normal_vertex(tvector);
 
-            tvector = {size.x/2., i*size.y/2., i*size.z/2.};
+            tvector = Vector(size.x/2., i*size.y/2., i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
             tface.vertices.push_back(tvertex);
 
-            tvector = {size.x/2., i*size.y/2., -i*size.z/2.};
+            tvector = Vector(size.x/2., i*size.y/2., -i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
             tface.vertices.push_back(tvertex);
 
-            tvector = {-size.x/2., i*size.y/2., -i*size.z/2.};
+            tvector = Vector(-size.x/2., i*size.y/2., -i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
             tface.vertices.push_back(tvertex);
 
-            tvector = {-size.x/2., i*size.y/2., i*size.z/2.};
+            tvector = Vector(-size.x/2., i*size.y/2., i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
@@ -219,25 +219,25 @@ namespace Cosmos {
             tvector += offset;
             tvertex.vn = add_normal_vertex(tvector);
 
-            tvector = {size.x/2., size.y/2., i*size.z/2.};
+            tvector = Vector(size.x/2., size.y/2., i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
             tface.vertices.push_back(tvertex);
 
-            tvector = {-i*size.x/2., i*size.y/2., i*size.z/2.};
+            tvector = Vector(-i*size.x/2., i*size.y/2., i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
             tface.vertices.push_back(tvertex);
 
-            tvector = {-size.x/2., -size.y/2., i*size.z/2.};
+            tvector = Vector(-size.x/2., -size.y/2., i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
             tface.vertices.push_back(tvertex);
 
-            tvector = {i*size.x/2., -i*size.y/2., i*size.z/2.};
+            tvector = Vector(i*size.x/2., -i*size.y/2., i*size.z/2.);
             tvector = orientation.irotate(tvector);
             tvector += offset;
             tvertex.v = add_geometric_vertex(tvector);
@@ -592,8 +592,8 @@ namespace Cosmos {
                 struct material tmaterial;
                 tmaterial.name = input.substr(input.find(" ")+1);
                 tmaterial.density = 1.;
-                tmaterial.ambient = {.1,.1,.1};
-                tmaterial.diffuse = {.9, .9, .9};
+                tmaterial.ambient = Vector(.1,.1,.1);
+                tmaterial.diffuse = Vector(.9, .9, .9);
                 add_material(tmaterial);
             }
             break;
@@ -723,8 +723,8 @@ namespace Cosmos {
         material tmaterial;
         tmaterial.name = "Any";
         tmaterial.density = 1.;
-        tmaterial.ambient = {.5, .5, .5, 1.};
-        tmaterial.diffuse = {.5, .5, .5, 1.};
+        tmaterial.ambient = Vector(.5, .5, .5, 1.);
+        tmaterial.diffuse = Vector(.5, .5, .5, 1.);
         Materials.push_back(tmaterial);
 
         Groups.clear();
