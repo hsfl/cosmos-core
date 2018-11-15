@@ -373,15 +373,6 @@ int main(int argc, char *argv[])
 				break;
 			}
 
-//			rvector topo, dv, ds;
-//			geoc2topo(track[i].target.loc.pos.geod.s, agent->cinfo->node.loc.pos.geoc.s, topo);
-//			topo2azel(topo, &track[i].target.azto, &track[i].target.elto);
-//			geoc2topo(agent->cinfo->node.loc.pos.geod.s, track[i].target.loc.pos.geoc.s, topo);
-//			topo2azel(topo, &track[i].target.azfrom,&track[i].target.elfrom);
-//			ds = rv_sub(track[i].target.loc.pos.geoc.s, agent->cinfo->node.loc.pos.geoc.s);
-//			track[i].target.range = length_rv(ds);
-//			dv = rv_sub(track[i].target.loc.pos.geoc.v, agent->cinfo->node.loc.pos.geoc.v);
-//			track[i].target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
             update_target(agent->cinfo->node.loc, track[i].target);
 
 			if (track[i].target.type == NODE_TYPE_SATELLITE)
