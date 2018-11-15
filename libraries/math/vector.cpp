@@ -1598,30 +1598,30 @@ namespace Cosmos {
          * \param ::cvector to convert.
          * \return ::Vector representation.
         */
-            Vector Vector::from_cv(cvector cv)
-            {
-                Vector v;
-                v.x = cv.x;
-                v.y = cv.y;
-                v.z = cv.z;
-                v.w = 0.;
-                return v;
-            }
+//            Vector Vector::from_cv(cvector cv)
+//            {
+//                Vector v;
+//                v.x = cv.x;
+//                v.y = cv.y;
+//                v.z = cv.z;
+//                v.w = 0.;
+//                return v;
+//            }
 
             //! Convert from ::rvector.
             /*! Convert the provided ::rvector to ::Vector.
          * \param ::rvector to convert.
          * \return ::Vector representation.
         */
-            Vector Vector::from_rv(rvector rv)
-            {
-                Vector v;
-                v.x = rv.col[0];
-                v.y = rv.col[1];
-                v.z = rv.col[2];
-                v.w = 0.;
-                return v;
-            }
+//            Vector Vector::from_rv(rvector rv)
+//            {
+//                Vector v;
+//                v.x = rv.col[0];
+//                v.y = rv.col[1];
+//                v.z = rv.col[2];
+//                v.w = 0.;
+//                return v;
+//            }
 
             //! Convert to ::rvector
             /*! Convert the current ::Vector to ::rvector format.
@@ -1682,9 +1682,8 @@ namespace Cosmos {
             /*! Normalize the vector in place.
          * \return Reference to normalized ::Vector.
         */
-            Vector &Vector::normalize()
+            Vector &Vector::normalize(double size)
             {
-//                this->w = 0.;
                 double tnorm = norm();
 
                 // If norm is basically 1., don't do anything
@@ -1704,6 +1703,7 @@ namespace Cosmos {
                         this->w = NAN;
                     }
                 }
+                *this *= size;
                 return *this;
             }
 
@@ -1726,7 +1726,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return This times b.
         */
-            Vector Vector::operator * (const double &scale)
+            Vector Vector::operator *(const double scale) const
             {
                 Vector vo = *this;
 
@@ -1770,7 +1770,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return Scale times this.
         */
-            Vector operator * (const double &scale, Vector &v)
+            Vector operator * (const double scale, const Vector &v)
             {
                 return v * scale;
             }
@@ -1780,7 +1780,7 @@ namespace Cosmos {
          * \param scale Scale to divide by.
          * \return This divided by b.
         */
-            Vector Vector::operator / (double scale)
+            Vector Vector::operator / (double scale) const
             {
                 Vector vo = *this;
 
@@ -1850,7 +1850,7 @@ namespace Cosmos {
                 \param b second vector to be multiplied, in ::Vector form
                 \result the transformed vector, in ::Vector form
         */
-            Vector Vector::operator * (const Vector &b)
+            Vector Vector::operator * (const Vector &b) const
             {
                 Vector c;
 
@@ -1867,7 +1867,7 @@ namespace Cosmos {
                 \param b second vector to be added, in ::Vector form
                 \result the transformed vector, in ::Vector form
         */
-            Vector Vector::operator + (const Vector &b)
+            Vector Vector::operator + (const Vector &b) const
             {
                 Vector c;
 
@@ -1895,7 +1895,7 @@ namespace Cosmos {
                 \param b subtrahend vector, in ::Vector form
                 \result the transformed vector, in ::Vector form
         */
-            Vector Vector::operator - (const Vector &b)
+            Vector Vector::operator - (const Vector &b) const
             {
                 Vector c;
 
@@ -1910,7 +1910,7 @@ namespace Cosmos {
             /*! Return a ::Vector with all elements negated.
                 \result the transformed vector, in ::Vector form
         */
-            Vector Vector::operator - ()
+            Vector Vector::operator - () const
             {
                 Vector c;
 
@@ -1934,7 +1934,7 @@ namespace Cosmos {
             }
 
             // compare vector to vector operator
-            bool Vector::operator == (const Vector &b)
+            bool Vector::operator == (const Vector &b) const
             {
                 if(x == b.x && y == b.y && z == b.z && w == b.w)
                 {
@@ -1947,7 +1947,7 @@ namespace Cosmos {
             }
 
             // compare vector to vector operator
-            bool Vector::operator != (const Vector &b)
+            bool Vector::operator != (const Vector &b) const
             {
                 if(x != b.x || y != b.y || z != b.z || w != b.w)
                 {
@@ -2038,6 +2038,12 @@ namespace Cosmos {
                 return v;
             }
 
+            double Vector::sum()
+            {
+                double r = this->x + this->y + this->z +this->w;
+                return r;
+            }
+
             Vector eyeV(double scale)
             {
                 Vector val = Vector(1., 1., 1.);
@@ -2069,7 +2075,7 @@ namespace Cosmos {
 
         namespace Quaternions {
             // same as q_conjugate(quaternion q)
-            Quaternion Quaternion::conjugate()
+            Quaternion Quaternion::conjugate() const
             {
                 Quaternion o; // output
 
@@ -2077,6 +2083,16 @@ namespace Cosmos {
                 o.x = -x;
                 o.y = -y;
                 o.z = -z;
+
+                return o;
+            }
+
+            Vectors::Vector Quaternion::vector()
+            {
+                Vector o;
+                o.x = x;
+                o.y = y;
+                o.z = z;
 
                 return o;
             }
@@ -2155,7 +2171,7 @@ namespace Cosmos {
             }
 
             //         substraction operator for quaternion class
-            Quaternion Quaternion::operator-(const Quaternion& q2)
+            Quaternion Quaternion::operator-(const Quaternion& q2) const
             {
                 Quaternion q3;
 
@@ -2183,7 +2199,7 @@ namespace Cosmos {
             /*! Return a ::Quaternion with all elements negated.
                 \result the transformed quaternion, in ::Quaternion form
         */
-            Quaternion Quaternion::operator - ()
+            Quaternion Quaternion::operator - () const
             {
                 Quaternion c;
 
@@ -2199,7 +2215,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return This times b.
         */
-            Quaternion Quaternion::operator * (const double &scale)
+            Quaternion Quaternion::operator * (const double scale) const
             {
                 Quaternion vo = *this;
 
@@ -2213,7 +2229,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return Reference to this times scale.
         */
-            Quaternion &Quaternion::operator *= (const double &scale)
+            Quaternion &Quaternion::operator *= (const double scale)
             {
                 // If scale is basically 1., don't do anything
                 if (fabs(scale - (double)1.) > D_SMALL)
@@ -2239,7 +2255,7 @@ namespace Cosmos {
             }
 
             // product operator for quaternion class
-            Quaternion Quaternion::operator*(const Quaternion& q2)
+            Quaternion Quaternion::operator * (Quaternion &q2) const
             {
                 Quaternion q1, q3;
 
@@ -2253,9 +2269,10 @@ namespace Cosmos {
                 return q3;
             }
 
-            Quaternion operator *(const Vectors::Vector &v, const Quaternion &q)
+            Quaternion operator * (const Vectors::Vector &v, Quaternion &q)
             {
-                return Quaternion(v) * q;
+                const Quaternion qv = Quaternion(v);
+                return qv * q;
             }
 
             //! Scalar division.
@@ -2332,8 +2349,10 @@ namespace Cosmos {
             Vectors::Vector Quaternion::omegaFromDerivative(Quaternion dq)
             {
                 Vectors::Vector o; // output
-                //            Quaternion q = getQuaternion();
-                o = (2. * dq * this->conjugate()).vector();
+                Quaternions::Quaternion q = this->conjugate();
+                q = (dq * q);
+                q = 2. * q;
+                o = q.vector();
 
 
                 return o;
@@ -2394,7 +2413,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return Scale times this.
         */
-            Quaternion operator * (const double &scale, const Quaternion &q)
+            Quaternion operator * (double scale, Quaternion &q)
             {
                 return q * scale;
             }
@@ -2408,7 +2427,8 @@ namespace Cosmos {
             Vectors::Vector Quaternion::irotate(const Vector &v)
             {
                 Quaternion tq = v * (*this);
-                Vector result = this->conjugate() * tq;
+                const Quaternion qc = this->conjugate();
+                Vector result = qc * tq;
 
                 return result;
             }
@@ -2426,23 +2446,23 @@ namespace Cosmos {
                 Quaternion rq;
                 if ((a + b).norm() < 1e-14)
                 {
-                    vec1 = {rand(), rand(), rand()};
+                    vec1 = Vector(rand(), rand(), rand());
                     vec1.normalize();
                     vec2 = vec1.cross(b);
                     vec2.normalize();
                     if (vec2.norm() < D_SMALL)
                     {
-                        vec1 = {rand(), rand(), rand()};
+                        vec1 = Vector(rand(), rand(), rand());
                         vec1.normalize();
                         vec2 = vec1.cross(b);
                         vec2.normalize();
                     }
-                    rq = vec2;
+                    rq = Quaternion(vec2);
                     rq.w = 0.;
                 }
                 else
                 {
-                    rq = a.cross(b);
+                    rq = Quaternion(a.cross(b));
                     rq.w = 1. + a.dot(b);
                 }
 
