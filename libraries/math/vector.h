@@ -336,7 +336,8 @@ namespace Cosmos {
 
             //! Constructor and initializer.
             //! Initialize ::Vector to zero.
-            Vector(double x0=0., double y0=0., double z0=0., double w0=0.)
+
+            explicit Vector(double x0=0., double y0=0., double z0=0., double w0=0.)
             {
                 x = x0;
                 y = y0;
@@ -344,7 +345,7 @@ namespace Cosmos {
                 w = w0;
             }
 
-            Vector(rvector rv)
+            explicit Vector(rvector rv)
             {
                 x = rv.col[0];
                 y = rv.col[1];
@@ -352,7 +353,15 @@ namespace Cosmos {
                 w = 0.;
             }
 
-            Vector(cvector cv)
+            explicit Vector(quaternion q)
+            {
+                x = q.d.x;
+                y = q.d.y;
+                z = q.d.z;
+                w = q.w;
+            }
+
+            explicit Vector(cvector cv)
             {
                 x = cv.x;
                 y = cv.y;
@@ -374,15 +383,15 @@ namespace Cosmos {
             // TODO: check if we can iterated the vector
             double at(int i);
             // convert from cartesian vector to row vector
-            Vector from_cv(cvector cv);
-            Vector from_rv(rvector rv);
-            Vector from_q(quaternion q);
+//            Vector from_cv(cvector cv);
+//            Vector from_rv(rvector rv);
+//            Vector from_q(quaternion q);
             rvector to_rv();
             cvector to_cv();
             quaternion to_q();
             Vector cross(Vector b);
             double dot(Vector b);
-            Vector &normalize();
+            Vector &normalize(double size=1.);
             double norm();
             double separation(Vector b);
             double area(Vector b);
@@ -390,28 +399,40 @@ namespace Cosmos {
             Vector flattenx();
             Vector flatteny();
             Vector flattenz();
+            double sum();
+
+            Vector &operator = (const rvector rv)
+            {
+                *this = Vector(rv);
+                return *this;
+            }
+
+//            Vector &operator = (const Vector v)
+//            {
+//                return *this;
+//            }
 
             double &operator [] (const int &index);
 
-            Vector operator * (const double &scale); // multiply vector by scalar operator
+            Vector operator *(const double scale) const; // multiply vector by scalar operator
             Vector &operator *=( const double &scale); // multiply vector by scalar operator in place
-            Vector operator * (const Vector &v2); // multiply vector by vector operator
+            Vector operator * (const Vector &v2) const; // multiply vector by vector operator
 
-            Vector operator / (double scale); // multiply vector by scalar operator
+            Vector operator / (const double scale) const; // multiply vector by scalar operator
             Vector &operator /= (const double &scale); // multiply vector by scalar operator in place
 
-            Vector operator - (const Vector &v2); // Subtract vector by vector operator
+            Vector operator - (const Vector &v2) const; // Subtract vector by vector operator
             Vector &operator -= (const Vector &v2); // subtract vector by vector operator in place
-            Vector operator - (); // Negate vector operator
+            Vector operator - () const; // Negate vector operator
 
-            Vector operator + (const Vector &v2); // add vector by vector operator
+            Vector operator + (const Vector &v2) const; // add vector by vector operator
             Vector &operator += (const Vector &v2); // add vector by vector operator in place
 
-            bool operator == (const Vector &v2); // Compares two vectors
-            bool operator != (const Vector &v2); // Compares two vectors
+            bool operator == (const Vector &v2) const; // Compares two vectors
+            bool operator != (const Vector &v2) const; // Compares two vectors
         };
 
-        Vector operator * (const double &scale, Vector &v);
+        Vector operator * (const double scale, const Vector &v);
         std::ostream& operator << (std::ostream& out, const Vector& v);
         Vector eyeV(double scale=1.);
         Vector unitxV(double scale=1.);
@@ -426,14 +447,15 @@ namespace Cosmos {
 
         public:
 
-//            double x,y,z,w;
-
-            Quaternion(double qx=0., double qy=0., double qz=0., double qw=0.) : Vector(qx, qy, qz, qw)
+            explicit Quaternion(double qx=0., double qy=0., double qz=0., double qw=0.) : Vector(qx, qy, qz, qw)
             {
-
+                x = qx;
+                y = qy;
+                z = qz;
+                w = qw;
             }
 
-            Quaternion(Vector v)
+            explicit Quaternion(Vector v)
             {
                 x = v.x;
                 y = v.y;
@@ -441,7 +463,7 @@ namespace Cosmos {
                 w = 0.;
             }
 
-            Quaternion(quaternion q)
+            explicit Quaternion(quaternion q)
             {
                 x = q.d.x;
                 y = q.d.y;
@@ -449,7 +471,7 @@ namespace Cosmos {
                 w = q.w;
             }
 
-            Quaternion(rvector rv) : Vector(rv)
+            explicit Quaternion(rvector rv) : Vector(rv)
             {
                 x = rv.col[0];
                 y = rv.col[1];
@@ -465,16 +487,17 @@ namespace Cosmos {
 
 
             // operators
-            Quaternion operator * (const double &scale); // multiply vector by scalar operator
-            Quaternion &operator *= ( const double &scale); // multiply vector by scalar operator in place
-            Quaternion operator * (const Quaternion &q2);
+            Quaternion &operator = (const Quaternion &q) { return *this; }
+            Quaternion operator * (const double scale) const; // multiply vector by scalar operator
+            Quaternion &operator *= ( const double scale); // multiply vector by scalar operator in place
+            Quaternion operator * (Quaternion &q2) const;
 
 //            Quaternion operator / (double scale); // multiply vector by scalar operator
 //            Quaternion &operator /= (const double &scale); // multiply vector by scalar operator in place
 
-            Quaternion operator - (const Quaternion &q2); // Subtract vector by vector operator
+            Quaternion operator - (const Quaternion &q2) const; // Subtract vector by vector operator
             Quaternion &operator -= (const Quaternion &q2); // subtract vector by vector operator in place
-            Quaternion operator - (); // Negate vector operator
+            Quaternion operator - () const; // Negate vector operator
 
             Quaternion operator + (const Quaternion &q2); // add vector by vector operator
             Quaternion &operator += (const Quaternion &q2); // add vector by vector operator in place
@@ -483,7 +506,8 @@ namespace Cosmos {
             //std::istream& operator >> (std::istream& out, Quaternion& a);
 
             Quaternion multiplyScalar(double a);
-            Quaternion conjugate();
+            Quaternion conjugate() const;
+            Vector vector();
             Vector omegaFromDerivative(Quaternion dq);
 //            Quaternion &normalize();
 //            double norm();
@@ -492,8 +516,8 @@ namespace Cosmos {
         };
 
         // declared outside class because it does not need to access members of the class Quaternion
-        Quaternion operator *(const Vectors::Vector &v, const Quaternion &q);
-        Quaternion operator *(const double &s, const Quaternion &q);
+        Quaternion operator * (double scale, Quaternion &q);
+        Quaternion operator * (const Vectors::Vector &v, Quaternion &q);
         std::ostream& operator << (std::ostream& os, const Quaternion& q);
         Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb);
         Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b);
