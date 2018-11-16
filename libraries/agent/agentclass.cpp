@@ -1838,17 +1838,17 @@ namespace Cosmos {
         for (size_t i=0; i<cinfo->agent[0].ifcnt; i++)
         {
             sprintf((char *)&post[3],"{\"agent_utc\":%.15g, \"agent_node\":\"%s\", \"agent_proc\":\"%s\", \"agent_addr\":\"%s\", \"agent_port\":%u, \"agent_bprd\":%f, \"agent_bsz\":%u, \"agent_cpu\":%f, \"agent_memory\":%f, \"agent_jitter\":%f, \"node_utcoffset\":%.15g}",
-                    cinfo->pdata.agent[0].beat.utc,
-                    cinfo->pdata.agent[0].beat.node,
-                    cinfo->pdata.agent[0].beat.proc,
-                    cinfo->pdata.agent[0].pub[i].address,
-                    cinfo->pdata.agent[0].beat.port,
-                    cinfo->pdata.agent[0].beat.bprd,
-                    cinfo->pdata.agent[0].beat.bsz,
-                    cinfo->pdata.agent[0].beat.cpu,
-                    cinfo->pdata.agent[0].beat.memory,
-                    cinfo->pdata.agent[0].beat.jitter,
-                    cinfo->pdata.node.utcoffset);
+                    cinfo->agent[0].beat.utc,
+                    cinfo->agent[0].beat.node,
+                    cinfo->agent[0].beat.proc,
+                    cinfo->agent[0].pub[i].address,
+                    cinfo->agent[0].beat.port,
+                    cinfo->agent[0].beat.bprd,
+                    cinfo->agent[0].beat.bsz,
+                    cinfo->agent[0].beat.cpu,
+                    cinfo->agent[0].beat.memory,
+                    cinfo->agent[0].beat.jitter,
+                    cinfo->node.utcoffset);
             size_t hlength = strlen((char *)&post[3]);
             post[1] = hlength%256;
             post[2] = hlength / 256;

@@ -1051,9 +1051,6 @@ int32_t json_out_entry(string &jstring, const jsonentry &entry, cosmosstruc *cin
     int32_t iretn;
     uint8_t *data;
 
-    //    if (!cmeta.jmapped)
-    //        return (JSON_ERROR_NOJMAP);
-
     if (jstring.back() =='}')       //replaces '}' with ',' to allow the continuation of the json object (if node json is to remain separate, input ' ' at end?
     {
         jstring.back()=',';
@@ -4609,7 +4606,7 @@ double json_convert_double(string object)
  */
 int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tokens)
 {
-    const char *cvertex;
+    const char *cpoint;
     size_t length;
     int32_t iretn;
     jsontoken ttoken;
@@ -4626,15 +4623,15 @@ int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tok
     }
 
     length = jstring.size();
-    cvertex = &jstring[0];
-    while (*cvertex != 0 && *cvertex != '{')
-        cvertex++;
+    cpoint = &jstring[0];
+    while (*cpoint != 0 && *cpoint != '{')
+        cpoint++;
     tokens.clear();
     do
     {
-        if (*cvertex != 0)
+        if (*cpoint != 0)
         {
-            if ((iretn = json_tokenize_namedobject(cvertex, cinfo, ttoken)) < 0)
+            if ((iretn = json_tokenize_namedobject(cpoint, cinfo, ttoken)) < 0)
             {
                 if (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP)
                     iretn = 0;
@@ -4646,7 +4643,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tok
         }
         else
             iretn = JSON_ERROR_EOS;
-    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cvertex != 0 && (size_t)(cvertex-&jstring[0]) <= length);
+    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
 
     if (!iretn) iretn = (int32_t)tokens.size();
     return (iretn);
@@ -4808,7 +4805,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
 */
 int32_t json_parse(string jstring, cosmosstruc *cinfo)
 {
-    const char *cvertex;
+    const char *cpoint;
     size_t length;
     int32_t iretn;
     uint32_t count = 0;
@@ -4820,10 +4817,10 @@ int32_t json_parse(string jstring, cosmosstruc *cinfo)
     do
     {
         // is this the only reference to endlines?
-        if (*cvertex != 0)// && *cvertex != '\r' && *cvertex != '\n')
-            //if (*cvertex != 0 && *cvertex != '\r' && *cvertex != '\n')
+        if (*cpoint != 0)// && *cpoint != '\r' && *cpoint != '\n')
+            //if (*cpoint != 0 && *cpoint != '\r' && *cpoint != '\n')
         {
-            if ((iretn = json_parse_namedobject(cvertex, cinfo)) < 0)
+            if ((iretn = json_parse_namedobject(cpoint, cinfo)) < 0)
             {
                 if (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP)
                     iretn = 0;
@@ -4835,7 +4832,7 @@ int32_t json_parse(string jstring, cosmosstruc *cinfo)
         }
         else
             iretn = JSON_ERROR_EOS;
-    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cvertex != 0 && (size_t)(cvertex-&jstring[0]) <= length);
+    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
 
     if (iretn >= 0)
     {
@@ -4893,15 +4890,16 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosstruc *cinfo)
     hash = json_hash(ostring);
 
     // See if there is a match in the ::jsonmap.
-    for (n=0; n<cmeta.jmap[hash].size(); ++n)	//check through every column in the row (using hash) exit loop if the name matches
+    size_t n;
+    for (n=0; n<cinfo->jmap[hash].size(); ++n)	//check through every column in the row (using hash) exit loop if the name matches
     {
-        if (ostring == cmeta.jmap[hash][n].name)
+        if (ostring == cinfo->jmap[hash][n].name)
         {
             break;
         }
     }
 
-    if (n == cmeta.jmap[hash].size())       //if there was no match
+    if (n == cinfo->jmap[hash].size())       //if there was no match
     {
         if ((iretn = json_skip_value(ptr)) < 0 && iretn != JSON_ERROR_EOS)
         {
@@ -4936,7 +4934,7 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosstruc *cinfo)
             else
                 return (iretn);
         }                                           //enter value into the structs using offsets?
-        if ((iretn = json_parse_value(ptr,cmeta.jmap[hash][n].type,cmeta.jmap[hash][n].offset,cmeta.jmap[hash][n].group, cmeta, cdata)) < 0)
+        if ((iretn = json_parse_value(ptr, cinfo->jmap[hash][n].type, cinfo->jmap[hash][n].offset, cinfo->jmap[hash][n].group, cinfo)) < 0)
         {
             if (iretn != JSON_ERROR_EOS)
             {
