@@ -4600,7 +4600,7 @@ double json_convert_double(string object)
  */
 int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tokens)
 {
-    const char *cvertex;
+    const char *cpoint;
     size_t length;
     int32_t iretn;
     jsontoken ttoken;
@@ -4617,15 +4617,15 @@ int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tok
     }
 
     length = jstring.size();
-    cvertex = &jstring[0];
-    while (*cvertex != 0 && *cvertex != '{')
-        cvertex++;
+    cpoint = &jstring[0];
+    while (*cpoint != 0 && *cpoint != '{')
+        cpoint++;
     tokens.clear();
     do
     {
-        if (*cvertex != 0)
+        if (*cpoint != 0)
         {
-            if ((iretn = json_tokenize_namedobject(cvertex, cinfo, ttoken)) < 0)
+            if ((iretn = json_tokenize_namedobject(cpoint, cinfo, ttoken)) < 0)
             {
                 if (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP)
                     iretn = 0;
@@ -4637,7 +4637,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tok
         }
         else
             iretn = JSON_ERROR_EOS;
-    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cvertex != 0 && (size_t)(cvertex-&jstring[0]) <= length);
+    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
 
     if (!iretn) iretn = (int32_t)tokens.size();
     return (iretn);
@@ -4799,22 +4799,22 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
 */
 int32_t json_parse(string jstring, cosmosstruc *cinfo)
 {
-    const char *cvertex;
+    const char *cpoint;
     size_t length;
     int32_t iretn;
     uint32_t count = 0;
 
     length = jstring.size();
-    cvertex = &jstring[0];
-    while (*cvertex != 0 && *cvertex != '{')
-        cvertex++;
+    cpoint = &jstring[0];
+    while (*cpoint != 0 && *cpoint != '{')
+        cpoint++;
     do
     {
         // is this the only reference to endlines?
-        if (*cvertex != 0)// && *cvertex != '\r' && *cvertex != '\n')
-            //if (*cvertex != 0 && *cvertex != '\r' && *cvertex != '\n')
+        if (*cpoint != 0)// && *cpoint != '\r' && *cpoint != '\n')
+            //if (*cpoint != 0 && *cpoint != '\r' && *cpoint != '\n')
         {
-            if ((iretn = json_parse_namedobject(cvertex, cinfo)) < 0)
+            if ((iretn = json_parse_namedobject(cpoint, cinfo)) < 0)
             {
                 if (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP)
                     iretn = 0;
@@ -4826,7 +4826,7 @@ int32_t json_parse(string jstring, cosmosstruc *cinfo)
         }
         else
             iretn = JSON_ERROR_EOS;
-    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cvertex != 0 && (size_t)(cvertex-&jstring[0]) <= length);
+    } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
 
     if (iretn >= 0)
     {
