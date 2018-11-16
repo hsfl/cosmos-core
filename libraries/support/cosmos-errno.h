@@ -255,9 +255,14 @@
 #define CUBEADCS_NOT_CONNECTED -603
 #define CUBEADCS_SERIAL_PROTOCOL -604
 
-#define CLYDEEPS_NOT_CONNECTED -611
+#define CLYDE_EPS_NOT_CONNECTED -611
+#define CLYDE_BATTERY_NOT_CONNECTED -612
+#define CLYDE_GENERAL_BAD_ADDRESS -613
 
-
+#define MEADE_MOUNT_ERROR_NOT_CONNECTED -620
+#define MEADE_MOUNT_ERROR_BAD_RESPONSE -621
+#define MEADE_MOUNT_ERROR_VALUE_INVALID -622
+#define MEADE_MOUNT_ERROR_OUTSIDE_LIMITS -623
 
 #define GENERAL_OK                        0      /* everything is all right */
 #define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
@@ -279,15 +284,16 @@
 #define GENERAL_ERROR_OUTPUT           -2017     /* output from a routine returned bad output, possibly related to bad input */
 #define GENERAL_ERROR_UNDEFINED        -2018
 #define GENERAL_ERROR_OUTOFRANGE        -2019
+#define GENERAL_ERROR_NOTREADY          -2020
 
-
+#define GPHOTO2_ERROR -3000
 
 
 //! @}
 
 
 //! \ingroup error
-//! \defgroup error_defines COSMOS Error Code definitions
+//! \defgroup error_functions Errno support functions
 //! @{
 string cosmos_error_string(int32_t cosmos_errno);
 //! @}

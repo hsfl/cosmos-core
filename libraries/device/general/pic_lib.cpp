@@ -34,7 +34,7 @@
  * specified RS232 device, in preparation for querying it for position
  * measurements.
  * \param dev Name of RS232 character device.
- * \param handle Pointer to ::pic_handle.
+ * \param handle Pointer to #pic_handle.
  * \return Zero, or negative error number.
 */
 int32_t pic_connect(char *dev, pic_handle *handle)

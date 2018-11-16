@@ -102,14 +102,14 @@ int main(int argc, char *argv[])
     while(agent->running())
 	{
 		// Set beginning of next cycle;
-        nmjd += agent->cinfo->pdata.agent[0].aprd/86400.;
+        nmjd += agent->cinfo->agent[0].aprd/86400.;
 
         // Gather arduino data
         iretn = cssl_getdata(serial, buffer, 400);
         if (iretn > 0)
         {
             std::string message = (char *)buffer;
-            json_parse(message, agent->cinfo->meta, agent->cinfo->pdata);
+            json_parse(message, agent->cinfo);
             printf("%u: %s\n", ++counter, buffer);
         }
 

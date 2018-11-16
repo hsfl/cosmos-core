@@ -42,6 +42,7 @@
 #include <typeinfo>
 
 using namespace std;
+
 // ------------------------------------------------------------------
 // User config
 
@@ -61,236 +62,245 @@ char buffer[255] = "";
 Agent *agent;
 vector<shorteventstruc> eventdict;
 vector<shorteventstruc> events;
-// EH 2017-06-26: changed jstring to string
-// but this is still not working, Eric must check!!!
 string mainjstring={0,0,0};
 
 void printMjdAndDateTime(double mjd){
-	// EH 2017-06-26: I have no idea of what mjd2human is ... Miguel please check this
-	// update: I included time_utils and jounf mjd2human
-	cout << setprecision(10) << mjd << " (" << mjdToGregorian(mjd) << ")"; // << endl;
+    cout << mjdToGregorianFormat(mjd) << setprecision(10) << " (MJD=" <<  mjd << ")"; // << endl;
 }
 
 int main(int argc, char* argv[]){
 
-	// for propagator
-	int32_t order   = 6; // integration order
-	int32_t mode    = 1; // attitude mode (0 - propagate?, 1-LVLH, ...)
-	double dt       = 1; // >> check with Eric .1 or 1?
+    // for propagator
+    int32_t order   = 6; // integration order
+    int32_t mode    = 1; // attitude mode (0 - propagate?, 1-LVLH, ...)
+    double dt       = 1; // >> check with Eric .1 or 1?
 
-	double triger_time = 0;
-	double iteration_rate = 1; //in sec
-	double trigger_offset_ms = 10; // ms before sending the command
-	int precision = 1/iteration_rate;
-	double sleep_time = 0.7*iteration_rate;
-	double set_time = 0;
-	double elapsed_seconds = 0;
-	double utc_now;
-	int32_t iretn;
+    double triger_time = 0;
+    double iteration_rate = 1; //in sec
+    double trigger_offset_ms = 10; // ms before sending the command
+    int precision = 1/iteration_rate;
+    double sleep_time = 0.7*iteration_rate;
+    double set_time = 0;
+    double elapsed_seconds = 0;
+    double utc_now;
+    int32_t iretn;
+
+    // for time profiling
+    ElapsedTime ep;
+    ep.print = false;
+
+    PrintUtils print;
+
+    locstruc state; // Set state container
+    locstruc initState; // Set initial state
+
+    // break down state vector
+    // position
+    double x = state.pos.eci.s.col[0];
+    double y = state.pos.eci.s.col[1];
+    double z = state.pos.eci.s.col[2];
+
+    // velocity
+    double vx = state.pos.eci.v.col[0];
+    double vy = state.pos.eci.v.col[1];
+    double vz = state.pos.eci.v.col[2];
+
+    // attitude quaternion
+    double q1 = state.att.icrf.s.d.x;
+    double q2 = state.att.icrf.s.d.y;
+    double q3 = state.att.icrf.s.d.z;
+    double q4 = state.att.icrf.s.w;
+
+    // --------------------------------------------------------------
+
+    switch (argc)
+    {
+    case 1:
+        // use default node 'cubesat1'
+        break;
+    case 2:
+        // use node given by user input
+        node_name = argv[1];
+        break;
+    case 3:
+        // use time given by user input
+        //        mjdstart = atof(argv[2]);
+        break;
+    default:
+        cout << "Usage: propogator_simple nodename [mjd|0]" << endl;
+        exit (-1);
+        break;
+    }
+
+    //	cout << "-----------------------------------------------" << endl;
+    //	cout << "|      COSMOS Propagator Example              |" << endl;
+    //	cout << "-----------------------------------------------" << endl;
+
+    // Establish the command channel and heartbeat
+    agent = new Agent(node_name, agent_name);
+
+    if (agent->last_error()<0)
+    {
+        cout<<"agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+        exit (AGENT_ERROR_JSON_CREATE);
+    }
+
+    //agent->cinfo->physics.mode = mode;
+    //json_clone(cinfo);
+
+    //load_dictionary(eventdict, cinfo, (char *)"events.dict");
 
 
-	// for time profiling
-	ElapsedTime ep;
-	ep.print = false;
+    // start timer
+    ep.tic();
 
-	PrintUtils print;
+    // ------------------------------------
+    // load state.ini
 
-	locstruc state; // Set state container
-	locstruc initState; // Set initial state
+    cout << "Loading state.ini info from " << node_name << " node (node must exist in cosmos/nodes) "  << endl;
 
-	// break down state vector
-	double x = state.pos.eci.s.col[0];
-	double y = state.pos.eci.s.col[1];
-	double z = state.pos.eci.s.col[2];
+    struct stat fstat;
+    FILE* fdes;
+    string fname = get_nodedir((node_name.c_str()));
+    fname += "/state.ini";
 
-	double vx = state.pos.eci.v.col[0];
-	double vy = state.pos.eci.v.col[1];
-	double vz = state.pos.eci.v.col[2];
+    pos_clear(initState);
 
-	double q1 = state.att.icrf.s.d.x;
-	double q2 = state.att.icrf.s.d.y;
-	double q3 = state.att.icrf.s.d.z;
-	double q4 = state.att.icrf.s.w;
+    if ((iretn=stat(fname.c_str(), &fstat)) == 0 && (fdes=fopen(fname.c_str(),"r")) != NULL)
+    {
+        char* ibuf = (char *)calloc(1,fstat.st_size+1);
 
-	// --------------------------------------------------------------
+        fread(ibuf, 1, fstat.st_size, fdes);
+        //		fgets(ibuf,fstat.st_size,fdes);
+        json_parse(ibuf, agent->cinfo);
 
-	switch (argc)
-	{
-	case 2:
-		//node_name = argv[1];
-		break;
-	case 3:
-		//mjdstart = atof(argv[2]);
-		break;
-	default:
-		//cout << "Usage: propogator nodename [mjd|0]" << endl;
-		//exit (-1);
-		break;
-	}
+        free(ibuf);
 
-	cout << "-----------------------------------------------" << endl;
-	cout << "|      COSMOS Propagator Example              |" << endl;
-	cout << "-----------------------------------------------" << endl;
+        initState.pos.eci   = agent->cinfo->node.loc.pos.eci;
+        //initState.att.icrf  = agent->cinfo->node.loc.att.icrf;
+        initState.utc       = agent->cinfo->node.loc.pos.eci.utc;
 
-	//if(use_agent){
+        cout << "Sucessfully found state.ini"  << endl;
 
-	// Establish the command channel and heartbeat
-	//CT 2017-06-26: it looks like "agent_setup_server" doesn't exist anymore. need to initialize cdata somehow.
-	agent = new Agent(node_name, agent_name);
+        cout << "UTC from state.ini   : ";
+        printMjdAndDateTime(initState.utc);
+        print.endline();
+        print.vector("Initial ECI Position : ", initState.pos.eci.s, " m", 3);print.endline();
+        print.vector("Initial ECI Velocity : ", initState.pos.eci.v, " m/s",3);print.endline();
+        //print.end();
+        cout << "-----------------------------------------------" << endl;
 
-	if (agent->last_error()<0)
-	{
-		cout<<"agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
-		exit (AGENT_ERROR_JSON_CREATE);
-	}
+    }
+    else
+    {
+        printf("Unable to open state.ini\n");
+        exit (-1);
+    }
 
-	//agent->cinfo->physics.mode = mode;
-	//json_clone(cdata);
+    ep.toc("load state.ini");
 
-	//load_dictionary(eventdict, cdata, (char *)"events.dict");
+    // propagate the changes to all frames
+    initState.pos.eci.pass++;
+    pos_eci(&initState);
 
-	//}
+    // initialize propagator
+    //CT 2017-06-26: couldn't find a gj_handle data type for this function to use
+    gj_handle gjh;
+    gauss_jackson_init_eci(gjh,
+                           order,
+                           mode,
+                           dt,
+                           currentmjd(),// use curretn time instead of initState.utc for this demo, otherwise it will take a long time to update
+                           initState.pos.eci,
+                           initState.att.icrf,
+                           agent->cinfo->physics,
+                           agent->cinfo->node.loc);
+
+    // propagate state to current time so we get an updated state vector
+    // to initialize the GPS sim
+    //CT 2017-06-26: couldn't find a gj_handle data type for this function to use
+    gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, currentmjd());
+
+    //get initial sim tim
+    double mjd_start_sim = currentmjd();
 
 
-	ep.tic();
+    // set SOH
+    std::string soh = "{\"node_loc_utc\","
+                      "\"node_loc_pos_eci\","
+                      "\"node_loc_att_icrf\"}" ;
 
-	// ------------------------------------
-	// load state.ini
+    agent->set_sohstring(soh);
 
-	cout << "-----------------------------------------------" << endl;
-	cout << "Loading state.ini info from " << node_name << " node (node must exist in cosmosroot) "  << endl;
+    // --------------------------------------------------------------
+    while (agent->running()){ //for agent use
+        // get the elapsed seconds from the sim start
+        utc_now = currentmjd(0);
+        elapsed_seconds = (utc_now - mjd_start_sim)*86400; //+ 50./1000.
 
-	struct stat fstat;
-	FILE* fdes;
-	string fname = get_nodedir((node_name.c_str()));
-	//CT 2017-06-26 changing get_cnodedir to get_nodedir
-	fname += "/state.ini";
+        set_time = floor(elapsed_seconds*precision)/precision + iteration_rate;
+        triger_time = set_time - trigger_offset_ms/1000.;
 
-	pos_clear(initState);
-	//CT 2017-06-26 changed &initState to initState
-	if ((iretn=stat(fname.c_str(), &fstat)) == 0 && (fdes=fopen(fname.c_str(),"r")) != NULL)
-	{
-		char* ibuf = (char *)calloc(1,fstat.st_size+1);
-		//size_t nbytes =
-		fread(ibuf, 1, fstat.st_size, fdes);
-		//		fgets(ibuf,fstat.st_size,fdes);
-		json_parse(ibuf,agent->cinfo->meta,agent->cinfo->pdata);
-		//CT 2017-06-26 changed "cdata" to "agent->cinfo->meta, agent->cinfo->pdata"
-		free(ibuf);
+        if (elapsed_seconds > triger_time){ // send the command 100 ms before the set time
 
-		initState.pos.eci   = agent->cinfo->pdata.node.loc.pos.eci;
-		//initState.att.icrf  = agent->cinfo->node.loc.att.icrf;
-		initState.utc       = agent->cinfo->pdata.node.loc.pos.eci.utc;
-		//CT 2017-06-26  changing in lines 178/180 "agent->cinfo->node" to "agent->cinfo->pdata.node"
+            // propagate
+            gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc,  utc_now);
+            state = agent->cinfo->node.loc;
 
-		cout << "Sucessfully found state.ini"  << endl;
+            // break down state vector for this demo
+            x = state.pos.eci.s.col[0];
+            y = state.pos.eci.s.col[1];
+            z = state.pos.eci.s.col[2];
 
-		cout << "UTC from state.ini   : ";
-		printMjdAndDateTime(initState.utc);
-		print.endline();  //CT 2017-06-26: created syntax for these calls of .vector in print_utils.h and print_utils.cpp
-		print.vector("Initial ECI Position : ", initState.pos.eci.s, " m", 3);print.endline();
-		print.vector("Initial ECI Velocity : ", initState.pos.eci.v, " m/s",3);print.endline();
-		//print.end();
-		cout << "-----------------------------------------------" << endl;
+            vx = state.pos.eci.v.col[0];
+            vy = state.pos.eci.v.col[1];
+            vz = state.pos.eci.v.col[2];
 
-	}
-	else
-	{
-		printf("Unable to open state.ini\n");
-		exit (-1);
-	}
+            //
+            q1 = state.att.geoc.s.d.x;
+            q2 = state.att.geoc.s.d.y;
+            q3 = state.att.geoc.s.d.z;
+            q4 = state.att.geoc.s.w;
 
-	ep.toc("load state.ini");
+            sprintf(buffer,"%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
+                    mjdToGregorianDDMmmYYYY(utc_now).c_str(),
+                    x,y,z,
+                    vx,vy,vz,
+                    q1,q2,q3,q4);
 
-	//cout << "UTC now              : ";
-	//printMjdAndDateTime(currentmjd());
-	//print.end();
+            //cout << "------------------------------------------------" << endl;
+            //print time
+            cout << mjdToGregorianFormat(currentmjd());
+            cout << " | ";
+            cout << seconds2DDHHMMSS(elapsed_seconds) << " | ";
 
-	// propagate the changes to all frames
-	initState.pos.eci.pass++;
-	pos_eci(&initState);
+            // print state
+            print.vector("pos:",state.pos.geoc.s,1e-3," km | ",0,6);
+            print.vector("vel:", state.pos.geoc.v,1e-3, " km/s | ", 2, 3);
 
-	// initialize propagator
-	//CT 2017-06-26: couldn't find a gj_handle data type for this function to use
-	gj_handle gjh;
-	gauss_jackson_init_eci(gjh,
-	order,
-	mode,
-	dt,
-	currentmjd(),// use curretn time instead of initState.utc for this demo, otherwise it will take a long time to update
-	initState.pos.eci,
-	initState.att.icrf,
-	agent->cinfo->pdata.physics,
-	agent->cinfo->pdata.node.loc);
+            // TODO: print attitude
 
-	// propagate state to current time so we get an updated state vector
-	// to initialize the GPS sim
-	//CT 2017-06-26: couldn't find a gj_handle data type for this function to use
-	gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc, currentmjd());
+            // print magnetic field in micro-Tesla
+            print.vector("mag field:", agent->cinfo->node.loc.bearth, 1e6, " uT", 1,3);
 
-	//get initial sim tim
-	double mjd_start_sim = currentmjd();
+            // TODO: print solar vector
 
-	// --------------------------------------------------------------
-	//while(1){ // for general purpose
-	//CT 2017-06-26: seems like command was changed/moved from "agent_running" to "Agent::running". consider changing cdata to an agent, or change statement to "cdata.pdata.agent.stateflag == RUNNING"? or w/e running value is
-	while (agent->running()){ //for agent use
-		// get the elapsed seconds from the sim start
-		utc_now = currentmjd(0);
-		elapsed_seconds = (utc_now - mjd_start_sim)*86400; //+ 50./1000.
+            // TODO: print moon vector
 
-		set_time = floor(elapsed_seconds*precision)/precision + iteration_rate;
-		triger_time = set_time - trigger_offset_ms/1000.;
+            // TODO: print nadir vector
 
-		if (elapsed_seconds > triger_time){ // send the command 100 ms before the set time
+            print.endline();
 
-			// propagate
-			//CT 2017-06-26: cannot find gj_handle data type for function to use
-			gauss_jackson_propagate(gjh, agent->cinfo->pdata.physics, agent->cinfo->pdata.node.loc,  utc_now);
-			state = agent->cinfo->pdata.node.loc;
+            agent->post(Agent::AgentMessage::SOH, json_of_table(mainjstring, agent->sohtable, agent->cinfo));
 
-			// break down state vector for this demo
-			x = state.pos.eci.s.col[0];
-			y = state.pos.eci.s.col[1];
-			z = state.pos.eci.s.col[2];
 
-			vx = state.pos.eci.v.col[0];
-			vy = state.pos.eci.v.col[1];
-			vz = state.pos.eci.v.col[2];
+            COSMOS_SLEEP(sleep_time); // sleep for 70% of the iteration time
 
-			//
-			q1 = state.att.geoc.s.d.x;
-			q2 = state.att.geoc.s.d.y;
-			q3 = state.att.geoc.s.d.z;
-			q4 = state.att.geoc.s.w;
+        }
 
-			sprintf(buffer,"%s,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
-			mjdToGregorianDDMmmYYYY(utc_now).c_str(),   //CT 2017-06-26 changed "mjd2human3" to "mjdToGregorianDDMmmYYYY" and removed "c_str()"
-			x,y,z,
-			vx,vy,vz,
-			q1,q2,q3,q4);
+    } // end while
 
-			// magnetic field in Tesla
-			//magField = agent->cinfo->node.loc.bearth;
-
-			// print stuff
-			//cout << "------------------------------------------------" << endl;
-			cout << "UTC : ";
-			printMjdAndDateTime(currentmjd());
-			cout << " | ";
-			cout << seconds2DDHHMMSS(elapsed_seconds) << " | ";
-			print.vector("pos:", state.pos.geoc.s, " m | ", 3);
-			print.vector("vel:", state.pos.geoc.v, " m/s | ", 3);
-			print.vector("mag field:", agent->cinfo->pdata.node.loc.bearth,  " nT", 3);  //CT 2017-06-26: possible to add ", -1" as another arguement to call main vector function, or overload
-			print.endline();
-
-			COSMOS_SLEEP(sleep_time); // sleep for 70% of the iteration time
-
-		}
-
-	} // end while
-
-	return iretn;
+    return iretn;
 }
 
 

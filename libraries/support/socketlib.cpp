@@ -44,6 +44,8 @@ provided for the extra steps necessary for MS Windows.
     \param role Publish, subscribe, communicate.
     \param blocking True or false.
     \param usectimeo Blocking read timeout in micro seconds.
+    \param rcvbuf Optional size of buffer for setsockopt SO_RCVBUF.
+    \param sndbuf Optional size of buffer for setsockopt SO_SNDBUF.
     \return Zero, or negative error.
 */
 int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *address, uint16_t port, uint16_t role,

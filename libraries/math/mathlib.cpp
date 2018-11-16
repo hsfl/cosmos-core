@@ -368,7 +368,7 @@ rvector rv_normalto(rvector p0, rvector p1, rvector p2)
 
 //! Determine local byte order
 /*! Investigate a locally stored number to determine the byte order of the local machine.
-    \return Order as provided in ::BYTE_ORDER.
+    \return Order as provided in ::ByteOrder.
 */
 
 //std::uint8_t local_byte_order()
@@ -388,7 +388,7 @@ ByteOrder local_byte_order()
 //! Memory to 16 bit unsigned integer
 /*! Return the 16 bit unsigned integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 16 bit unsigned integer
 */
 
@@ -417,7 +417,7 @@ uint16_t uint16from(uint8_t *pointer, ByteOrder order)
 //! Memory to 16 bit signed integer
 /*! Return the 16 bit signed integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 16 bit signed integer
 */
 
@@ -435,7 +435,7 @@ int16_t int16from(uint8_t *pointer, ByteOrder order)
 //! Memory to 32 bit unsigned integer
 /*! Return the 32 bit unsigned integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 32 bit unsigned integer
 */
 
@@ -466,7 +466,7 @@ uint32_t uint32from(uint8_t *pointer, ByteOrder order)
 //! Memory to 32 bit signed integer
 /*! Return the 32 bit signed integer equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 32 bit signed integer
 */
 
@@ -484,7 +484,7 @@ int32_t int32from(uint8_t *pointer, ByteOrder order)
 //! Memory to 32 bit float
 /*! Return the 32 bit float equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 32 bit float
 */
 
@@ -512,7 +512,7 @@ float floatfrom(uint8_t *pointer, ByteOrder order)
 //! Memory to 64 bit float
 /*! Return the 64 bit float equivalent of a location in memory, corrected for the local byte order.
     \param pointer location in memory to be cast
-    \param order byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order byte order of the data in memory. Taken from ::ByteOrder.
     \return 64 bit float
 */
 
@@ -545,7 +545,7 @@ double doublefrom(uint8_t *pointer, ByteOrder order)
 /*! Cast a 32 bit unsigned integer equivalent into a location in memory, corrected for the local byte order.
     \param value integer to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void uint32to(uint32_t value, uint8_t *pointer, ByteOrder order)
@@ -576,7 +576,7 @@ void uint32to(uint32_t value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 32 bit signed integer equivalent into a location in memory, corrected for the local byte order.
     \param value integer to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void int32to(int32_t value, uint8_t *pointer, ByteOrder order)
@@ -607,7 +607,7 @@ void int32to(int32_t value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 16 bit unsigned integer equivalent into a location in memory, corrected for the local byte order.
     \param value integer to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void uint16to(uint16_t value, uint8_t *pointer, ByteOrder order)
@@ -636,7 +636,7 @@ void uint16to(uint16_t value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 16 bit signed integer equivalent into a location in memory, corrected for the local byte order.
     \param value integer to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void int16to(int16_t value, uint8_t *pointer, ByteOrder order)
@@ -665,7 +665,7 @@ void int16to(int16_t value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 32 bit floating point equivalent into a location in memory, corrected for the local byte order.
     \param value float to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void floatto(float value, uint8_t *pointer, ByteOrder order)
@@ -696,7 +696,7 @@ void floatto(float value, uint8_t *pointer, ByteOrder order)
 /*! Cast a 64 bit floating point equivalent into a location in memory, corrected for the local byte order.
     \param value float to be cast
     \param pointer location in memory
-    \param order desired byte order of the data in memory. Taken from ::BYTE_ORDER.
+    \param order desired byte order of the data in memory. Taken from ::ByteOrder.
 */
 
 void doubleto(double value, uint8_t *pointer, ByteOrder order)
@@ -2244,7 +2244,17 @@ quaternion q_change_between_cv(cvector from, cvector to)
     return (rq.q);
 }
 
+quaternion q_change_between_rv(rvector from, rvector to)
+{
+    uvector uvfrom, uvto;
+    quaternion result;
 
+    uvfrom.r = from;
+    uvto.r = to;
+    result = q_change_between_cv(uvfrom.c, uvto.c);
+
+    return result;
+}
 
 //! Create rotation matrix from 2 vectors
 /*! Generate the direction cosine matrix that represents a rotation from one cartesian vector
@@ -2388,7 +2398,7 @@ void LsFit::update(double x, quaternion y)
 }
 
 //! Update generic Least Squares Fit
-/*! Add ::fitelement containing independent and dependent value pair to existing ::LsFit, updating the fit. If the number
+/*! Add LsFit::fitelement containing independent and dependent value pair to existing ::LsFit, updating the fit. If the number
  * of elements in the fit has been reached, the oldest element is dropped before fitting.
  * \param cfit Independent and dependent values.
  * \param dep Depth of fit.
@@ -2454,7 +2464,7 @@ void LsFit::fit()
         }
     }
     meanx = sumx[1] / sumx[0];
-    stdevx = sqrt(sumx[2] - sumx[1]*sumx[1]/sumx[0])/(sumx[0]-1);
+    stdevx = sqrt((sumx[2] - sumx[1]*sumx[1]/sumx[0])/(sumx[0]-1));
 
     // Calculate sums of products of dependent and independent and do least squares fit
     parms.resize(depth);
@@ -2474,7 +2484,7 @@ void LsFit::fit()
             }
         }
         meany.a4[i] = sumxy[0] / var.size();
-        stdevy.a4[i] = sqrt(stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1);
+        stdevy.a4[i] = sqrt((stdevy.a4[i] - sumxy[0]*sumxy[0]/sumx[0])/(sumx[0]-1));
 
         std::vector< std::vector<double> > xs(order+1, std::vector<double>(order+1));
         std::vector<double> ys(order+1);
@@ -2524,6 +2534,15 @@ double LsFit::firstx()
     {
         return 0.;
     }
+}
+
+//! Least squares number of values.
+/*! Return the number of data values in the fit as of the last ::LsFit::update.
+ * \return Last size of fit.
+*/
+size_t LsFit::size()
+{
+    return var.size();
 }
 
 //! Least squares dependent scalar value.

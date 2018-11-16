@@ -887,7 +887,7 @@ int32_t pos_geoc2eci(locstruc *loc)
 
 //! Convert GEOC to GEOS
 /*! Convert a Geocentric ::cartpos to a Geographic ::spherpos.
-    \param loc ::locastruc containing position.
+    \param loc ::locstruc containing position.
 */
 int32_t pos_geoc2geos(locstruc *loc)
 {
@@ -2793,11 +2793,69 @@ void geoc2topo(gvector source, rvector targetgeoc, rvector &topo)
 	topo = rv_mmult(g2t,rv_sub(targetgeoc,sourcegeoc));
 }
 
-// ??
-void topo2azel(rvector tpos, float *az, float *el)
+//! Body Centric to Topocentric
+/*! Calculate the Topocentric position of a Target with respect to a Source.
+ * \param source Body centered location of Source.
+ * \param target Body centered location of Target.
+ * \param topo Resulting Topocentric position.
+ */
+void body2topo(Vector source, Vector target, Vector &topo)
 {
-	*az = (float)(atan2(tpos.col[0],tpos.col[1]));
-	*el = (float)(atan2(tpos.col[2],sqrt(tpos.col[0]*tpos.col[0]+tpos.col[1]*tpos.col[1])));
+    Matrix b2t;
+    double clat, clon, slat, slon;
+
+    double llon = sqrt(source[0] * source[0] + source[1] * source[1]);
+    if (llon)
+    {
+        clon = source[0] / llon;
+        slon = source[1] / llon;
+    }
+    else
+    {
+        clon = 1.;
+        slon = 0.;
+    }
+
+    double llat = sqrt(llon * llon + source[2] * source[2]);
+    if (llat)
+    {
+        clat = llon / llat;
+        slat = source[2] / llat;
+    }
+
+    b2t[0][0] = -slon;
+    b2t[0][1] = clon;
+    b2t[0][2] = 0.;
+    b2t[1][0] = -slat*clon;
+    b2t[1][1] = -slat*slon;
+    b2t[1][2] = clat;
+    b2t[2][0] = clat*clon;
+    b2t[2][1] = clat*slon;
+    b2t[2][2] = slat;
+
+    topo = b2t * (target - source);
+}
+
+//! Topocentric to Azimuth and Eleveation
+//! Calculate the Azimuth and Elevation of a position based on its Topocentric position
+//! \param tpos Topocentric position
+//! \param az Calculated azimuth in radians
+//! \param el Calculated elevation in radians
+void topo2azel(rvector tpos, float &az, float &el)
+{
+    az = (float)(atan2(tpos.col[0], tpos.col[1]));
+    el = (float)(atan2(tpos.col[2], sqrt(tpos.col[0] * tpos.col[0] + tpos.col[1] * tpos.col[1])));
+}
+
+//! Topocentric to Azimuth and Eleveation
+//! Calculate the Azimuth and Elevation of a position based on its Topocentric position
+//! \param tpos Topocentric position
+//! \param az Calculated azimuth in radians
+//! \param el Calculated elevation in radians
+void topo2azel(Vector tpos, float &az, float &el)
+{
+    az = (float)(atan2(tpos[0], tpos[1]));
+    el = (float)(atan2(tpos[2], sqrt(tpos[0] * tpos[0] + tpos[1] * tpos[1])));
 }
 
 //! Return position from TLE set
@@ -3255,7 +3313,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
 * Load Two Line Element file into array of TLE's
 * \param fname Name of file containing elements
 * \param lines Array of ::tlestruc structures to contain elements
-* \return A ::int32_t indicating number of elements, otherwise a negative error.
+* \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
 int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 {
@@ -3331,7 +3389,7 @@ int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 /*! Load Two Line Element file for multiple satellites into array of TLE's
 * \param fname Name of file containing elements
 * \param lines Array of ::tlestruc structures to contain elements
-* \return A ::int32_t indicating number of elements, otherwise a negative error.
+* \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
 int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 {

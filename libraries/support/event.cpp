@@ -130,47 +130,21 @@ bool operator==(const Event& cmd1, const Event& cmd2)
 void Event::set_command(string jstring)
 {
 	// clear Event information in agent
-	//json_clear_cosmosstruc(JSON_STRUCT_EVENT, agent->cinfo->meta, agent->cinfo->sdata);
-
-	// this doesn't work
-	//cosmosmetastruc cosmos_meta = {};
-	//cosmosdatastruc cosmos_data = {};
-
-	// this doesn't work
-	//cosmosmetastruc* cosmos_meta = new cosmosmetastruc;
-	//cosmosdatastruc* cosmos_data = new cosmosdatastruc;
-
-	// this works!!!  JIMNOTE: it is possible to have constructors for structs, just sayin'
 	cosmosstruc * dummy = json_create();
-	cosmosmetastruc cosmos_meta = dummy->meta;
-	cosmosdatastruc cosmos_data = dummy->sdata;
+    json_mapbaseentries(dummy);
 
-	json_clear_cosmosstruc(JSON_STRUCT_EVENT, cosmos_meta, cosmos_data);
+    json_clear_cosmosstruc(JSON_STRUCT_EVENT, dummy);
 
 	// load Event information (from jstring) into agent
-	//json_parse(jstring, agent->cinfo->meta, agent->cinfo->sdata);
-	json_parse(jstring, cosmos_meta, cosmos_data);
+    json_parse(jstring, dummy);
 
-/*
-	// set Event data members from agent
-    mjd = agent->cinfo->sdata.event[0].l.utc;
-	utcexec = agent->cinfo->sdata.event[0].l.utcexec;
-	name = agent->cinfo->sdata.event[0].l.name;
-	type = agent->cinfo->sdata.event[0].l.type;
-	flag = agent->cinfo->sdata.event[0].l.flag;
-	data = agent->cinfo->sdata.event[0].l.data;
-	condition = agent->cinfo->sdata.event[0].l.condition;
-
-*/
-///*
-    mjd = cosmos_data.event[0].l.utc;
-	utcexec = cosmos_data.event[0].l.utcexec;
-	name = cosmos_data.event[0].l.name;
-	type = cosmos_data.event[0].l.type;
-	flag = cosmos_data.event[0].l.flag;
-	data = cosmos_data.event[0].l.data;
-	condition = cosmos_data.event[0].l.condition;
-//*/
+    mjd = dummy->event[0].l.utc;
+    utcexec = dummy->event[0].l.utcexec;
+    name = dummy->event[0].l.name;
+    type = dummy->event[0].l.type;
+    flag = dummy->event[0].l.flag;
+    data = dummy->event[0].l.data;
+    condition = dummy->event[0].l.condition;
 }
 
 string Event::get_event_string()
@@ -197,7 +171,7 @@ bool Event::condition_true(cosmosstruc *cinfo)
 //    const char *cp = (char *)condition.c_str();
     if (cinfo != nullptr) {
         // TODO: remove from this class, to keep it modular
-//			double d = json_equation(cp, agent->cinfo->meta, agent->cinfo->pdata);
+//			double d = json_equation(cp, agent->cinfo);
 
 		// JIMNOTE:  this can't be right...  because uninitialized (non-static) local variables have no default value and lead to undefined behavior...
 		// and why is a double even being used? it just gets cast to bool (which I get, will rarely be zero, i.e. false, but seriously... make it explicit what is going on)

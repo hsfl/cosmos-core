@@ -137,6 +137,7 @@ public:
     void scalar(double s, std::string suffix);
     void scalar(std::string prefix, double s);
     void scalar(double s);
+    // TODO: add void scalar(double s, double precision);
 
 };
 

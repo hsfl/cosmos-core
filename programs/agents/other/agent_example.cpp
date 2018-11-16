@@ -91,12 +91,12 @@ int main(int argc, char *argv[])
     while(agent->running())
 	{
 		// Set beginning of next cycle;
-        nmjd += agent->cinfo->pdata.agent[0].aprd/86400.;
+        nmjd += agent->cinfo->agent[0].aprd/86400.;
 		// Gather system information
-        if (agent->cinfo->pdata.devspec.cpu_cnt)
+        if (agent->cinfo->devspec.cpu_cnt)
         {
-            agent->cinfo->pdata.devspec.cpu[0]->load = cpu.getLoad();
-            agent->cinfo->pdata.devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
+            agent->cinfo->devspec.cpu[0]->load = cpu.getLoad();
+            agent->cinfo->devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
         }
 
 		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);

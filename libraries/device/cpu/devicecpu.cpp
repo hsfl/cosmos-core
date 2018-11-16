@@ -178,6 +178,10 @@ string DeviceCpu::getHostName()
     hostName = cpuLinux.getHostName();
 #endif
 
+#if defined(COSMOS_MAC_OS)
+    hostName = cpuMac.getHostName();
+#endif
+
 #if defined(COSMOS_WIN_OS)
     hostName = cpuWin.getHostName();
 #endif
@@ -249,8 +253,6 @@ double DeviceCpu::BytesToMB(double bytes)
 {
     return bytes/1000./1000.;
 }
-
-
 
 
 
@@ -722,10 +724,31 @@ void DeviceCpu::stress(){
 
 
 
+
 // ----------------------------------------------
 // MACOS
 // ----------------------------------------------
 #if defined (COSMOS_MAC_OS)
+double getTimeInSec() {
+    timeval t;
+    gettimeofday(&t, NULL);
+    return (double)t.tv_sec + (double)t.tv_usec / 1000000.0;;
+}
+
+double get_cpu_time(){
+    return (double)clock() / CLOCKS_PER_SEC;
+}
+
+DeviceCpuMac::DeviceCpuMac()
+{
+    load1minAverage = 0.0;
+    //initCpuUtilization();
+
+    tic = getTimeInSec();
+    lastCPUtime  = get_cpu_time();
+}
+
+
 double cpu_load()
 {
     double avg;
@@ -734,14 +757,6 @@ double cpu_load()
 
 }
 
-DeviceCpuMac::DeviceCpuMac()
-{
-    load1minAverage = 0.0;
-    //initCpuUtilization();
-
-//    tic = getTimeInSec();
-//    lastCPUtime  = get_cpu_time();
-}
 
 double DeviceCpuMac::getLoad1minAverage()
 {
@@ -754,6 +769,15 @@ double DeviceCpuMac::getLoad1minAverage()
     load1minAverage = loadavg[0];
     return load1minAverage;
 }
+
+string DeviceCpuMac::getHostName() // NOT TESTED
+{
+    char hostname[128];
+    gethostname(hostname, sizeof hostname);
+    return (string)hostname;
+}
+
+
 #endif
 
 

@@ -57,7 +57,7 @@ string nodedir;
 #endif
 
 //! \ingroup datalib
-//! \defgroup datalib_functions Data Management support functions
+//! \defgroup datalib_functions Data Management function declarations
 //! @{
 
 
@@ -390,6 +390,81 @@ std::vector<filestruc> data_list_archive(string node, string agent, double utc)
     return data_list_archive(node, agent, utc, "");
 }
 
+//! Get list of files in a directory, directly.
+/*! Generate a list of files for the indicated directory.
+ * The result is returned as a vector of ::filestruc, one entry for each file found.
+ * \param directory Directory to search.
+ * \return A C++ vector of ::filestruc. Zero size if no files are found.
+ */
+std::vector<filestruc> data_list_files(string directory)
+{
+    std::vector<filestruc> files;
+
+    data_list_files(directory, files);
+
+    return files;
+}
+
+//! Get list of files in a directory, indirectly.
+/*! Generate a list of files for the indicated directory.
+ * The result is returned as a vector of ::filestruc, one entry for each file found.
+ * Repeated calls to this function will append entries.
+ * \param directory Directory to search.
+ * \return Number of files found, otherwise negative error.
+ */
+size_t data_list_files(string directory, vector<filestruc>& files)
+{
+    DIR *jdp;
+    struct dirent *td;
+    filestruc tf;
+
+    tf.node = "";
+    tf.agent = "";
+    if ((jdp=opendir(directory.c_str())) != nullptr)
+    {
+        while ((td=readdir(jdp)) != nullptr)
+        {
+            if (td->d_name[0] != '.')
+            {
+                tf.name = td->d_name;
+                tf.path = directory + "/" + tf.name;
+                struct stat st;
+                stat(tf.path.c_str(), &st);
+                tf.size = st.st_size;
+                tf.utc = unix2utc((double)st.st_ctime);
+                if (S_ISDIR(st.st_mode))
+                {
+                    tf.type = "directory";
+                }
+                else
+                {
+                    for (size_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
+                    {
+                        if (td->d_name[i] == '.')
+                        {
+                            tf.type = &td->d_name[i+1];
+                            break;
+                        }
+                    }
+                }
+                files.push_back(tf);
+                for (size_t i=files.size()-1; i>1; --i)
+                {
+                    if (files[i].name < files[i-1].name)
+                    {
+                        filestruc tfile = files[i-1];
+                        files[i-1] = files[i];
+                        files[i] = tfile;
+                    }
+                }
+            }
+        }
+        closedir(jdp);
+    }
+
+    return files.size();
+}
+
 //! Get list of files in a Node, directly.
 /*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
  * and Agent. The result is returned as a vector of ::filestruc, one entry for each file found.
@@ -398,7 +473,7 @@ std::vector<filestruc> data_list_archive(string node, string agent, double utc)
  * \param agent Subdirectory of location to search.
  * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
-std::vector<filestruc> data_list_files(string node, string location, string agent)
+vector<filestruc> data_list_files(string node, string location, string agent)
 {
     std::vector<filestruc> files;
 
@@ -420,43 +495,12 @@ std::vector<filestruc> data_list_files(string node, string location, string agen
 size_t data_list_files(string node, string location, string agent, std::vector<filestruc>& files)
 {
     string dtemp;
-    DIR *jdp;
-    struct dirent *td;
-    filestruc tf;
-
-    tf.node = node;
-    tf.agent = agent;
     dtemp = data_base_path(node, location, agent);
-    if ((jdp=opendir(dtemp.c_str())) != nullptr)
+    data_list_files(dtemp, files);
+    for (filestruc &tf : files)
     {
-        while ((td=readdir(jdp)) != nullptr)
-        {
-            if (td->d_name[0] != '.')
-            {
-                tf.name = td->d_name;
-                tf.path = dtemp + "/" + tf.name;
-                struct stat st;
-                stat(tf.path.c_str(), &st);
-                tf.size = st.st_size;
-                if (S_ISDIR(st.st_mode))
-                {
-                    tf.type = "directory";
-                }
-                else
-                {
-                    for (size_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
-                    {
-                        if (td->d_name[i] == '.')
-                        {
-                            tf.type = &td->d_name[i+1];
-                            break;
-                        }
-                    }
-                }
-                files.push_back(tf);
-            }
-        }
-        closedir(jdp);
+        tf.agent = agent;
+        tf.node = node;
     }
 
     return (files.size());
@@ -945,6 +989,7 @@ FILE *data_open(string path, char *mode)
 /*! Set the internal variable that points to where all COSMOS files
  * are stored.
     \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
     \return Zero, or negative error.
 */
 int32_t set_cosmosroot(string name, bool create_flag)
@@ -1089,7 +1134,7 @@ int32_t set_cosmosroot(bool create_flag)
 //! Return COSMOS Root Directory
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
-             * \param result Full path to Root directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 string get_cosmosroot(bool create_flag)
@@ -1103,6 +1148,7 @@ string get_cosmosroot(bool create_flag)
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
              * \param result Full path to Root directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 int32_t get_cosmosroot(string &result, bool create_flag)
@@ -1127,6 +1173,7 @@ int32_t get_cosmosroot(string &result, bool create_flag)
 /*! Set the internal variable that points to where all COSMOS resource files
              * are stored.
                 \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
                 \return Zero, or negative error.
             */
 int32_t set_cosmosresources(string name, bool create_flag)
@@ -1215,7 +1262,7 @@ int32_t set_cosmosresources(bool create_flag)
 //! Return COSMOS Resources Directory
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
-             * \param result Full path to Resources directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 string get_cosmosresources(bool create_flag)
@@ -1229,6 +1276,7 @@ string get_cosmosresources(bool create_flag)
 /*! Get the internal variable that points to where all COSMOS Resource files are
              * stored. Initialize variable if this is the first call to the function.
              * \param result Full path to Resources directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 int32_t get_cosmosresources(string &result, bool create_flag)
@@ -1322,6 +1370,7 @@ int32_t setEnvCosmos(string path){
 /*! Set the internal variable that points to where all COSMOS resource files
              * are stored.
                 \param name Absolute or relative pathname of directory.
+    \param create_flag Create directory if not already present.
                 \return Zero, or negative error.
             */
 int32_t set_cosmosnodes(string name, bool create_flag)
@@ -1408,7 +1457,7 @@ int32_t set_cosmosnodes(bool create_flag)
 //! Return COSMOS Nodes Directory
 /*! Get the internal variable that points to where all COSMOS Node files are
              * stored. Initialize variable if this is the first call to the function.
-             * \param result Full path to Nodes directory.
+    \param create_flag Create directory if not already present.
              * \return Length of string, otherwise negative error.
             */
 string get_cosmosnodes(bool create_flag)
@@ -1422,6 +1471,7 @@ string get_cosmosnodes(bool create_flag)
 /*! Get the internal variable that points to where all COSMOS files are
              * stored.
              * \param result String to place path in.
+    \param create_flag Create directory if not already present.
              * \return Zero, or negative error.
             */
 int32_t get_cosmosnodes(string &result, bool create_flag)
@@ -1473,6 +1523,8 @@ string get_nodedir(string node, bool create_flag)
                     nodedir.clear();
                 }
             }
+        } else {
+            // node folder exists
         }
     }
 
@@ -1540,12 +1592,12 @@ int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<st
 {
     int32_t iretn;
 
-    iretn = data_load_archive(cinfo->pdata.node.name, "soh", mjd, "telemetry", telem);
+    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "telemetry", telem);
     if (iretn < 0)
     {
         return iretn;
     }
-    iretn = data_load_archive(cinfo->pdata.node.name, "soh", mjd, "event", event);
+    iretn = data_load_archive(cinfo->node.name, "soh", mjd, "event", event);
 
     return iretn;
 }
@@ -1710,21 +1762,21 @@ int32_t kml_write(cosmosstruc *cinfo)
     FILE *fin, *fout;
     double utc;
 
-    utc = floor(cinfo->pdata.node.loc.utc);
+    utc = floor(cinfo->node.loc.utc);
 
-    string path = data_type_path((string)cinfo->pdata.node.name, "outgoing", "google", utc, "points");
+    string path = data_type_path((string)cinfo->node.name, "outgoing", "google", utc, "points");
     fin = data_open(path, (char *)"a+");
-    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->pdata.node.loc.pos.geod.s.lon),DEGOF(cinfo->pdata.node.loc.pos.geod.s.lat),cinfo->pdata.node.loc.pos.geod.s.h);
+    fprintf(fin,"%.5f,%.5f,%.5f\n",DEGOF(cinfo->node.loc.pos.geod.s.lon),DEGOF(cinfo->node.loc.pos.geod.s.lat),cinfo->node.loc.pos.geod.s.h);
 
-    path = data_type_path(cinfo->pdata.node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
+    path = data_type_path(cinfo->node.name,(char *)"outgoing",(char *)"google",  utc,(char *)"kml");
     fout = data_open(path, (char *)"w");
     fprintf(fout,"<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n");
     fprintf(fout,"<Document>\n");
-    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->pdata.node.name,utc);
+    fprintf(fout,"<name>%s JD%5.0f</name>\n",cinfo->node.name,utc);
     fprintf(fout,"<description>Track of node.</description>\n");
     fprintf(fout,"<Style id=\"yellowLineGreenPoly\">\n<LineStyle>\n<color>7f00ffff</color>\n<width>4</width>\n</LineStyle>\n");
     fprintf(fout,"<PolyStyle>\n<color>7f00ff00</color>\n</PolyStyle>\n</Style>\n");
-    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->pdata.node.name,utc);
+    fprintf(fout,"<Placemark>\n<name>Node Path</name>\n<description>%s JD%5.0f</description>\n",cinfo->node.name,utc);
     fprintf(fout,"<styleUrl>#yellowLineGreenPoly</styleUrl>\n<LineString>\n<extrude>1</extrude>\n<tessellate>1</tessellate>\n<altitudeMode>absolute</altitudeMode>\n");
     fprintf(fout,"<coordinates>\n");
 
@@ -1756,11 +1808,11 @@ bool data_isdir(string path)
 
 }
 
-bool data_isfile(string path)
+bool data_isfile(string path, off_t size)
 {
     struct stat st;
 
-    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode))
+    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
     {
         return true;
     }

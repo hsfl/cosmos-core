@@ -64,6 +64,7 @@ Agent *agent; // to access the cosmos data, will change later
 
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
     cout << "Starting agent " << endl;
 
     // Establish the command channel and heartbeat
@@ -87,7 +88,7 @@ int main(int argc, char *argv[])
     // Start our own thread
 	myagent();
 
-    return 0;
+    return iretn;
 }
 
 int myagent()
@@ -105,7 +106,7 @@ int myagent()
     while(agent->running())
     {
         pos_eci.utc = currentmjd(0);
-        agent->cinfo->pdata.node.loc.pos.eci = pos_eci;
+        agent->cinfo->node.loc.pos.eci = pos_eci;
     }
 
     return (0);

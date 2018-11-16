@@ -49,7 +49,7 @@ int main()
         {
             Agent::messstruc mess;
 
-			agent->readring(mess, 0xBB);
+            agent->readring(mess, (Agent::AgentMessage)0xBB);
 
             cout << "rx: " << mess.adata << endl;
 

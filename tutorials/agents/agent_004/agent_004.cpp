@@ -28,10 +28,23 @@
 ********************************************************************/
 
 // Example of an agent making a request to another agent
+// agent 004 makes request to 002 upon activation
+
+// the single quote only works on linux
+// test: agent telem 004 'setvalue {"device_telem_vint16_000":10}'
+// test: agent telem 004 'getvalue {"device_telem_vint16_000"}'
+
+// the single quote only works on windows
+// test: agent telem 004 "setvalue {\"device_telem_vint16_000\":10}"
+// test: agent telem 004 "getvalue {\"device_telem_vint16_000\"}"
+
+#include "support/configCosmos.h"
+#include "support/elapsedtime.h"
+#include "support/timeutils.h"
+#include "agent/agentclass.h"
 // agent 002 makes request to 002 upon activation
 
 #include "support/configCosmos.h"
-#include "agent/agentclass.h"
 
 #include <iostream>
 #include <string>

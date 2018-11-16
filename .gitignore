@@ -39,3 +39,7 @@ QtCreatorDeployment.txt
 _book
 node_modules/gitbook-plugin-expandable-chapters
 *.orig
+
+libraries/math/save/
+
+build/qt_debug/

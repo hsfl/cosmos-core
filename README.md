@@ -11,7 +11,7 @@ COSMOS/core work, as well as the most useful agent and support programs. The
 cosmos core is broadly divided into \ref programs and \ref libraries. 
  
 If you haven't downloaded or setup the COSMOS software please go to the [COSMOS
-101 tutorial](https://bitbucket.org/cosmos/tutorial/wiki/Home). Also for the
+101 tutorial](https://bitbucket.org/cosmos-project/tutorial/wiki/Home). Also for the
 latest information on COSMOS refer to the website:
 [http://www.cosmos-project.org/](http://www.cosmos-project.org/). 
 The cosmos-core api documentation is available on
@@ -26,7 +26,7 @@ other. These instructions assume that you are in the
 **cosmos/src/core** folder. Make sure you have all the tools
 required to build COSMOS including Cmake (please check the required
 setup from
-[https://bitbucket.org/cosmos/tutorial/wiki/Setup](https://bitbucket.org/cosmos/tutorial/wiki/Setup))
+[https://bitbucket.org/cosmos-project/tutorial/wiki/Setup](https://bitbucket.org/cosmos-project/tutorial/wiki/Setup)).
 
 Quick-start:
 
@@ -59,7 +59,7 @@ Open project : cosmos/src/core/CMakeLists.txt)
 * Optional step to compile the code faster. Please read note 1 if
 you're interested. (For Linux check note 2)
 * Build the project : ctrl + b
-* Check your "cosmos" folder (ex: C:\cosmos) to see the files that
+* Check your "cosmos" folder (ex: C:/cosmos) to see the files that
 were installed
 * Select agent_001. Click on the "Project" button (computer icon on
 left side of Qt Creator) and select agent_001
@@ -77,7 +77,7 @@ for the moment.
 
 * Open Qt Creator and open the project file 'cosmos-core.pro' 
 * Configure your project (ex: on Windows it will be something like
-`Desktop Qt 5.5.1 MinGW 32 bit')
+'Desktop Qt 5.5.1 MinGW 32 bit')
 * Optional step to compile the code faster. Please read note 1 if
 interested. (For Linux check note 2)
 * Build the project by pressing the "Build" button (hammer icon on
@@ -85,7 +85,7 @@ left side of Qt Creator), or press 'ctrl+b'
 
 For more detailed instructions to get started with COSMOS
 please read the
-[core/docs/README.md](https://bitbucket.org/cosmos/core/src/master/docs/README.md)
+[core/docs/README.md](https://bitbucket.org/cosmos-project/core/src/master/docs/)
 inside the 
 documentation folder.
 
@@ -121,5 +121,5 @@ Desktop Qt 5.5.1 MSVC2013 64bit | jom.exe (default)          | 8           | 30s
 Qt creator on Linux and Windows has an option to close the programs automatically
 when running another program. You will need to disable this behavior
 to run the two agents at the same time. Go to Tools > Options > Build
-and Run > General.  Change “Stop applications before building:” to
+and Run > General.  Change ï¿½Stop applications before building:ï¿½ to
 None.

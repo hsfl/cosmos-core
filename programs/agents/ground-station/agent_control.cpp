@@ -222,21 +222,21 @@ int main(int argc, char *argv[])
 	}
 
 	// Build up table of our radios
-    myradios.resize(agent->cinfo->pdata.devspec.tcv_cnt);
+    myradios.resize(agent->cinfo->devspec.tcv_cnt);
 	for (size_t i=0; i<myradios.size(); ++i)
 	{
-        myradios[i].name = agent->cinfo->pdata.piece[agent->cinfo->pdata.devspec.tcv[i]->gen.pidx].name;
-        myradios[i].info = *agent->cinfo->pdata.devspec.tcv[i];
+        myradios[i].name = agent->cinfo->pieces[agent->cinfo->devspec.tcv[i]->pidx].name;
+        myradios[i].info = *agent->cinfo->devspec.tcv[i];
 		myradios[i].otherradioindex = 9999;
         myradios[i].beat = agent->find_server(nodename, myradios[i].name, 3.);
 	}
 
 	// Build up table of our antennas
-    myantennas.resize(agent->cinfo->pdata.devspec.ant_cnt);
+    myantennas.resize(agent->cinfo->devspec.ant_cnt);
 	for (size_t i=0; i<myantennas.size(); ++i)
 	{
-        myantennas[i].name = agent->cinfo->pdata.piece[agent->cinfo->pdata.devspec.ant[i]->gen.pidx].name;
-        myantennas[i].info = *agent->cinfo->pdata.devspec.ant[i];
+        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->devspec.ant[i]->pidx].name;
+        myantennas[i].info = *agent->cinfo->devspec.ant[i];
         myantennas[i].beat = agent->find_server(nodename, myantennas[i].name, 3.);
 	}
 
@@ -265,19 +265,19 @@ int main(int argc, char *argv[])
 				ttrack.name = nodes[i];
                 cosmosstruc *cinfo = json_create();
                 iretn = json_setup_node(ttrack.name, cinfo);
-                if (iretn == 0 && (currentmjd()-cinfo->pdata.node.loc.pos.eci.utc) < 10.)
+                if (iretn == 0 && (currentmjd()-cinfo->node.loc.pos.eci.utc) < 10.)
 				{
 					// Valid node. Initialize tracking and push it to list
-                    ttrack.target.type = cinfo->pdata.node.type;
-                    ttrack.target.loc = cinfo->pdata.node.loc;
-                    ttrack.physics = cinfo->pdata.physics;
+                    ttrack.target.type = cinfo->node.type;
+                    ttrack.target.loc = cinfo->node.loc;
+                    ttrack.physics = cinfo->physics;
 
 					// Build up table of radios
-                    ttrack.radios.resize(cinfo->pdata.devspec.tcv_cnt);
+                    ttrack.radios.resize(cinfo->devspec.tcv_cnt);
 					for (size_t i=0; i<ttrack.radios.size(); ++i)
 					{
-                        ttrack.radios[i].name = cinfo->pdata.piece[cinfo->pdata.devspec.tcv[i]->gen.pidx].name;
-                        ttrack.radios[i].info = *cinfo->pdata.devspec.tcv[i];
+                        ttrack.radios[i].name = cinfo->pieces[cinfo->devspec.tcv[i]->pidx].name;
+                        ttrack.radios[i].info = *cinfo->devspec.tcv[i];
 						ttrack.radios[i].otherradioindex = 9999;
 					}
 
@@ -373,16 +373,7 @@ int main(int argc, char *argv[])
 				break;
 			}
 
-//			rvector topo, dv, ds;
-//			geoc2topo(track[i].target.loc.pos.geod.s, agent->cinfo->pdata.node.loc.pos.geoc.s, topo);
-//			topo2azel(topo, &track[i].target.azto, &track[i].target.elto);
-//			geoc2topo(agent->cinfo->pdata.node.loc.pos.geod.s, track[i].target.loc.pos.geoc.s, topo);
-//			topo2azel(topo, &track[i].target.azfrom,&track[i].target.elfrom);
-//			ds = rv_sub(track[i].target.loc.pos.geoc.s, agent->cinfo->pdata.node.loc.pos.geoc.s);
-//			track[i].target.range = length_rv(ds);
-//			dv = rv_sub(track[i].target.loc.pos.geoc.v, agent->cinfo->pdata.node.loc.pos.geoc.v);
-//			track[i].target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
-            update_target(agent->cinfo->pdata.node.loc, track[i].target);
+            update_target(agent->cinfo->node.loc, track[i].target);
 
 			if (track[i].target.type == NODE_TYPE_SATELLITE)
 			{
@@ -449,24 +440,20 @@ int main(int argc, char *argv[])
 
 void monitor()
 {
-	int32_t iretn;
+    Agent::AgentMessage iretn;
 
     while (agent->running())
 	{
         Agent::messstruc mess;
 
-        iretn = agent->poll(mess, Agent::AGENT_MESSAGE_BEAT, 5.0);
+        iretn = (Agent::AgentMessage)agent->readring(mess, Agent::AgentMessage::BEAT, 5.0);
 
 		// Only process if this is a heartbeat message for our node
-        if (iretn == Agent::AGENT_MESSAGE_BEAT && !strcmp(mess.meta.beat.node, agent->cinfo->pdata.node.name))
+        if (iretn == Agent::AgentMessage::BEAT && !strcmp(mess.meta.beat.node, agent->cinfo->node.name))
 		{
 			cdata_mutex.lock();
 			// Extract telemetry
-            agent->cinfo->sdata.node   = agent->cinfo->pdata.node;
-            agent->cinfo->sdata.device = agent->cinfo->pdata.device;
-            json_parse(mess.adata, agent->cinfo->meta, agent->cinfo->sdata);
-            agent->cinfo->pdata.node   = agent->cinfo->sdata.node;
-            agent->cinfo->pdata.device = agent->cinfo->sdata.device;
+            json_parse(mess.adata, agent->cinfo);
 
 			// Extract agent information
 			for (size_t i=0; i<myantennas.size(); ++i)

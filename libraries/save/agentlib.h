@@ -74,19 +74,19 @@
 //! other initializations necessary, you should enter a continuous loop protected by ::agent_running. Upon exiting from
 //! this loop, you should call ::agent_shutdown_server.
 
-#include "configCosmos.h"
+#include "support/configCosmos.h"
 #include "agent/agentdef.h"
 
-#include "cosmos-errno.h"
-#include "stringlib.h"
-#include "timelib.h"
-#include "jsondef.h"
-#include "sliplib.h"
-#include "socketlib.h"
-#include "jsonlib.h"
-#include "elapsedtime.h"
+#include "support/cosmos-errno.h"
+#include "support/stringlib.h"
+#include "support/timelib.h"
+#include "support/jsondef.h"
+#include "support/sliplib.h"
+#include "support/socketlib.h"
+#include "support/jsonlib.h"
+#include "support/elapsedtime.h"
 
-#include "devicecpu.h"
+#include "device/cpu/devicecpu.h"
 
 #include <cstring>
 #include <errno.h>
@@ -98,7 +98,7 @@
 //using namespace std;  // don't use this as it may cause conflicts with other namespaces
 
 //! \ingroup agentlib
-//! \defgroup agentlib_functions %Agent Server and Client Library functions
+//! \defgroup agentlib_functions Agent Server and Client Library functions
 //! @{
 
 int32_t agent_add_request(cosmosstruc *cinfo, std::string token, agent_request_function function);

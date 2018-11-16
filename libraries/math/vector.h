@@ -58,9 +58,11 @@ struct rvector
 std::ostream& operator << (std::ostream& out, const rvector& a);
 std::ostream& operator << (std::ostream& out, const std::vector<rvector>& a);
 std::istream& operator >> (std::istream& out, rvector& a);
-rvector operator * (rvector v, double scalar); // multiply vector by scalar operator
-rvector operator / (rvector v, double scalar); // multiply vector by scalar operator
-int operator == (rvector a, rvector b); // Compares two vectors
+rvector operator * (rvector v, double scalar); // multiply vector by vector operator
+rvector operator * (rvector v1, rvector v2); // multiply vector by vector operator
+rvector operator / (rvector v, double scalar); // divide vector by scalar operator
+bool operator == (rvector a, rvector b); // Compares two vectors
+bool operator != (rvector a, rvector b); // Compares two vectors
 
 //! 3 element cartesian vector
 /*! 3 double precision numbers representing a vector in a right handed
@@ -76,9 +78,12 @@ public:
     //! Z value
     double z;
 
-    void normalize();
+    void normalize(double scale=1.);
+    double length();
     double norm();
     double norm2();
+    cvector normalized(double scale=1.);
+    double& operator[] (const int index);
 } ;
 
 //! 3 element spherical vector
@@ -199,24 +204,172 @@ double norm_cv(cvector v);
 double cv_norm(cvector v);
 double sum_cv(cvector a);
 
+//! Quaternion, scalar last, using x, y, z.
+/*! Can be thought of as ::rvector with scalar last. One can be set equal to other.
+ * First 3 elements are the scaled orientation axis. Fourth element is the scaled
+ * amount of rotation. Can alternatively be thought of as a ::cvector,
+ * followed by a scalar.
+*/
+// TODO: replace cvector with x,y,z
+struct quaternion
+{
+    //! Orientation
+    cvector d;
+    //! Rotation
+    double w;
+} ;
+
+std::ostream& operator << (std::ostream& out, const quaternion& a);
+std::istream& operator >> (std::istream& out, quaternion& a);
+
+//! Quaternion, scalar last, using imaginary elements.
+/*! Can be thought of as i, j, k elements, followed by scalar.
+*/
+struct qcomplex
+{
+    double i;
+    double j;
+    double k;
+    double r;
+} ;
+
+std::ostream& operator << (std::ostream& out, const qcomplex& a);
+std::istream& operator >> (std::istream& out, qcomplex& a);
+
+//! Quaternion, scalar last, using vector elements.
+/*! Can be thought of as vector elements, q1, q2, q3, followed by
+ * scalar q4.
+*/
+struct qlast
+{
+    double q1; // x
+    double q2; // y
+    double q3; // z
+    double q4; // w
+} ;
+
+std::ostream& operator << (std::ostream& out, const qlast& a);
+std::istream& operator >> (std::istream& out, qlast& a);
+
+//! Quaternion, scalar first using vector elements.
+/*! Can be thought of as scalar element, q0, followed by vector
+ * elements, q1, q2, q3.
+*/
+struct qfirst
+{
+    double q0; // w
+    double q1; // x
+    double q2; // y
+    double q3; // z
+} ;
+
+std::ostream& operator << (std::ostream& out, const qfirst& a);
+std::istream& operator >> (std::istream& out, qfirst& a);
+
+
+
+cvector cv_quaternion2axis(quaternion q);
+void normalize_q(quaternion *q);
+quaternion q_zero();
+quaternion q_conjugate(quaternion q);
+quaternion q_times(quaternion q1, quaternion q2);
+quaternion q_sqrt(quaternion q1);
+quaternion q_fmult(rvector r1, quaternion q2);
+quaternion q_fmult(quaternion q1, quaternion q2);
+quaternion q_mult(quaternion q1, quaternion q2);
+quaternion q_rmult(quaternion q1, quaternion q2);
+quaternion q_smult(double a, quaternion q);
+quaternion q_add(quaternion q1, quaternion q2);
+quaternion q_sub(quaternion q1, quaternion q2);
+quaternion q_euler2quaternion(avector rpw);
+quaternion q_axis2quaternion_cv(cvector v);
+quaternion q_axis2quaternion_rv(rvector v);
+
+quaternion q_drotate_between_rv(rvector from, rvector to);
+
+quaternion q_change_around_cv(cvector around, double angle);
+quaternion q_change_around_rv(rvector around, double angle);
+
+quaternion q_change_around_x(double angle);
+quaternion q_change_around_y(double angle);
+quaternion q_change_around_z(double angle);
+
+// TODO: check this function, does not seem to be implemented
+//quaternion q_rotate_around(int axis, double angle);
+
+quaternion q_irotate_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb);
+quaternion q_eye();
+quaternion q_identity();
+quaternion q_evaluate_poly(double x, std::vector< std::vector<double> > parms);
+quaternion q_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
+quaternion q_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
+quaternion q_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
+
+double length_q(quaternion q);
+double norm_q(quaternion q);
+double sep_q(quaternion q1, quaternion q2);
+double inner_q(quaternion q1, quaternion q2);
+
+void qrotate(double ipos[3], double rpos[3], double angle, double *opos);
+avector a_quaternion2euler(quaternion q);
+
+// TODO: bring these functions from mathlib
+quaternion q_change_between_cv(cvector from, cvector to);
+quaternion q_change_between_rv(rvector from, rvector to);
+//cvector rotate_q(quaternion q, rvector v);
+//cvector rotate_q(quaternion q, cvector v);
+//cvector irotate(quaternion q,cvector v); // doesn't exist in .cpp?
+
 
 namespace Cosmos {
     namespace Math {
+        namespace Vectors {
         //! Vector Class
         /*! eventually this is where all row vector stuff would come?
  * do we really need to differentiate between cvector and rvector in the future?
  * maybe we can have vector type = {'c', 'r'}
 */
-        class Vector{
+        class Vector
+        {
 
         public:
 
-            // default constructor
-            Vector();
-            Vector(double x, double y, double z);
+            //! Constructor and initializer.
+            //! Initialize ::Vector to zero.
 
-            // TODO: check if we can iterated the vector
-            double at(int i);
+            explicit Vector(double x0=0., double y0=0., double z0=0., double w0=0.)
+            {
+                x = x0;
+                y = y0;
+                z = z0;
+                w = w0;
+            }
+
+            explicit Vector(rvector rv)
+            {
+                x = rv.col[0];
+                y = rv.col[1];
+                z = rv.col[2];
+                w = 0.;
+            }
+
+            explicit Vector(quaternion q)
+            {
+                x = q.d.x;
+                y = q.d.y;
+                z = q.d.z;
+                w = q.w;
+            }
+
+            explicit Vector(cvector cv)
+            {
+                x = cv.x;
+                y = cv.y;
+                z = cv.z;
+                w = 0.;
+            }
+
+
 
             //! X value
             double x;
@@ -224,22 +377,153 @@ namespace Cosmos {
             double y;
             //! Z value
             double z;
+            //! W value
+            double w;
 
+            // TODO: check if we can iterated the vector
+            double at(int i);
             // convert from cartesian vector to row vector
-            rvector from_cv(cvector v);
+//            Vector from_cv(cvector cv);
+//            Vector from_rv(rvector rv);
+//            Vector from_q(quaternion q);
+            rvector to_rv();
+            cvector to_cv();
+            quaternion to_q();
             Vector cross(Vector b);
             double dot(Vector b);
-            void normalize();
+            Vector &normalize(double size=1.);
             double norm();
+            double separation(Vector b);
+            double area(Vector b);
+            Vector vector();
+            Vector flattenx();
+            Vector flatteny();
+            Vector flattenz();
+            double sum();
 
-            Vector operator * (double scale); // multiply vector by scalar operator
+            Vector &operator = (const rvector rv)
+            {
+                *this = Vector(rv);
+                return *this;
+            }
 
+//            Vector &operator = (const Vector v)
+//            {
+//                return *this;
+//            }
+
+            double &operator [] (const int &index);
+
+            Vector operator *(const double scale) const; // multiply vector by scalar operator
+            Vector &operator *=( const double &scale); // multiply vector by scalar operator in place
+            Vector operator * (const Vector &v2) const; // multiply vector by vector operator
+
+            Vector operator / (const double scale) const; // multiply vector by scalar operator
+            Vector &operator /= (const double &scale); // multiply vector by scalar operator in place
+
+            Vector operator - (const Vector &v2) const; // Subtract vector by vector operator
+            Vector &operator -= (const Vector &v2); // subtract vector by vector operator in place
+            Vector operator - () const; // Negate vector operator
+
+            Vector operator + (const Vector &v2) const; // add vector by vector operator
+            Vector &operator += (const Vector &v2); // add vector by vector operator in place
+
+            bool operator == (const Vector &v2) const; // Compares two vectors
+            bool operator != (const Vector &v2) const; // Compares two vectors
         };
 
+        Vector operator * (const double scale, const Vector &v);
         std::ostream& operator << (std::ostream& out, const Vector& v);
-        Vector operator * (double scale, Vector v);
+        Vector eyeV(double scale=1.);
+        Vector unitxV(double scale=1.);
+        Vector unityV(double scale=1.);
+        Vector unitzV(double scale=1.);
+        }
 
 
+        namespace Quaternions {
+        class Quaternion : public Vectors::Vector
+        {
+
+        public:
+
+            explicit Quaternion(double qx=0., double qy=0., double qz=0., double qw=0.) : Vector(qx, qy, qz, qw)
+            {
+                x = qx;
+                y = qy;
+                z = qz;
+                w = qw;
+            }
+
+            explicit Quaternion(Vector v)
+            {
+                x = v.x;
+                y = v.y;
+                z = v.z;
+                w = 0.;
+            }
+
+            explicit Quaternion(quaternion q)
+            {
+                x = q.d.x;
+                y = q.d.y;
+                z = q.d.z;
+                w = q.w;
+            }
+
+            explicit Quaternion(rvector rv) : Vector(rv)
+            {
+                x = rv.col[0];
+                y = rv.col[1];
+                z = rv.col[2];
+                w = 0.;
+            }
+
+            Quaternion getQuaternion();
+
+            // temporary while the new Quaternion class is not finisheds
+            Quaternion quaternion2Quaternion(quaternion q);
+            quaternion Quaternion2quaternion(Quaternion Q);
+
+
+            // operators
+            Quaternion &operator = (const Quaternion &q) { return *this; }
+            Quaternion operator * (const double scale) const; // multiply vector by scalar operator
+            Quaternion &operator *= ( const double scale); // multiply vector by scalar operator in place
+            Quaternion operator * (Quaternion &q2) const;
+
+//            Quaternion operator / (double scale); // multiply vector by scalar operator
+//            Quaternion &operator /= (const double &scale); // multiply vector by scalar operator in place
+
+            Quaternion operator - (const Quaternion &q2) const; // Subtract vector by vector operator
+            Quaternion &operator -= (const Quaternion &q2); // subtract vector by vector operator in place
+            Quaternion operator - () const; // Negate vector operator
+
+            Quaternion operator + (const Quaternion &q2); // add vector by vector operator
+            Quaternion &operator += (const Quaternion &q2); // add vector by vector operator in place
+            //std::ostream& operator<<(std::ostream& os, const Quaternion& q);
+            //friend std::ostream& operator << (std::ostream& os, const Quaternion& q);
+            //std::istream& operator >> (std::istream& out, Quaternion& a);
+
+            Quaternion multiplyScalar(double a);
+            Quaternion conjugate() const;
+            Vector vector();
+            Vector omegaFromDerivative(Quaternion dq);
+//            Quaternion &normalize();
+//            double norm();
+            Vector toEuler();
+            Vector irotate(const Vector &v);
+        };
+
+        // declared outside class because it does not need to access members of the class Quaternion
+        Quaternion operator * (double scale, Quaternion &q);
+        Quaternion operator * (const Vectors::Vector &v, Quaternion &q);
+        std::ostream& operator << (std::ostream& os, const Quaternion& q);
+        Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb);
+        Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b);
+        Quaternion eyeQ();
+
+        }
     } // end namespace Math
 } // end namespace COSMOS
 

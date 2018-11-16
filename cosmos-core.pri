@@ -100,6 +100,13 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
         MODULES += convertlib
     }
 
+    contains(MODULES, objlib){
+        message( "- support/objlib" )
+        SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/objlib.cpp
+        HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/objlib.h
+#        MODULES += convertlib
+    }
+
     contains(MODULES, timelib){
         message( "- support/timelib" )
         SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/timelib.cpp
@@ -186,7 +193,7 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
         MODULES += math-vector
         MODULES += math-matrix
         MODULES += math-rotation
-        MODULES += math-quaternion
+#        MODULES += math-quaternion
     }
 
     contains(MODULES, math-lsfit){
@@ -214,11 +221,11 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
         SOURCES += $$COSMOS_SOURCE_CORE/libraries/math/rotation.cpp
     }
 
-    contains(MODULES, math-quaternion){
-        message( "- math/quaternion" )
-        HEADERS += $$COSMOS_SOURCE_CORE/libraries/math/quaternion.h
-        SOURCES += $$COSMOS_SOURCE_CORE/libraries/math/quaternion.cpp
-    }
+#    contains(MODULES, math-quaternion){
+#        message( "- math/quaternion" )
+#        HEADERS += $$COSMOS_SOURCE_CORE/libraries/math/quaternion.h
+#        SOURCES += $$COSMOS_SOURCE_CORE/libraries/math/quaternion.cpp
+#    }
 
     # -----------------------------------------------
     # Tier 0 libraries for physics

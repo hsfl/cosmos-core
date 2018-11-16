@@ -87,6 +87,7 @@ Agent *agent;
 
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
 
 //    cout << "Starting agent cpu" << endl;
 
@@ -109,7 +110,7 @@ int main(int argc, char *argv[])
         break;
     }
 
-    if (create_node())
+    if ((iretn=create_node()))
     {
         cout << "Unable to make node " << endl;
         exit(1);
@@ -143,7 +144,7 @@ int main(int argc, char *argv[])
 
     char tempstring[200];
 
-    for (uint16_t i=0; i<agent->cinfo->pdata.devspec.disk_cnt; ++i)
+    for (uint16_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
     {
         sprintf(tempstring, ",\"device_disk_utc_%03d\",\"device_disk_temp_%03d\"", i, i);
         sohstring += tempstring;
@@ -169,12 +170,34 @@ int agent_cpu()
 
     ElapsedTime et;
     static const double GiB = 1024. * 1024. * 1024.;
-    deviceCpu.numProcessors = agent->cinfo->pdata.devspec.cpu[0]->maxload;
+    deviceCpu.numProcessors = agent->cinfo->devspec.cpu[0]->maxload;
 
     // TODO: determine number of disks automatically
     PrintUtils print;
-    print.scalar("Number of Disks: ",agent->cinfo->pdata.devspec.disk_cnt);
+    print.scalar("Number of Disks: ",agent->cinfo->devspec.disk_cnt);
     print.endline();
+
+    // get initial cpu info
+    if (agent->cinfo->devspec.cpu_cnt)
+    {
+        agent->cinfo->devspec.cpu[0]->load = deviceCpu.getLoad();
+        agent->cinfo->devspec.cpu[0]->gib = deviceCpu.getVirtualMemoryUsed()/GiB;
+        agent->cinfo->devspec.cpu[0]->maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
+        deviceCpu.getPercentUseForCurrentProcess();
+    }
+
+    // get initial disk info
+    for (size_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
+    {
+        agent->cinfo->devspec.disk[i]->utc = currentmjd();
+
+        std::string node_path = agent->cinfo->port[agent->cinfo->devspec.disk[i]->portidx].name;
+
+        agent->cinfo->devspec.disk[i]->gib = disk.getUsedGiB(node_path);
+        agent->cinfo->devspec.disk[i]->maxgib = disk.getSizeGiB(node_path);
+    }
+
+    json_dump_node(agent->cinfo);
 
     et.start();
 
@@ -182,28 +205,28 @@ int agent_cpu()
     while(agent->running())
     {
 
-        COSMOS_SLEEP(agent->cinfo->pdata.agent[0].aprd);
+        COSMOS_SLEEP(agent->cinfo->agent[0].aprd);
 
-        agent->cinfo->pdata.devspec.cpu[0]->gen.utc = currentmjd();
+        agent->cinfo->devspec.cpu[0]->utc = currentmjd();
 
         // get cpu info
-        if (agent->cinfo->pdata.devspec.cpu_cnt)
+        if (agent->cinfo->devspec.cpu_cnt)
         {
-            agent->cinfo->pdata.devspec.cpu[0]->load = deviceCpu.getLoad();
-            agent->cinfo->pdata.devspec.cpu[0]->gib = deviceCpu.getVirtualMemoryUsed()/GiB;
-            agent->cinfo->pdata.devspec.cpu[0]->maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
+            agent->cinfo->devspec.cpu[0]->load = deviceCpu.getLoad();
+            agent->cinfo->devspec.cpu[0]->gib = deviceCpu.getVirtualMemoryUsed()/GiB;
+            agent->cinfo->devspec.cpu[0]->maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
             deviceCpu.getPercentUseForCurrentProcess();
         }
 
         // get disk info
-        for (size_t i=0; i<agent->cinfo->pdata.devspec.disk_cnt; ++i)
+        for (size_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
         {
-            agent->cinfo->pdata.devspec.disk[i]->gen.utc = currentmjd();
+            agent->cinfo->devspec.disk[i]->utc = currentmjd();
 
-            std::string node_path = agent->cinfo->pdata.port[agent->cinfo->pdata.devspec.disk[i]->gen.portidx].name;
+            std::string node_path = agent->cinfo->port[agent->cinfo->devspec.disk[i]->portidx].name;
 
-            agent->cinfo->pdata.devspec.disk[i]->gib = disk.getUsedGiB(node_path);
-            agent->cinfo->pdata.devspec.disk[i]->maxgib = disk.getSizeGiB(node_path);
+            agent->cinfo->devspec.disk[i]->gib = disk.getUsedGiB(node_path);
+            agent->cinfo->devspec.disk[i]->maxgib = disk.getSizeGiB(node_path);
         }
 
         // if printStatus is true then print in a loop
@@ -236,7 +259,7 @@ int32_t request_soh(char *, char* response, Agent *)
 {
     std::string rjstring;
     //	strcpy(response,json_of_list(rjstring,sohstring,agent->cinfo));
-    strcpy(response,json_of_table(rjstring, agent->cinfo->pdata.agent[0].sohtable, agent->cinfo->meta, agent->cinfo->pdata));
+    strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
 
     return 0;
 }
@@ -258,7 +281,7 @@ int32_t request_diskUsed(char *, char* response, Agent *)
 int32_t request_diskFree(char *, char* response, Agent *)
 {
     // TODO: implement diskFree
-    //return (sprintf(response, "%.1f", agent->cinfo->pdata.devspec.cpu[0]->gib));
+    //return (sprintf(response, "%.1f", agent->cinfo->devspec.cpu[0]->gib));
 
     // in the mean time use this
     return (sprintf(response, "%f", disk.FreeGiB));
@@ -357,6 +380,7 @@ int create_node () // only use when unsure what the node is
 
     // Ensure node is present
     //cout << "Node name is " << nodename << endl;
+    // If could not find node directory then make one on the fly
     if (get_nodedir(nodename).empty())
     {
         cout << endl << "Couldn't find Node directory, making directory now...";
@@ -366,83 +390,67 @@ int create_node () // only use when unsure what the node is
             return 1;
         }
         cinfo = json_create();
-        strcpy(cinfo->pdata.node.name, nodename.c_str());
-        cinfo->meta.node = nodename;
-        cinfo->pdata.node.type = NODE_TYPE_COMPUTER;
+        json_mapbaseentries(cinfo);
+        strcpy(cinfo->node.name, nodename.c_str());
+        cinfo->name = nodename;
+        cinfo->node.type = NODE_TYPE_COMPUTER;
 
-        cinfo->pdata.node.piece_cnt = 2;
-        cinfo->pdata.piece.resize(cinfo->pdata.node.piece_cnt);
-        cinfo->pdata.node.device_cnt = cinfo->pdata.node.piece_cnt;
-        cinfo->pdata.device.resize(cinfo->pdata.node.device_cnt);
-        cinfo->pdata.devspec.cpu_cnt = 1;
-        cinfo->pdata.devspec.disk_cnt = 1;
-        cinfo->pdata.node.port_cnt = 1;
-        cinfo->pdata.port.resize(cinfo->pdata.node.port_cnt);
-        //        json_addbaseentry(cinfo);
+        json_addpiece(cinfo, "main_cpu", (uint16_t)DeviceType::CPU);
+        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
+        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
-        for (size_t i=0; i<cinfo->pdata.node.piece_cnt; ++i)
+        json_addpiece(cinfo, "main_drive", (uint16_t)DeviceType::DISK);
+        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
+        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
+
+        cinfo->node.device_cnt = cinfo->node.piece_cnt;
+        cinfo->device.resize(cinfo->node.device_cnt);
+        cinfo->devspec.cpu_cnt = 1;
+        cinfo->devspec.disk_cnt = 1;
+        cinfo->node.port_cnt = 1;
+        cinfo->port.resize(cinfo->node.port_cnt);
+
+        for (size_t i=0; i<cinfo->node.piece_cnt; ++i)
         {
-            cinfo->pdata.piece[i].cidx = i;
+
+            cinfo->device[i].all.pidx = i;
+            cinfo->device[i].all.cidx = i;
             switch (i)
             {
             case 0:
-                strcpy(cinfo->pdata.piece[i].name, "Main CPU");
+                cinfo->device[i].all.type = (uint16_t)DeviceType::CPU;
+                cinfo->device[i].all.didx = 0;
+                cinfo->device[i].all.portidx = PORT_TYPE_NONE;
+                cinfo->device[i].cpu.maxload = 1.;
+                cinfo->device[i].cpu.maxgib = 1.;
+                json_mapdeviceentry(cinfo->device[i], cinfo);
+                json_addentry("cpu_utilization", "(\"device_cpu_load_000\"/\"device_cpu_maxload_000\")", cinfo);
                 break;
             default:
-                sprintf(cinfo->pdata.piece[i].name, "Drive %lu", i);
-//                strcpy(cinfo->pdata.piece[i].name, "Main Drive");
-                break;
-            }
-
-            cinfo->pdata.piece[i].type = PIECE_TYPE_DIMENSIONLESS;
-            cinfo->pdata.piece[i].emi = .8;
-            cinfo->pdata.piece[i].abs = .88;
-            cinfo->pdata.piece[i].hcap = 800;
-            cinfo->pdata.piece[i].hcon = 237;
-            cinfo->pdata.piece[i].pnt_cnt = 1;
-            for (uint16_t j=0; j<3; ++j)
-            {
-                cinfo->pdata.piece[i].points[0].col[j] = 0.;
-            }
-            json_addpieceentry(i, cinfo->meta);
-            json_togglepieceentry(i, cinfo->meta, true);
-            cinfo->pdata.piece[i].enabled = true;
-
-            cinfo->pdata.device[i].all.gen.pidx = i;
-            cinfo->pdata.device[i].all.gen.cidx = i;
-            switch (i)
-            {
-            case 0:
-                cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_CPU;
-                cinfo->pdata.device[i].all.gen.didx = 0;
-                cinfo->pdata.device[i].all.gen.portidx = PORT_TYPE_NONE;
-                cinfo->pdata.device[i].cpu.maxload = 1.;
-                cinfo->pdata.device[i].cpu.maxgib = 1.;
-                json_adddeviceentry(i, 0, DEVICE_TYPE_CPU, cinfo->meta);
-                break;
-            default:
-                cinfo->pdata.device[i].disk.maxgib = 1000.;
-                cinfo->pdata.device[i].all.gen.type = DEVICE_TYPE_DISK;
-                cinfo->pdata.device[i].all.gen.didx = i-1;
-                cinfo->pdata.device[i].all.gen.portidx = cinfo->pdata.device[i].all.gen.didx;
-                cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].type = PORT_TYPE_DRIVE;
-                json_adddeviceentry(i, i-1, DEVICE_TYPE_DISK, cinfo->meta);
-                json_toggledeviceentry(i-1, DEVICE_TYPE_DISK, cinfo->meta, true);
+                cinfo->device[i].disk.maxgib = 1000.;
+                cinfo->device[i].all.type = (uint16_t)DeviceType::DISK;
+                cinfo->device[i].all.didx = i-1;
+                cinfo->device[i].all.portidx = cinfo->device[i].all.didx;
+                cinfo->port[cinfo->device[i].all.didx].type = PORT_TYPE_DRIVE;
+                json_mapdeviceentry(cinfo->device[i], cinfo);
+                json_toggledeviceentry(i-1, (uint16_t)DeviceType::DISK, cinfo, true);
 #ifdef COSMOS_WIN_OS
-                strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "c:/");
+                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "c:/");
 #else
-                strcpy(cinfo->pdata.port[cinfo->pdata.device[i].all.gen.didx].name, "/");
+                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "/");
 #endif
-                json_addportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta);
-                json_toggleportentry(cinfo->pdata.device[i].all.gen.portidx, cinfo->meta, true);
+                json_mapportentry(cinfo->device[i].all.portidx, cinfo);
+                json_toggleportentry(cinfo->device[i].all.portidx, cinfo, true);
+                json_addentry("disk_utilization", "(\"device_disk_gib_000\"/\"device_disk_maxgib_000\")", cinfo);
                 break;
             }
-            json_addcompentry(i, cinfo->meta);
-            json_togglecompentry(i, cinfo->meta, true);
-            cinfo->pdata.device[i].all.gen.enabled = true;
+            json_mapcompentry(i, cinfo);
+            json_togglecompentry(i, cinfo, true);
+            cinfo->device[i].all.enabled = true;
         }
 
-        int32_t iretn = json_dump_node(cinfo->meta, cinfo->pdata);
+
+        int32_t iretn = json_dump_node(cinfo);
         json_destroy(cinfo);
 
         cout << " done!" << endl;

@@ -50,6 +50,7 @@ namespace Cosmos {
 #else // Windows
         int32_t set_timeout(int, double timeout);
 #endif
+        int32_t set_timeout(double timeout);
         int32_t put_char(uint8_t c);
         int32_t put_string(string data);
         int32_t put_data(vector <uint8_t> data);
@@ -61,6 +62,7 @@ namespace Cosmos {
         int32_t get_char(uint8_t &buffer);
         int32_t get_data(vector <uint8_t> &data, size_t size=SIZE_MAX);
         int32_t get_string(string &data, size_t size=SIZE_MAX);
+        int32_t get_string(string &data, char endc=0);
         int32_t get_data(uint8_t *data, size_t size);
         int32_t get_slip(vector <uint8_t> &data, size_t size);
         int32_t get_nmea(vector <uint8_t> &data, size_t size);
@@ -80,6 +82,7 @@ namespace Cosmos {
             {0, 50, 75, 110, 134, 150, 200, 300, 500, 1200, 1800, 2400, 4800, 9600, 19200, 38400},
             {57600, 115200, 230400, 460800, 500000, 576000, 921600, 1000000, 1152000, 1500000, 2000000, 2500000, 3000000, 3500000, 4000000}
         };
+        // timeout in sec 2 ms
         double ictimeout = .002;
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)

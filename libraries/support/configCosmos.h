@@ -33,7 +33,7 @@
 
 // NB: EJP 20170403 - added to suppress the ocean of format errors that will never be correct for all
 // platforms. We will just have to get the formatting right on our own.
-#pragma GCC diagnostic ignored "-Wformat="
+//pragma GCC diagnostic ignored "-Wformat="
 
 //! \file configCosmos.h
 //! \brief Headers and definitions common to all COSMOS
@@ -74,8 +74,10 @@
 #include <cstring>
 #include <cmath>
 using std::isfinite;
-#include <iostream>
+#include <iosfwd>
 using std::ifstream;
+using std::ofstream;
+#include <iostream>
 using std::cout;
 using std::endl;
 #ifdef COSMOS_WIN_BUILD_MSVC
@@ -131,13 +133,14 @@ using namespace Cosmos;
 #define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
 #define COSMOS_SLEEP(sec) usleep((uint32_t)((sec>=0.?sec:0)*1e6)) // this allows decimal seconds
 #define CLOSE_SOCKET(socket) ::close(socket)
-#define COSMOS_MKDIR(dtemp, mode) mkdir((char *)dtemp,mode)
+#define COSMOS_MKDIR(dtemp, mode) mkdir(const_cast<char *>(dtemp), mode)
 //! @}
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/vfs.h>
 #include <sys/ioctl.h>

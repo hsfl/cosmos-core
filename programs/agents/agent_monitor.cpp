@@ -150,8 +150,8 @@ int main(int argc, char *argv[])
         cout<<"unable to start agent_monitor: "<<endl;
         exit(1);
     }
-    agent->cinfo->pdata.node.utc = 0.;
-    agent->cinfo->pdata.agent[0].aprd = .5;
+    agent->cinfo->node.utc = 0.;
+    agent->cinfo->agent[0].aprd = .5;
 
     cout<<"  started."<<endl;
 
@@ -211,12 +211,12 @@ int main(int argc, char *argv[])
         exit (iretn);
 
     // Create default logstring
-    logstring = json_list_of_soh(agent->cinfo->pdata);
+    logstring = json_list_of_soh(agent->cinfo);
     printf("logstring: %s\n", logstring.c_str());
-    json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
+    json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
     //	agent_set_sohstring(agent->cinfo, logstring.c_str());
 
-    load_dictionary(eventdict, agent->cinfo->meta, agent->cinfo->pdata, (const char *)"events.dict");
+    load_dictionary(eventdict, agent->cinfo, (const char *)"events.dict");
 
     // Start thread to collect SOH data
     cdthread = thread(collect_data_loop);
@@ -226,16 +226,16 @@ int main(int argc, char *argv[])
     lmjd = currentmjd();
     while(agent->running())
     {
-        nextmjd += agent->cinfo->pdata.agent[0].aprd/86400.;
+        nextmjd += agent->cinfo->agent[0].aprd/86400.;
         dmjd = (cmjd-lmjd)*86400.;
-        agent->cinfo->pdata.node.utc = cmjd = currentmjd();
+        agent->cinfo->node.utc = cmjd = currentmjd();
 
         // Check if the SOH logperiod has changed
         if (newlogperiod != logperiod )
         {
             logperiod = newlogperiod;
-            logdate_soh = agent->cinfo->pdata.node.utc;
-            log_move(agent->cinfo->pdata.node.name, "soh");
+            logdate_soh = agent->cinfo->node.utc;
+            log_move(agent->cinfo->node.name, "soh");
         }
 
         // Check if either of the logstride have changed
@@ -267,17 +267,17 @@ int main(int argc, char *argv[])
         }
 
         // Perform SOH specific functions
-        if (agent->cinfo->pdata.node.utc != 0.)
+        if (agent->cinfo->node.utc != 0.)
         {
-            loc_update(&agent->cinfo->pdata.node.loc);
-            update_target(agent->cinfo->pdata);
-            agent->post(Agent::AGENT_MESSAGE_SOH, json_of_table(myjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
-            calc_events(eventdict, agent->cinfo->meta, agent->cinfo->pdata, events);
+            loc_update(&agent->cinfo->node.loc);
+            update_target(agent->cinfo);
+            agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, logtable, agent->cinfo));
+            calc_events(eventdict, agent->cinfo, events);
             for (uint32_t k=0; k<events.size(); ++k)
             {
-                memcpy(&agent->cinfo->pdata.event[0].s,&events[k],sizeof(shorteventstruc));
-                strcpy(agent->cinfo->pdata.event[0].l.condition,agent->cinfo->meta.emap[events[k].handle.hash][events[k].handle.index].text);
-                log_write(agent->cinfo->pdata.node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo->meta, agent->cinfo->pdata));
+                memcpy(&agent->cinfo->event[0].s,&events[k],sizeof(shorteventstruc));
+                strcpy(agent->cinfo->event[0].l.condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+                log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
             }
         }
 
@@ -285,9 +285,9 @@ int main(int argc, char *argv[])
         if (dmjd-logperiod > -logperiod/20.)
         {
             lmjd = cmjd;
-            if (agent->cinfo->pdata.node.utc != 0. && logstring.size())
+            if (agent->cinfo->node.utc != 0. && logstring.size())
             {
-                log_write(agent->cinfo->pdata.node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo->meta, agent->cinfo->pdata));
+                log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo));
             }
         }
 
@@ -315,8 +315,8 @@ int32_t request_set_logstride_exec(char* request, char* response, Agent *agent)
 
 int32_t request_reopen_exec(char* request, char* response, Agent *agent)
 {
-    logdate_exec = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
-    log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "exec");
+    logdate_exec = ((cosmosstruc *)agent->cinfo)->node.loc.utc;
+    log_move(((cosmosstruc *)agent->cinfo)->node.name, "exec");
     return 0;
 }
 
@@ -495,8 +495,8 @@ int32_t request_run(char *request, char* response, Agent *agent)
 // SOH specific requests
 int32_t request_reopen_soh(char* request, char* response, Agent *agent)
 {
-    logdate_soh = ((cosmosstruc *)agent->cinfo)->pdata.node.loc.utc;
-    log_move(((cosmosstruc *)agent->cinfo)->pdata.node.name, "soh");
+    logdate_soh = ((cosmosstruc *)agent->cinfo)->node.loc.utc;
+    log_move(((cosmosstruc *)agent->cinfo)->node.name, "soh");
     return 0;
 }
 
@@ -510,7 +510,7 @@ int32_t request_set_logstring(char* request, char* response, Agent *agent)
 {
     logstring = &request[strlen("set_logstring")+1];
     logtable.clear();
-    json_table_of_list(logtable, logstring.c_str(), agent->cinfo->meta);
+    json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
     return 0;
 }
 
@@ -539,21 +539,16 @@ void collect_data_loop()
             {
                 my_position = 0;
             }
-            if (agent->cinfo->pdata.node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AGENT_MESSAGE_BINARY)
+            if (agent->cinfo->node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AgentMessage::BINARY)
             {
-                agent->cinfo->sdata.node = agent->cinfo->pdata.node;
-                agent->cinfo->sdata.device = agent->cinfo->pdata.device;
-                json_parse(agent->message_ring[my_position].adata, agent->cinfo->meta, agent->cinfo->sdata);
-                agent->cinfo->pdata.node  = agent->cinfo->sdata.node ;
-                agent->cinfo->pdata.device  = agent->cinfo->sdata.device ;
-//                loc_update(&agent->cinfo->pdata.node.loc);
-                agent->cinfo->pdata.node.utc = currentmjd(0.);
+                json_parse(agent->message_ring[my_position].adata, agent->cinfo);
+                agent->cinfo->node.utc = currentmjd(0.);
 
-                for (devicestruc device: agent->cinfo->pdata.device)
+                for (devicestruc device: agent->cinfo->device)
                 {
-                    if (device.all.gen.utc > agent->cinfo->pdata.node.utc)
+                    if (device.all.utc > agent->cinfo->node.utc)
                     {
-                        agent->cinfo->pdata.node.utc = device.all.gen.utc;
+                        agent->cinfo->node.utc = device.all.utc;
                     }
                 }
             }
@@ -563,18 +558,18 @@ void collect_data_loop()
     return;
 }
 
-/// Prints the command information stored in local the copy of agent->cinfo->pdata.event[0].l
+/// Prints the command information stored in local the copy of agent->cinfo->event[0].l
 void print_command()
 {
     string jsp;
 
-    json_out(jsp,(char*)"event_utc", agent->cinfo->meta, agent->cinfo->pdata);
-    json_out(jsp,(char*)"event_utcexec", agent->cinfo->meta, agent->cinfo->pdata);
-    json_out(jsp,(char*)"event_name", agent->cinfo->meta, agent->cinfo->pdata);
-    json_out(jsp,(char*)"event_type", agent->cinfo->meta, agent->cinfo->pdata);
-    json_out(jsp,(char*)"event_flag", agent->cinfo->meta, agent->cinfo->pdata);
-    json_out(jsp,(char*)"event_data", agent->cinfo->meta, agent->cinfo->pdata);
-    json_out(jsp,(char*)"event_condition", agent->cinfo->meta, agent->cinfo->pdata);
+    json_out(jsp,(char*)"event_utc", agent->cinfo);
+    json_out(jsp,(char*)"event_utcexec", agent->cinfo);
+    json_out(jsp,(char*)"event_name", agent->cinfo);
+    json_out(jsp,(char*)"event_type", agent->cinfo);
+    json_out(jsp,(char*)"event_flag", agent->cinfo);
+    json_out(jsp,(char*)"event_data", agent->cinfo);
+    json_out(jsp,(char*)"event_condition", agent->cinfo);
     cout<<"<"<<jsp<<">"<<endl;
 
     return;

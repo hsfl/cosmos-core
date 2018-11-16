@@ -40,7 +40,7 @@
 //! Errno string
 //! Return the string equivalent of a COSMOS Error Number. If the error number is greater than
 //! -256, then use strerror.
-//! \param cerrno COSMOS Error Number
+//! \param cosmos_errno COSMOS Error Number
 //! \return String of error number, or empty string.
 string cosmos_error_string(int32_t cosmos_errno)
 {
@@ -536,8 +536,83 @@ string cosmos_error_string(int32_t cosmos_errno)
         case CUBEADCS_SERIAL_PROTOCOL:
             error_string = "Error in Serial Protocol";
             break;
-        case CLYDEEPS_NOT_CONNECTED:
-            error_string = "EPS Not Connected";
+        case CLYDE_EPS_NOT_CONNECTED:
+            error_string = "Clyde EPS Not Connected";
+            break;
+        case CLYDE_BATTERY_NOT_CONNECTED:
+            error_string = "Clyde Battery Not Connected";
+            break;
+        case CLYDE_GENERAL_BAD_ADDRESS:
+            error_string = "Clyde Bad Address";
+            break;
+        case MEADE_MOUNT_ERROR_BAD_RESPONSE:
+            error_string = "Meade Mount Bad Address";
+            break;
+        case MEADE_MOUNT_ERROR_NOT_CONNECTED:
+            error_string = "Meade Mount Not Connected";
+            break;
+        case MEADE_MOUNT_ERROR_VALUE_INVALID:
+            error_string = "Meade Mount Value Invalid";
+            break;
+        case MEADE_MOUNT_ERROR_OUTSIDE_LIMITS:
+            error_string = "Meade Mount Request Outside Limits";
+            break;
+        case GENERAL_ERROR_BAD_SIZE:
+            error_string = "Bad Size";
+            break;
+        case GENERAL_ERROR_CRC:
+            error_string = "CRC";
+            break;
+        case GENERAL_ERROR_EMPTY:
+            error_string = "Empty";
+            break;
+        case GENERAL_ERROR_INPUT:
+            error_string = "Input";
+            break;
+        case GENERAL_ERROR_MEMORY:
+            error_string = "Memory";
+            break;
+        case GENERAL_ERROR_NOSIGNAL:
+            error_string = "No Signal";
+            break;
+        case GENERAL_ERROR_NOTSTARTED:
+            error_string = "Not Started";
+            break;
+        case GENERAL_ERROR_NULLPOINTER:
+            error_string = "Null Pointer";
+            break;
+        case GENERAL_ERROR_OOPS:
+            error_string = "Oops";
+            break;
+        case GENERAL_ERROR_OPEN:
+            error_string = "Open";
+            break;
+        case GENERAL_ERROR_OUTOFRANGE:
+            error_string = "Out Of Range";
+            break;
+        case GENERAL_ERROR_OUTPUT:
+            error_string = "Output";
+            break;
+        case GENERAL_ERROR_OVERSIZE:
+            error_string = "Over Size";
+            break;
+        case GENERAL_ERROR_TIMEOUT:
+            error_string = "Time Out";
+            break;
+        case GENERAL_ERROR_UNDEFINED:
+            error_string = "Undefined";
+            break;
+        case GENERAL_ERROR_UNDERSIZE:
+            error_string = "Under Size";
+            break;
+        case GENERAL_ERROR_UNHANDLED_ERR:
+            error_string = "Unhandled Error";
+            break;
+        case GENERAL_ERROR_UNIMPLEMENTED:
+            error_string = "Unimplemented";
+            break;
+        case GENERAL_ERROR_ZEROSIZE:
+            error_string = "Zero Size";
             break;
         default:
             char tval[30];
@@ -548,3 +623,4 @@ string cosmos_error_string(int32_t cosmos_errno)
     }
     return error_string;
 }
+//! @}

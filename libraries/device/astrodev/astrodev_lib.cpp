@@ -40,7 +40,7 @@ int32_t astrodev_connect(char *dev, astrodev_handle *handle)
 	cssl_start();
 	handle->serial = cssl_open(dev,ASTRODEV_BAUD, ASTRODEV_BITS,ASTRODEV_PARITY,ASTRODEV_STOPBITS);
 	if (handle->serial == NULL) return (CSSL_ERROR_OPEN);
-	cssl_settimeout(handle->serial, 0, .1);
+    cssl_settimeout(handle->serial, 0, .1);
 	cssl_setflowcontrol(handle->serial, 0, 0);
 	
 	if ((iretn=astrodev_ping(handle)) < 0)
@@ -266,7 +266,16 @@ int32_t astrodev_sendframe(astrodev_handle *handle)
 //		lmjd = currentmjd(0.);
 	}
 
-	for (uint16_t i=0; i<handle->frame.header.size+2; i++)
+    union
+    {
+        uint16_t cs;
+        uint8_t csb[2];
+    };
+    uint16_t size;
+    csb[0] = handle->frame.preamble[5];
+    csb[1] = handle->frame.preamble[4];
+    size = cs;
+    for (uint16_t i=0; i<size+2; i++)
 	{
 		cssl_putchar(handle->serial, handle->frame.payload[i]);
 //		lmjd = currentmjd(0.);

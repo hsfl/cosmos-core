@@ -49,6 +49,12 @@ rvector rv_mmult(rmatrix m, rvector v)
     return (o);
 }
 
+// multiply matrix by vector
+rvector operator * (rmatrix m, rvector v)
+{
+    return rv_mmult(m, v);
+}
+
 //! Matrix diagonal
 /*! ::rvector representing the diagonal of a ::rmatrix
         \param a :rmatrix to get diagonal from.
@@ -1667,3 +1673,357 @@ std::istream& operator >> (std::istream& in, cmatrix& a)
     return in;
 }
 
+namespace Cosmos {
+    namespace Math {
+        namespace Matrices {
+
+            //! Scalar product
+            /*!
+             * \brief Scalar ::Matrix multiplication.
+             * \param a Scalar to multiply each element by.
+             * \return Scalar product ::Matrix.
+             */
+//            Matrix Matrix::smult(const double scale) const
+//            {
+//                return *this * scale;
+//            }
+
+            //! Scalar product.
+            /*! Calculate the scalar product with the provided scale.
+         * \param scale Scale to multiply by.
+         * \return This times b.
+        */
+            Matrix Matrix::operator * (const double scale) const
+            {
+                Matrix mo = *this;
+
+                mo *= scale;
+
+                return mo;
+            }
+
+            //! Compound Scalar product.
+            /*! Calculate the scalar product with the provided scale inline.
+         * \param scale Scale to multiply by.
+         * \return Reference to this times scale.
+        */
+            Matrix &Matrix::operator *= (const double scale)
+            {
+                // If scale is basically 1., don't do anything
+                if (fabs(scale - (double)1.) > D_SMALL)
+                {
+                    // If scale is basically 0., set to zero
+                    if (fabs(scale - (double)0.) > D_SMALL)
+                    {
+                        // Otherwise, multiply
+                        this->r0 *= scale;
+                        this->r1 *= scale;
+                        this->r2 *= scale;
+                    }
+                    else
+                    {
+                        this->r0 = Vector();
+                        this->r1 = Vector();
+                        this->r2 = Vector();
+                    }
+                }
+                return *this;
+            }
+
+            //! Reverse scalar product.
+            /*! Calculate the scalar product with the provided scale.
+         * \param scale Scale to multiply by.
+         * \return Scale times this.
+        */
+            Matrix operator * (const double scale, const Matrix &m)
+            {
+                return m * scale;
+            }
+
+            //! Vector product.
+            /*! Calculate the vector product with the provided vector.
+         * \param v Vector to multiply by.
+         * \return This times v.
+        */
+            Vector Matrix::operator * (const Vector v) const
+            {
+                Vector o;
+
+                o[0] =  (this->r0 * v).sum();
+                o[1] =  (this->r1 * v).sum();
+                o[2] =  (this->r2 * v).sum();
+
+                return o;
+            }
+
+            //! Multiply ::Matrix by ::Vector.
+            /*! Multiply 3x3 ::Matrix by 3 element ::Vector (treated as a column order vector).
+                    \param m matrix to multiply by, in ::Matrix form.
+                    \param v vector to be tranformed, in ::Vector form.
+                    \return multiplied vector, in ::Vector format.
+            */
+//            Vector Matrix::mmult(const Vector v) const
+//            {
+//               return *this * v;
+//            }
+
+            //! Compound Matrix Product
+            /*! Multiply two 3x3 matrices together inline.
+                    \param a first 3x3 matrix
+                    \param b second 3x3 matrix
+                    \return reference to product 3x3 matrix
+            */
+            Matrix &Matrix::operator *= (const Matrix &m)
+            {
+                Matrix mat;
+
+                mat.r0.x  = this->r0.x * m.r0.x + this->r0.y * m.r1.x + this->r0.z * m.r2.x;
+                mat.r0.y  = this->r0.x * m.r0.y + this->r0.y * m.r1.y + this->r0.z * m.r2.y;
+                mat.r0.z  = this->r0.x * m.r0.z + this->r0.y * m.r1.z + this->r0.z * m.r2.z;
+                this->r0 = mat.r0;
+
+                mat.r1.x  = this->r1.x * m.r0.x + this->r1.y * m.r1.x + this->r1.z * m.r2.x;
+                mat.r1.y  = this->r1.x * m.r0.y + this->r1.y * m.r1.y + this->r1.z * m.r2.y;
+                mat.r1.z  = this->r1.x * m.r0.z + this->r1.y * m.r1.z + this->r1.z * m.r2.z;
+                this->r1 = mat.r1;
+
+                mat.r2.x  = this->r2.x * m.r0.x + this->r2.y * m.r1.x + this->r2.z * m.r2.x;
+                mat.r2.y  = this->r2.x * m.r0.y + this->r2.y * m.r1.y + this->r2.z * m.r2.y;
+                mat.r2.z  = this->r2.x * m.r0.z + this->r2.y * m.r1.z + this->r2.z * m.r2.z;
+                this->r2 = mat.r2;
+
+                return *this;
+
+            }
+
+            //! Matrix Product
+            //! Multiply two matrices together.
+            //! \param m Matrix to multiply by
+            //! \return Product
+            Matrix Matrix::operator * (const Matrix &m) const
+            {
+                Matrix mo = *this;
+
+                mo *= m;
+
+                return mo;
+            }
+
+            //! Matrix Product
+            //! Multiply two matrices together.
+            //! \param b Matrix to multiply by
+            //! \return Product
+            Matrix Matrix::mmult(const Matrix &m) const
+            {
+                return *this * m;
+            }
+
+            /*!
+             * \brief Element-wise ::Matrix multiplication.
+             * \param a first ::Matrix.
+             * \param b second ::Matrix.
+             * \return Element-wise product ::Matrix.
+             */
+            Matrix Matrix::mult(const Matrix &m) const
+            {
+                Matrix mat;
+
+                mat.r0 = this->r0 * m.r0;
+                mat.r1 = this->r0 * m.r1;
+                mat.r2 = this->r2 * m.r2;
+
+                return (mat);
+            }
+
+            //! Compound Matrix Sum
+            /*! Add two 3x3 matrices together inline.
+                    \param a first 3x3 matrix
+                    \param b second 3x3 matrix
+                    \return reference to sum 3x3 matrix
+            */
+            Matrix &Matrix::operator += (const Matrix &m)
+            {
+                this->r0 += m.r0;
+                this->r1 += m.r1;
+                this->r2 += m.r2;
+
+                return *this;
+
+            }
+
+            //! Matrix Sum
+            //! Add two matrices together.
+            //! \param m Matrix to add by
+            //! \return Sum
+            Matrix Matrix::operator + (const Matrix &m) const
+            {
+                Matrix mo = *this;
+
+                mo += m;
+
+                return mo;
+            }
+
+            //! Index.
+            /*! Lookup ::Vector value by index.
+         * \param index Indexed location to look up.
+         * \return Value at indexed location.
+        */
+            Vector &Matrix::operator[] (const int &index)
+            {
+                switch (index)
+                {
+                case 0:
+                default:
+                    return r0;
+                    break;
+                case 1:
+                    return r1;
+                    break;
+                case 2:
+                    return r2;
+                    break;
+                }
+            }
+
+            //! Unskew 3x3 row matrix
+            /*! Create the 3 element ::rvector correponding to a 3x3 skew symmetric ::rmatrix
+                    \param matrix 3x3 row skew symmetric matrix
+                    \return ::Vector representing unskewed elements
+            */
+            Vector Matrix::unskew()
+            {
+                Vector vec;
+
+                vec[0] = -this->r1[2];
+                vec[1] = this->r0[2];
+                vec[2] = -this->r0[1];
+
+                return vec;
+            }
+
+            //! Matrix diagonal
+            /*! ::Vector representing the diagonal of a ::Matrix
+                    \param a :Matrix to get diagonal from.
+                    \return Diagonal
+            */
+            Vector Matrix::diag()
+            {
+                Vector vec;
+
+                vec[0] = this->r0[0];
+                vec[1] = this->r1[1];
+                vec[2] = this->r2[2];
+
+                return vec;
+            }
+
+            Matrix Matrix::transpose()
+            {
+                Matrix b;
+
+                b[0][0] = (*this)[0][0];
+                b[0][1] = (*this)[1][0];
+                b[0][2] = (*this)[2][0];
+
+                b[1][0] = (*this)[0][1];
+                b[1][1] = (*this)[1][1];
+                b[1][2] = (*this)[2][1];
+
+                b[2][0] = (*this)[0][2];
+                b[2][1] = (*this)[1][2];
+                b[2][2] = (*this)[2][2];
+
+                return b;
+            }
+
+            Matrix Matrix::square()
+            {
+                Matrix b;
+                Vector c0 = this->c0();
+                Vector c1 = this->c1();
+                Vector c2 = this->c2();
+
+                for (uint16_t i=0; i<3; ++i)
+                {
+                    b[i][0] = ((*this)[i] * c0).sum();
+                    b[i][1] = ((*this)[i] * c1).sum();
+                    b[i][2] = ((*this)[i] * c2).sum();
+                }
+                return b;
+            }
+
+           Matrix Matrix::diag(Vector v)
+            {
+                Matrix mat;
+
+                mat[0][0] = v[0];
+                mat[1][1] = v[1];
+                mat[2][2] = v[2];
+
+                return mat;
+            }
+
+           Matrix Matrix::skew(Vector v)
+           {
+                Matrix mat;
+
+                mat[0][1] = -v[2];
+                mat[0][2] = v[1];
+
+                mat[1][0] = v[2];
+                mat[1][2] = -v[0];
+
+                mat[2][0] = -v[1];
+                mat[2][1] = v[0];
+
+                return mat;
+           }
+
+           Matrix Matrix::inverse()
+           {
+               Matrix mat;
+
+               mat[0][0] = (*this)[1][1] * (*this)[2][2] - (*this)[1][2] * (*this)[2][1];
+               mat[0][1] = (*this)[0][2] * (*this)[2][1] - (*this)[0][1] * (*this)[2][2];
+               mat[0][2] = (*this)[0][1] * (*this)[1][2] - (*this)[0][2] * (*this)[1][1];
+
+               mat[1][0] = (*this)[1][2] * (*this)[2][0] - (*this)[1][0] * (*this)[2][2];
+               mat[1][1] = (*this)[0][0] * (*this)[2][2] - (*this)[0][2] * (*this)[2][0];
+               mat[1][2] = (*this)[0][2] * (*this)[1][0] - (*this)[0][0] * (*this)[1][2];
+
+               mat[2][0] = (*this)[1][0] * (*this)[2][1] - (*this)[1][1] * (*this)[2][0];
+               mat[2][1] = (*this)[0][1] * (*this)[2][0] - (*this)[0][0] * (*this)[2][1];
+               mat[2][2] = (*this)[0][0] * (*this)[1][1] - (*this)[0][1] * (*this)[1][0];
+
+               mat *= 1. / this->determinant();
+
+               return mat;
+           }
+
+           //!  Determinant of row column matrix
+           /*! Return the determinant for a 3x3 ::rmatrix
+                   \param m ;;rmatrix to calculate detrminant of
+                   \return determinant, otherwise NaN
+           */
+           double Matrix::determinant()
+           {
+               double result;
+
+               result = (*this)[0][0] * ((*this)[1][1] * (*this)[2][2] - (*this)[2][1] * (*this)[1][2]);
+               result -= (*this)[1][0] * ((*this)[0][1] * (*this)[2][2] - (*this)[0][2] * (*this)[2][1]);
+               result += (*this)[2][0] * ((*this)[0][1] * (*this)[1][2] - (*this)[0][2] * (*this)[1][1]);
+
+               return (result);
+
+           }
+
+           Matrix eye()
+           {
+
+           }
+
+        }
+
+    }
+}

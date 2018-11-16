@@ -118,8 +118,8 @@ int32_t gs232b_disconnect()
 * Routine to use in blocking mode. Reads the serial port until a New
 * Line is received, then returns entire buffer.
 * @param buf Pointer to a char buffer
-* @param buflen ::int32_t indicating the maximum size of the buffer
-* @return ::int32_t containing the number of bytes read.
+* @param buflen 32 bit signed integer indicating the maximum size of the buffer
+* @return 32 bit signed integer containing the number of bytes read.
 */
 int32_t gs232b_getdata(char *buf, int32_t buflen)
 {
@@ -164,7 +164,7 @@ int32_t gs232b_getdata(char *buf, int32_t buflen)
 /**
 * Routine to help calibrate rotor offset on specified axis. Turns
 * calibration mode on in GS-232B.
-* @param axis ::int32_t , 0 = Azimuth, 1 = Elevation
+* @param axis 32 bit signed integer , 0 = Azimuth, 1 = Elevation
 */
 int32_t gs232b_offset_wait(int32_t axis)
 {
