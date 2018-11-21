@@ -152,11 +152,11 @@ int main(int argc, char *argv[])
                 if ((iretn=agent->readring(mess,  Agent::AgentMessage::ALL, 1)) > 0)
                 {
                     Agent::AgentMessage pretn = (Agent::AgentMessage)iretn;
-                    string utc = json_extract_namedobject(mess.jdata.c_str(), "agent_utc");
-                    string node = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_node"));
-                    string proc = json_extract_namedobject(mess.jdata.c_str(), "agent_proc");
-                    string addr = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_addr"));
-                    string port = json_extract_namedobject(mess.jdata.c_str(), "agent_port");
+                    string utc = json_extract_namedmember(mess.jdata.c_str(), "agent_utc");
+                    string node = json_convert_string(json_extract_namedmember(mess.jdata.c_str(), "agent_node"));
+                    string proc = json_extract_namedmember(mess.jdata.c_str(), "agent_proc");
+                    string addr = json_convert_string(json_extract_namedmember(mess.jdata.c_str(), "agent_addr"));
+                    string port = json_extract_namedmember(mess.jdata.c_str(), "agent_port");
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;
@@ -316,11 +316,11 @@ int main(int argc, char *argv[])
                 if ((iretn=agent->readring(mess,  Agent::AgentMessage::ALL, 1)) > 0)
                 {
                     Agent::AgentMessage pretn = (Agent::AgentMessage)iretn;
-                    string utc = json_extract_namedobject(mess.jdata.c_str(), "agent_utc");
-                    string node = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_node"));
-                    string proc = json_extract_namedobject(mess.jdata.c_str(), "agent_proc");
-                    string addr = json_convert_string(json_extract_namedobject(mess.jdata.c_str(), "agent_addr"));
-                    string port = json_extract_namedobject(mess.jdata.c_str(), "agent_port");
+                    string utc = json_extract_namedmember(mess.jdata.c_str(), "agent_utc");
+                    string node = json_convert_string(json_extract_namedmember(mess.jdata.c_str(), "agent_node"));
+                    string proc = json_extract_namedmember(mess.jdata.c_str(), "agent_proc");
+                    string addr = json_convert_string(json_extract_namedmember(mess.jdata.c_str(), "agent_addr"));
+                    string port = json_extract_namedmember(mess.jdata.c_str(), "agent_port");
                     if (!channel.empty() && cnum != pretn)
                     {
                         continue;

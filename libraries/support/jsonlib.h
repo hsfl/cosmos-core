@@ -246,9 +246,9 @@ int32_t json_set_string(string val, const jsonentry &entry, cosmosstruc *cinfo);
 int32_t json_scan(char *istring);
 
 int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector <jsontoken> &tokens);
-int32_t json_tokenize_namedobject(const char *&pointer, cosmosstruc *cinfo, jsontoken &token);
+int32_t json_tokenize_namedmember(const char *&pointer, cosmosstruc *cinfo, jsontoken &token);
 int32_t json_parse(string json, cosmosstruc *cinfo);
-int32_t json_parse_namedobject(const char *&ptr, cosmosstruc *cinfo);
+int32_t json_parse_namedmember(const char *&ptr, cosmosstruc *cinfo);
 int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cinfo);
 int32_t json_parse_value(const char* &ptr, const jsonentry &entry, cosmosstruc *cinfo);
 int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmosstruc *cinfo);
@@ -257,7 +257,7 @@ int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosstruc *
 int32_t json_extract_string(const char* &ptr, string &ostring);
 int32_t json_parse_name(const char* &ptr, string &ostring);
 
-string json_extract_namedobject(string json, string token);
+string json_extract_namedmember(string json, string token);
 int32_t json_extract_value(const char *&ptr, string &value);
 string json_convert_string(string object);
 int32_t json_convert_int32(string object);
@@ -269,7 +269,7 @@ double json_convert_double(string object);
 
 int32_t json_parse_number(const char* &ptr, double *value);
 int32_t json_skip_character(const char* &ptr, const char character);
-int32_t json_skip_value(const char* &ptr);
+int32_t json_skip_to_next_member(const char* &ptr);
 int32_t json_skip_white(const char* &ptr);
 int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo);
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag = false);
