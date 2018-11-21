@@ -253,32 +253,32 @@ namespace Cosmos {
 
         // Verticals
         name = "cosmos.none." + basename + "_z+x+y";
-        add_cuboid(name, Vector(.003, .003, .1), eyeQ(), offset + Vector(.0485, .0485, 0.));
+        add_cuboid(name, Vector(.003, .003, .1), Math::Quaternions::eye(), offset + Vector(.0485, .0485, 0.));
         name = "cosmos.none." + basename + "_z+x-y";
-        add_cuboid(name, Vector(.003, .003, .1), eyeQ(), offset + Vector(.0485, -.0485, 0.));
+        add_cuboid(name, Vector(.003, .003, .1), Math::Quaternions::eye(), offset + Vector(.0485, -.0485, 0.));
         name = "cosmos.none." + basename + "_z-x-y";
-        add_cuboid(name, Vector(.003, .003, .1), eyeQ(), offset + Vector(-.0485, -.0485, 0.));
+        add_cuboid(name, Vector(.003, .003, .1), Math::Quaternions::eye(), offset + Vector(-.0485, -.0485, 0.));
         name = "cosmos.none." + basename + "_z-x+y";
-        add_cuboid(name, Vector(.003, .003, .1), eyeQ(), offset + Vector(-.0485, .0485, 0.));
+        add_cuboid(name, Vector(.003, .003, .1), Math::Quaternions::eye(), offset + Vector(-.0485, .0485, 0.));
 
         // Horizontals
         name = "cosmos.none." + basename + "_+y+z";
-        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., .0485, .0485));
+        add_cuboid(name, Vector(.1, .003, .003), Math::Quaternions::eye(), offset + Vector(0., .0485, .0485));
         name = "cosmos.none." + basename + "_-y+z";
-        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., -.0485, .0485));
+        add_cuboid(name, Vector(.1, .003, .003), Math::Quaternions::eye(), offset + Vector(0., -.0485, .0485));
         name = "cosmos.none." + basename + "_+x+z";
-        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(.0485, 0., .0485));
+        add_cuboid(name, Vector(.003, .1, .003), Math::Quaternions::eye(), offset + Vector(.0485, 0., .0485));
         name = "cosmos.none." + basename + "_-x+z";
-        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(-.0485, 0., .0485));
+        add_cuboid(name, Vector(.003, .1, .003), Math::Quaternions::eye(), offset + Vector(-.0485, 0., .0485));
 
         name = "cosmos.none." + basename + "_+y-z";
-        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., .0485, -.0485));
+        add_cuboid(name, Vector(.1, .003, .003), Math::Quaternions::eye(), offset + Vector(0., .0485, -.0485));
         name = "cosmos.none." + basename + "_-y-z";
-        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., -.0485, -.0485));
+        add_cuboid(name, Vector(.1, .003, .003), Math::Quaternions::eye(), offset + Vector(0., -.0485, -.0485));
         name = "cosmos.none." + basename + "_+x-z";
-        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(.0485, 0., -.0485));
+        add_cuboid(name, Vector(.003, .1, .003), Math::Quaternions::eye(), offset + Vector(.0485, 0., -.0485));
         name = "cosmos.none." + basename + "_-x-z";
-        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(-.0485, 0., -.0485));
+        add_cuboid(name, Vector(.003, .1, .003), Math::Quaternions::eye(), offset + Vector(-.0485, 0., -.0485));
 
     }
 
@@ -288,32 +288,32 @@ namespace Cosmos {
 
         // Verticals
         name = "cosmos.none." + basename + "_z+x+y";
-        add_cuboid(name, Vector(.003, .003, .3), eyeQ(), offset + Vector(.0485, .0485, 0.));
+        add_cuboid(name, Vector(.003, .003, .3), Math::Quaternions::eye(), offset + Vector(.0485, .0485, 0.));
         name = "cosmos.none." + basename + "_z+x-y";
-        add_cuboid(name, Vector(.003, .003, .3), eyeQ(), offset + Vector(.0485, -.0485, 0.));
+        add_cuboid(name, Vector(.003, .003, .3), Math::Quaternions::eye(), offset + Vector(.0485, -.0485, 0.));
         name = "cosmos.none." + basename + "_z-x-y";
-        add_cuboid(name, Vector(.003, .003, .3), eyeQ(), offset + Vector(-.0485, -.0485, 0.));
+        add_cuboid(name, Vector(.003, .003, .3), Math::Quaternions::eye(), offset + Vector(-.0485, -.0485, 0.));
         name = "cosmos.none." + basename + "_z-x+y";
-        add_cuboid(name, Vector(.003, .003, .3), eyeQ(), offset + Vector(-.0485, .0485, 0.));
+        add_cuboid(name, Vector(.003, .003, .3), Math::Quaternions::eye(), offset + Vector(-.0485, .0485, 0.));
 
         // Horizontals
         name = "cosmos.none." + basename + "_+y+z";
-        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., .0485, .1485));
+        add_cuboid(name, Vector(.1, .003, .003), Math::Quaternions::eye(), offset + Vector(0., .0485, .1485));
         name = "cosmos.none." + basename + "_-y+z";
-        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., -.0485, .1485));
+        add_cuboid(name, Vector(.1, .003, .003), Math::Quaternions::eye(), offset + Vector(0., -.0485, .1485));
         name = "cosmos.none." + basename + "_+x+z";
-        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(.0485, 0., .1485));
+        add_cuboid(name, Vector(.003, .1, .003), Math::Quaternions::eye(), offset + Vector(.0485, 0., .1485));
         name = "cosmos.none." + basename + "_-x+z";
-        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(-.0485, 0., .1485));
+        add_cuboid(name, Vector(.003, .1, .003), Math::Quaternions::eye(), offset + Vector(-.0485, 0., .1485));
 
         name = "cosmos.none." + basename + "_+y-z";
-        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., .0485, -.1485));
+        add_cuboid(name, Vector(.1, .003, .003), Math::Quaternions::eye(), offset + Vector(0., .0485, -.1485));
         name = "cosmos.none." + basename + "_-y-z";
-        add_cuboid(name, Vector(.1, .003, .003), eyeQ(), offset + Vector(0., -.0485, -.1485));
+        add_cuboid(name, Vector(.1, .003, .003), Math::Quaternions::eye(), offset + Vector(0., -.0485, -.1485));
         name = "cosmos.none." + basename + "_+x-z";
-        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(.0485, 0., -.1485));
+        add_cuboid(name, Vector(.003, .1, .003), Math::Quaternions::eye(), offset + Vector(.0485, 0., -.1485));
         name = "cosmos.none." + basename + "_-x-z";
-        add_cuboid(name, Vector(.003, .1, .003), eyeQ(), offset + Vector(-.0485, 0., -.1485));
+        add_cuboid(name, Vector(.003, .1, .003), Math::Quaternions::eye(), offset + Vector(-.0485, 0., -.1485));
 
     }
 
