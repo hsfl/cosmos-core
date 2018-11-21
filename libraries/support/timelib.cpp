@@ -977,6 +977,20 @@ double mjd2year(double mjd)
     return (dyear);
 }
 
+//! Day of Year from MJD
+/*! Return the Decimal Day of Year for the provided MJD
+    \param mjd Modified Julian Data
+    \return Decimal doy.
+*/
+double mjd2doy(double mjd)
+{
+    double day, doy;
+    int32_t month, year;
+
+    mjd2ymd(mjd,year,month,day,doy);
+    return (doy);
+}
+
 //! Earth Rotation Angle
 /*! Calculate the Earth Rotation Angle for a given Earth Rotation Time based on the
  * provided UTC.
