@@ -413,7 +413,7 @@ namespace Cosmos {
     int32_t Serial::set_timeout(int, double timeout)
 #endif
     {
-        set_timeout(timeout);
+        return set_timeout(timeout);
     }
 
     int32_t Serial::set_timeout(double timeout)
