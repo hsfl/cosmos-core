@@ -2044,7 +2044,7 @@ namespace Cosmos {
                 return r;
             }
 
-            Vector eyeV(double scale)
+            Vector eye(double scale)
             {
                 Vector val = Vector(1., 1., 1.);
                 val *= scale;
@@ -2515,9 +2515,9 @@ namespace Cosmos {
                 return fqe;
             }
 
-            Quaternion eyeQ()
+            Quaternion eye(double scale)
             {
-                Quaternion val = Quaternion(0., 0., 0., 1.);
+                Quaternion val = Quaternion(0., 0., 0., scale);
                 return val;
             }
 

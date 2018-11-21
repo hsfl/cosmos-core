@@ -2018,9 +2018,16 @@ namespace Cosmos {
 
            }
 
-           Matrix eye()
+           //! Scaled Identity ::Matrix
+           /*! ::Matrix with diagonal elements set to one and all others set to zero
+                   \return Identity matrix
+           */
+           Matrix eye(double scale)
            {
-
+                Matrix mat;
+                mat[0][0] = scale;
+                mat[1][1] = scale;
+                mat[2][2] = scale;
            }
 
         }

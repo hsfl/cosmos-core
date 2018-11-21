@@ -407,11 +407,6 @@ namespace Cosmos {
                 return *this;
             }
 
-//            Vector &operator = (const Vector v)
-//            {
-//                return *this;
-//            }
-
             double &operator [] (const int &index);
 
             Vector operator *(const double scale) const; // multiply vector by scalar operator
@@ -434,7 +429,7 @@ namespace Cosmos {
 
         Vector operator * (const double scale, const Vector &v);
         std::ostream& operator << (std::ostream& out, const Vector& v);
-        Vector eyeV(double scale=1.);
+        Vector eye(double scale=1.);
         Vector unitxV(double scale=1.);
         Vector unityV(double scale=1.);
         Vector unitzV(double scale=1.);
@@ -487,7 +482,7 @@ namespace Cosmos {
 
 
             // operators
-            Quaternion &operator = (const Quaternion &q) { return *this; }
+//            Quaternion &operator = (const Quaternion &q) { return *this; }
             Quaternion operator * (const double scale) const; // multiply vector by scalar operator
             Quaternion &operator *= ( const double scale); // multiply vector by scalar operator in place
             Quaternion operator * (Quaternion &q2) const;
@@ -521,7 +516,7 @@ namespace Cosmos {
         std::ostream& operator << (std::ostream& os, const Quaternion& q);
         Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb);
         Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b);
-        Quaternion eyeQ();
+        Quaternion eye(double scale = 1.);
 
         }
     } // end namespace Math

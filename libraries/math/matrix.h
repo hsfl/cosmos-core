@@ -318,7 +318,7 @@ namespace  Cosmos {
             };
 
             Matrix operator * (const double scale, Matrix &v);
-            Matrix eye();
+            Matrix eye(double scale = 1.);
         }
     } // end of namespace Nath
 } // end of namespace COSMOS
