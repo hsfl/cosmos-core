@@ -1837,7 +1837,8 @@ namespace Cosmos {
         // this will broadcast messages to all external interfaces (ifcnt = interface count)
         for (size_t i=0; i<cinfo->agent[0].ifcnt; i++)
         {
-            sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bprd\":%f}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
+//            sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bprd\":%f}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
+            sprintf((char *)&post[3],"{\"agent_utc\":%.15g,\"agent_node\":\"%s\",\"agent_proc\":\"%s\",\"agent_addr\":\"%s\",\"agent_port\":%u,\"agent_bprd\":%f,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%f,\"node_utcoffset\":%.15g}",
                     cinfo->agent[0].beat.utc,
                     cinfo->agent[0].beat.node,
                     cinfo->agent[0].beat.proc,
@@ -2045,7 +2046,21 @@ namespace Cosmos {
                     }
 
                     // Extract meta data
-                    if (mess.jdata.find("agent_bprd") == string::npos)
+                    if (mess.jdata.find("}{") == string::npos)
+                    {
+                        sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg,\"agent_node\":\"%40[^\"]\",\"agent_proc\":\"%40[^\"]\",\"agent_addr\":\"%17[^\"]\",\"agent_port\":%hu,\"agent_bprd\":%lf,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%lf}",
+                               &mess.meta.beat.utc,
+                               mess.meta.beat.node,
+                               mess.meta.beat.proc,
+                               mess.meta.beat.addr,
+                               &mess.meta.beat.port,
+                               &mess.meta.beat.bprd,
+                               &mess.meta.beat.bsz,
+                               &mess.meta.beat.cpu,
+                               &mess.meta.beat.memory,
+                               &mess.meta.beat.jitter);
+                    }
+                    else if (mess.jdata.find("agent_bprd") == string::npos)
                     {
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
                                &mess.meta.beat.utc,

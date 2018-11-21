@@ -1051,14 +1051,19 @@ int32_t json_out_entry(string &jstring, const jsonentry &entry, cosmosstruc *cin
     int32_t iretn;
     uint8_t *data;
 
-    if ((iretn=json_out_character(jstring,'{')) != 0)
+    jstring.erase(jstring.find_last_not_of(" \n\r\t")+1);
+    if (jstring.back() =='}')       //replaces '}' with ',' to allow the continuation of the json object (if node json is to remain separate, input ' ' at end?
+    {
+        jstring.back()=',';
+    }
+    else if ((iretn=json_out_character(jstring,'{')) != 0) //still inputs '{' if it is the first entry into the string
         return (iretn);
 
     data = json_ptr_of_entry(entry, cinfo);
     if ((iretn=json_out_value(jstring, entry.name, data, entry.type, cinfo)) != 0)
         return (iretn);
 
-    if ((iretn=json_out_character(jstring,'}')) != 0)
+    if ((iretn=json_out_character(jstring,'}')) != 0)       //closes json object. if json continues it will be overwritten with ','
         return (iretn);
 
     return (iretn);
@@ -1490,7 +1495,9 @@ int32_t json_out_string(string &jstring, string ostring, uint16_t len)
         len = JSON_MAX_DATA;
 
     if ((iretn=json_out_character(jstring,'"')) < 0)
+    {
         return (iretn);
+    }
 
     for (i=0; i<ostring.size(); i++)
     {
@@ -2272,7 +2279,7 @@ int32_t json_out_commandevent(string &jstring,longeventstruc value)
 {
     int32_t iretn;
 
-
+    //CT-JSON: keep as a separate object? or have it combine?
     if ((iretn=json_out_character(jstring, '{')) < 0)
         return (iretn);
     if ((iretn=json_out_name(jstring, (char *)"event_utc")) < 0)
@@ -2961,9 +2968,9 @@ int32_t json_table_of_list(vector<jsonentry*> &table, string tokens, cosmosstruc
     jsonentry* tentry;
 
     ptr = &tokens[0];
-    while (ptr[0] != 0 && ptr[0] != '{')
+    while (ptr[0] != 0 && ptr[0] != '{') //move forward until '{'
         ptr++;
-    if ((iretn=json_skip_character(ptr,'{')) != 0)
+    if ((iretn=json_skip_character(ptr,'{')) != 0) //skip over '{'
         return (iretn);
     do
     {
@@ -4415,7 +4422,7 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
     \param token The Namespace name to be extracted.
     \return A character string representing the extracted value, otherwise NULL.
 */
-string json_extract_namedobject(string json, string token)
+string json_extract_namedmember(string json, string token)
 {
     string tstring;
     const char *ptr;
@@ -4605,14 +4612,14 @@ int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tok
     int32_t iretn;
     jsontoken ttoken;
 
-    string val = json_extract_namedobject(jstring, "node_utc");
+    string val = json_extract_namedmember(jstring, "node_utc");
     if (val.length()!=0) ttoken.utc = json_convert_double(val);
     else
     {
         //Some older sets of telemetry do not include "node_utc" so the utc must be found elsewhere:
-        if ((val = json_extract_namedobject(jstring, "node_loc_pos_eci")).length()!=0)
+        if ((val = json_extract_namedmember(jstring, "node_loc_pos_eci")).length()!=0)
         {
-            if ((val=json_extract_namedobject(val, "utc")).length()!=0) ttoken.utc = json_convert_double(val);
+            if ((val=json_extract_namedmember(val, "utc")).length()!=0) ttoken.utc = json_convert_double(val);
         }
     }
 
@@ -4625,7 +4632,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tok
     {
         if (*cpoint != 0)
         {
-            if ((iretn = json_tokenize_namedobject(cpoint, cinfo, ttoken)) < 0)
+            if ((iretn = json_tokenize_namedmember(cpoint, cinfo, ttoken)) < 0)
             {
                 if (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP)
                     iretn = 0;
@@ -4651,7 +4658,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tok
  * \param token ::jsontoken to return.
  * \return Zero, or a negative error.
 */
-int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoken &token)
+int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoken &token)
 {
     int32_t iretn=0;
     string ostring;
@@ -4665,7 +4672,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
     // Skip over opening brace
     if (ptr[0] != '{')
     {
-        if ((iretn = json_skip_value(ptr)) < 0)
+        if ((iretn = json_skip_to_next_member(ptr)) < 0)
             return (iretn);
         else
             return (JSON_ERROR_SCAN);
@@ -4678,7 +4685,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
     {
         if (iretn != JSON_ERROR_EOS)
         {
-            if ((iretn = json_skip_value(ptr)) < 0)
+            if ((iretn = json_skip_to_next_member(ptr)) < 0)
                 return (iretn);
             else
                 return (JSON_ERROR_SCAN);
@@ -4699,7 +4706,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
 
     if (index == cinfo->jmap[hash].size())
     {
-        if ((iretn = json_skip_value(ptr)) < 0 && iretn != JSON_ERROR_EOS)
+        if ((iretn = json_skip_to_next_member(ptr)) < 0 && iretn != JSON_ERROR_EOS)
         {
             return (iretn);
         }
@@ -4713,7 +4720,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
         {
             if (iretn != JSON_ERROR_EOS)
             {
-                if ((iretn = json_skip_value(ptr)) < 0)
+                if ((iretn = json_skip_to_next_member(ptr)) < 0)
                     return (iretn);
                 else
                     return (JSON_ERROR_SCAN);
@@ -4726,7 +4733,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
         {
             if (iretn != JSON_ERROR_EOS)
             {
-                if ((iretn = json_skip_value(ptr)) < 0)
+                if ((iretn = json_skip_to_next_member(ptr)) < 0)
                     return (iretn);
                 else
                     return (JSON_ERROR_SCAN);
@@ -4739,7 +4746,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
         {
             if (iretn != JSON_ERROR_EOS)
             {
-                if ((iretn = json_skip_value(ptr)) < 0)
+                if ((iretn = json_skip_to_next_member(ptr)) < 0)
                     return (iretn);
                 else
                     return (JSON_ERROR_SCAN);
@@ -4753,7 +4760,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
         {
             if (iretn != JSON_ERROR_EOS)
             {
-                if ((iretn = json_skip_value(ptr)) < 0)
+                if ((iretn = json_skip_to_next_member(ptr)) < 0)
                     return (iretn);
                 else
                     return (JSON_ERROR_SCAN);
@@ -4775,7 +4782,7 @@ int32_t json_tokenize_namedobject(const char* &ptr, cosmosstruc *cinfo, jsontoke
         // Skip over closing brace
         if ((iretn = json_skip_character(ptr,'}')) < 0)
         {
-            if ((iretn = json_skip_value(ptr)) < 0)
+            if ((iretn = json_skip_to_next_member(ptr)) < 0)
                 return (iretn);
             else
                 return (JSON_ERROR_SCAN);
@@ -4806,7 +4813,7 @@ int32_t json_parse(string jstring, cosmosstruc *cinfo)
 
     length = jstring.size();
     cpoint = &jstring[0];
-    while (*cpoint != 0 && *cpoint != '{')
+    while (*cpoint != 0 && *cpoint != '{' && *cpoint != ',' )  //advance until you find a '{' or ','
         cpoint++;
     do
     {
@@ -4814,7 +4821,7 @@ int32_t json_parse(string jstring, cosmosstruc *cinfo)
         if (*cpoint != 0)// && *cpoint != '\r' && *cpoint != '\n')
             //if (*cpoint != 0 && *cpoint != '\r' && *cpoint != '\n')
         {
-            if ((iretn = json_parse_namedobject(cpoint, cinfo)) < 0)
+            if ((iretn = json_parse_namedmember(cpoint, cinfo)) < 0)
             {
                 if (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP)
                     iretn = 0;
@@ -4845,7 +4852,7 @@ int32_t json_parse(string jstring, cosmosstruc *cinfo)
     \param cdata Reference to ::cosmosdatastruc to use.
     \return Zero, or a negative error.
 */
-int32_t json_parse_namedobject(const char* &ptr, cosmosstruc *cinfo)
+int32_t json_parse_namedmember(const char* &ptr, cosmosstruc *cinfo)
 {
     uint32_t hash;
     int32_t iretn=0;
@@ -4856,22 +4863,22 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosstruc *cinfo)
         return (JSON_ERROR_NOJMAP);
     }
 
-    if (ptr[0] != '{')
+    if (ptr[0] != '{' && ptr[0] != ',')      //verify that there is a '{' or ','
     {
-        if ((iretn = json_skip_value(ptr)) < 0)
+        if ((iretn = json_skip_to_next_member(ptr)) < 0)
             return (iretn);
         else
             return (JSON_ERROR_SCAN);
     }
 
-    ptr++;
+    ptr++;      //move forward from '{' or ',' to '"' ?
 
-    // Extract string that should hold name of this object.
+    // Extract string that should hold name of this member.
     if ((iretn = json_extract_string(ptr, ostring)) < 0)
     {
         if (iretn != JSON_ERROR_EOS)
         {
-            if ((iretn = json_skip_value(ptr)) < 0)
+            if ((iretn = json_skip_to_next_member(ptr)) < 0)
                 return (iretn);
             else
                 return (JSON_ERROR_SCAN);
@@ -4880,34 +4887,41 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosstruc *cinfo)
             return (iretn);
     }
 
+    if(ostring.find("$$_") == 0)
+    {
+        ostring = ostring.substr(3);
+    }
+
+
     // Calculate hash
     hash = json_hash(ostring);
 
     // See if there is a match in the ::jsonmap.
     size_t n;
-    for (n=0; n<cinfo->jmap[hash].size(); ++n)	{
+    for (n=0; n<cinfo->jmap[hash].size(); ++n)	//check through every column in the row (using hash) exit loop if the name matches
+    {
         if (ostring == cinfo->jmap[hash][n].name)
         {
             break;
         }
     }
 
-    if (n == cinfo->jmap[hash].size())
+    if (n == cinfo->jmap[hash].size())       //if there was no match
     {
-        if ((iretn = json_skip_value(ptr)) < 0 && iretn != JSON_ERROR_EOS)
+        if ((iretn = json_skip_to_next_member(ptr)) < 0 && iretn != JSON_ERROR_EOS)
         {
             return (iretn);
         }
         else
             return (JSON_ERROR_NOENTRY);
     }
-    else
+    else                            //if a match was found
     {
-        if ((iretn = json_skip_white(ptr)) < 0)
+        if ((iretn = json_skip_white(ptr)) < 0)     //skip the white space
         {
             if (iretn != JSON_ERROR_EOS)
             {
-                if ((iretn = json_skip_value(ptr)) < 0)
+                if ((iretn = json_skip_to_next_member(ptr)) < 0)
                     return (iretn);
                 else
                     return (JSON_ERROR_SCAN);
@@ -4915,11 +4929,11 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosstruc *cinfo)
             else
                 return (iretn);
         }
-        if ((iretn = json_skip_character(ptr,':')) < 0)
+        if ((iretn = json_skip_character(ptr,':')) < 0)   //skip the ':' before the value
         {
             if (iretn != JSON_ERROR_EOS)
             {
-                if ((iretn = json_skip_value(ptr)) < 0)
+                if ((iretn = json_skip_to_next_member(ptr)) < 0)
                     return (iretn);
                 else
                     return (JSON_ERROR_SCAN);
@@ -4927,12 +4941,12 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosstruc *cinfo)
             else
                 return (iretn);
         }
-        //        if ((iretn = json_parse_value(ptr,cinfo->jmap[hash][n].type,cinfo->jmap[hash][n].offset,cinfo->jmap[hash][n].group, cinfo)) < 0)
+        // enter value into the structs using pointer
         if ((iretn = json_parse_value(ptr, cinfo->jmap[hash][n], cinfo)) < 0)
         {
             if (iretn != JSON_ERROR_EOS)
             {
-                if ((iretn = json_skip_value(ptr)) < 0)
+                if ((iretn = json_skip_to_next_member(ptr)) < 0)
                     return (iretn);
                 else
                     return (JSON_ERROR_SCAN);
@@ -4944,7 +4958,9 @@ int32_t json_parse_namedobject(const char* &ptr, cosmosstruc *cinfo)
         }
     }
 
-    ptr++;
+//    ptr++;
+    json_skip_white(ptr);
+    json_skip_character(ptr, '}');
     json_skip_white(ptr);
     if (iretn >= 0)
     {
@@ -5194,10 +5210,10 @@ int32_t json_extract_string(const char* &ptr, string &ostring)
 
     // Start of object, get string
     ostring.clear();
-    for (i2=1; i2<ilen; i2++)
+    for (i2=1; i2<ilen; i2++) //start from ptr[1] rather than ptr[0] which is a '"'?
     {
         if (ptr[i2] == '"')
-            break;
+            break;  //exits for loop?
         if (ptr[i2] == '\\')
         {
             switch (ptr[i2+1])
@@ -5275,8 +5291,10 @@ int32_t json_parse_number(const char* &ptr, double *number)
 
     // First, check for integer: series of digits
     i1 = 0;
-    if (ptr[i1] == '-')
+    if (ptr[i1] == '-' || ptr[i1] == '+')
+    {
         ++i1;
+    }
     while (i1 < ilen && ptr[i1] >= '0' && ptr[i1] <= '9')
     {
         ++i1;
@@ -5292,12 +5310,18 @@ int32_t json_parse_number(const char* &ptr, double *number)
         }
     }
 
-    // Third, check for exponent: e or E followed by optional - and series of digits
+    // Third, check for exponent: e or E followed by optional +/- and series of digits
     if (ptr[i1] == 'e' || ptr[i1] == 'E')
     {
         ++i1;
-        if (ptr[i1] == '-')
+        if (ptr[i1] == '-' || ptr[i1] == '+')
+        {
             ++i1;
+        }
+        if (ptr[i1] == '+')
+        {
+            ++i1;
+        }
         while (i1 < ilen && ptr[i1] >= '0' && ptr[i1] <= '9')
         {
             ++i1;
@@ -5329,22 +5353,53 @@ int32_t json_skip_white(const char* &ptr)
         return 0;
 }
 
-//! Skip next value in JSON string
-/*! Skip over characters until you reach the next value in a JSON string.
+//! Skip to next COSMOS name in JSON string
+/*! Skip over characters until you reach the next COSMOS Namespace name in a JSON string.
     \param ptr Double pointer to the JSON string
     \return Zero, or negative error.
 */
-int32_t json_skip_value(const char* &ptr)
+int32_t json_skip_to_next_member(const char* &ptr)
 {
+    int32_t iretn;
 
     if (ptr[0] == 0)
+    {
         return (JSON_ERROR_EOS);
+    }
 
-    while (ptr[0] != 0 && ptr[0] != '{')
+    while (ptr[0] != 0 && ptr[0] != '\\' && ptr[0] != '{' && ptr[0] != ',')
+    {
+        if (ptr[0] != '\\')
+        {
+            ptr++;
+            if (ptr[0] == 0)
+            {
+                break;
+            }
+            if (ptr[0] == '"')
+            {
+                string tstring;
+                const char * cptr = ptr;
+                iretn = json_extract_string(cptr, tstring);
+                if (iretn < 0)
+                {
+                    ptr = cptr;
+                    return iretn;
+                }
+                if (cptr[0] == ':')
+                {
+                    return 0;
+                }
+            }
+        }
         ptr++;
+    }
 
     if (ptr[0] == 0 || ptr[1] == 0)
+    {
         return (JSON_ERROR_EOS);
+    }
+
     else
         return 0;
 }
@@ -9536,7 +9591,7 @@ const char *json_vertices(string &jstring, cosmosstruc *cinfo)
         for (uint16_t i=0; i<*vertex_cnt; i++)
         {
             json_out_1d(jstring,(char *)"vertex",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
         }
     }
 
@@ -9563,18 +9618,18 @@ const char *json_faces(string &jstring, cosmosstruc *cinfo)
         for (uint16_t i=0; i<*face_cnt; i++)
         {
             json_out_1d(jstring,(char *)"face_normal",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"face_com",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"face_area",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"face_vertex_cnt",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             uint16_t cnt = (uint16_t)json_get_int((char *)"face_vertex_cnt",i, cinfo);
             for (uint16_t j=0; j<cnt; j++)
             {
                 json_out_2d(jstring,(char *)"face_vertex_idx",i,j, cinfo);
-                json_out_character(jstring, '\n');
+                // // json_out_character(jstring, '\n');
             }
         }
     }
@@ -9602,36 +9657,36 @@ const char *json_pieces(string &jstring, cosmosstruc *cinfo)
         for (uint16_t i=0; i<*piece_cnt; i++)
         {
             json_out_1d(jstring,(char *)"piece_name",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_type",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_cidx",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_mass",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_density",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_emi",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_abs",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_hcap",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_hcon",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_dim",i, cinfo);
-            json_out_character(jstring, '\n');
+            // // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_area",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_com",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"piece_face_cnt",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             uint16_t cnt = (uint16_t)json_get_int((char *)"piece_face_cnt",i, cinfo);
             for (uint16_t j=0; j<cnt; j++)
             {
                 json_out_2d(jstring,(char *)"piece_face_idx",i,j, cinfo);
-                json_out_character(jstring, '\n');
+                // json_out_character(jstring, '\n');
             }
         }
     }
@@ -9660,25 +9715,25 @@ const char *json_devices_general(string &jstring, cosmosstruc *cinfo)
         for (uint16_t i=0; i<*device_cnt; i++)
         {
             json_out_1d(jstring,(char *)"device_all_type",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"device_all_model",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"device_all_didx",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"device_all_pidx",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"device_all_bidx",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"device_all_addr",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"device_all_portidx",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"device_all_nvolt",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"device_all_namp",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
             json_out_1d(jstring,(char *)"device_all_flag",i, cinfo);
-            json_out_character(jstring, '\n');
+            // json_out_character(jstring, '\n');
         }
     }
 
@@ -9715,13 +9770,13 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"pload"))
                 {
                     json_out_1d(jstring,(char *)"device_pload_drate",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_pload_key_cnt",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     for (uint16_t k=0; k<json_get_int((char *)"device_pload_key_cnt",j, cinfo); ++k)
                     {
                         json_out_2d(jstring,(char *)"device_pload_key_name",j,k, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                     }
                     continue;
                 }
@@ -9730,7 +9785,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"ssen"))
                 {
                     json_out_1d(jstring,(char *)"device_ssen_align",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9738,7 +9793,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"imu"))
                 {
                     json_out_1d(jstring,(char *)"device_imu_align",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9746,15 +9801,15 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"rw"))
                 {
                     json_out_1d(jstring,(char *)"device_rw_align",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rw_mom",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rw_mxalp",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rw_mxomg",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rw_tc",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9762,21 +9817,21 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"mtr"))
                 {
                     json_out_1d(jstring,(char *)"device_mtr_mxmom",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_mtr_align",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     for (uint16_t k=0; k<7; ++k)
                     {
                         json_out_2d(jstring,(char *)"device_mtr_npoly",j,k, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                     }
                     for (uint16_t k=0; k<7; ++k)
                     {
                         json_out_2d(jstring,(char *)"device_mtr_ppoly",j,k, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                     }
                     json_out_1d(jstring,(char *)"device_mtr_tc",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9784,9 +9839,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"cpu"))
                 {
                     json_out_1d(jstring,(char *)"device_cpu_maxgib",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_cpu_maxload",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9800,9 +9855,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"ant"))
                 {
                     json_out_1d(jstring,(char *)"device_ant_align",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_ant_minelev",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9810,15 +9865,15 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"rxr"))
                 {
                     json_out_1d(jstring,(char *)"device_rxr_freq",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rxr_maxfreq",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rxr_minfreq",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rxr_band",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rxr_opmode",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9826,15 +9881,15 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"txr"))
                 {
                     json_out_1d(jstring,(char *)"device_txr_freq",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_txr_maxfreq",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_txr_minfreq",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_txr_opmode",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_txr_maxpower",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9842,17 +9897,17 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"tcv"))
                 {
                     json_out_1d(jstring,(char *)"device_tcv_freq",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_tcv_maxfreq",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_tcv_minfreq",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_tcv_band",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_tcv_opmode",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_tcv_maxpower",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9860,11 +9915,11 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"strg"))
                 {
                     json_out_1d(jstring,(char *)"device_pvstrg_efi",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_pvstrg_efs",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_pvstrg_max",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9872,9 +9927,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"batt"))
                 {
                     json_out_1d(jstring,(char *)"device_batt_cap",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_batt_eff",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9888,9 +9943,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"motr"))
                 {
                     json_out_1d(jstring,(char *)"device_motr_rat",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_motr_max",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9904,9 +9959,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"thst"))
                 {
                     json_out_1d(jstring,(char *)"device_thst_isp",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_thst_align",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9914,7 +9969,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"prop"))
                 {
                     json_out_1d(jstring,(char *)"device_prop_cap",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9934,7 +9989,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"stt"))
                 {
                     json_out_1d(jstring,(char *)"device_stt_align",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9942,7 +9997,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"mcc"))
                 {
                     json_out_1d(jstring,(char *)"device_mcc_align",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9950,11 +10005,11 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"tcu"))
                 {
                     json_out_1d(jstring,(char *)"device_tcu_mcnt",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     for (uint16_t k=0; k<json_get_int((char *)"device_tcu_mcnt",j, cinfo); ++k)
                     {
                         json_out_2d(jstring,(char *)"device_tcu_mcidx",j,k, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                     }
                     continue;
                 }
@@ -9975,7 +10030,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"suchi"))
                 {
                     json_out_1d(jstring,(char *)"device_suchi_align",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9983,15 +10038,15 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"cam"))
                 {
                     json_out_1d(jstring,(char *)"device_cam_pwidth",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_cam_pheight",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_cam_width",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_cam_height",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_cam_flength",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -9999,44 +10054,44 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"telem"))
                 {
                     json_out_1d(jstring,(char *)"device_telem_type",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     switch (json_get_int((char *)"device_telem_type",j, cinfo))
                     {
                     case TELEM_TYPE_UINT8:
                         json_out_1d(jstring,(char *)"device_telem_vuint8",j, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_INT8:
                         json_out_1d(jstring,(char *)"device_telem_vint8",j, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_UINT16:
                         json_out_1d(jstring,(char *)"device_telem_vuint16",j, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_INT16:
                         json_out_1d(jstring,(char *)"device_telem_vint16",j, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_UINT32:
                         json_out_1d(jstring,(char *)"device_telem_vuint32",j, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_INT32:
                         json_out_1d(jstring,(char *)"device_telem_vint32",j, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_FLOAT:
                         json_out_1d(jstring,(char *)"device_telem_vfloat",j, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_DOUBLE:
                         json_out_1d(jstring,(char *)"device_telem_vdouble",j, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_STRING:
                         json_out_1d(jstring,(char *)"device_telem_vstring",j, cinfo);
-                        json_out_character(jstring, '\n');
+                        // json_out_character(jstring, '\n');
                         break;
                     }
                     continue;
@@ -10046,7 +10101,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"disk"))
                 {
                     json_out_1d(jstring,(char *)"device_disk_maxgib",j, cinfo);
-                    json_out_character(jstring, '\n');
+                    // json_out_character(jstring, '\n');
                     continue;
                 }
 
@@ -10074,9 +10129,9 @@ const char *json_ports(string &jstring, cosmosstruc *cinfo)
     for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"node_port_cnt", cinfo); i++)
     {
         json_out_1d(jstring,(char *)"port_name",i, cinfo);
-        json_out_character(jstring, '\n');
+        // json_out_character(jstring, '\n');
         json_out_1d(jstring,(char *)"port_type",i, cinfo);
-        json_out_character(jstring, '\n');
+        // json_out_character(jstring, '\n');
     }
 
     return jstring.data();
