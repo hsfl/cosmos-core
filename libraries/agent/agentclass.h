@@ -134,7 +134,7 @@ class Agent
 {
 public:
 //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 1);
+    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 0);
     ~Agent();
 
     //! State of Health element vector
@@ -335,7 +335,7 @@ public:
     size_t message_tail = MESSAGE_RING_SIZE;
 
     //! Flag for level of debugging, keep it public so that it can be controlled from the outside
-    size_t debug_level = 1;
+    size_t debug_level = 3;
     FILE *get_debug_fd();
 
     // agent variables
@@ -397,6 +397,7 @@ private:
     static int32_t req_monitor(char *request, char* response, Agent *agent);
     static int32_t req_run(char *request, char* response, Agent *agent);
     static int32_t req_status(char *request, char* response, Agent *agent);
+    static int32_t req_debug_level(char *request, char* response, Agent *agent);
     static int32_t req_getvalue(char *request, char* response, Agent *agent);
     static int32_t req_setvalue(char *request, char* response, Agent *agent);
     static int32_t req_listnames(char *request, char* response, Agent *agent);

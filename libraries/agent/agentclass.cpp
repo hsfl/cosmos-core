@@ -237,6 +237,7 @@ namespace Cosmos {
         Agent::add_request("monitor",Agent::req_monitor,"","request to transition this agent to monitor state");
         Agent::add_request("run",Agent::req_run,"","request to transition this agent to run state");
         Agent::add_request("status",Agent::req_status,"","request the status of this agent");
+        Agent::add_request("debug_level",Agent::req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
         Agent::add_request("getvalue",Agent::req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
         Agent::add_request("setvalue",Agent::req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
         Agent::add_request("listnames",Agent::req_listnames,"","list the Namespace of the agent");
@@ -1124,6 +1125,22 @@ namespace Cosmos {
             output[5] = 0;
             return(JSON_ERROR_SCAN);
         }
+    }
+
+    //! Built-in Get Debug Level request
+    //! Returns or sets the debug_level value.
+    //! \param request Text of request.
+    //! \param output Text of response to request.
+    //! \param agent Pointer to Cosmos::Agent to use.
+    //! \return 0, or negative error.
+    int32_t Agent::req_debug_level(char *request, char* output, Agent* agent)
+    {
+        if (strcmp(request, "debug_level"))
+        {
+            sscanf(request, "debug_level %d", &agent->debug_level);
+        }
+        sprintf(output, "%d", agent->debug_level);
+        return 0;
     }
 
     //! Built-in Get Internal Value request
