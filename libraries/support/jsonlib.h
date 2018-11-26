@@ -133,7 +133,6 @@ int32_t json_addentry(string name, string value, cosmosstruc *cinfo);
 int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo);
 int32_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, uint16_t type, uint16_t group, cosmosstruc *cinfo, uint16_t unit=0);
 int32_t json_addentry(string name, uint16_t d1, uint16_t d2, uint8_t *ptr, uint16_t type, cosmosstruc *cinfo, uint16_t unit=0);
-//int32_t json_addentry(string name, uint16_t d1, uint16_t d2, const cosmosdatastrucVoid &ptr, uint16_t type, cosmosstruc *cinfo, uint16_t unit=0);
 int32_t json_toggleentry(string name, uint16_t d1, uint16_t d2, cosmosstruc *cinfo, bool state);
 bool json_checkentry(string name, uint16_t d1, uint16_t d2, cosmosstruc *cinfo);
 int32_t json_mapentries(cosmosstruc *cinfo);
@@ -151,7 +150,6 @@ int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo);
 size_t json_count_hash(uint16_t hash, cosmosstruc *cinfo);
 size_t json_count_total(cosmosstruc *cinfo);
 
-//uint8_t *json_ptr_of_ptm(cosmosdatastrucVoid ptm, uint16_t type, cosmosstruc *cinfo);
 uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cinfo);
 uint8_t *json_ptr_of_entry(const jsonentry &entry, cosmosstruc *cinfo);
 jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cinfo);

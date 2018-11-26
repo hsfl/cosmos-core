@@ -931,7 +931,7 @@ void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
 //! Simulate Hardware data - multiple
 /*! Simulate the behavior of all the hardware in the indicated satellite, for each
  * indicated location in the array.
-    \param cdata Reference to ::cosmosdatastruc to use.
+    \param cinfo Reference to ::cosmosstruc to use.
     \param locvec Array of ::locstruc specifying locations.
 */
 void simulate_hardware(cosmosstruc *cinfo, vector <locstruc> &locvec)
@@ -945,7 +945,7 @@ void simulate_hardware(cosmosstruc *cinfo, vector <locstruc> &locvec)
 //! Simulate Hardware data - single
 /*! Simulate the behavior of all the hardware in the indicated satellite, at the
  * indicated location, assuming a timestep of dt.
-    \param cdata Reference to ::cosmosdatastruc to use.
+    \param cinfo Reference to ::cosmosstruc to use.
     \param loc Structure specifying location
 */
 void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
@@ -1460,7 +1460,7 @@ void initialize_imu(uint16_t index, devspecstruc &devspec, locstruc &loc)
 /*! Turn the current attitude into likely values for the indicated
  * IMU. Inject any likely noise due to the nature of the IMU.
     \param index Which IMU to use.
-    \param cdata Reference to ::cosmosdatastruc to use.
+    \param cinfo Reference to ::cosmosstruc to use.
     \param loc Structure specifying location
     \param index Index of desired IMU.
 */
@@ -2354,7 +2354,7 @@ void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt)
     \param mode Type of physical modelling. Zero is direct.
     \param dt Step size in seconds
     \param utc Initial step time as UTC in Modified Julian Days
-    \param cdata Reference to ::cosmosdatastruc to use.
+    \param cinfo Reference to ::cosmosstruc to use.
     \param loc Initial location.
 */
 
@@ -3142,7 +3142,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
     will be used.
     \param ofile Name of the file containing orbital data. Two Line Element set if first letter is 't',
     STK data if first letter is 's'.
-    \param cdata Reference to ::cosmosdatastruc to use.
+    \param cinfo Reference to ::cosmosstruc to use.
 
     \return Returns 0 if succsessful, otherwise negative error.
 */
