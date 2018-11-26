@@ -123,8 +123,13 @@ int main(int argc, char *argv[])
     agent = new Agent(nodename, agentname, 5.);
     if (agent->cinfo == nullptr || !agent->running())
     {
-        cout << "Unable to start agent" << endl;
+        fprintf(agent->get_debug_fd(), "Failed to initialize agent\n");
         exit(1);
+    }
+    else
+    {
+        fprintf(agent->get_debug_fd(), "CPU Agent initialized\n");
+        fflush(stdout);
     }
 
     agent->add_request("soh",request_soh,"","current state of health message");
@@ -201,13 +206,17 @@ int agent_cpu()
 
     et.start();
 
+    agent->cinfo->agent[0].aprd = 1.;
+    agent->finish_active_loop();
+
     // Start performing the body of the agent
     while(agent->running())
     {
-
-        COSMOS_SLEEP(agent->cinfo->agent[0].aprd);
-
         agent->cinfo->devspec.cpu[0]->utc = currentmjd();
+        if (agent->debug_level)
+        {
+            fprintf(agent->get_debug_fd(), "%13.7f ", agent->cinfo->devspec.cpu[0]->utc);
+        }
 
         // get cpu info
         if (agent->cinfo->devspec.cpu_cnt)
@@ -216,6 +225,10 @@ int agent_cpu()
             agent->cinfo->devspec.cpu[0]->gib = deviceCpu.getVirtualMemoryUsed()/GiB;
             agent->cinfo->devspec.cpu[0]->maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
             deviceCpu.getPercentUseForCurrentProcess();
+        }
+        if (agent->debug_level)
+        {
+            fprintf(agent->get_debug_fd(), "%6.2f %6.2f %6.2f %6.2f ", agent->cinfo->devspec.cpu[0]->load, agent->cinfo->devspec.cpu[0]->maxload, agent->cinfo->devspec.cpu[0]->gib, agent->cinfo->devspec.cpu[0]->maxgib);
         }
 
         // get disk info
@@ -227,25 +240,32 @@ int agent_cpu()
 
             agent->cinfo->devspec.disk[i]->gib = disk.getUsedGiB(node_path);
             agent->cinfo->devspec.disk[i]->maxgib = disk.getSizeGiB(node_path);
+            if (agent->debug_level)
+            {
+                fprintf(agent->get_debug_fd(), "%s %6.2f %6.2f ", node_path.c_str(), agent->cinfo->devspec.disk[i]->gib, agent->cinfo->devspec.disk[i]->maxgib);
+            }
         }
+
+        if (agent->debug_level)
+        {
+            fprintf(agent->get_debug_fd(), "\n");
+        }
+
+        agent->finish_active_loop();
 
         // if printStatus is true then print in a loop
-        if (printStatus) {
-            PrintUtils print;
-            print.delimiter_flag = true;
-            print.scalar("Load",deviceCpu.load ,1,"",4,4);
-            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
+//        if (printStatus) {
+//            PrintUtils print;
+//            print.delimiter_flag = true;
+//            print.scalar("Load",deviceCpu.load ,1,"",4,4);
+//            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
 
 //            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
-            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
-            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
-            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
+//            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
+//            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
+//            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
 
-        }
-
-        //testing json1.1 soh
-    //        agent->post(Agent::AgentMessage::SOH, agent->message_ring.back().jdata);
-    //        agent->post(Agent::AgentMessage::BEAT, agent->message_ring.back().adata);
+//        }
 
     }
 
