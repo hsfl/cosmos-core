@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
             {
                 if (sendchan[i].cudp >= 0)
                 {
-                    iretn = socket_sendto(sendchan[i], post);
+                    iretn = sendto(sendchan[i].cudp, (const char *)post.data(), post.size(), 0, (struct sockaddr *)&sendchan[i].baddr, sizeof(struct sockaddr_in));
                 }
             }
         }
