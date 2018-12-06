@@ -336,7 +336,8 @@ public:
 
     //! Flag for level of debugging, keep it public so that it can be controlled from the outside
     size_t debug_level = 3;
-    FILE *get_debug_fd();
+    FILE *get_debug_fd(double mjd=0.);
+    int32_t close_debug_fd();
 
     // agent variables
 private:
@@ -349,6 +350,7 @@ private:
     bool multiflag = false;
     int32_t portNumber = 0;
     FILE *debug_fd = nullptr;
+    string debug_pathName;
 
     string version = "0.0";
     float timeoutSec = 5.0;

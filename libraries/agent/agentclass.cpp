@@ -2392,14 +2392,55 @@ namespace Cosmos {
         return iretn;
     }
 
-    FILE *Agent::get_debug_fd()
+    FILE *Agent::get_debug_fd(double mjd)
     {
+        if (mjd == 0.)
+        {
+            mjd = currentmjd();
+        }
+        mjd = mjd - fmod(mjd, 1./24.);
+        string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
+
         if (debug_fd != nullptr)
         {
-            fclose(debug_fd);
+            if (pathName != debug_pathName)
+            {
+                FILE *fd = fopen(pathName.c_str(), "a");
+                if (fd != nullptr)
+                {
+                    fclose(debug_fd);
+                    debug_fd = fd;
+                    debug_pathName = pathName;
+                }
+            }
         }
-        debug_fd = fopen((nodeName+"_"+agentName+".debug").c_str(), "a");
+        else
+        {
+            FILE *fd = fopen(pathName.c_str(), "a");
+            if (fd != nullptr)
+            {
+                debug_fd = fd;
+                debug_pathName = pathName;
+            }
+        }
+
         return debug_fd;
+    }
+
+    int32_t Agent::close_debug_fd()
+    {
+        int32_t iretn;
+        if (debug_fd != nullptr)
+        {
+            iretn = fclose(debug_fd);
+            if (iretn != 0)
+            {
+                return -errno;
+            }
+            debug_fd = nullptr;
+        }
+
+        return 0;
     }
 
 
