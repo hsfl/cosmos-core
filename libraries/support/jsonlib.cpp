@@ -5198,19 +5198,26 @@ int32_t json_skip_to_next_member(const char* &ptr)
         return (JSON_ERROR_EOS);
     }
 
-    while (ptr[0] != 0 && ptr[0] != '\\' && ptr[0] != '{' && ptr[0] != ',')
+    do
     {
-        if (ptr[0] != '\\')
+        if (ptr[0] == '\\')
         {
             ptr++;
             if (ptr[0] == 0)
             {
                 break;
             }
-            if (ptr[0] == '"')
+        }
+        else if (ptr[0] == '{' || ptr[0] == ',')
+        {
+            if (ptr[1] == 0)
+            {
+                break;
+            }
+            if (ptr[1] == '"')
             {
                 string tstring;
-                const char * cptr = ptr;
+                const char * cptr = ptr+1;
                 iretn = json_extract_string(cptr, tstring);
                 if (iretn < 0)
                 {
@@ -5224,15 +5231,9 @@ int32_t json_skip_to_next_member(const char* &ptr)
             }
         }
         ptr++;
-    }
+    } while (ptr[0] != 0);
 
-    if (ptr[0] == 0 || ptr[1] == 0)
-    {
-        return (JSON_ERROR_EOS);
-    }
-
-    else
-        return 0;
+    return (JSON_ERROR_EOS);
 }
 
 int32_t json_set_string(string val, const jsonentry &entry, cosmosstruc *cinfo)
@@ -6947,7 +6948,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if (cinfo->pieces[i].cidx != UINT16_MAX)
             {
-                if (cinfo->device.size() <= i)
+                if (cinfo->pieces[i].cidx >= cinfo->device.size())
                 {
                     cinfo->pieces[i].cidx = UINT16_MAX;
                 }
