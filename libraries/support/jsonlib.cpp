@@ -7695,7 +7695,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_batt_cap",didx, UINT16_MAX, (uint8_t *)&device.batt.capacity, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_eff",didx, UINT16_MAX, (uint8_t *)&device.batt.efficiency, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_charge",didx, UINT16_MAX, (uint8_t *)&device.batt.charge, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_batt_current",didx, UINT16_MAX, (uint8_t *)&device.batt.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_batt_amp",didx, UINT16_MAX, (uint8_t *)&device.batt.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_volt",didx, UINT16_MAX, (uint8_t *)&device.batt.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_nvolt",didx, UINT16_MAX, (uint8_t *)&device.batt.nvolt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_batt_power",didx, UINT16_MAX, (uint8_t *)&device.batt.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -9124,7 +9124,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_batt_utc_%03d\",\"device_batt_temp_%03d\"", i, i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_batt_current_%03d\",\"device_batt_volt_%03d\", \"device_batt_power_%03d\"",i, i, i);
+        sprintf(tempstring, ",\"device_batt_amp_%03d\",\"device_batt_volt_%03d\", \"device_batt_power_%03d\"",i, i, i);
         result += tempstring;
         sprintf(tempstring, ",\"device_batt_charge_%03d\",\"device_batt_percentage_%03d\", \"device_batt_time_remaining_%03d\"",i,i,i);
         result += tempstring;
