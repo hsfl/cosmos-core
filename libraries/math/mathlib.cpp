@@ -2280,24 +2280,25 @@ cmatrix cm_change_between_cv(cvector from, cvector to)
 */
 LsFit::LsFit(uint16_t cnt, uint16_t ord)
 {
-    if (ord)
-    {
-        order = ord;
-    }
-    else
-    {
-        order = 1;
-    }
-    if (cnt)
-    {
-        element_cnt = cnt;
-    }
-    else
-    {
-        element_cnt = order + 1;
-    }
-    var.resize(0);
-    depth = 0;
+    initialize(cnt, ord);
+//    if (ord)
+//    {
+//        order = ord;
+//    }
+//    else
+//    {
+//        order = 1;
+//    }
+//    if (cnt)
+//    {
+//        element_cnt = cnt;
+//    }
+//    else
+//    {
+//        element_cnt = order + 1;
+//    }
+//    var.resize(0);
+//    depth = 0;
     //	printf("LsFit(%u %u %f)\n",cnt,ord,res);
 }
 
