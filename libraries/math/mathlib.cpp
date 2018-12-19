@@ -2299,7 +2299,6 @@ LsFit::LsFit(uint16_t cnt, uint16_t ord)
 //    }
 //    var.resize(0);
 //    depth = 0;
-    //	printf("LsFit(%u %u %f)\n",cnt,ord,res);
 }
 
 //! Initialize Least Squares Fit
