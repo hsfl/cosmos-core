@@ -79,16 +79,6 @@ namespace Cosmos {
         double timeStart = currentmjd();
         debug_level = dlevel;
 
-        if (debug_level)
-        {
-            std::cout << "------------------------------------------------------" << std::endl;
-            std::cout << "COSMOS AGENT '" << aname << "' on node '" << nname << "'" << std::endl;
-            std::cout << "Version " << version << " built on " <<  __DATE__ << " " << __TIME__ << std::endl;
-            std::cout << "Agent started at " << mjdToGregorian(timeStart) << std::endl;
-            std::cout << "Debug level " << debug_level << endl;
-            std::cout << "------------------------------------------------------" << std::endl;
-        }
-
 
         // Initialize COSMOS data space
         if ((cinfo = json_create()) == nullptr)
@@ -118,6 +108,8 @@ namespace Cosmos {
         {
             strcpy(cinfo->node.name,"null");
         }
+
+        nodeName = cinfo->node.name;
 
         cinfo->agent[0].client = 1;
         cinfo->node.utc = 0.;
@@ -185,9 +177,19 @@ namespace Cosmos {
         // Initialize important server variables
 
         strncpy(cinfo->agent[0].beat.node, cinfo->node.name, COSMOS_MAX_NAME);
-        nodeName = cinfo->agent[0].beat.node;
         strncpy(cinfo->agent[0].beat.proc, tname, COSMOS_MAX_NAME);
         agentName = cinfo->agent[0].beat.proc;
+
+        if (debug_level)
+        {
+            fprintf(get_debug_fd(), "------------------------------------------------------\n");
+            fprintf(get_debug_fd(), "COSMOS AGENT '%s' on node '%s'\n", aname.c_str(), nname.c_str());
+            fprintf(get_debug_fd(), "Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
+            fprintf(get_debug_fd(), "Agent started at %s\n", mjdToGregorian(timeStart).c_str());
+            fprintf(get_debug_fd(), "Debug level %lu\n", debug_level);
+            fprintf(get_debug_fd(), "------------------------------------------------------\n");
+        }
+
         //	cinfo->agent[0].beat.ntype = ntype;
         if (bprd >= AGENT_HEARTBEAT_PERIOD_MIN)
             cinfo->agent[0].beat.bprd = bprd;
@@ -235,6 +237,7 @@ namespace Cosmos {
         Agent::add_request("monitor",Agent::req_monitor,"","request to transition this agent to monitor state");
         Agent::add_request("run",Agent::req_run,"","request to transition this agent to run state");
         Agent::add_request("status",Agent::req_status,"","request the status of this agent");
+        Agent::add_request("debug_level",Agent::req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
         Agent::add_request("getvalue",Agent::req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
         Agent::add_request("setvalue",Agent::req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
         Agent::add_request("listnames",Agent::req_listnames,"","list the Namespace of the agent");
@@ -256,7 +259,7 @@ namespace Cosmos {
         cinfo->agent[0].stateflag = (uint16_t)Agent::State::RUN;
 
 
-
+        activeTimeout = currentmjd() + cinfo->agent[0].aprd / 86400.;
 
 
     }
@@ -346,6 +349,26 @@ namespace Cosmos {
         return 0;
     }
 
+    //! Begin Active Loop
+    //! Initializes timer for active loop using ::aprd
+    //! \return Zero or negative error.
+    int32_t Agent::start_active_loop()
+    {
+        activeTimeout = currentmjd() + cinfo->agent[0].aprd / 86400.;
+        return 0;
+    }
+
+    //! Finish active loop
+    //! Sleep for the remainder of this loops ::aprd as initialized in ::start_active_loop.
+    //! \return Zero or negative error.
+    int32_t Agent::finish_active_loop()
+    {
+        double sleepsec = 86400.*(activeTimeout - currentmjd());
+        activeTimeout += cinfo->agent[0].aprd / 86400.;
+        COSMOS_SLEEP(sleepsec);
+        return 0;
+    }
+
     //! Shutdown agent gracefully
     /*! Waits for threads to stop running if we are a server, then releases everything.
  * \return 0 or negative error.
@@ -354,7 +377,7 @@ namespace Cosmos {
     {
         if (debug_level)
         {
-            printf("Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
+            fprintf(get_debug_fd(), "Shutting down Agent. Last error: %s\n", cosmos_error_string(error_value).c_str());
             fflush(stdout);
         }
 
@@ -1104,6 +1127,22 @@ namespace Cosmos {
         }
     }
 
+    //! Built-in Get Debug Level request
+    //! Returns or sets the debug_level value.
+    //! \param request Text of request.
+    //! \param output Text of response to request.
+    //! \param agent Pointer to Cosmos::Agent to use.
+    //! \return 0, or negative error.
+    int32_t Agent::req_debug_level(char *request, char* output, Agent* agent)
+    {
+        if (strcmp(request, "debug_level"))
+        {
+            sscanf(request, "debug_level %d", &agent->debug_level);
+        }
+        sprintf(output, "%d", agent->debug_level);
+        return 0;
+    }
+
     //! Built-in Get Internal Value request
     /*! Returns the current value of the requested Name Space values. Names are expressed as a JSON object.
  * \param request Text of request.
@@ -1815,7 +1854,8 @@ namespace Cosmos {
         // this will broadcast messages to all external interfaces (ifcnt = interface count)
         for (size_t i=0; i<cinfo->agent[0].ifcnt; i++)
         {
-            sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bprd\":%f}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
+//            sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bprd\":%f}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
+            sprintf((char *)&post[3],"{\"agent_utc\":%.15g,\"agent_node\":\"%s\",\"agent_proc\":\"%s\",\"agent_addr\":\"%s\",\"agent_port\":%u,\"agent_bprd\":%f,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%f,\"node_utcoffset\":%.15g}",
                     cinfo->agent[0].beat.utc,
                     cinfo->agent[0].beat.node,
                     cinfo->agent[0].beat.proc,
@@ -2023,7 +2063,21 @@ namespace Cosmos {
                     }
 
                     // Extract meta data
-                    if (mess.jdata.find("agent_bprd") == string::npos)
+                    if (mess.jdata.find("}{") == string::npos)
+                    {
+                        sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg,\"agent_node\":\"%40[^\"]\",\"agent_proc\":\"%40[^\"]\",\"agent_addr\":\"%17[^\"]\",\"agent_port\":%hu,\"agent_bprd\":%lf,\"agent_bsz\":%u,\"agent_cpu\":%f,\"agent_memory\":%f,\"agent_jitter\":%lf}",
+                               &mess.meta.beat.utc,
+                               mess.meta.beat.node,
+                               mess.meta.beat.proc,
+                               mess.meta.beat.addr,
+                               &mess.meta.beat.port,
+                               &mess.meta.beat.bprd,
+                               &mess.meta.beat.bsz,
+                               &mess.meta.beat.cpu,
+                               &mess.meta.beat.memory,
+                               &mess.meta.beat.jitter);
+                    }
+                    else if (mess.jdata.find("agent_bprd") == string::npos)
                     {
                         sscanf((const char *)mess.jdata.data(), "{\"agent_utc\":%lg}{\"agent_node\":\"%40[^\"]\"}{\"agent_proc\":\"%40[^\"]\"}{\"agent_addr\":\"%17[^\"]\"}{\"agent_port\":%hu}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%lf}",
                                &mess.meta.beat.utc,
@@ -2336,6 +2390,57 @@ namespace Cosmos {
         }
 
         return iretn;
+    }
+
+    FILE *Agent::get_debug_fd(double mjd)
+    {
+        if (mjd == 0.)
+        {
+            mjd = currentmjd();
+        }
+        mjd = mjd - fmod(mjd, 1./24.);
+        string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
+
+        if (debug_fd != nullptr)
+        {
+            if (pathName != debug_pathName)
+            {
+                FILE *fd = fopen(pathName.c_str(), "a");
+                if (fd != nullptr)
+                {
+                    fclose(debug_fd);
+                    debug_fd = fd;
+                    debug_pathName = pathName;
+                }
+            }
+        }
+        else
+        {
+            FILE *fd = fopen(pathName.c_str(), "a");
+            if (fd != nullptr)
+            {
+                debug_fd = fd;
+                debug_pathName = pathName;
+            }
+        }
+
+        return debug_fd;
+    }
+
+    int32_t Agent::close_debug_fd()
+    {
+        int32_t iretn;
+        if (debug_fd != nullptr)
+        {
+            iretn = fclose(debug_fd);
+            if (iretn != 0)
+            {
+                return -errno;
+            }
+            debug_fd = nullptr;
+        }
+
+        return 0;
     }
 
 

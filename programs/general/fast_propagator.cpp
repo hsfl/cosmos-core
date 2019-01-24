@@ -132,10 +132,10 @@ int main(int argc, char* argv[])
     case Agent::AgentMessage::SOH:
     case Agent::AgentMessage::BEAT:
 		{
-			std::string tbuf = json_convert_string(json_extract_namedobject(pollbuf, "agent_name"));
+			std::string tbuf = json_convert_string(json_extract_namedmember(pollbuf, "agent_name"));
 			if (!tbuf.empty() && tbuf == "physics")
 			{
-				tbuf = json_convert_string(json_extract_namedobject(pollbuf, "node_utcoffset"));
+				tbuf = json_convert_string(json_extract_namedmember(pollbuf, "node_utcoffset"));
 				if (!tbuf.empty())
 				{
                     agent->cinfo->node.utcoffset = atof(tbuf.c_str());

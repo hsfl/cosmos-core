@@ -36,8 +36,8 @@
 
 #include "support/configCosmos.h"
 #include "math/vector.h"
-using Cosmos::Math::Vector;
-using Cosmos::Math::Quaternion;
+using namespace Cosmos::Math::Vectors;
+using namespace Cosmos::Math::Quaternions;
 
 //#include "support/convertdef.h"
 
@@ -111,6 +111,26 @@ typedef struct
     std::vector<gjstruc> step;
 } gj_handle;
 
+//! Finite Triangle Element
+//! Holds minimum information necessary to use smallest possible triangular element
+//! of a larger piece.
+struct trianglestruc
+{
+    //! center of mass
+    Vector com;
+    //! outward facing normal
+    Vector normal;
+    //! Area
+    float area;
+    //! Index to parent piece
+    uint16_t pidx;
+    uint16_t tidx[3];
+    float heat;
+    float temp;
+    float irradiance;
+    vector<vector<size_t>> triangleindex;
+};
+
 //! Physics Simulation Structure
 /*! Holds parameters used specifically for the physical simulation of the
  * environment and hardware of a Node.
@@ -130,22 +150,24 @@ typedef struct
 	//! Simulation mode as listed in \def defs_physics
 	int32_t mode;
 	float heat;
-    Math::Vector ftorque;
-    Math::Vector atorque;
-    Math::Vector rtorque;
-    Math::Vector gtorque;
-    Math::Vector htorque;
-    Math::Vector hmomentum;
-    Math::Vector ctorque;
-    Math::Vector fdrag;
-    Math::Vector adrag;
-    Math::Vector rdrag;
-    Math::Vector thrust;
-    Math::Vector moi;
-    Math::Vector com;
+    Vector ftorque;
+    Vector atorque;
+    Vector rtorque;
+    Vector gtorque;
+    Vector htorque;
+    Vector hmomentum;
+    Vector ctorque;
+    Vector fdrag;
+    Vector adrag;
+    Vector rdrag;
+    Vector thrust;
+    Vector moi;
+    Vector com;
 	float hcap;
 	float mass;
 	float area;
+    vector <Vector> vertices;
+    vector <trianglestruc> triangles;
 } physicsstruc;
 //! @}
 

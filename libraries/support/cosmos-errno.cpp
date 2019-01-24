@@ -557,6 +557,21 @@ string cosmos_error_string(int32_t cosmos_errno)
         case MEADE_MOUNT_ERROR_OUTSIDE_LIMITS:
             error_string = "Meade Mount Request Outside Limits";
             break;
+        case SCPI_ERROR_BAD_RESPONSE:
+            error_string = "SCPI Bad Address";
+            break;
+        case SCPI_ERROR_NOT_CONNECTED:
+            error_string = "SCPI Not Connected";
+            break;
+        case SCPI_ERROR_VALUE_INVALID:
+            error_string = "SCPI Value Invalid";
+            break;
+        case SCPI_ERROR_OUTSIDE_LIMITS:
+            error_string = "SCPI Request Outside Valid Limits";
+            break;
+        case SCPI_ERROR_OUTSIDE_RANGE:
+            error_string = "SCPI Request Outside Supported Range";
+            break;
         case GENERAL_ERROR_BAD_SIZE:
             error_string = "Bad Size";
             break;

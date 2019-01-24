@@ -33,6 +33,7 @@
 
 #include "support/configCosmos.h"
 #include "math/vector.h"
+using namespace Cosmos::Math::Vectors;
 
 //! 3x3 element generic matrix
 /*! 3 rvector elements representing 3 rows of a matrix
@@ -96,7 +97,7 @@ cvector cv_diag(cmatrix a);
 
 rmatrix rm_transpose(rmatrix a);
 rmatrix rm_square(rmatrix a);
-rmatrix rm_sqrt(rmatrix a);
+//rmatrix rm_sqrt(rmatrix a);
 rmatrix rm_eye();
 rmatrix rm_zero();
 rmatrix rm_mmult(rmatrix a, rmatrix b);
@@ -129,7 +130,7 @@ double trace_cm(cmatrix a);
 
 cmatrix cm_transpose(cmatrix a);
 cmatrix cm_square(cmatrix a);
-cmatrix cm_sqrt(cmatrix a);
+//cmatrix cm_sqrt(cmatrix a);
 cmatrix cm_eye();
 cmatrix cm_zero();
 cmatrix cm_mmult(cmatrix a, cmatrix b);
@@ -175,5 +176,151 @@ matrix2d m2_skew(matrix1d row1);
 matrix2d m2_diag(matrix1d row1);
 double m1_norm(matrix1d matrix);
 double m1_dot(matrix1d a, matrix1d b);
+
+namespace  Cosmos {
+    namespace Math {
+        namespace Matrices {
+            class Matrix
+            {
+
+            public:
+                //! Constructor, initialize to zero.
+                explicit Matrix(Vector r00=Vector(), Vector r10=Vector(), Vector r20=Vector())
+                {
+                    r0 = r00;
+                    r1 = r10;
+                    r2 = r20;
+                }
+
+                explicit Matrix(rmatrix m0)
+                {
+                    r0 = Vector(m0.row[0]);
+                    r1 = Vector(m0.row[1]);
+                    r2 = Vector(m0.row[2]);
+                }
+
+                explicit Matrix(matrix2d m)
+                {
+                    r0[0] = m.array[0][0];
+                    r0[1] = m.array[0][1];
+                    r0[2] = m.array[0][2];
+                    r1[0] = m.array[1][0];
+                    r1[1] = m.array[1][1];
+                    r1[2] = m.array[1][2];
+                    r2[0] = m.array[2][0];
+                    r2[1] = m.array[2][1];
+                    r2[2] = m.array[2][2];
+                }
+
+                explicit Matrix(cmatrix m)
+                {
+                    r0[0] = m.r1.x;
+                    r0[1] = m.r1.y;
+                    r0[2] = m.r1.z;
+                    r1[0] = m.r2.x;
+                    r1[1] = m.r2.y;
+                    r1[2] = m.r2.z;
+                    r2[0] = m.r3.x;
+                    r2[1] = m.r3.y;
+                    r2[2] = m.r3.z;
+                }
+
+                //! ::Vector to ::Matrix.
+                /*! Convert a row vector to a row order ::Matrix
+                        \param vector Row vector to be converted
+                        \param direction Alignment, column order if 1 (DIRECTION_COLUMN), otherwise row
+                        order.
+                        \return Single row or column ::Matrix
+                */
+                Matrix(Vector vector,int direction)
+                {
+                    switch (direction)
+                    {
+                    case DIRECTION_COLUMN:
+                        r0[0] = vector[0];
+                        r1[0] = vector[1];
+                        r2[0] = vector[2];
+                        break;
+                    default:
+                        r0 = vector;
+                        break;
+                    }
+                }
+
+                Vector r0;
+                Vector r1;
+                Vector r2;
+
+                Vector c0()
+                {
+                    Vector c;
+                    c[0] = (*this)[0][0];
+                    c[1] = (*this)[1][0];
+                    c[2] = (*this)[2][0];
+                    return c;
+                }
+
+                Vector c1()
+                {
+                    Vector c;
+                    c[0] = (*this)[0][1];
+                    c[1] = (*this)[1][1];
+                    c[2] = (*this)[2][0];
+                    return c;
+                }
+
+                Vector c2()
+                {
+                    Vector c;
+                    c[0] = (*this)[0][2];
+                    c[1] = (*this)[1][2];
+                    c[2] = (*this)[2][2];
+                    return c;
+                }
+
+                Vector &operator [] (const int &index);
+
+                Matrix &operator *= (const double scale);
+                Matrix operator * (const double scale) const;
+//                Matrix smult(const double scale) const;
+
+                Vector operator * (const Vector v) const;
+//                Vector mmult(const Vector v) const;
+
+                Matrix &operator *= (const Matrix &m);
+                Matrix operator * (const Matrix &m) const;
+                Matrix mmult(const Matrix &m) const;
+
+                Matrix mult(const Matrix &b) const;
+
+                Matrix &operator += (const Matrix &m);
+                Matrix operator + (const Matrix &m) const;
+
+                Matrix &operator -= (const Matrix &m);
+                Matrix operator - (const Matrix &m) const;
+
+                Vector diag();
+                Vector unskew();
+                
+                Matrix transpose();
+                Matrix square();
+                Matrix inverse();
+                Matrix change_between(Vector from, Vector to);
+                Matrix change_around_x(double angle);
+                Matrix change_around_y(double angle);
+                Matrix change_around_z(double angle);
+                Matrix change_around(int axis, double angle);
+                Matrix diag(Vector a);
+                Matrix skew(Vector row1);
+
+                double determinant();
+
+            };
+
+            Matrix operator * (const double scale, Matrix &v);
+            Matrix eye(double scale = 1.);
+        }
+    } // end of namespace Nath
+} // end of namespace COSMOS
 
 #endif

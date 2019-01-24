@@ -486,19 +486,22 @@ int32_t socket_close(socket_channel *channel)
 {
     int32_t iretn = 0;
 
+    if (channel->cudp >= 0)
+    {
 #ifdef COSMOS_WIN_OS
-    if (closesocket(channel->cudp) < 0)
-    {
-        iretn = -WSAGetLastError();
-    }
+        if (closesocket(channel->cudp) < 0)
+        {
+            iretn = -WSAGetLastError();
+        }
 #else
-    if (close(channel->cudp) < 0)
-    {
-        iretn = -errno;
-    }
+        if (close(channel->cudp) < 0)
+        {
+            iretn = -errno;
+        }
 #endif
-    channel->address[0] = 0;
-    channel->cudp = -1;
+        //    channel->address[0] = 0;
+        channel->cudp = -1;
+    }
     return iretn;
 }
 
@@ -561,7 +564,7 @@ std::vector<socket_channel> socket_find_addresses(NetworkType ntype)
             for (uint32_t i=0; i<nif; i++)
             {
                 inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
-                //			strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+                //			strncpy(tiface.address, inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr), 17);
                 if (!strcmp(tiface.address,"127.0.0.1"))
                 {
                     continue;
@@ -640,7 +643,7 @@ std::vector<socket_channel> socket_find_addresses(NetworkType ntype)
                 if (ntype == NetworkType::MULTICAST)
                 {
                     inet_pton(AF_INET,COSMOSMCAST,&tiface.caddr.sin_addr);\
-                    strcpy(tiface.baddress, COSMOSMCAST);
+                    strncpy(tiface.baddress, COSMOSMCAST, 17);
                     inet_pton(AF_INET,COSMOSMCAST,&tiface.baddr.sin_addr);\
                 }
                 else

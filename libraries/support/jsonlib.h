@@ -127,13 +127,12 @@ int32_t json_repoint(cosmosstruc *cinfo);
 void json_destroy(cosmosstruc *cinfo);
 int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo);
 
+int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
 //uint16_t json_addequation(const char *text, cosmosstruc *cinfo, uint16_t unit);
-int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t type=PIECE_TYPE_DIMENSIONLESS, uint16_t cidx=UINT16_MAX, double emi=.8, double abs=.88, double hcap=800., double hcon=237., double density=1000.);
 int32_t json_addentry(string name, string value, cosmosstruc *cinfo);
 int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo);
 int32_t json_addentry(string name, uint16_t d1, uint16_t d2, ptrdiff_t offset, uint16_t type, uint16_t group, cosmosstruc *cinfo, uint16_t unit=0);
 int32_t json_addentry(string name, uint16_t d1, uint16_t d2, uint8_t *ptr, uint16_t type, cosmosstruc *cinfo, uint16_t unit=0);
-//int32_t json_addentry(string name, uint16_t d1, uint16_t d2, const cosmosdatastrucVoid &ptr, uint16_t type, cosmosstruc *cinfo, uint16_t unit=0);
 int32_t json_toggleentry(string name, uint16_t d1, uint16_t d2, cosmosstruc *cinfo, bool state);
 bool json_checkentry(string name, uint16_t d1, uint16_t d2, cosmosstruc *cinfo);
 int32_t json_mapentries(cosmosstruc *cinfo);
@@ -151,7 +150,6 @@ int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo);
 size_t json_count_hash(uint16_t hash, cosmosstruc *cinfo);
 size_t json_count_total(cosmosstruc *cinfo);
 
-//uint8_t *json_ptr_of_ptm(cosmosdatastrucVoid ptm, uint16_t type, cosmosstruc *cinfo);
 uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cinfo);
 uint8_t *json_ptr_of_entry(const jsonentry &entry, cosmosstruc *cinfo);
 jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cinfo);
@@ -246,9 +244,9 @@ int32_t json_set_string(string val, const jsonentry &entry, cosmosstruc *cinfo);
 int32_t json_scan(char *istring);
 
 int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector <jsontoken> &tokens);
-int32_t json_tokenize_namedobject(const char *&pointer, cosmosstruc *cinfo, jsontoken &token);
+int32_t json_tokenize_namedmember(const char *&pointer, cosmosstruc *cinfo, jsontoken &token);
 int32_t json_parse(string json, cosmosstruc *cinfo);
-int32_t json_parse_namedobject(const char *&ptr, cosmosstruc *cinfo);
+int32_t json_parse_namedmember(const char *&ptr, cosmosstruc *cinfo);
 int32_t json_parse_value(const char* &ptr, uint16_t type, ptrdiff_t offset, uint16_t group, cosmosstruc *cinfo);
 int32_t json_parse_value(const char* &ptr, const jsonentry &entry, cosmosstruc *cinfo);
 int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmosstruc *cinfo);
@@ -257,7 +255,7 @@ int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosstruc *
 int32_t json_extract_string(const char* &ptr, string &ostring);
 int32_t json_parse_name(const char* &ptr, string &ostring);
 
-string json_extract_namedobject(string json, string token);
+string json_extract_namedmember(string json, string token);
 int32_t json_extract_value(const char *&ptr, string &value);
 string json_convert_string(string object);
 int32_t json_convert_int32(string object);
@@ -269,7 +267,7 @@ double json_convert_double(string object);
 
 int32_t json_parse_number(const char* &ptr, double *value);
 int32_t json_skip_character(const char* &ptr, const char character);
-int32_t json_skip_value(const char* &ptr);
+int32_t json_skip_to_next_member(const char* &ptr);
 int32_t json_skip_white(const char* &ptr);
 int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo);
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag = false);
@@ -331,7 +329,7 @@ int32_t load_target(cosmosstruc *cinfo);
 int32_t update_target(cosmosstruc *cinfo);
 int32_t update_target(locstruc source, targetstruc &target);
 size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cinfo, vector<shorteventstruc> &events);
-
+uint16_t device_type_index(string name);
 string device_type_name(uint32_t type);
 string port_type_name(uint32_t type);
 

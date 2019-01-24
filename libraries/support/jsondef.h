@@ -1096,7 +1096,7 @@ struct portstruc
 };
 
 //! Point structure: information on each vertex in a face
-typedef Math::Vector vertexstruc;
+typedef Vector vertexstruc;
 
 //! Face structure: information on each face of a piece
 struct facestruc
@@ -1105,7 +1105,7 @@ struct facestruc
     vector <uint16_t> vertex_idx;
     Vector com;
     Vector normal;
-    double area;
+    double area=0.;
 };
 
 //! Part structure: physical information for each piece of Node
@@ -1116,7 +1116,7 @@ struct piecestruc
 	//! Enabled?
 	bool enabled;
 	//! Type of piece from \ref defs_piece.
-	uint16_t type;
+//	uint16_t type;
 	//! Component index: -1 if not a Component
 	uint16_t cidx;
     //! Density in kg/cu m
@@ -1153,6 +1153,14 @@ struct piecestruc
 	float temp;
 	//! Insolation in Watts/sq m
 	float insol;
+    //! Material density (1. - transparency)
+    float material_density;
+    //! Material ambient reflective qualities
+    Vector material_ambient;
+    //! Material diffuse reflective qualities
+    Vector material_diffuse;
+    //! Material specular reflective qualities
+    Vector material_specular;
 };
 
 // Beginning of Device General structures
@@ -1857,96 +1865,96 @@ struct cosmosdatastruc
 };
 
 //reinterpret_cast<void (Queue::*)>(func));
-typedef void* (cosmosdatastruc::*cosmosdatastrucVoid);
-typedef bool (cosmosdatastruc::*cosmosdatastrucBool);
-typedef char* (cosmosdatastruc::*cosmosdatastrucChar);
-typedef string (cosmosdatastruc::*cosmosdatastrucString);
-typedef uint8_t (cosmosdatastruc::*cosmosdatastrucUint8);
-typedef uint16_t (cosmosdatastruc::*cosmosdatastrucUint16);
-typedef uint32_t (cosmosdatastruc::*cosmosdatastrucUint32);
-typedef int16_t (cosmosdatastruc::*cosmosdatastrucInt16);
-typedef int32_t (cosmosdatastruc::*cosmosdatastrucInt32);
-typedef float (cosmosdatastruc::*cosmosdatastrucFloat);
-typedef double (cosmosdatastruc::*cosmosdatastrucDouble);
-typedef rvector (cosmosdatastruc::*cosmosdatastrucRvector);
-typedef cvector (cosmosdatastruc::*cosmosdatastrucCvector);
-typedef avector (cosmosdatastruc::*cosmosdatastrucAvector);
-typedef gvector (cosmosdatastruc::*cosmosdatastrucGvector);
-typedef svector (cosmosdatastruc::*cosmosdatastrucSvector);
-typedef Vector (cosmosdatastruc::*cosmosdatastrucVector);
-typedef quaternion (cosmosdatastruc::*cosmosdatastrucQuaternion);
-typedef rmatrix (cosmosdatastruc::*cosmosdatastrucRmatrix);
-typedef locstruc (cosmosdatastruc::*cosmosdatastrucLocstruc);
-typedef posstruc (cosmosdatastruc::*cosmosdatastrucPosstruc);
-typedef cartpos (cosmosdatastruc::*cosmosdatastrucCartpos);
-typedef geoidpos (cosmosdatastruc::*cosmosdatastrucGeoidpos);
-typedef spherpos (cosmosdatastruc::*cosmosdatastrucSpherpos);
-typedef extrapos (cosmosdatastruc::*cosmosdatastrucExtrapos);
-typedef attstruc (cosmosdatastruc::*cosmosdatastrucAttstruc);
-typedef qatt (cosmosdatastruc::*cosmosdatastrucQatt);
-typedef dcmatt (cosmosdatastruc::*cosmosdatastrucDcmatt);
-typedef extraatt (cosmosdatastruc::*cosmosdatastrucExtraatt);
-typedef nodestruc (cosmosdatastruc::*cosmosdatastrucNodestruc);
-typedef vertexstruc (cosmosdatastruc::*cosmosdatastrucVertexstruc);
-typedef facestruc (cosmosdatastruc::*cosmosdatastrucFacestruc);
-typedef piecestruc (cosmosdatastruc::*cosmosdatastrucPiecestruc);
-typedef devicestruc (cosmosdatastruc::*cosmosdatastrucDevicestruc);
-typedef devspecstruc (cosmosdatastruc::*cosmosdatastrucDevspecstruc);
-typedef portstruc (cosmosdatastruc::*cosmosdatastrucPortstruc);
-typedef physicsstruc (cosmosdatastruc::*cosmosdatastrucPhysicsstruc);
-typedef agentstruc (cosmosdatastruc::*cosmosdatastrucAgentstruc);
-typedef eventstruc (cosmosdatastruc::*cosmosdatastrucEventstruc);
-typedef targetstruc (cosmosdatastruc::*cosmosdatastrucTargetstruc);
-typedef userstruc (cosmosdatastruc::*cosmosdatastrucUserstruc);
-typedef glossarystruc (cosmosdatastruc::*cosmosdatastrucGlossarystruc);
-typedef tlestruc (cosmosdatastruc::*cosmosdatastrucTlestruc);
+//typedef void* (cosmosdatastruc::*cosmosdatastrucVoid);
+//typedef bool (cosmosdatastruc::*cosmosdatastrucBool);
+//typedef char* (cosmosdatastruc::*cosmosdatastrucChar);
+//typedef string (cosmosdatastruc::*cosmosdatastrucString);
+//typedef uint8_t (cosmosdatastruc::*cosmosdatastrucUint8);
+//typedef uint16_t (cosmosdatastruc::*cosmosdatastrucUint16);
+//typedef uint32_t (cosmosdatastruc::*cosmosdatastrucUint32);
+//typedef int16_t (cosmosdatastruc::*cosmosdatastrucInt16);
+//typedef int32_t (cosmosdatastruc::*cosmosdatastrucInt32);
+//typedef float (cosmosdatastruc::*cosmosdatastrucFloat);
+//typedef double (cosmosdatastruc::*cosmosdatastrucDouble);
+//typedef rvector (cosmosdatastruc::*cosmosdatastrucRvector);
+//typedef cvector (cosmosdatastruc::*cosmosdatastrucCvector);
+//typedef avector (cosmosdatastruc::*cosmosdatastrucAvector);
+//typedef gvector (cosmosdatastruc::*cosmosdatastrucGvector);
+//typedef svector (cosmosdatastruc::*cosmosdatastrucSvector);
+//typedef Vector (cosmosdatastruc::*cosmosdatastrucVector);
+//typedef quaternion (cosmosdatastruc::*cosmosdatastrucQuaternion);
+//typedef rmatrix (cosmosdatastruc::*cosmosdatastrucRmatrix);
+//typedef locstruc (cosmosdatastruc::*cosmosdatastrucLocstruc);
+//typedef posstruc (cosmosdatastruc::*cosmosdatastrucPosstruc);
+//typedef cartpos (cosmosdatastruc::*cosmosdatastrucCartpos);
+//typedef geoidpos (cosmosdatastruc::*cosmosdatastrucGeoidpos);
+//typedef spherpos (cosmosdatastruc::*cosmosdatastrucSpherpos);
+//typedef extrapos (cosmosdatastruc::*cosmosdatastrucExtrapos);
+//typedef attstruc (cosmosdatastruc::*cosmosdatastrucAttstruc);
+//typedef qatt (cosmosdatastruc::*cosmosdatastrucQatt);
+//typedef dcmatt (cosmosdatastruc::*cosmosdatastrucDcmatt);
+//typedef extraatt (cosmosdatastruc::*cosmosdatastrucExtraatt);
+//typedef nodestruc (cosmosdatastruc::*cosmosdatastrucNodestruc);
+//typedef vertexstruc (cosmosdatastruc::*cosmosdatastrucVertexstruc);
+//typedef facestruc (cosmosdatastruc::*cosmosdatastrucFacestruc);
+//typedef piecestruc (cosmosdatastruc::*cosmosdatastrucPiecestruc);
+//typedef devicestruc (cosmosdatastruc::*cosmosdatastrucDevicestruc);
+//typedef devspecstruc (cosmosdatastruc::*cosmosdatastrucDevspecstruc);
+//typedef portstruc (cosmosdatastruc::*cosmosdatastrucPortstruc);
+//typedef physicsstruc (cosmosdatastruc::*cosmosdatastrucPhysicsstruc);
+//typedef agentstruc (cosmosdatastruc::*cosmosdatastrucAgentstruc);
+//typedef eventstruc (cosmosdatastruc::*cosmosdatastrucEventstruc);
+//typedef targetstruc (cosmosdatastruc::*cosmosdatastrucTargetstruc);
+//typedef userstruc (cosmosdatastruc::*cosmosdatastrucUserstruc);
+//typedef glossarystruc (cosmosdatastruc::*cosmosdatastrucGlossarystruc);
+//typedef tlestruc (cosmosdatastruc::*cosmosdatastrucTlestruc);
 
-union cosmosdatastrucupointer
-{
-    cosmosdatastrucVoid Void;
-    cosmosdatastrucBool Bool;
-    cosmosdatastrucChar Char;
-    cosmosdatastrucString String;
-    cosmosdatastrucUint8 Uint8;
-    cosmosdatastrucUint16 Uint16;
-    cosmosdatastrucUint32 Uint32;
-    cosmosdatastrucUint16 Int16;
-    cosmosdatastrucUint32 Int32;
-    cosmosdatastrucFloat Float;
-    cosmosdatastrucDouble Double;
-    cosmosdatastrucRvector Rvector;
-    cosmosdatastrucCvector Cvector;
-    cosmosdatastrucAvector Avector;
-    cosmosdatastrucGvector Gvector;
-    cosmosdatastrucSvector Svector;
-    cosmosdatastrucVector Vector;
-    cosmosdatastrucQuaternion Quaternion;
-    cosmosdatastrucRmatrix Rmatrix;
-    cosmosdatastrucLocstruc Locstruc;
-    cosmosdatastrucPosstruc Posstruc;
-    cosmosdatastrucCartpos Cartpos;
-    cosmosdatastrucGeoidpos Geoidpos;
-    cosmosdatastrucSpherpos Spherpos;
-    cosmosdatastrucExtrapos Extrapos;
-    cosmosdatastrucAttstruc Attstruc;
-    cosmosdatastrucQatt Qatt;
-    cosmosdatastrucDcmatt Dcmatt;
-    cosmosdatastrucExtraatt Extraatt;
-    cosmosdatastrucNodestruc Nodestruc;
-    cosmosdatastrucVertexstruc Vertexstruc;
-    cosmosdatastrucFacestruc Facestruc;
-    cosmosdatastrucPiecestruc Piecestruc;
-    cosmosdatastrucDevicestruc Devicestruc;
-    cosmosdatastrucDevspecstruc Devspecstruc;
-    cosmosdatastrucPortstruc Portstruc;
-    cosmosdatastrucPhysicsstruc Physicsstruc;
-    cosmosdatastrucAgentstruc Agentstruc;
-    cosmosdatastrucEventstruc Eventstruc;
-    cosmosdatastrucTargetstruc Targetstruc;
-    cosmosdatastrucUserstruc Userstruc;
-    cosmosdatastrucGlossarystruc Glossarystruc;
-    cosmosdatastrucTlestruc Tlestruc;
-};
+//union cosmosdatastrucupointer
+//{
+//    cosmosdatastrucVoid Void;
+//    cosmosdatastrucBool Bool;
+//    cosmosdatastrucChar Char;
+//    cosmosdatastrucString String;
+//    cosmosdatastrucUint8 Uint8;
+//    cosmosdatastrucUint16 Uint16;
+//    cosmosdatastrucUint32 Uint32;
+//    cosmosdatastrucUint16 Int16;
+//    cosmosdatastrucUint32 Int32;
+//    cosmosdatastrucFloat Float;
+//    cosmosdatastrucDouble Double;
+//    cosmosdatastrucRvector Rvector;
+//    cosmosdatastrucCvector Cvector;
+//    cosmosdatastrucAvector Avector;
+//    cosmosdatastrucGvector Gvector;
+//    cosmosdatastrucSvector Svector;
+//    cosmosdatastrucVector Vector;
+//    cosmosdatastrucQuaternion Quaternion;
+//    cosmosdatastrucRmatrix Rmatrix;
+//    cosmosdatastrucLocstruc Locstruc;
+//    cosmosdatastrucPosstruc Posstruc;
+//    cosmosdatastrucCartpos Cartpos;
+//    cosmosdatastrucGeoidpos Geoidpos;
+//    cosmosdatastrucSpherpos Spherpos;
+//    cosmosdatastrucExtrapos Extrapos;
+//    cosmosdatastrucAttstruc Attstruc;
+//    cosmosdatastrucQatt Qatt;
+//    cosmosdatastrucDcmatt Dcmatt;
+//    cosmosdatastrucExtraatt Extraatt;
+//    cosmosdatastrucNodestruc Nodestruc;
+//    cosmosdatastrucVertexstruc Vertexstruc;
+//    cosmosdatastrucFacestruc Facestruc;
+//    cosmosdatastrucPiecestruc Piecestruc;
+//    cosmosdatastrucDevicestruc Devicestruc;
+//    cosmosdatastrucDevspecstruc Devspecstruc;
+//    cosmosdatastrucPortstruc Portstruc;
+//    cosmosdatastrucPhysicsstruc Physicsstruc;
+//    cosmosdatastrucAgentstruc Agentstruc;
+//    cosmosdatastrucEventstruc Eventstruc;
+//    cosmosdatastrucTargetstruc Targetstruc;
+//    cosmosdatastrucUserstruc Userstruc;
+//    cosmosdatastrucGlossarystruc Glossarystruc;
+//    cosmosdatastrucTlestruc Tlestruc;
+//};
 
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
