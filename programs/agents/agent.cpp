@@ -227,6 +227,7 @@ int main(int argc, char *argv[])
         {
             size_t agent_count = 0;
             ElapsedTime et;
+            agent->post(Agent::AgentMessage::REQUEST);
             do
             {
                 if (agent->agent_list.size() > agent_count)
