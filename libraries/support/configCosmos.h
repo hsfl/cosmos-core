@@ -74,8 +74,8 @@
 #include <cstring>
 #include <cmath>
 using std::isfinite;
-using std::isinf;
-using std::isnan;
+//using std::isinf;
+//using std::isnan;
 #include <iosfwd>
 using std::ifstream;
 using std::ofstream;

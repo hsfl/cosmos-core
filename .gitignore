@@ -43,3 +43,5 @@ node_modules/gitbook-plugin-expandable-chapters
 libraries/math/save/
 
 build/qt_debug/
+
+build/pi/
