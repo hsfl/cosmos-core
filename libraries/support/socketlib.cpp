@@ -51,7 +51,7 @@ provided for the extra steps necessary for MS Windows.
 int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *address, uint16_t port, uint16_t role,
                     bool blocking, uint32_t usectimeo, uint32_t rcvbuf, uint32_t sndbuf)
 {
-    socklen_t namelen;
+//    socklen_t namelen;
     int32_t iretn;
     struct ip_mreq mreq;
     int on = 1;
@@ -209,22 +209,22 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
             break;
         }
 
-        // If we bound to port 0, then find out what our assigned port is.
-        if (!port)
-        {
-            namelen = sizeof(struct sockaddr_in);
-            if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
-            {
-                CLOSE_SOCKET(channel->cudp);
-                channel->cudp = -errno;
-                return (-errno);
-            }
-            channel->cport = ntohs(channel->caddr.sin_port);
-        }
-        else
-        {
-            channel->cport = port;
-        }
+        // Find assigned port, but set cport to requested port
+//        namelen = sizeof(struct sockaddr_in);
+//        if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
+//        {
+//            CLOSE_SOCKET(channel->cudp);
+//            channel->cudp = -errno;
+//            return (-errno);
+//        }
+//        if (!port)
+//        {
+//            channel->cport = ntohs(channel->caddr.sin_port);
+//        }
+//        else
+//        {
+//            channel->cport = port;
+//        }
 
         if (ntype == NetworkType::MULTICAST)
         {
@@ -294,6 +294,17 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         }
         break;
     }
+
+    // Find assigned port, place in cport, and set caddr to requested port
+    socklen_t namelen = sizeof(struct sockaddr_in);
+    if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
+    {
+        CLOSE_SOCKET(channel->cudp);
+        channel->cudp = -errno;
+        return (-errno);
+    }
+    channel->cport = ntohs(channel->caddr.sin_port);
+    channel->caddr.sin_port = htons(port);
 
     if (rcvbuf)
     {
