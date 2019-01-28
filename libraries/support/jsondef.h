@@ -854,31 +854,31 @@ struct agent_channel
 struct beatstruc
 {
 	// Heartbeat timestamp
-	double utc;
+    double utc = 0.;
 	// Heartbeat Node Name
 	char node[COSMOS_MAX_NAME+1];  // TODO: change to string
 	//! Heartbeat Agent Name
 	char proc[COSMOS_MAX_NAME+1]; // TODO: change to string
 	// Type of address protocol
-	NetworkType ntype;
+    NetworkType ntype = NetworkType::MULTICAST;
 	//! Protocol Address
-	char addr[18];
+    char addr[18];
 	//! AGENT port
-	uint16_t port;
+    uint16_t port = 0;
 	//! Transfer buffer size
-	uint32_t bsz;
+    uint32_t bsz = 0;
 	//! Heartbeat period in seconds
-	double bprd;
+    double bprd = 0.;
 	//! Agent User Name
 	char user[COSMOS_MAX_NAME+1];
 	//! Agent % CPU
-	float cpu;
+    float cpu = 0.;
 	//! Agent % memory
-	float memory;
+    float memory = 0.;
 	//! Agent heartbeat jitter [sec]
-	double jitter;
+    double jitter = 0.;
 	//! Existence Flag (if beat exists then flag is set to true, false otherwise)
-	bool exists;
+    bool exists = false;
 };
 
 //! Agent control structure

@@ -212,6 +212,11 @@ public:
         IMU=8,
         //! Event Messsages
         EVENT=9,
+        //! Request message
+        REQUEST=10,
+        //! Response message
+        RESPONSE=11,
+        //! >= 128 are binary
         BINARY=128,
         COMM=129
         };
@@ -286,8 +291,9 @@ public:
     void get_ip_list(uint16_t port);
     int32_t unpublish();
     int32_t post(messstruc mess);
-    int32_t post(AgentMessage type, string message);
+    int32_t post(AgentMessage type, string message="");
     int32_t post(AgentMessage type, vector <uint8_t> message);
+    int32_t post_beat();
     int32_t publish(NetworkType type, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo);
@@ -385,6 +391,7 @@ private:
 
     void heartbeat_loop();
     void request_loop();
+    int32_t process_request(string &bufferin, string &bufferout);
     void message_loop();
 
     char * parse_request(char *input);
@@ -414,6 +421,7 @@ private:
     static int32_t req_portsjson(char *request, char* response, Agent *agent);
     static int32_t req_targetsjson(char *request, char* response, Agent *agent);
     static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
+    static int32_t req_heartbeat(char *request, char* response, Agent *agent);
 
 };
 
