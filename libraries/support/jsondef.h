@@ -1826,43 +1826,43 @@ struct devspecstruc
  * Space. The components of this can then be mapped to the Name Space
  * using calls to ::json_addentry.
 */
-struct cosmosdatastruc
-{
-    //! Timestamp for last change to data
-    double timestamp;
-    //! Structure for summary information in node
-    nodestruc node;
-    //! Vector of all vertexs in node.
-    vector <vertexstruc> vertexs;
-    //! Vector of all vertexs in node.
-    vector <vertexstruc> normals;
-    //! Vector of all faces in node.
-    vector <facestruc> faces;
-    //! Vector of all pieces in node.
-    vector<piecestruc> pieces;
-    //! Wavefront obj structure
-    wavefront obj;
-    //! Vector of all general (common) information for devices (components) in node.
-    vector<devicestruc> device;
-    //! Structure for devices (components) special data in node, by type.
-    devspecstruc devspec;
-    //! Vector of all ports known to node.
-    vector<portstruc> port;
-    //! Structure for physics modelling.
-    physicsstruc physics;
-    //! Single entry vector for agent information.
-    vector<agentstruc> agent;
-    //! Single entry vector for event information.
-    vector<eventstruc> event;
-    //! Vector of all targets known to node.
-    vector<targetstruc> target;
-    //! Single entry vector for user information.
-    vector<userstruc> user;
-    //! Vector of glossary terms for node.
-    vector<glossarystruc> glossary;
-    //! Array of Two Line Elements
-    vector<tlestruc> tle;
-};
+//struct cosmosdatastruc
+//{
+//    //! Timestamp for last change to data
+//    double timestamp;
+//    //! Structure for summary information in node
+//    nodestruc node;
+//    //! Vector of all vertexs in node.
+//    vector <vertexstruc> vertexs;
+//    //! Vector of all vertexs in node.
+//    vector <vertexstruc> normals;
+//    //! Vector of all faces in node.
+//    vector <facestruc> faces;
+//    //! Vector of all pieces in node.
+//    vector<piecestruc> pieces;
+//    //! Wavefront obj structure
+//    wavefront obj;
+//    //! Vector of all general (common) information for devices (components) in node.
+//    vector<devicestruc> device;
+//    //! Structure for devices (components) special data in node, by type.
+//    devspecstruc devspec;
+//    //! Vector of all ports known to node.
+//    vector<portstruc> port;
+//    //! Structure for physics modelling.
+//    physicsstruc physics;
+//    //! Single entry vector for agent information.
+//    vector<agentstruc> agent;
+//    //! Single entry vector for event information.
+//    vector<eventstruc> event;
+//    //! Vector of all targets known to node.
+//    vector<targetstruc> target;
+//    //! Single entry vector for user information.
+//    vector<userstruc> user;
+//    //! Vector of glossary terms for node.
+//    vector<glossarystruc> glossary;
+//    //! Array of Two Line Elements
+//    vector<tlestruc> tle;
+//};
 
 //reinterpret_cast<void (Queue::*)>(func));
 //typedef void* (cosmosdatastruc::*cosmosdatastrucVoid);
