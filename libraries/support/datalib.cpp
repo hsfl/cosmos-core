@@ -496,11 +496,12 @@ size_t data_list_files(string node, string location, string agent, std::vector<f
 {
     string dtemp;
     dtemp = data_base_path(node, location, agent);
+    size_t fcnt = files.size();
     data_list_files(dtemp, files);
-    for (filestruc &tf : files)
+    for (size_t i=fcnt; i<files.size(); ++i)
     {
-        tf.agent = agent;
-        tf.node = node;
+        files[i].agent = agent;
+        files[i].node = node;
     }
 
     return (files.size());
