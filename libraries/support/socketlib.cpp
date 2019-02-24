@@ -209,23 +209,6 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
             break;
         }
 
-        // Find assigned port, but set cport to requested port
-//        namelen = sizeof(struct sockaddr_in);
-//        if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
-//        {
-//            CLOSE_SOCKET(channel->cudp);
-//            channel->cudp = -errno;
-//            return (-errno);
-//        }
-//        if (!port)
-//        {
-//            channel->cport = ntohs(channel->caddr.sin_port);
-//        }
-//        else
-//        {
-//            channel->cport = port;
-//        }
-
         if (ntype == NetworkType::MULTICAST)
         {
             //! 2. Join multicast
@@ -296,6 +279,8 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     }
 
     // Find assigned port, place in cport, and set caddr to requested port
+    iretn = sendto(channel->cudp, (const char *)nullptr, 0, 0, (struct sockaddr *)&channel->baddr, sizeof(struct sockaddr_in));
+    sockaddr_in taddr = channel->caddr;
     socklen_t namelen = sizeof(struct sockaddr_in);
     if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
     {
@@ -304,7 +289,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         return (-errno);
     }
     channel->cport = ntohs(channel->caddr.sin_port);
-    channel->caddr.sin_port = htons(port);
+    channel->caddr = taddr;
 
     if (rcvbuf)
     {
