@@ -575,6 +575,8 @@ namespace Cosmos {
         ElapsedTime ep;
         ep.start();
 
+        post(Agent::AgentMessage::REQUEST);
+        COSMOS_SLEEP(.1);
         do
         {
             for (size_t i=0; i<agent_list.size(); ++i)
