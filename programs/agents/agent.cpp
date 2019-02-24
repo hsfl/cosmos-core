@@ -227,6 +227,8 @@ int main(int argc, char *argv[])
         {
             size_t agent_count = 0;
             ElapsedTime et;
+            agent->post(Agent::AgentMessage::REQUEST);
+            COSMOS_SLEEP(.1);
             do
             {
                 if (agent->agent_list.size() > agent_count)
@@ -372,7 +374,7 @@ int main(int argc, char *argv[])
             if(argc == 3)
             {
                 printf("List of available requests:\n");
-                nbytes = agent->send_request(cbeat,(char*)"help", std::ref(output), REQUEST_WAIT_TIME);
+                nbytes = agent->send_request(cbeat, "help", std::ref(output), REQUEST_WAIT_TIME);
                 printf("%s [%d]\n", output.c_str(), nbytes);
             }
             else

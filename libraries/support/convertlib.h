@@ -59,6 +59,9 @@
 #include "support/configCosmos.h"
 
 #include "math/mathlib.h"
+using namespace Cosmos::Math::Matrices;
+using namespace Cosmos::Math::Vectors;
+using namespace Cosmos::Math::Quaternions;
 #include "support/convertdef.h"
 
 //#include <fcntl.h>
@@ -145,7 +148,9 @@ void teme2true(double ep0, rmatrix *rm);
 void true2teme(double ep0, rmatrix *rm);
 void mean2mean(double ep0, double ep1, rmatrix *pm);
 void geoc2topo(gvector gs, rvector geoc, rvector &topo);
-void topo2azel(rvector tpos, float *az, float *el);
+void body2topo(Vector com, Vector body, Vector &topo);
+void topo2azel(rvector tpos, float &az, float &el);
+void topo2azel(Vector tpos, float &az, float &el);
 int lines2eci(double mjd, std::vector<tlestruc> tle, cartpos &eci);
 int tle2eci(double mjd, tlestruc tle, cartpos &eci);
 int32_t eci2tle(double utc, cartpos eci, tlestruc &tle);

@@ -51,7 +51,7 @@ provided for the extra steps necessary for MS Windows.
 int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *address, uint16_t port, uint16_t role,
                     bool blocking, uint32_t usectimeo, uint32_t rcvbuf, uint32_t sndbuf)
 {
-    socklen_t namelen;
+//    socklen_t namelen;
     int32_t iretn;
     struct ip_mreq mreq;
     int on = 1;
@@ -209,23 +209,6 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
             break;
         }
 
-        // If we bound to port 0, then find out what our assigned port is.
-        if (!port)
-        {
-            namelen = sizeof(struct sockaddr_in);
-            if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
-            {
-                CLOSE_SOCKET(channel->cudp);
-                channel->cudp = -errno;
-                return (-errno);
-            }
-            channel->cport = ntohs(channel->caddr.sin_port);
-        }
-        else
-        {
-            channel->cport = port;
-        }
-
         if (ntype == NetworkType::MULTICAST)
         {
             //! 2. Join multicast
@@ -294,6 +277,19 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         }
         break;
     }
+
+    // Find assigned port, place in cport, and set caddr to requested port
+    iretn = sendto(channel->cudp, (const char *)nullptr, 0, 0, (struct sockaddr *)&channel->baddr, sizeof(struct sockaddr_in));
+    sockaddr_in taddr = channel->caddr;
+    socklen_t namelen = sizeof(struct sockaddr_in);
+    if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
+    {
+        CLOSE_SOCKET(channel->cudp);
+        channel->cudp = -errno;
+        return (-errno);
+    }
+    channel->cport = ntohs(channel->caddr.sin_port);
+    channel->caddr = taddr;
 
     if (rcvbuf)
     {
@@ -486,19 +482,22 @@ int32_t socket_close(socket_channel *channel)
 {
     int32_t iretn = 0;
 
+    if (channel->cudp >= 0)
+    {
 #ifdef COSMOS_WIN_OS
-    if (closesocket(channel->cudp) < 0)
-    {
-        iretn = -WSAGetLastError();
-    }
+        if (closesocket(channel->cudp) < 0)
+        {
+            iretn = -WSAGetLastError();
+        }
 #else
-    if (close(channel->cudp) < 0)
-    {
-        iretn = -errno;
-    }
+        if (close(channel->cudp) < 0)
+        {
+            iretn = -errno;
+        }
 #endif
-    channel->address[0] = 0;
-    channel->cudp = -1;
+        //    channel->address[0] = 0;
+        channel->cudp = -1;
+    }
     return iretn;
 }
 
@@ -561,7 +560,7 @@ std::vector<socket_channel> socket_find_addresses(NetworkType ntype)
             for (uint32_t i=0; i<nif; i++)
             {
                 inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,tiface.address,sizeof(tiface.address));
-                //			strcpy(tiface.address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+                //			strncpy(tiface.address, inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr), 17);
                 if (!strcmp(tiface.address,"127.0.0.1"))
                 {
                     continue;
@@ -640,7 +639,7 @@ std::vector<socket_channel> socket_find_addresses(NetworkType ntype)
                 if (ntype == NetworkType::MULTICAST)
                 {
                     inet_pton(AF_INET,COSMOSMCAST,&tiface.caddr.sin_addr);\
-                    strcpy(tiface.baddress, COSMOSMCAST);
+                    strncpy(tiface.baddress, COSMOSMCAST, 17);
                     inet_pton(AF_INET,COSMOSMCAST,&tiface.baddr.sin_addr);\
                 }
                 else

@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
     nodename = argv[1];
 
     // Establish the command channel and heartbeat
-    agent = new Agent(nodename, "exec");
+    agent = new Agent(nodename, "exec", 5.);
     if (agent->cinfo == nullptr)
     {
         cout<<"unable to start agent_exec: "<<endl;

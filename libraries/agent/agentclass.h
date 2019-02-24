@@ -134,7 +134,7 @@ class Agent
 {
 public:
 //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 1);
+    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 0);
     ~Agent();
 
     //! State of Health element vector
@@ -212,6 +212,11 @@ public:
         IMU=8,
         //! Event Messsages
         EVENT=9,
+        //! Request message
+        REQUEST=10,
+        //! Response message
+        RESPONSE=11,
+        //! >= 128 are binary
         BINARY=128,
         COMM=129
         };
@@ -266,6 +271,8 @@ public:
     //!
     // agent functions
     int32_t start();
+    int32_t start_active_loop();
+    int32_t finish_active_loop();
     //    int32_t add_request(string token, request_function function);
     //    int32_t add_request(string token, request_function function, string description);
     int32_t add_request_internal(string token, internal_request_function function, string synopsis="", string description="");
@@ -284,8 +291,9 @@ public:
     void get_ip_list(uint16_t port);
     int32_t unpublish();
     int32_t post(messstruc mess);
-    int32_t post(AgentMessage type, string message);
+    int32_t post(AgentMessage type, string message="");
     int32_t post(AgentMessage type, vector <uint8_t> message);
+    int32_t post_beat();
     int32_t publish(NetworkType type, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port);
     int32_t subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo);
@@ -333,7 +341,9 @@ public:
     size_t message_tail = MESSAGE_RING_SIZE;
 
     //! Flag for level of debugging, keep it public so that it can be controlled from the outside
-    size_t debug_level = 1;
+    size_t debug_level = 3;
+    FILE *get_debug_fd(double mjd=0.);
+    int32_t close_debug_fd();
 
     // agent variables
 private:
@@ -341,10 +351,12 @@ private:
     NetworkType networkType = NetworkType::UDP;
     string nodeName;
     string agentName;
-    double beatPeriod = 1.0; // in seconds
+    double activeTimeout = 0.0; // in MJD
     uint32_t bufferSize = AGENTMAXBUFFER;
     bool multiflag = false;
     int32_t portNumber = 0;
+    FILE *debug_fd = nullptr;
+    string debug_pathName;
 
     string version = "0.0";
     float timeoutSec = 5.0;
@@ -379,6 +391,7 @@ private:
 
     void heartbeat_loop();
     void request_loop();
+    int32_t process_request(string &bufferin, string &bufferout);
     void message_loop();
 
     char * parse_request(char *input);
@@ -393,6 +406,7 @@ private:
     static int32_t req_monitor(char *request, char* response, Agent *agent);
     static int32_t req_run(char *request, char* response, Agent *agent);
     static int32_t req_status(char *request, char* response, Agent *agent);
+    static int32_t req_debug_level(char *request, char* response, Agent *agent);
     static int32_t req_getvalue(char *request, char* response, Agent *agent);
     static int32_t req_setvalue(char *request, char* response, Agent *agent);
     static int32_t req_listnames(char *request, char* response, Agent *agent);
@@ -407,6 +421,7 @@ private:
     static int32_t req_portsjson(char *request, char* response, Agent *agent);
     static int32_t req_targetsjson(char *request, char* response, Agent *agent);
     static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
+    static int32_t req_heartbeat(char *request, char* response, Agent *agent);
 
 };
 

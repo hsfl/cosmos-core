@@ -5,7 +5,7 @@ int main(int argc, char **argv)
 {
     wavefront wobj;
 
-    wobj.load_file(argv[1]);
+    wobj.load_file(".", argv[1]);
     for (size_t i=1; i<wobj.Groups.size(); ++i)
     {
         printf("#%d: %s\n", i, wobj.Groups[i].name.c_str());
