@@ -2028,6 +2028,8 @@ namespace Cosmos {
                 mat[0][0] = scale;
                 mat[1][1] = scale;
                 mat[2][2] = scale;
+
+                return mat;
            }
 
         }
