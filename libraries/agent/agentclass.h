@@ -66,6 +66,7 @@
 //! - ::beatstruc::proc: The name of the associated Agent.
 //! - ::beatstruc::addr: The appropriate address for the ::NetworkType of the sending machine.
 //! - ::beatstruc::port: The network port the Agent is listening on.
+//! - ::beatstruc::bprd: The period of the Heartbeat in seconds.
 //! - ::beatstruc::bsz: The size, in bytes, of the Agents request buffer.
 //! - ::beatstruc::cpu: The CPU load of the machine the Agent is running on.
 //! - ::beatstruc::memory: The memory usage of the machine the Agent is running on.
@@ -87,18 +88,22 @@
 //! buffer. There are a number of requests already built in to the Agent. Additional requests can be
 //! added using Cosmos::Agent::add_request, by tieing together user defined
 //! functions with user defined ASCII strings. Built in requests include:
+//!     - "forward" - Resends the received request out all interfaces.
+//!     - "echo utc crc nbytes bytes" - requests the %Agent to echo the local time the request was received,
+//! the values of the indicated JSON names.
+//! the CRC calculated for the bytes, and the bytes themselves.
 //!     - "help" - list available requests for this %Agent.
 //!     - "shutdown" - causes the %Agent to stop what it is doing and exit.
 //!     - "idle" - causes the %Agent to transition to Cosmos::Agent::State::IDLE.
+//!     - "init" - causes the %Agent to transition to Cosmos::Agent::State::INIT.
 //!     - "monitor" - causes the %Agent to transition to Cosmos::Agent::State::MONITOR.
 //!     - "run" - causes the %Agent to transition to Cosmos::Agent::State::RUN.
 //!     - "status" - causes the agent to dump any \ref jsonlib variables it is monitoring.
+//!     - "debug_level" - Returns current Debug Level, or if an argument is provides, sets it.
 //!     - "getvalue {\"json_name_000\"[,\"json_name_001\"]}" - requests the %Agent to return the values
 //! of the indicated JSON names.
 //!     - "setvalue {\"json_name_000\":value0[,\"json_name_001\":value1]}" - requests the %Agent to set
-//! the values of the indicated JSON names.
-//!     - "echo utc crc nbytes bytes" - requests the %Agent to echo the local time the request was received,
-//! the CRC calculated for the bytes, and the bytes themselves.
+//!     - "listnames" - Returns a list of all names in the JSON Name Space.
 //!     - "nodejson" - return the JSON representing the contents of node.ini.
 //!     - "statejson" - return the JSON representing the contents of state.ini.
 //!     - "utcstartjson" - return the JSON representing the contents of utcstart.ini.
@@ -110,6 +115,8 @@
 //!     - "portsjson" - return the JSON representing the contents of ports.ini.
 //!     - "aliasesjson" - return the JSON representing the contents of aliases.ini.
 //!     - "targetsjson" - return the JSON representing the contents of targets.ini.
+//!     - "heartbeat" - Sends a Heartbeat immediatelly.
+//!
 //!
 //! Both Clients and Agents are formed using Cosmos::Agent. Once you have performed any initializations necessary, you should
 //! enter a continuous loop, protected by Cosmos::Agent::running, and preferably surrendering control periodically

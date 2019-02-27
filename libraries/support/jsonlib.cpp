@@ -539,6 +539,9 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t ctype, double em
         cinfo->device[cinfo->device.size()-1].all.type = ctype;
         switch((DeviceType)ctype)
         {
+        case DeviceType::COUNT:
+        case DeviceType::NONE:
+            break;
         case DeviceType::ANT:
             cinfo->device[cinfo->device.size()-1].all.didx = cinfo->devspec.ant.size();
             cinfo->devspec.ant.resize(cinfo->devspec.ant_cnt+1);
