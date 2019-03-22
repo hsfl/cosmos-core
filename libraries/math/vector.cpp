@@ -2433,6 +2433,16 @@ namespace Cosmos {
                 return result;
             }
 
+            Vectors::Vector Quaternion::drotate(const Vector &v)
+            {
+
+                const Quaternion qc = this->conjugate();
+                Quaternion tq (v * qc);
+                Vector result =  (*this) * tq;
+
+                return result;
+            }
+
             //! compute the quaternion that represents the rotation from vector a to vector b
             //! Ref: - http://lolengine.net/blog/2013/09/18/beautiful-maths-quaternion-from-vectors
             Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b)
