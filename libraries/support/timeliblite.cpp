@@ -31,10 +31,10 @@
     \brief Time handling library source file
 */
 
-#include "support/timelib.h"        //
-#include "support/datalib.h"        //
-#include "support/ephemlib.h"       //
-#include "math/mathlib.h"           //for rvector, uvector
+#include "support/timelib.h"
+#include "support/datalib.h"
+#include "support/ephemlib.h"
+//#include "math/mathlib.h"
 
 struct iersstruc
 {
@@ -471,71 +471,71 @@ double utc2jcenut1(double mjd)
     return (lcalc);
 }
 
-//! Nutation values
-/*! Calculate the nutation values from the JPL Ephemeris for the provided UTC date.
- * Values are in order: Psi, Epsilon, dPsi, dEpsilon. Units are radians and
- * radians/second.
-    \param mjd UTC in Modified Julian Day.
-    \return Nutation values in an ::rvector.
-*/
-rvector utc2nuts(double mjd)
-{
-    static double lmjd=0.;
-    static uvector lcalc={{{0.,0.,0.},0.}};
+////! Nutation values
+///*! Calculate the nutation values from the JPL Ephemeris for the provided UTC date.
+// * Values are in order: Psi, Epsilon, dPsi, dEpsilon. Units are radians and
+// * radians/second.
+//    \param mjd UTC in Modified Julian Day.
+//    \return Nutation values in an ::rvector.
+//*/
+//rvector utc2nuts(double mjd)
+//{
+//    static double lmjd=0.;
+//    static uvector lcalc={{{0.,0.,0.},0.}};
 
-    if (mjd != lmjd)
-    {
-        double tt = utc2tt(mjd);
-        if (tt > 0.)
-        {
-            jplnut(tt,(double *)&lcalc.a4);
-            lmjd = mjd;
-        }
-    }
-    return (lcalc.r);
-}
+//    if (mjd != lmjd)
+//    {
+//        double tt = utc2tt(mjd);
+//        if (tt > 0.)
+//        {
+//            jplnut(tt,(double *)&lcalc.a4);
+//            lmjd = mjd;
+//        }
+//    }
+//    return (lcalc.r);
+//}
 
-//! Nutation Delta Psi value.
-/*! Calculate the Delta Psi value (nutation in longitude), for use in the Nutation
-    matrix, for the provided UTC date.
-    \param mjd UTC in Modified Julian Day.
-    \return Delta Psi in radians.
-*/
-double utc2dpsi(double mjd)
-{
-    static double lmjd=0.;
-    static double lcalc=0.;
-    rvector nuts;
+////! Nutation Delta Psi value.
+///*! Calculate the Delta Psi value (nutation in longitude), for use in the Nutation
+//    matrix, for the provided UTC date.
+//    \param mjd UTC in Modified Julian Day.
+//    \return Delta Psi in radians.
+//*/
+//double utc2dpsi(double mjd)
+//{
+//    static double lmjd=0.;
+//    static double lcalc=0.;
+//    rvector nuts;
 
-    if (mjd != lmjd)
-    {
-        nuts = utc2nuts(mjd);
-        lcalc = nuts.col[0];
-        lmjd = mjd;
-    }
-    return (lcalc);
-}
+//    if (mjd != lmjd)
+//    {
+//        nuts = utc2nuts(mjd);
+//        lcalc = nuts.col[0];
+//        lmjd = mjd;
+//    }
+//    return (lcalc);
+//}
 
-//! Nutation Delta Epsilon value.
-/*! Calculate the Delta Psi value (nutation in obliquity), for use in the Nutation
-    matrix, for the provided UTC date.
-    \param mjd UTC in Modified Julian Day.
-    \return Delta Psi in radians.longitudilon
-*/
-double utc2depsilon(double mjd)
-{
-    static double lmjd=0.;
-    static double lcalc=0.;
-    rvector nuts;
+////! Nutation Delta Epsilon value.
+///*! Calculate the Delta Psi value (nutation in obliquity), for use in the Nutation
+//    matrix, for the provided UTC date.
+//    \param mjd UTC in Modified Julian Day.
+//    \return Delta Psi in radians.longitudilon
+//*/
+//double utc2depsilon(double mjd)
+//{
+//    static double lmjd=0.;
+//    static double lcalc=0.;
+//    rvector nuts;
 
-    if (mjd != lmjd)
-    {
-        nuts = utc2nuts(mjd);
-        lcalc = nuts.col[1];
-        lmjd = mjd;
-    }
-    return (lcalc);
-}
+//    if (mjd != lmjd)
+//    {
+//        nuts = utc2nuts(mjd);
+//        lcalc = nuts.col[1];
+//        lmjd = mjd;
+//    }
+//    return (lcalc);
+//}
 
 //! Nutation Epsilon value.
 /*! Calculate the Epsilon value (obliquity of the ecliptic), for use in the Nutation
@@ -1172,41 +1172,41 @@ int32_t leap_seconds(double mjd)
         return 0;
 }
 
-//! Polar motion
-/*! Returns polar motion in radians for provided Modified Julian Day.
-    \param mjd Provided time.
-    \return Polar motion in ::rvector.
-*/
-cvector polar_motion(double mjd)
-{
-    cvector pm;
-    double frac;
-    //	uint32_t mjdi;
-    uint32_t iersidx;
+////! Polar motion
+///*! Returns polar motion in radians for provided Modified Julian Day.
+//    \param mjd Provided time.
+//    \return Polar motion in ::rvector.
+//*/
+//cvector polar_motion(double mjd)
+//{
+//    cvector pm;
+//    double frac;
+//    //	uint32_t mjdi;
+//    uint32_t iersidx;
 
-    pm = cv_zero();
-    if (load_iers() && iers.size() > 2)
-    {
-        if ((uint32_t)mjd >= iersbase)
-        {
-            if ((iersidx=(uint32_t)mjd-iersbase) > iers.size())
-            {
-                iersidx = iers.size() - 2;
-            }
-        }
-        else
-        {
-            iersidx = 0;
-        }
-        //		mjdi = (uint32_t)mjd;
-        frac = mjd - (uint32_t)mjd;
-        pm = cv_zero();
-        pm.x = frac*iers[1+iersidx].pmx+(1.-frac)*iers[iersidx].pmx;
-        pm.y = frac*iers[1+iersidx].pmy+(1.-frac)*iers[iersidx].pmy;
-    }
+//    pm = cv_zero();
+//    if (load_iers() && iers.size() > 2)
+//    {
+//        if ((uint32_t)mjd >= iersbase)
+//        {
+//            if ((iersidx=(uint32_t)mjd-iersbase) > iers.size())
+//            {
+//                iersidx = iers.size() - 2;
+//            }
+//        }
+//        else
+//        {
+//            iersidx = 0;
+//        }
+//        //		mjdi = (uint32_t)mjd;
+//        frac = mjd - (uint32_t)mjd;
+//        pm = cv_zero();
+//        pm.x = frac*iers[1+iersidx].pmx+(1.-frac)*iers[iersidx].pmx;
+//        pm.y = frac*iers[1+iersidx].pmy+(1.-frac)*iers[iersidx].pmy;
+//    }
 
-    return (pm);
-}
+//    return (pm);
+//}
 
 
 
