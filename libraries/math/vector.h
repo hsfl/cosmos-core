@@ -508,6 +508,7 @@ namespace Cosmos {
 //            double norm();
             Vector toEuler();
             Vector irotate(const Vector &v);
+            Vector drotate(const Vector &v);
         };
 
         // declared outside class because it does not need to access members of the class Quaternion
