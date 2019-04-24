@@ -128,7 +128,7 @@ double cmjd;
 beatstruc iscbeat;
 
 // default node name
-string node = "hiakasat";
+string node = "neutron1";
 char response[300];
 
 int main(int argc, char *argv[])
