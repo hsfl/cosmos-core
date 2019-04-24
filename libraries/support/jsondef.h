@@ -625,7 +625,8 @@ enum
 	DEVICE_MODEL_GS232B=3,
 	DEVICE_MODEL_PRKX2SU=4,
 	DEVICE_MODEL_LOOPBACK=5,
-	DEVICE_MODEL_PROPAGATOR=6
+    DEVICE_MODEL_PROPAGATOR=6,
+    DEVICE_MODEL_DIRECT=7
 };
 
 enum
@@ -1422,18 +1423,22 @@ struct antstruc : public allstruc
 */
 struct rxrstruc : public allstruc
 {
-	//! Operating mode
-	uint16_t opmode;
-	//! Frequency
-	float freq;
-	//! Maximum frequency allowed
-	float maxfreq;
-	//! Minimum frequency allowed
-	float minfreq;
-	//! Current Power
-	float power;
-	//! Filter bandpass
-	float band;
+    //! Operating mode
+    uint16_t opmode;
+    //! Input Frequency
+    float freq;
+    //! Maximum frequency allowed
+    float maxfreq;
+    //! Minimum frequency allowed
+    float minfreq;
+    //! Current RX Power
+    float powerin;
+    //! Current TX Power
+    float powerout;
+    //! Output Power limit
+    float maxpower;
+    //! Input Filter bandpass
+    float band;
 };
 
 //! Transmitter information
@@ -1441,18 +1446,22 @@ struct rxrstruc : public allstruc
 */
 struct txrstruc : public allstruc
 {
-	//! Operating mode
-	uint16_t opmode;
-	//! Frequency
-	float freq;
-	//! Maximum frequency allowed
-	float maxfreq;
-	//! Minimum frequency allowed
-	float minfreq;
-	//! Power
-	float power;
-	//! Maximum Power
-	float maxpower;
+    //! Operating mode
+    uint16_t opmode;
+    //! Input Frequency
+    float freq;
+    //! Maximum frequency allowed
+    float maxfreq;
+    //! Minimum frequency allowed
+    float minfreq;
+    //! Current RX Power
+    float powerin;
+    //! Current TX Power
+    float powerout;
+    //! Output Power limit
+    float maxpower;
+    //! Input Filter bandpass
+    float band;
 };
 
 //! Transceiver information
@@ -1460,7 +1469,7 @@ struct txrstruc : public allstruc
 */
 struct tcvstruc : public allstruc
 {
-	//! Operating mode
+    //! Operating mode
 	uint16_t opmode;
 	//! Input Frequency
 	float freq;
