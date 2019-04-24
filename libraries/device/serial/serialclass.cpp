@@ -198,6 +198,7 @@ namespace Cosmos {
             }
         } while (baud_adjust);
         baud = baud_speed[baud_speed_index][baud_index];
+        set_timeout(20. / baud);
 
         if (baud_speed_index)
         {
