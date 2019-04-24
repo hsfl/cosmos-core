@@ -34,14 +34,14 @@
 
 #include <cstring>
 
-int32_t astrodev_connect(char *dev, astrodev_handle *handle)
+int32_t astrodev_connect(string dev, astrodev_handle &handle)
 {
 	int32_t iretn;
 	cssl_start();
-	handle->serial = cssl_open(dev,ASTRODEV_BAUD, ASTRODEV_BITS,ASTRODEV_PARITY,ASTRODEV_STOPBITS);
-	if (handle->serial == NULL) return (CSSL_ERROR_OPEN);
-    cssl_settimeout(handle->serial, 0, .1);
-	cssl_setflowcontrol(handle->serial, 0, 0);
+    handle.serial = cssl_open(dev.c_str(),ASTRODEV_BAUD, ASTRODEV_BITS,ASTRODEV_PARITY,ASTRODEV_STOPBITS);
+    if (handle.serial == NULL) return (CSSL_ERROR_OPEN);
+    cssl_settimeout(handle.serial, 0, .1);
+    cssl_setflowcontrol(handle.serial, 0, 0);
 	
 	if ((iretn=astrodev_ping(handle)) < 0)
 	{
@@ -51,15 +51,15 @@ int32_t astrodev_connect(char *dev, astrodev_handle *handle)
 	return 0;
 }
 
-int32_t astrodev_disconnect(astrodev_handle *handle)
+int32_t astrodev_disconnect(astrodev_handle &handle)
 {
-	if (handle->serial == NULL) return (CSSL_ERROR_NOTSTARTED);
+    if (handle.serial == NULL) return (CSSL_ERROR_NOTSTARTED);
 
-	cssl_close(handle->serial);
+    cssl_close(handle.serial);
 	return 0;
 }
 
-int32_t astrodev_recvframe(astrodev_handle *handle)
+int32_t astrodev_recvframe(astrodev_handle &handle)
 {
 	int16_t ch;
 	
@@ -73,38 +73,38 @@ int32_t astrodev_recvframe(astrodev_handle *handle)
 	// Wait for first sync character
 	do
 	{
-		ch = cssl_getchar(handle->serial);
+        ch = cssl_getchar(handle.serial);
 		if (ch < 0)
 			return (ASTRODEV_ERROR_SYNC0);
 	} while (ch != ASTRODEV_SYNC0);
-	handle->frame.preamble[0] = ch;
+    handle.frame.preamble[0] = ch;
 
 	// Second sync character must immediately follow
-	ch = cssl_getchar(handle->serial);
+    ch = cssl_getchar(handle.serial);
 	if (ch < 0 || ch != ASTRODEV_SYNC1)
 		return (ASTRODEV_ERROR_SYNC1);
-	handle->frame.preamble[1] = ch;
+    handle.frame.preamble[1] = ch;
 
 	// Read rest of header
 	for (uint16_t i=2; i<8; ++i)
 	{
-		ch = cssl_getchar(handle->serial);
+        ch = cssl_getchar(handle.serial);
 		if (ch < 0)
 			return (ASTRODEV_ERROR_HEADER);
-		handle->frame.preamble[i] = ch;
+        handle.frame.preamble[i] = ch;
 	}
 
 	// Check header for accuracy
-	cs = astrodev_calc_cs(&handle->frame.preamble[2], 4);
-	if (cs != handle->frame.header.cs)
+    cs = astrodev_calc_cs(&handle.frame.preamble[2], 4);
+    if (cs != handle.frame.header.cs)
 		return (ASTRODEV_ERROR_HEADER_CS);
 
 	// Check for NOACK
-	if (handle->frame.header.size == 65535)
+    if (handle.frame.header.size == 65535)
 		return (ASTRODEV_ERROR_NACK);
 
 	// Read rest of frame
-	switch (handle->frame.header.command)
+    switch (handle.frame.header.command)
 	{
 	// Simple ACK:NOACK
 	case ASTRODEV_NOOP:
@@ -121,28 +121,28 @@ int32_t astrodev_recvframe(astrodev_handle *handle)
 	case ASTRODEV_FASTSETPA:
 		break;
 	default:
-		csb[0] = handle->frame.preamble[5];
-		csb[1] = handle->frame.preamble[4];
+        csb[0] = handle.frame.preamble[5];
+        csb[1] = handle.frame.preamble[4];
 		size = cs;
 		for (uint16_t i=0; i<size+2; ++i)
 		{
-			if((ch = cssl_getchar(handle->serial)) < 0)
+            if((ch = cssl_getchar(handle.serial)) < 0)
 			{
-				cssl_drain(handle->serial);
+                cssl_drain(handle.serial);
 				return (ASTRODEV_ERROR_PAYLOAD);
 			}
-			handle->frame.payload[i] = ch;
+            handle.frame.payload[i] = ch;
 		}
 
 		// Check payload for accuracy
-		cs = handle->frame.payload[size] | (handle->frame.payload[size+1] << 8L);
-		if (cs != astrodev_calc_cs(&handle->frame.preamble[2], 6+size))
+        cs = handle.frame.payload[size] | (handle.frame.payload[size+1] << 8L);
+        if (cs != astrodev_calc_cs(&handle.frame.preamble[2], 6+size))
 			return (ASTRODEV_ERROR_PAYLOAD_CS);
-		handle->frame.header.size = size;
+        handle.frame.header.size = size;
 		break;
 	}
 
-	return (handle->frame.header.command);
+    return (handle.frame.header.command);
 }
 
 int32_t astrodev_checkframe(astrodev_frame* frame)
@@ -208,22 +208,22 @@ int32_t astrodev_checkframe(astrodev_frame* frame)
 	return (frame->header.command);
 }
 
-int32_t astrodev_unloadframe(astrodev_handle *handle, uint8_t *data, uint16_t size)
+int32_t astrodev_unloadframe(astrodev_handle &handle, uint8_t *data, uint16_t size)
 {
 	uint16_t tsize;
 
-	tsize = (handle->frame.header.size <= size?handle->frame.header.size:size);
-	memcpy(data, handle->frame.payload, tsize);
+    tsize = (handle.frame.header.size <= size?handle.frame.header.size:size);
+    memcpy(data, handle.frame.payload, tsize);
 	return (tsize);
 }
 
-uint16_t astrodev_loadframe(astrodev_handle *handle, uint8_t *data, uint16_t size)
+uint16_t astrodev_loadframe(astrodev_handle &handle, uint8_t *data, uint16_t size)
 {
 	uint16_t tsize;
 
 	tsize = (size <= ASTRODEV_MTU?size:ASTRODEV_MTU);
-	handle->frame.header.size = tsize;
-	memcpy(handle->frame.payload, data, tsize);
+    handle.frame.header.size = tsize;
+    memcpy(handle.frame.payload, data, tsize);
 
 	return (tsize);
 }
@@ -251,10 +251,10 @@ int32_t astrodev_setupframe(astrodev_frame* frame)
 	return 0;
 }
 
-int32_t astrodev_sendframe(astrodev_handle *handle)
+int32_t astrodev_sendframe(astrodev_handle &handle)
 {
 	int32_t iretn;
-	if ((iretn=astrodev_setupframe(&handle->frame)) < 0)
+    if ((iretn=astrodev_setupframe(&handle.frame)) < 0)
 	{
 		return iretn;
 	}
@@ -262,7 +262,7 @@ int32_t astrodev_sendframe(astrodev_handle *handle)
 //	double lmjd = currentmjd(0.);
 	for (uint16_t i=0; i<8; i++)
 	{
-		cssl_putchar(handle->serial, handle->frame.preamble[i]);
+        cssl_putchar(handle.serial, handle.frame.preamble[i]);
 //		lmjd = currentmjd(0.);
 	}
 
@@ -272,24 +272,24 @@ int32_t astrodev_sendframe(astrodev_handle *handle)
         uint8_t csb[2];
     };
     uint16_t size;
-    csb[0] = handle->frame.preamble[5];
-    csb[1] = handle->frame.preamble[4];
+    csb[0] = handle.frame.preamble[5];
+    csb[1] = handle.frame.preamble[4];
     size = cs;
     for (uint16_t i=0; i<size+2; i++)
 	{
-		cssl_putchar(handle->serial, handle->frame.payload[i]);
+        cssl_putchar(handle.serial, handle.frame.payload[i]);
 //		lmjd = currentmjd(0.);
 	}
 
 	return 0;
 }
 
-int32_t astrodev_ping(astrodev_handle *handle)
+int32_t astrodev_ping(astrodev_handle &handle)
 {
 	int32_t iretn;
 
-	handle->frame.header.command = ASTRODEV_NOOP;
-	handle->frame.header.size = 0;
+    handle.frame.header.command = ASTRODEV_NOOP;
+    handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
 		return (iretn);
 	if ((iretn = astrodev_recvframe(handle)) < 0)
@@ -298,12 +298,12 @@ int32_t astrodev_ping(astrodev_handle *handle)
 	return 0;
 }
 
-int32_t astrodev_gettcvconfig(astrodev_handle *handle)
+int32_t astrodev_gettcvconfig(astrodev_handle &handle)
 {
 	int32_t iretn;
 
-	handle->frame.header.command = ASTRODEV_GETTCVCONFIG;
-	handle->frame.header.size = 0;
+    handle.frame.header.command = ASTRODEV_GETTCVCONFIG;
+    handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
 		return (iretn);
 	if ((iretn = astrodev_recvframe(handle)) < 0)
@@ -312,12 +312,12 @@ int32_t astrodev_gettcvconfig(astrodev_handle *handle)
 	return 0;
 }
 
-int32_t astrodev_rfconfig(astrodev_handle *handle)
+int32_t astrodev_rfconfig(astrodev_handle &handle)
 {
 	int32_t iretn;
 
-	handle->frame.header.command = ASTRODEV_RFCONFIG;
-	handle->frame.header.size = 0;
+    handle.frame.header.command = ASTRODEV_RFCONFIG;
+    handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
 		return (iretn);
 	if ((iretn = astrodev_recvframe(handle)) < 0)
@@ -326,12 +326,12 @@ int32_t astrodev_rfconfig(astrodev_handle *handle)
 	return 0;
 }
 
-int32_t astrodev_firmwarerev(astrodev_handle *handle)
+int32_t astrodev_firmwarerev(astrodev_handle &handle)
 {
 	int32_t iretn;
 
-	handle->frame.header.command = ASTRODEV_FIRMWAREREV;
-	handle->frame.header.size = 0;
+    handle.frame.header.command = ASTRODEV_FIRMWAREREV;
+    handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
 		return (iretn);
 	if ((iretn = astrodev_recvframe(handle)) < 0)
@@ -340,12 +340,12 @@ int32_t astrodev_firmwarerev(astrodev_handle *handle)
 	return 0;
 }
 
-int32_t astrodev_telemetry(astrodev_handle *handle)
+int32_t astrodev_telemetry(astrodev_handle &handle)
 {
 	int32_t iretn;
 
-	handle->frame.header.command = ASTRODEV_TELEMETRY;
-	handle->frame.header.size = 0;
+    handle.frame.header.command = ASTRODEV_TELEMETRY;
+    handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
 		return (iretn);
 	if ((iretn = astrodev_recvframe(handle)) < 0)
@@ -354,12 +354,12 @@ int32_t astrodev_telemetry(astrodev_handle *handle)
 	return 0;
 }
 
-int32_t astrodev_settcvconfig(astrodev_handle *handle)
+int32_t astrodev_settcvconfig(astrodev_handle &handle)
 {
 	int32_t iretn;
 
-	handle->frame.header.command = ASTRODEV_SETTCVCONFIG;
-	handle->frame.header.size = sizeof(astrodev_tcv_config);
+    handle.frame.header.command = ASTRODEV_SETTCVCONFIG;
+    handle.frame.header.size = sizeof(astrodev_tcv_config);
 	if ((iretn = astrodev_sendframe(handle)) < 0)
 		return (iretn);
 	if ((iretn = astrodev_recvframe(handle)) < 0)
@@ -368,12 +368,12 @@ int32_t astrodev_settcvconfig(astrodev_handle *handle)
 	return 0;
 }
 
-int32_t astrodev_receive(astrodev_handle *handle, uint8_t *data, uint16_t size)
+int32_t astrodev_receive(astrodev_handle &handle, uint8_t *data, uint16_t size)
 {
 	int32_t iretn;
 
-	handle->frame.header.command = ASTRODEV_RECEIVE;
-	handle->frame.header.size = 0;
+    handle.frame.header.command = ASTRODEV_RECEIVE;
+    handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
 		return (iretn);
 	if ((iretn = astrodev_recvframe(handle)) < 0)
@@ -383,11 +383,11 @@ int32_t astrodev_receive(astrodev_handle *handle, uint8_t *data, uint16_t size)
 	return 0;
 }
 
-int32_t astrodev_transmit(astrodev_handle *handle, uint8_t *data, uint16_t size)
+int32_t astrodev_transmit(astrodev_handle &handle, uint8_t *data, uint16_t size)
 {
 	int32_t iretn;
 
-	handle->frame.header.command = ASTRODEV_TRANSMIT;
+    handle.frame.header.command = ASTRODEV_TRANSMIT;
 	astrodev_loadframe(handle, data, size);
 	if ((iretn = astrodev_sendframe(handle)) < 0)
 		return (iretn);
