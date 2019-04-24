@@ -49,6 +49,11 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     include_directories(${COSMOS_SOURCE}/core/libraries/device/serial)
     add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/serial      ${CMAKE_BINARY_DIR}/libraries/device/serial)
 
+    # -----------------------------------------------
+    # import device ccsds
+    include_directories(${COSMOS_SOURCE}/core/libraries/device/ccsds)
+    add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/ccsds      ${CMAKE_BINARY_DIR}/libraries/device/ccsds)
+
 #    # -----------------------------------------------
 #    # import device vn100
 #    include_directories(${COSMOS_SOURCE}/core/libraries/device/vn100)
