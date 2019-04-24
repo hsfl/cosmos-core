@@ -37,13 +37,11 @@ namespace Cosmos {
     namespace Protocols {
         namespace Ccsds {
 
-            static uint8_t sync_marker[4] = {0x35, 0x2E, 0xF8, 0x53};
-
             class Spp
             {
             public:
-                Spp(uint16_t apid, bool telecommand, bool secondary_header, uint8_t version=0);
-                ~Spp();
+                Spp(uint16_t apid=0, bool telecommand=(bool)PacketType::Telemetry, bool secondary_header=false, uint8_t version=0);
+//                ~Spp();
 
 
                 enum class PacketType : uint8_t
@@ -58,6 +56,18 @@ namespace Cosmos {
                     FirstSegment,
                     LastSegment,
                     UnSegmented
+                    };
+
+                enum class PacketStage : uint16_t
+                    {
+                    Start,
+                    HeaderByte0,
+                    HeaderByte1,
+                    HeaderByte2,
+                    HeaderByte3,
+                    HeaderByte4,
+                    HeaderByte5,
+                    DataBytes
                     };
 
                 int32_t setHeaderByte(uint8_t number, uint8_t value);
@@ -78,21 +88,26 @@ namespace Cosmos {
                 uint16_t getSequenceCount();
                 uint32_t getDataLength();
 
+                int32_t clearPacket();
                 int32_t clearHeaderBytes();
                 int32_t clearDataBytes();
                 int32_t getDataBytes(vector <uint8_t> &dbytes);
+                int32_t addByte(uint8_t dbyte);
                 int32_t addDataByte(uint8_t dbyte);
                 int32_t setDataBytes(vector <uint8_t> &dbytes);
 
                 struct primary_header
                 {
-                    unsigned version : 3;
-                    unsigned type : 1;
+                    unsigned apid_msb : 3;
                     unsigned secondary_header_flag : 1;
-                    unsigned apid : 11;
+                    unsigned type : 1;
+                    unsigned version : 3;
+                    unsigned apid_lsb : 8;
+                    unsigned sequence_count_msb : 6;
                     unsigned sequence_flags : 2;
-                    unsigned sequence_count : 14;
-                    uint16_t data_length;
+                    unsigned sequence_count_lsb : 8;
+                    unsigned data_length_msb : 8;
+                    unsigned data_length_lsb : 8;
                 };
 
                 struct packet
@@ -108,7 +123,7 @@ namespace Cosmos {
             protected:
                 packet frame;
                 int32_t error;
-
+                PacketStage stage=PacketStage::Start;
             };
         }
     }

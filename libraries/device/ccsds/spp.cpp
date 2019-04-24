@@ -37,7 +37,8 @@ namespace Cosmos {
             Spp::Spp(uint16_t apid, bool telecommand, bool secondary_header, uint8_t version)
             {
                 frame.primary_header_fields.version = version;
-                frame.primary_header_fields.apid = apid;
+                frame.primary_header_fields.apid_msb = apid % 16;
+                frame.primary_header_fields.apid_lsb = apid / 16;
                 if (telecommand)
                 {
                     frame.primary_header_fields.type = 1;
@@ -83,7 +84,8 @@ namespace Cosmos {
             {
                 if (apid < 2048)
                 {
-                    frame.primary_header_fields.apid = apid;
+                    frame.primary_header_fields.apid_msb = apid % 16;
+                    frame.primary_header_fields.apid_lsb = apid / 16;
                     return 0;
                 }
                 else
@@ -94,7 +96,8 @@ namespace Cosmos {
 
             int32_t Spp::setApidIdle()
             {
-                frame.primary_header_fields.apid = 2047;
+                frame.primary_header_fields.apid_msb = 255;
+                frame.primary_header_fields.apid_msb = 7;
                 return 0;
             }
 
@@ -128,7 +131,8 @@ namespace Cosmos {
             {
                 if (count < 16384)
                 {
-                    frame.primary_header_fields.sequence_count = count;
+                    frame.primary_header_fields.sequence_count_lsb = count % 16;
+                    frame.primary_header_fields.sequence_count_msb = count / 16;
                     return 0;
                 }
                 else
@@ -154,7 +158,9 @@ namespace Cosmos {
             {
                 if (length < 65537 && length > 0)
                 {
-                    frame.primary_header_fields.data_length = length - 1;
+                    length--;
+                    frame.primary_header_fields.data_length_lsb = length % 256;
+                    frame.primary_header_fields.data_length_msb = length / 256;
                     return 0;
                 }
                 else
@@ -170,7 +176,7 @@ namespace Cosmos {
 
             uint16_t Spp::getApid()
             {
-                return frame.primary_header_fields.apid;
+                return 16 * frame.primary_header_fields.apid_lsb + frame.primary_header_fields.apid_msb;
             }
 
             Spp::PacketType Spp::getType()
@@ -190,18 +196,56 @@ namespace Cosmos {
 
             uint16_t Spp::getSequenceCount()
             {
-                return frame.primary_header_fields.sequence_count;
+                return frame.primary_header_fields.sequence_count_msb * 16 + frame.primary_header_fields.sequence_count_lsb;
             }
 
             uint32_t Spp::getDataLength()
             {
-                return frame.primary_header_fields.data_length + 1;
+                return frame.primary_header_fields.data_length_msb * 256L + frame.primary_header_fields.data_length_lsb + 1;
+            }
+
+            int32_t Spp::clearPacket()
+            {
+                stage = PacketStage::Start;
+                frame.data_bytes.clear();
+                return 0;
             }
 
             int32_t Spp::clearDataBytes()
             {
                 frame.data_bytes.clear();
                 return 0;
+            }
+
+            int32_t Spp::addByte(uint8_t byte)
+            {
+                switch (stage)
+                {
+                case PacketStage::Start:
+                case PacketStage::HeaderByte0:
+                case PacketStage::HeaderByte1:
+                case PacketStage::HeaderByte2:
+                case PacketStage::HeaderByte3:
+                case PacketStage::HeaderByte4:
+                    frame.primary_header_bytes[static_cast<uint16_t>(stage)] = byte;
+                    stage = static_cast<PacketStage>(static_cast<uint16_t>(stage) + 1);
+                    return static_cast<int32_t>(stage);
+                case PacketStage::HeaderByte5:
+                    frame.data_bytes.push_back(byte);
+                    stage = PacketStage::DataBytes;
+                    return static_cast<int32_t>(stage);
+                case PacketStage::DataBytes:
+                    if (frame.data_bytes.size() < 65536)
+                    {
+                        frame.data_bytes.push_back(byte);
+                        return static_cast<int32_t>(stage);
+                    }
+                    else
+                    {
+                        return GENERAL_ERROR_OVERSIZE;
+                    }
+                }
+                return GENERAL_ERROR_UNDEFINED;
             }
 
             int32_t Spp::addDataByte(uint8_t dbyte)
