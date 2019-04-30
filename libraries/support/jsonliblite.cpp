@@ -77,6 +77,265 @@ vector <string> port_type_string
 //! \addtogroup jsonlib_functions JSON functions
 //! @{
 
+const char * cosmoshandler::json_beat_out(string &jstring)
+{
+	jstring.clear();
+	
+	if ((iretn=json_out_character(jstring,'{')) != 0)
+        return (iretn);
+	
+	for (auto entry: candle->beats)		//for every entry
+	{
+		if (entry != NULL)
+		{//cyt: add in fail case?
+			json_out_entry(jstring, entry); 	//write name,value pairs to the string
+		}
+	}
+	
+	if ((iretn=json_out_character(jstring,'}')) != 0)
+        return (iretn);
+	
+	return jstring.data();
+}
+
+int32_t json_out_entry(string &jstring, handlerstruc entry)
+{
+	int32_t iretn;
+	
+	if ((iretn=json_out_character(jstring,'{')) != 0)
+        return (iretn);
+	
+	if ((iretn=json_out_name(jstring, entry.name)) != 0)
+        return (iretn);
+	
+    switch(entry.type){
+		case 1:
+			json_out_int8(jstring, entry.value);
+			break;
+		case 2:
+			json_out_int16(jstring, entry.value);
+			break;
+		case 3:
+			json_out_int32(jstring, entry.value);
+			break;
+		case 4:
+			json_out_uint8(jstring, entry.value);
+			break;
+		case 5:
+			json_out_uint16(jstring, entry.value);
+			break;
+		case 6:
+			json_out_uint32(jstring, entry.value);
+			break;
+		case 7: 
+			json_out_float(jstring, entry.value);
+			break;
+		case 8:
+			json_out_double(jstring, entry.value);
+			break;
+		// case 9: 
+			// json_out_string(jstring, entry.value);
+			// break;
+		case 10:
+			json_out_rvector(jstring, entry.value);
+			break;
+	}
+
+	if ((iretn=json_out_character(jstring,'}')) != 0)
+        return (iretn);
+	
+    return (iretn);
+}
+
+//! Signed 8 bit integer to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 8 bit signed integer.
+    \param jstring Reference to JSON stream.
+    \param value The void cast pointer to the signed 8 bit integer
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_int8(string &jstring, void* value)
+{
+	int32_t iretn;
+	char tstring[15];
+	int8_t * target;
+	
+	target=static_cast<int8_t*>(value);
+	
+	sprintf(tstring,"%hd",*target);
+	
+	iretn = json_append(jstring,tstring));
+	return (iretn);	
+}
+
+//! Signed 16 bit integer to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 16 bit signed integer.
+    \param jstring Reference to JSON stream.
+    \param value The void cast pointer to the signed 16 bit integer
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_int16(string &jstring, void* value)
+{
+	int32_t iretn;
+	char tstring[15];
+	int16_t * target;
+	
+	target=static_cast<int16_t*>(value);
+	
+	sprintf(tstring,"%d",*target);
+	
+	iretn = json_append(jstring,tstring));
+	return (iretn);	
+}
+
+//! Signed 32 bit integer to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 32 bit signed integer.
+    \param jstring Reference to JSON stream.
+    \param value The void cast pointer to the signed 32 bit integer
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_int32(string &jstring, void* value)
+{
+	int32_t iretn;
+	char tstring[15];
+	int32_t * target;
+	
+	target=static_cast<int32_t*>(value);
+	
+	sprintf(tstring,"%d",*target);
+	
+	iretn = json_append(jstring,tstring));
+	return (iretn);	
+}
+
+//! Unsigned 8 bit integer to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 8 bit unsigned integer.
+    \param jstring Reference to JSON stream.
+    \param value The void cast pointer to the unsigned 8 bit integer
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_uint8(string &jstring, void* value)
+
+{
+	int32_t iretn;
+	char tstring[15];
+	uint8_t * target;
+	
+	target=static_cast<uint8_t*>(value);
+	
+	sprintf(tstring,"%hu",*target);
+	
+	iretn = json_append(jstring,tstring));
+	return (iretn);	
+}
+
+//! Unsigned 16 bit integer to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 16 bit unsigned integer.
+    \param jstring Reference to JSON stream.
+    \param value The void cast pointer to the unsigned 16 bit integer
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_uint16(string &jstring, void* value)
+{
+	int32_t iretn;
+	char tstring[15];
+	uint16_t * target;
+	
+	target=static_cast<uint16_t*>(value);
+	
+	sprintf(tstring,"%u",*target);
+	
+	iretn = json_append(jstring,tstring));
+	return (iretn);	
+}
+
+//! Unsigned 32 bit integer to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 32 bit unsigned integer.
+    \param jstring Reference to JSON stream.
+    \param value The void cast pointer to the unsigned 32 bit integer
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_uint32(string &jstring, void* value)
+{
+	int32_t iretn;
+	char tstring[15];
+	uint32_t * target;
+	
+	target=static_cast<uint32_t*>(value);
+	
+	sprintf(tstring,"%u",*target);
+	
+	iretn = json_append(jstring,tstring));
+	return (iretn);	
+}
+
+//! Single precision floating vertex32_t to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated float.
+    \param jstring Reference to JSON stream.
+    \param value The void cast pointer to the JSON data
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_float(string &jstring, void* value)
+{
+    int32_t iretn = 0;
+    char tstring[15];
+	float target;
+
+	target = static_cast<float*>(value);
+	
+    if (!isfinite(*target)) 
+    {
+        *target = 0.0;
+    }
+
+    sprintf(tstring,"%.8g",*target);
+    iretn = json_append(jstring,tstring);
+    return (iretn);
+}
+
+//! Perform JSON output for a single nonindexed double
+/*! Appends a JSON entry to the current JSON stream for the indicated double.
+    \param jstring Reference to JSON stream.
+    \param value The void cast pointer to the JSON data
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_double(string &jstring, void* value)
+{
+    int32_t iretn = 0;
+    char tstring[30];
+	double* target;
+
+	target = static_cast<double*>(value);
+	
+    if (!isfinite(*target))  
+    {
+        *target=0.0;
+    }
+
+    sprintf(tstring,"%.17g",*target);
+    iretn = json_append(jstring,tstring);
+
+    return (iretn);
+}
+
+// int32_t json_out_string(string &jstring, void* value)
+// {
+	// int32_t iretn;
+	// string * target;
+	
+	// iretn = json_out_string(jstring, *target, COSMOS_MAX_NAME);
+// }
+int32_t json_out_rvector(string &jstring, void* value)
+{
+	int32_t iretn;
+	rvector* target;
+	
+	target = static_cast<rvector*>(value);
+	
+	iretn = json_out_rvector(jstring, *target);
+	return (iretn);
+	
+}
+
 //! Initialize JSON pointer map
 /*! Create a ::cosmosclass and use it to assign storage for each of the groups and entries
  * for each of the non Node based elements to the JSON Name Map.
@@ -876,178 +1135,178 @@ int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t typ
     \param cdata Reference to ::cosmosdatastruc to use.
  * \return Zero or negative error.
 */
-int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosclass *cinfo)
-{
-    int32_t iretn = 0;
+// int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosclass *cinfo)
+// {
+    // int32_t iretn = 0;
 
-    switch (type)
-    {
-    case JSON_TYPE_UINT8:
-        if ((iretn=json_out_uint8(jstring,*(uint8_t *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_UINT16:
-        if ((iretn=json_out_uint16(jstring,*(uint16_t *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_UINT32:
-        if ((iretn=json_out_uint32(jstring,*(uint32_t *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_INT8:
-        if ((iretn=json_out_int8(jstring,*(int8_t *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_INT16:
-        if ((iretn=json_out_int16(jstring,*(int16_t *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_INT32:
-        if ((iretn=json_out_int32(jstring,*(int32_t *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_FLOAT:
-        if ((iretn=json_out_float(jstring,*(float *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_DOUBLE:
-    case JSON_TYPE_TIMESTAMP:
-        if ((iretn=json_out_double(jstring,*(double *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_STRING:
-        if ((iretn=json_out_string(jstring,(char *)data,COSMOS_MAX_DATA)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_NAME:
-        if ((iretn=json_out_string(jstring,(char *)data,COSMOS_MAX_NAME)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_VECTOR:
-        if ((iretn=json_out_vector(jstring,*(Vector *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_GVECTOR:
-        if ((iretn=json_out_gvector(jstring,*(gvector *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_CVECTOR:
-        if ((iretn=json_out_cvector(jstring,*(cvector *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_AVECTOR:
-        if ((iretn=json_out_avector(jstring,*(avector *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_QUATERNION:
-        if ((iretn=json_out_quaternion(jstring,*(quaternion *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_RMATRIX:
-        if ((iretn=json_out_rmatrix(jstring,*(rmatrix *)data)) != 0)
-            return (iretn);
-        break;
-        //    case JSON_TYPE_DCM:
-        //        if ((iretn=json_out_dcm(jstring,*(rmatrix *)data)) != 0)
-        //            return (iretn);
-        //        break;
-    case JSON_TYPE_RVECTOR:
-        //    case JSON_TYPE_TVECTOR:
-        if ((iretn=json_out_rvector(jstring,*(rvector *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_GEOIDPOS:
-    case JSON_TYPE_POS_SELG:
-    case JSON_TYPE_POS_GEOD:
-        if ((iretn=json_out_geoidpos(jstring,*(geoidpos *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_SPHERPOS:
-    case JSON_TYPE_POS_GEOS:
-        if ((iretn=json_out_spherpos(jstring,*(spherpos *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_CARTPOS:
-    case JSON_TYPE_POS_GEOC:
-    case JSON_TYPE_POS_SELC:
-    case JSON_TYPE_POS_ECI:
-    case JSON_TYPE_POS_SCI:
-    case JSON_TYPE_POS_ICRF:
-        if ((iretn=json_out_cartpos(jstring,*(cartpos *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_DCMATT:
-        if ((iretn=json_out_dcmatt(jstring,*(dcmatt *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_QATT:
-    case JSON_TYPE_QATT_TOPO:
-    case JSON_TYPE_QATT_GEOC:
-    case JSON_TYPE_QATT_LVLH:
-    case JSON_TYPE_QATT_ICRF:
-    case JSON_TYPE_QATT_SELC:
-        if ((iretn=json_out_qatt(jstring,*(qatt *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_HBEAT:
-        if ((iretn=json_out_beatstruc(jstring,*(beatstruc *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_LOC_POS:
-        if ((iretn=json_out_posstruc(jstring,*(posstruc *)data)) != 0)
-            return (iretn);
-        break;
-    case JSON_TYPE_LOC_ATT:
-        {
-            if ((iretn=json_out_attstruc(jstring,*(attstruc *)data)) != 0)
-                return (iretn);
-            break;
-        }
-    case JSON_TYPE_LOCSTRUC:
-        {
-            if ((iretn=json_out_locstruc(jstring,*(locstruc *)data)) != 0)
-                return (iretn);
-            break;
-        }
-    case JSON_TYPE_ALIAS:
-        {
-            aliasstruc *aptr = (aliasstruc *)data;
-            switch (aptr->type)
-            {
-            case JSON_TYPE_EQUATION:
-                {
-                    jsonequation *eptr = &cinfo->emap[aptr->handle.hash][aptr->handle.index];
-                    if ((iretn=json_out_double(jstring, json_equation(eptr, cinfo))) != 0)
-                    {
-                        return iretn;
-                    }
-                }
-                break;
-            default:
-                {
-                    jsonentry *eptr = &cinfo->jmap[aptr->handle.hash][aptr->handle.index];
-                    if ((iretn=json_out_type(jstring, eptr->data.data(), eptr->type, cinfo)) != 0)
-                    {
-                        return iretn;
-                    }
-                }
-                break;
-            }
-            break;
-        }
-    case JSON_TYPE_EQUATION:
-        {
-            const char *ptr = (char *)data;
-            if ((iretn=json_out_double(jstring, json_equation(ptr, cinfo))) != 0)
-            {
-                return iretn;
-            }
-            break;
-        }
-    }
+    // switch (type)
+    // {
+    // case JSON_TYPE_UINT8:
+        // if ((iretn=json_out_uint8(jstring,*(uint8_t *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_UINT16:
+        // if ((iretn=json_out_uint16(jstring,*(uint16_t *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_UINT32:
+        // if ((iretn=json_out_uint32(jstring,*(uint32_t *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_INT8:
+        // if ((iretn=json_out_int8(jstring,*(int8_t *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_INT16:
+        // if ((iretn=json_out_int16(jstring,*(int16_t *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_INT32:
+        // if ((iretn=json_out_int32(jstring,*(int32_t *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_FLOAT:
+        // if ((iretn=json_out_float(jstring,*(float *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_DOUBLE:
+    // case JSON_TYPE_TIMESTAMP:
+        // if ((iretn=json_out_double(jstring,*(double *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_STRING:
+        // if ((iretn=json_out_string(jstring,(char *)data,COSMOS_MAX_DATA)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_NAME:
+        // if ((iretn=json_out_string(jstring,(char *)data,COSMOS_MAX_NAME)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_VECTOR:
+        // if ((iretn=json_out_vector(jstring,*(Vector *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_GVECTOR:
+        // if ((iretn=json_out_gvector(jstring,*(gvector *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_CVECTOR:
+        // if ((iretn=json_out_cvector(jstring,*(cvector *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_AVECTOR:
+        // if ((iretn=json_out_avector(jstring,*(avector *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_QUATERNION:
+        // if ((iretn=json_out_quaternion(jstring,*(quaternion *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_RMATRIX:
+        // if ((iretn=json_out_rmatrix(jstring,*(rmatrix *)data)) != 0)
+            // return (iretn);
+        // break;
+        // //    case JSON_TYPE_DCM:
+        // //        if ((iretn=json_out_dcm(jstring,*(rmatrix *)data)) != 0)
+        // //            return (iretn);
+        // //        break;
+    // case JSON_TYPE_RVECTOR:
+        // //    case JSON_TYPE_TVECTOR:
+        // if ((iretn=json_out_rvector(jstring,*(rvector *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_GEOIDPOS:
+    // case JSON_TYPE_POS_SELG:
+    // case JSON_TYPE_POS_GEOD:
+        // if ((iretn=json_out_geoidpos(jstring,*(geoidpos *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_SPHERPOS:
+    // case JSON_TYPE_POS_GEOS:
+        // if ((iretn=json_out_spherpos(jstring,*(spherpos *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_CARTPOS:
+    // case JSON_TYPE_POS_GEOC:
+    // case JSON_TYPE_POS_SELC:
+    // case JSON_TYPE_POS_ECI:
+    // case JSON_TYPE_POS_SCI:
+    // case JSON_TYPE_POS_ICRF:
+        // if ((iretn=json_out_cartpos(jstring,*(cartpos *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_DCMATT:
+        // if ((iretn=json_out_dcmatt(jstring,*(dcmatt *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_QATT:
+    // case JSON_TYPE_QATT_TOPO:
+    // case JSON_TYPE_QATT_GEOC:
+    // case JSON_TYPE_QATT_LVLH:
+    // case JSON_TYPE_QATT_ICRF:
+    // case JSON_TYPE_QATT_SELC:
+        // if ((iretn=json_out_qatt(jstring,*(qatt *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_HBEAT:
+        // if ((iretn=json_out_beatstruc(jstring,*(beatstruc *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_LOC_POS:
+        // if ((iretn=json_out_posstruc(jstring,*(posstruc *)data)) != 0)
+            // return (iretn);
+        // break;
+    // case JSON_TYPE_LOC_ATT:
+        // {
+            // if ((iretn=json_out_attstruc(jstring,*(attstruc *)data)) != 0)
+                // return (iretn);
+            // break;
+        // }
+    // case JSON_TYPE_LOCSTRUC:
+        // {
+            // if ((iretn=json_out_locstruc(jstring,*(locstruc *)data)) != 0)
+                // return (iretn);
+            // break;
+        // }
+    // case JSON_TYPE_ALIAS:
+        // {
+            // aliasstruc *aptr = (aliasstruc *)data;
+            // switch (aptr->type)
+            // {
+            // case JSON_TYPE_EQUATION:
+                // {
+                    // jsonequation *eptr = &cinfo->emap[aptr->handle.hash][aptr->handle.index];
+                    // if ((iretn=json_out_double(jstring, json_equation(eptr, cinfo))) != 0)
+                    // {
+                        // return iretn;
+                    // }
+                // }
+                // break;
+            // default:
+                // {
+                    // jsonentry *eptr = &cinfo->jmap[aptr->handle.hash][aptr->handle.index];
+                    // if ((iretn=json_out_type(jstring, eptr->data.data(), eptr->type, cinfo)) != 0)
+                    // {
+                        // return iretn;
+                    // }
+                // }
+                // break;
+            // }
+            // break;
+        // }
+    // case JSON_TYPE_EQUATION:
+        // {
+            // const char *ptr = (char *)data;
+            // if ((iretn=json_out_double(jstring, json_equation(ptr, cinfo))) != 0)
+            // {
+                // return iretn;
+            // }
+            // break;
+        // }
+    // }
 
-    return (iretn);
-}
+    // return (iretn);
+// }
 
 //! Extend JSON stream
 /*! Append the indicated string to the current JSON stream, extending it if necessary.

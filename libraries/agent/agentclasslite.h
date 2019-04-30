@@ -122,7 +122,7 @@
 #include "support/jsondeflite.h"
 #include "support/sliplib.h"
 #include "support/socketlib.h"
-#include "support/jsonliblite.h"
+#include "support/jsonliblite2.h"
 #include "support/elapsedtime.h"
 #include "device/cpu/devicecpu.h"
 
@@ -279,7 +279,7 @@ public:
     uint16_t running();
     int32_t last_error();
     int32_t set_sohstring(string list);
-    cosmosstruc *get_cosmosstruc();		//cyt: change
+    cosmosclass *get_cosmosclass();		//cyt: change
     void get_ip(char* buffer, size_t buflen);
     void get_ip_list(uint16_t port);
     int32_t unpublish();
@@ -301,7 +301,7 @@ public:
 //    locstruc poll_location(float waitsec);
 //    nodestruc poll_info(float waitsec);
 //    imustruc poll_imu(float waitsec);
-    int json_map_agentstruc(agentstruc **agent);
+    int json_map_cosmosagent(cosmosagent **agent);
     vector<socket_channel> find_addresses(NetworkType ntype);
     int32_t shutdown();
     int32_t send(uint8_t address, string message);
@@ -318,7 +318,7 @@ public:
 
     void log(string log_entry);
     bool setSoh(string sohFields);
-    cosmosstruc *cinfo;		//cyt: change
+    cosmosclass *cinfo;
 
     //! List of active agents
     vector <beatstruc> agent_list;

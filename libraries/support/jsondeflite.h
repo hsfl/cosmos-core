@@ -41,6 +41,7 @@
 #include "physics/physicsdef.h"
 #include "support/socketlib.h"
 #include "support/objlib.h"
+#include "support/jsonliblite2.h"
 
 using std::string;
 using std::vector;
@@ -716,9 +717,9 @@ enum PORT_TYPE
  */
 class CosmosBaseClass{
 	public:
-	CosmosBaseClass* parent;		//could potentially remove this... would then need to specify each parent node accordingly  //cannot remove without destroying the concept of "up"
+    //CosmosBaseClass* parent;		//could potentially remove this... would then need to specify each parent node accordingly  //cannot remove without destroying the concept of "up"
 	
-	virtual int32_t set_handler_name(CosmosHandler* handle){std::cout<<"your princess is in another castle\n"; return 0;}	//used after the tree has been finalized(?)
+    virtual int32_t set_handler_name(cosmoshandler* handle){std::cout<<"your princess is in another castle\n"; return 0;}	//used after the tree has been finalized(?)
 	/*format used will mirror current json reporting format. {"node_loc_pos":<value>,"next_data_path":<value>}
 		2 versions: (assuming only programmers with knowledge of namespace will add more links, using first version)
 			- function simply calls recursive function in children, leaves that contain end points (ie float values, rvectors) create the full path name for handler
@@ -728,7 +729,7 @@ class CosmosBaseClass{
 				-pro: programmer only adds new location in created link
 				-con: more steps in functions (at least one per link traveled, O(n))
 	*/
-}
+};
 
 //! JSON unit type entry
 /*! To be used in the ::cosmosclass table of units. Each entry represents
@@ -1685,69 +1686,67 @@ struct bcregstruc : public allstruc
 //! Class for storing all information about a Node that never changes, or only
 //! changes slowly. The information for initializing this should be in node.ini.
 class cosmosnode:CosmosBaseClass{
-	public:	
-	
-    cosmosnode(){
-        cinfo = NULL;
-    }	//Constructor
-	~cosmosnode();	//Deconstructor
-		
-	//parent link
-	cosmosclass * cinfo;
-	
-	//children links
-	
-	//! Node Name.
-	char name[COSMOS_MAX_NAME+1];
-	//! Node Type as listed in \ref NODE_TYPE.
-	uint16_t type;
-	//! Operational state
-	uint16_t state;
+    public:
+
+    cosmosnode();	//Constructor
+    ~cosmosnode();	//Deconstructor
+
+    //parent link
+    cosmosclass* cinfo;
+
+    //children links
+
+    //! Node Name.
+    char name[COSMOS_MAX_NAME+1];
+    //! Node Type as listed in \ref NODE_TYPE.
+    uint16_t type;
+    //! Operational state
+    uint16_t state;
     uint16_t vertex_cnt;
     uint16_t normal_cnt;
     uint16_t face_cnt;
-	uint16_t piece_cnt;
-	uint16_t device_cnt;
-	uint16_t port_cnt;
+    uint16_t piece_cnt;
+    uint16_t device_cnt;
+    uint16_t port_cnt;
     uint16_t agent_cnt;
     uint16_t event_cnt;
-	uint16_t target_cnt;
+    uint16_t target_cnt;
     uint16_t user_cnt;
-	uint16_t glossary_cnt;
+    uint16_t glossary_cnt;
     uint16_t tle_cnt;
-	uint16_t charging;
-	//! Total Heat Capacity
-	float hcap;
-	//! Total Mass
-	float mass;
-	rvector moi;
-	float area;
-	float battcap;
-	float powgen;
-	float powuse;
-	float battlev;
-	//! Alt/Az/Range info
-	float azfrom;
-	float elfrom;
-	float azto;
-	float elto;
-	float range;
-	//! MJD Offset between system UT and simulated UT
-	double utcoffset;
-	//! Overall Node time
-	double utc;
-	//! Mission start time
-	double utcstart;
-	// //! Location structure
-	// locstruc loc;			/cyt: found in convertdef may be needed in test 3
-	
-	int32_t set_handler_name(CosmosHandler* handle);
+    uint16_t charging;
+    //! Total Heat Capacity
+    float hcap;
+    //! Total Mass
+    float mass;
+    rvector moi;
+    float area;
+    float battcap;
+    float powgen;
+    float powuse;
+    float battlev;
+    //! Alt/Az/Range info
+    float azfrom;
+    float elfrom;
+    float azto;
+    float elto;
+    float range;
+    //! MJD Offset between system UT and simulated UT
+    double utcoffset;
+    //! Overall Node time
+    double utc;
+    //! Mission start time
+    double utcstart;
+    // //! Location structure
+    // locstruc loc;			/cyt: found in convertdef may be needed in test 3
+
+//	int32_t set_handler_name(CosmosHandler* handle);
 };
 
-int32_t cosmosnode::set_handler_name(CosmosHandler* handle){
-	
-	return 0;
-}
+//int32_t cosmosnode::set_handler_name(CosmosHandler* handle){
+
+//	return 0;
+//}
 
 //! Device structure
 /*! Complete details of each Device. It is a union of all the
@@ -1982,7 +1981,7 @@ union cosmosdatastrucupointer
     cosmosdatastrucQatt Qatt;
     cosmosdatastrucDcmatt Dcmatt;
     cosmosdatastrucExtraatt Extraatt;
-    cosmosdatastruccosmosnode cosmosnode;
+    //cosmosdatastruccosmosnode cosmosnode;
     cosmosdatastrucVertexstruc Vertexstruc;
     cosmosdatastrucFacestruc Facestruc;
     cosmosdatastrucPiecestruc Piecestruc;
@@ -1990,7 +1989,7 @@ union cosmosdatastrucupointer
     cosmosdatastrucDevspecstruc Devspecstruc;
     cosmosdatastrucPortstruc Portstruc;
     cosmosdatastrucPhysicsstruc Physicsstruc;
-    cosmosdatastrucAgentstruc Agentstruc;
+    //cosmosdatastrucAgentstruc Agentstruc;
     cosmosdatastrucEventstruc Eventstruc;
     cosmosdatastrucTargetstruc Targetstruc;
     cosmosdatastrucUserstruc Userstruc;
@@ -2080,7 +2079,8 @@ class cosmosclass:CosmosBaseClass{
 	public:
 		
     cosmosclass(){
-        this->node->parent = this;
+        this->node = new cosmosnode;
+        this->node->cinfo = &this;
     }		//default minimum Constructor
     //cosmosclass(int type){}  //build predetermined structure   //cyt: TODO, create different structures
     ~cosmosclass();     //Deconstructor
@@ -2137,13 +2137,13 @@ class cosmosclass:CosmosBaseClass{
     // ! JSON descriptive information
     //jsonnode json;
 	
-	int32_t set_handler_name(CosmosHandler* handle);
+//	int32_t set_handler_name(CosmosHandler* handle);
 };
 
-int32_t cosmosclass::set_handler_name(CosmosHandler* handle){  //cyt: req
+//int32_t cosmosclass::set_handler_name(CosmosHandler* handle){  //cyt: req
 	
-	return 0;
-}
+//	return 0;
+//}
 //! @}
 
 #endif

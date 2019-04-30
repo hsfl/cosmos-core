@@ -118,7 +118,17 @@
 using std::numeric_limits;
 using std::string;
 
-enum class HandlerDataType : uint8_t{
+enum class HandlerDataType : uint16_t{
+	INTEIGHT=1,
+	INTSIXTEEN=2,
+	INTTHIRTYTWO=3,
+	UINTEIGHT=4,
+	UINTSIXTEEN=5,
+	UINTTHIRTYTWO=6,
+	FLOAT=7,
+	DOUBLE=8,
+	// STRING=9,
+	RVECTOR=10
 	
 };
 
@@ -134,8 +144,8 @@ class cosmoshandler{
 	vector<handlerstruc> entries;
     vector<handlerstruc> beats;
 	
-	int32_t json_out();		//cyt: use case:switch to call json_out with correct pointer type
-	int32_t json_beat_out();//cyt: use to create beat or use to set a vector that contains the beat entries
+	const char * json_out(string &jstring);		//cyt: use case:switch to call json_out with correct pointer type
+	const char * json_beat_out(string &jstring);//cyt: use to create beat or use to set a vector that contains the beat entries
 	
 	
 };
@@ -151,7 +161,7 @@ int32_t json_clone(cosmosclass *cinfo1, cosmosclass *cinfo2);
 int32_t json_repoint(cosmosclass *cinfo);
 void json_destroy(cosmosclass *cinfo);
 //int32_t json_pushdevspec(uint16_t cidx, cosmosclass *cinfo);
-/*      //cyt: section built on jsonnode/jsonentries
+      //cyt: section built on jsonnode/jsonentries
 //uint16_t json_addequation(const char *text, cosmosclass *cinfo, uint16_t unit);
 int32_t json_addpiece(cosmosclass *cinfo, string name, uint16_t type=PIECE_TYPE_DIMENSIONLESS, uint16_t cidx=UINT16_MAX, double emi=.8, double abs=.88, double hcap=800., double hcon=237., double density=1000.);
 int32_t json_addentry(string name, string value, cosmosclass *cinfo);
@@ -185,9 +195,21 @@ jsonentry *json_entry_of(jsonhandle handle, cosmosclass *cinfo);
 jsonequation *json_equation_of(jsonhandle handle, cosmosclass *cinfo);
 int32_t json_table_of_list(vector<jsonentry*> &entry, string tokens, cosmosclass *cinfo);
 uint16_t json_type_of_name(string token, cosmosclass *cinfo);
-*/
+
 //cyt: need a json_table_of_list?
 int32_t json_append(string &jstring, const char *tstring);
+
+int32_t json_out_entry(string &jstring, handlerstruc entry);
+int32_t json_out_int8(string &jstring, void* value);
+int32_t json_out_int16(string &jstring, void* value);
+int32_t json_out_int32(string &jstring, void* value);
+int32_t json_out_uint8(string &jstring, void* value);
+int32_t json_out_uint16(string &jstring, void* value);
+int32_t json_out_uint32(string &jstring, void* value);
+int32_t json_out_float(string &jstring, void* value);
+int32_t json_out_double(string &jstring, void* value);
+// int32_t json_out_string(string &jstring, void* value);
+int32_t json_out_rvector(string &jstring, void* value);
 
 int32_t json_out_value(string &jstring, string name, uint8_t *data, uint16_t type, cosmosclass *cinfo);
 int32_t json_out_handle(string &jstring, jsonhandle handle,cosmosclass *cinfo);
@@ -198,7 +220,7 @@ int32_t json_out_1d(string &jstring, const char *token, uint16_t col, cosmosclas
 int32_t json_out_2d(string &jstring,const char *token, uint16_t row, uint16_t col,cosmosclass *cinfo);
 int32_t json_out_name(string &jstring, string name);
 int32_t json_out_character(string &jstring,char character);
-int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosclass *cinfo);
+//int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosclass *cinfo);
 int32_t json_out_int8(string &jstring,int8_t value);
 int32_t json_out_int16(string &jstring,int16_t value);
 int32_t json_out_int32(string &jstring,int32_t value);

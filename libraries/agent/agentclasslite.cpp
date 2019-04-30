@@ -705,11 +705,11 @@ namespace Cosmos {
         return 0;
     }
 
-    //! Return Agent ::cosmosstruc
-    /*! Return a pointer to the Agent's internal copy of the ::cosmosstruc.
-    \return A pointer to the ::cosmosstruc, otherwise NULL.
+    //! Return Agent ::cosmosclass
+    /*! Return a pointer to the Agent's internal copy of the ::cosmosclass.
+    \return A pointer to the ::cosmosclass, otherwise NULL.
 */
-    cosmosstruc *Agent::get_cosmosstruc()
+    cosmosclass *Agent::get_cosmosclass()
     {
         return (cinfo);
     }
@@ -734,7 +734,7 @@ namespace Cosmos {
             cinfo->agent[0]->beat.utc = currentmjd(0.);
             if ((Agent::State)(cinfo->agent[0]->stateflag) != Agent::State::IDLE && !sohtable.empty())
             {
-                Agent::post(Agent::AgentMessage::BEAT, json_of_table(hbjstring, sohtable, (cosmosstruc *)cinfo));
+                Agent::post(Agent::AgentMessage::BEAT, json_of_table(hbjstring, sohtable, (cosmosclass *)cinfo));
             }
             else
             {
@@ -2241,14 +2241,14 @@ namespace Cosmos {
     //! Listen for Beacon
     /*! Poll the subscription channel until you receive a info message, or the timer runs out.
     \param waitsec Number of seconds to wait before timing out.
-    \return ::nodestruc with acquired info. The UTC will be set to 0 if no info was
+    \return ::cosmosnode with acquired info. The UTC will be set to 0 if no info was
     acquired.
 */
-    //    nodestruc Agent::poll_info(float waitsec)
+    //    cosmosnode Agent::poll_info(float waitsec)
     //    {
     //        int32_t iretn;
     //        //summarystruc info;
-    //        nodestruc info;
+    //        cosmosnode info;
     //        messstruc mess;
 
     //		iretn = Agent::poll(mess, Agent::AgentMessage::TRACK, waitsec);
