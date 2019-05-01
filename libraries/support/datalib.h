@@ -113,8 +113,8 @@ void log_write(string node, string agent, double utc, string extra, string type,
 void log_write(string node, string agent, string location, double utc, string extra, string type, string record);
 void log_move(string node, string agent, string srclocation, string dstlocation, bool compress);
 void log_move(string node, string agent);
-int check_events(eventstruc* events, int max, cosmosstruc* data);
-int32_t data_get_nodes(std::vector<cosmosstruc> &data);
+int check_events(eventstruc* events, int max, CosmosClass* data);
+int32_t data_get_nodes(std::vector<CosmosClass> &data);
 std::vector<string> data_list_nodes();
 int32_t data_list_nodes(std::vector<string>& nodes);
 std::vector<filestruc> data_list_files(string node, string location, string agent);
@@ -158,10 +158,10 @@ string get_cosmosnodes(bool create_flag=false);
 string get_nodedir(string node, bool create_flag=false);
 int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, std::vector<string> &result);
 int32_t data_load_archive(string node, string agent, double mjd, string type, std::vector<string> &result);
-int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<string> &event, cosmosstruc* root);
+int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<string> &event, CosmosClass* root);
 double findlastday(string node);
 double findfirstday(string node);
-int32_t kml_write(cosmosstruc* cinfo);
+int32_t kml_write(CosmosClass* cinfo);
 
 //! @}
 

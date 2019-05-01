@@ -49,7 +49,7 @@ set (COSMOS_CORE_SOURCE ${CMAKE_SOURCE_DIR})
 
 # define what libraries you want to compile
 set(BUILD_COSMOS_CORE_AGENT                ON)          #ON/OFF
-set(BUILD_COSMOS_CORE_PHYSICS              ON)          #ON/OFF
+set(BUILD_COSMOS_CORE_PHYSICS              OFF)          #ON/OFF
 set(BUILD_COSMOS_CORE_MATH                 ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_SUPPORT              ON)          #ON/OFF
 set(BUILD_COSMOS_CORE_DEVICES              ON)          #ON/OFF

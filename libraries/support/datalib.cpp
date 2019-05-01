@@ -38,7 +38,7 @@
 //! \defgroup datalib_statics Static variables for Data functions.
 //! @{
 
-//static std::vector<cosmosstruc> nodes;
+//static std::vector<CosmosClass> nodes;
 
 //! Path to COSMOS root directory
 string cosmosroot;
@@ -515,18 +515,18 @@ int32_t data_list_nodes(std::vector<string>& nodes)
 }
 
 //! Get vector of Node structures.
-/*! Scan the COSMOS root directory and return a ::cosmosstruc for each
+/*! Scan the COSMOS root directory and return a ::CosmosClass for each
  * Node that is found.
- * \param node Vector of ::cosmosstruc for each Node.
+ * \param node Vector of ::CosmosClass for each Node.
  * \return Zero or negative error.
  */
-int32_t data_get_nodes(std::vector<cosmosstruc> &node)
+int32_t data_get_nodes(std::vector<CosmosClass> &node)
 {
     DIR *jdp;
     string dtemp;
     string rootd;
     struct dirent *td;
-    cosmosstruc *tnode;
+    CosmosClass *tnode;
 
     int32_t iretn = get_cosmosnodes(rootd);
     if (iretn < 0)
@@ -1544,7 +1544,7 @@ int32_t data_load_archive(string node, string agent, double mjd, string type, st
     return iretn;
 }
 
-int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<string> &event, cosmosstruc *cinfo)
+int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<string> &event, CosmosClass *cinfo)
 {
     int32_t iretn;
 
@@ -1709,10 +1709,10 @@ double findfirstday(string name)
 //! Add to KML path
 /*! Write a KML file to keep track of the path the node is following. Create the file if it doesn't alreay exist.
              * Append to it if it already exists.
-             \param cinfo Pointer to ::cosmosstruc to use.
+             \param cinfo Pointer to ::CosmosClass to use.
              \return 0, otherwise negative error.
             */
-int32_t kml_write(cosmosstruc *cinfo)
+int32_t kml_write(CosmosClass *cinfo)
 {
     char buf[500];
     FILE *fin, *fout;

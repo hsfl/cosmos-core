@@ -177,7 +177,7 @@ public:
 
 	// JIMNOTE: this function (condition_true)  needs a look at....
 	// OLDNOTE: seems to return nan from json_equation...  how to use?
-    bool condition_true(cosmosstruc *cinfo);
+    bool condition_true(CosmosClass *cinfo);
 
 	///	Extraction operator
 	/**

@@ -53,7 +53,7 @@
 
 #include "support/configCosmos.h"
 
-#include "math/mathlib.h"       //for rvector/uvector/cvector?
+//#include "math/mathlib.h"
 
 #ifdef COSMOS_WIN_BUILD_MSVC
 #include "support/timeutils.h"
@@ -148,8 +148,8 @@ double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
 // utc to another format
 struct timeval utc2unix(double utc);
 double utc2epsilon(double mjd);
-double utc2depsilon(double mjd);
-double utc2dpsi(double mjd);
+//double utc2depsilon(double mjd);
+//double utc2dpsi(double mjd);
 double utc2L(double mjd);
 double utc2Lp(double mjd);
 double utc2F(double mjd);
@@ -167,7 +167,7 @@ double utc2tdb(double mjd);
 double utc2gmst1982(double mjd);
 double utc2gmst2000(double mjd);
 double utc2gast(double mjd);
-rvector utc2nuts(double mjd);
+//rvector utc2nuts(double mjd);
 double utc2theta(double mjd);
 double utc2jcentt(double mjd);
 double utc2jcenut1(double mjd);
@@ -199,7 +199,7 @@ double unix2utc(double unixtime);
 double  tt2utc(double mjd);
 double  tt2tdb(double mjd);
 double  julcen(double mjd);
-cvector polar_motion(double mjd);
+//cvector polar_motion(double mjd);
 int32_t leap_seconds(double mjd);
 double  ranrm(double angle);
 int16_t isleap(int32_t year);

@@ -41,9 +41,11 @@
 #include "physics/physicsdef.h"
 #include "support/socketlib.h"
 #include "support/objlib.h"
+#include "support/jsonlib.h"
 
 using std::string;
 using std::vector;
+//cyt: may need iostream?
 
 //! \ingroup jsonlib
 //! \defgroup jsonlib_type JSON Name Space variable type constants
@@ -139,14 +141,15 @@ enum
 	JSON_UNIT_COUNT
 } ;
 
+//cyt: what is this?
 //! JSON Namelist Group
 enum
 {
     //! Absolute pointer
 	JSON_STRUCT_ABSOLUTE,
-	//! ::nodestruc
+	//! ::cosmosnode
 	JSON_STRUCT_NODE,
-	//! ::agentstruc
+    //! ::cosmosagent
 	JSON_STRUCT_AGENT,
 	//! ::devicestruc
 	JSON_STRUCT_DEVICE,
@@ -286,7 +289,7 @@ enum
 	JSON_TYPE_LOC_ATT,
 	//! JSON ::locstruc type
     JSON_TYPE_LOCSTRUC,
-    JSON_TYPE_NODESTRUC,
+    JSON_TYPE_cosmosnode,
     JSON_TYPE_VERTEXSTRUC,
     JSON_TYPE_FACESTRUC,
     JSON_TYPE_PIECESTRUC,
@@ -439,24 +442,24 @@ enum
 #define JSON_MAX_HASH (COSMOS_MAX_NAME*37)
 //! Maximum JSON buffer
 #define JSTRINGMAXBUFFER (AGENTMAXBUFFER-2)
-//! Maximum number of ::cosmosstruc elements
-#define MAX_COSMOSSTRUC 20
+//! Maximum number of ::CosmosClass elements
+#define MAX_CosmosClass 20
 
-//! Entire ::cosmosstruc
+//! Entire ::CosmosClass
 //#define JSON_MAP_ALL 0
-////! ::agentstruc part of ::cosmosstruc
+////! ::cosmosagent part of ::CosmosClass
 //#define JSON_MAP_AGENT 1
-////! ::beaconstruc part of ::cosmosstruc
+////! ::beaconstruc part of ::CosmosClass
 //#define JSON_MAP_BEACON 2
-////! ::nodestruc part of ::cosmosstruc
+////! ::cosmosnode part of ::CosmosClass
 //#define JSON_MAP_NODESTATIC 3
-////! ::nodestruc part of ::cosmosstruc
+////! ::cosmosnode part of ::CosmosClass
 //#define JSON_MAP_NODEDYNAMIC 4
-////! ::eventstruc part of ::cosmosstruc
+////! ::eventstruc part of ::CosmosClass
 //#define JSON_MAP_EVENT 5
-////! ::cosmosstruc_s part of ::cosmosstruc
+////! ::CosmosClass_s part of ::CosmosClass
 //#define JSON_MAP_STATIC 7
-////! ::cosmosstruc_d part of ::cosmosstruc
+////! ::CosmosClass_d part of ::CosmosClass
 //#define JSON_MAP_DYNAMIC 8
 
 //! Maximum AGENT transfer buffer size
@@ -707,8 +710,29 @@ enum PORT_TYPE
 //! \defgroup jsonlib_typedefs JSON typedefs
 //! @{
 
+//! JSON base class used in Namespace 2.0
+/*! To be inherited in by the other classes in the new namespace.
+ * This base class is used to allow for common functions to be used 
+ * by all classes, ie set_handler_name().
+ */
+//class CosmosBaseClass{
+//	public:
+//    //CosmosBaseClass* parent;		//could potentially remove this... would then need to specify each parent node accordingly  //cannot remove without destroying the concept of "up"
+	
+//    virtual int32_t set_handler_name(cosmoshandler* handle){std::cout<<"your princess is in another castle\n"; return 0;}	//used after the tree has been finalized(?)
+//	/*format used will mirror current json reporting format. {"node_loc_pos":<value>,"next_data_path":<value>}
+//		2 versions: (assuming only programmers with knowledge of namespace will add more links, using first version)
+//			- function simply calls recursive function in children, leaves that contain end points (ie float values, rvectors) create the full path name for handler
+//				-pro: less steps per function call
+//				-con: programmer requires knowledge of namespace layout
+//			- function appends current location before recursive call to children
+//				-pro: programmer only adds new location in created link
+//				-con: more steps in functions (at least one per link traveled, O(n))
+//	*/
+//};
+
 //! JSON unit type entry
-/*! To be used in the ::cosmosstruc table of units. Each entry represents
+/*! To be used in the ::CosmosClass table of units. Each entry represents
  * one specific variant of one type of unit. Each entry includes:
  * - a name for the unit
  * - a type for the unit conversion: 0 = identity, 1 = linear, 2 = log
@@ -851,7 +875,7 @@ struct agent_channel
 
 //! Process heartbeat.
 //! Detailed elements of a single heartbeat of a single process.
-struct beatstruc
+struct beatstruc		//cyt : req?
 {
 	// Heartbeat timestamp
 	double utc;
@@ -882,8 +906,15 @@ struct beatstruc
 };
 
 //! Agent control structure
-struct agentstruc
-{
+class cosmosagent{
+	public:	
+	
+    cosmosagent();	//Constructor
+    ~cosmosagent();	//Deconstructor
+	
+	//parent link		//cyt: used in vector by cinfo, not sure if it should have a parent link
+    //CosmosClass* cinfo;
+
     //! Client initialized?
     bool client;
     //! Subscription channel (for Client)
@@ -908,6 +939,8 @@ struct agentstruc
     vector <agent_request_entry> reqs;
     //! Heartbeat
     beatstruc beat;
+	
+	//int32_t set_handler_name(CosmosHandler* handle);			//cyt: also not sure if it's needed
 };
 
 //! Long COSMOS Event structure.
@@ -1649,55 +1682,71 @@ struct bcregstruc : public allstruc
 
 // End of Device Specific structures
 
-//! Node Structure
-//! Structure for storing all information about a Node that never changes, or only
+//! Node Class
+//! Class for storing all information about a Node that never changes, or only
 //! changes slowly. The information for initializing this should be in node.ini.
-struct nodestruc
-{
-	//! Node Name.
-	char name[COSMOS_MAX_NAME+1];
-	//! Node Type as listed in \ref NODE_TYPE.
-	uint16_t type;
-	//! Operational state
-	uint16_t state;
+class cosmosnode{
+    public:
+
+    cosmosnode();	//Constructor
+    ~cosmosnode();	//Deconstructor
+
+    //parent link
+//    CosmosClass* cinfo;
+
+    //children links
+
+    //! Node Name.
+    char name[COSMOS_MAX_NAME+1];
+    //! Node Type as listed in \ref NODE_TYPE.
+    uint16_t type;
+    //! Operational state
+    uint16_t state;
     uint16_t vertex_cnt;
     uint16_t normal_cnt;
     uint16_t face_cnt;
-	uint16_t piece_cnt;
-	uint16_t device_cnt;
-	uint16_t port_cnt;
+    uint16_t piece_cnt;
+    uint16_t device_cnt;
+    uint16_t port_cnt;
     uint16_t agent_cnt;
     uint16_t event_cnt;
-	uint16_t target_cnt;
+    uint16_t target_cnt;
     uint16_t user_cnt;
-	uint16_t glossary_cnt;
+    uint16_t glossary_cnt;
     uint16_t tle_cnt;
-	uint16_t charging;
-	//! Total Heat Capacity
-	float hcap;
-	//! Total Mass
-	float mass;
-	rvector moi;
-	float area;
-	float battcap;
-	float powgen;
-	float powuse;
-	float battlev;
-	//! Alt/Az/Range info
-	float azfrom;
-	float elfrom;
-	float azto;
-	float elto;
-	float range;
-	//! MJD Offset between system UT and simulated UT
-	double utcoffset;
-	//! Overall Node time
-	double utc;
-	//! Mission start time
-	double utcstart;
-	//! Location structure
-	locstruc loc;
+    uint16_t charging;
+    //! Total Heat Capacity
+    float hcap;
+    //! Total Mass
+    float mass;
+    rvector moi;
+    float area;
+    float battcap;
+    float powgen;
+    float powuse;
+    float battlev;
+    //! Alt/Az/Range info
+    float azfrom;
+    float elfrom;
+    float azto;
+    float elto;
+    float range;
+    //! MJD Offset between system UT and simulated UT
+    double utcoffset;
+    //! Overall Node time
+    double utc;
+    //! Mission start time
+    double utcstart;
+    // //! Location structure
+    // locstruc loc;			/cyt: found in convertdef may be needed in test 3
+
+//	int32_t set_handler_name(CosmosHandler* handle);
 };
+
+//int32_t cosmosnode::set_handler_name(CosmosHandler* handle){
+
+//	return 0;
+//}
 
 //! Device structure
 /*! Complete details of each Device. It is a union of all the
@@ -1823,7 +1872,7 @@ struct cosmosdatastruc
     //! Timestamp for last change to data
     double timestamp;
     //! Structure for summary information in node
-    nodestruc node;
+    cosmosnode node;
     //! Vector of all vertexs in node.
     vector <vertexstruc> vertexs;
     //! Vector of all vertexs in node.
@@ -1843,7 +1892,7 @@ struct cosmosdatastruc
     //! Structure for physics modelling.
     physicsstruc physics;
     //! Single entry vector for agent information.
-    vector<agentstruc> agent;
+    vector<cosmosagent> agent;
     //! Single entry vector for event information.
     vector<eventstruc> event;
     //! Vector of all targets known to node.
@@ -1886,7 +1935,7 @@ typedef attstruc (cosmosdatastruc::*cosmosdatastrucAttstruc);
 typedef qatt (cosmosdatastruc::*cosmosdatastrucQatt);
 typedef dcmatt (cosmosdatastruc::*cosmosdatastrucDcmatt);
 typedef extraatt (cosmosdatastruc::*cosmosdatastrucExtraatt);
-typedef nodestruc (cosmosdatastruc::*cosmosdatastrucNodestruc);
+//typedef cosmosnode (cosmosdatastruc::*cosmosdatastruccosmosnode);
 typedef vertexstruc (cosmosdatastruc::*cosmosdatastrucVertexstruc);
 typedef facestruc (cosmosdatastruc::*cosmosdatastrucFacestruc);
 typedef piecestruc (cosmosdatastruc::*cosmosdatastrucPiecestruc);
@@ -1894,7 +1943,7 @@ typedef devicestruc (cosmosdatastruc::*cosmosdatastrucDevicestruc);
 typedef devspecstruc (cosmosdatastruc::*cosmosdatastrucDevspecstruc);
 typedef portstruc (cosmosdatastruc::*cosmosdatastrucPortstruc);
 typedef physicsstruc (cosmosdatastruc::*cosmosdatastrucPhysicsstruc);
-typedef agentstruc (cosmosdatastruc::*cosmosdatastrucAgentstruc);
+//typedef cosmosagent (cosmosdatastruc::*cosmosdatastrucAgentstruc);
 typedef eventstruc (cosmosdatastruc::*cosmosdatastrucEventstruc);
 typedef targetstruc (cosmosdatastruc::*cosmosdatastrucTargetstruc);
 typedef userstruc (cosmosdatastruc::*cosmosdatastrucUserstruc);
@@ -1932,7 +1981,7 @@ union cosmosdatastrucupointer
     cosmosdatastrucQatt Qatt;
     cosmosdatastrucDcmatt Dcmatt;
     cosmosdatastrucExtraatt Extraatt;
-    cosmosdatastrucNodestruc Nodestruc;
+    //cosmosdatastruccosmosnode cosmosnode;
     cosmosdatastrucVertexstruc Vertexstruc;
     cosmosdatastrucFacestruc Facestruc;
     cosmosdatastrucPiecestruc Piecestruc;
@@ -1940,7 +1989,7 @@ union cosmosdatastrucupointer
     cosmosdatastrucDevspecstruc Devspecstruc;
     cosmosdatastrucPortstruc Portstruc;
     cosmosdatastrucPhysicsstruc Physicsstruc;
-    cosmosdatastrucAgentstruc Agentstruc;
+    //cosmosdatastrucAgentstruc Agentstruc;
     cosmosdatastrucEventstruc Eventstruc;
     cosmosdatastrucTargetstruc Targetstruc;
     cosmosdatastrucUserstruc Userstruc;
@@ -1997,6 +2046,80 @@ struct jsonmap
     vector<vector<jsonentry> > entry;
 };
 
+//! JSON Name Space structure
+/*! A structure containing an element for every unique name in the COSMOS Name
+ * Space. The components of this can then be mapped to the Name Space
+ * using calls to ::json_addentry.
+*/
+class CosmosClass{
+    public:
+
+    CosmosClass(){
+        this->node = new cosmosnode;
+    }		//default minimum Constructor
+    //CosmosClass(int type){}  //build predetermined structure   //cyt: TODO, create different structures
+    ~CosmosClass();     //Deconstructor
+
+
+    //! Timestamp for last change to data
+    double timestamp;
+    //! Node name
+    string name;
+    // //! Whether JSON map has been created.
+    // uint16_t jmapped;
+    // //! JSON Namespace Map matrix.
+    // vector<vector<jsonentry> > jmap;
+    // //! JSON Equation Map matrix.
+    // vector<vector<jsonequation> > emap;
+    // //! JSON Unit Map matrix: first level is for type, second level is for variant.
+    vector<vector<unitstruc> > unit;
+    // //! Vector of Equations
+    // vector<equationstruc> equation;
+    // //! Array of Aliases
+    // vector<aliasstruc> alias;
+    //! Structure for summary information in node
+    cosmosnode* node;
+    // //! Vector of all vertexs in node.
+    // vector <vertexstruc> vertexs;
+    // //! Vector of all vertexs in node.
+    // vector <vertexstruc> normals;
+    // //! Vector of all faces in node.
+    // vector <facestruc> faces;
+    // //! Vector of all pieces in node.
+    // vector<piecestruc> pieces;
+    // //! Wavefront obj structure
+    // wavefront obj;
+    //! Vector of all general (common) information for devices (components) in node.
+    vector<devicestruc> device;
+    //! Structure for devices (components) special data in node, by type.
+    devspecstruc devspec;
+    //! Vector of all ports known to node.
+    vector<portstruc> port;
+    // //! Structure for physics modelling.
+    physicsstruc physics;
+    //! Single entry vector for agent information.
+    vector<cosmosagent*> agent;
+    //! Single entry vector for event information.
+    //vector<eventstruc> event;
+    //! Vector of all targets known to node.
+    //vector<targetstruc> target;
+    //! Single entry vector for user information.
+    vector<userstruc> user;
+    // ! Vector of glossary terms for node.
+    vector<glossarystruc> glossary;
+    // ! Array of Two Line Elements
+    vector<tlestruc> tle;
+    // ! JSON descriptive information
+    //jsonnode json;
+
+//	int32_t set_handler_name(CosmosHandler* handle);
+};
+
+//int32_t CosmosClass::set_handler_name(CosmosHandler* handle){  //cyt: req
+
+//	return 0;
+//}
+
 //! JSON Name Space Meta structure
 /*! A structure containing the meta information that allows items in the ::cosmosdatastruc to
  * be mapped to names in the Namespace.
@@ -2019,66 +2142,6 @@ struct cosmosmetastruc
     vector<equationstruc> equation;
     //! Array of Aliases
     vector<aliasstruc> alias;
-};
-
-//! JSON Name Space structure
-/*! A structure containing an element for every unique name in the COSMOS Name
- * Space. The components of this can then be mapped to the Name Space
- * using calls to ::json_addentry.
-*/
-// TODO: explain primary and secondary data
-struct cosmosstruc
-{
-    //! Timestamp for last change to data
-    double timestamp;
-    //! Node name
-    string name;
-    //! Whether JSON map has been created.
-    uint16_t jmapped;
-    //! JSON Namespace Map matrix.
-    vector<vector<jsonentry> > jmap;
-    //! JSON Equation Map matrix.
-    vector<vector<jsonequation> > emap;
-    //! JSON Unit Map matrix: first level is for type, second level is for variant.
-    vector<vector<unitstruc> > unit;
-    //! Vector of Equations
-    vector<equationstruc> equation;
-    //! Array of Aliases
-    vector<aliasstruc> alias;
-    //! Structure for summary information in node
-    nodestruc node;
-    //! Vector of all vertexs in node.
-    vector <vertexstruc> vertexs;
-    //! Vector of all vertexs in node.
-    vector <vertexstruc> normals;
-    //! Vector of all faces in node.
-    vector <facestruc> faces;
-    //! Vector of all pieces in node.
-    vector<piecestruc> pieces;
-    //! Wavefront obj structure
-    wavefront obj;
-    //! Vector of all general (common) information for devices (components) in node.
-    vector<devicestruc> device;
-    //! Structure for devices (components) special data in node, by type.
-    devspecstruc devspec;
-    //! Vector of all ports known to node.
-    vector<portstruc> port;
-    //! Structure for physics modelling.
-    physicsstruc physics;
-    //! Single entry vector for agent information.
-    vector<agentstruc> agent;
-    //! Single entry vector for event information.
-    vector<eventstruc> event;
-    //! Vector of all targets known to node.
-    vector<targetstruc> target;
-    //! Single entry vector for user information.
-    vector<userstruc> user;
-    //! Vector of glossary terms for node.
-    vector<glossarystruc> glossary;
-    //! Array of Two Line Elements
-    vector<tlestruc> tle;
-    //! JSON descriptive information
-    jsonnode json;
 };
 
 //! @}
