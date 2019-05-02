@@ -10783,13 +10783,23 @@ string port_type_name(uint32_t type)
     return result;
 }
 
+//! Creates a prebuilt namespace element
+/*! 0-99 for CosmosMid
+	100+ for CosmosDevices
+*/
+
 int32_t json_create(CosmosTop* ctop, int build)
 {
-    if (build==0) return 0;
-    switch(build){
-        default:
-            break;
-    }
+    if (build<0) return -1;		//cyt: replace with return invalid arguement error
+    
+	if (build< 100){
+		if(ctop->create_child(build) == NULL) return -1;  //cyt: replace with "could not build" error
+		return 0;
+	}
+	
+	if(ctop->create_device(build-100) == NULL) return -1;	//cyt: replace with "could not build" error
+
+	return 0;
 }
 
 //! @}
