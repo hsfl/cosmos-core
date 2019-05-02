@@ -40,7 +40,7 @@
 //!
 
 #include "support/configCosmos.h"
-#include "agent/agentclass.h"
+#include "agent/agentclasslite.h"
 #include "support/event.h"
 
 using std::cout;

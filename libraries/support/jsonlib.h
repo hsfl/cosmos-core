@@ -335,7 +335,7 @@ size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cinfo, vect
 string device_type_name(uint32_t type);
 string port_type_name(uint32_t type);
 
-
+int32_t json_create(CosmosTop* ctop, int build);
 //! @}
 
 

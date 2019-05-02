@@ -10783,5 +10783,14 @@ string port_type_name(uint32_t type)
     return result;
 }
 
+int32_t json_create(CosmosTop* ctop, int build)
+{
+    if (build==0) return 0;
+    switch(build){
+        default:
+            break;
+    }
+}
+
 //! @}
 

@@ -2081,6 +2081,285 @@ struct cosmosstruc
     jsonnode json;
 };
 
+//cyt: creating CosmosHandler here
+
+
+enum class HandlerDataType : uint16_t{
+    INTEIGHT=1,
+    INTSIXTEEN=2,
+    INTTHIRTYTWO=3,
+    UINTEIGHT=4,
+    UINTSIXTEEN=5,
+    UINTTHIRTYTWO=6,
+    FLOAT=7,
+    DOUBLE=8,
+    // CHAR=9,
+    RVECTOR=10
+
+};
+
+typedef struct handlerstruc{
+    string name;
+    HandlerDataType datatype;
+    void* value;
+
+}handlerstruc;
+
+class cosmoshandler{
+    public:
+    vector<handlerstruc> entries;
+    vector<handlerstruc> soh;
+
+    //function calls to populate things here? or jsonlib?
+
+};
+
+//cyt: creating new classes here to replace cosmosstruc *cinfo
+
+
+class CosmosData
+{
+public:
+
+    string name;
+    HandlerDataType type;
+    void* data;
+
+    CosmosData(handlerstruc tar)
+    {
+        this->name = tar.name;
+        this->type = tar.datatype;
+        switch((int)tar.datatype)
+        {
+        case 1:
+            data = static_cast<void *>(new int8_t);
+            break;
+        case 2:
+            data = static_cast<void *>(new int16_t);
+            break;
+        case 3:
+            data = static_cast<void *>(new int32_t);
+            break;
+        case 4:
+            data = static_cast<void *>(new uint8_t);
+            break;
+        case 5:
+            data = static_cast<void *>(new uint16_t);
+            break;
+        case 6:
+            data = static_cast<void *>(new uint32_t);
+            break;
+        case 7:
+            data = static_cast<void *>(new float);
+            break;
+        case 8:
+            data = static_cast<void *>(new double);
+            break;
+        case 10:
+            data = static_cast<void *>(new rvector);
+            break;
+        }
+    }
+
+    CosmosData(string name, HandlerDataType type)
+    {
+        this->name = name;
+        this->type = type;
+        switch((int)type)
+        {
+        case 1:
+            data = static_cast<void *>(new int8_t);
+            break;
+        case 2:
+            data = static_cast<void *>(new int16_t);
+            break;
+        case 3:
+            data = static_cast<void *>(new int32_t);
+            break;
+        case 4:
+            data = static_cast<void *>(new uint8_t);
+            break;
+        case 5:
+            data = static_cast<void *>(new uint16_t);
+            break;
+        case 6:
+            data = static_cast<void *>(new uint32_t);
+            break;
+        case 7:
+            data = static_cast<void *>(new float);
+            break;
+        case 8:
+            data = static_cast<void *>(new double);
+            break;
+        case 10:
+            data = static_cast<void *>(new rvector);
+            break;
+        }
+    }
+
+    //overload '=' to static cast data based on type and store given input
+    //will need an overload for every type which could be input
+
+};
+
+
+class CosmosMid
+{
+public:
+    string name;
+    vector<CosmosMid*> children;
+
+    vector<CosmosData*> data;
+
+    CosmosMid* exists_child(string name)
+    {
+        for (auto entry : this->children)
+        {
+                if(entry->name == name)
+                {
+                    return entry;
+                }
+        }
+        return NULL;
+    }
+
+    CosmosData* exists_data(string name)
+    {
+        for (auto entry : this->data)
+        {
+                if(entry->name == name)
+                {
+                    return entry;
+                }
+        }
+        return NULL;
+    }
+
+    void create_child(string name)
+    {
+        if(this->exists_child(name) == NULL){
+            CosmosMid* child;
+            child->name = name;
+            this->children.push_back(child);
+        }
+
+        return;
+    }
+
+    void create_data(string name, HandlerDataType type)
+    {
+        if(this->exists_data(name) == NULL){
+            CosmosData data( name, type);
+            this->data.push_back(&data);
+        }
+
+        return;
+    }
+
+    //overload both '-' and '>' to search children and data respecively
+    CosmosMid* operator-(string name){
+        return (this->exists_child(name));
+    }
+    CosmosData* operator>(string name){
+        return (this->exists_data(name));
+    }
+};
+
+class CosmosDevice
+{
+public:
+    string name;
+    vector<CosmosData*> data;
+
+    CosmosData* exists(string name)
+    {
+        for (auto entry : this->data)
+        {
+                if(entry->name == name)
+                {
+                    return entry;
+                }
+        }
+        return NULL;
+    }
+
+    void create_data(string name, HandlerDataType type)
+    {
+        if(this->exists(name) == NULL)
+        {
+            CosmosData data(name, type);
+            this->data.push_back(&data);
+        }
+
+        return;
+    }
+    //overload '>' to search for data
+
+    CosmosData* operator>(string name){
+        return (this->exists(name));
+    }
+};
+
+
+
+class CosmosTop
+{                   //cyt: remember to divide up node into relevant "packages" for Mid classes
+public:
+
+    typedef struct minnode{
+        //! Node Name.
+        char name[COSMOS_MAX_NAME+1];
+        //! MJD Offset between system UT and simulated UT
+        double utcoffset;
+        //! Overall Node time
+        double utc;
+        //! Mission start time
+        double utcstart;
+
+    }minnode;
+
+    //! Timestamp for last change to data
+    double timestamp;
+    //! Node name
+    string name;
+
+    minnode node;
+
+    vector<CosmosMid*> children;
+    vector<CosmosDevice*> devspec;
+    //! Single entry vector for agent information.
+    vector<agentstruc> agent;
+
+    CosmosMid* exists(string name)
+    {
+        for (auto entry : this->children)
+        {
+                if(entry->name == name)
+                {
+                    return entry;
+                }
+        }
+        return NULL;
+    }
+
+    void create_child(string name){
+        if(this->exists(name) == NULL){
+            CosmosMid* child;
+            child->name = name;
+            this->children.push_back(child);
+        }
+
+        return;
+    }
+    CosmosMid* search(string name);
+
+    //overload '-' to use search
+    CosmosMid* operator-(string name){
+        return (this->search(name));
+    }
+};
+
+
 //! @}
 
 #endif

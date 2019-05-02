@@ -11,7 +11,7 @@
 //! - load
 
 #include "support/configCosmos.h"
-#include "agent/agentclass.h"
+#include "agent/agentclasslite.h"
 #include "support/timeutils.h"
 #include "support/jsonlib.h"
 #include "support/elapsedtime.h"

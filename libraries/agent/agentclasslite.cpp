@@ -31,7 +31,7 @@
     \brief Agent support functions
 */
 
-#include "agent/agentclass.h"
+#include "agent/agentclasslite.h"
 #include "support/socketlib.h"
 #include "support/cosmos-errno.h"
 #if defined (COSMOS_MAC_OS)
@@ -65,6 +65,7 @@ namespace Cosmos {
     //! \param ntype Transport Layer protocol to be used, taken from ::NetworkType. Defaults to UDP Broadcast.
     //! \param nname Node name. Defaults to empty.
     //! \param aname Agent name. Defaults to empty. If this is defined, the full Agent code will be started.
+    //! \param build Used to build default configurations of the namespace.
     //! \param bprd Period, in seconds, for heartbeat. Defaults to 1.
     //! \param bsize Size of interagent communication buffer. Defaults to ::AGENTMAXBUFFER.
     //! \param mflag Boolean controlling weyher or not multiple instances of the same Agent can start. If true, then Agent names
@@ -72,7 +73,7 @@ namespace Cosmos {
     //! the Agent already running.
     //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
     //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it. also initialized in the namespace variables
-    Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, int32_t dlevel)
+        Agent::Agent(const string &nname, const string &aname, int build, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, int32_t dlevel)
     {
         int32_t iretn;
 
@@ -91,41 +92,41 @@ namespace Cosmos {
 
 
         // Initialize COSMOS data space
-        if ((cinfo = json_create()) == nullptr)
+        if (json_create(ctop, build) < 0)
         {
+            delete(ctop);
             return;
         }
-        cinfo->agent[0].stateflag = (uint16_t)Agent::State::INIT;
+        ctop->agent[0].stateflag = (uint16_t)Agent::State::INIT;
 
         // Establish subscribe channel
         iretn = Agent::subscribe(ntype, (char *)AGENTMCAST, AGENTSENDPORT, 1000);
         if (iretn)
         {
-            json_destroy(cinfo);
-            cinfo = nullptr;
+            delete(ctop);
             return;
         }
 
         // Set up node if there is one.
-        if (nname.length()>COSMOS_MAX_NAME || (!nname.empty() && (iretn=json_setup_node(nname, cinfo)) != 0))
-        {
-            error_value = iretn;
-            Agent::shutdown();
-            return;
-        }
+//        if (nname.length()>COSMOS_MAX_NAME || (!nname.empty() && (iretn=json_setup_node(nname, ctop)) != 0))
+//        {
+//            error_value = iretn;
+//            Agent::shutdown();
+//            return;
+//        }
 
         if (nname.empty())
         {
-            strcpy(cinfo->node.name,"null");
+            strcpy(ctop->node.name,"null");
         }
 
-        cinfo->agent[0].client = 1;
-        cinfo->node.utc = 0.;
-        strncpy(cinfo->agent[0].beat.node, cinfo->node.name ,COSMOS_MAX_NAME);
-        cinfo->agent[0].beat.ntype = ntype;
+        ctop->agent[0].client = 1;
+        ctop->node.utc = 0.;
+        strncpy(ctop->agent[0].beat.node, ctop->node.name ,COSMOS_MAX_NAME);
+        ctop->agent[0].beat.ntype = ntype;
 
         // Make copies
-//        if ((iretn=json_clone(cinfo->sdata)) != 0)
+//        if ((iretn=json_clone(ctop->sdata)) != 0)
 //        {
 //            Agent::shutdown();
 //            return;
@@ -141,7 +142,7 @@ namespace Cosmos {
             return;
         }
 
-        if (strlen(cinfo->node.name)>COSMOS_MAX_NAME || aname.length()>COSMOS_MAX_NAME)
+        if (strlen(ctop->node.name)>COSMOS_MAX_NAME || aname.length()>COSMOS_MAX_NAME)
         {
             error_value = JSON_ERROR_NAME_LENGTH;
             Agent::shutdown();
@@ -154,7 +155,7 @@ namespace Cosmos {
         if (!mflag)
         {
             COSMOS_SLEEP(timeoutSec);
-            if (Agent::get_server(cinfo->node.name, aname, timeoutSec, (beatstruc *)NULL))
+            if (Agent::get_server(ctop->node.name, aname, timeoutSec, (beatstruc *)NULL))
             {
                 error_value = AGENT_ERROR_SERVER_RUNNING;
                 Agent::shutdown();
@@ -164,7 +165,7 @@ namespace Cosmos {
         }
         else // then there is an agent running with the given name, so let's make the name unique
         {
-            if (strlen(cinfo->node.name)>COSMOS_MAX_NAME-4 || aname.size()>COSMOS_MAX_NAME-4)
+            if (strlen(ctop->node.name)>COSMOS_MAX_NAME-4 || aname.size()>COSMOS_MAX_NAME-4)
             {
                 error_value = JSON_ERROR_NAME_LENGTH;
                 Agent::shutdown();
@@ -175,7 +176,7 @@ namespace Cosmos {
             do
             {
                 sprintf(tname,"%s_%03d",aname.c_str(),i);
-                if (!Agent::get_server(cinfo->node.name, tname, timeoutSec, (beatstruc *)NULL))
+                if (!Agent::get_server(ctop->node.name, tname, timeoutSec, (beatstruc *)NULL))
                 {
                     break;
                 }
@@ -184,30 +185,30 @@ namespace Cosmos {
 
         // Initialize important server variables
 
-        strncpy(cinfo->agent[0].beat.node, cinfo->node.name, COSMOS_MAX_NAME);
-        nodeName = cinfo->agent[0].beat.node;
-        strncpy(cinfo->agent[0].beat.proc, tname, COSMOS_MAX_NAME);
-        agentName = cinfo->agent[0].beat.proc;
-        //	cinfo->agent[0].beat.ntype = ntype;
+        strncpy(ctop->agent[0].beat.node, ctop->node.name, COSMOS_MAX_NAME);
+        nodeName = ctop->agent[0].beat.node;
+        strncpy(ctop->agent[0].beat.proc, tname, COSMOS_MAX_NAME);
+        agentName = ctop->agent[0].beat.proc;
+        //	ctop->agent[0].beat.ntype = ntype;
         if (bprd >= AGENT_HEARTBEAT_PERIOD_MIN)
-            cinfo->agent[0].beat.bprd = bprd;
+            ctop->agent[0].beat.bprd = bprd;
         else
-            cinfo->agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
-        cinfo->agent[0].stateflag = (uint16_t)Agent::State::INIT;
-        cinfo->agent[0].beat.port = (uint16_t)portnum;
-        cinfo->agent[0].beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
+            ctop->agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
+        ctop->agent[0].stateflag = (uint16_t)Agent::State::INIT;
+        ctop->agent[0].beat.port = (uint16_t)portnum;
+        ctop->agent[0].beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
 
 #ifdef COSMOS_WIN_BUILD_MSVC
-        cinfo->agent[0].pid = _getpid();
+        ctop->agent[0].pid = _getpid();
 #else
-        cinfo->agent[0].pid = getpid();
+        ctop->agent[0].pid = getpid();
 #endif
-        cinfo->agent[0].aprd = 1.;
-        strncpy(cinfo->agent[0].beat.user, "cosmos", COSMOS_MAX_NAME);
-        //	cinfo->agent[0].sohstring[0] = 0;
+        ctop->agent[0].aprd = 1.;
+        strncpy(ctop->agent[0].beat.user, "cosmos", COSMOS_MAX_NAME);
+        //	ctop->agent[0].sohstring[0] = 0;
 
         // Establish publish channel
-        iretn = Agent::publish(cinfo->agent[0].beat.ntype, AGENTSENDPORT);
+        iretn = Agent::publish(ctop->agent[0].beat.ntype, AGENTSENDPORT);
         if (iretn)
         {
             error_value = iretn;
@@ -234,12 +235,13 @@ namespace Cosmos {
         Agent::add_request("init",Agent::req_init,"","request to transition this agent to init state");
         Agent::add_request("monitor",Agent::req_monitor,"","request to transition this agent to monitor state");
         Agent::add_request("run",Agent::req_run,"","request to transition this agent to run state");
-        Agent::add_request("status",Agent::req_status,"","request the status of this agent");
-        Agent::add_request("getvalue",Agent::req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
-        Agent::add_request("setvalue",Agent::req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
-        Agent::add_request("listnames",Agent::req_listnames,"","list the Namespace of the agent");
+//        Agent::add_request("status",Agent::req_status,"","request the status of this agent");
+//        Agent::add_request("getvalue",Agent::req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
+//        Agent::add_request("setvalue",Agent::req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
+//        Agent::add_request("listnames",Agent::req_listnames,"","list the Namespace of the agent");
         Agent::add_request("forward",Agent::req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
         Agent::add_request("echo",Agent::req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
+/* //cyt: replace eventually
         Agent::add_request("nodejson",Agent::req_nodejson,"","return description JSON for Node");
         Agent::add_request("statejson",Agent::req_statejson,"","return description JSON for State vector");
         Agent::add_request("utcstartjson",Agent::req_utcstartjson,"","return description JSON for UTC Start time");
@@ -251,9 +253,9 @@ namespace Cosmos {
         Agent::add_request("portsjson",Agent::req_portsjson,"","return description JSON for Ports");
         Agent::add_request("targetsjson",Agent::req_targetsjson,"","return description JSON for Targets");
         Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
-
-        cinfo->agent[0].server = 1;
-        cinfo->agent[0].stateflag = (uint16_t)Agent::State::RUN;
+*/
+        ctop->agent[0].server = 1;
+        ctop->agent[0].stateflag = (uint16_t)Agent::State::RUN;
 
 
 
@@ -334,7 +336,7 @@ namespace Cosmos {
     //! Start Agent Request and Heartbeat loops
     /*!	Starts the request and heartbeat threads for an Agent server initialized with
  * Cosmos::Agent::Agent. The Agent will open its request and heartbeat channels using the
- * address and port supplied in cinfo. The heartbeat will cycle with the period requested in cinfo.
+ * address and port supplied in ctop. The heartbeat will cycle with the period requested in ctop.
     \return value returned by request thread create
 */
     int32_t Agent::start()
@@ -358,9 +360,9 @@ namespace Cosmos {
             fflush(stdout);
         }
 
-        if (cinfo != nullptr)
+        if (ctop != nullptr)
         {
-            cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
+            ctop->agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
         }
         if (agentName.size())
         {
@@ -379,8 +381,8 @@ namespace Cosmos {
             mthread.join();
         }
         Agent::unsubscribe();
-        json_destroy(cinfo);
-        cinfo = nullptr;
+        delete(ctop);
+//        ctop = nullptr;
         return 0;
     }
 
@@ -391,7 +393,7 @@ namespace Cosmos {
 */
     uint16_t Agent::running()
     {
-        return (cinfo->agent[0].stateflag);
+        return (ctop->agent[0].stateflag);
     }
 
 
@@ -696,12 +698,13 @@ namespace Cosmos {
     int32_t Agent::set_sohstring(string list)
     {
 
-        if (!sohtable.empty())
-        {
-            sohtable.clear();
-        }
+//        if (!sohtable.empty())
+//        {
+//            sohtable.clear();
+//        }
 
-        json_table_of_list(sohtable, list, cinfo);
+//        json_table_of_list(sohtable, list, ctop);
+
         return 0;
     }
 
@@ -709,9 +712,9 @@ namespace Cosmos {
     /*! Return a pointer to the Agent's internal copy of the ::cosmosstruc.
     \return A pointer to the ::cosmosstruc, otherwise NULL.
 */
-    cosmosstruc *Agent::get_cosmosstruc()
+    CosmosTop *Agent::get_cosmosstruc()
     {
-        return (cinfo);
+        return (ctop);
     }
 
     //! Heartbeat Loop
@@ -723,18 +726,18 @@ namespace Cosmos {
     {
         ElapsedTime timer_beat;
 
-        while (cinfo->agent[0].stateflag)
+        while (ctop->agent[0].stateflag)
         {
 
             // compute the jitter
-            cinfo->agent[0].beat.jitter = timer_beat.split() - cinfo->agent[0].beat.bprd;
+            ctop->agent[0].beat.jitter = timer_beat.split() - ctop->agent[0].beat.bprd;
             timer_beat.start();
 
             // post comes first
-            cinfo->agent[0].beat.utc = currentmjd(0.);
-            if ((Agent::State)(cinfo->agent[0].stateflag) != Agent::State::IDLE && !sohtable.empty())
+            ctop->agent[0].beat.utc = currentmjd(0.);
+            if ((Agent::State)(ctop->agent[0].stateflag) != Agent::State::IDLE && !sohtable.empty())
             {
-                Agent::post(Agent::AgentMessage::BEAT, json_of_table(hbjstring, sohtable, (cosmosstruc *)cinfo));
+                Agent::post(Agent::AgentMessage::BEAT, json_of_table(hbjstring, sohtable, (cosmosstruc *)ctop));
             }
             else
             {
@@ -743,29 +746,29 @@ namespace Cosmos {
 
             // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
             // Compute other monitored quantities if monitoring
-            if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::MONITOR))
+            if (ctop->agent[0].stateflag == static_cast <uint16_t>(Agent::State::MONITOR))
             {
                 // TODO: rename beat.cpu to beat.cpu_percent
                 // add beat.cpu_load
-                cinfo->agent[0].beat.cpu    = deviceCpu_.getPercentUseForCurrentProcess();//cpu.getLoad();
-                cinfo->agent[0].beat.memory = deviceCpu_.getVirtualMemoryUsed();
+                ctop->agent[0].beat.cpu    = deviceCpu_.getPercentUseForCurrentProcess();//cpu.getLoad();
+                ctop->agent[0].beat.memory = deviceCpu_.getVirtualMemoryUsed();
             }
 
-            if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::SHUTDOWN))
+            if (ctop->agent[0].stateflag == static_cast <uint16_t>(Agent::State::SHUTDOWN))
             {
-                cinfo->agent[0].beat.cpu = 0;
-                cinfo->agent[0].beat.memory = 0;
+                ctop->agent[0].beat.cpu = 0;
+                ctop->agent[0].beat.memory = 0;
             }
 
 
-            if (cinfo->agent[0].beat.bprd < AGENT_HEARTBEAT_PERIOD_MIN)
+            if (ctop->agent[0].beat.bprd < AGENT_HEARTBEAT_PERIOD_MIN)
             {
-                cinfo->agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
+                ctop->agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
             }
 
-            if (timer_beat.split() <= cinfo->agent[0].beat.bprd)
+            if (timer_beat.split() <= ctop->agent[0].beat.bprd)
             {
-                COSMOS_SLEEP(cinfo->agent[0].beat.bprd - timer_beat.split());
+                COSMOS_SLEEP(ctop->agent[0].beat.bprd - timer_beat.split());
             }
         }
         Agent::unpublish();
@@ -784,28 +787,28 @@ namespace Cosmos {
         char request[AGENTMAXBUFFER+1];
         uint32_t i;
 
-        if ((iretn = socket_open(&cinfo->agent[0].req, NetworkType::UDP, (char *)"", cinfo->agent[0].beat.port, SOCKET_LISTEN, SOCKET_BLOCKING, 2000000)) < 0)
+        if ((iretn = socket_open(&ctop->agent[0].req, NetworkType::UDP, (char *)"", ctop->agent[0].beat.port, SOCKET_LISTEN, SOCKET_BLOCKING, 2000000)) < 0)
         {
             return;
         }
 
-        cinfo->agent[0].beat.port = cinfo->agent[0].req.cport;
+        ctop->agent[0].beat.port = ctop->agent[0].req.cport;
 
-        if ((bufferin=(char *)calloc(1,cinfo->agent[0].beat.bsz)) == NULL)
+        if ((bufferin=(char *)calloc(1,ctop->agent[0].beat.bsz)) == NULL)
         {
             iretn = -errno;
             return;
         }
 
-        while (cinfo->agent[0].stateflag)
+        while (ctop->agent[0].stateflag)
         {
-            iretn = recvfrom(cinfo->agent[0].req.cudp,bufferin,cinfo->agent[0].beat.bsz,0,(struct sockaddr *)&cinfo->agent[0].req.caddr,(socklen_t *)&cinfo->agent[0].req.addrlen);
+            iretn = recvfrom(ctop->agent[0].req.cudp,bufferin,ctop->agent[0].beat.bsz,0,(struct sockaddr *)&ctop->agent[0].req.caddr,(socklen_t *)&ctop->agent[0].req.addrlen);
 
             if (iretn > 0)
             {
                 bufferin[iretn] = 0;
 
-                if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG))
+                if (ctop->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG))
                 {
                     printf("Request: [%d] %s ",iretn,bufferin);
                 }
@@ -857,10 +860,10 @@ namespace Cosmos {
                 else
                 {
                     strcat(bufferout,"[OK]");
-                    bufferout[cinfo->agent[0].beat.bsz+3] = 0;
+                    bufferout[ctop->agent[0].beat.bsz+3] = 0;
                 }
-                nbytes = sendto(cinfo->agent[0].req.cudp,bufferout,strlen(bufferout),0,(struct sockaddr *)&cinfo->agent[0].req.caddr,sizeof(struct sockaddr_in));
-                if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG))
+                nbytes = sendto(ctop->agent[0].req.cudp,bufferout,strlen(bufferout),0,(struct sockaddr *)&ctop->agent[0].req.caddr,sizeof(struct sockaddr_in));
+                if (ctop->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG))
                 {
                     printf("[%d] %s\n",nbytes,bufferout);
                 }
@@ -951,9 +954,9 @@ namespace Cosmos {
         int32_t iretn=-1;
 
         sscanf(request,"%*s %hu",&count);
-        for (uint16_t i=0; i<agent->cinfo->agent[0].ifcnt; ++i)
+        for (uint16_t i=0; i<agent->ctop->agent[0].ifcnt; ++i)
         {
-            iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[strlen(request)-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+            iretn = sendto(agent->ctop->agent[0].pub[i].cudp,(const char *)&request[strlen(request)-count],count,0,(struct sockaddr *)&agent->ctop->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
         }
         sprintf(output,"%.17g %d ",currentmjd(0),iretn);
         return(0);
@@ -1016,7 +1019,7 @@ namespace Cosmos {
  */
     int32_t Agent::req_run(char*, char* output, Agent* agent)
     {
-        agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
+        agent->ctop->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
         output[0] = 0;
         return(0);
     }
@@ -1030,7 +1033,7 @@ namespace Cosmos {
  */
     int32_t Agent::req_init(char*, char* output, Agent* agent)
     {
-        agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::INIT);
+        agent->ctop->agent[0].stateflag = static_cast <uint16_t>(Agent::State::INIT);
         output[0] = 0;
         return(0);
     }
@@ -1044,7 +1047,7 @@ namespace Cosmos {
  */
     int32_t Agent::req_idle(char*, char* output, Agent* agent)
     {
-        agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::IDLE);
+        agent->ctop->agent[0].stateflag = static_cast <uint16_t>(Agent::State::IDLE);
         output[0] = 0;
         return(0);
     }
@@ -1058,7 +1061,7 @@ namespace Cosmos {
  */
     int32_t Agent::req_monitor(char*, char* output, Agent* agent)
     {
-        agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::MONITOR);
+        agent->ctop->agent[0].stateflag = static_cast <uint16_t>(Agent::State::MONITOR);
         output[0] = 0;
         return(0);
     }
@@ -1072,7 +1075,7 @@ namespace Cosmos {
  */
     int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
     {
-        agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
+        agent->ctop->agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
         output[0] = 0;
         return(0);
     }
@@ -1086,230 +1089,230 @@ namespace Cosmos {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-    int32_t Agent::req_status(char*, char* output, Agent* agent)
-    {
-        string jstring;
+//    int32_t Agent::req_status(char*, char* output, Agent* agent)
+//    {
+//        string jstring;
 
-        if (json_of_agent(jstring, agent->cinfo) != NULL)
-        {
-            strncpy(output, jstring.c_str(),agent->cinfo->agent[0].beat.bsz);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-            return 0;
-        }
-        else
-        {
-            strcpy(output,"error");
-            output[5] = 0;
-            return(JSON_ERROR_SCAN);
-        }
-    }
+//        if (json_of_agent(jstring, agent->ctop) != NULL)
+//        {
+//            strncpy(output, jstring.c_str(),agent->ctop->agent[0].beat.bsz);
+//            output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//            return 0;
+//        }
+//        else
+//        {
+//            strcpy(output,"error");
+//            output[5] = 0;
+//            return(JSON_ERROR_SCAN);
+//        }
+//    }
 
-    //! Built-in Get Internal Value request
-    /*! Returns the current value of the requested Name Space values. Names are expressed as a JSON object.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_getvalue(char *request, char* output, Agent* agent)
-    {
-        string jstring;
+//    //! Built-in Get Internal Value request
+//    /*! Returns the current value of the requested Name Space values. Names are expressed as a JSON object.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_getvalue(char *request, char* output, Agent* agent)
+//    {
+//        string jstring;
 
-        if (json_of_list(jstring, request, agent->cinfo) != NULL)
-        {
-            strncpy(output, jstring.c_str(), agent->cinfo->agent[0].beat.bsz);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-            return 0;
-        }
-        else
-            return (JSON_ERROR_EOS);
-    }
+//        if (json_of_list(jstring, request, agent->ctop) != NULL)
+//        {
+//            strncpy(output, jstring.c_str(), agent->ctop->agent[0].beat.bsz);
+//            output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//            return 0;
+//        }
+//        else
+//            return (JSON_ERROR_EOS);
+//    }
 
-    //! Built-in Set Internal Value request
-    /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_setvalue(char *request, char* output, Agent* agent)
-    {
-        int32_t iretn;
-        iretn = json_parse(request, agent->cinfo);
+//    //! Built-in Set Internal Value request
+//    /*! Sets the current value of the requested Name Space values. Names and values are expressed as a JSON object.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_setvalue(char *request, char* output, Agent* agent)
+//    {
+//        int32_t iretn;
+//        iretn = json_parse(request, agent->ctop);
 
-        sprintf(output,"%d",iretn);
+//        sprintf(output,"%d",iretn);
 
-        return(iretn);
-    }
+//        return(iretn);
+//    }
 
-    //! Built-in List Name Space Names request
-    /*! Returns a list of all names in the JSON Name Space.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_listnames(char *, char* output, Agent* agent)
-    {
-        string result = json_list_of_all(agent->cinfo);
-        strncpy(output, result.c_str(), agent->cinfo->agent[0].beat.bsz);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in List Name Space Names request
+//    /*! Returns a list of all names in the JSON Name Space.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_listnames(char *, char* output, Agent* agent)
+//    {
+//        string result = json_list_of_all(agent->ctop);
+//        strncpy(output, result.c_str(), agent->ctop->agent[0].beat.bsz);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return Node JSON request
-    /*! Returns a JSON string representing the Node description.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.node.c_str(), agent->cinfo->json.node.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.node.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return Node JSON request
+//    /*! Returns a JSON string representing the Node description.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.node.c_str(), agent->ctop->json.node.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.node.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return State Vector JSON request
-    /*! Returns a JSON string representing the State Vector.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_statejson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.state.c_str(), agent->cinfo->json.state.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.state.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return State Vector JSON request
+//    /*! Returns a JSON string representing the State Vector.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_statejson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.state.c_str(), agent->ctop->json.state.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.state.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return UTC Start Time JSON request
-    /*! Returns a JSON string representing the UTC Start Time.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_utcstartjson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.utcstart.c_str(), agent->cinfo->json.utcstart.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.utcstart.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return UTC Start Time JSON request
+//    /*! Returns a JSON string representing the UTC Start Time.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_utcstartjson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.utcstart.c_str(), agent->ctop->json.utcstart.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.utcstart.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return Pieces JSON request
-    /*! Returns a JSON string representing the Piece information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.pieces.c_str(), agent->cinfo->json.pieces.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.pieces.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return Pieces JSON request
+//    /*! Returns a JSON string representing the Piece information.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.pieces.c_str(), agent->ctop->json.pieces.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.pieces.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return Face JSON request
-    /*! Returns a JSON string representing the Face information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.faces.c_str(), agent->cinfo->json.faces.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.faces.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return Face JSON request
+//    /*! Returns a JSON string representing the Face information.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.faces.c_str(), agent->ctop->json.faces.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.faces.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return Vertex JSON request
-    /*! Returns a JSON string representing the Vertex information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.vertexs.c_str(), agent->cinfo->json.vertexs.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.vertexs.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return Vertex JSON request
+//    /*! Returns a JSON string representing the Vertex information.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.vertexs.c_str(), agent->ctop->json.vertexs.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.vertexs.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return devgen JSON request
-    /*! Returns a JSON string representing the generic device information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.devgen.c_str(), agent->cinfo->json.devgen.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.devgen.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return devgen JSON request
+//    /*! Returns a JSON string representing the generic device information.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.devgen.c_str(), agent->ctop->json.devgen.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.devgen.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return devspec JSON request
-    /*! Returns a JSON string representing the special device information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.devspec.c_str(), agent->cinfo->json.devspec.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.devspec.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return devspec JSON request
+//    /*! Returns a JSON string representing the special device information.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.devspec.c_str(), agent->ctop->json.devspec.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.devspec.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return Ports JSON request
-    /*! Returns a JSON string representing the Port information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_portsjson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.ports.c_str(), agent->cinfo->json.ports.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.ports.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return Ports JSON request
+//    /*! Returns a JSON string representing the Port information.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_portsjson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.ports.c_str(), agent->ctop->json.ports.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.ports.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return Target JSON request
-    /*! Returns a JSON string representing the Target information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_targetsjson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.targets.c_str(), agent->cinfo->json.targets.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.targets.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return Target JSON request
+//    /*! Returns a JSON string representing the Target information.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_targetsjson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.targets.c_str(), agent->ctop->json.targets.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.targets.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
-    //! Built-in Return Alias JSON request
-    /*! Returns a JSON string representing the alias information.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
-    int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
-    {
-        strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->agent[0].beat.bsz-1);
-        output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        return 0;
-    }
+//    //! Built-in Return Alias JSON request
+//    /*! Returns a JSON string representing the alias information.
+// * \param request Text of request.
+// * \param output Text of response to request.
+// * \param agent Pointer to Cosmos::Agent to use.
+// * \return 0, or negative error.
+// */
+//    int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
+//    {
+//        strncpy(output, agent->ctop->json.aliases.c_str(), agent->ctop->json.aliases.size()<agent->ctop->agent[0].beat.bsz-1?agent->ctop->json.aliases.size():agent->ctop->agent[0].beat.bsz-1);
+//        output[agent->ctop->agent[0].beat.bsz-1] = 0;
+//        return 0;
+//    }
 
     //! Open COSMOS output channel
     /*! Establish a multicast socket for publishing COSMOS messages using the specified address and
@@ -1328,7 +1331,7 @@ namespace Cosmos {
         //uint32_t ip, net, bcast;
 
         // Return immediately if we've already done this
-        if (cinfo->agent[0].pub[0].cport)
+        if (ctop->agent[0].pub[0].cport)
             return 0;
 
         switch (type)
@@ -1337,16 +1340,16 @@ namespace Cosmos {
         case NetworkType::UDP:
             {
                 for (uint32_t i=0; i<AGENTMAXIF; i++)
-                    cinfo->agent[0].pub[i].cudp = -1;
+                    ctop->agent[0].pub[i].cudp = -1;
 
-                if ((cinfo->agent[0].pub[0].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                if ((ctop->agent[0].pub[0].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
                 {
                     return (AGENT_ERROR_SOCKET);
                 }
 
                 // Use above socket to find available interfaces and establish
                 // publication on each.
-                cinfo->agent[0].ifcnt = 0;
+                ctop->agent[0].ifcnt = 0;
 
 #if defined(COSMOS_WIN_OS)
                 struct sockaddr_storage ss;
@@ -1354,67 +1357,67 @@ namespace Cosmos {
                 INTERFACE_INFO ilist[20];
                 unsigned long nbytes;
                 uint32_t nif;
-                if (WSAIoctl(cinfo->agent[0].pub[0].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
+                if (WSAIoctl(ctop->agent[0].pub[0].cudp, SIO_GET_INTERFACE_LIST, 0, 0, &ilist,sizeof(ilist), &nbytes, 0, 0) == SOCKET_ERROR)
                 {
-                    CLOSE_SOCKET(cinfo->agent[0].pub[0].cudp);
+                    CLOSE_SOCKET(ctop->agent[0].pub[0].cudp);
                     return (AGENT_ERROR_DISCOVERY);
                 }
 
                 nif = nbytes / sizeof(INTERFACE_INFO);
                 for (uint32_t i=0; i<nif; i++)
                 {
-                    inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
-                    //            strcpy(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
-                    if (!strcmp(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,"127.0.0.1"))
+                    inet_ntop(ilist[i].iiAddress.AddressIn.sin_family,&ilist[i].iiAddress.AddressIn.sin_addr,ctop->agent[0].pub[ctop->agent[0].ifcnt].address,sizeof(ctop->agent[0].pub[ctop->agent[0].ifcnt].address));
+                    //            strcpy(ctop->agent[0].pub[ctop->agent[0].ifcnt].address,inet_ntoa(((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr));
+                    if (!strcmp(ctop->agent[0].pub[ctop->agent[0].ifcnt].address,"127.0.0.1"))
                     {
-                        if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp >= 0)
+                        if (ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp >= 0)
                         {
-                            CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp = -1;
+                            CLOSE_SOCKET(ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp);
+                            ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp = -1;
                         }
                         continue;
                     }
                     // No need to open first socket again
-                    if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0)
+                    if (ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp < 0)
                     {
-                        if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                        if ((ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
                         {
                             continue;
                         }
                     }
 
-                    memset(&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr,0,sizeof(struct sockaddr_in));
-                    cinfo->agent[0].pub[i].caddr.sin_family = AF_INET;
-                    cinfo->agent[0].pub[i].baddr.sin_family = AF_INET;
+                    memset(&ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr,0,sizeof(struct sockaddr_in));
+                    ctop->agent[0].pub[i].caddr.sin_family = AF_INET;
+                    ctop->agent[0].pub[i].baddr.sin_family = AF_INET;
                     if (type == NetworkType::MULTICAST)
                     {
                         sslen = sizeof(ss);
                         WSAStringToAddressA((char *)AGENTMCAST,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
                     }
                     else
                     {
-                        if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                        if ((iretn = setsockopt(ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                         {
-                            CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                            CLOSE_SOCKET(ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp);
                             continue;
                         }
 
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_addr = ((struct sockaddr_in *)&ilist[i].iiAddress)->sin_addr;
 
                         uint32_t ip, net, bcast;
                         ip = ((struct sockaddr_in*)&(ilist[i].iiAddress))->sin_addr.S_un.S_addr;
                         net = ((struct sockaddr_in*)&(ilist[i].iiNetmask))->sin_addr.S_un.S_addr;
                         bcast = ip | (~net);
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr.S_un.S_addr = bcast;
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_addr.S_un.S_addr = bcast;
                     }
-                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_port = htons(port);
-                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port = htons(port);
-                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].type = type;
-                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cport = port;
-                    cinfo->agent[0].ifcnt++;
+                    ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr.sin_port = htons(port);
+                    ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_port = htons(port);
+                    ctop->agent[0].pub[ctop->agent[0].ifcnt].type = type;
+                    ctop->agent[0].pub[ctop->agent[0].ifcnt].cport = port;
+                    ctop->agent[0].ifcnt++;
                 }
 #elif defined(COSMOS_MAC_OS)
                 struct ifaddrs *if_addrs = NULL;
@@ -1428,8 +1431,8 @@ namespace Cosmos {
                         {
                             continue;
                         }
-                        inet_ntop(if_addr->ifa_addr->sa_family,&((struct sockaddr_in*)if_addr->ifa_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
-                        memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)if_addr->ifa_addr, sizeof(if_addr->ifa_addr));
+                        inet_ntop(if_addr->ifa_addr->sa_family,&((struct sockaddr_in*)if_addr->ifa_addr)->sin_addr,ctop->agent[0].pub[ctop->agent[0].ifcnt].address,sizeof(ctop->agent[0].pub[ctop->agent[0].ifcnt].address));
+                        memcpy((char *)&ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr, (char *)if_addr->ifa_addr, sizeof(if_addr->ifa_addr));
 
                         if ((if_addr->ifa_flags & IFF_POINTOPOINT) || (if_addr->ifa_flags & IFF_UP) == 0 || (if_addr->ifa_flags & IFF_LOOPBACK) || (if_addr->ifa_flags & (IFF_BROADCAST)) == 0)
                         {
@@ -1437,9 +1440,9 @@ namespace Cosmos {
                         }
 
                         // No need to open first socket again
-                        if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0)
+                        if (ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp < 0)
                         {
-                            if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                            if ((ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
                             {
                                 continue;
                             }
@@ -1447,36 +1450,36 @@ namespace Cosmos {
 
                         if (type == NetworkType::MULTICAST)
                         {
-                            inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr);
-                            inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+                            inet_pton(AF_INET,AGENTMCAST,&ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr.sin_addr);
+                            inet_pton(AF_INET,AGENTMCAST,&ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_addr);
                         }
                         else
                         {
-                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                            if ((iretn = setsockopt(ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                             {
-                                CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                                CLOSE_SOCKET(ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp);
                                 continue;
                             }
 
-                            //                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                            //                    if (ioctl(ctop->agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
                             //                    {
                             //                        continue;
                             //                    }
-                            //                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
-                            memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr, (char *)if_addr->ifa_netmask, sizeof(if_addr->ifa_netmask));
+                            //                    ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr = ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr;
+                            memcpy((char *)&ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr, (char *)if_addr->ifa_netmask, sizeof(if_addr->ifa_netmask));
 
                             uint32_t ip, net, bcast;
-                            ip = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr.s_addr;
-                            net = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr.s_addr;
+                            ip = ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr.sin_addr.s_addr;
+                            net = ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_addr.s_addr;
                             bcast = ip | (~net);
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr.s_addr = bcast;
-                            inet_ntop(if_addr->ifa_netmask->sa_family,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
+                            ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_addr.s_addr = bcast;
+                            inet_ntop(if_addr->ifa_netmask->sa_family,&ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_addr,ctop->agent[0].pub[ctop->agent[0].ifcnt].baddress,sizeof(ctop->agent[0].pub[ctop->agent[0].ifcnt].baddress));
                         }
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_port = htons(port);
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port = htons(port);
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].type = type;
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cport = port;
-                        cinfo->agent[0].ifcnt++;
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr.sin_port = htons(port);
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_port = htons(port);
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].type = type;
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].cport = port;
+                        ctop->agent[0].ifcnt++;
                     }
                     freeifaddrs(if_addrs);
                     if_addrs = NULL;
@@ -1488,9 +1491,9 @@ namespace Cosmos {
 
                 confa.ifc_len = sizeof(data);
                 confa.ifc_buf = (caddr_t)data;
-                if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFCONF,&confa) < 0)
+                if (ioctl(ctop->agent[0].pub[0].cudp,SIOCGIFCONF,&confa) < 0)
                 {
-                    CLOSE_SOCKET(cinfo->agent[0].pub[0].cudp);
+                    CLOSE_SOCKET(ctop->agent[0].pub[0].cudp);
                     return (AGENT_ERROR_DISCOVERY);
                 }
                 // Use result to discover interfaces.
@@ -1501,10 +1504,10 @@ namespace Cosmos {
                     {
                         continue;
                     }
-                    inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].address));
-                    memcpy((char *)&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
+                    inet_ntop(ifra->ifr_addr.sa_family,&((struct sockaddr_in*)&ifra->ifr_addr)->sin_addr,ctop->agent[0].pub[ctop->agent[0].ifcnt].address,sizeof(ctop->agent[0].pub[ctop->agent[0].ifcnt].address));
+                    memcpy((char *)&ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr, (char *)&ifra->ifr_addr, sizeof(ifra->ifr_addr));
 
-                    if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
+                    if (ioctl(ctop->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
 
                     if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
                     {
@@ -1512,9 +1515,9 @@ namespace Cosmos {
                     }
 
                     // No need to open first socket again
-                    if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0)
+                    if (ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp < 0)
                     {
-                        if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                        if ((ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
                         {
                             continue;
                         }
@@ -1522,30 +1525,30 @@ namespace Cosmos {
 
                     if (type == NetworkType::MULTICAST)
                     {
-                        inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_addr);
-                        inet_pton(AF_INET,AGENTMCAST,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+                        inet_pton(AF_INET,AGENTMCAST,&ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr.sin_addr);
+                        inet_pton(AF_INET,AGENTMCAST,&ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_addr);
                     }
                     else
                     {
-                        if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+                        if ((iretn = setsockopt(ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
                         {
-                            CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                            CLOSE_SOCKET(ctop->agent[0].pub[ctop->agent[0].ifcnt].cudp);
                             continue;
                         }
 
-                        if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                        if (ioctl(ctop->agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
                         {
                             continue;
                         }
-                        cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
-                        inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
-                        inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+                        ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr = ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr;
+                        inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,ctop->agent[0].pub[ctop->agent[0].ifcnt].baddress,sizeof(ctop->agent[0].pub[ctop->agent[0].ifcnt].baddress));
+                        inet_pton(AF_INET,ctop->agent[0].pub[ctop->agent[0].ifcnt].baddress,&ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_addr);
                     }
-                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr.sin_port = htons(port);
-                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_port = htons(port);
-                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].type = type;
-                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cport = port;
-                    cinfo->agent[0].ifcnt++;
+                    ctop->agent[0].pub[ctop->agent[0].ifcnt].caddr.sin_port = htons(port);
+                    ctop->agent[0].pub[ctop->agent[0].ifcnt].baddr.sin_port = htons(port);
+                    ctop->agent[0].pub[ctop->agent[0].ifcnt].type = type;
+                    ctop->agent[0].pub[ctop->agent[0].ifcnt].cport = port;
+                    ctop->agent[0].ifcnt++;
                 }
 #endif // COSMOS_WIN_OS
             }
@@ -1743,10 +1746,10 @@ namespace Cosmos {
         //        int32_t iretn=0;
         //        uint8_t post[AGENTMAXBUFFER];
 
-        //        cinfo->agent[0].beat.utc = cinfo->agent[0].beat.utc;
+        //        ctop->agent[0].beat.utc = ctop->agent[0].beat.utc;
         //        post[0] = mess.meta.type;
         //        // this will broadcast messages to all external interfaces (ifcnt = interface count)
-        //        for (size_t i=0; i<cinfo->agent[0].ifcnt; i++)
+        //        for (size_t i=0; i<ctop->agent[0].ifcnt; i++)
         //        {
         //            sprintf((char *)&post[3], "%s", mess.jdata.c_str());
         //            size_t hlength = strlen((char *)&post[3]);
@@ -1770,7 +1773,7 @@ namespace Cosmos {
         //                nbytes += mess.bdata.size();
         //            }
 
-        //            iretn = sendto(cinfo->agent[0].pub[i].cudp, (const char *)post, nbytes, 0,(struct sockaddr *)&cinfo->agent[0].pub[i].baddr, sizeof(struct sockaddr_in));
+        //            iretn = sendto(ctop->agent[0].pub[i].cudp, (const char *)post, nbytes, 0,(struct sockaddr *)&ctop->agent[0].pub[i].baddr, sizeof(struct sockaddr_in));
         //        }
         //        if (iretn<0)
         //        {
@@ -1810,23 +1813,23 @@ namespace Cosmos {
         int32_t iretn=0;
         uint8_t post[AGENTMAXBUFFER];
 
-        cinfo->agent[0].beat.utc = cinfo->agent[0].beat.utc;
+        ctop->agent[0].beat.utc = ctop->agent[0].beat.utc;
         post[0] = (uint8_t)type;
         // this will broadcast messages to all external interfaces (ifcnt = interface count)
-        for (size_t i=0; i<cinfo->agent[0].ifcnt; i++)
+        for (size_t i=0; i<ctop->agent[0].ifcnt; i++)
         {
             sprintf((char *)&post[3],"{\"agent_utc\":%.15g}{\"agent_node\":\"%s\"}{\"agent_proc\":\"%s\"}{\"agent_addr\":\"%s\"}{\"agent_port\":%u}{\"agent_bprd\":%f}{\"agent_bsz\":%u}{\"agent_cpu\":%f}{\"agent_memory\":%f}{\"agent_jitter\":%f}{\"node_utcoffset\":%.15g}",
-                    cinfo->agent[0].beat.utc,
-                    cinfo->agent[0].beat.node,
-                    cinfo->agent[0].beat.proc,
-                    cinfo->agent[0].pub[i].address,
-                    cinfo->agent[0].beat.port,
-                    cinfo->agent[0].beat.bprd,
-                    cinfo->agent[0].beat.bsz,
-                    cinfo->agent[0].beat.cpu,
-                    cinfo->agent[0].beat.memory,
-                    cinfo->agent[0].beat.jitter,
-                    cinfo->node.utcoffset);
+                    ctop->agent[0].beat.utc,
+                    ctop->agent[0].beat.node,
+                    ctop->agent[0].beat.proc,
+                    ctop->agent[0].pub[i].address,
+                    ctop->agent[0].beat.port,
+                    ctop->agent[0].beat.bprd,
+                    ctop->agent[0].beat.bsz,
+                    ctop->agent[0].beat.cpu,
+                    ctop->agent[0].beat.memory,
+                    ctop->agent[0].beat.jitter,
+                    ctop->node.utcoffset);
             size_t hlength = strlen((char *)&post[3]);
             post[1] = hlength%256;
             post[2] = hlength / 256;
@@ -1839,11 +1842,11 @@ namespace Cosmos {
                 memcpy(&post[nbytes], &message[0], message.size());
                 //            strcat(post,message);
             }
-            iretn = sendto(cinfo->agent[0].pub[i].cudp,       // socket
+            iretn = sendto(ctop->agent[0].pub[i].cudp,       // socket
                     (const char *)post,                         // buffer to send
                     nbytes+message.size(),                      // size of buffer
                     0,                                          // flags
-                    (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
+                    (struct sockaddr *)&ctop->agent[0].pub[i].baddr, // socket address
                     sizeof(struct sockaddr_in)                  // size of address to socket pointer
                     );
         }
@@ -1864,13 +1867,13 @@ namespace Cosmos {
     */
     int32_t Agent::unpublish()
     {
-        if (cinfo == nullptr)
+        if (ctop == nullptr)
         {
             return 0;
         }
-        for (size_t i=0; i<cinfo->agent[0].ifcnt; ++i)
+        for (size_t i=0; i<ctop->agent[0].ifcnt; ++i)
         {
-            CLOSE_SOCKET(cinfo->agent[0].pub[i].cudp);
+            CLOSE_SOCKET(ctop->agent[0].pub[i].cudp);
         }
         return 0;
     }
@@ -1888,12 +1891,12 @@ namespace Cosmos {
         int32_t iretn = 0;
 
         // ?? this is preventing from running socket_open if
-        // for some reason cinfo->agent[0].sub.cport was ill initialized
+        // for some reason ctop->agent[0].sub.cport was ill initialized
 #ifndef COSMOS_WIN_BUILD_MSVC
-        if (cinfo->agent[0].sub.cport)
+        if (ctop->agent[0].sub.cport)
             return 0;
 #endif
-        if ((iretn=socket_open(&cinfo->agent[0].sub,type,address,port,SOCKET_LISTEN,SOCKET_BLOCKING, usectimeo)) < 0)
+        if ((iretn=socket_open(&ctop->agent[0].sub,type,address,port,SOCKET_LISTEN,SOCKET_BLOCKING, usectimeo)) < 0)
         {
             return (iretn);
         }
@@ -1926,9 +1929,9 @@ namespace Cosmos {
 */
     int32_t Agent::unsubscribe()
     {
-        if (cinfo != nullptr)
+        if (ctop != nullptr)
         {
-            CLOSE_SOCKET(cinfo->agent[0].sub.cudp);
+            CLOSE_SOCKET(ctop->agent[0].sub.cudp);
         }
         return 0;
     }
@@ -1946,12 +1949,12 @@ namespace Cosmos {
         int nbytes;
         uint8_t input[AGENTMAXBUFFER+1];
 
-        if (cinfo == nullptr)
+        if (ctop == nullptr)
         {
             return AGENT_ERROR_NULL;
         }
 
-        if (!cinfo->agent[0].sub.cport)
+        if (!ctop->agent[0].sub.cport)
             return (AGENT_ERROR_CHANNEL);
 
         ElapsedTime ep;
@@ -1959,18 +1962,18 @@ namespace Cosmos {
         do
         {
             nbytes = 0;
-            switch (cinfo->agent[0].sub.type)
+            switch (ctop->agent[0].sub.type)
             {
             case NetworkType::MULTICAST:
             case NetworkType::UDP:
 
-                nbytes = recvfrom(cinfo->agent[0].sub.cudp, (char *)input,AGENTMAXBUFFER, 0, (struct sockaddr *)&cinfo->agent[0].sub.caddr, (socklen_t *)&cinfo->agent[0].sub.addrlen);
+                nbytes = recvfrom(ctop->agent[0].sub.cudp, (char *)input,AGENTMAXBUFFER, 0, (struct sockaddr *)&ctop->agent[0].sub.caddr, (socklen_t *)&ctop->agent[0].sub.addrlen);
 
                 // Return if port and address are our own
-                for (uint16_t i=0; i<cinfo->agent[0].ifcnt; ++i)
+                for (uint16_t i=0; i<ctop->agent[0].ifcnt; ++i)
                 {
-                    if (cinfo->agent[0].sub.caddr.sin_port == cinfo->agent[0].pub[i].caddr.sin_port &&
-                        cinfo->agent[0].sub.caddr.sin_addr.s_addr == cinfo->agent[0].pub[i].caddr.sin_addr.s_addr)
+                    if (ctop->agent[0].sub.caddr.sin_port == ctop->agent[0].pub[i].caddr.sin_port &&
+                        ctop->agent[0].sub.caddr.sin_addr.s_addr == ctop->agent[0].pub[i].caddr.sin_addr.s_addr)
                     {
                         return 0;
                         break;
@@ -2083,7 +2086,7 @@ namespace Cosmos {
             waitsec = 0.;
         }
 
-        if (cinfo == nullptr)
+        if (ctop == nullptr)
         {
             return AGENT_ERROR_NULL;
         }
@@ -2195,10 +2198,10 @@ namespace Cosmos {
 
     //		if (iretn == Agent::AgentMessage::TIME)
     //        {
-    //            iretn = json_parse(mess.adata, cinfo->sdata);
+    //            iretn = json_parse(mess.adata, ctop->sdata);
     //            if (iretn >= 0)
     //            {
-    //                time.mjd = cinfo->sdata.node.loc.utc;
+    //                time.mjd = ctop->sdata.node.loc.utc;
     //            }
     //        }
 
@@ -2221,10 +2224,10 @@ namespace Cosmos {
 
     //		if (iretn == Agent::AgentMessage::LOCATION)
     //        {
-    //            iretn = json_parse(mess.adata, cinfo->sdata);
+    //            iretn = json_parse(mess.adata, ctop->sdata);
     //            if (iretn >= 0)
     //            {
-    //                loc = cinfo->sdata.node.loc;
+    //                loc = ctop->sdata.node.loc;
     //            }
     //        }
 
@@ -2248,15 +2251,15 @@ namespace Cosmos {
 
     //		if (iretn == Agent::AgentMessage::TRACK)
     //        {
-    //            iretn = json_parse(mess.adata, cinfo->sdata);
+    //            iretn = json_parse(mess.adata, ctop->sdata);
     //            if (iretn >= 0)
     //            {
-    //                strcpy(info.name,cinfo->sdata.node.name);
-    //                //			info.utc = cinfo->node.loc.utc;
-    //                info.loc = cinfo->sdata.node.loc;
-    //                info.powgen = cinfo->sdata.node.powgen;
-    //                info.powuse = cinfo->sdata.node.powuse;
-    //                info.battlev = cinfo->sdata.node.battlev;
+    //                strcpy(info.name,ctop->sdata.node.name);
+    //                //			info.utc = ctop->node.loc.utc;
+    //                info.loc = ctop->sdata.node.loc;
+    //                info.powgen = ctop->sdata.node.powgen;
+    //                info.powuse = ctop->sdata.node.powuse;
+    //                info.battlev = ctop->sdata.node.battlev;
     //            }
     //        }
     //        else
@@ -2281,10 +2284,10 @@ namespace Cosmos {
 
     //		if (iretn == Agent::AgentMessage::IMU)
     //        {
-    //            iretn = json_parse(mess.adata, cinfo->sdata);
+    //            iretn = json_parse(mess.adata, ctop->sdata);
     //            if (iretn >= 0)
     //            {
-    //                imu = *cinfo->sdata.devspec.imu[0];
+    //                imu = *ctop->sdata.devspec.imu[0];
     //            }
     //        }
 

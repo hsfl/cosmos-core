@@ -41,7 +41,7 @@
 
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"
-#include "agent/agentclass.h"
+#include "agent/agentclasslite.h"
 #include "support/event.h"
 
 namespace Cosmos {

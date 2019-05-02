@@ -134,7 +134,7 @@ class Agent
 {
 public:
 //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-    Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 1);
+    Agent(const string &nname = "", const string &aname = "", int build = 0, double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 0);
     ~Agent();
 
     //! State of Health element vector
@@ -279,7 +279,7 @@ public:
     uint16_t running();
     int32_t last_error();
     int32_t set_sohstring(string list);
-    cosmosstruc *get_cosmosstruc();
+    CosmosTop *get_cosmosstruc();
     void get_ip(char* buffer, size_t buflen);
     void get_ip_list(uint16_t port);
     int32_t unpublish();
@@ -319,6 +319,8 @@ public:
     void log(string log_entry);
     bool setSoh(string sohFields);
     cosmosstruc *cinfo;
+    CosmosTop* ctop;
+    cosmoshandler candle;
 
     //! List of active agents
     vector <beatstruc> agent_list;
