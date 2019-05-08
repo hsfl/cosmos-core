@@ -95,6 +95,7 @@ namespace Cosmos {
                 int32_t addByte(uint8_t dbyte);
                 int32_t addDataByte(uint8_t dbyte);
                 int32_t setDataBytes(vector <uint8_t> &dbytes);
+                int32_t getHeaderBytes(uint8_t* &header);
 
                 struct primary_header
                 {
