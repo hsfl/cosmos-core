@@ -2267,7 +2267,17 @@ public:
 	CosmosMid(string name){
 		this->name = name;
 	}
-	CosmosMid(int build);
+    CosmosMid(int build){
+    switch(build){
+    case 0:
+        CosmosMid location("cartpos");
+        location.create_data("utc",(HandlerDataType)8);
+        location.create_data("s",(HandlerDataType)10);
+        location.create_data("v",(HandlerDataType)10);
+        location.create_data("a",(HandlerDataType)10);
+        location.create_data("pass",(HandlerDataType)6);
+    }
+    }
 	
     vector<CosmosMid*> children;
 
