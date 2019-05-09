@@ -37,8 +37,8 @@ namespace Cosmos {
             Spp::Spp(uint16_t apid, bool telecommand, bool secondary_header, uint8_t version)
             {
                 frame.primary_header_fields.version = version;
-                frame.primary_header_fields.apid_msb = apid % 16;
-                frame.primary_header_fields.apid_lsb = apid / 16;
+                frame.primary_header_fields.apid_msb = apid / 256;
+                frame.primary_header_fields.apid_lsb = apid % 256;
                 if (telecommand)
                 {
                     frame.primary_header_fields.type = 1;
@@ -84,8 +84,8 @@ namespace Cosmos {
             {
                 if (apid < 2048)
                 {
-                    frame.primary_header_fields.apid_msb = apid % 16;
-                    frame.primary_header_fields.apid_lsb = apid / 16;
+                    frame.primary_header_fields.apid_msb = apid / 256;
+                    frame.primary_header_fields.apid_lsb = apid % 256;
                     return 0;
                 }
                 else
@@ -96,7 +96,7 @@ namespace Cosmos {
 
             int32_t Spp::setApidIdle()
             {
-                frame.primary_header_fields.apid_msb = 255;
+                frame.primary_header_fields.apid_lsb = 255;
                 frame.primary_header_fields.apid_msb = 7;
                 return 0;
             }
@@ -131,8 +131,8 @@ namespace Cosmos {
             {
                 if (count < 16384)
                 {
-                    frame.primary_header_fields.sequence_count_lsb = count % 16;
-                    frame.primary_header_fields.sequence_count_msb = count / 16;
+                    frame.primary_header_fields.sequence_count_lsb = count % 256;
+                    frame.primary_header_fields.sequence_count_msb = count / 256;
                     return 0;
                 }
                 else
@@ -196,7 +196,7 @@ namespace Cosmos {
 
             uint16_t Spp::getSequenceCount()
             {
-                return frame.primary_header_fields.sequence_count_msb * 16 + frame.primary_header_fields.sequence_count_lsb;
+                return frame.primary_header_fields.sequence_count_msb * 256L + frame.primary_header_fields.sequence_count_lsb;
             }
 
             uint32_t Spp::getDataLength()
