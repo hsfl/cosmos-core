@@ -1052,7 +1052,7 @@ void send_loop()
                         tp.chunk_end = tp.chunk_start + byte_count - 1;
 
                         // Read the packet and send it
-                        size_t nbytes;
+                        int32_t nbytes;
                         PACKET_BYTE* chunk = new PACKET_BYTE[byte_count]();
                         if (!(nbytes = fseek(txq[node].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET)))
                         {
