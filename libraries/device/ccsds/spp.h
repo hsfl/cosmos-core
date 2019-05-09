@@ -40,7 +40,7 @@ namespace Cosmos {
             class Spp
             {
             public:
-                Spp(uint16_t apid=0, bool telecommand=(bool)PacketType::Telemetry, bool secondary_header=false, uint8_t version=0);
+                Spp(uint16_t apid=0, bool telecommand=static_cast<bool>(PacketType::Telemetry), bool secondary_header=false, uint8_t version=0);
 //                ~Spp();
 
 

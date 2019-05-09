@@ -164,11 +164,11 @@ namespace Cosmos {
         if (dbaud > (38400+57600)/2)
         {
             baud_speed_index = 1;
-            baud_index = (log10f((float)dbaud) - 4.7604) / .118 + .5;
+            baud_index = static_cast<size_t>((log10f(dbaud) - 4.7604F) / .118F + .5F);
         }
         else
         {
-            baud_index = (log10f((float)dbaud) - 1.699) / .2025 + .5;
+            baud_index = static_cast<size_t>((log10f(dbaud) - 1.699F) / .2025F + .5F);
         }
 
         bool baud_adjust = false;
@@ -904,7 +904,7 @@ namespace Cosmos {
                 data.append(1, (char)error);
             }
         }
-        return (size);
+        return (static_cast<int32_t>(size));
     }
 
     int32_t Serial::get_string(string &data, char endc)
@@ -935,7 +935,7 @@ namespace Cosmos {
             }
         } while (error != endc);
 
-        return (data.size());
+        return (static_cast<int32_t>(data.size()));
     }
 
     int32_t Serial::get_data(vector <uint8_t> &data, size_t size)
@@ -961,10 +961,10 @@ namespace Cosmos {
             }
             else
             {
-                data.push_back((uint8_t)error);
+                data.push_back(static_cast<uint8_t>(error));
             }
         }
-        return (size);
+        return (static_cast<int32_t>(size));
     }
 
     int32_t Serial::get_data(uint8_t *data, size_t size)
@@ -990,10 +990,10 @@ namespace Cosmos {
             }
             else
             {
-                data[i] = (uint8_t)error;
+                data[i] = static_cast<uint8_t>(error);
             }
         }
-        return (size);
+        return (static_cast<int32_t>(size));
     }
 
     //! Read Xmodem frame.
@@ -1006,7 +1006,7 @@ namespace Cosmos {
     */
     int32_t Serial::get_xmodem(vector <uint8_t> &data, size_t size)
     {
-        int16_t ch;
+        int32_t ch;
 
         ch = get_char();
         if (ch != XMODEM_SOH)
@@ -1020,7 +1020,7 @@ namespace Cosmos {
                 return SERIAL_ERROR_READ;
             }
         }
-        uint8_t blocknum = get_char();
+        uint8_t blocknum = static_cast<uint8_t>(get_char());
         ch = get_char();
         if (255-blocknum != ch)
         {
@@ -1036,7 +1036,7 @@ namespace Cosmos {
             {
                 return (ch);
             }
-            data.push_back(ch);
+            data.push_back(static_cast<uint8_t>(ch));
             ++i;
             csum += ch;
         } while (i<128);
@@ -1060,7 +1060,7 @@ namespace Cosmos {
     */
     int32_t Serial::get_slip(vector <uint8_t> &data, size_t size)
     {
-        int16_t ch;
+        int32_t ch;
         uint16_t i;
 
         do
@@ -1114,7 +1114,7 @@ namespace Cosmos {
                 case SLIP_FEND:
                     break;
                 default:
-                    data.push_back(ch);
+                    data.push_back(static_cast<uint8_t>(ch));
                     ++i;
                     break;
                 }
@@ -1135,7 +1135,7 @@ namespace Cosmos {
     */
     int32_t Serial::get_nmea(vector <uint8_t> &data, size_t size)
     {
-        int16_t ch;
+        int32_t ch;
         uint16_t i;
         uint8_t cs_in, cs_out;
         std::string input;
@@ -1143,7 +1143,7 @@ namespace Cosmos {
         do
         {
             ch = get_char();
-            input += ch;
+            input += static_cast<char>(ch);
             if (ch < 0) return (ch);
         } while (ch != '$');
 
@@ -1152,7 +1152,7 @@ namespace Cosmos {
         do
         {
             ch = get_char();
-            input += ch;
+            input += static_cast<char>(ch);
             if (ch < 0) return (ch);
             if (i < size)
             {
@@ -1161,33 +1161,33 @@ namespace Cosmos {
                 case '*':
                     break;
                 default:
-                    cs_in ^= (uint8_t)ch;
-                    data.push_back(ch);
+                    cs_in ^= ch;
+                    data.push_back(static_cast<uint8_t>(ch));
                     ++i;
                     break;
                 }
             }
         } while (ch != '*');
         ch = get_char();
-        input += ch;
+        input += static_cast<char>(ch);
         if (ch < 0) return (ch);
         if (ch > '9')
         {
             if (ch > 'F')
             {
-                cs_out = (ch - 'a' + 10) * 16;
+                cs_out = (static_cast<uint8_t>(ch) - 'a' + 10) * 16;
             }
             else
             {
-                cs_out = (ch - 'A' + 10) * 16;
+                cs_out = (static_cast<uint8_t>(ch) - 'A' + 10) * 16;
             }
         }
         else
         {
-            cs_out = (ch - '0') * 16;
+            cs_out = (static_cast<uint8_t>(ch) - '0') * 16;
         }
         ch = get_char();
-        input += ch;
+        input += static_cast<char>(ch);
         if (ch < 0) return (ch);
         if (ch > '9')
         {
@@ -1207,7 +1207,7 @@ namespace Cosmos {
         if (cs_in != cs_out)
             return (SERIAL_ERROR_CHECKSUM);
         ch = get_char();
-        input += ch;
+        input += static_cast<char>(ch);
 
         return (i);
     }

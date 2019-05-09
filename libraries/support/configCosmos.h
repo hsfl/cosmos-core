@@ -132,8 +132,8 @@ using namespace Cosmos;
 //! \addtogroup defs_macros More Special COSMOS macros
 //! @{
 #define COSMOS_LINUX_OS
-#define COSMOS_USLEEP(usec) usleep((uint32_t)usec)
-#define COSMOS_SLEEP(sec) usleep((uint32_t)((sec>=0.?sec:0)*1e6)) // this allows decimal seconds
+#define COSMOS_USLEEP(usec) usleep(static_cast<uint32_t>(usec))
+#define COSMOS_SLEEP(sec) usleep(static_cast<uint32_t>((sec>=0.?sec:0)*1e6)) // this allows decimal seconds
 #define CLOSE_SOCKET(socket) ::close(socket)
 #define COSMOS_MKDIR(dtemp, mode) mkdir(const_cast<char *>(dtemp), mode)
 //! @}
