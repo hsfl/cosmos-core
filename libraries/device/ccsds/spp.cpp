@@ -176,7 +176,7 @@ namespace Cosmos {
 
             uint16_t Spp::getApid()
             {
-                return 16 * frame.primary_header_fields.apid_lsb + frame.primary_header_fields.apid_msb;
+                return 256 * frame.primary_header_fields.apid_msb + frame.primary_header_fields.apid_lsb;
             }
 
             Spp::PacketType Spp::getType()
@@ -278,6 +278,12 @@ namespace Cosmos {
             {
                     dbytes = frame.data_bytes;
                     return 0;
+            }
+
+            int32_t Spp::getHeaderBytes(uint8_t* &header)
+            {
+                header=frame.primary_header_bytes;
+                return 0;
             }
 
         }
