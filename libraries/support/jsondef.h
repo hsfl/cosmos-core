@@ -2347,7 +2347,10 @@ public:
 	{
 		this->name = name;
 	}
-	CosmosDevice(int build);
+    CosmosDevice(int build)
+    {
+        this->name = "incomplete";
+    }
 
     CosmosData* exists_data(string name)
     {
