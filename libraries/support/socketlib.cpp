@@ -209,6 +209,21 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
             break;
         }
 
+#ifdef COSMOS_WIN_OS
+        if (!port) {
+           socklen_t namelen = sizeof(struct sockaddr_in);
+           if ((iretn = getsockname(channel->cudp, (sockaddr *) &channel->caddr, &namelen)) == -1) {
+                CLOSE_SOCKET(channel->cudp);
+                channel->cudp = -errno;
+                return (-errno);
+           }
+           channel->cport = ntohs(channel->caddr.sin_port);
+        }
+        else {
+            channel->cport = port;
+        }
+#endif
+
         if (ntype == NetworkType::MULTICAST)
         {
             //! 2. Join multicast
@@ -278,6 +293,8 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         break;
     }
 
+#ifndef COSMOS_WIN_OS
+    // TODO: Figure out why this portion won't work for Windows.
     // Find assigned port, place in cport, and set caddr to requested port
     iretn = sendto(channel->cudp, (const char *)nullptr, 0, 0, (struct sockaddr *)&channel->baddr, sizeof(struct sockaddr_in));
     sockaddr_in taddr = channel->caddr;
@@ -290,6 +307,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     }
     channel->cport = ntohs(channel->caddr.sin_port);
     channel->caddr = taddr;
+#endif
 
     if (rcvbuf)
     {
