@@ -209,21 +209,6 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
             break;
         }
 
-#ifdef COSMOS_WIN_OS
-        if (!port) {
-           socklen_t namelen = sizeof(struct sockaddr_in);
-           if ((iretn = getsockname(channel->cudp, (sockaddr *) &channel->caddr, &namelen)) == -1) {
-                CLOSE_SOCKET(channel->cudp);
-                channel->cudp = -errno;
-                return (-errno);
-           }
-           channel->cport = ntohs(channel->caddr.sin_port);
-        }
-        else {
-            channel->cport = port;
-        }
-#endif
-
         if (ntype == NetworkType::MULTICAST)
         {
             //! 2. Join multicast
@@ -251,16 +236,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
             channel->caddr.sin_addr.s_addr = 0xffffffff;
             break;
         case NetworkType::MULTICAST:
-#ifndef COSMOS_WIN_OS
             inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-#else
-            inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-            //			struct sockaddr_storage ss;
-            //		    int sslen;
-            //            sslen = sizeof(ss);
-            //            WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-            //            channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-#endif
             break;
         default:
             return (SOCKET_ERROR_PROTOCOL);
@@ -269,16 +245,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         channel->cport = port;
         break;
     case SOCKET_TALK:
-#ifndef COSMOS_WIN_OS
         inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-#else
-        inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-        //		struct sockaddr_storage ss;
-        //	    int sslen;
-        //        sslen = sizeof(ss);
-        //        WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-        //        channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-#endif
         channel->cport = port;
 
         if (ntype == NetworkType::TCP)
@@ -293,9 +260,9 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         break;
     }
 
-#ifndef COSMOS_WIN_OS
-    // TODO: Figure out why this portion won't work for Windows.
     // Find assigned port, place in cport, and set caddr to requested port
+    channel->baddr = channel->caddr;
+    channel->baddr.sin_addr.s_addr |= 0xff;
     iretn = sendto(channel->cudp, (const char *)nullptr, 0, 0, (struct sockaddr *)&channel->baddr, sizeof(struct sockaddr_in));
     sockaddr_in taddr = channel->caddr;
     socklen_t namelen = sizeof(struct sockaddr_in);
@@ -307,7 +274,6 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     }
     channel->cport = ntohs(channel->caddr.sin_port);
     channel->caddr = taddr;
-#endif
 
     if (rcvbuf)
     {
