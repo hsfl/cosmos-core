@@ -128,7 +128,7 @@ public:
 	*/
     void add_command(Event& c);
 
-	///	Remove Event from the queue
+    ///	Remove **first** matching Event from the queue
 	/**
 		\param	c	Event to remove
 		\return	The number of Events removed
@@ -136,6 +136,15 @@ public:
 		This function only removes events from the queue if the are exactly equal to the given Event.
 	*/
     int del_command(Event& c);
+
+    /// Remove Event from the queue based on position
+    /**
+         \param  pos  Position of event to remove
+         \return The number of Events removed
+
+         This function removes events based on their queue position (0-indexed).
+    */
+    int del_command(int pos);
 
 	///	Sort the Events in the queue by Event exectution time
 	/**

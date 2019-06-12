@@ -39,9 +39,10 @@ namespace Cosmos {
 // Class: CommandQueue
 // *************************************************************************
 
-// Executes a command using fork().  For each command run, the time of
-// execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
-// and this updated command information is logged to the OUTPUT directory.
+// Executes a command in a separate shell (system) using threads. For each
+// command run, the time of execution (utcexec) is set, the flag
+// EVENT_FLAG_ACTUAL is set to true, and this updated command information is
+// logged to the OUTPUT directory.
 void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 {
 	queue_changed = true;
@@ -50,54 +51,74 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 	cmd.set_utcexec();
 	cmd.set_actual();
 
-	// execute command
-#if defined(COSMOS_WIN_OS)
-	char command_line[100];
+    string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
+    char command_line[100];
     strcpy(command_line, cmd.get_data().c_str());
 
-	STARTUPINFOA si;
-	PROCESS_INFORMATION pi;
+    std::thread ([=] () { // TODO: Test for windows.
+        int devn;
+        if (outpath.empty()) {
+            devn = open("/dev/null", O_RDWR);
+        }
+        else {
+            devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+        }
+        dup2(devn, STDIN_FILENO); // Redirect all output our executed command.
+        dup2(devn, STDOUT_FILENO);
+        dup2(devn, STDERR_FILENO);
+        close(devn);
 
-	ZeroMemory( &si, sizeof(si) );
-	si.cb = sizeof(si);
-	ZeroMemory( &pi, sizeof(pi) );
+        // Execute the command.
+        system(command_line);
+        // execvp(words[0], &(words[0])); I'm unable to get 'execvp' working.
+    }).detach();
 
-	if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-	{
-		//		int32_t pid = pi.dwProcessId;
-		CloseHandle( pi.hProcess );
-		CloseHandle( pi.hThread );
-	}
-#else
-	signal(SIGCHLD, SIG_IGN);
-	int32_t pid = fork();
-	switch(pid)
-	{
-	case -1:
-		break;
-	case 0:
-		char *words[MAXCOMMANDWORD];
-		int devn;
-        string_parse((char *)cmd.get_data().c_str(),words,MAXCOMMANDWORD);
-		string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
-		if (outpath.empty())
-		{
-			devn = open("/dev/null",O_RDWR);
-		}
-		else
-		{
-			devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
-		}
-		dup2(devn, STDIN_FILENO);
-		dup2(devn, STDOUT_FILENO);
-		dup2(devn, STDERR_FILENO);
-		close(devn);
-		execvp(words[0],&(words[0]));
-		fflush(stdout);
-		exit (0);
-		break;
-	}
-#endif
+//#if defined(COSMOS_WIN_OS)
+//	char command_line[100];
+//    strcpy(command_line, cmd.get_data().c_str());
+//
+//	STARTUPINFOA si;
+//	PROCESS_INFORMATION pi;
+//
+//	ZeroMemory( &si, sizeof(si) );
+//	si.cb = sizeof(si);
+//	ZeroMemory( &pi, sizeof(pi) );
+//
+//	if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+//	{
+//		//		int32_t pid = pi.dwProcessId;
+//		CloseHandle( pi.hProcess );
+//		CloseHandle( pi.hThread );
+//	}
+//#else
+//    int32_t pid = fork(); // Fork paradigm copies ENTIRE process space, leads to errors when exiting child. Now using threads.
+//
+//    char *words[MAXCOMMANDWORD];
+//    string_parse((char *)cmd.get_data().c_str(), words, MAXCOMMANDWORD);
+//    string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
+//    if (pid != 0) {
+//        signal(SIGCHLD, SIG_IGN); // Ensure no zombies.
+//    }
+//    else {
+//        int devn;
+//        if (outpath.empty()) {
+//            devn = open("/dev/null",O_RDWR);
+//        }
+//        else {
+//            devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+//        }
+//      dup2(devn, STDIN_FILENO);
+//		dup2(devn, STDOUT_FILENO);
+//		dup2(devn, STDERR_FILENO);
+//      close(devn);
+//
+//        // Execute the command.
+//        execvp(words[0], &(words[1]));
+//        fflush(stdout);
+//        exit (0);
+//    }
+//
+//#endif
 
 	// log to event file
     log_write(nodename, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
@@ -205,7 +226,7 @@ void CommandQueue::load_commands(string incoming_dir)
 			{
 				//cmd.set_command(line, agent); // TODO: is it really necessary to pass *agent?
 				cmd.set_command(line); // TODO: is it really necessary to pass *agent?  NOPE!
-				std::cout<<cmd;
+                std::cout << "Command added: " << cmd;
 
 				if(cmd.is_command())
 					add_command(cmd);
@@ -220,7 +241,7 @@ void CommandQueue::load_commands(string incoming_dir)
 				continue;
 			}
 
-			std::cout<<"The size of the command queue is: "<< get_size()<<std::endl;
+            std::cout<<"\nThe size of the command queue is: "<< get_size()<<std::endl;
 		}
 	}
 
@@ -234,17 +255,43 @@ void CommandQueue::load_commands(string incoming_dir)
 // Remove command object from the command queue, uses command == operator)
 int CommandQueue::del_command(Event& c)
 {
-	int n = 0;
-    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
-	{
-		if(c==*ii)
-		{
-			commands.erase(ii--);
-			n++;
-		}
-	}
-	queue_changed = true;
-	return n;
+    size_t prev_sz = commands.size();
+    for (std::list<Event>::iterator ii = commands.begin();
+         ii != commands.end();
+         ++ii) {
+        if (c == *ii) {
+            commands.erase(ii--);
+            break; // Do not remove duplicate commands.
+        }
+    }
+
+    queue_changed = true;
+    return static_cast<int>(prev_sz - commands.size());
+
+//	int n = 0;
+//    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
+//    {
+//
+//		if(c==*ii)
+//		{
+//            commands.erase(ii--);
+//			n++;
+//		}
+//	}
+//	queue_changed = true;
+//	return n;
+}
+
+// Overloaded removal method to delete entry w/ queue position.
+int CommandQueue::del_command(int pos)
+{
+    size_t prev_sz = commands.size();
+    std::list<Event>::iterator b = commands.begin();
+
+    std::advance(b, pos);
+    commands.erase(b);
+    queue_changed = true;
+    return static_cast<int>(prev_sz - commands.size());
 }
 
 void CommandQueue::add_command(Event& c)

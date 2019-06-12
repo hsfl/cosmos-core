@@ -131,13 +131,13 @@ beatstruc iscbeat;
 string node = "neutron1";
 char response[300];
 
+const char DIVIDER[82] = "================================================================================\n";
+
 int main(int argc, char *argv[])
 {
     int sleept;
     double lmjd, dmjd;
     double nextmjd;
-
-    cout<<"Starting the executive/soh agent->..";
     int32_t iretn;
 
     // Set node name to first argument
@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
     nodename = argv[1];
+    cout<<"Starting the executive/soh agent->..";
 
     // Establish the command channel and heartbeat
     agent = new Agent(nodename, "exec", 5.);
@@ -214,13 +215,14 @@ int main(int argc, char *argv[])
         //file is open for reading commands
         string line;
         Event cmd;
+        std::cout << DIVIDER;
 
         while(std::getline(infile,line))
         {
             //cmd.set_command(line, agent);
             cmd.set_command(line);
 
-            cout<<cmd;
+//            cout<<cmd;
 
             if(cmd.is_command())
             {
@@ -250,7 +252,7 @@ int main(int argc, char *argv[])
 
     // Create default logstring
     logstring = json_list_of_soh(agent->cinfo);
-    printf("logstring: %s\n", logstring.c_str());
+    printf("%slogstring: %s\n%s", DIVIDER, logstring.c_str(), DIVIDER);
     json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
     //	agent_set_sohstring(agent->cinfo, logstring.c_str());
 
@@ -411,13 +413,11 @@ int32_t request_del_event_id(char *request, char* response, Agent *agent)
 
         // if valid index then return command
         if (iretn == 1) {
-			cout<<"j = "<<j<<endl;
+//			cout<<"j = "<<j<<endl;
             if(j >= 0 && j < (int)cmd_queue.get_size() ) {
-				//lookup command
-                cmd = cmd_queue.get_command(j);
-        		//delete command
-        		int n = cmd_queue.del_command(cmd);
-        		sprintf(response,"%d commands deleted from the queue",n);
+                sprintf(response,"%d commands deleted from the queue",
+                    cmd_queue.del_command(j)
+                );
             } else {
                 ss << "<" << j << "> is not a valid command queue index (current range between 0 and " << cmd_queue.get_size()-1 << ")";
             }
@@ -447,7 +447,12 @@ int32_t request_del_event(char *request, char* response, Agent *agent)
     //delete command
     int n = cmd_queue.del_command(cmd);
 
-    sprintf(response,"%d commands deleted from the queue",n);
+    if(!cmd.is_command()) {
+        sprintf(response, "Not a valid command: %s", line.c_str());
+    }
+    else {
+        sprintf(response,"%d commands deleted from the queue",n);
+    }
 
     return 0;
 }
@@ -463,16 +468,20 @@ int32_t request_add_event(char *request, char* response, Agent *agent)
 
     //cmd.set_command(line, agent);
     cmd.set_command(line);
+//    cout << cmd << endl;
 
     // add command
     if(cmd.is_command())
 	{
         cmd_queue.add_command(cmd);
-	}
+        sprintf(response, "Command added to queue: %s", line.c_str());
+    }
+    else {
+        sprintf(response, "Not a valid command: %s", line.c_str());
+    }
 
 	// sort the queue
 	cmd_queue.sort();
-    strcpy(response, line.c_str());
     return 0;
 }
 
