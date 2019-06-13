@@ -261,7 +261,6 @@ int CommandQueue::del_command(Event& c)
          ++ii) {
         if (c == *ii) {
             commands.erase(ii--);
-            break; // Do not remove duplicate commands.
         }
     }
 

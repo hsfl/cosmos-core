@@ -128,7 +128,7 @@ public:
 	*/
     void add_command(Event& c);
 
-    ///	Remove **first** matching Event from the queue
+    ///	Remove **all** matching Event from the queue
 	/**
 		\param	c	Event to remove
 		\return	The number of Events removed
