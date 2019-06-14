@@ -51,11 +51,19 @@ class CommandQueue
 {
 private:
 	/**	An std::list of members of the Event class	*/
-	std::list<Event> commands;
+    std::list<Event> commands;
+    /** A vector of all threads spawned to run events  */
+    std::vector<std::thread> event_threads;
 	/** A boolean indicator that the queue has changed	*/
 	bool queue_changed = false;
 
 public:
+
+    /// Ensure all threads are joined before destruction.
+    ~CommandQueue();
+
+    /// Join all threads spawn and empty our vector.
+    void join_events();
 
 	///	Retrieve the size of the queue
 	/**

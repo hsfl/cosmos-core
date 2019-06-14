@@ -40,6 +40,7 @@
 #include <list>
 #include <fstream>
 #include <sstream>
+#include <mutex>
 
 using std::string;
 using std::vector;
@@ -77,7 +78,8 @@ string incoming_dir;
 string outgoing_dir;
 string temp_dir;
 
-string nodename;
+void move_and_compress_exec ();
+static std::mutex exec_mutex;
 
 double logdate_exec=0.;
 double newlogstride_exec = 900. / 86400.;
@@ -111,12 +113,13 @@ int waitsec = 5;
 void collect_data_loop();
 thread cdthread;
 
-string logstring;
+void move_and_compress_soh();
 vector<jsonentry*> logtable;
 double logdate_soh=0.;
 int32_t newlogperiod = 10, logperiod = 0;
 double newlogstride_soh = 900. / 86400.;
 double logstride_soh = 0.;
+static std::mutex soh_mutex;
 
 vector<shorteventstruc> eventdict;
 vector<shorteventstruc> events;
@@ -275,7 +278,7 @@ int main(int argc, char *argv[])
         {
             logperiod = newlogperiod;
             logdate_soh = agent->cinfo->node.utc;
-            log_move(agent->cinfo->node.name, "soh");
+            move_and_compress_soh();
         }
 
         // Check if either of the logstride have changed
@@ -283,27 +286,27 @@ int main(int argc, char *argv[])
         {
             logstride_exec = newlogstride_exec;
             logdate_exec = currentmjd(0.);
-            log_move(nodename, "exec");
+            move_and_compress_exec();
         }
 
         if (newlogstride_soh != logstride_soh )
         {
             logstride_soh = newlogstride_soh;
             logdate_soh = currentmjd(0.);
-            log_move(nodename, "soh");
+            move_and_compress_soh();
         }
 
         // Check if either of the logstride have expired
         if (floor(cmjd/logstride_exec)*logstride_exec > logdate_exec)
         {
             logdate_exec = floor(cmjd/logstride_exec)*logstride_exec;
-            log_move(nodename, "exec");
+            move_and_compress_exec();
         }
 
         if (floor(cmjd/logstride_soh)*logstride_soh > logdate_soh)
         {
             logdate_soh = floor(cmjd/logstride_soh)*logstride_soh;
-            log_move(nodename, "soh");
+            move_and_compress_soh();
         }
 
         // Perform SOH specific functions
@@ -353,10 +356,12 @@ int32_t request_set_logstride_exec(char* request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t request_reopen_exec(char* request, char* response, Agent *agent)
+
+int32_t request_reopen_exec(char*, char*, Agent *)
 {
-    logdate_exec = ((cosmosstruc *)agent->cinfo)->node.loc.utc;
-    log_move(((cosmosstruc *)agent->cinfo)->node.name, "exec");
+    // Do not wait for log stride, move data from temp to incoming immediately.
+    logdate_exec = agent->cinfo->node.loc.utc;
+    move_and_compress_exec();
     return 0;
 }
 
@@ -542,10 +547,11 @@ int32_t request_run(char *request, char* response, Agent *agent)
 }
 
 // SOH specific requests
-int32_t request_reopen_soh(char* request, char* response, Agent *agent)
+int32_t request_reopen_soh(char*, char*, Agent *agent)
 {
-    logdate_soh = ((cosmosstruc *)agent->cinfo)->node.loc.utc;
-    log_move(((cosmosstruc *)agent->cinfo)->node.name, "soh");
+    // Do not wait for logstride, push soh log files out of temp and into incoming.
+    logdate_soh = agent->cinfo->node.loc.utc;
+    move_and_compress_soh();
     return 0;
 }
 
@@ -607,19 +613,33 @@ void collect_data_loop()
     return;
 }
 
-/// Prints the command information stored in local the copy of agent->cinfo->event[0].l
-void print_command()
-{
-    string jsp;
-
-    json_out(jsp,(char*)"event_utc", agent->cinfo);
-    json_out(jsp,(char*)"event_utcexec", agent->cinfo);
-    json_out(jsp,(char*)"event_name", agent->cinfo);
-    json_out(jsp,(char*)"event_type", agent->cinfo);
-    json_out(jsp,(char*)"event_flag", agent->cinfo);
-    json_out(jsp,(char*)"event_data", agent->cinfo);
-    json_out(jsp,(char*)"event_condition", agent->cinfo);
-    cout<<"<"<<jsp<<">"<<endl;
-
-    return;
+// Moving exec and soh logs must be atomic.
+void move_and_compress_exec () {
+    exec_mutex.lock();
+    cmd_queue.join_events();
+    log_move(nodename, "exec");
+    exec_mutex.unlock();
 }
+void move_and_compress_soh () {
+    exec_mutex.lock();
+    log_move(nodename, "soh");
+    exec_mutex.unlock();
+}
+
+// Not being used... remove?
+///// Prints the command information stored in local the copy of agent->cinfo->event[0].l
+//void print_command()
+//{
+//    string jsp;
+//
+//    json_out(jsp,(char*)"event_utc", agent->cinfo);
+//    json_out(jsp,(char*)"event_utcexec", agent->cinfo);
+//    json_out(jsp,(char*)"event_name", agent->cinfo);
+//    json_out(jsp,(char*)"event_type", agent->cinfo);
+//    json_out(jsp,(char*)"event_flag", agent->cinfo);
+//    json_out(jsp,(char*)"event_data", agent->cinfo);
+//    json_out(jsp,(char*)"event_condition", agent->cinfo);
+//    cout<<"<"<<jsp<<">"<<endl;
+//
+//    return;
+//}

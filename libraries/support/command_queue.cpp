@@ -39,6 +39,20 @@ namespace Cosmos {
 // Class: CommandQueue
 // *************************************************************************
 
+
+CommandQueue::~CommandQueue () { join_events(); }
+
+// Before moving log files, we must join the event threads and ensure that each
+// event spawned is not currently active.
+void CommandQueue::join_events() {
+    static auto join_event = [] (std::thread &t) {
+       t.join();
+    };
+
+    for_each(event_threads.begin(), event_threads.end(), join_event);
+    event_threads.clear();
+}
+
 // Executes a command in a separate shell (system) using threads. For each
 // command run, the time of execution (utcexec) is set, the flag
 // EVENT_FLAG_ACTUAL is set to true, and this updated command information is
@@ -55,23 +69,36 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
     char command_line[100];
     strcpy(command_line, cmd.get_data().c_str());
 
-    std::thread ([=] () { // TODO: Test for windows.
-        int devn;
+    // We keep track of all threads spawned to join before moving log files.
+    event_threads.push_back(std::thread([=] () {
+        int devn, prev_stdin, prev_stdout, prev_stderr;
         if (outpath.empty()) {
             devn = open("/dev/null", O_RDWR);
         }
         else {
             devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
         }
-        dup2(devn, STDIN_FILENO); // Redirect all output our executed command.
+
+        prev_stdin = dup(STDIN_FILENO);
+        prev_stdout = dup(STDOUT_FILENO);
+        prev_stderr = dup(STDERR_FILENO);
+
+        // Redirect all output our executed command.
+        dup2(devn, STDIN_FILENO);
         dup2(devn, STDOUT_FILENO);
         dup2(devn, STDERR_FILENO);
         close(devn);
 
         // Execute the command.
         system(command_line);
-        // execvp(words[0], &(words[0])); I'm unable to get 'execvp' working.
-    }).detach();
+
+        dup2(prev_stdin, STDIN_FILENO);
+        dup2(prev_stdout, STDOUT_FILENO);
+        dup2(prev_stderr, STDERR_FILENO);
+        close(prev_stdin);
+        close(prev_stdout);
+        close(prev_stderr);
+    }));
 
 //#if defined(COSMOS_WIN_OS)
 //	char command_line[100];
