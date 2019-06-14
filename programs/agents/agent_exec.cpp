@@ -90,7 +90,7 @@ int32_t request_get_event(char* request, char* response, Agent* agent);
 int32_t request_del_event(char* request, char* response, Agent* agent);
 int32_t request_del_event_id(char* request, char* response, Agent* agent);
 int32_t request_add_event(char* request, char* response, Agent* agent);
-int32_t request_run(char *request, char* response, Agent* agent);
+int32_t request_remote_command(char *request, char* response, Agent* agent);
 int32_t request_soh(char *request, char* response, Agent* agent);
 int32_t request_reopen_exec(char* request, char* response, Agent* agent);
 int32_t request_set_logstride_exec(char* request, char* response, Agent* agent);
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
         exit (iretn);
     if ((iretn=agent->add_request("add_event", request_add_event, "{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", "adds the specified command event to the queue")))
         exit (iretn);
-    if ((iretn=agent->add_request("run", request_run, "", "run the requested command")))
+    if ((iretn=agent->add_request("run_remote_command", request_remote_command, "command-to-run", "run a command local to the agent and return its output")))
         exit (iretn);
     if ((iretn=agent->add_request("reopen_exec", request_reopen_exec)))
         exit (iretn);
@@ -367,7 +367,7 @@ int32_t request_reopen_exec(char*, char*, Agent *)
 
 int32_t request_get_queue_size(char *request, char* response, Agent *agent)
 {
-    sprintf(response,"%" PRIu64 "", cmd_queue.get_size());
+    sprintf(response,"%" PRIu32 "", cmd_queue.get_size());
     return 0;
 }
 
@@ -490,36 +490,30 @@ int32_t request_add_event(char *request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t request_run(char *request, char* response, Agent *agent)
+// Run the command and return the output in the response.
+int32_t request_remote_command(char *request, char* response, Agent *)
 {
-    int i;
     int32_t iretn = 0;
     FILE *pd;
-    bool flag;
+    int i;
 
-    // Run Program
-    flag = false;
-
-    for (i=0; i<AGENTMAXBUFFER-1; i++)
-    {
-        if (flag)
-        {
+    // Locate where our command starts.
+    bool flag = false;
+    for (i=0; i<AGENTMAXBUFFER-1; i++) {
+        if (flag) {
             if (request[i] != ' ')
                 break;
         }
-        else
-        {
-            if (request[i] == ' ')
-                flag = true;
+        else if (request[i] == ' ') {
+            flag = true;
         }
     }
 
-    if (i == AGENTMAXBUFFER-1)
-    {
-        sprintf(response,"unmatched");
+    if (i == AGENTMAXBUFFER-1) {
+        sprintf(response,"Unable to find an appropriate command.");
     }
-    else
-    {
+    else {
+        // Run the process and create a pipe.
 #ifdef COSMOS_WIN_BUILD_MSVC
         if ((pd=_popen(&request[i], "r")) != NULL)
 #else
@@ -527,23 +521,21 @@ int32_t request_run(char *request, char* response, Agent *agent)
 #endif
         {
             iretn = fread(response,1,AGENTMAXBUFFER-1,pd);
-            response[iretn] = 0;
-
+            response[iretn] = '\0';
             iretn = 0;
 #ifdef COSMOS_WIN_BUILD_MSVC
             _pclose(pd);
 #else
-            pclose(pd); // close process
+            pclose(pd);
 #endif
         }
-        else
-        {
-            response[0] = 0;
+        else {
+            response[0] = '\0';
             iretn = 0;
         }
     }
 
-    return (iretn);
+    return iretn;
 }
 
 // SOH specific requests
