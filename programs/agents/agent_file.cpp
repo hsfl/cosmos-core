@@ -329,7 +329,7 @@ int main(int argc, char *argv[])
         exit (iretn);
     //	if ((iretn=agent->add_request("send_file",request_send_file,"", "creates and sends metadata/data packets")))
     //		exit (iretn);
-    if ((iretn=agent->add_request("ls",request_ls,"", "lists contents of directory")))
+    if ((iretn=agent->add_request("ls",request_ls, "directory", "lists contents of specified directory")))
         exit (iretn);
     if ((iretn=agent->add_request("list_incoming",request_list_incoming,"", "lists contents incoming queue")))
         exit (iretn);

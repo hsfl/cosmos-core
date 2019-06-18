@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     agent = new Agent(nodename, "exec", 5.);
     if (agent->cinfo == nullptr)
     {
-        cout<<"unable to start agent_exec: "<<endl;
+        cout<<"unable to start agent_exec: "<< agent->last_error() << endl;
         exit(1);
     }
     agent->cinfo->node.utc = 0.;
@@ -479,6 +479,7 @@ int32_t request_add_event(char *request, char* response, Agent *)
 // Run the command and return the output in the response.
 int32_t request_remote_command(char *request, char* response, Agent *)
 {
+    char request_re[AGENTMAXBUFFER + 5];
     int32_t iretn = 0;
     FILE *pd;
     int i;
@@ -499,11 +500,15 @@ int32_t request_remote_command(char *request, char* response, Agent *)
         sprintf(response,"Unable to find an appropriate command.");
     }
     else {
+        // Redirect error into buffer as well.
+        strcpy(request_re, &request[i]);
+        strcat(request_re, " 2>&1");
+
         // Run the process and create a pipe.
 #ifdef COSMOS_WIN_BUILD_MSVC
-        if ((pd=_popen(&request[i], "r")) != NULL)
+        if ((pd=_popen(request_re, "r")) != NULL)
 #else
-        if ((pd=popen(&request[i],"r")) != NULL)
+        if ((pd=popen(request_re, "r")) != NULL)
 #endif
         {
             iretn = fread(response,1,AGENTMAXBUFFER-1,pd);
@@ -540,7 +545,7 @@ int32_t request_set_logperiod(char* request, char*, Agent *)
 }
 int32_t request_get_logperiod(char*, char* response, Agent *)
 {
-    sprintf(response, "%lf", logperiod);
+    sprintf(response, "%d", logperiod);
     return 0;
 }
 
@@ -601,7 +606,7 @@ void collect_data_loop()
     return;
 }
 
-// Moving exec and soh logs must be atomic.
+// Moving exec and soh logs cannot occur concurrently.
 void move_and_compress_exec () {
     exec_mutex.lock();
     cmd_queue.join_events();
