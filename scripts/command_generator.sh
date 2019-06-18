@@ -2,7 +2,7 @@
 
 # Two methods of input: command line arguments, or through the command-line interface.
 
-if [ $# -lt 2 ] || [ $# -gt 5 ]; then
+if [ $# -eq 1 ] || [ $# -gt 5 ]; then
 	echo "Usage: command_generator.sh [name command [time [condition repeat_flag]]]"
     exit 1
 
