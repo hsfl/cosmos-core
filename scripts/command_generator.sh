@@ -1,39 +1,73 @@
 #!/bin/bash
 
-## script to help the user generate commands for agent_exec
-echo
+# Two methods of input: command line arguments, or through the command-line interface.
 
-### what is the event name?
-echo -e "Please enter an event name:\t\t\c"
-read event_name
+if [ $# -lt 2 ] || [ $# -gt 5 ]; then
+	echo "Usage: command_generator.sh [name command [time [condition repeat_flag]]]"
+    exit 1
 
-### what is the event time?
-echo -e "Please enter a UTC time:\t\t\c"
-read event_utc
+elif [ $# -ge 2 ] && [ $# -le 5 ]; then
+	event_name=$1
+	event_data=$2
+	event_utc=${3:-0}
+	event_utcexec=0
+	event_type=8192
+    event_flag_rep=${5:-n}
+    event_condition=${4:""}
 
-### what is the event command?
-echo -e "What is the event command?\t\t\c"
-read event_data
+    if ! [ "$event_flag_rep" == 'Y' -o "$event_flag_rep" == 'y' -o "$event_flag_rep" == 'N' -o "$event_flag_rep" == 'n' ]; then
+        echo "Please enter (y/n) for the repeat_flag."
+        exit 1
+    fi
 
-# this gets set once the command has executed
-event_utcexec=0
+else
+    ## script to help the user generate commands for agent_exec
+    echo
 
-# event type (8192 represents a command event)
-event_type=8192
+    ### what is the event name?
+    echo -e "Please enter an event name:\t\t\c"
+    read event_name
 
+    ### what is the event time?
+    echo -e "Please enter a UTC time:\t\t\c"
+    read event_utc
 
-### is the event repeatable?
+    ### what is the event command?
+    echo -e "What is the event command?\t\t\c"
+    read event_data
 
-BAD_INPUT=1
-while [ $BAD_INPUT -eq 1 ]
-do
-  echo -e "Is your event repeatable? (y/n):\t\c"
-  read event_flag_rep
-  if [ "$event_flag_rep" == 'Y' -o "$event_flag_rep" == 'y' -o "$event_flag_rep" == 'N' -o "$event_flag_rep" == 'n' ]
-  then
-    BAD_INPUT=0
-  fi
-done
+    # this gets set once the command has executed
+    event_utcexec=0
+
+    # event type (8192 represents a command event)
+    event_type=8192
+
+    ### is the event repeatable?
+
+    BAD_INPUT=1
+    while [ $BAD_INPUT -eq 1 ]
+    do
+      echo -e "Is your event repeatable? (y/n):\t\c"
+      read event_flag_rep
+      if [ "$event_flag_rep" == 'Y' -o "$event_flag_rep" == 'y' -o "$event_flag_rep" == 'N' -o "$event_flag_rep" == 'n' ]
+      then
+        BAD_INPUT=0
+      fi
+    done
+
+    ### is the event conditional?
+
+    BAD_INPUT=1
+    while [ $BAD_INPUT -eq 1 ]
+    do
+      echo -e "Is your event conditional? (y/n):\t\c"
+      read event_flag_con
+      if [ "$event_flag_con" == 'Y' -o "$event_flag_con" == 'y' -o "$event_flag_con" == 'N' -o "$event_flag_con" == 'n' ]
+      then
+        BAD_INPUT=0
+      fi
+    done
+fi
 
 if [ "$event_flag_rep" == 'Y' -o "$event_flag_rep" == 'y' ]
 then
@@ -41,19 +75,6 @@ then
 else
   event_flag_rep_num=0
 fi
-
-### is the event conditional?
-
-BAD_INPUT=1
-while [ $BAD_INPUT -eq 1 ]
-do
-  echo -e "Is your event conditional? (y/n):\t\c"
-  read event_flag_con
-  if [ "$event_flag_con" == 'Y' -o "$event_flag_con" == 'y' -o "$event_flag_con" == 'N' -o "$event_flag_con" == 'n' ]
-  then
-    BAD_INPUT=0
-  fi
-done
 
 if [ "$event_flag_con" == 'Y' -o "$event_flag_con" == 'y' ]
 then
@@ -75,12 +96,12 @@ fi
 filename=autogen.command
 rm -f "$filename"
 
-### print out the command event in JSON syntax
-echo -e "{\"event_name\":\"$event_name\"}\c" >> "$filename"
-echo -e "{\"event_utc\":$event_utc}\c" >> "$filename"
-echo -e "{\"event_utcexec\":$event_utcexec}\c" >> "$filename"
-echo -e "{\"event_flag\":$event_flag}\c" >> "$filename"
-echo -e "{\"event_type\":$event_type}\c" >> "$filename"
-echo -e "{\"event_data\":\"$event_data\"}\c" >> "$filename"
-echo -e "{\"event_condition\":\"$event_condition\"}\c" >> "$filename"
-echo >> "$filename"
+### print out the command event in JSON syntax to stdout and to the file.
+echo -e "{\"event_name\":\"$event_name\"}\c" | tee -a "$filename"
+echo -e "{\"event_utc\":$event_utc}\c" | tee -a "$filename"
+echo -e "{\"event_utcexec\":$event_utcexec}\c" | tee -a "$filename"
+echo -e "{\"event_flag\":$event_flag}\c" | tee -a "$filename"
+echo -e "{\"event_type\":$event_type}\c" | tee -a "$filename"
+echo -e "{\"event_data\":\"$event_data\"}\c" | tee -a "$filename"
+echo -e "{\"event_condition\":\"$event_condition\"}\c" | tee -a "$filename"
+echo | tee -a "$filename"
