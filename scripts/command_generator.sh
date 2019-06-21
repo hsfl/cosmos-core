@@ -25,15 +25,15 @@ else
     echo
 
     ### what is the event name?
-    echo -e "Please enter an event name:\t\t\c"
+    echo -e "Please enter an event name:\t\t\t\c"
     read event_name
 
     ### what is the event time?
-    echo -e "Please enter a UTC time:\t\t\c"
+    echo -e "Please enter a UTC time:\t\t\t\c"
     read event_utc
 
     ### what is the event command?
-    echo -e "What is the event command?\t\t\c"
+    echo -e "What is the event command?\t\t\t\c"
     read event_data
 
     # this gets set once the command has executed
@@ -47,7 +47,7 @@ else
     BAD_INPUT=1
     while [ $BAD_INPUT -eq 1 ]
     do
-      echo -e "Is your event repeatable? (y/n):\t\c"
+      echo -e "Is your event repeatable? (y/n):\t\t\c"
       read event_flag_rep
       if [ "$event_flag_rep" == 'Y' -o "$event_flag_rep" == 'y' -o "$event_flag_rep" == 'N' -o "$event_flag_rep" == 'n' ]
       then
@@ -60,7 +60,7 @@ else
     BAD_INPUT=1
     while [ $BAD_INPUT -eq 1 ]
     do
-      echo -e "Is your event conditional? (y/n):\t\c"
+      echo -e "Is your event conditional? (y/n):\t\t\c"
       read event_flag_con
       if [ "$event_flag_con" == 'Y' -o "$event_flag_con" == 'y' -o "$event_flag_con" == 'N' -o "$event_flag_con" == 'n' ]
       then
@@ -69,12 +69,6 @@ else
     done
 fi
 
-if [ "$event_flag_rep" == 'Y' -o "$event_flag_rep" == 'y' ]
-then
-  event_flag_rep_num=131072
-else
-  event_flag_rep_num=0
-fi
 
 if [ "$event_flag_con" == 'Y' -o "$event_flag_con" == 'y' ]
 then
@@ -83,13 +77,21 @@ else
   event_flag_con_num=0
 fi
 
+### events must be conditional to be repeatable
+if [ "$event_flag_rep" == 'Y' -o "$event_flag_rep" == 'y' ]
+then
+  event_flag_rep_num=131072
+else
+  event_flag_rep_num=0
+fi
+
 ### set the event flag
 event_flag=`echo $event_flag_rep_num+$event_flag_con_num | bc`
 
-### if the event is conditional, what is the condition?
+### if the event is conditional, what is the condition? 
 if [ "$event_flag_con" == 'Y' -o "$event_flag_con" == 'y' ]
 then
-  echo -e "What is the event condition?:\t\t\c"
+  echo -e 'What is the event condition? [ex. (\\\"device_bus_power_003\\\"=1)]:\t\c'
   read event_condition
 fi
 

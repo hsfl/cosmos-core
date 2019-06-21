@@ -614,9 +614,9 @@ void move_and_compress_exec () {
     exec_mutex.unlock();
 }
 void move_and_compress_soh () {
-    exec_mutex.lock();
+    soh_mutex.lock();
     log_move(nodename, "soh");
-    exec_mutex.unlock();
+    soh_mutex.unlock();
 }
 
 // Not being used... remove?
