@@ -782,8 +782,8 @@ int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
         // Place it in the Alias vector and point to it in the map
         cinfo->alias.push_back(talias);
         tentry.type = JSON_TYPE_ALIAS;
-        //        tentry.group = JSON_STRUCT_ALIAS;
-        tentry.group = JSON_STRUCT_PTR;
+        tentry.group = JSON_STRUCT_ALIAS;
+        //tentry.group = JSON_STRUCT_PTR; // Unsure why this change was made...
         tentry.offset = cinfo->alias.size() - 1;
         tentry.ptr = (uint8_t *)&cinfo->alias[tentry.offset];
         iretn = json_addentry(tentry, cinfo);
@@ -4147,14 +4147,15 @@ double json_equation(const char* &ptr, cosmosstruc *cinfo)
     int32_t iretn;
     jsonhandle handle;
 
-    if ((iretn=json_parse_equation(ptr, equation)) < 0)
+    if ((iretn=json_parse_equation(ptr, equation)) < 0) {
         return (NAN);
+    }
 
-    if (cinfo->emap.size() == 0)
+    if (cinfo->emap.size() == 0) {
         return (NAN);
+    }
 
-    if ((iretn=json_equation_map(equation, cinfo, &handle)) < 0)
-    {
+    if ((iretn=json_equation_map(equation, cinfo, &handle)) < 0) {
         return (NAN);
     }
 
@@ -4207,10 +4208,10 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
     switch(ptr->operation)
     {
     case JSON_OPERATION_NOT:
-        c = !a[0];
+        c = !static_cast<bool>(a[0]);
         break;
     case JSON_OPERATION_COMPLEMENT:
-        c = ~(uint32_t)(a[0]);
+        c = ~static_cast<uint32_t>(a[0]);
         break;
     case JSON_OPERATION_ADD:
         c = a[0] + a[1];
@@ -4228,10 +4229,10 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
         c = fmod(a[0], a[1]);
         break;
     case JSON_OPERATION_AND:
-        c = a[0] && a[1];
+        c = static_cast<int>(a[0]) && static_cast<int>(a[1]);
         break;
     case JSON_OPERATION_OR:
-        c = a[0] || a[1];
+        c = static_cast<int>(a[0]) || static_cast<int>(a[1]);
         break;
     case JSON_OPERATION_GT:
         c = a[0] > a[1];
@@ -4240,11 +4241,12 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
         c = a[0] < a[1];
         break;
     case JSON_OPERATION_EQ:
-        c = a[0] == a[1];
+        c = fabs(a[0] - a[1]) < std::numeric_limits<double>::epsilon();
         break;
     case JSON_OPERATION_POWER:
         c = pow(a[0], a[1]);
     }
+
     return (c);
 }
 
@@ -6434,7 +6436,7 @@ int32_t json_load_node(string node, jsonnode &json)
             ifs.read(ibuf, fstat.st_size);
             ifs.close();
             ibuf[fstat.st_size] = 0;
-            json.aliases = ibuf;
+            json.aliases=ibuf;
             free(ibuf);
         }
     }
@@ -10033,7 +10035,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cinfo, jsonhandle *handl
 {
     const char *pointer;
     jsonequation tequation;
-    char ops[] = "+-*/%&|><=!~";
+    char ops[] = "+-*/%&|><=!~^";
     int32_t iretn;
     size_t textlen;
 

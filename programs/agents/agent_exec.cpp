@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
 
     // Create default logstring
     logstring = json_list_of_soh(agent->cinfo);
-    printf("===\nlogstring: %s\n===\n", logstring.c_str());
+    printf("===\nlogstring: %s\n===\n", logstring.c_str()); fflush(stdout);
     json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
     //	agent_set_sohstring(agent->cinfo, logstring.c_str());
 
