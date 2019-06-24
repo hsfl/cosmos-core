@@ -91,8 +91,9 @@ event_flag=`echo $event_flag_rep_num+$event_flag_con_num | bc`
 ### if the event is conditional, what is the condition? 
 if [ "$event_flag_con" == 'Y' -o "$event_flag_con" == 'y' ]
 then
-  echo -e 'What is the event condition? [ex. (\\\"device_bus_power_003\\\"=1)]:\t\c'
+  echo -e 'What is the event condition? [ex. ("device_bus_power_003"=1)]:\t\c'
   read event_condition
+  event_condition=$(sed 's#"#\\"#g' <<< $event_condition)
 fi
 
 filename=autogen.command
