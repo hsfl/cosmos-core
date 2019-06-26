@@ -40,31 +40,27 @@
 #include "agent/agentclass.h"
 #include "device/general/cssl_lib.h"
 
-char agentname[COSMOS_MAX_NAME+1] = "tunnel";
-char node[50] = "";
-int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-
-Agent *agent; // to access the cosmos data, will change later
+static Agent *agent; // to access the cosmos data, will change later
 
 void tcv_read_loop();
 void tcv_write_loop();
 void tun_read_loop();
 void tun_write_loop();
 
-std::queue<std::vector<uint8_t> > tun_fifo;
-std::queue<std::vector<uint8_t> > tcv_fifo;
+static std::queue<std::vector<uint8_t> > tun_fifo;
+static std::queue<std::vector<uint8_t> > tcv_fifo;
 
-std::condition_variable tcv_fifo_check;
-std::condition_variable tun_fifo_check;
+static std::condition_variable tcv_fifo_check;
+static std::condition_variable tun_fifo_check;
 
-int tun_fd;
+static int tun_fd;
 
-char rxr_devname[20]="";
-char txr_devname[20]="";
-cssl_t *rxr_serial = NULL;
-cssl_t *txr_serial = NULL;
+static char rxr_devname[20]="";
+static char txr_devname[20]="";
+static cssl_t *rxr_serial = nullptr;
+static cssl_t *txr_serial = nullptr;
 
-#define MAXBUFFERSIZE 2560 // comm buffe for agents
+#define MAXBUFFERSIZE 2560 // comm buffer for agents
 #define TUN_BUF_SIZE 2000
 #define BAUD 19200
 
@@ -82,7 +78,7 @@ int main(int argc, char *argv[])
 	case 4:
 		strcpy(rxr_devname,argv[3]);
 		// Open receiver port
-		if ((rxr_serial=cssl_open(rxr_devname,BAUD,8,0,1)) == NULL)
+        if ((rxr_serial=cssl_open(rxr_devname,BAUD,8,0,1)) == nullptr)
 		{
 			printf("Error opening %s as receiver\n",rxr_devname);
 			exit (-1);
@@ -91,13 +87,13 @@ int main(int argc, char *argv[])
 		strcpy(txr_devname,argv[2]);
 		// Open transmitter port
 		txr_serial = cssl_open(txr_devname,BAUD,8,0,1);
-		if ((txr_serial=cssl_open(txr_devname,BAUD,8,0,1)) == NULL)
+        if ((txr_serial=cssl_open(txr_devname,BAUD,8,0,1)) == nullptr)
 		{
 			printf("Error opening %s as transmitter\n",txr_devname);
 			exit (-1);
 		}
 		// Copy transmitter to  receiver port if not already open (Duplex)
-		if (rxr_serial == NULL)
+        if (rxr_serial == nullptr)
 			rxr_serial = txr_serial;
 		// Get address for tunnel
 		strcpy(tunnel_ip,argv[1]);
@@ -105,12 +101,15 @@ int main(int argc, char *argv[])
 	default:
 		printf("Usage: agent_tunnel ip_address transmit_device [receive_device]\n");
 		exit (-1);
-		break;
 	}
 
 	// Initialize the Agent
-    if (!(agent = new Agent("", "tunnel", 1., MAXBUFFERSIZE, true)))
-		exit (AGENT_ERROR_JSON_CREATE);
+    agent = new Agent("", "tunnel", 1., MAXBUFFERSIZE, true);
+    if (agent->cinfo == nullptr || !agent->running())
+    {
+        cout<<"unable to start agent_exec: "<<endl;
+        exit(AGENT_ERROR_JSON_CREATE);
+    }
 
 	// Start serial threads
 	thread tcv_read_thread(tcv_read_loop);
@@ -130,7 +129,7 @@ int main(int argc, char *argv[])
 	memset(&ifr1, 0, sizeof(ifr1));
 	ifr1.ifr_flags = IFF_TUN | IFF_NO_PI;
     strncpy(ifr1.ifr_name, agent->cinfo->agent[0].beat.proc, IFNAMSIZ);
-	if (ioctl(tun_fd, TUNSETIFF, (void *)&ifr1) < 0)
+    if (ioctl(tun_fd, TUNSETIFF, static_cast<void *>(&ifr1)) < 0)
 	{
 		perror("Error setting tunnel interface");
 		exit (-1);
@@ -156,7 +155,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Set interface netmask
-	inet_pton(AF_INET, (char *)"255.255.255.0", &addr->sin_addr);
+    inet_pton(AF_INET, static_cast<const char *>("255.255.255.0"), &addr->sin_addr);
 	if (ioctl(tunnel_sock, SIOCSIFNETMASK, &ifr2) < 0 )
 	{
 		perror("Error setting tunnel netmask");
@@ -216,7 +215,7 @@ int main(int argc, char *argv[])
 void tun_read_loop()
 {
 	std::vector<uint8_t> buffer;
-	int32_t nbytes;
+    ssize_t nbytes;
 
     while (agent->running())
 	{
@@ -225,7 +224,7 @@ void tun_read_loop()
 		nbytes = read(tun_fd, &buffer[0], TUN_BUF_SIZE);
 		if (nbytes > 0)
 		{	// Start of mutex for tcv fifo
-			buffer.resize(nbytes);
+            buffer.resize(static_cast<size_t>(nbytes));
 			tcv_fifo.push(buffer);
 			tcv_fifo_check.notify_one();
 		}	// End of mutex for tcv fifo
@@ -235,17 +234,15 @@ void tun_read_loop()
 void tun_write_loop()
 {
 	std::vector<uint8_t> buffer;
-	int32_t nbytes;
+    ssize_t nbytes;
 	std::mutex tun_fifo_lock;
 	std::unique_lock<std::mutex> locker(tun_fifo_lock);
 
     while (agent->running())
 	{
 
-//			while (tun_fifo.empty())
-//			{
-				tun_fifo_check.wait(locker);
-//			}	// End of mutex for tun fifo
+        tun_fifo_check.wait(locker);
+        // End of mutex for tun fifo
 
 		while (!tun_fifo.empty())
 		{
@@ -262,7 +259,7 @@ void tun_write_loop()
 void tcv_read_loop()
 {
 	std::vector<uint8_t> buffer;
-	int32_t nbytes;
+    ssize_t nbytes;
 
     while (agent->running())
 	{
@@ -271,7 +268,7 @@ void tcv_read_loop()
 		nbytes = cssl_getslip(rxr_serial, &buffer[0], TUN_BUF_SIZE);
 		if (nbytes > 0)
 		{ // Start of mutex for tun FIFO
-			buffer.resize(nbytes);
+            buffer.resize(static_cast<size_t>(nbytes));
 			tun_fifo.push(buffer);
 			tun_fifo_check.notify_one();
 			printf("In:\n");
@@ -295,10 +292,7 @@ void tcv_write_loop()
     while (agent->running())
 	{
 
-//			while (tcv_fifo.empty())
-//			{
-				tcv_fifo_check.wait(locker);
-//			}
+        tcv_fifo_check.wait(locker);
 
 		while (!tcv_fifo.empty())
 		{
