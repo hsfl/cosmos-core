@@ -168,22 +168,12 @@ string Event::get_event_string()
 
 bool Event::condition_true(cosmosstruc *cinfo)
 {
-//    const char *cp = (char *)condition.c_str();
-    if (cinfo != nullptr) {
-        // TODO: remove from this class, to keep it modular
-//			double d = json_equation(cp, agent->cinfo);
-
-		// JIMNOTE:  this can't be right...  because uninitialized (non-static) local variables have no default value and lead to undefined behavior...
-		// and why is a double even being used? it just gets cast to bool (which I get, will rarely be zero, i.e. false, but seriously... make it explicit what is going on)
-        //double d;
-        //return d;
-
-		// JIMNOTE: just going to return true for now (until we can talk about what is correct behavior)
-		return true;
-
-    } else {
-        return false;
+    const char *cp = condition.c_str();
+    if (cinfo != nullptr) { // Note: an equation must be enclosed by parentheses.
+        double r =  json_equation(cp, cinfo);
+        return fabs(r - 1.0) < std::numeric_limits<double>::epsilon();
     }
+    return false;
 }
 
 } // end namespace Cosmos

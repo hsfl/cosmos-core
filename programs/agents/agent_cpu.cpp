@@ -69,9 +69,9 @@ int32_t request_mem_total_kib(char *request, char *response, Agent *);
 int32_t request_printStatus(char *request, char *response, Agent *);
 
 
-std::string agentname  = "cpu";
-std::string nodename;
-std::string sohstring = "{\"device_cpu_utc_000\","
+static std::string agentname  = "cpu";
+static std::string nodename;
+static std::string sohstring = "{\"device_cpu_utc_000\","
                         "\"device_cpu_maxgib_000\","
                         "\"device_cpu_gib_000\","
                         "\"device_cpu_maxload_000\","
