@@ -71,17 +71,18 @@ using std::endl;
 //! Usage: agent_exec node_name
 
 
-Agent *agent;
+static Agent *agent;
 
-string incoming_dir;
-string outgoing_dir;
-string temp_dir;
+static string immediate_dir;
+static string incoming_dir;
+static string outgoing_dir;
+static string temp_dir;
 
-string nodename;
+static string nodename;
 
-double logdate_exec=0.;
-double newlogstride_exec = 900. / 86400.;
-double logstride_exec = 0.;
+static double logdate_exec=0.;
+static double newlogstride_exec = 900. / 86400.;
+static double logstride_exec = 0.;
 
 int32_t request_get_queue_size(char* request, char* response, Agent* agent);
 int32_t request_get_event(char* request, char* response, Agent* agent);
@@ -93,7 +94,7 @@ int32_t request_soh(char *request, char* response, Agent* agent);
 int32_t request_reopen_exec(char* request, char* response, Agent* agent);
 int32_t request_set_logstride_exec(char* request, char* response, Agent* agent);
 
-CommandQueue cmd_queue;
+static CommandQueue cmd_queue;
 
 // SOH specific declarations
 int32_t request_reopen_soh(char* request, char* response, Agent *agent);
@@ -102,34 +103,34 @@ int32_t request_set_logstring(char* request, char* response, Agent *agent);
 int32_t request_get_logstring(char* request, char* response, Agent *agent);
 int32_t request_set_logstride_soh(char* request, char* response, Agent *agent);
 
-string jjstring;
-string myjstring;
+static string jjstring;
+static string myjstring;
 
-NetworkType ntype = NetworkType::UDP;
-int waitsec = 5;
+static NetworkType ntype = NetworkType::UDP;
+static int waitsec = 5;
 
 void collect_data_loop();
-thread cdthread;
+static thread cdthread;
 
-string logstring;
-vector<jsonentry*> logtable;
-double logdate_soh=0.;
-int32_t newlogperiod = 10, logperiod = 0;
-double newlogstride_soh = 900. / 86400.;
-double logstride_soh = 0.;
+static string logstring;
+static vector<jsonentry*> logtable;
+static double logdate_soh=0.;
+static int32_t newlogperiod = 10, logperiod = 0;
+static double newlogstride_soh = 900. / 86400.;
+static double logstride_soh = 0.;
 
-vector<shorteventstruc> eventdict;
-vector<shorteventstruc> events;
+static vector<shorteventstruc> eventdict;
+static vector<shorteventstruc> events;
 
-int pid;
-int state = 0;
-double cmjd;
+static int pid;
+static int state = 0;
+static double cmjd;
 
-beatstruc iscbeat;
+static beatstruc iscbeat;
 
 // default node name
-string node = "neutron1";
-char response[300];
+static string node = "neutron1";
+static char response[300];
 
 int main(int argc, char *argv[])
 {
@@ -150,10 +151,10 @@ int main(int argc, char *argv[])
 
     // Establish the command channel and heartbeat
     agent = new Agent(nodename, "exec", 5.);
-    if (agent->cinfo == nullptr)
+    if (agent->cinfo == nullptr || !agent->running())
     {
         cout<<"unable to start agent_exec: "<<endl;
-        exit(1);
+        exit (AGENT_ERROR_JSON_CREATE);
     }
     agent->cinfo->node.utc = 0.;
     agent->cinfo->agent[0].aprd = .5;
@@ -162,7 +163,14 @@ int main(int argc, char *argv[])
 
     // Establish Executive functions
 
-    // Set the incoming, outgoing, and temp directories
+    // Set the immediate, incoming, outgoing, and temp directories
+    immediate_dir = data_base_path(nodename, "immediate", "exec") + "/";
+    if (immediate_dir.empty())
+    {
+        cout<<"unable to create directory: <"<<(nodename+"/immediate")+"/exec"<<"> ... exiting."<<endl;
+        exit(1);
+    }
+
     incoming_dir = data_base_path(nodename, "incoming", "exec") + "/";
     if (incoming_dir.empty())
     {
@@ -326,11 +334,12 @@ int main(int argc, char *argv[])
             if (agent->cinfo->node.utc != 0. && logstring.size())
             {
                 log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo));
+                log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo), static_cast <string>("immediate"));
             }
         }
 
         // Perform Executive specific functions
-        //cmd_queue.load_commands(incoming_dir, agent);
+        cmd_queue.load_commands(immediate_dir);
         cmd_queue.load_commands(incoming_dir);
         cmd_queue.run_commands(agent, nodename, logdate_exec);
         cmd_queue.save_commands(temp_dir);
