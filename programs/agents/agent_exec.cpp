@@ -94,8 +94,6 @@ int32_t request_reopen_exec(char* request, char* response, Agent* agent);
 int32_t request_set_logstride_exec(char* request, char* response, Agent* agent);
 int32_t request_get_logstride_exec(char* request, char* response, Agent* agent);
 
-CommandQueue cmd_queue;
-
 // SOH specific declarations
 int32_t request_reopen_soh(char* request, char* response, Agent *agent);
 int32_t request_set_logperiod(char* request, char* response, Agent *agent);
@@ -107,9 +105,6 @@ int32_t request_get_logstring(char* request, char* response, Agent *agent);
 
 static string jjstring;
 static string myjstring;
-
-static NetworkType ntype = NetworkType::UDP;
-static int waitsec = 5;
 
 void collect_data_loop();
 static thread cdthread;
@@ -126,20 +121,15 @@ static std::mutex soh_mutex;
 static vector<shorteventstruc> eventdict;
 static vector<shorteventstruc> events;
 
-static int pid;
-static int state = 0;
-static double cmjd;
-
 static beatstruc iscbeat;
 
 // default node name
 static string node = "neutron1";
-static char response[300];
 
 int main(int argc, char *argv[])
 {
     vector<shorteventstruc> events, eventdict;
-    std::string incoming_dir, outgoing_dir, temp_dir;
+    std::string incoming_dir, outgoing_dir, temp_dir, immediate_dir;
     std::string jjstring, myjstring;
     double lmjd, dmjd, cmjd, nextmjd;
     int32_t iretn;
@@ -533,7 +523,7 @@ int32_t request_remote_command(char *request, char* response, Agent *)
 #ifdef COSMOS_WIN_BUILD_MSVC
         if ((pd=_popen(request_re, "r")) != NULL)
 #else
-        if ((pd=popen(request_re, "r")) != NULL)
+        if ((pd=popen(request_re, "r")) != nullptr)
 #endif
         {
             iretn = fread(response,1,AGENTMAXBUFFER-1,pd);
