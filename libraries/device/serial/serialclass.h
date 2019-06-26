@@ -34,6 +34,7 @@
 #include "support/sliplib.h"
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
 #include <termios.h>
+#include <sys/select.h>
 #endif
 
 
@@ -54,7 +55,7 @@ namespace Cosmos {
         int32_t put_char(uint8_t c);
         int32_t put_string(string data);
         int32_t put_data(vector <uint8_t> data);
-        int32_t put_data(uint8_t *data, size_t size);
+        int32_t put_data(const uint8_t *data, size_t size);
         int32_t put_slip(vector <uint8_t> data);
         int32_t put_nmea(vector <uint8_t> data);
         int32_t drain();
@@ -78,7 +79,7 @@ namespace Cosmos {
     private:
         int fd = -1;                   /* tty file descriptor */
         int32_t error;
-        vector <int32_t> baud_speed[2] = {
+        vector <uint32_t> baud_speed[2] = {
             {0, 50, 75, 110, 134, 150, 200, 300, 500, 1200, 1800, 2400, 4800, 9600, 19200, 38400},
             {57600, 115200, 230400, 460800, 500000, 576000, 921600, 1000000, 1152000, 1500000, 2000000, 2500000, 3000000, 3500000, 4000000}
         };

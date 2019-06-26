@@ -121,21 +121,21 @@ namespace Cosmos {
 
             /* and close the file */
             close(fd);
-			fd = -1;
+            fd = -1;
         }
     }
 
-	bool Serial::get_open()
-	{
-		if (fd >= 0)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
+    bool Serial::get_open()
+    {
+        if (fd >= 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
     int32_t Serial::get_error()
     {
@@ -144,7 +144,7 @@ namespace Cosmos {
 
     int32_t Serial::set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
-    baud = dbaud;
+        baud = dbaud;
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         tcflag_t trate;
         tcflag_t tbits;
@@ -159,26 +159,26 @@ namespace Cosmos {
 
         // Set baud rate
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-        size_t baud_index;
+        uint32_t baud_index;
         bool baud_speed_index = 0;
         if (dbaud > (38400+57600)/2)
         {
             baud_speed_index = 1;
-            baud_index = static_cast<size_t>((log10f(dbaud) - 4.7604F) / .118F + .5F);
+            baud_index = static_cast<uint32_t>((log10f(dbaud) - 4.7604F) / .118F + .5F);
         }
         else
         {
-            baud_index = static_cast<size_t>((log10f(dbaud) - 1.699F) / .2025F + .5F);
+            baud_index = static_cast<uint32_t>((log10f(dbaud) - 1.699F) / .2025F + .5F);
         }
 
         bool baud_adjust = false;
         do
         {
             baud_adjust = false;
-            int32_t baud_diff = std::abs((int32_t)dbaud - baud_speed[baud_speed_index][baud_index]);
+            int32_t baud_diff = std::abs(static_cast<int32_t>(dbaud) - static_cast<int32_t>(baud_speed[baud_speed_index][baud_index]));
             if (baud_index > 0)
             {
-                int32_t new_baud_diff = std::abs((int32_t)dbaud - baud_speed[baud_speed_index][baud_index-1]);
+                int32_t new_baud_diff = std::abs(static_cast<int32_t>(dbaud) - static_cast<int32_t>(baud_speed[baud_speed_index][baud_index-1]));
                 if (new_baud_diff < baud_diff)
                 {
                     --baud_index;
@@ -188,7 +188,7 @@ namespace Cosmos {
             }
             if (baud_index < baud_speed[baud_speed_index].size()-1)
             {
-                int32_t new_baud_diff = std::abs((int32_t)dbaud - baud_speed[baud_speed_index][baud_index+1]);
+                int32_t new_baud_diff = std::abs(static_cast<int32_t>(dbaud) - static_cast<int32_t>(baud_speed[baud_speed_index][baud_index+1]));
                 if (new_baud_diff < baud_diff)
                 {
                     ++baud_index;
@@ -584,7 +584,7 @@ namespace Cosmos {
         }
     }
 
-    int32_t Serial::put_data(uint8_t *data, size_t size)
+    int32_t Serial::put_data(const uint8_t *data, size_t size)
     {
         if (fd < 0)
         {
@@ -843,14 +843,19 @@ namespace Cosmos {
         uint8_t c;
         ElapsedTime et;
 
+#ifdef COSMOS_WIN_OS
         do
         {
-#ifdef COSMOS_WIN_OS
             int n=0;
             result = ReadFile(handle, &c, 1, (LPDWORD)((void *)&n), NULL);
-#else
-            result = read(fd, &c, sizeof(c));
-#endif
+            if (result < 0)
+            {
+                result = -WSAGetLastError();
+            }
+            else
+            {
+                result = SERIAL_ERROR_TIMEOUT;
+            }
             if (result > 0)
             {
                 iretn = c;
@@ -858,21 +863,39 @@ namespace Cosmos {
             }
             else
             {
-                if (result < 0)
-                {
-#ifdef COSMOS_WIN_OS
-                    iretn = -WSAGetLastError();
-#else
-                    iretn = -errno;
-#endif
-                }
-                else
-                {
-                    iretn = SERIAL_ERROR_TIMEOUT;
-                }
+                iretn = result;
             }
             COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
         } while (iretn == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
+#else
+        fd_set set;
+        FD_ZERO(&set);
+        FD_SET(fd, &set);
+        timeval timeout;
+        timeout.tv_sec = static_cast<int32_t>(ictimeout);
+        timeout.tv_usec = static_cast<int32_t>(1000000. * (ictimeout - timeout.tv_sec));
+        int rv = select(fd+1, &set, nullptr, nullptr, &timeout);
+        if (rv == -1)
+        {
+            iretn = -errno;
+        }
+        else if (rv == 0)
+        {
+            iretn = SERIAL_ERROR_TIMEOUT;
+        }
+        else
+        {
+            result = read(fd, &c, 1);
+            if (result > 0)
+            {
+                iretn = c;
+            }
+            else
+            {
+                iretn = SERIAL_ERROR_EOT;
+            }
+        }
+#endif
 
         return iretn;
     }
