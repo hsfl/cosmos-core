@@ -251,6 +251,7 @@ namespace Cosmos {
         Agent::add_request("targetsjson",Agent::req_targetsjson,"","return description JSON for Targets");
         Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
         Agent::add_request("heartbeat",Agent::req_heartbeat,"","Send extra hearbeat");
+        Agent::add_request("mjd",Agent::req_mjd,"","request the current mjd of the agent");
 
         cinfo->agent[0].server = 1;
         cinfo->agent[0].stateflag = (uint16_t)Agent::State::RUN;
@@ -2459,6 +2460,37 @@ namespace Cosmos {
         return 0;
     }
 
+    // Set our producer for all functions associated with time authority (i.e. the mjd request).
+    int32_t Agent::set_agent_time_producer(double (*source)()) {
+        this->agent_time_producer = source;
+        return 0;
+    }
+
+    // A Cristian's algorithm approach to time synchronization, with our remote node as the time server.
+    // This is meant to be run on a time sink agent (a requester).
+    int32_t Agent::get_agent_time(double &agent_time, double &epsilon, string agent, string node) {
+        beatstruc agent_beat = find_agent(agent, node);
+        std::string agent_response;
+        double mjd_0, mjd_1, delta;
+
+        // Do not proceed if we cannot find the agent.
+        if (!agent_beat.exists) return AGENT_ERROR_DISCOVERY;
+
+        mjd_0 = currentmjd();
+        send_request(agent_beat, "mjd", agent_response, 0);
+        mjd_1 = currentmjd();
+
+        delta = (mjd_1 - mjd_0) / 2.0;  // RTT / 2.0
+        agent_time = stod(agent_response.substr(0, agent_response.find("["))) + delta;
+        epsilon = delta; // We do not have a lower bound on the time to transmit a message one way.
+
+        return 0;
+    }
+
+    int32_t Agent::req_mjd(char *, char *response, Agent *agent) {
+        sprintf(response, "%lf", agent->agent_time_producer());
+        return 0;
+    }
 
 } // end namespace Cosmos
 

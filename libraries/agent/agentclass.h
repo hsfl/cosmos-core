@@ -326,6 +326,9 @@ public:
     std::string getAgent();
     int32_t getJson(string node, jsonnode &jnode);
 
+    int32_t set_agent_time_producer(double (*source)());
+    int32_t get_agent_time(double &agent_time, double &epsilon, string agent, string node="");
+
     // poll
     pollstruc metaRx;
     string metaHeader;
@@ -381,6 +384,9 @@ private:
     //! Last error
     int32_t error_value;
 
+    //! Function in which we generate our time, for the mjd request.
+    double (*agent_time_producer)() = currentmjd;
+
     //! Agent Request Entry
     //! Structure representing a single Agent request.
     struct request_entry
@@ -429,7 +435,7 @@ private:
     static int32_t req_targetsjson(char *request, char* response, Agent *agent);
     static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
     static int32_t req_heartbeat(char *request, char* response, Agent *agent);
-
+    static int32_t req_mjd(char *request, char* response, Agent *agent);
 };
 
 } // end of namepsace Cosmos
