@@ -306,6 +306,30 @@ std::vector <double> data_list_archive_days(string node, string agent)
     return days;
 }
 
+//! Use this function to loop through the gzfile until eof is reached. It returns each string line by line in the log file.
+//! \brief log_reads Loop until the newline character is seen. Append it to a string and return the line once the newline is met.
+//! \param file The file to be read.
+//! \param num The maximum number of characters to be written to the buffer.
+//! \return Each string in the gzfile.
+//!
+string log_read(gzFile &file, int num) {
+    char buffer[num];
+    string line;
+
+    while (!(line.back() == '\n')) {
+        gzgets(file, buffer, 20);
+        line.append(buffer);
+    }
+
+    if (!gzeof(file)) {
+        return line;
+    }
+
+    gzclose(file);
+
+    return NULL;
+}
+
 //! Get a list of files in a Node archive.
 /*! Generate a list of archived files for the indicated Node, Agent, and UTC.
  * The result is returned as a vector of ::filestruc, one entry for each file found.
