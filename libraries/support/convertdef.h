@@ -103,6 +103,7 @@
 #define SGP4_XJ3 -0.253881E-5
 #define SGP4_XKE 0.743669161E-1
 #define SGP4_XKMPER 6378.135
+#define SGP4_XMNPDA 1440.0
 #define SGP4_AE 1.
 
 // JPL Planetary Ephemeris stuff

@@ -2729,8 +2729,8 @@ void eci2kep(cartpos &eci,kepstruc &kep)
 			kep.raan = O_UNDEFINED;
 
 		// Find eccentric and mean anomaly
-		kep.ea = atan2(rdotv/sqrt(kep.a*GM),1.-magr/kep.a);
-		kep.ma = kep.ea - kep.e*sin(kep.ea);
+        kep.ea = atan2(rdotv/sqrt(kep.a*GM),1.-magr/kep.a);
+        kep.ma = kep.ea - kep.e*sin(kep.ea);
 
 		// Find argument of latitude
 		kep.alat = atan2(eci.s.col[2],(eci.s.col[1]*kep.h.col[0]-eci.s.col[0]*kep.h.col[1])/magh);
@@ -2921,6 +2921,10 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
 
     if (tle.utc != lutc || tle.snumber != lsnumber)
     {
+        if (tle.e < .00000000001)
+        {
+            tle.e = .00000000001;
+        }
         // RECOVER ORIGINAL MEAN MOTION ( xnodp ) AND SEMIMAJOR AXIS (aodp)
         // FROM INPUT ELEMENTS
         a1=pow((SGP4_XKE/ tle.mm ),SGP4_TOTHRD);
@@ -3008,7 +3012,7 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
     }
 
     // UPDATE FOR SECULAR GRAVITY AND ATMOSPHERIC DRAG
-    tsince = (utc - tle.utc) * 1440.;
+    tsince = (utc - tle.utc) * SGP4_XMNPDA;
     xmdf = tle.ma +xmdot*tsince;
     omgadf= tle.ap +omgdot*tsince;
     xnoddf= tle.raan + xnodot*tsince;
@@ -3106,12 +3110,12 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
     // POSITION AND VELOCITY in TEME
 	pos_teme.s = pos_teme.v = pos_teme.a = rv_zero();
 
-	pos_teme.s.col[0] = REARTHM * rk *ux;
-	pos_teme.s.col[1] = REARTHM * rk *uy;
-	pos_teme.s.col[2] = REARTHM * rk *uz;
-	pos_teme.v.col[0] =REARTHM * (rdotk*ux+rfdotk*vx) / 60.;
-	pos_teme.v.col[1] =REARTHM * (rdotk*uy+rfdotk*vy) / 60.;
-	pos_teme.v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
+    pos_teme.s.col[0] = 1000. * SGP4_XKMPER * rk *ux;
+    pos_teme.s.col[1] = 1000. * SGP4_XKMPER * rk *uy;
+    pos_teme.s.col[2] = 1000. * SGP4_XKMPER * rk *uz;
+    pos_teme.v.col[0] = 1000. * SGP4_XKMPER * (rdotk*ux+rfdotk*vx) / 60.;
+    pos_teme.v.col[1] = 1000. * SGP4_XKMPER * (rdotk*uy+rfdotk*vy) / 60.;
+    pos_teme.v.col[2] = 1000. * SGP4_XKMPER * (rdotk*uz+rfdotk*vz) / 60.;
 
     return 0;
 }
@@ -3157,7 +3161,7 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
 	tle.e = kep.e;
 	tle.i = kep.i;
 	tle.ma = kep.ma;
-	tle.mm = kep.mm;
+    tle.mm = kep.mm * 60.;
 	tle.raan = kep.raan;
 	tle.utc = utc;
 
@@ -3886,7 +3890,7 @@ void tle2sgp4(tlestruc tle, sgp4struc &sgp4)
     sgp4.ma = DEGOF(tle.ma);
     sgp4.mm = tle.mm * 1440. / D2PI;
     calstruc cal = mjd2cal(tle.utc);
-    sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + cal.second / 86400.;
+    sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + (cal.second + cal.nsecond / 1e9) / 86400.;
     sgp4.raan = DEGOF(tle.raan);
     return;
 }
@@ -3901,11 +3905,11 @@ void sgp42tle(sgp4struc sgp4, tlestruc &tle)
     tle.mm = sgp4.mm * D2PI / 1440. ;
     tle.raan = RADOF(sgp4.raan);
     int year = sgp4.ep / 1000;
+    double jday = sgp4.ep - (year *1000);
     if (year < 57)
         year += 2000;
     else
         year += 1900;
-    double jday = sgp4.ep - (year *1000);
     tle.utc = cal2mjd((int)year,1,0.);
     tle.utc += jday;
 
