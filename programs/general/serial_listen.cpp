@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
     size_t errorcount = 0;
     size_t timeoutcount = 0;
     int32_t result;
+    string input;
     double sum = 0;
     do
     {
@@ -51,9 +52,13 @@ int main(int argc, char *argv[])
         if (result > 0)
         {
             sum += et.lap();
-            printf("%c", (char)result);
-            fflush(stdout);
+            input.push_back(result);
             ++readcount;
+            if (input.length() == 80)
+            {
+                printf("%s: %lf BPS\n", input.c_str(), sum/readcount);
+                input.clear();
+            }
         }
         else
         {
@@ -67,6 +72,7 @@ int main(int argc, char *argv[])
             }
         }
     } while (result != 4);
+    printf("%s: %lf BPS\n", input.c_str(), sum/readcount);
 
     printf("\nReads: %lu @ %lf BPS Errors: %lu Timeouts: %lu\n", readcount, sum/readcount, errorcount, timeoutcount);
 
