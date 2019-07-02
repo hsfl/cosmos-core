@@ -317,7 +317,7 @@ string log_read(gzFile &file, int num) {
     string line;
 
     while (!(line.back() == '\n')) {
-        gzgets(file, buffer, 20);
+        gzgets(file, buffer, num);
         line.append(buffer);
     }
 
