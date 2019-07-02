@@ -11,10 +11,11 @@ int main(int argc, char *argv[])
     size_t parity = 0;
     size_t bits = 8;
     size_t stop = 1;
+    uint16_t endcount = .5 * baud;
 
     switch (argc)
     {
-    case 7:
+    case 8:
         if (!strcmp(argv[6], "rtscts"))
         {
            rtscts = true;
@@ -23,14 +24,16 @@ int main(int argc, char *argv[])
         {
             xonxoff = true;
         }
-    case 6:
+    case 7:
         stop = atoi(argv[5]);
-    case 5:
+    case 6:
         parity = atoi(argv[4]);
-    case 4:
+    case 5:
         bits = atoi(argv[3]);
-    case 3:
+    case 4:
         baud = atol(argv[2]);
+    case 3:
+        endcount = atof(argv[2]) * baud / 10.;
     case 2:
         name = argv[1];
     }
@@ -39,7 +42,7 @@ int main(int argc, char *argv[])
     port->set_flowcontrol(rtscts, xonxoff);
     port->set_timeout(1, 0);
 
-    size_t readcount = 0;
+    size_t writecount = 0;
     size_t errorcount = 0;
     size_t timeoutcount = 0;
     int32_t result;
@@ -47,13 +50,13 @@ int main(int argc, char *argv[])
     do
     {
         ElapsedTime et;
-        result = port->get_char();
+        result = port->put_char('a');
         if (result > 0)
         {
             sum += et.lap();
             printf("%c", (char)result);
             fflush(stdout);
-            ++readcount;
+            ++writecount;
         }
         else
         {
@@ -66,8 +69,9 @@ int main(int argc, char *argv[])
                 ++errorcount;
             }
         }
-    } while (result != 4);
+    } while (writecount < endcount);
+    result = port->put_char(4);
 
-    printf("\nReads: %lu @ %lf BPS Errors: %lu Timeouts: %lu\n", readcount, sum/readcount, errorcount, timeoutcount);
+    printf("\nWrites: %lu @ %lf BPS Errors: %lu Timeouts: %lu\n", writecount, sum/writecount, errorcount, timeoutcount);
 
 }
