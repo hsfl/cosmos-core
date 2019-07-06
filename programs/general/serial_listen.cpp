@@ -37,27 +37,28 @@ int main(int argc, char *argv[])
 
     Serial *port = new Serial(name, baud, bits, parity, stop);
     port->set_flowcontrol(rtscts, xonxoff);
-    port->set_timeout(1, 0);
+    port->set_timeout(4.);
 
     size_t readcount = 0;
     size_t errorcount = 0;
     size_t timeoutcount = 0;
+    int32_t lastresult = 0;
     int32_t result;
-    string input;
-    double sum = 0;
+    ElapsedTime et;
     do
     {
-        ElapsedTime et;
         result = port->get_char();
-        if (result > 0)
+        if (result >= 0)
         {
-            sum += et.lap();
-            input.push_back(result);
             ++readcount;
-            if (input.length() == 80)
+            if (result != lastresult)
             {
-                printf("%s: %lf BPS\n", input.c_str(), sum/readcount);
-                input.clear();
+                lastresult = result;
+                double lap = et.lap();
+                printf("%f %f: Read %lu %c(%0x) @ %f BPS: %lu Errors: %lu Timeouts\n", et.split(), lap, readcount, result, result, readcount/lap, errorcount, timeoutcount);
+                readcount = 0;
+                errorcount = 0;
+                timeoutcount = 0;
             }
         }
         else
@@ -68,12 +69,10 @@ int main(int argc, char *argv[])
             }
             else
             {
+                printf("%f: %s\n", et.split(), cosmos_error_string(result).c_str());
                 ++errorcount;
             }
         }
-    } while (result != 4);
-    printf("%s: %lf BPS\n", input.c_str(), sum/readcount);
-
-    printf("\nReads: %lu @ %lf BPS Errors: %lu Timeouts: %lu\n", readcount, sum/readcount, errorcount, timeoutcount);
+    } while (1);
 
 }
