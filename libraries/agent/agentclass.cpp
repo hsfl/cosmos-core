@@ -826,7 +826,7 @@ namespace Cosmos {
 
         if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG))
         {
-            printf("Request: [%d] %s ",bufferin.size(), &bufferin[0]);
+            printf("Request: [%zd] %s ",bufferin.size(), &bufferin[0]);
             fflush(stdout);
         }
 
@@ -1116,9 +1116,9 @@ namespace Cosmos {
     {
         if (strcmp(request, "debug_level"))
         {
-            sscanf(request, "debug_level %d", &agent->debug_level);
+            sscanf(request, "debug_level %zd", &agent->debug_level);
         }
-        sprintf(output, "%d", agent->debug_level);
+        sprintf(output, "%zu", agent->debug_level);
         return 0;
     }
 
@@ -1133,7 +1133,7 @@ namespace Cosmos {
     {
         string jstring;
 
-        if (json_of_list(jstring, request, agent->cinfo) != NULL)
+        if (json_of_list(jstring, request, agent->cinfo) != nullptr)
         {
             strncpy(output, jstring.c_str(), agent->cinfo->agent[0].beat.bsz);
             output[agent->cinfo->agent[0].beat.bsz-1] = 0;
