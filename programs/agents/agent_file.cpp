@@ -66,7 +66,7 @@
 //#define TRANSFER_QUEUE_LIMIT 10
 
 // Debug Var
-bool debug_flag = false;
+static bool debug_flag = false;
 
 #ifdef COSMOS_CYGWIN_OS
 #include<sstream>
@@ -87,14 +87,14 @@ std::string std::to_string(T value)
 // Some global variables
 
 /** the (global) name of the agent */
-std::string agentname = "file_";
+static std::string agentname = "file_";
 /** the (global) name of the heartbeat structure */
-beatstruc cbeat;
+static beatstruc cbeat;
 /** the (global) name of the cosmos data structure */
-Agent *agent;
+static Agent *agent;
 /** the (global) number of agent sending channels */
-uint16_t send_channels=0;
-uint16_t use_channel = 0;
+static uint16_t send_channels=0;
+static uint16_t use_channel = 0;
 /** the (global) structure of sending channels */
 typedef struct
 {
@@ -105,7 +105,7 @@ typedef struct
     double nmjd;
 } sendchannelstruc;
 
-sendchannelstruc send_channel[2];
+static sendchannelstruc send_channel[2];
 
 typedef struct
 {
@@ -114,10 +114,10 @@ typedef struct
     std::vector<PACKET_BYTE> packet;
 } transmit_queue_entry;
 
-std::queue<transmit_queue_entry> transmit_queue;
-std::condition_variable transmit_queue_check;
+static std::queue<transmit_queue_entry> transmit_queue;
+static std::condition_variable transmit_queue_check;
 
-socket_channel recvchan;
+static socket_channel recvchan;
 
 //Send and receive thread info
 void send_loop();
@@ -125,18 +125,18 @@ void recv_loop();
 void transmit_loop();
 
 // Mutexes to avoid thread collisions
-std::mutex incoming_tx_lock;
-std::mutex outgoing_tx_lock;
+static std::mutex incoming_tx_lock;
+static std::mutex outgoing_tx_lock;
 
-double last_data_receive_time = 0.;
-double last_data_send_time = 0.;
+static double last_data_receive_time = 0.;
+static double last_data_send_time = 0.;
 //double current_updatetime = 0.;
-double next_reqmeta_time = 0.;
-double next_queue_time = 0.;
+static double next_reqmeta_time = 0.;
+static double next_queue_time = 0.;
 
 // Directory variables
-DIR *dir = NULL;
-struct dirent* dir_entry = NULL;
+static DIR *dir = NULL;
+static struct dirent* dir_entry = NULL;
 
 typedef struct
 {
@@ -159,7 +159,7 @@ typedef struct
 static std::vector<tx_queue> txq;
 
 //static std::vector<tx_queue> incoming_tx;
-int32_t active_node = -1;
+static int32_t active_node = -1;
 
 //static std::vector<tx_queue> outgoing_tx;
 //int32_t node = -1;
