@@ -227,6 +227,7 @@ namespace Cosmos {
 
         //! Set up initial requests
         add_request("help",req_help,"","list of available requests for this agent");
+        add_request("help_json",req_help_json,"","list of available requests for this agent (but in json)");
         add_request("shutdown",req_shutdown,"","request to shutdown this agent");
         Agent::add_request("idle",Agent::req_idle,"","request to transition this agent to idle state");
         Agent::add_request("init",Agent::req_init,"","request to transition this agent to init state");
@@ -863,17 +864,20 @@ namespace Cosmos {
             if (iretn >= 0)
             {
                 request.resize(strlen(&request[0]));
-                bufferout = request + "[OK]";
+//                bufferout = request + "[OK]";
+                bufferout = "{\"response\": "+request + ", \"status\":\"[OK]\"}";
             }
             else
             {
-                bufferout = "[NOK]";
+//                bufferout = "[NOK]";
+                bufferout = "{\"status\":\"[NOK]\"}";
             }
         }
         else
         {
             iretn = AGENT_ERROR_NULL;
-            bufferout = "[NOK]";
+//            bufferout = "[NOK]";
+             bufferout = "{\"status\":\"[NOK]\"}";
         }
 
         iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
@@ -986,6 +990,36 @@ namespace Cosmos {
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
+    int32_t Agent::req_help_json(char*, char* output, Agent* agent)
+    {
+        string help_string;
+//        help_string += "\n";
+        help_string += "{\"requests\": [";
+        for(uint32_t i = 0; i < agent->reqs.size(); ++i)
+        {
+//            help_string += "        ";
+            if(i>0) help_string+=",";
+            help_string += "{\"token\": \"";
+            help_string += agent->reqs[i].token;
+//            help_string += " ";
+            help_string += "\", \"synopsis\": \"";
+            help_string += agent->reqs[i].synopsis;
+//            help_string += "\n";
+            //size_t blanks = (20 - (signed int)strlen(agent->reqs[i].token)) > 0 ? 20 - strlen(agent->reqs[i].token) : 4;
+            //string blank(blanks,' ');
+            //help_string += blank;
+//            help_string += "                ";
+            help_string += "\", \"description\": \"";
+            help_string += agent->reqs[i].description;
+//            help_string += "\n\n";
+            help_string +="\"}";
+        }
+//        help_string += "\n";
+        help_string += "]}";
+        strcpy(output, (char*)help_string.c_str());
+        return 0;
+    }
+
     int32_t Agent::req_help(char*, char* output, Agent* agent)
     {
         string help_string;

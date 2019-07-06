@@ -233,14 +233,25 @@ int main(int argc, char *argv[])
             {
                 if (agent->agent_list.size() > agent_count)
                 {
+                    printf("{\"agent_list\":[");
                     for (size_t i=agent_count; i<agent->agent_list.size(); ++i)
                     {
                         beatstruc cbeat = agent->agent_list[i];
                         agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
-                        printf("[%lu] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
-                        printf("\t%s\n",output.c_str());
+//                        printf("[%lu] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
+//                        printf("\t%s\n",output.c_str());
+                        if(i>0) printf(",");
+                        printf("{\"agent_proc\": \"%s\", ", cbeat.proc);
+                        printf("\"agent_utc\": %.15g, ", cbeat.utc);
+                        printf("\"agent_node\": \"%s\", ", cbeat.node);
+                        printf("\"agent_addr\": \"%s\", ", cbeat.addr);
+                        printf("\"agent_port\": %hu, ", cbeat.port);
+                        printf("\"agent_bsz\": %u, ", cbeat.bsz);
+                        printf("\"output\": \"%s\" }", output.c_str());
                         fflush(stdout);
                     }
+                    printf("]}\n");
+                    fflush(stdout);
                     agent_count = agent->agent_list.size();
                 }
                 COSMOS_SLEEP(.1);
@@ -372,12 +383,15 @@ int main(int argc, char *argv[])
         if ((nbytes = agent->get_server(argv[1], argv[2], SERVER_WAIT_TIME, &cbeat)) > 0)
         {
             if(argc == 3)
+            /* List available requests for agent */
             {
-                printf("List of available requests:\n");
-                nbytes = agent->send_request(cbeat, "help", std::ref(output), REQUEST_WAIT_TIME);
-                printf("%s [%d]\n", output.c_str(), nbytes);
+//                printf("{\"requests\":");
+                nbytes = agent->send_request(cbeat, "help_json", std::ref(output), REQUEST_WAIT_TIME);
+//                printf("%s [%d]\n", output.c_str(), nbytes);
+                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
             }
             else
+                /* send request to agent */
             {
                 std::string request;
                 request = argv[3];
@@ -387,13 +401,16 @@ int main(int argc, char *argv[])
                     request += argv[i+4];
                 }
                 nbytes = agent->send_request(cbeat,request.c_str(), output, REQUEST_WAIT_TIME);
-                printf("%s [%d]\n", output.c_str(), nbytes);
+//                printf("%s [%d]\n", output.c_str(), nbytes);
+                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
             }
         }
         else
         {
-            if (!nbytes)
+            if (!nbytes){
                 fprintf(stderr,"node-agent pair [%s:%s] not found\n",argv[1],argv[2]);
+                printf("{\"error\": \"node-agent pair [%s:%s] not found\" }\n",argv[1],argv[2]);
+            }
             else
                 printf("Error: %d\n", nbytes);
         }
