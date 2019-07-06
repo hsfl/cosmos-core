@@ -408,6 +408,33 @@ namespace Cosmos {
         return error;
     }
 
+    int32_t Serial::set_dtr(bool state)
+    {
+#if defined(COSMOS_WIN_OS)
+        GetCommState(handle, &(dcb));
+        if (state)
+        {
+            dcb.fDtrControl	= DTR_CONTROL_ENABLE;
+        }
+        else
+        {
+            dcb.fDtrControl	= DTR_CONTROL_DISABLE;
+        }
+#else
+        int flag = TIOCM_DTR;
+
+        if (state)
+        {
+            ioctl(fd, TIOCMBIS, &flag);
+        }
+        else
+        {
+            ioctl(fd, TIOCMBIC, &flag);
+        }
+#endif
+        return 0;
+    }
+
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
     int32_t Serial::set_timeout(int minchar, double timeout)
 #else // Windows
@@ -513,19 +540,56 @@ namespace Cosmos {
             return (error);
         }
 
+        int result;
+
 #ifdef COSMOS_WIN_OS
         int n=0;
         WriteFile(handle, &c, 1, (LPDWORD)((void *)&n), NULL);
         if(n<0)
         {
-            return(-errno);
+            error = -errno;
         }
 
 #else
-        if (write(fd, &c, 1) < 0)
+        ElapsedTime et;
+        do
         {
-            return (-errno);
-        }
+            fd_set set;
+            FD_ZERO(&set);
+            FD_SET(fd, &set);
+            timeval timeout;
+            timeout.tv_sec = static_cast<int32_t>(ictimeout);
+            timeout.tv_usec = static_cast<int32_t>(1000000. * (ictimeout - timeout.tv_sec));
+            int rv = select(fd+1, nullptr, &set, nullptr, &timeout);
+            if (rv == -1)
+            {
+                error = -errno;
+            }
+            else if (rv == 0)
+            {
+                error = SERIAL_ERROR_TIMEOUT;
+            }
+            else
+            {
+                result = write(fd, &c, 1);
+                if (result > 0)
+                {
+                    error = result;
+                    break;
+                }
+                else
+                {
+                    if (result < 0)
+                    {
+                        error = -errno;
+                    }
+                    else
+                    {
+                        error = SERIAL_ERROR_BUFFER_SIZE_EXCEEDED;
+                    }
+                }
+            }
+        } while (et.split() < ictimeout);
 #endif
 
         // These sleeps are necessary to keep from overrunning the serial output buffer
@@ -534,10 +598,9 @@ namespace Cosmos {
 #ifdef COSMOS_WIN_OS
         COSMOS_SLEEP(0.010);
 #else
-        COSMOS_USLEEP(10000000. / baud);
+//        COSMOS_SLEEP(10. / baud - et.split());
 #endif
         //
-        error = 0;
 
         return error;
     }
@@ -797,12 +860,12 @@ namespace Cosmos {
             return (error);
         }
 
-        int32_t iretn = get_char();
-        if (iretn >= 0)
+        error = get_char();
+        if (error >= 0)
         {
-            buffer = iretn;
+            buffer = error;
         }
-        return iretn;
+        return error;
     }
 
     int32_t Serial::ReceiveByte(uint8_t &buf) {
@@ -838,10 +901,8 @@ namespace Cosmos {
             return (error);
         }
 
-        int32_t iretn = 0;
         int result;
         uint8_t c;
-        ElapsedTime et;
 
 #ifdef COSMOS_WIN_OS
         do
@@ -858,46 +919,58 @@ namespace Cosmos {
             }
             if (result > 0)
             {
-                iretn = c;
+                error = c;
                 break;
             }
             else
             {
-                iretn = result;
+                error = result;
             }
             COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
-        } while (iretn == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
+        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
 #else
-        fd_set set;
-        FD_ZERO(&set);
-        FD_SET(fd, &set);
-        timeval timeout;
-        timeout.tv_sec = static_cast<int32_t>(ictimeout);
-        timeout.tv_usec = static_cast<int32_t>(1000000. * (ictimeout - timeout.tv_sec));
-        int rv = select(fd+1, &set, nullptr, nullptr, &timeout);
-        if (rv == -1)
+        ElapsedTime et;
+        do
         {
-            iretn = -errno;
-        }
-        else if (rv == 0)
-        {
-            iretn = SERIAL_ERROR_TIMEOUT;
-        }
-        else
-        {
-            result = read(fd, &c, 1);
-            if (result > 0)
+            fd_set set;
+            FD_ZERO(&set);
+            FD_SET(fd, &set);
+            timeval timeout;
+            timeout.tv_sec = static_cast<int32_t>(ictimeout);
+            timeout.tv_usec = static_cast<int32_t>(1000000. * (ictimeout - timeout.tv_sec));
+            int rv = select(fd+1, &set, nullptr, nullptr, &timeout);
+            if (rv == -1)
             {
-                iretn = c;
+                error = -errno;
+            }
+            else if (rv == 0)
+            {
+                error = SERIAL_ERROR_TIMEOUT;
             }
             else
             {
-                iretn = SERIAL_ERROR_EOT;
+                result = read(fd, &c, 1);
+                if (result > 0)
+                {
+                    error = c;
+                    break;
+                }
+                else
+                {
+                    if (result < 0)
+                    {
+                        error = -errno;
+                    }
+                    else
+                    {
+                        error = SERIAL_ERROR_EOT;
+                    }
+                }
             }
-        }
+        } while (et.split() < ictimeout);
 #endif
 
-        return iretn;
+        return error;
     }
 
     int32_t Serial::get_string(string &data, size_t size)
