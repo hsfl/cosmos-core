@@ -9039,7 +9039,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     string result;
     char tempstring[200];
 
-    result = "{\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
     {

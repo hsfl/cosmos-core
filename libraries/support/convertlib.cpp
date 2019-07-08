@@ -2729,8 +2729,8 @@ void eci2kep(cartpos &eci,kepstruc &kep)
 			kep.raan = O_UNDEFINED;
 
 		// Find eccentric and mean anomaly
-		kep.ea = atan2(rdotv/sqrt(kep.a*GM),1.-magr/kep.a);
-		kep.ma = kep.ea - kep.e*sin(kep.ea);
+        kep.ea = atan2(rdotv/sqrt(kep.a*GM),1.-magr/kep.a);
+        kep.ma = kep.ea - kep.e*sin(kep.ea);
 
 		// Find argument of latitude
 		kep.alat = atan2(eci.s.col[2],(eci.s.col[1]*kep.h.col[0]-eci.s.col[0]*kep.h.col[1])/magh);
@@ -2921,6 +2921,10 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
 
     if (tle.utc != lutc || tle.snumber != lsnumber)
     {
+        if (tle.e < .00000000001)
+        {
+            tle.e = .00000000001;
+        }
         // RECOVER ORIGINAL MEAN MOTION ( xnodp ) AND SEMIMAJOR AXIS (aodp)
         // FROM INPUT ELEMENTS
         a1=pow((SGP4_XKE/ tle.mm ),SGP4_TOTHRD);
@@ -3008,7 +3012,7 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
     }
 
     // UPDATE FOR SECULAR GRAVITY AND ATMOSPHERIC DRAG
-    tsince = (utc - tle.utc) * 1440.;
+    tsince = (utc - tle.utc) * SGP4_XMNPDA;
     xmdf = tle.ma +xmdot*tsince;
     omgadf= tle.ap +omgdot*tsince;
     xnoddf= tle.raan + xnodot*tsince;
@@ -3106,12 +3110,12 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
     // POSITION AND VELOCITY in TEME
 	pos_teme.s = pos_teme.v = pos_teme.a = rv_zero();
 
-	pos_teme.s.col[0] = REARTHM * rk *ux;
-	pos_teme.s.col[1] = REARTHM * rk *uy;
-	pos_teme.s.col[2] = REARTHM * rk *uz;
-	pos_teme.v.col[0] =REARTHM * (rdotk*ux+rfdotk*vx) / 60.;
-	pos_teme.v.col[1] =REARTHM * (rdotk*uy+rfdotk*vy) / 60.;
-	pos_teme.v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
+    pos_teme.s.col[0] = 1000. * SGP4_XKMPER * rk *ux;
+    pos_teme.s.col[1] = 1000. * SGP4_XKMPER * rk *uy;
+    pos_teme.s.col[2] = 1000. * SGP4_XKMPER * rk *uz;
+    pos_teme.v.col[0] = 1000. * SGP4_XKMPER * (rdotk*ux+rfdotk*vx) / 60.;
+    pos_teme.v.col[1] = 1000. * SGP4_XKMPER * (rdotk*uy+rfdotk*vy) / 60.;
+    pos_teme.v.col[2] = 1000. * SGP4_XKMPER * (rdotk*uz+rfdotk*vz) / 60.;
 
     return 0;
 }
@@ -3124,28 +3128,28 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
  */
 int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
 {
-	// ICRF to Mean of Data (undo Precession)
-	rmatrix bm;
-	gcrf2j2000(&bm);
-	eci.s = rv_mmult(bm,eci.s);
-	eci.v = rv_mmult(bm,eci.v);
+    // ICRF to Mean of Data (undo Precession)
+    rmatrix bm;
+    gcrf2j2000(&bm);
+    eci.s = rv_mmult(bm,eci.s);
+    eci.v = rv_mmult(bm,eci.v);
 
-	rmatrix pm;
-	j20002mean(utc,&pm);
-	eci.s = rv_mmult(pm,eci.s);
-	eci.v = rv_mmult(pm,eci.v);
+    rmatrix pm;
+    j20002mean(utc,&pm);
+    eci.s = rv_mmult(pm,eci.s);
+    eci.v = rv_mmult(pm,eci.v);
 
-	// Mean of Date to True of Date (undo Nutation)
-	rmatrix nm;
-	mean2true(utc,&nm);
-	eci.s = rv_mmult(nm,eci.s);
-	eci.v = rv_mmult(nm,eci.v);
+    // Mean of Date to True of Date (undo Nutation)
+    rmatrix nm;
+    mean2true(utc,&nm);
+    eci.s = rv_mmult(nm,eci.s);
+    eci.v = rv_mmult(nm,eci.v);
 
-	// True of Date to Uniform of Date (undo Equation of Equinoxes)
-	rmatrix sm;
-	true2teme(utc, &sm);
-	eci.s = rv_mmult(sm,eci.s);
-	eci.v = rv_mmult(sm,eci.v);
+    // True of Date to Uniform of Date (undo Equation of Equinoxes)
+    rmatrix sm;
+    true2teme(utc, &sm);
+    eci.s = rv_mmult(sm,eci.s);
+    eci.v = rv_mmult(sm,eci.v);
 
 	// Convert to Keplerian Elements
 	kepstruc kep;
@@ -3157,9 +3161,9 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
 	tle.e = kep.e;
 	tle.i = kep.i;
 	tle.ma = kep.ma;
-	tle.mm = kep.mm;
+    tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
 	tle.raan = kep.raan;
-	tle.utc = utc;
+    tle.utc = utc;
 
 	return 0;
 }
@@ -3177,30 +3181,31 @@ int tle2eci(double utc, tlestruc tle, cartpos &eci)
     // cartpos *teme;
     sgp4(utc, tle, eci);
 
+
     //eci = *teme;
 
-	// Uniform of Date to True of Date (Equation of Equinoxes)
-	rmatrix sm;
-	teme2true(utc, &sm);
-	eci.s = rv_mmult(sm,eci.s);
-	eci.v = rv_mmult(sm,eci.v);
+    // Uniform of Date to True of Date (Equation of Equinoxes)
+    rmatrix sm;
+    teme2true(utc, &sm);
+    eci.s = rv_mmult(sm,eci.s);
+    eci.v = rv_mmult(sm,eci.v);
 
-	// True of Date to Mean of Date (Nutation)
-	rmatrix nm;
-	true2mean(utc,&nm);
-	eci.s = rv_mmult(nm,eci.s);
-	eci.v = rv_mmult(nm,eci.v);
+    // True of Date to Mean of Date (Nutation)
+    rmatrix nm;
+    true2mean(utc,&nm);
+    eci.s = rv_mmult(nm,eci.s);
+    eci.v = rv_mmult(nm,eci.v);
 
-	// Mean of Date to ICRF (precession)
-	rmatrix pm;
-	mean2j2000(utc,&pm);
-	eci.s = rv_mmult(pm,eci.s);
-	eci.v = rv_mmult(pm,eci.v);
+    // Mean of Date to ICRF (precession)
+    rmatrix pm;
+    mean2j2000(utc,&pm);
+    eci.s = rv_mmult(pm,eci.s);
+    eci.v = rv_mmult(pm,eci.v);
 
-	rmatrix bm;
-	j20002gcrf(&bm);
-	eci.s = rv_mmult(bm,eci.s);
-	eci.v = rv_mmult(bm,eci.v);
+    rmatrix bm;
+    j20002gcrf(&bm);
+    eci.s = rv_mmult(bm,eci.s);
+    eci.v = rv_mmult(bm,eci.v);
 
 	eci.utc = utc;
 
@@ -3886,7 +3891,7 @@ void tle2sgp4(tlestruc tle, sgp4struc &sgp4)
     sgp4.ma = DEGOF(tle.ma);
     sgp4.mm = tle.mm * 1440. / D2PI;
     calstruc cal = mjd2cal(tle.utc);
-    sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + cal.second / 86400.;
+    sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + (cal.second + cal.nsecond / 1e9) / 86400.;
     sgp4.raan = DEGOF(tle.raan);
     return;
 }
@@ -3901,13 +3906,74 @@ void sgp42tle(sgp4struc sgp4, tlestruc &tle)
     tle.mm = sgp4.mm * D2PI / 1440. ;
     tle.raan = RADOF(sgp4.raan);
     int year = sgp4.ep / 1000;
+    double jday = sgp4.ep - (year *1000);
     if (year < 57)
         year += 2000;
     else
         year += 1900;
-    double jday = sgp4.ep - (year *1000);
     tle.utc = cal2mjd((int)year,1,0.);
     tle.utc += jday;
 
     return;
+}
+
+// https://space.stackexchange.com/questions/5358/what-does-check-sum-tle-mean
+int tle_checksum(char *line) {
+    const int TLE_LINE_LENGTH = 69; // Ignore current checksum.
+    int checksum = 0;
+
+    for (int i = 0; i < TLE_LINE_LENGTH; i++) {
+        if (line[i] == '-') {
+            checksum++;
+        }
+        else if (isdigit(line[i])) {
+            checksum += line[i] - '0';
+        } // Ignore whitespace.
+    }
+
+    return checksum % 10;
+}
+void eci2tlestring(cartpos eci, std::string &tle, const std::string &ref_tle, double bstar) {
+    char tle_buffer[ref_tle.size()], field_buffer[30];
+    strcpy(tle_buffer, ref_tle.c_str());
+
+    // Convert to keplarian elements, compute our epoch field.
+    std::string epoch;
+    tlestruc tles; // <-- in SI units.
+    mjd2tlef(eci.utc, epoch);
+    eci2tle(eci.utc, eci, tles);
+
+    // std::cout << "Inclination: " << DEGOF(tles.i) << std::endl;
+    // std::cout << "Right acension of rising node: " << DEGOF(tles.raan) << std::endl;
+    // std::cout << "Eccentricity: " << tles.e << std::endl;
+    // std::cout << "Argument of perigee: " << DEGOF(tles.ap) << std::endl;
+    // std::cout << "Mean anomaly: " << ((DEGOF(tles.ma) < 0) ? 360 + DEGOF(tles.ma) : DEGOF(tles.ma)) << std::endl;
+    // std::cout << "Mean motion: " << tles.mm * 1440. / D2PI << std::endl;
+
+    // Ignore the name line. Populate our epoch field.
+    char *line_1 = strstr(tle_buffer, "\n");
+    sprintf(field_buffer, "%014s", epoch.c_str());
+    strncpy(line_1+19, field_buffer, 14);
+    sprintf(field_buffer, "");
+
+    // Populate our fields for line 2.
+    char *line_2 = strstr(line_1 + 1, "\n");
+    sprintf(field_buffer, "%#08.4f", DEGOF(tles.i));
+    strncpy(line_2+9, field_buffer, 8);
+    sprintf(field_buffer, "%08.4f", DEGOF(tles.raan));
+    strncpy(line_2+18, field_buffer, 8);
+    sprintf(field_buffer, "%07d", static_cast<int>(tles.e*pow(10,7)));
+    strncpy(line_2+27, field_buffer, 7);
+    sprintf(field_buffer, "%#08.4f", DEGOF(tles.ap));
+    strncpy(line_2+35, field_buffer, 8);
+    sprintf(field_buffer, "%#08.4f", (DEGOF(tles.ma) < 0) ? 360 + DEGOF(tles.ma) : DEGOF(tles.ma));
+    strncpy(line_2+44, field_buffer, 8);
+    sprintf(field_buffer, "%#011.8f", tles.mm * 1440. / D2PI); // rad/min ---> rev/day
+    strncpy(line_2+53, field_buffer, 11);
+
+    // Compute our checksum (copy null character here).
+    sprintf(field_buffer, "%1d", tle_checksum(line_2));
+    strncpy(line_2+69, field_buffer, 2);
+
+    tle = std::string(tle_buffer);
 }

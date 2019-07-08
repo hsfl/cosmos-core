@@ -103,6 +103,7 @@
 #define SGP4_XJ3 -0.253881E-5
 #define SGP4_XKE 0.743669161E-1
 #define SGP4_XKMPER 6378.135
+#define SGP4_XMNPDA 1440.0
 #define SGP4_AE 1.
 
 // JPL Planetary Ephemeris stuff
@@ -440,19 +441,27 @@ typedef struct
 std::ostream& operator << (std::ostream& out, const locstruc& a);
 std::istream& operator >> (std::istream& in, locstruc& a);
 
+//! In units **for** the SGP4 propogator (not NORAD TLE itself).
 struct tlestruc
 {
 	double utc;
 	char name[25];
 	uint16_t snumber;
-	char id[9];
-	double bstar;
-	double i;
-	double raan;
-	double e;
-	double ap;
-	double ma;
-	double mm;
+    char id[9];
+    //! Drag (1/Earth radii)
+    double bstar;
+    //! Inclination (radians)
+    double i;
+    //! Right ascension of ascending node (radians)
+    double raan;
+    //! Eccentricity (unitless)
+    double e;
+    //! Argument of perigee (radians)
+    double ap;
+    //! Mean anomaly (radians)
+    double ma;
+    //! Mean motion (radians / minute)
+    double mm;
 	uint32_t orbit;
 };
 
@@ -472,19 +481,20 @@ typedef struct
 
 //! @}
 
+// Name clashes with literature... these are published units (in TLE file), not for use in the SGP4 propogator itself.
 struct sgp4struc
 {
     // Inclination (deg)
     double i;
     // Eccentricity
     double e;
-    // Right-ascension of the Asceding Node (deg)
+    // Right-ascension of the Ascending Node (deg)
     double raan;
     // Argument of Perigee (deg)
     double ap;
     //B-Star drag term
     double bstar;
-    // Mean Motion (deg)
+    // Mean Motion (rev/day)
     double mm;
     // Mean Anomaly (deg)
     double ma;
