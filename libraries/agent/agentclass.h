@@ -413,7 +413,6 @@ private:
     static int32_t req_forward(char *request, char* response, Agent *agent);
     static int32_t req_echo(char *request, char* response, Agent *agent);
     static int32_t req_help(char *request, char* response, Agent *agent);
-    static int32_t req_help_json(char *request, char* response, Agent *agent);
     static int32_t req_shutdown(char *request, char* response, Agent *agent);
     static int32_t req_idle(char *request, char* response, Agent *agent);
     static int32_t req_init(char *request, char* response, Agent *agent);
