@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     case 8:
         if (!strcmp(argv[8], "rtscts"))
         {
-            rtscts = true;
+           rtscts = true;
         }
         if (!strcmp(argv[7], "xonxoff"))
         {
@@ -42,37 +42,38 @@ int main(int argc, char *argv[])
     endcount = duration * baud / (bits + parity + stop + 1.);
     Serial *port = new Serial(name, baud, bits, parity, stop);
     port->set_flowcontrol(rtscts, xonxoff);
-    port->set_timeout(4.);
+    port->set_timeout(1, 0);
 
+    size_t writecount = 0;
+    size_t errorcount = 0;
+    size_t timeoutcount = 0;
     int32_t result;
     ElapsedTime et;
-    for (uint8_t i=65; i<125; ++i)
+    for (uint8_t i=1; i<255; ++i)
     {
-        size_t writecount = 0;
-        size_t errorcount = 0;
-        size_t timeoutcount = 0;
         for (size_t j=0; j<endcount; ++j)
         {
-            result = port->put_char(i);
-            if (result >= 0)
+        result = port->put_char(i);
+        if (result > 0)
+        {
+            ++writecount;
+        }
+        else
+        {
+            if (result == SERIAL_ERROR_TIMEOUT)
             {
-                ++writecount;
+                ++timeoutcount;
             }
             else
             {
-                if (result == SERIAL_ERROR_TIMEOUT)
-                {
-                    ++timeoutcount;
-                }
-                else
-                {
-                    printf("%s\n", cosmos_error_string(result).c_str());
-                    ++errorcount;
-                }
+                ++errorcount;
             }
         }
-        double lap = et.lap();
-        printf("%f %f: Wrote %lu %c @ %lf BPS: %lu Errors: %lu Timeouts\n", et.split(), lap, writecount, i, writecount/lap, errorcount, timeoutcount);
+        }
+        printf("%f %f: %lu Writes @ %lf BPS Errors: %lu Timeouts: %lu\n", writecount, writecount/et.split(), errorcount, timeoutcount);
     }
     result = port->put_char(4);
+
+    printf("\nWrites: %lu @ %lf BPS Errors: %lu Timeouts: %lu\n", writecount, writecount/et.split(), errorcount, timeoutcount);
+
 }
