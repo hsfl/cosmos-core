@@ -1524,3 +1524,17 @@ DateTime::DateTime(int year, int month, int day, int hour, int minute, double se
 {
     mjd = cal2mjd(year, month, day, hour, minute, seconds, 0);
 }
+
+//! Convert mjd to the TLE epoch format.
+int32_t mjd2tlef(double mjd, std::string &tle) {
+    char year_buffer[3], days_buffer[13];
+
+    // Compute our year field.
+    sprintf(year_buffer, "%2d", static_cast<int>(floor(mjd2year(mjd))) % 1000);
+
+    // Compute our days field.
+    sprintf(days_buffer, "%012.8f", mjd2doy(mjd));
+
+    tle = std::string(year_buffer) + std::string(days_buffer);
+    return 0;
+}

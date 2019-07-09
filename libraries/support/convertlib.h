@@ -214,6 +214,8 @@ int32_t load_stk(std::string filename, stkstruc &stkdata);
 int stk2eci(double utc, stkstruc &stk, cartpos &eci);
 void tle2sgp4(tlestruc tle, sgp4struc &sgp4);
 void sgp42tle(sgp4struc sgp4, tlestruc &tle);
+int tle_checksum(char *line);
+void eci2tlestring(cartpos eci, std::string &tle, const std::string &ref_tle, double bstar=0);
 
 //! @}
 

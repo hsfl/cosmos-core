@@ -193,6 +193,7 @@ std::string  mjdToGregorianDDMmmYYYY(double mjd);
 std::string  mjd2iso8601(double mjd);
 double  mjd2jd(double mjd);
 double  jd2mjd(double jd);
+int32_t mjd2tlef(double mjd, std::string &tle);
 
 // other
 double unix2utc(struct timeval unixtime);
@@ -206,7 +207,6 @@ double  ranrm(double angle);
 int16_t isleap(int32_t year);
 int32_t load_iers();
 std::string  seconds2DDHHMMSS(double elapsed_seconds);
-
 
 
 //! @}
