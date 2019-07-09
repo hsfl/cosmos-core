@@ -408,14 +408,12 @@ int main(int argc, char *argv[])
         if ((nbytes = agent->get_server(argv[1], argv[2], SERVER_WAIT_TIME, &cbeat)) > 0)
         {
             if(argc == 3)
-            /* List available requests for agent */
             {
                 nbytes = agent->send_request(cbeat, "help", std::ref(output), REQUEST_WAIT_TIME);
 //                printf("%s [%d]\n", output.c_str(), nbytes);
                 printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
             }
             else
-                /* send request to agent */
             {
                 std::string request;
                 request = argv[3];
