@@ -53,19 +53,19 @@
 //#define GC 6.672e-11
 #define SOL (86400.*2.99792458e8)
 //! SI Radius of Sun
-#define RSUNM ((double)6.955e8)
+#define RSUNM static_cast<double>(6.955e8)
 //! SI Radius of Moon
-#define RMOONM ((double)1738000.)
+#define RMOONM static_cast<double>(1738000.)
 //! SI Radius of Earth
-#define REARTHM ((double)6378137.)
+#define REARTHM static_cast<double>(6378137.)
 //! Radius of Earth in Km
-#define REARTHKM ((double)6378.137)
+#define REARTHKM static_cast<double>(6378.137)
 //! Flattening of Earth
 #define FLATTENING (1./298.257223563)
 #define FRATIO (1.-FLATTENING)
 #define FRATIO2 (FRATIO*FRATIO)
 //! SI Astronomical Unit
-#define AU ((double)1.49597870691e11)
+#define AU static_cast<double>(1.49597870691e11)
 //! SI Mass of Sun
 #define MSUN 1.9891e30
 //! SI Mass of Earth
@@ -75,14 +75,14 @@
 //! SI Mass of Jupiter
 #define MJUPITER 1.8966e27
 //! SI Mass * Gravitational Constant for Earth
-//#define GM ((double)(3.98600441789e14))
-#define GM ((double)(3.986004415e14))
+//#define GM static_cast<double>((3.98600441789e14))
+#define GM static_cast<double>((3.986004415e14))
 //! SI Mass * Gravitational Constant for Moon
-#define GMOON  ((double)(4.9028029535968e+12))
+#define GMOON  static_cast<double>((4.9028029535968e+12))
 //! SI Mass * Gravitational Constant for Sun
-#define GSUN  ((double)(1.327122e20))
+#define GSUN  static_cast<double>((1.327122e20))
 //! SI Mass * Gravitational Constant for Jupiter
-#define GJUPITER ((double)(1.266865349218008e17))
+#define GJUPITER static_cast<double>((1.266865349218008e17))
 //! Latitude of HIGP, in radians
 #define LAT_HIGP RADOF(21.297440)
 //! Longitude of HIGP, in radians
