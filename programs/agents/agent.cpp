@@ -408,12 +408,14 @@ int main(int argc, char *argv[])
         if ((nbytes = agent->get_server(argv[1], argv[2], SERVER_WAIT_TIME, &cbeat)) > 0)
         {
             if(argc == 3)
+            /* List available requests for agent */
             {
-                printf("List of available requests:\n");
                 nbytes = agent->send_request(cbeat, "help", std::ref(output), REQUEST_WAIT_TIME);
-                printf("%s [%d]\n", output.c_str(), nbytes);
+//                printf("%s [%d]\n", output.c_str(), nbytes);
+                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
             }
             else
+                /* send request to agent */
             {
                 std::string request;
                 request = argv[3];
@@ -423,13 +425,16 @@ int main(int argc, char *argv[])
                     request += argv[i+4];
                 }
                 nbytes = agent->send_request(cbeat,request.c_str(), output, REQUEST_WAIT_TIME);
-                printf("%s [%d]\n", output.c_str(), nbytes);
+//                printf("%s [%d]\n", output.c_str(), nbytes);
+                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
             }
         }
         else
         {
-            if (!nbytes)
+            if (!nbytes){
                 fprintf(stderr,"node-agent pair [%s:%s] not found\n",argv[1],argv[2]);
+                printf("{\"error\": \"node-agent pair [%s:%s] not found\" }\n",argv[1],argv[2]);
+            }
             else
                 printf("Error: %d\n", nbytes);
         }

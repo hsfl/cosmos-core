@@ -864,17 +864,21 @@ namespace Cosmos {
             if (iretn >= 0)
             {
                 request.resize(strlen(&request[0]));
-                bufferout = request + "[OK]";
+//                bufferout = request + "[OK]";
+                if(request.size() > 0) bufferout = "{\"response\": "+request + ", \"status\":\"[OK]\"}";
+                else bufferout = "{\"status\":\"[OK]\"}";
             }
             else
             {
-                bufferout = "[NOK]";
+//                bufferout = "[NOK]";
+                bufferout = "{\"status\":\"[NOK]\"}";
             }
         }
         else
         {
             iretn = AGENT_ERROR_NULL;
-            bufferout = "[NOK]";
+//            bufferout = "[NOK]";
+             bufferout = "{\"status\":\"[NOK]\"}";
         }
 
         iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
