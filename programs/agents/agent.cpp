@@ -248,6 +248,42 @@ int main(int argc, char *argv[])
             exit(0);
             break;
         }
+        else if (!strcmp(argv[1],"list_json"))
+        {
+            size_t agent_count = 0;
+            ElapsedTime et;
+            agent->post(Agent::AgentMessage::REQUEST);
+            COSMOS_SLEEP(.1);
+            do
+            {
+                if (agent->agent_list.size() > agent_count)
+                {
+                    printf("{\"agent_list\":[");
+                    for (size_t i=agent_count; i<agent->agent_list.size(); ++i)
+                    {
+                        beatstruc cbeat = agent->agent_list[i];
+                        agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
+//                        printf("[%lu] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
+//                        printf("\t%s\n",output.c_str());
+                        if(i>0) printf(",");
+                        printf("{\"agent_proc\": \"%s\", ", cbeat.proc);
+                        printf("\"agent_utc\": %.15g, ", cbeat.utc);
+                        printf("\"agent_node\": \"%s\", ", cbeat.node);
+                        printf("\"agent_addr\": \"%s\", ", cbeat.addr);
+                        printf("\"agent_port\": %hu, ", cbeat.port);
+                        printf("\"agent_bsz\": %u, ", cbeat.bsz);
+                        printf("\"output\": %s }", output.c_str());
+                        fflush(stdout);
+                    }
+                    printf("]}\n");
+                    fflush(stdout);
+                    agent_count = agent->agent_list.size();
+                }
+                COSMOS_SLEEP(.1);
+            } while (et.split() < SERVER_WAIT_TIME);
+            exit(0);
+            break;
+        }
 
     default:
         if (!strcmp(argv[1],"dump"))
