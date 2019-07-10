@@ -263,8 +263,6 @@ int main(int argc, char *argv[])
                     {
                         beatstruc cbeat = agent->agent_list[i];
                         agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
-//                        printf("[%lu] %.15g %s %s %s %hu %u\n",i,cbeat.utc,cbeat.node,cbeat.proc,cbeat.addr,cbeat.port,cbeat.bsz);
-//                        printf("\t%s\n",output.c_str());
                         if(i>0) printf(",");
                         printf("{\"agent_proc\": \"%s\", ", cbeat.proc);
                         printf("\"agent_utc\": %.15g, ", cbeat.utc);
@@ -272,7 +270,24 @@ int main(int argc, char *argv[])
                         printf("\"agent_addr\": \"%s\", ", cbeat.addr);
                         printf("\"agent_port\": %hu, ", cbeat.port);
                         printf("\"agent_bsz\": %u, ", cbeat.bsz);
-                        printf("\"output\": %s }", output.c_str());
+                        // HANDLE RESPONSE OUTPUT FORMAT
+                        size_t status_pos;
+                        if((status_pos= output.find("[OK]")  )!= std::string::npos){
+                            if(output.at(0) == '{'){
+                                if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
+                                    printf("\"output\": %s,", output.substr(0, status_pos).c_str());
+                                } else {
+                                    printf("\"output\": %s,", output.c_str());
+                                }
+                            } else {
+                                printf("\"output\": \"%s\",", output.substr(status_pos ).c_str());
+                            }
+                            printf("\"status\": \"OK\"}");
+                        } else if((status_pos = output.find("[NOK]") )!= std::string::npos){
+                            printf("\"status\": \"NOK\"}");
+                        } else {
+                             printf("\"output\": %s }", output.c_str());
+                        }
                         fflush(stdout);
                     }
                     printf("]}\n");
@@ -410,8 +425,7 @@ int main(int argc, char *argv[])
             if(argc == 3)
             {
                 nbytes = agent->send_request(cbeat, "help", std::ref(output), REQUEST_WAIT_TIME);
-//                printf("%s [%d]\n", output.c_str(), nbytes);
-                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
+                printf("%s [%d]\n", output.c_str(), nbytes);
             }
             else
             {
@@ -424,7 +438,26 @@ int main(int argc, char *argv[])
                 }
                 nbytes = agent->send_request(cbeat,request.c_str(), output, REQUEST_WAIT_TIME);
 //                printf("%s [%d]\n", output.c_str(), nbytes);
-                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
+//                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
+                // HANDLE RESPONSE OUTPUT FORMAT
+                printf("{");
+                size_t status_pos;
+                if((status_pos= output.find("[OK]")  )!= std::string::npos){
+                    if(output.at(0) == '{'){
+                        if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
+                            printf("\"output\": %s,", output.substr(0, status_pos).c_str());
+                        } else {
+                            printf("\"output\": %s,", output.c_str());
+                        }
+                    } else {
+                        printf("\"output\": \"%s\",", output.substr(0,status_pos ).c_str());
+                    }
+                    printf("\"status\": \"OK\"}\n");
+                } else if((status_pos = output.find("[NOK]") )!= std::string::npos){
+                    printf("\"status\": \"NOK\"}\n");
+                } else {
+                     printf("\"output\": %s }\n", output.c_str());
+                }
             }
         }
         else

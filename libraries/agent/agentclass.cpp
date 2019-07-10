@@ -864,21 +864,17 @@ namespace Cosmos {
             if (iretn >= 0)
             {
                 request.resize(strlen(&request[0]));
-//                bufferout = request + "[OK]";
-                if(request.size() > 0) bufferout = "{\"response\": "+request + ", \"status\":\"[OK]\"}";
-                else bufferout = "{\"status\":\"[OK]\"}";
+                bufferout = request + "[OK]";
             }
             else
             {
-//                bufferout = "[NOK]";
-                bufferout = "{\"status\":\"[NOK]\"}";
+                bufferout = "[NOK]";
             }
         }
         else
         {
             iretn = AGENT_ERROR_NULL;
-//            bufferout = "[NOK]";
-             bufferout = "{\"status\":\"[NOK]\"}";
+            bufferout = "[NOK]";
         }
 
         iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
@@ -993,7 +989,8 @@ namespace Cosmos {
  */
     int32_t Agent::req_help_json(char*, char* output, Agent* agent)
     {
-        string help_string;
+        string help_string, s;
+        size_t qpos, prev_qpos = 0;
 //        help_string += "\n";
         help_string += "{\"requests\": [";
         for(uint32_t i = 0; i < agent->reqs.size(); ++i)
@@ -1004,14 +1001,30 @@ namespace Cosmos {
             help_string += agent->reqs[i].token;
 //            help_string += " ";
             help_string += "\", \"synopsis\": \"";
-            help_string += agent->reqs[i].synopsis;
+//            help_string += agent->reqs[i].synopsis;
+            qpos = 0;
+            prev_qpos = 0;
+            s = agent->reqs[i].synopsis;
+            while((qpos=s.substr(prev_qpos).find("\""))!= std::string::npos){
+                s.replace(qpos+prev_qpos, 1, "\\\"");
+                prev_qpos +=qpos+2;
+            }
+            help_string+= s;
 //            help_string += "\n";
             //size_t blanks = (20 - (signed int)strlen(agent->reqs[i].token)) > 0 ? 20 - strlen(agent->reqs[i].token) : 4;
             //string blank(blanks,' ');
             //help_string += blank;
 //            help_string += "                ";
             help_string += "\", \"description\": \"";
-            help_string += agent->reqs[i].description;
+            qpos = 0;
+            prev_qpos = 0;
+            s = agent->reqs[i].description;
+            while((qpos=s.substr(prev_qpos).find("\""))!= std::string::npos){
+                s.replace(qpos+prev_qpos, 1, "\\\"");
+                prev_qpos +=qpos+2;
+            }
+            help_string+= s;
+//            help_string += agent->reqs[i].description;
 //            help_string += "\n\n";
             help_string +="\"}";
         }
