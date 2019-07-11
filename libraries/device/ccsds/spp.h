@@ -70,33 +70,6 @@ namespace Cosmos {
                     DataBytes
                     };
 
-                int32_t setHeaderByte(uint8_t number, uint8_t value);
-                int32_t setVersion(uint8_t version);
-                int32_t setApid(uint16_t apid);
-                int32_t setApidIdle();
-                int32_t setType(PacketType type);
-                int32_t setSecondaryHeaderFlag(bool present);
-                int32_t setSequenceFlags(SequenceFlags flag);
-                int32_t setSequenceCount(uint16_t count);
-                int32_t setDataLength(uint32_t length);
-
-                uint8_t getVersion();
-                uint16_t getApid();
-                PacketType getType();
-                bool getSecondaryHeaderFlag();
-                SequenceFlags getSequenceFlags();
-                uint16_t getSequenceCount();
-                uint32_t getDataLength();
-
-                int32_t clearPacket();
-                int32_t clearHeaderBytes();
-                int32_t clearDataBytes();
-                int32_t getDataBytes(vector <uint8_t> &dbytes);
-                int32_t addByte(uint8_t dbyte);
-                int32_t addDataByte(uint8_t dbyte);
-                int32_t setDataBytes(vector <uint8_t> &dbytes);
-                int32_t getHeaderBytes(uint8_t* &header);
-
                 struct primary_header
                 {
                     unsigned apid_msb : 3;
@@ -120,6 +93,34 @@ namespace Cosmos {
                     };
                     vector <uint8_t> data_bytes;
                 };
+
+                int32_t setHeaderByte(uint8_t number, uint8_t value);
+                int32_t setVersion(uint8_t version);
+                int32_t setApid(uint16_t apid);
+                int32_t setApidIdle();
+                int32_t setType(PacketType type);
+                int32_t setSecondaryHeaderFlag(bool present);
+                int32_t setSequenceFlags(SequenceFlags flag);
+                int32_t setSequenceCount(uint16_t count);
+                int32_t setDataLength(uint32_t length);
+
+                uint8_t getVersion();
+                uint16_t getApid();
+                PacketType getType();
+                bool getSecondaryHeaderFlag();
+                SequenceFlags getSequenceFlags();
+                uint16_t getSequenceCount();
+                uint32_t getDataLength();
+                packet getFrame();
+
+                int32_t clearPacket();
+                int32_t clearHeaderBytes();
+                int32_t clearDataBytes();
+                int32_t getDataBytes(vector <uint8_t> &dbytes);
+                int32_t addByte(uint8_t dbyte);
+                int32_t addDataByte(uint8_t dbyte);
+                int32_t setDataBytes(vector <uint8_t> &dbytes);
+                int32_t getHeaderBytes(uint8_t* &header);
 
             protected:
                 packet frame;
