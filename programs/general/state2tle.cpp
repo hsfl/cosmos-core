@@ -8,11 +8,11 @@
 #include "physics/physicslib.h"
 #include "agent/agentclass.h"
 #include <fstream>
-#include <string>
 
 // We pass a TLE file to populate the fields that we cannot derive ourselves.
 // If used for a short period (10 minutes), these shouldn't matter.
-int main(int argc, char **argv) {
+int main(int argc, char *argv[])
+{
     if (argc != 9) {
         std::cout << "Usage: state2tle sx sy sz vx vy vz utc reference-tle-file" << std::endl;
         exit(1);
