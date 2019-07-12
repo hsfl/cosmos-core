@@ -53,6 +53,7 @@ namespace Cosmos {
 #endif
         int32_t set_timeout(double timeout);
         int32_t set_dtr(bool state);
+        int32_t set_rts(bool state);
         int32_t put_char(uint8_t c);
         int32_t put_string(string data);
         int32_t put_data(vector <uint8_t> data);

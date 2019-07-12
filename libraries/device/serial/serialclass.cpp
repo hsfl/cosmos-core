@@ -435,6 +435,33 @@ namespace Cosmos {
         return 0;
     }
 
+    int32_t Serial::set_rts(bool state)
+    {
+#if defined(COSMOS_WIN_OS)
+        GetCommState(handle, &(dcb));
+        if (state)
+        {
+            dcb.fDtrControl	= RTS_CONTROL_ENABLE;
+        }
+        else
+        {
+            dcb.fDtrControl	= RTS_CONTROL_DISABLE;
+        }
+#else
+        int flag = TIOCM_RTS;
+
+        if (state)
+        {
+            ioctl(fd, TIOCMBIS, &flag);
+        }
+        else
+        {
+            ioctl(fd, TIOCMBIC, &flag);
+        }
+#endif
+        return 0;
+    }
+
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
     int32_t Serial::set_timeout(int minchar, double timeout)
 #else // Windows
