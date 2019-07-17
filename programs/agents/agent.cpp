@@ -254,11 +254,12 @@ int main(int argc, char *argv[])
             ElapsedTime et;
             agent->post(Agent::AgentMessage::REQUEST);
             COSMOS_SLEEP(.1);
+            printf("{\"agent_list\":[");
             do
             {
                 if (agent->agent_list.size() > agent_count)
                 {
-                    printf("{\"agent_list\":[");
+
                     for (size_t i=agent_count; i<agent->agent_list.size(); ++i)
                     {
                         beatstruc cbeat = agent->agent_list[i];
@@ -290,12 +291,13 @@ int main(int argc, char *argv[])
                         }
                         fflush(stdout);
                     }
-                    printf("]}\n");
+
                     fflush(stdout);
                     agent_count = agent->agent_list.size();
                 }
                 COSMOS_SLEEP(.1);
             } while (et.split() < SERVER_WAIT_TIME);
+            printf("]}\n");
             exit(0);
             break;
         }
