@@ -219,14 +219,13 @@ int main(int argc, char *argv[])
             send_channel[0].throughput = THROUGHPUT_LO;
             send_channel[0].nmjd = currentmjd(0.);
             ++send_channels;
-            agentname += argv[1];
             break;
         }
-    default:
-        {
-            printf("Usage:\t agent_file destination_ip_address[0] {destination_ip_address[1]\n");
-            exit(-1);
-        }
+//    default:
+//        {
+//            printf("Usage:\t agent_file destination_ip_address[0] {destination_ip_address[1]\n");
+//            exit(-1);
+//        }
     }
 
     // set this program up as a server
@@ -234,6 +233,9 @@ int main(int argc, char *argv[])
     printf("- Setting up server...");
     fflush(stdout);
 
+    char hostname[60];
+    gethostname(hostname, sizeof (hostname));
+    agentname += hostname;
     agent = new Agent("", agentname, 5.);
     if (agent->cinfo == nullptr || !agent->running())
     {
