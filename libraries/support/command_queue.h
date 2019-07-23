@@ -110,7 +110,7 @@ public:
 		and this updated command information is logged to the OUTPUT directory.
 
 		\param	cmd	Reference to event to run
-		\param	nodename	Name of node
+        \param	nodename	Name of node
 		\param	logdate_exec	Time of execution (for logging purposes)
 	*/
     void run_command(Event &cmd, string nodename, double logdate_exec);
@@ -123,10 +123,10 @@ public:
 		%Event condition must be true.
 
 		\param	agent	Pointer to Agent object (for call to condition_true(..))
-		\param	nodename	Name of the node
+        \param	nodename	Name of the node
 		\param	logdate_exec	Time of execution (for logging purposes)
 	*/
-	void run_commands(Agent *agent, string nodename, double logdate_exec);
+    void run_commands(Agent *agent, string nodename, double logdate_exec);
 
 	///	Add Event to the queue
 	/**
