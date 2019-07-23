@@ -585,34 +585,38 @@ namespace Cosmos {
             FD_ZERO(&set);
             FD_SET(fd, &set);
             timeval timeout;
-            timeout.tv_sec = static_cast<int32_t>(ictimeout);
-            timeout.tv_usec = static_cast<int32_t>(1000000. * (ictimeout - timeout.tv_sec));
-            int rv = select(fd+1, nullptr, &set, nullptr, &timeout);
-            if (rv == -1)
+            double rtimeout = ictimeout - et.split();
+            if (rtimeout >= 0.)
             {
-                error = -errno;
-            }
-            else if (rv == 0)
-            {
-                error = SERIAL_ERROR_TIMEOUT;
-            }
-            else
-            {
-                result = write(fd, &c, 1);
-                if (result > 0)
+                timeout.tv_sec = static_cast<int32_t>(rtimeout);
+                timeout.tv_usec = static_cast<int32_t>(1000000. * (rtimeout - timeout.tv_sec));
+                int rv = select(fd+1, nullptr, &set, nullptr, &timeout);
+                if (rv == -1)
                 {
-                    error = result;
-                    break;
+                    error = -errno;
+                }
+                else if (rv == 0)
+                {
+                    error = SERIAL_ERROR_TIMEOUT;
                 }
                 else
                 {
-                    if (result < 0)
+                    result = write(fd, &c, 1);
+                    if (result > 0)
                     {
-                        error = -errno;
+                        error = result;
+                        break;
                     }
                     else
                     {
-                        error = SERIAL_ERROR_BUFFER_SIZE_EXCEEDED;
+                        if (result < 0)
+                        {
+                            error = -errno;
+                        }
+                        else
+                        {
+                            error = SERIAL_ERROR_BUFFER_SIZE_EXCEEDED;
+                        }
                     }
                 }
             }
