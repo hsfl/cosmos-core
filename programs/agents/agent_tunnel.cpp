@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
             size_t tloc = rxr_devname.find(":");
             if (tloc != string::npos)
             {
-                rxr_baud = atol(rxr_devname.substr(tloc+1, rxr_devname.size()-tloc+1).c_str());
+                rxr_baud = atol(rxr_devname.substr(tloc+1, rxr_devname.size()-(tloc+1)).c_str());
                 rxr_devname = rxr_devname.substr(0, tloc);
             }
             // Open receiver port
