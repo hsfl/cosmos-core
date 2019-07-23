@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    printf("%.15g:[%s:%s][%s:%u](%" PRIu64 ":%" PRIu64 ":%" PRIu64 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
+                    printf("%.15g:[%s:%s][%s:%u](%lu:%lu:%zu)\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
                     printf("%s\n",message.jdata.c_str());
                     if (pretn < Agent::AgentMessage::BINARY)
                     {
