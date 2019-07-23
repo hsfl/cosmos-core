@@ -936,6 +936,7 @@ namespace Cosmos {
         uint8_t c;
 
 #ifdef COSMOS_WIN_OS
+        ElapsedTime et;
         do
         {
             int n=0;
