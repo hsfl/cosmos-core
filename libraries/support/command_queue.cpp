@@ -57,7 +57,7 @@ void CommandQueue::join_events() {
 // command run, the time of execution (utcexec) is set, the flag
 // EVENT_FLAG_ACTUAL is set to true, and this updated command information is
 // logged to the OUTPUT directory.
-void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
+void CommandQueue::run_command(Event& cmd, string node_name, double logdate_exec)
 {
 	queue_changed = true;
 
@@ -65,7 +65,7 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 	cmd.set_utcexec();
 	cmd.set_actual();
 
-    string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
+    string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
     char command_line[100];
     strcpy(command_line, cmd.get_data().c_str());
 
@@ -122,7 +122,7 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 //
 //    char *words[MAXCOMMANDWORD];
 //    string_parse((char *)cmd.get_data().c_str(), words, MAXCOMMANDWORD);
-//    string outpath = data_type_path(nodename, "temp", "exec", logdate_exec, "out");
+//    string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
 //    if (pid != 0) {
 //        signal(SIGCHLD, SIG_IGN); // Ensure no zombies.
 //    }
@@ -148,12 +148,12 @@ void CommandQueue::run_command(Event& cmd, string nodename, double logdate_exec)
 //#endif
 
 	// log to event file
-    log_write(nodename, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
+    log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
 }
 
 
 // Manages the logic of when to run commands in the command queue.
-void CommandQueue::run_commands(Agent *agent, string nodename, double logdate_exec) // TODO: remove dependency to pointer to agent
+void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_exec) // TODO: remove dependency to pointer to agent
 {
     for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii) {
 		// if command is ready
@@ -166,12 +166,12 @@ void CommandQueue::run_commands(Agent *agent, string nodename, double logdate_ex
 					if(ii->is_repeat()) {
 						// if command has not already run
 						if(!ii->already_ran)	{
-							run_command(*ii, nodename, logdate_exec);
+							run_command(*ii, node_name, logdate_exec);
 							ii->already_ran = true;
 						}
 					// else command is non-repeatable
 					} else {
-						run_command(*ii, nodename, logdate_exec);
+						run_command(*ii, node_name, logdate_exec);
 						commands.erase(ii--);
 					}
 				// else command condition is false
@@ -180,7 +180,7 @@ void CommandQueue::run_commands(Agent *agent, string nodename, double logdate_ex
 				}
 			// else command is non-conditional
 			} else {
-				run_command(*ii, nodename, logdate_exec);
+				run_command(*ii, node_name, logdate_exec);
 				commands.erase(ii--);
 			}
 		} else {
