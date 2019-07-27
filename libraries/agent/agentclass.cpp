@@ -2536,7 +2536,7 @@ namespace Cosmos {
     }
 
     int32_t Agent::req_mjd(char *, char *response, Agent *agent) {
-        sprintf(response, "%lf", agent->agent_time_producer());
+        sprintf(response, "%15g", agent->agent_time_producer());
         return 0;
     }
 
