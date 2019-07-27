@@ -98,13 +98,14 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
         SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/jsonlib.cpp
         HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/jsonlib.h
         MODULES += convertlib
+        MODULES += objlib
     }
 
     contains(MODULES, objlib){
         message( "- support/objlib" )
         SOURCES += $$COSMOS_SOURCE_CORE/libraries/support/objlib.cpp
         HEADERS += $$COSMOS_SOURCE_CORE/libraries/support/objlib.h
-#        MODULES += convertlib
+        MODULES += mathlib
     }
 
     contains(MODULES, timelib){
@@ -229,7 +230,7 @@ INCLUDEPATH += $$COSMOS_SOURCE_CORE/libraries/thirdparty/jpeg
 
     # -----------------------------------------------
     # Tier 0 libraries for physics
-    message( "" )
+    message( "physics" )
 
     contains(MODULES, physics-keplerianorbit){
     #    message( "- physics/keplerianorbit" )
@@ -382,4 +383,4 @@ win32 {
 }
 
 
-message("")
+message("cosmos-core")
