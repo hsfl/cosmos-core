@@ -670,6 +670,12 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     return nbytes;
 }
 
+int32_t socket_sendto(socket_channel &channel, string buffer, int flags)
+{
+    vector<uint8_t> data(buffer.begin(), buffer.end());
+    return socket_sendto(channel, data, flags);
+}
+
 int32_t socket_sendto(socket_channel &channel, vector<uint8_t> &buffer, int flags)
 {
     int32_t nbytes;
