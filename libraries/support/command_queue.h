@@ -44,122 +44,125 @@
 #include "agent/agentclass.h"
 #include "support/event.h"
 
-namespace Cosmos {
-
-/// Class to manage information about a queue of Events
-class CommandQueue
+namespace Cosmos
 {
-private:
-	/**	An std::list of members of the Event class	*/
-	std::list<Event> commands;
-	/** A boolean indicator that the queue has changed	*/
-	bool queue_changed = false;
+    namespace Support
+    {
 
-public:
+        /// Class to manage information about a queue of Events
+        class CommandQueue
+        {
+        private:
+            /**	An std::list of members of the Event class	*/
+            std::list<Event> commands;
+            /** A boolean indicator that the queue has changed	*/
+            bool queue_changed = false;
 
-	///	Retrieve the size of the queue
-	/**
-		\return	The size of the queue
-	*/
-	size_t get_size() { return commands.size(); }
+        public:
 
-	///	Retrieve an Event by its position in the queue
-	/**
-		\param	i	Integer representing the position in the queue	
-		\return	Reference to the ith Event
-	*/
-    Event& get_command(int i)
-	{
-        std::list<Event>::iterator ii = commands.begin();
-		std::advance(ii,i);
-		return *ii;
-	}
+            ///	Retrieve the size of the queue
+            /**
+        \return	The size of the queue
+    */
+            size_t get_size() { return commands.size(); }
 
-	///	Load queue of Events from a file
-	/**
+            ///	Retrieve an Event by its position in the queue
+            /**
+        \param	i	Integer representing the position in the queue
+        \return	Reference to the ith Event
+    */
+            Event& get_command(int i)
+            {
+                std::list<Event>::iterator ii = commands.begin();
+                std::advance(ii,i);
+                return *ii;
+            }
 
-		Reads new Events from *.command files in the incoming directory,
-		adds them to the queue of Events, and deletes the *.command files.
-		Events in the queue are then sorted by their execution time.
+            ///	Load queue of Events from a file
+            /**
 
-		\param	incoming_dir	Directory where the .queue file will be read from
-		
-	*/
-	void load_commands(string incoming_dir);
+        Reads new Events from *.command files in the incoming directory,
+        adds them to the queue of Events, and deletes the *.command files.
+        Events in the queue are then sorted by their execution time.
 
-	///	Save the queue of Events to a file
-	/**
-		Save the queue of Events to the file temp_dir/.queue
+        \param	incoming_dir	Directory where the .queue file will be read from
 
-		\param	temp_dir	Directory where the .queue file will be written
-	*/
-	void save_commands(string temp_dir);
+    */
+            void load_commands(string incoming_dir);
 
-	/// Run the given Event
-	/**
-		Execute an event using ford().  For each event run, the time of 
-		execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
-		and this updated command information is logged to the OUTPUT directory.
+            ///	Save the queue of Events to a file
+            /**
+        Save the queue of Events to the file temp_dir/.queue
 
-		\param	cmd	Reference to event to run
-		\param	nodename	Name of node
-		\param	logdate_exec	Time of execution (for logging purposes)
-	*/
-    void run_command(Event &cmd, string nodename, double logdate_exec);
+        \param	temp_dir	Directory where the .queue file will be written
+    */
+            void save_commands(string temp_dir);
 
-	///	Traverse the entire queue of Events, and run those which qualify.
-	/**
+            /// Run the given Event
+            /**
+        Execute an event using ford().  For each event run, the time of
+        execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
+        and this updated command information is logged to the OUTPUT directory.
 
-		An %Event only qualifies to run if the current time is greater than or equal to
-		the execution time of the %Event.  Further, if the %Event is conditional, then the
-		%Event condition must be true.
+        \param	cmd	Reference to event to run
+        \param	nodename	Name of node
+        \param	logdate_exec	Time of execution (for logging purposes)
+    */
+            void run_command(Event &cmd, string nodename, double logdate_exec);
 
-		\param	agent	Pointer to Agent object (for call to condition_true(..))
-		\param	nodename	Name of the node
-		\param	logdate_exec	Time of execution (for logging purposes)
-	*/
-	void run_commands(Agent *agent, string nodename, double logdate_exec);
+            ///	Traverse the entire queue of Events, and run those which qualify.
+            /**
 
-	///	Add Event to the queue
-	/**
-		\param	c	 Event to add
+        An %Event only qualifies to run if the current time is greater than or equal to
+        the execution time of the %Event.  Further, if the %Event is conditional, then the
+        %Event condition must be true.
 
-		JIMNOTE:	this only adds given Event to the queue if the Event has flag for EVENT_TYPE_COMMAND set to true
-	*/
-    void add_command(Event& c);
+        \param	agent	Pointer to Agent object (for call to condition_true(..))
+        \param	nodename	Name of the node
+        \param	logdate_exec	Time of execution (for logging purposes)
+    */
+            void run_commands(Agent *agent, string nodename, double logdate_exec);
 
-	///	Remove Event from the queue
-	/**
-		\param	c	Event to remove
-		\return	The number of Events removed
+            ///	Add Event to the queue
+            /**
+        \param	c	 Event to add
 
-		This function only removes events from the queue if the are exactly equal to the given Event.
-	*/
-    int del_command(Event& c);
+        JIMNOTE:	this only adds given Event to the queue if the Event has flag for EVENT_TYPE_COMMAND set to true
+    */
+            void add_command(Event& c);
 
-	///	Sort the Events in the queue by Event exectution time
-	/**
-		This function is called after new Events are loaded.
-	*/
-    void sort()	{ commands.sort([](Event & c1, Event & c2) { return c1.getTime() < c2.getTime(); });	}
-	///	Extraction operator
-	/**
-		\param	out	Reference to ostream
+            ///	Remove Event from the queue
+            /**
+        \param	c	Event to remove
+        \return	The number of Events removed
+
+        This function only removes events from the queue if the are exactly equal to the given Event.
+    */
+            int del_command(Event& c);
+
+            ///	Sort the Events in the queue by Event exectution time
+            /**
+        This function is called after new Events are loaded.
+    */
+            void sort()	{ commands.sort([](Event & c1, Event & c2) { return c1.getTime() < c2.getTime(); });	}
+            ///	Extraction operator
+            /**
+        \param	out	Reference to ostream
         \param	cmdq	Reference to CommandQueue (JIMNOTE: should be const, ya?)
-		\return	Reference to modified ostream
+        \return	Reference to modified ostream
 
-		Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
-		
-	*/
-    friend std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq);
+        Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
 
-//	bool compare_command_times(Event command1, Event command2);
-//	string incoming_dir;
-//	string outgoing_dir;
-//	string temp_dir;
+    */
+            friend std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq);
 
-}; // end of Command Queue Class
+            //	bool compare_command_times(Event command1, Event command2);
+            //	string incoming_dir;
+            //	string outgoing_dir;
+            //	string temp_dir;
 
+        }; // end of Command Queue Class
+    } // end of namespace Support
 } // end of namepsace Cosmos
 
 #endif // COSMOS_CommandQueue_H
