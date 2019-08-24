@@ -78,11 +78,13 @@ namespace Cosmos {
 
         double timeStart = currentmjd();
         debug_level = dlevel;
+        error_value = 0;
 
 
         // Initialize COSMOS data space
         if ((cinfo = json_create()) == nullptr)
         {
+            error_value = JSON_ERROR_NOJMAP;
             return;
         }
         cinfo->agent[0].stateflag = (uint16_t)State::INIT;
@@ -93,6 +95,7 @@ namespace Cosmos {
         {
             json_destroy(cinfo);
             cinfo = nullptr;
+            error_value = AGENT_ERROR_CHANNEL;
             return;
         }
 
