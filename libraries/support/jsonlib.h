@@ -253,7 +253,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
 int32_t json_parse_equation(const char* &ptr, string &equation);
 int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosstruc *cinfo);
 int32_t json_extract_string(const char* &ptr, string &ostring);
-int32_t json_parse_name(const char* &ptr, string &ostring);
+int32_t json_extract_name(const char* &ptr, string &ostring);
 
 string json_extract_namedmember(string json, string token);
 int32_t json_extract_value(const char *&ptr, string &value);
