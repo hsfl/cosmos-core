@@ -539,7 +539,7 @@ int32_t data_list_nodes(std::vector<string>& nodes)
     int32_t iretn = get_cosmosnodes(rootd);
     if (iretn < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     dtemp = rootd;
@@ -576,7 +576,7 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
     int32_t iretn = get_cosmosnodes(rootd);
     if (iretn < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     if ((tnode=json_create()) == nullptr)

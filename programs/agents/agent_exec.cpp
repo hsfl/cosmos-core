@@ -70,7 +70,6 @@ using std::endl;
 //!
 //! Usage: agent_exec node_name
 
-
 Agent *agent;
 
 string incoming_dir;
@@ -529,7 +528,7 @@ int32_t request_run(char *request, char* response, Agent *agent)
         }
     }
 
-    return (iretn);
+    return iretn;
 }
 
 // SOH specific requests

@@ -3165,24 +3165,24 @@ int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosstr
     {
     case 's':
 		if ((iretn=load_stk(ofile,stkhandle)) < 2)
-            return (iretn);
+            return iretn;
         if (utc == 0.)
         {
             utc = stkhandle.pos[1].utc;
         }
 		if ((iretn=stk2eci(utc,stkhandle,cinfo->node.loc.pos.eci)) < 0)
-            return (iretn);
+            return iretn;
         break;
     case 't':
         if ((iretn=load_lines(ofile, cinfo->tle)) < 0)
-            return (iretn);
+            return iretn;
         if (utc == 0.)
         {
             tline = get_line(0, cinfo->tle);
             utc = tline.utc;
         }
 		if ((iretn=lines2eci(utc,cinfo->tle,cinfo->node.loc.pos.eci)) < 0)
-            return (iretn);
+            return iretn;
         break;
     default:
         return (ORBIT_ERROR_NOTSUPPORTED);
@@ -3275,11 +3275,11 @@ int orbit_propagate(cosmosstruc *cinfo, double utc)
         {
         case 's':
 			if ((iretn=stk2eci(nutc,stkhandle,npos)) < 0)
-                return (iretn);
+                return iretn;
             break;
         case 't':
 			if ((iretn=lines2eci(nutc,cinfo->tle,npos)) < 0)
-                return (iretn);
+                return iretn;
             break;
         default:
             return (ORBIT_ERROR_NOTSUPPORTED);

@@ -443,22 +443,22 @@ int a35_config(gige_handle *handle, uint32_t xsize, uint32_t ysize, uint32_t vid
 	uint32_t maxx, maxy;
 	int32_t iretn;
 
-	if((iretn=gige_readreg(handle,A35_WIDTH)) < 0) return (iretn);
+	if((iretn=gige_readreg(handle,A35_WIDTH)) < 0) return iretn;
 	maxx = iretn;
-	if((iretn=gige_readreg(handle,A35_HEIGHT)) < 0) return (iretn);
+	if((iretn=gige_readreg(handle,A35_HEIGHT)) < 0) return iretn;
 	maxy = iretn;
 
 	if (xsize > (maxx)) xsize = (maxx);
 	if (ysize > (maxy)) ysize = (maxy);
 
-	if ((iretn=gige_writereg(handle,A35_WIDTH,xsize)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,A35_HEIGHT,ysize)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,0xE984, 3)) < 0) return (iretn);            // Set to 14 bit mode
-	if ((iretn=gige_writereg(handle,A35_PIXELFORMAT, A35_PIXELFORMAT_14BIT)) < 0) return (iretn);            // Set to 14 bit mode
-	if ((iretn=gige_writereg(handle,A35_CMOSBITDEPTH,3)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,A35_SENSORVIDEOSTANDARD,video_rate)) < 0) return (iretn);
-//	if ((iretn=gige_writereg(handle,A35_IMAGEADJUST,A35_IMAGEADJUST_MANUAL)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,A35_IMAGEADJUST,A35_IMAGEADJUST_AUTOBRIGHT)) < 0) return (iretn);
+	if ((iretn=gige_writereg(handle,A35_WIDTH,xsize)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,A35_HEIGHT,ysize)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,0xE984, 3)) < 0) return iretn;            // Set to 14 bit mode
+	if ((iretn=gige_writereg(handle,A35_PIXELFORMAT, A35_PIXELFORMAT_14BIT)) < 0) return iretn;            // Set to 14 bit mode
+	if ((iretn=gige_writereg(handle,A35_CMOSBITDEPTH,3)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,A35_SENSORVIDEOSTANDARD,video_rate)) < 0) return iretn;
+//	if ((iretn=gige_writereg(handle,A35_IMAGEADJUST,A35_IMAGEADJUST_MANUAL)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,A35_IMAGEADJUST,A35_IMAGEADJUST_AUTOBRIGHT)) < 0) return iretn;
 
 	// Set shutter to manual
 //	gige_writereg(handle, A35_FFCMODE, A35_FFCMODE_EXTERNAL); // Set FFC to manual
@@ -491,9 +491,9 @@ int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bs
 
 	iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
 	if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,bsize)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn=gige_writereg(handle,A35_ACQUISITIONSTART,1)) < 0)
-		return (iretn);
+		return iretn;
 	pbytes = gige_readreg(handle,A35_WIDTH) * gige_readreg(handle,A35_HEIGHT) * frames * 2;
 
 	tbytes = 0;
@@ -547,13 +547,13 @@ int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32
 	uint32_t maxx, maxy, maxbx, maxby;
 	int32_t iretn;
 
-	if((iretn=gige_readreg(handle,PROSILICA_SensorWidth)) < 0) return (iretn);
+	if((iretn=gige_readreg(handle,PROSILICA_SensorWidth)) < 0) return iretn;
 	maxx = iretn;
-	if((iretn=gige_readreg(handle,PROSILICA_SensorHeight)) < 0) return (iretn);
+	if((iretn=gige_readreg(handle,PROSILICA_SensorHeight)) < 0) return iretn;
 	maxy = iretn;
-	if((iretn=gige_readreg(handle,PROSILICA_BinningXMax)) < 0) return (iretn);
+	if((iretn=gige_readreg(handle,PROSILICA_BinningXMax)) < 0) return iretn;
 	maxbx = iretn;
-	if((iretn=gige_readreg(handle,PROSILICA_BinningYMax)) < 0) return (iretn);
+	if((iretn=gige_readreg(handle,PROSILICA_BinningYMax)) < 0) return iretn;
 	maxby = iretn;
 
 	if (xbin > 1 || ybin > 1)
@@ -566,14 +566,14 @@ int prosilica_config(gige_handle *handle, uint32_t format, uint32_t xbin, uint32
 	if (xsize > (maxx/xbin)-xoffset) xsize = (maxx/xbin)-xoffset;
 	if (ysize > (maxy/xbin)-yoffset) ysize = (maxy/ybin)-yoffset;
 
-	if ((iretn=gige_writereg(handle,PROSILICA_BinningXValue,xbin-1)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,PROSILICA_BinningYValue,ybin-1)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,PROSILICA_RegionX,xoffset)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,PROSILICA_RegionY,yoffset)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,PROSILICA_Width,xsize)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,PROSILICA_Height,ysize)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,PROSILICA_PixelFormat,format)) < 0) return (iretn);
-	if ((iretn=gige_writereg(handle,PROSILICA_StreamBytesPerSec,handle->streambps)) < 0) return (iretn);
+	if ((iretn=gige_writereg(handle,PROSILICA_BinningXValue,xbin-1)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,PROSILICA_BinningYValue,ybin-1)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,PROSILICA_RegionX,xoffset)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,PROSILICA_RegionY,yoffset)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,PROSILICA_Width,xsize)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,PROSILICA_Height,ysize)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,PROSILICA_PixelFormat,format)) < 0) return iretn;
+	if ((iretn=gige_writereg(handle,PROSILICA_StreamBytesPerSec,handle->streambps)) < 0) return iretn;
 
 	return 0;
 }
@@ -602,28 +602,28 @@ int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint
 
 	iretn = gige_writereg(handle,GIGE_REG_SCP,handle->stream.cport);
 	if ((iretn=gige_writereg(handle,GIGE_REG_SCPS,bsize)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn=gige_writereg(handle,PROSILICA_ExposureMode,emode)) < 0)
-		return (iretn);
+		return iretn;
 	if (emode != PROSILICA_ExposureMode_AutoOff)
 	{
 		if((iretn=gige_readreg(handle,PROSILICA_ExposureValue)) < 0)
-			return (iretn);
+			return iretn;
 		exposure = iretn;
 	}
 	else
 	{
 		if ((iretn=gige_writereg(handle,PROSILICA_ExposureValue,exposure)) < 0)
-			return (iretn);
+			return iretn;
 	}
 	if ((iretn=gige_writereg(handle,PROSILICA_GainValue,gain)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn=gige_writereg(handle,PROSILICA_AcquisitionMode,PROSILICA_AcquisitionMode_SingleFrame)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn=gige_writereg(handle,PROSILICA_AcquisitionCommand,PROSILICA_AcquisitionCommand_Start)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn = gige_readreg(handle,PROSILICA_PayloadSize)) < 0)
-		return (iretn);
+		return iretn;
 	pbytes = iretn;
 
 //	COSMOS_USLEEP(exposure);

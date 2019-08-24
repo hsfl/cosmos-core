@@ -124,7 +124,7 @@ int32_t kpc9612p_recvframe(kpc9612p_handle *handle)
         handle->frame.size = 0;
     }
 
-    return (iretn);
+    return iretn;
 }
 
 int32_t kpc9612p_sendframe(kpc9612p_handle *handle)
@@ -134,7 +134,7 @@ int32_t kpc9612p_sendframe(kpc9612p_handle *handle)
     handle->frame.part.header.flag = handle->flag;
     iretn = cssl_putslip(handle->serial, handle->frame.full, handle->frame.size);
 
-    return (iretn);
+    return iretn;
 }
 
 int32_t kpc9612p_loadframe(kpc9612p_handle *handle, uint8_t *data, uint16_t size)
