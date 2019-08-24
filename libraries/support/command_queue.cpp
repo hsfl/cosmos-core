@@ -52,7 +52,7 @@ void CommandQueue::join_events() {
        t.join();
     };
 
-    for_each(event_threads.begin(), event_threads.end(), join_event);
+    std::for_each(event_threads.begin(), event_threads.end(), join_event);
     event_threads.clear();
 }
 

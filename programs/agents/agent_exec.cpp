@@ -71,7 +71,8 @@ using std::endl;
 //!
 //! Usage: agent_exec node_name
 
-Agent *agent;
+static Agent *agent;
+static string node_name;
 
 static CommandQueue cmd_queue;
 
@@ -122,7 +123,7 @@ static vector<shorteventstruc> events;
 static beatstruc iscbeat;
 
 // default node name
-static string node = "neutron1";
+//static string node = "neutron1";
 
 int main(int argc, char *argv[])
 {
