@@ -738,7 +738,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t ctype, double em
 /*! See if the provided name is in the Namespace. If so, add an entry
  * for the provided alias that points to the same location.
  * \param alias Name to add as an alias.
- * \param value Either the contents of an equation, or a Namespace name that
+ * \param value Either the contents of an equation, a constant, or a Namespace name that
  * should already exist in the Namespace
  * \param cmeta Reference to ::cosmosmetastruc to use.
  * \return The current number of entries, if successful, otherwise negative error.
@@ -755,12 +755,31 @@ int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
         tentry.name = alias;
         aliasstruc talias;
         talias.name = alias;
-        // If it begins with ( then it is an equation, otherwise treat as name
+        std::string val_added = value;
+
         switch (value[0])
         {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+        case '+':
+        case '-':
+        case '.':
+        case '%':
+            // Add a constant as an equation multiplied by 1 (kind of hack-ish).
+            val_added = "(" + value + "*1.)";
+
+        // If it begins with ( then it is an equation, otherwise treat as name
         case '(':
             // Add new equation
-            iretn = json_equation_map(value, cinfo, &handle);
+            iretn = json_equation_map(val_added, cinfo, &handle);
             if (iretn < 0)
             {
                 return iretn;
@@ -768,22 +787,31 @@ int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
             talias.handle = handle;
             talias.type = JSON_TYPE_EQUATION;
             break;
+
+//        case '"': /// TODO: Aliases for just namespace members are not working.
+//            // Strip the quotes away.
+//            val_added.clear();
+//            for (size_t i = 0; i < value.size(); ++i) {
+//                if (value[i] != '"') { val_added += value[i]; }
+//            }
+//        default:
+//            // It is a Namespace name which should only be added if it is in the map
+//            if ((iretn = json_name_map(val_added, cinfo, handle)))
+//            {
+//                return iretn;
+//            }
+//            // Add new alias
+//            talias.handle = handle;
+//            talias.type = cinfo->jmap[handle.hash][handle.index].type;
+//            break;
         default:
-            // It is a Namespace name which should only be added if it is in the map
-            if ((iretn = json_name_map(value, cinfo, handle)))
-            {
-                return iretn;
-            }
-            // Add new alias
-            talias.handle = handle;
-            talias.type = cinfo->jmap[handle.hash][handle.index].type;
-            break;
+            return GENERAL_ERROR_UNIMPLEMENTED;
         }
         // Place it in the Alias vector and point to it in the map
         cinfo->alias.push_back(talias);
         tentry.type = JSON_TYPE_ALIAS;
-        //        tentry.group = JSON_STRUCT_ALIAS;
-        tentry.group = JSON_STRUCT_PTR;
+        tentry.group = JSON_STRUCT_ALIAS;
+        //tentry.group = JSON_STRUCT_PTR; // Unsure why this change was made...
         tentry.offset = cinfo->alias.size() - 1;
         tentry.ptr = (uint8_t *)&cinfo->alias[tentry.offset];
         iretn = json_addentry(tentry, cinfo);
@@ -4147,14 +4175,15 @@ double json_equation(const char* &ptr, cosmosstruc *cinfo)
     int32_t iretn;
     jsonhandle handle;
 
-    if ((iretn=json_parse_equation(ptr, equation)) < 0)
+    if ((iretn=json_parse_equation(ptr, equation)) < 0) {
         return (NAN);
+    }
 
-    if (cinfo->emap.size() == 0)
+    if (cinfo->emap.size() == 0) {
         return (NAN);
+    }
 
-    if ((iretn=json_equation_map(equation, cinfo, &handle)) < 0)
-    {
+    if ((iretn=json_equation_map(equation, cinfo, &handle)) < 0) {
         return (NAN);
     }
 
@@ -4207,10 +4236,10 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
     switch(ptr->operation)
     {
     case JSON_OPERATION_NOT:
-        c = !a[0];
+        c = !static_cast<bool>(a[0]);
         break;
     case JSON_OPERATION_COMPLEMENT:
-        c = ~(uint32_t)(a[0]);
+        c = ~static_cast<uint32_t>(a[0]);
         break;
     case JSON_OPERATION_ADD:
         c = a[0] + a[1];
@@ -4228,10 +4257,10 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
         c = fmod(a[0], a[1]);
         break;
     case JSON_OPERATION_AND:
-        c = a[0] && a[1];
+        c = static_cast<int>(a[0]) && static_cast<int>(a[1]);
         break;
     case JSON_OPERATION_OR:
-        c = a[0] || a[1];
+        c = static_cast<int>(a[0]) || static_cast<int>(a[1]);
         break;
     case JSON_OPERATION_GT:
         c = a[0] > a[1];
@@ -4240,11 +4269,12 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
         c = a[0] < a[1];
         break;
     case JSON_OPERATION_EQ:
-        c = a[0] == a[1];
+        c = fabs(a[0] - a[1]) < std::numeric_limits<double>::epsilon();
         break;
     case JSON_OPERATION_POWER:
         c = pow(a[0], a[1]);
     }
+
     return (c);
 }
 
@@ -6435,7 +6465,7 @@ int32_t json_load_node(string node, jsonnode &json)
             ifs.read(ibuf, fstat.st_size);
             ifs.close();
             ibuf[fstat.st_size] = 0;
-            json.aliases = ibuf;
+            json.aliases=ibuf;
             free(ibuf);
         }
     }
@@ -9010,7 +9040,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     string result;
     char tempstring[200];
 
-    result = "{\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
     {
@@ -10034,7 +10064,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cinfo, jsonhandle *handl
 {
     const char *pointer;
     jsonequation tequation;
-    char ops[] = "+-*/%&|><=!~";
+    char ops[] = "+-*/%&|><=!~^";
     int32_t iretn;
     size_t textlen;
 

@@ -46,8 +46,13 @@
 
 namespace Cosmos
 {
-    namespace Support
-    {
+private:
+	/**	An std::list of members of the Event class	*/
+    std::list<Event> commands;
+    /** A vector of all threads spawned to run events  */
+    std::vector<std::thread> event_threads;
+	/** A boolean indicator that the queue has changed	*/
+	bool queue_changed = false;
 
         /// Class to manage information about a queue of Events
         class CommandQueue
@@ -58,7 +63,17 @@ namespace Cosmos
             /** A boolean indicator that the queue has changed	*/
             bool queue_changed = false;
 
-        public:
+    /// Ensure all threads are joined before destruction.
+    ~CommandQueue();
+
+    /// Join all threads spawn and empty our vector.
+    void join_events();
+
+	///	Retrieve the size of the queue
+	/**
+		\return	The size of the queue
+	*/
+	size_t get_size() { return commands.size(); }
 
             ///	Retrieve the size of the queue
             /**
@@ -94,9 +109,11 @@ namespace Cosmos
             /**
         Save the queue of Events to the file temp_dir/.queue
 
-        \param	temp_dir	Directory where the .queue file will be written
-    */
-            void save_commands(string temp_dir);
+		\param	cmd	Reference to event to run
+        \param	nodename	Name of node
+		\param	logdate_exec	Time of execution (for logging purposes)
+	*/
+    void run_command(Event &cmd, string nodename, double logdate_exec);
 
             /// Run the given Event
             /**
@@ -110,8 +127,11 @@ namespace Cosmos
     */
             void run_command(Event &cmd, string nodename, double logdate_exec);
 
-            ///	Traverse the entire queue of Events, and run those which qualify.
-            /**
+		\param	agent	Pointer to Agent object (for call to condition_true(..))
+        \param	nodename	Name of the node
+		\param	logdate_exec	Time of execution (for logging purposes)
+	*/
+    void run_commands(Agent *agent, string nodename, double logdate_exec);
 
         An %Event only qualifies to run if the current time is greater than or equal to
         the execution time of the %Event.  Further, if the %Event is conditional, then the
@@ -123,31 +143,32 @@ namespace Cosmos
     */
             void run_commands(Agent *agent, string nodename, double logdate_exec);
 
-            ///	Add Event to the queue
-            /**
-        \param	c	 Event to add
+    ///	Remove **all** matching Event from the queue
+	/**
+		\param	c	Event to remove
+		\return	The number of Events removed
 
         JIMNOTE:	this only adds given Event to the queue if the Event has flag for EVENT_TYPE_COMMAND set to true
     */
             void add_command(Event& c);
 
-            ///	Remove Event from the queue
-            /**
-        \param	c	Event to remove
-        \return	The number of Events removed
+    /// Remove Event from the queue based on position
+    /**
+         \param  pos  Position of event to remove
+         \return The number of Events removed
 
-        This function only removes events from the queue if the are exactly equal to the given Event.
+         This function removes events based on their queue position (0-indexed).
     */
-            int del_command(Event& c);
+    int del_command(int pos);
 
-            ///	Sort the Events in the queue by Event exectution time
-            /**
-        This function is called after new Events are loaded.
-    */
-            void sort()	{ commands.sort([](Event & c1, Event & c2) { return c1.getTime() < c2.getTime(); });	}
-            ///	Extraction operator
-            /**
-        \param	out	Reference to ostream
+	///	Sort the Events in the queue by Event exectution time
+	/**
+		This function is called after new Events are loaded.
+	*/
+    void sort()	{ commands.sort([](Event & c1, Event & c2) { return c1.getTime() < c2.getTime(); });	}
+	///	Extraction operator
+	/**
+		\param	out	Reference to ostream
         \param	cmdq	Reference to CommandQueue (JIMNOTE: should be const, ya?)
         \return	Reference to modified ostream
 

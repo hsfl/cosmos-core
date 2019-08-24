@@ -329,9 +329,12 @@ namespace Cosmos
             std::string getAgent();
             int32_t getJson(string node, jsonnode &jnode);
 
-            // poll
-            pollstruc metaRx;
-            string metaHeader;
+    int32_t set_agent_time_producer(double (*source)());
+    int32_t get_agent_time(double &agent_time, double &epsilon, string agent, string node="");
+
+    // poll
+    pollstruc metaRx;
+    string metaHeader;
 
 
             void log(string log_entry);
@@ -384,18 +387,21 @@ namespace Cosmos
             //! Last error
             int32_t error_value;
 
-            //! Agent Request Entry
-            //! Structure representing a single Agent request.
-            struct request_entry
-            {
-                //! Character token for request
-                string token;
-                //! Pointer to function to call with request string as argument and returning any error
-                internal_request_function ifunction;
-                external_request_function efunction;
-                string synopsis;
-                string description;
-            };
+    //! Function in which we generate our time, for the mjd request.
+    double (*agent_time_producer)() = currentmjd;
+
+    //! Agent Request Entry
+    //! Structure representing a single Agent request.
+    struct request_entry
+    {
+        //! Character token for request
+        string token;
+        //! Pointer to function to call with request string as argument and returning any error
+        internal_request_function ifunction;
+        external_request_function efunction;
+        string synopsis;
+        string description;
+    };
 
             vector <request_entry> reqs;
 
@@ -407,34 +413,35 @@ namespace Cosmos
             char * parse_request(char *input);
             DeviceCpu deviceCpu_;
 
-            static int32_t req_forward(char *request, char* response, Agent *agent);
-            static int32_t req_echo(char *request, char* response, Agent *agent);
-            static int32_t req_help(char *request, char* response, Agent *agent);
-            static int32_t req_shutdown(char *request, char* response, Agent *agent);
-            static int32_t req_idle(char *request, char* response, Agent *agent);
-            static int32_t req_init(char *request, char* response, Agent *agent);
-            static int32_t req_monitor(char *request, char* response, Agent *agent);
-            static int32_t req_run(char *request, char* response, Agent *agent);
-            static int32_t req_status(char *request, char* response, Agent *agent);
-            static int32_t req_debug_level(char *request, char* response, Agent *agent);
-            static int32_t req_getvalue(char *request, char* response, Agent *agent);
-            static int32_t req_setvalue(char *request, char* response, Agent *agent);
-            static int32_t req_listnames(char *request, char* response, Agent *agent);
-            static int32_t req_nodejson(char *request, char* response, Agent *agent);
-            static int32_t req_statejson(char *request, char* response, Agent *agent);
-            static int32_t req_utcstartjson(char *request, char* response, Agent *agent);
-            static int32_t req_piecesjson(char *request, char* response, Agent *agent);
-            static int32_t req_vertexsjson(char *request, char* response, Agent *agent);
-            static int32_t req_facesjson(char *request, char* response, Agent *agent);
-            static int32_t req_devgenjson(char *request, char* response, Agent *agent);
-            static int32_t req_devspecjson(char *request, char* response, Agent *agent);
-            static int32_t req_portsjson(char *request, char* response, Agent *agent);
-            static int32_t req_targetsjson(char *request, char* response, Agent *agent);
-            static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
-            static int32_t req_heartbeat(char *request, char* response, Agent *agent);
+    static int32_t req_forward(char *request, char* response, Agent *agent);
+    static int32_t req_echo(char *request, char* response, Agent *agent);
+    static int32_t req_help(char *request, char* response, Agent *agent);
+    static int32_t req_help_json(char *request, char* response, Agent *agent);
+    static int32_t req_shutdown(char *request, char* response, Agent *agent);
+    static int32_t req_idle(char *request, char* response, Agent *agent);
+    static int32_t req_init(char *request, char* response, Agent *agent);
+    static int32_t req_monitor(char *request, char* response, Agent *agent);
+    static int32_t req_run(char *request, char* response, Agent *agent);
+    static int32_t req_status(char *request, char* response, Agent *agent);
+    static int32_t req_debug_level(char *request, char* response, Agent *agent);
+    static int32_t req_getvalue(char *request, char* response, Agent *agent);
+    static int32_t req_setvalue(char *request, char* response, Agent *agent);
+    static int32_t req_listnames(char *request, char* response, Agent *agent);
+    static int32_t req_nodejson(char *request, char* response, Agent *agent);
+    static int32_t req_statejson(char *request, char* response, Agent *agent);
+    static int32_t req_utcstartjson(char *request, char* response, Agent *agent);
+    static int32_t req_piecesjson(char *request, char* response, Agent *agent);
+    static int32_t req_vertexsjson(char *request, char* response, Agent *agent);
+    static int32_t req_facesjson(char *request, char* response, Agent *agent);
+    static int32_t req_devgenjson(char *request, char* response, Agent *agent);
+    static int32_t req_devspecjson(char *request, char* response, Agent *agent);
+    static int32_t req_portsjson(char *request, char* response, Agent *agent);
+    static int32_t req_targetsjson(char *request, char* response, Agent *agent);
+    static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
+    static int32_t req_heartbeat(char *request, char* response, Agent *agent);
+    static int32_t req_mjd(char *request, char* response, Agent *agent);
+};
 
-        };
-    } // end of namespace Support
 } // end of namepsace Cosmos
 
 #endif // COSMOSAGENT_H

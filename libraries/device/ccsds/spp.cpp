@@ -204,6 +204,11 @@ namespace Cosmos {
                 return frame.primary_header_fields.data_length_msb * 256L + frame.primary_header_fields.data_length_lsb + 1;
             }
 
+            Spp::packet Spp::getFrame()
+            {
+                return frame;
+            }
+
             int32_t Spp::clearPacket()
             {
                 stage = PacketStage::Start;

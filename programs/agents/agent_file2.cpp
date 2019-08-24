@@ -38,7 +38,7 @@
 //! Both file and message transfers are handled as an interchange of packets
 //! between two instances of agent_file.
 //!
-//! Usage: agent_file destination_ip_address_lo [destination_ip_address_hi]
+//! Usage: agent_file chanip_address_lo [chanip_address_hi]
 
 
 #include "support/configCosmos.h"
@@ -54,11 +54,12 @@
 #include <fstream>
 #include <string>
 #include <sys/stat.h>
+#include <sys/select.h>
 
 #define TRANSFER_QUEUE_SIZE 256
 #define MAXBUFFERSIZE 1024
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
-#define PACKET_SIZE_LO (253-(PACKET_DATA_HEADER_SIZE+28))
+#define PACKET_SIZE_LO (512-(PACKET_DATA_HEADER_SIZE+28))
 #define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_HEADER_SIZE)
 #define THROUGHPUT_LO 1000
 #define PACKET_SIZE_HI (1472-(PACKET_DATA_HEADER_SIZE+28))
@@ -92,20 +93,21 @@ static std::string agentname = "file_";
 static beatstruc cbeat;
 /** the (global) name of the cosmos data structure */
 static Agent *agent;
-/** the (global) number of agent sending channels */
-static uint16_t send_channels=0;
 static uint16_t use_channel = 0;
 /** the (global) structure of sending channels */
 typedef struct
 {
-    socket_channel sendchan;
-    std::string destination_ip;
-    PACKET_CHUNK_SIZE_TYPE packet_size;
-    uint32_t throughput;
+    string node="";
+    socket_channel chansock;
+    string chanip="";
+    PACKET_CHUNK_SIZE_TYPE packet_size=PACKET_SIZE_LO;
+    uint32_t throughput=THROUGHPUT_LO;
     double nmjd;
-} sendchannelstruc;
+    double lmjd;
+} channelstruc;
 
-static sendchannelstruc send_channel[2];
+static vector <channelstruc> comm_channel;
+//static socket_channel recv_channel[2];
 
 typedef struct
 {
@@ -117,7 +119,6 @@ typedef struct
 static std::queue<transmit_queue_entry> transmit_queue;
 static std::condition_variable transmit_queue_check;
 
-static socket_channel recvchan;
 
 //Send and receive thread info
 void send_loop();
@@ -129,23 +130,19 @@ static std::mutex incoming_tx_lock;
 static std::mutex outgoing_tx_lock;
 
 static double last_data_receive_time = 0.;
-static double last_data_send_time = 0.;
-//double current_updatetime = 0.;
 static double next_reqmeta_time = 0.;
-static double next_queue_time = 0.;
-
-// Directory variables
-static DIR *dir = NULL;
-static struct dirent* dir_entry = NULL;
 
 typedef struct
 {
-    std::string node_name;
-    PACKET_NODE_ID_TYPE node_id;
-    std::vector<tx_progress> progress;
+    PACKET_TX_ID_TYPE state;
     PACKET_TX_ID_TYPE size;
     PACKET_TX_ID_TYPE id;
     PACKET_TX_ID_TYPE next_id;
+    double nmjd[7];
+    std::string node_name;
+    PACKET_NODE_ID_TYPE node_id;
+    std::vector<tx_progress> progress;
+    vector <PACKET_TX_ID_TYPE> meta_id;
 }	tx_entry;
 
 typedef struct
@@ -157,13 +154,6 @@ typedef struct
 } tx_queue;
 
 static std::vector<tx_queue> txq;
-
-//static std::vector<tx_queue> incoming_tx;
-static int32_t active_node = -1;
-
-//static std::vector<tx_queue> outgoing_tx;
-//int32_t node = -1;
-
 
 int32_t request_debug(char *request, char *response, Agent *agent);
 int32_t request_use_channel(char* request, char* response, Agent *agent);
@@ -182,9 +172,9 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
 std::vector<file_progress> find_chunks_missing(tx_progress& tx);
 PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
 void transmit_loop();
-double queuesendto(std::string type, uint16_t channel, std::vector<PACKET_BYTE> packet);
-int32_t mysendto(std::string type, sendchannelstruc& channel, std::vector<PACKET_BYTE>& buf);
-int32_t myrecvfrom(std::string type, socket_channel channel, std::vector<PACKET_BYTE>& buf, uint32_t length);
+double queuesendto(PACKET_NODE_ID_TYPE node_id, std::string type, std::vector<PACKET_BYTE> packet);
+int32_t mysendto(std::string type, channelstruc &channel, std::vector<PACKET_BYTE>& buf);
+int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout=1.);
 void debug_packet(std::vector<PACKET_BYTE> buf, std::string type);
 int32_t write_meta(tx_progress& tx);
 int32_t read_meta(tx_progress& tx);
@@ -193,6 +183,7 @@ bool filestruc_compare_by_size(const filestruc& a, const filestruc& b);
 PACKET_TX_ID_TYPE check_tx_id(std::vector<tx_progress> tx_entry, PACKET_TX_ID_TYPE tx_id);
 int32_t check_node_id(std::string node_name);
 int32_t check_node_id(PACKET_NODE_ID_TYPE node_id);
+int32_t check_channel(PACKET_NODE_ID_TYPE node_id);
 int32_t lookup_remote_node_id(PACKET_NODE_ID_TYPE node_id);
 int32_t set_remote_node_id(PACKET_NODE_ID_TYPE node_id, std::string node_name);
 PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node);
@@ -201,31 +192,47 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node);
 //main
 int main(int argc, char *argv[])
 {
-    // store command line arguments
+    int32_t iretn;
+    //open sockets for receiving and sending
+    printf("- Opening recv socket...");
+    fflush(stdout);
+
+    comm_channel.resize(1);
+    if((iretn = socket_open(&comm_channel[0].chansock, NetworkType::UDP, (char *)"", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
+    {
+        std::cout << "iretn = " << iretn << std::endl;
+        printf("- Could not successfully open recv socket... exiting \n");
+        exit (-errno);
+    }
+    inet_ntop(comm_channel[0].chansock.caddr.sin_family, &comm_channel[0].chansock.caddr.sin_addr, comm_channel[0].chansock.address, sizeof(comm_channel[0].chansock.address));
+    comm_channel[0].chanip = comm_channel[0].chansock.address;
+    comm_channel[0].nmjd = currentmjd(0.);
+    printf("\tSuccess.\n");
+
     switch (argc)
     {
-    case 3:
-        {
-            send_channel[1].destination_ip = argv[2];
-            send_channel[1].packet_size = PACKET_SIZE_HI;
-            send_channel[1].throughput = THROUGHPUT_HI;
-            send_channel[1].nmjd = currentmjd(0.);
-            ++send_channels;
-        }
     case 2:
         {
-            send_channel[0].destination_ip = argv[1];
-            send_channel[0].packet_size = PACKET_SIZE_LO;
-            send_channel[0].throughput = THROUGHPUT_LO;
-            send_channel[0].nmjd = currentmjd(0.);
-            ++send_channels;
+            printf("- Opening send socket...");
+            fflush(stdout);
+            comm_channel.resize(2);
+            comm_channel[1].node = argv[1];
+            size_t tloc = comm_channel[1].node.find(":");
+            if (tloc != string::npos)
+            {
+                comm_channel[1].chanip = comm_channel[1].node.substr(tloc+1, comm_channel[1].node.size()-tloc+1);
+                comm_channel[1].node = comm_channel[1].node.substr(0, tloc);
+            }
+            if((iretn = socket_open(&comm_channel[1].chansock, NetworkType::UDP, comm_channel[1].chanip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
+            {
+                std::cout << "iretn = " << iretn << std::endl;
+                printf("- Could not successfully open send socket %s at size %u ... exiting \n", comm_channel[1].chanip.c_str(), comm_channel[1].packet_size);
+                exit (-errno);
+            }
+            comm_channel[1].nmjd = currentmjd(0.);
+            printf("\tSuccess.\n");
             break;
         }
-//    default:
-//        {
-//            printf("Usage:\t agent_file destination_ip_address[0] {destination_ip_address[1]\n");
-//            exit(-1);
-//        }
     }
 
     // set this program up as a server
@@ -245,33 +252,6 @@ int main(int argc, char *argv[])
     printf("\t\tSuccess.\n");
     fflush(stdout); // Ensure this gets printed before blocking call
 
-    //open sockets for receiving and sending
-    printf("- Opening recv socket...");
-    fflush(stdout);
-
-    int32_t iretn;
-
-    if((iretn = socket_open(&recvchan, NetworkType::UDP, (char *)"", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
-    {
-        std::cout << "iretn = " << iretn << std::endl;
-        printf("- Could not successfully open recv socket... exiting \n");
-        exit (-errno);
-    }
-    printf("\tSuccess.\n");
-
-    printf("- Opening send socket...");
-    fflush(stdout);
-    for (uint16_t i=0; i<send_channels; ++i)
-    {
-        if((iretn = socket_open(&send_channel[i].sendchan, NetworkType::UDP, send_channel[i].destination_ip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
-        {
-            std::cout << "iretn = " << iretn << std::endl;
-            printf("- Could not successfully open send socket %s at size %u ... exiting \n", send_channel[i].destination_ip.c_str(), send_channel[i].packet_size);
-            exit (-errno);
-        }
-    }
-    printf("\tSuccess.\n");
-
     // Restore in progress transfers from previous run
     for (std::string node_name : data_list_nodes())
     {
@@ -283,10 +263,20 @@ int main(int argc, char *argv[])
             tx_queue tx;
             tx.node_name = node_name;
             tx.node_id = 0;
+            tx.incoming.state = PACKET_QUEUE;
+            for (uint16_t i=0; i<7; ++i)
+            {
+                tx.incoming.nmjd[i] = currentmjd();
+            }
             tx.incoming.id = 0;
             tx.incoming.next_id = 1;
             tx.incoming.progress.resize(TRANSFER_QUEUE_SIZE);
             tx.incoming.size = 0;
+            tx.outgoing.state = PACKET_QUEUE;
+            for (uint16_t i=0; i<7; ++i)
+            {
+                tx.outgoing.nmjd[i] = currentmjd();
+            }
             tx.outgoing.id = 0;
             tx.outgoing.next_id = 1;
             tx.outgoing.progress.resize(TRANSFER_QUEUE_SIZE);
@@ -360,6 +350,11 @@ int main(int argc, char *argv[])
         double sleepsec = 86400. * (nextdiskcheck - currentmjd());
         if (sleepsec > 0.)
         {
+//            if (debug_flag)
+//            {
+//                printf("Main Sleep: %f seconds\n", sleepsec);
+//                fflush(stdout);
+//            }
             COSMOS_USLEEP((uint32_t)(sleepsec*1e6));
         }
 
@@ -448,12 +443,41 @@ void recv_loop()
             COSMOS_SLEEP(1);
             continue;
         }
+        else {
+            COSMOS_SLEEP(.001);
+        }
 
-        COSMOS_USLEEP(1);
         int32_t nbytes = 0;
-        if (( nbytes = myrecvfrom("rx", recvchan, recvbuf, PACKET_MAX_LENGTH)) > 0)
+        socket_channel rchannel;
+        if (( nbytes = myrecvfrom("rx", rchannel, recvbuf, PACKET_MAX_LENGTH)) > 0)
         {
-            // Respond appropriately to incoming packet
+            // Add channel if this isn't someone we're already talking to
+            bool found = false;
+            for (uint16_t i=0; i<comm_channel.size(); ++i)
+            {
+                if (currentmjd() - comm_channel[i].lmjd > 60. / 86400.)
+                {
+                    comm_channel.erase(comm_channel.begin()+i);
+                }
+                if (comm_channel[i].chansock.caddr.sin_port == rchannel.caddr.sin_port && comm_channel[i].chansock.caddr.sin_addr.s_addr == rchannel.caddr.sin_addr.s_addr)
+                {
+                    found = true;
+                    use_channel = i;
+                }
+            }
+            if (!found)
+            {
+                channelstruc tchannel;
+                tchannel.nmjd = currentmjd(0.);
+                tchannel.chansock = rchannel;
+                inet_ntop(tchannel.chansock.caddr.sin_family, &tchannel.chansock.caddr.sin_addr, tchannel.chansock.address, sizeof(tchannel.chansock.address));
+                tchannel.chanip = tchannel.chansock.address;
+                use_channel = comm_channel.size();
+                comm_channel.push_back(tchannel);
+            }
+            comm_channel[use_channel].lmjd = currentmjd();
+
+            // Respond appropriately according to type of packet
             switch (recvbuf[0] & 0x0f)
             {
             case PACKET_METADATA:
@@ -461,6 +485,11 @@ void recv_loop()
                     packet_struct_metashort meta;
 
                     extract_metadata(recvbuf, meta);
+                    int32_t node = check_node_id(meta.node_id);
+                    if (node >= 0)
+                    {
+                        comm_channel[use_channel].node = txq[node].node_name;
+                    }
 
                     incoming_tx_lock.lock();
 
@@ -486,6 +515,7 @@ void recv_loop()
 
                     if (node >= 0)
                     {
+                        comm_channel[use_channel].node = txq[node].node_name;
                         PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].incoming.progress, data.tx_id);
 
                         // Update corresponding incoming queue entry if it exists
@@ -608,7 +638,7 @@ void recv_loop()
                                     // inform other end that file has been received
                                     std::vector<PACKET_BYTE> packet;
                                     make_complete_packet(packet, remote_node, tx_in.tx_id);
-                                    queuesendto("rx", use_channel, packet);
+                                    queuesendto(node, "rx", packet);
 
                                     // Move file to its final location
                                     if (!txq[node].incoming.progress[tx_id].complete)
@@ -644,13 +674,17 @@ void recv_loop()
 
                     // Simple validity check
                     int32_t node = check_node_id(reqdata.node_id);
+                    if (node >= 0)
+                    {
+                        comm_channel[use_channel].node = txq[node].node_name;
+                    }
 
                     if (node < 0 || reqdata.hole_end < reqdata.hole_start)
                     {
                         break;
                     }
 
-                    active_node = node;
+//                    active_node = node;
                     outgoing_tx_lock.lock();
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, reqdata.tx_id);
@@ -738,10 +772,11 @@ void recv_loop()
                         // Save meta to disk
                         write_meta(txq[node].outgoing.progress[tx_id]);
                         txq[node].outgoing.id = reqdata.tx_id;
+                        txq[node].outgoing.nmjd[PACKET_DATA-8] = currentmjd();
+                        txq[node].outgoing.state = PACKET_DATA;
                     }
 
                     outgoing_tx_lock.unlock();
-                    //					current_updatetime = currentmjd() + 5./86400.;
                     break;
                 }
                 //Request missing metadata
@@ -758,21 +793,26 @@ void recv_loop()
                     int32_t node = set_remote_node_id(reqmeta.node_id, reqmeta.node_name);
                     if (node >= 0)
                     {
+                        comm_channel[use_channel].node = txq[node].node_name;
                         // See if we know what the remote node_id is for this
                         int32_t remote_node = lookup_remote_node_id(node);
                         if (remote_node >= 0)
                         {
+                            txq[node].outgoing.meta_id.clear();
                             for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
                             {
                                 PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, reqmeta.tx_id[i]);
                                 if (tx_id > 0)
                                 {
-                                    tx_progress tx = txq[node].outgoing.progress[tx_id];
-                                    std::vector<PACKET_BYTE> packet;
-                                    make_metadata_packet(packet, remote_node, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
-                                    queuesendto("tx", use_channel, packet);
+                                    txq[node].outgoing.meta_id.push_back(tx_id);
+//                                    tx_progress tx = txq[node].outgoing.progress[tx_id];
+//                                    std::vector<PACKET_BYTE> packet;
+//                                    make_metadata_packet(packet, remote_node, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
+//                                    queuesendto(node, "tx", packet);
                                 }
                             }
+                            txq[node].outgoing.nmjd[PACKET_METADATA-8] = currentmjd();
+                            txq[node].outgoing.state = PACKET_METADATA;
                         }
                     }
 
@@ -788,6 +828,7 @@ void recv_loop()
                     int32_t node = check_node_id(cancel.node_id);
                     if (node >= 0)
                     {
+                        comm_channel[use_channel].node = txq[node].node_name;
                         incoming_tx_lock.lock();
 
                         PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].incoming.progress, cancel.tx_id);
@@ -814,6 +855,7 @@ void recv_loop()
                     if (node >= 0)
                     {
                         outgoing_tx_lock.lock();
+                        comm_channel[use_channel].node = txq[node].node_name;
 
                         PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, complete.tx_id);
 
@@ -823,13 +865,15 @@ void recv_loop()
                             int32_t remote_node = lookup_remote_node_id(node);
                             if (remote_node >= 0)
                             {
+                                txq[node].outgoing.nmjd[PACKET_CANCEL-8] = currentmjd();
+                                txq[node].outgoing.state = PACKET_CANCEL;
                                 // Remove transaction
-                                outgoing_tx_del(node, tx_id);
+//                                outgoing_tx_del(node, tx_id);
 
                                 // Send a CANCEL packet
-                                std::vector<PACKET_BYTE> packet;
-                                make_cancel_packet(packet, remote_node, complete.tx_id);
-                                queuesendto("tx", use_channel, packet);
+//                                std::vector<PACKET_BYTE> packet;
+//                                make_cancel_packet(packet, remote_node, complete.tx_id);
+//                                queuesendto(node, "tx", packet);
                             }
                         }
 
@@ -849,9 +893,10 @@ void recv_loop()
                     int32_t node = check_node_id(queue.node_name);
                     if (node >= 0)
                     {
+                        comm_channel[use_channel].node = txq[node].node_name;
+
                         // Set remote node_id
                         txq[node].node_id = queue.node_id + 1;
-                        // Set active_node
 //                        active_node = node;
                         // Sort through incoming queue and remove anything not in sent queue
                         for (uint16_t tx_id=0; tx_id<TRANSFER_QUEUE_SIZE; ++tx_id)
@@ -862,7 +907,7 @@ void recv_loop()
                                 if (txq[node].incoming.progress[tx_id].tx_id == queue.tx_id[i])
                                 {
                                     // Incoming transaction is in outgoing queue
-                                    active_node = node;
+//                                    active_node = node;
                                     valid = true;
                                     break;
                                 }
@@ -874,7 +919,7 @@ void recv_loop()
 
                             if (tx_id && !valid)
                             {
-                                active_node = node;
+//                                active_node = node;
                                 incoming_tx_del(node, tx_id);
                             }
                         }
@@ -888,7 +933,7 @@ void recv_loop()
 
                                 if (tx_id == 0)
                                 {
-                                    active_node = node;
+//                                    active_node = node;
                                     incoming_tx_add(queue.node_name, queue.tx_id[i]);
                                 }
                             }
@@ -904,7 +949,7 @@ void recv_loop()
                             {
                                 if (txq[node].incoming.progress[tx_id].tx_id && !txq[node].incoming.progress[tx_id].havemeta)
                                 {
-                                    next_reqmeta_time += sizeof(packet_struct_metashort) / (86400. * send_channel[use_channel].throughput);
+                                    next_reqmeta_time += sizeof(packet_struct_metashort) / (86400. * comm_channel[use_channel].throughput);
                                     tqueue[iq++] = tx_id;
                                 }
                                 if (iq == TRANSFER_QUEUE_LIMIT)
@@ -915,58 +960,13 @@ void recv_loop()
                             if (iq)
                             {
                                 std::vector<PACKET_BYTE> packet;
-                                active_node = node;
+//                                active_node = node;
                                 make_reqmeta_packet(packet, node, txq[node].node_name, tqueue);
-                                queuesendto("rx", use_channel, packet);
+                                queuesendto(node, "rx", packet);
                             }
                         }
 
                         next_incoming_tx(node);
-                        //						PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].incoming.progress, choose_incoming_tx_id(node));
-
-                        //						if (tx_id < TRANSFER_QUEUE_SIZE && tx_id > 0)
-                        //						{
-                        //							// See if we know what the remote node_id is for this
-                        //							int32_t remote_node = lookup_remote_node_id(node);
-                        //							if (remote_node >= 0)
-                        //							{
-                        //								// Check if file has been completely received
-                        //								if(txq[node].incoming.progress[tx_id].file_size == txq[node].incoming.progress[tx_id].total_bytes && txq[node].incoming.progress[tx_id].havemeta)
-                        //								{
-                        //									tx_progress tx_in = txq[node].incoming.progress[tx_id];
-
-                        //									// inform other end that file has been received
-                        //									std::vector<PACKET_BYTE> packet;
-                        //									make_complete_packet(packet, remote_node, tx_in.tx_id);
-                        //									queuesendto("rx", use_channel, packet);
-
-                        //									// Move file to its final location
-                        //									if (!txq[node].incoming.progress[tx_id].complete)
-                        //									{
-                        //										if (txq[node].incoming.progress[tx_id].fp != nullptr)
-                        //										{
-                        //											fclose(txq[node].incoming.progress[tx_id].fp);
-                        //											txq[node].incoming.progress[tx_id].fp = nullptr;
-                        //										}
-                        //										std::string final_filepath = tx_in.temppath + ".file";
-                        //										rename(final_filepath.c_str(), tx_in.filepath.c_str());
-                        //										txq[node].incoming.progress[tx_id].complete = true;
-                        //									}
-                        //								}
-                        //								else
-                        //								{
-                        //									// Ask for missing data
-                        //									std::vector<file_progress> missing;
-                        //									missing = find_chunks_missing(txq[node].incoming.progress[tx_id]);
-                        //									for (uint32_t j=0; j<missing.size(); ++j)
-                        //									{
-                        //										std::vector<PACKET_BYTE> packet;
-                        //										make_reqdata_packet(packet, remote_node, txq[node].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
-                        //										queuesendto("rx", use_channel, packet);
-                        //									}
-                        //								}
-                        //							}
-                        //						}
                     }
                     incoming_tx_lock.unlock();
                 }
@@ -980,7 +980,7 @@ void send_loop()
     std::vector<PACKET_BYTE> packet;
     uint32_t sleep_time = 1;
     double send_time = 0.;
-    double next_data_time = 0.;
+    static double next_send_time = 0.;
     double current_time;
 
     current_time = currentmjd();
@@ -994,163 +994,217 @@ void send_loop()
         }
 
         // If we did nothing last loop, wait at least 100 msec
-        if (next_data_time == 0.)
+        if (next_send_time == 0.)
         {
             // 100 msec in MJD
-            next_data_time = 1.16e-6;
+            next_send_time = 1.16e-6;
         }
 
         // Time it should be after we wait
-        double next_time = current_time + next_data_time;
+        double next_time = current_time + next_send_time;
         // Time it actually is now
         current_time = currentmjd();
         // Sleep if the difference is greater than zero
         if (next_time > current_time)
         {
             sleep_time = 1000000 * 86400. * (next_time - current_time);
+//            if (debug_flag)
+//            {
+//                printf("Send_Loop Sleep: %f seconds\n", sleep_time / 1000000.);
+//                fflush(stdout);
+//            }
             COSMOS_USLEEP(sleep_time);
         }
 
         // Bring us up to the present
         current_time = next_time;
-        next_data_time = 0.;
+        next_send_time = .1 / 86400.;
 
-        outgoing_tx_lock.lock();
-        if (active_node >= 0)
+        for (int32_t node=0; node<txq.size(); ++node)
         {
-            int32_t node = active_node;
-            PACKET_TX_ID_TYPE  tx_id = check_tx_id(txq[node].outgoing.progress, txq[node].outgoing.id);
-            if (tx_id > 0)
+            // See if we have an active channel serving this Node
+            int32_t channel = check_channel(node);
+            if (channel < 0)
             {
-                if (txq[node].outgoing.progress[tx_id].file_info.size())
+                continue;
+            }
+
+            // Decide what to do next based on our current state
+            outgoing_tx_lock.lock();
+            switch (txq[node].outgoing.state)
+            {
+            case PACKET_QUEUE:
+                // If we are in Queue state, then the only thing we want to do is send a Queue packet, if enough time has passed
+                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_QUEUE - 8])
                 {
-                    if (txq[node].outgoing.progress[tx_id].fp == nullptr)
+                    std::vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
+                    PACKET_TX_ID_TYPE iq = 0;
+                    for (uint16_t i=1; i<TRANSFER_QUEUE_SIZE; ++i)
                     {
-                        txq[node].outgoing.progress[tx_id].fp = fopen(txq[node].outgoing.progress[tx_id].filepath.c_str(), "r");
+                        if (txq[node].outgoing.progress[i].tx_id != 0)
+                        {
+                            tqueue[iq++] = txq[node].outgoing.progress[i].tx_id;
+                        }
+                        if (iq == TRANSFER_QUEUE_LIMIT)
+                        {
+                            break;
+                        }
                     }
-
-                    if(txq[node].outgoing.progress[tx_id].fp != nullptr)
+                    make_queue_packet(packet, node, txq[node].node_name, tqueue);
+                    queuesendto(node, "tx", packet);
+                    txq[node].outgoing.nmjd[PACKET_QUEUE - 8] = currentmjd() + 10. / 86400.;
+                }
+                break;
+            case PACKET_METADATA:
+                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_METADATA - 8])
+                {
+                    int32_t remote_node = lookup_remote_node_id(node);
+                    if (remote_node >= 0)
                     {
-                        file_progress tp;
-                        tp = txq[node].outgoing.progress[tx_id].file_info[0];
-
-                        PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                        switch (use_channel)
+                        for (uint16_t i=0; i<txq[node].outgoing.meta_id.size(); ++i)
                         {
-                        case 0:
-                            if (byte_count > PACKET_SIZE_LO)
+                            PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, txq[node].outgoing.meta_id[i]);
+                            if (tx_id > 0)
                             {
-                                byte_count = PACKET_SIZE_LO;
+                                tx_progress tx = txq[node].outgoing.progress[tx_id];
+                                std::vector<PACKET_BYTE> packet;
+                                make_metadata_packet(packet, remote_node, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
+                                send_time = queuesendto(node, "tx", packet);
+                                if (send_time >= 0.)
+                                {
+                                    next_send_time += send_time;
+                                }
+                                else
+                                {
+                                    next_send_time = 10. / 86400.;
+                                }
+                                txq[node].outgoing.state = PACKET_DATA;
                             }
-                            break;
-                        case 1:
-                            if (byte_count > PACKET_SIZE_HI)
-                            {
-                                byte_count = PACKET_SIZE_HI;
-                            }
-                            break;
+                        }
+                    }
+                    txq[node].outgoing.nmjd[PACKET_METADATA - 8] = currentmjd() + 10. / 86400.;
+                }
+                break;
+            case PACKET_DATA:
+                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_DATA - 8])
+                {
+                    // See if we have an active transfer
+                    PACKET_TX_ID_TYPE  tx_id = check_tx_id(txq[node].outgoing.progress, txq[node].outgoing.id);
+                    if (tx_id > 0 && txq[node].outgoing.progress[tx_id].file_info.size())
+                    {
+                        // Attempt to open the outgoing progress file
+                        if (txq[node].outgoing.progress[tx_id].fp == nullptr)
+                        {
+                            txq[node].outgoing.progress[tx_id].fp = fopen(txq[node].outgoing.progress[tx_id].filepath.c_str(), "r");
                         }
 
-                        tp.chunk_end = tp.chunk_start + byte_count - 1;
+                        // If we're good, continue with the process
+                        if(txq[node].outgoing.progress[tx_id].fp != nullptr)
+                        {
+                            file_progress tp;
+                            tp = txq[node].outgoing.progress[tx_id].file_info[0];
 
-                        // Read the packet and send it
-                        int32_t nbytes;
-                        PACKET_BYTE* chunk = new PACKET_BYTE[byte_count]();
-                        if (!(nbytes = fseek(txq[node].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET)))
-                        {
-                            nbytes = fread(chunk, 1, byte_count, txq[node].outgoing.progress[tx_id].fp);
-                        }
-                        if (nbytes == byte_count)
-                        {
-                            // See if we know what the remote node_id is for this
-                            int32_t remote_node = lookup_remote_node_id(node);
-                            if (remote_node >= 0)
+                            PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
+                            if (byte_count > comm_channel[use_channel].packet_size)
                             {
-                                make_data_packet(packet, remote_node, txq[node].outgoing.progress[tx_id].tx_id, byte_count, tp.chunk_start, chunk);
-
-                                send_time = queuesendto("tx", use_channel, packet);
-                                next_data_time += send_time;
-                                txq[node].outgoing.progress[tx_id].file_info[0].chunk_start = tp.chunk_end + 1;
+                                byte_count = comm_channel[use_channel].packet_size;
                             }
+
+                            tp.chunk_end = tp.chunk_start + byte_count - 1;
+
+                            // Read the packet and send it
+                            int32_t nbytes;
+                            PACKET_BYTE* chunk = new PACKET_BYTE[byte_count]();
+                            if (!(nbytes = fseek(txq[node].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET)))
+                            {
+                                nbytes = fread(chunk, 1, byte_count, txq[node].outgoing.progress[tx_id].fp);
+                            }
+                            if (nbytes == byte_count)
+                            {
+                                // See if we know what the remote node_id is for this
+                                int32_t remote_node = lookup_remote_node_id(node);
+                                if (remote_node >= 0)
+                                {
+                                    make_data_packet(packet, remote_node, txq[node].outgoing.progress[tx_id].tx_id, byte_count, tp.chunk_start, chunk);
+
+                                    send_time = queuesendto(node, "tx", packet);
+                                    if (send_time >= 0.)
+                                    {
+                                        next_send_time += send_time;
+                                        txq[node].outgoing.progress[tx_id].file_info[0].chunk_start = tp.chunk_end + 1;
+                                    }
+                                    else
+                                    {
+                                        next_send_time = 10. / 86400.;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // Some problem with this transmission, ask other end to dequeue it
+                                // Remove transaction
+                                next_send_time = 0.;
+                                txq[node].outgoing.state = PACKET_CANCEL;
+                            }
+                            delete[] chunk;
+
+                            if (txq[node].outgoing.progress[tx_id].file_info[0].chunk_start > txq[node].outgoing.progress[tx_id].file_info[0].chunk_end)
+                            {
+                                // All done with this file_info entry. Close file and remove entry.
+                                fclose(txq[node].outgoing.progress[tx_id].fp);
+                                txq[node].outgoing.progress[tx_id].fp = nullptr;
+                                txq[node].outgoing.progress[tx_id].file_info.pop_front();
+                            }
+
+                            write_meta(txq[node].outgoing.progress[tx_id]);
                         }
                         else
                         {
                             // Some problem with this transmission, ask other end to dequeue it
-                            // Remove transaction
-                            outgoing_tx_del(node, tx_id);
 
-                            int32_t remote_node = lookup_remote_node_id(node);
-                            if (remote_node >= 0)
-                            {
-                                // Send a CANCEL packet
-                                std::vector<PACKET_BYTE> packet;
-                                make_cancel_packet(packet, remote_node, tx_id);
-                                queuesendto("tx", use_channel, packet);
-                            }
-                        }
-                        delete[] chunk;
-
-                        if (txq[node].outgoing.progress[tx_id].file_info[0].chunk_start > txq[node].outgoing.progress[tx_id].file_info[0].chunk_end)
-                        {
-                            // All done with this file_info entry. Close file and remove entry.
-                            fclose(txq[node].outgoing.progress[tx_id].fp);
-                            txq[node].outgoing.progress[tx_id].fp = nullptr;
-                            txq[node].outgoing.progress[tx_id].file_info.pop_front();
-                        }
-
-                        write_meta(txq[node].outgoing.progress[tx_id]);
-                    }
-                    else
-                    {
-                        // Some problem with this transmission, ask other end to dequeue it
-                        outgoing_tx_del(node, tx_id);
-
-                        int32_t remote_node = lookup_remote_node_id(node);
-                        if (remote_node >= 0)
-                        {
-                            // Send a CANCEL packet
-                            std::vector<PACKET_BYTE> packet;
-                            make_cancel_packet(packet, remote_node, tx_id);
-                            queuesendto("tx", use_channel, packet);
+                            next_send_time = 0.;
+                            txq[node].outgoing.state = PACKET_CANCEL;
                         }
                     }
+                    txq[node].outgoing.nmjd[PACKET_DATA - 8] = currentmjd() + next_send_time;
                 }
-            }
-        }
-
-        // If things have grown quiet, send a QUEUE packet
-
-        if (current_time > next_queue_time)
-        {
-            for (uint16_t node=0; node<txq.size(); ++node)
-            {
-                std::vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
-                PACKET_TX_ID_TYPE iq = 0;
-                for (uint16_t i=1; i<TRANSFER_QUEUE_SIZE; ++i)
+                break;
+//            case PACKET_COMPLETE:
+//                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_COMPLETE - 8])
+//                {
+//                    int32_t remote_node = lookup_remote_node_id(node);
+//                    if (remote_node >= 0)
+//                    {
+//                        // Send a COMPLETE packet
+//                        std::vector<PACKET_BYTE> packet;
+//                        make_complete_packet(packet, remote_node, txq[node].outgoing.id);
+//                        queuesendto(node, "tx", packet);
+//                    }
+//                    txq[node].outgoing.nmjd[PACKET_COMPLETE - 8] = currentmjd() + 10./86400.;
+//                }
+//                break;
+            case PACKET_CANCEL:
+                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_CANCEL - 8])
                 {
-                    if (txq[node].outgoing.progress[i].tx_id != 0)
+                    // See if we have an active transfer
+                    PACKET_TX_ID_TYPE  tx_id = check_tx_id(txq[node].outgoing.progress, txq[node].outgoing.id);
+                    outgoing_tx_del(node, tx_id);
+                    int32_t remote_node = lookup_remote_node_id(node);
+                    if (remote_node >= 0)
                     {
-                        tqueue[iq++] = txq[node].outgoing.progress[i].tx_id;
+                        // Send a CANCEL packet
+                        std::vector<PACKET_BYTE> packet;
+                        make_cancel_packet(packet, remote_node, tx_id);
+                        queuesendto(node, "tx", packet);
                     }
-                    if (iq == TRANSFER_QUEUE_LIMIT)
-                    {
-                        break;
-                    }
+                    txq[node].outgoing.nmjd[PACKET_CANCEL - 8] = currentmjd() + 10. / 86400.;
+                    txq[node].outgoing.state = PACKET_QUEUE;
                 }
-                //				if (iq)
-                {
-                    make_queue_packet(packet, node, txq[node].node_name, tqueue);
-                    send_time = queuesendto("tx", use_channel, packet);
-                    next_data_time += send_time;
-                }
-
+                break;
             }
 
-            // Calculate next likely queue time
-            next_queue_time = current_time + 10./86400.;
+            outgoing_tx_lock.unlock();
         }
-
-        outgoing_tx_lock.unlock();
     }
 }
 
@@ -1175,21 +1229,36 @@ void transmit_loop()
             // Get next packet from transceiver FIFO
             transmit_queue_entry entry = transmit_queue.front();
             transmit_queue.pop();
-            mysendto(entry.type, send_channel[entry.channel], entry.packet);
+            mysendto(entry.type, comm_channel[entry.channel], entry.packet);
         }
     }
 }
 
-double queuesendto(std::string type, uint16_t channel, std::vector<PACKET_BYTE> packet)
+double queuesendto(PACKET_NODE_ID_TYPE node_id, string type, std::vector<PACKET_BYTE> packet)
 {
     transmit_queue_entry tentry;
 
+    use_channel = -1;
+    for (uint16_t i=0; i<comm_channel.size(); ++i)
+    {
+        if (txq[node_id].node_name == comm_channel[i].node)
+        {
+            use_channel = i;
+            break;
+        }
+    }
+
+    if (use_channel > comm_channel.size())
+    {
+        return -1.;
+    }
+
     tentry.type = type;
-    tentry.channel = channel;
+    tentry.channel = use_channel;
     tentry.packet = packet;
     transmit_queue.push(tentry);
     transmit_queue_check.notify_one();
-    double time_step = packet.size() / (86400. * send_channel[channel].throughput);
+    double time_step = packet.size() / (86400. * comm_channel[use_channel].throughput);
     if (time_step > 0)
     {
         return time_step;
@@ -1200,17 +1269,22 @@ double queuesendto(std::string type, uint16_t channel, std::vector<PACKET_BYTE> 
     }
 }
 
-int32_t mysendto(std::string type, sendchannelstruc& channel, std::vector<PACKET_BYTE>& buf)
+int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYTE>& buf)
 {
     int32_t iretn;
     double cmjd;
 
     if ((cmjd = currentmjd(0.)) < channel.nmjd)
     {
+        if (debug_flag)
+        {
+            printf("Mysendto Sleep: %f seconds\n", 86400. * (channel.nmjd - cmjd));
+            fflush(stdout);
+        }
         COSMOS_USLEEP((uint32_t)(86400000000. * (channel.nmjd - cmjd)));
     }
 
-    iretn = sendto(channel.sendchan.cudp, (const char*)&buf[0], buf.size(), 0, (struct sockaddr*) &channel.sendchan.caddr, sizeof(struct sockaddr_in));
+    iretn = sendto(channel.chansock.cudp, reinterpret_cast<const char*>(&buf[0]), buf.size(), 0, reinterpret_cast<sockaddr*>(&channel.chansock.caddr), sizeof(struct sockaddr_in));
 
     if (iretn >= 0)
     {
@@ -1225,20 +1299,81 @@ int32_t mysendto(std::string type, sendchannelstruc& channel, std::vector<PACKET
     return iretn;
 }
 
-int32_t myrecvfrom(std::string type, socket_channel channel, std::vector<PACKET_BYTE>& buf, uint32_t length)
+int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout)
 {
-    int32_t nbytes;
+    int32_t nbytes = 0;
 
     buf.resize(length);
-    if (( nbytes = recvfrom(channel.cudp, (char *)&buf[0], length, 0, (struct sockaddr*) NULL, (socklen_t *)NULL)) > 0)
+    ElapsedTime et;
+    do
     {
-        buf.resize(nbytes);
-        debug_packet(buf, type+" in");
-    }
-    else
-    {
-        nbytes = -errno;
-    }
+        fd_set set;
+        FD_ZERO(&set);
+        int fdmax = -1;
+        for (uint16_t i=0; i<comm_channel.size(); ++i)
+        {
+            FD_SET(comm_channel[i].chansock.cudp, &set);
+            if (comm_channel[i].chansock.cudp > fdmax)
+            {
+                fdmax = comm_channel[i].chansock.cudp;
+            }
+        }
+        timeval timeout;
+        double rtimeout = dtimeout - et.split();
+        if (rtimeout >= 0.)
+        {
+            timeout.tv_sec = static_cast<int32_t>(rtimeout);
+            timeout.tv_usec = static_cast<int32_t>(1000000. * (rtimeout - timeout.tv_sec));
+            int rv = select(fdmax+1, &set, nullptr, nullptr, &timeout);
+            if (rv == -1)
+            {
+                nbytes = -errno;
+            }
+            else if (rv == 0)
+            {
+                nbytes = GENERAL_ERROR_TIMEOUT;
+            }
+            else
+            {
+                for (uint16_t i=0; i<comm_channel.size(); ++i)
+                {
+                    if (FD_ISSET(comm_channel[i].chansock.cudp, &set))
+                    {
+                        channel = comm_channel[i].chansock;
+                        nbytes = recvfrom(channel.cudp, reinterpret_cast<char *>(&buf[0]), length, 0, reinterpret_cast<sockaddr*>(&channel.caddr), reinterpret_cast<socklen_t *>(&channel.addrlen));
+                        if (nbytes > 0)
+                        {
+                            buf.resize(nbytes);
+                            debug_packet(buf, type+" in");
+                            return nbytes;
+                        }
+                        else
+                        {
+                            if (nbytes < 0)
+                            {
+                                nbytes = -errno;
+                            }
+                            else
+                            {
+                                nbytes = GENERAL_ERROR_INPUT;
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+    } while (et.split() < dtimeout);
+
+//    if (( nbytes = recvfrom(channel.cudp, reinterpret_cast<char *>(&buf[0]), length, 0, reinterpret_cast<sockaddr*>(&channel.caddr), reinterpret_cast<socklen_t *>(&channel.addrlen))) > 0)
+//    {
+//        buf.resize(nbytes);
+//        debug_packet(buf, type+" in");
+//    }
+//    else
+//    {
+//        nbytes = -errno;
+//    }
     return nbytes;
 }
 
@@ -1594,12 +1729,12 @@ int32_t request_use_channel(char* request, char* response, Agent *agent)
     uint32_t throughput=0;
 
     sscanf(request, "%*s %hu %u\n", &channel, &throughput);
-    if (channel < send_channels)
+    if (channel < comm_channel.size())
     {
         use_channel = channel;
         if (throughput)
         {
-            send_channel[channel].throughput = throughput;
+            comm_channel[channel].throughput = throughput;
         }
     }
     else
@@ -2040,6 +2175,18 @@ int32_t check_node_id(PACKET_NODE_ID_TYPE node_id)
     return id;
 }
 
+int32_t check_channel(PACKET_NODE_ID_TYPE node_id)
+{
+    for(uint16_t i=0; i<comm_channel.size(); ++i)
+    {
+        if (comm_channel[i].node == txq[node_id].node_name)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 int32_t lookup_remote_node_id(PACKET_NODE_ID_TYPE node_id)
 {
     int32_t id = -1;
@@ -2085,7 +2232,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
                 // inform other end that file has been received
                 std::vector<PACKET_BYTE> packet;
                 make_complete_packet(packet, remote_node, tx_in.tx_id);
-                queuesendto("rx", use_channel, packet);
+                queuesendto(node, "rx", packet);
 
                 // Move file to its final location
                 if (!txq[node].incoming.progress[tx_id].complete)
@@ -2109,7 +2256,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
                 {
                     std::vector<PACKET_BYTE> packet;
                     make_reqdata_packet(packet, remote_node, txq[node].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
-                    queuesendto("rx", use_channel, packet);
+                    queuesendto(node, "rx", packet);
                 }
             }
         }

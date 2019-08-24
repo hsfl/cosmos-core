@@ -57,7 +57,12 @@ uint16_t tlecount;
 */
 void loc_clear(locstruc *loc)
 {
-	memset((void*) loc, 0, sizeof(locstruc));
+    loc_clear(*loc);
+}
+
+void loc_clear(locstruc &loc)
+    {
+    memset(static_cast<void *>(&loc), 0, sizeof(locstruc));
 }
 
 //! Initialize ::posstruc.
@@ -68,7 +73,7 @@ void loc_clear(locstruc *loc)
 */
 int32_t pos_clear(locstruc &loc)
 {
-	memset((void*) &loc.pos, 0, sizeof(posstruc));
+    memset(static_cast<void *>(&loc.pos), 0, sizeof(posstruc));
 	att_clear(loc.att);
     return 0;
 }
@@ -80,7 +85,7 @@ int32_t pos_clear(locstruc &loc)
 */
 void att_clear(attstruc &att)
 {
-	memset((void*) &att, 0, sizeof(attstruc));
+    memset(static_cast<void *>(&att), 0, sizeof(attstruc));
 }
 
 //! Calculate Extra position information
@@ -90,45 +95,50 @@ void att_clear(attstruc &att)
 */
 int32_t pos_extra(locstruc *loc)
 {
+    return pos_extra(*loc);
+}
+
+int32_t pos_extra(locstruc &loc)
+{
     // Don't perform if time is invalid
-    if (!std::isfinite(loc->utc))
+    if (!std::isfinite(loc.utc))
     {
         return CONVERT_ERROR_UTC;
     }
 
     // These are all based on time, so they don't need to be repeated if time hasn't changed.
-    if (loc->pos.extra.utc == loc->utc)
+    if (loc.pos.extra.utc == loc.utc)
     {
         return 0;
     }
 
-    double tt = utc2tt(loc->utc);
+    double tt = utc2tt(loc.utc);
     if (tt <= 0.)
     {
         return (int32_t)tt;
     }
-    loc->pos.extra.tt = tt;
+    loc.pos.extra.tt = tt;
 
-    loc->pos.extra.utc = loc->utc;
-    loc->pos.extra.tdb = utc2tdb(loc->utc);
-	loc->pos.extra.ut = utc2ut1(loc->utc);
+    loc.pos.extra.utc = loc.utc;
+    loc.pos.extra.tdb = utc2tdb(loc.utc);
+    loc.pos.extra.ut = utc2ut1(loc.utc);
 
-	gcrf2itrs(loc->utc,&loc->pos.extra.j2t,&loc->pos.extra.j2e,&loc->pos.extra.dj2e,&loc->pos.extra.ddj2e);
-	loc->pos.extra.t2j = rm_transpose(loc->pos.extra.j2t);
-	loc->pos.extra.e2j = rm_transpose(loc->pos.extra.j2e);
-	loc->pos.extra.de2j = rm_transpose(loc->pos.extra.dj2e);
-	loc->pos.extra.dde2j = rm_transpose(loc->pos.extra.ddj2e);
+    gcrf2itrs(loc.utc,&loc.pos.extra.j2t,&loc.pos.extra.j2e,&loc.pos.extra.dj2e,&loc.pos.extra.ddj2e);
+    loc.pos.extra.t2j = rm_transpose(loc.pos.extra.j2t);
+    loc.pos.extra.e2j = rm_transpose(loc.pos.extra.j2e);
+    loc.pos.extra.de2j = rm_transpose(loc.pos.extra.dj2e);
+    loc.pos.extra.dde2j = rm_transpose(loc.pos.extra.ddj2e);
 
-	jpllib(loc->utc,&loc->pos.extra.s2t,&loc->pos.extra.ds2t);
-	loc->pos.extra.t2s = rm_transpose(loc->pos.extra.s2t);
-	loc->pos.extra.dt2s = rm_transpose(loc->pos.extra.ds2t);
+    jpllib(loc.utc,&loc.pos.extra.s2t,&loc.pos.extra.ds2t);
+    loc.pos.extra.t2s = rm_transpose(loc.pos.extra.s2t);
+    loc.pos.extra.dt2s = rm_transpose(loc.pos.extra.ds2t);
 
-	loc->pos.extra.j2s = rm_mmult(loc->pos.extra.t2s,loc->pos.extra.j2t);
-	loc->pos.extra.s2j = rm_transpose(loc->pos.extra.j2s);
+    loc.pos.extra.j2s = rm_mmult(loc.pos.extra.t2s,loc.pos.extra.j2t);
+    loc.pos.extra.s2j = rm_transpose(loc.pos.extra.j2s);
 
 
-	jplpos(JPL_SUN_BARY,JPL_EARTH,loc->pos.extra.tt,&loc->pos.extra.sun2earth);
-	jplpos(JPL_SUN_BARY,JPL_MOON,loc->pos.extra.tt,&loc->pos.extra.sun2moon);
+    jplpos(JPL_SUN_BARY,JPL_EARTH,loc.pos.extra.tt,&loc.pos.extra.sun2earth);
+    jplpos(JPL_SUN_BARY,JPL_MOON,loc.pos.extra.tt,&loc.pos.extra.sun2moon);
 
     return 0;
 }
@@ -140,26 +150,31 @@ int32_t pos_extra(locstruc *loc)
 */
 int32_t pos_icrf(locstruc *loc)
 {
+    return pos_icrf(*loc);
+}
+
+int32_t pos_icrf(locstruc &loc)
+    {
     int32_t iretn;
     double distance, theta;
 	rvector sat2body;
 
 	// Synchronize time
-	if (loc->pos.icrf.utc == 0.)
+    if (loc.pos.icrf.utc == 0.)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
+        loc.pos.icrf.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.icrf.utc))
+        if (!std::isfinite(loc.pos.icrf.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
+        loc.utc = loc.pos.utc = loc.pos.icrf.utc;
 	}
 	
     iretn = pos_extra(loc);
@@ -169,54 +184,54 @@ int32_t pos_icrf(locstruc *loc)
     }
 
 	// Determine closest planetary body
-	loc->pos.extra.closest = COSMOS_EARTH;
-	if (length_rv(rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2moon.s)) < length_rv(rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s)))
-		loc->pos.extra.closest = COSMOS_MOON;
+    loc.pos.extra.closest = COSMOS_EARTH;
+    if (length_rv(rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2moon.s)) < length_rv(rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2earth.s)))
+        loc.pos.extra.closest = COSMOS_MOON;
 
 	// Set SUN specific stuff
-	distance = length_rv(loc->pos.icrf.s);
-	loc->pos.sunsize = (float)(RSUNM/distance);
-	loc->pos.sunradiance = (float)(3.839e26/(4.*DPI*distance*distance));
+    distance = length_rv(loc.pos.icrf.s);
+    loc.pos.sunsize = (float)(RSUNM/distance);
+    loc.pos.sunradiance = (float)(3.839e26/(4.*DPI*distance*distance));
 
 	// Check Earth:Sun separation
-	sat2body = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s);
-	loc->pos.earthsep = (float)(sep_rv(loc->pos.icrf.s,sat2body));
-	loc->pos.earthsep -= (float)(asin(REARTHM/length_rv(sat2body)));
-	if (loc->pos.earthsep < -loc->pos.sunsize)
-		loc->pos.sunradiance = 0.;
+    sat2body = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2earth.s);
+    loc.pos.earthsep = (float)(sep_rv(loc.pos.icrf.s,sat2body));
+    loc.pos.earthsep -= (float)(asin(REARTHM/length_rv(sat2body)));
+    if (loc.pos.earthsep < -loc.pos.sunsize)
+        loc.pos.sunradiance = 0.;
 	else
-		if (loc->pos.earthsep <= loc->pos.sunsize)
+        if (loc.pos.earthsep <= loc.pos.sunsize)
 		{
-			theta = DPI*(loc->pos.sunsize+loc->pos.earthsep)/loc->pos.sunsize;
-			loc->pos.sunradiance *= (float)((theta - sin(theta))/D2PI);
+            theta = DPI*(loc.pos.sunsize+loc.pos.earthsep)/loc.pos.sunsize;
+            loc.pos.sunradiance *= (float)((theta - sin(theta))/D2PI);
 		}
 
 	// Set Moon specific stuff
-	sat2body = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2moon.s);
+    sat2body = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2moon.s);
 
 	// Check Earth:Moon separation
-	loc->pos.moonsep = (float)(sep_rv(loc->pos.icrf.s,sat2body));
-	loc->pos.moonsep -= (float)(asin(RMOONM/length_rv(sat2body)));
-	if (loc->pos.moonsep < -loc->pos.sunsize)
-		loc->pos.sunradiance = 0.;
+    loc.pos.moonsep = (float)(sep_rv(loc.pos.icrf.s,sat2body));
+    loc.pos.moonsep -= (float)(asin(RMOONM/length_rv(sat2body)));
+    if (loc.pos.moonsep < -loc.pos.sunsize)
+        loc.pos.sunradiance = 0.;
 	else
-		if (loc->pos.moonsep <= loc->pos.sunsize)
+        if (loc.pos.moonsep <= loc.pos.sunsize)
 		{
-			theta = DPI*(loc->pos.sunsize+loc->pos.moonsep)/loc->pos.sunsize;
-			loc->pos.sunradiance *= (float)((theta - sin(theta))/D2PI);
+            theta = DPI*(loc.pos.sunsize+loc.pos.moonsep)/loc.pos.sunsize;
+            loc.pos.sunradiance *= (float)((theta - sin(theta))/D2PI);
 		}
 
 	// Set related attitudes
-	loc->att.icrf.pass = loc->pos.icrf.pass;
-	loc->att.icrf.utc = loc->pos.icrf.utc;
+    loc.att.icrf.pass = loc.pos.icrf.pass;
+    loc.att.icrf.utc = loc.pos.icrf.utc;
 
 	// Set adjoining positions
-	if (loc->pos.icrf.pass > loc->pos.eci.pass)
+    if (loc.pos.icrf.pass > loc.pos.eci.pass)
 	{
 		pos_icrf2eci(loc);
 		pos_eci(loc);
 	}
-	if (loc->pos.icrf.pass > loc->pos.sci.pass)
+    if (loc.pos.icrf.pass > loc.pos.sci.pass)
 	{
 		pos_icrf2sci(loc);
 		pos_sci(loc);
@@ -231,23 +246,28 @@ int32_t pos_icrf(locstruc *loc)
 */
 int32_t pos_eci(locstruc *loc)
 {
+    return pos_eci(*loc);
+}
+
+int32_t pos_eci(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (0. == loc->pos.eci.utc)
+    if (0. == loc.pos.eci.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.eci.utc = loc->pos.utc = loc->utc;
+        loc.pos.eci.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.eci.utc))
+        if (!std::isfinite(loc.pos.eci.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.eci.utc;
+        loc.utc = loc.pos.utc = loc.pos.eci.utc;
 	}
 	
     iretn = pos_extra(loc);
@@ -257,19 +277,19 @@ int32_t pos_eci(locstruc *loc)
     }
 
 	// Set adjoining positions
-	if (loc->pos.eci.pass > loc->pos.icrf.pass)
+    if (loc.pos.eci.pass > loc.pos.icrf.pass)
 	{
 		pos_eci2icrf(loc);
 		pos_icrf(loc);
 	}
-	if (loc->pos.eci.pass > loc->pos.geoc.pass)
+    if (loc.pos.eci.pass > loc.pos.geoc.pass)
 	{
 		pos_eci2geoc(loc);
 		pos_geoc(loc);
 	}
 
 	// Set related attitude
-	loc->att.icrf.pass = loc->pos.eci.pass;
+    loc.att.icrf.pass = loc.pos.eci.pass;
     return 0;
 }
 
@@ -280,23 +300,28 @@ int32_t pos_eci(locstruc *loc)
 */
 int32_t pos_sci(locstruc *loc)
 {
+    return pos_sci(*loc);
+}
+
+int32_t pos_sci(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (0. == loc->pos.sci.utc)
+    if (0. == loc.pos.sci.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.sci.utc = loc->pos.utc = loc->utc;
+        loc.pos.sci.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.sci.utc))
+        if (!std::isfinite(loc.pos.sci.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.sci.utc;
+        loc.utc = loc.pos.utc = loc.pos.sci.utc;
 	}
 
     iretn = pos_extra(loc);
@@ -306,19 +331,19 @@ int32_t pos_sci(locstruc *loc)
     }
 
 	// Set adjoining positions
-	if (loc->pos.sci.pass > loc->pos.icrf.pass)
+    if (loc.pos.sci.pass > loc.pos.icrf.pass)
 	{
 		pos_sci2icrf(loc);
 		pos_icrf(loc);
 	}
-	if (loc->pos.sci.pass > loc->pos.selc.pass)
+    if (loc.pos.sci.pass > loc.pos.selc.pass)
 	{
 		pos_sci2selc(loc);
 		pos_selc(loc);
 	}
 
 	// Set related attitude
-	loc->att.icrf.pass = loc->pos.sci.pass;
+    loc.att.icrf.pass = loc.pos.sci.pass;
     return 0;
 }
 
@@ -329,23 +354,28 @@ int32_t pos_sci(locstruc *loc)
 */
 int32_t pos_geoc(locstruc *loc)
 {
+    return pos_geoc(*loc);
+}
+
+int32_t pos_geoc(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (0. == loc->pos.geoc.utc)
+    if (0. == loc.pos.geoc.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
+        loc.pos.geoc.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc.pos.geoc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+        loc.utc = loc.pos.utc = loc.pos.geoc.utc;
 	}
 	
     iretn = pos_extra(loc);
@@ -355,26 +385,26 @@ int32_t pos_geoc(locstruc *loc)
     }
 
 	// Go to ECI if necessary
-	if (loc->pos.geoc.pass > loc->pos.eci.pass)
+    if (loc.pos.geoc.pass > loc.pos.eci.pass)
 	{
 		pos_geoc2eci(loc);
 		pos_eci(loc);
 	}
 	// Go to Geocentric Spherical if necessary
-	if (loc->pos.geoc.pass > loc->pos.geos.pass)
+    if (loc.pos.geoc.pass > loc.pos.geos.pass)
 	{
 		pos_geoc2geos(loc);
 		pos_geos(loc);
 	}
 	// Go to Geodetic if necessary
-	if (loc->pos.geoc.pass > loc->pos.geod.pass)
+    if (loc.pos.geoc.pass > loc.pos.geod.pass)
 	{
 		pos_geoc2geod(loc);
 		pos_geod(loc);
 	}
 
 	// Set related attitude
-	loc->att.geoc.pass = loc->pos.geoc.pass;
+    loc.att.geoc.pass = loc.pos.geoc.pass;
 
     return 0;
 }
@@ -386,23 +416,28 @@ int32_t pos_geoc(locstruc *loc)
 */
 int32_t pos_selc(locstruc *loc)
 {
+    return pos_selc(*loc);
+}
+
+int32_t pos_selc(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (0. == loc->pos.selc.utc)
+    if (0. == loc.pos.selc.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.selc.utc = loc->pos.utc = loc->utc;
+        loc.pos.selc.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.selc.utc))
+        if (!std::isfinite(loc.pos.selc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.selc.utc;
+        loc.utc = loc.pos.utc = loc.pos.selc.utc;
 	}
 
     iretn = pos_extra(loc);
@@ -412,20 +447,20 @@ int32_t pos_selc(locstruc *loc)
     }
 
 	// Go to SCI if necessary
-	if (loc->pos.selc.pass > loc->pos.sci.pass)
+    if (loc.pos.selc.pass > loc.pos.sci.pass)
 	{
 		pos_selc2sci(loc);
 		pos_sci(loc);
 	}
 	// Go to Selenographic if necessary
-	if (loc->pos.selc.pass > loc->pos.selg.pass)
+    if (loc.pos.selc.pass > loc.pos.selg.pass)
 	{
 		pos_selc2selg(loc);
 		pos_selg(loc);
 	}
 
 	// Set related attitude
-	loc->att.selc.pass = loc->pos.selc.pass;
+    loc.att.selc.pass = loc.pos.selc.pass;
 
     return 0;
 }
@@ -437,23 +472,28 @@ int32_t pos_selc(locstruc *loc)
 */
 int32_t pos_selg(locstruc *loc)
 {
+    return pos_selg(*loc);
+}
+
+int32_t pos_selg(locstruc &loc)
+    {
     int32_t iretn;
     // Synchroniz time
-	if (0. == loc->pos.selg.utc)
+    if (0. == loc.pos.selg.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.selg.utc = loc->pos.utc = loc->utc;
+        loc.pos.selg.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.selg.utc))
+        if (!std::isfinite(loc.pos.selg.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.selg.utc;
+        loc.utc = loc.pos.utc = loc.pos.selg.utc;
 	}
 
     iretn = pos_extra(loc);
@@ -462,7 +502,7 @@ int32_t pos_selg(locstruc *loc)
         return iretn;
     }
 
-	if (loc->pos.selg.pass > loc->pos.selc.pass)
+    if (loc.pos.selg.pass > loc.pos.selc.pass)
 	{
 		pos_selg2selc(loc);
 		pos_selc(loc);
@@ -478,23 +518,28 @@ int32_t pos_selg(locstruc *loc)
 */
 int32_t pos_geos(locstruc *loc)
 {
+    return pos_geos(*loc);
+}
+
+int32_t pos_geos(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (0. == loc->pos.geos.utc)
+    if (0. == loc.pos.geos.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.geos.utc = loc->pos.utc = loc->utc;
+        loc.pos.geos.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.geos.utc))
+        if (!std::isfinite(loc.pos.geos.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.geos.utc;
+        loc.utc = loc.pos.utc = loc.pos.geos.utc;
 	}
 
     iretn = pos_extra(loc);
@@ -503,7 +548,7 @@ int32_t pos_geos(locstruc *loc)
         return iretn;
     }
 
-	if (loc->pos.geos.pass > loc->pos.geoc.pass)
+    if (loc.pos.geos.pass > loc.pos.geoc.pass)
 	{
 		pos_geos2geoc(loc);
 		pos_geoc(loc);
@@ -519,23 +564,28 @@ int32_t pos_geos(locstruc *loc)
 */
 int32_t pos_geod(locstruc *loc)
 {
+    return pos_geod(*loc);
+}
+
+int32_t pos_geod(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (0. == loc->pos.geod.utc)
+    if (0. == loc.pos.geod.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.geod.utc = loc->pos.utc = loc->utc;
+        loc.pos.geod.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.geod.utc))
+        if (!std::isfinite(loc.pos.geod.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.geod.utc;
+        loc.utc = loc.pos.utc = loc.pos.geod.utc;
 	}
 
     iretn = pos_extra(loc);
@@ -544,16 +594,16 @@ int32_t pos_geod(locstruc *loc)
         return iretn;
     }
 
-	if (loc->pos.geod.pass > loc->pos.geoc.pass)
+    if (loc.pos.geod.pass > loc.pos.geoc.pass)
 	{
 		pos_geod2geoc(loc);
 		pos_geoc(loc);
 	}
 	// Determine magnetic field in Topocentric system
-	geomag_front(loc->pos.geod.s,mjd2year(loc->utc),&loc->bearth);
+    geomag_front(loc.pos.geod.s,mjd2year(loc.utc),&loc.bearth);
 
 	// Transform to ITRS
-	loc->bearth = irotate(q_change_around_z(-loc->pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
+    loc.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc.pos.geod.s.lat),loc.bearth));
     return 0;
 }
 
@@ -564,23 +614,28 @@ int32_t pos_geod(locstruc *loc)
 */
 int32_t pos_icrf2eci(locstruc *loc)
 {
+    return pos_icrf2eci(*loc);
+}
+
+int32_t pos_icrf2eci(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (loc->pos.icrf.utc == 0.)
+    if (loc.pos.icrf.utc == 0.)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
+        loc.pos.icrf.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.icrf.utc))
+        if (!std::isfinite(loc.pos.icrf.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
+        loc.utc = loc.pos.utc = loc.pos.icrf.utc;
 	}
 	
 	// Update extra information
@@ -591,17 +646,17 @@ int32_t pos_icrf2eci(locstruc *loc)
     }
 
 	// Update time
-	loc->pos.eci.utc = loc->utc;
+    loc.pos.eci.utc = loc.utc;
 
 	// Update pass
-	loc->pos.eci.pass = loc->pos.icrf.pass;
+    loc.pos.eci.pass = loc.pos.icrf.pass;
 
 	// Heliocentric to Geocentric Ecliptic
-	loc->pos.eci.s = loc->pos.eci.v = loc->pos.eci.a = rv_zero();
+    loc.pos.eci.s = loc.pos.eci.v = loc.pos.eci.a = rv_zero();
 
-	loc->pos.eci.s = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2earth.s);
-	loc->pos.eci.v = rv_sub(loc->pos.icrf.v,loc->pos.extra.sun2earth.v);
-	loc->pos.eci.a = rv_sub(loc->pos.icrf.a,loc->pos.extra.sun2earth.a);
+    loc.pos.eci.s = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2earth.s);
+    loc.pos.eci.v = rv_sub(loc.pos.icrf.v,loc.pos.extra.sun2earth.v);
+    loc.pos.eci.a = rv_sub(loc.pos.icrf.a,loc.pos.extra.sun2earth.a);
     return 0;
 }
 
@@ -612,23 +667,28 @@ int32_t pos_icrf2eci(locstruc *loc)
 */
 int32_t pos_eci2icrf(locstruc *loc)
 {
+    return pos_eci2icrf(*loc);
+}
+
+int32_t pos_eci2icrf(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (0. == loc->pos.eci.utc)
+    if (0. == loc.pos.eci.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.eci.utc = loc->pos.utc = loc->utc;
+        loc.pos.eci.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.eci.utc))
+        if (!std::isfinite(loc.pos.eci.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.eci.utc;
+        loc.utc = loc.pos.utc = loc.pos.eci.utc;
 	}
 	
 	// Update extra information
@@ -639,15 +699,15 @@ int32_t pos_eci2icrf(locstruc *loc)
     }
 
 	// Update pass
-	loc->pos.icrf.pass = loc->pos.eci.pass;
+    loc.pos.icrf.pass = loc.pos.eci.pass;
 
 	// Update time
-	loc->pos.icrf.utc = loc->utc;
+    loc.pos.icrf.utc = loc.utc;
 
 	// Geocentric Equatorial to Heliocentric
-	loc->pos.icrf.s = rv_add(loc->pos.eci.s,loc->pos.extra.sun2earth.s);
-	loc->pos.icrf.v = rv_add(loc->pos.eci.v,loc->pos.extra.sun2earth.v);
-	loc->pos.icrf.a = rv_add(loc->pos.eci.a,loc->pos.extra.sun2earth.a);
+    loc.pos.icrf.s = rv_add(loc.pos.eci.s,loc.pos.extra.sun2earth.s);
+    loc.pos.icrf.v = rv_add(loc.pos.eci.v,loc.pos.extra.sun2earth.v);
+    loc.pos.icrf.a = rv_add(loc.pos.eci.a,loc.pos.extra.sun2earth.a);
     return 0;
 }
 
@@ -658,23 +718,28 @@ int32_t pos_eci2icrf(locstruc *loc)
 */
 int32_t pos_icrf2sci(locstruc *loc)
 {
+    return pos_icrf2sci(*loc);
+}
+
+int32_t pos_icrf2sci(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (loc->pos.icrf.utc == 0.)
+    if (loc.pos.icrf.utc == 0.)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.icrf.utc = loc->pos.utc = loc->utc;
+        loc.pos.icrf.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.icrf.utc))
+        if (!std::isfinite(loc.pos.icrf.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.icrf.utc;
+        loc.utc = loc.pos.utc = loc.pos.icrf.utc;
 	}
 
 	// Update extra information
@@ -685,17 +750,17 @@ int32_t pos_icrf2sci(locstruc *loc)
     }
 
 	// Update time
-	loc->pos.sci.utc = loc->utc;
+    loc.pos.sci.utc = loc.utc;
 
 	// Update pass
-	loc->pos.sci.pass = loc->pos.icrf.pass;
+    loc.pos.sci.pass = loc.pos.icrf.pass;
 
 	// Heliocentric to Geocentric Ecliptic
-	loc->pos.sci.s = loc->pos.sci.v = loc->pos.sci.a = rv_zero();
+    loc.pos.sci.s = loc.pos.sci.v = loc.pos.sci.a = rv_zero();
 
-	loc->pos.sci.s = rv_sub(loc->pos.icrf.s,loc->pos.extra.sun2moon.s);
-	loc->pos.sci.v = rv_sub(loc->pos.icrf.v,loc->pos.extra.sun2moon.v);
-	loc->pos.sci.a = rv_sub(loc->pos.icrf.a,loc->pos.extra.sun2moon.a);
+    loc.pos.sci.s = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2moon.s);
+    loc.pos.sci.v = rv_sub(loc.pos.icrf.v,loc.pos.extra.sun2moon.v);
+    loc.pos.sci.a = rv_sub(loc.pos.icrf.a,loc.pos.extra.sun2moon.a);
 
     return 0;
 }
@@ -707,23 +772,28 @@ int32_t pos_icrf2sci(locstruc *loc)
 */
 int32_t pos_sci2icrf(locstruc *loc)
 {
+    return pos_sci2icrf(*loc);
+}
+
+int32_t pos_sci2icrf(locstruc &loc)
+    {
     int32_t iretn;
     // Synchronize time
-	if (0. == loc->pos.sci.utc)
+    if (0. == loc.pos.sci.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.sci.utc = loc->pos.utc = loc->utc;
+        loc.pos.sci.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.sci.utc))
+        if (!std::isfinite(loc.pos.sci.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.sci.utc;
+        loc.utc = loc.pos.utc = loc.pos.sci.utc;
 	}
 
 	// Update extra information
@@ -734,15 +804,15 @@ int32_t pos_sci2icrf(locstruc *loc)
     }
 
 	// Update time
-	loc->pos.icrf.utc = loc->utc;
+    loc.pos.icrf.utc = loc.utc;
 
 	// Update pass
-	loc->pos.icrf.pass = loc->pos.sci.pass;
+    loc.pos.icrf.pass = loc.pos.sci.pass;
 
 	// Geocentric Equatorial to Heliocentric
-	loc->pos.icrf.s = rv_add(loc->pos.sci.s,loc->pos.extra.sun2moon.s);
-	loc->pos.icrf.v = rv_add(loc->pos.sci.v,loc->pos.extra.sun2moon.v);
-	loc->pos.icrf.a = rv_add(loc->pos.sci.a,loc->pos.extra.sun2moon.a);
+    loc.pos.icrf.s = rv_add(loc.pos.sci.s,loc.pos.extra.sun2moon.s);
+    loc.pos.icrf.v = rv_add(loc.pos.sci.v,loc.pos.extra.sun2moon.v);
+    loc.pos.icrf.a = rv_add(loc.pos.sci.a,loc.pos.extra.sun2moon.a);
 
     return 0;
 }
@@ -754,25 +824,30 @@ int32_t pos_sci2icrf(locstruc *loc)
 */
 int32_t pos_eci2geoc(locstruc *loc)
 {
+    return pos_eci2geoc(*loc);
+}
+
+int32_t pos_eci2geoc(locstruc &loc)
+    {
     int32_t iretn;
     rvector v2 = {{0.}};
 
 	// Synchronize time
-	if (0. == loc->pos.eci.utc)
+    if (0. == loc.pos.eci.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.eci.utc = loc->pos.utc = loc->utc;
+        loc.pos.eci.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.eci.utc))
+        if (!std::isfinite(loc.pos.eci.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.eci.utc;
+        loc.utc = loc.pos.utc = loc.pos.eci.utc;
 	}
 	
 	// Update extra information
@@ -783,24 +858,24 @@ int32_t pos_eci2geoc(locstruc *loc)
     }
 
 	// Update time
-	loc->pos.geoc.utc = loc->utc;
+    loc.pos.geoc.utc = loc.utc;
 
 	// Update pass
-	loc->pos.geoc.pass = loc->att.icrf.pass = loc->pos.eci.pass;
+    loc.pos.geoc.pass = loc.att.icrf.pass = loc.pos.eci.pass;
 
 	// Apply first order transform to all
-	loc->pos.geoc.s = rv_mmult(loc->pos.extra.j2e,loc->pos.eci.s);
-	loc->pos.geoc.v = rv_mmult(loc->pos.extra.j2e,loc->pos.eci.v);
-	loc->pos.geoc.a = rv_mmult(loc->pos.extra.j2e,loc->pos.eci.a);
+    loc.pos.geoc.s = rv_mmult(loc.pos.extra.j2e,loc.pos.eci.s);
+    loc.pos.geoc.v = rv_mmult(loc.pos.extra.j2e,loc.pos.eci.v);
+    loc.pos.geoc.a = rv_mmult(loc.pos.extra.j2e,loc.pos.eci.a);
 
 	// Apply second order term due to first derivative of rotation matrix
-	v2 = rv_mmult(loc->pos.extra.dj2e,loc->pos.eci.s);
-	loc->pos.geoc.v = rv_add(loc->pos.geoc.v,v2);
-	v2 = rv_smult(2.,rv_mmult(loc->pos.extra.dj2e,loc->pos.eci.v));
-	loc->pos.geoc.a = rv_add(loc->pos.geoc.a,v2);
+    v2 = rv_mmult(loc.pos.extra.dj2e,loc.pos.eci.s);
+    loc.pos.geoc.v = rv_add(loc.pos.geoc.v,v2);
+    v2 = rv_smult(2.,rv_mmult(loc.pos.extra.dj2e,loc.pos.eci.v));
+    loc.pos.geoc.a = rv_add(loc.pos.geoc.a,v2);
 	// Apply third order correction due to second derivative of rotation matrix
-	v2 = rv_mmult(loc->pos.extra.ddj2e,loc->pos.eci.s);
-	loc->pos.geoc.a = rv_add(loc->pos.geoc.a,v2);
+    v2 = rv_mmult(loc.pos.extra.ddj2e,loc.pos.eci.s);
+    loc.pos.geoc.a = rv_add(loc.pos.geoc.a,v2);
 
 	// Convert GEOC Position to GEOD
 	pos_geoc2geod(loc);
@@ -826,25 +901,30 @@ int32_t pos_eci2geoc(locstruc *loc)
 */
 int32_t pos_geoc2eci(locstruc *loc)
 {
+    return pos_geoc2eci(*loc);
+}
+
+int32_t pos_geoc2eci(locstruc &loc)
+    {
     int32_t iretn;
     rvector ds;
 
 	// Synchronize time
-	if (0. == loc->pos.geoc.utc)
+    if (0. == loc.pos.geoc.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
+        loc.pos.geoc.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc.pos.geoc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+        loc.utc = loc.pos.utc = loc.pos.geoc.utc;
 	}
 	
 	// Update extra information
@@ -855,24 +935,24 @@ int32_t pos_geoc2eci(locstruc *loc)
     }
 
 	// Update time
-	loc->pos.eci.utc = loc->utc;
+    loc.pos.eci.utc = loc.utc;
 
 	// Update pass
-	loc->pos.eci.pass = loc->att.geoc.pass = loc->pos.geoc.pass;
+    loc.pos.eci.pass = loc.att.geoc.pass = loc.pos.geoc.pass;
 
 	// Apply first order transform to all
-	loc->pos.eci.s = rv_mmult(loc->pos.extra.e2j,loc->pos.geoc.s);
-	loc->pos.eci.v = rv_mmult(loc->pos.extra.e2j,loc->pos.geoc.v);
-	loc->pos.eci.a = rv_mmult(loc->pos.extra.e2j,loc->pos.geoc.a);
+    loc.pos.eci.s = rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.s);
+    loc.pos.eci.v = rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.v);
+    loc.pos.eci.a = rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.a);
 
 	// Apply second order correction due to first derivative of rotation matrix
-	ds = rv_mmult(loc->pos.extra.de2j,loc->pos.geoc.s);
-	loc->pos.eci.v = rv_add(loc->pos.eci.v,ds);
-	ds = rv_smult(2.,rv_mmult(loc->pos.extra.de2j,loc->pos.geoc.v));
-	loc->pos.eci.a = rv_add(loc->pos.eci.a,ds);
+    ds = rv_mmult(loc.pos.extra.de2j,loc.pos.geoc.s);
+    loc.pos.eci.v = rv_add(loc.pos.eci.v,ds);
+    ds = rv_smult(2.,rv_mmult(loc.pos.extra.de2j,loc.pos.geoc.v));
+    loc.pos.eci.a = rv_add(loc.pos.eci.a,ds);
 	// Apply third order correction due to second derivative of rotation matrix
-	ds = rv_mmult(loc->pos.extra.dde2j,loc->pos.geoc.s);
-	loc->pos.eci.a = rv_add(loc->pos.eci.a,ds);
+    ds = rv_mmult(loc.pos.extra.dde2j,loc.pos.geoc.s);
+    loc.pos.eci.a = rv_add(loc.pos.eci.a,ds);
 
 	// Convert ITRF Attitude to ICRF
 	att_geoc2icrf(loc);
@@ -891,55 +971,60 @@ int32_t pos_geoc2eci(locstruc *loc)
 */
 int32_t pos_geoc2geos(locstruc *loc)
 {
-	double xvx, yvy, r2, r, minir, minir2;
+    return pos_geoc2geos(*loc);
+}
+
+int32_t pos_geoc2geos(locstruc &loc)
+    {
+    double xvx, yvy, r2, r, minir, minir2;
 	double cp, cl, sl, sp;
 
 	// Synchronize time
-	if (0. == loc->pos.geoc.utc)
+    if (0. == loc.pos.geoc.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.geoc.utc = loc->pos.utc = loc->utc;
+        loc.pos.geoc.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc.pos.geoc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+        loc.utc = loc.pos.utc = loc.pos.geoc.utc;
 	}
 	
 	// Update time
-	loc->pos.geos.utc = loc->utc;
+    loc.pos.geos.utc = loc.utc;
 
 	// Update pass
-	loc->pos.geos.pass = loc->pos.geoc.pass;
+    loc.pos.geos.pass = loc.pos.geoc.pass;
 
 	// Convert Geocentric Cartesian to Spherical
-	minir2 = loc->pos.geoc.s.col[0]*loc->pos.geoc.s.col[0]+loc->pos.geoc.s.col[1]*loc->pos.geoc.s.col[1];
+    minir2 = loc.pos.geoc.s.col[0]*loc.pos.geoc.s.col[0]+loc.pos.geoc.s.col[1]*loc.pos.geoc.s.col[1];
 	minir = sqrt(minir2);
-	r2 = minir2+loc->pos.geoc.s.col[2]*loc->pos.geoc.s.col[2];
-	loc->pos.geos.s.r = r = sqrt(r2);
-	sp = loc->pos.geoc.s.col[2]/r;
-	loc->pos.geos.s.phi = asin(sp);
-	loc->pos.geos.s.lambda = atan2(loc->pos.geoc.s.col[1],loc->pos.geoc.s.col[0]);
+    r2 = minir2+loc.pos.geoc.s.col[2]*loc.pos.geoc.s.col[2];
+    loc.pos.geos.s.r = r = sqrt(r2);
+    sp = loc.pos.geoc.s.col[2]/r;
+    loc.pos.geos.s.phi = asin(sp);
+    loc.pos.geos.s.lambda = atan2(loc.pos.geoc.s.col[1],loc.pos.geoc.s.col[0]);
 
-	xvx = loc->pos.geoc.s.col[0]*loc->pos.geoc.v.col[0];
-	yvy = loc->pos.geoc.s.col[1]*loc->pos.geoc.v.col[1];
-	loc->pos.geos.v.r = (xvx+yvy+loc->pos.geoc.s.col[2]*loc->pos.geoc.v.col[2])/r;
-	loc->pos.geos.v.phi = (-(xvx+yvy) * loc->pos.geoc.s.col[2] + minir2*loc->pos.geoc.v.col[2])/(r2*minir);
-	//loc->pos.geos.v.lambda = -(loc->pos.geoc.s.col[0]*loc->pos.geoc.v.col[1]+loc->pos.geoc.s.col[1]*loc->pos.geoc.v.col[0])/minir2;
+    xvx = loc.pos.geoc.s.col[0]*loc.pos.geoc.v.col[0];
+    yvy = loc.pos.geoc.s.col[1]*loc.pos.geoc.v.col[1];
+    loc.pos.geos.v.r = (xvx+yvy+loc.pos.geoc.s.col[2]*loc.pos.geoc.v.col[2])/r;
+    loc.pos.geos.v.phi = (-(xvx+yvy) * loc.pos.geoc.s.col[2] + minir2*loc.pos.geoc.v.col[2])/(r2*minir);
+    //loc.pos.geos.v.lambda = -(loc.pos.geoc.s.col[0]*loc.pos.geoc.v.col[1]+loc.pos.geoc.s.col[1]*loc.pos.geoc.v.col[0])/minir2;
 
 	cp = minir / r;
-	cl = loc->pos.geoc.s.col[0] / minir;
-	sl = loc->pos.geoc.s.col[1] / minir;
-	if (fabs(loc->pos.geoc.s.col[1]) > fabs(loc->pos.geoc.s.col[0]))
-		loc->pos.geos.v.lambda = (loc->pos.geoc.v.col[0] - cp * cl * loc->pos.geos.v.r + loc->pos.geoc.s.col[2] * cl * loc->pos.geos.v.phi) / (-loc->pos.geoc.s.col[1]);
+    cl = loc.pos.geoc.s.col[0] / minir;
+    sl = loc.pos.geoc.s.col[1] / minir;
+    if (fabs(loc.pos.geoc.s.col[1]) > fabs(loc.pos.geoc.s.col[0]))
+        loc.pos.geos.v.lambda = (loc.pos.geoc.v.col[0] - cp * cl * loc.pos.geos.v.r + loc.pos.geoc.s.col[2] * cl * loc.pos.geos.v.phi) / (-loc.pos.geoc.s.col[1]);
 	else
-		loc->pos.geos.v.lambda = (loc->pos.geoc.v.col[1] - cp * sl * loc->pos.geos.v.r + loc->pos.geoc.s.col[2] * sl * loc->pos.geos.v.phi) / loc->pos.geoc.s.col[0];
+        loc.pos.geos.v.lambda = (loc.pos.geoc.v.col[1] - cp * sl * loc.pos.geos.v.r + loc.pos.geoc.s.col[2] * sl * loc.pos.geos.v.phi) / loc.pos.geoc.s.col[0];
 
     return 0;
 }
@@ -950,49 +1035,54 @@ int32_t pos_geoc2geos(locstruc *loc)
 */
 int32_t pos_geos2geoc(locstruc *loc)
 {
-	double sp, cp, sl, cl, cpr;
+    return pos_geos2geoc(*loc);
+}
+
+int32_t pos_geos2geoc(locstruc &loc)
+    {
+    double sp, cp, sl, cl, cpr;
 
 	// Synchronize time
-	if (0. == loc->pos.geos.utc)
+    if (0. == loc.pos.geos.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.geos.utc = loc->pos.utc = loc->utc;
+        loc.pos.geos.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc.pos.geoc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.geos.utc;
+        loc.utc = loc.pos.utc = loc.pos.geos.utc;
 	}
 
 	// Update time
-	loc->pos.geoc.utc = loc->utc;
+    loc.pos.geoc.utc = loc.utc;
 
 	// Update pass
-	loc->pos.geoc.pass = loc->pos.geos.pass;
+    loc.pos.geoc.pass = loc.pos.geos.pass;
 
-	sp = sin(loc->pos.geos.s.phi);
-	cp = cos(loc->pos.geos.s.phi);
-	sl = sin(loc->pos.geos.s.lambda);
-	cl = cos(loc->pos.geos.s.lambda);
-	cpr = cp * loc->pos.geos.s.r;
+    sp = sin(loc.pos.geos.s.phi);
+    cp = cos(loc.pos.geos.s.phi);
+    sl = sin(loc.pos.geos.s.lambda);
+    cl = cos(loc.pos.geos.s.lambda);
+    cpr = cp * loc.pos.geos.s.r;
 
-	loc->pos.geoc.s = loc->pos.geoc.v = loc->pos.geoc.a = rv_zero();
+    loc.pos.geoc.s = loc.pos.geoc.v = loc.pos.geoc.a = rv_zero();
 
-	loc->pos.geoc.s.col[0] = cpr * cl;
-	loc->pos.geoc.s.col[1] = cpr * sl;
-	loc->pos.geoc.s.col[2] = loc->pos.geos.s.r * sp;
+    loc.pos.geoc.s.col[0] = cpr * cl;
+    loc.pos.geoc.s.col[1] = cpr * sl;
+    loc.pos.geoc.s.col[2] = loc.pos.geos.s.r * sp;
 
-	//loc->pos.geoc.v.col[0] = loc->pos.geos.v.r * cp * cl - loc->pos.geos.v.phi * loc->pos.geos.s.r * sp * cl - loc->pos.geos.v.lambda * cpr * sl;
-	//loc->pos.geoc.v.col[1] = loc->pos.geos.v.r * cp * sl - loc->pos.geos.v.phi * loc->pos.geos.s.r * sp * sl + loc->pos.geos.v.lambda * cpr * cl;
-	loc->pos.geoc.v.col[0] = loc->pos.geos.v.r * cp * cl - loc->pos.geos.v.lambda * cpr * sl - loc->pos.geos.v.phi * loc->pos.geos.s.r * sp * cl;
-	loc->pos.geoc.v.col[1] = loc->pos.geos.v.r * cp * sl + loc->pos.geos.v.lambda * cpr * cl - loc->pos.geos.v.phi * loc->pos.geos.s.r * sp * sl;
-	loc->pos.geoc.v.col[2] = loc->pos.geos.v.r * sp + loc->pos.geos.v.phi * cpr;
+    //loc.pos.geoc.v.col[0] = loc.pos.geos.v.r * cp * cl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * cl - loc.pos.geos.v.lambda * cpr * sl;
+    //loc.pos.geoc.v.col[1] = loc.pos.geos.v.r * cp * sl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * sl + loc.pos.geos.v.lambda * cpr * cl;
+    loc.pos.geoc.v.col[0] = loc.pos.geos.v.r * cp * cl - loc.pos.geos.v.lambda * cpr * sl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * cl;
+    loc.pos.geoc.v.col[1] = loc.pos.geos.v.r * cp * sl + loc.pos.geos.v.lambda * cpr * cl - loc.pos.geos.v.phi * loc.pos.geos.s.r * sp * sl;
+    loc.pos.geoc.v.col[2] = loc.pos.geos.v.r * sp + loc.pos.geos.v.phi * cpr;
     return 0;
 }
 
@@ -1063,38 +1153,43 @@ void geoc2geod(cartpos &geoc, geoidpos &geod)
 */
 void pos_geoc2geod(locstruc *loc)
 {
-    // Synchronize time
-    if (0. == loc->pos.geoc.utc)
+    return pos_geoc2geod(*loc);
+}
+
+void pos_geoc2geod(locstruc &loc)
     {
-        if (!std::isfinite(loc->utc))
+    // Synchronize time
+    if (0. == loc.pos.geoc.utc)
+    {
+        if (!std::isfinite(loc.utc))
         {
             return;
         }
-        loc->pos.geoc.utc = loc->pos.utc = loc->utc;
+        loc.pos.geoc.utc = loc.pos.utc = loc.utc;
     }
     else
     {
-        if (!std::isfinite(loc->pos.geoc.utc))
+        if (!std::isfinite(loc.pos.geoc.utc))
         {
             return;
         }
-        loc->utc = loc->pos.utc = loc->pos.geoc.utc;
+        loc.utc = loc.pos.utc = loc.pos.geoc.utc;
     }
 
     // Update time
-    loc->pos.geod.utc = loc->utc;
+    loc.pos.geod.utc = loc.utc;
 
     // Update pass
-    loc->pos.geod.pass = loc->pos.geoc.pass;
+    loc.pos.geod.pass = loc.pos.geoc.pass;
 
     // Update geodetic position
-    geoc2geod(loc->pos.geoc, loc->pos.geod);
+    geoc2geod(loc.pos.geoc, loc.pos.geod);
 
     // Determine magnetic field in Topocentric system
-    geomag_front(loc->pos.geod.s,mjd2year(loc->utc),&loc->bearth);
+    geomag_front(loc.pos.geod.s,mjd2year(loc.utc),&loc.bearth);
 
     // Transform to ITRS
-    loc->bearth = irotate(q_change_around_z(-loc->pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc->pos.geod.s.lat),loc->bearth));
+    loc.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc.pos.geod.s.lat),loc.bearth));
 
 }
 
@@ -1138,32 +1233,37 @@ void geod2geoc(geoidpos &geod, cartpos &geoc)
 */
 int32_t pos_geod2geoc(locstruc *loc)
 {
-    // Synchronize time
-    if (0. == loc->pos.geod.utc)
+    return pos_geod2geoc(*loc);
+}
+
+int32_t pos_geod2geoc(locstruc &loc)
     {
-        if (!std::isfinite(loc->utc))
+    // Synchronize time
+    if (0. == loc.pos.geod.utc)
+    {
+        if (!std::isfinite(loc.utc))
         {
             return CONVERT_ERROR_UTC;
         }
-        loc->pos.geod.utc = loc->pos.utc = loc->utc;
+        loc.pos.geod.utc = loc.pos.utc = loc.utc;
     }
     else
     {
-        if (!std::isfinite(loc->pos.geod.utc))
+        if (!std::isfinite(loc.pos.geod.utc))
         {
             return CONVERT_ERROR_UTC;
         }
-        loc->utc = loc->pos.utc = loc->pos.geod.utc;
+        loc.utc = loc.pos.utc = loc.pos.geod.utc;
     }
 
     // Update time
-    loc->pos.geoc.utc = loc->pos.geod.utc = loc->pos.utc = loc->utc;
+    loc.pos.geoc.utc = loc.pos.geod.utc = loc.pos.utc = loc.utc;
 
     // Update pass
-    loc->pos.geoc.pass = loc->pos.geod.pass;
+    loc.pos.geoc.pass = loc.pos.geod.pass;
 
     // Update the geocentric position
-    geod2geoc(loc->pos.geod, loc->pos.geoc);
+    geod2geoc(loc.pos.geod, loc.pos.geoc);
     return 0;
 }
 
@@ -1174,26 +1274,31 @@ int32_t pos_geod2geoc(locstruc *loc)
 */
 int32_t pos_sci2selc(locstruc *loc)
 {
+    return pos_sci2selc(*loc);
+}
+
+int32_t pos_sci2selc(locstruc &loc)
+    {
     int32_t iretn;
     rvector v2 = {{0.}};
 	rmatrix m1;
 
 	// Synchronize time
-	if (0. == loc->pos.sci.utc)
+    if (0. == loc.pos.sci.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.sci.utc = loc->pos.utc = loc->utc;
+        loc.pos.sci.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.sci.utc))
+        if (!std::isfinite(loc.pos.sci.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.sci.utc;
+        loc.utc = loc.pos.utc = loc.pos.sci.utc;
 	}
 
 	// Update extra information
@@ -1204,23 +1309,23 @@ int32_t pos_sci2selc(locstruc *loc)
     }
 
 	// Update time
-	loc->pos.selc.utc = loc->utc;
+    loc.pos.selc.utc = loc.utc;
 
 	// Update pass
-	loc->pos.selc.pass = loc->att.icrf.pass = loc->pos.sci.pass;
+    loc.pos.selc.pass = loc.att.icrf.pass = loc.pos.sci.pass;
 
 	// Apply first order transform to all: J2000 to ITRS, then Earth to Moon
-	loc->pos.selc.s = rv_mmult(loc->pos.extra.j2s,loc->pos.sci.s);
-	loc->pos.selc.v = rv_mmult(loc->pos.extra.j2s,loc->pos.sci.v);
-	loc->pos.selc.a = rv_mmult(loc->pos.extra.j2s,loc->pos.sci.a);
+    loc.pos.selc.s = rv_mmult(loc.pos.extra.j2s,loc.pos.sci.s);
+    loc.pos.selc.v = rv_mmult(loc.pos.extra.j2s,loc.pos.sci.v);
+    loc.pos.selc.a = rv_mmult(loc.pos.extra.j2s,loc.pos.sci.a);
 
 	// Apply second order term due to first derivative of rotation matrix
-	m1 = rm_mmult(loc->pos.extra.dt2s,loc->pos.extra.j2t);
-	v2 = rv_mmult(m1,loc->pos.sci.s);
-	loc->pos.selc.v = rv_add(loc->pos.selc.v,v2);
+    m1 = rm_mmult(loc.pos.extra.dt2s,loc.pos.extra.j2t);
+    v2 = rv_mmult(m1,loc.pos.sci.s);
+    loc.pos.selc.v = rv_add(loc.pos.selc.v,v2);
 
-	v2 = rv_smult(2.,rv_mmult(m1,loc->pos.sci.v));
-	loc->pos.selc.a = rv_add(loc->pos.selc.a,v2);
+    v2 = rv_smult(2.,rv_mmult(m1,loc.pos.sci.v));
+    loc.pos.selc.a = rv_add(loc.pos.selc.a,v2);
 
 	// Convert SELC Position to SELG
 	pos_selc2selg(loc);
@@ -1244,26 +1349,31 @@ int32_t pos_sci2selc(locstruc *loc)
 */
 int32_t pos_selc2sci(locstruc *loc)
 {
+    return pos_selc2sci(*loc);
+}
+
+int32_t pos_selc2sci(locstruc &loc)
+    {
     int32_t iretn;
     rvector v2;
 	rmatrix m1;
 
 	// Synchroniz time
-	if (0. == loc->pos.selc.utc)
+    if (0. == loc.pos.selc.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.selc.utc = loc->pos.utc = loc->utc;
+        loc.pos.selc.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.selc.utc))
+        if (!std::isfinite(loc.pos.selc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.selc.utc;
+        loc.utc = loc.pos.utc = loc.pos.selc.utc;
 	}
 
 	// Update extra information
@@ -1274,24 +1384,24 @@ int32_t pos_selc2sci(locstruc *loc)
     }
 
 	// Update time
-	loc->pos.sci.utc = loc->utc;
+    loc.pos.sci.utc = loc.utc;
 
 	// Update pass
-	loc->pos.sci.pass = loc->att.selc.pass = loc->pos.selc.pass;
+    loc.pos.sci.pass = loc.att.selc.pass = loc.pos.selc.pass;
 
 	// Apply first order transform to all
-	loc->pos.sci.s = rv_mmult(loc->pos.extra.s2j,loc->pos.selc.s);
-	loc->pos.sci.v = rv_mmult(loc->pos.extra.s2j,loc->pos.selc.v);
-	loc->pos.sci.a = rv_mmult(loc->pos.extra.s2j,loc->pos.selc.a);
+    loc.pos.sci.s = rv_mmult(loc.pos.extra.s2j,loc.pos.selc.s);
+    loc.pos.sci.v = rv_mmult(loc.pos.extra.s2j,loc.pos.selc.v);
+    loc.pos.sci.a = rv_mmult(loc.pos.extra.s2j,loc.pos.selc.a);
 
 	// Apply second order correction due to first derivative of rotation matrix
-	m1 = rm_mmult(loc->pos.extra.t2j,loc->pos.extra.ds2t);
-	v2 = rv_mmult(m1,loc->pos.selc.s);
-	loc->pos.sci.v = rv_add(loc->pos.selc.v,v2);
+    m1 = rm_mmult(loc.pos.extra.t2j,loc.pos.extra.ds2t);
+    v2 = rv_mmult(m1,loc.pos.selc.s);
+    loc.pos.sci.v = rv_add(loc.pos.selc.v,v2);
 
 	m1 = rm_smult(2.,m1);
-	v2 = rv_mmult(m1,loc->pos.sci.v);
-	loc->pos.sci.a = rv_add(loc->pos.selc.a,v2);
+    v2 = rv_mmult(m1,loc.pos.sci.v);
+    loc.pos.sci.a = rv_add(loc.pos.selc.a,v2);
 
 	// Convert SCI Attitude to ICRF
 	att_selc2icrf(loc);
@@ -1305,25 +1415,30 @@ int32_t pos_selc2sci(locstruc *loc)
 */
 int32_t pos_selc2selg(locstruc *loc)
 {
+    return pos_selc2selg(*loc);
+}
+
+int32_t pos_selc2selg(locstruc &loc)
+    {
     int32_t iretn;
     double xvx, yvy, r2, r, minir, minir2;
 
 	// Synchroniz time
-	if (0. == loc->pos.selc.utc)
+    if (0. == loc.pos.selc.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.selc.utc = loc->pos.utc = loc->utc;
+        loc.pos.selc.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.selc.utc))
+        if (!std::isfinite(loc.pos.selc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.selc.utc;
+        loc.utc = loc.pos.utc = loc.pos.selc.utc;
 	}
 
 	// Update extra information
@@ -1334,53 +1449,58 @@ int32_t pos_selc2selg(locstruc *loc)
     }
 
 	// Update time
-	loc->pos.selg.utc = loc->utc;
+    loc.pos.selg.utc = loc.utc;
 
 	// Update pass
-	loc->pos.selg.pass = loc->pos.selc.pass;
+    loc.pos.selg.pass = loc.pos.selc.pass;
 
 	// Convert Geocentric Cartesian to Spherical
-	minir2 = loc->pos.selc.s.col[0]*loc->pos.selc.s.col[0]+loc->pos.selc.s.col[1]*loc->pos.selc.s.col[1];
+    minir2 = loc.pos.selc.s.col[0]*loc.pos.selc.s.col[0]+loc.pos.selc.s.col[1]*loc.pos.selc.s.col[1];
 	minir = fixprecision(sqrt(minir2),.1);
-	r2 = minir2+loc->pos.selc.s.col[2]*loc->pos.selc.s.col[2];
+    r2 = minir2+loc.pos.selc.s.col[2]*loc.pos.selc.s.col[2];
 	r = fixprecision(sqrt(r2),.1);
-	loc->pos.selg.s.lat = asin(loc->pos.selc.s.col[2]/r);
-	loc->pos.selg.s.lon = atan2(loc->pos.selc.s.col[1],loc->pos.selc.s.col[0]);
-	loc->pos.selg.s.h = r - (RMOONM);
+    loc.pos.selg.s.lat = asin(loc.pos.selc.s.col[2]/r);
+    loc.pos.selg.s.lon = atan2(loc.pos.selc.s.col[1],loc.pos.selc.s.col[0]);
+    loc.pos.selg.s.h = r - (RMOONM);
 
-	xvx = loc->pos.selc.s.col[0]*loc->pos.selc.v.col[0];
-	yvy = loc->pos.selc.s.col[1]*loc->pos.selc.v.col[1];
-	loc->pos.selg.v.h = (xvx+yvy+loc->pos.selc.s.col[2]*loc->pos.selc.v.col[2])/r;
-	loc->pos.selg.v.lat = (-(xvx+yvy) * loc->pos.selc.s.col[2] + minir2*loc->pos.selc.v.col[2])/(r2*minir);
-	loc->pos.selg.v.lon = (loc->pos.selc.s.col[0]*loc->pos.selc.v.col[1]+loc->pos.selc.s.col[1]*loc->pos.selc.v.col[0])/minir2;
+    xvx = loc.pos.selc.s.col[0]*loc.pos.selc.v.col[0];
+    yvy = loc.pos.selc.s.col[1]*loc.pos.selc.v.col[1];
+    loc.pos.selg.v.h = (xvx+yvy+loc.pos.selc.s.col[2]*loc.pos.selc.v.col[2])/r;
+    loc.pos.selg.v.lat = (-(xvx+yvy) * loc.pos.selc.s.col[2] + minir2*loc.pos.selc.v.col[2])/(r2*minir);
+    loc.pos.selg.v.lon = (loc.pos.selc.s.col[0]*loc.pos.selc.v.col[1]+loc.pos.selc.s.col[1]*loc.pos.selc.v.col[0])/minir2;
 
 	// Indicate we have set SELG position
-	loc->pos.selg.s.lat = fixprecision(loc->pos.selg.s.lat,.1/r);
-	loc->pos.selg.s.lon = fixprecision(loc->pos.selg.s.lon,.1/r);
+    loc.pos.selg.s.lat = fixprecision(loc.pos.selg.s.lat,.1/r);
+    loc.pos.selg.s.lon = fixprecision(loc.pos.selg.s.lon,.1/r);
     return 0;
 }
 
 int32_t pos_selg2selc(locstruc *loc)
 {
+    return pos_selg2selc(*loc);
+}
+
+int32_t pos_selg2selc(locstruc &loc)
+    {
     int32_t iretn;
     double sp, cp, sl, cl, cpr, r;
 
 	// Synchroniz time
-	if (0. == loc->pos.selg.utc)
+    if (0. == loc.pos.selg.utc)
 	{
-        if (!std::isfinite(loc->utc))
+        if (!std::isfinite(loc.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->pos.selg.utc = loc->pos.utc = loc->utc;
+        loc.pos.selg.utc = loc.pos.utc = loc.utc;
 	}
 	else
 	{
-        if (!std::isfinite(loc->pos.selg.utc))
+        if (!std::isfinite(loc.pos.selg.utc))
 		{
             return CONVERT_ERROR_UTC;
 		}
-		loc->utc = loc->pos.utc = loc->pos.selg.utc;
+        loc.utc = loc.pos.utc = loc.pos.selg.utc;
 	}
 
 	// Update extra information
@@ -1391,28 +1511,28 @@ int32_t pos_selg2selc(locstruc *loc)
     }
 
 	// Update time
-	loc->pos.selc.utc = loc->utc;
+    loc.pos.selc.utc = loc.utc;
 
 	// Update pass
-	loc->pos.selc.pass = loc->pos.selg.pass;
+    loc.pos.selc.pass = loc.pos.selg.pass;
 
-	r = loc->pos.selg.s.h + RMOONM;
+    r = loc.pos.selg.s.h + RMOONM;
 
-	sp = sin(loc->pos.selg.s.lat);
-	cp = cos(loc->pos.selg.s.lat);
-	sl = sin(loc->pos.selg.s.lon);
-	cl = cos(loc->pos.selg.s.lon);
+    sp = sin(loc.pos.selg.s.lat);
+    cp = cos(loc.pos.selg.s.lat);
+    sl = sin(loc.pos.selg.s.lon);
+    cl = cos(loc.pos.selg.s.lon);
 	cpr = cp * r;
 
-	loc->pos.selc.s = loc->pos.selc.v = loc->pos.selc.a = rv_zero();
+    loc.pos.selc.s = loc.pos.selc.v = loc.pos.selc.a = rv_zero();
 
-	loc->pos.selc.s.col[0] = cpr * cl;
-	loc->pos.selc.s.col[1] = cpr * sl;
-	loc->pos.selc.s.col[2] = r * sp;
+    loc.pos.selc.s.col[0] = cpr * cl;
+    loc.pos.selc.s.col[1] = cpr * sl;
+    loc.pos.selc.s.col[2] = r * sp;
 
-	loc->pos.selc.v.col[0] = loc->pos.selg.v.h * cp * cl - loc->pos.selg.v.lat * r * sp * cl - loc->pos.selg.v.lon * cpr * sl;
-	loc->pos.selc.v.col[1] = loc->pos.selg.v.h * cp * sl - loc->pos.selg.v.lat * r * sp * sl + loc->pos.selg.v.lon * cpr * cl;
-	loc->pos.selc.v.col[2] = loc->pos.selg.v.h * sp + loc->pos.selg.v.lat * cpr;
+    loc.pos.selc.v.col[0] = loc.pos.selg.v.h * cp * cl - loc.pos.selg.v.lat * r * sp * cl - loc.pos.selg.v.lon * cpr * sl;
+    loc.pos.selc.v.col[1] = loc.pos.selg.v.h * cp * sl - loc.pos.selg.v.lat * r * sp * sl + loc.pos.selg.v.lon * cpr * cl;
+    loc.pos.selc.v.col[2] = loc.pos.selg.v.h * sp + loc.pos.selg.v.lat * cpr;
 
     return 0;
 }
@@ -1435,16 +1555,26 @@ double rearth(double lat)
 */
 void att_extra(locstruc *loc)
 {
-	if (loc->att.extra.utc == loc->att.icrf.utc)
+    att_extra(*loc);
+}
+
+void att_extra(locstruc &loc)
+    {
+    if (loc.att.extra.utc == loc.att.icrf.utc)
 		return;
 
-	loc->att.extra.b2j = rm_quaternion2dcm(loc->att.icrf.s);
-	loc->att.extra.j2b = rm_transpose(loc->att.extra.b2j);
-	loc->att.extra.utc = loc->att.icrf.utc;
+    loc.att.extra.b2j = rm_quaternion2dcm(loc.att.icrf.s);
+    loc.att.extra.j2b = rm_transpose(loc.att.extra.b2j);
+    loc.att.extra.utc = loc.att.icrf.utc;
 }
 
 int32_t att_icrf2geoc(locstruc *loc)
 {
+    return att_icrf2geoc(*loc);
+}
+
+int32_t att_icrf2geoc(locstruc &loc)
+    {
     int32_t iretn;
 	rvector alpha;
 	double radius;
@@ -1458,25 +1588,25 @@ int32_t att_icrf2geoc(locstruc *loc)
     att_extra(loc);
 
 	// Update time
-	loc->att.geoc.utc = loc->att.icrf.utc = loc->utc;
+    loc.att.geoc.utc = loc.att.icrf.utc = loc.utc;
 
 	// Update pass
-	loc->att.geoc.pass = loc->att.icrf.pass;
+    loc.att.geoc.pass = loc.att.icrf.pass;
 
 	// Use to rotate ECI into ITRS
-    loc->att.geoc.s = q_fmult(q_dcm2quaternion_rm(loc->pos.extra.j2e),loc->att.icrf.s);
-	normalize_q(&loc->att.geoc.s);
-	loc->att.geoc.v = rv_mmult(loc->pos.extra.j2e,loc->att.icrf.v);
-	loc->att.geoc.a = rv_mmult(loc->pos.extra.j2e,loc->att.icrf.a);
+    loc.att.geoc.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.j2e),loc.att.icrf.s);
+    normalize_q(&loc.att.geoc.s);
+    loc.att.geoc.v = rv_mmult(loc.pos.extra.j2e,loc.att.icrf.v);
+    loc.att.geoc.a = rv_mmult(loc.pos.extra.j2e,loc.att.icrf.a);
 
 	// Correct velocity for ECI angular velocity wrt ITRS, expressed in ITRS
-	radius = length_rv(loc->pos.eci.s);
+    radius = length_rv(loc.pos.eci.s);
 
-	alpha = rv_smult(1./(radius*radius),rv_cross(rv_mmult(loc->pos.extra.j2e,loc->pos.eci.s),rv_mmult(loc->pos.extra.dj2e,loc->pos.eci.s)));
-	loc->att.geoc.v = rv_add(loc->att.geoc.v,alpha);
+    alpha = rv_smult(1./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.j2e,loc.pos.eci.s),rv_mmult(loc.pos.extra.dj2e,loc.pos.eci.s)));
+    loc.att.geoc.v = rv_add(loc.att.geoc.v,alpha);
 
-	alpha = rv_smult(2./(radius*radius),rv_cross(rv_mmult(loc->pos.extra.j2e,loc->pos.eci.s),rv_mmult(loc->pos.extra.dj2e,loc->pos.eci.v)));
-	loc->att.geoc.a = rv_add(loc->att.geoc.a,alpha);
+    alpha = rv_smult(2./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.j2e,loc.pos.eci.s),rv_mmult(loc.pos.extra.dj2e,loc.pos.eci.v)));
+    loc.att.geoc.a = rv_add(loc.att.geoc.a,alpha);
 
 	// Convert ITRF attitude to Topocentric
 	att_planec2topo(loc);
@@ -1488,33 +1618,38 @@ int32_t att_icrf2geoc(locstruc *loc)
 
 void att_geoc2icrf(locstruc *loc)
 {
-	//	rmatrix fpm = {{{{0.}}}}, dpm = {{{{0.}}}};
+    att_geoc2icrf(*loc);
+}
+
+void att_geoc2icrf(locstruc &loc)
+    {
+    //	rmatrix fpm = {{{{0.}}}}, dpm = {{{{0.}}}};
 	rvector alpha;
 	double radius;
 
 	// Propagate time
-	loc->att.icrf.utc = loc->att.geoc.utc = loc->utc;
+    loc.att.icrf.utc = loc.att.geoc.utc = loc.utc;
 
 	// Update pass
-	loc->att.icrf.pass = loc->att.geoc.pass;
+    loc.att.icrf.pass = loc.att.geoc.pass;
 
 	// Update extra
 	att_extra(loc);
 
 	// Perform first order rotation of ITRS frame into ECI frame
-    loc->att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc->pos.extra.e2j),loc->att.geoc.s);
-	normalize_q(&loc->att.icrf.s);
-	loc->att.icrf.v = rv_mmult(loc->pos.extra.e2j,loc->att.geoc.v);
-	loc->att.icrf.a = rv_mmult(loc->pos.extra.e2j,loc->att.geoc.a);
+    loc.att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.e2j),loc.att.geoc.s);
+    normalize_q(&loc.att.icrf.s);
+    loc.att.icrf.v = rv_mmult(loc.pos.extra.e2j,loc.att.geoc.v);
+    loc.att.icrf.a = rv_mmult(loc.pos.extra.e2j,loc.att.geoc.a);
 
 	// Correct for ITRS angular velocity wrt ECI, expressed in ECI
-	radius = length_rv(loc->pos.geoc.s);
+    radius = length_rv(loc.pos.geoc.s);
 
-	alpha = rv_smult(1./(radius*radius),rv_cross(rv_mmult(loc->pos.extra.e2j,loc->pos.geoc.s),rv_mmult(loc->pos.extra.de2j,loc->pos.geoc.s)));
-	loc->att.icrf.v = rv_add(loc->att.icrf.v,alpha);
+    alpha = rv_smult(1./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.s),rv_mmult(loc.pos.extra.de2j,loc.pos.geoc.s)));
+    loc.att.icrf.v = rv_add(loc.att.icrf.v,alpha);
 
-	alpha = rv_smult(2./(radius*radius),rv_cross(rv_mmult(loc->pos.extra.e2j,loc->pos.geoc.s),rv_mmult(loc->pos.extra.de2j,loc->pos.geoc.v)));
-	loc->att.icrf.a = rv_add(loc->att.icrf.a,alpha);
+    alpha = rv_smult(2./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.e2j,loc.pos.geoc.s),rv_mmult(loc.pos.extra.de2j,loc.pos.geoc.v)));
+    loc.att.icrf.a = rv_add(loc.att.icrf.a,alpha);
 
 	// Extra attitude information
 	att_extra(loc);
@@ -1522,17 +1657,22 @@ void att_geoc2icrf(locstruc *loc)
 
 void att_geoc(locstruc *loc)
 {
-	if (loc->att.geoc.pass > loc->att.topo.pass)
+    att_geoc(*loc);
+}
+
+void att_geoc(locstruc &loc)
+    {
+    if (loc.att.geoc.pass > loc.att.topo.pass)
 	{
 		att_planec2topo(loc);
 		att_topo(loc);
 	}
-	if (loc->att.geoc.pass > loc->att.lvlh.pass)
+    if (loc.att.geoc.pass > loc.att.lvlh.pass)
 	{
 		att_planec2lvlh(loc);
 		att_lvlh(loc);
 	}
-	if (loc->att.geoc.pass > loc->att.icrf.pass)
+    if (loc.att.geoc.pass > loc.att.icrf.pass)
 	{
 		att_geoc2icrf(loc);
 		att_icrf(loc);
@@ -1541,16 +1681,21 @@ void att_geoc(locstruc *loc)
 
 int32_t att_icrf2selc(locstruc *loc)
 {
+   return  att_icrf2selc(*loc);
+}
+
+int32_t att_icrf2selc(locstruc &loc)
+    {
     int32_t iretn;
     rmatrix dpm = {{{{0.}}}};
 	rvector alpha;
 	double radius;
 
 	// Propagate time
-	loc->att.icrf.utc = loc->att.selc.utc = loc->utc;
+    loc.att.icrf.utc = loc.att.selc.utc = loc.utc;
 
 	// Update pass
-	loc->att.selc.pass = loc->att.icrf.pass;
+    loc.att.selc.pass = loc.att.icrf.pass;
 
 	att_extra(loc);
     iretn = pos_extra(loc);
@@ -1560,21 +1705,21 @@ int32_t att_icrf2selc(locstruc *loc)
     }
 
 	// Use to rotate ICRF into SELC
-    loc->att.selc.s = q_fmult(q_dcm2quaternion_rm(loc->pos.extra.j2s),loc->att.icrf.s);
-	normalize_q(&loc->att.selc.s);
-	loc->att.selc.v = rv_mmult(loc->pos.extra.j2s,loc->att.icrf.v);
-	loc->att.selc.a = rv_mmult(loc->pos.extra.j2s,loc->att.icrf.a);
+    loc.att.selc.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.j2s),loc.att.icrf.s);
+    normalize_q(&loc.att.selc.s);
+    loc.att.selc.v = rv_mmult(loc.pos.extra.j2s,loc.att.icrf.v);
+    loc.att.selc.a = rv_mmult(loc.pos.extra.j2s,loc.att.icrf.a);
 
 	// Correct velocity for ECI angular velocity wrt ITRS, expressed in ITRS
-	radius = length_rv(loc->pos.eci.s);
+    radius = length_rv(loc.pos.eci.s);
 
 	dpm = rm_zero();
 
-	alpha = rv_smult(1./(radius*radius),rv_cross(rv_mmult(loc->pos.extra.j2s,loc->pos.eci.s),rv_mmult(dpm,loc->pos.eci.s)));
-	loc->att.selc.v = rv_add(loc->att.selc.v,alpha);
+    alpha = rv_smult(1./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.j2s,loc.pos.eci.s),rv_mmult(dpm,loc.pos.eci.s)));
+    loc.att.selc.v = rv_add(loc.att.selc.v,alpha);
 
-	alpha = rv_smult(2./(radius*radius),rv_cross(rv_mmult(loc->pos.extra.j2s,loc->pos.eci.s),rv_mmult(dpm,loc->pos.eci.v)));
-	loc->att.selc.a = rv_add(loc->att.selc.a,alpha);
+    alpha = rv_smult(2./(radius*radius),rv_cross(rv_mmult(loc.pos.extra.j2s,loc.pos.eci.s),rv_mmult(dpm,loc.pos.eci.v)));
+    loc.att.selc.a = rv_add(loc.att.selc.a,alpha);
 
 	// Synchronize LVLH
 	att_planec2lvlh(loc);
@@ -1586,24 +1731,29 @@ int32_t att_icrf2selc(locstruc *loc)
 
 void att_selc2icrf(locstruc *loc)
 {
-	//	rmatrix fpm = {{{{0.}}}};
+    att_selc2icrf(*loc);
+}
+
+void att_selc2icrf(locstruc &loc)
+    {
+    //	rmatrix fpm = {{{{0.}}}};
 
 	// Propagate time
-	loc->att.icrf.utc = loc->att.selc.utc = loc->utc;
+    loc.att.icrf.utc = loc.att.selc.utc = loc.utc;
 
 	// Update pass
-	loc->att.icrf.pass = loc->att.selc.pass;
+    loc.att.icrf.pass = loc.att.selc.pass;
 
 	att_extra(loc);
 
 	// Calculate rotation matrix to J2000
-	//	fpm = loc->pos.extra.s2j;
+    //	fpm = loc.pos.extra.s2j;
 
 	// Perform first order rotation of SELC frame into ICRF frame
-    loc->att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc->pos.extra.s2j),loc->att.selc.s);
-	normalize_q(&loc->att.icrf.s);
-	loc->att.icrf.v = rv_mmult(loc->pos.extra.s2j,loc->att.selc.v);
-	loc->att.icrf.a = rv_mmult(loc->pos.extra.s2j,loc->att.selc.a);
+    loc.att.icrf.s = q_fmult(q_dcm2quaternion_rm(loc.pos.extra.s2j),loc.att.selc.s);
+    normalize_q(&loc.att.icrf.s);
+    loc.att.icrf.v = rv_mmult(loc.pos.extra.s2j,loc.att.selc.v);
+    loc.att.icrf.a = rv_mmult(loc.pos.extra.s2j,loc.att.selc.a);
 
 	// Extra attitude information
 	att_extra(loc);
@@ -1611,17 +1761,22 @@ void att_selc2icrf(locstruc *loc)
 
 void att_selc(locstruc *loc)
 {
-	if (loc->att.selc.pass > loc->att.topo.pass)
+    att_selc(*loc);
+}
+
+void att_selc(locstruc &loc)
+    {
+    if (loc.att.selc.pass > loc.att.topo.pass)
 	{
 		att_planec2topo(loc);
 		att_topo(loc);
 	}
-	if (loc->att.selc.pass > loc->att.lvlh.pass)
+    if (loc.att.selc.pass > loc.att.lvlh.pass)
 	{
 		att_planec2lvlh(loc);
 		att_lvlh(loc);
 	}
-	if (loc->att.selc.pass > loc->att.icrf.pass)
+    if (loc.att.selc.pass > loc.att.icrf.pass)
 	{
 		att_selc2icrf(loc);
 		att_icrf(loc);
@@ -1630,6 +1785,11 @@ void att_selc(locstruc *loc)
 
 void att_icrf2lvlh(locstruc *loc)
 {
+    att_icrf2lvlh(*loc);
+}
+
+void att_icrf2lvlh(locstruc &loc)
+    {
 	att_icrf2geoc(loc);
 	att_icrf2selc(loc);
 	att_planec2lvlh(loc);
@@ -1637,13 +1797,18 @@ void att_icrf2lvlh(locstruc *loc)
 
 void att_icrf(locstruc *loc)
 {
-	if (loc->att.icrf.pass > loc->att.geoc.pass)
+    att_icrf(*loc);
+}
+
+void att_icrf(locstruc &loc)
+    {
+    if (loc.att.icrf.pass > loc.att.geoc.pass)
 	{
 		att_icrf2geoc(loc);
 		att_geoc(loc);
 	}
 	
-	if (loc->att.icrf.pass > loc->att.selc.pass)
+    if (loc.att.icrf.pass > loc.att.selc.pass)
 	{
 		att_icrf2selc(loc);
 		att_selc(loc);
@@ -1657,32 +1822,37 @@ void att_icrf(locstruc *loc)
 */
 void att_planec2lvlh(locstruc *loc)
 {
-	quaternion qe_z = {{0.,0.,0.},1.}, qe_y = {{0.,0.,0.},1.}, fqe = {{0.,0.,0.},1.}, rqe = {{0.,0.,0.},1.};
+    att_planec2lvlh(*loc);
+}
+
+void att_planec2lvlh(locstruc &loc)
+    {
+    quaternion qe_z = {{0.,0.,0.},1.}, qe_y = {{0.,0.,0.},1.}, fqe = {{0.,0.,0.},1.}, rqe = {{0.,0.,0.},1.};
 	rvector lvlh_z = {{0.,0.,1.}}, lvlh_y = {{0.,1.,0.}}, geoc_z = {{0.}}, geoc_y = {{0.}}, alpha = {{0.}};
 	qatt *patt;
 	cartpos *ppos;
 	double radius;
 
-	switch (loc->pos.extra.closest)
+    switch (loc.pos.extra.closest)
 	{
 	case COSMOS_EARTH:
 	default:
-		patt = &loc->att.geoc;
-		ppos = &loc->pos.geoc;
+        patt = &loc.att.geoc;
+        ppos = &loc.pos.geoc;
 		break;
 	case COSMOS_MOON:
-		patt = &loc->att.selc;
-		ppos = &loc->pos.selc;
+        patt = &loc.att.selc;
+        ppos = &loc.pos.selc;
 		break;
 	}
 
 	radius = length_rv(ppos->s);
 
 	// Update time
-	loc->att.lvlh.utc = patt->utc = loc->utc;
+    loc.att.lvlh.utc = patt->utc = loc.utc;
 
 	// Update pass
-	loc->att.lvlh.pass = patt->pass;
+    loc.att.lvlh.pass = patt->pass;
 
 	att_extra(loc);
 
@@ -1711,15 +1881,15 @@ void att_planec2lvlh(locstruc *loc)
 
 	// Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
 	alpha = rv_smult(1./(radius*radius),rv_cross(ppos->s,ppos->v));
-	loc->att.lvlh.v = rv_sub(patt->v,alpha);
+    loc.att.lvlh.v = rv_sub(patt->v,alpha);
 
 	// Transform ITRS into LVLH
-    //	loc->att.lvlh.s = q_fmult(patt->s,fqe);
-	//	loc->att.lvlh.v = irotate(fqe,loc->att.lvlh.v);
-	//	loc->att.lvlh.a = irotate(fqe,patt->a);
-    loc->att.lvlh.s = q_fmult(rqe,patt->s);
-	loc->att.lvlh.v = irotate(fqe,loc->att.lvlh.v);
-	loc->att.lvlh.a = irotate(fqe,patt->a);
+    //	loc.att.lvlh.s = q_fmult(patt->s,fqe);
+    //	loc.att.lvlh.v = irotate(fqe,loc.att.lvlh.v);
+    //	loc.att.lvlh.a = irotate(fqe,patt->a);
+    loc.att.lvlh.s = q_fmult(rqe,patt->s);
+    loc.att.lvlh.v = irotate(fqe,loc.att.lvlh.v);
+    loc.att.lvlh.a = irotate(fqe,patt->a);
 
 }
 
@@ -1730,32 +1900,37 @@ void att_planec2lvlh(locstruc *loc)
 */
 void att_lvlh2planec(locstruc *loc)
 {
-	quaternion qe_z = {{0.,0.,0.},1.}, qe_y = {{0.,0.,0.},1.}, fqe = {{0.,0.,0.},1.}, rqe = {{0.,0.,0.},1.};
+    att_lvlh2planec(*loc);
+}
+
+void att_lvlh2planec(locstruc &loc)
+    {
+    quaternion qe_z = {{0.,0.,0.},1.}, qe_y = {{0.,0.,0.},1.}, fqe = {{0.,0.,0.},1.}, rqe = {{0.,0.,0.},1.};
 	rvector lvlh_z = {{0.,0.,1.}}, lvlh_y = {{0.,1.,0.}}, geoc_z = {{0.}}, geoc_y = {{0.}}, alpha = {{0.}};
 	qatt *patt;
 	cartpos *ppos;
 	double radius;
 
-	switch (loc->pos.extra.closest)
+    switch (loc.pos.extra.closest)
 	{
 	case COSMOS_EARTH:
 	default:
-		patt = &loc->att.geoc;
-		ppos = &loc->pos.geoc;
+        patt = &loc.att.geoc;
+        ppos = &loc.pos.geoc;
 		break;
 	case COSMOS_MOON:
-		patt = &loc->att.selc;
-		ppos = &loc->pos.selc;
+        patt = &loc.att.selc;
+        ppos = &loc.pos.selc;
 		break;
 	}
 	radius = length_rv(ppos->s);
 
 
 	// Update time
-	loc->att.lvlh.utc = patt->utc = loc->utc;
+    loc.att.lvlh.utc = patt->utc = loc.utc;
 
 	// Update pass
-	ppos->pass = patt->pass = loc->att.lvlh.pass;
+    ppos->pass = patt->pass = loc.att.lvlh.pass;
 
 	att_extra(loc);
 
@@ -1792,12 +1967,12 @@ void att_lvlh2planec(locstruc *loc)
 	normalize_rv(geoc_y);
 
 	// Rotate LVLH frame into ITRS frame
-    //	patt->s = q_fmult(rqe,loc->att.lvlh.s);
-	//	patt->v = irotate(fqe,loc->att.lvlh.v);
-	//	patt->a = irotate(fqe,loc->att.lvlh.a);
-    patt->s = q_fmult(fqe,loc->att.lvlh.s);
-	patt->v = irotate(rqe,loc->att.lvlh.v);
-	patt->a = irotate(rqe,loc->att.lvlh.a);
+    //	patt->s = q_fmult(rqe,loc.att.lvlh.s);
+    //	patt->v = irotate(fqe,loc.att.lvlh.v);
+    //	patt->a = irotate(fqe,loc.att.lvlh.a);
+    patt->s = q_fmult(fqe,loc.att.lvlh.s);
+    patt->v = irotate(rqe,loc.att.lvlh.v);
+    patt->a = irotate(rqe,loc.att.lvlh.a);
 
 	// Correct velocity for LVLH angular velocity wrt ITRS, expressed in ITRS
 	alpha = rv_smult(1./(radius*radius),rv_cross(ppos->s,ppos->v));
@@ -1814,6 +1989,11 @@ void att_lvlh2planec(locstruc *loc)
 */
 int32_t att_lvlh2icrf(locstruc *loc)
 {
+    return att_lvlh2icrf(*loc);
+}
+
+int32_t att_lvlh2icrf(locstruc &loc)
+    {
     int32_t iretn;
     iretn = pos_extra(loc);
     if (iretn < 0)
@@ -1823,7 +2003,7 @@ int32_t att_lvlh2icrf(locstruc *loc)
     att_extra(loc);
 
 	att_lvlh2planec(loc);
-	switch (loc->pos.extra.closest)
+    switch (loc.pos.extra.closest)
 	{
 	case COSMOS_EARTH:
 	default:
@@ -1838,6 +2018,11 @@ int32_t att_lvlh2icrf(locstruc *loc)
 
 int32_t att_lvlh(locstruc *loc)
 {
+    return att_lvlh(*loc);
+}
+
+int32_t att_lvlh(locstruc &loc)
+    {
     int32_t iretn;
     iretn = pos_extra(loc);
     if (iretn < 0)
@@ -1846,18 +2031,18 @@ int32_t att_lvlh(locstruc *loc)
     }
     att_extra(loc);
 
-	switch (loc->pos.extra.closest)
+    switch (loc.pos.extra.closest)
 	{
 	case COSMOS_EARTH:
 	default:
-		if (loc->att.lvlh.pass > loc->att.geoc.pass)
+        if (loc.att.lvlh.pass > loc.att.geoc.pass)
 		{
 			att_lvlh2planec(loc);
 			att_geoc(loc);
 		}
 		break;
 	case COSMOS_MOON:
-		if (loc->att.lvlh.pass > loc->att.selc.pass)
+        if (loc.att.lvlh.pass > loc.att.selc.pass)
 		{
 			att_lvlh2planec(loc);
 			att_selc(loc);
@@ -1874,29 +2059,34 @@ int32_t att_lvlh(locstruc *loc)
 */
 void att_planec2topo(locstruc *loc)
 {
-	quaternion t2g, t2g_z, t2g_x, g2t;
+    att_planec2topo(*loc);
+}
+
+void att_planec2topo(locstruc &loc)
+    {
+    quaternion t2g, t2g_z, t2g_x, g2t;
 	rvector geoc_x={{0.}}, topo_x={{0.}}, alpha;
 	qatt *patt;
 	cartpos *ppos;
 
-	switch (loc->pos.extra.closest)
+    switch (loc.pos.extra.closest)
 	{
 	case COSMOS_EARTH:
 	default:
-		patt = &loc->att.geoc;
-		ppos = &loc->pos.geoc;
+        patt = &loc.att.geoc;
+        ppos = &loc.pos.geoc;
 		break;
 	case COSMOS_MOON:
-		patt = &loc->att.selc;
-		ppos = &loc->pos.selc;
+        patt = &loc.att.selc;
+        ppos = &loc.pos.selc;
 		break;
 	}
 
 	// Update time
-	loc->att.topo.utc = patt->utc = loc->utc;
+    loc.att.topo.utc = patt->utc = loc.utc;
 
 	// Update pass
-	loc->att.topo.pass = patt->pass;
+    loc.att.topo.pass = patt->pass;
 
 	att_extra(loc);
 
@@ -1920,12 +2110,12 @@ void att_planec2topo(locstruc *loc)
 
 	// Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
 	alpha = rv_smult(-1./(length_rv(ppos->s)*length_rv(ppos->s)),rv_cross(ppos->s,ppos->v));
-	loc->att.topo.v = rv_add(patt->v, alpha);
+    loc.att.topo.v = rv_add(patt->v, alpha);
 
 	// Rotate ITRS frame into Topo frame
-    loc->att.topo.s = q_fmult(g2t, patt->s);
-	loc->att.topo.v = irotate(t2g,loc->att.topo.v);
-	loc->att.topo.a = irotate(t2g,patt->a);
+    loc.att.topo.s = q_fmult(g2t, patt->s);
+    loc.att.topo.v = irotate(t2g,loc.att.topo.v);
+    loc.att.topo.a = irotate(t2g,patt->a);
 
 }
 
@@ -1936,29 +2126,34 @@ void att_planec2topo(locstruc *loc)
 */
 void att_topo2planec(locstruc *loc)
 {
-	quaternion t2g, t2g_z, t2g_x, g2t;
+    att_topo2planec(*loc);
+}
+
+void att_topo2planec(locstruc &loc)
+    {
+    quaternion t2g, t2g_z, t2g_x, g2t;
 	rvector geoc_x={{0.}}, topo_x={{0.}}, alpha;
 	qatt *patt;
 	cartpos *ppos;
 
-	switch (loc->pos.extra.closest)
+    switch (loc.pos.extra.closest)
 	{
 	case COSMOS_EARTH:
 	default:
-		patt = &loc->att.geoc;
-		ppos = &loc->pos.geoc;
+        patt = &loc.att.geoc;
+        ppos = &loc.pos.geoc;
 		break;
 	case COSMOS_MOON:
-		patt = &loc->att.selc;
-		ppos = &loc->pos.selc;
+        patt = &loc.att.selc;
+        ppos = &loc.pos.selc;
 		break;
 	}
 
 	// Update time
-	patt->utc = loc->att.topo.utc = loc->utc;
+    patt->utc = loc.att.topo.utc = loc.utc;
 
 	// Update pass
-	ppos->pass = patt->pass = loc->att.topo.pass;
+    ppos->pass = patt->pass = loc.att.topo.pass;
 
 	att_extra(loc);
 
@@ -1981,17 +2176,17 @@ void att_topo2planec(locstruc *loc)
 	g2t = q_conjugate(t2g);
 
 	// Rotate Topo frame into ITRS frame
-    patt->s = q_fmult(loc->att.topo.s,t2g);
-	patt->v = irotate(g2t,loc->att.topo.v);
-	patt->a = irotate(g2t,loc->att.topo.a);
+    patt->s = q_fmult(loc.att.topo.s,t2g);
+    patt->v = irotate(g2t,loc.att.topo.v);
+    patt->a = irotate(g2t,loc.att.topo.a);
 
 	// Correct velocity for Topo angular velocity wrt ITRS, expressed in ITRS
 	alpha = rv_smult(-1./(length_rv(ppos->s)*length_rv(ppos->s)),rv_cross(ppos->s,ppos->v));
 
 	// Correct for rotation of frame
-	patt->v = rv_add(loc->att.topo.v,alpha);
+    patt->v = rv_add(loc.att.topo.v,alpha);
 
-	switch (loc->pos.extra.closest)
+    switch (loc.pos.extra.closest)
 	{
 	case COSMOS_EARTH:
 	default:
@@ -2006,6 +2201,11 @@ void att_topo2planec(locstruc *loc)
 
 int32_t att_topo(locstruc *loc)
 {
+    return att_topo(*loc);
+}
+
+int32_t att_topo(locstruc &loc)
+    {
     int32_t iretn;
     iretn = pos_extra(loc);
     if (iretn < 0)
@@ -2014,18 +2214,18 @@ int32_t att_topo(locstruc *loc)
     }
     att_extra(loc);
 
-	switch (loc->pos.extra.closest)
+    switch (loc.pos.extra.closest)
 	{
 	case COSMOS_EARTH:
 	default:
-		if (loc->att.topo.pass > loc->att.geoc.pass)
+        if (loc.att.topo.pass > loc.att.geoc.pass)
 		{
 			att_topo2planec(loc);
 			att_geoc(loc);
 		}
 		break;
 	case COSMOS_MOON:
-		if (loc->att.topo.pass > loc->att.selc.pass)
+        if (loc.att.topo.pass > loc.att.selc.pass)
 		{
 			att_topo2planec(loc);
 			att_selc(loc);
@@ -2043,72 +2243,77 @@ match.
 */
 void loc_update(locstruc *loc)
 {
-	uint32_t ppass=0, apass = 0;
+    loc_update(*loc);
+}
+
+void loc_update(locstruc &loc)
+    {
+    uint32_t ppass=0, apass = 0;
 	int32_t ptype=-1, atype = -1;
 
-	if (loc->att.icrf.pass > apass)
+    if (loc.att.icrf.pass > apass)
 	{
-		apass = loc->att.icrf.pass;
+        apass = loc.att.icrf.pass;
 		atype = JSON_TYPE_QATT_ICRF;
 	}
-	if (loc->att.geoc.pass > apass)
+    if (loc.att.geoc.pass > apass)
 	{
-		apass = loc->att.geoc.pass;
+        apass = loc.att.geoc.pass;
 		atype = JSON_TYPE_QATT_GEOC;
 	}
-	if (loc->att.selc.pass > apass)
+    if (loc.att.selc.pass > apass)
 	{
-		apass = loc->att.selc.pass;
+        apass = loc.att.selc.pass;
 		atype = JSON_TYPE_QATT_SELC;
 	}
-	if (loc->att.lvlh.pass > apass)
+    if (loc.att.lvlh.pass > apass)
 	{
-		apass = loc->att.lvlh.pass;
+        apass = loc.att.lvlh.pass;
 		atype = JSON_TYPE_QATT_LVLH;
 	}
-	if (loc->att.topo.pass > apass)
+    if (loc.att.topo.pass > apass)
 	{
-		apass = loc->att.topo.pass;
+        apass = loc.att.topo.pass;
 		atype = JSON_TYPE_QATT_TOPO;
 	}
-	if (loc->pos.icrf.pass > ppass)
+    if (loc.pos.icrf.pass > ppass)
 	{
-		ppass = loc->pos.icrf.pass;
+        ppass = loc.pos.icrf.pass;
 		ptype = JSON_TYPE_POS_ICRF;
 	}
-	if (loc->pos.eci.pass > ppass)
+    if (loc.pos.eci.pass > ppass)
 	{
-		ppass = loc->pos.eci.pass;
+        ppass = loc.pos.eci.pass;
 		ptype = JSON_TYPE_POS_ECI;
 	}
-	if (loc->pos.sci.pass > ppass)
+    if (loc.pos.sci.pass > ppass)
 	{
-		ppass = loc->pos.sci.pass;
+        ppass = loc.pos.sci.pass;
 		ptype = JSON_TYPE_POS_SCI;
 	}
-	if (loc->pos.geoc.pass > ppass)
+    if (loc.pos.geoc.pass > ppass)
 	{
-		ppass = loc->pos.geoc.pass;
+        ppass = loc.pos.geoc.pass;
 		ptype = JSON_TYPE_POS_GEOC;
 	}
-	if (loc->pos.selc.pass > ppass)
+    if (loc.pos.selc.pass > ppass)
 	{
-		ppass = loc->pos.selc.pass;
+        ppass = loc.pos.selc.pass;
 		ptype = JSON_TYPE_POS_SELC;
 	}
-	if (loc->pos.geod.pass > ppass)
+    if (loc.pos.geod.pass > ppass)
 	{
-		ppass = loc->pos.geod.pass;
+        ppass = loc.pos.geod.pass;
 		ptype = JSON_TYPE_POS_GEOD;
 	}
-	if (loc->pos.geos.pass > ppass)
+    if (loc.pos.geos.pass > ppass)
 	{
-		ppass = loc->pos.geos.pass;
+        ppass = loc.pos.geos.pass;
 		ptype = JSON_TYPE_POS_GEOS;
 	}
-	if (loc->pos.selg.pass > ppass)
+    if (loc.pos.selg.pass > ppass)
 	{
-		ppass = loc->pos.selg.pass;
+        ppass = loc.pos.selg.pass;
 		ptype = JSON_TYPE_POS_SELG;
 	}
 
@@ -2729,8 +2934,8 @@ void eci2kep(cartpos &eci,kepstruc &kep)
 			kep.raan = O_UNDEFINED;
 
 		// Find eccentric and mean anomaly
-		kep.ea = atan2(rdotv/sqrt(kep.a*GM),1.-magr/kep.a);
-		kep.ma = kep.ea - kep.e*sin(kep.ea);
+        kep.ea = atan2(rdotv/sqrt(kep.a*GM),1.-magr/kep.a);
+        kep.ma = kep.ea - kep.e*sin(kep.ea);
 
 		// Find argument of latitude
 		kep.alat = atan2(eci.s.col[2],(eci.s.col[1]*kep.h.col[0]-eci.s.col[0]*kep.h.col[1])/magh);
@@ -2921,6 +3126,10 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
 
     if (tle.utc != lutc || tle.snumber != lsnumber)
     {
+        if (tle.e < .00000000001)
+        {
+            tle.e = .00000000001;
+        }
         // RECOVER ORIGINAL MEAN MOTION ( xnodp ) AND SEMIMAJOR AXIS (aodp)
         // FROM INPUT ELEMENTS
         a1=pow((SGP4_XKE/ tle.mm ),SGP4_TOTHRD);
@@ -3008,7 +3217,7 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
     }
 
     // UPDATE FOR SECULAR GRAVITY AND ATMOSPHERIC DRAG
-    tsince = (utc - tle.utc) * 1440.;
+    tsince = (utc - tle.utc) * SGP4_XMNPDA;
     xmdf = tle.ma +xmdot*tsince;
     omgadf= tle.ap +omgdot*tsince;
     xnoddf= tle.raan + xnodot*tsince;
@@ -3106,12 +3315,12 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
     // POSITION AND VELOCITY in TEME
 	pos_teme.s = pos_teme.v = pos_teme.a = rv_zero();
 
-	pos_teme.s.col[0] = REARTHM * rk *ux;
-	pos_teme.s.col[1] = REARTHM * rk *uy;
-	pos_teme.s.col[2] = REARTHM * rk *uz;
-	pos_teme.v.col[0] =REARTHM * (rdotk*ux+rfdotk*vx) / 60.;
-	pos_teme.v.col[1] =REARTHM * (rdotk*uy+rfdotk*vy) / 60.;
-	pos_teme.v.col[2] =REARTHM * (rdotk*uz+rfdotk*vz) / 60.;
+    pos_teme.s.col[0] = 1000. * SGP4_XKMPER * rk *ux;
+    pos_teme.s.col[1] = 1000. * SGP4_XKMPER * rk *uy;
+    pos_teme.s.col[2] = 1000. * SGP4_XKMPER * rk *uz;
+    pos_teme.v.col[0] = 1000. * SGP4_XKMPER * (rdotk*ux+rfdotk*vx) / 60.;
+    pos_teme.v.col[1] = 1000. * SGP4_XKMPER * (rdotk*uy+rfdotk*vy) / 60.;
+    pos_teme.v.col[2] = 1000. * SGP4_XKMPER * (rdotk*uz+rfdotk*vz) / 60.;
 
     return 0;
 }
@@ -3124,28 +3333,28 @@ int sgp4(double utc, tlestruc tle, cartpos &pos_teme)
  */
 int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
 {
-	// ICRF to Mean of Data (undo Precession)
-	rmatrix bm;
-	gcrf2j2000(&bm);
-	eci.s = rv_mmult(bm,eci.s);
-	eci.v = rv_mmult(bm,eci.v);
+    // ICRF to Mean of Data (undo Precession)
+    rmatrix bm;
+    gcrf2j2000(&bm);
+    eci.s = rv_mmult(bm,eci.s);
+    eci.v = rv_mmult(bm,eci.v);
 
-	rmatrix pm;
-	j20002mean(utc,&pm);
-	eci.s = rv_mmult(pm,eci.s);
-	eci.v = rv_mmult(pm,eci.v);
+    rmatrix pm;
+    j20002mean(utc,&pm);
+    eci.s = rv_mmult(pm,eci.s);
+    eci.v = rv_mmult(pm,eci.v);
 
-	// Mean of Date to True of Date (undo Nutation)
-	rmatrix nm;
-	mean2true(utc,&nm);
-	eci.s = rv_mmult(nm,eci.s);
-	eci.v = rv_mmult(nm,eci.v);
+    // Mean of Date to True of Date (undo Nutation)
+    rmatrix nm;
+    mean2true(utc,&nm);
+    eci.s = rv_mmult(nm,eci.s);
+    eci.v = rv_mmult(nm,eci.v);
 
-	// True of Date to Uniform of Date (undo Equation of Equinoxes)
-	rmatrix sm;
-	true2teme(utc, &sm);
-	eci.s = rv_mmult(sm,eci.s);
-	eci.v = rv_mmult(sm,eci.v);
+    // True of Date to Uniform of Date (undo Equation of Equinoxes)
+    rmatrix sm;
+    true2teme(utc, &sm);
+    eci.s = rv_mmult(sm,eci.s);
+    eci.v = rv_mmult(sm,eci.v);
 
 	// Convert to Keplerian Elements
 	kepstruc kep;
@@ -3157,9 +3366,9 @@ int32_t eci2tle(double utc, cartpos eci, tlestruc &tle)
 	tle.e = kep.e;
 	tle.i = kep.i;
 	tle.ma = kep.ma;
-	tle.mm = kep.mm;
+    tle.mm = kep.mm * 60.; // Keplerian in SI units (radians / seconds), convert to radians / minute.
 	tle.raan = kep.raan;
-	tle.utc = utc;
+    tle.utc = utc;
 
 	return 0;
 }
@@ -3177,30 +3386,31 @@ int tle2eci(double utc, tlestruc tle, cartpos &eci)
     // cartpos *teme;
     sgp4(utc, tle, eci);
 
+
     //eci = *teme;
 
-	// Uniform of Date to True of Date (Equation of Equinoxes)
-	rmatrix sm;
-	teme2true(utc, &sm);
-	eci.s = rv_mmult(sm,eci.s);
-	eci.v = rv_mmult(sm,eci.v);
+    // Uniform of Date to True of Date (Equation of Equinoxes)
+    rmatrix sm;
+    teme2true(utc, &sm);
+    eci.s = rv_mmult(sm,eci.s);
+    eci.v = rv_mmult(sm,eci.v);
 
-	// True of Date to Mean of Date (Nutation)
-	rmatrix nm;
-	true2mean(utc,&nm);
-	eci.s = rv_mmult(nm,eci.s);
-	eci.v = rv_mmult(nm,eci.v);
+    // True of Date to Mean of Date (Nutation)
+    rmatrix nm;
+    true2mean(utc,&nm);
+    eci.s = rv_mmult(nm,eci.s);
+    eci.v = rv_mmult(nm,eci.v);
 
-	// Mean of Date to ICRF (precession)
-	rmatrix pm;
-	mean2j2000(utc,&pm);
-	eci.s = rv_mmult(pm,eci.s);
-	eci.v = rv_mmult(pm,eci.v);
+    // Mean of Date to ICRF (precession)
+    rmatrix pm;
+    mean2j2000(utc,&pm);
+    eci.s = rv_mmult(pm,eci.s);
+    eci.v = rv_mmult(pm,eci.v);
 
-	rmatrix bm;
-	j20002gcrf(&bm);
-	eci.s = rv_mmult(bm,eci.s);
-	eci.v = rv_mmult(bm,eci.v);
+    rmatrix bm;
+    j20002gcrf(&bm);
+    eci.s = rv_mmult(bm,eci.s);
+    eci.v = rv_mmult(bm,eci.v);
 
 	eci.utc = utc;
 
@@ -3247,14 +3457,14 @@ int32_t loadTLE(char *fname, tlestruc &tle)
     char ibuf[81], tlename[81];
     int i;
 
-    if ((fdes=fopen(fname,"r")) == NULL)
+    if ((fdes=fopen(fname,"r")) == nullptr)
         return (-1);
 
     tlecount = 0;
 
     // Name Line
     char* ichar = fgets(tlename,80,fdes);
-    if (ichar == NULL || feof(fdes))
+    if (ichar == nullptr || feof(fdes))
         return (-1);
 
     for (i=strlen(tlename)-1; i>0; i--)
@@ -3269,7 +3479,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
         strcpy(tle.name,tlename);
 
         // Line 1
-        if (fgets(ibuf,80,fdes) == NULL)
+        if (fgets(ibuf,80,fdes) == nullptr)
             break;
         sscanf(&ibuf[2],"%5hu",&tle.snumber);
         sscanf(&ibuf[9],"%6s",tle.id);
@@ -3325,14 +3535,14 @@ int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 	int i;
 	tlestruc tle;
 
-	if ((fdes=fopen(fname.c_str(),"r")) == NULL)
+    if ((fdes=fopen(fname.c_str(),"r")) == nullptr)
 		return (-1);
 
 	tlecount = 0;
 
 	// Name Line
 	char* ichar = fgets(tlename,80,fdes);
-	if (ichar == NULL || feof(fdes))
+    if (ichar == nullptr || feof(fdes))
 		return (-1);
 
 	for (i=strlen(tlename)-1; i>0; i--)
@@ -3347,7 +3557,7 @@ int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 		strcpy(tle.name,tlename);
 
 		// Line 1
-		if (fgets(ibuf,80,fdes) == NULL)
+        if (fgets(ibuf,80,fdes) == nullptr)
 			break;
 		sscanf(&ibuf[2],"%5hu",&tle.snumber);
 		sscanf(&ibuf[9],"%6s",tle.id);
@@ -3401,7 +3611,7 @@ int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 	int i;
 	tlestruc tle;
 
-	if ((fdes=fopen(fname.c_str(),"r")) == NULL)
+    if ((fdes=fopen(fname.c_str(),"r")) == nullptr)
 		return (-1);
 
 	tlecount = 0;
@@ -3410,7 +3620,7 @@ int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 	{
 		// Name Line
 		char* ichar = fgets(tlename,80,fdes);
-		if (ichar == NULL || feof(fdes))
+        if (ichar == nullptr || feof(fdes))
 			break;
 
 		for (i=strlen(tlename)-1; i>0; i--)
@@ -3423,7 +3633,7 @@ int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
 		strcpy(tle.name,tlename);
 
 		// Line 1
-		if (fgets(ibuf,80,fdes) == NULL)
+        if (fgets(ibuf,80,fdes) == nullptr)
 			break;
 		sscanf(&ibuf[2],"%5hu",&tle.snumber);
 		sscanf(&ibuf[9],"%6s",tle.id);
@@ -3477,7 +3687,7 @@ int32_t load_stk(std::string filename, stkstruc &stkdata)
 	cposstruc *tpos;
 	char ibuf[250];
 
-	if ((fdes=fopen(filename.c_str(),"r")) == NULL)
+    if ((fdes=fopen(filename.c_str(),"r")) == nullptr)
 		return (STK_ERROR_NOTFOUND);
 
 	maxcount = 1000;
@@ -3486,7 +3696,7 @@ int32_t load_stk(std::string filename, stkstruc &stkdata)
 	while (!feof(fdes))
 	{
 		char* ichar = fgets(ibuf,250,fdes);
-		if (ichar == NULL || feof(fdes))
+        if (ichar == nullptr || feof(fdes))
 			break;
 		if ((iretn=sscanf(ibuf,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",&stkdata.pos[stkdata.count].pos.utc,&stkdata.pos[stkdata.count].pos.s.col[0],&stkdata.pos[stkdata.count].pos.s.col[1],&stkdata.pos[stkdata.count].pos.s.col[2],&stkdata.pos[stkdata.count].pos.v.col[0],&stkdata.pos[stkdata.count].pos.v.col[1],&stkdata.pos[stkdata.count].pos.v.col[2],&stkdata.pos[stkdata.count].pos.a.col[0],&stkdata.pos[stkdata.count].pos.a.col[1],&stkdata.pos[stkdata.count].pos.a.col[2])) == 10)
 		{
@@ -3886,7 +4096,7 @@ void tle2sgp4(tlestruc tle, sgp4struc &sgp4)
     sgp4.ma = DEGOF(tle.ma);
     sgp4.mm = tle.mm * 1440. / D2PI;
     calstruc cal = mjd2cal(tle.utc);
-    sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + cal.second / 86400.;
+    sgp4.ep = (cal.year - 2000.) * 1000. + cal.doy + cal.hour / 24. + cal.minute / 1440. + (cal.second + cal.nsecond / 1e9) / 86400.;
     sgp4.raan = DEGOF(tle.raan);
     return;
 }
@@ -3901,13 +4111,74 @@ void sgp42tle(sgp4struc sgp4, tlestruc &tle)
     tle.mm = sgp4.mm * D2PI / 1440. ;
     tle.raan = RADOF(sgp4.raan);
     int year = sgp4.ep / 1000;
+    double jday = sgp4.ep - (year *1000);
     if (year < 57)
         year += 2000;
     else
         year += 1900;
-    double jday = sgp4.ep - (year *1000);
     tle.utc = cal2mjd((int)year,1,0.);
     tle.utc += jday;
 
     return;
+}
+
+// https://space.stackexchange.com/questions/5358/what-does-check-sum-tle-mean
+int tle_checksum(char *line) {
+    const int TLE_LINE_LENGTH = 69; // Ignore current checksum.
+    int checksum = 0;
+
+    for (int i = 0; i < TLE_LINE_LENGTH; i++) {
+        if (line[i] == '-') {
+            checksum++;
+        }
+        else if (isdigit(line[i])) {
+            checksum += line[i] - '0';
+        } // Ignore whitespace.
+    }
+
+    return checksum % 10;
+}
+void eci2tlestring(cartpos eci, std::string &tle, const std::string &ref_tle, double bstar) {
+    char tle_buffer[ref_tle.size()], field_buffer[30];
+    strcpy(tle_buffer, ref_tle.c_str());
+
+    // Convert to keplarian elements, compute our epoch field.
+    std::string epoch;
+    tlestruc tles; // <-- in SI units.
+    mjd2tlef(eci.utc, epoch);
+    eci2tle(eci.utc, eci, tles);
+
+    // std::cout << "Inclination: " << DEGOF(tles.i) << std::endl;
+    // std::cout << "Right acension of rising node: " << DEGOF(tles.raan) << std::endl;
+    // std::cout << "Eccentricity: " << tles.e << std::endl;
+    // std::cout << "Argument of perigee: " << DEGOF(tles.ap) << std::endl;
+    // std::cout << "Mean anomaly: " << ((DEGOF(tles.ma) < 0) ? 360 + DEGOF(tles.ma) : DEGOF(tles.ma)) << std::endl;
+    // std::cout << "Mean motion: " << tles.mm * 1440. / D2PI << std::endl;
+
+    // Ignore the name line. Populate our epoch field.
+    char *line_1 = strstr(tle_buffer, "\n");
+    sprintf(field_buffer, "%014s", epoch.c_str());
+    strncpy(line_1+19, field_buffer, 14);
+    sprintf(field_buffer, "");
+
+    // Populate our fields for line 2.
+    char *line_2 = strstr(line_1 + 1, "\n");
+    sprintf(field_buffer, "%#08.4f", DEGOF(tles.i));
+    strncpy(line_2+9, field_buffer, 8);
+    sprintf(field_buffer, "%08.4f", DEGOF(tles.raan));
+    strncpy(line_2+18, field_buffer, 8);
+    sprintf(field_buffer, "%07d", static_cast<int>(tles.e*pow(10,7)));
+    strncpy(line_2+27, field_buffer, 7);
+    sprintf(field_buffer, "%#08.4f", DEGOF(tles.ap));
+    strncpy(line_2+35, field_buffer, 8);
+    sprintf(field_buffer, "%#08.4f", (DEGOF(tles.ma) < 0) ? 360 + DEGOF(tles.ma) : DEGOF(tles.ma));
+    strncpy(line_2+44, field_buffer, 8);
+    sprintf(field_buffer, "%#011.8f", tles.mm * 1440. / D2PI); // rad/min ---> rev/day
+    strncpy(line_2+53, field_buffer, 11);
+
+    // Compute our checksum (copy null character here).
+    sprintf(field_buffer, "%1d", tle_checksum(line_2));
+    strncpy(line_2+69, field_buffer, 2);
+
+    tle = std::string(tle_buffer);
 }

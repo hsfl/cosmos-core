@@ -69,9 +69,9 @@ int32_t request_mem_total_kib(char *request, char *response, Agent *);
 int32_t request_printStatus(char *request, char *response, Agent *);
 
 
-std::string agentname  = "cpu";
-std::string nodename;
-std::string sohstring = "{\"device_cpu_utc_000\","
+static std::string agentname  = "cpu";
+static std::string node_name;
+static std::string sohstring = "{\"device_cpu_utc_000\","
                         "\"device_cpu_maxgib_000\","
                         "\"device_cpu_gib_000\","
                         "\"device_cpu_maxload_000\","
@@ -95,12 +95,12 @@ int main(int argc, char *argv[])
     {
     case 1:
         {
-            nodename = "cpu_" + deviceCpu.getHostName();
+            node_name = "cpu_" + deviceCpu.getHostName();
         }
         break;
     case 2:
         {
-            nodename = argv[1];
+            node_name = argv[1];
         }
         break;
     default:
@@ -120,10 +120,10 @@ int main(int argc, char *argv[])
 
     // Add additional requests
 
-    agent = new Agent(nodename, agentname, 5.);
+    agent = new Agent(node_name, agentname, 5.);
     if (agent->cinfo == nullptr || !agent->running())
     {
-        fprintf(agent->get_debug_fd(), "Failed to initialize agent\n");
+        fprintf(agent->get_debug_fd(), "Failed to initialize %s\n", agent->getAgent().c_str());
         exit(1);
     }
     else
@@ -399,20 +399,20 @@ int create_node () // only use when unsure what the node is
     //	std::string node_directory;
 
     // Ensure node is present
-    //cout << "Node name is " << nodename << endl;
+    //cout << "Node name is " << node_name << endl;
     // If could not find node directory then make one on the fly
-    if (get_nodedir(nodename).empty())
+    if (get_nodedir(node_name).empty())
     {
         cout << endl << "Couldn't find Node directory, making directory now...";
-        if (get_nodedir(nodename, true).empty())
+        if (get_nodedir(node_name, true).empty())
         {
             cout << "Couldn't create Node directory." << endl;
             return 1;
         }
         cinfo = json_create();
         json_mapbaseentries(cinfo);
-        strcpy(cinfo->node.name, nodename.c_str());
-        cinfo->name = nodename;
+        strcpy(cinfo->node.name, node_name.c_str());
+        cinfo->name = node_name;
         cinfo->node.type = NODE_TYPE_COMPUTER;
 
         json_addpiece(cinfo, "main_cpu", (uint16_t)DeviceType::CPU);

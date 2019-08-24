@@ -75,6 +75,7 @@ using namespace Cosmos::Math::Quaternions;
 //! @{
 
 void loc_clear(locstruc *loc);
+void loc_clear(locstruc &loc);
 // TODO: implement using pos_geoc2geod
 void geoc2geod(cartpos &geoc, geoidpos &geod);
 void geos2geoc(spherpos *geos, cartpos *geoc);
@@ -82,7 +83,6 @@ void geod2geoc(geoidpos &geod, cartpos &geoc);
 void geoc2geos(cartpos *geoc, spherpos *geos);
 void selg2selc(geoidpos *selg, cartpos *selc);
 int32_t pos_extra(locstruc *loc);
-int32_t pos_clear(locstruc &loc);
 int32_t pos_icrf(locstruc *loc);
 int32_t pos_eci(locstruc *loc);
 int32_t pos_sci(locstruc *loc);
@@ -109,12 +109,42 @@ int32_t pos_selc2selg(locstruc *loc);
 int32_t pos_selc2sci(locstruc *loc);
 int32_t pos_selg2selc(locstruc *loc);
 int32_t pos_selc2eci(locstruc *loc);
+
+int32_t pos_extra(locstruc &loc);
+int32_t pos_clear(locstruc &loc);
+int32_t pos_icrf(locstruc &loc);
+int32_t pos_eci(locstruc &loc);
+int32_t pos_sci(locstruc &loc);
+int32_t pos_geoc(locstruc &loc);
+int32_t pos_geos(locstruc &loc);
+int32_t pos_geod(locstruc &loc);
+int32_t pos_selc(locstruc &loc);
+int32_t pos_selg(locstruc &loc);
+int32_t pos_icrf2eci(locstruc &loc);
+int32_t pos_eci2icrf(locstruc &loc);
+int32_t pos_icrf2sci(locstruc &loc);
+int32_t pos_sci2icrf(locstruc &loc);
+int32_t pos_eci2geoc(locstruc &loc);
+int32_t pos_eci2selc(locstruc &loc);
+int32_t pos_geoc2eci(locstruc &loc);
+void pos_geoc2geod(locstruc &loc);
+int32_t pos_geod2geoc(locstruc &loc);
+int32_t pos_geoc2geos(locstruc &loc);
+int32_t pos_geos2geoc(locstruc &loc);
+int32_t pos_eci2sci(locstruc &loc);
+int32_t pos_sci2eci(locstruc &loc);
+int32_t pos_sci2selc(locstruc &loc);
+int32_t pos_selc2selg(locstruc &loc);
+int32_t pos_selc2sci(locstruc &loc);
+int32_t pos_selg2selc(locstruc &loc);
+int32_t pos_selc2eci(locstruc &loc);
+
 void eci2kep(cartpos &eci, kepstruc &kep);
 void kep2eci(kepstruc &kep,cartpos &eci);
 double rearth(double lat);
 double mjd2year(double mjd);
+
 void att_extra(locstruc *loc);
-void att_clear(attstruc &att);
 void att_icrf(locstruc *loc);
 int32_t att_lvlh(locstruc *loc);
 void att_geoc(locstruc *loc);
@@ -131,6 +161,27 @@ void att_lvlh2planec(locstruc *loc);
 int32_t att_lvlh2icrf(locstruc *loc);
 void att_selc2icrf(locstruc *loc);
 void loc_update(locstruc *loc);
+
+void att_extra(locstruc &loc);
+void att_clear(attstruc &att);
+void att_icrf(locstruc &loc);
+int32_t att_lvlh(locstruc &loc);
+void att_geoc(locstruc &loc);
+void att_selc(locstruc &loc);
+int32_t att_topo(locstruc &loc);
+void att_planec2topo(locstruc &loc);
+void att_topo2planec(locstruc &loc);
+int32_t att_icrf2geoc(locstruc &loc);
+int32_t att_icrf2geoc(locstruc &loc);
+void att_icrf2lvlh(locstruc &loc);
+int32_t att_icrf2selc(locstruc &loc);
+void att_geoc2icrf(locstruc &loc);
+void att_planec2lvlh(locstruc &loc);
+void att_lvlh2planec(locstruc &loc);
+int32_t att_lvlh2icrf(locstruc &loc);
+void att_selc2icrf(locstruc &loc);
+void loc_update(locstruc &loc);
+
 double mjd2gmst(double mjd);
 void gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
 void itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *ddrm);
@@ -163,6 +214,8 @@ int32_t load_stk(std::string filename, stkstruc &stkdata);
 int stk2eci(double utc, stkstruc &stk, cartpos &eci);
 void tle2sgp4(tlestruc tle, sgp4struc &sgp4);
 void sgp42tle(sgp4struc sgp4, tlestruc &tle);
+int tle_checksum(char *line);
+void eci2tlestring(cartpos eci, std::string &tle, const std::string &ref_tle, double bstar=0);
 
 //! @}
 

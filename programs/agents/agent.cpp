@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    printf("%.15g:[%s:%s][%s:%u](%" PRIu64 ":%" PRIu64 ":%" PRIu64 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
+                    printf("%.15g:[%s:%s][%s:%u](%lu:%lu:%zu)\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
                     printf("%s\n",message.jdata.c_str());
                     if (pretn < Agent::AgentMessage::BINARY)
                     {
@@ -245,6 +245,59 @@ int main(int argc, char *argv[])
                 }
                 COSMOS_SLEEP(.1);
             } while (et.split() < SERVER_WAIT_TIME);
+            exit(0);
+            break;
+        }
+        else if (!strcmp(argv[1],"list_json"))
+        {
+            size_t agent_count = 0;
+            ElapsedTime et;
+            agent->post(Agent::AgentMessage::REQUEST);
+            COSMOS_SLEEP(.1);
+            printf("{\"agent_list\":[");
+            do
+            {
+                if (agent->agent_list.size() > agent_count)
+                {
+
+                    for (size_t i=agent_count; i<agent->agent_list.size(); ++i)
+                    {
+                        beatstruc cbeat = agent->agent_list[i];
+                        agent->send_request(cbeat,(char *)"getvalue {\"agent_pid\"}", output, REQUEST_WAIT_TIME);
+                        if(i>0) printf(",");
+                        printf("{\"agent_proc\": \"%s\", ", cbeat.proc);
+                        printf("\"agent_utc\": %.15g, ", cbeat.utc);
+                        printf("\"agent_node\": \"%s\", ", cbeat.node);
+                        printf("\"agent_addr\": \"%s\", ", cbeat.addr);
+                        printf("\"agent_port\": %hu, ", cbeat.port);
+                        printf("\"agent_bsz\": %u, ", cbeat.bsz);
+                        // HANDLE RESPONSE OUTPUT FORMAT
+                        size_t status_pos;
+                        if((status_pos= output.find("[OK]")  )!= std::string::npos){
+                            if(output.at(0) == '{'){
+                                if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
+                                    printf("\"output\": %s,", output.substr(0, status_pos).c_str());
+                                } else {
+                                    printf("\"output\": %s,", output.c_str());
+                                }
+                            } else {
+                                printf("\"output\": \"%s\",", output.substr(status_pos ).c_str());
+                            }
+                            printf("\"status\": \"OK\"}");
+                        } else if((status_pos = output.find("[NOK]") )!= std::string::npos){
+                            printf("\"status\": \"NOK\"}");
+                        } else {
+                             printf("\"output\": %s }", output.c_str());
+                        }
+                        fflush(stdout);
+                    }
+
+                    fflush(stdout);
+                    agent_count = agent->agent_list.size();
+                }
+                COSMOS_SLEEP(.1);
+            } while (et.split() < SERVER_WAIT_TIME);
+            printf("]}\n");
             exit(0);
             break;
         }
@@ -373,7 +426,6 @@ int main(int argc, char *argv[])
         {
             if(argc == 3)
             {
-                printf("List of available requests:\n");
                 nbytes = agent->send_request(cbeat, "help", std::ref(output), REQUEST_WAIT_TIME);
                 printf("%s [%d]\n", output.c_str(), nbytes);
             }
@@ -387,13 +439,35 @@ int main(int argc, char *argv[])
                     request += argv[i+4];
                 }
                 nbytes = agent->send_request(cbeat,request.c_str(), output, REQUEST_WAIT_TIME);
-                printf("%s [%d]\n", output.c_str(), nbytes);
+//                printf("%s [%d]\n", output.c_str(), nbytes);
+//                printf("{\"request_output\": %s, \"bytes\": %d }\n", output.c_str(), nbytes);
+                // HANDLE RESPONSE OUTPUT FORMAT
+                printf("{");
+                size_t status_pos;
+                if((status_pos= output.find("[OK]")  )!= std::string::npos){
+                    if(output.at(0) == '{'){
+                        if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
+                            printf("\"output\": %s,", output.substr(0, status_pos).c_str());
+                        } else {
+                            printf("\"output\": %s,", output.c_str());
+                        }
+                    } else {
+                        printf("\"output\": \"%s\",", output.substr(0,status_pos ).c_str());
+                    }
+                    printf("\"status\": \"OK\"}\n");
+                } else if((status_pos = output.find("[NOK]") )!= std::string::npos){
+                    printf("\"status\": \"NOK\"}\n");
+                } else {
+                     printf("\"output\": %s }\n", output.c_str());
+                }
             }
         }
         else
         {
-            if (!nbytes)
+            if (!nbytes){
                 fprintf(stderr,"node-agent pair [%s:%s] not found\n",argv[1],argv[2]);
+                printf("{\"error\": \"node-agent pair [%s:%s] not found\" }\n",argv[1],argv[2]);
+            }
             else
                 printf("Error: %d\n", nbytes);
         }

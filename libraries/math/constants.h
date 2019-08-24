@@ -22,22 +22,22 @@ const double DS2R=7.2722052166430399038487115353692196393452995355905e-5;
 const double DAS2R=4.8481368110953599358991410235794797595635330237270e-6;
 
 //! Multiplicand for Degrees to Radians
-const double DTOR=(DPI / (double)180.);
+const double DTOR=static_cast <double>(DPI / 180.);
 //! Multiplicand for Radians to Degrees
-const double RTOD=((double)180. / DPI);
+const double RTOD=static_cast <double>(180. / DPI);
 //! Radians of a Degree value
-#define RADOF(deg)  (double)(DTOR * (deg))
+#define RADOF(deg)  static_cast <double>(DTOR * (deg))
 //! Radians of a Degree value
-#define DEG2RAD(deg)  (double)(DTOR * (deg))
+#define DEG2RAD(deg)  static_cast <double>(DTOR * (deg))
 //! Degrees of a Radian value
-#define DEGOF(rad)  (double)(RTOD * (rad))
+#define DEGOF(rad)  static_cast <double>(RTOD * (rad))
 //! Degrees of a Radian value
 #define RAD2DEG(rad)  (double)(RTOD * (rad))
 
 const double O_UNDEFINED=999999.1;
 const double O_INFINITE=10000000000000000000000000.9;
 const double O_SMALL=0.00000001;
-const double D_SMALL=((double)1e-76);
+const double D_SMALL=static_cast <double>(1e-76);
 
 // BIGENDIAN and LITTLEENDIAN are defined somewhere else. This lets us place them in
 // the ByteOrder class.
