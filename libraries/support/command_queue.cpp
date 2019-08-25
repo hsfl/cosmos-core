@@ -28,16 +28,19 @@
 ********************************************************************/
 
 /*! \file agentclass.cpp
-	\brief Agent support functions
+    \brief Agent support functions
 */
 
 #include "support/command_queue.h"
 
-namespace Cosmos {
+namespace Cosmos
+{
+    namespace Support
+    {
 
-// *************************************************************************
-// Class: CommandQueue
-// *************************************************************************
+        // *************************************************************************
+        // Class: CommandQueue
+        // *************************************************************************
 
 
 CommandQueue::~CommandQueue () { join_events(); }
@@ -49,7 +52,7 @@ void CommandQueue::join_events() {
        t.join();
     };
 
-    for_each(event_threads.begin(), event_threads.end(), join_event);
+    std::for_each(event_threads.begin(), event_threads.end(), join_event);
     event_threads.clear();
 }
 
@@ -61,9 +64,9 @@ void CommandQueue::run_command(Event& cmd, string node_name, double logdate_exec
 {
 	queue_changed = true;
 
-	// set time executed & actual flag
-	cmd.set_utcexec();
-	cmd.set_actual();
+            // set time executed & actual flag
+            cmd.set_utcexec();
+            cmd.set_actual();
 
     string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
     char command_line[100];
@@ -190,64 +193,64 @@ void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_e
 	return;
 }
 
-// Saves commands to .queue file located in the temp directory
-// Commands are taken from the global command queue
-// Command queue is sorted by utc after loading
-void CommandQueue::save_commands(string temp_dir)
-{
-	if (!queue_changed)
-	{
-		return;
-	}
-	queue_changed = false;
+        // Saves commands to .queue file located in the temp directory
+        // Commands are taken from the global command queue
+        // Command queue is sorted by utc after loading
+        void CommandQueue::save_commands(string temp_dir)
+        {
+            if (!queue_changed)
+            {
+                return;
+            }
+            queue_changed = false;
 
-	// Open the outgoing file
-	FILE *fd = fopen((temp_dir+".queue").c_str(), "w");
-	if (fd != NULL)
-	{
-        for (Event cmd: commands)
-		{
-            fprintf(fd, "%s\n", cmd.get_event_string().c_str());
-		}
-		fclose(fd);
-	}
-}
+            // Open the outgoing file
+            FILE *fd = fopen((temp_dir+".queue").c_str(), "w");
+            if (fd != NULL)
+            {
+                for (Event cmd: commands)
+                {
+                    fprintf(fd, "%s\n", cmd.get_event_string().c_str());
+                }
+                fclose(fd);
+            }
+        }
 
-// Loads new commands from *.command files located in the incoming directory
-// Commands are loaded into the global CommandQueue object (cmd_queue),
-// *.command files are removed, and the command list is sorted by utc.
-//void CommandQueue::load_commands(string incoming_dir, Agent *agent) // TODO: change arguments so that we don't need to pass the separate directories
-void CommandQueue::load_commands(string incoming_dir) 
-{
-	DIR *dir = NULL;
-	struct dirent *dir_entry = NULL;
+        // Loads new commands from *.command files located in the incoming directory
+        // Commands are loaded into the global CommandQueue object (cmd_queue),
+        // *.command files are removed, and the command list is sorted by utc.
+        //void CommandQueue::load_commands(string incoming_dir, Agent *agent) // TODO: change arguments so that we don't need to pass the separate directories
+        void CommandQueue::load_commands(string incoming_dir)
+        {
+            DIR *dir = NULL;
+            struct dirent *dir_entry = NULL;
 
-	// open the incoming directory
-	if ((dir = opendir((char *)incoming_dir.c_str())) == NULL)
-	{
-		std::cout<<"error: unable to open node's incoming directory <"<<incoming_dir<<"> not found"<<std::endl;
-		return;
-	}
+            // open the incoming directory
+            if ((dir = opendir((char *)incoming_dir.c_str())) == NULL)
+            {
+                std::cout<<"error: unable to open node's incoming directory <"<<incoming_dir<<"> not found"<<std::endl;
+                return;
+            }
 
-	// cycle through all the file names in the incoming directory
-	while((dir_entry = readdir(dir)) != NULL)
-	{
-		string filename = dir_entry->d_name;
+            // cycle through all the file names in the incoming directory
+            while((dir_entry = readdir(dir)) != NULL)
+            {
+                string filename = dir_entry->d_name;
 
-		if (filename.find(".command") != string::npos)
-		{
+                if (filename.find(".command") != string::npos)
+                {
 
-			string infilepath = incoming_dir + filename;
-			std::ifstream infile(infilepath.c_str());
-			if(!infile.is_open())
-			{
-				std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
-				continue;
-			}
+                    string infilepath = incoming_dir + filename;
+                    std::ifstream infile(infilepath.c_str());
+                    if(!infile.is_open())
+                    {
+                        std::cout<<"unable to read file <"<<infilepath<<">"<<std::endl;
+                        continue;
+                    }
 
-			//file is open for reading commands
-			string line;
-            Event cmd;
+                    //file is open for reading commands
+                    string line;
+                    Event cmd;
 
 			while(getline(infile,line))
 			{
@@ -255,29 +258,29 @@ void CommandQueue::load_commands(string incoming_dir)
 				cmd.set_command(line); // TODO: is it really necessary to pass *agent?  NOPE!
                 std::cout << "Command added: " << cmd;
 
-				if(cmd.is_command())
-					add_command(cmd);
-				else
-					std::cout<<"Not a command!"<<std::endl;
-			}
-			infile.close();
+                        if(cmd.is_command())
+                            add_command(cmd);
+                        else
+                            std::cout<<"Not a command!"<<std::endl;
+                    }
+                    infile.close();
 
-			//remove the .command file from incoming directory
-			if(remove(infilepath.c_str()))	{
-				std::cout<<"unable to delete file <"<<filename<<">"<<std::endl;
-				continue;
-			}
+                    //remove the .command file from incoming directory
+                    if(remove(infilepath.c_str()))	{
+                        std::cout<<"unable to delete file <"<<filename<<">"<<std::endl;
+                        continue;
+                    }
 
             std::cout<<"\nThe size of the command queue is: "<< get_size()<<std::endl;
 		}
 	}
 
-	sort();
+            sort();
 
-	closedir(dir);
+            closedir(dir);
 
-	return;
-}
+            return;
+        }
 
 // Remove command object from the command queue, uses command == operator)
 int CommandQueue::del_command(Event& c)
@@ -326,14 +329,14 @@ void CommandQueue::add_command(Event& c)
 	queue_changed = true;
 }
 
-// Copies the current CommandQueue object to the output stream using JSON format
-std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq)
-{
-    for(std::list<Event>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
-		out << *ii << std::endl;
-	return out;
-}
-
+        // Copies the current CommandQueue object to the output stream using JSON format
+        std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq)
+        {
+            for(std::list<Event>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)
+                out << *ii << std::endl;
+            return out;
+        }
+    } // end namespace Support
 } // end namespace Cosmos
 
 //! @}

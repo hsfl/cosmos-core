@@ -124,7 +124,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         {
             CLOSE_SOCKET(channel->cudp);
             channel->cudp = iretn;
-            return (iretn);
+            return iretn;
         }
     }
 
@@ -454,7 +454,7 @@ int32_t socket_blocking(socket_channel *channel, bool blocking)
         }
 #endif
     }
-    return (iretn);
+    return iretn;
 }
 
 //! Close socket
@@ -778,7 +778,7 @@ int32_t Udp::socketOpen()
         {
             CLOSE_SOCKET(sok.handle);
             sok.handle = iretn;
-            return (iretn);
+            return iretn;
         }
     }
 

@@ -173,5 +173,5 @@ int32_t request_run_program(char *request, char* response, Agent *)
 		}
 	}
 
-	return (iretn);
+	return iretn;
 }

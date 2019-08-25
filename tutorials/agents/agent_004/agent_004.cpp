@@ -30,63 +30,66 @@
 // Example of an agent making a request to another agent
 // agent 004 makes request to 002 upon activation
 
-// the single quote only works on linux
-// test: agent telem 004 'setvalue {"device_telem_vint16_000":10}'
-// test: agent telem 004 'getvalue {"device_telem_vint16_000"}'
-
-// the single quote only works on windows
-// test: agent telem 004 "setvalue {\"device_telem_vint16_000\":10}"
-// test: agent telem 004 "getvalue {\"device_telem_vint16_000\"}"
-
 #include "support/configCosmos.h"
 #include "support/elapsedtime.h"
 #include "support/timeutils.h"
 #include "agent/agentclass.h"
-// agent 002 makes request to 002 upon activation
 
 #include "support/configCosmos.h"
 
 #include <iostream>
 #include <string>
 
-// function prototype of agent request
+// The request function prototype
 int32_t request_hello(char *request, char* response, Agent *cdata);
 
-// counter to test number of requests
-int countReq = 0;
-Agent *agent;
+/// Count of the number of requests that have been run.
+static int request_counter = 0;
 
+/// The agent constructor
+static Agent *agent;
+
+//!
+//! \brief agent_004 is an example of a request handler.
+//! \return int
+//!
 int main(int, char **)
 {
-    //setEnvCosmos(cosmosPath);
+    cout << "Starting agent_004" << endl;
 
-    cout << "Starting agent " << endl;
+    // Initialize agent parameters; its name and node
+    string agentname = "004"; // Forward facing name of the agent
+    string nodename = "cubesat1"; // The node that the agent will run on
 
-    string agentname     = "004";
-    string nodename      = "cubesat1";
+    // Construct agent with above parameters
     agent = new Agent(nodename, agentname);
 
+    // Define the request within the agent
     agent->add_request("request_hello", request_hello);
 
-    // start main loop
+    // Start executing the agent
     while(agent->running())
     {
-        // sleep for 1 sec
-        COSMOS_SLEEP(1.00);
+        // Sleep for 1 sec
+        COSMOS_SLEEP(1.);
     }
+
     return 0;
 }
 
-// implement request function
+//!
+//! \brief The function to handle the "hello" request.
+//! \param The response to send back to the requester.
+//! \return int
+//!
 int32_t request_hello(char *, char* response, Agent *)
 {
+    sprintf(response,"hello %d ", request_counter);
 
-    sprintf(response,"hello %d ",countReq);
-
-    cout << "agent 004 got request! response is: " << response << endl;
+    cout << "agent_004 got a request! Its response is: " << response << endl;
 
     // add counter
-    countReq ++;
+    request_counter++;
 
     return 0;
 }

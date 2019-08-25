@@ -462,6 +462,17 @@ namespace Cosmos {
         return 0;
     }
 
+    bool Serial::get_cts()
+    {
+#if defined(COSMOS_WIN_OS)
+
+#else
+        int s;
+        ioctl(fd, TIOCMGET, &s);
+        return (s & TIOCM_DSR) != 0;
+#endif
+    }
+
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
     int32_t Serial::set_timeout(int minchar, double timeout)
 #else // Windows
