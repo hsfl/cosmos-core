@@ -230,6 +230,7 @@ namespace Cosmos
 
             //! Set up initial requests
             add_request("help",req_help,"","list of available requests for this agent");
+            add_request("help_json",req_help_json,"","list of available requests for this agent (but in json)");
             add_request("shutdown",req_shutdown,"","request to shutdown this agent");
             Agent::add_request("idle",Agent::req_idle,"","request to transition this agent to idle state");
             Agent::add_request("init",Agent::req_init,"","request to transition this agent to init state");
@@ -979,11 +980,60 @@ namespace Cosmos
 
         //! Built-in Help request
         /*! Send help response.
- * \param request Text of request.
- * \param output Text of response to request.
- * \param agent Pointer to Cosmos::Agent to use.
- * \return 0, or negative error.
- */
+     * \param request Text of request.
+     * \param output Text of response to request.
+     * \param agent Pointer to Cosmos::Agent to use.
+     * \return 0, or negative error.
+     */
+        int32_t Agent::req_help_json(char*, char* output, Agent* agent)
+        {
+            string help_string, s;
+            size_t qpos, prev_qpos = 0;
+            //        help_string += "\n";
+            help_string += "{\"requests\": [";
+            for(uint32_t i = 0; i < agent->reqs.size(); ++i)
+            {
+
+                //            help_string += "        ";
+                if(i>0) help_string+=",";
+                help_string += "{\"token\": \"";
+                help_string += agent->reqs[i].token;
+                //            help_string += " ";
+                help_string += "\", \"synopsis\": \"";
+                //            help_string += agent->reqs[i].synopsis;
+                qpos = 0;
+                prev_qpos = 0;
+                s = agent->reqs[i].synopsis;
+                while((qpos=s.substr(prev_qpos).find("\""))!= std::string::npos)
+                {
+                    s.replace(qpos+prev_qpos, 1, "\\\"");
+                    prev_qpos +=qpos+2;
+                }
+                help_string+= s;
+                //            help_string += "\n";
+                //size_t blanks = (20 - (signed int)strlen(agent->reqs[i].token)) > 0 ? 20 - strlen(agent->reqs[i].token) : 4;
+                //string blank(blanks,' ');
+                //help_string += blank;
+                //            help_string += "                ";
+                help_string += "\", \"description\": \"";
+                qpos = 0;
+                prev_qpos = 0;
+                s = agent->reqs[i].description;
+                while((qpos=s.substr(prev_qpos).find("\""))!= std::string::npos){
+                    s.replace(qpos+prev_qpos, 1, "\\\"");
+                    prev_qpos +=qpos+2;
+                }
+                help_string+= s;
+                //            help_string += agent->reqs[i].description;
+                //            help_string += "\n\n";
+                help_string +="\"}";
+            }
+            //        help_string += "\n";
+            help_string += "]}";
+            strcpy(output, (char*)help_string.c_str());
+            return 0;
+        }
+
         int32_t Agent::req_help(char*, char* output, Agent* agent)
         {
             string help_string;
