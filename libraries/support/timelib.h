@@ -139,6 +139,7 @@ string get_local_time();
 
 // gregorian calendar (year, month, day) to another format
 double cal2mjd(calstruc date);
+double cal2mjd(double year);
 double cal2mjd(int32_t year, double dayOfYear=1.);
 double cal2mjd(int32_t year, int32_t month=1, double day=1.);
 double cal2mjd(int32_t year, int32_t month=1, int32_t day=1, int32_t hour=0, int32_t minute=0, int32_t second=0, int32_t nsecond=0);
