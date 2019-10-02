@@ -1170,6 +1170,13 @@ void send_loop()
                             txq[node].outgoing.state = PACKET_CANCEL;
                         }
                     }
+                    else
+                    {
+                        if (currentmjd() > txq[node].outgoing.nmjd[PACKET_QUEUE - 8])
+                        {
+                            txq[node].outgoing.state = PACKET_QUEUE;
+                        }
+                    }
                     txq[node].outgoing.nmjd[PACKET_DATA - 8] = currentmjd() + next_send_time;
                 }
                 break;
