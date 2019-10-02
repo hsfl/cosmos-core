@@ -1829,6 +1829,21 @@ bool data_isdir(string path)
 
 }
 
+bool data_ischardev(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISCHR(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
 bool data_isfile(string path, off_t size)
 {
     struct stat st;

@@ -141,6 +141,7 @@ string data_name_path(string node, string location, string agent, double mjd, st
 string data_resource_path(string name);
 bool data_exists(string& path);
 bool data_isdir(string path);
+bool data_ischardev(string path);
 bool data_isfile(string path, off_t size=0);
 int32_t set_cosmosroot(string name, bool create_flag=false);
 int32_t set_cosmosroot(bool create_flag=false);
