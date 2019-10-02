@@ -1031,7 +1031,7 @@ void send_loop()
 
             if (debug_flag)
             {
-                printf("Send Loop: Node %s State: %d\n", txq[node].node_name, txq[node].outgoing.state);
+                printf("Send Loop: Node %s State: %d\n", txq[node].node_name.c_str(), txq[node].outgoing.state);
             }
             // Decide what to do next based on our current state
             outgoing_tx_lock.lock();
