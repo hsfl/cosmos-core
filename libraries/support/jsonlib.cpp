@@ -10740,9 +10740,12 @@ int32_t update_target(locstruc source, targetstruc &target)
     topo2azel(topo, target.azto, target.elto);
     geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
     topo2azel(topo, target.azfrom, target.elfrom);
+    // Calculate direct vector from source to target
     ds = rv_sub(target.loc.pos.geoc.s, source.pos.geoc.s);
     target.range = length_rv(ds);
+    // Calculate velocity of target WRT source
     dv = rv_sub(target.loc.pos.geoc.v, source.pos.geoc.v);
+    // Closing speed is length of ds in 1 second minus length of ds now.
     target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
     return 0;
 }
