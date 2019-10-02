@@ -67,7 +67,7 @@
 //#define TRANSFER_QUEUE_LIMIT 10
 
 // Debug Var
-static bool debug_flag = false;
+static bool debug_flag = true;
 
 #ifdef COSMOS_CYGWIN_OS
 #include<sstream>
@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
                 exit (-errno);
             }
             comm_channel[1].nmjd = currentmjd(0.);
-            printf("\tSuccess.\n");
+            printf("\Opened %s on %s.\n", comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
             break;
         }
     }
