@@ -159,6 +159,19 @@ struct timeval utc2unix(double utc)
     return unixtime;
 }
 
+//! UTC to Unix time
+/*! Convert UTC in Modified Julian Day to a double representing Unix time.
+ * \param utc as Modified Julian Day.
+ * \return Double with Unix time.
+ */
+double utc2unixseconds(double utc)
+{
+    struct timeval unixtime;
+    double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
+
+    return unixseconds;
+}
+
 //! MJD to Calendar
 /*! Convert Modified Julian Day to Calendar Year, Month, Day, Hour, Minute,
  * Second and Nanosecond.
