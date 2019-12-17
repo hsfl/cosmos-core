@@ -135,8 +135,8 @@ static double next_reqmeta_time = 0.;
 static double next_queue_time = 0.;
 
 // Directory variables
-static DIR *dir = NULL;
-static struct dirent* dir_entry = NULL;
+//static DIR *dir = NULL;
+//static struct dirent* dir_entry = NULL;
 
 typedef struct
 {

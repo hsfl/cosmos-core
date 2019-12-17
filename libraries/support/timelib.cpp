@@ -166,7 +166,6 @@ struct timeval utc2unix(double utc)
  */
 double utc2unixseconds(double utc)
 {
-    struct timeval unixtime;
     double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
 
     return unixseconds;

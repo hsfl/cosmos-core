@@ -119,7 +119,7 @@ using namespace Cosmos::Support;
 //! \defgroup defs_macros Special COSMOS macros
 //!
 //! @{
-#define COSMOS_SIZEOF(element) ((ptrdiff_t)(((element*)0)+1))
+#define COSMOS_SIZEOF(element) (reinterpret_cast<ptrdiff_t>(((element*)0)+1))
 //! @}
 
 
