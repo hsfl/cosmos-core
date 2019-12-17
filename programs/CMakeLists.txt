@@ -22,6 +22,10 @@ if(${BUILD_PROGRAMS_AGENTS} MATCHES "YES")
     add_subdirectory(agents)
 endif()
 
+if(${BUILD_PROGRAMS_DEVICES} MATCHES "YES")
+    add_subdirectory(devices)
+endif()
+
 if(${BUILD_PROGRAMS_GENERAL} MATCHES "YES")
     add_subdirectory(general)
 endif()
