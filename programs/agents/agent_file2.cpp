@@ -156,7 +156,8 @@ typedef struct
 static std::vector<tx_queue> txq;
 
 int32_t request_debug(char *request, char *response, Agent *agent);
-int32_t request_use_channel(char* request, char* response, Agent *agent);
+int32_t request_get_channels(char* request, char* response, Agent *agent);
+int32_t request_set_throughput(char* request, char* response, Agent *agent);
 int32_t request_remove_file(char* request, char* response, Agent *agent);
 //int32_t request_send_file(char* request, char* response, Agent *agent);
 int32_t request_ls(char* request, char* response, Agent *agent);
@@ -230,7 +231,7 @@ int main(int argc, char *argv[])
                 exit (-errno);
             }
             comm_channel[1].nmjd = currentmjd(0.);
-            printf("\Opened %s on %s.\n", comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
+            printf("- Opened %s on %s.\n", comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
             break;
         }
     }
@@ -315,7 +316,9 @@ int main(int argc, char *argv[])
     }
 
     // add agent_file requests
-    if ((iretn=agent->add_request("use_channel",request_use_channel,"{0|1} [throughput]", "choose slow or fast channel")))
+    if ((iretn=agent->add_request("get_channels",request_get_channels,"", "get channel information")))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_throughput",request_set_throughput,"{n} [throughput]", "set channel throughput")))
         exit (iretn);
     if ((iretn=agent->add_request("remove_file",request_remove_file,"in|out tx_id", "removes file from indicated queue")))
         exit (iretn);
@@ -1734,7 +1737,23 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t request_use_channel(char* request, char* response, Agent *agent)
+int32_t request_get_channels(char* request, char* response, Agent *agent)
+{
+    for (uint16_t channel=0; channel<comm_channel.size(); ++channel)
+    {
+        sprintf(response,"{");
+        sprintf(response,"channel:%u,", channel);
+        sprintf(response,"node:\"%s\",", comm_channel[channel].node.c_str());
+        sprintf(response,"ip:\"%s\",", comm_channel[channel].chanip.c_str());
+        sprintf(response,"size:%u,", comm_channel[channel].packet_size);
+        sprintf(response,"throughput:%u,", comm_channel[channel].throughput);
+        sprintf(response,"nmjd:\"%s\",", comm_channel[channel].nmjd);
+        sprintf(response,"lmjd:\"%s\",", comm_channel[channel].lmjd);
+        sprintf(response,"},");
+    }
+}
+
+int32_t request_set_throughput(char* request, char* response, Agent *agent)
 {
     uint16_t channel=0;
     uint32_t throughput=0;
@@ -1742,7 +1761,7 @@ int32_t request_use_channel(char* request, char* response, Agent *agent)
     sscanf(request, "%*s %hu %u\n", &channel, &throughput);
     if (channel < comm_channel.size())
     {
-        use_channel = channel;
+//        use_channel = channel;
         if (throughput)
         {
             comm_channel[channel].throughput = throughput;
