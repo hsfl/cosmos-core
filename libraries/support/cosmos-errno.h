@@ -292,6 +292,7 @@
 #define GENERAL_ERROR_OUTOFRANGE        -2019
 #define GENERAL_ERROR_NOTREADY          -2020
 #define GENERAL_ERROR_BUSY              -2021
+#define GENERAL_ERROR_NO_CARRIER        -2022
 
 #define GPHOTO2_ERROR -3000
 
