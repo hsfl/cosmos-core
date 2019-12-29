@@ -148,6 +148,7 @@ double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
 
 // utc to another format
 struct timeval utc2unix(double utc);
+double utc2unixseconds(double utc);
 double utc2epsilon(double mjd);
 double utc2depsilon(double mjd);
 double utc2dpsi(double mjd);
