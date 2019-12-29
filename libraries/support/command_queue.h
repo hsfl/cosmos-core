@@ -48,6 +48,11 @@ namespace Cosmos
 {
     namespace Support
     {
+        namespace Command
+        {
+            int32_t Shell(string command_line="", string outpath="", string inpath="", string errpath="");
+        }
+
         //! Class to manage information about a queue of Events
         class CommandQueue
         {

@@ -37,6 +37,70 @@ namespace Cosmos
 {
     namespace Support
     {
+        namespace Command
+        {
+            int32_t Shell(string command_line, string outpath, string inpath, string errpath)
+            {
+                int32_t iretn=0;
+                int devin, devout, deverr;
+                int prev_stdin, prev_stdout, prev_stderr;
+
+                if (command_line.empty())
+                {
+                    return GENERAL_ERROR_EMPTY;
+                }
+
+                if (outpath.empty())
+                {
+                    devout = dup(STDOUT_FILENO);
+                }
+                else
+                {
+                    devout = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+                }
+                // Redirect.
+                prev_stdout = dup(STDOUT_FILENO);
+                dup2(devout, STDOUT_FILENO);
+                close(devout);
+
+                if (inpath.empty())
+                {
+                    devin = open("/dev/null", O_RDWR);
+                }
+                else
+                {
+                    devin = open(inpath.c_str(), O_RDONLY, 00666);
+                }
+                prev_stdin = dup(STDIN_FILENO);
+                dup2(devin, STDIN_FILENO);
+                close(devin);
+
+                prev_stderr = dup(STDERR_FILENO);
+                if (errpath.empty())
+                {
+                    deverr = devout;
+                }
+                else
+                {
+                    deverr = open(errpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+                }
+                dup2(deverr, STDERR_FILENO);
+                close(deverr);
+
+                // Execute the command.
+                iretn = system(command_line.c_str());
+
+                // Reset standard file handles
+                dup2(prev_stdin, STDIN_FILENO);
+                dup2(prev_stdout, STDOUT_FILENO);
+                dup2(prev_stderr, STDERR_FILENO);
+                close(prev_stdin);
+                close(prev_stdout);
+                close(prev_stderr);
+
+                return iretn;
+            }
+        }
 
         // *************************************************************************
         // Class: CommandQueue
