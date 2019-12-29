@@ -66,10 +66,11 @@ public:
     int32_t skip_character(string::iterator &bit, string::iterator &eit, const char character);
     int32_t skip_white(string::iterator &bit, string::iterator &eit);
 
-    private:
-
     string Content;
     vector <Member> Members;
+
+    private:
+
     string::iterator begin;
     string::iterator end;
 };
