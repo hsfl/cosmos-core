@@ -571,7 +571,7 @@ int32_t cssl_putdata(cssl_t *serial, uint8_t *data, uint32_t datalen)
 	{
 		if ((iretn=cssl_putchar(serial, data[i])) < 0)
 		{	
-			return (iretn);
+			return iretn;
 		}
 	}
 	*/

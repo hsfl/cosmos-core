@@ -115,8 +115,6 @@ double gravity(double radius, double colat, double elon, int model, uint32_t deg
 int32_t gravity_params(int model);
 //! Legendre polynomial
 double nplgndr(uint32_t l, uint32_t m, double x);
-//! Power values
-void power(cosmosdatastruc *root);
 //! Ground station values
 svector groundstation(locstruc &satellite, locstruc &groundstation);
 //! Simulate all devices

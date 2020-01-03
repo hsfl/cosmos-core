@@ -77,7 +77,7 @@ int32_t pic_getframe(pic_handle *handle)
 
 	iretn=cssl_getslip(handle->serial, handle->buffer.raw, sizeof(handle->buffer.raw));
 	if (iretn < 0)
-		return (iretn);
+		return iretn;
 
 	size = handle->buffer.packet.header.size+PIC_HEADER_SIZE;
 
@@ -91,7 +91,7 @@ int32_t pic_getframe(pic_handle *handle)
 	if (tbuf.crc != slip_calc_crc(handle->buffer.raw, size)	)
 		return (SLIP_ERROR_CRC);
 
-	return (iretn);
+	return iretn;
 }
 
 int32_t pic_putframe(pic_handle *handle)
@@ -112,7 +112,7 @@ int32_t pic_putframe(pic_handle *handle)
 
 	iretn=cssl_putslip(handle->serial, handle->buffer.raw, size+2);
 
-	return (iretn);
+	return iretn;
 }
 
 int32_t suchi_heater(pic_handle *handle, uint8_t number, uint8_t state)

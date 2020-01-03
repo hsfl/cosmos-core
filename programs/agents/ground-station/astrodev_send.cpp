@@ -40,13 +40,13 @@ int main(int argc, char *argv[])
 
 	if (argc == 2) strcpy(device,argv[1]);
 
-	if ((iretn=astrodev_connect(device, &handle)) < 0)
+    if ((iretn=astrodev_connect(device, handle)) < 0)
 	{
 		printf("Failed to open astrodev on %s, error %d\n",device,iretn);
 		exit (-1);
 	}
 
-	if ((iretn=astrodev_ping(&handle)) < 0)
+    if ((iretn=astrodev_ping(handle)) < 0)
 	{
 		printf("Failed to ping astrodev, error %d\n",iretn);
 		exit (-1);
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	printf("Successful\n");
 
 /*
-	if ((iretn=astrodev_firmwarerev(&handle)) < 0)
+    if ((iretn=astrodev_firmwarerev(handle)) < 0)
 	{
 		printf("Failed to firmwarerev astrodev, error %d\n",iretn);
 	}
@@ -65,7 +65,7 @@ else
 }
 */
 
-	if ((iretn=astrodev_gettcvconfig(&handle)) < 0)
+    if ((iretn=astrodev_gettcvconfig(handle)) < 0)
 	{
 		printf("Failed to gettcvconfig astrodev, error %d\n",iretn);
 	}
@@ -89,7 +89,7 @@ else
 	handle.frame.tcv.tx_freq_low = 440030%65536;
 	handle.frame.tcv.rx_freq_high = 440030/65536;
 	handle.frame.tcv.rx_freq_low = 440030%65536;
-	while ((iretn=astrodev_settcvconfig(&handle)) < 0)
+    while ((iretn=astrodev_settcvconfig(handle)) < 0)
 	{
 		printf("Failed to settcvconfig astrodev, error %d\n",iretn);
 		COSMOS_SLEEP(1);
@@ -97,7 +97,7 @@ else
 
 for (uint16_t i=0; i<255; ++i)
 {
-	if ((iretn=astrodev_telemetry(&handle)) < 0)
+    if ((iretn=astrodev_telemetry(handle)) < 0)
 	{
 		printf("Failed to telemetry astrodev, error %d\n",iretn);
 		COSMOS_SLEEP(1);
@@ -113,7 +113,7 @@ else
 		{
 			buf[j] = i%256;
 		}
-		if ((iretn=astrodev_transmit(&handle, buf, 255)) < 0)
+        if ((iretn=astrodev_transmit(handle, buf, 255)) < 0)
 		{
 			printf("Failed to transmit, error %d\n",iretn);
 		}

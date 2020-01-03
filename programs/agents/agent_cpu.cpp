@@ -69,9 +69,9 @@ int32_t request_mem_total_kib(char *request, char *response, Agent *);
 int32_t request_printStatus(char *request, char *response, Agent *);
 
 
-std::string agentname  = "cpu";
-std::string nodename;
-std::string sohstring = "{\"device_cpu_utc_000\","
+static std::string agentname  = "cpu";
+static std::string node_name;
+static std::string sohstring = "{\"device_cpu_utc_000\","
                         "\"device_cpu_maxgib_000\","
                         "\"device_cpu_gib_000\","
                         "\"device_cpu_maxload_000\","
@@ -95,12 +95,12 @@ int main(int argc, char *argv[])
     {
     case 1:
         {
-            nodename = "cpu_" + deviceCpu.getHostName();
+            node_name = "cpu_" + deviceCpu.getHostName();
         }
         break;
     case 2:
         {
-            nodename = argv[1];
+            node_name = argv[1];
         }
         break;
     default:
@@ -120,11 +120,16 @@ int main(int argc, char *argv[])
 
     // Add additional requests
 
-    agent = new Agent(nodename, agentname, 5.);
+    agent = new Agent(node_name, agentname, 5.);
     if (agent->cinfo == nullptr || !agent->running())
     {
-        cout << "Unable to start agent" << endl;
+        fprintf(agent->get_debug_fd(), "Failed to initialize %s\n", agent->getAgent().c_str());
         exit(1);
+    }
+    else
+    {
+        fprintf(agent->get_debug_fd(), "CPU Agent initialized\n");
+        fflush(stdout);
     }
 
     agent->add_request("soh",request_soh,"","current state of health message");
@@ -177,15 +182,41 @@ int agent_cpu()
     print.scalar("Number of Disks: ",agent->cinfo->devspec.disk_cnt);
     print.endline();
 
+    // get initial cpu info
+    if (agent->cinfo->devspec.cpu_cnt)
+    {
+        agent->cinfo->devspec.cpu[0]->load = deviceCpu.getLoad();
+        agent->cinfo->devspec.cpu[0]->gib = deviceCpu.getVirtualMemoryUsed()/GiB;
+        agent->cinfo->devspec.cpu[0]->maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
+        deviceCpu.getPercentUseForCurrentProcess();
+    }
+
+    // get initial disk info
+    for (size_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
+    {
+        agent->cinfo->devspec.disk[i]->utc = currentmjd();
+
+        std::string node_path = agent->cinfo->port[agent->cinfo->devspec.disk[i]->portidx].name;
+
+        agent->cinfo->devspec.disk[i]->gib = disk.getUsedGiB(node_path);
+        agent->cinfo->devspec.disk[i]->maxgib = disk.getSizeGiB(node_path);
+    }
+
+    json_dump_node(agent->cinfo);
+
     et.start();
+
+    agent->cinfo->agent[0].aprd = 1.;
+    agent->finish_active_loop();
 
     // Start performing the body of the agent
     while(agent->running())
     {
-
-        COSMOS_SLEEP(agent->cinfo->agent[0].aprd);
-
         agent->cinfo->devspec.cpu[0]->utc = currentmjd();
+        if (agent->debug_level)
+        {
+            fprintf(agent->get_debug_fd(), "%13.7f ", agent->cinfo->devspec.cpu[0]->utc);
+        }
 
         // get cpu info
         if (agent->cinfo->devspec.cpu_cnt)
@@ -194,6 +225,10 @@ int agent_cpu()
             agent->cinfo->devspec.cpu[0]->gib = deviceCpu.getVirtualMemoryUsed()/GiB;
             agent->cinfo->devspec.cpu[0]->maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
             deviceCpu.getPercentUseForCurrentProcess();
+        }
+        if (agent->debug_level)
+        {
+            fprintf(agent->get_debug_fd(), "%6.2f %6.2f %6.2f %6.2f ", agent->cinfo->devspec.cpu[0]->load, agent->cinfo->devspec.cpu[0]->maxload, agent->cinfo->devspec.cpu[0]->gib, agent->cinfo->devspec.cpu[0]->maxgib);
         }
 
         // get disk info
@@ -205,21 +240,32 @@ int agent_cpu()
 
             agent->cinfo->devspec.disk[i]->gib = disk.getUsedGiB(node_path);
             agent->cinfo->devspec.disk[i]->maxgib = disk.getSizeGiB(node_path);
+            if (agent->debug_level)
+            {
+                fprintf(agent->get_debug_fd(), "%s %6.2f %6.2f ", node_path.c_str(), agent->cinfo->devspec.disk[i]->gib, agent->cinfo->devspec.disk[i]->maxgib);
+            }
         }
+
+        if (agent->debug_level)
+        {
+            fprintf(agent->get_debug_fd(), "\n");
+        }
+
+        agent->finish_active_loop();
 
         // if printStatus is true then print in a loop
-        if (printStatus) {
-            PrintUtils print;
-            print.delimiter_flag = true;
-            print.scalar("Load",deviceCpu.load ,1,"",4,4);
-            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
+//        if (printStatus) {
+//            PrintUtils print;
+//            print.delimiter_flag = true;
+//            print.scalar("Load",deviceCpu.load ,1,"",4,4);
+//            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
 
 //            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
-            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
-            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
-            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
+//            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
+//            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
+//            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
 
-        }
+//        }
 
     }
 
@@ -353,27 +399,27 @@ int create_node () // only use when unsure what the node is
     //	std::string node_directory;
 
     // Ensure node is present
-    //cout << "Node name is " << nodename << endl;
+    //cout << "Node name is " << node_name << endl;
     // If could not find node directory then make one on the fly
-    if (get_nodedir(nodename).empty())
+    if (get_nodedir(node_name).empty())
     {
         cout << endl << "Couldn't find Node directory, making directory now...";
-        if (get_nodedir(nodename, true).empty())
+        if (get_nodedir(node_name, true).empty())
         {
             cout << "Couldn't create Node directory." << endl;
             return 1;
         }
         cinfo = json_create();
         json_mapbaseentries(cinfo);
-        strcpy(cinfo->node.name, nodename.c_str());
-        cinfo->name = nodename;
+        strcpy(cinfo->node.name, node_name.c_str());
+        cinfo->name = node_name;
         cinfo->node.type = NODE_TYPE_COMPUTER;
 
-        json_addpiece(cinfo, "main_cpu", PIECE_TYPE_BOX, 0);
+        json_addpiece(cinfo, "main_cpu", (uint16_t)DeviceType::CPU);
         json_mappieceentry(cinfo->pieces.size()-1, cinfo);
         json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
-        json_addpiece(cinfo, "main_drive", PIECE_TYPE_BOX, 1);
+        json_addpiece(cinfo, "main_drive", (uint16_t)DeviceType::DISK);
         json_mappieceentry(cinfo->pieces.size()-1, cinfo);
         json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
@@ -384,36 +430,8 @@ int create_node () // only use when unsure what the node is
         cinfo->node.port_cnt = 1;
         cinfo->port.resize(cinfo->node.port_cnt);
 
-//        cinfo->node.piece_cnt = 2;
-//        cinfo->pieces.resize(cinfo->node.piece_cnt);
         for (size_t i=0; i<cinfo->node.piece_cnt; ++i)
         {
-//            cinfo->pieces[i].cidx = i;
-//            switch (i)
-//            {
-//            case 0:
-//                strcpy(cinfo->pieces[i].name, "Main CPU");
-//                break;
-//            default:
-//                sprintf(cinfo->pieces[i].name, "Drive %lu", i);
-//                break;
-//            }
-
-//            cinfo->pieces[i].type = PIECE_TYPE_DIMENSIONLESS;
-//            cinfo->pieces[i].emi = .8;
-//            cinfo->pieces[i].abs = .88;
-//            cinfo->pieces[i].hcap = 800;
-//            cinfo->pieces[i].hcon = 237;
-//            cinfo->pieces[i].density = 1000;
-//            cinfo->pieces[i].pnt_cnt = 1;
-//            for (uint16_t j=0; j<3; ++j)
-//            {
-//                cinfo->pieces[i].points[0].col[j] = 0.;
-//            }
-
-//            json_mappieceentry(i, cinfo);
-//            json_togglepieceentry(i, cinfo, true);
-//            cinfo->pieces[i].enabled = true;
 
             cinfo->device[i].all.pidx = i;
             cinfo->device[i].all.cidx = i;
@@ -426,6 +444,7 @@ int create_node () // only use when unsure what the node is
                 cinfo->device[i].cpu.maxload = 1.;
                 cinfo->device[i].cpu.maxgib = 1.;
                 json_mapdeviceentry(cinfo->device[i], cinfo);
+                json_addentry("cpu_utilization", "(\"device_cpu_load_000\"/\"device_cpu_maxload_000\")", cinfo);
                 break;
             default:
                 cinfo->device[i].disk.maxgib = 1000.;
@@ -442,12 +461,14 @@ int create_node () // only use when unsure what the node is
 #endif
                 json_mapportentry(cinfo->device[i].all.portidx, cinfo);
                 json_toggleportentry(cinfo->device[i].all.portidx, cinfo, true);
+                json_addentry("disk_utilization", "(\"device_disk_gib_000\"/\"device_disk_maxgib_000\")", cinfo);
                 break;
             }
             json_mapcompentry(i, cinfo);
             json_togglecompentry(i, cinfo, true);
             cinfo->device[i].all.enabled = true;
         }
+
 
         int32_t iretn = json_dump_node(cinfo);
         json_destroy(cinfo);

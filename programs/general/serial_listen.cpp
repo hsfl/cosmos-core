@@ -1,5 +1,6 @@
 #include "support/configCosmos.h"
 #include "device/serial/serialclass.h"
+#include "support/elapsedtime.h"
 
 int main(int argc, char *argv[])
 {
@@ -36,20 +37,29 @@ int main(int argc, char *argv[])
 
     Serial *port = new Serial(name, baud, bits, parity, stop);
     port->set_flowcontrol(rtscts, xonxoff);
-    port->set_timeout(1, 0);
+    port->set_timeout(4.);
 
     size_t readcount = 0;
     size_t errorcount = 0;
     size_t timeoutcount = 0;
+    int32_t lastresult = 0;
     int32_t result;
+    ElapsedTime et;
     do
     {
         result = port->get_char();
-        if (result > 0)
+        if (result >= 0)
         {
-            printf("%c", (char)result);
-            fflush(stdout);
             ++readcount;
+            if (result != lastresult)
+            {
+                lastresult = result;
+                double lap = et.lap();
+                printf("%f %f: Read %lu %c(%0x) @ %f BPS: %lu Errors: %lu Timeouts\n", et.split(), lap, readcount, result, result, readcount/lap, errorcount, timeoutcount);
+                readcount = 0;
+                errorcount = 0;
+                timeoutcount = 0;
+            }
         }
         else
         {
@@ -59,11 +69,10 @@ int main(int argc, char *argv[])
             }
             else
             {
+                printf("%f: %s\n", et.split(), cosmos_error_string(result).c_str());
                 ++errorcount;
             }
         }
-    } while (result != 4);
-
-    printf("\nReads: %lu Errors: %lu Timeouts: %lu\n", readcount, errorcount, timeoutcount);
+    } while (1);
 
 }

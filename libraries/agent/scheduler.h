@@ -47,27 +47,30 @@ using std::cout;
 using std::endl;
 using std::string;
 
-namespace Cosmos {
-
-// Class
-class Scheduler
+namespace Cosmos
 {
-private:
-    Agent *agent;
-    beatstruc agent_exec_soh;
-public:
+    namespace Support
+    {
 
-    Scheduler(string node_name);
-    ~Scheduler();
+        // Class
+        class Scheduler
+        {
+        private:
+            Agent *agent;
+            beatstruc agent_exec_soh;
+        public:
 
-    void addEvent(string name, string data, double utc, string condition, uint32_t flag);
-    void addEvent(Event event);
-    void deleteEvent(string name, string data, double utc, string condition, uint32_t flag);
-    void deleteEvent(Event event);
-    int getEventQueueSize();
-    void getEventQueue();
-}; // end of Scheduler Class
+            Scheduler(string node_name);
+            ~Scheduler();
 
+            void addEvent(string name, string data, double utc, string condition, uint32_t flag);
+            void addEvent(Event event);
+            void deleteEvent(string name, string data, double utc, string condition, uint32_t flag);
+            void deleteEvent(Event event);
+            int getEventQueueSize();
+            void getEventQueue();
+        }; // end of Scheduler Class
+    } // end of namespace Support
 } // end of namepsace Cosmos
 
 #endif // COSMOS_SCHEDULER_QUEUE_H

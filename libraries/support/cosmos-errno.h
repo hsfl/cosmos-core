@@ -264,6 +264,12 @@
 #define MEADE_MOUNT_ERROR_VALUE_INVALID -622
 #define MEADE_MOUNT_ERROR_OUTSIDE_LIMITS -623
 
+#define SCPI_ERROR_NOT_CONNECTED -630
+#define SCPI_ERROR_BAD_RESPONSE -631
+#define SCPI_ERROR_VALUE_INVALID -632
+#define SCPI_ERROR_OUTSIDE_LIMITS -633
+#define SCPI_ERROR_OUTSIDE_RANGE -634
+
 #define GENERAL_OK                        0      /* everything is all right */
 #define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
 #define GENERAL_ERROR_NOTSTARTED       -2002     /* uninitialized error */
@@ -285,6 +291,8 @@
 #define GENERAL_ERROR_UNDEFINED        -2018
 #define GENERAL_ERROR_OUTOFRANGE        -2019
 #define GENERAL_ERROR_NOTREADY          -2020
+#define GENERAL_ERROR_BUSY              -2021
+#define GENERAL_ERROR_NO_CARRIER        -2022
 
 #define GPHOTO2_ERROR -3000
 

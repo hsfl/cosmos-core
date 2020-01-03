@@ -158,7 +158,7 @@ if(input_size == -1 || input_size > 255)
 {
   memcpy(response,"Error: Input larger than 255 maximum", 36);
   iretn=1;
-  return (iretn);
+  return iretn;
 }
 */
 
@@ -181,5 +181,5 @@ if(input_size == -1 || input_size > 255)
 	//#printf("Transmitting: %s\n",request+3);
 
 
-	return (iretn);
+	return iretn;
 }

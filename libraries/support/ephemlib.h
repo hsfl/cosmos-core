@@ -54,7 +54,9 @@
 
 int32_t jplnut(double mjd, double nuts[]);
 int32_t jplpos(long from, long to, double mjd, cartpos *pos);
+int32_t jplpos(long from, long to, double mjd, cartpos &pos);
 int32_t jpllib(double utc,rmatrix *rm, rmatrix *drm);
+int32_t jpllib(double utc,rmatrix &rm, rmatrix &drm);
 int32_t jplopen();
 
 //! @}

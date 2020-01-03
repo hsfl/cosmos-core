@@ -35,7 +35,7 @@
 #include "support/jsonlib.h"
 //#include "support/controllib.h"
 #include "support/ephemlib.h"
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 

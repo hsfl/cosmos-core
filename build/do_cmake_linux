@@ -1,0 +1,13 @@
+#!/bin/bash
+if [ -d linux ]; then
+echo "Configuring linux"
+else
+mkdir linux
+echo "Making and configuring linux"
+fi
+cd linux
+if [ -e ../toolchain_linux ]; then
+cmake $2 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=../toolchain_linux -DCROSS_TYPE=linux ../..
+else
+cmake $2 -DCMAKE_BUILD_TYPE=Debug -DCROSS_TYPE=linux ../..
+fi

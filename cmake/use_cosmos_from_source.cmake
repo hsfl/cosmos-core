@@ -18,9 +18,9 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/thirdparty/png     ${CMAKE_BINARY_DIR}/libraries/png/)
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/thirdparty/jpeg     ${CMAKE_BINARY_DIR}/libraries/jpeg/)
     add_subdirectory(${COSMOS_SOURCE}/core/libraries/thirdparty/zlib     ${CMAKE_BINARY_DIR}/libraries/zlib/)
-    if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC") #or just MSVC
-        add_subdirectory(${COSMOS_SOURCE}/core/libraries/thirdparty/dirent     ${CMAKE_BINARY_DIR}/libraries/dirent/)
-    endif()
+#    if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC") #or just MSVC
+#        add_subdirectory(${COSMOS_SOURCE}/core/libraries/thirdparty/dirent     ${CMAKE_BINARY_DIR}/libraries/dirent/)
+#    endif()
 
     # -----------------------------------------------
     # import devices
@@ -48,6 +48,11 @@ if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     # import device serial
     include_directories(${COSMOS_SOURCE}/core/libraries/device/serial)
     add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/serial      ${CMAKE_BINARY_DIR}/libraries/device/serial)
+
+    # -----------------------------------------------
+    # import device ccsds
+    include_directories(${COSMOS_SOURCE}/core/libraries/device/ccsds)
+    add_subdirectory(   ${COSMOS_SOURCE}/core/libraries/device/ccsds      ${CMAKE_BINARY_DIR}/libraries/device/ccsds)
 
 #    # -----------------------------------------------
 #    # import device vn100

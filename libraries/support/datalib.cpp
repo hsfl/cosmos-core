@@ -41,13 +41,13 @@
 //static std::vector<cosmosstruc> nodes;
 
 //! Path to COSMOS root directory
-string cosmosroot;
+static string cosmosroot;
 //! Path to COSMOS Nodes directory
-string cosmosnodes="";
+static string cosmosnodes="";
 //! Path to COSMOS Resources directory
-string cosmosresources;
+static string cosmosresources;
 //! Path to current COSMOS Node directory
-string nodedir;
+static string nodedir;
 
 //! @}
 
@@ -72,7 +72,7 @@ string nodedir;
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(string node, string location, string agent, double utc, string extra, string type, string record)
+void log_write(string node, string agent, double utc, string extra, string type, string record, string location)
 {
     FILE *fout;
     string path;
@@ -89,7 +89,15 @@ void log_write(string node, string location, string agent, double utc, string ex
         path = data_type_path(node, location, agent, utc, extra, type);
     }
 
-    if ((fout = data_open(path, (char *)"a+")) != nullptr)
+    if (location == "immediate")
+    {
+        fout = data_open(path, const_cast<char *>("w"));
+    }
+    else
+    {
+        fout = data_open(path, const_cast<char *>("a+"));
+    }
+    if (fout  != nullptr)
     {
         fprintf(fout,"%s\n",record.c_str());
         fclose(fout);
@@ -106,23 +114,10 @@ void log_write(string node, string location, string agent, double utc, string ex
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(string node, string agent, double utc, string extra, string type, string record)
-{
-    log_write(node, "temp", agent, utc, extra, type, record);
-    //    FILE *fout;
-    //    string path;
-
-    //    if (utc == 0.)
-    //        return;
-
-    //    path = data_type_path(node, "temp", agent, utc, extra, type);
-
-    //    if ((fout = data_open(path, (char *)"a+")) != nullptr)
-    //    {
-    //        fprintf(fout,"%s\n",record.c_str());
-    //        fclose(fout);
-    //    }
-}
+//void log_write(string node, string agent, double utc, string extra, string type, string record)
+//{
+//    log_write(node, "temp", agent, utc, extra, type, record);
+//}
 
 //! Write log entry - fixed location, no extra
 /*! Append the provided string to a file in the {node}/temp/{agent} directory. The file name
@@ -135,7 +130,7 @@ void log_write(string node, string agent, double utc, string extra, string type,
  */
 void log_write(string node, string agent, double utc, string type, const char *record)
 {
-    log_write(node, "temp", agent, utc, "", type, record);
+    log_write(node, agent, utc, "", type, record);
     //    FILE *fout;
     //    string path;
 
@@ -159,7 +154,7 @@ void log_write(string node, string agent, double utc, string type, const char *r
  * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
  * \param record String to be appended to file.
  */
-void log_write(string node, int type, double utc, const char *record)
+void log_write(string node, int type, double utc, const char *record, string directory)
 {
     //    FILE *fout;
     //    string path;
@@ -170,19 +165,19 @@ void log_write(string node, int type, double utc, const char *record)
     switch (type)
     {
     case DATA_LOG_TYPE_SOH:
-        log_write(node, "temp", "soh", utc, "", "telemetry", record);
+        log_write(node, "soh", utc, "", "telemetry", record);
         //        path = data_type_path(node, "temp", "soh", utc, "telemetry");
         break;
     case DATA_LOG_TYPE_EVENT:
-        log_write(node, "temp", "soh", utc, "", "event", record);
+        log_write(node, "soh", utc, "", "event", record);
         //        path = data_type_path(node, "temp", "soh", utc, "event");
         break;
     case DATA_LOG_TYPE_BEACON:
-        log_write(node, "temp", "beacon", utc, "", "beacon", record);
+        log_write(node, "beacon", utc, "", "beacon", record);
         //        path = data_type_path(node, "temp", "beacon", utc, "beacon");
         break;
     default:
-        log_write(node, "temp", "soh", utc, "", "log", record);
+        log_write(node, "soh", utc, "", "log", record);
         //        path = data_type_path(node, "temp", "soh", utc, "log");
         break;
     }
@@ -218,8 +213,8 @@ void log_move(string node, string agent, string srclocation, string dstlocation,
         {
             string temppath = oldfile.path + ".gz";
             string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
-            FILE *fin = data_open(oldpath, (char *)"rb");
-            FILE *fout = data_open(temppath, (char *)"wb");
+            FILE *fin = data_open(oldpath, "rb");
+            FILE *fout = data_open(temppath, "wb");
             gzFile gzfout;
             gzfout = gzdopen(fileno(fout), "a");
 
@@ -311,6 +306,31 @@ std::vector <double> data_list_archive_days(string node, string agent)
     return days;
 }
 
+//! Use this function to loop through the gzfile until eof is reached. It returns each string line by line in the log file.
+//! \brief log_reads Loop until the newline character is seen. Append it to a string and return the line once the newline is met.
+//! \param file The file to be read.
+//! \param num The maximum number of characters to be written to the buffer.
+//! \return Each string in the gzfile.
+//!
+string log_read(gzFile &file, int num) {
+    string buffer;
+    buffer.resize(num);
+    string line;
+
+    while (!(line.back() == '\n')) {
+        gzgets(file, const_cast <char *>(buffer.data()), num);
+        line.append(buffer);
+    }
+
+    if (!gzeof(file)) {
+        return line;
+    }
+
+    gzclose(file);
+
+    return "";
+}
+
 //! Get a list of files in a Node archive.
 /*! Generate a list of archived files for the indicated Node, Agent, and UTC.
  * The result is returned as a vector of ::filestruc, one entry for each file found.
@@ -390,6 +410,81 @@ std::vector<filestruc> data_list_archive(string node, string agent, double utc)
     return data_list_archive(node, agent, utc, "");
 }
 
+//! Get list of files in a directory, directly.
+/*! Generate a list of files for the indicated directory.
+ * The result is returned as a vector of ::filestruc, one entry for each file found.
+ * \param directory Directory to search.
+ * \return A C++ vector of ::filestruc. Zero size if no files are found.
+ */
+std::vector<filestruc> data_list_files(string directory)
+{
+    std::vector<filestruc> files;
+
+    data_list_files(directory, files);
+
+    return files;
+}
+
+//! Get list of files in a directory, indirectly.
+/*! Generate a list of files for the indicated directory.
+ * The result is returned as a vector of ::filestruc, one entry for each file found.
+ * Repeated calls to this function will append entries.
+ * \param directory Directory to search.
+ * \return Number of files found, otherwise negative error.
+ */
+size_t data_list_files(string directory, vector<filestruc>& files)
+{
+    DIR *jdp;
+    struct dirent *td;
+    filestruc tf;
+
+    tf.node = "";
+    tf.agent = "";
+    if ((jdp=opendir(directory.c_str())) != nullptr)
+    {
+        while ((td=readdir(jdp)) != nullptr)
+        {
+            if (td->d_name[0] != '.')
+            {
+                tf.name = td->d_name;
+                tf.path = directory + "/" + tf.name;
+                struct stat st;
+                stat(tf.path.c_str(), &st);
+                tf.size = st.st_size;
+                tf.utc = unix2utc((double)st.st_ctime);
+                if (S_ISDIR(st.st_mode))
+                {
+                    tf.type = "directory";
+                }
+                else
+                {
+                    for (size_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
+                    {
+                        if (td->d_name[i] == '.')
+                        {
+                            tf.type = &td->d_name[i+1];
+                            break;
+                        }
+                    }
+                }
+                files.push_back(tf);
+                for (size_t i=files.size()-1; i>1; --i)
+                {
+                    if (files[i].name < files[i-1].name)
+                    {
+                        filestruc tfile = files[i-1];
+                        files[i-1] = files[i];
+                        files[i] = tfile;
+                    }
+                }
+            }
+        }
+        closedir(jdp);
+    }
+
+    return files.size();
+}
+
 //! Get list of files in a Node, directly.
 /*! Generate a list of files for the indicated Node, location (eg. incoming, outgoing, ...),
  * and Agent. The result is returned as a vector of ::filestruc, one entry for each file found.
@@ -398,7 +493,7 @@ std::vector<filestruc> data_list_archive(string node, string agent, double utc)
  * \param agent Subdirectory of location to search.
  * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
-std::vector<filestruc> data_list_files(string node, string location, string agent)
+vector<filestruc> data_list_files(string node, string location, string agent)
 {
     std::vector<filestruc> files;
 
@@ -420,43 +515,13 @@ std::vector<filestruc> data_list_files(string node, string location, string agen
 size_t data_list_files(string node, string location, string agent, std::vector<filestruc>& files)
 {
     string dtemp;
-    DIR *jdp;
-    struct dirent *td;
-    filestruc tf;
-
-    tf.node = node;
-    tf.agent = agent;
     dtemp = data_base_path(node, location, agent);
-    if ((jdp=opendir(dtemp.c_str())) != nullptr)
+    size_t fcnt = files.size();
+    data_list_files(dtemp, files);
+    for (size_t i=fcnt; i<files.size(); ++i)
     {
-        while ((td=readdir(jdp)) != nullptr)
-        {
-            if (td->d_name[0] != '.')
-            {
-                tf.name = td->d_name;
-                tf.path = dtemp + "/" + tf.name;
-                struct stat st;
-                stat(tf.path.c_str(), &st);
-                tf.size = st.st_size;
-                if (S_ISDIR(st.st_mode))
-                {
-                    tf.type = "directory";
-                }
-                else
-                {
-                    for (size_t i=strlen(td->d_name)-1; i<strlen(td->d_name); --i)
-                    {
-                        if (td->d_name[i] == '.')
-                        {
-                            tf.type = &td->d_name[i+1];
-                            break;
-                        }
-                    }
-                }
-                files.push_back(tf);
-            }
-        }
-        closedir(jdp);
+        files[i].agent = agent;
+        files[i].node = node;
     }
 
     return (files.size());
@@ -494,7 +559,7 @@ int32_t data_list_nodes(std::vector<string>& nodes)
     int32_t iretn = get_cosmosnodes(rootd);
     if (iretn < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     dtemp = rootd;
@@ -531,7 +596,7 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
     int32_t iretn = get_cosmosnodes(rootd);
     if (iretn < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     if ((tnode=json_create()) == nullptr)
@@ -903,7 +968,7 @@ bool data_exists(string& path)
  * created, or the file can not be opened.
  */
 
-FILE *data_open(string path, char *mode)
+FILE *data_open(string path, const char *mode)
 {
     char dtemp[1024];
     uint32_t index, dindex, length;
@@ -1614,7 +1679,7 @@ double findlastday(string name)
         mytm.tm_mon = 0;
         mytm.tm_isdst = 0;
         mytime = mktime(&mytm);
-        mytime += (int)((jday-1) * 86400.);
+        mytime += static_cast<int>(((jday-1) * 86400.));
 #ifdef COSMOS_WIN_OS
         struct tm *temptm;
         temptm = localtime(&mytime);
@@ -1764,11 +1829,26 @@ bool data_isdir(string path)
 
 }
 
-bool data_isfile(string path)
+bool data_ischardev(string path)
 {
     struct stat st;
 
-    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode))
+    if (!stat(path.c_str(), &st) && S_ISCHR(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
+bool data_isfile(string path, off_t size)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISREG(st.st_mode) && (!size || (size == st.st_size)))
     {
         return true;
     }

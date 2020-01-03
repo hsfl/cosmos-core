@@ -942,28 +942,28 @@ std::istream& operator >> (std::istream& in, avector& a)
 
 double norm_q(quaternion q)
 {
-return length_q(q);
+    return length_q(q);
 }
 
 void normalize_q(quaternion *q)
 {
-double mag;
+    double mag;
 
-q->w = round(q->w/D_SMALL)*D_SMALL;
-q->d.x = round(q->d.x/D_SMALL)*D_SMALL;
-q->d.y = round(q->d.y/D_SMALL)*D_SMALL;
-q->d.z = round(q->d.z/D_SMALL)*D_SMALL;
+    q->w = round(q->w/D_SMALL)*D_SMALL;
+    q->d.x = round(q->d.x/D_SMALL)*D_SMALL;
+    q->d.y = round(q->d.y/D_SMALL)*D_SMALL;
+    q->d.z = round(q->d.z/D_SMALL)*D_SMALL;
 
-mag = q->w * q->w + q->d.x * q->d.x + q->d.y * q->d.y + q->d.z * q->d.z;
+    mag = q->w * q->w + q->d.x * q->d.x + q->d.y * q->d.y + q->d.z * q->d.z;
 
-if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
-{
-mag = sqrt(mag);
-q->w /= mag;
-q->d.x /= mag;
-q->d.y /= mag;
-q->d.z /= mag;
-}
+    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
+    {
+        mag = sqrt(mag);
+        q->w /= mag;
+        q->d.x /= mag;
+        q->d.y /= mag;
+        q->d.z /= mag;
+    }
 }
 
 //! Angular separation between quaternions.
@@ -975,12 +975,12 @@ q->d.z /= mag;
 double sep_q(quaternion q1, quaternion q2)
 {
 
-normalize_q(&q1);
-normalize_q(&q2);
+    normalize_q(&q1);
+    normalize_q(&q2);
 
-double inner = inner_q(q1, q2);
-double sepangle = acos(2. * inner * inner - 1);
-return (sepangle);
+    double inner = inner_q(q1, q2);
+    double sepangle = acos(2. * inner * inner - 1);
+    return (sepangle);
 }
 
 //! Zero quaternion
@@ -989,21 +989,21 @@ return (sepangle);
 */
 quaternion q_zero()
 {
-quaternion q={{0.,0.,0.},0.};
+    quaternion q={{0.,0.,0.},0.};
 
-return (q);
+    return (q);
 }
 
 quaternion q_conjugate(quaternion q)
 {
-quaternion o;
+    quaternion o;
 
-o.w = q.w;
-o.d.x = -q.d.x;
-o.d.y = -q.d.y;
-o.d.z = -q.d.z;
+    o.w = q.w;
+    o.d.x = -q.d.x;
+    o.d.y = -q.d.y;
+    o.d.z = -q.d.z;
 
-return (o);
+    return (o);
 }
 
 //! Multiply the elements of 2 quaternions
@@ -1014,14 +1014,14 @@ return (o);
 */
 quaternion q_times(quaternion q1, quaternion q2)
 {
-quaternion o;
+    quaternion o;
 
-o.d.x = q1.d.x * q2.d.x;
-o.d.y = q1.d.y * q2.d.y;
-o.d.z = q1.d.z * q2.d.z;
-o.w = q1.w * q2.w;
+    o.d.x = q1.d.x * q2.d.x;
+    o.d.y = q1.d.y * q2.d.y;
+    o.d.z = q1.d.z * q2.d.z;
+    o.w = q1.w * q2.w;
 
-return (o);
+    return (o);
 }
 
 //! Inner product of two quaternions
@@ -1033,10 +1033,10 @@ return (o);
 */
 double inner_q(quaternion q1, quaternion q2)
 {
-quaternion q = q_times(q1, q2);
-double result = q.d.x + q.d.y + q.d.z + q.w;
+    quaternion q = q_times(q1, q2);
+    double result = q.d.x + q.d.y + q.d.z + q.w;
 
-return result;
+    return result;
 }
 
 //! Square root of the elements of a quaternion
@@ -1046,14 +1046,14 @@ return result;
 */
 quaternion q_sqrt(quaternion q1)
 {
-quaternion o;
+    quaternion o;
 
-o.d.x = sqrt(q1.d.x);
-o.d.y = sqrt(q1.d.y);
-o.d.z = sqrt(q1.d.z);
-o.w = sqrt(q1.w);
+    o.d.x = sqrt(q1.d.x);
+    o.d.y = sqrt(q1.d.y);
+    o.d.z = sqrt(q1.d.z);
+    o.w = sqrt(q1.w);
 
-return (o);
+    return (o);
 }
 
 //! rvector quaternion multiply
@@ -1065,14 +1065,14 @@ return (o);
 */
 quaternion q_fmult(rvector r1, quaternion q2)
 {
-quaternion o;
+    quaternion o;
 
-o.d.x = r1.col[0] * q2.w + r1.col[1] * q2.d.z - r1.col[2] * q2.d.y;
-o.d.y = r1.col[1] * q2.w + r1.col[2] * q2.d.x - r1.col[0] * q2.d.z;
-o.d.z = r1.col[2] * q2.w + r1.col[0] * q2.d.y - r1.col[1] * q2.d.x;
-o.w = - r1.col[0] * q2.d.x - r1.col[1] * q2.d.y - r1.col[2] * q2.d.z;
+    o.d.x = r1.col[0] * q2.w + r1.col[1] * q2.d.z - r1.col[2] * q2.d.y;
+    o.d.y = r1.col[1] * q2.w + r1.col[2] * q2.d.x - r1.col[0] * q2.d.z;
+    o.d.z = r1.col[2] * q2.w + r1.col[0] * q2.d.y - r1.col[1] * q2.d.x;
+    o.w = - r1.col[0] * q2.d.x - r1.col[1] * q2.d.y - r1.col[2] * q2.d.z;
 
-return (o);
+    return (o);
 }
 
 //! Quaternion multiplication. The result of multiplying two quaternions is the
@@ -1085,14 +1085,14 @@ return (o);
 */
 quaternion q_fmult(quaternion q1, quaternion q2)
 {
-quaternion o;
+    quaternion o;
 
-o.d.x = q1.w * q2.d.x + q1.d.x * q2.w + q1.d.y * q2.d.z - q1.d.z * q2.d.y;
-o.d.y = q1.w * q2.d.y + q1.d.y * q2.w + q1.d.z * q2.d.x - q1.d.x * q2.d.z;
-o.d.z = q1.w * q2.d.z + q1.d.z * q2.w + q1.d.x * q2.d.y - q1.d.y * q2.d.x;
-o.w = q1.w * q2.w - q1.d.x * q2.d.x - q1.d.y * q2.d.y - q1.d.z * q2.d.z;
+    o.d.x = q1.w * q2.d.x + q1.d.x * q2.w + q1.d.y * q2.d.z - q1.d.z * q2.d.y;
+    o.d.y = q1.w * q2.d.y + q1.d.y * q2.w + q1.d.z * q2.d.x - q1.d.x * q2.d.z;
+    o.d.z = q1.w * q2.d.z + q1.d.z * q2.w + q1.d.x * q2.d.y - q1.d.y * q2.d.x;
+    o.w = q1.w * q2.w - q1.d.x * q2.d.x - q1.d.y * q2.d.y - q1.d.z * q2.d.z;
 
-return (o);
+    return (o);
 }
 
 //! Quaternion multiplication. The result of multiplying two quaternions is the
@@ -1105,7 +1105,7 @@ return (o);
 */
 quaternion q_mult(quaternion q1, quaternion q2)
 {
-return q_fmult(q1, q2);
+    return q_fmult(q1, q2);
 }
 
 //! Quaternion multiplication. The result of multiplying two quaternions is the
@@ -1119,14 +1119,14 @@ return q_fmult(q1, q2);
 */
 quaternion q_rmult(quaternion q1, quaternion q2)
 {
-quaternion o;
+    quaternion o;
 
-o.d.x = q1.w * q2.d.x + q1.d.x * q2.w + q1.d.y * q2.d.z - q1.d.z * q2.d.y;
-o.d.y = q1.w * q2.d.y + q1.d.y * q2.w + q1.d.z * q2.d.x - q1.d.x * q2.d.z;
-o.d.z = q1.w * q2.d.z + q1.d.z * q2.w + q1.d.x * q2.d.y - q1.d.y * q2.d.x;
-o.w = -q1.w * q2.w + q1.d.x * q2.d.x + q1.d.y * q2.d.y + q1.d.z * q2.d.z;
+    o.d.x = q1.w * q2.d.x + q1.d.x * q2.w + q1.d.y * q2.d.z - q1.d.z * q2.d.y;
+    o.d.y = q1.w * q2.d.y + q1.d.y * q2.w + q1.d.z * q2.d.x - q1.d.x * q2.d.z;
+    o.d.z = q1.w * q2.d.z + q1.d.z * q2.w + q1.d.x * q2.d.y - q1.d.y * q2.d.x;
+    o.w = -q1.w * q2.w + q1.d.x * q2.d.x + q1.d.y * q2.d.y + q1.d.z * q2.d.z;
 
-return (o);
+    return (o);
 }
 
 //! Multiply quaternion by scalar
@@ -1137,13 +1137,13 @@ return (o);
 */
 quaternion q_smult(double a, quaternion b)
 {
-quaternion c;
+    quaternion c;
 
-c.w = a * b.w;
-c.d.x = a * b.d.x;
-c.d.y = a * b.d.y;
-c.d.z = a * b.d.z;
-return (c);
+    c.w = a * b.w;
+    c.d.x = a * b.d.x;
+    c.d.y = a * b.d.y;
+    c.d.z = a * b.d.z;
+    return (c);
 }
 
 //! Add two quaternions
@@ -1154,13 +1154,13 @@ return (c);
 */
 quaternion q_add(quaternion a, quaternion b)
 {
-quaternion c;
+    quaternion c;
 
-c.w = a.w + b.w;
-c.d.x = a.d.x + b.d.x;
-c.d.y = a.d.y + b.d.y;
-c.d.z = a.d.z + b.d.z;
-return (c);
+    c.w = a.w + b.w;
+    c.d.x = a.d.x + b.d.x;
+    c.d.y = a.d.y + b.d.y;
+    c.d.z = a.d.z + b.d.z;
+    return (c);
 }
 
 //! Subtract two quaternions
@@ -1172,93 +1172,93 @@ return (c);
 */
 quaternion q_sub(quaternion a, quaternion b)
 {
-quaternion c;
+    quaternion c;
 
-c.w = a.w - b.w;
-c.d.x = a.d.x - b.d.x;
-c.d.y = a.d.y - b.d.y;
-c.d.z = a.d.z - b.d.z;
-return (c);
+    c.w = a.w - b.w;
+    c.d.x = a.d.x - b.d.x;
+    c.d.y = a.d.y - b.d.y;
+    c.d.z = a.d.z - b.d.z;
+    return (c);
 }
 
 
 // TODO: explain
 void qrotate(double ipos[3], double rpos[3], double angle, double *opos)
 {
-double q1, q2, q3, q4, length, sa;
-double q11, q12, q13, q14, q22, q23, q24, q33, q34;
+    double q1, q2, q3, q4, length, sa;
+    double q11, q12, q13, q14, q22, q23, q24, q33, q34;
 
-length = sqrt(rpos[0]*rpos[0]+rpos[1]*rpos[1]+rpos[2]*rpos[2]);
-if (length>0.)
-{
-rpos[0] /= length;
-rpos[1] /= length;
-rpos[2] /= length;
-}
+    length = sqrt(rpos[0]*rpos[0]+rpos[1]*rpos[1]+rpos[2]*rpos[2]);
+    if (length>0.)
+    {
+        rpos[0] /= length;
+        rpos[1] /= length;
+        rpos[2] /= length;
+    }
 
-sa = sin(angle/2.);
-q1 = rpos[0] * sa;
-q2 = rpos[1] * sa;
-q3 = rpos[2] * sa;
-q4 = cos(angle/2.);
-q11 = q1 * q1;
-q12 = q1 * q2;
-q13 = q1 * q3;
-q14 = q1 * q4;
-q22 = q2 * q2;
-q23 = q2 * q3;
-q24 = q2 * q4;
-q33 = q3 * q3;
-q34 = q3 * q4;
+    sa = sin(angle/2.);
+    q1 = rpos[0] * sa;
+    q2 = rpos[1] * sa;
+    q3 = rpos[2] * sa;
+    q4 = cos(angle/2.);
+    q11 = q1 * q1;
+    q12 = q1 * q2;
+    q13 = q1 * q3;
+    q14 = q1 * q4;
+    q22 = q2 * q2;
+    q23 = q2 * q3;
+    q24 = q2 * q4;
+    q33 = q3 * q3;
+    q34 = q3 * q4;
 
-opos[0] = ipos[0] *(1.-2.*(q22+q33)) + ipos[1] * 2.*(q12-q34) + ipos[2] * 2.*(q13+q24);
-opos[1] = ipos[0]*2.*(q12+q34)+ipos[1]*(1.-2.*(q11+q33))+ipos[2]*2.*(q23-q14);
-opos[2] = ipos[0]*2.*(q13-q24)+ipos[1]*2.*(q14+q23)+ipos[2]*(1.-2.*(q11+q22));
+    opos[0] = ipos[0] *(1.-2.*(q22+q33)) + ipos[1] * 2.*(q12-q34) + ipos[2] * 2.*(q13+q24);
+    opos[1] = ipos[0]*2.*(q12+q34)+ipos[1]*(1.-2.*(q11+q33))+ipos[2]*2.*(q23-q14);
+    opos[2] = ipos[0]*2.*(q13-q24)+ipos[1]*2.*(q14+q23)+ipos[2]*(1.-2.*(q11+q22));
 
 }
 
 quaternion q_euler2quaternion(avector rpw)
 {
-quaternion q;
-double sr, sp, sy, cr, cp, cy;
+    quaternion q;
+    double sr, sp, sy, cr, cp, cy;
 
-sr = sin(rpw.b/2.);
-sp = sin(rpw.e/2.);
-sy = sin(rpw.h/2.);
-cr = cos(rpw.b/2.);
-cp = cos(rpw.e/2.);
-cy = cos(rpw.h/2.);
+    sr = sin(rpw.b/2.);
+    sp = sin(rpw.e/2.);
+    sy = sin(rpw.h/2.);
+    cr = cos(rpw.b/2.);
+    cp = cos(rpw.e/2.);
+    cy = cos(rpw.h/2.);
 
-q.d.x = sr * cp * cy - cr * sp * sy;
-q.d.y = cr * sp * cy + sr * cp * sy;
-q.d.z = cr * cp * sy - sr * sp * cy;
-q.w = (cr * cp * cy + sr * sp * sy);
+    q.d.x = sr * cp * cy - cr * sp * sy;
+    q.d.y = cr * sp * cy + sr * cp * sy;
+    q.d.z = cr * cp * sy - sr * sp * cy;
+    q.w = (cr * cp * cy + sr * sp * sy);
 
-normalize_q(&q);
+    normalize_q(&q);
 
-return (q);
+    return (q);
 }
 
 // TODO: validade and add reference
 avector a_quaternion2euler(quaternion q)
 {
-avector rpw;
+    avector rpw;
 
-normalize_q(&q);
-/*
+    normalize_q(&q);
+    /*
 rpw.b = atan2(q.d.y*q.d.z+q.w*q.d.x,q.w*q.w+q.d.z*q.d.z-.5);
 rpw.e = asin(-2.*(q.d.x*q.d.z-q.w*q.d.y));
 rpw.h = atan2(q.d.x*q.d.y+q.w*q.d.z,q.w*q.w+q.d.x*q.d.x-.5);
 */
-//	double sqw = q.w * q.w;
-double sqx = q.d.x * q.d.x;
-double sqy = q.d.y * q.d.y;
-double sqz = q.d.z * q.d.z;
-rpw.b = atan2(2.*(q.d.z*q.d.y + q.d.x*q.w), 1. - 2.*(sqx + sqy));
-rpw.e = asin(-2.*(q.d.x*q.d.z - q.d.y*q.w));
-rpw.h = atan2(2.*(q.d.x*q.d.y + q.d.z*q.w), 1. - 2.*(sqy + sqz));
+    //	double sqw = q.w * q.w;
+    double sqx = q.d.x * q.d.x;
+    double sqy = q.d.y * q.d.y;
+    double sqz = q.d.z * q.d.z;
+    rpw.b = atan2(2.*(q.d.z*q.d.y + q.d.x*q.w), 1. - 2.*(sqx + sqy));
+    rpw.e = asin(-2.*(q.d.x*q.d.z - q.d.y*q.w));
+    rpw.h = atan2(2.*(q.d.x*q.d.y + q.d.z*q.w), 1. - 2.*(sqy + sqz));
 
-return (rpw);
+    return (rpw);
 }
 
 
@@ -1268,23 +1268,23 @@ return (rpw);
 // TODO: explain
 quaternion q_axis2quaternion_cv(cvector v)
 {
-double length, s2;
-quaternion q;
+    double length, s2;
+    quaternion q;
 
-length = sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
-s2 = sin(length/2.)/length;
-if (length)
-{
-q.d.x = s2*v.x;
-q.d.y = s2*v.y;
-q.d.z = s2*v.z;
-}
-else
-q.d.x = q.d.y = q.d.z = 0.;
-q.w =cos(length/2);
+    length = sqrt(v.x*v.x+v.y*v.y+v.z*v.z);
+    s2 = sin(length/2.)/length;
+    if (length)
+    {
+        q.d.x = s2*v.x;
+        q.d.y = s2*v.y;
+        q.d.z = s2*v.z;
+    }
+    else
+        q.d.x = q.d.y = q.d.z = 0.;
+    q.w =cos(length/2);
 
-normalize_q(&q);
-return (q);
+    normalize_q(&q);
+    return (q);
 }
 
 
@@ -1296,14 +1296,14 @@ return (q);
 */
 quaternion q_eye()
 {
-quaternion q = {{0.,0.,0.},1.};
+    quaternion q = {{0.,0.,0.},1.};
 
-return (q);
+    return (q);
 }
 
 quaternion q_identity()
 {
-return q_eye();
+    return q_eye();
 }
 
 //! Length of quaternion
@@ -1315,34 +1315,34 @@ return q_eye();
 // TODO: check the redundancy with normalize_q
 double length_q(quaternion q)
 {
-double length;
+    double length;
 
-length = q.w * q.w + q.d.x * q.d.x + q.d.y * q.d.y + q.d.z * q.d.z;
-length = sqrt(length);
+    length = q.w * q.w + q.d.x * q.d.x + q.d.y * q.d.y + q.d.z * q.d.z;
+    length = sqrt(length);
 
-if (length < D_SMALL)
-return (0.);
-else
-return (length);
+    if (length < D_SMALL)
+        return (0.);
+    else
+        return (length);
 }
 
 cvector cv_quaternion2axis(quaternion q)
 {
-cvector v;
-double ca, sa;
+    cvector v;
+    double ca, sa;
 
-ca = 2.*acos(q.w);
-if (ca > 0.)
-{
-sa = sin(ca/2.);
-v.x = ca*(q.d.x/sa);
-v.y = ca*(q.d.y/sa);
-v.z = ca*(q.d.z/sa);
-}
-else
-v = {0.,0.,0.};
+    ca = 2.*acos(q.w);
+    if (ca > 0.)
+    {
+        sa = sin(ca/2.);
+        v.x = ca*(q.d.x/sa);
+        v.y = ca*(q.d.y/sa);
+        v.z = ca*(q.d.z/sa);
+    }
+    else
+        v = {0.,0.,0.};
 
-return (v);
+    return (v);
 }
 
 
@@ -1358,33 +1358,33 @@ return (v);
 */
 quaternion q_change_around_cv(cvector around, double angle)
 {
-double sa;
-quaternion rq;
+    double sa;
+    quaternion rq;
 
-angle /= 2.;
-sa = sin(angle);
+    angle /= 2.;
+    sa = sin(angle);
 
-// normalize vector
-// before it was normalize_cv(around);
+    // normalize vector
+    // before it was normalize_cv(around);
 
-double mag = around.x*around.x
-         + around.y*around.y
-         + around.z*around.z;
+    double mag = around.x*around.x
+                 + around.y*around.y
+                 + around.z*around.z;
 
-if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
-{
-mag = sqrt(mag);
-around.x /= mag;
-around.y /= mag;
-around.z /= mag;
-}
+    if (fabs(mag - (double)0.) > D_SMALL && fabs(mag - (double)1.) > D_SMALL)
+    {
+        mag = sqrt(mag);
+        around.x /= mag;
+        around.y /= mag;
+        around.z /= mag;
+    }
 
-rq.d.x = around.x * sa;
-rq.d.y = around.y * sa;
-rq.d.z = around.z * sa;
-rq.w = cos(angle);
-normalize_q(&rq);
-return (rq);
+    rq.d.x = around.x * sa;
+    rq.d.y = around.y * sa;
+    rq.d.z = around.z * sa;
+    rq.w = cos(angle);
+    normalize_q(&rq);
+    return (rq);
 }
 
 
@@ -1396,21 +1396,21 @@ return (rq);
 // TODO: change function name to q_rotate_object_around_z vs q_rotate_coord_around_z
 quaternion q_change_around_x(double angle)
 {
-quaternion a = {{1.,0.,0.},0.};
+    quaternion a = {{1.,0.,0.},0.};
 
-// removed cv_mult to clean the dependency from mathlib
-// previously was: a.d = cv_smult(sin(angle/2.),a.d);
+    // removed cv_mult to clean the dependency from mathlib
+    // previously was: a.d = cv_smult(sin(angle/2.),a.d);
 
-// new
-double sa = sin(angle/2.);
+    // new
+    double sa = sin(angle/2.);
 
-a.d.x = sa * a.d.x;
-a.d.y = sa * a.d.y;
-a.d.z = sa * a.d.z;
+    a.d.x = sa * a.d.x;
+    a.d.y = sa * a.d.y;
+    a.d.z = sa * a.d.z;
 
-a.w = cos(angle/2.);
+    a.w = cos(angle/2.);
 
-return (a);
+    return (a);
 }
 
 //! Rotation quaternion for Y axis
@@ -1421,21 +1421,21 @@ return (a);
 // TODO: change function name to q_rotate_object_around_z vs q_rotate_coord_around_z
 quaternion q_change_around_y(double angle)
 {
-quaternion a = {{0.,1.,0.},0.};
+    quaternion a = {{0.,1.,0.},0.};
 
-// removed cv_mult to clean the dependency from mathlib
-// previously was: a.d = cv_smult(sin(angle/2.),a.d);
+    // removed cv_mult to clean the dependency from mathlib
+    // previously was: a.d = cv_smult(sin(angle/2.),a.d);
 
-// new
-double sa = sin(angle/2.);
+    // new
+    double sa = sin(angle/2.);
 
-a.d.x = sa * a.d.x;
-a.d.y = sa * a.d.y;
-a.d.z = sa * a.d.z;
+    a.d.x = sa * a.d.x;
+    a.d.y = sa * a.d.y;
+    a.d.z = sa * a.d.z;
 
-a.w = cos(angle/2.);
+    a.w = cos(angle/2.);
 
-return (a);
+    return (a);
 }
 
 
@@ -1447,20 +1447,20 @@ return (a);
 // TODO: change function name to q_rotate_object_around_z vs q_rotate_coord_around_z
 quaternion q_change_around_z(double angle)
 {
-quaternion a = {{0.,0.,1.},0.};
+    quaternion a = {{0.,0.,1.},0.};
 
-// removed cv_mult to clean the dependency from mathlib
-// previously was: a.d = cv_smult(sin(angle/2.),a.d);
+    // removed cv_mult to clean the dependency from mathlib
+    // previously was: a.d = cv_smult(sin(angle/2.),a.d);
 
-// new
-double sa = sin(angle/2.);
+    // new
+    double sa = sin(angle/2.);
 
-a.d.x = sa * a.d.x;
-a.d.y = sa * a.d.y;
-a.d.z = sa * a.d.z;
-a.w = cos(angle/2.);
+    a.d.x = sa * a.d.x;
+    a.d.y = sa * a.d.y;
+    a.d.z = sa * a.d.z;
+    a.w = cos(angle/2.);
 
-return (a);
+    return (a);
 }
 
 
@@ -1472,22 +1472,22 @@ return (a);
 */
 quaternion q_change_around(int axis,double angle)
 {
-quaternion a = {{1.,0.,0.},0.};
+    quaternion a = {{1.,0.,0.},0.};
 
-switch (axis)
-{
-case 1:
-q_change_around_x(angle);
-break;
-case 2:
-q_change_around_y(angle);
-break;
-case 3:
-q_change_around_z(angle);
-break;
-}
+    switch (axis)
+    {
+    case 1:
+        q_change_around_x(angle);
+        break;
+    case 2:
+        q_change_around_y(angle);
+        break;
+    case 3:
+        q_change_around_z(angle);
+        break;
+    }
 
-return (a);
+    return (a);
 }
 
 // default operator for printing the quaternion values
@@ -1562,769 +1562,976 @@ std::istream& operator >> (std::istream& in, qfirst& a)
 
 namespace Cosmos {
     namespace Math {
+        namespace Vectors {
 
-
-        //        Vector::Vector()
-        //        {
-        //            x = 0;
-        //            y = 0;
-        //            z = 0;
-        //            w = 0;
-        //        }
-
-        //        Vector::Vector(double x, double y, double z)
-        //        {
-        //            this->x = x;
-        //            this->y = y;
-        //            this->z = z;
-        //            this->w = 0.;
-        //        }
-
-        //! Constructor and initializer.
-        /*! Initialize ::Vector to zero.
-         * \param x0 Default x value.
-         * \param y0 Default y value.
-         * \param z0 Default z value.
-         * \param w0 Default w value.
-                \return Zero initialized ::Vector.
-        */
-//        Vector::Vector(double x0, double y0, double z0, double w0)
-//        {
-//            x = x0;
-//            y = y0;
-//            z = z0;
-//            w = w0;
-//        }
-
-        //! Lookup value.
-        /*! Return value of ::Vector at given index.
+            //! Lookup value.
+            /*! Return value of ::Vector at given index.
          * \param i Index.
          * \param y0 Default y value.
          * \param z0 Default z value.
          * \param w0 Default w value.
                 \return Value at index, or NAN.
         */
-        double Vector::at(int i)
-        {
-            switch (i) {
-            case 0:
-                return x;
-                break;
-            case 1:
-                return y;
-                break;
-            case 2:
-                return z;
-                break;
-            case 3:
-                return w;
-                break;
-            default:
-                return ::nan("");
-                break;
+            double Vector::at(int i)
+            {
+                switch (i) {
+                case 0:
+                    return x;
+                    break;
+                case 1:
+                    return y;
+                    break;
+                case 2:
+                    return z;
+                    break;
+                case 3:
+                    return w;
+                    break;
+                default:
+                    return ::nan("");
+                    break;
+                }
             }
-        }
 
-        //! Convert from ::cvector.
-        /*! Convert the provided ::cvector to ::Vector.
+            //! Convert from ::cvector.
+            /*! Convert the provided ::cvector to ::Vector.
          * \param ::cvector to convert.
          * \return ::Vector representation.
         */
-        Vector Vector::from_cv(cvector cv)
-        {
-            Vector v;
-            v.x = cv.x;
-            v.y = cv.y;
-            v.z = cv.z;
-            v.w = 0.;
-            return v;
-        }
+//            Vector Vector::from_cv(cvector cv)
+//            {
+//                Vector v;
+//                v.x = cv.x;
+//                v.y = cv.y;
+//                v.z = cv.z;
+//                v.w = 0.;
+//                return v;
+//            }
 
-        //! Convert from ::rvector.
-        /*! Convert the provided ::rvector to ::Vector.
+            //! Convert from ::rvector.
+            /*! Convert the provided ::rvector to ::Vector.
          * \param ::rvector to convert.
          * \return ::Vector representation.
         */
-        Vector Vector::from_rv(rvector rv)
-        {
-            Vector v;
-            v.x = rv.col[0];
-            v.y = rv.col[1];
-            v.z = rv.col[2];
-            v.w = 0.;
-            return v;
-        }
+//            Vector Vector::from_rv(rvector rv)
+//            {
+//                Vector v;
+//                v.x = rv.col[0];
+//                v.y = rv.col[1];
+//                v.z = rv.col[2];
+//                v.w = 0.;
+//                return v;
+//            }
 
-        //! Convert to ::rvector
-        /*! Convert the current ::Vector to ::rvector format.
+            //! Convert to ::rvector
+            /*! Convert the current ::Vector to ::rvector format.
          * \return ::rvector representation.
          */
-        rvector Vector::to_rv()
-        {
-            rvector rv;
-            rv.col[0] = x;
-            rv.col[1] = y;
-            rv.col[2] = z;
+            rvector Vector::to_rv()
+            {
+                rvector rv;
+                rv.col[0] = x;
+                rv.col[1] = y;
+                rv.col[2] = z;
 
-            return rv;
-        }
+                return rv;
+            }
 
-        //! Convert to ::cvector
-        /*! Convert the current ::Vector to ::cvector format.
+            //! Convert to ::cvector
+            /*! Convert the current ::Vector to ::cvector format.
          * \return ::cvector representation.
          */
-        cvector Vector::to_cv()
-        {
-            cvector cv;
-            cv.x = x;
-            cv.y = y;
-            cv.z = z;
+            cvector Vector::to_cv()
+            {
+                cvector cv;
+                cv.x = x;
+                cv.y = y;
+                cv.z = z;
 
-            return cv;
-        }
+                return cv;
+            }
 
-        //! Cross product.
-        /*! Calculate the cross product with the provided vector.
+            //! Cross product.
+            /*! Calculate the cross product with the provided vector.
          * \param ::Vector to cross.
          * \return This cross b.
         */
-        Vector Vector::cross(Vector b)
-        {
-            Vector c;
+            Vector Vector::cross(Vector b)
+            {
+                Vector c;
 
-            c.x = y*b.z - z*b.y;
-            c.y = z*b.x - x*b.z;
-            c.z = x*b.y - y*b.x;
+                c.x = y*b.z - z*b.y;
+                c.y = z*b.x - x*b.z;
+                c.z = x*b.y - y*b.x;
+                c.w = 0.;
 
-            return c;
-        }
+                return c;
+            }
 
-        //! Dot product.
-        /*! Calculate the dot product with the provided vector.
+            //! Dot product.
+            /*! Calculate the dot product with the provided vector.
          * \param ::Vector to dot.
          * \return This dot b.
         */
-        double Vector::dot(Vector b)
-        {
-            return (x*b.x + y*b.y + z*b.z);
-        }
+            double Vector::dot(Vector b)
+            {
+                return (x*b.x + y*b.y + z*b.z);
+            }
 
-        //! Normalize.
-        /*! Normalize the vector in place.
+            //! Normalize.
+            /*! Normalize the vector in place.
          * \return Reference to normalized ::Vector.
         */
-        Vector &Vector::normalize()
-        {
-            double tnorm = norm();
-
-            // If norm is basically 1., don't do anything
-            if (fabs(tnorm - (double)1.) > D_SMALL)
+            Vector &Vector::normalize(double size)
             {
-                // If norm is basically 0., flag an error
-                if (fabs(tnorm - (double)0.) > D_SMALL)
-                {
-                    // Otherwise, normalize
-                    *this = *this / tnorm;
-                }
-                else
-                {
-                    this->x = INFINITY;
-                    this->y = INFINITY;
-                    this->z = INFINITY;
-                    this->w = INFINITY;
-                }
-            }
-            return *this;
-        }
+                double tnorm = norm();
 
-        //! Norm.
-        /*! Calculate the Norm.
+                // If norm is basically 1., don't do anything
+                if (fabs(tnorm - (double)1.) > D_SMALL)
+                {
+                    // If norm is basically 0., flag an error
+                    if (fabs(tnorm - (double)0.) > D_SMALL)
+                    {
+                        // Otherwise, normalize
+                        *this = *this / tnorm;
+                    }
+                    else
+                    {
+                        this->x = NAN;
+                        this->y = NAN;
+                        this->z = NAN;
+                        this->w = NAN;
+                    }
+                }
+                *this *= size;
+                return *this;
+            }
+
+            //! Norm.
+            /*! Calculate the Norm.
          * \return Norm of ::Vector.
         */
-        double Vector::norm()
-        {
-            double norm = sqrt(x*x + y*y + z*z + w*w);
-            if (norm < D_SMALL)
-                return (0.);
-            else
-                return (norm);
-        }
+            double Vector::norm()
+            {
+                double norm = sqrt(x*x + y*y + z*z + w*w);
+                if (norm < D_SMALL)
+                    return (0.);
+                else
+                    return (norm);
+            }
 
 
-        //! Scalar product.
-        /*! Calculate the scalar product with the provided scale.
+            //! Scalar product.
+            /*! Calculate the scalar product with the provided scale.
          * \param scale Scale to multiply by.
          * \return This times b.
         */
-        Vector Vector::operator * (const double &scale)
-        {
-            Vector vo = *this;
+            Vector Vector::operator *(const double scale) const
+            {
+                Vector vo = *this;
 
-            vo *= scale;
+                vo *= scale;
 
-            return vo;
-        }
+                return vo;
+            }
 
-        //! Compound Scalar product.
-        /*! Calculate the scalar product with the provided scale inline.
+            //! Compound Scalar product.
+            /*! Calculate the scalar product with the provided scale inline.
          * \param scale Scale to multiply by.
          * \return Reference to this times scale.
         */
-        Vector &Vector::operator *= (const double &scale)
-        {
-            // If scale is basically 1., don't do anything
-            if (fabs(scale - (double)1.) > D_SMALL)
+            Vector &Vector::operator *= (const double &scale)
             {
-                // If scale is basically 0., set to zero
-                if (fabs(scale - (double)0.) > D_SMALL)
+                // If scale is basically 1., don't do anything
+                if (fabs(scale - (double)1.) > D_SMALL)
                 {
-                    // Otherwise, multiply
-                    this->x *= scale;
-                    this->y *= scale;
-                    this->z *= scale;
-                    this->w *= scale;
+                    // If scale is basically 0., set to zero
+                    if (fabs(scale - (double)0.) > D_SMALL)
+                    {
+                        // Otherwise, multiply
+                        this->x *= scale;
+                        this->y *= scale;
+                        this->z *= scale;
+                        this->w *= scale;
+                    }
+                    else
+                    {
+                        this->x = 0.;
+                        this->y = 0.;
+                        this->z = 0.;
+                        this->w = 0.;
+                    }
                 }
-                else
-                {
-                    this->x = 0.;
-                    this->y = 0.;
-                    this->z = 0.;
-                    this->w = 0.;
-                }
+                return *this;
             }
-            return *this;
-        }
 
-        //! Reverse scalar product.
-        /*! Calculate the scalar product with the provided scale.
+            //! Reverse scalar product.
+            /*! Calculate the scalar product with the provided scale.
          * \param scale Scale to multiply by.
          * \return Scale times this.
         */
-        Vector operator * (const double &scale, const Vector &v)
-        {
-            return v * scale;
-        }
+            Vector operator * (const double scale, const Vector &v)
+            {
+                return v * scale;
+            }
 
-        //! Scalar division.
-        /*! Calculate the scalar division with the provided scale.
+            //! Scalar division.
+            /*! Calculate the scalar division with the provided scale.
          * \param scale Scale to divide by.
          * \return This divided by b.
         */
-        Vector Vector::operator / (double scale)
-        {
-            Vector vo = *this;
+            Vector Vector::operator / (double scale) const
+            {
+                Vector vo = *this;
 
-            vo /= scale;
+                vo /= scale;
 
-            return vo;
-        }
+                return vo;
+            }
 
-        //! Compound scalar division.
-        /*! Calculate the scalar division with the provided scale inline.
+            //! Compound scalar division.
+            /*! Calculate the scalar division with the provided scale inline.
          * \param scale Scale to divide by.
          * \return Reference to this divided by b.
         */
-        Vector &Vector::operator /= (const double &scale)
-        {
-            // If scale is basically 1., don't do anything
-            if (fabs(scale - (double)1.) > D_SMALL)
+            Vector &Vector::operator /= (const double &scale)
             {
-                // If scale is basically 0., flag an error
-                if (fabs(scale - (double)0.) > D_SMALL)
+                // If scale is basically 1., don't do anything
+                if (fabs(scale - (double)1.) > D_SMALL)
                 {
-                    // Otherwise, divide
-                    this->x /= scale;
-                    this->y /= scale;
-                    this->z /= scale;
-                    this->w /= scale;
+                    // If scale is basically 0., flag an error
+                    if (fabs(scale - (double)0.) > D_SMALL)
+                    {
+                        // Otherwise, divide
+                        this->x /= scale;
+                        this->y /= scale;
+                        this->z /= scale;
+                        this->w /= scale;
+                    }
+                    else
+                    {
+                        this->x = INFINITY;
+                        this->y = INFINITY;
+                        this->z = INFINITY;
+                        this->w = INFINITY;
+                    }
                 }
-                else
-                {
-                    this->x = INFINITY;
-                    this->y = INFINITY;
-                    this->z = INFINITY;
-                    this->w = INFINITY;
-                }
+                return *this;
             }
-            return *this;
-        }
 
-        //! Index.
-        /*! Lookup ::Vector value by index.
+            //! Index.
+            /*! Lookup ::Vector value by index.
          * \param index Indexed location to look up.
          * \return Value at indexed location.
         */
-        double &Vector::operator[] (const int &index)
-        {
-            switch (index)
+            double &Vector::operator[] (const int &index)
             {
-            case 0:
-            default:
-                return x;
-                break;
-            case 1:
-                return y;
-                break;
-            case 2:
-                return z;
-                break;
-            case 3:
-                return w;
-                break;
+                switch (index)
+                {
+                case 0:
+                default:
+                    return x;
+                    break;
+                case 1:
+                    return y;
+                    break;
+                case 2:
+                    return z;
+                    break;
+                case 3:
+                    return w;
+                    break;
+                }
             }
-        }
 
-        //! Multiply two ::Vector
-        /*! Multiply two vectors in ::Vector form, returning a ::Vector.
+            //! Multiply two ::Vector
+            /*! Multiply two vectors in ::Vector form, returning a ::Vector.
                 \param a first vector to be multiplied, in ::Vector form
                 \param b second vector to be multiplied, in ::Vector form
                 \result the transformed vector, in ::Vector form
         */
-        Vector Vector::operator * (const Vector &b)
-        {
-            Vector c;
+            Vector Vector::operator * (const Vector &b) const
+            {
+                Vector c;
 
-            c.x = this->x * b.x;
-            c.y = this->y * b.y;
-            c.z = this->z * b.z;
-            c.w = this->w * b.w;
-            return (c);
-        }
+                c.x = this->x * b.x;
+                c.y = this->y * b.y;
+                c.z = this->z * b.z;
+                c.w = this->w * b.z;
+                return (c);
+            }
 
-        //! Add two ::Vector
-        /*! Add two vectors in ::Vector form, returning a ::Vector.
+            //! Add two ::Vector
+            /*! Add two vectors in ::Vector form, returning a ::Vector.
                 \param a first vector to be added, in ::Vector form
                 \param b second vector to be added, in ::Vector form
                 \result the transformed vector, in ::Vector form
         */
-        Vector Vector::operator + (const Vector &b)
-        {
-            Vector c;
+            Vector Vector::operator + (const Vector &b) const
+            {
+                Vector c;
 
-            c.x = this->x + b.x;
-            c.y = this->y + b.y;
-            c.z = this->z + b.z;
-            c.w = this->w + b.w;
-            return (c);
-        }
+                c.x = this->x + b.x;
+                c.y = this->y + b.y;
+                c.z = this->z + b.z;
+                c.w = this->w + b.w;
+                return (c);
+            }
 
-        //! compound add two ::Vector
-        /*! Add two vectors in ::Vector form, returning a ::Vector.
+            //! compound add two ::Vector
+            /*! Add two vectors in ::Vector form, returning a ::Vector.
                 \param a first vector to be added, in ::Vector form
                 \param b second vector to be added, in ::Vector form
                 \result the transformed vector, in ::Vector form
         */
-        Vector& Vector::operator += (const Vector &b)
-        {
-            *this = *this + b;
-            return *this;
-        }
+            Vector& Vector::operator += (const Vector &b)
+            {
+                *this = *this + b;
+                return *this;
+            }
 
-        //! Subtract two ::Vector
-        /*! Subtract two vectors in ::Vector form, returning a ::Vector.
+            //! Subtract two ::Vector
+            /*! Subtract two vectors in ::Vector form, returning a ::Vector.
                 \param b subtrahend vector, in ::Vector form
                 \result the transformed vector, in ::Vector form
         */
-        Vector Vector::operator - (const Vector &b)
-        {
-            Vector c;
+            Vector Vector::operator - (const Vector &b) const
+            {
+                Vector c;
 
-            c.x = this->x - b.x;
-            c.y = this->y - b.y;
-            c.z = this->z - b.z;
-            c.w = this->w - b.w;
-            return (c);
-        }
+                c.x = this->x - b.x;
+                c.y = this->y - b.y;
+                c.z = this->z - b.z;
+                c.w = this->w - b.w;
+                return (c);
+            }
 
-        //! Negate ::Vector
-        /*! Return a ::Vector with all elements negated.
+            //! Negate ::Vector
+            /*! Return a ::Vector with all elements negated.
                 \result the transformed vector, in ::Vector form
         */
-        Vector Vector::operator - ()
-        {
-            Vector c;
+            Vector Vector::operator - () const
+            {
+                Vector c;
 
-            c.x = -x;
-            c.y = -y;
-            c.z = -z;
-            c.w = -w;
-            return (c);
-        }
+                c.x = -x;
+                c.y = -y;
+                c.z = -z;
+                c.w = -w;
+                return (c);
+            }
 
-        //! compound subtract two ::Vector
-        /*! Subtract two vectors in ::Vector form, returning a ::Vector.
+            //! compound subtract two ::Vector
+            /*! Subtract two vectors in ::Vector form, returning a ::Vector.
                 \param a minuend vector, in ::Vector form
                 \param b subtrahend vector, in ::Vector form
                 \result the transformed vector, in ::Vector form
         */
-        Vector &Vector::operator -= (const Vector &b)
-        {
-            *this = *this - b;
-            return *this;
-        }
-
-        // compare vector to vector operator
-        bool Vector::operator == (const Vector &b)
-        {
-            if(x == b.x && y == b.y && z == b.z && w == b.w)
+            Vector &Vector::operator -= (const Vector &b)
             {
-                return true;
+                *this = *this - b;
+                return *this;
             }
-            else
+
+            // compare vector to vector operator
+            bool Vector::operator == (const Vector &b) const
             {
-                return false;
+                if(x == b.x && y == b.y && z == b.z && w == b.w)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-        }
 
-        // compare vector to vector operator
-        bool Vector::operator != (const Vector &b)
-        {
-            if(x != b.x || y != b.y || z != b.z || w != b.w)
+            // compare vector to vector operator
+            bool Vector::operator != (const Vector &b) const
             {
-                return true;
+                if(x != b.x || y != b.y || z != b.z || w != b.w)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-            else
+
+            std::ostream& operator << (std::ostream& out, const Vector& v)
             {
-                return false;
+                out << v.x << ",";
+                out << v.y << ",";
+                out << v.z;
+
+                return out;
             }
-        }
 
-        std::ostream& operator << (std::ostream& out, const Vector& v)
-        {
-            out << v.x << ",";
-            out << v.y << ",";
-            out << v.z;
-
-            return out;
-        }
-
-        //! Angular separation between two ::Vector.
-        /*! Calculates the separation angle between ::Vector, in radians.
+            //! Angular separation between two ::Vector.
+            /*! Calculates the separation angle between ::Vector, in radians.
                 \param v2 the second vector, in ::Vector format
                 \return The separation angle in radians as a double precision
         */
-        double Vector::separation(Vector v2)
-        {
-            Vector v1 = *this;
-            Vector dv;
+            double Vector::separation(Vector v2)
+            {
+                Vector v1 = *this;
+                Vector dv;
 
-            v1.normalize();
-            v2.normalize();
+                v1.normalize();
+                v2.normalize();
 
-            dv = v2 - v1;
-            double diff = dv.norm();
+                dv = v2 - v1;
+                double diff = dv.norm();
 
-            double sepangle = 2. * atan2(diff/2.,sqrt(fmax(0.,1.-diff*diff/4.)));
+                double sepangle = 2. * atan2(diff/2.,sqrt(fmax(0.,1.-diff*diff/4.)));
 
-            return sepangle;
-        }
+                return sepangle;
+            }
 
-        //! Area subtended by two ::Vector.
-        /*! Calculates the area of the triangle defined by two ::Vector.
+            //! Area subtended by two ::Vector.
+            /*! Calculates the area of the triangle defined by two ::Vector.
                 \param v2 the second vector, in ::Vector format.
                 \return The area of the triangle.
         */
-        double Vector::area(Vector v2)
-        {
-            double normv1 = this->norm();
-            double normv2 = v2.norm();
-            double normv3 = (v2 - *this).norm();
+            double Vector::area(Vector v2)
+            {
+                double normv1 = this->norm();
+                double normv2 = v2.norm();
+                double normv3 = (v2 - *this).norm();
 
-            // Calculate area using Heron's formula
-            double s = (normv1 + normv2 + normv3) / 2.;
-            double area = sqrt(s * (s - normv1) * (s - normv2) * (s - normv3));
+                // Calculate area using Heron's formula
+                double s = (normv1 + normv2 + normv3) / 2.;
+                double area = sqrt(s * (s - normv1) * (s - normv2) * (s - normv3));
 
-            return area;
+                return area;
+            }
+
+            Vector Vector::vector()
+            {
+                Vector o; // output
+
+                o = *this;
+                o.w = 0.;
+
+                return o;
+            }
+
+            Vector Vector::flattenx()
+            {
+                Vector v = *this;
+                v.x = 0.;
+                return v;
+            }
+
+            Vector Vector::flatteny()
+            {
+                Vector v = *this;
+                v.y = 0.;
+                return v;
+            }
+
+            Vector Vector::flattenz()
+            {
+                Vector v = *this;
+                v.z = 0.;
+                return v;
+            }
+
+            double Vector::sum()
+            {
+                double r = this->x + this->y + this->z +this->w;
+                return r;
+            }
+
+            Vector eye(double scale)
+            {
+                Vector val = Vector(1., 1., 1.);
+                val *= scale;
+                return val;
+            }
+
+            Vector unitxV(double scale)
+            {
+                Vector val = Vector(1.);
+                val *= scale;
+                return val;
+            }
+
+            Vector unityV(double scale)
+            {
+                Vector val = Vector(0., 1.);
+                val *= scale;
+                return val;
+            }
+
+            Vector unitzV(double scale)
+            {
+                Vector val = Vector(0., 0., 1.);
+                val *= scale;
+                return val;
+            }
         }
 
-        Vector Vector::vector()
-        {
-            Vector o; // output
+        namespace Quaternions {
+            // same as q_conjugate(quaternion q)
+            Quaternion Quaternion::conjugate() const
+            {
+                Quaternion o; // output
 
-            o = *this;
-            o.w = 0.;
+                o.w = w;
+                o.x = -x;
+                o.y = -y;
+                o.z = -z;
 
-            return o;
-        }
+                return o;
+            }
 
-        Vector Vector::flattenx()
-        {
-            Vector v = *this;
-            v.x = 0.;
-            return v;
-        }
+            Vectors::Vector Quaternion::vector()
+            {
+                Vector o;
+                o.x = x;
+                o.y = y;
+                o.z = z;
 
-        Vector Vector::flatteny()
-        {
-            Vector v = *this;
-            v.y = 0.;
-            return v;
-        }
+                return o;
+            }
 
-        Vector Vector::flattenz()
-        {
-            Vector v = *this;
-            v.z = 0.;
-            return v;
-        }
+            // same as q_smult(double a, quaternion b)
+            Quaternion Quaternion::multiplyScalar(double a)
+            {
+                Quaternion c;
 
-//        Quaternion::Quaternion()
-//        {
-//            // by default create the identity quaternion
-//            x = 0;
-//            y = 0;
-//            z = 0;
-//            w = 1;
-//        }
+                c.w = a * w;
+                c.x = a * x;
+                c.y = a * y;
+                c.z = a * z;
 
-//        Quaternion::Quaternion(double qx, double qy, double qz, double qw) : Vector(qx, qy, qz, qw)
-//        {
-//            x = qx;
-//            y = qy;
-//            z = qz;
-//            w = qw;
-//        }
+                return c;
+            }
 
 
-        // same as q_conjugate(quaternion q)
-        Quaternion Quaternion::conjugate()
-        {
-            Quaternion o; // output
+            // function to easily convert from the Quaternion to quaternion
+            // hopefully this function will be removed when the quaternion type
+            // has been fully converted to Quaternion
+            quaternion Quaternion::Quaternion2quaternion(Quaternion Q)
+            {
+                quaternion q;
 
-            o.w = w;
-            o.x = -x;
-            o.y = -y;
-            o.z = -z;
+                q.d.x = Q.x;
+                q.d.y = Q.y;
+                q.d.z = Q.z;
+                q.w = Q.w;
 
-            return o;
-        }
+                return q;
+            }
 
-        // same as q_smult(double a, quaternion b)
-        Quaternion Quaternion::multiplyScalar(double a)
-        {
-            Quaternion c;
+            // function to easily convert from the quaternion type to Quaternion
+            // hopefully this function will be removed when the quaternion type
+            // has been fully converted to Quaternion
+            Quaternion Quaternion::quaternion2Quaternion(quaternion q)
+            {
+                Quaternion Q;
 
-            c.w = a * w;
-            c.x = a * x;
-            c.y = a * y;
-            c.z = a * z;
+                Q.x = q.d.x;
+                Q.y = q.d.y;
+                Q.z = q.d.z;
+                Q.w = q.w;
 
-            return c;
-        }
+                return Q;
+            }
 
+            //! Add two ::Quaternion
+            /*! Add two quaternions in ::Quaternion form, returning a ::Quaternion.
+                \param a first quaternion to be added, in ::Quaternion form
+                \param b second quaternion to be added, in ::Quaternion form
+                \result the transformed quaternion, in ::Quaternion form
+        */
+            Quaternion Quaternion::operator + (const Quaternion &b)
+            {
+                Quaternion c;
 
-        // function to easily convert from the Quaternion to quaternion
-        // hopefully this function will be removed when the quaternion type
-        // has been fully converted to Quaternion
-        quaternion Quaternion::Quaternion2quaternion(Quaternion Q)
-        {
-            quaternion q;
+                c.x = this->x + b.x;
+                c.y = this->y + b.y;
+                c.z = this->z + b.z;
+                c.w = this->w + b.w;
+                return (c);
+            }
 
-            q.d.x = Q.x;
-            q.d.y = Q.y;
-            q.d.z = Q.z;
-            q.w = Q.w;
+            //! compound add two ::Quaternion
+            /*! Add two quaternions in ::Quaternion form, returning a ::Quaternion.
+                \param a first quaternion to be added, in ::Quaternion form
+                \param b second quaternion to be added, in ::Quaternion form
+                \result the transformed quaternion, in ::Quaternion form
+        */
+            Quaternion& Quaternion::operator += (const Quaternion &b)
+            {
+                *this = *this + b;
+                return *this;
+            }
 
-            return q;
-        }
+            //         substraction operator for quaternion class
+            Quaternion Quaternion::operator-(const Quaternion& q2) const
+            {
+                Quaternion q3;
 
-        // function to easily convert from the quaternion type to Quaternion
-        // hopefully this function will be removed when the quaternion type
-        // has been fully converted to Quaternion
-        Quaternion Quaternion::quaternion2Quaternion(quaternion q)
-        {
-            Quaternion Q;
+                q3.x = this->x - q2.x;
+                q3.y = this->y - q2.y;
+                q3.z = this->z - q2.z;
+                q3.w = this->w - q2.w;
 
-            Q.x = q.d.x;
-            Q.y = q.d.y;
-            Q.z = q.d.z;
-            Q.w = q.w;
+                return q3;
+            }
 
-            return Q;
-        }
+            //! compound subtract two ::Quaternion
+            /*! Subtract two quaternions in ::Quaternion form, returning a ::Quaternion.
+                \param a minuend quaternion, in ::Quaternion form
+                \param b subtrahend quaternion, in ::Quaternion form
+                \result the transformed quaternion, in ::Quaternion form
+        */
+            Quaternion &Quaternion::operator -= (const Quaternion &b)
+            {
+                *this = *this - b;
+                return *this;
+            }
 
-        // adition operator for quaternion class
-//        Quaternion Quaternion::operator+(const Quaternion& q)
-//        {
-//            Quaternion q1, q2, q3;
+            //! Negate ::Quaternion
+            /*! Return a ::Quaternion with all elements negated.
+                \result the transformed quaternion, in ::Quaternion form
+        */
+            Quaternion Quaternion::operator - () const
+            {
+                Quaternion c;
 
-//            q1 = *this;
-//            q2 = q;
+                c.x = -x;
+                c.y = -y;
+                c.z = -z;
+                c.w = -w;
+                return (c);
+            }
 
-//            //    q3->x = q1.x + q2.x;
-//            //    q3->y = q1.y + q2.y;
-//            //    q3->z = q1.z + q2.z;
-//            //    q3->w = q1.w + q2.w;
+            //! Scalar product.
+            /*! Calculate the scalar product with the provided scale.
+         * \param scale Scale to multiply by.
+         * \return This times b.
+        */
+            Quaternion Quaternion::operator * (const double scale) const
+            {
+                Quaternion vo = *this;
 
-//            q3.x = q1.x + q2.x;
-//            q3.y = q1.y + q2.y;
-//            q3.z = q1.z + q2.z;
-//            q3.w = q1.w + q2.w;
+                vo *= scale;
 
-//            return q3;
-//        }
+                return vo;
+            }
 
-        // substraction operator for quaternion class
-//        Quaternion Quaternion::operator-(const Quaternion& q)
-//        {
-//            Quaternion q1,q2,q3;
+            //! Compound Scalar product.
+            /*! Calculate the scalar product with the provided scale inline.
+         * \param scale Scale to multiply by.
+         * \return Reference to this times scale.
+        */
+            Quaternion &Quaternion::operator *= (const double scale)
+            {
+                // If scale is basically 1., don't do anything
+                if (fabs(scale - (double)1.) > D_SMALL)
+                {
+                    // If scale is basically 0., set to zero
+                    if (fabs(scale - (double)0.) > D_SMALL)
+                    {
+                        // Otherwise, multiply
+                        this->x *= scale;
+                        this->y *= scale;
+                        this->z *= scale;
+                        this->w *= scale;
+                    }
+                    else
+                    {
+                        this->x = 0.;
+                        this->y = 0.;
+                        this->z = 0.;
+                        this->w = 0.;
+                    }
+                }
+                return *this;
+            }
 
-//            q1 = *this;
-//            q2 = q;
+            // product operator for quaternion class
+            Quaternion Quaternion::operator * (Quaternion &q2) const
+            {
+                Quaternion q1, q3;
 
-//            q3.x = q1.x - q2.x;
-//            q3.y = q1.y - q2.y;
-//            q3.z = q1.z - q2.z;
-//            q3.w = q1.w - q2.w;
+                q1 = *this;
 
-//            return q3;
-//        }
+                q3.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+                q3.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
+                q3.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
+                q3.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
 
-        // product operator for quaternion class
-        Quaternion Quaternion::operator*(const Quaternion& q2)
-        {
-            Quaternion q1, q3;
+                return q3;
+            }
 
-            q1 = *this;
+            Quaternion operator * (const Vectors::Vector &v, Quaternion &q)
+            {
+                const Quaternion qv = Quaternion(v);
+                return qv * q;
+            }
 
-            q3.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
-            q3.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
-            q3.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
-            q3.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
-
-            return q3;
-        }
-
-        Quaternion operator *(const Vector &v, const Quaternion &q)
-        {
-            return Quaternion(v) * q;
-        }
-
-
-        std::ostream& operator<<(std::ostream& os, const Quaternion& q)
-        {
-            //out << "[(";
-            os << q.x << ",";
-            os << q.y << ",";
-            os << q.z << ", ";
-            os << q.w;
-            //out << "]"; //<< std::endl;
-            return os;
-        }
-
-
-        // copy *this quaternion into a new Quaternion object
-        // basically this collapses (x,y,z,w) into a Quaternion object
-        Quaternion Quaternion::getQuaternion()
-        {
-            Quaternion o;
-            o.x = x;
-            o.y = y;
-            o.z = z;
-            o.w = w;
-
-            return o;
-        }
-
-        // calculate the angular rate given the current quaternion and it's derivative
-        Vector Quaternion::omegaFromDerivative(Quaternion dq)
-        {
-            Vector o; // output
-//            Quaternion q = getQuaternion();
-            o = (2. * dq * this->conjugate()).vector();
-
-
-            return o;
-        }
-
-        //! compute the quaternion that represents the rotation from vector a to vector b
-        //! Ref: - http://lolengine.net/blog/2013/09/18/beautiful-maths-quaternion-from-vectors
-        void Quaternion::fromTwoVectors(Vector a, Vector b)
-        {
-            // normalize the vectors in place
-            a.normalize();
-            b.normalize();
-
-            Vector w = a.cross(b);
-            Quaternion q = Quaternion(w.x, w.y, w.z, 1.f + a.dot(b));
-
-            q.normalize();
-
-            *this = q;
-        }
-
-        //! Normalizes the quaternion in place (*this)
-//        void Quaternion::normalize()
-//        {
-//            double norm;
-
-//            this->w = round(this->w/D_SMALL)*D_SMALL;
-//            this->x = round(this->x/D_SMALL)*D_SMALL;
-//            this->y = round(this->y/D_SMALL)*D_SMALL;
-//            this->z = round(this->z/D_SMALL)*D_SMALL;
-
-//            norm = this->norm();
-
-//            if (fabs(norm - (double)0.) > D_SMALL && fabs(norm - (double)1.) > D_SMALL)
+            //! Scalar division.
+            /*! Calculate the scalar division with the provided scale.
+         * \param scale Scale to divide by.
+         * \return This divided by b.
+        */
+//            Quaternion Quaternion::operator / (double scale)
 //            {
-//                this->w /= norm;
-//                this->x /= norm;
-//                this->y /= norm;
-//                this->z /= norm;
+//                Quaternion vo = *this;
+
+//                vo /= scale;
+
+//                return vo;
 //            }
-//        }
 
-        // ref: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-        Vector Quaternion::toEuler(){
+            //! Compound scalar division.
+            /*! Calculate the scalar division with the provided scale inline.
+         * \param scale Scale to divide by.
+         * \return Reference to this divided by b.
+        */
+//            Quaternion &Quaternion::operator /= (const double &scale)
+//            {
+//                // If scale is basically 1., don't do anything
+//                if (fabs(scale - (double)1.) > D_SMALL)
+//                {
+//                    // If scale is basically 0., flag an error
+//                    if (fabs(scale - (double)0.) > D_SMALL)
+//                    {
+//                        // Otherwise, divide
+//                        this->x /= scale;
+//                        this->y /= scale;
+//                        this->z /= scale;
+//                        this->w = 0.;
+//                    }
+//                    else
+//                    {
+//                        this->x = INFINITY;
+//                        this->y = INFINITY;
+//                        this->z = INFINITY;
+//                        this->w = 0.;
+//                    }
+//                }
+//                return *this;
+//            }
 
-            Vector euler;
 
-            this->normalize();
+            std::ostream& operator<<(std::ostream& os, const Quaternion& q)
+            {
+                //out << "[(";
+                os << q.x << ",";
+                os << q.y << ",";
+                os << q.z << ", ";
+                os << q.w;
+                //out << "]"; //<< std::endl;
+                return os;
+            }
 
-            double sqx = this->x * this->x;
-            double sqy = this->y * this->y;
-            double sqz = this->z * this->z;
-            double phi   = atan2( 2.*(this->w*this->x + this->y*this->z), 1. - 2.*(sqx + sqy));
-            double theta = asin(  2.*(this->x*this->y - this->z*this->x) );
-            double psi   = atan2( 2.*(this->w*this->z + this->x*this->y), 1. - 2.*(sqy + sqz));
 
-            euler.x = phi;
-            euler.y = theta;
-            euler.z = psi;
+            // copy *this quaternion into a new Quaternion object
+            // basically this collapses (x,y,z,w) into a Quaternion object
+            Quaternion Quaternion::getQuaternion()
+            {
+                Quaternion o;
+                o.x = x;
+                o.y = y;
+                o.z = z;
+                o.w = w;
 
-            return (euler);
-        }
+                return o;
+            }
 
-        //! Reverse scalar product.
-        /*! Calculate the scalar product with the provided scale.
+            // calculate the angular rate given the current quaternion and it's derivative
+            Vectors::Vector Quaternion::omegaFromDerivative(Quaternion dq)
+            {
+                Vectors::Vector o; // output
+                Quaternions::Quaternion q = this->conjugate();
+                q = (dq * q);
+                q = 2. * q;
+                o = q.vector();
+
+
+                return o;
+            }
+
+            //! Normalize.
+            /*! Normalize the quaternion in place.
+         * \return Reference to normalized ::Quaternion.
+        */
+//            Quaternion &Quaternion::normalize()
+//            {
+//                double tnorm = norm();
+
+//                // If norm is basically 1., don't do anything
+//                if (fabs(tnorm - (double)1.) > D_SMALL)
+//                {
+//                    // If norm is basically 0., flag an error
+//                    if (fabs(tnorm - (double)0.) > D_SMALL)
+//                    {
+//                        // Otherwise, normalize
+//                        *this = *this / tnorm;
+//                    }
+//                    else
+//                    {
+//                        this->x = INFINITY;
+//                        this->y = INFINITY;
+//                        this->z = INFINITY;
+//                        this->w = INFINITY;
+//                    }
+//                }
+//                return *this;
+//            }
+
+            // ref: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+            Vectors::Vector Quaternion::toEuler()
+            {
+
+                Vector euler;
+
+                this->normalize();
+
+                double sqx = this->x * this->x;
+                double sqy = this->y * this->y;
+                double sqz = this->z * this->z;
+                double phi   = atan2( 2.*(this->w*this->x + this->y*this->z), 1. - 2.*(sqx + sqy));
+                double theta = asin(  2.*(this->x*this->y - this->z*this->x) );
+                double psi   = atan2( 2.*(this->w*this->z + this->x*this->y), 1. - 2.*(sqy + sqz));
+
+                euler.x = phi;
+                euler.y = theta;
+                euler.z = psi;
+
+                return (euler);
+            }
+
+            //! Reverse scalar product.
+            /*! Calculate the scalar product with the provided scale.
          * \param scale Scale to multiply by.
          * \return Scale times this.
         */
-        Quaternion operator * (const double &scale, const Quaternion &q)
-        {
-            return q * scale;
-        }
+            Quaternion operator * (double scale, Quaternion &q)
+            {
+                return q * scale;
+            }
 
-        //! Indirectly rotate a ::Vector using a ::Quaternion
-        /*! Indirectly rotate a ::Vector from one coordinate system to another using the
+            //! Indirectly rotate a ::Vector using a ::Quaternion
+            /*! Indirectly rotate a ::Vector from one coordinate system to another using the
          * provided ::Quaternion.
                 \param v ::Vector to be rotated
                 \return ::Vector in the intrinsically rotated system
         */
-        Vector Quaternion::irotate(const Vector &v)
-        {
-            Vector result = this->conjugate() * (v * (*this));
+            Vectors::Vector Quaternion::irotate(const Vector &v)
+            {
+                Quaternion tq = v * (*this);
+                const Quaternion qc = this->conjugate();
+                Vector result = qc * tq;
 
-            return result;
-        }
+                return result;
+            }
 
+            Vectors::Vector Quaternion::drotate(const Vector &v)
+            {
 
-        //! return the norm of the quaternion's coefficients
-//        double Quaternion::norm()
-//        {
-//            return ( sqrt(this->w*this->w + this->x*this->x + this->y*this->y + this->z*this->z) ) ;
-//        }
+                const Quaternion qc = this->conjugate();
+                Quaternion tq (v * qc);
+                Vector result =  (*this) * tq;
 
+                return result;
+            }
+
+            //! compute the quaternion that represents the rotation from vector a to vector b
+            //! Ref: - http://lolengine.net/blog/2013/09/18/beautiful-maths-quaternion-from-vectors
+            Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b)
+            {
+                // normalize the vectors in place
+                a.normalize();
+                b.normalize();
+
+                Vectors::Vector vec1;
+                Vectors::Vector vec2;
+                Quaternion rq;
+                if ((a + b).norm() < 1e-14)
+                {
+                    vec1 = Vector(rand(), rand(), rand());
+                    vec1.normalize();
+                    vec2 = vec1.cross(b);
+                    vec2.normalize();
+                    if (vec2.norm() < D_SMALL)
+                    {
+                        vec1 = Vector(rand(), rand(), rand());
+                        vec1.normalize();
+                        vec2 = vec1.cross(b);
+                        vec2.normalize();
+                    }
+                    rq = Quaternion(vec2);
+                    rq.w = 0.;
+                }
+                else
+                {
+                    rq = Quaternion(a.cross(b));
+                    rq.w = 1. + a.dot(b);
+                }
+
+                rq.normalize();
+
+                return rq;
+            }
+
+            //! Create irotate quaternion from two orthogonal vectors
+            /*! Using two vectors, represented in both the original and target frames,
+         * calculate the quaternion that will irotate any vector from the original
+         * to the target frame.
+         * \param sourcea First vector in source frame
+         * \param sourceb Second vector in source frame
+         * \param targeta First vector in target frame
+         * \param targetb Second vector in target frame
+         * \return Quaternion to use with ::irotate to irotate from source to target.
+         */
+            Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb)
+            {
+                Quaternion qe_a;
+                Quaternion qe_b;
+                Quaternion fqe;
+
+                // Determine rotation of source A into target A
+                qe_a = (drotate_between(sourcea, targeta)).conjugate();
+
+                // Use to irotate source B into intermediate B
+                sourceb = qe_a.irotate(sourceb);
+                sourceb.normalize();
+                targetb.normalize();
+                if ((sourceb + targetb).norm() < 1e-14)
+                {
+                    // Antiparallel - rotate 180 degrees around vector A
+                    qe_b.x = -targeta[0];
+                    qe_b.y = -targeta[1];
+                    qe_b.z = -targeta[2];
+                    qe_b.w = 0;
+                }
+                else
+                {
+                    // Determine intrinsic rotation of this intermediate B into target B
+                    qe_b = (drotate_between(sourceb, targetb)).conjugate();
+                }
+
+                // Combine to determine complete intrinsic rotation of source into target
+                fqe = qe_a * qe_b;
+                fqe.normalize();
+
+                return fqe;
+            }
+
+            Quaternion eye(double scale)
+            {
+                Quaternion val = Quaternion(0., 0., 0., scale);
+                return val;
+            }
+
+        } // end namespace Quaternions
     } // end namespace Math
 } // end namespace Cosmos
 
