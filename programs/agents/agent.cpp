@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
             size_t agent_count = 0;
             ElapsedTime et;
             agent->post(Agent::AgentMessage::REQUEST);
-            COSMOS_SLEEP(.1);
+            COSMOS_SLEEP(.5);
             do
             {
                 if (agent->agent_list.size() > agent_count)

@@ -3,6 +3,7 @@
 # COMPLETE - everything is built
 # BASIC    - only the essential libraries and prgram agents are build
 # MINIMAL  - only the libraries are built (no agents, no programs)
+set(CROSS_TYPE x86_64)
 set(BUILD_TYPE COMPLETE) # COMPLETE, BASIC, MINIMAL, TESTS
 set(BUILD_AGENTS_TYPE ALL)
 
