@@ -1401,7 +1401,7 @@ namespace Cosmos
 */
         int32_t Agent::publish(NetworkType type, uint16_t port)
         {
-            int32_t iretn;
+            int32_t iretn = 0;
             int on = 1;
 
             // Return immediately if we've already done this
@@ -1422,6 +1422,25 @@ namespace Cosmos
                     if ((cinfo->agent[0].pub[0].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
                     {
                         return (AGENT_ERROR_SOCKET);
+                    }
+
+#ifdef COSMOS_WIN_OS
+                    bool nonblocking = true;
+                    if (ioctlsocket(cinfo->agent[0].pub[0].cudp, FIONBIO, &nonblocking) != 0)
+                    {
+                        iretn = -WSAGetLastError();
+                    }
+#else
+                    if (fcntl(cinfo->agent[0].pub[0].cudp, F_SETFL,O_NONBLOCK) < 0)
+                    {
+                        iretn = -errno;
+                    }
+#endif
+                    if (iretn < 0)
+                    {
+                        CLOSE_SOCKET(cinfo->agent[0].pub[0].cudp);
+                        cinfo->agent[0].pub[0].cudp = iretn;
+                        return iretn;
                     }
 
                     // Use above socket to find available interfaces and establish
@@ -1454,10 +1473,16 @@ namespace Cosmos
                             }
                             continue;
                         }
+
                         // No need to open first socket again
                         if (cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp < 0)
                         {
                             if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
+                            {
+                                continue;
+                            }
+                            bool nonblocking = true;
+                            if (ioctlsocket(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, FIONBIO, &nonblocking) != 0)
                             {
                                 continue;
                             }
@@ -1521,6 +1546,14 @@ namespace Cosmos
                             {
                                 if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
                                 {
+                                    continue;
+                                }
+
+                                if (fcntl(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, F_SETFL,O_NONBLOCK) < 0)
+                                {
+                                    iretn = -errno;
+                                    CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                                    cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp = iretn;
                                     continue;
                                 }
                             }
@@ -1596,6 +1629,14 @@ namespace Cosmos
                         {
                             if ((cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp=socket(AF_INET,SOCK_DGRAM,0)) < 0)
                             {
+                                continue;
+                            }
+
+                            if (fcntl(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, F_SETFL,O_NONBLOCK) < 0)
+                            {
+                                iretn = -errno;
+                                CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                                cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp = iretn;
                                 continue;
                             }
                         }
@@ -1927,8 +1968,27 @@ namespace Cosmos
                         (struct sockaddr *)&cinfo->agent[0].pub[i].baddr, // socket address
                         sizeof(struct sockaddr_in)                  // size of address to socket pointer
                         );
+                if (iretn < 0)
+                {
+#ifdef COSMOS_WIN_OS
+                    if (WSAGetLastError() != EAGAIN && WSAGetLastError() != EWOULDBLOCK)
+                    {
+                        iretn = -WSAGetLastError();
+                    }
+#else
+                    if (errno != EAGAIN && errno != EWOULDBLOCK)
+                    {
+                        iretn = -errno;
+                    }
+#endif
+                    else
+                    {
+                        iretn= 0;
+                    }
+                }
                 //            printf("Post: Type: %d Port: %d %d\n", type, cinfo->agent[0].pub[i].cport, htons(cinfo->agent[0].pub[i].caddr.sin_port));
             }
+
             if (iretn<0)
             {
 #ifdef COSMOS_WIN_OS
