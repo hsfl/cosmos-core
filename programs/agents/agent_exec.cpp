@@ -71,9 +71,8 @@ using std::endl;
 //!
 //! Usage: agent_exec node_name
 
-
 static Agent *agent;
-static string nodename;
+static string node_name;
 
 static CommandQueue cmd_queue;
 
@@ -124,7 +123,7 @@ static vector<shorteventstruc> events;
 static beatstruc iscbeat;
 
 // default node name
-static string node = "neutron1";
+//static string node = "neutron1";
 
 int main(int argc, char *argv[])
 {
@@ -141,11 +140,11 @@ int main(int argc, char *argv[])
         cout<<"Usage: agent_exec node"<<endl;
         exit(1);
     }
-    nodename = argv[1];
+    node_name = argv[1];
     cout<<"Starting the executive/soh agent->..";
 
     // Establish the command channel and heartbeat
-    agent = new Agent(nodename, "exec", 5.);
+    agent = new Agent(node_name, "exec", 5.);
     if (agent->cinfo == nullptr || !agent->running())
     {
         cout<<"unable to start agent_exec: "<<endl;
@@ -158,31 +157,31 @@ int main(int argc, char *argv[])
     // Establish Executive functions
 
     // Set the immediate, incoming, outgoing, and temp directories
-    immediate_dir = data_base_path(nodename, "immediate", "exec") + "/";
+    immediate_dir = data_base_path(node_name, "immediate", "exec") + "/";
     if (immediate_dir.empty())
     {
-        cout<<"unable to create directory: <"<<(nodename+"/immediate")+"/exec"<<"> ... exiting."<<endl;
+        cout<<"unable to create directory: <"<<(node_name+"/immediate")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
-    incoming_dir = data_base_path(nodename, "incoming", "exec") + "/";
+    incoming_dir = data_base_path(node_name, "incoming", "exec") + "/";
     if (incoming_dir.empty())
     {
-        cout<<"unable to create directory: <"<<(nodename+"/incoming")+"/exec"<<"> ... exiting."<<endl;
+        cout<<"unable to create directory: <"<<(node_name+"/incoming")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
-    outgoing_dir = data_base_path(nodename, "outgoing", "exec") + "/";
+    outgoing_dir = data_base_path(node_name, "outgoing", "exec") + "/";
     if (outgoing_dir.empty())
     {
-        cout<<"unable to create directory: <"<<(nodename+"/outgoing")+"/exec"<<"> ... exiting."<<endl;
+        cout<<"unable to create directory: <"<<(node_name+"/outgoing")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
-    temp_dir = data_base_path(nodename, "temp", "exec") + "/";
+    temp_dir = data_base_path(node_name, "temp", "exec") + "/";
     if (temp_dir.empty())
     {
-        cout<<"unable to create directory: <"<<(nodename+"/temp")+"/exec"<<"> ... exiting."<<endl;
+        cout<<"unable to create directory: <"<<(node_name+"/temp")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
@@ -337,7 +336,7 @@ int main(int argc, char *argv[])
         // Perform Executive specific functions
         cmd_queue.load_commands(immediate_dir);
         cmd_queue.load_commands(incoming_dir);
-        cmd_queue.run_commands(agent, nodename, logdate_exec);
+        cmd_queue.run_commands(agent, node_name, logdate_exec);
         cmd_queue.save_commands(temp_dir);
 
         sleept = static_cast<int>((nextmjd-currentmjd())*86400000000.);
@@ -625,12 +624,12 @@ void collect_data_loop()
 void move_and_compress_exec () {
     exec_mutex.lock();
     cmd_queue.join_events();
-    log_move(nodename, "exec");
+    log_move(node_name, "exec");
     exec_mutex.unlock();
 }
 void move_and_compress_soh () {
     soh_mutex.lock();
-    log_move(nodename, "soh");
+    log_move(node_name, "soh");
     soh_mutex.unlock();
 }
 

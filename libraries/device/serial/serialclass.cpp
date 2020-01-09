@@ -435,6 +435,44 @@ namespace Cosmos {
         return 0;
     }
 
+    int32_t Serial::set_rts(bool state)
+    {
+#if defined(COSMOS_WIN_OS)
+        GetCommState(handle, &(dcb));
+        if (state)
+        {
+            dcb.fDtrControl	= RTS_CONTROL_ENABLE;
+        }
+        else
+        {
+            dcb.fDtrControl	= RTS_CONTROL_DISABLE;
+        }
+#else
+        int flag = TIOCM_RTS;
+
+        if (state)
+        {
+            ioctl(fd, TIOCMBIS, &flag);
+        }
+        else
+        {
+            ioctl(fd, TIOCMBIC, &flag);
+        }
+#endif
+        return 0;
+    }
+
+    bool Serial::get_cts()
+    {
+#if defined(COSMOS_WIN_OS)
+
+#else
+        int s;
+        ioctl(fd, TIOCMGET, &s);
+        return (s & TIOCM_DSR) != 0;
+#endif
+    }
+
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
     int32_t Serial::set_timeout(int minchar, double timeout)
 #else // Windows
@@ -558,34 +596,38 @@ namespace Cosmos {
             FD_ZERO(&set);
             FD_SET(fd, &set);
             timeval timeout;
-            timeout.tv_sec = static_cast<int32_t>(ictimeout);
-            timeout.tv_usec = static_cast<int32_t>(1000000. * (ictimeout - timeout.tv_sec));
-            int rv = select(fd+1, nullptr, &set, nullptr, &timeout);
-            if (rv == -1)
+            double rtimeout = ictimeout - et.split();
+            if (rtimeout >= 0.)
             {
-                error = -errno;
-            }
-            else if (rv == 0)
-            {
-                error = SERIAL_ERROR_TIMEOUT;
-            }
-            else
-            {
-                result = write(fd, &c, 1);
-                if (result > 0)
+                timeout.tv_sec = static_cast<int32_t>(rtimeout);
+                timeout.tv_usec = static_cast<int32_t>(1000000. * (rtimeout - timeout.tv_sec));
+                int rv = select(fd+1, nullptr, &set, nullptr, &timeout);
+                if (rv == -1)
                 {
-                    error = result;
-                    break;
+                    error = -errno;
+                }
+                else if (rv == 0)
+                {
+                    error = SERIAL_ERROR_TIMEOUT;
                 }
                 else
                 {
-                    if (result < 0)
+                    result = write(fd, &c, 1);
+                    if (result > 0)
                     {
-                        error = -errno;
+                        error = result;
+                        break;
                     }
                     else
                     {
-                        error = SERIAL_ERROR_BUFFER_SIZE_EXCEEDED;
+                        if (result < 0)
+                        {
+                            error = -errno;
+                        }
+                        else
+                        {
+                            error = SERIAL_ERROR_BUFFER_SIZE_EXCEEDED;
+                        }
                     }
                 }
             }
@@ -905,6 +947,7 @@ namespace Cosmos {
         uint8_t c;
 
 #ifdef COSMOS_WIN_OS
+        ElapsedTime et;
         do
         {
             int n=0;

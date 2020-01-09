@@ -125,7 +125,7 @@ size_t data_list_files(string node, string location, string agent, vector<filest
 vector<filestruc> data_list_archive(string node, string agent, double utc, string type);
 vector<filestruc> data_list_archive(string node, string agent, double utc);
 vector <double> data_list_archive_days(string node, string agent);
-FILE* data_open(string path, char* mode);
+FILE* data_open(string path, const char *mode);
 int32_t data_name_date(string node, string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds);
 int32_t data_name_date(string node, string filename, double &utc);
 string data_name(string node, double mjd, string extra, string type);
@@ -141,6 +141,7 @@ string data_name_path(string node, string location, string agent, double mjd, st
 string data_resource_path(string name);
 bool data_exists(string& path);
 bool data_isdir(string path);
+bool data_ischardev(string path);
 bool data_isfile(string path, off_t size=0);
 int32_t set_cosmosroot(string name, bool create_flag=false);
 int32_t set_cosmosroot(bool create_flag=false);
@@ -168,4 +169,4 @@ int32_t kml_write(cosmosstruc* cinfo);
 
 //! @}
 
-#endif
+#endif // DATALIB_H

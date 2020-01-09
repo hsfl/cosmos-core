@@ -3090,7 +3090,7 @@ int lines2eci(double utc, std::vector<tlestruc>lines, cartpos &eci)
 		return (TLE_ERROR_OUTOFRANGE);
 
 	iretn = tle2eci(utc, lines[lindex], eci);
-	return (iretn);
+	return iretn;
 }
 
 /**

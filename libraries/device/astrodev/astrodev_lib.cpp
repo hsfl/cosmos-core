@@ -45,7 +45,7 @@ int32_t astrodev_connect(string dev, astrodev_handle &handle)
 	
 	if ((iretn=astrodev_ping(handle)) < 0)
 	{
-		return (iretn);
+		return iretn;
 	}
 
 	return 0;
@@ -291,9 +291,9 @@ int32_t astrodev_ping(astrodev_handle &handle)
     handle.frame.header.command = ASTRODEV_NOOP;
     handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn = astrodev_recvframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 
 	return 0;
 }
@@ -305,9 +305,9 @@ int32_t astrodev_gettcvconfig(astrodev_handle &handle)
     handle.frame.header.command = ASTRODEV_GETTCVCONFIG;
     handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn = astrodev_recvframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 
 	return 0;
 }
@@ -319,9 +319,9 @@ int32_t astrodev_rfconfig(astrodev_handle &handle)
     handle.frame.header.command = ASTRODEV_RFCONFIG;
     handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn = astrodev_recvframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 
 	return 0;
 }
@@ -333,9 +333,9 @@ int32_t astrodev_firmwarerev(astrodev_handle &handle)
     handle.frame.header.command = ASTRODEV_FIRMWAREREV;
     handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn = astrodev_recvframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 
 	return 0;
 }
@@ -347,9 +347,9 @@ int32_t astrodev_telemetry(astrodev_handle &handle)
     handle.frame.header.command = ASTRODEV_TELEMETRY;
     handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn = astrodev_recvframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 
 	return 0;
 }
@@ -361,9 +361,9 @@ int32_t astrodev_settcvconfig(astrodev_handle &handle)
     handle.frame.header.command = ASTRODEV_SETTCVCONFIG;
     handle.frame.header.size = sizeof(astrodev_tcv_config);
 	if ((iretn = astrodev_sendframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn = astrodev_recvframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 
 	return 0;
 }
@@ -375,9 +375,9 @@ int32_t astrodev_receive(astrodev_handle &handle, uint8_t *data, uint16_t size)
     handle.frame.header.command = ASTRODEV_RECEIVE;
     handle.frame.header.size = 0;
 	if ((iretn = astrodev_sendframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn = astrodev_recvframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 	astrodev_unloadframe(handle, data, size);
 
 	return 0;
@@ -390,9 +390,9 @@ int32_t astrodev_transmit(astrodev_handle &handle, uint8_t *data, uint16_t size)
     handle.frame.header.command = ASTRODEV_TRANSMIT;
 	astrodev_loadframe(handle, data, size);
 	if ((iretn = astrodev_sendframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 	if ((iretn = astrodev_recvframe(handle)) < 0)
-		return (iretn);
+		return iretn;
 
 	return 0;
 }

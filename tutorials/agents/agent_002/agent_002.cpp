@@ -36,53 +36,69 @@
 #include <iostream>
 #include <string>
 
-// function prototype of agent request
+// The request function prototype
 int32_t request_hello(char *request, char* response, Agent *cdata);
 
-// counter to test number of requests
-int countReq = 0;
-Agent *agent;
+/// Count of the number of requests that have been run.
+static int request_counter = 0;
 
+/// The agent constructor
+static Agent *agent;
+
+//!
+//! \brief agent_002 is a test agent that demonstrates the interconnectivity with another agent, namely agent_001, through the use of agent requests.
+//! This agent will receive a request from agent_001 and will send back a response to it.
+//! \param argc Number of arguments provided
+//! \param argv The argument values
+//! \return int
+//!
 int main(int argc, char **argv)
 {
-    //setEnvCosmos(cosmosPath);
+    cout << "Starting agent_002" << endl;
 
-    cout << "Starting agent " << endl;
+    // Initialize agent parameters; its name and node
+    string agentname = "002"; // Forward facing name of the agent
+    string nodename = "cubesat1"; // The node that the agent will run on
 
-    string agentname     = "002";
-    string nodename      = "cubesat1";
-
+    // Specify agent parameters via command line arguments
     switch (argc)
     {
     case 3:
         nodename = argv[2];
     case 2:
-        agentname = (string)argv[1] + "_002";
+        agentname = static_cast<string>(argv[1]) + "_002";
     }
 
+    // Construct agent with above parameters
     agent = new Agent(nodename, agentname);
 
+    // Define the request within the agent
     agent->add_request("request_hello", request_hello);
 
-    // start main loop
+    // Start executing the agent
     while(agent->running())
     {
-        // sleep for 1 sec
-        COSMOS_SLEEP(1.00);
+        // Sleep for 1 sec
+        COSMOS_SLEEP(1.);
     }
+
     return 0;
 }
 
-// implement request function
+//!
+//! \brief The function to handle agent_001's request.
+//! \param The response to send back to agent_001.
+//! \return int
+//!
 int32_t request_hello(char *, char* response, Agent *)
 {
+    // Send response back to agent_001
+    sprintf(response, "hello %d ", request_counter);
 
-    sprintf(response,"hello %d ",countReq);
+    cout << "agent_002 got the request! Its response is: " << response << endl;
 
-    cout << "agent 002 got request! response is: " << response << endl;
-
-    // add counter
-    countReq ++;
+    // Increment counter of how many requests were run
+    request_counter++;
 
     return 0;
 }

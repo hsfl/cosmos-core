@@ -462,7 +462,7 @@ cosmosstruc *json_create()
     device_type_string[(uint16_t)DeviceType::TXR] = "txr";
 
     // Here is where we add entries for all the single element names.
-//    json_mapbaseentries(cinfo);
+    //    json_mapbaseentries(cinfo);
 
     return (cinfo);
 }
@@ -1041,7 +1041,7 @@ int32_t json_out_handle(string &jstring, jsonhandle handle, cosmosstruc *cinfo)
 
     iretn = json_out_entry(jstring, cinfo->jmap[handle.hash][handle.index], cinfo);
 
-    return (iretn);
+    return iretn;
 }
 
 //! Perform JSON output for a single JSON entry
@@ -1062,16 +1062,16 @@ int32_t json_out_entry(string &jstring, const jsonentry &entry, cosmosstruc *cin
         jstring.back()=',';
     }
     else if ((iretn=json_out_character(jstring,'{')) != 0) //still inputs '{' if it is the first entry into the string
-        return (iretn);
+        return iretn;
 
     data = json_ptr_of_entry(entry, cinfo);
     if ((iretn=json_out_value(jstring, entry.name, data, entry.type, cinfo)) != 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) != 0)       //closes json object. if json continues it will be overwritten with ','
-        return (iretn);
+        return iretn;
 
-    return (iretn);
+    return iretn;
 }
 
 //! Output JSON Pair
@@ -1125,88 +1125,88 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
     {
     case JSON_TYPE_UINT8:
         if ((iretn=json_out_uint8(jstring,*(uint8_t *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_UINT16:
         if ((iretn=json_out_uint16(jstring,*(uint16_t *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_UINT32:
         if ((iretn=json_out_uint32(jstring,*(uint32_t *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_INT8:
         if ((iretn=json_out_int8(jstring,*(int8_t *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_INT16:
         if ((iretn=json_out_int16(jstring,*(int16_t *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_INT32:
         if ((iretn=json_out_int32(jstring,*(int32_t *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_FLOAT:
         if ((iretn=json_out_float(jstring,*(float *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_DOUBLE:
     case JSON_TYPE_TIMESTAMP:
         if ((iretn=json_out_double(jstring,*(double *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_STRING:
         if ((iretn=json_out_string(jstring,(char *)data,COSMOS_MAX_DATA)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_NAME:
         if ((iretn=json_out_string(jstring,(char *)data,COSMOS_MAX_NAME)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_VECTOR:
         if ((iretn=json_out_vector(jstring,*(Vector *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_GVECTOR:
         if ((iretn=json_out_gvector(jstring,*(gvector *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_CVECTOR:
         if ((iretn=json_out_cvector(jstring,*(cvector *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_AVECTOR:
         if ((iretn=json_out_avector(jstring,*(avector *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_QUATERNION:
         if ((iretn=json_out_quaternion(jstring,*(quaternion *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_RMATRIX:
         if ((iretn=json_out_rmatrix(jstring,*(rmatrix *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
         //    case JSON_TYPE_DCM:
         //        if ((iretn=json_out_dcm(jstring,*(rmatrix *)data)) != 0)
-        //            return (iretn);
+        //            return iretn;
         //        break;
     case JSON_TYPE_RVECTOR:
         //    case JSON_TYPE_TVECTOR:
         if ((iretn=json_out_rvector(jstring,*(rvector *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_GEOIDPOS:
     case JSON_TYPE_POS_SELG:
     case JSON_TYPE_POS_GEOD:
         if ((iretn=json_out_geoidpos(jstring,*(geoidpos *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_SPHERPOS:
     case JSON_TYPE_POS_GEOS:
         if ((iretn=json_out_spherpos(jstring,*(spherpos *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_CARTPOS:
     case JSON_TYPE_POS_GEOC:
@@ -1215,11 +1215,11 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
     case JSON_TYPE_POS_SCI:
     case JSON_TYPE_POS_ICRF:
         if ((iretn=json_out_cartpos(jstring,*(cartpos *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_DCMATT:
         if ((iretn=json_out_dcmatt(jstring,*(dcmatt *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_QATT:
     case JSON_TYPE_QATT_TOPO:
@@ -1228,26 +1228,26 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
     case JSON_TYPE_QATT_ICRF:
     case JSON_TYPE_QATT_SELC:
         if ((iretn=json_out_qatt(jstring,*(qatt *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_HBEAT:
         if ((iretn=json_out_beatstruc(jstring,*(beatstruc *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_LOC_POS:
         if ((iretn=json_out_posstruc(jstring,*(posstruc *)data)) != 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_LOC_ATT:
         {
             if ((iretn=json_out_attstruc(jstring,*(attstruc *)data)) != 0)
-                return (iretn);
+                return iretn;
             break;
         }
     case JSON_TYPE_LOCSTRUC:
         {
             if ((iretn=json_out_locstruc(jstring,*(locstruc *)data)) != 0)
-                return (iretn);
+                return iretn;
             break;
         }
     case JSON_TYPE_ALIAS:
@@ -1287,7 +1287,7 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
         }
     }
 
-    return (iretn);
+    return iretn;
 }
 
 //! Extend JSON stream
@@ -1315,7 +1315,7 @@ int32_t json_out_character(string &jstring,char character)
 
     tstring[0] = character;
     if ((iretn=json_append(jstring,tstring)) < 0)
-        return (iretn);
+        return iretn;
 
     return 0;
 }
@@ -1332,9 +1332,9 @@ int32_t json_out_name(string &jstring, string name)
     int32_t iretn;
 
     if ((iretn=json_out_string(jstring, name, COSMOS_MAX_NAME)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,':')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -1352,7 +1352,7 @@ int32_t json_out_int8(string &jstring,int8_t value)
     sprintf(tstring,"%hd",value);
 
     iretn = json_append(jstring,tstring);
-    return (iretn);
+    return iretn;
 }
 
 //! Signed 16 bit integer to JSON
@@ -1369,7 +1369,7 @@ int32_t json_out_int16(string &jstring,int16_t value)
     sprintf(tstring,"%d",value);
 
     iretn = json_append(jstring,tstring);
-    return (iretn);
+    return iretn;
 }
 
 //! Signed 32 bit integer to JSON
@@ -1386,7 +1386,7 @@ int32_t json_out_int32(string &jstring,int32_t value)
     sprintf(tstring,"%d",value);
 
     iretn = json_append(jstring,tstring);
-    return (iretn);
+    return iretn;
 }
 
 //! Unsigned 8 bit integer to JSON
@@ -1403,7 +1403,7 @@ int32_t json_out_uint8(string &jstring, uint8_t value)
     sprintf(tstring,"%hu",value);
 
     iretn = json_append(jstring,tstring);
-    return (iretn);
+    return iretn;
 }
 
 //! Unsigned 16 bit integer to JSON
@@ -1420,7 +1420,7 @@ int32_t json_out_uint16(string &jstring,uint16_t value)
     sprintf(tstring,"%u",value);
 
     iretn = json_append(jstring,tstring);
-    return (iretn);
+    return iretn;
 }
 
 //! Unsigned 32 bit integer to JSON
@@ -1437,7 +1437,7 @@ int32_t json_out_uint32(string &jstring,uint32_t value)
     sprintf(tstring,"%u",value);
 
     iretn = json_append(jstring,tstring);
-    return (iretn);
+    return iretn;
 }
 
 //! Single precision floating vertex32_t to JSON
@@ -1458,7 +1458,7 @@ int32_t json_out_float(string &jstring,float value)
 
     sprintf(tstring,"%.8g",value);
     iretn = json_append(jstring,tstring);
-    return (iretn);
+    return iretn;
 }
 
 //! Perform JSON output for a single nonindexed double
@@ -1480,7 +1480,7 @@ int32_t json_out_double(string &jstring,double value)
     sprintf(tstring,"%.17g",value);
     iretn = json_append(jstring,tstring);
 
-    return (iretn);
+    return iretn;
 }
 
 //! String to JSON
@@ -1501,7 +1501,7 @@ int32_t json_out_string(string &jstring, string ostring, uint16_t len)
 
     if ((iretn=json_out_character(jstring,'"')) < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     for (i=0; i<ostring.size(); i++)
@@ -1514,64 +1514,64 @@ int32_t json_out_string(string &jstring, string ostring, uint16_t len)
         if (ostring[i] == '"' || ostring[i] == '\\' || ostring[i] == '/')
         {
             if ((iretn=json_out_character(jstring,'\\')) < 0)
-                return (iretn);
+                return iretn;
             if ((iretn=json_out_character(jstring, ostring[i])) < 0)
-                return (iretn);
+                return iretn;
         }
         else if (ostring[i] < 32)
         {
             if ((iretn=json_out_character(jstring,'\\')) < 0)
-                return (iretn);
+                return iretn;
             switch (ostring[i])
             {
             case '\b':
                 if ((iretn=json_out_character(jstring,'b')) < 0)
-                    return (iretn);
+                    return iretn;
                 break;
             case '\f':
                 if ((iretn=json_out_character(jstring,'f')) < 0)
-                    return (iretn);
+                    return iretn;
                 break;
             case '\n':
                 if ((iretn=json_out_character(jstring,'n')) < 0)
-                    return (iretn);
+                    return iretn;
                 break;
             case '\r':
                 if ((iretn=json_out_character(jstring,'r')) < 0)
-                    return (iretn);
+                    return iretn;
                 break;
             case '\t':
                 if ((iretn=json_out_character(jstring,'t')) < 0)
-                    return (iretn);
+                    return iretn;
                 break;
             default:
                 if ((iretn=json_out_character(jstring,'u')) < 0)
-                    return (iretn);
+                    return iretn;
                 sprintf(tstring,"%04x", ostring[i]);
                 if ((iretn=json_out_string(jstring,tstring,4)) < 0)
-                    return (iretn);
+                    return iretn;
             }
         }
         else if (ostring[i] < 127)
         {
             if ((iretn=json_out_character(jstring, ostring[i])) < 0)
-                return (iretn);
+                return iretn;
         }
         else
         {
             if ((iretn=json_out_character(jstring,'\\')) < 0)
-                return (iretn);
+                return iretn;
             if ((iretn=json_out_character(jstring,'u')) < 0)
-                return (iretn);
+                return iretn;
             sprintf(tstring,"%04x", ostring[i]);
             if ((iretn=json_out_string(jstring,tstring,4)) < 0)
-                return (iretn);
+                return iretn;
         }
     }
     if ((iretn=json_out_character(jstring,'"')) < 0)
-        return (iretn);
+        return iretn;
 
-    return (iretn);
+    return iretn;
 }
 
 //! ::gvector to JSON
@@ -1585,32 +1585,32 @@ int32_t json_out_gvector(string &jstring,gvector value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Latitude
     if ((iretn=json_out_name(jstring,(char *)"lat")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.lat)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Longitude
     if ((iretn=json_out_name(jstring,(char *)"lon")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.lon)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Height
     if ((iretn=json_out_name(jstring,(char *)"h")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.h)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -1625,32 +1625,32 @@ int32_t json_out_svector(string &jstring,svector value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Latitude
     if ((iretn=json_out_name(jstring,(char *)"phi")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.phi)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Longitude
     if ((iretn=json_out_name(jstring,(char *)"lambda")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.lambda)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Height
     if ((iretn=json_out_name(jstring,(char *)"r")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.r)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -1665,32 +1665,32 @@ int32_t json_out_avector(string &jstring, avector value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Bank
     if ((iretn=json_out_name(jstring,(char *)"b")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.b)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Elevation
     if ((iretn=json_out_name(jstring,(char *)"e")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.e)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Heading
     if ((iretn=json_out_name(jstring,(char *)"h")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.h)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -1705,35 +1705,35 @@ int32_t json_out_vector(string &jstring,Vector value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'[')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output x
     if ((iretn=json_out_double(jstring,value.x)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output y
     if ((iretn=json_out_double(jstring,value.y)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output z
     if ((iretn=json_out_double(jstring,value.z)) < 0)
-        return (iretn);
+        return iretn;
 
     // Optionally output w
     if (value.w != 0.)
     {
         if ((iretn=json_out_character(jstring,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn=json_out_double(jstring,value.w)) < 0)
-            return (iretn);
+            return iretn;
     }
 
     if ((iretn=json_out_character(jstring,']')) < 0)
-        return (iretn);
+        return iretn;
 
     return 0;
 }
@@ -1749,26 +1749,26 @@ int32_t json_out_rvector(string &jstring,rvector value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'[')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Col[0]
     if ((iretn=json_out_double(jstring,value.col[0])) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Col[1]
     if ((iretn=json_out_double(jstring,value.col[1])) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Col[2]
     if ((iretn=json_out_double(jstring,value.col[2])) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,']')) < 0)
-        return (iretn);
+        return iretn;
 
     return 0;
 }
@@ -1785,24 +1785,24 @@ int32_t json_out_quaternion(string &jstring,quaternion value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Orientation
     if ((iretn=json_out_name(jstring,(char *)"d")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_cvector(jstring,value.d)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Rotation
     if ((iretn=json_out_name(jstring,(char *)"w")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.w)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -1817,32 +1817,32 @@ int32_t json_out_cvector(string &jstring,cvector value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output X
     if ((iretn=json_out_name(jstring,(char *)"x")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.x)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Y
     if ((iretn=json_out_name(jstring,(char *)"y")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.y)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Z
     if ((iretn=json_out_name(jstring,(char *)"z")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.z)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -1857,40 +1857,40 @@ int32_t json_out_cartpos(string &jstring,cartpos value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Time
     if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Position
     if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_rvector(jstring,value.s)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Velocity
     if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_rvector(jstring,value.v)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Acceleration
     if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_rvector(jstring,value.a)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -1906,40 +1906,40 @@ int32_t json_out_geoidpos(string &jstring,geoidpos value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Time
     if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Position
     if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_gvector(jstring,value.s)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Velocity
     if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_gvector(jstring,value.v)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Acceleration
     if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_gvector(jstring,value.a)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -1955,40 +1955,40 @@ int32_t json_out_spherpos(string &jstring,spherpos value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Time
     if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Position
     if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_svector(jstring,value.s)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Velocity
     if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_svector(jstring,value.v)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Acceleration
     if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_svector(jstring,value.a)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2005,15 +2005,15 @@ int32_t json_out_node(string &jstring, string value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring, '{')) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_name(jstring, "node_name")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_string(jstring, value, COSMOS_MAX_NAME)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2030,15 +2030,15 @@ int32_t json_out_utcstart(string &jstring, double value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_name(jstring,(char *)"node_utcstart")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2055,16 +2055,16 @@ int32_t json_out_ecipos(string &jstring, cartpos value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Earth Centered Inertial
     if ((iretn=json_out_name(jstring,(char *)"node_loc_pos_eci")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_cartpos(jstring,value)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2080,82 +2080,82 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Time
     if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Barycentric
     if ((iretn=json_out_name(jstring,(char *)"icrf")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_cartpos(jstring,value.icrf)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Earth Centered Inertial
     if ((iretn=json_out_name(jstring,(char *)"eci")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_cartpos(jstring,value.eci)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Selene Centered Inertial
     if ((iretn=json_out_name(jstring,(char *)"sci")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_cartpos(jstring,value.sci)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Geocentric
     if ((iretn=json_out_name(jstring,(char *)"geoc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_cartpos(jstring,value.geoc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Selenocentric
     if ((iretn=json_out_name(jstring,(char *)"selc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_cartpos(jstring,value.selc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Geodetic
     if ((iretn=json_out_name(jstring,(char *)"geod")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_geoidpos(jstring,value.geod)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Selenographic
     if ((iretn=json_out_name(jstring,(char *)"selg")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_geoidpos(jstring,value.selg)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Geocentric Spherical
     if ((iretn=json_out_name(jstring,(char *)"geos")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_spherpos(jstring,value.geos)) < 0)
-        return (iretn);
+        return iretn;
     //	if ((iretn=json_out_character(jstring,',')) < 0)
-    //		return (iretn);
+    //		return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2171,56 +2171,56 @@ int32_t json_out_attstruc(string &jstring,attstruc value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Time
     if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Topocentric
     if ((iretn=json_out_name(jstring,(char *)"topo")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_qatt(jstring,value.topo)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output LVLH
     if ((iretn=json_out_name(jstring,(char *)"lvlh")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_qatt(jstring,value.lvlh)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Geocentric
     if ((iretn=json_out_name(jstring,(char *)"geoc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_qatt(jstring,value.geoc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Selenocentric
     if ((iretn=json_out_name(jstring,(char *)"selc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_qatt(jstring,value.selc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output ICRF
     if ((iretn=json_out_name(jstring,(char *)"icrf")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_qatt(jstring,value.icrf)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2236,40 +2236,40 @@ int32_t json_out_locstruc(string &jstring,locstruc value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Time
     if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Position
     if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_posstruc(jstring,value.pos)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Attitude
     if ((iretn=json_out_name(jstring,(char *)"att")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_attstruc(jstring,value.att)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Earth Magnetic Field
     if ((iretn=json_out_name(jstring,(char *)"bearth")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_rvector(jstring,value.bearth)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2286,72 +2286,72 @@ int32_t json_out_commandevent(string &jstring,longeventstruc value)
 
     //CT-JSON: keep as a separate object? or have it combine?
     if ((iretn=json_out_character(jstring, '{')) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_name(jstring, (char *)"event_utc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring, value.utc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring, '}')) < 0)
-        return (iretn);
+        return iretn;
 
     if (value.utcexec != 0.)
     {
         if ((iretn=json_out_character(jstring, '{')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn=json_out_name(jstring, (char *)"event_utcexec")) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn=json_out_double(jstring, value.utcexec)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn=json_out_character(jstring, '}')) < 0)
-            return (iretn);
+            return iretn;
     }
 
     if ((iretn=json_out_character(jstring, '{')) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_name(jstring, (char *)"event_name")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_string(jstring, value.name, COSMOS_MAX_NAME)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring, '}')) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring, '{')) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_name(jstring, (char *)"event_type")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_uint32(jstring, value.type)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring, '}')) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring, '{')) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_name(jstring, (char *)"event_flag")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_uint32(jstring, value.flag)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring, '}')) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring, '{')) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_name(jstring, (char *)"event_data")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_string(jstring, value.data, COSMOS_MAX_DATA)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring, '}')) < 0)
-        return (iretn);
+        return iretn;
 
     if (value.flag & EVENT_FLAG_CONDITIONAL)
     {
         if ((iretn=json_out_character(jstring, '{')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn=json_out_name(jstring, (char *)"event_condition")) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn=json_out_string(jstring, value.condition, COSMOS_MAX_DATA)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn=json_out_character(jstring, '}')) < 0)
-            return (iretn);
+            return iretn;
     }
 
     return 0;
@@ -2367,32 +2367,32 @@ int32_t json_out_dcmatt(string &jstring,dcmatt value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Position
     if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_dcm(jstring,value.s)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Velocity
     if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_rvector(jstring,value.v)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Acceleration
     if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_rvector(jstring,value.a)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2408,40 +2408,40 @@ int32_t json_out_qatt(string &jstring,qatt value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Time
     if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Position
     if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_quaternion(jstring,value.s)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Velocity
     if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_rvector(jstring,value.v)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Acceleration
     if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_rvector(jstring,value.a)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2456,26 +2456,26 @@ int32_t json_out_dcm(string &jstring,rmatrix value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'[')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Row[0]
     if ((iretn=json_out_rvector(jstring,value.row[0])) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Row[1]
     if ((iretn=json_out_rvector(jstring,value.row[1])) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Row[2]
     if ((iretn=json_out_rvector(jstring,value.row[2])) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,']')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2491,32 +2491,32 @@ int32_t json_out_rmatrix(string &jstring,rmatrix value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'[')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Row[0]
     if ((iretn=json_out_rvector(jstring,value.row[0])) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Row[1]
     if ((iretn=json_out_rvector(jstring,value.row[1])) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Row[2]
     if ((iretn=json_out_rvector(jstring,value.row[2])) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Row[3]
     if ((iretn=json_out_rvector(jstring,value.row[3])) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,']')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2531,48 +2531,48 @@ int32_t json_out_beatstruc(string &jstring,beatstruc value)
     int32_t iretn;
 
     if ((iretn=json_out_character(jstring,'{')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Ntype
     if ((iretn=json_out_name(jstring,(char *)"ntype")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_uint16(jstring,(uint16_t)value.ntype)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output IP Address
     if ((iretn=json_out_name(jstring,(char *)"addr")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_string(jstring,value.addr,16)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output IP Port
     if ((iretn=json_out_name(jstring,(char *)"port")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_int32(jstring,value.port)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Buffer Size
     if ((iretn=json_out_name(jstring,(char *)"bsz")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_int32(jstring,value.bsz)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return (iretn);
+        return iretn;
 
     // Output Beat Period
     if ((iretn=json_out_name(jstring,(char *)"bprd")) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_out_double(jstring,value.bprd)) < 0)
-        return (iretn);
+        return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2598,7 +2598,7 @@ int32_t json_out_1d(string &jstring, const char *token, uint16_t index, cosmosst
 
     sprintf(name,"%s_%03u",token,index);
     iretn = json_out(jstring, name, cinfo);
-    return (iretn);
+    return iretn;
 }
 
 //! Perform JSON output for a single element of a 2D named JSON item.
@@ -2624,7 +2624,7 @@ int32_t json_out_2d(string &jstring, const char *token, uint16_t row, uint16_t c
 
     sprintf(name,"%s_%03u_%03u",token,row,col);
     iretn = json_out(jstring, name, cinfo);
-    return (iretn);
+    return iretn;
 }
 
 //! Perform JSON output for a single named JSON item
@@ -2679,22 +2679,22 @@ int32_t json_out_list(string &jstring,string tokens, cosmosstruc *cinfo)
     }
     if ((iretn=json_skip_character(ptr,'{')) != 0)
     {
-        return (iretn);
+        return iretn;
     }
     do
     {
         if ((iretn=json_extract_string(ptr, tstring)) != 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         json_out(jstring, tstring.c_str(), cinfo);
     } while (!json_skip_character(ptr,','));
     if ((iretn = json_skip_white(ptr)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_skip_character(ptr,'}')) != 0 && iretn!=JSON_ERROR_EOS)
-        return (iretn);
+        return iretn;
     if ((iretn = json_skip_white(ptr)) < 0 && iretn!=JSON_ERROR_EOS)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -2724,7 +2724,7 @@ int32_t json_out_wildcard(string &jstring, string wildcard, cosmosstruc *cinfo)
             }
         }
     }
-    return (iretn);
+    return iretn;
 }
 
 //! Address from entry
@@ -2833,22 +2833,22 @@ int32_t json_table_of_list(vector<jsonentry*> &table, string tokens, cosmosstruc
     while (ptr[0] != 0 && ptr[0] != '{') //move forward until '{'
         ptr++;
     if ((iretn=json_skip_character(ptr,'{')) != 0) //skip over '{'
-        return (iretn);
+        return iretn;
     do
     {
         if ((iretn=json_extract_string(ptr, tstring)) != 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         tentry = json_entry_of(tstring, cinfo);
         table.push_back(tentry);
     } while (!json_skip_character(ptr,','));
     if ((iretn = json_skip_white(ptr)) < 0)
-        return (iretn);
+        return iretn;
     if ((iretn=json_skip_character(ptr,'}')) != 0 && iretn!=JSON_ERROR_EOS)
-        return (iretn);
+        return iretn;
     if ((iretn = json_skip_white(ptr)) < 0 && iretn!=JSON_ERROR_EOS)
-        return (iretn);
+        return iretn;
     return 0;
 }
 
@@ -4511,7 +4511,7 @@ int32_t json_tokenize(string jstring, cosmosstruc *cinfo, vector<jsontoken> &tok
     } while (iretn != JSON_ERROR_EOS && iretn != JSON_ERROR_NOJMAP && *cpoint != 0 && (size_t)(cpoint-&jstring[0]) <= length);
 
     if (!iretn) iretn = (int32_t)tokens.size();
-    return (iretn);
+    return iretn;
 }
 
 //! Tokenize next JSON Named Pair
@@ -4537,7 +4537,7 @@ int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoke
     if (ptr[0] != '{')
     {
         if ((iretn = json_skip_to_next_member(ptr)) < 0)
-            return (iretn);
+            return iretn;
         else
             return (JSON_ERROR_SCAN);
     }
@@ -4550,12 +4550,12 @@ int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoke
         if (iretn != JSON_ERROR_EOS)
         {
             if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                return (iretn);
+                return iretn;
             else
                 return (JSON_ERROR_SCAN);
         }
         else
-            return (iretn);
+            return iretn;
     }
     // Calculate hash
     hash = json_hash(ostring);
@@ -4572,7 +4572,7 @@ int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoke
     {
         if ((iretn = json_skip_to_next_member(ptr)) < 0 && iretn != JSON_ERROR_EOS)
         {
-            return (iretn);
+            return iretn;
         }
         else
             return (JSON_ERROR_NOENTRY);
@@ -4585,12 +4585,12 @@ int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoke
             if (iretn != JSON_ERROR_EOS)
             {
                 if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                    return (iretn);
+                    return iretn;
                 else
                     return (JSON_ERROR_SCAN);
             }
             else
-                return (iretn);
+                return iretn;
         }
         // Skip separator
         if ((iretn = json_skip_character(ptr,':')) < 0)
@@ -4598,12 +4598,12 @@ int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoke
             if (iretn != JSON_ERROR_EOS)
             {
                 if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                    return (iretn);
+                    return iretn;
                 else
                     return (JSON_ERROR_SCAN);
             }
             else
-                return (iretn);
+                return iretn;
         }
         // Skip white space before value
         if ((iretn = json_skip_white(ptr)) < 0)
@@ -4611,12 +4611,12 @@ int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoke
             if (iretn != JSON_ERROR_EOS)
             {
                 if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                    return (iretn);
+                    return iretn;
                 else
                     return (JSON_ERROR_SCAN);
             }
             else
-                return (iretn);
+                return iretn;
         }
         // Read value
         string input;
@@ -4625,12 +4625,12 @@ int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoke
             if (iretn != JSON_ERROR_EOS)
             {
                 if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                    return (iretn);
+                    return iretn;
                 else
                     return (JSON_ERROR_SCAN);
             }
             else
-                return (iretn);
+                return iretn;
         }
         if (input.size())
         {
@@ -4641,13 +4641,13 @@ int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoke
         //Skip whitespace after value
         if ((iretn = json_skip_white(ptr)) < 0)
         {
-            return (iretn);
+            return iretn;
         }
         // Skip over closing brace
         if ((iretn = json_skip_character(ptr,'}')) < 0)
         {
             if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                return (iretn);
+                return iretn;
             else
                 return (JSON_ERROR_SCAN);
         }
@@ -4655,7 +4655,7 @@ int32_t json_tokenize_namedmember(const char* &ptr, cosmosstruc *cinfo, jsontoke
 
     //	ptr++;
     json_skip_white(ptr);
-    return (iretn);
+    return iretn;
 }
 
 //! Parse JSON using Name Space.
@@ -4705,7 +4705,7 @@ int32_t json_parse(string jstring, cosmosstruc *cinfo)
         cinfo->timestamp = currentmjd();
         iretn = count;
     }
-    return (iretn);
+    return iretn;
 }
 
 //! Parse next JSON Named Pair
@@ -4730,7 +4730,7 @@ int32_t json_parse_namedmember(const char* &ptr, cosmosstruc *cinfo)
     if (ptr[0] != '{' && ptr[0] != ',')      //verify that there is a '{' or ','
     {
         if ((iretn = json_skip_to_next_member(ptr)) < 0)
-            return (iretn);
+            return iretn;
         else
             return (JSON_ERROR_SCAN);
     }
@@ -4743,12 +4743,12 @@ int32_t json_parse_namedmember(const char* &ptr, cosmosstruc *cinfo)
         if (iretn != JSON_ERROR_EOS)
         {
             if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                return (iretn);
+                return iretn;
             else
                 return (JSON_ERROR_SCAN);
         }
         else
-            return (iretn);
+            return iretn;
     }
 
     if(ostring.find("$$_") == 0)
@@ -4774,7 +4774,7 @@ int32_t json_parse_namedmember(const char* &ptr, cosmosstruc *cinfo)
     {
         if ((iretn = json_skip_to_next_member(ptr)) < 0 && iretn != JSON_ERROR_EOS)
         {
-            return (iretn);
+            return iretn;
         }
         else
             return (JSON_ERROR_NOENTRY);
@@ -4786,24 +4786,24 @@ int32_t json_parse_namedmember(const char* &ptr, cosmosstruc *cinfo)
             if (iretn != JSON_ERROR_EOS)
             {
                 if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                    return (iretn);
+                    return iretn;
                 else
                     return (JSON_ERROR_SCAN);
             }
             else
-                return (iretn);
+                return iretn;
         }
         if ((iretn = json_skip_character(ptr,':')) < 0)   //skip the ':' before the value
         {
             if (iretn != JSON_ERROR_EOS)
             {
                 if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                    return (iretn);
+                    return iretn;
                 else
                     return (JSON_ERROR_SCAN);
             }
             else
-                return (iretn);
+                return iretn;
         }
         // enter value into the structs using pointer
         if ((iretn = json_parse_value(ptr, cinfo->jmap[hash][n], cinfo)) < 0)
@@ -4811,18 +4811,18 @@ int32_t json_parse_namedmember(const char* &ptr, cosmosstruc *cinfo)
             if (iretn != JSON_ERROR_EOS)
             {
                 if ((iretn = json_skip_to_next_member(ptr)) < 0)
-                    return (iretn);
+                    return iretn;
                 else
                     return (JSON_ERROR_SCAN);
             }
             else
             {
-                return (iretn);
+                return iretn;
             }
         }
     }
 
-//    ptr++;
+    //    ptr++;
     json_skip_white(ptr);
     json_skip_character(ptr, '}');
     json_skip_white(ptr);
@@ -4830,7 +4830,7 @@ int32_t json_parse_namedmember(const char* &ptr, cosmosstruc *cinfo)
     {
         cinfo->jmap[hash][n].enabled = true;
     }
-    return (iretn);
+    return iretn;
 }
 
 //! Skip over a specific character in a JSON stream
@@ -4872,7 +4872,7 @@ int32_t json_skip_character(const char* &ptr, const char character)
  \param ostring Pointer to a location to copy the string.
  \return Zero, otherwise negative error.
 */
-int32_t json_parse_name(const char* &ptr, string& ostring)
+int32_t json_extract_name(const char* &ptr, string& ostring)
 {
     int32_t iretn = 0;
 
@@ -4882,29 +4882,29 @@ int32_t json_parse_name(const char* &ptr, string& ostring)
     //Skip whitespace before name
     if ((iretn = json_skip_white(ptr)) < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     //Parse name
     if ((iretn = json_extract_string(ptr, ostring)) < 0)
-        return (iretn);
+        return iretn;
 
     //Skip whitespace after name
     if ((iretn = json_skip_white(ptr)) < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     if ((iretn = json_skip_character(ptr, ':')) < 0)
-        return (iretn);
+        return iretn;
 
     //Skip whitespace after seperator
     if ((iretn = json_skip_white(ptr)) < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
-    return (iretn);
+    return iretn;
 }
 
 //! Parse the next JSON equation out of a JSON stream.
@@ -4978,7 +4978,7 @@ int32_t json_parse_equation(const char* &ptr, string& equation)
 
     ptr = &ptr[i2+1];
 
-    return (iretn);
+    return iretn;
 }
 
 //! Parse the next JSON equation operand out of a JSON stream.
@@ -5067,7 +5067,7 @@ int32_t json_extract_string(const char* &ptr, string &ostring)
     //Skip whitespace before string
     if ((iretn = json_skip_white(ptr)) < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     ilen = strlen(ptr);
@@ -5127,8 +5127,9 @@ int32_t json_extract_string(const char* &ptr, string &ostring)
 
     ptr = &ptr[i2+1];
 
-    return (iretn);
+    return iretn;
 }
+
 
 //! Parse the next number out of a JSON stream.
 /*! Extract a valid number out of the provided JSON stream, otherwise
@@ -5149,7 +5150,7 @@ int32_t json_parse_number(const char* &ptr, double *number)
     //Skip whitespace before number
     if ((iretn = json_skip_white(ptr)) < 0)
     {
-        return (iretn);
+        return iretn;
     }
     ilen = strlen(ptr);
 
@@ -5195,7 +5196,7 @@ int32_t json_parse_number(const char* &ptr, double *number)
     // Finally, scan resulting string and move pointer to new location: i1 equals first position after number
     sscanf(ptr,"%lf",number);
     ptr = &ptr[i1];
-    return (iretn);
+    return iretn;
 }
 
 //! Skip white space in JSON string.
@@ -5345,7 +5346,7 @@ int32_t json_set_number(double val, const jsonentry &entry, cosmosstruc *cinfo)
         *(double *)data = (double)val;
         break;
     }
-    return (iretn);
+    return iretn;
 }
 
 int32_t json_parse_value(const char* &ptr, const jsonentry &entry, cosmosstruc *cinfo)
@@ -5388,7 +5389,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
     //Skip whitespace before value
     if ((iretn = json_skip_white(ptr)) < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     switch (type)
@@ -5397,7 +5398,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if (std::isnan(val=json_equation(ptr, cinfo)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
-                return (iretn);
+                return iretn;
         }
         *(uint8_t *)data = (uint8_t)val;
         break;
@@ -5406,7 +5407,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if (std::isnan(val=json_equation(ptr, cinfo)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
-                return (iretn);
+                return iretn;
         }
         *(int8_t *)data = (int8_t)val;
         break;
@@ -5415,7 +5416,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if (std::isnan(val=json_equation(ptr, cinfo)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
-                return (iretn);
+                return iretn;
         }
         *(uint16_t *)data = (uint16_t)val;
         break;
@@ -5423,7 +5424,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if (std::isnan(val=json_equation(ptr, cinfo)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
-                return (iretn);
+                return iretn;
         }
         *(uint32_t *)data = (uint32_t)val;
         break;
@@ -5431,7 +5432,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if (std::isnan(val=json_equation(ptr, cinfo)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
-                return (iretn);
+                return iretn;
         }
         *(int16_t *)data = (int16_t)val;
         break;
@@ -5439,7 +5440,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if (std::isnan(val=json_equation(ptr, cinfo)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
-                return (iretn);
+                return iretn;
         }
         *(int32_t *)data = (int32_t)val;
         break;
@@ -5447,7 +5448,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if (std::isnan(val=json_equation(ptr, cinfo)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
-                return (iretn);
+                return iretn;
         }
         *(float *)data = (float)val;
         break;
@@ -5455,7 +5456,7 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if (std::isnan(val=json_equation(ptr, cinfo)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
-                return (iretn);
+                return iretn;
         }
         *(double *)data = (double)val;
         break;
@@ -5463,14 +5464,14 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if (std::isnan(val=json_equation(ptr, cinfo)))
         {
             if ((iretn = json_parse_number(ptr,&val)) < 0)
-                return (iretn);
+                return iretn;
         }
         *(double *)data = (double)val;
         break;
     case JSON_TYPE_STRING:
     case JSON_TYPE_NAME:
         if ((iretn = json_extract_string(ptr, input)) < 0)
-            return (iretn);
+            return iretn;
         if (input.size())
         {
             if (type == JSON_TYPE_NAME)
@@ -5492,182 +5493,182 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         break;
     case JSON_TYPE_GVECTOR:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(gvector,lat), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(gvector,lon), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(gvector,h), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_AVECTOR:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(avector,h), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(avector,e), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(avector,b), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_CVECTOR:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cvector,x), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cvector,y), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cvector,z), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_VECTOR:
         if ((iretn = json_skip_character(ptr,'[')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Vector,x), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Vector,y), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Vector,z), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,']')) < 0)
         {
             if ((iretn = json_skip_character(ptr,',')) < 0)
-                return (iretn);
+                return iretn;
             if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(Vector,w), cinfo)) < 0)
-                return (iretn);
+                return iretn;
             if ((iretn = json_skip_character(ptr,']')) < 0)
             {
-                return (iretn);
+                return iretn;
             }
         }
         break;
     case JSON_TYPE_RVECTOR:
         //    case JSON_TYPE_TVECTOR:
         if ((iretn = json_skip_character(ptr,'[')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(rvector,col[0]), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(rvector,col[1]), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(rvector,col[2]), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,']')) < 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_QUATERNION:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CVECTOR, data+(ptrdiff_t)offsetof(quaternion,d), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(quaternion,w), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_RMATRIX:
         if ((iretn = json_skip_character(ptr,'[')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[0]), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[1]), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[2]), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[3]), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,']')) < 0)
-            return (iretn);
+            return iretn;
         break;
         //    case JSON_TYPE_DCM:
         //        if ((iretn = json_skip_character(ptr,'[')) < 0)
-        //            return (iretn);
+        //            return iretn;
         //        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[0]), cinfo)) < 0)
-        //            return (iretn);
+        //            return iretn;
         //        if ((iretn = json_skip_character(ptr,',')) < 0)
-        //            return (iretn);
+        //            return iretn;
         //        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[1]), cinfo)) < 0)
-        //            return (iretn);
+        //            return iretn;
         //        if ((iretn = json_skip_character(ptr,',')) < 0)
-        //            return (iretn);
+        //            return iretn;
         //        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(rmatrix,row[2]), cinfo)) < 0)
-        //            return (iretn);
+        //            return iretn;
         //        if ((iretn = json_skip_character(ptr,']')) < 0)
-        //            return (iretn);
+        //            return iretn;
         //        break;
     case JSON_TYPE_GEOIDPOS:
     case JSON_TYPE_POS_SELG:
     case JSON_TYPE_POS_GEOD:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr,input)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr,input)) < 0)
+            return iretn;
 
         gp = (geoidpos *)(data+(ptrdiff_t)offsetof(geoidpos,utc));
         gp->utc = 0.;
         if (input == "utc")
         {
             if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cartpos,utc), cinfo)) < 0)
-                return (iretn);
+                return iretn;
             if ((iretn = json_skip_character(ptr,',')) < 0)
-                return (iretn);
-            if ((iretn = json_parse_name(ptr, empty)) < 0)
-                return (iretn);
+                return iretn;
+            if ((iretn = json_extract_name(ptr, empty)) < 0)
+                return iretn;
         }
         if (gp->utc == 0.)
         {
@@ -5675,21 +5676,21 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         }
 
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(geoidpos,s), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(geoidpos,v), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_GVECTOR, data+(ptrdiff_t)offsetof(geoidpos,a), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         gp->pass++;
         switch (type)
         {
@@ -5704,20 +5705,20 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
     case JSON_TYPE_SPHERPOS:
     case JSON_TYPE_POS_GEOS:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr,input)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr,input)) < 0)
+            return iretn;
 
         sp = (spherpos *)(data+(ptrdiff_t)offsetof(spherpos,utc));
         sp->utc = 0.;
         if (input == "utc")
         {
             if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cartpos,utc), cinfo)) < 0)
-                return (iretn);
+                return iretn;
             if ((iretn = json_skip_character(ptr,',')) < 0)
-                return (iretn);
-            if ((iretn = json_parse_name(ptr, empty)) < 0)
-                return (iretn);
+                return iretn;
+            if ((iretn = json_extract_name(ptr, empty)) < 0)
+                return iretn;
         }
         if (sp->utc == 0.)
         {
@@ -5725,21 +5726,21 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         }
 
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(spherpos,s), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(spherpos,v), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_SVECTOR, data+(ptrdiff_t)offsetof(spherpos,a), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         sp->pass++;
         pos_geos(&cinfo->node.loc);
         break;
@@ -5750,20 +5751,20 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
     case JSON_TYPE_POS_SCI:
     case JSON_TYPE_POS_ICRF:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr,input)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr,input)) < 0)
+            return iretn;
 
         rp = (cartpos *)(data+(ptrdiff_t)offsetof(cartpos,utc));
         rp->utc = 0.;
         if (input == "utc")
         {
             if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(cartpos,utc), cinfo)) < 0)
-                return (iretn);
+                return iretn;
             if ((iretn = json_skip_character(ptr,',')) < 0)
-                return (iretn);
-            if ((iretn = json_parse_name(ptr, empty)) < 0)
-                return (iretn);
+                return iretn;
+            if ((iretn = json_extract_name(ptr, empty)) < 0)
+                return iretn;
         }
         if (rp->utc == 0.)
         {
@@ -5771,21 +5772,21 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         }
 
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(cartpos,s), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(cartpos,v), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(cartpos,a), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         rp->pass++;
         switch (type)
         {
@@ -5808,25 +5809,25 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         break;
     case JSON_TYPE_DCMATT:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RMATRIX, data+(ptrdiff_t)offsetof(dcmatt,s), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(dcmatt,v), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(dcmatt,a), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         ra = (dcmatt *)(data+(ptrdiff_t)offsetof(dcmatt,utc));
         ra->utc = *(double *)json_ptrto((char *)"node_utc", cinfo);
         break;
@@ -5837,20 +5838,20 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
     case JSON_TYPE_QATT_SELC:
     case JSON_TYPE_QATT_LVLH:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr,input)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr,input)) < 0)
+            return iretn;
 
         qa = (qatt *)(data+(ptrdiff_t)offsetof(qatt,utc));
         qa->utc = 0.;
         if (input == "utc")
         {
             if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(qatt,utc), cinfo)) < 0)
-                return (iretn);
+                return iretn;
             if ((iretn = json_skip_character(ptr,',')) < 0)
-                return (iretn);
-            if ((iretn = json_parse_name(ptr, empty)) < 0)
-                return (iretn);
+                return iretn;
+            if ((iretn = json_extract_name(ptr, empty)) < 0)
+                return iretn;
         }
         if (qa->utc == 0.)
         {
@@ -5858,21 +5859,21 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         }
 
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_QUATERNION, data+(ptrdiff_t)offsetof(qatt,s), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(qatt,v), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
-        if ((iretn = json_parse_name(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
+        if ((iretn = json_extract_name(ptr, empty)) < 0)
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(qatt,a), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         qa->pass++;
         switch (type)
         {
@@ -5895,232 +5896,232 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         break;
     case JSON_TYPE_HBEAT:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(beatstruc,utc), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_STRING, data+(ptrdiff_t)offsetof(beatstruc,node), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_STRING, data+(ptrdiff_t)offsetof(beatstruc,proc), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_INT32, data+(ptrdiff_t)offsetof(beatstruc,ntype), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_STRING, data+(ptrdiff_t)offsetof(beatstruc,addr), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_INT32, data+(ptrdiff_t)offsetof(beatstruc,port), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_INT32, data+(ptrdiff_t)offsetof(beatstruc,bsz), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(beatstruc,bprd), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_LOC_POS:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(posstruc,utc), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,icrf), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,eci), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,sci), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,geoc), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_CARTPOS, data+(ptrdiff_t)offsetof(posstruc,selc), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD, data+(ptrdiff_t)offsetof(posstruc,geod), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOD, data+(ptrdiff_t)offsetof(posstruc,selg), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOS, data+(ptrdiff_t)offsetof(posstruc,geos), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         break;
     case JSON_TYPE_LOCSTRUC:
         if ((iretn = json_skip_character(ptr,'{')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_DOUBLE, data+(ptrdiff_t)offsetof(locstruc,utc), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POSSTRUC, data+(ptrdiff_t)offsetof(locstruc,pos), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_ATTSTRUC, data+(ptrdiff_t)offsetof(locstruc,att), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,',')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_white(ptr)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,':')) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(locstruc,bearth), cinfo)) < 0)
-            return (iretn);
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
-            return (iretn);
+            return iretn;
         break;
     }
 
     //Skip whitespace after value
     if ((iretn = json_skip_white(ptr)) < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     return (type);
@@ -6785,7 +6786,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     {
         if ((iretn = json_parse(json.node, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
         {
-            return (iretn);
+            return iretn;
         }
     }
     else
@@ -6810,7 +6811,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     {
         if ((iretn = json_parse(json.state, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
         {
-            return (iretn);
+            return iretn;
         }
         //        loc_update(&cinfo->node.loc);
     }
@@ -6820,7 +6821,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     {
         if ((iretn = json_parse(json.utcstart, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
         {
-            return (iretn);
+            return iretn;
         }
     }
 
@@ -6845,7 +6846,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if ((iretn = json_parse(json.vertexs, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
-                return (iretn);
+                return iretn;
             }
         }
     }
@@ -6872,7 +6873,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if ((iretn = json_parse(json.faces, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
-                return (iretn);
+                return iretn;
             }
         }
 
@@ -6889,7 +6890,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if ((iretn = json_parse(json.faces, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
-                return (iretn);
+                return iretn;
             }
         }
     }
@@ -6920,7 +6921,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if ((iretn = json_parse(json.pieces, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
-                return (iretn);
+                return iretn;
             }
         }
 
@@ -6936,7 +6937,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if ((iretn = json_parse(json.pieces, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
-                return (iretn);
+                return iretn;
             }
         }
 
@@ -6972,7 +6973,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if ((iretn = json_parse(json.devgen, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
-                return (iretn);
+                return iretn;
             }
         }
 
@@ -7011,7 +7012,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if ((iretn = json_parse(json.devspec, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
-                return (iretn);
+                return iretn;
             }
         }
 
@@ -7041,7 +7042,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if ((iretn = json_parse(json.ports, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
-                return (iretn);
+                return iretn;
             }
         }
 
@@ -7052,7 +7053,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         {
             if ((iretn = json_parse(json.targets, cinfo)) < 0 && iretn != JSON_ERROR_EOS)
             {
-                return (iretn);
+                return iretn;
             }
         }
 
@@ -7160,7 +7161,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
         return DATA_ERROR_NODES_FOLDER;
     }
     rename((fileloc+"/node.ini").c_str(), (fileloc+"/node.ini.old").c_str());
-//    string filename = fileloc + "/node.ini";
+    //    string filename = fileloc + "/node.ini";
     FILE *file = fopen((fileloc+"/node.ini").c_str(), "w");
     if (file == NULL)
     {
@@ -7172,7 +7173,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     // Vertices
     output = json_vertices(jst, cinfo);
     rename((fileloc+"/vertices.ini").c_str(), (fileloc+"/vertices.ini.old").c_str());
-//    filename = fileloc + "/vertices.ini";
+    //    filename = fileloc + "/vertices.ini";
     file = fopen((fileloc + "/vertices.ini").c_str(), "w");
     if (file == NULL)
     {
@@ -7184,7 +7185,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     // cinfo->faces
     output = json_faces(jst, cinfo);
     rename((fileloc+"/faces.ini").c_str(), (fileloc+"/faces.ini.old").c_str());
-//    filename = fileloc + "/faces.ini";
+    //    filename = fileloc + "/faces.ini";
     file = fopen((fileloc + "/faces.ini").c_str(), "w");
     if (file == NULL)
     {
@@ -7196,7 +7197,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     // Pieces
     output = json_pieces(jst, cinfo);
     rename((fileloc+"/pieces.ini").c_str(), (fileloc+"/pieces.ini.old").c_str());
-//    filename = fileloc + "/pieces.ini";
+    //    filename = fileloc + "/pieces.ini";
     file = fopen((fileloc + "/pieces.ini").c_str(), "w");
     if (file == NULL)
     {
@@ -7208,7 +7209,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     // General Devices
     output = json_devices_general(jst, cinfo);
     rename((fileloc+"/devices_general.ini").c_str(), (fileloc+"/devices_general.ini.old").c_str());
-//    filename = fileloc + "/devices_general.ini";
+    //    filename = fileloc + "/devices_general.ini";
     file = fopen((fileloc + "/devices_general.ini").c_str(), "w");
     if (file == NULL)
     {
@@ -7220,7 +7221,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     // Specific Devices
     output = json_devices_specific(jst, cinfo);
     rename((fileloc+"/devices_specific.ini").c_str(), (fileloc+"/devices_specific.ini.old").c_str());
-//    filename = fileloc + "/devices_specific.ini";
+    //    filename = fileloc + "/devices_specific.ini";
     file = fopen((fileloc + "/devices_specific.ini").c_str(), "w");
     if (file == NULL)
     {
@@ -7232,7 +7233,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     // Ports
     output = json_ports(jst, cinfo);
     rename((fileloc+"/ports.ini").c_str(), (fileloc+"/ports.ini.old").c_str());
-//    filename = fileloc + "/ports.ini";
+    //    filename = fileloc + "/ports.ini";
     file = fopen((fileloc + "/ports.ini").c_str(), "w");
     if (file == NULL)
     {
@@ -7245,7 +7246,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     if (cinfo->alias.size() || cinfo->equation.size())
     {
         rename((fileloc+"/aliases.ini").c_str(), (fileloc+"/aliases.ini.old").c_str());
-//        filename = fileloc + "/aliases.ini";
+        //        filename = fileloc + "/aliases.ini";
         file = fopen((fileloc + "/aliases.ini").c_str(), "w");
         if (file == NULL)
         {
@@ -7569,7 +7570,7 @@ int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
     int32_t iretn;
 
     iretn = json_addentry("piece_name", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].name, (uint16_t)JSON_TYPE_NAME, cinfo);
-//    json_addentry("piece_type", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].type, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    //    json_addentry("piece_type", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].type, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("piece_cidx", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("piece_mass", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].mass, (uint16_t)JSON_TYPE_FLOAT, cinfo);
     json_addentry("piece_density", pidx, UINT16_MAX, (uint8_t *)&cinfo->pieces[pidx].density, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -10739,9 +10740,12 @@ int32_t update_target(locstruc source, targetstruc &target)
     topo2azel(topo, target.azto, target.elto);
     geoc2topo(source.pos.geod.s, target.loc.pos.geoc.s, topo);
     topo2azel(topo, target.azfrom, target.elfrom);
+    // Calculate direct vector from source to target
     ds = rv_sub(target.loc.pos.geoc.s, source.pos.geoc.s);
     target.range = length_rv(ds);
+    // Calculate velocity of target WRT source
     dv = rv_sub(target.loc.pos.geoc.v, source.pos.geoc.v);
+    // Closing speed is length of ds in 1 second minus length of ds now.
     target.close = length_rv(rv_sub(ds,dv)) - length_rv(ds);
     return 0;
 }

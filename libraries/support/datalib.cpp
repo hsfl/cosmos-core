@@ -213,8 +213,8 @@ void log_move(string node, string agent, string srclocation, string dstlocation,
         {
             string temppath = oldfile.path + ".gz";
             string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
-            FILE *fin = data_open(oldpath, (char *)"rb");
-            FILE *fout = data_open(temppath, (char *)"wb");
+            FILE *fin = data_open(oldpath, "rb");
+            FILE *fout = data_open(temppath, "wb");
             gzFile gzfout;
             gzfout = gzdopen(fileno(fout), "a");
 
@@ -313,11 +313,12 @@ std::vector <double> data_list_archive_days(string node, string agent)
 //! \return Each string in the gzfile.
 //!
 string log_read(gzFile &file, int num) {
-    char buffer[num];
+    string buffer;
+    buffer.resize(num);
     string line;
 
     while (!(line.back() == '\n')) {
-        gzgets(file, buffer, num);
+        gzgets(file, const_cast <char *>(buffer.data()), num);
         line.append(buffer);
     }
 
@@ -327,7 +328,7 @@ string log_read(gzFile &file, int num) {
 
     gzclose(file);
 
-    return NULL;
+    return "";
 }
 
 //! Get a list of files in a Node archive.
@@ -558,7 +559,7 @@ int32_t data_list_nodes(std::vector<string>& nodes)
     int32_t iretn = get_cosmosnodes(rootd);
     if (iretn < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     dtemp = rootd;
@@ -595,7 +596,7 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
     int32_t iretn = get_cosmosnodes(rootd);
     if (iretn < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     if ((tnode=json_create()) == nullptr)
@@ -967,7 +968,7 @@ bool data_exists(string& path)
  * created, or the file can not be opened.
  */
 
-FILE *data_open(string path, char *mode)
+FILE *data_open(string path, const char *mode)
 {
     char dtemp[1024];
     uint32_t index, dindex, length;
@@ -1818,6 +1819,21 @@ bool data_isdir(string path)
     struct stat st;
 
     if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
+bool data_ischardev(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISCHR(st.st_mode))
     {
         return true;
     }

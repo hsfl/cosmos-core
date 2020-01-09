@@ -575,6 +575,9 @@ string cosmos_error_string(int32_t cosmos_errno)
         case GENERAL_ERROR_BAD_SIZE:
             error_string = "Bad Size";
             break;
+        case GENERAL_ERROR_BUSY:
+            error_string = "Busy";
+            break;
         case GENERAL_ERROR_CRC:
             error_string = "CRC";
             break;

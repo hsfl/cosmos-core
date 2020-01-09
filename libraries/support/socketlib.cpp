@@ -124,7 +124,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         {
             CLOSE_SOCKET(channel->cudp);
             channel->cudp = iretn;
-            return (iretn);
+            return iretn;
         }
     }
 
@@ -454,7 +454,7 @@ int32_t socket_blocking(socket_channel *channel, bool blocking)
         }
 #endif
     }
-    return (iretn);
+    return iretn;
 }
 
 //! Close socket
@@ -670,6 +670,12 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     return nbytes;
 }
 
+int32_t socket_sendto(socket_channel &channel, string buffer, int flags)
+{
+    vector<uint8_t> data(buffer.begin(), buffer.end());
+    return socket_sendto(channel, data, flags);
+}
+
 int32_t socket_sendto(socket_channel &channel, vector<uint8_t> &buffer, int flags)
 {
     int32_t nbytes;
@@ -772,7 +778,7 @@ int32_t Udp::socketOpen()
         {
             CLOSE_SOCKET(sok.handle);
             sok.handle = iretn;
-            return (iretn);
+            return iretn;
         }
     }
 

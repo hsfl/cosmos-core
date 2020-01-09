@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
                         break;
                     }
 
-                    printf("%.15g:[%s:%s][%s:%u](%" PRIu64 ":%" PRIu64 ":%" PRIu64 ")\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
+                    printf("%.15g:[%s:%s][%s:%u](%lu:%lu:%zu)\n",message.meta.beat.utc, message.meta.beat.node, message.meta.beat.proc, message.meta.beat.addr, message.meta.beat.port, message.jdata.size(), message.adata.size(), message.bdata.size());
                     printf("%s\n",message.jdata.c_str());
                     if (pretn < Agent::AgentMessage::BINARY)
                     {
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
             size_t agent_count = 0;
             ElapsedTime et;
             agent->post(Agent::AgentMessage::REQUEST);
-            COSMOS_SLEEP(.1);
+            COSMOS_SLEEP(.5);
             do
             {
                 if (agent->agent_list.size() > agent_count)
@@ -254,11 +254,12 @@ int main(int argc, char *argv[])
             ElapsedTime et;
             agent->post(Agent::AgentMessage::REQUEST);
             COSMOS_SLEEP(.1);
+            printf("{\"agent_list\":[");
             do
             {
                 if (agent->agent_list.size() > agent_count)
                 {
-                    printf("{\"agent_list\":[");
+
                     for (size_t i=agent_count; i<agent->agent_list.size(); ++i)
                     {
                         beatstruc cbeat = agent->agent_list[i];
@@ -290,12 +291,13 @@ int main(int argc, char *argv[])
                         }
                         fflush(stdout);
                     }
-                    printf("]}\n");
+
                     fflush(stdout);
                     agent_count = agent->agent_list.size();
                 }
                 COSMOS_SLEEP(.1);
             } while (et.split() < SERVER_WAIT_TIME);
+            printf("]}\n");
             exit(0);
             break;
         }

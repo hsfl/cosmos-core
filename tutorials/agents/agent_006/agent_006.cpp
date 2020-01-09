@@ -39,41 +39,51 @@
 // function prototype of agent request
 int32_t request_hello(char *request, char* response, Agent *cdata);
 
-// counter to test number of requests
-int countReq = 0;
-Agent *agent;
+/// Count of the number of requests that have been run.
+static int request_counter = 0;
 
+/// The agent constructor
+static Agent *agent;
+
+//!
+//! \brief agent_006 is a test agent that demonstrates the interconnectivity with another agent through the use of agent requests.
+//! This agent will receive a request from agent an agent and will send back a response to it.
+//! \return int
+//!
 int main(int, char **)
 {
-    //setEnvCosmos(cosmosPath);
-
     cout << "Starting agent " << endl;
 
-    string agentname     = "006";
-    string nodename      = "cubesat6";
+    // Initialize agent parameters; its name and node
+    string agentname = "006"; // Forward facing name of the agent
+    string nodename = "cubesat6"; // The node that the agent will run on
+
+    // Construct agent with above parameters
     agent = new Agent(nodename, agentname);
 
+    // Define the request within the agent
     agent->add_request("request_hello", request_hello);
 
-    // start main loop
+    // Start executing agent
     while(agent->running())
     {
-        // sleep for 1 sec
-        COSMOS_SLEEP(1.00);
+        // Sleep for 1 sec
+        COSMOS_SLEEP(1.);
     }
+
     return 0;
 }
 
 // implement request function
 int32_t request_hello(char *, char* response, Agent *)
 {
+    sprintf(response, "hello %d ", request_counter);
 
-    sprintf(response,"hello %d ",countReq);
+    // Send response back to agent
+    cout << "agent_006 got a request! Its response is: " << response << endl;
 
-    cout << "agent 006 got request! response is: " << response << endl;
-
-    // add counter
-    countReq ++;
+    // Increment counter of how many requests were run
+    request_counter++;
 
     return 0;
 }
