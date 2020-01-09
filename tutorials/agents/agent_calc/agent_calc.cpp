@@ -50,18 +50,14 @@
 using namespace std;
 
 #include "agent/agentclass.h"
-#include "physics/physicslib.h" // long term we may move this away
+#include "physics/physicslib.h"
 #include "support/jsonlib.h"
 
 int myagent();
 
-//do we need a NODEMAXNAME? using COSMOS_MAX_NAME for now...
-char nodename[COSMOS_MAX_NAME+1] = "otb";
-char agentname[COSMOS_MAX_NAME+1] = "calc";
+static char nodename[COSMOS_MAX_NAME + 1] = "otb";
+static char agentname[COSMOS_MAX_NAME + 1] = "calc";
 
-int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-
-//int32_t *request_run_program(char *request, char* response, Agent *agent); // extra request
 int32_t request_add(char *request, char* response, Agent *agent);
 int32_t request_sub(char *request, char* response, Agent *agent);
 int32_t request_mul(char *request, char* response, Agent *agent);
@@ -69,64 +65,71 @@ int32_t request_div(char *request, char* response, Agent *agent);
 
 int32_t request_change_node_name(char *request, char* response, Agent *agent);
 
-
 #define MAXBUFFERSIZE 100000 // comm buffer for agents
 
-Agent *agent; // to access the cosmos data, will change later
+static Agent *agent; // to access the cosmos data, will change later
 
 int main(int argc, char *argv[])
 {
 	int irtn;
 
-	// process arguments if present
+    // Process arguments if present
 
-	// make node_name = 1st argument
+    // Make node_name = 1st argument
 	if (argc == 2)
-		strcpy(nodename,argv[1]);
-	// make agent_proc = 2st argument
+        strcpy(nodename, argv[1]);
+    // Make agent_proc = 2st argument
 	if (argc == 3)	{
-		strcpy(agentname,argv[2]);
-		strcpy(nodename,argv[1]);
+        strcpy(agentname, argv[2]);
+        strcpy(nodename, argv[1]);
 	}
 
-	// Initialization stuff
+    // Initialize agents. Set nodename if provided through command line args
 	if (argc > 1)
-	{
+    {
+        // Initialize agent instance with specified node and agent names
         agent = new Agent(nodename, agentname);
+
+        // Check if agent was successfully constructed.
         if (agent->cinfo == nullptr || !agent->running())
         {
 			printf("Failed to open [%s:%s]\n",nodename,agentname);
 			exit (1);
-		}
-		cout<<"Hello, I am an agent. My name is ["<<nodename<<":"<<agentname<<"]"<<endl<<endl;
+        }
+
+        cout << "Hello, I am an agent. My name is [" << nodename << ":" << agentname << "]" << endl << endl;
 	}
 	else
-	{
+    {
+        // Initialize agent instance with unspecified node name but specified agent name
         agent = new Agent("", agentname);
+
+        // Check if agent was successfully constructed.
         if (agent->cinfo == nullptr || !agent->running())
         {
 			printf("Failed to open [null:%s]\n",agentname);
 			exit (1);
 		}
-		cout<<"Hello, I am an agent. My name is [null:"<<agentname<<"]"<<endl<<endl;
-	}
 
+        cout << "Hello, I am an agent. My name is [null:" << agentname << "]" << endl << endl;
+	}
 
     for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i)
 	{
         if (agent->cinfo->jmap[i].size())
 		{
-            cout<<"jmap["<<i<<"]:"<<agent->cinfo->jmap[i][0].name<<endl;
+            cout << "jmap[" << i << "]:" << agent->cinfo->jmap[i][0].name << endl;
 		}
 	}
-    cout<<agent->cinfo->node.name<<endl;
+
+    cout << agent->cinfo->node.name << endl;
 
 	string jsp;
-	json_out_name(jsp,(char *)"node_name");
-	cout<<jsp<<endl;
+    json_out_name(jsp, const_cast<char *>("node_name"));
+    cout << jsp << endl;
 
 
-	// Add additional requests
+    // Define the requests that we need for this agent
     if ((irtn=agent->add_request("add",request_add)))
 		exit (irtn);
 
@@ -148,12 +151,12 @@ int main(int argc, char *argv[])
 
 int myagent()
 {
-
 	// Start performing the body of the agent
     while(agent->running())
 	{
 		COSMOS_SLEEP(0.1); // no support in win
 	}
+
 	return 0;
 }
 
@@ -161,8 +164,10 @@ int myagent()
 int32_t request_add(char *request, char* response, Agent *agent)
 {
 	float a,b;
+
 	sscanf(request,"%*s %f %f",&a,&b);
-	sprintf(response,"%f",a+b);
+    sprintf(response,"%f",a + b);
+
 	return 0;
 }
 
@@ -170,24 +175,30 @@ int32_t request_add(char *request, char* response, Agent *agent)
 int32_t request_sub(char *request, char* response, Agent *agent)
 {
 	float a,b;
+
 	sscanf(request,"%*s %f %f",&a,&b);
-	sprintf(response,"%f",a-b);
+    sprintf(response,"%f", a - b);
+
 	return 0;
 }
 // the name of this fn will always be changed
 int32_t request_mul(char *request, char* response, Agent *agent)
 {
 	float a,b;
-	sscanf(request,"%*s %f %f",&a,&b);
-	sprintf(response,"%f",a*b);
+
+    sscanf(request,"%*s %f %f", &a, &b);
+    sprintf(response,"%f", a * b);
+
 	return 0;
 }
 // the name of this fn will always be changed
 int32_t request_div(char *request, char* response, Agent *agent)
 {
 	float a,b;
-	sscanf(request,"%*s %f %f",&a,&b);
-	sprintf(response,"%f",a/b);
+
+    sscanf(request,"%*s %f %f", &a, &b);
+    sprintf(response,"%f", a / b);
+
 	return 0;
 }
 
@@ -197,7 +208,7 @@ int32_t request_change_node_name(char *request, char* response, Agent *agent)
 	sscanf(request,"%*s %40s", new_name);
 
     strcpy(agent->cinfo->node.name, new_name);
-    cout<<"The new node name is <"<< agent->cinfo->node.name <<">"<<endl;
+    cout << "The new node name is <" << agent->cinfo->node.name << ">" << endl;
 
 	return 0;
 }
