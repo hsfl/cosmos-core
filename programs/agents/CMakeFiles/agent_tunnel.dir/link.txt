@@ -1,1 +1,0 @@
-/usr/bin/c++   -m32  -rdynamic CMakeFiles/agent_tunnel.dir/agent_tunnel.cpp.o  -o agent_tunnel 

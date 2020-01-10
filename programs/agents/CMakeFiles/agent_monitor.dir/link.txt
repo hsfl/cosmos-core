@@ -1,1 +1,0 @@
-/usr/bin/c++   -m32  -rdynamic CMakeFiles/agent_monitor.dir/agent_monitor.cpp.o  -o agent_monitor 

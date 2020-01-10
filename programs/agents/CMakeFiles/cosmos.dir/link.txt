@@ -1,1 +1,0 @@
-/usr/bin/c++   -m32  -rdynamic CMakeFiles/cosmos.dir/cosmos.cpp.o  -o cosmos 

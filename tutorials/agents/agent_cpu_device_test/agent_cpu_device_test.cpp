@@ -56,16 +56,16 @@ int main(int argc, char *argv[])
 {
 	cout << "Starting agent CPU Device Test" << endl;
 
-    // Establish the command channel and heartbeat
+	// Establish the command channel and heartbeat
     agent = new Agent(nodename, agentname);
     if (agent->cinfo == nullptr || !agent->running())
     {
-        cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
+		cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
 		exit (AGENT_ERROR_JSON_CREATE);
 	} else {
-        cout<<"Starting " << agentname << " ... OK" << endl;
-        //        agent->cinfo->agent[0].sub
-    }
+		cout<<"Starting " << agentname << " ... OK" << endl;
+		//        agent->cinfo->agent[0].sub
+	}
 
     beat_agent_cpu = agent->find_server(nodename, "agent_cpu", 10.);
 
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
 int myagent()
 {
-    cout << "agent " << agentname <<  " ...online " << endl;
+	cout << "agent " << agentname <<  " ...online " << endl;
     string response;
 	int count = 1;
 
@@ -89,22 +89,22 @@ int myagent()
 
 
         agent->send_request(beat_agent_cpu,
-                                   "mem",
-                                   response,
-                                   2);
+								   "mem",
+								   response,
+								   2);
 		cout << "Memory used in KB: \t\t" << response << endl;
 
         agent->send_request(beat_agent_cpu,
-                                   "disk",
-                                   response,
-                                   2);
+								   "disk",
+								   response,
+								   2);
 		cout << "Disk used in KB: \t\t" << response << endl;
 
 
         agent->send_request(beat_agent_cpu,
-                                   "load",
-                                   response,
-                                   2);
+								   "load",
+								   response,
+								   2);
 		cout << "Load data in %: \t\t" << response << endl;
 
 		count++;

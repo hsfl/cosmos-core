@@ -89,6 +89,8 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
 
+//    cout << "Starting agent cpu" << endl;
+
     switch (argc)
     {
     case 1:
@@ -114,9 +116,10 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    cout << "Starting agent_cpu on node" << node_name << endl;
+//    agent->version = "1.0";
 
     // Add additional requests
+
     agent = new Agent(node_name, agentname, 5.);
     if (agent->cinfo == nullptr || !agent->running())
     {
@@ -163,6 +166,9 @@ int main(int argc, char *argv[])
     return 0;
 
 }
+
+
+
 
 int agent_cpu()
 {
@@ -248,18 +254,19 @@ int agent_cpu()
         agent->finish_active_loop();
 
         // if printStatus is true then print in a loop
-        if (printStatus) {
-            PrintUtils print;
+//        if (printStatus) {
+//            PrintUtils print;
+//            print.delimiter_flag = true;
+//            print.scalar("Load",deviceCpu.load ,1,"",4,4);
+//            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
 
-            print.delimiter_flag = true;
-            print.scalar("Load",deviceCpu.load ,1,"",4,4);
-            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
+//            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
+//            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
+//            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
+//            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
 
-            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
-            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
-            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
-            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
-        }
+//        }
+
     }
 
     agent->shutdown();
