@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/spjy/cosmos/source/core/programs/agents/cosmos.cpp
+support/configCosmos.h
+/home/spjy/cosmos/source/core/programs/agents/support/configCosmos.h
+stdlib.h
+-
+agent/agentclass.h
+/home/spjy/cosmos/source/core/programs/agents/agent/agentclass.h
+support/jsonlib.h
+/home/spjy/cosmos/source/core/programs/agents/support/jsonlib.h
+physics/physicslib.h
+/home/spjy/cosmos/source/core/programs/agents/physics/physicslib.h
+support/datalib.h
+/home/spjy/cosmos/source/core/programs/agents/support/datalib.h
+sys/stat.h
+/home/spjy/cosmos/source/core/programs/agents/sys/stat.h
+limits.h
+/home/spjy/cosmos/source/core/programs/agents/limits.h
+iostream
+-
+

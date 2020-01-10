@@ -124,14 +124,14 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
     endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
     #  option(BUILD_ARM "Build for ARM architecture" OFF)
-    if (${CROSS_TYPE} MATCHES "arm" OR ${CROSS_TYPE} MATCHES "iobc")
+    if (${CROSS_TYPE} MATCHES "arm")
         if("$ENV{COSMOS}" STREQUAL "")
-            set(COSMOS_INSTALL_FOLDER "~/cosmos/${CROSS_TYPE}")
+            set(COSMOS_INSTALL_FOLDER "~/cosmos/arm")
         else()
-            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/${CROSS_TYPE}")
+            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/arm")
         endif("$ENV{COSMOS}" STREQUAL "")
 
-        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_${CROSS_TYPE}_linux.cmake")
+        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_arm_linux.cmake")
 
     else()
         if("$ENV{COSMOS}" STREQUAL "")
@@ -181,9 +181,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
     # if we are cross compiling then put the files inside the "crosscompile" folder
     if (${CROSS_TYPE} MATCHES "arm")
-        message("Build for targe ${CROSS_TYPE}")
-        set(COSMOS_INSTALL_FOLDER "c:/cosmos/${CROSS_TYPE}")
-        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/cmake/toolchain_${CROSS_TYPE}_win")
+        message("Build for targe arm")
+        set(COSMOS_INSTALL_FOLDER "c:/cosmos/arm")
+        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
     endif()
 
     # if we have set an environment variable COSMOS_INSTALL (for specific reasons, not default)
@@ -316,15 +316,3 @@ endif()
 # -----------------------------------------------
 # to deploy on a remote device
 #include(${CMAKE_SOURCE_DIR}/cmake/deploy_files.cmake)
-
-# add a target to generate API documentation with Doxygen
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-add_custom_target(doc
-${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-COMMENT "Generating API documentation with Doxygen" VERBATIM
-)
-endif(DOXYGEN_FOUND)
-

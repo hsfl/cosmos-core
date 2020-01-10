@@ -10,9 +10,10 @@ RUN wget https://github.com/mongodb/mongo-c-driver/releases/download/1.13.1/mong
 RUN git clone https://github.com/mongodb/mongo-cxx-driver.git --branch releases/stable --depth 1
 
 # Copy COSMOS
-WORKDIR /cosmos
+WORKDIR /root/cosmos
 COPY . ./core
-WORKDIR /cosmos/core/agent_build
+RUN mkdir nodes
+WORKDIR /root/cosmos/core/agent_build
 
 RUN cmake .. \
   && make -j4 \
@@ -31,13 +32,18 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release -DBSONCXX_POLY_USE_BOOST=1 -DCMAKE_INSTALL_
   && make install
 
 # COSMOS MongoDB Installation
-WORKDIR /cosmos/projects
+WORKDIR /root/cosmos/projects
 RUN git clone https://github.com/spjy/cosmos-mongodb.git
-WORKDIR /cosmos/projects/cosmos-mongodb/agent_build
+WORKDIR /root/cosmos/projects/cosmos-mongodb/agent_build
 RUN cmake ../source \
   && make -j4
 
-ENV LD_LIBRARY_PATH="/usr/local/lib"
-ENV PATH="/cosmos/projects/cosmos-mongodb/agent_build:/root/cosmos/bin:${PATH}"
-RUN chmod +x /cosmos/core/entrypoint.sh
-ENTRYPOINT ["cosmos/entrypoint.sh"]
+WORKDIR /root
+RUN git clone https://github.com/spjy/cosmos-web.git
+WORKDIR /root/cosmos-web
+RUN npm install
+
+#ENV LD_LIBRARY_PATH="/usr/local/lib"
+#ENV PATH="/cosmos/projects/cosmos-mongodb/agent_build:/root/cosmos/bin:${PATH}"
+#RUN chmod +x /cosmos/core/entrypoint.sh
+#ENTRYPOINT ["cosmos/entrypoint.sh"]
