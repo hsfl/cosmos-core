@@ -339,7 +339,7 @@ void port_read_loop()
 
         // Read data from receiver port
         buf.resize(KPC9612P_PAYLOAD_SIZE);
-        if (( nbytes = recvfrom(transmit_socket.cudp, (char *)&buf[0], KPC9612P_PAYLOAD_SIZE, 0, (struct sockaddr*) NULL, (socklen_t *)NULL)) > 0)
+        if (( nbytes = recvfrom(transmit_socket.cudp, (char *)&buf[0], KPC9612P_PAYLOAD_SIZE, 0, static_cast<struct sockaddr *>(nullptr), static_cast<socklen_t *>(nullptr))) > 0)
         {
             buf.resize(nbytes);
         }

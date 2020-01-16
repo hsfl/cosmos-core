@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 		strcpy(node,argv[1]);
 
 	// check if we are already running the agent
-    if ((iretn=agent->get_server((char *)node,(char *)"radio",waitsec,(beatstruc *)NULL)) > 0)
+    if ((iretn=agent->get_server((char *)node,(char *)"radio",waitsec,(beatstruc *)nullptr)) > 0)
 		exit (iretn);
 
 	// Initialization stuff

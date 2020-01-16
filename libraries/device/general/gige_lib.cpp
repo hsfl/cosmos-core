@@ -152,7 +152,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
 		if (bsize > GIGE_MAX_PACKET) bsize = GIGE_MAX_PACKET;
 		iretn = gige_writereg(handle,GIGE_REG_SCPS,0xc0000000+bsize);
 		iretn = gige_readreg(handle,GIGE_REG_SCPS)%65536;
-        nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,GIGE_MAX_PACKET,0,(struct sockaddr *)NULL,(socklen_t *)NULL);
+        nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,GIGE_MAX_PACKET,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr));
 		if (nbytes < 0) break;
 	}
 	handle->bestsize = bsize - 100;
@@ -364,7 +364,7 @@ std::vector<gige_acknowledge_ack> gige_discover()
 
 		tchan.addrlen = sizeof(tchan.caddr);
 
-		while((nbytes=recvfrom(tchan.cudp,(char *)handle.cbyte,256,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
+		while((nbytes=recvfrom(tchan.cudp,(char *)handle.cbyte,256,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
 		{
             handle.cack.ack_id = uint16from((uint8_t *)&handle.cack.ack_id,ByteOrder::BIGENDIAN);
 			if (handle.cack.ack_id != handle.req_id) continue;
@@ -502,7 +502,7 @@ int a35_image(gige_handle *handle, uint32_t frames, uint8_t *buffer, uint16_t bs
 	mjd = currentmjd(0.);
 	while (tbytes < pbytes && elapsed<telapsed)
 	{
-		if ((nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
+		if ((nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
 		{
 			switch (bufferin[4])
 			{
@@ -634,7 +634,7 @@ int prosilica_image(gige_handle *handle, uint16_t emode, uint32_t exposure, uint
 	mjd = currentmjd(0.);
 	while (tbytes < pbytes && elapsed<telapsed)
 	{
-		if ((nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,(struct sockaddr *)NULL,(socklen_t *)NULL)) > 0)
+		if ((nbytes=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr))) > 0)
 		{
 			switch (bufferin[4])
 			{
