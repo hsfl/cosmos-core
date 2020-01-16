@@ -36,6 +36,8 @@
 #include "support/convertlib.h"
 #include "support/timelib.h"
 #include "support/ephemlib.h"
+#include "device/cpu/devicecpu.h"
+#include "device/disk/devicedisk.h"
 
 #include <sys/stat.h>
 #include <iostream>
@@ -428,7 +430,7 @@ cosmosstruc *json_create()
 
     // Create component names
     device_type_string.clear();
-    device_type_string.resize((uint16_t)DeviceType::COUNT);
+    device_type_string.resize(static_cast<uint16_t>(DeviceType::COUNT));
     device_type_string[(uint16_t)DeviceType::ANT] = "ant";
     device_type_string[(uint16_t)DeviceType::BATT] = "batt";
     device_type_string[(uint16_t)DeviceType::BCREG] = "bcreg";
@@ -500,6 +502,91 @@ uint16_t json_hash(string hstring)
     return (hashval % JSON_MAX_HASH);
 }
 
+int32_t json_create_cpu(string &node_name)
+{
+    cosmosstruc *cinfo = nullptr;
+
+    if (node_name.empty())
+    {
+        DeviceCpu deviceCpu;
+        node_name = deviceCpu.getHostName();
+    }
+
+    if (get_nodedir(node_name).empty())
+    {
+        if (get_nodedir(node_name, true).empty())
+        {
+            return 1;
+        }
+
+        cinfo = json_create();
+        json_mapbaseentries(cinfo);
+        strncpy(cinfo->node.name, node_name.c_str(), COSMOS_MAX_NAME);
+        cinfo->node.type = NODE_TYPE_COMPUTER;
+
+        json_addpiece(cinfo, "main_cpu", (uint16_t)DeviceType::CPU);
+        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
+        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
+
+        json_addpiece(cinfo, "main_drive", (uint16_t)DeviceType::DISK);
+        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
+        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
+
+        cinfo->node.device_cnt = cinfo->node.piece_cnt;
+        cinfo->device.resize(cinfo->node.device_cnt);
+        cinfo->devspec.cpu_cnt = 1;
+        cinfo->devspec.disk_cnt = 1;
+        cinfo->node.port_cnt = 1;
+        cinfo->port.resize(cinfo->node.port_cnt);
+
+        for (size_t i=0; i<cinfo->node.piece_cnt; ++i)
+        {
+
+            cinfo->device[i].all.pidx = i;
+            cinfo->device[i].all.cidx = i;
+            switch (i)
+            {
+            case 0:
+                cinfo->device[i].all.type = (uint16_t)DeviceType::CPU;
+                cinfo->device[i].all.didx = 0;
+                cinfo->device[i].all.portidx = PORT_TYPE_NONE;
+                cinfo->device[i].cpu.maxload = 1.;
+                cinfo->device[i].cpu.maxgib = 1.;
+                json_mapdeviceentry(cinfo->device[i], cinfo);
+                json_addentry("cpu_utilization", "(\"device_cpu_load_000\"/\"device_cpu_maxload_000\")", cinfo);
+                break;
+            default:
+                cinfo->device[i].disk.maxgib = 1000.;
+                cinfo->device[i].all.type = (uint16_t)DeviceType::DISK;
+                cinfo->device[i].all.didx = i-1;
+                cinfo->device[i].all.portidx = cinfo->device[i].all.didx;
+                cinfo->port[cinfo->device[i].all.didx].type = PORT_TYPE_DRIVE;
+                json_mapdeviceentry(cinfo->device[i], cinfo);
+                json_toggledeviceentry(i-1, (uint16_t)DeviceType::DISK, cinfo, true);
+#ifdef COSMOS_WIN_OS
+                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "c:/");
+#else
+                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "/");
+#endif
+                json_mapportentry(cinfo->device[i].all.portidx, cinfo);
+                json_toggleportentry(cinfo->device[i].all.portidx, cinfo, true);
+                json_addentry("disk_utilization", "(\"device_disk_gib_000\"/\"device_disk_maxgib_000\")", cinfo);
+                break;
+            }
+            json_mapcompentry(i, cinfo);
+            json_togglecompentry(i, cinfo, true);
+            cinfo->device[i].all.enabled = true;
+        }
+
+    int32_t iretn = json_dump_node(cinfo);
+    json_destroy(cinfo);
+    return iretn;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
 //! Create new piece
 /*! Take an empty ::piecestruc and fill it with the provided information, generating the vertexs for
@@ -529,7 +616,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t ctype, double em
     piece.density = density;
     piece.hcap = hcap;
     piece.hcon = hcon;
-    if (ctype < (uint16_t)DeviceType::COUNT)
+    if (ctype < static_cast<uint16_t>(DeviceType::COUNT))
     {
         cinfo->device.resize(cinfo->device.size() + 1);
         cinfo->node.device_cnt = cinfo->device.size();
@@ -2858,7 +2945,7 @@ int32_t json_table_of_list(vector<jsonentry*> &table, string tokens, cosmosstruc
  \param ptr Address of a variable that may match a namespace name.
 
     \param cinfo Reference to ::cosmosstruc to use.
- \return Pointer to the ::jsonentry for the token, or NULL.
+ \return Pointer to the ::jsonentry for the token, or nullptr.
 */
 jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cinfo)
 {
@@ -2908,7 +2995,7 @@ jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cinfo)
     }
 
     if (offset == -1)
-        return ((jsonentry *)NULL);
+        return ((jsonentry *)nullptr);
 
     for (m=0; m<cinfo->jmap.size(); m++)
     {
@@ -2920,7 +3007,7 @@ jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cinfo)
             }
         }
     }
-    return ((jsonentry *)NULL);
+    return ((jsonentry *)nullptr);
 }
 
 //! Info on Namespace name
@@ -2928,7 +3015,7 @@ jsonentry *json_entry_of(uint8_t *ptr, cosmosstruc *cinfo)
  * information for a given name.
  \param token Namespace name to look up
 
- \return Pointer to the ::jsonentry for the token, or NULL.
+ \return Pointer to the ::jsonentry for the token, or nullptr.
 */
 jsonentry *json_entry_of(string token, cosmosstruc *cinfo)
 {
@@ -2941,7 +3028,7 @@ jsonentry *json_entry_of(string token, cosmosstruc *cinfo)
     hash = json_hash(token);
 
     if (cinfo->jmap[hash].size() == 0)
-        return ((jsonentry *)NULL);
+        return ((jsonentry *)nullptr);
 
     for (size_t n=0; n<cinfo->jmap[hash].size(); n++)
     {
@@ -2950,7 +3037,7 @@ jsonentry *json_entry_of(string token, cosmosstruc *cinfo)
             return ((jsonentry *)&cinfo->jmap[hash][n]);
         }
     }
-    return ((jsonentry *)NULL);
+    return ((jsonentry *)nullptr);
 }
 
 //! Info on Namespace equation
@@ -2958,7 +3045,7 @@ jsonentry *json_entry_of(string token, cosmosstruc *cinfo)
  * information for a given equation.
  \param handle ::jsonhandle for the entry in the global emap
 
- \return Pointer to the ::jsonequation for the token, or NULL.
+ \return Pointer to the ::jsonequation for the token, or nullptr.
 */
 jsonequation *json_equation_of(jsonhandle handle, cosmosstruc *cinfo)
 {
@@ -2977,7 +3064,7 @@ jsonequation *json_equation_of(jsonhandle handle, cosmosstruc *cinfo)
  * information for a given name.
  \param handle ::jsonhandle for the entry in the global jmap
 
- \return Pointer to the ::jsonentry for the token, or NULL.
+ \return Pointer to the ::jsonentry for the token, or nullptr.
 */
 jsonentry *json_entry_of(jsonhandle handle, cosmosstruc *cinfo)
 {
@@ -3004,7 +3091,7 @@ uint16_t json_type_of_name(string token, cosmosstruc *cinfo)
     if (token[0] == '(')
         return (JSON_TYPE_EQUATION);
 
-    if ((entry=json_entry_of(token, cinfo)) != NULL)
+    if ((entry=json_entry_of(token, cinfo)) != nullptr)
     {
         return (entry->type);
     }
@@ -3017,7 +3104,7 @@ uint16_t json_type_of_name(string token, cosmosstruc *cinfo)
  \param token the JSON name for the desired variable
 
     \param cinfo Reference to ::cosmosstruc to use.
- \return The associated data pointer, if succesful, otherwise NULL
+ \return The associated data pointer, if succesful, otherwise nullptr
 */
 uint8_t *json_ptrto(string token, cosmosstruc *cinfo)
 {
@@ -3047,14 +3134,14 @@ uint8_t *json_ptrto(string token, cosmosstruc *cinfo)
     \param index1 Primary index.
 
     \param cinfo Reference to ::cosmosstruc to use.
-    \return The associated data pointer, if succesful, otherwise NULL
+    \return The associated data pointer, if succesful, otherwise nullptr
 */
 uint8_t *json_ptrto_1d(string token, uint16_t index1, cosmosstruc *cinfo)
 {
     char tstring[5+COSMOS_MAX_NAME];
 
     if (index1 > 999)
-        return ((uint8_t *)NULL);
+        return ((uint8_t *)nullptr);
 
     // Create extended name, shortening if neccessary
     sprintf(tstring,"%.*s_%03u",COSMOS_MAX_NAME,token.c_str(),index1);
@@ -3071,7 +3158,7 @@ uint8_t *json_ptrto_1d(string token, uint16_t index1, cosmosstruc *cinfo)
     \param index2 Secondary index.
 
     \param cinfo Reference to ::cosmosstruc to use.
-    \return The associated data pointer, if succesful, otherwise NULL
+    \return The associated data pointer, if succesful, otherwise nullptr
 */
 uint8_t *json_ptrto_2d(string token, uint16_t index1, uint16_t index2, cosmosstruc *cinfo)
 {
@@ -3079,7 +3166,7 @@ uint8_t *json_ptrto_2d(string token, uint16_t index1, uint16_t index2, cosmosstr
 
     // Return error if index too large
     if (index1 > 999 || index2 > 999)
-        return ((uint8_t *)NULL);
+        return ((uint8_t *)nullptr);
 
     // Create extended name, shortening if necessary
     sprintf(tstring,"%.*s_%03u_%03u",COSMOS_MAX_NAME,token.c_str(), index1,index2);
@@ -3925,7 +4012,7 @@ string json_get_string(string token, cosmosstruc *cinfo)
     jsonentry *ptr;
     string tstring;
 
-    if ((ptr=json_entry_of(token, cinfo)) != NULL)
+    if ((ptr=json_entry_of(token, cinfo)) != nullptr)
     {
         tstring = json_get_string(*ptr, cinfo);
     }
@@ -3948,7 +4035,7 @@ string json_get_string(const jsonentry &entry, cosmosstruc *cinfo)
     string tstring;
     char tbuf[200];
 
-    //    if (entry == NULL)
+    //    if (entry == nullptr)
     //    {
     //        return (tstring);
     //    }
@@ -4114,7 +4201,7 @@ int32_t json_set_double_name(double value, char *token, cosmosstruc *cinfo)
     utype *nval;
     jsonentry *ptr;
 
-    if ((ptr=json_entry_of(token, cinfo)) == NULL)
+    if ((ptr=json_entry_of(token, cinfo)) == nullptr)
         return 0;
 
     nval = (utype *)(json_ptr_of_entry(*ptr, cinfo));
@@ -4284,7 +4371,7 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
     string.
     \param json A string of JSON data
     \param token The Namespace name to be extracted.
-    \return A character string representing the extracted value, otherwise NULL.
+    \return A character string representing the extracted value, otherwise nullptr.
 */
 string json_extract_namedmember(string json, string token)
 {
@@ -4293,7 +4380,7 @@ string json_extract_namedmember(string json, string token)
     int32_t iretn;
 
     // Look for namespace name in string
-    if ((ptr=(char*)strstr(json.c_str(), token.c_str())) == NULL)
+    if ((ptr=(char*)strstr(json.c_str(), token.c_str())) == nullptr)
     {
         return tstring;
     }
@@ -6795,16 +6882,16 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     }
 
     string nodepath;
-    cinfo->name = cinfo->node.name;
+//    cinfo->name = cinfo->node.name;
     bool dump_flag = false;
     if (create_flag)
     {
-        if ((nodepath = get_nodedir(cinfo->name)).empty())
+        if ((nodepath = get_nodedir(cinfo->node.name)).empty())
         {
             dump_flag = true;
         }
     }
-    nodepath = get_nodedir(cinfo->name, create_flag);
+    nodepath = get_nodedir(cinfo->node.name, create_flag);
 
     // 1A: load state vector, if it is present
     if (!json.state.empty())
@@ -7125,7 +7212,7 @@ int32_t json_setup_node(string node, cosmosstruc *cinfo)
     }
 
     jsonnode json;
-    cinfo->name.clear();
+    cinfo->node.name[0] = 0;
     iretn = json_load_node(node, json);
     if (iretn < 0)
     {
@@ -7163,7 +7250,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     rename((fileloc+"/node.ini").c_str(), (fileloc+"/node.ini.old").c_str());
     //    string filename = fileloc + "/node.ini";
     FILE *file = fopen((fileloc+"/node.ini").c_str(), "w");
-    if (file == NULL)
+    if (file == nullptr)
     {
         return -errno;
     }
@@ -7175,7 +7262,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     rename((fileloc+"/vertices.ini").c_str(), (fileloc+"/vertices.ini.old").c_str());
     //    filename = fileloc + "/vertices.ini";
     file = fopen((fileloc + "/vertices.ini").c_str(), "w");
-    if (file == NULL)
+    if (file == nullptr)
     {
         return -errno;
     }
@@ -7187,7 +7274,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     rename((fileloc+"/faces.ini").c_str(), (fileloc+"/faces.ini.old").c_str());
     //    filename = fileloc + "/faces.ini";
     file = fopen((fileloc + "/faces.ini").c_str(), "w");
-    if (file == NULL)
+    if (file == nullptr)
     {
         return -errno;
     }
@@ -7199,7 +7286,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     rename((fileloc+"/pieces.ini").c_str(), (fileloc+"/pieces.ini.old").c_str());
     //    filename = fileloc + "/pieces.ini";
     file = fopen((fileloc + "/pieces.ini").c_str(), "w");
-    if (file == NULL)
+    if (file == nullptr)
     {
         return -errno;
     }
@@ -7211,7 +7298,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     rename((fileloc+"/devices_general.ini").c_str(), (fileloc+"/devices_general.ini.old").c_str());
     //    filename = fileloc + "/devices_general.ini";
     file = fopen((fileloc + "/devices_general.ini").c_str(), "w");
-    if (file == NULL)
+    if (file == nullptr)
     {
         return -errno;
     }
@@ -7223,7 +7310,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     rename((fileloc+"/devices_specific.ini").c_str(), (fileloc+"/devices_specific.ini.old").c_str());
     //    filename = fileloc + "/devices_specific.ini";
     file = fopen((fileloc + "/devices_specific.ini").c_str(), "w");
-    if (file == NULL)
+    if (file == nullptr)
     {
         return -errno;
     }
@@ -7235,7 +7322,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     rename((fileloc+"/ports.ini").c_str(), (fileloc+"/ports.ini.old").c_str());
     //    filename = fileloc + "/ports.ini";
     file = fopen((fileloc + "/ports.ini").c_str(), "w");
-    if (file == NULL)
+    if (file == nullptr)
     {
         return -errno;
     }
@@ -7248,7 +7335,7 @@ int32_t json_dump_node(cosmosstruc *cinfo)
         rename((fileloc+"/aliases.ini").c_str(), (fileloc+"/aliases.ini.old").c_str());
         //        filename = fileloc + "/aliases.ini";
         file = fopen((fileloc + "/aliases.ini").c_str(), "w");
-        if (file == NULL)
+        if (file == nullptr)
         {
             return -errno;
         }
@@ -8508,7 +8595,7 @@ int32_t json_toggleportentry(uint16_t portidx, cosmosstruc *cinfo, bool state)
     \param wildcard Character string representing a regular expression to be matched to all names in the \ref jsonlib_namespace.
 
     \param cinfo Reference to ::cosmosstruc to use.
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cinfo)
 {
@@ -8530,7 +8617,7 @@ const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cinf
     \param list List to convert.
 
     \param cinfo Reference to ::cosmosstruc to use.
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_list(string &jstring, string list, cosmosstruc *cinfo)
 {
@@ -8550,14 +8637,14 @@ const char *json_of_list(string &jstring, string list, cosmosstruc *cinfo)
     \param table Vector of pointers to entries from ::jsonmap.
 
     \param cinfo Reference to ::cosmosstruc to use.
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_table(string &jstring, vector<jsonentry*> table, cosmosstruc *cinfo)
 {
     jstring.clear();
     for (auto entry: table)
     {
-        if (entry != NULL)
+        if (entry != nullptr)
         {
             json_out_entry(jstring, *entry, cinfo);
         }
@@ -8572,7 +8659,7 @@ const char *json_of_table(string &jstring, vector<jsonentry*> table, cosmosstruc
 
     \param cinfo Reference to ::cosmosstruc to use.
  \param num Target index.
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_target(string &jstring, cosmosstruc *cinfo, uint16_t num)
 {
@@ -8643,7 +8730,7 @@ const char *json_of_target(string &jstring, cosmosstruc *cinfo, uint16_t num)
     \param jstring Pointer to a string large enough to hold the end result.
 
     \param cinfo Reference to ::cosmosstruc to use.
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_node(string &jstring, cosmosstruc *cinfo)
 {
@@ -8725,7 +8812,7 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
 
     \param cinfo Reference to ::cosmosstruc to use.
 
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_agent(string &jstring, cosmosstruc *cinfo)
 {
@@ -8814,7 +8901,7 @@ const char *json_of_agent(string &jstring, cosmosstruc *cinfo)
 
     \param cinfo Reference to ::cosmosstruc to use.
 
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_time(string &jstring, cosmosstruc *cinfo)
 {
@@ -8841,7 +8928,7 @@ const char *json_of_time(string &jstring, cosmosstruc *cinfo)
 
     \param cinfo Reference to ::cosmosstruc to use.
 
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_beat(string &jstring, cosmosstruc *cinfo)
 {
@@ -8861,7 +8948,7 @@ const char *json_of_beat(string &jstring, cosmosstruc *cinfo)
 
     \param cinfo Reference to ::cosmosstruc to use.
 
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 {
@@ -8934,7 +9021,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 
     \param cinfo Reference to ::cosmosstruc to use.
 
-    \return Pointer to the string if successful, otherwise NULL.
+    \return Pointer to the string if successful, otherwise nullptr.
 */
 const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cinfo)
 {
@@ -9623,7 +9710,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
 
     jstring.clear();
     // Dump device specific info
-    for (uint16_t i=0; i<(uint16_t)DeviceType::COUNT; ++i)
+    for (uint16_t i=0; i<static_cast<uint16_t>(DeviceType::COUNT); ++i)
     {
         // Create Namespace name for Device Specific count
         sprintf(tstring,"device_%s_cnt",device_type_string[i].c_str());
@@ -10123,7 +10210,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cinfo, jsonhandle *handl
         (pointer)++;
 
     textlen = equation.size()+1;
-    if ((tequation.text = (char *)calloc(1,textlen)) == NULL)
+    if ((tequation.text = (char *)calloc(1,textlen)) == nullptr)
     {
         return (JSON_ERROR_SCAN);
     }
@@ -10661,10 +10748,10 @@ int32_t load_target(cosmosstruc *cinfo)
 
     fname = get_nodedir(cinfo->node.name) + "/target.ini";
     count = 0;
-    if ((op=fopen(fname.c_str(),"r")) != NULL)
+    if ((op=fopen(fname.c_str(),"r")) != nullptr)
     {
         cinfo->target.resize(100);
-        while (count < cinfo->target.size() && fgets(inb,JSON_MAX_DATA,op) != NULL)
+        while (count < cinfo->target.size() && fgets(inb,JSON_MAX_DATA,op) != nullptr)
         {
             json_addentry("target_range",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cinfo);
             json_addentry("target_close",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,close)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cinfo);
@@ -10770,9 +10857,9 @@ size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cinfo, const 
     int32_t iretn;
 
     string fname = (get_nodedir(cinfo->node.name) + "/") + file;
-    if ((op=fopen(fname.c_str(),"r")) != NULL)
+    if ((op=fopen(fname.c_str(),"r")) != nullptr)
     {
-        while (fgets(inb,JSON_MAX_DATA,op) != NULL)
+        while (fgets(inb,JSON_MAX_DATA,op) != nullptr)
         {
             json_clear_cosmosstruc(JSON_STRUCT_EVENT, cinfo);
             if (json_parse(inb, cinfo) >= 0)
@@ -10820,7 +10907,7 @@ size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cinfo, vect
             string tstring = json_get_string(dictionary[k].data, cinfo);
             strcpy(events[events.size()-1].data, tstring.c_str());
             strcpy(events[events.size()-1].node,cinfo->node.name);
-            if ((sptr=strstr(events[events.size()-1].name,"${")) != NULL && (eptr=strstr(sptr,"}")) != NULL)
+            if ((sptr=strstr(events[events.size()-1].name,"${")) != nullptr && (eptr=strstr(sptr,"}")) != nullptr)
             {
                 *eptr = 0;
                 tstring = json_get_string(sptr+2, cinfo);
@@ -10850,10 +10937,10 @@ uint16_t device_type_index(string name)
 string device_type_name(uint32_t type)
 {
     string result;
-    if (device_type_string.size() < (uint16_t)DeviceType::COUNT)
+    if (device_type_string.size() < static_cast<uint16_t>(DeviceType::COUNT))
     {
-        device_type_string.resize((uint16_t)DeviceType::COUNT);
-        for (size_t i=0; i<(uint16_t)DeviceType::COUNT; ++i)
+        device_type_string.resize(static_cast<uint16_t>(DeviceType::COUNT));
+        for (size_t i=0; i<static_cast<uint16_t>(DeviceType::COUNT); ++i)
         {
             if (device_type_string[i] == "")
             {
@@ -10862,7 +10949,7 @@ string device_type_name(uint32_t type)
         }
     }
 
-    if (type < (uint16_t)DeviceType::COUNT)
+    if (type < static_cast<uint16_t>(DeviceType::COUNT))
     {
         result =  device_type_string[type];
     }

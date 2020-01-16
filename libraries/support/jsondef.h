@@ -1916,7 +1916,7 @@ struct cosmosstruc
     //! Timestamp for last change to data
     double timestamp;
     //! Node name
-    string name;
+//    string name;
     //! Whether JSON map has been created.
     uint16_t jmapped;
     //! JSON Namespace Map matrix.

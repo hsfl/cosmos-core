@@ -121,6 +121,7 @@ using std::numeric_limits;
 //! @{
 
 cosmosstruc *json_create();
+int32_t json_create_cpu(string &node_name);
 int32_t json_clone(cosmosstruc *cinfo);
 int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2);
 int32_t json_repoint(cosmosstruc *cinfo);
