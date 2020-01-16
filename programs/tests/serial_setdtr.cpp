@@ -4,8 +4,8 @@
 
 int main(int argc, char *argv[])
 {
-    bool xonxoff = false;
-    bool rtscts = false;
+//    bool xonxoff = false;
+//    bool rtscts = false;
     string name = "/dev/ttyUSB0";
     int32_t baud = 115200;
     size_t parity = 0;
