@@ -45,3 +45,5 @@ libraries/math/save/
 build/qt_debug/
 
 build/pi/
+
+build/gnu7/
