@@ -75,7 +75,7 @@ namespace Cosmos
         //! the Agent already running.
         //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
         //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it. also initialized in the namespace variables
-        Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, int32_t dlevel)
+        Agent::Agent(const string &nname, const string &aname, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, uint16_t dlevel)
         {
             int32_t iretn;
 
@@ -84,35 +84,53 @@ namespace Cosmos
 
 
             // Initialize COSMOS data space
-            if ((cinfo = json_create()) == nullptr)
+            cinfo = json_create();
+
+            if (cinfo == nullptr)
             {
                 return;
             }
+
             cinfo->agent[0].stateflag = (uint16_t)State::INIT;
 
             // Establish subscribe channel
-            iretn = subscribe(ntype, (char *)AGENTMCAST, AGENTSENDPORT, 1000);
+            iretn = subscribe(ntype, AGENTMCAST, AGENTSENDPORT, 1000);
             if (iretn)
             {
-                json_destroy(cinfo);
-                cinfo = nullptr;
+                shutdown();
+                error_value = iretn;
                 return;
             }
 
-            // Set up node if there is one.
-            if (nname.length()>COSMOS_MAX_NAME || (!nname.empty() && (iretn=json_setup_node(nname, cinfo)) != 0))
+            // Set up node: shorten if too long, use hostname if it's empty.
+            if (nname.empty())
+            {
+                json_create_cpu(nodeName);
+            }
+            else if (nname.length() > COSMOS_MAX_NAME)
+            {
+                nodeName = nname.substr(0, COSMOS_MAX_NAME);
+            }
+            else
+            {
+                nodeName = nname;
+            }
+
+            if (nodeName.empty())
+            {
+                error_value = NODE_ERROR_NODE;
+                shutdown();
+                return;
+            }
+
+            if ((iretn=json_setup_node(nodeName, cinfo)) != 0)
             {
                 error_value = iretn;
                 shutdown();
                 return;
             }
 
-            if (nname.empty())
-            {
-                strcpy(cinfo->node.name,"null");
-            }
-
-            nodeName = cinfo->node.name;
+            strcpy(cinfo->node.name, nodeName.c_str());
 
             cinfo->agent[0].client = 1;
             cinfo->node.utc = 0.;
@@ -152,7 +170,7 @@ namespace Cosmos
             if (!mflag)
             {
                 COSMOS_SLEEP(timeoutSec);
-                if (get_server(cinfo->node.name, aname, timeoutSec, (beatstruc *)NULL))
+                if (get_server(cinfo->node.name, aname, timeoutSec, (beatstruc *)nullptr))
                 {
                     error_value = AGENT_ERROR_SERVER_RUNNING;
                     shutdown();
@@ -173,7 +191,7 @@ namespace Cosmos
                 do
                 {
                     sprintf(tname,"%s_%03d",aname.c_str(),i);
-                    if (!get_server(cinfo->node.name, tname, timeoutSec, (beatstruc *)NULL))
+                    if (!get_server(cinfo->node.name, tname, timeoutSec, (beatstruc *)nullptr))
                     {
                         break;
                     }
@@ -465,7 +483,7 @@ namespace Cosmos
             do
             {
 
-                nbytes = recvfrom(sendchan.cudp, toutput.data(), AGENTMAXBUFFER, 0, (struct sockaddr *)NULL, (socklen_t *)NULL);
+                nbytes = recvfrom(sendchan.cudp, toutput.data(), AGENTMAXBUFFER, 0, static_cast<struct sockaddr *>(nullptr), static_cast<socklen_t *>(nullptr));
 
             } while ( (nbytes <= 0) && (ep.split() <= waitsec) );
 
@@ -898,6 +916,11 @@ namespace Cosmos
                 iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
                 if (iretn > 0)
                 {
+                    if (!strcmp(mess.meta.beat.proc, "null"))
+                    {
+                        continue;
+                    }
+
                     bool agent_found = false;
                     for (beatstruc &i : agent_list)
                     {
@@ -914,7 +937,7 @@ namespace Cosmos
                         agent_list.push_back(mess.meta.beat);
                     }
 
-                    if (mess.meta.type == AgentMessage::REQUEST)
+                    if (mess.meta.type == AgentMessage::REQUEST && strcmp(cinfo->agent[0].beat.proc, "null"))
                     {
                         string response;
                         process_request(mess.adata, response);
@@ -932,10 +955,6 @@ namespace Cosmos
                         message_head = new_position;
                     }
                 }
-                //            else
-                //            {
-                //                COSMOS_SLEEP(1);
-                //            }
             }
         }
 
@@ -2040,7 +2059,7 @@ namespace Cosmos
     \param usectimeo Blocking read timeout in micro seconds.
     \return 0, otherwise negative error.
 */
-        int32_t Agent::subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo)
+        int32_t Agent::subscribe(NetworkType type, const char *address, uint16_t port, uint32_t usectimeo)
         {
             int32_t iretn = 0;
 
@@ -2066,7 +2085,7 @@ namespace Cosmos
     \param port The port to use for the channel.
     \return 0, otherwise negative error.
 */
-        int32_t Agent::subscribe(NetworkType type, char *address, uint16_t port)
+        int32_t Agent::subscribe(NetworkType type, const char *address, uint16_t port)
         {
             int32_t iretn = 0;
 
@@ -2138,7 +2157,6 @@ namespace Cosmos
                             cinfo->agent[0].sub.caddr.sin_addr.s_addr == cinfo->agent[0].pub[i].caddr.sin_addr.s_addr)
                         {
                             return 0;
-                            break;
                         }
                     }
                     break;

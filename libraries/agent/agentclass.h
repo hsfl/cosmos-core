@@ -144,7 +144,7 @@ namespace Cosmos
         {
         public:
             //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-            Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  int32_t dlevel = 0);
+            Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 0);
             ~Agent();
 
             //! State of Health element vector
@@ -305,8 +305,8 @@ namespace Cosmos
             int32_t post(AgentMessage type, vector <uint8_t> message);
             int32_t post_beat();
             int32_t publish(NetworkType type, uint16_t port);
-            int32_t subscribe(NetworkType type, char *address, uint16_t port);
-            int32_t subscribe(NetworkType type, char *address, uint16_t port, uint32_t usectimeo);
+            int32_t subscribe(NetworkType type, const char *address, uint16_t port);
+            int32_t subscribe(NetworkType type, const char *address, uint16_t port, uint32_t usectimeo);
             int32_t unsubscribe();
             //    int32_t poll(pollstruc &meta, string &message, uint8_t type, float waitsec = 1.);
             //    int32_t poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec = 1.);
@@ -354,7 +354,7 @@ namespace Cosmos
             size_t message_tail = MESSAGE_RING_SIZE;
 
             //! Flag for level of debugging, keep it public so that it can be controlled from the outside
-            size_t debug_level = 3;
+            uint16_t debug_level = 3;
             FILE *get_debug_fd(double mjd=0.);
             int32_t close_debug_fd();
 
