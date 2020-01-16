@@ -93,7 +93,7 @@ if (set_cosmosnodes(dataDir) < 0)
 }
 
 // check if we are already running the agent
-if ((iretn=agent->get_server((char *)"hmoc",agentname,waitsec,(beatstruc *)NULL)) > 0)
+if ((iretn=agent->get_server((char *)"hmoc",agentname,waitsec,(beatstruc *)nullptr)) > 0)
 	exit (iretn);
 
 // Load user list
@@ -157,7 +157,7 @@ for (i=0; i<nodes.size(); ++i)
 		dup2(STDOUT_FILENO, devn);
 		dup2(STDERR_FILENO,	devn);
 		close(devn);
-        execl("agent_node", (const char*)nodes[i].node.name,(char*) NULL);
+        execl("agent_node", (const char*)nodes[i].node.name,(char*)nullptr);
 
 		fflush(stdout);
 		exit(0);

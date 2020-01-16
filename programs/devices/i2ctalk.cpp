@@ -110,6 +110,7 @@ uint8_t testi2c_read_write(string device, uint8_t address, int nbytes, int nbyte
     }
 
   close(fh);
+  return 0;
 }
 
 

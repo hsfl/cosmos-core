@@ -1230,7 +1230,7 @@ int32_t myrecvfrom(std::string type, socket_channel channel, std::vector<PACKET_
     int32_t nbytes;
 
     buf.resize(length);
-    if (( nbytes = recvfrom(channel.cudp, (char *)&buf[0], length, 0, (struct sockaddr*) NULL, (socklen_t *)NULL)) > 0)
+    if (( nbytes = recvfrom(channel.cudp, (char *)&buf[0], length, 0, static_cast<struct sockaddr *>(nullptr), static_cast<socklen_t *>(nullptr))) > 0)
     {
         buf.resize(nbytes);
         debug_packet(buf, type+" in");
