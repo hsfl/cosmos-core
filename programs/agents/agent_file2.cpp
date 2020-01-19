@@ -687,7 +687,6 @@ void recv_loop()
                         break;
                     }
 
-//                    active_node = node;
                     outgoing_tx_lock.lock();
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, reqdata.tx_id);
@@ -840,7 +839,6 @@ void recv_loop()
                         {
                             // Remove the transaction
                             incoming_tx_del(node, tx_id);
-                            //							active_node = -1;
                         }
 
                         next_incoming_tx(node);
@@ -870,6 +868,7 @@ void recv_loop()
                             {
                                 txq[node].outgoing.nmjd[PACKET_CANCEL-8] = currentmjd();
                                 txq[node].outgoing.state = PACKET_CANCEL;
+                                txq[node].outgoing.id = tx_id;
                                 // Remove transaction
 //                                outgoing_tx_del(node, tx_id);
 
@@ -900,7 +899,6 @@ void recv_loop()
 
                         // Set remote node_id
                         txq[node].node_id = queue.node_id + 1;
-//                        active_node = node;
                         // Sort through incoming queue and remove anything not in sent queue
                         for (uint16_t tx_id=0; tx_id<TRANSFER_QUEUE_SIZE; ++tx_id)
                         {
@@ -910,7 +908,6 @@ void recv_loop()
                                 if (txq[node].incoming.progress[tx_id].tx_id == queue.tx_id[i])
                                 {
                                     // Incoming transaction is in outgoing queue
-//                                    active_node = node;
                                     valid = true;
                                     break;
                                 }
@@ -922,7 +919,6 @@ void recv_loop()
 
                             if (tx_id && !valid)
                             {
-//                                active_node = node;
                                 incoming_tx_del(node, tx_id);
                             }
                         }
@@ -936,7 +932,6 @@ void recv_loop()
 
                                 if (tx_id == 0)
                                 {
-//                                    active_node = node;
                                     incoming_tx_add(queue.node_name, queue.tx_id[i]);
                                 }
                             }
@@ -963,7 +958,6 @@ void recv_loop()
                             if (iq)
                             {
                                 std::vector<PACKET_BYTE> packet;
-//                                active_node = node;
                                 make_reqmeta_packet(packet, node, txq[node].node_name, tqueue);
                                 queuesendto(node, "rx", packet);
                             }
