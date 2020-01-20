@@ -54,6 +54,8 @@ vector <string> port_type_string
     "usb",
     "path",
     "loopback",
+    "udp",
+    "tcp",
     "propagator"
 };
 
@@ -8049,11 +8051,14 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_rxr_cidx",didx, UINT16_MAX, (uint8_t *)&device.rxr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rxr_temp",didx, UINT16_MAX, (uint8_t *)&device.rxr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rxr_opmode",didx, UINT16_MAX, (uint8_t *)&device.rxr.opmode, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_rxr_flag",didx, UINT16_MAX, (uint8_t *)&device.rxr.flag, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_rxr_rssi",didx, UINT16_MAX, (uint8_t *)&device.rxr.rssi, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rxr_freq",didx, UINT16_MAX, (uint8_t *)&device.rxr.freq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rxr_freq",didx, UINT16_MAX, (uint8_t *)&device.rxr.freq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rxr_maxfreq",didx, UINT16_MAX, (uint8_t *)&device.rxr.maxfreq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rxr_minfreq",didx, UINT16_MAX, (uint8_t *)&device.rxr.minfreq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_rxr_power",didx, UINT16_MAX, (uint8_t *)&device.rxr.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_rxr_powerin",didx, UINT16_MAX, (uint8_t *)&device.rxr.powerin, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_rxr_powerout",didx, UINT16_MAX, (uint8_t *)&device.rxr.powerout, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rxr_band",didx, UINT16_MAX, (uint8_t *)&device.rxr.band, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
         //! Elevation and Azimuth Sun Sensor
@@ -8116,6 +8121,8 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_tcv_cidx",didx, UINT16_MAX, (uint8_t *)&device.tcv.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_tcv_temp",didx, UINT16_MAX, (uint8_t *)&device.tcv.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_tcv_opmode",didx, UINT16_MAX, (uint8_t *)&device.tcv.opmode, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_tcv_flag",didx, UINT16_MAX, (uint8_t *)&device.tcv.flag, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_tcv_rssi",didx, UINT16_MAX, (uint8_t *)&device.tcv.rssi, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_tcv_freq",didx, UINT16_MAX, (uint8_t *)&device.tcv.freq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_tcv_maxfreq",didx, UINT16_MAX, (uint8_t *)&device.tcv.maxfreq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_tcv_minfreq",didx, UINT16_MAX, (uint8_t *)&device.tcv.minfreq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8164,11 +8171,14 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_txr_cidx",didx, UINT16_MAX, (uint8_t *)&device.txr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_txr_temp",didx, UINT16_MAX, (uint8_t *)&device.txr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_txr_opmode",didx, UINT16_MAX, (uint8_t *)&device.txr.opmode, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_txr_flag",didx, UINT16_MAX, (uint8_t *)&device.txr.flag, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_txr_rssi",didx, UINT16_MAX, (uint8_t *)&device.txr.rssi, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_txr_freq",didx, UINT16_MAX, (uint8_t *)&device.txr.freq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_txr_freq",didx, UINT16_MAX, (uint8_t *)&device.txr.freq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_txr_maxfreq",didx, UINT16_MAX, (uint8_t *)&device.txr.maxfreq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_txr_minfreq",didx, UINT16_MAX, (uint8_t *)&device.txr.minfreq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_txr_power",didx, UINT16_MAX, (uint8_t *)&device.txr.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_txr_powerin",didx, UINT16_MAX, (uint8_t *)&device.txr.powerin, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_txr_powerout",didx, UINT16_MAX, (uint8_t *)&device.txr.powerout, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_txr_maxpower",didx, UINT16_MAX, (uint8_t *)&device.txr.maxpower, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     default:
@@ -8377,11 +8387,14 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosstruc *cinfo,
         json_toggleentry("device_rxr_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_opmode",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_rxr_freq",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_flag",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_rssi",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_freq",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_maxfreq",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_minfreq",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_rxr_power",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_powerin",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_powerout",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_maxpower",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_band",didx, UINT16_MAX, cinfo, state);
         break;
         //! Radio Transmitter
@@ -8390,12 +8403,15 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosstruc *cinfo,
         json_toggleentry("device_txr_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_opmode",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_txr_freq",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_flag",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_rssi",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_freq",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_maxfreq",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_minfreq",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_txr_power",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_powerin",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_powerout",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_maxpower",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_band",didx, UINT16_MAX, cinfo, state);
         break;
         //! Radio Transceiver
     case (uint16_t)DeviceType::TCV:
@@ -8403,6 +8419,8 @@ int32_t json_toggledeviceentry(uint16_t type, uint16_t didx, cosmosstruc *cinfo,
         json_toggleentry("device_tcv_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_opmode",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_flag",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_rssi",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_freq",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_maxfreq",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_minfreq",didx, UINT16_MAX, cinfo, state);
@@ -9203,11 +9221,15 @@ string json_list_of_soh(cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_rxr_utc_%03d\",\"device_rxr_temp_%03d\"", i, i);
         result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_flag_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_rssi_%03d\"",i);
+        result += tempstring;
         sprintf(tempstring, ",\"device_rxr_freq_%03d\"",i);
         result += tempstring;
         sprintf(tempstring, ",\"device_rxr_band_%03d\"",i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_rxr_power_%03d\"",i);
+        sprintf(tempstring, ",\"device_rxr_powerin_%03d\"",i);
         result += tempstring;
     }
 
@@ -9215,15 +9237,23 @@ string json_list_of_soh(cosmosstruc *cinfo)
     {
         sprintf(tempstring, ",\"device_txr_utc_%03d\",\"device_txr_temp_%03d\"", i, i);
         result += tempstring;
+        sprintf(tempstring, ",\"device_txr_flag_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_rssi_%03d\"",i);
+        result += tempstring;
         sprintf(tempstring, ",\"device_txr_freq_%03d\"",i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_txr_power_%03d\"",i);
+        sprintf(tempstring, ",\"device_txr_powerout_%03d\"",i);
         result += tempstring;
     }
 
     for (uint16_t i=0; i<cinfo->devspec.tcv_cnt; ++i)
     {
         sprintf(tempstring, ",\"device_tcv_utc_%03d\",\"device_tcv_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_flag_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_rssi_%03d\"",i);
         result += tempstring;
         sprintf(tempstring, ",\"device_tcv_freq_%03d\",\"device_tcv_opmode_%03d\"",i,i);
         result += tempstring;
@@ -9817,50 +9847,45 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Receivers
                 if (!strcmp(device_type_string[i].c_str(),"rxr"))
                 {
-                    json_out_1d(jstring,(char *)"device_rxr_freq",j, cinfo);
-                    // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_rxr_maxfreq",j, cinfo);
-                    // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_rxr_minfreq",j, cinfo);
-                    // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_rxr_band",j, cinfo);
-                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_rxr_opmode",j, cinfo);
-                    // json_out_character(jstring, '\n');
+                    json_out_1d(jstring,(char *)"device_rxr_rssi",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_rxr_freq",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_rxr_maxfreq",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_rxr_minfreq",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_rxr_powerin",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_rxr_powerout",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_rxr_maxpower",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_rxr_band",j, cinfo);
                     continue;
                 }
 
                 // Dump Transmitters
                 if (!strcmp(device_type_string[i].c_str(),"txr"))
                 {
-                    json_out_1d(jstring,(char *)"device_txr_freq",j, cinfo);
-                    // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_txr_maxfreq",j, cinfo);
-                    // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_txr_minfreq",j, cinfo);
-                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_txr_opmode",j, cinfo);
-                    // json_out_character(jstring, '\n');
+                    json_out_1d(jstring,(char *)"device_txr_rssi",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_txr_freq",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_txr_maxfreq",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_txr_minfreq",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_txr_powerin",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_txr_powerout",j, cinfo);
                     json_out_1d(jstring,(char *)"device_txr_maxpower",j, cinfo);
-                    // json_out_character(jstring, '\n');
+                    json_out_1d(jstring,(char *)"device_tcv_band",j, cinfo);
                     continue;
                 }
 
                 // Dump Transceivers
                 if (!strcmp(device_type_string[i].c_str(),"tcv"))
                 {
-                    json_out_1d(jstring,(char *)"device_tcv_freq",j, cinfo);
-                    // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_tcv_maxfreq",j, cinfo);
-                    // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_tcv_minfreq",j, cinfo);
-                    // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_tcv_band",j, cinfo);
-                    // json_out_character(jstring, '\n');
                     json_out_1d(jstring,(char *)"device_tcv_opmode",j, cinfo);
-                    // json_out_character(jstring, '\n');
+                    json_out_1d(jstring,(char *)"device_tcv_rssi",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_tcv_freq",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_tcv_maxfreq",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_tcv_minfreq",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_tcv_powerin",j, cinfo);
+                    json_out_1d(jstring,(char *)"device_tcv_powerout",j, cinfo);
                     json_out_1d(jstring,(char *)"device_tcv_maxpower",j, cinfo);
-                    // json_out_character(jstring, '\n');
+                    json_out_1d(jstring,(char *)"device_tcv_band",j, cinfo);
                     continue;
                 }
 

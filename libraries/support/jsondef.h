@@ -699,6 +699,7 @@ enum PORT_TYPE
     PORT_TYPE_SIM = 5,
     PORT_TYPE_UDP = 6,
     PORT_TYPE_TCP = 7,
+    PORT_TYPE_PROPAGATOR = 8,
     PORT_TYPE_COUNT,
     PORT_TYPE_NONE = UINT16_MAX
     };
@@ -1427,6 +1428,8 @@ struct rxrstruc : public allstruc
 {
     //! Operating mode
     uint16_t opmode;
+    //! RSSI
+    uint16_t rssi;
     //! Input Frequency
     float freq;
     //! Maximum frequency allowed
@@ -1450,6 +1453,8 @@ struct txrstruc : public allstruc
 {
     //! Operating mode
     uint16_t opmode;
+    //! RSSI
+    uint16_t rssi;
     //! Input Frequency
     float freq;
     //! Maximum frequency allowed
@@ -1473,6 +1478,8 @@ struct tcvstruc : public allstruc
 {
     //! Operating mode
     uint16_t opmode;
+    //! RSSI
+    uint16_t rssi;
     //! Input Frequency
     float freq;
     //! Maximum frequency allowed
