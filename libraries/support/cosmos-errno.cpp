@@ -590,7 +590,16 @@ string cosmos_error_string(int32_t cosmos_errno)
         case GENERAL_ERROR_MEMORY:
             error_string = "Memory";
             break;
-        case GENERAL_ERROR_NOSIGNAL:
+        case GENERAL_ERROR_NO_ANSWER:
+            error_string = "No Answer";
+            break;
+        case GENERAL_ERROR_NO_CARRIER:
+            error_string = "No Carrier";
+            break;
+        case GENERAL_ERROR_NO_DIALTONE:
+            error_string = "No Dial Tone";
+            break;
+        case GENERAL_ERROR_NO_SIGNAL:
             error_string = "No Signal";
             break;
         case GENERAL_ERROR_NOTSTARTED:

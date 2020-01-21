@@ -271,7 +271,7 @@
 #define SCPI_ERROR_OUTSIDE_RANGE -634
 
 #define GENERAL_OK                        0      /* everything is all right */
-#define GENERAL_ERROR_NOSIGNAL         -2001     /* there's no free signal */
+#define GENERAL_ERROR_NO_SIGNAL         -2001     /* there's no free signal */
 #define GENERAL_ERROR_NOTSTARTED       -2002     /* uninitialized error */
 #define GENERAL_ERROR_NULLPOINTER      -2003     /* you gave a null pointer to the function */
 #define GENERAL_ERROR_OOPS             -2004     /* internal error, something's erong */
@@ -293,6 +293,8 @@
 #define GENERAL_ERROR_NOTREADY          -2020
 #define GENERAL_ERROR_BUSY              -2021
 #define GENERAL_ERROR_NO_CARRIER        -2022
+#define GENERAL_ERROR_NO_DIALTONE        -2023
+#define GENERAL_ERROR_NO_ANSWER        -2024
 
 #define GPHOTO2_ERROR -3000
 
