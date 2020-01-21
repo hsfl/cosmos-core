@@ -61,7 +61,7 @@
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
 #define PACKET_SIZE_LO (512-(PACKET_DATA_HEADER_SIZE+28))
 #define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_HEADER_SIZE)
-#define THROUGHPUT_LO 1000
+#define THROUGHPUT_LO 2000
 #define PACKET_SIZE_HI (1472-(PACKET_DATA_HEADER_SIZE+28))
 #define THROUGHPUT_HI 150000
 //#define TRANSFER_QUEUE_LIMIT 10
@@ -981,6 +981,7 @@ void send_loop()
     double current_time;
 
     current_time = currentmjd();
+    uint8_t previous_state = 0;
 
     while (agent->running())
     {
@@ -1026,8 +1027,9 @@ void send_loop()
                 continue;
             }
 
-            if (debug_flag)
+            if (debug_flag && txq[node].outgoing.state != previous_state)
             {
+                previous_state = txq[node].outgoing.state;
                 printf("Send Loop: Node %s State: %d\n", txq[node].node_name.c_str(), txq[node].outgoing.state);
             }
             // Decide what to do next based on our current state
