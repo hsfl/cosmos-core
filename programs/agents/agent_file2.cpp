@@ -355,7 +355,7 @@ int main(int argc, char *argv[])
         {
 //            if (debug_flag)
 //            {
-//                printf("Main Sleep: %f seconds\n", sleepsec);
+//                fprintf(agent->get_debug_fd(), "Main Sleep: %f seconds\n", sleepsec);
 //                fflush(stdout);
 //            }
             COSMOS_USLEEP((uint32_t)(sleepsec*1e6));
@@ -415,7 +415,7 @@ int main(int argc, char *argv[])
                             }
                             if (debug_flag)
                             {
-                                printf("[%f] outgoing_tx_add: %s [%d]\n", etloop.split(), file.path.c_str(), iretn);
+                                fprintf(agent->get_debug_fd(), "[%f] outgoing_tx_add: %s [%d]\n", etloop.split(), file.path.c_str(), iretn);
                             }
                         }
                     }
@@ -655,7 +655,7 @@ void recv_loop()
                                         int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
                                         if (debug_flag)
                                         {
-                                            printf("Renamed: %d %s\n", iret, tx_in.filepath.c_str());
+                                            fprintf(agent->get_debug_fd(), "Renamed: %d %s\n", iret, tx_in.filepath.c_str());
                                         }
                                         // Mark complete
                                         txq[node].incoming.progress[tx_id].complete = true;
@@ -1008,7 +1008,7 @@ void send_loop()
             sleep_time = 1000000 * 86400. * (next_time - current_time);
 //            if (debug_flag)
 //            {
-//                printf("Send_Loop Sleep: %f seconds\n", sleep_time / 1000000.);
+//                fprintf(agent->get_debug_fd(), "Send_Loop Sleep: %f seconds\n", sleep_time / 1000000.);
 //                fflush(stdout);
 //            }
             COSMOS_USLEEP(sleep_time);
@@ -1030,7 +1030,7 @@ void send_loop()
             if (debug_flag && txq[node].outgoing.state != previous_state)
             {
                 previous_state = txq[node].outgoing.state;
-                printf("Send Loop: Node %s State: %d\n", txq[node].node_name.c_str(), txq[node].outgoing.state);
+                fprintf(agent->get_debug_fd(), "Send Loop: Node %s State: %d\n", txq[node].node_name.c_str(), txq[node].outgoing.state);
             }
             // Decide what to do next based on our current state
             outgoing_tx_lock.lock();
@@ -1288,7 +1288,7 @@ int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYT
     {
         if (debug_flag)
         {
-            printf("Mysendto Sleep: %f seconds\n", 86400. * (channel.nmjd - cmjd));
+            fprintf(agent->get_debug_fd(), "Mysendto Sleep: %f seconds\n", 86400. * (channel.nmjd - cmjd));
             fflush(stdout);
         }
         COSMOS_USLEEP((uint32_t)(86400000000. * (channel.nmjd - cmjd)));
@@ -1391,56 +1391,56 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
 {
     if (debug_flag)
     {
-        printf("[%.15g %s (%" PRIu32 ")] ", currentmjd(), type.c_str(), buf.size());
+        fprintf(agent->get_debug_fd(), "[%.15g %s (%" PRIu32 ")] ", currentmjd(), type.c_str(), buf.size());
         switch (buf[0] & 0x0f)
         {
         case PACKET_METADATA:
             {
                 std::string file_name(&buf[PACKET_METASHORT_FILE_NAME], &buf[PACKET_METASHORT_FILE_NAME+TRANSFER_MAX_FILENAME]);
-                printf("[METADATA] %u %u %s ", buf[PACKET_METASHORT_NODE_ID], buf[PACKET_METASHORT_TX_ID], file_name.c_str());
+                fprintf(agent->get_debug_fd(), "[METADATA] %u %u %s ", buf[PACKET_METASHORT_NODE_ID], buf[PACKET_METASHORT_TX_ID], file_name.c_str());
                 break;
             }
         case PACKET_DATA:
             {
-                printf("[DATA] %u %u %u %u ", buf[PACKET_DATA_NODE_ID], buf[PACKET_DATA_TX_ID], buf[PACKET_DATA_CHUNK_START]+256U*(buf[PACKET_DATA_CHUNK_START+1]+256U*(buf[PACKET_DATA_CHUNK_START+2]+256U*buf[PACKET_DATA_CHUNK_START+3])), buf[PACKET_DATA_BYTE_COUNT]+256U*buf[PACKET_DATA_BYTE_COUNT+1]);
+                fprintf(agent->get_debug_fd(), "[DATA] %u %u %u %u ", buf[PACKET_DATA_NODE_ID], buf[PACKET_DATA_TX_ID], buf[PACKET_DATA_CHUNK_START]+256U*(buf[PACKET_DATA_CHUNK_START+1]+256U*(buf[PACKET_DATA_CHUNK_START+2]+256U*buf[PACKET_DATA_CHUNK_START+3])), buf[PACKET_DATA_BYTE_COUNT]+256U*buf[PACKET_DATA_BYTE_COUNT+1]);
                 break;
             }
         case PACKET_REQDATA:
             {
-                printf("[REQDATA] %u %u %u %u ", buf[PACKET_REQDATA_NODE_ID], buf[PACKET_REQDATA_TX_ID], buf[PACKET_REQDATA_HOLE_START]+256U*(buf[PACKET_REQDATA_HOLE_START+1]+256U*(buf[PACKET_REQDATA_HOLE_START+2]+256U*buf[PACKET_REQDATA_HOLE_START+3])), buf[PACKET_REQDATA_HOLE_END]+256U*(buf[PACKET_REQDATA_HOLE_END+1]+256U*(buf[PACKET_REQDATA_HOLE_END+2]+256U*buf[PACKET_REQDATA_HOLE_END+3])));
+                fprintf(agent->get_debug_fd(), "[REQDATA] %u %u %u %u ", buf[PACKET_REQDATA_NODE_ID], buf[PACKET_REQDATA_TX_ID], buf[PACKET_REQDATA_HOLE_START]+256U*(buf[PACKET_REQDATA_HOLE_START+1]+256U*(buf[PACKET_REQDATA_HOLE_START+2]+256U*buf[PACKET_REQDATA_HOLE_START+3])), buf[PACKET_REQDATA_HOLE_END]+256U*(buf[PACKET_REQDATA_HOLE_END+1]+256U*(buf[PACKET_REQDATA_HOLE_END+2]+256U*buf[PACKET_REQDATA_HOLE_END+3])));
                 break;
             }
         case PACKET_REQMETA:
             {
-                printf("[REQMETA] %u %s ", buf[PACKET_REQMETA_NODE_ID], &buf[PACKET_REQMETA_NODE_NAME]);
+                fprintf(agent->get_debug_fd(), "[REQMETA] %u %s ", buf[PACKET_REQMETA_NODE_ID], &buf[PACKET_REQMETA_NODE_NAME]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
                     if (buf[PACKET_REQMETA_TX_ID+i])
                     {
-                        printf("%u ", buf[PACKET_REQMETA_TX_ID+i]);
+                        fprintf(agent->get_debug_fd(), "%u ", buf[PACKET_REQMETA_TX_ID+i]);
                     }
                 break;
             }
         case PACKET_COMPLETE:
             {
-                printf("[COMPLETE] %u %u ", buf[PACKET_COMPLETE_NODE_ID], buf[PACKET_COMPLETE_TX_ID]);
+                fprintf(agent->get_debug_fd(), "[COMPLETE] %u %u ", buf[PACKET_COMPLETE_NODE_ID], buf[PACKET_COMPLETE_TX_ID]);
                 break;
             }
         case PACKET_CANCEL:
             {
-                printf("[CANCEL] %u %u ", buf[PACKET_CANCEL_NODE_ID], buf[PACKET_CANCEL_TX_ID]);
+                fprintf(agent->get_debug_fd(), "[CANCEL] %u %u ", buf[PACKET_CANCEL_NODE_ID], buf[PACKET_CANCEL_TX_ID]);
                 break;
             }
         case PACKET_QUEUE:
             {
-                printf("[QUEUE] %u %s ", buf[PACKET_QUEUE_NODE_ID], &buf[PACKET_QUEUE_NODE_NAME]);
+                fprintf(agent->get_debug_fd(), "[QUEUE] %u %s ", buf[PACKET_QUEUE_NODE_ID], &buf[PACKET_QUEUE_NODE_NAME]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
                     if (buf[PACKET_QUEUE_TX_ID+i])
                     {
-                        printf("%u ", buf[PACKET_QUEUE_TX_ID+i]);
+                        fprintf(agent->get_debug_fd(), "%u ", buf[PACKET_QUEUE_TX_ID+i]);
                     }
             }
         }
-        printf("\n");
+        fprintf(agent->get_debug_fd(), "\n");
         fflush(stdout);
     }
 }
@@ -1554,7 +1554,7 @@ int32_t read_meta(tx_progress& tx)
     file_name.close();
     if (debug_flag)
     {
-        printf("read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+        fprintf(agent->get_debug_fd(), "read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
     }
 
     // fix any overlaps and count total bytes
@@ -1856,7 +1856,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
 
     if (debug_flag)
     {
-        printf("Add outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        fprintf(agent->get_debug_fd(), "Add outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
     }
 
     return 0;
@@ -1975,7 +1975,7 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
 
     if (debug_flag)
     {
-        printf("Del outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        fprintf(agent->get_debug_fd(), "Del outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
     }
 
     return 0;
@@ -2008,7 +2008,7 @@ int32_t incoming_tx_add(tx_progress tx_in)
 
     if (debug_flag)
     {
-        printf("Add incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+        fprintf(agent->get_debug_fd(), "Add incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
     }
 
     return 0;
@@ -2069,7 +2069,7 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
 
     if (debug_flag)
     {
-        printf("Update incoming: %u %s %s %s\n", txq[node].incoming.progress[meta.tx_id].tx_id, txq[node].incoming.progress[meta.tx_id].node_name.c_str(), txq[node].incoming.progress[meta.tx_id].agent_name.c_str(), txq[node].incoming.progress[meta.tx_id].file_name.c_str());
+        fprintf(agent->get_debug_fd(), "Update incoming: %u %s %s %s\n", txq[node].incoming.progress[meta.tx_id].tx_id, txq[node].incoming.progress[meta.tx_id].node_name.c_str(), txq[node].incoming.progress[meta.tx_id].agent_name.c_str(), txq[node].incoming.progress[meta.tx_id].file_name.c_str());
     }
 
     return meta.tx_id;
@@ -2118,7 +2118,7 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
 
     if (debug_flag)
     {
-        printf("Del incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+        fprintf(agent->get_debug_fd(), "Del incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
     }
 
     return 0;
