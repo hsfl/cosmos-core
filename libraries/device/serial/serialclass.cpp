@@ -112,12 +112,15 @@ namespace Cosmos {
             tcflush(fd,TCIFLUSH);
 #endif
 
-            /* then we restore old settings */
+            if (restoreonclose)
+            {
+                /* then we restore old settings */
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-            tcsetattr(fd,TCSANOW,&(oldtio));
+                tcsetattr(fd,TCSANOW,&(oldtio));
 #else
-            SetCommState(handle, &(dcb));
+                SetCommState(handle, &(dcb));
 #endif
+            }
 
             /* and close the file */
             close(fd);
@@ -140,6 +143,12 @@ namespace Cosmos {
     int32_t Serial::get_error()
     {
         return error;
+    }
+
+    int32_t Serial::set_restoreonclose(bool argument)
+    {
+        restoreonclose = argument;
+        return 0;
     }
 
     int32_t Serial::set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop)

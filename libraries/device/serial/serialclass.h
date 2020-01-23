@@ -44,6 +44,7 @@ namespace Cosmos {
     public:
         Serial(string dname, size_t dbaud=9600, size_t dbits=8, size_t dparity=0, size_t dstop=1);
         ~Serial();
+        int32_t set_restoreonclose(bool argument);
         int32_t set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop);
         int32_t set_flowcontrol(bool rtscts, bool xonxoff);
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
@@ -88,6 +89,7 @@ namespace Cosmos {
         };
         // timeout in sec 2 ms
         double ictimeout = .002;
+        bool restoreonclose = true;
 
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         struct termios tio;       /* termios structure for the port */
