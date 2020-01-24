@@ -100,7 +100,7 @@ typedef struct
     string node="";
     socket_channel chansock;
     string chanip="";
-    PACKET_CHUNK_SIZE_TYPE packet_size=PACKET_SIZE_LO;
+    PACKET_CHUNK_SIZE_TYPE packet_size=PACKET_SIZE_HI;
     uint32_t throughput=THROUGHPUT_LO;
     double nmjd;
     double lmjd;
