@@ -367,6 +367,15 @@ int main(int argc, char *argv[])
             nextdiskcheck = currentmjd(0.) + 10./86400.;
             for (uint16_t node=0; node<txq.size(); ++node)
             {
+                // Go through existing queue, removing files that no longer exist
+                for (uint16_t i=1; i<TRANSFER_QUEUE_SIZE; ++i)
+                {
+                    if (txq[node].outgoing.progress[i].tx_id != 0 && !data_isfile(txq[node].outgoing.progress[i].filepath))
+                    {
+                        outgoing_tx_del(node, txq[node].outgoing.progress[i].tx_id);
+                    }
+                }
+
                 if (txq[node].outgoing.size < TRANSFER_QUEUE_LIMIT)
                 {
                     std::vector<filestruc> file_names;
@@ -378,14 +387,6 @@ int main(int argc, char *argv[])
                         }
                     }
 
-                    // Go through existing queue, removing files that no longer exist
-                    for (uint16_t i=1; i<TRANSFER_QUEUE_SIZE; ++i)
-                    {
-                        if (txq[node].outgoing.progress[i].tx_id != 0 && !data_isfile(txq[node].outgoing.progress[i].filepath))
-                        {
-                            outgoing_tx_del(node, txq[node].outgoing.progress[i].tx_id);
-                        }
-                    }
                     // Sort list by size, then go through list of files found, adding to queue.
                     sort(file_names.begin(), file_names.end(), filestruc_compare_by_size);
                     for(filestruc file : file_names)
