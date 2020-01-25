@@ -57,7 +57,6 @@
 #include <sys/select.h>
 
 #define TRANSFER_QUEUE_SIZE 256
-#define MAXBUFFERSIZE 1024
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
 #define PACKET_SIZE_LO (512-(PACKET_DATA_HEADER_SIZE+28))
 #define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_HEADER_SIZE)
@@ -379,6 +378,14 @@ int main(int argc, char *argv[])
                         }
                     }
 
+                    // Go through existing queue, removing files that no longer exist
+                    for (uint16_t i=1; i<TRANSFER_QUEUE_SIZE; ++i)
+                    {
+                        if (txq[node].outgoing.progress[i].tx_id != 0 && !data_isfile(txq[node].outgoing.progress[i].filepath))
+                        {
+                            outgoing_tx_del(node, txq[node].outgoing.progress[i].tx_id);
+                        }
+                    }
                     // Sort list by size, then go through list of files found, adding to queue.
                     sort(file_names.begin(), file_names.end(), filestruc_compare_by_size);
                     for(filestruc file : file_names)
@@ -1966,7 +1973,10 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     // Remove the file
     if(remove(tx_out.filepath.c_str()))
     {
-        unable_to_remove(tx_out.filepath);
+        if (debug_flag)
+        {
+            fprintf(agent->get_debug_fd(), "Del outgoing: %u %s %s %s - Unable to remove file\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        }
     }
 
     // Remove the META file
