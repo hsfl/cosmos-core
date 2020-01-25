@@ -359,11 +359,13 @@ namespace Cosmos
             int32_t close_debug_fd();
 
             // agent variables
+            string nodeName;
+            string agentName;
+
+        protected:
         private:
 
             NetworkType networkType = NetworkType::UDP;
-            string nodeName;
-            string agentName;
             double activeTimeout = 0.0; // in MJD
             uint32_t bufferSize = AGENTMAXBUFFER;
             bool multiflag = false;
