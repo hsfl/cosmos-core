@@ -86,8 +86,6 @@ std::string std::to_string(T value)
 
 // Some global variables
 
-/** the (global) name of the agent */
-static std::string agentname = "file_";
 /** the (global) name of the heartbeat structure */
 static beatstruc cbeat;
 /** the (global) name of the cosmos data structure */
@@ -193,28 +191,39 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node);
 int main(int argc, char *argv[])
 {
     int32_t iretn;
+
+    agent = new Agent("", "file", 5.);
+
+    if (agent->cinfo == nullptr || !agent->running())
+    {
+        fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Failure\n", agent->nodeName.c_str(), agent->agentName.c_str());
+        exit (AGENT_ERROR_JSON_CREATE);
+    }
+    fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Established\n", agent->nodeName.c_str(), agent->agentName.c_str());
+    fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
+
     //open sockets for receiving and sending
-    printf("- Opening recv socket...");
-    fflush(stdout);
+    fprintf(agent->get_debug_fd(), "- Opening recv socket...");
+    fflush(agent->get_debug_fd());
 
     comm_channel.resize(1);
     if((iretn = socket_open(&comm_channel[0].chansock, NetworkType::UDP, (char *)"", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
-        std::cout << "iretn = " << iretn << std::endl;
-        printf("- Could not successfully open recv socket... exiting \n");
+        fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Listening socket failure\n", agent->nodeName.c_str(), agent->agentName.c_str());
+        agent->shutdown();
         exit (-errno);
     }
+
     inet_ntop(comm_channel[0].chansock.caddr.sin_family, &comm_channel[0].chansock.caddr.sin_addr, comm_channel[0].chansock.address, sizeof(comm_channel[0].chansock.address));
     comm_channel[0].chanip = comm_channel[0].chansock.address;
     comm_channel[0].nmjd = currentmjd(0.);
-    printf("\tSuccess.\n");
+    fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Listening socket open\n", agent->nodeName.c_str(), agent->agentName.c_str());
+    fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
     switch (argc)
     {
     case 2:
         {
-            printf("- Opening send socket...");
-            fflush(stdout);
             comm_channel.resize(2);
             comm_channel[1].node = argv[1];
             size_t tloc = comm_channel[1].node.find(":");
@@ -225,32 +234,16 @@ int main(int argc, char *argv[])
             }
             if((iretn = socket_open(&comm_channel[1].chansock, NetworkType::UDP, comm_channel[1].chanip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
             {
-                std::cout << "iretn = " << iretn << std::endl;
-                printf("- Could not successfully open send socket %s at size %u ... exiting \n", comm_channel[1].chanip.c_str(), comm_channel[1].packet_size);
+                fprintf(agent->get_debug_fd(), "Node: %s IP: %s - Sending socket failure\n", comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
+                agent->shutdown();
                 exit (-errno);
             }
             comm_channel[1].nmjd = currentmjd(0.);
-            printf("- Opened %s on %s.\n", comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
+            fprintf(agent->get_debug_fd(), "Node: %s IP: %s - Sending socket open\n", comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
+            fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
             break;
         }
     }
-
-    // set this program up as a server
-    // port number = 0 in this case, automatic assignment of port
-    printf("- Setting up server...");
-    fflush(stdout);
-
-    char hostname[60];
-    gethostname(hostname, sizeof (hostname));
-    agentname += hostname;
-    agent = new Agent("", agentname, 5.);
-    if (agent->cinfo == nullptr || !agent->running())
-    {
-        cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
-        exit (AGENT_ERROR_JSON_CREATE);
-    }
-    printf("\t\tSuccess.\n");
-    fflush(stdout); // Ensure this gets printed before blocking call
 
     // Restore in progress transfers from previous run
     for (std::string node_name : data_list_nodes())
@@ -352,11 +345,6 @@ int main(int argc, char *argv[])
         double sleepsec = 86400. * (nextdiskcheck - currentmjd());
         if (sleepsec > 0.)
         {
-//            if (debug_flag)
-//            {
-//                fprintf(agent->get_debug_fd(), "Main Sleep: %f seconds\n", sleepsec);
-//                fflush(stdout);
-//            }
             COSMOS_USLEEP((uint32_t)(sleepsec*1e6));
         }
 
@@ -424,6 +412,7 @@ int main(int argc, char *argv[])
                             if (debug_flag)
                             {
                                 fprintf(agent->get_debug_fd(), "[%f] outgoing_tx_add: %s [%d]\n", etloop.split(), file.path.c_str(), iretn);
+                                fflush(agent->get_debug_fd());
                             }
                         }
                     }
@@ -664,6 +653,7 @@ void recv_loop()
                                         if (debug_flag)
                                         {
                                             fprintf(agent->get_debug_fd(), "Renamed: %d %s\n", iret, tx_in.filepath.c_str());
+                                            fflush(agent->get_debug_fd());
                                         }
                                         // Mark complete
                                         txq[node].incoming.progress[tx_id].complete = true;
@@ -1014,11 +1004,6 @@ void send_loop()
         if (next_time > current_time)
         {
             sleep_time = 1000000 * 86400. * (next_time - current_time);
-//            if (debug_flag)
-//            {
-//                fprintf(agent->get_debug_fd(), "Send_Loop Sleep: %f seconds\n", sleep_time / 1000000.);
-//                fflush(stdout);
-//            }
             COSMOS_USLEEP(sleep_time);
         }
 
@@ -1039,6 +1024,7 @@ void send_loop()
             {
                 previous_state = txq[node].outgoing.state;
                 fprintf(agent->get_debug_fd(), "Send Loop: Node %s State: %d\n", txq[node].node_name.c_str(), txq[node].outgoing.state);
+                fflush(agent->get_debug_fd());
             }
             // Decide what to do next based on our current state
             outgoing_tx_lock.lock();
@@ -1297,7 +1283,7 @@ int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYT
         if (debug_flag)
         {
             fprintf(agent->get_debug_fd(), "Mysendto Sleep: %f seconds\n", 86400. * (channel.nmjd - cmjd));
-            fflush(stdout);
+            fflush(agent->get_debug_fd());
         }
         COSMOS_USLEEP((uint32_t)(86400000000. * (channel.nmjd - cmjd)));
     }
@@ -1449,7 +1435,7 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
             }
         }
         fprintf(agent->get_debug_fd(), "\n");
-        fflush(stdout);
+        fflush(agent->get_debug_fd());
     }
 }
 
@@ -1563,6 +1549,7 @@ int32_t read_meta(tx_progress& tx)
     if (debug_flag)
     {
         fprintf(agent->get_debug_fd(), "read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+        fflush(agent->get_debug_fd());
     }
 
     // fix any overlaps and count total bytes
@@ -1865,6 +1852,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     if (debug_flag)
     {
         fprintf(agent->get_debug_fd(), "Add outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        fflush(agent->get_debug_fd());
     }
 
     return 0;
@@ -1977,6 +1965,7 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
         if (debug_flag)
         {
             fprintf(agent->get_debug_fd(), "Del outgoing: %u %s %s %s - Unable to remove file\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+            fflush(agent->get_debug_fd());
         }
     }
 
@@ -1987,6 +1976,7 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     if (debug_flag)
     {
         fprintf(agent->get_debug_fd(), "Del outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        fflush(agent->get_debug_fd());
     }
 
     return 0;
@@ -2020,6 +2010,7 @@ int32_t incoming_tx_add(tx_progress tx_in)
     if (debug_flag)
     {
         fprintf(agent->get_debug_fd(), "Add incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+        fflush(agent->get_debug_fd());
     }
 
     return 0;
@@ -2081,6 +2072,7 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
     if (debug_flag)
     {
         fprintf(agent->get_debug_fd(), "Update incoming: %u %s %s %s\n", txq[node].incoming.progress[meta.tx_id].tx_id, txq[node].incoming.progress[meta.tx_id].node_name.c_str(), txq[node].incoming.progress[meta.tx_id].agent_name.c_str(), txq[node].incoming.progress[meta.tx_id].file_name.c_str());
+        fflush(agent->get_debug_fd());
     }
 
     return meta.tx_id;
@@ -2130,6 +2122,7 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     if (debug_flag)
     {
         fprintf(agent->get_debug_fd(), "Del incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+        fflush(agent->get_debug_fd());
     }
 
     return 0;
