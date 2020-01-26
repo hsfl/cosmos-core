@@ -613,7 +613,11 @@ void recv_loop()
 
                                 if (txq[node].incoming.progress[tx_id].fp == NULL)
                                 {
-                                    perror(partial_filepath.c_str());
+                                    if (debug_flag)
+                                    {
+                                        fprintf(agent->get_debug_fd(), "File Error: %s %s on ID: %u Chunk: %u\n", partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
+                                    }
+//                                    perror(partial_filepath.c_str());
                                 }
                                 else
                                 {
