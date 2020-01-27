@@ -56,9 +56,11 @@ void make_complete_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE 
     PACKET_TYPE type = salt_type(PACKET_COMPLETE);
 
     packet.resize(PACKET_COMPLETE_SIZE);
-    memmove(&packet[0]+PACKET_COMPLETE_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_HEADER_TYPE, &type, sizeof(PACKET_TYPE));
     memmove(&packet[0]+PACKET_COMPLETE_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
     memmove(&packet[0]+PACKET_COMPLETE_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_CRC, &crc, sizeof(PACKET_CRC));
 }
 
 void extract_complete(std::vector<PACKET_BYTE>& packet, packet_struct_complete &complete)
@@ -82,9 +84,11 @@ void make_cancel_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE no
     PACKET_TYPE type = salt_type(PACKET_CANCEL);
 
     packet.resize(PACKET_CANCEL_SIZE);
-    memmove(&packet[0]+PACKET_CANCEL_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_HEADER_TYPE, &type, sizeof(PACKET_TYPE));
     memmove(&packet[0]+PACKET_CANCEL_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
     memmove(&packet[0]+PACKET_CANCEL_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_CRC, &crc, sizeof(PACKET_CRC));
 }
 
 void extract_cancel(std::vector<PACKET_BYTE>& packet, packet_struct_cancel &cancel)
@@ -104,10 +108,12 @@ void make_reqmeta_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE n
 
     packet.resize(PACKET_REQMETA_SIZE);
     memset(&packet[0], 0, PACKET_REQMETA_SIZE);
-    memmove(&packet[0]+PACKET_REQMETA_TYPE, &type, COSMOS_SIZEOF(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_HEADER_TYPE, &type, COSMOS_SIZEOF(PACKET_TYPE));
     memmove(&packet[0]+PACKET_REQMETA_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
     memmove(&packet[0]+PACKET_REQMETA_NODE_NAME, node_name.c_str(), node_name.size());
     memmove(&packet[0]+PACKET_REQMETA_TX_ID, &reqmeta[0], COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_CRC, &crc, sizeof(PACKET_CRC));
 }
 
 void extract_reqmeta(std::vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta)
@@ -127,11 +133,13 @@ void make_reqdata_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE n
     PACKET_TYPE type = salt_type(PACKET_REQDATA);
 
     packet.resize(PACKET_REQDATA_SIZE);
-    memmove(&packet[0]+PACKET_REQDATA_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_HEADER_TYPE, &type, sizeof(PACKET_TYPE));
     memmove(&packet[0]+PACKET_REQDATA_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
     memmove(&packet[0]+PACKET_REQDATA_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
     memmove(&packet[0]+PACKET_REQDATA_HOLE_START, &hole_start, sizeof(PACKET_FILE_SIZE_TYPE));
     memmove(&packet[0]+PACKET_REQDATA_HOLE_END, &hole_end, sizeof(PACKET_FILE_SIZE_TYPE));
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_CRC, &crc, sizeof(PACKET_CRC));
 }
 
 void extract_reqdata(std::vector<PACKET_BYTE>& packet, packet_struct_reqdata &reqdata)
@@ -157,12 +165,14 @@ void make_metadata_packet(std::vector<PACKET_BYTE>& packet , PACKET_TX_ID_TYPE t
     PACKET_TYPE type = salt_type(PACKET_METADATA);
 
     packet.resize(PACKET_METALONG_SIZE);
-    memmove(&packet[0]+PACKET_METALONG_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_HEADER_TYPE, &type, sizeof(PACKET_TYPE));
     memmove(&packet[0]+PACKET_METALONG_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
     memmove(&packet[0]+PACKET_METALONG_FILE_NAME, file_name, TRANSFER_MAX_FILENAME);
     memmove(&packet[0]+PACKET_METALONG_FILE_SIZE, &file_size, sizeof(file_size));
     memmove(&packet[0]+PACKET_METALONG_NODE_NAME, node_name, COSMOS_MAX_NAME);
     memmove(&packet[0]+PACKET_METALONG_AGENT_NAME, agent_name, COSMOS_MAX_NAME);
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_CRC, &crc, sizeof(PACKET_CRC));
 }
 
 void make_metadata_packet(std::vector<PACKET_BYTE>& packet , packet_struct_metashort meta)
@@ -176,12 +186,14 @@ void make_metadata_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE 
 
     packet.resize(PACKET_METASHORT_SIZE);
 
-    memmove(&packet[0]+PACKET_METASHORT_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_HEADER_TYPE, &type, sizeof(PACKET_TYPE));
     memmove(&packet[0]+PACKET_METASHORT_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
     memmove(&packet[0]+PACKET_METASHORT_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
     memmove(&packet[0]+PACKET_METASHORT_FILE_NAME, file_name, TRANSFER_MAX_FILENAME);
     memmove(&packet[0]+PACKET_METASHORT_FILE_SIZE, &file_size, sizeof(file_size));
     memmove(&packet[0]+PACKET_METASHORT_AGENT_NAME, agent_name, COSMOS_MAX_NAME);
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_CRC, &crc, sizeof(PACKET_CRC));
 }
 
 void extract_metadata(std::vector<PACKET_BYTE>& packet, packet_struct_metalong &meta)
@@ -217,12 +229,14 @@ void make_data_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node
     PACKET_TYPE type = salt_type(PACKET_DATA);
 
     packet.resize(PACKET_DATA_HEADER_SIZE+byte_count);
-    memmove(&packet[0]+PACKET_DATA_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_HEADER_TYPE, &type, sizeof(PACKET_TYPE));
     memmove(&packet[0]+PACKET_DATA_NODE_ID, &node_id, sizeof(PACKET_NODE_ID_TYPE));
     memmove(&packet[0]+PACKET_DATA_TX_ID, &tx_id, sizeof(PACKET_TX_ID_TYPE));
     memmove(&packet[0]+PACKET_DATA_BYTE_COUNT, &byte_count, sizeof(PACKET_CHUNK_SIZE_TYPE));
     memmove(&packet[0]+PACKET_DATA_CHUNK_START, &chunk_start, sizeof(chunk_start));
     memmove(&packet[0]+PACKET_DATA_CHUNK, chunk, byte_count);
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_CRC, &crc, sizeof(PACKET_CRC));
 }
 
 //Function to extract necessary fileds from a received data packet
@@ -241,10 +255,12 @@ void make_queue_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE nod
 
     packet.resize(PACKET_QUEUE_SIZE);
     memset(&packet[0], 0, PACKET_QUEUE_SIZE);
-    memmove(&packet[0]+PACKET_QUEUE_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_HEADER_TYPE, &type, sizeof(PACKET_TYPE));
     memmove(&packet[0]+PACKET_QUEUE_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
     memmove(&packet[0]+PACKET_QUEUE_NODE_NAME, node_name.c_str(), node_name.size());
     memmove(&packet[0]+PACKET_QUEUE_TX_ID, &queue[0], COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_CRC, &crc, sizeof(PACKET_CRC));
 }
 
 //Function to extract necessary fileds from a received queue packet

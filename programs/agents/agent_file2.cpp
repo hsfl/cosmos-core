@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
         double sleepsec = 86400. * (nextdiskcheck - currentmjd());
         if (sleepsec > 0.)
         {
-            COSMOS_USLEEP((uint32_t)(sleepsec*1e6));
+            COSMOS_SLEEP((sleepsec));
         }
 
         // Check for new files to transmit if queue is not full and check is not delayed
@@ -443,7 +443,8 @@ void recv_loop()
             COSMOS_SLEEP(1);
             continue;
         }
-        else {
+        else
+        {
             COSMOS_SLEEP(.001);
         }
 
@@ -1007,8 +1008,8 @@ void send_loop()
         // Sleep if the difference is greater than zero
         if (next_time > current_time)
         {
-            sleep_time = 1000000 * 86400. * (next_time - current_time);
-            COSMOS_USLEEP(sleep_time);
+            sleep_time = 86400. * (next_time - current_time);
+            COSMOS_SLEEP(sleep_time);
         }
 
         // Bring us up to the present
@@ -1289,7 +1290,7 @@ int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYT
             fprintf(agent->get_debug_fd(), "Mysendto Sleep: %f seconds\n", 86400. * (channel.nmjd - cmjd));
             fflush(agent->get_debug_fd());
         }
-        COSMOS_USLEEP((uint32_t)(86400000000. * (channel.nmjd - cmjd)));
+        COSMOS_SLEEP((86400. * (channel.nmjd - cmjd)));
     }
 
     iretn = sendto(channel.chansock.cudp, reinterpret_cast<const char*>(&buf[0]), buf.size(), 0, reinterpret_cast<sockaddr*>(&channel.chansock.caddr), sizeof(struct sockaddr_in));
@@ -1351,8 +1352,18 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
                         nbytes = recvfrom(channel.cudp, reinterpret_cast<char *>(&buf[0]), length, 0, reinterpret_cast<sockaddr*>(&channel.caddr), reinterpret_cast<socklen_t *>(&channel.addrlen));
                         if (nbytes > 0)
                         {
-                            buf.resize(nbytes);
-                            debug_packet(buf, type+" in");
+                            uint16_t crccalc = calc_crc16ccitt(&buf[3], nbytes-3);
+                            uint16_t crc;
+                            memmove(&crc, &buf[0]+PACKET_HEADER_CRC, sizeof(PACKET_CRC));
+                            if (crc != crccalc)
+                            {
+                                nbytes = GENERAL_ERROR_CRC;
+                            }
+                            else
+                            {
+                                buf.resize(nbytes);
+                                debug_packet(buf, type+" in");
+                            }
                             return nbytes;
                         }
                         else
@@ -1373,15 +1384,6 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
         }
     } while (et.split() < dtimeout);
 
-//    if (( nbytes = recvfrom(channel.cudp, reinterpret_cast<char *>(&buf[0]), length, 0, reinterpret_cast<sockaddr*>(&channel.caddr), reinterpret_cast<socklen_t *>(&channel.addrlen))) > 0)
-//    {
-//        buf.resize(nbytes);
-//        debug_packet(buf, type+" in");
-//    }
-//    else
-//    {
-//        nbytes = -errno;
-//    }
     return nbytes;
 }
 
