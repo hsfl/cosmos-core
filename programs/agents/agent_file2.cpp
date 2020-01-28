@@ -202,10 +202,6 @@ int main(int argc, char *argv[])
     fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Established\n", agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
-    //open sockets for receiving and sending
-    fprintf(agent->get_debug_fd(), "- Opening recv socket...");
-    fflush(agent->get_debug_fd());
-
     comm_channel.resize(1);
     if((iretn = socket_open(&comm_channel[0].chansock, NetworkType::UDP, (char *)"", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
