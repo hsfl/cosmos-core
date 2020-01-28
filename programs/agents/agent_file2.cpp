@@ -417,10 +417,16 @@ int main(int argc, char *argv[])
         }
     } // End WHILE Loop
 
+    fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Exiting\n", agent->nodeName.c_str(), agent->agentName.c_str());
+    fflush(agent->get_debug_fd());
+
     send_loop_thread.join();
     recv_loop_thread.join();
     transmit_queue_check.notify_one();
     transmit_loop_thread.join();
+
+    fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Shutting down\n", agent->nodeName.c_str(), agent->agentName.c_str());
+    fflush(agent->get_debug_fd());
 
     agent->shutdown();
 
