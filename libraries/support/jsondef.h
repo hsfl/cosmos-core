@@ -1430,6 +1430,8 @@ struct rxrstruc : public allstruc
     uint16_t opmode;
     //! RSSI
     uint16_t rssi;
+    //! Packet Size
+    uint16_t pktsize;
     //! Input Frequency
     float freq;
     //! Maximum frequency allowed
@@ -1444,6 +1446,10 @@ struct rxrstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
+    //! Good Packet Count
+    uint32_t goodcnt;
+    //! Bad Packet Count
+    uint32_t badcnt;
 };
 
 //! Transmitter information
@@ -1455,6 +1461,8 @@ struct txrstruc : public allstruc
     uint16_t opmode;
     //! RSSI
     uint16_t rssi;
+    //! Packet Size
+    uint16_t pktsize;
     //! Input Frequency
     float freq;
     //! Maximum frequency allowed
@@ -1469,6 +1477,10 @@ struct txrstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
+    //! Good Packet Count
+    uint32_t goodcnt;
+    //! Bad Packet Count
+    uint32_t badcnt;
 };
 
 //! Transceiver information
@@ -1480,6 +1492,8 @@ struct tcvstruc : public allstruc
     uint16_t opmode;
     //! RSSI
     uint16_t rssi;
+    //! Packet Size
+    uint16_t pktsize;
     //! Input Frequency
     float freq;
     //! Maximum frequency allowed
@@ -1494,6 +1508,10 @@ struct tcvstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
+    //! Good Packet Count
+    uint32_t goodcnt;
+    //! Bad Packet Count
+    uint32_t badcnt;
 };
 
 //! PV String (STRG) structure.
