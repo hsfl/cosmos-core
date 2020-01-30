@@ -611,7 +611,7 @@ void recv_loop()
                                 if (txq[node].incoming.progress[tx_id].fp == NULL)
                                 {
                                     partial_filepath = txq[node].incoming.progress[tx_id].temppath + ".file";
-                                    txq[node].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
+                                    txq[node].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "a");
                                 }
 
                                 if (txq[node].incoming.progress[tx_id].fp == NULL)
