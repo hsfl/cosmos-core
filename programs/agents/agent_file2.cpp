@@ -60,7 +60,7 @@
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
 #define PACKET_SIZE_LO (512-(PACKET_DATA_HEADER_SIZE+28))
 #define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_HEADER_SIZE)
-#define THROUGHPUT_LO 2000
+#define THROUGHPUT_LO 1300
 #define PACKET_SIZE_HI (1472-(PACKET_DATA_HEADER_SIZE+28))
 #define THROUGHPUT_HI 150000
 //#define TRANSFER_QUEUE_LIMIT 10
@@ -125,9 +125,19 @@ void transmit_loop();
 // Mutexes to avoid thread collisions
 static std::mutex incoming_tx_lock;
 static std::mutex outgoing_tx_lock;
+static std::mutex debug_fd_lock;
 
 static double last_data_receive_time = 0.;
 static double next_reqmeta_time = 0.;
+
+// Counters to keep track of things
+static uint32_t packet_in_count = 0;
+static uint32_t packet_out_count;
+static uint32_t crc_error_count = 0;
+static uint32_t timeout_error_count = 0;
+static uint32_t type_error_count = 0;
+static uint32_t send_error_count = 0;
+static uint32_t recv_error_count = 0;
 
 typedef struct
 {
@@ -972,6 +982,10 @@ void recv_loop()
                     }
                     incoming_tx_lock.unlock();
                 }
+                break;
+            default:
+                ++type_error_count;
+                break;
             }
         }
     }
@@ -1299,12 +1313,14 @@ int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYT
 
     if (iretn >= 0)
     {
+        ++packet_out_count;
         channel.nmjd = currentmjd() + ((28+iretn) / (float)channel.throughput)/86400.;
         debug_packet(buf, type+" out");
     }
     else
     {
         iretn = -errno;
+        ++send_error_count;
     }
 
     return iretn;
@@ -1343,6 +1359,7 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
             else if (rv == 0)
             {
                 nbytes = GENERAL_ERROR_TIMEOUT;
+                ++timeout_error_count;
             }
             else
             {
@@ -1360,9 +1377,11 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
                             if (crc != crccalc)
                             {
                                 nbytes = GENERAL_ERROR_CRC;
+                                ++crc_error_count;
                             }
                             else
                             {
+                                ++packet_in_count;
                                 buf.resize(nbytes);
                                 debug_packet(buf, type+" in");
                             }
@@ -1373,10 +1392,12 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
                             if (nbytes < 0)
                             {
                                 nbytes = -errno;
+                                ++recv_error_count;
                             }
                             else
                             {
                                 nbytes = GENERAL_ERROR_INPUT;
+                                ++recv_error_count;
                             }
                         }
 
@@ -1393,7 +1414,8 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
 {
     if (debug_flag)
     {
-        fprintf(agent->get_debug_fd(), "[%.15g %s (%" PRIu32 ")] ", currentmjd(), type.c_str(), buf.size());
+        debug_fd_lock.lock();
+        fprintf(agent->get_debug_fd(), "[%.15g %s In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u (%" PRIu32 ")] ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size());
         switch (buf[0] & 0x0f)
         {
         case PACKET_METADATA:
@@ -1444,6 +1466,7 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
         }
         fprintf(agent->get_debug_fd(), "\n");
         fflush(agent->get_debug_fd());
+        debug_fd_lock.unlock();
     }
 }
 
