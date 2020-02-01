@@ -58,10 +58,10 @@
 
 #define TRANSFER_QUEUE_SIZE 256
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
-#define PACKET_SIZE_LO (512-(PACKET_DATA_HEADER_SIZE+28))
-#define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_HEADER_SIZE)
+#define PACKET_SIZE_LO (512-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
+#define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_OFFSET_HEADER_TOTAL)
 #define THROUGHPUT_LO 1300
-#define PACKET_SIZE_HI (1472-(PACKET_DATA_HEADER_SIZE+28))
+#define PACKET_SIZE_HI (1472-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
 #define THROUGHPUT_HI 150000
 //#define TRANSFER_QUEUE_LIMIT 10
 
@@ -1373,7 +1373,7 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
                         {
                             uint16_t crccalc = calc_crc16ccitt(&buf[3], nbytes-3);
                             uint16_t crc;
-                            memmove(&crc, &buf[0]+PACKET_HEADER_CRC, sizeof(PACKET_CRC));
+                            memmove(&crc, &buf[0]+PACKET_HEADER_OFFSET_CRC, sizeof(PACKET_CRC));
                             if (crc != crccalc)
                             {
                                 nbytes = GENERAL_ERROR_CRC;
@@ -1414,53 +1414,58 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
 {
     if (debug_flag)
     {
+        uint32_t total = 0;
+        for (uint16_t i=PACKET_HEADER_OFFSET_TOTAL; i<buf.size(); ++i)
+        {
+            total += buf[i];
+        }
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "[%.15g %s In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u (%" PRIu32 ")] ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size());
+        fprintf(agent->get_debug_fd(), "[%.15g %s In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u Size: %u Total: %u] ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size(), total);
         switch (buf[0] & 0x0f)
         {
         case PACKET_METADATA:
             {
-                std::string file_name(&buf[PACKET_METASHORT_FILE_NAME], &buf[PACKET_METASHORT_FILE_NAME+TRANSFER_MAX_FILENAME]);
-                fprintf(agent->get_debug_fd(), "[METADATA] %u %u %s ", buf[PACKET_METASHORT_NODE_ID], buf[PACKET_METASHORT_TX_ID], file_name.c_str());
+                std::string file_name(&buf[PACKET_METASHORT_OFFSET_FILE_NAME], &buf[PACKET_METASHORT_OFFSET_FILE_NAME+TRANSFER_MAX_FILENAME]);
+                fprintf(agent->get_debug_fd(), "[METADATA] %u %u %s ", buf[PACKET_METASHORT_OFFSET_NODE_ID], buf[PACKET_METASHORT_OFFSET_TX_ID], file_name.c_str());
                 break;
             }
         case PACKET_DATA:
             {
-                fprintf(agent->get_debug_fd(), "[DATA] %u %u %u %u ", buf[PACKET_DATA_NODE_ID], buf[PACKET_DATA_TX_ID], buf[PACKET_DATA_CHUNK_START]+256U*(buf[PACKET_DATA_CHUNK_START+1]+256U*(buf[PACKET_DATA_CHUNK_START+2]+256U*buf[PACKET_DATA_CHUNK_START+3])), buf[PACKET_DATA_BYTE_COUNT]+256U*buf[PACKET_DATA_BYTE_COUNT+1]);
+                fprintf(agent->get_debug_fd(), "[DATA] %u %u %u %u ", buf[PACKET_DATA_OFFSET_NODE_ID], buf[PACKET_DATA_OFFSET_TX_ID], buf[PACKET_DATA_OFFSET_CHUNK_START]+256U*(buf[PACKET_DATA_OFFSET_CHUNK_START+1]+256U*(buf[PACKET_DATA_OFFSET_CHUNK_START+2]+256U*buf[PACKET_DATA_OFFSET_CHUNK_START+3])), buf[PACKET_DATA_OFFSET_BYTE_COUNT]+256U*buf[PACKET_DATA_OFFSET_BYTE_COUNT+1]);
                 break;
             }
         case PACKET_REQDATA:
             {
-                fprintf(agent->get_debug_fd(), "[REQDATA] %u %u %u %u ", buf[PACKET_REQDATA_NODE_ID], buf[PACKET_REQDATA_TX_ID], buf[PACKET_REQDATA_HOLE_START]+256U*(buf[PACKET_REQDATA_HOLE_START+1]+256U*(buf[PACKET_REQDATA_HOLE_START+2]+256U*buf[PACKET_REQDATA_HOLE_START+3])), buf[PACKET_REQDATA_HOLE_END]+256U*(buf[PACKET_REQDATA_HOLE_END+1]+256U*(buf[PACKET_REQDATA_HOLE_END+2]+256U*buf[PACKET_REQDATA_HOLE_END+3])));
+                fprintf(agent->get_debug_fd(), "[REQDATA] %u %u %u %u ", buf[PACKET_REQDATA_OFFSET_NODE_ID], buf[PACKET_REQDATA_OFFSET_TX_ID], buf[PACKET_REQDATA_OFFSET_HOLE_START]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_START+1]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_START+2]+256U*buf[PACKET_REQDATA_OFFSET_HOLE_START+3])), buf[PACKET_REQDATA_OFFSET_HOLE_END]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_END+1]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_END+2]+256U*buf[PACKET_REQDATA_OFFSET_HOLE_END+3])));
                 break;
             }
         case PACKET_REQMETA:
             {
-                fprintf(agent->get_debug_fd(), "[REQMETA] %u %s ", buf[PACKET_REQMETA_NODE_ID], &buf[PACKET_REQMETA_NODE_NAME]);
+                fprintf(agent->get_debug_fd(), "[REQMETA] %u %s ", buf[PACKET_REQMETA_OFFSET_NODE_ID], &buf[PACKET_REQMETA_OFFSET_NODE_NAME]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    if (buf[PACKET_REQMETA_TX_ID+i])
+                    if (buf[PACKET_REQMETA_OFFSET_TX_ID+i])
                     {
-                        fprintf(agent->get_debug_fd(), "%u ", buf[PACKET_REQMETA_TX_ID+i]);
+                        fprintf(agent->get_debug_fd(), "%u ", buf[PACKET_REQMETA_OFFSET_TX_ID+i]);
                     }
                 break;
             }
         case PACKET_COMPLETE:
             {
-                fprintf(agent->get_debug_fd(), "[COMPLETE] %u %u ", buf[PACKET_COMPLETE_NODE_ID], buf[PACKET_COMPLETE_TX_ID]);
+                fprintf(agent->get_debug_fd(), "[COMPLETE] %u %u ", buf[PACKET_COMPLETE_OFFSET_NODE_ID], buf[PACKET_COMPLETE_OFFSET_TX_ID]);
                 break;
             }
         case PACKET_CANCEL:
             {
-                fprintf(agent->get_debug_fd(), "[CANCEL] %u %u ", buf[PACKET_CANCEL_NODE_ID], buf[PACKET_CANCEL_TX_ID]);
+                fprintf(agent->get_debug_fd(), "[CANCEL] %u %u ", buf[PACKET_CANCEL_OFFSET_NODE_ID], buf[PACKET_CANCEL_OFFSET_TX_ID]);
                 break;
             }
         case PACKET_QUEUE:
             {
-                fprintf(agent->get_debug_fd(), "[QUEUE] %u %s ", buf[PACKET_QUEUE_NODE_ID], &buf[PACKET_QUEUE_NODE_NAME]);
+                fprintf(agent->get_debug_fd(), "[QUEUE] %u %s ", buf[PACKET_QUEUE_OFFSET_NODE_ID], &buf[PACKET_QUEUE_OFFSET_NODE_NAME]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    if (buf[PACKET_QUEUE_TX_ID+i])
+                    if (buf[PACKET_QUEUE_OFFSET_TX_ID+i])
                     {
-                        fprintf(agent->get_debug_fd(), "%u ", buf[PACKET_QUEUE_TX_ID+i]);
+                        fprintf(agent->get_debug_fd(), "%u ", buf[PACKET_QUEUE_OFFSET_TX_ID+i]);
                     }
             }
         }
@@ -1487,8 +1492,8 @@ int32_t write_meta(tx_progress& tx)
         }
 
         uint16_t crc;
-        file_name.write((char *)&packet[0], PACKET_METALONG_SIZE);
-        crc = slip_calc_crc((uint8_t *)&packet[0], PACKET_METALONG_SIZE);
+        file_name.write((char *)&packet[0], PACKET_METALONG_OFFSET_TOTAL);
+        crc = slip_calc_crc((uint8_t *)&packet[0], PACKET_METALONG_OFFSET_TOTAL);
         file_name.write((char *)&crc, 2);
         for (file_progress progress_info : tx.file_info)
         {
@@ -1504,7 +1509,7 @@ int32_t write_meta(tx_progress& tx)
 
 int32_t read_meta(tx_progress& tx)
 {
-    std::vector<PACKET_BYTE> packet(PACKET_METALONG_SIZE,0);
+    std::vector<PACKET_BYTE> packet(PACKET_METALONG_OFFSET_TOTAL,0);
     std::ifstream file_name;
     packet_struct_metalong meta;
 
@@ -1530,7 +1535,7 @@ int32_t read_meta(tx_progress& tx)
     // load metadata
     tx.havemeta = true;
 
-    file_name.read((char *)&packet[0], PACKET_METALONG_SIZE);
+    file_name.read((char *)&packet[0], PACKET_METALONG_OFFSET_TOTAL);
     if (file_name.eof())
     {
         return DATA_ERROR_SIZE_MISMATCH;
@@ -1541,7 +1546,7 @@ int32_t read_meta(tx_progress& tx)
     {
         return DATA_ERROR_SIZE_MISMATCH;
     }
-    if (crc != slip_calc_crc((uint8_t *)&packet[0], PACKET_METALONG_SIZE))
+    if (crc != slip_calc_crc((uint8_t *)&packet[0], PACKET_METALONG_OFFSET_TOTAL))
     {
         file_name.close();
         return DATA_ERROR_CRC;
