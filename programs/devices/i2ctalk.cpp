@@ -1,116 +1,209 @@
 #include "support/configCosmos.h"
+#include "support/cosmos-errno.h"
+#include "support/elapsedtime.h"
+#include "support/stringlib.h"
+#include "i2c/i2c.h"
 #include <iostream>
 #include <string>
 
 #include "device/i2c/i2c.h"
 
-#define I2C_BUFFER_LIMIT 32
+#define I2C_BUFFER_LIMIT 256
 
-uint8_t testi2c_read_write(std::string device, uint8_t address, int nbytes, int nbytes_rx, uint8_t buff[]);
+int32_t testi2c_read_write();
+static vector <uint8_t> dataout;
+static vector <uint8_t> datain;
+static uint8_t address = 0x10; // default address
+static string device = "/dev/i2c-2"; // default device
+static float delay = .05;
+static I2C *i2cport;
+static uint16_t rcount = 0;
 
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
 
-  if (argc == 1) {
-      cout << "--------------------- " << endl;
-      cout << "COSMOS i2c Test Program " << endl;
-      cout << "Requies arguments: " << endl;
-      cout << "<device> <address> <rx_nbytes> tx_byte[0] tx_byte[1]" << endl;
-      cout << "example: /dev/i2c-2 57 8 80" << endl;
-      cout << "talk to device i2c-2 to slave address 57, receive 8 bytes and send the byte 80" << endl;
-      exit(0);
+    if (argc == 1) {
+        cout << "--------------------- " << endl;
+        cout << "COSMOS i2c Test Program " << endl;
+        cout << "Requires arguments: " << endl;
+        cout << "<address> <tx_string> <delaysec> <device> " << endl;
+        cout << "example: 57 80:40 .1 /dev/i2c-2" << endl;
+        cout << "talk to device i2c-2 to slave address decimal 57, send the two bytes decimal 80 and decimal 40, and wait up to .1 seconds for the response" << endl;
+        exit(0);
     }
 
-  uint8_t buff[I2C_BUFFER_LIMIT];
 
-  int nbytes_tx = argc-4;
-  int nbytes_rx = 0;
-  uint8_t address = 0x10; // default address
-  string device = "/dev/i2c-2"; // default device
+    // input format
+    // <device> <address> <rx_nbytes> <tx_byte0> <tx_byte1>
 
-  memset(buff, 0, sizeof(buff));
+    string outstring = "";
+    switch (argc)
+    {
+    case 6:
+        device = argv[5];
+    case 5:
+        delay = atof(argv[4]);
+    case 4:
+        rcount = atol(argv[3]);
+    case 3:
+        outstring = argv[2];
+    case 2:
+        //        address = strtol(argv[1], nullptr, 16);
+        address = strtol(argv[1], nullptr, 10);
+        break;
+    default:
+        printf("Usage: i2ctalk addressx dd[:dd:dd:dd] [ delaysec [ device ]]\n");
+        exit;
+    }
 
-  // input format
-  // <device> <address> <rx_nbytes> <tx_byte0> <tx_byte1>
+    if (outstring.empty())
+    {
+        printf("Nothing to send\n");
+        exit;
+    }
 
-  if (argc > 1) {
+    vector <string> outs = string_split(outstring,":");
+    dataout.clear();
+    for (string tout : outs)
+    {
+        dataout.push_back(strtol(tout.c_str(), nullptr, 10));
+    }
 
-      device = argv[1];
-      address = strtol(argv[2], NULL, 16);
-      nbytes_rx = atoi(argv[3]); //
+    printf("Send data to address 0x%x: \n", address);
 
-      // collect bytes to send
-      if (argc > 3) {
+    i2cport = new I2C(device, address, delay);
+    if (i2cport->get_error() < 0)
+    {
+        printf("%s\n", cosmos_error_string(i2cport->get_error()).c_str());
+        exit;
+    }
 
-          for (int i=0; i<argc-4; i++) {
-              buff[i] = strtol(argv[4+i], NULL, 16);
-            }
+    datain.resize(rcount);
+    iretn = i2cport->send(dataout.data(), dataout.size());
+    if (iretn > 0)
+    {
+
+        printf("TX (hex): ");
+
+        for (int i=0; i< dataout.size(); i++)
+        {
+            printf("%2x ", dataout[i]);
         }
+
+        printf(" (%d bytes)", dataout.size());
+        printf("\n");
+    }
+    else
+    {
+        printf("TX: %s\n", cosmos_error_string(i2cport->get_error()).c_str());
+        exit;
     }
 
-  printf("Send data to address 0x%x: \n", address);
 
-  testi2c_read_write(device, address, nbytes_tx, nbytes_rx, buff);
+    iretn = i2cport->receive(datain.data(), rcount);
 
-  return 0;
+    if (datain.size() > 0)
+    {
+
+        printf("RX (hex): ");
+
+        for (int i=0; i< datain.size(); i++)
+        {
+            printf("%2x ", datain[i]);
+        }
+
+        printf(" (%d bytes)", datain.size());
+        printf("\n");
+    }
+
+
+    return 0;
 }
 
 
-uint8_t testi2c_read_write(string device, uint8_t address, int nbytes, int nbytes_rx, uint8_t buff[I2C_BUFFER_LIMIT]) {
-  int fh;
-  int len, sent, rcvd;
+int32_t testi2c_read_write()
+{
+    int fh;
+    int len, sent, rcvd;
+    uint8_t buff[I2C_BUFFER_LIMIT];
 
-  fh = open(device.c_str(), O_RDWR);
+    fh = open(device.c_str(), O_RDWR);
 
-  if (fh < 0) {
-      perror("open");
-      return 1;
+    if (fh < 0) {
+        perror("open");
+        return -errno;
     }
 
-  if (ioctl(fh, I2C_SLAVE, address) < 0) {
-      perror("ioctl");
-      return 1;
+    if (ioctl(fh, I2C_SLAVE, address) < 0) {
+        perror("ioctl");
+        return -errno;
     }
 
-  len = nbytes; // sizeof(buff);
+    len = dataout.size(); // sizeof(buff);
 
 
-  sent = write(fh, buff, len);
+    memset(buff, 0, sizeof(dataout.size())); // reset buffer
+    std::copy(dataout.begin(), dataout.end(), buff);
+    sent = write(fh, buff, len);
 
-  if (sent != len) {
-      perror("write");
-      return 1;
+    if (sent != len) {
+        perror("write");
+        return -errno;
     } else {
-      printf("TX (hex): ");
+        printf("TX (hex): ");
 
-      for (int i=0; i< sent; i++) {
-          printf("%2x ", buff[i]);
+        for (int i=0; i< sent; i++) {
+            printf("%2x ", buff[i]);
         }
-      printf(" (%d bytes)", sent);
-      cout << endl;
+        printf(" (%d bytes)", sent);
+        cout << endl;
     }
 
 
-  //    printf("Sent: 0x%x | %d\n", buff[0], buff[0]);
+    //    printf("Sent: 0x%x | %d\n", buff[0], buff[0]);
 
-  memset(buff, 0, sizeof(buff));
-  //printf("Sent: 0x%x | %d\n", buff[0], buff[0]);
-  rcvd = read(fh, buff, nbytes_rx);
+    dataout.clear();
+    memset(buff, 0, sizeof(buff));
 
-  if (rcvd > 0){
 
-      printf("RX (hex): ");
+    ElapsedTime et;
+    do
+    {
+        int32_t rcvd = 0;
+        rcvd = read(fh, buff, I2C_BUFFER_LIMIT);
 
-      for (int i=0; i< rcvd; i++) {
-          printf("%2x ", buff[i]);
+        if (rcvd < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+        {
+            return -errno;
+        }
+        else if (rcvd > 0)
+        {
+            for (int32_t i=0; i<rcvd; ++i)
+            {
+                dataout.push_back(buff[i]);
+            }
+            et.reset();
+        }
+    } while(et.split() <= delay);
+
+
+    if (dataout.size() > 0)
+    {
+
+        printf("RX (hex): ");
+
+        for (int i=0; i< dataout.size(); i++)
+        {
+            printf("%2x ", dataout[i]);
         }
 
-      printf(" (%d bytes)", rcvd);
-      printf("\n");
+        printf(" (%d bytes)", dataout.size());
+        printf("\n");
     }
 
-  close(fh);
-  return 0;
+    close(fh);
+    return 0;
 }
 
 
