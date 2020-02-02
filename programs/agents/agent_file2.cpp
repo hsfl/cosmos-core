@@ -417,8 +417,10 @@ int main(int argc, char *argv[])
                             }
                             if (debug_flag)
                             {
+                                debug_fd_lock.lock();
                                 fprintf(agent->get_debug_fd(), "[%f] outgoing_tx_add: %s [%d]\n", etloop.split(), file.path.c_str(), iretn);
                                 fflush(agent->get_debug_fd());
+                                debug_fd_lock.unlock();
                             }
                         }
                     }
@@ -539,6 +541,9 @@ void recv_loop()
                             tp.chunk_start = data.chunk_start;
                             tp.chunk_end = data.chunk_start + data.byte_count - 1;
 
+                            packet_struct_data odata;
+                            odata = data;
+
                             uint32_t check=0;
                             bool duplicate = false;
                             bool updated = false;
@@ -628,9 +633,11 @@ void recv_loop()
                                 {
                                     if (debug_flag)
                                     {
+                                        debug_fd_lock.lock();
                                         fprintf(agent->get_debug_fd(), "File Error: %s %s on ID: %u Chunk: %u\n", partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
+                                        fflush(agent->get_debug_fd());
+                                        debug_fd_lock.unlock();
                                     }
-//                                    perror(partial_filepath.c_str());
                                 }
                                 else
                                 {
@@ -639,6 +646,13 @@ void recv_loop()
                                     fflush(txq[node].incoming.progress[tx_id].fp);
                                     // Write latest meta data to disk
                                     write_meta(txq[node].incoming.progress[tx_id]);
+                                    if (debug_flag)
+                                    {
+                                        debug_fd_lock.lock();
+                                        fprintf(agent->get_debug_fd(), "Original Data: %u %u Final Data: %u %u Chunk: %u %u\n", odata.chunk_start, odata.byte_count, data.chunk_start, data.byte_count, tp.chunk_start, tp.chunk_end);
+                                        fflush(agent->get_debug_fd());
+                                        debug_fd_lock.unlock();
+                                    }
                                 }
 
                             }
@@ -669,8 +683,10 @@ void recv_loop()
                                         int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
                                         if (debug_flag)
                                         {
+                                            debug_fd_lock.lock();
                                             fprintf(agent->get_debug_fd(), "Renamed: %d %s\n", iret, tx_in.filepath.c_str());
                                             fflush(agent->get_debug_fd());
+                                            debug_fd_lock.unlock();
                                         }
                                         // Mark complete
                                         txq[node].incoming.progress[tx_id].complete = true;
@@ -1044,8 +1060,10 @@ void send_loop()
             if (debug_flag && txq[node].outgoing.state != previous_state)
             {
                 previous_state = txq[node].outgoing.state;
+                debug_fd_lock.lock();
                 fprintf(agent->get_debug_fd(), "Send Loop: Node %s State: %d\n", txq[node].node_name.c_str(), txq[node].outgoing.state);
                 fflush(agent->get_debug_fd());
+                debug_fd_lock.unlock();
             }
             // Decide what to do next based on our current state
             outgoing_tx_lock.lock();
@@ -1303,8 +1321,10 @@ int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYT
     {
         if (debug_flag)
         {
+            debug_fd_lock.lock();
             fprintf(agent->get_debug_fd(), "Mysendto Sleep: %f seconds\n", 86400. * (channel.nmjd - cmjd));
             fflush(agent->get_debug_fd());
+            debug_fd_lock.unlock();
         }
         COSMOS_SLEEP((86400. * (channel.nmjd - cmjd)));
     }
@@ -1584,8 +1604,10 @@ int32_t read_meta(tx_progress& tx)
     file_name.close();
     if (debug_flag)
     {
+        debug_fd_lock.lock();
         fprintf(agent->get_debug_fd(), "read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
         fflush(agent->get_debug_fd());
+        debug_fd_lock.unlock();
     }
 
     // fix any overlaps and count total bytes
@@ -1887,8 +1909,10 @@ int32_t outgoing_tx_add(tx_progress tx_out)
 
     if (debug_flag)
     {
+        debug_fd_lock.lock();
         fprintf(agent->get_debug_fd(), "Add outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
         fflush(agent->get_debug_fd());
+        debug_fd_lock.unlock();
     }
 
     return 0;
@@ -2000,8 +2024,10 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     {
         if (debug_flag)
         {
+            debug_fd_lock.lock();
             fprintf(agent->get_debug_fd(), "Del outgoing: %u %s %s %s - Unable to remove file\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
             fflush(agent->get_debug_fd());
+            debug_fd_lock.unlock();
         }
     }
 
@@ -2011,8 +2037,10 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
 
     if (debug_flag)
     {
+        debug_fd_lock.lock();
         fprintf(agent->get_debug_fd(), "Del outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
         fflush(agent->get_debug_fd());
+        debug_fd_lock.unlock();
     }
 
     return 0;
@@ -2045,8 +2073,10 @@ int32_t incoming_tx_add(tx_progress tx_in)
 
     if (debug_flag)
     {
+        debug_fd_lock.lock();
         fprintf(agent->get_debug_fd(), "Add incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
         fflush(agent->get_debug_fd());
+        debug_fd_lock.unlock();
     }
 
     return 0;
@@ -2107,8 +2137,10 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
 
     if (debug_flag)
     {
+        debug_fd_lock.lock();
         fprintf(agent->get_debug_fd(), "Update incoming: %u %s %s %s\n", txq[node].incoming.progress[meta.tx_id].tx_id, txq[node].incoming.progress[meta.tx_id].node_name.c_str(), txq[node].incoming.progress[meta.tx_id].agent_name.c_str(), txq[node].incoming.progress[meta.tx_id].file_name.c_str());
         fflush(agent->get_debug_fd());
+        debug_fd_lock.unlock();
     }
 
     return meta.tx_id;
@@ -2157,8 +2189,10 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
 
     if (debug_flag)
     {
+        debug_fd_lock.lock();
         fprintf(agent->get_debug_fd(), "Del incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
         fflush(agent->get_debug_fd());
+        debug_fd_lock.unlock();
     }
 
     return 0;
