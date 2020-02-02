@@ -623,13 +623,20 @@ void recv_loop()
                             if (updated)
                             {
                                 // Write incoming data to disk
-                                if (txq[node].incoming.progress[tx_id].fp == NULL)
+                                if (txq[node].incoming.progress[tx_id].fp == nullptr)
                                 {
                                     partial_filepath = txq[node].incoming.progress[tx_id].temppath + ".file";
-                                    txq[node].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "a");
+                                    if (data_exists(partial_filepath))
+                                    {
+                                        txq[node].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "r+");
+                                    }
+                                    else
+                                    {
+                                        txq[node].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "a");
+                                    }
                                 }
 
-                                if (txq[node].incoming.progress[tx_id].fp == NULL)
+                                if (txq[node].incoming.progress[tx_id].fp == nullptr)
                                 {
                                     if (debug_flag)
                                     {
@@ -654,7 +661,7 @@ void recv_loop()
                                             total += data.chunk[i];
                                         }
                                         debug_fd_lock.lock();
-                                        fprintf(agent->get_debug_fd(), "Original Data: %u %u Final Data: %u %u Chunk: %u %u Total: %u\n", odata.chunk_start, odata.byte_count, data.chunk_start, data.byte_count, tp.chunk_start, tp.chunk_end, total);
+                                        fprintf(agent->get_debug_fd(), "%16.10f Original Data: %u %u Final Data: %u %u Chunk: %u %u Total: %u\n", currentmjd(), odata.chunk_start, odata.byte_count, data.chunk_start, data.byte_count, tp.chunk_start, tp.chunk_end, total);
                                         fflush(agent->get_debug_fd());
                                         debug_fd_lock.unlock();
                                     }
@@ -1445,7 +1452,7 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
             total += buf[i];
         }
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "[%.15g %s In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u Size: %u Total: %u] ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size(), total);
+        fprintf(agent->get_debug_fd(), "%%16.10f %s In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u Size: %u Total: %u ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size(), total);
         switch (buf[0] & 0x0f)
         {
         case PACKET_METADATA:
@@ -1739,9 +1746,9 @@ int32_t request_ls(char* request, char* response, Agent *agent)
 
     std::string all_file_names;
 
-    if((dir = opendir(directoryname.c_str())) != NULL)
+    if((dir = opendir(directoryname.c_str())) != nullptr)
     {
-        while (( ent = readdir(dir)) != NULL)
+        while (( ent = readdir(dir)) != nullptr)
         {
             all_file_names += ent->d_name;
             all_file_names += "\n";
