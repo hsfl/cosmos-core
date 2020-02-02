@@ -648,8 +648,13 @@ void recv_loop()
                                     write_meta(txq[node].incoming.progress[tx_id]);
                                     if (debug_flag)
                                     {
+                                        uint32_t total = 0;
+                                        for (uint16_t i=0; i<data.byte_count; ++i)
+                                        {
+                                            total += data.chunk[i];
+                                        }
                                         debug_fd_lock.lock();
-                                        fprintf(agent->get_debug_fd(), "Original Data: %u %u Final Data: %u %u Chunk: %u %u\n", odata.chunk_start, odata.byte_count, data.chunk_start, data.byte_count, tp.chunk_start, tp.chunk_end);
+                                        fprintf(agent->get_debug_fd(), "Original Data: %u %u Final Data: %u %u Chunk: %u %u Total: %u\n", odata.chunk_start, odata.byte_count, data.chunk_start, data.byte_count, tp.chunk_start, tp.chunk_end, total);
                                         fflush(agent->get_debug_fd());
                                         debug_fd_lock.unlock();
                                     }
