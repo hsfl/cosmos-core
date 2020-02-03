@@ -1452,7 +1452,7 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
             total += buf[i];
         }
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%%16.10f %s In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u Size: %u Total: %u ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size(), total);
+        fprintf(agent->get_debug_fd(), "%16.10f %s In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u Size: %u Total: %u ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size(), total);
         switch (buf[0] & 0x0f)
         {
         case PACKET_METADATA:
