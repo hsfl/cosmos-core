@@ -632,7 +632,7 @@ void recv_loop()
                                     }
                                     else
                                     {
-                                        txq[node].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "a");
+                                        txq[node].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
                                     }
                                 }
 
