@@ -1019,6 +1019,19 @@ void recv_loop()
             }
         }
     }
+
+    // Flush any active metadata
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+        for (uint16_t tx_id=1; tx_id<TRANSFER_QUEUE_SIZE; ++tx_id)
+        {
+            if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id && txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta)
+            {
+                write_meta(txq[static_cast <size_t>(node)].incoming.progress[tx_id], 0.);
+            }
+        }
+    }
+
 }
 
 void send_loop()
@@ -1041,10 +1054,10 @@ void send_loop()
         }
 
         // If we did nothing last loop, wait at least 100 msec
-        if (next_send_time == 0.)
+        if (next_send_time < 1.16e-6)
         {
             // 100 msec in MJD
-            next_send_time = 1.16e-6;
+            next_send_time = 1.16e-6; // .1 second
         }
 
         // Time it should be after we wait
@@ -1060,7 +1073,7 @@ void send_loop()
 
         // Bring us up to the present
         current_time = next_time;
-        next_send_time = .1 / 86400.;
+//        next_send_time = .1 / 86400.;
 
         for (int32_t node=0; node<txq.size(); ++node)
         {
@@ -1180,7 +1193,10 @@ void send_loop()
                                     send_time = queuesendto(node, "tx", packet);
                                     if (send_time >= 0.)
                                     {
-                                        next_send_time += send_time;
+                                        if (send_time > next_send_time)
+                                        {
+                                            next_send_time = send_time;
+                                        }
                                         txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[0].chunk_start = tp.chunk_end + 1;
                                     }
                                     else
@@ -1254,7 +1270,8 @@ void send_loop()
                         make_cancel_packet(packet, remote_node, tx_id);
                         queuesendto(node, "tx", packet);
                     }
-                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_CANCEL - 8] = currentmjd() + 10. / 86400.;
+//                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_CANCEL - 8] = currentmjd() + 10. / 86400.;
+                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_CANCEL - 8] = currentmjd() + next_send_time;
                     txq[static_cast <size_t>(node)].outgoing.state = PACKET_QUEUE;
                 }
                 break;
@@ -1809,8 +1826,8 @@ int32_t request_get_channels(char* request, char* response, Agent *agent)
         sprintf(response,"ip:\"%s\",", comm_channel[channel].chanip.c_str());
         sprintf(response,"size:%u,", comm_channel[channel].packet_size);
         sprintf(response,"throughput:%u,", comm_channel[channel].throughput);
-        sprintf(response,"nmjd:\"%s\",", comm_channel[channel].nmjd);
-        sprintf(response,"lmjd:\"%s\",", comm_channel[channel].lmjd);
+        sprintf(response,"nmjd:\"%f\",", comm_channel[channel].nmjd);
+        sprintf(response,"lmjd:\"%f\",", comm_channel[channel].lmjd);
         sprintf(response,"},");
     }
 }
