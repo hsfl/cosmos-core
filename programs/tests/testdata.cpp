@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                value = atoll(argv[1]);
+                value = atoll(argv[2]);
             }
             if (value < 256)
             {
