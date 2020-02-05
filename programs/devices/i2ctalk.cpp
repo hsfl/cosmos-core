@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
         cout << "--------------------- " << endl;
         cout << "COSMOS i2c Test Program " << endl;
         cout << "Requires arguments: " << endl;
-        cout << "<address> <tx_string> <delaysec> <device> " << endl;
+        cout << "address tx_byte[:tx_byte:tx_byte:...] [delaysec [device]] " << endl;
         cout << "example: 57 80:40 .1 /dev/i2c-2" << endl;
         cout << "talk to device i2c-2 to slave address decimal 57, send the two bytes decimal 80 and decimal 40, and wait up to .1 seconds for the response" << endl;
         exit(0);
