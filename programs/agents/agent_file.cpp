@@ -58,15 +58,15 @@
 #define TRANSFER_QUEUE_SIZE 256
 #define MAXBUFFERSIZE 1024
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
-#define PACKET_SIZE_LO (253-(PACKET_DATA_HEADER_SIZE+28))
-#define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_HEADER_SIZE)
+#define PACKET_SIZE_LO (253-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
+#define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_OFFSET_HEADER_TOTAL)
 #define THROUGHPUT_LO 1000
-#define PACKET_SIZE_HI (1472-(PACKET_DATA_HEADER_SIZE+28))
+#define PACKET_SIZE_HI (1472-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
 #define THROUGHPUT_HI 150000
 //#define TRANSFER_QUEUE_LIMIT 10
 
 // Debug Var
-bool debug_flag = false;
+static bool debug_flag = false;
 
 #ifdef COSMOS_CYGWIN_OS
 #include<sstream>
@@ -87,14 +87,14 @@ std::string std::to_string(T value)
 // Some global variables
 
 /** the (global) name of the agent */
-std::string agentname = "file_";
+static std::string agentname = "file_";
 /** the (global) name of the heartbeat structure */
-beatstruc cbeat;
+static beatstruc cbeat;
 /** the (global) name of the cosmos data structure */
-Agent *agent;
+static Agent *agent;
 /** the (global) number of agent sending channels */
-uint16_t send_channels=0;
-uint16_t use_channel = 0;
+static uint16_t send_channels=0;
+static uint16_t use_channel = 0;
 /** the (global) structure of sending channels */
 typedef struct
 {
@@ -105,7 +105,7 @@ typedef struct
     double nmjd;
 } sendchannelstruc;
 
-sendchannelstruc send_channel[2];
+static sendchannelstruc send_channel[2];
 
 typedef struct
 {
@@ -114,10 +114,10 @@ typedef struct
     std::vector<PACKET_BYTE> packet;
 } transmit_queue_entry;
 
-std::queue<transmit_queue_entry> transmit_queue;
-std::condition_variable transmit_queue_check;
+static std::queue<transmit_queue_entry> transmit_queue;
+static std::condition_variable transmit_queue_check;
 
-socket_channel recvchan;
+static socket_channel recvchan;
 
 //Send and receive thread info
 void send_loop();
@@ -125,18 +125,18 @@ void recv_loop();
 void transmit_loop();
 
 // Mutexes to avoid thread collisions
-std::mutex incoming_tx_lock;
-std::mutex outgoing_tx_lock;
+static std::mutex incoming_tx_lock;
+static std::mutex outgoing_tx_lock;
 
-double last_data_receive_time = 0.;
-double last_data_send_time = 0.;
+static double last_data_receive_time = 0.;
+static double last_data_send_time = 0.;
 //double current_updatetime = 0.;
-double next_reqmeta_time = 0.;
-double next_queue_time = 0.;
+static double next_reqmeta_time = 0.;
+static double next_queue_time = 0.;
 
 // Directory variables
-DIR *dir = NULL;
-struct dirent* dir_entry = NULL;
+//static DIR *dir = NULL;
+//static struct dirent* dir_entry = NULL;
 
 typedef struct
 {
@@ -159,7 +159,7 @@ typedef struct
 static std::vector<tx_queue> txq;
 
 //static std::vector<tx_queue> incoming_tx;
-int32_t active_node = -1;
+static int32_t active_node = -1;
 
 //static std::vector<tx_queue> outgoing_tx;
 //int32_t node = -1;
@@ -219,14 +219,13 @@ int main(int argc, char *argv[])
             send_channel[0].throughput = THROUGHPUT_LO;
             send_channel[0].nmjd = currentmjd(0.);
             ++send_channels;
-            agentname += argv[1];
             break;
         }
-    default:
-        {
-            printf("Usage:\t agent_file destination_ip_address[0] {destination_ip_address[1]\n");
-            exit(-1);
-        }
+//    default:
+//        {
+//            printf("Usage:\t agent_file destination_ip_address[0] {destination_ip_address[1]\n");
+//            exit(-1);
+//        }
     }
 
     // set this program up as a server
@@ -234,6 +233,9 @@ int main(int argc, char *argv[])
     printf("- Setting up server...");
     fflush(stdout);
 
+    char hostname[60];
+    gethostname(hostname, sizeof (hostname));
+    agentname += hostname;
     agent = new Agent("", agentname, 5.);
     if (agent->cinfo == nullptr || !agent->running())
     {
@@ -1052,7 +1054,7 @@ void send_loop()
                         tp.chunk_end = tp.chunk_start + byte_count - 1;
 
                         // Read the packet and send it
-                        size_t nbytes;
+                        int32_t nbytes;
                         PACKET_BYTE* chunk = new PACKET_BYTE[byte_count]();
                         if (!(nbytes = fseek(txq[node].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET)))
                         {
@@ -1228,7 +1230,7 @@ int32_t myrecvfrom(std::string type, socket_channel channel, std::vector<PACKET_
     int32_t nbytes;
 
     buf.resize(length);
-    if (( nbytes = recvfrom(channel.cudp, (char *)&buf[0], length, 0, (struct sockaddr*) NULL, (socklen_t *)NULL)) > 0)
+    if (( nbytes = recvfrom(channel.cudp, (char *)&buf[0], length, 0, static_cast<struct sockaddr *>(nullptr), static_cast<socklen_t *>(nullptr))) > 0)
     {
         buf.resize(nbytes);
         debug_packet(buf, type+" in");
@@ -1249,47 +1251,47 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
         {
         case PACKET_METADATA:
             {
-                std::string file_name(&buf[PACKET_METASHORT_FILE_NAME], &buf[PACKET_METASHORT_FILE_NAME+TRANSFER_MAX_FILENAME]);
-                printf("[METADATA] %u %u %s ", buf[PACKET_METASHORT_NODE_ID], buf[PACKET_METASHORT_TX_ID], file_name.c_str());
+                std::string file_name(&buf[PACKET_METASHORT_OFFSET_FILE_NAME], &buf[PACKET_METASHORT_OFFSET_FILE_NAME+TRANSFER_MAX_FILENAME]);
+                printf("[METADATA] %u %u %s ", buf[PACKET_METASHORT_OFFSET_NODE_ID], buf[PACKET_METASHORT_OFFSET_TX_ID], file_name.c_str());
                 break;
             }
         case PACKET_DATA:
             {
-                printf("[DATA] %u %u %u %u ", buf[PACKET_DATA_NODE_ID], buf[PACKET_DATA_TX_ID], buf[PACKET_DATA_CHUNK_START]+256U*(buf[PACKET_DATA_CHUNK_START+1]+256U*(buf[PACKET_DATA_CHUNK_START+2]+256U*buf[PACKET_DATA_CHUNK_START+3])), buf[PACKET_DATA_BYTE_COUNT]+256U*buf[PACKET_DATA_BYTE_COUNT+1]);
+                printf("[DATA] %u %u %u %u ", buf[PACKET_DATA_OFFSET_NODE_ID], buf[PACKET_DATA_OFFSET_TX_ID], buf[PACKET_DATA_OFFSET_CHUNK_START]+256U*(buf[PACKET_DATA_OFFSET_CHUNK_START+1]+256U*(buf[PACKET_DATA_OFFSET_CHUNK_START+2]+256U*buf[PACKET_DATA_OFFSET_CHUNK_START+3])), buf[PACKET_DATA_OFFSET_BYTE_COUNT]+256U*buf[PACKET_DATA_OFFSET_BYTE_COUNT+1]);
                 break;
             }
         case PACKET_REQDATA:
             {
-                printf("[REQDATA] %u %u %u %u ", buf[PACKET_REQDATA_NODE_ID], buf[PACKET_REQDATA_TX_ID], buf[PACKET_REQDATA_HOLE_START]+256U*(buf[PACKET_REQDATA_HOLE_START+1]+256U*(buf[PACKET_REQDATA_HOLE_START+2]+256U*buf[PACKET_REQDATA_HOLE_START+3])), buf[PACKET_REQDATA_HOLE_END]+256U*(buf[PACKET_REQDATA_HOLE_END+1]+256U*(buf[PACKET_REQDATA_HOLE_END+2]+256U*buf[PACKET_REQDATA_HOLE_END+3])));
+                printf("[REQDATA] %u %u %u %u ", buf[PACKET_REQDATA_OFFSET_NODE_ID], buf[PACKET_REQDATA_OFFSET_TX_ID], buf[PACKET_REQDATA_OFFSET_HOLE_START]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_START+1]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_START+2]+256U*buf[PACKET_REQDATA_OFFSET_HOLE_START+3])), buf[PACKET_REQDATA_OFFSET_HOLE_END]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_END+1]+256U*(buf[PACKET_REQDATA_OFFSET_HOLE_END+2]+256U*buf[PACKET_REQDATA_OFFSET_HOLE_END+3])));
                 break;
             }
         case PACKET_REQMETA:
             {
-                printf("[REQMETA] %u %s ", buf[PACKET_REQMETA_NODE_ID], &buf[PACKET_REQMETA_NODE_NAME]);
+                printf("[REQMETA] %u %s ", buf[PACKET_REQMETA_OFFSET_NODE_ID], &buf[PACKET_REQMETA_OFFSET_NODE_NAME]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    if (buf[PACKET_REQMETA_TX_ID+i])
+                    if (buf[PACKET_REQMETA_OFFSET_TX_ID+i])
                     {
-                        printf("%u ", buf[PACKET_REQMETA_TX_ID+i]);
+                        printf("%u ", buf[PACKET_REQMETA_OFFSET_TX_ID+i]);
                     }
                 break;
             }
         case PACKET_COMPLETE:
             {
-                printf("[COMPLETE] %u %u ", buf[PACKET_COMPLETE_NODE_ID], buf[PACKET_COMPLETE_TX_ID]);
+                printf("[COMPLETE] %u %u ", buf[PACKET_COMPLETE_OFFSET_NODE_ID], buf[PACKET_COMPLETE_OFFSET_TX_ID]);
                 break;
             }
         case PACKET_CANCEL:
             {
-                printf("[CANCEL] %u %u ", buf[PACKET_CANCEL_NODE_ID], buf[PACKET_CANCEL_TX_ID]);
+                printf("[CANCEL] %u %u ", buf[PACKET_CANCEL_OFFSET_NODE_ID], buf[PACKET_CANCEL_OFFSET_TX_ID]);
                 break;
             }
         case PACKET_QUEUE:
             {
-                printf("[QUEUE] %u %s ", buf[PACKET_QUEUE_NODE_ID], &buf[PACKET_QUEUE_NODE_NAME]);
+                printf("[QUEUE] %u %s ", buf[PACKET_QUEUE_OFFSET_NODE_ID], &buf[PACKET_QUEUE_OFFSET_NODE_NAME]);
                 for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
-                    if (buf[PACKET_QUEUE_TX_ID+i])
+                    if (buf[PACKET_QUEUE_OFFSET_TX_ID+i])
                     {
-                        printf("%u ", buf[PACKET_QUEUE_TX_ID+i]);
+                        printf("%u ", buf[PACKET_QUEUE_OFFSET_TX_ID+i]);
                     }
             }
         }
@@ -1315,8 +1317,8 @@ int32_t write_meta(tx_progress& tx)
         }
 
         uint16_t crc;
-        file_name.write((char *)&packet[0], PACKET_METALONG_SIZE);
-        crc = slip_calc_crc((uint8_t *)&packet[0], PACKET_METALONG_SIZE);
+        file_name.write((char *)&packet[0], PACKET_METALONG_OFFSET_TOTAL);
+        crc = slip_calc_crc((uint8_t *)&packet[0], PACKET_METALONG_OFFSET_TOTAL);
         file_name.write((char *)&crc, 2);
         for (file_progress progress_info : tx.file_info)
         {
@@ -1332,7 +1334,7 @@ int32_t write_meta(tx_progress& tx)
 
 int32_t read_meta(tx_progress& tx)
 {
-    std::vector<PACKET_BYTE> packet(PACKET_METALONG_SIZE,0);
+    std::vector<PACKET_BYTE> packet(PACKET_METALONG_OFFSET_TOTAL,0);
     std::ifstream file_name;
     packet_struct_metalong meta;
 
@@ -1358,7 +1360,7 @@ int32_t read_meta(tx_progress& tx)
     // load metadata
     tx.havemeta = true;
 
-    file_name.read((char *)&packet[0], PACKET_METALONG_SIZE);
+    file_name.read((char *)&packet[0], PACKET_METALONG_OFFSET_TOTAL);
     if (file_name.eof())
     {
         return DATA_ERROR_SIZE_MISMATCH;
@@ -1369,7 +1371,7 @@ int32_t read_meta(tx_progress& tx)
     {
         return DATA_ERROR_SIZE_MISMATCH;
     }
-    if (crc != slip_calc_crc((uint8_t *)&packet[0], PACKET_METALONG_SIZE))
+    if (crc != slip_calc_crc((uint8_t *)&packet[0], PACKET_METALONG_OFFSET_TOTAL))
     {
         file_name.close();
         return DATA_ERROR_CRC;

@@ -139,6 +139,7 @@ string get_local_time();
 
 // gregorian calendar (year, month, day) to another format
 double cal2mjd(calstruc date);
+double cal2mjd(double year);
 double cal2mjd(int32_t year, double dayOfYear=1.);
 double cal2mjd(int32_t year, int32_t month=1, double day=1.);
 double cal2mjd(int32_t year, int32_t month=1, int32_t day=1, int32_t hour=0, int32_t minute=0, int32_t second=0, int32_t nsecond=0);
@@ -147,6 +148,7 @@ double gregorianToModJulianDate(int32_t year, int32_t month, int32_t day,
 
 // utc to another format
 struct timeval utc2unix(double utc);
+double utc2unixseconds(double utc);
 double utc2epsilon(double mjd);
 double utc2depsilon(double mjd);
 double utc2dpsi(double mjd);
@@ -193,6 +195,7 @@ std::string  mjdToGregorianDDMmmYYYY(double mjd);
 std::string  mjd2iso8601(double mjd);
 double  mjd2jd(double mjd);
 double  jd2mjd(double jd);
+int32_t mjd2tlef(double mjd, std::string &tle);
 
 // other
 double unix2utc(struct timeval unixtime);
@@ -206,7 +209,6 @@ double  ranrm(double angle);
 int16_t isleap(int32_t year);
 int32_t load_iers();
 std::string  seconds2DDHHMMSS(double elapsed_seconds);
-
 
 
 //! @}

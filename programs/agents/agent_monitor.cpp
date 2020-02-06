@@ -489,7 +489,7 @@ int32_t request_run(char *request, char* response, Agent *agent)
         }
     }
 
-    return (iretn);
+    return iretn;
 }
 
 // SOH specific requests

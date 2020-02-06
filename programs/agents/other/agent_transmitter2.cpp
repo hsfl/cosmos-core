@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 		strcpy(node,argv[1]);
 
 	// check if we are already running the agent
-    if ((iretn=agent->get_server((char *)node,agentname,waitsec,(beatstruc *)NULL)) > 0)
+    if ((iretn=agent->get_server((char *)node,agentname,waitsec,(beatstruc *)nullptr)) > 0)
 		exit (iretn);
 
 	// Initialization stuff
@@ -158,7 +158,7 @@ if(input_size == -1 || input_size > 255)
 {
   memcpy(response,"Error: Input larger than 255 maximum", 36);
   iretn=1;
-  return (iretn);
+  return iretn;
 }
 */
 
@@ -181,5 +181,5 @@ if(input_size == -1 || input_size > 255)
 	//#printf("Transmitting: %s\n",request+3);
 
 
-	return (iretn);
+	return iretn;
 }

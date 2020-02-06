@@ -33,12 +33,10 @@
 
 void opening_loop();
 void forwarding_loop();
-char agentname[COSMOS_MAX_NAME+1] = "forward";
-int waitsec = 5; // wait to find other agents of your 'type/name', seconds
 
-Agent *agent;
-socket_channel rcvchan;
-std::vector<socket_channel> sendchan;
+static Agent *agent;
+static socket_channel rcvchan;
+static std::vector<socket_channel> sendchan;
 
 int32_t request_add_forward(char *req, char* , Agent *);
 int32_t request_del_forward(char *req, char*, Agent *);
@@ -107,14 +105,9 @@ int main(int argc, char *argv[])
         {
             vector <uint8_t> post;
             post.resize(mess.jdata.length() + 3 + (mess.meta.type < Agent::AgentMessage::BINARY ? mess.adata.size() : mess.bdata.size()));
-            post[0] = (uint8_t)mess.meta.type;
-            post[1] = mess.jdata.length() % 256;
-            post[2] = mess.jdata.length() / 256;
-            //            sprintf((char *)&post[3], "%s", mess.jdata.c_str());
-            //            size_t hlength = strlen((char *)&post[3]);
-            //            post[1] = hlength%256;
-            //            post[2] = hlength / 256;
-            //            nbytes = hlength + 3;
+            post[0] = static_cast <uint8_t>(mess.meta.type);
+            post[1] = static_cast <uint8_t>(mess.jdata.length() % 256);
+            post[2] = static_cast <uint8_t>(mess.jdata.length() / 256);
             std::copy(mess.jdata.begin(), mess.jdata.end(), post.begin() + 3);
 
             if (post.size() <= AGENTMAXBUFFER)
@@ -141,6 +134,17 @@ int main(int argc, char *argv[])
                 if (sendchan[i].cudp >= 0)
                 {
                     iretn = socket_sendto(sendchan[i], post);
+                    if (agent->debug_level > 1)
+                    {
+                        if (iretn < 0)
+                        {
+                            fprintf(agent->get_debug_fd(), "%s: Failed To %s\n", mjd2iso8601(currentmjd()).c_str(), sendchan[i].address);
+                        }
+                        else
+                        {
+                            fprintf(agent->get_debug_fd(), "%s: Sent %zu Bytes To %s\n", mjd2iso8601(currentmjd()).c_str(), post.size(), sendchan[i].address);
+                        }
+                    }
                 }
             }
         }
@@ -198,6 +202,10 @@ void forwarding_loop()
                 socket_channel tempchan;
                 strncpy(tempchan.address, rcvchan.address, 17);
                 sendchan.push_back(tempchan);
+                if (agent->debug_level)
+                {
+                    fprintf(agent->get_debug_fd(), "%s: Added %s\n", mjd2iso8601(currentmjd()).c_str(), tempchan.address);
+                }
             }
 
             for (size_t i=0; i<agent->cinfo->agent[0].ifcnt; ++i)

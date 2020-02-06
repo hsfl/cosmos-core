@@ -112,39 +112,48 @@ namespace Cosmos {
             tcflush(fd,TCIFLUSH);
 #endif
 
-            /* then we restore old settings */
+            if (restoreonclose)
+            {
+                /* then we restore old settings */
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-            tcsetattr(fd,TCSANOW,&(oldtio));
+                tcsetattr(fd,TCSANOW,&(oldtio));
 #else
-            SetCommState(handle, &(dcb));
+                SetCommState(handle, &(dcb));
 #endif
+            }
 
             /* and close the file */
             close(fd);
-			fd = -1;
+            fd = -1;
         }
     }
 
-	bool Serial::get_open()
-	{
-		if (fd >= 0)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
+    bool Serial::get_open()
+    {
+        if (fd >= 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
     int32_t Serial::get_error()
     {
         return error;
     }
 
+    int32_t Serial::set_restoreonclose(bool argument)
+    {
+        restoreonclose = argument;
+        return 0;
+    }
+
     int32_t Serial::set_params(size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
-    baud = dbaud;
+        baud = dbaud;
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
         tcflag_t trate;
         tcflag_t tbits;
@@ -159,26 +168,26 @@ namespace Cosmos {
 
         // Set baud rate
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
-        size_t baud_index;
+        uint32_t baud_index;
         bool baud_speed_index = 0;
         if (dbaud > (38400+57600)/2)
         {
             baud_speed_index = 1;
-            baud_index = (log10f((float)dbaud) - 4.7604) / .118 + .5;
+            baud_index = static_cast<uint32_t>((log10f(dbaud) - 4.7604F) / .118F + .5F);
         }
         else
         {
-            baud_index = (log10f((float)dbaud) - 1.699) / .2025 + .5;
+            baud_index = static_cast<uint32_t>((log10f(dbaud) - 1.699F) / .2025F + .5F);
         }
 
         bool baud_adjust = false;
         do
         {
             baud_adjust = false;
-            int32_t baud_diff = std::abs((int32_t)dbaud - baud_speed[baud_speed_index][baud_index]);
+            int32_t baud_diff = std::abs(static_cast<int32_t>(dbaud) - static_cast<int32_t>(baud_speed[baud_speed_index][baud_index]));
             if (baud_index > 0)
             {
-                int32_t new_baud_diff = std::abs((int32_t)dbaud - baud_speed[baud_speed_index][baud_index-1]);
+                int32_t new_baud_diff = std::abs(static_cast<int32_t>(dbaud) - static_cast<int32_t>(baud_speed[baud_speed_index][baud_index-1]));
                 if (new_baud_diff < baud_diff)
                 {
                     --baud_index;
@@ -188,7 +197,7 @@ namespace Cosmos {
             }
             if (baud_index < baud_speed[baud_speed_index].size()-1)
             {
-                int32_t new_baud_diff = std::abs((int32_t)dbaud - baud_speed[baud_speed_index][baud_index+1]);
+                int32_t new_baud_diff = std::abs(static_cast<int32_t>(dbaud) - static_cast<int32_t>(baud_speed[baud_speed_index][baud_index+1]));
                 if (new_baud_diff < baud_diff)
                 {
                     ++baud_index;
@@ -198,6 +207,7 @@ namespace Cosmos {
             }
         } while (baud_adjust);
         baud = baud_speed[baud_speed_index][baud_index];
+        set_timeout(20. / baud);
 
         if (baud_speed_index)
         {
@@ -407,6 +417,71 @@ namespace Cosmos {
         return error;
     }
 
+    int32_t Serial::set_dtr(bool state)
+    {
+#if defined(COSMOS_WIN_OS)
+        GetCommState(handle, &(dcb));
+        if (state)
+        {
+            dcb.fDtrControl	= DTR_CONTROL_ENABLE;
+        }
+        else
+        {
+            dcb.fDtrControl	= DTR_CONTROL_DISABLE;
+        }
+#else
+        int flag = TIOCM_DTR;
+
+        if (state)
+        {
+            ioctl(fd, TIOCMBIS, &flag);
+        }
+        else
+        {
+            ioctl(fd, TIOCMBIC, &flag);
+        }
+#endif
+        return 0;
+    }
+
+    int32_t Serial::set_rts(bool state)
+    {
+#if defined(COSMOS_WIN_OS)
+        GetCommState(handle, &(dcb));
+        if (state)
+        {
+            dcb.fDtrControl	= RTS_CONTROL_ENABLE;
+        }
+        else
+        {
+            dcb.fDtrControl	= RTS_CONTROL_DISABLE;
+        }
+#else
+        int flag = TIOCM_RTS;
+
+        if (state)
+        {
+            ioctl(fd, TIOCMBIS, &flag);
+        }
+        else
+        {
+            ioctl(fd, TIOCMBIC, &flag);
+        }
+#endif
+        return 0;
+    }
+
+    bool Serial::get_cts()
+    {
+#if defined(COSMOS_WIN_OS)
+
+#else
+        int s;
+        ioctl(fd, TIOCMGET, &s);
+        return (s & TIOCM_DSR) != 0;
+#endif
+    }
+
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS) || defined(COSMOS_MAC_OS)
     int32_t Serial::set_timeout(int minchar, double timeout)
 #else // Windows
@@ -512,19 +587,60 @@ namespace Cosmos {
             return (error);
         }
 
+        int result;
+
 #ifdef COSMOS_WIN_OS
         int n=0;
         WriteFile(handle, &c, 1, (LPDWORD)((void *)&n), NULL);
         if(n<0)
         {
-            return(-errno);
+            error = -errno;
         }
 
 #else
-        if (write(fd, &c, 1) < 0)
+        ElapsedTime et;
+        do
         {
-            return (-errno);
-        }
+            fd_set set;
+            FD_ZERO(&set);
+            FD_SET(fd, &set);
+            timeval timeout;
+            double rtimeout = ictimeout - et.split();
+            if (rtimeout >= 0.)
+            {
+                timeout.tv_sec = static_cast<int32_t>(rtimeout);
+                timeout.tv_usec = static_cast<int32_t>(1000000. * (rtimeout - timeout.tv_sec));
+                int rv = select(fd+1, nullptr, &set, nullptr, &timeout);
+                if (rv == -1)
+                {
+                    error = -errno;
+                }
+                else if (rv == 0)
+                {
+                    error = SERIAL_ERROR_TIMEOUT;
+                }
+                else
+                {
+                    result = write(fd, &c, 1);
+                    if (result > 0)
+                    {
+                        error = result;
+                        break;
+                    }
+                    else
+                    {
+                        if (result < 0)
+                        {
+                            error = -errno;
+                        }
+                        else
+                        {
+                            error = SERIAL_ERROR_BUFFER_SIZE_EXCEEDED;
+                        }
+                    }
+                }
+            }
+        } while (et.split() < ictimeout);
 #endif
 
         // These sleeps are necessary to keep from overrunning the serial output buffer
@@ -533,10 +649,9 @@ namespace Cosmos {
 #ifdef COSMOS_WIN_OS
         COSMOS_SLEEP(0.010);
 #else
-        COSMOS_USLEEP(10000000. / baud);
+//        COSMOS_SLEEP(10. / baud - et.split());
 #endif
         //
-        error = 0;
 
         return error;
     }
@@ -583,7 +698,7 @@ namespace Cosmos {
         }
     }
 
-    int32_t Serial::put_data(uint8_t *data, size_t size)
+    int32_t Serial::put_data(const uint8_t *data, size_t size)
     {
         if (fd < 0)
         {
@@ -796,12 +911,12 @@ namespace Cosmos {
             return (error);
         }
 
-        int32_t iretn = get_char();
-        if (iretn >= 0)
+        error = get_char();
+        if (error >= 0)
         {
-            buffer = iretn;
+            buffer = error;
         }
-        return iretn;
+        return error;
     }
 
     int32_t Serial::ReceiveByte(uint8_t &buf) {
@@ -837,43 +952,77 @@ namespace Cosmos {
             return (error);
         }
 
-        int32_t iretn = 0;
         int result;
         uint8_t c;
-        ElapsedTime et;
 
+#ifdef COSMOS_WIN_OS
+        ElapsedTime et;
         do
         {
-#ifdef COSMOS_WIN_OS
             int n=0;
             result = ReadFile(handle, &c, 1, (LPDWORD)((void *)&n), NULL);
-#else
-            result = read(fd, &c, sizeof(c));
-#endif
+            if (result < 0)
+            {
+                result = -WSAGetLastError();
+            }
+            else
+            {
+                result = SERIAL_ERROR_TIMEOUT;
+            }
             if (result > 0)
             {
-                iretn = c;
+                error = c;
                 break;
             }
             else
             {
-                if (result < 0)
-                {
-#ifdef COSMOS_WIN_OS
-                    iretn = -WSAGetLastError();
+                error = result;
+            }
+            COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
+        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
 #else
-                    iretn = -errno;
-#endif
+        ElapsedTime et;
+        do
+        {
+            fd_set set;
+            FD_ZERO(&set);
+            FD_SET(fd, &set);
+            timeval timeout;
+            timeout.tv_sec = static_cast<int32_t>(ictimeout);
+            timeout.tv_usec = static_cast<int32_t>(1000000. * (ictimeout - timeout.tv_sec));
+            int rv = select(fd+1, &set, nullptr, nullptr, &timeout);
+            if (rv == -1)
+            {
+                error = -errno;
+            }
+            else if (rv == 0)
+            {
+                error = SERIAL_ERROR_TIMEOUT;
+            }
+            else
+            {
+                result = read(fd, &c, 1);
+                if (result > 0)
+                {
+                    error = c;
+                    break;
                 }
                 else
                 {
-                    iretn = SERIAL_ERROR_TIMEOUT;
+                    if (result < 0)
+                    {
+                        error = -errno;
+                    }
+                    else
+                    {
+                        error = SERIAL_ERROR_EOT;
+                    }
                 }
             }
-            COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
-        } while (iretn == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
+        } while (et.split() < ictimeout);
+#endif
 
-        return iretn;
+        return error;
     }
 
     int32_t Serial::get_string(string &data, size_t size)
@@ -903,7 +1052,7 @@ namespace Cosmos {
                 data.append(1, (char)error);
             }
         }
-        return (size);
+        return (static_cast<int32_t>(size));
     }
 
     int32_t Serial::get_string(string &data, char endc)
@@ -934,7 +1083,7 @@ namespace Cosmos {
             }
         } while (error != endc);
 
-        return (data.size());
+        return (static_cast<int32_t>(data.size()));
     }
 
     int32_t Serial::get_data(vector <uint8_t> &data, size_t size)
@@ -960,10 +1109,10 @@ namespace Cosmos {
             }
             else
             {
-                data.push_back((uint8_t)error);
+                data.push_back(static_cast<uint8_t>(error));
             }
         }
-        return (size);
+        return (static_cast<int32_t>(size));
     }
 
     int32_t Serial::get_data(uint8_t *data, size_t size)
@@ -989,10 +1138,10 @@ namespace Cosmos {
             }
             else
             {
-                data[i] = (uint8_t)error;
+                data[i] = static_cast<uint8_t>(error);
             }
         }
-        return (size);
+        return (static_cast<int32_t>(size));
     }
 
     //! Read Xmodem frame.
@@ -1005,7 +1154,7 @@ namespace Cosmos {
     */
     int32_t Serial::get_xmodem(vector <uint8_t> &data, size_t size)
     {
-        int16_t ch;
+        int32_t ch;
 
         ch = get_char();
         if (ch != XMODEM_SOH)
@@ -1019,7 +1168,7 @@ namespace Cosmos {
                 return SERIAL_ERROR_READ;
             }
         }
-        uint8_t blocknum = get_char();
+        uint8_t blocknum = static_cast<uint8_t>(get_char());
         ch = get_char();
         if (255-blocknum != ch)
         {
@@ -1035,7 +1184,7 @@ namespace Cosmos {
             {
                 return (ch);
             }
-            data.push_back(ch);
+            data.push_back(static_cast<uint8_t>(ch));
             ++i;
             csum += ch;
         } while (i<128);
@@ -1059,7 +1208,7 @@ namespace Cosmos {
     */
     int32_t Serial::get_slip(vector <uint8_t> &data, size_t size)
     {
-        int16_t ch;
+        int32_t ch;
         uint16_t i;
 
         do
@@ -1113,7 +1262,7 @@ namespace Cosmos {
                 case SLIP_FEND:
                     break;
                 default:
-                    data.push_back(ch);
+                    data.push_back(static_cast<uint8_t>(ch));
                     ++i;
                     break;
                 }
@@ -1134,7 +1283,7 @@ namespace Cosmos {
     */
     int32_t Serial::get_nmea(vector <uint8_t> &data, size_t size)
     {
-        int16_t ch;
+        int32_t ch;
         uint16_t i;
         uint8_t cs_in, cs_out;
         std::string input;
@@ -1142,7 +1291,7 @@ namespace Cosmos {
         do
         {
             ch = get_char();
-            input += ch;
+            input += static_cast<char>(ch);
             if (ch < 0) return (ch);
         } while (ch != '$');
 
@@ -1151,7 +1300,7 @@ namespace Cosmos {
         do
         {
             ch = get_char();
-            input += ch;
+            input += static_cast<char>(ch);
             if (ch < 0) return (ch);
             if (i < size)
             {
@@ -1160,33 +1309,33 @@ namespace Cosmos {
                 case '*':
                     break;
                 default:
-                    cs_in ^= (uint8_t)ch;
-                    data.push_back(ch);
+                    cs_in ^= ch;
+                    data.push_back(static_cast<uint8_t>(ch));
                     ++i;
                     break;
                 }
             }
         } while (ch != '*');
         ch = get_char();
-        input += ch;
+        input += static_cast<char>(ch);
         if (ch < 0) return (ch);
         if (ch > '9')
         {
             if (ch > 'F')
             {
-                cs_out = (ch - 'a' + 10) * 16;
+                cs_out = (static_cast<uint8_t>(ch) - 'a' + 10) * 16;
             }
             else
             {
-                cs_out = (ch - 'A' + 10) * 16;
+                cs_out = (static_cast<uint8_t>(ch) - 'A' + 10) * 16;
             }
         }
         else
         {
-            cs_out = (ch - '0') * 16;
+            cs_out = (static_cast<uint8_t>(ch) - '0') * 16;
         }
         ch = get_char();
-        input += ch;
+        input += static_cast<char>(ch);
         if (ch < 0) return (ch);
         if (ch > '9')
         {
@@ -1206,7 +1355,7 @@ namespace Cosmos {
         if (cs_in != cs_out)
             return (SERIAL_ERROR_CHECKSUM);
         ch = get_char();
-        input += ch;
+        input += static_cast<char>(ch);
 
         return (i);
     }

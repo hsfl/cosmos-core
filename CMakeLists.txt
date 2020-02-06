@@ -124,14 +124,14 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
     endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
     #  option(BUILD_ARM "Build for ARM architecture" OFF)
-    if (${CROSS_TYPE} MATCHES "arm")
+    if (${CROSS_TYPE} MATCHES "arm" OR ${CROSS_TYPE} MATCHES "iobc")
         if("$ENV{COSMOS}" STREQUAL "")
-            set(COSMOS_INSTALL_FOLDER "~/cosmos/arm")
+            set(COSMOS_INSTALL_FOLDER "~/cosmos/${CROSS_TYPE}")
         else()
-            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/arm")
+            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/${CROSS_TYPE}")
         endif("$ENV{COSMOS}" STREQUAL "")
 
-        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_arm_linux.cmake")
+        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_${CROSS_TYPE}_linux.cmake")
 
     else()
         if("$ENV{COSMOS}" STREQUAL "")
@@ -181,9 +181,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows") #WIN32
 
     # if we are cross compiling then put the files inside the "crosscompile" folder
     if (${CROSS_TYPE} MATCHES "arm")
-        message("Build for targe arm")
-        set(COSMOS_INSTALL_FOLDER "c:/cosmos/arm")
-        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/cmake/toolchain_arm_win")
+        message("Build for targe ${CROSS_TYPE}")
+        set(COSMOS_INSTALL_FOLDER "c:/cosmos/${CROSS_TYPE}")
+        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/cmake/toolchain_${CROSS_TYPE}_win")
     endif()
 
     # if we have set an environment variable COSMOS_INSTALL (for specific reasons, not default)

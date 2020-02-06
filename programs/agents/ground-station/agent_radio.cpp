@@ -656,6 +656,35 @@ int32_t connect_radio()
         }
         break;
     case DEVICE_MODEL_ASTRODEV:
+        iretn=astrodev_connect(radiodevice, astrodev);
+        if (iretn < 0)
+        {
+            sprintf(lasterrormessage, "Unable to connect to Astrodev: %d", iretn);
+            lasterrorcode = iretn;
+            return iretn;
+        }
+
+        if (!initialized)
+        {
+            initialized = true;
+            iretn = ic9100_get_frequency(ic9100);
+            if (iretn >= 0)
+            {
+                initial.freq = ic9100.frequency;
+            }
+            iretn = ic9100_get_mode(ic9100);
+            if (iretn >= 0)
+            {
+                initial.opmode = ic9100.opmode;
+            }
+            iretn = ic9100_get_bandpass(ic9100);
+            if (iretn >= 0)
+            {
+                initial.band = ic9100.bandpass;
+            }
+            actual = initial;
+            target = actual;
+        }
         break;
     case DEVICE_MODEL_IC9100:
         iretn = ic9100_connect(radiodevice, radioaddr, ic9100);

@@ -41,13 +41,13 @@
 //static std::vector<cosmosstruc> nodes;
 
 //! Path to COSMOS root directory
-string cosmosroot;
+static string cosmosroot;
 //! Path to COSMOS Nodes directory
-string cosmosnodes="";
+static string cosmosnodes="";
 //! Path to COSMOS Resources directory
-string cosmosresources;
+static string cosmosresources;
 //! Path to current COSMOS Node directory
-string nodedir;
+static string nodedir;
 
 //! @}
 
@@ -72,7 +72,7 @@ string nodedir;
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(string node, string location, string agent, double utc, string extra, string type, string record)
+void log_write(string node, string agent, double utc, string extra, string type, string record, string location)
 {
     FILE *fout;
     string path;
@@ -89,7 +89,15 @@ void log_write(string node, string location, string agent, double utc, string ex
         path = data_type_path(node, location, agent, utc, extra, type);
     }
 
-    if ((fout = data_open(path, (char *)"a+")) != nullptr)
+    if (location == "immediate")
+    {
+        fout = data_open(path, const_cast<char *>("w"));
+    }
+    else
+    {
+        fout = data_open(path, const_cast<char *>("a+"));
+    }
+    if (fout  != nullptr)
     {
         fprintf(fout,"%s\n",record.c_str());
         fclose(fout);
@@ -106,23 +114,10 @@ void log_write(string node, string location, string agent, double utc, string ex
  * \param type Type part of name.
  * \param record String to be appended to file.
  */
-void log_write(string node, string agent, double utc, string extra, string type, string record)
-{
-    log_write(node, "temp", agent, utc, extra, type, record);
-    //    FILE *fout;
-    //    string path;
-
-    //    if (utc == 0.)
-    //        return;
-
-    //    path = data_type_path(node, "temp", agent, utc, extra, type);
-
-    //    if ((fout = data_open(path, (char *)"a+")) != nullptr)
-    //    {
-    //        fprintf(fout,"%s\n",record.c_str());
-    //        fclose(fout);
-    //    }
-}
+//void log_write(string node, string agent, double utc, string extra, string type, string record)
+//{
+//    log_write(node, "temp", agent, utc, extra, type, record);
+//}
 
 //! Write log entry - fixed location, no extra
 /*! Append the provided string to a file in the {node}/temp/{agent} directory. The file name
@@ -135,7 +130,7 @@ void log_write(string node, string agent, double utc, string extra, string type,
  */
 void log_write(string node, string agent, double utc, string type, const char *record)
 {
-    log_write(node, "temp", agent, utc, "", type, record);
+    log_write(node, agent, utc, "", type, record);
     //    FILE *fout;
     //    string path;
 
@@ -159,7 +154,7 @@ void log_write(string node, string agent, double utc, string type, const char *r
  * \param utc UTC to be converted to year (yyyy), julian day (jjj) and seconds (sssss).
  * \param record String to be appended to file.
  */
-void log_write(string node, int type, double utc, const char *record)
+void log_write(string node, int type, double utc, const char *record, string directory)
 {
     //    FILE *fout;
     //    string path;
@@ -170,19 +165,19 @@ void log_write(string node, int type, double utc, const char *record)
     switch (type)
     {
     case DATA_LOG_TYPE_SOH:
-        log_write(node, "temp", "soh", utc, "", "telemetry", record);
+        log_write(node, "soh", utc, "", "telemetry", record);
         //        path = data_type_path(node, "temp", "soh", utc, "telemetry");
         break;
     case DATA_LOG_TYPE_EVENT:
-        log_write(node, "temp", "soh", utc, "", "event", record);
+        log_write(node, "soh", utc, "", "event", record);
         //        path = data_type_path(node, "temp", "soh", utc, "event");
         break;
     case DATA_LOG_TYPE_BEACON:
-        log_write(node, "temp", "beacon", utc, "", "beacon", record);
+        log_write(node, "beacon", utc, "", "beacon", record);
         //        path = data_type_path(node, "temp", "beacon", utc, "beacon");
         break;
     default:
-        log_write(node, "temp", "soh", utc, "", "log", record);
+        log_write(node, "soh", utc, "", "log", record);
         //        path = data_type_path(node, "temp", "soh", utc, "log");
         break;
     }
@@ -218,8 +213,8 @@ void log_move(string node, string agent, string srclocation, string dstlocation,
         {
             string temppath = oldfile.path + ".gz";
             string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
-            FILE *fin = data_open(oldpath, (char *)"rb");
-            FILE *fout = data_open(temppath, (char *)"wb");
+            FILE *fin = data_open(oldpath, "rb");
+            FILE *fout = data_open(temppath, "wb");
             gzFile gzfout;
             gzfout = gzdopen(fileno(fout), "a");
 
@@ -309,6 +304,31 @@ std::vector <double> data_list_archive_days(string node, string agent)
     }
     sort(days.begin(), days.end());
     return days;
+}
+
+//! Use this function to loop through the gzfile until eof is reached. It returns each string line by line in the log file.
+//! \brief log_reads Loop until the newline character is seen. Append it to a string and return the line once the newline is met.
+//! \param file The file to be read.
+//! \param num The maximum number of characters to be written to the buffer.
+//! \return Each string in the gzfile.
+//!
+string log_read(gzFile &file, int num) {
+    string buffer;
+    buffer.resize(num);
+    string line;
+
+    while (!(line.back() == '\n')) {
+        gzgets(file, const_cast <char *>(buffer.data()), num);
+        line.append(buffer);
+    }
+
+    if (!gzeof(file)) {
+        return line;
+    }
+
+    gzclose(file);
+
+    return "";
 }
 
 //! Get a list of files in a Node archive.
@@ -539,7 +559,7 @@ int32_t data_list_nodes(std::vector<string>& nodes)
     int32_t iretn = get_cosmosnodes(rootd);
     if (iretn < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     dtemp = rootd;
@@ -576,7 +596,7 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
     int32_t iretn = get_cosmosnodes(rootd);
     if (iretn < 0)
     {
-        return (iretn);
+        return iretn;
     }
 
     if ((tnode=json_create()) == nullptr)
@@ -948,7 +968,7 @@ bool data_exists(string& path)
  * created, or the file can not be opened.
  */
 
-FILE *data_open(string path, char *mode)
+FILE *data_open(string path, const char *mode)
 {
     char dtemp[1024];
     uint32_t index, dindex, length;
@@ -1659,7 +1679,7 @@ double findlastday(string name)
         mytm.tm_mon = 0;
         mytm.tm_isdst = 0;
         mytime = mktime(&mytm);
-        mytime += (int)((jday-1) * 86400.);
+        mytime += static_cast<int>(((jday-1) * 86400.));
 #ifdef COSMOS_WIN_OS
         struct tm *temptm;
         temptm = localtime(&mytime);
@@ -1799,6 +1819,21 @@ bool data_isdir(string path)
     struct stat st;
 
     if (!stat(path.c_str(), &st) && S_ISDIR(st.st_mode))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
+bool data_ischardev(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st) && S_ISCHR(st.st_mode))
     {
         return true;
     }

@@ -122,7 +122,7 @@ uint16_t string_parse(char *string, char *words[], uint16_t wmax)
     }
     if (ccount)
         wcount++;
-    words[wcount] = (char *)NULL;
+    words[wcount] = (char *)nullptr;
     return (wcount);
 }
 

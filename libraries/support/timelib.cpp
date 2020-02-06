@@ -159,6 +159,18 @@ struct timeval utc2unix(double utc)
     return unixtime;
 }
 
+//! UTC to Unix time
+/*! Convert UTC in Modified Julian Day to a double representing Unix time.
+ * \param utc as Modified Julian Day.
+ * \return Double with Unix time.
+ */
+double utc2unixseconds(double utc)
+{
+    double unixseconds = 86400. * (utc - MJD_UNIX_OFFSET);
+
+    return unixseconds;
+}
+
 //! MJD to Calendar
 /*! Convert Modified Julian Day to Calendar Year, Month, Day, Hour, Minute,
  * Second and Nanosecond.
@@ -304,6 +316,21 @@ double cal2mjd(int32_t year, int32_t month, int32_t day, int32_t hour, int32_t m
     mjd = cal2mjd(date);
 
     return mjd;
+}
+
+//! Calendar representation YYYY.ffff to Modified Julian Day - overloaded
+/*! Convert a shortened calendar representation of date to MJD.
+ * \param year Full representation of decimal year.
+ * \return Modified Julian Day
+*/
+double cal2mjd(double year)
+{
+    double dyear;
+    double dday;
+
+    dday = 365. * modf(year, &dyear);
+
+    return cal2mjd(static_cast<int32_t>(dyear), 0 , dday);
 }
 
 //! Calendar representation YYYY,DDD.ffff to Modified Julian Day - overloaded
@@ -1523,4 +1550,18 @@ DateTime::DateTime()
 DateTime::DateTime(int year, int month, int day, int hour, int minute, double seconds)
 {
     mjd = cal2mjd(year, month, day, hour, minute, seconds, 0);
+}
+
+//! Convert mjd to the TLE epoch format.
+int32_t mjd2tlef(double mjd, std::string &tle) {
+    char year_buffer[3], days_buffer[13];
+
+    // Compute our year field.
+    sprintf(year_buffer, "%2d", static_cast<int>(floor(mjd2year(mjd))) % 1000);
+
+    // Compute our days field.
+    sprintf(days_buffer, "%012.8f", mjd2doy(mjd));
+
+    tle = std::string(year_buffer) + std::string(days_buffer);
+    return 0;
 }

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
 	if (argc == 2) strcpy(device,argv[1]);
 
-	if ((iretn=astrodev_connect(device, &handle)) < 0)
+    if ((iretn=astrodev_connect(device, handle)) < 0)
 	{
 		printf("Failed to open astrodev on %s, error %d\n",device,iretn);
 		exit (-1);
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	printf("Successful\n");
 
 	/*
-	if ((iretn=astrodev_gettcvconfig(&handle)) < 0)
+    if ((iretn=astrodev_gettcvconfig(handle)) < 0)
 	{
 		printf("Failed to get Configuration\n");
 		exit(-1);
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	handle.frame.tcv.rx_freq_low = 440030%65536;
 	handle.frame.header.command = ASTRODEV_SETTCVCONFIG;
 	handle.frame.header.size = sizeof(astrodev_tcv_config);
-	if ((iretn=astrodev_sendframe(&handle)) < 0)
+    if ((iretn=astrodev_sendframe(handle)) < 0)
 	{
 		printf("Failed to settcvconfig astrodev, error %d\n",iretn);
 	}
@@ -78,9 +78,9 @@ lmjd = currentmjd(0.);
 count = 0;
 while (count < 100)
 {
-	if ((iretn=astrodev_recvframe(&handle)) >= 0)
+    if ((iretn=astrodev_recvframe(handle)) >= 0)
 	{
-		astrodev_unloadframe(&handle, buf, 500);
+        astrodev_unloadframe(handle, buf, 500);
 		mean = 0.;
 		for (uint16_t j=0; j<handle.frame.header.size-20; ++j)
 		{

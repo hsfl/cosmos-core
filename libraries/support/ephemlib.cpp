@@ -37,9 +37,9 @@
 
 #include <cmath>
 
-static void *jplephem = NULL;
+static void *jplephem = nullptr;
 
-std::mutex eph_mutex;
+static std::mutex eph_mutex;
 
 //! \addtogroup ephemlib_functions
 //! @{
@@ -53,7 +53,12 @@ std::mutex eph_mutex;
 */
 int32_t jpllib(double utc,rmatrix *rm, rmatrix *drm)
 {
-	double pvec[6];
+    return jpllib(utc, *rm, *drm);
+}
+
+int32_t jpllib(double utc,rmatrix &rm, rmatrix &drm)
+    {
+    double pvec[6];
 	int32_t iretn;
 
 	iretn = jplopen();
@@ -70,9 +75,9 @@ int32_t jpllib(double utc,rmatrix *rm, rmatrix *drm)
 		return iretn;
 	}
 
-	*rm = rm_mmult(rm_change_around_z(pvec[0]),rm_mmult(rm_change_around_x(pvec[1]),rm_change_around_z(pvec[2])));
-	*drm = rm_mmult(rm_change_around_z(pvec[0]+pvec[3]/86400.),rm_mmult(rm_change_around_x(pvec[1]+pvec[4]/86400.),rm_change_around_z(pvec[2]+pvec[5]/86400.)));
-	*drm = rm_sub(*drm,*rm);
+    rm = rm_mmult(rm_change_around_z(pvec[0]),rm_mmult(rm_change_around_x(pvec[1]),rm_change_around_z(pvec[2])));
+    drm = rm_mmult(rm_change_around_z(pvec[0]+pvec[3]/86400.),rm_mmult(rm_change_around_x(pvec[1]+pvec[4]/86400.),rm_change_around_z(pvec[2]+pvec[5]/86400.)));
+    drm = rm_sub(drm,rm);
 
 	return 0;
 }
@@ -98,7 +103,7 @@ int32_t jplnut(double utc, double nuts[])
 	}
 
     eph_mutex.lock();
-    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET,(int)JPL_NUTATIONS,0,pvec,1);
+    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET,static_cast<int>(JPL_NUTATIONS),0,pvec,1);
     eph_mutex.unlock();
     if (iretn < 0)
 	{
@@ -122,9 +127,14 @@ int32_t jplnut(double utc, double nuts[])
 */
 int32_t jplpos(long from, long to, double utc, cartpos *pos)
 {
-	static double pvec[3][6];
+    return jplpos(from, to, utc, *pos);
+}
 
-	pos->s = pos->v = pos->a = rv_zero();
+int32_t jplpos(long from, long to, double utc, cartpos &pos)
+    {
+    static double pvec[3][6];
+
+    pos.s = pos.v = pos.a = rv_zero();
 
 	int32_t iretn = jplopen();
 	if (iretn < 0)
@@ -133,7 +143,7 @@ int32_t jplpos(long from, long to, double utc, cartpos *pos)
 	}
 
     eph_mutex.lock();
-    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET - .05/86400.,(int)to,(int)from,pvec[0],1);
+    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET - .05/86400., static_cast<int>(to), static_cast<int>(from) ,pvec[0],1);
     eph_mutex.unlock();
     if (iretn < 0)
 	{
@@ -141,7 +151,7 @@ int32_t jplpos(long from, long to, double utc, cartpos *pos)
 	}
 
     eph_mutex.lock();
-    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET,(int)to,(int)from,pvec[1],1);
+    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET, static_cast<int>(to), static_cast<int>(from) ,pvec[1],1);
     eph_mutex.unlock();
     if (iretn < 0)
 	{
@@ -149,30 +159,30 @@ int32_t jplpos(long from, long to, double utc, cartpos *pos)
 	}
 
     eph_mutex.lock();
-    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET + .05/86400.,(int)to,(int)from,pvec[2],1);
+    iretn = jpl_pleph(jplephem,utc + JD_MJD_OFFSET + .05/86400., static_cast<int>(to), static_cast<int>(from) ,pvec[2],1);
     eph_mutex.unlock();
     if (iretn < 0)
 	{
 		return iretn;
 	}
 
-	pos->s.col[0] = pvec[1][0] * 1000.;
-	pos->s.col[1] = pvec[1][1] * 1000.;
-	pos->s.col[2] = pvec[1][2] * 1000.;
-	pos->v.col[0] = pvec[1][3] * 1000.;
-	pos->v.col[1] = pvec[1][4] * 1000.;
-	pos->v.col[2] = pvec[1][5] * 1000.;
-	pos->a.col[0] = (pvec[2][3] - pvec[0][3]) * 10000.;
-	pos->a.col[1] = (pvec[2][4] - pvec[0][4]) * 10000.;
-	pos->a.col[2] = (pvec[2][5] - pvec[0][5]) * 10000.;
-	pos->utc = utc;
+    pos.s.col[0] = pvec[1][0] * 1000.;
+    pos.s.col[1] = pvec[1][1] * 1000.;
+    pos.s.col[2] = pvec[1][2] * 1000.;
+    pos.v.col[0] = pvec[1][3] * 1000.;
+    pos.v.col[1] = pvec[1][4] * 1000.;
+    pos.v.col[2] = pvec[1][5] * 1000.;
+    pos.a.col[0] = (pvec[2][3] - pvec[0][3]) * 10000.;
+    pos.a.col[1] = (pvec[2][4] - pvec[0][4]) * 10000.;
+    pos.a.col[2] = (pvec[2][5] - pvec[0][5]) * 10000.;
+    pos.utc = utc;
 
 	return 0;
 }
 
 int32_t jplopen()
 {
-	if (jplephem == NULL)
+    if (jplephem == nullptr)
 	{
 		std::string fname;
 		int32_t iretn = get_cosmosresources(fname);
@@ -181,7 +191,7 @@ int32_t jplopen()
 			return iretn;
 		}
 		fname +=  "/general/lnx1900.405";
-		jplephem = jpl_init_ephemeris(fname.c_str(),NULL,NULL);
+        jplephem = jpl_init_ephemeris(fname.c_str(),nullptr,nullptr);
 		if (jplephem == nullptr)
 		{
 			return -errno;

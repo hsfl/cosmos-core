@@ -109,7 +109,7 @@ int32_t mixwtnc_recvframe(mixwtnc_handle *handle)
 		handle->frame.size = 0;
 	}
 
-	return (iretn);
+	return iretn;
 }
 
 int32_t mixwtnc_sendframe(mixwtnc_handle *handle)
@@ -119,7 +119,7 @@ int32_t mixwtnc_sendframe(mixwtnc_handle *handle)
 	handle->frame.part.header.flag = handle->flag;
 	iretn = cssl_putslip(handle->serial, handle->frame.full, handle->frame.size);
 
-	return (iretn);
+	return iretn;
 }
 
 int32_t mixwtnc_loadframe(mixwtnc_handle *handle, uint8_t *data, uint16_t size)

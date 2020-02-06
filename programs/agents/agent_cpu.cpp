@@ -69,9 +69,7 @@ int32_t request_mem_total_kib(char *request, char *response, Agent *);
 int32_t request_printStatus(char *request, char *response, Agent *);
 
 
-std::string agentname  = "cpu";
-std::string nodename;
-std::string sohstring = "{\"device_cpu_utc_000\","
+static std::string sohstring = "{\"device_cpu_utc_000\","
                         "\"device_cpu_maxgib_000\","
                         "\"device_cpu_gib_000\","
                         "\"device_cpu_maxload_000\","
@@ -91,39 +89,33 @@ int main(int argc, char *argv[])
 
 //    cout << "Starting agent cpu" << endl;
 
-    switch (argc)
-    {
-    case 1:
-        {
-            nodename = "cpu_" + deviceCpu.getHostName();
-        }
-        break;
-    case 2:
-        {
-            nodename = argv[1];
-        }
-        break;
-    default:
-        {
-            printf("Usage: agent_cpu {node}\n");
-        }
-        break;
-    }
-
-    if ((iretn=create_node()))
-    {
-        cout << "Unable to make node " << endl;
-        exit(1);
-    }
-
-//    agent->version = "1.0";
+//    switch (argc)
+//    {
+//    case 2:
+//        {
+//            node_name = argv[1];
+//        }
+//        break;
+//    default:
+//        {
+//            printf("Usage: agent_cpu {node}\n");
+//        }
+//        break;
+//    }
 
     // Add additional requests
 
-    agent = new Agent(nodename, agentname, 5.);
+    if (argc == 2)
+    {
+        agent = new Agent(argv[1], "cpu", 5.);
+    }
+    else
+    {
+        agent = new Agent("", "cpu", 5.);
+    }
     if (agent->cinfo == nullptr || !agent->running())
     {
-        fprintf(agent->get_debug_fd(), "Failed to initialize agent\n");
+        fprintf(agent->get_debug_fd(), "Failed to initialize %s\n", agent->getAgent().c_str());
         exit(1);
     }
     else
@@ -166,9 +158,6 @@ int main(int argc, char *argv[])
     return 0;
 
 }
-
-
-
 
 int agent_cpu()
 {
@@ -254,19 +243,18 @@ int agent_cpu()
         agent->finish_active_loop();
 
         // if printStatus is true then print in a loop
-//        if (printStatus) {
-//            PrintUtils print;
-//            print.delimiter_flag = true;
-//            print.scalar("Load",deviceCpu.load ,1,"",4,4);
-//            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
+        if (printStatus) {
+            PrintUtils print;
 
-//            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
-//            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
-//            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
-//            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
+            print.delimiter_flag = true;
+            print.scalar("Load",deviceCpu.load ,1,"",4,4);
+            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
 
-//        }
-
+            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
+            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
+            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
+            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
+        }
     }
 
     agent->shutdown();
@@ -393,91 +381,91 @@ int32_t request_printStatus(char *request, char *, Agent *)
 
 
 
-int create_node () // only use when unsure what the node is
-{
-    cosmosstruc *cinfo;
-    //	std::string node_directory;
+//int create_node () // only use when unsure what the node is
+//{
+//    cosmosstruc *cinfo;
+//    //	std::string node_directory;
 
-    // Ensure node is present
-    //cout << "Node name is " << nodename << endl;
-    // If could not find node directory then make one on the fly
-    if (get_nodedir(nodename).empty())
-    {
-        cout << endl << "Couldn't find Node directory, making directory now...";
-        if (get_nodedir(nodename, true).empty())
-        {
-            cout << "Couldn't create Node directory." << endl;
-            return 1;
-        }
-        cinfo = json_create();
-        json_mapbaseentries(cinfo);
-        strcpy(cinfo->node.name, nodename.c_str());
-        cinfo->name = nodename;
-        cinfo->node.type = NODE_TYPE_COMPUTER;
+//    // Ensure node is present
+//    //cout << "Node name is " << node_name << endl;
+//    // If could not find node directory then make one on the fly
+//    if (get_nodedir(node_name).empty())
+//    {
+//        cout << endl << "Couldn't find Node directory, making directory now...";
+//        if (get_nodedir(node_name, true).empty())
+//        {
+//            cout << "Couldn't create Node directory." << endl;
+//            return 1;
+//        }
+//        cinfo = json_create();
+//        json_mapbaseentries(cinfo);
+//        strcpy(cinfo->node.name, node_name.c_str());
+////        cinfo->name = node_name;
+//        cinfo->node.type = NODE_TYPE_COMPUTER;
 
-        json_addpiece(cinfo, "main_cpu", (uint16_t)DeviceType::CPU);
-        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
-        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
+//        json_addpiece(cinfo, "main_cpu", (uint16_t)DeviceType::CPU);
+//        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
+//        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
-        json_addpiece(cinfo, "main_drive", (uint16_t)DeviceType::DISK);
-        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
-        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
+//        json_addpiece(cinfo, "main_drive", (uint16_t)DeviceType::DISK);
+//        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
+//        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
 
-        cinfo->node.device_cnt = cinfo->node.piece_cnt;
-        cinfo->device.resize(cinfo->node.device_cnt);
-        cinfo->devspec.cpu_cnt = 1;
-        cinfo->devspec.disk_cnt = 1;
-        cinfo->node.port_cnt = 1;
-        cinfo->port.resize(cinfo->node.port_cnt);
+//        cinfo->node.device_cnt = cinfo->node.piece_cnt;
+//        cinfo->device.resize(cinfo->node.device_cnt);
+//        cinfo->devspec.cpu_cnt = 1;
+//        cinfo->devspec.disk_cnt = 1;
+//        cinfo->node.port_cnt = 1;
+//        cinfo->port.resize(cinfo->node.port_cnt);
 
-        for (size_t i=0; i<cinfo->node.piece_cnt; ++i)
-        {
+//        for (size_t i=0; i<cinfo->node.piece_cnt; ++i)
+//        {
 
-            cinfo->device[i].all.pidx = i;
-            cinfo->device[i].all.cidx = i;
-            switch (i)
-            {
-            case 0:
-                cinfo->device[i].all.type = (uint16_t)DeviceType::CPU;
-                cinfo->device[i].all.didx = 0;
-                cinfo->device[i].all.portidx = PORT_TYPE_NONE;
-                cinfo->device[i].cpu.maxload = 1.;
-                cinfo->device[i].cpu.maxgib = 1.;
-                json_mapdeviceentry(cinfo->device[i], cinfo);
-                json_addentry("cpu_utilization", "(\"device_cpu_load_000\"/\"device_cpu_maxload_000\")", cinfo);
-                break;
-            default:
-                cinfo->device[i].disk.maxgib = 1000.;
-                cinfo->device[i].all.type = (uint16_t)DeviceType::DISK;
-                cinfo->device[i].all.didx = i-1;
-                cinfo->device[i].all.portidx = cinfo->device[i].all.didx;
-                cinfo->port[cinfo->device[i].all.didx].type = PORT_TYPE_DRIVE;
-                json_mapdeviceentry(cinfo->device[i], cinfo);
-                json_toggledeviceentry(i-1, (uint16_t)DeviceType::DISK, cinfo, true);
-#ifdef COSMOS_WIN_OS
-                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "c:/");
-#else
-                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "/");
-#endif
-                json_mapportentry(cinfo->device[i].all.portidx, cinfo);
-                json_toggleportentry(cinfo->device[i].all.portidx, cinfo, true);
-                json_addentry("disk_utilization", "(\"device_disk_gib_000\"/\"device_disk_maxgib_000\")", cinfo);
-                break;
-            }
-            json_mapcompentry(i, cinfo);
-            json_togglecompentry(i, cinfo, true);
-            cinfo->device[i].all.enabled = true;
-        }
+//            cinfo->device[i].all.pidx = i;
+//            cinfo->device[i].all.cidx = i;
+//            switch (i)
+//            {
+//            case 0:
+//                cinfo->device[i].all.type = (uint16_t)DeviceType::CPU;
+//                cinfo->device[i].all.didx = 0;
+//                cinfo->device[i].all.portidx = PORT_TYPE_NONE;
+//                cinfo->device[i].cpu.maxload = 1.;
+//                cinfo->device[i].cpu.maxgib = 1.;
+//                json_mapdeviceentry(cinfo->device[i], cinfo);
+//                json_addentry("cpu_utilization", "(\"device_cpu_load_000\"/\"device_cpu_maxload_000\")", cinfo);
+//                break;
+//            default:
+//                cinfo->device[i].disk.maxgib = 1000.;
+//                cinfo->device[i].all.type = (uint16_t)DeviceType::DISK;
+//                cinfo->device[i].all.didx = i-1;
+//                cinfo->device[i].all.portidx = cinfo->device[i].all.didx;
+//                cinfo->port[cinfo->device[i].all.didx].type = PORT_TYPE_DRIVE;
+//                json_mapdeviceentry(cinfo->device[i], cinfo);
+//                json_toggledeviceentry(i-1, (uint16_t)DeviceType::DISK, cinfo, true);
+//#ifdef COSMOS_WIN_OS
+//                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "c:/");
+//#else
+//                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "/");
+//#endif
+//                json_mapportentry(cinfo->device[i].all.portidx, cinfo);
+//                json_toggleportentry(cinfo->device[i].all.portidx, cinfo, true);
+//                json_addentry("disk_utilization", "(\"device_disk_gib_000\"/\"device_disk_maxgib_000\")", cinfo);
+//                break;
+//            }
+//            json_mapcompentry(i, cinfo);
+//            json_togglecompentry(i, cinfo, true);
+//            cinfo->device[i].all.enabled = true;
+//        }
 
 
-        int32_t iretn = json_dump_node(cinfo);
-        json_destroy(cinfo);
+//        int32_t iretn = json_dump_node(cinfo);
+//        json_destroy(cinfo);
 
-        cout << " done!" << endl;
-        return iretn;
-    }
-    else
-    {
-        return 0;
-    }
-}
+//        cout << " done!" << endl;
+//        return iretn;
+//    }
+//    else
+//    {
+//        return 0;
+//    }
+//}

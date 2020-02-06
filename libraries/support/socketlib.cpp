@@ -124,7 +124,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         {
             CLOSE_SOCKET(channel->cudp);
             channel->cudp = iretn;
-            return (iretn);
+            return iretn;
         }
     }
 
@@ -236,16 +236,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
             channel->caddr.sin_addr.s_addr = 0xffffffff;
             break;
         case NetworkType::MULTICAST:
-#ifndef COSMOS_WIN_OS
             inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-#else
-            inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-            //			struct sockaddr_storage ss;
-            //		    int sslen;
-            //            sslen = sizeof(ss);
-            //            WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-            //            channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-#endif
             break;
         default:
             return (SOCKET_ERROR_PROTOCOL);
@@ -254,16 +245,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         channel->cport = port;
         break;
     case SOCKET_TALK:
-#ifndef COSMOS_WIN_OS
         inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-#else
-        inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-        //		struct sockaddr_storage ss;
-        //	    int sslen;
-        //        sslen = sizeof(ss);
-        //        WSAStringToAddressA((char *)address,AF_INET,NULL,(struct sockaddr*)&ss,&sslen);
-        //        channel->caddr.sin_addr = ((struct sockaddr_in *)&ss)->sin_addr;
-#endif
         channel->cport = port;
 
         if (ntype == NetworkType::TCP)
@@ -279,6 +261,8 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     }
 
     // Find assigned port, place in cport, and set caddr to requested port
+    channel->baddr = channel->caddr;
+    channel->baddr.sin_addr.s_addr |= 0xff;
     iretn = sendto(channel->cudp, (const char *)nullptr, 0, 0, (struct sockaddr *)&channel->baddr, sizeof(struct sockaddr_in));
     sockaddr_in taddr = channel->caddr;
     socklen_t namelen = sizeof(struct sockaddr_in);
@@ -470,7 +454,7 @@ int32_t socket_blocking(socket_channel *channel, bool blocking)
         }
 #endif
     }
-    return (iretn);
+    return iretn;
 }
 
 //! Close socket
@@ -686,6 +670,12 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     return nbytes;
 }
 
+int32_t socket_sendto(socket_channel &channel, string buffer, int flags)
+{
+    vector<uint8_t> data(buffer.begin(), buffer.end());
+    return socket_sendto(channel, data, flags);
+}
+
 int32_t socket_sendto(socket_channel &channel, vector<uint8_t> &buffer, int flags)
 {
     int32_t nbytes;
@@ -788,7 +778,7 @@ int32_t Udp::socketOpen()
         {
             CLOSE_SOCKET(sok.handle);
             sok.handle = iretn;
-            return (iretn);
+            return iretn;
         }
     }
 

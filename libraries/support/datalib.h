@@ -28,7 +28,7 @@
 ********************************************************************/
 
 #ifndef _DATALIB_H
-#define _DATALIB_H 1
+#define _DATALIB_H
 
 // COSMOS libs
 #include "support/configCosmos.h"
@@ -107,12 +107,13 @@
 //! @{
 
 void log_reopen();
-void log_write(string node, int type, double utc, const char* data);
+void log_write(string node, int type, double utc, const char* data, std::string directory="temp");
 void log_write(string node, string agent, double utc, string type, const char *data);
-void log_write(string node, string agent, double utc, string extra, string type, string record);
-void log_write(string node, string agent, string location, double utc, string extra, string type, string record);
+//void log_write(string node, string agent, double utc, string extra, string type, string record);
+void log_write(string node, string agent, double utc, string extra, string type, string record, string location="temp");
 void log_move(string node, string agent, string srclocation, string dstlocation, bool compress);
 void log_move(string node, string agent);
+string log_read(gzFile &file, int num);
 int check_events(eventstruc* events, int max, cosmosstruc* data);
 int32_t data_get_nodes(vector<cosmosstruc> &data);
 vector<string> data_list_nodes();
@@ -124,7 +125,7 @@ size_t data_list_files(string node, string location, string agent, vector<filest
 vector<filestruc> data_list_archive(string node, string agent, double utc, string type);
 vector<filestruc> data_list_archive(string node, string agent, double utc);
 vector <double> data_list_archive_days(string node, string agent);
-FILE* data_open(string path, char* mode);
+FILE* data_open(string path, const char *mode);
 int32_t data_name_date(string node, string filename, uint16_t &year, uint16_t &jday, uint32_t &seconds);
 int32_t data_name_date(string node, string filename, double &utc);
 string data_name(string node, double mjd, string extra, string type);
@@ -140,6 +141,7 @@ string data_name_path(string node, string location, string agent, double mjd, st
 string data_resource_path(string name);
 bool data_exists(string& path);
 bool data_isdir(string path);
+bool data_ischardev(string path);
 bool data_isfile(string path, off_t size=0);
 int32_t set_cosmosroot(string name, bool create_flag=false);
 int32_t set_cosmosroot(bool create_flag=false);
@@ -167,4 +169,4 @@ int32_t kml_write(cosmosstruc* cinfo);
 
 //! @}
 
-#endif
+#endif // DATALIB_H

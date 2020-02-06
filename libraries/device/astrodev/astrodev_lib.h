@@ -313,23 +313,23 @@ typedef struct
 //! \defgroup astrodev_functions Astrodev library function declarations
 //! @{
 
-int32_t astrodev_connect(char *dev, astrodev_handle *handle);
-int32_t astrodev_disconnect(astrodev_handle *handle);
-int32_t astrodev_recvframe(astrodev_handle *handle);
-int32_t astrodev_sendframe(astrodev_handle *handle);
-int32_t astrodev_gettcvconfig(astrodev_handle *handle);
-int32_t astrodev_settcvconfig(astrodev_handle *handle);
+int32_t astrodev_connect(std::string dev, astrodev_handle &handle);
+int32_t astrodev_disconnect(astrodev_handle &handle);
+int32_t astrodev_recvframe(astrodev_handle &handle);
+int32_t astrodev_sendframe(astrodev_handle &handle);
+int32_t astrodev_gettcvconfig(astrodev_handle &handle);
+int32_t astrodev_settcvconfig(astrodev_handle &handle);
 uint16_t astrodev_calc_cs(uint8_t *data, uint16_t size);
 int32_t astrodev_setupframe(astrodev_frame *frame);
-uint16_t astrodev_loadframe(astrodev_handle *handle, uint8_t *data, uint16_t size);
-int32_t astrodev_unloadframe(astrodev_handle *handle, uint8_t *data, uint16_t size);
+uint16_t astrodev_loadframe(astrodev_handle &handle, uint8_t *data, uint16_t size);
+int32_t astrodev_unloadframe(astrodev_handle &handle, uint8_t *data, uint16_t size);
 int32_t astrodev_checkframe(astrodev_frame* frame);
-int32_t astrodev_ping(astrodev_handle *handle);
-int32_t astrodev_rfconfig(astrodev_handle *handle);
-int32_t astrodev_firmwarerev(astrodev_handle *handle);
-int32_t astrodev_telemetry(astrodev_handle *handle);
-int32_t astrodev_transmit(astrodev_handle *handle, uint8_t *data, uint16_t size);
-int32_t astrodev_receive(astrodev_handle *handle, uint8_t *data, uint16_t size);
+int32_t astrodev_ping(astrodev_handle &handle);
+int32_t astrodev_rfconfig(astrodev_handle &handle);
+int32_t astrodev_firmwarerev(astrodev_handle &handle);
+int32_t astrodev_telemetry(astrodev_handle &handle);
+int32_t astrodev_transmit(astrodev_handle &handle, uint8_t *data, uint16_t size);
+int32_t astrodev_receive(astrodev_handle &handle, uint8_t *data, uint16_t size);
 
 //! @}
 #endif

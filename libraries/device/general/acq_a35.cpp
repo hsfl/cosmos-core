@@ -241,7 +241,7 @@ bool GetCameraFrame(gige_handle* handle, uint16_t *A35FrameBuffer, uint32_t Imag
 
         while(bytes_recieved <= 0)
 		{
-			bytes_recieved=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,(struct sockaddr *)NULL,(socklen_t *)NULL);
+            bytes_recieved=recvfrom(handle->stream.cudp,(char *)bufferin,bsize,0,static_cast<struct sockaddr *>(nullptr),static_cast<socklen_t *>(nullptr));
 //			printf("br=%d " , bytes_recieved);
 
             if(bytes_recieved==-1)

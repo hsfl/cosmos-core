@@ -69,7 +69,7 @@
 #ifdef PNG_ZLIB_HEADER
 #  include PNG_ZLIB_HEADER /* defined by pnglibconf.h from 1.7 */
 #else
-#  include "zlib.h"
+#  include "thirdparty/zlib/zlib.h"
 #endif
 
 /* Copied from pngpriv.h but only used in error messages below. */

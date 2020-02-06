@@ -3,6 +3,7 @@
 # COMPLETE - everything is built
 # BASIC    - only the essential libraries and prgram agents are build
 # MINIMAL  - only the libraries are built (no agents, no programs)
+set(CROSS_TYPE x86_64)
 set(BUILD_TYPE COMPLETE) # COMPLETE, BASIC, MINIMAL, TESTS
 set(BUILD_AGENTS_TYPE ALL)
 
@@ -17,6 +18,7 @@ if(${BUILD_TYPE} MATCHES "COMPLETE")
     set(BUILD_PROGRAMS_GENERAL YES) # YES, NO
     set(BUILD_PROGRAMS_TESTS YES)
     set(BUILD_PROGRAMS_UNIX_TESTS YES)
+    set(BUILD_PROGRAMS_DEVICES YES) # YES, NO
 
     set(BUILD_TUTORIALS YES) # YES, NO
 endif()
@@ -27,6 +29,7 @@ if(${BUILD_TYPE} MATCHES "BASIC")
     set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
     set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
     set(BUILD_PROGRAMS_UNIX_TESTS NO)
+    set(BUILD_PROGRAMS_DEVICES NO) # YES, NO
 
     set(BUILD_TUTORIALS NO) # YES, NO
 endif()
@@ -37,6 +40,7 @@ if(${BUILD_TYPE} MATCHES "MINIMAL")
     set(BUILD_PROGRAMS_AGENTS_TYPE CORE) # CORE, ALL, GS (ground station)
     set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
     set(BUILD_PROGRAMS_UNIX_TESTS NO)
+    set(BUILD_PROGRAMS_DEVICES NO) # YES, NO
 
     set(BUILD_TUTORIALS NO) # YES, NO
 endif()
@@ -49,6 +53,7 @@ if(${BUILD_TYPE} MATCHES "TESTS")
     set(BUILD_PROGRAMS_GENERAL NO) # YES, NO
     set(BUILD_TUTORIALS NO) # YES, NO
     set(BUILD_PROGRAMS_UNIX_TESTS YES)
+    set(BUILD_PROGRAMS_DEVICES YES) # YES, NO
 endif()
 
 #set(BUILD_LIBRARIES all)
