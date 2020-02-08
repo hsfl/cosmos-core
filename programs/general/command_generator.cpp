@@ -40,13 +40,11 @@ using std::endl;
 int main(int argc, char *argv[])
 {
 
-    uint32_t type = EVENT_TYPE_COMMAND;
     uint32_t flag = 0;
     string data = "";
     string condition = "";
     string name= "";
     double utc = 0.;
-    double utcexec = 0.;
 
     string node = "";
 
