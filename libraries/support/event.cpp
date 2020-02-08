@@ -63,29 +63,10 @@ string Event::generator(
     this->mjd  = mjd;
     this->condition = condition;
     this->flag = flag;
-
-    // TODO: this is temporary, later will only use Event class
-    // no more longeventstruc
-
-    longeventstruc event;
-
-    // reset
+    this->utcexec = 0.;
+    this->type = EVENT_TYPE_COMMAND;
     event_string = "";
-    event.type = EVENT_TYPE_COMMAND;
-    event.flag = 0;
-    event.data[0] = 0;
-    event.condition[0] = 0;
-    event.utc = 0;
-    event.utcexec = 0.;
-
-    strcpy(event.name, name.c_str());
-    strcpy(event.data, data.c_str());
-    strcpy(event.condition, condition.c_str());
-    event.utc  = mjd;
-    event.flag = flag;
-
-	// set event_string
-    json_out_commandevent(event_string, event);
+    event_string = this->get_event_string();
 
     return event_string;
 }
@@ -100,15 +81,22 @@ string Event::generator(longeventstruc event) {
 // Copies the current event object to the output stream using JSON format
 std::ostream& operator<<(std::ostream& out, const Event& cmd)
 {
-    out	<< std::setprecision(15) <<"{\"event_utc\":"<< cmd.mjd
-		<< "}{\"event_utcexec\":" << cmd.utcexec
-		<< "}{\"event_name\":\"" << cmd.name
-		<< "\"}{\"event_type\":" << cmd.type
-		<< "}{\"event_flag\":" << cmd.flag
-		<< "}{\"event_data\":\"" << cmd.data
-		<< "\"}{\"event_condition\":\"" << cmd.condition
-		<< "\"}";
-	return out;
+    JSONObject jobj;
+    jobj.addElement("event_utc", JSONValue(cmd.mjd));
+    if (cmd.utcexec != 0.)
+    {
+        jobj.addElement("event_utcexec", JSONValue(cmd.utcexec));
+    }
+    jobj.addElement("event_name", JSONValue(cmd.name));
+    jobj.addElement("event_type", JSONValue(cmd.type));
+    jobj.addElement("event_flag", JSONValue(cmd.flag));
+    jobj.addElement("event_data", JSONValue(cmd.data));
+    if (cmd.flag & EVENT_FLAG_CONDITIONAL)
+    {
+        jobj.addElement("event_condition", JSONValue(cmd.condition));
+    }
+    out	<< std::setprecision(15) << jobj.to_json_string();
+    return out;
 }
 
 // Equality Operator for command objects
@@ -149,21 +137,22 @@ void Event::set_command(string jstring)
 
 string Event::get_event_string()
 {
-	longeventstruc event;
+    JSONObject jobj;
+    jobj.addElement("event_utc", JSONValue(mjd));
+    if (utcexec != 0.)
+    {
+        jobj.addElement("event_utcexec", JSONValue(utcexec));
+    }
+    jobj.addElement("event_name", JSONValue(name));
+    jobj.addElement("event_type", JSONValue(type));
+    jobj.addElement("event_flag", JSONValue(flag));
+    jobj.addElement("event_data", JSONValue(data));
+    if (flag & EVENT_FLAG_CONDITIONAL)
+    {
+        jobj.addElement("event_condition", JSONValue(condition));
+    }
 
-	// set Event members
-    event.utc = mjd;
-	event.utcexec = utcexec;
-	strcpy(event.name, name.c_str());
-	event.type = type;
-	event.flag = flag;
-	strcpy(event.data, data.c_str());
-	strcpy(event.condition, condition.c_str());
-
-	// return Event data as JSON string
-	string jsp;
-	json_out_commandevent(jsp, event);
-	return jsp;
+    return jobj.to_json_string();
 }
 
 bool Event::condition_true(cosmosstruc *cinfo)

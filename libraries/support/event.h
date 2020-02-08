@@ -42,6 +42,7 @@
 
 #include "support/configCosmos.h"
 #include "support/jsonlib.h"
+#include "support/jsonobject.h"
 //#include "agent/agentclass.h" // TODO: remove dependency 
 
 using std::string;
