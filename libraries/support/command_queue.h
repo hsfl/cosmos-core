@@ -73,15 +73,15 @@ namespace Cosmos
 
             //!	Retrieve the size of the queue
             /*!
-        \return	The size of the queue
-    */
+                \return	The size of the queue
+            */
             size_t get_size() { return commands.size(); }
 
             //!	Retrieve an Event by its position in the queue
             /*!
-        \param	i	Integer representing the position in the queue
-        \return	Reference to the ith Event
-    */
+                \param	i	Integer representing the position in the queue
+                \return	Reference to the ith Event
+            */
             Event& get_command(int i)
             {
                 std::list<Event>::iterator ii = commands.begin();
@@ -92,21 +92,21 @@ namespace Cosmos
             //!	Load queue of Events from a file
             /*!
 
-        Reads new Events from *.command files in the incoming directory,
-        adds them to the queue of Events, and deletes the *.command files.
-        Events in the queue are then sorted by their execution time.
+                Reads new Events from *.command files in the incoming directory,
+                adds them to the queue of Events, and deletes the *.command files.
+                Events in the queue are then sorted by their execution time.
 
-        \param	incoming_dir	Directory where the .queue file will be read from
+                \param	incoming_dir	Directory where the .queue file will be read from
 
-    */
+            */
             void load_commands(string incoming_dir);
 
             //!	Save the queue of Events to a file
             /*!
             Save the queue of Events to the file temp_dir/.queue
 
-            \param	temp_dir	Directory where the .queue file will be written
-        */
+                \param	temp_dir	Directory where the .queue file will be written
+            */
             void save_commands(string temp_dir);
 
             //! Run the given Event
@@ -115,10 +115,10 @@ namespace Cosmos
             execution (utcexec) is set, the flag EVENT_FLAG_ACTUAL is set to true,
             and this updated command information is logged to the OUTPUT directory.
 
-            \param	cmd	Reference to event to run
-            \param	nodename	Name of node
-            \param	logdate_exec	Time of execution (for logging purposes)
-        */
+                \param	cmd	Reference to event to run
+                \param	nodename	Name of node
+                \param	logdate_exec	Time of execution (for logging purposes)
+            */
             void run_command(Event &cmd, string nodename, double logdate_exec);
 
             //!	Traverse the entire queue of Events, and run those which qualify.
@@ -128,19 +128,19 @@ namespace Cosmos
             the execution time of the %Event.  Further, if the %Event is conditional, then the
             %Event condition must be true.
 
-            \param	agent	Pointer to Agent object (for call to condition_true(..))
-            \param	nodename	Name of the node
-            \param	logdate_exec	Time of execution (for logging purposes)
-        */
+                \param	agent	Pointer to Agent object (for call to condition_true(..))
+                \param	nodename	Name of the node
+                \param	logdate_exec	Time of execution (for logging purposes)
+            */
             void run_commands(Agent *agent, string nodename, double logdate_exec);
 
             //!	Remove **all** matching Event from the queue
             /*!
-        \param	c	Event to remove
-        \return	The number of Events removed
+                \param	c	Event to remove
+                \return	The number of Events removed
 
-        JIMNOTE:	this only adds given Event to the queue if the Event has flag for EVENT_TYPE_COMMAND set to true
-    */
+                JIMNOTE:	this only adds given Event to the queue if the Event has flag for EVENT_TYPE_COMMAND set to true
+            */
             void add_command(Event& c);
 
             ///	Remove **all** matching Event from the queue
@@ -154,33 +154,29 @@ namespace Cosmos
 
             //! Remove Event from the queue based on position
             /*!
-         \param  pos  Position of event to remove
-         \return The number of Events removed
+                 \param  pos  Position of event to remove
+                 \return The number of Events removed
 
-         This function removes events based on their queue position (0-indexed).
-    */
+                 This function removes events based on their queue position (0-indexed).
+            */
             int del_command(int pos);
 
             //!	Sort the Events in the queue by Event exectution time
             /*!
-        This function is called after new Events are loaded.
-    */
+                This function is called after new Events are loaded.
+            */
             void sort()	{ commands.sort([](Event & c1, Event & c2) { return c1.getTime() < c2.getTime(); });	}
             //!	Extraction operator
             /*!
-        \param	out	Reference to ostream
-        \param	cmdq	Reference to CommandQueue (JIMNOTE: should be const, ya?)
-        \return	Reference to modified ostream
+                \param	out	Reference to ostream
+                \param	cmdq	Reference to CommandQueue (JIMNOTE: should be const, ya?)
+                \return	Reference to modified ostream
 
-        Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
+                Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
 
-    */
+            */
             friend std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq);
 
-            //	bool compare_command_times(Event command1, Event command2);
-            //	string incoming_dir;
-            //	string outgoing_dir;
-            //	string temp_dir;
 
         }; // end of Command Queue Class
     } // end of namespace Support
