@@ -2,11 +2,10 @@
 #include "support/cosmos-errno.h"
 #include "support/elapsedtime.h"
 #include "support/stringlib.h"
-#include "i2c/i2c.h"
+#include "device/i2c/i2c.h"
 #include <iostream>
 #include <string>
 
-#include "device/i2c/i2c.h"
 
 #define I2C_BUFFER_LIMIT 256
 
@@ -54,13 +53,13 @@ int main(int argc, char *argv[])
         break;
     default:
         printf("Usage: i2ctalk addressx dd[:dd:dd:dd] [ delaysec [ device ]]\n");
-        exit;
+        exit(0);
     }
 
     if (outstring.empty())
     {
         printf("Nothing to send\n");
-        exit;
+        exit(0);
     }
 
     vector <string> outs = string_split(outstring,":");
@@ -76,7 +75,7 @@ int main(int argc, char *argv[])
     if (i2cport->get_error() < 0)
     {
         printf("%s\n", cosmos_error_string(i2cport->get_error()).c_str());
-        exit;
+        exit(0);
     }
 
     datain.resize(rcount);
@@ -86,18 +85,18 @@ int main(int argc, char *argv[])
 
         printf("TX (hex): ");
 
-        for (int i=0; i< dataout.size(); i++)
+        for (unsigned int i = 0; i < dataout.size(); i++)
         {
             printf("%2x ", dataout[i]);
         }
 
-        printf(" (%d bytes)", dataout.size());
+        printf(" (%lu bytes)", dataout.size());
         printf("\n");
     }
     else
     {
         printf("TX: %s\n", cosmos_error_string(i2cport->get_error()).c_str());
-        exit;
+        exit(0);
     }
 
 
@@ -108,12 +107,12 @@ int main(int argc, char *argv[])
 
         printf("RX (hex): ");
 
-        for (int i=0; i< datain.size(); i++)
+        for (unsigned int i = 0; i < datain.size(); i++)
         {
             printf("%2x ", datain[i]);
         }
 
-        printf(" (%d bytes)", datain.size());
+        printf(" (%lu bytes)", datain.size());
         printf("\n");
     }
 
@@ -125,7 +124,7 @@ int main(int argc, char *argv[])
 int32_t testi2c_read_write()
 {
     int fh;
-    int len, sent, rcvd;
+    int len, sent;
     uint8_t buff[I2C_BUFFER_LIMIT];
 
     fh = open(device.c_str(), O_RDWR);
@@ -193,12 +192,12 @@ int32_t testi2c_read_write()
 
         printf("RX (hex): ");
 
-        for (int i=0; i< dataout.size(); i++)
+        for (unsigned int i = 0; i < dataout.size(); i++)
         {
             printf("%2x ", dataout[i]);
         }
 
-        printf(" (%d bytes)", dataout.size());
+        printf(" (%lu bytes)", dataout.size());
         printf("\n");
     }
 
