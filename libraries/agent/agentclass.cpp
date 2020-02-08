@@ -1444,7 +1444,7 @@ namespace Cosmos
                     }
 
 #ifdef COSMOS_WIN_OS
-                    bool nonblocking = true;
+                    u_long nonblocking = 1;;
                     if (ioctlsocket(cinfo->agent[0].pub[0].cudp, FIONBIO, &nonblocking) != 0)
                     {
                         iretn = -WSAGetLastError();
@@ -1500,7 +1500,7 @@ namespace Cosmos
                             {
                                 continue;
                             }
-                            bool nonblocking = true;
+                            u_long nonblocking = 1;
                             if (ioctlsocket(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, FIONBIO, &nonblocking) != 0)
                             {
                                 continue;

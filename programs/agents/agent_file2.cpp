@@ -184,7 +184,7 @@ double queuesendto(PACKET_NODE_ID_TYPE node_id, std::string type, std::vector<PA
 int32_t mysendto(std::string type, channelstruc &channel, std::vector<PACKET_BYTE>& buf);
 int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout=1.);
 void debug_packet(std::vector<PACKET_BYTE> buf, std::string type);
-int32_t write_meta(tx_progress& tx);
+int32_t write_meta(tx_progress& tx, double interval=5.);
 int32_t read_meta(tx_progress& tx);
 bool tx_progress_compare_by_size(const tx_progress& a, const tx_progress& b);
 bool filestruc_compare_by_size(const filestruc& a, const filestruc& b);
@@ -364,20 +364,20 @@ int main(int argc, char *argv[])
                 // Go through existing queue, removing files that no longer exist
                 for (uint16_t i=1; i<TRANSFER_QUEUE_SIZE; ++i)
                 {
-                    if (txq[node].outgoing.progress[i].tx_id != 0 && !data_isfile(txq[node].outgoing.progress[i].filepath))
+                    if (txq[static_cast <size_t>(node)].outgoing.progress[i].tx_id != 0 && !data_isfile(txq[static_cast <size_t>(node)].outgoing.progress[i].filepath))
                     {
-                        outgoing_tx_del(node, txq[node].outgoing.progress[i].tx_id);
+                        outgoing_tx_del(node, txq[static_cast <size_t>(node)].outgoing.progress[i].tx_id);
                     }
                 }
 
-                if (txq[node].outgoing.size < TRANSFER_QUEUE_LIMIT)
+                if (txq[static_cast <size_t>(node)].outgoing.size < TRANSFER_QUEUE_LIMIT)
                 {
                     std::vector<filestruc> file_names;
-                    for (filestruc file : data_list_files(txq[node].node_name, "outgoing", ""))
+                    for (filestruc file : data_list_files(txq[static_cast <size_t>(node)].node_name, "outgoing", ""))
                     {
                         if (file.type == "directory")
                         {
-                            iretn = data_list_files(txq[node].node_name, "outgoing", file.name, file_names);
+                            iretn = data_list_files(txq[static_cast <size_t>(node)].node_name, "outgoing", file.name, file_names);
                         }
                     }
 
@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
                     sort(file_names.begin(), file_names.end(), filestruc_compare_by_size);
                     for(filestruc file : file_names)
                     {
-                        if (txq[node].outgoing.size >= TRANSFER_QUEUE_LIMIT)
+                        if (txq[static_cast <size_t>(node)].outgoing.size >= TRANSFER_QUEUE_LIMIT)
                         {
                             break;
                         }
@@ -397,7 +397,7 @@ int main(int argc, char *argv[])
 
                         bool addtoqueue = true;
                         outgoing_tx_lock.lock();
-                        for(tx_progress progress : txq[node].outgoing.progress)
+                        for(tx_progress progress : txq[static_cast <size_t>(node)].outgoing.progress)
                         {
                             if (progress.tx_id && file.path == progress.filepath)
                             {
@@ -503,7 +503,7 @@ void recv_loop()
                     int32_t node = check_node_id(meta.node_id);
                     if (node >= 0)
                     {
-                        comm_channel[use_channel].node = txq[node].node_name;
+                        comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
                     }
 
                     incoming_tx_lock.lock();
@@ -530,8 +530,8 @@ void recv_loop()
 
                     if (node >= 0)
                     {
-                        comm_channel[use_channel].node = txq[node].node_name;
-                        PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].incoming.progress, data.tx_id);
+                        comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
+                        PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[static_cast <size_t>(node)].incoming.progress, data.tx_id);
 
                         // Update corresponding incoming queue entry if it exists
                         if (tx_id > 0)
@@ -549,42 +549,42 @@ void recv_loop()
                             bool updated = false;
 
                             // Do we have any data yet?
-                            if (!txq[node].incoming.progress[tx_id].file_info.size())
+                            if (!txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info.size())
                             {
                                 // Add first entry, then write data
-                                txq[node].incoming.progress[tx_id].file_info.push_back(tp);
-                                txq[node].incoming.progress[tx_id].total_bytes += data.byte_count;
+                                txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info.push_back(tp);
+                                txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes += data.byte_count;
                                 updated = true;
                             }
                             else
                             {
                                 // Check against existing data
-                                for (uint32_t j=0; j<txq[node].incoming.progress[tx_id].file_info.size(); ++j)
+                                for (uint32_t j=0; j<txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info.size(); ++j)
                                 {
                                     // Check for duplicate
-                                    if (tp.chunk_start >= txq[node].incoming.progress[tx_id].file_info[j].chunk_start && tp.chunk_end <= txq[node].incoming.progress[tx_id].file_info[j].chunk_end)
+                                    if (tp.chunk_start >= txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_start && tp.chunk_end <= txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_end)
                                     {
                                         duplicate = true;
                                         break;
                                     }
                                     // If we start before this entry
-                                    if (tp.chunk_start < txq[node].incoming.progress[tx_id].file_info[j].chunk_start)
+                                    if (tp.chunk_start < txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_start)
                                     {
                                         // If we end before this entry (at least one byte between), insert
-                                        if (tp.chunk_end + 1 < txq[node].incoming.progress[tx_id].file_info[j].chunk_start)
+                                        if (tp.chunk_end + 1 < txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_start)
                                         {
-                                            txq[node].incoming.progress[tx_id].file_info.insert(txq[node].incoming.progress[tx_id].file_info.begin()+j, tp);
-                                            txq[node].incoming.progress[tx_id].total_bytes += data.byte_count;
+                                            txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info.insert(txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info.begin()+j, tp);
+                                            txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes += data.byte_count;
                                             updated = true;
                                             break;
                                         }
                                         // Otherwise, extend the near end
                                         else
                                         {
-                                            tp.chunk_end = txq[node].incoming.progress[tx_id].file_info[j].chunk_start - 1;
-                                            txq[node].incoming.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
+                                            tp.chunk_end = txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_start - 1;
+                                            txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
                                             data.byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                                            txq[node].incoming.progress[tx_id].total_bytes += data.byte_count;
+                                            txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes += data.byte_count;
                                             updated = true;
                                             break;
                                         }
@@ -592,14 +592,14 @@ void recv_loop()
                                     else
                                     {
                                         // If we overlap on the end, extend the far end
-                                        if (tp.chunk_start <= txq[node].incoming.progress[tx_id].file_info[j].chunk_end + 1)
+                                        if (tp.chunk_start <= txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_end + 1)
                                         {
-                                            if (tp.chunk_end > txq[node].incoming.progress[tx_id].file_info[j].chunk_end)
+                                            if (tp.chunk_end > txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_end)
                                             {
-                                                data.byte_count = tp.chunk_end - txq[node].incoming.progress[tx_id].file_info[j].chunk_end;
-                                                tp.chunk_start = txq[node].incoming.progress[tx_id].file_info[j].chunk_end + 1;
-                                                txq[node].incoming.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
-                                                txq[node].incoming.progress[tx_id].total_bytes += data.byte_count;
+                                                data.byte_count = tp.chunk_end - txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_end;
+                                                tp.chunk_start = txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_end + 1;
+                                                txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
+                                                txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes += data.byte_count;
                                                 updated = true;
                                                 break;
                                             }
@@ -610,10 +610,10 @@ void recv_loop()
 
 
                                 // If we are higher than everything currently in the list, then append
-                                if (!duplicate && check == txq[node].incoming.progress[tx_id].file_info.size())
+                                if (!duplicate && check == txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info.size())
                                 {
-                                    txq[node].incoming.progress[tx_id].file_info.push_back(tp);
-                                    txq[node].incoming.progress[tx_id].total_bytes += data.byte_count;
+                                    txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info.push_back(tp);
+                                    txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes += data.byte_count;
                                     updated = true;
                                 }
 
@@ -623,20 +623,20 @@ void recv_loop()
                             if (updated)
                             {
                                 // Write incoming data to disk
-                                if (txq[node].incoming.progress[tx_id].fp == nullptr)
+                                if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp == nullptr)
                                 {
-                                    partial_filepath = txq[node].incoming.progress[tx_id].temppath + ".file";
+                                    partial_filepath = txq[static_cast <size_t>(node)].incoming.progress[tx_id].temppath + ".file";
                                     if (data_exists(partial_filepath))
                                     {
-                                        txq[node].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "r+");
+                                        txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "r+");
                                     }
                                     else
                                     {
-                                        txq[node].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
+                                        txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
                                     }
                                 }
 
-                                if (txq[node].incoming.progress[tx_id].fp == nullptr)
+                                if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp == nullptr)
                                 {
                                     if (debug_flag)
                                     {
@@ -648,11 +648,11 @@ void recv_loop()
                                 }
                                 else
                                 {
-                                    fseek(txq[node].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
-                                    fwrite(data.chunk, data.byte_count, 1, txq[node].incoming.progress[tx_id].fp);
-                                    fflush(txq[node].incoming.progress[tx_id].fp);
+                                    fseek(txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp, tp.chunk_start, SEEK_SET);
+                                    fwrite(data.chunk, data.byte_count, 1, txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp);
+                                    fflush(txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp);
                                     // Write latest meta data to disk
-                                    write_meta(txq[node].incoming.progress[tx_id]);
+                                    write_meta(txq[static_cast <size_t>(node)].incoming.progress[tx_id]);
                                     if (debug_flag)
                                     {
                                         uint32_t total = 0;
@@ -670,13 +670,13 @@ void recv_loop()
                             }
 
                             // Check if file has been completely received
-                            if(txq[node].incoming.progress[tx_id].file_size == txq[node].incoming.progress[tx_id].total_bytes && txq[node].incoming.progress[tx_id].havemeta)
+                            if(txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_size == txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes && txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta)
                             {
                                 // See if we know what the remote node_id is for this
                                 int32_t remote_node = lookup_remote_node_id(node);
                                 if (remote_node >= 0)
                                 {
-                                    tx_progress tx_in = txq[node].incoming.progress[tx_id];
+                                    tx_progress tx_in = txq[static_cast <size_t>(node)].incoming.progress[tx_id];
 
                                     // inform other end that file has been received
                                     std::vector<PACKET_BYTE> packet;
@@ -684,15 +684,17 @@ void recv_loop()
                                     queuesendto(node, "rx", packet);
 
                                     // Move file to its final location
-                                    if (!txq[node].incoming.progress[tx_id].complete)
+                                    if (!txq[static_cast <size_t>(node)].incoming.progress[tx_id].complete)
                                     {
-                                        if (txq[node].incoming.progress[tx_id].fp != nullptr)
+                                        if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp != nullptr)
                                         {
-                                            fclose(txq[node].incoming.progress[tx_id].fp);
-                                            txq[node].incoming.progress[tx_id].fp = nullptr;
+                                            fclose(txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp);
+                                            txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp = nullptr;
                                         }
                                         std::string final_filepath = tx_in.temppath + ".file";
                                         int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
+                                        // Make sure metadata is recorded
+                                        write_meta(txq[static_cast <size_t>(node)].incoming.progress[tx_id], 0.);
                                         if (debug_flag)
                                         {
                                             debug_fd_lock.lock();
@@ -701,7 +703,7 @@ void recv_loop()
                                             debug_fd_lock.unlock();
                                         }
                                         // Mark complete
-                                        txq[node].incoming.progress[tx_id].complete = true;
+                                        txq[static_cast <size_t>(node)].incoming.progress[tx_id].complete = true;
                                     }
                                 }
                             }
@@ -722,7 +724,7 @@ void recv_loop()
                     int32_t node = check_node_id(reqdata.node_id);
                     if (node >= 0)
                     {
-                        comm_channel[use_channel].node = txq[node].node_name;
+                        comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
                     }
 
                     if (node < 0 || reqdata.hole_end < reqdata.hole_start)
@@ -732,7 +734,7 @@ void recv_loop()
 
                     outgoing_tx_lock.lock();
 
-                    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, reqdata.tx_id);
+                    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[static_cast <size_t>(node)].outgoing.progress, reqdata.tx_id);
                     // tx_id now points to the valid entry to which we should add the data
 
                     if (tx_id > 0)
@@ -745,57 +747,57 @@ void recv_loop()
 
                         uint32_t check=0;
                         // Anything in the queue yet?
-                        if (!txq[node].outgoing.progress[tx_id].file_info.size())
+                        if (!txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size())
                         {
                             // Add first entry
-                            txq[node].outgoing.progress[tx_id].file_info.push_back(tp);
-                            txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                            //							cout<<"[Send] In (new): "<<"["<<0<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[0].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[0].chunk_end<< std::endl;
+                            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.push_back(tp);
+                            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
+                            //							cout<<"[Send] In (new): "<<"["<<0<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[0].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[0].chunk_end<< std::endl;
                         }
                         else
                         {
                             // Check against existing data
-                            for (uint32_t j=0; j<txq[node].outgoing.progress[tx_id].file_info.size(); ++j)
+                            for (uint32_t j=0; j<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size(); ++j)
                             {
                                 // If we match this entry
-                                if (tp.chunk_start == txq[node].outgoing.progress[tx_id].file_info[j].chunk_start && tp.chunk_end == txq[node].outgoing.progress[tx_id].file_info[j].chunk_end)
+                                if (tp.chunk_start == txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start && tp.chunk_end == txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end)
                                 {
                                     break;
                                 }
                                 // If we start before this entry
-                                if (tp.chunk_start < txq[node].outgoing.progress[tx_id].file_info[j].chunk_start)
+                                if (tp.chunk_start < txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start)
                                 {
                                     // If we end before this entry (at least one byte between), insert
-                                    if (tp.chunk_end + 1 < txq[node].outgoing.progress[tx_id].file_info[j].chunk_start)
+                                    if (tp.chunk_end + 1 < txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start)
                                     {
-                                        txq[node].outgoing.progress[tx_id].file_info.insert(txq[node].outgoing.progress[tx_id].file_info.begin()+j, tp);
-                                        txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                                        //										cout<<"[Send] In (insert): "<<"["<<j<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
+                                        txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.insert(txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.begin()+j, tp);
+                                        txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
+                                        //										cout<<"[Send] In (insert): "<<"["<<j<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
                                         break;
                                     }
                                     // Otherwise, extend the near end
                                     else
                                     {
-                                        tp.chunk_end = txq[node].outgoing.progress[tx_id].file_info[j].chunk_start - 1;
-                                        txq[node].outgoing.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
+                                        tp.chunk_end = txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start - 1;
+                                        txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
                                         byte_count = (tp.chunk_end - tp.chunk_start) + 1;
-                                        txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                                        //										cout<<"[Send] In (extend near): "<<"["<<j<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
+                                        txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
+                                        //										cout<<"[Send] In (extend near): "<<"["<<j<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
                                         break;
                                     }
                                 }
                                 else
                                 {
                                     // If we overlap on the end, extend the far end
-                                    if (tp.chunk_start <= txq[node].outgoing.progress[tx_id].file_info[j].chunk_end + 1)
+                                    if (tp.chunk_start <= txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end + 1)
                                     {
-                                        if (tp.chunk_end > txq[node].outgoing.progress[tx_id].file_info[j].chunk_end)
+                                        if (tp.chunk_end > txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end)
                                         {
-                                            byte_count = tp.chunk_end - txq[node].outgoing.progress[tx_id].file_info[j].chunk_end;
-                                            tp.chunk_start = txq[node].outgoing.progress[tx_id].file_info[j].chunk_end + 1;
-                                            txq[node].outgoing.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
-                                            txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                                            //											cout<<"[Send] In (extend far): "<<"["<<j<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
+                                            byte_count = tp.chunk_end - txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end;
+                                            tp.chunk_start = txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end + 1;
+                                            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
+                                            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
+                                            //											cout<<"[Send] In (extend far): "<<"["<<j<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
                                             break;
                                         }
                                     }
@@ -805,20 +807,20 @@ void recv_loop()
 
 
                             // If we are higher than everything currently in the list, then append
-                            if (check == txq[node].outgoing.progress[tx_id].file_info.size())
+                            if (check == txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size())
                             {
-                                txq[node].outgoing.progress[tx_id].file_info.push_back(tp);
-                                txq[node].outgoing.progress[tx_id].total_bytes += byte_count;
-                                //								cout<<"[Send] In (append): "<<"["<<check<<":"<<txq[node].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[node].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[node].outgoing.progress[tx_id].file_info[check].chunk_start<<":"<<txq[node].outgoing.progress[tx_id].file_info[check].chunk_end<< std::endl;
+                                txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.push_back(tp);
+                                txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
+                                //								cout<<"[Send] In (append): "<<"["<<check<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[check].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[check].chunk_end<< std::endl;
                             }
 
                         }
 
                         // Save meta to disk
-                        write_meta(txq[node].outgoing.progress[tx_id]);
-                        txq[node].outgoing.id = reqdata.tx_id;
-                        txq[node].outgoing.nmjd[PACKET_DATA-8] = currentmjd();
-                        txq[node].outgoing.state = PACKET_DATA;
+                        write_meta(txq[static_cast <size_t>(node)].outgoing.progress[tx_id]);
+                        txq[static_cast <size_t>(node)].outgoing.id = reqdata.tx_id;
+                        txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_DATA-8] = currentmjd();
+                        txq[static_cast <size_t>(node)].outgoing.state = PACKET_DATA;
                     }
 
                     outgoing_tx_lock.unlock();
@@ -838,26 +840,26 @@ void recv_loop()
                     int32_t node = set_remote_node_id(reqmeta.node_id, reqmeta.node_name);
                     if (node >= 0)
                     {
-                        comm_channel[use_channel].node = txq[node].node_name;
+                        comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
                         // See if we know what the remote node_id is for this
                         int32_t remote_node = lookup_remote_node_id(node);
                         if (remote_node >= 0)
                         {
-                            txq[node].outgoing.meta_id.clear();
+                            txq[static_cast <size_t>(node)].outgoing.meta_id.clear();
                             for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
                             {
-                                PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, reqmeta.tx_id[i]);
+                                PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[static_cast <size_t>(node)].outgoing.progress, reqmeta.tx_id[i]);
                                 if (tx_id > 0)
                                 {
-                                    txq[node].outgoing.meta_id.push_back(tx_id);
-//                                    tx_progress tx = txq[node].outgoing.progress[tx_id];
+                                    txq[static_cast <size_t>(node)].outgoing.meta_id.push_back(tx_id);
+//                                    tx_progress tx = txq[static_cast <size_t>(node)].outgoing.progress[tx_id];
 //                                    std::vector<PACKET_BYTE> packet;
 //                                    make_metadata_packet(packet, remote_node, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
 //                                    queuesendto(node, "tx", packet);
                                 }
                             }
-                            txq[node].outgoing.nmjd[PACKET_METADATA-8] = currentmjd();
-                            txq[node].outgoing.state = PACKET_METADATA;
+                            txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_METADATA-8] = currentmjd();
+                            txq[static_cast <size_t>(node)].outgoing.state = PACKET_METADATA;
                         }
                     }
 
@@ -873,10 +875,10 @@ void recv_loop()
                     int32_t node = check_node_id(cancel.node_id);
                     if (node >= 0)
                     {
-                        comm_channel[use_channel].node = txq[node].node_name;
+                        comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
                         incoming_tx_lock.lock();
 
-                        PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].incoming.progress, cancel.tx_id);
+                        PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[static_cast <size_t>(node)].incoming.progress, cancel.tx_id);
 
                         if (tx_id > 0)
                         {
@@ -899,9 +901,9 @@ void recv_loop()
                     if (node >= 0)
                     {
                         outgoing_tx_lock.lock();
-                        comm_channel[use_channel].node = txq[node].node_name;
+                        comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
 
-                        PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, complete.tx_id);
+                        PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[static_cast <size_t>(node)].outgoing.progress, complete.tx_id);
 
                         if (tx_id > 0)
                         {
@@ -909,9 +911,9 @@ void recv_loop()
                             int32_t remote_node = lookup_remote_node_id(node);
                             if (remote_node >= 0)
                             {
-                                txq[node].outgoing.nmjd[PACKET_CANCEL-8] = currentmjd();
-                                txq[node].outgoing.state = PACKET_CANCEL;
-                                txq[node].outgoing.id = tx_id;
+                                txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_CANCEL-8] = currentmjd();
+                                txq[static_cast <size_t>(node)].outgoing.state = PACKET_CANCEL;
+                                txq[static_cast <size_t>(node)].outgoing.id = tx_id;
                                 // Remove transaction
 //                                outgoing_tx_del(node, tx_id);
 
@@ -938,17 +940,17 @@ void recv_loop()
                     int32_t node = check_node_id(queue.node_name);
                     if (node >= 0)
                     {
-                        comm_channel[use_channel].node = txq[node].node_name;
+                        comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
 
                         // Set remote node_id
-                        txq[node].node_id = queue.node_id + 1;
+                        txq[static_cast <size_t>(node)].node_id = queue.node_id + 1;
                         // Sort through incoming queue and remove anything not in sent queue
                         for (uint16_t tx_id=0; tx_id<TRANSFER_QUEUE_SIZE; ++tx_id)
                         {
                             bool valid = false;
                             for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
                             {
-                                if (txq[node].incoming.progress[tx_id].tx_id == queue.tx_id[i])
+                                if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id == queue.tx_id[i])
                                 {
                                     // Incoming transaction is in outgoing queue
                                     valid = true;
@@ -971,7 +973,7 @@ void recv_loop()
                         {
                             if (queue.tx_id[i])
                             {
-                                PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].incoming.progress, queue.tx_id[i]);
+                                PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[static_cast <size_t>(node)].incoming.progress, queue.tx_id[i]);
 
                                 if (tx_id == 0)
                                 {
@@ -988,7 +990,7 @@ void recv_loop()
                             PACKET_TX_ID_TYPE iq = 0;
                             for (uint16_t tx_id=1; tx_id<TRANSFER_QUEUE_SIZE; ++tx_id)
                             {
-                                if (txq[node].incoming.progress[tx_id].tx_id && !txq[node].incoming.progress[tx_id].havemeta)
+                                if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id && !txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta)
                                 {
                                     next_reqmeta_time += sizeof(packet_struct_metashort) / (86400. * comm_channel[use_channel].throughput);
                                     tqueue[iq++] = tx_id;
@@ -1001,7 +1003,7 @@ void recv_loop()
                             if (iq)
                             {
                                 std::vector<PACKET_BYTE> packet;
-                                make_reqmeta_packet(packet, node, txq[node].node_name, tqueue);
+                                make_reqmeta_packet(packet, node, txq[static_cast <size_t>(node)].node_name, tqueue);
                                 queuesendto(node, "rx", packet);
                             }
                         }
@@ -1017,6 +1019,19 @@ void recv_loop()
             }
         }
     }
+
+    // Flush any active metadata
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+        for (uint16_t tx_id=1; tx_id<TRANSFER_QUEUE_SIZE; ++tx_id)
+        {
+            if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id && txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta)
+            {
+                write_meta(txq[static_cast <size_t>(node)].incoming.progress[tx_id], 0.);
+            }
+        }
+    }
+
 }
 
 void send_loop()
@@ -1039,10 +1054,10 @@ void send_loop()
         }
 
         // If we did nothing last loop, wait at least 100 msec
-        if (next_send_time == 0.)
+        if (next_send_time < 1.16e-6)
         {
             // 100 msec in MJD
-            next_send_time = 1.16e-6;
+            next_send_time = 1.16e-6; // .1 second
         }
 
         // Time it should be after we wait
@@ -1058,7 +1073,7 @@ void send_loop()
 
         // Bring us up to the present
         current_time = next_time;
-        next_send_time = .1 / 86400.;
+//        next_send_time = .1 / 86400.;
 
         for (int32_t node=0; node<txq.size(); ++node)
         {
@@ -1069,52 +1084,52 @@ void send_loop()
                 continue;
             }
 
-            if (debug_flag && txq[node].outgoing.state != previous_state)
+            if (debug_flag && txq[static_cast <size_t>(node)].outgoing.state != previous_state)
             {
-                previous_state = txq[node].outgoing.state;
+                previous_state = txq[static_cast <size_t>(node)].outgoing.state;
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "Send Loop: Node %s State: %d\n", txq[node].node_name.c_str(), txq[node].outgoing.state);
+                fprintf(agent->get_debug_fd(), "Send Loop: Node %s State: %d\n", txq[static_cast <size_t>(node)].node_name.c_str(), txq[static_cast <size_t>(node)].outgoing.state);
                 fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
             // Decide what to do next based on our current state
             outgoing_tx_lock.lock();
-            switch (txq[node].outgoing.state)
+            switch (txq[static_cast <size_t>(node)].outgoing.state)
             {
             case PACKET_QUEUE:
                 // If we are in Queue state, then the only thing we want to do is send a Queue packet, if enough time has passed
-                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_QUEUE - 8])
+                if (currentmjd() > txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_QUEUE - 8])
                 {
                     std::vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
                     PACKET_TX_ID_TYPE iq = 0;
                     for (uint16_t i=1; i<TRANSFER_QUEUE_SIZE; ++i)
                     {
-                        if (txq[node].outgoing.progress[i].tx_id != 0)
+                        if (txq[static_cast <size_t>(node)].outgoing.progress[i].tx_id != 0)
                         {
-                            tqueue[iq++] = txq[node].outgoing.progress[i].tx_id;
+                            tqueue[iq++] = txq[static_cast <size_t>(node)].outgoing.progress[i].tx_id;
                         }
                         if (iq == TRANSFER_QUEUE_LIMIT)
                         {
                             break;
                         }
                     }
-                    make_queue_packet(packet, node, txq[node].node_name, tqueue);
+                    make_queue_packet(packet, node, txq[static_cast <size_t>(node)].node_name, tqueue);
                     queuesendto(node, "tx", packet);
-                    txq[node].outgoing.nmjd[PACKET_QUEUE - 8] = currentmjd() + 10. / 86400.;
+                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_QUEUE - 8] = currentmjd() + 10. / 86400.;
                 }
                 break;
             case PACKET_METADATA:
-                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_METADATA - 8])
+                if (currentmjd() > txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_METADATA - 8])
                 {
                     int32_t remote_node = lookup_remote_node_id(node);
                     if (remote_node >= 0)
                     {
-                        for (uint16_t i=0; i<txq[node].outgoing.meta_id.size(); ++i)
+                        for (uint16_t i=0; i<txq[static_cast <size_t>(node)].outgoing.meta_id.size(); ++i)
                         {
-                            PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].outgoing.progress, txq[node].outgoing.meta_id[i]);
+                            PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[static_cast <size_t>(node)].outgoing.progress, txq[static_cast <size_t>(node)].outgoing.meta_id[i]);
                             if (tx_id > 0)
                             {
-                                tx_progress tx = txq[node].outgoing.progress[tx_id];
+                                tx_progress tx = txq[static_cast <size_t>(node)].outgoing.progress[tx_id];
                                 std::vector<PACKET_BYTE> packet;
                                 make_metadata_packet(packet, remote_node, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
                                 send_time = queuesendto(node, "tx", packet);
@@ -1126,31 +1141,31 @@ void send_loop()
                                 {
                                     next_send_time = 10. / 86400.;
                                 }
-                                txq[node].outgoing.state = PACKET_DATA;
+                                txq[static_cast <size_t>(node)].outgoing.state = PACKET_DATA;
                             }
                         }
                     }
-                    txq[node].outgoing.nmjd[PACKET_METADATA - 8] = currentmjd() + 10. / 86400.;
+                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_METADATA - 8] = currentmjd() + 10. / 86400.;
                 }
                 break;
             case PACKET_DATA:
-                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_DATA - 8])
+                if (currentmjd() > txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_DATA - 8])
                 {
                     // See if we have an active transfer
-                    PACKET_TX_ID_TYPE  tx_id = check_tx_id(txq[node].outgoing.progress, txq[node].outgoing.id);
-                    if (tx_id > 0 && txq[node].outgoing.progress[tx_id].file_info.size())
+                    PACKET_TX_ID_TYPE  tx_id = check_tx_id(txq[static_cast <size_t>(node)].outgoing.progress, txq[static_cast <size_t>(node)].outgoing.id);
+                    if (tx_id > 0 && txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size())
                     {
                         // Attempt to open the outgoing progress file
-                        if (txq[node].outgoing.progress[tx_id].fp == nullptr)
+                        if (txq[static_cast <size_t>(node)].outgoing.progress[tx_id].fp == nullptr)
                         {
-                            txq[node].outgoing.progress[tx_id].fp = fopen(txq[node].outgoing.progress[tx_id].filepath.c_str(), "r");
+                            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].fp = fopen(txq[static_cast <size_t>(node)].outgoing.progress[tx_id].filepath.c_str(), "r");
                         }
 
                         // If we're good, continue with the process
-                        if(txq[node].outgoing.progress[tx_id].fp != nullptr)
+                        if(txq[static_cast <size_t>(node)].outgoing.progress[tx_id].fp != nullptr)
                         {
                             file_progress tp;
-                            tp = txq[node].outgoing.progress[tx_id].file_info[0];
+                            tp = txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[0];
 
                             PACKET_FILE_SIZE_TYPE byte_count = (tp.chunk_end - tp.chunk_start) + 1;
                             if (byte_count > comm_channel[use_channel].packet_size)
@@ -1163,9 +1178,9 @@ void send_loop()
                             // Read the packet and send it
                             int32_t nbytes;
                             PACKET_BYTE* chunk = new PACKET_BYTE[byte_count]();
-                            if (!(nbytes = fseek(txq[node].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET)))
+                            if (!(nbytes = fseek(txq[static_cast <size_t>(node)].outgoing.progress[tx_id].fp, tp.chunk_start, SEEK_SET)))
                             {
-                                nbytes = fread(chunk, 1, byte_count, txq[node].outgoing.progress[tx_id].fp);
+                                nbytes = fread(chunk, 1, byte_count, txq[static_cast <size_t>(node)].outgoing.progress[tx_id].fp);
                             }
                             if (nbytes == byte_count)
                             {
@@ -1173,13 +1188,16 @@ void send_loop()
                                 int32_t remote_node = lookup_remote_node_id(node);
                                 if (remote_node >= 0)
                                 {
-                                    make_data_packet(packet, remote_node, txq[node].outgoing.progress[tx_id].tx_id, byte_count, tp.chunk_start, chunk);
+                                    make_data_packet(packet, remote_node, txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id, byte_count, tp.chunk_start, chunk);
 
                                     send_time = queuesendto(node, "tx", packet);
                                     if (send_time >= 0.)
                                     {
-                                        next_send_time += send_time;
-                                        txq[node].outgoing.progress[tx_id].file_info[0].chunk_start = tp.chunk_end + 1;
+                                        if (send_time > next_send_time)
+                                        {
+                                            next_send_time = send_time;
+                                        }
+                                        txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[0].chunk_start = tp.chunk_end + 1;
                                     }
                                     else
                                     {
@@ -1192,57 +1210,57 @@ void send_loop()
                                 // Some problem with this transmission, ask other end to dequeue it
                                 // Remove transaction
                                 next_send_time = 0.;
-                                txq[node].outgoing.state = PACKET_CANCEL;
+                                txq[static_cast <size_t>(node)].outgoing.state = PACKET_CANCEL;
                             }
                             delete[] chunk;
 
-                            if (txq[node].outgoing.progress[tx_id].file_info[0].chunk_start > txq[node].outgoing.progress[tx_id].file_info[0].chunk_end)
+                            if (txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[0].chunk_start > txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[0].chunk_end)
                             {
                                 // All done with this file_info entry. Close file and remove entry.
-                                fclose(txq[node].outgoing.progress[tx_id].fp);
-                                txq[node].outgoing.progress[tx_id].fp = nullptr;
-                                txq[node].outgoing.progress[tx_id].file_info.pop_front();
+                                fclose(txq[static_cast <size_t>(node)].outgoing.progress[tx_id].fp);
+                                txq[static_cast <size_t>(node)].outgoing.progress[tx_id].fp = nullptr;
+                                txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.pop_front();
                             }
 
-                            write_meta(txq[node].outgoing.progress[tx_id]);
+                            write_meta(txq[static_cast <size_t>(node)].outgoing.progress[tx_id]);
                         }
                         else
                         {
                             // Some problem with this transmission, ask other end to dequeue it
 
                             next_send_time = 0.;
-                            txq[node].outgoing.state = PACKET_CANCEL;
+                            txq[static_cast <size_t>(node)].outgoing.state = PACKET_CANCEL;
                         }
                     }
                     else
                     {
-                        if (currentmjd() > txq[node].outgoing.nmjd[PACKET_QUEUE - 8])
+                        if (currentmjd() > txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_QUEUE - 8])
                         {
-                            txq[node].outgoing.state = PACKET_QUEUE;
+                            txq[static_cast <size_t>(node)].outgoing.state = PACKET_QUEUE;
                         }
                     }
-                    txq[node].outgoing.nmjd[PACKET_DATA - 8] = currentmjd() + next_send_time;
+                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_DATA - 8] = currentmjd() + next_send_time;
                 }
                 break;
 //            case PACKET_COMPLETE:
-//                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_COMPLETE - 8])
+//                if (currentmjd() > txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_COMPLETE - 8])
 //                {
 //                    int32_t remote_node = lookup_remote_node_id(node);
 //                    if (remote_node >= 0)
 //                    {
 //                        // Send a COMPLETE packet
 //                        std::vector<PACKET_BYTE> packet;
-//                        make_complete_packet(packet, remote_node, txq[node].outgoing.id);
+//                        make_complete_packet(packet, remote_node, txq[static_cast <size_t>(node)].outgoing.id);
 //                        queuesendto(node, "tx", packet);
 //                    }
-//                    txq[node].outgoing.nmjd[PACKET_COMPLETE - 8] = currentmjd() + 10./86400.;
+//                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_COMPLETE - 8] = currentmjd() + 10./86400.;
 //                }
 //                break;
             case PACKET_CANCEL:
-                if (currentmjd() > txq[node].outgoing.nmjd[PACKET_CANCEL - 8])
+                if (currentmjd() > txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_CANCEL - 8])
                 {
                     // See if we have an active transfer
-                    PACKET_TX_ID_TYPE  tx_id = check_tx_id(txq[node].outgoing.progress, txq[node].outgoing.id);
+                    PACKET_TX_ID_TYPE  tx_id = check_tx_id(txq[static_cast <size_t>(node)].outgoing.progress, txq[static_cast <size_t>(node)].outgoing.id);
                     outgoing_tx_del(node, tx_id);
                     int32_t remote_node = lookup_remote_node_id(node);
                     if (remote_node >= 0)
@@ -1252,8 +1270,9 @@ void send_loop()
                         make_cancel_packet(packet, remote_node, tx_id);
                         queuesendto(node, "tx", packet);
                     }
-                    txq[node].outgoing.nmjd[PACKET_CANCEL - 8] = currentmjd() + 10. / 86400.;
-                    txq[node].outgoing.state = PACKET_QUEUE;
+//                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_CANCEL - 8] = currentmjd() + 10. / 86400.;
+                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_CANCEL - 8] = currentmjd() + next_send_time;
+                    txq[static_cast <size_t>(node)].outgoing.state = PACKET_QUEUE;
                 }
                 break;
             }
@@ -1507,14 +1526,13 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
     }
 }
 
-int32_t write_meta(tx_progress& tx)
+int32_t write_meta(tx_progress& tx, double interval)
 {
     std::vector<PACKET_BYTE> packet;
     std::ofstream file_name;
 
-    if (currentmjd(0.) - tx.savetime > 5./86400.)
+    if (currentmjd(0.) - tx.savetime > interval/86400.)
     {
-        //		std::cout<<"write_meta: "<< 86400.*(currentmjd(0.) - tx.savetime)<<" file: "<<tx.temppath + ".meta"<< std::endl;
         tx.savetime = currentmjd(0.);
         make_metadata_packet(packet, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.node_name.c_str(), (char *)tx.agent_name.c_str());
         file_name.open(tx.temppath + ".meta", std::ios::out|std::ios::binary);
@@ -1767,8 +1785,8 @@ int32_t request_list_incoming(char* request, char* response, Agent *agent)
     response[0] = 0;
     for (uint16_t node = 0; node<txq.size(); ++node)
     {
-        sprintf(&response[strlen(response)], "%u %s %u\n", node, txq[node].node_name.c_str(), txq[node].incoming.size);
-        for(tx_progress tx : txq[node].incoming.progress)
+        sprintf(&response[strlen(response)], "%u %s %u\n", node, txq[static_cast <size_t>(node)].node_name.c_str(), txq[static_cast <size_t>(node)].incoming.size);
+        for(tx_progress tx : txq[static_cast <size_t>(node)].incoming.progress)
         {
             if (tx.tx_id)
             {
@@ -1785,8 +1803,8 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
     response[0] = 0;
     for (uint16_t node=0; node<txq.size(); ++node)
     {
-        sprintf(&response[strlen(response)], "%u %s %u\n", node, txq[node].node_name.c_str(), txq[node].outgoing.size);
-        for(tx_progress tx : txq[node].outgoing.progress)
+        sprintf(&response[strlen(response)], "%u %s %u\n", node, txq[static_cast <size_t>(node)].node_name.c_str(), txq[static_cast <size_t>(node)].outgoing.size);
+        for(tx_progress tx : txq[static_cast <size_t>(node)].outgoing.progress)
         {
             if (tx.tx_id)
             {
@@ -1808,8 +1826,8 @@ int32_t request_get_channels(char* request, char* response, Agent *agent)
         sprintf(response,"ip:\"%s\",", comm_channel[channel].chanip.c_str());
         sprintf(response,"size:%u,", comm_channel[channel].packet_size);
         sprintf(response,"throughput:%u,", comm_channel[channel].throughput);
-        sprintf(response,"nmjd:\"%s\",", comm_channel[channel].nmjd);
-        sprintf(response,"lmjd:\"%s\",", comm_channel[channel].lmjd);
+        sprintf(response,"nmjd:\"%f\",", comm_channel[channel].nmjd);
+        sprintf(response,"lmjd:\"%f\",", comm_channel[channel].lmjd);
         sprintf(response,"},");
     }
 }
@@ -1895,7 +1913,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     }
 
     // Only add if we have room
-    if (txq[node].outgoing.size == TRANSFER_QUEUE_LIMIT)
+    if (txq[static_cast <size_t>(node)].outgoing.size == TRANSFER_QUEUE_LIMIT)
     {
         return TRANSFER_ERROR_QUEUEFULL;
     }
@@ -1915,8 +1933,8 @@ int32_t outgoing_tx_add(tx_progress tx_out)
 
     // Good to go. Add it to queue.
     outgoing_tx_lock.lock();
-    txq[node].outgoing.progress[tx_out.tx_id] = tx_out;
-    ++txq[node].outgoing.size;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_out.tx_id] = tx_out;
+    ++txq[static_cast <size_t>(node)].outgoing.size;
     outgoing_tx_lock.unlock();
 
     if (debug_flag)
@@ -1942,7 +1960,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
     }
 
     // Only add if we have room
-    if (txq[node].outgoing.size == TRANSFER_QUEUE_LIMIT)
+    if (txq[static_cast <size_t>(node)].outgoing.size == TRANSFER_QUEUE_LIMIT)
     {
         return TRANSFER_ERROR_QUEUEFULL;
     }
@@ -1951,7 +1969,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
     //get the file size
     outgoing_tx_lock.lock();
     tx_out.tx_id = 0;
-    PACKET_TX_ID_TYPE id = txq[node].outgoing.next_id;
+    PACKET_TX_ID_TYPE id = txq[static_cast <size_t>(node)].outgoing.next_id;
     do
     {
         // 0 is special case
@@ -1960,14 +1978,14 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
             ++id;
         }
 
-        if (txq[node].outgoing.progress[id].tx_id == 0)
+        if (txq[static_cast <size_t>(node)].outgoing.progress[id].tx_id == 0)
         {
             tx_out.tx_id = id;
-            txq[node].outgoing.next_id = id + 1;
+            txq[static_cast <size_t>(node)].outgoing.next_id = id + 1;
             break;
         }
         // If no empty found, increment, allowing to wrap if necessary
-    } while (++id != txq[node].outgoing.next_id);
+    } while (++id != txq[static_cast <size_t>(node)].outgoing.next_id);
     outgoing_tx_lock.unlock();
 
     if (tx_out.tx_id > 0)
@@ -2016,20 +2034,20 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
         return TRANSFER_ERROR_INDEX;
     }
 
-    if (txq[node].outgoing.progress[tx_id].tx_id == 0)
+    if (txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id == 0)
     {
         return TRANSFER_ERROR_MATCH;
     }
 
-    tx_progress tx_out = txq[node].outgoing.progress[tx_id];
+    tx_progress tx_out = txq[static_cast <size_t>(node)].outgoing.progress[tx_id];
 
     // erase the transaction
     //	outgoing_tx.erase(outgoing_tx.begin()+tx_id);
-    txq[node].outgoing.progress[tx_id].tx_id = 0;
-    --txq[node].outgoing.size;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id = 0;
+    --txq[static_cast <size_t>(node)].outgoing.size;
 
     // Set current tx id back to 0
-    txq[node].outgoing.id = 0;
+    txq[static_cast <size_t>(node)].outgoing.id = 0;
 
     // Remove the file
     if(remove(tx_out.filepath.c_str()))
@@ -2080,8 +2098,8 @@ int32_t incoming_tx_add(tx_progress tx_in)
     tx_in.fp = nullptr;
 
     // Put it in list
-    txq[node].incoming.progress[tx_in.tx_id] = tx_in;
-    ++txq[node].incoming.size;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id] = tx_in;
+    ++txq[static_cast <size_t>(node)].incoming.size;
 
     if (debug_flag)
     {
@@ -2121,36 +2139,36 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
     }
 
     // See if it's already in the queue
-    if (txq[node].incoming.progress[meta.tx_id].tx_id != meta.tx_id)
+    if (txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].tx_id != meta.tx_id)
     {
         return TRANSFER_ERROR_MATCH;
     }
 
-    if (!txq[node].incoming.progress[meta.tx_id].havemeta)
+    if (!txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].havemeta)
     {
         // Core META information
-        txq[node].incoming.progress[meta.tx_id].node_name = txq[node].node_name;
-        txq[node].incoming.progress[meta.tx_id].agent_name = meta.agent_name;
-        txq[node].incoming.progress[meta.tx_id].file_name = meta.file_name;
-        txq[node].incoming.progress[meta.tx_id].file_size = meta.file_size;
-        txq[node].incoming.progress[meta.tx_id].filepath = data_base_path(txq[node].incoming.progress[meta.tx_id].node_name, "incoming", txq[node].incoming.progress[meta.tx_id].agent_name, txq[node].incoming.progress[meta.tx_id].file_name);
-        std::string tx_name = "in_"+std::to_string(txq[node].incoming.progress[meta.tx_id].tx_id);
-        txq[node].incoming.progress[meta.tx_id].temppath = data_base_path(txq[node].incoming.progress[meta.tx_id].node_name, "temp", "file", tx_name);
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].node_name = txq[static_cast <size_t>(node)].node_name;
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].agent_name = meta.agent_name;
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].file_name = meta.file_name;
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].file_size = meta.file_size;
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].filepath = data_base_path(txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].node_name, "incoming", txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].agent_name, txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].file_name);
+        std::string tx_name = "in_"+std::to_string(txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].tx_id);
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].temppath = data_base_path(txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].node_name, "temp", "file", tx_name);
 
         // Derivative META information
-        txq[node].incoming.progress[meta.tx_id].savetime = 0.;
-        txq[node].incoming.progress[meta.tx_id].havemeta = true;
-        txq[node].incoming.progress[meta.tx_id].total_bytes = 0;
-        txq[node].incoming.progress[meta.tx_id].fp = nullptr;
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].savetime = 0.;
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].havemeta = true;
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].total_bytes = 0;
+        txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].fp = nullptr;
 
         // Save it to disk
-        write_meta(txq[node].incoming.progress[meta.tx_id]);
+        write_meta(txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id]);
     }
 
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "Update incoming: %u %s %s %s\n", txq[node].incoming.progress[meta.tx_id].tx_id, txq[node].incoming.progress[meta.tx_id].node_name.c_str(), txq[node].incoming.progress[meta.tx_id].agent_name.c_str(), txq[node].incoming.progress[meta.tx_id].file_name.c_str());
+        fprintf(agent->get_debug_fd(), "Update incoming: %u %s %s %s\n", txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].tx_id, txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].node_name.c_str(), txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].agent_name.c_str(), txq[static_cast <size_t>(node)].incoming.progress[meta.tx_id].file_name.c_str());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -2166,16 +2184,16 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
         return TRANSFER_ERROR_NODE;
     }
 
-    if (txq[node].incoming.progress[tx_id].tx_id == 0)
+    if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id == 0)
     {
         return TRANSFER_ERROR_MATCH;
     }
 
-    tx_progress tx_in = txq[node].incoming.progress[tx_id];
+    tx_progress tx_in = txq[static_cast <size_t>(node)].incoming.progress[tx_id];
 
-    txq[node].incoming.progress[tx_id].tx_id = 0;
-    txq[node].incoming.progress[tx_id].havemeta = false;
-    --txq[node].incoming.size;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id = 0;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta = false;
+    --txq[static_cast <size_t>(node)].incoming.size;
 
     // Close the DATA file
     if (tx_in.fp != nullptr)
@@ -2194,9 +2212,9 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     remove(filepath.c_str());
 
     // Make sure we are not using this for incoming_tx_id
-    if (tx_in.tx_id == txq[node].incoming.id)
+    if (tx_in.tx_id == txq[static_cast <size_t>(node)].incoming.id)
     {
-        txq[node].incoming.id = 0;
+        txq[static_cast <size_t>(node)].incoming.id = 0;
     }
 
     if (debug_flag)
@@ -2229,21 +2247,21 @@ PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node)
     {
         // Choose file with least data left to send
         PACKET_FILE_SIZE_TYPE nsize = INT32_MAX;
-        for (PACKET_FILE_SIZE_TYPE i=0; i < txq[node].incoming.progress.size(); ++i)
+        for (PACKET_FILE_SIZE_TYPE i=0; i < txq[static_cast <size_t>(node)].incoming.progress.size(); ++i)
         {
             // calculate bytes so far
-            merge_chunks_overlap(txq[node].incoming.progress[i]);
-            //			txq[node].incoming.progress[i].total_bytes = 0;
-            //			for (file_progress prog : txq[node].incoming.progress[i].file_info)
+            merge_chunks_overlap(txq[static_cast <size_t>(node)].incoming.progress[i]);
+            //			txq[static_cast <size_t>(node)].incoming.progress[i].total_bytes = 0;
+            //			for (file_progress prog : txq[static_cast <size_t>(node)].incoming.progress[i].file_info)
             //			{
-            //				txq[node].incoming.progress[i].total_bytes += (prog.chunk_end - prog.chunk_start) + 1;
+            //				txq[static_cast <size_t>(node)].incoming.progress[i].total_bytes += (prog.chunk_end - prog.chunk_start) + 1;
             //			}
 
             // Choose transactions for which we: have meta and bytes remaining is minimized
-            if (txq[node].incoming.progress[i].tx_id && txq[node].incoming.progress[i].havemeta && (txq[node].incoming.progress[i].file_size - txq[node].incoming.progress[i].total_bytes) < nsize)
+            if (txq[static_cast <size_t>(node)].incoming.progress[i].tx_id && txq[static_cast <size_t>(node)].incoming.progress[i].havemeta && (txq[static_cast <size_t>(node)].incoming.progress[i].file_size - txq[static_cast <size_t>(node)].incoming.progress[i].total_bytes) < nsize)
             {
-                nsize = txq[node].incoming.progress[i].file_size - txq[node].incoming.progress[i].total_bytes;
-                tx_id = txq[node].incoming.progress[i].tx_id;
+                nsize = txq[static_cast <size_t>(node)].incoming.progress[i].file_size - txq[static_cast <size_t>(node)].incoming.progress[i].total_bytes;
+                tx_id = txq[static_cast <size_t>(node)].incoming.progress[i].tx_id;
             }
         }
     }
@@ -2328,7 +2346,7 @@ int32_t set_remote_node_id(PACKET_NODE_ID_TYPE node_id, std::string node_name)
 
 int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
 {
-    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node].incoming.progress, choose_incoming_tx_id(node));
+    PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[static_cast <size_t>(node)].incoming.progress, choose_incoming_tx_id(node));
 
     if (tx_id < TRANSFER_QUEUE_SIZE && tx_id > 0)
     {
@@ -2337,9 +2355,9 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
         if (remote_node >= 0)
         {
             // Check if file has been completely received
-            if(txq[node].incoming.progress[tx_id].file_size == txq[node].incoming.progress[tx_id].total_bytes && txq[node].incoming.progress[tx_id].havemeta)
+            if(txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_size == txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes && txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta)
             {
-                tx_progress tx_in = txq[node].incoming.progress[tx_id];
+                tx_progress tx_in = txq[static_cast <size_t>(node)].incoming.progress[tx_id];
 
                 // inform other end that file has been received
                 std::vector<PACKET_BYTE> packet;
@@ -2347,27 +2365,27 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
                 queuesendto(node, "rx", packet);
 
                 // Move file to its final location
-                if (!txq[node].incoming.progress[tx_id].complete)
+                if (!txq[static_cast <size_t>(node)].incoming.progress[tx_id].complete)
                 {
-                    if (txq[node].incoming.progress[tx_id].fp != nullptr)
+                    if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp != nullptr)
                     {
-                        fclose(txq[node].incoming.progress[tx_id].fp);
-                        txq[node].incoming.progress[tx_id].fp = nullptr;
+                        fclose(txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp);
+                        txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp = nullptr;
                     }
                     std::string final_filepath = tx_in.temppath + ".file";
                     rename(final_filepath.c_str(), tx_in.filepath.c_str());
-                    txq[node].incoming.progress[tx_id].complete = true;
+                    txq[static_cast <size_t>(node)].incoming.progress[tx_id].complete = true;
                 }
             }
             else
             {
                 // Ask for missing data
                 std::vector<file_progress> missing;
-                missing = find_chunks_missing(txq[node].incoming.progress[tx_id]);
+                missing = find_chunks_missing(txq[static_cast <size_t>(node)].incoming.progress[tx_id]);
                 for (uint32_t j=0; j<missing.size(); ++j)
                 {
                     std::vector<PACKET_BYTE> packet;
-                    make_reqdata_packet(packet, remote_node, txq[node].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
+                    make_reqdata_packet(packet, remote_node, txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
                     queuesendto(node, "rx", packet);
                 }
             }
