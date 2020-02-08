@@ -39,14 +39,14 @@ using std::endl;
 
 int main(int argc, char *argv[])
 {
-    longeventstruc ev;
 
-    ev.type = EVENT_TYPE_COMMAND;
-    ev.flag = 0;
-    ev.data[0] = 0;
-    ev.condition[0] = 0;
-    ev.utc = 0;
-    ev.utcexec = 0.;
+    uint32_t type = EVENT_TYPE_COMMAND;
+    uint32_t flag = 0;
+    string data = "";
+    string condition = "";
+    string name= "";
+    double utc = 0.;
+    double utcexec = 0.;
 
     string node = "";
 
@@ -54,12 +54,12 @@ int main(int argc, char *argv[])
     {
     case 7: // set repeat flag
     {
-        ev.flag |= EVENT_FLAG_REPEAT;
+        flag |= EVENT_FLAG_REPEAT;
     }
     case 6: // set conditions
     {
-        strcpy(ev.condition, argv[5]);
-        ev.flag |= EVENT_FLAG_CONDITIONAL;
+        condition = argv[5];
+        flag |= EVENT_FLAG_CONDITIONAL;
     }
     case 5: // add command to the scheduler
     {
@@ -73,26 +73,24 @@ int main(int argc, char *argv[])
         case '+':
         {
             double seconds = atof(&argv[3][1]);
-            ev.utc = currentmjd() + seconds / 86400.;
+            utc = currentmjd() + seconds / 86400.;
             break;
         }
         default:
             // use set time
         {
-            ev.utc = atof(argv[3]);
+            utc = atof(argv[3]);
             break;
         }
         }
     }
     case 3: // set command string
     {
-        //std::string command_data = argv[2];
-        strcpy(ev.data, argv[2]);
+        data = argv[2];
     }
     case 2: // set command name
     {
-        //std::string command_name = argv[1];
-        strcpy(ev.name, argv[1]);
+        name = argv[1];
         break;
     }
     default:
@@ -131,7 +129,8 @@ int main(int argc, char *argv[])
     Event event;
     cout << "Command string:" << endl;
 	// JIMNOTE: this could be done in the constructor
-    cout << event.generator(ev) << endl << endl;
+
+    cout << event.generator(name, data, utc, condition, flag) << endl << endl;
 
     if (!node.empty()) {
         cout << "Adding command/event to node " << node << endl;
