@@ -54,7 +54,9 @@
 #include <fstream>
 #include <string>
 #include <sys/stat.h>
+#if !defined(COSMOS_WIN_OS)
 #include <sys/select.h>
+#endif
 
 #define TRANSFER_QUEUE_SIZE 256
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
@@ -206,16 +208,16 @@ int main(int argc, char *argv[])
 
     if (agent->cinfo == nullptr || !agent->running())
     {
-        fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Failure\n", agent->nodeName.c_str(), agent->agentName.c_str());
+        fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Failure\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
         exit (AGENT_ERROR_JSON_CREATE);
     }
-    fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Established\n", agent->nodeName.c_str(), agent->agentName.c_str());
+    fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Established\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
     comm_channel.resize(1);
     if((iretn = socket_open(&comm_channel[0].chansock, NetworkType::UDP, (char *)"", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
-        fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Listening socket failure\n", agent->nodeName.c_str(), agent->agentName.c_str());
+        fprintf(agent->get_debug_fd(), "%16.10f Main: Node: %s Agent: %s - Listening socket failure\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
         agent->shutdown();
         exit (-errno);
     }
@@ -223,7 +225,7 @@ int main(int argc, char *argv[])
     inet_ntop(comm_channel[0].chansock.caddr.sin_family, &comm_channel[0].chansock.caddr.sin_addr, comm_channel[0].chansock.address, sizeof(comm_channel[0].chansock.address));
     comm_channel[0].chanip = comm_channel[0].chansock.address;
     comm_channel[0].nmjd = currentmjd(0.);
-    fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Listening socket open\n", agent->nodeName.c_str(), agent->agentName.c_str());
+    fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Listening socket open\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
     switch (argc)
@@ -240,12 +242,12 @@ int main(int argc, char *argv[])
             }
             if((iretn = socket_open(&comm_channel[1].chansock, NetworkType::UDP, comm_channel[1].chanip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
             {
-                fprintf(agent->get_debug_fd(), "Node: %s IP: %s - Sending socket failure\n", comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
+                fprintf(agent->get_debug_fd(), "%16.10f Node: %s IP: %s - Sending socket failure\n", currentmjd(), comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
                 agent->shutdown();
                 exit (-errno);
             }
             comm_channel[1].nmjd = currentmjd(0.);
-            fprintf(agent->get_debug_fd(), "Node: %s IP: %s - Sending socket open\n", comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
+            fprintf(agent->get_debug_fd(), "%16.10f Node: %s IP: %s - Sending socket open\n", currentmjd(), comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
             fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
             break;
         }
@@ -418,7 +420,7 @@ int main(int argc, char *argv[])
                             if (debug_flag)
                             {
                                 debug_fd_lock.lock();
-                                fprintf(agent->get_debug_fd(), "[%f] outgoing_tx_add: %s [%d]\n", etloop.split(), file.path.c_str(), iretn);
+                                fprintf(agent->get_debug_fd(), "%16.10f Main: outgoing_tx_add: %s [%d]\n", currentmjd(), file.path.c_str(), iretn);
                                 fflush(agent->get_debug_fd());
                                 debug_fd_lock.unlock();
                             }
@@ -429,7 +431,7 @@ int main(int argc, char *argv[])
         }
     } // End WHILE Loop
 
-    fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Exiting\n", agent->nodeName.c_str(), agent->agentName.c_str());
+    fprintf(agent->get_debug_fd(), "%16.10f Main: Node: %s Agent: %s - Exiting\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd());
 
     send_loop_thread.join();
@@ -437,7 +439,7 @@ int main(int argc, char *argv[])
     transmit_queue_check.notify_one();
     transmit_loop_thread.join();
 
-    fprintf(agent->get_debug_fd(), "Node: %s Agent: %s - Shutting down\n", agent->nodeName.c_str(), agent->agentName.c_str());
+    fprintf(agent->get_debug_fd(), "%16.10f Main: Node: %s Agent: %s - Shutting down\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd());
 
     agent->shutdown();
@@ -641,7 +643,7 @@ void recv_loop()
                                     if (debug_flag)
                                     {
                                         debug_fd_lock.lock();
-                                        fprintf(agent->get_debug_fd(), "File Error: %s %s on ID: %u Chunk: %u\n", partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
+                                        fprintf(agent->get_debug_fd(), "%16.10f Recv: File Error: %s %s on ID: %u Chunk: %u\n", currentmjd(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
                                         fflush(agent->get_debug_fd());
                                         debug_fd_lock.unlock();
                                     }
@@ -660,10 +662,10 @@ void recv_loop()
                                         {
                                             total += data.chunk[i];
                                         }
-                                        debug_fd_lock.lock();
-                                        fprintf(agent->get_debug_fd(), "%16.10f Original Data: %u %u Final Data: %u %u Chunk: %u %u Total: %u\n", currentmjd(), odata.chunk_start, odata.byte_count, data.chunk_start, data.byte_count, tp.chunk_start, tp.chunk_end, total);
-                                        fflush(agent->get_debug_fd());
-                                        debug_fd_lock.unlock();
+//                                        debug_fd_lock.lock();
+//                                        fprintf(agent->get_debug_fd(), "%16.10f Recv: Original: %u %u Final: %u %u Chunk: %u %u Total: %u\n", currentmjd(), odata.chunk_start, odata.byte_count, data.chunk_start, data.byte_count, tp.chunk_start, tp.chunk_end, total);
+//                                        fflush(agent->get_debug_fd());
+//                                        debug_fd_lock.unlock();
                                     }
                                 }
 
@@ -698,7 +700,7 @@ void recv_loop()
                                         if (debug_flag)
                                         {
                                             debug_fd_lock.lock();
-                                            fprintf(agent->get_debug_fd(), "Renamed: %d %s\n", iret, tx_in.filepath.c_str());
+                                            fprintf(agent->get_debug_fd(), "%16.10f Recv: Renamed: %d %s\n", currentmjd(), iret, tx_in.filepath.c_str());
                                             fflush(agent->get_debug_fd());
                                             debug_fd_lock.unlock();
                                         }
@@ -752,7 +754,6 @@ void recv_loop()
                             // Add first entry
                             txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.push_back(tp);
                             txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
-                            //							cout<<"[Send] In (new): "<<"["<<0<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[0].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[0].chunk_end<< std::endl;
                         }
                         else
                         {
@@ -772,7 +773,6 @@ void recv_loop()
                                     {
                                         txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.insert(txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.begin()+j, tp);
                                         txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
-                                        //										cout<<"[Send] In (insert): "<<"["<<j<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
                                         break;
                                     }
                                     // Otherwise, extend the near end
@@ -782,7 +782,6 @@ void recv_loop()
                                         txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start = tp.chunk_start;
                                         byte_count = (tp.chunk_end - tp.chunk_start) + 1;
                                         txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
-                                        //										cout<<"[Send] In (extend near): "<<"["<<j<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
                                         break;
                                     }
                                 }
@@ -797,7 +796,6 @@ void recv_loop()
                                             tp.chunk_start = txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end + 1;
                                             txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end = tp.chunk_end;
                                             txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
-                                            //											cout<<"[Send] In (extend far): "<<"["<<j<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[j].chunk_end<< std::endl;
                                             break;
                                         }
                                     }
@@ -811,7 +809,6 @@ void recv_loop()
                             {
                                 txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.push_back(tp);
                                 txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes += byte_count;
-                                //								cout<<"[Send] In (append): "<<"["<<check<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.size()<<"]"<<" tx_id: "<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id<<" chunk:["<<reqdata.hole_start<<":"<<reqdata.hole_end<<"] now:["<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[check].chunk_start<<":"<<txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info[check].chunk_end<< std::endl;
                             }
 
                         }
@@ -852,10 +849,6 @@ void recv_loop()
                                 if (tx_id > 0)
                                 {
                                     txq[static_cast <size_t>(node)].outgoing.meta_id.push_back(tx_id);
-//                                    tx_progress tx = txq[static_cast <size_t>(node)].outgoing.progress[tx_id];
-//                                    std::vector<PACKET_BYTE> packet;
-//                                    make_metadata_packet(packet, remote_node, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
-//                                    queuesendto(node, "tx", packet);
                                 }
                             }
                             txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_METADATA-8] = currentmjd();
@@ -914,13 +907,6 @@ void recv_loop()
                                 txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_CANCEL-8] = currentmjd();
                                 txq[static_cast <size_t>(node)].outgoing.state = PACKET_CANCEL;
                                 txq[static_cast <size_t>(node)].outgoing.id = tx_id;
-                                // Remove transaction
-//                                outgoing_tx_del(node, tx_id);
-
-                                // Send a CANCEL packet
-//                                std::vector<PACKET_BYTE> packet;
-//                                make_cancel_packet(packet, remote_node, complete.tx_id);
-//                                queuesendto(node, "tx", packet);
                             }
                         }
 
@@ -956,10 +942,6 @@ void recv_loop()
                                     valid = true;
                                     break;
                                 }
-//                                if (valid)
-//                                {
-//                                    break;
-//                                }
                             }
 
                             if (tx_id && !valid)
@@ -1088,7 +1070,7 @@ void send_loop()
             {
                 previous_state = txq[static_cast <size_t>(node)].outgoing.state;
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "Send Loop: Node %s State: %d\n", txq[static_cast <size_t>(node)].node_name.c_str(), txq[static_cast <size_t>(node)].outgoing.state);
+                fprintf(agent->get_debug_fd(), "%16.10f Send: Node %s State: %d\n", currentmjd(), txq[static_cast <size_t>(node)].node_name.c_str(), txq[static_cast <size_t>(node)].outgoing.state);
                 fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
@@ -1242,20 +1224,6 @@ void send_loop()
                     txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_DATA - 8] = currentmjd() + next_send_time;
                 }
                 break;
-//            case PACKET_COMPLETE:
-//                if (currentmjd() > txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_COMPLETE - 8])
-//                {
-//                    int32_t remote_node = lookup_remote_node_id(node);
-//                    if (remote_node >= 0)
-//                    {
-//                        // Send a COMPLETE packet
-//                        std::vector<PACKET_BYTE> packet;
-//                        make_complete_packet(packet, remote_node, txq[static_cast <size_t>(node)].outgoing.id);
-//                        queuesendto(node, "tx", packet);
-//                    }
-//                    txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_COMPLETE - 8] = currentmjd() + 10./86400.;
-//                }
-//                break;
             case PACKET_CANCEL:
                 if (currentmjd() > txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_CANCEL - 8])
                 {
@@ -1353,7 +1321,7 @@ int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYT
         if (debug_flag)
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "Mysendto Sleep: %f seconds\n", 86400. * (channel.nmjd - cmjd));
+            fprintf(agent->get_debug_fd(), "%16.10f Send: Mysendto_sleep: %f seconds\n", currentmjd(), 86400. * (channel.nmjd - cmjd));
             fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
@@ -1366,7 +1334,7 @@ int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYT
     {
         ++packet_out_count;
         channel.nmjd = currentmjd() + ((28+iretn) / (float)channel.throughput)/86400.;
-        debug_packet(buf, type+" out");
+        debug_packet(buf, "Send: "+type);
     }
     else
     {
@@ -1396,10 +1364,11 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
                 fdmax = comm_channel[i].chansock.cudp;
             }
         }
-        timeval timeout;
         double rtimeout = dtimeout - et.split();
         if (rtimeout >= 0.)
         {
+#if !defined(COSMOS_WIN_OS)
+            timeval timeout;
             timeout.tv_sec = static_cast<int32_t>(rtimeout);
             timeout.tv_usec = static_cast<int32_t>(1000000. * (rtimeout - timeout.tv_sec));
             int rv = select(fdmax+1, &set, nullptr, nullptr, &timeout);
@@ -1434,7 +1403,7 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
                             {
                                 ++packet_in_count;
                                 buf.resize(nbytes);
-                                debug_packet(buf, type+" in");
+                                debug_packet(buf, "Recv: "+type);
                             }
                             return nbytes;
                         }
@@ -1451,10 +1420,52 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
                                 ++recv_error_count;
                             }
                         }
-
                     }
                 }
             }
+#else
+            for (uint16_t i=0; i<comm_channel.size(); ++i)
+            {
+                channel = comm_channel[i].chansock;
+                nbytes = recvfrom(channel.cudp, reinterpret_cast<char *>(&buf[0]), length, 0, reinterpret_cast<sockaddr*>(&channel.caddr), reinterpret_cast<socklen_t *>(&channel.addrlen));
+                if (nbytes > 0)
+                {
+                    uint16_t crccalc = calc_crc16ccitt(&buf[3], nbytes-3);
+                    uint16_t crc;
+                    memmove(&crc, &buf[0]+PACKET_HEADER_OFFSET_CRC, sizeof(PACKET_CRC));
+                    if (crc != crccalc)
+                    {
+                        nbytes = GENERAL_ERROR_CRC;
+                        ++crc_error_count;
+                    }
+                    else
+                    {
+                        ++packet_in_count;
+                        buf.resize(nbytes);
+                        debug_packet(buf, "Recv: "+type);
+                    }
+                    return nbytes;
+                }
+                else
+                {
+                    if (nbytes < 0)
+                    {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK)
+                        {
+                            COSMOS_SLEEP(.1);
+                            break;
+                        }
+                        nbytes = -errno;
+                        ++recv_error_count;
+                    }
+                    else
+                    {
+                        nbytes = GENERAL_ERROR_INPUT;
+                        ++recv_error_count;
+                    }
+                }
+            }
+#endif // Not windows
         }
     } while (et.split() < dtimeout);
 
@@ -1471,7 +1482,7 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
             total += buf[i];
         }
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%16.10f %s In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u Size: %u Total: %u ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size(), total);
+        fprintf(agent->get_debug_fd(), "%16.10f %s Packet: In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u Size: %u Total: %u ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size(), total);
         switch (buf[0] & 0x0f)
         {
         case PACKET_METADATA:
@@ -1635,7 +1646,7 @@ int32_t read_meta(tx_progress& tx)
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+        fprintf(agent->get_debug_fd(), "%16.10f Main: read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", currentmjd(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -1875,35 +1886,6 @@ int32_t request_remove_file(char* request, char* response, Agent *agent)
     return 0;
 }
 
-//int32_t request_send_file(char* request, char* response, Agent *agent)
-//{
-
-//	//the request string == "send_file agent_name file_name packet_size"
-
-//	//get the agent, file name and packet_size
-//	char file_name[COSMOS_MAX_NAME];
-//	char agent_name[COSMOS_MAX_NAME];
-//	char node_name[COSMOS_MAX_NAME];
-//	uint16_t channel=0;
-
-//	sscanf(request+10, "%40s %40s %40s %hu", node_name, agent_name, file_name, &channel);
-
-//	std::string node = node_name;
-//	std::string agent = agent_name;
-//	std::string file = file_name;
-//	if (outgoing_tx_add(node, node_name, agent, file) < 0)
-//	{
-//		sprintf(response, "Could not queue %s %s %s %u", node_name, agent_name, file_name, channel);
-
-//	}
-//	else
-//	{
-//		sprintf(response, "Queued %s %s %s %u", node_name, agent_name, file_name, channel);
-//	}
-
-//	return 0;
-//}
-
 int32_t outgoing_tx_add(tx_progress tx_out)
 {
     int32_t node = check_node_id(tx_out.node_name);
@@ -1940,7 +1922,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "Add outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        fprintf(agent->get_debug_fd(), "%16.10f Main: Add outgoing: %u %s %s %s\n", currentmjd(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -2055,7 +2037,7 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
         if (debug_flag)
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "Del outgoing: %u %s %s %s - Unable to remove file\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+            fprintf(agent->get_debug_fd(), "%16.10f Main/Send: Del outgoing: %u %s %s %s - Unable to remove file\n", currentmjd(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
             fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
@@ -2068,7 +2050,7 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "Del outgoing: %u %s %s %s\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        fprintf(agent->get_debug_fd(), "%16.10f Main/Send: Del outgoing: %u %s %s %s\n", currentmjd(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -2104,7 +2086,7 @@ int32_t incoming_tx_add(tx_progress tx_in)
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "Add incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+        fprintf(agent->get_debug_fd(), "%16.10f Main/Recv: Add incoming: %u %s\n", currentmjd(), tx_in.tx_id, tx_in.node_name.c_str());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -2220,7 +2202,7 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "Del incoming: %u %s\n", tx_in.tx_id, tx_in.node_name.c_str());
+        fprintf(agent->get_debug_fd(), "%16.10f Recv: Del incoming: %u %s\n", currentmjd(), tx_in.tx_id, tx_in.node_name.c_str());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -2358,6 +2340,10 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
             if(txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_size == txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes && txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta)
             {
                 tx_progress tx_in = txq[static_cast <size_t>(node)].incoming.progress[tx_id];
+                debug_fd_lock.lock();
+                fprintf(agent->get_debug_fd(), "%16.10f Recv: Remove: %u %s %u %u\n", currentmjd(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.file_size, tx_in.total_bytes);
+                fflush(agent->get_debug_fd());
+                debug_fd_lock.unlock();
 
                 // inform other end that file has been received
                 std::vector<PACKET_BYTE> packet;
