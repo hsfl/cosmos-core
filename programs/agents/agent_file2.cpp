@@ -1900,6 +1900,14 @@ int32_t outgoing_tx_add(tx_progress tx_out)
         return TRANSFER_ERROR_QUEUEFULL;
     }
 
+    if (debug_flag)
+    {
+        debug_fd_lock.lock();
+        fprintf(agent->get_debug_fd(), "%16.10f Main: Add outgoing: ", currentmjd());
+        fflush(agent->get_debug_fd());
+        debug_fd_lock.unlock();
+    }
+
     tx_out.fp = nullptr;
     tx_out.total_bytes = 0;
     tx_out.filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
@@ -1909,9 +1917,15 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     tx_out.savetime = 0.;
 
     // save and queue metadata packet
-    //	tx_out.sendcomplete = false;
-    //	tx_out.reqmeta = false;
     tx_out.havemeta = true;
+
+    if (debug_flag)
+    {
+        debug_fd_lock.lock();
+        fprintf(agent->get_debug_fd(), "%u %s %s %s ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        fflush(agent->get_debug_fd());
+        debug_fd_lock.unlock();
+    }
 
     // Good to go. Add it to queue.
     outgoing_tx_lock.lock();
@@ -1922,7 +1936,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%16.10f Main: Add outgoing: %u %s %s %s\n", currentmjd(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        fprintf(agent->get_debug_fd(), " %u\n", txq[static_cast <size_t>(node)].outgoing.size);
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
