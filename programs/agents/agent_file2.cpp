@@ -172,10 +172,10 @@ int32_t request_remove_file(char* request, char* response, Agent *agent);
 int32_t request_ls(char* request, char* response, Agent *agent);
 int32_t request_list_incoming(char* request, char* response, Agent *agent);
 int32_t request_list_outgoing(char* request, char* response, Agent *agent);
-int32_t outgoing_tx_add(tx_progress tx_out);
+int32_t outgoing_tx_add(tx_progress &tx_out);
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name);
 int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
-int32_t incoming_tx_add(tx_progress tx_in);
+int32_t incoming_tx_add(tx_progress &tx_in);
 int32_t incoming_tx_add(std::string node_name, PACKET_TX_ID_TYPE tx_id);
 int32_t incoming_tx_update(packet_struct_metashort meta);
 int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
@@ -392,7 +392,14 @@ int main(int argc, char *argv[])
                             break;
                         }
 
+                        //Ignore sub-directories
                         if (file.type == "directory")
+                        {
+                            continue;
+                        }
+
+                        // Ignore zero length files (may still be being formed)
+                        if (file.size == 0)
                         {
                             continue;
                         }
@@ -438,6 +445,7 @@ int main(int argc, char *argv[])
     recv_loop_thread.join();
     transmit_queue_check.notify_one();
     transmit_loop_thread.join();
+    txq.clear();
 
     fprintf(agent->get_debug_fd(), "%16.10f Main: Node: %s Agent: %s - Shutting down\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd());
@@ -1886,7 +1894,7 @@ int32_t request_remove_file(char* request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t outgoing_tx_add(tx_progress tx_out)
+int32_t outgoing_tx_add(tx_progress &tx_out)
 {
     int32_t node = check_node_id(tx_out.node_name);
     if (node <0)
@@ -2087,7 +2095,7 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     return 0;
 }
 
-int32_t incoming_tx_add(tx_progress tx_in)
+int32_t incoming_tx_add(tx_progress &tx_in)
 {
     int32_t node = check_node_id(tx_in.node_name);
     if (node <0)
@@ -2109,7 +2117,23 @@ int32_t incoming_tx_add(tx_progress tx_in)
     tx_in.fp = nullptr;
 
     // Put it in list
-    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id] = tx_in;
+//    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id] = tx_in;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].file_info.clear();
+    for (file_progress filep : tx_in.file_info)
+    {
+        txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].file_info.push_back(filep);
+    }
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].tx_id = tx_in.tx_id;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].havemeta = tx_in.havemeta;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].complete = tx_in.complete;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].node_name = tx_in.node_name;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].agent_name = tx_in.agent_name;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].file_name = tx_in.file_name;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].filepath = tx_in.filepath;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].temppath = tx_in.temppath;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].savetime = tx_in.savetime;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].file_size = tx_in.file_size;
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].total_bytes = tx_in.total_bytes;
     ++txq[static_cast <size_t>(node)].incoming.size;
 
     if (debug_flag)
