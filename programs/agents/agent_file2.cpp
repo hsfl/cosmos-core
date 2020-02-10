@@ -1929,6 +1929,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
 
     // Good to go. Add it to queue.
     outgoing_tx_lock.lock();
+    txq[static_cast <size_t>(node)].outgoing.progress[tx_out.tx_id].file_info.clear();
     txq[static_cast <size_t>(node)].outgoing.progress[tx_out.tx_id] = tx_out;
     ++txq[static_cast <size_t>(node)].outgoing.size;
     outgoing_tx_lock.unlock();
