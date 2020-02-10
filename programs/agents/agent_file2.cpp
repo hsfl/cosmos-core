@@ -2118,22 +2118,22 @@ int32_t incoming_tx_add(tx_progress &tx_in)
 
     // Put it in list
 //    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id] = tx_in;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].file_info.clear();
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].file_info.clear();
     for (file_progress filep : tx_in.file_info)
     {
-        txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].file_info.push_back(filep);
+        txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].file_info.push_back(filep);
     }
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].tx_id = tx_in.tx_id;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].havemeta = tx_in.havemeta;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].complete = tx_in.complete;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].node_name = tx_in.node_name;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].agent_name = tx_in.agent_name;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].file_name = tx_in.file_name;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].filepath = tx_in.filepath;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].temppath = tx_in.temppath;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].savetime = tx_in.savetime;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].file_size = tx_in.file_size;
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_in.tx_id].total_bytes = tx_in.total_bytes;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].tx_id = tx_in.tx_id;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].havemeta = tx_in.havemeta;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].complete = tx_in.complete;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].node_name = tx_in.node_name;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].agent_name = tx_in.agent_name;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].file_name = tx_in.file_name;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].filepath = tx_in.filepath;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].temppath = tx_in.temppath;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].savetime = tx_in.savetime;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].file_size = tx_in.file_size;
+    txq[static_cast <size_t>(node)].incoming.progress[tx_in.tx_id].total_bytes = tx_in.total_bytes;
     ++txq[static_cast <size_t>(node)].incoming.size;
 
     if (debug_flag)
