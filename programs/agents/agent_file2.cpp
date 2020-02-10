@@ -1922,7 +1922,7 @@ int32_t outgoing_tx_add(tx_progress tx_out)
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%u %s %s %s ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+        fprintf(agent->get_debug_fd(), "%u %s %s %s %lu ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str(), txq[static_cast <size_t>(node)].outgoing.progress.size());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
