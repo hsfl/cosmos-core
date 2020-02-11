@@ -175,11 +175,15 @@ int32_t request_list_incoming(char* request, char* response, Agent *agent);
 int32_t request_list_outgoing(char* request, char* response, Agent *agent);
 int32_t outgoing_tx_add(tx_progress &tx_out);
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name);
-int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
+int32_t outgoing_tx_del(int32_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+int32_t outgoing_tx_purge(int32_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+int32_t outgoing_tx_recount(int32_t node);
 int32_t incoming_tx_add(tx_progress &tx_in);
 int32_t incoming_tx_add(std::string node_name, PACKET_TX_ID_TYPE tx_id);
 int32_t incoming_tx_update(packet_struct_metashort meta);
-int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
+int32_t incoming_tx_del(int32_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+int32_t incoming_tx_purge(int32_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+int32_t incoming_tx_recount(int32_t node);
 std::vector<file_progress> find_chunks_missing(tx_progress& tx);
 PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
 void transmit_loop();
@@ -272,7 +276,6 @@ int main(int argc, char *argv[])
             }
             tx.incoming.id = 0;
             tx.incoming.next_id = 1;
-//            tx.incoming.progress.resize(PROGRESS_QUEUE_SIZE);
             tx.incoming.size = 0;
             tx.outgoing.state = PACKET_QUEUE;
             for (uint16_t i=0; i<7; ++i)
@@ -281,9 +284,10 @@ int main(int argc, char *argv[])
             }
             tx.outgoing.id = 0;
             tx.outgoing.next_id = 1;
-//            tx.outgoing.progress.resize(PROGRESS_QUEUE_SIZE);
             tx.outgoing.size = 0;
             txq.push_back(tx);
+            incoming_tx_purge(node);
+            outgoing_tx_purge(node);
         }
 
         for(filestruc file : data_list_files(node_name, "temp", "file"))
@@ -2003,7 +2007,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
         debug_fd_lock.unlock();
     }
 
-    return 0;
+    return outgoing_tx_recount(node);
 }
 
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name)
@@ -2085,7 +2089,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
     }
 }
 
-int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
+int32_t outgoing_tx_del(int32_t node, uint16_t tx_id)
 {
     if (node <0 || (uint32_t)node > txq.size())
     {
@@ -2097,44 +2101,120 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
         return TRANSFER_ERROR_MATCH;
     }
 
-    tx_progress tx_out = txq[static_cast <size_t>(node)].outgoing.progress[tx_id];
-
-    // erase the transaction
-    //	outgoing_tx.erase(outgoing_tx.begin()+tx_id);
-    txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id = 0;
-    if (txq[static_cast <size_t>(node)].outgoing.size)
+    if (tx_id >= PROGRESS_QUEUE_SIZE)
     {
-        --txq[static_cast <size_t>(node)].outgoing.size;
+        for (uint16_t i=0; i<PROGRESS_QUEUE_SIZE; ++i)
+        {
+            outgoing_tx_del(node, i);
+        }
     }
-
-    // Set current tx id back to 0
-    txq[static_cast <size_t>(node)].outgoing.id = 0;
-
-    // Remove the file
-    if(remove(tx_out.filepath.c_str()))
+    else
     {
+        tx_progress tx_out = txq[static_cast <size_t>(node)].outgoing.progress[tx_id];
+
+        // erase the transaction
+        //	outgoing_tx.erase(outgoing_tx.begin()+tx_id);
+        txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id = 0;
+        if (txq[static_cast <size_t>(node)].outgoing.size)
+        {
+            --txq[static_cast <size_t>(node)].outgoing.size;
+        }
+
+        // Set current tx id back to 0
+        txq[static_cast <size_t>(node)].outgoing.id = 0;
+
+        // Remove the file
+        if(remove(tx_out.filepath.c_str()))
+        {
+            if (debug_flag)
+            {
+                debug_fd_lock.lock();
+                fprintf(agent->get_debug_fd(), "%16.10f Main/Send: Del outgoing: %u %s %s %s - Unable to remove file\n", currentmjd(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+                fflush(agent->get_debug_fd());
+                debug_fd_lock.unlock();
+            }
+        }
+
+        // Remove the META file
+        std::string meta_filepath = tx_out.temppath + ".meta";
+        remove(meta_filepath.c_str());
+
         if (debug_flag)
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%16.10f Main/Send: Del outgoing: %u %s %s %s - Unable to remove file\n", currentmjd(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+            fprintf(agent->get_debug_fd(), "%16.10f Main/Send: Del outgoing: %u %s %s %s\n", currentmjd(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
             fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
     }
 
-    // Remove the META file
-    std::string meta_filepath = tx_out.temppath + ".meta";
-    remove(meta_filepath.c_str());
+    return outgoing_tx_recount(node);
+}
 
-    if (debug_flag)
+int32_t outgoing_tx_purge(int32_t node, uint16_t tx_id)
+{
+    if (node <0 || (uint32_t)node > txq.size())
     {
-        debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%16.10f Main/Send: Del outgoing: %u %s %s %s\n", currentmjd(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
-        fflush(agent->get_debug_fd());
-        debug_fd_lock.unlock();
+        return TRANSFER_ERROR_INDEX;
     }
 
+    if (tx_id >= PROGRESS_QUEUE_SIZE)
+    {
+        for (uint16_t i=0; i<PROGRESS_QUEUE_SIZE; ++i)
+        {
+            txq[static_cast <size_t>(node)].outgoing.progress[i].fp = nullptr;
+            txq[static_cast <size_t>(node)].outgoing.progress[i].tx_id = 0;
+            txq[static_cast <size_t>(node)].outgoing.progress[i].complete = false;
+            txq[static_cast <size_t>(node)].outgoing.progress[i].filepath = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[i].havemeta = false;
+            txq[static_cast <size_t>(node)].outgoing.progress[i].savetime = 0;
+            txq[static_cast <size_t>(node)].outgoing.progress[i].temppath = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[i].file_name = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[i].file_size = 0;
+            txq[static_cast <size_t>(node)].outgoing.progress[i].node_name = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[i].agent_name = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[i].total_bytes = 0;
+            txq[static_cast <size_t>(node)].outgoing.progress[i].file_info.clear();
+        }
+    }
+    else {
+        {
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].fp = nullptr;
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id = 0;
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].complete = false;
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].filepath = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].havemeta = false;
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].savetime = 0;
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].temppath = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_name = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_size = 0;
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].node_name = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].agent_name = "";
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].total_bytes = 0;
+            txq[static_cast <size_t>(node)].outgoing.progress[tx_id].file_info.clear();
+        }
+    }
+    txq[static_cast <size_t>(node)].outgoing.size = 0;
+
     return 0;
+}
+
+int32_t outgoing_tx_recount(int32_t node)
+{
+    if (node <0 || (uint32_t)node > txq.size())
+    {
+        return TRANSFER_ERROR_INDEX;
+    }
+
+    txq[static_cast <size_t>(node)].outgoing.size = 0;
+    for (uint16_t i=0; i<PROGRESS_QUEUE_SIZE; ++i)
+    {
+        if (txq[static_cast <size_t>(node)].outgoing.progress[i].tx_id)
+        {
+            ++txq[static_cast <size_t>(node)].outgoing.size;
+        }
+    }
+    return txq[static_cast <size_t>(node)].outgoing.size;
 }
 
 int32_t incoming_tx_add(tx_progress &tx_in)
@@ -2216,7 +2296,7 @@ int32_t incoming_tx_add(tx_progress &tx_in)
         debug_fd_lock.unlock();
     }
 
-    return 0;
+    return incoming_tx_recount(node);
 }
 
 int32_t incoming_tx_add(std::string node_name, PACKET_TX_ID_TYPE tx_id)
@@ -2283,7 +2363,7 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
     return meta.tx_id;
 }
 
-int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
+int32_t incoming_tx_del(int32_t node, uint16_t tx_id)
 {
     node = check_node_id(node);
     if (node <0)
@@ -2291,52 +2371,128 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
         return TRANSFER_ERROR_NODE;
     }
 
-    if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id == 0)
+    if (tx_id >= PROGRESS_QUEUE_SIZE)
     {
-        return TRANSFER_ERROR_MATCH;
+        for (uint16_t i=0; i<PROGRESS_QUEUE_SIZE; ++i)
+        {
+            incoming_tx_del(node, i);
+        }
+    }
+    else
+    {
+        if (txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id == 0)
+        {
+            return TRANSFER_ERROR_MATCH;
+        }
+
+        tx_progress tx_in = txq[static_cast <size_t>(node)].incoming.progress[tx_id];
+
+        txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id = 0;
+        txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta = false;
+        if (txq[static_cast <size_t>(node)].incoming.size)
+        {
+            --txq[static_cast <size_t>(node)].incoming.size;
+        }
+
+        // Close the DATA file
+        if (tx_in.fp != nullptr)
+        {
+            fclose(tx_in.fp);
+            tx_in.fp = nullptr;
+        }
+
+        std::string filepath;
+        //Remove the DATA file
+        filepath = tx_in.temppath + ".file";
+        remove(filepath.c_str());
+
+        // Remove the META file
+        filepath = tx_in.temppath + ".meta";
+        remove(filepath.c_str());
+
+        // Make sure we are not using this for incoming_tx_id
+        if (tx_in.tx_id == txq[static_cast <size_t>(node)].incoming.id)
+        {
+            txq[static_cast <size_t>(node)].incoming.id = 0;
+        }
+
+        if (debug_flag)
+        {
+            debug_fd_lock.lock();
+            fprintf(agent->get_debug_fd(), "%16.10f Recv: Del incoming: %u %s\n", currentmjd(), tx_in.tx_id, tx_in.node_name.c_str());
+            fflush(agent->get_debug_fd());
+            debug_fd_lock.unlock();
+        }
     }
 
-    tx_progress tx_in = txq[static_cast <size_t>(node)].incoming.progress[tx_id];
+    return incoming_tx_recount(node);
 
-    txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id = 0;
-    txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta = false;
-    if (txq[static_cast <size_t>(node)].incoming.size)
+}
+
+int32_t incoming_tx_purge(int32_t node, uint16_t tx_id)
+{
+    if (node <0 || (uint32_t)node > txq.size())
     {
-        --txq[static_cast <size_t>(node)].incoming.size;
+        return TRANSFER_ERROR_INDEX;
     }
 
-    // Close the DATA file
-    if (tx_in.fp != nullptr)
+    if (tx_id >= PROGRESS_QUEUE_SIZE)
     {
-        fclose(tx_in.fp);
-        tx_in.fp = nullptr;
+        for (uint16_t i=0; i<PROGRESS_QUEUE_SIZE; ++i)
+        {
+            txq[static_cast <size_t>(node)].incoming.progress[i].fp = nullptr;
+            txq[static_cast <size_t>(node)].incoming.progress[i].tx_id = 0;
+            txq[static_cast <size_t>(node)].incoming.progress[i].complete = false;
+            txq[static_cast <size_t>(node)].incoming.progress[i].filepath = "";
+            txq[static_cast <size_t>(node)].incoming.progress[i].havemeta = false;
+            txq[static_cast <size_t>(node)].incoming.progress[i].savetime = 0;
+            txq[static_cast <size_t>(node)].incoming.progress[i].temppath = "";
+            txq[static_cast <size_t>(node)].incoming.progress[i].file_name = "";
+            txq[static_cast <size_t>(node)].incoming.progress[i].file_size = 0;
+            txq[static_cast <size_t>(node)].incoming.progress[i].node_name = "";
+            txq[static_cast <size_t>(node)].incoming.progress[i].agent_name = "";
+            txq[static_cast <size_t>(node)].incoming.progress[i].total_bytes = 0;
+            txq[static_cast <size_t>(node)].incoming.progress[i].file_info.clear();
+        }
     }
-
-    std::string filepath;
-    //Remove the DATA file
-    filepath = tx_in.temppath + ".file";
-    remove(filepath.c_str());
-
-    // Remove the META file
-    filepath = tx_in.temppath + ".meta";
-    remove(filepath.c_str());
-
-    // Make sure we are not using this for incoming_tx_id
-    if (tx_in.tx_id == txq[static_cast <size_t>(node)].incoming.id)
-    {
-        txq[static_cast <size_t>(node)].incoming.id = 0;
+    else {
+        {
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp = nullptr;
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id = 0;
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].complete = false;
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].filepath = "";
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta = false;
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].savetime = 0;
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].temppath = "";
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_name = "";
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_size = 0;
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].node_name = "";
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].agent_name = "";
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes = 0;
+            txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_info.clear();
+        }
     }
-
-    if (debug_flag)
-    {
-        debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%16.10f Recv: Del incoming: %u %s\n", currentmjd(), tx_in.tx_id, tx_in.node_name.c_str());
-        fflush(agent->get_debug_fd());
-        debug_fd_lock.unlock();
-    }
+    txq[static_cast <size_t>(node)].incoming.size = 0;
 
     return 0;
+}
 
+int32_t incoming_tx_recount(int32_t node)
+{
+    if (node <0 || (uint32_t)node > txq.size())
+    {
+        return TRANSFER_ERROR_INDEX;
+    }
+
+    txq[static_cast <size_t>(node)].incoming.size = 0;
+    for (uint16_t i=0; i<PROGRESS_QUEUE_SIZE; ++i)
+    {
+        if (txq[static_cast <size_t>(node)].incoming.progress[i].tx_id)
+        {
+            ++txq[static_cast <size_t>(node)].incoming.size;
+        }
+    }
+    return txq[static_cast <size_t>(node)].incoming.size;
 }
 
 bool filestruc_compare_by_size(const filestruc& a, const filestruc& b)
