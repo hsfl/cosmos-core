@@ -266,11 +266,11 @@ typedef struct
     PACKET_TX_ID_TYPE tx_id;
     bool havemeta;
     bool complete;
-    std::string node_name;
-    std::string agent_name;
-    std::string	file_name;
-    std::string filepath;
-    std::string temppath;
+    std::string node_name="";
+    std::string agent_name="";
+    std::string	file_name="";
+    std::string filepath="";
+    std::string temppath="";
     double savetime;
     PACKET_FILE_SIZE_TYPE file_size;
     PACKET_FILE_SIZE_TYPE total_bytes;

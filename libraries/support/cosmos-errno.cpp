@@ -461,6 +461,12 @@ string cosmos_error_string(int32_t cosmos_errno)
         case TRANSFER_ERROR_NODE:
             error_string = "TRANSFER_ERROR_NODE";
             break;
+        case TRANSFER_ERROR_FILENAME:
+            error_string = "TRANSFER_ERROR_FILENAME";
+            break;
+        case TRANSFER_ERROR_DUPLICATE:
+            error_string = "TRANSFER_ERROR_DUPLICATE";
+            break;
         case SOCKET_ERROR_CS:
             error_string = "SOCKET_ERROR_CS";
             break;

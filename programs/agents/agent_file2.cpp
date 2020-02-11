@@ -148,7 +148,7 @@ typedef struct
     PACKET_TX_ID_TYPE id;
     PACKET_TX_ID_TYPE next_id;
     double nmjd[7];
-    std::string node_name;
+    std::string node_name="";
     PACKET_NODE_ID_TYPE node_id;
     std::vector<tx_progress> progress;
     vector <PACKET_TX_ID_TYPE> meta_id;
@@ -156,7 +156,7 @@ typedef struct
 
 typedef struct
 {
-    std::string node_name;
+    std::string node_name="";
     PACKET_NODE_ID_TYPE node_id;
     tx_entry incoming;
     tx_entry outgoing;
@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
                     tx_in.temppath = file.path.substr(0,file.path.find(".meta"));
                     if (read_meta(tx_in) >= 0)
                     {
-                        incoming_tx_add(tx_in);
+                        iretn = incoming_tx_add(tx_in);
                     }
                 }
 
@@ -1916,12 +1916,48 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
         debug_fd_lock.unlock();
     }
 
+    if (tx_out.file_name.size())
+    {
+        tx_out.filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
+    }
+    else
+    {
+        if (debug_flag)
+        {
+            debug_fd_lock.lock();
+            fprintf(agent->get_debug_fd(), "TRANSFER_ERROR_FILENAME\n");
+            fflush(agent->get_debug_fd());
+            debug_fd_lock.unlock();
+        }
+        tx_out.filepath = "";
+        return TRANSFER_ERROR_FILENAME;
+    }
+
+    tx_out.temppath = data_base_path(tx_out.node_name, "temp", "file", "out_"+std::to_string(tx_out.tx_id));
+
+    // Check for a duplicate file name of something already in queue
+    for (uint16_t i=0; i<txq[static_cast <size_t>(node)].outgoing.progress.size(); ++i)
+    {
+        if (!txq[static_cast <size_t>(node)].outgoing.progress[i].filepath.empty() && tx_out.filepath == txq[static_cast <size_t>(node)].outgoing.progress[i].filepath)
+        {
+            // Remove the META file
+            if (debug_flag)
+            {
+                debug_fd_lock.lock();
+                fprintf(agent->get_debug_fd(), "%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str());
+                fflush(agent->get_debug_fd());
+                debug_fd_lock.unlock();
+            }
+            string filepath = tx_out.temppath + ".meta";
+            remove(filepath.c_str());
+            return TRANSFER_ERROR_DUPLICATE;
+        }
+    }
+
     tx_out.fp = nullptr;
     tx_out.total_bytes = 0;
-    tx_out.filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
     //get the file size
     tx_out.file_size = get_file_size(tx_out.filepath);
-    tx_out.temppath = data_base_path(tx_out.node_name, "temp", "file", "out_"+std::to_string(tx_out.tx_id));
     tx_out.savetime = 0.;
 
     // save and queue metadata packet
@@ -1930,7 +1966,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%u %s %s %s %lu ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str(), txq[static_cast <size_t>(node)].outgoing.progress.size());
+        fprintf(agent->get_debug_fd(), "%u %s %s %s %lu ", tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.filepath.c_str(), txq[static_cast <size_t>(node)].outgoing.progress.size());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -2103,16 +2139,46 @@ int32_t incoming_tx_add(tx_progress &tx_in)
         return TRANSFER_ERROR_NODE;
     }
 
+    // Check for an actual file name
     if (tx_in.file_name.size())
     {
         tx_in.filepath = data_base_path(tx_in.node_name, "incoming", tx_in.agent_name, tx_in.file_name);
     }
     else
     {
+        if (debug_flag)
+        {
+            debug_fd_lock.lock();
+            fprintf(agent->get_debug_fd(), "TRANSFER_ERROR_FILENAME\n");
+            fflush(agent->get_debug_fd());
+            debug_fd_lock.unlock();
+        }
         tx_in.filepath = "";
+        return TRANSFER_ERROR_FILENAME;
     }
+
     std::string tx_name = "in_"+std::to_string(tx_in.tx_id);
     tx_in.temppath = data_base_path(tx_in.node_name, "temp", "file", tx_name);
+
+    // Check for a duplicate file name of something already in queue
+    for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
+    {
+        if (!txq[static_cast <size_t>(node)].incoming.progress[i].filepath.empty() && tx_in.filepath == txq[static_cast <size_t>(node)].incoming.progress[i].filepath);
+        {
+            if (debug_flag)
+            {
+                debug_fd_lock.lock();
+                fprintf(agent->get_debug_fd(), "%u %s %s %s TRANSFER_ERROR_DUPLICATE\n", tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str());
+                fflush(agent->get_debug_fd());
+                debug_fd_lock.unlock();
+            }
+            // Remove the META file
+            string filepath = tx_in.temppath + ".meta";
+            remove(filepath.c_str());
+            return TRANSFER_ERROR_DUPLICATE;
+        }
+    }
+
     tx_in.savetime = 0.;
     tx_in.fp = nullptr;
 
@@ -2139,7 +2205,7 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     if (debug_flag)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%16.10f Main/Recv: Add incoming: %u %s\n", currentmjd(), tx_in.tx_id, tx_in.node_name.c_str());
+        fprintf(agent->get_debug_fd(), "%16.10f Main/Recv: Add incoming: %u %s %s %s %lu\n", currentmjd(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), txq[static_cast <size_t>(node)].incoming.progress.size());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
