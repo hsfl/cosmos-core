@@ -2102,7 +2102,10 @@ int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
     // erase the transaction
     //	outgoing_tx.erase(outgoing_tx.begin()+tx_id);
     txq[static_cast <size_t>(node)].outgoing.progress[tx_id].tx_id = 0;
-    --txq[static_cast <size_t>(node)].outgoing.size;
+    if (txq[static_cast <size_t>(node)].outgoing.size)
+    {
+        --txq[static_cast <size_t>(node)].outgoing.size;
+    }
 
     // Set current tx id back to 0
     txq[static_cast <size_t>(node)].outgoing.id = 0;
@@ -2164,7 +2167,7 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     tx_in.temppath = data_base_path(tx_in.node_name, "temp", "file", tx_name);
 
     // Check for a duplicate file name of something already in queue
-    for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
+    for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
     {
         if (!txq[static_cast <size_t>(node)].incoming.progress[i].filepath.empty() && tx_in.filepath == txq[static_cast <size_t>(node)].incoming.progress[i].filepath)
         {
@@ -2297,7 +2300,10 @@ int32_t incoming_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id)
 
     txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id = 0;
     txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta = false;
-    --txq[static_cast <size_t>(node)].incoming.size;
+    if (txq[static_cast <size_t>(node)].incoming.size)
+    {
+        --txq[static_cast <size_t>(node)].incoming.size;
+    }
 
     // Close the DATA file
     if (tx_in.fp != nullptr)
@@ -2355,11 +2361,6 @@ PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node)
         {
             // calculate bytes so far
             merge_chunks_overlap(txq[static_cast <size_t>(node)].incoming.progress[i]);
-            //			txq[static_cast <size_t>(node)].incoming.progress[i].total_bytes = 0;
-            //			for (file_progress prog : txq[static_cast <size_t>(node)].incoming.progress[i].file_info)
-            //			{
-            //				txq[static_cast <size_t>(node)].incoming.progress[i].total_bytes += (prog.chunk_end - prog.chunk_start) + 1;
-            //			}
 
             // Choose transactions for which we: have meta and bytes remaining is minimized
             if (txq[static_cast <size_t>(node)].incoming.progress[i].tx_id && txq[static_cast <size_t>(node)].incoming.progress[i].havemeta && (txq[static_cast <size_t>(node)].incoming.progress[i].file_size - txq[static_cast <size_t>(node)].incoming.progress[i].total_bytes) < nsize)
