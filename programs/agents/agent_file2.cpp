@@ -2166,7 +2166,7 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     // Check for a duplicate file name of something already in queue
     for (uint16_t i=0; i<TRANSFER_QUEUE_LIMIT; ++i)
     {
-        if (!txq[static_cast <size_t>(node)].incoming.progress[i].filepath.empty() && tx_in.filepath == txq[static_cast <size_t>(node)].incoming.progress[i].filepath);
+        if (!txq[static_cast <size_t>(node)].incoming.progress[i].filepath.empty() && tx_in.filepath == txq[static_cast <size_t>(node)].incoming.progress[i].filepath)
         {
             if (debug_flag)
             {
