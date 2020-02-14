@@ -1577,19 +1577,14 @@ namespace Cosmos {
                 switch (i) {
                 case 0:
                     return x;
-                    break;
                 case 1:
                     return y;
-                    break;
                 case 2:
                     return z;
-                    break;
                 case 3:
                     return w;
-                    break;
                 default:
                     return ::nan("");
-                    break;
                 }
             }
 
@@ -2097,6 +2092,21 @@ namespace Cosmos {
                 return o;
             }
 
+            //! Convert to ::quaternion
+            /*! Convert the current ::Quaternion to ::quaternion format.
+         * \return ::quaternion representation.
+         */
+            quaternion Quaternion::to_q()
+            {
+                quaternion q;
+                q.w = w;
+                q.d.x = x;
+                q.d.y = y;
+                q.d.z = z;
+
+                return q;
+            }
+
             // same as q_smult(double a, quaternion b)
             Quaternion Quaternion::multiplyScalar(double a)
             {
@@ -2254,7 +2264,7 @@ namespace Cosmos {
                 return *this;
             }
 
-            // product operator for quaternion class
+            // product operator for quaternion class: q1 * q2
             Quaternion Quaternion::operator * (Quaternion &q2) const
             {
                 Quaternion q1, q3;

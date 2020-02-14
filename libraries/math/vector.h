@@ -413,8 +413,8 @@ namespace Cosmos {
             Vector &operator *=( const double &scale); // multiply vector by scalar operator in place
             Vector operator * (const Vector &v2) const; // multiply vector by vector operator
 
-            Vector operator / (const double scale) const; // multiply vector by scalar operator
-            Vector &operator /= (const double &scale); // multiply vector by scalar operator in place
+            Vector operator / (const double scale) const; // divide vector by scalar operator
+            Vector &operator /= (const double &scale); // divide vector by scalar operator in place
 
             Vector operator - (const Vector &v2) const; // Subtract vector by vector operator
             Vector &operator -= (const Vector &v2); // subtract vector by vector operator in place
@@ -474,6 +474,7 @@ namespace Cosmos {
                 w = 0.;
             }
 
+            quaternion to_q();
             Quaternion getQuaternion();
 
             // temporary while the new Quaternion class is not finisheds
