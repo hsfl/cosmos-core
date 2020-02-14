@@ -84,7 +84,7 @@ namespace Cosmos
 
 
             // Initialize COSMOS data space
-            cinfo = json_create();
+            cinfo = json_init();
 
             if (cinfo == nullptr)
             {
@@ -103,6 +103,13 @@ namespace Cosmos
             }
 
             // Set up node: shorten if too long, use hostname if it's empty.
+            if ((iretn=json_setup_node(nodeName, cinfo)) != 0)
+            {
+                error_value = iretn;
+                shutdown();
+                return;
+            }
+
             if (nname.empty())
             {
                 json_create_cpu(nodeName);
@@ -119,13 +126,6 @@ namespace Cosmos
             if (nodeName.empty())
             {
                 error_value = NODE_ERROR_NODE;
-                shutdown();
-                return;
-            }
-
-            if ((iretn=json_setup_node(nodeName, cinfo)) != 0)
-            {
-                error_value = iretn;
                 shutdown();
                 return;
             }
