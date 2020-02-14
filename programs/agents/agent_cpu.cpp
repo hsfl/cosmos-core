@@ -70,10 +70,10 @@ int32_t request_printStatus(char *request, char *response, Agent *);
 
 
 static std::string sohstring = "{\"device_cpu_utc_000\","
-                        "\"device_cpu_maxgib_000\","
-                        "\"device_cpu_gib_000\","
-                        "\"device_cpu_maxload_000\","
-                        "\"device_cpu_load_000\"";
+                               "\"device_cpu_maxgib_000\","
+                               "\"device_cpu_gib_000\","
+                               "\"device_cpu_maxload_000\","
+                               "\"device_cpu_load_000\"";
 
 // cosmos classes
 ElapsedTime et;
@@ -87,21 +87,21 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
 
-//    cout << "Starting agent cpu" << endl;
+    //    cout << "Starting agent cpu" << endl;
 
-//    switch (argc)
-//    {
-//    case 2:
-//        {
-//            node_name = argv[1];
-//        }
-//        break;
-//    default:
-//        {
-//            printf("Usage: agent_cpu {node}\n");
-//        }
-//        break;
-//    }
+    //    switch (argc)
+    //    {
+    //    case 2:
+    //        {
+    //            node_name = argv[1];
+    //        }
+    //        break;
+    //    default:
+    //        {
+    //            printf("Usage: agent_cpu {node}\n");
+    //        }
+    //        break;
+    //    }
 
     // Add additional requests
 
@@ -118,11 +118,24 @@ int main(int argc, char *argv[])
         fprintf(agent->get_debug_fd(), "Failed to initialize %s\n", agent->getAgent().c_str());
         exit(1);
     }
-    else
+
+    iretn = json_addpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
+    if (iretn < 0)
     {
-        fprintf(agent->get_debug_fd(), "CPU Agent initialized\n");
-        fflush(stdout);
+        fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
+        agent->shutdown();
+        exit(1);
     }
+
+    iretn = json_addpiece(agent->cinfo, "main_disk", DeviceType::DISK);
+    if (iretn < 0)
+    {
+        fprintf(agent->get_debug_fd(), "Failed to add DISK %s\n", cosmos_error_string(iretn).c_str());
+        agent->shutdown();
+        exit(1);
+    }
+
+    fprintf(agent->get_debug_fd(), "CPU Agent initialized\n");
 
     agent->add_request("soh",request_soh,"","current state of health message");
     agent->add_request("diskSize",request_diskSize,"","disk size in GB");
@@ -397,7 +410,7 @@ int32_t request_printStatus(char *request, char *, Agent *)
 //            cout << "Couldn't create Node directory." << endl;
 //            return 1;
 //        }
-//        cinfo = json_create();
+//        cinfo = json_init();
 //        json_mapbaseentries(cinfo);
 //        strcpy(cinfo->node.name, node_name.c_str());
 ////        cinfo->name = node_name;
