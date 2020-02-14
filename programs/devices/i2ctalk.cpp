@@ -22,15 +22,15 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
 
-    if (argc == 1) {
-        cout << "--------------------- " << endl;
-        cout << "COSMOS i2c Test Program " << endl;
-        cout << "Requires arguments: " << endl;
-        cout << "address tx_byte[:tx_byte:tx_byte:...] [delaysec [device]] " << endl;
-        cout << "example: 57 80:40 .1 /dev/i2c-2" << endl;
-        cout << "talk to device i2c-2 to slave address decimal 57, send the two bytes decimal 80 and decimal 40, and wait up to .1 seconds for the response" << endl;
-        exit(0);
-    }
+//    if (argc == 1) {
+//        cout << "--------------------- " << endl;
+//        cout << "COSMOS i2c Test Program " << endl;
+//        cout << "Requires arguments: " << endl;
+//        cout << "address tx_byte[:tx_byte:tx_byte:...] [delaysec [device]] " << endl;
+//        cout << "example: 57 80:40 .1 /dev/i2c-2" << endl;
+//        cout << "talk to device i2c-2 to slave address decimal 57, send the two bytes decimal 80 and decimal 40, and wait up to .1 seconds for the response" << endl;
+//        exit(0);
+//    }
 
 
     // input format
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
         address = strtol(argv[1], nullptr, 10);
         break;
     default:
-        printf("Usage: i2ctalk addressx dd[:dd:dd:dd] [ delaysec [ device ]]\n");
+        printf("Usage: i2ctalk addressx dd[:dd:dd:dd] rcount [ delaysec [ device ]]\n");
         exit(0);
     }
 
@@ -69,14 +69,16 @@ int main(int argc, char *argv[])
         dataout.push_back(strtol(tout.c_str(), nullptr, 10));
     }
 
-    printf("Send data to address 0x%x: \n", address);
-
+    ElapsedTime i2ct;
     i2cport = new I2C(device, address, delay);
     if (i2cport->get_error() < 0)
     {
         printf("%s\n", cosmos_error_string(i2cport->get_error()).c_str());
         exit(0);
     }
+
+    printf("Send data to address 0x%x, receive %u bytes: (%f seconds)\n", address, rcount, i2ct.lap());
+
 
     datain.resize(rcount);
     iretn = i2cport->send(dataout.data(), dataout.size());
@@ -90,7 +92,7 @@ int main(int argc, char *argv[])
             printf("%2x ", dataout[i]);
         }
 
-        printf(" (%lu bytes)", dataout.size());
+        printf(" (%lu bytes @ %f seconds)", dataout.size(), i2ct.lap());
         printf("\n");
     }
     else
@@ -112,7 +114,7 @@ int main(int argc, char *argv[])
             printf("%2x ", datain[i]);
         }
 
-        printf(" (%lu bytes)", datain.size());
+        printf(" (%lu bytes @ %f seconds)", datain.size(), i2ct.lap());
         printf("\n");
     }
 

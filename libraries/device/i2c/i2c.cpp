@@ -64,7 +64,7 @@ namespace Cosmos {
         // only works for linux for now
         // TODO: expand to mac and windows
 #if defined(COSMOS_LINUX_OS)
-		if (ioctl(handle.fh, I2C_FUNCS, &handle.funcs) < 0)
+        if (ioctl(handle.fh, I2C_FUNCS, &handle.funcs) < 0)
         {
             error = - errno;
             close(handle.fh);
@@ -171,12 +171,14 @@ namespace Cosmos {
         //        count ++;
         //    }while (buff[0] != 0x00); //end tranmission with null byte
 
-            return 0;
+        return 0;
     }
 
     int32_t I2C::receive(uint8_t *data, size_t len)
     {
         size_t count = 0;
+
+        COSMOS_SLEEP(handle.delay);
 
         if (len)
         {
@@ -202,7 +204,7 @@ namespace Cosmos {
                 }
                 else if (rcvd <= 0)
                 {
-                    if (et.split() > handle.delay)
+                    if (et.split() > len * .0001)
                     {
                         error = count;
                         return error;
@@ -210,19 +212,20 @@ namespace Cosmos {
                 }
                 else
                 {
-                    et.reset();
+                    //                    et.reset();
                     count += rcvd;
                 }
             } while(count < len);
         }
-//        COSMOS_SLEEP(.001);
         return count;
     }
 
     int32_t I2C::receive(vector <uint8_t> &data)
     {
-	uint8_t tbuf[256];
-	data.clear();
+        uint8_t tbuf[256];
+        data.clear();
+
+        COSMOS_SLEEP(handle.delay);
 
         ElapsedTime et;
         do
@@ -237,13 +240,13 @@ namespace Cosmos {
             }
             else if (rcvd > 0)
             {
-				for (int32_t i=0; i<rcvd; ++i)
+                for (int32_t i=0; i<rcvd; ++i)
                 {
                     data.push_back(tbuf[i]);
                 }
                 et.reset();
             }
-        } while(et.split() <= handle.delay);
+        } while(et.split() <= .0001 * (data.size()+1));
 
         return data.size();
     }
