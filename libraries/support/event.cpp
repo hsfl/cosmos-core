@@ -118,7 +118,7 @@ bool operator==(const Event& cmd1, const Event& cmd2)
 void Event::set_command(string jstring)
 {
 	// clear Event information in agent
-	cosmosstruc * dummy = json_create();
+	cosmosstruc * dummy = json_init();
     json_mapbaseentries(dummy);
 
     json_clear_cosmosstruc(JSON_STRUCT_EVENT, dummy);

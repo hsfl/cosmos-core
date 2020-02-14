@@ -599,7 +599,7 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
         return iretn;
     }
 
-    if ((tnode=json_create()) == nullptr)
+    if ((tnode=json_init()) == nullptr)
     {
         return (NODE_ERROR_NODE);
     }

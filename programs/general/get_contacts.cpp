@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
                 case NODE_TYPE_SATELLITE:
                     trackstruc ttrack;
                     ttrack.name = nodes[i];
-                    cosmosstruc *cinfo = json_create();
+                    cosmosstruc *cinfo = json_init();
                     iretn = json_setup_node(ttrack.name, cinfo);
                     if (iretn == 0)
                     {

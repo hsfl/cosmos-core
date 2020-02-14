@@ -235,7 +235,7 @@ int main(int argc, char* argv[])
 
     for (uint16_t i=0; i<agent->cinfo->target.size(); ++i)
 	{
-        tcinfo[i] = json_create();
+        tcinfo[i] = json_init();
         hardware_init_eci(agent->cinfo->devspec, agent->cinfo->target[i].loc);
         gauss_jackson_init_eci(tgjh[i], order, 0, dt, agent->cinfo->target[i].loc.utc, agent->cinfo->target[i].loc.pos.eci, agent->cinfo->target[i].loc.att.icrf, tcinfo[i]->physics, tcinfo[i]->node.loc);
         simulate_hardware(agent->cinfo, agent->cinfo->target[i].loc);

@@ -161,7 +161,7 @@ bool antenabled = false;
 bool debug;
 
 // Here are internally provided functions
-int json_init();
+//int json_init();
 //int myinit();
 //int load_gs_info(char *file);
 int load_tle_info(char *file);
