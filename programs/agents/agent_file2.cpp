@@ -503,7 +503,7 @@ void recv_loop()
             string node_name = txq[static_cast <size_t>(node)].node_name;
 
             bool found = false;
-            for (uint16_t i=0; i<comm_channel.size(); ++i)
+            for (uint16_t i=1; i<comm_channel.size(); ++i)
             {
                 // Are we handling this Node?
                 if (comm_channel[i].node == node_name)
@@ -528,6 +528,7 @@ void recv_loop()
             if (!found)
             {
                 channelstruc tchannel;
+                tchannel.node = node_name;
                 tchannel.nmjd = currentmjd(0.);
                 tchannel.chansock = rchannel;
                 inet_ntop(tchannel.chansock.caddr.sin_family, &tchannel.chansock.caddr.sin_addr, tchannel.chansock.address, sizeof(tchannel.chansock.address));
