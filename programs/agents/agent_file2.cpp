@@ -483,36 +483,44 @@ void recv_loop()
         if (( nbytes = myrecvfrom("rx", rchannel, recvbuf, PACKET_MAX_LENGTH)) > 0)
         {
             // Remove channel if it hasn't been used in a while
-            for (uint16_t i=comm_channel.size()-1; i>0; --i)
-            {
-                if (currentmjd() - comm_channel[i].lmjd > 600. / 86400.)
-                {
-                    if (debug_flag)
-                    {
-                        debug_fd_lock.lock();
-                        fprintf(agent->get_debug_fd(), "%16.10f Network: Erase: %u %s %s %u\n", currentmjd(), i, comm_channel[i].node.c_str(), comm_channel[i].chanip.c_str(), comm_channel[i].chansock.caddr.sin_port);
-                        fflush(agent->get_debug_fd());
-                        debug_fd_lock.unlock();
-                    }
-                    comm_channel.erase(comm_channel.begin()+i);
-                }
-            }
+//            for (uint16_t i=comm_channel.size()-1; i>0; --i)
+//            {
+//                if (currentmjd() - comm_channel[i].lmjd > 600. / 86400.)
+//                {
+//                    if (debug_flag)
+//                    {
+//                        debug_fd_lock.lock();
+//                        fprintf(agent->get_debug_fd(), "%16.10f Network: Erase: %u %s %s %u\n", currentmjd(), i, comm_channel[i].node.c_str(), comm_channel[i].chanip.c_str(), comm_channel[i].chansock.caddr.sin_port);
+//                        fflush(agent->get_debug_fd());
+//                        debug_fd_lock.unlock();
+//                    }
+//                    comm_channel.erase(comm_channel.begin()+i);
+//                }
+//            }
 
-            // Add channel if this isn't someone we're already talking to
+            // Check channels, update information if we are already handling it, otherwise add channel
+            int32_t node = check_node_id(recvbuf[PACKET_HEADER_OFFSET_TOTAL]);
+            string node_name = txq[static_cast <size_t>(node)].node_name;
+
             bool found = false;
             for (uint16_t i=0; i<comm_channel.size(); ++i)
             {
-                if (comm_channel[i].chansock.caddr.sin_port == rchannel.caddr.sin_port && comm_channel[i].chansock.caddr.sin_addr.s_addr == rchannel.caddr.sin_addr.s_addr)
+                // Are we handling this Node?
+                if (comm_channel[i].node == node_name)
                 {
+                    comm_channel[i].nmjd = currentmjd();
+                    comm_channel[i].chansock = rchannel;
+                    inet_ntop(comm_channel[i].chansock.caddr.sin_family, &comm_channel[i].chansock.caddr.sin_addr, comm_channel[i].chansock.address, sizeof(comm_channel[i].chansock.address));
+                    comm_channel[i].chanip = comm_channel[i].chansock.address;
+                    use_channel = i;
                     if (debug_flag)
                     {
                         debug_fd_lock.lock();
-                        fprintf(agent->get_debug_fd(), "%16.10f Network: Found: %u %s %s %u\n", currentmjd(), i, comm_channel[i].node.c_str(), comm_channel[i].chanip.c_str(), comm_channel[i].chansock.caddr.sin_port);
+                        fprintf(agent->get_debug_fd(), "%16.10f Network: Old: %u %s %s %u\n", currentmjd(), i, comm_channel[i].node.c_str(), comm_channel[i].chanip.c_str(), comm_channel[i].chansock.caddr.sin_port);
                         fflush(agent->get_debug_fd());
                         debug_fd_lock.unlock();
                     }
                     found = true;
-                    use_channel = i;
                     break;
                 }
             }
