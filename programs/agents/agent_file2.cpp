@@ -230,6 +230,8 @@ int main(int argc, char *argv[])
     inet_ntop(comm_channel[0].chansock.caddr.sin_family, &comm_channel[0].chansock.caddr.sin_addr, comm_channel[0].chansock.address, sizeof(comm_channel[0].chansock.address));
     comm_channel[0].chanip = comm_channel[0].chansock.address;
     comm_channel[0].nmjd = currentmjd(0.);
+    comm_channel[0].lmjd = currentmjd(0.);
+    comm_channel[0].node = "";
     fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Listening socket open\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
@@ -252,8 +254,8 @@ int main(int argc, char *argv[])
                 exit (-errno);
             }
             comm_channel[1].nmjd = currentmjd(0.);
-            fprintf(agent->get_debug_fd(), "%16.10f Node: %s IP: %s - Sending socket open\n", currentmjd(), comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str());
-            fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
+            fprintf(agent->get_debug_fd(), "%16.10f Network: Old: %u %s %s %u\n", currentmjd(), 1, comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str(), ntohs(comm_channel[1].chansock.caddr.sin_port));
+            fflush(agent->get_debug_fd());
             break;
         }
     }
@@ -482,41 +484,39 @@ void recv_loop()
         socket_channel rchannel;
         if (( nbytes = myrecvfrom("rx", rchannel, recvbuf, PACKET_MAX_LENGTH)) > 0)
         {
-            // Remove channel if it hasn't been used in a while
-//            for (uint16_t i=comm_channel.size()-1; i>0; --i)
-//            {
-//                if (currentmjd() - comm_channel[i].lmjd > 600. / 86400.)
-//                {
-//                    if (debug_flag)
-//                    {
-//                        debug_fd_lock.lock();
-//                        fprintf(agent->get_debug_fd(), "%16.10f Network: Erase: %u %s %s %u\n", currentmjd(), i, comm_channel[i].node.c_str(), comm_channel[i].chanip.c_str(), comm_channel[i].chansock.caddr.sin_port);
-//                        fflush(agent->get_debug_fd());
-//                        debug_fd_lock.unlock();
-//                    }
-//                    comm_channel.erase(comm_channel.begin()+i);
-//                }
-//            }
+            // Generate extra network info
+            inet_ntop(rchannel.caddr.sin_family, &rchannel.caddr.sin_addr, rchannel.address, sizeof(rchannel.address));
 
             // Check channels, update information if we are already handling it, otherwise add channel
             int32_t node = check_node_id(recvbuf[PACKET_HEADER_OFFSET_TOTAL]);
-            string node_name = txq[static_cast <size_t>(node)].node_name;
+            if (node < 0)
+            {
+                if (debug_flag)
+                {
+                    debug_fd_lock.lock();
+                    fprintf(agent->get_debug_fd(), "%16.10f Network: Unknown: %d %s %s %u\n", currentmjd(), node, "unknown", rchannel.address, ntohs(rchannel.caddr.sin_port));
+                    fflush(agent->get_debug_fd());
+                    debug_fd_lock.unlock();
+                }
+                continue;
+            }
 
+            string node_name = txq[static_cast <size_t>(node)].node_name;
             bool found = false;
-            for (uint16_t i=1; i<comm_channel.size(); ++i)
+            for (uint16_t i=0; i<comm_channel.size(); ++i)
             {
                 // Are we handling this Node?
                 if (comm_channel[i].node == node_name)
                 {
                     comm_channel[i].nmjd = currentmjd();
                     comm_channel[i].chansock = rchannel;
-                    inet_ntop(comm_channel[i].chansock.caddr.sin_family, &comm_channel[i].chansock.caddr.sin_addr, comm_channel[i].chansock.address, sizeof(comm_channel[i].chansock.address));
+//                    inet_ntop(comm_channel[i].chansock.caddr.sin_family, &comm_channel[i].chansock.caddr.sin_addr, comm_channel[i].chansock.address, sizeof(comm_channel[i].chansock.address));
                     comm_channel[i].chanip = comm_channel[i].chansock.address;
                     use_channel = i;
                     if (debug_flag)
                     {
                         debug_fd_lock.lock();
-                        fprintf(agent->get_debug_fd(), "%16.10f Network: Old: %u %s %s %u\n", currentmjd(), i, comm_channel[i].node.c_str(), comm_channel[i].chanip.c_str(), comm_channel[i].chansock.caddr.sin_port);
+                        fprintf(agent->get_debug_fd(), "%16.10f Network: Old: %u %s %s %u\n", currentmjd(), i, comm_channel[i].node.c_str(), comm_channel[i].chanip.c_str(), ntohs(comm_channel[i].chansock.caddr.sin_port));
                         fflush(agent->get_debug_fd());
                         debug_fd_lock.unlock();
                     }
@@ -538,7 +538,7 @@ void recv_loop()
                 if (debug_flag)
                 {
                     debug_fd_lock.lock();
-                    fprintf(agent->get_debug_fd(), "%16.10f Network: New: %u %s %s %u\n", currentmjd(), use_channel, tchannel.node.c_str(), tchannel.chanip.c_str(), tchannel.chansock.caddr.sin_port);
+                    fprintf(agent->get_debug_fd(), "%16.10f Network: New: %u %s %s %u\n", currentmjd(), use_channel, tchannel.node.c_str(), tchannel.chanip.c_str(), ntohs(tchannel.chansock.caddr.sin_port));
                     fflush(agent->get_debug_fd());
                     debug_fd_lock.unlock();
                 }
@@ -1538,7 +1538,7 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
             total += buf[i];
         }
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%16.10f %s Packet: In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u Size: %u Total: %u ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size(), total);
+        fprintf(agent->get_debug_fd(), "%16.10f %s Packet: In: %u Out: %u Rerr: %u Serr: %u Cerr: %u Terr: %u Oerr: %u Size: %u Total: %u Channel: %u ", currentmjd(), type.c_str(), packet_in_count, packet_out_count, recv_error_count, send_error_count, crc_error_count, type_error_count, timeout_error_count, buf.size(), total, use_channel);
         switch (buf[0] & 0x0f)
         {
         case PACKET_METADATA:
