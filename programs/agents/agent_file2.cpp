@@ -492,7 +492,7 @@ void recv_loop()
             int32_t node;
             if ((recvbuf[0] & 0x0f) == PACKET_QUEUE)
             {
-                node_name = recvbuf[PACKET_QUEUE_OFFSET_NODE_NAME];
+                node_name = reinterpret_cast<char *>(&recvbuf[PACKET_QUEUE_OFFSET_NODE_NAME]);
                 node = check_node_id(node_name);
             }
             else
@@ -500,17 +500,16 @@ void recv_loop()
                 node = check_node_id(recvbuf[PACKET_HEADER_OFFSET_TOTAL]);
                 node_name = txq[static_cast <size_t>(node)].node_name;
             }
-            if (node < 0)
-            {
-                if (debug_flag)
-                {
-                    debug_fd_lock.lock();
-                    fprintf(agent->get_debug_fd(), "%16.10f Network: Unknown: %d %s %s %u\n", currentmjd(), node, "unknown", rchannel.address, ntohs(rchannel.caddr.sin_port));
-                    fflush(agent->get_debug_fd());
-                    debug_fd_lock.unlock();
-                }
-                continue;
-            }
+//            if (node < 0)
+//            {
+//                if (debug_flag)
+//                {
+//                    debug_fd_lock.lock();
+//                    fprintf(agent->get_debug_fd(), "%16.10f Network: Unknown: %d %s %s %u\n", currentmjd(), node, "unknown", rchannel.address, ntohs(rchannel.caddr.sin_port));
+//                    fflush(agent->get_debug_fd());
+//                    debug_fd_lock.unlock();
+//                }
+//            }
 
             bool found = false;
             for (uint16_t i=0; i<comm_channel.size(); ++i)
