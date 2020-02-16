@@ -2701,22 +2701,22 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
 
     if (tx_id < PROGRESS_QUEUE_SIZE && tx_id > 0)
     {
-        // Check if file has been completely received
-        if(txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_size == txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes && txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta)
+        // See if we know what the remote node_id is for this
+        int32_t remote_node = lookup_remote_node_id(node);
+        if (remote_node >= 0)
         {
-            // See if we know what the remote node_id is for this
-            int32_t remote_node = lookup_remote_node_id(node);
-            if (remote_node >= 0)
+            // Check if file has been completely received
+            if(txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_size == txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes && txq[static_cast <size_t>(node)].incoming.progress[tx_id].havemeta)
             {
-                tx_progress tx_in = txq[static_cast <size_t>(node)].incoming.progress[tx_id];
+//                tx_progress tx_in = txq[static_cast <size_t>(node)].incoming.progress[tx_id];
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%16.10f Recv(next_incoming_tx): Complete: %u %s %u %u\n", currentmjd(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.file_size, tx_in.total_bytes);
+                fprintf(agent->get_debug_fd(), "%16.10f Recv(next_incoming_tx): Complete: %u %s %u %u\n", currentmjd(), txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id, txq[static_cast <size_t>(node)].incoming.progress[tx_id].node_name.c_str(), txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_size, txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes);
                 fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
 
                 // inform other end that file has been received
                 std::vector<PACKET_BYTE> packet;
-                make_complete_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(remote_node), tx_in.tx_id);
+                make_complete_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(remote_node), txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id);
                 queuesendto(node, "rx", packet);
 
                 // Move file to its final location
@@ -2727,14 +2727,14 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
                         fclose(txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp);
                         txq[static_cast <size_t>(node)].incoming.progress[tx_id].fp = nullptr;
                     }
-                    std::string final_filepath = tx_in.temppath + ".file";
-                    int32_t iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
+                    std::string final_filepath = txq[static_cast <size_t>(node)].incoming.progress[tx_id].temppath + ".file";
+                    int32_t iret = rename(final_filepath.c_str(), txq[static_cast <size_t>(node)].incoming.progress[tx_id].filepath.c_str());
                     // Make sure metadata is recorded
                     write_meta(txq[static_cast <size_t>(node)].incoming.progress[tx_id], 0.);
                     if (debug_flag)
                     {
                         debug_fd_lock.lock();
-                        fprintf(agent->get_debug_fd(), "%16.10f Recv(next_incoming_tx): Renamed: %d %s\n", currentmjd(), iret, tx_in.filepath.c_str());
+                        fprintf(agent->get_debug_fd(), "%16.10f Recv(next_incoming_tx): Renamed: %d %s\n", currentmjd(), iret, txq[static_cast <size_t>(node)].incoming.progress[tx_id].filepath.c_str());
                         fflush(agent->get_debug_fd());
                         debug_fd_lock.unlock();
                     }
@@ -2743,6 +2743,10 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
             }
             else
             {
+                debug_fd_lock.lock();
+                fprintf(agent->get_debug_fd(), "%16.10f Recv(next_incoming_tx): More: %u %s %u %u\n", currentmjd(), txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id, txq[static_cast <size_t>(node)].incoming.progress[tx_id].node_name.c_str(), txq[static_cast <size_t>(node)].incoming.progress[tx_id].file_size, txq[static_cast <size_t>(node)].incoming.progress[tx_id].total_bytes);
+                fflush(agent->get_debug_fd());
+                debug_fd_lock.unlock();
                 // Ask for missing data
                 std::vector<file_progress> missing;
                 missing = find_chunks_missing(txq[static_cast <size_t>(node)].incoming.progress[tx_id]);
