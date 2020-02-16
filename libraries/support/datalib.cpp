@@ -1859,4 +1859,36 @@ bool data_isfile(string path, off_t size)
 
 }
 
+double data_ctime(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st))
+    {
+        struct timeval unixtime;
+        unixtime.tv_sec = st.st_ctim.tv_sec;
+        unixtime.tv_usec = st.st_ctim.tv_nsec / 1000;
+        return unix2utc(unixtime);
+    }
+    else
+    {
+        return 0.;
+    }
+}
+
+off_t data_size(string path)
+{
+    struct stat stat_buf;
+
+    if ((stat(path.c_str(), &stat_buf)) == 0)
+    {
+        return  stat_buf.st_size;
+    }
+    else
+    {
+        return 0;
+    }
+
+}
+
 //! @}
