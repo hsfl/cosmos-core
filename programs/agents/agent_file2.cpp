@@ -488,7 +488,18 @@ void recv_loop()
             inet_ntop(rchannel.caddr.sin_family, &rchannel.caddr.sin_addr, rchannel.address, sizeof(rchannel.address));
 
             // Check channels, update information if we are already handling it, otherwise add channel
-            int32_t node = check_node_id(recvbuf[PACKET_HEADER_OFFSET_TOTAL]);
+            string node_name;
+            int32_t node;
+            if ((recvbuf[0] & 0x0f) == PACKET_QUEUE)
+            {
+                node_name = recvbuf[PACKET_QUEUE_OFFSET_NODE_NAME];
+                node = check_node_id(node_name);
+            }
+            else
+            {
+                node = check_node_id(recvbuf[PACKET_HEADER_OFFSET_TOTAL]);
+                node_name = txq[static_cast <size_t>(node)].node_name;
+            }
             if (node < 0)
             {
                 if (debug_flag)
@@ -501,7 +512,6 @@ void recv_loop()
                 continue;
             }
 
-            string node_name = txq[static_cast <size_t>(node)].node_name;
             bool found = false;
             for (uint16_t i=0; i<comm_channel.size(); ++i)
             {
