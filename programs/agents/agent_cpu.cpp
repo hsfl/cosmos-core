@@ -76,12 +76,12 @@ static std::string sohstring = "{\"device_cpu_utc_000\","
                                "\"device_cpu_load_000\"";
 
 // cosmos classes
-ElapsedTime et;
-DeviceDisk disk;
-DeviceCpu deviceCpu;
-DeviceCpu cpu;
+static ElapsedTime et;
+static DeviceDisk deviceDisk;
+static DeviceCpu deviceCpu;
+//static DeviceCpu cpu;
 
-Agent *agent;
+static Agent *agent;
 
 int main(int argc, char *argv[])
 {
@@ -113,27 +113,57 @@ int main(int argc, char *argv[])
     {
         agent = new Agent("", "cpu", 5.);
     }
-    if (agent->cinfo == nullptr || !agent->running())
+
+    if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "Failed to initialize %s\n", agent->getAgent().c_str());
-        exit(1);
+        fprintf(agent->get_debug_fd(), "Failed to start Agent %s on Node %s : %s\n", agent->getAgent().c_str(), agent->getNode().c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
     }
 
-    iretn = json_addpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
+    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
     if (iretn < 0)
     {
         fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
         agent->shutdown();
         exit(1);
     }
+    static const double GiB = 1024. * 1024. * 1024.;
 
-    iretn = json_addpiece(agent->cinfo, "main_disk", DeviceType::DISK);
-    if (iretn < 0)
+    uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+    agent->cinfo->device[cidx].cpu.load = static_cast <float>(deviceCpu.getLoad());
+    agent->cinfo->device[cidx].cpu.gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/GiB);
+    agent->cinfo->device[cidx].cpu.maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/GiB);
+    agent->cinfo->device[cidx].cpu.maxload = deviceCpu.getCount();
+    deviceCpu.numProcessors = agent->cinfo->devspec.cpu[0]->maxload;
+    deviceCpu.getPercentUseForCurrentProcess();
+
+    vector <DeviceDisk::info> dinfo = deviceDisk.getInfo();
+    for (uint16_t i=0; i<dinfo.size(); ++i)
     {
-        fprintf(agent->get_debug_fd(), "Failed to add DISK %s\n", cosmos_error_string(iretn).c_str());
-        agent->shutdown();
-        exit(1);
+        char name[10];
+        sprintf(name, "disk_%02u", i);
+        iretn = json_createpiece(agent->cinfo, name, DeviceType::DISK);
+        if (iretn < 0)
+        {
+            fprintf(agent->get_debug_fd(), "Failed to add DISK %s : %s\n", dinfo[i].mount.c_str(), cosmos_error_string(iretn).c_str());
+            agent->shutdown();
+            exit(1);
+        }
+        uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+        iretn = json_createport(agent->cinfo, dinfo[i].mount, PORT_TYPE_DRIVE);
+        uint16_t portidx = static_cast <uint16_t>(iretn);
+        json_mapportentry(portidx, agent->cinfo);
+        agent->cinfo->device[cidx].all.portidx = portidx;
     }
+
+    json_dump_node(agent->cinfo);
+
+    // TODO: determine number of disks automatically
+    PrintUtils print;
+    print.scalar("Number of Disks: ",agent->cinfo->devspec.disk_cnt);
+    print.endline();
+    print.scalar("Number of Cores: ",agent->cinfo->devspec.cpu[0]->maxload);
+    print.endline();
 
     fprintf(agent->get_debug_fd(), "CPU Agent initialized\n");
 
@@ -164,47 +194,6 @@ int main(int argc, char *argv[])
 
     sohstring += "}";
     agent->set_sohstring(sohstring);
-
-    // Start our own thread
-    agent_cpu();
-
-    return 0;
-
-}
-
-int agent_cpu()
-{
-
-    ElapsedTime et;
-    static const double GiB = 1024. * 1024. * 1024.;
-    deviceCpu.numProcessors = agent->cinfo->devspec.cpu[0]->maxload;
-
-    // TODO: determine number of disks automatically
-    PrintUtils print;
-    print.scalar("Number of Disks: ",agent->cinfo->devspec.disk_cnt);
-    print.endline();
-
-    // get initial cpu info
-    if (agent->cinfo->devspec.cpu_cnt)
-    {
-        agent->cinfo->devspec.cpu[0]->load = deviceCpu.getLoad();
-        agent->cinfo->devspec.cpu[0]->gib = deviceCpu.getVirtualMemoryUsed()/GiB;
-        agent->cinfo->devspec.cpu[0]->maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;
-        deviceCpu.getPercentUseForCurrentProcess();
-    }
-
-    // get initial disk info
-    for (size_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
-    {
-        agent->cinfo->devspec.disk[i]->utc = currentmjd();
-
-        std::string node_path = agent->cinfo->port[agent->cinfo->devspec.disk[i]->portidx].name;
-
-        agent->cinfo->devspec.disk[i]->gib = disk.getUsedGiB(node_path);
-        agent->cinfo->devspec.disk[i]->maxgib = disk.getSizeGiB(node_path);
-    }
-
-    json_dump_node(agent->cinfo);
 
     et.start();
 
@@ -240,8 +229,8 @@ int agent_cpu()
 
             std::string node_path = agent->cinfo->port[agent->cinfo->devspec.disk[i]->portidx].name;
 
-            agent->cinfo->devspec.disk[i]->gib = disk.getUsedGiB(node_path);
-            agent->cinfo->devspec.disk[i]->maxgib = disk.getSizeGiB(node_path);
+            agent->cinfo->devspec.disk[i]->gib = deviceDisk.getUsedGiB(node_path);
+            agent->cinfo->devspec.disk[i]->maxgib = deviceDisk.getSizeGiB(node_path);
             if (agent->debug_level)
             {
                 fprintf(agent->get_debug_fd(), "%s %6.2f %6.2f ", node_path.c_str(), agent->cinfo->devspec.disk[i]->gib, agent->cinfo->devspec.disk[i]->maxgib);
@@ -261,19 +250,29 @@ int agent_cpu()
 
             print.delimiter_flag = true;
             print.scalar("Load",deviceCpu.load ,1,"",4,4);
-            print.scalar("DiskSize[GiB]",disk.SizeGiB ,1,"",4,4);
+            print.scalar("DiskSize[GiB]",deviceDisk.SizeGiB ,1,"",4,4);
 
-            cout << "DiskSize[GiB]," << disk.SizeGiB << ", ";
-            cout << "DiskUsed[GiB]," << disk.UsedGiB << ", ";
-            cout << "DiskFree[GiB]," << disk.FreeGiB << ", ";
+            cout << "DiskSize[GiB]," << deviceDisk.SizeGiB << ", ";
+            cout << "DiskUsed[GiB]," << deviceDisk.UsedGiB << ", ";
+            cout << "DiskFree[GiB]," << deviceDisk.FreeGiB << ", ";
             cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
         }
     }
 
     agent->shutdown();
 
+    // Start our own thread
+//    agent_cpu();
+
     return 0;
+
 }
+
+//int agent_cpu()
+//{
+
+//    return 0;
+//}
 
 
 int32_t request_soh(char *, char* response, Agent *)
@@ -291,12 +290,12 @@ int32_t request_soh(char *, char* response, Agent *)
 // disk
 int32_t request_diskSize(char *, char* response, Agent *)
 {
-    return (sprintf(response, "%f", disk.SizeGiB));
+    return (sprintf(response, "%f", deviceDisk.SizeGiB));
 }
 
 int32_t request_diskUsed(char *, char* response, Agent *)
 {
-    return (sprintf(response, "%f", disk.UsedGiB));
+    return (sprintf(response, "%f", deviceDisk.UsedGiB));
 }
 
 int32_t request_diskFree(char *, char* response, Agent *)
@@ -305,13 +304,13 @@ int32_t request_diskFree(char *, char* response, Agent *)
     //return (sprintf(response, "%.1f", agent->cinfo->devspec.cpu[0]->gib));
 
     // in the mean time use this
-    return (sprintf(response, "%f", disk.FreeGiB));
+    return (sprintf(response, "%f", deviceDisk.FreeGiB));
 
 }
 
 int32_t request_diskFreePercent (char *, char *response, Agent *)
 {
-    return (sprintf(response, "%f", disk.FreePercent));
+    return (sprintf(response, "%f", deviceDisk.FreePercent));
 }
 
 
@@ -448,7 +447,7 @@ int32_t request_printStatus(char *request, char *, Agent *)
 //                json_addentry("cpu_utilization", "(\"device_cpu_load_000\"/\"device_cpu_maxload_000\")", cinfo);
 //                break;
 //            default:
-//                cinfo->device[i].disk.maxgib = 1000.;
+//                cinfo->device[i].deviceDisk.maxgib = 1000.;
 //                cinfo->device[i].all.type = (uint16_t)DeviceType::DISK;
 //                cinfo->device[i].all.didx = i-1;
 //                cinfo->device[i].all.portidx = cinfo->device[i].all.didx;
