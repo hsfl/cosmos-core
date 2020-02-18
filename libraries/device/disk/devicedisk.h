@@ -38,7 +38,16 @@ public:
     double FreeGiB;
     double FreePercent;
 
+    struct info
+    {
+        string mount;
+        uint64_t size;
+        uint64_t used;
+        uint64_t free;
+    };
+
     DeviceDisk();
+    vector <info> getInfo();
     double getAll(std::string path);
     uint64_t getSize(std::string path);
     uint64_t getUsed(std::string path);
