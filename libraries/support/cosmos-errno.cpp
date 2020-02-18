@@ -647,6 +647,12 @@ string cosmos_error_string(int32_t cosmos_errno)
         case GENERAL_ERROR_ZEROSIZE:
             error_string = "Zero Size";
             break;
+        case GENERAL_ERROR_DUPLICATE:
+            error_string = "Duplicate";
+            break;
+        case GENERAL_ERROR_MISMATCH:
+            error_string = "Mismatch";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);
