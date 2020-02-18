@@ -33,7 +33,8 @@ DeviceCpu::DeviceCpu()
 
 }
 
-double DeviceCpu::getLoad(){
+double DeviceCpu::getLoad()
+{
 
 #if defined(COSMOS_LINUX_OS)
     load = cpuLinux.getLoad1minAverage();
@@ -48,6 +49,15 @@ double DeviceCpu::getLoad(){
 #endif
 
     return load;
+}
+
+uint16_t DeviceCpu::getCount()
+{
+    uint16_t count = 1;
+#if defined(COSMOS_LINUX_OS)
+    count = cpuLinux.getCount();
+#endif
+    return count;
 }
 
 // in bytes
@@ -917,5 +927,21 @@ DeviceCpuLinux::procStat::procStat()
 
     time_total = stoi(user) + stoi(nice) + stoi(system) + stoi(idle) + stoi(iowait) + stoi(irq) + stoi(softirq) + stoi(steal) + stoi(guest) + stoi(guest_nice);
 
+}
+
+uint16_t DeviceCpuLinux::getCount()
+{
+    uint16_t tcount = 0;
+    FILE *fp = popen("/bin/lscpu -p=cpu", "r");
+    char tdata[100];
+    uint16_t tindex;
+    while ((fgets(tdata, 100, fp)) == tdata)
+    {
+        if (sscanf(tdata, "%u\n", &tindex) == 1)
+        {
+            ++tcount;
+        }
+    }
+    return tcount;
 }
 #endif
