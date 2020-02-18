@@ -294,6 +294,7 @@ namespace Cosmos
             beatstruc find_server(string node, string proc, float waitsec);
             beatstruc find_agent(string agent, string node="");
             uint16_t running();
+            int32_t wait(State state=State::RUN, float waitsec=10.);
             int32_t last_error();
             int32_t set_sohstring(string list);
             cosmosstruc *get_cosmosstruc();
@@ -374,7 +375,7 @@ namespace Cosmos
             string debug_pathName;
 
             string version = "0.0";
-            float timeoutSec = 5.0;
+            float timeoutSec = 2.0;
             bool printMessages = true; // by default?
             bool logTime = true; // by default
             double timeStart; // UTC starting time for this agent in MJD

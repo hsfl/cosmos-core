@@ -103,6 +103,7 @@ namespace Cosmos
             }
 
             // Set up node: shorten if too long, use hostname if it's empty.
+            nodeName = nname;
             if ((iretn=json_setup_node(nodeName, cinfo)) != 0)
             {
                 error_value = iretn;
@@ -110,25 +111,14 @@ namespace Cosmos
                 return;
             }
 
-            if (nname.empty())
-            {
-                json_create_cpu(nodeName);
-            }
-            else if (nname.length() > COSMOS_MAX_NAME)
-            {
-                nodeName = nname.substr(0, COSMOS_MAX_NAME);
-            }
-            else
-            {
-                nodeName = nname;
-            }
+//            if (nname.empty())
+//            {
+//                error_value = NODE_ERROR_NODE;
+//                shutdown();
+//                return;
+//            }
 
-            if (nodeName.empty())
-            {
-                error_value = NODE_ERROR_NODE;
-                shutdown();
-                return;
-            }
+//            nodeName = nname;
 
             strcpy(cinfo->node.name, nodeName.c_str());
 
@@ -169,7 +159,7 @@ namespace Cosmos
             char tname[COSMOS_MAX_NAME+1];
             if (!mflag)
             {
-                COSMOS_SLEEP(timeoutSec);
+//                COSMOS_SLEEP(timeoutSec);
                 if (get_server(cinfo->node.name, aname, timeoutSec, (beatstruc *)nullptr))
                 {
                     error_value = AGENT_ERROR_SERVER_RUNNING;
@@ -432,6 +422,32 @@ namespace Cosmos
             return (cinfo->agent[0].stateflag);
         }
 
+        //! Wait on state
+        //! Wait for up to waitsec seconds for Agent to enter requested state
+        //! \param state Desired ::Agent::State.
+        //! \param waitsec Maximum number of seconds to wait.
+        //! \return Zero, or timeout error.
+        int32_t Agent::wait(State state, float waitsec)
+        {
+            if (cinfo == nullptr)
+            {
+                return AGENT_ERROR_NULL;
+            }
+
+            ElapsedTime et;
+            while (cinfo->agent[0].stateflag != static_cast <uint16_t>(state) && et.split() < waitsec)
+            {
+                COSMOS_SLEEP(.1);
+            }
+            if (cinfo->agent[0].stateflag == static_cast <uint16_t>(state))
+            {
+                return 0;
+            }
+            else
+            {
+                return GENERAL_ERROR_TIMEOUT;
+            }
+        }
 
         //! Last error value.
         //! Get value of last error returned by any function.
