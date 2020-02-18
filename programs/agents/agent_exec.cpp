@@ -145,11 +145,12 @@ int main(int argc, char *argv[])
 
     // Establish the command channel and heartbeat
     agent = new Agent(node_name, "exec", 5.);
-    if (agent->cinfo == nullptr || !agent->running())
+    if ((iretn = agent->wait()) < 0)
     {
-        cout<<"unable to start agent_exec: "<<endl;
-        exit (AGENT_ERROR_JSON_CREATE);
+        fprintf(agent->get_debug_fd(), "Failed to start Agent %s on Node %s : %s\n", agent->getAgent().c_str(), agent->getNode().c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
     }
+
     agent->cinfo->node.utc = 0.;
     agent->cinfo->agent[0].aprd = .5;
     cout<<"  started."<<endl;

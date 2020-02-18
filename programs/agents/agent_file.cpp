@@ -201,6 +201,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node);
 //main
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
     // store command line arguments
     switch (argc)
     {
@@ -237,11 +238,12 @@ int main(int argc, char *argv[])
     gethostname(hostname, sizeof (hostname));
     agentname += hostname;
     agent = new Agent("", agentname, 5.);
-    if (agent->cinfo == nullptr || !agent->running())
+    if ((iretn = agent->wait()) < 0)
     {
-        cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
-        exit (AGENT_ERROR_JSON_CREATE);
+        fprintf(agent->get_debug_fd(), "Failed to start Agent %s on Node %s : %s\n", agent->getAgent().c_str(), agent->getNode().c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
     }
+
     printf("\t\tSuccess.\n");
     fflush(stdout); // Ensure this gets printed before blocking call
 

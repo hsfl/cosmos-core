@@ -54,10 +54,13 @@ int main(int argc, char *argv[])
     }
 
     // Initialize the Agent
-    if (!(agent = new Agent("", "forward", 5.)) || agent->cinfo == nullptr)
+    agent = new Agent("", "forward", 5.);
+    if ((iretn = agent->wait()) < 0)
     {
-        exit (AGENT_ERROR_JSON_CREATE);
+        fprintf(agent->get_debug_fd(), "Failed to start Agent %s on Node %s : %s\n", agent->getAgent().c_str(), agent->getNode().c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
     }
+
 
     // Add requests
     if ((iretn=agent->add_request("add_forward",request_add_forward,"add_forward xxx.xxx.xxx.xxx", "Add address to forwarding list.")))

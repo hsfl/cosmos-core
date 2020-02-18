@@ -211,11 +211,12 @@ int main(int argc, char *argv[])
 
     agent = new Agent("", "file", 5.);
 
-    if (agent->cinfo == nullptr || !agent->running())
+    if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Failure\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
-        exit (AGENT_ERROR_JSON_CREATE);
+        fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Failure : %s\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
     }
+
     fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Established\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 

@@ -71,7 +71,7 @@ static Agent *agent; // to access the cosmos data, will change later
 
 int main(int argc, char *argv[])
 {
-	int irtn;
+    int iretn;
 
     // Process arguments if present
 
@@ -91,11 +91,12 @@ int main(int argc, char *argv[])
         agent = new Agent(nodename, agentname);
 
         // Check if agent was successfully constructed.
-        if (agent->cinfo == nullptr || !agent->running())
+        if ((iretn = agent->wait()) < 0)
         {
-			printf("Failed to open [%s:%s]\n",nodename,agentname);
-			exit (1);
+            fprintf(agent->get_debug_fd(), "Failed to start Agent %s on Node %s : %s\n", agent->getAgent().c_str(), agent->getNode().c_str(), cosmos_error_string(iretn).c_str());
+            exit(iretn);
         }
+
 
         cout << "Hello, I am an agent. My name is [" << nodename << ":" << agentname << "]" << endl << endl;
 	}
@@ -105,11 +106,12 @@ int main(int argc, char *argv[])
         agent = new Agent("", agentname);
 
         // Check if agent was successfully constructed.
-        if (agent->cinfo == nullptr || !agent->running())
+        if ((iretn = agent->wait()) < 0)
         {
-			printf("Failed to open [null:%s]\n",agentname);
-			exit (1);
-		}
+            fprintf(agent->get_debug_fd(), "Failed to start Agent %s on Node %s : %s\n", agent->getAgent().c_str(), agent->getNode().c_str(), cosmos_error_string(iretn).c_str());
+            exit(iretn);
+        }
+
 
         cout << "Hello, I am an agent. My name is [null:" << agentname << "]" << endl << endl;
 	}
@@ -130,23 +132,23 @@ int main(int argc, char *argv[])
 
 
     // Define the requests that we need for this agent
-    if ((irtn=agent->add_request("add",request_add)))
-		exit (irtn);
+    if ((iretn=agent->add_request("add",request_add)))
+        exit (iretn);
 
-    if ((irtn=agent->add_request("sub",request_sub)))
-		exit (irtn);
+    if ((iretn=agent->add_request("sub",request_sub)))
+        exit (iretn);
 
-    if ((irtn=agent->add_request("mul",request_mul)))
-		exit (irtn);
+    if ((iretn=agent->add_request("mul",request_mul)))
+        exit (iretn);
 
-    if ((irtn=agent->add_request("div",request_div)))
-		exit (irtn);
+    if ((iretn=agent->add_request("div",request_div)))
+        exit (iretn);
 
-    if ((irtn=agent->add_request("node",request_change_node_name)))
-		exit (irtn);
+    if ((iretn=agent->add_request("node",request_change_node_name)))
+        exit (iretn);
 
 	// Start our own thread
-	irtn = myagent();
+    iretn = myagent();
 }
 
 int myagent()
