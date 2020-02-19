@@ -100,11 +100,11 @@ filename=autogen.command
 rm -f "$filename"
 
 ### print out the command event in JSON syntax to stdout and to the file.
-echo -e "{\"event_name\":\"$event_name\"}\c" | tee -a "$filename"
-echo -e "{\"event_utc\":$event_utc}\c" | tee -a "$filename"
-echo -e "{\"event_utcexec\":$event_utcexec}\c" | tee -a "$filename"
-echo -e "{\"event_flag\":$event_flag}\c" | tee -a "$filename"
-echo -e "{\"event_type\":$event_type}\c" | tee -a "$filename"
-echo -e "{\"event_data\":\"$event_data\"}\c" | tee -a "$filename"
-echo -e "{\"event_condition\":\"$event_condition\"}\c" | tee -a "$filename"
+echo -e "{\"event_name\":\"$event_name\",\c" | tee -a "$filename"
+echo -e "\"event_utc\":$event_utc,\c" | tee -a "$filename"
+echo -e "\"event_utcexec\":$event_utcexec,\c" | tee -a "$filename"
+echo -e "\"event_flag\":$event_flag,\c" | tee -a "$filename"
+echo -e "\"event_type\":$event_type,\c" | tee -a "$filename"
+echo -e "\"event_data\":\"$event_data\",\c" | tee -a "$filename"
+echo -e "\"event_condition\":\"$event_condition\"}\c" | tee -a "$filename"
 echo | tee -a "$filename"

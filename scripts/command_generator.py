@@ -168,28 +168,28 @@ f = open(event_file_name+".command", 'w')
 
 f.write('{"event_name":"')
 f.write(event_name)
-f.write('"}')
+f.write('",')
 
-f.write('{"event_utc":')
+f.write('"event_utc":')
 f.write(event_utc)
-f.write('}')
+f.write(',')
 
-f.write('{"event_utcexec":0}')
+f.write('"event_utcexec":0,')
 
-f.write('{"event_flag":')
+f.write('"event_flag":')
 f.write(str(event_flag))
-f.write('}')
+f.write(',')
 
-f.write('{"event_type":')
+f.write('"event_type":')
 f.write(str(event_type))
-f.write('}')
+f.write(',')
 
 
-f.write('{"event_data":"')
+f.write('"event_data":"')
 f.write(event_command.rstrip().replace('"','\\"'))
-f.write('"}')
+f.write('",')
 
-f.write('{"event_condition":"')
+f.write('"event_condition":"')
 f.write(event_condition)
 f.write('"}')
 
