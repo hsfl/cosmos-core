@@ -44,9 +44,9 @@
 #include <limits>
 #include <fstream>
 
-vector <string> device_type_string;
+static vector <string> device_type_string;
 
-vector <string> port_type_string
+static vector <string> port_type_string
 {
     "rs232",
     "rs422",
@@ -2005,7 +2005,7 @@ int32_t json_out_gvector(string &jstring,gvector value)
         return iretn;
 
     // Output Latitude
-    if ((iretn=json_out_name(jstring,(char *)"lat")) < 0)
+    if ((iretn=json_out_name(jstring, "lat")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.lat)) < 0)
         return iretn;
@@ -2013,7 +2013,7 @@ int32_t json_out_gvector(string &jstring,gvector value)
         return iretn;
 
     // Output Longitude
-    if ((iretn=json_out_name(jstring,(char *)"lon")) < 0)
+    if ((iretn=json_out_name(jstring, "lon")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.lon)) < 0)
         return iretn;
@@ -2021,7 +2021,7 @@ int32_t json_out_gvector(string &jstring,gvector value)
         return iretn;
 
     // Output Height
-    if ((iretn=json_out_name(jstring,(char *)"h")) < 0)
+    if ((iretn=json_out_name(jstring, "h")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.h)) < 0)
         return iretn;
@@ -2045,7 +2045,7 @@ int32_t json_out_svector(string &jstring,svector value)
         return iretn;
 
     // Output Latitude
-    if ((iretn=json_out_name(jstring,(char *)"phi")) < 0)
+    if ((iretn=json_out_name(jstring, "phi")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.phi)) < 0)
         return iretn;
@@ -2053,7 +2053,7 @@ int32_t json_out_svector(string &jstring,svector value)
         return iretn;
 
     // Output Longitude
-    if ((iretn=json_out_name(jstring,(char *)"lambda")) < 0)
+    if ((iretn=json_out_name(jstring, "lambda")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.lambda)) < 0)
         return iretn;
@@ -2061,7 +2061,7 @@ int32_t json_out_svector(string &jstring,svector value)
         return iretn;
 
     // Output Height
-    if ((iretn=json_out_name(jstring,(char *)"r")) < 0)
+    if ((iretn=json_out_name(jstring, "r")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.r)) < 0)
         return iretn;
@@ -2085,7 +2085,7 @@ int32_t json_out_avector(string &jstring, avector value)
         return iretn;
 
     // Output Bank
-    if ((iretn=json_out_name(jstring,(char *)"b")) < 0)
+    if ((iretn=json_out_name(jstring, "b")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.b)) < 0)
         return iretn;
@@ -2093,7 +2093,7 @@ int32_t json_out_avector(string &jstring, avector value)
         return iretn;
 
     // Output Elevation
-    if ((iretn=json_out_name(jstring,(char *)"e")) < 0)
+    if ((iretn=json_out_name(jstring, "e")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.e)) < 0)
         return iretn;
@@ -2101,7 +2101,7 @@ int32_t json_out_avector(string &jstring, avector value)
         return iretn;
 
     // Output Heading
-    if ((iretn=json_out_name(jstring,(char *)"h")) < 0)
+    if ((iretn=json_out_name(jstring, "h")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.h)) < 0)
         return iretn;
@@ -2205,7 +2205,7 @@ int32_t json_out_quaternion(string &jstring,quaternion value)
         return iretn;
 
     // Output Orientation
-    if ((iretn=json_out_name(jstring,(char *)"d")) < 0)
+    if ((iretn=json_out_name(jstring, "d")) < 0)
         return iretn;
     if ((iretn=json_out_cvector(jstring,value.d)) < 0)
         return iretn;
@@ -2213,7 +2213,7 @@ int32_t json_out_quaternion(string &jstring,quaternion value)
         return iretn;
 
     // Output Rotation
-    if ((iretn=json_out_name(jstring,(char *)"w")) < 0)
+    if ((iretn=json_out_name(jstring, "w")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.w)) < 0)
         return iretn;
@@ -2237,7 +2237,7 @@ int32_t json_out_cvector(string &jstring,cvector value)
         return iretn;
 
     // Output X
-    if ((iretn=json_out_name(jstring,(char *)"x")) < 0)
+    if ((iretn=json_out_name(jstring, "x")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.x)) < 0)
         return iretn;
@@ -2245,7 +2245,7 @@ int32_t json_out_cvector(string &jstring,cvector value)
         return iretn;
 
     // Output Y
-    if ((iretn=json_out_name(jstring,(char *)"y")) < 0)
+    if ((iretn=json_out_name(jstring, "y")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.y)) < 0)
         return iretn;
@@ -2253,7 +2253,7 @@ int32_t json_out_cvector(string &jstring,cvector value)
         return iretn;
 
     // Output Z
-    if ((iretn=json_out_name(jstring,(char *)"z")) < 0)
+    if ((iretn=json_out_name(jstring, "z")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.z)) < 0)
         return iretn;
@@ -2277,7 +2277,7 @@ int32_t json_out_cartpos(string &jstring,cartpos value)
         return iretn;
 
     // Output Time
-    if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
+    if ((iretn=json_out_name(jstring, "utc")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
         return iretn;
@@ -2285,7 +2285,7 @@ int32_t json_out_cartpos(string &jstring,cartpos value)
         return iretn;
 
     // Output Position
-    if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
+    if ((iretn=json_out_name(jstring, "pos")) < 0)
         return iretn;
     if ((iretn=json_out_rvector(jstring,value.s)) < 0)
         return iretn;
@@ -2293,7 +2293,7 @@ int32_t json_out_cartpos(string &jstring,cartpos value)
         return iretn;
 
     // Output Velocity
-    if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
+    if ((iretn=json_out_name(jstring, "vel")) < 0)
         return iretn;
     if ((iretn=json_out_rvector(jstring,value.v)) < 0)
         return iretn;
@@ -2301,7 +2301,7 @@ int32_t json_out_cartpos(string &jstring,cartpos value)
         return iretn;
 
     // Output Acceleration
-    if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
+    if ((iretn=json_out_name(jstring, "acc")) < 0)
         return iretn;
     if ((iretn=json_out_rvector(jstring,value.a)) < 0)
         return iretn;
@@ -2326,7 +2326,7 @@ int32_t json_out_geoidpos(string &jstring,geoidpos value)
         return iretn;
 
     // Output Time
-    if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
+    if ((iretn=json_out_name(jstring, "utc")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
         return iretn;
@@ -2334,7 +2334,7 @@ int32_t json_out_geoidpos(string &jstring,geoidpos value)
         return iretn;
 
     // Output Position
-    if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
+    if ((iretn=json_out_name(jstring, "pos")) < 0)
         return iretn;
     if ((iretn=json_out_gvector(jstring,value.s)) < 0)
         return iretn;
@@ -2342,7 +2342,7 @@ int32_t json_out_geoidpos(string &jstring,geoidpos value)
         return iretn;
 
     // Output Velocity
-    if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
+    if ((iretn=json_out_name(jstring, "vel")) < 0)
         return iretn;
     if ((iretn=json_out_gvector(jstring,value.v)) < 0)
         return iretn;
@@ -2350,7 +2350,7 @@ int32_t json_out_geoidpos(string &jstring,geoidpos value)
         return iretn;
 
     // Output Acceleration
-    if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
+    if ((iretn=json_out_name(jstring, "acc")) < 0)
         return iretn;
     if ((iretn=json_out_gvector(jstring,value.a)) < 0)
         return iretn;
@@ -2375,7 +2375,7 @@ int32_t json_out_spherpos(string &jstring,spherpos value)
         return iretn;
 
     // Output Time
-    if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
+    if ((iretn=json_out_name(jstring, "utc")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
         return iretn;
@@ -2383,7 +2383,7 @@ int32_t json_out_spherpos(string &jstring,spherpos value)
         return iretn;
 
     // Output Position
-    if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
+    if ((iretn=json_out_name(jstring, "pos")) < 0)
         return iretn;
     if ((iretn=json_out_svector(jstring,value.s)) < 0)
         return iretn;
@@ -2391,7 +2391,7 @@ int32_t json_out_spherpos(string &jstring,spherpos value)
         return iretn;
 
     // Output Velocity
-    if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
+    if ((iretn=json_out_name(jstring, "vel")) < 0)
         return iretn;
     if ((iretn=json_out_svector(jstring,value.v)) < 0)
         return iretn;
@@ -2399,7 +2399,7 @@ int32_t json_out_spherpos(string &jstring,spherpos value)
         return iretn;
 
     // Output Acceleration
-    if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
+    if ((iretn=json_out_name(jstring, "acc")) < 0)
         return iretn;
     if ((iretn=json_out_svector(jstring,value.a)) < 0)
         return iretn;
@@ -2449,7 +2449,7 @@ int32_t json_out_utcstart(string &jstring, double value)
     if ((iretn=json_out_character(jstring,'{')) < 0)
         return iretn;
 
-    if ((iretn=json_out_name(jstring,(char *)"node_utcstart")) < 0)
+    if ((iretn=json_out_name(jstring, "node_utcstart")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value)) < 0)
         return iretn;
@@ -2475,7 +2475,7 @@ int32_t json_out_ecipos(string &jstring, cartpos value)
         return iretn;
 
     // Output Earth Centered Inertial
-    if ((iretn=json_out_name(jstring,(char *)"node_loc_pos_eci")) < 0)
+    if ((iretn=json_out_name(jstring, "node_loc_pos_eci")) < 0)
         return iretn;
     if ((iretn=json_out_cartpos(jstring,value)) < 0)
         return iretn;
@@ -2500,7 +2500,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
         return iretn;
 
     // Output Time
-    if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
+    if ((iretn=json_out_name(jstring, "utc")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
         return iretn;
@@ -2508,7 +2508,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
         return iretn;
 
     // Output Barycentric
-    if ((iretn=json_out_name(jstring,(char *)"icrf")) < 0)
+    if ((iretn=json_out_name(jstring, "icrf")) < 0)
         return iretn;
     if ((iretn=json_out_cartpos(jstring,value.icrf)) < 0)
         return iretn;
@@ -2516,7 +2516,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
         return iretn;
 
     // Output Earth Centered Inertial
-    if ((iretn=json_out_name(jstring,(char *)"eci")) < 0)
+    if ((iretn=json_out_name(jstring, "eci")) < 0)
         return iretn;
     if ((iretn=json_out_cartpos(jstring,value.eci)) < 0)
         return iretn;
@@ -2524,7 +2524,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
         return iretn;
 
     // Output Selene Centered Inertial
-    if ((iretn=json_out_name(jstring,(char *)"sci")) < 0)
+    if ((iretn=json_out_name(jstring, "sci")) < 0)
         return iretn;
     if ((iretn=json_out_cartpos(jstring,value.sci)) < 0)
         return iretn;
@@ -2532,7 +2532,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
         return iretn;
 
     // Output Geocentric
-    if ((iretn=json_out_name(jstring,(char *)"geoc")) < 0)
+    if ((iretn=json_out_name(jstring, "geoc")) < 0)
         return iretn;
     if ((iretn=json_out_cartpos(jstring,value.geoc)) < 0)
         return iretn;
@@ -2540,7 +2540,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
         return iretn;
 
     // Output Selenocentric
-    if ((iretn=json_out_name(jstring,(char *)"selc")) < 0)
+    if ((iretn=json_out_name(jstring, "selc")) < 0)
         return iretn;
     if ((iretn=json_out_cartpos(jstring,value.selc)) < 0)
         return iretn;
@@ -2548,7 +2548,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
         return iretn;
 
     // Output Geodetic
-    if ((iretn=json_out_name(jstring,(char *)"geod")) < 0)
+    if ((iretn=json_out_name(jstring, "geod")) < 0)
         return iretn;
     if ((iretn=json_out_geoidpos(jstring,value.geod)) < 0)
         return iretn;
@@ -2556,7 +2556,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
         return iretn;
 
     // Output Selenographic
-    if ((iretn=json_out_name(jstring,(char *)"selg")) < 0)
+    if ((iretn=json_out_name(jstring, "selg")) < 0)
         return iretn;
     if ((iretn=json_out_geoidpos(jstring,value.selg)) < 0)
         return iretn;
@@ -2564,7 +2564,7 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
         return iretn;
 
     // Output Geocentric Spherical
-    if ((iretn=json_out_name(jstring,(char *)"geos")) < 0)
+    if ((iretn=json_out_name(jstring, "geos")) < 0)
         return iretn;
     if ((iretn=json_out_spherpos(jstring,value.geos)) < 0)
         return iretn;
@@ -2591,7 +2591,7 @@ int32_t json_out_attstruc(string &jstring,attstruc value)
         return iretn;
 
     // Output Time
-    if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
+    if ((iretn=json_out_name(jstring, "utc")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
         return iretn;
@@ -2599,7 +2599,7 @@ int32_t json_out_attstruc(string &jstring,attstruc value)
         return iretn;
 
     // Output Topocentric
-    if ((iretn=json_out_name(jstring,(char *)"topo")) < 0)
+    if ((iretn=json_out_name(jstring, "topo")) < 0)
         return iretn;
     if ((iretn=json_out_qatt(jstring,value.topo)) < 0)
         return iretn;
@@ -2607,7 +2607,7 @@ int32_t json_out_attstruc(string &jstring,attstruc value)
         return iretn;
 
     // Output LVLH
-    if ((iretn=json_out_name(jstring,(char *)"lvlh")) < 0)
+    if ((iretn=json_out_name(jstring, "lvlh")) < 0)
         return iretn;
     if ((iretn=json_out_qatt(jstring,value.lvlh)) < 0)
         return iretn;
@@ -2615,7 +2615,7 @@ int32_t json_out_attstruc(string &jstring,attstruc value)
         return iretn;
 
     // Output Geocentric
-    if ((iretn=json_out_name(jstring,(char *)"geoc")) < 0)
+    if ((iretn=json_out_name(jstring, "geoc")) < 0)
         return iretn;
     if ((iretn=json_out_qatt(jstring,value.geoc)) < 0)
         return iretn;
@@ -2623,7 +2623,7 @@ int32_t json_out_attstruc(string &jstring,attstruc value)
         return iretn;
 
     // Output Selenocentric
-    if ((iretn=json_out_name(jstring,(char *)"selc")) < 0)
+    if ((iretn=json_out_name(jstring, "selc")) < 0)
         return iretn;
     if ((iretn=json_out_qatt(jstring,value.selc)) < 0)
         return iretn;
@@ -2631,7 +2631,7 @@ int32_t json_out_attstruc(string &jstring,attstruc value)
         return iretn;
 
     // Output ICRF
-    if ((iretn=json_out_name(jstring,(char *)"icrf")) < 0)
+    if ((iretn=json_out_name(jstring, "icrf")) < 0)
         return iretn;
     if ((iretn=json_out_qatt(jstring,value.icrf)) < 0)
         return iretn;
@@ -2656,7 +2656,7 @@ int32_t json_out_locstruc(string &jstring,locstruc value)
         return iretn;
 
     // Output Time
-    if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
+    if ((iretn=json_out_name(jstring, "utc")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
         return iretn;
@@ -2664,7 +2664,7 @@ int32_t json_out_locstruc(string &jstring,locstruc value)
         return iretn;
 
     // Output Position
-    if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
+    if ((iretn=json_out_name(jstring, "pos")) < 0)
         return iretn;
     if ((iretn=json_out_posstruc(jstring,value.pos)) < 0)
         return iretn;
@@ -2672,7 +2672,7 @@ int32_t json_out_locstruc(string &jstring,locstruc value)
         return iretn;
 
     // Output Attitude
-    if ((iretn=json_out_name(jstring,(char *)"att")) < 0)
+    if ((iretn=json_out_name(jstring, "att")) < 0)
         return iretn;
     if ((iretn=json_out_attstruc(jstring,value.att)) < 0)
         return iretn;
@@ -2680,7 +2680,7 @@ int32_t json_out_locstruc(string &jstring,locstruc value)
         return iretn;
 
     // Output Earth Magnetic Field
-    if ((iretn=json_out_name(jstring,(char *)"bearth")) < 0)
+    if ((iretn=json_out_name(jstring, "bearth")) < 0)
         return iretn;
     if ((iretn=json_out_rvector(jstring,value.bearth)) < 0)
         return iretn;
@@ -2787,7 +2787,7 @@ int32_t json_out_dcmatt(string &jstring,dcmatt value)
         return iretn;
 
     // Output Position
-    if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
+    if ((iretn=json_out_name(jstring, "pos")) < 0)
         return iretn;
     if ((iretn=json_out_dcm(jstring,value.s)) < 0)
         return iretn;
@@ -2795,7 +2795,7 @@ int32_t json_out_dcmatt(string &jstring,dcmatt value)
         return iretn;
 
     // Output Velocity
-    if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
+    if ((iretn=json_out_name(jstring, "vel")) < 0)
         return iretn;
     if ((iretn=json_out_rvector(jstring,value.v)) < 0)
         return iretn;
@@ -2803,7 +2803,7 @@ int32_t json_out_dcmatt(string &jstring,dcmatt value)
         return iretn;
 
     // Output Acceleration
-    if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
+    if ((iretn=json_out_name(jstring, "acc")) < 0)
         return iretn;
     if ((iretn=json_out_rvector(jstring,value.a)) < 0)
         return iretn;
@@ -2828,7 +2828,7 @@ int32_t json_out_qatt(string &jstring,qatt value)
         return iretn;
 
     // Output Time
-    if ((iretn=json_out_name(jstring,(char *)"utc")) < 0)
+    if ((iretn=json_out_name(jstring, "utc")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.utc)) < 0)
         return iretn;
@@ -2836,7 +2836,7 @@ int32_t json_out_qatt(string &jstring,qatt value)
         return iretn;
 
     // Output Position
-    if ((iretn=json_out_name(jstring,(char *)"pos")) < 0)
+    if ((iretn=json_out_name(jstring, "pos")) < 0)
         return iretn;
     if ((iretn=json_out_quaternion(jstring,value.s)) < 0)
         return iretn;
@@ -2844,7 +2844,7 @@ int32_t json_out_qatt(string &jstring,qatt value)
         return iretn;
 
     // Output Velocity
-    if ((iretn=json_out_name(jstring,(char *)"vel")) < 0)
+    if ((iretn=json_out_name(jstring, "vel")) < 0)
         return iretn;
     if ((iretn=json_out_rvector(jstring,value.v)) < 0)
         return iretn;
@@ -2852,7 +2852,7 @@ int32_t json_out_qatt(string &jstring,qatt value)
         return iretn;
 
     // Output Acceleration
-    if ((iretn=json_out_name(jstring,(char *)"acc")) < 0)
+    if ((iretn=json_out_name(jstring, "acc")) < 0)
         return iretn;
     if ((iretn=json_out_rvector(jstring,value.a)) < 0)
         return iretn;
@@ -2947,7 +2947,7 @@ int32_t json_out_beatstruc(string &jstring,beatstruc value)
         return iretn;
 
     // Output Ntype
-    if ((iretn=json_out_name(jstring,(char *)"ntype")) < 0)
+    if ((iretn=json_out_name(jstring, "ntype")) < 0)
         return iretn;
     if ((iretn=json_out_uint16(jstring,(uint16_t)value.ntype)) < 0)
         return iretn;
@@ -2955,7 +2955,7 @@ int32_t json_out_beatstruc(string &jstring,beatstruc value)
         return iretn;
 
     // Output IP Address
-    if ((iretn=json_out_name(jstring,(char *)"addr")) < 0)
+    if ((iretn=json_out_name(jstring, "addr")) < 0)
         return iretn;
     if ((iretn=json_out_string(jstring,value.addr,16)) < 0)
         return iretn;
@@ -2963,7 +2963,7 @@ int32_t json_out_beatstruc(string &jstring,beatstruc value)
         return iretn;
 
     // Output IP Port
-    if ((iretn=json_out_name(jstring,(char *)"port")) < 0)
+    if ((iretn=json_out_name(jstring, "port")) < 0)
         return iretn;
     if ((iretn=json_out_int32(jstring,value.port)) < 0)
         return iretn;
@@ -2971,7 +2971,7 @@ int32_t json_out_beatstruc(string &jstring,beatstruc value)
         return iretn;
 
     // Output Buffer Size
-    if ((iretn=json_out_name(jstring,(char *)"bsz")) < 0)
+    if ((iretn=json_out_name(jstring, "bsz")) < 0)
         return iretn;
     if ((iretn=json_out_int32(jstring,value.bsz)) < 0)
         return iretn;
@@ -2979,7 +2979,7 @@ int32_t json_out_beatstruc(string &jstring,beatstruc value)
         return iretn;
 
     // Output Beat Period
-    if ((iretn=json_out_name(jstring,(char *)"bprd")) < 0)
+    if ((iretn=json_out_name(jstring, "bprd")) < 0)
         return iretn;
     if ((iretn=json_out_double(jstring,value.bprd)) < 0)
         return iretn;
@@ -7015,9 +7015,6 @@ int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo)
 {
     switch (static_cast <DeviceType>(cinfo->device[cidx].all.type))
     {
-    case DeviceType::NONE:
-    case DeviceType::COUNT:
-        break;
     //! Antenna
     case DeviceType::ANT:
         cinfo->devspec.ant.push_back(cidx);
@@ -8607,9 +8604,6 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
 {
     switch (type)
     {
-    case DeviceType::NONE:
-    case DeviceType::COUNT:
-        break;
     case DeviceType::TELEM:
         json_toggleentry("device_telem_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_telem_cidx",didx, UINT16_MAX, cinfo, state);
@@ -9108,57 +9102,57 @@ const char *json_of_target(string &jstring, cosmosstruc *cinfo, uint16_t num)
     int32_t iretn;
 
     jstring.clear();
-    iretn = json_out_1d(jstring,(char *)"target_utc",num, cinfo);
+    iretn = json_out_1d(jstring, "target_utc",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_name",num, cinfo);
+    iretn = json_out_1d(jstring, "target_name",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_type",num, cinfo);
+    iretn = json_out_1d(jstring, "target_type",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_azfrom",num, cinfo);
+    iretn = json_out_1d(jstring, "target_azfrom",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_elfrom",num, cinfo);
+    iretn = json_out_1d(jstring, "target_elfrom",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_azto",num, cinfo);
+    iretn = json_out_1d(jstring, "target_azto",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_elto",num, cinfo);
+    iretn = json_out_1d(jstring, "target_elto",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_min",num, cinfo);
+    iretn = json_out_1d(jstring, "target_min",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_range",num, cinfo);
+    iretn = json_out_1d(jstring, "target_range",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_close",num, cinfo);
+    iretn = json_out_1d(jstring, "target_close",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"target_loc_pos_geod",num, cinfo);
+    iretn = json_out_1d(jstring, "target_loc_pos_geod",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -9179,67 +9173,67 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
     int32_t iretn;
 
     jstring.clear();
-    iretn = json_out(jstring,(char *)"node_utcstart", cinfo);
+    iretn = json_out(jstring, "node_utcstart", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_utc", cinfo);
+    iretn = json_out(jstring, "node_utc", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_name", cinfo);
+    iretn = json_out(jstring, "node_name", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_type", cinfo);
+    iretn = json_out(jstring, "node_type", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_mass", cinfo);
+    iretn = json_out(jstring, "node_mass", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_moi", cinfo);
+    iretn = json_out(jstring, "node_moi", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_battcap", cinfo);
+    iretn = json_out(jstring, "node_battcap", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_battlev", cinfo);
+    iretn = json_out(jstring, "node_battlev", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_powchg", cinfo);
+    iretn = json_out(jstring, "node_powchg", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_powgen", cinfo);
+    iretn = json_out(jstring, "node_powgen", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_powuse", cinfo);
+    iretn = json_out(jstring, "node_powuse", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_icrf", cinfo);
+    iretn = json_out(jstring, "node_icrf", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"node_icrf", cinfo);
+    iretn = json_out(jstring, "node_icrf", cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -9261,72 +9255,72 @@ const char *json_of_agent(string &jstring, cosmosstruc *cinfo)
     int32_t iretn;
 
     jstring.clear();
-    iretn = json_out(jstring,(char *)"agent_utc", cinfo);
+    iretn = json_out(jstring, "agent_utc", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_node", cinfo);
+    iretn = json_out(jstring, "agent_node", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_proc", cinfo);
+    iretn = json_out(jstring, "agent_proc", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_user", cinfo);
+    iretn = json_out(jstring, "agent_user", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_aprd", cinfo);
+    iretn = json_out(jstring, "agent_aprd", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_bprd", cinfo);
+    iretn = json_out(jstring, "agent_bprd", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_port", cinfo);
+    iretn = json_out(jstring, "agent_port", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_bsz", cinfo);
+    iretn = json_out(jstring, "agent_bsz", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_addr", cinfo);
+    iretn = json_out(jstring, "agent_addr", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_pid", cinfo);
+    iretn = json_out(jstring, "agent_pid", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_stateflag", cinfo);
+    iretn = json_out(jstring, "agent_stateflag", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_cpu", cinfo);
+    iretn = json_out(jstring, "agent_cpu", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_memory", cinfo);
+    iretn = json_out(jstring, "agent_memory", cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out(jstring,(char *)"agent_jitter", cinfo);
+    iretn = json_out(jstring, "agent_jitter", cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -9350,13 +9344,13 @@ const char *json_of_time(string &jstring, cosmosstruc *cinfo)
     int32_t iretn;
 
     jstring.clear();
-    iretn = json_out(jstring,(char *)"node_utcstart", cinfo);
+    iretn = json_out(jstring, "node_utcstart", cinfo);
     if (iretn < 0)
         return nullptr;
-    iretn = json_out(jstring,(char *)"node_utc", cinfo);
+    iretn = json_out(jstring, "node_utc", cinfo);
     if (iretn < 0)
         return nullptr;
-    iretn = json_out(jstring,(char *)"node_utcoffset", cinfo);
+    iretn = json_out(jstring, "node_utcoffset", cinfo);
     if (iretn < 0)
         return nullptr;
 
@@ -9377,7 +9371,7 @@ const char *json_of_beat(string &jstring, cosmosstruc *cinfo)
     int32_t iretn;
 
     jstring.clear();
-    iretn = json_out(jstring,(char *)"beat", cinfo);
+    iretn = json_out(jstring, "beat", cinfo);
     if (iretn < 0)
         return nullptr;
 
@@ -9395,62 +9389,62 @@ const char *json_of_beat(string &jstring, cosmosstruc *cinfo)
 const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 {
 //    int32_t iretn;
-//    iretn = json_out(jstring,(char *)"node_name", cinfo);
+//    iretn = json_out(jstring, "node_name", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_type", cinfo);
+//    iretn = json_out(jstring, "node_type", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_utcstart", cinfo);
+//    iretn = json_out(jstring, "node_utcstart", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_utc", cinfo);
+//    iretn = json_out(jstring, "node_utc", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_utcoffset", cinfo);
+//    iretn = json_out(jstring, "node_utcoffset", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_loc_pos_eci", cinfo);
+//    iretn = json_out(jstring, "node_loc_pos_eci", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_loc_att_icrf", cinfo);
+//    iretn = json_out(jstring, "node_loc_att_icrf", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_powgen", cinfo);
+//    iretn = json_out(jstring, "node_powgen", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_powuse", cinfo);
+//    iretn = json_out(jstring, "node_powuse", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_powchg", cinfo);
+//    iretn = json_out(jstring, "node_powchg", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"node_battlev", cinfo);
+//    iretn = json_out(jstring, "node_battlev", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
 //    }
-//    iretn = json_out(jstring,(char *)"device_cpu_cnt", cinfo);
+//    iretn = json_out(jstring, "device_cpu_cnt", cinfo);
 //    if (iretn < 0)
 //    {
 //        return nullptr;
@@ -9492,36 +9486,36 @@ const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cinfo)
     int32_t iretn;
 
     jstring.clear();
-    iretn = json_out_1d(jstring,(char *)"device_imu_att",num, cinfo);
+    iretn = json_out_1d(jstring, "device_imu_att",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"device_imu_align",num, cinfo);
+    iretn = json_out_1d(jstring, "device_imu_align",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"device_imu_cidx",num, cinfo);
+    iretn = json_out_1d(jstring, "device_imu_cidx",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"device_imu_cnt",num, cinfo);
+    iretn = json_out_1d(jstring, "device_imu_cnt",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"device_imu_mag",num, cinfo);
+    iretn = json_out_1d(jstring, "device_imu_mag",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;    }
-    iretn = json_out_1d(jstring,(char *)"device_imu_bdot",num, cinfo);
+    iretn = json_out_1d(jstring, "device_imu_bdot",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
     }
-    iretn = json_out_1d(jstring,(char *)"device_imu_pos",num, cinfo);
+    iretn = json_out_1d(jstring, "device_imu_pos",num, cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -9534,12 +9528,12 @@ const char *json_of_ephemeris(string &jstring, cosmosstruc *cinfo)
 {
     // Location
     jstring.clear();
-    json_out(jstring,(char *)"node_utcstart", cinfo);
-    json_out(jstring,(char *)"node_utc", cinfo);
-    json_out(jstring,(char *)"node_utcoffset", cinfo);
-    json_out(jstring,(char *)"node_name", cinfo);
-    json_out(jstring,(char *)"node_type", cinfo);
-    json_out(jstring,(char *)"node_loc_pos_eci", cinfo);
+    json_out(jstring, "node_utcstart", cinfo);
+    json_out(jstring, "node_utc", cinfo);
+    json_out(jstring, "node_utcoffset", cinfo);
+    json_out(jstring, "node_name", cinfo);
+    json_out(jstring, "node_type", cinfo);
+    json_out(jstring, "node_loc_pos_eci", cinfo);
 
     return jstring.data();
 }
@@ -9548,9 +9542,9 @@ const char *json_of_utc(string &jstring, cosmosstruc *cinfo)
 {
     // Time
     jstring.clear();
-    json_out(jstring,(char *)"node_utcstart", cinfo);
-    json_out(jstring,(char *)"node_utc", cinfo);
-    json_out(jstring,(char *)"node_utcoffset", cinfo);
+    json_out(jstring, "node_utcstart", cinfo);
+    json_out(jstring, "node_utc", cinfo);
+    json_out(jstring, "node_utcoffset", cinfo);
     return jstring.data();
 }
 
@@ -9856,7 +9850,7 @@ const char *json_of_soh(string &jstring, cosmosstruc *cinfo)
 
     jstring.clear();
     // Time
-    json_out(jstring,(char *)"node_utcoffset", cinfo);
+    json_out(jstring, "node_utcoffset", cinfo);
 
     // Satellite Information
     string soh = json_list_of_soh(cinfo);
@@ -9879,15 +9873,15 @@ const char *json_of_soh(string &jstring, cosmosstruc *cinfo)
 const char *json_of_event(string &jstring, cosmosstruc *cinfo)
 {
     jstring.clear();
-    json_out(jstring,(char *)"event_utc", cinfo);
-    if (json_get_double("event_utcexec", cinfo) != 0.) json_out(jstring,(char *)"event_utcexec", cinfo);
-    json_out(jstring,(char *)"event_node", cinfo);
-    json_out(jstring,(char *)"event_name", cinfo);
-    json_out(jstring,(char *)"event_user", cinfo);
-    json_out(jstring,(char *)"event_type", cinfo);
-    json_out(jstring,(char *)"event_flag", cinfo);
-    json_out(jstring,(char *)"event_data", cinfo);
-    json_out(jstring,(char *)"event_condition", cinfo);
+    json_out(jstring, "event_utc", cinfo);
+    if (json_get_double("event_utcexec", cinfo) != 0.) json_out(jstring, "event_utcexec", cinfo);
+    json_out(jstring, "event_node", cinfo);
+    json_out(jstring, "event_name", cinfo);
+    json_out(jstring, "event_user", cinfo);
+    json_out(jstring, "event_type", cinfo);
+    json_out(jstring, "event_flag", cinfo);
+    json_out(jstring, "event_data", cinfo);
+    json_out(jstring, "event_condition", cinfo);
     if (json_get_double("event_dtime", cinfo) != 0.) json_out(jstring,"event_dtime", cinfo);
     if (json_get_double("event_ctime", cinfo) != 0.) json_out(jstring,"event_ctime", cinfo);
     if (json_get_double("event_denergy", cinfo) != 0.) json_out(jstring,"event_denergy", cinfo);
@@ -9905,14 +9899,14 @@ const char *json_of_groundcontact(string &jstring, cosmosstruc *cinfo)
     int16_t i;
 
     jstring.clear();
-    json_out(jstring,(char *)"node_utcstart", cinfo);
-    json_out(jstring,(char *)"node_utc", cinfo);
-    json_out(jstring,(char *)"node_utcoffset", cinfo);
-    json_out(jstring,(char *)"gs_cnt", cinfo);
+    json_out(jstring, "node_utcstart", cinfo);
+    json_out(jstring, "node_utc", cinfo);
+    json_out(jstring, "node_utcoffset", cinfo);
+    json_out(jstring, "gs_cnt", cinfo);
     for (i=0; i<*(int16_t *)json_ptrto((char *)"gs_cnt", cinfo); i++)
     {
-        json_out_1d(jstring,(char *)"gs_az",i, cinfo);
-        json_out_1d(jstring,(char *)"gs_el",i, cinfo);
+        json_out_1d(jstring, "gs_az",i, cinfo);
+        json_out_1d(jstring, "gs_el",i, cinfo);
     }
 
     return jstring.data();
@@ -9921,13 +9915,13 @@ const char *json_of_groundcontact(string &jstring, cosmosstruc *cinfo)
 const char *json_of_mtr(string &jstring,uint16_t index, cosmosstruc *cinfo)
 {
     jstring.clear();
-    json_out(jstring,(char *)"node_utc", cinfo);
-    json_out(jstring,(char *)"node_utcoffset", cinfo);
+    json_out(jstring, "node_utc", cinfo);
+    json_out(jstring, "node_utcoffset", cinfo);
 
-    json_out_1d(jstring,(char *)"device_mtr_cidx",index, cinfo);
-    json_out_1d(jstring,(char *)"device_mtr_mom",index, cinfo);
-    json_out_1d(jstring,(char *)"device_mtr_mom",index, cinfo);
-    json_out_1d(jstring,(char *)"device_mtr_rmom",index, cinfo);
+    json_out_1d(jstring, "device_mtr_cidx",index, cinfo);
+    json_out_1d(jstring, "device_mtr_mom",index, cinfo);
+    json_out_1d(jstring, "device_mtr_mom",index, cinfo);
+    json_out_1d(jstring, "device_mtr_rmom",index, cinfo);
 
     return jstring.data();
 }
@@ -9936,18 +9930,18 @@ const char *json_of_mtr(string &jstring,uint16_t index, cosmosstruc *cinfo)
 const char *json_of_rw(string &jstring,uint16_t index, cosmosstruc *cinfo)
 {
     jstring.clear();
-    json_out(jstring,(char *)"node_utc", cinfo);
-    json_out(jstring,(char *)"node_utcoffset", cinfo);
+    json_out(jstring, "node_utc", cinfo);
+    json_out(jstring, "node_utcoffset", cinfo);
 
-    json_out_1d(jstring,(char *)"device_rw_utc",index, cinfo);
-    json_out_1d(jstring,(char *)"device_rw_cidx",index, cinfo);
-    json_out_1d(jstring,(char *)"device_rw_mom_x",index, cinfo);
-    json_out_1d(jstring,(char *)"device_rw_mom_y",index, cinfo);
-    json_out_1d(jstring,(char *)"device_rw_mom_z",index, cinfo);
-    json_out_1d(jstring,(char *)"device_rw_omg",index, cinfo);
-    json_out_1d(jstring,(char *)"device_rw_alp",index, cinfo);
-    json_out_1d(jstring,(char *)"device_rw_romg",index, cinfo);
-    json_out_1d(jstring,(char *)"device_rw_ralp",index, cinfo);
+    json_out_1d(jstring, "device_rw_utc",index, cinfo);
+    json_out_1d(jstring, "device_rw_cidx",index, cinfo);
+    json_out_1d(jstring, "device_rw_mom_x",index, cinfo);
+    json_out_1d(jstring, "device_rw_mom_y",index, cinfo);
+    json_out_1d(jstring, "device_rw_mom_z",index, cinfo);
+    json_out_1d(jstring, "device_rw_omg",index, cinfo);
+    json_out_1d(jstring, "device_rw_alp",index, cinfo);
+    json_out_1d(jstring, "device_rw_romg",index, cinfo);
+    json_out_1d(jstring, "device_rw_ralp",index, cinfo);
 
     return jstring.data();
 }
@@ -9955,10 +9949,10 @@ const char *json_of_rw(string &jstring,uint16_t index, cosmosstruc *cinfo)
 const char *json_of_state_eci(string &jstring, cosmosstruc *cinfo)
 {
     jstring.clear();
-    //	json_out(jstring,(char *)"node_utc", cinfo);
-    //	json_out(jstring,(char *)"node_utcoffset", cinfo);
-    json_out(jstring,(char *)"node_loc_pos_eci", cinfo);
-    json_out(jstring,(char *)"node_loc_att_icrf", cinfo);
+    //	json_out(jstring, "node_utc", cinfo);
+    //	json_out(jstring, "node_utcoffset", cinfo);
+    json_out(jstring, "node_loc_pos_eci", cinfo);
+    json_out(jstring, "node_loc_att_icrf", cinfo);
     return jstring.data();
 }
 
@@ -9966,10 +9960,10 @@ const char *json_of_state_eci(string &jstring, cosmosstruc *cinfo)
 const char *json_of_state_geoc(string &jstring, cosmosstruc *cinfo)
 {
     jstring.clear();
-    //	json_out(jstring,(char *)"node_utc", cinfo);
-    //	json_out(jstring,(char *)"node_utcoffset", cinfo);
-    json_out(jstring,(char *)"node_loc_pos_geoc", cinfo);
-    json_out(jstring,(char *)"node_loc_att_geoc", cinfo);
+    //	json_out(jstring, "node_utc", cinfo);
+    //	json_out(jstring, "node_utcoffset", cinfo);
+    json_out(jstring, "node_loc_pos_geoc", cinfo);
+    json_out(jstring, "node_loc_att_geoc", cinfo);
     return jstring.data();
 }
 
@@ -9986,17 +9980,17 @@ const char *json_node(string &jstring, cosmosstruc *cinfo)
 {
 
     jstring.clear();
-    json_out(jstring,(char *)"node_type", cinfo);
+    json_out(jstring, "node_type", cinfo);
     json_out_character(jstring, '\n');
-    json_out(jstring,(char *)"node_piece_cnt", cinfo);
+    json_out(jstring, "node_piece_cnt", cinfo);
     json_out_character(jstring, '\n');
-    json_out(jstring,(char *)"node_vertex_cnt", cinfo);
+    json_out(jstring, "node_vertex_cnt", cinfo);
     json_out_character(jstring, '\n');
-    json_out(jstring,(char *)"node_face_cnt", cinfo);
+    json_out(jstring, "node_face_cnt", cinfo);
     json_out_character(jstring, '\n');
-    json_out(jstring,(char *)"node_device_cnt", cinfo);
+    json_out(jstring, "node_device_cnt", cinfo);
     json_out_character(jstring, '\n');
-    json_out(jstring,(char *)"node_port_cnt", cinfo);
+    json_out(jstring, "node_port_cnt", cinfo);
     json_out_character(jstring, '\n');
 
     return jstring.data();
@@ -10020,7 +10014,7 @@ const char *json_vertices(string &jstring, cosmosstruc *cinfo)
     {
         for (uint16_t i=0; i<*vertex_cnt; i++)
         {
-            json_out_1d(jstring,(char *)"vertex",i, cinfo);
+            json_out_1d(jstring, "vertex",i, cinfo);
             // // json_out_character(jstring, '\n');
         }
     }
@@ -10047,18 +10041,18 @@ const char *json_faces(string &jstring, cosmosstruc *cinfo)
     {
         for (uint16_t i=0; i<*face_cnt; i++)
         {
-            json_out_1d(jstring,(char *)"face_normal",i, cinfo);
+            json_out_1d(jstring, "face_normal",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"face_com",i, cinfo);
+            json_out_1d(jstring, "face_com",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"face_area",i, cinfo);
+            json_out_1d(jstring, "face_area",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"face_vertex_cnt",i, cinfo);
+            json_out_1d(jstring, "face_vertex_cnt",i, cinfo);
             // // json_out_character(jstring, '\n');
             uint16_t cnt = (uint16_t)json_get_int((char *)"face_vertex_cnt",i, cinfo);
             for (uint16_t j=0; j<cnt; j++)
             {
-                json_out_2d(jstring,(char *)"face_vertex_idx",i,j, cinfo);
+                json_out_2d(jstring, "face_vertex_idx",i,j, cinfo);
                 // // json_out_character(jstring, '\n');
             }
         }
@@ -10086,36 +10080,36 @@ const char *json_pieces(string &jstring, cosmosstruc *cinfo)
     {
         for (uint16_t i=0; i<*piece_cnt; i++)
         {
-            json_out_1d(jstring,(char *)"piece_name",i, cinfo);
+            json_out_1d(jstring, "piece_name",i, cinfo);
             // // json_out_character(jstring, '\n');
-//            json_out_1d(jstring,(char *)"piece_type",i, cinfo);
+//            json_out_1d(jstring, "piece_type",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_cidx",i, cinfo);
+            json_out_1d(jstring, "piece_cidx",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_mass",i, cinfo);
+            json_out_1d(jstring, "piece_mass",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_density",i, cinfo);
+            json_out_1d(jstring, "piece_density",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_emi",i, cinfo);
+            json_out_1d(jstring, "piece_emi",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_abs",i, cinfo);
+            json_out_1d(jstring, "piece_abs",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_hcap",i, cinfo);
+            json_out_1d(jstring, "piece_hcap",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_hcon",i, cinfo);
+            json_out_1d(jstring, "piece_hcon",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_dim",i, cinfo);
+            json_out_1d(jstring, "piece_dim",i, cinfo);
             // // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_area",i, cinfo);
+            json_out_1d(jstring, "piece_area",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_com",i, cinfo);
+            json_out_1d(jstring, "piece_com",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"piece_face_cnt",i, cinfo);
+            json_out_1d(jstring, "piece_face_cnt",i, cinfo);
             // json_out_character(jstring, '\n');
             uint16_t cnt = (uint16_t)json_get_int((char *)"piece_face_cnt",i, cinfo);
             for (uint16_t j=0; j<cnt; j++)
             {
-                json_out_2d(jstring,(char *)"piece_face_idx",i,j, cinfo);
+                json_out_2d(jstring, "piece_face_idx",i,j, cinfo);
                 // json_out_character(jstring, '\n');
             }
         }
@@ -10144,25 +10138,25 @@ const char *json_devices_general(string &jstring, cosmosstruc *cinfo)
     {
         for (uint16_t i=0; i<*device_cnt; i++)
         {
-            json_out_1d(jstring,(char *)"device_all_type",i, cinfo);
+            json_out_1d(jstring, "device_all_type",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"device_all_model",i, cinfo);
+            json_out_1d(jstring, "device_all_model",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"device_all_didx",i, cinfo);
+            json_out_1d(jstring, "device_all_didx",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"device_all_pidx",i, cinfo);
+            json_out_1d(jstring, "device_all_pidx",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"device_all_bidx",i, cinfo);
+            json_out_1d(jstring, "device_all_bidx",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"device_all_addr",i, cinfo);
+            json_out_1d(jstring, "device_all_addr",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"device_all_portidx",i, cinfo);
+            json_out_1d(jstring, "device_all_portidx",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"device_all_nvolt",i, cinfo);
+            json_out_1d(jstring, "device_all_nvolt",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"device_all_namp",i, cinfo);
+            json_out_1d(jstring, "device_all_namp",i, cinfo);
             // json_out_character(jstring, '\n');
-            json_out_1d(jstring,(char *)"device_all_flag",i, cinfo);
+            json_out_1d(jstring, "device_all_flag",i, cinfo);
             // json_out_character(jstring, '\n');
         }
     }
@@ -10199,13 +10193,13 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump ploads
                 if (!strcmp(device_type_string[i].c_str(),"pload"))
                 {
-                    json_out_1d(jstring,(char *)"device_pload_drate",j, cinfo);
+                    json_out_1d(jstring, "device_pload_drate",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_pload_key_cnt",j, cinfo);
+                    json_out_1d(jstring, "device_pload_key_cnt",j, cinfo);
                     // json_out_character(jstring, '\n');
                     for (uint16_t k=0; k<json_get_int((char *)"device_pload_key_cnt",j, cinfo); ++k)
                     {
-                        json_out_2d(jstring,(char *)"device_pload_key_name",j,k, cinfo);
+                        json_out_2d(jstring, "device_pload_key_name",j,k, cinfo);
                         // json_out_character(jstring, '\n');
                     }
                     continue;
@@ -10214,7 +10208,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Sun sensors
                 if (!strcmp(device_type_string[i].c_str(),"ssen"))
                 {
-                    json_out_1d(jstring,(char *)"device_ssen_align",j, cinfo);
+                    json_out_1d(jstring, "device_ssen_align",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10222,7 +10216,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump IMU's
                 if (!strcmp(device_type_string[i].c_str(),"imu"))
                 {
-                    json_out_1d(jstring,(char *)"device_imu_align",j, cinfo);
+                    json_out_1d(jstring, "device_imu_align",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10230,15 +10224,15 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Reaction Wheel
                 if (!strcmp(device_type_string[i].c_str(),"rw"))
                 {
-                    json_out_1d(jstring,(char *)"device_rw_align",j, cinfo);
+                    json_out_1d(jstring, "device_rw_align",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_rw_mom",j, cinfo);
+                    json_out_1d(jstring, "device_rw_mom",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_rw_mxalp",j, cinfo);
+                    json_out_1d(jstring, "device_rw_mxalp",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_rw_mxomg",j, cinfo);
+                    json_out_1d(jstring, "device_rw_mxomg",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_rw_tc",j, cinfo);
+                    json_out_1d(jstring, "device_rw_tc",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10246,21 +10240,21 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Magtorque Rods
                 if (!strcmp(device_type_string[i].c_str(),"mtr"))
                 {
-                    json_out_1d(jstring,(char *)"device_mtr_mxmom",j, cinfo);
+                    json_out_1d(jstring, "device_mtr_mxmom",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_mtr_align",j, cinfo);
+                    json_out_1d(jstring, "device_mtr_align",j, cinfo);
                     // json_out_character(jstring, '\n');
                     for (uint16_t k=0; k<7; ++k)
                     {
-                        json_out_2d(jstring,(char *)"device_mtr_npoly",j,k, cinfo);
+                        json_out_2d(jstring, "device_mtr_npoly",j,k, cinfo);
                         // json_out_character(jstring, '\n');
                     }
                     for (uint16_t k=0; k<7; ++k)
                     {
-                        json_out_2d(jstring,(char *)"device_mtr_ppoly",j,k, cinfo);
+                        json_out_2d(jstring, "device_mtr_ppoly",j,k, cinfo);
                         // json_out_character(jstring, '\n');
                     }
-                    json_out_1d(jstring,(char *)"device_mtr_tc",j, cinfo);
+                    json_out_1d(jstring, "device_mtr_tc",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10268,9 +10262,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Computer systems
                 if (!strcmp(device_type_string[i].c_str(),"cpu"))
                 {
-                    json_out_1d(jstring,(char *)"device_cpu_maxgib",j, cinfo);
+                    json_out_1d(jstring, "device_cpu_maxgib",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_cpu_maxload",j, cinfo);
+                    json_out_1d(jstring, "device_cpu_maxload",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10284,9 +10278,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Antennas
                 if (!strcmp(device_type_string[i].c_str(),"ant"))
                 {
-                    json_out_1d(jstring,(char *)"device_ant_align",j, cinfo);
+                    json_out_1d(jstring, "device_ant_align",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_ant_minelev",j, cinfo);
+                    json_out_1d(jstring, "device_ant_minelev",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10294,65 +10288,65 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Receivers
                 if (!strcmp(device_type_string[i].c_str(),"rxr"))
                 {
-                    json_out_1d(jstring,(char *)"device_rxr_opmode",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_rssi",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_pktsize",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_freq",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_maxfreq",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_minfreq",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_powerin",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_powerout",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_maxpower",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_band",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_goodcnt",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_rxr_badcnt",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_opmode",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_rssi",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_pktsize",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_freq",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_maxfreq",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_minfreq",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_powerin",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_powerout",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_maxpower",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_band",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_goodcnt",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_badcnt",j, cinfo);
                     continue;
                 }
 
                 // Dump Transmitters
                 if (!strcmp(device_type_string[i].c_str(),"txr"))
                 {
-                    json_out_1d(jstring,(char *)"device_txr_opmode",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_rssi",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_pktsize",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_freq",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_maxfreq",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_minfreq",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_powerin",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_powerout",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_maxpower",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_band",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_goodcnt",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_txr_badcnt",j, cinfo);
+                    json_out_1d(jstring, "device_txr_opmode",j, cinfo);
+                    json_out_1d(jstring, "device_txr_rssi",j, cinfo);
+                    json_out_1d(jstring, "device_txr_pktsize",j, cinfo);
+                    json_out_1d(jstring, "device_txr_freq",j, cinfo);
+                    json_out_1d(jstring, "device_txr_maxfreq",j, cinfo);
+                    json_out_1d(jstring, "device_txr_minfreq",j, cinfo);
+                    json_out_1d(jstring, "device_txr_powerin",j, cinfo);
+                    json_out_1d(jstring, "device_txr_powerout",j, cinfo);
+                    json_out_1d(jstring, "device_txr_maxpower",j, cinfo);
+                    json_out_1d(jstring, "device_txr_band",j, cinfo);
+                    json_out_1d(jstring, "device_txr_goodcnt",j, cinfo);
+                    json_out_1d(jstring, "device_txr_badcnt",j, cinfo);
                     continue;
                 }
 
                 // Dump Transceivers
                 if (!strcmp(device_type_string[i].c_str(),"tcv"))
                 {
-                    json_out_1d(jstring,(char *)"device_tcv_opmode",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_rssi",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_pktsize",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_freq",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_maxfreq",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_minfreq",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_powerin",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_powerout",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_maxpower",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_band",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_goodcnt",j, cinfo);
-                    json_out_1d(jstring,(char *)"device_tcv_badcnt",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_opmode",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_rssi",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_pktsize",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_freq",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_maxfreq",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_minfreq",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_powerin",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_powerout",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_maxpower",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_band",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_goodcnt",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_badcnt",j, cinfo);
                     continue;
                 }
 
                 // Dump solar strings
                 if (!strcmp(device_type_string[i].c_str(),"strg"))
                 {
-                    json_out_1d(jstring,(char *)"device_pvstrg_efi",j, cinfo);
+                    json_out_1d(jstring, "device_pvstrg_efi",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_pvstrg_efs",j, cinfo);
+                    json_out_1d(jstring, "device_pvstrg_efs",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_pvstrg_max",j, cinfo);
+                    json_out_1d(jstring, "device_pvstrg_max",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10360,9 +10354,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump batteries
                 if (!strcmp(device_type_string[i].c_str(),"batt"))
                 {
-                    json_out_1d(jstring,(char *)"device_batt_cap",j, cinfo);
+                    json_out_1d(jstring, "device_batt_cap",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_batt_eff",j, cinfo);
+                    json_out_1d(jstring, "device_batt_eff",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10376,9 +10370,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump motors
                 if (!strcmp(device_type_string[i].c_str(),"motr"))
                 {
-                    json_out_1d(jstring,(char *)"device_motr_rat",j, cinfo);
+                    json_out_1d(jstring, "device_motr_rat",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_motr_max",j, cinfo);
+                    json_out_1d(jstring, "device_motr_max",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10392,9 +10386,9 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump thsters
                 if (!strcmp(device_type_string[i].c_str(),"thst"))
                 {
-                    json_out_1d(jstring,(char *)"device_thst_isp",j, cinfo);
+                    json_out_1d(jstring, "device_thst_isp",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_thst_align",j, cinfo);
+                    json_out_1d(jstring, "device_thst_align",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10402,7 +10396,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump propellant tanks
                 if (!strcmp(device_type_string[i].c_str(),"prop"))
                 {
-                    json_out_1d(jstring,(char *)"device_prop_cap",j, cinfo);
+                    json_out_1d(jstring, "device_prop_cap",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10422,7 +10416,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump STT's
                 if (!strcmp(device_type_string[i].c_str(),"stt"))
                 {
-                    json_out_1d(jstring,(char *)"device_stt_align",j, cinfo);
+                    json_out_1d(jstring, "device_stt_align",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10430,7 +10424,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Motion Capture info
                 if (!strcmp(device_type_string[i].c_str(),"mcc"))
                 {
-                    json_out_1d(jstring,(char *)"device_mcc_align",j, cinfo);
+                    json_out_1d(jstring, "device_mcc_align",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10438,11 +10432,11 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Torque Rod Control Unit info
                 if (!strcmp(device_type_string[i].c_str(),"tcu"))
                 {
-                    json_out_1d(jstring,(char *)"device_tcu_mcnt",j, cinfo);
+                    json_out_1d(jstring, "device_tcu_mcnt",j, cinfo);
                     // json_out_character(jstring, '\n');
                     for (uint16_t k=0; k<json_get_int((char *)"device_tcu_mcnt",j, cinfo); ++k)
                     {
-                        json_out_2d(jstring,(char *)"device_tcu_mcidx",j,k, cinfo);
+                        json_out_2d(jstring, "device_tcu_mcidx",j,k, cinfo);
                         // json_out_character(jstring, '\n');
                     }
                     continue;
@@ -10463,7 +10457,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump SUCHI
                 if (!strcmp(device_type_string[i].c_str(),"suchi"))
                 {
-                    json_out_1d(jstring,(char *)"device_suchi_align",j, cinfo);
+                    json_out_1d(jstring, "device_suchi_align",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10471,15 +10465,15 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Cameras
                 if (!strcmp(device_type_string[i].c_str(),"cam"))
                 {
-                    json_out_1d(jstring,(char *)"device_cam_pwidth",j, cinfo);
+                    json_out_1d(jstring, "device_cam_pwidth",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_cam_pheight",j, cinfo);
+                    json_out_1d(jstring, "device_cam_pheight",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_cam_width",j, cinfo);
+                    json_out_1d(jstring, "device_cam_width",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_cam_height",j, cinfo);
+                    json_out_1d(jstring, "device_cam_height",j, cinfo);
                     // json_out_character(jstring, '\n');
-                    json_out_1d(jstring,(char *)"device_cam_flength",j, cinfo);
+                    json_out_1d(jstring, "device_cam_flength",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10487,44 +10481,44 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Telemetry
                 if (!strcmp(device_type_string[i].c_str(),"telem"))
                 {
-                    json_out_1d(jstring,(char *)"device_telem_type",j, cinfo);
+                    json_out_1d(jstring, "device_telem_type",j, cinfo);
                     // json_out_character(jstring, '\n');
                     switch (json_get_int((char *)"device_telem_type",j, cinfo))
                     {
                     case TELEM_TYPE_UINT8:
-                        json_out_1d(jstring,(char *)"device_telem_vuint8",j, cinfo);
+                        json_out_1d(jstring, "device_telem_vuint8",j, cinfo);
                         // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_INT8:
-                        json_out_1d(jstring,(char *)"device_telem_vint8",j, cinfo);
+                        json_out_1d(jstring, "device_telem_vint8",j, cinfo);
                         // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_UINT16:
-                        json_out_1d(jstring,(char *)"device_telem_vuint16",j, cinfo);
+                        json_out_1d(jstring, "device_telem_vuint16",j, cinfo);
                         // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_INT16:
-                        json_out_1d(jstring,(char *)"device_telem_vint16",j, cinfo);
+                        json_out_1d(jstring, "device_telem_vint16",j, cinfo);
                         // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_UINT32:
-                        json_out_1d(jstring,(char *)"device_telem_vuint32",j, cinfo);
+                        json_out_1d(jstring, "device_telem_vuint32",j, cinfo);
                         // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_INT32:
-                        json_out_1d(jstring,(char *)"device_telem_vint32",j, cinfo);
+                        json_out_1d(jstring, "device_telem_vint32",j, cinfo);
                         // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_FLOAT:
-                        json_out_1d(jstring,(char *)"device_telem_vfloat",j, cinfo);
+                        json_out_1d(jstring, "device_telem_vfloat",j, cinfo);
                         // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_DOUBLE:
-                        json_out_1d(jstring,(char *)"device_telem_vdouble",j, cinfo);
+                        json_out_1d(jstring, "device_telem_vdouble",j, cinfo);
                         // json_out_character(jstring, '\n');
                         break;
                     case TELEM_TYPE_STRING:
-                        json_out_1d(jstring,(char *)"device_telem_vstring",j, cinfo);
+                        json_out_1d(jstring, "device_telem_vstring",j, cinfo);
                         // json_out_character(jstring, '\n');
                         break;
                     }
@@ -10534,7 +10528,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 // Dump Disks
                 if (!strcmp(device_type_string[i].c_str(),"disk"))
                 {
-                    json_out_1d(jstring,(char *)"device_disk_maxgib",j, cinfo);
+                    json_out_1d(jstring, "device_disk_maxgib",j, cinfo);
                     // json_out_character(jstring, '\n');
                     continue;
                 }
@@ -10562,9 +10556,9 @@ const char *json_ports(string &jstring, cosmosstruc *cinfo)
     // Dump Port table
     for (uint16_t i=0; i<*(int16_t *)json_ptrto((char *)"node_port_cnt", cinfo); i++)
     {
-        json_out_1d(jstring,(char *)"port_name",i, cinfo);
+        json_out_1d(jstring, "port_name",i, cinfo);
         // json_out_character(jstring, '\n');
-        json_out_1d(jstring,(char *)"port_type",i, cinfo);
+        json_out_1d(jstring, "port_type",i, cinfo);
         // json_out_character(jstring, '\n');
     }
 
@@ -10726,9 +10720,6 @@ int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2)
     {
         switch(static_cast <DeviceType>(cinfo2->device[i].all.type))
         {
-        case DeviceType::NONE:
-        case DeviceType::COUNT:
-            break;
         case DeviceType::TELEM:
             cinfo2->devspec.telem[cinfo2->device[i].all.didx] = i;
             break;
