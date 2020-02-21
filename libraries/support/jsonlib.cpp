@@ -9308,64 +9308,87 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 {
     int32_t iretn;
 
-    jstring.clear();
-    iretn = json_out(jstring,(char *)"node_name", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_type", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_utcstart", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_utc", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_utcoffset", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_loc_pos_eci", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_loc_att_icrf", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_powgen", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_powuse", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_powchg", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_battlev", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
+//    iretn = json_out(jstring,(char *)"node_name", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_type", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_utcstart", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_utc", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_utcoffset", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_loc_pos_eci", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_loc_att_icrf", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_powgen", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_powuse", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_powchg", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_battlev", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"device_cpu_cnt", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
 
-    return jstring.data();
+
+
+//    return jstring.data();
+
+    string result;
+    char tempstring[200];
+    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+
+    for (uint16_t i=0; i<cinfo->devspec.cpu_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_cpu_utc_%03d\",\"device_cpu_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        result += tempstring;
+    }
+    result += "}";
+
+
+    jstring.clear();
+    return json_of_list(jstring, result, cinfo);
 }
 
 //! Create JSON IMU string
@@ -9405,8 +9428,7 @@ const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cinfo)
     iretn = json_out_1d(jstring,(char *)"device_imu_mag",num, cinfo);
     if (iretn < 0)
     {
-        return nullptr;
-    }
+        return nullptr;    }
     iretn = json_out_1d(jstring,(char *)"device_imu_bdot",num, cinfo);
     if (iretn < 0)
     {
