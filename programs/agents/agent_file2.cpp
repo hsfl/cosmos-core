@@ -210,6 +210,7 @@ int main(int argc, char *argv[])
     int32_t iretn;
 
     agent = new Agent("", "file", 5.);
+    agent->debug_level = 2;
 
     if ((iretn = agent->wait()) < 0)
     {
