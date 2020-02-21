@@ -144,7 +144,7 @@ namespace Cosmos
         {
         public:
             //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-            Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 0);
+            Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 1);
             ~Agent();
 
             //! State of Health element vector
@@ -355,7 +355,7 @@ namespace Cosmos
             size_t message_tail = MESSAGE_RING_SIZE;
 
             //! Flag for level of debugging, keep it public so that it can be controlled from the outside
-            uint16_t debug_level = 3;
+            uint16_t debug_level = 0;
             FILE *get_debug_fd(double mjd=0.);
             int32_t close_debug_fd();
 

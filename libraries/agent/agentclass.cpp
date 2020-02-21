@@ -111,14 +111,14 @@ namespace Cosmos
                 return;
             }
 
-//            if (nname.empty())
-//            {
-//                error_value = NODE_ERROR_NODE;
-//                shutdown();
-//                return;
-//            }
+            //            if (nname.empty())
+            //            {
+            //                error_value = NODE_ERROR_NODE;
+            //                shutdown();
+            //                return;
+            //            }
 
-//            nodeName = nname;
+            //            nodeName = nname;
 
             strcpy(cinfo->node.name, nodeName.c_str());
 
@@ -159,7 +159,7 @@ namespace Cosmos
             char tname[COSMOS_MAX_NAME+1];
             if (!mflag)
             {
-//                COSMOS_SLEEP(timeoutSec);
+                //                COSMOS_SLEEP(timeoutSec);
                 if (get_server(cinfo->node.name, aname, timeoutSec, (beatstruc *)nullptr))
                 {
                     error_value = AGENT_ERROR_SERVER_RUNNING;
@@ -2497,7 +2497,7 @@ namespace Cosmos
         //            iretn = json_parse(mess.adata, cinfo->sdata);
         //            if (iretn >= 0)
         //            {
-        //                imu = *cinfo->sdata.devspec.imu[0];
+        //                imu = *cinfo->sdata.device[agent->cinfo->devspec.imu[0]].imu.;
         //            }
         //        }
 
@@ -2553,33 +2553,48 @@ namespace Cosmos
 
         FILE *Agent::get_debug_fd(double mjd)
         {
-            if (mjd == 0.)
+            if (debug_level <= 1)
             {
-                mjd = currentmjd();
-            }
-            mjd = mjd - fmod(mjd, 1./24.);
-            string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
-
-            if (debug_fd != nullptr)
-            {
-                if (pathName != debug_pathName)
+                if (debug_fd != stdout)
                 {
-                    FILE *fd = fopen(pathName.c_str(), "a");
-                    if (fd != nullptr)
+                    if (debug_fd != nullptr)
                     {
                         fclose(debug_fd);
-                        debug_fd = fd;
-                        debug_pathName = pathName;
                     }
+                    debug_fd = stdout;
+                    debug_pathName.clear();
                 }
             }
             else
             {
-                FILE *fd = fopen(pathName.c_str(), "a");
-                if (fd != nullptr)
+                if (mjd == 0.)
                 {
-                    debug_fd = fd;
-                    debug_pathName = pathName;
+                    mjd = currentmjd();
+                }
+                mjd = mjd - fmod(mjd, 1./24.);
+                string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
+
+                if (debug_fd != nullptr)
+                {
+                    if (pathName != debug_pathName)
+                    {
+                        FILE *fd = fopen(pathName.c_str(), "a");
+                        if (fd != nullptr)
+                        {
+                            fclose(debug_fd);
+                            debug_fd = fd;
+                            debug_pathName = pathName;
+                        }
+                    }
+                }
+                else
+                {
+                    FILE *fd = fopen(pathName.c_str(), "a");
+                    if (fd != nullptr)
+                    {
+                        debug_fd = fd;
+                        debug_pathName = pathName;
+                    }
                 }
             }
 
@@ -2589,7 +2604,7 @@ namespace Cosmos
         int32_t Agent::close_debug_fd()
         {
             int32_t iretn;
-            if (debug_fd != nullptr)
+            if (debug_fd != nullptr && debug_fd != stdout)
             {
                 iretn = fclose(debug_fd);
                 if (iretn != 0)
