@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
     printf("- Opening recv socket...");
     fflush(stdout);
 
-    int32_t iretn;
+//    int32_t iretn;
 
     if((iretn = socket_open(&recvchan, NetworkType::UDP, (char *)"", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {

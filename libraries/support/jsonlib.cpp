@@ -1733,7 +1733,7 @@ int32_t json_out_int8(string &jstring,int8_t value)
     int32_t iretn;
     char tstring[15];
 
-    sprintf(tstring,"%hd",value);
+    sprintf(tstring,"%" PRIi8,value);
 
     iretn = json_append(jstring,tstring);
     return iretn;
@@ -1784,7 +1784,7 @@ int32_t json_out_uint8(string &jstring, uint8_t value)
     int32_t iretn;
     char tstring[15];
 
-    sprintf(tstring,"%hu",value);
+    sprintf(tstring, "%u",value);
 
     iretn = json_append(jstring,tstring);
     return iretn;
@@ -2893,10 +2893,6 @@ int32_t json_out_rmatrix(string &jstring,rmatrix value)
     if ((iretn=json_out_rvector(jstring,value.row[2])) < 0)
         return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return iretn;
-
-    // Output Row[3]
-    if ((iretn=json_out_rvector(jstring,value.row[3])) < 0)
         return iretn;
 
     if ((iretn=json_out_character(jstring,']')) < 0)
@@ -6954,7 +6950,7 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     {
         if (cinfo->pieces[i].face_cnt == 1)
         {
-            Vector dv = cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].com - tcom;
+            Vector dv = cinfo->faces[cinfo->pieces[i].face_idx[0]].com - tcom;
             if (dv.separation(cinfo->faces[cinfo->pieces[i].face_idx[0]].normal) > DPI2)
             {
                 cinfo->normals.push_back(-cinfo->faces[cinfo->pieces[i].face_idx[0]].normal);
@@ -7133,6 +7129,9 @@ int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo)
     case DeviceType::TXR:
         cinfo->devspec.txr.push_back((txrstruc *)&cinfo->device[cidx].txr);
         cinfo->devspec.txr_cnt = (uint16_t)cinfo->devspec.txr.size();
+        break;
+    case DeviceType::COUNT:
+    case DeviceType::NONE:
         break;
     }
     return 0;
@@ -8900,6 +8899,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_bcreg_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_volt",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_amp",didx, UINT16_MAX, cinfo, state);
+    case DeviceType::COUNT:
+    case DeviceType::NONE:
+        break;
     }
 
     return 0;
@@ -9306,8 +9308,7 @@ const char *json_of_beat(string &jstring, cosmosstruc *cinfo)
 */
 const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 {
-    int32_t iretn;
-
+//    int32_t iretn;
 //    iretn = json_out(jstring,(char *)"node_name", cinfo);
 //    if (iretn < 0)
 //    {
@@ -10729,6 +10730,9 @@ int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2)
             break;
         case DeviceType::BCREG:
             cinfo2->devspec.bcreg[cinfo2->device[i].all.didx] = &cinfo2->device[i].bcreg;
+            break;
+        case DeviceType::COUNT:
+        case DeviceType::NONE:
             break;
         }
     }
