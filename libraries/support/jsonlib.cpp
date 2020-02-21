@@ -874,26 +874,30 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
         case DeviceType::ANT:
             device.all.didx = cinfo->devspec.ant.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.ant.push_back((antstruc *)&cinfo->device[piece.cidx].ant);
+            cinfo->devspec.ant.push_back(piece.cidx);
+//            cinfo->devspec.ant.push_back((antstruc *)&cinfo->device[piece.cidx].ant);
             cinfo->devspec.ant_cnt = cinfo->devspec.ant.size();
             break;
         case DeviceType::BATT:
             device.all.didx = cinfo->devspec.batt.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.batt.push_back((battstruc *)&cinfo->device[piece.cidx].batt);
+            cinfo->devspec.batt.push_back(piece.cidx);
+//            cinfo->devspec.batt.push_back((battstruc *)&cinfo->device[piece.cidx].batt);
             cinfo->devspec.batt_cnt = cinfo->devspec.batt.size();
             break;
         case DeviceType::BUS:
             device.all.didx = cinfo->devspec.bus.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.bus.push_back((busstruc *)&cinfo->device[piece.cidx].bus);
+            cinfo->devspec.bus.push_back(piece.cidx);
+//            cinfo->devspec.bus.push_back((busstruc *)&cinfo->device[piece.cidx].bus);
             cinfo->devspec.bus_cnt = cinfo->devspec.bus.size();
             break;
             //! Camera
         case DeviceType::CAM:
             device.all.didx = cinfo->devspec.cam.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.cam.push_back((camstruc *)&cinfo->device[piece.cidx].cam);
+            cinfo->devspec.cam.push_back(piece.cidx);
+//            cinfo->devspec.cam.push_back((camstruc *)&cinfo->device[piece.cidx].cam);
             cinfo->devspec.cam_cnt = (uint16_t)cinfo->devspec.cam.size();
             break;
             //! Processing Unit
@@ -902,182 +906,211 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
             device.cpu.maxload = 1.;
             device.cpu.maxgib = 1.;
             cinfo->device.push_back(device);
-            cinfo->devspec.cpu.push_back((cpustruc *)&cinfo->device[piece.cidx].cpu);
+            cinfo->devspec.cpu.push_back(piece.cidx);
+//            cinfo->devspec.cpu.push_back((cpustruc *)&cinfo->device[piece.cidx].cpu);
             cinfo->devspec.cpu_cnt = (uint16_t)cinfo->devspec.cpu.size();
             break;
         case DeviceType::DISK:
             device.all.didx = cinfo->devspec.disk.size();
             device.disk.maxgib = 100.;
             cinfo->device.push_back(device);
-            cinfo->devspec.disk.push_back((diskstruc *)&cinfo->device[piece.cidx].disk);
+            cinfo->devspec.disk.push_back(piece.cidx);
+//            cinfo->devspec.disk.push_back((diskstruc *)&cinfo->device[piece.cidx].disk);
             cinfo->devspec.disk_cnt = (uint16_t)cinfo->devspec.disk.size();
             break;
             //! GPS Unit
         case DeviceType::GPS:
             device.all.didx = cinfo->devspec.gps.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.gps.push_back((gpsstruc *)&cinfo->device[piece.cidx].gps);
+            cinfo->devspec.gps.push_back(piece.cidx);
+//            cinfo->devspec.gps.push_back((gpsstruc *)&cinfo->device[piece.cidx].gps);
             cinfo->devspec.gps_cnt = (uint16_t)cinfo->devspec.gps.size();
             break;
             //! Heater
         case DeviceType::HTR:
             device.all.didx = cinfo->devspec.htr.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.htr.push_back((htrstruc *)&cinfo->device[piece.cidx].htr);
+            cinfo->devspec.htr.push_back(piece.cidx);
+//            cinfo->devspec.htr.push_back((htrstruc *)&cinfo->device[piece.cidx].htr);
             cinfo->devspec.htr_cnt = (uint16_t)cinfo->devspec.htr.size();
             break;
             //! Inertial Measurement Unit
         case DeviceType::IMU:
             device.all.didx = cinfo->devspec.imu.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.imu.push_back((imustruc *)&cinfo->device[piece.cidx].imu);
+            cinfo->devspec.imu.push_back(piece.cidx);
+//            cinfo->devspec.imu.push_back((imustruc *)&cinfo->device[piece.cidx].imu);
             cinfo->devspec.imu_cnt = (uint16_t)cinfo->devspec.imu.size();
             break;
         case DeviceType::MCC:
             device.all.didx = cinfo->devspec.mcc.size();
             device.mcc.align = {{0., 0., 0.}, 1.};
             cinfo->device.push_back(device);
-            cinfo->devspec.mcc.push_back((mccstruc *)&cinfo->device[piece.cidx].mcc);
+            cinfo->devspec.mcc.push_back(piece.cidx);
+//            cinfo->devspec.mcc.push_back((mccstruc *)&cinfo->device[piece.cidx].mcc);
             cinfo->devspec.mcc_cnt = (uint16_t)cinfo->devspec.mcc.size();
             break;
             //! Motor
         case DeviceType::MOTR:
             device.all.didx = cinfo->devspec.motr.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.motr.push_back((motrstruc *)&cinfo->device[piece.cidx].motr);
+            cinfo->devspec.motr.push_back(piece.cidx);
+//            cinfo->devspec.motr.push_back((motrstruc *)&cinfo->device[piece.cidx].motr);
             cinfo->devspec.motr_cnt = (uint16_t)cinfo->devspec.motr.size();
             break;
             //! Magnetic Torque Rod
         case DeviceType::MTR:
             device.all.didx = cinfo->devspec.mtr.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.mtr.push_back((mtrstruc *)&cinfo->device[piece.cidx].mtr);
+            cinfo->devspec.mtr.push_back(piece.cidx);
+//            cinfo->devspec.mtr.push_back((mtrstruc *)&cinfo->device[piece.cidx].mtr);
             cinfo->devspec.mtr_cnt = (uint16_t)cinfo->devspec.mtr.size();
             break;
         case DeviceType::PLOAD:
             device.all.didx = cinfo->devspec.pload.size();
-            cinfo->devspec.pload.push_back((ploadstruc *)&cinfo->device[piece.cidx].pload);
+            cinfo->device.push_back(device);
+            cinfo->devspec.pload.push_back(piece.cidx);
+//            cinfo->devspec.pload.push_back((ploadstruc *)&cinfo->device[piece.cidx].pload);
             cinfo->devspec.pload_cnt = (uint16_t)cinfo->devspec.pload.size();
             break;
             //! Propellant Tank
         case DeviceType::PROP:
             device.all.didx = cinfo->devspec.prop.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.prop.push_back((propstruc *)&cinfo->device[piece.cidx].prop);
+            cinfo->devspec.prop.push_back(piece.cidx);
+//            cinfo->devspec.prop.push_back((propstruc *)&cinfo->device[piece.cidx].prop);
             cinfo->devspec.prop_cnt = (uint16_t)cinfo->devspec.prop.size();
             break;
             //! Pressure Sensor
         case DeviceType::PSEN:
             device.all.didx = cinfo->devspec.psen.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.psen.push_back((psenstruc *)&cinfo->device[piece.cidx].psen);
+            cinfo->devspec.psen.push_back(piece.cidx);
+//            cinfo->devspec.psen.push_back((psenstruc *)&cinfo->device[piece.cidx].psen);
             cinfo->devspec.psen_cnt = (uint16_t)cinfo->devspec.psen.size();
             break;
         case DeviceType::BCREG:
             device.all.didx = cinfo->devspec.bcreg.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.bcreg.push_back((bcregstruc *)&cinfo->device[piece.cidx].bcreg);
+            cinfo->devspec.bcreg.push_back(piece.cidx);
+//            cinfo->devspec.bcreg.push_back((bcregstruc *)&cinfo->device[piece.cidx].bcreg);
             cinfo->devspec.bcreg_cnt = (uint16_t)cinfo->devspec.bcreg.size();
             break;
             //! Rotor
         case DeviceType::ROT:
             device.all.didx = cinfo->devspec.rot.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.rot.push_back((rotstruc *)&cinfo->device[piece.cidx].rot);
+            cinfo->devspec.rot.push_back(piece.cidx);
+//            cinfo->devspec.rot.push_back((rotstruc *)&cinfo->device[piece.cidx].rot);
             cinfo->devspec.rot_cnt = (uint16_t)cinfo->devspec.rot.size();
             break;
             //! Reaction Wheel
         case DeviceType::RW:
             device.all.didx = cinfo->devspec.rw.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.rw.push_back((rwstruc *)&cinfo->device[piece.cidx].rw);
+            cinfo->devspec.rw.push_back(piece.cidx);
+//            cinfo->devspec.rw.push_back((rwstruc *)&cinfo->device[piece.cidx].rw);
             cinfo->devspec.rw_cnt = (uint16_t)cinfo->devspec.rw.size();
             break;
             //! Radio Receiver
         case DeviceType::RXR:
             device.all.didx = cinfo->devspec.rxr.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.disk.push_back((diskstruc *)&cinfo->device[piece.cidx].disk);
+            cinfo->devspec.rxr.push_back(piece.cidx);
+//            cinfo->devspec.disk.push_back((diskstruc *)&cinfo->device[piece.cidx].disk);
             cinfo->devspec.rxr_cnt = (uint16_t)cinfo->devspec.rxr.size();
             break;
             //! Elevation and Azimuth Sun Sensor
         case DeviceType::SSEN:
             device.all.didx = cinfo->devspec.ssen.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.ssen.push_back((ssenstruc *)&cinfo->device[piece.cidx].ssen);
+            cinfo->devspec.ssen.push_back(piece.cidx);
+//            cinfo->devspec.ssen.push_back((ssenstruc *)&cinfo->device[piece.cidx].ssen);
             cinfo->devspec.ssen_cnt = (uint16_t)cinfo->devspec.ssen.size();
             break;
             //! Photo Voltaic String
         case DeviceType::PVSTRG:
             device.all.didx = cinfo->devspec.pvstrg.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.pvstrg.push_back((pvstrgstruc *)&cinfo->device[piece.cidx].pvstrg);
+            cinfo->devspec.pvstrg.push_back(piece.cidx);
+//            cinfo->devspec.pvstrg.push_back((pvstrgstruc *)&cinfo->device[piece.cidx].pvstrg);
             cinfo->devspec.pvstrg_cnt = (uint16_t)cinfo->devspec.pvstrg.size();
             break;
             //! Star Tracker
         case DeviceType::STT:
             device.all.didx = cinfo->devspec.stt.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.stt.push_back((sttstruc *)&cinfo->device[piece.cidx].stt);
+            cinfo->devspec.stt.push_back(piece.cidx);
+//            cinfo->devspec.stt.push_back((sttstruc *)&cinfo->device[piece.cidx].stt);
             cinfo->devspec.stt_cnt = (uint16_t)cinfo->devspec.stt.size();
             break;
+            //! SUCHI
         case DeviceType::SUCHI:
             device.all.didx = cinfo->devspec.suchi.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.suchi.push_back((suchistruc *)&cinfo->device[piece.cidx].suchi);
+            cinfo->devspec.suchi.push_back(piece.cidx);
+//            cinfo->devspec.suchi.push_back((suchistruc *)&cinfo->device[piece.cidx].suchi);
             cinfo->devspec.suchi_cnt = (uint16_t)cinfo->devspec.suchi.size();
             break;
             //! Switch
         case DeviceType::SWCH:
             device.all.didx = cinfo->devspec.swch.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.swch.push_back((swchstruc *)&cinfo->device[piece.cidx].swch);
+            cinfo->devspec.swch.push_back(piece.cidx);
+//            cinfo->devspec.swch.push_back((swchstruc *)&cinfo->device[piece.cidx].swch);
             cinfo->devspec.swch_cnt = (uint16_t)cinfo->devspec.swch.size();
             break;
         case DeviceType::TCU:
             device.all.didx = cinfo->devspec.tcu.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.tcu.push_back((tcustruc *)&cinfo->device[piece.cidx].tcu);
+            cinfo->devspec.tcu.push_back(piece.cidx);
+//            cinfo->devspec.tcu.push_back((tcustruc *)&cinfo->device[piece.cidx].tcu);
             cinfo->devspec.tcu_cnt = (uint16_t)cinfo->devspec.tcu.size();
             break;
             //! Radio Transceiver
         case DeviceType::TCV:
             device.all.didx = cinfo->devspec.tcv.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.tcv.push_back((tcvstruc *)&cinfo->device[piece.cidx].tcv);
+            cinfo->devspec.tcv.push_back(piece.cidx);
+//            cinfo->devspec.tcv.push_back((tcvstruc *)&cinfo->device[piece.cidx].tcv);
             cinfo->devspec.tcv_cnt = (uint16_t)cinfo->devspec.tcv.size();
             break;
         case DeviceType::TELEM:
             device.all.didx = cinfo->devspec.telem.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.telem.push_back((telemstruc *)&cinfo->device[piece.cidx].telem);
+            cinfo->devspec.telem.push_back(piece.cidx);
+//            cinfo->devspec.telem.push_back((telemstruc *)&cinfo->device[piece.cidx].telem);
             cinfo->devspec.telem_cnt = (uint16_t)cinfo->devspec.telem.size();
             break;
             //! Thruster
         case DeviceType::THST:
             device.all.didx = cinfo->devspec.thst.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.thst.push_back((thststruc *)&cinfo->device[piece.cidx].thst);
+            cinfo->devspec.thst.push_back(piece.cidx);
+//            cinfo->devspec.thst.push_back((thststruc *)&cinfo->device[piece.cidx].thst);
             cinfo->devspec.thst_cnt = (uint16_t)cinfo->devspec.thst.size();
             break;
             //! Temperature Sensor
         case DeviceType::TSEN:
             device.all.didx = cinfo->devspec.tsen.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.tsen.push_back((tsenstruc *)&cinfo->device[piece.cidx].tsen);
+            cinfo->devspec.tsen.push_back(piece.cidx);
+//            cinfo->devspec.tsen.push_back((tsenstruc *)&cinfo->device[piece.cidx].tsen);
             cinfo->devspec.tsen_cnt = (uint16_t)cinfo->devspec.tsen.size();
             break;
         case DeviceType::TNC:
             device.all.didx = cinfo->devspec.tnc.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.tnc.push_back((tncstruc *)&cinfo->device[piece.cidx].tnc);
+            cinfo->devspec.tnc.push_back(piece.cidx);
+//            cinfo->devspec.tnc.push_back((tncstruc *)&cinfo->device[piece.cidx].tnc);
             cinfo->devspec.tnc_cnt = (uint16_t)cinfo->devspec.tnc.size();
             break;
             //! Radio Transmitter
         case DeviceType::TXR:
             device.all.didx = cinfo->devspec.txr.size();
             cinfo->device.push_back(device);
-            cinfo->devspec.txr.push_back((txrstruc *)&cinfo->device[piece.cidx].txr);
+            cinfo->devspec.txr.push_back(piece.cidx);
+//            cinfo->devspec.txr.push_back((txrstruc *)&cinfo->device[piece.cidx].txr);
             cinfo->devspec.txr_cnt = (uint16_t)cinfo->devspec.txr.size();
             break;
         }
@@ -6986,152 +7019,186 @@ int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo)
 {
     switch (static_cast <DeviceType>(cinfo->device[cidx].all.type))
     {
+    case DeviceType::NONE:
+    case DeviceType::COUNT:
+        break;
     //! Antenna
     case DeviceType::ANT:
-        cinfo->devspec.ant.push_back((antstruc *)&cinfo->device[cidx].ant);
+        cinfo->devspec.ant.push_back(cidx);
+//        cinfo->devspec.ant.push_back((antstruc *)&cinfo->device[cidx].ant);
         cinfo->devspec.ant_cnt = (uint16_t)cinfo->devspec.ant.size();
         break;
         //! Battery
     case DeviceType::BATT:
-        cinfo->devspec.batt.push_back((battstruc *)&cinfo->device[cidx].batt);
+        cinfo->devspec.batt.push_back(cidx);
+//        cinfo->devspec.batt.push_back((battstruc *)&cinfo->device[cidx].batt);
         cinfo->devspec.batt_cnt = (uint16_t)cinfo->devspec.batt.size();
         break;
     case DeviceType::BUS:
-        cinfo->devspec.bus.push_back((busstruc *)&cinfo->device[cidx].bus);
+        cinfo->devspec.bus.push_back(cidx);
+//        cinfo->devspec.bus.push_back((busstruc *)&cinfo->device[cidx].bus);
         cinfo->devspec.bus_cnt = (uint16_t)cinfo->devspec.bus.size();
         break;
         //! Camera
     case DeviceType::CAM:
-        cinfo->devspec.cam.push_back((camstruc *)&cinfo->device[cidx].cam);
+        cinfo->devspec.cam.push_back(cidx);
+//        cinfo->devspec.cam.push_back((camstruc *)&cinfo->device[cidx].cam);
         cinfo->devspec.cam_cnt = (uint16_t)cinfo->devspec.cam.size();
         break;
         //! Processing Unit
     case DeviceType::CPU:
-        cinfo->devspec.cpu.push_back((cpustruc *)&cinfo->device[cidx].cpu);
+        cinfo->devspec.cpu.push_back(cidx);
+//        cinfo->devspec.cpu.push_back((cpustruc *)&cinfo->device[cidx].cpu);
         cinfo->devspec.cpu_cnt = (uint16_t)cinfo->devspec.cpu.size();
         break;
     case DeviceType::DISK:
-        cinfo->devspec.disk.push_back((diskstruc *)&cinfo->device[cidx].disk);
+        cinfo->devspec.disk.push_back(cidx);
+//        cinfo->devspec.disk.push_back((diskstruc *)&cinfo->device[cidx].disk);
         cinfo->devspec.disk_cnt = (uint16_t)cinfo->devspec.disk.size();
         break;
         //! GPS Unit
     case DeviceType::GPS:
-        cinfo->devspec.gps.push_back((gpsstruc *)&cinfo->device[cidx].gps);
+        cinfo->devspec.gps.push_back(cidx);
+//        cinfo->devspec.gps.push_back((gpsstruc *)&cinfo->device[cidx].gps);
         cinfo->devspec.gps_cnt = (uint16_t)cinfo->devspec.gps.size();
         break;
         //! Heater
     case DeviceType::HTR:
-        cinfo->devspec.htr.push_back((htrstruc *)&cinfo->device[cidx].htr);
+        cinfo->devspec.htr.push_back(cidx);
+//        cinfo->devspec.htr.push_back((htrstruc *)&cinfo->device[cidx].htr);
         cinfo->devspec.htr_cnt = (uint16_t)cinfo->devspec.htr.size();
         break;
         //! Inertial Measurement Unit
     case DeviceType::IMU:
-        cinfo->devspec.imu.push_back((imustruc *)&cinfo->device[cidx].imu);
+        cinfo->devspec.imu.push_back(cidx);
+//        cinfo->devspec.imu.push_back((imustruc *)&cinfo->device[cidx].imu);
         cinfo->devspec.imu_cnt = (uint16_t)cinfo->devspec.imu.size();
         break;
     case DeviceType::MCC:
-        cinfo->devspec.mcc.push_back((mccstruc *)&cinfo->device[cidx].mcc);
+        cinfo->devspec.mcc.push_back(cidx);
+//        cinfo->devspec.mcc.push_back((mccstruc *)&cinfo->device[cidx].mcc);
         cinfo->devspec.mcc_cnt = (uint16_t)cinfo->devspec.mcc.size();
         break;
         //! Motor
     case DeviceType::MOTR:
-        cinfo->devspec.motr.push_back((motrstruc *)&cinfo->device[cidx].motr);
+        cinfo->devspec.motr.push_back(cidx);
+//        cinfo->devspec.motr.push_back((motrstruc *)&cinfo->device[cidx].motr);
         cinfo->devspec.motr_cnt = (uint16_t)cinfo->devspec.motr.size();
         break;
         //! Magnetic Torque Rod
     case DeviceType::MTR:
-        cinfo->devspec.mtr.push_back((mtrstruc *)&cinfo->device[cidx].mtr);
+        cinfo->devspec.mtr.push_back(cidx);
+//        cinfo->devspec.mtr.push_back((mtrstruc *)&cinfo->device[cidx].mtr);
         cinfo->devspec.mtr_cnt = (uint16_t)cinfo->devspec.mtr.size();
         break;
     case DeviceType::PLOAD:
-        cinfo->devspec.pload.push_back((ploadstruc *)&cinfo->device[cidx].pload);
+        cinfo->devspec.pload.push_back(cidx);
+//        cinfo->devspec.pload.push_back((ploadstruc *)&cinfo->device[cidx].pload);
         cinfo->devspec.pload_cnt = (uint16_t)cinfo->devspec.pload.size();
         break;
         //! Propellant Tank
     case DeviceType::PROP:
-        cinfo->devspec.prop.push_back((propstruc *)&cinfo->device[cidx].prop);
+        cinfo->devspec.prop.push_back(cidx);
+//        cinfo->devspec.prop.push_back((propstruc *)&cinfo->device[cidx].prop);
         cinfo->devspec.prop_cnt = (uint16_t)cinfo->devspec.prop.size();
         break;
         //! Pressure Sensor
     case DeviceType::PSEN:
-        cinfo->devspec.psen.push_back((psenstruc *)&cinfo->device[cidx].psen);
+        cinfo->devspec.psen.push_back(cidx);
+//        cinfo->devspec.psen.push_back((psenstruc *)&cinfo->device[cidx].psen);
         cinfo->devspec.psen_cnt = (uint16_t)cinfo->devspec.psen.size();
         break;
     case DeviceType::BCREG:
-        cinfo->devspec.bcreg.push_back((bcregstruc *)&cinfo->device[cidx].bcreg);
+        cinfo->devspec.bcreg.push_back(cidx);
+//        cinfo->devspec.bcreg.push_back((bcregstruc *)&cinfo->device[cidx].bcreg);
         cinfo->devspec.bcreg_cnt = (uint16_t)cinfo->devspec.bcreg.size();
         break;
         //! Rotor
     case DeviceType::ROT:
-        cinfo->devspec.rot.push_back((rotstruc *)&cinfo->device[cidx].rot);
+        cinfo->devspec.rot.push_back(cidx);
+//        cinfo->devspec.rot.push_back((rotstruc *)&cinfo->device[cidx].rot);
         cinfo->devspec.rot_cnt = (uint16_t)cinfo->devspec.rot.size();
         break;
         //! Reaction Wheel
     case DeviceType::RW:
-        cinfo->devspec.rw.push_back((rwstruc *)&cinfo->device[cidx].rw);
+        cinfo->devspec.rw.push_back(cidx);
+//        cinfo->devspec.rw.push_back((rwstruc *)&cinfo->device[cidx].rw);
         cinfo->devspec.rw_cnt = (uint16_t)cinfo->devspec.rw.size();
         break;
         //! Radio Receiver
     case DeviceType::RXR:
-        cinfo->devspec.rxr.push_back((rxrstruc *)&cinfo->device[cidx].rxr);
+        cinfo->devspec.rxr.push_back(cidx);
+//        cinfo->devspec.rxr.push_back((rxrstruc *)&cinfo->device[cidx].rxr);
         cinfo->devspec.rxr_cnt = (uint16_t)cinfo->devspec.rxr.size();
         break;
         //! Elevation and Azimuth Sun Sensor
     case DeviceType::SSEN:
-        cinfo->devspec.ssen.push_back((ssenstruc *)&cinfo->device[cidx].ssen);
+        cinfo->devspec.ssen.push_back(cidx);
+//        cinfo->devspec.ssen.push_back((ssenstruc *)&cinfo->device[cidx].ssen);
         cinfo->devspec.ssen_cnt = (uint16_t)cinfo->devspec.ssen.size();
         break;
         //! Photo Voltaic String
     case DeviceType::PVSTRG:
-        cinfo->devspec.pvstrg.push_back((pvstrgstruc *)&cinfo->device[cidx].pvstrg);
+        cinfo->devspec.pvstrg.push_back(cidx);
+//        cinfo->devspec.pvstrg.push_back((pvstrgstruc *)&cinfo->device[cidx].pvstrg);
         cinfo->devspec.pvstrg_cnt = (uint16_t)cinfo->devspec.pvstrg.size();
         break;
         //! Star Tracker
     case DeviceType::STT:
-        cinfo->devspec.stt.push_back((sttstruc *)&cinfo->device[cidx].stt);
+        cinfo->devspec.stt.push_back(cidx);
+//        cinfo->devspec.stt.push_back((sttstruc *)&cinfo->device[cidx].stt);
         cinfo->devspec.stt_cnt = (uint16_t)cinfo->devspec.stt.size();
         break;
     case DeviceType::SUCHI:
         {
-            cinfo->devspec.suchi.push_back((suchistruc *)&cinfo->device[cidx].suchi);
+            cinfo->devspec.suchi.push_back(cidx);
+//            cinfo->devspec.suchi.push_back((suchistruc *)&cinfo->device[cidx].suchi);
             cinfo->devspec.suchi_cnt = (uint16_t)cinfo->devspec.suchi.size();
         }
         break;
         //! Switch
     case DeviceType::SWCH:
-        cinfo->devspec.swch.push_back((swchstruc *)&cinfo->device[cidx].swch);
+        cinfo->devspec.swch.push_back(cidx);
+//        cinfo->devspec.swch.push_back((swchstruc *)&cinfo->device[cidx].swch);
         cinfo->devspec.swch_cnt = (uint16_t)cinfo->devspec.swch.size();
         break;
     case DeviceType::TCU:
-        cinfo->devspec.tcu.push_back((tcustruc *)&cinfo->device[cidx].tcu);
+        cinfo->devspec.tcu.push_back(cidx);
+//        cinfo->devspec.tcu.push_back((tcustruc *)&cinfo->device[cidx].tcu);
         cinfo->devspec.tcu_cnt = (uint16_t)cinfo->devspec.tcu.size();
         break;
         //! Radio Transceiver
     case DeviceType::TCV:
-        cinfo->devspec.tcv.push_back((tcvstruc *)&cinfo->device[cidx].tcv);
+        cinfo->devspec.tcv.push_back(cidx);
+//        cinfo->devspec.tcv.push_back((tcvstruc *)&cinfo->device[cidx].tcv);
         cinfo->devspec.tcv_cnt = (uint16_t)cinfo->devspec.tcv.size();
         break;
     case DeviceType::TELEM:
-        cinfo->devspec.telem.push_back((telemstruc *)&cinfo->device[cidx].telem);
+        cinfo->devspec.telem.push_back(cidx);
+//        cinfo->devspec.telem.push_back((telemstruc *)&cinfo->device[cidx].telem);
         cinfo->devspec.telem_cnt = (uint16_t)cinfo->devspec.telem.size();
         break;
         //! Thruster
     case DeviceType::THST:
-        cinfo->devspec.thst.push_back((thststruc *)&cinfo->device[cidx].thst);
+        cinfo->devspec.thst.push_back(cidx);
+//        cinfo->devspec.thst.push_back((thststruc *)&cinfo->device[cidx].thst);
         cinfo->devspec.thst_cnt = (uint16_t)cinfo->devspec.thst.size();
         break;
         //! Temperature Sensor
     case DeviceType::TSEN:
-        cinfo->devspec.tsen.push_back((tsenstruc *)&cinfo->device[cidx].tsen);
+        cinfo->devspec.tsen.push_back(cidx);
+//        cinfo->devspec.tsen.push_back((tsenstruc *)&cinfo->device[cidx].tsen);
         cinfo->devspec.tsen_cnt = (uint16_t)cinfo->devspec.tsen.size();
         break;
     case DeviceType::TNC:
-        cinfo->devspec.tnc.push_back((tncstruc *)&cinfo->device[cidx].tnc);
+        cinfo->devspec.tnc.push_back(cidx);
+//        cinfo->devspec.tnc.push_back((tncstruc *)&cinfo->device[cidx].tnc);
         cinfo->devspec.tnc_cnt = (uint16_t)cinfo->devspec.tnc.size();
         break;
         //! Radio Transmitter
     case DeviceType::TXR:
-        cinfo->devspec.txr.push_back((txrstruc *)&cinfo->device[cidx].txr);
+        cinfo->devspec.txr.push_back(cidx);
+//        cinfo->devspec.txr.push_back((txrstruc *)&cinfo->device[cidx].txr);
         cinfo->devspec.txr_cnt = (uint16_t)cinfo->devspec.txr.size();
         break;
     }
@@ -7335,7 +7402,6 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         // Third: enter information for all devices
         // Resize, then add entries to map for devices
         cinfo->device.resize(cinfo->node.device_cnt);
-        //        cinfo->devspec.all.resize(cinfo->node.device_cnt);
         if (cinfo->device.size() != cinfo->node.device_cnt)
         {
             return (AGENT_ERROR_MEMORY);
@@ -8172,6 +8238,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         break;
         //! Processing Unit
     case DeviceType::CPU:
+        {
         iretn = json_addentry("device_cpu_utc",didx, UINT16_MAX, (uint8_t *)&device.cpu.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_cpu_cidx",didx, UINT16_MAX, (uint8_t *)&device.cpu.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_cpu_temp",didx, UINT16_MAX, (uint8_t *)&device.cpu.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8181,6 +8248,15 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_cpu_load",didx, UINT16_MAX, (uint8_t *)&device.cpu.load, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_gib",didx, UINT16_MAX, (uint8_t *)&device.cpu.gib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (uint8_t *)&device.cpu.boot_count, (uint16_t)JSON_TYPE_UINT32, cinfo);
+        char tempbuf1[100];
+        char tempbuf2[100];
+        sprintf(tempbuf1, "cpu_utilization_%03u", didx);
+        sprintf(tempbuf2, "(\"device_cpu_load_%03u\"/\"device_cpu_maxload_%03u\")", didx, didx);
+        json_addentry(tempbuf1, tempbuf2, cinfo);
+        sprintf(tempbuf1, "memory_utilization_%03u", didx);
+        sprintf(tempbuf2, "(\"device_cpu_gib_%03u\"/\"device_cpu_maxgib_%03u\")", didx, didx);
+        json_addentry(tempbuf1, tempbuf2, cinfo);
+        }
         break;
     case DeviceType::DISK:
         iretn = json_addentry("device_disk_utc",didx, UINT16_MAX, (uint8_t *)&device.disk.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -8188,6 +8264,12 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_disk_temp",didx, UINT16_MAX, (uint8_t *)&device.disk.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_disk_maxgib",didx, UINT16_MAX, (uint8_t *)&device.disk.maxgib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_disk_gib",didx, UINT16_MAX, (uint8_t *)&device.disk.gib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_disk_path",didx, UINT16_MAX, (uint8_t *)&device.disk.path, (uint16_t)JSON_TYPE_NAME, cinfo);
+        char tempbuf1[100];
+        char tempbuf2[100];
+        sprintf(tempbuf1, "disk_utilization_%03u", didx);
+        sprintf(tempbuf2, "(\"device_disk_gib_%03u\"/\"device_disk_maxgib_%03u\")", didx, didx);
+        json_addentry(tempbuf1, tempbuf2, cinfo);
         break;
         //! GPS Unit
     case DeviceType::GPS:
@@ -8526,6 +8608,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
 {
     switch (type)
     {
+    case DeviceType::NONE:
+    case DeviceType::COUNT:
+        break;
     case DeviceType::TELEM:
         json_toggleentry("device_telem_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_telem_cidx",didx, UINT16_MAX, cinfo, state);
@@ -8646,6 +8731,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_disk_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_disk_maxgib",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_disk_gib",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_disk_path",didx, UINT16_MAX, cinfo, state);
         break;
         //! GPS Unit
     case DeviceType::GPS:
@@ -9731,6 +9817,8 @@ string json_list_of_soh(cosmosstruc *cinfo)
         result += tempstring;
         sprintf(tempstring, ",\"device_disk_gib_%03d\"",i);
         result += tempstring;
+        sprintf(tempstring, ",\"device_disk_path_%03d\"",i);
+        result += tempstring;
     }
 
     result += "}";
@@ -10615,98 +10703,101 @@ int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2)
     {
         switch(static_cast <DeviceType>(cinfo2->device[i].all.type))
         {
+        case DeviceType::NONE:
+        case DeviceType::COUNT:
+            break;
         case DeviceType::TELEM:
-            cinfo2->devspec.telem[cinfo2->device[i].all.didx] = &cinfo2->device[i].telem;
+            cinfo2->devspec.telem[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::PLOAD:
-            cinfo2->devspec.pload[cinfo2->device[i].all.didx] = &cinfo2->device[i].pload;
+            cinfo2->devspec.pload[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::SSEN:
-            cinfo2->devspec.ssen[cinfo2->device[i].all.didx] = &cinfo2->device[i].ssen;
+            cinfo2->devspec.ssen[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::IMU:
-            cinfo2->devspec.imu[cinfo2->device[i].all.didx] = &cinfo2->device[i].imu;
+            cinfo2->devspec.imu[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::RW:
-            cinfo2->devspec.rw[cinfo2->device[i].all.didx] = &cinfo2->device[i].rw;
+            cinfo2->devspec.rw[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::MTR:
-            cinfo2->devspec.mtr[cinfo2->device[i].all.didx] = &cinfo2->device[i].mtr;
+            cinfo2->devspec.mtr[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::CAM:
-            cinfo2->devspec.cam[cinfo2->device[i].all.didx] = &cinfo2->device[i].cam;
+            cinfo2->devspec.cam[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::CPU:
-            cinfo2->devspec.cpu[cinfo2->device[i].all.didx] = &cinfo2->device[i].cpu;
+            cinfo2->devspec.cpu[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::GPS:
-            cinfo2->devspec.gps[cinfo2->device[i].all.didx] = &cinfo2->device[i].gps;
+            cinfo2->devspec.gps[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::ANT:
-            cinfo2->devspec.ant[cinfo2->device[i].all.didx] = &cinfo2->device[i].ant;
+            cinfo2->devspec.ant[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::RXR:
-            cinfo2->devspec.rxr[cinfo2->device[i].all.didx] = &cinfo2->device[i].rxr;
+            cinfo2->devspec.rxr[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::TXR:
-            cinfo2->devspec.txr[cinfo2->device[i].all.didx] = &cinfo2->device[i].txr;
+            cinfo2->devspec.txr[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::TCV:
-            cinfo2->devspec.tcv[cinfo2->device[i].all.didx] = &cinfo2->device[i].tcv;
+            cinfo2->devspec.tcv[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::PVSTRG:
-            cinfo2->devspec.pvstrg[cinfo2->device[i].all.didx] = &cinfo2->device[i].pvstrg;
+            cinfo2->devspec.pvstrg[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::BATT:
-            cinfo2->devspec.batt[cinfo2->device[i].all.didx] = &cinfo2->device[i].batt;
+            cinfo2->devspec.batt[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::HTR:
-            cinfo2->devspec.htr[cinfo2->device[i].all.didx] = &cinfo2->device[i].htr;
+            cinfo2->devspec.htr[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::MOTR:
-            cinfo2->devspec.motr[cinfo2->device[i].all.didx] = &cinfo2->device[i].motr;
+            cinfo2->devspec.motr[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::PSEN:
-            cinfo2->devspec.psen[cinfo2->device[i].all.didx] = &cinfo2->device[i].psen;
+            cinfo2->devspec.psen[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::TSEN:
-            cinfo2->devspec.tsen[cinfo2->device[i].all.didx] = &cinfo2->device[i].tsen;
+            cinfo2->devspec.tsen[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::THST:
-            cinfo2->devspec.thst[cinfo2->device[i].all.didx] = &cinfo2->device[i].thst;
+            cinfo2->devspec.thst[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::PROP:
-            cinfo2->devspec.prop[cinfo2->device[i].all.didx] = &cinfo2->device[i].prop;
+            cinfo2->devspec.prop[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::SWCH:
-            cinfo2->devspec.swch[cinfo2->device[i].all.didx] = &cinfo2->device[i].swch;
+            cinfo2->devspec.swch[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::ROT:
-            cinfo2->devspec.rot[cinfo2->device[i].all.didx] = &cinfo2->device[i].rot;
+            cinfo2->devspec.rot[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::STT:
-            cinfo2->devspec.stt[cinfo2->device[i].all.didx] = &cinfo2->device[i].stt;
+            cinfo2->devspec.stt[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::MCC:
-            cinfo2->devspec.mcc[cinfo2->device[i].all.didx] = &cinfo2->device[i].mcc;
+            cinfo2->devspec.mcc[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::TCU:
-            cinfo2->devspec.tcu[cinfo2->device[i].all.didx] = &cinfo2->device[i].tcu;
+            cinfo2->devspec.tcu[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::BUS:
-            cinfo2->devspec.bus[cinfo2->device[i].all.didx] = &cinfo2->device[i].bus;
+            cinfo2->devspec.bus[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::SUCHI:
-            cinfo2->devspec.suchi[cinfo2->device[i].all.didx] = &cinfo2->device[i].suchi;
+            cinfo2->devspec.suchi[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::DISK:
-            cinfo2->devspec.disk[cinfo2->device[i].all.didx] = &cinfo2->device[i].disk;
+            cinfo2->devspec.disk[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::TNC:
-            cinfo2->devspec.tnc[cinfo2->device[i].all.didx] = &cinfo2->device[i].tnc;
+            cinfo2->devspec.tnc[cinfo2->device[i].all.didx] = i;
             break;
         case DeviceType::BCREG:
-            cinfo2->devspec.bcreg[cinfo2->device[i].all.didx] = &cinfo2->device[i].bcreg;
+            cinfo2->devspec.bcreg[cinfo2->device[i].all.didx] = i;
             break;
         }
     }
@@ -10802,7 +10893,7 @@ int32_t node_calc(cosmosstruc *cinfo)
     // Turn on power buses
     for (size_t n=0; n<cinfo->devspec.bus_cnt; n++)
     {
-        cinfo->devspec.bus[n]->flag |= DEVICE_FLAG_ON;
+        cinfo->device[cinfo->devspec.bus[n]].all.flag |= DEVICE_FLAG_ON;
     }
 
 
@@ -10830,9 +10921,9 @@ int32_t node_calc(cosmosstruc *cinfo)
             cinfo->device[n].all.volt = cinfo->device[n].all.nvolt;
             cinfo->device[n].all.power = cinfo->device[n].all.amp * cinfo->device[n].all.volt;
         }
-        if (cinfo->device[n].all.bidx < cinfo->devspec.bus_cnt && cinfo->devspec.bus[cinfo->device[n].all.bidx]->volt < cinfo->device[n].all.volt)
+        if (cinfo->device[n].all.bidx < cinfo->devspec.bus_cnt && cinfo->device[cinfo->devspec.bus[cinfo->device[n].all.bidx]].all.volt < cinfo->device[n].all.volt)
         {
-            cinfo->devspec.bus[cinfo->device[n].all.bidx]->volt = cinfo->device[n].all.volt;
+            cinfo->device[cinfo->devspec.bus[cinfo->device[n].all.bidx]].all.volt = cinfo->device[n].all.volt;
         }
     }
 
@@ -10879,33 +10970,33 @@ int32_t node_calc(cosmosstruc *cinfo)
     // Turn all CPU's on
     for (size_t n=0; n<cinfo->devspec.cpu_cnt; n++)
     {
-        cinfo->device[cinfo->devspec.cpu[n]->cidx].all.flag |= DEVICE_FLAG_ON;
+        cinfo->device[cinfo->device[cinfo->devspec.cpu[n]].all.cidx].all.flag |= DEVICE_FLAG_ON;
     }
 
     // Turn on all IMU's
     for (size_t n=0; n<cinfo->devspec.imu_cnt; n++)
     {
-        cinfo->device[cinfo->devspec.imu[n]->cidx].all.flag |= DEVICE_FLAG_ON;
+        cinfo->device[cinfo->device[cinfo->devspec.imu[n]].all.cidx].all.flag |= DEVICE_FLAG_ON;
     }
 
     // Turn on all GPS's
     for (size_t n=0; n<cinfo->devspec.gps_cnt; n++)
     {
-        cinfo->device[cinfo->devspec.gps[n]->cidx].all.flag |= DEVICE_FLAG_ON;
+        cinfo->device[cinfo->device[cinfo->devspec.gps[n]].all.cidx].all.flag |= DEVICE_FLAG_ON;
     }
 
     cinfo->node.battcap = 0.;
     for (size_t n=0; n<cinfo->devspec.batt_cnt; n++)
     {
-        cinfo->node.battcap += cinfo->devspec.batt[n]->capacity;
-        cinfo->devspec.batt[n]->charge = cinfo->devspec.batt[n]->capacity;
+        cinfo->node.battcap += cinfo->device[cinfo->devspec.batt[n]].batt.capacity;
+        cinfo->device[cinfo->devspec.batt[n]].batt.charge = cinfo->device[cinfo->devspec.batt[n]].batt.capacity;
     }
     cinfo->node.battlev = cinfo->node.battcap;
 
     // Turn off reaction wheels
     for (size_t i=0; i<cinfo->devspec.rw_cnt; i++)
     {
-        cinfo->devspec.rw[i]->alp = cinfo->devspec.rw[i]->omg = 0.;
+        cinfo->device[cinfo->devspec.rw[i]].rw.alp = cinfo->device[cinfo->devspec.rw[i]].rw.omg = 0.;
     }
 
     // Set fictional torque to zero
@@ -10967,7 +11058,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tMomentX\tMomentY\tMomentZ\tMaxAngularSpeed\tAngularSpeed\tAngularAcceleration\n");
     for (i=0; i<cinfo->devspec.rw_cnt; i++)
     {
-        rws = *cinfo->devspec.rw[i];
+        rws = cinfo->device[cinfo->devspec.rw[i]].rw;
         fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,rws.cidx,rws.align.d.x,rws.align.d.y,rws.align.d.z,rws.align.w,rws.mom.col[0],rws.mom.col[1],rws.mom.col[2],rws.mxomg,rws.mxalp);
     }
     fclose(op);
@@ -10976,7 +11067,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"TemperatureIndex\tCompIndex\tTemperature\n");
     for (i=0; i<cinfo->devspec.tsen_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\n",i,cinfo->devspec.tsen[i]->cidx,cinfo->devspec.tsen[i]->temp);
+        fprintf(op,"%d\t%d\t%.15g\n",i,cinfo->device[cinfo->devspec.tsen[i]].tsen.cidx,cinfo->device[cinfo->devspec.tsen[i]].tsen.temp);
     }
     fclose(op);
 
@@ -10984,7 +11075,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tEfficiencyB\tEfficiencyM\tMaxPower\tPower\n");
     for (i=0; i<cinfo->devspec.pvstrg_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.pvstrg[i]->cidx,cinfo->devspec.pvstrg[i]->effbase,cinfo->devspec.pvstrg[i]->effslope,cinfo->devspec.pvstrg[i]->maxpower,cinfo->devspec.pvstrg[i]->power);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->device[cinfo->devspec.pvstrg[i]].pvstrg.cidx,cinfo->device[cinfo->devspec.pvstrg[i]].pvstrg.effbase,cinfo->device[cinfo->devspec.pvstrg[i]].pvstrg.effslope,cinfo->device[cinfo->devspec.pvstrg[i]].pvstrg.maxpower,cinfo->device[cinfo->devspec.pvstrg[i]].pvstrg.power);
     }
     fclose(op);
 
@@ -10992,7 +11083,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tCapacity\tEfficiency\tCharge\n");
     for (i=0; i<cinfo->devspec.batt_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.batt[i]->cidx,cinfo->devspec.batt[i]->capacity,cinfo->devspec.batt[i]->efficiency,cinfo->devspec.batt[i]->charge);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\n",i,cinfo->device[cinfo->devspec.batt[i]].batt.cidx,cinfo->device[cinfo->devspec.batt[i]].batt.capacity,cinfo->device[cinfo->devspec.batt[i]].batt.efficiency,cinfo->device[cinfo->devspec.batt[i]].batt.charge);
     }
     fclose(op);
 
@@ -11000,7 +11091,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tQuadrantVoltageA\tQuadrantVoltageB\tQuadrantVoltageC\tQuadrantVoltageD\tAzimuth\tElevation\n");
     for (i=0; i<cinfo->devspec.ssen_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.ssen[i]->cidx,cinfo->devspec.ssen[i]->align.d.x,cinfo->devspec.ssen[i]->align.d.y,cinfo->devspec.ssen[i]->align.d.z,cinfo->devspec.ssen[i]->align.w,cinfo->devspec.ssen[i]->qva,cinfo->devspec.ssen[i]->qvb,cinfo->devspec.ssen[i]->qvc,cinfo->devspec.ssen[i]->qvd,cinfo->devspec.ssen[i]->azimuth,cinfo->devspec.ssen[i]->elevation);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->device[cinfo->devspec.ssen[i]].ssen.cidx,cinfo->device[cinfo->devspec.ssen[i]].ssen.align.d.x,cinfo->device[cinfo->devspec.ssen[i]].ssen.align.d.y,cinfo->device[cinfo->devspec.ssen[i]].ssen.align.d.z,cinfo->device[cinfo->devspec.ssen[i]].ssen.align.w,cinfo->device[cinfo->devspec.ssen[i]].ssen.qva,cinfo->device[cinfo->devspec.ssen[i]].ssen.qvb,cinfo->device[cinfo->devspec.ssen[i]].ssen.qvc,cinfo->device[cinfo->devspec.ssen[i]].ssen.qvd,cinfo->device[cinfo->devspec.ssen[i]].ssen.azimuth,cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
     }
     fclose(op);
 
@@ -11008,7 +11099,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tPositionX\tPositionY\tPositionZ\tVelocityX\tVelocityY\tVelocityZ\tAccelerationX\tAccelerationY\tAccelerationZ\tAttitudeQx\tAttitudeQy\tAttitudeQz\tAttitudeQw\tAngularVelocityX\tAngularVelocityY\tAngularVelocityZ\tAngularAccelerationX\tAngularAccelerationY\tAngularAccelerationZ\tMagneticFieldX\tMagneticFieldY\tMagneticFieldZ\tCalibrationQx\tCalibrationQy\tCalibrationQz\tCalibrationQw\n");
     for (i=0; i<cinfo->devspec.imu_cnt; i++)
     {
-        ims = *cinfo->devspec.imu[i];
+        ims = cinfo->device[cinfo->devspec.imu[i]].imu;
         fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,ims.cidx,ims.align.d.x,ims.align.d.y,ims.align.d.z,ims.align.w);
     }
     fclose(op);
@@ -11017,7 +11108,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tAttitudeQx\tAttitudeQy\tAttitudeQz\tAttitudeQw\tAngularVelocityX\tAngularVelocityY\tAngularVelocityZ\tAngularAccelerationX\tAngularAccelerationY\tAngularAccelerationZ\tCalibrationQx\tCalibrationQy\tCalibrationQz\tCalibrationQw\n");
     for (i=0; i<cinfo->devspec.stt_cnt; i++)
     {
-        sts = *cinfo->devspec.stt[i];
+        sts = cinfo->device[cinfo->devspec.stt[i]].stt;
         fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\n",i,sts.cidx,sts.align.d.x,sts.align.d.y,sts.align.d.z,sts.align.w);
     }
     fclose(op);
@@ -11026,7 +11117,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tAlignmentQx\tAlignmentQy\tAlignmentQz\tAlignmentQw\tMagneticMomentX\tMagneticMomentY\tMagneticMomentZ\tMagneticField\n");
     for (i=0; i<cinfo->devspec.mtr_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.mtr[i]->cidx,cinfo->devspec.mtr[i]->align.d.x,cinfo->devspec.mtr[i]->align.d.y,cinfo->devspec.mtr[i]->align.d.z,cinfo->devspec.mtr[i]->align.w,cinfo->devspec.mtr[i]->npoly[0],cinfo->devspec.mtr[i]->npoly[1],cinfo->devspec.mtr[i]->npoly[2],cinfo->devspec.mtr[i]->mom);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->device[cinfo->devspec.mtr[i]].mtr.cidx,cinfo->device[cinfo->devspec.mtr[i]].mtr.align.d.x,cinfo->device[cinfo->devspec.mtr[i]].mtr.align.d.y,cinfo->device[cinfo->devspec.mtr[i]].mtr.align.d.z,cinfo->device[cinfo->devspec.mtr[i]].mtr.align.w,cinfo->device[cinfo->devspec.mtr[i]].mtr.npoly[0],cinfo->device[cinfo->devspec.mtr[i]].mtr.npoly[1],cinfo->device[cinfo->devspec.mtr[i]].mtr.npoly[2],cinfo->device[cinfo->devspec.mtr[i]].mtr.mom);
     }
     fclose(op);
 
@@ -11034,7 +11125,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tLatitude\tLongitude\tAltitude\tVelocityX\tVelocityY\tVelocityZ\n");
     for (i=0; i<cinfo->devspec.gps_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.gps[i]->cidx,cinfo->devspec.gps[i]->geocs.col[0],cinfo->devspec.gps[i]->geocs.col[1],cinfo->devspec.gps[i]->geocs.col[2],cinfo->devspec.gps[i]->geocv.col[0],cinfo->devspec.gps[i]->geocv.col[1],cinfo->devspec.gps[i]->geocv.col[2]);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\t%.15g\n",i,cinfo->device[cinfo->devspec.gps[i]].gps.cidx,cinfo->device[cinfo->devspec.gps[i]].gps.geocs.col[0],cinfo->device[cinfo->devspec.gps[i]].gps.geocs.col[1],cinfo->device[cinfo->devspec.gps[i]].gps.geocs.col[2],cinfo->device[cinfo->devspec.gps[i]].gps.geocv.col[0],cinfo->device[cinfo->devspec.gps[i]].gps.geocv.col[1],cinfo->device[cinfo->devspec.gps[i]].gps.geocv.col[2]);
     }
     fclose(op);
 
@@ -11042,7 +11133,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"DeviceIndex\tComponentIndex\tLoad\tMemoryUse\tMemoryFree\tDiskUse\n");
     for (i=0; i<cinfo->devspec.cpu_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.8g\t%.8g\t%.8g\n",i,cinfo->devspec.cpu[i]->cidx,cinfo->devspec.cpu[i]->maxgib,cinfo->devspec.cpu[i]->load,cinfo->devspec.cpu[i]->gib);
+        fprintf(op,"%d\t%d\t%.8g\t%.8g\t%.8g\n",i,cinfo->device[cinfo->devspec.cpu[i]].cpu.cidx,cinfo->device[cinfo->devspec.cpu[i]].cpu.maxgib,cinfo->device[cinfo->devspec.cpu[i]].cpu.load,cinfo->device[cinfo->devspec.cpu[i]].cpu.gib);
     }
     fclose(op);
 
@@ -11059,14 +11150,14 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"\n");
     for (i=0; i<cinfo->devspec.pload_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%d",i,cinfo->devspec.pload[i]->cidx,cinfo->devspec.pload[i]->key_cnt);
+        fprintf(op,"%d\t%d\t%d",i,cinfo->device[cinfo->devspec.pload[i]].pload.cidx,cinfo->device[cinfo->devspec.pload[i]].pload.key_cnt);
         for (j=0; j<MAXPLOADKEYCNT; j++)
         {
-            fprintf(op,"\t%d",cinfo->devspec.pload[i]->keyidx[j]);
+            fprintf(op,"\t%d",cinfo->device[cinfo->devspec.pload[i]].pload.keyidx[j]);
         }
         for (j=0; j<MAXPLOADKEYCNT; j++)
         {
-            fprintf(op,"\t%.15g",cinfo->devspec.pload[i]->keyval[j]);
+            fprintf(op,"\t%.15g",cinfo->device[cinfo->devspec.pload[i]].pload.keyval[j]);
         }
         fprintf(op,"\n");
     }
@@ -11076,7 +11167,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"motr_idx\tmotr_cidx\tmotr_spd\tmotr_rat\tmotr_rat\n");
     for (i=0; i<cinfo->devspec.motr_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\n",i,cinfo->devspec.motr[i]->cidx,cinfo->devspec.motr[i]->max,cinfo->devspec.motr[i]->rat,cinfo->devspec.motr[i]->spd);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\t%.15g\n",i,cinfo->device[cinfo->devspec.motr[i]].motr.cidx,cinfo->device[cinfo->devspec.motr[i]].motr.max,cinfo->device[cinfo->devspec.motr[i]].motr.rat,cinfo->device[cinfo->devspec.motr[i]].motr.spd);
     }
     fclose(op);
 
@@ -11084,7 +11175,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"swch_idx\tswch_cidx\n");
     for (i=0; i<cinfo->devspec.swch_cnt; i++)
     {
-        iretn = fscanf(op,"%*d\t%hu\n",&cinfo->devspec.swch[i]->cidx);
+        iretn = fscanf(op,"%*d\t%hu\n",&cinfo->device[cinfo->devspec.swch[i]].swch.cidx);
         if (iretn < 1)
         {
             break;
@@ -11096,7 +11187,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"thst_idx\tthst_cidx\tthst_idx\tthst_isp\tthst_flw\n");
     for (i=0; i<cinfo->devspec.thst_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\n",i,cinfo->devspec.thst[i]->cidx,cinfo->devspec.thst[i]->isp,cinfo->devspec.thst[i]->flw);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\n",i,cinfo->device[cinfo->devspec.thst[i]].thst.cidx,cinfo->device[cinfo->devspec.thst[i]].thst.isp,cinfo->device[cinfo->devspec.thst[i]].thst.flw);
     }
     fclose(op);
 
@@ -11104,7 +11195,7 @@ void create_databases(cosmosstruc *cinfo)
     fprintf(op,"prop_idx\tprop_cidx\tprop_cap\tprop_lev\n");
     for (i=0; i<cinfo->devspec.prop_cnt; i++)
     {
-        fprintf(op,"%d\t%d\t%.15g\t%.15g\n",i,cinfo->devspec.prop[i]->cidx,cinfo->devspec.prop[i]->cap,cinfo->devspec.prop[i]->lev);
+        fprintf(op,"%d\t%d\t%.15g\t%.15g\n",i,cinfo->device[cinfo->devspec.prop[i]].prop.cidx,cinfo->device[cinfo->devspec.prop[i]].prop.cap,cinfo->device[cinfo->devspec.prop[i]].prop.lev);
     }
     fclose(op);
 }

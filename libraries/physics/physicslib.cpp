@@ -874,57 +874,57 @@ svector groundstation(locstruc &satellite,locstruc &groundstation)
     \param devspec Pointer to structure holding specs on devices.
     \param loc Structure specifying location
 */
-void hardware_init_eci(devspecstruc &devspec, locstruc &loc)
+void hardware_init_eci(cosmosstruc *cinfo, locstruc &loc)
 {
-    int i;
+    uint16_t i;
 
     // Initialize power
     //	cinfo->node.battlev = cinfo->node.battcap;
-    for (i=0; i<devspec.bus_cnt; i++)
+    for (i=0; i<cinfo->devspec.bus_cnt; i++)
     {
-        devspec.bus[i]->amp = 0.;
-        devspec.bus[i]->flag |= DEVICE_FLAG_ON;
+        cinfo->device[cinfo->devspec.bus[i]].bus.amp = 0.;
+        cinfo->device[cinfo->devspec.bus[i]].bus.flag |= DEVICE_FLAG_ON;
     }
 
     //! Initialize temperature sensors
-    for (i=0; i<devspec.tsen_cnt; i++)
+    for (i=0; i<cinfo->devspec.tsen_cnt; i++)
     {
-        devspec.tsen[i]->temp = 300.;
+        cinfo->device[cinfo->devspec.tsen[i]].tsen.temp = 300.;
     }
 
     //! Reaction Wheels
-    for (i=0; i<devspec.rw_cnt; i++)
+    for (i=0; i<cinfo->devspec.rw_cnt; i++)
     {
-        devspec.rw[i]->utc = loc.utc;
-        devspec.rw[i]->omg = devspec.rw[i]->alp = 0.;
-        devspec.rw[i]->romg = devspec.rw[i]->ralp = 0.;
+        cinfo->device[cinfo->devspec.rw[i]].rw.utc = loc.utc;
+        cinfo->device[cinfo->devspec.rw[i]].rw.omg = cinfo->device[cinfo->devspec.rw[i]].rw.alp = 0.;
+        cinfo->device[cinfo->devspec.rw[i]].rw.romg = cinfo->device[cinfo->devspec.rw[i]].rw.ralp = 0.;
     }
 
     //! Magnetic Torque Rods
-    if (devspec.tcu_cnt)
+    if (cinfo->devspec.tcu_cnt)
     {
-        devspec.tcu[0]->utc = loc.utc;
-        for (i=0; i<devspec.mtr_cnt; i++)
+        cinfo->device[cinfo->devspec.tcu[0]].tcu.utc = loc.utc;
+        for (i=0; i<cinfo->devspec.mtr_cnt; i++)
         {
-            devspec.mtr[i]->utc = loc.utc;
-            devspec.mtr[i]->mom = 0.;
-            devspec.mtr[i]->rmom = 0.;
+            cinfo->device[cinfo->devspec.mtr[i]].mtr.utc = loc.utc;
+            cinfo->device[cinfo->devspec.mtr[i]].mtr.mom = 0.;
+            cinfo->device[cinfo->devspec.mtr[i]].mtr.rmom = 0.;
         }
     }
 
     // Inertial Measurement Units
-    for (i=0; i<devspec.imu_cnt; i++)
+    for (i=0; i<cinfo->devspec.imu_cnt; i++)
     {
-        initialize_imu(i, devspec, loc);
-        devspec.imu[i]->utc = loc.utc;
+        initialize_imu(i, cinfo->devspec, loc);
+        cinfo->device[cinfo->devspec.imu[i]].imu.utc = loc.utc;
     }
 
     //! Star Trackers
-    for (i=0; i<devspec.stt_cnt; i++)
+    for (i=0; i<cinfo->devspec.stt_cnt; i++)
     {
-        devspec.stt[i]->att = q_fmult(devspec.stt[i]->align,q_conjugate(loc.att.icrf.s));
-        devspec.stt[i]->omega = irotate(q_conjugate(devspec.stt[i]->align),loc.att.icrf.v);
-        devspec.stt[i]->utc = loc.utc;
+        cinfo->device[cinfo->devspec.stt[i]].stt.att = q_fmult(cinfo->device[cinfo->devspec.stt[i]].stt.align,q_conjugate(loc.att.icrf.s));
+        cinfo->device[cinfo->devspec.stt[i]].stt.omega = irotate(q_conjugate(cinfo->device[cinfo->devspec.stt[i]].stt.align),loc.att.icrf.v);
+        cinfo->device[cinfo->devspec.stt[i]].stt.utc = loc.utc;
     }
 }
 
@@ -1048,14 +1048,14 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
                 if (cinfo->pieces[i].cidx<(uint16_t)DeviceType::NONE && cinfo->device[cinfo->pieces[i].cidx].all.type == (uint16_t)DeviceType::PVSTRG)
                 {
                     j = cinfo->device[cinfo->pieces[i].cidx].all.didx;
-                    if (cinfo->devspec.pvstrg[j]->effbase > 0.)
+                    if (cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.effbase > 0.)
                     {
-                        efficiency = cinfo->devspec.pvstrg[j]->effbase + cinfo->devspec.pvstrg[j]->effslope * cinfo->pieces[i].temp;
-                        cinfo->devspec.pvstrg[j]->power = cinfo->pieces[i].area*efficiency*cinfo->pieces[i].insol;
-                        cinfo->devspec.pvstrg[j]->volt = cinfo->devspec.pvstrg[j]->nvolt;
-                        cinfo->devspec.pvstrg[j]->amp = -cinfo->devspec.pvstrg[j]->power / cinfo->devspec.pvstrg[j]->volt;
-                        cinfo->node.powgen += .4 * cinfo->devspec.pvstrg[j]->power;
-                        cinfo->pieces[i].heat += (cinfo->pieces[i].abs * cinfo->pieces[i].area * cinfo->pieces[i].insol - cinfo->devspec.pvstrg[j]->power) * cinfo->physics.dt;
+                        efficiency = cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.effbase + cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.effslope * cinfo->pieces[i].temp;
+                        cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.power = cinfo->pieces[i].area*efficiency*cinfo->pieces[i].insol;
+                        cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.volt = cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.nvolt;
+                        cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.amp = -cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.power / cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.volt;
+                        cinfo->node.powgen += .4 * cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.power;
+                        cinfo->pieces[i].heat += (cinfo->pieces[i].abs * cinfo->pieces[i].area * cinfo->pieces[i].insol - cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.power) * cinfo->physics.dt;
                         cinfo->pieces[i].heat -= cinfo->pieces[i].emi * cinfo->pieces[i].area * energyd;
                     }
                 }
@@ -1064,11 +1064,11 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
             {
                 for (j=0; j<cinfo->devspec.pvstrg_cnt; j++)
                 {
-                    if (cinfo->devspec.pvstrg[j]->pidx == i)
+                    if (cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.pidx == i)
                     {
-                        cinfo->devspec.pvstrg[j]->power = 0.;
-                        cinfo->devspec.pvstrg[j]->volt = 0.;
-                        cinfo->devspec.pvstrg[j]->amp = 0.;
+                        cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.power = 0.;
+                        cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.volt = 0.;
+                        cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.amp = 0.;
                         cinfo->pieces[i].heat -= cinfo->pieces[i].emi * cinfo->pieces[i].area * energyd;
                     }
                 }
@@ -1084,7 +1084,7 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
                 cinfo->pieces[i].heat += cinfo->pieces[i].abs*cinfo->pieces[i].area * energyd;
                 for (j=0; j<cinfo->devspec.pvstrg_cnt; j++)
                 {
-                    if (cinfo->devspec.pvstrg[j]->pidx == i)
+                    if (cinfo->device[cinfo->devspec.pvstrg[j]].pvstrg.pidx == i)
                     {
                         energy += cinfo->pieces[i].abs * cinfo->pieces[i].area * energyd;
                     }
@@ -1106,59 +1106,59 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
         //! Calculate change in Angular Momentum and therefore Acceleration
 
         // Moments of Reaction Wheel in Device frame
-        mom = rm_diag(cinfo->devspec.rw[i]->mom);
+        mom = rm_diag(cinfo->device[cinfo->devspec.rw[i]].rw.mom);
 
         // Torque and Momentum from reaction wheel
 
         // Calculate Momentum in Body frame and transform to ICRF
         //tskew = rm_skew(loc.att.icrf.v);
 
-        wmomentum = rv_mmult(mom,rv_smult(cinfo->devspec.rw[i]->omg,rv_unitz()));
-        wmomentum = irotate(cinfo->devspec.rw[i]->align,wmomentum);
+        wmomentum = rv_mmult(mom,rv_smult(cinfo->device[cinfo->devspec.rw[i]].rw.omg,rv_unitz()));
+        wmomentum = irotate(cinfo->device[cinfo->devspec.rw[i]].rw.align,wmomentum);
 //        cinfo->physics.hmomentum = rv_add(cinfo->physics.hmomentum,wmomentum);
         cinfo->physics.hmomentum += Vector(wmomentum);
 
         // Calculate Torque in Body frame and transform to ICRF
-        wtorque = rv_mmult(mom,rv_smult(cinfo->devspec.rw[i]->alp,rv_unitz()));
-        wtorque = irotate(cinfo->devspec.rw[i]->align,wtorque);
+        wtorque = rv_mmult(mom,rv_smult(cinfo->device[cinfo->devspec.rw[i]].rw.alp,rv_unitz()));
+        wtorque = irotate(cinfo->device[cinfo->devspec.rw[i]].rw.align,wtorque);
 //        cinfo->physics.ctorque = rv_sub(cinfo->physics.ctorque,wtorque);
         cinfo->physics.ctorque += Vector(wtorque);
 
         // Term for exponential change
-        tcexp = exp(-cinfo->physics.dt/cinfo->devspec.rw[i]->tc);
+        tcexp = exp(-cinfo->physics.dt/cinfo->device[cinfo->devspec.rw[i]].rw.tc);
 
         // Keep alpha within allowed limits
-        if (cinfo->devspec.rw[i]->ralp > cinfo->devspec.rw[i]->mxalp)
-            cinfo->devspec.rw[i]->ralp = cinfo->devspec.rw[i]->mxalp;
-        if (cinfo->devspec.rw[i]->ralp < -cinfo->devspec.rw[i]->mxalp)
-            cinfo->devspec.rw[i]->ralp = -cinfo->devspec.rw[i]->mxalp;
+        if (cinfo->device[cinfo->devspec.rw[i]].rw.ralp > cinfo->device[cinfo->devspec.rw[i]].rw.mxalp)
+            cinfo->device[cinfo->devspec.rw[i]].rw.ralp = cinfo->device[cinfo->devspec.rw[i]].rw.mxalp;
+        if (cinfo->device[cinfo->devspec.rw[i]].rw.ralp < -cinfo->device[cinfo->devspec.rw[i]].rw.mxalp)
+            cinfo->device[cinfo->devspec.rw[i]].rw.ralp = -cinfo->device[cinfo->devspec.rw[i]].rw.mxalp;
 
         // Set alpha to zero if accelerating past limit
-        if (cinfo->devspec.rw[i]->omg < -cinfo->devspec.rw[i]->mxomg)
+        if (cinfo->device[cinfo->devspec.rw[i]].rw.omg < -cinfo->device[cinfo->devspec.rw[i]].rw.mxomg)
         {
-            if (cinfo->devspec.rw[i]->ralp < 0.)
-                cinfo->devspec.rw[i]->ralp = 0.;
+            if (cinfo->device[cinfo->devspec.rw[i]].rw.ralp < 0.)
+                cinfo->device[cinfo->devspec.rw[i]].rw.ralp = 0.;
         }
-        if (cinfo->devspec.rw[i]->omg > cinfo->devspec.rw[i]->mxomg)
+        if (cinfo->device[cinfo->devspec.rw[i]].rw.omg > cinfo->device[cinfo->devspec.rw[i]].rw.mxomg)
         {
-            if (cinfo->devspec.rw[i]->ralp > 0.)
-                cinfo->devspec.rw[i]->ralp = 0.;
+            if (cinfo->device[cinfo->devspec.rw[i]].rw.ralp > 0.)
+                cinfo->device[cinfo->devspec.rw[i]].rw.ralp = 0.;
         }
 
         // Calculate change in acceleration effects
-        if (cinfo->devspec.rw[i]->ralp != cinfo->devspec.rw[i]->alp)
+        if (cinfo->device[cinfo->devspec.rw[i]].rw.ralp != cinfo->device[cinfo->devspec.rw[i]].rw.alp)
         {
-            dalp = tcexp * (cinfo->devspec.rw[i]->alp - cinfo->devspec.rw[i]->ralp);
-            cinfo->devspec.rw[i]->alp = cinfo->devspec.rw[i]->ralp + dalp;
-            domg = -cinfo->devspec.rw[i]->tc * dalp;
+            dalp = tcexp * (cinfo->device[cinfo->devspec.rw[i]].rw.alp - cinfo->device[cinfo->devspec.rw[i]].rw.ralp);
+            cinfo->device[cinfo->devspec.rw[i]].rw.alp = cinfo->device[cinfo->devspec.rw[i]].rw.ralp + dalp;
+            domg = -cinfo->device[cinfo->devspec.rw[i]].rw.tc * dalp;
         }
         else
             domg = 0.;
 
         //! Accelerate Reaction Wheel and calculate Component currents.
-        cinfo->devspec.rw[i]->omg += cinfo->physics.dt * cinfo->devspec.rw[i]->alp + domg;
-        cinfo->device[cinfo->devspec.rw[i]->cidx].all.amp = .054 * fabs(cinfo->devspec.rw[i]->omg)/400. + .093 * fabs(cinfo->devspec.rw[i]->alp) / 30.;
-        cinfo->devspec.rw[i]->utc = loc.utc;
+        cinfo->device[cinfo->devspec.rw[i]].rw.omg += cinfo->physics.dt * cinfo->device[cinfo->devspec.rw[i]].rw.alp + domg;
+        cinfo->device[cinfo->device[cinfo->devspec.rw[i]].rw.cidx].all.amp = .054 * fabs(cinfo->device[cinfo->devspec.rw[i]].rw.omg)/400. + .093 * fabs(cinfo->device[cinfo->devspec.rw[i]].rw.alp) / 30.;
+        cinfo->device[cinfo->devspec.rw[i]].rw.utc = loc.utc;
     }
 
     // Determine magtorquer moments in body frame
@@ -1168,34 +1168,34 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
     for (i=0; i<cinfo->devspec.mtr_cnt; i++)
     {
         // Magnetic Moments in Body frame
-        mag_moment = rv_add(mag_moment,irotate(cinfo->devspec.mtr[i]->align,rv_smult(cinfo->devspec.mtr[i]->mom,rv_unitz())));
+        mag_moment = rv_add(mag_moment,irotate(cinfo->device[cinfo->devspec.mtr[i]].mtr.align,rv_smult(cinfo->device[cinfo->devspec.mtr[i]].mtr.mom,rv_unitz())));
 
-        tcexp = exp(-cinfo->physics.dt/cinfo->devspec.mtr[i]->tc);
+        tcexp = exp(-cinfo->physics.dt/cinfo->device[cinfo->devspec.mtr[i]].mtr.tc);
 
         // Keep field within allowed limits
-        if (cinfo->devspec.mtr[i]->rmom > cinfo->devspec.mtr[i]->mxmom)
-            cinfo->devspec.mtr[i]->rmom = cinfo->devspec.mtr[i]->mxmom;
-        if (cinfo->devspec.mtr[i]->rmom < -cinfo->devspec.mtr[i]->mxmom)
-            cinfo->devspec.mtr[i]->rmom = -cinfo->devspec.mtr[i]->mxmom;
+        if (cinfo->device[cinfo->devspec.mtr[i]].mtr.rmom > cinfo->device[cinfo->devspec.mtr[i]].mtr.mxmom)
+            cinfo->device[cinfo->devspec.mtr[i]].mtr.rmom = cinfo->device[cinfo->devspec.mtr[i]].mtr.mxmom;
+        if (cinfo->device[cinfo->devspec.mtr[i]].mtr.rmom < -cinfo->device[cinfo->devspec.mtr[i]].mtr.mxmom)
+            cinfo->device[cinfo->devspec.mtr[i]].mtr.rmom = -cinfo->device[cinfo->devspec.mtr[i]].mtr.mxmom;
 
-        if (cinfo->devspec.mtr[i]->rmom != cinfo->devspec.mtr[i]->mom)
+        if (cinfo->device[cinfo->devspec.mtr[i]].mtr.rmom != cinfo->device[cinfo->devspec.mtr[i]].mtr.mom)
         {
-            dmom = tcexp * (cinfo->devspec.mtr[i]->mom - cinfo->devspec.mtr[i]->rmom);
-            cinfo->devspec.mtr[i]->mom = cinfo->devspec.mtr[i]->rmom + dmom;
+            dmom = tcexp * (cinfo->device[cinfo->devspec.mtr[i]].mtr.mom - cinfo->device[cinfo->devspec.mtr[i]].mtr.rmom);
+            cinfo->device[cinfo->devspec.mtr[i]].mtr.mom = cinfo->device[cinfo->devspec.mtr[i]].mtr.rmom + dmom;
         }
 
         //! Component currents for each MTR
-        if (cinfo->devspec.mtr[i]->rmom < 0.)
+        if (cinfo->device[cinfo->devspec.mtr[i]].mtr.rmom < 0.)
         {
-            cinfo->device[cinfo->devspec.mtr[i]->cidx].all.amp = cinfo->devspec.mtr[i]->mom * (3.6519e-3 - cinfo->devspec.mtr[i]->mom * 8.6439e-5);
+            cinfo->device[cinfo->device[cinfo->devspec.mtr[i]].mtr.cidx].all.amp = cinfo->device[cinfo->devspec.mtr[i]].mtr.mom * (3.6519e-3 - cinfo->device[cinfo->devspec.mtr[i]].mtr.mom * 8.6439e-5);
         }
         else
         {
-            cinfo->device[cinfo->devspec.mtr[i]->cidx].all.amp = cinfo->devspec.mtr[i]->mom * (3.6519e-3 + cinfo->devspec.mtr[i]->mom * 8.6439e-5);
+            cinfo->device[cinfo->device[cinfo->devspec.mtr[i]].mtr.cidx].all.amp = cinfo->device[cinfo->devspec.mtr[i]].mtr.mom * (3.6519e-3 + cinfo->device[cinfo->devspec.mtr[i]].mtr.mom * 8.6439e-5);
         }
-        //	cinfo->devspec.mtr[i]->mom = cinfo->device[cinfo->devspec.mtr[i]->cidx].all.amp*(229.43-cinfo->device[cinfo->devspec.mtr[i]->cidx].all.amp*382.65);
+        //	cinfo->device[cinfo->devspec.mtr[i]].mtr.mom = cinfo->device[cinfo->device[cinfo->devspec.mtr[i]].mtr.cidx].all.amp*(229.43-cinfo->device[cinfo->device[cinfo->devspec.mtr[i]].mtr.cidx].all.amp*382.65);
 
-        cinfo->devspec.mtr[i]->utc = loc.utc;
+        cinfo->device[cinfo->devspec.mtr[i]].mtr.utc = loc.utc;
     }
 
     // Get magnetic field in body frame
@@ -1209,11 +1209,11 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
     // Star Trackers
     for (i=0; i<cinfo->devspec.stt_cnt; i++)
     {
-        cinfo->devspec.stt[i]->utc = loc.utc;
-        tq = q_fmult(q_conjugate(cinfo->devspec.stt[i]->align),loc.att.icrf.s);
-        cinfo->devspec.stt[i]->att = tq;
-        cinfo->devspec.stt[i]->omega = irotate(tq,loc.att.icrf.v);
-        cinfo->devspec.stt[i]->utc = loc.utc;
+        cinfo->device[cinfo->devspec.stt[i]].stt.utc = loc.utc;
+        tq = q_fmult(q_conjugate(cinfo->device[cinfo->devspec.stt[i]].stt.align),loc.att.icrf.s);
+        cinfo->device[cinfo->devspec.stt[i]].stt.att = tq;
+        cinfo->device[cinfo->devspec.stt[i]].stt.omega = irotate(tq,loc.att.icrf.v);
+        cinfo->device[cinfo->devspec.stt[i]].stt.utc = loc.utc;
     }
 
     // Inertial Measurement Units
@@ -1224,16 +1224,16 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
         // embbed into a function
         // 'updates' cinfo->devspec.imu[i] with noise modified data
         simulate_imu(i, cinfo, loc);
-        cinfo->devspec.imu[i]->utc = loc.utc;
+        cinfo->device[cinfo->devspec.imu[i]].imu.utc = loc.utc;
     }
 
     for (i=0; i<cinfo->devspec.gps_cnt; i++)
     {
-        cinfo->devspec.gps[i]->utc = loc.utc;
-        cinfo->devspec.gps[i]->geocs = loc.pos.geoc.s;
-        cinfo->devspec.gps[i]->dgeocs = rv_one(5., 5., 5.);
-        cinfo->devspec.gps[i]->geocv = loc.pos.geoc.v;
-        cinfo->devspec.gps[i]->dgeocv = rv_one();
+        cinfo->device[cinfo->devspec.gps[i]].gps.utc = loc.utc;
+        cinfo->device[cinfo->devspec.gps[i]].gps.geocs = loc.pos.geoc.s;
+        cinfo->device[cinfo->devspec.gps[i]].gps.dgeocs = rv_one(5., 5., 5.);
+        cinfo->device[cinfo->devspec.gps[i]].gps.geocv = loc.pos.geoc.v;
+        cinfo->device[cinfo->devspec.gps[i]].gps.dgeocv = rv_one();
     }
 
     for (i=0; i<cinfo->devspec.ssen_cnt; i++)
@@ -1241,75 +1241,75 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
         // Get sun vector in body frame
         vec = irotate(loc.att.icrf.s,rv_smult(-1.,loc.pos.icrf.s));
         // Rotate into sun sensor frame
-        vec = irotate(q_conjugate(cinfo->devspec.ssen[i]->align),vec);
+        vec = irotate(q_conjugate(cinfo->device[cinfo->devspec.ssen[i]].ssen.align),vec);
         // Convert this to az and el
-        topo2azel(vec, cinfo->devspec.ssen[i]->azimuth, cinfo->devspec.ssen[i]->elevation);
-        if (cinfo->devspec.ssen[i]->azimuth < 0.)
+        topo2azel(vec, cinfo->device[cinfo->devspec.ssen[i]].ssen.azimuth, cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
+        if (cinfo->device[cinfo->devspec.ssen[i]].ssen.azimuth < 0.)
         {
-            cinfo->devspec.ssen[i]->azimuth += D2PI;
+            cinfo->device[cinfo->devspec.ssen[i]].ssen.azimuth += D2PI;
         }
-        cinfo->devspec.ssen[i]->qva = cinfo->devspec.ssen[i]->qvb = cinfo->devspec.ssen[i]->qvc = cinfo->devspec.ssen[i]->qvd = 0.;
-        if (cinfo->devspec.ssen[i]->elevation > RADOF(70.))
+        cinfo->device[cinfo->devspec.ssen[i]].ssen.qva = cinfo->device[cinfo->devspec.ssen[i]].ssen.qvb = cinfo->device[cinfo->devspec.ssen[i]].ssen.qvc = cinfo->device[cinfo->devspec.ssen[i]].ssen.qvd = 0.;
+        if (cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation > RADOF(70.))
         {
-            cinfo->devspec.ssen[i]->qva = cinfo->devspec.ssen[i]->qvb = cinfo->devspec.ssen[i]->qvc = cinfo->devspec.ssen[i]->qvd = sin(cinfo->devspec.ssen[i]->elevation);
+            cinfo->device[cinfo->devspec.ssen[i]].ssen.qva = cinfo->device[cinfo->devspec.ssen[i]].ssen.qvb = cinfo->device[cinfo->devspec.ssen[i]].ssen.qvc = cinfo->device[cinfo->devspec.ssen[i]].ssen.qvd = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
         }
         else
         {
-            if (cinfo->devspec.ssen[i]->elevation > RADOF(30.))
+            if (cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation > RADOF(30.))
             {
-                switch ((int)(cinfo->devspec.ssen[i]->azimuth/(DPI/4.)+.5))
+                switch ((int)(cinfo->device[cinfo->devspec.ssen[i]].ssen.azimuth/(DPI/4.)+.5))
                 {
                 case 0:
-                    cinfo->devspec.ssen[i]->qva = sin(cinfo->devspec.ssen[i]->elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qva = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
                     break;
                 case 1:
-                    cinfo->devspec.ssen[i]->qva = sin(cinfo->devspec.ssen[i]->elevation);
-                    cinfo->devspec.ssen[i]->qvb = sin(cinfo->devspec.ssen[i]->elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qva = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qvb = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
                     break;
                 case 2:
-                    cinfo->devspec.ssen[i]->qvb = sin(cinfo->devspec.ssen[i]->elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qvb = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
                     break;
                 case 3:
-                    cinfo->devspec.ssen[i]->qvb = sin(cinfo->devspec.ssen[i]->elevation);
-                    cinfo->devspec.ssen[i]->qvc = sin(cinfo->devspec.ssen[i]->elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qvb = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qvc = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
                     break;
                 case 4:
-                    cinfo->devspec.ssen[i]->qvc = sin(cinfo->devspec.ssen[i]->elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qvc = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
                     break;
                 case 5:
-                    cinfo->devspec.ssen[i]->qvc = sin(cinfo->devspec.ssen[i]->elevation);
-                    cinfo->devspec.ssen[i]->qvd = sin(cinfo->devspec.ssen[i]->elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qvc = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qvd = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
                     break;
                 case 6:
-                    cinfo->devspec.ssen[i]->qvd = sin(cinfo->devspec.ssen[i]->elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qvd = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
                     break;
                 case 7:
-                    cinfo->devspec.ssen[i]->qvd = sin(cinfo->devspec.ssen[i]->elevation);
-                    cinfo->devspec.ssen[i]->qva = sin(cinfo->devspec.ssen[i]->elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qvd = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
+                    cinfo->device[cinfo->devspec.ssen[i]].ssen.qva = sin(cinfo->device[cinfo->devspec.ssen[i]].ssen.elevation);
                     break;
                 }
             }
         }
-        cinfo->devspec.ssen[i]->utc = loc.utc;
+        cinfo->device[cinfo->devspec.ssen[i]].ssen.utc = loc.utc;
     }
 
     // Simulate thsters
     for (i=0; i<cinfo->devspec.thst_cnt; i++)
     {
-//        cinfo->devspec.thst[i]->flw = (length_rv(cinfo->physics.thrust) / cinfo->devspec.thst_cnt) / cinfo->devspec.thst[i]->isp;
-        cinfo->devspec.thst[i]->flw = (cinfo->physics.thrust.norm() / cinfo->devspec.thst_cnt) / cinfo->devspec.thst[i]->isp;
-        if (cinfo->devspec.thst[i]->flw < .002)
-            cinfo->devspec.thst[i]->flw = 0.;
-        cinfo->devspec.prop[0]->lev -= cinfo->physics.dt * cinfo->devspec.thst[i]->flw;
-        cinfo->devspec.thst[i]->utc = loc.utc;
+//        cinfo->device[cinfo->devspec.thst[i]].thst.flw = (length_rv(cinfo->physics.thrust) / cinfo->devspec.thst_cnt) / cinfo->device[cinfo->devspec.thst[i]].thst.isp;
+        cinfo->device[cinfo->devspec.thst[i]].thst.flw = (cinfo->physics.thrust.norm() / cinfo->devspec.thst_cnt) / cinfo->device[cinfo->devspec.thst[i]].thst.isp;
+        if (cinfo->device[cinfo->devspec.thst[i]].thst.flw < .002)
+            cinfo->device[cinfo->devspec.thst[i]].thst.flw = 0.;
+        cinfo->device[cinfo->devspec.prop[i]].prop.lev -= cinfo->physics.dt * cinfo->device[cinfo->devspec.thst[i]].thst.flw;
+        cinfo->device[cinfo->devspec.thst[i]].thst.utc = loc.utc;
     }
 
     // Simulate drive motors
     vbody = rv_zero();
     for (i=0; i<cinfo->devspec.motr_cnt; i++)
     {
-        cinfo->device[cinfo->devspec.motr[i]->cidx].all.amp = cinfo->devspec.motr[i]->spd;
-        vbody = rv_add(vbody,rv_smult(cinfo->devspec.motr[i]->spd*cinfo->devspec.motr[i]->rat,rv_unitx()));
+        cinfo->device[cinfo->device[cinfo->devspec.motr[i]].motr.cidx].all.amp = cinfo->device[cinfo->devspec.motr[i]].motr.spd;
+        vbody = rv_add(vbody,rv_smult(cinfo->device[cinfo->devspec.motr[i]].motr.spd*cinfo->device[cinfo->devspec.motr[i]].motr.rat,rv_unitx()));
         if (i == cinfo->devspec.motr_cnt-1)
         {
             switch (loc.pos.extra.closest)
@@ -1324,15 +1324,15 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
                 break;
             }
         }
-        cinfo->devspec.motr[i]->utc = loc.utc;
+        cinfo->device[cinfo->devspec.motr[i]].motr.utc = loc.utc;
     }
 
     // Disk drive details
     for (i=0; i<cinfo->devspec.pload_cnt; i++)
     {
-        if (cinfo->devspec.pload[i]->flag&DEVICE_FLAG_ON && cinfo->devspec.pload[i]->drate != 0.)
+        if (cinfo->device[cinfo->devspec.pload[i]].pload.flag&DEVICE_FLAG_ON && cinfo->device[cinfo->devspec.pload[i]].pload.drate != 0.)
         {
-            cinfo->devspec.disk[0]->gib += cinfo->devspec.pload[i]->drate;
+            cinfo->device[cinfo->devspec.disk[0]].disk.gib += cinfo->device[cinfo->devspec.pload[i]].pload.drate;
         }
     }
 
@@ -1340,7 +1340,7 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
     cinfo->node.powuse = 0.;
     for (i=0; i<cinfo->devspec.bus_cnt; i++)
     {
-        cinfo->devspec.bus[i]->amp = 0.;
+        cinfo->device[cinfo->devspec.bus[i]].bus.amp = 0.;
     }
 
     for (i=0; i<cinfo->node.device_cnt; i++)
@@ -1350,13 +1350,13 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
         {
             index = 0;
         }
-        if (cinfo->devspec.bus_cnt && cinfo->device[i].all.flag&DEVICE_FLAG_ON && cinfo->devspec.bus[index]->flag&DEVICE_FLAG_ON)
+        if (cinfo->devspec.bus_cnt && cinfo->device[i].all.flag&DEVICE_FLAG_ON && cinfo->device[cinfo->devspec.bus[index]].bus.flag&DEVICE_FLAG_ON)
         {
             cinfo->device[i].all.power = cinfo->device[i].all.amp * cinfo->device[i].all.volt;
-            cinfo->devspec.bus[index]->amp += cinfo->device[i].all.amp;
-            if (cinfo->device[i].all.volt > cinfo->devspec.bus[index]->volt)
+            cinfo->device[cinfo->devspec.bus[index]].bus.amp += cinfo->device[i].all.amp;
+            if (cinfo->device[i].all.volt > cinfo->device[cinfo->devspec.bus[index]].bus.volt)
             {
-                cinfo->devspec.bus[index]->volt = cinfo->device[i].all.volt;
+                cinfo->device[cinfo->devspec.bus[index]].bus.volt = cinfo->device[i].all.volt;
             }
             if (cinfo->device[i].all.power <= 0.)
                 continue;
@@ -1398,14 +1398,14 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
 
     for (i=0; i<cinfo->devspec.tsen_cnt; i++)
     {
-        cinfo->devspec.tsen[i]->temp = cinfo->pieces[cinfo->device[cinfo->devspec.tsen[i]->cidx].all.pidx].temp;
-        cinfo->devspec.tsen[i]->utc = loc.utc;
+        cinfo->device[cinfo->devspec.tsen[i]].tsen.temp = cinfo->pieces[cinfo->device[cinfo->device[cinfo->devspec.tsen[i]].tsen.cidx].all.pidx].temp;
+        cinfo->device[cinfo->devspec.tsen[i]].tsen.utc = loc.utc;
     }
 
     // More Power details
     if (cinfo->devspec.batt_cnt)
     {
-        dcharge = (cinfo->physics.dt/3600.) * ((cinfo->node.powgen-cinfo->node.powuse) / cinfo->devspec.batt[0]->volt) / cinfo->devspec.batt_cnt;
+        dcharge = (cinfo->physics.dt/3600.) * ((cinfo->node.powgen-cinfo->node.powuse) / cinfo->device[cinfo->devspec.batt[0]].batt.volt) / cinfo->devspec.batt_cnt;
     }
     else
     {
@@ -1413,13 +1413,13 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
     }
     for (i=0; i<cinfo->devspec.batt_cnt; i++)
     {
-        cinfo->devspec.batt[i]->charge += dcharge;
+        cinfo->device[cinfo->devspec.batt[i]].batt.charge += dcharge;
         cinfo->node.battlev += dcharge;
-        if (cinfo->devspec.batt[i]->charge > cinfo->devspec.batt[i]->capacity)
-            cinfo->devspec.batt[i]->charge = cinfo->devspec.batt[i]->capacity;
-        if (cinfo->devspec.batt[i]->charge < 0.)
-            cinfo->devspec.batt[i]->charge = 0.;
-        cinfo->devspec.batt[i]->utc = loc.utc;
+        if (cinfo->device[cinfo->devspec.batt[i]].batt.charge > cinfo->device[cinfo->devspec.batt[i]].batt.capacity)
+            cinfo->device[cinfo->devspec.batt[i]].batt.charge = cinfo->device[cinfo->devspec.batt[i]].batt.capacity;
+        if (cinfo->device[cinfo->devspec.batt[i]].batt.charge < 0.)
+            cinfo->device[cinfo->devspec.batt[i]].batt.charge = 0.;
+        cinfo->device[cinfo->devspec.batt[i]].batt.utc = loc.utc;
     }
 
     if (cinfo->node.powgen > cinfo->node.powuse)
@@ -1471,16 +1471,16 @@ void simulate_imu(int index, cosmosstruc *cinfo, locstruc &loc)
     if (index >= cinfo->devspec.imu_cnt)
         return;
 
-    toimu = q_fmult(q_conjugate(cinfo->devspec.imu[index]->align),loc.att.icrf.s);
+    toimu = q_fmult(q_conjugate(cinfo->device[cinfo->devspec.imu[index]].imu.align),loc.att.icrf.s);
     //! Set time of reading
-    cinfo->devspec.imu[index]->utc = loc.utc;
+    cinfo->device[cinfo->devspec.imu[index]].imu.utc = loc.utc;
 
     //! Set raw values for accelerometer and gyros
-    cinfo->devspec.imu[index]->accel = irotate(toimu,loc.pos.icrf.a);
-    cinfo->devspec.imu[index]->omega = irotate(toimu,loc.att.icrf.v);
+    cinfo->device[cinfo->devspec.imu[index]].imu.accel = irotate(toimu,loc.pos.icrf.a);
+    cinfo->device[cinfo->devspec.imu[index]].imu.omega = irotate(toimu,loc.att.icrf.v);
 
     //! Set magnetic field in IMU frame
-    cinfo->devspec.imu[index]->mag = irotate(q_conjugate(cinfo->devspec.imu[index]->align),irotate(loc.att.geoc.s,loc.bearth));
+    cinfo->device[cinfo->devspec.imu[index]].imu.mag = irotate(q_conjugate(cinfo->device[cinfo->devspec.imu[index]].imu.align),irotate(loc.att.geoc.s,loc.bearth));
 
     cinfo->timestamp = currentmjd();
 }
@@ -1764,7 +1764,7 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc *cinfo)
     pos_accel(cinfo->physics, loc);
     // Initialize hardware,
     // ?? is this only for simulation?
-    hardware_init_eci(cinfo->devspec,loc);
+    hardware_init_eci(cinfo,loc);
 
     // ?? check
     att_accel(cinfo->physics, loc);
@@ -1859,7 +1859,7 @@ void orbit_init_eci(int32_t mode, double dt, double utc, cartpos ipos, cosmosstr
     //	groundstations(cinfo,&loc);
     pos_accel(cinfo->physics, loc);
     // Initialize hardware
-    hardware_init_eci(cinfo->devspec, loc);
+    hardware_init_eci(cinfo, loc);
     att_accel(cinfo->physics, loc);
 
     sloc[0] = loc;
@@ -1972,7 +1972,7 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
     //	groundstations(cinfo,&sloc[0]);
     pos_accel(cinfo->physics, sloc[0]);
     // Initialize hardware
-    hardware_init_eci(cinfo->devspec, sloc[0]);
+    hardware_init_eci(cinfo, sloc[0]);
     att_accel(cinfo->physics, sloc[0]);
 
     loc = sloc[0];
@@ -2414,7 +2414,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
 
     pos_accel(cinfo->physics, loc);
     // Initialize hardware
-    hardware_init_eci(cinfo->devspec, loc);
+    hardware_init_eci(cinfo, loc);
     att_accel(cinfo->physics, loc);
     //	groundstations(cinfo,&loc);
 
@@ -2434,7 +2434,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
 
         pos_accel(cinfo->physics, gjh.step[i].sloc);
         // Initialize hardware
-        hardware_init_eci(cinfo->devspec,gjh.step[i].sloc);
+        hardware_init_eci(cinfo,gjh.step[i].sloc);
         att_accel(cinfo->physics, gjh.step[i].sloc);
     }
 
@@ -2451,7 +2451,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
 
         pos_accel(cinfo->physics, gjh.step[i].sloc);
         // Initialize hardware
-        hardware_init_eci(cinfo->devspec,gjh.step[i].sloc);
+        hardware_init_eci(cinfo,gjh.step[i].sloc);
         att_accel(cinfo->physics, gjh.step[i].sloc);
     }
 
@@ -2576,7 +2576,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 
         pos_accel(physics, gjh.step[i].sloc);
         // Initialize hardware
-        //		hardware_init_eci(cinfo->devspec,gjh.step[i].sloc);
+        //		hardware_init_eci(cinfo,gjh.step[i].sloc);
         att_accel(physics, gjh.step[i].sloc);
     }
 
@@ -2608,7 +2608,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
 
         pos_accel(physics, gjh.step[i].sloc);
         // Initialize hardware
-        //		hardware_init_eci(cinfo->devspec, gjh.step[i].sloc);
+        //		hardware_init_eci(cinfo, gjh.step[i].sloc);
         att_accel(physics, gjh.step[i].sloc);
     }
     loc = gauss_jackson_converge_orbit(gjh, physics);
@@ -2846,7 +2846,7 @@ locstruc gauss_jackson_converge_orbit(gj_handle &gjh, physicsstruc &physics)
 
                 // Calculate acceleration at new position
                 pos_accel(physics, gjh.step[gjh.order2+i*n].sloc);
-                //				hardware_init_eci(cinfo->devspec,gjh.step[gjh.order2+i*n].sloc);
+                //				hardware_init_eci(cinfo,gjh.step[gjh.order2+i*n].sloc);
 
                 // Compare acceleration at new position to previous iteration
                 if (fabs(oldsa.col[0]-gjh.step[gjh.order2+i*n].sloc.pos.eci.a.col[0])>1e-14 || fabs(oldsa.col[1]-gjh.step[gjh.order2+i*n].sloc.pos.eci.a.col[1])>1e-14 || fabs(oldsa.col[2]-gjh.step[gjh.order2+i*n].sloc.pos.eci.a.col[2])>1e-14)
@@ -3246,7 +3246,7 @@ int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosstr
 
 
     // Initialize hardware
-    hardware_init_eci(cinfo->devspec,cinfo->node.loc);
+    hardware_init_eci(cinfo,cinfo->node.loc);
     att_accel(cinfo->physics, cinfo->node.loc);
     //	groundstations(cinfo,&cinfo->node.loc);
 
@@ -3353,10 +3353,10 @@ int update_eci(cosmosstruc *cinfo, double utc, cartpos pos)
             {
             case COSMOS_EARTH:
             default:
-                cinfo->devspec.motr[j]->spd = length_rv(cinfo->node.loc.pos.geoc.v)/cinfo->devspec.motr[j]->rat;
+                cinfo->device[cinfo->devspec.motr[j]].motr.spd = length_rv(cinfo->node.loc.pos.geoc.v)/cinfo->device[cinfo->devspec.motr[j]].motr.rat;
                 break;
             case COSMOS_MOON:
-                cinfo->devspec.motr[j]->spd = length_rv(cinfo->node.loc.pos.selc.v)/cinfo->devspec.motr[j]->rat;
+                cinfo->device[cinfo->devspec.motr[j]].motr.spd = length_rv(cinfo->node.loc.pos.selc.v)/cinfo->device[cinfo->devspec.motr[j]].motr.rat;
                 break;
             }
         }
