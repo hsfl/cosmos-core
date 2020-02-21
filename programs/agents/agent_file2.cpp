@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
     comm_channel.resize(1);
-    if((iretn = socket_open(&comm_channel[0].chansock, NetworkType::UDP, (char *)"", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
+    if((iretn = socket_open(&comm_channel[0].chansock, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
         fprintf(agent->get_debug_fd(), "%16.10f Main: Node: %s Agent: %s - Listening socket failure\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
         agent->shutdown();

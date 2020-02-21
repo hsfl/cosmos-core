@@ -117,6 +117,8 @@ static double newlogstride_soh = 900. / 86400.;
 static double logstride_soh = 0.;
 static std::mutex soh_mutex;
 
+static std::mutex beacon_mutex;
+void move_and_compress_beacon();
 static vector<shorteventstruc> eventdict;
 static vector<shorteventstruc> events;
 
@@ -263,6 +265,7 @@ int main(int argc, char *argv[])
     logstring = json_list_of_soh(agent->cinfo);
     printf("===\nlogstring: %s\n===\n", logstring.c_str()); fflush(stdout);
     json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
+
     //	agent_set_sohstring(agent->cinfo, logstring.c_str());
 
     load_dictionary(eventdict, agent->cinfo, "events.dict");
@@ -283,6 +286,7 @@ int main(int argc, char *argv[])
         {
             logperiod = newlogperiod;
             logdate_soh = agent->cinfo->node.utc;
+
             move_and_compress_soh();
         }
 
@@ -296,7 +300,10 @@ int main(int argc, char *argv[])
         if (fabs(newlogstride_soh - logstride_soh) > std::numeric_limits<double>::epsilon()) {
             logstride_soh = newlogstride_soh;
             logdate_soh = currentmjd(0.);
+
+
             move_and_compress_soh();
+            move_and_compress_beacon();
         }
 
         // Check if either of the logstride have expired
@@ -638,6 +645,14 @@ void move_and_compress_soh () {
     soh_mutex.unlock();
 }
 
+void move_and_compress_beacon () {
+    std::string beacon_string;
+    beacon_mutex.lock();
+    log_move(node_name, "soh");
+    log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
+    log_move(node_name, "beacon");
+    beacon_mutex.unlock();
+}
 // Not being used... remove?
 ///// Prints the command information stored in local the copy of agent->cinfo->event[0].l
 //void print_command()

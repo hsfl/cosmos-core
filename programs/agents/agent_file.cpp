@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
     printf("- Opening recv socket...");
     fflush(stdout);
 
-    if((iretn = socket_open(&recvchan, NetworkType::UDP, (const char *)"", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
+    if((iretn = socket_open(&recvchan, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
         std::cout << "iretn = " << iretn << std::endl;
         printf("- Could not successfully open recv socket... exiting \n");

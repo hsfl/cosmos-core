@@ -1766,7 +1766,7 @@ int32_t json_out_int8(string &jstring,int8_t value)
     int32_t iretn;
     char tstring[15];
 
-    sprintf(tstring,"%hd",value);
+    sprintf(tstring,"%" PRIi8,value);
 
     iretn = json_append(jstring,tstring);
     return iretn;
@@ -1817,7 +1817,7 @@ int32_t json_out_uint8(string &jstring, uint8_t value)
     int32_t iretn;
     char tstring[15];
 
-    sprintf(tstring,"%hu",value);
+    sprintf(tstring, "%u",value);
 
     iretn = json_append(jstring,tstring);
     return iretn;
@@ -2926,10 +2926,6 @@ int32_t json_out_rmatrix(string &jstring,rmatrix value)
     if ((iretn=json_out_rvector(jstring,value.row[2])) < 0)
         return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return iretn;
-
-    // Output Row[3]
-    if ((iretn=json_out_rvector(jstring,value.row[3])) < 0)
         return iretn;
 
     if ((iretn=json_out_character(jstring,']')) < 0)
@@ -6987,7 +6983,7 @@ int32_t json_recenter_node(cosmosstruc *cinfo)
     {
         if (cinfo->pieces[i].face_cnt == 1)
         {
-            Vector dv = cinfo->faces[abs(cinfo->pieces[i].face_idx[0])].com - tcom;
+            Vector dv = cinfo->faces[cinfo->pieces[i].face_idx[0]].com - tcom;
             if (dv.separation(cinfo->faces[cinfo->pieces[i].face_idx[0]].normal) > DPI2)
             {
                 cinfo->normals.push_back(-cinfo->faces[cinfo->pieces[i].face_idx[0]].normal);
@@ -7200,6 +7196,9 @@ int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo)
         cinfo->devspec.txr.push_back(cidx);
 //        cinfo->devspec.txr.push_back((txrstruc *)&cinfo->device[cidx].txr);
         cinfo->devspec.txr_cnt = (uint16_t)cinfo->devspec.txr.size();
+        break;
+    case DeviceType::COUNT:
+    case DeviceType::NONE:
         break;
     }
     return 0;
@@ -8986,6 +8985,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_bcreg_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_volt",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_amp",didx, UINT16_MAX, cinfo, state);
+    case DeviceType::COUNT:
+    case DeviceType::NONE:
+        break;
     }
 
     return 0;
@@ -9392,66 +9394,88 @@ const char *json_of_beat(string &jstring, cosmosstruc *cinfo)
 */
 const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 {
-    int32_t iretn;
+//    int32_t iretn;
+//    iretn = json_out(jstring,(char *)"node_name", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_type", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_utcstart", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_utc", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_utcoffset", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_loc_pos_eci", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_loc_att_icrf", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_powgen", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_powuse", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_powchg", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"node_battlev", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+//    iretn = json_out(jstring,(char *)"device_cpu_cnt", cinfo);
+//    if (iretn < 0)
+//    {
+//        return nullptr;
+//    }
+
+
+
+//    return jstring.data();
+
+    string result;
+    char tempstring[200];
+    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+
+    for (uint16_t i=0; i<cinfo->devspec.cpu_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_cpu_utc_%03d\",\"device_cpu_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        result += tempstring;
+    }
+    result += "}";
+
 
     jstring.clear();
-    iretn = json_out(jstring,(char *)"node_name", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_type", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_utcstart", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_utc", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_utcoffset", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_loc_pos_eci", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_loc_att_icrf", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_powgen", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_powuse", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_powchg", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-    iretn = json_out(jstring,(char *)"node_battlev", cinfo);
-    if (iretn < 0)
-    {
-        return nullptr;
-    }
-
-    return jstring.data();
+    return json_of_list(jstring, result, cinfo);
 }
 
 //! Create JSON IMU string
@@ -9491,8 +9515,7 @@ const char *json_of_imu(string &jstring, uint16_t num, cosmosstruc *cinfo)
     iretn = json_out_1d(jstring,(char *)"device_imu_mag",num, cinfo);
     if (iretn < 0)
     {
-        return nullptr;
-    }
+        return nullptr;    }
     iretn = json_out_1d(jstring,(char *)"device_imu_bdot",num, cinfo);
     if (iretn < 0)
     {
@@ -10798,6 +10821,9 @@ int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2)
             break;
         case DeviceType::BCREG:
             cinfo2->devspec.bcreg[cinfo2->device[i].all.didx] = i;
+            break;
+        case DeviceType::COUNT:
+        case DeviceType::NONE:
             break;
         }
     }
