@@ -225,8 +225,8 @@ int main(int argc, char *argv[])
     myradios.resize(agent->cinfo->devspec.tcv_cnt);
 	for (size_t i=0; i<myradios.size(); ++i)
 	{
-        myradios[i].name = agent->cinfo->pieces[agent->cinfo->devspec.tcv[i]->pidx].name;
-        myradios[i].info = *agent->cinfo->devspec.tcv[i];
+        myradios[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name;
+        myradios[i].info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
 		myradios[i].otherradioindex = 9999;
         myradios[i].beat = agent->find_server(nodename, myradios[i].name, 3.);
 	}
@@ -235,8 +235,8 @@ int main(int argc, char *argv[])
     myantennas.resize(agent->cinfo->devspec.ant_cnt);
 	for (size_t i=0; i<myantennas.size(); ++i)
 	{
-        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->devspec.ant[i]->pidx].name;
-        myantennas[i].info = *agent->cinfo->devspec.ant[i];
+        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.ant[i]].all.pidx].name;
+        myantennas[i].info = agent->cinfo->device[agent->cinfo->devspec.ant[i]].ant;
         myantennas[i].beat = agent->find_server(nodename, myantennas[i].name, 3.);
 	}
 
@@ -276,8 +276,8 @@ int main(int argc, char *argv[])
                     ttrack.radios.resize(cinfo->devspec.tcv_cnt);
 					for (size_t i=0; i<ttrack.radios.size(); ++i)
 					{
-                        ttrack.radios[i].name = cinfo->pieces[cinfo->devspec.tcv[i]->pidx].name;
-                        ttrack.radios[i].info = *cinfo->devspec.tcv[i];
+                        ttrack.radios[i].name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].all.pidx].name;
+                        ttrack.radios[i].info = cinfo->device[cinfo->devspec.tcv[i]].tcv;
 						ttrack.radios[i].otherradioindex = 9999;
 					}
 

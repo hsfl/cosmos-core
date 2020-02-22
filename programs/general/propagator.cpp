@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 
 	if (mjdnow < iloc.utc)
 	{
-        hardware_init_eci(agent->cinfo->devspec, iloc);
+        hardware_init_eci(agent->cinfo, iloc);
         gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
 
         //printf("Initialize backwards %f days\n", (agent->cinfo->node.loc.utc-mjdnow));
@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
     std::cout << "Initialize forwards " << (mjdnow-iloc.utc) << " days, steps of " << step << std::endl;
 
     std::cout << "Initialize Hardware Simulation " << std::endl;
-    hardware_init_eci(agent->cinfo->devspec, iloc);
+    hardware_init_eci(agent->cinfo, iloc);
 
     std::cout << "Initialize Gauss Jackson Propagator " << std::endl;
     gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
     iloc.utc = agent->cinfo->node.loc.pos.eci.utc;
 
     std::cout << "Start Hardware Simulation 3" << std::endl;
-    hardware_init_eci(agent->cinfo->devspec, iloc);
+    hardware_init_eci(agent->cinfo, iloc);
 
     std::cout << "Initialize Gauss Jackson Propagator" << std::endl;
     gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);

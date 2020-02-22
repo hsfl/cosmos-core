@@ -47,3 +47,7 @@ build/qt_debug/
 build/pi/
 
 build/gnu7/
+
+libraries/device/astrodev/
+
+libraries/save/astrodev/

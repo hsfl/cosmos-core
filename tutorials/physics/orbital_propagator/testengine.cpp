@@ -194,7 +194,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 	mjdbase = mjdnow;
 	mjdlast = mjdnow + tp/86400.;
 	cp = 0;
-    cosmos_data->devspec.rw[0]->omg = rwomg = 0;
+    cosmos_data->device[cosmos_data->devspec.rw[0]].rw.omg = rwomg = 0;
     cosmos_data->physics.moi[0] = 2.3;
     cosmos_data->physics.moi[1] = 2.6;
     cosmos_data->physics.moi[2] = 2.7;

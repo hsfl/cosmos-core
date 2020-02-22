@@ -139,7 +139,7 @@ void propagate(cosmosstruc *root, double mjd);
 double rearth(double lat);
 int update_eci(cosmosstruc *root, double utc, cartpos pos);
 
-void hardware_init_eci(devspecstruc &devspec, locstruc &loc);
+void hardware_init_eci(cosmosstruc *cinfo, locstruc &loc);
 void gauss_jackson_setup(gj_handle &gjh, uint32_t order, double utc, double &dt);
 void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, cosmosstruc *cinfo);
 void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double mjd, cartpos ipos, qatt iatt, physicsstruc &physics, locstruc &loc);
