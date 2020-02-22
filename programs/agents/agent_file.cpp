@@ -171,7 +171,9 @@ int32_t request_remove_file(char* request, char* response, Agent *agent);
 //int32_t request_send_file(char* request, char* response, Agent *agent);
 int32_t request_ls(char* request, char* response, Agent *agent);
 int32_t request_list_incoming(char* request, char* response, Agent *agent);
+int32_t request_list_incoming_json(char* request, char* response, Agent *agent);
 int32_t request_list_outgoing(char* request, char* response, Agent *agent);
+int32_t request_list_outgoing_json(char* request, char* response, Agent *agent);
 int32_t outgoing_tx_add(tx_progress tx_out);
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name);
 int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
@@ -340,6 +342,11 @@ int main(int argc, char *argv[])
     if ((iretn=agent->add_request("list_incoming",request_list_incoming,"", "lists contents incoming queue")))
         exit (iretn);
     if ((iretn=agent->add_request("list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
+        exit (iretn);
+
+    if ((iretn=agent->add_request("list_incoming_json",request_list_incoming_json,"", "lists contents incoming queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("list_outgoing_json",request_list_outgoing_json,"", "lists contents outgoing queue")))
         exit (iretn);
     if ((iretn=agent->add_request("debug",request_debug,"{0|1}","Toggle Debug information")))
         exit (iretn);
@@ -1574,6 +1581,38 @@ int32_t request_list_incoming(char* request, char* response, Agent *agent)
     return 0;
 }
 
+int32_t request_list_incoming_json(char* request, char* response, Agent *agent)
+{
+    response[0] = 0;
+
+    sprintf(&response[strlen(response)], "{\"incoming\":[");
+    int i;
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+        if(node>0) {
+            sprintf(&response[strlen(response)],",");
+        }
+        sprintf(&response[strlen(response)], "{\"node\":\"%s\",\"count\":%u,\"files\":[", txq[node].node_name.c_str(), txq[node].incoming.size);
+        i = 0;
+        for(tx_progress tx : txq[node].incoming.progress)
+        {
+
+            if (tx.tx_id)
+            {
+                if(i > 0){
+                    sprintf(&response[strlen(response)], ",");
+                }
+                i++;
+                sprintf(&response[strlen(response)], "{\"tx_id\":%u,\"agent\":\"%s\",\"name\":\"%s\",\"bytes\":%u,\"size\":%u}", tx.tx_id, tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
+            }
+        }
+        sprintf(&response[strlen(response)], "]}");
+    }
+    sprintf(&response[strlen(response)], "]}");
+
+    return 0;
+}
+
 int32_t request_list_outgoing(char* request, char* response, Agent *agent)
 {
     response[0] = 0;
@@ -1588,6 +1627,38 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
             }
         }
     }
+
+    return 0;
+}
+
+int32_t request_list_outgoing_json(char* request, char* response, Agent *agent)
+{
+    response[0] = 0;
+
+    sprintf(&response[strlen(response)], "{\"outgoing\":[");
+    int i;
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+        if(node>0) {
+            sprintf(&response[strlen(response)],",");
+        }
+        sprintf(&response[strlen(response)], "{\"node\":\"%s\",\"count\":%u,\"files\":[", txq[node].node_name.c_str(), txq[node].outgoing.size);
+        i = 0;
+        for(tx_progress tx : txq[node].outgoing.progress)
+        {
+
+            if (tx.tx_id)
+            {
+                if(i > 0){
+                    sprintf(&response[strlen(response)], ",");
+                }
+                i++;
+                sprintf(&response[strlen(response)], "{\"tx_id\":%u,\"agent\":\"%s\",\"name\":\"%s\",\"bytes\":%u,\"size\":%u}", tx.tx_id, tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
+            }
+        }
+        sprintf(&response[strlen(response)], "]}");
+    }
+    sprintf(&response[strlen(response)], "]}");
 
     return 0;
 }
