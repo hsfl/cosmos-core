@@ -119,6 +119,8 @@ static std::mutex soh_mutex;
 
 static std::mutex beacon_mutex;
 void move_and_compress_beacon();
+void get_beacon_cpu();
+
 static vector<shorteventstruc> eventdict;
 static vector<shorteventstruc> events;
 
@@ -273,6 +275,7 @@ int main(int argc, char *argv[])
     // Start thread to collect SOH data
     thread cdthread = thread(collect_data_loop);
 
+    get_beacon_cpu();
     // Start performing the body of the agent
     lmjd = cmjd = nextmjd = currentmjd();
     while(agent->running())
@@ -317,6 +320,7 @@ int main(int argc, char *argv[])
         {
             logdate_soh = floor(cmjd/logstride_soh)*logstride_soh;
             move_and_compress_soh();
+            move_and_compress_beacon();
         }
 
         // Perform SOH specific functions
@@ -652,6 +656,25 @@ void move_and_compress_beacon () {
     log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
     log_move(node_name, "beacon");
     beacon_mutex.unlock();
+}
+
+void get_beacon_cpu() {
+    static DeviceCpu deviceCpu;
+    static const double GiB = 1024. * 1024. * 1024.;
+    int32_t iretn;
+    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
+    if (iretn < 0)
+    {
+        fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
+        agent->shutdown();
+        exit(1);
+    }
+
+    uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+    agent->cinfo->device[cidx].cpu.load = static_cast <float>(deviceCpu.getLoad());
+    agent->cinfo->device[cidx].cpu.gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/GiB);
+    agent->cinfo->device[cidx].cpu.maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/GiB);
+    agent->cinfo->device[cidx].cpu.maxload = deviceCpu.getCount();
 }
 // Not being used... remove?
 ///// Prints the command information stored in local the copy of agent->cinfo->event[0].l
