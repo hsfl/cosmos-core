@@ -653,6 +653,9 @@ string cosmos_error_string(int32_t cosmos_errno)
         case GENERAL_ERROR_MISMATCH:
             error_string = "Mismatch";
             break;
+        case GENERAL_ERROR_ERROR:
+            error_string = "General Error";
+            break;
         default:
             char tval[30];
             sprintf(tval,"Undefined Value %d", cosmos_errno);
