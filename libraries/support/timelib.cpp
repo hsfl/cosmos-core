@@ -1251,6 +1251,31 @@ cvector polar_motion(double mjd)
 
 
 
+//! Time for setting unix date
+/*! Represent the given UTC on a format appropriate for setting Unix date format:
+ * MMDDhhmmYY.ss
+ * \param utc Coordinated Universal Time expressed in Modified Julian Days.
+ * \return C++ String containing the Unix date.
+ */
+std::string utc2unixdate(double utc)
+{
+    char buffer[25];
+    int32_t iy=0, im=0, id=0, ihh, imm, iss;
+    double fd=0.;
+
+    mjd2ymd(utc, iy, im, fd);
+    id = static_cast <int32_t>(fd);
+    fd -= id;
+    ihh = static_cast <int32_t>(24 * fd);
+    fd -= ihh / 24.;
+    imm = static_cast <int32_t>(1440 * fd);
+    fd -= imm / 1440.;
+    iss = static_cast <int32_t>(86400 * fd + .5);
+    sprintf(buffer, "%02d%02d%02d%02d%02d.%02d", im, id, ihh, imm, iy, iss);
+
+    return std::string(buffer);
+}
+
 //! ISO 8601 version of time
 /*! Represent the given UTC as an extended calendar format ISO 8601
  * string in the format:
