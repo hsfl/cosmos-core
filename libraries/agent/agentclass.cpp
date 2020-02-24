@@ -263,6 +263,8 @@ namespace Cosmos
             Agent::add_request("targetsjson",Agent::req_targetsjson,"","return description JSON for Targets");
             Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
             Agent::add_request("heartbeat",Agent::req_heartbeat,"","Send extra hearbeat");
+            Agent::add_request("mjd",Agent::req_mjd,"","Get Modified Julian Day");
+            Agent::add_request("soh",Agent::req_soh,"","Get SOH string");
 
             cinfo->agent[0].server = 1;
             cinfo->agent[0].stateflag = (uint16_t)Agent::State::RUN;
@@ -1425,6 +1427,20 @@ namespace Cosmos
             int32_t iretn = 0;
             iretn = agent->post_beat();
             return iretn;
+        }
+
+        int32_t Agent::req_mjd(char *, char *response, Agent *agent)
+        {
+            sprintf(response, "%15g", agent->agent_time_producer());
+            return 0;
+        }
+
+        int32_t Agent::req_soh(char *, char* response, Agent *agent)
+        {
+            std::string rjstring;
+            strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
+
+            return 0;
         }
 
         //! Open COSMOS output channel
@@ -2640,19 +2656,6 @@ namespace Cosmos
             delta = (mjd_1 - mjd_0) / 2.0;  // RTT / 2.0
             agent_time = stod(agent_response.substr(0, agent_response.find("["))) + delta;
             epsilon = delta; // We do not have a lower bound on the time to transmit a message one way.
-
-            return 0;
-        }
-
-        int32_t Agent::req_mjd(char *, char *response, Agent *agent) {
-            sprintf(response, "%15g", agent->agent_time_producer());
-            return 0;
-        }
-
-        int32_t Agent::request_soh(char *, char* response, Agent *agent)
-        {
-            std::string rjstring;
-            strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
 
             return 0;
         }
