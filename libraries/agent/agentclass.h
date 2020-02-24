@@ -443,6 +443,7 @@ namespace Cosmos
             static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
             static int32_t req_heartbeat(char *request, char* response, Agent *agent);
             static int32_t req_mjd(char *request, char* response, Agent *agent);
+            static int32_t request_soh(char *, char* response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

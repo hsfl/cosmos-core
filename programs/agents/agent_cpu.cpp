@@ -46,7 +46,7 @@ bool printStatus = true;
 
 int agent_cpu(), create_node();
 
-int32_t request_soh(char *request, char* response, Agent *);
+//int32_t request_soh(char *request, char* response, Agent *);
 int32_t request_bootCount(char *request, char* response, Agent *);
 
 // disk
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 
     fprintf(agent->get_debug_fd(), "CPU Agent initialized\n");
 
-    agent->add_request("soh",request_soh,"","current state of health message");
+//    agent->add_request("soh",request_soh,"","current state of health message");
     agent->add_request("diskSize",request_diskSize,"","disk size in GB");
     agent->add_request("diskUsed",request_diskUsed,"","disk used in GB");
     agent->add_request("diskFree",request_diskFree,"","disk free in GB");
@@ -285,14 +285,14 @@ int main(int argc, char *argv[])
 //}
 
 
-int32_t request_soh(char *, char* response, Agent *)
-{
-    std::string rjstring;
-    //	strcpy(response,json_of_list(rjstring,sohstring,agent->cinfo));
-    strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
+//int32_t request_soh(char *, char* response, Agent *)
+//{
+//    std::string rjstring;
+//    //	strcpy(response,json_of_list(rjstring,sohstring,agent->cinfo));
+//    strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
 
-    return 0;
-}
+//    return 0;
+//}
 
 
 

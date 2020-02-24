@@ -2649,6 +2649,15 @@ namespace Cosmos
             return 0;
         }
 
+        int32_t Agent::request_soh(char *, char* response, Agent *agent)
+        {
+            std::string rjstring;
+            strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
+
+            return 0;
+        }
+
+
     } // end of namespace Support
 } // end namespace Cosmos
 
