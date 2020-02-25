@@ -399,8 +399,9 @@ int main(int argc, char *argv[])
 
                     // Sort list by size, then go through list of files found, adding to queue.
                     sort(file_names.begin(), file_names.end(), filestruc_compare_by_size);
-                    for(filestruc file : file_names)
+                    for(uint16_t i=0; i<file_names.size(); ++i)
                     {
+                        filestruc file = file_names[i];
                         if (txq[static_cast <size_t>(node)].outgoing.size >= TRANSFER_QUEUE_LIMIT)
                         {
                             break;
