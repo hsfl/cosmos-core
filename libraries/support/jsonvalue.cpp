@@ -28,6 +28,12 @@ JSONValue::JSONValue(uint32_t val)
     this->value_as_string = std::to_string(val);
 }
 
+JSONValue::JSONValue(uint8_t val)
+{
+    this->type = JSONValue::JsonValueType::NUMBER;
+    this->value_as_string = std::to_string(val);
+}
+
 JSONValue::JSONValue(char val)
 {
     set(val);
@@ -99,19 +105,16 @@ void JSONValue::set(JSONArray val)
 {
     std::string jsonStr;
     this->type = JSONValue::JsonValueType::JSON_ARRAY;
-    if(val.size() > 0 ) {
 
-        jsonStr = "[";
-        for(int i; i < val.size(); i++){
-            jsonStr += val[i].to_json_string();
-            if(i < val.size()-1){
-                jsonStr+= ",";
-            }
+    jsonStr = "[";
+    for(size_t i=0; i < val.size(); i++){
+        jsonStr += val[i].to_json_string();
+        if(i < val.size()-1){
+            jsonStr+= ",";
         }
-        jsonStr += "]";
-    } else {
-        jsonStr = "";
     }
+    jsonStr += "]";
+
     value_as_string = jsonStr;
 
 }
