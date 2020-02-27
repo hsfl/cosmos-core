@@ -213,8 +213,9 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         {
             //! 2. Join multicast
             inet_pton(AF_INET,address,&mreq.imr_multiaddr.s_addr);
+//            inte_pton(AF_INET, , &mreq.imr_interface.s_addr);
             //			mreq.imr_multiaddr.s_addr = inet_addr(address);
-            //            mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+                        mreq.imr_interface.s_addr = htonl(INADDR_ANY);
             if (setsockopt(channel->cudp, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
             {
                 CLOSE_SOCKET(channel->cudp);
