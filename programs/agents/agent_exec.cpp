@@ -277,6 +277,7 @@ int main(int argc, char *argv[])
 
     get_beacon_cpu();
     // Start performing the body of the agent
+    COSMOS_SLEEP(30.);
     lmjd = cmjd = nextmjd = currentmjd();
     while(agent->running())
     {

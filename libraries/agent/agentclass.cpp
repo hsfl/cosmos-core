@@ -200,7 +200,7 @@ namespace Cosmos
                 fprintf(get_debug_fd(), "COSMOS AGENT '%s' on node '%s'\n", aname.c_str(), nname.c_str());
                 fprintf(get_debug_fd(), "Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
                 fprintf(get_debug_fd(), "Agent started at %s\n", mjdToGregorian(timeStart).c_str());
-                fprintf(get_debug_fd(), "Debug level %lu\n", debug_level);
+                fprintf(get_debug_fd(), "Debug level %ud\n", debug_level);
                 fprintf(get_debug_fd(), "------------------------------------------------------\n");
             }
 
@@ -861,7 +861,7 @@ namespace Cosmos
 
             if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG))
             {
-                printf("Request: [%d] %s ",bufferin.size(), &bufferin[0]);
+                printf("Request: [%lu] %s ",bufferin.size(), &bufferin[0]);
                 fflush(stdout);
             }
 
@@ -1201,7 +1201,7 @@ namespace Cosmos
         {
             if (strcmp(request, "debug_level"))
             {
-                sscanf(request, "debug_level %d", &agent->debug_level);
+                sscanf(request, "debug_level %hu", &agent->debug_level);
             }
             sprintf(output, "%d", agent->debug_level);
             return 0;

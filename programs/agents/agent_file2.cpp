@@ -46,6 +46,7 @@
 #include "support/jsonlib.h"
 #include "support/transferlib.h"
 #include "support/sliplib.h"
+#include "support/jsonobject.h"
 
 #include <algorithm>
 #include <cstring>
@@ -165,6 +166,9 @@ typedef struct
 
 static std::vector<tx_queue> txq;
 
+static std::string log_directory = "incoming";
+double logstride_sec = 10.;
+
 int32_t request_debug(char *request, char *response, Agent *agent);
 int32_t request_get_channels(char* request, char* response, Agent *agent);
 int32_t request_set_throughput(char* request, char* response, Agent *agent);
@@ -173,6 +177,10 @@ int32_t request_remove_file(char* request, char* response, Agent *agent);
 int32_t request_ls(char* request, char* response, Agent *agent);
 int32_t request_list_incoming(char* request, char* response, Agent *agent);
 int32_t request_list_outgoing(char* request, char* response, Agent *agent);
+int32_t request_list_incoming_json(char* request, char* response, Agent *agent);
+int32_t request_list_outgoing_json(char* request, char* response, Agent *agent);
+int32_t request_set_logstride(char* request, char* response, Agent *agent);
+int32_t request_get_logstride(char* request, char* response, Agent *agent);
 int32_t outgoing_tx_add(tx_progress &tx_out);
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name);
 int32_t outgoing_tx_del(int32_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
@@ -203,7 +211,10 @@ int32_t lookup_remote_node_id(PACKET_NODE_ID_TYPE node_id);
 int32_t set_remote_node_id(PACKET_NODE_ID_TYPE node_id, std::string node_name);
 PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node);
 int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node);
-
+std::string json_list_incoming();
+std::string json_list_outgoing();
+std::string json_list_queue();
+void write_queue_log(double logdate);
 //main
 int main(int argc, char *argv[])
 {
@@ -262,6 +273,9 @@ int main(int argc, char *argv[])
             comm_channel[1].nmjd = currentmjd(0.);
             fprintf(agent->get_debug_fd(), "%16.10f Network: Old: %u %s %s %u\n", currentmjd(), 1, comm_channel[1].node.c_str(), comm_channel[1].chanip.c_str(), ntohs(comm_channel[1].chansock.caddr.sin_port));
             fflush(agent->get_debug_fd());
+
+            log_directory = "outgoing"; // put log files in node/outgoing/file
+            logstride_sec = 60.; // longer logstride
             break;
         }
     }
@@ -343,6 +357,14 @@ int main(int argc, char *argv[])
         exit (iretn);
     if ((iretn=agent->add_request("list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
         exit (iretn);
+    if ((iretn=agent->add_request("list_incoming_json",request_list_incoming_json,"", "lists contents incoming queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("list_outgoing_json",request_list_outgoing_json,"", "lists contents outgoing queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("set_logstride",request_set_logstride,"sec","set time interval of log files")))
+        exit (iretn);
+    if ((iretn=agent->add_request("get_logstride",request_get_logstride,"","get time interval of log files")))
+        exit (iretn);
     if ((iretn=agent->add_request("debug",request_debug,"{0|1}","Toggle Debug information")))
         exit (iretn);
 
@@ -351,6 +373,8 @@ int main(int argc, char *argv[])
     std::thread transmit_loop_thread(transmit_loop);
 
     double nextdiskcheck = currentmjd(0.);
+    double nextlog = currentmjd();
+    double sleepsec;
     ElapsedTime etloop;
     etloop.start();
 
@@ -363,16 +387,28 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        double sleepsec = 86400. * (nextdiskcheck - currentmjd());
+
+        if(nextdiskcheck < nextlog ) {
+            sleepsec = 86400. * (nextdiskcheck - currentmjd());
+        } else {
+            sleepsec = 86400. * (nextlog - currentmjd());
+        }
         if (sleepsec > 0.)
         {
             COSMOS_SLEEP((sleepsec));
         }
 
+        if(currentmjd() > nextlog) {
+            write_queue_log(currentmjd(0.));
+            nextlog = currentmjd(0.) + logstride_sec/86400.;
+        }
+
         // Check for new files to transmit if queue is not full and check is not delayed
+
 
         if (currentmjd() > nextdiskcheck)
         {
+
             nextdiskcheck = currentmjd(0.) + 10./86400.;
             for (uint16_t node=0; node<txq.size(); ++node)
             {
@@ -2779,4 +2815,170 @@ int32_t request_debug(char *request, char *response, Agent *agent)
 
     std::cout << "debug_flag: " << debug_flag << std::endl;
     return 0;
+}
+
+int32_t request_set_logstride(char* request, char*, Agent *)
+{
+    double new_logstride;
+    sscanf(request,"set_logstride %lf",&new_logstride);
+    if(new_logstride > 0. )
+    {
+        logstride_sec = new_logstride;
+    }
+    return 0;
+}
+
+int32_t request_get_logstride(char* request, char* response, Agent *agent)
+{
+    sprintf(response, "{\"logstride\":%lf}", logstride_sec);
+    return 0;
+}
+
+void write_queue_log(double logdate)
+{
+    std::string record = json_list_queue(); // to append to file
+
+    log_write(agent->cinfo->node.name, "file", logdate, "", "log", record, log_directory);
+
+
+}
+
+int32_t request_list_incoming_json(char* request, char* response, Agent *agent)
+{
+    sprintf(response, "%s", json_list_incoming().c_str());
+    return 0;
+}
+
+int32_t request_list_outgoing_json(char* request, char* response, Agent *agent)
+{
+    sprintf(response, "%s", json_list_outgoing().c_str());
+    return 0;
+}
+
+std::string json_list_incoming() {
+    JSONObject jobj;
+    JSONArray incoming;
+
+    incoming.resize(txq.size());
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+
+        JSONObject node_obj("node", txq[node].node_name);
+        node_obj.addElement("count", txq[node].incoming.size);
+
+        JSONArray files;
+        files.resize(txq[node].incoming.size);
+        int i =0;
+        for(tx_progress tx : txq[node].incoming.progress)
+        {
+            if (tx.tx_id)
+            {
+                JSONObject f("tx_id", tx.tx_id);
+                f.addElement("agent", tx.agent_name);
+                f.addElement("name", tx.file_name);
+                f.addElement("bytes", tx.total_bytes);
+                f.addElement("size", tx.file_size);
+                files.at(i) = (JSONValue(f));
+                i++;
+            }
+        }
+        node_obj.addElement("files", files);
+        incoming.at(node) = JSONValue(node_obj);
+
+    }
+    jobj.addElement("incoming", incoming);
+    return jobj.to_json_string();
+}
+
+std::string json_list_outgoing() {
+    JSONObject jobj;
+    JSONArray outgoing;
+
+    outgoing.resize(txq.size());
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+
+        JSONObject node_obj("node", txq[node].node_name);
+        node_obj.addElement("count", txq[node].outgoing.size);
+
+        JSONArray files;
+        files.resize(txq[node].outgoing.size);
+        int i =0;
+        for(tx_progress tx : txq[node].outgoing.progress)
+        {
+            if (tx.tx_id)
+            {
+                JSONObject f("tx_id", tx.tx_id);
+                f.addElement("agent", tx.agent_name);
+                f.addElement("name", tx.file_name);
+                f.addElement("bytes", tx.total_bytes);
+                f.addElement("size", tx.file_size);
+                files.at(i) = (JSONValue(f));
+                i++;
+            }
+        }
+        node_obj.addElement("files", files);
+        outgoing.at(node) = JSONValue(node_obj);
+
+    }
+    jobj.addElement("outgoing", outgoing);
+    return jobj.to_json_string();
+}
+std::string json_list_queue()
+{
+    JSONObject jobj;
+    JSONArray incoming;
+    JSONArray outgoing;
+
+    outgoing.resize(txq.size());
+    incoming.resize(txq.size());
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+
+        JSONObject node_in("node", txq[node].node_name);
+        node_in.addElement("count", txq[node].incoming.size);
+
+        JSONArray ifiles;
+        ifiles.resize(txq[node].incoming.size);
+        int i =0;
+        for(tx_progress tx : txq[node].incoming.progress)
+        {
+            if (tx.tx_id)
+            {
+                JSONObject f("tx_id", tx.tx_id);
+                f.addElement("agent", tx.agent_name);
+                f.addElement("name", tx.file_name);
+                f.addElement("bytes", tx.total_bytes);
+                f.addElement("size", tx.file_size);
+                ifiles.at(i) = (JSONValue(f));
+                i++;
+            }
+        }
+        node_in.addElement("files", ifiles);
+        incoming.at(node) = JSONValue(node_in);
+
+        JSONObject node_out("node", txq[node].node_name);
+        node_out.addElement("count", txq[node].incoming.size);
+        JSONArray files;
+        files.resize(txq[node].outgoing.size);
+        for(tx_progress tx : txq[node].outgoing.progress)
+        {
+            if (tx.tx_id)
+            {
+                JSONObject f("tx_id", tx.tx_id);
+                f.addElement("agent", tx.agent_name);
+                f.addElement("name", tx.file_name);
+                f.addElement("bytes", tx.total_bytes);
+                f.addElement("size", tx.file_size);
+                files.at(i) = (JSONValue(f));
+                i++;
+            }
+        }
+        node_out.addElement("files", files);
+        outgoing.at(node) = JSONValue(node_out);
+
+    }
+    jobj.addElement("outgoing", outgoing);
+    jobj.addElement("incoming", incoming);
+    return jobj.to_json_string();
 }

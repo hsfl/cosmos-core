@@ -5,6 +5,7 @@ class JSONObject;
 class JSONValue;
 typedef struct std::vector<JSONValue> JSONArray;
 
+
 class JSONValue
 {
 
@@ -26,6 +27,7 @@ public:
     JSONValue(double val);
     JSONValue(int val);
     JSONValue(uint32_t val);
+    JSONValue(uint8_t val);
 
     JSONValue(char val);
     JSONValue(JSONObject val);
