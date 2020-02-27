@@ -229,6 +229,18 @@ int main(int argc, char *argv[])
     devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
     antindex = agent->cinfo->device[devindex].ant.didx;
     agent->cinfo->device[devindex].ant.minelev = RADOF(10.);
+    if (antbase == "sband")
+    {
+        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_PRKX2SU;
+    }
+    else if (antbase == "yagi")
+    {
+        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_GS232B;
+    }
+    else
+    {
+        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_LOOPBACK;
+    }
 
     iretn = json_dump_node(agent->cinfo);
     if (iretn < 0)
