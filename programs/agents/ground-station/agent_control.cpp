@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
                     tfit.update(trajectory[j-1].second, trajectory[j-1].geod);
                     tfit.update(trajectory[j].second, trajectory[j].geod);
                     tfit.update(trajectory[j+1].second, trajectory[j+1].geod);
-                    for (uint16_t i=(trajectory[j-1].second+trajectory[j].second)/2; i<(trajectory[j].second+trajectory[j+1].second)/2; ++i)
+                    for (uint16_t i=static_cast<uint16_t>(.5+(trajectory[j-1].second+trajectory[j].second)/2); i<(trajectory[j].second+trajectory[j+1].second)/2; ++i)
                     {
                         ttrack.position.push_back(tfit);
                     }
@@ -402,9 +402,17 @@ int main(int argc, char *argv[])
                 tfit.initialize(3);
                 tfit.update(trajectory[trajectory.size()-2].second, trajectory[trajectory.size()-2].geod);
                 tfit.update(trajectory[trajectory.size()-1].second, trajectory[trajectory.size()-1].geod);
-                for (uint16_t i=(trajectory[trajectory.size()-2].second+trajectory[trajectory.size()-1].second)/2; i<trajectory[trajectory.size()-1].second; ++i)
+                for (uint16_t i=static_cast<uint16_t>(.5+(trajectory[trajectory.size()-2].second+trajectory[trajectory.size()-1].second)/2); i<trajectory[trajectory.size()-1].second; ++i)
                 {
                     ttrack.position.push_back(tfit);
+                }
+
+                for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=.5)
+                {
+                    uint16_t timeidx = static_cast<uint16_t>(timestep);
+                    gvector tpos = ttrack.position[timeidx].evalgvector(timestep);
+                    gvector tvel = ttrack.position[timeidx].slopegvector(timestep);
+                    printf("%f %f %f %f %f %f %f\n", timestep, tpos.lat, tpos.lon, tpos.h, tvel.lat, tvel.lon, tvel.h);
                 }
             }
         }
