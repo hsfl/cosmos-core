@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
 
     struct gentry
     {
-        size_t second;
+        double second;
         gvector geod;
         rvector geoc;
     };
@@ -356,7 +356,7 @@ int main(int argc, char *argv[])
             while (!feof(fp))
             {
                 gentry tentry;
-                iretn = fscanf(fp, "%d %f %f %f\n", &tentry.second, &tentry.geod.lat, &tentry.geod.lon, &tentry.geod.h);
+                iretn = fscanf(fp, "%lf %lf %lf %lf\n", &tentry.second, &tentry.geod.lat, &tentry.geod.lon, &tentry.geod.h);
                 if (iretn == 4)
                 {
                     trajectory.push_back(tentry);
