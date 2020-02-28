@@ -139,6 +139,9 @@ std::istream& operator >> (std::istream& out, avector& a);
 std::ostream& operator << (std::ostream& out, const cvector& a);
 std::istream& operator >> (std::istream& in, cvector& a);
 
+// Geodetic Vector operations
+gvector gv_zero();
+
 // Row Vector operations
 rvector rv_zero();
 rvector rv_shortest(rvector v);
@@ -158,10 +161,6 @@ rvector rv_mult(rvector a, rvector b);
 rvector rv_div(rvector a, rvector b);
 rvector rv_sqrt(rvector a);
 rvector rv_cross(rvector a, rvector b);
-rvector rv_evaluate_poly(double x, std::vector< std::vector<double> > parms);
-rvector rv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
-rvector rv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
-rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
 rvector rv_convert(svector from);
 
 double norm_rv(rvector a);
