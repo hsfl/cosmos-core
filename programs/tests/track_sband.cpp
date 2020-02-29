@@ -226,8 +226,8 @@ int main(int argc, char *argv[])
         }
         else if (mode == "abs")
         {
-            target.azim = atof(argv[3]);
-            target.elev = atof(argv[4]);
+            target.azim = RADOF(atof(argv[3]));
+            target.elev = RADOF(atof(argv[4]));
         }
         else
         {
