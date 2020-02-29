@@ -129,7 +129,7 @@ struct trackstruc
     vector <LsFit> position;
 };
 static trackstruc track;
-static antstruc desired;
+static double timestep;
 
 int main(int argc, char *argv[])
 {
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
                             track.position.push_back(tfit);
                         }
 
-                        for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=.5)
+                        for (timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=.5)
                         {
                             uint16_t timeidx = static_cast<uint16_t>(timestep);
                             gvector tpos = track.position[timeidx].evalgvector(timestep);
@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
                 {
                     if (ctime >= startdate)
                     {
-                        double timestep = 86400.*(ctime - startdate);
+                        timestep = 86400.*(ctime - startdate);
                         uint16_t timeidx = static_cast<uint16_t>(timestep);
                         track.target.loc.pos.geod.utc = ctime;
                         track.target.loc.pos.geod.s = track.position[timeidx].evalgvector(timestep);
@@ -365,15 +365,19 @@ int main(int argc, char *argv[])
 //                        iretn = prkx2su_goto(target.azim + antennaoffset.az, current.elev + antennaoffset.el);
                         break;
                     }
-                    printf("%s %16.10f %f %f %f %f %f %f\n",
+                    printf("%s %16.10f %f %f %f %f %f %f %f %f %f %f\n",
                            utc2iso8601(ctime).c_str(),
                            ctime,
+                           timestep,
                            DEGOF(target.azim),
                            DEGOF(target.elev),
                            DEGOF(current.azim),
                            DEGOF(current.elev),
                            DEGOF(target.azim-current.azim),
-                           DEGOF(target.elev-current.elev));
+                           DEGOF(target.elev-current.elev),
+                           DEGOF(track.target.loc.pos.geod.s.lat),
+                           DEGOF(track.target.loc.pos.geod.s.lon),
+                           track.target.loc.pos.geod.s.h);
                     if (debug)
                     {
                         printf("%f: goto %f %f [%d]\n", et.lap(), DEGOF(current.azim + antennaoffset.az), DEGOF(current.elev + antennaoffset.el), iretn);
