@@ -199,13 +199,13 @@ int main(int argc, char *argv[])
                             track.position.push_back(tfit);
                         }
 
-//                        for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=.5)
-//                        {
-//                            uint16_t timeidx = static_cast<uint16_t>(timestep);
-//                            gvector tpos = track.position[timeidx].evalgvector(timestep);
-//                            gvector tvel = track.position[timeidx].slopegvector(timestep);
-//                            printf("%f %f %f %f %f %f %f\n", timestep, tpos.lat, tpos.lon, tpos.h, tvel.lat, tvel.lon, tvel.h);
-//                        }
+                        for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=.5)
+                        {
+                            uint16_t timeidx = static_cast<uint16_t>(timestep);
+                            gvector tpos = track.position[timeidx].evalgvector(timestep);
+                            gvector tvel = track.position[timeidx].slopegvector(timestep);
+                            printf("%f %f %f %f %f %f %f\n", timestep, DEGOF(tpos.lat), DEGOF(tpos.lon), tpos.h, DEGOF(tvel.lat), DEGOF(tvel.lon), tvel.h);
+                        }
                     }
                 }
             }
