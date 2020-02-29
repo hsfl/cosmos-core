@@ -224,6 +224,11 @@ int main(int argc, char *argv[])
         {
 
         }
+        else if (mode == "abs")
+        {
+            target.azim = atof(argv[3]);
+            target.elev = atof(argv[4]);
+        }
         else
         {
             if (argc == 5)
@@ -370,10 +375,12 @@ int main(int argc, char *argv[])
                 switch (agent->cinfo->device[devindex].all.model)
                 {
                 case DEVICE_MODEL_GS232B:
-                    iretn = gs232b_goto(target.azim + antennaoffset.az, current.elev + antennaoffset.el);
+                    iretn = gs232b_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 case DEVICE_MODEL_PRKX2SU:
-                    iretn = prkx2su_goto(target.azim + antennaoffset.az, current.elev + antennaoffset.el);
+                    prkx2su_maximum_speed(0, 1);
+                    prkx2su_maximum_speed(1, 1);
+                    iretn = prkx2su_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 }
                 printf("%s %16.10f %.1f %.1f %.1f %.1f %.1f %.2f %.2f %.3f %.3f %.1f %.1f\n",
