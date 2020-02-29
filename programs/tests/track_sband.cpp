@@ -338,10 +338,11 @@ int main(int argc, char *argv[])
                 agent->cinfo->device[devindex].ant.elev = current.elev -  antennaoffset.el;
                 if (mode == "tra")
                 {
-                    if (currentmjd() >= startdate)
+                    if (ctime >= startdate)
                     {
-                        double timestep = ctime - startdate;
+                        double timestep = 86400.*(ctime - startdate);
                         uint16_t timeidx = static_cast<uint16_t>(timestep);
+                        track.target.loc.pos.geod.utc = ctime;
                         track.target.loc.pos.geod.s = track.position[timeidx].evalgvector(timestep);
                         track.target.loc.pos.geod.v = track.position[timeidx].slopegvector(timestep);
                         track.target.loc.pos.geod.pass++;
@@ -383,7 +384,7 @@ int main(int argc, char *argv[])
                     }
                 }
             }
-            COSMOS_SLEEP(.1);
+            COSMOS_SLEEP(.5);
         }
         else
         {
