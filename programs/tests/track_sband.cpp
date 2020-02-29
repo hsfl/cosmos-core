@@ -376,7 +376,7 @@ int main(int argc, char *argv[])
                     iretn = prkx2su_goto(target.azim + antennaoffset.az, current.elev + antennaoffset.el);
                     break;
                 }
-                printf("%s %16.10f %f %f %f %f %f %f %f %f %f %f %f\n",
+                printf("%s %16.10f %.1f %.1f %.1f %.1f %.1f %.2f %.2f %.3f %.3f %.1f %.1f\n",
                        utc2iso8601(ctime).c_str(),
                        ctime,
                        timestep,
