@@ -156,6 +156,8 @@ int main(int argc, char *argv[])
                         iretn = fscanf(fp, "%lf %lf %lf %lf\n", &tentry.second, &tentry.geod.lat, &tentry.geod.lon, &tentry.geod.h);
                         if (iretn == 4)
                         {
+                            tentry.geod.lat = RADOF(tentry.geod.lat);
+                            tentry.geod.lon = RADOF(tentry.geod.lon);
                             trajectory.push_back(tentry);
                         }
                     }
@@ -197,13 +199,13 @@ int main(int argc, char *argv[])
                             track.position.push_back(tfit);
                         }
 
-                        for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=.5)
-                        {
-                            uint16_t timeidx = static_cast<uint16_t>(timestep);
-                            gvector tpos = track.position[timeidx].evalgvector(timestep);
-                            gvector tvel = track.position[timeidx].slopegvector(timestep);
-                            printf("%f %f %f %f %f %f %f\n", timestep, tpos.lat, tpos.lon, tpos.h, tvel.lat, tvel.lon, tvel.h);
-                        }
+//                        for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=.5)
+//                        {
+//                            uint16_t timeidx = static_cast<uint16_t>(timestep);
+//                            gvector tpos = track.position[timeidx].evalgvector(timestep);
+//                            gvector tvel = track.position[timeidx].slopegvector(timestep);
+//                            printf("%f %f %f %f %f %f %f\n", timestep, tpos.lat, tpos.lon, tpos.h, tvel.lat, tvel.lon, tvel.h);
+//                        }
                     }
                 }
             }
