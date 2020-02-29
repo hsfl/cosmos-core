@@ -304,6 +304,7 @@ int main(int argc, char *argv[])
     agent->cinfo->node.loc.pos.geod.s.lon = RADOF(-159.39775555555555555555555555556);
     agent->cinfo->node.loc.pos.geod.s.h = 348.;
     agent->cinfo->node.loc.pos.geod.v = gv_zero();
+    agent->cinfo->node.loc.pos.geod.pass++;
     pos_geod(&agent->cinfo->node.loc);
 
     ElapsedTime et;
