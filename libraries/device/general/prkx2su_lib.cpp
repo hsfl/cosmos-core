@@ -224,23 +224,61 @@ int32_t prkx2su_stop(uint8_t axis)
 	return iretn;
 }
 
+int32_t prkx2su_ramp(uint8_t axis, uint8_t speed)
+{
+    int32_t iretn;
+    char out[50];
+
+    if (speed < 1 || speed > 10)
+        return (PRKX2SU_ERROR_OUTOFRANGE);
+    sprintf(out,"WNn%03hu;",speed);
+    iretn = prkx2su_send(axis, out, true);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    else
+    {
+        return (speed);
+    }
+}
+
+int32_t prkx2su_minimum_speed(uint8_t axis, uint8_t speed)
+{
+    int32_t iretn;
+    char out[50];
+
+    if (speed < 1 || speed > 10)
+        return (PRKX2SU_ERROR_OUTOFRANGE);
+    sprintf(out,"WFn%03hu;",speed);
+    iretn = prkx2su_send(axis, out, true);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    else
+    {
+        return (speed);
+    }
+}
+
 int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed)
 {
-	int32_t iretn;
-	char out[50];
+    int32_t iretn;
+    char out[50];
 
-	if (speed < 1 || speed > 10)
-		return (PRKX2SU_ERROR_OUTOFRANGE);
-	sprintf(out,"WGn%03hu;",speed);
-	iretn = prkx2su_send(axis, out, true);
-	if (iretn < 0)
-	{
-		return iretn;
-	}
-	else
-	{
-		return (speed);
-	}
+    if (speed < 1 || speed > 10)
+        return (PRKX2SU_ERROR_OUTOFRANGE);
+    sprintf(out,"WGn%03hu;",speed);
+    iretn = prkx2su_send(axis, out, true);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    else
+    {
+        return (speed);
+    }
 }
 
 int32_t prkx2su_goto(float az, float el)

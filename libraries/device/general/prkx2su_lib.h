@@ -93,6 +93,8 @@ float prkx2su_get_el_offset();
 void prkx2su_get_state(prkx2su_state &state);
 int32_t prkx2su_goto(float az, float el);
 int32_t prkx2su_stop(uint8_t axis);
+int32_t prkx2su_ramp(uint8_t axis, uint8_t speed);
+int32_t prkx2su_minimum_speed(uint8_t axis, uint8_t speed);
 int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed);
 int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen);
 int32_t prkx2su_send(uint8_t axis, char *buf, bool force);
