@@ -144,10 +144,10 @@ int main(int argc, char *argv[])
     {
         antbase = argv[1];
         mode = argv[2];
-        startdate = atof(argv[3]);
-        trajectoryname = argv[4];
         if (mode == "tra")
         {
+            startdate = atof(argv[3]);
+            trajectoryname = argv[4];
             if (!trajectoryname.empty() && data_isfile(trajectoryname))
             {
                 FILE *fp = fopen(trajectoryname.c_str(), "r");
