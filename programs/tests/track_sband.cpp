@@ -74,6 +74,7 @@
 #include "math/mathlib.h"
 #include "math/vector.h"
 #include "support/ephemlib.h"
+#include "physics/physicslib.h"
 
 int32_t connect_antenna();
 
@@ -95,7 +96,8 @@ static bool debug;
 int load_tle_info(char *file);
 
 // Here are variables for internal use
-static vector<tlestruc> tle;
+static tlestruc tle;
+static string tlename;
 static Agent *agent;
 
 struct azelstruc
@@ -218,7 +220,21 @@ int main(int argc, char *argv[])
         }
         else if (mode == "tle")
         {
+            tlename = argv[3];
+            loadTLE(argv[3], tle);
+            track.type = 0;
+            track.name = tle.name;
+            track.target.type = NODE_TYPE_SATELLITE;
+            tle2eci(currentmjd()-10./86400., tle, track.target.loc.pos.eci);
+            track.target.loc.att.icrf.s = q_eye();
+            track.target.loc.att.icrf.v = rv_zero();
+            track.target.loc.att.icrf.a = rv_zero();
+            track.physics.area = .01;
+            track.physics.mass = 1.;
 
+
+            gauss_jackson_init_eci(track.gjh, 6, 0, 1., track.target.loc.pos.eci.utc, track.target.loc.pos.eci, track.target.loc.att.icrf, track.physics, track.target.loc);
+            gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, currentmjd());
         }
         else if (mode == "prop")
         {
@@ -365,13 +381,19 @@ int main(int argc, char *argv[])
                 }
                 else if (mode == "sun")
                 {
-                    jplpos(JPL_EARTH, JPL_SUN, currentmjd(), &track.target.loc.pos.eci);
+                    jplpos(JPL_EARTH, JPL_SUN, ctime, &track.target.loc.pos.eci);
                     track.target.loc.pos.eci.pass++;
                     pos_eci(&track.target.loc);
                     update_target(agent->cinfo->node.loc, track.target);
                     target.azim = track.target.azfrom;
                     target.elev = track.target.elfrom;
                 }
+                else if (mode == "tle")
+                {
+                    gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, ctime);
+                    update_target(agent->cinfo->node.loc, track.target);
+                }
+
                 switch (agent->cinfo->device[devindex].all.model)
                 {
                 case DEVICE_MODEL_GS232B:
@@ -382,8 +404,8 @@ int main(int argc, char *argv[])
                     prkx2su_ramp(PRKX2SU_AXIS_EL, 9);
                     prkx2su_minimum_speed(PRKX2SU_AXIS_AZ, 1);
                     prkx2su_minimum_speed(PRKX2SU_AXIS_EL, 1);
-                    prkx2su_maximum_speed(PRKX2SU_AXIS_AZ, 5);
-                    prkx2su_maximum_speed(PRKX2SU_AXIS_EL, 5);
+                    prkx2su_maximum_speed(PRKX2SU_AXIS_AZ, 9);
+                    prkx2su_maximum_speed(PRKX2SU_AXIS_EL, 9);
                     iretn = prkx2su_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 }
