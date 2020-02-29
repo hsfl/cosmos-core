@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
         gs232b_set_sensitivity(RADOF(1.));
         break;
     case DEVICE_MODEL_PRKX2SU:
-        prkx2su_set_sensitivity(RADOF(.2));
+        prkx2su_set_sensitivity(RADOF(.5));
         break;
     }
 
@@ -378,12 +378,16 @@ int main(int argc, char *argv[])
                     iretn = gs232b_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 case DEVICE_MODEL_PRKX2SU:
-                    prkx2su_maximum_speed(0, 1);
-                    prkx2su_maximum_speed(1, 1);
+                    prkx2su_ramp(PRKX2SU_AXIS_AZ, 9);
+                    prkx2su_ramp(PRKX2SU_AXIS_EL, 9);
+                    prkx2su_minimum_speed(PRKX2SU_AXIS_AZ, 1);
+                    prkx2su_minimum_speed(PRKX2SU_AXIS_EL, 1);
+                    prkx2su_maximum_speed(PRKX2SU_AXIS_AZ, 5);
+                    prkx2su_maximum_speed(PRKX2SU_AXIS_EL, 5);
                     iretn = prkx2su_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 }
-                printf("%s %16.10f %.1f %.1f %.1f %.1f %.1f %.2f %.2f %.3f %.3f %.1f %.1f\n",
+                printf("%s %16.10f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.3f %.3f %.1f %.1f\n",
                        utc2iso8601(ctime).c_str(),
                        ctime,
                        timestep,
