@@ -73,6 +73,7 @@
 #include "support/elapsedtime.h"
 #include "math/mathlib.h"
 #include "math/vector.h"
+#include "support/ephemlib.h"
 
 int32_t connect_antenna();
 
@@ -199,7 +200,7 @@ int main(int argc, char *argv[])
                             track.position.push_back(tfit);
                         }
 
-                        for (timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=.5)
+                        for (timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
                         {
                             uint16_t timeidx = static_cast<uint16_t>(timestep);
                             gvector tpos = track.position[timeidx].evalgvector(timestep);
@@ -356,36 +357,46 @@ int main(int argc, char *argv[])
                         target.azim = RADOF(90.);
                         target.elev = RADOF(45.);
                     }
-                    switch (agent->cinfo->device[devindex].all.model)
-                    {
-                    case DEVICE_MODEL_GS232B:
-                        iretn = gs232b_goto(target.azim + antennaoffset.az, current.elev + antennaoffset.el);
-                        break;
-                    case DEVICE_MODEL_PRKX2SU:
-//                        iretn = prkx2su_goto(target.azim + antennaoffset.az, current.elev + antennaoffset.el);
-                        break;
-                    }
-                    printf("%s %16.10f %f %f %f %f %f %f %f %f %f %f\n",
-                           utc2iso8601(ctime).c_str(),
-                           ctime,
-                           timestep,
-                           DEGOF(target.azim),
-                           DEGOF(target.elev),
-                           DEGOF(current.azim),
-                           DEGOF(current.elev),
-                           DEGOF(target.azim-current.azim),
-                           DEGOF(target.elev-current.elev),
-                           DEGOF(track.target.loc.pos.geod.s.lat),
-                           DEGOF(track.target.loc.pos.geod.s.lon),
-                           track.target.loc.pos.geod.s.h);
-                    if (debug)
-                    {
-                        printf("%f: goto %f %f [%d]\n", et.lap(), DEGOF(current.azim + antennaoffset.az), DEGOF(current.elev + antennaoffset.el), iretn);
-                    }
-                    if (iretn < 0)
-                    {
-                        antconnected = false;
-                    }
+                }
+                else if (mode == "sun")
+                {
+                    jplpos(JPL_EARTH, JPL_SUN, currentmjd(), &track.target.loc.pos.eci);
+                    track.target.loc.pos.eci.pass++;
+                    pos_eci(&track.target.loc);
+                    update_target(agent->cinfo->node.loc, track.target);
+                    target.azim = track.target.azfrom;
+                    target.elev = track.target.elfrom;
+                }
+                switch (agent->cinfo->device[devindex].all.model)
+                {
+                case DEVICE_MODEL_GS232B:
+                    iretn = gs232b_goto(target.azim + antennaoffset.az, current.elev + antennaoffset.el);
+                    break;
+                case DEVICE_MODEL_PRKX2SU:
+                    iretn = prkx2su_goto(target.azim + antennaoffset.az, current.elev + antennaoffset.el);
+                    break;
+                }
+                printf("%s %16.10f %f %f %f %f %f %f %f %f %f %f %f\n",
+                       utc2iso8601(ctime).c_str(),
+                       ctime,
+                       timestep,
+                       DEGOF(target.azim),
+                       DEGOF(target.elev),
+                       DEGOF(current.azim),
+                       DEGOF(current.elev),
+                       DEGOF(target.azim-current.azim),
+                       DEGOF(target.elev-current.elev),
+                       DEGOF(track.target.loc.pos.geod.s.lat),
+                       DEGOF(track.target.loc.pos.geod.s.lon),
+                       track.target.loc.pos.geod.s.h,
+                       track.target.range);
+                if (debug)
+                {
+                    printf("%f: goto %f %f [%d]\n", et.lap(), DEGOF(current.azim + antennaoffset.az), DEGOF(current.elev + antennaoffset.el), iretn);
+                }
+                if (iretn < 0)
+                {
+                    antconnected = false;
                 }
             }
             COSMOS_SLEEP(.5);
