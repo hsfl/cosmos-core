@@ -407,7 +407,7 @@ int main(int argc, char *argv[])
                     ttrack.position.push_back(tfit);
                 }
 
-                for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=.5)
+				for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
                 {
                     uint16_t timeidx = static_cast<uint16_t>(timestep);
                     gvector tpos = ttrack.position[timeidx].evalgvector(timestep);
