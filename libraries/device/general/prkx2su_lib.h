@@ -76,6 +76,7 @@ struct prkx2su_state
 	float el_offset;
 	float currentel;
 	float targetel;
+    float minimumel;
 	float sensitivity;
 	int32_t in_command;
 	int32_t data_received;
