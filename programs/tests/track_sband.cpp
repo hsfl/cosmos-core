@@ -125,10 +125,10 @@ static double startdate = 0.;
 struct trackstruc
 {
     uint16_t type;
-        targetstruc target;
-        physicsstruc physics;
+    targetstruc target;
+    physicsstruc physics;
     string name;
-        gj_handle gjh;
+    gj_handle gjh;
     vector <LsFit> position;
 };
 static trackstruc track;
@@ -137,6 +137,17 @@ static double timestep;
 int main(int argc, char *argv[])
 {
     int iretn;
+
+    if (argc > 3)
+    {
+        antbase = argv[1];
+        mode = argv[2];
+    }
+    else
+    {
+        printf("Usage: track_antenna antenna mode {file.tle, {date file.tra}, {date x y z vx vy vz}, {az el} [offset_az offset_el]\n");
+        exit(1);
+    }
 
     // Initialization stuff
 
@@ -148,16 +159,6 @@ int main(int argc, char *argv[])
     {
         agent = new Agent(nodename);
     }
-
-//    if ((iretn = agent->wait()) < 0)
-//    {
-//        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
-//        exit(iretn);
-//    }
-//    else
-//    {
-//        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
-//    }
 
     iretn = json_createpiece(agent->cinfo, antbase.c_str(), DeviceType::ANT);
     if (iretn < 0)
@@ -209,126 +210,116 @@ int main(int argc, char *argv[])
     agent->cinfo->node.loc.pos.geod.v = gv_zero();
     agent->cinfo->node.loc.pos.geod.pass++;
     pos_geod(&agent->cinfo->node.loc);
-    if (argc > 3)
+
+    if (mode == "tra")
     {
-        antbase = argv[1];
-        mode = argv[2];
-        if (mode == "tra")
+        startdate = atof(argv[3]);
+        trajectoryname = argv[4];
+        if (!trajectoryname.empty() && data_isfile(trajectoryname))
         {
-            startdate = atof(argv[3]);
-            trajectoryname = argv[4];
-            if (!trajectoryname.empty() && data_isfile(trajectoryname))
+            FILE *fp = fopen(trajectoryname.c_str(), "r");
+            if (fp != nullptr)
             {
-                FILE *fp = fopen(trajectoryname.c_str(), "r");
-                if (fp != nullptr)
+                while (!feof(fp))
                 {
-                    while (!feof(fp))
+                    gentry tentry;
+                    iretn = fscanf(fp, "%lf %lf %lf %lf\n", &tentry.second, &tentry.geod.lat, &tentry.geod.lon, &tentry.geod.h);
+                    if (iretn == 4)
                     {
-                        gentry tentry;
-                        iretn = fscanf(fp, "%lf %lf %lf %lf\n", &tentry.second, &tentry.geod.lat, &tentry.geod.lon, &tentry.geod.h);
-                        if (iretn == 4)
+                        tentry.geod.lat = RADOF(tentry.geod.lat);
+                        tentry.geod.lon = RADOF(tentry.geod.lon);
+                        trajectory.push_back(tentry);
+                    }
+                }
+                fclose(fp);
+                if (trajectory.size() > 2)
+                {
+                    track.type = 0;
+                    track.name = trajectoryname;
+                    track.target.type = NODE_TYPE_SATELLITE;
+                    track.target.loc.att.icrf.s = q_eye();
+                    track.target.loc.att.icrf.v = rv_zero();
+                    track.target.loc.att.icrf.a = rv_zero();
+                    track.physics.area = .01;
+                    track.physics.mass = 1.;
+
+                    LsFit tfit(3);
+                    tfit.update(trajectory[0].second, trajectory[0].geod);
+                    tfit.update(trajectory[1].second, trajectory[1].geod);
+                    for (uint16_t i=0; i<(trajectory[0].second+trajectory[1].second)/2; ++i)
+                    {
+                        track.position.push_back(tfit);
+                    }
+                    for (uint16_t j=1; j<trajectory.size()-1; ++j)
+                    {
+                        tfit.initialize(3);
+                        tfit.update(trajectory[j-1].second, trajectory[j-1].geod);
+                        tfit.update(trajectory[j].second, trajectory[j].geod);
+                        tfit.update(trajectory[j+1].second, trajectory[j+1].geod);
+                        for (uint16_t i=static_cast<uint16_t>(.5+(trajectory[j-1].second+trajectory[j].second)/2); i<(trajectory[j].second+trajectory[j+1].second)/2; ++i)
                         {
-                            tentry.geod.lat = RADOF(tentry.geod.lat);
-                            tentry.geod.lon = RADOF(tentry.geod.lon);
-                            trajectory.push_back(tentry);
+                            track.position.push_back(tfit);
                         }
                     }
-                    fclose(fp);
-                    if (trajectory.size() > 2)
+                    tfit.initialize(3);
+                    tfit.update(trajectory[trajectory.size()-2].second, trajectory[trajectory.size()-2].geod);
+                    tfit.update(trajectory[trajectory.size()-1].second, trajectory[trajectory.size()-1].geod);
+                    for (uint16_t i=static_cast<uint16_t>(.5+(trajectory[trajectory.size()-2].second+trajectory[trajectory.size()-1].second)/2); i<trajectory[trajectory.size()-1].second; ++i)
                     {
-                        track.type = 0;
-                        track.name = trajectoryname;
-                        track.target.type = NODE_TYPE_SATELLITE;
-                        track.target.loc.att.icrf.s = q_eye();
-                        track.target.loc.att.icrf.v = rv_zero();
-                        track.target.loc.att.icrf.a = rv_zero();
-                        track.physics.area = .01;
-                        track.physics.mass = 1.;
+                        track.position.push_back(tfit);
+                    }
 
-                        LsFit tfit(3);
-                        tfit.update(trajectory[0].second, trajectory[0].geod);
-                        tfit.update(trajectory[1].second, trajectory[1].geod);
-                        for (uint16_t i=0; i<(trajectory[0].second+trajectory[1].second)/2; ++i)
-                        {
-                            track.position.push_back(tfit);
-                        }
-                        for (uint16_t j=1; j<trajectory.size()-1; ++j)
-                        {
-                            tfit.initialize(3);
-                            tfit.update(trajectory[j-1].second, trajectory[j-1].geod);
-                            tfit.update(trajectory[j].second, trajectory[j].geod);
-                            tfit.update(trajectory[j+1].second, trajectory[j+1].geod);
-                            for (uint16_t i=static_cast<uint16_t>(.5+(trajectory[j-1].second+trajectory[j].second)/2); i<(trajectory[j].second+trajectory[j+1].second)/2; ++i)
-                            {
-                                track.position.push_back(tfit);
-                            }
-                        }
-                        tfit.initialize(3);
-                        tfit.update(trajectory[trajectory.size()-2].second, trajectory[trajectory.size()-2].geod);
-                        tfit.update(trajectory[trajectory.size()-1].second, trajectory[trajectory.size()-1].geod);
-                        for (uint16_t i=static_cast<uint16_t>(.5+(trajectory[trajectory.size()-2].second+trajectory[trajectory.size()-1].second)/2); i<trajectory[trajectory.size()-1].second; ++i)
-                        {
-                            track.position.push_back(tfit);
-                        }
-
-                        for (timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
-                        {
-                            uint16_t timeidx = static_cast<uint16_t>(timestep);
-                            gvector tpos = track.position[timeidx].evalgvector(timestep);
-                            gvector tvel = track.position[timeidx].slopegvector(timestep);
-                            printf("%f %f %f %f %f %f %f\n", timestep, DEGOF(tpos.lat), DEGOF(tpos.lon), tpos.h, DEGOF(tvel.lat), DEGOF(tvel.lon), tvel.h);
-                        }
+                    for (timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
+                    {
+                        uint16_t timeidx = static_cast<uint16_t>(timestep);
+                        gvector tpos = track.position[timeidx].evalgvector(timestep);
+                        gvector tvel = track.position[timeidx].slopegvector(timestep);
+                        printf("%f %f %f %f %f %f %f\n", timestep, DEGOF(tpos.lat), DEGOF(tpos.lon), tpos.h, DEGOF(tvel.lat), DEGOF(tvel.lon), tvel.h);
                     }
                 }
             }
-            if (argc == 5)
-            {
-                offset_az = atof(argv[argc-2]);
-                offset_el = atof(argv[argc-1]);
-            }
         }
-        else if (mode == "tle")
+        if (argc == 5)
         {
-            tlename = argv[3];
-            loadTLE(argv[3], tle);
-            track.type = 0;
-            track.name = tle.name;
-            track.target.type = NODE_TYPE_SATELLITE;
-            tle2eci(currentmjd()-10./86400., tle, track.target.loc.pos.eci);
-            track.target.loc.att.icrf.s = q_eye();
-            track.target.loc.att.icrf.v = rv_zero();
-            track.target.loc.att.icrf.a = rv_zero();
-            track.physics.area = .01;
-            track.physics.mass = 1.;
+            offset_az = atof(argv[argc-2]);
+            offset_el = atof(argv[argc-1]);
+        }
+    }
+    else if (mode == "tle")
+    {
+        tlename = argv[3];
+        loadTLE(argv[3], tle);
+        track.type = 0;
+        track.name = tle.name;
+        track.target.type = NODE_TYPE_SATELLITE;
+        tle2eci(currentmjd()-10./86400., tle, track.target.loc.pos.eci);
+        track.target.loc.att.icrf.s = q_eye();
+        track.target.loc.att.icrf.v = rv_zero();
+        track.target.loc.att.icrf.a = rv_zero();
+        track.physics.area = .01;
+        track.physics.mass = 1.;
 
 
-            gauss_jackson_init_eci(track.gjh, 6, 0, 1., track.target.loc.pos.eci.utc, track.target.loc.pos.eci, track.target.loc.att.icrf, track.physics, track.target.loc);
-            gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, currentmjd());
-        }
-        else if (mode == "prop")
-        {
+        gauss_jackson_init_eci(track.gjh, 6, 0, 1., track.target.loc.pos.eci.utc, track.target.loc.pos.eci, track.target.loc.att.icrf, track.physics, track.target.loc);
+        gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, currentmjd());
+    }
+    else if (mode == "prop")
+    {
 
-        }
-        else if (mode == "abs")
-        {
-            target.azim = RADOF(atof(argv[3]));
-            target.elev = RADOF(atof(argv[4]));
-        }
-        else
-        {
-            if (argc == 5)
-            {
-                offset_az = atof(argv[argc-2]);
-                offset_el = atof(argv[argc-1]);
-            }
-        }
+    }
+    else if (mode == "abs")
+    {
+        target.azim = RADOF(atof(argv[3]));
+        target.elev = RADOF(atof(argv[4]));
     }
     else
     {
-        printf("Usage: track_antenna antenna mode {file.tle, {date file.tra}, {date x y z vx vy vz}, {az el} [offset_az offset_el]\n");
-        exit(1);
+        if (argc == 5)
+        {
+            offset_az = atof(argv[argc-2]);
+            offset_el = atof(argv[argc-1]);
+        }
     }
-
 
     ElapsedTime et;
 
