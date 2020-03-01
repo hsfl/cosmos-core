@@ -37,7 +37,8 @@
 * Internal descriptor for cssl serial control of prkx2su.
 * @brief prkx2su serial handle
 */
-static cssl_t *prkx2su_serial[2] = {nullptr, nullptr};
+//static cssl_t *prkx2su_serial[2] = {nullptr, nullptr};
+static Serial *prkx2su_serial[2];
 
 static prkx2su_state ant_state;
 
@@ -53,7 +54,7 @@ static prkx2su_state ant_state;
 int32_t prkx2su_connect(std::string dev)
 {
 	int32_t iretn;
-	cssl_start();
+//	cssl_start();
 
 	if (prkx2su_serial[PRKX2SU_AXIS_AZ] != nullptr)
 	{
@@ -61,20 +62,23 @@ int32_t prkx2su_connect(std::string dev)
 	}
 
 	std::string device = dev + "_az";
-	prkx2su_serial[PRKX2SU_AXIS_AZ] = cssl_open(device.c_str(), PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
-	if (prkx2su_serial[PRKX2SU_AXIS_AZ] == nullptr)
+//    prkx2su_serial[PRKX2SU_AXIS_AZ] = cssl_open(device.c_str(), PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+    prkx2su_serial[PRKX2SU_AXIS_AZ] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+    if (prkx2su_serial[PRKX2SU_AXIS_AZ] == nullptr)
 	{
-		return CSSL_ERROR_OPEN;
+//		return CSSL_ERROR_OPEN;
+        return SERIAL_ERROR_OPEN;
 	}
 
-	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_AZ], 0, .1);
+//	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_AZ], 0, .1);
+    iretn = prkx2su_serial[PRKX2SU_AXIS_AZ]->set_timeout(.5);
 	if (iretn < 0)
 	{
 		prkx2su_disconnect();
 		return iretn;
 	}
 
-	iretn = prkx2su_send(PRKX2SU_AXIS_AZ, (char *)"", true);
+    iretn = prkx2su_send(PRKX2SU_AXIS_AZ, "", true);
 	if (iretn < 0)
 	{
 		prkx2su_disconnect();
@@ -88,21 +92,24 @@ int32_t prkx2su_connect(std::string dev)
 	}
 
 	device = dev + "_el";
-	prkx2su_serial[PRKX2SU_AXIS_EL] = cssl_open(device.c_str(), PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
-	if (prkx2su_serial[PRKX2SU_AXIS_EL] == nullptr)
+//	prkx2su_serial[PRKX2SU_AXIS_EL] = cssl_open(device.c_str(), PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+    prkx2su_serial[PRKX2SU_AXIS_EL] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+    if (prkx2su_serial[PRKX2SU_AXIS_EL] == nullptr)
 	{
 		prkx2su_disconnect();
-		return CSSL_ERROR_OPEN;
+//		return CSSL_ERROR_OPEN;
+        return SERIAL_ERROR_OPEN;
 	}
 
-	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_EL], 0, .1);
-	if (iretn < 0)
+//	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_EL], 0, .1);
+    iretn = prkx2su_serial[PRKX2SU_AXIS_EL]->set_timeout(.5);
+    if (iretn < 0)
 	{
 		prkx2su_disconnect();
 		return iretn;
 	}
 
-	iretn = prkx2su_send(PRKX2SU_AXIS_EL, (char *)"", true);
+    iretn = prkx2su_send(PRKX2SU_AXIS_EL, "", true);
 	if (iretn < 0)
 	{
 		prkx2su_disconnect();
@@ -119,14 +126,16 @@ int32_t prkx2su_disconnect()
 {
 	if (prkx2su_serial[PRKX2SU_AXIS_AZ] != nullptr)
 	{
-		cssl_close(prkx2su_serial[PRKX2SU_AXIS_AZ]);
-		prkx2su_serial[PRKX2SU_AXIS_AZ] = nullptr;
-	}
+//		cssl_close(prkx2su_serial[PRKX2SU_AXIS_AZ]);
+//		prkx2su_serial[PRKX2SU_AXIS_AZ] = nullptr;
+        prkx2su_serial[PRKX2SU_AXIS_AZ]->~Serial();
+    }
 
 	if (prkx2su_serial[PRKX2SU_AXIS_EL] != nullptr)
 	{
-		cssl_close(prkx2su_serial[PRKX2SU_AXIS_EL]);
-		prkx2su_serial[PRKX2SU_AXIS_EL] = nullptr;
+//		cssl_close(prkx2su_serial[PRKX2SU_AXIS_EL]);
+//        prkx2su_serial[PRKX2SU_AXIS_EL] = nullptr;
+        prkx2su_serial[PRKX2SU_AXIS_EL]->~Serial();
 	}
 
 	return 0;
@@ -145,7 +154,8 @@ int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen)
 	int32_t i,j;
 
 	i = 0;
-	while ((j=cssl_getchar(prkx2su_serial[axis])) >= 0)
+//	while ((j=cssl_getchar(prkx2su_serial[axis])) >= 0)
+    while((j=prkx2su_serial[axis]->get_char()) >= 0)
 	{
 		buf[i++] = j;
         if (j == ';' || i == buflen)
@@ -402,7 +412,8 @@ int32_t prkx2su_test(uint8_t axis)
 {
 	int32_t iretn;
 
-	iretn = cssl_putstring(prkx2su_serial[axis], (char *)"R10;");
+//	iretn = cssl_putstring(prkx2su_serial[axis], (char *)"R10;");
+//    iretn = prkx2su_serial[axis]->put_string("R10;");
 	if (iretn < 0)
 	{
 		return iretn;
@@ -422,7 +433,7 @@ int32_t prkx2su_test(uint8_t axis)
 	return 0;
 }
 
-int32_t prkx2su_send(uint8_t axis, char *buf, bool force)
+int32_t prkx2su_send(uint8_t axis, string buf, bool force)
 {
 	int32_t iretn = 0;
 	static char lastbuf[256];
@@ -433,10 +444,11 @@ int32_t prkx2su_send(uint8_t axis, char *buf, bool force)
 		return iretn;
 	}
 
-	if (strcmp(lastbuf,buf) || force)
+    if (strcmp(lastbuf,buf.c_str()) || force)
 	{
-		iretn = cssl_putstring(prkx2su_serial[axis], buf);
-		strncpy(lastbuf,buf,256);
+//		iretn = cssl_putstring(prkx2su_serial[axis], buf);
+        prkx2su_serial[axis]->put_string(buf);
+        strncpy(lastbuf,buf.c_str(),256);
 	}
 
 	return iretn;
