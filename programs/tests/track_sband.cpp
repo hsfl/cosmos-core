@@ -405,19 +405,17 @@ int main(int argc, char *argv[])
                         pos_eci(ttrack.target.loc);
 //                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, newtime);
                         update_target(agent->cinfo->node.loc, ttrack.target);
-                        if (ttrack.target.range < nearestapproach)
-                        {
-                            nearestapproach = ttrack.target.range;
-                        }
-                        if (ttrack.target.elfrom > agent->cinfo->device[devindex].ant.minelev)
+                        if (ttrack.target.elfrom > RADOF(15.))
                         {
                             if (ttrack.target.elfrom > highestelevation)
                             {
                                 highestelevation = ttrack.target.elfrom;
-                            }
-                            if (86400.*(ttrack.target.loc.utc - ctime) < secondstocontact)
-                            {
+                                nearestapproach = ttrack.target.range;
                                 secondstocontact = 86400.*(ttrack.target.loc.utc - ctime);
+                            }
+                            else
+                            {
+                                break;
                             }
                         }
                     }
