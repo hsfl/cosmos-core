@@ -357,6 +357,7 @@ int main(int argc, char *argv[])
 
     // Start performing the body of the agent
     agent->cinfo->agent[0].aprd = 1.;
+    agent->start_active_loop();
     while(agent->running())
     {
         if (antconnected)
@@ -481,27 +482,20 @@ int main(int argc, char *argv[])
                        DEGOF((highestelevation)),
                        nearestapproach);
                 fflush(stdout);
-                if (debug)
-                {
-                    printf("%f: goto %f %f [%d]\n", et.lap(), DEGOF(current.azim + antennaoffset.az), DEGOF(current.elev + antennaoffset.el), iretn);
-                }
                 if (iretn < 0)
                 {
                     antconnected = false;
                 }
             }
 //            COSMOS_SLEEP(.5);
-            agent->finish_active_loop();
         }
         else
         {
-            if (debug)
-            {
-                printf("%f: Connect Antenna\n", et.lap());
-            }
+            printf("Reconnect\n");
             connect_antenna();
-            COSMOS_SLEEP(.1);
+//            COSMOS_SLEEP(.1);
         }
+        agent->finish_active_loop();
     }
 
     agent->shutdown();
