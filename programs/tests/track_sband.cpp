@@ -394,7 +394,7 @@ int main(int argc, char *argv[])
                     gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, ctime);
                     update_target(agent->cinfo->node.loc, track.target);
                     trackstruc ttrack = track;
-                    ttrack.gjh.dt = 10./86400.;
+                    ttrack.gjh.dt = 10.;
                     secondstocontact = 86400.;
                     highestelevation = 0.;
                     nearestapproach = REARTHM;
