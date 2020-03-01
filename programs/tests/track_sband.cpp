@@ -393,6 +393,8 @@ int main(int argc, char *argv[])
                 {
                     gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, ctime);
                     update_target(agent->cinfo->node.loc, track.target);
+                    target.azim = track.target.azfrom;
+                    target.elev = track.target.elfrom;
                     trackstruc ttrack = track;
                     ttrack.gjh.dt = 10.;
                     secondstocontact = 86400.;
