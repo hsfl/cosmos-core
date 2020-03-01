@@ -442,7 +442,7 @@ int main(int argc, char *argv[])
                 printf("%s %16.10f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.3f %.3f %.1f %.1f %.1f %.2f %.1f\n",
                        utc2iso8601(ctime).c_str(),
                        ctime,
-                       timestep,
+                       86400.*(ctime - startdate),
                        DEGOF(target.azim),
                        DEGOF(target.elev),
                        DEGOF(current.azim),
