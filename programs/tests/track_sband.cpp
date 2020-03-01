@@ -462,15 +462,15 @@ int main(int argc, char *argv[])
                     iretn = prkx2su_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 }
-                printf("%s %16.10f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.3f %.3f %.1f %.1f %.1f %.2f %.1f\n",
+                printf("ISO8061/MJD/Deltat %s %16.10f %.1f targetazel %.2f %.2f currentazel %.2f %.2f deltaazel %.2f %.2f latlonh %.3f %.3f %.1f range %.1f sectil %.1f maxel %.2f minrange %.1f\n",
                        utc2iso8601(ctime).c_str(),
                        ctime,
                        86400.*(ctime - startdate),
-                       DEGOF(target.azim),
+                       DEGOF(fixangle(target.azim)),
                        DEGOF(target.elev),
                        DEGOF(current.azim),
                        DEGOF(current.elev),
-                       DEGOF(target.azim-current.azim),
+                       DEGOF(fixangle(target.azim)-current.azim),
                        DEGOF(target.elev-current.elev),
                        DEGOF(track.target.loc.pos.geod.s.lat),
                        DEGOF(track.target.loc.pos.geod.s.lon),
@@ -479,6 +479,7 @@ int main(int argc, char *argv[])
                        secondstocontact,
                        DEGOF((highestelevation)),
                        nearestapproach);
+                fflush(stdout);
                 if (debug)
                 {
                     printf("%f: goto %f %f [%d]\n", et.lap(), DEGOF(current.azim + antennaoffset.az), DEGOF(current.elev + antennaoffset.el), iretn);
