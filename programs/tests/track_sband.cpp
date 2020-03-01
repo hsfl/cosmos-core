@@ -384,7 +384,7 @@ int main(int argc, char *argv[])
                 {
                     jplpos(JPL_EARTH, JPL_SUN, ctime, &track.target.loc.pos.eci);
                     track.target.loc.pos.eci.pass++;
-                    pos_eci(&track.target.loc);
+                    pos_eci(track.target.loc);
                     update_target(agent->cinfo->node.loc, track.target);
                     target.azim = track.target.azfrom;
                     target.elev = track.target.elfrom;
@@ -400,7 +400,10 @@ int main(int argc, char *argv[])
                     nearestapproach = REARTHM;
                     for (double newtime=ctime; newtime<ctime+1.; newtime+=1./1440.)
                     {
-                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, newtime);
+                        tle2eci(newtime, tle, ttrack.target.loc.pos.eci);
+                        ttrack.target.loc.pos.eci.pass++;
+                        pos_eci(ttrack.target.loc);
+//                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, newtime);
                         update_target(agent->cinfo->node.loc, ttrack.target);
                         if (ttrack.target.range < nearestapproach)
                         {
