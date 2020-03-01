@@ -463,7 +463,7 @@ int main(int argc, char *argv[])
                     iretn = prkx2su_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 }
-                printf("ISO8061/MJD/Deltat %s %16.10f %.1f targetazel %.2f %.2f currentazel %.2f %.2f deltaazel %.2f %.2f latlonh %.3f %.3f %.1f range %.1f sectil %.1f maxel %.2f minrange %.1f\n",
+                printf("ISO/MJD/Sec %s %16.10f %.1f tar %.2f %.2f cur %.2f %.2f del %.2f %.2f geod %.3f %.3f %.1f rng %.1f nextser %.1f %.2f %.1f\n",
                        utc2iso8601(ctime).c_str(),
                        ctime,
                        86400.*(ctime - startdate),
