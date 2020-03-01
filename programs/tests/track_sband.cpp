@@ -356,6 +356,7 @@ int main(int argc, char *argv[])
     ElapsedTime et;
 
     // Start performing the body of the agent
+    agent->cinfo->agent[0].aprd = .25;
     while(agent->running())
     {
         if (antconnected)
@@ -489,7 +490,8 @@ int main(int argc, char *argv[])
                     antconnected = false;
                 }
             }
-            COSMOS_SLEEP(.5);
+//            COSMOS_SLEEP(.5);
+            agent->finish_active_loop();
         }
         else
         {

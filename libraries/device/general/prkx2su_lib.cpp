@@ -84,7 +84,7 @@ int32_t prkx2su_connect()
         return iretn;
 	}
 
-    iretn = prkx2su_serial[PRKX2SU_AXIS_AZ]->set_timeout(.5);
+    iretn = prkx2su_serial[PRKX2SU_AXIS_AZ]->set_timeout(.1);
 	if (iretn < 0)
 	{
         prkx2su_disconnect();
@@ -110,7 +110,7 @@ int32_t prkx2su_connect()
         return iretn;
     }
 
-    iretn = prkx2su_serial[PRKX2SU_AXIS_EL]->set_timeout(.5);
+    iretn = prkx2su_serial[PRKX2SU_AXIS_EL]->set_timeout(.1);
     if (iretn < 0)
 	{
 		prkx2su_disconnect();
