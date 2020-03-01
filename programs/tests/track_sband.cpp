@@ -39,7 +39,7 @@
  This agent is listed in agent_antenna.cpp
 
  @code
- Usage: track_antenna antenna mode {file.tle, {date file.tra}, {date x y z vx vy vz}, {az el} [offset_az offset_el]
+ Usage: track_antenna antenna mode {file.tle [date], {date file.tra}, {date x y z vx vy vz}, {az el} [offset_az offset_el]
     Modes:
         tle - file.tle contains Two Line Elements
         tra -
@@ -328,12 +328,25 @@ int main(int argc, char *argv[])
     }
     else if (mode == "prop")
     {
-
+        startdate = atof(argv[3]);
+        track.target.loc.pos.eci.utc = startdate;
+        track.target.loc.pos.eci.s.col[0] = atof(argv[4]);
+        track.target.loc.pos.eci.s.col[1] = atof(argv[5]);
+        track.target.loc.pos.eci.s.col[2] = atof(argv[6]);
+        track.target.loc.pos.eci.v.col[0] = atof(argv[7]);
+        track.target.loc.pos.eci.v.col[1] = atof(argv[8]);
+        track.target.loc.pos.eci.v.col[2] = atof(argv[9]);
+        if (argc == 10)
+        {
+            offset_az = atof(argv[argc-2]);
+            offset_el = atof(argv[argc-1]);
+        }
     }
     else if (mode == "abs")
     {
         target.azim = RADOF(atof(argv[3]));
         target.elev = RADOF(atof(argv[4]));
+        startdate = currentmjd();
     }
     else
     {
@@ -360,9 +373,9 @@ int main(int argc, char *argv[])
     agent->start_active_loop();
     while(agent->running())
     {
+        double ctime = currentmjd() + toffset;
         if (antconnected)
         {
-            double ctime = currentmjd() + toffset;
             // Find most recent position
             switch (agent->cinfo->device[devindex].all.model)
             {
@@ -491,7 +504,10 @@ int main(int argc, char *argv[])
         }
         else
         {
-            printf("Reconnect\n");
+            printf("ISO/MJD/Sec %s %16.10f %.1f Reconnect\n",
+                   utc2iso8601(ctime).c_str(),
+                   ctime,
+                   86400.*(ctime - startdate));
             connect_antenna();
 //            COSMOS_SLEEP(.1);
         }
