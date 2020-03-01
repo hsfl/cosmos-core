@@ -367,6 +367,11 @@ int main(int argc, char *argv[])
     }
 
     ElapsedTime et;
+    if (agent->cinfo->device[devindex].all.model == DEVICE_MODEL_PRKX2SU)
+    {
+        iretn = prkx2su_stop(PRKX2SU_AXIS_AZ);
+        iretn = prkx2su_stop(PRKX2SU_AXIS_EL);
+    }
 
     // Start performing the body of the agent
     agent->cinfo->agent[0].aprd = 1.;
