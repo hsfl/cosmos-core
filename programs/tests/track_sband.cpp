@@ -197,6 +197,11 @@ int main(int argc, char *argv[])
     antdevice = "/dev/tty_" + antbase;
 
     // Connect to antenna and set sensitivity;
+    if (agent->cinfo->device[devindex].all.model == DEVICE_MODEL_PRKX2SU)
+    {
+        iretn = prkx2su_init(antdevice);
+    }
+
     iretn = connect_antenna();
     switch (agent->cinfo->device[devindex].all.model)
     {
@@ -499,7 +504,7 @@ int32_t connect_antenna()
         }
         break;
     case DEVICE_MODEL_PRKX2SU:
-        iretn = prkx2su_connect(antdevice);
+        iretn = prkx2su_connect();
 
         // Initialize values if we are connected
         if (iretn == 0)
