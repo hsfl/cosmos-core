@@ -197,10 +197,10 @@ int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen)
 * calibration mode on in prkx2su.
 * @param axis 32 bit signed integer , 0 = Azimuth, 1 = Elevation
 */
-int32_t prkx2su_status(int8_t axis)
+int32_t prkx2su_status(uint8_t axis)
 {
 	int32_t iretn;
-	iretn = prkx2su_send(axis, (char *)"BIn;", true);
+    iretn = prkx2su_send(axis, "BIn;", true);
 	if (iretn < 0)
 	{
 		return iretn;
@@ -235,7 +235,7 @@ int32_t prkx2su_status(int8_t axis)
 int32_t prkx2su_stop(uint8_t axis)
 {
 	int32_t iretn;
-	iretn = prkx2su_send(axis, (char *)";", true);
+    iretn = prkx2su_send(axis, ";", true);
 	return iretn;
 }
 
@@ -246,7 +246,7 @@ int32_t prkx2su_ramp(uint8_t axis, uint8_t speed)
 
     if (speed < 1 || speed > 10)
         return (PRKX2SU_ERROR_OUTOFRANGE);
-    sprintf(out,"WNn%03hu;",speed);
+    sprintf(out,"WNn%03hhu;", speed);
     iretn = prkx2su_send(axis, out, true);
     if (iretn < 0)
     {
@@ -265,7 +265,7 @@ int32_t prkx2su_minimum_speed(uint8_t axis, uint8_t speed)
 
     if (speed < 1 || speed > 10)
         return (PRKX2SU_ERROR_OUTOFRANGE);
-    sprintf(out,"WFn%03hu;",speed);
+    sprintf(out,"WFn%03hhu;", speed);
     iretn = prkx2su_send(axis, out, true);
     if (iretn < 0)
     {
@@ -284,7 +284,7 @@ int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed)
 
     if (speed < 1 || speed > 10)
         return (PRKX2SU_ERROR_OUTOFRANGE);
-    sprintf(out,"WGn%03hu;",speed);
+    sprintf(out,"WGn%03hhu;", speed);
     iretn = prkx2su_send(axis, out, true);
     if (iretn < 0)
     {
@@ -417,7 +417,6 @@ int32_t prkx2su_test(uint8_t axis)
 {
 	int32_t iretn;
 
-//	iretn = cssl_putstring(prkx2su_serial[axis], (char *)"R10;");
     iretn = prkx2su_serial[axis]->put_string("R10;");
 	if (iretn < 0)
 	{
