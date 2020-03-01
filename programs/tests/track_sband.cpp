@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
                     secondstocontact = 86400.;
                     highestelevation = 0.;
                     nearestapproach = REARTHM;
-                    for (double newtime=ctime; newtime<newtime+1.; newtime+=1./1440.)
+                    for (double newtime=ctime; newtime<ctime+1.; newtime+=1./1440.)
                     {
                         gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, newtime);
                         update_target(agent->cinfo->node.loc, ttrack.target);
@@ -492,8 +492,8 @@ int32_t connect_antenna()
             iretn = gs232b_get_az_el(agent->cinfo->device[devindex].ant.azim, agent->cinfo->device[devindex].ant.elev);
             if (iretn >= 0)
             {
-                target.azim = agent->cinfo->device[devindex].ant.azim - antennaoffset.az;
-                target.elev = agent->cinfo->device[devindex].ant.elev - antennaoffset.el;
+                current.azim = agent->cinfo->device[devindex].ant.azim - antennaoffset.az;
+                current.elev = agent->cinfo->device[devindex].ant.elev - antennaoffset.el;
                 antconnected = true;
             }
         }
@@ -507,8 +507,8 @@ int32_t connect_antenna()
             iretn = prkx2su_get_az_el(agent->cinfo->device[devindex].ant.azim, agent->cinfo->device[devindex].ant.elev);
             if (iretn >= 0)
             {
-                target.azim = agent->cinfo->device[devindex].ant.azim - antennaoffset.az;
-                target.elev = agent->cinfo->device[devindex].ant.elev - antennaoffset.el;
+                current.azim = agent->cinfo->device[devindex].ant.azim - antennaoffset.az;
+                current.elev = agent->cinfo->device[devindex].ant.elev - antennaoffset.el;
                 antconnected = true;
             }
         }
