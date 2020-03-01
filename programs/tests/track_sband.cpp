@@ -356,7 +356,7 @@ int main(int argc, char *argv[])
     ElapsedTime et;
 
     // Start performing the body of the agent
-    agent->cinfo->agent[0].aprd = .25;
+    agent->cinfo->agent[0].aprd = 1.;
     while(agent->running())
     {
         if (antconnected)
