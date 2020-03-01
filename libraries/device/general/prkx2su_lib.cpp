@@ -42,6 +42,19 @@ static Serial *prkx2su_serial[2];
 
 static prkx2su_state ant_state;
 
+int32_t prkx2su_init(std::string dev)
+{
+    int32_t iretn;
+    string device;
+
+    device = dev + "_az";
+    prkx2su_serial[PRKX2SU_AXIS_AZ] = new Serial(dev, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+    device = dev + "_el";
+    prkx2su_serial[PRKX2SU_AXIS_EL] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+
+    return 0;
+}
+
 /**
 * Connects to am MII prkx2su antenna controller, which in turn
 * drives a Yaesu G-5500 antenna controller.
@@ -51,57 +64,52 @@ static prkx2su_state ant_state;
 * @see cssl_open
 * @see cssl_setflowcontrol
 */
-int32_t prkx2su_connect(std::string dev)
+int32_t prkx2su_connect()
 {
 	int32_t iretn;
 //	cssl_start();
 
-	if (prkx2su_serial[PRKX2SU_AXIS_AZ] != nullptr)
+    if (prkx2su_serial[PRKX2SU_AXIS_AZ]->get_open())
 	{
-		prkx2su_disconnect();
+        iretn = prkx2su_disconnect();
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+
+    iretn = prkx2su_serial[PRKX2SU_AXIS_AZ]->open_device();
+    if (iretn < 0)
+	{
+        return iretn;
 	}
 
-	std::string device = dev + "_az";
-//    prkx2su_serial[PRKX2SU_AXIS_AZ] = cssl_open(device.c_str(), PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
-    prkx2su_serial[PRKX2SU_AXIS_AZ] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
-    if (prkx2su_serial[PRKX2SU_AXIS_AZ] == nullptr)
-	{
-//		return CSSL_ERROR_OPEN;
-        return SERIAL_ERROR_OPEN;
-	}
-
-//	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_AZ], 0, .1);
     iretn = prkx2su_serial[PRKX2SU_AXIS_AZ]->set_timeout(.5);
 	if (iretn < 0)
 	{
-		prkx2su_disconnect();
+        prkx2su_disconnect();
 		return iretn;
 	}
 
     iretn = prkx2su_send(PRKX2SU_AXIS_AZ, "", true);
 	if (iretn < 0)
 	{
-		prkx2su_disconnect();
+        prkx2su_disconnect();
 		return iretn;
 	}
 
-	if (prkx2su_serial[PRKX2SU_AXIS_EL] != nullptr)
+    if (prkx2su_serial[PRKX2SU_AXIS_EL]->get_open())
 	{
-		prkx2su_disconnect();
-		prkx2su_serial[PRKX2SU_AXIS_EL] = nullptr;
-	}
-
-	device = dev + "_el";
-//	prkx2su_serial[PRKX2SU_AXIS_EL] = cssl_open(device.c_str(), PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
-    prkx2su_serial[PRKX2SU_AXIS_EL] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
-    if (prkx2su_serial[PRKX2SU_AXIS_EL] == nullptr)
-	{
-		prkx2su_disconnect();
-//		return CSSL_ERROR_OPEN;
         return SERIAL_ERROR_OPEN;
-	}
+    }
 
-//	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_EL], 0, .1);
+    iretn = prkx2su_serial[PRKX2SU_AXIS_EL]->open_device();
+    if (iretn < 0)
+    {
+        prkx2su_disconnect();
+        return iretn;
+    }
+
     iretn = prkx2su_serial[PRKX2SU_AXIS_EL]->set_timeout(.5);
     if (iretn < 0)
 	{
@@ -124,21 +132,18 @@ int32_t prkx2su_connect(std::string dev)
 */
 int32_t prkx2su_disconnect()
 {
-	if (prkx2su_serial[PRKX2SU_AXIS_AZ] != nullptr)
+    int32_t iretn = 0;
+    if (prkx2su_serial[PRKX2SU_AXIS_AZ]->get_open())
 	{
-//		cssl_close(prkx2su_serial[PRKX2SU_AXIS_AZ]);
-//		prkx2su_serial[PRKX2SU_AXIS_AZ] = nullptr;
-        prkx2su_serial[PRKX2SU_AXIS_AZ]->~Serial();
+        iretn = prkx2su_serial[PRKX2SU_AXIS_AZ]->close_device();
     }
 
 	if (prkx2su_serial[PRKX2SU_AXIS_EL] != nullptr)
 	{
-//		cssl_close(prkx2su_serial[PRKX2SU_AXIS_EL]);
-//        prkx2su_serial[PRKX2SU_AXIS_EL] = nullptr;
-        prkx2su_serial[PRKX2SU_AXIS_EL]->~Serial();
+        iretn = prkx2su_serial[PRKX2SU_AXIS_EL]->close_device();
 	}
 
-	return 0;
+    return iretn;
 }
 
 /**

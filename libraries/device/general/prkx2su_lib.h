@@ -81,7 +81,8 @@ struct prkx2su_state
 	int32_t data_received;
 	} ;
 
-int32_t prkx2su_connect(string dev);
+int32_t prkx2su_init(string device);
+int32_t prkx2su_connect();
 int32_t prkx2su_disconnect();
 int32_t prkx2su_calibrate_offset(int32_t axis);
 //void prkx2su_full_scale_calibration(int32_t axis);
