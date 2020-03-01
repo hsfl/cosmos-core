@@ -48,7 +48,7 @@ int32_t prkx2su_init(std::string dev)
     string device;
 
     device = dev + "_az";
-    prkx2su_serial[PRKX2SU_AXIS_AZ] = new Serial(dev, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+    prkx2su_serial[PRKX2SU_AXIS_AZ] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
     device = dev + "_el";
     prkx2su_serial[PRKX2SU_AXIS_EL] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
 
