@@ -134,6 +134,10 @@ struct trackstruc
 static trackstruc track;
 static double timestep;
 
+static double secondstocontact;
+static double highestelevation;
+static double nearestapproach;
+
 int main(int argc, char *argv[])
 {
     int iretn;
@@ -169,7 +173,7 @@ int main(int argc, char *argv[])
     }
     devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
     antindex = agent->cinfo->device[devindex].ant.didx;
-    agent->cinfo->device[devindex].ant.minelev = RADOF(10.);
+    agent->cinfo->device[devindex].ant.minelev = RADOF(5.);
     if (antbase == "sband")
     {
         agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_PRKX2SU;
@@ -384,6 +388,32 @@ int main(int argc, char *argv[])
                 {
                     gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, ctime);
                     update_target(agent->cinfo->node.loc, track.target);
+                    trackstruc ttrack = track;
+                    ttrack.gjh.dt = 10./86400.;
+                    secondstocontact = 86400.;
+                    highestelevation = 0.;
+                    nearestapproach = REARTHM;
+                    for (double newtime=ctime; newtime<newtime+1.; newtime+=1./1440.)
+                    {
+                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, newtime);
+                        update_target(agent->cinfo->node.loc, ttrack.target);
+                        if (ttrack.target.range < nearestapproach)
+                        {
+                            nearestapproach = ttrack.target.range;
+                        }
+                        if (ttrack.target.elfrom > agent->cinfo->device[devindex].ant.minelev)
+                        {
+                            if (ttrack.target.elfrom > highestelevation)
+                            {
+                                highestelevation = ttrack.target.elfrom;
+                            }
+                            if (86400.*(ttrack.target.loc.utc - ctime) < secondstocontact)
+                            {
+                                secondstocontact = 86400.*(ttrack.target.loc.utc - ctime);
+                            }
+                        }
+                    }
+
                 }
 
                 switch (agent->cinfo->device[devindex].all.model)
@@ -401,7 +431,7 @@ int main(int argc, char *argv[])
                     iretn = prkx2su_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 }
-                printf("%s %16.10f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.3f %.3f %.1f %.1f\n",
+                printf("%s %16.10f %.1f %.2f %.2f %.2f %.2f %.2f %.2f %.3f %.3f %.1f %.1f %.1f %.2f %.1f\n",
                        utc2iso8601(ctime).c_str(),
                        ctime,
                        timestep,
@@ -414,7 +444,10 @@ int main(int argc, char *argv[])
                        DEGOF(track.target.loc.pos.geod.s.lat),
                        DEGOF(track.target.loc.pos.geod.s.lon),
                        track.target.loc.pos.geod.s.h,
-                       track.target.range);
+                       track.target.range,
+                       secondstocontact,
+                       DEGOF((highestelevation)),
+                       nearestapproach);
                 if (debug)
                 {
                     printf("%f: goto %f %f [%d]\n", et.lap(), DEGOF(current.azim + antennaoffset.az), DEGOF(current.elev + antennaoffset.el), iretn);
