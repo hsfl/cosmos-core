@@ -122,6 +122,7 @@ struct gentry
 static vector <gentry> trajectory;
 static string trajectoryname;
 static double startdate = 0.;
+static double toffset = 0.;
 struct trackstruc
 {
     uint16_t type;
@@ -149,7 +150,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        printf("Usage: track_antenna antenna mode {file.tle, {date file.tra}, {date x y z vx vy vz}, {az el} [offset_az offset_el]\n");
+        printf("Usage: track_antenna antenna mode {file.tle [startdate], {date file.tra}, {date x y z vx vy vz}, {az el} [offset_az offset_el]\n");
         exit(1);
     }
 
@@ -301,16 +302,29 @@ int main(int argc, char *argv[])
         track.type = 0;
         track.name = tle.name;
         track.target.type = NODE_TYPE_SATELLITE;
-        tle2eci(currentmjd()-10./86400., tle, track.target.loc.pos.eci);
         track.target.loc.att.icrf.s = q_eye();
         track.target.loc.att.icrf.v = rv_zero();
         track.target.loc.att.icrf.a = rv_zero();
         track.physics.area = .01;
         track.physics.mass = 1.;
 
-
+        if (argc == 5 || argc == 7)
+        {
+            startdate = atof(argv[4]);
+            toffset = startdate - currentmjd();
+        }
+        else
+        {
+            startdate = currentmjd();
+        }
+        tle2eci(startdate-10./86400., tle, track.target.loc.pos.eci);
         gauss_jackson_init_eci(track.gjh, 6, 0, 1., track.target.loc.pos.eci.utc, track.target.loc.pos.eci, track.target.loc.att.icrf, track.physics, track.target.loc);
-        gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, currentmjd());
+        gauss_jackson_propagate(track.gjh, track.physics, track.target.loc, startdate);
+        if (argc == 6 || argc == 8)
+        {
+            offset_az = atof(argv[argc-2]);
+            offset_el = atof(argv[argc-1]);
+        }
     }
     else if (mode == "prop")
     {
@@ -323,7 +337,16 @@ int main(int argc, char *argv[])
     }
     else
     {
-        if (argc == 5)
+        if (argc == 4 || argc == 6)
+        {
+            startdate = atof(argv[3]);
+            toffset = startdate - currentmjd();
+        }
+        else
+        {
+            startdate = currentmjd();
+        }
+        if (argc == 5 || argc == 7)
         {
             offset_az = atof(argv[argc-2]);
             offset_el = atof(argv[argc-1]);
@@ -337,7 +360,7 @@ int main(int argc, char *argv[])
     {
         if (antconnected)
         {
-            double ctime = currentmjd();
+            double ctime = currentmjd() + toffset;
             // Find most recent position
             switch (agent->cinfo->device[devindex].all.model)
             {
