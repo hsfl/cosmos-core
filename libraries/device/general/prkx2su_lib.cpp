@@ -413,7 +413,7 @@ int32_t prkx2su_test(uint8_t axis)
 	int32_t iretn;
 
 //	iretn = cssl_putstring(prkx2su_serial[axis], (char *)"R10;");
-//    iretn = prkx2su_serial[axis]->put_string("R10;");
+    iretn = prkx2su_serial[axis]->put_string("R10;");
 	if (iretn < 0)
 	{
 		return iretn;
