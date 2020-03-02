@@ -371,6 +371,12 @@ int main(int argc, char *argv[])
     {
         iretn = prkx2su_stop(PRKX2SU_AXIS_AZ);
         iretn = prkx2su_stop(PRKX2SU_AXIS_EL);
+        prkx2su_ramp(PRKX2SU_AXIS_AZ, 9);
+        prkx2su_ramp(PRKX2SU_AXIS_EL, 9);
+        prkx2su_minimum_speed(PRKX2SU_AXIS_AZ, 1);
+        prkx2su_minimum_speed(PRKX2SU_AXIS_EL, 1);
+        prkx2su_maximum_speed(PRKX2SU_AXIS_AZ, 9);
+        prkx2su_maximum_speed(PRKX2SU_AXIS_EL, 9);
     }
 
     // Start performing the body of the agent
@@ -473,12 +479,6 @@ int main(int argc, char *argv[])
                     iretn = gs232b_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 case DEVICE_MODEL_PRKX2SU:
-                    prkx2su_ramp(PRKX2SU_AXIS_AZ, 9);
-                    prkx2su_ramp(PRKX2SU_AXIS_EL, 9);
-                    prkx2su_minimum_speed(PRKX2SU_AXIS_AZ, 1);
-                    prkx2su_minimum_speed(PRKX2SU_AXIS_EL, 1);
-                    prkx2su_maximum_speed(PRKX2SU_AXIS_AZ, 9);
-                    prkx2su_maximum_speed(PRKX2SU_AXIS_EL, 9);
                     iretn = prkx2su_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 }
