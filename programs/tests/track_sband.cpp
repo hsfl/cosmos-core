@@ -282,9 +282,13 @@ int main(int argc, char *argv[])
                     for (timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
                     {
                         uint16_t timeidx = static_cast<uint16_t>(timestep);
-                        gvector tpos = track.position[timeidx].evalgvector(timestep);
-                        gvector tvel = track.position[timeidx].slopegvector(timestep);
-                        printf("%f %f %f %f %f %f %f\n", timestep, DEGOF(tpos.lat), DEGOF(tpos.lon), tpos.h, DEGOF(tvel.lat), DEGOF(tvel.lon), tvel.h);
+                        geoidpos tg;
+                        tg.utc = currentmjd();
+                        tg.s = track.position[timeidx].evalgvector(timestep);
+                        tg.v = track.position[timeidx].slopegvector(timestep);
+                        cartpos tc;
+                        geod2geoc(tg, tc);
+                        printf("%f %f %f %f %f %f %f %f %f %f\n", timestep, DEGOF(tg.s.lat), DEGOF(tg.s.lon), tg.s.h, DEGOF(tg.v.lat), DEGOF(tg.v.lon), tg.v.h, tc.s.col[0], tc.s.col[1], tc.s.col[2]);
                     }
                 }
             }
