@@ -319,9 +319,9 @@ namespace Cosmos {
                 {
                         el = Prkx2su::minel;
                 }
-                else if (el > Prkx2su::minel)
+                else if (el > Prkx2su::maxel)
                 {
-                        el = Prkx2su::minel;
+                        el = Prkx2su::maxel;
                 }
 
                 float daz = az - targetaz;
