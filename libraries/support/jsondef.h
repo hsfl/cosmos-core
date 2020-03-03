@@ -1418,6 +1418,14 @@ struct antstruc : public allstruc
     float elev;
     //! Minimum elevation
     float minelev;
+    //! Maximum elevation
+    float maxelev;
+    //! Minimum azimuth
+    float minazim;
+    //! Maximum azimuth
+    float maxazim;
+    //! Elevation threshold
+    float threshelev;
 };
 
 //! Receiver information
