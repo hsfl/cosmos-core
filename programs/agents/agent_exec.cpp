@@ -653,7 +653,6 @@ void move_and_compress_soh () {
 void move_and_compress_beacon () {
     std::string beacon_string;
     beacon_mutex.lock();
-    log_move(node_name, "soh");
     log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
     log_move(node_name, "beacon");
     beacon_mutex.unlock();
