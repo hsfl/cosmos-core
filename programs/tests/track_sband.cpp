@@ -68,7 +68,7 @@
 #include "support/stringlib.h"
 #include "support/timelib.h"
 #include "device/general/gs232b_lib.h"
-#include "device/general/prkx2su_lib.h"
+#include "device/general/prkx2su_class.h"
 #include "support/convertlib.h"
 #include "support/elapsedtime.h"
 #include "math/mathlib.h"
@@ -76,9 +76,10 @@
 #include "support/ephemlib.h"
 #include "physics/physicslib.h"
 
+using namespace Cosmos::Devices;
+
 int32_t connect_antenna();
 
-static float gsmin = RADOF(10.);
 //char tlename[20];
 static string antbase = "";
 static string nodename = "";
@@ -139,6 +140,8 @@ static double secondstocontact;
 static double highestelevation;
 static double nearestapproach;
 
+static Cosmos::Devices::Prkx2su *sband;
+
 int main(int argc, char *argv[])
 {
     int iretn;
@@ -174,7 +177,7 @@ int main(int argc, char *argv[])
     }
     devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
     antindex = agent->cinfo->device[devindex].ant.didx;
-    agent->cinfo->device[devindex].ant.minelev = RADOF(5.);
+    agent->cinfo->device[devindex].ant.threshelev = RADOF(5.);
     if (antbase == "sband")
     {
         agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_PRKX2SU;
@@ -200,7 +203,8 @@ int main(int argc, char *argv[])
     // Connect to antenna and set sensitivity;
     if (agent->cinfo->device[devindex].all.model == DEVICE_MODEL_PRKX2SU)
     {
-        iretn = prkx2su_init(antdevice);
+//        iretn = prkx2su_init(antdevice);
+        sband = new Prkx2su(antdevice);
     }
 
     iretn = connect_antenna();
@@ -210,7 +214,8 @@ int main(int argc, char *argv[])
         gs232b_set_sensitivity(RADOF(1.));
         break;
     case DEVICE_MODEL_PRKX2SU:
-        prkx2su_set_sensitivity(RADOF(.5));
+//        prkx2su_set_sensitivity(RADOF(.5));
+        sband->set_sensitivity(RADOF(.5));
         break;
     }
 
@@ -373,14 +378,20 @@ int main(int argc, char *argv[])
     ElapsedTime et;
     if (agent->cinfo->device[devindex].all.model == DEVICE_MODEL_PRKX2SU)
     {
-        iretn = prkx2su_stop(PRKX2SU_AXIS_AZ);
-        iretn = prkx2su_stop(PRKX2SU_AXIS_EL);
-        prkx2su_ramp(PRKX2SU_AXIS_AZ, 9);
-        prkx2su_ramp(PRKX2SU_AXIS_EL, 9);
-        prkx2su_minimum_speed(PRKX2SU_AXIS_AZ, 1);
-        prkx2su_minimum_speed(PRKX2SU_AXIS_EL, 1);
-        prkx2su_maximum_speed(PRKX2SU_AXIS_AZ, 9);
-        prkx2su_maximum_speed(PRKX2SU_AXIS_EL, 9);
+        sband->stop(PRKX2SU_AXIS_AZ);
+        sband->stop(PRKX2SU_AXIS_EL);
+        sband->ramp(PRKX2SU_AXIS_AZ, 9);
+        sband->ramp(PRKX2SU_AXIS_EL, 9);
+        sband->minimum_speed(PRKX2SU_AXIS_AZ, 1);
+        sband->minimum_speed(PRKX2SU_AXIS_EL, 1);
+        sband->maximum_speed(PRKX2SU_AXIS_AZ, 9);
+        sband->maximum_speed(PRKX2SU_AXIS_EL, 9);
+        sband->get_limits(PRKX2SU_AXIS_AZ);
+        agent->cinfo->device[devindex].ant.minazim = sband->minaz;
+        agent->cinfo->device[devindex].ant.maxazim = sband->maxaz;
+        sband->get_limits(PRKX2SU_AXIS_EL);
+        agent->cinfo->device[devindex].ant.minelev = sband->minel;
+        agent->cinfo->device[devindex].ant.maxelev = sband->maxel;
     }
 
     // Start performing the body of the agent
@@ -401,7 +412,7 @@ int main(int argc, char *argv[])
                 iretn = gs232b_get_az_el(current.azim, current.elev);
                 break;
             case DEVICE_MODEL_PRKX2SU:
-                iretn = prkx2su_get_az_el(current.azim, current.elev);
+                iretn = sband->get_az_el(current.azim, current.elev);
                 break;
             }
             if (iretn < 0)
@@ -483,7 +494,7 @@ int main(int argc, char *argv[])
                     iretn = gs232b_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 case DEVICE_MODEL_PRKX2SU:
-                    iretn = prkx2su_goto(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
+                    iretn = sband->gotoazel(target.azim + antennaoffset.az, target.elev + antennaoffset.el);
                     break;
                 }
                 printf("ISO/MJD/Sec %s %16.10f %.1f tar %.2f %.2f cur %.2f %.2f del %.2f %.2f geod %.3f %.3f %.1f rng %.1f nextser %.1f %.2f %.1f\n",
@@ -552,12 +563,12 @@ int32_t connect_antenna()
         }
         break;
     case DEVICE_MODEL_PRKX2SU:
-        iretn = prkx2su_connect();
+        iretn = sband->connect();
 
         // Initialize values if we are connected
         if (iretn == 0)
         {
-            iretn = prkx2su_get_az_el(agent->cinfo->device[devindex].ant.azim, agent->cinfo->device[devindex].ant.elev);
+            iretn = sband->get_az_el(agent->cinfo->device[devindex].ant.azim, agent->cinfo->device[devindex].ant.elev);
             if (iretn >= 0)
             {
                 current.azim = agent->cinfo->device[devindex].ant.azim - antennaoffset.az;
