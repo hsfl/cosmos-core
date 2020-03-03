@@ -186,11 +186,11 @@ namespace Cosmos {
             switch (axis)
             {
             case PRKX2SU_AXIS_AZ:
-                sscanf(buf.c_str(), "H%f", &minaz);
+                sscanf(buf.c_str(), "H\0x1%f", &minaz);
                 minaz = RADOF(minaz);
                 break;
             case PRKX2SU_AXIS_EL:
-                sscanf(buf.c_str(), "H%f", &minel);
+                sscanf(buf.c_str(), "H\0x1%f", &minel);
                 minel = RADOF(minel);
                 break;
             }
@@ -207,11 +207,11 @@ namespace Cosmos {
             switch (axis)
             {
             case PRKX2SU_AXIS_AZ:
-                sscanf(buf.c_str(), "H%f", &maxaz);
+                sscanf(buf.c_str(), "H\0x1%f", &maxaz);
                 maxaz = RADOF(maxaz);
                 break;
             case PRKX2SU_AXIS_EL:
-                sscanf(buf.c_str(), "H%f", &maxel);
+                sscanf(buf.c_str(), "H\0x1%f", &maxel);
                 maxel = RADOF(maxel);
                 break;
             }
