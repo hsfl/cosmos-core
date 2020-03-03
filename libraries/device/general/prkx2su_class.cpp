@@ -187,6 +187,10 @@ namespace Cosmos {
             {
             case PRKX2SU_AXIS_AZ:
                 sscanf(buf.c_str(), "%*2c%f", &minaz);
+                if (minaz > 0)
+                {
+                    minaz -= 360;
+                }
                 minaz = RADOF(minaz);
                 break;
             case PRKX2SU_AXIS_EL:
@@ -208,6 +212,10 @@ namespace Cosmos {
             {
             case PRKX2SU_AXIS_AZ:
                 sscanf(buf.c_str(), "%*2c%f", &maxaz);
+                if (maxaz < 0.)
+                {
+                    maxaz += 360.;
+                }
                 maxaz = RADOF(maxaz);
                 break;
             case PRKX2SU_AXIS_EL:
