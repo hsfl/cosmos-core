@@ -301,14 +301,18 @@ namespace Cosmos {
                 char out[50];
 
                 az = fmodf(az, D2PI);
-                if (az < Prkx2su::minaz)
+                if (az < 0.)
                 {
-                    az = Prkx2su::minaz;
+                    az += D2PI;
                 }
-                else if (az > Prkx2su::maxaz)
-                {
-                        az = Prkx2su::maxaz;
-                }
+//                if (az < Prkx2su::minaz)
+//                {
+//                    az = Prkx2su::minaz;
+//                }
+//                else if (az > Prkx2su::maxaz)
+//                {
+//                        az = Prkx2su::maxaz;
+//                }
 
                 el = fmodf(el, DPI);
                 if (el < Prkx2su::minel)
