@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
     et.start();
 
     agent->cinfo->agent[0].aprd = 1.;
-    agent->finish_active_loop();
+    agent->start_active_loop();
 
     // Start performing the body of the agent
     while(agent->running())

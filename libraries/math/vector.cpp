@@ -937,6 +937,19 @@ std::istream& operator >> (std::istream& in, avector& a)
     return in;
 }
 
+// ----------------------------------------------
+
+//! Zero geodetic vector
+/*! Creates a zero length geodetic vector.
+        \return a ::gvector of zero length
+*/
+gvector gv_zero()
+{
+    gvector v={0.,0.,0.};
+
+    return (v);
+}
+
 
 // ----------------------------------------------
 

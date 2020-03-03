@@ -1173,6 +1173,130 @@ rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms
     return result.r;
 }
 
+//! Evaluate vector polynomial.
+/*! Return the value of the given Nth order vector polynomial, evaluated at the given location.
+ * \param x Independent variable where polynomial should be evaluated.
+ * \param parms Vector of parameters for Nth order vector polynomial to be evaluated.
+ * \return Values, evaluated at the location of the independent variable.
+ */
+// TODO: move to LsFit.cpp
+gvector gv_evaluate_poly(double x, std::vector< std::vector<double> > parms)
+{
+    uvector result;
+
+    for (uint16_t ic=0; ic<parms.size(); ++ic)
+    {
+        if (parms[ic].size() < 2)
+        {
+            result.a4[ic] = 0.;
+        }
+        else
+        {
+            result.a4[ic] = parms[ic][parms[ic].size()-1];
+            for (uint16_t i=parms[ic].size()-2; i<parms[ic].size(); --i)
+            {
+                result.a4[ic] *= x;
+                result.a4[ic] += parms[ic][i];
+            }
+        }
+    }
+
+    return result.g;
+}
+
+//! Evaluate vector polynomial slope.
+/*! Return the value of the 1st derivative of the given Nth order vector polynomial, evaluated at the given location.
+ * \param x Independent variable where polynomial should be evaluated.
+ * \param parms Vector of parameters for Nth order vector polynomial to be evaluated.
+ * \return Values of the slope, evaluated at the location of the independent variable.
+ */
+// TODO: move to LsFit.cpp
+gvector gv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms)
+{
+    uvector result;
+
+    for (uint16_t ic=0; ic<parms.size(); ++ic)
+    {
+        if (parms[ic].size() < 2)
+        {
+            result.a4[ic] = 0.;
+        }
+        else
+        {
+            result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1);
+            for (uint16_t i=parms[ic].size()-2; i>0; --i)
+            {
+                result.a4[ic] *= x;
+                result.a4[ic] += i * parms[ic][i];
+            }
+        }
+    }
+
+    return result.g;
+}
+
+//! Evaluate vector polynomial acceleration.
+/*! Return the value of the 2nd derivative of the given Nth order vector polynomial, evaluated at the given location.
+ * \param x Independent variable where polynomial should be evaluated.
+ * \param parms Vector of parameters for Nth order vector polynomial to be evaluated.
+ * \return Values of the acceleration, evaluated at the location of the independent variable.
+ */
+// TODO: move to LsFit.cpp
+gvector gv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms)
+{
+    uvector result;
+
+    for (uint16_t ic=0; ic<parms.size(); ++ic)
+    {
+        if (parms[ic].size() < 2)
+        {
+            result.a4[ic] = 0.;
+        }
+        else
+        {
+            result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1) * (parms[ic].size()-2);
+            for (uint16_t i=parms[ic].size()-2; i>1; --i)
+            {
+                result.a4[ic] *= x;
+                result.a4[ic] += i * (i-1) * parms[ic][i];
+            }
+        }
+    }
+
+    return result.g;
+}
+
+//! Evaluate vector polynomial jerk.
+/*! Return the value of the 3rd derivative of the given Nth order vector polynomial, evaluated at the given location.
+ * \param x Independent variable where polynomial should be evaluated.
+ * \param parms Vector of parameters for Nth order vector polynomial to be evaluated.
+ * \return Values of the jerk, evaluated at the location of the independent variable.
+ */
+// TODO: move to LsFit.cpp
+gvector gv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms)
+{
+    uvector result;
+
+    for (uint16_t ic=0; ic<parms.size(); ++ic)
+    {
+        if (parms[ic].size() < 2)
+        {
+            result.a4[ic] = 0.;
+        }
+        else
+        {
+            result.a4[ic] = parms[ic][parms[ic].size()-1] * (parms[ic].size()-1) * (parms[ic].size()-2) * (parms[ic].size()-3);
+            for (uint16_t i=parms[ic].size()-2; i>2; --i)
+            {
+                result.a4[ic] *= x;
+                result.a4[ic] += i * (i-1) * (i-2) * parms[ic][i];
+            }
+        }
+    }
+
+    return result.g;
+}
+
 //! Evaluate quaternion polynomial.
 /*! Return the value of the 1st derivative of the given Nth order quaternion polynomial, evaluated at the given location.
  * \param x Independent variable where polynomial should be evaluated.
@@ -1419,9 +1543,9 @@ uvector rv_fitpoly(uvector x, uvector y, uint32_t order)
 gj_kernel *gauss_jackson_kernel(int32_t order, double dvi)
 {
     int i, n, j,m,k;
-    gj_kernel *gjk = NULL;
+    gj_kernel *gjk = nullptr;
 
-    if ((gjk = (gj_kernel *)calloc(1,sizeof(gj_kernel))) == NULL)
+    if ((gjk = (gj_kernel *)calloc(1,sizeof(gj_kernel))) == nullptr)
         return (gjk);
 
     gjk->dvi = dvi;
@@ -1429,7 +1553,7 @@ gj_kernel *gauss_jackson_kernel(int32_t order, double dvi)
     gjk->dvi2 = dvi * dvi;
     gjk->horder = order/2;
 
-    if ((gjk->binom = (int32_t **)calloc(order+2,sizeof(int32_t *))) == NULL)
+    if ((gjk->binom = (int32_t **)calloc(order+2,sizeof(int32_t *))) == nullptr)
     {
         gauss_jackson_dekernel(gjk);
         return nullptr;
@@ -1437,14 +1561,14 @@ gj_kernel *gauss_jackson_kernel(int32_t order, double dvi)
 
     for (i=0; i<order+2; i++)
     {
-        if ((gjk->binom[i] = (int32_t *)calloc(order+2,sizeof(int32_t))) == NULL)
+        if ((gjk->binom[i] = (int32_t *)calloc(order+2,sizeof(int32_t))) == nullptr)
         {
             gauss_jackson_dekernel(gjk);
             return nullptr;
         }
     }
 
-    if ((gjk->alpha = (double **)calloc(order+2,sizeof(double *))) == NULL)
+    if ((gjk->alpha = (double **)calloc(order+2,sizeof(double *))) == nullptr)
     {
         gauss_jackson_dekernel(gjk);
         return nullptr;
@@ -1452,14 +1576,14 @@ gj_kernel *gauss_jackson_kernel(int32_t order, double dvi)
 
     for (i=0; i<order+2; i++)
     {
-        if ((gjk->alpha[i] = (double *)calloc(order+1,sizeof(double))) == NULL)
+        if ((gjk->alpha[i] = (double *)calloc(order+1,sizeof(double))) == nullptr)
         {
             gauss_jackson_dekernel(gjk);
             return nullptr;
         }
     }
 
-    if ((gjk->beta = (double **)calloc(order+2,sizeof(double *))) == NULL)
+    if ((gjk->beta = (double **)calloc(order+2,sizeof(double *))) == nullptr)
     {
         gauss_jackson_dekernel(gjk);
         return nullptr;
@@ -1467,32 +1591,32 @@ gj_kernel *gauss_jackson_kernel(int32_t order, double dvi)
 
     for (i=0; i<order+2; i++)
     {
-        if ((gjk->beta[i] = (double *)calloc(order+1,sizeof(double))) == NULL)
+        if ((gjk->beta[i] = (double *)calloc(order+1,sizeof(double))) == nullptr)
         {
             gauss_jackson_dekernel(gjk);
             return nullptr;
         }
     }
 
-    if ((gjk->c = (double *)calloc(order+3,sizeof(double *))) == NULL)
+    if ((gjk->c = (double *)calloc(order+3,sizeof(double *))) == nullptr)
     {
         gauss_jackson_dekernel(gjk);
         return nullptr;
     }
 
-    if ((gjk->gam = (double *)calloc(order+2,sizeof(double *))) == NULL)
+    if ((gjk->gam = (double *)calloc(order+2,sizeof(double *))) == nullptr)
     {
         gauss_jackson_dekernel(gjk);
         return nullptr;
     }
 
-    if ((gjk->q = (double *)calloc(order+3,sizeof(double *))) == NULL)
+    if ((gjk->q = (double *)calloc(order+3,sizeof(double *))) == nullptr)
     {
         gauss_jackson_dekernel(gjk);
         return nullptr;
     }
 
-    if ((gjk->lam = (double *)calloc(order+3,sizeof(double *))) == NULL)
+    if ((gjk->lam = (double *)calloc(order+3,sizeof(double *))) == nullptr)
     {
         gauss_jackson_dekernel(gjk);
         return nullptr;
@@ -1588,49 +1712,49 @@ void gauss_jackson_dekernel(gj_kernel *gjk)
 {
     int i;
 
-    if (gjk == NULL)
+    if (gjk == nullptr)
         return;
 
-    if (gjk->binom != NULL)
+    if (gjk->binom != nullptr)
     {
         for (i=0; i<gjk->order+2; i++)
         {
-            if (gjk->binom[i] != NULL)
+            if (gjk->binom[i] != nullptr)
                 free(gjk->binom[i]);
         }
         free(gjk->binom);
     }
 
-    if (gjk->alpha != NULL)
+    if (gjk->alpha != nullptr)
     {
         for (i=0; i<gjk->order+2; i++)
         {
-            if (gjk->alpha[i] != NULL)
+            if (gjk->alpha[i] != nullptr)
                 free(gjk->alpha[i]);
         }
         free(gjk->alpha);
     }
 
-    if (gjk->beta != NULL)
+    if (gjk->beta != nullptr)
     {
         for (i=0; i<gjk->order+2; i++)
         {
-            if (gjk->beta[i] != NULL)
+            if (gjk->beta[i] != nullptr)
                 free(gjk->beta[i]);
         }
         free(gjk->beta);
     }
 
-    if (gjk->c != NULL)
+    if (gjk->c != nullptr)
         free(gjk->c);
 
-    if (gjk->gam != NULL)
+    if (gjk->gam != nullptr)
         free(gjk->gam);
 
-    if (gjk->q != NULL)
+    if (gjk->q != nullptr)
         free(gjk->q);
 
-    if (gjk->lam != NULL)
+    if (gjk->lam != nullptr)
         free(gjk->lam);
 
     free(gjk);
@@ -1652,21 +1776,21 @@ gj_instance *gauss_jackson_instance(gj_kernel *kern, int32_t axes, void (*calc_v
     int i, m;
     gj_instance *gji;
 
-    if (kern == NULL)
+    if (kern == nullptr)
         return nullptr;
 
-    if ((gji = (gj_instance *)calloc(1,sizeof(gj_instance))) != NULL)
+    if ((gji = (gj_instance *)calloc(1,sizeof(gj_instance))) != nullptr)
     {
         gji->kern = kern;
         gji->axes = axes;
         gji->calc_vd2 = calc_vd2;
-        if ((gji->vi = (double *)calloc(kern->order+2,sizeof(double))) != NULL)
+        if ((gji->vi = (double *)calloc(kern->order+2,sizeof(double))) != nullptr)
         {
-            if ((gji->steps = (gj_step **)calloc(axes,sizeof(gj_step *))) != NULL)
+            if ((gji->steps = (gj_step **)calloc(axes,sizeof(gj_step *))) != nullptr)
             {
                 for (i=0; i<axes; i++)
                 {
-                    if ((gji->steps[i] = gauss_jackson_step(kern)) != NULL)
+                    if ((gji->steps[i] = gauss_jackson_step(kern)) != nullptr)
                     {
                         continue;
                     }
@@ -1712,13 +1836,13 @@ gj_step *gauss_jackson_step(gj_kernel *kern)
 
     gj_step *step;
 
-    if ((step = (gj_step *)calloc(kern->order+2,sizeof(gj_step))) != NULL)
+    if ((step = (gj_step *)calloc(kern->order+2,sizeof(gj_step))) != nullptr)
     {
         for (j=0; j<kern->order+2; j++)
         {
-            if ((step[j].a = (double *)calloc(kern->order+1,sizeof(double))) != NULL)
+            if ((step[j].a = (double *)calloc(kern->order+1,sizeof(double))) != nullptr)
             {
-                if ((step[j].b = (double *)calloc(kern->order+1,sizeof(double))) != NULL)
+                if ((step[j].b = (double *)calloc(kern->order+1,sizeof(double))) != nullptr)
                     continue;
                 free(step[j].a);
             }
@@ -1765,15 +1889,15 @@ void gauss_jackson_destep(gj_kernel *kern,gj_step *step)
 {
     int j;
 
-    if (step != NULL)
+    if (step != nullptr)
     {
         for (j=0; j<kern->order+2; j++)
         {
-            if (step[j].a != NULL)
+            if (step[j].a != nullptr)
             {
                 free(step[j].a);
             }
-            if (step[j].b != NULL)
+            if (step[j].b != nullptr)
             {
                 free(step[j].b);
             }
@@ -1797,7 +1921,7 @@ int gauss_jackson_setstep(gj_instance *gji, double vi, double *vd0, double *vd1,
 {
     int i;
 
-    if (gji == NULL)
+    if (gji == nullptr)
         return (MATH_ERROR_GJ_UNDEFINED);
 
     if (istep > gji->kern->order+2)
@@ -1827,7 +1951,7 @@ int gauss_jackson_setstep(gj_instance *gji, double vi, double *vd0, double *vd1,
 int gauss_jackson_getstep(gj_instance *gji, double *vi, double *vd0, double *vd1, double *vd2, int32_t istep)
 {
     int i;
-    if (gji == NULL)
+    if (gji == nullptr)
         return (MATH_ERROR_GJ_UNDEFINED);
 
     if (istep > gji->kern->order+2)
@@ -1852,12 +1976,12 @@ void gauss_jackson_preset(gj_instance *gji)
     int32_t ccount, cflag=1, k, n, i;
     int32_t gj_order, gj_2order;
     double gj_dvi, gj_dvi2;
-    static double *oldvd2 = NULL;
-    static double *newvd0 = NULL;
-    static double *newvd2 = NULL;
+    static double *oldvd2 = nullptr;
+    static double *newvd0 = nullptr;
+    static double *newvd2 = nullptr;
     static int32_t axes = 0;
 
-    if (newvd0 == NULL || axes < gji->axes)
+    if (newvd0 == nullptr || axes < gji->axes)
     {
         if (newvd0)
         {
@@ -1866,9 +1990,9 @@ void gauss_jackson_preset(gj_instance *gji)
             free(newvd2);
         }
         axes = gji->axes;
-        oldvd2 = (double *)calloc(axes,sizeof(double));
-        newvd0 = (double *)calloc(axes,sizeof(double));
-        newvd2 = (double *)calloc(axes,sizeof(double));
+        oldvd2 = static_cast <double *>(calloc(axes,sizeof(double)));
+        newvd0 = static_cast <double *>(calloc(axes,sizeof(double)));
+        newvd2 = static_cast <double *>(calloc(axes,sizeof(double)));
     }
 
     gj_2order = gji->kern->horder;
@@ -1957,11 +2081,11 @@ void gauss_jackson_extrapolate(gj_instance *gji, double target)
     int32_t chunks, i, j, k;
     int32_t gj_order, gj_2order;
     double gj_dvi, gj_dvi2;
-    static double *newvd0 = NULL;
-    static double *newvd2 = NULL;
+    static double *newvd0 = nullptr;
+    static double *newvd2 = nullptr;
     static int32_t axes = 0;
 
-    if (newvd0 == NULL || axes < gji->axes)
+    if (newvd0 == nullptr || axes < gji->axes)
     {
         if (newvd0)
         {
@@ -2366,6 +2490,25 @@ void LsFit::update(double x, rvector y)
     update(cfit, 3);
 }
 
+//! Update ::gvector Least Squares Fit
+/*! Add independent and dependent value pair to existing ::LsFit, updating the fit. If the number
+ * of elements in the fit has been reached, the oldest element is dropped before fitting.
+ * \param x Dependent value.
+ * \param y Independent values.
+*/
+void LsFit::update(double x, gvector y)
+{
+    fitelement cfit;
+
+    // Independent variable
+    cfit.x = x;
+
+    // Dependent variable for quaternion
+    cfit.y.g = y;
+
+    update(cfit, 3);
+}
+
 //! Update ::quaternion Least Squares Fit
 /*! Add independent and dependent value pair to existing ::LsFit, updating the fit. If the number
  * of elements in the fit has been reached, the oldest element is dropped before fitting.
@@ -2582,6 +2725,24 @@ rvector LsFit::evalrvector(double x)
     }
 }
 
+//! Least squares dependent ::gvector value.
+/*! Return the value of the dependent ::gvector, calculated for the provided independent value, using the parameters from
+ * the latest ::LsFit::update.
+ * \param x Independent value.
+ * \return Calculated ::gvector dependent value.
+*/
+gvector LsFit::evalgvector(double x)
+{
+    if (var.size() > order)
+    {
+        return gv_evaluate_poly(x - basex, parms);
+    }
+    else
+    {
+        return gv_zero();
+    }
+}
+
 //! Least squares dependent ::quaternion value.
 /*! Return the value of the dependent ::quaternion, calculated for the provided independent value, using the parameters from
  * the latest ::LsFit::update.
@@ -2633,6 +2794,24 @@ rvector LsFit::slopervector(double x)
     else
     {
         return rv_zero();
+    }
+}
+
+//! Least squares dependent ::gvector 1st derivative.
+/*! Return the value of the dependent ::gvector 1st derivative, calculated for the provided independent value, using the parameters from
+ * the latest ::LsFit::update.
+ * \param x Independent value.
+ * \return Calculated ::gvector dependent 1st derivative.
+*/
+gvector LsFit::slopegvector(double x)
+{
+    if (var.size() > order)
+    {
+        return gv_evaluate_poly_slope(x - basex, parms);
+    }
+    else
+    {
+        return gv_zero();
     }
 }
 
@@ -2690,6 +2869,24 @@ rvector LsFit::accelrvector(double x)
     }
 }
 
+//! Least squares dependent ::gvector 2nd derivative.
+/*! Return the value of the dependent ::gvector 2nd derivative, calculated for the provided independent value, using the parameters from
+ * the latest ::LsFit::update.
+ * \param x Independent value.
+ * \return Calculated ::gvector dependent 2nd derivative.
+*/
+gvector LsFit::accelgvector(double x)
+{
+    if (var.size() > order)
+    {
+        return gv_evaluate_poly_accel(x - basex, parms);
+    }
+    else
+    {
+        return gv_zero();
+    }
+}
+
 //! Least squares dependent ::quaternion 2nd derivative.
 /*! Return the value of the dependent ::quaternion 2nd derivative, calculated for the provided independent value, using the parameters from
  * the latest ::LsFit::update.
@@ -2741,6 +2938,24 @@ rvector LsFit::jerkrvector(double x)
     else
     {
         return rv_zero();
+    }
+}
+
+//! Least squares dependent ::gvector 3rd derivative.
+/*! Return the value of the dependent ::gvector 3rd derivative, calculated for the provided independent value, using the parameters from
+ * the latest ::LsFit::update.
+ * \param x Independent value.
+ * \return Calculated ::gvector dependent 3rd derivative.
+*/
+gvector LsFit::jerkgvector(double x)
+{
+    if (var.size() > order)
+    {
+        return gv_evaluate_poly_jerk(x - basex, parms);
+    }
+    else
+    {
+        return gv_zero();
     }
 }
 

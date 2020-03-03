@@ -37,9 +37,22 @@
 * Internal descriptor for cssl serial control of prkx2su.
 * @brief prkx2su serial handle
 */
-static cssl_t *prkx2su_serial[2] = {nullptr, nullptr};
+static Serial *prkx2su_serial[2];
 
 static prkx2su_state ant_state;
+
+int32_t prkx2su_init(std::string dev)
+{
+    int32_t iretn;
+    string device;
+
+    device = dev + "_az";
+    prkx2su_serial[PRKX2SU_AXIS_AZ] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+    device = dev + "_el";
+    prkx2su_serial[PRKX2SU_AXIS_EL] = new Serial(device, PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
+
+    return 0;
+}
 
 /**
 * Connects to am MII prkx2su antenna controller, which in turn
@@ -50,59 +63,60 @@ static prkx2su_state ant_state;
 * @see cssl_open
 * @see cssl_setflowcontrol
 */
-int32_t prkx2su_connect(std::string dev)
+int32_t prkx2su_connect()
 {
 	int32_t iretn;
-	cssl_start();
+//	cssl_start();
 
-	if (prkx2su_serial[PRKX2SU_AXIS_AZ] != nullptr)
+    if (prkx2su_serial[PRKX2SU_AXIS_AZ]->get_open())
 	{
-		prkx2su_disconnect();
+        iretn = prkx2su_disconnect();
+        if (iretn < 0)
+        {
+            return iretn;
+        }
+    }
+
+    iretn = prkx2su_serial[PRKX2SU_AXIS_AZ]->open_device();
+    if (iretn < 0)
+	{
+        return iretn;
 	}
 
-	std::string device = dev + "_az";
-	prkx2su_serial[PRKX2SU_AXIS_AZ] = cssl_open(device.c_str(), PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
-	if (prkx2su_serial[PRKX2SU_AXIS_AZ] == nullptr)
-	{
-		return CSSL_ERROR_OPEN;
-	}
-
-	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_AZ], 0, .1);
+    iretn = prkx2su_serial[PRKX2SU_AXIS_AZ]->set_timeout(.5);
 	if (iretn < 0)
+	{
+        prkx2su_disconnect();
+		return iretn;
+	}
+
+    iretn = prkx2su_send(PRKX2SU_AXIS_AZ, "", true);
+	if (iretn < 0)
+	{
+        prkx2su_disconnect();
+		return iretn;
+	}
+
+    if (prkx2su_serial[PRKX2SU_AXIS_EL]->get_open())
+	{
+        return SERIAL_ERROR_OPEN;
+    }
+
+    iretn = prkx2su_serial[PRKX2SU_AXIS_EL]->open_device();
+    if (iretn < 0)
+    {
+        prkx2su_disconnect();
+        return iretn;
+    }
+
+    iretn = prkx2su_serial[PRKX2SU_AXIS_EL]->set_timeout(.5);
+    if (iretn < 0)
 	{
 		prkx2su_disconnect();
 		return iretn;
 	}
 
-	iretn = prkx2su_send(PRKX2SU_AXIS_AZ, (char *)"", true);
-	if (iretn < 0)
-	{
-		prkx2su_disconnect();
-		return iretn;
-	}
-
-	if (prkx2su_serial[PRKX2SU_AXIS_EL] != nullptr)
-	{
-		prkx2su_disconnect();
-		prkx2su_serial[PRKX2SU_AXIS_EL] = nullptr;
-	}
-
-	device = dev + "_el";
-	prkx2su_serial[PRKX2SU_AXIS_EL] = cssl_open(device.c_str(), PRKX2SU_BAUD, PRKX2SU_BITS, PRKX2SU_PARITY, PRKX2SU_STOPBITS);
-	if (prkx2su_serial[PRKX2SU_AXIS_EL] == nullptr)
-	{
-		prkx2su_disconnect();
-		return CSSL_ERROR_OPEN;
-	}
-
-	iretn = cssl_settimeout(prkx2su_serial[PRKX2SU_AXIS_EL], 0, .1);
-	if (iretn < 0)
-	{
-		prkx2su_disconnect();
-		return iretn;
-	}
-
-	iretn = prkx2su_send(PRKX2SU_AXIS_EL, (char *)"", true);
+    iretn = prkx2su_send(PRKX2SU_AXIS_EL, "", true);
 	if (iretn < 0)
 	{
 		prkx2su_disconnect();
@@ -117,19 +131,18 @@ int32_t prkx2su_connect(std::string dev)
 */
 int32_t prkx2su_disconnect()
 {
-	if (prkx2su_serial[PRKX2SU_AXIS_AZ] != nullptr)
+    int32_t iretn = 0;
+    if (prkx2su_serial[PRKX2SU_AXIS_AZ]->get_open())
 	{
-		cssl_close(prkx2su_serial[PRKX2SU_AXIS_AZ]);
-		prkx2su_serial[PRKX2SU_AXIS_AZ] = nullptr;
-	}
+        iretn = prkx2su_serial[PRKX2SU_AXIS_AZ]->close_device();
+    }
 
 	if (prkx2su_serial[PRKX2SU_AXIS_EL] != nullptr)
 	{
-		cssl_close(prkx2su_serial[PRKX2SU_AXIS_EL]);
-		prkx2su_serial[PRKX2SU_AXIS_EL] = nullptr;
+        iretn = prkx2su_serial[PRKX2SU_AXIS_EL]->close_device();
 	}
 
-	return 0;
+    return iretn;
 }
 
 /**
@@ -140,41 +153,28 @@ int32_t prkx2su_disconnect()
 * @param buflen 32 bit signed integer indicating the maximum size of the buffer
 * @return 32 bit signed integer containing the number of bytes read.
 */
-int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen)
+int32_t prkx2su_getdata(uint8_t axis, string buf, uint16_t buflen)
 {
-	int32_t i,j;
+    int32_t j;
 
-	i = 0;
-	while ((j=cssl_getchar(prkx2su_serial[axis])) >= 0)
+    buf.clear();
+    while((j=prkx2su_serial[axis]->get_char()) >= 0)
 	{
-		buf[i++] = j;
-        if (j == ';' || i == buflen)
+        buf.push_back(static_cast<char>(j));
+        if (j == ';' || static_cast<uint16_t>(buf.size()) == buflen)
 		{
 			break;
 		}
 	}
-//	while ((j=cssl_getdata(prkx2su_serial[axis], (uint8_t *)&buf[i],buflen-i)))
-//	{
-//		if (j < 0)
-//		{
-//			return j;
-//		}
-//		else
-//		{
-//			i += j;
-//			if (buf[i-1] == ';')
-//				break;
-//		}
-//	}
-	if (j >= 0)
-	{
-		buf[i] = 0;
-		return (i);
-	}
-	else
-	{
-		return j;
-	}
+
+    if (j < 0)
+    {
+        return j;
+    }
+    else
+    {
+        return static_cast<int32_t>(buf.size());
+    }
 }
 
 /**
@@ -182,34 +182,81 @@ int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen)
 * calibration mode on in prkx2su.
 * @param axis 32 bit signed integer , 0 = Azimuth, 1 = Elevation
 */
-int32_t prkx2su_status(int8_t axis)
+int32_t prkx2su_status(uint8_t axis)
 {
-	int32_t iretn;
-	iretn = prkx2su_send(axis, (char *)"BIn;", true);
-	if (iretn < 0)
-	{
-		return iretn;
-	}
-	char buf[20];
-	iretn = prkx2su_getdata(axis, buf, 20);
-	if (iretn < 0)
-	{
-		return iretn;
-	}
-	switch (axis)
-	{
-	case PRKX2SU_AXIS_AZ:
-		float az;
-		sscanf(buf, "%c%c%f", &ant_state.azid, &ant_state.azstatus, &az);
-		ant_state.currentaz = RADOF(az);
-		break;
-	case PRKX2SU_AXIS_EL:
-		float el;
-		sscanf(buf, "%c%c%f", &ant_state.elid, &ant_state.elstatus, &el);
-		ant_state.currentel = RADOF(el);
-		break;
-	}
-	return iretn;
+    int32_t iretn;
+    iretn = prkx2su_send(axis, "BIn;", true);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    string buf;
+    iretn = prkx2su_getdata(axis, buf, 2000);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    switch (axis)
+    {
+    case PRKX2SU_AXIS_AZ:
+        sscanf(buf.c_str(), "%c%c%f", &ant_state.azid, &ant_state.azstatus, &ant_state.currentaz);
+        ant_state.currentaz = RADOF(ant_state.currentaz);
+        break;
+    case PRKX2SU_AXIS_EL:
+        sscanf(buf.c_str(), "%c%c%f", &ant_state.elid, &ant_state.elstatus, &ant_state.currentel);
+        ant_state.currentel = RADOF(ant_state.currentel);
+        break;
+    }
+    return iretn;
+}
+
+int32_t prkx2su_get_limits(uint8_t axis)
+{
+    string buf;
+    int32_t iretn;
+    iretn = prkx2su_send(axis, "RH0;", true);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = prkx2su_getdata(axis, buf, 200);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    switch (axis)
+    {
+    case PRKX2SU_AXIS_AZ:
+        sscanf(buf.c_str(), "H%f", &ant_state.minaz);
+        ant_state.minaz = RADOF(ant_state.minaz);
+        break;
+    case PRKX2SU_AXIS_EL:
+        sscanf(buf.c_str(), "H%f", &ant_state.minel);
+        ant_state.minel = RADOF(ant_state.minel);
+        break;
+    }
+    iretn = prkx2su_send(axis, "RI0;", true);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    iretn = prkx2su_getdata(axis, buf, 200);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    switch (axis)
+    {
+    case PRKX2SU_AXIS_AZ:
+        sscanf(buf.c_str(), "H%f", &ant_state.maxaz);
+        ant_state.maxaz = RADOF(ant_state.maxaz);
+        break;
+    case PRKX2SU_AXIS_EL:
+        sscanf(buf.c_str(), "H%f", &ant_state.maxel);
+        ant_state.maxel = RADOF(ant_state.maxel);
+        break;
+    }
+    return iretn;
 }
 
 /**
@@ -220,27 +267,65 @@ int32_t prkx2su_status(int8_t axis)
 int32_t prkx2su_stop(uint8_t axis)
 {
 	int32_t iretn;
-	iretn = prkx2su_send(axis, (char *)";", true);
+    iretn = prkx2su_send(axis, ";", true);
 	return iretn;
+}
+
+int32_t prkx2su_ramp(uint8_t axis, uint8_t speed)
+{
+    int32_t iretn;
+    char out[50];
+
+    if (speed < 1 || speed > 10)
+        return (PRKX2SU_ERROR_OUTOFRANGE);
+    sprintf(out,"WNn%03hhu;", speed);
+    iretn = prkx2su_send(axis, out, true);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    else
+    {
+        return (speed);
+    }
+}
+
+int32_t prkx2su_minimum_speed(uint8_t axis, uint8_t speed)
+{
+    int32_t iretn;
+    char out[50];
+
+    if (speed < 1 || speed > 10)
+        return (PRKX2SU_ERROR_OUTOFRANGE);
+    sprintf(out,"WFn%03hhu;", speed);
+    iretn = prkx2su_send(axis, out, true);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    else
+    {
+        return (speed);
+    }
 }
 
 int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed)
 {
-	int32_t iretn;
-	char out[50];
+    int32_t iretn;
+    char out[50];
 
-	if (speed < 1 || speed > 10)
-		return (PRKX2SU_ERROR_OUTOFRANGE);
-	sprintf(out,"WGn%03hu;",speed);
-	iretn = prkx2su_send(axis, out, true);
-	if (iretn < 0)
-	{
-		return iretn;
-	}
-	else
-	{
-		return (speed);
-	}
+    if (speed < 1 || speed > 10)
+        return (PRKX2SU_ERROR_OUTOFRANGE);
+    sprintf(out,"WGn%03hhu;", speed);
+    iretn = prkx2su_send(axis, out, true);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+    else
+    {
+        return (speed);
+    }
 }
 
 int32_t prkx2su_goto(float az, float el)
@@ -364,19 +449,19 @@ int32_t prkx2su_test(uint8_t axis)
 {
 	int32_t iretn;
 
-	iretn = cssl_putstring(prkx2su_serial[axis], (char *)"R10;");
+    iretn = prkx2su_serial[axis]->put_string("R10;");
 	if (iretn < 0)
 	{
 		return iretn;
 	}
 
-	char buf[100];
+    string buf;
 	iretn = prkx2su_getdata(axis, buf, 100);
 	if (iretn < 0)
 	{
 		return iretn;
 	}
-	if (buf[0] != '1' || buf[1] != 0x1 || buf[strlen(buf)-1] != ';')
+    if (buf[0] != '1' || buf[1] != 0x1 || buf[buf.size()-1] != ';')
 	{
 		return PRKX2SU_ERROR_SEND;
 	}
@@ -384,10 +469,10 @@ int32_t prkx2su_test(uint8_t axis)
 	return 0;
 }
 
-int32_t prkx2su_send(uint8_t axis, char *buf, bool force)
+int32_t prkx2su_send(uint8_t axis, string buf, bool force)
 {
 	int32_t iretn = 0;
-	static char lastbuf[256];
+    string lastbuf;
 
 	iretn = prkx2su_test(axis);
 	if (iretn < 0)
@@ -395,10 +480,10 @@ int32_t prkx2su_send(uint8_t axis, char *buf, bool force)
 		return iretn;
 	}
 
-	if (strcmp(lastbuf,buf) || force)
+    if (lastbuf != buf || force)
 	{
-		iretn = cssl_putstring(prkx2su_serial[axis], buf);
-		strncpy(lastbuf,buf,256);
+        prkx2su_serial[axis]->put_string(buf);
+        lastbuf = buf;
 	}
 
 	return iretn;

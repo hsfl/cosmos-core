@@ -284,6 +284,16 @@ double evaluate_poly_slope(double x, rvector parms);
 double evaluate_poly_accel(double x, rvector parms);
 double evaluate_poly_jerk(double x, rvector parms);
 
+gvector gv_evaluate_poly(double x, std::vector< std::vector<double> > parms);
+gvector gv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
+gvector gv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
+gvector gv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
+
+rvector rv_evaluate_poly(double x, std::vector< std::vector<double> > parms);
+rvector rv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
+rvector rv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
+rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
+
 // TODO: move these functions to quaternion ???
 rvector rotate_q(quaternion q,rvector v);
 cvector rotate_q(quaternion q, cvector v);
@@ -389,6 +399,7 @@ public:
     void initialize(uint16_t cnt=10, uint16_t ord=2);
     void update(double x, double y);
     void update(double x, rvector y);
+    void update(double x, gvector y);
     void update(double x, quaternion y);
     void update(fitelement cfit, uint16_t dep);
     double lastx();
@@ -396,15 +407,19 @@ public:
     size_t size();
     double eval(double x);
     rvector evalrvector(double x);
+    gvector evalgvector(double x);
     quaternion evalquaternion(double x);
     double slope(double x);
     rvector slopervector(double x);
+    gvector slopegvector(double x);
     quaternion slopequaternion(double x);
     double accel(double x);
     rvector accelrvector(double x);
+    gvector accelgvector(double x);
     quaternion accelquaternion(double x);
     double jerk(double x);
     rvector jerkrvector(double x);
+    gvector jerkgvector(double x);
     quaternion jerkquaternion(double x);
     vector < vector <double> > getparms();
     double getbasex();

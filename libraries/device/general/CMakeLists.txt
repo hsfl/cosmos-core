@@ -12,6 +12,7 @@ set(libraryName CosmosDeviceGeneral PARENT_SCOPE)
 
 add_library(CosmosDeviceGeneral STATIC ${SOURCES} ${INCLUDES})
 target_link_libraries(CosmosDeviceGeneral CosmosSupport)
+target_link_libraries(CosmosDeviceGeneral CosmosDeviceSerial)
 
 install(TARGETS CosmosDeviceGeneral DESTINATION lib)
 install(FILES ${INCLUDES} DESTINATION include/device/general)
