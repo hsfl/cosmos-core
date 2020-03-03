@@ -62,7 +62,7 @@ namespace Cosmos {
             int32_t ramp(uint8_t axis, uint8_t speed);
             int32_t minimum_speed(uint8_t axis, uint8_t speed);
             int32_t maximum_speed(uint8_t axis, uint8_t speed);
-            int32_t getdata(uint8_t axis, string buf, uint16_t buflen);
+            int32_t getdata(uint8_t axis, string &buf, uint16_t buflen);
             int32_t send(uint8_t axis, string buf, bool force);
             int32_t test(uint8_t axis);
             int32_t set_sensitivity(float sensitivity);
