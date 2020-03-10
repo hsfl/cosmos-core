@@ -2164,6 +2164,16 @@ namespace Cosmos {
                 return Q;
             }
 
+            //! 1st overload for equals operator
+            //! Set new style ::Quaternion equal to old style ::quaternion
+            //! \param q Old style ::quaternion
+            //! \return New style ::Quaternion
+            Quaternion &Quaternion::operator = (const quaternion &q)
+            {
+                *this = Quaternion(q);
+                return *this;
+            }
+
             //! Add two ::Quaternion
             /*! Add two quaternions in ::Quaternion form, returning a ::Quaternion.
                 \param a first quaternion to be added, in ::Quaternion form
@@ -2278,7 +2288,7 @@ namespace Cosmos {
             }
 
             // product operator for quaternion class: q1 * q2
-            Quaternion Quaternion::operator * (Quaternion &q2) const
+            Quaternion Quaternion::operator * (const Quaternion &q2) const
             {
                 Quaternion q1, q3;
 
@@ -2292,7 +2302,7 @@ namespace Cosmos {
                 return q3;
             }
 
-            Quaternion operator * (const Vectors::Vector &v, Quaternion &q)
+            Quaternion operator * (const Vectors::Vector &v, const Quaternion &q)
             {
                 const Quaternion qv = Quaternion(v);
                 return qv * q;
@@ -2436,7 +2446,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return Scale times this.
         */
-            Quaternion operator * (double scale, Quaternion &q)
+            Quaternion operator * (double scale, const Quaternion &q)
             {
                 return q * scale;
             }
