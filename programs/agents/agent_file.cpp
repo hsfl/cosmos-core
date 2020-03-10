@@ -171,7 +171,9 @@ int32_t request_remove_file(char* request, char* response, Agent *agent);
 //int32_t request_send_file(char* request, char* response, Agent *agent);
 int32_t request_ls(char* request, char* response, Agent *agent);
 int32_t request_list_incoming(char* request, char* response, Agent *agent);
+int32_t request_list_incoming_json(char* request, char* response, Agent *agent);
 int32_t request_list_outgoing(char* request, char* response, Agent *agent);
+int32_t request_list_outgoing_json(char* request, char* response, Agent *agent);
 int32_t outgoing_tx_add(tx_progress tx_out);
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name);
 int32_t outgoing_tx_del(int32_t node, PACKET_TX_ID_TYPE tx_id);
@@ -201,6 +203,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node);
 //main
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
     // store command line arguments
     switch (argc)
     {
@@ -237,11 +240,16 @@ int main(int argc, char *argv[])
     gethostname(hostname, sizeof (hostname));
     agentname += hostname;
     agent = new Agent("", agentname, 5.);
-    if (agent->cinfo == nullptr || !agent->running())
+    if ((iretn = agent->wait()) < 0)
     {
-        cout << agentname << ": agent_setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<endl;
-        exit (AGENT_ERROR_JSON_CREATE);
+        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
     }
+    else
+    {
+        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+    }
+
     printf("\t\tSuccess.\n");
     fflush(stdout); // Ensure this gets printed before blocking call
 
@@ -249,9 +257,7 @@ int main(int argc, char *argv[])
     printf("- Opening recv socket...");
     fflush(stdout);
 
-    int32_t iretn;
-
-    if((iretn = socket_open(&recvchan, NetworkType::UDP, (char *)"", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
+    if((iretn = socket_open(&recvchan, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
         std::cout << "iretn = " << iretn << std::endl;
         printf("- Could not successfully open recv socket... exiting \n");
@@ -336,6 +342,11 @@ int main(int argc, char *argv[])
     if ((iretn=agent->add_request("list_incoming",request_list_incoming,"", "lists contents incoming queue")))
         exit (iretn);
     if ((iretn=agent->add_request("list_outgoing",request_list_outgoing,"", "lists contents outgoing queue")))
+        exit (iretn);
+
+    if ((iretn=agent->add_request("list_incoming_json",request_list_incoming_json,"", "lists contents incoming queue")))
+        exit (iretn);
+    if ((iretn=agent->add_request("list_outgoing_json",request_list_outgoing_json,"", "lists contents outgoing queue")))
         exit (iretn);
     if ((iretn=agent->add_request("debug",request_debug,"{0|1}","Toggle Debug information")))
         exit (iretn);
@@ -1570,6 +1581,38 @@ int32_t request_list_incoming(char* request, char* response, Agent *agent)
     return 0;
 }
 
+int32_t request_list_incoming_json(char* request, char* response, Agent *agent)
+{
+    response[0] = 0;
+
+    sprintf(&response[strlen(response)], "{\"incoming\":[");
+    int i;
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+        if(node>0) {
+            sprintf(&response[strlen(response)],",");
+        }
+        sprintf(&response[strlen(response)], "{\"node\":\"%s\",\"count\":%u,\"files\":[", txq[node].node_name.c_str(), txq[node].incoming.size);
+        i = 0;
+        for(tx_progress tx : txq[node].incoming.progress)
+        {
+
+            if (tx.tx_id)
+            {
+                if(i > 0){
+                    sprintf(&response[strlen(response)], ",");
+                }
+                i++;
+                sprintf(&response[strlen(response)], "{\"tx_id\":%u,\"agent\":\"%s\",\"name\":\"%s\",\"bytes\":%u,\"size\":%u}", tx.tx_id, tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
+            }
+        }
+        sprintf(&response[strlen(response)], "]}");
+    }
+    sprintf(&response[strlen(response)], "]}");
+
+    return 0;
+}
+
 int32_t request_list_outgoing(char* request, char* response, Agent *agent)
 {
     response[0] = 0;
@@ -1584,6 +1627,38 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
             }
         }
     }
+
+    return 0;
+}
+
+int32_t request_list_outgoing_json(char* request, char* response, Agent *agent)
+{
+    response[0] = 0;
+
+    sprintf(&response[strlen(response)], "{\"outgoing\":[");
+    int i;
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+        if(node>0) {
+            sprintf(&response[strlen(response)],",");
+        }
+        sprintf(&response[strlen(response)], "{\"node\":\"%s\",\"count\":%u,\"files\":[", txq[node].node_name.c_str(), txq[node].outgoing.size);
+        i = 0;
+        for(tx_progress tx : txq[node].outgoing.progress)
+        {
+
+            if (tx.tx_id)
+            {
+                if(i > 0){
+                    sprintf(&response[strlen(response)], ",");
+                }
+                i++;
+                sprintf(&response[strlen(response)], "{\"tx_id\":%u,\"agent\":\"%s\",\"name\":\"%s\",\"bytes\":%u,\"size\":%u}", tx.tx_id, tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
+            }
+        }
+        sprintf(&response[strlen(response)], "]}");
+    }
+    sprintf(&response[strlen(response)], "]}");
 
     return 0;
 }

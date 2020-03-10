@@ -117,6 +117,10 @@ static double newlogstride_soh = 900. / 86400.;
 static double logstride_soh = 0.;
 static std::mutex soh_mutex;
 
+static std::mutex beacon_mutex;
+void move_and_compress_beacon();
+void get_beacon_cpu();
+
 static vector<shorteventstruc> eventdict;
 static vector<shorteventstruc> events;
 
@@ -145,11 +149,16 @@ int main(int argc, char *argv[])
 
     // Establish the command channel and heartbeat
     agent = new Agent(node_name, "exec", 5.);
-    if (agent->cinfo == nullptr || !agent->running())
+    if ((iretn = agent->wait()) < 0)
     {
-        cout<<"unable to start agent_exec: "<<endl;
-        exit (AGENT_ERROR_JSON_CREATE);
+        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
     }
+    else
+    {
+        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+    }
+
     agent->cinfo->node.utc = 0.;
     agent->cinfo->agent[0].aprd = .5;
     cout<<"  started."<<endl;
@@ -258,6 +267,7 @@ int main(int argc, char *argv[])
     logstring = json_list_of_soh(agent->cinfo);
     printf("===\nlogstring: %s\n===\n", logstring.c_str()); fflush(stdout);
     json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
+
     //	agent_set_sohstring(agent->cinfo, logstring.c_str());
 
     load_dictionary(eventdict, agent->cinfo, "events.dict");
@@ -265,7 +275,9 @@ int main(int argc, char *argv[])
     // Start thread to collect SOH data
     thread cdthread = thread(collect_data_loop);
 
+    get_beacon_cpu();
     // Start performing the body of the agent
+    COSMOS_SLEEP(30.);
     lmjd = cmjd = nextmjd = currentmjd();
     while(agent->running())
     {
@@ -278,6 +290,7 @@ int main(int argc, char *argv[])
         {
             logperiod = newlogperiod;
             logdate_soh = agent->cinfo->node.utc;
+
             move_and_compress_soh();
         }
 
@@ -291,7 +304,10 @@ int main(int argc, char *argv[])
         if (fabs(newlogstride_soh - logstride_soh) > std::numeric_limits<double>::epsilon()) {
             logstride_soh = newlogstride_soh;
             logdate_soh = currentmjd(0.);
+
+
             move_and_compress_soh();
+            move_and_compress_beacon();
         }
 
         // Check if either of the logstride have expired
@@ -305,6 +321,7 @@ int main(int argc, char *argv[])
         {
             logdate_soh = floor(cmjd/logstride_soh)*logstride_soh;
             move_and_compress_soh();
+            move_and_compress_beacon();
         }
 
         // Perform SOH specific functions
@@ -633,6 +650,32 @@ void move_and_compress_soh () {
     soh_mutex.unlock();
 }
 
+void move_and_compress_beacon () {
+    std::string beacon_string;
+    beacon_mutex.lock();
+    log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
+    log_move(node_name, "beacon");
+    beacon_mutex.unlock();
+}
+
+void get_beacon_cpu() {
+    static DeviceCpu deviceCpu;
+    static const double GiB = 1024. * 1024. * 1024.;
+    int32_t iretn;
+    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
+    if (iretn < 0)
+    {
+        fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
+        agent->shutdown();
+        exit(1);
+    }
+
+    uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+    agent->cinfo->device[cidx].cpu.load = static_cast <float>(deviceCpu.getLoad());
+    agent->cinfo->device[cidx].cpu.gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/GiB);
+    agent->cinfo->device[cidx].cpu.maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/GiB);
+    agent->cinfo->device[cidx].cpu.maxload = deviceCpu.getCount();
+}
 // Not being used... remove?
 ///// Prints the command information stored in local the copy of agent->cinfo->event[0].l
 //void print_command()

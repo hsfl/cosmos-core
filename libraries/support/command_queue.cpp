@@ -107,159 +107,178 @@ namespace Cosmos
         // *************************************************************************
 
 
-CommandQueue::~CommandQueue () { join_events(); }
+        CommandQueue::~CommandQueue () { join_events(); }
 
-// Before moving log files, we must join the event threads and ensure that each
-// event spawned is not currently active.
-void CommandQueue::join_events() {
-    static auto join_event = [] (std::thread &t) {
-       t.join();
-    };
+        // Before moving log files, we must join the event threads and ensure that each
+        // event spawned is not currently active.
+        void CommandQueue::join_events() {
+            static auto join_event = [] (std::thread &t) {
+               t.join();
+            };
 
-    std::for_each(event_threads.begin(), event_threads.end(), join_event);
-    event_threads.clear();
-}
-
-// Executes a command in a separate shell (system) using threads. For each
-// command run, the time of execution (utcexec) is set, the flag
-// EVENT_FLAG_ACTUAL is set to true, and this updated command information is
-// logged to the OUTPUT directory.
-void CommandQueue::run_command(Event& cmd, string node_name, double logdate_exec)
-{
-	queue_changed = true;
-
-            // set time executed & actual flag
-            cmd.set_utcexec();
-            cmd.set_actual();
-
-    string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
-    char command_line[100];
-    strcpy(command_line, cmd.get_data().c_str());
-
-    // We keep track of all threads spawned to join before moving log files.
-    event_threads.push_back(std::thread([=] () {
-        int devn, prev_stdin, prev_stdout, prev_stderr;
-        if (outpath.empty()) {
-            devn = open("/dev/null", O_RDWR);
-        }
-        else {
-            devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+            std::for_each(event_threads.begin(), event_threads.end(), join_event);
+            event_threads.clear();
         }
 
-        prev_stdin = dup(STDIN_FILENO);
-        prev_stdout = dup(STDOUT_FILENO);
-        prev_stderr = dup(STDERR_FILENO);
+        //! Run the given Event
+        /*!
+            Executes a command in a separate shell (system) using threads. For each
+            command run, the time of execution (utcexec) is set, the flag
+            EVENT_FLAG_ACTUAL is set to true, and this updated command information is
+            logged to the OUTPUT directory.
 
-        // Redirect all output our executed command.
-        dup2(devn, STDIN_FILENO);
-        dup2(devn, STDOUT_FILENO);
-        dup2(devn, STDERR_FILENO);
-        close(devn);
+            \param	cmd	Reference to event to run
+            \param	nodename	Name of node
+            \param	logdate_exec	Time of execution (for logging purposes)
+        */
+        void CommandQueue::run_command(Event& cmd, string node_name, double logdate_exec)
+        {
+            queue_changed = true;
 
-        // Execute the command.
-        system(command_line);
+                    // set time executed & actual flag
+                    cmd.set_utcexec();
+                    cmd.set_actual();
 
-        dup2(prev_stdin, STDIN_FILENO);
-        dup2(prev_stdout, STDOUT_FILENO);
-        dup2(prev_stderr, STDERR_FILENO);
-        close(prev_stdin);
-        close(prev_stdout);
-        close(prev_stderr);
-    }));
+            string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
+            char command_line[100];
+            strcpy(command_line, cmd.get_data().c_str());
 
-//#if defined(COSMOS_WIN_OS)
-//	char command_line[100];
-//    strcpy(command_line, cmd.get_data().c_str());
-//
-//	STARTUPINFOA si;
-//	PROCESS_INFORMATION pi;
-//
-//	ZeroMemory( &si, sizeof(si) );
-//	si.cb = sizeof(si);
-//	ZeroMemory( &pi, sizeof(pi) );
-//
-//	if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-//	{
-//		//		int32_t pid = pi.dwProcessId;
-//		CloseHandle( pi.hProcess );
-//		CloseHandle( pi.hThread );
-//	}
-//#else
-//    int32_t pid = fork(); // Fork paradigm copies ENTIRE process space, leads to errors when exiting child. Now using threads.
-//
-//    char *words[MAXCOMMANDWORD];
-//    string_parse((char *)cmd.get_data().c_str(), words, MAXCOMMANDWORD);
-//    string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
-//    if (pid != 0) {
-//        signal(SIGCHLD, SIG_IGN); // Ensure no zombies.
-//    }
-//    else {
-//        int devn;
-//        if (outpath.empty()) {
-//            devn = open("/dev/null",O_RDWR);
-//        }
-//        else {
-//            devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
-//        }
-//      dup2(devn, STDIN_FILENO);
-//		dup2(devn, STDOUT_FILENO);
-//		dup2(devn, STDERR_FILENO);
-//      close(devn);
-//
-//        // Execute the command.
-//        execvp(words[0], &(words[1]));
-//        fflush(stdout);
-//        exit (0);
-//    }
-//
-//#endif
+            // We keep track of all threads spawned to join before moving log files.
+            event_threads.push_back(std::thread([=] () {
+                int devn, prev_stdin, prev_stdout, prev_stderr;
+                if (outpath.empty()) {
+                    devn = open("/dev/null", O_RDWR);
+                }
+                else {
+                    devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+                }
 
-	// log to event file
-    log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
-}
+                prev_stdin = dup(STDIN_FILENO);
+                prev_stdout = dup(STDOUT_FILENO);
+                prev_stderr = dup(STDERR_FILENO);
 
+                // Redirect all output our executed command.
+                dup2(devn, STDIN_FILENO);
+                dup2(devn, STDOUT_FILENO);
+                dup2(devn, STDERR_FILENO);
+                close(devn);
 
-// Manages the logic of when to run commands in the command queue.
-void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_exec) // TODO: remove dependency to pointer to agent
-{
-    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii) {
-		// if command is ready
-		if (ii->is_ready()) {
-			// if command is conditional
-			if (ii->is_conditional()) {
-				// if command condition is true
-				if(ii->condition_true(agent->cinfo)) {
-					// if command is repeatable
-					if(ii->is_repeat()) {
-						// if command has not already run
-						if(!ii->already_ran)	{
-							run_command(*ii, node_name, logdate_exec);
-							ii->already_ran = true;
-						}
-					// else command is non-repeatable
-					} else {
-						run_command(*ii, node_name, logdate_exec);
-						commands.erase(ii--);
-					}
-				// else command condition is false
-				} else {
-					ii->already_ran = false;
-				}
-			// else command is non-conditional
-			} else {
-				run_command(*ii, node_name, logdate_exec);
-				commands.erase(ii--);
-			}
-		} else {
-			;//cout<<"This command is *NOT* ready to run! ";
-		}
-	}
-	return;
-}
+                // Execute the command.
+                system(command_line);
 
-        // Saves commands to .queue file located in the temp directory
-        // Commands are taken from the global command queue
-        // Command queue is sorted by utc after loading
+                dup2(prev_stdin, STDIN_FILENO);
+                dup2(prev_stdout, STDOUT_FILENO);
+                dup2(prev_stderr, STDERR_FILENO);
+                close(prev_stdin);
+                close(prev_stdout);
+                close(prev_stderr);
+            }));
+
+        //#if defined(COSMOS_WIN_OS)
+        //	char command_line[100];
+        //    strcpy(command_line, cmd.get_data().c_str());
+        //
+        //	STARTUPINFOA si;
+        //	PROCESS_INFORMATION pi;
+        //
+        //	ZeroMemory( &si, sizeof(si) );
+        //	si.cb = sizeof(si);
+        //	ZeroMemory( &pi, sizeof(pi) );
+        //
+        //	if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        //	{
+        //		//		int32_t pid = pi.dwProcessId;
+        //		CloseHandle( pi.hProcess );
+        //		CloseHandle( pi.hThread );
+        //	}
+        //#else
+        //    int32_t pid = fork(); // Fork paradigm copies ENTIRE process space, leads to errors when exiting child. Now using threads.
+        //
+        //    char *words[MAXCOMMANDWORD];
+        //    string_parse((char *)cmd.get_data().c_str(), words, MAXCOMMANDWORD);
+        //    string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
+        //    if (pid != 0) {
+        //        signal(SIGCHLD, SIG_IGN); // Ensure no zombies.
+        //    }
+        //    else {
+        //        int devn;
+        //        if (outpath.empty()) {
+        //            devn = open("/dev/null",O_RDWR);
+        //        }
+        //        else {
+        //            devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+        //        }
+        //      dup2(devn, STDIN_FILENO);
+        //		dup2(devn, STDOUT_FILENO);
+        //		dup2(devn, STDERR_FILENO);
+        //      close(devn);
+        //
+        //        // Execute the command.
+        //        execvp(words[0], &(words[1]));
+        //        fflush(stdout);
+        //        exit (0);
+        //    }
+        //
+        //#endif
+
+            // log to event file
+            log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
+        }
+
+        //!	Traverse the entire queue of Events, and run those which qualify.
+        /*!
+
+        An %Event only qualifies to run if the current time is greater than or equal to
+        the execution time of the %Event.  Further, if the %Event is conditional, then the
+        %Event condition must be true.
+
+            \param	agent	Pointer to Agent object (for call to condition_true(..))
+            \param	nodename	Name of the node
+            \param	logdate_exec	Time of execution (for logging purposes)
+        */
+        void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_exec)
+        {
+            for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii) {
+                // if command is ready
+                if (ii->is_ready()) {
+                    // if command is conditional
+                    if (ii->is_conditional()) {
+                        // if command condition is true
+                        if(ii->condition_true(agent->cinfo)) {
+                            // if command is repeatable
+                            if(ii->is_repeat()) {
+                                // if command has not already run
+                                if(!ii->already_ran)	{
+                                    run_command(*ii, node_name, logdate_exec);
+                                    ii->already_ran = true;
+                                }
+                            // else command is non-repeatable
+                            } else {
+                                run_command(*ii, node_name, logdate_exec);
+                                commands.erase(ii--);
+                            }
+                        // else command condition is false
+                        } else {
+                            ii->already_ran = false;
+                        }
+                    // else command is non-conditional
+                    } else {
+                        run_command(*ii, node_name, logdate_exec);
+                        commands.erase(ii--);
+                    }
+                } else {
+                    ;//cout<<"This command is *NOT* ready to run! ";
+                }
+            }
+            return;
+        }
+        //!	Save the queue of Events to a file
+        /*!
+            Commands are taken from the global command queue
+            Command queue is sorted by utc after loading
+
+            \param	temp_dir	Directory where the .queue file will be written
+        */
         void CommandQueue::save_commands(string temp_dir)
         {
             if (!queue_changed)
@@ -280,10 +299,13 @@ void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_e
             }
         }
 
-        // Loads new commands from *.command files located in the incoming directory
+
+        //!	Loads new commands from *.command files located in the incoming directory
+        /*!
         // Commands are loaded into the global CommandQueue object (cmd_queue),
         // *.command files are removed, and the command list is sorted by utc.
-        //void CommandQueue::load_commands(string incoming_dir, Agent *agent) // TODO: change arguments so that we don't need to pass the separate directories
+            \param	incoming_dir	Directory where the .command files will be read from
+        */
         void CommandQueue::load_commands(string incoming_dir)
         {
             DIR *dir = NULL;
@@ -316,16 +338,15 @@ void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_e
                     string line;
                     Event cmd;
 
-			while(getline(infile,line))
-			{
-				//cmd.set_command(line, agent); // TODO: is it really necessary to pass *agent?
-				cmd.set_command(line); // TODO: is it really necessary to pass *agent?  NOPE!
-                std::cout << "Command added: " << cmd;
+                    while(getline(infile,line))
+                    {
+                        cmd.set_command(line);
+                        std::cout << "Command added: " << cmd;
 
                         if(cmd.is_command())
-                            add_command(cmd);
+                        add_command(cmd);
                         else
-                            std::cout<<"Not a command!"<<std::endl;
+                        std::cout<<"Not a command!"<<std::endl;
                     }
                     infile.close();
 
@@ -335,9 +356,9 @@ void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_e
                         continue;
                     }
 
-            std::cout<<"\nThe size of the command queue is: "<< get_size()<<std::endl;
-		}
-	}
+                    std::cout<<"\nThe size of the command queue is: "<< get_size()<<std::endl;
+                }
+            }
 
             sort();
 
@@ -345,55 +366,74 @@ void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_e
 
             return;
         }
+        ///	Remove **all** matching Event from the queue
+        /**
+            \param	c	Event to remove
+            \return	The number of Events removed
 
-// Remove command object from the command queue, uses command == operator)
-int CommandQueue::del_command(Event& c)
-{
-    size_t prev_sz = commands.size();
-    for (std::list<Event>::iterator ii = commands.begin();
-         ii != commands.end();
-         ++ii) {
-        if (c == *ii) {
-            commands.erase(ii--);
+            This function only removes events from the queue if the are exactly equal to the given Event.
+        */
+        int CommandQueue::del_command(Event& c)
+        {
+            size_t prev_sz = commands.size();
+            for (std::list<Event>::iterator ii = commands.begin();
+                 ii != commands.end();
+                 ++ii) {
+                if (c == *ii) {
+                    commands.erase(ii--);
+                }
+            }
+
+            queue_changed = true;
+            return static_cast<int>(prev_sz - commands.size());
+
+        //	int n = 0;
+        //    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
+        //    {
+        //
+        //		if(c==*ii)
+        //		{
+        //            commands.erase(ii--);
+        //			n++;
+        //		}
+        //	}
+        //	queue_changed = true;
+        //	return n;
         }
-    }
 
-    queue_changed = true;
-    return static_cast<int>(prev_sz - commands.size());
+        //! Remove Event from the queue based on position
+        /*!
+             \param  pos  Position of event to remove
+             \return The number of Events removed
 
-//	int n = 0;
-//    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
-//    {
-//
-//		if(c==*ii)
-//		{
-//            commands.erase(ii--);
-//			n++;
-//		}
-//	}
-//	queue_changed = true;
-//	return n;
-}
+             This function removes events based on their queue position (0-indexed).
+        */
+        int CommandQueue::del_command(int pos)
+        {
+            size_t prev_sz = commands.size();
+            std::list<Event>::iterator b = commands.begin();
 
-// Overloaded removal method to delete entry w/ queue position.
-int CommandQueue::del_command(int pos)
-{
-    size_t prev_sz = commands.size();
-    std::list<Event>::iterator b = commands.begin();
+            std::advance(b, pos);
+            commands.erase(b);
+            queue_changed = true;
+            return static_cast<int>(prev_sz - commands.size());
+        }
 
-    std::advance(b, pos);
-    commands.erase(b);
-    queue_changed = true;
-    return static_cast<int>(prev_sz - commands.size());
-}
+        void CommandQueue::add_command(Event& c)
+        {
+            commands.push_back(c);
+            queue_changed = true;
+        }
 
-void CommandQueue::add_command(Event& c)
-{
-	commands.push_back(c);
-	queue_changed = true;
-}
+        //!	Extraction operator
+        /*!
+            \param	out	Reference to ostream
+            \param	cmdq	Reference to CommandQueue (JIMNOTE: should be const, ya?)
+            \return	Reference to modified ostream
 
-        // Copies the current CommandQueue object to the output stream using JSON format
+            Writes the given CommandQueue to the given output stream (in JSON format) and returns a reference to the modified ostream.
+
+        */
         std::ostream& operator<<(std::ostream& out, CommandQueue& cmdq)
         {
             for(std::list<Event>::iterator ii = cmdq.commands.begin(); ii != cmdq.commands.end(); ++ii)

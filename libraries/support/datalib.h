@@ -143,6 +143,8 @@ bool data_exists(string& path);
 bool data_isdir(string path);
 bool data_ischardev(string path);
 bool data_isfile(string path, off_t size=0);
+double data_ctime(string path);
+off_t data_size(string path);
 int32_t set_cosmosroot(string name, bool create_flag=false);
 int32_t set_cosmosroot(bool create_flag=false);
 int32_t get_cosmosroot(string &result, bool create_flag=false);

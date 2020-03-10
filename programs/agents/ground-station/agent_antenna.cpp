@@ -147,68 +147,107 @@ int32_t request_set_offset(char *req, char* response, Agent *);
 
 int32_t connect_antenna();
 
-float gsmin = RADOF(10.);
+static float gsmin = RADOF(10.);
 //char tlename[20];
-std::string nodename;
-std::string agentname;
-std::string antdevice;
-size_t devindex;
-size_t antindex = 9999;
-antstruc target;
-antstruc current;
-bool antconnected = false;
-bool antenabled = false;
-bool debug;
+static string antbase = "";
+static std::string nodename = "";
+static std::string agentname;
+static std::string antdevice;
+static uint16_t devindex = -1;
+static uint16_t antindex = -1;
+static antstruc target;
+static antstruc current;
+static bool antconnected = false;
+static bool antenabled = false;
+static bool debug;
 
 // Here are internally provided functions
-int json_init();
+//int json_init();
 //int myinit();
 //int load_gs_info(char *file);
 int load_tle_info(char *file);
 
 // Here are variables for internal use
 static std::vector<tlestruc> tle;
-int32_t numlines, bestn;
-Agent *agent;
+static Agent *agent;
 
 struct azelstruc
 {
     float az;
     float el;
 };
-azelstruc antennaoffset = {0., 0.};
+static azelstruc antennaoffset = {0., 0.};
 
-LsFit trackaz(5, 2);
-LsFit trackel(5, 2);
-bool trackflag = false;
+static LsFit trackaz(5, 2);
+static LsFit trackel(5, 2);
+static bool trackflag = false;
 
 int main(int argc, char *argv[])
 {
     int iretn;
-    //  rvector topo;
-    //  locstruc loc;
-    //  int32_t n;
-    //  float taz, tel;
-
 
     // Initialization stuff
 
     switch (argc)
     {
     case 3:
-        nodename = argv[1];
-        agentname = argv[2];
+        nodename = argv[2];
+    case 2:
+        antbase = argv[1];
         break;
     default:
-        printf("Usage: agent_antenna node antenna");
+        printf("Usage: agent_antenna antenna node");
         exit (1);
-        break;
     }
 
-    if (!(agent = new Agent(nodename, agentname)))
+    if (nodename.empty())
     {
-        printf("Error %d: Setting up Agent antenna\n",JSON_ERROR_NOJMAP);
-        exit (JSON_ERROR_NOJMAP);
+        agent = new Agent("", (antbase+"antenna").c_str(), 5.);
+    }
+    else
+    {
+        agent = new Agent(nodename, (antbase+"antenna").c_str(), 5.);
+    }
+
+    if ((iretn = agent->wait()) < 0)
+    {
+        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
+    }
+    else
+    {
+        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+    }
+
+    iretn = json_createpiece(agent->cinfo, antbase.c_str(), DeviceType::ANT);
+    if (iretn < 0)
+    {
+        fprintf(agent->get_debug_fd(), "Failed to add %s ANT %s\n", antbase.c_str(), cosmos_error_string(iretn).c_str());
+        agent->shutdown();
+        exit(iretn);
+    }
+    devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+    antindex = agent->cinfo->device[devindex].ant.didx;
+    agent->cinfo->device[devindex].ant.minelev = RADOF(10.);
+    if (antbase == "sband")
+    {
+        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_PRKX2SU;
+    }
+    else if (antbase == "yagi")
+    {
+        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_GS232B;
+    }
+    else
+    {
+        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_LOOPBACK;
+    }
+
+    iretn = json_dump_node(agent->cinfo);
+    if (iretn < 0)
+    {
+        fprintf(agent->get_debug_fd(), "Failed to save node %s\n", cosmos_error_string(iretn).c_str());
+        agent->shutdown();
+        exit(iretn);
     }
 
     // Add requests
@@ -239,34 +278,20 @@ int main(int argc, char *argv[])
     if ((iretn=agent->add_request("set_offset",request_set_offset,"set_offset aaa.a eee.e", "Set the antenna azimuth and elevation correction in degrees.")))
         exit (iretn);
 
-    // Look for named antenna so we can use the right one
-    for (size_t i=0; i<agent->cinfo->devspec.ant_cnt; ++i)
-    {
-        std::string aname = agent->cinfo->pieces[agent->cinfo->devspec.ant[i]->pidx].name;
-        if (aname == argv[2])
-            //      if (!strcmp(argv[2], agent->cinfo->pieces[agent->cinfo->devspec.ant[i]->pidx].name))
-        {
-            devindex = agent->cinfo->devspec.ant[i]->cidx;
-            antindex = i;
-            break;
-        }
-    }
-
-    if (antindex == 9999)
-    {
-        std::cout<<"Exiting " << agentname << " for Node: " << nodename << " no antenna found." << std::endl;
-        agent->shutdown();
-        exit (1);
-    }
-
     // Set SOH string
     char sohstring[200];
     sprintf(sohstring, "{\"device_ant_temp_%03lu\",\"device_ant_align_%03lu\",\"device_ant_azim_%03lu\",\"device_ant_elev_%03lu\"}", antindex, antindex, antindex, antindex);
     agent->set_sohstring(sohstring);
 
-    antdevice = agent->cinfo->port[agent->cinfo->device[devindex].all.portidx].name;
+//    antdevice = agent->cinfo->port[agent->cinfo->device[devindex].all.portidx].name;
+    antdevice = "/dev/tty_" + antbase;
 
     // Connect to antenna and set sensitivity;
+    if (agent->cinfo->device[devindex].all.model == DEVICE_MODEL_PRKX2SU)
+    {
+        iretn = prkx2su_init(antdevice);
+    }
+
     iretn = connect_antenna();
     switch (agent->cinfo->device[devindex].all.model)
     {
@@ -496,7 +521,7 @@ int32_t connect_antenna()
         }
         break;
     case DEVICE_MODEL_PRKX2SU:
-        iretn = prkx2su_connect(antdevice);
+        iretn = prkx2su_connect();
 
         // Initialize values if we are connected
         if (iretn == 0)

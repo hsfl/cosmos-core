@@ -30,12 +30,17 @@
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
 
-int main(int, char* argv[])
+int main(int argc, char* argv[])
 {
     Agent *myagent;
 
     myagent = new Agent();
-    json_setup_node(argv[1], myagent->cinfo);
+    string node ="";
+    if (argc == 2)
+    {
+        node = argv[1];
+    }
+    json_setup_node(node, myagent->cinfo);
 
     size_t total = 0;
     size_t count = 0;

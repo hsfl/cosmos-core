@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 
 	if (mjdnow < iloc.utc)
 	{
-        hardware_init_eci(agent->cinfo->devspec, iloc);
+        hardware_init_eci(agent->cinfo, iloc);
         gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
 
         //printf("Initialize backwards %f days\n", (agent->cinfo->node.loc.utc-mjdnow));
@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
 //	gauss_jackson_preset(&gji);
 //	gauss_jackson_extrapolate(&gji, mjdnow);
 
-    hardware_init_eci(agent->cinfo->devspec, iloc);
+    hardware_init_eci(agent->cinfo, iloc);
     gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
     simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
     gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
     iloc.pos.eci = agent->cinfo->node.loc.pos.eci;
     iloc.att.icrf = agent->cinfo->node.loc.att.icrf;
     iloc.utc = agent->cinfo->node.loc.pos.eci.utc;
-    hardware_init_eci(agent->cinfo->devspec, iloc);
+    hardware_init_eci(agent->cinfo, iloc);
     gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
     simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
     mjdnow = currentmjd(agent->cinfo->node.utcoffset);
@@ -235,8 +235,8 @@ int main(int argc, char* argv[])
 
     for (uint16_t i=0; i<agent->cinfo->target.size(); ++i)
 	{
-        tcinfo[i] = json_create();
-        hardware_init_eci(agent->cinfo->devspec, agent->cinfo->target[i].loc);
+        tcinfo[i] = json_init();
+        hardware_init_eci(agent->cinfo, agent->cinfo->target[i].loc);
         gauss_jackson_init_eci(tgjh[i], order, 0, dt, agent->cinfo->target[i].loc.utc, agent->cinfo->target[i].loc.pos.eci, agent->cinfo->target[i].loc.att.icrf, tcinfo[i]->physics, tcinfo[i]->node.loc);
         simulate_hardware(agent->cinfo, agent->cinfo->target[i].loc);
     }

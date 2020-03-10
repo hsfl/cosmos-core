@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
     loc_update(&agent->cinfo->node.loc);
 */
 
-    hardware_init_eci(agent->cinfo->devspec, agent->cinfo->node.loc);
+    hardware_init_eci(agent->cinfo, agent->cinfo->node.loc);
     gauss_jackson_init_eci(gjh, order, mode, dt, mjdnow, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
     simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
     mjdnow = agent->cinfo->node.loc.utc;
@@ -220,11 +220,11 @@ char* request_set_bus(char* request, char* output)
 	sscanf(request,"set_bus %d %d",&j, &k);
 	if (k)
 	{
-        agent->cinfo->devspec.bus[j]->flag |= DEVICE_FLAG_ON;
+        agent->cinfo->device[agent->cinfo->devspec.bus[j]].all.flag |= DEVICE_FLAG_ON;
 	}
 	else
 	{
-        agent->cinfo->devspec.bus[j]->flag &= ~DEVICE_FLAG_ON;
+        agent->cinfo->device[agent->cinfo->devspec.bus[j]].all.flag &= ~DEVICE_FLAG_ON;
 	}
 	return (output);
 }   
@@ -256,9 +256,9 @@ char* request_set_rw_moment(char* request, char* output)
 
 	sscanf(request,"set_rw_moment %d %lf %lf %lf",&j,&value[0],&value[1],&value[2]);
 
-    agent->cinfo->devspec.rw[j]->mom.col[0] = value[0];
-    agent->cinfo->devspec.rw[j]->mom.col[1] = value[1];
-    agent->cinfo->devspec.rw[j]->mom.col[2] = value[2];
+    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[0] = value[0];
+    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[1] = value[1];
+    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[2] = value[2];
     strcpy(output,json_of_rw(reqjstring, j, agent->cinfo));
 	printf("%s\n",output);
 	return (output);
@@ -270,7 +270,7 @@ char* request_set_rw_omega(char* request, char* output)
 	double value;
 
 	sscanf(request,"%*s %d %lf",&j,&value);
-    agent->cinfo->devspec.rw[j]->omg = value;
+    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.omg = value;
     strcpy(output,json_of_rw(reqjstring, j, agent->cinfo));
 	printf("%s\n",output);
 	return (output);
@@ -282,7 +282,7 @@ char* request_set_rw_alpha(char* request, char* output)
 	double value;
 
 	sscanf(request,"%*s %d %lf",&j,&value);
-    agent->cinfo->devspec.rw[j]->alp = value;
+    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.alp = value;
     strcpy(output,json_of_rw(reqjstring, j, agent->cinfo));
 	printf("%s\n",output);
 	return (output);
@@ -320,7 +320,7 @@ char* request_set_mtr_current(char* request, char* output)
 
 	sscanf(request,"set_mtr_current %d %lf",&j,&value);
 
-    agent->cinfo->device[agent->cinfo->devspec.mtr[j]->cidx].all.amp = value;
+    agent->cinfo->device[agent->cinfo->devspec.mtr[j]].all.amp = value;
     strcpy(output,json_of_mtr(reqjstring, j, agent->cinfo));
 	printf("%s\n",output);
 	return (output);
@@ -333,7 +333,7 @@ char* request_set_mtr_field(char* request, char* output)
 
 	sscanf(request,"set_mtr_field %d %lf",&j,&value);
 
-    agent->cinfo->device[agent->cinfo->devspec.mtr[j]->cidx].all.amp = value*(4.838e-3+value*(-3.958e-5+value*3.053e-6));
+    agent->cinfo->device[agent->cinfo->devspec.mtr[j]].all.amp = value*(4.838e-3+value*(-3.958e-5+value*3.053e-6));
     strcpy(output,json_of_rw(reqjstring, j, agent->cinfo));
 	return (output);
 }

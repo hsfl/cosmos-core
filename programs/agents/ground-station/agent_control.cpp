@@ -139,46 +139,49 @@ List of available requests:
 #include "support/jsonlib.h"
 #include "support/ephemlib.h"
 
-std::string nodename;
-std::string agentname;
-Agent *agent;
-std::mutex cdata_mutex;
+static string nodename = "";
+static string agentname = "control";
+static string trajectoryname = "";
+static Agent *agent;
+static mutex cdata_mutex;
 
-std::vector <double> lastantutc;
-std::vector <double> lasttcvutc;
+static vector <double> lastantutc;
+static vector <double> lasttcvutc;
 
 struct radiostruc
 {
-    std::string name;
+    string name;
 	tcvstruc info;
 	uint16_t otherradioindex;
 	beatstruc beat;
 	float dfreq;
 };
-std::vector <radiostruc> myradios;
+static vector <radiostruc> myradios;
 
-size_t trackindex = 9999;
-size_t highestindex = 9999;
-float highestvalue = -DPI2;
+static size_t trackindex = 9999;
+static size_t highestindex = 9999;
+static float highestvalue = -DPI2;
 struct trackstruc
 {
+    uint16_t type;
 	targetstruc target;
 	physicsstruc physics;
-    std::string name;
+    string name;
 	gj_handle gjh;
-    std::vector <radiostruc> radios;
+    vector <LsFit> position;
+    vector <radiostruc> radios;
 };
-std::vector <trackstruc> track;
+static vector <trackstruc> track;
 
 struct antennastruc
 {
-    std::string name;
+    string name;
 	antstruc info;
 	beatstruc beat;
 };
-std::vector <antennastruc> myantennas;
+static vector <antennastruc> myantennas;
 
-bool debug;
+static bool debug;
 
 int32_t request_debug(char* request, char* response, Agent *);
 int32_t request_get_state(char* request, char* response, Agent *);
@@ -192,7 +195,7 @@ int32_t request_get_highest(char *req, char* response, Agent *);
 int32_t request_unmatch_radio(char* request, char* response, Agent *);
 
 void monitor();
-std::string opmode2string(uint8_t opmode);
+string opmode2string(uint8_t opmode);
 
 int main(int argc, char *argv[])
 {
@@ -200,9 +203,11 @@ int main(int argc, char *argv[])
 
 	switch (argc)
 	{
-	case 2:
-		nodename = argv[1];
-		agentname = "control";
+    case 3:
+        nodename = argv[2];
+    case 2:
+        trajectoryname = argv[1];
+    case 1:
 		break;
 	default:
         printf("Usage: agent->control {nodename}");
@@ -211,22 +216,31 @@ int main(int argc, char *argv[])
 	}
 
 	// Establish the command channel and heartbeat
-    if (!(agent = new Agent(nodename, agentname)))
-	{
-        std::cout << agentname << ": agent->setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
-		exit (AGENT_ERROR_JSON_CREATE);
-	}
-	else
-	{
-        std::cout<<"Starting " << agentname << " for Node: " << nodename << std::endl;
-	}
+    if (nodename.empty())
+    {
+        agent = new Agent("", agentname, 5.);
+    }
+    else
+    {
+        agent = new Agent(nodename, agentname, 5.);
+    }
 
-	// Build up table of our radios
+    if ((iretn = agent->wait()) < 0)
+    {
+        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
+    }
+    else
+    {
+        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+    }
+
+    // Build up table of our radios
     myradios.resize(agent->cinfo->devspec.tcv_cnt);
 	for (size_t i=0; i<myradios.size(); ++i)
 	{
-        myradios[i].name = agent->cinfo->pieces[agent->cinfo->devspec.tcv[i]->pidx].name;
-        myradios[i].info = *agent->cinfo->devspec.tcv[i];
+        myradios[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name;
+        myradios[i].info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
 		myradios[i].otherradioindex = 9999;
         myradios[i].beat = agent->find_server(nodename, myradios[i].name, 3.);
 	}
@@ -235,8 +249,8 @@ int main(int argc, char *argv[])
     myantennas.resize(agent->cinfo->devspec.ant_cnt);
 	for (size_t i=0; i<myantennas.size(); ++i)
 	{
-        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->devspec.ant[i]->pidx].name;
-        myantennas[i].info = *agent->cinfo->devspec.ant[i];
+        myantennas[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.ant[i]].all.pidx].name;
+        myantennas[i].info = agent->cinfo->device[agent->cinfo->devspec.ant[i]].ant;
         myantennas[i].beat = agent->find_server(nodename, myantennas[i].name, 3.);
 	}
 
@@ -246,11 +260,11 @@ int main(int argc, char *argv[])
 	trackindex = 0;
 	track[0].name = "idle";
 	track[0].target.type = NODE_TYPE_DATA;
-    std::vector <std::string> nodes;
+    vector <string> nodes;
 	iretn = data_list_nodes(nodes);
 	for (size_t i=0; i<nodes.size(); ++i)
 	{
-        std::string path = data_base_path(nodes[i]) + "/node.ini";
+        string path = data_base_path(nodes[i]) + "/node.ini";
 		FILE *fp = fopen(path.c_str(), "r");
 		if (fp != nullptr)
 		{
@@ -263,7 +277,7 @@ int main(int argc, char *argv[])
 			case NODE_TYPE_SUN:
 				trackstruc ttrack;
 				ttrack.name = nodes[i];
-                cosmosstruc *cinfo = json_create();
+                cosmosstruc *cinfo = json_init();
                 iretn = json_setup_node(ttrack.name, cinfo);
                 if (iretn == 0 && (currentmjd()-cinfo->node.loc.pos.eci.utc) < 10.)
 				{
@@ -276,8 +290,8 @@ int main(int argc, char *argv[])
                     ttrack.radios.resize(cinfo->devspec.tcv_cnt);
 					for (size_t i=0; i<ttrack.radios.size(); ++i)
 					{
-                        ttrack.radios[i].name = cinfo->pieces[cinfo->devspec.tcv[i]->pidx].name;
-                        ttrack.radios[i].info = *cinfo->devspec.tcv[i];
+                        ttrack.radios[i].name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].all.pidx].name;
+                        ttrack.radios[i].info = cinfo->device[cinfo->devspec.tcv[i]].tcv;
 						ttrack.radios[i].otherradioindex = 9999;
 					}
 
@@ -297,13 +311,14 @@ int main(int argc, char *argv[])
 	// Look for TLE file
 	char fname[200];
 	sprintf(fname,"%s/tle.ini",get_nodedir(nodename).c_str());
-    std::vector <tlestruc> tle;
+    vector <tlestruc> tle;
 	if ((iretn=load_lines_multi(fname, tle)) > 0)
 	{
 		for (size_t i=0; i<tle.size(); ++i)
 		{
 			// Valid node. Initialize tracking and push it to list
 			trackstruc ttrack;
+            ttrack.type = 0;
 			ttrack.name = tle[i].name;
 			ttrack.target.type = NODE_TYPE_SATELLITE;
 			tle2eci(currentmjd()-10./86400., tle[i], ttrack.target.loc.pos.eci);
@@ -325,6 +340,83 @@ int main(int argc, char *argv[])
 		}
 	}
 
+    struct gentry
+    {
+        double second;
+        gvector geod;
+        rvector geoc;
+    };
+    vector <gentry> trajectory;
+
+    if (!trajectoryname.empty() && data_isfile(trajectoryname))
+    {
+        FILE *fp = fopen(trajectoryname.c_str(), "r");
+        if (fp != nullptr)
+        {
+            while (!feof(fp))
+            {
+                gentry tentry;
+                iretn = fscanf(fp, "%lf %lf %lf %lf\n", &tentry.second, &tentry.geod.lat, &tentry.geod.lon, &tentry.geod.h);
+                if (iretn == 4)
+                {
+                    trajectory.push_back(tentry);
+                }
+            }
+            fclose(fp);
+            if (trajectory.size() > 2)
+            {
+                trackstruc ttrack;
+                ttrack.type = 0;
+                ttrack.name = trajectoryname;
+                ttrack.target.type = NODE_TYPE_SATELLITE;
+                ttrack.target.loc.att.icrf.s = q_eye();
+                ttrack.target.loc.att.icrf.v = rv_zero();
+                ttrack.target.loc.att.icrf.a = rv_zero();
+                ttrack.physics.area = .01;
+                ttrack.physics.mass = 1.;
+
+                // Build up table of radios
+                ttrack.radios.resize(1);
+                ttrack.radios[0].name = "radio";
+                //					ttrack.radios[0].info;
+                ttrack.radios[0].otherradioindex = 9999;
+
+                LsFit tfit(3);
+                tfit.update(trajectory[0].second, trajectory[0].geod);
+                tfit.update(trajectory[1].second, trajectory[1].geod);
+                for (uint16_t i=0; i<(trajectory[0].second+trajectory[1].second)/2; ++i)
+                {
+                    ttrack.position.push_back(tfit);
+                }
+                for (uint16_t j=1; j<trajectory.size()-1; ++j)
+                {
+                    tfit.initialize(3);
+                    tfit.update(trajectory[j-1].second, trajectory[j-1].geod);
+                    tfit.update(trajectory[j].second, trajectory[j].geod);
+                    tfit.update(trajectory[j+1].second, trajectory[j+1].geod);
+                    for (uint16_t i=static_cast<uint16_t>(.5+(trajectory[j-1].second+trajectory[j].second)/2); i<(trajectory[j].second+trajectory[j+1].second)/2; ++i)
+                    {
+                        ttrack.position.push_back(tfit);
+                    }
+                }
+                tfit.initialize(3);
+                tfit.update(trajectory[trajectory.size()-2].second, trajectory[trajectory.size()-2].geod);
+                tfit.update(trajectory[trajectory.size()-1].second, trajectory[trajectory.size()-1].geod);
+                for (uint16_t i=static_cast<uint16_t>(.5+(trajectory[trajectory.size()-2].second+trajectory[trajectory.size()-1].second)/2); i<trajectory[trajectory.size()-1].second; ++i)
+                {
+                    ttrack.position.push_back(tfit);
+                }
+
+				for (double timestep=0.; timestep<=trajectory[trajectory.size()-1].second; timestep+=1.)
+                {
+                    uint16_t timeidx = static_cast<uint16_t>(timestep);
+                    gvector tpos = ttrack.position[timeidx].evalgvector(timestep);
+                    gvector tvel = ttrack.position[timeidx].slopegvector(timestep);
+                    printf("%f %f %f %f %f %f %f\n", timestep, tpos.lat, tpos.lon, tpos.h, tvel.lat, tvel.lon, tvel.h);
+                }
+            }
+        }
+    }
 	// Add requests
     if ((iretn=agent->add_request("get_state",request_get_state,"", "returns current state")))
 		exit (iretn);
@@ -394,7 +486,7 @@ int main(int argc, char *argv[])
 
 			if (trackindex && i == trackindex)
 			{
-                std::string output;
+                string output;
 				char request[100];
 				sprintf(request, "track_azel %f %f %f", mjdnow, DEGOF(fixangle(track[i].target.azfrom)), DEGOF((track[i].target.elfrom)));
 				if (debug)
@@ -728,9 +820,9 @@ int32_t request_debug(char *req, char* response, Agent *)
 	return 0;
 }
 
-std::string opmode2string(uint8_t opmode)
+string opmode2string(uint8_t opmode)
 {
-    std::string result;
+    string result;
 	switch (opmode)
 	{
 	case DEVICE_RADIO_MODE_AM:

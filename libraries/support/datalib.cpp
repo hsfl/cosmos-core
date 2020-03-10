@@ -448,6 +448,12 @@ size_t data_list_files(string directory, vector<filestruc>& files)
             {
                 tf.name = td->d_name;
                 tf.path = directory + "/" + tf.name;
+                vector <string> parts = string_split(directory, "/");
+                if (parts.size() > 2)
+                {
+                    tf.agent = parts[parts.size()-1];
+                    tf.node = parts[parts.size()-3];
+                }
                 struct stat st;
                 stat(tf.path.c_str(), &st);
                 tf.size = st.st_size;
@@ -516,13 +522,13 @@ size_t data_list_files(string node, string location, string agent, std::vector<f
 {
     string dtemp;
     dtemp = data_base_path(node, location, agent);
-    size_t fcnt = files.size();
+//    size_t fcnt = files.size();
     data_list_files(dtemp, files);
-    for (size_t i=fcnt; i<files.size(); ++i)
-    {
-        files[i].agent = agent;
-        files[i].node = node;
-    }
+//    for (size_t i=fcnt; i<files.size(); ++i)
+//    {
+//        files[i].agent = agent;
+//        files[i].node = node;
+//    }
 
     return (files.size());
 }
@@ -599,7 +605,7 @@ int32_t data_get_nodes(std::vector<cosmosstruc> &node)
         return iretn;
     }
 
-    if ((tnode=json_create()) == nullptr)
+    if ((tnode=json_init()) == nullptr)
     {
         return (NODE_ERROR_NODE);
     }
@@ -1855,6 +1861,43 @@ bool data_isfile(string path, off_t size)
     else
     {
         return false;
+    }
+
+}
+
+double data_ctime(string path)
+{
+    struct stat st;
+
+    if (!stat(path.c_str(), &st))
+    {
+        struct timeval unixtime;
+#ifdef COSMOS_WIN_OS
+		unixtime.tv_sec = st.st_ctime;
+		unixtime.tv_usec = 0;
+#else
+        unixtime.tv_sec = st.st_ctim.tv_sec;
+        unixtime.tv_usec = st.st_ctim.tv_nsec / 1000;
+#endif
+        return unix2utc(unixtime);
+    }
+    else
+    {
+        return 0.;
+    }
+}
+
+off_t data_size(string path)
+{
+    struct stat stat_buf;
+
+    if ((stat(path.c_str(), &stat_buf)) == 0)
+    {
+        return  stat_buf.st_size;
+    }
+    else
+    {
+        return 0;
     }
 
 }

@@ -173,7 +173,8 @@ rvector utc2nuts(double mjd);
 double utc2theta(double mjd);
 double utc2jcentt(double mjd);
 double utc2jcenut1(double mjd);
-std::string utc2iso8601(double mjd);
+string utc2unixdate(double utc);
+string utc2iso8601(double mjd);
 
 // gps to another format
 double  gps2utc(double gps);

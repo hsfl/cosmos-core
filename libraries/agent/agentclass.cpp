@@ -84,7 +84,7 @@ namespace Cosmos
 
 
             // Initialize COSMOS data space
-            cinfo = json_create();
+            cinfo = json_init();
 
             if (cinfo == nullptr)
             {
@@ -103,32 +103,22 @@ namespace Cosmos
             }
 
             // Set up node: shorten if too long, use hostname if it's empty.
-            if (nname.empty())
-            {
-                json_create_cpu(nodeName);
-            }
-            else if (nname.length() > COSMOS_MAX_NAME)
-            {
-                nodeName = nname.substr(0, COSMOS_MAX_NAME);
-            }
-            else
-            {
-                nodeName = nname;
-            }
-
-            if (nodeName.empty())
-            {
-                error_value = NODE_ERROR_NODE;
-                shutdown();
-                return;
-            }
-
+            nodeName = nname;
             if ((iretn=json_setup_node(nodeName, cinfo)) != 0)
             {
                 error_value = iretn;
                 shutdown();
                 return;
             }
+
+            //            if (nname.empty())
+            //            {
+            //                error_value = NODE_ERROR_NODE;
+            //                shutdown();
+            //                return;
+            //            }
+
+            //            nodeName = nname;
 
             strcpy(cinfo->node.name, nodeName.c_str());
 
@@ -169,7 +159,7 @@ namespace Cosmos
             char tname[COSMOS_MAX_NAME+1];
             if (!mflag)
             {
-                COSMOS_SLEEP(timeoutSec);
+                //                COSMOS_SLEEP(timeoutSec);
                 if (get_server(cinfo->node.name, aname, timeoutSec, (beatstruc *)nullptr))
                 {
                     error_value = AGENT_ERROR_SERVER_RUNNING;
@@ -210,7 +200,7 @@ namespace Cosmos
                 fprintf(get_debug_fd(), "COSMOS AGENT '%s' on node '%s'\n", aname.c_str(), nname.c_str());
                 fprintf(get_debug_fd(), "Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
                 fprintf(get_debug_fd(), "Agent started at %s\n", mjdToGregorian(timeStart).c_str());
-                fprintf(get_debug_fd(), "Debug level %lu\n", debug_level);
+                fprintf(get_debug_fd(), "Debug level %u\n", debug_level);
                 fprintf(get_debug_fd(), "------------------------------------------------------\n");
             }
 
@@ -273,6 +263,8 @@ namespace Cosmos
             Agent::add_request("targetsjson",Agent::req_targetsjson,"","return description JSON for Targets");
             Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
             Agent::add_request("heartbeat",Agent::req_heartbeat,"","Send extra hearbeat");
+            Agent::add_request("mjd",Agent::req_mjd,"","Get Modified Julian Day");
+            Agent::add_request("soh",Agent::req_soh,"","Get SOH string");
 
             cinfo->agent[0].server = 1;
             cinfo->agent[0].stateflag = (uint16_t)Agent::State::RUN;
@@ -432,6 +424,32 @@ namespace Cosmos
             return (cinfo->agent[0].stateflag);
         }
 
+        //! Wait on state
+        //! Wait for up to waitsec seconds for Agent to enter requested state
+        //! \param state Desired ::Agent::State.
+        //! \param waitsec Maximum number of seconds to wait.
+        //! \return Zero, or timeout error.
+        int32_t Agent::wait(State state, float waitsec)
+        {
+            if (cinfo == nullptr)
+            {
+                return AGENT_ERROR_NULL;
+            }
+
+            ElapsedTime et;
+            while (cinfo->agent[0].stateflag != static_cast <uint16_t>(state) && et.split() < waitsec)
+            {
+                COSMOS_SLEEP(.1);
+            }
+            if (cinfo->agent[0].stateflag == static_cast <uint16_t>(state))
+            {
+                return 0;
+            }
+            else
+            {
+                return GENERAL_ERROR_TIMEOUT;
+            }
+        }
 
         //! Last error value.
         //! Get value of last error returned by any function.
@@ -843,7 +861,7 @@ namespace Cosmos
 
             if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG))
             {
-                printf("Request: [%d] %s ",bufferin.size(), &bufferin[0]);
+                printf("Request: [%lu] %s ",bufferin.size(), &bufferin[0]);
                 fflush(stdout);
             }
 
@@ -1183,7 +1201,7 @@ namespace Cosmos
         {
             if (strcmp(request, "debug_level"))
             {
-                sscanf(request, "debug_level %d", &agent->debug_level);
+                sscanf(request, "debug_level %hu", &agent->debug_level);
             }
             sprintf(output, "%d", agent->debug_level);
             return 0;
@@ -1409,6 +1427,20 @@ namespace Cosmos
             int32_t iretn = 0;
             iretn = agent->post_beat();
             return iretn;
+        }
+
+        int32_t Agent::req_mjd(char *, char *response, Agent *agent)
+        {
+            sprintf(response, "%15g", agent->agent_time_producer());
+            return 0;
+        }
+
+        int32_t Agent::req_soh(char *, char* response, Agent *agent)
+        {
+            std::string rjstring;
+            strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
+
+            return 0;
         }
 
         //! Open COSMOS output channel
@@ -2481,7 +2513,7 @@ namespace Cosmos
         //            iretn = json_parse(mess.adata, cinfo->sdata);
         //            if (iretn >= 0)
         //            {
-        //                imu = *cinfo->sdata.devspec.imu[0];
+        //                imu = *cinfo->sdata.device[agent->cinfo->devspec.imu[0]].imu.;
         //            }
         //        }
 
@@ -2537,33 +2569,48 @@ namespace Cosmos
 
         FILE *Agent::get_debug_fd(double mjd)
         {
-            if (mjd == 0.)
+            if (debug_level <= 1)
             {
-                mjd = currentmjd();
-            }
-            mjd = mjd - fmod(mjd, 1./24.);
-            string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
-
-            if (debug_fd != nullptr)
-            {
-                if (pathName != debug_pathName)
+                if (debug_fd != stdout)
                 {
-                    FILE *fd = fopen(pathName.c_str(), "a");
-                    if (fd != nullptr)
+                    if (debug_fd != nullptr)
                     {
                         fclose(debug_fd);
-                        debug_fd = fd;
-                        debug_pathName = pathName;
                     }
+                    debug_fd = stdout;
+                    debug_pathName.clear();
                 }
             }
             else
             {
-                FILE *fd = fopen(pathName.c_str(), "a");
-                if (fd != nullptr)
+                if (mjd == 0.)
                 {
-                    debug_fd = fd;
-                    debug_pathName = pathName;
+                    mjd = currentmjd();
+                }
+                mjd = mjd - fmod(mjd, 1./24.);
+                string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
+
+                if (debug_fd != nullptr)
+                {
+                    if (pathName != debug_pathName)
+                    {
+                        FILE *fd = fopen(pathName.c_str(), "a");
+                        if (fd != nullptr)
+                        {
+                            fclose(debug_fd);
+                            debug_fd = fd;
+                            debug_pathName = pathName;
+                        }
+                    }
+                }
+                else
+                {
+                    FILE *fd = fopen(pathName.c_str(), "a");
+                    if (fd != nullptr)
+                    {
+                        debug_fd = fd;
+                        debug_pathName = pathName;
+                    }
                 }
             }
 
@@ -2573,7 +2620,7 @@ namespace Cosmos
         int32_t Agent::close_debug_fd()
         {
             int32_t iretn;
-            if (debug_fd != nullptr)
+            if (debug_fd != nullptr && debug_fd != stdout)
             {
                 iretn = fclose(debug_fd);
                 if (iretn != 0)
@@ -2613,10 +2660,6 @@ namespace Cosmos
             return 0;
         }
 
-        int32_t Agent::req_mjd(char *, char *response, Agent *agent) {
-            sprintf(response, "%15g", agent->agent_time_producer());
-            return 0;
-        }
 
     } // end of namespace Support
 } // end namespace Cosmos

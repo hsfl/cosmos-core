@@ -937,6 +937,19 @@ std::istream& operator >> (std::istream& in, avector& a)
     return in;
 }
 
+// ----------------------------------------------
+
+//! Zero geodetic vector
+/*! Creates a zero length geodetic vector.
+        \return a ::gvector of zero length
+*/
+gvector gv_zero()
+{
+    gvector v={0.,0.,0.};
+
+    return (v);
+}
+
 
 // ----------------------------------------------
 
@@ -1577,19 +1590,14 @@ namespace Cosmos {
                 switch (i) {
                 case 0:
                     return x;
-                    break;
                 case 1:
                     return y;
-                    break;
                 case 2:
                     return z;
-                    break;
                 case 3:
                     return w;
-                    break;
                 default:
                     return ::nan("");
-                    break;
                 }
             }
 
@@ -2097,6 +2105,21 @@ namespace Cosmos {
                 return o;
             }
 
+            //! Convert to ::quaternion
+            /*! Convert the current ::Quaternion to ::quaternion format.
+         * \return ::quaternion representation.
+         */
+            quaternion Quaternion::to_q()
+            {
+                quaternion q;
+                q.w = w;
+                q.d.x = x;
+                q.d.y = y;
+                q.d.z = z;
+
+                return q;
+            }
+
             // same as q_smult(double a, quaternion b)
             Quaternion Quaternion::multiplyScalar(double a)
             {
@@ -2139,6 +2162,16 @@ namespace Cosmos {
                 Q.w = q.w;
 
                 return Q;
+            }
+
+            //! 1st overload for equals operator
+            //! Set new style ::Quaternion equal to old style ::quaternion
+            //! \param q Old style ::quaternion
+            //! \return New style ::Quaternion
+            Quaternion &Quaternion::operator = (const quaternion &q)
+            {
+                *this = Quaternion(q);
+                return *this;
             }
 
             //! Add two ::Quaternion
@@ -2254,8 +2287,8 @@ namespace Cosmos {
                 return *this;
             }
 
-            // product operator for quaternion class
-            Quaternion Quaternion::operator * (Quaternion &q2) const
+            // product operator for quaternion class: q1 * q2
+            Quaternion Quaternion::operator * (const Quaternion &q2) const
             {
                 Quaternion q1, q3;
 
@@ -2269,7 +2302,7 @@ namespace Cosmos {
                 return q3;
             }
 
-            Quaternion operator * (const Vectors::Vector &v, Quaternion &q)
+            Quaternion operator * (const Vectors::Vector &v, const Quaternion &q)
             {
                 const Quaternion qv = Quaternion(v);
                 return qv * q;
@@ -2413,7 +2446,7 @@ namespace Cosmos {
          * \param scale Scale to multiply by.
          * \return Scale times this.
         */
-            Quaternion operator * (double scale, Quaternion &q)
+            Quaternion operator * (double scale, const Quaternion &q)
             {
                 return q * scale;
             }

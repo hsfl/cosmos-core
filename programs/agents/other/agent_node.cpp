@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 	{
 	case NODE_TYPE_SATELLITE:
 		// Initialize hardware
-        hardware_init_eci(agent->cinfo->devspec, agent->cinfo->node.loc);
+        hardware_init_eci(agent->cinfo, agent->cinfo->node.loc);
 		// Initialize orbit
         gauss_jackson_init_eci(gjh, 8, 0, .1, agent->cinfo->node.loc.utc, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
         simulate_hardware(agent->cinfo, agent->cinfo->node.loc);

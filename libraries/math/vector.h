@@ -139,6 +139,9 @@ std::istream& operator >> (std::istream& out, avector& a);
 std::ostream& operator << (std::ostream& out, const cvector& a);
 std::istream& operator >> (std::istream& in, cvector& a);
 
+// Geodetic Vector operations
+gvector gv_zero();
+
 // Row Vector operations
 rvector rv_zero();
 rvector rv_shortest(rvector v);
@@ -158,10 +161,6 @@ rvector rv_mult(rvector a, rvector b);
 rvector rv_div(rvector a, rvector b);
 rvector rv_sqrt(rvector a);
 rvector rv_cross(rvector a, rvector b);
-rvector rv_evaluate_poly(double x, std::vector< std::vector<double> > parms);
-rvector rv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
-rvector rv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
-rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
 rvector rv_convert(svector from);
 
 double norm_rv(rvector a);
@@ -413,8 +412,8 @@ namespace Cosmos {
             Vector &operator *=( const double &scale); // multiply vector by scalar operator in place
             Vector operator * (const Vector &v2) const; // multiply vector by vector operator
 
-            Vector operator / (const double scale) const; // multiply vector by scalar operator
-            Vector &operator /= (const double &scale); // multiply vector by scalar operator in place
+            Vector operator / (const double scale) const; // divide vector by scalar operator
+            Vector &operator /= (const double &scale); // divide vector by scalar operator in place
 
             Vector operator - (const Vector &v2) const; // Subtract vector by vector operator
             Vector &operator -= (const Vector &v2); // subtract vector by vector operator in place
@@ -474,6 +473,7 @@ namespace Cosmos {
                 w = 0.;
             }
 
+            quaternion to_q();
             Quaternion getQuaternion();
 
             // temporary while the new Quaternion class is not finisheds
@@ -483,9 +483,10 @@ namespace Cosmos {
 
             // operators
 //            Quaternion &operator = (const Quaternion &q) { return *this; }
+            Quaternion &operator = (const quaternion &q2);
             Quaternion operator * (const double scale) const; // multiply vector by scalar operator
             Quaternion &operator *= ( const double scale); // multiply vector by scalar operator in place
-            Quaternion operator * (Quaternion &q2) const;
+            Quaternion operator * (const Quaternion &q2) const;
 
 //            Quaternion operator / (double scale); // multiply vector by scalar operator
 //            Quaternion &operator /= (const double &scale); // multiply vector by scalar operator in place
@@ -512,8 +513,8 @@ namespace Cosmos {
         };
 
         // declared outside class because it does not need to access members of the class Quaternion
-        Quaternion operator * (double scale, Quaternion &q);
-        Quaternion operator * (const Vectors::Vector &v, Quaternion &q);
+        Quaternion operator * (double scale, const Quaternion &q);
+        Quaternion operator * (const Vectors::Vector &v, const Quaternion &q);
         std::ostream& operator << (std::ostream& os, const Quaternion& q);
         Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb);
         Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b);

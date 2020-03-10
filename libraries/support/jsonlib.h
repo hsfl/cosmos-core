@@ -120,7 +120,8 @@ using std::numeric_limits;
 //! \defgroup jsonlib_functions JSON functions
 //! @{
 
-cosmosstruc *json_create();
+cosmosstruc *json_init();
+int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_type=NODE_TYPE_COMPUTER);
 int32_t json_create_cpu(string &node_name);
 int32_t json_clone(cosmosstruc *cinfo);
 int32_t json_clone(cosmosstruc *cinfo1, cosmosstruc *cinfo2);
@@ -128,7 +129,9 @@ int32_t json_repoint(cosmosstruc *cinfo);
 void json_destroy(cosmosstruc *cinfo);
 int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo);
 
-int32_t json_addpiece(cosmosstruc *cinfo, string name, uint16_t ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
+int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
+int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
+int32_t json_createport(cosmosstruc *cinfo, string name, uint16_t type);
 //uint16_t json_addequation(const char *text, cosmosstruc *cinfo, uint16_t unit);
 int32_t json_addentry(string name, string value, cosmosstruc *cinfo);
 int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo);
@@ -143,7 +146,7 @@ int32_t json_togglepieceentry(uint16_t pidx, cosmosstruc *cinfo, bool state);
 int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo);
 int32_t json_togglecompentry(uint16_t cidx, cosmosstruc *cinfo, bool state);
 uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo);
-int32_t json_toggledeviceentry(uint16_t didx, uint16_t type, cosmosstruc *cinfo, bool state);
+int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinfo, bool state);
 uint16_t json_mapportentry(uint16_t portidx, cosmosstruc *cinfo);
 int32_t json_toggleportentry(uint16_t portidx, cosmosstruc *cinfo, bool state);
 int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo);
@@ -272,7 +275,7 @@ int32_t json_skip_to_next_member(const char* &ptr);
 int32_t json_skip_white(const char* &ptr);
 int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo);
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag = false);
-int32_t json_setup_node(string node, cosmosstruc *cinfo);
+int32_t json_setup_node(string &node, cosmosstruc *cinfo);
 int32_t json_load_node(string node, jsonnode &json);
 int32_t json_dump_node(cosmosstruc *cinfo);
 int32_t json_recenter_node(cosmosstruc *cinfo);

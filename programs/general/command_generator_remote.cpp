@@ -36,7 +36,11 @@
 
 using std::cout;
 using std::endl;
-
+//!*    This command generator is for creating commands remotely that are
+//!     intended to be sent through agent_file to a machine where
+//!     agent_exec is run
+//!     commands created are put into a .command file in
+//!         ~/cosmos/nodes/<nodename>/outgoing/exec
 int main(int argc, char *argv[])
 {
 
@@ -126,29 +130,42 @@ int main(int argc, char *argv[])
 
     Event event;
     cout << "Command string:" << endl;
-	// JIMNOTE: this could be done in the constructor
 
     cout << event.generator(name, data, utc, condition, flag) << endl << endl;
-
-    if (!node.empty()) {
-        cout << "Adding command/event to node " << node << endl;
-        Scheduler scheduler(node);
-
-        // Examples on how to use the scheduler class:
-        //        event.name = "Track;FS701;20160930.145000;20160930.145500";
-        //        event.data = "agent_tracker FS701 20160930.145000 20160930.145500";
-        //        event.mjd  = cal2mjd(2016, 9, 30, 14, 50, 0, 0);
-        //        DateTime time( 2016, 10, 12, 14, 50, 1 );
-        //        event.mjd = time.mjd;
-
-        //        cout << event.get_name() << endl;
-        //        cout << event.get_data() << endl;
-        //        cout << event.getTime() << endl;
-
-        scheduler.addEvent(event);
-        COSMOS_SLEEP(0.1);
-        //        scheduler.deleteEvent(event);
-        //        scheduler.getEventQueueSize();
-        scheduler.getEventQueue();
+    // Find agent_mongo
+    Agent *agent = new Agent("", "temp");
+    beatstruc agent_mongo_soh = agent->find_agent("mongo");
+    if (!agent_mongo_soh.exists) {
+        cout << "could not find agent mongo" << endl;
     }
+
+    if(node.empty()) {
+        cout << "Could not add command to node [No Node]" << endl;
+        return 0;
+    }
+    else {
+
+        // create outgoing directory if it doesnt exist
+        std::string outgoing_dir = data_base_path(node, "outgoing", "exec") + "/";
+
+        cout << "Adding command/event to node directory:" << outgoing_dir << endl;
+
+        // write command string to file in outgoing_dir
+        std::string outfilename = data_name(node, currentmjd(),"","command");
+        ofstream cmdfile;
+        cmdfile.open(outgoing_dir + outfilename);
+        cmdfile << event;
+        cmdfile.close();
+
+        // request agent_mongo to insert command
+        if(agent_mongo_soh.exists) {
+            string out;
+            string mongo_request = "insert db " + node + ":command ";
+            mongo_request += event.get_event_string();
+            agent->send_request(agent_mongo_soh, mongo_request, out, 0);
+            cout <<"Request agent mongo: " << mongo_request << endl;
+            cout << out << endl;
+        }
+    }
+
 }

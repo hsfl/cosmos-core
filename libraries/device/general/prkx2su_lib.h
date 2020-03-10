@@ -41,7 +41,7 @@
 
 #include "math/mathlib.h"
 #include "support/cosmos-errno.h"
-#include "device/general/cssl_lib.h"
+#include "device/serial/serialclass.h"
 
 #include <stdio.h>
 
@@ -67,24 +67,28 @@ struct prkx2su_state
 	int32_t az_mode;
 	int32_t az_offset_waiting;
 	float az_offset;
+    float minaz;
+    float maxaz;
 	float currentaz;
 	float targetaz;
 	uint8_t elid;
 	uint8_t elstatus;
 	int32_t el_offset_waiting;
 	float el_offset;
+    float minel;
+    float maxel;
 	float currentel;
 	float targetel;
+    float minimumel;
 	float sensitivity;
 	int32_t in_command;
 	int32_t data_received;
 	} ;
 
-int32_t prkx2su_connect(std::string dev);
+int32_t prkx2su_init(string device);
+int32_t prkx2su_connect();
 int32_t prkx2su_disconnect();
 int32_t prkx2su_calibrate_offset(int32_t axis);
-//void prkx2su_full_scale_calibration(int32_t axis);
-//void prkx2su_rotate(int32_t axis, int32_t direction);
 float prkx2su_get_az();
 float prkx2su_get_el();
 int32_t prkx2su_get_az_el(float &az, float &el);
@@ -93,10 +97,13 @@ float prkx2su_get_el_offset();
 void prkx2su_get_state(prkx2su_state &state);
 int32_t prkx2su_goto(float az, float el);
 int32_t prkx2su_stop(uint8_t axis);
+int32_t prkx2su_ramp(uint8_t axis, uint8_t speed);
+int32_t prkx2su_minimum_speed(uint8_t axis, uint8_t speed);
 int32_t prkx2su_maximum_speed(uint8_t axis, uint8_t speed);
-int32_t prkx2su_getdata(uint8_t axis, char *buf, int32_t buflen);
-int32_t prkx2su_send(uint8_t axis, char *buf, bool force);
+int32_t prkx2su_getdata(uint8_t axis, string buf, uint16_t buflen);
+int32_t prkx2su_send(uint8_t axis, string buf, bool force);
 int32_t prkx2su_test(uint8_t axis);
 int32_t prkx2su_set_sensitivity(float sensitivity);
+int32_t prkx2su_get_limits(uint8_t axis);
 
 #endif

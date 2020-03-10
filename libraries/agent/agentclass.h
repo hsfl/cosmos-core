@@ -144,7 +144,7 @@ namespace Cosmos
         {
         public:
             //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-            Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 0);
+            Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 1);
             ~Agent();
 
             //! State of Health element vector
@@ -294,6 +294,7 @@ namespace Cosmos
             beatstruc find_server(string node, string proc, float waitsec);
             beatstruc find_agent(string agent, string node="");
             uint16_t running();
+            int32_t wait(State state=State::RUN, float waitsec=10.);
             int32_t last_error();
             int32_t set_sohstring(string list);
             cosmosstruc *get_cosmosstruc();
@@ -354,7 +355,7 @@ namespace Cosmos
             size_t message_tail = MESSAGE_RING_SIZE;
 
             //! Flag for level of debugging, keep it public so that it can be controlled from the outside
-            uint16_t debug_level = 3;
+            uint16_t debug_level = 0;
             FILE *get_debug_fd(double mjd=0.);
             int32_t close_debug_fd();
 
@@ -374,7 +375,7 @@ namespace Cosmos
             string debug_pathName;
 
             string version = "0.0";
-            float timeoutSec = 5.0;
+            float timeoutSec = 2.0;
             bool printMessages = true; // by default?
             bool logTime = true; // by default
             double timeStart; // UTC starting time for this agent in MJD
@@ -442,6 +443,7 @@ namespace Cosmos
             static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
             static int32_t req_heartbeat(char *request, char* response, Agent *agent);
             static int32_t req_mjd(char *request, char* response, Agent *agent);
+            static int32_t req_soh(char *, char* response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

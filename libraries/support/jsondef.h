@@ -1364,9 +1364,8 @@ struct diskstruc : public allstruc
     float maxgib;  // TODO: rename to diskSize, consider bytes?
     //! Current disk usage in GiB
     float gib; // TODO: rename to diskUsed, consider bytes?
-    // TODO: add diskFree
-    //float diskFree;
-
+    //! Path
+    char path[COSMOS_MAX_NAME];
 };
 
 // TODO: rename to GpsData
@@ -1419,6 +1418,14 @@ struct antstruc : public allstruc
     float elev;
     //! Minimum elevation
     float minelev;
+    //! Maximum elevation
+    float maxelev;
+    //! Minimum azimuth
+    float minazim;
+    //! Maximum azimuth
+    float maxazim;
+    //! Elevation threshold
+    float threshelev;
 };
 
 //! Receiver information
@@ -1823,38 +1830,70 @@ struct devspecstruc
     uint16_t tsen_cnt;
     uint16_t tnc_cnt;
     uint16_t txr_cnt;
-    vector<allstruc *>all;
-    vector<antstruc *>ant;
-    vector<battstruc *>batt;
-    vector<busstruc *>bus;
-    vector<camstruc *>cam;
-    vector<cpustruc *>cpu;
-    vector<diskstruc *>disk;
-    vector<gpsstruc *>gps;
-    vector<htrstruc *>htr;
-    vector<imustruc *>imu;
-    vector<mccstruc *>mcc;
-    vector<motrstruc *>motr;
-    vector<mtrstruc *>mtr;
-    vector<tcustruc *>tcu;
-    vector<ploadstruc *>pload;
-    vector<propstruc *>prop;
-    vector<psenstruc *>psen;
-    vector<rotstruc *>rot;
-    vector<rwstruc *>rw;
-    vector<ssenstruc *>ssen;
-    vector<pvstrgstruc *>pvstrg;
-    vector<sttstruc *>stt;
-    vector<suchistruc *>suchi;
-    vector<swchstruc *>swch;
-    vector<telemstruc *>telem;
-    vector<tcvstruc *>tcv;
-    vector<txrstruc *>txr;
-    vector<rxrstruc *>rxr;
-    vector<thststruc *>thst;
-    vector<tsenstruc *>tsen;
-    vector<tncstruc *>tnc;
-    vector<bcregstruc *>bcreg;
+    vector<uint16_t>all;
+    vector<uint16_t>ant;
+    vector<uint16_t>batt;
+    vector<uint16_t>bcreg;
+    vector<uint16_t>bus;
+    vector<uint16_t>cam;
+    vector<uint16_t>cpu;
+    vector<uint16_t>disk;
+    vector<uint16_t>gps;
+    vector<uint16_t>htr;
+    vector<uint16_t>imu;
+    vector<uint16_t>mcc;
+    vector<uint16_t>motr;
+    vector<uint16_t>mtr;
+    vector<uint16_t>pload;
+    vector<uint16_t>prop;
+    vector<uint16_t>psen;
+    vector<uint16_t>pvstrg;
+    vector<uint16_t>rot;
+    vector<uint16_t>rw;
+    vector<uint16_t>rxr;
+    vector<uint16_t>ssen;
+    vector<uint16_t>stt;
+    vector<uint16_t>suchi;
+    vector<uint16_t>swch;
+    vector<uint16_t>tcu;
+    vector<uint16_t>tcv;
+    vector<uint16_t>telem;
+    vector<uint16_t>thst;
+    vector<uint16_t>tnc;
+    vector<uint16_t>tsen;
+    vector<uint16_t>txr;
+//    vector<allstruc *>all;
+//    vector<antstruc *>ant;
+//    vector<battstruc *>batt;
+//    vector<busstruc *>bus;
+//    vector<camstruc *>cam;
+//    vector<cpustruc *>cpu;
+//    vector<diskstruc *>disk;
+//    vector<gpsstruc *>gps;
+//    vector<htrstruc *>htr;
+//    vector<imustruc *>imu;
+//    vector<mccstruc *>mcc;
+//    vector<motrstruc *>motr;
+//    vector<mtrstruc *>mtr;
+//    vector<tcustruc *>tcu;
+//    vector<ploadstruc *>pload;
+//    vector<propstruc *>prop;
+//    vector<psenstruc *>psen;
+//    vector<rotstruc *>rot;
+//    vector<rwstruc *>rw;
+//    vector<ssenstruc *>ssen;
+//    vector<pvstrgstruc *>pvstrg;
+//    vector<sttstruc *>stt;
+//    vector<suchistruc *>suchi;
+//    vector<swchstruc *>swch;
+//    vector<telemstruc *>telem;
+//    vector<tcvstruc *>tcv;
+//    vector<txrstruc *>txr;
+//    vector<rxrstruc *>rxr;
+//    vector<thststruc *>thst;
+//    vector<tsenstruc *>tsen;
+//    vector<tncstruc *>tnc;
+//    vector<bcregstruc *>bcreg;
 };
 
 //! JSON map offset entry

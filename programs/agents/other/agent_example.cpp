@@ -95,8 +95,8 @@ int main(int argc, char *argv[])
 		// Gather system information
         if (agent->cinfo->devspec.cpu_cnt)
         {
-            agent->cinfo->devspec.cpu[0]->load = cpu.getLoad();
-            agent->cinfo->devspec.cpu[0]->gib = cpu.getVirtualMemoryTotal();
+            agent->cinfo->device[agent->cinfo->devspec.cpu[0]].cpu.load = cpu.getLoad();
+            agent->cinfo->device[agent->cinfo->devspec.cpu[0]].cpu.gib = cpu.getVirtualMemoryTotal();
         }
 
 		sleept = (int32_t)((nmjd - currentmjd(0.))*86400000000.);

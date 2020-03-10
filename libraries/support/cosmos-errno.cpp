@@ -461,6 +461,12 @@ string cosmos_error_string(int32_t cosmos_errno)
         case TRANSFER_ERROR_NODE:
             error_string = "TRANSFER_ERROR_NODE";
             break;
+        case TRANSFER_ERROR_FILENAME:
+            error_string = "TRANSFER_ERROR_FILENAME";
+            break;
+        case TRANSFER_ERROR_DUPLICATE:
+            error_string = "TRANSFER_ERROR_DUPLICATE";
+            break;
         case SOCKET_ERROR_CS:
             error_string = "SOCKET_ERROR_CS";
             break;
@@ -640,6 +646,15 @@ string cosmos_error_string(int32_t cosmos_errno)
             break;
         case GENERAL_ERROR_ZEROSIZE:
             error_string = "Zero Size";
+            break;
+        case GENERAL_ERROR_DUPLICATE:
+            error_string = "Duplicate";
+            break;
+        case GENERAL_ERROR_MISMATCH:
+            error_string = "Mismatch";
+            break;
+        case GENERAL_ERROR_ERROR:
+            error_string = "General Error";
             break;
         default:
             char tval[30];

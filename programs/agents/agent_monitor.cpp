@@ -145,11 +145,16 @@ int main(int argc, char *argv[])
 
     // Establish the command channel and heartbeat
     agent = new Agent(nodename, "monitor");
-    if (agent->cinfo == nullptr)
+    if ((iretn = agent->wait()) < 0)
     {
-        cout<<"unable to start agent_monitor: "<<endl;
-        exit(1);
+        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        exit(iretn);
     }
+    else
+    {
+        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+    }
+
     agent->cinfo->node.utc = 0.;
     agent->cinfo->agent[0].aprd = .5;
 

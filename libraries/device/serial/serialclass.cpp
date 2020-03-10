@@ -48,28 +48,46 @@ namespace Cosmos {
     //! \param dstop Number of stop bits.
     Serial::Serial(string dname, size_t dbaud, size_t dbits, size_t dparity, size_t dstop)
     {
+        name = dname;
+        baud = dbaud;
+        bits = dbits;
+        parity = dparity;
+        stop = dstop;
+
+        error = open_device();
+    }
+
+    int32_t Serial::open_device()
+        {
+        if (get_open())
+        {
+            error = SERIAL_ERROR_OPEN;
+        }
+
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_CYGWIN_OS)
-        fd=open(dname.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+        fd=open(name.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
         if (fd == -1)
         {
             error = -errno;
+            return error;
         }
 #endif
 
 #if  defined(COSMOS_MAC_OS)
-        fd=open(dname.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+        fd=open(name.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
         if (fd == -1)
         {
             error = -errno;
+            return error;
         }
 #endif
 
 #if defined(COSMOS_WIN_OS)
         // using TCHAR we can directly send COM1 to the string
         // rather than \\\\.\\COM1
-        TCHAR *port=new TCHAR[dname.size()+1];
-        port[dname.size()]=0;
-        std::copy(dname.begin(),dname.end(),port);
+        TCHAR *port=new TCHAR[name.size()+1];
+        port[name.size()]=0;
+        std::copy(name.begin(),name.end(),port);
 
         handle = CreateFileA(port,
                              GENERIC_READ|GENERIC_WRITE,
@@ -85,10 +103,11 @@ namespace Cosmos {
         } else {
             // sucess opening serial port
             fd = _open_osfhandle((intptr_t)handle, _O_RDONLY); // flag = 0
-            //        fd=open(dname.c_str(), O_RDWR | O_NOCTTY);
+            //        fd=open(name.c_str(), O_RDWR | O_NOCTTY);
             if (fd == -1)
             {
                 error = -WSAGetLastError();
+                return error;
             }
         }
 
@@ -99,11 +118,11 @@ namespace Cosmos {
         tcgetattr(fd,&(oldtio));
 #endif
 
-        error = set_params(dbaud, dbits, dparity, dstop);
-        name = dname;
+        error = set_params(baud, bits, parity, stop);
+        return error;
     }
 
-    Serial::~Serial()
+    int32_t Serial::close_device()
     {
         if (fd >= 0)
         {
@@ -126,6 +145,13 @@ namespace Cosmos {
             close(fd);
             fd = -1;
         }
+        error = 0;
+        return error;
+    }
+
+    Serial::~Serial()
+    {
+        close_device();
     }
 
     bool Serial::get_open()
