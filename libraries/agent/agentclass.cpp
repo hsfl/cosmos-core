@@ -200,7 +200,7 @@ namespace Cosmos
                 fprintf(get_debug_fd(), "COSMOS AGENT '%s' on node '%s'\n", aname.c_str(), nname.c_str());
                 fprintf(get_debug_fd(), "Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);
                 fprintf(get_debug_fd(), "Agent started at %s\n", mjdToGregorian(timeStart).c_str());
-                fprintf(get_debug_fd(), "Debug level %ud\n", debug_level);
+                fprintf(get_debug_fd(), "Debug level %u\n", debug_level);
                 fprintf(get_debug_fd(), "------------------------------------------------------\n");
             }
 
