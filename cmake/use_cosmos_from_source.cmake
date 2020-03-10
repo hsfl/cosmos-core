@@ -1,6 +1,11 @@
 if(${USE_COSMOS_FROM} MATCHES "SOURCE")
     message("using COSMOS from source folder " ${COSMOS_SOURCE})
 
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED YES)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+    message("Setting Standard to c++11")
+
     # -----------------------------------------------
     # add the cosmos libraries
     include_directories(${COSMOS_SOURCE}/core/libraries/)

@@ -7,6 +7,11 @@ set(CROSS_TYPE x86_64)
 set(BUILD_TYPE COMPLETE) # COMPLETE, BASIC, MINIMAL, TESTS
 set(BUILD_AGENTS_TYPE ALL)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+set(CMAKE_CXX_EXTENSIONS OFF)
+message("Setting Standard to c++11")
+
 # Build agents type list
 # CORE - build the essential agents for COSMOS/core (default)
 # NONE - doesn't build any agent
