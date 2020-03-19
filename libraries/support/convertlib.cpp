@@ -4157,7 +4157,7 @@ void eci2tlestring(cartpos eci, std::string &tle, const std::string &ref_tle, do
 
     // Ignore the name line. Populate our epoch field.
     char *line_1 = strstr(tle_buffer, "\n");
-    sprintf(field_buffer, "%014s", epoch.c_str());
+    sprintf(field_buffer, "%14s", epoch.c_str());
     strncpy(line_1+19, field_buffer, 14);
     sprintf(field_buffer, "");
 
