@@ -71,6 +71,7 @@ namespace Cosmos {
             error = -errno;
             return error;
         }
+        fcntl(fd, F_SETFL, FNDELAY);
 #endif
 
 #if  defined(COSMOS_MAC_OS)
@@ -288,8 +289,8 @@ namespace Cosmos {
         tio.c_iflag=IGNPAR;
         tio.c_oflag=0;
         tio.c_lflag=0;
-        tio.c_cc[VMIN]=0;
-        tio.c_cc[VTIME]=0;
+        tio.c_cc[VMIN] = 1;
+        tio.c_cc[VTIME] = 0;
 
         /* we flush the port */
         tcflush(fd,TCOFLUSH);
@@ -1027,21 +1028,24 @@ namespace Cosmos {
             }
             else
             {
-                result = read(fd, &c, 1);
-                if (result > 0)
+                if (FD_ISSET(fd, &set))
                 {
-                    error = c;
-                    break;
-                }
-                else
-                {
-                    if (result < 0)
+                    result = read(fd, &c, 1);
+                    if (result > 0)
                     {
-                        error = -errno;
+                        error = c;
+                        break;
                     }
                     else
                     {
-                        error = SERIAL_ERROR_EOT;
+                        if (result < 0)
+                        {
+                            error = -errno;
+                        }
+                        else
+                        {
+                            error = SERIAL_ERROR_EOT;
+                        }
                     }
                 }
             }
@@ -1049,6 +1053,75 @@ namespace Cosmos {
 #endif
 
         return error;
+    }
+
+    int32_t Serial::poll_char()
+    {
+        // if file descirptor return error (<0) then fail
+        if (fd < 0)
+        {
+            error = SERIAL_ERROR_OPEN;
+            return (error);
+        }
+
+        int result;
+        uint8_t c;
+
+#ifdef COSMOS_WIN_OS
+        ElapsedTime et;
+        do
+        {
+            int n=0;
+            result = ReadFile(handle, &c, 1, (LPDWORD)((void *)&n), NULL);
+            if (result < 0)
+            {
+                result = -WSAGetLastError();
+            }
+            else
+            {
+                result = SERIAL_ERROR_TIMEOUT;
+            }
+            if (result > 0)
+            {
+                error = c;
+                break;
+            }
+            else
+            {
+                error = result;
+            }
+            COSMOS_SLEEP(ictimeout < 1. ? ictimeout/10. : .1);
+        } while (error == SERIAL_ERROR_TIMEOUT && et.split() < ictimeout);
+#else
+        ElapsedTime et;
+        do
+        {
+            result = read(fd, &c, 1);
+            if (result > 0)
+            {
+                error = c;
+                break;
+            }
+            else
+            {
+                if (result < 0)
+                {
+                    error = -errno;
+                }
+            }
+        } while (et.split() < ictimeout);
+#endif
+
+//        printf("{%.5f}", et.split());
+
+        if (et.split() > ictimeout)
+        {
+            return SERIAL_ERROR_TIMEOUT;
+        }
+        else
+        {
+            return error;
+        }
     }
 
     int32_t Serial::get_string(string &data, size_t size)
