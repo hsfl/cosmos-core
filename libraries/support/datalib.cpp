@@ -1463,7 +1463,7 @@ int32_t set_cosmosnodes(bool create_flag)
                 return iretn;
             }
         }
-        else // look for the default path ~/cosmos/nodes
+        else // look for the default path: $COSMOS/nodes or $HOME/cosmos/nodes
         {
             if ((iretn = set_cosmosroot(create_flag)) == 0)
             {
