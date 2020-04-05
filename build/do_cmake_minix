@@ -1,0 +1,7 @@
+#!/bin/bash
+mkdir minix
+echo "Configuring "minix
+cd minix
+if [ -e ../../cmake/toolchain_x86_minix.cmake ]; then
+cmake $2 -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../../cmake/toolchain_x86_minix.cmake -DCROSS_TYPE=x86 ../..
+fi

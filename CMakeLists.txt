@@ -143,6 +143,36 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux") # or just UNIX
 
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
+# Generic specific
+if(${CMAKE_SYSTEM_NAME} MATCHES "minix")
+
+    # Configure compiler arguments (GCC)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        # Set Compiler flags
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COSMOS_CXX_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lm -lpthread")
+        message("Build Compiler: GCC")
+
+
+        set(COMPILER_IS_LINUX_GCC 1)
+
+        # set the COSMOS_LIBS for GCC
+        #TODO: remove redundancy libs, this can be resolved when Build the libs
+        #set(COSMOS_LIBS  )
+
+    endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+
+        if("$ENV{COSMOS}" STREQUAL "")
+            set(COSMOS_INSTALL_FOLDER "~/cosmos/${CROSS_TYPE}")
+        else()
+            set(COSMOS_INSTALL_FOLDER "$ENV{COSMOS}/${CROSS_TYPE}")
+        endif("$ENV{COSMOS}" STREQUAL "")
+
+        set(CMAKE_TOOLCHAIN_file "${PROJECT_SOURCE_DIR}/build/toolchain_${CROSS_TYPE}_${CMAKE_SYSTEM_NAME}.cmake")
+
+endif(${CMAKE_SYSTEM_NAME} MATCHES "minix")
+
 
 # -----------------------------------------------
 # Windows specific
