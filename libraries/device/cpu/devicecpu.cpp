@@ -932,7 +932,7 @@ DeviceCpuLinux::procStat::procStat()
 uint16_t DeviceCpuLinux::getCount()
 {
     uint16_t tcount = 0;
-    FILE *fp = popen("/bin/lscpu -p=cpu", "r");
+    FILE *fp = popen("lscpu -p=cpu", "r");
     char tdata[100];
     uint16_t tindex;
     while ((fgets(tdata, 100, fp)) == tdata)
