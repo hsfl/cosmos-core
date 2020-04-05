@@ -90,24 +90,6 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
 
-    //    cout << "Starting agent cpu" << endl;
-
-    //    switch (argc)
-    //    {
-    //    case 2:
-    //        {
-    //            node_name = argv[1];
-    //        }
-    //        break;
-    //    default:
-    //        {
-    //            printf("Usage: agent_cpu {node}\n");
-    //        }
-    //        break;
-    //    }
-
-    // Add additional requests
-
     if (argc == 2)
     {
         agent = new Agent(argv[1], "cpu", 5.);
