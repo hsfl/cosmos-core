@@ -133,9 +133,6 @@
 #include "support/elapsedtime.h"
 #include "device/cpu/devicecpu.h"
 
-using std::string;
-using std::vector;
-
 namespace Cosmos
 {
     namespace Support
@@ -313,6 +310,7 @@ namespace Cosmos
             //    int32_t poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec = 1.);
             int32_t poll(messstruc &mess, AgentMessage type, float waitsec = 1.);
             int32_t readring(messstruc &message, AgentMessage type = Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::HEAD);
+            int32_t parsering(string agent="", AgentMessage type = Agent::AgentMessage::ALL, float waitsec=1., Where where=Where::HEAD);
             int32_t resizering(size_t newsize);
             int32_t clearring();
             //    timestruc poll_time(float waitsec);
@@ -349,6 +347,7 @@ namespace Cosmos
 
             //! Ring buffer for incoming messages
             vector <messstruc> message_ring;
+            deque <messstruc> message_queue;
             //! Last message placed in message ring buffer
             size_t message_head = MESSAGE_RING_SIZE;
             //! Last message rad in message ring buffer

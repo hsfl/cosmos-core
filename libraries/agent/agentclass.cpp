@@ -91,7 +91,7 @@ namespace Cosmos
                 return;
             }
 
-            cinfo->agent[0].stateflag = (uint16_t)State::INIT;
+            cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
 
             // Establish subscribe channel
             iretn = subscribe(ntype, AGENTMCAST, AGENTSENDPORT, 1000);
@@ -110,15 +110,6 @@ namespace Cosmos
                 shutdown();
                 return;
             }
-
-            //            if (nname.empty())
-            //            {
-            //                error_value = NODE_ERROR_NODE;
-            //                shutdown();
-            //                return;
-            //            }
-
-            //            nodeName = nname;
 
             strcpy(cinfo->node.name, nodeName.c_str());
 
@@ -144,6 +135,7 @@ namespace Cosmos
             if (aname.empty())
             {
                 strcpy(cinfo->agent[0].beat.proc, "null");
+                cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
                 return;
             }
 
@@ -212,8 +204,8 @@ namespace Cosmos
             {
                 cinfo->agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
             }
-            cinfo->agent[0].stateflag = (uint16_t)State::INIT;
-            cinfo->agent[0].beat.port = (uint16_t)portnum;
+            cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
+            cinfo->agent[0].beat.port = static_cast<uint16_t>(portnum);
             cinfo->agent[0].beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
 
 #ifdef COSMOS_WIN_BUILD_MSVC
@@ -267,7 +259,7 @@ namespace Cosmos
             Agent::add_request("soh",Agent::req_soh,"","Get SOH string");
 
             cinfo->agent[0].server = 1;
-            cinfo->agent[0].stateflag = (uint16_t)Agent::State::RUN;
+            cinfo->agent[0].stateflag = static_cast<uint16_t>(Agent::State::RUN);
 
 
             activeTimeout = currentmjd() + cinfo->agent[0].aprd / 86400.;
@@ -927,7 +919,7 @@ namespace Cosmos
             int32_t iretn;
 
             // Initialize things
-            message_ring.resize(MESSAGE_RING_SIZE);
+//            message_ring.resize(MESSAGE_RING_SIZE);
 
             while (Agent::running())
             {
@@ -963,14 +955,19 @@ namespace Cosmos
                     }
                     else
                     {
-                        size_t new_position;
-                        new_position = message_head + 1;
-                        if (new_position >= message_ring.size())
+//                        size_t new_position;
+//                        new_position = message_head + 1;
+//                        if (new_position >= message_ring.size())
+//                        {
+//                            new_position = 0;
+//                        }
+//                        message_ring[new_position] = mess;
+//                        message_head = new_position;
+                        message_queue.push_back(mess);
+                        if (message_queue.size() > MESSAGE_RING_SIZE)
                         {
-                            new_position = 0;
+                            message_queue.pop_front();
                         }
-                        message_ring[new_position] = mess;
-                        message_head = new_position;
                     }
                 }
             }
@@ -2319,39 +2316,75 @@ namespace Cosmos
 
             if (where == Where::HEAD)
             {
-                message_tail = message_head - 1;
-                if (message_tail >= message_ring.size())
-                {
-                    message_tail = message_ring.size() - 1;
-                }
+//                message_tail = message_head - 1;
+//                if (message_tail >= message_ring.size())
+//                {
+//                    message_tail = message_ring.size() - 1;
+//                }
+                message_queue.clear();
             }
             ElapsedTime ep;
             ep.start();
             do
             {
-                if (message_head != message_tail)
-                {
-                    ++message_tail;
-                    if (message_tail >= message_ring.size())
-                    {
-                        message_tail = 0;
-                    }
+//                if (message_head != message_tail)
+//                {
+//                    ++message_tail;
+//                    if (message_tail >= message_ring.size())
+//                    {
+//                        message_tail = 0;
+//                    }
 
-                    if (type == Agent::AgentMessage::ALL || type == (Agent::AgentMessage)message_ring[message_tail].meta.type)
+//                    if (type == Agent::AgentMessage::ALL || type == (Agent::AgentMessage)message_ring[message_tail].meta.type)
+//                    {
+//                        // Copy message.
+//                        message = message_ring[message_tail];
+//                        return ((int)message.meta.type);
+//                    }
+//                }
+                if (message_queue.size())
+                {
+                    message = message_queue.front();
+                    message_queue.pop_front();
+                    if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type))
                     {
-                        // Copy message.
-                        message = message_ring[message_tail];
-                        return ((int)message.meta.type);
+                        return (static_cast<int32_t>(message.meta.type));
                     }
                 }
 
                 if (ep.split() < waitsec)
                 {
-                    COSMOS_SLEEP(.1);
+                    if (waitsec - ep.split() > .1)
+                    {
+                        COSMOS_SLEEP(.1);
+                    }
+                    else
+                    {
+                        COSMOS_SLEEP(waitsec - ep.split());
+                    }
                 }
             } while (ep.split() < waitsec);
 
             return 0;
+        }
+
+        //! Parse next message from ring
+        int32_t Agent::parsering(string agent, AgentMessage type, float waitsec, Where where)
+        {
+            int32_t iretn;
+            messstruc message;
+
+            post(Agent::AgentMessage::REQUEST);
+            iretn = readring(message, type, waitsec, where);
+            if (iretn >= 0 && (agent.empty() || !strcmp(message.meta.beat.proc, agent.c_str())))
+            {
+                json_parse(message.adata, cinfo);
+                return 0;
+            }
+            else
+            {
+                return iretn;
+            }
         }
 
         //! Change size of message ring.
