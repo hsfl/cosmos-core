@@ -762,6 +762,48 @@ int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, doub
 
 }
 
+int32_t json_finddev(cosmosstruc *cinfo, string name)
+{
+    int32_t iretn;
+
+    iretn = json_findpiece(cinfo, name);
+    if (iretn >= 0)
+    {
+        iretn = cinfo->pieces[static_cast <size_t>(iretn)].cidx;
+        if (iretn >= 0)
+        {
+            iretn = cinfo->device[static_cast <size_t>(iretn)].all.didx;
+        }
+    }
+
+    return iretn;
+}
+
+int32_t json_findcomp(cosmosstruc *cinfo, string name)
+{
+    int32_t iretn;
+
+    iretn = json_findpiece(cinfo, name);
+    if (iretn >= 0)
+    {
+        iretn = cinfo->pieces[static_cast <size_t>(iretn)].cidx;
+    }
+
+    return iretn;
+}
+
+int32_t json_findpiece(cosmosstruc *cinfo, string name)
+{
+    for (size_t i=0; i<cinfo->pieces.size(); ++i)
+    {
+        if (name == cinfo->pieces[i].name)
+        {
+            return i;
+        }
+    }
+    return JSON_ERROR_NOJMAP;
+}
+
 //! Add new piece
 /*! Take an empty ::piecestruc and fill it with the provided information, generating the vertexs for
      * the indicated type.
@@ -8152,6 +8194,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_bcreg_temp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bcreg_volt",didx, UINT16_MAX, (uint8_t *)&device.bcreg.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bcreg_amp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_bcreg_energy",didx, UINT16_MAX, (uint8_t *)&device.bcreg.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     case DeviceType::BUS:
         iretn = json_addentry("device_bus_utc",didx, UINT16_MAX, (uint8_t *)&device.bus.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -8442,6 +8485,10 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_swch_utc",didx, UINT16_MAX, (uint8_t *)&device.swch.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_swch_cidx",didx, UINT16_MAX, (uint8_t *)&device.swch.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_swch_temp",didx, UINT16_MAX, (uint8_t *)&device.swch.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_swch_volt",didx, UINT16_MAX, (uint8_t *)&device.swch.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_swch_amp",didx, UINT16_MAX, (uint8_t *)&device.swch.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_swch_power",didx, UINT16_MAX, (uint8_t *)&device.swch.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_swch_energy",didx, UINT16_MAX, (uint8_t *)&device.swch.energy, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     case DeviceType::TCU:
         iretn = json_addentry("device_tcu_utc",didx, UINT16_MAX, (uint8_t *)&device.tcu.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -8852,6 +8899,10 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_swch_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_swch_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_swch_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_swch_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_swch_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_swch_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_swch_energy",didx, UINT16_MAX, cinfo, state);
         break;
         //! Rotor
     case DeviceType::ROT:
@@ -8924,6 +8975,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_bcreg_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_volt",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_bcreg_energy",didx, UINT16_MAX, cinfo, state);
     case DeviceType::COUNT:
     case DeviceType::NONE:
         break;
@@ -9706,6 +9758,16 @@ string json_list_of_soh(cosmosstruc *cinfo)
     for (uint16_t i=0; i<cinfo->devspec.swch_cnt; ++i)
     {
         sprintf(tempstring, ",\"device_swch_utc_%03d\",\"device_swch_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_swch_utc_%03d\",\"device_swch_energy_%03d\",\"device_swch_amp_%03d\",\"device_swch_volt_%03d\",\"device_swch_power_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.bcreg_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_bcreg_utc_%03d\",\"device_bcreg_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bcreg_utc_%03d\",\"device_bcreg_energy_%03d\",\"device_bcreg_amp_%03d\",\"device_bcreg_volt_%03d\",\"device_bcreg_power_%03d\"",i,i,i,i,i);
         result += tempstring;
     }
 
