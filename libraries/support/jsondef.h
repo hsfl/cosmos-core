@@ -42,9 +42,6 @@
 #include "support/socketlib.h"
 #include "support/objlib.h"
 
-using std::string;
-using std::vector;
-
 //! \ingroup jsonlib
 //! \defgroup jsonlib_type JSON Name Space variable type constants
 //! @{
@@ -1207,6 +1204,8 @@ struct allstruc
     float volt; // TODO: rename to voltage
     //! Current Power
     float power; // TODO: rename to voltage
+    //! Total energy usage
+    float energy;
     //! Current data rate
     float drate;
     //! Current Temperature
@@ -1652,8 +1651,6 @@ struct tcustruc : public allstruc
 
 struct busstruc : public allstruc
 {
-    //! Total energy usage
-    float energy;
     //! Watch Dog Timer (MJD)
     float wdt;
 };
