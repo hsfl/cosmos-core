@@ -53,7 +53,7 @@
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 6;
 
-//void print_node_list(std::vector<std::string>& nlp) {
+//void print_node_list(vector<std::string>& nlp) {
 
 //    if(nlp.empty())
 //    {
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 {
     int nbytes;
     beatstruc cbeat;
-    std::vector<std::string> nl;
+    vector<std::string> nl;
     data_list_nodes(nl);
     Agent *agent;
 

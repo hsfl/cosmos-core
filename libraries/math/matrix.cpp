@@ -1638,9 +1638,9 @@ std::ostream& operator << (std::ostream& out, const rmatrix& a)
     return out;
 }
 
-std::ostream& operator << (std::ostream& out, const std::vector<rmatrix>& a)
+std::ostream& operator << (std::ostream& out, const vector<rmatrix>& a)
 {
-    for(std::vector<rmatrix>::const_iterator I = a.begin(); I != a.end(); ++I)
+    for(vector<rmatrix>::const_iterator I = a.begin(); I != a.end(); ++I)
         out<<*I<<"\t";
     return out;
 }

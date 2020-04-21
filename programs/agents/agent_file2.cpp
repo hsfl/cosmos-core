@@ -113,7 +113,7 @@ typedef struct
 {
     std::string type;
     uint32_t channel;
-    std::vector<PACKET_BYTE> packet;
+    vector<PACKET_BYTE> packet;
 } transmit_queue_entry;
 
 static std::queue<transmit_queue_entry> transmit_queue;
@@ -151,7 +151,7 @@ typedef struct
     double nmjd[7];
     std::string node_name="";
     PACKET_NODE_ID_TYPE node_id;
-//    std::vector<tx_progress> progress;
+//    vector<tx_progress> progress;
     tx_progress progress[PROGRESS_QUEUE_SIZE];
     vector <PACKET_TX_ID_TYPE> meta_id;
 }	tx_entry;
@@ -164,7 +164,7 @@ typedef struct
     tx_entry outgoing;
 } tx_queue;
 
-static std::vector<tx_queue> txq;
+static vector<tx_queue> txq;
 
 static std::string log_directory = "incoming";
 double logstride_sec = 10.;
@@ -192,13 +192,13 @@ int32_t incoming_tx_update(packet_struct_metashort meta);
 int32_t incoming_tx_del(int32_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
 int32_t incoming_tx_purge(int32_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
 int32_t incoming_tx_recount(int32_t node);
-std::vector<file_progress> find_chunks_missing(tx_progress& tx);
+vector<file_progress> find_chunks_missing(tx_progress& tx);
 PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
 void transmit_loop();
-double queuesendto(PACKET_NODE_ID_TYPE node_id, std::string type, std::vector<PACKET_BYTE> packet);
-int32_t mysendto(std::string type, channelstruc &channel, std::vector<PACKET_BYTE>& buf);
-int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout=1.);
-void debug_packet(std::vector<PACKET_BYTE> buf, std::string type);
+double queuesendto(PACKET_NODE_ID_TYPE node_id, std::string type, vector<PACKET_BYTE> packet);
+int32_t mysendto(std::string type, channelstruc &channel, vector<PACKET_BYTE>& buf);
+int32_t myrecvfrom(std::string type, socket_channel &channel, vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout=1.);
+void debug_packet(vector<PACKET_BYTE> buf, std::string type);
 int32_t write_meta(tx_progress& tx, double interval=5.);
 int32_t read_meta(tx_progress& tx);
 bool tx_progress_compare_by_size(const tx_progress& a, const tx_progress& b);
@@ -424,7 +424,7 @@ int main(int argc, char *argv[])
                 // Go through outgoing directories, adding files not already in queue
                 if (txq[static_cast <size_t>(node)].outgoing.size < TRANSFER_QUEUE_LIMIT)
                 {
-                    std::vector<filestruc> file_names;
+                    vector<filestruc> file_names;
                     for (filestruc file : data_list_files(txq[static_cast <size_t>(node)].node_name, "outgoing", ""))
                     {
                         if (file.type == "directory")
@@ -508,7 +508,7 @@ int main(int argc, char *argv[])
 
 void recv_loop()
 {
-    std::vector<PACKET_BYTE> recvbuf;
+    vector<PACKET_BYTE> recvbuf;
     std::string partial_filepath;
 
     while (agent->running())
@@ -788,7 +788,7 @@ void recv_loop()
                                     debug_fd_lock.unlock();
 
                                     // inform other end that file has been received
-                                    std::vector<PACKET_BYTE> packet;
+                                    vector<PACKET_BYTE> packet;
                                     make_complete_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(remote_node), tx_in.tx_id);
                                     queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node), "rx", packet);
 
@@ -1076,7 +1076,7 @@ void recv_loop()
                         if (currentmjd() > next_reqmeta_time)
                         {
                             next_reqmeta_time = currentmjd();
-                            std::vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
+                            vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
                             PACKET_TX_ID_TYPE iq = 0;
                             for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                             {
@@ -1092,7 +1092,7 @@ void recv_loop()
                             }
                             if (iq)
                             {
-                                std::vector<PACKET_BYTE> packet;
+                                vector<PACKET_BYTE> packet;
                                 make_reqmeta_packet(packet, node, txq[static_cast <size_t>(node)].node_name, tqueue);
                                 queuesendto(node, "rx", packet);
                             }
@@ -1126,7 +1126,7 @@ void recv_loop()
 
 void send_loop()
 {
-    std::vector<PACKET_BYTE> packet;
+    vector<PACKET_BYTE> packet;
     uint32_t sleep_time = 1;
     double send_time = 0.;
     static double next_send_time = 0.;
@@ -1190,7 +1190,7 @@ void send_loop()
                 // If we are in Queue state, then the only thing we want to do is send a Queue packet, if enough time has passed
                 if (currentmjd() > txq[static_cast <size_t>(node)].outgoing.nmjd[PACKET_QUEUE - 8])
                 {
-                    std::vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
+                    vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
                     PACKET_TX_ID_TYPE iq = 0;
                     for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
                     {
@@ -1220,7 +1220,7 @@ void send_loop()
                             if (tx_id > 0)
                             {
                                 tx_progress tx = txq[static_cast <size_t>(node)].outgoing.progress[tx_id];
-                                std::vector<PACKET_BYTE> packet;
+                                vector<PACKET_BYTE> packet;
                                 make_metadata_packet(packet, remote_node, tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
                                 send_time = queuesendto(node, "tx", packet);
                                 if (send_time >= 0.)
@@ -1342,7 +1342,7 @@ void send_loop()
                     if (remote_node >= 0)
                     {
                         // Send a CANCEL packet
-                        std::vector<PACKET_BYTE> packet;
+                        vector<PACKET_BYTE> packet;
                         make_cancel_packet(packet, remote_node, tx_id);
                         queuesendto(node, "tx", packet);
                     }
@@ -1384,7 +1384,7 @@ void transmit_loop()
     }
 }
 
-double queuesendto(PACKET_NODE_ID_TYPE node_id, string type, std::vector<PACKET_BYTE> packet)
+double queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet)
 {
     transmit_queue_entry tentry;
 
@@ -1419,7 +1419,7 @@ double queuesendto(PACKET_NODE_ID_TYPE node_id, string type, std::vector<PACKET_
     }
 }
 
-int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYTE>& buf)
+int32_t mysendto(std::string type, channelstruc& channel, vector<PACKET_BYTE>& buf)
 {
     int32_t iretn;
     double cmjd;
@@ -1453,7 +1453,7 @@ int32_t mysendto(std::string type, channelstruc& channel, std::vector<PACKET_BYT
     return iretn;
 }
 
-int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout)
+int32_t myrecvfrom(std::string type, socket_channel &channel, vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout)
 {
     int32_t nbytes = 0;
 
@@ -1580,7 +1580,7 @@ int32_t myrecvfrom(std::string type, socket_channel &channel, std::vector<PACKET
     return nbytes;
 }
 
-void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
+void debug_packet(vector<PACKET_BYTE> buf, std::string type)
 {
     if (debug_flag)
     {
@@ -1647,7 +1647,7 @@ void debug_packet(std::vector<PACKET_BYTE> buf, std::string type)
 
 int32_t write_meta(tx_progress& tx, double interval)
 {
-    std::vector<PACKET_BYTE> packet;
+    vector<PACKET_BYTE> packet;
     std::ofstream file_name;
 
     if (currentmjd(0.) - tx.savetime > interval/86400.)
@@ -1678,7 +1678,7 @@ int32_t write_meta(tx_progress& tx, double interval)
 
 int32_t read_meta(tx_progress& tx)
 {
-    std::vector<PACKET_BYTE> packet(PACKET_METALONG_OFFSET_TOTAL,0);
+    vector<PACKET_BYTE> packet(PACKET_METALONG_OFFSET_TOTAL,0);
     std::ifstream file_name;
     packet_struct_metalong meta;
 
@@ -1811,9 +1811,9 @@ PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx)
     return tx.total_bytes;
 }
 
-std::vector<file_progress> find_chunks_missing(tx_progress& tx)
+vector<file_progress> find_chunks_missing(tx_progress& tx)
 {
-    std::vector<file_progress> missing;
+    vector<file_progress> missing;
     file_progress tp;
 
     if (tx.file_info.size() == 0)
@@ -2758,7 +2758,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
                 debug_fd_lock.unlock();
 
                 // inform other end that file has been received
-                std::vector<PACKET_BYTE> packet;
+                vector<PACKET_BYTE> packet;
                 make_complete_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(remote_node), txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id);
                 queuesendto(node, "rx", packet);
 
@@ -2791,11 +2791,11 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
                 fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
                 // Ask for missing data
-                std::vector<file_progress> missing;
+                vector<file_progress> missing;
                 missing = find_chunks_missing(txq[static_cast <size_t>(node)].incoming.progress[tx_id]);
                 for (uint32_t j=0; j<missing.size(); ++j)
                 {
-                    std::vector<PACKET_BYTE> packet;
+                    vector<PACKET_BYTE> packet;
                     make_reqdata_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(remote_node), txq[static_cast <size_t>(node)].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
                     queuesendto(node, "rx", packet);
                 }

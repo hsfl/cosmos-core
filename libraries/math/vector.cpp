@@ -821,9 +821,9 @@ std::ostream& operator << (std::ostream& out, const rvector& a)
     return out;
 }
 
-std::ostream& operator << (std::ostream& out, const std::vector<rvector>& a)
+std::ostream& operator << (std::ostream& out, const vector<rvector>& a)
 {
-    for(std::vector<rvector>::const_iterator I = a.begin(); I != a.end(); ++I)
+    for(vector<rvector>::const_iterator I = a.begin(); I != a.end(); ++I)
         out<<*I<<"\t";
     return out;
 }

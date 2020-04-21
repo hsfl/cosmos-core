@@ -42,8 +42,6 @@
 #include <sstream>
 #include <mutex>
 
-using std::string;
-using std::vector;
 using std::cout;
 using std::endl;
 
@@ -609,16 +607,19 @@ void collect_data_loop()
     while (agent->running())
     {
         // Collect new data
-        while (my_position != static_cast<int>(agent->message_head))
+//        while (my_position != static_cast<int>(agent->message_head))
+        while (agent->message_queue.size())
         {
-            ++my_position;
-            if (my_position >= static_cast<int>(agent->message_ring.size()))
+//            ++my_position;
+//            if (my_position >= static_cast<int>(agent->message_ring.size()))
+//            {
+//                my_position = 0;
+//            }
+//            if (agent->cinfo->node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AgentMessage::BINARY)
+            if (agent->cinfo->node.name == agent->message_queue.front().meta.beat.node && agent->message_queue.front().meta.type < Agent::AgentMessage::BINARY)
             {
-                my_position = 0;
-            }
-            if (agent->cinfo->node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AgentMessage::BINARY)
-            {
-                json_parse(agent->message_ring[my_position].adata, agent->cinfo);
+//                json_parse(agent->message_ring[my_position].adata, agent->cinfo);
+                json_parse(agent->message_queue.front().adata, agent->cinfo);
                 agent->cinfo->node.utc = currentmjd(0.);
 
                 for (devicestruc device: agent->cinfo->device)

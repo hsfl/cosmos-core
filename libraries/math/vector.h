@@ -56,7 +56,7 @@ struct rvector
 };
 
 std::ostream& operator << (std::ostream& out, const rvector& a);
-std::ostream& operator << (std::ostream& out, const std::vector<rvector>& a);
+std::ostream& operator << (std::ostream& out, const vector<rvector>& a);
 std::istream& operator >> (std::istream& out, rvector& a);
 rvector operator * (rvector v, double scalar); // multiply vector by vector operator
 rvector operator * (rvector v1, rvector v2); // multiply vector by vector operator
@@ -299,10 +299,10 @@ quaternion q_change_around_z(double angle);
 quaternion q_irotate_for(rvector sourcea, rvector sourceb, rvector targeta, rvector targetb);
 quaternion q_eye();
 quaternion q_identity();
-quaternion q_evaluate_poly(double x, std::vector< std::vector<double> > parms);
-quaternion q_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
-quaternion q_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
-quaternion q_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
+quaternion q_evaluate_poly(double x, vector< vector<double> > parms);
+quaternion q_evaluate_poly_slope(double x, vector< vector<double> > parms);
+quaternion q_evaluate_poly_accel(double x, vector< vector<double> > parms);
+quaternion q_evaluate_poly_jerk(double x, vector< vector<double> > parms);
 
 double length_q(quaternion q);
 double norm_q(quaternion q);

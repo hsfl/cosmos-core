@@ -307,7 +307,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
  * \param packet IP packet
  * \return Calculated checksum.
  * */
-uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet)
+uint16_t socket_calc_udp_checksum(vector<uint8_t> packet)
 {
     union
     {
@@ -379,7 +379,7 @@ uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet)
  * \param packet UDP packet
  * \return Zero or negative error.
  */
-int32_t socket_check_udp_checksum(std::vector<uint8_t> packet)
+int32_t socket_check_udp_checksum(vector<uint8_t> packet)
 {
     uint16_t csum = socket_calc_udp_checksum(packet);
 
@@ -400,7 +400,7 @@ int32_t socket_check_udp_checksum(std::vector<uint8_t> packet)
  * \param packet UDP packet
  * \return Zero or negative error.
  */
-int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet)
+int32_t socket_set_udp_checksum(vector<uint8_t>& packet)
 {
     // Check if this is UDP packet
     if (packet[SOCKET_IP_BYTE_PROTOCOL] != 17)
@@ -501,9 +501,9 @@ int32_t socket_close(socket_channel *channel)
     \param ntype Type of network (Multicast, Broadcast UDP, CSP)
     \return Vector of interfaces
     */
-std::vector<socket_channel> socket_find_addresses(NetworkType ntype)
+vector<socket_channel> socket_find_addresses(NetworkType ntype)
 {
-    std::vector<socket_channel> iface;
+    vector<socket_channel> iface;
     socket_channel tiface;
 
 #ifdef COSMOS_WIN_OS

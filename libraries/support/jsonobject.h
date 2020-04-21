@@ -30,7 +30,7 @@ public:
     void clear();
 
 private:
-    std::vector<jsonTuple> contents;
+    vector<jsonTuple> contents;
 };
 
 #endif // JSONOBJECT_H

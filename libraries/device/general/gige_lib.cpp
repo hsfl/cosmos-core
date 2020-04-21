@@ -69,7 +69,7 @@ gige_handle *gige_open(char address[18],uint8_t privilege, uint32_t heartbeat_ms
 	struct sockaddr_in raddr;
 	gige_handle *handle;
 	uint8_t bufferin[GIGE_MAX_PACKET];
-	std::vector<socket_channel> ifaces;
+	vector<socket_channel> ifaces;
 
 	if ((handle=new (gige_handle)) == NULL) return nullptr;
 
@@ -329,14 +329,14 @@ uint32_t gige_readmem(gige_handle *handle, uint32_t address, uint32_t size)
  * in a vector of ::gige_acknowledge_ack.
     \return Vector of ::gige_acknowledge_ack containing responses.
 */
-std::vector<gige_acknowledge_ack> gige_discover()
+vector<gige_acknowledge_ack> gige_discover()
 {
 	int32_t nbytes;
-	std::vector<gige_acknowledge_ack> gige_list;
+	vector<gige_acknowledge_ack> gige_list;
 	socket_channel tchan;
 	gige_handle handle;
 	int on = 1;
-	std::vector<socket_channel> ifaces;
+	vector<socket_channel> ifaces;
 
 	ifaces = socket_find_addresses(NetworkType::UDP);
 	if (!ifaces.size()) return (gige_list);

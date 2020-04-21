@@ -274,7 +274,7 @@ typedef struct
     double savetime;
     PACKET_FILE_SIZE_TYPE file_size;
     PACKET_FILE_SIZE_TYPE total_bytes;
-    std::deque<file_progress> file_info;
+    deque<file_progress> file_info;
     FILE * fp;
 } tx_progress;
 
@@ -298,48 +298,48 @@ bool IS_GET_REQUEST(const unsigned char);
 bool IS_PUT_REQUEST(const unsigned char);
 bool IS_DELETE_REQUEST(const unsigned char);
 
-void make_metadata_packet(std::vector<PACKET_BYTE>& packet, packet_struct_metalong meta);
-void make_metadata_packet(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name);
-void make_metadata_packet(std::vector<PACKET_BYTE>& packet, packet_struct_metashort meta);
-void make_metadata_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name);
-void extract_metadata(std::vector<PACKET_BYTE>& packet, packet_struct_metalong& meta);
-void extract_metadata(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, char* node_name, char* agent_name);
-void extract_metadata(std::vector<PACKET_BYTE>& packet, packet_struct_metashort& meta);
-void extract_metadata(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, PACKET_NODE_ID_TYPE& node_id, char* agent_name);
+void make_metadata_packet(vector<PACKET_BYTE>& packet, packet_struct_metalong meta);
+void make_metadata_packet(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name);
+void make_metadata_packet(vector<PACKET_BYTE>& packet, packet_struct_metashort meta);
+void make_metadata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name);
+void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metalong& meta);
+void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, char* node_name, char* agent_name);
+void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metashort& meta);
+void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, PACKET_NODE_ID_TYPE& node_id, char* agent_name);
 
-void make_data_packet(std::vector<PACKET_BYTE>& packet, packet_struct_data data);
-void make_data_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk);
-void extract_data(std::vector<PACKET_BYTE>& packet, packet_struct_data& data);
-void extract_data(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_CHUNK_SIZE_TYPE& byte_count, PACKET_FILE_SIZE_TYPE& chunk_start, PACKET_BYTE* chunk);
+void make_data_packet(vector<PACKET_BYTE>& packet, packet_struct_data data);
+void make_data_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk);
+void extract_data(vector<PACKET_BYTE>& packet, packet_struct_data& data);
+void extract_data(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_CHUNK_SIZE_TYPE& byte_count, PACKET_FILE_SIZE_TYPE& chunk_start, PACKET_BYTE* chunk);
 
-void make_reqdata_packet(std::vector<PACKET_BYTE>& packet, packet_struct_reqdata reqdata);
-void make_reqdata_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end);
-void extract_reqdata(std::vector<PACKET_BYTE>& packet, packet_struct_reqdata& reqdata);
-void extract_reqdata(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_FILE_SIZE_TYPE& hole_start, PACKET_FILE_SIZE_TYPE& hole_end);
+void make_reqdata_packet(vector<PACKET_BYTE>& packet, packet_struct_reqdata reqdata);
+void make_reqdata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end);
+void extract_reqdata(vector<PACKET_BYTE>& packet, packet_struct_reqdata& reqdata);
+void extract_reqdata(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_FILE_SIZE_TYPE& hole_start, PACKET_FILE_SIZE_TYPE& hole_end);
 
-void make_reqmeta_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, std::vector<PACKET_TX_ID_TYPE> reqmeta);
-void extract_reqmeta(std::vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta);
+void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, vector<PACKET_TX_ID_TYPE> reqmeta);
+void extract_reqmeta(vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta);
 
-void make_complete_packet(std::vector<PACKET_BYTE>& packet, packet_struct_complete complete);
-void make_complete_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
-void extract_complete(std::vector<PACKET_BYTE>& packet, packet_struct_complete& complete);
-void extract_complete(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id);
+void make_complete_packet(vector<PACKET_BYTE>& packet, packet_struct_complete complete);
+void make_complete_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
+void extract_complete(vector<PACKET_BYTE>& packet, packet_struct_complete& complete);
+void extract_complete(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id);
 
-void make_cancel_packet(std::vector<PACKET_BYTE>& packet, packet_struct_cancel cancel);
-void make_cancel_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
-void extract_cancel(std::vector<PACKET_BYTE>& packet, packet_struct_cancel& cancel);
-void extract_cancel(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id);
+void make_cancel_packet(vector<PACKET_BYTE>& packet, packet_struct_cancel cancel);
+void make_cancel_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
+void extract_cancel(vector<PACKET_BYTE>& packet, packet_struct_cancel& cancel);
+void extract_cancel(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id);
 
-void make_queue_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, std::vector<PACKET_TX_ID_TYPE> queue);
-void extract_queue(std::vector<PACKET_BYTE>& packet, packet_struct_queue& queue);
+void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, vector<PACKET_TX_ID_TYPE> queue);
+void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue);
 
-//void make_message_packet(std::vector<PACKET_BYTE>& packet, packet_struct_message message);
-//void make_message_packet(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
-//void extract_message(std::vector<PACKET_BYTE>& packet, packet_struct_message& message);
-//void extract_message(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id);
+//void make_message_packet(vector<PACKET_BYTE>& packet, packet_struct_message message);
+//void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
+//void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message);
+//void extract_message(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id);
 
-//void make_send_packet(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
-//void extract_send(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id);
+//void make_send_packet(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
+//void extract_send(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id);
 
 
 ///  --------------- code above this line has be checked and de-Jonny-fied

@@ -93,6 +93,8 @@ using std::endl;
 using std::string;
 #include <vector>
 using std::vector;
+#include <deque>
+using std::deque;
 #include <mutex>
 using std::mutex;
 using std::unique_lock;

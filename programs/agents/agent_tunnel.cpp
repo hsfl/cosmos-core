@@ -47,8 +47,8 @@ void tcv_write_loop();
 void tun_read_loop();
 void tun_write_loop();
 
-static std::queue<std::vector<uint8_t> > tun_fifo;
-static std::queue<std::vector<uint8_t> > tcv_fifo;
+static std::queue<vector<uint8_t> > tun_fifo;
+static std::queue<vector<uint8_t> > tcv_fifo;
 
 static std::condition_variable tcv_fifo_check;
 static std::condition_variable tun_fifo_check;
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
     int32_t iretn;
 	char tunnel_ip[20];
-	std::vector<uint8_t> buffer;
+	vector<uint8_t> buffer;
 
 	switch (argc)
 	{
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
 #if defined(COSMOS_LINUX_OS) || defined(COSMOS_MAC_OS)
 void tun_read_loop()
 {
-	std::vector<uint8_t> buffer;
+	vector<uint8_t> buffer;
     ssize_t nbytes;
 
     while (agent->running())
@@ -255,7 +255,7 @@ void tun_read_loop()
 
 void tun_write_loop()
 {
-	std::vector<uint8_t> buffer;
+	vector<uint8_t> buffer;
     ssize_t nbytes;
 	std::mutex tun_fifo_lock;
 	std::unique_lock<std::mutex> locker(tun_fifo_lock);
@@ -280,7 +280,7 @@ void tun_write_loop()
 
 void tcv_read_loop()
 {
-	std::vector<uint8_t> buffer;
+	vector<uint8_t> buffer;
     ssize_t nbytes;
 
     while (agent->running())
@@ -307,7 +307,7 @@ void tcv_write_loop()
 {
 	std::mutex tcv_fifo_lock;
 	std::unique_lock<std::mutex> locker(tcv_fifo_lock);
-	std::vector<uint8_t> buffer;
+	vector<uint8_t> buffer;
 
     while (agent->running())
 	{

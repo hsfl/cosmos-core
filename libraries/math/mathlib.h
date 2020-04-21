@@ -246,9 +246,9 @@ struct estimatorstruc
 {
     double value[3];
     double error[3];
-    std::vector<double> a;
-    std::vector<double> x;
-    std::vector<double> y;
+    vector<double> a;
+    vector<double> x;
+    vector<double> y;
 };
 
 //! Estimator handle
@@ -260,7 +260,7 @@ struct estimatorstruc
 */
 struct estimatorhandle
 {
-    std::vector<estimatorstruc> r;
+    vector<estimatorstruc> r;
     int32_t index;
     uint32_t size;
     uint32_t degree;
@@ -284,15 +284,15 @@ double evaluate_poly_slope(double x, rvector parms);
 double evaluate_poly_accel(double x, rvector parms);
 double evaluate_poly_jerk(double x, rvector parms);
 
-gvector gv_evaluate_poly(double x, std::vector< std::vector<double> > parms);
-gvector gv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
-gvector gv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
-gvector gv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
+gvector gv_evaluate_poly(double x, vector< vector<double> > parms);
+gvector gv_evaluate_poly_slope(double x, vector< vector<double> > parms);
+gvector gv_evaluate_poly_accel(double x, vector< vector<double> > parms);
+gvector gv_evaluate_poly_jerk(double x, vector< vector<double> > parms);
 
-rvector rv_evaluate_poly(double x, std::vector< std::vector<double> > parms);
-rvector rv_evaluate_poly_slope(double x, std::vector< std::vector<double> > parms);
-rvector rv_evaluate_poly_accel(double x, std::vector< std::vector<double> > parms);
-rvector rv_evaluate_poly_jerk(double x, std::vector< std::vector<double> > parms);
+rvector rv_evaluate_poly(double x, vector< vector<double> > parms);
+rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms);
+rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms);
+rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms);
 
 // TODO: move these functions to quaternion ???
 rvector rotate_q(quaternion q,rvector v);
@@ -308,8 +308,8 @@ cvector irotate(quaternion q, cvector v);
 
 rvector rv_quaternion2axis(quaternion q);
 uvector rv_fitpoly(uvector x, uvector y, uint32_t order);
-std::vector<double> polyfit(std::vector<double> &x, std::vector<double> &y);
-void multisolve(std::vector< std::vector<double> > x, std::vector<double> y, std::vector<double>& a);
+vector<double> polyfit(vector<double> &x, vector<double> &y);
+void multisolve(vector< vector<double> > x, vector<double> y, vector<double>& a);
 void open_estimate(estimatorhandle *estimate, uint32_t size, uint32_t degree);
 int16_t set_estimate(estimatorhandle *estimate, double independent, double dependent);
 estimatorstruc get_estimate(estimatorhandle *estimate, double independent);
@@ -376,9 +376,9 @@ private:
     // base level subtracted from independent variable before fitting
     double basex;
     // Of size element_cnt
-    std::deque<fitelement> var;
+    deque<fitelement> var;
 
-    std::vector< std::vector<double> > parms;
+    vector< vector<double> > parms;
 
     void fit();
 

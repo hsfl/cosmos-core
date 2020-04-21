@@ -3,7 +3,7 @@
 #include "support/configCosmos.h"
 class JSONObject;
 class JSONValue;
-typedef struct std::vector<JSONValue> JSONArray;
+typedef struct vector<JSONValue> JSONArray;
 
 
 class JSONValue
