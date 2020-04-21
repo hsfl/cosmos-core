@@ -45,7 +45,7 @@ struct iersstruc
     uint32_t ls;
 };
 
-static std::vector<iersstruc> iers;
+static vector<iersstruc> iers;
 static uint32_t iersbase=0;
 
 #define MAXLEAPS 26
@@ -1563,6 +1563,28 @@ double  jd2mjd(double jd) {
     return JD2MJD(jd);
 }
 
+int32_t timed_countdown(int32_t seconds, int32_t step, string message)
+{
+    ElapsedTime et;
+    ElapsedTime set;
+
+    if (message.length())
+    {
+        printf("%s", message.c_str());
+        fflush(stdout);
+    }
+
+    while (et.split() < seconds)
+    {
+        int32_t nextstep = static_cast <int32_t>((seconds - et.split()) / step);
+        COSMOS_SLEEP((seconds - et.split()) - nextstep * step);
+        printf("...%d", nextstep * step);
+        fflush(stdout);
+    }
+    printf("\n");
+    return 0;
+}
+
 //! @}
 
 
@@ -1590,3 +1612,4 @@ int32_t mjd2tlef(double mjd, std::string &tle) {
     tle = std::string(year_buffer) + std::string(days_buffer);
     return 0;
 }
+
