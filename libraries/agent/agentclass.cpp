@@ -255,8 +255,8 @@ namespace Cosmos
             Agent::add_request("targetsjson",Agent::req_targetsjson,"","return description JSON for Targets");
             Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
             Agent::add_request("heartbeat",Agent::req_heartbeat,"","Send extra hearbeat");
-            Agent::add_request("mjd",Agent::req_mjd,"","Get Modified Julian Day");
-            Agent::add_request("soh",Agent::req_soh,"","Get SOH string");
+            Agent::add_request("utc",Agent::req_utc,"Coordinated Universal Time","Get UTC as both Modified Julian Day and Unix Time");
+            Agent::add_request("soh",Agent::req_soh,"SOH string","Get SOH string");
 
             cinfo->agent[0].server = 1;
             cinfo->agent[0].stateflag = static_cast<uint16_t>(Agent::State::RUN);
@@ -603,7 +603,7 @@ namespace Cosmos
             ElapsedTime ep;
             ep.start();
 
-            post(Agent::AgentMessage::REQUEST);
+            post(Agent::AgentMessage::REQUEST, "heartbeat");
             COSMOS_SLEEP(.1);
             do
             {
@@ -667,6 +667,7 @@ namespace Cosmos
 
             ElapsedTime ep;
             ep.start();
+            post(AgentMessage::REQUEST, "heartbeat");
 
             do
             {
@@ -675,14 +676,6 @@ namespace Cosmos
                 {
                     return cbeat;
                 }
-                //            cbeat = Agent::poll_beat(1);
-                //            if (cbeat.utc != 0.)
-                //            {
-                //                if (!strcmp(cbeat.proc, proc.c_str()) && !strcmp(cbeat.node, node.c_str()))
-                //                {
-                //                    return cbeat;
-                //                }
-                //            }
             } while (ep.split() <= waitsec);
 
             // ?? do a complete reset of cbeat if agent not found, not just utc = 0
@@ -926,7 +919,7 @@ namespace Cosmos
                 iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
                 if (iretn > 0)
                 {
-                    if (!strcmp(mess.meta.beat.proc, "null"))
+                    if (!strcmp(mess.meta.beat.proc, "null") && mess.adata.empty())
                     {
                         continue;
                     }
@@ -1426,9 +1419,9 @@ namespace Cosmos
             return iretn;
         }
 
-        int32_t Agent::req_mjd(char *, char *response, Agent *agent)
+        int32_t Agent::req_utc(char *, char *response, Agent *agent)
         {
-            sprintf(response, "%15g", agent->agent_time_producer());
+            sprintf(response, " %.15g %lf ", agent->agent_time_producer(), utc2unixseconds(agent->agent_time_producer()));
             return 0;
         }
 
@@ -1696,7 +1689,14 @@ namespace Cosmos
                         }
                         else
                         {
-                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+//                            int val = IP_PMTUDISC_DO;
+//                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val))) < 0)
+//                            {
+//                                CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+//                                continue;
+//                            }
+
+                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on))) < 0)
                             {
                                 CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
                                 continue;
@@ -2302,9 +2302,9 @@ namespace Cosmos
     \param where One of Where::HEAD or Where::TAIL, indicating whether to start at the head or tail of the ring.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-        int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Where where)
+        int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Where where, std::string proc, std::string node)
         {
-            if (waitsec < 0.)
+            if (waitsec < 0.f)
             {
                 waitsec = 0.;
             }
@@ -2316,39 +2316,25 @@ namespace Cosmos
 
             if (where == Where::HEAD)
             {
-//                message_tail = message_head - 1;
-//                if (message_tail >= message_ring.size())
-//                {
-//                    message_tail = message_ring.size() - 1;
-//                }
                 message_queue.clear();
             }
             ElapsedTime ep;
             ep.start();
             do
             {
-//                if (message_head != message_tail)
-//                {
-//                    ++message_tail;
-//                    if (message_tail >= message_ring.size())
-//                    {
-//                        message_tail = 0;
-//                    }
-
-//                    if (type == Agent::AgentMessage::ALL || type == (Agent::AgentMessage)message_ring[message_tail].meta.type)
-//                    {
-//                        // Copy message.
-//                        message = message_ring[message_tail];
-//                        return ((int)message.meta.type);
-//                    }
-//                }
-                if (message_queue.size())
+                while (message_queue.size())
                 {
                     message = message_queue.front();
                     message_queue.pop_front();
                     if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type))
                     {
-                        return (static_cast<int32_t>(message.meta.type));
+                        if (proc.empty() || proc == message.meta.beat.proc)
+                        {
+                            if (node.empty() || node == message.meta.beat.node)
+                            {
+                                return (static_cast<int32_t>(message.meta.type));
+                            }
+                        }
                     }
                 }
 
@@ -2360,7 +2346,7 @@ namespace Cosmos
                     }
                     else
                     {
-                        COSMOS_SLEEP(waitsec - ep.split());
+                        COSMOS_SLEEP(.05);
                     }
                 }
             } while (ep.split() < waitsec);
@@ -2369,22 +2355,24 @@ namespace Cosmos
         }
 
         //! Parse next message from ring
-        int32_t Agent::parsering(string agent, AgentMessage type, float waitsec, Where where)
+        int32_t Agent::parsering(AgentMessage type, float waitsec, Where where, string proc, string node)
         {
             int32_t iretn;
             messstruc message;
 
-            post(Agent::AgentMessage::REQUEST);
-            iretn = readring(message, type, waitsec, where);
-            if (iretn >= 0 && (agent.empty() || !strcmp(message.meta.beat.proc, agent.c_str())))
+            if (where == Where::HEAD)
+            {
+                message_queue.clear();
+            }
+            post(Agent::AgentMessage::REQUEST, "heartbeat");
+            iretn = readring(message, type, waitsec, where, proc, node);
+            if (iretn >= 0)
             {
                 json_parse(message.adata, cinfo);
-                return 0;
-            }
-            else
-            {
                 return iretn;
             }
+
+            return GENERAL_ERROR_TIMEOUT;
         }
 
         //! Change size of message ring.

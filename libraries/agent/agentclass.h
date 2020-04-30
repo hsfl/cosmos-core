@@ -309,8 +309,8 @@ namespace Cosmos
             //    int32_t poll(pollstruc &meta, string &message, uint8_t type, float waitsec = 1.);
             //    int32_t poll(pollstruc &meta, vector <uint8_t> &message, uint8_t type, float waitsec = 1.);
             int32_t poll(messstruc &mess, AgentMessage type, float waitsec = 1.);
-            int32_t readring(messstruc &message, AgentMessage type = Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::HEAD);
-            int32_t parsering(string agent="", AgentMessage type = Agent::AgentMessage::ALL, float waitsec=1., Where where=Where::HEAD);
+            int32_t readring(messstruc &message, AgentMessage type = Agent::AgentMessage::ALL, float waitsec = 1., Where where=Where::TAIL, string proc="", string node="");
+            int32_t parsering(AgentMessage type = Agent::AgentMessage::ALL, float waitsec=1., Where where=Where::HEAD, string proc="", string node="");
             int32_t resizering(size_t newsize);
             int32_t clearring();
             //    timestruc poll_time(float waitsec);
@@ -346,7 +346,7 @@ namespace Cosmos
             vector <jsonnode> node_list;
 
             //! Ring buffer for incoming messages
-            vector <messstruc> message_ring;
+//            vector <messstruc> message_ring;
             deque <messstruc> message_queue;
             //! Last message placed in message ring buffer
             size_t message_head = MESSAGE_RING_SIZE;
@@ -441,7 +441,7 @@ namespace Cosmos
             static int32_t req_targetsjson(char *request, char* response, Agent *agent);
             static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
             static int32_t req_heartbeat(char *request, char* response, Agent *agent);
-            static int32_t req_mjd(char *request, char* response, Agent *agent);
+            static int32_t req_utc(char *request, char* response, Agent *agent);
             static int32_t req_soh(char *, char* response, Agent *agent);
         };
     } // end of namespace Support
