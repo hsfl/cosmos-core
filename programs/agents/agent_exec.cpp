@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     vector<shorteventstruc> events, eventdict;
     std::string incoming_dir, outgoing_dir, temp_dir, immediate_dir;
     std::string jjstring, myjstring;
-    double lmjd, dmjd, cmjd, nextmjd;
+    double lmjd, dmjd, cmjd;
     int32_t iretn;
     int sleept;
 
@@ -274,10 +274,10 @@ int main(int argc, char *argv[])
     get_beacon_cpu();
     // Start performing the body of the agent
     COSMOS_SLEEP(30.);
-    lmjd = cmjd = nextmjd = currentmjd();
+    lmjd = cmjd =  currentmjd();
+    agent->start_active_loop();
     while(agent->running())
     {
-        nextmjd += agent->cinfo->agent[0].aprd/86400.;
         dmjd = (cmjd-lmjd)*86400.;
         agent->cinfo->node.utc = cmjd = currentmjd();
 
@@ -352,9 +352,7 @@ int main(int argc, char *argv[])
         cmd_queue.run_commands(agent, agent->getNode(), logdate_exec);
         cmd_queue.save_commands(temp_dir);
 
-        sleept = static_cast<int>((nextmjd-currentmjd())*86400000000.);
-        if (sleept < 0) sleept = 0;
-        COSMOS_USLEEP(sleept);
+        agent->finish_active_loop();
     }
 
     agent->shutdown();
@@ -603,23 +601,17 @@ int32_t request_get_logstride_soh(char*, char*response, Agent *)
 
 void collect_data_loop()
 {
-    int my_position = -1;
+    int32_t iretn;
     while (agent->running())
     {
         // Collect new data
-//        while (my_position != static_cast<int>(agent->message_head))
-        while (agent->message_queue.size())
+        Agent::messstruc mess;
+        iretn = agent->readring(mess, Agent::AgentMessage::ALL, 5., Agent::Where::TAIL, "", agent->cinfo->node.name);
+        if (iretn >= 0)
         {
-//            ++my_position;
-//            if (my_position >= static_cast<int>(agent->message_ring.size()))
-//            {
-//                my_position = 0;
-//            }
-//            if (agent->cinfo->node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AgentMessage::BINARY)
-            if (agent->cinfo->node.name == agent->message_queue.front().meta.beat.node && agent->message_queue.front().meta.type < Agent::AgentMessage::BINARY)
+            if (mess.meta.type < Agent::AgentMessage::BINARY)
             {
-//                json_parse(agent->message_ring[my_position].adata, agent->cinfo);
-                json_parse(agent->message_queue.front().adata, agent->cinfo);
+                json_parse(mess.adata, agent->cinfo);
                 agent->cinfo->node.utc = currentmjd(0.);
 
                 for (devicestruc device: agent->cinfo->device)
@@ -631,7 +623,6 @@ void collect_data_loop()
                 }
             }
         }
-        COSMOS_SLEEP(.1);
     }
     return;
 }
