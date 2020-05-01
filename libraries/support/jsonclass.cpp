@@ -45,7 +45,7 @@ namespace Cosmos
             }
             skip_character(begin, end, '}');
 
-            return 0;
+            return members.size();
         }
 
         int32_t Json::extract_values(string::iterator begin, string::iterator end, vector <Member> &members)
