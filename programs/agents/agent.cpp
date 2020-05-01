@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
         {
             size_t agent_count = 0;
             ElapsedTime et;
-            agent->post(Agent::AgentMessage::REQUEST);
+            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
             COSMOS_SLEEP(.5);
             do
             {
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
         {
             size_t agent_count = 0;
             ElapsedTime et;
-            agent->post(Agent::AgentMessage::REQUEST);
+            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
             COSMOS_SLEEP(.1);
             printf("{\"agent_list\":[");
             do
