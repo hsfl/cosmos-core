@@ -2365,8 +2365,13 @@ namespace Cosmos
                 message_queue.clear();
             }
             post(Agent::AgentMessage::REQUEST, "heartbeat");
-            iretn = readring(message, type, waitsec, where, proc, node);
-            if (iretn >= 0)
+            ElapsedTime et;
+            do
+            {
+                iretn = readring(message, type, waitsec, where, proc, node);
+            } while (et.split() < waitsec);
+
+            if (iretn >= 0 && iretn < static_cast <int32_t>(Agent::AgentMessage::BINARY))
             {
                 json_parse(message.adata, cinfo);
                 return iretn;
