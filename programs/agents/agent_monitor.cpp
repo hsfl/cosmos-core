@@ -71,17 +71,17 @@ using std::endl;
 //! Usage: agent_monitor
 
 
-Agent *agent;
+static Agent *agent;
 
-string incoming_dir;
-string outgoing_dir;
-string temp_dir;
+static string incoming_dir;
+static string outgoing_dir;
+static string temp_dir;
 
-string nodename;
+static string nodename;
 
-double logdate_exec=0.;
-double newlogstride_exec = 900. / 86400.;
-double logstride_exec = 0.;
+static double logdate_exec=0.;
+static double newlogstride_exec = 900. / 86400.;
+static double logstride_exec = 0.;
 
 int32_t request_get_queue_size(char* request, char* response, Agent* agent);
 int32_t request_get_event(char* request, char* response, Agent* agent);
@@ -93,7 +93,7 @@ int32_t request_soh(char *request, char* response, Agent* agent);
 int32_t request_reopen_exec(char* request, char* response, Agent* agent);
 int32_t request_set_logstride_exec(char* request, char* response, Agent* agent);
 
-CommandQueue cmd_queue;
+static CommandQueue cmd_queue;
 
 // SOH specific declarations
 int32_t request_reopen_soh(char* request, char* response, Agent *agent);
@@ -102,34 +102,28 @@ int32_t request_set_logstring(char* request, char* response, Agent *agent);
 int32_t request_get_logstring(char* request, char* response, Agent *agent);
 int32_t request_set_logstride_soh(char* request, char* response, Agent *agent);
 
-string jjstring;
-string myjstring;
-
-NetworkType ntype = NetworkType::UDP;
-int waitsec = 5;
+static string jjstring;
+static string myjstring;
 
 void collect_data_loop();
-thread cdthread;
+static thread cdthread;
 
-string logstring;
-vector<jsonentry*> logtable;
-double logdate_soh=0.;
-int32_t newlogperiod = 10, logperiod = 0;
-double newlogstride_soh = 900. / 86400.;
-double logstride_soh = 0.;
+static string logstring;
+static vector<jsonentry*> logtable;
+static double logdate_soh=0.;
+static int32_t newlogperiod = 10, logperiod = 0;
+static double newlogstride_soh = 900. / 86400.;
+static double logstride_soh = 0.;
 
-vector<shorteventstruc> eventdict;
-vector<shorteventstruc> events;
+static vector<shorteventstruc> eventdict;
+static vector<shorteventstruc> events;
 
-int pid;
-int state = 0;
-double cmjd;
+static double cmjd;
 
-beatstruc iscbeat;
+static beatstruc iscbeat;
 
 // default node name
-string node = "hiakasat";
-char response[300];
+static string node = "hiakasat";
 
 int main(int argc, char *argv[])
 {
@@ -533,32 +527,23 @@ int32_t request_set_logstride_soh(char* request, char* response, Agent *agent)
 
 void collect_data_loop()
 {
-    size_t my_position = -1;
+    int32_t iretn;
     while (agent->running())
     {
         // Collect new data
-        while (my_position != agent->message_head)
+        iretn = agent->parsering(Agent::AgentMessage::ALL, 5., Agent::Where::HEAD, "", agent->cinfo->node.name);
+        if (iretn >= 0)
         {
-            ++my_position;
-            if (my_position >= agent->message_ring.size())
-            {
-                my_position = 0;
-            }
-            if (agent->cinfo->node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AgentMessage::BINARY)
-            {
-                json_parse(agent->message_ring[my_position].adata, agent->cinfo);
-                agent->cinfo->node.utc = currentmjd(0.);
+            agent->cinfo->node.utc = currentmjd(0.);
 
-                for (devicestruc device: agent->cinfo->device)
+            for (devicestruc device: agent->cinfo->device)
+            {
+                if (device.all.utc > agent->cinfo->node.utc)
                 {
-                    if (device.all.utc > agent->cinfo->node.utc)
-                    {
-                        agent->cinfo->node.utc = device.all.utc;
-                    }
+                    agent->cinfo->node.utc = device.all.utc;
                 }
             }
         }
-        COSMOS_SLEEP(.1);
     }
     return;
 }
