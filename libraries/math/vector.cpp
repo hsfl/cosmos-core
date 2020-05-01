@@ -2558,6 +2558,93 @@ namespace Cosmos {
                 return fqe;
             }
 
+            //! Rotation Quaternion for X axis
+            /*! Create the ::Quaternion that represents a rotation of the given angle around the X axis.
+            \param angle Angle of rotation in radians
+            \return Resulting ::Quaternion
+            */
+            // TODO: change function name to q_rotate_object_around_z vs q_rotate_coord_around_z
+            Quaternion drotate_around_x(double angle)
+            {
+                Quaternion a(0.,1.,0.,0.);
+
+                double sa = sin(angle/2.);
+
+                a.x = sa * a.x;
+                a.y = sa * a.y;
+                a.z = sa * a.z;
+
+                a.w = cos(angle/2.);
+
+                return (a);
+            }
+
+            //! Rotation Quaternion for Y axis
+            /*! Create the ::Quaternion that represents a rotation of the given angle around the Y axis.
+            \param angle Angle of rotation in radians
+            \return Resulting ::Quaternion
+            */
+            Quaternion drotate_around_y(double angle)
+            {
+                Quaternion a(0.,0.,1.,0.);
+
+                double sa = sin(angle/2.);
+
+                a.x = sa * a.x;
+                a.y = sa * a.y;
+                a.z = sa * a.z;
+
+                a.w = cos(angle/2.);
+
+                return (a);
+            }
+
+
+            //! Rotation Quaternion for Z axis
+            /*! Create the ::Quaternion that represents a rotation of the given angle around the Z axis.
+            \param angle Angle of rotation in radians
+            \return Resulting ::Quaternion
+            */
+            Quaternion drotate_around_z(double angle)
+            {
+                Quaternion a(0.,0.,0.,1.);
+
+                double sa = sin(angle/2.);
+
+                a.x = sa * a.x;
+                a.y = sa * a.y;
+                a.z = sa * a.z;
+                a.w = cos(angle/2.);
+
+                return (a);
+            }
+
+            //! Rotation Quaternion for indicated axis
+            /*! Create the ::Quaternion that represents a rotation of the given angle around the indicated axis.
+            \param axis Axis of rotation: 1=X, 2=Y, 3=Z
+            \param angle Angle of rotation in radians
+            \return Resulting ::Quaternion
+            */
+            Quaternion drotate_around(int axis, double angle)
+            {
+                Quaternion a(1.,0.,0.,0.);
+
+                switch (axis)
+                {
+                case 1:
+                    drotate_around_x(angle);
+                    break;
+                case 2:
+                    drotate_around_y(angle);
+                    break;
+                case 3:
+                    drotate_around_z(angle);
+                    break;
+                }
+
+                return (a);
+            }
+
             Quaternion eye(double scale)
             {
                 Quaternion val = Quaternion(0., 0., 0., scale);

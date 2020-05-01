@@ -518,6 +518,10 @@ namespace Cosmos {
         std::ostream& operator << (std::ostream& os, const Quaternion& q);
         Quaternion irotate_for(Vectors::Vector sourcea, Vectors::Vector sourceb, Vectors::Vector targeta, Vectors::Vector targetb);
         Quaternion drotate_between(Vectors::Vector a, Vectors::Vector b);
+        Quaternion drotate_around_x(double angle);
+        Quaternion drotate_around_y(double angle);
+        Quaternion drotate_around_z(double angle);
+        Quaternion drotate_around(int axis, double angle);
         Quaternion eye(double scale = 1.);
 
         }
