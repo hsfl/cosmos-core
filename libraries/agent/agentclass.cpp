@@ -2595,7 +2595,13 @@ namespace Cosmos
 
         FILE *Agent::get_debug_fd(double mjd)
         {
-            if (debug_level <= 1)
+            static double oldmjd=0.;
+            if (debug_level == 0)
+            {
+                debug_fd = nullptr;
+                debug_pathName.clear();
+            }
+            else if (debug_level == 1)
             {
                 if (debug_fd != stdout)
                 {
@@ -2603,7 +2609,7 @@ namespace Cosmos
                     {
                         fclose(debug_fd);
                     }
-                    debug_fd = stdout;
+                        debug_fd = stdout;
                     debug_pathName.clear();
                 }
             }
@@ -2612,6 +2618,7 @@ namespace Cosmos
                 if (mjd == 0.)
                 {
                     mjd = currentmjd();
+                    oldmjd = mjd;
                 }
                 mjd = mjd - fmod(mjd, 1./24.);
                 string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
@@ -2623,10 +2630,16 @@ namespace Cosmos
                         FILE *fd = fopen(pathName.c_str(), "a");
                         if (fd != nullptr)
                         {
-                            fclose(debug_fd);
+                            if (debug_fd != stdout)
+                            {
+                                fclose(debug_fd);
+                                string final_filepath = data_type_path(nodeName, "outgoing", agentName, oldmjd, agentName, "debug");
+                                rename(debug_pathName.c_str(), final_filepath.c_str());
+                            }
                             debug_fd = fd;
                             debug_pathName = pathName;
                         }
+                        oldmjd = mjd;
                     }
                 }
                 else
