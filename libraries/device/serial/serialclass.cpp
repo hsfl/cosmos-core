@@ -1308,8 +1308,9 @@ namespace Cosmos {
     int32_t Serial::get_slip(vector <uint8_t> &data, size_t size)
     {
         int32_t ch;
-        uint16_t i;
+//        uint16_t i;
 
+        data.clear();
         do
         {
             ch = get_char();
@@ -1326,7 +1327,7 @@ namespace Cosmos {
             }
         } while (ch != SLIP_FEND);
 
-        i = 0;
+//        i = 0;
         do
         {
             ch = get_char();
@@ -1341,7 +1342,8 @@ namespace Cosmos {
                     return (ch);
                 }
             }
-            if (i < size)
+//            if (i < size)
+            if (data.size() < size)
             {
                 switch (ch)
                 {
@@ -1356,19 +1358,20 @@ namespace Cosmos {
                         data.push_back(SLIP_FESC);
                         break;
                     }
-                    ++i;
+//                    ++i;
                     break;
                 case SLIP_FEND:
                     break;
                 default:
                     data.push_back(static_cast<uint8_t>(ch));
-                    ++i;
+//                    ++i;
                     break;
                 }
             }
         } while (ch != SLIP_FEND);
 
-        return (i);
+//        return (i);
+        return data.size();
     }
 
     //! Read NMEA response.
