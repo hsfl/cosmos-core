@@ -249,6 +249,26 @@ void extract_data(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PAC
     memmove(chunk, &packet[0]+PACKET_DATA_OFFSET_CHUNK, byte_count);
 }
 
+void make_reqqueue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name)
+{
+    PACKET_TYPE type = salt_type(PACKET_REQQUEUE);
+
+    packet.resize(PACKET_REQQUEUE_OFFSET_TOTAL);
+    memset(&packet[0], 0, PACKET_REQQUEUE_OFFSET_TOTAL);
+    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_REQQUEUE_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+    memmove(&packet[0]+PACKET_REQQUEUE_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
+}
+
+//Function to extract necessary fileds from a received reqqueue packet
+void extract_reqqueue(vector<PACKET_BYTE>& packet, packet_struct_reqqueue& reqqueue)
+{
+    memmove(&reqqueue.node_id, &packet[0]+PACKET_REQQUEUE_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+    memmove(&reqqueue.node_name, &packet[0]+PACKET_REQQUEUE_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
+}
+
 void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, vector<PACKET_TX_ID_TYPE> queue)
 {
     PACKET_TYPE type = salt_type(PACKET_QUEUE);
@@ -269,6 +289,32 @@ void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue)
     memmove(&queue.node_id, &packet[0]+PACKET_QUEUE_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
     memmove(&queue.node_name, &packet[0]+PACKET_QUEUE_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
     memmove(&queue.tx_id, &packet[0]+PACKET_QUEUE_OFFSET_TX_ID, COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
+}
+
+void make_heartbeat_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, PACKET_BYTE beat_period, PACKET_UNIXTIME_TYPE throughput, PACKET_UNIXTIME_TYPE funixtime)
+{
+    PACKET_TYPE type = salt_type(PACKET_HEARTBEAT);
+
+    packet.resize(PACKET_HEARTBEAT_OFFSET_TOTAL);
+    memset(&packet[0], 0, PACKET_HEARTBEAT_OFFSET_TOTAL);
+    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_NODE_NAME, node_name.c_str(), node_name.size());
+    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD, &beat_period, 1);
+    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_THROUGHPUT, &throughput, 4);
+    memmove(&packet[0]+PACKET_HEARTBEAT_OFFSET_FUNIXTIME, &funixtime, 4);
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
+}
+
+//Function to extract necessary fileds from a received heartbeat packet
+void extract_heartbeat(vector<PACKET_BYTE>& packet, packet_struct_heartbeat& heartbeat)
+{
+    memmove(&heartbeat.node_id, &packet[0]+PACKET_HEARTBEAT_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+    memmove(&heartbeat.node_name, &packet[0]+PACKET_HEARTBEAT_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
+    memmove(&heartbeat.beat_period, &packet[0]+PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD, 1);
+    memmove(&heartbeat.throughput, &packet[0]+PACKET_HEARTBEAT_OFFSET_THROUGHPUT, 4);
+    memmove(&heartbeat.funixtime, &packet[0]+PACKET_HEARTBEAT_OFFSET_FUNIXTIME, 4);
 }
 
 void show_fstream_state(std::ifstream& )  {
