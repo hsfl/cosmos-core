@@ -285,13 +285,15 @@ namespace Cosmos
                         return JSON_ERROR_EOS;
                     }
                     value.svalue.push_back(*begin);
-                } while ((*begin>='0'&&*begin<='9')||*begin=='e'||*begin=='E'||*begin=='.'||*begin=='-');
+                } while ((*begin>='0'&&*begin<='9')||*begin=='e'||*begin=='E'||*begin=='.'||*begin=='-'||*begin=='+');
                 value.type = Type::Number;
-                sscanf(value.svalue.c_str(), "%lf", value.nvalue);
+                sscanf(value.svalue.c_str(), "%lf", &value.nvalue);
                 break;
             }
-
-            ++begin;
+            skip_white(begin, end);
+            skip_character(begin, end, ',');
+            skip_white(begin, end);
+//            ++begin;
             value.end = begin;
 
             return 0;
@@ -448,6 +450,12 @@ namespace Cosmos
                     ostring.push_back(*(begin)); // just a character
                 }
                 ++begin;
+            }
+
+            //Skip '"' afer string
+            if ((iretn = skip_character(begin, end, '"')) < 0)
+            {
+                return iretn;
             }
 
             if (begin == end)
