@@ -192,6 +192,7 @@ int main(int argc, char *argv[])
     agent->start_active_loop();
 
     // Start performing the body of the agent
+    agent->debug_level = 0;
     while(agent->running())
     {
         agent->cinfo->device[cpu_cidx].all.utc = currentmjd();

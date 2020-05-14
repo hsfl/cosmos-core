@@ -276,6 +276,7 @@ int main(int argc, char *argv[])
     COSMOS_SLEEP(30.);
     lmjd = cmjd =  currentmjd();
     agent->start_active_loop();
+    agent->debug_level = 0;
     while(agent->running())
     {
         dmjd = (cmjd-lmjd)*86400.;
