@@ -276,15 +276,21 @@ namespace Cosmos
                 value.type = Type::Null;
 
                 break;
+            case 0:
+                return JSON_ERROR_EOS;
             default:
                 value.svalue.clear();
                 do
                 {
-                    if (++begin == end || *begin == 0)
+                    if (*begin == 0)
                     {
                         return JSON_ERROR_EOS;
                     }
                     value.svalue.push_back(*begin);
+                    if (++begin == end)
+                    {
+                        return JSON_ERROR_EOS;
+                    }
                 } while ((*begin>='0'&&*begin<='9')||*begin=='e'||*begin=='E'||*begin=='.'||*begin=='-'||*begin=='+');
                 value.type = Type::Number;
                 sscanf(value.svalue.c_str(), "%lf", &value.nvalue);
