@@ -189,6 +189,47 @@ void log_write(string node, int type, double utc, const char *record, string dir
     //    }
 }
 
+//! Move log file - path version.
+/*! Move files previously created with ::log_write to their final location, optionally
+ * compressing with gzip. The path version accepts only specific paths, from and to,
+ * and whether compression should be used.
+ * \param oldpath Path to move from.
+ * \param newpath Path to move to.
+ * \param compress Wether or not to compress with gzip.
+ */
+void log_move(string oldpath, string newpath, bool compress)
+{
+    if (compress)
+    {
+        char buffer[8192];
+        string temppath = oldpath + ".gz";
+        newpath += ".gz";
+        FILE *fin = data_open(oldpath, "rb");
+        FILE *fout = data_open(temppath, "wb");
+        gzFile gzfout;
+        gzfout = gzdopen(fileno(fout), "a");
+
+        do
+        {
+            unsigned nbytes = (unsigned)fread(buffer, 1, 8192, fin);
+            if (nbytes)
+            {
+                gzwrite(gzfout, buffer, nbytes);
+            }
+        } while (!feof(fin));
+
+        fclose(fin);
+        gzclose_w(gzfout);
+        rename(temppath.c_str(), newpath.c_str());
+        remove(temppath.c_str());
+    }
+    else
+    {
+        rename(oldpath.c_str(), newpath.c_str());
+    }
+    remove(oldpath.c_str());
+}
+
 //! Move log file - full version.
 /*! Move files previously created with ::log_write to their final location, optionally
  * compressing with gzip. The full version allows for specification of the source and
@@ -207,37 +248,38 @@ void log_move(string node, string agent, string srclocation, string dstlocation,
     data_list_files(node, srclocation, agent, oldfiles);
     for (auto oldfile: oldfiles)
     {
-        string oldpath = oldfile.path;
+        log_move(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
+//        string oldpath = oldfile.path;
 
-        if (compress)
-        {
-            string temppath = oldfile.path + ".gz";
-            string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
-            FILE *fin = data_open(oldpath, "rb");
-            FILE *fout = data_open(temppath, "wb");
-            gzFile gzfout;
-            gzfout = gzdopen(fileno(fout), "a");
+//        if (compress)
+//        {
+//            string temppath = oldfile.path + ".gz";
+//            string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
+//            FILE *fin = data_open(oldpath, "rb");
+//            FILE *fout = data_open(temppath, "wb");
+//            gzFile gzfout;
+//            gzfout = gzdopen(fileno(fout), "a");
 
-            do
-            {
-                unsigned nbytes = (unsigned)fread(buffer, 1, 8192, fin);
-                if (nbytes)
-                {
-                    gzwrite(gzfout, buffer, nbytes);
-                }
-            } while (!feof(fin));
+//            do
+//            {
+//                unsigned nbytes = (unsigned)fread(buffer, 1, 8192, fin);
+//                if (nbytes)
+//                {
+//                    gzwrite(gzfout, buffer, nbytes);
+//                }
+//            } while (!feof(fin));
 
-            fclose(fin);
-            gzclose_w(gzfout);
-            rename(temppath.c_str(), newpath.c_str());
-            remove(temppath.c_str());
-        }
-        else
-        {
-            string newpath = data_base_path(node, dstlocation, agent, oldfile.name);
-            rename(oldpath.c_str(), newpath.c_str());
-        }
-        remove(oldpath.c_str());
+//            fclose(fin);
+//            gzclose_w(gzfout);
+//            rename(temppath.c_str(), newpath.c_str());
+//            remove(temppath.c_str());
+//        }
+//        else
+//        {
+//            string newpath = data_base_path(node, dstlocation, agent, oldfile.name);
+//            rename(oldpath.c_str(), newpath.c_str());
+//        }
+//        remove(oldpath.c_str());
     }
 }
 
