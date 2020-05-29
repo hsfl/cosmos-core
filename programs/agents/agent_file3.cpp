@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
         fflush(agent->get_debug_fd());
 
         log_directory = "temp"; // put log files in node/outgoing/file
-        logstride_sec = 60.; // longer logstride
+        logstride_sec = 600.; // longer logstride
     }
 
     if (argc > 1 && (argv[1][0] >= '0' && argv[1][0] <= '9'))
@@ -3293,6 +3293,7 @@ void write_queue_log(double logdate)
     string record = json_list_queue(); // to append to file
 
     log_write(agent->cinfo->node.name, "file", logdate, "", "log", record, log_directory);
+    log_move(data_type_path(agent->cinfo->node.name, log_directory, "file", logdate, "log"), data_type_path(agent->cinfo->node.name, "outgoing", "file", logdate, "log"), true);
 
 
 }
