@@ -1917,7 +1917,7 @@ double data_ctime(string path)
 #ifdef COSMOS_WIN_OS
 		unixtime.tv_sec = st.st_ctime;
 		unixtime.tv_usec = 0;
-#elseif defined(COSMOS_LINUX_OS)
+#elif defined(COSMOS_LINUX_OS)
         unixtime.tv_sec = st.st_ctim.tv_sec;
         unixtime.tv_usec = st.st_ctim.tv_nsec / 1000;
 #endif
