@@ -3070,7 +3070,7 @@ void topo2azel(Vector tpos, float &az, float &el)
 	\param lines Vector of TLE's.
 	\param eci Pointer to ::cartpos in ECI frame.
 	*/
-int lines2eci(double utc, std::vector<tlestruc>lines, cartpos &eci)
+int lines2eci(double utc, vector<tlestruc>lines, cartpos &eci)
 {
 	static uint16_t lindex=0;
 	int32_t iretn;
@@ -3425,7 +3425,7 @@ int tle2eci(double utc, tlestruc tle, cartpos &eci)
 	\param lines Array of TLE's.
 	\return Indexed TLE.
 	*/
-tlestruc get_line(uint16_t index, std::vector<tlestruc> lines)
+tlestruc get_line(uint16_t index, vector<tlestruc> lines)
 {
 	tlestruc ttle;
 
@@ -3525,7 +3525,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
 * \param lines Array of ::tlestruc structures to contain elements
 * \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
+int32_t load_lines(std::string fname, vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -3601,7 +3601,7 @@ int32_t load_lines(std::string fname, std::vector<tlestruc>& lines)
 * \param lines Array of ::tlestruc structures to contain elements
 * \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines_multi(std::string fname, std::vector<tlestruc>& lines)
+int32_t load_lines_multi(std::string fname, vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -4157,7 +4157,7 @@ void eci2tlestring(cartpos eci, std::string &tle, const std::string &ref_tle, do
 
     // Ignore the name line. Populate our epoch field.
     char *line_1 = strstr(tle_buffer, "\n");
-    sprintf(field_buffer, "%014s", epoch.c_str());
+    sprintf(field_buffer, "%14s", epoch.c_str());
     strncpy(line_1+19, field_buffer, 14);
     sprintf(field_buffer, "");
 

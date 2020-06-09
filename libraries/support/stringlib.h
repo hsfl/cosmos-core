@@ -55,7 +55,7 @@ int string_cmp(const char *wild, const char *string);
 // Class to parse a comma delimited string
 class StringParser {
 
-    std::vector<std::string> vect;
+    vector<std::string> vect;
 
 public:
     // the offset allows you to move the index by an offset value

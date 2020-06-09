@@ -91,7 +91,7 @@ namespace Cosmos
                 return;
             }
 
-            cinfo->agent[0].stateflag = (uint16_t)State::INIT;
+            cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
 
             // Establish subscribe channel
             iretn = subscribe(ntype, AGENTMCAST, AGENTSENDPORT, 1000);
@@ -110,15 +110,6 @@ namespace Cosmos
                 shutdown();
                 return;
             }
-
-            //            if (nname.empty())
-            //            {
-            //                error_value = NODE_ERROR_NODE;
-            //                shutdown();
-            //                return;
-            //            }
-
-            //            nodeName = nname;
 
             strcpy(cinfo->node.name, nodeName.c_str());
 
@@ -144,6 +135,7 @@ namespace Cosmos
             if (aname.empty())
             {
                 strcpy(cinfo->agent[0].beat.proc, "null");
+                cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
                 return;
             }
 
@@ -212,8 +204,8 @@ namespace Cosmos
             {
                 cinfo->agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
             }
-            cinfo->agent[0].stateflag = (uint16_t)State::INIT;
-            cinfo->agent[0].beat.port = (uint16_t)portnum;
+            cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
+            cinfo->agent[0].beat.port = static_cast<uint16_t>(portnum);
             cinfo->agent[0].beat.bsz = (bsize<=AGENTMAXBUFFER-4?bsize:AGENTMAXBUFFER-4);
 
 #ifdef COSMOS_WIN_BUILD_MSVC
@@ -263,11 +255,11 @@ namespace Cosmos
             Agent::add_request("targetsjson",Agent::req_targetsjson,"","return description JSON for Targets");
             Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
             Agent::add_request("heartbeat",Agent::req_heartbeat,"","Send extra hearbeat");
-            Agent::add_request("mjd",Agent::req_mjd,"","Get Modified Julian Day");
-            Agent::add_request("soh",Agent::req_soh,"","Get SOH string");
+            Agent::add_request("utc",Agent::req_utc,"Coordinated Universal Time","Get UTC as both Modified Julian Day and Unix Time");
+            Agent::add_request("soh",Agent::req_soh,"SOH string","Get SOH string");
 
             cinfo->agent[0].server = 1;
-            cinfo->agent[0].stateflag = (uint16_t)Agent::State::RUN;
+            cinfo->agent[0].stateflag = static_cast<uint16_t>(Agent::State::RUN);
 
 
             activeTimeout = currentmjd() + cinfo->agent[0].aprd / 86400.;
@@ -611,7 +603,7 @@ namespace Cosmos
             ElapsedTime ep;
             ep.start();
 
-            post(Agent::AgentMessage::REQUEST);
+            post(Agent::AgentMessage::REQUEST, "heartbeat");
             COSMOS_SLEEP(.1);
             do
             {
@@ -675,6 +667,7 @@ namespace Cosmos
 
             ElapsedTime ep;
             ep.start();
+            post(AgentMessage::REQUEST, "heartbeat");
 
             do
             {
@@ -683,14 +676,6 @@ namespace Cosmos
                 {
                     return cbeat;
                 }
-                //            cbeat = Agent::poll_beat(1);
-                //            if (cbeat.utc != 0.)
-                //            {
-                //                if (!strcmp(cbeat.proc, proc.c_str()) && !strcmp(cbeat.node, node.c_str()))
-                //                {
-                //                    return cbeat;
-                //                }
-                //            }
             } while (ep.split() <= waitsec);
 
             // ?? do a complete reset of cbeat if agent not found, not just utc = 0
@@ -927,14 +912,14 @@ namespace Cosmos
             int32_t iretn;
 
             // Initialize things
-            message_ring.resize(MESSAGE_RING_SIZE);
+//            message_ring.resize(MESSAGE_RING_SIZE);
 
             while (Agent::running())
             {
                 iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
                 if (iretn > 0)
                 {
-                    if (!strcmp(mess.meta.beat.proc, "null"))
+                    if (!strcmp(mess.meta.beat.proc, "null") && mess.adata.empty())
                     {
                         continue;
                     }
@@ -963,14 +948,19 @@ namespace Cosmos
                     }
                     else
                     {
-                        size_t new_position;
-                        new_position = message_head + 1;
-                        if (new_position >= message_ring.size())
+//                        size_t new_position;
+//                        new_position = message_head + 1;
+//                        if (new_position >= message_ring.size())
+//                        {
+//                            new_position = 0;
+//                        }
+//                        message_ring[new_position] = mess;
+//                        message_head = new_position;
+                        message_queue.push_back(mess);
+                        if (message_queue.size() > MESSAGE_RING_SIZE)
                         {
-                            new_position = 0;
+                            message_queue.pop_front();
                         }
-                        message_ring[new_position] = mess;
-                        message_head = new_position;
                     }
                 }
             }
@@ -1429,9 +1419,9 @@ namespace Cosmos
             return iretn;
         }
 
-        int32_t Agent::req_mjd(char *, char *response, Agent *agent)
+        int32_t Agent::req_utc(char *, char *response, Agent *agent)
         {
-            sprintf(response, "%15g", agent->agent_time_producer());
+            sprintf(response, " %.15g %lf ", agent->agent_time_producer(), utc2unixseconds(agent->agent_time_producer()));
             return 0;
         }
 
@@ -1699,7 +1689,14 @@ namespace Cosmos
                         }
                         else
                         {
-                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+//                            int val = IP_PMTUDISC_DO;
+//                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val))) < 0)
+//                            {
+//                                CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+//                                continue;
+//                            }
+
+                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on))) < 0)
                             {
                                 CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
                                 continue;
@@ -2305,9 +2302,9 @@ namespace Cosmos
     \param where One of Where::HEAD or Where::TAIL, indicating whether to start at the head or tail of the ring.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-        int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Where where)
+        int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Where where, std::string proc, std::string node)
         {
-            if (waitsec < 0.)
+            if (waitsec < 0.f)
             {
                 waitsec = 0.;
             }
@@ -2319,39 +2316,68 @@ namespace Cosmos
 
             if (where == Where::HEAD)
             {
-                message_tail = message_head - 1;
-                if (message_tail >= message_ring.size())
-                {
-                    message_tail = message_ring.size() - 1;
-                }
+                message_queue.clear();
             }
             ElapsedTime ep;
             ep.start();
             do
             {
-                if (message_head != message_tail)
+                while (message_queue.size())
                 {
-                    ++message_tail;
-                    if (message_tail >= message_ring.size())
+                    message = message_queue.front();
+                    message_queue.pop_front();
+                    if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type))
                     {
-                        message_tail = 0;
-                    }
-
-                    if (type == Agent::AgentMessage::ALL || type == (Agent::AgentMessage)message_ring[message_tail].meta.type)
-                    {
-                        // Copy message.
-                        message = message_ring[message_tail];
-                        return ((int)message.meta.type);
+                        if (proc.empty() || proc == message.meta.beat.proc)
+                        {
+                            if (node.empty() || node == message.meta.beat.node)
+                            {
+                                return (static_cast<int32_t>(message.meta.type));
+                            }
+                        }
                     }
                 }
 
                 if (ep.split() < waitsec)
                 {
-                    COSMOS_SLEEP(.1);
+                    if (waitsec - ep.split() > .1)
+                    {
+                        COSMOS_SLEEP(.1);
+                    }
+                    else
+                    {
+                        COSMOS_SLEEP(.05);
+                    }
                 }
             } while (ep.split() < waitsec);
 
             return 0;
+        }
+
+        //! Parse next message from ring
+        int32_t Agent::parsering(AgentMessage type, float waitsec, Where where, string proc, string node)
+        {
+            int32_t iretn;
+            messstruc message;
+
+            if (where == Where::HEAD)
+            {
+                message_queue.clear();
+            }
+            post(Agent::AgentMessage::REQUEST, "heartbeat");
+            ElapsedTime et;
+            do
+            {
+                iretn = readring(message, type, waitsec, where, proc, node);
+            } while (et.split() < waitsec);
+
+            if (iretn >= 0 && iretn < static_cast <int32_t>(Agent::AgentMessage::BINARY))
+            {
+                json_parse(message.adata, cinfo);
+                return iretn;
+            }
+
+            return GENERAL_ERROR_TIMEOUT;
         }
 
         //! Change size of message ring.
@@ -2569,7 +2595,13 @@ namespace Cosmos
 
         FILE *Agent::get_debug_fd(double mjd)
         {
-            if (debug_level <= 1)
+            static double oldmjd=0.;
+            if (debug_level == 0)
+            {
+                debug_fd = nullptr;
+                debug_pathName.clear();
+            }
+            else if (debug_level == 1)
             {
                 if (debug_fd != stdout)
                 {
@@ -2577,7 +2609,7 @@ namespace Cosmos
                     {
                         fclose(debug_fd);
                     }
-                    debug_fd = stdout;
+                        debug_fd = stdout;
                     debug_pathName.clear();
                 }
             }
@@ -2586,6 +2618,7 @@ namespace Cosmos
                 if (mjd == 0.)
                 {
                     mjd = currentmjd();
+                    oldmjd = mjd;
                 }
                 mjd = mjd - fmod(mjd, 1./24.);
                 string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
@@ -2597,10 +2630,16 @@ namespace Cosmos
                         FILE *fd = fopen(pathName.c_str(), "a");
                         if (fd != nullptr)
                         {
-                            fclose(debug_fd);
+                            if (debug_fd != stdout)
+                            {
+                                fclose(debug_fd);
+                                string final_filepath = data_type_path(nodeName, "outgoing", agentName, oldmjd, agentName, "debug");
+                                rename(debug_pathName.c_str(), final_filepath.c_str());
+                            }
                             debug_fd = fd;
                             debug_pathName = pathName;
                         }
+                        oldmjd = mjd;
                     }
                 }
                 else

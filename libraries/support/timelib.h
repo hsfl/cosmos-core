@@ -52,7 +52,7 @@
 #define _TIMELIB_H 1
 
 #include "support/configCosmos.h"
-
+#include "support/elapsedtime.h"
 #include "math/mathlib.h"
 
 #ifdef COSMOS_WIN_BUILD_MSVC
@@ -210,6 +210,7 @@ double  ranrm(double angle);
 int16_t isleap(int32_t year);
 int32_t load_iers();
 std::string  seconds2DDHHMMSS(double elapsed_seconds);
+int32_t timed_countdown(int32_t seconds, int32_t step=10., string message="");
 
 
 //! @}

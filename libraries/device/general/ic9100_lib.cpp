@@ -88,7 +88,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command)
 {
     int32_t iretn = 0;
 
-    std::vector <uint8_t> data;
+    vector <uint8_t> data;
     iretn = ic9100_write(handle, command, data);
     return iretn;
 }
@@ -97,12 +97,12 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand)
 {
     int32_t iretn = 0;
 
-    std::vector <uint8_t> data;
+    vector <uint8_t> data;
     iretn = ic9100_write(handle, command, subcommand, data);
     return iretn;
 }
 
-int32_t ic9100_write(ic9100_handle &handle, uint8_t command, std::vector <uint8_t> message)
+int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> message)
 {
     int32_t iretn = 0;
 
@@ -189,7 +189,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, std::vector <uint8_
 
 }
 
-int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand, std::vector <uint8_t> message)
+int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand, vector <uint8_t> message)
 {
     int32_t iretn = 0;
 
@@ -279,7 +279,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
     }
 }
 
-uint8_t ic9100_byte(std::vector <uint8_t> response)
+uint8_t ic9100_byte(vector <uint8_t> response)
 {
     uint8_t result = 0.;
     for (size_t i=0; i<2; ++i)
@@ -649,7 +649,7 @@ int32_t ic9100_set_rfgain(ic9100_handle &handle, uint8_t rfgain)
         return iretn;
     }
 
-    std::vector <uint8_t> data { 0x0,0x0 };
+    vector <uint8_t> data { 0x0,0x0 };
 
     for (size_t i=0; i<2; ++i)
     {
@@ -683,7 +683,7 @@ int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t squelch)
         return iretn;
     }
 
-    std::vector <uint8_t> data { 0x0,0x0 };
+    vector <uint8_t> data { 0x0,0x0 };
 
     for (size_t i=0; i<2; ++i)
     {
@@ -750,7 +750,7 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
         }
         rfpower = 255 * (power - 2.) / 8.;
     }
-    std::vector <uint8_t> data { 0x0,0x0 };
+    vector <uint8_t> data { 0x0,0x0 };
 
     for (size_t i=0; i<2; ++i)
     {
@@ -897,7 +897,7 @@ int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency)
         return iretn;
     }
 
-    std::vector <uint8_t> data { 0x0,0x0,0x0,0x0,0x0 };
+    vector <uint8_t> data { 0x0,0x0,0x0,0x0,0x0 };
 
     if (frequency >= 1e10 || frequency < 0)
     {
@@ -1066,14 +1066,14 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband)
 
     if (filtband)
     {
-        std::vector <uint8_t> data { 0x0, 0x0 };
+        vector <uint8_t> data { 0x0, 0x0 };
         data[0] = mode;
         data[1] = filtband;
         iretn = ic9100_write(handle, 0x6, data);
     }
     else
     {
-        std::vector <uint8_t> data { 0x0 };
+        vector <uint8_t> data { 0x0 };
         data[0] = mode;
         iretn = ic9100_write(handle, 0x6, data);
     }
@@ -1354,7 +1354,7 @@ int32_t ic9100_set_freqband(ic9100_handle &handle, uint8_t band)
 
     if (band > 0 && band < 15)
     {
-        std::vector <uint8_t> data { 0x0, 0x1 };
+        vector <uint8_t> data { 0x0, 0x1 };
         if (band < 10)
         {
             data[0] = band;
@@ -1411,7 +1411,7 @@ int32_t ic9100_set_bps9600mode(ic9100_handle &handle, uint8_t mode)
     case IC9100_9600MODE_OFF:
     case IC9100_9600MODE_ON:
         {
-            std::vector <uint8_t> data { 0x0, 0x55, 0x0 };
+            vector <uint8_t> data { 0x0, 0x55, 0x0 };
             data[2] = mode;
             iretn = ic9100_write(handle, 0x1a, 0x5, data);
         }
@@ -1434,7 +1434,7 @@ int32_t ic9100_get_bps9600mode(ic9100_handle &handle)
 {
     int32_t iretn = 0;
 
-    std::vector <uint8_t> data { 0x0, 0x55 };
+    vector <uint8_t> data { 0x0, 0x55 };
     iretn = ic9100_write(handle, 0x1a, 0x5, data);
     if (iretn < 0)
     {
@@ -1455,7 +1455,7 @@ int32_t ic9100_set_datamode(ic9100_handle &handle, uint8_t mode)
     case IC9100_DATAMODE_ON:
     case IC9100_DATAMODE_OFF:
         {
-            std::vector <uint8_t> data { 0x0, 0x0 };
+            vector <uint8_t> data { 0x0, 0x0 };
             data[0] = mode;
             if (mode == IC9100_DATAMODE_ON)
             {

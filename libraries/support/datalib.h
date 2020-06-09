@@ -113,6 +113,7 @@ void log_write(string node, string agent, double utc, string type, const char *d
 void log_write(string node, string agent, double utc, string extra, string type, string record, string location="temp");
 void log_move(string node, string agent, string srclocation, string dstlocation, bool compress);
 void log_move(string node, string agent);
+void log_move(string oldpath, string newpath, bool compress);
 string log_read(gzFile &file, int num);
 int check_events(eventstruc* events, int max, cosmosstruc* data);
 int32_t data_get_nodes(vector<cosmosstruc> &data);

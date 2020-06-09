@@ -163,7 +163,7 @@ int32_t kpc9612p_loadframe(kpc9612p_handle *handle, uint8_t *data, uint16_t size
     return (tsize);
 }
 
-int32_t kpc9612p_loadframe(kpc9612p_handle *handle, std::vector<uint8_t> data)
+int32_t kpc9612p_loadframe(kpc9612p_handle *handle, vector<uint8_t> data)
 {
     uint16_t tsize;
     //	uint16_t fcs;
@@ -199,7 +199,7 @@ int32_t kpc9612p_unloadframe(kpc9612p_handle *handle, uint8_t *data, uint16_t si
     return (tsize);
 }
 
-int32_t kpc9612p_unloadframe(kpc9612p_handle *handle, std::vector<uint8_t> &data)
+int32_t kpc9612p_unloadframe(kpc9612p_handle *handle, vector<uint8_t> &data)
 {
     uint16_t tsize;
 

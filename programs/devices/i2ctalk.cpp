@@ -136,11 +136,12 @@ int32_t testi2c_read_write()
         return -errno;
     }
 
+#if defined(COSMOS_LINUX_OS)
     if (ioctl(fh, I2C_SLAVE, address) < 0) {
         perror("ioctl");
         return -errno;
     }
-
+#endif
     len = dataout.size(); // sizeof(buff);
 
 

@@ -53,7 +53,7 @@
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 6;
 
-//void print_node_list(std::vector<std::string>& nlp) {
+//void print_node_list(vector<std::string>& nlp) {
 
 //    if(nlp.empty())
 //    {
@@ -75,13 +75,19 @@ int main(int argc, char *argv[])
 {
     int nbytes;
     beatstruc cbeat;
-    std::vector<std::string> nl;
+    vector<std::string> nl;
     data_list_nodes(nl);
     Agent *agent;
 
     // dont' print debug messages
     //agent->debug_level = 0;
     agent = new Agent();
+    if (agent->cinfo == nullptr)
+    {
+        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(NODE_ERROR_NODE).c_str());
+        exit(NODE_ERROR_NODE);
+    }
+
 
     // check command line arguments
     switch (argc)
@@ -227,7 +233,7 @@ int main(int argc, char *argv[])
         {
             size_t agent_count = 0;
             ElapsedTime et;
-            agent->post(Agent::AgentMessage::REQUEST);
+            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
             COSMOS_SLEEP(.5);
             do
             {
@@ -252,7 +258,7 @@ int main(int argc, char *argv[])
         {
             size_t agent_count = 0;
             ElapsedTime et;
-            agent->post(Agent::AgentMessage::REQUEST);
+            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
             COSMOS_SLEEP(.1);
             printf("{\"agent_list\":[");
             do

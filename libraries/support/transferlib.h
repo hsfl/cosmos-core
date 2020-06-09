@@ -82,6 +82,21 @@
 #endif
 //#define MESSAGE_MAX_PACKET (TRANSFER_MAX_PROTOCOL_PACKET-(COSMOS_SIZEOF(PACKET_TYPE)+COSMOS_SIZEOF(PACKET_TX_ID_TYPE)))
 
+namespace STATE_TYPE
+{
+    static const unsigned char STATE_NONE = 0x00;
+    static const unsigned char STATE_REQQUEUE = 0x01;
+    static const unsigned char STATE_QUEUE = 0x02;
+    static const unsigned char STATE_REQMETA = 0x03;
+    static const unsigned char STATE_METADATA = 0x04;
+    static const unsigned char STATE_REQDATA = 0x05;
+    static const unsigned char STATE_DATA = 0x06;
+    static const unsigned char STATE_CANCEL = 0x07;
+    static const unsigned char STATE_COMPLETE = 0x08;
+    static const unsigned char STATE_SIZE = 0x09;
+}
+using namespace STATE_TYPE;
+
 namespace PACKET_TYPE_STUFF	{
     //these bits reserved for PACKET_TYPES
     static const unsigned char PACKET_METADATA = 0xf;
@@ -91,6 +106,8 @@ namespace PACKET_TYPE_STUFF	{
     static const unsigned char PACKET_COMPLETE =	0xb;
     static const unsigned char PACKET_CANCEL = 0xa;
     static const unsigned char PACKET_QUEUE = 0x9;
+    static const unsigned char PACKET_REQQUEUE = 0x8;
+    static const unsigned char PACKET_HEARTBEAT = 0x7;
 }
 
 using namespace PACKET_TYPE_STUFF;
@@ -124,10 +141,63 @@ typedef uint8_t PACKET_NODE_ID_TYPE;
 typedef uint8_t PACKET_TX_ID_TYPE;
 typedef uint16_t PACKET_CHUNK_SIZE_TYPE;
 typedef int32_t PACKET_FILE_SIZE_TYPE;
+typedef uint32_t PACKET_UNIXTIME_TYPE;
 
 #define PACKET_HEADER_OFFSET_TYPE 0
 #define PACKET_HEADER_OFFSET_CRC (PACKET_HEADER_OFFSET_TYPE + COSMOS_SIZEOF(PACKET_TYPE))
 #define PACKET_HEADER_OFFSET_TOTAL (PACKET_HEADER_OFFSET_CRC + COSMOS_SIZEOF(PACKET_CRC))
+#define PACKET_HEADER_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_HEADER_OFFSET_NODE_NAME (PACKET_HEADER_OFFSET_TOTAL + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
+
+typedef struct
+{
+    PACKET_NODE_ID_TYPE node_id;
+    char node_name[COSMOS_MAX_NAME+1];
+    PACKET_BYTE beat_period;
+    PACKET_UNIXTIME_TYPE throughput;
+    PACKET_UNIXTIME_TYPE funixtime;
+} packet_struct_heartbeat;
+
+#define PACKET_HEARTBEAT_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_HEARTBEAT_OFFSET_NODE_NAME (PACKET_HEADER_OFFSET_NODE_NAME)
+#define PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD (PACKET_HEARTBEAT_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
+#define PACKET_HEARTBEAT_OFFSET_THROUGHPUT (PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD + 1)
+#define PACKET_HEARTBEAT_OFFSET_FUNIXTIME (PACKET_HEARTBEAT_OFFSET_THROUGHPUT + 4)
+#define PACKET_HEARTBEAT_OFFSET_TOTAL (PACKET_HEARTBEAT_OFFSET_FUNIXTIME + 8)
+
+typedef struct
+{
+    PACKET_NODE_ID_TYPE node_id;
+    char node_name[COSMOS_MAX_NAME+1];
+} packet_struct_reqqueue;
+
+#define PACKET_REQQUEUE_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_REQQUEUE_OFFSET_NODE_NAME (PACKET_HEADER_OFFSET_NODE_NAME)
+#define PACKET_REQQUEUE_OFFSET_TOTAL (PACKET_REQQUEUE_OFFSET_NODE_ID + COSMOS_MAX_NAME)
+
+typedef struct
+{
+    PACKET_NODE_ID_TYPE node_id;
+    char node_name[COSMOS_MAX_NAME+1];
+    PACKET_TX_ID_TYPE tx_id[TRANSFER_QUEUE_LIMIT];
+} packet_struct_queue;
+
+#define PACKET_QUEUE_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_QUEUE_OFFSET_NODE_NAME (PACKET_HEADER_OFFSET_NODE_NAME)
+#define PACKET_QUEUE_OFFSET_TX_ID (PACKET_QUEUE_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
+#define PACKET_QUEUE_OFFSET_TOTAL (PACKET_QUEUE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE) * TRANSFER_QUEUE_LIMIT)
+
+typedef struct
+{
+    PACKET_NODE_ID_TYPE node_id;
+    char node_name[COSMOS_MAX_NAME+1];
+    PACKET_TX_ID_TYPE tx_id[TRANSFER_QUEUE_LIMIT];
+} packet_struct_reqmeta;
+
+#define PACKET_REQMETA_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_REQMETA_OFFSET_NODE_NAME (PACKET_HEADER_OFFSET_NODE_NAME)
+#define PACKET_REQMETA_OFFSET_TX_ID (PACKET_REQMETA_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
+#define PACKET_REQMETA_OFFSET_TOTAL (PACKET_REQMETA_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE) * TRANSFER_QUEUE_LIMIT)
 
 typedef struct
 {
@@ -138,7 +208,7 @@ typedef struct
     PACKET_FILE_SIZE_TYPE file_size;
 } packet_struct_metalong;
 
-#define PACKET_METALONG_OFFSET_NODE_NAME (PACKET_HEADER_OFFSET_CRC + COSMOS_SIZEOF(PACKET_CRC))
+#define PACKET_METALONG_OFFSET_NODE_NAME (PACKET_HEADER_OFFSET_TOTAL)
 #define PACKET_METALONG_OFFSET_TX_ID (PACKET_METALONG_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
 #define PACKET_METALONG_OFFSET_AGENT_NAME (PACKET_METALONG_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
 #define PACKET_METALONG_OFFSET_FILE_NAME (PACKET_METALONG_OFFSET_AGENT_NAME + COSMOS_MAX_NAME)
@@ -154,7 +224,7 @@ typedef struct
     PACKET_FILE_SIZE_TYPE file_size;
 } packet_struct_metashort;
 
-#define PACKET_METASHORT_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_CRC + COSMOS_SIZEOF(PACKET_CRC))
+#define PACKET_METASHORT_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
 #define PACKET_METASHORT_OFFSET_TX_ID (PACKET_METASHORT_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
 #define PACKET_METASHORT_OFFSET_AGENT_NAME (PACKET_METASHORT_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
 #define PACKET_METASHORT_OFFSET_FILE_NAME (PACKET_METASHORT_OFFSET_AGENT_NAME + COSMOS_MAX_NAME)
@@ -165,12 +235,26 @@ typedef struct
 {
     PACKET_NODE_ID_TYPE node_id;
     PACKET_TX_ID_TYPE tx_id;
+    PACKET_FILE_SIZE_TYPE hole_start;
+    PACKET_FILE_SIZE_TYPE hole_end;
+} packet_struct_reqdata;
+
+#define PACKET_REQDATA_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_REQDATA_OFFSET_TX_ID (PACKET_REQDATA_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
+#define PACKET_REQDATA_OFFSET_HOLE_START (PACKET_REQDATA_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
+#define PACKET_REQDATA_OFFSET_HOLE_END (PACKET_REQDATA_OFFSET_HOLE_START + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
+#define PACKET_REQDATA_OFFSET_TOTAL (PACKET_REQDATA_OFFSET_HOLE_END + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
+
+typedef struct
+{
+    PACKET_NODE_ID_TYPE node_id;
+    PACKET_TX_ID_TYPE tx_id;
     PACKET_CHUNK_SIZE_TYPE byte_count;
     PACKET_FILE_SIZE_TYPE chunk_start;
     PACKET_BYTE chunk[PACKET_MAX_LENGTH];
 } packet_struct_data;
 
-#define PACKET_DATA_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_CRC + COSMOS_SIZEOF(PACKET_CRC))
+#define PACKET_DATA_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
 #define PACKET_DATA_OFFSET_TX_ID (PACKET_DATA_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
 #define PACKET_DATA_OFFSET_BYTE_COUNT (PACKET_DATA_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
 #define PACKET_DATA_OFFSET_CHUNK_START (PACKET_DATA_OFFSET_BYTE_COUNT + COSMOS_SIZEOF(PACKET_CHUNK_SIZE_TYPE))
@@ -181,35 +265,9 @@ typedef struct
 {
     PACKET_NODE_ID_TYPE node_id;
     PACKET_TX_ID_TYPE tx_id;
-    PACKET_FILE_SIZE_TYPE hole_start;
-    PACKET_FILE_SIZE_TYPE hole_end;
-} packet_struct_reqdata;
-
-#define PACKET_REQDATA_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_CRC + COSMOS_SIZEOF(PACKET_CRC))
-#define PACKET_REQDATA_OFFSET_TX_ID (PACKET_REQDATA_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-#define PACKET_REQDATA_OFFSET_HOLE_START (PACKET_REQDATA_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
-#define PACKET_REQDATA_OFFSET_HOLE_END (PACKET_REQDATA_OFFSET_HOLE_START + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
-#define PACKET_REQDATA_OFFSET_TOTAL (PACKET_REQDATA_OFFSET_HOLE_END + COSMOS_SIZEOF(PACKET_FILE_SIZE_TYPE))
-
-typedef struct
-{
-    PACKET_NODE_ID_TYPE node_id;
-    char node_name[COSMOS_MAX_NAME+1];
-    PACKET_TX_ID_TYPE tx_id[TRANSFER_QUEUE_LIMIT];
-} packet_struct_reqmeta;
-
-#define PACKET_REQMETA_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_CRC + COSMOS_SIZEOF(PACKET_CRC))
-#define PACKET_REQMETA_OFFSET_NODE_NAME (PACKET_REQMETA_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-#define PACKET_REQMETA_OFFSET_TX_ID (PACKET_REQMETA_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
-#define PACKET_REQMETA_OFFSET_TOTAL (PACKET_REQMETA_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE) * TRANSFER_QUEUE_LIMIT)
-
-typedef struct
-{
-    PACKET_NODE_ID_TYPE node_id;
-    PACKET_TX_ID_TYPE tx_id;
 } packet_struct_complete;
 
-#define PACKET_COMPLETE_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_CRC + COSMOS_SIZEOF(PACKET_CRC))
+#define PACKET_COMPLETE_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
 #define PACKET_COMPLETE_OFFSET_TX_ID (PACKET_COMPLETE_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
 #define PACKET_COMPLETE_OFFSET_TOTAL (PACKET_COMPLETE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
 
@@ -219,21 +277,9 @@ typedef struct
     PACKET_TX_ID_TYPE tx_id;
 } packet_struct_cancel;
 
-#define PACKET_CANCEL_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_CRC + COSMOS_SIZEOF(PACKET_CRC))
+#define PACKET_CANCEL_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
 #define PACKET_CANCEL_OFFSET_TX_ID (PACKET_CANCEL_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
 #define PACKET_CANCEL_OFFSET_TOTAL (PACKET_CANCEL_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
-
-typedef struct
-{
-    PACKET_NODE_ID_TYPE node_id;
-    char node_name[COSMOS_MAX_NAME+1];
-    PACKET_TX_ID_TYPE tx_id[TRANSFER_QUEUE_LIMIT];
-} packet_struct_queue;
-
-#define PACKET_QUEUE_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_CRC + COSMOS_SIZEOF(PACKET_CRC))
-#define PACKET_QUEUE_OFFSET_NODE_NAME (PACKET_QUEUE_OFFSET_NODE_ID + COSMOS_SIZEOF(PACKET_NODE_ID_TYPE))
-#define PACKET_QUEUE_OFFSET_TX_ID (PACKET_QUEUE_OFFSET_NODE_NAME + COSMOS_MAX_NAME)
-#define PACKET_QUEUE_OFFSET_TOTAL (PACKET_QUEUE_OFFSET_TX_ID + COSMOS_SIZEOF(PACKET_TX_ID_TYPE) * TRANSFER_QUEUE_LIMIT)
 
 typedef struct
 {
@@ -243,7 +289,8 @@ typedef struct
 
 typedef union
 {
-    //	packet_struct_message message;
+    packet_struct_heartbeat heartbeat;
+    packet_struct_reqqueue reqqueue;
     packet_struct_queue queue;
     packet_struct_complete complete;
     packet_struct_cancel cancel;
@@ -263,8 +310,12 @@ typedef struct
 
 typedef struct
 {
-    PACKET_TX_ID_TYPE tx_id;
+    PACKET_TX_ID_TYPE tx_id=0;
     bool havemeta;
+    bool sendmeta;
+    bool sentmeta;
+    bool senddata;
+    bool sentdata;
     bool complete;
     std::string node_name="";
     std::string agent_name="";
@@ -274,7 +325,7 @@ typedef struct
     double savetime;
     PACKET_FILE_SIZE_TYPE file_size;
     PACKET_FILE_SIZE_TYPE total_bytes;
-    std::deque<file_progress> file_info;
+    deque<file_progress> file_info;
     FILE * fp;
 } tx_progress;
 
@@ -298,48 +349,54 @@ bool IS_GET_REQUEST(const unsigned char);
 bool IS_PUT_REQUEST(const unsigned char);
 bool IS_DELETE_REQUEST(const unsigned char);
 
-void make_metadata_packet(std::vector<PACKET_BYTE>& packet, packet_struct_metalong meta);
-void make_metadata_packet(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name);
-void make_metadata_packet(std::vector<PACKET_BYTE>& packet, packet_struct_metashort meta);
-void make_metadata_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name);
-void extract_metadata(std::vector<PACKET_BYTE>& packet, packet_struct_metalong& meta);
-void extract_metadata(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, char* node_name, char* agent_name);
-void extract_metadata(std::vector<PACKET_BYTE>& packet, packet_struct_metashort& meta);
-void extract_metadata(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, PACKET_NODE_ID_TYPE& node_id, char* agent_name);
+void make_metadata_packet(vector<PACKET_BYTE>& packet, packet_struct_metalong meta);
+void make_metadata_packet(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* node_name, char* agent_name);
+void make_metadata_packet(vector<PACKET_BYTE>& packet, packet_struct_metashort meta);
+void make_metadata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, char* file_name, PACKET_FILE_SIZE_TYPE file_size, char* agent_name);
+void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metalong& meta);
+void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, char* node_name, char* agent_name);
+void extract_metadata(vector<PACKET_BYTE>& packet, packet_struct_metashort& meta);
+void extract_metadata(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id, char* file_name, PACKET_FILE_SIZE_TYPE& file_size, PACKET_NODE_ID_TYPE& node_id, char* agent_name);
 
-void make_data_packet(std::vector<PACKET_BYTE>& packet, packet_struct_data data);
-void make_data_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk);
-void extract_data(std::vector<PACKET_BYTE>& packet, packet_struct_data& data);
-void extract_data(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_CHUNK_SIZE_TYPE& byte_count, PACKET_FILE_SIZE_TYPE& chunk_start, PACKET_BYTE* chunk);
+void make_data_packet(vector<PACKET_BYTE>& packet, packet_struct_data data);
+void make_data_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_CHUNK_SIZE_TYPE byte_count, PACKET_FILE_SIZE_TYPE chunk_start, PACKET_BYTE* chunk);
+void extract_data(vector<PACKET_BYTE>& packet, packet_struct_data& data);
+void extract_data(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_CHUNK_SIZE_TYPE& byte_count, PACKET_FILE_SIZE_TYPE& chunk_start, PACKET_BYTE* chunk);
 
-void make_reqdata_packet(std::vector<PACKET_BYTE>& packet, packet_struct_reqdata reqdata);
-void make_reqdata_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end);
-void extract_reqdata(std::vector<PACKET_BYTE>& packet, packet_struct_reqdata& reqdata);
-void extract_reqdata(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_FILE_SIZE_TYPE& hole_start, PACKET_FILE_SIZE_TYPE& hole_end);
+void make_reqdata_packet(vector<PACKET_BYTE>& packet, packet_struct_reqdata reqdata);
+void make_reqdata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id, PACKET_FILE_SIZE_TYPE hole_start, PACKET_FILE_SIZE_TYPE hole_end);
+void extract_reqdata(vector<PACKET_BYTE>& packet, packet_struct_reqdata& reqdata);
+void extract_reqdata(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_FILE_SIZE_TYPE& hole_start, PACKET_FILE_SIZE_TYPE& hole_end);
 
-void make_reqmeta_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, std::vector<PACKET_TX_ID_TYPE> reqmeta);
-void extract_reqmeta(std::vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta);
+void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, vector<PACKET_TX_ID_TYPE> reqmeta);
+void extract_reqmeta(vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta);
 
-void make_complete_packet(std::vector<PACKET_BYTE>& packet, packet_struct_complete complete);
-void make_complete_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
-void extract_complete(std::vector<PACKET_BYTE>& packet, packet_struct_complete& complete);
-void extract_complete(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id);
+void make_complete_packet(vector<PACKET_BYTE>& packet, packet_struct_complete complete);
+void make_complete_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
+void extract_complete(vector<PACKET_BYTE>& packet, packet_struct_complete& complete);
+void extract_complete(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id);
 
-void make_cancel_packet(std::vector<PACKET_BYTE>& packet, packet_struct_cancel cancel);
-void make_cancel_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
-void extract_cancel(std::vector<PACKET_BYTE>& packet, packet_struct_cancel& cancel);
-void extract_cancel(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id);
+void make_cancel_packet(vector<PACKET_BYTE>& packet, packet_struct_cancel cancel);
+void make_cancel_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, PACKET_TX_ID_TYPE tx_id);
+void extract_cancel(vector<PACKET_BYTE>& packet, packet_struct_cancel& cancel);
+void extract_cancel(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id);
 
-void make_queue_packet(std::vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, std::vector<PACKET_TX_ID_TYPE> queue);
-void extract_queue(std::vector<PACKET_BYTE>& packet, packet_struct_queue& queue);
+void make_reqqueue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name);
+void extract_reqqueue(vector<PACKET_BYTE>& packet, packet_struct_reqqueue& reqqueue);
 
-//void make_message_packet(std::vector<PACKET_BYTE>& packet, packet_struct_message message);
-//void make_message_packet(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
-//void extract_message(std::vector<PACKET_BYTE>& packet, packet_struct_message& message);
-//void extract_message(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id);
+void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, vector<PACKET_TX_ID_TYPE> queue);
+void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue);
 
-//void make_send_packet(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
-//void extract_send(std::vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id);
+void make_heartbeat_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, uint8_t beat_period, uint32_t throughput, uint32_t funixtime);
+void extract_heartbeat(vector<PACKET_BYTE>& packet, packet_struct_heartbeat& heartbeat);
+
+//void make_message_packet(vector<PACKET_BYTE>& packet, packet_struct_message message);
+//void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
+//void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message);
+//void extract_message(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE& tx_id);
+
+//void make_send_packet(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
+//void extract_send(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE &tx_id);
 
 
 ///  --------------- code above this line has be checked and de-Jonny-fied

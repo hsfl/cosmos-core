@@ -146,9 +146,9 @@ struct socket_channel
 //! @{
 
 int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *address, uint16_t port, uint16_t direction, bool blocking=true, uint32_t usectimeo=0, uint32_t rcvbuf=0, uint32_t sndbuf=0);
-uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet);
-int32_t socket_check_udp_checksum(std::vector<uint8_t> packet);
-int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet);
+uint16_t socket_calc_udp_checksum(vector<uint8_t> packet);
+int32_t socket_check_udp_checksum(vector<uint8_t> packet);
+int32_t socket_set_udp_checksum(vector<uint8_t>& packet);
 int32_t socket_blocking(socket_channel *channel, bool blocking);
 int32_t socket_close(socket_channel *channel);
 int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags=0);

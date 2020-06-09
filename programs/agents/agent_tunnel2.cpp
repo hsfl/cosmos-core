@@ -54,7 +54,10 @@ static std::condition_variable tcv_fifo_check;
 static std::condition_variable tun_fifo_check;
 
 static int tun_fd;
+static uint16_t tun_mtu=250;
 
+static ElapsedTime tun_et;
+static ElapsedTime tcv_et;
 static string rxr_devname;
 static string txr_devname;
 static Serial *rxr_serial=nullptr;
@@ -75,8 +78,13 @@ int main(int argc, char *argv[])
 
 	switch (argc)
 	{
+    case 5:
+        {
+            tun_mtu = atoi(argv[4]);
+        }
 	case 4:
         {
+            // Get unique receiver device name, if any
             rxr_devname = argv[3];
             size_t tloc = rxr_devname.find(":");
             if (tloc != string::npos)
@@ -84,16 +92,10 @@ int main(int argc, char *argv[])
                 rxr_baud = atol(rxr_devname.substr(tloc+1, rxr_devname.size()-(tloc+1)).c_str());
                 rxr_devname = rxr_devname.substr(0, tloc);
             }
-            // Open receiver port
-            rxr_serial = new Serial(rxr_devname, rxr_baud);
-            if (rxr_serial->get_error() < 0)
-            {
-                printf("Error opening %s as receiver - %s\n",rxr_devname.c_str(), cosmos_error_string(rxr_serial->get_error()).c_str());
-                exit (-1);
-            }
         }
 	case 3:
         {
+            // Get unique transmitter device name, copy to receiver if not unique
             txr_devname = argv[2];
             size_t tloc = txr_devname.find(":");
             if (tloc != string::npos)
@@ -101,16 +103,19 @@ int main(int argc, char *argv[])
                 txr_baud = atol(txr_devname.substr(tloc+1, txr_devname.size()-tloc+1).c_str());
                 txr_devname = txr_devname.substr(0, tloc);
             }
-            // Open receiver port
+            // Create serial devices
             txr_serial = new Serial(txr_devname, txr_baud);
-            if (txr_serial->get_error() < 0)
+            if (rxr_devname.empty())
             {
-                printf("Error opening %s as receiver - %s\n",txr_devname.c_str(), cosmos_error_string(txr_serial->get_error()).c_str());
-                exit (-1);
-            }
-            // Copy transmitter to  receiver port if not already open (Duplex)
-            if (rxr_serial == nullptr)
+                rxr_baud = txr_baud;
+                rxr_devname = txr_devname;
                 rxr_serial = txr_serial;
+            }
+            else
+            {
+                rxr_serial = new Serial(rxr_devname, rxr_baud);
+            }
+
             // Get address for tunnel
             strcpy(tunnel_ip,argv[1]);
         }
@@ -120,7 +125,7 @@ int main(int argc, char *argv[])
 		exit (-1);
 	}
 
-	// Initialize the Agent
+    // Initialize the Agent
     agent = new Agent("", "tunnel", 1., MAXBUFFERSIZE, true);
     if ((iretn = agent->wait()) < 0)
     {
@@ -199,7 +204,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Set interface MTU
-	ifr2.ifr_mtu = 250;
+    ifr2.ifr_mtu = tun_mtu;
 	if (ioctl(tunnel_sock, SIOCSIFMTU, &ifr2) < 0 )
 	{
 		perror("Error setting tunnel interface MTU");
@@ -250,7 +255,8 @@ void tun_read_loop()
 			tcv_fifo.push(buffer);
 			tcv_fifo_check.notify_one();
 		}	// End of mutex for tcv fifo
-	}
+        tun_et.reset();
+    }
 }
 
 void tun_write_loop()
@@ -285,21 +291,36 @@ void tcv_read_loop()
 
     while (agent->running())
 	{
-		// Read data from receiver port
-		buffer.resize(TUN_BUF_SIZE);
+        // Wait for receiver port to be open
+        while (!rxr_serial->get_open())
+        {
+            if (rxr_devname != txr_devname)
+            {
+                rxr_serial->open_device();
+                if (rxr_serial->get_open())
+                {
+                    break;
+                }
+            }
+            COSMOS_SLEEP(.1);
+        }
+
+        // Read data from receiver port
+//        buffer.resize(TUN_BUF_SIZE);
         nbytes = rxr_serial->get_slip(buffer, TUN_BUF_SIZE);
 		if (nbytes > 0)
 		{ // Start of mutex for tun FIFO
-            buffer.resize(static_cast<size_t>(nbytes));
+//            buffer.resize(static_cast<size_t>(nbytes));
 			tun_fifo.push(buffer);
 			tun_fifo_check.notify_one();
-			printf("In:\n");
+            printf("In(%ld):\n", nbytes);
 			for (uint16_t i=0; i<(buffer.size()<100?buffer.size():100); ++i)
 			{
 				printf("%x ", buffer[i]);
 			}
 			printf("\n");
 		} // End of mutex for tun FIFO
+        tcv_et.reset();
 	}
 }
 
@@ -309,6 +330,8 @@ void tcv_write_loop()
 	std::unique_lock<std::mutex> locker(tcv_fifo_lock);
 	vector<uint8_t> buffer;
 
+    // Open transmitter port
+
     while (agent->running())
 	{
 
@@ -316,12 +339,33 @@ void tcv_write_loop()
 
 		while (!tcv_fifo.empty())
 		{
-			// Get next packet from transceiver FIFO
-			buffer = tcv_fifo.front();
-			tcv_fifo.pop();
-			// Write data to transmitter port
-            txr_serial->put_slip(buffer);
-		}
+            // Wait for serial port
+            while (!txr_serial->get_open())
+            {
+                txr_serial->open_device();
+                if (txr_serial->get_open())
+                {
+                    break;
+                }
+                COSMOS_SLEEP(.1);
+            }
+
+            // Get next packet from transceiver FIFO, shedding any overflow
+//            if (tcv_et.split() < 10. && tcv_fifo.size() < 10 * (txr_baud / 10) / tun_mtu)
+            {
+                buffer = tcv_fifo.front();
+                printf("Out(%ld):\n", buffer.size());
+                for (uint16_t i=0; i<(buffer.size()<100?buffer.size():100); ++i)
+                {
+                    printf("%x ", buffer[i]);
+                }
+                printf("\n");
+
+                // Write data to transmitter port
+                txr_serial->put_slip(buffer);
+            }
+            tcv_fifo.pop();
+        }
 	}
 }
 

@@ -97,18 +97,18 @@ typedef struct
  */
 typedef struct
 {
-    std::vector< std::vector<int32_t> > binom;
-    std::vector<double> c;
-    std::vector<double> gam;
-    std::vector< std::vector<double> > beta;
-    std::vector<double> q;
-    std::vector<double> lam;
-    std::vector< std::vector<double> > alpha;
+    vector< vector<int32_t> > binom;
+    vector<double> c;
+    vector<double> gam;
+    vector< vector<double> > beta;
+    vector<double> q;
+    vector<double> lam;
+    vector< vector<double> > alpha;
 	double dt;
 	double dtsq;
 	uint32_t order;
 	uint32_t order2;
-    std::vector<gjstruc> step;
+    vector<gjstruc> step;
 } gj_handle;
 
 //! Finite Triangle Element

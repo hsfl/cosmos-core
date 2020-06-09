@@ -264,17 +264,26 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     // Find assigned port, place in cport, and set caddr to requested port
     channel->baddr = channel->caddr;
     channel->baddr.sin_addr.s_addr |= 0xff;
-    iretn = sendto(channel->cudp, (const char *)nullptr, 0, 0, (struct sockaddr *)&channel->baddr, sizeof(struct sockaddr_in));
-    sockaddr_in taddr = channel->caddr;
-    socklen_t namelen = sizeof(struct sockaddr_in);
-    if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
+
+    switch (ntype)
     {
-        CLOSE_SOCKET(channel->cudp);
-        channel->cudp = -errno;
-        return (-errno);
+    case NetworkType::TCP:
+        channel->cport = ntohs(channel->caddr.sin_port);
+        break;
+    default:
+        iretn = sendto(channel->cudp, (const char *)nullptr, 0, 0, (struct sockaddr *)&channel->baddr, sizeof(struct sockaddr_in));
+        sockaddr_in taddr = channel->caddr;
+        socklen_t namelen = sizeof(struct sockaddr_in);
+        if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
+        {
+            CLOSE_SOCKET(channel->cudp);
+            channel->cudp = -errno;
+            return (-errno);
+        }
+        channel->cport = ntohs(channel->caddr.sin_port);
+        channel->caddr = taddr;
+        break;
     }
-    channel->cport = ntohs(channel->caddr.sin_port);
-    channel->caddr = taddr;
 
     if (rcvbuf)
     {
@@ -298,7 +307,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
  * \param packet IP packet
  * \return Calculated checksum.
  * */
-uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet)
+uint16_t socket_calc_udp_checksum(vector<uint8_t> packet)
 {
     union
     {
@@ -370,7 +379,7 @@ uint16_t socket_calc_udp_checksum(std::vector<uint8_t> packet)
  * \param packet UDP packet
  * \return Zero or negative error.
  */
-int32_t socket_check_udp_checksum(std::vector<uint8_t> packet)
+int32_t socket_check_udp_checksum(vector<uint8_t> packet)
 {
     uint16_t csum = socket_calc_udp_checksum(packet);
 
@@ -391,7 +400,7 @@ int32_t socket_check_udp_checksum(std::vector<uint8_t> packet)
  * \param packet UDP packet
  * \return Zero or negative error.
  */
-int32_t socket_set_udp_checksum(std::vector<uint8_t>& packet)
+int32_t socket_set_udp_checksum(vector<uint8_t>& packet)
 {
     // Check if this is UDP packet
     if (packet[SOCKET_IP_BYTE_PROTOCOL] != 17)
@@ -492,9 +501,9 @@ int32_t socket_close(socket_channel *channel)
     \param ntype Type of network (Multicast, Broadcast UDP, CSP)
     \return Vector of interfaces
     */
-std::vector<socket_channel> socket_find_addresses(NetworkType ntype)
+vector<socket_channel> socket_find_addresses(NetworkType ntype)
 {
-    std::vector<socket_channel> iface;
+    vector<socket_channel> iface;
     socket_channel tiface;
 
 #ifdef COSMOS_WIN_OS

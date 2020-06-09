@@ -149,7 +149,7 @@ int32_t kisstnc_loadframe(kisstnc_handle *handle, uint8_t *data, uint16_t size)
 	return (tsize);
 }
 
-int32_t kisstnc_loadframe(kisstnc_handle *handle, std::vector<uint8_t> data)
+int32_t kisstnc_loadframe(kisstnc_handle *handle, vector<uint8_t> data)
 {
     uint16_t tsize; //, fcs;
 
@@ -184,7 +184,7 @@ int32_t kisstnc_unloadframe(kisstnc_handle *handle, uint8_t *data, uint16_t size
 	return (tsize);
 }
 
-int32_t kisstnc_unloadframe(kisstnc_handle *handle, std::vector<uint8_t>& data)
+int32_t kisstnc_unloadframe(kisstnc_handle *handle, vector<uint8_t>& data)
 {
 	uint16_t tsize;
 

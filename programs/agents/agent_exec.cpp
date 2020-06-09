@@ -42,8 +42,6 @@
 #include <sstream>
 #include <mutex>
 
-using std::string;
-using std::vector;
 using std::cout;
 using std::endl;
 
@@ -69,10 +67,9 @@ using std::endl;
 //! command, and the other of which logs the actual ::eventstruc for the command, with the utcexec field
 //! set to the actual time of execution.
 //!
-//! Usage: agent_exec node_name
+//! Usage: agent_exec agent->getNode()
 
 static Agent *agent;
-static string node_name;
 
 static CommandQueue cmd_queue;
 
@@ -134,21 +131,20 @@ int main(int argc, char *argv[])
     vector<shorteventstruc> events, eventdict;
     std::string incoming_dir, outgoing_dir, temp_dir, immediate_dir;
     std::string jjstring, myjstring;
-    double lmjd, dmjd, cmjd, nextmjd;
+    double lmjd, dmjd, cmjd;
     int32_t iretn;
     int sleept;
 
     // Set node name to first argument
-    if (argc!=2)
+    if (argc == 2)
     {
-        cout<<"Usage: agent_exec node"<<endl;
-        exit(1);
+        agent = new Agent(argv[1], "exec", 5.);
     }
-    node_name = argv[1];
-    cout<<"Starting the executive/soh agent->..";
+    else
+    {
+        agent = new Agent("", "exec", 5.);
+    }
 
-    // Establish the command channel and heartbeat
-    agent = new Agent(node_name, "exec", 5.);
     if ((iretn = agent->wait()) < 0)
     {
         fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
@@ -166,31 +162,31 @@ int main(int argc, char *argv[])
     // Establish Executive functions
 
     // Set the immediate, incoming, outgoing, and temp directories
-    immediate_dir = data_base_path(node_name, "immediate", "exec") + "/";
+    immediate_dir = data_base_path(agent->getNode(), "immediate", "exec") + "/";
     if (immediate_dir.empty())
     {
-        cout<<"unable to create directory: <"<<(node_name+"/immediate")+"/exec"<<"> ... exiting."<<endl;
+        cout<<"unable to create directory: <"<<(agent->getNode()+"/immediate")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
-    incoming_dir = data_base_path(node_name, "incoming", "exec") + "/";
+    incoming_dir = data_base_path(agent->getNode(), "incoming", "exec") + "/";
     if (incoming_dir.empty())
     {
-        cout<<"unable to create directory: <"<<(node_name+"/incoming")+"/exec"<<"> ... exiting."<<endl;
+        cout<<"unable to create directory: <"<<(agent->getNode()+"/incoming")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
-    outgoing_dir = data_base_path(node_name, "outgoing", "exec") + "/";
+    outgoing_dir = data_base_path(agent->getNode(), "outgoing", "exec") + "/";
     if (outgoing_dir.empty())
     {
-        cout<<"unable to create directory: <"<<(node_name+"/outgoing")+"/exec"<<"> ... exiting."<<endl;
+        cout<<"unable to create directory: <"<<(agent->getNode()+"/outgoing")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
-    temp_dir = data_base_path(node_name, "temp", "exec") + "/";
+    temp_dir = data_base_path(agent->getNode(), "temp", "exec") + "/";
     if (temp_dir.empty())
     {
-        cout<<"unable to create directory: <"<<(node_name+"/temp")+"/exec"<<"> ... exiting."<<endl;
+        cout<<"unable to create directory: <"<<(agent->getNode()+"/temp")+"/exec"<<"> ... exiting."<<endl;
         exit(1);
     }
 
@@ -278,10 +274,11 @@ int main(int argc, char *argv[])
     get_beacon_cpu();
     // Start performing the body of the agent
     COSMOS_SLEEP(30.);
-    lmjd = cmjd = nextmjd = currentmjd();
+    lmjd = cmjd =  currentmjd();
+    agent->start_active_loop();
+    agent->debug_level = 0;
     while(agent->running())
     {
-        nextmjd += agent->cinfo->agent[0].aprd/86400.;
         dmjd = (cmjd-lmjd)*86400.;
         agent->cinfo->node.utc = cmjd = currentmjd();
 
@@ -353,12 +350,10 @@ int main(int argc, char *argv[])
         // Perform Executive specific functions
         cmd_queue.load_commands(immediate_dir);
         cmd_queue.load_commands(incoming_dir);
-        cmd_queue.run_commands(agent, node_name, logdate_exec);
+        cmd_queue.run_commands(agent, agent->getNode(), logdate_exec);
         cmd_queue.save_commands(temp_dir);
 
-        sleept = static_cast<int>((nextmjd-currentmjd())*86400000000.);
-        if (sleept < 0) sleept = 0;
-        COSMOS_USLEEP(sleept);
+        agent->finish_active_loop();
     }
 
     agent->shutdown();
@@ -607,20 +602,17 @@ int32_t request_get_logstride_soh(char*, char*response, Agent *)
 
 void collect_data_loop()
 {
-    int my_position = -1;
+    int32_t iretn;
     while (agent->running())
     {
         // Collect new data
-        while (my_position != static_cast<int>(agent->message_head))
+        Agent::messstruc mess;
+        iretn = agent->readring(mess, Agent::AgentMessage::ALL, 5., Agent::Where::TAIL, "", agent->cinfo->node.name);
+        if (iretn >= 0)
         {
-            ++my_position;
-            if (my_position >= static_cast<int>(agent->message_ring.size()))
+            if (mess.meta.type < Agent::AgentMessage::BINARY)
             {
-                my_position = 0;
-            }
-            if (agent->cinfo->node.name == agent->message_ring[my_position].meta.beat.node && agent->message_ring[my_position].meta.type < Agent::AgentMessage::BINARY)
-            {
-                json_parse(agent->message_ring[my_position].adata, agent->cinfo);
+                json_parse(mess.adata, agent->cinfo);
                 agent->cinfo->node.utc = currentmjd(0.);
 
                 for (devicestruc device: agent->cinfo->device)
@@ -632,7 +624,6 @@ void collect_data_loop()
                 }
             }
         }
-        COSMOS_SLEEP(.1);
     }
     return;
 }
@@ -641,12 +632,12 @@ void collect_data_loop()
 void move_and_compress_exec () {
     exec_mutex.lock();
     cmd_queue.join_events();
-    log_move(node_name, "exec");
+    log_move(agent->getNode(), "exec");
     exec_mutex.unlock();
 }
 void move_and_compress_soh () {
     soh_mutex.lock();
-    log_move(node_name, "soh");
+    log_move(agent->getNode(), "soh");
     soh_mutex.unlock();
 }
 
@@ -654,7 +645,7 @@ void move_and_compress_beacon () {
     std::string beacon_string;
     beacon_mutex.lock();
     log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
-    log_move(node_name, "beacon");
+    log_move(agent->getNode(), "beacon");
     beacon_mutex.unlock();
 }
 

@@ -36,7 +36,7 @@ void forwarding_loop();
 
 static Agent *agent;
 static socket_channel rcvchan;
-static std::vector<socket_channel> sendchan;
+static vector<socket_channel> sendchan;
 
 int32_t request_add_forward(char *req, char* , Agent *);
 int32_t request_del_forward(char *req, char*, Agent *);

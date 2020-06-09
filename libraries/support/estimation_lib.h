@@ -38,10 +38,10 @@
 //class kalman_struc
 //{
 //public:
-//	std::vector< double > time;
-//	std::vector< Matrix < double, EKF_NUM_STATES, EKF_NUM_STATES > > gain;
-//	std::vector< Matrix < double, EKF_NUM_STATES, 1              > > state;
-//	std::vector< Matrix < double, EKF_NUM_STATES, EKF_NUM_STATES > > error;
+//	vector< double > time;
+//	vector< Matrix < double, EKF_NUM_STATES, EKF_NUM_STATES > > gain;
+//	vector< Matrix < double, EKF_NUM_STATES, 1              > > state;
+//	vector< Matrix < double, EKF_NUM_STATES, EKF_NUM_STATES > > error;
 //};
 
 //void extended_kalman_filter

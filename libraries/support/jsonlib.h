@@ -131,6 +131,9 @@ int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo);
 
 int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
 int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double emi=1.0, double abs=1.0, double hcap=0.9, double hcon=205., double density=2710.);
+int32_t json_findpiece(cosmosstruc *cinfo, string name);
+int32_t json_findcomp(cosmosstruc *cinfo, string name);
+int32_t json_finddev(cosmosstruc *cinfo, string name);
 int32_t json_createport(cosmosstruc *cinfo, string name, uint16_t type);
 //uint16_t json_addequation(const char *text, cosmosstruc *cinfo, uint16_t unit);
 int32_t json_addentry(string name, string value, cosmosstruc *cinfo);

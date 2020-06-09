@@ -44,7 +44,7 @@ struct rmatrix
 } ;
 
 std::ostream& operator << (std::ostream& out, const rmatrix& a);
-std::ostream& operator << (std::ostream& out, const std::vector<rmatrix>& a);
+std::ostream& operator << (std::ostream& out, const vector<rmatrix>& a);
 std::istream& operator >> (std::istream& out, rmatrix& a);
 
 rvector operator * (rmatrix m, rvector v); // multiply matrix by vector operator

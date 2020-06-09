@@ -37,7 +37,6 @@
 #include "math/mathlib.h"
 
 #include <cstdint>
-#include <deque>
 
 // TODO: bring LsFit from mathlib
 
@@ -69,9 +68,9 @@
 //        // base level subtracted from independent variable before fitting
 //        double basex;
 //        // Of size element_cnt
-//        std::deque<fitelement> var;
+//        deque<fitelement> var;
 
-//        std::vector< std::vector<double> > parms;
+//        vector< vector<double> > parms;
 
 //        void fit();
 
@@ -100,7 +99,7 @@
 //        double slope(double x);
 //        rvector slopervector(double x);
 //        quaternion slopequaternion(double x);
-//        std::vector<std::vector<double> > getparms(double x);
+//        vector<vector<double> > getparms(double x);
 //};
 
 #endif // _MATH_LSFIT_H

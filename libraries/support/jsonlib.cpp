@@ -530,70 +530,16 @@ int32_t json_create_node(cosmosstruc *cinfo, string &node_name, uint16_t node_ty
         node_name = deviceCpu.getHostName();
     }
 
-    if (get_nodedir(node_name).empty())
+//    if (get_nodedir(node_name).empty())
+//    {
+//        if (get_nodedir(node_name, true).empty())
+//        {
+//            return DATA_ERROR_NODES_FOLDER;
+//        }
+    if (!get_nodedir(node_name, true).empty())
     {
-        if (get_nodedir(node_name, true).empty())
-        {
-            return DATA_ERROR_NODES_FOLDER;
-        }
-
-//        json_mapbaseentries(cinfo);
         strncpy(cinfo->node.name, node_name.c_str(), COSMOS_MAX_NAME);
         cinfo->node.type = node_type;
-
-//        json_addpiece(cinfo, "main_cpu", DeviceType::CPU);
-//        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
-//        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
-
-//        json_addpiece(cinfo, "main_drive", DeviceType::DISK);
-//        json_mappieceentry(cinfo->pieces.size()-1, cinfo);
-//        json_togglepieceentry(cinfo->pieces.size()-1, cinfo, true);
-
-//        cinfo->node.device_cnt = cinfo->node.piece_cnt;
-//        cinfo->device.resize(cinfo->node.device_cnt);
-//        cinfo->devspec.cpu_cnt = 1;
-//        cinfo->devspec.disk_cnt = 1;
-//        cinfo->node.port_cnt = 1;
-//        cinfo->port.resize(cinfo->node.port_cnt);
-
-//        for (size_t i=0; i<cinfo->node.piece_cnt; ++i)
-//        {
-
-//            cinfo->device[i].all.pidx = i;
-//            cinfo->device[i].all.cidx = i;
-//            switch (i)
-//            {
-//            case 0:
-//                cinfo->device[i].all.type = static_cast <uint16_t>(DeviceType::CPU);
-//                cinfo->device[i].all.didx = 0;
-//                cinfo->device[i].all.portidx = PORT_TYPE_NONE;
-//                cinfo->device[i].cpu.maxload = 1.;
-//                cinfo->device[i].cpu.maxgib = 1.;
-//                json_mapdeviceentry(cinfo->device[i], cinfo);
-//                json_addentry("cpu_utilization", "(\"device_cpu_load_000\"/\"device_cpu_maxload_000\")", cinfo);
-//                break;
-//            default:
-//                cinfo->device[i].disk.maxgib = 1000.;
-//                cinfo->device[i].all.type = static_cast <uint16_t>(DeviceType::DISK);
-//                cinfo->device[i].all.didx = i-1;
-//                cinfo->device[i].all.portidx = cinfo->device[i].all.didx;
-//                cinfo->port[cinfo->device[i].all.didx].type = PORT_TYPE_DRIVE;
-//                json_mapdeviceentry(cinfo->device[i], cinfo);
-//                json_toggledeviceentry(i-1, DeviceType::DISK, cinfo, true);
-//#ifdef COSMOS_WIN_OS
-//                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "c:/");
-//#else
-//                strcpy(cinfo->port[cinfo->device[i].all.didx].name, "/");
-//#endif
-//                json_mapportentry(cinfo->device[i].all.portidx, cinfo);
-//                json_toggleportentry(cinfo->device[i].all.portidx, cinfo, true);
-//                json_addentry("disk_utilization", "(\"device_disk_gib_000\"/\"device_disk_maxgib_000\")", cinfo);
-//                break;
-//            }
-//            json_mapcompentry(i, cinfo);
-//            json_togglecompentry(i, cinfo, true);
-//            cinfo->device[i].all.enabled = true;
-//        }
 
         int32_t iretn = json_dump_node(cinfo);
         return iretn;
@@ -622,7 +568,6 @@ int32_t json_create_cpu(string &node_name)
         }
 
         cinfo = json_init();
-//        json_mapbaseentries(cinfo);
         strncpy(cinfo->node.name, node_name.c_str(), COSMOS_MAX_NAME);
         cinfo->node.type = NODE_TYPE_COMPUTER;
 
@@ -815,6 +760,48 @@ int32_t json_createpiece(cosmosstruc *cinfo, string name, DeviceType ctype, doub
     return pidx;
 
 
+}
+
+int32_t json_finddev(cosmosstruc *cinfo, string name)
+{
+    int32_t iretn;
+
+    iretn = json_findpiece(cinfo, name);
+    if (iretn >= 0)
+    {
+        iretn = cinfo->pieces[static_cast <size_t>(iretn)].cidx;
+        if (iretn >= 0)
+        {
+            iretn = cinfo->device[static_cast <size_t>(iretn)].all.didx;
+        }
+    }
+
+    return iretn;
+}
+
+int32_t json_findcomp(cosmosstruc *cinfo, string name)
+{
+    int32_t iretn;
+
+    iretn = json_findpiece(cinfo, name);
+    if (iretn >= 0)
+    {
+        iretn = cinfo->pieces[static_cast <size_t>(iretn)].cidx;
+    }
+
+    return iretn;
+}
+
+int32_t json_findpiece(cosmosstruc *cinfo, string name)
+{
+    for (size_t i=0; i<cinfo->pieces.size(); ++i)
+    {
+        if (name == cinfo->pieces[i].name)
+        {
+            return i;
+        }
+    }
+    return JSON_ERROR_NOJMAP;
 }
 
 //! Add new piece
@@ -7587,7 +7574,7 @@ int32_t json_setup_node(string &node, cosmosstruc *cinfo)
 
     jsonnode json;
     iretn = json_load_node(node, json);
-    if (iretn < 0)
+    if (iretn < 0 || json.node.empty())
     {
         iretn = json_create_node(cinfo, node);
         return iretn;
@@ -8207,6 +8194,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_bcreg_temp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bcreg_volt",didx, UINT16_MAX, (uint8_t *)&device.bcreg.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bcreg_amp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_bcreg_energy",didx, UINT16_MAX, (uint8_t *)&device.bcreg.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     case DeviceType::BUS:
         iretn = json_addentry("device_bus_utc",didx, UINT16_MAX, (uint8_t *)&device.bus.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -8497,6 +8485,10 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_swch_utc",didx, UINT16_MAX, (uint8_t *)&device.swch.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_swch_cidx",didx, UINT16_MAX, (uint8_t *)&device.swch.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_swch_temp",didx, UINT16_MAX, (uint8_t *)&device.swch.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_swch_volt",didx, UINT16_MAX, (uint8_t *)&device.swch.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_swch_amp",didx, UINT16_MAX, (uint8_t *)&device.swch.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_swch_power",didx, UINT16_MAX, (uint8_t *)&device.swch.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_swch_energy",didx, UINT16_MAX, (uint8_t *)&device.swch.energy, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     case DeviceType::TCU:
         iretn = json_addentry("device_tcu_utc",didx, UINT16_MAX, (uint8_t *)&device.tcu.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -8907,6 +8899,10 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_swch_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_swch_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_swch_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_swch_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_swch_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_swch_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_swch_energy",didx, UINT16_MAX, cinfo, state);
         break;
         //! Rotor
     case DeviceType::ROT:
@@ -8979,6 +8975,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_bcreg_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_volt",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_bcreg_energy",didx, UINT16_MAX, cinfo, state);
     case DeviceType::COUNT:
     case DeviceType::NONE:
         break;
@@ -9761,6 +9758,16 @@ string json_list_of_soh(cosmosstruc *cinfo)
     for (uint16_t i=0; i<cinfo->devspec.swch_cnt; ++i)
     {
         sprintf(tempstring, ",\"device_swch_utc_%03d\",\"device_swch_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_swch_utc_%03d\",\"device_swch_energy_%03d\",\"device_swch_amp_%03d\",\"device_swch_volt_%03d\",\"device_swch_power_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.bcreg_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_bcreg_utc_%03d\",\"device_bcreg_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bcreg_utc_%03d\",\"device_bcreg_energy_%03d\",\"device_bcreg_amp_%03d\",\"device_bcreg_volt_%03d\",\"device_bcreg_power_%03d\"",i,i,i,i,i);
         result += tempstring;
     }
 

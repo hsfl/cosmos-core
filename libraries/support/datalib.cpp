@@ -38,7 +38,7 @@
 //! \defgroup datalib_statics Static variables for Data functions.
 //! @{
 
-//static std::vector<cosmosstruc> nodes;
+//static vector<cosmosstruc> nodes;
 
 //! Path to COSMOS root directory
 static string cosmosroot;
@@ -189,6 +189,47 @@ void log_write(string node, int type, double utc, const char *record, string dir
     //    }
 }
 
+//! Move log file - path version.
+/*! Move files previously created with ::log_write to their final location, optionally
+ * compressing with gzip. The path version accepts only specific paths, from and to,
+ * and whether compression should be used.
+ * \param oldpath Path to move from.
+ * \param newpath Path to move to.
+ * \param compress Wether or not to compress with gzip.
+ */
+void log_move(string oldpath, string newpath, bool compress)
+{
+    if (compress)
+    {
+        char buffer[8192];
+        string temppath = oldpath + ".gz";
+        newpath += ".gz";
+        FILE *fin = data_open(oldpath, "rb");
+        FILE *fout = data_open(temppath, "wb");
+        gzFile gzfout;
+        gzfout = gzdopen(fileno(fout), "a");
+
+        do
+        {
+            unsigned nbytes = (unsigned)fread(buffer, 1, 8192, fin);
+            if (nbytes)
+            {
+                gzwrite(gzfout, buffer, nbytes);
+            }
+        } while (!feof(fin));
+
+        fclose(fin);
+        gzclose_w(gzfout);
+        rename(temppath.c_str(), newpath.c_str());
+        remove(temppath.c_str());
+    }
+    else
+    {
+        rename(oldpath.c_str(), newpath.c_str());
+    }
+    remove(oldpath.c_str());
+}
+
 //! Move log file - full version.
 /*! Move files previously created with ::log_write to their final location, optionally
  * compressing with gzip. The full version allows for specification of the source and
@@ -203,41 +244,42 @@ void log_write(string node, int type, double utc, const char *record, string dir
 void log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
 {
     char buffer[8192];
-    std::vector<filestruc> oldfiles;
+    vector<filestruc> oldfiles;
     data_list_files(node, srclocation, agent, oldfiles);
     for (auto oldfile: oldfiles)
     {
-        string oldpath = oldfile.path;
+        log_move(oldfile.path, data_base_path(node, dstlocation, agent, oldfile.name), compress);
+//        string oldpath = oldfile.path;
 
-        if (compress)
-        {
-            string temppath = oldfile.path + ".gz";
-            string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
-            FILE *fin = data_open(oldpath, "rb");
-            FILE *fout = data_open(temppath, "wb");
-            gzFile gzfout;
-            gzfout = gzdopen(fileno(fout), "a");
+//        if (compress)
+//        {
+//            string temppath = oldfile.path + ".gz";
+//            string newpath = data_base_path(node, dstlocation, agent, oldfile.name + ".gz");
+//            FILE *fin = data_open(oldpath, "rb");
+//            FILE *fout = data_open(temppath, "wb");
+//            gzFile gzfout;
+//            gzfout = gzdopen(fileno(fout), "a");
 
-            do
-            {
-                unsigned nbytes = (unsigned)fread(buffer, 1, 8192, fin);
-                if (nbytes)
-                {
-                    gzwrite(gzfout, buffer, nbytes);
-                }
-            } while (!feof(fin));
+//            do
+//            {
+//                unsigned nbytes = (unsigned)fread(buffer, 1, 8192, fin);
+//                if (nbytes)
+//                {
+//                    gzwrite(gzfout, buffer, nbytes);
+//                }
+//            } while (!feof(fin));
 
-            fclose(fin);
-            gzclose_w(gzfout);
-            rename(temppath.c_str(), newpath.c_str());
-            remove(temppath.c_str());
-        }
-        else
-        {
-            string newpath = data_base_path(node, dstlocation, agent, oldfile.name);
-            rename(oldpath.c_str(), newpath.c_str());
-        }
-        remove(oldpath.c_str());
+//            fclose(fin);
+//            gzclose_w(gzfout);
+//            rename(temppath.c_str(), newpath.c_str());
+//            remove(temppath.c_str());
+//        }
+//        else
+//        {
+//            string newpath = data_base_path(node, dstlocation, agent, oldfile.name);
+//            rename(oldpath.c_str(), newpath.c_str());
+//        }
+//        remove(oldpath.c_str());
     }
 }
 
@@ -258,9 +300,9 @@ void log_move(string node, string agent)
 /*! Generate a list of days available in the archive of the indicated Node and Agent.
  * The result is returned as a vector of Modified Julian Days.
  */
-std::vector <double> data_list_archive_days(string node, string agent)
+vector <double> data_list_archive_days(string node, string agent)
 {
-    std::vector <double> days;
+    vector <double> days;
 
     // Check Base Path
     string bpath = data_base_path(node, "data", agent);
@@ -340,9 +382,9 @@ string log_read(gzFile &file, int num) {
  * \param type File extension.
  * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
-std::vector<filestruc> data_list_archive(string node, string agent, double utc, string type)
+vector<filestruc> data_list_archive(string node, string agent, double utc, string type)
 {
-    std::vector<filestruc> files;
+    vector<filestruc> files;
 
     string dtemp;
     DIR *jdp;
@@ -405,7 +447,7 @@ std::vector<filestruc> data_list_archive(string node, string agent, double utc, 
     return files;
 }
 
-std::vector<filestruc> data_list_archive(string node, string agent, double utc)
+vector<filestruc> data_list_archive(string node, string agent, double utc)
 {
     return data_list_archive(node, agent, utc, "");
 }
@@ -416,9 +458,9 @@ std::vector<filestruc> data_list_archive(string node, string agent, double utc)
  * \param directory Directory to search.
  * \return A C++ vector of ::filestruc. Zero size if no files are found.
  */
-std::vector<filestruc> data_list_files(string directory)
+vector<filestruc> data_list_files(string directory)
 {
-    std::vector<filestruc> files;
+    vector<filestruc> files;
 
     data_list_files(directory, files);
 
@@ -501,7 +543,7 @@ size_t data_list_files(string directory, vector<filestruc>& files)
  */
 vector<filestruc> data_list_files(string node, string location, string agent)
 {
-    std::vector<filestruc> files;
+    vector<filestruc> files;
 
     data_list_files(node, location, agent, files);
 
@@ -518,7 +560,7 @@ vector<filestruc> data_list_files(string node, string location, string agent)
  * \param files List of ::filestruc.
  * \return Number of files found, otherwise negative error.
  */
-size_t data_list_files(string node, string location, string agent, std::vector<filestruc>& files)
+size_t data_list_files(string node, string location, string agent, vector<filestruc>& files)
 {
     string dtemp;
     dtemp = data_base_path(node, location, agent);
@@ -538,9 +580,9 @@ size_t data_list_files(string node, string location, string agent, std::vector<f
  * Node that is found.
  * \return Any Nodes that are found.
  */
-std::vector<string> data_list_nodes()
+vector<string> data_list_nodes()
 {
-    std::vector<string> nodes;
+    vector<string> nodes;
 
     data_list_nodes(nodes);
 
@@ -553,7 +595,7 @@ std::vector<string> data_list_nodes()
  * \param nodes Vector of strings with Node names.
  * \return Zero or negative error.
  */
-int32_t data_list_nodes(std::vector<string>& nodes)
+int32_t data_list_nodes(vector<string>& nodes)
 {
     DIR *jdp;
     string dtemp;
@@ -591,7 +633,7 @@ int32_t data_list_nodes(std::vector<string>& nodes)
  * \param node Vector of ::cosmosstruc for each Node.
  * \return Zero or negative error.
  */
-int32_t data_get_nodes(std::vector<cosmosstruc> &node)
+int32_t data_get_nodes(vector<cosmosstruc> &node)
 {
     DIR *jdp;
     string dtemp;
@@ -1463,7 +1505,7 @@ int32_t set_cosmosnodes(bool create_flag)
                 return iretn;
             }
         }
-        else // look for the default path ~/cosmos/nodes
+        else // look for the default path: $COSMOS/nodes or $HOME/cosmos/nodes
         {
             if ((iretn = set_cosmosroot(create_flag)) == 0)
             {
@@ -1571,11 +1613,11 @@ string get_nodedir(string node, bool create_flag)
              * \param result Vector of JSON strings.
              * \return 0 or negative error.
              */
-int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, std::vector<string> &result)
+int32_t data_load_archive(string node, string agent, double utcbegin, double utcend, string type, vector<string> &result)
 {
     std::ifstream tfd;
     string tstring;
-    std::vector <filestruc> files;
+    vector <filestruc> files;
 
 
     result.clear();
@@ -1608,14 +1650,14 @@ int32_t data_load_archive(string node, string agent, double utcbegin, double utc
     return 0;
 }
 
-int32_t data_load_archive(string node, string agent, double mjd, string type, std::vector<string> &result)
+int32_t data_load_archive(string node, string agent, double mjd, string type, vector<string> &result)
 {
     int32_t iretn;
     iretn = data_load_archive(node, agent, floor(mjd), floor(mjd)+.999999, type, result);
     return iretn;
 }
 
-int32_t data_load_archive(double mjd, std::vector<string> &telem, std::vector<string> &event, cosmosstruc *cinfo)
+int32_t data_load_archive(double mjd, vector<string> &telem, vector<string> &event, cosmosstruc *cinfo)
 {
     int32_t iretn;
 
@@ -1875,7 +1917,7 @@ double data_ctime(string path)
 #ifdef COSMOS_WIN_OS
 		unixtime.tv_sec = st.st_ctime;
 		unixtime.tv_usec = 0;
-#else
+#elseif defined(COSMOS_LINUX_OS)
         unixtime.tv_sec = st.st_ctim.tv_sec;
         unixtime.tv_usec = st.st_ctim.tv_nsec / 1000;
 #endif

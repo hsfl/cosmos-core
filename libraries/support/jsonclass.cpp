@@ -45,7 +45,7 @@ namespace Cosmos
             }
             skip_character(begin, end, '}');
 
-            return 0;
+            return members.size();
         }
 
         int32_t Json::extract_values(string::iterator begin, string::iterator end, vector <Member> &members)
@@ -276,22 +276,30 @@ namespace Cosmos
                 value.type = Type::Null;
 
                 break;
+            case 0:
+                return JSON_ERROR_EOS;
             default:
                 value.svalue.clear();
                 do
                 {
-                    if (++begin == end || *begin == 0)
+                    if (*begin == 0)
                     {
                         return JSON_ERROR_EOS;
                     }
                     value.svalue.push_back(*begin);
-                } while ((*begin>='0'&&*begin<='9')||*begin=='e'||*begin=='E'||*begin=='.'||*begin=='-');
+                    if (++begin == end)
+                    {
+                        return JSON_ERROR_EOS;
+                    }
+                } while ((*begin>='0'&&*begin<='9')||*begin=='e'||*begin=='E'||*begin=='.'||*begin=='-'||*begin=='+');
                 value.type = Type::Number;
-                sscanf(value.svalue.c_str(), "%lf", value.nvalue);
+                sscanf(value.svalue.c_str(), "%lf", &value.nvalue);
                 break;
             }
-
-            ++begin;
+            skip_white(begin, end);
+            skip_character(begin, end, ',');
+            skip_white(begin, end);
+//            ++begin;
             value.end = begin;
 
             return 0;
@@ -448,6 +456,12 @@ namespace Cosmos
                     ostring.push_back(*(begin)); // just a character
                 }
                 ++begin;
+            }
+
+            //Skip '"' afer string
+            if ((iretn = skip_character(begin, end, '"')) < 0)
+            {
+                return iretn;
             }
 
             if (begin == end)
