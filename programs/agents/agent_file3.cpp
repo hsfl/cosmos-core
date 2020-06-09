@@ -207,6 +207,7 @@ vector<file_progress> find_chunks_missing(tx_progress& tx);
 vector<file_progress> find_chunks_togo(tx_progress& tx);
 PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
 void transmit_loop();
+double queuecheck(PACKET_NODE_ID_TYPE node_id);
 uint16_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet);
 int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf);
 int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout=1.);
@@ -764,6 +765,7 @@ void recv_loop()
                         write_meta(txq[local_node].outgoing.progress[tx_id]);
                         txq[local_node].outgoing.progress[tx_id].senddata = true;
                         txq[local_node].outgoing.progress[tx_id].sentdata = false;
+                        txq[local_node].outgoing.progress[tx_id].sentmeta = true;
                         txq[local_node].outgoing.progress[tx_id].complete = false;
                     }
 
@@ -1076,66 +1078,48 @@ void send_loop()
             // Send Cancel, Complete, Data, Reqdata, Metadata only if we have learned what the remote node mapping is
             if (txq[local_node].remote_id > 0)
             {
-
-                // Send Cancel packets if required
+                // Send any  pending Metadata packets
                 outgoing_tx_lock.lock();
-                if (txq[(local_node)].outgoing.completeclock < currentmjd())
+//                if (txq[(local_node)].outgoing.metaclock < currentmjd())
+                if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
-                    txq[(local_node)].outgoing.completeclock = currentmjd();
+                    txq[(local_node)].outgoing.metaclock = currentmjd();
                     for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                     {
-                        if (txq[(local_node)].outgoing.progress[tx_id].tx_id == tx_id && txq[(local_node)].outgoing.progress[tx_id].complete)
+                        if (txq[(local_node)].outgoing.progress[tx_id].tx_id == tx_id && txq[(local_node)].outgoing.progress[tx_id].sendmeta)
                         {
-                            // Remove from queue
-                            outgoing_tx_del(local_node, tx_id);
-
-                            // Send a CANCEL packet
+                            tx_progress tx = txq[(local_node)].outgoing.progress[tx_id];
                             vector<PACKET_BYTE> packet;
-                            make_cancel_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), tx_id);
+                            make_metadata_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
                             use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Outgoing", packet);
                             if (use_channel >= 0)
                             {
                                 txq[(local_node)].outgoing.activity = true;
-                                txq[(local_node)].outgoing.progress[tx_id].complete = false;
-                                txq[(local_node)].outgoing.completeclock += out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                                txq[(local_node)].outgoing.dataclock = txq[(local_node)].outgoing.completeclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                                txq[(local_node)].outgoing.metaclock = txq[(local_node)].outgoing.dataclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                txq[(local_node)].outgoing.progress[tx_id].sendmeta = false;
+                                txq[(local_node)].outgoing.progress[tx_id].havemeta = true;
+                                txq[(local_node)].outgoing.progress[tx_id].sentmeta = true;
+//                                vector<file_progress> togo;
+//                                togo = find_chunks_togo(txq[(local_node)].outgoing.progress[tx_id]);
+//                                for (file_progress missed : togo)
+//                                {
+//                                    txq[(local_node)].outgoing.progress[tx_id].file_info.push_back(missed);
+//                                }
+//                                txq[(local_node)].outgoing.progress[tx_id].senddata = true;
+//                                txq[(local_node)].outgoing.progress[tx_id].sentdata = false;
+                                txq[(local_node)].outgoing.metaclock += out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
                                 txq[(local_node)].outgoing.queueclock = txq[(local_node)].outgoing.metaclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                txq[(local_node)].outgoing.heartbeatclock = currentmjd() + 4. / 86400.;
+                                break;
                             }
                         }
                     }
                 }
                 outgoing_tx_lock.unlock();
 
-                // Send Complete packets if required
-                incoming_tx_lock.lock();
-                if (txq[(local_node)].incoming.completeclock < currentmjd())
-                for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
-                {
-                    if (txq[(local_node)].incoming.progress[tx_id].tx_id == tx_id && txq[(local_node)].incoming.progress[tx_id].complete)
-                    {
-                        // Remove from queue
-                        incoming_tx_del(local_node, tx_id);
-
-                        // Send a COMPLETE packet
-                        vector<PACKET_BYTE> packet;
-                        make_complete_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), tx_id);
-                        use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Incoming", packet);
-                        if (use_channel >= 0)
-                        {
-                            txq[(local_node)].incoming.activity = true;
-                            txq[(local_node)].incoming.completeclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                            txq[(local_node)].incoming.dataclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                            txq[(local_node)].incoming.metaclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                            txq[(local_node)].incoming.queueclock = currentmjd() + 10. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                        }
-                    }
-                }
-                incoming_tx_lock.unlock();
-
                 // Send Data packets if we have data to send and we didn't do anything above
                 outgoing_tx_lock.lock();
-                if (txq[(local_node)].outgoing.dataclock < currentmjd())
+//                if (txq[(local_node)].outgoing.dataclock < currentmjd())
+                if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     txq[(local_node)].outgoing.dataclock = currentmjd();
                     uint16_t tx_id = choose_outgoing_tx_id((local_node));
@@ -1189,6 +1173,7 @@ void send_loop()
                                             txq[(local_node)].outgoing.dataclock += out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
                                             txq[(local_node)].outgoing.metaclock = txq[(local_node)].outgoing.dataclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
                                             txq[(local_node)].outgoing.queueclock = txq[(local_node)].outgoing.metaclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                            txq[(local_node)].outgoing.heartbeatclock = currentmjd() + 4. / 86400.;
                                         }
                                     }
                                     else
@@ -1229,9 +1214,68 @@ void send_loop()
                 }
                 outgoing_tx_lock.unlock();
 
+                // Send Cancel packets if required
+                outgoing_tx_lock.lock();
+//                if (txq[(local_node)].outgoing.completeclock < currentmjd())
+                if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
+                {
+                    txq[(local_node)].outgoing.completeclock = currentmjd();
+                    for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
+                    {
+                        if (txq[(local_node)].outgoing.progress[tx_id].tx_id == tx_id && txq[(local_node)].outgoing.progress[tx_id].complete)
+                        {
+                            // Remove from queue
+                            outgoing_tx_del(local_node, tx_id);
+
+                            // Send a CANCEL packet
+                            vector<PACKET_BYTE> packet;
+                            make_cancel_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), tx_id);
+                            use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Outgoing", packet);
+                            if (use_channel >= 0)
+                            {
+                                txq[(local_node)].outgoing.activity = true;
+                                txq[(local_node)].outgoing.completeclock += out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                txq[(local_node)].outgoing.dataclock = txq[(local_node)].outgoing.completeclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                txq[(local_node)].outgoing.metaclock = txq[(local_node)].outgoing.dataclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                txq[(local_node)].outgoing.queueclock = txq[(local_node)].outgoing.metaclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                txq[(local_node)].outgoing.heartbeatclock = currentmjd() + 4. / 86400.;
+                            }
+                        }
+                    }
+                }
+                outgoing_tx_lock.unlock();
+
+                // Send Complete packets if required
+                incoming_tx_lock.lock();
+//                if (txq[(local_node)].incoming.completeclock < currentmjd())
+                if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
+                    for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
+                    {
+                        if (txq[(local_node)].incoming.progress[tx_id].tx_id == tx_id && txq[(local_node)].incoming.progress[tx_id].complete)
+                        {
+                            // Remove from queue
+                            incoming_tx_del(local_node, tx_id);
+
+                            // Send a COMPLETE packet
+                            vector<PACKET_BYTE> packet;
+                            make_complete_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), tx_id);
+                            use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Incoming", packet);
+                            if (use_channel >= 0)
+                            {
+                                txq[(local_node)].incoming.activity = true;
+                                txq[(local_node)].incoming.completeclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                txq[(local_node)].incoming.dataclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                txq[(local_node)].incoming.metaclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                                txq[(local_node)].incoming.queueclock = currentmjd() + 10. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
+                            }
+                        }
+                    }
+                incoming_tx_lock.unlock();
+
                 // Send Reqdata packet if there is still data to be gotten and it has been otherwise quiet
                 incoming_tx_lock.lock();
-                if (txq[(local_node)].incoming.dataclock < currentmjd())
+//                if (txq[(local_node)].incoming.dataclock < currentmjd())
+                if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[(local_node)].incoming, choose_incoming_tx_id(local_node));
 
@@ -1253,47 +1297,12 @@ void send_loop()
                     }
                 }
                 incoming_tx_lock.unlock();
-
-                // Send Metadata packets if we have received a Reqmeta, and nothing else was done
-                outgoing_tx_lock.lock();
-                if (txq[(local_node)].outgoing.metaclock < currentmjd())
-                {
-                    txq[(local_node)].outgoing.metaclock = currentmjd();
-                    for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
-                    {
-                        if (txq[(local_node)].outgoing.progress[tx_id].tx_id == tx_id && txq[(local_node)].outgoing.progress[tx_id].sendmeta)
-                        {
-                            tx_progress tx = txq[(local_node)].outgoing.progress[tx_id];
-                            vector<PACKET_BYTE> packet;
-                            make_metadata_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), tx.tx_id, (char *)tx.file_name.c_str(), tx.file_size, (char *)tx.agent_name.c_str());
-                            use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Outgoing", packet);
-                            if (use_channel >= 0)
-                            {
-                                txq[(local_node)].outgoing.activity = true;
-                                txq[(local_node)].outgoing.progress[tx_id].sendmeta = false;
-                                txq[(local_node)].outgoing.progress[tx_id].havemeta = true;
-                                txq[(local_node)].outgoing.progress[tx_id].sentmeta = true;
-                                vector<file_progress> togo;
-                                togo = find_chunks_togo(txq[(local_node)].outgoing.progress[tx_id]);
-                                for (file_progress missed : togo)
-                                {
-                                    txq[(local_node)].outgoing.progress[tx_id].file_info.push_back(missed);
-                                }
-                                txq[(local_node)].outgoing.progress[tx_id].senddata = true;
-                                txq[(local_node)].outgoing.progress[tx_id].sentdata = false;
-                                txq[(local_node)].outgoing.metaclock += out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                                txq[(local_node)].outgoing.queueclock = txq[(local_node)].outgoing.metaclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                                break;
-                            }
-                        }
-                    }
-                }
-                outgoing_tx_lock.unlock();
             }
 
             // Send Reqmeta packet if requested
             incoming_tx_lock.lock();
-            if (txq[(local_node)].incoming.metaclock < currentmjd())
+//            if (txq[(local_node)].incoming.metaclock < currentmjd())
+            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
             {
                 vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
                 PACKET_TX_ID_TYPE iq = 0;
@@ -1326,7 +1335,8 @@ void send_loop()
 
             // Send Queue packet, if anything needs to be queued
             outgoing_tx_lock.lock();
-            if (txq[(local_node)].outgoing.queueclock < currentmjd())
+//            if (txq[(local_node)].outgoing.queueclock < currentmjd())
+            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
             {
                 txq[(local_node)].outgoing.queueclock = currentmjd();
                 vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
@@ -1336,7 +1346,7 @@ void send_loop()
                     if (txq[(local_node)].outgoing.progress[tx_id].tx_id == tx_id)
                     {
                         tqueue[iq++] = txq[(local_node)].outgoing.progress[tx_id].tx_id;
-                        txq[(local_node)].outgoing.progress[tx_id].sendmeta = true;
+//                        txq[(local_node)].outgoing.progress[tx_id].sendmeta = true;
                     }
                     if (iq == TRANSFER_QUEUE_LIMIT)
                     {
@@ -1359,7 +1369,8 @@ void send_loop()
 
             // Send Reqqueue packet if requested
             incoming_tx_lock.lock();
-            if (txq[(local_node)].incoming.queueclock < currentmjd())
+//            if (txq[(local_node)].incoming.queueclock < currentmjd())
+            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
             {
                 make_reqqueue_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), txq[(local_node)].node_name);
                 use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Incoming", packet);
@@ -1372,7 +1383,8 @@ void send_loop()
             incoming_tx_lock.unlock();
 
             // Send Heartbeat every 4 seconds, regardless
-            if (txq[(local_node)].outgoing.heartbeatclock < currentmjd())
+//            if (txq[(local_node)].outgoing.heartbeatclock < currentmjd())
+            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
             {
                 uint32_t funixtime = utc2unixseconds(out_comm_channel[channel].fmjd);
                 make_heartbeat_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), txq[(local_node)].node_name, 4, out_comm_channel[channel].throughput, funixtime);
@@ -1413,6 +1425,28 @@ void transmit_loop()
         }
         COSMOS_SLEEP(.001);
     }
+}
+
+double queuecheck(PACKET_NODE_ID_TYPE node_id)
+{
+    int32_t use_channel;
+
+    use_channel = -1;
+    for (uint16_t i=0; i<out_comm_channel.size(); ++i)
+    {
+        if (txq[node_id].node_name == out_comm_channel[i].node)
+        {
+            use_channel = i;
+            break;
+        }
+    }
+
+    if (use_channel == -1)
+    {
+        return -1.;
+    }
+
+    return (1. * transmit_queue.size() * out_comm_channel[use_channel].packet_size) / out_comm_channel[use_channel].throughput;
 }
 
 uint16_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet)
@@ -2102,9 +2136,9 @@ int32_t request_list_incoming(char* request, char* response, Agent *agent)
         {
             if (tx.tx_id)
             {
-                sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u sendmeta: %u sentmeta: %u senddata: %u sentdata: %u complete: %u\n"
+                sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u havemeta: %u sendmeta: %u sentmeta: %u senddata: %u sentdata: %u complete: %u\n"
                         , tx.tx_id, tx.node_name.c_str(), tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size
-                        , tx.sendmeta?1:0, tx.sentmeta?1:0, tx.senddata?1:0, tx.sentdata?1:0, tx.complete?1:0);
+                        , tx.havemeta?1:0, tx.sendmeta?1:0, tx.sentmeta?1:0, tx.senddata?1:0, tx.sentdata?1:0, tx.complete?1:0);
             }
         }
     }
@@ -2122,9 +2156,9 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
         {
             if (tx.tx_id)
             {
-                sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u sendmeta: %u sentmeta: %u senddata: %u sentdata: %u complete: %u\n"
+                sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u havemeta: %u sendmeta: %u sentmeta: %u senddata: %u sentdata: %u complete: %u\n"
                         , tx.tx_id, tx.node_name.c_str(), tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size
-                        , tx.sendmeta?1:0, tx.sentmeta?1:0, tx.senddata?1:0, tx.sentdata?1:0, tx.complete?1:0);
+                        , tx.havemeta?1:0, tx.sendmeta?1:0, tx.sentmeta?1:0, tx.senddata?1:0, tx.sentdata?1:0, tx.complete?1:0);
             }
         }
     }
@@ -2229,7 +2263,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
         return TRANSFER_ERROR_QUEUEFULL;
     }
 
-//    tx_out.state = STATE_QUEUE;
+    //    tx_out.state = STATE_QUEUE;
     if (tx_out.file_name.size())
     {
         tx_out.filepath = data_base_path(tx_out.node_name, "outgoing", tx_out.agent_name, tx_out.file_name);
@@ -2275,7 +2309,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
 
     // save and queue metadata packet
     tx_out.havemeta = true;
-    tx_out.sendmeta = false;
+    tx_out.sendmeta = true;
     tx_out.sentmeta = false;
     tx_out.senddata = false;
     tx_out.sentdata = false;
@@ -2291,7 +2325,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
 
     // Good to go. Add it to queue.
     outgoing_tx_lock.lock();
-//    txq[(local_node)].outgoing.progress[tx_out.tx_id] = tx_out;
+    //    txq[(local_node)].outgoing.progress[tx_out.tx_id] = tx_out;
     txq[(local_node)].outgoing.progress[tx_out.tx_id].tx_id = tx_out.tx_id;
     txq[(local_node)].outgoing.progress[tx_out.tx_id].havemeta = tx_out.havemeta;
     txq[(local_node)].outgoing.progress[tx_out.tx_id].sendmeta = tx_out.sendmeta;
@@ -2382,7 +2416,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
     if (tx_out.tx_id > 0)
     {
         tx_out.havemeta = true;
-        tx_out.sendmeta = false;
+        tx_out.sendmeta = true;
         tx_out.sentmeta = false;
         tx_out.senddata = false;
         tx_out.sentdata = false;
@@ -2467,9 +2501,21 @@ int32_t outgoing_tx_del(uint8_t local_node, uint16_t tx_id)
         tx_progress tx_out = txq[(local_node)].outgoing.progress[tx_id];
 
         // erase the transaction
-        //	outgoing_tx.erase(outgoing_tx.begin()+tx_id);
+
+        txq[(local_node)].outgoing.progress[tx_id].fp = nullptr;
         txq[(local_node)].outgoing.progress[tx_id].tx_id = 0;
-//        txq[(local_node)].outgoing.progress[tx_id].state = STATE_NONE;
+        txq[(local_node)].outgoing.progress[tx_id].complete = false;
+        txq[(local_node)].outgoing.progress[tx_id].filepath = "";
+        txq[(local_node)].outgoing.progress[tx_id].havemeta = false;
+        txq[(local_node)].outgoing.progress[tx_id].savetime = 0;
+        txq[(local_node)].outgoing.progress[tx_id].temppath = "";
+        txq[(local_node)].outgoing.progress[tx_id].file_name = "";
+        txq[(local_node)].outgoing.progress[tx_id].file_size = 0;
+        txq[(local_node)].outgoing.progress[tx_id].node_name = "";
+        txq[(local_node)].outgoing.progress[tx_id].agent_name = "";
+        txq[(local_node)].outgoing.progress[tx_id].total_bytes = 0;
+        txq[(local_node)].outgoing.progress[tx_id].file_info.clear();
+
         if (txq[(local_node)].outgoing.size)
         {
             --txq[(local_node)].outgoing.size;
@@ -2516,7 +2562,6 @@ int32_t outgoing_tx_purge(uint8_t local_node, uint16_t tx_id)
         {
             txq[(local_node)].outgoing.progress[i].fp = nullptr;
             txq[(local_node)].outgoing.progress[i].tx_id = 0;
-//            txq[(local_node)].outgoing.progress[i].state = STATE_NONE;
             txq[(local_node)].outgoing.progress[i].complete = false;
             txq[(local_node)].outgoing.progress[i].filepath = "";
             txq[(local_node)].outgoing.progress[i].havemeta = false;
@@ -2534,7 +2579,6 @@ int32_t outgoing_tx_purge(uint8_t local_node, uint16_t tx_id)
         {
             txq[(local_node)].outgoing.progress[tx_id].fp = nullptr;
             txq[(local_node)].outgoing.progress[tx_id].tx_id = 0;
-//            txq[(local_node)].outgoing.progress[tx_id].state = STATE_NONE;
             txq[(local_node)].outgoing.progress[tx_id].complete = false;
             txq[(local_node)].outgoing.progress[tx_id].filepath = "";
             txq[(local_node)].outgoing.progress[tx_id].havemeta = false;
@@ -2697,18 +2741,18 @@ int32_t incoming_tx_add(tx_progress &tx_in)
 
     tx_in.savetime = 0.;
     tx_in.fp = nullptr;
-//    tx_in.state = STATE_REQMETA;
-//    if (tx_in.havemeta)
-//    {
-//        tx_in.state = STATE_REQDATA;
-//    }
-//    if (tx_in.complete)
-//    {
-//        tx_in.state = STATE_COMPLETE;
-//    }
+    //    tx_in.state = STATE_REQMETA;
+    //    if (tx_in.havemeta)
+    //    {
+    //        tx_in.state = STATE_REQDATA;
+    //    }
+    //    if (tx_in.complete)
+    //    {
+    //        tx_in.state = STATE_COMPLETE;
+    //    }
 
     // Put it in list
-//    txq[(local_node)].incoming.progress[tx_in.tx_id] = tx_in;
+    //    txq[(local_node)].incoming.progress[tx_in.tx_id] = tx_in;
     txq[(local_node)].incoming.progress[tx_in.tx_id].tx_id = tx_in.tx_id;
     txq[(local_node)].incoming.progress[tx_in.tx_id].havemeta = tx_in.havemeta;
     txq[(local_node)].incoming.progress[tx_in.tx_id].sendmeta = tx_in.sendmeta;
@@ -2795,7 +2839,7 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
             txq[(local_node)].incoming.progress[meta.tx_id].temppath = data_base_path(txq[(local_node)].incoming.progress[meta.tx_id].node_name, "temp", "file", tx_name);
 
             // Derivative META information
-//            txq[(local_node)].incoming.progress[meta.tx_id].state = STATE_REQDATA;
+            //            txq[(local_node)].incoming.progress[meta.tx_id].state = STATE_REQDATA;
             txq[(local_node)].incoming.progress[meta.tx_id].savetime = 0.;
             txq[(local_node)].incoming.progress[meta.tx_id].havemeta = true;
             txq[(local_node)].incoming.progress[meta.tx_id].sendmeta = false;
@@ -2852,7 +2896,7 @@ int32_t incoming_tx_del(uint8_t local_node, uint16_t tx_id)
         tx_progress tx_in = txq[(local_node)].incoming.progress[tx_id];
 
         txq[(local_node)].incoming.progress[tx_id].tx_id = 0;
-//        txq[(local_node)].incoming.progress[tx_id].state = STATE_NONE;
+        //        txq[(local_node)].incoming.progress[tx_id].state = STATE_NONE;
         txq[(local_node)].incoming.progress[tx_id].havemeta = false;
         if (txq[(local_node)].incoming.size)
         {
@@ -2901,7 +2945,7 @@ int32_t incoming_tx_purge(uint8_t local_node, uint16_t tx_id)
         {
             txq[(local_node)].incoming.progress[i].fp = nullptr;
             txq[(local_node)].incoming.progress[i].tx_id = 0;
-//            txq[(local_node)].incoming.progress[i].state = STATE_NONE;
+            //            txq[(local_node)].incoming.progress[i].state = STATE_NONE;
             txq[(local_node)].incoming.progress[i].complete = false;
             txq[(local_node)].incoming.progress[i].filepath = "";
             txq[(local_node)].incoming.progress[i].havemeta = false;
@@ -2919,7 +2963,7 @@ int32_t incoming_tx_purge(uint8_t local_node, uint16_t tx_id)
         {
             txq[(local_node)].incoming.progress[tx_id].fp = nullptr;
             txq[(local_node)].incoming.progress[tx_id].tx_id = 0;
-//            txq[(local_node)].incoming.progress[tx_id].state = STATE_NONE;
+            //            txq[(local_node)].incoming.progress[tx_id].state = STATE_NONE;
             txq[(local_node)].incoming.progress[tx_id].complete = false;
             txq[(local_node)].incoming.progress[tx_id].filepath = "";
             txq[(local_node)].incoming.progress[tx_id].havemeta = false;
@@ -3006,23 +3050,37 @@ PACKET_TX_ID_TYPE choose_outgoing_tx_id(uint8_t local_node)
         PACKET_FILE_SIZE_TYPE nsize = INT32_MAX;
         for (PACKET_FILE_SIZE_TYPE i=1; i < PROGRESS_QUEUE_SIZE; ++i)
         {
-            // calculate bytes so far
-            merge_chunks_overlap(txq[(local_node)].outgoing.progress[i]);
+            if (txq[(local_node)].outgoing.progress[i].tx_id && txq[(local_node)].outgoing.progress[i].sentmeta && !txq[(local_node)].outgoing.progress[i].sentdata)
+            {
+                // calculate bytes so far
+                merge_chunks_overlap(txq[(local_node)].outgoing.progress[i]);
 
-            // Remove anything suspicious: file_size == 0, file_size < total_bytes
-            if (txq[(local_node)].outgoing.progress[i].havemeta && (txq[(local_node)].outgoing.progress[i].file_size == 0 || txq[(local_node)].outgoing.progress[i].file_size < txq[(local_node)].outgoing.progress[i].total_bytes))
-            {
-                outgoing_tx_del(local_node, txq[(local_node)].outgoing.progress[i].tx_id);
-            }
-            // Choose unfinished transactions for which bytes remaining is minimized
-            else if (txq[(local_node)].outgoing.progress[i].tx_id && txq[(local_node)].outgoing.progress[i].senddata && txq[(local_node)].outgoing.progress[i].total_bytes < nsize)
-            {
-                nsize = txq[(local_node)].outgoing.progress[i].total_bytes;
-                tx_id = txq[(local_node)].outgoing.progress[i].tx_id;
+                // Remove anything suspicious: file_size == 0, file_size < total_bytes
+                if (txq[(local_node)].outgoing.progress[i].file_size == 0 || txq[(local_node)].outgoing.progress[i].file_size < txq[(local_node)].outgoing.progress[i].total_bytes)
+                {
+                    outgoing_tx_del(local_node, txq[(local_node)].outgoing.progress[i].tx_id);
+                }
+                // Choose unfinished transactions for which bytes remaining is minimized
+                else if (txq[(local_node)].outgoing.progress[i].total_bytes < nsize)
+                {
+                    nsize = txq[(local_node)].outgoing.progress[i].total_bytes;
+                    tx_id = txq[(local_node)].outgoing.progress[i].tx_id;
+                }
             }
         }
     }
 
+    if (tx_id)
+    {
+        vector<file_progress> togo;
+        togo = find_chunks_togo(txq[(local_node)].outgoing.progress[tx_id]);
+        for (file_progress missed : togo)
+        {
+            txq[(local_node)].outgoing.progress[tx_id].file_info.push_back(missed);
+        }
+
+        txq[(local_node)].outgoing.progress[tx_id].senddata = true;
+    }
     return tx_id;
 }
 
