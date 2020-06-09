@@ -1601,7 +1601,7 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
                 }
             }
 #else
-            for (uint16_t i=0; i<comm_channel.size(); ++i)
+            for (uint16_t i=0; i<out_comm_channel.size(); ++i)
             {
                 channel = out_comm_channel[i].chansock;
                 nbytes = recvfrom(channel.cudp, reinterpret_cast<char *>(&buf[0]), length, 0, reinterpret_cast<sockaddr*>(&channel.caddr), reinterpret_cast<socklen_t *>(&channel.addrlen));
