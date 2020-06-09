@@ -456,7 +456,7 @@ namespace Cosmos {
         {
             dcb.fDtrControl	= DTR_CONTROL_DISABLE;
         }
-#else
+#elseif defined(COSMOS_LINUX_OS)
         int flag = TIOCM_DTR;
 
         if (state)
@@ -483,7 +483,7 @@ namespace Cosmos {
         {
             dcb.fDtrControl	= RTS_CONTROL_DISABLE;
         }
-#else
+#elseif defined(COSMOS_LINUX_OS)
         int flag = TIOCM_RTS;
 
         if (state)
@@ -502,7 +502,7 @@ namespace Cosmos {
     {
 #if defined(COSMOS_WIN_OS)
 
-#else
+#elseif defined(COSMOS_LINUX_OS)
         int s;
         ioctl(fd, TIOCMGET, &s);
         return (s & TIOCM_DSR) != 0;
