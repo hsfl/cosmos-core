@@ -1368,28 +1368,28 @@ void send_loop()
             outgoing_tx_lock.unlock();
 
             // Send Reqqueue packet if requested
-            incoming_tx_lock.lock();
+//            incoming_tx_lock.lock();
 //            if (txq[(local_node)].incoming.queueclock < currentmjd())
-            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
-            {
-                make_reqqueue_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), txq[(local_node)].node_name);
-                use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Incoming", packet);
-                if (use_channel >= 0)
-                {
-                    txq[(local_node)].incoming.activity = true;
-                    txq[(local_node)].incoming.queueclock = currentmjd() + 10. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                }
-            }
-            incoming_tx_lock.unlock();
+//            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5. && txq[(local_node)].incoming.queueclock < currentmjd())
+//            {
+//                make_reqqueue_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), txq[(local_node)].node_name);
+//                use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Incoming", packet);
+//                if (use_channel >= 0)
+//                {
+//                    txq[(local_node)].incoming.activity = true;
+//                    txq[(local_node)].incoming.queueclock = currentmjd() + 5. / 86400.;
+//                }
+//            }
+//            incoming_tx_lock.unlock();
 
             // Send Heartbeat every 4 seconds, regardless
 //            if (txq[(local_node)].outgoing.heartbeatclock < currentmjd())
-            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
+            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5. && txq[(local_node)].outgoing.heartbeatclock < currentmjd())
             {
                 uint32_t funixtime = utc2unixseconds(out_comm_channel[channel].fmjd);
                 make_heartbeat_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), txq[(local_node)].node_name, 4, out_comm_channel[channel].throughput, funixtime);
                 use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Outgoing", packet);
-                txq[(local_node)].outgoing.heartbeatclock = currentmjd() + 4. / 86400.;
+                txq[(local_node)].outgoing.heartbeatclock = currentmjd() + 5. / 86400.;
             }
         }
     }
@@ -2047,46 +2047,35 @@ vector<file_progress> find_chunks_togo(tx_progress& tx)
     vector<file_progress> togo;
     file_progress tp;
 
-    if (tx.file_info.size() == 0)
-    {
-        tp.chunk_start = 0;
-        tp.chunk_end = tx.file_size - 1;
-        togo.push_back(tp);
-    }
-    else
+    if (tx.file_info.size())
     {
         merge_chunks_overlap(tx);
         sort(tx.file_info.begin(), tx.file_info.end(), lower_chunk);
 
-        // Check togo before first chunk
-        if (tx.file_info[0].chunk_start)
-        {
-            tp.chunk_start = 0;
-            tp.chunk_end = tx.file_info[0].chunk_start - 1;
-            togo.push_back(tp);
-        }
+        // Set first chunk
+        tp.chunk_start = tx.file_info[0].chunk_start;
+        tp.chunk_end = tx.file_info[0].chunk_end;
 
-        // Check togo between chunks
+        // Add middle chunks to go
         for (uint32_t i=1; i<tx.file_info.size(); ++i)
         {
-            if (tx.file_info[i-1].chunk_end+1 != tx.file_info[i].chunk_start)
+            if (tx.file_info[i-1].chunk_end+1 == tx.file_info[i].chunk_start)
             {
-                tp.chunk_start = tx.file_info[i-1].chunk_end + 1;
-                tp.chunk_end = tx.file_info[i].chunk_start - 1;
+                tp.chunk_end = tx.file_info[i].chunk_end;
+            }
+            else
+            {
                 togo.push_back(tp);
+                tp.chunk_start = tx.file_info[i].chunk_start;
+                tp.chunk_end = tx.file_info[i].chunk_end;
             }
         }
 
-        // Check togo after last chunk
-        if (tx.file_info[tx.file_info.size()-1].chunk_end + 1 != tx.file_size)
-        {
-            tp.chunk_start = tx.file_info[tx.file_info.size()-1].chunk_end + 1;
-            tp.chunk_end = tx.file_size - 1;
-            togo.push_back(tp);
-        }
+        // Add last chunk
+        togo.push_back(tp);
     }
 
-    // calculate bytes so far
+    // calculate bytes left
     tx.total_bytes = 0;
     for (file_progress prog : togo)
     {
@@ -3072,13 +3061,14 @@ PACKET_TX_ID_TYPE choose_outgoing_tx_id(uint8_t local_node)
 
     if (tx_id)
     {
-        vector<file_progress> togo;
-        togo = find_chunks_togo(txq[(local_node)].outgoing.progress[tx_id]);
-        for (file_progress missed : togo)
-        {
-            txq[(local_node)].outgoing.progress[tx_id].file_info.push_back(missed);
-        }
+//        vector<file_progress> togo;
+//        togo = find_chunks_togo(txq[(local_node)].outgoing.progress[tx_id]);
+//        for (file_progress missed : togo)
+//        {
+//            txq[(local_node)].outgoing.progress[tx_id].file_info.push_back(missed);
+//        }
 
+        merge_chunks_overlap(txq[(local_node)].outgoing.progress[tx_id]);
         txq[(local_node)].outgoing.progress[tx_id].senddata = true;
     }
     return tx_id;
