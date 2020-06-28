@@ -69,13 +69,7 @@ int32_t request_mem_total_kib(char *request, char *response, Agent *);
 int32_t request_printStatus(char *request, char *response, Agent *);
 
 
-static std::string sohstring = "{\"device_cpu_utc_000\","
-                               "\"device_cpu_maxgib_000\","
-                               "\"device_cpu_gib_000\","
-                               "\"memory_utilization_000\","
-                               "\"cpu_utilization_000\","
-                               "\"device_cpu_maxload_000\","
-                               "\"device_cpu_load_000\"";
+static std::string sohstring;
 
 // cosmos classes
 static ElapsedTime et;
@@ -83,6 +77,7 @@ static DeviceDisk deviceDisk;
 static DeviceCpu deviceCpu;
 //static DeviceCpu cpu;
 static uint16_t cpu_cidx;
+static uint16_t cpu_didx;
 
 static Agent *agent;
 
@@ -92,11 +87,11 @@ int main(int argc, char *argv[])
 
     if (argc == 2)
     {
-        agent = new Agent(argv[1], "cpu", 5.);
+        agent = new Agent(argv[1], "cpu", 15.);
     }
     else
     {
-        agent = new Agent("", "cpu", 5.);
+        agent = new Agent("", "cpu", 15.);
     }
 
     if ((iretn = agent->wait()) < 0)
@@ -117,6 +112,15 @@ int main(int argc, char *argv[])
         exit(1);
     }
     cpu_cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+    cpu_didx = agent->cinfo->device[cpu_cidx].all.didx;
+
+    sohstring = "{\"memory_utilization_000\",\"cpu_utilization_000\"";
+    sohstring += ",\"device_cpu_utc_00" + std::to_string(cpu_didx) + "\"";
+    sohstring += ",\"device_cpu_temp_00" + std::to_string(cpu_didx) + "\"";
+    sohstring += ",\"device_cpu_maxgib_00" + std::to_string(cpu_didx) + "\"";
+    sohstring += ",\"device_cpu_gib_00" + std::to_string(cpu_didx) + "\"";
+    sohstring += ",\"device_cpu_maxload_00" + std::to_string(cpu_didx) + "\"";
+    sohstring += ",\"device_cpu_load_00" + std::to_string(cpu_didx) + "\"";
 
     static const double GiB = 1024. * 1024. * 1024.;
 
@@ -140,12 +144,19 @@ int main(int argc, char *argv[])
             exit(1);
         }
         uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+        uint16_t didx = agent->cinfo->device[cidx].all.didx;
         strncpy(agent->cinfo->device[cidx].disk.path, dinfo[i].mount.c_str(), COSMOS_MAX_NAME);
-//        iretn = json_createport(agent->cinfo, dinfo[i].mount, PORT_TYPE_DRIVE);
-//        uint16_t portidx = static_cast <uint16_t>(iretn);
-//        json_mapportentry(portidx, agent->cinfo);
-//        agent->cinfo->device[cidx].all.portidx = portidx;
+        sohstring += ",\"device_disk_utc_00" + std::to_string(cpu_didx) + "\"";
+        sohstring += ",\"device_disk_temp_00" + std::to_string(cpu_didx) + "\"";
+        sohstring += ",\"device_disk_path_00" + std::to_string(cpu_didx) + "\"";
+        sohstring += ",\"device_disk_gib_00" + std::to_string(cpu_didx) + "\"";
+        sohstring += ",\"device_disk_maxgib_00" + std::to_string(cpu_didx) + "\"";
+        sohstring += ",\"device_disk_utilization_00" + std::to_string(cpu_didx) + "\"";
+        sohstring += ",\"device_disk_temp_00" + std::to_string(cpu_didx) + "\"";
     }
+    sohstring += "}";
+    agent->set_sohstring(sohstring);
+    printf("SOH String: %s\n", sohstring.c_str());
 
     json_dump_node(agent->cinfo);
 
@@ -173,22 +184,10 @@ int main(int argc, char *argv[])
     agent->add_request("printStatus",request_printStatus,"","print the status data");
     agent->add_request("bootCount",request_bootCount,"","reboot count");
 
-    char tempstring[200];
-
-    for (uint16_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
-    {
-        sprintf(tempstring, ",\"device_disk_utc_%03d\",\"device_disk_path_%03d\"", i, i);
-        sohstring += tempstring;
-        sprintf(tempstring, ",\"device_disk_gib_%03d\",\"device_disk_maxgib_%03d\",\"disk_utilization_%03d\"", i, i, i);
-        sohstring += tempstring;
-    }
-
-    sohstring += "}";
-    agent->set_sohstring(sohstring);
 
     et.start();
 
-    agent->cinfo->agent[0].aprd = 1.;
+    agent->cinfo->agent[0].aprd = agent->cinfo->agent[0].beat.bprd;
     agent->start_active_loop();
 
     // Start performing the body of the agent
@@ -230,6 +229,16 @@ int main(int argc, char *argv[])
             }
         }
 
+        // get temperature
+        FILE *cmd_pipe = popen("/cosmos/scripts/get_cpu_temperature", "r");
+
+        if (cmd_pipe != nullptr)
+        {
+            fscanf(cmd_pipe, "%f", &agent->cinfo->device[cpu_cidx].cpu.temp);
+
+            pclose( cmd_pipe );
+        }
+
         if (agent->debug_level)
         {
             fprintf(agent->get_debug_fd(), "\n");
@@ -237,19 +246,6 @@ int main(int argc, char *argv[])
 
         agent->finish_active_loop();
 
-        // if printStatus is true then print in a loop
-//        if (printStatus) {
-//            PrintUtils print;
-
-//            print.delimiter_flag = true;
-//            print.scalar("Load",deviceCpu.load ,1,"",4,4);
-//            print.scalar("DiskSize[GiB]",deviceDisk.SizeGiB ,1,"",4,4);
-
-//            cout << "DiskSize[GiB]," << deviceDisk.SizeGiB << ", ";
-//            cout << "DiskUsed[GiB]," << deviceDisk.UsedGiB << ", ";
-//            cout << "DiskFree[GiB]," << deviceDisk.FreeGiB << ", ";
-//            cout << "CPU Proc[%]," << deviceCpu.percentUseForCurrentProcess << endl;
-//        }
     }
 
     agent->shutdown();

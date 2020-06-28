@@ -151,7 +151,6 @@ namespace Cosmos
             char tname[COSMOS_MAX_NAME+1];
             if (!mflag)
             {
-                //                COSMOS_SLEEP(timeoutSec);
                 if (get_server(cinfo->node.name, aname, timeoutSec, (beatstruc *)nullptr))
                 {
                     error_value = AGENT_ERROR_SERVER_RUNNING;
@@ -202,7 +201,7 @@ namespace Cosmos
             }
             else
             {
-                cinfo->agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
+                cinfo->agent[0].beat.bprd = 0.;
             }
             cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
             cinfo->agent[0].beat.port = static_cast<uint16_t>(portnum);
@@ -597,6 +596,10 @@ namespace Cosmos
 */
         int32_t Agent::get_server(string node, string name, float waitsec, beatstruc *rbeat)
         {
+            if (node.empty())
+            {
+                node = nodeName;
+            }
 
             //! 3. Loop for ::waitsec seconds, or until we discover desired heartbeat.
 
@@ -609,7 +612,7 @@ namespace Cosmos
             {
                 for (size_t i=0; i<agent_list.size(); ++i)
                 {
-                    if (name == agent_list[i].proc && node == agent_list[i].node)
+                    if (name == agent_list[i].proc && (node == "any" || node == agent_list[i].node))
                     {
                         if (rbeat != NULL)
                         {
@@ -632,22 +635,30 @@ namespace Cosmos
     \param node Node that agent is in.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-        beatstruc Agent::find_agent(string agent, string node)
+        beatstruc Agent::find_agent(string node, string agent, float waitsec)
         {
             if (node.empty())
             {
                 node = nodeName;
             }
-            for (beatstruc &it : agent_list)
+
+            ElapsedTime ep;
+            ep.start();
+            do
             {
-                if (it.node == node && it.proc == agent)
+                for (beatstruc &it : agent_list)
                 {
-                    it.exists = true;
-                    return it;
+                    if ((node == "any" || it.node == node) && it.proc == agent)
+                    {
+                        it.exists = true;
+                        return it;
+                    }
                 }
-            }
+            } while (ep.split() < waitsec);
+
             beatstruc nobeat;
             nobeat.exists = false;
+            nobeat.node[0] = '\0';
             return nobeat;
         }
 
@@ -659,7 +670,7 @@ namespace Cosmos
     \param waitsec Maximum number of seconds to wait.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
-        beatstruc Agent::find_server(string node, string proc, float waitsec)
+        beatstruc Agent::find_server(string node, string agent, float waitsec)
         {
             beatstruc cbeat;
 
@@ -671,7 +682,7 @@ namespace Cosmos
 
             do
             {
-                cbeat = find_agent(proc, node);
+                cbeat = find_agent(agent, node);
                 if (cbeat.exists)
                 {
                     return cbeat;
@@ -770,11 +781,21 @@ namespace Cosmos
             {
 
                 // compute the jitter
-                cinfo->agent[0].beat.jitter = timer_beat.split() - cinfo->agent[0].beat.bprd;
+                if (cinfo->agent[0].beat.bprd == 0.)
+                {
+                    cinfo->agent[0].beat.jitter = timer_beat.split() - 1.;
+                }
+                else
+                {
+                    cinfo->agent[0].beat.jitter = timer_beat.split() - cinfo->agent[0].beat.bprd;
+                }
                 timer_beat.start();
 
                 // post comes first
-                post_beat();
+                if (cinfo->agent[0].beat.bprd != 0.)
+                {
+                    post_beat();
+                }
 
                 // TODO: move the monitoring calculations to another thread with its own loop time that can be controlled
                 // Compute other monitored quantities if monitoring
@@ -795,12 +816,19 @@ namespace Cosmos
 
                 if (cinfo->agent[0].beat.bprd < AGENT_HEARTBEAT_PERIOD_MIN)
                 {
-                    cinfo->agent[0].beat.bprd = AGENT_HEARTBEAT_PERIOD_MIN;
+                    cinfo->agent[0].beat.bprd = 0.;
                 }
 
-                if (timer_beat.split() <= cinfo->agent[0].beat.bprd)
+                if (cinfo->agent[0].beat.bprd == 0.)
                 {
-                    COSMOS_SLEEP(cinfo->agent[0].beat.bprd - timer_beat.split());
+                    COSMOS_SLEEP(1.);
+                }
+                else
+                {
+                    if (timer_beat.split() <= cinfo->agent[0].beat.bprd)
+                    {
+                        COSMOS_SLEEP(cinfo->agent[0].beat.bprd - timer_beat.split());
+                    }
                 }
             }
             Agent::unpublish();
@@ -1660,7 +1688,8 @@ namespace Cosmos
 
                         if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFFLAGS, (char *)ifra) < 0) continue;
 
-                        if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
+                        if ((ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK))
+//                            if ((ifra->ifr_flags & IFF_POINTOPOINT) || (ifra->ifr_flags & IFF_UP) == 0 || (ifra->ifr_flags & IFF_LOOPBACK) || (ifra->ifr_flags & (IFF_BROADCAST)) == 0)
                         {
                             continue;
                         }
@@ -1696,19 +1725,33 @@ namespace Cosmos
 //                                continue;
 //                            }
 
-                            if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on))) < 0)
+                            if ((ifra->ifr_flags & IFF_POINTOPOINT))
                             {
-                                CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
-                                continue;
-                            }
+                                if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFDSTADDR,(char *)ifra) < 0)
+                                {
+                                    continue;
+                                }
+                                cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
+                                inet_ntop(ifra->ifr_dstaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_dstaddr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
+                                inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
 
-                            if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
-                            {
-                                continue;
                             }
-                            cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
-                            inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
-                            inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+                            else
+                            {
+                                if ((iretn = setsockopt(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp, SOL_SOCKET, SO_BROADCAST, (char*)&on, sizeof(on))) < 0)
+                                {
+                                    CLOSE_SOCKET(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].cudp);
+                                    continue;
+                                }
+
+                                if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFBRDADDR,(char *)ifra) < 0)
+                                {
+                                    continue;
+                                }
+                                cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr = cinfo->agent[0].pub[cinfo->agent[0].ifcnt].caddr;
+                                inet_ntop(ifra->ifr_broadaddr.sa_family,&((struct sockaddr_in*)&ifra->ifr_broadaddr)->sin_addr,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,sizeof(cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress));
+                                inet_pton(AF_INET,cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddress,&cinfo->agent[0].pub[cinfo->agent[0].ifcnt].baddr.sin_addr);
+                            }
 
                             if (ioctl(cinfo->agent[0].pub[0].cudp,SIOCGIFADDR,(char *)ifra) < 0)
                             {

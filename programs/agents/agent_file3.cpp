@@ -432,10 +432,10 @@ int main(int argc, char *argv[])
             for (uint16_t node=0; node<txq.size(); ++node)
             {
                 iretn = outgoing_tx_load(node);
-                if (iretn >= 0)
-                {
-                    nextdiskcheck = currentmjd();
-                }
+//                if (iretn >= 0)
+//                {
+//                    nextdiskcheck = currentmjd();
+//                }
             }
         }
     } // End WHILE Loop
@@ -1075,12 +1075,17 @@ void send_loop()
             txq[(local_node)].outgoing.activity = false;
             txq[(local_node)].incoming.activity = false;
 
+            // Initialize timer to check minimum wait time
+            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) >= 5.)
+            {
+                COSMOS_SLEEP(queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) - 5.);
+            }
+
             // Send Cancel, Complete, Data, Reqdata, Metadata only if we have learned what the remote node mapping is
             if (txq[local_node].remote_id > 0)
             {
                 // Send any  pending Metadata packets
                 outgoing_tx_lock.lock();
-//                if (txq[(local_node)].outgoing.metaclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     txq[(local_node)].outgoing.metaclock = currentmjd();
@@ -1098,14 +1103,6 @@ void send_loop()
                                 txq[(local_node)].outgoing.progress[tx_id].sendmeta = false;
                                 txq[(local_node)].outgoing.progress[tx_id].havemeta = true;
                                 txq[(local_node)].outgoing.progress[tx_id].sentmeta = true;
-//                                vector<file_progress> togo;
-//                                togo = find_chunks_togo(txq[(local_node)].outgoing.progress[tx_id]);
-//                                for (file_progress missed : togo)
-//                                {
-//                                    txq[(local_node)].outgoing.progress[tx_id].file_info.push_back(missed);
-//                                }
-//                                txq[(local_node)].outgoing.progress[tx_id].senddata = true;
-//                                txq[(local_node)].outgoing.progress[tx_id].sentdata = false;
                                 txq[(local_node)].outgoing.metaclock += out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
                                 txq[(local_node)].outgoing.queueclock = txq[(local_node)].outgoing.metaclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
                                 txq[(local_node)].outgoing.heartbeatclock = currentmjd() + 4. / 86400.;
@@ -1118,7 +1115,6 @@ void send_loop()
 
                 // Send Data packets if we have data to send and we didn't do anything above
                 outgoing_tx_lock.lock();
-//                if (txq[(local_node)].outgoing.dataclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     txq[(local_node)].outgoing.dataclock = currentmjd();
@@ -1216,7 +1212,6 @@ void send_loop()
 
                 // Send Cancel packets if required
                 outgoing_tx_lock.lock();
-//                if (txq[(local_node)].outgoing.completeclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     txq[(local_node)].outgoing.completeclock = currentmjd();
@@ -1247,7 +1242,6 @@ void send_loop()
 
                 // Send Complete packets if required
                 incoming_tx_lock.lock();
-//                if (txq[(local_node)].incoming.completeclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                     for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                     {
@@ -1274,7 +1268,6 @@ void send_loop()
 
                 // Send Reqdata packet if there is still data to be gotten and it has been otherwise quiet
                 incoming_tx_lock.lock();
-//                if (txq[(local_node)].incoming.dataclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[(local_node)].incoming, choose_incoming_tx_id(local_node));
@@ -1301,7 +1294,6 @@ void send_loop()
 
             // Send Reqmeta packet if requested
             incoming_tx_lock.lock();
-//            if (txq[(local_node)].incoming.metaclock < currentmjd())
             if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
             {
                 vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
@@ -1335,7 +1327,6 @@ void send_loop()
 
             // Send Queue packet, if anything needs to be queued
             outgoing_tx_lock.lock();
-//            if (txq[(local_node)].outgoing.queueclock < currentmjd())
             if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
             {
                 txq[(local_node)].outgoing.queueclock = currentmjd();

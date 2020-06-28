@@ -8194,7 +8194,8 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_bcreg_temp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bcreg_volt",didx, UINT16_MAX, (uint8_t *)&device.bcreg.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bcreg_amp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_bcreg_energy",didx, UINT16_MAX, (uint8_t *)&device.bcreg.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_bcreg_energy",didx, UINT16_MAX, (uint8_t *)&device.bcreg.energy, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_bcreg_power",didx, UINT16_MAX, (uint8_t *)&device.bcreg.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     case DeviceType::BUS:
         iretn = json_addentry("device_bus_utc",didx, UINT16_MAX, (uint8_t *)&device.bus.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -8311,6 +8312,9 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_imu_utc",didx, UINT16_MAX, (uint8_t *)&device.imu.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_imu_cidx",didx, UINT16_MAX, (uint8_t *)&device.imu.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_imu_temp",didx, UINT16_MAX, (uint8_t *)&device.imu.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_TEMPERATURE);
+        json_addentry("device_imu_amp",didx, UINT16_MAX, (uint8_t *)&device.imu.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CURRENT);
+        json_addentry("device_imu_volt",didx, UINT16_MAX, (uint8_t *)&device.imu.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_VOLTAGE);
+        json_addentry("device_imu_power",didx, UINT16_MAX, (uint8_t *)&device.imu.power, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
         json_addentry("device_imu_align",didx, UINT16_MAX, (uint8_t *)&device.imu.align, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
         json_addentry("device_imu_accel",didx, UINT16_MAX, (uint8_t *)&device.imu.accel, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ACCELERATION);
         json_addentry("device_imu_accel_x",didx, UINT16_MAX, (uint8_t *)&device.imu.accel.col[0], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_ACCELERATION);
@@ -8352,6 +8356,9 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_mtr_utc",didx, UINT16_MAX, (uint8_t *)&device.mtr.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_mtr_cidx",didx, UINT16_MAX, (uint8_t *)&device.mtr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_mtr_temp",didx, UINT16_MAX, (uint8_t *)&device.mtr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_mtr_amp",didx, UINT16_MAX, (uint8_t *)&device.mtr.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_mtr_volt",didx, UINT16_MAX, (uint8_t *)&device.mtr.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_mtr_power",didx, UINT16_MAX, (uint8_t *)&device.mtr.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_mtr_mxmom",didx, UINT16_MAX, (uint8_t *)&device.mtr.mxmom, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_mtr_tc",didx, UINT16_MAX, (uint8_t *)&device.mtr.tc, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_mtr_align",didx, UINT16_MAX, (uint8_t *)&device.mtr.align, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
@@ -8367,6 +8374,8 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_pload_utc",didx, UINT16_MAX, (uint8_t *)&device.all.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_pload_cidx",didx, UINT16_MAX, (uint8_t *)&device.all.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_pload_temp",didx, UINT16_MAX, (uint8_t *)&device.all.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_pload_amp",didx, UINT16_MAX, (uint8_t *)&device.all.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_pload_volt",didx, UINT16_MAX, (uint8_t *)&device.all.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_pload_power",didx, UINT16_MAX, (uint8_t *)&device.all.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_pload_drate",didx, UINT16_MAX, (uint8_t *)&device.all.drate, (uint16_t)JSON_TYPE_UINT32, cinfo);
         json_addentry("device_pload_key_cnt",didx, UINT16_MAX, (uint8_t *)&device.pload.key_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -8413,6 +8422,9 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_rw_utc",didx, UINT16_MAX, (uint8_t *)&device.rw.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_rw_cidx",didx, UINT16_MAX, (uint8_t *)&device.rw.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rw_temp",didx, UINT16_MAX, (uint8_t *)&device.rw.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_TEMPERATURE);
+        json_addentry("device_rw_amp",didx, UINT16_MAX, (uint8_t *)&device.rw.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CURRENT);
+        json_addentry("device_rw_volt",didx, UINT16_MAX, (uint8_t *)&device.rw.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_VOLTAGE);
+        json_addentry("device_rw_power",didx, UINT16_MAX, (uint8_t *)&device.rw.power, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
         json_addentry("device_rw_align",didx, UINT16_MAX, (uint8_t *)&device.rw.align, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
         json_addentry("device_rw_mom",didx, UINT16_MAX, (uint8_t *)&device.rw.mom, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
         json_addentry("device_rw_mxomg",didx, UINT16_MAX, (uint8_t *)&device.rw.mxomg, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8641,6 +8653,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_imu_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_imu_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_imu_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_imu_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_align",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_accel",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_accel_x",didx, UINT16_MAX, cinfo, state);
@@ -8659,6 +8674,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_rw_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rw_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rw_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rw_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_align",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_mom",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_mxomg",didx, UINT16_MAX, cinfo, state);
@@ -8674,6 +8692,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_mtr_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_mtr_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_mtr_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_mtr_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_mxmom",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_tc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_align",didx, UINT16_MAX, cinfo, state);
@@ -8976,6 +8997,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_bcreg_volt",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_amp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_energy",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_bcreg_power",didx, UINT16_MAX, cinfo, state);
     case DeviceType::COUNT:
     case DeviceType::NONE:
         break;

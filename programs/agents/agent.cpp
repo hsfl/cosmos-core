@@ -428,6 +428,8 @@ int main(int argc, char *argv[])
         {
         nl.clear();
 
+//        cbeat = agent->find_agent(argv[1], argv[2], SERVER_WAIT_TIME);
+//        if (cbeat.exists)
         if ((nbytes = agent->get_server(argv[1], argv[2], SERVER_WAIT_TIME, &cbeat)) > 0)
         {
             if(argc == 3)

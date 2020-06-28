@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     cout << event.generator(name, data, utc, condition, flag) << endl << endl;
     // Find agent_mongo
     Agent *agent = new Agent("", "temp");
-    beatstruc agent_mongo_soh = agent->find_agent("mongo");
+    beatstruc agent_mongo_soh = agent->find_agent("any", "mongo");
     if (!agent_mongo_soh.exists) {
         cout << "could not find agent mongo" << endl;
     }

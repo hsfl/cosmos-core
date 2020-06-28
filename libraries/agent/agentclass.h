@@ -288,8 +288,8 @@ namespace Cosmos
             int32_t send_request_jsonnode(beatstruc cbeat, jsonnode &jnode, float waitsec=5.);
             int32_t get_server(string node, string name, float waitsec, beatstruc *cbeat);
             vector<beatstruc> find_servers(float waitsec);
-            beatstruc find_server(string node, string proc, float waitsec);
-            beatstruc find_agent(string agent, string node="");
+            beatstruc find_server(string node, string agent, float waitsec=0.);
+            beatstruc find_agent(string node, string agent, float waitsec=0.);
             uint16_t running();
             int32_t wait(State state=State::RUN, float waitsec=10.);
             int32_t last_error();
