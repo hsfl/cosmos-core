@@ -1527,6 +1527,10 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
 
     switch (type)
     {
+    case JSON_TYPE_BOOL:
+        if ((iretn=json_out_uint8(jstring,*(uint8_t *)data)) != 0)
+            return iretn;
+        break;
     case JSON_TYPE_UINT8:
         if ((iretn=json_out_uint8(jstring,*(uint8_t *)data)) != 0)
             return iretn;
@@ -1740,6 +1744,30 @@ int32_t json_out_name(string &jstring, string name)
     if ((iretn=json_out_character(jstring,':')) < 0)
         return iretn;
     return 0;
+}
+
+//! Boolean to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 8 bit boolean.
+    \param jstring Reference to JSON stream.
+    \param value The JSON data of the desired variable
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_bool(string &jstring,bool value)
+{
+    int32_t iretn;
+    char tstring[15];
+
+    if (value)
+    {
+        sprintf(tstring, "true");
+    }
+    else
+    {
+        sprintf(tstring, "false");
+    }
+
+    iretn = json_append(jstring,tstring);
+    return iretn;
 }
 
 //! Signed 8 bit integer to JSON
@@ -8227,6 +8255,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_cpu_utc",didx, UINT16_MAX, (uint8_t *)&device.cpu.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_cpu_cidx",didx, UINT16_MAX, (uint8_t *)&device.cpu.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_cpu_temp",didx, UINT16_MAX, (uint8_t *)&device.cpu.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_cpu_power",didx, UINT16_MAX, (uint8_t *)&device.cpu.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_uptime",didx, UINT16_MAX, (uint8_t *)&device.cpu.uptime, (uint16_t)JSON_TYPE_UINT32, cinfo);
         json_addentry("device_cpu_maxgib",didx, UINT16_MAX, (uint8_t *)&device.cpu.maxgib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_maxload",didx, UINT16_MAX, (uint8_t *)&device.cpu.maxload, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8306,6 +8335,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_htr_utc",didx, UINT16_MAX, (uint8_t *)&device.htr.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_htr_temp",didx, UINT16_MAX, (uint8_t *)&device.htr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_htr_cidx",didx, UINT16_MAX, (uint8_t *)&device.htr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_htr_state",didx, UINT16_MAX, (uint8_t *)&device.htr.state, (uint16_t)JSON_TYPE_BOOL, cinfo);
         break;
         //! Inertial Measurement Unit
     case DeviceType::IMU:
@@ -8724,6 +8754,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cpu_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cpu_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_uptime",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_maxgib",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_maxload",didx, UINT16_MAX, cinfo, state);
@@ -8875,6 +8906,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_htr_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_htr_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_htr_cidx",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_htr_state",didx, UINT16_MAX, cinfo, state);
         break;
         //! Motor
     case DeviceType::MOTR:
@@ -9744,6 +9776,8 @@ string json_list_of_soh(cosmosstruc *cinfo)
         sprintf(tempstring, ",\"device_htr_utc_%03d\",\"device_htr_temp_%03d\"", i, i);
         result += tempstring;
         sprintf(tempstring, ",\"device_htr_setvertex_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_htr_state_%03d\"",i);
         result += tempstring;
     }
 
