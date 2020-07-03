@@ -329,7 +329,7 @@ namespace Cosmos
             int32_t getJson(string node, jsonnode &jnode);
 
             int32_t set_agent_time_producer(double (*source)());
-            int32_t get_agent_time(double &agent_time, double &epsilon, string agent, string node="");
+            int32_t get_agent_time(double &agent_time, double &epsilon, string agent, string node="any", double wait_sec=2.);
 
             // poll
             pollstruc metaRx;

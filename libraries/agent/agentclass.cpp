@@ -2723,8 +2723,8 @@ namespace Cosmos
 
         // A Cristian's algorithm approach to time synchronization, with our remote node as the time server.
         // This is meant to be run on a time sink agent (a requester).
-        int32_t Agent::get_agent_time(double &agent_time, double &epsilon, string agent, string node) {
-            beatstruc agent_beat = find_agent(agent, node);
+        int32_t Agent::get_agent_time(double &agent_time, double &epsilon, string agent, string node, double wait_sec) {
+            beatstruc agent_beat = find_agent(node, agent, wait_sec);
             std::string agent_response;
             double mjd_0, mjd_1, delta;
 
@@ -2732,7 +2732,7 @@ namespace Cosmos
             if (!agent_beat.exists) return AGENT_ERROR_DISCOVERY;
 
             mjd_0 = currentmjd();
-            send_request(agent_beat, "mjd", agent_response, 0);
+            send_request(agent_beat, "utc", agent_response, 0);
             mjd_1 = currentmjd();
 
             delta = (mjd_1 - mjd_0) / 2.0;  // RTT / 2.0
