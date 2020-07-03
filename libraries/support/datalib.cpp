@@ -1029,9 +1029,9 @@ FILE *data_open(string path, const char *mode)
             break;
     }
 
-    if (dindex < length)
+    if (dindex > 0 && dindex < length)
     {
-        for (index=0; index<=dindex; ++index)
+        for (index=1; index<=dindex; ++index)
         {
             if (path[index] == '/')
             {
