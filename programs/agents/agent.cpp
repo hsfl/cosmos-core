@@ -129,16 +129,21 @@ int main(int argc, char *argv[])
                 {
                     cnum = Agent::AgentMessage::SOH;
                 }
+                else if (channel == "beat")
+                {
+                    cnum = Agent::AgentMessage::BEAT;
+                }
+                else if (channel == "request")
+                {
+                    cnum = Agent::AgentMessage::REQUEST;
+                }
+                else if (channel == "response")
+                {
+                    cnum = Agent::AgentMessage::RESPONSE;
+                }
                 else
                 {
-                    if (channel == "beat")
-                    {
-                        cnum = Agent::AgentMessage::BEAT;
-                    }
-                    else
-                    {
-                        cnum = (Agent::AgentMessage)atoi(channel.c_str());
-                    }
+                    cnum = (Agent::AgentMessage)atoi(channel.c_str());
                 }
                 break;
             case 2:
@@ -177,6 +182,12 @@ int main(int argc, char *argv[])
                         break;
                     case Agent::AgentMessage::BEAT:
                         printf("[BEAT]");
+                        break;
+                    case Agent::AgentMessage::REQUEST:
+                        printf("[REQUEST]");
+                        break;
+                    case Agent::AgentMessage::RESPONSE:
+                        printf("[RESPONSE]");
                         break;
                     default:
                         printf("[%d]",pretn);
@@ -376,6 +387,12 @@ int main(int argc, char *argv[])
                         break;
                     case Agent::AgentMessage::BEAT:
                         printf("[BEAT]");
+                        break;
+                    case Agent::AgentMessage::REQUEST:
+                        printf("[REQUEST]");
+                        break;
+                    case Agent::AgentMessage::RESPONSE:
+                        printf("[RESPONSE]");
                         break;
                     default:
                         printf("[%d]",pretn);
