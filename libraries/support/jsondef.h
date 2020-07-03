@@ -1561,6 +1561,7 @@ struct battstruc : public allstruc
 */
 struct htrstruc : public allstruc
 {
+    bool state;
     //! Temperature set vertex
     float setvertex;
 };
