@@ -141,7 +141,7 @@ namespace Cosmos
         {
         public:
             //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-            Agent(const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 1);
+            Agent(const string &nname = "", const string &aname = "", double bprd = 0., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 1);
             ~Agent();
 
             //! State of Health element vector
@@ -162,7 +162,9 @@ namespace Cosmos
                 //! Agent in Safe State
                 ASAFE,
                 //! Agent in Debug State
-                DEBUG
+                DEBUG,
+                //! Reset Agent
+                RESET
                 };
 
             //! Multiple agents per name
@@ -287,7 +289,7 @@ namespace Cosmos
             int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec=5.);
             int32_t send_request_jsonnode(beatstruc cbeat, jsonnode &jnode, float waitsec=5.);
             int32_t get_server(string node, string name, float waitsec, beatstruc *cbeat);
-            vector<beatstruc> find_servers(float waitsec);
+            vector<beatstruc> find_servers(float waitsec=0.);
             beatstruc find_server(string node, string agent, float waitsec=0.);
             beatstruc find_agent(string node, string agent, float waitsec=0.);
             uint16_t running();
@@ -302,6 +304,7 @@ namespace Cosmos
             int32_t post(AgentMessage type, string message="");
             int32_t post(AgentMessage type, vector <uint8_t> message);
             int32_t post_beat();
+            int32_t post_soh();
             int32_t publish(NetworkType type, uint16_t port);
             int32_t subscribe(NetworkType type, const char *address, uint16_t port);
             int32_t subscribe(NetworkType type, const char *address, uint16_t port, uint32_t usectimeo);
@@ -423,6 +426,7 @@ namespace Cosmos
             static int32_t req_idle(char *request, char* response, Agent *agent);
             static int32_t req_init(char *request, char* response, Agent *agent);
             static int32_t req_monitor(char *request, char* response, Agent *agent);
+            static int32_t req_reset(char *request, char* response, Agent *agent);
             static int32_t req_run(char *request, char* response, Agent *agent);
             static int32_t req_status(char *request, char* response, Agent *agent);
             static int32_t req_debug_level(char *request, char* response, Agent *agent);
@@ -441,8 +445,10 @@ namespace Cosmos
             static int32_t req_targetsjson(char *request, char* response, Agent *agent);
             static int32_t req_aliasesjson(char *request, char* response, Agent *agent);
             static int32_t req_heartbeat(char *request, char* response, Agent *agent);
+            static int32_t req_postsoh(char *request, char* response, Agent *agent);
             static int32_t req_utc(char *request, char* response, Agent *agent);
             static int32_t req_soh(char *, char* response, Agent *agent);
+            static int32_t req_jsondump(char *, char* response, Agent *agent);
         };
     } // end of namespace Support
 } // end of namespace Cosmos

@@ -7876,6 +7876,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_moi", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.moi, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_MOI);
     json_addentry("node_battcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battcap, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
     json_addentry("node_powchg", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.charging, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_powmode", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powmode, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_powgen", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powgen, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
     json_addentry("node_powuse", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powuse, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
     json_addentry("node_battlev", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battlev, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
@@ -9269,6 +9270,11 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
     {
         return nullptr;
     }
+    iretn = json_out(jstring, "node_powmode", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
     iretn = json_out(jstring, "node_powgen", cinfo);
     if (iretn < 0)
     {
@@ -9507,7 +9513,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 
     string result;
     char tempstring[200];
-    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powmode\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.cpu_cnt; ++i)
     {

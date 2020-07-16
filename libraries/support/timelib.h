@@ -211,6 +211,7 @@ int16_t isleap(int32_t year);
 int32_t load_iers();
 std::string  seconds2DDHHMMSS(double elapsed_seconds);
 int32_t timed_countdown(int32_t seconds, int32_t step=10., string message="");
+double set_local_clock(double utc_to);
 
 
 //! @}

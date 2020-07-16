@@ -39,7 +39,14 @@ int main(int argc, char *argv[])
 {
     Agent * agent;
 
-    agent = new Agent("", "ntp");
+    if (argc == 2)
+    {
+        agent = new Agent("", argv[1]);
+    }
+    else
+    {
+        agent = new Agent("", "ntp");
+    }
 
     while (agent->running())
     {

@@ -1613,3 +1613,50 @@ int32_t mjd2tlef(double mjd, std::string &tle) {
     return 0;
 }
 
+double set_local_clock(double utc_to)
+{
+    int32_t iretn;
+    double utc_from = currentmjd();
+    double deltat = 86400.*(utc_to - utc_from);
+//    printf("Set Local Clock %f\n", deltat);
+    if (fabs(deltat) > 1.)
+    {
+        // Gross adjustment to system clock
+#if defined(COSMOS_WIN_OS)
+        SYSTEMTIME newtime;
+        SetSystemTime(&newtime);
+#else
+        struct timeval newtime = utc2unix(utc_to);
+
+        // TODO: check with Eric if this is the right way to set the time?
+        iretn = settimeofday(&newtime, nullptr);
+        if (iretn < 0)
+        {
+            return 0.;
+        }
+#endif
+    }
+    else
+    {
+        // Fine adjustment using adjtime()
+        if (fabs(deltat) > .001)
+        {
+#if defined(COSMOS_WIN_OS)
+            double newdelta;
+            newdelta = deltat * 1e7;
+            SetSystemTimeAdjustment(newdelta,false);
+#else
+
+            struct timeval newdelta, olddelta;
+            newdelta.tv_sec = deltat;
+            newdelta.tv_usec = 100000. * (deltat - newdelta.tv_sec) + .5;
+
+            // adjust the time
+            iretn = adjtime(&newdelta, &olddelta);
+            return 0.;
+        }
+#endif
+
+    }
+    return deltat;
+}

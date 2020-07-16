@@ -1722,6 +1722,7 @@ struct nodestruc
     uint16_t glossary_cnt;
     uint16_t tle_cnt;
     uint16_t charging;
+    uint16_t powmode;
     //! Total Heat Capacity
     float hcap;
     //! Total Mass

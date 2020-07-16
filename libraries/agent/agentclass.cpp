@@ -234,6 +234,7 @@ namespace Cosmos
             Agent::add_request("idle",Agent::req_idle,"","request to transition this agent to idle state");
             Agent::add_request("init",Agent::req_init,"","request to transition this agent to init state");
             Agent::add_request("monitor",Agent::req_monitor,"","request to transition this agent to monitor state");
+            Agent::add_request("reset",Agent::req_reset,"","request to transition this agent to reset state");
             Agent::add_request("run",Agent::req_run,"","request to transition this agent to run state");
             Agent::add_request("status",Agent::req_status,"","request the status of this agent");
             Agent::add_request("debug_level",Agent::req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
@@ -253,9 +254,11 @@ namespace Cosmos
             Agent::add_request("portsjson",Agent::req_portsjson,"","return description JSON for Ports");
             Agent::add_request("targetsjson",Agent::req_targetsjson,"","return description JSON for Targets");
             Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
-            Agent::add_request("heartbeat",Agent::req_heartbeat,"","Send extra hearbeat");
-            Agent::add_request("utc",Agent::req_utc,"Coordinated Universal Time","Get UTC as both Modified Julian Day and Unix Time");
-            Agent::add_request("soh",Agent::req_soh,"SOH string","Get SOH string");
+            Agent::add_request("heartbeat",Agent::req_heartbeat,"","Post a hearbeat");
+            Agent::add_request("postsoh",Agent::req_postsoh,"","Post a SOH");
+            Agent::add_request("utc",Agent::req_utc,"utc","Get UTC as both Modified Julian Day and Unix Time");
+            Agent::add_request("soh",Agent::req_soh,"soh","Get SOH string");
+            Agent::add_request("jsondump",Agent::req_jsondump,"jsondump","Dump JSON ini files to node folder");
 
             cinfo->agent[0].server = 1;
             cinfo->agent[0].stateflag = static_cast<uint16_t>(Agent::State::RUN);
@@ -641,6 +644,7 @@ namespace Cosmos
             {
                 node = nodeName;
             }
+            post(AgentMessage::REQUEST, "heartbeat");
 
             ElapsedTime ep;
             ep.start();
@@ -674,25 +678,8 @@ namespace Cosmos
         {
             beatstruc cbeat;
 
-            //! Loop for ::waitsec seconds, looking for desired agent.
+            cbeat = find_agent(agent, node, waitsec);
 
-            ElapsedTime ep;
-            ep.start();
-            post(AgentMessage::REQUEST, "heartbeat");
-
-            do
-            {
-                cbeat = find_agent(agent, node);
-                if (cbeat.exists)
-                {
-                    return cbeat;
-                }
-            } while (ep.split() <= waitsec);
-
-            // ?? do a complete reset of cbeat if agent not found, not just utc = 0
-            cbeat.utc = 0.;
-            cbeat.node[0] = '\0';
-            // etc ...
             return cbeat;
         }
 
@@ -1154,7 +1141,7 @@ namespace Cosmos
             return(0);
         }
 
-        //! Built-in Set state to Idle request
+        //! Built-in Set state to Monitor request
         /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
  * \param request Text of request.
  * \param output Text of response to request.
@@ -1164,6 +1151,20 @@ namespace Cosmos
         int32_t Agent::req_monitor(char*, char* output, Agent* agent)
         {
             agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::MONITOR);
+            output[0] = 0;
+            return(0);
+        }
+
+        //! Built-in Set state to Reset request
+        /*! Resends the received request, less count bytes, to all Publication channels of the Agent.
+ * \param request Text of request.
+ * \param output Text of response to request.
+ * \param agent Pointer to Cosmos::Agent to use.
+ * \return 0, or negative error.
+ */
+        int32_t Agent::req_reset(char*, char* output, Agent* agent)
+        {
+            agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RESET);
             output[0] = 0;
             return(0);
         }
@@ -1447,6 +1448,14 @@ namespace Cosmos
             return iretn;
         }
 
+        int32_t Agent::req_postsoh(char *, char* output, Agent* agent)
+        {
+            output[0] = 0;
+            int32_t iretn = 0;
+            iretn = agent->post_soh();
+            return iretn;
+        }
+
         int32_t Agent::req_utc(char *, char *response, Agent *agent)
         {
             sprintf(response, " %.15g %lf ", agent->agent_time_producer(), utc2unixseconds(agent->agent_time_producer()));
@@ -1459,6 +1468,13 @@ namespace Cosmos
             strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
 
             return 0;
+        }
+
+        int32_t Agent::req_jsondump(char *, char*, Agent *agent)
+        {
+            json_dump_node(agent->cinfo);
+            return 0;
+
         }
 
         //! Open COSMOS output channel
@@ -2095,14 +2111,23 @@ namespace Cosmos
         {
             int32_t iretn = 0;
             cinfo->agent[0].beat.utc = currentmjd(0.);
-            if ((Agent::State)(cinfo->agent[0].stateflag) != Agent::State::IDLE && !sohtable.empty())
-            {
-                iretn = post(AgentMessage::BEAT, json_of_table(hbjstring, sohtable, (cosmosstruc *)cinfo));
-            }
-            else
-            {
-                iretn = post(AgentMessage::BEAT,"");
-            }
+            iretn = post(AgentMessage::BEAT);
+//            if (!sohtable.empty())
+//            {
+//                iretn = post(AgentMessage::BEAT, json_of_table(hbjstring, sohtable, (cosmosstruc *)cinfo));
+//            }
+//            else
+//            {
+//                iretn = post(AgentMessage::BEAT,"");
+//            }
+            return iretn;
+        }
+
+        int32_t Agent::post_soh()
+        {
+            int32_t iretn = 0;
+            cinfo->agent[0].beat.utc = currentmjd(0.);
+            iretn = post(AgentMessage::SOH, json_of_table(hbjstring, sohtable, (cosmosstruc *)cinfo));
             return iretn;
         }
 
@@ -2723,23 +2748,46 @@ namespace Cosmos
 
         // A Cristian's algorithm approach to time synchronization, with our remote node as the time server.
         // This is meant to be run on a time sink agent (a requester).
-        int32_t Agent::get_agent_time(double &agent_time, double &epsilon, string agent, string node, double wait_sec) {
-            beatstruc agent_beat = find_agent(node, agent, wait_sec);
+        int32_t Agent::get_agent_time(double &agent_time, double &epsilon, string agent, string node, double wait_sec)
+        {
+            static beatstruc agent_beat;
             std::string agent_response;
             double mjd_0, mjd_1, delta;
+            int32_t iretn;
+
+            if (!agent_beat.exists)
+            {
+                agent_beat = find_agent(node, agent, wait_sec);
+            }
+            else
+            {
+                if (node != agent_beat.node || (agent != "any" && agent != agent_beat.proc))
+                {
+                    agent_beat = find_agent(node, agent, wait_sec);
+                }
+            }
 
             // Do not proceed if we cannot find the agent.
             if (!agent_beat.exists) return AGENT_ERROR_DISCOVERY;
 
             mjd_0 = currentmjd();
-            send_request(agent_beat, "utc", agent_response, 0);
-            mjd_1 = currentmjd();
+            iretn = send_request(agent_beat, "utc", agent_response, 0);
+            if (iretn >= 0)
+            {
+                mjd_1 = currentmjd();
 
-            delta = (mjd_1 - mjd_0) / 2.0;  // RTT / 2.0
-            agent_time = stod(agent_response.substr(0, agent_response.find("["))) + delta;
-            epsilon = delta; // We do not have a lower bound on the time to transmit a message one way.
+                delta = (mjd_1 - mjd_0) / 2.0;  // RTT / 2.0
+                agent_time = stod(agent_response.substr(0, agent_response.find("["))) + delta;
+                epsilon = delta; // We do not have a lower bound on the time to transmit a message one way.
 
             return 0;
+            }
+            else
+            {
+                agent_time = 0.;
+                epsilon = 0.;
+                return GENERAL_ERROR_TIMEOUT;
+            }
         }
 
 

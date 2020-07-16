@@ -72,7 +72,42 @@ void JSONValue::set_null()
 void JSONValue::set(std::string val)
 {
     this->type = JSONValue::JsonValueType::STRING;
-    this->value_as_string = "\"" + val + "\"";
+//    this->value_as_string = "\"" + val + "\"";
+    this->value_as_string = "\"";
+    for (char cval : val)
+    {
+        switch(cval)
+        {
+        case '"':
+            this->value_as_string += "\\\"";
+            break;
+        case '\\':
+            this->value_as_string += "\\\\";
+            break;
+        case '/':
+            this->value_as_string += "\\/";
+            break;
+        case '\b':
+            this->value_as_string += "\\\b";
+            break;
+        case '\f':
+            this->value_as_string += "\\\f";
+            break;
+        case '\n':
+            this->value_as_string += "\\\n";
+            break;
+        case '\r':
+            this->value_as_string += "\\\r";
+            break;
+        case '\t':
+            this->value_as_string += "\\\t";
+            break;
+        default:
+            this->value_as_string += cval;
+            break;
+        }
+    }
+    this->value_as_string += "\"";
 }
 
 void JSONValue::set(double val)

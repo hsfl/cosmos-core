@@ -61,11 +61,11 @@
 
 #define PROGRESS_QUEUE_SIZE 256
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
-#define PACKET_SIZE_LO (512-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
+#define PACKET_SIZE_LO (200-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
 #define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_OFFSET_HEADER_TOTAL)
-#define THROUGHPUT_LO 1300
+#define THROUGHPUT_LO 130
 #define PACKET_SIZE_HI (1472-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
-#define THROUGHPUT_HI 150000
+#define THROUGHPUT_HI 1500
 //#define TRANSFER_QUEUE_LIMIT 10
 #define PACKET_IN 1
 #define PACKET_OUT 2
@@ -99,7 +99,7 @@ typedef struct
     socket_channel chansock;
     string chanip="";
     PACKET_CHUNK_SIZE_TYPE packet_size=PACKET_SIZE_HI;
-    uint32_t throughput=THROUGHPUT_LO;
+    uint32_t throughput=THROUGHPUT_HI;
     double limjd;
     double lomjd;
     double nmjd;
@@ -112,6 +112,9 @@ typedef struct
     //    bool send_data;
     double send_complete;
 } channelstruc;
+
+static PACKET_CHUNK_SIZE_TYPE default_packet_size=PACKET_SIZE_HI;
+static uint32_t default_throughput=THROUGHPUT_HI;
 
 static vector <channelstruc> out_comm_channel;
 
@@ -242,7 +245,13 @@ int main(int argc, char *argv[])
     thread recv_loop_thread;
     thread transmit_loop_thread;
 
-    agent = new Agent("", "file", 5.);
+    if (static_cast<string>(argv[0]).find("slow") != string::npos)
+    {
+        default_throughput = THROUGHPUT_LO;
+        default_packet_size = PACKET_SIZE_LO;
+    }
+
+    agent = new Agent("", "file", 0.);
     if ((iretn = agent->wait()) < 0)
     {
         fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
@@ -271,6 +280,8 @@ int main(int argc, char *argv[])
     out_comm_channel[0].lomjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].fmjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].node = "";
+    out_comm_channel[0].throughput = default_throughput;
+    out_comm_channel[0].packet_size = default_packet_size;
     fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Listening socket open\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
@@ -294,6 +305,8 @@ int main(int argc, char *argv[])
         out_comm_channel[1].limjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].lomjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].fmjd = out_comm_channel[1].nmjd;
+        out_comm_channel[1].throughput = default_throughput;
+        out_comm_channel[1].packet_size = default_packet_size;
         fprintf(agent->get_debug_fd(), "%16.10f Network: Old: %u %s %s %u\n", currentmjd(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
         fflush(agent->get_debug_fd());
 

@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
-    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
+    iretn = json_createpiece(agent->cinfo, agent->nodeName + "_cpu", DeviceType::CPU);
     if (iretn < 0)
     {
         fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
@@ -121,13 +121,15 @@ int main(int argc, char *argv[])
     sohstring += ",\"device_cpu_gib_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_maxload_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_load_00" + std::to_string(cpu_didx) + "\"";
+    sohstring += ",\"device_cpu_uptime_00" + std::to_string(cpu_didx) + "\"";
+    sohstring += ",\"device_cpu_boot_count_00" + std::to_string(cpu_didx) + "\"";
 
     static const double GiB = 1024. * 1024. * 1024.;
 
     agent->cinfo->device[cpu_cidx].cpu.load = static_cast <float>(deviceCpu.getLoad());
     agent->cinfo->device[cpu_cidx].cpu.gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/GiB);
     agent->cinfo->device[cpu_cidx].cpu.maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/GiB);
-    agent->cinfo->device[cpu_cidx].cpu.maxload = deviceCpu.getCount();
+    agent->cinfo->device[cpu_cidx].cpu.maxload = deviceCpu.getCpuCount();
     deviceCpu.numProcessors = agent->cinfo->device[cpu_cidx].cpu.maxload;
     deviceCpu.getPercentUseForCurrentProcess();
 
@@ -158,7 +160,7 @@ int main(int argc, char *argv[])
     agent->set_sohstring(sohstring);
     printf("SOH String: %s\n", sohstring.c_str());
 
-    json_dump_node(agent->cinfo);
+//    json_dump_node(agent->cinfo);
 
     // TODO: determine number of disks automatically
     PrintUtils print;
@@ -203,6 +205,8 @@ int main(int argc, char *argv[])
         // get cpu info
         if (agent->cinfo->devspec.cpu_cnt)
         {
+            agent->cinfo->device[cpu_cidx].cpu.uptime = deviceCpu.getUptime();
+            agent->cinfo->device[cpu_cidx].cpu.boot_count = deviceCpu.getBootCount();
             agent->cinfo->device[cpu_cidx].cpu.load = deviceCpu.getLoad();
             agent->cinfo->device[cpu_cidx].cpu.gib = deviceCpu.getVirtualMemoryUsed()/GiB;
             agent->cinfo->device[cpu_cidx].cpu.maxgib = deviceCpu.getVirtualMemoryTotal()/GiB;

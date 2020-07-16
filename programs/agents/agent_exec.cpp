@@ -85,7 +85,6 @@ int32_t request_del_event(char* request, char* response, Agent* agent);
 int32_t request_del_event_id(char* request, char* response, Agent* agent);
 int32_t request_add_event(char* request, char* response, Agent* agent);
 int32_t request_remote_command(char *request, char* response, Agent* agent);
-int32_t request_soh(char *request, char* response, Agent* agent);
 int32_t request_reopen_exec(char* request, char* response, Agent* agent);
 int32_t request_set_logstride_exec(char* request, char* response, Agent* agent);
 int32_t request_get_logstride_exec(char* request, char* response, Agent* agent);
@@ -109,14 +108,14 @@ void move_and_compress_soh();
 static string logstring;
 static vector<jsonentry*> logtable;
 static double logdate_soh=0.;
-static int32_t newlogperiod = 10, logperiod = 0;
-static double newlogstride_soh = 900. / 86400.;
+static double newlogperiod = 5. / 86400., logperiod = 0;
+static double newlogstride_soh = 0.;
 static double logstride_soh = 0.;
 static std::mutex soh_mutex;
 
 static std::mutex beacon_mutex;
 void move_and_compress_beacon();
-void get_beacon_cpu();
+//void get_beacon_cpu();
 
 static vector<shorteventstruc> eventdict;
 static vector<shorteventstruc> events;
@@ -131,18 +130,17 @@ int main(int argc, char *argv[])
     vector<shorteventstruc> events, eventdict;
     std::string incoming_dir, outgoing_dir, temp_dir, immediate_dir;
     std::string jjstring, myjstring;
-    double lmjd, dmjd, cmjd;
+    double llogmjd, dlogmjd, clogmjd;
     int32_t iretn;
-    int sleept;
 
     // Set node name to first argument
     if (argc == 2)
     {
-        agent = new Agent(argv[1], "exec", 5.);
+        agent = new Agent(argv[1], "exec", 0.);
     }
     else
     {
-        agent = new Agent("", "exec", 5.);
+        agent = new Agent("", "exec", 0.);
     }
 
     if ((iretn = agent->wait()) < 0)
@@ -153,6 +151,45 @@ int main(int argc, char *argv[])
     else
     {
         fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+    }
+
+    // Fix time
+    double ctime;
+    double epsilon;
+    iretn = agent->get_agent_time(ctime, epsilon, "gps");
+    if (iretn >= 0)
+    {
+        set_local_clock(ctime);
+        printf("Initialized time from time server: Delta %f\n", 86400.*epsilon);
+    }
+    else
+    {
+        FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_date").c_str(), "r");
+        if (fp != nullptr)
+        {
+            calstruc date;
+            fscanf(fp, "%02d%02d%02d%02d%04d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year);
+            date.second = 59;
+            fclose(fp);
+            double epsilon = cal2mjd(date) -  currentmjd();
+            if (epsilon > 3.5e-4)
+            {
+                epsilon = set_local_clock(cal2mjd(date));
+                printf("Initialized time from file: Delta %f\n", epsilon);
+            }
+        }
+
+        //        FILE *fp = fopen("/cosmos/nodes/beagle1/last_date", "w");
+        //        if (fp != nullptr)
+        //        {
+        //            calstruc date;
+        //            fscanf(fp, "%02d%02d%02d%02d%04d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year);
+        //            date.second = 59;
+        //            fclose(fp);
+        //            epsilon = cal2mjd(date) -  currentmjd();
+        //            set_local_clock(cal2mjd(date));
+        //            printf("Initialized time from file: Delta %f\n", epsilon);
+        //        }
     }
 
     agent->cinfo->node.utc = 0.;
@@ -259,28 +296,66 @@ int main(int argc, char *argv[])
     if ((iretn=agent->add_request("get_logstride_soh", request_get_logstride_soh, "", "return how frequently we flush our soh log files out of temp directory")))
         exit (iretn);
 
+    load_dictionary(eventdict, agent->cinfo, "events.dict");
+
+    // Start thread to collect SOH data
+    bool log_data_flag = true;
+    vector <beatstruc> servers = agent->find_servers(1.);
+    for (beatstruc &i : servers)
+    {
+        if (strcmp(i.node, agent->nodeName.c_str()) && !strcmp(i.proc, "exec"))
+        {
+            log_data_flag = false;
+            break;
+        }
+    }
+
+    if (log_data_flag)
+    {
+        printf("Primary: SOH logger\n");
+    }
+    else
+    {
+        printf("Secondary: Not logging SOH\n");
+    }
+
+    newlogstride_soh = 900. / 86400.;
+    cdthread = thread(collect_data_loop);
+
     // Create default logstring
     logstring = json_list_of_soh(agent->cinfo);
     printf("===\nlogstring: %s\n===\n", logstring.c_str()); fflush(stdout);
     json_table_of_list(logtable, logstring.c_str(), agent->cinfo);
 
-    //	agent_set_sohstring(agent->cinfo, logstring.c_str());
+    agent->set_sohstring(logstring);
 
-    load_dictionary(eventdict, agent->cinfo, "events.dict");
-
-    // Start thread to collect SOH data
-    thread cdthread = thread(collect_data_loop);
-
-    get_beacon_cpu();
     // Start performing the body of the agent
-    COSMOS_SLEEP(30.);
-    lmjd = cmjd =  currentmjd();
+    //    COSMOS_SLEEP(30.);
+    agent->post(Agent::AgentMessage::REQUEST, "postsoh");
+    llogmjd = clogmjd =  currentmjd();
     agent->start_active_loop();
     agent->debug_level = 0;
+    ElapsedTime postet;
+    ElapsedTime savet;
     while(agent->running())
     {
-        dmjd = (cmjd-lmjd)*86400.;
-        agent->cinfo->node.utc = cmjd = currentmjd();
+        dlogmjd = (clogmjd-llogmjd)*86400.;
+        agent->cinfo->node.utc = clogmjd = currentmjd();
+
+        // Check if exec logstride has changed
+        if (fabs(newlogstride_exec - logstride_exec) > std::numeric_limits<double>::epsilon())
+        {
+            logstride_exec = newlogstride_exec;
+            logdate_exec = currentmjd(0.);
+            move_and_compress_exec();
+        }
+
+        // Check if exec logstride has expired
+        if (logstride_exec != 0. && floor(clogmjd/logstride_exec)*logstride_exec > logdate_exec)
+        {
+            logdate_exec = floor(clogmjd/logstride_exec)*logstride_exec;
+            move_and_compress_exec();
+        }
 
         // Check if the SOH logperiod has changed
         if (newlogperiod != logperiod )
@@ -288,45 +363,55 @@ int main(int argc, char *argv[])
             logperiod = newlogperiod;
             logdate_soh = agent->cinfo->node.utc;
 
-            move_and_compress_soh();
+            if (log_data_flag)
+            {
+                move_and_compress_soh();
+            }
         }
 
-        // Check if either of the logstride have changed
-        if (fabs(newlogstride_exec - logstride_exec) > std::numeric_limits<double>::epsilon()) {
-            logstride_exec = newlogstride_exec;
-            logdate_exec = currentmjd(0.);
-            move_and_compress_exec();
-        }
-
-        if (fabs(newlogstride_soh - logstride_soh) > std::numeric_limits<double>::epsilon()) {
+        if (fabs(newlogstride_soh - logstride_soh) > std::numeric_limits<double>::epsilon())
+        {
             logstride_soh = newlogstride_soh;
             logdate_soh = currentmjd(0.);
 
 
-            move_and_compress_soh();
-            move_and_compress_beacon();
+            if (log_data_flag)
+            {
+                move_and_compress_soh();
+                move_and_compress_beacon();
+            }
         }
 
-        // Check if either of the logstride have expired
-        if (floor(cmjd/logstride_exec)*logstride_exec > logdate_exec)
+        if (logstride_soh != 0. && floor(clogmjd/logstride_soh)*logstride_soh > logdate_soh)
         {
-            logdate_exec = floor(cmjd/logstride_exec)*logstride_exec;
-            move_and_compress_exec();
+            logdate_soh = floor(clogmjd/logstride_soh)*logstride_soh;
+            if (log_data_flag)
+            {
+                move_and_compress_soh();
+                move_and_compress_beacon();
+            }
         }
 
-        if (floor(cmjd/logstride_soh)*logstride_soh > logdate_soh)
+        // Check if SOH logperiod has expired
+        if (dlogmjd-logperiod > -logperiod/20.)
         {
-            logdate_soh = floor(cmjd/logstride_soh)*logstride_soh;
-            move_and_compress_soh();
-            move_and_compress_beacon();
+            llogmjd = clogmjd;
+            if (log_data_flag && agent->cinfo->node.utc != 0. && logstring.size())
+            {
+                log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo));
+                log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo), static_cast <string>("immediate"));
+            }
         }
 
         // Perform SOH specific functions
-        if (agent->cinfo->node.utc != 0.)
+        if (logstride_soh > 0. && agent->cinfo->node.utc != 0. && postet.split() >= 43200. * logperiod)
         {
+            postet.reset();
+            agent->post(Agent::AgentMessage::REQUEST, "postsoh");
+
             loc_update(&agent->cinfo->node.loc);
             update_target(agent->cinfo);
-            agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, logtable, agent->cinfo));
+            //            agent->post(Agent::AgentMessage::SOH, json_of_table(myjstring, logtable, agent->cinfo));
             calc_events(eventdict, agent->cinfo, events);
             for (uint32_t k=0; k<events.size(); ++k)
             {
@@ -336,28 +421,28 @@ int main(int argc, char *argv[])
             }
         }
 
-        // Check if SOH logperiod has expired
-        if (dmjd-logperiod > -logperiod/20.)
-        {
-            lmjd = cmjd;
-            if (agent->cinfo->node.utc != 0. && logstring.size())
-            {
-                log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo));
-                log_write(agent->cinfo->node.name, DATA_LOG_TYPE_SOH, logdate_soh, json_of_table(jjstring, logtable, agent->cinfo), static_cast <string>("immediate"));
-            }
-        }
-
         // Perform Executive specific functions
         cmd_queue.load_commands(immediate_dir);
         cmd_queue.load_commands(incoming_dir);
         cmd_queue.run_commands(agent, agent->getNode(), logdate_exec);
         cmd_queue.save_commands(temp_dir);
 
+        if (savet.split() > 60.)
+        {
+            savet.reset();
+            FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_date").c_str(), "w");
+            calstruc date = mjd2cal(currentmjd());
+            fprintf(fp, "%02d%02d%02d%02d%04d.59\n", date.month, date.dom, date.hour, date.minute, date.year);
+            fclose(fp);
+        }
         agent->finish_active_loop();
     }
 
     agent->shutdown();
-    cdthread.join();
+    if (log_data_flag)
+    {
+        cdthread.join();
+    }
 }
 
 // Executive specific requests
@@ -439,8 +524,8 @@ int32_t request_del_event_id(char *request, char* response, Agent *)
         if (iretn == 1) {
             if(j >= 0 && j < static_cast<int>(cmd_queue.get_size())) {
                 sprintf(response,"%d commands deleted from the queue",
-                    cmd_queue.del_command(j)
-                );
+                        cmd_queue.del_command(j)
+                        );
             } else {
                 ss << "<" << j << "> is not a valid command queue index (current range between 0 and " << cmd_queue.get_size()-1 << ")";
             }
@@ -448,7 +533,7 @@ int32_t request_del_event_id(char *request, char* response, Agent *)
         // if the user supplied something that couldn't be turned into an integer
         else if (iretn == 0)	{
             ss << "Usage:\tdel_event_id [ index ]\t";
-		}
+        }
     }
 
     strcpy(response, ss.str().c_str());
@@ -497,8 +582,8 @@ int32_t request_add_event(char *request, char* response, Agent *)
         sprintf(response, "Not a valid command: %s", line.c_str());
     }
 
-	// sort the queue
-	cmd_queue.sort();
+    // sort the queue
+    cmd_queue.sort();
     return 0;
 }
 
@@ -566,12 +651,13 @@ int32_t request_reopen_soh(char*, char*, Agent *agent)
 
 int32_t request_set_logperiod(char* request, char*, Agent *)
 {
-    sscanf(request,"set_logperiod %d",&newlogperiod);
+    sscanf(request,"set_logperiod %lf",&newlogperiod);
+    newlogperiod /= 86400.;
     return 0;
 }
 int32_t request_get_logperiod(char*, char* response, Agent *)
 {
-    sprintf(response, "%d", logperiod);
+    sprintf(response, "%lf", 86400. * logperiod);
     return 0;
 }
 
@@ -592,11 +678,12 @@ int32_t request_get_logstring(char*, char* response, Agent *)
 int32_t request_set_logstride_soh(char* request, char*, Agent *)
 {
     sscanf(request,"set_logstride_soh %lf",&newlogstride_soh);
+    newlogstride_soh /= 86400.;
     return 0;
 }
 int32_t request_get_logstride_soh(char*, char*response, Agent *)
 {
-    sprintf(response, "%lf", logstride_soh);
+    sprintf(response, "%lf", 86400. * logstride_soh);
     return 0;
 }
 
@@ -649,38 +736,21 @@ void move_and_compress_beacon () {
     beacon_mutex.unlock();
 }
 
-void get_beacon_cpu() {
-    static DeviceCpu deviceCpu;
-    static const double GiB = 1024. * 1024. * 1024.;
-    int32_t iretn;
-    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
-    if (iretn < 0)
-    {
-        fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
-        agent->shutdown();
-        exit(1);
-    }
+//void get_beacon_cpu() {
+//    static DeviceCpu deviceCpu;
+//    static const double GiB = 1024. * 1024. * 1024.;
+//    int32_t iretn;
+//    iretn = json_createpiece(agent->cinfo, "main_cpu", DeviceType::CPU);
+//    if (iretn < 0)
+//    {
+//        fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
+//        agent->shutdown();
+//        exit(1);
+//    }
 
-    uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-    agent->cinfo->device[cidx].cpu.load = static_cast <float>(deviceCpu.getLoad());
-    agent->cinfo->device[cidx].cpu.gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/GiB);
-    agent->cinfo->device[cidx].cpu.maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/GiB);
-    agent->cinfo->device[cidx].cpu.maxload = deviceCpu.getCount();
-}
-// Not being used... remove?
-///// Prints the command information stored in local the copy of agent->cinfo->event[0].l
-//void print_command()
-//{
-//    string jsp;
-//
-//    json_out(jsp,(char*)"event_utc", agent->cinfo);
-//    json_out(jsp,(char*)"event_utcexec", agent->cinfo);
-//    json_out(jsp,(char*)"event_name", agent->cinfo);
-//    json_out(jsp,(char*)"event_type", agent->cinfo);
-//    json_out(jsp,(char*)"event_flag", agent->cinfo);
-//    json_out(jsp,(char*)"event_data", agent->cinfo);
-//    json_out(jsp,(char*)"event_condition", agent->cinfo);
-//    cout<<"<"<<jsp<<">"<<endl;
-//
-//    return;
+//    uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+//    agent->cinfo->device[cidx].cpu.load = static_cast <float>(deviceCpu.getLoad());
+//    agent->cinfo->device[cidx].cpu.gib = static_cast <float>(deviceCpu.getVirtualMemoryUsed()/GiB);
+//    agent->cinfo->device[cidx].cpu.maxgib = static_cast <float>(deviceCpu.getVirtualMemoryTotal()/GiB);
+//    agent->cinfo->device[cidx].cpu.maxload = deviceCpu.getCpuCount();
 //}
