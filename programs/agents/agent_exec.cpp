@@ -108,8 +108,9 @@ void move_and_compress_soh();
 static string logstring;
 static vector<jsonentry*> logtable;
 static double logdate_soh=0.;
-static double newlogperiod = 5. / 86400., logperiod = 0;
-static double newlogstride_soh = 0.;
+static double newlogperiod = 10. / 86400.;
+static double logperiod = 0;
+static double newlogstride_soh = 600. / 86400.;
 static double logstride_soh = 0.;
 static std::mutex soh_mutex;
 
@@ -168,9 +169,15 @@ int main(int argc, char *argv[])
         if (fp != nullptr)
         {
             calstruc date;
-            fscanf(fp, "%02d%02d%02d%02d%04d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year);
-            date.second = 59;
+            int32_t offset = 0;
+            fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
             fclose(fp);
+            fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_offset").c_str(), "r");
+            if (fp != nullptr)
+            {
+                fscanf(fp, "%d", &offset);
+            }
+            date.second += offset;
             double epsilon = cal2mjd(date) -  currentmjd();
             if (epsilon > 3.5e-4)
             {
@@ -319,8 +326,7 @@ int main(int argc, char *argv[])
         printf("Secondary: Not logging SOH\n");
     }
 
-    newlogstride_soh = 900. / 86400.;
-    cdthread = thread(collect_data_loop);
+    cdthread = thread([=] { collect_data_loop(); });
 
     // Create default logstring
     logstring = json_list_of_soh(agent->cinfo);
@@ -330,8 +336,8 @@ int main(int argc, char *argv[])
     agent->set_sohstring(logstring);
 
     // Start performing the body of the agent
-    //    COSMOS_SLEEP(30.);
     agent->post(Agent::AgentMessage::REQUEST, "postsoh");
+    COSMOS_SLEEP(10.);
     llogmjd = clogmjd =  currentmjd();
     agent->start_active_loop();
     agent->debug_level = 0;
@@ -404,7 +410,7 @@ int main(int argc, char *argv[])
         }
 
         // Perform SOH specific functions
-        if (logstride_soh > 0. && agent->cinfo->node.utc != 0. && postet.split() >= 43200. * logperiod)
+        if (log_data_flag && logstride_soh > 0. && agent->cinfo->node.utc != 0. && postet.split() >= 43200. * logperiod)
         {
             postet.reset();
             agent->post(Agent::AgentMessage::REQUEST, "postsoh");
@@ -424,8 +430,8 @@ int main(int argc, char *argv[])
         // Perform Executive specific functions
         cmd_queue.load_commands(immediate_dir);
         cmd_queue.load_commands(incoming_dir);
+        cmd_queue.join_events();
         cmd_queue.run_commands(agent, agent->getNode(), logdate_exec);
-        cmd_queue.save_commands(temp_dir);
 
         if (savet.split() > 60.)
         {
@@ -434,6 +440,7 @@ int main(int argc, char *argv[])
             calstruc date = mjd2cal(currentmjd());
             fprintf(fp, "%02d%02d%02d%02d%04d.59\n", date.month, date.dom, date.hour, date.minute, date.year);
             fclose(fp);
+//            cmd_queue.save_commands(temp_dir);
         }
         agent->finish_active_loop();
     }

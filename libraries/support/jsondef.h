@@ -1340,9 +1340,11 @@ struct cpustruc : public allstruc
     // cpu
     //! Seconds CPU has been up
     uint32_t uptime;
+    //! Seconds CPU will be down
+    uint32_t downtime;
     //! Current load
     float load;
-    //! Maximu load
+    //! Maximum load
     float maxload;
 
     // memory
@@ -1452,10 +1454,12 @@ struct rxrstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
-    //! Good Packet Count
-    uint32_t goodcnt;
-    //! Bad Packet Count
-    uint32_t badcnt;
+    //! Good Packet Percentage
+    double  goodratio;
+    //! Last RX time
+    double rxutc;
+    //! Connection Uptime
+    double uptime;
 };
 
 //! Transmitter information
@@ -1483,10 +1487,12 @@ struct txrstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
-    //! Good Packet Count
-    uint32_t goodcnt;
-    //! Bad Packet Count
-    uint32_t badcnt;
+    //! Good Packet Percentage
+    double  goodratio;
+    //! Last TX time
+    double txutc;
+    //! Connection Uptime
+    double uptime;
 };
 
 //! Transceiver information
@@ -1514,10 +1520,14 @@ struct tcvstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
-    //! Good Packet Count
-    uint32_t goodcnt;
-    //! Bad Packet Count
-    uint32_t badcnt;
+    //! Good Packet Percentage
+    double  goodratio;
+    //! Last TX time
+    double txutc;
+    //! Last RX time
+    double rxutc;
+    //! Connection Uptime
+    double uptime;
 };
 
 //! PV String (STRG) structure.
@@ -1722,7 +1732,7 @@ struct nodestruc
     uint16_t glossary_cnt;
     uint16_t tle_cnt;
     uint16_t charging;
-    uint16_t powmode;
+    int16_t powmode;
     //! Total Heat Capacity
     float hcap;
     //! Total Mass

@@ -159,6 +159,8 @@ enum NODE_TYPE
 #define EVENT_FLAG_REPEAT		0x20000
 //! Event true last time
 #define EVENT_FLAG_TRUE			0x40000
+//! Command Event should run by itself
+#define EVENT_FLAG_SOLO			0x80000
 
 //! @}
 

@@ -637,6 +637,10 @@ pid_t DeviceCpuLinux::getPidOf(string processName)
     char buf[512] = {'\0'};
     string tmp = "pidof " + processName;
     FILE *cmd_pipe = popen(tmp.c_str(), "r");
+    if (cmd_pipe == nullptr)
+    {
+        return -errno;
+    }
 
     fgets(buf, 512, cmd_pipe);
     pid_t pid = strtoul(buf, NULL, 10);
@@ -948,10 +952,14 @@ DeviceCpuLinux::procStat::procStat()
 
 }
 
-uint16_t DeviceCpuLinux::getCpuCount()
+int32_t DeviceCpuLinux::getCpuCount()
 {
     uint16_t tcount = 0;
     FILE *fp = popen("lscpu -p=cpu", "r");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
     char tdata[100];
     uint16_t tindex;
     while ((fgets(tdata, 100, fp)) == tdata)
@@ -961,13 +969,18 @@ uint16_t DeviceCpuLinux::getCpuCount()
             ++tcount;
         }
     }
+    pclose( fp );
     return tcount;
 }
 
-uint16_t DeviceCpuLinux::getBootCount()
+int32_t DeviceCpuLinux::getBootCount()
 {
     uint16_t bootcount = 0;
     FILE *fp = popen("boot_count_get", "r");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
     char tdata[100];
     uint16_t tindex;
     if ((fgets(tdata, 100, fp)) == tdata)
@@ -977,13 +990,18 @@ uint16_t DeviceCpuLinux::getBootCount()
             bootcount = tindex;
         }
     }
+    pclose( fp );
     return bootcount;
 }
 
-uint32_t DeviceCpuLinux::getUptime()
+int32_t DeviceCpuLinux::getUptime()
 {
     uint32_t uptime = 0.;
     FILE *fp = popen("uptime -s", "r");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
     char tdata[100];
     if ((fgets(tdata, 100, fp)) == tdata)
     {
@@ -993,6 +1011,7 @@ uint32_t DeviceCpuLinux::getUptime()
             uptime = 86400. * (currentmjd() - cal2mjd(cal));
         }
     }
+    pclose( fp );
     return uptime;
 }
 #endif

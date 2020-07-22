@@ -119,9 +119,9 @@ public:
     pid_t getPidOf(string processName);
     double getMemoryUsedOf(string processName);
     float getPercentCpuOf(string processName);
-    uint16_t getCpuCount();
-    uint16_t getBootCount();
-    uint32_t getUptime();
+    int32_t getCpuCount();
+    int32_t getBootCount();
+    int32_t getUptime();
 
     class procPidStat {
 

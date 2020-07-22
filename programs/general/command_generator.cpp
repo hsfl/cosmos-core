@@ -50,9 +50,16 @@ int main(int argc, char *argv[])
 
     switch (argc)
     {
-    case 7: // add command to the scheduler
+    case 8: // add command to the scheduler
         {
             node = string(argv[6]);
+        }
+    case 7: // set solo flag
+        {
+            if (atoi(argv[6]))
+            {
+                flag |= EVENT_FLAG_SOLO;
+            }
         }
     case 6: // set repeat flag
         {

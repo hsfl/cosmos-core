@@ -64,12 +64,14 @@ namespace Cosmos
             /** A boolean indicator that the queue has changed	*/
             bool queue_changed = false;
 
+            bool queue_blocked = false;
+
         public:
             //! Ensure all threads are joined before destruction.
             ~CommandQueue();
 
             //! Join all threads spawn and empty our vector.
-            void join_events();
+            size_t join_events();
 
             //!	Retrieve the size of the queue
             /*!
@@ -120,6 +122,18 @@ namespace Cosmos
                 \param	logdate_exec	Time of execution (for logging purposes)
             */
             void run_command(Event &cmd, string nodename, double logdate_exec);
+
+            //!	Traverse the entire queue of Events, clearing those that have finished.
+            /*!
+
+            An %Event qualifies to be cleared if its thread could be joined, or if it has been
+            running for more than 1 minute.
+
+                \param	agent	Pointer to Agent object (for call to condition_true(..))
+                \param	nodename	Name of the node
+                \param	logdate_exec	Time of execution (for logging purposes)
+            */
+            void flush_commands();
 
             //!	Traverse the entire queue of Events, and run those which qualify.
             /*!

@@ -160,13 +160,19 @@ public:
 	*/
 	bool	is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
 
-	///	Determines if the %Event is a conditional command
-	/**
-		\return	True if %Event is a conditional command, other false
-	*/
-	bool	is_conditional(){	return (flag & EVENT_FLAG_CONDITIONAL);	}
+    ///	Determines if the %Event is a conditional command
+    /**
+        \return	True if %Event is a conditional command, other false
+    */
+    bool	is_conditional(){	return (flag & EVENT_FLAG_CONDITIONAL);	}
 
-	string generator(
+    ///	Determines if the %Event is a solo command
+    /**
+        \return	True if %Event is a solo command, other false
+    */
+    bool	is_solo(){	return (flag & EVENT_FLAG_SOLO);	}
+
+    string generator(
 		string name,
 		string data,
 		double utc,

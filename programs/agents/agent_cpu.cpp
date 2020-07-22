@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
     sohstring += ",\"device_cpu_maxload_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_load_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_uptime_00" + std::to_string(cpu_didx) + "\"";
+    sohstring += ",\"device_cpu_downtime_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_boot_count_00" + std::to_string(cpu_didx) + "\"";
 
     static const double GiB = 1024. * 1024. * 1024.;
