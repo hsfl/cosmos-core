@@ -204,8 +204,8 @@ int32_t read_meta(tx_progress& tx);
 bool tx_progress_compare_by_size(const tx_progress& a, const tx_progress& b);
 bool filestruc_compare_by_size(const filestruc& a, const filestruc& b);
 PACKET_TX_ID_TYPE check_tx_id(tx_entry &txentry, PACKET_TX_ID_TYPE tx_id);
-int32_t check_node_id(std::string node_name);
-int32_t check_node_id(PACKET_NODE_ID_TYPE node_id);
+int32_t check_node_id_2(std::string node_name);
+int32_t check_node_id_2(PACKET_NODE_ID_TYPE node_id);
 int32_t check_channel(PACKET_NODE_ID_TYPE node_id);
 int32_t check_remote_node_id(PACKET_NODE_ID_TYPE node_id);
 int32_t set_remote_node_id(PACKET_NODE_ID_TYPE node_id, std::string node_name);
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
     // Restore in progress transfers from previous run
     for (std::string node_name : data_list_nodes())
     {
-        int32_t node = check_node_id(node_name);
+        int32_t node = check_node_id_2(node_name);
 
         if (node < 0)
         {
@@ -536,11 +536,11 @@ void recv_loop()
             if ((recvbuf[0] & 0x0f) == PACKET_QUEUE)
             {
                 node_name = reinterpret_cast<char *>(&recvbuf[PACKET_QUEUE_OFFSET_NODE_NAME]);
-                node = check_node_id(node_name);
+                node = check_node_id_2(node_name);
             }
             else
             {
-                node = check_node_id(recvbuf[PACKET_HEADER_OFFSET_TOTAL]);
+                node = check_node_id_2(recvbuf[PACKET_HEADER_OFFSET_TOTAL]);
                 node_name = txq[static_cast <size_t>(node)].node_name;
             }
 //            if (node < 0)
@@ -605,7 +605,7 @@ void recv_loop()
                     packet_struct_metashort meta;
 
                     extract_metadata(recvbuf, meta);
-                    int32_t node = check_node_id(meta.node_id);
+                    int32_t node = check_node_id_2(meta.node_id);
                     if (node >= 0)
                     {
                         comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
@@ -631,7 +631,7 @@ void recv_loop()
 
                     incoming_tx_lock.lock();
 
-                    int32_t node = check_node_id(data.node_id);
+                    int32_t node = check_node_id_2(data.node_id);
 
                     if (node >= 0)
                     {
@@ -830,7 +830,7 @@ void recv_loop()
                     extract_reqdata(recvbuf, reqdata);
 
                     // Simple validity check
-                    int32_t node = check_node_id(reqdata.node_id);
+                    int32_t node = check_node_id_2(reqdata.node_id);
                     if (node >= 0)
                     {
                         comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
@@ -972,7 +972,7 @@ void recv_loop()
 
                     extract_complete(recvbuf, cancel);
 
-                    int32_t node = check_node_id(cancel.node_id);
+                    int32_t node = check_node_id_2(cancel.node_id);
                     if (node >= 0)
                     {
                         comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
@@ -997,7 +997,7 @@ void recv_loop()
 
                     extract_complete(recvbuf, complete);
 
-                    int32_t node = check_node_id(complete.node_id);
+                    int32_t node = check_node_id_2(complete.node_id);
                     if (node >= 0)
                     {
                         outgoing_tx_lock.lock();
@@ -1030,7 +1030,7 @@ void recv_loop()
                     incoming_tx_lock.lock();
 
                     // Is this a node we are handling?
-                    int32_t node = check_node_id(queue.node_name);
+                    int32_t node = check_node_id_2(queue.node_name);
                     if (node >= 0)
                     {
                         comm_channel[use_channel].node = txq[static_cast <size_t>(node)].node_name;
@@ -2000,7 +2000,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
         debug_fd_lock.unlock();
     }
 
-    int32_t node = check_node_id(tx_out.node_name);
+    int32_t node = check_node_id_2(tx_out.node_name);
     if (node <0)
     {
         if (debug_flag)
@@ -2130,7 +2130,7 @@ int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::stri
     // BEGIN GATHERING THE METADATA
     tx_progress tx_out;
 
-    int32_t node = check_node_id(node_name);
+    int32_t node = check_node_id_2(node_name);
     if (node <0)
     {
         return TRANSFER_ERROR_NODE;
@@ -2350,7 +2350,7 @@ int32_t outgoing_tx_recount(int32_t node)
 
 int32_t incoming_tx_add(tx_progress &tx_in)
 {
-    int32_t node = check_node_id(tx_in.node_name);
+    int32_t node = check_node_id_2(tx_in.node_name);
     if (node <0)
     {
         if (debug_flag)
@@ -2452,7 +2452,7 @@ int32_t incoming_tx_add(std::string node_name, PACKET_TX_ID_TYPE tx_id)
 
 int32_t incoming_tx_update(packet_struct_metashort meta)
 {
-    int32_t node = check_node_id(meta.node_id);
+    int32_t node = check_node_id_2(meta.node_id);
     if (node <0)
     {
         return TRANSFER_ERROR_NODE;
@@ -2498,7 +2498,7 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
 
 int32_t incoming_tx_del(int32_t node, uint16_t tx_id)
 {
-    node = check_node_id(node);
+    node = check_node_id_2(node);
     if (node <0)
     {
         return TRANSFER_ERROR_NODE;
@@ -2675,7 +2675,7 @@ PACKET_TX_ID_TYPE check_tx_id(tx_entry &txentry, PACKET_TX_ID_TYPE tx_id)
     }
 }
 
-int32_t check_node_id(std::string node_name)
+int32_t check_node_id_2(std::string node_name)
 {
     int32_t id = -1;
     for (uint16_t i=0; i<txq.size(); ++i)
@@ -2689,7 +2689,7 @@ int32_t check_node_id(std::string node_name)
     return id;
 }
 
-int32_t check_node_id(PACKET_NODE_ID_TYPE node_id)
+int32_t check_node_id_2(PACKET_NODE_ID_TYPE node_id)
 {
     int32_t id = -1;
     if (node_id >= 0 && node_id < txq.size())
