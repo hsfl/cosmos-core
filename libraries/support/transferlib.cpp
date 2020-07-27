@@ -46,6 +46,11 @@ bool IS_COMPLETE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET
 bool IS_CANCEL(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_CANCEL) != 0); }
 bool IS_QUEUE(const unsigned char P_TYPE)	{ return (((P_TYPE & 0x0f) & PACKET_QUEUE) != 0); }
 
+/** the Node ID lookup table */
+static vector <string> nodeids;
+//uint8_t lookup_node_id(PACKET_NODE_ID_TYPE node_id);
+//uint8_t lookup_node_id(string node_name);
+
 void make_complete_packet(vector<PACKET_BYTE>& packet, packet_struct_complete complete)
 {
     make_complete_packet(packet, complete.node_id, complete.tx_id);
@@ -317,6 +322,29 @@ void extract_heartbeat(vector<PACKET_BYTE>& packet, packet_struct_heartbeat& hea
     memmove(&heartbeat.funixtime, &packet[0]+PACKET_HEARTBEAT_OFFSET_FUNIXTIME, 4);
 }
 
+void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string message)
+{
+    PACKET_TYPE type = salt_type(PACKET_MESSAGE);
+
+    packet.resize(PACKET_MESSAGE_OFFSET_TOTAL);
+    memset(&packet[0], 0, PACKET_MESSAGE_OFFSET_TOTAL);
+    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_MESSAGE_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+    PACKET_BYTE length = message.size();
+    memmove(&packet[0]+PACKET_MESSAGE_OFFSET_BYTES, &length, 1);
+    memmove(&packet[0]+PACKET_MESSAGE_OFFSET_BYTES, &message[0], TRANSFER_MAX_PROTOCOL_PACKET - 2);
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
+}
+
+//Function to extract necessary fileds from a received message packet
+void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message)
+{
+    memmove(&message.node_id, &packet[0]+PACKET_MESSAGE_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+    memmove(&message.length, &packet[0]+PACKET_MESSAGE_OFFSET_LENGTH, 1);
+    memmove(&message.bytes[0], &packet[0]+PACKET_MESSAGE_OFFSET_BYTES, 1);
+}
+
 void show_fstream_state(std::ifstream& )  {
     std::cout<<"eobit =\t"<<std::ios_base::eofbit<<std::endl;
     std::cout<<"failbit =\t"<<std::ios_base::failbit<<std::endl;
@@ -438,4 +466,112 @@ PACKET_TYPE salt_type(PACKET_TYPE type)
     type &= 0xf;
     type |= time_salt << 4;
     return type;
+}
+
+int32_t check_node_id(PACKET_NODE_ID_TYPE node_id)
+{
+    int32_t iretn;
+
+    if ((iretn=load_nodeids()) <= 0)
+    {
+        return iretn;
+    }
+
+
+    if (node_id > 0 && nodeids[node_id].size())
+    {
+        return node_id;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int32_t lookup_node_id(string node_name)
+{
+    int32_t iretn;
+
+    if ((iretn=load_nodeids()) <= 0)
+    {
+        return iretn;
+    }
+
+    uint8_t node_id = 0;
+    for (uint8_t i=1; i<nodeids.size(); ++i)
+    {
+        if (nodeids[i] == node_name)
+        {
+            node_id = i;
+            break;
+        }
+    }
+
+    return node_id;
+}
+
+string lookup_node_id_name(PACKET_NODE_ID_TYPE node_id)
+{
+    string name;
+    if (load_nodeids() > 0 && node_id > 0 && nodeids[node_id].size())
+    {
+        return nodeids[node_id];
+    }
+    else
+    {
+        return "";
+    }
+}
+
+int32_t load_nodeids()
+{
+    //    int32_t iretn;
+    //    char name[100];
+    char buf[103];
+    if (nodeids.size() == 0)
+    {
+        FILE *fp = data_open(get_cosmosnodes()+"/nodeids.ini", "rb");
+        if (fp)
+        {
+            nodeids.resize(256);
+            uint16_t index;
+            while (fgets(buf, 102, fp) != nullptr)
+            {
+                if (buf[strlen(buf)-1] == '\n')
+                {
+                    buf[strlen(buf)-1] = 0;
+                }
+                if (buf[1] == ' ')
+                {
+                    buf[1] = 0;
+                    index = atoi(buf);
+                    nodeids[index] = &buf[2];
+                }
+                else if (buf[2] == ' ')
+                {
+                    buf[2] = 0;
+                    index = atoi(buf);
+                    nodeids[index] = &buf[3];
+                }
+                else if (buf[3] == ' ')
+                {
+                    buf[3] = 0;
+                    index = atoi(buf);
+                    nodeids[index] = &buf[4];
+                }
+                else
+                {
+                    index = 0;
+                }
+                //                sscanf(buf, "%u %s\n", &index, name);
+                //                nodeids[index] = name;
+            }
+        }
+        else
+        {
+            return -errno;
+        }
+    }
+
+    return nodeids.size();
 }

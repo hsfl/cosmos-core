@@ -58,6 +58,7 @@
 
 // cosmos includes
 #include "support/configCosmos.h"
+#include "support/datalib.h"
 
 // c++ includes
 //#include <cstring>
@@ -100,14 +101,15 @@ using namespace STATE_TYPE;
 namespace PACKET_TYPE_STUFF	{
     //these bits reserved for PACKET_TYPES
     static const unsigned char PACKET_METADATA = 0xf;
-    static const unsigned char PACKET_DATA =	 0xe;
+    static const unsigned char PACKET_DATA = 0xe;
     static const unsigned char PACKET_REQDATA =	0xd;
     static const unsigned char PACKET_REQMETA =	0xc;
-    static const unsigned char PACKET_COMPLETE =	0xb;
+    static const unsigned char PACKET_COMPLETE = 0xb;
     static const unsigned char PACKET_CANCEL = 0xa;
     static const unsigned char PACKET_QUEUE = 0x9;
     static const unsigned char PACKET_REQQUEUE = 0x8;
     static const unsigned char PACKET_HEARTBEAT = 0x7;
+    static const unsigned char PACKET_MESSAGE = 0x6;
 }
 
 using namespace PACKET_TYPE_STUFF;
@@ -164,6 +166,18 @@ typedef struct
 #define PACKET_HEARTBEAT_OFFSET_THROUGHPUT (PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD + 1)
 #define PACKET_HEARTBEAT_OFFSET_FUNIXTIME (PACKET_HEARTBEAT_OFFSET_THROUGHPUT + 4)
 #define PACKET_HEARTBEAT_OFFSET_TOTAL (PACKET_HEARTBEAT_OFFSET_FUNIXTIME + 8)
+
+typedef struct
+{
+    PACKET_NODE_ID_TYPE node_id;
+    PACKET_BYTE length;
+    PACKET_BYTE bytes[TRANSFER_MAX_PROTOCOL_PACKET-2];
+} packet_struct_message;
+
+#define PACKET_MESSAGE_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_MESSAGE_OFFSET_LENGTH (PACKET_MESSAGE_OFFSET_NODE_ID + 1)
+#define PACKET_MESSAGE_OFFSET_BYTES (PACKET_MESSAGE_OFFSET_LENGTH + 1)
+#define PACKET_MESSAGE_OFFSET_TOTAL (PACKET_MESSAGE_OFFSET_BYTES + TRANSFER_MAX_PROTOCOL_PACKET - 2)
 
 typedef struct
 {
@@ -389,6 +403,16 @@ void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue);
 
 void make_heartbeat_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, uint8_t beat_period, uint32_t throughput, uint32_t funixtime);
 void extract_heartbeat(vector<PACKET_BYTE>& packet, packet_struct_heartbeat& heartbeat);
+
+void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string message);
+void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message);
+
+int32_t check_node_id(PACKET_NODE_ID_TYPE node_id);
+int32_t lookup_node_id(PACKET_NODE_ID_TYPE node_id);
+int32_t lookup_node_id(string node_name);
+int32_t set_node_id(PACKET_NODE_ID_TYPE node_id, string node_name);
+string lookup_node_id_name(PACKET_NODE_ID_TYPE node_id);
+int32_t load_nodeids();
 
 //void make_message_packet(vector<PACKET_BYTE>& packet, packet_struct_message message);
 //void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
