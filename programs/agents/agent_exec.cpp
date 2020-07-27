@@ -79,6 +79,8 @@ static double newlogstride_exec = 900. / 86400.;
 static double logstride_exec = 0.;
 static std::mutex exec_mutex;
 
+int32_t get_last_offset();
+
 int32_t request_get_queue_size(char* request, char* response, Agent* agent);
 int32_t request_get_event(char* request, char* response, Agent* agent);
 int32_t request_del_event(char* request, char* response, Agent* agent);
@@ -169,14 +171,9 @@ int main(int argc, char *argv[])
         if (fp != nullptr)
         {
             calstruc date;
-            int32_t offset = 0;
             fscanf(fp, "%02d%02d%02d%02d%04d%*c%02d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year, &date.second);
             fclose(fp);
-            fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_offset").c_str(), "r");
-            if (fp != nullptr)
-            {
-                fscanf(fp, "%d", &offset);
-            }
+            int32_t offset = get_last_offset();
             date.second += offset;
             double epsilon = cal2mjd(date) -  currentmjd();
             if (epsilon > 3.5e-4)
@@ -185,18 +182,6 @@ int main(int argc, char *argv[])
                 printf("Initialized time from file: Delta %f\n", epsilon);
             }
         }
-
-        //        FILE *fp = fopen("/cosmos/nodes/beagle1/last_date", "w");
-        //        if (fp != nullptr)
-        //        {
-        //            calstruc date;
-        //            fscanf(fp, "%02d%02d%02d%02d%04d\n", &date.month, &date.dom, &date.hour, &date.minute, &date.year);
-        //            date.second = 59;
-        //            fclose(fp);
-        //            epsilon = cal2mjd(date) -  currentmjd();
-        //            set_local_clock(cal2mjd(date));
-        //            printf("Initialized time from file: Delta %f\n", epsilon);
-        //        }
     }
 
     agent->cinfo->node.utc = 0.;
@@ -347,6 +332,7 @@ int main(int argc, char *argv[])
     {
         dlogmjd = (clogmjd-llogmjd)*86400.;
         agent->cinfo->node.utc = clogmjd = currentmjd();
+        agent->cinfo->node.downtime = get_last_offset();
 
         // Check if exec logstride has changed
         if (fabs(newlogstride_exec - logstride_exec) > std::numeric_limits<double>::epsilon())
@@ -450,6 +436,18 @@ int main(int argc, char *argv[])
     {
         cdthread.join();
     }
+}
+
+int32_t get_last_offset()
+{
+    int32_t offset = 0;
+    FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_offset").c_str(), "r");
+    if (fp != nullptr)
+    {
+        fscanf(fp, "%d", &offset);
+        fclose(fp);
+    }
+    return offset;
 }
 
 // Executive specific requests

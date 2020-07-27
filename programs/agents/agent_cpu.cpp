@@ -45,6 +45,7 @@
 bool printStatus = true;
 
 int agent_cpu(), create_node();
+int32_t get_last_offset();
 
 //int32_t request_soh(char *request, char* response, Agent *);
 int32_t request_bootCount(char *request, char* response, Agent *);
@@ -114,7 +115,7 @@ int main(int argc, char *argv[])
     cpu_cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
     cpu_didx = agent->cinfo->device[cpu_cidx].all.didx;
 
-    sohstring = "{\"memory_utilization_000\",\"cpu_utilization_000\"";
+    sohstring = "{\"node_downtime\"";
     sohstring += ",\"device_cpu_utc_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_temp_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_maxgib_00" + std::to_string(cpu_didx) + "\"";
@@ -122,7 +123,6 @@ int main(int argc, char *argv[])
     sohstring += ",\"device_cpu_maxload_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_load_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_uptime_00" + std::to_string(cpu_didx) + "\"";
-    sohstring += ",\"device_cpu_downtime_00" + std::to_string(cpu_didx) + "\"";
     sohstring += ",\"device_cpu_boot_count_00" + std::to_string(cpu_didx) + "\"";
 
     static const double GiB = 1024. * 1024. * 1024.;
@@ -193,6 +193,8 @@ int main(int argc, char *argv[])
     agent->cinfo->agent[0].aprd = agent->cinfo->agent[0].beat.bprd;
     agent->start_active_loop();
 
+    // Initialize temperature Fit
+    LsFit cputemp(4, 2);
     // Start performing the body of the agent
     agent->debug_level = 0;
     while(agent->running())
@@ -202,6 +204,7 @@ int main(int argc, char *argv[])
         {
             fprintf(agent->get_debug_fd(), "%16.10f ", agent->cinfo->device[cpu_cidx].all.utc);
         }
+        agent->cinfo->node.downtime = get_last_offset();
 
         // get cpu info
         if (agent->cinfo->devspec.cpu_cnt)
@@ -239,9 +242,12 @@ int main(int argc, char *argv[])
 
         if (cmd_pipe != nullptr)
         {
-            fscanf(cmd_pipe, "%f", &agent->cinfo->device[cpu_cidx].cpu.temp);
-
+            float ctemp;
+            fscanf(cmd_pipe, "%f", &ctemp);
             pclose( cmd_pipe );
+
+            cputemp.update(currentmjd(), ctemp);
+            agent->cinfo->device[cpu_cidx].cpu.temp = cputemp.eval(currentmjd());
         }
 
         if (agent->debug_level)
@@ -260,6 +266,18 @@ int main(int argc, char *argv[])
 
     return 0;
 
+}
+
+int32_t get_last_offset()
+{
+    int32_t offset = 0;
+    FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_offset").c_str(), "r");
+    if (fp != nullptr)
+    {
+        fscanf(fp, "%d", &offset);
+        fclose(fp);
+    }
+    return offset;
 }
 
 //int agent_cpu()

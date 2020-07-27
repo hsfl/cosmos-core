@@ -7880,6 +7880,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_powgen", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powgen, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
     json_addentry("node_powuse", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powuse, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
     json_addentry("node_battlev", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battlev, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
+    json_addentry("node_downtime", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.downtime, (uint16_t)JSON_TYPE_UINT32, cinfo, JSON_UNIT_CHARGE);
     json_addentry("node_utc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_utcstart", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcstart, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_loc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc, (uint16_t)JSON_TYPE_LOCSTRUC, cinfo);
@@ -8258,7 +8259,6 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_cpu_temp",didx, UINT16_MAX, (uint8_t *)&device.cpu.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_power",didx, UINT16_MAX, (uint8_t *)&device.cpu.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_uptime",didx, UINT16_MAX, (uint8_t *)&device.cpu.uptime, (uint16_t)JSON_TYPE_UINT32, cinfo);
-        json_addentry("device_cpu_downtime",didx, UINT16_MAX, (uint8_t *)&device.cpu.downtime, (uint16_t)JSON_TYPE_UINT32, cinfo);
         json_addentry("device_cpu_maxgib",didx, UINT16_MAX, (uint8_t *)&device.cpu.maxgib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_maxload",didx, UINT16_MAX, (uint8_t *)&device.cpu.maxload, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_load",didx, UINT16_MAX, (uint8_t *)&device.cpu.load, (uint16_t)JSON_TYPE_FLOAT, cinfo);

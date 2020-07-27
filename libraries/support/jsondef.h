@@ -1340,8 +1340,6 @@ struct cpustruc : public allstruc
     // cpu
     //! Seconds CPU has been up
     uint32_t uptime;
-    //! Seconds CPU will be down
-    uint32_t downtime;
     //! Current load
     float load;
     //! Maximum load
@@ -1733,6 +1731,8 @@ struct nodestruc
     uint16_t tle_cnt;
     uint16_t charging;
     int16_t powmode;
+    //! Seconds Node will be down
+    uint32_t downtime;
     //! Total Heat Capacity
     float hcap;
     //! Total Mass
