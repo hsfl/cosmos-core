@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
     agent->start_active_loop();
 
     // Initialize temperature Fit
-    LsFit cputemp(4, 2);
+    LsFit cputemp(4, 1);
     // Start performing the body of the agent
     agent->debug_level = 0;
     while(agent->running())
