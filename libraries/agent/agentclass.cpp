@@ -898,17 +898,18 @@ namespace Cosmos
                 if (iretn >= 0)
                 {
                     request.resize(strlen(&request[0]));
-                    bufferout = request + "[OK]";
+//                    bufferout = request + "[OK]";
+                    bufferout = request;
                 }
                 else
                 {
-                    bufferout = "[NOK]";
+                    bufferout = "[NOK] " + std::to_string(iretn);
                 }
             }
             else
             {
                 iretn = AGENT_ERROR_NULL;
-                bufferout = "[NOK]";
+                bufferout = "[NOK] " + std::to_string(iretn);
             }
 
             iretn = sendto(cinfo->agent[0].req.cudp, bufferout.data(), bufferout.size(), 0, (struct sockaddr *)&cinfo->agent[0].req.caddr, sizeof(struct sockaddr_in));
