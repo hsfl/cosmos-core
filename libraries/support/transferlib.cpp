@@ -331,7 +331,7 @@ void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_i
     memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
     memmove(&packet[0]+PACKET_MESSAGE_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
     PACKET_BYTE length = message.size();
-    memmove(&packet[0]+PACKET_MESSAGE_OFFSET_BYTES, &length, 1);
+    memmove(&packet[0]+PACKET_MESSAGE_OFFSET_LENGTH, &length, 1);
     memmove(&packet[0]+PACKET_MESSAGE_OFFSET_BYTES, &message[0], TRANSFER_MAX_PROTOCOL_PACKET - 2);
     uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
     memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
@@ -342,7 +342,7 @@ void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message
 {
     memmove(&message.node_id, &packet[0]+PACKET_MESSAGE_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
     memmove(&message.length, &packet[0]+PACKET_MESSAGE_OFFSET_LENGTH, 1);
-    memmove(&message.bytes[0], &packet[0]+PACKET_MESSAGE_OFFSET_BYTES, 1);
+    memmove(&message.bytes[0], &packet[0]+PACKET_MESSAGE_OFFSET_BYTES, message.length);
 }
 
 void show_fstream_state(std::ifstream& )  {
