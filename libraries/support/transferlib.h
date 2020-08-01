@@ -337,6 +337,7 @@ typedef struct
     std::string filepath="";
     std::string temppath="";
     double savetime;
+    double datatime=0.;
     PACKET_FILE_SIZE_TYPE file_size;
     PACKET_FILE_SIZE_TYPE total_bytes;
     deque<file_progress> file_info;
@@ -408,7 +409,7 @@ void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_i
 void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message);
 
 int32_t check_node_id(PACKET_NODE_ID_TYPE node_id);
-int32_t lookup_node_id(PACKET_NODE_ID_TYPE node_id);
+//int32_t lookup_node_id(PACKET_NODE_ID_TYPE node_id);
 int32_t lookup_node_id(string node_name);
 int32_t set_node_id(PACKET_NODE_ID_TYPE node_id, string node_name);
 string lookup_node_id_name(PACKET_NODE_ID_TYPE node_id);
