@@ -421,12 +421,14 @@ int main(int argc, char *argv[])
 
         if (savet.split() > 60.)
         {
-            savet.reset();
             FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/last_date").c_str(), "w");
-            calstruc date = mjd2cal(currentmjd());
-            fprintf(fp, "%02d%02d%02d%02d%04d.59\n", date.month, date.dom, date.hour, date.minute, date.year);
-            fclose(fp);
-//            cmd_queue.save_commands(temp_dir);
+            if (fp)
+            {
+                savet.reset();
+                calstruc date = mjd2cal(currentmjd());
+                fprintf(fp, "%02d%02d%02d%02d%04d.59\n", date.month, date.dom, date.hour, date.minute, date.year);
+                fclose(fp);
+            }
         }
         agent->finish_active_loop();
     }
