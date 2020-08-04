@@ -135,12 +135,13 @@ void recv_loop();
 void transmit_loop();
 
 // Mutexes to avoid thread collisions
+static std::mutex txqueue_lock;
 static std::mutex incoming_tx_lock;
 static std::mutex outgoing_tx_lock;
 static std::mutex debug_fd_lock;
 
 static double last_data_receive_time = 0.;
-static double next_reqmeta_time = 0.;
+//static double next_reqmeta_time = 0.;
 
 // Counters to keep track of things
 static uint32_t packet_in_count = 0;
@@ -156,6 +157,9 @@ typedef struct
     bool activity = false;
     bool sendqueue = false;
     bool sentqueue = false;
+    bool rcvdqueue = false;
+    bool rcvdmeta = false;
+    bool rcvddata = false;
     PACKET_TX_ID_TYPE size;
     PACKET_TX_ID_TYPE next_id;
     string node_name="";
@@ -598,6 +602,7 @@ void recv_loop()
 
                     txq[node_id].incoming.sentqueue = true;
                     txq[node_id].incoming.sendqueue = false;
+                    txq[(node_id)].incoming.rcvdqueue = true;
 
                     // Sort through incoming queue and remove anything not in sent queue
                     for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
@@ -808,6 +813,7 @@ void recv_loop()
                     // Update corresponding incoming queue entry if it exists
                     if (tx_id > 0)
                     {
+                        txq[node_id].incoming.rcvddata = true;
                         txq[node_id].incoming.progress[tx_id].datatime = currentmjd();
 
                         // tx_id now points to the valid entry to which we should add the data
@@ -1081,21 +1087,21 @@ void send_loop()
 
         for (uint8_t node_id=1; node_id<txq.size(); ++node_id)
         {
-            // Sleep just a bit to let other threads act
-            COSMOS_SLEEP(.001);
-
             // See if we have an active channel serving this Node
-            if (check_channel(node_id) <= 0)
+            if ((use_channel=check_channel(node_id)) <= 0)
             {
                 continue;
             }
+
+            // Sleep just a bit to let other threads act
+            COSMOS_SLEEP(out_comm_channel[use_channel].packet_size / out_comm_channel[use_channel].throughput);
 
             // Set up to do the most important things first
             txq[(node_id)].outgoing.activity = false;
             txq[(node_id)].incoming.activity = false;
 
             // Let queue drain if necessary
-            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) >= 5.)
+            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) >= 2.)
             {
 //                COSMOS_SLEEP(queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) - 5.);
                 continue;
@@ -1106,7 +1112,7 @@ void send_loop()
             {
                 uint32_t funixtime = utc2unixseconds(out_comm_channel[use_channel].fmjd);
                 make_heartbeat_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].node_name, 4, out_comm_channel[use_channel].throughput, funixtime);
-                use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Outgoing", packet);
+                queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Outgoing", packet);
                 txq[(node_id)].outgoing.heartbeatclock = currentmjd() + 10. / 86400.;
             }
 
@@ -1169,7 +1175,7 @@ void send_loop()
 
             // Send Data packets if we have data to send and we didn't do anything above
             outgoing_tx_lock.lock();
-            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) < 5. && txq[(node_id)].outgoing.sentqueue)
+            if (txq[(node_id)].outgoing.sentqueue)
             {
                 uint16_t tx_id = choose_outgoing_tx_id((node_id));
                 if (txq[(node_id)].outgoing.progress[tx_id].tx_id == tx_id && txq[(node_id)].outgoing.progress[tx_id].sentmeta && txq[(node_id)].outgoing.progress[tx_id].senddata)
@@ -1286,6 +1292,58 @@ void send_loop()
             }
             outgoing_tx_lock.unlock();
 
+            // Send Reqmeta packet if needed and it has been otherwise quiet
+            incoming_tx_lock.lock();
+            if (txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta)
+            {
+                vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
+                PACKET_TX_ID_TYPE iq = 0;
+                for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
+                {
+                    if (txq[(node_id)].incoming.progress[tx_id].tx_id && !txq[(node_id)].incoming.progress[tx_id].sentmeta)
+                    {
+//                        next_reqmeta_time += sizeof(packet_struct_metashort) / (86400. * out_comm_channel[use_channel].throughput);
+                        tqueue[iq++] = tx_id;
+                        txq[(node_id)].incoming.progress[tx_id].sendmeta = true;
+                    }
+                    if (iq == TRANSFER_QUEUE_LIMIT)
+                    {
+                        break;
+                    }
+                }
+                if (iq)
+                {
+                    vector<PACKET_BYTE> packet;
+                    make_reqmeta_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].node_name, tqueue);
+                    use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Incoming", packet);
+                }
+            }
+            txq[node_id].incoming.rcvdmeta = false;
+            incoming_tx_lock.unlock();
+
+            // Send Reqdata packet if there is still data to be gotten and it has been otherwise quiet
+            incoming_tx_lock.lock();
+//            if (txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvddata)
+//            {
+//                for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
+//                {
+//                    if (txq[(node_id)].incoming.progress[tx_id].tx_id)
+//                    {
+//                        // Ask for missing data
+//                        vector<file_progress> missing;
+//                        missing = find_chunks_missing(txq[(node_id)].incoming.progress[tx_id]);
+//                        for (uint32_t j=0; j<missing.size(); ++j)
+//                        {
+//                            vector<PACKET_BYTE> packet;
+//                            make_reqdata_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
+//                            use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Incoming", packet);
+//                        }
+//                    }
+//                }
+//            }
+            txq[node_id].incoming.rcvddata = false;
+            incoming_tx_lock.unlock();
+
             // Send Complete packets if required
             incoming_tx_lock.lock();
             if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) < 5.)
@@ -1306,65 +1364,6 @@ void send_loop()
                         }
                     }
                 }
-            incoming_tx_lock.unlock();
-
-            // Send Reqdata packet if there is still data to be gotten and it has been otherwise quiet
-            incoming_tx_lock.lock();
-            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) < 5.)
-            {
-                uint16_t latest_tx_id = 0;
-                double latest_time = 0.;
-                for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
-                {
-                    if (txq[(node_id)].incoming.progress[tx_id].tx_id && txq[node_id].incoming.progress[tx_id].datatime > latest_time)
-                    {
-                        latest_time = txq[node_id].incoming.progress[tx_id].datatime;
-                        latest_tx_id = tx_id;
-                    }
-                }
-
-                if (latest_tx_id && (currentmjd() - latest_time) > 5.)
-                {
-                    // Ask for missing data
-                    vector<file_progress> missing;
-                    missing = find_chunks_missing(txq[(node_id)].incoming.progress[latest_tx_id]);
-                    for (uint32_t j=0; j<missing.size(); ++j)
-                    {
-                        vector<PACKET_BYTE> packet;
-                        make_reqdata_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].incoming.progress[latest_tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
-                        use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Incoming", packet);
-                    }
-                    txq[node_id].incoming.progress[latest_tx_id].datatime = currentmjd();
-                }
-            }
-            incoming_tx_lock.unlock();
-
-            // Send Reqmeta packet if requested
-            incoming_tx_lock.lock();
-            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) < 5.)
-            {
-                vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
-                PACKET_TX_ID_TYPE iq = 0;
-                for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
-                {
-                    if (txq[(node_id)].incoming.progress[tx_id].tx_id && txq[(node_id)].incoming.progress[tx_id].sendmeta)
-                    {
-                        next_reqmeta_time += sizeof(packet_struct_metashort) / (86400. * out_comm_channel[use_channel].throughput);
-                        tqueue[iq++] = tx_id;
-                        txq[(node_id)].incoming.progress[tx_id].sendmeta = false;
-                    }
-                    if (iq == TRANSFER_QUEUE_LIMIT)
-                    {
-                        break;
-                    }
-                }
-                if (iq)
-                {
-                    vector<PACKET_BYTE> packet;
-                    make_reqmeta_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].node_name, tqueue);
-                    use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Incoming", packet);
-                }
-            }
             incoming_tx_lock.unlock();
 
         }
@@ -1391,6 +1390,7 @@ void transmit_loop()
         while (!transmit_queue.empty())
         {
             // Get next packet from transceiver FIFO
+            txqueue_lock.lock();
             transmit_queue_entry entry = transmit_queue.front();
             iretn = mysendto(entry.type, entry.channel, entry.packet);
             if (iretn >= 0)
@@ -1398,6 +1398,7 @@ void transmit_loop()
                 out_comm_channel[entry.channel].fmjd = transmit_queue.back().nmjd;
                 transmit_queue.pop();
             }
+            txqueue_lock.unlock();
         }
         COSMOS_SLEEP(.001);
     }
@@ -1451,6 +1452,7 @@ int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE
     tentry.channel = use_channel;
     tentry.packet = packet;
     tentry.time_step = (28 + packet.size()) / (86400. * out_comm_channel[use_channel].throughput);
+    txqueue_lock.lock();
     if (transmit_queue.empty())
     {
         tentry.nmjd = out_comm_channel[use_channel].nmjd + tentry.time_step;
@@ -1460,6 +1462,7 @@ int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE
         tentry.nmjd = transmit_queue.back().nmjd + tentry.time_step;
     }
     transmit_queue.push(tentry);
+    txqueue_lock.unlock();
     //    transmit_queue_check.notify_one();
     // Sleep just a bit to give other threads a chance
     COSMOS_SLEEP(.001);
@@ -2065,7 +2068,7 @@ int32_t request_list_incoming(char* request, char* response, Agent *agent)
     {
         if ((iretn=check_node_id(node)) > 0)
         {
-            sprintf(&response[strlen(response)], "%u %s %u %d\n", node, txq[(node)].node_name.c_str(), txq[(node)].incoming.size, iretn);
+            sprintf(&response[strlen(response)], "%u %s %u %d rcvdqueue: %u rcvdmeta: %u rcvddata: %u\n", node, txq[(node)].node_name.c_str(), txq[(node)].incoming.size, iretn, txq[(node)].incoming.rcvdqueue, txq[(node)].incoming.rcvdmeta, txq[(node)].incoming.rcvddata);
             for(tx_progress tx : txq[(node)].incoming.progress)
             {
                 if (tx.tx_id)
@@ -2640,7 +2643,7 @@ int32_t outgoing_tx_load(uint8_t node_id)
             if (addtoqueue)
             {
                 iretn = outgoing_tx_add(file.node, file.agent, file.name);
-                if (agent->debug_level)
+                if (agent->debug_level && iretn != -471)
                 {
                     debug_fd_lock.lock();
                     fprintf(agent->get_debug_fd(), "%16.10f %.4f Main/Load: outgoing_tx_add: %s [%d]\n", currentmjd(), dt.lap(), file.path.c_str(), iretn);
@@ -2790,6 +2793,7 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
 
     if (meta.tx_id)
     {
+        txq[node_id].incoming.rcvdmeta = true;
         if (txq[(node_id)].incoming.progress[meta.tx_id].tx_id != meta.tx_id)
         {
             txq[(node_id)].incoming.progress[meta.tx_id].tx_id = meta.tx_id;
