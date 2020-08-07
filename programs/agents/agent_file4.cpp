@@ -133,6 +133,8 @@ static std::queue<transmit_queue_entry> transmit_queue;
 void send_loop();
 void recv_loop();
 void transmit_loop();
+void profile_check(int32_t line_number);
+static ElapsedTime tet;
 
 // Mutexes to avoid thread collisions
 static std::mutex txqueue_lock;
@@ -246,21 +248,21 @@ int main(int argc, char *argv[])
     agent = new Agent("", "file", 0.);
     if ((iretn = agent->wait()) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+        fprintf(agent->get_debug_fd(), "%.4f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
     else
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+        fprintf(agent->get_debug_fd(), "%.4f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
-    fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Established\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
+    fprintf(agent->get_debug_fd(), "%.4f Node: %s Agent: %s - Established\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
     out_comm_channel.resize(1);
     if((iretn = socket_open(&out_comm_channel[0].chansock, NetworkType::UDP, "", AGENTRECVPORT, SOCKET_LISTEN, SOCKET_BLOCKING, 5000000)) < 0)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f Main: Node: %s Agent: %s - Listening socket failure\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
+        fprintf(agent->get_debug_fd(), "%.4f Main: Node: %s Agent: %s - Listening socket failure\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
         agent->shutdown();
         exit (-errno);
     }
@@ -274,7 +276,7 @@ int main(int argc, char *argv[])
     out_comm_channel[0].node = "";
     out_comm_channel[0].throughput = default_throughput;
     out_comm_channel[0].packet_size = default_packet_size;
-    fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Listening socket open\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
+    fprintf(agent->get_debug_fd(), "%.4f Node: %s Agent: %s - Listening socket open\n", tet.split(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
     if (argc > 1 && ((argv[1][0] < '0' || argv[1][0] > '9') || argc == 3))
@@ -289,7 +291,7 @@ int main(int argc, char *argv[])
         }
         if((iretn = socket_open(&out_comm_channel[1].chansock, NetworkType::UDP, out_comm_channel[1].chanip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
         {
-            fprintf(agent->get_debug_fd(), "%16.10f Node: %s IP: %s - Sending socket failure\n", currentmjd(), out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str());
+            fprintf(agent->get_debug_fd(), "%.4f Node: %s IP: %s - Sending socket failure\n", tet.split(), out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str());
             agent->shutdown();
             exit (-errno);
         }
@@ -299,7 +301,7 @@ int main(int argc, char *argv[])
         out_comm_channel[1].fmjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].throughput = default_throughput;
         out_comm_channel[1].packet_size = default_packet_size;
-        fprintf(agent->get_debug_fd(), "%16.10f Network: Old: %u %s %s %u\n", currentmjd(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
+        fprintf(agent->get_debug_fd(), "%.4f Network: Old: %u %s %s %u\n", tet.split(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
         fflush(agent->get_debug_fd());
 
         log_directory = "temp"; // put log files in node/outgoing/file
@@ -417,6 +419,8 @@ int main(int argc, char *argv[])
         }
 
 
+        profile_check(__LINE__);
+
         if(nextdiskcheck < nextlog ) {
             sleepsec = 86400. * (nextdiskcheck - currentmjd());
         } else {
@@ -452,7 +456,7 @@ int main(int argc, char *argv[])
 
     if (agent->debug_level)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %.4f Main: Node: %s Agent: %s - Exiting\n", currentmjd(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        fprintf(agent->get_debug_fd(), "%.4f %.4f Main: Node: %s Agent: %s - Exiting\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
         fflush(agent->get_debug_fd());
     }
 
@@ -464,7 +468,7 @@ int main(int argc, char *argv[])
 
     if (agent->debug_level)
     {
-        fprintf(agent->get_debug_fd(), "%16.10f %.4f Main: Node: %s Agent: %s - Shutting down\n", currentmjd(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
+        fprintf(agent->get_debug_fd(), "%.4f %.4f Main: Node: %s Agent: %s - Shutting down\n", tet.split(), dt.lap(), agent->nodeName.c_str(), agent->agentName.c_str());
         fflush(agent->get_debug_fd());
     }
 
@@ -494,14 +498,24 @@ void recv_loop()
             COSMOS_SLEEP(.001);
         }
 
+        profile_check(__LINE__);
+
         while (( nbytes = myrecvfrom("Incoming", rchannel, recvbuf, PACKET_MAX_LENGTH)) > 0)
         {
+            profile_check(__LINE__);
+
             // Generate extra network info
             inet_ntop(rchannel.caddr.sin_family, &rchannel.caddr.sin_addr, rchannel.address, sizeof(rchannel.address));
 
+            profile_check(__LINE__);
+
             // Check channels, update information if we are already handling it, otherwise add channel
             string packet_node_name;
+            profile_check(__LINE__);
+
             string node_name = lookup_node_id_name(recvbuf[PACKET_HEADER_OFFSET_NODE_ID]);
+            profile_check(__LINE__);
+
             int32_t node_id = check_node_id(recvbuf[PACKET_HEADER_OFFSET_NODE_ID]);
             switch (recvbuf[0] & 0x0f)
             {
@@ -519,10 +533,19 @@ void recv_loop()
                 break;
             }
 
+            profile_check(__LINE__);
+
             if (node_id <= 0 || node_name.empty())
             {
                 continue;
             }
+
+            profile_check(__LINE__);
+
+            txq[node_id].incoming.rcvdqueue = false;
+            txq[node_id].incoming.rcvdmeta = false;
+            txq[node_id].incoming.rcvddata = false;
+            incoming_tx_lock.unlock();
 
             use_channel = static_cast <uint16_t>(out_comm_channel.size());
             for (uint16_t i=0; i<out_comm_channel.size(); ++i)
@@ -536,6 +559,8 @@ void recv_loop()
                     break;
                 }
             }
+
+            profile_check(__LINE__);
 
             if (use_channel == out_comm_channel.size())
             {
@@ -559,6 +584,8 @@ void recv_loop()
             {
             case PACKET_MESSAGE:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_message message;
 
                     extract_message(recvbuf, message);
@@ -566,14 +593,18 @@ void recv_loop()
                     string imessage;
                     imessage.resize(message.length);
                     memcpy(&imessage[0], message.bytes, message.length);
-                    log_write(lookup_node_id_name(message.node_id), "file", currentmjd(), "", "message", imessage, "incoming");
+                    log_write(lookup_node_id_name(message.node_id), "file", tet.split(), "", "message", imessage, "incoming");
                 }
                 break;
             case PACKET_HEARTBEAT:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_heartbeat heartbeat;
 
                     extract_heartbeat(recvbuf, heartbeat);
+                    profile_check(__LINE__);
+
 
                     out_comm_channel[use_channel].heartbeat = heartbeat;
                     txq[node_id].outgoing.sendqueue = true;
@@ -582,8 +613,9 @@ void recv_loop()
                 break;
             case PACKET_REQQUEUE:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_reqqueue reqqueue;
-//                    txq[node_id].outgoing.queueclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
 
                     extract_reqqueue(recvbuf, reqqueue);
 
@@ -593,8 +625,9 @@ void recv_loop()
                 break;
             case PACKET_QUEUE:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_queue queue;
-//                    txq[node_id].incoming.queueclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
 
                     extract_queue(recvbuf, queue);
 
@@ -645,9 +678,9 @@ void recv_loop()
                 //Request missing metadata
             case PACKET_REQMETA:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_reqmeta reqmeta;
-//                    txq[node_id].outgoing.queueclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].outgoing.metaclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
 
                     extract_reqmeta(recvbuf, reqmeta);
 
@@ -672,9 +705,9 @@ void recv_loop()
                 }
             case PACKET_METADATA:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_metashort meta;
-//                    txq[node_id].incoming.queueclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].incoming.metaclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
 
                     extract_metadata(recvbuf, meta);
 
@@ -688,10 +721,9 @@ void recv_loop()
                 }
             case PACKET_REQDATA:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_reqdata reqdata;
-//                    txq[node_id].outgoing.queueclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].outgoing.metaclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].outgoing.dataclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
 
                     extract_reqdata(recvbuf, reqdata);
 
@@ -798,9 +830,13 @@ void recv_loop()
                 }
             case PACKET_DATA:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_data data;
 
                     extract_data(recvbuf, data.node_id, data.tx_id, data.byte_count, data.chunk_start, data.chunk);
+
+                    profile_check(__LINE__);
 
                     last_data_receive_time = currentmjd();
 
@@ -809,6 +845,8 @@ void recv_loop()
                     incoming_tx_lock.lock();
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].incoming, data.tx_id);
+
+                    profile_check(__LINE__);
 
                     // Update corresponding incoming queue entry if it exists
                     if (tx_id > 0)
@@ -828,6 +866,8 @@ void recv_loop()
                         bool duplicate = false;
                         bool updated = false;
 
+                        profile_check(__LINE__);
+
                         // Do we have any data yet?
                         if (!txq[node_id].incoming.progress[tx_id].file_info.size())
                         {
@@ -835,12 +875,16 @@ void recv_loop()
                             txq[node_id].incoming.progress[tx_id].file_info.push_back(tp);
                             txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
                             updated = true;
+                            profile_check(__LINE__);
+
                         }
                         else
                         {
                             // Check against existing data
                             for (uint32_t j=0; j<txq[node_id].incoming.progress[tx_id].file_info.size(); ++j)
                             {
+                                profile_check(__LINE__);
+
                                 // Check for duplicate
                                 if (tp.chunk_start >= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start && tp.chunk_end <= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end)
                                 {
@@ -889,6 +933,8 @@ void recv_loop()
                             }
 
 
+                            profile_check(__LINE__);
+
                             // If we are higher than everything currently in the list, then append
                             if (!duplicate && check == txq[node_id].incoming.progress[tx_id].file_info.size())
                             {
@@ -902,6 +948,8 @@ void recv_loop()
                         // Write to disk if this is new data
                         if (updated)
                         {
+                            profile_check(__LINE__);
+
                             // Write incoming data to disk
                             if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
                             {
@@ -916,12 +964,14 @@ void recv_loop()
                                 }
                             }
 
+                            profile_check(__LINE__);
+
                             if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
                             {
                                 if (agent->debug_level)
                                 {
                                     debug_fd_lock.lock();
-                                    fprintf(agent->get_debug_fd(), "%16.10f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", currentmjd(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
+                                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: File Error: %s %s on ID: %u Chunk: %u\n", tet.split(), dt.lap(), partial_filepath.c_str(), cosmos_error_string(-errno).c_str(), tx_id, tp.chunk_start);
                                     fflush(agent->get_debug_fd());
                                     debug_fd_lock.unlock();
                                 }
@@ -945,17 +995,21 @@ void recv_loop()
 
                         }
 
+                        profile_check(__LINE__);
+
                         // Check if file has been completely received
                         if(txq[node_id].incoming.progress[tx_id].file_size == txq[node_id].incoming.progress[tx_id].total_bytes && txq[node_id].incoming.progress[tx_id].havemeta)
                         {
                             // See if we know what the remote node_id is for this
                             if (txq[node_id].node_id > 0)
                             {
+                                profile_check(__LINE__);
+
                                 tx_progress tx_in = txq[node_id].incoming.progress[tx_id];
                                 if (agent->debug_level)
                                 {
                                     debug_fd_lock.lock();
-                                    fprintf(agent->get_debug_fd(), "%16.10f %.4f Incoming: Complete: %u %s %u %u\n", currentmjd(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.file_size, tx_in.total_bytes);
+                                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Complete: %u %s %u %u\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.file_size, tx_in.total_bytes);
                                     fflush(agent->get_debug_fd());
                                     debug_fd_lock.unlock();
                                 }
@@ -963,6 +1017,8 @@ void recv_loop()
                                 // Move file to its final location
                                 if (!txq[node_id].incoming.progress[tx_id].complete)
                                 {
+                                    profile_check(__LINE__);
+
                                     if (txq[node_id].incoming.progress[tx_id].fp != nullptr)
                                     {
                                         fclose(txq[node_id].incoming.progress[tx_id].fp);
@@ -975,7 +1031,7 @@ void recv_loop()
                                     if (agent->debug_level)
                                     {
                                         debug_fd_lock.lock();
-                                        fprintf(agent->get_debug_fd(), "%16.10f %.4f Incoming: Renamed/Data: %d %s\n", currentmjd(), dt.lap(), iret, tx_in.filepath.c_str());
+                                        fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, tx_in.filepath.c_str());
                                         fflush(agent->get_debug_fd());
                                         debug_fd_lock.unlock();
                                     }
@@ -986,6 +1042,8 @@ void recv_loop()
                                     txq[node_id].incoming.progress[tx_id].sentdata = true;
                                 }
                             }
+                            profile_check(__LINE__);
+
                         }
                     }
                     else
@@ -999,11 +1057,9 @@ void recv_loop()
                 }
             case PACKET_COMPLETE:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_complete complete;
-//                    txq[node_id].outgoing.queueclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].outgoing.metaclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].outgoing.dataclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].outgoing.completeclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
 
                     extract_complete(recvbuf, complete);
 
@@ -1025,11 +1081,9 @@ void recv_loop()
                 }
             case PACKET_CANCEL:
                 {
+                    profile_check(__LINE__);
+
                     packet_struct_complete cancel;
-//                    txq[node_id].incoming.queueclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].incoming.metaclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].incoming.dataclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-//                    txq[node_id].incoming.completeclock = currentmjd() + 2. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
 
                     extract_complete(recvbuf, cancel);
 
@@ -1050,6 +1104,8 @@ void recv_loop()
                 ++type_error_count;
                 break;
             }
+            profile_check(__LINE__);
+
         }
     }
 
@@ -1078,6 +1134,8 @@ void send_loop()
 
     while (agent->running())
     {
+        profile_check(__LINE__);
+
 
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
@@ -1093,12 +1151,18 @@ void send_loop()
                 continue;
             }
 
+            profile_check(__LINE__);
+
             // Sleep just a bit to let other threads act
             COSMOS_SLEEP(out_comm_channel[use_channel].packet_size / out_comm_channel[use_channel].throughput);
+
+            profile_check(__LINE__);
 
             // Set up to do the most important things first
             txq[(node_id)].outgoing.activity = false;
             txq[(node_id)].incoming.activity = false;
+
+            profile_check(__LINE__);
 
             // Let queue drain if necessary
             if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) >= 2.)
@@ -1106,6 +1170,8 @@ void send_loop()
 //                COSMOS_SLEEP(queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) - 5.);
                 continue;
             }
+
+            profile_check(__LINE__);
 
             // Send Heartbeat every 10 seconds, regardless
             if (txq[(node_id)].outgoing.heartbeatclock < currentmjd())
@@ -1115,6 +1181,8 @@ void send_loop()
                 queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Outgoing", packet);
                 txq[(node_id)].outgoing.heartbeatclock = currentmjd() + 10. / 86400.;
             }
+
+            profile_check(__LINE__);
 
             // Send Queue packet, if anything needs to be queued
             outgoing_tx_lock.lock();
@@ -1148,6 +1216,8 @@ void send_loop()
             }
             outgoing_tx_lock.unlock();
 
+            profile_check(__LINE__);
+
             // Send any  pending Metadata packets
             outgoing_tx_lock.lock();
             if (txq[(node_id)].outgoing.sentqueue)
@@ -1172,6 +1242,8 @@ void send_loop()
                 }
             }
             outgoing_tx_lock.unlock();
+
+            profile_check(__LINE__);
 
             // Send Data packets if we have data to send and we didn't do anything above
             outgoing_tx_lock.lock();
@@ -1268,6 +1340,8 @@ void send_loop()
             }
             outgoing_tx_lock.unlock();
 
+            profile_check(__LINE__);
+
             // Send Cancel packets if required
             outgoing_tx_lock.lock();
             if (txq[(node_id)].outgoing.sentqueue)
@@ -1292,9 +1366,11 @@ void send_loop()
             }
             outgoing_tx_lock.unlock();
 
+            profile_check(__LINE__);
+
             // Send Reqmeta packet if needed and it has been otherwise quiet
             incoming_tx_lock.lock();
-            if (txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta)
+            if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta)
             {
                 vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
                 PACKET_TX_ID_TYPE iq = 0;
@@ -1318,39 +1394,57 @@ void send_loop()
                     use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Incoming", packet);
                 }
             }
-            txq[node_id].incoming.rcvdmeta = false;
             incoming_tx_lock.unlock();
+
+            profile_check(__LINE__);
 
             // Send Reqdata packet if there is still data to be gotten and it has been otherwise quiet
             incoming_tx_lock.lock();
-//            if (txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvddata)
-//            {
-//                for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
-//                {
-//                    if (txq[(node_id)].incoming.progress[tx_id].tx_id)
-//                    {
-//                        // Ask for missing data
-//                        vector<file_progress> missing;
-//                        missing = find_chunks_missing(txq[(node_id)].incoming.progress[tx_id]);
-//                        for (uint32_t j=0; j<missing.size(); ++j)
+            if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && !txq[(node_id)].incoming.rcvddata)
+            {
+                for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
+                {
+                    if (txq[(node_id)].incoming.progress[tx_id].tx_id)
+                    {
+                        profile_check(__LINE__);
+
+                        // Ask for missing data
+                        vector<file_progress> missing;
+                        missing = find_chunks_missing(txq[(node_id)].incoming.progress[tx_id]);
+//                        if (agent->debug_level)
 //                        {
-//                            vector<PACKET_BYTE> packet;
-//                            make_reqdata_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
-//                            use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Incoming", packet);
+//                            fprintf(agent->get_debug_fd(), "file_info: %u %u %u", node_id, tx_id, txq[(node_id)].outgoing.progress[tx_id].file_info.size());
+//                            if (missing.size())
+//                            {
+//                                fprintf(agent->get_debug_fd(), " - %u %u", missing[0].chunk_start, missing[0].chunk_end);
+//                            }
+//                            fprintf(agent->get_debug_fd(), "\n");
 //                        }
-//                    }
-//                }
-//            }
-            txq[node_id].incoming.rcvddata = false;
+                        for (uint32_t j=0; j<missing.size(); ++j)
+                        {
+                            vector<PACKET_BYTE> packet;
+                            make_reqdata_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].incoming.progress[tx_id].tx_id, missing[j].chunk_start, missing[j].chunk_end);
+                            use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Incoming", packet);
+                        }
+                    }
+                }
+            }
             incoming_tx_lock.unlock();
+
+            profile_check(__LINE__);
 
             // Send Complete packets if required
             incoming_tx_lock.lock();
-            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) < 5.)
+            if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && !txq[(node_id)].incoming.rcvddata)
+            {
+                profile_check(__LINE__);
+
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
                     if (txq[(node_id)].incoming.progress[tx_id].tx_id == tx_id && txq[(node_id)].incoming.progress[tx_id].complete)
                     {
+                        profile_check(__LINE__);
+
                         // Remove from queue
                         incoming_tx_del(node_id, tx_id);
 
@@ -1364,6 +1458,7 @@ void send_loop()
                         }
                     }
                 }
+            }
             incoming_tx_lock.unlock();
 
         }
@@ -1389,10 +1484,18 @@ void transmit_loop()
 
         while (!transmit_queue.empty())
         {
+            profile_check(__LINE__);
+
             // Get next packet from transceiver FIFO
             txqueue_lock.lock();
+            profile_check(__LINE__);
+
             transmit_queue_entry entry = transmit_queue.front();
+            profile_check(__LINE__);
+
             iretn = mysendto(entry.type, entry.channel, entry.packet);
+            profile_check(__LINE__);
+
             if (iretn >= 0)
             {
                 out_comm_channel[entry.channel].fmjd = transmit_queue.back().nmjd;
@@ -1409,6 +1512,8 @@ double queuecheck(PACKET_NODE_ID_TYPE node_id)
     int32_t use_channel;
 
     use_channel = -1;
+    profile_check(__LINE__);
+
     for (uint16_t i=0; i<out_comm_channel.size(); ++i)
     {
         if (txq[node_id].node_name == out_comm_channel[i].node)
@@ -1662,16 +1767,16 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
             {
                 if (!node_name.empty())
                 {
-                    fprintf(agent->get_debug_fd(), "%16.10f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", currentmjd(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
                 else
                 {
-                    fprintf(agent->get_debug_fd(), "%16.10f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %u ", currentmjd(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u Unknown %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
             }
             else
             {
-                fprintf(agent->get_debug_fd(), "%16.10f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", currentmjd(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                fprintf(agent->get_debug_fd(), "%.4f %.4f RECV L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
             }
         }
         else if (direction == PACKET_OUT)
@@ -1680,16 +1785,16 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
             {
                 if (!node_name.empty())
                 {
-                    fprintf(agent->get_debug_fd(), "%16.10f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", currentmjd(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, node_name.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
                 else
                 {
-                    fprintf(agent->get_debug_fd(), "%16.10f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %u ", currentmjd(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u Unknown %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
                 }
             }
             else
             {
-                fprintf(agent->get_debug_fd(), "%16.10f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", currentmjd(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
+                fprintf(agent->get_debug_fd(), "%.4f %.4f SEND L %u R %u %s %s [%s] In: %u Out: %u Size: %u ", tet.split(), dt.lap(), node_id, node_id, out_comm_channel[use_channel].node.c_str(), out_comm_channel[use_channel].chanip.c_str(), type.c_str(), packet_in_count, packet_out_count, buf.size());
             }
         }
 
@@ -1877,7 +1982,7 @@ int32_t read_meta(tx_progress& tx)
     if (agent->debug_level)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%16.10f %.4f Main: read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", currentmjd(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
+        fprintf(agent->get_debug_fd(), "%.4f %.4f Main: read_meta: %s tx_id: %u chunks: %" PRIu32 "\n", tet.split(), dt.lap(), (tx.temppath + ".meta").c_str(), tx.tx_id, tx.file_info.size());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -1938,6 +2043,11 @@ vector<file_progress> find_chunks_missing(tx_progress& tx)
     vector<file_progress> missing;
     file_progress tp;
 
+    if (!tx.havemeta)
+    {
+        return missing;
+    }
+
     if (tx.file_info.size() == 0)
     {
         tp.chunk_start = 0;
@@ -1982,6 +2092,10 @@ vector<file_progress> find_chunks_missing(tx_progress& tx)
     for (file_progress prog : tx.file_info)
     {
         tx.total_bytes += (prog.chunk_end - prog.chunk_start) + 1;
+    }
+    if (tx.total_bytes == tx.file_size)
+    {
+        tx.complete = true;
     }
 
     return (missing);
@@ -2174,7 +2288,7 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
     if (agent->debug_level)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%16.10f %.4f Main: outgoing_tx_add: ", currentmjd(), dt.lap());
+        fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: ", tet.split(), dt.lap());
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -2320,7 +2434,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
         if (agent->debug_level)
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%16.10f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", currentmjd(), dt.lap());
+            fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: TRANSFER_ERROR_FILENAME\n", tet.split(), dt.lap());
             fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
@@ -2404,7 +2518,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
             if (agent->debug_level)
             {
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%16.10f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", currentmjd(), dt.lap());
+                fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: DATA_ERROR_SIZE_MISMATCH\n", tet.split(), dt.lap());
                 fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
@@ -2418,7 +2532,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
             if (agent->debug_level)
             {
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%16.10f %.4f Main: outgoing_tx_add: %s\n", currentmjd(), dt.lap(), cosmos_error_string(-errno).c_str());
+                fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: %s\n", tet.split(), dt.lap(), cosmos_error_string(-errno).c_str());
                 fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
@@ -2492,7 +2606,7 @@ int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id)
             if (agent->debug_level)
             {
                 debug_fd_lock.lock();
-                fprintf(agent->get_debug_fd(), "%16.10f %.4f Main/Outgoing: Del outgoing: %u %s %s %s - Unable to remove file\n", currentmjd(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+                fprintf(agent->get_debug_fd(), "%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s - Unable to remove file\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
                 fflush(agent->get_debug_fd());
                 debug_fd_lock.unlock();
             }
@@ -2505,7 +2619,7 @@ int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id)
         if (agent->debug_level)
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%16.10f %.4f Main/Outgoing: Del outgoing: %u %s %s %s\n", currentmjd(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
+            fprintf(agent->get_debug_fd(), "%.4f %.4f Main/Outgoing: Del outgoing: %u %s %s %s\n", tet.split(), dt.lap(), tx_out.tx_id, tx_out.node_name.c_str(), tx_out.agent_name.c_str(), tx_out.file_name.c_str());
             fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
@@ -2646,7 +2760,7 @@ int32_t outgoing_tx_load(uint8_t node_id)
                 if (agent->debug_level && iretn != -471)
                 {
                     debug_fd_lock.lock();
-                    fprintf(agent->get_debug_fd(), "%16.10f %.4f Main/Load: outgoing_tx_add: %s [%d]\n", currentmjd(), dt.lap(), file.path.c_str(), iretn);
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f Main/Load: outgoing_tx_add: %s [%d]\n", tet.split(), dt.lap(), file.path.c_str(), iretn);
                     fflush(agent->get_debug_fd());
                     debug_fd_lock.unlock();
                 }
@@ -2665,7 +2779,7 @@ int32_t incoming_tx_add(tx_progress &tx_in)
         if (agent->debug_level)
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%16.10f %.4f Main: incoming_tx_add: TRANSFER_ERROR_NODE\n", currentmjd(), dt.lap());
+            fprintf(agent->get_debug_fd(), "%.4f %.4f Main: incoming_tx_add: TRANSFER_ERROR_NODE\n", tet.split(), dt.lap());
             fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
@@ -2744,7 +2858,7 @@ int32_t incoming_tx_add(tx_progress &tx_in)
     if (agent->debug_level)
     {
         debug_fd_lock.lock();
-        fprintf(agent->get_debug_fd(), "%16.10f %.4f Main/Incoming: Add incoming: %u %s %s %s %lu\n", currentmjd(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
+        fprintf(agent->get_debug_fd(), "%.4f %.4f Main/Incoming: Add incoming: %u %s %s %s %lu\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.agent_name.c_str(), tx_in.filepath.c_str(), PROGRESS_QUEUE_SIZE);
         fflush(agent->get_debug_fd());
         debug_fd_lock.unlock();
     }
@@ -2833,7 +2947,7 @@ int32_t incoming_tx_update(packet_struct_metashort meta)
         if (agent->debug_level)
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%16.10f %.4f Incoming: Update incoming: %u %s %s %s\n", currentmjd(), dt.lap(), txq[(node_id)].incoming.progress[meta.tx_id].tx_id, txq[(node_id)].incoming.progress[meta.tx_id].node_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].agent_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].file_name.c_str());
+            fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Update incoming: %u %s %s %s\n", tet.split(), dt.lap(), txq[(node_id)].incoming.progress[meta.tx_id].tx_id, txq[(node_id)].incoming.progress[meta.tx_id].node_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].agent_name.c_str(), txq[(node_id)].incoming.progress[meta.tx_id].file_name.c_str());
             fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
@@ -2897,7 +3011,7 @@ int32_t incoming_tx_del(uint8_t node_id, uint16_t tx_id)
         if (agent->debug_level)
         {
             debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "%16.10f %.4f Incoming: Del incoming: %u %s\n", currentmjd(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str());
+            fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Del incoming: %u %s\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str());
             fflush(agent->get_debug_fd());
             debug_fd_lock.unlock();
         }
@@ -3127,7 +3241,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
                 if (agent->debug_level)
                 {
                     debug_fd_lock.lock();
-                    fprintf(agent->get_debug_fd(), "%16.10f %.4f Incoming(next_incoming_tx): Complete: %u %s %u %u\n", currentmjd(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming(next_incoming_tx): Complete: %u %s %u %u\n", tet.split(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
                     fflush(agent->get_debug_fd());
                     debug_fd_lock.unlock();
                 }
@@ -3147,7 +3261,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
                     if (agent->debug_level)
                     {
                         debug_fd_lock.lock();
-                        fprintf(agent->get_debug_fd(), "%16.10f %.4f Incoming(next_incoming_tx): Renamed: %d %s\n", currentmjd(), dt.lap(), iret, txq[(node)].incoming.progress[tx_id].filepath.c_str());
+                        fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming(next_incoming_tx): Renamed: %d %s\n", tet.split(), dt.lap(), iret, txq[(node)].incoming.progress[tx_id].filepath.c_str());
                         fflush(agent->get_debug_fd());
                         debug_fd_lock.unlock();
                     }
@@ -3159,7 +3273,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
                 if (agent->debug_level)
                 {
                     debug_fd_lock.lock();
-                    fprintf(agent->get_debug_fd(), "%16.10f %.4f Incoming(next_incoming_tx): More: %u %s %u %u\n", currentmjd(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
+                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming(next_incoming_tx): More: %u %s %u %u\n", tet.split(), dt.lap(), txq[(node)].incoming.progress[tx_id].tx_id, txq[(node)].incoming.progress[tx_id].node_name.c_str(), txq[(node)].incoming.progress[tx_id].file_size, txq[(node)].incoming.progress[tx_id].total_bytes);
                     fflush(agent->get_debug_fd());
                     debug_fd_lock.unlock();
                 }
@@ -3348,4 +3462,27 @@ string json_list_queue()
     jobj.addElement("outgoing", outgoing);
     jobj.addElement("incoming", incoming);
     return jobj.to_json_string();
+}
+
+void profile_check(int32_t line_number)
+{
+    static FILE *fp = nullptr;
+//    static mutex profile_lock;
+
+    debug_fd_lock.lock();
+
+    if (fp == nullptr)
+    {
+//        fp = fopen("profile_check.out", "a");
+        fp = agent->get_debug_fd();
+    }
+
+    if (fp != nullptr)
+    {
+        fprintf(fp, "%.3f %d\n", tet.split(), line_number);
+        fflush(fp);
+    }
+
+    debug_fd_lock.unlock();
+
 }
