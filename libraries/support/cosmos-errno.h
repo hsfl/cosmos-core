@@ -300,6 +300,7 @@
 #define GENERAL_ERROR_DUPLICATE         -2025
 #define GENERAL_ERROR_MISMATCH         -2026
 #define GENERAL_ERROR_ERROR             -2027
+#define GENERAL_ERROR_ARGS             -2028
 
 #define GPHOTO2_ERROR -3000
 
