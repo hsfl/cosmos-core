@@ -7868,6 +7868,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     // Node Structure
     json_addentry("node_utcoffset", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcoffset, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_name", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.name, (uint16_t)JSON_TYPE_NAME, cinfo);
+    json_addentry("node_lastevent", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.lastevent, (uint16_t)JSON_TYPE_NAME, cinfo);
     json_addentry("node_type", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.type, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_state", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.state, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_hcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.hcap, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -9250,6 +9251,11 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
     {
         return nullptr;
     }
+    iretn = json_out(jstring, "node_lastevent", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
     iretn = json_out(jstring, "node_type", cinfo);
     if (iretn < 0)
     {
@@ -9523,7 +9529,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 
     string result;
     char tempstring[200];
-    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powmode\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powmode\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.cpu_cnt; ++i)
     {
@@ -9651,7 +9657,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     string result;
     char tempstring[200];
 
-    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
     {

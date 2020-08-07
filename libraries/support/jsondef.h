@@ -1713,6 +1713,8 @@ struct nodestruc
 {
     //! Node Name.
     char name[COSMOS_MAX_NAME+1];
+    //! Last event
+    char lastevent[COSMOS_MAX_NAME+1];
     //! Node Type as listed in \ref NODE_TYPE.
     uint16_t type;
     //! Operational state

@@ -287,6 +287,7 @@ namespace Cosmos
                                     // if command has not already run
                                     if(!ii->already_ran)
                                     {
+                                        strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
                                         run_command(*ii, node_name, logdate_exec);
                                         ii->already_ran = true;
                                         break;
