@@ -169,16 +169,60 @@ namespace Cosmos
                 value.type = Type::Array;
                 break;
             case '"':
-                value.svalue.clear();
-                do
                 {
-                    if (++begin == end || *begin == 0)
+                    value.svalue.clear();
+                    uint16_t ilen = (end - begin) + 1;
+                    uint16_t i2;
+                    for (i2=1; i2<ilen; i2++) //start from ptr[1] rather than ptr[0] which is a '"'?
                     {
-                        return JSON_ERROR_EOS;
+                        if (*(begin+i2) == '"')
+                            break;  //exits for loop?
+                        if (*(begin+i2) == '\\')
+                        {
+                            switch (*(begin+i2+1))
+                            {
+                            case '"':
+                            case '\\':
+                            case '/':
+                                value.svalue.push_back(*(begin+i2+1));
+                                break;
+                            case 'b':
+                                value.svalue.push_back('\b');
+                                break;
+                            case 'f':
+                                value.svalue.push_back('\f');
+                                break;
+                            case 'n':
+                                value.svalue.push_back('\n');
+                                break;
+                            case 'r':
+                                value.svalue.push_back('\r');
+                                break;
+                            case 't':
+                                value.svalue.push_back('\t');
+                                break;
+                            default:
+                                i2 += 3;
+                            }
+                            i2++;
+                        }
+                        else
+                        {
+                            value.svalue.push_back(*(begin+i2));
+                        }
                     }
-                    value.svalue.push_back(*begin);
-                } while (*begin != '"');
-                value.type = Type::String;
+
+                    if (i2 >= ilen)
+                    {
+                        begin = begin + (ilen-1);
+                        return(JSON_ERROR_SCAN);
+                    }
+
+                    // i2 is last character in string +1, index is length of extracted string
+
+                    begin += (i2 + 1);
+                    value.type = Type::String;
+                }
                 break;
             case 'f':
                 if (++begin == end || *begin == 0)
