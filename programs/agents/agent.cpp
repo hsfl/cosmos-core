@@ -53,20 +53,20 @@
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 6;
 
-//void print_node_list(vector<std::string>& nlp) {
+//void print_node_list(vector<string>& nlp) {
 
 //    if(nlp.empty())
 //    {
 //        return;
 //    }
 
-//    for(std::string n: nlp)
+//    for(string n: nlp)
 //    {
 //        printf("    %s\n", n.c_str());
 //    }
 //    return;
 //}
-std::string output;
+string output;
 string node_name = "";
 string agent_name = "";
 
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 {
     int nbytes;
     beatstruc cbeat;
-    vector<std::string> nl;
+    vector<string> nl;
     data_list_nodes(nl);
     Agent *agent;
 
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1],"dump"))
         {
             double lmjd = 0., dmjd;
-            std::string channel;
+            string channel;
             Agent::AgentMessage cnum;
             Agent::messstruc message;
             int i;
@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
                         printf("\"agent_bsz\": %u, ", cbeat.bsz);
                         // HANDLE RESPONSE OUTPUT FORMAT
                         size_t status_pos;
-                        if((status_pos= output.find("[OK]")  )!= std::string::npos){
+                        if((status_pos= output.find("[OK]")  )!= string::npos){
                             if(output.at(0) == '{'){
                                 if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
                                     printf("\"output\": %s,", output.substr(0, status_pos).c_str());
@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
                                 printf("\"output\": \"%s\",", output.substr(status_pos ).c_str());
                             }
                             printf("\"status\": \"OK\"}");
-                        } else if((status_pos = output.find("[NOK]") )!= std::string::npos){
+                        } else if((status_pos = output.find("[NOK]") )!= string::npos){
                             printf("\"status\": \"NOK\"}");
                         } else {
                              printf("\"output\": %s }", output.c_str());
@@ -323,10 +323,10 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1],"dump"))
         {
             double lmjd = 0., dmjd;
-            std::string channel;
+            string channel;
             Agent::AgentMessage cnum;
             Agent::messstruc message;
-            std::string header;
+            string header;
             int i;
             locstruc loc;
 
@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                std::string request;
+                string request;
                 request = argv[3];
                 for (size_t i=0; i<(size_t)argc-4; ++i)
                 {
@@ -469,7 +469,7 @@ int main(int argc, char *argv[])
                 // HANDLE RESPONSE OUTPUT FORMAT
                 printf("{");
                 size_t status_pos;
-                if((status_pos= output.find("[OK]")  )!= std::string::npos){
+                if((status_pos= output.find("[OK]")  )!= string::npos){
                     if(output.at(0) == '{'){
                         if(status_pos - 1 >= 0 && output.at(status_pos - 1) == '}'){
                             printf("\"output\": %s,", output.substr(0, status_pos).c_str());
@@ -480,7 +480,7 @@ int main(int argc, char *argv[])
                         printf("\"output\": \"%s\",", output.substr(0,status_pos ).c_str());
                     }
                     printf("\"status\": \"OK\"}\n");
-                } else if((status_pos = output.find("[NOK]") )!= std::string::npos){
+                } else if((status_pos = output.find("[NOK]") )!= string::npos){
                     printf("\"status\": \"NOK\"}\n");
                 } else {
                      printf("\"output\": %s }\n", output.c_str());

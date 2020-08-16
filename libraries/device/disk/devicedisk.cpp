@@ -17,7 +17,7 @@ double DeviceDisk::getAll()
 #endif
 }
 
-double DeviceDisk::getAll(std::string path)
+double DeviceDisk::getAll(string path)
 {
     Size = 0;
     Free = 0;
@@ -94,14 +94,14 @@ uint64_t DeviceDisk::getSize()
 }
 
 // get all disk information in bytes
-uint64_t DeviceDisk::getSize(std::string path)
+uint64_t DeviceDisk::getSize(string path)
 {
     getAll(path);
     return Size;
 }
 
 
-double DeviceDisk::getSizeGiB(std::string path)
+double DeviceDisk::getSizeGiB(string path)
 {
     // convert from Byte to GiB
     return (double)getSize(path)/GiB;
@@ -124,14 +124,14 @@ uint64_t DeviceDisk::getUsed()
 #endif
 }
 
-uint64_t DeviceDisk::getUsed(std::string path)
+uint64_t DeviceDisk::getUsed(string path)
 {
     getAll(path);
     return (Used);
 }
 
 
-double DeviceDisk::getUsedGiB(std::string path)
+double DeviceDisk::getUsedGiB(string path)
 {
     // convert from Byte to GiB
     return (double)getUsed(path)/GiB;
@@ -156,7 +156,7 @@ uint64_t DeviceDisk::getFree()
 }
 
 
-uint64_t DeviceDisk::getFree(std::string path)
+uint64_t DeviceDisk::getFree(string path)
 {
     getAll(path);
 
@@ -164,7 +164,7 @@ uint64_t DeviceDisk::getFree(std::string path)
 }
 
 
-double DeviceDisk::getFreeGiB(std::string path)
+double DeviceDisk::getFreeGiB(string path)
 {
     // convert from Byte to GiB
     return (double)getFree(path)/GiB;

@@ -5,65 +5,107 @@ JSONObject::JSONObject()
 
 }
 
-JSONObject::JSONObject(std::string key, JSONValue value)
+JSONObject::JSONObject(string key, JSONValue value)
 {
 
     JSONObject::jsonTuple t(key,value);
     this->contents.push_back(t);}
 
 
-void JSONObject::addElement(std::string key, JSONValue value)
+void JSONObject::addElement(string key, JSONValue value)
 {
     JSONObject::jsonTuple t(key,value);
     this->contents.push_back(t);
 }
 
-void JSONObject::addElement(std::string key, JSONObject value)
+void JSONObject::addElement(string key, JSONObject value)
 {
     JSONObject::jsonTuple t(key,JSONValue(value));
     this->contents.push_back(t);
 }
 
-void JSONObject::addElement(std::string key, JSONArray value)
+void JSONObject::addElement(string key, JSONArray value)
 {
     JSONObject::jsonTuple t(key,JSONValue(value));
     this->contents.push_back(t);
 }
 
-void JSONObject::addElement(std::string key, std::string value)
+void JSONObject::addElement(string key, string value)
 {
     JSONObject::jsonTuple t(key,JSONValue(value));
     this->contents.push_back(t);
 }
 
-void JSONObject::addElement(std::string key, double value)
+void JSONObject::addElement(string key, double value)
 {
     JSONObject::jsonTuple t(key,JSONValue(value));
     this->contents.push_back(t);
 }
 
-void JSONObject::addElement(std::string key, int value)
+//void JSONObject::addElement(string key, int value)
+//{
+//    JSONObject::jsonTuple t(key,JSONValue(value));
+//    this->contents.push_back(t);
+//}
+
+void JSONObject::addElement(string key, int64_t value)
 {
     JSONObject::jsonTuple t(key,JSONValue(value));
     this->contents.push_back(t);
 }
 
-void JSONObject::addElement(std::string key, uint32_t value)
+void JSONObject::addElement(string key, int32_t value)
 {
     JSONObject::jsonTuple t(key,JSONValue(value));
     this->contents.push_back(t);
 }
 
-void JSONObject::addElement(std::string key, uint8_t value)
+void JSONObject::addElement(string key, int16_t value)
 {
     JSONObject::jsonTuple t(key,JSONValue(value));
     this->contents.push_back(t);
 }
 
-std::string JSONObject::to_json_string()
+void JSONObject::addElement(string key, int8_t value)
+{
+    JSONObject::jsonTuple t(key,JSONValue(value));
+    this->contents.push_back(t);
+}
+
+void JSONObject::addElement(string key, uint64_t value)
+{
+    JSONObject::jsonTuple t(key,JSONValue(value));
+    this->contents.push_back(t);
+}
+
+void JSONObject::addElement(string key, uint32_t value)
+{
+    JSONObject::jsonTuple t(key,JSONValue(value));
+    this->contents.push_back(t);
+}
+
+void JSONObject::addElement(string key, uint16_t value)
+{
+    JSONObject::jsonTuple t(key,JSONValue(value));
+    this->contents.push_back(t);
+}
+
+void JSONObject::addElement(string key, uint8_t value)
+{
+    JSONObject::jsonTuple t(key,JSONValue(value));
+    this->contents.push_back(t);
+}
+
+void JSONObject::addElement(string key, bool value)
+{
+    JSONObject::jsonTuple t(key,JSONValue(value));
+    this->contents.push_back(t);
+}
+
+string JSONObject::to_json_object()
 {
     if(contents.size() <= 0) return "";
-    std::string json_string = "{";
+    string json_string = "";
     for(size_t i = 0; i < contents.size(); i++){
         json_string += "\"" + contents[i].key + "\":";
         json_string += contents[i].value.to_json_string();
@@ -71,12 +113,17 @@ std::string JSONObject::to_json_string()
             json_string += ",";
         }
     }
-
-    json_string += "}";
     return json_string;
 }
 
-void JSONObject::get_json_string(std::string &jstring)
+string JSONObject::to_json_string()
+{
+    if(contents.size() <= 0) return "";
+    string json_string = "{" + to_json_object() + "}";
+    return json_string;
+}
+
+void JSONObject::get_json_string(string &jstring)
 {
     jstring.clear();
     jstring.append(to_json_string());

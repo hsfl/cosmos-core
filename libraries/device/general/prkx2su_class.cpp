@@ -112,7 +112,7 @@ namespace Cosmos {
         * @param buflen 32 bit signed integer indicating the maximum size of the buffer
         * @return 32 bit signed integer containing the number of bytes read.
         */
-        int32_t Prkx2su::getdata(uint8_t axis, std::string &buf, uint16_t buflen)
+        int32_t Prkx2su::getdata(uint8_t axis, string &buf, uint16_t buflen)
         {
             int32_t j;
 

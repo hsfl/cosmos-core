@@ -62,7 +62,7 @@ public: // TODO: consider private?
 	/**	%Event start time (Modified Julian Date) */
     double		mjd;
 	/** %Event execution time (Coordinated Universal Time) -- JIMNOTE: but appears to be using MJD in the code? should it be named mjdexec? */
-	double		utcexec;
+    double		utcexec=0.;
 	/**	%Event name */
 	string		name;
 	/** %Event type */
@@ -73,8 +73,9 @@ public: // TODO: consider private?
 	string		data;
 	/** %Event condition */
 	string		condition;
-	/**	%Event run indicator */
+    /**	%Event run indicators */
 	bool		already_ran;
+    uint32_t true_count=0;
 	/** %Event information stored as a JSON string */
     string		event_string;
 
@@ -144,33 +145,40 @@ public:
 
 	///	Determines if it is time for the %Event to execute
 	/**
-		\return	True if %Event is ready to execute, other false
+        \return	True if %Event is ready to execute, otherwise false
 	*/
     bool	is_ready()		{	return (mjd <= currentmjd(0.)); }
 
 	///	Determines if the %Event repeatable
 	/**
-		\return	True if %Event is repeatable, other false
+        \return	True if %Event is repeatable, otherwise false
 	*/
 	bool	is_repeat()		{	return (flag & EVENT_FLAG_REPEAT);	}
 
 	///	Determines if the %Event is a command
 	/**
-		\return	True if %Event is a command, other false
+        \return	True if %Event is a command, otherwise false
 	*/
 	bool	is_command()	{	return (type & EVENT_TYPE_COMMAND);	}
 
     ///	Determines if the %Event is a conditional command
     /**
-        \return	True if %Event is a conditional command, other false
+        \return	True if %Event is a conditional command, otherwise false
     */
     bool	is_conditional(){	return (flag & EVENT_FLAG_CONDITIONAL);	}
 
     ///	Determines if the %Event is a solo command
     /**
-        \return	True if %Event is a solo command, other false
+        \return	True if %Event is a solo command, otherwise false
     */
     bool	is_solo(){	return (flag & EVENT_FLAG_SOLO);	}
+
+    ///	Determines if the %Event has already run
+    /**
+        \return	True if %Event has already run, otherwise false
+    */
+    bool	is_alreadyrun(){	return (flag & EVENT_FLAG_TRUE);	}
+    void    set_alreadyrun(bool value){ if (value) flag |= EVENT_FLAG_TRUE; else flag &= ~EVENT_FLAG_TRUE; }
 
     string generator(
 		string name,
@@ -200,7 +208,7 @@ public:
 	/**
 		\param	cmd1	First event
 		\param	cmd2	Second event
-		\return	True if events are exactly the same, other false
+        \return	True if events are exactly the same, otherwise false
 	*/
     friend bool operator==(const Event& cmd1, const Event& cmd2);
 

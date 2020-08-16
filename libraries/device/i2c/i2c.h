@@ -57,10 +57,10 @@ namespace Cosmos {
 //        int32_t connect();
         int32_t get_funcs();
         int32_t set_address(uint64_t address);
-        int32_t send(std::string data);
+        int32_t send(string data);
         int32_t send(uint8_t *data, size_t len);
         int32_t send(vector <uint8_t> data);
-        int32_t receive(std::string &data);
+        int32_t receive(string &data);
         int32_t receive(uint8_t *data, size_t len);
         int32_t receive(vector <uint8_t> &data);
         int32_t get_error();

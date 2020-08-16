@@ -47,7 +47,7 @@ class TimeUtils {
 
 public:
 
-    std::string timeString(const std::chrono::system_clock::time_point &tp);
+    string timeString(const std::chrono::system_clock::time_point &tp);
     std::chrono::system_clock::time_point makeTimePoint(int year, int mon, int day, int hour, int min, int sec);
     std::chrono::system_clock::time_point timePointUtc();
     double secondsSinceEpoch();

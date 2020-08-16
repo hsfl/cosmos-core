@@ -30,7 +30,7 @@
 #include "device/general/ic9100_lib.h"
 #include "support/jsondef.h"
 
-int32_t ic9100_connect(std::string device, uint8_t address, ic9100_handle &handle)
+int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle)
 {
     int32_t iretn;
 
@@ -357,7 +357,7 @@ uint8_t ic9100_freq2band(double frequency)
     }
     return freqband;
 }
-//int32_t ic9100_read(ic9100_handle &handle, std::string &message)
+//int32_t ic9100_read(ic9100_handle &handle, string &message)
 //{
 //	int32_t iretn = 0;
 

@@ -257,8 +257,12 @@ namespace Cosmos
             Agent::add_request("heartbeat",Agent::req_heartbeat,"","Post a hearbeat");
             Agent::add_request("postsoh",Agent::req_postsoh,"","Post a SOH");
             Agent::add_request("utc",Agent::req_utc,"utc","Get UTC as both Modified Julian Day and Unix Time");
-            Agent::add_request("soh",Agent::req_soh,"soh","Get SOH string");
+            Agent::add_request("soh",Agent::req_soh,"soh","Get Limited SOH string");
+            Agent::add_request("fullsoh",Agent::req_fullsoh,"fullsoh","Get Full SOH string");
             Agent::add_request("jsondump",Agent::req_jsondump,"jsondump","Dump JSON ini files to node folder");
+
+            // Set up Full SOH string
+//            set_fullsohstring(json_list_of_fullsoh(cinfo));
 
             cinfo->agent[0].server = 1;
             cinfo->agent[0].stateflag = static_cast<uint16_t>(Agent::State::RUN);
@@ -286,24 +290,24 @@ namespace Cosmos
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-        int32_t Agent::add_request_internal(string token, Agent::internal_request_function function, string synopsis, string description)
-        {
-            if (Agent::reqs.size() > AGENTMAXREQUESTCOUNT)
-                return (AGENT_ERROR_REQ_COUNT);
+//        int32_t Agent::add_request_internal(string token, Agent::internal_request_function function, string synopsis, string description)
+//        {
+//            if (reqs.size() > AGENTMAXREQUESTCOUNT)
+//                return (AGENT_ERROR_REQ_COUNT);
 
-            request_entry tentry;
-            if (token.size() > COSMOS_MAX_NAME)
-            {
-                token.resize(COSMOS_MAX_NAME);
-            }
-            tentry.token = token;
-            tentry.ifunction = function;
-            tentry.efunction = nullptr;
-            tentry.synopsis = synopsis;
-            tentry.description = description;
-            Agent::reqs.push_back(tentry);
-            return 0;
-        }
+//            request_entry tentry;
+//            if (token.size() > COSMOS_MAX_NAME)
+//            {
+//                token.resize(COSMOS_MAX_NAME);
+//            }
+//            tentry.token = token;
+//            tentry.ifunction = function;
+//            tentry.efunction = nullptr;
+//            tentry.synopsis = synopsis;
+//            tentry.description = description;
+//            reqs.push_back(tentry);
+//            return 0;
+//        }
 
         //! Add external request to Agent request list with description and synopsis.
         /*! Adds access to the indicated function by way of the given token. The provided
@@ -318,7 +322,7 @@ namespace Cosmos
 */
         int32_t Agent::add_request(string token, Agent::external_request_function function, string synopsis, string description)
         {
-            if (Agent::reqs.size() > AGENTMAXREQUESTCOUNT)
+            if (reqs.size() > AGENTMAXREQUESTCOUNT)
                 return (AGENT_ERROR_REQ_COUNT);
 
             request_entry tentry;
@@ -327,11 +331,11 @@ namespace Cosmos
                 token.resize(COSMOS_MAX_NAME);
             }
             tentry.token = token;
-            tentry.ifunction = nullptr;
+//            tentry.ifunction = nullptr;
             tentry.efunction = function;
             tentry.synopsis = synopsis;
             tentry.description = description;
-            Agent::reqs.push_back(tentry);
+            reqs.push_back(tentry);
             return 0;
         }
 
@@ -705,13 +709,13 @@ namespace Cosmos
                     size_t i;
                     for (i=0; i<slist.size(); i++)
                     {
-                        if (!strcmp(agent_list[k].node,slist[i].node) && !strcmp(agent_list[k].proc,slist[i].proc))
+                        if (!strcmp(agent_list[k].node, slist[i].node) && !strcmp(agent_list[k].proc, slist[i].proc))
                             break;
                     }
                     if (i == slist.size())
                     {
                         slist.push_back(agent_list[k]);
-                        for (size_t j=i; j<=i; j--)
+                        for (size_t j=i; j>0; j--)
                         {
                             if (slist[j].port > slist[j-1].port)
                                 break;
@@ -727,8 +731,8 @@ namespace Cosmos
             return(slist);
         }
 
-        //! Set SOH string
-        /*! Set the SOH string to a JSON list of \ref jsonlib_namespace names. A
+        //! Set Limited SOH string
+        /*! Set the Limited SOH string to a JSON list of \ref jsonlib_namespace names. A
  * proper JSON list will begin and end with matched curly braces, be comma separated,
  * and have all strings in double quotes.
     \param list Properly formatted list of JSON names.
@@ -743,6 +747,25 @@ namespace Cosmos
             }
 
             json_table_of_list(sohtable, list, cinfo);
+            return 0;
+        }
+
+        //! Set Full SOH string
+        /*! Set the Full SOH string to a JSON list of \ref jsonlib_namespace names. A
+ * proper JSON list will begin and end with matched curly braces, be comma separated,
+ * and have all strings in double quotes.
+    \param list Properly formatted list of JSON names.
+    \return 0, otherwise a negative error.
+*/
+        int32_t Agent::set_fullsohstring(string list)
+        {
+
+            if (!fullsohtable.empty())
+            {
+                fullsohtable.clear();
+            }
+
+            json_table_of_list(fullsohtable, list, cinfo);
             return 0;
         }
 
@@ -826,11 +849,10 @@ namespace Cosmos
  * it assigned port number, matches the first word of the request against its set of requests,
  * and then either performs the matched function, or returns [NOK].
  */
-        void Agent::request_loop()
+        void Agent::request_loop() noexcept
         {
             int32_t iretn;
             string bufferin;
-            string bufferout;
 
             if ((iretn = socket_open(&cinfo->agent[0].req, NetworkType::UDP, (char *)"", cinfo->agent[0].beat.port, SOCKET_LISTEN, SOCKET_BLOCKING, 2000000)) < 0)
             {
@@ -847,6 +869,7 @@ namespace Cosmos
 
                 if (iretn > 0)
                 {
+                    string bufferout;
                     bufferin[iretn] = 0;
                     process_request(bufferin, bufferout);
                 }
@@ -854,7 +877,7 @@ namespace Cosmos
             return;
         }
 
-        int32_t Agent::process_request(std::string &bufferin, std::string &bufferout)
+        int32_t Agent::process_request(string &bufferin, string &bufferout)
         {
             size_t i;
             int32_t iretn;
@@ -865,6 +888,7 @@ namespace Cosmos
                 fflush(stdout);
             }
 
+            string variable;
             string request;
             request.resize(AGENTMAXBUFFER+1);
             for (i=0; i<COSMOS_MAX_NAME; i++)
@@ -875,30 +899,33 @@ namespace Cosmos
             }
             request[i] = 0;
 
-            for (i=0; i<Agent::reqs.size(); i++)
+            for (i=0; i<reqs.size(); i++)
             {
-                if (!strcmp(&request[0],Agent::reqs[i].token.c_str()))
+                if (!strcmp(&request[0],reqs[i].token.c_str()))
                     break;
             }
 
-            if (i < Agent::reqs.size())
+            if (i < reqs.size())
             {
                 iretn = -1;
-                if (reqs[i].ifunction)
+//                if (reqs[i].ifunction)
+//                {
+//                    iretn = (this->*reqs[i].ifunction)(&bufferin[0], &request[0]);
+//                }
+//                else
+//                {
+//                    if (reqs[i].efunction != nullptr)
+//                    {
+//                        iretn = reqs[i].efunction(&bufferin[0], &request[0], this);
+//                    }
+//                }
+                if (reqs[i].efunction != nullptr)
                 {
-                    iretn = (this->*Agent::reqs[i].ifunction)(&bufferin[0], &request[0]);
-                }
-                else
-                {
-                    if (reqs[i].efunction != nullptr)
-                    {
-                        iretn = reqs[i].efunction(&bufferin[0], &request[0], this);
-                    }
+                    iretn = reqs[i].efunction(bufferin, request, this);
                 }
                 if (iretn >= 0)
                 {
                     request.resize(strlen(&request[0]));
-//                    bufferout = request + "[OK]";
                     bufferout = request;
                 }
                 else
@@ -989,17 +1016,21 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_forward(char* request, char* output, Agent* agent)
+//        int32_t Agent::req_forward(string & request, string & output, Agent *, Agent* agent)
+        int32_t Agent::req_forward(string &request, string &output, Agent* agent)
         {
             uint16_t count;
             int32_t iretn=-1;
 
-            sscanf(request,"%*s %hu",&count);
+//            sscanf(request.c_str(),"%*s %hu",&count);
+            sscanf(request.c_str(),"%*s %hu",&count);
             for (uint16_t i=0; i<agent->cinfo->agent[0].ifcnt; ++i)
             {
-                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[strlen(request)-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+//                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.length()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
+                iretn = sendto(agent->cinfo->agent[0].pub[i].cudp,(const char *)&request[request.size()-count],count,0,(struct sockaddr *)&agent->cinfo->agent[0].pub[i].baddr,sizeof(struct sockaddr_in));
             }
-            sprintf(output,"%.17g %d ",currentmjd(0),iretn);
+//            sprintf(output,"%.17g %d ",currentmjd(0),iretn);
+            output = std::to_string(currentmjd()) + ' ' + std::to_string(iretn);
             return(0);
         }
 
@@ -1010,15 +1041,18 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_echo(char* request, char* output, Agent*)
+//        int32_t Agent::req_echo(string & request, string & output, Agent *, Agent*)
+        int32_t Agent::req_echo(string &request, string &output, Agent*)
         {
             double mjd;
             uint16_t crc, count;
 
-            sscanf(request,"%*s %lf %hx %hu",&mjd,&crc,&count);
-            sprintf(output,"%.17g %x %u ",currentmjd(0),slip_calc_crc((uint8_t *)&request[strlen(request)-count],count),count);
-            strncpy(&output[strlen(output)],&request[strlen(request)-count],count+1);
-            return(0);
+//            sscanf(request.c_str(),"%*s %lf %hx %hu",&mjd,&crc,&count);
+//            sprintf(output,"%.17g %x %u ",currentmjd(0),slip_calc_crc((uint8_t *)&request[request.length()-count],count),count);
+//            strncpy(&output[strlen(output)],&request[request.length()-count],count+1);
+            sscanf(request.c_str(),"%*s %lf %hx %hu",&mjd,&crc,&count);
+            output = to_mjd(currentmjd()) + ' ' + to_hex(crc) + ' ' + std::to_string(count) + ' ' + request;
+            return 0;
         }
 
         //! Built-in Help request
@@ -1028,7 +1062,8 @@ namespace Cosmos
      * \param agent Pointer to Cosmos::Agent to use.
      * \return 0, or negative error.
      */
-        int32_t Agent::req_help_json(char*, char* output, Agent* agent)
+//        int32_t Agent::req_help_json(char*, char* output, Agent* agent)
+        int32_t Agent::req_help_json(string &, string &output, Agent* agent)
         {
             string help_string, s;
             size_t qpos, prev_qpos = 0;
@@ -1047,7 +1082,7 @@ namespace Cosmos
                 qpos = 0;
                 prev_qpos = 0;
                 s = agent->reqs[i].synopsis;
-                while((qpos=s.substr(prev_qpos).find("\""))!= std::string::npos)
+                while((qpos=s.substr(prev_qpos).find("\""))!= string::npos)
                 {
                     s.replace(qpos+prev_qpos, 1, "\\\"");
                     prev_qpos +=qpos+2;
@@ -1062,7 +1097,7 @@ namespace Cosmos
                 qpos = 0;
                 prev_qpos = 0;
                 s = agent->reqs[i].description;
-                while((qpos=s.substr(prev_qpos).find("\""))!= std::string::npos){
+                while((qpos=s.substr(prev_qpos).find("\""))!= string::npos){
                     s.replace(qpos+prev_qpos, 1, "\\\"");
                     prev_qpos +=qpos+2;
                 }
@@ -1073,11 +1108,13 @@ namespace Cosmos
             }
             //        help_string += "\n";
             help_string += "]}";
-            strcpy(output, (char*)help_string.c_str());
+//            strcpy(output, (char*)help_string.c_str());
+            output = help_string;
             return 0;
         }
 
-        int32_t Agent::req_help(char*, char* output, Agent* agent)
+//        int32_t Agent::req_help(char*, char* output, Agent* agent)
+        int32_t Agent::req_help(string &, string &output, Agent* agent)
         {
             string help_string;
             help_string += "\n";
@@ -1096,7 +1133,8 @@ namespace Cosmos
                 help_string += "\n\n";
             }
             help_string += "\n";
-            strcpy(output, (char*)help_string.c_str());
+//            strcpy(output, (char*)help_string.c_str());
+            output = help_string;
             return 0;
         }
 
@@ -1107,7 +1145,8 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_run(char*, char* output, Agent* agent)
+//        int32_t Agent::req_run(char*, char* output, Agent* agent)
+        int32_t Agent::req_run(string &, string &output, Agent* agent)
         {
             agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
             output[0] = 0;
@@ -1121,7 +1160,8 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_init(char*, char* output, Agent* agent)
+//        int32_t Agent::req_init(char*, char* output, Agent* agent)
+        int32_t Agent::req_init(string &, string &output, Agent* agent)
         {
             agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::INIT);
             output[0] = 0;
@@ -1135,7 +1175,8 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_idle(char*, char* output, Agent* agent)
+//        int32_t Agent::req_idle(char*, char* output, Agent* agent)
+        int32_t Agent::req_idle(string &, string &output, Agent* agent)
         {
             agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::IDLE);
             output[0] = 0;
@@ -1149,7 +1190,8 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_monitor(char*, char* output, Agent* agent)
+//        int32_t Agent::req_monitor(char*, char* output, Agent* agent)
+        int32_t Agent::req_monitor(string &, string &output, Agent* agent)
         {
             agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::MONITOR);
             output[0] = 0;
@@ -1163,7 +1205,8 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_reset(char*, char* output, Agent* agent)
+//        int32_t Agent::req_reset(char*, char* output, Agent* agent)
+        int32_t Agent::req_reset(string &, string &output, Agent* agent)
         {
             agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RESET);
             output[0] = 0;
@@ -1177,10 +1220,12 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
+//        int32_t Agent::req_shutdown(char*, char* output, Agent* agent)
+        int32_t Agent::req_shutdown(string &, string &output, Agent* agent)
         {
             agent->cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::SHUTDOWN);
-            output[0] = 0;
+//            output[0] = 0;
+            output.clear();
             return(0);
         }
 
@@ -1193,20 +1238,27 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_status(char*, char* output, Agent* agent)
+//        int32_t Agent::req_status(char*, char* output, Agent* agent)
+        int32_t Agent::req_status(string &, string &output, Agent* agent)
         {
             string jstring;
 
             if (json_of_agent(jstring, agent->cinfo) != NULL)
             {
-                strncpy(output, jstring.c_str(),agent->cinfo->agent[0].beat.bsz);
-                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//                strncpy(output, jstring.c_str(),agent->cinfo->agent[0].beat.bsz);
+//                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+                output = jstring;
+                if (output.length() > agent->cinfo->agent[0].beat.bsz)
+                {
+                    output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+                }
                 return 0;
             }
             else
             {
-                strcpy(output,"error");
-                output[5] = 0;
+//                strcpy(output,"error");
+//                output[5] = 0;
+                output = "error";
                 return(JSON_ERROR_SCAN);
             }
         }
@@ -1217,13 +1269,19 @@ namespace Cosmos
         //! \param output Text of response to request.
         //! \param agent Pointer to Cosmos::Agent to use.
         //! \return 0, or negative error.
-        int32_t Agent::req_debug_level(char *request, char* output, Agent* agent)
+//        int32_t Agent::req_debug_level(string &request, char* output, Agent* agent)
+        int32_t Agent::req_debug_level(string &request, string &output, Agent* agent)
         {
-            if (strcmp(request, "debug_level"))
+//            if (strcmp(request, "debug_level"))
+//            {
+//                sscanf(request.c_str(), "debug_level %hu", &agent->debug_level);
+//            }
+//            sprintf(output, "%d", agent->debug_level);
+            if (request != "debug_level")
             {
-                sscanf(request, "debug_level %hu", &agent->debug_level);
+                sscanf(request.c_str(), "debug_level %hu", &agent->debug_level);
             }
-            sprintf(output, "%d", agent->debug_level);
+            output = std::to_string(agent->debug_level);
             return 0;
         }
 
@@ -1234,14 +1292,20 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_getvalue(char *request, char* output, Agent* agent)
+//        int32_t Agent::req_getvalue(string &request, char* output, Agent* agent)
+        int32_t Agent::req_getvalue(string &request, string &output, Agent* agent)
         {
             string jstring;
 
             if (json_of_list(jstring, request, agent->cinfo) != NULL)
             {
-                strncpy(output, jstring.c_str(), agent->cinfo->agent[0].beat.bsz);
-                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//                strncpy(output, jstring.c_str(), agent->cinfo->agent[0].beat.bsz);
+//                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+                output = jstring;
+                if (output.length() > agent->cinfo->agent[0].beat.bsz)
+                {
+                    output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+                }
                 return 0;
             }
             else
@@ -1255,12 +1319,14 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_setvalue(char *request, char* output, Agent* agent)
+//        int32_t Agent::req_setvalue(string &request, char* output, Agent* agent)
+        int32_t Agent::req_setvalue(string &request, string &output, Agent* agent)
         {
             int32_t iretn;
             iretn = json_parse(request, agent->cinfo);
 
-            sprintf(output,"%d",iretn);
+//            sprintf(output,"%d",iretn);
+            output = std::to_string(iretn);
 
             return(iretn);
         }
@@ -1272,11 +1338,17 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_listnames(char *, char* output, Agent* agent)
+//        int32_t Agent::req_listnames(char *, char* output, Agent* agent)
+        int32_t Agent::req_listnames(string &, string &output, Agent* agent)
         {
-            string result = json_list_of_all(agent->cinfo);
-            strncpy(output, result.c_str(), agent->cinfo->agent[0].beat.bsz);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            string result = json_list_of_all(agent->cinfo);
+//            strncpy(output, result.c_str(), agent->cinfo->agent[0].beat.bsz);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = json_list_of_all(agent->cinfo);
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1287,10 +1359,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
+        int32_t Agent::req_nodejson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.node.c_str(), agent->cinfo->json.node.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.node.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.node.c_str(), agent->cinfo->json.node.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.node.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.node.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1301,10 +1379,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_statejson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_statejson(char *, char* output, Agent* agent)
+        int32_t Agent::req_statejson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.state.c_str(), agent->cinfo->json.state.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.state.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.state.c_str(), agent->cinfo->json.state.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.state.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.state.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1315,10 +1399,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_utcstartjson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_utcstartjson(char *, char* output, Agent* agent)
+        int32_t Agent::req_utcstartjson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.utcstart.c_str(), agent->cinfo->json.utcstart.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.utcstart.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.utcstart.c_str(), agent->cinfo->json.utcstart.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.utcstart.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.utcstart.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1329,10 +1419,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
+        int32_t Agent::req_piecesjson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.pieces.c_str(), agent->cinfo->json.pieces.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.pieces.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.pieces.c_str(), agent->cinfo->json.pieces.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.pieces.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.pieces.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1343,10 +1439,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
+        int32_t Agent::req_facesjson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.faces.c_str(), agent->cinfo->json.faces.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.faces.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.faces.c_str(), agent->cinfo->json.faces.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.faces.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.faces.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1357,10 +1459,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
+        int32_t Agent::req_vertexsjson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.vertexs.c_str(), agent->cinfo->json.vertexs.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.vertexs.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.vertexs.c_str(), agent->cinfo->json.vertexs.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.vertexs.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.vertexs.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1371,10 +1479,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
+        int32_t Agent::req_devgenjson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.devgen.c_str(), agent->cinfo->json.devgen.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.devgen.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.devgen.c_str(), agent->cinfo->json.devgen.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.devgen.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.devgen.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1385,10 +1499,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
+        int32_t Agent::req_devspecjson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.devspec.c_str(), agent->cinfo->json.devspec.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.devspec.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.devspec.c_str(), agent->cinfo->json.devspec.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.devspec.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.devspec.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1399,10 +1519,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_portsjson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_portsjson(char *, char* output, Agent* agent)
+        int32_t Agent::req_portsjson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.ports.c_str(), agent->cinfo->json.ports.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.ports.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.ports.c_str(), agent->cinfo->json.ports.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.ports.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.ports.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1413,10 +1539,16 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_targetsjson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_targetsjson(char *, char* output, Agent* agent)
+        int32_t Agent::req_targetsjson(string &, string &output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.targets.c_str(), agent->cinfo->json.targets.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.targets.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.targets.c_str(), agent->cinfo->json.targets.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.targets.size():agent->cinfo->agent[0].beat.bsz-1);
+//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            output = agent->cinfo->json.targets.c_str();
+            if (output.length() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1427,10 +1559,15 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
+//        int32_t Agent::req_aliasesjson(char *, char* output, Agent* agent)
+        int32_t Agent::req_aliasesjson(string &, string & output, Agent* agent)
         {
-            strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->agent[0].beat.bsz-1);
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+//            strncpy(output, agent->cinfo->json.aliases.c_str(), agent->cinfo->json.aliases.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.aliases.size():agent->cinfo->agent[0].beat.bsz-1);
+            output = agent->cinfo->json.aliases;
+            if (output.size() > agent->cinfo->agent[0].beat.bsz)
+            {
+                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
+            }
             return 0;
         }
 
@@ -1441,37 +1578,56 @@ namespace Cosmos
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-        int32_t Agent::req_heartbeat(char *, char* output, Agent* agent)
+//        int32_t Agent::req_heartbeat(char *, char* output, Agent* agent)
+        int32_t Agent::req_heartbeat(string &, string &output, Agent* agent)
         {
-            output[0] = 0;
+//            output[0] = 0;
+            output.clear();
             int32_t iretn = 0;
             iretn = agent->post_beat();
             return iretn;
         }
 
-        int32_t Agent::req_postsoh(char *, char* output, Agent* agent)
+//        int32_t Agent::req_postsoh(char *, char* output, Agent* agent)
+        int32_t Agent::req_postsoh(string &, string &output, Agent* agent)
         {
-            output[0] = 0;
+//            output[0] = 0;
+            output.clear();
             int32_t iretn = 0;
             iretn = agent->post_soh();
             return iretn;
         }
 
-        int32_t Agent::req_utc(char *, char *response, Agent *agent)
+//        int32_t Agent::req_utc(string &, string &response, Agent *agent)
+        int32_t Agent::req_utc(string &, string &response, Agent *agent)
         {
-            sprintf(response, " %.15g %lf ", agent->agent_time_producer(), utc2unixseconds(agent->agent_time_producer()));
+//            response =  " %.15g %lf ", agent->agent_time_producer(), utc2unixseconds(agent->agent_time_producer()));
+            response = to_mjd(agent->agent_time_producer()) + ' ' + std::to_string(utc2unixseconds(agent->agent_time_producer()));
             return 0;
         }
 
-        int32_t Agent::req_soh(char *, char* response, Agent *agent)
+//        int32_t Agent::req_soh(string &, string &response, Agent *agent)
+        int32_t Agent::req_soh(string &, string &response, Agent *agent)
         {
-            std::string rjstring;
-            strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
+            string rjstring;
+//            response = (json_of_table(rjstring, agent->sohtable, agent->cinfo));
+            response = json_of_table(rjstring, agent->sohtable, agent->cinfo);
 
             return 0;
         }
 
-        int32_t Agent::req_jsondump(char *, char*, Agent *agent)
+//        int32_t Agent::req_fullsoh(string &, string &response, Agent *agent)
+        int32_t Agent::req_fullsoh(string &, string &response, Agent *agent)
+        {
+            string rjstring;
+//            response = (json_of_table(rjstring, agent->fullsohtable, agent->cinfo));
+            response = json_of_table(rjstring, agent->fullsohtable, agent->cinfo);
+
+            return 0;
+        }
+
+//        int32_t Agent::req_jsondump(char *, char*, Agent *agent)
+        int32_t Agent::req_jsondump(string &, string &, Agent *agent)
         {
             json_dump_node(agent->cinfo);
             return 0;
@@ -2371,7 +2527,7 @@ namespace Cosmos
     \param where One of Where::HEAD or Where::TAIL, indicating whether to start at the head or tail of the ring.
     \return If a message comes in, return its type. If none comes in, return zero, otherwise negative error.
 */
-        int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Where where, std::string proc, std::string node)
+        int32_t Agent::readring(messstruc &message, AgentMessage type, float waitsec, Where where, string proc, string node)
         {
             if (waitsec < 0.f)
             {
@@ -2615,18 +2771,18 @@ namespace Cosmos
         //        return (imu);
         //    }
 
-        std::string Agent::getNode()
+        string Agent::getNode()
         {
             return nodeName;
         }
 
-        std::string Agent::getAgent()
+        string Agent::getAgent()
         {
             return agentName;
         }
 
 
-        int32_t Agent::getJson(std::string node, jsonnode &jnode)
+        int32_t Agent::getJson(string node, jsonnode &jnode)
         {
             int32_t iretn=0;
 
@@ -2749,11 +2905,11 @@ namespace Cosmos
 
         // A Cristian's algorithm approach to time synchronization, with our remote node as the time server.
         // This is meant to be run on a time sink agent (a requester).
-        int32_t Agent::get_agent_time(double &agent_time, double &epsilon, string agent, string node, double wait_sec)
+        int32_t Agent::get_agent_time(double &agent_time, double &epsilon, double &delta, string agent, string node, double wait_sec)
         {
             static beatstruc agent_beat;
-            std::string agent_response;
-            double mjd_0, mjd_1, delta;
+            string agent_response;
+            double mjd_0, mjd_1;
             int32_t iretn;
 
             if (!agent_beat.exists)
@@ -2777,9 +2933,9 @@ namespace Cosmos
             {
                 mjd_1 = currentmjd();
 
-                delta = (mjd_1 - mjd_0) / 2.0;  // RTT / 2.0
-                agent_time = stod(agent_response.substr(0, agent_response.find("["))) + delta;
-                epsilon = delta; // We do not have a lower bound on the time to transmit a message one way.
+                epsilon = (mjd_1 - mjd_0) / 2.0;  // RTT / 2.0
+                agent_time = stod(agent_response.substr(0, agent_response.find("["))) + epsilon;
+                delta = agent_time - mjd_1; // We do not have a lower bound on the time to transmit a message one way.
 
             return 0;
             }

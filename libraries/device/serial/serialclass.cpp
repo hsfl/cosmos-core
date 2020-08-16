@@ -1388,7 +1388,7 @@ namespace Cosmos {
         int32_t ch;
         uint16_t i;
         uint8_t cs_in, cs_out;
-        std::string input;
+        string input;
 
         do
         {

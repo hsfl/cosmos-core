@@ -107,7 +107,7 @@ void extract_cancel(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, P
     memmove(&tx_id, &packet[0]+PACKET_CANCEL_OFFSET_TX_ID, sizeof(PACKET_TX_ID_TYPE));
 }
 
-void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, vector<PACKET_TX_ID_TYPE> reqmeta)
+void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta)
 {
     PACKET_TYPE type = salt_type(PACKET_REQMETA);
 
@@ -254,7 +254,7 @@ void extract_data(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE& node_id, PAC
     memmove(chunk, &packet[0]+PACKET_DATA_OFFSET_CHUNK, byte_count);
 }
 
-void make_reqqueue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name)
+void make_reqqueue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name)
 {
     PACKET_TYPE type = salt_type(PACKET_REQQUEUE);
 
@@ -274,7 +274,7 @@ void extract_reqqueue(vector<PACKET_BYTE>& packet, packet_struct_reqqueue& reqqu
     memmove(&reqqueue.node_name, &packet[0]+PACKET_REQQUEUE_OFFSET_NODE_NAME, COSMOS_MAX_NAME);
 }
 
-void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, vector<PACKET_TX_ID_TYPE> queue)
+void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> queue)
 {
     PACKET_TYPE type = salt_type(PACKET_QUEUE);
 
@@ -296,7 +296,7 @@ void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue)
     memmove(&queue.tx_id, &packet[0]+PACKET_QUEUE_OFFSET_TX_ID, COSMOS_SIZEOF(PACKET_TX_ID_TYPE)*TRANSFER_QUEUE_LIMIT);
 }
 
-void make_heartbeat_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, PACKET_BYTE beat_period, PACKET_UNIXTIME_TYPE throughput, PACKET_UNIXTIME_TYPE funixtime)
+void make_heartbeat_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, PACKET_BYTE beat_period, PACKET_UNIXTIME_TYPE throughput, PACKET_UNIXTIME_TYPE funixtime)
 {
     PACKET_TYPE type = salt_type(PACKET_HEARTBEAT);
 
@@ -322,7 +322,7 @@ void extract_heartbeat(vector<PACKET_BYTE>& packet, packet_struct_heartbeat& hea
     memmove(&heartbeat.funixtime, &packet[0]+PACKET_HEARTBEAT_OFFSET_FUNIXTIME, 4);
 }
 
-void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string message)
+void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string message)
 {
     PACKET_TYPE type = salt_type(PACKET_MESSAGE);
 
@@ -354,7 +354,7 @@ void show_fstream_state(std::ifstream& )  {
 }
 
 // Function to get age of a file in seconds
-time_t get_file_age(std::string filename)
+time_t get_file_age(string filename)
 {
     struct stat stat_buf;
     if (stat(filename.c_str(), &stat_buf) != 0)
@@ -394,7 +394,7 @@ int32_t get_file_size(string filename)
 
 int32_t get_file_size(const char* filename)
 {
-    std::string sfilename = filename;
+    string sfilename = filename;
     return get_file_size(sfilename);
 }
 
@@ -454,7 +454,7 @@ void print_cstring_hex_with_index(uint8_t* buf, int siz)
     return;
 }
 
-void unable_to_remove(std::string filename)  {
+void unable_to_remove(string filename)  {
     std::cout<<"ERROR:\tunable to remove file <"<<filename<<">"<<std::endl;
     return;
 }
@@ -534,7 +534,7 @@ int32_t load_nodeids()
         if (fp)
         {
             nodeids.resize(256);
-            uint16_t index;
+            uint16_t index = 1;
             while (fgets(buf, 102, fp) != nullptr)
             {
                 if (buf[strlen(buf)-1] == '\n')
@@ -566,6 +566,7 @@ int32_t load_nodeids()
                 //                sscanf(buf, "%u %s\n", &index, name);
                 //                nodeids[index] = name;
             }
+            nodeids.resize(index);
         }
         else
         {
@@ -574,4 +575,9 @@ int32_t load_nodeids()
     }
 
     return nodeids.size();
+}
+
+vector <string> get_nodeids()
+{
+    return nodeids;
 }

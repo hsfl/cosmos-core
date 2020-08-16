@@ -184,7 +184,7 @@ int32_t jplopen()
 {
     if (jplephem == nullptr)
 	{
-		std::string fname;
+		string fname;
 		int32_t iretn = get_cosmosresources(fname);
 		if (iretn < 0)
 		{

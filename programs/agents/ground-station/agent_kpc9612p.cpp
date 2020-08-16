@@ -78,7 +78,7 @@ socket_channel transmit_socket;
 #define TUN_BUF_SIZE 2000
 #define BAUD 19200
 
-int32_t request_transmit_port(char *req, char* response, Agent *);
+int32_t request_transmit_port(string &req, string &response, Agent *);
 
 int main(int argc, char *argv[])
 {
@@ -462,9 +462,9 @@ void tcv_write_loop()
     kpc9612p_disconnect(&txr_handle);
 }
 
-int32_t request_transmit_port(char *req, char* response, Agent *)
+int32_t request_transmit_port(string &req, string &response, Agent *)
 {
-    sprintf(response, "%hu", transmit_socket.cport);
+    response = to_unsigned(transmit_socket.cport);
 
     return 0;
 }

@@ -126,7 +126,7 @@ void ElapsedTime::printElapsedTime()
  * \brief ElapsedTime::printElapsedTime
  * \param text
  */
-void ElapsedTime::printElapsedTime(std::string text)
+void ElapsedTime::printElapsedTime(string text)
 {
     if (print){
         //toc();
@@ -186,7 +186,7 @@ double ElapsedTime::toc(){
  * \param text
  * \return
  */
-double ElapsedTime::toc(std::string text)
+double ElapsedTime::toc(string text)
 {
 
     split();

@@ -296,6 +296,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo);
 const char *json_of_groundcontact(cosmosstruc *cinfo);
 const char *json_of_soh(string &jstring, cosmosstruc *cinfo);
 string json_list_of_soh(cosmosstruc *cinfo);
+string json_list_of_fullsoh(cosmosstruc *cinfo);
 string json_list_of_all(cosmosstruc *cinfo);
 const char *json_of_utc(string &jstring, cosmosstruc *cinfo);
 const char *json_of_state_eci(string &jstring, cosmosstruc *cinfo);

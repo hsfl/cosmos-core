@@ -47,30 +47,30 @@ bool printStatus = true;
 int agent_cpu(), create_node();
 int32_t get_last_offset();
 
-//int32_t request_soh(char *request, char* response, Agent *);
-int32_t request_bootCount(char *request, char* response, Agent *);
+//int32_t request_soh(string &request, string &response, Agent *);
+int32_t request_bootCount(string &request, string &response, Agent *);
 
 // disk
-int32_t request_diskSize(char *request, char *response, Agent *);
-int32_t request_diskUsed(char *request, char *response, Agent *);
-int32_t request_diskFree(char *request, char *response, Agent *);
-int32_t request_diskFreePercent (char*request, char *response, Agent *);
+int32_t request_diskSize(string &request, string &response, Agent *);
+int32_t request_diskUsed(string &request, string &response, Agent *);
+int32_t request_diskFree(string &request, string &response, Agent *);
+int32_t request_diskFreePercent (string &request, string &response, Agent *);
 
 // cpu
-int32_t request_cpuProcess(char*request, char *response, Agent *);
-int32_t request_load(char *request, char *response, Agent *);
+int32_t request_cpuProcess(string &request, string &response, Agent *);
+int32_t request_load(string &request, string &response, Agent *);
 
 // memory
-int32_t request_mem(char *request, char *response, Agent *);
-int32_t request_mem_kib(char *request, char *response, Agent *);
-int32_t request_mem_percent (char*request, char *response, Agent *);
-int32_t request_mem_total(char *request, char *response, Agent *);
-int32_t request_mem_total_kib(char *request, char *response, Agent *);
+int32_t request_mem(string &request, string &response, Agent *);
+int32_t request_mem_kib(string &request, string &response, Agent *);
+int32_t request_mem_percent (string &request, string &response, Agent *);
+int32_t request_mem_total(string &request, string &response, Agent *);
+int32_t request_mem_total_kib(string &request, string &response, Agent *);
 
-int32_t request_printStatus(char *request, char *response, Agent *);
+int32_t request_printStatus(string &request, string &response, Agent *);
 
 
-static std::string sohstring;
+static string sohstring;
 
 // cosmos classes
 static ElapsedTime et;
@@ -287,11 +287,11 @@ int32_t get_last_offset()
 //}
 
 
-//int32_t request_soh(char *, char* response, Agent *)
+//int32_t request_soh(string &, string &response, Agent *)
 //{
-//    std::string rjstring;
-//    //	strcpy(response,json_of_list(rjstring,sohstring,agent->cinfo));
-//    strcpy(response,json_of_table(rjstring, agent->sohtable, agent->cinfo));
+//    string rjstring;
+//    //	response = (json_of_list(rjstring,sohstring,agent->cinfo));
+//    response = (json_of_table(rjstring, agent->sohtable, agent->cinfo));
 
 //    return 0;
 //}
@@ -300,86 +300,86 @@ int32_t get_last_offset()
 
 // ----------------------------------------------
 // disk
-int32_t request_diskSize(char *, char* response, Agent *)
+int32_t request_diskSize(string &, string &response, Agent *)
 {
-    return (sprintf(response, "%f", deviceDisk.SizeGiB));
+    return ((response = std::to_string(deviceDisk.SizeGiB)).length());
 }
 
-int32_t request_diskUsed(char *, char* response, Agent *)
+int32_t request_diskUsed(string &, string &response, Agent *)
 {
-    return (sprintf(response, "%f", deviceDisk.UsedGiB));
+    return ((response = std::to_string(deviceDisk.UsedGiB)).length());
 }
 
-int32_t request_diskFree(char *, char* response, Agent *)
+int32_t request_diskFree(string &, string &response, Agent *)
 {
     // TODO: implement diskFree
-    //return (sprintf(response, "%.1f", agent->cinfo->device[cpu_cidx].cpugib));
+    //return (response =  "%.1f", agent->cinfo->device[cpu_cidx].cpugib));
 
     // in the mean time use this
-    return (sprintf(response, "%f", deviceDisk.FreeGiB));
+    return ((response = std::to_string(deviceDisk.FreeGiB)).length());
 
 }
 
-int32_t request_diskFreePercent (char *, char *response, Agent *)
+int32_t request_diskFreePercent (std::string &, std::string &response, Agent *)
 {
-    return (sprintf(response, "%f", deviceDisk.FreePercent));
+    return ((response = std::to_string(deviceDisk.FreePercent)).length());
 }
 
 
 
 // ----------------------------------------------
 // cpu
-int32_t request_load (char *, char* response, Agent *)
+int32_t request_load (string &, string &response, Agent *)
 {
-    return (sprintf(response, "%.2f", deviceCpu.load));
+    return ((response = std::to_string(deviceCpu.load)).length());
 }
 
-int32_t request_cpuProcess(char *, char *response, Agent *){
+int32_t request_cpuProcess(string &, string &response, Agent *){
 
-    return (sprintf(response, "%f", deviceCpu.percentUseForCurrentProcess));
+    return ((response = std::to_string(deviceCpu.percentUseForCurrentProcess)).length());
 }
 
 // ----------------------------------------------
 // memory in Bytes
-int32_t request_mem(char *, char* response, Agent *)
+int32_t request_mem(string &, string &response, Agent *)
 {
-    return (sprintf(response, "%.0f", deviceCpu.virtualMemoryUsed));
+    return ((response = std::to_string(deviceCpu.virtualMemoryUsed)).length());
 }
 
 // used memory in KiB
-int32_t request_mem_kib(char *, char* response, Agent *)
+int32_t request_mem_kib(string &, string &response, Agent *)
 {
-    return (sprintf(response, "%.0f", deviceCpu.virtualMemoryUsed/1024.));
+    return ((response = std::to_string(deviceCpu.virtualMemoryUsed/1024.)).length());
 }
 
 
-int32_t request_mem_percent (char *, char *response, Agent *)
+int32_t request_mem_percent (string &, string &response, Agent *)
 {
 
-    return (sprintf(response, "%.0f", deviceCpu.getVirtualMemoryUsedPercent()));
-}
-
-// total memory in Bytes
-int32_t request_mem_total(char *, char* response, Agent *)
-{
-    return (sprintf(response, "%.0f", deviceCpu.getVirtualMemoryTotal()));
+    return ((response = std::to_string(deviceCpu.getVirtualMemoryUsedPercent())).length());
 }
 
 // total memory in Bytes
-int32_t request_mem_total_kib(char *, char* response, Agent *)
+int32_t request_mem_total(string &, string &response, Agent *)
 {
-    return (sprintf(response, "%.0f", deviceCpu.getVirtualMemoryTotal()/1024));
+    return ((response = std::to_string(deviceCpu.getVirtualMemoryTotal())).length());
+}
+
+// total memory in Bytes
+int32_t request_mem_total_kib(string &, string &response, Agent *)
+{
+    return ((response = std::to_string(deviceCpu.getVirtualMemoryTotal()/1024)).length());
 }
 
 
 
 // ----------------------------------------------
 // boot count
-int32_t request_bootCount(char *, char* response, Agent *)
+int32_t request_bootCount(string &, string &response, Agent *)
 {
 
     std::ifstream ifs ("/hiakasat/nodes/hiakasat/boot.count");
-    std::string counts;
+    string counts;
 
     if (ifs.is_open()) {
         std::getline(ifs,counts);
@@ -389,15 +389,15 @@ int32_t request_bootCount(char *, char* response, Agent *)
         cout << "Error opening file";
     }
 
-    return (sprintf(response, "%s", counts.c_str()));
+    return ((response = counts).length());
 }
 
 // ----------------------------------------------
 // debug info
-int32_t request_printStatus(char *request, char *, Agent *)
+int32_t request_printStatus(string &request, string &, Agent *)
 {
 
-    sscanf(request,"%*s %d",&printStatus);
+    sscanf(request.c_str(),"%*s %d",&printStatus);
     cout << "printStatus is " << printStatus <<  endl;
 
     return 0;

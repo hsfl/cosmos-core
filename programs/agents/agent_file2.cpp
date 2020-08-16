@@ -169,18 +169,18 @@ static vector<tx_queue> txq;
 static std::string log_directory = "incoming";
 double logstride_sec = 10.;
 
-int32_t request_debug(char *request, char *response, Agent *agent);
-int32_t request_get_channels(char* request, char* response, Agent *agent);
-int32_t request_set_throughput(char* request, char* response, Agent *agent);
-int32_t request_remove_file(char* request, char* response, Agent *agent);
-//int32_t request_send_file(char* request, char* response, Agent *agent);
-int32_t request_ls(char* request, char* response, Agent *agent);
-int32_t request_list_incoming(char* request, char* response, Agent *agent);
-int32_t request_list_outgoing(char* request, char* response, Agent *agent);
-int32_t request_list_incoming_json(char* request, char* response, Agent *agent);
-int32_t request_list_outgoing_json(char* request, char* response, Agent *agent);
-int32_t request_set_logstride(char* request, char* response, Agent *agent);
-int32_t request_get_logstride(char* request, char* response, Agent *agent);
+int32_t request_debug(string &request, string &response, Agent *agent);
+int32_t request_get_channels(string &request, string &response, Agent *agent);
+int32_t request_set_throughput(string &request, string &response, Agent *agent);
+int32_t request_remove_file(string &request, string &response, Agent *agent);
+//int32_t request_send_file(string &request, string &response, Agent *agent);
+int32_t request_ls(string &request, string &response, Agent *agent);
+int32_t request_list_incoming(string &request, string &response, Agent *agent);
+int32_t request_list_outgoing(string &request, string &response, Agent *agent);
+int32_t request_list_incoming_json(string &request, string &response, Agent *agent);
+int32_t request_list_outgoing_json(string &request, string &response, Agent *agent);
+int32_t request_set_logstride(string &request, string &response, Agent *agent);
+int32_t request_get_logstride(string &request, string &response, Agent *agent);
 int32_t outgoing_tx_add(tx_progress &tx_out);
 int32_t outgoing_tx_add(std::string node_name, std::string agent_name, std::string file_name);
 int32_t outgoing_tx_del(int32_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
@@ -1865,14 +1865,14 @@ vector<file_progress> find_chunks_missing(tx_progress& tx)
     return (missing);
 }
 
-int32_t request_ls(char* request, char* response, Agent *agent)
+int32_t request_ls(string &request, string &response, Agent *agent)
 {
 
     //the request string == "ls directoryname"
     //get the directory name
 //    char directoryname[COSMOS_MAX_NAME+1];
-//    memmove(directoryname, request+3, COSMOS_MAX_NAME);
-    std::string directoryname = request+3;
+//    memmove(directoryname, request.substr(3), COSMOS_MAX_NAME);
+    std::string directoryname = request.substr(3);
 
     DIR* dir;
     struct dirent* ent;
@@ -1888,24 +1888,38 @@ int32_t request_ls(char* request, char* response, Agent *agent)
         }
         closedir(dir);
 
-        sprintf(response, "%s", all_file_names.c_str());
+        response = (all_file_names.c_str());
     }
     else
-        sprintf(response, "unable to open directory <%s>", directoryname.c_str());
+    {
+        response = "unable to open directory " + directoryname;
+    }
     return 0;
 }
 
-int32_t request_list_incoming(char* request, char* response, Agent *agent)
+int32_t request_list_incoming(string &request, string &response, Agent *agent)
 {
-    response[0] = 0;
+    response.clear();
     for (uint16_t node = 0; node<txq.size(); ++node)
     {
-        sprintf(&response[strlen(response)], "%u %s %u\n", node, txq[static_cast <size_t>(node)].node_name.c_str(), txq[static_cast <size_t>(node)].incoming.size);
-        for(tx_progress tx : txq[static_cast <size_t>(node)].incoming.progress)
+        response +=  std::to_string(node) + ' ' + txq[(node)].node_name + ' ' +  std::to_string(txq[(node)].incoming.size) + "\n";
+        for(tx_progress tx : txq[(node)].incoming.progress)
         {
             if (tx.tx_id)
             {
-                sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u\n", tx.tx_id, tx.node_name.c_str(), tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
+                response += to_label("tx_id", tx.tx_id) + ' ';
+                response += to_label("node", tx.node_name) + ' ';
+                response += to_label("agent", tx.agent_name) + ' ';
+                response += to_label("name", tx.file_name) + ' ';
+                response += to_label("bytes", tx.total_bytes) + ' ';
+                response += "/" + to_unsigned(tx.file_size) + ' ';
+                response += to_label("havemeta", tx.havemeta) + ' ';
+                response += to_label("sendmeta", tx.sendmeta) + ' ';
+                response += to_label("sentmeta", tx.sentmeta) + ' ';
+                response += to_label("senddata", tx.senddata) + ' ';
+                response += to_label("sentdata", tx.sentdata) + ' ';
+                response += to_label("complete", tx.complete);
+                response += "\n";
             }
         }
     }
@@ -1913,17 +1927,29 @@ int32_t request_list_incoming(char* request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t request_list_outgoing(char* request, char* response, Agent *agent)
+int32_t request_list_outgoing(string &request, string &response, Agent *agent)
 {
-    response[0] = 0;
+    response.clear();
     for (uint16_t node=0; node<txq.size(); ++node)
     {
-        sprintf(&response[strlen(response)], "%u %s %u\n", node, txq[static_cast <size_t>(node)].node_name.c_str(), txq[static_cast <size_t>(node)].outgoing.size);
-        for(tx_progress tx : txq[static_cast <size_t>(node)].outgoing.progress)
+        response +=  std::to_string(node) + ' ' + txq[(node)].node_name + ' ' +  std::to_string(txq[(node)].outgoing.size) + "\n";
+        for(tx_progress tx : txq[(node)].outgoing.progress)
         {
             if (tx.tx_id)
             {
-                sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u\n", tx.tx_id, tx.node_name.c_str(), tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
+                response += to_label("tx_id", tx.tx_id) + ' ';
+                response += to_label("node", tx.node_name) + ' ';
+                response += to_label("agent", tx.agent_name) + ' ';
+                response += to_label("name", tx.file_name) + ' ';
+                response += to_label("bytes", tx.total_bytes) + ' ';
+                response += "/" + to_unsigned(tx.file_size) + ' ';
+                response += to_label("havemeta", tx.havemeta) + ' ';
+                response += to_label("sendmeta", tx.sendmeta) + ' ';
+                response += to_label("sentmeta", tx.sentmeta) + ' ';
+                response += to_label("senddata", tx.senddata) + ' ';
+                response += to_label("sentdata", tx.sentdata) + ' ';
+                response += to_label("complete", tx.complete);
+                response += "\n";
             }
         }
     }
@@ -1931,28 +1957,28 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t request_get_channels(char* request, char* response, Agent *agent)
+int32_t request_get_channels(string &request, string &response, Agent *agent)
 {
     for (uint16_t channel=0; channel<comm_channel.size(); ++channel)
     {
-        sprintf(response,"{");
-        sprintf(response,"channel:%u,", channel);
-        sprintf(response,"node:\"%s\",", comm_channel[channel].node.c_str());
-        sprintf(response,"ip:\"%s\",", comm_channel[channel].chanip.c_str());
-        sprintf(response,"size:%u,", comm_channel[channel].packet_size);
-        sprintf(response,"throughput:%u,", comm_channel[channel].throughput);
-        sprintf(response,"nmjd:\"%f\",", comm_channel[channel].nmjd);
-        sprintf(response,"lmjd:\"%f\",", comm_channel[channel].lmjd);
-        sprintf(response,"},");
+        response = ("{");
+        response = ("channel:%u,", channel);
+        response = ("node:\"%s\",", comm_channel[channel].node.c_str());
+        response = ("ip:\"%s\",", comm_channel[channel].chanip.c_str());
+        response = ("size:%u,", comm_channel[channel].packet_size);
+        response = ("throughput:%u,", comm_channel[channel].throughput);
+        response = ("nmjd:\"%f\",", comm_channel[channel].nmjd);
+        response = ("lmjd:\"%f\",", comm_channel[channel].lmjd);
+        response = ("},");
     }
 }
 
-int32_t request_set_throughput(char* request, char* response, Agent *agent)
+int32_t request_set_throughput(string &request, string &response, Agent *agent)
 {
     uint16_t channel=0;
     uint32_t throughput=0;
 
-    sscanf(request, "%*s %hu %u\n", &channel, &throughput);
+    sscanf(request.c_str(), "%*s %hu %u\n", &channel, &throughput);
     if (channel < comm_channel.size())
     {
 //        use_channel = channel;
@@ -1963,18 +1989,18 @@ int32_t request_set_throughput(char* request, char* response, Agent *agent)
     }
     else
     {
-        sprintf(response, "Channel %u too large", channel);
+        response = ("Channel %u too large", channel);
     }
     return 0;
 
 }
 
-int32_t request_remove_file(char* request, char* response, Agent *agent)
+int32_t request_remove_file(string &request, string &response, Agent *agent)
 {
     char type;
     uint32_t tx_id;
 
-    sscanf(request, "%*s %c %u\n", &type, &tx_id);
+    sscanf(request.c_str(), "%*s %c %u\n", &type, &tx_id);
     switch (type)
     {
     case 'i':
@@ -2805,7 +2831,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node)
     return tx_id;
 }
 
-int32_t request_debug(char *request, char *response, Agent *agent)
+int32_t request_debug(string &request, string &response, Agent *agent)
 {
 
     std::string requestString = std::string(request);
@@ -2817,10 +2843,10 @@ int32_t request_debug(char *request, char *response, Agent *agent)
     return 0;
 }
 
-int32_t request_set_logstride(char* request, char*, Agent *)
+int32_t request_set_logstride(string &request, string &, Agent *)
 {
     double new_logstride;
-    sscanf(request,"set_logstride %lf",&new_logstride);
+    sscanf(request.c_str(),"set_logstride %lf",&new_logstride);
     if(new_logstride > 0. )
     {
         logstride_sec = new_logstride;
@@ -2828,9 +2854,9 @@ int32_t request_set_logstride(char* request, char*, Agent *)
     return 0;
 }
 
-int32_t request_get_logstride(char* request, char* response, Agent *agent)
+int32_t request_get_logstride(string &request, string &response, Agent *agent)
 {
-    sprintf(response, "{\"logstride\":%lf}", logstride_sec);
+    response = ("{\"logstride\":%lf}", logstride_sec);
     return 0;
 }
 
@@ -2843,15 +2869,15 @@ void write_queue_log(double logdate)
 
 }
 
-int32_t request_list_incoming_json(char* request, char* response, Agent *agent)
+int32_t request_list_incoming_json(string &request, string &response, Agent *agent)
 {
-    sprintf(response, "%s", json_list_incoming().c_str());
+    response = (json_list_incoming().c_str());
     return 0;
 }
 
-int32_t request_list_outgoing_json(char* request, char* response, Agent *agent)
+int32_t request_list_outgoing_json(string &request, string &response, Agent *agent)
 {
-    sprintf(response, "%s", json_list_outgoing().c_str());
+    response = (json_list_outgoing().c_str());
     return 0;
 }
 

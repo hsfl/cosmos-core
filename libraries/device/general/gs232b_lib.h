@@ -78,7 +78,7 @@ struct gs232b_state
 	int32_t data_received;
 	} ;
 
-int32_t gs232b_connect(std::string dev);
+int32_t gs232b_connect(string dev);
 int32_t gs232b_disconnect();
 int32_t gs232b_calibrate_offset(int32_t axis);
 //void gs232b_full_scale_calibration(int32_t axis);

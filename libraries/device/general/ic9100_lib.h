@@ -91,7 +91,7 @@ struct ic9100_handle
     double frequency;
 };
 
-int32_t ic9100_connect(std::string device, uint8_t address, ic9100_handle &handle);
+int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle);
 int32_t ic9100_disconnect(ic9100_handle &handle);
 int32_t ic9100_write_header(ic9100_handle &handle);
 int32_t ic9100_write(ic9100_handle &handle, uint8_t command);

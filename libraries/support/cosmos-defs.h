@@ -85,7 +85,7 @@ enum PIECE
 //! \ingroup defs
 //! \defgroup defs_node_type Constants defining Node types.
 //! @{
-enum NODE_TYPE
+enum NODE_TYPE : uint16_t
 {
     NODE_TYPE_SATELLITE=0,
     NODE_TYPE_GROUNDSTATION=1,
@@ -104,6 +104,18 @@ enum NODE_TYPE
     NODE_TYPE_TESTBED=14,
     NODE_TYPE_COUNT,
     NODE_TYPE_NONE=UINT16_MAX
+};
+
+//! \defgroup defs_node_flag Constants defining Node flags.
+//! @{
+enum NODE_FLAG : uint16_t
+{
+    NODE_FLAG_NONE=0,
+    NODE_FLAG_CHARGING=0x0001,
+    NODE_FLAG_LAUNCHED=0x0002,
+    NODE_FLAG_DEPLOYED=0x0004,
+    NODE_FLAG_BOOTCHECK=0x0008,
+    NODE_FLAG_ALL=UINT16_MAX
 };
 
 //! @}
@@ -131,7 +143,7 @@ enum NODE_TYPE
 #define EVENT_FLAG_ALARM 0x0180
 //! Audible alarm
 #define EVENT_SCALE_ALARM 0x0080
-//! 8 bit flag, 0 - 7, see ::EVENT_SCALE_PRIORITY.
+//! 3 bit flag, 0 - 7, see ::EVENT_SCALE_PRIORITY.
 #define EVENT_FLAG_PRIORITY 0x0070
 //! Event display priority (0 = never , 1 = always, 2 = orbit, 3 = 15min, 4 = 5min, 5 = max zoom)
 #define EVENT_SCALE_PRIORITY 0x0010

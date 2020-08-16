@@ -41,7 +41,7 @@ static double spmm[MAXDEGREE+1];
 static double lastx = 10.;
 static uint16_t lastm = 65535;
 static double initialutc;
-static std::string orbitfile;
+static string orbitfile;
 static stkstruc stkhandle;
 
 static locstruc sloc[MAXGJORDER+2];
@@ -721,7 +721,7 @@ int32_t gravity_params(int model)
         coef[0][0][1] = 0.;
         coef[1][0][0] = coef[1][0][1] = 0.;
         coef[1][1][0] = coef[1][1][1] = 0.;
-        std::string fname;
+        string fname;
         FILE *fi;
         switch (model)
         {
@@ -1423,16 +1423,16 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
     }
 
     if (cinfo->node.powgen > cinfo->node.powuse)
-        cinfo->node.charging = 1;
+        cinfo->node.flags |= NODE_FLAG_CHARGING;
     else
-        cinfo->node.charging = 0;
+        cinfo->node.flags &= ~NODE_FLAG_CHARGING;
 
     if (cinfo->node.battlev < 0.)
         cinfo->node.battlev = 0.;
 
     if (cinfo->node.battlev >= cinfo->node.battcap)
     {
-        cinfo->node.charging = 0;
+        cinfo->node.flags &= ~NODE_FLAG_CHARGING;
         cinfo->node.battlev = cinfo->node.battcap;
     }
 
@@ -2178,16 +2178,16 @@ void propagate(cosmosstruc *cinfo, double utc)
         cinfo->node.battlev += (cinfo->physics.dt/3600.) * (cinfo->node.powgen-cinfo->node.powuse);
 
         if (cinfo->node.powgen > cinfo->node.powuse)
-            cinfo->node.charging = 1;
+            cinfo->node.flags |= NODE_FLAG_CHARGING;
         else
-            cinfo->node.charging = 0;
+            cinfo->node.flags &= ~NODE_FLAG_CHARGING;
 
         if (cinfo->node.battlev < 0.)
             cinfo->node.battlev = 0.;
 
         if (cinfo->node.battlev > cinfo->node.battcap)
         {
-            cinfo->node.charging = 0;
+            cinfo->node.flags &= ~NODE_FLAG_CHARGING;
             cinfo->node.battlev = cinfo->node.battcap;
         }
         // Simulate hardware values
@@ -3147,7 +3147,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
     \return Returns 0 if succsessful, otherwise negative error.
 */
 
-int orbit_init(int32_t mode, double dt, double utc, std::string ofile, cosmosstruc *cinfo)
+int orbit_init(int32_t mode, double dt, double utc, string ofile, cosmosstruc *cinfo)
 {
     int32_t iretn;
     tlestruc tline;

@@ -41,7 +41,7 @@ static Serial *prkx2su_serial[2];
 
 static prkx2su_state ant_state;
 
-int32_t prkx2su_init(std::string dev)
+int32_t prkx2su_init(string dev)
 {
     int32_t iretn;
     string device;

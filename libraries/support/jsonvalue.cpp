@@ -1,5 +1,6 @@
 #include "support/jsonvalue.h"
 #include "support/jsonobject.h"
+#include "support/stringlib.h"
 
 JSONValue::JSONValue()
 {
@@ -7,7 +8,7 @@ JSONValue::JSONValue()
     this->value_as_string = "null";
 }
 
-JSONValue::JSONValue(std::string val)
+JSONValue::JSONValue(string val)
 {
     set(val);
 }
@@ -17,22 +18,64 @@ JSONValue::JSONValue(double val)
     set(val);
 }
 
-JSONValue::JSONValue(int val)
+//JSONValue::JSONValue(int val)
+//{
+//    set(val);
+//}
+
+JSONValue::JSONValue(uint64_t val)
 {
-    set(val);
+    this->type = JSONValue::JsonValueType::NUMBER;
+    this->value_as_string = to_unsigned(val);
 }
 
 JSONValue::JSONValue(uint32_t val)
 {
     this->type = JSONValue::JsonValueType::NUMBER;
-    this->value_as_string = std::to_string(val);
+    this->value_as_string = to_unsigned(val);
+}
+
+JSONValue::JSONValue(uint16_t val)
+{
+    this->type = JSONValue::JsonValueType::NUMBER;
+    this->value_as_string = to_unsigned(val);
 }
 
 JSONValue::JSONValue(uint8_t val)
 {
     this->type = JSONValue::JsonValueType::NUMBER;
-    this->value_as_string = std::to_string(val);
+    this->value_as_string = to_unsigned(val);
 }
+
+JSONValue::JSONValue(int64_t val)
+{
+    this->type = JSONValue::JsonValueType::NUMBER;
+    this->value_as_string = to_signed(val);
+}
+
+JSONValue::JSONValue(int32_t val)
+{
+    this->type = JSONValue::JsonValueType::NUMBER;
+    this->value_as_string = to_signed(val);
+}
+
+JSONValue::JSONValue(int16_t val)
+{
+    this->type = JSONValue::JsonValueType::NUMBER;
+    this->value_as_string = to_signed(val);
+}
+
+JSONValue::JSONValue(int8_t val)
+{
+    this->type = JSONValue::JsonValueType::NUMBER;
+    this->value_as_string = to_signed(val);
+}
+
+//JSONValue::JSONValue(uint8_t val)
+//{
+//    this->type = JSONValue::JsonValueType::NUMBER;
+//    this->value_as_string = std::to_string(val);
+//}
 
 JSONValue::JSONValue(char val)
 {
@@ -69,7 +112,7 @@ void JSONValue::set_null()
     this->value_as_string = "null";
 }
 
-void JSONValue::set(std::string val)
+void JSONValue::set(string val)
 {
     this->type = JSONValue::JsonValueType::STRING;
 //    this->value_as_string = "\"" + val + "\"";
@@ -138,7 +181,7 @@ void JSONValue::set(JSONObject val)
 
 void JSONValue::set(JSONArray val)
 {
-    std::string jsonStr;
+    string jsonStr;
     this->type = JSONValue::JsonValueType::JSON_ARRAY;
 
     jsonStr = "[";
@@ -216,7 +259,7 @@ bool JSONValue::isBool()
     return false;
 }
 
-std::string JSONValue::to_json_string()
+string JSONValue::to_json_string()
 {
     return value_as_string;
 }

@@ -77,7 +77,7 @@ string std::to_string(T value)
 {
     //create an output string stream
     std::ostringstream os ;
-    //throw the value into the string stream, assuming stringstream
+    //throw the value into the string stream, assuming std::stringstream
     //handles it
     os << value ;
     //convert the string stream into a string and return
@@ -130,10 +130,10 @@ static std::queue<transmit_queue_entry> transmit_queue;
 
 
 //Send and receive thread info
-void send_loop();
-void recv_loop();
-void transmit_loop();
-void profile_check(int32_t line_number);
+void send_loop() noexcept;
+void recv_loop() noexcept;
+void transmit_loop() noexcept;
+void profile_check(int32_t line_number, uint16_t thread=0);
 static ElapsedTime tet;
 
 // Mutexes to avoid thread collisions
@@ -167,6 +167,8 @@ typedef struct
     string node_name="";
     tx_progress progress[PROGRESS_QUEUE_SIZE];
     double heartbeatclock = 0.;
+    double reqmetaclock = 0.;
+    double reqdataclock = 0.;
 }	tx_entry;
 
 typedef struct
@@ -177,24 +179,24 @@ typedef struct
     tx_entry outgoing;
 } tx_queue;
 
-static vector<tx_queue> txq(256);
+static vector<tx_queue> txq;
 
 static string log_directory = "temp";
 double logstride_sec = 10.;
 ElapsedTime dt;
 
-int32_t request_debug(char *request, char *, Agent *);
-int32_t request_get_channels(char* request, char* response, Agent *agent);
-int32_t request_set_throughput(char* request, char* response, Agent *agent);
-int32_t request_remove_file(char* request, char* response, Agent *agent);
-//int32_t request_send_file(char* request, char* response, Agent *agent);
-int32_t request_ls(char* request, char* response, Agent *agent);
-int32_t request_list_incoming(char* request, char* response, Agent *agent);
-int32_t request_list_outgoing(char* request, char* response, Agent *agent);
-int32_t request_list_incoming_json(char* request, char* response, Agent *agent);
-int32_t request_list_outgoing_json(char* request, char* response, Agent *agent);
-int32_t request_set_logstride(char* request, char* response, Agent *agent);
-int32_t request_get_logstride(char*, char* response, Agent *);
+int32_t request_debug(string &request, string &, Agent *);
+int32_t request_get_channels(string &request, string &response, Agent *agent);
+int32_t request_set_throughput(string &request, string &response, Agent *agent);
+int32_t request_remove_file(string &request, string &response, Agent *agent);
+//int32_t request_send_file(string &request, string &response, Agent *agent);
+int32_t request_ls(string &request, string &response, Agent *agent);
+int32_t request_list_incoming(string &request, string &response, Agent *agent);
+int32_t request_list_outgoing(string &request, string &response, Agent *agent);
+int32_t request_list_incoming_json(string &request, string &response, Agent *agent);
+int32_t request_list_outgoing_json(string &request, string &response, Agent *agent);
+int32_t request_set_logstride(string &request, string &response, Agent *agent);
+int32_t request_get_logstride(string &, string &response, Agent *);
 int32_t outgoing_tx_add(tx_progress &tx_out);
 int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
 int32_t outgoing_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
@@ -210,7 +212,6 @@ int32_t incoming_tx_recount(uint8_t node);
 vector<file_progress> find_chunks_missing(tx_progress& tx);
 vector<file_progress> find_chunks_togo(tx_progress& tx);
 PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
-void transmit_loop();
 double queuecheck(PACKET_NODE_ID_TYPE node_id);
 int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet);
 int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf);
@@ -318,7 +319,14 @@ int main(int argc, char *argv[])
     }
 
     // Initialize Transfer Queue
-    for (uint16_t i=1; i<256; ++i)
+    if ((iretn = load_nodeids()) < 1)
+    {
+        fprintf(agent->get_debug_fd(), "%.4f Couldn't load node lookup tablee\n", tet.split());
+        agent->shutdown();
+        exit (iretn);
+    }
+    txq.resize(iretn);
+    for (uint16_t i=1; i<iretn; ++i)
     {
         if (check_node_id(i) > 0)
         {
@@ -419,8 +427,6 @@ int main(int argc, char *argv[])
         }
 
 
-        profile_check(__LINE__);
-
         if(nextdiskcheck < nextlog ) {
             sleepsec = 86400. * (nextdiskcheck - currentmjd());
         } else {
@@ -477,7 +483,7 @@ int main(int argc, char *argv[])
     exit (0);
 }
 
-void recv_loop()
+void recv_loop() noexcept
 {
     vector<PACKET_BYTE> recvbuf;
     string partial_filepath;
@@ -498,24 +504,14 @@ void recv_loop()
             COSMOS_SLEEP(.001);
         }
 
-        profile_check(__LINE__);
-
         while (( nbytes = myrecvfrom("Incoming", rchannel, recvbuf, PACKET_MAX_LENGTH)) > 0)
         {
-            profile_check(__LINE__);
-
             // Generate extra network info
             inet_ntop(rchannel.caddr.sin_family, &rchannel.caddr.sin_addr, rchannel.address, sizeof(rchannel.address));
 
-            profile_check(__LINE__);
-
             // Check channels, update information if we are already handling it, otherwise add channel
             string packet_node_name;
-            profile_check(__LINE__);
-
             string node_name = lookup_node_id_name(recvbuf[PACKET_HEADER_OFFSET_NODE_ID]);
-            profile_check(__LINE__);
-
             int32_t node_id = check_node_id(recvbuf[PACKET_HEADER_OFFSET_NODE_ID]);
             switch (recvbuf[0] & 0x0f)
             {
@@ -533,14 +529,10 @@ void recv_loop()
                 break;
             }
 
-            profile_check(__LINE__);
-
             if (node_id <= 0 || node_name.empty())
             {
                 continue;
             }
-
-            profile_check(__LINE__);
 
             txq[node_id].incoming.rcvdqueue = false;
             txq[node_id].incoming.rcvdmeta = false;
@@ -559,8 +551,6 @@ void recv_loop()
                     break;
                 }
             }
-
-            profile_check(__LINE__);
 
             if (use_channel == out_comm_channel.size())
             {
@@ -584,8 +574,6 @@ void recv_loop()
             {
             case PACKET_MESSAGE:
                 {
-                    profile_check(__LINE__);
-
                     packet_struct_message message;
 
                     extract_message(recvbuf, message);
@@ -598,13 +586,9 @@ void recv_loop()
                 break;
             case PACKET_HEARTBEAT:
                 {
-                    profile_check(__LINE__);
-
                     packet_struct_heartbeat heartbeat;
 
                     extract_heartbeat(recvbuf, heartbeat);
-                    profile_check(__LINE__);
-
 
                     out_comm_channel[use_channel].heartbeat = heartbeat;
                     txq[node_id].outgoing.sendqueue = true;
@@ -613,8 +597,6 @@ void recv_loop()
                 break;
             case PACKET_REQQUEUE:
                 {
-                    profile_check(__LINE__);
-
                     packet_struct_reqqueue reqqueue;
 
                     extract_reqqueue(recvbuf, reqqueue);
@@ -625,8 +607,6 @@ void recv_loop()
                 break;
             case PACKET_QUEUE:
                 {
-                    profile_check(__LINE__);
-
                     packet_struct_queue queue;
 
                     extract_queue(recvbuf, queue);
@@ -678,8 +658,6 @@ void recv_loop()
                 //Request missing metadata
             case PACKET_REQMETA:
                 {
-                    profile_check(__LINE__);
-
                     packet_struct_reqmeta reqmeta;
 
                     extract_reqmeta(recvbuf, reqmeta);
@@ -705,8 +683,6 @@ void recv_loop()
                 }
             case PACKET_METADATA:
                 {
-                    profile_check(__LINE__);
-
                     packet_struct_metashort meta;
 
                     extract_metadata(recvbuf, meta);
@@ -721,8 +697,6 @@ void recv_loop()
                 }
             case PACKET_REQDATA:
                 {
-                    profile_check(__LINE__);
-
                     packet_struct_reqdata reqdata;
 
                     extract_reqdata(recvbuf, reqdata);
@@ -830,13 +804,9 @@ void recv_loop()
                 }
             case PACKET_DATA:
                 {
-                    profile_check(__LINE__);
-
                     packet_struct_data data;
 
                     extract_data(recvbuf, data.node_id, data.tx_id, data.byte_count, data.chunk_start, data.chunk);
-
-                    profile_check(__LINE__);
 
                     last_data_receive_time = currentmjd();
 
@@ -845,8 +815,6 @@ void recv_loop()
                     incoming_tx_lock.lock();
 
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[node_id].incoming, data.tx_id);
-
-                    profile_check(__LINE__);
 
                     // Update corresponding incoming queue entry if it exists
                     if (tx_id > 0)
@@ -866,8 +834,6 @@ void recv_loop()
                         bool duplicate = false;
                         bool updated = false;
 
-                        profile_check(__LINE__);
-
                         // Do we have any data yet?
                         if (!txq[node_id].incoming.progress[tx_id].file_info.size())
                         {
@@ -875,16 +841,12 @@ void recv_loop()
                             txq[node_id].incoming.progress[tx_id].file_info.push_back(tp);
                             txq[node_id].incoming.progress[tx_id].total_bytes += data.byte_count;
                             updated = true;
-                            profile_check(__LINE__);
-
                         }
                         else
                         {
                             // Check against existing data
                             for (uint32_t j=0; j<txq[node_id].incoming.progress[tx_id].file_info.size(); ++j)
                             {
-                                profile_check(__LINE__);
-
                                 // Check for duplicate
                                 if (tp.chunk_start >= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_start && tp.chunk_end <= txq[node_id].incoming.progress[tx_id].file_info[j].chunk_end)
                                 {
@@ -933,8 +895,6 @@ void recv_loop()
                             }
 
 
-                            profile_check(__LINE__);
-
                             // If we are higher than everything currently in the list, then append
                             if (!duplicate && check == txq[node_id].incoming.progress[tx_id].file_info.size())
                             {
@@ -948,8 +908,6 @@ void recv_loop()
                         // Write to disk if this is new data
                         if (updated)
                         {
-                            profile_check(__LINE__);
-
                             // Write incoming data to disk
                             if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
                             {
@@ -963,8 +921,6 @@ void recv_loop()
                                     txq[node_id].incoming.progress[tx_id].fp = fopen(partial_filepath.c_str(), "w");
                                 }
                             }
-
-                            profile_check(__LINE__);
 
                             if (txq[node_id].incoming.progress[tx_id].fp == nullptr)
                             {
@@ -995,16 +951,12 @@ void recv_loop()
 
                         }
 
-                        profile_check(__LINE__);
-
                         // Check if file has been completely received
                         if(txq[node_id].incoming.progress[tx_id].file_size == txq[node_id].incoming.progress[tx_id].total_bytes && txq[node_id].incoming.progress[tx_id].havemeta)
                         {
                             // See if we know what the remote node_id is for this
                             if (txq[node_id].node_id > 0)
                             {
-                                profile_check(__LINE__);
-
                                 tx_progress tx_in = txq[node_id].incoming.progress[tx_id];
                                 if (agent->debug_level)
                                 {
@@ -1017,8 +969,6 @@ void recv_loop()
                                 // Move file to its final location
                                 if (!txq[node_id].incoming.progress[tx_id].complete)
                                 {
-                                    profile_check(__LINE__);
-
                                     if (txq[node_id].incoming.progress[tx_id].fp != nullptr)
                                     {
                                         fclose(txq[node_id].incoming.progress[tx_id].fp);
@@ -1042,8 +992,6 @@ void recv_loop()
                                     txq[node_id].incoming.progress[tx_id].sentdata = true;
                                 }
                             }
-                            profile_check(__LINE__);
-
                         }
                     }
                     else
@@ -1057,8 +1005,6 @@ void recv_loop()
                 }
             case PACKET_COMPLETE:
                 {
-                    profile_check(__LINE__);
-
                     packet_struct_complete complete;
 
                     extract_complete(recvbuf, complete);
@@ -1081,7 +1027,7 @@ void recv_loop()
                 }
             case PACKET_CANCEL:
                 {
-                    profile_check(__LINE__);
+                    profile_check(__LINE__, 1);
 
                     packet_struct_complete cancel;
 
@@ -1104,7 +1050,7 @@ void recv_loop()
                 ++type_error_count;
                 break;
             }
-            profile_check(__LINE__);
+            profile_check(__LINE__, 1);
 
         }
     }
@@ -1123,7 +1069,7 @@ void recv_loop()
 
 }
 
-void send_loop()
+void send_loop() noexcept
 {
     vector<PACKET_BYTE> packet;
     double current_time;
@@ -1134,8 +1080,6 @@ void send_loop()
 
     while (agent->running())
     {
-        profile_check(__LINE__);
-
 
         if (agent->running() == (uint16_t)Agent::State::IDLE)
         {
@@ -1151,18 +1095,15 @@ void send_loop()
                 continue;
             }
 
-            profile_check(__LINE__);
+//            printf("use_channel: %d/%d\n", use_channel, out_comm_channel.size());
 
             // Sleep just a bit to let other threads act
-            COSMOS_SLEEP(out_comm_channel[use_channel].packet_size / out_comm_channel[use_channel].throughput);
-
-            profile_check(__LINE__);
+//            COSMOS_SLEEP(out_comm_channel[use_channel].packet_size / out_comm_channel[use_channel].throughput);
+            COSMOS_SLEEP(.1);
 
             // Set up to do the most important things first
             txq[(node_id)].outgoing.activity = false;
             txq[(node_id)].incoming.activity = false;
-
-            profile_check(__LINE__);
 
             // Let queue drain if necessary
             if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) >= 2.)
@@ -1170,8 +1111,6 @@ void send_loop()
 //                COSMOS_SLEEP(queuecheck(static_cast <PACKET_NODE_ID_TYPE>(node_id)) - 5.);
                 continue;
             }
-
-            profile_check(__LINE__);
 
             // Send Heartbeat every 10 seconds, regardless
             if (txq[(node_id)].outgoing.heartbeatclock < currentmjd())
@@ -1181,8 +1120,6 @@ void send_loop()
                 queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Outgoing", packet);
                 txq[(node_id)].outgoing.heartbeatclock = currentmjd() + 10. / 86400.;
             }
-
-            profile_check(__LINE__);
 
             // Send Queue packet, if anything needs to be queued
             outgoing_tx_lock.lock();
@@ -1216,7 +1153,7 @@ void send_loop()
             }
             outgoing_tx_lock.unlock();
 
-            profile_check(__LINE__);
+            profile_check(__LINE__, 2);
 
             // Send any  pending Metadata packets
             outgoing_tx_lock.lock();
@@ -1243,7 +1180,7 @@ void send_loop()
             }
             outgoing_tx_lock.unlock();
 
-            profile_check(__LINE__);
+            profile_check(__LINE__, 2);
 
             // Send Data packets if we have data to send and we didn't do anything above
             outgoing_tx_lock.lock();
@@ -1340,8 +1277,6 @@ void send_loop()
             }
             outgoing_tx_lock.unlock();
 
-            profile_check(__LINE__);
-
             // Send Cancel packets if required
             outgoing_tx_lock.lock();
             if (txq[(node_id)].outgoing.sentqueue)
@@ -1366,8 +1301,6 @@ void send_loop()
             }
             outgoing_tx_lock.unlock();
 
-            profile_check(__LINE__);
-
             // Send Reqmeta packet if needed and it has been otherwise quiet
             incoming_tx_lock.lock();
             if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta)
@@ -1378,7 +1311,6 @@ void send_loop()
                 {
                     if (txq[(node_id)].incoming.progress[tx_id].tx_id && !txq[(node_id)].incoming.progress[tx_id].sentmeta)
                     {
-//                        next_reqmeta_time += sizeof(packet_struct_metashort) / (86400. * out_comm_channel[use_channel].throughput);
                         tqueue[iq++] = tx_id;
                         txq[(node_id)].incoming.progress[tx_id].sendmeta = true;
                     }
@@ -1396,8 +1328,6 @@ void send_loop()
             }
             incoming_tx_lock.unlock();
 
-            profile_check(__LINE__);
-
             // Send Reqdata packet if there is still data to be gotten and it has been otherwise quiet
             incoming_tx_lock.lock();
             if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && !txq[(node_id)].incoming.rcvddata)
@@ -1406,20 +1336,9 @@ void send_loop()
                 {
                     if (txq[(node_id)].incoming.progress[tx_id].tx_id)
                     {
-                        profile_check(__LINE__);
-
                         // Ask for missing data
                         vector<file_progress> missing;
                         missing = find_chunks_missing(txq[(node_id)].incoming.progress[tx_id]);
-//                        if (agent->debug_level)
-//                        {
-//                            fprintf(agent->get_debug_fd(), "file_info: %u %u %u", node_id, tx_id, txq[(node_id)].outgoing.progress[tx_id].file_info.size());
-//                            if (missing.size())
-//                            {
-//                                fprintf(agent->get_debug_fd(), " - %u %u", missing[0].chunk_start, missing[0].chunk_end);
-//                            }
-//                            fprintf(agent->get_debug_fd(), "\n");
-//                        }
                         for (uint32_t j=0; j<missing.size(); ++j)
                         {
                             vector<PACKET_BYTE> packet;
@@ -1431,20 +1350,16 @@ void send_loop()
             }
             incoming_tx_lock.unlock();
 
-            profile_check(__LINE__);
-
             // Send Complete packets if required
             incoming_tx_lock.lock();
             if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && !txq[(node_id)].incoming.rcvddata)
             {
-                profile_check(__LINE__);
+                profile_check(__LINE__, 2);
 
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
                     if (txq[(node_id)].incoming.progress[tx_id].tx_id == tx_id && txq[(node_id)].incoming.progress[tx_id].complete)
                     {
-                        profile_check(__LINE__);
-
                         // Remove from queue
                         incoming_tx_del(node_id, tx_id);
 
@@ -1465,7 +1380,7 @@ void send_loop()
     }
 }
 
-void transmit_loop()
+void transmit_loop() noexcept
 {
     int32_t iretn;
     //    std::mutex transmit_queue_lock;
@@ -1484,18 +1399,10 @@ void transmit_loop()
 
         while (!transmit_queue.empty())
         {
-            profile_check(__LINE__);
-
             // Get next packet from transceiver FIFO
             txqueue_lock.lock();
-            profile_check(__LINE__);
-
             transmit_queue_entry entry = transmit_queue.front();
-            profile_check(__LINE__);
-
             iretn = mysendto(entry.type, entry.channel, entry.packet);
-            profile_check(__LINE__);
-
             if (iretn >= 0)
             {
                 out_comm_channel[entry.channel].fmjd = transmit_queue.back().nmjd;
@@ -1512,7 +1419,7 @@ double queuecheck(PACKET_NODE_ID_TYPE node_id)
     int32_t use_channel;
 
     use_channel = -1;
-    profile_check(__LINE__);
+    profile_check(__LINE__, 2);
 
     for (uint16_t i=0; i<out_comm_channel.size(); ++i)
     {
@@ -1579,15 +1486,21 @@ int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
     int32_t iretn;
     double cmjd;
 
+    profile_check(__LINE__, 3);
+
     if ((cmjd = currentmjd(0.)) < out_comm_channel[use_channel].nmjd)
     {
         COSMOS_SLEEP((86400. * (out_comm_channel[use_channel].nmjd - cmjd)));
     }
 
+    profile_check(__LINE__, 3);
+
     iretn = sendto(out_comm_channel[use_channel].chansock.cudp, reinterpret_cast<const char*>(&buf[0]), buf.size(), 0, reinterpret_cast<sockaddr*>(&out_comm_channel[use_channel].chansock.caddr), sizeof(struct sockaddr_in));
 
     if (iretn >= 0)
     {
+        profile_check(__LINE__, 3);
+
         ++packet_out_count;
         out_comm_channel[use_channel].lomjd = currentmjd();
         out_comm_channel[use_channel].nmjd = out_comm_channel[use_channel].lomjd + ((28+iretn) / (float)out_comm_channel[use_channel].throughput)/86400.;
@@ -1602,6 +1515,8 @@ int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf)
         ++send_error_count;
     }
 
+    profile_check(__LINE__, 3);
+
     return iretn;
 }
 
@@ -1613,11 +1528,15 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
     ElapsedTime et;
     do
     {
+        profile_check(__LINE__, 1);
+
         fd_set set;
         FD_ZERO(&set);
         int fdmax = -1;
         for (uint16_t i=0; i<out_comm_channel.size(); ++i)
         {
+            profile_check(__LINE__, 1);
+
             FD_SET(out_comm_channel[i].chansock.cudp, &set);
             if (out_comm_channel[i].chansock.cudp > fdmax)
             {
@@ -1628,10 +1547,16 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
         if (rtimeout >= 0.)
         {
 #if !defined(COSMOS_WIN_OS)
+            profile_check(__LINE__, 1);
+
             timeval timeout;
             timeout.tv_sec = static_cast<int32_t>(rtimeout);
             timeout.tv_usec = static_cast<int32_t>(1000000. * (rtimeout - timeout.tv_sec));
+            profile_check(__LINE__, 1);
+
             int rv = select(fdmax+1, &set, nullptr, nullptr, &timeout);
+            profile_check(__LINE__, 1);
+
             if (rv == -1)
             {
                 nbytes = -errno;
@@ -1643,14 +1568,20 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
             }
             else
             {
+                profile_check(__LINE__, 1);
+
                 for (uint16_t i=0; i<out_comm_channel.size(); ++i)
                 {
                     if (FD_ISSET(out_comm_channel[i].chansock.cudp, &set))
                     {
+                        profile_check(__LINE__, 1);
+
                         channel = out_comm_channel[i].chansock;
                         nbytes = recvfrom(channel.cudp, reinterpret_cast<char *>(&buf[0]), length, 0, reinterpret_cast<sockaddr*>(&channel.caddr), reinterpret_cast<socklen_t *>(&channel.addrlen));
                         if (nbytes > 0)
                         {
+                            profile_check(__LINE__, 1);
+
                             uint16_t crccalc = calc_crc16ccitt(&buf[3], nbytes-3);
                             uint16_t crc;
                             memmove(&crc, &buf[0]+PACKET_HEADER_OFFSET_CRC, sizeof(PACKET_CRC));
@@ -1672,6 +1603,8 @@ int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& bu
                         }
                         else
                         {
+                            profile_check(__LINE__, 1);
+
                             if (nbytes < 0)
                             {
                                 nbytes = -errno;
@@ -2144,14 +2077,14 @@ vector<file_progress> find_chunks_togo(tx_progress& tx)
     return (togo);
 }
 
-int32_t request_ls(char* request, char* response, Agent *agent)
+int32_t request_ls(string &request, string &response, Agent *agent)
 {
 
     //the request string == "ls directoryname"
     //get the directory name
     //    char directoryname[COSMOS_MAX_NAME+1];
-    //    memmove(directoryname, request+3, COSMOS_MAX_NAME);
-    string directoryname = request+3;
+    //    memmove(directoryname, request.substr(3), COSMOS_MAX_NAME);
+    string directoryname = request.substr(3);
 
     DIR* dir;
     struct dirent* ent;
@@ -2167,29 +2100,39 @@ int32_t request_ls(char* request, char* response, Agent *agent)
         }
         closedir(dir);
 
-        sprintf(response, "%s", all_file_names.c_str());
+        (response = all_file_names.c_str());
     }
     else
-        sprintf(response, "unable to open directory <%s>", directoryname.c_str());
+        response =  "unable to open directory " + directoryname;
     return 0;
 }
 
-int32_t request_list_incoming(char* request, char* response, Agent *agent)
+int32_t request_list_incoming(string &request, string &response, Agent *agent)
 {
     int32_t iretn;
-    response[0] = 0;
+    response.clear();
     for (uint16_t node = 0; node<txq.size(); ++node)
     {
         if ((iretn=check_node_id(node)) > 0)
         {
-            sprintf(&response[strlen(response)], "%u %s %u %d rcvdqueue: %u rcvdmeta: %u rcvddata: %u\n", node, txq[(node)].node_name.c_str(), txq[(node)].incoming.size, iretn, txq[(node)].incoming.rcvdqueue, txq[(node)].incoming.rcvdmeta, txq[(node)].incoming.rcvddata);
+            response +=  std::to_string(node) + ' ' + txq[(node)].node_name + ' ' +  std::to_string(txq[(node)].incoming.size) +  std::to_string(iretn)+ " rcvdqueue: " +  std::to_string(txq[(node)].incoming.rcvdmeta) + " rcvdmeta: " +  std::to_string(txq[(node)].incoming.rcvdmeta) + " rcvddata: " +  std::to_string(txq[(node)].incoming.rcvddata) + "\n";
             for(tx_progress tx : txq[(node)].incoming.progress)
             {
                 if (tx.tx_id)
                 {
-                    sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u havemeta: %u sendmeta: %u sentmeta: %u senddata: %u sentdata: %u complete: %u\n"
-                            , tx.tx_id, tx.node_name.c_str(), tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size
-                            , tx.havemeta?1:0, tx.sendmeta?1:0, tx.sentmeta?1:0, tx.senddata?1:0, tx.sentdata?1:0, tx.complete?1:0);
+                    response += to_label("tx_id", tx.tx_id) + ' ';
+                    response += to_label("node", tx.node_name) + ' ';
+                    response += to_label("agent", tx.agent_name) + ' ';
+                    response += to_label("name", tx.file_name) + ' ';
+                    response += to_label("bytes", tx.total_bytes) + ' ';
+                    response += "/" + to_unsigned(tx.file_size) + ' ';
+                    response += to_label("havemeta", tx.havemeta) + ' ';
+                    response += to_label("sendmeta", tx.sendmeta) + ' ';
+                    response += to_label("sentmeta", tx.sentmeta) + ' ';
+                    response += to_label("senddata", tx.senddata) + ' ';
+                    response += to_label("sentdata", tx.sentdata) + ' ';
+                    response += to_label("complete", tx.complete);
+                    response += "\n";
                 }
             }
         }
@@ -2198,22 +2141,22 @@ int32_t request_list_incoming(char* request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t request_list_outgoing(char* request, char* response, Agent *agent)
+int32_t request_list_outgoing(string &request, string &response, Agent *agent)
 {
     int32_t iretn;
-    response[0] = 0;
+    response.clear();
     for (uint16_t node=0; node<txq.size(); ++node)
     {
         if ((iretn=check_node_id(node)) > 0)
         {
-            sprintf(&response[strlen(response)], "%u %s %u\n", node, txq[(node)].node_name.c_str(), txq[(node)].outgoing.size);
+            response +=  std::to_string(node)+ ' ' + txq[(node)].node_name + ' ' + std::to_string(txq[(node)].outgoing.size) + "\n";
             for(tx_progress tx : txq[(node)].outgoing.progress)
             {
                 if (tx.tx_id)
                 {
-                    sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u havemeta: %u sendmeta: %u sentmeta: %u senddata: %u sentdata: %u complete: %u\n"
-                            , tx.tx_id, tx.node_name.c_str(), tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size
-                            , tx.havemeta?1:0, tx.sendmeta?1:0, tx.sentmeta?1:0, tx.senddata?1:0, tx.sentdata?1:0, tx.complete?1:0);
+                    response +=  "tx_id: " + std::to_string(tx.tx_id) + " node: " + tx.node_name + " agent: " + tx.agent_name + " name: " + tx.file_name + " bytes: " + std::to_string(tx.total_bytes) + "/" + std::to_string(tx.file_size);
+                    response += " havemeta: " + to_bool(tx.havemeta) + " sendmeta: " + to_bool(tx.sendmeta) + " sentmeta: " + to_bool(tx.sentmeta);
+                    response += " senddata: " + to_bool(tx.senddata) + " sentdata: " + to_bool(tx.sentdata) + " complete: " + to_bool(tx.complete) + "\n";
                 }
             }
         }
@@ -2222,31 +2165,31 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t request_get_channels(char* request, char* response, Agent *agent)
+int32_t request_get_channels(string &request, string &response, Agent *agent)
 {
     for (uint16_t channel=0; channel<out_comm_channel.size(); ++channel)
     {
-        sprintf(response,"{");
-        sprintf(&response[strlen(response)],"\"channel\":%u,", channel);
-        sprintf(&response[strlen(response)],"\"node\":\"%s\",", out_comm_channel[channel].node.c_str());
-        sprintf(&response[strlen(response)],"\"ip\":\"%s\",", out_comm_channel[channel].chanip.c_str());
-        sprintf(&response[strlen(response)],"\"size\":%u,", out_comm_channel[channel].packet_size);
-        sprintf(&response[strlen(response)],"\"throughput\":%u,", out_comm_channel[channel].throughput);
-        sprintf(&response[strlen(response)],"\"nmjd\":%f,", out_comm_channel[channel].nmjd);
-        sprintf(&response[strlen(response)],"\"limjd\":%f,", out_comm_channel[channel].limjd);
-        sprintf(&response[strlen(response)],"\"lomjd\":%f,", out_comm_channel[channel].lomjd);
-        sprintf(&response[strlen(response)],"\"fmjd\":%f,", out_comm_channel[channel].fmjd);
-        sprintf(&response[strlen(response)],"}");
+        response = "{";
+        response += to_json("channel", channel);
+        response += to_json("node", out_comm_channel[channel].node);
+        response += to_json("ip", out_comm_channel[channel].chanip);
+        response += to_json("size", out_comm_channel[channel].packet_size);
+        response += to_json("throughput", out_comm_channel[channel].throughput);
+        response += to_json("nmjd", out_comm_channel[channel].nmjd);
+        response += to_json("limjd", out_comm_channel[channel].limjd);
+        response += to_json("lomjd", out_comm_channel[channel].lomjd);
+        response += to_json("fmjd", out_comm_channel[channel].fmjd);
+        response += "}";
     }
     return 0;
 }
 
-int32_t request_set_throughput(char* request, char* response, Agent *agent)
+int32_t request_set_throughput(string &request, string &response, Agent *agent)
 {
     uint16_t channel=0;
     uint32_t throughput=0;
 
-    sscanf(request, "%*s %hu %u\n", &channel, &throughput);
+    sscanf(request.c_str(), "%*s %hu %u\n", &channel, &throughput);
     if (channel < out_comm_channel.size())
     {
         if (throughput)
@@ -2256,18 +2199,18 @@ int32_t request_set_throughput(char* request, char* response, Agent *agent)
     }
     else
     {
-        sprintf(response, "Channel %u too large", channel);
+        response =  "Channel " + to_unsigned(channel) + " too large";
     }
     return 0;
 
 }
 
-int32_t request_remove_file(char* request, char* response, Agent *agent)
+int32_t request_remove_file(string &request, string &response, Agent *agent)
 {
     char type;
     uint32_t tx_id;
 
-    sscanf(request, "%*s %c %u\n", &type, &tx_id);
+    sscanf(request.c_str(), "%*s %c %u\n", &type, &tx_id);
     switch (type)
     {
     case 'i':
@@ -2461,7 +2404,8 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
     outgoing_tx_lock.lock();
     string filepath = data_base_path(node_name, "outgoing", agent_name, file_name);
     int32_t file_size = get_file_size(filepath);
-    uint16_t minindex = 255 - static_cast<uint16_t>(pow(pow(TRANSFER_QUEUE_LIMIT,1.f/3.f), (3.f - log10f(file_size) / 2.f)));
+    uint16_t check = TRANSFER_QUEUE_LIMIT;
+    uint16_t minindex = TRANSFER_QUEUE_LIMIT - static_cast<uint16_t>(pow(pow(TRANSFER_QUEUE_LIMIT,1.f/3.f), (3.f - log10f(file_size) / 2.f)));
     tx_out.tx_id = 0;
     for (uint16_t id=minindex; id<256; ++id)
     {
@@ -3283,7 +3227,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
     return tx_id;
 }
 
-int32_t request_debug(char *request, char *, Agent *)
+int32_t request_debug(string &request, string &, Agent *)
 {
 
     string requestString = string(request);
@@ -3295,10 +3239,10 @@ int32_t request_debug(char *request, char *, Agent *)
     return 0;
 }
 
-int32_t request_set_logstride(char* request, char*, Agent *)
+int32_t request_set_logstride(string &request, string &, Agent *)
 {
     double new_logstride;
-    sscanf(request,"set_logstride %lf",&new_logstride);
+    sscanf(request.c_str(),"set_logstride %lf",&new_logstride);
     if(new_logstride > 0. )
     {
         logstride_sec = new_logstride;
@@ -3306,9 +3250,9 @@ int32_t request_set_logstride(char* request, char*, Agent *)
     return 0;
 }
 
-int32_t request_get_logstride(char* , char* response, Agent *)
+int32_t request_get_logstride(string & , string &response, Agent *)
 {
-    sprintf(response, "{\"logstride\":%lf}", logstride_sec);
+    response =  "{" + to_json("logstride", logstride_sec) + "}";
     return 0;
 }
 
@@ -3322,15 +3266,15 @@ void write_queue_log(double logdate)
 
 }
 
-int32_t request_list_incoming_json(char* request, char* response, Agent *agent)
+int32_t request_list_incoming_json(string &request, string &response, Agent *agent)
 {
-    sprintf(response, "%s", json_list_incoming().c_str());
+    (response = json_list_incoming().c_str());
     return 0;
 }
 
-int32_t request_list_outgoing_json(char* request, char* response, Agent *agent)
+int32_t request_list_outgoing_json(string &request, string &response, Agent *agent)
 {
-    sprintf(response, "%s", json_list_outgoing().c_str());
+    (response = json_list_outgoing().c_str());
     return 0;
 }
 
@@ -3464,8 +3408,9 @@ string json_list_queue()
     return jobj.to_json_string();
 }
 
-void profile_check(int32_t line_number)
+void profile_check(int32_t line_number, uint16_t thread)
 {
+    return;
     static FILE *fp = nullptr;
 //    static mutex profile_lock;
 
@@ -3479,7 +3424,7 @@ void profile_check(int32_t line_number)
 
     if (fp != nullptr)
     {
-        fprintf(fp, "%.3f %d\n", tet.split(), line_number);
+        fprintf(fp, "%.3f %u %d\n", tet.split(), thread, line_number);
         fflush(fp);
     }
 

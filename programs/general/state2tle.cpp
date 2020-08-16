@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     eci_pos.v.col[2] = std::stod(argv[6]);
     eci_pos.utc = std::stod(argv[7]);;
 
-    std::string generated_tle;
+    string generated_tle;
     eci2tlestring(eci_pos, generated_tle, ref_tle.str());
     std::cout << generated_tle
               << std::endl;

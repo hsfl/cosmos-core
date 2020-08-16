@@ -1159,7 +1159,7 @@ int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
         tentry.name = alias;
         aliasstruc talias;
         talias.name = alias;
-        std::string val_added = value;
+        string val_added = value;
 
         switch (value[0])
         {
@@ -4701,6 +4701,12 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
         break;
     case JSON_OPERATION_POWER:
         c = pow(a[0], a[1]);
+        break;
+    case JSON_OPERATION_BITWISEAND:
+        c = static_cast<int>(a[0]) & static_cast<int>(a[1]);
+        break;
+    case JSON_OPERATION_BITWISEOR:
+        c = static_cast<int>(a[0]) | static_cast<int>(a[1]);
     }
 
     return (c);
@@ -7869,6 +7875,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_utcoffset", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcoffset, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_name", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.name, (uint16_t)JSON_TYPE_NAME, cinfo);
     json_addentry("node_lastevent", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.lastevent, (uint16_t)JSON_TYPE_NAME, cinfo);
+    json_addentry("node_lasteventutc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.lasteventutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_type", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.type, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_state", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.state, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_hcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.hcap, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -7876,7 +7883,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_area", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.area, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_AREA);
     json_addentry("node_moi", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.moi, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_MOI);
     json_addentry("node_battcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battcap, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
-    json_addentry("node_powchg", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.charging, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_flags", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.flags, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_powmode", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powmode, (uint16_t)JSON_TYPE_INT16, cinfo);
     json_addentry("node_powgen", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powgen, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
     json_addentry("node_powuse", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powuse, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
@@ -9256,6 +9263,11 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
     {
         return nullptr;
     }
+    iretn = json_out(jstring, "node_lasteventutc", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
     iretn = json_out(jstring, "node_type", cinfo);
     if (iretn < 0)
     {
@@ -9529,7 +9541,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 
     string result;
     char tempstring[200];
-    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powmode\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powmode\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.cpu_cnt; ++i)
     {
@@ -9657,7 +9669,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     string result;
     char tempstring[200];
 
-    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_powmode\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
     {
@@ -9806,6 +9818,305 @@ string json_list_of_soh(cosmosstruc *cinfo)
     for (uint16_t i=0; i<cinfo->devspec.motr_cnt; ++i)
     {
         sprintf(tempstring, ",\"device_motr_utc_%03d\",\"device_motr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_motr_rat_%03d\",\"device_motr_spd_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.tsen_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_tsen_utc_%03d\",\"device_tsen_temp_%03d\"", i, i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.thst_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_thst_utc_%03d\",\"device_thst_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_thst_align_%03d\",\"device_thst_flw_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.prop_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_prop_utc_%03d\",\"device_prop_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_prop_lev_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.swch_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_swch_utc_%03d\",\"device_swch_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_swch_utc_%03d\",\"device_swch_energy_%03d\",\"device_swch_amp_%03d\",\"device_swch_volt_%03d\",\"device_swch_power_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.bcreg_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_bcreg_utc_%03d\",\"device_bcreg_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bcreg_utc_%03d\",\"device_bcreg_energy_%03d\",\"device_bcreg_amp_%03d\",\"device_bcreg_volt_%03d\",\"device_bcreg_power_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.rot_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_rot_utc_%03d\",\"device_rot_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rot_angle_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.stt_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_stt_utc_%03d\",\"device_stt_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_stt_att_%03d\",\"device_stt_omega_%03d\",\"device_stt_alpha_%03d\"",i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.mcc_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_mcc_utc_%03d\",\"device_mcc_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mcc_q_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mcc_o_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mcc_a_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.tcu_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_tcu_utc_%03d\",\"device_tcu_temp_%03d\"", i, i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.bus_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_bus_utc_%03d\",\"device_bus_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bus_utc_%03d\",\"device_bus_energy_%03d\",\"device_bus_amp_%03d\",\"device_bus_volt_%03d\",\"device_bus_power_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.psen_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_psen_utc_%03d\",\"device_psen_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_psen_press_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.suchi_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_suchi_utc_%03d\",\"device_suchi_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_suchi_press_%03d\",\"device_suchi_temps_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.cam_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_cam_utc_%03d\",\"device_cam_temp_%03d\"", i, i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.disk_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_disk_utc_%03d\",\"device_disk_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_disk_gib_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_disk_path_%03d\"",i);
+        result += tempstring;
+    }
+
+    result += "}";
+
+    return result;
+
+}
+
+string json_list_of_fullsoh(cosmosstruc *cinfo)
+{
+    string result;
+    char tempstring[200];
+
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_powmode\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+
+    for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_pload_utc_%03d\",\"device_pload_temp_%03d\",\"device_pload_power_%03d\"", i, i, i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.ssen_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_ssen_utc_%03d\",\"device_ssen_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ssen_azimuth_%03d\",\"device_ssen_elevation_%03d\",\"device_ssen_qva_%03d\",\"device_ssen_qvb_%03d\",\"device_ssen_qvc_%03d\",\"device_ssen_qvd_%03d\"",i,i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.imu_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_imu_utc_%03d\",\"device_imu_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_imu_amp_%03d\",\"device_imu_volt_%03d\",\"device_imu_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_imu_accel_%03d\",\"device_imu_omega_%03d\",\"device_imu_alpha_%03d\",\"device_imu_mag_%03d\",\"device_imu_bdot_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.rw_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_rw_utc_%03d\",\"device_rw_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rw_amp_%03d\",\"device_rw_volt_%03d\",\"device_rw_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rw_omg_%03d\",\"device_rw_alp_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.mtr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_mtr_utc_%03d\",\"device_mtr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mtr_amp_%03d\",\"device_mtr_volt_%03d\",\"device_mtr_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mtr_mom_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.cpu_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_cpu_utc_%03d\",\"device_cpu_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_cpu_amp_%03d\",\"device_cpu_volt_%03d\",\"device_cpu_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.gps_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_gps_utc_%03d\",\"device_gps_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_gps_amp_%03d\",\"device_gps_volt_%03d\",\"device_gps_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_gps_geocs_%03d\",\"device_gps_geocv_%03d\",\"device_gps_dgeocs_%03d\",\"device_gps_dgeocv_%03d\"",i,i,i,i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_gps_geods_%03d\",\"device_gps_geodv_%03d\",\"device_gps_dgeods_%03d\",\"device_gps_dgeodv_%03d\"",i,i,i,i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_gps_time_status_%03d\",\"device_gps_solution_status_%03d\",\"device_gps_position_type_%03d\",\"device_gps_sats_used_%03d\"",i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.ant_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_ant_utc_%03d\",\"device_ant_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ant_amp_%03d\",\"device_ant_volt_%03d\",\"device_ant_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ant_align_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ant_azim_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ant_elev_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.rxr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_rxr_utc_%03d\",\"device_rxr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_rxr_%03d\",\"device_rxr_volt_%03d\",\"device_rxr_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_flag_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_rssi_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_freq_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_band_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_powerin_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.txr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_txr_utc_%03d\",\"device_txr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_amp_%03d\",\"device_txr_volt_%03d\",\"device_txr_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_flag_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_rssi_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_freq_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_powerout_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.tcv_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_tcv_utc_%03d\",\"device_tcv_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_amp_%03d\",\"device_tcv_volt_%03d\",\"device_tcv_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_flag_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_rssi_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_freq_%03d\",\"device_tcv_opmode_%03d\"",i,i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_band_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_powerin_%03d\",\"device_tcv_powerout_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.pvstrg_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_pvstrg_utc_%03d\",\"device_pvstrg_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_pvstrg_power_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.batt_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_batt_utc_%03d\",\"device_batt_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_batt_amp_%03d\",\"device_batt_volt_%03d\", \"device_batt_power_%03d\"",i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_batt_charge_%03d\",\"device_batt_percentage_%03d\", \"device_batt_time_remaining_%03d\"",i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.htr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_htr_utc_%03d\",\"device_htr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_htr_amp_%03d\",\"device_htr_volt_%03d\",\"device_htr_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_htr_setvertex_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_htr_state_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.motr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_motr_utc_%03d\",\"device_motr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_motr_amp_%03d\",\"device_motr_volt_%03d\",\"device_motr_power_%03d\"", i, i, i);
         result += tempstring;
         sprintf(tempstring, ",\"device_motr_rat_%03d\",\"device_motr_spd_%03d\"",i,i);
         result += tempstring;
@@ -10711,7 +11022,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cinfo, jsonhandle *handl
 {
     const char *pointer;
     jsonequation tequation;
-    char ops[] = "+-*/%&|><=!~^";
+    char ops[] = "+-*/%&|><=!~^@#";
     int32_t iretn;
     size_t textlen;
 
@@ -10975,8 +11286,8 @@ int32_t node_calc(cosmosstruc *cinfo)
         cinfo->pieces[n].mass = cinfo->pieces[n].volume * cinfo->pieces[n].density;
         if (cinfo->pieces[n].mass == 0.)
             cinfo->pieces[n].mass = .001f;
-        cinfo->pieces[n].temp = 300.;
-        cinfo->pieces[n].heat = 300.f * cinfo->pieces[n].hcap;
+//        cinfo->pieces[n].temp = 300.;
+        cinfo->pieces[n].heat = cinfo->pieces[n].temp * cinfo->pieces[n].hcap;
         cinfo->physics.heat += cinfo->pieces[n].heat;
         cinfo->physics.mass += cinfo->pieces[n].mass;
         cinfo->physics.hcap += cinfo->pieces[n].hcap * cinfo->pieces[n].mass;

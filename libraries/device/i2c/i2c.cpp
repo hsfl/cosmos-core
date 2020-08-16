@@ -120,7 +120,7 @@ namespace Cosmos {
     //    return error;
     //}
 
-    int32_t I2C::send(std::string data)
+    int32_t I2C::send(string data)
     {
         //uint8_t * c = data.c_str();
         uint8_t * buff = new uint8_t[data.size() + 1];
@@ -158,7 +158,7 @@ namespace Cosmos {
     }
 
 
-    int32_t I2C::receive(std::string &data)
+    int32_t I2C::receive(string &data)
     {
         // work in progress
         //    uint8_t buff[0];

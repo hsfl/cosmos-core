@@ -80,37 +80,39 @@ static double logstride_exec = 0.;
 static std::mutex exec_mutex;
 
 int32_t get_last_offset();
+int32_t get_flags();
 
-int32_t request_get_queue_size(char* request, char* response, Agent* agent);
-int32_t request_get_event(char* request, char* response, Agent* agent);
-int32_t request_del_event(char* request, char* response, Agent* agent);
-int32_t request_del_event_id(char* request, char* response, Agent* agent);
-int32_t request_add_event(char* request, char* response, Agent* agent);
-int32_t request_remote_command(char *request, char* response, Agent* agent);
-int32_t request_reopen_exec(char* request, char* response, Agent* agent);
-int32_t request_set_logstride_exec(char* request, char* response, Agent* agent);
-int32_t request_get_logstride_exec(char* request, char* response, Agent* agent);
+int32_t request_get_queue_size(string &request, string &response, Agent* agent);
+int32_t request_get_event(string &request, string &response, Agent* agent);
+int32_t request_get_command(string &request, string &response, Agent* agent);
+int32_t request_del_command(string &request, string &response, Agent* agent);
+int32_t request_del_command_id(string &request, string &response, Agent* agent);
+int32_t request_add_command(string &request, string &response, Agent* agent);
+int32_t request_remote_command(string &request, string &response, Agent* agent);
+int32_t request_reopen_exec(string &request, string &response, Agent* agent);
+int32_t request_set_logstride_exec(string &request, string &response, Agent* agent);
+int32_t request_get_logstride_exec(string &request, string &response, Agent* agent);
 
 // SOH specific declarations
-int32_t request_reopen_soh(char* request, char* response, Agent *agent);
-int32_t request_set_logperiod(char* request, char* response, Agent *agent);
-int32_t request_get_logperiod(char* request, char* response, Agent *agent);
-int32_t request_set_logstride_soh(char* request, char* response, Agent *agent);
-int32_t request_get_logstride_soh(char* request, char* response, Agent *agent);
-int32_t request_set_logstring(char* request, char* response, Agent *agent);
-int32_t request_get_logstring(char* request, char* response, Agent *agent);
+int32_t request_reopen_soh(string &request, string &response, Agent *agent);
+int32_t request_set_logperiod(string &request, string &response, Agent *agent);
+int32_t request_get_logperiod(string &request, string &response, Agent *agent);
+int32_t request_set_logstride_soh(string &request, string &response, Agent *agent);
+int32_t request_get_logstride_soh(string &request, string &response, Agent *agent);
+int32_t request_set_logstring(string &request, string &response, Agent *agent);
+int32_t request_get_logstring(string &request, string &response, Agent *agent);
 
 static string jjstring;
 static string myjstring;
 
-void collect_data_loop();
+void collect_data_loop() noexcept;
 static thread cdthread;
 
 void move_and_compress_soh();
 static string logstring;
 static vector<jsonentry*> logtable;
 static double logdate_soh=0.;
-static double newlogperiod = 10. / 86400.;
+static double newlogperiod = 30. / 86400.;
 static double logperiod = 0;
 static double newlogstride_soh = 600. / 86400.;
 static double logstride_soh = 0.;
@@ -125,14 +127,25 @@ static vector<shorteventstruc> events;
 
 static beatstruc iscbeat;
 
+struct boot_flags
+{
+    bool launched : 1;
+    bool bootcheck : 1;
+    bool deployed : 1;
+} boot_flags;
+
+double correcttime;
+double epsilon;
+double delta;
+
 // default node name
 //static string node = "neutron1";
 
 int main(int argc, char *argv[])
 {
     vector<shorteventstruc> events, eventdict;
-    std::string incoming_dir, outgoing_dir, temp_dir, immediate_dir;
-    std::string jjstring, myjstring;
+    string incoming_dir, outgoing_dir, temp_dir, immediate_dir;
+    string jjstring, myjstring;
     double llogmjd, dlogmjd, clogmjd;
     int32_t iretn;
 
@@ -157,13 +170,11 @@ int main(int argc, char *argv[])
     }
 
     // Fix time
-    double ctime;
-    double epsilon;
-    iretn = agent->get_agent_time(ctime, epsilon, "gps");
+    iretn = agent->get_agent_time(correcttime, epsilon, delta, "gps");
     if (iretn >= 0)
     {
-        set_local_clock(ctime);
-        printf("Initialized time from time server: Delta %f\n", 86400.*epsilon);
+        printf("Initialized time from time GPS: Delta %f %f Epsilon %f\n", 86400. * (correcttime - currentmjd()), 86400.*delta, 86400.*epsilon);
+        set_local_clock(correcttime);
     }
     else
     {
@@ -175,14 +186,17 @@ int main(int argc, char *argv[])
             fclose(fp);
             int32_t offset = get_last_offset();
             date.second += offset;
-            double epsilon = cal2mjd(date) -  currentmjd();
-            if (epsilon > 3.5e-4)
+            double delta = cal2mjd(date) -  currentmjd();
+            if (delta > 3.5e-4)
             {
-                epsilon = set_local_clock(cal2mjd(date));
-                printf("Initialized time from file: Delta %f\n", epsilon);
+                delta = set_local_clock(cal2mjd(date));
+                printf("Initialized time from file: Delta %f\n", delta);
             }
         }
     }
+
+    // Check for launched
+    get_flags();
 
     agent->cinfo->node.utc = 0.;
     agent->cinfo->agent[0].aprd = .5;
@@ -220,23 +234,25 @@ int main(int argc, char *argv[])
     }
 
     // Add agent request functions
-    if ((iretn=agent->add_request("get_queue_size", request_get_queue_size, "", "returns the current size of the command queue")))
+    if ((iretn=agent->add_request("getqueuesize", request_get_queue_size, "", "returns the current size of the command queue")))
         exit (iretn);
-    if ((iretn=agent->add_request("del_event", request_del_event, "entry-string", "deletes the specified command event from the queue according to its JSON string")))
+    if ((iretn=agent->add_request("delcommand", request_del_command, "entry-string", "deletes the specified command event from the queue according to its JSON string")))
         exit (iretn);
-    if ((iretn=agent->add_request("del_event_id", request_del_event_id, "entry #", "deletes the specified command event from the queue according to its position")))
+    if ((iretn=agent->add_request("delcommandid", request_del_command_id, "entry #", "deletes the specified command event from the queue according to its position")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_event", request_get_event, "[ entry # ]", "returns the requested command queue entry (or all if none specified)")))
+    if ((iretn=agent->add_request("getcommand", request_get_command, "[ entry # ]", "returns the requested command queue entry (or all if none specified)")))
         exit (iretn);
-    if ((iretn=agent->add_request("add_event", request_add_event, "{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", "adds the specified command event to the queue")))
+    if ((iretn=agent->add_request("addcommand", request_add_command, "{\"event_name\":\"\"}{\"event_utc\":0}{\"event_utcexec\":0}{\"event_flag\":0}{\"event_type\":0}{\"event_data\":\"\"}{\"event_condition\":\"\"}", "adds the specified command event to the queue")))
         exit (iretn);
-    if ((iretn=agent->add_request("run_remote_command", request_remote_command, "command-to-run", "run a command local to the agent and return its output")))
+    if ((iretn=agent->add_request("runremotecommand", request_remote_command, "command-to-run", "run a command local to the agent and return its output")))
         exit (iretn);
-    if ((iretn=agent->add_request("reopen_exec", request_reopen_exec, "", "flushes exec log files out of temp directory")))
+    if ((iretn=agent->add_request("getevent", request_get_event, "[ entry # ]", "returns the requested event queue entry (or all if none specified)")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_logstride_exec", request_set_logstride_exec, "logstride", "modify how frequently we flush exec log files out of temp directory")))
+    if ((iretn=agent->add_request("reopenexec", request_reopen_exec, "", "flushes exec log files out of temp directory")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_logstride_exec", request_get_logstride_exec, "", "return how frequently we flush exec log files out of temp directory")))
+    if ((iretn=agent->add_request("setlogstrideexec", request_set_logstride_exec, "logstride", "modify how frequently we flush exec log files out of temp directory")))
+        exit (iretn);
+    if ((iretn=agent->add_request("getlogstrideexec", request_get_logstride_exec, "", "return how frequently we flush exec log files out of temp directory")))
         exit (iretn);
 
     // Reload existing queue
@@ -323,13 +339,41 @@ int main(int argc, char *argv[])
     // Start performing the body of the agent
     agent->post(Agent::AgentMessage::REQUEST, "postsoh");
     COSMOS_SLEEP(10.);
-    llogmjd = clogmjd =  currentmjd();
+    llogmjd = currentmjd();
+    clogmjd =  currentmjd();
+    logdate_exec = 0.;
+    logstride_exec = 0.;
     agent->start_active_loop();
     agent->debug_level = 0;
     ElapsedTime postet;
     ElapsedTime savet;
     while(agent->running())
     {
+        // Fix time
+//        iretn = agent->get_agent_time(correcttime, epsilon, delta, "gps");
+//        if (iretn >= 0 && fabs(delta*86400.) > 30.)
+//        {
+//            printf("Initialized time from time GPS: Delta %f %f Epsilon %f\n", 86400. * (correcttime - currentmjd()), 86400.*delta, 86400.*epsilon);
+//            set_local_clock(correcttime);
+//            llogmjd = currentmjd();
+//            clogmjd =  currentmjd();
+//            logdate_exec = 0.;
+//            logstride_exec = 0.;
+//        }
+//        else
+//        {
+//            iretn = agent->get_agent_time(correcttime, epsilon, delta, "duplex");
+//            if (iretn >= 0 && fabs(delta*86400.) > 30.)
+//            {
+//                printf("Initialized time from time DUPLEX: Delta %f %f Epsilon %f\n", 86400. * (correcttime - currentmjd()), 86400.*delta, 86400.*epsilon);
+//                set_local_clock(correcttime);
+//                llogmjd = currentmjd();
+//                clogmjd =  currentmjd();
+//                logdate_exec = 0.;
+//                logstride_exec = 0.;
+//            }
+//        }
+
         dlogmjd = (clogmjd-llogmjd)*86400.;
         agent->cinfo->node.utc = clogmjd = currentmjd();
         agent->cinfo->node.downtime = get_last_offset();
@@ -416,7 +460,7 @@ int main(int argc, char *argv[])
         // Perform Executive specific functions
         cmd_queue.load_commands(immediate_dir);
         cmd_queue.load_commands(incoming_dir);
-        cmd_queue.join_events();
+        cmd_queue.join_event_threads();
         cmd_queue.run_commands(agent, agent->getNode(), logdate_exec);
 
         if (savet.split() > 60.)
@@ -452,20 +496,68 @@ int32_t get_last_offset()
     return offset;
 }
 
+int32_t get_flags()
+{
+    int8_t launched = 0;
+    int8_t bootcheck = 0;
+    int8_t deployed = 0;
+    FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/boot_flags").c_str(), "r");
+    if (fp != nullptr)
+    {
+        fscanf(fp, "%hhd %hhd %hhd", &launched, &deployed, &bootcheck);
+        if (launched)
+        {
+            boot_flags.launched = true;
+            agent->cinfo->node.flags |= NODE_FLAG_LAUNCHED;
+        }
+        else
+        {
+            boot_flags.launched = false;
+            agent->cinfo->node.flags &= ~NODE_FLAG_LAUNCHED;
+        }
+        if (bootcheck)
+        {
+            boot_flags.bootcheck = true;
+            agent->cinfo->node.flags |= NODE_FLAG_BOOTCHECK;
+        }
+        else
+        {
+            boot_flags.bootcheck = false;
+            agent->cinfo->node.flags &= ~NODE_FLAG_BOOTCHECK;
+        }
+        if (deployed)
+        {
+            boot_flags.deployed = true;
+            agent->cinfo->node.flags |= NODE_FLAG_DEPLOYED;
+        }
+        else
+        {
+            boot_flags.deployed = false;
+            agent->cinfo->node.flags &= ~NODE_FLAG_DEPLOYED;
+        }
+        fclose(fp);
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 // Executive specific requests
-int32_t request_set_logstride_exec(char* request, char*, Agent *)
+int32_t request_set_logstride_exec(string &request, string &, Agent *)
 {
-    sscanf(request,"set_logstride_exec %lf",&newlogstride_exec);
+    sscanf(request.c_str(),"%*s %lf",&newlogstride_exec);
     return 0;
 }
-int32_t request_get_logstride_exec(char*, char* response, Agent *)
+int32_t request_get_logstride_exec(string &, string &response, Agent *)
 {
-    sprintf(response, "%lf", logstride_exec);
+    response =  std::to_string(logstride_exec);
     return 0;
 }
 
 
-int32_t request_reopen_exec(char*, char*, Agent *)
+int32_t request_reopen_exec(string &, string &, Agent *)
 {
     // Do not wait for log stride, move data from temp to incoming immediately.
     logdate_exec = agent->cinfo->node.loc.utc;
@@ -473,36 +565,36 @@ int32_t request_reopen_exec(char*, char*, Agent *)
     return 0;
 }
 
-int32_t request_get_queue_size(char *, char* response, Agent *)
+int32_t request_get_queue_size(string &, string &response, Agent *)
 {
-    sprintf(response,"%" PRIu32 "", cmd_queue.get_size());
+    response = std::to_string(cmd_queue.get_command_size());
     return 0;
 }
 
-int32_t request_get_event(char *request, char* response, Agent *)
+int32_t request_get_event(string &request, string &response, Agent *)
 {
     std::ostringstream ss;
 
-    if(cmd_queue.get_size()==0)	{
-        ss << "the command queue is empty";
+    if(cmd_queue.get_event_size()==0)	{
+        ss << "[]";
     }
     else {
         int j;
-        int32_t iretn = sscanf(request,"get_event %d",&j);
+        int32_t iretn = sscanf(request.c_str(),"%*s %d",&j);
 
-        // if valid index then return command
+        // if valid index then return event
         if (iretn == 1) {
-            if(j >= 0 && j < static_cast<int>(cmd_queue.get_size()))
-                ss << cmd_queue.get_command(j);
+            if(j >= 0 && j < static_cast<int>(cmd_queue.get_event_size()))
+                ss << cmd_queue.get_event(j);
             else
-                ss << "<" << j << "> is not a valid command queue index (current range between 0 and "
-                   << cmd_queue.get_size()-1 << ")";
+                ss << "<" << j << "> is not a valid event queue index (current range between 0 and "
+                   << cmd_queue.get_event_size()-1 << ")";
         }
 
         // if no index given, return the entire queue
         else if (iretn ==  -1) {
-            for(int i = 0; i < static_cast<int>(cmd_queue.get_size()); ++i) {
-                Event cmd = cmd_queue.get_command(i);
+            for(int i = 0; i < static_cast<int>(cmd_queue.get_event_size()); ++i) {
+                Event cmd = cmd_queue.get_event(i);
                 ss << "[" << i << "]" << "[" << mjd2iso8601(cmd.getUtc()) << "]" << cmd << endl;
             }
         }
@@ -510,50 +602,83 @@ int32_t request_get_event(char *request, char* response, Agent *)
         else if (iretn == 0) { ss << "Usage:\tget_event [ index ]\t"; }
     }
 
-    strcpy(response, ss.str().c_str());
+    response = ss.str();
     return 0;
 }
 
-// Delete Queue Entry - by #
-int32_t request_del_event_id(char *request, char* response, Agent *)
+int32_t request_get_command(string &request, string &response, Agent *)
 {
-    Event cmd;
     std::ostringstream ss;
 
-    if(cmd_queue.get_size()==0)	{
+    if(cmd_queue.get_command_size()==0)	{
         ss << "the command queue is empty";
     }
     else {
         int j;
-        int32_t iretn = sscanf(request,"del_event_id %d",&j);
+        int32_t iretn = sscanf(request.c_str(),"%*s %d",&j);
 
         // if valid index then return command
         if (iretn == 1) {
-            if(j >= 0 && j < static_cast<int>(cmd_queue.get_size())) {
-                sprintf(response,"%d commands deleted from the queue",
-                        cmd_queue.del_command(j)
-                        );
+            if(j >= 0 && j < static_cast<int>(cmd_queue.get_command_size()))
+                ss << cmd_queue.get_command(j);
+            else
+                ss << "<" << j << "> is not a valid command queue index (current range between 0 and "
+                   << cmd_queue.get_command_size()-1 << ")";
+        }
+
+        // if no index given, return the entire queue
+        else if (iretn ==  -1) {
+            for(int i = 0; i < static_cast<int>(cmd_queue.get_command_size()); ++i) {
+                Event cmd = cmd_queue.get_command(i);
+                ss << "[" << i << "]" << "[" << mjd2iso8601(cmd.getUtc()) << "]" << cmd << endl;
+            }
+        }
+        // if the user supplied something that couldn't be turned into an integer
+        else if (iretn == 0) { ss << "Usage:\tget_command [ index ]\t"; }
+    }
+
+    response = ss.str();
+    return 0;
+}
+
+// Delete Queue Entry - by #
+int32_t request_del_command_id(string &request, string &response, Agent *)
+{
+    Event cmd;
+    std::ostringstream ss;
+
+    if(cmd_queue.get_command_size()==0)	{
+        ss << "the command queue is empty";
+    }
+    else {
+        int j;
+        int32_t iretn = sscanf(request.c_str(),"%*s %d",&j);
+
+        // if valid index then return command
+        if (iretn == 1) {
+            if(j >= 0 && j < static_cast<int>(cmd_queue.get_command_size())) {
+                response = std::to_string(cmd_queue.del_command(j)) + " commands deleted from the queue";
             } else {
-                ss << "<" << j << "> is not a valid command queue index (current range between 0 and " << cmd_queue.get_size()-1 << ")";
+                ss << "<" << j << "> is not a valid command queue index (current range between 0 and " << cmd_queue.get_command_size()-1 << ")";
             }
         }
         // if the user supplied something that couldn't be turned into an integer
         else if (iretn == 0)	{
-            ss << "Usage:\tdel_event_id [ index ]\t";
+            ss << "Usage:\tdel_command_id [ index ]\t";
         }
     }
 
-    strcpy(response, ss.str().c_str());
+    response = ss.str();
     return 0;
 }
 
 // Delete Queue Entry - by date and contents
-int32_t request_del_event(char *request, char* response, Agent *)
+int32_t request_del_command(string &request, string &response, Agent *)
 {
     Event cmd;
     string line(request);
 
-    // remove "del_event " from request string
+    // remove "del_command " from request string
     line.erase(0, 10);
     cmd.set_command(line);
 
@@ -561,32 +686,32 @@ int32_t request_del_event(char *request, char* response, Agent *)
     int n = cmd_queue.del_command(cmd);
 
     if(!cmd.is_command()) {
-        sprintf(response, "Not a valid command: %s", line.c_str());
+        response =  "Not a valid command: " + line;
     }
     else {
-        sprintf(response,"%d commands deleted from the queue",n);
+        response = std::to_string(n) + " commands deleted from the queue";
     }
 
     return 0;
 }
 
 // Add Queue Entry
-int32_t request_add_event(char *request, char* response, Agent *)
+int32_t request_add_command(string &request, string &response, Agent *)
 {
     Event cmd;
     string line(request);
 
-    // remove "add_event " from request string
+    // remove "add_command " from request string
     line.erase(0, 10);
     cmd.set_command(line);
 
     // add command
     if(cmd.is_command()) {
         cmd_queue.add_command(cmd);
-        sprintf(response, "Command added to queue: %s", line.c_str());
+        response =  "Command added to queue: " + line;
     }
     else {
-        sprintf(response, "Not a valid command: %s", line.c_str());
+        response =  "Not a valid command: " + line;
     }
 
     // sort the queue
@@ -595,7 +720,7 @@ int32_t request_add_event(char *request, char* response, Agent *)
 }
 
 // Run the command and return the output in the response.
-int32_t request_remote_command(char *request, char* response, Agent *)
+int32_t request_remote_command(string &request, string &response, Agent *)
 {
     char request_re[AGENTMAXBUFFER + 5];
     int32_t iretn = 0;
@@ -615,7 +740,7 @@ int32_t request_remote_command(char *request, char* response, Agent *)
     }
 
     if (i == AGENTMAXBUFFER-1) {
-        sprintf(response,"Unable to find an appropriate command.");
+        response = "Unable to find an appropriate command.";
     }
     else {
         // Redirect error into buffer as well.
@@ -629,7 +754,8 @@ int32_t request_remote_command(char *request, char* response, Agent *)
         if ((pd=popen(request_re, "r")) != nullptr)
 #endif
         {
-            iretn = fread(response,1,AGENTMAXBUFFER-1,pd);
+            response.resize(AGENTMAXBUFFER);
+            iretn = fread(&response[0], 1, AGENTMAXBUFFER-1, pd);
             response[iretn] = '\0';
             iretn = 0;
 #ifdef COSMOS_WIN_BUILD_MSVC
@@ -648,7 +774,7 @@ int32_t request_remote_command(char *request, char* response, Agent *)
 }
 
 // SOH specific requests
-int32_t request_reopen_soh(char*, char*, Agent *agent)
+int32_t request_reopen_soh(string &, string &, Agent *agent)
 {
     // Do not wait for logstride, push soh log files out of temp and into incoming.
     logdate_soh = agent->cinfo->node.loc.utc;
@@ -656,19 +782,19 @@ int32_t request_reopen_soh(char*, char*, Agent *agent)
     return 0;
 }
 
-int32_t request_set_logperiod(char* request, char*, Agent *)
+int32_t request_set_logperiod(string &request, string &, Agent *)
 {
-    sscanf(request,"set_logperiod %lf",&newlogperiod);
+    sscanf(request.c_str(),"%*s %lf",&newlogperiod);
     newlogperiod /= 86400.;
     return 0;
 }
-int32_t request_get_logperiod(char*, char* response, Agent *)
+int32_t request_get_logperiod(string &, string &response, Agent *)
 {
-    sprintf(response, "%lf", 86400. * logperiod);
+    response =  std::to_string(86400. * logperiod);
     return 0;
 }
 
-int32_t request_set_logstring(char* request, char*, Agent *agent)
+int32_t request_set_logstring(string &request, string &, Agent *agent)
 {
     logstring = &request[strlen("set_logstring")+1];
     logtable.clear();
@@ -676,25 +802,25 @@ int32_t request_set_logstring(char* request, char*, Agent *agent)
     return 0;
 }
 
-int32_t request_get_logstring(char*, char* response, Agent *)
+int32_t request_get_logstring(string &, string &response, Agent *)
 {
-    strcpy(response, logstring.c_str());
+    response = logstring;
     return 0;
 }
 
-int32_t request_set_logstride_soh(char* request, char*, Agent *)
+int32_t request_set_logstride_soh(string &request, string &, Agent *)
 {
-    sscanf(request,"set_logstride_soh %lf",&newlogstride_soh);
+    sscanf(request.c_str(),"%*s %lf",&newlogstride_soh);
     newlogstride_soh /= 86400.;
     return 0;
 }
-int32_t request_get_logstride_soh(char*, char*response, Agent *)
+int32_t request_get_logstride_soh(string &, string &response, Agent *)
 {
-    sprintf(response, "%lf", 86400. * logstride_soh);
+    response =  std::to_string(86400. * logstride_soh);
     return 0;
 }
 
-void collect_data_loop()
+void collect_data_loop() noexcept
 {
     int32_t iretn;
     while (agent->running())
@@ -725,7 +851,7 @@ void collect_data_loop()
 // Moving exec and soh logs cannot occur concurrently.
 void move_and_compress_exec () {
     exec_mutex.lock();
-    cmd_queue.join_events();
+    cmd_queue.join_event_threads();
     log_move(agent->getNode(), "exec");
     exec_mutex.unlock();
 }
@@ -736,7 +862,7 @@ void move_and_compress_soh () {
 }
 
 void move_and_compress_beacon () {
-    std::string beacon_string;
+    string beacon_string;
     beacon_mutex.lock();
     log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
     log_move(agent->getNode(), "beacon");

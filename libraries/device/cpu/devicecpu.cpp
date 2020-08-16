@@ -485,7 +485,7 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
 
     //    // ------------------------------------------
     //    // using top or ps
-    //    using string;
+    //    using std::string;
 
     //    processName = getCurrentProcessName();
 

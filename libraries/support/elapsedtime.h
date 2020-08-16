@@ -73,7 +73,7 @@ public:
     //int timeval_subtract (struct timeval* result, struct timeval* x, struct timeval* y);
     //float elapsed_time(struct timeval a,struct timeval b);
     void printElapsedTime();
-    void printElapsedTime(std::string text);
+    void printElapsedTime(string text);
 
     double getElapsedTimeMiliSeconds();
     double getElapsedTime();
@@ -91,7 +91,7 @@ public:
     void tic();
     double toc();
     //double toc(bool print_flag);
-    double toc(std::string text);
+    double toc(string text);
 
     // turn on/off printing
     bool print = true; //

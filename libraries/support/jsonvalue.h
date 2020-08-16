@@ -25,9 +25,16 @@ public:
     JSONValue();
     JSONValue(string val);
     JSONValue(double val);
-    JSONValue(int val);
+//    JSONValue(int val);
+    JSONValue(uint64_t val);
     JSONValue(uint32_t val);
+    JSONValue(uint16_t val);
     JSONValue(uint8_t val);
+    JSONValue(int64_t val);
+    JSONValue(int32_t val);
+    JSONValue(int16_t val);
+    JSONValue(int8_t val);
+//    JSONValue(uint8_t val);
 
     JSONValue(char val);
     JSONValue(JSONObject val);
@@ -52,9 +59,9 @@ public:
     bool isArray();
     bool isBool();
 
-    std::string to_json_string();
+    string to_json_string();
 private:
-    std::string value_as_string;
+    string value_as_string;
     JsonValueType type;
 };
 

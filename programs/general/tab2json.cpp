@@ -3,6 +3,8 @@
 #include "support/jsonobject.h"
 #include "support/stringlib.h"
 
+string skip_undesired(string input);
+
 int main(int argc, char *argv[])
 {
     char buf[1000];
@@ -43,11 +45,11 @@ int main(int argc, char *argv[])
     {
         exit(-errno);
     }
-    vector <string> fields = string_split(buf, "\t");
+    vector <string> fields = string_split(skip_undesired(buf), "\t");
 
     while (fgets(buf, 1000, fpi) != nullptr)
     {
-        vector <string> values = string_split(buf, "\t");
+        vector <string> values = string_split(skip_undesired(buf), "\t");
         JSONObject jobject;
         for (uint16_t i=0; i<fields.size(); ++i)
         {
@@ -86,4 +88,26 @@ int main(int argc, char *argv[])
         fprintf(fpo, "%s\n", jobject.to_json_string().c_str());
     }
 
+}
+
+string skip_undesired(string input)
+{
+    string output;
+    for (uint16_t i = 0; i<input.length()-1; ++i)
+    {
+        if (input[i] == '"' && input[i+1] == '"')
+        {
+            continue;
+        }
+        if (input[i] == '\r' || input[i] == '\n')
+        {
+            continue;
+        }
+        output.push_back(input[i]);
+    }
+    if (input.back() != '\r' && input.back() != '\n')
+    {
+        output.push_back(input.back());
+    }
+    return output;
 }

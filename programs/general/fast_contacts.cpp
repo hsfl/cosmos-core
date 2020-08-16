@@ -55,14 +55,16 @@ struct trackstruc
 };
 std::vector <trackstruc> track;
 
-mutex mut1;
-mutex mut2;
-mutex mut3;
-mutex mut4;
+//mutex mut1;
+//mutex mut2;
+//mutex mut3;
+//mutex mut4;
 
 double utcnow;
 double utcstart;
 double utcend;
+double mylat;
+double mylon;
 
 void propcalc(size_t index);
 
@@ -71,15 +73,17 @@ int main(int argc, char *argv[])
     int32_t iretn;
     double period = 1.;
 
+    printf("Iniitial\n");
+    fflush(stdout);
     switch (argc)
     {
+    case 6:
+        minimum_elevation = RADOF(atof(argv[5]));
     case 5:
-        minimum_elevation = RADOF(atof(argv[4]));
+        period = atof(argv[4]);
     case 4:
-        period = atof(argv[3]);
-    case 3:
-    case 2:
-        nodename = argv[2];
+        mylon = atof(argv[3]);
+        mylat = atof(argv[2]);
         tlename = argv[1];
         break;
     default:
@@ -89,19 +93,32 @@ int main(int argc, char *argv[])
     }
 
     // Establish the command channel and heartbeat
-    if ((iretn = agent->wait()) < 0)
-    {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
-        exit(iretn);
-    }
-    else
-    {
-        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
-    }
+    printf("Starting agent\n");
+    fflush(stdout);
+    agent = new Agent();
+//    if ((iretn = agent->wait()) < 0)
+//    {
+//        fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
+//        exit(iretn);
+//    }
+//    else
+//    {
+//        fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
+//    }
+
+
+    agent->cinfo->node.loc.pos.geod.s.lat = RADOF(mylat);
+    agent->cinfo->node.loc.pos.geod.s.lon = RADOF(mylon);
+    agent->cinfo->node.loc.pos.geod.s.h = 348.;
+    agent->cinfo->node.loc.pos.geod.v = gv_zero();
+    agent->cinfo->node.loc.pos.geod.pass++;
+    pos_geod(&agent->cinfo->node.loc);
 
 
     // Load Nodes
 
+    printf("loading %s\n", tlename.c_str());
+    fflush(stdout);
     load_lines_multi(tlename, tlelist);
     for (size_t i=0; i<tlelist.size(); ++i)
     {

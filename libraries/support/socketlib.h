@@ -173,7 +173,7 @@ struct SocketOptions
 	bool connect = false;
 
 	// Channel's protocol address in string form
-    std::string address = "127.0.0.1";
+    string address = "127.0.0.1";
 	// port
 	uint16_t port = 8888;
 
@@ -194,12 +194,12 @@ public:
     // using list initialization is not supported be gcc 4.8 and/or MSVC 2013
     // so for the moment keep these commented out
     //  SocketOptions(uint16_t p):port{p}{}
-    //  SocketOptions(std::string a, uint16_t p):address{a},port{p}{}
-    //  SocketOptions(std::string a, uint16_t p, uint16_t r):address{a},port{p},role{r}{}
+    //  SocketOptions(string a, uint16_t p):address{a},port{p}{}
+    //  SocketOptions(string a, uint16_t p, uint16_t r):address{a},port{p},role{r}{}
 
     SocketOptions(uint16_t p);
-    SocketOptions(std::string a, uint16_t p);
-    SocketOptions(std::string a, uint16_t p, uint16_t r);
+    SocketOptions(string a, uint16_t p);
+    SocketOptions(string a, uint16_t p, uint16_t r);
 
 
 } ;
@@ -217,35 +217,35 @@ private:
 
 	//int32_t openClient();
 	int32_t openServer();
-    int32_t errorStatus(std::string functionName);
+    int32_t errorStatus(string functionName);
 
 public:
 	// constructors
 	Udp(); // : sok("127.0.0.1",8888){}
 	//Udp(uint16_t p);
-    //Udp(std::string a, uint16_t p);
-    //Udp(std::string a, uint16_t p, uint16_t r);
+    //Udp(string a, uint16_t p);
+    //Udp(string a, uint16_t p, uint16_t r);
 
 	int32_t socketOpen();
 
 	int32_t setupClient();
-    int32_t setupClient(std::string a, uint16_t p);
+    int32_t setupClient(string a, uint16_t p);
 
-    int32_t setupClientSimGen(std::string a, uint16_t p);
-    int32_t setupClientAcstb(std::string a, uint16_t p);
+    int32_t setupClientSimGen(string a, uint16_t p);
+    int32_t setupClientAcstb(string a, uint16_t p);
 
 	//int32_t setupServer();
 	//int32_t setupServer(uint16_t p);
 	int32_t setupServer(uint16_t port, float timeout_sec);
 
 
-    int32_t send(std::string package2send);
+    int32_t send(string package2send);
 	int32_t receiveLoop();
 	int32_t receiveOnce();
 
 	int32_t close();
 
-    std::string receivedData; // container for received data
+    string receivedData; // container for received data
 
 };
 

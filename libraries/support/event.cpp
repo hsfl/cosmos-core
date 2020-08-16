@@ -158,9 +158,17 @@ string Event::get_event_string()
 bool Event::condition_true(cosmosstruc *cinfo)
 {
     const char *cp = condition.c_str();
-    if (cinfo != nullptr) { // Note: an equation must be enclosed by parentheses.
+    if (cinfo != nullptr)
+    { // Note: an equation must be enclosed by parentheses.
         double r =  json_equation(cp, cinfo);
-        return fabs(r - 1.0) < std::numeric_limits<double>::epsilon();
+        if (fabs(r - 1.0) < std::numeric_limits<double>::epsilon())
+        {
+            ++true_count;
+            if (true_count >= (flag&EVENT_FLAG_PRIORITY)/32)
+            {
+                return true;
+            }
+        }
     }
     return false;
 }

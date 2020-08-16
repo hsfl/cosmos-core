@@ -188,153 +188,153 @@ int main(int argc, char *argv[])
 
 //sem_wait(&data_sem);
 
-char* request_utc(char* request, char* output)
-{
-    strcpy(output,json_of_utc(reqjstring, agent->cinfo));
-	return (output);
-}
+//char* request_utc(string & request, string & output, Agent *)
+//{
+//    output = (json_of_utc(reqjstring, agent->cinfo));
+//	return (output);
+//}
 
-char* request_soh(char* request, char* output)
-{
-    strcpy(output,json_of_soh(reqjstring, agent->cinfo));
-    //strcpy(output,json_of_beacon(reqjstring, agent->cinfo));
-	return (output);
-}
+//char* request_soh(string & request, string & output, Agent *)
+//{
+//    output = (json_of_soh(reqjstring, agent->cinfo));
+//    //output = (json_of_beacon(reqjstring, agent->cinfo));
+//	return (output);
+//}
 
-char* request_beacon(char* request, char* output)
-{
-    strcpy(output,json_of_beacon(reqjstring, agent->cinfo));
-	return (output);
-}
+//char* request_beacon(string & request, string & output, Agent *)
+//{
+//    output = (json_of_beacon(reqjstring, agent->cinfo));
+//	return (output);
+//}
 
-char* request_statevec(char* request, char* output)
-{
-    strcpy(output,json_of_state_eci(reqjstring, agent->cinfo));
-	return (output);
-}
+//char* request_statevec(string & request, string & output, Agent *)
+//{
+//    output = (json_of_state_eci(reqjstring, agent->cinfo));
+//	return (output);
+//}
 
-char* request_set_bus(char* request, char* output)
-{
-	int j, k;
+//char* request_set_bus(string & request, string & output, Agent *)
+//{
+//	int j, k;
 
-	sscanf(request,"set_bus %d %d",&j, &k);
-	if (k)
-	{
-        agent->cinfo->device[agent->cinfo->devspec.bus[j]].all.flag |= DEVICE_FLAG_ON;
-	}
-	else
-	{
-        agent->cinfo->device[agent->cinfo->devspec.bus[j]].all.flag &= ~DEVICE_FLAG_ON;
-	}
-	return (output);
-}   
+//	sscanf(request.c_str(),"set_bus %d %d",&j, &k);
+//	if (k)
+//	{
+//        agent->cinfo->device[agent->cinfo->devspec.bus[j]].all.flag |= DEVICE_FLAG_ON;
+//	}
+//	else
+//	{
+//        agent->cinfo->device[agent->cinfo->devspec.bus[j]].all.flag &= ~DEVICE_FLAG_ON;
+//	}
+//	return (output);
+//}
 
-char* request_imu(char* request, char* output)
-{
-	int j;
+//char* request_imu(string & request, string & output, Agent *)
+//{
+//	int j;
 
-	sscanf(request,"imu %d",&j);
-    strcpy(output,json_of_imu(reqjstring, j, agent->cinfo));
-	printf("%s\n",output);
-	return (output);
-}   
+//	sscanf(request.c_str(),"imu %d",&j);
+//    output = (json_of_imu(reqjstring, j, agent->cinfo));
+//	printf("%s\n",output);
+//	return (output);
+//}
 
-char* request_get_rw(char* request, char* output)
-{
-	int j;
+//char* request_get_rw(string & request, string & output, Agent *)
+//{
+//	int j;
 
-	sscanf(request,"get_rw %d",&j);
-    strcpy(output,json_of_rw(reqjstring, j, agent->cinfo));
-	printf("%s\n",output);
-	return (output);
-}   
+//	sscanf(request.c_str(),"get_rw %d",&j);
+//    output = (json_of_rw(reqjstring, j, agent->cinfo));
+//	printf("%s\n",output);
+//	return (output);
+//}
 
-char* request_set_rw_moment(char* request, char* output)
-{
-	int j;
-	double value[3];
+//char* request_set_rw_moment(string & request, string & output, Agent *)
+//{
+//	int j;
+//	double value[3];
 
-	sscanf(request,"set_rw_moment %d %lf %lf %lf",&j,&value[0],&value[1],&value[2]);
+//	sscanf(request.c_str(),"set_rw_moment %d %lf %lf %lf",&j,&value[0],&value[1],&value[2]);
 
-    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[0] = value[0];
-    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[1] = value[1];
-    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[2] = value[2];
-    strcpy(output,json_of_rw(reqjstring, j, agent->cinfo));
-	printf("%s\n",output);
-	return (output);
-}
+//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[0] = value[0];
+//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[1] = value[1];
+//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.mom.col[2] = value[2];
+//    output = (json_of_rw(reqjstring, j, agent->cinfo));
+//	printf("%s\n",output);
+//	return (output);
+//}
 
-char* request_set_rw_omega(char* request, char* output)
-{
-	int j;
-	double value;
+//char* request_set_rw_omega(string & request, string & output, Agent *)
+//{
+//	int j;
+//	double value;
 
-	sscanf(request,"%*s %d %lf",&j,&value);
-    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.omg = value;
-    strcpy(output,json_of_rw(reqjstring, j, agent->cinfo));
-	printf("%s\n",output);
-	return (output);
-}
+//	sscanf(request.c_str(),"%*s %d %lf",&j,&value);
+//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.omg = value;
+//    output = (json_of_rw(reqjstring, j, agent->cinfo));
+//	printf("%s\n",output);
+//	return (output);
+//}
 
-char* request_set_rw_alpha(char* request, char* output)
-{   
-	int j;
-	double value;
+//char* request_set_rw_alpha(string & request, string & output, Agent *)
+//{
+//	int j;
+//	double value;
 
-	sscanf(request,"%*s %d %lf",&j,&value);
-    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.alp = value;
-    strcpy(output,json_of_rw(reqjstring, j, agent->cinfo));
-	printf("%s\n",output);
-	return (output);
-}
+//	sscanf(request.c_str(),"%*s %d %lf",&j,&value);
+//    agent->cinfo->device[agent->cinfo->devspec.rw[j]].rw.alp = value;
+//    output = (json_of_rw(reqjstring, j, agent->cinfo));
+//	printf("%s\n",output);
+//	return (output);
+//}
 
-char* request_get_mtr(char* request, char* output)
-{   
-	int j;
+//char* request_get_mtr(string & request, string & output, Agent *)
+//{
+//	int j;
 
-	sscanf(request,"get_mtr %d",&j);
-    strcpy(output,json_of_mtr(reqjstring, j, agent->cinfo));
-	printf("%s\n",output);
-	return (output);
-}
+//	sscanf(request.c_str(),"get_mtr %d",&j);
+//    output = (json_of_mtr(reqjstring, j, agent->cinfo));
+//	printf("%s\n",output);
+//	return (output);
+//}
 
-char* request_set_mtr_moment(char* request, char* output)
-{
-	int j;
-	double value[3];
+//char* request_set_mtr_moment(string & request, string & output, Agent *)
+//{
+//	int j;
+//	double value[3];
 
-	sscanf(request,"set_mtr_moment %d %lf %lf %lf",&j,&value[0],&value[1],&value[2]);
+//	sscanf(request.c_str(),"set_mtr_moment %d %lf %lf %lf",&j,&value[0],&value[1],&value[2]);
 
-    //agent->cinfo->devspec.mtr[j]->mom.col[0] = value[0];
-    //agent->cinfo->devspec.mtr[j]->mom.col[1] = value[1];
-    //agent->cinfo->devspec.mtr[j]->mom.col[2] = value[2];
-    strcpy(output,json_of_mtr(reqjstring, j, agent->cinfo));
-	printf("%s\n",output);
-	return (output);
-}
+//    //agent->cinfo->devspec.mtr[j]->mom.col[0] = value[0];
+//    //agent->cinfo->devspec.mtr[j]->mom.col[1] = value[1];
+//    //agent->cinfo->devspec.mtr[j]->mom.col[2] = value[2];
+//    output = (json_of_mtr(reqjstring, j, agent->cinfo));
+//	printf("%s\n",output);
+//	return (output);
+//}
 
-char* request_set_mtr_current(char* request, char* output)
-{
-	int j;
-	double value;
+//char* request_set_mtr_current(string & request, string & output, Agent *)
+//{
+//	int j;
+//	double value;
 
-	sscanf(request,"set_mtr_current %d %lf",&j,&value);
+//	sscanf(request.c_str(),"set_mtr_current %d %lf",&j,&value);
 
-    agent->cinfo->device[agent->cinfo->devspec.mtr[j]].all.amp = value;
-    strcpy(output,json_of_mtr(reqjstring, j, agent->cinfo));
-	printf("%s\n",output);
-	return (output);
-}
+//    agent->cinfo->device[agent->cinfo->devspec.mtr[j]].all.amp = value;
+//    output = (json_of_mtr(reqjstring, j, agent->cinfo));
+//	printf("%s\n",output);
+//	return (output);
+//}
 
-char* request_set_mtr_field(char* request, char* output)
-{
-	int j;
-	double value;
+//char* request_set_mtr_field(string & request, string & output, Agent *)
+//{
+//	int j;
+//	double value;
 
-	sscanf(request,"set_mtr_field %d %lf",&j,&value);
+//	sscanf(request.c_str(),"set_mtr_field %d %lf",&j,&value);
 
-    agent->cinfo->device[agent->cinfo->devspec.mtr[j]].all.amp = value*(4.838e-3+value*(-3.958e-5+value*3.053e-6));
-    strcpy(output,json_of_rw(reqjstring, j, agent->cinfo));
-	return (output);
-}
+//    agent->cinfo->device[agent->cinfo->devspec.mtr[j]].all.amp = value*(4.838e-3+value*(-3.958e-5+value*3.053e-6));
+//    output = (json_of_rw(reqjstring, j, agent->cinfo));
+//	return (output);
+//}
 

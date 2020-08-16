@@ -108,11 +108,11 @@ namespace Cosmos
         // *************************************************************************
 
 
-        CommandQueue::~CommandQueue () { join_events(); }
+        CommandQueue::~CommandQueue () { join_event_threads(); }
 
         // Before moving log files, we must join the event threads and ensure that each
         // event spawned is not currently active.
-        size_t CommandQueue::join_events()
+        size_t CommandQueue::join_event_threads()
         {
 //            static auto join_event = [] (std::thread &t) {
 //                t.join();
@@ -285,11 +285,19 @@ namespace Cosmos
                                 if(ii->is_repeat())
                                 {
                                     // if command has not already run
-                                    if(!ii->already_ran)
+//                                    if(!ii->already_ran)
+                                    if (!ii->is_alreadyrun())
                                     {
                                         strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
+                                        agent->cinfo->node.lasteventutc = currentmjd();
                                         run_command(*ii, node_name, logdate_exec);
-                                        ii->already_ran = true;
+                                        ii->set_alreadyrun(true);
+                                        events.push_back(*ii);
+                                        if (events.size() > 10)
+                                        {
+                                            events.pop_front();
+                                        }
+//                                        ii->already_ran = true;
                                         break;
                                     }
                                     // else command is non-repeatable
@@ -297,6 +305,11 @@ namespace Cosmos
                                 else
                                 {
                                     run_command(*ii, node_name, logdate_exec);
+                                    events.push_back(*ii);
+                                    if (events.size() > 10)
+                                    {
+                                        events.pop_front();
+                                    }
                                     commands.erase(ii--);
                                     break;
                                 }
@@ -304,7 +317,7 @@ namespace Cosmos
                             }
                             else
                             {
-                                ii->already_ran = false;
+                                ii->set_alreadyrun(false);
                             }
                             // else command is non-conditional
                         }
@@ -410,7 +423,7 @@ namespace Cosmos
                         continue;
                     }
 
-                    std::cout<<"\nThe size of the command queue is: "<< get_size()<<std::endl;
+                    std::cout<<"\nThe size of the command queue is: "<< get_command_size()<<std::endl;
                 }
             }
 

@@ -618,7 +618,7 @@ int32_t cssl_putnmea(cssl_t *serial, uint8_t *buf, size_t size)
 {
 	size_t j;
 	uint8_t cs_in, digit1, digit2;
-    std::string message_sent; // for debugging
+    string message_sent; // for debugging
 
 	cs_in = 0;
 
@@ -904,7 +904,7 @@ int32_t cssl_getnmea(cssl_t *serial, uint8_t *buf, uint16_t size)
 	int16_t ch;
 	uint16_t i;
 	uint8_t cs_in, cs_out;
-    std::string input;
+    string input;
 	
 	do
 	{

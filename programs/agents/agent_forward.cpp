@@ -38,8 +38,8 @@ static Agent *agent;
 static socket_channel rcvchan;
 static vector<socket_channel> sendchan;
 
-int32_t request_add_forward(char *req, char* , Agent *);
-int32_t request_del_forward(char *req, char*, Agent *);
+int32_t request_add_forward(string &req, string & , Agent *);
+int32_t request_del_forward(string &req, string &, Agent *);
 
 #define MAXBUFFERSIZE 2560 // comm buffer for agents
 
@@ -224,10 +224,10 @@ void forwarding_loop()
     }
 }
 
-int32_t request_add_forward(char *req, char*, Agent *)
+int32_t request_add_forward(string &req, string &, Agent *)
 {
     char address[50];
-    sscanf(req, "%*s %s", address);
+    sscanf(req.c_str(), "%*s %s", address);
 
     bool found = false;
     for (size_t i=0; i<sendchan.size(); ++i)
@@ -250,10 +250,10 @@ int32_t request_add_forward(char *req, char*, Agent *)
     return 0;
 }
 
-int32_t request_del_forward(char *req, char* , Agent *)
+int32_t request_del_forward(string &req, string & , Agent *)
 {
     char address[50];
-    sscanf(req, "%*s %s", address);
+    sscanf(req.c_str(), "%*s %s", address);
 
     for (size_t i=0; i<sendchan.size(); ++i)
     {

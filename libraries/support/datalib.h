@@ -107,7 +107,7 @@
 //! @{
 
 void log_reopen();
-void log_write(string node, int type, double utc, const char* data, std::string directory="temp");
+void log_write(string node, int type, double utc, const char* data, string directory="temp");
 void log_write(string node, string agent, double utc, string type, const char *data);
 //void log_write(string node, string agent, double utc, string extra, string type, string record);
 void log_write(string node, string agent, double utc, string extra, string type, string record, string location="temp");
