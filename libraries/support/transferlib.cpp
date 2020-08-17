@@ -345,6 +345,29 @@ void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message
     memmove(&message.bytes[0], &packet[0]+PACKET_MESSAGE_OFFSET_BYTES, message.length);
 }
 
+void make_command_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string command)
+{
+    PACKET_TYPE type = salt_type(PACKET_COMMAND);
+
+    packet.resize(PACKET_COMMAND_OFFSET_TOTAL);
+    memset(&packet[0], 0, PACKET_COMMAND_OFFSET_TOTAL);
+    memmove(&packet[0]+PACKET_HEADER_OFFSET_TYPE, &type, sizeof(PACKET_TYPE));
+    memmove(&packet[0]+PACKET_COMMAND_OFFSET_NODE_ID, &node_id, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+    PACKET_BYTE length = command.size();
+    memmove(&packet[0]+PACKET_COMMAND_OFFSET_LENGTH, &length, 1);
+    memmove(&packet[0]+PACKET_COMMAND_OFFSET_BYTES, &command[0], TRANSFER_MAX_PROTOCOL_PACKET - 2);
+    uint16_t crc = calc_crc16ccitt(&packet[3], packet.size()-3);
+    memmove(&packet[0]+PACKET_HEADER_OFFSET_CRC, &crc, sizeof(PACKET_CRC));
+}
+
+//Function to extract necessary fileds from a received command packet
+void extract_command(vector<PACKET_BYTE>& packet, packet_struct_command& command)
+{
+    memmove(&command.node_id, &packet[0]+PACKET_COMMAND_OFFSET_NODE_ID, COSMOS_SIZEOF(PACKET_NODE_ID_TYPE));
+    memmove(&command.length, &packet[0]+PACKET_COMMAND_OFFSET_LENGTH, 1);
+    memmove(&command.bytes[0], &packet[0]+PACKET_COMMAND_OFFSET_BYTES, command.length);
+}
+
 void show_fstream_state(std::ifstream& )  {
     std::cout<<"eobit =\t"<<std::ios_base::eofbit<<std::endl;
     std::cout<<"failbit =\t"<<std::ios_base::failbit<<std::endl;

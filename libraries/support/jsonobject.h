@@ -4,13 +4,15 @@
 
 class JSONObject
 {
-    struct jsonTuple {
+    struct jsonTuple
+    {
         string key;
         JSONValue value;
-        jsonTuple(string k, JSONValue v){
+        jsonTuple(string k, JSONValue v)
+        {
             key = k;
             value = v;
-        };
+        }
     };
 public:
 

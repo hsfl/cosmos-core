@@ -253,49 +253,91 @@ string to_string(char *value)
     return output;
 }
 
-string to_hex(int64_t value, uint16_t digits)
+string to_hex(int64_t value, uint16_t digits, bool zerofill)
 {
     string output="";
     output.resize(digits?digits+2:20);
-    if (digits)
+    if (zerofill)
     {
-        sprintf(&output[0], "%*lx", digits, value);
+        if (digits)
+        {
+            sprintf(&output[0], "%0*lx", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%0lx", value);
+        }
     }
     else
     {
-        sprintf(&output[0], "%lx", value);
+        if (digits)
+        {
+            sprintf(&output[0], "%*lx", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%lx", value);
+        }
     }
     output.resize(strlen(&output[0]));
     return output;
 }
 
-string to_signed(int64_t value, uint16_t digits)
+string to_signed(int64_t value, uint16_t digits, bool zerofill)
 {
     string output="";
     output.resize((value==0?0:size_t(log10(std::abs(value))))+digits+5);
-    if (digits)
+    if (zerofill)
     {
-        sprintf(&output[0], "%*ld", digits, value);
+        if (digits)
+        {
+            sprintf(&output[0], "%0*ld", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%0ld", value);
+        }
     }
     else
     {
-        sprintf(&output[0], "%ld", value);
+        if (digits)
+        {
+            sprintf(&output[0], "%*ld", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%ld", value);
+        }
     }
     output.resize(strlen(&output[0]));
     return output;
 }
 
-string to_unsigned(uint64_t value, uint16_t digits)
+string to_unsigned(uint64_t value, uint16_t digits, bool zerofill)
 {
     string output="";
     output.resize((value==0?0:size_t(log10((value))))+digits+5);
-    if (digits)
+    if (zerofill)
     {
-        sprintf(&output[0], "%*lu", digits, value);
+        if (digits)
+        {
+            sprintf(&output[0], "%0*lu", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%0lu", value);
+        }
     }
     else
     {
-        sprintf(&output[0], "%lu", value);
+        if (digits)
+        {
+            sprintf(&output[0], "%*lu", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%lu", value);
+        }
     }
     output.resize(strlen(&output[0]));
     return output;

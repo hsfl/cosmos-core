@@ -110,6 +110,7 @@ namespace PACKET_TYPE_STUFF	{
     static const unsigned char PACKET_REQQUEUE = 0x8;
     static const unsigned char PACKET_HEARTBEAT = 0x7;
     static const unsigned char PACKET_MESSAGE = 0x6;
+    static const unsigned char PACKET_COMMAND = 0x5;
 }
 
 using namespace PACKET_TYPE_STUFF;
@@ -178,6 +179,18 @@ typedef struct
 #define PACKET_MESSAGE_OFFSET_LENGTH (PACKET_MESSAGE_OFFSET_NODE_ID + 1)
 #define PACKET_MESSAGE_OFFSET_BYTES (PACKET_MESSAGE_OFFSET_LENGTH + 1)
 #define PACKET_MESSAGE_OFFSET_TOTAL (PACKET_MESSAGE_OFFSET_BYTES + TRANSFER_MAX_PROTOCOL_PACKET - 2)
+
+typedef struct
+{
+    PACKET_NODE_ID_TYPE node_id;
+    PACKET_BYTE length;
+    PACKET_BYTE bytes[TRANSFER_MAX_PROTOCOL_PACKET-2];
+} packet_struct_command;
+
+#define PACKET_COMMAND_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_COMMAND_OFFSET_LENGTH (PACKET_COMMAND_OFFSET_NODE_ID + 1)
+#define PACKET_COMMAND_OFFSET_BYTES (PACKET_COMMAND_OFFSET_LENGTH + 1)
+#define PACKET_COMMAND_OFFSET_TOTAL (PACKET_COMMAND_OFFSET_BYTES + TRANSFER_MAX_PROTOCOL_PACKET - 2)
 
 typedef struct
 {
@@ -339,8 +352,8 @@ typedef struct
     string temppath="";
     double savetime;
     double datatime=0.;
-    PACKET_FILE_SIZE_TYPE file_size;
-    PACKET_FILE_SIZE_TYPE total_bytes;
+    PACKET_FILE_SIZE_TYPE file_size=0;
+    PACKET_FILE_SIZE_TYPE total_bytes=0;
     deque<file_progress> file_info;
     FILE * fp;
 } tx_progress;
@@ -408,6 +421,8 @@ void extract_heartbeat(vector<PACKET_BYTE>& packet, packet_struct_heartbeat& hea
 
 void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string message);
 void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message);
+void make_command_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string command);
+void extract_command(vector<PACKET_BYTE>& packet, packet_struct_command& command);
 
 int32_t check_node_id(PACKET_NODE_ID_TYPE node_id);
 //int32_t lookup_node_id(PACKET_NODE_ID_TYPE node_id);

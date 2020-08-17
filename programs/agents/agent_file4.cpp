@@ -572,6 +572,17 @@ void recv_loop() noexcept
             // Respond appropriately according to type of packet
             switch (recvbuf[0] & 0x0f)
             {
+            case PACKET_COMMAND:
+                {
+                packet_struct_command command;
+
+                extract_command(recvbuf, command);
+
+                FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/incoming/exec/file.command").c_str(), "w");
+                fwrite(&command.bytes[0], 1, command.length, fp);
+                fclose(fp);
+                }
+                break;
             case PACKET_MESSAGE:
                 {
                     packet_struct_message message;
@@ -952,47 +963,47 @@ void recv_loop() noexcept
                         }
 
                         // Check if file has been completely received
-                        if(txq[node_id].incoming.progress[tx_id].file_size == txq[node_id].incoming.progress[tx_id].total_bytes && txq[node_id].incoming.progress[tx_id].havemeta)
-                        {
-                            // See if we know what the remote node_id is for this
-                            if (txq[node_id].node_id > 0)
-                            {
-                                tx_progress tx_in = txq[node_id].incoming.progress[tx_id];
-                                if (agent->debug_level)
-                                {
-                                    debug_fd_lock.lock();
-                                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Complete: %u %s %u %u\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.file_size, tx_in.total_bytes);
-                                    fflush(agent->get_debug_fd());
-                                    debug_fd_lock.unlock();
-                                }
+//                        if(txq[node_id].incoming.progress[tx_id].file_size == txq[node_id].incoming.progress[tx_id].total_bytes && txq[node_id].incoming.progress[tx_id].havemeta)
+//                        {
+//                            // See if we know what the remote node_id is for this
+//                            if (txq[node_id].node_id > 0)
+//                            {
+//                                tx_progress tx_in = txq[node_id].incoming.progress[tx_id];
+//                                if (agent->debug_level)
+//                                {
+//                                    debug_fd_lock.lock();
+//                                    fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Complete: %u %s %u %u\n", tet.split(), dt.lap(), tx_in.tx_id, tx_in.node_name.c_str(), tx_in.file_size, tx_in.total_bytes);
+//                                    fflush(agent->get_debug_fd());
+//                                    debug_fd_lock.unlock();
+//                                }
 
-                                // Move file to its final location
-                                if (!txq[node_id].incoming.progress[tx_id].complete)
-                                {
-                                    if (txq[node_id].incoming.progress[tx_id].fp != nullptr)
-                                    {
-                                        fclose(txq[node_id].incoming.progress[tx_id].fp);
-                                        txq[node_id].incoming.progress[tx_id].fp = nullptr;
-                                    }
-                                    string final_filepath = tx_in.temppath + ".file";
-                                    int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
-                                    // Make sure metadata is recorded
-                                    write_meta(txq[node_id].incoming.progress[tx_id], 0.);
-                                    if (agent->debug_level)
-                                    {
-                                        debug_fd_lock.lock();
-                                        fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, tx_in.filepath.c_str());
-                                        fflush(agent->get_debug_fd());
-                                        debug_fd_lock.unlock();
-                                    }
+//                                // Move file to its final location
+//                                if (!txq[node_id].incoming.progress[tx_id].complete)
+//                                {
+//                                    if (txq[node_id].incoming.progress[tx_id].fp != nullptr)
+//                                    {
+//                                        fclose(txq[node_id].incoming.progress[tx_id].fp);
+//                                        txq[node_id].incoming.progress[tx_id].fp = nullptr;
+//                                    }
+//                                    string final_filepath = tx_in.temppath + ".file";
+//                                    int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
+//                                    // Make sure metadata is recorded
+//                                    write_meta(txq[node_id].incoming.progress[tx_id], 0.);
+//                                    if (agent->debug_level)
+//                                    {
+//                                        debug_fd_lock.lock();
+//                                        fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, tx_in.filepath.c_str());
+//                                        fflush(agent->get_debug_fd());
+//                                        debug_fd_lock.unlock();
+//                                    }
 
-                                    // Mark complete
-                                    txq[node_id].incoming.progress[tx_id].complete = true;
-                                    txq[node_id].incoming.progress[tx_id].senddata = false;
-                                    txq[node_id].incoming.progress[tx_id].sentdata = true;
-                                }
-                            }
-                        }
+//                                    // Mark complete
+//                                    txq[node_id].incoming.progress[tx_id].complete = true;
+//                                    txq[node_id].incoming.progress[tx_id].senddata = false;
+//                                    txq[node_id].incoming.progress[tx_id].sentdata = true;
+//                                }
+//                            }
+//                        }
                     }
                     else
                     {
@@ -1303,7 +1314,7 @@ void send_loop() noexcept
 
             // Send Reqmeta packet if needed and it has been otherwise quiet
             incoming_tx_lock.lock();
-            if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta)
+            if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && txq[(node_id)].incoming.reqmetaclock < currentmjd())
             {
                 vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
                 PACKET_TX_ID_TYPE iq = 0;
@@ -1325,12 +1336,13 @@ void send_loop() noexcept
                     make_reqmeta_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), txq[(node_id)].node_name, tqueue);
                     use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Incoming", packet);
                 }
+                txq[(node_id)].incoming.reqmetaclock = currentmjd() + 5. / 86400.;
             }
             incoming_tx_lock.unlock();
 
             // Send Reqdata packet if there is still data to be gotten and it has been otherwise quiet
             incoming_tx_lock.lock();
-            if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && !txq[(node_id)].incoming.rcvddata)
+            if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && !txq[(node_id)].incoming.rcvddata && txq[(node_id)].incoming.reqdataclock < currentmjd())
             {
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
@@ -1347,6 +1359,7 @@ void send_loop() noexcept
                         }
                     }
                 }
+                txq[(node_id)].incoming.reqdataclock = currentmjd() + 5. / 86400.;
             }
             incoming_tx_lock.unlock();
 
@@ -1354,13 +1367,12 @@ void send_loop() noexcept
             incoming_tx_lock.lock();
             if (!txq[(node_id)].incoming.rcvdqueue && !txq[(node_id)].incoming.rcvdmeta && !txq[(node_id)].incoming.rcvddata)
             {
-                profile_check(__LINE__, 2);
-
                 for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                 {
-                    if (txq[(node_id)].incoming.progress[tx_id].tx_id == tx_id && txq[(node_id)].incoming.progress[tx_id].complete)
+                    if (txq[(node_id)].incoming.progress[tx_id].tx_id == tx_id && txq[node_id].incoming.progress[tx_id].file_size == txq[node_id].incoming.progress[tx_id].total_bytes)
                     {
                         // Remove from queue
+                        txq[(node_id)].incoming.progress[tx_id].complete = true;
                         incoming_tx_del(node_id, tx_id);
 
                         // Send a COMPLETE packet
@@ -1796,7 +1808,11 @@ void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32
                 fprintf(agent->get_debug_fd(), "[MESSAGE] %u %hu %s", node_id, buf[PACKET_MESSAGE_OFFSET_LENGTH], &buf[PACKET_MESSAGE_OFFSET_BYTES]);
                 break;
             }
-
+        case PACKET_COMMAND:
+            {
+                fprintf(agent->get_debug_fd(), "[COMMAND] %u %hu %s", node_id, buf[PACKET_COMMAND_OFFSET_LENGTH], &buf[PACKET_COMMAND_OFFSET_BYTES]);
+                break;
+            }
         }
         fprintf(agent->get_debug_fd(), "\n");
         fflush(agent->get_debug_fd());
@@ -2929,18 +2945,39 @@ int32_t incoming_tx_del(uint8_t node_id, uint16_t tx_id)
         tx_progress tx_in = txq[(node_id)].incoming.progress[tx_id];
 
         txq[(node_id)].incoming.progress[tx_id].tx_id = 0;
-        //        txq[(node_id)].incoming.progress[tx_id].state = STATE_NONE;
         txq[(node_id)].incoming.progress[tx_id].havemeta = false;
+        txq[(node_id)].incoming.progress[tx_id].havedata = false;
+        txq[(node_id)].incoming.progress[tx_id].complete = false;
         if (txq[(node_id)].incoming.size)
         {
             --txq[(node_id)].incoming.size;
         }
 
-        // Close the DATA file
-        if (tx_in.fp != nullptr)
+        // Move file to its final location
+        if (tx_in.complete)
         {
-            fclose(tx_in.fp);
-            tx_in.fp = nullptr;
+            // Close the DATA file
+            if (tx_in.fp != nullptr)
+            {
+                fclose(tx_in.fp);
+                tx_in.fp = nullptr;
+            }
+            string final_filepath = tx_in.temppath + ".file";
+            int iret = rename(final_filepath.c_str(), tx_in.filepath.c_str());
+            // Make sure metadata is recorded
+            write_meta(tx_in, 0.);
+            if (agent->debug_level)
+            {
+                debug_fd_lock.lock();
+                fprintf(agent->get_debug_fd(), "%.4f %.4f Incoming: Renamed/Data: %d %s\n", tet.split(), dt.lap(), iret, tx_in.filepath.c_str());
+                fflush(agent->get_debug_fd());
+                debug_fd_lock.unlock();
+            }
+
+            // Mark complete
+            tx_in.complete = true;
+            tx_in.senddata = false;
+            tx_in.sentdata = true;
         }
 
         string filepath;
@@ -3268,7 +3305,7 @@ void write_queue_log(double logdate)
 
 int32_t request_list_incoming_json(string &request, string &response, Agent *agent)
 {
-    (response = json_list_incoming().c_str());
+    (response = json_list_incoming());
     return 0;
 }
 
@@ -3317,7 +3354,7 @@ string json_list_outgoing() {
     JSONObject jobj;
     JSONArray outgoing;
 
-    outgoing.resize(txq.size());
+//    outgoing.resize(txq.size());
     for (uint16_t node=0; node<txq.size(); ++node)
     {
 
@@ -3325,8 +3362,8 @@ string json_list_outgoing() {
         node_obj.addElement("count", txq[node].outgoing.size);
 
         JSONArray files;
-        files.resize(txq[node].outgoing.size);
-        int i =0;
+//        files.resize(txq[node].outgoing.size);
+//        int i =0;
         for(tx_progress tx : txq[node].outgoing.progress)
         {
             if (tx.tx_id)
@@ -3336,12 +3373,14 @@ string json_list_outgoing() {
                 f.addElement("name", tx.file_name);
                 f.addElement("bytes", tx.total_bytes);
                 f.addElement("size", tx.file_size);
-                files.at(i) = (JSONValue(f));
-                i++;
+                files.push_back(JSONValue(f));
+//                files.at(i) = (JSONValue(f));
+//                i++;
             }
         }
         node_obj.addElement("files", files);
-        outgoing.at(node) = JSONValue(node_obj);
+//        outgoing.at(node) = JSONValue(node_obj);
+        outgoing.push_back(node_obj);
 
     }
     jobj.addElement("outgoing", outgoing);
