@@ -199,7 +199,7 @@ int32_t request_set_logstride(string &request, string &response, Agent *agent);
 int32_t request_get_logstride(string &, string &response, Agent *);
 int32_t outgoing_tx_add(tx_progress &tx_out);
 int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
-int32_t outgoing_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
+int32_t outgoing_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE, bool remove_file=true);
 int32_t outgoing_tx_purge(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
 int32_t outgoing_tx_recount(uint8_t node);
 int32_t outgoing_tx_load(uint8_t node);
@@ -725,6 +725,12 @@ void recv_loop() noexcept
 
                     if (tx_id > 0)
                     {
+                        // Perform sanity check
+//                        if (reqdata.hole_start >= txq[node_id].outgoing.progress[tx_id].file_size || reqdata.hole_end > txq[node_id].outgoing.progress[tx_id].file_size)
+//                            {
+//                                outgoing_tx_del(node_id, tx_id, false);
+//                                continue;
+//                            }
                         txq[node_id].outgoing.progress[tx_id].sendmeta = false;
                         txq[node_id].outgoing.progress[tx_id].sentmeta = true;
 
@@ -1950,6 +1956,13 @@ bool lower_chunk(file_progress i,file_progress j)
 
 PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx)
 {
+    for (uint16_t i=tx.file_info.size()-1; i<tx.file_info.size(); --i)
+    {
+        if (tx.file_info[i].chunk_end >= tx.file_size)
+        {
+            tx.file_info.pop_back();
+        }
+    }
     switch (tx.file_info.size())
     {
     case 0:
@@ -2171,6 +2184,7 @@ int32_t request_list_outgoing(string &request, string &response, Agent *agent)
                 if (tx.tx_id)
                 {
                     response +=  "tx_id: " + std::to_string(tx.tx_id) + " node: " + tx.node_name + " agent: " + tx.agent_name + " name: " + tx.file_name + " bytes: " + std::to_string(tx.total_bytes) + "/" + std::to_string(tx.file_size);
+                    response += " enabled: " + to_bool(tx.enabled);
                     response += " havemeta: " + to_bool(tx.havemeta) + " sendmeta: " + to_bool(tx.sendmeta) + " sentmeta: " + to_bool(tx.sentmeta);
                     response += " senddata: " + to_bool(tx.senddata) + " sentdata: " + to_bool(tx.sentdata) + " complete: " + to_bool(tx.complete) + "\n";
                 }
@@ -2272,18 +2286,23 @@ int32_t outgoing_tx_add(tx_progress &tx_out)
         }
     }
 
-    // Only add if we have room
-    if (txq[(node_id)].outgoing.size == TRANSFER_QUEUE_LIMIT)
+    // Check for duplicate tx_id
+    if (txq[(node_id)].outgoing.progress[tx_out.tx_id].tx_id)
     {
-        if (agent->debug_level)
-        {
-            debug_fd_lock.lock();
-            fprintf(agent->get_debug_fd(), "TRANSFER_ERROR_QUEUEFULL\n");
-            fflush(agent->get_debug_fd());
-            debug_fd_lock.unlock();
-        }
-        return TRANSFER_ERROR_QUEUEFULL;
+        return TRANSFER_ERROR_DUPLICATE;
     }
+    // Only add if we have room
+//    if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE)
+//    {
+//        if (agent->debug_level)
+//        {
+//            debug_fd_lock.lock();
+//            fprintf(agent->get_debug_fd(), "TRANSFER_ERROR_QUEUEFULL\n");
+//            fflush(agent->get_debug_fd());
+//            debug_fd_lock.unlock();
+//        }
+//        return TRANSFER_ERROR_QUEUEFULL;
+//    }
 
     //    tx_out.state = STATE_QUEUE;
     if (tx_out.file_name.size())
@@ -2410,7 +2429,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
     }
 
     // Only add if we have room
-    if (txq[(node_id)].outgoing.size == TRANSFER_QUEUE_LIMIT)
+    if (txq[(node_id)].outgoing.size == PROGRESS_QUEUE_SIZE)
     {
         return TRANSFER_ERROR_QUEUEFULL;
     }
@@ -2420,10 +2439,38 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
     outgoing_tx_lock.lock();
     string filepath = data_base_path(node_name, "outgoing", agent_name, file_name);
     int32_t file_size = get_file_size(filepath);
-    uint16_t check = TRANSFER_QUEUE_LIMIT;
+
+    // Go through existing queue
+    // - if it is already there and the size is different, remove it
+    // - if it is already there, and the size is the same, set enable it
+    // - if it is not already there and there is room to add is, go on to next step
+    for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
+    {
+        if (txq[(node_id)].outgoing.progress[i].filepath == filepath)
+        {
+            if (txq[(node_id)].outgoing.progress[i].file_size == file_size)
+            {
+                txq[(node_id)].outgoing.progress[i].enabled = true;
+                if (agent->debug_level)
+                {
+                    debug_fd_lock.lock();
+                    fprintf(agent->get_debug_fd(), ".4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %lu ", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                    fflush(agent->get_debug_fd());
+                    debug_fd_lock.unlock();
+                }
+                return node_id;
+            }
+            else
+            {
+                outgoing_tx_del(node_id, i, false);
+                return TRANSFER_ERROR_FILESIZE;
+            }
+        }
+    }
+
     uint16_t minindex = TRANSFER_QUEUE_LIMIT - static_cast<uint16_t>(pow(pow(TRANSFER_QUEUE_LIMIT,1.f/3.f), (3.f - log10f(file_size) / 2.f)));
     tx_out.tx_id = 0;
-    for (uint16_t id=minindex; id<256; ++id)
+    for (uint16_t id=minindex; id<PROGRESS_QUEUE_SIZE; ++id)
     {
         if (txq[(node_id)].outgoing.progress[id].tx_id == 0)
         {
@@ -2431,23 +2478,6 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
             break;
         }
     }
-//    PACKET_TX_ID_TYPE id = txq[(node_id)].outgoing.next_id;
-//    do
-//    {
-//        // 0 is special case
-//        if (id == 0)
-//        {
-//            ++id;
-//        }
-
-//        if (txq[(node_id)].outgoing.progress[id].tx_id == 0)
-//        {
-//            tx_out.tx_id = id;
-//            txq[(node_id)].outgoing.next_id = id + 1;
-//            break;
-//        }
-//        // If no empty found, increment, allowing to wrap if necessary
-//    } while (++id != txq[(node_id)].outgoing.next_id);
     outgoing_tx_lock.unlock();
 
     if (tx_out.tx_id > 0)
@@ -2516,7 +2546,7 @@ int32_t outgoing_tx_add(string node_name, string agent_name, string file_name)
     }
 }
 
-int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id)
+int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id, bool remove_file)
 {
     if (node_id == 0 || node_id >= txq.size())
     {
@@ -2542,6 +2572,7 @@ int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id)
         // erase the transaction
 
         txq[(node_id)].outgoing.progress[tx_id].fp = nullptr;
+        txq[(node_id)].outgoing.progress[tx_id].enabled = false;
         txq[(node_id)].outgoing.progress[tx_id].tx_id = 0;
         txq[(node_id)].outgoing.progress[tx_id].complete = false;
         txq[(node_id)].outgoing.progress[tx_id].filepath = "";
@@ -2561,7 +2592,7 @@ int32_t outgoing_tx_del(uint8_t node_id, uint16_t tx_id)
         }
 
         // Remove the file
-        if(remove(tx_out.filepath.c_str()))
+        if(remove_file && remove(tx_out.filepath.c_str()))
         {
             if (agent->debug_level)
             {
@@ -2668,7 +2699,7 @@ int32_t outgoing_tx_load(uint8_t node_id)
     }
 
     // Go through outgoing directories, adding files not already in queue
-    if (txq[(node_id)].outgoing.size < TRANSFER_QUEUE_LIMIT)
+    if (txq[(node_id)].outgoing.size < PROGRESS_QUEUE_SIZE)
     {
         vector<filestruc> file_names;
         for (filestruc file : data_list_files(txq[(node_id)].node_name, "outgoing", ""))
@@ -2684,7 +2715,7 @@ int32_t outgoing_tx_load(uint8_t node_id)
         for(uint16_t i=0; i<file_names.size(); ++i)
         {
             filestruc file = file_names[i];
-            if (txq[(node_id)].outgoing.size >= TRANSFER_QUEUE_LIMIT)
+            if (txq[(node_id)].outgoing.size >= PROGRESS_QUEUE_SIZE)
             {
                 break;
             }
@@ -2696,19 +2727,50 @@ int32_t outgoing_tx_load(uint8_t node_id)
             }
 
             // Ignore zero length files (may still be being formed)
-            if (file.size == 0)
-            {
-                continue;
-            }
+//            if (file.size == 0)
+//            {
+//                continue;
+//            }
 
+            // Go through existing queue
+            // - if it is already there and the size is different, remove it from queue
+            // - if it is already there, and the size is the same, enable it
+            // - if it is enabled and the size is zero, remove it from queue and remove file
             bool addtoqueue = true;
             outgoing_tx_lock.lock();
-            for(tx_progress progress : txq[(node_id)].outgoing.progress)
+            for (uint16_t i=1; i<PROGRESS_QUEUE_SIZE; ++i)
             {
-                if (progress.tx_id && file.path == progress.filepath)
+                if (txq[(node_id)].outgoing.progress[i].filepath == file.path)
                 {
-                    addtoqueue = false;
-                    break;
+                    if (txq[(node_id)].outgoing.progress[i].file_size == file.size)
+                    {
+                        addtoqueue = false;
+                        if (!txq[(node_id)].outgoing.progress[i].enabled)
+                        {
+                            txq[(node_id)].outgoing.progress[i].enabled = true;
+                            if (agent->debug_level)
+                            {
+                                debug_fd_lock.lock();
+                                fprintf(agent->get_debug_fd(), "%.4f %.4f Main: outgoing_tx_add: Enable %u %s %s %s %lu\n", tet.split(), dt.lap(), txq[(node_id)].outgoing.progress[i].tx_id, txq[(node_id)].outgoing.progress[i].node_name.c_str(), txq[(node_id)].outgoing.progress[i].agent_name.c_str(), txq[(node_id)].outgoing.progress[i].filepath.c_str(), PROGRESS_QUEUE_SIZE);
+                                fflush(agent->get_debug_fd());
+                                debug_fd_lock.unlock();
+
+                            }
+                        }
+                        iretn = 0;
+                    }
+                    else
+                    {
+                        outgoing_tx_del(node_id, i, false);
+                        addtoqueue = false;
+                        iretn = TRANSFER_ERROR_FILESIZE;
+                    }
+                    if (txq[(node_id)].outgoing.progress[i].enabled && txq[(node_id)].outgoing.progress[i].file_size == 0)
+                    {
+                        outgoing_tx_del(node_id, i, true);
+                        addtoqueue = false;
+                        iretn = TRANSFER_ERROR_FILEZERO;
+                    }
                 }
             }
 
@@ -3123,21 +3185,29 @@ PACKET_TX_ID_TYPE choose_outgoing_tx_id(uint8_t node_id)
         PACKET_FILE_SIZE_TYPE nsize = INT32_MAX;
         for (PACKET_FILE_SIZE_TYPE i=1; i < PROGRESS_QUEUE_SIZE; ++i)
         {
-            if (txq[(node_id)].outgoing.progress[i].tx_id && txq[(node_id)].outgoing.progress[i].sentmeta && !txq[(node_id)].outgoing.progress[i].sentdata)
+            if (txq[(node_id)].outgoing.progress[i].tx_id && txq[(node_id)].outgoing.progress[i].enabled && txq[(node_id)].outgoing.progress[i].sentmeta && !txq[(node_id)].outgoing.progress[i].sentdata)
             {
-                // calculate bytes so far
-                merge_chunks_overlap(txq[(node_id)].outgoing.progress[i]);
-
-                // Remove anything suspicious: file_size == 0, file_size < total_bytes
-                if (txq[(node_id)].outgoing.progress[i].file_size == 0 || txq[(node_id)].outgoing.progress[i].file_size < txq[(node_id)].outgoing.progress[i].total_bytes)
+                // Remove anything file_size == 0
+                if (txq[(node_id)].outgoing.progress[i].file_size == 0)
                 {
                     outgoing_tx_del(node_id, txq[(node_id)].outgoing.progress[i].tx_id);
                 }
-                // Choose unfinished transactions for which bytes remaining is minimized
-                else if (txq[(node_id)].outgoing.progress[i].total_bytes < nsize)
+                else
                 {
-                    nsize = txq[(node_id)].outgoing.progress[i].total_bytes;
-                    tx_id = txq[(node_id)].outgoing.progress[i].tx_id;
+                    // calculate bytes so far
+                    merge_chunks_overlap(txq[(node_id)].outgoing.progress[i]);
+
+                    // Remove anything suspicious: file_size < total_bytes
+                    if (txq[(node_id)].outgoing.progress[i].file_size < txq[(node_id)].outgoing.progress[i].total_bytes)
+                    {
+                        outgoing_tx_del(node_id, txq[(node_id)].outgoing.progress[i].tx_id, false);
+                    }
+                    // Choose unfinished transactions for which bytes remaining is minimized
+                    else if (txq[(node_id)].outgoing.progress[i].total_bytes < nsize)
+                    {
+                        nsize = txq[(node_id)].outgoing.progress[i].total_bytes;
+                        tx_id = txq[(node_id)].outgoing.progress[i].tx_id;
+                    }
                 }
             }
         }

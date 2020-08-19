@@ -467,6 +467,12 @@ string cosmos_error_string(int32_t cosmos_errno)
         case TRANSFER_ERROR_DUPLICATE:
             error_string = "TRANSFER_ERROR_DUPLICATE";
             break;
+        case TRANSFER_ERROR_FILESIZE:
+            error_string = "Bad File Size";
+            break;
+        case TRANSFER_ERROR_FILEZERO:
+            error_string = "Zero File Size";
+            break;
         case SOCKET_ERROR_CS:
             error_string = "SOCKET_ERROR_CS";
             break;

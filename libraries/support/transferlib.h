@@ -338,6 +338,7 @@ typedef struct
 typedef struct
 {
     PACKET_TX_ID_TYPE tx_id=0;
+    bool enabled=false;
     bool havemeta=false;
     bool havedata=false;
     bool sendmeta=false;

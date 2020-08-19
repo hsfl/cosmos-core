@@ -11326,7 +11326,7 @@ int32_t node_calc(cosmosstruc *cinfo)
         }
     cinfo->node.mass += cinfo->device[n].all.mass;
     */
-        cinfo->device[n].all.temp = 300.;
+//        cinfo->device[n].all.temp = 300.;
         //        cinfo->device[n].all.flag |= DEVICE_FLAG_ON;
         if (cinfo->device[n].all.flag & DEVICE_FLAG_ON)
         {

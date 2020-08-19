@@ -121,6 +121,7 @@ static std::mutex soh_mutex;
 static std::mutex beacon_mutex;
 void move_and_compress_beacon();
 //void get_beacon_cpu();
+int32_t get_power_mode();
 
 static vector<shorteventstruc> eventdict;
 static vector<shorteventstruc> events;
@@ -349,6 +350,9 @@ int main(int argc, char *argv[])
     ElapsedTime savet;
     while(agent->running())
     {
+        int32_t next_power_mode = get_power_mode();
+        agent->cinfo->node.powmode = next_power_mode;
+
         // Fix time
 //        iretn = agent->get_agent_time(correcttime, epsilon, delta, "gps");
 //        if (iretn >= 0 && fabs(delta*86400.) > 30.)
@@ -867,6 +871,31 @@ void move_and_compress_beacon () {
     log_write(agent->cinfo->node.name, DATA_LOG_TYPE_BEACON, logdate_soh, json_of_beacon(beacon_string, agent->cinfo));
     log_move(agent->getNode(), "beacon");
     beacon_mutex.unlock();
+}
+
+
+int32_t get_power_mode()
+{
+    int32_t powermode = -1;
+    FILE *fp = popen("/cosmos/scripts/power_mode_get", "r");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
+    char tdata[100];
+    uint16_t tindex;
+    if ((fgets(tdata, 100, fp)) == tdata)
+    {
+        if (sscanf(tdata, "%u\n", &tindex) == 1)
+        {
+            if (tindex > 0)
+            {
+                powermode = tindex;
+            }
+        }
+    }
+    pclose(fp);
+    return powermode;
 }
 
 //void get_beacon_cpu() {
