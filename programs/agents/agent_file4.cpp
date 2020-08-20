@@ -185,6 +185,8 @@ static string log_directory = "temp";
 double logstride_sec = 10.;
 ElapsedTime dt;
 
+int32_t request_send_command(string &request, string &response, Agent *);
+int32_t request_send_message(string &request, string &response, Agent *);
 int32_t request_debug(string &request, string &, Agent *);
 int32_t request_get_channels(string &request, string &response, Agent *agent);
 int32_t request_set_throughput(string &request, string &response, Agent *agent);
@@ -284,12 +286,23 @@ int main(int argc, char *argv[])
     {
         out_comm_channel.resize(2);
         out_comm_channel[1].node = argv[argc-1];
-        size_t tloc = out_comm_channel[1].node.find(":");
-        if (tloc != string::npos)
+        out_comm_channel[1].throughput = default_throughput;
+        vector <string> cargs = string_split(argv[argc-1], ":");
+        switch (cargs.size())
         {
-            out_comm_channel[1].chanip = out_comm_channel[1].node.substr(tloc+1, out_comm_channel[1].node.size()-tloc+1);
-            out_comm_channel[1].node = out_comm_channel[1].node.substr(0, tloc);
+        case 3:
+            out_comm_channel[1].throughput = stol(cargs[2]);
+        case 2:
+            out_comm_channel[1].chanip = cargs[1];
+        default:
+            out_comm_channel[1].node = cargs[0];
         }
+//        size_t tloc = out_comm_channel[1].node.find(':');
+//        if (tloc != string::npos)
+//        {
+//            out_comm_channel[1].chanip = out_comm_channel[1].node.substr(tloc+1, out_comm_channel[1].node.size()-tloc+1);
+//            out_comm_channel[1].node = out_comm_channel[1].node.substr(0, tloc);
+//        }
         if((iretn = socket_open(&out_comm_channel[1].chansock, NetworkType::UDP, out_comm_channel[1].chanip.c_str(), AGENTRECVPORT, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0)
         {
             fprintf(agent->get_debug_fd(), "%.4f Node: %s IP: %s - Sending socket failure\n", tet.split(), out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str());
@@ -300,7 +313,6 @@ int main(int argc, char *argv[])
         out_comm_channel[1].limjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].lomjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].fmjd = out_comm_channel[1].nmjd;
-        out_comm_channel[1].throughput = default_throughput;
         out_comm_channel[1].packet_size = default_packet_size;
         fprintf(agent->get_debug_fd(), "%.4f Network: Old: %u %s %s %u\n", tet.split(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
         fflush(agent->get_debug_fd());
@@ -396,6 +408,10 @@ int main(int argc, char *argv[])
     if ((iretn=agent->add_request("get_logstride",request_get_logstride,"","get time interval of log files")))
         exit (iretn);
     if ((iretn=agent->add_request("debug",request_debug,"{0|1}","Toggle Debug information")))
+        exit (iretn);
+    if ((iretn=agent->add_request("command",request_send_command,"nodename command","Submit command in event format to agent_file on requested Node")))
+        exit (iretn);
+    if ((iretn=agent->add_request("message",request_send_message,"nodename message","Send message to agent_file on requested Node")))
         exit (iretn);
 
     double nextdiskcheck = currentmjd(0.);
@@ -578,9 +594,12 @@ void recv_loop() noexcept
 
                 extract_command(recvbuf, command);
 
-                FILE *fp = fopen(("/cosmos/nodes/" + agent->nodeName + "/incoming/exec/file.command").c_str(), "w");
-                fwrite(&command.bytes[0], 1, command.length, fp);
-                fclose(fp);
+                FILE *fp = data_open(("/cosmos/nodes/" + agent->nodeName + "/incoming/exec/file.command").c_str(), "w");
+                if (fp)
+                {
+                    fwrite(&command.bytes[0], 1, command.length, fp);
+                    fclose(fp);
+                }
                 }
                 break;
             case PACKET_MESSAGE:
@@ -3332,6 +3351,100 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
         }
     }
     return tx_id;
+}
+
+// Send Command
+int32_t request_send_command(string &request, string &response, Agent *)
+{
+    size_t f1 = request.find(' ');
+    size_t f2 = request.find(' ', f1 + 1);
+    string nodename = request.substr(f1+1, (f2-f1)-1);
+    string tcommand = request.substr(f2+1);
+    for (uint16_t i=0; i<tcommand.length(); ++i)
+    {
+        if (tcommand[i] == 0)
+        {
+            tcommand.resize(i);
+            break;
+        }
+    }
+    string command;
+    if (tcommand[0] == '{')
+    {
+        command = tcommand;
+    }
+    else
+    {
+        JSONObject jobject("event_name", data_name(nodename, currentmjd(), "file_command", ""));
+        jobject.addElement("event_utc", 0.);
+        jobject.addElement("event_type", EVENT_TYPE_COMMAND);
+        jobject.addElement("event_flag", 0);
+        jobject.addElement("event_data", tcommand);
+        command = jobject.to_json_string();
+    }
+
+    int32_t node_id = lookup_node_id(nodename);
+    if (node_id > 0)
+    {
+        int32_t use_channel;
+        if ((use_channel=check_channel(node_id)) > 0)
+        {
+            vector<PACKET_BYTE> packet;
+            make_command_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), command);
+            queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Outgoing", packet);
+            response = command;
+        }
+        else
+        {
+            return use_channel;
+        }
+    }
+    else
+    {
+        return node_id;
+    }
+
+
+    return 0;
+}
+
+// Send Message
+int32_t request_send_message(string &request, string &response, Agent *)
+{
+    size_t f1 = request.find(' ');
+    size_t f2 = request.find(' ', f1 + 1);
+    string nodename = request.substr(f1+1, (f2-f1)-1);
+    string message = request.substr(f2+1);
+    for (uint16_t i=0; i<message.length(); ++i)
+    {
+        if (message[i] == 0)
+        {
+            message.resize(i);
+            break;
+        }
+    }
+    int32_t node_id = lookup_node_id(nodename);
+    if (node_id > 0)
+    {
+        int32_t use_channel;
+        if ((use_channel=check_channel(node_id)) > 0)
+        {
+            vector<PACKET_BYTE> packet;
+            make_message_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(node_id), message);
+            queuesendto(static_cast <PACKET_NODE_ID_TYPE>(node_id), "Outgoing", packet);
+        }
+        else
+        {
+            return use_channel;
+        }
+    }
+    else
+    {
+        return node_id;
+    }
+
+
+    return 0;
 }
 
 int32_t request_debug(string &request, string &, Agent *)
