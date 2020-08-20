@@ -75,7 +75,7 @@ static CommandQueue cmd_queue;
 
 void move_and_compress_exec ();
 static double logdate_exec=0.;
-static double newlogstride_exec = 900. / 86400.;
+static double newlogstride_exec = 300. / 86400.;
 static double logstride_exec = 0.;
 static std::mutex exec_mutex;
 
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
     get_flags();
 
     agent->cinfo->node.utc = 0.;
-    agent->cinfo->agent[0].aprd = .5;
+    agent->cinfo->agent[0].aprd = 1.;
     cout<<"  started."<<endl;
 
     // Establish Executive functions
