@@ -164,7 +164,7 @@ bool Event::condition_true(cosmosstruc *cinfo)
         if (fabs(r - 1.0) < std::numeric_limits<double>::epsilon())
         {
             ++true_count;
-            if (true_count >= (flag&EVENT_FLAG_PRIORITY)/32)
+            if (true_count >= 5 * (flag&EVENT_FLAG_PRIORITY)/32)
             {
                 return true;
             }
