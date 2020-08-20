@@ -649,6 +649,7 @@ namespace Cosmos
                 node = nodeName;
             }
             post(AgentMessage::REQUEST, "heartbeat");
+            COSMOS_SLEEP(.1);
 
             ElapsedTime ep;
             ep.start();
@@ -662,6 +663,7 @@ namespace Cosmos
                         return it;
                     }
                 }
+                COSMOS_SLEEP(.1);
             } while (ep.split() < waitsec);
 
             beatstruc nobeat;
