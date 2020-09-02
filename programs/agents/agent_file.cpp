@@ -199,6 +199,8 @@ int32_t lookup_remote_node_id(PACKET_NODE_ID_TYPE node_id);
 int32_t set_remote_node_id(PACKET_NODE_ID_TYPE node_id, std::string node_name);
 PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node);
 int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node);
+string json_list_incoming();
+string json_list_outgoing();
 
 //main
 int main(int argc, char *argv[])
@@ -1597,36 +1599,118 @@ int32_t request_list_incoming(string &request, string &response, Agent *agent)
 
 int32_t request_list_incoming_json(string &request, string &response, Agent *agent)
 {
-    response.clear();
-
-    response += ("{\"incoming\":[");
-    int i;
-    for (uint16_t node=0; node<txq.size(); ++node)
-    {
-        if(node>0)
-        {
-            response += ",";
-        }
-        response += ("{\"node\":\"%s\",\"count\":%u,\"files\":[", txq[node].node_name.c_str(), txq[node].incoming.size);
-        i = 0;
-        for(tx_progress tx : txq[node].incoming.progress)
-        {
-
-            if (tx.tx_id)
-            {
-                if(i > 0){
-                    response += (",");
-                }
-                i++;
-                response += ("{\"tx_id\":%u,\"agent\":\"%s\",\"name\":\"%s\",\"bytes\":%u,\"size\":%u}", tx.tx_id, tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
-            }
-        }
-        response += ("]}");
-    }
-    response += ("]}");
-
+    (response = json_list_incoming().c_str());
     return 0;
 }
+
+int32_t request_list_outgoing_json(string &request, string &response, Agent *agent)
+{
+    (response = json_list_outgoing().c_str());
+    return 0;
+}
+
+string json_list_incoming() {
+    JSONObject jobj;
+    JSONArray incoming;
+
+    incoming.resize(txq.size());
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+
+        JSONObject node_obj("node", txq[node].node_name);
+        node_obj.addElement("count", txq[node].incoming.size);
+
+        JSONArray files;
+        files.resize(txq[node].incoming.size);
+        int i =0;
+        for(tx_progress tx : txq[node].incoming.progress)
+        {
+            if (tx.tx_id)
+            {
+                JSONObject f("tx_id", tx.tx_id);
+                f.addElement("agent", tx.agent_name);
+                f.addElement("name", tx.file_name);
+                f.addElement("bytes", tx.total_bytes);
+                f.addElement("size", tx.file_size);
+                files.at(i) = (JSONValue(f));
+                i++;
+            }
+        }
+        node_obj.addElement("files", files);
+        incoming.at(node) = JSONValue(node_obj);
+
+    }
+    jobj.addElement("incoming", incoming);
+    return jobj.to_json_string();
+}
+
+string json_list_outgoing() {
+    JSONObject jobj;
+    JSONArray outgoing;
+
+    outgoing.resize(txq.size());
+    for (uint16_t node=0; node<txq.size(); ++node)
+    {
+
+        JSONObject node_obj("node", txq[node].node_name);
+        node_obj.addElement("count", txq[node].outgoing.size);
+
+        JSONArray files;
+        files.resize(txq[node].outgoing.size);
+        int i =0;
+        for(tx_progress tx : txq[node].outgoing.progress)
+        {
+            if (tx.tx_id)
+            {
+                JSONObject f("tx_id", tx.tx_id);
+                f.addElement("agent", tx.agent_name);
+                f.addElement("name", tx.file_name);
+                f.addElement("bytes", tx.total_bytes);
+                f.addElement("size", tx.file_size);
+                files.at(i) = (JSONValue(f));
+                i++;
+            }
+        }
+        node_obj.addElement("files", files);
+        outgoing.at(node) = JSONValue(node_obj);
+
+    }
+    jobj.addElement("outgoing", outgoing);
+    return jobj.to_json_string();
+}
+
+//int32_t request_list_incoming_json(string &request, string &response, Agent *agent)
+//{
+//    response.clear();
+
+//    response += ("{\"incoming\":[");
+//    int i;
+//    for (uint16_t node=0; node<txq.size(); ++node)
+//    {
+//        if(node>0)
+//        {
+//            response += ",";
+//        }
+//        response += ("{\"node\":\"%s\",\"count\":%u,\"files\":[", txq[node].node_name.c_str(), txq[node].incoming.size);
+//        i = 0;
+//        for(tx_progress tx : txq[node].incoming.progress)
+//        {
+
+//            if (tx.tx_id)
+//            {
+//                if(i > 0){
+//                    response += (",");
+//                }
+//                i++;
+//                response += ("{\"tx_id\":%u,\"agent\":\"%s\",\"name\":\"%s\",\"bytes\":%u,\"size\":%u}", tx.tx_id, tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
+//            }
+//        }
+//        response += ("]}");
+//    }
+//    response += ("]}");
+
+//    return 0;
+//}
 
 int32_t request_list_outgoing(string &request, string &response, Agent *agent)
 {
@@ -1658,38 +1742,38 @@ int32_t request_list_outgoing(string &request, string &response, Agent *agent)
     return 0;
 }
 
-int32_t request_list_outgoing_json(string &request, string &response, Agent *agent)
-{
-    response.clear();
+//int32_t request_list_outgoing_json(string &request, string &response, Agent *agent)
+//{
+//    response.clear();
 
-    response += ("{\"outgoing\":[");
-    int i;
-    for (uint16_t node=0; node<txq.size(); ++node)
-    {
-        if(node>0)
-        {
-            response += ",";
-        }
-        response += ("{\"node\":\"%s\",\"count\":%u,\"files\":[", txq[node].node_name.c_str(), txq[node].outgoing.size);
-        i = 0;
-        for(tx_progress tx : txq[node].outgoing.progress)
-        {
+//    response += ("{\"outgoing\":[");
+//    int i;
+//    for (uint16_t node=0; node<txq.size(); ++node)
+//    {
+//        if(node>0)
+//        {
+//            response += ",";
+//        }
+//        response += ("{\"node\":\"%s\",\"count\":%u,\"files\":[", txq[node].node_name.c_str(), txq[node].outgoing.size);
+//        i = 0;
+//        for(tx_progress tx : txq[node].outgoing.progress)
+//        {
 
-            if (tx.tx_id)
-            {
-                if(i > 0){
-                    response += (",");
-                }
-                i++;
-                response += ("{\"tx_id\":%u,\"agent\":\"%s\",\"name\":\"%s\",\"bytes\":%u,\"size\":%u}", tx.tx_id, tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
-            }
-        }
-        response += ("]}");
-    }
-    response += ("]}");
+//            if (tx.tx_id)
+//            {
+//                if(i > 0){
+//                    response += (",");
+//                }
+//                i++;
+//                response += ("{\"tx_id\":%u,\"agent\":\"%s\",\"name\":\"%s\",\"bytes\":%u,\"size\":%u}", tx.tx_id, tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size);
+//            }
+//        }
+//        response += ("]}");
+//    }
+//    response += ("]}");
 
-    return 0;
-}
+//    return 0;
+//}
 
 int32_t request_use_channel(string &request, string &response, Agent *agent)
 {

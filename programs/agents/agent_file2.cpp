@@ -1865,7 +1865,7 @@ vector<file_progress> find_chunks_missing(tx_progress& tx)
     return (missing);
 }
 
-int32_t request_ls(string &request, string &response, Agent *agent)
+int32_t request_ls(string &request, string &response, Agent *)
 {
 
     //the request string == "ls directoryname"
@@ -1897,7 +1897,7 @@ int32_t request_ls(string &request, string &response, Agent *agent)
     return 0;
 }
 
-int32_t request_list_incoming(string &request, string &response, Agent *agent)
+int32_t request_list_incoming(string &request, string &response, Agent *)
 {
     response.clear();
     for (uint16_t node = 0; node<txq.size(); ++node)
@@ -1927,7 +1927,7 @@ int32_t request_list_incoming(string &request, string &response, Agent *agent)
     return 0;
 }
 
-int32_t request_list_outgoing(string &request, string &response, Agent *agent)
+int32_t request_list_outgoing(string &request, string &response, Agent *)
 {
     response.clear();
     for (uint16_t node=0; node<txq.size(); ++node)
@@ -1957,23 +1957,23 @@ int32_t request_list_outgoing(string &request, string &response, Agent *agent)
     return 0;
 }
 
-int32_t request_get_channels(string &request, string &response, Agent *agent)
+int32_t request_get_channels(string &request, string &response, Agent *)
 {
     for (uint16_t channel=0; channel<comm_channel.size(); ++channel)
     {
         response = ("{");
-        response = ("channel:%u,", channel);
-        response = ("node:\"%s\",", comm_channel[channel].node.c_str());
-        response = ("ip:\"%s\",", comm_channel[channel].chanip.c_str());
-        response = ("size:%u,", comm_channel[channel].packet_size);
-        response = ("throughput:%u,", comm_channel[channel].throughput);
-        response = ("nmjd:\"%f\",", comm_channel[channel].nmjd);
-        response = ("lmjd:\"%f\",", comm_channel[channel].lmjd);
+        response += to_json("node", comm_channel[channel].node);
+        response += to_json("ip", comm_channel[channel].chanip);
+        response += to_json("size", comm_channel[channel].packet_size);
+        response += to_json("throughput", comm_channel[channel].throughput);
+        response += to_json("nmjd", comm_channel[channel].nmjd);
+        response += to_json("lmjd", comm_channel[channel].lmjd);
         response = ("},");
     }
+    return 0;
 }
 
-int32_t request_set_throughput(string &request, string &response, Agent *agent)
+int32_t request_set_throughput(string &request, string &response, Agent *)
 {
     uint16_t channel=0;
     uint32_t throughput=0;
@@ -1989,13 +1989,13 @@ int32_t request_set_throughput(string &request, string &response, Agent *agent)
     }
     else
     {
-        response = ("Channel %u too large", channel);
+        response =  "Channel " + to_unsigned(channel) + " too large";
     }
     return 0;
 
 }
 
-int32_t request_remove_file(string &request, string &response, Agent *agent)
+int32_t request_remove_file(string &request, string &, Agent *)
 {
     char type;
     uint32_t tx_id;
@@ -2854,9 +2854,9 @@ int32_t request_set_logstride(string &request, string &, Agent *)
     return 0;
 }
 
-int32_t request_get_logstride(string &request, string &response, Agent *agent)
+int32_t request_get_logstride(string &request, string &response, Agent *)
 {
-    response = ("{\"logstride\":%lf}", logstride_sec);
+    response =  "{" + to_json("logstride", logstride_sec) + "}";
     return 0;
 }
 
@@ -2869,13 +2869,13 @@ void write_queue_log(double logdate)
 
 }
 
-int32_t request_list_incoming_json(string &request, string &response, Agent *agent)
+int32_t request_list_incoming_json(string &request, string &response, Agent *)
 {
     response = (json_list_incoming().c_str());
     return 0;
 }
 
-int32_t request_list_outgoing_json(string &request, string &response, Agent *agent)
+int32_t request_list_outgoing_json(string &request, string &response, Agent *)
 {
     response = (json_list_outgoing().c_str());
     return 0;

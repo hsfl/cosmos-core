@@ -766,25 +766,23 @@ int32_t request_get_state(string &req, string &response, Agent *)
 {
 	if (trackindex == 0)
 	{
-        response = ("[%.6f] 0: idle [na na] CxTime: ",
-                currentmjd());
+        response = '[' + to_mjd(currentmjd()) + "] 0: idle [na na] CxTime: ";
 	}
 	else
 	{
-        response = ("[%.6f] %lu: %s [%6.1f %6.1f] CxTime: ",
-                currentmjd(),
-                trackindex,
-                track[trackindex].name.c_str(),
-                DEGOF(fixangle(track[trackindex].target.azfrom)),
-                DEGOF((track[trackindex].target.elfrom)));
+        response = '[' + to_mjd(currentmjd()) + "] ";
+        response += to_unsigned(trackindex) + ": ";
+        response += track[trackindex].name + ' ';
+        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 1) + ' ';
+        response += to_angle(track[trackindex].target.elfrom, 'D', 1) + "] CxTime: ";
 	}
 	for (size_t i=0; i<myradios.size(); ++i)
 	{
-        response += ("{%s  %9.0f ", myradios[i].name.c_str(), myradios[i].info.freq);
+        response += '{' + myradios[i].name + ' ' + to_double(myradios[i].info.freq) + ' ';
 		if (myradios[i].otherradioindex != 9999)
 		{
 			size_t idx = myradios[i].otherradioindex;
-            response += ("(%s %.3f)} ", track[trackindex].radios[idx].name.c_str(), 86400. * (currentmjd() - myradios[i].beat.utc));
+            response += '(' + track[trackindex].radios[idx].name + ' ' + to_double(86400. * (currentmjd() - myradios[i].beat.utc), 3) + '}';
 		}
 		else
 		{
@@ -793,7 +791,7 @@ int32_t request_get_state(string &req, string &response, Agent *)
 	}
 	for (size_t i=0; i<myantennas.size(); ++i)
 	{
-        response += ("{%s (%.3f)}  ", myantennas[i].name.c_str(), 86400.*(currentmjd()-myantennas[i].beat.utc));
+        response += '{' + myantennas[i].name + " (" + to_double(86400. * (currentmjd() - myantennas[i].beat.utc), 3) + ")} ";
 	}
 	return (0);
 }
@@ -802,7 +800,7 @@ int32_t request_get_highest(string &req, string &response, Agent *)
 {
 	if (highestindex != 9999)
 	{
-        response = ("%lu: %s [%6.1f %6.1f]", highestindex, track[highestindex].name.c_str(), DEGOF(fixangle(track[highestindex].target.azfrom)), DEGOF((track[highestindex].target.elfrom)));
+        response = to_unsigned(highestindex) + ": " + track[highestindex].name + " [" + to_angle(fixangle(track[highestindex].target.azfrom), 'D', 1) + ' ' + to_angle(track[highestindex].target.elfrom, 'D', 1) + ']';
 	}
 	return 0;
 }
