@@ -215,7 +215,31 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci);
 void tle2sgp4(tlestruc tle, sgp4struc &sgp4);
 void sgp42tle(sgp4struc sgp4, tlestruc &tle);
 int tle_checksum(char *line);
-void eci2tlestring(cartpos eci, string &tle, const string &ref_tle, double bstar=0);
+void eci2tlestring(cartpos eci, string &tle, std::string ref_tle, double bstar=0);
+
+namespace Cosmos {
+    namespace Coords {
+
+        class Position {
+
+        public:
+
+            explicit Position(Vector s0=Vector(), Vector v0=Vector(), Vector a0=Vector())
+            {
+                s = s0;
+                v = v0;
+                a = a0;
+            }
+
+            // 0th derivative
+            Vector s;
+            // 1st derivative
+            Vector v;
+            // 2nd derivative
+            Vector a;
+        };
+    }
+}
 
 //! @}
 

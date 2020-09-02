@@ -4138,9 +4138,11 @@ int tle_checksum(char *line) {
 
     return checksum % 10;
 }
-void eci2tlestring(cartpos eci, string &tle, const string &ref_tle, double bstar) {
-    char tle_buffer[ref_tle.size()], field_buffer[30];
-    strcpy(tle_buffer, ref_tle.c_str());
+void eci2tlestring(cartpos eci, string &tle, string ref_tle, double bstar)
+{
+//    char tle_buffer[ref_tle.size()];
+    char field_buffer[30];
+//    strcpy(tle_buffer, ref_tle.c_str());
 
     // Convert to keplarian elements, compute our epoch field.
     string epoch;
@@ -4156,7 +4158,8 @@ void eci2tlestring(cartpos eci, string &tle, const string &ref_tle, double bstar
     // std::cout << "Mean motion: " << tles.mm * 1440. / D2PI << std::endl;
 
     // Ignore the name line. Populate our epoch field.
-    char *line_1 = strstr(tle_buffer, "\n");
+//    char *line_1 = strstr(tle_buffer, "\n");
+    char *line_1 = strstr(static_cast<char *>(&ref_tle[0]), "\n");
     sprintf(field_buffer, "%14s", epoch.c_str());
     strncpy(line_1+19, field_buffer, 14);
     sprintf(field_buffer, "");
@@ -4180,5 +4183,6 @@ void eci2tlestring(cartpos eci, string &tle, const string &ref_tle, double bstar
     sprintf(field_buffer, "%1d", tle_checksum(line_2));
     strncpy(line_2+69, field_buffer, 2);
 
-    tle = string(tle_buffer);
+//    tle = string(tle_buffer);
+    tle = ref_tle;
 }
