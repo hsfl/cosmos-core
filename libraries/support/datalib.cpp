@@ -243,7 +243,7 @@ void log_move(string oldpath, string newpath, bool compress)
  */
 void log_move(string node, string agent, string srclocation, string dstlocation, bool compress)
 {
-    char buffer[8192];
+//    char buffer[8192];
     vector<filestruc> oldfiles;
     data_list_files(node, srclocation, agent, oldfiles);
     for (auto oldfile: oldfiles)

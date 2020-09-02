@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
             exit(1);
         }
         uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-        uint16_t didx = agent->cinfo->device[cidx].all.didx;
+//        uint16_t didx = agent->cinfo->device[cidx].all.didx;
         strncpy(agent->cinfo->device[cidx].disk.path, dinfo[i].mount.c_str(), COSMOS_MAX_NAME);
         sohstring += ",\"device_disk_utc_00" + std::to_string(cpu_didx) + "\"";
         sohstring += ",\"device_disk_temp_00" + std::to_string(cpu_didx) + "\"";

@@ -506,7 +506,6 @@ void recv_loop() noexcept
     int32_t nbytes = 0;
     socket_channel rchannel;
     int32_t use_channel = 0;
-    int32_t iretn;
 
     while (agent->running())
     {
@@ -719,7 +718,7 @@ void recv_loop() noexcept
 
                     incoming_tx_lock.lock();
 
-                    iretn = incoming_tx_update(meta);
+                    incoming_tx_update(meta);
 
                     incoming_tx_lock.unlock();
 
@@ -1108,11 +1107,7 @@ void recv_loop() noexcept
 void send_loop() noexcept
 {
     vector<PACKET_BYTE> packet;
-    double current_time;
     int32_t use_channel=-1;
-    int32_t iretn;
-
-    current_time = currentmjd();
 
     while (agent->running())
     {

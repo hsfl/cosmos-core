@@ -211,7 +211,7 @@ vector<file_progress> find_chunks_togo(tx_progress& tx);
 PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
 void transmit_loop();
 double queuecheck(PACKET_NODE_ID_TYPE node_id);
-uint16_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet);
+int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet);
 int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf);
 int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout=1.);
 void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32_t use_channel);
@@ -483,7 +483,6 @@ void recv_loop()
     int32_t nbytes = 0;
     socket_channel rchannel;
     int32_t use_channel = 0;
-    int32_t iretn;
 
     while (agent->running())
     {
@@ -674,7 +673,7 @@ void recv_loop()
 
                     incoming_tx_lock.lock();
 
-                    iretn = incoming_tx_update(meta);
+                   incoming_tx_update(meta);
 
                     incoming_tx_lock.unlock();
 
@@ -1057,11 +1056,7 @@ void recv_loop()
 void send_loop()
 {
     vector<PACKET_BYTE> packet;
-    double current_time;
     int32_t use_channel=-1;
-    int32_t iretn;
-
-    current_time = currentmjd();
 
     while (agent->running())
     {
@@ -1453,7 +1448,7 @@ double queuecheck(PACKET_NODE_ID_TYPE node_id)
     return (1. * transmit_queue.size() * out_comm_channel[use_channel].packet_size) / out_comm_channel[use_channel].throughput;
 }
 
-uint16_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet)
+int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet)
 {
     transmit_queue_entry tentry;
     int32_t use_channel;
@@ -3441,6 +3436,7 @@ string json_list_outgoing() {
     jobj.addElement("outgoing", outgoing);
     return jobj.to_json_string();
 }
+
 string json_list_queue()
 {
     JSONObject jobj;

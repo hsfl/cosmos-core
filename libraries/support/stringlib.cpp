@@ -552,6 +552,7 @@ string clean_string(string value)
     }
     printf("\n");
     output.push_back(0);
+    return output;
 }
 
 //! @}

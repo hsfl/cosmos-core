@@ -43,7 +43,6 @@ static prkx2su_state ant_state;
 
 int32_t prkx2su_init(string dev)
 {
-    int32_t iretn;
     string device;
 
     device = dev + "_az";
