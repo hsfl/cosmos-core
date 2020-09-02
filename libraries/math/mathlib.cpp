@@ -2202,18 +2202,34 @@ double fixprecision(double number, double prec)
     \return calculated CRC
 */
 
-uint16_t calc_crc16ccitt(uint8_t *buf, int size)
+uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb)
 {
     uint16_t crc = 0xffff;
     uint8_t ch;
 
+    if (lsb)
+    {
+        crc = 0xffff;
+    }
+    else
+    {
+        crc = 0;
+    }
     for (uint16_t i=0; i<size; i++)
     {
         ch = buf[i];
         for (uint16_t j=0; j<8; j++)
         {
-            crc = (crc >> 1)^(((ch^crc)&0x01)?0x8408:0);
-            ch >>= 1;
+            if (lsb)
+            {
+                crc = (crc >> 1) ^ (((ch^crc)&0x01)?CRC16CCITTLSB:0);
+                ch >>= 1;
+            }
+            else
+            {
+                crc = (crc << 1) ^ (((ch&0x80)^((crc&0x8000)>>8))?CRC16CCITTMSB:0);
+                ch <<= 1;
+            }
         }
     }
     return (crc);

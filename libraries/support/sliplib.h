@@ -68,13 +68,6 @@
     #define SLIP_TFESC 0xDD
 #endif
 
-//! CRC-16-CCITT Normal
-#define CRC16CCITT 0x1021
-//! CRC-16-CCITT Reversed
-#define CRC16CCITTR 0x8408
-//! CRC-16-CCITT Reversed Reciprocal
-#define CRC16CCITTRR 0x8810
-
 //! @}
 
 //! \ingroup sliplib
