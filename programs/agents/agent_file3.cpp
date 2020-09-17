@@ -61,11 +61,11 @@
 
 #define PROGRESS_QUEUE_SIZE 256
 // Corrected for 28 byte UDP header. Will have to get more clever if we start using CSP
-#define PACKET_SIZE_LO (512-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
+#define PACKET_SIZE_LO (200-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
 #define PACKET_SIZE_PAYLOAD (PACKET_SIZE_LO-PACKET_DATA_OFFSET_HEADER_TOTAL)
-#define THROUGHPUT_LO 1300
+#define THROUGHPUT_LO 130
 #define PACKET_SIZE_HI (1472-(PACKET_DATA_OFFSET_HEADER_TOTAL+28))
-#define THROUGHPUT_HI 150000
+#define THROUGHPUT_HI 700
 //#define TRANSFER_QUEUE_LIMIT 10
 #define PACKET_IN 1
 #define PACKET_OUT 2
@@ -77,7 +77,7 @@ string std::to_string(T value)
 {
     //create an output string stream
     std::ostringstream os ;
-    //throw the value into the string stream, assuming stringstream
+    //throw the value into the string stream, assuming std::stringstream
     //handles it
     os << value ;
     //convert the string stream into a string and return
@@ -99,7 +99,7 @@ typedef struct
     socket_channel chansock;
     string chanip="";
     PACKET_CHUNK_SIZE_TYPE packet_size=PACKET_SIZE_HI;
-    uint32_t throughput=THROUGHPUT_LO;
+    uint32_t throughput=THROUGHPUT_HI;
     double limjd;
     double lomjd;
     double nmjd;
@@ -112,6 +112,9 @@ typedef struct
     //    bool send_data;
     double send_complete;
 } channelstruc;
+
+static PACKET_CHUNK_SIZE_TYPE default_packet_size=PACKET_SIZE_HI;
+static uint32_t default_throughput=THROUGHPUT_HI;
 
 static vector <channelstruc> out_comm_channel;
 
@@ -179,18 +182,18 @@ static string log_directory = "temp";
 double logstride_sec = 10.;
 ElapsedTime dt;
 
-int32_t request_debug(char *request, char *, Agent *);
-int32_t request_get_channels(char* request, char* response, Agent *agent);
-int32_t request_set_throughput(char* request, char* response, Agent *agent);
-int32_t request_remove_file(char* request, char* response, Agent *agent);
-//int32_t request_send_file(char* request, char* response, Agent *agent);
-int32_t request_ls(char* request, char* response, Agent *agent);
-int32_t request_list_incoming(char* request, char* response, Agent *agent);
-int32_t request_list_outgoing(char* request, char* response, Agent *agent);
-int32_t request_list_incoming_json(char* request, char* response, Agent *agent);
-int32_t request_list_outgoing_json(char* request, char* response, Agent *agent);
-int32_t request_set_logstride(char* request, char* response, Agent *agent);
-int32_t request_get_logstride(char*, char* response, Agent *);
+int32_t request_debug(string &request, string &, Agent *);
+int32_t request_get_channels(string &request, string &response, Agent *agent);
+int32_t request_set_throughput(string &request, string &response, Agent *agent);
+int32_t request_remove_file(string &request, string &response, Agent *agent);
+//int32_t request_send_file(string &request, string &response, Agent *agent);
+int32_t request_ls(string &request, string &response, Agent *agent);
+int32_t request_list_incoming(string &request, string &response, Agent *agent);
+int32_t request_list_outgoing(string &request, string &response, Agent *agent);
+int32_t request_list_incoming_json(string &request, string &response, Agent *agent);
+int32_t request_list_outgoing_json(string &request, string &response, Agent *agent);
+int32_t request_set_logstride(string &request, string &response, Agent *agent);
+int32_t request_get_logstride(string &, string &response, Agent *);
 int32_t outgoing_tx_add(tx_progress &tx_out);
 int32_t outgoing_tx_add(string node_name, string agent_name, string file_name);
 int32_t outgoing_tx_del(uint8_t node, uint16_t tx_id=PROGRESS_QUEUE_SIZE);
@@ -208,7 +211,7 @@ vector<file_progress> find_chunks_togo(tx_progress& tx);
 PACKET_FILE_SIZE_TYPE merge_chunks_overlap(tx_progress& tx);
 void transmit_loop();
 double queuecheck(PACKET_NODE_ID_TYPE node_id);
-uint16_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet);
+int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet);
 int32_t mysendto(string type, int32_t use_channel, vector<PACKET_BYTE>& buf);
 int32_t myrecvfrom(string type, socket_channel &channel, vector<PACKET_BYTE>& buf, uint32_t length, double dtimeout=1.);
 void debug_packet(vector<PACKET_BYTE> buf, uint8_t direction, string type, int32_t use_channel);
@@ -242,7 +245,13 @@ int main(int argc, char *argv[])
     thread recv_loop_thread;
     thread transmit_loop_thread;
 
-    agent = new Agent("", "file", 5.);
+    if (static_cast<string>(argv[0]).find("slow") != string::npos)
+    {
+        default_throughput = THROUGHPUT_LO;
+        default_packet_size = PACKET_SIZE_LO;
+    }
+
+    agent = new Agent("", "file", 0.);
     if ((iretn = agent->wait()) < 0)
     {
         fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
@@ -271,6 +280,8 @@ int main(int argc, char *argv[])
     out_comm_channel[0].lomjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].fmjd = out_comm_channel[0].nmjd;
     out_comm_channel[0].node = "";
+    out_comm_channel[0].throughput = default_throughput;
+    out_comm_channel[0].packet_size = default_packet_size;
     fprintf(agent->get_debug_fd(), "%16.10f Node: %s Agent: %s - Listening socket open\n", currentmjd(), agent->nodeName.c_str(), agent->agentName.c_str());
     fflush(agent->get_debug_fd()); // Ensure this gets printed before blocking call
 
@@ -294,6 +305,8 @@ int main(int argc, char *argv[])
         out_comm_channel[1].limjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].lomjd = out_comm_channel[1].nmjd;
         out_comm_channel[1].fmjd = out_comm_channel[1].nmjd;
+        out_comm_channel[1].throughput = default_throughput;
+        out_comm_channel[1].packet_size = default_packet_size;
         fprintf(agent->get_debug_fd(), "%16.10f Network: Old: %u %s %s %u\n", currentmjd(), 1, out_comm_channel[1].node.c_str(), out_comm_channel[1].chanip.c_str(), ntohs(out_comm_channel[1].chansock.caddr.sin_port));
         fflush(agent->get_debug_fd());
 
@@ -432,10 +445,10 @@ int main(int argc, char *argv[])
             for (uint16_t node=0; node<txq.size(); ++node)
             {
                 iretn = outgoing_tx_load(node);
-                if (iretn >= 0)
-                {
-                    nextdiskcheck = currentmjd();
-                }
+//                if (iretn >= 0)
+//                {
+//                    nextdiskcheck = currentmjd();
+//                }
             }
         }
     } // End WHILE Loop
@@ -470,7 +483,6 @@ void recv_loop()
     int32_t nbytes = 0;
     socket_channel rchannel;
     int32_t use_channel = 0;
-    int32_t iretn;
 
     while (agent->running())
     {
@@ -661,7 +673,7 @@ void recv_loop()
 
                     incoming_tx_lock.lock();
 
-                    iretn = incoming_tx_update(meta);
+                   incoming_tx_update(meta);
 
                     incoming_tx_lock.unlock();
 
@@ -1044,11 +1056,7 @@ void recv_loop()
 void send_loop()
 {
     vector<PACKET_BYTE> packet;
-    double current_time;
     int32_t use_channel=-1;
-    int32_t iretn;
-
-    current_time = currentmjd();
 
     while (agent->running())
     {
@@ -1075,12 +1083,17 @@ void send_loop()
             txq[(local_node)].outgoing.activity = false;
             txq[(local_node)].incoming.activity = false;
 
+            // Initialize timer to check minimum wait time
+            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) >= 5.)
+            {
+                COSMOS_SLEEP(queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) - 5.);
+            }
+
             // Send Cancel, Complete, Data, Reqdata, Metadata only if we have learned what the remote node mapping is
             if (txq[local_node].remote_id > 0)
             {
                 // Send any  pending Metadata packets
                 outgoing_tx_lock.lock();
-//                if (txq[(local_node)].outgoing.metaclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     txq[(local_node)].outgoing.metaclock = currentmjd();
@@ -1098,14 +1111,6 @@ void send_loop()
                                 txq[(local_node)].outgoing.progress[tx_id].sendmeta = false;
                                 txq[(local_node)].outgoing.progress[tx_id].havemeta = true;
                                 txq[(local_node)].outgoing.progress[tx_id].sentmeta = true;
-//                                vector<file_progress> togo;
-//                                togo = find_chunks_togo(txq[(local_node)].outgoing.progress[tx_id]);
-//                                for (file_progress missed : togo)
-//                                {
-//                                    txq[(local_node)].outgoing.progress[tx_id].file_info.push_back(missed);
-//                                }
-//                                txq[(local_node)].outgoing.progress[tx_id].senddata = true;
-//                                txq[(local_node)].outgoing.progress[tx_id].sentdata = false;
                                 txq[(local_node)].outgoing.metaclock += out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
                                 txq[(local_node)].outgoing.queueclock = txq[(local_node)].outgoing.metaclock + out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
                                 txq[(local_node)].outgoing.heartbeatclock = currentmjd() + 4. / 86400.;
@@ -1118,7 +1123,6 @@ void send_loop()
 
                 // Send Data packets if we have data to send and we didn't do anything above
                 outgoing_tx_lock.lock();
-//                if (txq[(local_node)].outgoing.dataclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     txq[(local_node)].outgoing.dataclock = currentmjd();
@@ -1216,7 +1220,6 @@ void send_loop()
 
                 // Send Cancel packets if required
                 outgoing_tx_lock.lock();
-//                if (txq[(local_node)].outgoing.completeclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     txq[(local_node)].outgoing.completeclock = currentmjd();
@@ -1247,7 +1250,6 @@ void send_loop()
 
                 // Send Complete packets if required
                 incoming_tx_lock.lock();
-//                if (txq[(local_node)].incoming.completeclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                     for (uint16_t tx_id=1; tx_id<PROGRESS_QUEUE_SIZE; ++tx_id)
                     {
@@ -1274,7 +1276,6 @@ void send_loop()
 
                 // Send Reqdata packet if there is still data to be gotten and it has been otherwise quiet
                 incoming_tx_lock.lock();
-//                if (txq[(local_node)].incoming.dataclock < currentmjd())
                 if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
                 {
                     PACKET_TX_ID_TYPE tx_id = check_tx_id(txq[(local_node)].incoming, choose_incoming_tx_id(local_node));
@@ -1301,7 +1302,6 @@ void send_loop()
 
             // Send Reqmeta packet if requested
             incoming_tx_lock.lock();
-//            if (txq[(local_node)].incoming.metaclock < currentmjd())
             if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
             {
                 vector<PACKET_TX_ID_TYPE> tqueue (TRANSFER_QUEUE_LIMIT, 0);
@@ -1335,7 +1335,6 @@ void send_loop()
 
             // Send Queue packet, if anything needs to be queued
             outgoing_tx_lock.lock();
-//            if (txq[(local_node)].outgoing.queueclock < currentmjd())
             if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
             {
                 txq[(local_node)].outgoing.queueclock = currentmjd();
@@ -1368,28 +1367,28 @@ void send_loop()
             outgoing_tx_lock.unlock();
 
             // Send Reqqueue packet if requested
-            incoming_tx_lock.lock();
+//            incoming_tx_lock.lock();
 //            if (txq[(local_node)].incoming.queueclock < currentmjd())
-            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
-            {
-                make_reqqueue_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), txq[(local_node)].node_name);
-                use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Incoming", packet);
-                if (use_channel >= 0)
-                {
-                    txq[(local_node)].incoming.activity = true;
-                    txq[(local_node)].incoming.queueclock = currentmjd() + 10. * out_comm_channel[use_channel].packet_size / (86400. * out_comm_channel[use_channel].throughput);
-                }
-            }
-            incoming_tx_lock.unlock();
+//            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5. && txq[(local_node)].incoming.queueclock < currentmjd())
+//            {
+//                make_reqqueue_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), txq[(local_node)].node_name);
+//                use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Incoming", packet);
+//                if (use_channel >= 0)
+//                {
+//                    txq[(local_node)].incoming.activity = true;
+//                    txq[(local_node)].incoming.queueclock = currentmjd() + 5. / 86400.;
+//                }
+//            }
+//            incoming_tx_lock.unlock();
 
             // Send Heartbeat every 4 seconds, regardless
 //            if (txq[(local_node)].outgoing.heartbeatclock < currentmjd())
-            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5.)
+            if (queuecheck(static_cast <PACKET_NODE_ID_TYPE>(local_node)) < 5. && txq[(local_node)].outgoing.heartbeatclock < currentmjd())
             {
                 uint32_t funixtime = utc2unixseconds(out_comm_channel[channel].fmjd);
                 make_heartbeat_packet(packet, static_cast <PACKET_NODE_ID_TYPE>(local_node), txq[(local_node)].node_name, 4, out_comm_channel[channel].throughput, funixtime);
                 use_channel = queuesendto(static_cast <PACKET_NODE_ID_TYPE>(local_node), "Outgoing", packet);
-                txq[(local_node)].outgoing.heartbeatclock = currentmjd() + 4. / 86400.;
+                txq[(local_node)].outgoing.heartbeatclock = currentmjd() + 5. / 86400.;
             }
         }
     }
@@ -1449,7 +1448,7 @@ double queuecheck(PACKET_NODE_ID_TYPE node_id)
     return (1. * transmit_queue.size() * out_comm_channel[use_channel].packet_size) / out_comm_channel[use_channel].throughput;
 }
 
-uint16_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet)
+int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet)
 {
     transmit_queue_entry tentry;
     int32_t use_channel;
@@ -2047,46 +2046,35 @@ vector<file_progress> find_chunks_togo(tx_progress& tx)
     vector<file_progress> togo;
     file_progress tp;
 
-    if (tx.file_info.size() == 0)
-    {
-        tp.chunk_start = 0;
-        tp.chunk_end = tx.file_size - 1;
-        togo.push_back(tp);
-    }
-    else
+    if (tx.file_info.size())
     {
         merge_chunks_overlap(tx);
         sort(tx.file_info.begin(), tx.file_info.end(), lower_chunk);
 
-        // Check togo before first chunk
-        if (tx.file_info[0].chunk_start)
-        {
-            tp.chunk_start = 0;
-            tp.chunk_end = tx.file_info[0].chunk_start - 1;
-            togo.push_back(tp);
-        }
+        // Set first chunk
+        tp.chunk_start = tx.file_info[0].chunk_start;
+        tp.chunk_end = tx.file_info[0].chunk_end;
 
-        // Check togo between chunks
+        // Add middle chunks to go
         for (uint32_t i=1; i<tx.file_info.size(); ++i)
         {
-            if (tx.file_info[i-1].chunk_end+1 != tx.file_info[i].chunk_start)
+            if (tx.file_info[i-1].chunk_end+1 == tx.file_info[i].chunk_start)
             {
-                tp.chunk_start = tx.file_info[i-1].chunk_end + 1;
-                tp.chunk_end = tx.file_info[i].chunk_start - 1;
+                tp.chunk_end = tx.file_info[i].chunk_end;
+            }
+            else
+            {
                 togo.push_back(tp);
+                tp.chunk_start = tx.file_info[i].chunk_start;
+                tp.chunk_end = tx.file_info[i].chunk_end;
             }
         }
 
-        // Check togo after last chunk
-        if (tx.file_info[tx.file_info.size()-1].chunk_end + 1 != tx.file_size)
-        {
-            tp.chunk_start = tx.file_info[tx.file_info.size()-1].chunk_end + 1;
-            tp.chunk_end = tx.file_size - 1;
-            togo.push_back(tp);
-        }
+        // Add last chunk
+        togo.push_back(tp);
     }
 
-    // calculate bytes so far
+    // calculate bytes left
     tx.total_bytes = 0;
     for (file_progress prog : togo)
     {
@@ -2096,14 +2084,14 @@ vector<file_progress> find_chunks_togo(tx_progress& tx)
     return (togo);
 }
 
-int32_t request_ls(char* request, char* response, Agent *agent)
+int32_t request_ls(string &request, string &response, Agent *agent)
 {
 
     //the request string == "ls directoryname"
     //get the directory name
     //    char directoryname[COSMOS_MAX_NAME+1];
-    //    memmove(directoryname, request+3, COSMOS_MAX_NAME);
-    string directoryname = request+3;
+    //    memmove(directoryname, request.substr(3), COSMOS_MAX_NAME);
+    string directoryname = request.substr(3);
 
     DIR* dir;
     struct dirent* ent;
@@ -2119,26 +2107,36 @@ int32_t request_ls(char* request, char* response, Agent *agent)
         }
         closedir(dir);
 
-        sprintf(response, "%s", all_file_names.c_str());
+        (response = all_file_names.c_str());
     }
     else
-        sprintf(response, "unable to open directory <%s>", directoryname.c_str());
+        response =  "unable to open directory " + directoryname;
     return 0;
 }
 
-int32_t request_list_incoming(char* request, char* response, Agent *agent)
+int32_t request_list_incoming(string &request, string &response, Agent *agent)
 {
-    response[0] = 0;
+    response.clear();
     for (uint16_t node = 0; node<txq.size(); ++node)
     {
-        sprintf(&response[strlen(response)], "%u %s %u\n", node, txq[(node)].node_name.c_str(), txq[(node)].incoming.size);
+        response +=  to_unsigned(node) + ' ' + txq[(node)].node_name + ' ' + to_signed(txq[(node)].incoming.size) + "\n";
         for(tx_progress tx : txq[(node)].incoming.progress)
         {
             if (tx.tx_id)
             {
-                sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u havemeta: %u sendmeta: %u sentmeta: %u senddata: %u sentdata: %u complete: %u\n"
-                        , tx.tx_id, tx.node_name.c_str(), tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size
-                        , tx.havemeta?1:0, tx.sendmeta?1:0, tx.sentmeta?1:0, tx.senddata?1:0, tx.sentdata?1:0, tx.complete?1:0);
+                response += to_label("tx_id", tx.tx_id);
+                response += to_label("node", tx.node_name);
+                response += to_label("agent", tx.agent_name);
+                response += to_label("name", tx.file_name);
+                response += to_label("bytes", tx.total_bytes);
+                response += "/" + to_unsigned(tx.file_size);
+                response += to_label("havemeta", tx.havemeta);
+                response += to_label("sendmeta", tx.sendmeta);
+                response += to_label("sentmeta", tx.sentmeta);
+                response += to_label("senddata", tx.senddata);
+                response += to_label("sentdata", tx.sentdata);
+                response += to_label("complete", tx.complete);
+                response += "\n";
             }
         }
     }
@@ -2146,19 +2144,19 @@ int32_t request_list_incoming(char* request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t request_list_outgoing(char* request, char* response, Agent *agent)
+int32_t request_list_outgoing(string &request, string &response, Agent *agent)
 {
-    response[0] = 0;
+    response.clear();
     for (uint16_t node=0; node<txq.size(); ++node)
     {
-        sprintf(&response[strlen(response)], "%u %s %u\n", node, txq[(node)].node_name.c_str(), txq[(node)].outgoing.size);
+        response +=  std::to_string(node)+ ' ' + txq[(node)].node_name + ' ' + std::to_string(txq[(node)].outgoing.size) + "\n";
         for(tx_progress tx : txq[(node)].outgoing.progress)
         {
             if (tx.tx_id)
             {
-                sprintf(&response[strlen(response)], "tx_id: %u node: %s agent: %s name: %s bytes: %u/%u havemeta: %u sendmeta: %u sentmeta: %u senddata: %u sentdata: %u complete: %u\n"
-                        , tx.tx_id, tx.node_name.c_str(), tx.agent_name.c_str(), tx.file_name.c_str(), tx.total_bytes, tx.file_size
-                        , tx.havemeta?1:0, tx.sendmeta?1:0, tx.sentmeta?1:0, tx.senddata?1:0, tx.sentdata?1:0, tx.complete?1:0);
+                response +=  "tx_id: " + std::to_string(tx.tx_id) + " node: " + tx.node_name + " agent: " + tx.agent_name + " name: " + tx.file_name + " bytes: " + std::to_string(tx.total_bytes) + "/" + std::to_string(tx.file_size);
+                response += " havemeta: " + to_bool(tx.havemeta) + " sendmeta: " + to_bool(tx.sendmeta) + " sentmeta: " + to_bool(tx.sentmeta);
+                response += " senddata: " + to_bool(tx.senddata) + " sentdata: " + to_bool(tx.sentdata) + " complete: " + to_bool(tx.complete) + "\n";
             }
         }
     }
@@ -2166,31 +2164,31 @@ int32_t request_list_outgoing(char* request, char* response, Agent *agent)
     return 0;
 }
 
-int32_t request_get_channels(char* request, char* response, Agent *agent)
+int32_t request_get_channels(string &request, string &response, Agent *agent)
 {
     for (uint16_t channel=0; channel<out_comm_channel.size(); ++channel)
     {
-        sprintf(response,"{");
-        sprintf(&response[strlen(response)],"channel:%u,", channel);
-        sprintf(&response[strlen(response)],"node:\"%s\",", out_comm_channel[channel].node.c_str());
-        sprintf(&response[strlen(response)],"ip:\"%s\",", out_comm_channel[channel].chanip.c_str());
-        sprintf(&response[strlen(response)],"size:%u,", out_comm_channel[channel].packet_size);
-        sprintf(&response[strlen(response)],"throughput:%u,", out_comm_channel[channel].throughput);
-        sprintf(&response[strlen(response)],"nmjd:\"%f\",", out_comm_channel[channel].nmjd);
-        sprintf(&response[strlen(response)],"limjd:\"%f\",", out_comm_channel[channel].limjd);
-        sprintf(&response[strlen(response)],"lomjd:\"%f\",", out_comm_channel[channel].lomjd);
-        sprintf(&response[strlen(response)],"fmjd:\"%f\",", out_comm_channel[channel].fmjd);
-        sprintf(&response[strlen(response)],"},");
+        response = "{";
+        response += to_json("channel", channel);
+        response += to_json("node", out_comm_channel[channel].node);
+        response += to_json("ip", out_comm_channel[channel].chanip);
+        response += to_json("size", out_comm_channel[channel].packet_size);
+        response += to_json("throughput", out_comm_channel[channel].throughput);
+        response += to_json("nmjd", out_comm_channel[channel].nmjd);
+        response += to_json("limjd", out_comm_channel[channel].limjd);
+        response += to_json("lomjd", out_comm_channel[channel].lomjd);
+        response += to_json("fmjd", out_comm_channel[channel].fmjd);
+        response += "}";
     }
     return 0;
 }
 
-int32_t request_set_throughput(char* request, char* response, Agent *agent)
+int32_t request_set_throughput(string &request, string &response, Agent *agent)
 {
     uint16_t channel=0;
     uint32_t throughput=0;
 
-    sscanf(request, "%*s %hu %u\n", &channel, &throughput);
+    sscanf(request.c_str(), "%*s %hu %u\n", &channel, &throughput);
     if (channel < out_comm_channel.size())
     {
         if (throughput)
@@ -2200,18 +2198,18 @@ int32_t request_set_throughput(char* request, char* response, Agent *agent)
     }
     else
     {
-        sprintf(response, "Channel %u too large", channel);
+        response =  "Channel " + to_unsigned(channel) + " too large";
     }
     return 0;
 
 }
 
-int32_t request_remove_file(char* request, char* response, Agent *agent)
+int32_t request_remove_file(string &request, string &response, Agent *agent)
 {
     char type;
     uint32_t tx_id;
 
-    sscanf(request, "%*s %c %u\n", &type, &tx_id);
+    sscanf(request.c_str(), "%*s %c %u\n", &type, &tx_id);
     switch (type)
     {
     case 'i':
@@ -3072,13 +3070,14 @@ PACKET_TX_ID_TYPE choose_outgoing_tx_id(uint8_t local_node)
 
     if (tx_id)
     {
-        vector<file_progress> togo;
-        togo = find_chunks_togo(txq[(local_node)].outgoing.progress[tx_id]);
-        for (file_progress missed : togo)
-        {
-            txq[(local_node)].outgoing.progress[tx_id].file_info.push_back(missed);
-        }
+//        vector<file_progress> togo;
+//        togo = find_chunks_togo(txq[(local_node)].outgoing.progress[tx_id]);
+//        for (file_progress missed : togo)
+//        {
+//            txq[(local_node)].outgoing.progress[tx_id].file_info.push_back(missed);
+//        }
 
+        merge_chunks_overlap(txq[(local_node)].outgoing.progress[tx_id]);
         txq[(local_node)].outgoing.progress[tx_id].senddata = true;
     }
     return tx_id;
@@ -3317,7 +3316,7 @@ int32_t next_incoming_tx(PACKET_NODE_ID_TYPE node, int32_t use_channel)
     return tx_id;
 }
 
-int32_t request_debug(char *request, char *, Agent *)
+int32_t request_debug(string &request, string &, Agent *)
 {
 
     string requestString = string(request);
@@ -3329,10 +3328,10 @@ int32_t request_debug(char *request, char *, Agent *)
     return 0;
 }
 
-int32_t request_set_logstride(char* request, char*, Agent *)
+int32_t request_set_logstride(string &request, string &, Agent *)
 {
     double new_logstride;
-    sscanf(request,"set_logstride %lf",&new_logstride);
+    sscanf(request.c_str(),"set_logstride %lf",&new_logstride);
     if(new_logstride > 0. )
     {
         logstride_sec = new_logstride;
@@ -3340,9 +3339,9 @@ int32_t request_set_logstride(char* request, char*, Agent *)
     return 0;
 }
 
-int32_t request_get_logstride(char* , char* response, Agent *)
+int32_t request_get_logstride(string & , string & response, Agent *)
 {
-    sprintf(response, "{\"logstride\":%lf}", logstride_sec);
+    response =  "{" + to_json("logstride", logstride_sec) + "}";
     return 0;
 }
 
@@ -3356,15 +3355,15 @@ void write_queue_log(double logdate)
 
 }
 
-int32_t request_list_incoming_json(char* request, char* response, Agent *agent)
+int32_t request_list_incoming_json(string &request, string &response, Agent *agent)
 {
-    sprintf(response, "%s", json_list_incoming().c_str());
+    (response = json_list_incoming().c_str());
     return 0;
 }
 
-int32_t request_list_outgoing_json(char* request, char* response, Agent *agent)
+int32_t request_list_outgoing_json(string &request, string &response, Agent *agent)
 {
-    sprintf(response, "%s", json_list_outgoing().c_str());
+    (response = json_list_outgoing().c_str());
     return 0;
 }
 
@@ -3437,6 +3436,7 @@ string json_list_outgoing() {
     jobj.addElement("outgoing", outgoing);
     return jobj.to_json_string();
 }
+
 string json_list_queue()
 {
     JSONObject jobj;

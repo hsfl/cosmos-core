@@ -1162,7 +1162,7 @@ int32_t load_iers()
 
     if (iers.size() == 0)
     {
-        std::string fname;
+        string fname;
         int32_t iretn = get_cosmosresources(fname);
         if (iretn < 0)
         {
@@ -1257,7 +1257,7 @@ cvector polar_motion(double mjd)
  * \param utc Coordinated Universal Time expressed in Modified Julian Days.
  * \return C++ String containing the Unix date.
  */
-std::string utc2unixdate(double utc)
+string utc2unixdate(double utc)
 {
     char buffer[25];
     int32_t iy=0, im=0, id=0, ihh, imm, iss;
@@ -1273,7 +1273,7 @@ std::string utc2unixdate(double utc)
     iss = static_cast <int32_t>(86400 * fd + .5);
     sprintf(buffer, "%02d%02d%02d%02d%02d.%02d", im, id, ihh, imm, iy, iss);
 
-    return std::string(buffer);
+    return string(buffer);
 }
 
 //! ISO 8601 version of time
@@ -1283,7 +1283,7 @@ std::string utc2unixdate(double utc)
  * \param utc Coordinated Universal Time expressed in Modified Julian Days.
  * \return C++ String containing the ISO 8601 date.
  */
-std::string utc2iso8601(double utc)
+string utc2iso8601(double utc)
 {
     char buffer[25];
     int32_t iy=0, im=0, id=0, ihh, imm, iss;
@@ -1299,11 +1299,11 @@ std::string utc2iso8601(double utc)
     iss = (int32_t)(86400 * fd + .5);
     sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d", iy, im, id, ihh, imm, iss);
 
-    return std::string(buffer);
+    return string(buffer);
 }
 
 // just call utc2iso8601(double utc)
-std::string mjd2iso8601(double mjd){
+string mjd2iso8601(double mjd){
     return utc2iso8601(mjd);
 }
 
@@ -1381,7 +1381,7 @@ int32_t mjdToGregorian(double mjd, int32_t &year, int32_t &month, int32_t &day,
  * \param mjd Time in Modified Julian Days
  * \return gregorianDateTime (YYYY-MM-DD HH:MM:SS)
  */
-std::string mjdToGregorian(double mjd)
+string mjdToGregorian(double mjd)
 {
     char gregorianDateTime[25];
     int year=0, month=0, day=0;
@@ -1393,7 +1393,7 @@ std::string mjdToGregorian(double mjd)
             year, month, day,
             hour, minute, second);
 
-    return std::string(gregorianDateTime);
+    return string(gregorianDateTime);
 }
 
 
@@ -1404,7 +1404,7 @@ std::string mjdToGregorian(double mjd)
  * \param mjd Time in Modified Julian Days
  * \return gregorianDateTime in the format (YYYY-MM-DDTHHMMSS)
  */
-std::string mjdToGregorianFormat(double mjd)
+string mjdToGregorianFormat(double mjd)
 {
     char gregorianDateTime[25];
     int year=0, month=0, day=0;
@@ -1416,7 +1416,7 @@ std::string mjdToGregorianFormat(double mjd)
             year, month, day,
             hour, minute, second);
 
-    return std::string(gregorianDateTime);
+    return string(gregorianDateTime);
 }
 
 
@@ -1429,7 +1429,7 @@ std::string mjdToGregorianFormat(double mjd)
  * \param mjd Time in Modified Julian Days
  * \return gregorianDateTime (YYYY-MM-DD HH:MM:SS)
  */
-std::string mjdToGregorianDDMMMYYYY(double mjd)
+string mjdToGregorianDDMMMYYYY(double mjd)
 {
     char gregorianDateTime[25];
     int year=0, month=0, day=0, hour=0, minute=0, second=0;
@@ -1454,7 +1454,7 @@ std::string mjdToGregorianDDMMMYYYY(double mjd)
             day, month_name[month-1], year,
             hour, minute, second);
 
-    return std::string(gregorianDateTime);
+    return string(gregorianDateTime);
 }
 
 // TODO: Must fix milisecond accuracy
@@ -1466,7 +1466,7 @@ std::string mjdToGregorianDDMMMYYYY(double mjd)
  * \param mjd Time in Modified Julian Days
  * \return gregorianDateTime (YYYY-MM-DD HH:MM:SS)
  */
-std::string mjdToGregorianDDMmmYYYY(double mjd)
+string mjdToGregorianDDMmmYYYY(double mjd)
 {
     char gregorianDateTime[50];
     int year=0, month=0, day=0, hour=0, minute=0, second=0;
@@ -1491,7 +1491,7 @@ std::string mjdToGregorianDDMmmYYYY(double mjd)
             day, month_name[month-1], year,
             hour, minute, second, msec);
 
-    return std::string(gregorianDateTime);
+    return string(gregorianDateTime);
 }
 
 
@@ -1501,7 +1501,7 @@ std::string mjdToGregorianDDMmmYYYY(double mjd)
  * \param elapsed_seconds
  * \return C++ String containing human readable formated date.
  */
-std::string seconds2DDHHMMSS(double elapsed_seconds){
+string seconds2DDHHMMSS(double elapsed_seconds){
 
     char buffer[50];
 
@@ -1542,7 +1542,7 @@ std::string seconds2DDHHMMSS(double elapsed_seconds){
     // specific format for SimGEN
     //sprintf(buffer,"%d %02d:%02d:%.2f", day, hour, min, sec);
     sprintf(buffer,"%02d:%02d:%02d.%03d", hour, min, sec, msec);
-    return std::string(buffer);
+    return string(buffer);
 }
 
 //! Modified Julian Day to Julian Day
@@ -1600,7 +1600,7 @@ DateTime::DateTime(int year, int month, int day, int hour, int minute, double se
 }
 
 //! Convert mjd to the TLE epoch format.
-int32_t mjd2tlef(double mjd, std::string &tle) {
+int32_t mjd2tlef(double mjd, string &tle) {
     char year_buffer[3], days_buffer[13];
 
     // Compute our year field.
@@ -1609,7 +1609,54 @@ int32_t mjd2tlef(double mjd, std::string &tle) {
     // Compute our days field.
     sprintf(days_buffer, "%012.8f", mjd2doy(mjd));
 
-    tle = std::string(year_buffer) + std::string(days_buffer);
+    tle = string(year_buffer) + string(days_buffer);
     return 0;
 }
 
+double set_local_clock(double utc_to)
+{
+    int32_t iretn;
+    double utc_from = currentmjd();
+    double deltat = 86400.*(utc_to - utc_from);
+//    printf("Set Local Clock %f\n", deltat);
+    if (fabs(deltat) > 1.)
+    {
+        // Gross adjustment to system clock
+#if defined(COSMOS_WIN_OS)
+        SYSTEMTIME newtime;
+        SetSystemTime(&newtime);
+#else
+        struct timeval newtime = utc2unix(utc_to);
+
+        // TODO: check with Eric if this is the right way to set the time?
+        iretn = settimeofday(&newtime, nullptr);
+        if (iretn < 0)
+        {
+            return 0.;
+        }
+#endif
+    }
+    else
+    {
+        // Fine adjustment using adjtime()
+        if (fabs(deltat) > .001)
+        {
+#if defined(COSMOS_WIN_OS)
+            double newdelta;
+            newdelta = deltat * 1e7;
+            SetSystemTimeAdjustment(newdelta,false);
+#else
+
+            struct timeval newdelta, olddelta;
+            newdelta.tv_sec = deltat;
+            newdelta.tv_usec = 100000. * (deltat - newdelta.tv_sec) + .5;
+
+            // adjust the time
+            iretn = adjtime(&newdelta, &olddelta);
+            return 0.;
+        }
+#endif
+
+    }
+    return deltat;
+}

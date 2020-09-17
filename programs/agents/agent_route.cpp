@@ -44,7 +44,7 @@ socket_channel rcvchan;
 int main(int argc, char *argv[])
 {
 	// Initialize the Agent
-    if (!(agent = new Agent("", "route", 1., MAXBUFFERSIZE)))
+    if (!(agent = new Agent("", "route", 0., MAXBUFFERSIZE)))
 	{
 		exit (AGENT_ERROR_JSON_CREATE);
 	}
@@ -66,8 +66,15 @@ int main(int argc, char *argv[])
 	// Start performing the body of the agent
 	int nbytes;
 	char input[AGENTMAXBUFFER];
+    ElapsedTime ret;
     while(agent->running())
 	{
+        if (ret.split() > 5.)
+        {
+            agent->post(Agent::AgentMessage::REQUEST, "heartbeat");
+//            agent->post(Agent::AgentMessage::REQUEST, "postsoh");
+            ret.reset();
+        }
         nbytes = recvfrom(agent->cinfo->agent[0].sub.cudp,input,AGENTMAXBUFFER,0,(struct sockaddr *)&agent->cinfo->agent[0].sub.caddr,(socklen_t *)&agent->cinfo->agent[0].sub.addrlen);
 		if (nbytes > 0)
 		{

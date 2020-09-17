@@ -157,7 +157,7 @@ map_dem_body *map_dem_open(int bodynum)
 	int maxcount=0;
 	// int maxir, maxic;
 	char ttname[200];
-	std::string tname;
+	string tname;
 	FILE *fp, *fp1;
 	map_dem_body *body;
 	int iretn, iretn1, ir, ic, irmin, irmax, icmin, icmax;
@@ -244,7 +244,7 @@ map_dem_body *map_dem_open(int bodynum)
 			dc++;
 			break;
 		case DEM_TYPE_MULTI:
-			std::string tname;
+			string tname;
 			iretn = get_cosmosresources(tname);
 			if (iretn < 0)
 			{
@@ -452,7 +452,7 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 				}
 			}
 		}
-		std::string fname;
+		string fname;
 		int32_t iretn = get_cosmosresources(fname);
 		if (iretn < 0)
 		{

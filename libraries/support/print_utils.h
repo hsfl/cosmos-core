@@ -42,7 +42,7 @@
 #include "math/mathlib.h"
 
 #include <iostream>     // std::cout
-#include <string>       // std::string
+#include <string>       // string
 #include <sstream>      // std::ostringstream
 
 // TODO: remove the dependency of mathlib later, change rvector to vector?
@@ -72,70 +72,70 @@ public:
 
     // main function
     // 20150818JC: Fixed mismatched prototype to include field width.  Default value in cpp
-    //void vector(std::string text_prefix, rvector v, double scale, std::string text_suffix, int precision);
-    void vector(std::string prefix, rvector v, double scale, std::string suffix, int precision, int fieldwidth);
+    //void vector(string text_prefix, rvector v, double scale, string text_suffix, int precision);
+    void vector(string prefix, rvector v, double scale, string suffix, int precision, int fieldwidth);
 
     void vector(rvector v);
     //void vector(rvector v, int precision);
-    void vector(std::string prefix, rvector v);
-    //void vector(std::string vector_name, rvector v, int precision);
-    void vector(std::string vector_name, rvector v, std::string suffix);
-    void vector(std::string prefix, rvector v, std::string suffix, int precision);
+    void vector(string prefix, rvector v);
+    //void vector(string vector_name, rvector v, int precision);
+    void vector(string vector_name, rvector v, string suffix);
+    void vector(string prefix, rvector v, string suffix, int precision);
 
-    void vectorAndMag(std::string vector_name, rvector v);
-    void vectorAndMag(std::string vector_name, rvector v, std::string suffix);
+    void vectorAndMag(string vector_name, rvector v);
+    void vectorAndMag(string vector_name, rvector v, string suffix);
 
 
-    //    void vectorScaled(std::string vector_name, rvector v, double scale, int precision);
-    //	void vectorScaled(std::string vector_name, quaternion q, double scale, int precision);
+    //    void vectorScaled(string vector_name, rvector v, double scale, int precision);
+    //	void vectorScaled(string vector_name, quaternion q, double scale, int precision);
 
     // split vector
-    //    void vector(std::string vector_name, double a, double b, double c, std::string units);
-    //    void vector(std::string vector_name, double a, double b, double c, std::string units, int precision);
-    //    void vector(std::string vector_name, double a, double b, double c, double d, std::string units);
+    //    void vector(string vector_name, double a, double b, double c, string units);
+    //    void vector(string vector_name, double a, double b, double c, string units, int precision);
+    //    void vector(string vector_name, double a, double b, double c, double d, string units);
 
 
     void vector_endl(rvector v,
                      double factor,
-                     std::string units,
+                     string units,
                      int precision);
 
-    void vector2(std::string name_v1, rvector v1, std::string name_v2, rvector v2);
-    void vector2(std::string name_v1, rvector v1, std::string name_v2, rvector v2, int precision);
+    void vector2(string name_v1, rvector v1, string name_v2, rvector v2);
+    void vector2(string name_v1, rvector v1, string name_v2, rvector v2, int precision);
     void endline();
 
     // quaternions
-    std::string quat(std::string prefix, quaternion q, std::string suffix, int precision, int fieldwidth);
-    std::string quat(quaternion q);
+    string quat(string prefix, quaternion q, string suffix, int precision, int fieldwidth);
+    string quat(quaternion q);
     void quat(quaternion q, int precision);
-    void quat(std::string prefix, quaternion q);
-    void quat(std::string prefix, quaternion q, int precision);
-    void quat(std::string prefix, quaternion q, std::string suffix);
-    void quat(std::string prefix, quaternion q, std::string suffix, int precision);
+    void quat(string prefix, quaternion q);
+    void quat(string prefix, quaternion q, int precision);
+    void quat(string prefix, quaternion q, string suffix);
+    void quat(string prefix, quaternion q, string suffix, int precision);
 
     // control flags
     bool printOn; // to control printing
     int precision;
     int fieldwidth;
     double scale;
-    std::string prefix;
-    std::string suffix;
-    std::string delimiter;
+    string prefix;
+    string suffix;
+    string delimiter;
     bool delimiter_flag;
     bool use_brackets;
-    std::string fullMessage;
+    string fullMessage;
 
     // reset to default values
     void reset();
 
 
-    void text(std::string text);
+    void text(string text);
 
     // scalar
-    void scalar(std::string prefix, double s, std::string suffix);
-    void scalar(std::string prefix, double s, double scale, std::string suffix, int precision, int fieldwidth);
-    void scalar(double s, std::string suffix);
-    void scalar(std::string prefix, double s);
+    void scalar(string prefix, double s, string suffix);
+    void scalar(string prefix, double s, double scale, string suffix, int precision, int fieldwidth);
+    void scalar(double s, string suffix);
+    void scalar(string prefix, double s);
     void scalar(double s);
     // TODO: add void scalar(double s, double precision);
 

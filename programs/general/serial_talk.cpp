@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     case 8:
         if (!strcmp(argv[8], "rtscts"))
         {
-           rtscts = true;
+            rtscts = true;
         }
         if (!strcmp(argv[7], "xonxoff"))
         {
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     endcount = duration * baud / (bits + parity + stop + 1.);
     Serial *port = new Serial(name, baud, bits, parity, stop);
     port->set_flowcontrol(rtscts, xonxoff);
-    port->set_timeout(1, 0);
+    port->set_timeout(1.);
 
     size_t writecount = 0;
     size_t errorcount = 0;
@@ -51,12 +51,31 @@ int main(int argc, char *argv[])
     ElapsedTime et;
     for (uint8_t i=1; i<255; ++i)
     {
+        vector <uint8_t> data;
         for (size_t j=0; j<endcount; ++j)
         {
-        result = port->put_char(i);
+            data.push_back(i);
+//            result = port->put_char(i);
+//            if (result > 0)
+//            {
+//                ++writecount;
+//            }
+//            else
+//            {
+//                if (result == SERIAL_ERROR_TIMEOUT)
+//                {
+//                    ++timeoutcount;
+//                }
+//                else
+//                {
+//                    ++errorcount;
+//                }
+//            }
+        }
+        result = port->put_data(data);
         if (result > 0)
         {
-            ++writecount;
+            writecount = data.size();
         }
         else
         {
@@ -68,7 +87,6 @@ int main(int argc, char *argv[])
             {
                 ++errorcount;
             }
-        }
         }
         printf("%f %f: %lu Writes @ %lf BPS Errors: %lu Timeouts: %lu\n", writecount, writecount/et.split(), errorcount, timeoutcount);
     }

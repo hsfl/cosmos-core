@@ -59,9 +59,9 @@ char tempname[100];
 char agentname[COSMOS_MAX_NAME+1] = "data";
 std::string dataDir;
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t request_login(char *request, char* response, Agent *);
-int32_t request_getnodelist(char *request, char* response, Agent *);
-int32_t request_log(char *request, char* response, Agent *);
+int32_t request_login(string &request, string &response, Agent *);
+int32_t request_getnodelist(string &request, string &response, Agent *);
+int32_t request_log(string &request, string &response, Agent *);
 
 Agent *agent; // to access the cosmos data, will change later
 
@@ -200,7 +200,7 @@ return 0;
 }
 
 //Verify Login Info
-int32_t request_login(char *request, char* response, Agent *)
+int32_t request_login(string &request, string &response, Agent *)
 {
 char user[COSMOS_MAX_NAME+1];
 char pass[COSMOS_MAX_NAME+1];
@@ -211,7 +211,7 @@ login=false;
 user[0] = 0;	// These need to be reset, otherwise, logging in with no name lets these retain the previous users name/password.
 pass[0] = 0;
 
-sscanf(request,"%*s %s %s",user,pass);
+sscanf(request.c_str(),"%*s %s %s",user,pass);
 
 for(i=0;i<usercount;i++)
 	{   //match given data against what is stored in the array
@@ -222,33 +222,33 @@ for(i=0;i<usercount;i++)
 	}
 
 if (login==true)
-	strcpy(response,"yes");
+    response = ("yes");
 else
-	strcpy(response,"no");
+    response = ("no");
 return 0;
 }
 
 // the name of this fn will always be changed
-int32_t request_getnodelist(char *, char* response, Agent *)
+int32_t request_getnodelist(string &, string &response, Agent *)
 {
 uint32_t i;
 
-response[0] = 0;
+response.clear();
 for (i=0; i<nodes.size(); i++)
 	{
-    sprintf(&response[strlen(response)],"%s,%d,",nodes[i].node.name,nodes[i].node.type);
+    response += ' ' + nodes[i].node.name + ' ' + to_signed(nodes[i].node.type);
 	}
 return 0;
 }
 
 //Takes event and stores to log
-int32_t request_log(char *request, char* , Agent *)
+int32_t request_log(string &request, string & , Agent *)
 {
 FILE *log;
 uint16_t i;
 double utc;
 
-for (i=0; i<strlen(request); ++i)
+for (i=0; i<request.length(); ++i)
 {
 	if (request[i] == '{')
 		break;
@@ -266,7 +266,7 @@ return 0;
 }
 
 //Request info
-/*int32_t request_pid(char *request, char*response, Agent *agent)
+/*int32_t request_pid(string &request, char*response, Agent *agent)
 //{
 
 }*/

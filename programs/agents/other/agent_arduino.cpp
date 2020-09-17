@@ -43,7 +43,7 @@ std::string agentname = "arduino";
 std::string node = "null";
 std::string comport = "//./";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t request_run_program(char *request, char* response, Agent *); // extra request
+int32_t request_run_program(string &request, string &response, Agent *); // extra request
 
 Agent *agent; // to access the cosmos data, will change later
 
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 }
 
 // the name of this fn will always be changed
-int32_t request_run_program(char *request, char* response, Agent *)
+int32_t request_run_program(string &request, string &response, Agent *)
 {
 	int i;
 	int32_t iretn = 0;
@@ -146,7 +146,7 @@ int32_t request_run_program(char *request, char* response, Agent *)
 
 	if (i == AGENTMAXBUFFER-1)
 	{
-		sprintf(response,"unmatched");
+        response = "unmatched";
 	}
 	else
 	{
@@ -157,7 +157,8 @@ int32_t request_run_program(char *request, char* response, Agent *)
 		if ((pd=popen(&request[i],"r")) != NULL)
 #endif
 		{
-			iretn = fread(response,1,AGENTMAXBUFFER-1,pd);
+            response.resize(AGENTMAXBUFFER);
+            iretn = fread(&response[0],1,AGENTMAXBUFFER-1,pd);
 			response[iretn] = 0;
 			iretn = 1;
 #ifdef COSMOS_WIN_BUILD_MSVC
@@ -168,7 +169,7 @@ int32_t request_run_program(char *request, char* response, Agent *)
 		}
 		else
 		{
-			response[0] = 0;
+            response.clear();
 			iretn = 0;
 		}
 	}

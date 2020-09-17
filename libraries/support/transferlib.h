@@ -58,6 +58,7 @@
 
 // cosmos includes
 #include "support/configCosmos.h"
+#include "support/datalib.h"
 
 // c++ includes
 //#include <cstring>
@@ -71,12 +72,12 @@
 //! \defgroup transferlib_constants File Transfer constants
 //! @{
 
-#define PACKET_MAX_LENGTH 60000
+#define PACKET_MAX_LENGTH 1500
 // Radios are only allowing 253 byte packet. IP/UDP header is 28 bytes.
 #define TRANSFER_MAX_PROTOCOL_PACKET 225
 #define TRANSFER_MAX_FILENAME 128
 #ifndef COSMOS_WIN_BUILD_MSVC
-#define TRANSFER_QUEUE_LIMIT ((TRANSFER_MAX_PROTOCOL_PACKET-(COSMOS_SIZEOF(PACKET_TYPE)+COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)+COSMOS_SIZEOF(PACKET_TX_ID_TYPE)+COSMOS_MAX_NAME))/COSMOS_SIZEOF(PACKET_TX_ID_TYPE))
+#define TRANSFER_QUEUE_LIMIT ((TRANSFER_MAX_PROTOCOL_PACKET-(COSMOS_SIZEOF(PACKET_TYPE)+COSMOS_SIZEOF(PACKET_NODE_ID_TYPE)+COSMOS_SIZEOF(PACKET_TX_ID_TYPE)+COSMOS_MAX_NAME))/(COSMOS_SIZEOF(PACKET_TX_ID_TYPE)))
 #else
 #define TRANSFER_QUEUE_LIMIT 100
 #endif
@@ -100,14 +101,16 @@ using namespace STATE_TYPE;
 namespace PACKET_TYPE_STUFF	{
     //these bits reserved for PACKET_TYPES
     static const unsigned char PACKET_METADATA = 0xf;
-    static const unsigned char PACKET_DATA =	 0xe;
+    static const unsigned char PACKET_DATA = 0xe;
     static const unsigned char PACKET_REQDATA =	0xd;
     static const unsigned char PACKET_REQMETA =	0xc;
-    static const unsigned char PACKET_COMPLETE =	0xb;
+    static const unsigned char PACKET_COMPLETE = 0xb;
     static const unsigned char PACKET_CANCEL = 0xa;
     static const unsigned char PACKET_QUEUE = 0x9;
     static const unsigned char PACKET_REQQUEUE = 0x8;
     static const unsigned char PACKET_HEARTBEAT = 0x7;
+    static const unsigned char PACKET_MESSAGE = 0x6;
+    static const unsigned char PACKET_COMMAND = 0x5;
 }
 
 using namespace PACKET_TYPE_STUFF;
@@ -164,6 +167,30 @@ typedef struct
 #define PACKET_HEARTBEAT_OFFSET_THROUGHPUT (PACKET_HEARTBEAT_OFFSET_BEAT_PERIOD + 1)
 #define PACKET_HEARTBEAT_OFFSET_FUNIXTIME (PACKET_HEARTBEAT_OFFSET_THROUGHPUT + 4)
 #define PACKET_HEARTBEAT_OFFSET_TOTAL (PACKET_HEARTBEAT_OFFSET_FUNIXTIME + 8)
+
+typedef struct
+{
+    PACKET_NODE_ID_TYPE node_id;
+    PACKET_BYTE length;
+    PACKET_BYTE bytes[TRANSFER_MAX_PROTOCOL_PACKET-2];
+} packet_struct_message;
+
+#define PACKET_MESSAGE_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_MESSAGE_OFFSET_LENGTH (PACKET_MESSAGE_OFFSET_NODE_ID + 1)
+#define PACKET_MESSAGE_OFFSET_BYTES (PACKET_MESSAGE_OFFSET_LENGTH + 1)
+#define PACKET_MESSAGE_OFFSET_TOTAL (PACKET_MESSAGE_OFFSET_BYTES + TRANSFER_MAX_PROTOCOL_PACKET - 2)
+
+typedef struct
+{
+    PACKET_NODE_ID_TYPE node_id;
+    PACKET_BYTE length;
+    PACKET_BYTE bytes[TRANSFER_MAX_PROTOCOL_PACKET-2];
+} packet_struct_command;
+
+#define PACKET_COMMAND_OFFSET_NODE_ID (PACKET_HEADER_OFFSET_TOTAL)
+#define PACKET_COMMAND_OFFSET_LENGTH (PACKET_COMMAND_OFFSET_NODE_ID + 1)
+#define PACKET_COMMAND_OFFSET_BYTES (PACKET_COMMAND_OFFSET_LENGTH + 1)
+#define PACKET_COMMAND_OFFSET_TOTAL (PACKET_COMMAND_OFFSET_BYTES + TRANSFER_MAX_PROTOCOL_PACKET - 2)
 
 typedef struct
 {
@@ -311,20 +338,23 @@ typedef struct
 typedef struct
 {
     PACKET_TX_ID_TYPE tx_id=0;
-    bool havemeta;
-    bool sendmeta;
-    bool sentmeta;
-    bool senddata;
-    bool sentdata;
-    bool complete;
-    std::string node_name="";
-    std::string agent_name="";
-    std::string	file_name="";
-    std::string filepath="";
-    std::string temppath="";
+    bool enabled=false;
+    bool havemeta=false;
+    bool havedata=false;
+    bool sendmeta=false;
+    bool sentmeta=false;
+    bool senddata=false;
+    bool sentdata=false;
+    bool complete=false;
+    string node_name="";
+    string agent_name="";
+    string	file_name="";
+    string filepath="";
+    string temppath="";
     double savetime;
-    PACKET_FILE_SIZE_TYPE file_size;
-    PACKET_FILE_SIZE_TYPE total_bytes;
+    double datatime=0.;
+    PACKET_FILE_SIZE_TYPE file_size=0;
+    PACKET_FILE_SIZE_TYPE total_bytes=0;
     deque<file_progress> file_info;
     FILE * fp;
 } tx_progress;
@@ -368,7 +398,7 @@ void make_reqdata_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_i
 void extract_reqdata(vector<PACKET_BYTE>& packet, packet_struct_reqdata& reqdata);
 void extract_reqdata(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id, PACKET_FILE_SIZE_TYPE& hole_start, PACKET_FILE_SIZE_TYPE& hole_end);
 
-void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, vector<PACKET_TX_ID_TYPE> reqmeta);
+void make_reqmeta_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> reqmeta);
 void extract_reqmeta(vector<PACKET_BYTE>& packet, packet_struct_reqmeta& reqmeta);
 
 void make_complete_packet(vector<PACKET_BYTE>& packet, packet_struct_complete complete);
@@ -381,14 +411,27 @@ void make_cancel_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id
 void extract_cancel(vector<PACKET_BYTE>& packet, packet_struct_cancel& cancel);
 void extract_cancel(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE &node_id, PACKET_TX_ID_TYPE& tx_id);
 
-void make_reqqueue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name);
+void make_reqqueue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name);
 void extract_reqqueue(vector<PACKET_BYTE>& packet, packet_struct_reqqueue& reqqueue);
 
-void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, vector<PACKET_TX_ID_TYPE> queue);
+void make_queue_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, vector<PACKET_TX_ID_TYPE> queue);
 void extract_queue(vector<PACKET_BYTE>& packet, packet_struct_queue& queue);
 
-void make_heartbeat_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, std::string node_name, uint8_t beat_period, uint32_t throughput, uint32_t funixtime);
+void make_heartbeat_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string node_name, uint8_t beat_period, uint32_t throughput, uint32_t funixtime);
 void extract_heartbeat(vector<PACKET_BYTE>& packet, packet_struct_heartbeat& heartbeat);
+
+void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string message);
+void extract_message(vector<PACKET_BYTE>& packet, packet_struct_message& message);
+void make_command_packet(vector<PACKET_BYTE>& packet, PACKET_NODE_ID_TYPE node_id, string command);
+void extract_command(vector<PACKET_BYTE>& packet, packet_struct_command& command);
+
+int32_t check_node_id(PACKET_NODE_ID_TYPE node_id);
+//int32_t lookup_node_id(PACKET_NODE_ID_TYPE node_id);
+int32_t lookup_node_id(string node_name);
+int32_t set_node_id(PACKET_NODE_ID_TYPE node_id, string node_name);
+string lookup_node_id_name(PACKET_NODE_ID_TYPE node_id);
+int32_t load_nodeids();
+vector <string> get_nodeids();
 
 //void make_message_packet(vector<PACKET_BYTE>& packet, packet_struct_message message);
 //void make_message_packet(vector<PACKET_BYTE>& packet, PACKET_TX_ID_TYPE tx_id);
@@ -409,7 +452,7 @@ void extract_request(uint8_t* packet, PACKET_TX_ID_TYPE tx_id, char* filename, c
 
 void show_fstream_state(std::ifstream& out);
 //Function which gets the size of a file
-int32_t get_file_size(std::string filename);
+int32_t get_file_size(string filename);
 int32_t get_file_size(const char* filename);
 
 void print_cstring(uint8_t* buf, int siz);
@@ -417,7 +460,7 @@ void print_cstring_with_index(uint8_t* buf, int siz);
 void print_cstring_hex(uint8_t* buf, int siz);
 void print_cstring_hex_with_index(uint8_t* buf, int siz);
 
-void unable_to_remove(std::string filename);
+void unable_to_remove(string filename);
 PACKET_TYPE salt_type(PACKET_TYPE type);
 //! @}
 #endif

@@ -58,12 +58,12 @@ int myagent();
 static char nodename[COSMOS_MAX_NAME + 1] = "otb";
 static char agentname[COSMOS_MAX_NAME + 1] = "calc";
 
-int32_t request_add(char *request, char* response, Agent *agent);
-int32_t request_sub(char *request, char* response, Agent *agent);
-int32_t request_mul(char *request, char* response, Agent *agent);
-int32_t request_div(char *request, char* response, Agent *agent);
+int32_t request_add(string &request, string &response, Agent *agent);
+int32_t request_sub(string &request, string &response, Agent *agent);
+int32_t request_mul(string &request, string &response, Agent *agent);
+int32_t request_div(string &request, string &response, Agent *agent);
 
-int32_t request_change_node_name(char *request, char* response, Agent *agent);
+int32_t request_change_node_name(string &request, string &response, Agent *agent);
 
 #define MAXBUFFERSIZE 100000 // comm buffer for agents
 
@@ -171,51 +171,51 @@ int myagent()
 }
 
 // the name of this fn will always be changed
-int32_t request_add(char *request, char* response, Agent *agent)
+int32_t request_add(string &request, string &response, Agent *agent)
 {
 	float a,b;
 
-	sscanf(request,"%*s %f %f",&a,&b);
-    sprintf(response,"%f",a + b);
+	sscanf(request.c_str(),"%*s %f %f",&a,&b);
+    response = ("%f",a + b);
 
 	return 0;
 }
 
 // the name of this fn will always be changed
-int32_t request_sub(char *request, char* response, Agent *agent)
+int32_t request_sub(string &request, string &response, Agent *agent)
 {
 	float a,b;
 
-	sscanf(request,"%*s %f %f",&a,&b);
-    sprintf(response,"%f", a - b);
+	sscanf(request.c_str(),"%*s %f %f",&a,&b);
+    response = ("%f", a - b);
 
 	return 0;
 }
 // the name of this fn will always be changed
-int32_t request_mul(char *request, char* response, Agent *agent)
+int32_t request_mul(string &request, string &response, Agent *agent)
 {
 	float a,b;
 
-    sscanf(request,"%*s %f %f", &a, &b);
-    sprintf(response,"%f", a * b);
+    sscanf(request.c_str(),"%*s %f %f", &a, &b);
+    response = ("%f", a * b);
 
 	return 0;
 }
 // the name of this fn will always be changed
-int32_t request_div(char *request, char* response, Agent *agent)
+int32_t request_div(string &request, string &response, Agent *agent)
 {
 	float a,b;
 
-    sscanf(request,"%*s %f %f", &a, &b);
-    sprintf(response,"%f", a / b);
+    sscanf(request.c_str(),"%*s %f %f", &a, &b);
+    response = ("%f", a / b);
 
 	return 0;
 }
 
-int32_t request_change_node_name(char *request, char* response, Agent *agent)
+int32_t request_change_node_name(string &request, string &response, Agent *agent)
 {
 	char new_name[41];
-	sscanf(request,"%*s %40s", new_name);
+	sscanf(request.c_str(),"%*s %40s", new_name);
 
     strcpy(agent->cinfo->node.name, new_name);
     cout << "The new node name is <" << agent->cinfo->node.name << ">" << endl;

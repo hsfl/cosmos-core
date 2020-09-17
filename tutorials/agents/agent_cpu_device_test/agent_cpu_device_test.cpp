@@ -37,7 +37,7 @@
 using namespace std;
 
 int myagent();
-int32_t request_start(char *request, char* response_r, Agent *agent); // function prototype of agent request
+int32_t request_start(string &request, string &response_r, Agent *agent); // function prototype of agent request
 
 string agentname     = "agent_cpu_device_test";
 string nodename      = "computer";

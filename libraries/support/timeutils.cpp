@@ -34,10 +34,10 @@
 
 #ifndef CROSS_TYPE_arm
 // Convert time_t value to string
-std::string TimeUtils::timeString(const std::chrono::system_clock::time_point& tp)
+string TimeUtils::timeString(const std::chrono::system_clock::time_point& tp)
 {
     time_t t = std::chrono::system_clock::to_time_t(tp);
-    std::string ts = ctime(&t);   // convert to calendar time
+    string ts = ctime(&t);   // convert to calendar time
     ts.resize(ts.size()-1);  // skip trailing newline
     return ts;
 }

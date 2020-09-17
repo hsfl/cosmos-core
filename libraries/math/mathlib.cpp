@@ -2195,25 +2195,42 @@ double fixprecision(double number, double prec)
 
 //! Calculate CRC-16-CCITT
 /*! Calculate 16-bit CCITT CRC for the indicated buffer and number of bytes.
- * The initial shift register value is 0xffff, and the calculation
- * starts with the LSB, so the Polynomial is 0x8408.
+ * For the lsb variant, the initial shift register value is 0xffff, and the calculation
+ * starts with the LSB, so the Polynomial is 0x8408. For the msb, the initial value is 0
+ * and the Polynomial is 0x1021.
     \param buf bytes to calculate on
     \param size number of bytes
     \return calculated CRC
 */
 
-uint16_t calc_crc16ccitt(uint8_t *buf, int size)
+uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb)
 {
-    uint16_t crc = 0xffff;
+    uint16_t crc;
     uint8_t ch;
 
+    if (lsb)
+    {
+        crc = 0xffff;
+    }
+    else
+    {
+        crc = 0;
+    }
     for (uint16_t i=0; i<size; i++)
     {
         ch = buf[i];
         for (uint16_t j=0; j<8; j++)
         {
-            crc = (crc >> 1)^(((ch^crc)&0x01)?0x8408:0);
-            ch >>= 1;
+            if (lsb)
+            {
+                crc = (crc >> 1) ^ (((ch^crc)&0x01)?CRC16CCITTLSB:0);
+                ch >>= 1;
+            }
+            else
+            {
+                crc = (crc << 1) ^ (((ch&0x80)^((crc&0x8000)>>8))?CRC16CCITTMSB:0);
+                ch <<= 1;
+            }
         }
     }
     return (crc);

@@ -51,7 +51,7 @@ static gs232b_state ant_state;
 * @see cssl_open
 * @see cssl_setflowcontrol
 */
-int32_t gs232b_connect(std::string dev)
+int32_t gs232b_connect(string dev)
 {
 	int32_t iretn;
 	cssl_start();

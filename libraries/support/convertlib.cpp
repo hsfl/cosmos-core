@@ -3525,7 +3525,7 @@ int32_t loadTLE(char *fname, tlestruc &tle)
 * \param lines Array of ::tlestruc structures to contain elements
 * \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines(std::string fname, vector<tlestruc>& lines)
+int32_t load_lines(string fname, vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -3601,7 +3601,7 @@ int32_t load_lines(std::string fname, vector<tlestruc>& lines)
 * \param lines Array of ::tlestruc structures to contain elements
 * \return A 32 bit signed integer indicating number of elements, otherwise a negative error.
 */
-int32_t load_lines_multi(std::string fname, vector<tlestruc>& lines)
+int32_t load_lines_multi(string fname, vector<tlestruc>& lines)
 {
 	FILE *fdes;
 	uint16_t year;
@@ -3679,7 +3679,7 @@ int32_t load_lines_multi(std::string fname, vector<tlestruc>& lines)
     \param stkdata ::stkstruc holding satellite position.
 	\return The number of entries in the table, otherwise a negative error.
 */
-int32_t load_stk(std::string filename, stkstruc &stkdata)
+int32_t load_stk(string filename, stkstruc &stkdata)
 {
 	FILE *fdes;
 	int32_t maxcount;
@@ -4138,12 +4138,14 @@ int tle_checksum(char *line) {
 
     return checksum % 10;
 }
-void eci2tlestring(cartpos eci, std::string &tle, const std::string &ref_tle, double bstar) {
-    char tle_buffer[ref_tle.size()], field_buffer[30];
-    strcpy(tle_buffer, ref_tle.c_str());
+void eci2tlestring(cartpos eci, string &tle, string ref_tle, double bstar)
+{
+//    char tle_buffer[ref_tle.size()];
+    char field_buffer[30];
+//    strcpy(tle_buffer, ref_tle.c_str());
 
     // Convert to keplarian elements, compute our epoch field.
-    std::string epoch;
+    string epoch;
     tlestruc tles; // <-- in SI units.
     mjd2tlef(eci.utc, epoch);
     eci2tle(eci.utc, eci, tles);
@@ -4156,7 +4158,8 @@ void eci2tlestring(cartpos eci, std::string &tle, const std::string &ref_tle, do
     // std::cout << "Mean motion: " << tles.mm * 1440. / D2PI << std::endl;
 
     // Ignore the name line. Populate our epoch field.
-    char *line_1 = strstr(tle_buffer, "\n");
+//    char *line_1 = strstr(tle_buffer, "\n");
+    char *line_1 = strstr(static_cast<char *>(&ref_tle[0]), "\n");
     sprintf(field_buffer, "%14s", epoch.c_str());
     strncpy(line_1+19, field_buffer, 14);
     sprintf(field_buffer, "");
@@ -4180,5 +4183,6 @@ void eci2tlestring(cartpos eci, std::string &tle, const std::string &ref_tle, do
     sprintf(field_buffer, "%1d", tle_checksum(line_2));
     strncpy(line_2+69, field_buffer, 2);
 
-    tle = std::string(tle_buffer);
+//    tle = string(tle_buffer);
+    tle = ref_tle;
 }

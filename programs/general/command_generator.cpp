@@ -50,38 +50,51 @@ int main(int argc, char *argv[])
 
     switch (argc)
     {
-    case 7: // set repeat flag
-    {
-        flag |= EVENT_FLAG_REPEAT;
-    }
-    case 6: // set conditions
-    {
-        condition = argv[5];
-        flag |= EVENT_FLAG_CONDITIONAL;
-    }
-    case 5: // add command to the scheduler
-    {
-        node = string(argv[4]);
-    }
+    case 8: // add command to the scheduler
+        {
+            node = string(argv[6]);
+        }
+    case 7: // set solo flag
+        {
+            if (atoi(argv[6]))
+            {
+                flag |= EVENT_FLAG_SOLO;
+            }
+        }
+    case 6: // set repeat flag
+        {
+            if (atoi(argv[5]))
+            {
+                flag |= EVENT_FLAG_REPEAT;
+            }
+        }
+    case 5: // set conditions
+        {
+            condition = argv[4];
+            if (condition != "{}")
+            {
+                flag |= EVENT_FLAG_CONDITIONAL;
+            }
+        }
     case 4: // set time utc in mjd
-    {
-        switch (argv[3][0])
         {
-        // add a few seconds to current time
-        case '+':
-        {
-            double seconds = atof(&argv[3][1]);
-            utc = currentmjd() + seconds / 86400.;
-            break;
+            switch (argv[3][0])
+            {
+            // add a few seconds to current time
+            case '+':
+                {
+                    double seconds = atof(&argv[3][1]);
+                    utc = currentmjd() + seconds / 86400.;
+                    break;
+                }
+            default:
+                // use set time
+                {
+                    utc = atof(argv[3]);
+                    break;
+                }
+            }
         }
-        default:
-            // use set time
-        {
-            utc = atof(argv[3]);
-            break;
-        }
-        }
-    }
     case 3: // set command string
     {
         data = argv[2];
@@ -99,7 +112,7 @@ int main(int argc, char *argv[])
 
         cout << "Usage" << endl << endl;
         cout << "  command_generator [options]" << endl;
-        cout << "  command_generator name command [time | +sec] [node] [condition] [repeat_flag]" << endl << endl;
+        cout << "  command_generator name command [time | +sec] [condition] [repeat_flag] [node]" << endl << endl;
 
 
         cout << "Example" << endl << endl;
@@ -107,18 +120,22 @@ int main(int argc, char *argv[])
         cout << "  This will run the command \"agent kauaicc_sim execsoh get_queue_size\" \n"
                 "  with name 'myCmd' within 10 seconds from now." << endl << endl;
 
-        cout << "Options" << endl << endl;
+        cout << "Arguments" << endl << endl;
 
-        cout << "  -name   \t = name of the command, can be a string or combination of \n "
+        cout << "  name   \t = name of the command, can be a string or combination of \n "
                 "          \t   alphanumeric characters (ex: myCmd1)" << endl;
-        cout << "  -command\t = the actual command to be executed, if more than one word \n"
+        cout << "  command\t = the actual command to be executed, if more than one word \n"
                 "          \t   enclose the command string in quotes \n"
                 "          \t   (ex: \"agent kauaicc_sim execsoh get_queue_size\"" << endl;
-        cout << "  -time   \t = optional argument to enter the desired modified julian date\n"
+        cout << "  time   \t = optional argument to enter the desired modified julian date\n"
                 "          \t   (mjd). If not entered it will use the current time. \n"
                 "          \t   If '+' is used instead then the number of seconds can be\n"
                 "          \t   inserted. For 10 seconds in the future use +10" << endl;
-        cout << "  -node   \t = optional argument to add the generated command to the command\n"
+        cout << "  condition   \t = optional argument to enter a COSMOS condition\n"
+                "          \t   Shoold be in JSON. Empty {} will mean no condition \n";
+        cout << "  repeat_flag   \t = Optional repeat flag.\n"
+                "          \t   0 or 1. \n";
+        cout << "  node   \t = optional argument to add the generated command to the command\n"
                 "          \t   queue on the specified node (ex: kauaicc_sim) " << endl;
         return 0;
     }

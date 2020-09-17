@@ -1159,7 +1159,7 @@ int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
         tentry.name = alias;
         aliasstruc talias;
         talias.name = alias;
-        std::string val_added = value;
+        string val_added = value;
 
         switch (value[0])
         {
@@ -1527,6 +1527,10 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
 
     switch (type)
     {
+    case JSON_TYPE_BOOL:
+        if ((iretn=json_out_uint8(jstring,*(uint8_t *)data)) != 0)
+            return iretn;
+        break;
     case JSON_TYPE_UINT8:
         if ((iretn=json_out_uint8(jstring,*(uint8_t *)data)) != 0)
             return iretn;
@@ -1740,6 +1744,30 @@ int32_t json_out_name(string &jstring, string name)
     if ((iretn=json_out_character(jstring,':')) < 0)
         return iretn;
     return 0;
+}
+
+//! Boolean to JSON
+/*! Appends a JSON entry to the current JSON stream for the indicated 8 bit boolean.
+    \param jstring Reference to JSON stream.
+    \param value The JSON data of the desired variable
+    \return  0 if successful, negative error otherwise
+*/
+int32_t json_out_bool(string &jstring,bool value)
+{
+    int32_t iretn;
+    char tstring[15];
+
+    if (value)
+    {
+        sprintf(tstring, "true");
+    }
+    else
+    {
+        sprintf(tstring, "false");
+    }
+
+    iretn = json_append(jstring,tstring);
+    return iretn;
 }
 
 //! Signed 8 bit integer to JSON
@@ -4673,6 +4701,12 @@ double json_equation(jsonequation *ptr, cosmosstruc *cinfo)
         break;
     case JSON_OPERATION_POWER:
         c = pow(a[0], a[1]);
+        break;
+    case JSON_OPERATION_BITWISEAND:
+        c = static_cast<int>(a[0]) & static_cast<int>(a[1]);
+        break;
+    case JSON_OPERATION_BITWISEOR:
+        c = static_cast<int>(a[0]) | static_cast<int>(a[1]);
     }
 
     return (c);
@@ -7840,6 +7874,8 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     // Node Structure
     json_addentry("node_utcoffset", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcoffset, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_name", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.name, (uint16_t)JSON_TYPE_NAME, cinfo);
+    json_addentry("node_lastevent", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.lastevent, (uint16_t)JSON_TYPE_NAME, cinfo);
+    json_addentry("node_lasteventutc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.lasteventutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_type", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.type, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_state", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.state, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_hcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.hcap, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -7847,10 +7883,12 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_area", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.area, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_AREA);
     json_addentry("node_moi", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.moi, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_MOI);
     json_addentry("node_battcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battcap, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
-    json_addentry("node_powchg", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.charging, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_flags", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.flags, (uint16_t)JSON_TYPE_UINT16, cinfo);
+    json_addentry("node_powmode", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powmode, (uint16_t)JSON_TYPE_INT16, cinfo);
     json_addentry("node_powgen", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powgen, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
     json_addentry("node_powuse", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.powuse, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
     json_addentry("node_battlev", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.battlev, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
+    json_addentry("node_downtime", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.downtime, (uint16_t)JSON_TYPE_UINT32, cinfo, JSON_UNIT_CHARGE);
     json_addentry("node_utc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_utcstart", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.utcstart, (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_DATE);
     json_addentry("node_loc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc, (uint16_t)JSON_TYPE_LOCSTRUC, cinfo);
@@ -8194,7 +8232,8 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_bcreg_temp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bcreg_volt",didx, UINT16_MAX, (uint8_t *)&device.bcreg.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_bcreg_amp",didx, UINT16_MAX, (uint8_t *)&device.bcreg.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_bcreg_energy",didx, UINT16_MAX, (uint8_t *)&device.bcreg.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_bcreg_energy",didx, UINT16_MAX, (uint8_t *)&device.bcreg.energy, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_bcreg_power",didx, UINT16_MAX, (uint8_t *)&device.bcreg.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         break;
     case DeviceType::BUS:
         iretn = json_addentry("device_bus_utc",didx, UINT16_MAX, (uint8_t *)&device.bus.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -8226,6 +8265,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_cpu_utc",didx, UINT16_MAX, (uint8_t *)&device.cpu.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_cpu_cidx",didx, UINT16_MAX, (uint8_t *)&device.cpu.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_cpu_temp",didx, UINT16_MAX, (uint8_t *)&device.cpu.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_cpu_power",didx, UINT16_MAX, (uint8_t *)&device.cpu.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_uptime",didx, UINT16_MAX, (uint8_t *)&device.cpu.uptime, (uint16_t)JSON_TYPE_UINT32, cinfo);
         json_addentry("device_cpu_maxgib",didx, UINT16_MAX, (uint8_t *)&device.cpu.maxgib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_maxload",didx, UINT16_MAX, (uint8_t *)&device.cpu.maxload, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8305,12 +8345,16 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_htr_utc",didx, UINT16_MAX, (uint8_t *)&device.htr.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_htr_temp",didx, UINT16_MAX, (uint8_t *)&device.htr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_htr_cidx",didx, UINT16_MAX, (uint8_t *)&device.htr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_htr_state",didx, UINT16_MAX, (uint8_t *)&device.htr.state, (uint16_t)JSON_TYPE_BOOL, cinfo);
         break;
         //! Inertial Measurement Unit
     case DeviceType::IMU:
         iretn = json_addentry("device_imu_utc",didx, UINT16_MAX, (uint8_t *)&device.imu.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_imu_cidx",didx, UINT16_MAX, (uint8_t *)&device.imu.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_imu_temp",didx, UINT16_MAX, (uint8_t *)&device.imu.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_TEMPERATURE);
+        json_addentry("device_imu_amp",didx, UINT16_MAX, (uint8_t *)&device.imu.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CURRENT);
+        json_addentry("device_imu_volt",didx, UINT16_MAX, (uint8_t *)&device.imu.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_VOLTAGE);
+        json_addentry("device_imu_power",didx, UINT16_MAX, (uint8_t *)&device.imu.power, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
         json_addentry("device_imu_align",didx, UINT16_MAX, (uint8_t *)&device.imu.align, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
         json_addentry("device_imu_accel",didx, UINT16_MAX, (uint8_t *)&device.imu.accel, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ACCELERATION);
         json_addentry("device_imu_accel_x",didx, UINT16_MAX, (uint8_t *)&device.imu.accel.col[0], (uint16_t)JSON_TYPE_DOUBLE, cinfo, JSON_UNIT_ACCELERATION);
@@ -8352,6 +8396,9 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_mtr_utc",didx, UINT16_MAX, (uint8_t *)&device.mtr.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_mtr_cidx",didx, UINT16_MAX, (uint8_t *)&device.mtr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_mtr_temp",didx, UINT16_MAX, (uint8_t *)&device.mtr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_mtr_amp",didx, UINT16_MAX, (uint8_t *)&device.mtr.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_mtr_volt",didx, UINT16_MAX, (uint8_t *)&device.mtr.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_mtr_power",didx, UINT16_MAX, (uint8_t *)&device.mtr.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_mtr_mxmom",didx, UINT16_MAX, (uint8_t *)&device.mtr.mxmom, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_mtr_tc",didx, UINT16_MAX, (uint8_t *)&device.mtr.tc, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_mtr_align",didx, UINT16_MAX, (uint8_t *)&device.mtr.align, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
@@ -8367,6 +8414,8 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_pload_utc",didx, UINT16_MAX, (uint8_t *)&device.all.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_pload_cidx",didx, UINT16_MAX, (uint8_t *)&device.all.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_pload_temp",didx, UINT16_MAX, (uint8_t *)&device.all.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_pload_amp",didx, UINT16_MAX, (uint8_t *)&device.all.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+        json_addentry("device_pload_volt",didx, UINT16_MAX, (uint8_t *)&device.all.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_pload_power",didx, UINT16_MAX, (uint8_t *)&device.all.power, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_pload_drate",didx, UINT16_MAX, (uint8_t *)&device.all.drate, (uint16_t)JSON_TYPE_UINT32, cinfo);
         json_addentry("device_pload_key_cnt",didx, UINT16_MAX, (uint8_t *)&device.pload.key_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -8413,6 +8462,9 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         iretn = json_addentry("device_rw_utc",didx, UINT16_MAX, (uint8_t *)&device.rw.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         json_addentry("device_rw_cidx",didx, UINT16_MAX, (uint8_t *)&device.rw.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rw_temp",didx, UINT16_MAX, (uint8_t *)&device.rw.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_TEMPERATURE);
+        json_addentry("device_rw_amp",didx, UINT16_MAX, (uint8_t *)&device.rw.amp, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CURRENT);
+        json_addentry("device_rw_volt",didx, UINT16_MAX, (uint8_t *)&device.rw.volt, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_VOLTAGE);
+        json_addentry("device_rw_power",didx, UINT16_MAX, (uint8_t *)&device.rw.power, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_POWER);
         json_addentry("device_rw_align",didx, UINT16_MAX, (uint8_t *)&device.rw.align, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
         json_addentry("device_rw_mom",didx, UINT16_MAX, (uint8_t *)&device.rw.mom, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
         json_addentry("device_rw_mxomg",didx, UINT16_MAX, (uint8_t *)&device.rw.mxomg, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8429,7 +8481,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_rxr_cidx",didx, UINT16_MAX, (uint8_t *)&device.rxr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rxr_temp",didx, UINT16_MAX, (uint8_t *)&device.rxr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rxr_opmode",didx, UINT16_MAX, (uint8_t *)&device.rxr.opmode, (uint16_t)JSON_TYPE_UINT16, cinfo);
-        json_addentry("device_rxr_flag",didx, UINT16_MAX, (uint8_t *)&device.rxr.flag, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_rxr_flag",didx, UINT16_MAX, (uint8_t *)&device.rxr.flag, (uint16_t)JSON_TYPE_UINT32, cinfo);
         json_addentry("device_rxr_rssi",didx, UINT16_MAX, (uint8_t *)&device.rxr.rssi, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rxr_pktsize",didx, UINT16_MAX, (uint8_t *)&device.rxr.pktsize, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rxr_freq",didx, UINT16_MAX, (uint8_t *)&device.rxr.freq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8439,8 +8491,9 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_rxr_powerin",didx, UINT16_MAX, (uint8_t *)&device.rxr.powerin, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rxr_powerout",didx, UINT16_MAX, (uint8_t *)&device.rxr.powerout, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rxr_band",didx, UINT16_MAX, (uint8_t *)&device.rxr.band, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_rxr_goodcnt",didx, UINT16_MAX, (uint8_t *)&device.rxr.goodcnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
-        json_addentry("device_rxr_badcnt",didx, UINT16_MAX, (uint8_t *)&device.rxr.badcnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
+        json_addentry("device_rxr_goodratio",didx, UINT16_MAX, (uint8_t *)&device.rxr.goodratio, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_rxr_rxutc",didx, UINT16_MAX, (uint8_t *)&device.rxr.rxutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_rxr_uptime",didx, UINT16_MAX, (uint8_t *)&device.rxr.uptime, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         break;
         //! Elevation and Azimuth Sun Sensor
     case DeviceType::SSEN:
@@ -8516,8 +8569,10 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_tcv_powerout",didx, UINT16_MAX, (uint8_t *)&device.tcv.powerout, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_tcv_maxpower",didx, UINT16_MAX, (uint8_t *)&device.tcv.maxpower, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_tcv_band",didx, UINT16_MAX, (uint8_t *)&device.tcv.band, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_tcv_goodcnt",didx, UINT16_MAX, (uint8_t *)&device.tcv.goodcnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
-        json_addentry("device_tcv_badcnt",didx, UINT16_MAX, (uint8_t *)&device.tcv.badcnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
+        json_addentry("device_tcv_goodratio",didx, UINT16_MAX, (uint8_t *)&device.tcv.goodratio, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_tcv_txutc",didx, UINT16_MAX, (uint8_t *)&device.tcv.txutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_tcv_rxutc",didx, UINT16_MAX, (uint8_t *)&device.tcv.rxutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_tcv_uptime",didx, UINT16_MAX, (uint8_t *)&device.tcv.uptime, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         break;
     case DeviceType::TELEM:
         iretn = json_addentry("device_telem_utc",didx, UINT16_MAX, (uint8_t *)&device.all.utc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
@@ -8559,7 +8614,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_txr_cidx",didx, UINT16_MAX, (uint8_t *)&device.txr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_txr_temp",didx, UINT16_MAX, (uint8_t *)&device.txr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_txr_opmode",didx, UINT16_MAX, (uint8_t *)&device.txr.opmode, (uint16_t)JSON_TYPE_UINT16, cinfo);
-        json_addentry("device_txr_flag",didx, UINT16_MAX, (uint8_t *)&device.txr.flag, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_txr_flag",didx, UINT16_MAX, (uint8_t *)&device.txr.flag, (uint16_t)JSON_TYPE_UINT32, cinfo);
         json_addentry("device_txr_rssi",didx, UINT16_MAX, (uint8_t *)&device.txr.rssi, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_txr_pktsize",didx, UINT16_MAX, (uint8_t *)&device.txr.pktsize, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_txr_freq",didx, UINT16_MAX, (uint8_t *)&device.txr.freq, (uint16_t)JSON_TYPE_FLOAT, cinfo);
@@ -8569,8 +8624,9 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_txr_powerin",didx, UINT16_MAX, (uint8_t *)&device.txr.powerin, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_txr_powerout",didx, UINT16_MAX, (uint8_t *)&device.txr.powerout, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_txr_maxpower",didx, UINT16_MAX, (uint8_t *)&device.txr.maxpower, (uint16_t)JSON_TYPE_FLOAT, cinfo);
-        json_addentry("device_txr_goodcnt",didx, UINT16_MAX, (uint8_t *)&device.txr.goodcnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
-        json_addentry("device_txr_badcnt",didx, UINT16_MAX, (uint8_t *)&device.txr.badcnt, (uint16_t)JSON_TYPE_UINT32, cinfo);
+        json_addentry("device_txr_goodratio",didx, UINT16_MAX, (uint8_t *)&device.txr.goodratio, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_txr_txutc",didx, UINT16_MAX, (uint8_t *)&device.txr.txutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
+        json_addentry("device_txr_uptime",didx, UINT16_MAX, (uint8_t *)&device.txr.uptime, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
         break;
     default:
         iretn = JSON_ERROR_NOENTRY;
@@ -8641,6 +8697,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_imu_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_imu_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_imu_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_imu_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_align",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_accel",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_imu_accel_x",didx, UINT16_MAX, cinfo, state);
@@ -8659,6 +8718,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_rw_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rw_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rw_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rw_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_align",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_mom",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rw_mxomg",didx, UINT16_MAX, cinfo, state);
@@ -8674,6 +8736,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_mtr_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_mtr_amp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_mtr_volt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_mtr_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_mxmom",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_tc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_mtr_align",didx, UINT16_MAX, cinfo, state);
@@ -8703,7 +8768,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_cpu_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_temp",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cpu_power",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_uptime",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_cpu_downtime",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_maxgib",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_maxload",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_cpu_load",didx, UINT16_MAX, cinfo, state);
@@ -8789,8 +8856,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_rxr_powerout",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_maxpower",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_band",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_rxr_goodcnt",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_rxr_badcnt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_goodratio",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_rxutc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_uptime",didx, UINT16_MAX, cinfo, state);
         break;
         //! Radio Transmitter
     case DeviceType::TXR:
@@ -8808,8 +8876,9 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_txr_powerout",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_maxpower",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_band",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_txr_goodcnt",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_txr_badcnt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_goodratio",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_txutc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_uptime",didx, UINT16_MAX, cinfo, state);
         break;
         //! Radio Transceiver
     case DeviceType::TCV:
@@ -8827,8 +8896,10 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_tcv_powerout",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_maxpower",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_band",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_tcv_goodcnt",didx, UINT16_MAX, cinfo, state);
-        json_toggleentry("device_tcv_badcnt",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_goodratio",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_txutc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_rxutc",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_uptime",didx, UINT16_MAX, cinfo, state);
         break;
         //! Photo Voltaic String
     case DeviceType::PVSTRG:
@@ -8854,6 +8925,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_htr_utc",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_htr_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_htr_cidx",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_htr_state",didx, UINT16_MAX, cinfo, state);
         break;
         //! Motor
     case DeviceType::MOTR:
@@ -8976,6 +9048,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_bcreg_volt",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_amp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_bcreg_energy",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_bcreg_power",didx, UINT16_MAX, cinfo, state);
     case DeviceType::COUNT:
     case DeviceType::NONE:
         break;
@@ -9185,6 +9258,16 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
     {
         return nullptr;
     }
+    iretn = json_out(jstring, "node_lastevent", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out(jstring, "node_lasteventutc", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
     iretn = json_out(jstring, "node_type", cinfo);
     if (iretn < 0)
     {
@@ -9211,6 +9294,11 @@ const char *json_of_node(string &jstring, cosmosstruc *cinfo)
         return nullptr;
     }
     iretn = json_out(jstring, "node_powchg", cinfo);
+    if (iretn < 0)
+    {
+        return nullptr;
+    }
+    iretn = json_out(jstring, "node_powmode", cinfo);
     if (iretn < 0)
     {
         return nullptr;
@@ -9453,7 +9541,7 @@ const char *json_of_beacon(string &jstring, cosmosstruc *cinfo)
 
     string result;
     char tempstring[200];
-    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powmode\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.cpu_cnt; ++i)
     {
@@ -9581,7 +9669,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
     string result;
     char tempstring[200];
 
-    result = "{\"node_utc\",\"node_name\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_powmode\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
 
     for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
     {
@@ -9723,11 +9811,312 @@ string json_list_of_soh(cosmosstruc *cinfo)
         result += tempstring;
         sprintf(tempstring, ",\"device_htr_setvertex_%03d\"",i);
         result += tempstring;
+        sprintf(tempstring, ",\"device_htr_state_%03d\"",i);
+        result += tempstring;
     }
 
     for (uint16_t i=0; i<cinfo->devspec.motr_cnt; ++i)
     {
         sprintf(tempstring, ",\"device_motr_utc_%03d\",\"device_motr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_motr_rat_%03d\",\"device_motr_spd_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.tsen_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_tsen_utc_%03d\",\"device_tsen_temp_%03d\"", i, i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.thst_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_thst_utc_%03d\",\"device_thst_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_thst_align_%03d\",\"device_thst_flw_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.prop_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_prop_utc_%03d\",\"device_prop_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_prop_lev_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.swch_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_swch_utc_%03d\",\"device_swch_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_swch_utc_%03d\",\"device_swch_energy_%03d\",\"device_swch_amp_%03d\",\"device_swch_volt_%03d\",\"device_swch_power_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.bcreg_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_bcreg_utc_%03d\",\"device_bcreg_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bcreg_utc_%03d\",\"device_bcreg_energy_%03d\",\"device_bcreg_amp_%03d\",\"device_bcreg_volt_%03d\",\"device_bcreg_power_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.rot_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_rot_utc_%03d\",\"device_rot_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rot_angle_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.stt_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_stt_utc_%03d\",\"device_stt_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_stt_att_%03d\",\"device_stt_omega_%03d\",\"device_stt_alpha_%03d\"",i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.mcc_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_mcc_utc_%03d\",\"device_mcc_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mcc_q_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mcc_o_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mcc_a_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.tcu_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_tcu_utc_%03d\",\"device_tcu_temp_%03d\"", i, i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.bus_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_bus_utc_%03d\",\"device_bus_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_bus_utc_%03d\",\"device_bus_energy_%03d\",\"device_bus_amp_%03d\",\"device_bus_volt_%03d\",\"device_bus_power_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.psen_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_psen_utc_%03d\",\"device_psen_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_psen_press_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.suchi_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_suchi_utc_%03d\",\"device_suchi_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_suchi_press_%03d\",\"device_suchi_temps_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.cam_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_cam_utc_%03d\",\"device_cam_temp_%03d\"", i, i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.disk_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_disk_utc_%03d\",\"device_disk_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_disk_gib_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_disk_path_%03d\"",i);
+        result += tempstring;
+    }
+
+    result += "}";
+
+    return result;
+
+}
+
+string json_list_of_fullsoh(cosmosstruc *cinfo)
+{
+    string result;
+    char tempstring[200];
+
+    result = "{\"node_utc\",\"node_name\",\"node_lastevent\",\"node_lasteventutc\",\"node_type\",\"node_state\",\"node_powgen\",\"node_powuse\",\"node_powchg\",\"node_powmode\",\"node_battlev\",\"node_loc_bearth\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"";
+
+    for (uint16_t i=0; i<cinfo->devspec.pload_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_pload_utc_%03d\",\"device_pload_temp_%03d\",\"device_pload_power_%03d\"", i, i, i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.ssen_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_ssen_utc_%03d\",\"device_ssen_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ssen_azimuth_%03d\",\"device_ssen_elevation_%03d\",\"device_ssen_qva_%03d\",\"device_ssen_qvb_%03d\",\"device_ssen_qvc_%03d\",\"device_ssen_qvd_%03d\"",i,i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.imu_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_imu_utc_%03d\",\"device_imu_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_imu_amp_%03d\",\"device_imu_volt_%03d\",\"device_imu_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_imu_accel_%03d\",\"device_imu_omega_%03d\",\"device_imu_alpha_%03d\",\"device_imu_mag_%03d\",\"device_imu_bdot_%03d\"",i,i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.rw_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_rw_utc_%03d\",\"device_rw_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rw_amp_%03d\",\"device_rw_volt_%03d\",\"device_rw_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rw_omg_%03d\",\"device_rw_alp_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.mtr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_mtr_utc_%03d\",\"device_mtr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mtr_amp_%03d\",\"device_mtr_volt_%03d\",\"device_mtr_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_mtr_mom_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.cpu_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_cpu_utc_%03d\",\"device_cpu_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_cpu_amp_%03d\",\"device_cpu_volt_%03d\",\"device_cpu_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_cpu_gib_%03d\",\"device_cpu_load_%03d\",\"device_cpu_boot_count_%03d\"",i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.gps_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_gps_utc_%03d\",\"device_gps_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_gps_amp_%03d\",\"device_gps_volt_%03d\",\"device_gps_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_gps_geocs_%03d\",\"device_gps_geocv_%03d\",\"device_gps_dgeocs_%03d\",\"device_gps_dgeocv_%03d\"",i,i,i,i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_gps_geods_%03d\",\"device_gps_geodv_%03d\",\"device_gps_dgeods_%03d\",\"device_gps_dgeodv_%03d\"",i,i,i,i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_gps_time_status_%03d\",\"device_gps_solution_status_%03d\",\"device_gps_position_type_%03d\",\"device_gps_sats_used_%03d\"",i,i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.ant_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_ant_utc_%03d\",\"device_ant_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ant_amp_%03d\",\"device_ant_volt_%03d\",\"device_ant_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ant_align_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ant_azim_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_ant_elev_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.rxr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_rxr_utc_%03d\",\"device_rxr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_rxr_%03d\",\"device_rxr_volt_%03d\",\"device_rxr_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_flag_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_rssi_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_freq_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_band_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_rxr_powerin_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.txr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_txr_utc_%03d\",\"device_txr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_amp_%03d\",\"device_txr_volt_%03d\",\"device_txr_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_flag_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_rssi_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_freq_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_txr_powerout_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.tcv_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_tcv_utc_%03d\",\"device_tcv_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_amp_%03d\",\"device_tcv_volt_%03d\",\"device_tcv_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_flag_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_rssi_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_freq_%03d\",\"device_tcv_opmode_%03d\"",i,i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_band_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_tcv_powerin_%03d\",\"device_tcv_powerout_%03d\"",i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.pvstrg_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_pvstrg_utc_%03d\",\"device_pvstrg_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_pvstrg_power_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.batt_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_batt_utc_%03d\",\"device_batt_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_batt_amp_%03d\",\"device_batt_volt_%03d\", \"device_batt_power_%03d\"",i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_batt_charge_%03d\",\"device_batt_percentage_%03d\", \"device_batt_time_remaining_%03d\"",i,i,i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.htr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_htr_utc_%03d\",\"device_htr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_htr_amp_%03d\",\"device_htr_volt_%03d\",\"device_htr_power_%03d\"", i, i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_htr_setvertex_%03d\"",i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_htr_state_%03d\"",i);
+        result += tempstring;
+    }
+
+    for (uint16_t i=0; i<cinfo->devspec.motr_cnt; ++i)
+    {
+        sprintf(tempstring, ",\"device_motr_utc_%03d\",\"device_motr_temp_%03d\"", i, i);
+        result += tempstring;
+        sprintf(tempstring, ",\"device_motr_amp_%03d\",\"device_motr_volt_%03d\",\"device_motr_power_%03d\"", i, i, i);
         result += tempstring;
         sprintf(tempstring, ",\"device_motr_rat_%03d\",\"device_motr_spd_%03d\"",i,i);
         result += tempstring;
@@ -10305,8 +10694,8 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_rxr_powerout",j, cinfo);
                     json_out_1d(jstring, "device_rxr_maxpower",j, cinfo);
                     json_out_1d(jstring, "device_rxr_band",j, cinfo);
-                    json_out_1d(jstring, "device_rxr_goodcnt",j, cinfo);
-                    json_out_1d(jstring, "device_rxr_badcnt",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_goodratio",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_rxutc",j, cinfo);
                     continue;
                 }
 
@@ -10323,7 +10712,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_txr_powerout",j, cinfo);
                     json_out_1d(jstring, "device_txr_maxpower",j, cinfo);
                     json_out_1d(jstring, "device_txr_band",j, cinfo);
-                    json_out_1d(jstring, "device_txr_goodcnt",j, cinfo);
+                    json_out_1d(jstring, "device_txr_goodratio",j, cinfo);
                     json_out_1d(jstring, "device_txr_badcnt",j, cinfo);
                     continue;
                 }
@@ -10341,7 +10730,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                     json_out_1d(jstring, "device_tcv_powerout",j, cinfo);
                     json_out_1d(jstring, "device_tcv_maxpower",j, cinfo);
                     json_out_1d(jstring, "device_tcv_band",j, cinfo);
-                    json_out_1d(jstring, "device_tcv_goodcnt",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_goodratio",j, cinfo);
                     json_out_1d(jstring, "device_tcv_badcnt",j, cinfo);
                     continue;
                 }
@@ -10633,7 +11022,7 @@ int32_t json_equation_map(string equation, cosmosstruc *cinfo, jsonhandle *handl
 {
     const char *pointer;
     jsonequation tequation;
-    char ops[] = "+-*/%&|><=!~^";
+    char ops[] = "+-*/%&|><=!~^@#";
     int32_t iretn;
     size_t textlen;
 
@@ -10897,8 +11286,8 @@ int32_t node_calc(cosmosstruc *cinfo)
         cinfo->pieces[n].mass = cinfo->pieces[n].volume * cinfo->pieces[n].density;
         if (cinfo->pieces[n].mass == 0.)
             cinfo->pieces[n].mass = .001f;
-        cinfo->pieces[n].temp = 300.;
-        cinfo->pieces[n].heat = 300.f * cinfo->pieces[n].hcap;
+//        cinfo->pieces[n].temp = 300.;
+        cinfo->pieces[n].heat = cinfo->pieces[n].temp * cinfo->pieces[n].hcap;
         cinfo->physics.heat += cinfo->pieces[n].heat;
         cinfo->physics.mass += cinfo->pieces[n].mass;
         cinfo->physics.hcap += cinfo->pieces[n].hcap * cinfo->pieces[n].mass;
@@ -10937,7 +11326,7 @@ int32_t node_calc(cosmosstruc *cinfo)
         }
     cinfo->node.mass += cinfo->device[n].all.mass;
     */
-        cinfo->device[n].all.temp = 300.;
+//        cinfo->device[n].all.temp = 300.;
         //        cinfo->device[n].all.flag |= DEVICE_FLAG_ON;
         if (cinfo->device[n].all.flag & DEVICE_FLAG_ON)
         {

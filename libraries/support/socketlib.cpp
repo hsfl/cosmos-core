@@ -497,7 +497,7 @@ int32_t socket_close(socket_channel *channel)
 
 //! Discover interfaces
 /*! Return a vector of ::socket_channel containing info on each valid interface. For IPV4 this
- *	will include the address and broadcast address, in both std::string sockaddr_in format.
+ *	will include the address and broadcast address, in both string sockaddr_in format.
     \param ntype Type of network (Multicast, Broadcast UDP, CSP)
     \return Vector of interfaces
     */
@@ -950,7 +950,7 @@ int32_t Udp::setupClient(){
     return socketOpen();
 }
 
-int32_t Udp::setupClient(std::string a, uint16_t p){
+int32_t Udp::setupClient(string a, uint16_t p){
     // config
     sok.address = a;
     sok.port = p;
@@ -958,7 +958,7 @@ int32_t Udp::setupClient(std::string a, uint16_t p){
     return socketOpen();
 }
 
-int32_t Udp::setupClientSimGen(std::string a, uint16_t p){
+int32_t Udp::setupClientSimGen(string a, uint16_t p){
     // config
     sok.address     = a;
     sok.port        = p;
@@ -970,7 +970,7 @@ int32_t Udp::setupClientSimGen(std::string a, uint16_t p){
     return socketOpen();
 }
 
-int32_t Udp::setupClientAcstb(std::string a, uint16_t p){
+int32_t Udp::setupClientAcstb(string a, uint16_t p){
     // config
     sok.address     = a;
     sok.port        = p;
@@ -1053,7 +1053,7 @@ Udp::Udp(){
 
 //Udp class overloaded contructor to use
 //other ip and port
-//Udp::Udp(std::string a, uint16_t p){
+//Udp::Udp(string a, uint16_t p){
 //    sok.address = a;
 //    sok.port    = p;
 
@@ -1064,7 +1064,7 @@ Udp::Udp(){
 
 //Udp class overloaded contructor to use
 //other ip and port
-//Udp::Udp(std::string a, uint16_t p, uint16_t r){
+//Udp::Udp(string a, uint16_t p, uint16_t r){
 //    sok.address = a;
 //    sok.port    = p;
 //    sok.role    = r;
@@ -1072,7 +1072,7 @@ Udp::Udp(){
 //}
 
 
-int32_t Udp::errorStatus(std::string functionName){
+int32_t Udp::errorStatus(string functionName){
 
 #ifdef COSMOS_WIN_OS
     errno = WSAGetLastError();
@@ -1087,7 +1087,7 @@ int32_t Udp::errorStatus(std::string functionName){
     //exit(EXIT_FAILURE);
 }
 
-int32_t Udp::send(std::string package2send){
+int32_t Udp::send(string package2send){
 
     if (sendto(sok.handle,                      // socket
                package2send.c_str(),            // buffer to send
@@ -1167,7 +1167,7 @@ int32_t Udp::receiveOnce(){
 
             recv_len = 0;
             timer = 0;
-            receivedData = std::string(buf);
+            receivedData = string(buf);
             return 0;
         }
         //

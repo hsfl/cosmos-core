@@ -205,7 +205,7 @@ enum
     JSON_TYPE_DOUBLE,
     //! JSON char* type
     JSON_TYPE_CHARP,
-    //! JSON std::string type
+    //! JSON string type
     JSON_TYPE_STRING,
     //! JSON Name type
     JSON_TYPE_NAME,
@@ -331,32 +331,36 @@ enum
 //! Types of equation operations
 enum
     {
-    //! Addition
+    //! Addition +
     JSON_OPERATION_ADD,
-    //! Subtraction
+    //! Subtraction -
     JSON_OPERATION_SUBTRACT,
-    //! Multiplication
+    //! Multiplication *
     JSON_OPERATION_MULTIPLY,
-    //! Division
+    //! Division /
     JSON_OPERATION_DIVIDE,
-    //! Modulo
+    //! Modulo %
     JSON_OPERATION_MOD,
-    //! Boolean And
+    //! Boolean And &
     JSON_OPERATION_AND,
-    //! Boolean Or
+    //! Boolean Or |
     JSON_OPERATION_OR,
-    //! Boolean Greater Than
+    //! Boolean Greater Than >
     JSON_OPERATION_GT,
-    //! Boolean Less Than
+    //! Boolean Less Than <
     JSON_OPERATION_LT,
-    //! Boolean Equal
+    //! Boolean Equal =
     JSON_OPERATION_EQ,
-    //! Logical Not
+    //! Logical Not !
     JSON_OPERATION_NOT,
-    //! Complement
+    //! Complement ~
     JSON_OPERATION_COMPLEMENT,
-    //! Power
-    JSON_OPERATION_POWER
+    //! Power ^
+    JSON_OPERATION_POWER,
+    //! Bitwise AND @
+    JSON_OPERATION_BITWISEAND,
+    //! Bitwise OR #
+    JSON_OPERATION_BITWISEOR
     };
 
 #define HCAP 800.
@@ -925,7 +929,7 @@ struct longeventstruc
     //! Node for event
     char node[COSMOS_MAX_NAME+1];
     //! Name of event.
-    // TODO: change char to std::string
+    // TODO: change char to string
     char name[COSMOS_MAX_NAME+1];
     //! User of event.
     char user[COSMOS_MAX_NAME+1];
@@ -1092,7 +1096,7 @@ struct portstruc
     //! Type of I/O as listed in ::PORT_TYPE.
     uint16_t type;
     //! Name information for port.
-    //!!! Do not make this std::string
+    //!!! Do not make this string
     char name[COSMOS_MAX_DATA+1];
 };
 
@@ -1181,7 +1185,7 @@ struct allstruc
     //! Device Model
     uint16_t model;
     //! Device flag - catch all for any small piece of information that might be device specific
-    uint16_t flag;
+    uint32_t flag;
     //! Device specific address
     uint16_t addr;
     //! Component Index
@@ -1342,7 +1346,7 @@ struct cpustruc : public allstruc
     uint32_t uptime;
     //! Current load
     float load;
-    //! Maximu load
+    //! Maximum load
     float maxload;
 
     // memory
@@ -1452,10 +1456,12 @@ struct rxrstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
-    //! Good Packet Count
-    uint32_t goodcnt;
-    //! Bad Packet Count
-    uint32_t badcnt;
+    //! Good Packet Percentage
+    double  goodratio;
+    //! Last RX time
+    double rxutc;
+    //! Connection Uptime
+    double uptime;
 };
 
 //! Transmitter information
@@ -1483,10 +1489,12 @@ struct txrstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
-    //! Good Packet Count
-    uint32_t goodcnt;
-    //! Bad Packet Count
-    uint32_t badcnt;
+    //! Good Packet Percentage
+    double  goodratio;
+    //! Last TX time
+    double txutc;
+    //! Connection Uptime
+    double uptime;
 };
 
 //! Transceiver information
@@ -1514,10 +1522,14 @@ struct tcvstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
-    //! Good Packet Count
-    uint32_t goodcnt;
-    //! Bad Packet Count
-    uint32_t badcnt;
+    //! Good Packet Percentage
+    double  goodratio;
+    //! Last TX time
+    double txutc;
+    //! Last RX time
+    double rxutc;
+    //! Connection Uptime
+    double uptime;
 };
 
 //! PV String (STRG) structure.
@@ -1561,6 +1573,7 @@ struct battstruc : public allstruc
 */
 struct htrstruc : public allstruc
 {
+    bool state;
     //! Temperature set vertex
     float setvertex;
 };
@@ -1704,6 +1717,10 @@ struct nodestruc
 {
     //! Node Name.
     char name[COSMOS_MAX_NAME+1];
+    //! Last event
+    char lastevent[COSMOS_MAX_NAME+1];
+    //! Last event UTC
+    double lasteventutc;
     //! Node Type as listed in \ref NODE_TYPE.
     uint16_t type;
     //! Operational state
@@ -1720,7 +1737,10 @@ struct nodestruc
     uint16_t user_cnt;
     uint16_t glossary_cnt;
     uint16_t tle_cnt;
-    uint16_t charging;
+    uint16_t flags;
+    int16_t powmode;
+    //! Seconds Node will be down
+    uint32_t downtime;
     //! Total Heat Capacity
     float hcap;
     //! Total Mass

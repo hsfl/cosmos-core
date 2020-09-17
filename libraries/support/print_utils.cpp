@@ -56,9 +56,9 @@ void PrintUtils::reset()
     fullMessage = ""; // clear the full message
 }
 
-void PrintUtils::text(std::string text)
+void PrintUtils::text(string text)
 {
-    std::string out;
+    string out;
 
     if (delimiter_flag)
     {
@@ -83,10 +83,10 @@ void PrintUtils::text(std::string text)
 
 // main print vector function with all options
 void PrintUtils::vector(
-        std::string prefix,
+        string prefix,
         rvector v,
         double scale,
-        std::string suffix,
+        string suffix,
         int precision,
         int fieldwidth)
 {
@@ -165,28 +165,28 @@ void PrintUtils::vector(rvector v)
 //}
 
 
-void PrintUtils::vector(std::string prefix, rvector v)
+void PrintUtils::vector(string prefix, rvector v)
 {
     vector(prefix, v, scale, suffix, precision, fieldwidth);
 }
 
-//void PrintUtils::vector(std::string vector_name, rvector v, int precision)
+//void PrintUtils::vector(string vector_name, rvector v, int precision)
 //{
 //    vector(vector_name, v, 1, "", precision, -1);
 //}
 
-//void PrintUtils::vector(std::string vector_name, rvector v, double scale, int precision){
+//void PrintUtils::vector(string vector_name, rvector v, double scale, int precision){
 //    vector(vector_name, v, scale, " ", precision);
 //}
 
-void PrintUtils::vector(std::string vector_name,
+void PrintUtils::vector(string vector_name,
                         rvector v,
-                        std::string suffix)
+                        string suffix)
 {
     vector(vector_name, v, scale, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::vector(std::string prefix, rvector v, std::string suffix, int precision)
+void PrintUtils::vector(string prefix, rvector v, string suffix, int precision)
 {
     vector(prefix, v, scale, suffix, precision, fieldwidth);
 }
@@ -197,10 +197,10 @@ void PrintUtils::vector(std::string prefix, rvector v, std::string suffix, int p
 
 // main print vector function with all options
 void PrintUtils::scalar(
-        std::string prefix,
+        string prefix,
         double s,
         double scale,
-        std::string suffix,
+        string suffix,
         int precision,
         int fieldwidth)
 {
@@ -276,14 +276,14 @@ void PrintUtils::scalar(double s)
     scalar(prefix, s, scale, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::scalar(std::string prefix,
+void PrintUtils::scalar(string prefix,
                         double s,
-                        std::string suffix)
+                        string suffix)
 {
     scalar(prefix, s, scale, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::scalar(std::string prefix,
+void PrintUtils::scalar(string prefix,
                         double s)
 {
     //    if (delimiter_flag)
@@ -300,7 +300,7 @@ void PrintUtils::scalar(std::string prefix,
 
 
 void PrintUtils::scalar(double s,
-                        std::string suffix)
+                        string suffix)
 {
     scalar("", s, scale, suffix, precision, fieldwidth);
 }
@@ -312,7 +312,7 @@ void PrintUtils::scalar(double s,
 
 //void PrintUtils::vector_std::endl(rvector v,
 //                             double factor,
-//                             std::string units,
+//                             string units,
 //                             int precision)
 //{
 //    std::cout.precision(precision);
@@ -321,7 +321,7 @@ void PrintUtils::scalar(double s,
 //}
 
 
-//void PrintUtils::vectorScaled(std::string vector_name,
+//void PrintUtils::vectorScaled(string vector_name,
 //                              rvector v,
 //                              double scale,
 //                              int precision)
@@ -329,7 +329,7 @@ void PrintUtils::scalar(double s,
 //    vector(vector_name, v, scale, " ", precision);
 //}
 
-//void PrintUtils::vectorScaled(std::string vector_name,
+//void PrintUtils::vectorScaled(string vector_name,
 //							  quaternion q,
 //							  double scale,
 //							  int precision)
@@ -339,32 +339,32 @@ void PrintUtils::scalar(double s,
 
 
 //// overloaded function
-//void PrintUtils::vector(std::string vector_name,
+//void PrintUtils::vector(string vector_name,
 //                        double a,
 //                        double b,
 //                        double c,
-//                        std::string units)
+//                        string units)
 //{
 //    std::cout << vector_name << "[" << a << ", " << b <<  ", " << c << "] " << units << std::endl;
 //}
 
 //// overloaded function with setprecision
-//void PrintUtils::vector(std::string vector_name,
+//void PrintUtils::vector(string vector_name,
 //                        double a,
 //                        double b,
 //                        double c,
-//                        std::string units,
+//                        string units,
 //                        int precision){
 //    std::cout.precision(precision);
 //    std::cout << vector_name << std::fixed << "[" << a << ", " << b <<  ", " << c << "] " << units << std::endl;
 //}
 
-//void PrintUtils::vector(std::string vector_name,
+//void PrintUtils::vector(string vector_name,
 //                        double a,
 //                        double b,
 //                        double c,
 //                        double d,
-//                        std::string units)
+//                        string units)
 //{
 //    std::cout << vector_name << "[" << a << ", " << b <<  ", " << c << ", " << d << "] " << units << std::endl;
 //}
@@ -374,17 +374,17 @@ void PrintUtils::scalar(double s,
 
 
 
-void PrintUtils::vector2(std::string name_v1,
+void PrintUtils::vector2(string name_v1,
                          rvector v1,
-                         std::string name_v2,
+                         string name_v2,
                          rvector v2)
 {
     std::cout << name_v1 << ": " << v1 << " | " << name_v2 << ": " << v2 << std::endl;
 }
 
-void PrintUtils::vector2(std::string name_v1,
+void PrintUtils::vector2(string name_v1,
                          rvector v1,
-                         std::string name_v2,
+                         string name_v2,
                          rvector v2,
                          int precision)
 {
@@ -394,12 +394,12 @@ void PrintUtils::vector2(std::string name_v1,
 
 
 
-void PrintUtils::vectorAndMag(std::string vector_name, rvector v)
+void PrintUtils::vectorAndMag(string vector_name, rvector v)
 {
     vectorAndMag(vector_name, v, "");
 }
 
-void PrintUtils::vectorAndMag(std::string vector_name, rvector v, std::string suffix)
+void PrintUtils::vectorAndMag(string vector_name, rvector v, string suffix)
 {
     vector(vector_name, v, scale, "", precision, fieldwidth);
 
@@ -470,10 +470,10 @@ void PrintUtils::vectorAndMag(std::string vector_name, rvector v, std::string su
 // ----------------------------------------------
 // Quaternion prints
 
-std::string PrintUtils::quat(
-        std::string prefix,
+string PrintUtils::quat(
+        string prefix,
         quaternion q,
-        std::string suffix,
+        string suffix,
         int precision,
         int fieldwidth = 6)
 {
@@ -566,7 +566,7 @@ std::string PrintUtils::quat(
     return out.str();
 }
 
-std::string PrintUtils::quat(quaternion q)
+string PrintUtils::quat(quaternion q)
 {
     // this prints the quaternion q enclosed in brackets like this: [[x,y,z] w]
     //std::cout << q;
@@ -578,26 +578,26 @@ void PrintUtils::quat(quaternion q, int precision)
     quat(prefix, q, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::quat(std::string prefix, quaternion q)
+void PrintUtils::quat(string prefix, quaternion q)
 {
     quat(prefix, q, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::quat(std::string prefix, quaternion q, int precision)
+void PrintUtils::quat(string prefix, quaternion q, int precision)
 {
     quat(prefix, q, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::quat(std::string prefix,
+void PrintUtils::quat(string prefix,
                       quaternion q,
-                      std::string suffix)
+                      string suffix)
 {
     quat(prefix, q, suffix, precision, fieldwidth);
 }
 
-void PrintUtils::quat(std::string prefix,
+void PrintUtils::quat(string prefix,
                       quaternion q,
-                      std::string suffix,
+                      string suffix,
                       int precision)
 {
     quat(prefix, q, suffix, precision, fieldwidth);

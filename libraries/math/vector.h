@@ -325,8 +325,6 @@ namespace Cosmos {
         namespace Vectors {
         //! Vector Class
         /*! eventually this is where all row vector stuff would come?
- * do we really need to differentiate between cvector and rvector in the future?
- * maybe we can have vector type = {'c', 'r'}
 */
         class Vector
         {
@@ -371,11 +369,29 @@ namespace Cosmos {
 
 
             //! X value
-            double x;
+            union
+            {
+                double x;
+                double phi;
+                double lat;
+                double head;
+            };
             //! Y value
+            union
+            {
             double y;
+            double lambda;
+            double lon;
+            double elev;
+            };
             //! Z value
+            union
+            {
             double z;
+            double radius;
+            double alt;
+            double bank;
+            };
             //! W value
             double w;
 
@@ -432,6 +448,22 @@ namespace Cosmos {
         Vector unitxV(double scale=1.);
         Vector unityV(double scale=1.);
         Vector unitzV(double scale=1.);
+
+        class geodeticVector : public Vector
+        {
+
+        };
+
+        class sphericalVector : public Vector
+        {
+
+        };
+
+        class eulerVector : public Vector
+        {
+
+        };
+
         }
 
 

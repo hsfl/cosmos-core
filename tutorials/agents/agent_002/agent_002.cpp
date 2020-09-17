@@ -37,7 +37,7 @@
 #include <string>
 
 // The request function prototype
-int32_t request_hello(char *request, char* response, Agent *cdata);
+int32_t request_hello(string &request, string &response, Agent *cdata);
 
 /// Count of the number of requests that have been run.
 static int request_counter = 0;
@@ -90,10 +90,10 @@ int main(int argc, char **argv)
 //! \param The response to send back to agent_001.
 //! \return int
 //!
-int32_t request_hello(char *, char* response, Agent *)
+int32_t request_hello(string &, string &response, Agent *)
 {
     // Send response back to agent_001
-    sprintf(response, "hello %d ", request_counter);
+    response = ("hello %d ", request_counter);
 
     cout << "agent_002 got the request! Its response is: " << response << endl;
 

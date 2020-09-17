@@ -27,6 +27,7 @@
 * condititons and terms to use this software.
 ********************************************************************/
 #include "device/cpu/devicecpu.h"
+#include "support/timelib.h"
 
 DeviceCpu::DeviceCpu()
 {
@@ -51,11 +52,29 @@ double DeviceCpu::getLoad()
     return load;
 }
 
-uint16_t DeviceCpu::getCount()
+uint16_t DeviceCpu::getCpuCount()
 {
     uint16_t count = 1;
 #if defined(COSMOS_LINUX_OS)
-    count = cpuLinux.getCount();
+    count = cpuLinux.getCpuCount();
+#endif
+    return count;
+}
+
+uint16_t DeviceCpu::getBootCount()
+{
+    uint16_t count = 1;
+#if defined(COSMOS_LINUX_OS)
+    count = cpuLinux.getBootCount();
+#endif
+    return count;
+}
+
+uint32_t DeviceCpu::getUptime()
+{
+    uint32_t count = 1;
+#if defined(COSMOS_LINUX_OS)
+    count = cpuLinux.getUptime();
 #endif
     return count;
 }
@@ -466,7 +485,7 @@ float DeviceCpuLinux::getPercentUseForCurrentProcess()
 
     //    // ------------------------------------------
     //    // using top or ps
-    //    using string;
+    //    using std::string;
 
     //    processName = getCurrentProcessName();
 
@@ -618,6 +637,10 @@ pid_t DeviceCpuLinux::getPidOf(string processName)
     char buf[512] = {'\0'};
     string tmp = "pidof " + processName;
     FILE *cmd_pipe = popen(tmp.c_str(), "r");
+    if (cmd_pipe == nullptr)
+    {
+        return -errno;
+    }
 
     fgets(buf, 512, cmd_pipe);
     pid_t pid = strtoul(buf, NULL, 10);
@@ -929,10 +952,14 @@ DeviceCpuLinux::procStat::procStat()
 
 }
 
-uint16_t DeviceCpuLinux::getCount()
+int32_t DeviceCpuLinux::getCpuCount()
 {
     uint16_t tcount = 0;
     FILE *fp = popen("lscpu -p=cpu", "r");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
     char tdata[100];
     uint16_t tindex;
     while ((fgets(tdata, 100, fp)) == tdata)
@@ -942,6 +969,49 @@ uint16_t DeviceCpuLinux::getCount()
             ++tcount;
         }
     }
+    pclose( fp );
     return tcount;
+}
+
+int32_t DeviceCpuLinux::getBootCount()
+{
+    uint16_t bootcount = 0;
+    FILE *fp = popen("boot_count_get", "r");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
+    char tdata[100];
+    uint16_t tindex;
+    if ((fgets(tdata, 100, fp)) == tdata)
+    {
+        if (sscanf(tdata, "%u\n", &tindex) == 1)
+        {
+            bootcount = tindex;
+        }
+    }
+    pclose( fp );
+    return bootcount;
+}
+
+int32_t DeviceCpuLinux::getUptime()
+{
+    uint32_t uptime = 0.;
+    FILE *fp = popen("uptime -s", "r");
+    if (fp == nullptr)
+    {
+        return -errno;
+    }
+    char tdata[100];
+    if ((fgets(tdata, 100, fp)) == tdata)
+    {
+        calstruc cal;
+        if (sscanf(tdata, "%u-%u-%u %u:%u:%u\n", &cal.year, &cal.month, &cal.dom, &cal.hour, &cal.minute, &cal.second) == 6)
+        {
+            uptime = 86400. * (currentmjd() - cal2mjd(cal));
+        }
+    }
+    pclose( fp );
+    return uptime;
 }
 #endif

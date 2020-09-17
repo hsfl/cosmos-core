@@ -58,7 +58,7 @@ int agent_transmitter();
 char agentname[COSMOS_MAX_NAME+1] = "gs_tx";
 char node[50] = "otb";
 int waitsec = 5; // wait to find other agents of your 'type/name', seconds
-int32_t transmit_kiss(char *request, char* response, Agent *); // extra request
+int32_t transmit_kiss(string &request, string &response, Agent *); // extra request
 
 unsigned int rx_report_interval;
 
@@ -141,7 +141,7 @@ int agent_transmitter()
 }
 
 // the name of this fn will always be changed
-int32_t transmit_kiss(char *request, char* response, Agent *)
+int32_t transmit_kiss(string &request, string &response, Agent *)
 {
 	int32_t iretn = 0;
 	unsigned char packet_buffer[600]; // w/c count will be 529 bytes (18+1+255*2)
@@ -150,12 +150,12 @@ int32_t transmit_kiss(char *request, char* response, Agent *)
 	unsigned char *raw_byte_backdoor;
 
 	request += 3;  // Advance pointer to skip "tx ", transmit the rest
-	raw_byte_backdoor = (unsigned char *) request;
+    raw_byte_backdoor = reinterpret_cast<unsigned char *>(&request[0]);
 
 	printf("Received Request");
 
 	// Check Input Length
-	input_size = strlen(request); // Get size of null terminated string
+	input_size = request.length(); // Get size of null terminated string
 	printf(".");
 	/*
 if(input_size == -1 || input_size > 255)
@@ -189,7 +189,7 @@ if(input_size == -1 || input_size > 255)
 	cssl_putdata(handle, packet_buffer, payload_size);
 
 
-	//#printf("Transmitting: %s\n",request+3);
+	//#printf("Transmitting: %s\n",request.substr(3));
 
 
 	return iretn;

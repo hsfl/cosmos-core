@@ -183,16 +183,16 @@ static vector <antennastruc> myantennas;
 
 static bool debug;
 
-int32_t request_debug(char* request, char* response, Agent *);
-int32_t request_get_state(char* request, char* response, Agent *);
-int32_t request_list_tracks(char* request, char* response, Agent *);
-int32_t request_set_track(char* request, char* response, Agent *);
-int32_t request_get_track(char* request, char* response, Agent *);
-int32_t request_list_radios(char* request, char* response, Agent *);
-int32_t request_match_radio(char* request, char* response, Agent *);
-int32_t request_list_antennas(char* request, char* response, Agent *);
-int32_t request_get_highest(char *req, char* response, Agent *);
-int32_t request_unmatch_radio(char* request, char* response, Agent *);
+int32_t request_debug(string &request, string &response, Agent *);
+int32_t request_get_state(string &request, string &response, Agent *);
+int32_t request_list_tracks(string &request, string &response, Agent *);
+int32_t request_set_track(string &request, string &response, Agent *);
+int32_t request_get_track(string &request, string &response, Agent *);
+int32_t request_list_radios(string &request, string &response, Agent *);
+int32_t request_match_radio(string &request, string &response, Agent *);
+int32_t request_list_antennas(string &request, string &response, Agent *);
+int32_t request_get_highest(string &req, string &response, Agent *);
+int32_t request_unmatch_radio(string &request, string &response, Agent *);
 
 void monitor();
 string opmode2string(uint8_t opmode);
@@ -569,18 +569,19 @@ void monitor()
 
 }
 
-int32_t request_list_tracks(char* request, char* response, Agent *)
+int32_t request_list_tracks(string &request, string &response, Agent *)
 {
+    response.clear();
 	for (size_t i=0; i<track.size(); ++i)
 	{
-		sprintf(&response[strlen(response)], "\n%lu %s %f", i, track[i].name.c_str(), DEGOF(DPI2-track[i].target.elfrom));
+        response += '\n' + track[i].name + ' ' + to_angle(DPI2-track[i].target.elfrom, 'D');
 	}
-	sprintf(&response[strlen(response)], "\n");
+    response += '\n';
 
 	return 0;
 }
 
-int32_t request_set_track(char* request, char* response, Agent *)
+int32_t request_set_track(string &request, string &response, Agent *)
 {
 	size_t tracki;
 
@@ -596,7 +597,7 @@ int32_t request_set_track(char* request, char* response, Agent *)
 	case '7':
 	case '8':
 	case '9':
-		sscanf(request, "set_track %lu", &tracki);
+		sscanf(request.c_str(), "set_track %lu", &tracki);
 		if (tracki < track.size())
 		{
 			trackindex = tracki;
@@ -604,7 +605,7 @@ int32_t request_set_track(char* request, char* response, Agent *)
 		break;
 	default:
 		char trackname[41];
-		sscanf(request, "set_track %40s", trackname);
+		sscanf(request.c_str(), "set_track %40s", trackname);
 		for (tracki=0; tracki<track.size(); ++tracki)
 		{
 			if (!strcmp(track[tracki].name.c_str(), trackname))
@@ -629,41 +630,41 @@ int32_t request_set_track(char* request, char* response, Agent *)
 	return 0;
 }
 
-int32_t request_get_track(char* request, char* response, Agent *)
+int32_t request_get_track(string &request, string &response, Agent *)
 {
 	if (trackindex != 9999)
-	{
-		sprintf(response, "\n%lu %s %f %f", trackindex, track[trackindex].name.c_str(), track[trackindex].target.range, track[trackindex].target.range/track[trackindex].target.close);
+    {
+        response = to_unsigned(trackindex) + ' ' +  track[trackindex].name + ' ' + to_double(track[trackindex].target.range) + ' ' + to_double(track[trackindex].target.range/track[trackindex].target.close);
 	}
 
 	return 0;
 }
 
-int32_t request_list_radios(char* request, char* response, Agent *)
+int32_t request_list_radios(string &request, string &response, Agent *)
 {
-	sprintf(response, "My Radios\n");
+    response = ("My Radios\n");
 	for (size_t i=0; i<myradios.size(); ++i)
-	{
-		sprintf(&response[strlen(response)], "%lu %s %u %f %s\n", i, myradios[i].name.c_str(), myradios[i].otherradioindex, myradios[i].info.freq, opmode2string(myradios[i].info.opmode).c_str());
+    {
+        response += myradios[i].name + ' ' + to_unsigned(myradios[i].otherradioindex) + ' ' + to_double(myradios[i].info.freq) + ' ' + opmode2string(myradios[i].info.opmode);
 	}
 
-	sprintf(&response[strlen(response)], "Other Radios\n");
+    response += ("Other Radios\n");
 	for (size_t i=0; i<track[trackindex].radios.size(); ++i)
 	{
-		sprintf(&response[strlen(response)], "%lu %s %u %f %s\n", i, track[trackindex].radios[i].name.c_str(), track[trackindex].radios[i].otherradioindex, track[trackindex].radios[i].info.freq, opmode2string(track[trackindex].radios[i].info.opmode).c_str());
+        response += ( to_unsigned(i) + ' ' + track[trackindex].radios[i].name.c_str() + ' ' + to_unsigned(track[trackindex].radios[i].otherradioindex) + ' ' + to_double(track[trackindex].radios[i].info.freq) + ' ' + opmode2string(track[trackindex].radios[i].info.opmode).c_str());
 	}
 
 	return 0;
 }
 
-int32_t request_match_radio(char* request, char* response, Agent *)
+int32_t request_match_radio(string &request, string &response, Agent *)
 {
 	char fromname[41];
 	char toname[41];
 	uint16_t fromi = 9999;
 	uint16_t toi = 9999;
 
-	sscanf(request, "match_radio %40s %40s", fromname, toname);
+	sscanf(request.c_str(), "match_radio %40s %40s", fromname, toname);
 
 	if (fromname[0] < '0' && fromname[0] > '9')
 	{
@@ -699,23 +700,23 @@ int32_t request_match_radio(char* request, char* response, Agent *)
 	{
 		myradios[fromi].otherradioindex = toi;
 		track[trackindex].radios[toi].otherradioindex = fromi;
-		sprintf(response, "Matched %s to %s", myradios[fromi].name.c_str(), track[trackindex].radios[toi].name.c_str());
-	}
+        response = ("Matched " + myradios[fromi].name + " to " + track[trackindex].radios[toi].name);
+    }
 	else
 	{
-		sprintf(response, "No match");
+        response = ("No match");
 	}
 
 	return 0;
 }
 
-int32_t request_unmatch_radio(char* request, char* response, Agent *)
+int32_t request_unmatch_radio(string &request, string &response, Agent *)
 {
 	char fromname[41];
 	uint16_t fromi = 9999;
 	uint16_t toi = 9999;
 
-	sscanf(request, "unmatch_radio %40s", fromname);
+	sscanf(request.c_str(), "unmatch_radio %40s", fromname);
 
 	if (fromname[0] < '0' && fromname[0] > '9')
 	{
@@ -741,72 +742,70 @@ int32_t request_unmatch_radio(char* request, char* response, Agent *)
 		{
 			track[trackindex].radios[toi].otherradioindex = 9999;
 		}
-		sprintf(response, "Unatched %s to %s", myradios[fromi].name.c_str(), track[trackindex].radios[toi].name.c_str());
+        response = ("Unatched %s to %s", myradios[fromi].name.c_str(), track[trackindex].radios[toi].name.c_str());
 	}
 	else
 	{
-		sprintf(response, "No match");
+        response = ("No match");
 	}
 
 	return 0;
 }
 
-int32_t request_list_antennas(char* request, char* response, Agent *)
+int32_t request_list_antennas(string &request, string &response, Agent *)
 {
 	for (size_t i=0; i<myantennas.size(); ++i)
 	{
-		sprintf(&response[strlen(response)], "%lu %s %f\n", i, myantennas[i].name.c_str(), myantennas[i].info.minelev);
+        response += ("%lu %s %f\n", i, myantennas[i].name.c_str(), myantennas[i].info.minelev);
 	}
 
 	return 0;
 }
 
-int32_t request_get_state(char *req, char* response, Agent *)
+int32_t request_get_state(string &req, string &response, Agent *)
 {
 	if (trackindex == 0)
 	{
-        sprintf(response, "[%.6f] 0: idle [na na] CxTime: ",
-                currentmjd());
+        response = '[' + to_mjd(currentmjd()) + "] 0: idle [na na] CxTime: ";
 	}
 	else
 	{
-        sprintf(response, "[%.6f] %lu: %s [%6.1f %6.1f] CxTime: ",
-                currentmjd(),
-                trackindex,
-                track[trackindex].name.c_str(),
-                DEGOF(fixangle(track[trackindex].target.azfrom)),
-                DEGOF((track[trackindex].target.elfrom)));
+        response = '[' + to_mjd(currentmjd()) + "] ";
+        response += to_unsigned(trackindex) + ": ";
+        response += track[trackindex].name + ' ';
+        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 1) + ' ';
+        response += to_angle(track[trackindex].target.elfrom, 'D', 1) + "] CxTime: ";
 	}
 	for (size_t i=0; i<myradios.size(); ++i)
 	{
-		sprintf(&response[strlen(response)], "{%s  %9.0f ", myradios[i].name.c_str(), myradios[i].info.freq);
+        response += '{' + myradios[i].name + ' ' + to_double(myradios[i].info.freq) + ' ';
 		if (myradios[i].otherradioindex != 9999)
 		{
 			size_t idx = myradios[i].otherradioindex;
-			sprintf(&response[strlen(response)], "(%s %.3f)} ", track[trackindex].radios[idx].name.c_str(), 86400. * (currentmjd() - myradios[i].beat.utc));
+            response += '(' + track[trackindex].radios[idx].name + ' ' + to_double(86400. * (currentmjd() - myradios[i].beat.utc), 3) + '}';
 		}
 		else
 		{
-			sprintf(&response[strlen(response)], "} ");
+            response += ("} ");
 		}
 	}
 	for (size_t i=0; i<myantennas.size(); ++i)
 	{
-		sprintf(&response[strlen(response)], "{%s (%.3f)}  ", myantennas[i].name.c_str(), 86400.*(currentmjd()-myantennas[i].beat.utc));
+        response += '{' + myantennas[i].name + " (" + to_double(86400. * (currentmjd() - myantennas[i].beat.utc), 3) + ")} ";
 	}
 	return (0);
 }
 
-int32_t request_get_highest(char *req, char* response, Agent *)
+int32_t request_get_highest(string &req, string &response, Agent *)
 {
 	if (highestindex != 9999)
 	{
-        sprintf(response, "%lu: %s [%6.1f %6.1f]", highestindex, track[highestindex].name.c_str(), DEGOF(fixangle(track[highestindex].target.azfrom)), DEGOF((track[highestindex].target.elfrom)));
+        response = to_unsigned(highestindex) + ": " + track[highestindex].name + " [" + to_angle(fixangle(track[highestindex].target.azfrom), 'D', 1) + ' ' + to_angle(track[highestindex].target.elfrom, 'D', 1) + ']';
 	}
 	return 0;
 }
 
-int32_t request_debug(char *req, char* response, Agent *)
+int32_t request_debug(string &req, string &response, Agent *)
 {
     if (debug)
 	{

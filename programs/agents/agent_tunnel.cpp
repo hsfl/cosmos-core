@@ -103,6 +103,7 @@ int main(int argc, char *argv[])
             }
             // Open receiver port
             txr_serial = new Serial(txr_devname, txr_baud);
+            txr_serial->set_timeout(1.);
             if (txr_serial->get_error() < 0)
             {
                 printf("Error opening %s as receiver - %s\n",txr_devname.c_str(), cosmos_error_string(txr_serial->get_error()).c_str());
@@ -300,6 +301,9 @@ void tcv_read_loop()
 			}
 			printf("\n");
 		} // End of mutex for tun FIFO
+        else {
+            printf("In: Error: %s\n", cosmos_error_string(nbytes).c_str());
+        }
 	}
 }
 
@@ -308,6 +312,7 @@ void tcv_write_loop()
 	std::mutex tcv_fifo_lock;
 	std::unique_lock<std::mutex> locker(tcv_fifo_lock);
 	vector<uint8_t> buffer;
+    int32_t iretn;
 
     while (agent->running())
 	{
@@ -318,10 +323,23 @@ void tcv_write_loop()
 		{
 			// Get next packet from transceiver FIFO
 			buffer = tcv_fifo.front();
-			tcv_fifo.pop();
 			// Write data to transmitter port
-            txr_serial->put_slip(buffer);
-		}
+            iretn = txr_serial->put_slip(buffer);
+            printf("Out: ");
+            if (iretn >= 0)
+            {
+                tcv_fifo.pop();
+                for (uint16_t i=0; i<(buffer.size()<100?buffer.size():100); ++i)
+                {
+                    printf("%x ", buffer[i]);
+                }
+                printf("\n");
+            }
+            else
+            {
+                printf("Error: %s\n", cosmos_error_string(iretn).c_str());
+            }
+        }
 	}
 }
 

@@ -57,25 +57,47 @@ namespace Cosmos
         class CommandQueue
         {
         private:
-            /**	An std::list of members of the Event class	*/
+            /**	An std::list of members of the Event class to be run	*/
             std::list<Event> commands;
+            /**	An std::queue of members of the Event class that have run	*/
+            std::deque<Event> events;
             /** A vector of all threads spawned to run events  */
             vector<std::thread> event_threads;
             /** A boolean indicator that the queue has changed	*/
             bool queue_changed = false;
+
+            bool queue_blocked = false;
 
         public:
             //! Ensure all threads are joined before destruction.
             ~CommandQueue();
 
             //! Join all threads spawn and empty our vector.
-            void join_events();
+            size_t join_event_threads();
 
             //!	Retrieve the size of the queue
             /*!
                 \return	The size of the queue
             */
-            size_t get_size() { return commands.size(); }
+            size_t get_event_size() { return events.size(); }
+
+            //!	Retrieve an Event by its position in the queue
+            /*!
+                \param	i	Integer representing the position in the queue
+                \return	Reference to the ith Event
+            */
+            Event& get_event(int i)
+            {
+                std::deque<Event>::iterator ii = events.begin();
+                std::advance(ii,i);
+                return *ii;
+            }
+
+            //!	Retrieve the size of the queue
+            /*!
+                \return	The size of the queue
+            */
+            size_t get_command_size() { return commands.size(); }
 
             //!	Retrieve an Event by its position in the queue
             /*!
@@ -120,6 +142,18 @@ namespace Cosmos
                 \param	logdate_exec	Time of execution (for logging purposes)
             */
             void run_command(Event &cmd, string nodename, double logdate_exec);
+
+            //!	Traverse the entire queue of Events, clearing those that have finished.
+            /*!
+
+            An %Event qualifies to be cleared if its thread could be joined, or if it has been
+            running for more than 1 minute.
+
+                \param	agent	Pointer to Agent object (for call to condition_true(..))
+                \param	nodename	Name of the node
+                \param	logdate_exec	Time of execution (for logging purposes)
+            */
+            void flush_commands();
 
             //!	Traverse the entire queue of Events, and run those which qualify.
             /*!

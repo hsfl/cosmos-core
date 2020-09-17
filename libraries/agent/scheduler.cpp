@@ -41,7 +41,7 @@ namespace Cosmos
         Scheduler::Scheduler(string node_name) {
 
             agent = new Agent(node_name, "test");
-            agent_exec_soh = agent->find_agent("exec", node_name);
+            agent_exec_soh = agent->find_agent(node_name, "exec");
 
         }
 

@@ -32,6 +32,7 @@
 */
 
 #include "support/command_queue.h"
+#include "support/stringlib.h"
 
 namespace Cosmos
 {
@@ -107,17 +108,37 @@ namespace Cosmos
         // *************************************************************************
 
 
-        CommandQueue::~CommandQueue () { join_events(); }
+        CommandQueue::~CommandQueue () { join_event_threads(); }
 
         // Before moving log files, we must join the event threads and ensure that each
         // event spawned is not currently active.
-        void CommandQueue::join_events() {
-            static auto join_event = [] (std::thread &t) {
-               t.join();
-            };
+        size_t CommandQueue::join_event_threads()
+        {
+//            static auto join_event = [] (std::thread &t) {
+//                t.join();
+//            };
 
-            std::for_each(event_threads.begin(), event_threads.end(), join_event);
-            event_threads.clear();
+//            std::for_each(event_threads.begin(), event_threads.end(), join_event);
+//            event_threads.clear();
+            size_t count = 0;
+            for(uint16_t i=0; i<event_threads.size(); ++i)
+            {
+                if (event_threads[i].joinable())
+                {
+                    event_threads[i].join();
+                    ++count;
+                }
+            }
+
+            if (count == event_threads.size())
+            {
+                event_threads.clear();
+                return count;
+            }
+            else
+            {
+                return event_threads.size();
+            }
         }
 
         //! Run the given Event
@@ -135,9 +156,9 @@ namespace Cosmos
         {
             queue_changed = true;
 
-                    // set time executed & actual flag
-                    cmd.set_utcexec();
-                    cmd.set_actual();
+            // set time executed & actual flag
+            cmd.set_utcexec();
+            cmd.set_actual();
 
             string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
             char command_line[100];
@@ -174,52 +195,52 @@ namespace Cosmos
                 close(prev_stderr);
             }));
 
-        //#if defined(COSMOS_WIN_OS)
-        //	char command_line[100];
-        //    strcpy(command_line, cmd.get_data().c_str());
-        //
-        //	STARTUPINFOA si;
-        //	PROCESS_INFORMATION pi;
-        //
-        //	ZeroMemory( &si, sizeof(si) );
-        //	si.cb = sizeof(si);
-        //	ZeroMemory( &pi, sizeof(pi) );
-        //
-        //	if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-        //	{
-        //		//		int32_t pid = pi.dwProcessId;
-        //		CloseHandle( pi.hProcess );
-        //		CloseHandle( pi.hThread );
-        //	}
-        //#else
-        //    int32_t pid = fork(); // Fork paradigm copies ENTIRE process space, leads to errors when exiting child. Now using threads.
-        //
-        //    char *words[MAXCOMMANDWORD];
-        //    string_parse((char *)cmd.get_data().c_str(), words, MAXCOMMANDWORD);
-        //    string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
-        //    if (pid != 0) {
-        //        signal(SIGCHLD, SIG_IGN); // Ensure no zombies.
-        //    }
-        //    else {
-        //        int devn;
-        //        if (outpath.empty()) {
-        //            devn = open("/dev/null",O_RDWR);
-        //        }
-        //        else {
-        //            devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
-        //        }
-        //      dup2(devn, STDIN_FILENO);
-        //		dup2(devn, STDOUT_FILENO);
-        //		dup2(devn, STDERR_FILENO);
-        //      close(devn);
-        //
-        //        // Execute the command.
-        //        execvp(words[0], &(words[1]));
-        //        fflush(stdout);
-        //        exit (0);
-        //    }
-        //
-        //#endif
+            //#if defined(COSMOS_WIN_OS)
+            //	char command_line[100];
+            //    strcpy(command_line, cmd.get_data().c_str());
+            //
+            //	STARTUPINFOA si;
+            //	PROCESS_INFORMATION pi;
+            //
+            //	ZeroMemory( &si, sizeof(si) );
+            //	si.cb = sizeof(si);
+            //	ZeroMemory( &pi, sizeof(pi) );
+            //
+            //	if (CreateProcessA(NULL, (LPSTR) command_line, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+            //	{
+            //		//		int32_t pid = pi.dwProcessId;
+            //		CloseHandle( pi.hProcess );
+            //		CloseHandle( pi.hThread );
+            //	}
+            //#else
+            //    int32_t pid = fork(); // Fork paradigm copies ENTIRE process space, leads to errors when exiting child. Now using threads.
+            //
+            //    char *words[MAXCOMMANDWORD];
+            //    string_parse((char *)cmd.get_data().c_str(), words, MAXCOMMANDWORD);
+            //    string outpath = data_type_path(node_name, "temp", "exec", logdate_exec, "out");
+            //    if (pid != 0) {
+            //        signal(SIGCHLD, SIG_IGN); // Ensure no zombies.
+            //    }
+            //    else {
+            //        int devn;
+            //        if (outpath.empty()) {
+            //            devn = open("/dev/null",O_RDWR);
+            //        }
+            //        else {
+            //            devn = open(outpath.c_str(), O_CREAT|O_WRONLY|O_APPEND, 00666);
+            //        }
+            //      dup2(devn, STDIN_FILENO);
+            //		dup2(devn, STDOUT_FILENO);
+            //		dup2(devn, STDERR_FILENO);
+            //      close(devn);
+            //
+            //        // Execute the command.
+            //        execvp(words[0], &(words[1]));
+            //        fflush(stdout);
+            //        exit (0);
+            //    }
+            //
+            //#endif
 
             // log to event file
             log_write(node_name, "exec", logdate_exec, "event", cmd.get_event_string().c_str());
@@ -238,40 +259,83 @@ namespace Cosmos
         */
         void CommandQueue::run_commands(Agent *agent, string node_name, double logdate_exec)
         {
-            for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii) {
-                // if command is ready
-                if (ii->is_ready()) {
-                    // if command is conditional
-                    if (ii->is_conditional()) {
-                        // if command condition is true
-                        if(ii->condition_true(agent->cinfo)) {
-                            // if command is repeatable
-                            if(ii->is_repeat()) {
-                                // if command has not already run
-                                if(!ii->already_ran)	{
-                                    run_command(*ii, node_name, logdate_exec);
-                                    ii->already_ran = true;
-                                }
-                            // else command is non-repeatable
-                            } else {
-                                run_command(*ii, node_name, logdate_exec);
-                                commands.erase(ii--);
-                            }
-                        // else command condition is false
-                        } else {
-                            ii->already_ran = false;
-                        }
-                    // else command is non-conditional
-                    } else {
-                        run_command(*ii, node_name, logdate_exec);
-                        commands.erase(ii--);
+            for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
+            {
+                // if command is not solo, or event_threads queue is empty
+                if (event_threads.empty() || (!ii->is_solo() && !queue_blocked))
+                {
+                    if (ii->is_solo())
+                    {
+                        queue_blocked = true;
                     }
-                } else {
+                    else
+                    {
+                        queue_blocked = false;
+                    }
+                    // if command is ready
+                    if (ii->is_ready())
+                    {
+                        // if command is conditional
+                        if (ii->is_conditional())
+                        {
+                            // if command condition is true
+                            if(ii->condition_true(agent->cinfo))
+                            {
+                                // if command is repeatable
+                                if(ii->is_repeat())
+                                {
+                                    // if command has not already run
+//                                    if(!ii->already_ran)
+                                    if (!ii->is_alreadyrun())
+                                    {
+                                        strncpy(agent->cinfo->node.lastevent, ii->name.c_str(), COSMOS_MAX_NAME);
+                                        agent->cinfo->node.lasteventutc = currentmjd();
+                                        run_command(*ii, node_name, logdate_exec);
+                                        ii->set_alreadyrun(true);
+                                        events.push_back(*ii);
+                                        if (events.size() > 10)
+                                        {
+                                            events.pop_front();
+                                        }
+//                                        ii->already_ran = true;
+                                        break;
+                                    }
+                                    // else command is non-repeatable
+                                }
+                                else
+                                {
+                                    run_command(*ii, node_name, logdate_exec);
+                                    events.push_back(*ii);
+                                    if (events.size() > 10)
+                                    {
+                                        events.pop_front();
+                                    }
+                                    commands.erase(ii--);
+                                    break;
+                                }
+                                // else command condition is false
+                            }
+                            else
+                            {
+                                ii->set_alreadyrun(false);
+                            }
+                            // else command is non-conditional
+                        }
+                        else
+                        {
+                            run_command(*ii, node_name, logdate_exec);
+                            commands.erase(ii--);
+                        }
+                    }
+                }
+                else
+                {
                     ;//cout<<"This command is *NOT* ready to run! ";
                 }
             }
             return;
         }
+
         //!	Save the queue of Events to a file
         /*!
             Commands are taken from the global command queue
@@ -286,6 +350,9 @@ namespace Cosmos
                 return;
             }
             queue_changed = false;
+
+            // Save previous queue
+            rename((temp_dir+".queue").c_str(), (temp_dir+".queue."+(utc2unixdate(currentmjd()))).c_str());
 
             // Open the outgoing file
             FILE *fd = fopen((temp_dir+".queue").c_str(), "w");
@@ -344,9 +411,9 @@ namespace Cosmos
                         std::cout << "Command added: " << cmd;
 
                         if(cmd.is_command())
-                        add_command(cmd);
+                            add_command(cmd);
                         else
-                        std::cout<<"Not a command!"<<std::endl;
+                            std::cout<<"Not a command!"<<std::endl;
                     }
                     infile.close();
 
@@ -356,7 +423,7 @@ namespace Cosmos
                         continue;
                     }
 
-                    std::cout<<"\nThe size of the command queue is: "<< get_size()<<std::endl;
+                    std::cout<<"\nThe size of the command queue is: "<< get_command_size()<<std::endl;
                 }
             }
 
@@ -387,18 +454,18 @@ namespace Cosmos
             queue_changed = true;
             return static_cast<int>(prev_sz - commands.size());
 
-        //	int n = 0;
-        //    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
-        //    {
-        //
-        //		if(c==*ii)
-        //		{
-        //            commands.erase(ii--);
-        //			n++;
-        //		}
-        //	}
-        //	queue_changed = true;
-        //	return n;
+            //	int n = 0;
+            //    for(std::list<Event>::iterator ii = commands.begin(); ii != commands.end(); ++ii)
+            //    {
+            //
+            //		if(c==*ii)
+            //		{
+            //            commands.erase(ii--);
+            //			n++;
+            //		}
+            //	}
+            //	queue_changed = true;
+            //	return n;
         }
 
         //! Remove Event from the queue based on position

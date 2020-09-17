@@ -130,20 +130,20 @@ List of available requests:
 #include "support/convertlib.h"
 #include "support/elapsedtime.h"
 
-int32_t request_debug(char *req, char* response, Agent *);
-int32_t request_get_offset(char *req, char* response, Agent *);
-int32_t request_get_state(char *req, char* response, Agent *);
+int32_t request_debug(string &req, string &response, Agent *);
+int32_t request_get_offset(string &req, string &response, Agent *);
+int32_t request_get_state(string &req, string &response, Agent *);
 
-int32_t request_set_azel(char *req, char* response, Agent *);
-int32_t request_track_azel(char *req, char* response, Agent *);
-int32_t request_get_azel(char *req, char* response, Agent *);
-int32_t request_jog(char *req, char* response, Agent *);
-int32_t request_get_horizon(char *req, char* response, Agent *);
-int32_t request_enable(char *req, char* response, Agent *);
-int32_t request_disable(char *req, char* response, Agent *);
-int32_t request_stop(char *req, char* response, Agent *);
-int32_t request_pause(char *req, char* response, Agent *);
-int32_t request_set_offset(char *req, char* response, Agent *);
+int32_t request_set_azel(string &req, string &response, Agent *);
+int32_t request_track_azel(string &req, string &response, Agent *);
+int32_t request_get_azel(string &req, string &response, Agent *);
+int32_t request_jog(string &req, string &response, Agent *);
+int32_t request_get_horizon(string &req, string &response, Agent *);
+int32_t request_enable(string &req, string &response, Agent *);
+int32_t request_disable(string &req, string &response, Agent *);
+int32_t request_stop(string &req, string &response, Agent *);
+int32_t request_pause(string &req, string &response, Agent *);
+int32_t request_set_offset(string &req, string &response, Agent *);
 
 int32_t connect_antenna();
 
@@ -386,23 +386,23 @@ int main(int argc, char *argv[])
     agent->shutdown();
 }
 
-int32_t request_get_state(char *req, char* response, Agent *)
+int32_t request_get_state(string &req, string &response, Agent *)
 {
-    sprintf(response,"[%.6f] Cx: %u En: %u Target: %6.1f %6.1f (%6.1f %6.1f) Actual: %6.1f %6.1f Offset: %6.1f %6.1f",
-            currentmjd(),
-            antconnected,
-            antenabled,
-            DEGOF(current.azim),
-            DEGOF(current.elev),
-            DEGOF(current.azim-agent->cinfo->device[devindex].ant.azim),
-            DEGOF(current.elev-agent->cinfo->device[devindex].ant.elev),
-            DEGOF(agent->cinfo->device[devindex].ant.azim+antennaoffset.az),
-            DEGOF(agent->cinfo->device[devindex].ant.elev+antennaoffset.el),
-            DEGOF(antennaoffset.az), DEGOF(antennaoffset.el));
+            response = "[";
+            response += ' ' + to_mjd(currentmjd());
+            response += ' ' + to_bool(antconnected);
+            response += ' ' + to_bool(antenabled);
+            response += ' ' + to_bool(DEGOF(current.azim));
+            response += ' ' + to_angle((current.elev));
+            response += ' ' + to_angle((current.azim-agent->cinfo->device[devindex].ant.azim), 'D');
+            response += ' ' + to_angle((current.elev-agent->cinfo->device[devindex].ant.elev), 'D');
+            response += ' ' + to_angle((agent->cinfo->device[devindex].ant.azim+antennaoffset.az), 'D');
+            response += ' ' + to_angle((agent->cinfo->device[devindex].ant.elev+antennaoffset.el), 'D');
+            response += ' ' + to_angle((antennaoffset.az), DEGOF(antennaoffset.el), 'D');
     return (0);
 }
 
-int32_t request_stop(char *req, char* response, Agent *)
+int32_t request_stop(string &req, string &response, Agent *)
 {
 
     target = agent->cinfo->device[devindex].ant;
@@ -421,7 +421,7 @@ int32_t request_stop(char *req, char* response, Agent *)
     return 0;
 }
 
-int32_t request_pause(char *req, char* response, Agent *)
+int32_t request_pause(string &req, string &response, Agent *)
 {
 
     target = agent->cinfo->device[devindex].ant;
@@ -429,67 +429,67 @@ int32_t request_pause(char *req, char* response, Agent *)
     return 0;
 }
 
-int32_t request_set_offset(char *req, char* response, Agent *)
+int32_t request_set_offset(string &req, string &response, Agent *)
 {
     float targetaz;
     float targetel;
 
-    sscanf(req,"%*s %f %f",&targetaz, &targetel);
+    sscanf(req.c_str() ,"%*s %f %f",&targetaz, &targetel);
     antennaoffset.az = RADOF(targetaz);
     antennaoffset.el = RADOF(targetel);
     return (0);
 }
 
-int32_t request_get_offset(char *req, char* response, Agent *)
+int32_t request_get_offset(string &req, string &response, Agent *)
 {
     float az = antennaoffset.az;
     float el = antennaoffset.el;
-    sprintf(response,"%f %f",DEGOF(az), DEGOF(el));
+    response = to_angle(az) + ' ' + to_angle(el);
     return (0);
 }
 
-int32_t request_set_azel(char *req, char* response, Agent *)
+int32_t request_set_azel(string &req, string &response, Agent *)
 {
     float targetaz;
     float targetel;
 
-    sscanf(req,"%*s %f %f",&targetaz, &targetel);
+    sscanf(req.c_str() ,"%*s %f %f",&targetaz, &targetel);
     target.azim = RADOF(targetaz);
     target.elev = RADOF(targetel);
     trackflag = false;
     return (0);
 }
 
-int32_t request_get_azel(char *req, char* response, Agent *)
+int32_t request_get_azel(string &req, string &response, Agent *)
 {
     double az = agent->cinfo->device[devindex].ant.azim;
     double el = agent->cinfo->device[devindex].ant.elev;
-    sprintf(response,"%f %f",DEGOF(az), DEGOF(el));
+    response = to_angle(az) + ' ' + to_angle(el);
     return (0);
 }
 
-int32_t request_jog(char *req, char* response, Agent *)
+int32_t request_jog(string &req, string &response, Agent *)
 {
     float az, el;
-    sscanf(req,"%*s %f %f", &az, &el);
+    sscanf(req.c_str() ,"%*s %f %f", &az, &el);
     target.azim += RADOF(az);
     target.elev += RADOF(el);
     return (0);
 }
 
-int32_t request_get_horizon(char *req, char* response, Agent *)
+int32_t request_get_horizon(string &req, string &response, Agent *)
 {
-    sscanf(req,"%*s %f",&gsmin);
+    sscanf(req.c_str() ,"%*s %f",&gsmin);
     return (0);
 }
 
-int32_t request_enable(char *req, char* response, Agent *)
+int32_t request_enable(string &req, string &response, Agent *)
 {
     antenabled = true;
     return 0;
 }
 
-int32_t request_disable(char *req, char* response, Agent *)
+int32_t request_disable(string &req, string &response, Agent *)
 {
     antenabled = false;
     return 0;
@@ -541,7 +541,7 @@ int32_t connect_antenna()
 
 }
 
-int32_t request_debug(char *req, char* response, Agent *)
+int32_t request_debug(string &req, string &response, Agent *)
 {
     if (debug)
     {
@@ -555,13 +555,13 @@ int32_t request_debug(char *req, char* response, Agent *)
     return 0;
 }
 
-int32_t request_track_azel(char *req, char* response, Agent *)
+int32_t request_track_azel(string &req, string &response, Agent *)
 {
     float az;
     float el;
     double utc;
 
-    sscanf(req,"%*s %lf %f %f", &utc, &az, &el);
+    sscanf(req.c_str() ,"%*s %lf %f %f", &utc, &az, &el);
     trackaz.update(utc, RADOF(az));
     trackel.update(utc, RADOF(el));
     trackflag = true;

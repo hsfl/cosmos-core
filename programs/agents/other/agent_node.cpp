@@ -91,14 +91,14 @@ void loadephemeris();
 void loanode();
 
 // Function declarations for internal requests
-int32_t request_loadmjd(char *request, char* response, Agent *);
-int32_t request_counts(char *request, char* response, Agent *);
-int32_t request_indexes(char *request, char* response, Agent *);
-int32_t request_days(char *request, char* response, Agent *);
-int32_t request_rewind(char *request, char* response, Agent *);
-int32_t request_next(char *request, char* response, Agent *);
-int32_t request_getmjd(char *request, char* response, Agent *);
-int32_t request_getnode(char *request, char* response, Agent *);
+int32_t request_loadmjd(string &request, string &response, Agent *);
+int32_t request_counts(string &request, string &response, Agent *);
+int32_t request_indexes(string &request, string &response, Agent *);
+int32_t request_days(string &request, string &response, Agent *);
+int32_t request_rewind(string &request, string &response, Agent *);
+int32_t request_next(string &request, string &response, Agent *);
+int32_t request_getmjd(string &request, string &response, Agent *);
+int32_t request_getnode(string &request, string &response, Agent *);
 
 int main(int argc, char *argv[])
 {
@@ -394,44 +394,44 @@ double loadmjd(double mjd)
 //! Load a given day's data
 /*! 
 */
-int32_t request_loadmjd(char *request, char* response, Agent *)
+int32_t request_loadmjd(string &request, string &response, Agent *)
 {
 	double value;
 
-	sscanf(request,"%*s %lf",&value);
+	sscanf(request.c_str(),"%*s %lf",&value);
 
 	value = loadmjd(value);
 
-	sprintf(response,"%f",cache[cindex].mjd);
+	response = ("%f",cache[cindex].mjd);
 	return 0;
 }
 
 //! Gives the number of event and telemetry records
 /*! 
 */
-int32_t request_counts(char *, char* response, Agent *)
+int32_t request_counts(string &, string &response, Agent *)
 {
-    sprintf(response,"%" PRIu64 " %" PRIu64 " %" PRIu64 " %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),agent->cinfo->node.target_cnt);
+    response = ("%" PRIu64 " %" PRIu64 " %" PRIu64 " %d",cache[cindex].telem.size(),cache[cindex].event.size(),commanddict.size(),agent->cinfo->node.target_cnt);
 	return 0;
 }
 
 //! Tells first and last day in archive
 /*! 
 */
-int32_t request_days(char *request, char* response, Agent *)
+int32_t request_days(string &request, string &response, Agent *)
 {
-	sprintf(response,"%d %d",(int)firstday,(int)lastday);
+	response = ("%d %d",(int)firstday,(int)lastday);
 	return 0;
 }
 
 //! Goes to the first record for either events or telemetry for the loaded day
 /*! 
 */
-int32_t request_rewind(char *request, char* response, Agent *)
+int32_t request_rewind(string &request, string &response, Agent *)
 {
 	char arg[50];
 
-	sscanf(request,"%*s %s",arg);
+	sscanf(request.c_str(),"%*s %s",arg);
 
 	switch (arg[0])
 	{
@@ -451,43 +451,43 @@ int32_t request_rewind(char *request, char* response, Agent *)
 		break;
 	}
 
-	response[0] = 0;
+	response.clear();
 	return 0;
 }
 
 //! Returns the current record of both event and telemetry data
 /*! 
 */
-int32_t request_indexes(char *, char* response, Agent *)
+int32_t request_indexes(string &, string &response, Agent *)
 {
-	sprintf(response,"%d %d %d %d",cache[cindex].tindex,cache[cindex].eindex,dindex,mindex);
+	response = ("%d %d %d %d",cache[cindex].tindex,cache[cindex].eindex,dindex,mindex);
 	return 0;
 }
 
 //! Returns the day that is loaded
 /*! 
 */
-int32_t request_getmjd(char *, char* response, Agent *)
+int32_t request_getmjd(string &, string &response, Agent *)
 {
-	sprintf(response,"%f",cache[cindex].mjd);
+	response = ("%f",cache[cindex].mjd);
 	return 0;
 }
 
 //! Gets next event, telemetry or data dictionary record entry.
 /*! 
 */
-int32_t request_next(char *request, char* response, Agent *)
+int32_t request_next(string &request, string &response, Agent *)
 {
 	char arg[50];
 
-	sscanf(request,"%*s %s",arg);
+	sscanf(request.c_str(),"%*s %s",arg);
 
 	switch (arg[0])
 	{
 	case 'e':
 		if (cache[cindex].eindex < cache[cindex].event.size())
 		{
-			strcpy(response,cache[cindex].event[cache[cindex].eindex].c_str());
+			response = (cache[cindex].event[cache[cindex].eindex].c_str());
 			if (cache[cindex].eindex < cache[cindex].event.size()-1)
 				cache[cindex].eindex++;
 			return 0;
@@ -499,7 +499,7 @@ int32_t request_next(char *request, char* response, Agent *)
 		case 'e':
 			if (cache[cindex].tindex < cache[cindex].telem.size())
 			{
-				strcpy(response,cache[cindex].telem[cache[cindex].tindex].c_str());
+				response = (cache[cindex].telem[cache[cindex].tindex].c_str());
 				if (cache[cindex].tindex < cache[cindex].telem.size()-1)
 					cache[cindex].tindex++;
 				return 0;
@@ -508,7 +508,7 @@ int32_t request_next(char *request, char* response, Agent *)
 		case 'r':
 			if (mindex >= 0)
 			{
-                strcpy(response,json_of_target(reqjstring, agent->cinfo, mindex));
+                response = (json_of_target(reqjstring, agent->cinfo, mindex));
                 if (mindex < agent->cinfo->node.target_cnt-1)
 					++mindex;
 				return 0;
@@ -520,22 +520,22 @@ int32_t request_next(char *request, char* response, Agent *)
 		if (dindex <= commanddict.size())
 		{
             agent->cinfo->event[0].s = commanddict[dindex];
-            strcpy(response,json_of_event(myjstring, agent->cinfo));
+            response = (json_of_event(myjstring, agent->cinfo));
 			if (dindex < commanddict.size()-1)
 				++dindex;
 			return 0;
 		}
 		break;
 	}
-	strcpy(response,"");
+	response = ("");
 	return (AGENT_ERROR_REQUEST);
 }
 
 //! Returns the current node.ini
 /*! 
 */
-int32_t request_getnode(char *request, char* response, Agent *)
+int32_t request_getnode(string &request, string &response, Agent *)
 {
-    strcpy(response,json_of_node(reqjstring, agent->cinfo));
+    response = (json_of_node(reqjstring, agent->cinfo));
 	return 0;
 }

@@ -48,18 +48,18 @@ public:
 
     DeviceDisk();
     vector <info> getInfo();
-    double getAll(std::string path);
-    uint64_t getSize(std::string path);
-    uint64_t getUsed(std::string path);
-    uint64_t getFree(std::string path);
+    double getAll(string path);
+    uint64_t getSize(string path);
+    uint64_t getUsed(string path);
+    uint64_t getFree(string path);
     double getAll();
     uint64_t getSize();
     uint64_t getUsed();
     uint64_t getFree();
 
-    double getFreeGiB(std::string path);
-    double getUsedGiB(std::string path);
-    double getSizeGiB(std::string path);
+    double getFreeGiB(string path);
+    double getUsedGiB(string path);
+    double getSizeGiB(string path);
     double getFreeGiB();
     double getUsedGiB();
     double getSizeGiB();

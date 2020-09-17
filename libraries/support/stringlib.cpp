@@ -32,6 +32,7 @@
 */
 
 #include "support/stringlib.h"
+#include "math/mathlib.h"
 
 //! \addtogroup stringlib_functions
 //! @{
@@ -171,23 +172,23 @@ int string_cmp(const char *wild, const char *string)
 
 
 // default constructor
-StringParser::StringParser(std::string str)
+StringParser::StringParser(string str)
 {
     splitString(str, ',');
 }
 
 // overladed constructor
-StringParser::StringParser(std::string str, char delimiter)
+StringParser::StringParser(string str, char delimiter)
 {
     splitString(str,delimiter);
 }
 
 
 //  splits the string into a vector field of strings
-void StringParser::splitString(std::string str, char delimiter)
+void StringParser::splitString(string str, char delimiter)
 {
     std::stringstream ss(str);
-    std::string token;
+    string token;
 
     while(std::getline(ss, token, delimiter))
     {
@@ -202,12 +203,12 @@ void StringParser::splitString(std::string str, char delimiter)
 }
 
 // this function gets the field number of the comma delimited string
-// Ex: std::string = "SOL_COMPUTED,NARROW_INT,-1634531.5683"
+// Ex: string = "SOL_COMPUTED,NARROW_INT,-1634531.5683"
 // StringParser::getFieldNumber(1) => "SOL_COMPUTED"
 // StringParser::getFieldNumber(0) => NULL (does not return a meaning value)
-std::string StringParser::getFieldNumber(uint32_t index)
+string StringParser::getFieldNumber(uint32_t index)
 {
-    std::string out;
+    string out;
     uint32_t real_offset = index + offset;
 
     if ( index>0 && numberOfFields >= (real_offset) && real_offset < vect.size() ){
@@ -245,4 +246,313 @@ int StringParser::getFieldNumberAsInteger(uint32_t index)
 {
     return getFieldNumberAsDouble(index);
 }
+
+string to_string(char *value)
+{
+    string output = value;
+    return output;
+}
+
+string to_hex(int64_t value, uint16_t digits, bool zerofill)
+{
+    string output="";
+    output.resize(digits?digits+2:20);
+    if (zerofill)
+    {
+        if (digits)
+        {
+            sprintf(&output[0], "%0*lx", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%0lx", value);
+        }
+    }
+    else
+    {
+        if (digits)
+        {
+            sprintf(&output[0], "%*lx", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%lx", value);
+        }
+    }
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_signed(int64_t value, uint16_t digits, bool zerofill)
+{
+    string output="";
+    output.resize((value==0?0:size_t(log10(std::abs(value))))+digits+5);
+    if (zerofill)
+    {
+        if (digits)
+        {
+            sprintf(&output[0], "%0*ld", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%0ld", value);
+        }
+    }
+    else
+    {
+        if (digits)
+        {
+            sprintf(&output[0], "%*ld", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%ld", value);
+        }
+    }
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_unsigned(uint64_t value, uint16_t digits, bool zerofill)
+{
+    string output="";
+    output.resize((value==0?0:size_t(log10((value))))+digits+5);
+    if (zerofill)
+    {
+        if (digits)
+        {
+            sprintf(&output[0], "%0*lu", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%0lu", value);
+        }
+    }
+    else
+    {
+        if (digits)
+        {
+            sprintf(&output[0], "%*lu", digits, value);
+        }
+        else
+        {
+            sprintf(&output[0], "%lu", value);
+        }
+    }
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_double(double value, uint16_t precision)
+{
+    string output="";
+//    output.resize((value==0.?0:size_t(log10(std::abs(value))))+precision+5);
+    output.resize(17+precision);
+    if (precision)
+    {
+        sprintf(&output[0], "%.*g", precision, value);
+    }
+    else
+    {
+        sprintf(&output[0], "%g", value);
+    }
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_mjd(double value)
+{
+    return to_double(value, 17);
+}
+
+string to_temperature(double value, char units, uint8_t precision)
+{
+    switch (units)
+    {
+    case 'K':
+        return to_double(value, precision) + " K";
+    case 'C':
+        return to_double(value - 273.15, precision) + " C";
+    case 'F':
+        return to_double((value - 273.15) / 1.8 + 32., precision) + " F";
+    }
+    return "";
+}
+
+string to_angle(double value, char units, uint8_t precision)
+{
+    switch (units)
+    {
+    case 'R':
+        return to_double(value, precision);
+    case 'D':
+        return to_double(DEGOF(value), precision) + 'D';
+    case 'A':
+        return to_double(value / DAS2R, precision) + '\'';
+    }
+    return "";
+}
+
+string to_bool(bool value)
+{
+    string output="";
+    output.resize(2);
+    output[0] =  value?'1':'0';
+    output.resize(strlen(&output[0]));
+    return output;
+}
+
+string to_json(string key, string value)
+{
+    JSONObject jobject;
+    jobject.addElement(key, value);
+    return jobject.to_json_object();
+}
+
+string to_json(string key, double value)
+{
+    JSONObject jobject;
+    jobject.addElement(key, value);
+    return jobject.to_json_object();
+}
+
+string to_json(string key, int64_t value)
+{
+    JSONObject jobject;
+    jobject.addElement(key, value);
+    return jobject.to_json_object();
+}
+
+string to_json(string key, int32_t value)
+{
+    return to_json(key, static_cast<int64_t>(value));
+}
+
+string to_json(string key, int16_t value)
+{
+    return to_json(key, static_cast<int64_t>(value));
+}
+
+string to_json(string key, int8_t value)
+{
+    return to_json(key, static_cast<int64_t>(value));
+}
+
+string to_json(string key, uint64_t value)
+{
+    JSONObject jobject;
+    jobject.addElement(key, value);
+    return jobject.to_json_object();
+}
+
+string to_json(string key, uint32_t value)
+{
+    return to_json(key, static_cast<uint64_t>(value));
+}
+
+string to_json(string key, uint16_t value)
+{
+    return to_json(key, static_cast<uint64_t>(value));
+}
+
+string to_json(string key, uint8_t value)
+{
+    return to_json(key, static_cast<uint64_t>(value));
+}
+
+string to_label(string label, double value, uint16_t precision, bool mjd)
+{
+    if (mjd)
+    {
+        return label + ": " + to_mjd(value);
+    }
+    else
+    {
+        return label + ": " + to_double(value, precision);
+    }
+}
+
+string to_label(string label, uint64_t value, uint16_t digits, bool hex)
+{
+    if (hex)
+    {
+        return label + ": " + to_hex(value, digits);
+    }
+    else
+    {
+        return label + ": " + to_unsigned(value, digits);
+    }
+}
+
+string to_label(string label, uint32_t value, uint16_t digits, bool hex)
+{
+    return to_label(label, static_cast<uint64_t>(value), digits, hex);
+}
+
+string to_label(string label, uint16_t value, uint16_t digits, bool hex)
+{
+    return to_label(label, static_cast<uint64_t>(value), digits, hex);
+}
+
+string to_label(string label, uint8_t value, uint16_t digits, bool hex)
+{
+    return to_label(label, static_cast<uint64_t>(value), digits, hex);
+}
+
+string to_label(string label, int64_t value, uint16_t digits, bool hex)
+{
+    if (hex)
+    {
+        return label + ": " + to_hex(value, digits);
+    }
+    else
+    {
+        return label + ": " + to_signed(value, digits);
+    }
+}
+
+string to_label(string label, int32_t value, uint16_t digits, bool hex)
+{
+    return to_label(label, static_cast<int64_t>(value), digits, hex);
+}
+
+string to_label(string label, int16_t value, uint16_t digits, bool hex)
+{
+    return to_label(label, static_cast<int64_t>(value), digits, hex);
+}
+
+string to_label(string label, int8_t value, uint16_t digits, bool hex)
+{
+    return to_label(label, static_cast<int64_t>(value), digits, hex);
+}
+
+string to_label(string label, bool value)
+{
+    return label + ": " + to_bool(value);
+}
+
+string to_label(string label, string value)
+{
+    return label + ": " + (value);
+}
+
+string clean_string(string value)
+{
+    string output;
+    for (uint16_t i=0; i<value.length(); ++i)
+    {
+        if (value[i] != 0)
+        {
+            output.push_back(value[i]);
+            printf("%c", value[i]);
+        }
+        else {
+            printf(" [0] ");
+        }
+    }
+    printf("\n");
+    output.push_back(0);
+    return output;
+}
+
 //! @}

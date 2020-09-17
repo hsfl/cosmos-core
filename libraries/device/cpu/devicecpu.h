@@ -119,7 +119,9 @@ public:
     pid_t getPidOf(string processName);
     double getMemoryUsedOf(string processName);
     float getPercentCpuOf(string processName);
-    uint16_t getCount();
+    int32_t getCpuCount();
+    int32_t getBootCount();
+    int32_t getUptime();
 
     class procPidStat {
 
@@ -256,7 +258,9 @@ public:
 
     // API functions (generic names)
     double getLoad();
-    uint16_t getCount();
+    uint16_t getCpuCount();
+    uint32_t getUptime();
+    uint16_t getBootCount();
     double getVirtualMemoryTotal();
     double getVirtualMemoryUsed();
     double getVirtualMemoryFree();

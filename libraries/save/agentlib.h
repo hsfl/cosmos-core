@@ -110,16 +110,16 @@ int32_t agent_get_server(cosmosstruc *cinfo, std::string node, std::string name,
 std::vector<beatstruc> agent_find_servers(cosmosstruc *cinfo, float waitsec);
 beatstruc agent_find_server(cosmosstruc* cinfo, std::string node, std::string proc, float waitsec);
 uint16_t agent_running(cosmosstruc *cinfo);
-int32_t agent_req_forward(char *request, char* response, void *root);
-int32_t agent_req_echo(char *request, char* response, void *root);
-int32_t agent_req_help(char *request, char* response, void *root);
-int32_t agent_req_shutdown(char *request, char* response, void *root);
-int32_t agent_req_idle(char *request, char* response, void *root);
-int32_t agent_req_run(char *request, char* response, void *root);
-int32_t agent_req_status(char *request, char* response, void *root);
-int32_t agent_req_getvalue(char *request, char* response, void *root);
-int32_t agent_req_setvalue(char *request, char* response, void *root);
-int32_t agent_req_listnames(char *request, char* response, void *root);
+int32_t agent_req_forward(string &request, string &response, void *root);
+int32_t agent_req_echo(string &request, string &response, void *root);
+int32_t agent_req_help(string &request, string &response, void *root);
+int32_t agent_req_shutdown(string &request, string &response, void *root);
+int32_t agent_req_idle(string &request, string &response, void *root);
+int32_t agent_req_run(string &request, string &response, void *root);
+int32_t agent_req_status(string &request, string &response, void *root);
+int32_t agent_req_getvalue(string &request, string &response, void *root);
+int32_t agent_req_setvalue(string &request, string &response, void *root);
+int32_t agent_req_listnames(string &request, string &response, void *root);
 
 // agent setup server
 cosmosstruc* agent_setup_server(std::string nodename, std::string agentname);

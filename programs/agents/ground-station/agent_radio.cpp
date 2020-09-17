@@ -178,19 +178,19 @@ bool initialized = false;
 int32_t lasterrorcode;
 char lasterrormessage[300];
 
-int32_t request_enable(char *request, char* response, Agent *);
-int32_t request_disable(char *request, char* response, Agent *);
-int32_t request_get_state(char *request, char* response, Agent *);
-int32_t request_get_bandpass(char *request, char* response, Agent *);
-int32_t request_get_frequency(char *request, char* response, Agent *);
-int32_t request_get_opmode(char *request, char* response, Agent *);
-int32_t request_get_powerin(char *request, char* response, Agent *);
-int32_t request_get_powerout(char *request, char* response, Agent *);
-int32_t request_set_bandpass(char *request, char* response, Agent *);
-int32_t request_set_frequency(char *request, char* response, Agent *);
-int32_t request_set_opmode(char *request, char* response, Agent *);
-int32_t request_set_maxpower(char *request, char* response, Agent *);
-int32_t request_set_offset(char *request, char* response, Agent *);
+int32_t request_enable(string &request, string &response, Agent *);
+int32_t request_disable(string &request, string &response, Agent *);
+int32_t request_get_state(string &request, string &response, Agent *);
+int32_t request_get_bandpass(string &request, string &response, Agent *);
+int32_t request_get_frequency(string &request, string &response, Agent *);
+int32_t request_get_opmode(string &request, string &response, Agent *);
+int32_t request_get_powerin(string &request, string &response, Agent *);
+int32_t request_get_powerout(string &request, string &response, Agent *);
+int32_t request_set_bandpass(string &request, string &response, Agent *);
+int32_t request_set_frequency(string &request, string &response, Agent *);
+int32_t request_set_opmode(string &request, string &response, Agent *);
+int32_t request_set_maxpower(string &request, string &response, Agent *);
+int32_t request_set_offset(string &request, string &response, Agent *);
 
 int32_t connect_radio();
 int32_t disconnect_radio();
@@ -457,21 +457,21 @@ int main(int argc, char *argv[])
     agent->shutdown();
 }
 
-int32_t request_enable(char *req, char* response, Agent *)
+int32_t request_enable(string &req, string &response, Agent *)
 {
     radioenabled = true;
     return 0;
 }
 
-int32_t request_disable(char *req, char* response, Agent *)
+int32_t request_disable(string &req, string &response, Agent *)
 {
     radioenabled = false;
     return 0;
 }
 
-int32_t request_get_state(char *req, char* response, Agent *)
+int32_t request_get_state(string &req, string &response, Agent *)
 {
-    sprintf(response,"[%.6f] Cx: %u En: %u Mode: %s TFreq: %.0f AFreq: %.0f Offset: %.0f PowerIn: %.2f PowerOut: %.2f MaxPower: %.2f",
+    response = ("[%.6f] Cx: %u En: %u Mode: %s TFreq: %.0f AFreq: %.0f Offset: %.0f PowerIn: %.2f PowerOut: %.2f MaxPower: %.2f",
             currentmjd(),
             radioconnected,
             radioenabled,
@@ -484,68 +484,68 @@ int32_t request_get_state(char *req, char* response, Agent *)
     return (0);
 }
 
-int32_t request_get_frequency(char *request, char* response, Agent *)
+int32_t request_get_frequency(string &request, string &response, Agent *)
 {
-    sprintf(response,"%f", agent->cinfo->device[deviceindex].tcv.freq);
+    response = ("%f", agent->cinfo->device[deviceindex].tcv.freq);
     return 0;
 }
 
-int32_t request_set_frequency(char *request, char* response, Agent *)
+int32_t request_set_frequency(string &request, string &response, Agent *)
 {
     //	int32_t iretn;
 
-    sscanf(request, "set_frequency %f", &target.freq);
+    sscanf(request.c_str(), "set_frequency %f", &target.freq);
     return 0;
 }
 
-int32_t request_get_bandpass(char *request, char* response, Agent *)
+int32_t request_get_bandpass(string &request, string &response, Agent *)
 {
-    sprintf(response,"%f", agent->cinfo->device[deviceindex].tcv.band);
+    response = ("%f", agent->cinfo->device[deviceindex].tcv.band);
     return 0;
 }
 
-int32_t request_set_bandpass(char *request, char* response, Agent *)
+int32_t request_set_bandpass(string &request, string &response, Agent *)
 {
     int32_t iretn = 0;
 
-    sscanf(request, "set_bandpass %f", &target.band);
+    sscanf(request.c_str(), "set_bandpass %f", &target.band);
     return iretn;
 }
 
-int32_t request_get_powerin(char *request, char* response, Agent *)
+int32_t request_get_powerin(string &request, string &response, Agent *)
 {
-    sprintf(response,"%f", agent->cinfo->device[deviceindex].tcv.powerin);
+    response = ("%f", agent->cinfo->device[deviceindex].tcv.powerin);
     return 0;
 }
 
-int32_t request_get_powerout(char *request, char* response, Agent *)
+int32_t request_get_powerout(string &request, string &response, Agent *)
 {
-    sprintf(response,"%f", agent->cinfo->device[deviceindex].tcv.powerout);
+    response = ("%f", agent->cinfo->device[deviceindex].tcv.powerout);
     return 0;
 }
 
-int32_t request_set_maxpower(char *request, char* response, Agent *)
+int32_t request_set_maxpower(string &request, string &response, Agent *)
 {
-    sscanf(request, "set_power %f", &target.maxpower);
+    sscanf(request.c_str(), "set_power %f", &target.maxpower);
     return 0;
 }
 
-int32_t request_set_offset(char *request, char* response, Agent *)
+int32_t request_set_offset(string &request, string &response, Agent *)
 {
-    sscanf(request, "set_offset %f", &freqoffset);
+    sscanf(request.c_str(), "set_offset %f", &freqoffset);
     return 0;
 }
 
-int32_t request_get_opmode(char *request, char* response, Agent *)
+int32_t request_get_opmode(string &request, string &response, Agent *)
 {
-    strcpy(response, opmode2string(agent->cinfo->device[deviceindex].tcv.opmode).c_str());
+    response = ( opmode2string(agent->cinfo->device[deviceindex].tcv.opmode).c_str());
     return 0;
 }
 
-int32_t request_set_opmode(char *request, char* response, Agent *)
+int32_t request_set_opmode(string &request, string &response, Agent *)
 {
     char mode[20];
-    sscanf(request, "set_opmode %s", mode);
+    sscanf(request.c_str(), "set_opmode %s", mode);
     switch (mode[strlen(mode)-1])
     {
     case '0':

@@ -187,16 +187,16 @@ double mjd2doy(double mjd);
 calstruc mjd2cal(double mjd);
 int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day);
 int32_t mjd2ymd(double mjd, int32_t &year, int32_t &month, double &day, double &doy);
-std::string mjdToGregorian(double mjd);
+string mjdToGregorian(double mjd);
 int32_t mjdToGregorian(double mjd, int32_t *year, int32_t *month, int32_t *day,
                        int32_t *hour, int32_t *minute, int32_t *second);
-std::string mjdToGregorianFormat(double mjd);
-std::string  mjdToGregorianDDMMMYYYY(double mjd);
-std::string  mjdToGregorianDDMmmYYYY(double mjd);
-std::string  mjd2iso8601(double mjd);
+string mjdToGregorianFormat(double mjd);
+string  mjdToGregorianDDMMMYYYY(double mjd);
+string  mjdToGregorianDDMmmYYYY(double mjd);
+string  mjd2iso8601(double mjd);
 double  mjd2jd(double mjd);
 double  jd2mjd(double jd);
-int32_t mjd2tlef(double mjd, std::string &tle);
+int32_t mjd2tlef(double mjd, string &tle);
 
 // other
 double unix2utc(struct timeval unixtime);
@@ -209,8 +209,9 @@ int32_t leap_seconds(double mjd);
 double  ranrm(double angle);
 int16_t isleap(int32_t year);
 int32_t load_iers();
-std::string  seconds2DDHHMMSS(double elapsed_seconds);
+string  seconds2DDHHMMSS(double elapsed_seconds);
 int32_t timed_countdown(int32_t seconds, int32_t step=10., string message="");
+double set_local_clock(double utc_to);
 
 
 //! @}

@@ -123,6 +123,15 @@
 //! \defgroup mathlib_typedefs Math library typedefs
 //! @{
 
+//! CRC-16-CCITT Normal
+#define CRC16CCITT 0x1021
+#define CRC16CCITTMSB 0x1021
+//! CRC-16-CCITT Reversed
+#define CRC16CCITTR 0x8408
+#define CRC16CCITTLSB 0x8408
+//! CRC-16-CCITT Reversed Reciprocal
+#define CRC16CCITTRR 0x8810
+
 
 //! Scalar value type Union
 /*! A union of double, float, int32, int16, unit32, uint16 that allows
@@ -346,7 +355,7 @@ void gauss_jackson_extrapolate(gj_instance *gji, double target);
 double fixangle(double angle);
 double actan(double y, double x);
 double fixprecision(double number, double precision);
-uint16_t calc_crc16ccitt(uint8_t *buf, int size);
+uint16_t calc_crc16ccitt(uint8_t *buf, int size, bool lsb=true);
 
 class LsFit
 {
