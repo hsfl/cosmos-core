@@ -200,14 +200,14 @@ int main(int argc, char *argv[])
         exit (1);
     }
 
-    if (nodename.empty())
-    {
-        agent = new Agent("", (antbase+"antenna").c_str(), 5.);
-    }
-    else
-    {
+//    if (nodename.empty())
+//    {
+//        agent = new Agent("", (antbase+"antenna").c_str(), 5.);
+//    }
+//    else
+//    {
         agent = new Agent(nodename, (antbase+"antenna").c_str(), 5.);
-    }
+//    }
 
     if ((iretn = agent->wait()) < 0)
     {
@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
         fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
-    iretn = json_createpiece(agent->cinfo, antbase.c_str(), DeviceType::ANT);
+    iretn = json_createpiece(agent->cinfo, antbase, DeviceType::ANT);
     if (iretn < 0)
     {
         fprintf(agent->get_debug_fd(), "Failed to add %s ANT %s\n", antbase.c_str(), cosmos_error_string(iretn).c_str());
