@@ -153,30 +153,35 @@ List of available requests:
 //#include "device/astrodev/astrodev_lib.h"
 #include "device/general/ic9100_lib.h"
 
-Agent *agent;
-std::string nodename;
-std::string agentname;
-size_t deviceindex;
-size_t radioindex = 9999;
-uint16_t radiotype = 9999;
-std::string radiodevice;
-uint16_t radioaddr;
-bool radioconnected = false;
-bool radioenabled = false;
-size_t channelnum = 0;
-float freqoffset;
+static Agent *agent;
+static std::string nodename="";
+static std::string radioname;
+static size_t deviceindex;
+static size_t radioindex = 9999;
+static std::string radiodevice;
+static uint16_t radioaddr;
+static bool radioconnected = false;
+static bool radioenabled = false;
+static size_t channelnum = 0;
+static float freqoffset;
+
+static uint16_t model;
+static uint16_t radiotype = static_cast<uint16_t>(DeviceType::NONE);
+static float freq;
+static float band;
+static uint8_t opmode = static_cast<uint8_t>(DEVICE_RADIO_MODE_UNDEF);
 
 //astrodev_handle astrodev;
-ts2000_state ts2000;
-ic9100_handle ic9100;
+static ts2000_state ts2000;
+static ic9100_handle ic9100;
 
-tcvstruc target;
-tcvstruc actual;
-tcvstruc initial;
-bool initialized = false;
+static tcvstruc target;
+static tcvstruc actual;
+static tcvstruc initial;
+static bool initialized = false;
 
-int32_t lasterrorcode;
-char lasterrormessage[300];
+static int32_t lasterrorcode;
+static char lasterrormessage[300];
 
 int32_t request_enable(string &request, string &response, Agent *);
 int32_t request_disable(string &request, string &response, Agent *);
@@ -202,25 +207,126 @@ int main(int argc, char *argv[])
 
     switch (argc)
     {
+    case 8:
+        model = atoi(argv[3]);
+        if ((string)"txr" == argv[4])
+        {
+            radiotype = static_cast<uint16_t>(DeviceType::TXR);
+        }
+        else if ((string)"rxr" == argv[4])
+        {
+            radiotype = static_cast<uint16_t>(DeviceType::RXR);
+        }
+        else if ((string)"tcv" == argv[4])
+        {
+            radiotype = static_cast<uint16_t>(DeviceType::TCV);
+        }
+        freq = atof(argv[5]);
+        band = atof(argv[6]);
+        if ((string)"am" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_AM);
+        }
+        else if ((string)"amd" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_AMD);
+        }
+        else if ((string)"fm" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_FM);
+        }
+        else if ((string)"fmd" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_FMD);
+        }
+        else if ((string)"lsb" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_LSB);
+        }
+        else if ((string)"lsbd" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_LSBD);
+        }
+        else if ((string)"usb" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_USB);
+        }
+        else if ((string)"usbd" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_USBD);
+        }
+        else if ((string)"dv" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_DV);
+        }
+        else if ((string)"dvd" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_DVD);
+        }
+        else if ((string)"cw" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_CW);
+        }
+        else if ((string)"cwr" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_CWR);
+        }
+        else if ((string)"rtty" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_RTTY);
+        }
+        else if ((string)"rttyr" == argv[7])
+        {
+            opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_RTTYR);
+        }
     case 3:
-        nodename = argv[1];
-        agentname = argv[2];
+        nodename = argv[2];
+    case 2:
+        radioname = argv[1];
         break;
     default:
-        printf("Usage: agent->radio {nodename} {radioname}");
+        printf("Usage: agent->radio radioname {nodename}");
         exit (1);
         break;
     }
 
     // Establish the command channel and heartbeat
-    if (!(agent = new Agent(nodename, agentname)))
+    if (!(agent = new Agent(nodename, radioname)))
     {
-        std::cout << agentname << ": agent->setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
+        std::cout << radioname << ": agent->setup_server failed (returned <"<<AGENT_ERROR_JSON_CREATE<<">)"<<std::endl;
         exit (AGENT_ERROR_JSON_CREATE);
     }
     else
     {
-        std::cout<<"Starting " << agentname << " for Node: " << nodename << std::endl;
+        std::cout<<"Starting " << radioname << " for Node: " << nodename << std::endl;
+    }
+
+    if (argc > 3)
+    {
+        switch (radiotype)
+        {
+        case static_cast<uint16_t>(DeviceType::TXR):
+            iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TXR);
+            deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+            radioindex = agent->cinfo->device[deviceindex].txr.didx;
+            break;
+        case static_cast<uint16_t>(DeviceType::RXR):
+            iretn = json_createpiece(agent->cinfo, radioname, DeviceType::RXR);
+            deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+            radioindex = agent->cinfo->device[deviceindex].rxr.didx;
+            break;
+        case static_cast<uint16_t>(DeviceType::TCV):
+            iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TCV);
+            deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
+            radioindex = agent->cinfo->device[deviceindex].tcv.didx;
+            break;
+        }
+        agent->cinfo->device[deviceindex].all.model = model;
+        agent->cinfo->device[deviceindex].all.type = radiotype;
+        agent->cinfo->device[deviceindex].tcv.freq = freq;
+        agent->cinfo->device[deviceindex].tcv.band = band;
+        agent->cinfo->device[deviceindex].tcv.opmode = opmode;
+        iretn = json_dump_node(agent->cinfo);
     }
 
     // Add requests
@@ -259,7 +365,7 @@ int main(int argc, char *argv[])
         {
             deviceindex = agent->cinfo->devspec.rxr[i];
             radioindex = i;
-            radiotype = (uint16_t)DeviceType::RXR;
+            radiotype = static_cast<uint16_t>(DeviceType::RXR);
             break;
         }
     }
@@ -268,11 +374,11 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
         {
-            if (!strcmp(argv[2], agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].all.pidx].name))
+            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].all.pidx].name))
             {
                 deviceindex = agent->cinfo->devspec.txr[i];
                 radioindex = i;
-                radiotype = (uint16_t)DeviceType::TXR;
+                radiotype = static_cast<uint16_t>(DeviceType::TXR);
                 break;
             }
         }
@@ -282,11 +388,11 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
         {
-            if (!strcmp(argv[2], agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name))
+            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name))
             {
                 deviceindex = agent->cinfo->devspec.tcv[i];
                 radioindex = i;
-                radiotype = (uint16_t)DeviceType::TCV;
+                radiotype = static_cast<uint16_t>(DeviceType::TCV);
                 break;
             }
         }
@@ -294,7 +400,7 @@ int main(int argc, char *argv[])
 
     if (radiotype == 9999)
     {
-        std::cout<<"Exiting " << agentname << " for Node: " << nodename << " no radio found." << std::endl;
+        std::cout<<"Exiting " << radioname << " for Node: " << nodename << " no radio found." << std::endl;
         agent->shutdown();
         exit (1);
     }
@@ -303,12 +409,12 @@ int main(int argc, char *argv[])
     char sohstring[200];
     switch (radiotype)
     {
-    case (uint16_t)DeviceType::TXR:
+    case static_cast<uint16_t>(DeviceType::TXR):
         sprintf(sohstring, "{\"device_txr_freq_%03lu\",\"device_txr_maxpower_%03lu\",\"device_txr_power_%03lu\",\"device_txr_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex);
         break;
-    case (uint16_t)DeviceType::RXR:
+    case static_cast<uint16_t>(DeviceType::RXR):
         sprintf(sohstring, "{\"device_rxr_freq_%03lu\",\"device_rxr_power_%03lu\",\"device_rxr_band_%03lu\",\"device_rxr_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex);
-    case (uint16_t)DeviceType::TCV:
+    case static_cast<uint16_t>(DeviceType::TCV):
         sprintf(sohstring, "{\"device_tcv_freq_%03lu\",\"device_tcv_powerin_%03lu\",\"device_tcv_powerout_%03lu\",\"device_tcv_maxpower_%03lu\",\"device_tcv_band_%03lu\",\"device_tcv_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex, radioindex, radioindex);
         break;
     }
