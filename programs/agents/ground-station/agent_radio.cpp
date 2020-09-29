@@ -164,6 +164,7 @@ static bool radioconnected = false;
 static bool radioenabled = false;
 static size_t channelnum = 0;
 static float freqoffset;
+static string port;
 
 static uint16_t model;
 static uint16_t radiotype = static_cast<uint16_t>(DeviceType::NONE);
@@ -207,75 +208,86 @@ int main(int argc, char *argv[])
 
     switch (argc)
     {
-    case 8:
-        model = atoi(argv[3]);
-        if ((string)"txr" == argv[4])
+    case 9:
+        if (static_cast<string>("ic9100") == argv[3])
+        {
+            model = static_cast<uint16_t>(DEVICE_MODEL_IC9100);
+            port = argv[8];
+            radioaddr = stoi(port.substr(port.find(':')));
+            port = port.substr(0, port.find(':'));
+        }
+        else if (static_cast<string>("astrodev") == argv[3])
+        {
+            model = static_cast<uint16_t>(DEVICE_MODEL_ASTRODEV);
+            port = argv[8];
+        }
+        if (static_cast<string>("txr") == argv[4])
         {
             radiotype = static_cast<uint16_t>(DeviceType::TXR);
         }
-        else if ((string)"rxr" == argv[4])
+        else if (static_cast<string>("rxr") == argv[4])
         {
             radiotype = static_cast<uint16_t>(DeviceType::RXR);
         }
-        else if ((string)"tcv" == argv[4])
+        else if (static_cast<string>("tcv") == argv[4])
         {
             radiotype = static_cast<uint16_t>(DeviceType::TCV);
         }
         freq = atof(argv[5]);
         band = atof(argv[6]);
-        if ((string)"am" == argv[7])
+        if (static_cast<string>("am") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_AM);
         }
-        else if ((string)"amd" == argv[7])
+        else if (static_cast<string>("amd") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_AMD);
         }
-        else if ((string)"fm" == argv[7])
+        else if (static_cast<string>("fm") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_FM);
         }
-        else if ((string)"fmd" == argv[7])
+        else if (static_cast<string>("fmd") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_FMD);
         }
-        else if ((string)"lsb" == argv[7])
+        else if (static_cast<string>("lsb") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_LSB);
         }
-        else if ((string)"lsbd" == argv[7])
+        else if (static_cast<string>("lsbd") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_LSBD);
         }
-        else if ((string)"usb" == argv[7])
+        else if (static_cast<string>("usb") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_USB);
         }
-        else if ((string)"usbd" == argv[7])
+        else if (static_cast<string>("usbd") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_USBD);
         }
-        else if ((string)"dv" == argv[7])
+        else if (static_cast<string>("dv") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_DV);
         }
-        else if ((string)"dvd" == argv[7])
+        else if (static_cast<string>("dvd") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_DVD);
         }
-        else if ((string)"cw" == argv[7])
+        else if (static_cast<string>("cw") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_CW);
         }
-        else if ((string)"cwr" == argv[7])
+        else if (static_cast<string>("cwr") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_CWR);
         }
-        else if ((string)"rtty" == argv[7])
+        else if (static_cast<string>("rtty") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_RTTY);
         }
-        else if ((string)"rttyr" == argv[7])
+        else if (static_cast<string>("rttyr") == argv[7])
         {
             opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_RTTYR);
         }
@@ -322,10 +334,15 @@ int main(int argc, char *argv[])
             break;
         }
         agent->cinfo->device[deviceindex].all.model = model;
+        if (model == static_cast<uint16_t>(DEVICE_MODEL_IC9100))
+        {
+            agent->cinfo->device[deviceindex].all.addr = radioaddr;
+        }
         agent->cinfo->device[deviceindex].all.type = radiotype;
         agent->cinfo->device[deviceindex].tcv.freq = freq;
         agent->cinfo->device[deviceindex].tcv.band = band;
         agent->cinfo->device[deviceindex].tcv.opmode = opmode;
+        json_createport(agent->cinfo, port, PORT_TYPE_RS232);
         iretn = json_dump_node(agent->cinfo);
     }
 
@@ -414,6 +431,7 @@ int main(int argc, char *argv[])
         break;
     case static_cast<uint16_t>(DeviceType::RXR):
         sprintf(sohstring, "{\"device_rxr_freq_%03lu\",\"device_rxr_power_%03lu\",\"device_rxr_band_%03lu\",\"device_rxr_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex);
+        break;
     case static_cast<uint16_t>(DeviceType::TCV):
         sprintf(sohstring, "{\"device_tcv_freq_%03lu\",\"device_tcv_powerin_%03lu\",\"device_tcv_powerout_%03lu\",\"device_tcv_maxpower_%03lu\",\"device_tcv_band_%03lu\",\"device_tcv_opmode_%03lu\"}", radioindex, radioindex, radioindex, radioindex, radioindex, radioindex);
         break;
