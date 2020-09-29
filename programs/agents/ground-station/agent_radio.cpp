@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
         {
             model = static_cast<uint16_t>(DEVICE_MODEL_IC9100);
             port = argv[8];
-            radioaddr = stoi(port.substr(port.find(':')));
+            radioaddr = stoi(port.substr(port.find(':')+1));
             port = port.substr(0, port.find(':'));
         }
         else if (static_cast<string>("astrodev") == argv[3])
