@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
         radioname = argv[1];
         break;
     default:
-        printf("Usage: agent->radio radioname {nodename}");
+        printf("Usage: agent->radio radioname [nodename  [ic9100/astrodev txr/rxr/tcv frequency bandwidth mode device:addr]]");
         exit (1);
         break;
     }
@@ -342,7 +342,11 @@ int main(int argc, char *argv[])
         agent->cinfo->device[deviceindex].tcv.freq = freq;
         agent->cinfo->device[deviceindex].tcv.band = band;
         agent->cinfo->device[deviceindex].tcv.opmode = opmode;
-        json_createport(agent->cinfo, port, PORT_TYPE_RS232);
+        iretn = json_createport(agent->cinfo, port, PORT_TYPE_RS232);
+        if (iretn >= 0)
+        {
+            agent->cinfo->device[deviceindex].all.portidx = iretn;
+        }
         iretn = json_dump_node(agent->cinfo);
     }
 
