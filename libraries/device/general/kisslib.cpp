@@ -30,118 +30,148 @@
 #include "support/configCosmos.h"
 #include "device/general/kisslib.h"
 
-KissHandle::KissHandle( int port, int comm, const char dest_call[], char dest_stat, const char sour_call[], char sour_stat, char cont, char prot)
-: port_number(port), command(comm), destination_stationID(dest_stat), source_stationID(sour_stat), control(cont), protocolID(prot)
+KissHandle::KissHandle(const string &device, string dest_call, string sour_call, uint8_t port, uint8_t comm, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)
 {
-	strcpy((char*)destination_callsign, (const char*)dest_call);
-	strcpy((char*)source_callsign, (const char*)sour_call);
-}
-
-KissHandle::KissHandle() : port_number(1), command(0), destination_stationID('\x60'), source_stationID('\x61'), control('\x31'), protocolID('\xF0')
-{
-	destination_callsign[0]='\0';
-	source_callsign[0]='\0';
+    handle = new Serial(device, 19200);
+    set_port_number(port);
+    set_command(comm);
+    set_destination_callsign(dest_call);
+    set_destination_stationID(dest_stat);
+    set_source_callsign(sour_call);
+    set_source_stationID(sour_stat);
+    set_control(cont);
+    set_protocolID(prot);
 }
 
 //Set and get functions for all members of the KissHandle class
-void KissHandle::set_port_number(unsigned int P)
+void KissHandle::set_port_number(uint8_t P)
 {
-	port_number = P;
+    header.port_number = P;
 	return;
 }
 
-unsigned int KissHandle::get_port_number()
+uint8_t KissHandle::get_port_number()
 {
-	return port_number;
+    return header.port_number;
 }
 
-void KissHandle::set_command(unsigned int C)
+void KissHandle::set_command(uint8_t C)
 {
-	command = C;
+    header.command = C;
 	return;	
 }
 
-unsigned int KissHandle::get_command()
+uint8_t KissHandle::get_command()
 {
-	return command;
+    return header.command;
 
 }
 
-void KissHandle::set_destination_callsign(const char destination[])
-{ 
-	strcpy((char*)destination_callsign, (const char*) destination);
+void KissHandle::set_destination_callsign(string destination)
+{
+    for (uint16_t i=0; i<6; ++i)
+    {
+        if (i >= destination.length())
+        {
+            header.destination_callsign[i] = 0x20 << 1;
+        }
+        else
+        {
+            header.destination_callsign[i] = destination[i] << 1;
+        }
+    }
 	return;
 }
 
-unsigned char* KissHandle::get_destination_callsign()
+string KissHandle::get_destination_callsign()
 {
-	return destination_callsign;
+    string callsign;
+    for (uint8_t byte : header.destination_callsign)
+    {
+        callsign.push_back(byte >> 1);
+    }
+    return callsign;
 }
 
-void KissHandle::set_destination_stationID(unsigned int ID)
+void KissHandle::set_destination_stationID(uint8_t ID)
 {
-	destination_stationID = ID;
+    header.destination_stationID = ID;
 	return;
 }
 
-unsigned int KissHandle::get_destination_stationID()
+uint8_t KissHandle::get_destination_stationID()
 {
-	return destination_stationID;
+    return header.destination_stationID;
 }
 
-void KissHandle::set_source_callsign(const char source[])
+void KissHandle::set_source_callsign(string source)
 {
-	strcpy((char*)source_callsign, (const char*) source);
-	return; 
+    for (uint16_t i=0; i<6; ++i)
+    {
+        if (i >= source.length())
+        {
+            header.source_callsign[i] = 0x20 << 1;
+        }
+        else
+        {
+            header.source_callsign[i] = source[i] << 1;
+        }
+    }
+    return;
 }
 
-unsigned char* KissHandle::get_source_callsign()
+std::string KissHandle::get_source_callsign()
 {
-	return source_callsign;
+    string callsign;
+    for (uint8_t byte : header.source_callsign)
+    {
+        callsign.push_back(byte >> 1);
+    }
+    return callsign;
 }
 
-void KissHandle::set_source_stationID(unsigned int ID)
+void KissHandle::set_source_stationID(uint8_t ID)
 {
-	source_stationID = ID;
+    header.source_stationID = ID;
 	return;
 }
 
-unsigned int KissHandle::get_source_stationID()
+uint8_t KissHandle::get_source_stationID()
 {
-	return source_stationID;
+    return header.source_stationID;
 }
 
-void KissHandle::set_control(unsigned int control_number)
+void KissHandle::set_control(uint8_t control_number)
 {
-	control = control_number;
+    header.control = control_number;
 	return;
 }
 
-unsigned int KissHandle::get_control()
+uint8_t KissHandle::get_control()
 {
-	return control;
+    return header.control;
 }
 
-void KissHandle::set_protocolID(unsigned int protocol)
+void KissHandle::set_protocolID(uint8_t protocol)
 {
-	protocolID = protocol;
+    header.protocolID = protocol;
 	return;
 }
 
-unsigned int KissHandle::get_protocolID()
+uint8_t KissHandle::get_protocolID()
 {
-	return protocolID;
+    return header.protocolID;
 }
 
 std::ostream& operator<< (std::ostream& out, KissHandle& K)	{
-    out<<"port_number= "<< K.port_number<<std::endl;
-    out<<"command="<< K.command<<std::endl;
-    out<<"destination callsign=<"<< K.destination_callsign<<">"<<std::endl;
-    out<<"destination station ID="<< K.destination_stationID<<std::endl;
-    out<<"source callsign=<"<< K.source_callsign<<">"<<std::endl;
-    out<<"source station ID="<< K.source_stationID<<std::endl;
-    out<<"control="<< K.control<<std::endl;
-    out<<"protocol ID="<< K.protocolID<<std::endl;
+    out<<"port_number= "<< K.header.port_number<<std::endl;
+    out<<"command="<< K.header.command<<std::endl;
+    out<<"destination callsign=<"<< K.header.destination_callsign<<">"<<std::endl;
+    out<<"destination station ID="<< K.header.destination_stationID<<std::endl;
+    out<<"source callsign=<"<< K.header.source_callsign<<">"<<std::endl;
+    out<<"source station ID="<< K.header.source_stationID<<std::endl;
+    out<<"control="<< K.header.control<<std::endl;
+    out<<"protocol ID="<< K.header.protocolID<<std::endl;
 
 	return out;
 }
@@ -151,7 +181,7 @@ std::ostream& operator<< (std::ostream& out, KissHandle& K)	{
 
 
 
-int kissEncode(uint8_t *input, uint32_t count, uint8_t *encoded_packet)
+int kissEncode(uint8_t *input, uint32_t count, uint8_t *packet)
 {
 	uint32_t payload_bytes = 0;
 
@@ -165,60 +195,60 @@ int kissEncode(uint8_t *input, uint32_t count, uint8_t *encoded_packet)
 //Build Packet Header
 
 	//Frame End (1 Byte)
-	*encoded_packet = FEND;
+    *packet = FEND;
 	//Port number and command type (1Byte)
-	*(encoded_packet+1) = 0x10;
+    *(packet+1) = 0x10;
 	//Destination call sign(6Bytes)
-	*(encoded_packet+2) = ('W' << 1);
-	*(encoded_packet+3) = ('H' << 1);
-	*(encoded_packet+4) = ('7' << 1);
-	*(encoded_packet+5) = ('L' << 1);
-	*(encoded_packet+6) = ('G' << 1);
-	*(encoded_packet+7) = (0x20 << 1);
+    *(packet+2) = ('W' << 1);
+    *(packet+3) = ('H' << 1);
+    *(packet+4) = ('7' << 1);
+    *(packet+5) = ('L' << 1);
+    *(packet+6) = ('G' << 1);
+    *(packet+7) = (0x20 << 1);
 	//Destination station ID (1Byte)
-	*(encoded_packet+8) = 0X60;
+    *(packet+8) = 0X60;
 	//Source call sign (6Bytes)
-	*(encoded_packet+9) = ('W' << 1);
-	*(encoded_packet+10) = ('H' << 1);
-	*(encoded_packet+11) = ('7' << 1);
-	*(encoded_packet+12) = ('L' << 1);
-	*(encoded_packet+13) = ('E' << 1);
-	*(encoded_packet+14) = (0x20 << 1);
+    *(packet+9) = ('W' << 1);
+    *(packet+10) = ('H' << 1);
+    *(packet+11) = ('7' << 1);
+    *(packet+12) = ('L' << 1);
+    *(packet+13) = ('E' << 1);
+    *(packet+14) = (0x20 << 1);
 	//Source station ID (1Byte)
-	*(encoded_packet+15) = 0x61;
+    *(packet+15) = 0x61;
 	//Control(1Byte)
-	*(encoded_packet+16) = 0X31;
+    *(packet+16) = 0X31;
 	//Protocol ID (1Byte)
-	*(encoded_packet+17) = 0xF0; // 0xF0 = No layer 3 protocol
+    *(packet+17) = 0xF0; // 0xF0 = No layer 3 protocol
 
-	encoded_packet += 18;
+    packet += 18;
 
 	for(uint32_t i=0; i<count; i++)
 	{
 		// Replace FEND with FESC TFEND
 		if (input[i] == FEND)
 		{
-			*encoded_packet++ = FESC;
-			*encoded_packet++ = TFEND;
+            *packet++ = FESC;
+            *packet++ = TFEND;
 			payload_bytes += 2;	// Advance Payload Data Count 2 Bytes
 		} 
 		// Replace FESC with FESC TFESC
 		else if (input[i] == FESC)
 		{
-			*encoded_packet++ = FESC;
-			*encoded_packet++ = TFESC;
+            *packet++ = FESC;
+            *packet++ = TFESC;
 			payload_bytes += 2;	// Advance Payload Data Count 2 Bytes
 		}
 		// Copy Input
 		else
 		{
-			*encoded_packet++ = input[i];
+            *packet++ = input[i];
 			payload_bytes++;	// Advance Payload Data Count 1 Byte
 		}
 	}
 
 	//Placing final frame-end
-	*encoded_packet= FEND;
+    *packet= FEND;
 
 	//Keeping track of the count (payload bytes + header bytes + trailer)
 	payload_bytes += 19;
@@ -226,96 +256,75 @@ int kissEncode(uint8_t *input, uint32_t count, uint8_t *encoded_packet)
 	return payload_bytes;
 }
 
-
-
-//*************New kissEncode Starts Here*********************************************************************************************************************************************************************************************************************************
-
-int kissEncode(uint8_t* input, uint32_t count, uint8_t* encoded_packet, KissHandle* handle)
+int KissHandle::set_data(vector<uint8_t> input)
 {
-	uint32_t payload_bytes = 0;
+    if(input.size() > 255)
+    {
+        return GENERAL_ERROR_OVERSIZE;
+    }
 
-	//If payload is over 255 bytes indicate an error
-	if(count > 255)
-	{
-		printf("Error: Limit input to 255 8-bit character bytes\n");
-		return -1;
-	}
-
-//Build Packet Header
-
-	//Frame End (1 Byte)
-	*encoded_packet = FEND;
-	
-	//Port number and command type (1Byte)
-	*(encoded_packet+1) = 0x10;
-	
-	//Destination call sign(6Bytes)
-	unsigned char dest_callsign[6];
-	strcpy((char*) dest_callsign, (const char*)handle->get_destination_callsign());
-	*(encoded_packet+2) =  (dest_callsign[0]) << 1;
-	*(encoded_packet+3) =  (dest_callsign[1]) << 1;
-	*(encoded_packet+4) =  (dest_callsign[2]) << 1;
-	*(encoded_packet+5) =  (dest_callsign[3]) << 1;
-	*(encoded_packet+6) =  (dest_callsign[4]) << 1;
-	*(encoded_packet+7) =  (0x20) << 1;
-    	
-	//Destination station ID (1Byte)
-	*(encoded_packet+8) = handle->get_destination_stationID();
-	
-	//Source call sign (6Bytes)
-	unsigned char src_callsign[6];
-	strcpy((char*) src_callsign, (const char*) handle->get_source_callsign());
-	*(encoded_packet+9)  =  (src_callsign[0]) << 1;
-	*(encoded_packet+10) =  (src_callsign[1]) << 1;
-	*(encoded_packet+11) =  (src_callsign[2]) << 1;
-	*(encoded_packet+12) =  (src_callsign[3]) << 1;
-	*(encoded_packet+13) =  (src_callsign[4]) << 1;
-	*(encoded_packet+14) =  (0x20) << 1;
-
-	//Source station ID (1Byte)
-	*(encoded_packet+15) = handle->get_source_stationID();
-
-	//Control(1Byte)
-	*(encoded_packet+16) = handle->get_control();
-
-	//Protocol ID (1Byte)
-	*(encoded_packet+17) = handle->get_protocolID(); // 0xF0 = No layer 3 protocol
-
-	encoded_packet += 18;
-
-	for(uint32_t i=0; i<count; i++)
-	{
-		// Replace FEND with FESC TFEND
-		if (input[i] == FEND)
-		{
-			*encoded_packet++ = FESC;
-			*encoded_packet++ = TFEND;
-			payload_bytes += 2;	// Advance Payload Data Count 2 Bytes
-		} 
-		// Replace FESC with FESC TFESC
-		else if (input[i] == FESC)
-		{
-			*encoded_packet++ = FESC;
-			*encoded_packet++ = TFESC;
-			payload_bytes += 2;	// Advance Payload Data Count 2 Bytes
-		}
-		// Copy Input
-		else
-		{
-			*encoded_packet++ = input[i];
-			payload_bytes++;	// Advance Payload Data Count 1 Byte
-		}
-	}
-
-	//Placing final frame-end
-	*encoded_packet= FEND;
-
-	//Keeping track of the count (payload bytes + header bytes + trailer)
-	payload_bytes += 19;
-
-	return payload_bytes;
+    data = input;
+    return 0;
 }
-//***********New kissEncode Ends Here***********************************************************************************************************************************************************************************************************************************
+
+vector <uint8_t> KissHandle::get_data()
+{
+    return data;
+}
+
+int32_t KissHandle::load_packet()
+{
+//    vector <uint8_t> edata;
+//    slip_encode(data, edata);
+//    int32_t tsize = 20 + edata.size();
+
+//    packet.resize(tsize);
+//    //Frame Begin (1 Byte)
+//    packet[0] = FEND;
+//    memcpy(&packet[1], &header, 18);
+//    memcpy(&packet[19], &edata[0], edata.size());
+//    packet[tsize] = FEND;
+    int32_t tsize = 17 + data.size();
+    packet.resize(tsize);
+    memcpy(&packet[0], &header, 17);
+    memcpy(&packet[17], &data[0], data.size());
+
+    return tsize;
+}
+
+int32_t KissHandle::unload_packet()
+{
+    memcpy(&header, &packet[0], 17);
+//    memcpy(&header, &packet[1], 17);
+//    int32_t tsize = packet.size() - 20;
+
+//    vector <uint8_t> edata;
+//    edata.resize(tsize);
+//    memcpy(&edata[0], &packet[19], edata.size());
+//    slip_decode(edata, data);
+    return 0;
+}
+
+bool KissHandle::get_open()
+{
+    error = handle->get_error();
+    return handle->get_open();
+}
+
+Serial *KissHandle::get_serial()
+{
+    return handle;
+}
+
+int32_t KissHandle::get_error()
+{
+    return error;
+}
+
+vector <uint8_t> KissHandle::get_packet()
+{
+    return packet;
+}
 
 KissHandle kissInspect(const unsigned char* input)	{
 
@@ -348,12 +357,12 @@ KissHandle kissInspect(const unsigned char* input)	{
 		//printf("%c", destination_call_sign[i-2]);
 	}
 	//Copying destination callsign into KissHandle
-	KKK.set_destination_callsign((const char*) destination_call_sign);
-	//strcpy((char *)KKK.destination_callsign, (const char *) destination_call_sign);
+    KKK.set_destination_callsign((const char*) destination_call_sign);
+    //strcpy((char *)KKK.header.destination_callsign, (const char *) destination_call_sign);
 	
 	//Copying destination callsign ID into KissHandle
-	KKK.set_destination_stationID((unsigned int) destination_station_id);
-	//KKK.destination_stationID = destination_station_id;
+    KKK.set_destination_stationID((uint8_t) destination_station_id);
+    //KKK.header.destination_stationID = destination_station_id;
 
 	//printf("\n");
 	
@@ -365,20 +374,20 @@ KissHandle kissInspect(const unsigned char* input)	{
 		//printf("%c", source_call_sign[i-9]);
 	}
 	//Copying source callsign into KissHandle
-	KKK.set_source_callsign((const char*) source_call_sign);
-	//strcpy((char *)KKK.source_callsign, (const char *) source_call_sign);
+    KKK.set_source_callsign((const char*) source_call_sign);
+    //strcpy((char *)KKK.header.source_callsign, (const char *) source_call_sign);
 	
 	//Copying source station ID into KissHandle
-	KKK.set_source_stationID((unsigned int) source_station_id);
-	//KKK.source_stationID = source_station_id;
+    KKK.set_source_stationID((uint8_t) source_station_id);
+    //KKK.header.source_stationID = source_station_id;
 	
 	//Copying control into KissHandle
-	KKK.set_control((unsigned int) control_id);
-	//KKK.control = control_id;
+    KKK.set_control((uint8_t) control_id);
+    //KKK.header.control = control_id;
 
 	//Copying protocol ID into KissHandle
-	KKK.set_protocolID((unsigned int) protocol_id);
-	//KKK.protocolID = protocol_id;
+    KKK.set_protocolID((uint8_t) protocol_id);
+    //KKK.header.protocolID = protocol_id;
 	
 	
 	//printf("\n");
@@ -391,7 +400,7 @@ KissHandle kissInspect(const unsigned char* input)	{
 
 // Decodes input (using KISS protocol) into payload
 // returns bytes in payload of packet
-/*int kissDecode(uint8_t* input, uint32_t count, uint8_t* decoded_payload)
+/*int kissDecode(uint8_t* input, uint32_t count, uint8_t* unload_packetd_payload)
 {
 	uint32_t i = 0;
 	uint32_t j = 0;
@@ -462,14 +471,14 @@ KissHandle kissInspect(const unsigned char* input)	{
 		 if(intermediate_packet[j+1] == TFEND) // Check for TFEND || intermediate_packet[j+1] == TFESC) //if transp
 		 {
 			intermediate_packet[j] = FEND;
-			decoded_payload[i] = intermediate_packet[j];
+            unload_packetd_payload[i] = intermediate_packet[j];
 			j+=2;
 			i++;
 		 }
 		 else if(intermediate_packet[j+1] == TFESC)	// Check for TFESC
 		 {
 			intermediate_packet[j] = FESC;
-			decoded_payload[i] = intermediate_packet[j];
+            unload_packetd_payload[i] = intermediate_packet[j];
 			j+=2;
 			i++;
 		 }
@@ -480,7 +489,7 @@ KissHandle kissInspect(const unsigned char* input)	{
 	 }
 	 else
 	{
-	 	decoded_payload[i] = intermediate_packet[j];
+        unload_packetd_payload[i] = intermediate_packet[j];
 	 	j++;
 	 	i++;
 	 }
@@ -494,79 +503,145 @@ KissHandle kissInspect(const unsigned char* input)	{
 
 // Decodes input (using KISS protocol) into payload
 // returns bytes in payload of packet
-int kissDecode(uint8_t* kissed_input, uint32_t, uint8_t* decoded_payload)
+int kissDecode(uint8_t* kissed_input, uint32_t, uint8_t* unload_packetd_payload)
 {
-	uint32_t i = 0;
-	uint32_t j = 0;
-	uint8_t encoded_payload[PACKETMAX];
-	
-	///Encoded payload will act as an intermediate packet holding the encoded data.
-	//It will be used to hold the encoded data while being decoding.
-	for(i=18; kissed_input[i] != FEND; i++)	// FEND = FEND
-	{
-		j = i - 18; // pointer to 0 in intermediate
-		encoded_payload[j] = kissed_input[i];
-	}
-	
-	///Frame end appended to packet after all the header is removed.
-	//We do this to pinpoint where we can stop the decoding process.
-	encoded_payload[j+1]=FEND;
+    uint32_t i = 0;
+    uint32_t j = 0;
+    uint8_t load_packetd_payload[PACKETMAX];
 
-	
-	//check the read in data
-	i = 0;
-	j = 0;
-	
-	for(;j <= PACKETMAX;)
-	{
-	 	//Function will return i once the appended FEND is read in
-		if(encoded_payload[j] == FEND)
-		 	return i;
+    ///Encoded payload will act as an intermediate packet holding the load_packetd data.
+    //It will be used to hold the load_packetd data while being decoding.
+    for(i=18; kissed_input[i] != FEND; i++)	// FEND = FEND
+    {
+        j = i - 18; // pointer to 0 in intermediate
+        load_packetd_payload[j] = kissed_input[i];
+    }
 
-	 	if(encoded_payload[j] == FESC) //if FESC
-	 	{
-		 	if(encoded_payload[j+1] == TFEND) // Check for TFEND
-		 	{
-				encoded_payload[j] = FEND;
-				decoded_payload[i] = encoded_payload[j];
-				j+=2;
-				i++;
-		 	}	
-		 
-		 	else if(encoded_payload[j+1] == TFESC)	// Check for TFESC
-		 	{	
-				encoded_payload[j] = FESC;
-				decoded_payload[i] = encoded_payload[j];
-				j+=2;
-				i++;
-		 	}
-		 
-		 	else
-		 	{
-				printf("Invalid Transpose Error!!!\n"); //Error occurred if TFEND or TFESC does not follow a FESC
-		 	}
-	 	}
-	 
-	 	else
-	 	{
-	 		decoded_payload[i] = encoded_payload[j];
-	 		j++;
-	 		i++;
-	 	}
-	}
-	
-	return 0;
+    ///Frame end appended to packet after all the header is removed.
+    //We do this to pinpoint where we can stop the decoding process.
+    load_packetd_payload[j+1]=FEND;
+
+
+    //check the read in data
+    i = 0;
+    j = 0;
+
+    for(;j <= PACKETMAX;)
+    {
+        //Function will return i once the appended FEND is read in
+        if(load_packetd_payload[j] == FEND)
+            return i;
+
+        if(load_packetd_payload[j] == FESC) //if FESC
+        {
+            if(load_packetd_payload[j+1] == TFEND) // Check for TFEND
+            {
+                load_packetd_payload[j] = FEND;
+                unload_packetd_payload[i] = load_packetd_payload[j];
+                j+=2;
+                i++;
+            }
+
+            else if(load_packetd_payload[j+1] == TFESC)	// Check for TFESC
+            {
+                load_packetd_payload[j] = FESC;
+                unload_packetd_payload[i] = load_packetd_payload[j];
+                j+=2;
+                i++;
+            }
+
+            else
+            {
+                printf("Invalid Transpose Error!!!\n"); //Error occurred if TFEND or TFESC does not follow a FESC
+            }
+        }
+
+        else
+        {
+            unload_packetd_payload[i] = load_packetd_payload[j];
+            j++;
+            i++;
+        }
+    }
+
+    return 0;
 }
+
+// Decodes input (using KISS protocol) into payload
+// returns bytes in payload of packet
+//int KissHandle::unload_packet(vector <uint8_t> kissed_input, KissHandle &handle)
+//{
+//    uint32_t i = 0;
+//    uint32_t j = 0;
+//    uint8_t load_packetd_payload[PACKETMAX];
+
+//    ///Encoded payload will act as an intermediate packet holding the load_packetd data.
+//    //It will be used to hold the load_packetd data while being decoding.
+//    for(i=18; kissed_input[i] != FEND; i++)	// FEND = FEND
+//    {
+//        j = i - 18; // pointer to 0 in intermediate
+//        load_packetd_payload[j] = kissed_input[i];
+//    }
+
+//    ///Frame end appended to packet after all the header is removed.
+//    //We do this to pinpoint where we can stop the decoding process.
+//    load_packetd_payload[j+1]=FEND;
+
+
+//    //check the read in data
+//    i = 0;
+//    j = 0;
+
+//    for(;j <= PACKETMAX;)
+//    {
+//        //Function will return i once the appended FEND is read in
+//        if(load_packetd_payload[j] == FEND)
+//            return i;
+
+//        if(load_packetd_payload[j] == FESC) //if FESC
+//        {
+//            if(load_packetd_payload[j+1] == TFEND) // Check for TFEND
+//            {
+//                load_packetd_payload[j] = FEND;
+//                unload_packetd_payload[i] = load_packetd_payload[j];
+//                j+=2;
+//                i++;
+//            }
+
+//            else if(load_packetd_payload[j+1] == TFESC)	// Check for TFESC
+//            {
+//                load_packetd_payload[j] = FESC;
+//                unload_packetd_payload[i] = load_packetd_payload[j];
+//                j+=2;
+//                i++;
+//            }
+
+//            else
+//            {
+//                printf("Invalid Transpose Error!!!\n"); //Error occurred if TFEND or TFESC does not follow a FESC
+//            }
+//        }
+
+//        else
+//        {
+//            unload_packetd_payload[i] = load_packetd_payload[j];
+//            j++;
+//            i++;
+//        }
+//    }
+
+//    return 0;
+//}
 //***********************New kissDecode Ends Here*****************************************************************************************************************************************************************************************************************************************************
 
 
 //Packet printing functions
 
-void print_ascii(unsigned char* packet, unsigned int count)
+void print_ascii(unsigned char* packet, uint8_t count)
 {
 
     std::cout<<"<";
-	for(unsigned int i=0; i<count; i++)
+    for(uint8_t i=0; i<count; i++)
 		printf("%c", packet[i]);	
     std::cout<<">"<<std::endl;
 
@@ -574,10 +649,10 @@ void print_ascii(unsigned char* packet, unsigned int count)
 }
 
 
-void print_hex(unsigned char* packet, unsigned int count)
+void print_hex(unsigned char* packet, uint8_t count)
 {
     std::cout<<"<";
-	for(unsigned int i=0; i<count; i++)
+    for(uint8_t i=0; i<count; i++)
 		printf("%02x", packet[i]);	
     std::cout<<">"<<std::endl;
 
