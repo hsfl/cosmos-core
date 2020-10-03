@@ -599,16 +599,21 @@ int32_t request_disable(string &req, string &response, Agent *)
 
 int32_t request_get_state(string &req, string &response, Agent *)
 {
-    response = ("[%.6f] Cx: %u En: %u Mode: %s TFreq: %.0f AFreq: %.0f Offset: %.0f PowerIn: %.2f PowerOut: %.2f MaxPower: %.2f",
-            currentmjd(),
-            radioconnected,
-            radioenabled,
-            opmode2string(agent->cinfo->device[deviceindex].tcv.opmode).c_str(),
-            target.freq, agent->cinfo->device[deviceindex].tcv.freq,
-            freqoffset,
-            agent->cinfo->device[deviceindex].tcv.powerin,
-            agent->cinfo->device[deviceindex].tcv.powerout,
-            agent->cinfo->device[deviceindex].tcv.maxpower);
+    response = '[' + to_mjd(currentmjd()) + "] Cx: " + to_bool(radioconnected) + " En: " + to_bool(radioenabled);
+    response += " Mode: " + opmode2string(agent->cinfo->device[deviceindex].tcv.opmode) + " TFreq: " + to_double(target.freq);
+    response += " AFreq: " + to_double(agent->cinfo->device[deviceindex].tcv.freq) + " Offset: " + to_double(freqoffset);
+    response += " PowerIn: " + to_double(agent->cinfo->device[deviceindex].tcv.powerin) + " PowerOut: " + to_double(agent->cinfo->device[deviceindex].tcv.powerout);
+    response += " MaxPower: " + to_double(agent->cinfo->device[deviceindex].tcv.maxpower);
+//    response = ("[%.6f] Cx: %u En: %u Mode: %s TFreq: %.0f AFreq: %.0f Offset: %.0f PowerIn: %.2f PowerOut: %.2f MaxPower: %.2f",
+//            currentmjd(),
+//            radioconnected,
+//            radioenabled,
+//            opmode2string(agent->cinfo->device[deviceindex].tcv.opmode).c_str(),
+//            target.freq, agent->cinfo->device[deviceindex].tcv.freq,
+//            freqoffset,
+//            agent->cinfo->device[deviceindex].tcv.powerin,
+//            agent->cinfo->device[deviceindex].tcv.powerout,
+//            agent->cinfo->device[deviceindex].tcv.maxpower);
     return (0);
 }
 
