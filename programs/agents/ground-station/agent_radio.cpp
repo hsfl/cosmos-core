@@ -343,10 +343,10 @@ int main(int argc, char *argv[])
         agent->cinfo->device[deviceindex].tcv.band = band;
         agent->cinfo->device[deviceindex].tcv.opmode = opmode;
         iretn = json_createport(agent->cinfo, port, PORT_TYPE_RS232);
-//        if (iretn >= 0)
-//        {
-//            agent->cinfo->device[deviceindex].all.portidx = iretn;
-//        }
+        if (iretn >= 0)
+        {
+            agent->cinfo->device[deviceindex].all.portidx = iretn;
+        }
         iretn = json_dump_node(agent->cinfo);
     }
 
