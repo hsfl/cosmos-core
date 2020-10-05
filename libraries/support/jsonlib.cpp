@@ -121,8 +121,13 @@ cosmosstruc *json_init()
     cinfo->event.resize(1);
     cinfo->user.resize(1);
     memset(&cinfo->node, 0, sizeof(nodestruc));
-    memset(&cinfo->physics, 0, sizeof(physicsstruc));
-    memset(&cinfo->devspec, 0, sizeof(devspecstruc));
+
+
+	//fix no trival copy-assignment warning for memset
+    //memset(&cinfo->physics, 0, sizeof(physicsstruc));
+    //memset(&cinfo->devspec, 0, sizeof(devspecstruc));
+	cinfo->physics = physicsstruc();
+	cinfo->devspec = devspecstruc();
 
     // Make sure we aren't running out of memory
     if (cinfo->glossary.size() != 1 ||
@@ -6588,10 +6593,14 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo)
         cinfo->device.clear();
         break;
     case JSON_STRUCT_DEVSPEC:
-        memset(&(cinfo->devspec),0,sizeof(devspecstruc));
+		//fix no trival copy-assignment warning for memset
+        //memset(&(cinfo->devspec),0, sizeof(devspecstruc));
+		cinfo->devspec = devspecstruc();
         break;
     case JSON_STRUCT_PHYSICS:
-        memset(&(cinfo->physics),0,sizeof(physicsstruc));
+		//fix no trival copy-assignment warning for memset
+        //memset(&(cinfo->physics),0,sizeof(physicsstruc));
+		cinfo->physics = physicsstruc();
         break;
     case JSON_STRUCT_AGENT:
         cinfo->agent.clear();
