@@ -1165,7 +1165,7 @@ void send_loop()
         current_time = next_time;
 //        next_send_time = .1 / 86400.;
 
-        for (int32_t node=0; node<txq.size(); ++node)
+        for (int32_t node=0; node < static_cast<int32_t>(txq.size()); ++node)
         {
             // See if we have an active channel serving this Node
             int32_t channel = check_channel(node);
