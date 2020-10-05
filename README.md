@@ -4,7 +4,7 @@
 progress. If you find problems or no documentation for something
 you're looking for please let us know.**
 
-[COSMOS Core Doxygen](https://hsfl.github.com/cosmos-core)
+[COSMOS Core Doxygen](https://hsfl.github.io/cosmos-core)
 
 The COSMOS/core is the basic element of the COSMOS project with the
 essential libraries and programs. The api documentation includes the
