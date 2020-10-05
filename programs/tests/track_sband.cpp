@@ -90,8 +90,8 @@ static uint16_t antindex = -1;
 static antstruc target;
 static antstruc current;
 static bool antconnected = false;
-static bool antenabled = true;
-static bool debug;
+//static bool antenabled = true;
+//static bool debug;
 
 // Here are internally provided functions
 int load_tle_info(char *file);
@@ -110,7 +110,7 @@ static azelstruc antennaoffset = {0., 0.};
 
 static LsFit trackaz(5, 2);
 static LsFit trackel(5, 2);
-static bool trackflag = false;
+//static bool trackflag = false;
 static string mode;
 static double offset_az = 0.;
 static double offset_el = 0.;
