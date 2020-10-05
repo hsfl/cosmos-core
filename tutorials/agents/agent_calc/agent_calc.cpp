@@ -176,7 +176,7 @@ int32_t request_add(string &request, string &response, Agent *agent)
 	float a,b;
 
 	sscanf(request.c_str(),"%*s %f %f",&a,&b);
-    response = ("%f",a + b);
+    response = std::to_string(a + b);
 
 	return 0;
 }
@@ -187,7 +187,7 @@ int32_t request_sub(string &request, string &response, Agent *agent)
 	float a,b;
 
 	sscanf(request.c_str(),"%*s %f %f",&a,&b);
-    response = ("%f", a - b);
+    response = std::to_string(a - b);
 
 	return 0;
 }
@@ -197,7 +197,7 @@ int32_t request_mul(string &request, string &response, Agent *agent)
 	float a,b;
 
     sscanf(request.c_str(),"%*s %f %f", &a, &b);
-    response = ("%f", a * b);
+    response = std::to_string(a * b);
 
 	return 0;
 }
@@ -207,7 +207,7 @@ int32_t request_div(string &request, string &response, Agent *agent)
 	float a,b;
 
     sscanf(request.c_str(),"%*s %f %f", &a, &b);
-    response = ("%f", a / b);
+    response = std::to_string(a / b);
 
 	return 0;
 }

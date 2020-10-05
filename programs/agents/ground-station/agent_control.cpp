@@ -742,11 +742,11 @@ int32_t request_unmatch_radio(string &request, string &response, Agent *)
 		{
 			track[trackindex].radios[toi].otherradioindex = 9999;
 		}
-        response = ("Unatched %s to %s", myradios[fromi].name.c_str(), track[trackindex].radios[toi].name.c_str());
+        response = "Unatched " + myradios[fromi].name + " to " + track[trackindex].radios[toi].name;
 	}
 	else
 	{
-        response = ("No match");
+        response = "No match";
 	}
 
 	return 0;
@@ -756,7 +756,7 @@ int32_t request_list_antennas(string &request, string &response, Agent *)
 {
 	for (size_t i=0; i<myantennas.size(); ++i)
 	{
-        response += ("%lu %s %f\n", i, myantennas[i].name.c_str(), myantennas[i].info.minelev);
+		response += std::to_string(i) + " " + myantennas[i].name + " " + std::to_string(myantennas[i].info.minelev) + "\n";
 	}
 
 	return 0;

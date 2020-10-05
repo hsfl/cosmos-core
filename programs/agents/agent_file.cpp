@@ -1788,10 +1788,8 @@ int32_t request_use_channel(string &request, string &response, Agent *agent)
         {
             send_channel[channel].throughput = throughput;
         }
-    }
-    else
-    {
-        response = ("Channel %u too large", channel);
+    } else {
+        response = "Channel " + std::to_string(channel) + " too large";
     }
     return 0;
 
