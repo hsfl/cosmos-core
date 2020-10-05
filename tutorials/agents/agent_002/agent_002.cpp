@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 int32_t request_hello(string &, string &response, Agent *)
 {
     // Send response back to agent_001
-    response = ("hello %d ", request_counter);
+    response = "hello " + std::to_string(request_counter);
 
     cout << "agent_002 got the request! Its response is: " << response << endl;
 
