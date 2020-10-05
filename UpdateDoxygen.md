@@ -23,3 +23,5 @@ If the Hawaii Space Flight organization does not show, go to Settings. On the le
 ## 3. Trigger Build
 1. Go to the repository in Travis CI and go Build History 
 2. Click on the branch and Trigger Build
+
+I found the instructions [here](https://gist.github.com/vidavidorra/548ffbcdae99d752da02) and slightly modified. 
