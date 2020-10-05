@@ -392,13 +392,13 @@ int32_t request_get_state(string &req, string &response, Agent *)
             response += ' ' + to_mjd(currentmjd());
             response += ' ' + to_bool(antconnected);
             response += ' ' + to_bool(antenabled);
-            response += ' ' + to_bool(DEGOF(current.azim));
-            response += ' ' + to_angle((current.elev));
-            response += ' ' + to_angle((current.azim-agent->cinfo->device[devindex].ant.azim), 'D');
-            response += ' ' + to_angle((current.elev-agent->cinfo->device[devindex].ant.elev), 'D');
-            response += ' ' + to_angle((agent->cinfo->device[devindex].ant.azim+antennaoffset.az), 'D');
-            response += ' ' + to_angle((agent->cinfo->device[devindex].ant.elev+antennaoffset.el), 'D');
-            response += ' ' + to_angle((antennaoffset.az), DEGOF(antennaoffset.el), 'D');
+            response += ' ' + to_angle(current.azim);
+            response += ' ' + to_angle(current.elev);
+            response += ' ' + to_angle(current.azim-agent->cinfo->device[devindex].ant.azim, 'D');
+            response += ' ' + to_angle(current.elev-agent->cinfo->device[devindex].ant.elev, 'D');
+            response += ' ' + to_angle(agent->cinfo->device[devindex].ant.azim+antennaoffset.az, 'D');
+            response += ' ' + to_angle(agent->cinfo->device[devindex].ant.elev+antennaoffset.el, 'D');
+            response += ' ' + to_angle(antennaoffset.az + antennaoffset.el, 'D');
     return (0);
 }
 
