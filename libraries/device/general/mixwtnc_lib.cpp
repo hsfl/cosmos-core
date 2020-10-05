@@ -128,8 +128,8 @@ int32_t mixwtnc_loadframe(mixwtnc_handle *handle, uint8_t *data, uint16_t size)
 
 	handle->frame.part.header.flag = handle->flag;
 	handle->frame.part.header.protocol_id = AX25_NOLAYER3;
-	strncpy(handle->frame.part.header.destination_address,(char *)"ABCDEFG",7);
-	strncpy(handle->frame.part.header.source_address,(char *)"GROUND ",7);
+	memcpy(handle->frame.part.header.destination_address,(char *)"ABCDEFG",7);
+	memcpy(handle->frame.part.header.source_address,(char *)"GROUND ",7);
 	for (uint16_t i=0; i<7; ++i)
 	{
 		handle->frame.part.header.destination_address[i] <<= 1;
@@ -154,8 +154,8 @@ int32_t mixwtnc_loadframe(mixwtnc_handle *handle, vector<uint8_t> data)
 
 	handle->frame.part.header.flag = handle->flag;
 	handle->frame.part.header.protocol_id = AX25_NOLAYER3;
-	strncpy(handle->frame.part.header.destination_address,(char *)"ABCDEFG",7);
-	strncpy(handle->frame.part.header.source_address,(char *)"GROUND ",7);
+	memcpy(handle->frame.part.header.destination_address,(char *)"ABCDEFG",7);
+	memcpy(handle->frame.part.header.source_address,(char *)"GROUND ",7);
 	for (uint16_t i=0; i<7; ++i)
 	{
 		handle->frame.part.header.destination_address[i] <<= 1;
