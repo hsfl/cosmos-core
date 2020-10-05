@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
         exit (iretn);
 
     double nextdiskcheck = currentmjd(0.);
-    for (uint16_t node=0; node<txq.size(); ++node)
+    for (std::vector<tx_queue>::size_type node=0; node<txq.size(); ++node)
     {
         iretn = outgoing_tx_load(node);
         if (iretn >= 0)
@@ -482,7 +482,7 @@ void recv_loop()
     string partial_filepath;
     int32_t nbytes = 0;
     socket_channel rchannel;
-    int32_t use_channel = 0;
+    std::vector<channelstruc>::size_type use_channel = 0;
 
     while (agent->running())
     {
@@ -537,8 +537,8 @@ void recv_loop()
                 continue;
             }
 
-            use_channel = static_cast <uint16_t>(out_comm_channel.size());
-            for (uint16_t i=0; i<out_comm_channel.size(); ++i)
+            use_channel = out_comm_channel.size();
+            for (std::vector<channelstruc>::size_type i=0; i<out_comm_channel.size(); ++i)
             {
                 // Are we handling this Node?
                 if (out_comm_channel[i].node == node_name)
@@ -561,7 +561,7 @@ void recv_loop()
                 tchannel.chansock = rchannel;
                 inet_ntop(tchannel.chansock.caddr.sin_family, &tchannel.chansock.caddr.sin_addr, tchannel.chansock.address, sizeof(tchannel.chansock.address));
                 tchannel.chanip = tchannel.chansock.address;
-                use_channel = static_cast <uint16_t>(out_comm_channel.size());
+                use_channel = out_comm_channel.size();
                 out_comm_channel.push_back(tchannel);
             }
 
@@ -1451,7 +1451,7 @@ double queuecheck(PACKET_NODE_ID_TYPE node_id)
 int32_t queuesendto(PACKET_NODE_ID_TYPE node_id, string type, vector<PACKET_BYTE> packet)
 {
     transmit_queue_entry tentry;
-    int32_t use_channel;
+    std::vector<channelstruc>::size_type use_channel;
 
     use_channel = -1;
     for (uint16_t i=0; i<out_comm_channel.size(); ++i)
@@ -3109,7 +3109,7 @@ int32_t check_channel(PACKET_NODE_ID_TYPE node_id)
 
 int32_t add_node_name(string node_name)
 {
-    uint8_t local_node;
+    uint8_t local_node = 0;
     tx_queue tx;
 
     if (txq.size() == 256)

@@ -505,7 +505,7 @@ void recv_loop() noexcept
     string partial_filepath;
     int32_t nbytes = 0;
     socket_channel rchannel;
-    int32_t use_channel = 0;
+    std::vector<channelstruc>::size_type use_channel = 0;
 
     while (agent->running())
     {
@@ -554,8 +554,8 @@ void recv_loop() noexcept
             txq[node_id].incoming.rcvddata = false;
             incoming_tx_lock.unlock();
 
-            use_channel = static_cast <uint16_t>(out_comm_channel.size());
-            for (uint16_t i=0; i<out_comm_channel.size(); ++i)
+            use_channel = out_comm_channel.size();
+            for (std::vector<channelstruc>::size_type i=0; i<out_comm_channel.size(); ++i)
             {
                 // Are we handling this Node?
                 if (out_comm_channel[i].node == node_name)
@@ -578,7 +578,7 @@ void recv_loop() noexcept
                 tchannel.chansock = rchannel;
                 inet_ntop(tchannel.chansock.caddr.sin_family, &tchannel.chansock.caddr.sin_addr, tchannel.chansock.address, sizeof(tchannel.chansock.address));
                 tchannel.chanip = tchannel.chansock.address;
-                use_channel = static_cast <uint16_t>(out_comm_channel.size());
+                use_channel = out_comm_channel.size();
                 out_comm_channel.push_back(tchannel);
             }
 

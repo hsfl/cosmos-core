@@ -2167,7 +2167,7 @@ PACKET_TX_ID_TYPE choose_incoming_tx_id(int32_t node)
     {
         // Choose file with least data left to send
         PACKET_FILE_SIZE_TYPE nsize = INT32_MAX;
-        for (PACKET_FILE_SIZE_TYPE i=0; i < txq[node].incoming.progress.size(); ++i)
+        for (std::vector<tx_progress>::size_type i=0; i < txq[node].incoming.progress.size(); ++i)
         {
             // calculate bytes so far
             merge_chunks_overlap(txq[node].incoming.progress[i]);
