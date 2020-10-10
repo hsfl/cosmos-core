@@ -33,15 +33,14 @@
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
 #include "support/sliplib.h"
-#include "device/serial/serialclass.h"
 
 #include <cstring>
 #include <iostream>
 
-#define FEND  0xC0
-#define FESC  0xDB
-#define TFEND 0xDC
-#define TFESC 0xDD
+//#define FEND  0xC0
+//#define FESC  0xDB
+//#define TFEND 0xDC
+//#define TFESC 0xDD
 
 #define PACKETMAX 1024
 
@@ -50,7 +49,7 @@ class KissHandle
 {
 
 public:
-    KissHandle(const string &device="", string dest_call="", string sour_call="", uint8_t port=0, uint8_t comm=0, uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
+    KissHandle(string dest_call="", string sour_call="", uint8_t port=0, uint8_t comm=0, uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
 
     void set_port_number(uint8_t P);
     uint8_t get_port_number();
@@ -68,14 +67,15 @@ public:
     uint8_t get_control();
     void set_protocolID(uint8_t protocol);
     uint8_t get_protocolID();
-    int set_data(vector <uint8_t> input);
+    int32_t set_data(vector <uint8_t> input);
     vector <uint8_t> get_data();
     int32_t load_packet();
     int32_t unload_packet();
-    vector <uint8_t> get_packet();
-    bool get_open();
+    int32_t set_raw_packet(vector <uint8_t> packet);
+    int32_t set_slip_packet(vector <uint8_t> packet);
+    vector <uint8_t> get_raw_packet();
+    vector <uint8_t> get_slip_packet();
     int32_t get_error();
-    Serial *get_serial();
 
     struct __attribute__ ((packed)) packet_header
     {
@@ -98,18 +98,9 @@ public:
 private:
     packet_header header;
     vector <uint8_t> data;
-    vector <uint8_t> packet;
-    Serial *handle;
+    vector <uint8_t> raw_packet;
+    vector <uint8_t> slip_packet;
     int32_t error;
-
-//	unsigned int  port_number;
-//	unsigned int  command;
-//	unsigned char destination_callsign[6];
-//	unsigned char destination_stationID;
-//	unsigned char source_callsign[6];
-//	unsigned char source_stationID;
-//	unsigned char control;
-//	unsigned char protocolID;
 
     friend std::ostream& operator<<(std::ostream& out, KissHandle& K);
 };

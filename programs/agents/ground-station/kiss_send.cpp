@@ -29,12 +29,14 @@
 
 #include "device/general/kisslib.h"
 #include "support/timelib.h"
+#include "device/serial/serialclass.h"
 
-KissHandle *handle;
-string device ="/dev/ttyUSB0";
-string source;
-string destination;
-vector <uint8_t> message;
+static KissHandle handle("DESTIN", "SOURCE");
+static Serial *shandle;
+static string device ="/dev/ttyUSB0";
+static string source;
+static string destination;
+static vector <uint8_t> message;
 size_t count = 254;
 
 int main(int argc, char *argv[])
@@ -55,12 +57,13 @@ int main(int argc, char *argv[])
         break;
     }
 
-    handle = new KissHandle(device, "DESTIN", "SOURCE");
-    if (!handle->get_open())
+    shandle = new Serial(device, 19200);
+    if (!shandle->get_open())
 	{
-        printf("Failed to open KISS Channel on %s, error %d\n", device.c_str(), handle->get_error());
+        printf("Failed to open Serial Channel on %s, error %d\n", device.c_str(), shandle->get_error());
 		exit (-1);
 	}
+//    handle = new KissHandle("DESTIN", "SOURCE");
 
     if (count > 254)
     {
@@ -74,15 +77,15 @@ int main(int argc, char *argv[])
 		{
             message.push_back(i%256);
 		}
-        handle->set_data(message);
-        handle->load_packet();
-        if ((iretn=handle->get_serial()->put_slip(handle->get_packet())) < 0)
+        handle.set_data(message);
+        handle.load_packet();
+        if ((iretn=shandle->put_data(handle.get_slip_packet())) < 0)
 		{
 			printf("Failed to send frame, error %d\r",iretn);
 		}
 		else
 		{
-            printf("[%u] Sent %d bytes\n", i, handle->get_packet().size());
+            printf("[%u] Sent %ld bytes\n", i, handle.get_slip_packet().size());
 		}
 		COSMOS_USLEEP(2000000);
 	}
