@@ -32,7 +32,7 @@
 #define IC9100_LIB_H
 
 #include "support/configCosmos.h"
-#include "device/general/cssl_lib.h"
+#include "device/serial/serialclass.h"
 
 #define IC9100_BAUD 19200
 #define IC9100_BITS 8
@@ -67,7 +67,7 @@ struct ic9100_handle
 {
     uint8_t address;
     uint8_t channelnum;
-    cssl_t *serial;
+    Serial *serial;
     std::mutex mut;
     vector <uint8_t> response;
     uint8_t freqband;

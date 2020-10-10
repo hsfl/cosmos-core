@@ -34,12 +34,11 @@ int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle)
 {
     int32_t iretn;
 
-    cssl_start();
-    handle.serial = cssl_open(device.c_str(), IC9100_BAUD, IC9100_BITS, IC9100_PARITY, IC9100_STOPBITS);
+    handle.serial = new Serial(device.c_str(), IC9100_BAUD, IC9100_BITS, IC9100_PARITY, IC9100_STOPBITS);
 
-    if (handle.serial == NULL)
+    if (!handle.serial->get_open())
     {
-        return (CSSL_ERROR_OPEN);
+        return (SERIAL_ERROR_OPEN);
     }
 
     handle.address = address;
@@ -50,9 +49,9 @@ int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle)
 
 int32_t ic9100_disconnect(ic9100_handle &handle)
 {
-    if (handle.serial == NULL) return (CSSL_ERROR_NOTSTARTED);
+    if (!handle.serial->get_open()) return (SERIAL_ERROR_OPEN);
 
-    cssl_close(handle.serial);
+    handle.serial->close_device();
     return 0;
 }
 
@@ -60,22 +59,22 @@ int32_t ic9100_write_header(ic9100_handle &handle)
 {
     int32_t iretn = 0;
 
-    iretn = cssl_putchar(handle.serial, 0xfe);
+    iretn = handle.serial->put_char(0xfe);
     if (iretn < 0)
     {
         return iretn;
     }
-    iretn = cssl_putchar(handle.serial, 0xfe);
+    iretn = handle.serial->put_char(0xfe);
     if (iretn < 0)
     {
         return iretn;
     }
-    iretn = cssl_putchar(handle.serial, handle.address);
+    iretn = handle.serial->put_char(handle.address);
     if (iretn < 0)
     {
         return iretn;
     }
-    iretn = cssl_putchar(handle.serial, 0xe0);
+    iretn = handle.serial->put_char(0xe0);
     if (iretn < 0)
     {
         return iretn;
@@ -115,7 +114,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
         return iretn;
     }
 
-    iretn = cssl_putchar(handle.serial, command);
+    iretn = handle.serial->put_char(command);
     if (iretn < 0)
     {
         handle.mut.unlock();
@@ -124,7 +123,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
 
     if (message.size())
     {
-        iretn = cssl_putdata(handle.serial, (uint8_t *)message.data(), message.size());
+        iretn = handle.serial->put_data((uint8_t *)message.data(), message.size());
         if (iretn < 0)
         {
             handle.mut.unlock();
@@ -132,7 +131,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
         }
     }
 
-    iretn = cssl_putchar(handle.serial, 0xfd);
+    iretn = handle.serial->put_char(0xfd);
     if (iretn < 0)
     {
         handle.mut.unlock();
@@ -140,7 +139,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
     }
 
     uint8_t buffer[100];
-    iretn = cssl_getdata(handle.serial, buffer, 100);
+    iretn = handle.serial->get_data( buffer, 100);
     if (iretn < 0)
     {
         handle.mut.unlock();
@@ -202,13 +201,13 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
         return iretn;
     }
 
-    iretn = cssl_putchar(handle.serial, command);
+    iretn = handle.serial->put_char(command);
     if (iretn < 0)
     {
         handle.mut.unlock();
         return iretn;
     }
-    iretn = cssl_putchar(handle.serial, subcommand);
+    iretn = handle.serial->put_char(subcommand);
     if (iretn < 0)
     {
         handle.mut.unlock();
@@ -216,22 +215,22 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
     }
     if (message.size())
     {
-        iretn = cssl_putdata(handle.serial, (uint8_t *)message.data(), message.size());
+        iretn = handle.serial->put_data(message);
         if (iretn < 0)
         {
             handle.mut.unlock();
             return iretn;
         }
     }
-    iretn = cssl_putchar(handle.serial, 0xfd);
+    iretn = handle.serial->put_char(0xfd);
     if (iretn < 0)
     {
         handle.mut.unlock();
         return iretn;
     }
 
-    uint8_t buffer[100];
-    iretn = cssl_getdata(handle.serial, buffer, 100);
+    vector <uint8_t> buffer;
+    iretn = handle.serial->get_data(buffer, 100);
     if (iretn < 0)
     {
         handle.mut.unlock();
@@ -362,7 +361,7 @@ uint8_t ic9100_freq2band(double frequency)
 //	int32_t iretn = 0;
 
 //	uint8_t buffer[100];
-//	iretn = cssl_getdata(handle.serial, buffer, 100);
+//	iretn = handle.serial->get_data( buffer, 100);
 //	if (iretn < 0)
 //	{
 //		return iretn;
