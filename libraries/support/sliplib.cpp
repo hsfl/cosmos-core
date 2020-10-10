@@ -163,6 +163,15 @@ int32_t slip_decode(slip_t &sbuf, slip_t &rbuf)
             return (SLIP_ERROR_PACKING);
         }
         ch = sbuf[j++];
+    } while (ch != SLIP_FEND);
+
+    do
+    {
+        if (j > sbuf.size()-3)
+        {
+            return (SLIP_ERROR_PACKING);
+        }
+        ch = sbuf[j++];
         switch (ch)
         {
         case SLIP_FESC:
