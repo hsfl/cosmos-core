@@ -247,6 +247,17 @@ int StringParser::getFieldNumberAsInteger(uint32_t index)
     return getFieldNumberAsDouble(index);
 }
 
+string to_hex_string(vector <uint8_t> buffer)
+{
+    string output;
+    output.resize(buffer.size() * 4);
+    for (uint16_t i=0; i<buffer.size(); ++i)
+    {
+        sprintf(&output[strlen(output.c_str())], " %02x", buffer[i]);
+    }
+    return output;
+}
+
 string to_string(char *value)
 {
     string output = value;
