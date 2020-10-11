@@ -162,7 +162,7 @@ static std::string radiodevice;
 static uint16_t radioaddr;
 static bool radioconnected = false;
 static bool radioenabled = false;
-static size_t channelnum = 0;
+//static size_t channelnum = 0;
 static float freqoffset;
 static string port;
 
@@ -173,7 +173,7 @@ static float band;
 static uint8_t opmode = static_cast<uint8_t>(DEVICE_RADIO_MODE_UNDEF);
 
 //astrodev_handle astrodev;
-static ts2000_state ts2000;
+//static ts2000_state ts2000;
 static ic9100_handle ic9100;
 
 static tcvstruc target;
