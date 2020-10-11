@@ -123,7 +123,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
 
     if (message.size())
     {
-        iretn = handle.serial->put_data((uint8_t *)message.data(), message.size());
+        iretn = handle.serial->put_data(static_cast <uint8_t *>(message.data()), message.size());
         if (iretn < 0)
         {
             handle.mut.unlock();
@@ -145,21 +145,21 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
         handle.mut.unlock();
         return iretn;
     }
-    int32_t base = message.size() + 6;
+    size_t base = message.size() + 6;
 
-    if (iretn < base)
+    if (static_cast <size_t>(base) < base)
     {
         handle.mut.unlock();
         return IC9100_ERROR_WRITE;
     }
 
-    if (iretn == base)
+    if (static_cast <size_t>(base) == base)
     {
         handle.mut.unlock();
         return IC9100_ERROR_ADDR;
     }
 
-    if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[iretn-1] != 0xfd)
+    if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[static_cast <size_t>(base)-1] != 0xfd)
     {
         handle.mut.unlock();
         return IC9100_ERROR_WRITE;
@@ -180,10 +180,10 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
     else
     {
         base += 5;
-        handle.response.resize(iretn-(base+1));
-        memcpy((void *)handle.response.data(), &buffer[base], iretn-(base+1));
+        handle.response.resize(static_cast <size_t>(base)-(base+1));
+        memcpy(static_cast<void *>(handle.response.data()), &buffer[base], static_cast <size_t>(base)-(base+1));
         handle.mut.unlock();
-        return iretn-(base+1);
+        return static_cast <int32_t>(base-(base+1));
     }
 
 }
@@ -237,20 +237,20 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
         return iretn;
     }
 
-    int32_t base = message.size() + 7;
-    if (iretn < base)
+    size_t base = message.size() + 7;
+    if (static_cast <size_t>(base) < base)
     {
         handle.mut.unlock();
         return IC9100_ERROR_WRITE;
     }
 
-    if (iretn == base)
+    if (static_cast <size_t>(base) == base)
     {
         handle.mut.unlock();
         return IC9100_ERROR_ADDR;
     }
 
-    if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[iretn-1] != 0xfd)
+    if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[static_cast <size_t>(base)-1] != 0xfd)
     {
         handle.mut.unlock();
         return IC9100_ERROR_WRITE;
@@ -271,10 +271,10 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
     else
     {
         base += 6;
-        handle.response.resize(iretn-(base+1));
-        memcpy((void *)handle.response.data(), &buffer[base], iretn-(base+1));
+        handle.response.resize(static_cast <size_t>(base)-(base+1));
+        memcpy(static_cast <void *>(handle.response.data()), &buffer[base], static_cast <size_t>(base)-(base+1));
         handle.mut.unlock();
-        return iretn-(base+1);
+        return static_cast <int32_t>((base)-(base+1));
     }
 }
 
@@ -356,30 +356,6 @@ uint8_t ic9100_freq2band(double frequency)
     }
     return freqband;
 }
-//int32_t ic9100_read(ic9100_handle &handle, string &message)
-//{
-//	int32_t iretn = 0;
-
-//	uint8_t buffer[100];
-//	iretn = handle.serial->get_data( buffer, 100);
-//	if (iretn < 0)
-//	{
-//		return iretn;
-//	}
-
-//	if (buffer[0] != 0xfe || buffer[1] != 0xfe || buffer[2] != 0xe0 || buffer[3] != handle.address)
-//	{
-//		return IC9100_ERROR_READ;
-//	}
-
-//	if (iretn > 7)
-//	{
-//		message.resize(iretn-7);
-//		memcpy((void *)message.data(), &buffer[6], message.size());
-//	}
-
-//	return iretn-7;
-//}
 
 int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
 {
@@ -510,7 +486,6 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
         break;
     default:
         return IC9100_ERROR_OUTOFRANGE;
-        break;
     }
 
     if (bandpass >= 1e10 || bandpass < 0)
@@ -524,7 +499,7 @@ int32_t ic9100_set_bandpass(ic9100_handle &handle, double bandpass)
         return iretn;
     }
 
-    handle.bandpass = bandpass;
+    handle.bandpass = static_cast <float>(bandpass);
     handle.filtband = filtband;
 
     return 0;
@@ -709,7 +684,7 @@ int32_t ic9100_set_squelch(ic9100_handle &handle, uint8_t squelch)
 
 int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 {
-    uint8_t rfpower;
+    uint8_t rfpower = 0;
     int32_t iretn = 0;
 
     if (iretn < 0)
@@ -719,35 +694,35 @@ int32_t ic9100_set_rfpower(ic9100_handle &handle, float power)
 
     if (handle.freqband < 11)
     {
-        if (power < 2. || power > (handle.mode==IC9100_MODE_AM?30.:100.))
+        if (power < 2.f || power > (handle.mode==IC9100_MODE_AM?30.f:100.f))
         {
             return IC9100_ERROR_OUTOFRANGE;
         }
-        rfpower = 255 * (power - 2.) / (handle.mode==IC9100_MODE_AM?28.:98.);
+        rfpower = static_cast <uint8_t> (255 * (power - 2.f) / (handle.mode==IC9100_MODE_AM?28.f:98.f));
     }
     else if (handle.freqband < 12)
     {
-        if (power < 2. || power > (100.))
+        if (power < 2.f || power > (100.f))
         {
             return IC9100_ERROR_OUTOFRANGE;
         }
-        rfpower = 255 * (power - 2.) / (98.);
+        rfpower = static_cast <uint8_t> (255 * (power - 2.f) / (98.f));
     }
     else if (handle.freqband < 13)
     {
-        if (power < 2. || power > 75.)
+        if (power < 2.f || power > 75.f)
         {
             return IC9100_ERROR_OUTOFRANGE;
         }
-        rfpower = 255 * (power - 2.) / 73.;
+        rfpower = static_cast <uint8_t> (255 * (power - 2.f) / 73.f);
     }
     else if (handle.freqband < 14)
     {
-        if (power < 2. || power > 10.)
+        if (power < 2.f || power > 10.f)
         {
             return IC9100_ERROR_OUTOFRANGE;
         }
-        rfpower = 255 * (power - 2.) / 8.;
+        rfpower = static_cast <uint8_t> (255 * (power - 2.f) / 8.f);
     }
     vector <uint8_t> data { 0x0,0x0 };
 
@@ -909,7 +884,7 @@ int32_t ic9100_set_frequency(ic9100_handle &handle, double frequency)
         data[i] = 0;
         for (size_t j=0; j<2; ++j)
         {
-            uint8_t digit = fmod(frequency, 10.);
+            uint8_t digit = static_cast <uint8_t>(fmod(frequency, 10.));
             switch (j)
             {
             case 0:
@@ -1023,6 +998,8 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband)
     {
     case DEVICE_RADIO_MODE_AMD:
         datamode = 1;
+        mode = IC9100_MODE_AM;
+        break;
     case DEVICE_RADIO_MODE_AM:
         mode = IC9100_MODE_AM;
         break;
@@ -1034,16 +1011,22 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband)
         break;
     case DEVICE_RADIO_MODE_DVD:
         datamode = 1;
+        mode = IC9100_MODE_DV;
+        break;
     case DEVICE_RADIO_MODE_DV:
         mode = IC9100_MODE_DV;
         break;
     case DEVICE_RADIO_MODE_FMD:
         datamode = 1;
+        mode = IC9100_MODE_FM;
+        break;
     case DEVICE_RADIO_MODE_FM:
         mode = IC9100_MODE_FM;
         break;
     case DEVICE_RADIO_MODE_LSBD:
         datamode = 1;
+        mode = IC9100_MODE_LSB;
+        break;
     case DEVICE_RADIO_MODE_LSB:
         mode = IC9100_MODE_LSB;
         break;
@@ -1055,12 +1038,13 @@ int32_t ic9100_set_mode(ic9100_handle &handle, uint8_t opmode, uint8_t filtband)
         break;
     case DEVICE_RADIO_MODE_USBD:
         datamode = 1;
+        mode = IC9100_MODE_USB;
+        break;
     case DEVICE_RADIO_MODE_USB:
         mode = IC9100_MODE_USB;
         break;
     default:
         return IC9100_ERROR_OUTOFRANGE;
-        break;
     }
 
     if (filtband)
@@ -1190,24 +1174,24 @@ int32_t ic9100_get_rfpower(ic9100_handle &handle)
 
     float power = ic9100_byte(handle.response);
 
-    handle.rfpower = power;
-    power /= 255.;
+    handle.rfpower = static_cast <uint8_t> (power);
+    power /= 255.f;
 
     if (handle.freqband < 11)
     {
-        power = 2. + power * (handle.mode==IC9100_MODE_AM?28.:98.);
+        power = 2.f + power * (handle.mode==IC9100_MODE_AM?28.f:98.f);
     }
     else if (handle.freqband < 12)
     {
-        power = 2. + power * 98.;
+        power = 2.f + power * 98.f;
     }
     else if (handle.freqband < 13)
     {
-        power = 2. + power * 73.;
+        power = 2.f + power * 73.f;
     }
     else if (handle.freqband < 14)
     {
-        power = 2. + power * 8.;
+        power = 2.f + power * 8.f;
     }
     handle.maxpower = power;
     return iretn;
@@ -1225,29 +1209,29 @@ int32_t ic9100_get_smeter(ic9100_handle &handle)
 
     float power = ic9100_byte(handle.response);
 
-    handle.smeter = power;
-    power /= 240.;
+    handle.smeter = static_cast <uint8_t> (power);
+    power /= 240.f;
 
-    if (power > 1.)
+    if (power > 1.f)
     {
         power = 1.;
     }
 
     if (handle.freqband < 11)
     {
-        power = 2. + power * (handle.mode==IC9100_MODE_AM?28.:98.);
+        power = 2.f + power * (handle.mode==IC9100_MODE_AM?28.f:98.f);
     }
     else if (handle.freqband < 12)
     {
-        power = 2. + power * 98.;
+        power = 2.f + power * 98.f;
     }
     else if (handle.freqband < 13)
     {
-        power = 2. + power * 73.;
+        power = 2.f + power * 73.f;
     }
     else if (handle.freqband < 14)
     {
-        power = 1. + power * 8.;
+        power = 1.f + power * 8.f;
     }
     handle.powerin = power;
 
@@ -1266,36 +1250,36 @@ int32_t ic9100_get_rfmeter(ic9100_handle &handle)
 
     float power = ic9100_byte(handle.response);
 
-    handle.rfmeter = power;
+    handle.rfmeter = static_cast <uint8_t> (power);
     if (power <= 141)
     {
-        power /= 282.;
+        power /= 282.f;
     }
     else
     {
-        power /= 215.;
+        power /= 215.f;
     }
 
-    if (power > 1.)
+    if (power > 1.f)
     {
         power = 1.;
     }
 
     if (handle.freqband < 11)
     {
-        power = 2. + power * (handle.mode==IC9100_MODE_AM?28.:98.);
+        power = 2.f + power * (handle.mode==IC9100_MODE_AM?28.f:98.f);
     }
     else if (handle.freqband < 12)
     {
-        power = 2. + power * 98.;
+        power = 2.f + power * 98.f;
     }
     else if (handle.freqband < 13)
     {
-        power = 2. + power * 73.;
+        power = 2.f + power * 73.f;
     }
     else if (handle.freqband < 14)
     {
-        power = 1. + power * 8.;
+        power = 1.f + power * 8.f;
     }
     handle.powerout = power;
 
@@ -1482,7 +1466,7 @@ int32_t ic9100_set_datamode(ic9100_handle &handle, uint8_t mode)
     }
 
     handle.datamode = mode;
-    handle.opmode = ((handle.opmode >> 1) << 1) + mode;
+    handle.opmode = static_cast <uint8_t>((handle.opmode >> 1) << 1) + mode;
 
     return 0;
 }
@@ -1498,7 +1482,7 @@ int32_t ic9100_get_datamode(ic9100_handle &handle)
     }
 
     handle.datamode = handle.response[0];
-    handle.opmode = ((handle.opmode >> 1) << 1) + handle.response[0];
+    handle.opmode = static_cast <uint8_t>((handle.opmode >> 1) << 1) + handle.response[0];
 
     return 0;
 }
