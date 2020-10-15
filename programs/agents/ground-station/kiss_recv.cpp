@@ -43,14 +43,10 @@ static vector <uint8_t> message;
 
 int main(int argc, char *argv[])
 {
-    int32_t count;
-    uint8_t buf[500];
-    double lmjd, mean;
-    bool waited;
     PORT_TYPE device_type;
     uint16_t device_port;
     string device_addr;
-    Serial *shandle;
+    Serial *shandle = nullptr;
     socket_channel schannel;
 
     int32_t iretn;
@@ -59,13 +55,13 @@ int main(int argc, char *argv[])
     switch (argc)
     {
     case 3:
-        tcount = atol(argv[2]);
+        tcount = static_cast <size_t>(atol(argv[2]));
     case 2:
         device = argv[1];
         if (device.find(':') != string::npos)
         {
             device_type = PORT_TYPE_ETHERNET;
-            device_port = stoi(device.substr(device.find(':')+1));
+            device_port = static_cast <uint16_t>(stoi(device.substr(device.find(':')+1)));
             device_addr = device.substr(0, device.find(':'));
             iretn = socket_open(&schannel, NetworkType::UDP, "", device_port, SOCKET_LISTEN, true, 5000000);
         }
@@ -80,18 +76,14 @@ int main(int argc, char *argv[])
     default:
         printf("Usage: kiss_recv [device [tcount]]\n");
         exit(-1);
-        break;
     }
 
 
 
-    lmjd = currentmjd(0.);
-    count = 0;
-    for (uint16_t i=0; i<tcount; ++i)
+    for (size_t i=0; i<tcount; ++i)
     {
         ElapsedTime et;
         vector <uint8_t> packet;
-        waited = false;
 
         if (device_type == PORT_TYPE_ETHERNET)
         {

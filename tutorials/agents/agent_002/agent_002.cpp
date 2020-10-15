@@ -41,7 +41,7 @@
 int32_t request_hello(string &request, string &response, Agent *cdata);
 
 /// Count of the number of requests that have been run.
-static int request_counter = 0;
+static uint64_t request_counter = 0;
 
 /// The agent constructor
 static Agent *agent;
@@ -66,6 +66,8 @@ int main(int argc, char **argv)
     {
     case 3:
         nodename = argv[2];
+        agentname = static_cast<string>(argv[1]) + "_002";
+        break;
     case 2:
         agentname = static_cast<string>(argv[1]) + "_002";
     }
