@@ -23,11 +23,11 @@ int main(int argc, char *argv[])
 {
     struct timeval mytime;
     struct tm *mytm;
-    int tut, value, ttype, i, iretn, tlen;
+    int tut, value, ttype, i, tlen;
     int cflag = 0;
-    int vflag = 0;
+    //int vflag = 0;
     time_t thetime;
-    double mjd, ra, dec, diam, lat, lon, lst, ha, zd, air, slon, slat;
+    double mjd, ra = 0., dec = 0., /*diam, lat,*/ lon, lst = 0., ha, zd = 0., air = 0., slon, slat;
 
     /* Set defaults */
     tut = 1;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
             case 'v':
                 /* Print verbosely */
                 ttype = TALL;
-                vflag = 1;
+                //vflag = 1;
                 break;
             case 'l':
                 /* Time in HST */
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
         }
 
         mjd = cal2mjd(mytm->tm_year+1900, mytm->tm_mon+1, mytm->tm_mday);
-        lat = 20.5 * (3.1415926/180.);
+        //lat = 20.5 * (3.1415926/180.);
         lon = -157.5 * (3.1415926/180.);
 //        slaRdplan(mjd,0,lon,lat,&ra,&dec,&diam);
         mjd += ((mytm->tm_hour + (mytm->tm_min + mytm->tm_sec / 60.) / 60.) / 24.);
