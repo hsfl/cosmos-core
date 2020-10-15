@@ -32,6 +32,7 @@
 
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
+#include "support/stringlib.h"
 
 #include <iostream>
 #include <string>
@@ -70,7 +71,7 @@ int main(int argc, char **argv)
     }
 
     // Construct agent with above parameters
-    agent = new Agent(nodename, agentname);
+    agent = new Agent(nodename, agentname, 1.);
 
     // Define the request within the agent
     agent->add_request("request_hello", request_hello);
@@ -93,7 +94,7 @@ int main(int argc, char **argv)
 int32_t request_hello(string &, string &response, Agent *)
 {
     // Send response back to agent_001
-    response = ("hello %d ", request_counter);
+    response = "hello " + to_unsigned(request_counter);
 
     cout << "agent_002 got the request! Its response is: " << response << endl;
 

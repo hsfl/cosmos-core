@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
         myradios[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name;
         myradios[i].info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
 		myradios[i].otherradioindex = 9999;
-        myradios[i].beat = agent->find_server(nodename, myradios[i].name, 3.);
+        myradios[i].beat = agent->find_agent(nodename, myradios[i].name, 3.);
 	}
 
 	// Build up table of our antennas
@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
 	{
         myantennas[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.ant[i]].all.pidx].name;
         myantennas[i].info = agent->cinfo->device[agent->cinfo->devspec.ant[i]].ant;
-        myantennas[i].beat = agent->find_server(nodename, myantennas[i].name, 3.);
+        myantennas[i].beat = agent->find_agent(nodename, myantennas[i].name, 3.);
 	}
 
 	// Build up table of other nodes. Look through node directory and choose any valid node that

@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     }
 
     // Construct agent with above parameters
-    agent = new Agent(nodename, agentname);
+    agent = new Agent(nodename, agentname, 1.);
 
     // Exit if error is found
     if (agent->last_error() < 0)
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    beatstruc beat_agent_002 = agent->find_server(nodename, agent002, 2.);
+    beatstruc beat_agent_002 = agent->find_agent(nodename, agent002, 2.);
 
     string requestString = "request_hello"; // The name of agent_002's request
     std::string response; // Variable to store agent_002's response
