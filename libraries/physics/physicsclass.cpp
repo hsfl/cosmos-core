@@ -1,6 +1,37 @@
 #include "physicsclass.h"
 
-Physics::Physics()
+namespace Cosmos
 {
+    namespace Physics
+    {
+        Position::Position()
+        {
 
+        }
+
+        Attitude::Attitude()
+        {
+
+        }
+
+        Thermal::Thermal()
+        {
+
+        }
+
+        Electrical::Electrical()
+        {
+
+        }
+
+        General::General()
+        {
+
+        }
+
+        Summary::Summary()
+        {
+
+        }
+    }
 }
