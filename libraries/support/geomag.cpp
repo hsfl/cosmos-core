@@ -96,7 +96,7 @@ static char fname[100];
         \param time in decimal year, ex. use mjd2year(currentmjd())
         \param comp are the magnetic field x,y,z components in Topocentric System
 */
-int32_t geomag_front(gvector pos, double time, rvector *comp)
+int32_t geomag_front(gvector pos, double time, Vector &comp)
 {
 	static int maxdeg, itime;
 	static float alt,  dec, dip, ti, gv, bx, by, bz;
@@ -158,9 +158,9 @@ int32_t geomag_front(gvector pos, double time, rvector *comp)
 	//	comp->col[0] = ti*(cos(dec)*cos(dip));
 	//	comp->col[1] = ti*(cos(dip)*sin(dec));
 	//	comp->col[2] = ti*(sin(dip));
-	comp->col[0] = bx*1e-9;
-	comp->col[1] = by*1e-9;
-	comp->col[2] = bz*1e-9;
+    comp[0] = static_cast <double>(bx * 1e-9f);
+    comp[1] = static_cast <double>(by * 1e-9f);
+    comp[2] = static_cast <double>(bz * 1e-9f);
 
 	/*
 	if (length_rv(lcomp) != 0. && lcomp.col[0] != comp->col[0] && lcomp.col[1] != comp->col[1] &&lcomp.col[2] != comp->col[2])

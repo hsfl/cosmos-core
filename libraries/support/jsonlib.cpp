@@ -5356,7 +5356,7 @@ int32_t json_extract_name(const char* &ptr, string& ostring)
 int32_t json_parse_equation(const char* &ptr, string& equation)
 {
     int32_t iretn = 0;
-    register uint16_t i2;
+    uint16_t i2;
     uint16_t index, depth=1;
     size_t ilen;
 
@@ -5497,7 +5497,7 @@ int32_t json_parse_operand(const char* &ptr, jsonoperand *operand, cosmosstruc *
 int32_t json_extract_string(const char* &ptr, string &ostring)
 {
     int32_t iretn = 0;
-    register uint32_t i2;
+    uint32_t i2;
     size_t ilen;
 
     if (ptr[0] == 0)
@@ -7951,7 +7951,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_loc_att_selc_s", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.s, (uint16_t)JSON_TYPE_QUATERNION, cinfo);
     json_addentry("node_loc_att_selc_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
     json_addentry("node_loc_att_selc_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
-    json_addentry("node_loc_bearth", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.bearth, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+    json_addentry("node_loc_bearth", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.bearth, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
     json_addentry("node_azfrom", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.azfrom, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
     json_addentry("node_azto", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.azto, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
     json_addentry("node_elfrom", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.elfrom, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);

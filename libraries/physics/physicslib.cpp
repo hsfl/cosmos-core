@@ -64,7 +64,7 @@ static double vc[MAXDEGREE+1][MAXDEGREE+1], wc[MAXDEGREE+1][MAXDEGREE+1];
 */
 rvector gravity_accel(posstruc pos,int model,uint32_t degree)
 {
-    register uint32_t il, im;
+    uint32_t il, im;
     //	double dlat, dlon;
     double tmult;
     //double ratio, rratio, xratio, yratio, zratio, vc[MAXDEGREE+1][MAXDEGREE+1], wc[MAXDEGREE+1][MAXDEGREE+1];
@@ -604,7 +604,7 @@ rvector gravity_vector(svector pos,int model,uint32_t degree)
 
 double gravity_potential(double lambda, double phi, double r,int model,uint32_t degree)
 {
-    register uint32_t il, im;
+    uint32_t il, im;
     double slat;
     double v, v1, v2, vm, plg, ilon;
     double clon[MAXDEGREE+1], slon[MAXDEGREE+1];
@@ -634,7 +634,7 @@ double gravity_potential(double lambda, double phi, double r,int model,uint32_t 
             plg = nplgndr(il,im,slat);
             vm += (coef[il][im][0]*clon[im] + coef[il][im][1]*slon[im]) * plg;
         }
-        v += (il+1) * vm * pow((REARTHM/(r)),(double)il);
+        v += (il+1) * vm * pow((REARTHM/(r)),static_cast <double>(il));
     }
     v += 1;
     v *= -GM / (r*r);
@@ -644,7 +644,7 @@ double gravity_potential(double lambda, double phi, double r,int model,uint32_t 
 
 rvector gravity_accel2(posstruc pos,int model,uint32_t degree)
 {
-    register uint32_t il, im;
+    uint32_t il, im;
     double slat;
     double v, v1, v2, vm, plg, ilon;
     double clon[MAXDEGREE+1], slon[MAXDEGREE+1];
@@ -699,7 +699,7 @@ rvector gravity_accel2(posstruc pos,int model,uint32_t degree)
 int32_t gravity_params(int model)
 {
     int32_t iretn;
-    register uint32_t il, im;
+    uint32_t il, im;
     double norm;
     uint32_t dil, dim;
     double dummy1, dummy2;
@@ -791,7 +791,7 @@ int32_t gravity_params(int model)
 double nplgndr(uint32_t l, uint32_t m, double x)
 {
     double fact,pll,pmm,pmmp1,omx2, oldfact;
-    register uint16_t i, ll, mm;
+    uint16_t i, ll, mm;
 
     pll = 0.;
     if (lastm == 65535 || m > lastm || x != lastx)
@@ -1199,7 +1199,7 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
     }
 
     // Get magnetic field in body frame
-    bearth = irotate(loc.att.geoc.s,loc.bearth);
+    bearth = irotate(loc.att.geoc.s,loc.pos.bearth.to_rv());
 
     mtorque = rv_cross(mag_moment,bearth);
     //	mtorque = irotate(q_conjugate(loc.att.icrf.s),mtorque);
@@ -1480,7 +1480,7 @@ void simulate_imu(int index, cosmosstruc *cinfo, locstruc &loc)
     cinfo->device[cinfo->devspec.imu[index]].imu.omega = irotate(toimu,loc.att.icrf.v);
 
     //! Set magnetic field in IMU frame
-    cinfo->device[cinfo->devspec.imu[index]].imu.mag = irotate(q_conjugate(cinfo->device[cinfo->devspec.imu[index]].imu.align),irotate(loc.att.geoc.s,loc.bearth));
+    cinfo->device[cinfo->devspec.imu[index]].imu.mag = irotate(q_conjugate(cinfo->device[cinfo->devspec.imu[index]].imu.align),irotate(loc.att.geoc.s,loc.pos.bearth.to_rv()));
 
     cinfo->timestamp = currentmjd();
 }
