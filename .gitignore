@@ -53,3 +53,5 @@ libraries/device/astrodev/
 libraries/save/astrodev/
 
 build/minix/
+
+build/arm_Release/
