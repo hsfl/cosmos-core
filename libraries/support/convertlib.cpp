@@ -44,7 +44,7 @@
 
 #include <iostream>
 
-uint16_t tlecount;
+static uint16_t tlecount;
 
 //! \addtogroup convertlib_functions
 //! @{
@@ -115,7 +115,7 @@ int32_t pos_extra(locstruc &loc)
     double tt = utc2tt(loc.utc);
     if (tt <= 0.)
     {
-        return (int32_t)tt;
+        return static_cast <int32_t>(tt);
     }
     loc.pos.extra.tt = tt;
 
@@ -190,35 +190,35 @@ int32_t pos_icrf(locstruc &loc)
 
 	// Set SUN specific stuff
     distance = length_rv(loc.pos.icrf.s);
-    loc.pos.sunsize = (float)(RSUNM/distance);
-    loc.pos.sunradiance = (float)(3.839e26/(4.*DPI*distance*distance));
+    loc.pos.sunsize = static_cast <float>(RSUNM/distance);
+    loc.pos.sunradiance = static_cast <float>(3.839e26/(4.*DPI*distance*distance));
 
 	// Check Earth:Sun separation
     sat2body = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2earth.s);
-    loc.pos.earthsep = (float)(sep_rv(loc.pos.icrf.s,sat2body));
-    loc.pos.earthsep -= (float)(asin(REARTHM/length_rv(sat2body)));
+    loc.pos.earthsep = static_cast <float>(sep_rv(loc.pos.icrf.s,sat2body));
+    loc.pos.earthsep -= static_cast <float>(asin(REARTHM/length_rv(sat2body)));
     if (loc.pos.earthsep < -loc.pos.sunsize)
         loc.pos.sunradiance = 0.;
 	else
         if (loc.pos.earthsep <= loc.pos.sunsize)
 		{
             theta = DPI*(loc.pos.sunsize+loc.pos.earthsep)/loc.pos.sunsize;
-            loc.pos.sunradiance *= (float)((theta - sin(theta))/D2PI);
+            loc.pos.sunradiance *= static_cast <float>((theta - sin(theta))/D2PI);
 		}
 
 	// Set Moon specific stuff
     sat2body = rv_sub(loc.pos.icrf.s,loc.pos.extra.sun2moon.s);
 
 	// Check Earth:Moon separation
-    loc.pos.moonsep = (float)(sep_rv(loc.pos.icrf.s,sat2body));
-    loc.pos.moonsep -= (float)(asin(RMOONM/length_rv(sat2body)));
+    loc.pos.moonsep = static_cast <float>(sep_rv(loc.pos.icrf.s,sat2body));
+    loc.pos.moonsep -= static_cast <float>(asin(RMOONM/length_rv(sat2body)));
     if (loc.pos.moonsep < -loc.pos.sunsize)
         loc.pos.sunradiance = 0.;
 	else
         if (loc.pos.moonsep <= loc.pos.sunsize)
 		{
             theta = DPI*(loc.pos.sunsize+loc.pos.moonsep)/loc.pos.sunsize;
-            loc.pos.sunradiance *= (float)((theta - sin(theta))/D2PI);
+            loc.pos.sunradiance *= static_cast <float>((theta - sin(theta))/D2PI);
 		}
 
 	// Set related attitudes
@@ -600,10 +600,10 @@ int32_t pos_geod(locstruc &loc)
 		pos_geoc(loc);
 	}
 	// Determine magnetic field in Topocentric system
-    geomag_front(loc.pos.geod.s,mjd2year(loc.utc),&loc.bearth);
+    geomag_front(loc.pos.geod.s,mjd2year(loc.utc), loc.pos.bearth);
 
 	// Transform to ITRS
-    loc.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc.pos.geod.s.lat),loc.bearth));
+    loc.pos.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc.pos.geod.s.lat),loc.pos.bearth.to_rv()));
     return 0;
 }
 
@@ -1186,10 +1186,10 @@ void pos_geoc2geod(locstruc &loc)
     geoc2geod(loc.pos.geoc, loc.pos.geod);
 
     // Determine magnetic field in Topocentric system
-    geomag_front(loc.pos.geod.s,mjd2year(loc.utc),&loc.bearth);
+    geomag_front(loc.pos.geod.s,mjd2year(loc.utc), loc.pos.bearth);
 
     // Transform to ITRS
-    loc.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc.pos.geod.s.lat),loc.bearth));
+    loc.pos.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc.pos.geod.s.lat),loc.pos.bearth.to_rv()));
 
 }
 
@@ -3010,7 +3010,7 @@ void body2topo(Vector source, Vector target, Vector &topo)
     double clat, clon, slat, slon;
 
     double llon = sqrt(source[0] * source[0] + source[1] * source[1]);
-    if (llon)
+    if (llon > 0.)
     {
         clon = source[0] / llon;
         slon = source[1] / llon;
@@ -3022,10 +3022,15 @@ void body2topo(Vector source, Vector target, Vector &topo)
     }
 
     double llat = sqrt(llon * llon + source[2] * source[2]);
-    if (llat)
+    if (llat > 0.)
     {
         clat = llon / llat;
         slat = source[2] / llat;
+    }
+    else
+    {
+        clat = 1.;
+        slat = 0.;
     }
 
     b2t[0][0] = -slon;
@@ -3048,8 +3053,8 @@ void body2topo(Vector source, Vector target, Vector &topo)
 //! \param el Calculated elevation in radians
 void topo2azel(rvector tpos, float &az, float &el)
 {
-    az = (float)(atan2(tpos.col[0], tpos.col[1]));
-    el = (float)(atan2(tpos.col[2], sqrt(tpos.col[0] * tpos.col[0] + tpos.col[1] * tpos.col[1])));
+    az = static_cast <float>(atan2(tpos.col[0], tpos.col[1]));
+    el = static_cast <float>(atan2(tpos.col[2], sqrt(tpos.col[0] * tpos.col[0] + tpos.col[1] * tpos.col[1])));
 }
 
 //! Topocentric to Azimuth and Eleveation
@@ -3059,8 +3064,8 @@ void topo2azel(rvector tpos, float &az, float &el)
 //! \param el Calculated elevation in radians
 void topo2azel(Vector tpos, float &az, float &el)
 {
-    az = (float)(atan2(tpos[0], tpos[1]));
-    el = (float)(atan2(tpos[2], sqrt(tpos[0] * tpos[0] + tpos[1] * tpos[1])));
+    az = static_cast <float>(atan2(tpos[0], tpos[1]));
+    el = static_cast <float>(atan2(tpos[2], sqrt(tpos[0] * tpos[0] + tpos[1] * tpos[1])));
 }
 
 //! Return position from TLE set

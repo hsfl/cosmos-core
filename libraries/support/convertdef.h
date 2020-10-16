@@ -401,10 +401,16 @@ typedef struct
     geoidpos selg;
     spherpos geos;
     extrapos extra;
+    //! Separation between sun/satellite and sun/limbofearth vectors in radians
     float earthsep;
+    //! Separation between sun/satellite and sun/limbofmoon vectors in radians
     float moonsep;
+    //! Radius of sun in radians
     float sunsize;
+    //! Watts per square meter per steradian
     float sunradiance;
+    //! Earth magnetic vector in ITRS for this time and location.
+    Vector bearth;
 } posstruc;
 
 std::ostream& operator << (std::ostream& out, const posstruc& a);
