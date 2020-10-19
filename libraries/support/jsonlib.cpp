@@ -120,7 +120,7 @@ cosmosstruc *json_init()
     cinfo->agent.resize(1);
     cinfo->event.resize(1);
     cinfo->user.resize(1);
-    memset(&cinfo->node, 0, sizeof(nodestruc));
+	cinfo->node = nodestruc();
 
 
 	//fix no trival copy-assignment warning for memset
@@ -6581,7 +6581,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo)
     switch (type)
     {
     case JSON_STRUCT_NODE:
-        memset(&(cinfo->node),0,sizeof(nodestruc));
+		cinfo->node = nodestruc();
         break;
     case JSON_STRUCT_EVENT:
         cinfo->event.clear();
