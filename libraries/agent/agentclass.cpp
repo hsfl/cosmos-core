@@ -557,8 +557,8 @@ namespace Support
         return(0);
     }
 
-        //! Find agent
-        /*! Check the Cosmos::Agent::agent_list for the particular agent,
+    //! Find agent
+    /*! Check the Cosmos::Agent::agent_list for the particular agent,
  * returning its heartbeat if found.
     \param agent Name of agent.
     \param node Node that agent is in.
@@ -566,7 +566,7 @@ namespace Support
  */
     beatstruc Agent::find_agent(string node, string agent, float waitsec)
     {
-        if (node.empty()) { node = nodeName; }
+       	if (node.empty()) { node = nodeName; }
         post(AgentMessage::REQUEST, "heartbeat");
         COSMOS_SLEEP(.1);
 

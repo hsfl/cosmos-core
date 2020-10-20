@@ -11861,5 +11861,21 @@ string port_type_name(uint32_t type)
     return result;
 }
 
+std::ostream& operator<<(std::ostream& out, const beatstruc& b)	{
+	return out<<"utc\t\t"<<b.utc<<endl
+		<<"node name\t"<<string(b.node)<<endl
+		<<"agent name\t"<<string(b.proc)<<endl
+		<<"ntype\t\t"<<(int)b.ntype<<endl
+		<<"address\t\t"<<string(b.addr)<<endl
+		<<"port\t\t"<<b.port<<endl
+		<<"buffer\t\t"<<b.bsz<<endl
+		<<"period\t\t"<<b.bprd<<endl
+		<<"user\t\t"<<string(b.user)<<endl
+		<<"cpu %\t\t"<<b.cpu<<endl
+		<<"mem %\t\t"<<b.memory<<endl
+		<<"jitter\t\t"<<b.jitter<<endl
+		<<"exits\t\t"<<b.exists<<endl;
+}
+
 //! @}
 

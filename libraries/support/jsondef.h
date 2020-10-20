@@ -42,6 +42,7 @@
 #include "support/socketlib.h"
 #include "support/objlib.h"
 
+
 //! \ingroup jsonlib
 //! \defgroup jsonlib_type JSON Name Space variable type constants
 //! @{
@@ -859,9 +860,9 @@ struct agent_channel
 //! Detailed elements of a single heartbeat of a single process.
 struct beatstruc
 {
-    // Heartbeat timestamp
+    /** Heartbeat timestamp */
     double utc = 0.;
-    // Heartbeat Node Name
+    /** Heartbeat Node Name */
     char node[COSMOS_MAX_NAME+1];  // TODO: change to string
     //! Heartbeat Agent Name
     char proc[COSMOS_MAX_NAME+1]; // TODO: change to string
@@ -869,7 +870,7 @@ struct beatstruc
     NetworkType ntype = NetworkType::MULTICAST;
     //! Protocol Address
     char addr[18];
-    //! AGENT port
+//! AGENT port
     uint16_t port = 0;
     //! Transfer buffer size
     uint32_t bsz = 0;
