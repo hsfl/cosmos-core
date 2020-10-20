@@ -1,0 +1,15 @@
+#!/bin/bash
+
+## script to rebuild everything from scratch, i.e. delete build directory and cmake all over again, then build and install
+
+rm -r linux
+
+mkdir linux
+
+do_cmake linux
+
+cp ../scripts/build_all linux
+
+cd linux
+
+build_all
