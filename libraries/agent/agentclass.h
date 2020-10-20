@@ -140,8 +140,8 @@ namespace Cosmos
         class Agent
         {
         public:
-            //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-            Agent(const string &nname = "", const string &aname = "", double bprd = 0., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 1);
+            //    Agent(NetworkType ntype, const string &node_name = "", const string &agent_name = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
+            Agent(const string &node_name = "", const string &agent_name = "", double bprd = 0., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 1);
             ~Agent();
 
             //! State of Health element vector
