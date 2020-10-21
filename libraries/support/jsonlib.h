@@ -342,10 +342,11 @@ uint16_t device_type_index(string name);
 string device_type_name(uint32_t type);
 string port_type_name(uint32_t type);
 
+//! @}
+
 std::ostream& operator<<(std::ostream& out, const beatstruc& b);
 
 
-//! @}
 
 
 #endif
