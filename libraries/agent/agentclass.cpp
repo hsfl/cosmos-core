@@ -82,14 +82,10 @@ namespace Support
         double timeStart = currentmjd();
         debug_level = dlevel;
 
-
         // Initialize COSMOS data space
         cinfo = json_init();
 
-        if (cinfo == nullptr)
-        {
-            return;
-        }
+        if (cinfo == nullptr) { return; }
 
         cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
 
@@ -134,7 +130,7 @@ namespace Support
         // Return if all we are doing is setting up client.
         if (agent_name.empty())
         {
-            strcpy(cinfo->agent[0].beat.proc, "null");
+            strcpy(cinfo->agent[0].beat.proc, "");
             cinfo->agent[0].stateflag = static_cast <uint16_t>(Agent::State::RUN);
             return;
         }
@@ -541,7 +537,7 @@ namespace Support
         {
             for (size_t i=0; i<agent_list.size(); ++i)
             {
-                if (name == agent_list[i].proc && (node == "any" || node == agent_list[i].node))
+                if (!strcmp(name.c_str(), agent_list[i].proc) && (!strcmp(node.c_str(), agent_list[i].node)))
                 {
                     if (rbeat != NULL)
                     {
@@ -566,7 +562,7 @@ namespace Support
  */
     beatstruc Agent::find_agent(string node, string agent, float waitsec)
     {
-       	if (node.empty()) { node = nodeName; }
+       	//if (node.empty()) { node = nodeName; }
         post(AgentMessage::REQUEST, "heartbeat");
         COSMOS_SLEEP(.1);
 
@@ -574,7 +570,7 @@ namespace Support
         ep.start();
         do {
             for (beatstruc &it : agent_list) {
-                if ((node == "any" || it.node == node) && it.proc == agent) {
+				if(!strcmp(it.proc, agent.c_str()) && !strcmp(it.node, node.c_str()))	{
                     it.exists = true;
                     return it;
                 }
@@ -585,6 +581,7 @@ namespace Support
         beatstruc nobeat;
         nobeat.exists = false;
         nobeat.node[0] = '\0';
+		
         return nobeat;
     }
 
@@ -842,18 +839,20 @@ namespace Support
             iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
             if (iretn > 0)
             {
-                if (!strcmp(mess.meta.beat.proc, "null") && mess.adata.empty())
+                if (!strcmp(mess.meta.beat.proc, "") && mess.adata.empty())
                 {
                     continue;
                 }
 
                 bool agent_found = false;
+
                 for (beatstruc &i : agent_list)
                 {
                     if (!strcmp(i.node, mess.meta.beat.node) && !strcmp(i.proc, mess.meta.beat.proc))
                     {
                         agent_found = true;
-                        i.utc = mess.meta.beat.utc;
+						// update all information for the last contact with given (node, agent)...
+						i = mess.meta.beat;
                         break;
                     }
                 }
@@ -863,7 +862,7 @@ namespace Support
                     agent_list.push_back(mess.meta.beat);
                 }
 
-                if (mess.meta.type == AgentMessage::REQUEST && strcmp(cinfo->agent[0].beat.proc, "null"))
+                if (mess.meta.type == AgentMessage::REQUEST && strcmp(cinfo->agent[0].beat.proc, ""))
                 {
                     string response;
                     process_request(mess.adata, response);
@@ -2433,9 +2432,9 @@ namespace Support
                 message_queue.pop_front();
                 if (type == Agent::AgentMessage::ALL || type == static_cast<Agent::AgentMessage>(message.meta.type))
                 {
-                    if (proc.empty() || proc == message.meta.beat.proc)
+                    if (proc.empty() || !strcmp(proc.c_str(), message.meta.beat.proc))
                     {
-                        if (node.empty() || node == message.meta.beat.node)
+                        if (node.empty() || !strcmp(node.c_str(), message.meta.beat.node))
                         {
                             return (static_cast<int32_t>(message.meta.type));
                         }
@@ -2787,7 +2786,7 @@ acquired.
         if (!agent_beat.exists) {
             agent_beat = find_agent(node, agent, wait_sec);
         } else {
-            if (node != agent_beat.node || (agent != "any" && agent != agent_beat.proc)) {
+            if (strcmp(node.c_str(), agent_beat.node) || (strcmp(agent.c_str(), agent_beat.proc))) {
                 agent_beat = find_agent(node, agent, wait_sec);
             }
         }
