@@ -44,7 +44,7 @@ int32_t request_hello(string &request, string &response, Agent *cdata);
 static uint64_t request_counter = 0;
 
 /// The agent constructor
-static Agent *agent;
+//static Agent *agent;
 
 //!
 //! \brief agent_002 is a test agent that demonstrates the interconnectivity with another agent, namely agent_001, through the use of agent requests.
@@ -53,27 +53,25 @@ static Agent *agent;
 //! \param argv The argument values
 //! \return int
 //!
+
+/// Program to demonstrate inter-communication between agents
 int main(int argc, char **argv)
 {
-    cout << "Starting agent_002" << endl;
 
     // Initialize agent parameters; its name and node
-    string agentname = "002"; // Forward facing name of the agent
-    string nodename = "cubesat1"; // The node that the agent will run on
-
-    // Specify agent parameters via command line arguments
-    switch (argc)
-    {
-    case 3:
-        nodename = argv[2];
-        agentname = static_cast<string>(argv[1]) + "_002";
-        break;
-    case 2:
-        agentname = static_cast<string>(argv[1]) + "_002";
-    }
+    string agent_name = "002"; // Forward facing name of the agent
+    string node_name = "cubesat1"; // The node that the agent will run on
 
     // Construct agent with above parameters
-    agent = new Agent(nodename, agentname, 1.);
+    cout << "Starting agent "<<agent_name<<"...";
+    Agent* agent = new Agent(node_name, agent_name, 1.);
+    // exit with error if unable to start agent
+    if(agent->last_error() < 0) {
+        cout<<"error: unable to start agent "<<agent_name<<" ("<<agent->last_error()<<") "<<cosmos_error_string(agent->last_error())<<endl;
+        exit(1);
+    } else {
+        cout<<" started."<<endl;
+    }
 
     // Define the request within the agent
     agent->add_request("request_hello", request_hello);
@@ -81,6 +79,7 @@ int main(int argc, char **argv)
     // Start executing the agent
     while(agent->running())
     {
+		cout<<"agent "<<agent_name<<" is running..."<<endl;
         // Sleep for 1 sec
         COSMOS_SLEEP(1.);
     }

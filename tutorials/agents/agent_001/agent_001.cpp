@@ -36,7 +36,7 @@
 #include <string>
 
 /// The agent constructor
-static Agent *agent;
+//static Agent *agent;
 
 //!
 //! \brief agent_001 is a test agent that demonstrates the interconnectivity with another agent, namely agent_002, through the use of agent requests.
@@ -47,41 +47,36 @@ static Agent *agent;
 //!
 int main(int argc, char **argv)
 {
-    cout << "Starting agent_001" << endl;
 
     // Initialize agent parameters; its name, node and communicating agent
-    string agentname = "001"; // Forward facing name of the agent
-    string nodename = "cubesat1"; // The node that the agent will run on
-    string agent002 = "002"; // The name of the agent this agent will speak to
-
-    // Specify agent parameters via command line arguments
-    switch (argc)
-    {
-    case 3:
-        nodename = argv[2];
-    case 2:
-        agentname = static_cast<string>(argv[1]) + "_001";
-        agent002  = static_cast<string>(argv[1]) + "_002";
-    }
+    string agent_name = "001"; // Forward facing name of the agent
+    string node_name = "cubesat1"; // The node that the agent will run on
 
     // Construct agent with above parameters
-    agent = new Agent(nodename, agentname, 1.);
+    cout << "Starting agent "<<agent_name<<"...";
+    Agent* agent = new Agent(node_name, agent_name, 1.);
 
-    // Exit if error is found
-    if (agent->last_error() < 0)
-    {
-        cout << "Unable to start agent_exec (" << agent->last_error() << ") " << cosmos_error_string(agent->last_error()) << endl;
+    // exit with error if unable to start agent
+    if(agent->last_error() < 0) {
+        cout<<"error: unable to start agent "<<agent_name<<" ("<<agent->last_error()<<") "<<cosmos_error_string(agent->last_error())<<endl;
         exit(1);
-    }
+    } else {
+		cout<<" started."<<endl;
+	}
 
-    beatstruc beat_agent_002 = agent->find_agent(nodename, agent002, 2.);
+	// try to locate agent002
+    string agent002 = "002"; // The name of the agent this agent will speak to
+    beatstruc beat_agent_002 = agent->find_agent(node_name, agent002, 2.);
+	//cout<<"outputting beatstruc from find_agent(..) call"<<endl;
+	//cout<<beat_agent_002;
 
     string requestString = "request_hello"; // The name of agent_002's request
-    std::string response; // Variable to store agent_002's response
+    string response; // Variable to store agent_002's response
 
     // Start executing the agent
     while (agent->running())
     {
+		cout<<"agent "<<agent_name<<" is running..."<<endl;
         // Initiate request from agent_002
         agent->send_request(beat_agent_002, requestString, response, 2.);
 
@@ -98,10 +93,10 @@ int main(int argc, char **argv)
             // The case if agent_002 is not running
             cout << "What happened to agent_002? Let's try to find it..." << endl;
 
-            beat_agent_002.node[0] = '\0'; // reset
-            beat_agent_002 = agent->find_server(nodename, agent002, 2.);
+    		beat_agent_002 = agent->find_agent(node_name, agent002, 2.);
 
-            cout << "Beat agent_002 node: " << beat_agent_002.utc << endl;
+			//cout<<"Beat from agent 002 from call to find_agent(..):"<<endl;
+			//cout<<beat_agent_002<<endl;
         }
 
         // Sleep for 1 sec
