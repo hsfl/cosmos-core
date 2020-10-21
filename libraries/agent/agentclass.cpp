@@ -78,7 +78,6 @@ namespace Support
     Agent::Agent(const string &node_name, const string &agent_name, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, uint16_t dlevel) {
         int32_t iretn;
 
-        double timeStart = currentmjd();
         debug_level = dlevel;
 
         // Initialize COSMOS data space
@@ -168,8 +167,8 @@ namespace Support
         strncpy(cinfo->agent[0].beat.proc, tname, COSMOS_MAX_NAME);
         agentName = cinfo->agent[0].beat.proc;
 
-        if (debug_level)
-        {
+        if (debug_level>2) {
+        	double timeStart = currentmjd();
             fprintf(get_debug_fd(), "------------------------------------------------------\n");
             fprintf(get_debug_fd(), "COSMOS AGENT '%s' on node '%s'\n", agent_name.c_str(), node_name.c_str());
             fprintf(get_debug_fd(), "Version %s built on %s %s\n", version.c_str(),  __DATE__, __TIME__);

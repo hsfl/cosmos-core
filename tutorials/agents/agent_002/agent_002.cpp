@@ -57,10 +57,9 @@ static uint64_t request_counter = 0;
 /// Program to demonstrate inter-communication between agents
 int main(int argc, char **argv)
 {
-
     // Initialize agent parameters; its name and node
-    string agent_name = "002"; // Forward facing name of the agent
-    string node_name = "cubesat1"; // The node that the agent will run on
+    string agent_name = "002";
+    string node_name = "cubesat1";
 
     // Construct agent with above parameters
     cout << "Starting agent "<<agent_name<<"...";
@@ -92,12 +91,13 @@ int main(int argc, char **argv)
 //! \param The response to send back to agent_001.
 //! \return int
 //!
+// TODO:  Why is Agent part of request function signature?
 int32_t request_hello(string &, string &response, Agent *)
 {
     // Send response back to agent_001
     response = "hello " + to_unsigned(request_counter);
 
-    cout << "agent_002 got the request! Its response is: " << response << endl;
+    cout << "agent 002 got the request! Its response is: " << response << endl;
 
     // Increment counter of how many requests were run
     request_counter++;

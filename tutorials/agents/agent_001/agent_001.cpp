@@ -64,21 +64,24 @@ int main(int argc, char **argv)
 		cout<<" started."<<endl;
 	}
 
-	// try to locate agent002
-    string agent002 = "002"; // The name of the agent this agent will speak to
-    beatstruc beat_agent_002 = agent->find_agent(node_name, agent002, 2.);
-	//cout<<"outputting beatstruc from find_agent(..) call"<<endl;
-	//cout<<beat_agent_002;
+	// try to locate agent 002
+    string agent_target = "002"; // The name of the agent this agent will speak to
+	cout<<"agent "<<agent_name<<" is looking for agent "<<agent_target<<"..."<<endl;
+    beatstruc agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
+	if(agent->debug_level>1)	{
+		cout<<"agent "<<agent_target<<" beatstruc:"<<endl;
+		cout<<agent_target_heartbeat;
+	}
 
-    string requestString = "request_hello"; // The name of agent_002's request
     string response; // Variable to store agent_002's response
+
+	cout<<"agent "<<agent_name<<" is looking for agent "<<agent_target<<"..."<<endl;
 
     // Start executing the agent
     while (agent->running())
     {
-		cout<<"agent "<<agent_name<<" is running..."<<endl;
-        // Initiate request from agent_002
-        agent->send_request(beat_agent_002, requestString, response, 2.);
+        // Initiate request to agent_002
+        agent->send_request(agent_target_heartbeat, "request_hello", response, 2.);
 
         // Check for response from agent_002
         if (response.size() > 1) {
@@ -87,16 +90,15 @@ int main(int argc, char **argv)
 
             // Clear the response for next request
             response.clear();
-        }
-        else
-        {
+        } else {
             // The case if agent_002 is not running
-            cout << "What happened to agent_002? Let's try to find it..." << endl;
+			cout<<"agent "<<agent_name<<" is looking for agent "<<agent_target<<"..."<<endl;
 
-    		beat_agent_002 = agent->find_agent(node_name, agent002, 2.);
-
-			//cout<<"Beat from agent 002 from call to find_agent(..):"<<endl;
-			//cout<<beat_agent_002<<endl;
+    		agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
+			if(agent->debug_level>1)	{
+				cout<<"agent "<<agent_target<<" beatstruc:"<<endl;
+				cout<<agent_target_heartbeat<<endl;
+			}
         }
 
         // Sleep for 1 sec
