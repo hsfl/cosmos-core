@@ -863,21 +863,21 @@ struct beatstruc
     /** Heartbeat timestamp */
     double utc = 0.;
     /** Heartbeat Node Name */
-    char node[COSMOS_MAX_NAME+1];  // TODO: change to string
+    char node[COSMOS_MAX_NAME+1] = {};  // TODO: change to string
     //! Heartbeat Agent Name
-    char proc[COSMOS_MAX_NAME+1]; // TODO: change to string
+    char proc[COSMOS_MAX_NAME+1] = {}; // TODO: change to string
     // Type of address protocol
     NetworkType ntype = NetworkType::MULTICAST;
     //! Protocol Address
-    char addr[18];
-//! AGENT port
+    char addr[18] = {};
+	//! AGENT port
     uint16_t port = 0;
     //! Transfer buffer size
     uint32_t bsz = 0;
     //! Heartbeat period in seconds
     double bprd = 0.;
     //! Agent User Name
-    char user[COSMOS_MAX_NAME+1];
+    char user[COSMOS_MAX_NAME+1] = {};
     //! Agent % CPU
     float cpu = 0.;
     //! Agent % memory
