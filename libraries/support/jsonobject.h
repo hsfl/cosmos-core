@@ -24,7 +24,6 @@ public:
     void addElement(string key, JSONArray value);
     void addElement(string key, string value);
     void addElement(string key, double value);
-//    void addElement(string key, int value);
     void addElement(string key, int64_t value);
     void addElement(string key, int32_t value);
     void addElement(string key, int16_t value);
@@ -33,7 +32,6 @@ public:
     void addElement(string key, uint32_t value);
     void addElement(string key, uint16_t value);
     void addElement(string key, uint8_t value);
-//    void addElement(string key, uint8_t value);
     void addElement(string key, bool value);
     string to_json_string();
     string to_json_object();

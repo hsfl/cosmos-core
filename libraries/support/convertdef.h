@@ -165,6 +165,7 @@ typedef struct
     rvector v;
     //! Acceleration
     rvector a;
+	// TODO: get rid of this kind of stuff?
     //! pass indicator: allows synchronization with other attitude and position values.
     uint32_t pass;
 } cartpos;

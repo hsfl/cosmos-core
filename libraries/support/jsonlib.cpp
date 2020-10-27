@@ -92,15 +92,11 @@ cosmosstruc *json_init()
     cosmosstruc *cinfo = nullptr;
     unitstruc tunit;
 
-    if ((cinfo = new cosmosstruc) == nullptr)
-    {
-        return nullptr;
-    }
+    if ((cinfo = new cosmosstruc) == nullptr) { return nullptr; }
 
     // Make sure it's clear
     //    memset(cinfo, 0, sizeof(cosmosstruc));
 
-    //    cinfo->jmapbase = &etext;
     cinfo->jmapped = 0;
     cinfo->unit.resize(JSON_UNIT_COUNT);
     //    cinfo->target.resize(100);
@@ -122,10 +118,6 @@ cosmosstruc *json_init()
     cinfo->user.resize(1);
 	cinfo->node = nodestruc();
 
-
-	//fix no trival copy-assignment warning for memset
-    //memset(&cinfo->physics, 0, sizeof(physicsstruc));
-    //memset(&cinfo->devspec, 0, sizeof(devspecstruc));
 	cinfo->physics = physicsstruc();
 	cinfo->devspec = devspecstruc();
 
@@ -499,10 +491,7 @@ cosmosstruc *json_init()
 */
 void json_destroy(cosmosstruc *cinfo)
 {
-    if (cinfo == nullptr)
-    {
-        return;
-    }
+    if (cinfo == nullptr) { return; }
     delete cinfo;
     cinfo = nullptr;
 }
@@ -1254,10 +1243,7 @@ int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo)
     }
 
     cinfo->jmap[hash].push_back(entry);
-    if (cinfo->jmap[hash].size() != csize+1)
-    {
-        return JSON_ERROR_NOENTRY;
-    }
+    if (cinfo->jmap[hash].size() != csize+1) { return JSON_ERROR_NOENTRY; }
 
     ++cinfo->jmapped;
     return (cinfo->jmapped);
