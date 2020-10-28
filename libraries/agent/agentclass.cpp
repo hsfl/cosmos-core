@@ -70,14 +70,22 @@ namespace Support
     //! \param agent_name Agent name. Defaults to empty. If this is defined, the full Agent code will be started.
     //! \param bprd Period, in seconds, for heartbeat. Defaults to 1.
     //! \param bsize Size of interagent communication buffer. Defaults to ::AGENTMAXBUFFER.
-    //! \param mflag Boolean controlling weyher or not multiple instances of the same Agent can start. If true, then Agent names
+    //! \param mflag Boolean controlling whether or not multiple instances of the same Agent can start. If true, then Agent names
     //! will have an index number appended (eg: myname_001). If false, agent will listen for 5 seconds and terminate if it senses
     //! the Agent already running.
     //! \param portnum The network port to listen on for requests. Defaults to 0 whereupon it will use whatever th OS assigns.
     //! \param dlevel debug level. Defaults to 1 so that if there is an error the user can immediately see it. also initialized in the namespace variables
-    Agent::Agent(const string &node_name, const string &agent_name, double bprd, uint32_t bsize, bool mflag, int32_t portnum, NetworkType ntype, uint16_t dlevel) {
+    Agent::Agent(
+		const string &node_name,
+		const string &agent_name,
+		double bprd,
+		uint32_t bsize,
+		bool mflag,
+		int32_t portnum,
+		NetworkType ntype,
+		uint16_t dlevel)
+	{
         int32_t iretn;
-
         debug_level = dlevel;
 
         // Initialize COSMOS data space
@@ -209,35 +217,35 @@ namespace Support
         add_request("help",req_help,"","list of available requests for this agent");
         add_request("help_json",req_help_json,"","list of available requests for this agent (but in json)");
         add_request("shutdown",req_shutdown,"","request to shutdown this agent");
-        Agent::add_request("idle",Agent::req_idle,"","request to transition this agent to idle state");
-        Agent::add_request("init",Agent::req_init,"","request to transition this agent to init state");
-        Agent::add_request("monitor",Agent::req_monitor,"","request to transition this agent to monitor state");
-        Agent::add_request("reset",Agent::req_reset,"","request to transition this agent to reset state");
-        Agent::add_request("run",Agent::req_run,"","request to transition this agent to run state");
-        Agent::add_request("status",Agent::req_status,"","request the status of this agent");
-        Agent::add_request("debug_level",Agent::req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
-        Agent::add_request("getvalue",Agent::req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
-        Agent::add_request("setvalue",Agent::req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
-        Agent::add_request("listnames",Agent::req_listnames,"","list the Namespace of the agent");
-        Agent::add_request("forward",Agent::req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
-        Agent::add_request("echo",Agent::req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
-        Agent::add_request("nodejson",Agent::req_nodejson,"","return description JSON for Node");
-        Agent::add_request("statejson",Agent::req_statejson,"","return description JSON for State vector");
-        Agent::add_request("utcstartjson",Agent::req_utcstartjson,"","return description JSON for UTC Start time");
-        Agent::add_request("piecesjson",Agent::req_piecesjson,"","return description JSON for Pieces");
-        Agent::add_request("vertexsjson",Agent::req_vertexsjson,"","return description JSON for Pieces");
-        Agent::add_request("facesjson",Agent::req_facesjson,"","return description JSON for Pieces");
-        Agent::add_request("devgenjson",Agent::req_devgenjson,"","return description JSON for General Devices");
-        Agent::add_request("devspecjson",Agent::req_devspecjson,"","return description JSON for Specific Devices");
-        Agent::add_request("portsjson",Agent::req_portsjson,"","return description JSON for Ports");
-        Agent::add_request("targetsjson",Agent::req_targetsjson,"","return description JSON for Targets");
-        Agent::add_request("aliasesjson",Agent::req_aliasesjson,"","return description JSON for Aliases");
-        Agent::add_request("heartbeat",Agent::req_heartbeat,"","Post a hearbeat");
-        Agent::add_request("postsoh",Agent::req_postsoh,"","Post a SOH");
-        Agent::add_request("utc",Agent::req_utc,"utc","Get UTC as both Modified Julian Day and Unix Time");
-        Agent::add_request("soh",Agent::req_soh,"soh","Get Limited SOH string");
-        Agent::add_request("fullsoh",Agent::req_fullsoh,"fullsoh","Get Full SOH string");
-        Agent::add_request("jsondump",Agent::req_jsondump,"jsondump","Dump JSON ini files to node folder");
+        add_request("idle",req_idle,"","request to transition this agent to idle state");
+        add_request("init",req_init,"","request to transition this agent to init state");
+        add_request("monitor",req_monitor,"","request to transition this agent to monitor state");
+        add_request("reset",req_reset,"","request to transition this agent to reset state");
+        add_request("run",req_run,"","request to transition this agent to run state");
+        add_request("status",req_status,"","request the status of this agent");
+        add_request("debug_level",req_debug_level,"{\"name1\",\"name2\",...}","get/set debug_level of agent");
+        add_request("getvalue",req_getvalue,"{\"name1\",\"name2\",...}","get specified value(s) from agent");
+        add_request("setvalue",req_setvalue,"{\"name1\":value},{\"name2\":value},...}","set specified value(s) in agent");
+        add_request("listnames",req_listnames,"","list the Namespace of the agent");
+        add_request("forward",req_forward,"nbytes packet","Broadcast JSON packet to the default SEND port on local network");
+        add_request("echo",req_echo,"utc crc nbytes bytes","echo array of nbytes bytes, sent at time utc, with CRC crc.");
+        add_request("nodejson",req_nodejson,"","return description JSON for Node");
+        add_request("statejson",req_statejson,"","return description JSON for State vector");
+        add_request("utcstartjson",req_utcstartjson,"","return description JSON for UTC Start time");
+        add_request("piecesjson",req_piecesjson,"","return description JSON for Pieces");
+        add_request("vertexsjson",req_vertexsjson,"","return description JSON for Pieces");
+        add_request("facesjson",req_facesjson,"","return description JSON for Pieces");
+        add_request("devgenjson",req_devgenjson,"","return description JSON for General Devices");
+        add_request("devspecjson",req_devspecjson,"","return description JSON for Specific Devices");
+        add_request("portsjson",req_portsjson,"","return description JSON for Ports");
+        add_request("targetsjson",req_targetsjson,"","return description JSON for Targets");
+        add_request("aliasesjson",req_aliasesjson,"","return description JSON for Aliases");
+        add_request("heartbeat",req_heartbeat,"","Post a hearbeat");
+        add_request("postsoh",req_postsoh,"","Post a SOH");
+        add_request("utc",req_utc,"","Get UTC as both Modified Julian Day and Unix Time");
+        add_request("soh",req_soh,"","Get Limited SOH string");
+        add_request("fullsoh",req_fullsoh,"","Get Full SOH string");
+        add_request("jsondump",req_jsondump,"","Dump JSON ini files to node folder");
 
         // Set up Full SOH string
 //            set_fullsohstring(json_list_of_fullsoh(cinfo));
@@ -290,15 +298,16 @@ namespace Support
     \param synopsis A usage synopsis for the request.
     \return Error, if any, otherwise zero.
 */
-    int32_t Agent::add_request(string token, Agent::external_request_function function, string synopsis, string description) {
-        if (reqs.size() > AGENTMAXREQUESTCOUNT)
-            return (AGENT_ERROR_REQ_COUNT);
+    int32_t Agent::add_request(
+		string token,
+		Agent::external_request_function function,
+		string synopsis,
+		string description
+	) {
+        if (reqs.size() > AGENTMAXREQUESTCOUNT) return (AGENT_ERROR_REQ_COUNT);
 
         request_entry tentry;
-        if (token.size() > COSMOS_MAX_NAME)
-        {
-            token.resize(COSMOS_MAX_NAME);
-        }
+        if (token.size() > COSMOS_MAX_NAME) { token.resize(COSMOS_MAX_NAME); }
         tentry.token = token;
 //            tentry.ifunction = nullptr;
         tentry.efunction = function;
@@ -406,7 +415,6 @@ namespace Support
         socket_channel sendchan;
         int32_t iretn;
         int32_t nbytes;
-
         vector <char> toutput;
         toutput.resize(AGENTMAXBUFFER+1);
 
@@ -417,7 +425,8 @@ namespace Support
 
         if ((iretn=socket_open(&sendchan, NetworkType::UDP, hbeat.addr, hbeat.port, SOCKET_TALK, SOCKET_BLOCKING, AGENTRCVTIMEO)) < 0) { return (-errno); }
 
-        nbytes = strnlen(request.c_str(), hbeat.bsz);
+        //nbytes = strnlen(request.c_str(), hbeat.bsz);
+        nbytes = std::min(request.size(), (size_t)hbeat.bsz);
         if ((nbytes=sendto(sendchan.cudp, request.c_str(), nbytes, 0, (struct sockaddr *)&sendchan.caddr, sizeof(struct sockaddr_in))) < 0) {
             CLOSE_SOCKET(sendchan.cudp);
 #ifdef COSMOS_WIN_OS
@@ -426,7 +435,6 @@ namespace Support
             return (-errno);
 #endif
         }
-
 
         do { 
             nbytes = recvfrom(sendchan.cudp, toutput.data(), AGENTMAXBUFFER, 0, static_cast<struct sockaddr *>(nullptr), static_cast<socklen_t *>(nullptr));
@@ -441,8 +449,8 @@ namespace Support
             return (-errno);
 #endif
         } else {
-            toutput[nbytes] = 0;
-            toutput.resize(nbytes+1);
+            //toutput[nbytes] = 0;
+            toutput.resize(nbytes);
             string reply(toutput.begin(), toutput.end());
             output = reply;
             return (nbytes);
@@ -494,21 +502,17 @@ namespace Support
     \param rbeat pointer to a location to store the heartbeat
     \return 1 if found, otherwise 0, or an error number
 */
-    int32_t Agent::get_server(string node, string name, float waitsec, beatstruc *rbeat) {
-		// TODO: get rid of this line?
-        if (node.empty()) { node = nodeName; }
-
-        //! 3. Loop for ::waitsec seconds, or until we discover desired heartbeat.
+// JIMNOTE:  get_server should probably be depricated in favor of find_agent
+    int32_t Agent::get_server(string node, string proc, float waitsec, beatstruc *rbeat) {
 
         ElapsedTime ep;
         ep.start();
 
         post(Agent::AgentMessage::REQUEST, "heartbeat");
         COSMOS_SLEEP(.1);
-        do
-        {
+        do {
             for (size_t i=0; i<agent_list.size(); ++i) {
-                if (!strcmp(name.c_str(), agent_list[i].proc) && (!strcmp(node.c_str(), agent_list[i].node))) {
+                if (!strcmp(proc.c_str(), agent_list[i].proc) && !strcmp(node.c_str(), agent_list[i].node)) {
                     if (rbeat != NULL) { *rbeat = agent_list[i]; }
                     return (1);
                 }
@@ -516,7 +520,7 @@ namespace Support
             COSMOS_SLEEP(.1);
 
         } while (ep.split() <= waitsec);
-        return(0);
+        return 0;
     }
 
     //! Find agent
@@ -528,7 +532,7 @@ namespace Support
  */
     beatstruc Agent::find_agent(string node, string agent, float waitsec)
     {
-       	//if (node.empty()) { node = nodeName; }
+		// ask all existing agents to send out a heartbeat
         post(AgentMessage::REQUEST, "heartbeat");
         COSMOS_SLEEP(.1);
 
@@ -559,6 +563,8 @@ namespace Support
     \param waitsec Maximum number of seconds to wait.
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
+
+ //JIMNOTE: this find_server should be depricated, too (just uses find_agent yo)
     beatstruc Agent::find_server(string node, string agent, float waitsec) {
         beatstruc cbeat;
         cbeat = find_agent(agent, node, waitsec);
@@ -728,9 +734,11 @@ namespace Support
 			}	
             request[i] = bufferin[i];
         }
-        request[i] = 0;
+		// JIMNOTE: this is that bastard line!!!
+        //request[i] = 0;
+		request.resize(i);
 
-        for (i=0; i<reqs.size(); i++) { if (!strcmp(&request[0],reqs[i].token.c_str())) break; }
+        for (i=0; i<reqs.size(); i++) { if (!strcmp(request.c_str(),reqs[i].token.c_str())) break; }
 
         if (i < reqs.size()) {
             iretn = -1;
@@ -1052,11 +1060,6 @@ namespace Support
     //! \return 0, or negative error.
 //        int32_t Agent::req_debug_level(string &request, char* output, Agent* agent)
     int32_t Agent::req_debug_level(string &request, string &output, Agent* agent) {
-//            if (strcmp(request, "debug_level"))
-//            {
-//                sscanf(request.c_str(), "debug_level %hu", &agent->debug_level);
-//            }
-//            sprintf(output, "%d", agent->debug_level);
         if (request != "debug_level") {
             sscanf(request.c_str(), "debug_level %hu", &agent->debug_level);
         }
@@ -1077,8 +1080,6 @@ namespace Support
         string jstring;
 
         if (json_of_list(jstring, request, agent->cinfo) != NULL) {
-//                strncpy(output, jstring.c_str(), agent->cinfo->agent[0].beat.bsz);
-//                output[agent->cinfo->agent[0].beat.bsz-1] = 0;
             output = jstring;
             if (output.length() > agent->cinfo->agent[0].beat.bsz) {
                 output[agent->cinfo->agent[0].beat.bsz-1] = 0;
@@ -1097,7 +1098,7 @@ namespace Support
  * \return 0, or negative error.
  */
 //        int32_t Agent::req_setvalue(string &request, char* output, Agent* agent)
-    int32_t Agent::req_setvalue(string &request, string &output, Agent* agent) {
+	int32_t Agent::req_setvalue(string &request, string &output, Agent* agent) {
         int32_t iretn;
         iretn = json_parse(request, agent->cinfo);
         output = std::to_string(iretn);
@@ -1113,14 +1114,8 @@ namespace Support
  */
 //        int32_t Agent::req_listnames(char *, char* output, Agent* agent)
     int32_t Agent::req_listnames(string &, string &output, Agent* agent) {
-//            string result = json_list_of_all(agent->cinfo);
-//            strncpy(output, result.c_str(), agent->cinfo->agent[0].beat.bsz);
-//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         output = json_list_of_all(agent->cinfo);
-        if (output.length() > agent->cinfo->agent[0].beat.bsz)
-        {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
+        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
         return 0;
     }
 
@@ -1133,13 +1128,8 @@ namespace Support
  */
 //        int32_t Agent::req_nodejson(char *, char* output, Agent* agent)
     int32_t Agent::req_nodejson(string &, string &output, Agent* agent) {
-//            strncpy(output, agent->cinfo->json.node.c_str(), agent->cinfo->json.node.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.node.size():agent->cinfo->agent[0].beat.bsz-1);
-//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         output = agent->cinfo->json.node.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz)
-        {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
+        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
         return 0;
     }
 
@@ -1152,13 +1142,8 @@ namespace Support
  */
 //        int32_t Agent::req_statejson(char *, char* output, Agent* agent)
     int32_t Agent::req_statejson(string &, string &output, Agent* agent) {
-//            strncpy(output, agent->cinfo->json.state.c_str(), agent->cinfo->json.state.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.state.size():agent->cinfo->agent[0].beat.bsz-1);
-//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         output = agent->cinfo->json.state.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz)
-        {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
+        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
         return 0;
     }
 
@@ -1171,13 +1156,8 @@ namespace Support
  */
 //        int32_t Agent::req_utcstartjson(char *, char* output, Agent* agent)
     int32_t Agent::req_utcstartjson(string &, string &output, Agent* agent) {
-//            strncpy(output, agent->cinfo->json.utcstart.c_str(), agent->cinfo->json.utcstart.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.utcstart.size():agent->cinfo->agent[0].beat.bsz-1);
-//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         output = agent->cinfo->json.utcstart.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz)
-        {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
+        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
         return 0;
     }
 
@@ -1190,12 +1170,8 @@ namespace Support
  */
 //        int32_t Agent::req_piecesjson(char *, char* output, Agent* agent)
     int32_t Agent::req_piecesjson(string &, string &output, Agent* agent) {
-//            strncpy(output, agent->cinfo->json.pieces.c_str(), agent->cinfo->json.pieces.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.pieces.size():agent->cinfo->agent[0].beat.bsz-1);
-//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         output = agent->cinfo->json.pieces.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz) {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
+        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
         return 0;
     }
 
@@ -1208,13 +1184,8 @@ namespace Support
  */
 //        int32_t Agent::req_facesjson(char *, char* output, Agent* agent)
     int32_t Agent::req_facesjson(string &, string &output, Agent* agent) {
-//            strncpy(output, agent->cinfo->json.faces.c_str(), agent->cinfo->json.faces.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.faces.size():agent->cinfo->agent[0].beat.bsz-1);
-//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         output = agent->cinfo->json.faces.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz)
-        {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
+        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
         return 0;
     }
 
@@ -1227,12 +1198,8 @@ namespace Support
  */
 //        int32_t Agent::req_vertexsjson(char *, char* output, Agent* agent)
     int32_t Agent::req_vertexsjson(string &, string &output, Agent* agent) {
-//            strncpy(output, agent->cinfo->json.vertexs.c_str(), agent->cinfo->json.vertexs.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.vertexs.size():agent->cinfo->agent[0].beat.bsz-1);
-//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         output = agent->cinfo->json.vertexs.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz) {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
+        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
         return 0;
     }
 
@@ -1245,13 +1212,8 @@ namespace Support
  */
 //        int32_t Agent::req_devgenjson(char *, char* output, Agent* agent)
     int32_t Agent::req_devgenjson(string &, string &output, Agent* agent) {
-//            strncpy(output, agent->cinfo->json.devgen.c_str(), agent->cinfo->json.devgen.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.devgen.size():agent->cinfo->agent[0].beat.bsz-1);
-//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         output = agent->cinfo->json.devgen.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz)
-        {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
+        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
         return 0;
     }
 
@@ -1264,13 +1226,8 @@ namespace Support
  */
 //        int32_t Agent::req_devspecjson(char *, char* output, Agent* agent)
     int32_t Agent::req_devspecjson(string &, string &output, Agent* agent) {
-//            strncpy(output, agent->cinfo->json.devspec.c_str(), agent->cinfo->json.devspec.size()<agent->cinfo->agent[0].beat.bsz-1?agent->cinfo->json.devspec.size():agent->cinfo->agent[0].beat.bsz-1);
-//            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
         output = agent->cinfo->json.devspec.c_str();
-        if (output.length() > agent->cinfo->agent[0].beat.bsz)
-        {
-            output[agent->cinfo->agent[0].beat.bsz-1] = 0;
-        }
+        if (output.length() > agent->cinfo->agent[0].beat.bsz) { output[agent->cinfo->agent[0].beat.bsz-1] = 0; }
         return 0;
     }
 
@@ -1992,7 +1949,6 @@ namespace Support
         if ((iretn=socket_open(&cinfo->agent[0].sub,type,address,port,SOCKET_LISTEN,SOCKET_BLOCKING, usectimeo)) < 0) {
             return iretn;
         }
-
         return 0;
     }
 
@@ -2401,53 +2357,38 @@ acquired.
             }
         }
 
-        if (!node_found)
-        {
-            iretn = GENERAL_ERROR_UNDEFINED;
-        }
+        if (!node_found) { iretn = GENERAL_ERROR_UNDEFINED; }
 
         return iretn;
     }
 
-    FILE *Agent::get_debug_fd(double mjd)
-    {
+    FILE *Agent::get_debug_fd(double mjd) {
         static double oldmjd=0.;
-        if (debug_level == 0)
-        {
+        if (debug_level == 0) {
             debug_fd = nullptr;
             debug_pathName.clear();
         }
-        else if (debug_level == 1)
-        {
-            if (debug_fd != stdout)
-            {
-                if (debug_fd != nullptr)
-                {
+        else if (debug_level == 1) {
+            if (debug_fd != stdout) {
+                if (debug_fd != nullptr) {
                     fclose(debug_fd);
                 }
                     debug_fd = stdout;
                 debug_pathName.clear();
             }
-        }
-        else
-        {
-            if (mjd == 0.)
-            {
+        } else {
+            if (mjd == 0.) {
                 mjd = currentmjd();
                 oldmjd = mjd;
             }
             mjd = mjd - fmod(mjd, 1./24.);
             string pathName = data_type_path(nodeName, "temp", agentName, mjd, agentName, "debug");
 
-            if (debug_fd != nullptr)
-            {
-                if (pathName != debug_pathName)
-                {
+            if (debug_fd != nullptr) {
+                if (pathName != debug_pathName) {
                     FILE *fd = fopen(pathName.c_str(), "a");
-                    if (fd != nullptr)
-                    {
-                        if (debug_fd != stdout)
-                        {
+                    if (fd != nullptr) {
+                        if (debug_fd != stdout) {
                             fclose(debug_fd);
                             string final_filepath = data_type_path(nodeName, "outgoing", agentName, oldmjd, agentName, "debug");
                             rename(debug_pathName.c_str(), final_filepath.c_str());
@@ -2457,18 +2398,14 @@ acquired.
                     }
                     oldmjd = mjd;
                 }
-            }
-            else
-            {
+            } else {
                 FILE *fd = fopen(pathName.c_str(), "a");
-                if (fd != nullptr)
-                {
+                if (fd != nullptr) {
                     debug_fd = fd;
                     debug_pathName = pathName;
                 }
             }
         }
-
         return debug_fd;
     }
 
@@ -2477,13 +2414,9 @@ acquired.
         if (debug_fd != nullptr && debug_fd != stdout)
         {
             iretn = fclose(debug_fd);
-            if (iretn != 0)
-            {
-                return -errno;
-            }
+            if (iretn != 0) { return -errno; }
             debug_fd = nullptr;
         }
-
         return 0;
     }
 
