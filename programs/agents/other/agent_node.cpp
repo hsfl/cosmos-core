@@ -37,7 +37,6 @@
 
 #include "agent/agentclass.h"
 #include "support/jsonlib.h"
-#include "support/jsonlib.h"
 #include "physics/physicslib.h"
 
 #include <iostream>
