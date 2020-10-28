@@ -108,8 +108,9 @@ cosmosstruc *json_init()
         cinfo->jmap.size() != JSON_MAX_HASH ||
         cinfo->emap.size() != JSON_MAX_HASH)
     {
-        delete [] cinfo;
-        return nullptr;
+        delete cinfo;
+    	cinfo = nullptr;
+        return cinfo;
     }
 
     cinfo->glossary.resize(1);
@@ -127,8 +128,9 @@ cosmosstruc *json_init()
         cinfo->event.size() != 1 ||
         cinfo->user.size() != 1)
     {
-        delete [] cinfo;
-        return nullptr;
+        delete cinfo;
+		cinfo = nullptr;
+        return cinfo;
     }
 
     // Create JSON Map unit table
@@ -478,8 +480,9 @@ cosmosstruc *json_init()
     int32_t iretn = json_mapbaseentries(cinfo);
     if (iretn < 0)
     {
-        delete [] cinfo;
-        return nullptr;
+        delete cinfo;
+		cinfo = nullptr;
+        return cinfo;
     }
 
     return (cinfo);
