@@ -1138,7 +1138,7 @@ int32_t json_createport(cosmosstruc *cinfo, string name, uint16_t type)
  * \param alias Name to add as an alias.
  * \param value Either the contents of an equation, a constant, or a Namespace name that
  * should already exist in the Namespace
- * \param cmeta Reference to ::cosmosmetastruc to use.
+ * \param cmeta Reference to ::cosmosstruc to use.
  * \return The current number of entries, if successful, otherwise negative error.
 */
 int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
@@ -7621,7 +7621,6 @@ int32_t json_setup_node(string &node, cosmosstruc *cinfo)
 //! Save Node entries to disk
 /*! Create all of the initialization files that represent the Node in the provided
  * ::cosmosstruc.
- * \param cmeta Reference to ::cosmosmetastruc to use.
  * \param cinfo Reference to ::cosmosstruc to use.
  * \return Zero if successful, otherwise negative error.
  */
@@ -7938,6 +7937,8 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_loc_att_selc_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
     json_addentry("node_loc_att_selc_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
     json_addentry("node_loc_bearth", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.bearth, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+	// JIMNOTE: is this how to properly add an entry?
+   	json_addentry("node_loc_orbit", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.orbit, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_azfrom", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.azfrom, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
     json_addentry("node_azto", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.azto, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
     json_addentry("node_elfrom", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.elfrom, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
@@ -7996,7 +7997,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
 //! Add vertex entry.
 /*! Add an entry for vertex number vidx to the JSON Namespace map.
  \param vidx Piece number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
 int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo)
@@ -8018,7 +8019,7 @@ int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo)
 //! Add face entry.
 /*! Add an entry for face number fidx to the JSON Namespace map.
  \param fidx Piece number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
 int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
@@ -8045,7 +8046,7 @@ int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
 //! Add piece entry.
 /*! Add an entry for piece number pidx to the JSON Namespace map.
  \param pidx Piece number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
 int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
@@ -8083,7 +8084,7 @@ int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
 //! Toggle piece entry.
 /*! Toggle the enable state of an entry for piece number pidx in the JSON Namespace map.
  \param pidx Piece number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
 * \param state Desired enable state.
     \return 0 or negative error.
  */
@@ -8115,7 +8116,7 @@ int32_t json_togglepieceentry(uint16_t pidx, cosmosstruc *cinfo, bool state)
 //! Add component entry.
 /*! Add an entry for component number cidx to the JSON Namespace map.
  \param cidx Component number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
 int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
@@ -8150,7 +8151,7 @@ int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
 //! Toggle component entry.
 /*! Toggle the enable state of an entry for component number cidx in the JSON Namespace map.
  \param cidx Component number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
 * \param state Desired enable state.
     \return 0 or negative error.
  */
@@ -11764,7 +11765,7 @@ size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cinfo, const 
 * updated with any new values so that repeating Events can be properly
 * assessed.
 *	\param dictionary Reference to vector of ::shorteventstruc representing event dictionary.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
 *	\param cinfo Reference to ::cosmosstruc to use.
 *	\param events Reference to vector of ::shorteventstruc representing events.
 *	\return Number of events created.

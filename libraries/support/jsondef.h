@@ -797,7 +797,7 @@ struct jsonoperand
 //! JSON equation entry
 /*! Single entry in a JSON equation map. Ties together a JSON equation and its
  * preparsed form.
- * - index: Index of this entry in the ::cosmosmetastruc::jmap.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonequation
@@ -909,8 +909,6 @@ struct agentstruc
     double aprd;
     //! Agent Running State Flag
     uint16_t stateflag;
-    //! State of Health report string
-    //	char sohstring[AGENTMAXBUFFER];
     //! Agent request list
     vector <agent_request_entry> reqs;
     //! Heartbeat
@@ -1918,7 +1916,7 @@ struct devspecstruc
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
  * to a single object, along with its data type.
- * - index: Index of this entry in the ::cosmosmetastruc::jmap.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonentry
@@ -1962,30 +1960,6 @@ struct jsonmap
 {
     //! Array of entries
     vector<vector<jsonentry> > entry;
-};
-
-//! JSON Name Space Meta structure
-/*! A structure containing the meta information that allows items in the ::cosmosdatastruc to
- * be mapped to names in the Namespace.
-*/
-struct cosmosmetastruc
-{
-    //! Timestamp for last change to data
-    double timestamp;
-    //! Node name
-    string node;
-    //! Whether JSON map has been created.
-    uint16_t jmapped;
-    //! JSON Namespace Map matrix.
-    vector<vector<jsonentry> > jmap;
-    //! JSON Equation Map matrix.
-    vector<vector<jsonequation> > emap;
-    //! JSON Unit Map matrix: first level is for type, second level is for variant.
-    vector<vector<unitstruc> > unit;
-    //! Vector of Equations
-    vector<equationstruc> equation;
-    //! Array of Aliases
-    vector<aliasstruc> alias;
 };
 
 //! JSON Name Space structure
