@@ -133,7 +133,7 @@ enum
     JSON_UNIT_BYTES,
     //! Fraction
     JSON_UNIT_FRACTION,
-    //! Holder for number of entries
+    //! Holder for number of entries (CLEVER!)
     JSON_UNIT_COUNT
     } ;
 
@@ -724,15 +724,15 @@ enum PORT_TYPE
 struct unitstruc
 {
     //! JSON Unit Name
-    string name;
+    string name = "";
     //! JSON Unit conversion type
-    uint16_t type;
+    uint16_t type = JSON_UNIT_TYPE_IDENTITY;
     //! 0th derivative term
-    float p0;
+    float p0 = 0.f;
     //! 1th derivative term
-    float p1;
+    float p1 = 0.f;
     //! 2th derivative term
-    float p2;
+    float p2 = 0.f;
 };
 
 //! JSON Node description strings
@@ -1978,7 +1978,7 @@ struct cosmosstruc
     vector<vector<jsonentry> > jmap;
     //! JSON Equation Map matrix.
     vector<vector<jsonequation> > emap;
-    //! JSON Unit Map matrix: first level is for type, second level is for variant.
+    //! JSON Unit Map matrix: first level is for unit type, second level is for all variants (starting with primary).
     vector<vector<unitstruc> > unit;
     //! Vector of Equations
     vector<equationstruc> equation;

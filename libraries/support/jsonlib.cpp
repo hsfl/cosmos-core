@@ -90,7 +90,6 @@ cosmosstruc *json_init()
 {
     //    extern char etext;
     cosmosstruc *cinfo = nullptr;
-    unitstruc tunit;
 
     if ((cinfo = new cosmosstruc) == nullptr) { return nullptr; }
 
@@ -118,7 +117,6 @@ cosmosstruc *json_init()
     cinfo->event.resize(1);
     cinfo->user.resize(1);
 	cinfo->node = nodestruc();
-
 	cinfo->physics = physicsstruc();
 	cinfo->devspec = devspecstruc();
 
@@ -132,13 +130,11 @@ cosmosstruc *json_init()
 		cinfo = nullptr;
         return cinfo;
     }
-
     // Create JSON Map unit table
     for (uint16_t i=0; i<cinfo->unit.size(); ++i)
     {
         // SI Units
-        tunit.type = JSON_UNIT_TYPE_IDENTITY;
-        tunit.p0 = tunit.p1 = tunit.p2 = 0.;
+    	unitstruc tunit;
         switch (i)
         {
         case JSON_UNIT_NONE:
@@ -250,8 +246,6 @@ cosmosstruc *json_init()
         cinfo->unit[i].push_back(tunit);
 
         // Alternate Units
-        tunit.type = JSON_UNIT_TYPE_IDENTITY;
-        tunit.p0 = tunit.p1 = tunit.p2 = 0.;
         switch (i)
         {
         case JSON_UNIT_NONE:
@@ -425,7 +419,6 @@ cosmosstruc *json_init()
             break;
         }
     }
-
     // Create component names
     device_type_string.clear();
     device_type_string.resize(static_cast<uint16_t>(DeviceType::COUNT));
