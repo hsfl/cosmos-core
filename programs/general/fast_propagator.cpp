@@ -27,11 +27,13 @@
 * condititons and terms to use this software.
 ********************************************************************/
 
+#include "support/configCosmos.h"
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
 #include "agent/agentclass.h"
 #include "support/jsonlib.h"
 #include "support/datalib.h"
+#include "support/convertlib.h"
 #include <sys/stat.h>
 #include <iostream>
 #include <iomanip>
@@ -48,6 +50,7 @@ void endline(){
 
 int main(int argc, char* argv[])
 {
+    string fname;
 	std::string node;
 	int32_t order = 6;
 	int32_t mode = 1; // attitude mode (0 - propagate?, 1-LVLH, ...)
@@ -58,6 +61,8 @@ int main(int argc, char* argv[])
 	double logperiod = 1.;
 	double logstride = 3600./86400.;
 	int32_t iretn;
+    vector <tlestruc> lines;
+    bool tleinit = false;
 	//	bool master_timer = false;
 
 	switch (argc)
@@ -67,7 +72,21 @@ int main(int argc, char* argv[])
 	case 4:
 		logperiod = atof(argv[3]);
 	case 3:
-		mjdstart = atof(argv[2]);
+        if (strchr(argv[2], ':') != nullptr)
+        {
+            fname = argv[2];
+            mjdstart = stof(fname.substr(fname.find(':')+1));
+            if (mjdstart == 0.)
+            {
+                mjdstart = currentmjd();
+            }
+            iretn = load_lines(fname.substr(0, fname.find(':')), lines);
+            tleinit = true;
+        }
+        else
+        {
+            mjdstart = atof(argv[2]);
+        }
 	case 2:
 		node = argv[1];
 		break;
@@ -92,35 +111,38 @@ int main(int argc, char* argv[])
 
 	pos_clear(iloc);
 
-	struct stat fstat;
-	FILE* fdes;
-	std::string fname = get_nodedir((node.c_str()));
-	fname += "/state.ini";
-	if ((iretn=stat(fname.c_str(), &fstat)) == 0 && (fdes=fopen(fname.c_str(),"r")) != NULL)
-	{
-		char* ibuf = (char *)calloc(1,fstat.st_size+1);
-		size_t nbytes = fread(ibuf, 1, fstat.st_size, fdes);
-		if (nbytes)
-		{
-            json_parse(ibuf, agent->cinfo);
-		}
-		free(ibuf);
-        loc_update(&agent->cinfo->node.loc);
-        iloc = agent->cinfo->node.loc;
-//		iloc.pos.eci = agent->cinfo->node.loc.pos.eci;
-//		iloc.att.icrf = agent->cinfo->node.loc.att.icrf;
-//		iloc.utc = agent->cinfo->node.loc.pos.eci.utc;
+    if (!tleinit)
+    {
+        struct stat fstat;
+        FILE* fdes;
+        fname = get_nodedir((node.c_str()));
+        fname += "/state.ini";
+        if ((iretn=stat(fname.c_str(), &fstat)) == 0 && (fdes=fopen(fname.c_str(),"r")) != NULL)
+        {
+            char* ibuf = (char *)calloc(1,fstat.st_size+1);
+            size_t nbytes = fread(ibuf, 1, fstat.st_size, fdes);
+            if (nbytes)
+            {
+                json_parse(ibuf, agent->cinfo);
+            }
+            free(ibuf);
+            std::cout << "Initial State Vector Vel: [" << iloc.pos.eci.v.col[0] << ", " << iloc.pos.eci.v.col[1] <<  ", " << iloc.pos.eci.v.col[2] << "] km" << std::endl;
+            std::cout << "Initial MJD: " << std::setprecision(10) << iloc.utc << std::endl;
+        }
+        else
+        {
+            printf("Unable to open state.ini\n");
+            exit (-1);
+        }
+    }
+    else
+    {
+        lines2eci(mjdstart, lines, agent->cinfo->node.loc.pos.eci);
+        ++agent->cinfo->node.loc.pos.eci.pass;
+    }
 
-		//        print_vector("Initial State Vector Position: ", iloc.pos.eci.s.col[0], iloc.pos.eci.s.col[1], iloc.pos.eci.s.col[2], "km");
-		//std::cout << "Initial State Vector Pos: [" << iloc.pos.eci.s.col[0] << ", " << iloc.pos.eci.s.col[1] <<  ", " << iloc.pos.eci.s.col[2] << "] km " << std::endl;
-		std::cout << "Initial State Vector Vel: [" << iloc.pos.eci.v.col[0] << ", " << iloc.pos.eci.v.col[1] <<  ", " << iloc.pos.eci.v.col[2] << "] km" << std::endl;
-		std::cout << "Initial MJD: " << std::setprecision(10) << iloc.utc << std::endl;
-	}
-	else
-	{
-		printf("Unable to open state.ini\n");
-		exit (-1);
-	}
+    loc_update(&agent->cinfo->node.loc);
+    iloc = agent->cinfo->node.loc;
 
 #define POLLBUFSIZE 20000
 	std::string pollbuf;
