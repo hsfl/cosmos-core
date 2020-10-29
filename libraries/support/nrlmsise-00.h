@@ -30,6 +30,11 @@
 /*! \file nrlmsise-00.h
 *	\brief NRLMSISE-00 Extended Support header file
 */
+#ifndef _NRLMSISE_H
+#define _NRLMSISE_H 1
+
+
+#include "support/configCosmos.h"
 
 //! \ingroup support
 //! \defgroup nrlmsise NRLMSISE-00 Library
@@ -125,8 +130,8 @@ struct ap_array {
 
 
 struct nrlmsise_input {
-	int year;      /* year, currently ignored */
-	int doy;       /* day of year */
+    int32_t year;      /* year, currently ignored */
+    int32_t doy;       /* day of year */
 	double sec;    /* seconds in day (UT) */
 	double alt;    /* altitude in kilometes */
 	double g_lat;  /* geodetic latitude */
@@ -265,4 +270,6 @@ double press);
 #else
 #define __inline_double double
 #endif
+
+#endif NRLMSISE
 
