@@ -140,16 +140,15 @@ namespace Cosmos
         class Agent
         {
         public:
-            //    Agent(NetworkType ntype, const string &nname = "", const string &aname = "", double bprd = 1., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0);
-            Agent(const string &nname = "", const string &aname = "", double bprd = 0., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 1);
+            Agent(const string &node_name = "", const string &agent_name = "", double bprd = 0., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 1);
+
             ~Agent();
 
             //! State of Health element vector
             vector<jsonentry*> sohtable;
             vector<jsonentry*> fullsohtable;
 
-            enum class State : uint16_t
-                {
+            enum class State : uint16_t {
                 //! Shut down Agent
                 SHUTDOWN=0,
                 //! Agent Initializing
@@ -166,7 +165,7 @@ namespace Cosmos
                 DEBUG,
                 //! Reset Agent
                 RESET
-                };
+            };
 
             //! Multiple agents per name
 #define AGENT_MULTIPLE true
@@ -206,8 +205,7 @@ namespace Cosmos
 #define MESSAGE_RING_SIZE 100
 
             //! Type of Agent Message. Types > 127 are binary.
-            enum class AgentMessage : uint8_t
-                {
+            enum class AgentMessage : uint8_t {
                 //! All Message types
                 ALL=1,
                 //! Heartbeat Messages
@@ -229,13 +227,12 @@ namespace Cosmos
                 //! >= 128 are binary
                 BINARY=128,
                 COMM=129
-                };
+            };
 
-            enum class Where : size_t
-                {
+            enum class Where : size_t {
                 HEAD = 0,
                 TAIL = 1
-                };
+            };
 
             //! @}
 
@@ -342,7 +339,6 @@ namespace Cosmos
             pollstruc metaRx;
             string metaHeader;
 
-
             void log(string log_entry);
             bool setSoh(string sohFields);
             cosmosstruc *cinfo;
@@ -422,38 +418,6 @@ namespace Cosmos
             char * parse_request(char *input);
             DeviceCpu deviceCpu_;
 
-//            static int32_t req_forward(string &request, string &response, Agent *agent);
-//            static int32_t req_echo(string &request, string &response, Agent *agent);
-//            static int32_t req_help(string &request, string &response, Agent *agent);
-//            static int32_t req_help_json(string &request, string &response, Agent *agent);
-//            static int32_t req_shutdown(string &request, string &response, Agent *agent);
-//            static int32_t req_idle(string &request, string &response, Agent *agent);
-//            static int32_t req_init(string &request, string &response, Agent *agent);
-//            static int32_t req_monitor(string &request, string &response, Agent *agent);
-//            static int32_t req_reset(string &request, string &response, Agent *agent);
-//            static int32_t req_run(string &request, string &response, Agent *agent);
-//            static int32_t req_status(string &request, string &response, Agent *agent);
-//            static int32_t req_debug_level(string &request, string &response, Agent *agent);
-//            static int32_t req_getvalue(string &request, string &response, Agent *agent);
-//            static int32_t req_setvalue(string &request, string &response, Agent *agent);
-//            static int32_t req_listnames(string &request, string &response, Agent *agent);
-//            static int32_t req_nodejson(string &request, string &response, Agent *agent);
-//            static int32_t req_statejson(string &request, string &response, Agent *agent);
-//            static int32_t req_utcstartjson(string &request, string &response, Agent *agent);
-//            static int32_t req_piecesjson(string &request, string &response, Agent *agent);
-//            static int32_t req_vertexsjson(string &request, string &response, Agent *agent);
-//            static int32_t req_facesjson(string &request, string &response, Agent *agent);
-//            static int32_t req_devgenjson(string &request, string &response, Agent *agent);
-//            static int32_t req_devspecjson(string &request, string &response, Agent *agent);
-//            static int32_t req_portsjson(string &request, string &response, Agent *agent);
-//            static int32_t req_targetsjson(string &request, string &response, Agent *agent);
-//            static int32_t req_aliasesjson(string &request, string &response, Agent *agent);
-//            static int32_t req_heartbeat(string &request, string &response, Agent *agent);
-//            static int32_t req_postsoh(string &request, string &response, Agent *agent);
-//            static int32_t req_utc(string &request, string &response, Agent *agent);
-//            static int32_t req_soh(string &, string &response, Agent *agent);
-//            static int32_t req_fullsoh(string &, string &response, Agent *agent);
-//            static int32_t req_jsondump(string &, string &response, Agent *agent);
             static int32_t req_forward(string &request, string &response, Agent *agent);
             static int32_t req_echo(string &request, string &response, Agent *agent);
             static int32_t req_help(string &request, string &response, Agent *agent);

@@ -58,10 +58,7 @@ map_dem_body *planet_dem(int body)
 {
 	if (bodies[body-1] == NULL)
 	{
-		if ((bodies[body-1] = map_dem_open(body)) == NULL)
-		{
-			return nullptr;
-		}
+		if ((bodies[body-1] = map_dem_open(body)) == NULL) { return nullptr; }
 	}
 	return (bodies[body-1]);
 }
@@ -138,12 +135,9 @@ void map_dem_cache(int body, int num)
 			bodies[body-1]->dems[indexl].utc = 0.;
 			bodies[body-1]->dems[indexl].pixel.clear();
 			dalloc = bodies[body-1]->dems[indexl].ycount * (bodies[body-1]->dems[indexl].xcount*sizeof(dem_pixel) + sizeof(dem_pixel *));
-			if (totalloc >= dalloc)
-			{
+			if (totalloc >= dalloc) {
 				totalloc -= dalloc;
-			}
-			else
-			{
+			} else {
 				totalloc = 0;
 			}
 		}
@@ -269,7 +263,6 @@ map_dem_body *map_dem_open(int bodynum)
 			{
 				sprintf(body->dems[dc].name,"%s/%s",tname.c_str(),ttname);
 				body->dems[dc].psize = RADOF(body->dems[dc].psize);
-//				body->dems[dc].pixel = NULL;
 				body->dems[dc].pixel.clear();
 				body->dems[dc].lonul = RADOF(body->dems[dc].lonul)-body->dems[dc].psize/2.;
 				body->dems[dc].lonlr = body->dems[dc].lonul + (body->dems[dc].xcount) * body->dems[dc].psize;
@@ -306,20 +299,14 @@ map_dem_body *map_dem_open(int bodynum)
 				uint16_t j;
 				for (j=0; j<body->demindexc[ir][ic]; j++)
 				{
-					if (body->demindexi[ir][ic][j] == i)
-					{
-						break;
-					}
+					if (body->demindexi[ir][ic][j] == i) { break; }
 				}
 				if (j == body->demindexc[ir][ic] && body->demindexc[ir][ic] < MAX_DEMINDEX)
 				{
 					body->demindexi[ir][ic][body->demindexc[ir][ic]] = i;
 					body->demindexc[ir][ic]++;
 				}
-				if (body->demindexc[ir][ic] > maxcount)
-				{
-					maxcount = body->demindexc[ir][ic];
-				}
+				if (body->demindexc[ir][ic] > maxcount) { maxcount = body->demindexc[ir][ic]; }
 			}
 		}
 	}
@@ -339,9 +326,7 @@ void map_dem_scale(map_dem_body *body, double vscale, double hscale)
 double map_dem_alt(int body, double lon, double lat, double res)
 {
 	dem_pixel pixel;
-
 	pixel = map_dem_pixel(body,lon,lat,res);
-
 	return (pixel.alt);
 }
 
@@ -370,8 +355,7 @@ dem_pixel map_dem_pixel(int body, double lon, double lat, double res)
 
 	if (bodies[body-1] == NULL)
 	{
-		if (map_dem_open(body) == NULL)
-			return (pixel);
+		if (map_dem_open(body) == NULL) return (pixel);
 	}
 
 	if (std::isnan(lat) || std::isnan(lon) || lat<-DPI2 || lat>DPI || lon<-DPI || lon>DPI)

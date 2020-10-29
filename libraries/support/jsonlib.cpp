@@ -90,17 +90,12 @@ cosmosstruc *json_init()
 {
     //    extern char etext;
     cosmosstruc *cinfo = nullptr;
-    unitstruc tunit;
 
-    if ((cinfo = new cosmosstruc) == nullptr)
-    {
-        return nullptr;
-    }
+    if ((cinfo = new cosmosstruc) == nullptr) { return nullptr; }
 
     // Make sure it's clear
     //    memset(cinfo, 0, sizeof(cosmosstruc));
 
-    //    cinfo->jmapbase = &etext;
     cinfo->jmapped = 0;
     cinfo->unit.resize(JSON_UNIT_COUNT);
     //    cinfo->target.resize(100);
@@ -112,20 +107,16 @@ cosmosstruc *json_init()
         cinfo->jmap.size() != JSON_MAX_HASH ||
         cinfo->emap.size() != JSON_MAX_HASH)
     {
-        delete [] cinfo;
-        return nullptr;
+        delete cinfo;
+    	cinfo = nullptr;
+        return cinfo;
     }
 
     cinfo->glossary.resize(1);
     cinfo->agent.resize(1);
     cinfo->event.resize(1);
     cinfo->user.resize(1);
-    memset(&cinfo->node, 0, sizeof(nodestruc));
-
-
-	//fix no trival copy-assignment warning for memset
-    //memset(&cinfo->physics, 0, sizeof(physicsstruc));
-    //memset(&cinfo->devspec, 0, sizeof(devspecstruc));
+	cinfo->node = nodestruc();
 	cinfo->physics = physicsstruc();
 	cinfo->devspec = devspecstruc();
 
@@ -135,16 +126,15 @@ cosmosstruc *json_init()
         cinfo->event.size() != 1 ||
         cinfo->user.size() != 1)
     {
-        delete [] cinfo;
-        return nullptr;
+        delete cinfo;
+		cinfo = nullptr;
+        return cinfo;
     }
-
     // Create JSON Map unit table
     for (uint16_t i=0; i<cinfo->unit.size(); ++i)
     {
         // SI Units
-        tunit.type = JSON_UNIT_TYPE_IDENTITY;
-        tunit.p0 = tunit.p1 = tunit.p2 = 0.;
+    	unitstruc tunit;
         switch (i)
         {
         case JSON_UNIT_NONE:
@@ -256,8 +246,6 @@ cosmosstruc *json_init()
         cinfo->unit[i].push_back(tunit);
 
         // Alternate Units
-        tunit.type = JSON_UNIT_TYPE_IDENTITY;
-        tunit.p0 = tunit.p1 = tunit.p2 = 0.;
         switch (i)
         {
         case JSON_UNIT_NONE:
@@ -431,7 +419,6 @@ cosmosstruc *json_init()
             break;
         }
     }
-
     // Create component names
     device_type_string.clear();
     device_type_string.resize(static_cast<uint16_t>(DeviceType::COUNT));
@@ -486,8 +473,9 @@ cosmosstruc *json_init()
     int32_t iretn = json_mapbaseentries(cinfo);
     if (iretn < 0)
     {
-        delete [] cinfo;
-        return nullptr;
+        delete cinfo;
+		cinfo = nullptr;
+        return cinfo;
     }
 
     return (cinfo);
@@ -499,10 +487,7 @@ cosmosstruc *json_init()
 */
 void json_destroy(cosmosstruc *cinfo)
 {
-    if (cinfo == nullptr)
-    {
-        return;
-    }
+    if (cinfo == nullptr) { return; }
     delete cinfo;
     cinfo = nullptr;
 }
@@ -1149,7 +1134,7 @@ int32_t json_createport(cosmosstruc *cinfo, string name, uint16_t type)
  * \param alias Name to add as an alias.
  * \param value Either the contents of an equation, a constant, or a Namespace name that
  * should already exist in the Namespace
- * \param cmeta Reference to ::cosmosmetastruc to use.
+ * \param cmeta Reference to ::cosmosstruc to use.
  * \return The current number of entries, if successful, otherwise negative error.
 */
 int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
@@ -1254,10 +1239,7 @@ int32_t json_addentry(jsonentry entry, cosmosstruc *cinfo)
     }
 
     cinfo->jmap[hash].push_back(entry);
-    if (cinfo->jmap[hash].size() != csize+1)
-    {
-        return JSON_ERROR_NOENTRY;
-    }
+    if (cinfo->jmap[hash].size() != csize+1) { return JSON_ERROR_NOENTRY; }
 
     ++cinfo->jmapped;
     return (cinfo->jmapped);
@@ -6581,7 +6563,7 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo)
     switch (type)
     {
     case JSON_STRUCT_NODE:
-        memset(&(cinfo->node),0,sizeof(nodestruc));
+		cinfo->node = nodestruc();
         break;
     case JSON_STRUCT_EVENT:
         cinfo->event.clear();
@@ -7635,7 +7617,6 @@ int32_t json_setup_node(string &node, cosmosstruc *cinfo)
 //! Save Node entries to disk
 /*! Create all of the initialization files that represent the Node in the provided
  * ::cosmosstruc.
- * \param cmeta Reference to ::cosmosmetastruc to use.
  * \param cinfo Reference to ::cosmosstruc to use.
  * \return Zero if successful, otherwise negative error.
  */
@@ -7952,6 +7933,8 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_loc_att_selc_v", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.v, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_ANGULAR_RATE);
     json_addentry("node_loc_att_selc_a", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.att.selc.a, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
     json_addentry("node_loc_bearth", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.pos.bearth, (uint16_t)JSON_TYPE_RVECTOR, cinfo);
+	// JIMNOTE: is this how to properly add an entry?
+   	json_addentry("node_loc_orbit", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.loc.orbit, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_azfrom", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.azfrom, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
     json_addentry("node_azto", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.azto, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
     json_addentry("node_elfrom", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.elfrom, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_ANGLE);
@@ -8010,7 +7993,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
 //! Add vertex entry.
 /*! Add an entry for vertex number vidx to the JSON Namespace map.
  \param vidx Piece number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
 int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo)
@@ -8032,7 +8015,7 @@ int32_t json_mapvertexentry(uint16_t vidx, cosmosstruc *cinfo)
 //! Add face entry.
 /*! Add an entry for face number fidx to the JSON Namespace map.
  \param fidx Piece number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
 int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
@@ -8059,7 +8042,7 @@ int32_t json_mapfaceentry(uint16_t fidx, cosmosstruc *cinfo)
 //! Add piece entry.
 /*! Add an entry for piece number pidx to the JSON Namespace map.
  \param pidx Piece number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, negative error if the entry could not be
  */
 int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
@@ -8097,7 +8080,7 @@ int32_t json_mappieceentry(uint16_t pidx, cosmosstruc *cinfo)
 //! Toggle piece entry.
 /*! Toggle the enable state of an entry for piece number pidx in the JSON Namespace map.
  \param pidx Piece number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
 * \param state Desired enable state.
     \return 0 or negative error.
  */
@@ -8129,7 +8112,7 @@ int32_t json_togglepieceentry(uint16_t pidx, cosmosstruc *cinfo, bool state)
 //! Add component entry.
 /*! Add an entry for component number cidx to the JSON Namespace map.
  \param cidx Component number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
     \return The current number of entries, if successful, 0 if the entry could not be
  */
 int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
@@ -8164,7 +8147,7 @@ int32_t json_mapcompentry(uint16_t cidx, cosmosstruc *cinfo)
 //! Toggle component entry.
 /*! Toggle the enable state of an entry for component number cidx in the JSON Namespace map.
  \param cidx Component number.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
 * \param state Desired enable state.
     \return 0 or negative error.
  */
@@ -11778,7 +11761,7 @@ size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cinfo, const 
 * updated with any new values so that repeating Events can be properly
 * assessed.
 *	\param dictionary Reference to vector of ::shorteventstruc representing event dictionary.
-*	\param cmeta Reference to ::cosmosmetastruc to use.
+*	\param cmeta Reference to ::cosmosstruc to use.
 *	\param cinfo Reference to ::cosmosstruc to use.
 *	\param events Reference to vector of ::shorteventstruc representing events.
 *	\return Number of events created.
@@ -11859,6 +11842,23 @@ string port_type_name(uint32_t type)
     }
 
     return result;
+}
+
+std::ostream& operator<<(std::ostream& out, const beatstruc& b)	{
+	return out<<std::fixed<<std::setprecision(9)
+		<<"\tutc\t\t"<<b.utc<<endl
+		<<"\tnode name \t<"<<string(b.node)<<">"<<endl
+		<<"\tagent name \t<"<<string(b.proc)<<">"<<endl
+		<<"\tntype\t\t"<<(int)b.ntype<<endl
+		<<"\taddress \t<"<<string(b.addr)<<">"<<endl
+		<<"\tport\t\t"<<b.port<<endl
+		<<"\tbuffer\t\t"<<b.bsz<<endl
+		<<"\tperiod\t\t"<<b.bprd<<endl
+		<<"\tuser \t\t<"<<string(b.user)<<">"<<endl
+		<<"\tcpu %\t\t"<<b.cpu<<endl
+		<<"\tmem %\t\t"<<b.memory<<endl
+		<<"\tjitter\t\t"<<b.jitter<<endl
+		<<"\texits\t\t"<<b.exists<<endl;
 }
 
 //! @}

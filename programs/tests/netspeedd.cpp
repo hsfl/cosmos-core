@@ -1,5 +1,4 @@
 #include "support/configCosmos.h"
-#include <sys/timeb.h>
 //#include <stdio.h>
 #include <sys/time.h>
 #include <signal.h>
@@ -15,7 +14,8 @@ void abort_func(int);
 
 char command[50];
 char inbuf[10000000];
-struct timeb etime, btime;
+struct timespec btime, etime;
+
 double ttime, bps, kbps;
 int32_t i, s, ns;
 
@@ -87,7 +87,9 @@ do_listen:
 
 	recv(ns, command, 50, 0);
 	sscanf(command, "%d %d", &number, &size);
-	ftime(&btime);
+
+	// set begin time
+	clock_gettime(CLOCK_REALTIME, &btime);
 	printf("%d * %d = %d / ",number,size,number*size);
 	fflush(stdout);
 	for (i=0; i<number; i++)
@@ -98,8 +100,13 @@ do_listen:
 			inchar += recv(ns, inbuf, size-inchar, 0);
 		} while (inchar < size);
 	}
-	ftime(&etime);
-	ttime = ((double)etime.time+(double)etime.millitm/1000.)-((double)btime.time+(double)btime.millitm/1000.);
+
+	// set end time
+	clock_gettime(CLOCK_REALTIME, &etime);
+
+	// calculate total time (in milliseconds)
+	ttime = ((double)etime.tv_sec+(double)etime.tv_nsec/1000000.)-((double)btime.tv_sec+(double)btime.tv_nsec/1000000.);
+
 	bps = (double)number*(double)size/ttime;
 	kbps = bps / 1024.;
 	printf("%7.3f = %7.1f\r",ttime,kbps);

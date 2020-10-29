@@ -1,0 +1,8 @@
+#!/bin/bash
+
+## script to build all targets and record all output
+
+# build all targets (-B) using all available cores (-j)
+make -j -B install 2>&1 | tee output.make
+
+echo There were `grep -i warning: output.make | wc -l` warnings and `grep -i error: output.make | wc -l` errors.

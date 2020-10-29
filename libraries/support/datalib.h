@@ -33,7 +33,6 @@
 // COSMOS libs
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
-#include "support/datadef.h"
 #include "support/jsondef.h"
 #include "support/jsonlib.h"
 #include "thirdparty/zlib/zlib.h"
@@ -105,6 +104,25 @@
 //! \ingroup datalib
 //! \defgroup datalib_functions Data Management function declarations
 //! @{
+
+#define DATA_LOG_TYPE_SOH 0
+#define DATA_LOG_TYPE_EVENT 1
+#define DATA_LOG_TYPE_BEACON 2
+#define DATA_LOG_TYPE_PROGRAM 3 // to log program status information while running
+
+typedef struct
+{
+    string node;
+    string agent;
+    string name;
+    string type;
+    string path;
+    off_t size;
+    uint16_t year;
+    uint16_t jday;
+    uint32_t seconds;
+    double utc;
+} filestruc;
 
 void log_reopen();
 void log_write(string node, int type, double utc, const char* data, string directory="temp");

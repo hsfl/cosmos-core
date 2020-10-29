@@ -42,6 +42,7 @@
 #include "support/socketlib.h"
 #include "support/objlib.h"
 
+
 //! \ingroup jsonlib
 //! \defgroup jsonlib_type JSON Name Space variable type constants
 //! @{
@@ -132,7 +133,7 @@ enum
     JSON_UNIT_BYTES,
     //! Fraction
     JSON_UNIT_FRACTION,
-    //! Holder for number of entries
+    //! Holder for number of entries (CLEVER!)
     JSON_UNIT_COUNT
     } ;
 
@@ -723,15 +724,15 @@ enum PORT_TYPE
 struct unitstruc
 {
     //! JSON Unit Name
-    string name;
+    string name = "";
     //! JSON Unit conversion type
-    uint16_t type;
+    uint16_t type = JSON_UNIT_TYPE_IDENTITY;
     //! 0th derivative term
-    float p0;
+    float p0 = 0.f;
     //! 1th derivative term
-    float p1;
+    float p1 = 0.f;
     //! 2th derivative term
-    float p2;
+    float p2 = 0.f;
 };
 
 //! JSON Node description strings
@@ -796,7 +797,7 @@ struct jsonoperand
 //! JSON equation entry
 /*! Single entry in a JSON equation map. Ties together a JSON equation and its
  * preparsed form.
- * - index: Index of this entry in the ::cosmosmetastruc::jmap.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonequation
@@ -859,24 +860,24 @@ struct agent_channel
 //! Detailed elements of a single heartbeat of a single process.
 struct beatstruc
 {
-    // Heartbeat timestamp
+    /** Heartbeat timestamp */
     double utc = 0.;
-    // Heartbeat Node Name
-    char node[COSMOS_MAX_NAME+1];  // TODO: change to string
+    /** Heartbeat Node Name */
+    char node[COSMOS_MAX_NAME+1] = {};  // TODO: change to string
     //! Heartbeat Agent Name
-    char proc[COSMOS_MAX_NAME+1]; // TODO: change to string
+    char proc[COSMOS_MAX_NAME+1] = {}; // TODO: change to string
     // Type of address protocol
     NetworkType ntype = NetworkType::MULTICAST;
     //! Protocol Address
-    char addr[18];
-    //! AGENT port
+    char addr[18] = {};
+	//! AGENT port
     uint16_t port = 0;
     //! Transfer buffer size
     uint32_t bsz = 0;
     //! Heartbeat period in seconds
     double bprd = 0.;
     //! Agent User Name
-    char user[COSMOS_MAX_NAME+1];
+    char user[COSMOS_MAX_NAME+1] = {};
     //! Agent % CPU
     float cpu = 0.;
     //! Agent % memory
@@ -908,8 +909,6 @@ struct agentstruc
     double aprd;
     //! Agent Running State Flag
     uint16_t stateflag;
-    //! State of Health report string
-    //	char sohstring[AGENTMAXBUFFER];
     //! Agent request list
     vector <agent_request_entry> reqs;
     //! Heartbeat
@@ -1917,7 +1916,7 @@ struct devspecstruc
 //! JSON map offset entry
 /*! Single entry in a JSON offset map. Ties together a single JSON name and a offset
  * to a single object, along with its data type.
- * - index: Index of this entry in the ::cosmosmetastruc::jmap.
+ * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
 struct jsonentry
@@ -1963,30 +1962,6 @@ struct jsonmap
     vector<vector<jsonentry> > entry;
 };
 
-//! JSON Name Space Meta structure
-/*! A structure containing the meta information that allows items in the ::cosmosdatastruc to
- * be mapped to names in the Namespace.
-*/
-struct cosmosmetastruc
-{
-    //! Timestamp for last change to data
-    double timestamp;
-    //! Node name
-    string node;
-    //! Whether JSON map has been created.
-    uint16_t jmapped;
-    //! JSON Namespace Map matrix.
-    vector<vector<jsonentry> > jmap;
-    //! JSON Equation Map matrix.
-    vector<vector<jsonequation> > emap;
-    //! JSON Unit Map matrix: first level is for type, second level is for variant.
-    vector<vector<unitstruc> > unit;
-    //! Vector of Equations
-    vector<equationstruc> equation;
-    //! Array of Aliases
-    vector<aliasstruc> alias;
-};
-
 //! JSON Name Space structure
 /*! A structure containing an element for every unique name in the COSMOS Name
  * Space. The components of this can then be mapped to the Name Space
@@ -1997,15 +1972,13 @@ struct cosmosstruc
 {
     //! Timestamp for last change to data
     double timestamp;
-    //! Node name
-//    string name;
     //! Whether JSON map has been created.
     uint16_t jmapped;
     //! JSON Namespace Map matrix.
     vector<vector<jsonentry> > jmap;
     //! JSON Equation Map matrix.
     vector<vector<jsonequation> > emap;
-    //! JSON Unit Map matrix: first level is for type, second level is for variant.
+    //! JSON Unit Map matrix: first level is for unit type, second level is for all variants (starting with primary).
     vector<vector<unitstruc> > unit;
     //! Vector of Equations
     vector<equationstruc> equation;

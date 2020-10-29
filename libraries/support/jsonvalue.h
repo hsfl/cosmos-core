@@ -10,13 +10,9 @@ class JSONValue;
 typedef struct vector<JSONValue> JSONArray;
 
 
-class JSONValue
-{
-
-
+class JSONValue {
 public:
-    enum class JsonValueType : uint8_t
-        {
+    enum class JsonValueType : uint8_t {
             NULL_VALUE = 0,
             STRING = 1,
             NUMBER = 2,
@@ -24,8 +20,7 @@ public:
             JSON_ARRAY = 4,
             BOOL_TRUE = 5,
             BOOL_FALSE = 6,
-
-        };
+    };
     JSONValue();
     JSONValue(uint8_t val);
     JSONValue(int8_t val);
@@ -68,7 +63,6 @@ public:
     void set(JSONObject val);
     void set(JSONArray val);
     void set(bool val);
-
 
     bool isNull();
     bool isString();

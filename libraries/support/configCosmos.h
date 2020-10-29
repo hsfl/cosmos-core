@@ -44,7 +44,7 @@
 
 #define COSMOS_WIN_OS
 
-//! // determined if we're compiling with MSVC
+//! // determine if we're compiling with MSVC
 #ifdef _MSC_BUILD
 #define COSMOS_WIN_BUILD_MSVC
 #endif
@@ -83,7 +83,7 @@ using std::ofstream;
 using std::cout;
 using std::endl;
 #ifdef COSMOS_WIN_BUILD_MSVC
-#include <io.h> // replaces in someways unistd for windows
+#include <io.h> // replaces in some ways unistd for windows
 #else
 #include <unistd.h>
 #endif

@@ -35,78 +35,95 @@
 #include <iostream>
 #include <string>
 
-/// The agent constructor
-static Agent *agent;
 
-//!
-//! \brief agent_001 is a test agent that demonstrates the interconnectivity with another agent, namely agent_002, through the use of agent requests.
-//! This agent will send a request to agent_002 and will print the response that agent_002 provides.
-//! \param argc Number of arguments provided
-//! \param argv The arguments provided
-//! \return int
-//!
+// The request function prototype
+int32_t sample_agent_request_function(string &request, string &response, Agent *cdata);
+static uint64_t request_counter = 10000;
+
+
+/// ensure the Agent constructor creates only one instance per process
+static Agent *agent;
+string node_name = "sat_001"; 
+string agent_name = "agent_001";
+string node_agent_name = "["+node_name+":"+agent_name+"]";
+
 int main(int argc, char **argv)
 {
-    cout << "Starting agent_001" << endl;
+    // construct agent
+    cout << node_agent_name << " starting..."<<endl;
+    agent = new Agent(node_name, agent_name, 1.);
 
-    // Initialize agent parameters; its name, node and communicating agent
-    string agentname = "001"; // Forward facing name of the agent
-    string nodename = "cubesat1"; // The node that the agent will run on
-    string agent002 = "002"; // The name of the agent this agent will speak to
-
-    // Specify agent parameters via command line arguments
-    switch (argc)
-    {
-    case 3:
-        nodename = argv[2];
-    case 2:
-        agentname = static_cast<string>(argv[1]) + "_001";
-        agent002  = static_cast<string>(argv[1]) + "_002";
-    }
-
-    // Construct agent with above parameters
-    agent = new Agent(nodename, agentname, 1.);
-
-    // Exit if error is found
-    if (agent->last_error() < 0)
-    {
-        cout << "Unable to start agent_exec (" << agent->last_error() << ") " << cosmos_error_string(agent->last_error()) << endl;
+    // exit with error if unable to start agent
+    if(agent->last_error() < 0) {
+        cout<<"error: unable to start "<<node_agent_name<<" ("<<agent->last_error()<<") "<<cosmos_error_string(agent->last_error())<<endl;
         exit(1);
-    }
+    } else {
+    	cout << node_agent_name << " started."<<endl;
+	}
 
-    beatstruc beat_agent_002 = agent->find_agent(nodename, agent002, 2.);
+	// add custom request functions for this agent
+	string request_name = "identify_yourself";
+	agent->add_request(request_name, sample_agent_request_function, "request to support the reporting of identification");
 
-    string requestString = "request_hello"; // The name of agent_002's request
-    std::string response; // Variable to store agent_002's response
+	// try to locate a specific agent (agent_002)
+    string agent_target = "agent_002"; // The name of the agent this agent will send requests to
+    beatstruc agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
+	//cout<<"["<<node_name<<":"<<agent_name<<"] looking for ["<<node_name<<":"<<agent_target<<"]..."<<endl;
+
+	if(agent->debug_level>1)	{
+		cout<<"A agent "<<agent_target<<" beatstruc:"<<endl;
+		cout<<agent_target_heartbeat;
+	}
+
+    string response; // Variable to store agent_002's response
 
     // Start executing the agent
-    while (agent->running())
-    {
-        // Initiate request from agent_002
-        agent->send_request(beat_agent_002, requestString, response, 2.);
+    while (agent->running()) {
+		string target_request_name = "any_body_out_there";
+		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
+		cout<<"\tUTC == "<< agent->cinfo->node.loc.utc <<endl;
+		cout<<"\tORBIT == "<< agent->cinfo->node.loc.orbit <<endl;
+
+		// this agent can set his own values ... obvs...  can another agent?
+		//agent->cinfo->node.loc.utc = 13.456;
+
+		cout<<node_agent_name<<" transmit <"<<target_request_name<<"> request to ["<<node_name<<":"<<agent_target<<"]..."<<endl;
+        // Initiate request to agent_002
+        agent->send_request(agent_target_heartbeat, "any_body_out_there", response, 2.);
 
         // Check for response from agent_002
         if (response.size() > 1) {
             // The case if agent_002 is on and successfully receives the request
-            cout << "Received response from agent_002: " << response.size() << " bytes: " << response << endl;
+            cout << node_agent_name << " received <"<<target_request_name<<"> response from ["<<agent_target_heartbeat.node<<":"<<agent_target_heartbeat.proc<<"]:\n    RX: \"" << response << "\" ("<<response.size()<<" bytes)"<<endl;
 
             // Clear the response for next request
             response.clear();
-        }
-        else
-        {
+        } else {
             // The case if agent_002 is not running
-            cout << "What happened to agent_002? Let's try to find it..." << endl;
+			//cout<<"["<<node_name<<":"<<agent_name<<"] looking for ["<<node_name<<":"<<agent_target<<"]..."<<endl;
 
-            beat_agent_002.node[0] = '\0'; // reset
-            beat_agent_002 = agent->find_server(nodename, agent002, 2.);
-
-            cout << "Beat agent_002 node: " << beat_agent_002.utc << endl;
+    		agent_target_heartbeat = agent->find_agent(node_name, agent_target, 2.);
+			if(agent->debug_level>1)	{
+				cout<<"B agent "<<agent_target<<" beatstruc:"<<endl;
+				cout<<agent_target_heartbeat<<endl;
+			}
         }
-
-        // Sleep for 1 sec
-        COSMOS_SLEEP(1.);
+        // Sleep for 5 sec
+        COSMOS_SLEEP(5.);
     }
+    return 0;
+}
+
+int32_t sample_agent_request_function(string & request, string &response, Agent *)
+{
+    // Send response back to agent_002
+	response = "I am the one they call [sat_001:agent_001]";
+	//JIMNOTE: there is a actually a bug with the string request variable supplied...  it is not passed properly to the user's request function after multiple different requests have been made.  the request is parsed properly, i.e. this function is still called, but the request string contains overflow characters from previous requests beyond the null character.  somewhere a string.resize() call is missing.  HACKY FIX: mixing char[] within a string only prints correctly if cast as c_str(), so do that for now.
+    cout << "[" << node_name << ":" << agent_name << "]"<<" received <"<<request.c_str()<<"> request!"<<endl;
+	cout << "[" << node_name << ":" << agent_name << "] transmit <"<<request.c_str()<<"> response:\n    TX: \"" << response << "\" ("<<response.size()<<" bytes)"<<endl;
+
+    // Increment counter of how many requests were run
+    request_counter--;
 
     return 0;
 }
