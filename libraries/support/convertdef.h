@@ -410,7 +410,9 @@ typedef struct
     //! Watts per square meter per steradian
     float sunradiance;
     //! Earth magnetic vector in ITRS for this time and location.
-    Vector bearth;
+    rvector bearth;
+    //! Decimal Orbit number
+    double orbit;
 } posstruc;
 
 std::ostream& operator << (std::ostream& out, const posstruc& a);
@@ -439,9 +441,7 @@ typedef struct
     //! ::attstruc for this time.
     attstruc att;
     //! Earth magnetic vector in ITRS for this time and location.
-    rvector bearth;
-    //! Decimal Orbit number
-    double orbit;
+//    rvector bearth;
 } locstruc;
 
 std::ostream& operator << (std::ostream& out, const locstruc& a);

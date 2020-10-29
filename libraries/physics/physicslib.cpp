@@ -1199,7 +1199,7 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
     }
 
     // Get magnetic field in body frame
-    bearth = irotate(loc.att.geoc.s,loc.pos.bearth.to_rv());
+    bearth = irotate(loc.att.geoc.s,loc.pos.bearth);
 
     mtorque = rv_cross(mag_moment,bearth);
     //	mtorque = irotate(q_conjugate(loc.att.icrf.s),mtorque);
@@ -1480,7 +1480,7 @@ void simulate_imu(int index, cosmosstruc *cinfo, locstruc &loc)
     cinfo->device[cinfo->devspec.imu[index]].imu.omega = irotate(toimu,loc.att.icrf.v);
 
     //! Set magnetic field in IMU frame
-    cinfo->device[cinfo->devspec.imu[index]].imu.mag = irotate(q_conjugate(cinfo->device[cinfo->devspec.imu[index]].imu.align),irotate(loc.att.geoc.s,loc.pos.bearth.to_rv()));
+    cinfo->device[cinfo->devspec.imu[index]].imu.mag = irotate(q_conjugate(cinfo->device[cinfo->devspec.imu[index]].imu.align),irotate(loc.att.geoc.s,loc.pos.bearth));
 
     cinfo->timestamp = currentmjd();
 }

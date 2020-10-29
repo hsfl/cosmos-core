@@ -2527,6 +2527,12 @@ int32_t json_out_posstruc(string &jstring,posstruc value)
     if ((iretn=json_out_character(jstring,',')) < 0)
         return iretn;
 
+    // Output Earth Magnetic Field
+    if ((iretn=json_out_name(jstring, "bearth")) < 0)
+        return iretn;
+    if ((iretn=json_out_rvector(jstring,value.bearth)) < 0)
+        return iretn;
+
     // Output Barycentric
     if ((iretn=json_out_name(jstring, "icrf")) < 0)
         return iretn;
@@ -2697,12 +2703,6 @@ int32_t json_out_locstruc(string &jstring,locstruc value)
     if ((iretn=json_out_attstruc(jstring,value.att)) < 0)
         return iretn;
     if ((iretn=json_out_character(jstring,',')) < 0)
-        return iretn;
-
-    // Output Earth Magnetic Field
-    if ((iretn=json_out_name(jstring, "bearth")) < 0)
-        return iretn;
-    if ((iretn=json_out_rvector(jstring,value.bearth)) < 0)
         return iretn;
 
     if ((iretn=json_out_character(jstring,'}')) < 0)
@@ -6508,6 +6508,16 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
             return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_POS_GEOS, data+(ptrdiff_t)offsetof(posstruc,geos), cinfo)) < 0)
             return iretn;
+        if ((iretn = json_skip_character(ptr,',')) < 0)
+            return iretn;
+        if ((iretn = json_extract_string(ptr, empty)) < 0)
+            return iretn;
+        if ((iretn = json_skip_white(ptr)) < 0)
+            return iretn;
+        if ((iretn = json_skip_character(ptr,':')) < 0)
+            return iretn;
+        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(posstruc,bearth), cinfo)) < 0)
+            return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;
         break;
@@ -6541,16 +6551,6 @@ int32_t json_parse_value(const char *&ptr, uint16_t type, uint8_t *data, cosmoss
         if ((iretn = json_skip_character(ptr,':')) < 0)
             return iretn;
         if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_ATTSTRUC, data+(ptrdiff_t)offsetof(locstruc,att), cinfo)) < 0)
-            return iretn;
-        if ((iretn = json_skip_character(ptr,',')) < 0)
-            return iretn;
-        if ((iretn = json_extract_string(ptr, empty)) < 0)
-            return iretn;
-        if ((iretn = json_skip_white(ptr)) < 0)
-            return iretn;
-        if ((iretn = json_skip_character(ptr,':')) < 0)
-            return iretn;
-        if ((iretn = json_parse_value(ptr, (uint16_t)JSON_TYPE_RVECTOR, data+(ptrdiff_t)offsetof(locstruc,bearth), cinfo)) < 0)
             return iretn;
         if ((iretn = json_skip_character(ptr,'}')) < 0)
             return iretn;

@@ -39,7 +39,7 @@
 using namespace Cosmos::Math::Vectors;
 using namespace Cosmos::Math::Quaternions;
 
-//#include "support/convertdef.h"
+#include "support/convertdef.h"
 
 //#include <fcntl.h>
 //#include <time.h>
@@ -149,7 +149,7 @@ typedef struct
 	double mjddiff;
 	//! Simulation mode as listed in \def defs_physics
 	int32_t mode;
-	float heat;
+    float heat = 300. * 900. * 1.;
     Vector ftorque;
     Vector atorque;
     Vector rtorque;
@@ -161,11 +161,11 @@ typedef struct
     Vector adrag;
     Vector rdrag;
     Vector thrust;
-    Vector moi;
+    Vector moi = Vector(1.,1.,1.);
     Vector com;
-	float hcap;
-	float mass;
-	float area;
+    float hcap = 900.;
+    float mass = 1.;
+    float area = .001f;
     vector <Vector> vertices;
     vector <trianglestruc> triangles;
 } physicsstruc;
