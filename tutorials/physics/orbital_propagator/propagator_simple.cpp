@@ -280,7 +280,7 @@ int main(int argc, char* argv[]){
             // TODO: print attitude
 
             // print magnetic field in micro-Tesla
-            print.vector("mag field:", agent->cinfo->node.loc.pos.bearth.to_rv(), 1e6, " uT", 1,3);
+            print.vector("mag field:", agent->cinfo->node.loc.pos.bearth, 1e6, " uT", 1,3);
 
             // TODO: print solar vector
 

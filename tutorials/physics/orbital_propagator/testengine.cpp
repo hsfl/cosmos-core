@@ -234,7 +234,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 		//	cosmos_data->dnode[0].rw[0].omg += cosmos_data->dnode[0].rw[0].ralp * dt;
         //	cosmos_data->dnode[0].rw[0].ralp = length_rv(rtorque2) / cosmos_data->node.rw[0].mom.col[2];
 
-        bearth =  drotate(cosmos_data->node.loc.att.icrf.s,cosmos_data->node.loc.pos.bearth.to_rv());
+        bearth =  drotate(cosmos_data->node.loc.att.icrf.s,cosmos_data->node.loc.pos.bearth);
 		mmoment = rv_smult(length_rv(mtorque)/length_rv(bearth),rv_normal(rv_cross(bearth,mtorque)));
 		//	cosmos_data->dnode[0].mtr[0].rfld = mmoment.col[0];
 		//	cosmos_data->dnode[0].mtr[1].rfld = mmoment.col[1];
