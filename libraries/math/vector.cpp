@@ -1686,10 +1686,23 @@ namespace Cosmos {
                 return (x*b.x + y*b.y + z*b.z);
             }
 
+            //! Clear.
+            /*! Clear the vector in place.
+         * \return Reference to cleared ::Vector.
+        */
+            Vector &Vector::clear(double x0, double y0, double z0, double w0)
+            {
+                this->x = x0;
+                this->y = y0;
+                this->z = z0;
+                this->w = w0;
+                return *this;
+            }
+
             //! Normalize.
             /*! Normalize the vector in place.
-         * \return Reference to normalized ::Vector.
-        */
+             * \return Reference to normalized ::Vector.
+            */
             Vector &Vector::normalize(double size)
             {
                 double tnorm = norm();
