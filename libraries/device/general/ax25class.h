@@ -32,8 +32,6 @@
 
 #include "support/configCosmos.h"
 #include "support/cosmos-errno.h"
-//#include "support/sliplib.h"
-//#include "device/serial/serialclass.h"
 
 #include <cstring>
 #include <iostream>
@@ -41,16 +39,12 @@
 #define PACKETMAX 1024
 
 
-class KissHandle
+class Ax25Handle
 {
 
 public:
-    KissHandle(const string &device="", string dest_call="", string sour_call="", uint8_t port=0, uint8_t comm=0, uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
+    Ax25Handle(string dest_call="", string sour_call="", uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
 
-    void set_port_number(uint8_t P);
-    uint8_t get_port_number();
-    void set_command(uint8_t C);
-    uint8_t get_command();
     void set_destination_callsign(string destination);
     string get_destination_callsign();
     void set_destination_stationID(uint8_t ID);
@@ -74,8 +68,6 @@ public:
 
     struct __attribute__ ((packed)) packet_header
     {
-        unsigned command : 4;
-        unsigned port_number : 4;
         uint8_t destination_callsign[6];
         uint8_t destination_stationID;
         uint8_t source_callsign[6];
@@ -94,30 +86,10 @@ private:
     packet_header header;
     vector <uint8_t> data;
     vector <uint8_t> packet;
-    Serial *handle;
     int32_t error;
 
-//	unsigned int  port_number;
-//	unsigned int  command;
-//	unsigned char destination_callsign[6];
-//	unsigned char destination_stationID;
-//	unsigned char source_callsign[6];
-//	unsigned char source_stationID;
-//	unsigned char control;
-//	unsigned char protocolID;
-
-    friend std::ostream& operator<<(std::ostream& out, KissHandle& K);
+    friend std::ostream& operator<<(std::ostream& out, Ax25Handle& K);
 };
-
-//old load_packet (to be deleted)**********************************************
-int kissEncode(uint8_t *input, uint32_t count, uint8_t *packet);
-
-//int kissDecode(uint8_t *input, uint32_t count, uint8_t *unload_packetd_packet);
-
-int kissDecode(uint8_t* kissed_input, uint32_t count, uint8_t* unload_packetd_payload);
-int kissDecode(vector <uint8_t> kissed_input, KissHandle &handle);
-
-KissHandle kissInspect(const unsigned char* input);
 
 //Functions to print packets
 void print_ascii(unsigned char* packet, unsigned int count);

@@ -28,153 +28,125 @@
 ********************************************************************/
 
 #include "support/configCosmos.h"
-#include "device/general/kisslib.h"
+#include "device/general/ax25class.h"
 
-//KissHandle::KissHandle(const string &device, string dest_call, string sour_call, uint8_t port, uint8_t comm, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)
-//{
-//    handle = new Serial(device, 19200);
-//    set_port_number(port);
-//    set_command(comm);
-//    set_destination_callsign(dest_call);
-//    set_destination_stationID(dest_stat);
-//    set_source_callsign(sour_call);
-//    set_source_stationID(sour_stat);
-//    set_control(cont);
-//    set_protocolID(prot);
-//}
+Ax25Handle::Ax25Handle(string dest_call, string sour_call, uint8_t dest_stat, uint8_t sour_stat, uint8_t cont, uint8_t prot)
+{
+    set_destination_callsign(dest_call);
+    set_destination_stationID(dest_stat);
+    set_source_callsign(sour_call);
+    set_source_stationID(sour_stat);
+    set_control(cont);
+    set_protocolID(prot);
+}
 
-////Set and get functions for all members of the KissHandle class
-//void KissHandle::set_port_number(uint8_t P)
-//{
-//    header.port_number = P;
-//	return;
-//}
+//Set and get functions for all members of the Ax25Handle class
+void Ax25Handle::set_destination_callsign(string destination)
+{
+    for (uint16_t i=0; i<6; ++i)
+    {
+        if (i >= destination.length())
+        {
+            header.destination_callsign[i] = 0x20 << 1;
+        }
+        else
+        {
+            header.destination_callsign[i] = destination[i] << 1;
+        }
+    }
+    return;
+}
 
-//uint8_t KissHandle::get_port_number()
-//{
-//    return header.port_number;
-//}
+string Ax25Handle::get_destination_callsign()
+{
+    string callsign;
+    for (uint8_t byte : header.destination_callsign)
+    {
+        callsign.push_back(byte >> 1);
+    }
+    return callsign;
+}
 
-//void KissHandle::set_command(uint8_t C)
-//{
-//    header.command = C;
-//	return;
-//}
+void Ax25Handle::set_destination_stationID(uint8_t ID)
+{
+    header.destination_stationID = ID;
+    return;
+}
 
-//uint8_t KissHandle::get_command()
-//{
-//    return header.command;
+uint8_t Ax25Handle::get_destination_stationID()
+{
+    return header.destination_stationID;
+}
 
-//}
+void Ax25Handle::set_source_callsign(string source)
+{
+    for (uint16_t i=0; i<6; ++i)
+    {
+        if (i >= source.length())
+        {
+            header.source_callsign[i] = 0x20 << 1;
+        }
+        else
+        {
+            header.source_callsign[i] = source[i] << 1;
+        }
+    }
+    return;
+}
 
-//void KissHandle::set_destination_callsign(string destination)
-//{
-//    for (uint16_t i=0; i<6; ++i)
-//    {
-//        if (i >= destination.length())
-//        {
-//            header.destination_callsign[i] = 0x20 << 1;
-//        }
-//        else
-//        {
-//            header.destination_callsign[i] = destination[i] << 1;
-//        }
-//    }
-//	return;
-//}
+std::string Ax25Handle::get_source_callsign()
+{
+    string callsign;
+    for (uint8_t byte : header.source_callsign)
+    {
+        callsign.push_back(byte >> 1);
+    }
+    return callsign;
+}
 
-//string KissHandle::get_destination_callsign()
-//{
-//    string callsign;
-//    for (uint8_t byte : header.destination_callsign)
-//    {
-//        callsign.push_back(byte >> 1);
-//    }
-//    return callsign;
-//}
+void Ax25Handle::set_source_stationID(uint8_t ID)
+{
+    header.source_stationID = ID;
+    return;
+}
 
-//void KissHandle::set_destination_stationID(uint8_t ID)
-//{
-//    header.destination_stationID = ID;
-//	return;
-//}
+uint8_t Ax25Handle::get_source_stationID()
+{
+    return header.source_stationID;
+}
 
-//uint8_t KissHandle::get_destination_stationID()
-//{
-//    return header.destination_stationID;
-//}
+void Ax25Handle::set_control(uint8_t control_number)
+{
+    header.control = control_number;
+    return;
+}
 
-//void KissHandle::set_source_callsign(string source)
-//{
-//    for (uint16_t i=0; i<6; ++i)
-//    {
-//        if (i >= source.length())
-//        {
-//            header.source_callsign[i] = 0x20 << 1;
-//        }
-//        else
-//        {
-//            header.source_callsign[i] = source[i] << 1;
-//        }
-//    }
-//    return;
-//}
+uint8_t Ax25Handle::get_control()
+{
+    return header.control;
+}
 
-//std::string KissHandle::get_source_callsign()
-//{
-//    string callsign;
-//    for (uint8_t byte : header.source_callsign)
-//    {
-//        callsign.push_back(byte >> 1);
-//    }
-//    return callsign;
-//}
+void Ax25Handle::set_protocolID(uint8_t protocol)
+{
+    header.protocolID = protocol;
+    return;
+}
 
-//void KissHandle::set_source_stationID(uint8_t ID)
-//{
-//    header.source_stationID = ID;
-//	return;
-//}
+uint8_t Ax25Handle::get_protocolID()
+{
+    return header.protocolID;
+}
 
-//uint8_t KissHandle::get_source_stationID()
-//{
-//    return header.source_stationID;
-//}
+std::ostream& operator<< (std::ostream& out, Ax25Handle& K)	{
+    out<<"destination callsign=<"<< K.header.destination_callsign<<">"<<std::endl;
+    out<<"destination station ID="<< K.header.destination_stationID<<std::endl;
+    out<<"source callsign=<"<< K.header.source_callsign<<">"<<std::endl;
+    out<<"source station ID="<< K.header.source_stationID<<std::endl;
+    out<<"control="<< K.header.control<<std::endl;
+    out<<"protocol ID="<< K.header.protocolID<<std::endl;
 
-//void KissHandle::set_control(uint8_t control_number)
-//{
-//    header.control = control_number;
-//	return;
-//}
-
-//uint8_t KissHandle::get_control()
-//{
-//    return header.control;
-//}
-
-//void KissHandle::set_protocolID(uint8_t protocol)
-//{
-//    header.protocolID = protocol;
-//	return;
-//}
-
-//uint8_t KissHandle::get_protocolID()
-//{
-//    return header.protocolID;
-//}
-
-//std::ostream& operator<< (std::ostream& out, KissHandle& K)	{
-//    out<<"port_number= "<< K.header.port_number<<std::endl;
-//    out<<"command="<< K.header.command<<std::endl;
-//    out<<"destination callsign=<"<< K.header.destination_callsign<<">"<<std::endl;
-//    out<<"destination station ID="<< K.header.destination_stationID<<std::endl;
-//    out<<"source callsign=<"<< K.header.source_callsign<<">"<<std::endl;
-//    out<<"source station ID="<< K.header.source_stationID<<std::endl;
-//    out<<"control="<< K.header.control<<std::endl;
-//    out<<"protocol ID="<< K.header.protocolID<<std::endl;
-
-//	return out;
-//}
+    return out;
+}
 
 //// Encodes input (using KISS protocol) into a packet ready for transmission
 //// returns bytes in payload of packet
@@ -256,7 +228,7 @@
 //	return payload_bytes;
 //}
 
-//int KissHandle::set_data(vector<uint8_t> input)
+//int Ax25Handle::set_data(vector<uint8_t> input)
 //{
 //    if(input.size() > 255)
 //    {
@@ -267,12 +239,12 @@
 //    return 0;
 //}
 
-//vector <uint8_t> KissHandle::get_data()
+//vector <uint8_t> Ax25Handle::get_data()
 //{
 //    return data;
 //}
 
-//int32_t KissHandle::load_packet()
+//int32_t Ax25Handle::load_packet()
 //{
 ////    vector <uint8_t> edata;
 ////    slip_encode(data, edata);
@@ -292,7 +264,7 @@
 //    return tsize;
 //}
 
-//int32_t KissHandle::unload_packet()
+//int32_t Ax25Handle::unload_packet()
 //{
 //    memcpy(&header, &packet[0], 17);
 ////    memcpy(&header, &packet[1], 17);
@@ -305,31 +277,31 @@
 //    return 0;
 //}
 
-//bool KissHandle::get_open()
+//bool Ax25Handle::get_open()
 //{
 //    error = handle->get_error();
 //    return handle->get_open();
 //}
 
-//Serial *KissHandle::get_serial()
+//Serial *Ax25Handle::get_serial()
 //{
 //    return handle;
 //}
 
-//int32_t KissHandle::get_error()
+//int32_t Ax25Handle::get_error()
 //{
 //    return error;
 //}
 
-//vector <uint8_t> KissHandle::get_packet()
+//vector <uint8_t> Ax25Handle::get_packet()
 //{
 //    return packet;
 //}
 
-//KissHandle kissInspect(const unsigned char* input)	{
+//Ax25Handle kissInspect(const unsigned char* input)	{
 
 //	//fill me up with goodness
-//	KissHandle KKK;
+//	Ax25Handle KKK;
 
 ////	uint8_t port_command;
 //	unsigned char destination_call_sign[6];
@@ -356,11 +328,11 @@
 //		destination_call_sign[i-2] = input[i] >> 1;
 //		//printf("%c", destination_call_sign[i-2]);
 //	}
-//	//Copying destination callsign into KissHandle
+//	//Copying destination callsign into Ax25Handle
 //    KKK.set_destination_callsign((const char*) destination_call_sign);
 //    //strcpy((char *)KKK.header.destination_callsign, (const char *) destination_call_sign);
 	
-//	//Copying destination callsign ID into KissHandle
+//	//Copying destination callsign ID into Ax25Handle
 //    KKK.set_destination_stationID((uint8_t) destination_station_id);
 //    //KKK.header.destination_stationID = destination_station_id;
 
@@ -373,19 +345,19 @@
 //		source_call_sign[i-9] = input[i] >> 1;
 //		//printf("%c", source_call_sign[i-9]);
 //	}
-//	//Copying source callsign into KissHandle
+//	//Copying source callsign into Ax25Handle
 //    KKK.set_source_callsign((const char*) source_call_sign);
 //    //strcpy((char *)KKK.header.source_callsign, (const char *) source_call_sign);
 	
-//	//Copying source station ID into KissHandle
+//	//Copying source station ID into Ax25Handle
 //    KKK.set_source_stationID((uint8_t) source_station_id);
 //    //KKK.header.source_stationID = source_station_id;
 	
-//	//Copying control into KissHandle
+//	//Copying control into Ax25Handle
 //    KKK.set_control((uint8_t) control_id);
 //    //KKK.header.control = control_id;
 
-//	//Copying protocol ID into KissHandle
+//	//Copying protocol ID into Ax25Handle
 //    KKK.set_protocolID((uint8_t) protocol_id);
 //    //KKK.header.protocolID = protocol_id;
 	
@@ -569,7 +541,7 @@
 
 //// Decodes input (using KISS protocol) into payload
 //// returns bytes in payload of packet
-////int KissHandle::unload_packet(vector <uint8_t> kissed_input, KissHandle &handle)
+////int Ax25Handle::unload_packet(vector <uint8_t> kissed_input, Ax25Handle &handle)
 ////{
 ////    uint32_t i = 0;
 ////    uint32_t j = 0;
