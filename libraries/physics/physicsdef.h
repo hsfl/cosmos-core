@@ -114,61 +114,68 @@ typedef struct
 //! Finite Triangle Element
 //! Holds minimum information necessary to use smallest possible triangular element
 //! of a larger piece.
-struct trianglestruc
-{
-    //! center of mass
-    Vector com;
-    //! outward facing normal
-    Vector normal;
-    //! Area
-    float area;
-    //! Index to parent piece
-    uint16_t pidx;
-    uint16_t tidx[3];
-    float heat;
-    float temp;
-    float irradiance;
-    vector<vector<size_t>> triangleindex;
-};
+//struct trianglestruc
+//{
+//    //! center of mass
+//    Vector com;
+//    //! outward facing normal
+//    Vector normal;
+//    //! Area
+//    float area;
+//    //! Index to parent piece
+//    uint16_t pidx;
+//    uint16_t tidx[3];
+//    float heat;
+//    float temp;
+//    float irradiance;
+//    vector<vector<size_t>> triangleindex;
+//};
+
+//! Satellite structure as triangles
+//struct structurestruc
+//{
+//    vector <Vector> vertices;
+//    vector <trianglestruc> triangles;
+//};
 
 //! Physics Simulation Structure
 /*! Holds parameters used specifically for the physical simulation of the
  * environment and hardware of a Node.
 */
-typedef struct
-{
-	//! Time step in seconds
-	double dt;
-	//! Time step in Julian days
-	double dtj;
-	//! Simulated starting time in MJD
-	double mjdbase;
-	//! Acceleration factor for simulated time
-	double mjdaccel;
-	//! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)
-	double mjddiff;
-	//! Simulation mode as listed in \def defs_physics
-	int32_t mode;
-    float heat = 300. * 900. * 1.;
-    Vector ftorque;
-    Vector atorque;
-    Vector rtorque;
-    Vector gtorque;
-    Vector htorque;
-    Vector hmomentum;
-    Vector ctorque;
-    Vector fdrag;
-    Vector adrag;
-    Vector rdrag;
-    Vector thrust;
-    Vector moi = Vector(1.,1.,1.);
-    Vector com;
-    float hcap = 900.;
-    float mass = 1.;
-    float area = .001f;
-    vector <Vector> vertices;
-    vector <trianglestruc> triangles;
-} physicsstruc;
+//typedef struct
+//{
+//	//! Time step in seconds
+//	double dt;
+//	//! Time step in Julian days
+//	double dtj;
+//	//! Simulated starting time in MJD
+//	double mjdbase;
+//	//! Acceleration factor for simulated time
+//	double mjdaccel;
+//	//! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)
+//	double mjddiff;
+//	//! Simulation mode as listed in \def defs_physics
+//	int32_t mode;
+//    float heat = 300. * 900. * 1.;
+//    Vector ftorque;
+//    Vector atorque;
+//    Vector rtorque;
+//    Vector gtorque;
+//    Vector htorque;
+//    Vector hmomentum;
+//    Vector ctorque;
+//    Vector fdrag;
+//    Vector adrag;
+//    Vector rdrag;
+//    Vector thrust;
+//    Vector moi = Vector(1.,1.,1.);
+//    Vector com;
+//    float hcap = 900.;
+//    float mass = 1.;
+//    float area = .001f;
+//    vector <Vector> vertices;
+//    vector <trianglestruc> triangles;
+//} physicsstruc;
 //! @}
 
 #endif // ORBITDEF_H

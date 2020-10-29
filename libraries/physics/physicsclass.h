@@ -31,6 +31,7 @@
 #define PHYSICSCLASS_H
 
 #include "support/configCosmos.h"
+#include "support/jsondef.h"
 #include "support/convertlib.h"
 #include "support/timelib.h"
 #include "support/nrlmsise-00.h"
@@ -44,77 +45,84 @@ namespace Cosmos
         //! Finite Triangle Element
         //! Holds minimum information necessary to use smallest possible triangular element
         //! of a larger piece.
-        struct trianglestruc
-        {
-            //! center of mass
-            Vector com;
-            //! outward facing normal
-            Vector normal;
-            //! Area
-            float area;
-            //! Index to parent piece
-            uint16_t pidx;
-            uint16_t tidx[3];
-            float heat;
-            float temp;
-            float irradiance;
-            float cell_percentage;
-            vector<vector<size_t>> triangleindex;
-        };
+//        struct trianglestruc
+//        {
+//            //! center of mass
+//            Vector com;
+//            //! outward facing normal
+//            Vector normal;
+//            //! Area
+//            float area;
+//            //! Index to parent piece
+//            uint16_t pidx;
+//            uint16_t tidx[3];
+//            float heat;
+//            float temp;
+//            float irradiance;
+//            float cell_percentage;
+//            vector<vector<size_t>> triangleindex;
+//        };
+
+        //! Satellite structure as triangles
+//        struct structurestruc
+//        {
+//            vector <Vector> vertices;
+//            vector <trianglestruc> triangles;
+//        };
 
         //! Propagator Simulation Structure
         /*! Holds parameters used specifically for the physical simulation of the
      * environment and hardware of a Node.
     */
-        struct physicstruc
-        {
-            //! Time step in seconds
-            double dt;
-            //! Time step in Julian days
-            double dtj;
-            //! Simulated starting time in MJD
-            double mjdbase;
-            //! Acceleration factor for simulated time
-            double mjdaccel;
-            //! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)
-            double mjddiff;
-            //! Simulation mode as listed in \def defs_physics
-            int32_t mode;
-            Vector ftorque;
-            Vector atorque;
-            Vector rtorque;
-            Vector gtorque;
-            Vector htorque;
-            Vector hmomentum;
-            Vector ctorque;
-            Vector fdrag;
-            Vector adrag;
-            Vector rdrag;
-            Vector thrust;
-            Vector moi = Vector(1.,1.,1.);
-            Vector com;
-            float heat = 300. * 900. * 1.;
-            float hcap = 900.;
-            float charge;
-            float mass = 1.;
-            float area = .001f;
-            vector <Vector> vertices;
-            vector <trianglestruc> faces;
-        } ;
+//        struct physicsstruc
+//        {
+//            //! Time step in seconds
+//            double dt;
+//            //! Time step in Julian days
+//            double dtj;
+//            //! Simulated starting time in MJD
+//            double mjdbase;
+//            //! Acceleration factor for simulated time
+//            double mjdaccel;
+//            //! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)
+//            double mjddiff;
+//            //! Simulation mode as listed in \def defs_physics
+//            int32_t mode;
+//            Vector ftorque;
+//            Vector atorque;
+//            Vector rtorque;
+//            Vector gtorque;
+//            Vector htorque;
+//            Vector hmomentum;
+//            Vector ctorque;
+//            Vector fdrag;
+//            Vector adrag;
+//            Vector rdrag;
+//            Vector thrust;
+//            Vector moi = Vector(1.,1.,1.);
+//            Vector com;
+//            float heat = 300. * 900. * 1.;
+//            float hcap = 900.;
+//            float charge;
+//            float mass = 1.;
+//            float area = .001f;
+//            vector <Vector> vertices;
+//            vector <trianglestruc> faces;
+//        } ;
 
 //        class GaussJacksonPropagator
 //        {
 //        public:
 //            GaussJacksonPropagator(uint16_t order, double iutc, double dt);
-//            void Init(locstruc iloc, physicstruc iphys);
-//            void Init(double iutc, vector<tlestruc>lines, attstruc att, physicstruc phys);
-//            void Init(double iutc, vector <cartpos> ipos, vector <qatt> iatt, physicstruc phys);
+//            void Init(locstruc iloc, physicsstruc iphys);
+//            void Init(double iutc, vector<tlestruc>lines, attstruc att, physicsstruc phys);
+//            void Init(double iutc, vector <cartpos> ipos, vector <qatt> iatt, physicsstruc phys);
 //            int32_t Propagate();
 //            int32_t Converge();
 
 //        private:
 //            locstruc loc;
-//            physicstruc phys;
+//            physicsstruc phys;
 
 //            //! Gauss Jackson Integration structure
 //            /*! Holds the working variables for one step of an order N Gauss Jackson
@@ -153,7 +161,7 @@ namespace Cosmos
             double dt;
             double dtj;
             locstruc *loc;
-            physicstruc *phys;
+            physicsstruc *phys;
 
             enum Type
                 {
@@ -169,13 +177,10 @@ namespace Cosmos
                 };
             Type type;
 
-            Propagator(locstruc *locp, physicstruc *physp, double idt) : loc{locp}, phys{physp}
+            Propagator(locstruc *locp, physicsstruc *physp, double idt) : loc{locp}, phys{physp}
             {
-//                loc = locp;
-//                phys = physp;
                 dt = 86400.*((locp->utc + (idt / 86400.))-locp->utc);
                 dtj = dt / 86400.;
-//                type = itype;
             }
 
             int32_t Increment(double nextutc);
@@ -186,7 +191,7 @@ namespace Cosmos
         class InertialPositionPropagator : public Propagator
         {
         public:
-            InertialPositionPropagator(locstruc *locp, physicstruc *physp, double idt)
+            InertialPositionPropagator(locstruc *locp, physicsstruc *physp, double idt)
                 : Propagator{ locp, physp, idt }
             {
                 type = PositionInertial;
@@ -201,7 +206,7 @@ namespace Cosmos
         class IterativePositionPropagator : public Propagator
         {
         public:
-            IterativePositionPropagator(locstruc *locp, physicstruc *physp, double idt)
+            IterativePositionPropagator(locstruc *locp, physicsstruc *physp, double idt)
                 : Propagator{ locp, physp, idt }
             {
                 type = PositionIterative;
@@ -218,7 +223,7 @@ namespace Cosmos
         public:
             uint16_t order;
 
-            GaussJacksonPositionPropagator(locstruc *locp, physicstruc *physp, double idt, uint16_t iorder)
+            GaussJacksonPositionPropagator(locstruc *locp, physicsstruc *physp, double idt, uint16_t iorder)
                 : Propagator{ locp, physp, idt }, order { iorder }
             {
                 type = PositionGaussJackson;
@@ -259,7 +264,7 @@ namespace Cosmos
         class InertialAttitudePropagator : public Propagator
         {
         public:
-            InertialAttitudePropagator(locstruc *locp, physicstruc *physp, double idt)
+            InertialAttitudePropagator(locstruc *locp, physicsstruc *physp, double idt)
                 : Propagator{ locp, physp, idt }
             {
                 type = AttitudeInertial;
@@ -274,7 +279,7 @@ namespace Cosmos
         class IterativeAttitudePropagator : public Propagator
         {
         public:
-            IterativeAttitudePropagator(locstruc *locp, physicstruc *physp, double idt)
+            IterativeAttitudePropagator(locstruc *locp, physicsstruc *physp, double idt)
                 : Propagator{ locp, physp, idt }
             {
                 type = AttitudeIterative;
@@ -289,7 +294,7 @@ namespace Cosmos
         class LVLHAttitudePropagator : public Propagator
         {
         public:
-            LVLHAttitudePropagator(locstruc *locp, physicstruc *physp, double idt)
+            LVLHAttitudePropagator(locstruc *locp, physicsstruc *physp, double idt)
                 : Propagator{ locp, physp, idt }
             {
                 type = AttitudeLVLH;
@@ -304,7 +309,7 @@ namespace Cosmos
         class ThermalPropagator : public Propagator
         {
         public:
-            ThermalPropagator(locstruc *locp, physicstruc *physp, double idt, float itemperature)
+            ThermalPropagator(locstruc *locp, physicsstruc *physp, double idt, float itemperature)
                 : Propagator{ locp, physp, idt }, temperature{itemperature}
             {
                 type = AttitudeLVLH;
@@ -319,7 +324,7 @@ namespace Cosmos
         class ElectricalPropagator : public Propagator
         {
         public:
-            ElectricalPropagator(locstruc *locp, physicstruc *physp, double idt, float ibattery_charge)
+            ElectricalPropagator(locstruc *locp, physicsstruc *physp, double idt, float ibattery_charge)
                 : Propagator{ locp, physp, idt }, battery_charge{ibattery_charge}
             {
                 type = AttitudeLVLH;
@@ -335,7 +340,7 @@ namespace Cosmos
         {
         public:
             locstruc *loc;
-            physicstruc *phys;
+            physicsstruc *phys;
             double dt;
             double dtj;
             Propagator *position;
@@ -354,8 +359,8 @@ namespace Cosmos
         int32_t GravityParams(int16_t model);
         double Nplgndr(uint32_t l, uint32_t m, double x);
 
-        int32_t PosAccel(locstruc &loc, physicstruc &physics);
-        int32_t AttAccel(locstruc &loc, physicstruc &physics);
+        int32_t PosAccel(locstruc &loc, physicsstruc &physics);
+        int32_t AttAccel(locstruc &loc, physicsstruc &physics);
 
 
     } //end of namespace Physics

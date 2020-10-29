@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
         exit (AGENT_ERROR_JSON_CREATE);
     }
 
-    agent->cinfo->physics.mode = mode;
+    agent->cinfo->node.phys.mode = mode;
 
     load_dictionary(eventdict, agent->cinfo, (char *)"events.dict");
 
@@ -182,13 +182,13 @@ int main(int argc, char* argv[])
 	if (mjdnow < iloc.utc)
 	{
         hardware_init_eci(agent->cinfo, iloc);
-        gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+        gauss_jackson_init_eci(gjh, order ,mode, -dt, iloc.utc,iloc.pos.eci, iloc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
 
         //printf("Initialize backwards %f days\n", (agent->cinfo->node.loc.utc-mjdnow));
         std::cout << "Initialize backwards " << agent->cinfo->node.loc.utc-mjdnow << "days" << std::endl;
 
         simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
-        gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
+        gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, mjdnow);
         simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
         iloc.utc = agent->cinfo->node.loc.utc;
         iloc.pos.eci = agent->cinfo->node.loc.pos.eci;
@@ -212,13 +212,13 @@ int main(int argc, char* argv[])
     hardware_init_eci(agent->cinfo, iloc);
 
     std::cout << "Initialize Gauss Jackson Propagator " << std::endl;
-    gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+    gauss_jackson_init_eci(gjh, order, mode, step, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
 
     std::cout << "Start Hardware Simulation " << std::endl;
     simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
 
     std::cout << "Start Orbital Propagator " << std::endl;
-    gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
+    gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, mjdnow);
 
     std::cout << "Start Hardware Simulation 2" << std::endl;
     simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
     hardware_init_eci(agent->cinfo, iloc);
 
     std::cout << "Initialize Gauss Jackson Propagator" << std::endl;
-    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+    gauss_jackson_init_eci(gjh, order, mode, dt, iloc.utc ,iloc.pos.eci, iloc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
 
     mjdnow = currentmjd(agent->cinfo->node.utcoffset);
 
@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
 	{
 		sohtimer += 1./86400.;
         mjdnow = currentmjd(agent->cinfo->node.utcoffset);
-        gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow);
+        gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, mjdnow);
 
         simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
 

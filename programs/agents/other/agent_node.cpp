@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 		// Initialize hardware
         hardware_init_eci(agent->cinfo, agent->cinfo->node.loc);
 		// Initialize orbit
-        gauss_jackson_init_eci(gjh, 8, 0, .1, agent->cinfo->node.loc.utc, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+        gauss_jackson_init_eci(gjh, 8, 0, .1, agent->cinfo->node.loc.utc, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
         simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
         agent->cinfo->node.utcoffset = agent->cinfo->node.loc.utc - currentmjd(0.);
         agent->set_sohstring((char *)"{\"node_utc\",\"node_name\",\"node_type\",\"node_loc_pos_eci\",\"node_loc_att_icrf\"}");
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
         switch (agent->cinfo->node.type)
 		{
 		case NODE_TYPE_SATELLITE:
-            gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, currentmjd(agent->cinfo->node.utcoffset));
+            gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, currentmjd(agent->cinfo->node.utcoffset));
             simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
             break;
 		default:
@@ -309,7 +309,7 @@ void loadephemeris()
     ctime = agent->cinfo->node.loc.utc;
 	stime = (int)ctime;
 	etime = stime + MAXEPHEM + 1;
-    gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+    gauss_jackson_init_eci(gjh, 8, 1, 10., ctime, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
     simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
     update_target(agent->cinfo);
 	do
@@ -325,7 +325,7 @@ void loadephemeris()
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
 		cache[3+(int)(ctime-stime)].utime = ctime;
 		ctime += 20./86400.;
-        gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, ctime);
+        gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, ctime);
         simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
         update_target(agent->cinfo);
 	} while (ctime < etime);

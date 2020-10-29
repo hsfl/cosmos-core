@@ -176,7 +176,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 	mjdnow, // modified julian date
 	ipos, // initial ECI position
 	iloc.att.icrf, // initial ICRF attitude
-    cosmos_data->physics,
+    cosmos_data->node.phys,
     cosmos_data->node.loc);
 
     mjdnow = cosmos_data->node.loc.utc;
@@ -195,9 +195,9 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 	mjdlast = mjdnow + tp/86400.;
 	cp = 0;
     cosmos_data->device[cosmos_data->devspec.rw[0]].rw.omg = rwomg = 0;
-    cosmos_data->physics.moi[0] = 2.3;
-    cosmos_data->physics.moi[1] = 2.6;
-    cosmos_data->physics.moi[2] = 2.7;
+    cosmos_data->node.phys.moi[0] = 2.3;
+    cosmos_data->node.phys.moi[1] = 2.6;
+    cosmos_data->node.phys.moi[2] = 2.7;
 	tpointer = tstring;
 	strcpy(tstring,"(\"info_powuse\">10.)");
 	//strcpy(tstring,"(1+1)");
@@ -216,7 +216,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 		mjdnow += dt/86400.;
 		cp += dt;
 
-        gauss_jackson_propagate(gjh, cosmos_data->physics, cosmos_data->node.loc, mjdnow);
+        gauss_jackson_propagate(gjh, cosmos_data->node.phys, cosmos_data->node.loc, mjdnow);
 
         tloc = cosmos_data->node.loc;
 		tloc.att.lvlh.s = q_eye();
@@ -244,9 +244,9 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
         rtorque2 = drotate(q_conjugate(cosmos_data->node.loc.att.icrf.s),rtorque2);
         mtorque = drotate(q_conjugate(cosmos_data->node.loc.att.icrf.s),mtorque);
 
-        //	cosmos_data->physics.ftorque = rv_zero();
-        cosmos_data->physics.ftorque = torque;
-        //	cosmos_data->physics.ftorque = ftorque;
+        //	cosmos_data->node.phys.ftorque = rv_zero();
+        cosmos_data->node.phys.ftorque = torque;
+        //	cosmos_data->node.phys.ftorque = ftorque;
 
 		if (cp >= dp)
 		{
@@ -261,7 +261,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
             printf("%.10g\t%.10g\t%.10g\t",cosmos_data->node.loc.att.lvlh.v.col[0],cosmos_data->node.loc.att.lvlh.v.col[1],cosmos_data->node.loc.att.lvlh.v.col[2]);
             printf("%.10g\t%.10g\t%.10g\t",cosmos_data->node.loc.att.lvlh.a.col[0],cosmos_data->node.loc.att.lvlh.a.col[1],cosmos_data->node.loc.att.lvlh.a.col[2]);
 			printf("%.10g\t%.10g\t%.10g\t",torque.col[0],torque.col[1],torque.col[2]);
-            printf("%.10g\t%.10g\t%.10g\t",cosmos_data->physics.ftorque[0],cosmos_data->physics.ftorque[1],cosmos_data->physics.ftorque[2]);
+            printf("%.10g\t%.10g\t%.10g\t",cosmos_data->node.phys.ftorque[0],cosmos_data->node.phys.ftorque[1],cosmos_data->node.phys.ftorque[2]);
 			printf("%.10g\t%.10g\t%.10g\t",mtorque.col[0],mtorque.col[1],mtorque.col[2]);
 			printf("%.10g\t%.10g\t",rwomg,ralp);
 			printf("%.10g\t%.10g\t%.10g\t",mtrx,mtry,mtrz);

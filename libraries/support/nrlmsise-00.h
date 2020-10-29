@@ -271,5 +271,5 @@ double press);
 #define __inline_double double
 #endif
 
-#endif NRLMSISE
+#endif // NRLMSISE
 

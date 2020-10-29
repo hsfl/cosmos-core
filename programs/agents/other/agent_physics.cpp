@@ -129,12 +129,12 @@ int main(int argc, char *argv[])
 
     agent->cinfo->node.loc.utc = mjdnow;
     ++agent->cinfo->node.loc.pos.eci.pass;
-//    agent->cinfo->physics.moi[0] = 1.;
-//    agent->cinfo->physics.moi[1] = 3.;
-//    agent->cinfo->physics.moi[2] = 5.;
-    agent->cinfo->physics.moi[0] = 1.;
-    agent->cinfo->physics.moi[1] = 3.;
-    agent->cinfo->physics.moi[2] = 5.;
+//    agent->cinfo->node.phys.moi[0] = 1.;
+//    agent->cinfo->node.phys.moi[1] = 3.;
+//    agent->cinfo->node.phys.moi[2] = 5.;
+    agent->cinfo->node.phys.moi[0] = 1.;
+    agent->cinfo->node.phys.moi[1] = 3.;
+    agent->cinfo->node.phys.moi[2] = 5.;
     agent->cinfo->node.loc.att.icrf.v = rv_smult(.017453293,rv_unity());
     agent->cinfo->node.loc.att.icrf.s = q_eye();
     agent->cinfo->node.loc.att.icrf.a = rv_zero();
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 */
 
     hardware_init_eci(agent->cinfo, agent->cinfo->node.loc);
-    gauss_jackson_init_eci(gjh, order, mode, dt, mjdnow, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->physics, agent->cinfo->node.loc);
+    gauss_jackson_init_eci(gjh, order, mode, dt, mjdnow, agent->cinfo->node.loc.pos.eci, agent->cinfo->node.loc.att.icrf, agent->cinfo->node.phys, agent->cinfo->node.loc);
     simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
     mjdnow = agent->cinfo->node.loc.utc;
 
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 	do
 	{
 		mjdnow = currentmjd(0.);
-        gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, mjdnow + agent->cinfo->node.utcoffset);
+        gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, mjdnow + agent->cinfo->node.utcoffset);
         simulate_hardware(agent->cinfo, agent->cinfo->node.loc);
 
 		/*

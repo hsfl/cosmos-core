@@ -144,7 +144,7 @@ int main(int argc, char* argv[]){
         exit (AGENT_ERROR_JSON_CREATE);
     }
 
-    //agent->cinfo->physics.mode = mode;
+    //agent->cinfo->node.phys.mode = mode;
     //json_clone(cinfo);
 
     //load_dictionary(eventdict, cinfo, (char *)"events.dict");
@@ -212,13 +212,13 @@ int main(int argc, char* argv[]){
                            currentmjd(),// use curretn time instead of initState.utc for this demo, otherwise it will take a long time to update
                            initState.pos.eci,
                            initState.att.icrf,
-                           agent->cinfo->physics,
+                           agent->cinfo->node.phys,
                            agent->cinfo->node.loc);
 
     // propagate state to current time so we get an updated state vector
     // to initialize the GPS sim
     //CT 2017-06-26: couldn't find a gj_handle data type for this function to use
-    gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc, currentmjd());
+    gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc, currentmjd());
 
     //get initial sim tim
     double mjd_start_sim = currentmjd();
@@ -243,7 +243,7 @@ int main(int argc, char* argv[]){
         if (elapsed_seconds > triger_time){ // send the command 100 ms before the set time
 
             // propagate
-            gauss_jackson_propagate(gjh, agent->cinfo->physics, agent->cinfo->node.loc,  utc_now);
+            gauss_jackson_propagate(gjh, agent->cinfo->node.phys, agent->cinfo->node.loc,  utc_now);
             state = agent->cinfo->node.loc;
 
             // break down state vector for this demo

@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 		string target_request_name = "any_body_out_there";
 		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
 		cout<<"\tUTC == "<< agent->cinfo->node.loc.utc <<endl;
-		cout<<"\tORBIT == "<< agent->cinfo->node.loc.orbit <<endl;
+        cout<<"\tORBIT == "<< agent->cinfo->node.loc.pos.orbit <<endl;
 
 		// this agent can set his own values ... obvs...  can another agent?
 		//agent->cinfo->node.loc.utc = 13.456;

@@ -284,7 +284,7 @@ int main(int argc, char *argv[])
 					// Valid node. Initialize tracking and push it to list
                     ttrack.target.type = cinfo->node.type;
                     ttrack.target.loc = cinfo->node.loc;
-                    ttrack.physics = cinfo->physics;
+                    ttrack.physics = cinfo->node.phys;
 
 					// Build up table of radios
                     ttrack.radios.resize(cinfo->devspec.tcv_cnt);

@@ -686,7 +686,7 @@ namespace Cosmos
             \param physics Pointer to structure specifying satellite.
             \param loc Structure specifying location.
         */
-        int32_t AttAccel(locstruc &loc, physicstruc &phys)
+        int32_t AttAccel(locstruc &loc, physicsstruc &phys)
         {
             //    rvector ue, ta, tv;
             //    rvector ttorque;
@@ -752,7 +752,7 @@ namespace Cosmos
             \param phys Pointer to structure specifying satellite.
             \param loc Structure specifying location.
         */
-        int32_t PosAccel(locstruc &loc, physicstruc &phys)
+        int32_t PosAccel(locstruc &loc, physicsstruc &phys)
         {
             int32_t iretn;
             double radius;

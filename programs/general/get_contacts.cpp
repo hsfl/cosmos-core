@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
                             ttrack.peaked = false;
                             ttrack.target.type = cinfo->node.type;
                             ttrack.target.loc = cinfo->node.loc;
-                            ttrack.physics = cinfo->physics;
+                            ttrack.physics = cinfo->node.phys;
 //                            if (type == NODE_TYPE_SATELLITE)
 //                            {
 //                                printf("Propagating Node %s forward %f seconds\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));

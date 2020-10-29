@@ -34,8 +34,8 @@
 int main(int argc, char *argv[])
 {
     gj_handle gjh;
-    physicsstruc gphys;
-    locstruc gloc;
+//    physicsstruc gphys;
+//    locstruc gloc;
     int32_t iretn;
     vector<tlestruc>lines;
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     Physics::ThermalPropagator *thermprop;
     Physics::ElectricalPropagator *elecprop;
     locstruc loc;
-    Physics::physicstruc phys;
+    physicsstruc phys;
 
     posprop = new Physics::GaussJacksonPositionPropagator(&loc, &phys, 10., 6);
     posprop->Setup(6);
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         posprop->Init();
     }
 
-    gauss_jackson_init_eci(gjh, 6, 1, 10., loc.utc, loc.pos.eci, loc.att.icrf, gphys, gloc);
+//    gauss_jackson_init_eci(gjh, 6, 1, 10., loc.utc, loc.pos.eci, loc.att.icrf, gphys, gloc);
 
     double cmjd = currentmjd();
     locstruc cloc = loc;
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
             for (uint16_t i=0; i<6; ++i)
             {
                 posprop->Propagate();
-                gauss_jackson_propagate(gjh, gphys, gloc, loc.utc);
+//                gauss_jackson_propagate(gjh, gphys, gloc, loc.utc);
                 attprop->Propagate();
                 thermprop->Propagate();
                 elecprop->Propagate();

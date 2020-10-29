@@ -2287,9 +2287,9 @@ acquired.
     //                strcpy(info.name,cinfo->sdata.node.name);
     //                //			info.utc = cinfo->node.loc.utc;
     //                info.loc = cinfo->sdata.node.loc;
-    //                info.powgen = cinfo->sdata.node.powgen;
-    //                info.powuse = cinfo->sdata.node.powuse;
-    //                info.battlev = cinfo->sdata.node.battlev;
+    //                info.powgen = cinfo->sdata.node.phys.powgen;
+    //                info.powuse = cinfo->sdata.node.phys.powuse;
+    //                info.battlev = cinfo->sdata.node.phys.battlev;
     //            }
     //        }
     //        else
