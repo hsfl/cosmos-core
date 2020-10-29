@@ -49,7 +49,7 @@
 //! \defgroup geomag_functions World Magnetic Model function declarations
 //! @{
 
-int32_t geomag_front(gvector pos, double year, Vector &comp);
+int32_t geomag_front(gvector pos, double year, rvector &comp);
 
 //! @}
 
