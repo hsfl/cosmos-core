@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
 
     // Start thread to collect SOH data
     bool log_data_flag = true;
-    vector <beatstruc> servers = agent->find_servers(1.);
+    vector <beatstruc> servers = agent->find_agents(1.);
     for (beatstruc &i : servers)
     {
         if (strcmp(i.node, agent->nodeName.c_str()) && !strcmp(i.proc, "exec"))

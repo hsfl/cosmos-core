@@ -106,8 +106,8 @@ int32_t agent_add_request(cosmosstruc *cinfo, std::string token, agent_request_f
 int32_t agent_add_request(cosmosstruc *cinfo, std::string token, agent_request_function function, std::string synopsis, std::string description);
 int32_t agent_start(cosmosstruc *cinfo);
 int32_t agent_send_request(beatstruc cbeat, std::string request, char* output, uint32_t clen, float waitsec);
-int32_t agent_get_server(cosmosstruc *cinfo, std::string node, std::string name, float waitsec, beatstruc *cbeat);
-std::vector<beatstruc> agent_find_servers(cosmosstruc *cinfo, float waitsec);
+int32_t agent_get_agent(cosmosstruc *cinfo, std::string node, std::string name, float waitsec, beatstruc *cbeat);
+std::vector<beatstruc> agent_find_agents(cosmosstruc *cinfo, float waitsec);
 beatstruc agent_find_server(cosmosstruc* cinfo, std::string node, std::string proc, float waitsec);
 uint16_t agent_running(cosmosstruc *cinfo);
 int32_t agent_req_forward(string &request, string &response, void *root);

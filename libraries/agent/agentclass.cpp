@@ -147,7 +147,7 @@ namespace Support
         // If not Multi, check if this Agent is already running
         char tname[COSMOS_MAX_NAME+1];
         if (!mflag) {
-            if (get_server(cinfo->node.name, agent_name, timeoutSec, (beatstruc *)nullptr)) {
+            if (check_agent(cinfo->node.name, agent_name, timeoutSec)) {
                 error_value = AGENT_ERROR_SERVER_RUNNING;
                 shutdown();
                 return;
@@ -165,7 +165,10 @@ namespace Support
             do
             {
                 sprintf(tname,"%s_%03d",agent_name.c_str(),i);
-                if (!get_server(cinfo->node.name, tname, timeoutSec, (beatstruc *)nullptr)) { break; }
+                if (!check_agent(cinfo->node.name, tname, timeoutSec))
+                {
+                    break;
+                }
             } while (++i<100);
         }
 
@@ -385,7 +388,7 @@ namespace Support
         //! \param state Desired ::Agent::State.
         //! \param waitsec Maximum number of seconds to wait.
         //! \return Zero, or timeout error.
-    int32_t Agent::wait(State state, float waitsec) {
+    int32_t Agent::wait(State state, double waitsec) {
         if (cinfo == nullptr) { return AGENT_ERROR_NULL; }
 
         ElapsedTime et;
@@ -502,57 +505,81 @@ namespace Support
     \param rbeat pointer to a location to store the heartbeat
     \return 1 if found, otherwise 0, or an error number
 */
-// JIMNOTE:  get_server should probably be depricated in favor of find_agent
-    int32_t Agent::get_server(string node, string proc, float waitsec, beatstruc *rbeat) {
-
-        ElapsedTime ep;
-        ep.start();
-
-        post(Agent::AgentMessage::REQUEST, "heartbeat");
-        COSMOS_SLEEP(.1);
-        do {
-            for (size_t i=0; i<agent_list.size(); ++i) {
-                if (!strcmp(proc.c_str(), agent_list[i].proc) && !strcmp(node.c_str(), agent_list[i].node)) {
-                    if (rbeat != NULL) { *rbeat = agent_list[i]; }
-                    return (1);
-                }
-            }
-            COSMOS_SLEEP(.1);
-
-        } while (ep.split() <= waitsec);
-        return 0;
-    }
-
-    //! Find agent
-    /*! Check the Cosmos::Agent::agent_list for the particular agent,
- * returning its heartbeat if found.
-    \param agent Name of agent.
-    \param node Node that agent is in.
-    \return ::beatstruc of located agent, otherwise empty ::beatstruc.
- */
-    beatstruc Agent::find_agent(string node, string agent, float waitsec)
+    int32_t Agent::get_agent(string node, string agent, double waitsec, beatstruc &rbeat)
     {
-		// ask all existing agents to send out a heartbeat
+
         post(AgentMessage::REQUEST, "heartbeat");
         COSMOS_SLEEP(.1);
 
         ElapsedTime ep;
         ep.start();
         do {
-            for (beatstruc &it : agent_list) {
-				if(!strcmp(it.proc, agent.c_str()) && !strcmp(it.node, node.c_str()))	{
+            for (beatstruc &it : agent_list)
+            {
+                if ((node == "any" || string(it.node) == node) && string(it.proc) == agent)
+                {
                     it.exists = true;
-                    return it;
+                    rbeat = it;
+                    return 1;
                 }
             }
             COSMOS_SLEEP(.1);
         } while (ep.split() < waitsec);
 
-        beatstruc nobeat;
-        nobeat.exists = false;
-        nobeat.node[0] = '\0';
+        rbeat.exists = false;
+        rbeat.node[0] = '\0';
+        return 0;
+    }
+
+    //! Check agent
+    /*! Check the Cosmos::Agent::agent_list for the particular agent
+    \param agent Name of agent.
+    \param node Node that agent is in.
+    \param waitsec Number of seconds to wait
+    \return 1 if found, otherwise 0, or an error number
+ */
+    int32_t Agent::check_agent(string node, string agent, double waitsec)
+    {
+        beatstruc tbeat;
+        return get_agent(node, agent, waitsec, tbeat);
+    }
+
+    //! Find agent
+    /*! Check the Cosmos::Agent::agent_list for the particular agent,
+     * returning its heartbeat if found.
+        \param agent Name of agent.
+        \param node Node that agent is in.
+        \return ::beatstruc of located agent, otherwise empty ::beatstruc.
+     */
+    beatstruc Agent::find_agent(string node, string agent, double waitsec)
+    {
+        beatstruc rbeat;
+        get_agent(node, agent, waitsec, rbeat);
+        return rbeat;
+
+		// ask all existing agents to send out a heartbeat
+//        post(AgentMessage::REQUEST, "heartbeat");
+//        COSMOS_SLEEP(.1);
+
+//        ElapsedTime ep;
+//        ep.start();
+//        do {
+//            for (beatstruc &it : agent_list)
+//            {
+//                if ((node == "any" || it.node == node) && it.proc == agent)
+//                {
+//                    it.exists = true;
+//                    return it;
+//                }
+//            }
+//            COSMOS_SLEEP(.1);
+//        } while (ep.split() < waitsec);
+
+//        beatstruc nobeat;
+//        nobeat.exists = false;
+//        nobeat.node[0] = '\0';
 		
-        return nobeat;
+//        return nobeat;
     }
 
         //! Find single server
@@ -564,20 +591,13 @@ namespace Support
     \return ::beatstruc of located agent, otherwise empty ::beatstruc.
  */
 
- //JIMNOTE: this find_server should be depricated, too (just uses find_agent yo)
-    beatstruc Agent::find_server(string node, string agent, float waitsec) {
-        beatstruc cbeat;
-        cbeat = find_agent(agent, node, waitsec);
-        return cbeat;
-    }
-
         //! Generate a list of request servers.
         /*! Listen to the local subnet for a set amount of time,
  * collecting heartbeats. Return a list of heartbeats collected.
     \param waitsec Maximum number of seconds to wait.
     \return A vector of ::beatstruc entries listing the unique servers found.
 */
-    vector<beatstruc> Agent::find_servers(float waitsec) {
+    vector<beatstruc> Agent::find_agents(double waitsec) {
         beatstruc tbeat;
 
         //! Loop for ::waitsec seconds, filling list with any discovered heartbeats.
@@ -2044,6 +2064,7 @@ namespace Support
 
                     // Next: ASCII or BINARY message, depending on message type.
                     if (mess.meta.type < Agent::AgentMessage::BINARY) {
+                        mess.adata.clear();
                         mess.adata.assign((const char *)&input[start_byte+mess.meta.jlength], nbytes - (start_byte + mess.meta.jlength));
                     } else {
                         mess.bdata.resize(nbytes - (start_byte + mess.meta.jlength));

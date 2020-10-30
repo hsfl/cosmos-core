@@ -93,7 +93,7 @@ if (set_cosmosnodes(dataDir) < 0)
 }
 
 // check if we are already running the agent
-if ((iretn=agent->get_server((char *)"hmoc",agentname,waitsec,(beatstruc *)nullptr)) > 0)
+if ((iretn=agent->check_agent((char *)"hmoc", agentname, waitsec)) > 0)
 	exit (iretn);
 
 // Load user list

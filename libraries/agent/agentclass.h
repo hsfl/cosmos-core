@@ -271,9 +271,6 @@ namespace Cosmos
 
             //! Agent Request Function
             //! Format of a user supplied function to handle a given request
-//            typedef int32_t (Agent::*internal_request_function)(char* request_string, char* output_string);
-//            typedef int32_t (*external_request_function)(char* request_string, char* output_string, Agent* agent);
-//            typedef int32_t (Agent::*internal_request_function)(string &request_string, string &output_string);
             typedef int32_t (*external_request_function)(string &request_string, string &output_string, Agent* agent);
 
             //! @}
@@ -282,18 +279,15 @@ namespace Cosmos
             int32_t start();
             int32_t start_active_loop();
             int32_t finish_active_loop();
-            //    int32_t add_request(string token, request_function function);
-            //    int32_t add_request(string token, request_function function, string description);
-//            int32_t add_request_internal(string token, internal_request_function function, string synopsis="", string description="");
             int32_t add_request(string token, external_request_function function, string synopsis="", string description="");
             int32_t send_request(beatstruc cbeat, string request, string &output, float waitsec=5.);
             int32_t send_request_jsonnode(beatstruc cbeat, jsonnode &jnode, float waitsec=5.);
-            int32_t get_server(string node, string name, float waitsec, beatstruc *cbeat);
-            vector<beatstruc> find_servers(float waitsec=0.);
-            beatstruc find_server(string node, string agent, float waitsec=0.);
-            beatstruc find_agent(string node, string agent, float waitsec=0.);
+            int32_t get_agent(string node, string agent, double waitsec, beatstruc &cbeat);
+            int32_t check_agent(string node, string agent, double waitsec);
+            beatstruc find_agent(string node, string agent, double waitsec=0.);
+            vector<beatstruc> find_agents(double waitsec=0.);
             uint16_t running();
-            int32_t wait(State state=State::RUN, float waitsec=10.);
+            int32_t wait(State state=State::RUN, double waitsec=10.);
             int32_t last_error();
             int32_t set_sohstring(string list);
             int32_t set_fullsohstring(string list);
@@ -378,7 +372,7 @@ namespace Cosmos
             string debug_pathName;
 
             string version = "0.0";
-            float timeoutSec = 2.0;
+            double timeoutSec = 2.0;
             bool printMessages = true; // by default?
             bool logTime = true; // by default
             double timeStart; // UTC starting time for this agent in MJD
@@ -402,7 +396,6 @@ namespace Cosmos
                 //! Character token for request
                 string token;
                 //! Pointer to function to call with request string as argument and returning any error
-//                internal_request_function ifunction;
                 external_request_function efunction;
                 string synopsis;
                 string description;

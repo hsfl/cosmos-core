@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
         else if (!strcmp(argv[1],"list"))
         {
             std::vector<beatstruc> cbeat;
-            cbeat = agent->find_servers(SERVER_WAIT_TIME);
+            cbeat = agent->find_agents(SERVER_WAIT_TIME);
 
             if (cbeat.size() > 0)
             {
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
         //      if (is_node(nl,argv[1]))
         //      {
         //          std::vector<beatstruc> cbeat;
-        //          cbeat = agent->find_servers(SERVER_WAIT_TIME);
+        //          cbeat = agent->find_agents(SERVER_WAIT_TIME);
 
         //          printf("\n    List of available agents:\n\n");
 
@@ -388,7 +388,7 @@ int main(int argc, char *argv[])
         {
         nl.clear();
 
-        if ((nbytes = agent->get_server(argv[1],argv[2],SERVER_WAIT_TIME,&cbeat)) > 0)
+        if ((nbytes = agent->get_agent(argv[1], argv[2], SERVER_WAIT_TIME, cbeat)) > 0)
         {
             if(argc == 3)
             {

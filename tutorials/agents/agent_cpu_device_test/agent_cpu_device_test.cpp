@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
-    beat_agent_cpu = agent->find_server(nodename, "agent_cpu", 10.);
+    beat_agent_cpu = agent->find_agent(nodename, "agent_cpu", 10.);
 
 	// Start our own thread
 	myagent();
