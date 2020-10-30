@@ -444,7 +444,7 @@ int32_t request_get_offset(string &req, string &response, Agent *)
 {
     float az = antennaoffset.az;
     float el = antennaoffset.el;
-    response = to_angle(az) + ' ' + to_angle(el);
+    response = to_angle(az, 'D') + ' ' + to_angle(el, 'D');
     return (0);
 }
 
@@ -464,7 +464,7 @@ int32_t request_get_azel(string &req, string &response, Agent *)
 {
     double az = agent->cinfo->device[devindex].ant.azim;
     double el = agent->cinfo->device[devindex].ant.elev;
-    response = to_angle(az) + ' ' + to_angle(el);
+    response = to_angle(az, 'D') + ' ' + to_angle(el, 'D');
     return (0);
 }
 
