@@ -274,8 +274,9 @@ int main(int argc, char *argv[])
 			switch (type)
 			{
 			case NODE_TYPE_SATELLITE:
-			case NODE_TYPE_SUN:
-				trackstruc ttrack;
+            case NODE_TYPE_SUN:
+            case NODE_TYPE_MOON:
+                trackstruc ttrack;
 				ttrack.name = nodes[i];
                 cosmosstruc *cinfo = json_init();
                 iretn = json_setup_node(ttrack.name, cinfo);

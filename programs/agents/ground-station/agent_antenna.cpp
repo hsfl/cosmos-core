@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
 //    }
 //    else
 //    {
-        agent = new Agent(nodename, (antbase+"antenna").c_str(), 5.);
+        agent = new Agent(nodename, (antbase).c_str(), 5.);
 //    }
 
     if ((iretn = agent->wait()) < 0)
