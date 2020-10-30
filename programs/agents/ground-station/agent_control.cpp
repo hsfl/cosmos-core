@@ -459,12 +459,17 @@ int main(int argc, char *argv[])
 			case NODE_TYPE_SATELLITE:
 				gauss_jackson_propagate(track[i].gjh, track[i].physics, track[i].target.loc, mjdnow);
 				break;
-			case NODE_TYPE_SUN:
-				jplpos(JPL_EARTH, JPL_SUN, mjdnow, &track[i].target.loc.pos.eci);
-				track[i].target.loc.pos.eci.pass++;
-				pos_eci(&track[i].target.loc);
-				break;
-			}
+            case NODE_TYPE_SUN:
+                jplpos(JPL_EARTH, JPL_SUN, mjdnow, &track[i].target.loc.pos.eci);
+                track[i].target.loc.pos.eci.pass++;
+                pos_eci(&track[i].target.loc);
+                break;
+            case NODE_TYPE_MOON:
+                jplpos(JPL_EARTH, JPL_MOON, mjdnow, &track[i].target.loc.pos.eci);
+                track[i].target.loc.pos.eci.pass++;
+                pos_eci(&track[i].target.loc);
+                break;
+            }
 
             update_target(agent->cinfo->node.loc, track[i].target);
 
@@ -774,8 +779,8 @@ int32_t request_get_state(string &req, string &response, Agent *)
         response = '[' + to_mjd(currentmjd()) + "] ";
         response += to_unsigned(trackindex) + ": ";
         response += track[trackindex].name + ' ';
-        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 1) + ' ';
-        response += to_angle(track[trackindex].target.elfrom, 'D', 1) + "] CxTime: ";
+        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 3) + ' ';
+        response += to_angle(track[trackindex].target.elfrom, 'D', 3) + "] CxTime: ";
 	}
 	for (size_t i=0; i<myradios.size(); ++i)
 	{
