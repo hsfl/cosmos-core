@@ -48,19 +48,17 @@
 //! @{
 
 //! JSON Unit conversion type
-enum
-    {
+enum {
     //! Identity
     JSON_UNIT_TYPE_IDENTITY,
     //! Polynomial
     JSON_UNIT_TYPE_POLY,
     //! Logarithm
     JSON_UNIT_TYPE_LOG
-    };
+};
 
 //! JSON Unit type
-enum
-    {
+enum {
     //! No units
     JSON_UNIT_NONE,
     //! Length
@@ -135,11 +133,10 @@ enum
     JSON_UNIT_FRACTION,
     //! Holder for number of entries (CLEVER!)
     JSON_UNIT_COUNT
-    } ;
+};
 
 //! JSON Namelist Group
-enum
-    {
+enum {
     //! Absolute pointer
     JSON_STRUCT_ABSOLUTE,
     //! ::nodestruc
@@ -174,16 +171,13 @@ enum
     JSON_STRUCT_POINT,
     //! ::facestruc
     JSON_STRUCT_FACE,
-    //! Pointer to member
-    //    JSON_STRUCT_PTM,
     JSON_STRUCT_PTR,
     //! entirety
     JSON_STRUCT_ALL
-    };
+};
 
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
-enum
-    {
+enum {
     //! JSON 8 bit unsigned integer type
     JSON_TYPE_UINT8=1,
     //! JSON 8 bit signed integer type
@@ -306,19 +300,17 @@ enum
     JSON_TYPE_ALIAS,
     //! Not defined
     JSON_TYPE_NONE=UINT16_MAX
-    };
+};
 
 //! Things to update
-enum class JSON_UPDATE : int32_t
-    {
+enum class JSON_UPDATE : int32_t {
     NONE,
     POS,
     ATT
-    };
+};
 
 //! Types of equation operands
-enum
-    {
+enum {
     //! Nothing at all
     JSON_OPERAND_NULL,
     //! A simple constant
@@ -327,11 +319,10 @@ enum
     JSON_OPERAND_NAME,
     //! Another equation
     JSON_OPERAND_EQUATION
-    };
+};
 
 //! Types of equation operations
-enum
-    {
+enum {
     //! Addition +
     JSON_OPERATION_ADD,
     //! Subtraction -
@@ -362,7 +353,7 @@ enum
     JSON_OPERATION_BITWISEAND,
     //! Bitwise OR #
     JSON_OPERATION_BITWISEOR
-    };
+};
 
 #define HCAP 800.
 
@@ -444,23 +435,6 @@ enum
 //! Maximum number of ::cosmosstruc elements
 #define MAX_COSMOSSTRUC 20
 
-//! Entire ::cosmosstruc
-//#define JSON_MAP_ALL 0
-////! ::agentstruc part of ::cosmosstruc
-//#define JSON_MAP_AGENT 1
-////! ::beaconstruc part of ::cosmosstruc
-//#define JSON_MAP_BEACON 2
-////! ::nodestruc part of ::cosmosstruc
-//#define JSON_MAP_NODESTATIC 3
-////! ::nodestruc part of ::cosmosstruc
-//#define JSON_MAP_NODEDYNAMIC 4
-////! ::eventstruc part of ::cosmosstruc
-//#define JSON_MAP_EVENT 5
-////! ::cosmosstruc_s part of ::cosmosstruc
-//#define JSON_MAP_STATIC 7
-////! ::cosmosstruc_d part of ::cosmosstruc
-//#define JSON_MAP_DYNAMIC 8
-
 //! Maximum AGENT transfer buffer size
 #define AGENTMAXBUFFER 60000
 //! Maximum number of supported publication interfaces
@@ -479,78 +453,8 @@ enum
 //! \ingroup defs_comp
 //! \defgroup defs_comp_type Type of Component.
 //! @{
-//enum
-//{
-//	//! Payload
-//	DEVICE_TYPE_PLOAD=0,
-//	//! Elevation and Azimuth Sun Sensor
-//	DEVICE_TYPE_SSEN=1,
-//	//! Inertial Measurement Unit
-//	DEVICE_TYPE_IMU=2,
-//	//! Reaction Wheel
-//	DEVICE_TYPE_RW=3,
-//	//! Magnetic Torque Rod
-//	DEVICE_TYPE_MTR=4,
-//	//! Processing Unit
-//	DEVICE_TYPE_CPU=5,
-//	//! GPS Unit
-//	DEVICE_TYPE_GPS=6,
-//	//! Antenna
-//	DEVICE_TYPE_ANT=7,
-//	//! Radio Receiver
-//	DEVICE_TYPE_RXR=8,
-//	//! Radio Transmitter
-//	DEVICE_TYPE_TXR=9,
-//	//! Radio Transceiver
-//	DEVICE_TYPE_TCV=10,
-//	//! Photo Voltaic String
-//    DEVICE_TYPE_PVSTRG=11,
-//	//! Battery
-//	DEVICE_TYPE_BATT=12,
-//	//! Heater
-//	DEVICE_TYPE_HTR=13,
-//	//! Motor
-//	DEVICE_TYPE_MOTR=14,
-//	//! Temperature Sensor
-//	DEVICE_TYPE_TSEN=15,
-//	//! Thruster
-//	DEVICE_TYPE_THST=16,
-//	//! Propellant Tank
-//	DEVICE_TYPE_PROP=17,
-//	//! Switch
-//	DEVICE_TYPE_SWCH=18,
-//	//! Rotor
-//	DEVICE_TYPE_ROT=19,
-//	//! Star Tracker
-//	DEVICE_TYPE_STT=20,
-//	//! Motion Capture Camera
-//	DEVICE_TYPE_MCC=21,
-//	//! Torque rod Control Unit
-//	DEVICE_TYPE_TCU=22,
-//	//! Power Bus
-//	DEVICE_TYPE_BUS=23,
-//	//! Pressure sensor
-//	DEVICE_TYPE_PSEN=24,
-//	//! SUCHI
-//	DEVICE_TYPE_SUCHI=25,
-//	//! Camera
-//	DEVICE_TYPE_CAM=26,
-//	//! Telemetry
-//	DEVICE_TYPE_TELEM=27,
-//	//! Disk Drive
-//	DEVICE_TYPE_DISK=28,
-//	//! TNC
-//	DEVICE_TYPE_TNC=29,
-//    //! TNC
-//    DEVICE_TYPE_BCREG=30,
-//    //! List count
-//	DEVICE_TYPE_COUNT,
-//	//! Not a Component
-//	DEVICE_TYPE_NONE=UINT16_MAX
-//};
 
-enum class DeviceType : uint16_t
-    {
+enum class DeviceType : uint16_t {
     //! Payload
     PLOAD=0,
     //! Elevation and Azimuth Sun Sensor
@@ -617,10 +521,9 @@ enum class DeviceType : uint16_t
     COUNT,
     //! Not a Component
     NONE=UINT16_MAX
-    };
+};
 
-enum
-    {
+enum {
     DEVICE_MODEL_ASTRODEV=0,
     DEVICE_MODEL_TS2000=1,
     DEVICE_MODEL_IC9100=2,
@@ -629,10 +532,9 @@ enum
     DEVICE_MODEL_LOOPBACK=5,
     DEVICE_MODEL_PROPAGATOR=6,
     DEVICE_MODEL_DIRECT=7
-    };
+};
 
-enum
-    {
+enum {
     DEVICE_RADIO_MODE_AM,
     DEVICE_RADIO_MODE_AMD,
     DEVICE_RADIO_MODE_FM,
@@ -648,10 +550,9 @@ enum
     DEVICE_RADIO_MODE_RTTY,
     DEVICE_RADIO_MODE_RTTYR,
     DEVICE_RADIO_MODE_UNDEF
-    };
+};
 
-enum
-    {
+enum {
     TELEM_TYPE_UINT8,
     TELEM_TYPE_INT8,
     TELEM_TYPE_UINT16,
@@ -661,7 +562,7 @@ enum
     TELEM_TYPE_FLOAT,
     TELEM_TYPE_DOUBLE,
     TELEM_TYPE_STRING
-    };
+};
 
 //! @}
 
@@ -692,8 +593,7 @@ enum
 //! \defgroup defs_comp_port IO Port types.
 //! @{
 //!
-enum PORT_TYPE
-    {
+enum PORT_TYPE {
     PORT_TYPE_RS232 = 0,
     PORT_TYPE_RS422 = 1,
     PORT_TYPE_ETHERNET = 2,
@@ -705,7 +605,7 @@ enum PORT_TYPE
     PORT_TYPE_PROPAGATOR = 8,
     PORT_TYPE_COUNT,
     PORT_TYPE_NONE = UINT16_MAX
-    };
+};
 
 //! @}
 //! @}
@@ -1094,6 +994,7 @@ struct targetstruc
 struct portstruc
 {
     //! Type of I/O as listed in ::PORT_TYPE.
+	//JIMNOTE: should this be of PORT_TYPE not uint16_t?
     uint16_t type;
     //! Name information for port.
     //!!! Do not make this string
@@ -1587,9 +1488,7 @@ struct motrstruc : public allstruc
     float spd;
 };
 
-struct tsenstruc : public allstruc
-{
-};
+struct tsenstruc : public allstruc {};
 
 //! Thruster (THST) dynamic structure
 struct thststruc : public allstruc
@@ -1614,9 +1513,7 @@ struct propstruc : public allstruc
 //! Switch Structure definition
 /*! This structure holds the description of a switches.
 */
-struct swchstruc : public allstruc
-{
-};
+struct swchstruc : public allstruc {};
 
 //! Rotor Structure definition
 /*! This structure holds the description of a rotors.
@@ -1697,16 +1594,12 @@ struct camstruc : public allstruc
 //! TNC Structure definition
 /*! This structure holds the description of a TNC.
 */
-struct tncstruc : public allstruc
-{
-};
+struct tncstruc : public allstruc {};
 
 //! BCREG (PV Regulator) Structure definition
 /*! This structure holds the description of a BCREG.
 */
-struct bcregstruc : public allstruc
-{
-};
+struct bcregstruc : public allstruc {};
 
 // End of Device Specific structures
 
@@ -1943,38 +1836,6 @@ struct devspecstruc
     vector<uint16_t>tnc;
     vector<uint16_t>tsen;
     vector<uint16_t>txr;
-//    vector<allstruc *>all;
-//    vector<antstruc *>ant;
-//    vector<battstruc *>batt;
-//    vector<busstruc *>bus;
-//    vector<camstruc *>cam;
-//    vector<cpustruc *>cpu;
-//    vector<diskstruc *>disk;
-//    vector<gpsstruc *>gps;
-//    vector<htrstruc *>htr;
-//    vector<imustruc *>imu;
-//    vector<mccstruc *>mcc;
-//    vector<motrstruc *>motr;
-//    vector<mtrstruc *>mtr;
-//    vector<tcustruc *>tcu;
-//    vector<ploadstruc *>pload;
-//    vector<propstruc *>prop;
-//    vector<psenstruc *>psen;
-//    vector<rotstruc *>rot;
-//    vector<rwstruc *>rw;
-//    vector<ssenstruc *>ssen;
-//    vector<pvstrgstruc *>pvstrg;
-//    vector<sttstruc *>stt;
-//    vector<suchistruc *>suchi;
-//    vector<swchstruc *>swch;
-//    vector<telemstruc *>telem;
-//    vector<tcvstruc *>tcv;
-//    vector<txrstruc *>txr;
-//    vector<rxrstruc *>rxr;
-//    vector<thststruc *>thst;
-//    vector<tsenstruc *>tsen;
-//    vector<tncstruc *>tnc;
-//    vector<bcregstruc *>bcreg;
 };
 
 //! JSON map offset entry
@@ -1997,8 +1858,6 @@ struct jsonentry
     ptrdiff_t offset;
     //! pointer to data storage
     uint8_t* ptr;
-    //! size of data storage
-    //    size_t size;
     //! vector of actual data
     vector <uint8_t> data;
     //! Index to JSON Unit Type
@@ -2038,7 +1897,7 @@ struct cosmosstruc
     double timestamp;
     //! Whether JSON map has been created.
     uint16_t jmapped;
-    //! JSON Namespace Map matrix.
+    //! JSON Namespace Map matrix. first entry hash, second is items with that hash
     vector<vector<jsonentry> > jmap;
     //! JSON Equation Map matrix.
     vector<vector<jsonequation> > emap;

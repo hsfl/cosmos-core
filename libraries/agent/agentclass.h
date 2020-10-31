@@ -140,7 +140,16 @@ namespace Cosmos
         class Agent
         {
         public:
-            Agent(const string &node_name = "", const string &agent_name = "", double bprd = 0., uint32_t bsize = AGENTMAXBUFFER, bool mflag = false, int32_t portnum = 0, NetworkType ntype = NetworkType::UDP,  uint16_t dlevel = 1);
+            Agent(
+				const string &node_name = "",
+				const string &agent_name = "",
+				double bprd = 0.,
+				uint32_t bsize = AGENTMAXBUFFER,
+				bool mflag = false,
+				int32_t portnum = 0,
+				NetworkType ntype = NetworkType::UDP,
+				uint16_t dlevel = 1
+			);
 
             ~Agent();
 
@@ -271,7 +280,7 @@ namespace Cosmos
 
             //! Agent Request Function
             //! Format of a user supplied function to handle a given request
-            typedef int32_t (*external_request_function)(string &request_string, string &output_string, Agent* agent);
+            typedef int32_t (*external_request_function)(string& request_string, string& output_string, Agent* agent);
 
             //! @}
             //!
@@ -370,10 +379,8 @@ namespace Cosmos
             int32_t portNumber = 0;
             FILE *debug_fd = nullptr;
             string debug_pathName;
-
-            string version = "0.0";
+            string version = "2.0";
             double timeoutSec = 2.0;
-            bool printMessages = true; // by default?
             bool logTime = true; // by default
             double timeStart; // UTC starting time for this agent in MJD
             string hbjstring;
@@ -408,7 +415,7 @@ namespace Cosmos
             int32_t process_request(string &bufferin, string &bufferout);
             void message_loop();
 
-            char * parse_request(char *input);
+            char* parse_request(char *input);
             DeviceCpu deviceCpu_;
 
             static int32_t req_forward(string &request, string &response, Agent *agent);
