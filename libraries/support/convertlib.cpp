@@ -93,6 +93,9 @@ int32_t pos_clear(locstruc &loc)
  * properly propagate changes.
     \param att Pointer to ::attstruc that contains attitudes.
 */
+
+// SCOTTNOTE: could you take a look at these warnings?  there are about 50 of them ; )
+// /home/user/cosmos/source/core/libraries/support/convertlib.cpp:99:1: warning: no return statement in function returning non-void [-Wreturn-type]
 int32_t att_clear(attstruc &att)
 {
     memset(static_cast<void *>(&att), 0, sizeof(attstruc));
