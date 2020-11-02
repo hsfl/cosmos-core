@@ -5142,7 +5142,7 @@ int32_t json_parse_namedmember(const char* &ptr, cosmosstruc *cinfo)
     }
 
 
-    // Calculate hash
+    // Calculate hash of Namespace name
     hash = json_hash(ostring);
 
     // See if there is a match in the ::jsonmap.

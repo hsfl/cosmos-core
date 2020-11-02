@@ -210,8 +210,6 @@ enum {
     JSON_TYPE_RVECTOR,
     //! JSON ::rvector
     JSON_TYPE_AVECTOR,
-    //! JSON 3 element ::rvector
-    //	JSON_TYPE_TVECTOR,
     //! JSON ::cvector
     JSON_TYPE_CVECTOR,
     //! JSON ::quaternion type
@@ -1872,16 +1870,17 @@ struct jsonentry
     uint16_t subsystem;
 };
 
+/// JIMNOTE:  this should be depricated -- not used anywhere
 //! JSON pointer map
 /*! The complete JSON offset map consists of an array of ::jsonentry elements, along
  * with their count. It also provides a dynamically sized char string, used by
  * the JSON output functions, and an index of its length.
 */
-struct jsonmap
-{
-    //! Array of entries
-    vector<vector<jsonentry> > entry;
-};
+//struct jsonmap
+//{
+    ////! Array of entries
+    //vector<vector<jsonentry> > entry;
+//};
 
 //! JSON Name Space structure
 /*! A structure containing an element for every unique name in the COSMOS Name

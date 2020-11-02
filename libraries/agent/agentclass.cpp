@@ -1096,11 +1096,9 @@ namespace Support
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_getvalue(string &request, char* output, Agent* agent)
     int32_t Agent::req_getvalue(string &request, string &output, Agent* agent)
     {
         string jstring;
-
         if (json_of_list(jstring, request, agent->cinfo) != NULL) {
             output = jstring;
             if (output.length() > agent->cinfo->agent[0].beat.bsz) {
@@ -1119,7 +1117,6 @@ namespace Support
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
-//        int32_t Agent::req_setvalue(string &request, char* output, Agent* agent)
 	int32_t Agent::req_setvalue(string &request, string &output, Agent* agent) {
         int32_t iretn;
         iretn = json_parse(request, agent->cinfo);
