@@ -1551,10 +1551,6 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
         if ((iretn=json_out_rmatrix(jstring,*(rmatrix *)data)) != 0)
             return iretn;
         break;
-        //    case JSON_TYPE_DCM:
-        //        if ((iretn=json_out_dcm(jstring,*(rmatrix *)data)) != 0)
-        //            return iretn;
-        //        break;
     case JSON_TYPE_RVECTOR:
         //    case JSON_TYPE_TVECTOR:
         if ((iretn=json_out_rvector(jstring,*(rvector *)data)) != 0)
@@ -8996,7 +8992,6 @@ const char *json_of_wildcard(string &jstring, string wildcard, cosmosstruc *cinf
 const char *json_of_list(string &jstring, string list, cosmosstruc *cinfo)
 {
     int32_t iretn;
-
     jstring.clear();
     iretn = json_out_list(jstring, list, cinfo);
     if (iretn < 0 && iretn != JSON_ERROR_EOS)

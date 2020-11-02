@@ -220,8 +220,6 @@ enum {
     JSON_TYPE_GVECTOR,
     //! JSON ::svector
     JSON_TYPE_SVECTOR,
-    //! JSON 3x3 ::rmatrix
-    //	JSON_TYPE_DCM,
     //! JSON ::rmatrix
     JSON_TYPE_RMATRIX,
     //! JSON ::cartpos
