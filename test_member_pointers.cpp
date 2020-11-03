@@ -163,6 +163,10 @@ public:
 // support for the namespace 2.0
 
 	name_map names;
+// TODO: add name_exist(..) checks throughout?  only for JSON?
+	bool name_exists(const string& s)	{ return (names.find(s) == names.end()) ? false : true; }
+// TODO: add add_name.  delete name?  delete name's value?
+
 
 	void print_all_names() const	{
 		name_map::const_iterator it = names.begin();
@@ -188,7 +192,6 @@ public:
 		T dummy;
 		name_map::const_iterator it = names.find(s);
 		if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return dummy;	}
-		//return *(this->get_pointer<T>(s));
 		return *get_pointer<T>(s);
 	}
 
@@ -201,66 +204,22 @@ public:
 	}
 
 	template<class T>
-	void set_value_json(const string& s, const string& json) const	{
-		//this->get_pointer<T>(s)->from_json(json);
+	void set_json_value(const string& s, const string& json) const	{
 		get_pointer<T>(s)->from_json(json);
 	}
 
-
 	template<class T>
-	void to_json(const string& s, string& j)	{
-		Json json = Json::object { { s, this->get_value<T>(s) } };
-		if(!j.empty())
-			// no such thing as commas between objects in JSON (must be another object)
-			//j += "," + json.dump();
-			j += json.dump();
-		else
-			j = json.dump();
-		return;
+	string get_json(const string& s)	{
+		if(name_exists(s))	{
+			Json json = Json::object { { s, this->get_value<T>(s) } };
+			return json.dump();
+		} else {
+			return "";
+		}
 	}
 };
 
 ostream& operator<<(ostream& out, const cosmos_data& c)	{ return out; }
-
-
-/*  EXTERNAL VERSIONS OF MEMBER FUNCTIONS
-
-void print_all_names(const name_map& m)	{
-	name_map::const_iterator it = m.begin();
-	while(it != m.end())	{ cout<<(it++)->first<<endl; }
-}
-
-string get_name(const void* v, const name_map& names)	{
-	cout<<"trying to find name..."<<endl;
-	name_map::const_iterator it = names.begin();
-	while(it->second != v && it != names.end())	{ cout<<"trying!"<<endl; it++; }
-	if(it == names.end()) return "";
-	return it->first;
-}
-
-template<class T>
-T* get_pointer(const string& s, const name_map& m)	{
-	name_map::const_iterator it = m.find(s);
-	if(it == m.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return nullptr;	}
-	return (T*)(it->second);
-}
-
-template<class T>
-T get_value(const string& s, const name_map&m)	{
-	T dummy;
-	name_map::const_iterator it = m.find(s);
-	if(it == m.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return dummy;	}
-	return *get_pointer<T>(s,m);
-}
-
-template<class T>
-void set_value(const string& s, const T& value, const name_map & m)	{
-	name_map::const_iterator it = m.find(s);
-	if(it == m.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return;	}
-	*get_pointer<T>(s,m) = value;
-}
-*/
-
 
 int main(int argc, char** argv)	{
 
@@ -289,7 +248,6 @@ int main(int argc, char** argv)	{
 	}
 
 	// add the oject-friendly names to the namespace (for every level)
-
 	for(size_t j = 0; j < 3; ++j)	{
 		cosmos.names.insert(name_mapping("unit["+to_string(j)+"]", &cosmos.unit[j]));
 	for(size_t i = 0; i < 5; ++i)	{
@@ -317,14 +275,14 @@ int main(int argc, char** argv)	{
 	// this does not work! template deduction thinks 47.3 is a double and f*cks up two entries!
 	//cosmos.set_value("unit[2][3].p1", 47.3, names);
 
-// GET VALUES
+// GET VALUES (as native type)
 
-	// print out data from cosmos_data and compare to get_value(..) calls
 	for(size_t j = 0; j < 3; ++j)	{
 		for(size_t i = 0; i < 5; ++i)	{
+			string unit_name = "unit["+to_string(j)+"]["+to_string(i)+"]";
 			cout << cosmos.unit[j][i]
 				 << " vs.\t"
-			    << cosmos.get_value<unitstruc>("unit["+to_string(j)+"]["+to_string(i)+"]")<<endl;
+			    << cosmos.get_value<unitstruc>(unit_name)<<endl;
 		}
 	}
 
@@ -347,7 +305,6 @@ int main(int argc, char** argv)	{
 	// but can do this!
 	cout<<"best value ever = "<<++(*cosmos.get_pointer<float>("my favorite value"))<<endl;
 	cout<<"best value ever = "<<++(*cosmos.get_pointer<float>("my favorite value"))<<endl;
-	cout<<"best value ever = "<<++(*cosmos.get_pointer<float>("my favorite value"))<<endl;
 
 // SUPPORT FOR SETTING OBJECTS
 	unitstruc super_cool_unit;
@@ -356,10 +313,12 @@ int main(int argc, char** argv)	{
 	super_cool_unit.p0 = 1.1f;
 	super_cool_unit.p1 = 1.2f;
 	super_cool_unit.p2 = 1.3f;
+	// set a unitstruc
 	cosmos.set_value<unitstruc>("unit[1][4]", super_cool_unit);
 
 // SUPPORT FOR GETTING OBJECTS
-	cout<<"See if object was actually set..."<<endl;
+
+	// get a unitstruc
 	cout<<cosmos.get_value<unitstruc>("unit[1][4]")<<endl;
 
 // SUPPORT FOR SETTING VECTORS OF OBJECTS
@@ -386,8 +345,7 @@ int main(int argc, char** argv)	{
 	// access copy of data from name of vector pointer or vector elements using get_value(..)
 */
 
-
-// And just one more thing................................
+// And one more thing................................
 
 // SUPPORT FOR JSON 
 
@@ -396,48 +354,37 @@ int main(int argc, char** argv)	{
 		{ "floater", 123.456 }
 	};
 	
-	cout<<"JSON Test ->"<<unit_test.dump()<<endl;
+	cout<<"JSON Test-->"<<unit_test.dump()<<endl;
 	
+// EASY OUTPUT TO JSON FOR DATA, OBJECTS, VECTORS, AND VECTORS OF VECTORS (OF DATA OR OBJECTS)
 	cout<<"Real Test: "<<endl;
 
-// EASY OUTPUT TO JSON FOR DATA, OBJECTS, VECTORS, AND VECTORS OF VECTORS (OF DATA OR OBJECTS)
-
-	string json_output;
-	cosmos.to_json<string>("unit[1][4].name",json_output);
-	cosmos.to_json<uint16_t>("unit[1][4].type",json_output);
+	string json_output = cosmos.get_json<string>("unit[1][4].name");
+	json_output += cosmos.get_json<uint16_t>("unit[1][4].type");
 
 	// this is bad and wrong and will not work!  must match data type *exactly*
-	//cosmos.to_json<int>("unit[1][4].type",json_output);
+	//json_output += cosmos.get_json<int>("unit[1][4].type",json_output);
 
-	cosmos.to_json<float>("unit[1][4].p0",json_output);
-	cosmos.to_json<float>("unit[1][4].p1",json_output);
-	cosmos.to_json<float>("unit[1][4].p2",json_output);
-	cout<<"json named data member output = \n\n"<<json_output<<endl<<endl;
+	json_output += cosmos.get_json<float>("unit[1][4].p0");
+	json_output += cosmos.get_json<float>("unit[1][4].p1");
+	json_output += cosmos.get_json<float>("unit[1][4].p2");
+	cout<<"json named data members output = \n\n"<<json_output<<endl<<endl;
 	cout<<"(can also be used for input...)"<<endl<<endl;
 
 	string commas_are_prolly_bad(json_output);
 
-	json_output.clear();
-	cosmos.to_json<unitstruc>("unit[1][4]",json_output);
-	cout<<"json named object output = \n\n"<<json_output<<endl<<endl;
+	// GET JSON FROM OBJECTS, VECTORS, AND VECTORS OF VECTORS
+	cout<<"json named object output = \n\n"
+		<<cosmos.get_json<unitstruc>("unit[1][4]")<<endl<<endl;
 
-	json_output.clear();
-	cosmos.to_json<vector<unitstruc>>("unit[1]",json_output);
-	cout<<"json named vector of objects output = \n\n"<<json_output<<endl<<endl;
+	cout<<"json named vector of objects output = \n\n"
+		<<cosmos.get_json<vector<unitstruc>>("unit[1]")<<endl<<endl;
 
-	json_output.clear();
-	cosmos.to_json<vector<vector<unitstruc>>>("unit",json_output);
-	cout<<"json named vector of vector of objects output = \n\n"<<json_output<<endl<<endl;
-	string save_for_later(json_output);
+	cout<<"json named vector of vector of objects output = \n\n"
+		<<cosmos.get_json<vector<vector<unitstruc>>>("unit")<<endl<<endl;
 
 	// get JSON output for *ANY* name in the Namespace
-	json_output.clear();
-	cosmos.to_json<float>("my favorite value",json_output);
-	cout<<"json data output = "<<json_output<<endl<<endl;
-	// not clearing concats
-	cosmos.to_json<float>("my favorite value",json_output);
-	cout<<"concatenated-ed json data output = "<<json_output<<endl<<endl;
-
+	cout<<"json data output = "<<cosmos.get_json<float>("my favorite value")<<endl<<endl;
 
 // EASY INPUT TO JSON FOR DATA, OBJECTS, VECTORS, AND VECTORS OF VECTORS (OF DATA OR OBJECTS)
 
@@ -456,7 +403,7 @@ int main(int argc, char** argv)	{
 	cout<<"dump parced results = "<<my_first_parse.dump()<<endl<<endl;
 	cout<<" parced data = "<<my_first_parse["The PAYLOAD Count"].number_value()<<endl<<endl;
 
-	Json my_second_parse = Json::parse(save_for_later,error);
+	Json my_second_parse = Json::parse(cosmos.get_json<vector<vector<unitstruc>>>("unit"),error);
 	cout<<"errors = <"<<error<<">"<<endl;
 	cout<<"dump parced results = \n\n"<<my_second_parse.dump()<<endl<<endl;
 	cout<<my_second_parse.type_name()<<endl;
@@ -469,7 +416,7 @@ int main(int argc, char** argv)	{
 	cout<<my_second_parse["unit"][0][0]["p1"].type_name()<<endl;
 	cout<<my_second_parse["unit"][0][0]["p2"].type_name()<<endl;
 
-// this is a multi-object parser
+// this is a multi-JSON-object parser
 	cout<<"PARSE ME = \n\n"<<commas_are_prolly_bad<<endl;
 	vector<Json> pro_parser;
 	pro_parser = Json::parse_multi(commas_are_prolly_bad, error);
@@ -479,14 +426,18 @@ int main(int argc, char** argv)	{
 		cout<<pro_parser[i].dump()<<endl;
 	}
 
-
 // parse an entire object into the Namespace from JSON string!!!
 
 	string unitstruc_in_json_form = my_second_parse["unit"][1][4].dump();
 
 	cout<<"before = "<<cosmos.get_value<unitstruc>("unit[2][2]")<<endl;
-	cosmos.set_value_json<unitstruc>("unit[2][2]", unitstruc_in_json_form);
+	cosmos.set_json_value<unitstruc>("unit[2][2]", unitstruc_in_json_form);
 	cout<<"after =  "<<cosmos.get_value<unitstruc>("unit[2][2]")<<endl;
+
+
+// big test: parse entire cosmos_data into another cosmos_data
+// maybe use googlettest
+
 
 	return 0;
 }

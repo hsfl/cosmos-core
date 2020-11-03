@@ -1922,8 +1922,6 @@ struct cosmosstruc
     devspecstruc devspec;
     //! Vector of all ports known to node.
     vector<portstruc> port;
-    //! Structure for physics modelling.
-//    physicsstruc physics;
     //! Single entry vector for agent information.
     vector<agentstruc> agent;
     //! Single entry vector for event information.
