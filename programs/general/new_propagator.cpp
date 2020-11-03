@@ -36,10 +36,10 @@ int main(int argc, char *argv[])
     gj_handle gjh;
 //    physicsstruc gphys;
 //    locstruc gloc;
-    int32_t iretn;
+//    int32_t iretn;
     vector<tlestruc>lines;
 
-    Physics::State *state;
+//    Physics::State *state;
     Physics::GaussJacksonPositionPropagator *posprop;
     Physics::LVLHAttitudePropagator *attprop;
     Physics::ThermalPropagator *thermprop;
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
             string fname = argv[1];
             if (fname.find(".tle") != string::npos)
             {
-                iretn = load_lines(fname, lines);
+//                iretn = load_lines(fname, lines);
                 posprop->Init(lines);
             }
         }
@@ -84,14 +84,14 @@ int main(int argc, char *argv[])
 
 //    gauss_jackson_init_eci(gjh, 6, 1, 10., loc.utc, loc.pos.eci, loc.att.icrf, gphys, gloc);
 
-    double cmjd = currentmjd();
+//    double cmjd = currentmjd();
     locstruc cloc = loc;
     for (uint16_t hour=0; hour<24; ++hour)
     {
         for (uint16_t minute=0; minute<60; ++minute)
         {
-            double seconds = loc.utc-cmjd;
-            double distance = norm_rv(rv_sub(loc.pos.geoc.s, cloc.pos.geoc.s));
+//            double seconds = loc.utc-cmjd;
+//            double distance = norm_rv(rv_sub(loc.pos.geoc.s, cloc.pos.geoc.s));
             cartpos neweci;
             lines2eci(loc.utc, lines, neweci);
             double ecidistance = norm_rv(rv_sub(loc.pos.eci.s, neweci.s));
