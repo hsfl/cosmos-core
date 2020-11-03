@@ -93,12 +93,10 @@ int32_t pos_clear(locstruc &loc)
  * properly propagate changes.
     \param att Pointer to ::attstruc that contains attitudes.
 */
-
-// SCOTTNOTE: could you take a look at these warnings?  there are about 50 of them ; )
-// /home/user/cosmos/source/core/libraries/support/convertlib.cpp:99:1: warning: no return statement in function returning non-void [-Wreturn-type]
 int32_t att_clear(attstruc &att)
 {
     memset(static_cast<void *>(&att), 0, sizeof(attstruc));
+    return 0;
 }
 
 //! Calculate Extra position information
@@ -1158,6 +1156,8 @@ int32_t geoc2geod(cartpos &geoc, geoidpos &geod)
         geod.v.lon = (geoc.v.col[0] - a1 * geod.v.h - c1 * geod.v.lat) / b1;
     else
         geod.v.lon = (geoc.v.col[1] - a2 * geod.v.h - c2 * geod.v.lat) / b2;
+
+    return 0;
 }
 
 //! Update locstruc GEOC to GEOD
@@ -1204,6 +1204,7 @@ int32_t pos_geoc2geod(locstruc &loc)
     // Transform to ITRS
     loc.pos.bearth = irotate(q_change_around_z(-loc.pos.geod.s.lon),irotate(q_change_around_y(DPI2+loc.pos.geod.s.lat),loc.pos.bearth));
 
+    return 0;
 }
 
 //! Convert GEOD to GEOC
@@ -1238,6 +1239,8 @@ int32_t geod2geoc(geoidpos &geod, cartpos &geoc)
     dlst = geod.v.lon;
     geoc.v.col[0] = cn * ct * geod.v.h - geoc.s.col[1] * dlst - rp * cn * st * geod.v.lat;
     geoc.v.col[1] = sn * ct * geod.v.h + geoc.s.col[0] * dlst - rp * sn * st * geod.v.lat;
+
+    return 0;
 }
 
 //! Update GEOD to GEOC in locstruc
@@ -1569,6 +1572,8 @@ double rearth(double lat)
 int32_t att_extra(locstruc *loc)
 {
     att_extra(*loc);
+
+    return 0;
 }
 
 int32_t att_extra(locstruc &loc)
@@ -1579,6 +1584,8 @@ int32_t att_extra(locstruc &loc)
     loc.att.extra.b2j = rm_quaternion2dcm(loc.att.icrf.s);
     loc.att.extra.j2b = rm_transpose(loc.att.extra.b2j);
     loc.att.extra.utc = loc.att.icrf.utc;
+
+    return 0;
 }
 
 int32_t att_icrf2geoc(locstruc *loc)
@@ -1632,6 +1639,8 @@ int32_t att_icrf2geoc(locstruc &loc)
 int32_t att_geoc2icrf(locstruc *loc)
 {
     att_geoc2icrf(*loc);
+
+    return 0;
 }
 
 int32_t att_geoc2icrf(locstruc &loc)
@@ -1666,11 +1675,15 @@ int32_t att_geoc2icrf(locstruc &loc)
 
     // Extra attitude information
     att_extra(loc);
+
+    return 0;
 }
 
 int32_t att_geoc(locstruc *loc)
 {
     att_geoc(*loc);
+
+    return 0;
 }
 
 int32_t att_geoc(locstruc &loc)
@@ -1690,6 +1703,8 @@ int32_t att_geoc(locstruc &loc)
         att_geoc2icrf(loc);
         att_icrf(loc);
     }
+
+    return 0;
 }
 
 int32_t att_icrf2selc(locstruc *loc)
@@ -1745,6 +1760,8 @@ int32_t att_icrf2selc(locstruc &loc)
 int32_t att_selc2icrf(locstruc *loc)
 {
     att_selc2icrf(*loc);
+
+    return 0;
 }
 
 int32_t att_selc2icrf(locstruc &loc)
@@ -1770,11 +1787,15 @@ int32_t att_selc2icrf(locstruc &loc)
 
     // Extra attitude information
     att_extra(loc);
+
+    return 0;
 }
 
 int32_t att_selc(locstruc *loc)
 {
     att_selc(*loc);
+
+    return 0;
 }
 
 int32_t att_selc(locstruc &loc)
@@ -1794,11 +1815,14 @@ int32_t att_selc(locstruc &loc)
         att_selc2icrf(loc);
         att_icrf(loc);
     }
+
+    return 0;
 }
 
 int32_t att_icrf2lvlh(locstruc *loc)
 {
     att_icrf2lvlh(*loc);
+    return 0;
 }
 
 int32_t att_icrf2lvlh(locstruc &loc)
@@ -1806,11 +1830,13 @@ int32_t att_icrf2lvlh(locstruc &loc)
     att_icrf2geoc(loc);
     att_icrf2selc(loc);
     att_planec2lvlh(loc);
+    return 0;
 }
 
 int32_t att_icrf(locstruc *loc)
 {
     att_icrf(*loc);
+    return 0;
 }
 
 int32_t att_icrf(locstruc &loc)
@@ -1826,6 +1852,7 @@ int32_t att_icrf(locstruc &loc)
         att_icrf2selc(loc);
         att_selc(loc);
     }
+    return 0;
 }
 
 //! Convert ITRS attitude to LVLH attitude
@@ -1836,6 +1863,7 @@ int32_t att_icrf(locstruc &loc)
 int32_t att_planec2lvlh(locstruc *loc)
 {
     att_planec2lvlh(*loc);
+    return 0;
 }
 
 int32_t att_planec2lvlh(locstruc &loc)
@@ -1904,6 +1932,7 @@ int32_t att_planec2lvlh(locstruc &loc)
     loc.att.lvlh.v = irotate(fqe,loc.att.lvlh.v);
     loc.att.lvlh.a = irotate(fqe,patt->a);
 
+    return 0;
 }
 
 //! Convert LVLH attitude to ITRS attitude
@@ -1914,6 +1943,7 @@ int32_t att_planec2lvlh(locstruc &loc)
 int32_t att_lvlh2planec(locstruc *loc)
 {
     att_lvlh2planec(*loc);
+    return 0;
 }
 
 int32_t att_lvlh2planec(locstruc &loc)
@@ -1993,6 +2023,8 @@ int32_t att_lvlh2planec(locstruc &loc)
 
     // Synchronize Topo
     att_planec2topo(loc);
+
+    return 0;
 }
 
 //! Convert LVLH attitude to ICRF attitude
@@ -2073,6 +2105,7 @@ int32_t att_lvlh(locstruc &loc)
 int32_t att_planec2topo(locstruc *loc)
 {
     att_planec2topo(*loc);
+    return 0;
 }
 
 int32_t att_planec2topo(locstruc &loc)
@@ -2130,6 +2163,7 @@ int32_t att_planec2topo(locstruc &loc)
     loc.att.topo.v = irotate(t2g,loc.att.topo.v);
     loc.att.topo.a = irotate(t2g,patt->a);
 
+    return 0;
 }
 
 //! Topocentric to Planetocentric attitude
@@ -2140,6 +2174,7 @@ int32_t att_planec2topo(locstruc &loc)
 int32_t att_topo2planec(locstruc *loc)
 {
     att_topo2planec(*loc);
+    return 0;
 }
 
 int32_t att_topo2planec(locstruc &loc)
@@ -2210,6 +2245,8 @@ int32_t att_topo2planec(locstruc &loc)
         break;
     }
     att_planec2lvlh(loc);
+    
+    return 0;
 }
 
 int32_t att_topo(locstruc *loc)
@@ -2257,6 +2294,7 @@ match.
 int32_t loc_update(locstruc *loc)
 {
     loc_update(*loc);
+    return 0;
 }
 
 int32_t loc_update(locstruc &loc)
@@ -2377,6 +2415,7 @@ int32_t loc_update(locstruc &loc)
         break;
     }
 
+    return 0;
 }
 
 int32_t teme2true(double ep0, rmatrix *rm)
@@ -2384,24 +2423,28 @@ int32_t teme2true(double ep0, rmatrix *rm)
     // TEME to True of Date (Equation of Equinoxes)
     double eeq = utc2gast(ep0) - utc2gmst1982(ep0);
     *rm = rm_change_around_z(eeq);
+    return 0;
 }
 
 int32_t true2teme(double ep0, rmatrix *rm)
 {
     double eeq = utc2gast(ep0) - utc2gmst1982(ep0);
     *rm = rm_change_around_z(-eeq);
+    return 0;
 }
 
 int32_t true2pef(double utc, rmatrix *rm)
 {
     double gast = utc2gast(utc);
     *rm = rm_change_around_z(-gast);
+    return 0;
 }
 
 int32_t pef2true(double utc, rmatrix *rm)
 {
     double gast = utc2gast(utc);
     *rm = rm_change_around_z(gast);
+    return 0;
 }
 
 int32_t pef2itrs(double utc, rmatrix *rm)
@@ -2411,6 +2454,7 @@ int32_t pef2itrs(double utc, rmatrix *rm)
     double pols = -47. * 4.848136811095359935899141e-12 * ttc;
 
     *rm = rm_mmult(rm_change_around_z(-pols),rm_mmult(rm_change_around_y(polm.x),rm_change_around_x(polm.y)));
+    return 0;
 }
 
 int32_t itrs2pef(double utc, rmatrix *rm)
@@ -2429,6 +2473,7 @@ int32_t itrs2pef(double utc, rmatrix *rm)
 
     outc = utc;
     orm = *rm;
+    return 0;
 }
 
 //! Rotate Mean of Epoch to True of Epoch
@@ -2454,6 +2499,7 @@ int32_t mean2true(double ep0, rmatrix *pm)
 
     oep0 = ep0;
     opm = *pm;
+    return 0;
 }
 
 //! Rotate True of Epoch to Mean of Epoch
@@ -2504,6 +2550,7 @@ int32_t true2mean(double ep0, rmatrix *pm)
 
     oep0 = ep0;
     opm = *pm;
+    return 0;
 }
 
 //! Rotate Mean of Epoch to J2000
@@ -2563,6 +2610,7 @@ int32_t mean2j2000(double ep0, rmatrix *pm)
     //	pm->row[2].col[1] = sa*sb;
     //	pm->row[2].col[2] = cb;
     opm = *pm;
+    return 0;
 }
 
 //! ITRS to J2000 rotation matrix
@@ -2595,6 +2643,7 @@ int32_t itrs2gcrf(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *
         oddrm = *drm = rm_transpose(*ddrm);
         outc = utc;
     }
+    return 0;
 }
 
 //! J2000 to ITRS rotation matrix
@@ -2719,6 +2768,7 @@ int32_t gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *
     odrm = *drm = ndrm;
     oddrm = *ddrm = nddrm;
     ornp = *rnp;
+    return 0;
 }
 
 /*! Rotation matrix for transformation from a J2000 coordinate system to one based on
@@ -2767,6 +2817,7 @@ int32_t j20002mean(double ep1, rmatrix *pm)
     pm->row[2].col[2] = cb;
     opm = *pm;
     oep1 = ep1;
+    return 0;
 }
 
 int32_t gcrf2j2000(rmatrix *rm)
@@ -2774,12 +2825,14 @@ int32_t gcrf2j2000(rmatrix *rm)
     // Vallado, Seago, Seidelmann: Implementation Issues Surrounding the New IAU Reference System for Astrodynamics
     static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
     *rm = bm;
+    return 0;
 }
 
 int32_t j20002gcrf(rmatrix *rm)
 {
     static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
     *rm = rm_transpose(bm);
+    return 0;
 }
 
 int32_t mean2mean(double ep0, double ep1, rmatrix *pm)
@@ -2819,6 +2872,7 @@ int32_t mean2mean(double ep0, double ep1, rmatrix *pm)
     pm->row[2].col[1] = sa*sb;
     pm->row[2].col[2] = cb;
 
+    return 0;
 }
 
 int32_t kep2eci(kepstruc &kep, cartpos &eci)
@@ -2873,6 +2927,8 @@ int32_t kep2eci(kepstruc &kep, cartpos &eci)
     eci.v.col[2] = qvel.col[0] * zx + qvel.col[1] * zy + qvel.col[2] * zz;
 
     eci.utc = kep.utc;
+
+    return 0;
 }
 
 int32_t eci2kep(cartpos &eci,kepstruc &kep)
@@ -2964,6 +3020,8 @@ int32_t eci2kep(cartpos &eci,kepstruc &kep)
         kep.a = kep.e = kep.i = kep.raan = O_UNDEFINED;
         kep.ap = kep.alat = kep.ma = kep.ta = kep.ea = kep.mm = O_UNDEFINED;
     }
+
+    return 0;
 }
 
 //! Geocentric to Topocentric
@@ -3009,6 +3067,8 @@ int32_t geoc2topo(gvector source, rvector targetgeoc, rvector &topo)
     sourcegeoc.col[1] = r * ss;
 
     topo = rv_mmult(g2t,rv_sub(targetgeoc,sourcegeoc));
+
+    return 0;
 }
 
 //! Body Centric to Topocentric
@@ -3057,6 +3117,8 @@ int32_t body2topo(Vector source, Vector target, Vector &topo)
     b2t[2][2] = slat;
 
     topo = b2t * (target - source);
+
+    return 0;
 }
 
 //! Topocentric to Azimuth and Eleveation
@@ -3068,6 +3130,7 @@ int32_t topo2azel(rvector tpos, float &az, float &el)
 {
     az = static_cast <float>(atan2(tpos.col[0], tpos.col[1]));
     el = static_cast <float>(atan2(tpos.col[2], sqrt(tpos.col[0] * tpos.col[0] + tpos.col[1] * tpos.col[1])));
+    return 0;
 }
 
 //! Topocentric to Azimuth and Eleveation
@@ -3079,6 +3142,7 @@ int32_t topo2azel(Vector tpos, float &az, float &el)
 {
     az = static_cast <float>(atan2(tpos[0], tpos[1]));
     el = static_cast <float>(atan2(tpos[2], sqrt(tpos[0] * tpos[0] + tpos[1] * tpos[1])));
+    return 0;
 }
 
 //! Return position from TLE set
@@ -4201,4 +4265,6 @@ int32_t eci2tlestring(cartpos eci, string &tle, string ref_tle, double bstar)
 
     //    tle = string(tle_buffer);
     tle = ref_tle;
+
+    return 0;
 }
