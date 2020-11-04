@@ -22,8 +22,8 @@ using namespace json11;
 using namespace std;
 
 // Good!  Easier to read...
-using name_map = std::map<string,void*>;
-using name_mapping = std::pair<string,void*>;
+using name_map = map<string,void*>;
+using name_mapping = pair<string,void*>;
 
 // helper functions (assume objects overload <<)
 
@@ -232,19 +232,36 @@ public:
 			return "";
 		}
 	}
+
+	// other namespace member functions??
 };
 
 ostream& operator<<(ostream& out, const cosmos_data& c)	{ return out; }
 
 
 
-
 // Driver to Explore Functionality of Namespace 2.0 Paradigm
+
+class jim	{
+public:
+	int x = 0;
+};
 
 int main(int argc, char** argv)	{
 
+	jim j;
+	j.x = 17;
+
 	//// Start COSMOS DATA Test
 	cosmos_data cosmos;
+
+	cosmos.add_name("Jim Value", &j.x);
+	cout<<"Jim Value = "<<j.x<<endl;
+
+	cosmos.set_value<int>("Jim Value", 42);
+
+	cout<<"Jim Value = "<<cosmos.get_value<int>("Jim Value")<<endl;
+	cout<<"Jim Value = "<<j.x<<endl;
 
 	// map names to simple data
 	cosmos.add_name("utc forever !@#$^%", &cosmos.utc);
@@ -261,7 +278,7 @@ int main(int argc, char** argv)	{
 		vector<unitstruc> v;
 		for(size_t i = 0; i < 5; ++i)	{
 			unitstruc u;
-			u.name = "unit_name_" + to_string(j) + "_" + to_string(i);
+			u.name = "unit_name_" + std::to_string(j) + "_" + to_string(i);
 			v.push_back(u);
 		}
 		cosmos.unit.push_back(v);
@@ -385,7 +402,7 @@ int main(int argc, char** argv)	{
 	json_output += cosmos.get_json<uint16_t>("unit[1][4].type");
 
 	// this is bad and wrong and will not work!  must match data type *exactly*
-	//json_output += cosmos.get_json<int>("unit[1][4].type",json_output);
+	//json_output += cosmos.get_json<int>("unit[1][4].type");
 
 	json_output += cosmos.get_json<float>("unit[1][4].p0");
 	json_output += cosmos.get_json<float>("unit[1][4].p1");
