@@ -629,6 +629,31 @@ struct unitstruc
     float p1 = 0.f;
     //! 2th derivative term
     float p2 = 0.f;
+
+	// needed to get class contents as JSON object (internal to json11)
+	json11::Json to_json() const {
+		return json11::Json::object {
+			{ "name", name },
+			{ "type", type },
+			{ "p0", p0 },
+			{ "p1", p1 },
+			{ "p2", p2 }
+		};
+	}
+
+	// needed to set class contents from JSON string
+	void from_json(const string& s)	{
+		string error;
+		json11::Json parsed = json11::Json::parse(s,error);
+		if(error.empty())	{
+			name = parsed["name"].string_value();
+			type = parsed["type"].number_value();
+			p0 = parsed["p0"].number_value();
+			p1 = parsed["p1"].number_value();
+			p2 = parsed["p2"].number_value();
+		}
+		return;
+	}
 };
 
 //! JSON Node description strings

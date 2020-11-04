@@ -236,4 +236,7 @@ using namespace Cosmos::Support;
 #include <sys/vfs.h>
 #endif // COSMOS_CYGWIN_OS
 
+#include "json11.hpp"
+
+
 #endif // CONFIGCOSMOS_H

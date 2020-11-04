@@ -275,6 +275,7 @@ string Json::type_name()                          const {
 	if(m_ptr->type()==STRING) return "STRING";
 	if(m_ptr->type()==ARRAY) return "ARRAY";
 	if(m_ptr->type()==OBJECT) return "OBJECT";
+	return "NULL";
 }
 double Json::number_value()                       const { return m_ptr->number_value(); }
 int Json::int_value()                             const { return m_ptr->int_value();    }
