@@ -20,8 +20,6 @@ namespace Cosmos
 
             phys = position->phys;
             loc = position->loc;
-            dt = position->dt;
-            dtj = position->dtj;
 
             return iretn;
         }
@@ -31,7 +29,7 @@ namespace Cosmos
             int32_t count = 0;
             do
             {
-                loc->utc += dtj;
+                loc->utc += phys->dtj;
                 switch (position->type)
                 {
                 case Propagator::Type::PositionIterative:
@@ -90,11 +88,11 @@ namespace Cosmos
         {
             quaternion q1;
 
-            q1 = q_axis2quaternion_rv(rv_smult(dt, loc->att.icrf.v));
+            q1 = q_axis2quaternion_rv(rv_smult(phys->dt, loc->att.icrf.v));
             loc->att.icrf.s = q_fmult(q1, loc->att.icrf.s);
             normalize_q(&loc->att.icrf.s);
             // Calculate new v from da
-            loc->att.icrf.v = rv_add(loc->att.icrf.v, rv_smult(dt, loc->att.icrf.a));
+            loc->att.icrf.v = rv_add(loc->att.icrf.v, rv_smult(phys->dt, loc->att.icrf.a));
             loc->att.icrf.utc = loc->utc;
             att_icrf(loc);
 
@@ -133,7 +131,50 @@ namespace Cosmos
 
         int32_t ThermalPropagator::Propagate()
         {
-            return 0;
+            int32_t iretn = 0.;
+            float sdheat = 0.;
+            float dheat;
+            float energyd;
+
+            phys->heat = 0.;
+            for (uint16_t i=0; i<phys->triangles.size(); ++i)
+            {
+                if (phys->triangles[i].external)
+                {
+                    // Absorption
+                    if (phys->triangles[i].irradiation > 0.)
+                    {
+                        energyd =  phys->dt * phys->triangles[i].irradiation;
+                        phys->triangles[i].heat += phys->triangles[i].area * phys->triangles[i].abs * energyd;
+                        if (phys->triangles[i].pcell > 0.f)
+                        {
+                            float efficiency = phys->triangles[i].ecellbase + phys->triangles[i].ecellslope * phys->triangles[i].temp;
+                            float power = phys->triangles[i].pcell * phys->triangles[i].area * efficiency * phys->triangles[i].irradiation;
+                            phys->triangles[i].heat -= power * phys->dt;
+                        }
+                    }
+
+                    // Radiation
+                    energyd = phys->dt * SIGMA * pow(phys->triangles[i].temp, 4.);
+                    dheat = phys->triangles[i].emi * phys->triangles[i].area * energyd;
+                    phys->triangles[i].heat -= dheat;
+                }
+
+                // Conduction
+                //                dheat = phys->dt * .5 * phys->triangles[i].perimeter * (phys->temp - phys->triangles[i].temp) / phys->triangles[i].com.norm();
+                //                phys->triangles[i].heat += dheat;
+                //                sdheat -= dheat;
+            }
+
+            // Compensate for conduction
+            for (uint16_t i=0; i<phys->triangles.size(); ++i)
+            {
+                phys->triangles[i].heat += phys->triangles[i].area * sdheat / phys->area;
+                phys->triangles[i].temp = phys->triangles[i].heat / (phys->triangles[i].mass * phys->triangles[i].hcap);
+                phys->heat += phys->triangles[i].heat;
+            }
+            phys->temp = phys->heat / (phys->mass * phys->hcap);
+            return iretn;
         }
 
         int32_t ElectricalPropagator::Init(float bp)
@@ -185,7 +226,7 @@ namespace Cosmos
             lam.resize(order+3);
             order = 0;
 
-            dtsq = dt * dt;
+            dtsq = phys->dt * phys->dt;
 
             order2 = iorder/2;
             order = order2 * 2;
@@ -309,7 +350,7 @@ namespace Cosmos
             for (uint32_t i=order2-1; i<order2; --i)
             {
                 step[i].loc = step[i+1].loc;
-                step[i].loc.utc -= dtj;
+                step[i].loc.utc -= phys->dtj;
                 lines2eci(step[i].loc.utc, lines, step[i].loc.pos.eci);
                 step[i].loc.pos.eci.pass++;
                 pos_eci(step[i].loc);
@@ -325,7 +366,7 @@ namespace Cosmos
             {
                 step[i].loc = step[i-1].loc;
 
-                step[i].loc.utc += dtj;
+                step[i].loc.utc += phys->dtj;
                 lines2eci(step[i].loc.utc, lines, step[i].loc.pos.eci);
                 step[i].loc.pos.eci.pass++;
                 pos_eci(step[i].loc);
@@ -338,7 +379,7 @@ namespace Cosmos
             }
 
             iretn = Converge();
-            phys->mjdbase = loc->utc;
+            phys->utc = loc->utc;
 
             return iretn;
         }
@@ -385,9 +426,9 @@ namespace Cosmos
             for (i=order2-1; i<order2; --i)
             {
                 step[i].loc = step[i+1].loc;
-                step[i].loc.utc -= dtj;
+                step[i].loc.utc -= phys->dtj;
                 kep.utc = step[i].loc.utc;
-                kep.ma -= dt * kep.mm;
+                kep.ma -= phys->dt * kep.mm;
 
                 uint16_t count = 0;
                 do
@@ -399,11 +440,11 @@ namespace Cosmos
                 kep2eci(kep, step[i].loc.pos.eci);
                 ++step[i].loc.pos.eci.pass;
 
-                q1 = q_axis2quaternion_rv(rv_smult(-dt,step[i].loc.att.icrf.v));
+                q1 = q_axis2quaternion_rv(rv_smult(-phys->dt,step[i].loc.att.icrf.v));
                 step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
                 normalize_q(&step[i].loc.att.icrf.s);
                 // Calculate new v from da
-                step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-dt,step[i].loc.att.icrf.a));
+                step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(-phys->dt,step[i].loc.att.icrf.a));
                 step[i].loc.att.icrf.utc = kep.utc;
                 pos_eci(step[i].loc);
 
@@ -415,9 +456,9 @@ namespace Cosmos
             for (i=order2+1; i<=order; i++)
             {
                 step[i] = step[i-1];
-                step[i].loc.utc += dtj;
+                step[i].loc.utc += phys->dtj;
                 kep.utc = step[i].loc.utc;
-                kep.ma += dt * kep.mm;
+                kep.ma += phys->dt * kep.mm;
 
                 uint16_t count = 0;
                 do
@@ -429,11 +470,11 @@ namespace Cosmos
                 kep2eci(kep, step[i].loc.pos.eci);
                 ++step[i].loc.pos.eci.pass;
 
-                q1 = q_axis2quaternion_rv(rv_smult(dt,step[i].loc.att.icrf.v));
+                q1 = q_axis2quaternion_rv(rv_smult(phys->dt,step[i].loc.att.icrf.v));
                 step[i].loc.att.icrf.s = q_fmult(q1,step[i].loc.att.icrf.s);
                 normalize_q(&step[i].loc.att.icrf.s);
                 // Calculate new v from da
-                step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(dt,step[i].loc.att.icrf.a));
+                step[i].loc.att.icrf.v = rv_add(step[i].loc.att.icrf.v,rv_smult(phys->dt,step[i].loc.att.icrf.a));
                 step[i].loc.att.icrf.utc = kep.utc;
                 pos_eci(step[i].loc);
 
@@ -441,7 +482,7 @@ namespace Cosmos
                 AttAccel(step[i].loc, *phys);
             }
             iretn = Converge();
-            phys->mjdbase = loc->utc;
+            phys->utc = loc->utc;
             return iretn;
         }
 
@@ -467,7 +508,7 @@ namespace Cosmos
             for (uint32_t i=order2-1; i<order2; --i)
             {
                 step[i].loc = step[i+1].loc;
-                step[i].loc.utc -= dtj;
+                step[i].loc.utc -= phys->dtj;
 
                 size_t index = locs.size();
                 double dutc = 50000.;
@@ -491,7 +532,7 @@ namespace Cosmos
             for (uint32_t i=order2+1; i<=order; i++)
             {
                 step[i] = step[i-1];
-                step[i].loc.utc += dtj;
+                step[i].loc.utc += phys->dtj;
 
                 size_t index = locs.size();
                 double dutc = 50000.;
@@ -512,7 +553,7 @@ namespace Cosmos
                 AttAccel(step[i].loc, *phys);
             }
             iretn = Converge();
-            phys->mjdbase = loc->utc;
+            phys->utc = loc->utc;
             return iretn;
         }
 
@@ -528,7 +569,7 @@ namespace Cosmos
                 return GENERAL_ERROR_TOO_LOW;
             }
 
-            step[order+1].loc.utc = step[order+1].loc.pos.utc = step[order+1].loc.pos.eci.utc = step[order].loc.pos.eci.utc + dtj;
+            step[order+1].loc.utc = step[order+1].loc.pos.utc = step[order+1].loc.pos.eci.utc = step[order].loc.pos.eci.utc + phys->dtj;
 
             // Calculate S(order/2+1)
             step[order+1].ss.col[0] = step[order].ss.col[0] + step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2.;
@@ -548,14 +589,14 @@ namespace Cosmos
             }
 
             // Calculate pos.v(order/2+1)
-            step[order+1].loc.pos.eci.v.col[0] = this->dt * (step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2. + step[order+1].sb.col[0]);
-            step[order+1].loc.pos.eci.v.col[1] = this->dt * (step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2. + step[order+1].sb.col[1]);
-            step[order+1].loc.pos.eci.v.col[2] = this->dt * (step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2. + step[order+1].sb.col[2]);
+            step[order+1].loc.pos.eci.v.col[0] = phys->dt * (step[order].s.col[0] + step[order].loc.pos.eci.a.col[0]/2. + step[order+1].sb.col[0]);
+            step[order+1].loc.pos.eci.v.col[1] = phys->dt * (step[order].s.col[1] + step[order].loc.pos.eci.a.col[1]/2. + step[order+1].sb.col[1]);
+            step[order+1].loc.pos.eci.v.col[2] = phys->dt * (step[order].s.col[2] + step[order].loc.pos.eci.a.col[2]/2. + step[order+1].sb.col[2]);
 
             // Calculate pos.s(order/2+1)
-            step[order+1].loc.pos.eci.s.col[0] = this->dtsq * (step[order+1].ss.col[0] + step[order+1].sa.col[0]);
-            step[order+1].loc.pos.eci.s.col[1] = this->dtsq * (step[order+1].ss.col[1] + step[order+1].sa.col[1]);
-            step[order+1].loc.pos.eci.s.col[2] = this->dtsq * (step[order+1].ss.col[2] + step[order+1].sa.col[2]);
+            step[order+1].loc.pos.eci.s.col[0] = dtsq * (step[order+1].ss.col[0] + step[order+1].sa.col[0]);
+            step[order+1].loc.pos.eci.s.col[1] = dtsq * (step[order+1].ss.col[1] + step[order+1].sa.col[1]);
+            step[order+1].loc.pos.eci.s.col[2] = dtsq * (step[order+1].ss.col[2] + step[order+1].sa.col[2]);
             step[order+1].loc.pos.eci.pass++;
             pos_eci(step[order+1].loc);
 
@@ -586,9 +627,9 @@ namespace Cosmos
             c_cnt = 0;
             do
             {
-                step[order2].s.col[0] = step[order2].loc.pos.eci.v.col[0]/this->dt;
-                step[order2].s.col[1] = step[order2].loc.pos.eci.v.col[1]/this->dt;
-                step[order2].s.col[2] = step[order2].loc.pos.eci.v.col[2]/this->dt;
+                step[order2].s.col[0] = step[order2].loc.pos.eci.v.col[0] / phys->dt;
+                step[order2].s.col[1] = step[order2].loc.pos.eci.v.col[1] / phys->dt;
+                step[order2].s.col[2] = step[order2].loc.pos.eci.v.col[2] / phys->dt;
                 for (k=0; k<=order; k++)
                 {
                     step[order2].s.col[0] -= step[order2].b[k] * step[k].loc.pos.eci.a.col[0];
@@ -604,9 +645,9 @@ namespace Cosmos
                     step[order2-n].s.col[1] = step[order2-n+1].s.col[1] - (step[order2-n].loc.pos.eci.a.col[1]+step[order2-n+1].loc.pos.eci.a.col[1])/2;
                     step[order2-n].s.col[2] = step[order2-n+1].s.col[2] - (step[order2-n].loc.pos.eci.a.col[2]+step[order2-n+1].loc.pos.eci.a.col[2])/2;
                 }
-                step[order2].ss.col[0] = step[order2].loc.pos.eci.s.col[0]/this->dtsq;
-                step[order2].ss.col[1] = step[order2].loc.pos.eci.s.col[1]/this->dtsq;
-                step[order2].ss.col[2] = step[order2].loc.pos.eci.s.col[2]/this->dtsq;
+                step[order2].ss.col[0] = step[order2].loc.pos.eci.s.col[0] / dtsq;
+                step[order2].ss.col[1] = step[order2].loc.pos.eci.s.col[1] / dtsq;
+                step[order2].ss.col[2] = step[order2].loc.pos.eci.s.col[2] / dtsq;
                 for (k=0; k<=order; k++)
                 {
                     step[order2].ss.col[0] -= step[order2].a[k] * step[k].loc.pos.eci.a.col[0];
@@ -651,12 +692,12 @@ namespace Cosmos
                         oldsa.col[2] = step[order2+i*n].loc.pos.eci.a.col[2];
 
                         // Calculate new probable position and velocity
-                        step[order2+i*n].loc.pos.eci.v.col[0] = this->dt * (step[order2+i*n].s.col[0] + step[order2+i*n].sb.col[0]);
-                        step[order2+i*n].loc.pos.eci.v.col[1] = this->dt * (step[order2+i*n].s.col[1] + step[order2+i*n].sb.col[1]);
-                        step[order2+i*n].loc.pos.eci.v.col[2] = this->dt * (step[order2+i*n].s.col[2] + step[order2+i*n].sb.col[2]);
-                        step[order2+i*n].loc.pos.eci.s.col[0] = this->dtsq * (step[order2+i*n].ss.col[0] + step[order2+i*n].sa.col[0]);
-                        step[order2+i*n].loc.pos.eci.s.col[1] = this->dtsq * (step[order2+i*n].ss.col[1] + step[order2+i*n].sa.col[1]);
-                        step[order2+i*n].loc.pos.eci.s.col[2] = this->dtsq * (step[order2+i*n].ss.col[2] + step[order2+i*n].sa.col[2]);
+                        step[order2+i*n].loc.pos.eci.v.col[0] = phys->dt * (step[order2+i*n].s.col[0] + step[order2+i*n].sb.col[0]);
+                        step[order2+i*n].loc.pos.eci.v.col[1] = phys->dt * (step[order2+i*n].s.col[1] + step[order2+i*n].sb.col[1]);
+                        step[order2+i*n].loc.pos.eci.v.col[2] = phys->dt * (step[order2+i*n].s.col[2] + step[order2+i*n].sb.col[2]);
+                        step[order2+i*n].loc.pos.eci.s.col[0] = dtsq * (step[order2+i*n].ss.col[0] + step[order2+i*n].sa.col[0]);
+                        step[order2+i*n].loc.pos.eci.s.col[1] = dtsq * (step[order2+i*n].ss.col[1] + step[order2+i*n].sa.col[1]);
+                        step[order2+i*n].loc.pos.eci.s.col[2] = dtsq * (step[order2+i*n].ss.col[2] + step[order2+i*n].sa.col[2]);
 
                         // Perform conversions between different systems
                         step[order2+i*n].loc.pos.eci.pass++;
@@ -1150,33 +1191,1342 @@ namespace Cosmos
             }
         }
 
-        //! Update Ground Station data
-        /*!
-        * Calculates aziumth and elevation for each gound station in the list of ground stations
-        * for a satellite at the indicated position.
-            \param satellite pointer to a ::locstruc specifying satellite position
-            \param groundstation pointer to a ::locstruc specifying groundstation to be targeted
-            \return ::svector containing azimuth in lambda, elevation in phi
-            and slant range in r.
-            \see geoc2topo
-            \see topo2azel
-        */
-        //        svector groundstation(locstruc &satellite,locstruc &groundstation)
-        //        {
-        //            Vector topo;
-        //            svector azel = {0.,0.,0.};
-        //            float lambda, phi;
+        int32_t InitializePhysics(physicsstruc &physics, float imass, float itemp, float ibatt, Vector imoi, float ihcap, double idt)
+        {
+            physics.dt = idt;
+            physics.dtj = physics.dt / 86400.;
+            physics.mass = imass;
+            physics.temp = itemp;
+            physics.hcap = ihcap;
+            physics.heat = physics.mass * physics.temp * physics.hcap;
+            physics.moi = imoi;
+            physics.battcap = ibatt;
+            physics.battlev = ibatt / 2.f;
 
-        //            pos_icrf2eci(&satellite);
-        //            pos_eci2geoc(&satellite);
-        //            geoc2topo(groundstation.pos.geod.s,satellite.pos.geoc.s,topo);
-        //            topo2azel(topo, lambda, phi);
-        //            azel.lambda = lambda;
-        //            azel.phi = phi;
-        //            azel.r = length_rv(topo);
-        //            return (azel);
-        //        }
+            physics.powgen = 0.;
+            physics.powuse = 0.;
+            physics.ftorque = Vector();
+            physics.atorque = Vector();
+            physics.rtorque = Vector();
+            physics.gtorque = Vector();
+            physics.htorque = Vector();
+            physics.ctorque = Vector();
+            physics.hmomentum = Vector();
+            physics.fdrag = Vector();
+            physics.adrag = Vector();
+            physics.rdrag = Vector();
+            physics.thrust = Vector();
 
+            physics.com = Vector();
+            physics.area = 0.;
+
+            return 0;
+        }
+
+        int32_t UpdatePhysics(physicsstruc &phys, locstruc &location)
+        {
+            //            phys.heat = 0.;
+            phys.rtorque.clear();
+            phys.rdrag.clear();
+            phys.adrag.clear();
+
+            Vector unitv = Quaternion(location.att.geoc.s).irotate(Vector(location.pos.geoc.v).normalize());
+
+            double speed = location.pos.geoc.v.col[0]*location.pos.geoc.v.col[0]+location.pos.geoc.v.col[1]*location.pos.geoc.v.col[1]+location.pos.geoc.v.col[2]*location.pos.geoc.v.col[2];
+            double density;
+            if (location.pos.geod.s.h < 10000. || std::isnan(location.pos.geod.s.h))
+            {
+                density = 1.225;
+            }
+            else
+            {
+                density = 1000. * Msis00Density(location.pos,150.,150.,3.);
+            }
+            double adrag = density * 1.1 * speed;
+
+            Vector unite = Vector(location.pos.eci.s).normalize(-1.);
+            unite = Vector(location.pos.eci.s).normalize(-1.);
+            unite = Quaternion(location.att.icrf.s).irotate(Vector(location.pos.eci.s).normalize(-1.));
+            Vector units = Quaternion(location.att.icrf.s).irotate(Vector(location.pos.icrf.s).normalize());
+            for (uint16_t i=0; i<phys.triangles.size(); ++i)
+            {
+                phys.triangles[i].irradiation = 0.;
+                if (phys.triangles[i].external)
+                {
+                    // Solar Radiation effects
+                    double sdot = units.dot(phys.triangles[i].normal);
+                    if (location.pos.sunradiance > 0.f && sdot > 0.)
+                    {
+                        double ddrag = location.pos.sunradiance * sdot / (3e8*phys.mass);
+                        Vector dtorque = ddrag * phys.triangles[i].twist;
+                        phys.rtorque += dtorque;
+                        Vector da = ddrag * phys.triangles[i].shove;
+                        phys.rdrag += da;
+
+                        phys.triangles[i].irradiation += location.pos.sunradiance * sdot / phys.triangles[i].normal.norm();
+                    }
+
+                    // Earth radiaion effects
+                    double edot = acos(unite.dot(phys.triangles[i].normal) / phys.triangles[i].normal.norm()) - RADOF(5.);
+                    if (edot < 0.)
+                        edot = 1.;
+                    else
+                        edot = cos(edot);
+                    if (edot > 0)
+                    {
+                        phys.triangles[i].irradiation += phys.triangles[i].abs*phys.triangles[i].area * edot * phys.dt * SIGMA * pow(290.,4);
+                    }
+
+                    // Atmospheric effects
+                    double vdot = unitv.dot(phys.triangles[i].normal);
+                    if (vdot > 0)
+                    {
+                        double ddrag;
+                        if (phys.mass)
+                        {
+                            ddrag = adrag*vdot/phys.mass;
+                        }
+                        else
+                        {
+                            ddrag = 0.;
+                        }
+                        phys.atorque += ddrag * phys.triangles[i].twist;
+                        phys.adrag += ddrag * phys.triangles[i].shove;
+                    }
+                }
+            }
+            return 0;
+        }
+
+        int32_t InitializeStructure(physicsstruc &physics, StructureType type, float abs, float emi)
+        {
+            trianglestruc ttriangle;
+
+            physics.triangles.clear();
+            physics.area = 0.;
+            switch (type)
+            {
+            case None:
+                break;
+            case Cube1a:
+                {
+                    // 1U with cells on all sides
+                    double dx = .05;
+                    double dy = .05;
+                    double dz = .05;
+
+                    // -X
+                    physics.vertices.push_back(Vector(-dx, -dy, -dz));
+                    physics.vertices.push_back(Vector(-dx, -dy, dz));
+                    physics.vertices.push_back(Vector(-dx, dy, dz));
+                    physics.vertices.push_back(Vector(-dx, dy, -dz));
+                    physics.vertices.push_back(Vector(-dx, 0., 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 0;
+                    ttriangle.tidx[1] = 1;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 1;
+                    ttriangle.tidx[1] = 2;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 2;
+                    ttriangle.tidx[1] = 3;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 3;
+                    ttriangle.tidx[1] = 0;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // +X
+                    physics.vertices.push_back(Vector(dx, -dy, -dz));
+                    physics.vertices.push_back(Vector(dx, -dy, dz));
+                    physics.vertices.push_back(Vector(dx, dy, dz));
+                    physics.vertices.push_back(Vector(dx, dy, -dz));
+                    physics.vertices.push_back(Vector(dx, 0., 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 5;
+                    ttriangle.tidx[1] = 6;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 6;
+                    ttriangle.tidx[1] = 7;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 7;
+                    ttriangle.tidx[1] = 8;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 8;
+                    ttriangle.tidx[1] = 5;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // -Y
+                    physics.vertices.push_back(Vector(0., -dy, 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 5;
+                    ttriangle.tidx[1] = 0;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 0;
+                    ttriangle.tidx[1] = 1;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 1;
+                    ttriangle.tidx[1] = 6;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 6;
+                    ttriangle.tidx[1] = 5;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // +Y
+                    physics.vertices.push_back(Vector(0., dy, 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 8;
+                    ttriangle.tidx[1] = 3;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 3;
+                    ttriangle.tidx[1] = 9;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 9;
+                    ttriangle.tidx[1] = 7;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 7;
+                    ttriangle.tidx[1] = 8;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // -Z
+                    physics.vertices.push_back(Vector(0., 0., -dz));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 5;
+                    ttriangle.tidx[1] = 0;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 0;
+                    ttriangle.tidx[1] = 3;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 3;
+                    ttriangle.tidx[1] = 8;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 9;
+                    ttriangle.tidx[1] = 5;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // +Z
+                    physics.vertices.push_back(Vector(0., 0., dz));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 6;
+                    ttriangle.tidx[1] = 1;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 1;
+                    ttriangle.tidx[1] = 9;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 9;
+                    ttriangle.tidx[1] = 7;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 7;
+                    ttriangle.tidx[1] = 6;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // Decks
+                    for (double ddx=-dx + .1; dx < dx; dx+=.1)
+                    {
+                        physics.vertices.push_back(Vector(-ddx, -dy, -dz));
+                        physics.vertices.push_back(Vector(-ddx, -dy, dz));
+                        physics.vertices.push_back(Vector(-ddx, dy, dz));
+                        physics.vertices.push_back(Vector(-ddx, dy, -dz));
+                        physics.vertices.push_back(Vector(-ddx, 0., 0.));
+
+                        // triangle 1
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 0;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 1;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+
+                        // triangle 2
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 1;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 2;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+
+                        // triangle 3
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 2;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 3;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+
+                        // triangle 4
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 3;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 0;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+                    }
+                }
+                break;
+            case Cube3a:
+                {
+                    // 3U with cells on all sides
+                    double dx = .15;
+                    double dy = .05;
+                    double dz = .05;
+
+                    // -X
+                    physics.vertices.push_back(Vector(-dx, -dy, -dz));
+                    physics.vertices.push_back(Vector(-dx, -dy, dz));
+                    physics.vertices.push_back(Vector(-dx, dy, dz));
+                    physics.vertices.push_back(Vector(-dx, dy, -dz));
+                    physics.vertices.push_back(Vector(-dx, 0., 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 0;
+                    ttriangle.tidx[1] = 1;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 1;
+                    ttriangle.tidx[1] = 2;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 2;
+                    ttriangle.tidx[1] = 3;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 3;
+                    ttriangle.tidx[1] = 0;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // +X
+                    physics.vertices.push_back(Vector(dx, -dy, -dz));
+                    physics.vertices.push_back(Vector(dx, -dy, dz));
+                    physics.vertices.push_back(Vector(dx, dy, dz));
+                    physics.vertices.push_back(Vector(dx, dy, -dz));
+                    physics.vertices.push_back(Vector(dx, 0., 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 5;
+                    ttriangle.tidx[1] = 6;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 6;
+                    ttriangle.tidx[1] = 7;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 7;
+                    ttriangle.tidx[1] = 8;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 8;
+                    ttriangle.tidx[1] = 5;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // -Y
+                    physics.vertices.push_back(Vector(0., -dy, 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 5;
+                    ttriangle.tidx[1] = 0;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 0;
+                    ttriangle.tidx[1] = 1;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 1;
+                    ttriangle.tidx[1] = 6;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 6;
+                    ttriangle.tidx[1] = 5;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // +Y
+                    physics.vertices.push_back(Vector(0., dy, 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 8;
+                    ttriangle.tidx[1] = 3;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 3;
+                    ttriangle.tidx[1] = 9;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 9;
+                    ttriangle.tidx[1] = 7;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 7;
+                    ttriangle.tidx[1] = 8;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // -Z
+                    physics.vertices.push_back(Vector(0., 0., -dz));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 5;
+                    ttriangle.tidx[1] = 0;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 0;
+                    ttriangle.tidx[1] = 3;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 3;
+                    ttriangle.tidx[1] = 8;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 9;
+                    ttriangle.tidx[1] = 5;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // +Z
+                    physics.vertices.push_back(Vector(0., 0., dz));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 6;
+                    ttriangle.tidx[1] = 1;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 1;
+                    ttriangle.tidx[1] = 9;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 9;
+                    ttriangle.tidx[1] = 7;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 7;
+                    ttriangle.tidx[1] = 6;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // Decks
+                    for (double ddx=-dx + .1; dx < dx; dx+=.1)
+                    {
+                        physics.vertices.push_back(Vector(-ddx, -dy, -dz));
+                        physics.vertices.push_back(Vector(-ddx, -dy, dz));
+                        physics.vertices.push_back(Vector(-ddx, dy, dz));
+                        physics.vertices.push_back(Vector(-ddx, dy, -dz));
+                        physics.vertices.push_back(Vector(-ddx, 0., 0.));
+
+                        // triangle 1
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 0;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 1;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+
+                        // triangle 2
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 1;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 2;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+
+                        // triangle 3
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 2;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 3;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+
+                        // triangle 4
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 3;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 0;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+                    }
+                }
+                break;
+            case Cube6a:
+                {
+                    // 6U with cells on all sides
+                    double dx = .15;
+                    double dy = .05;
+                    double dz = .15;
+
+                    // -X
+                    physics.vertices.push_back(Vector(-dx, -dy, -dz));
+                    physics.vertices.push_back(Vector(-dx, -dy, dz));
+                    physics.vertices.push_back(Vector(-dx, dy, dz));
+                    physics.vertices.push_back(Vector(-dx, dy, -dz));
+                    physics.vertices.push_back(Vector(-dx, 0., 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 0;
+                    ttriangle.tidx[1] = 1;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 1;
+                    ttriangle.tidx[1] = 2;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 2;
+                    ttriangle.tidx[1] = 3;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 3;
+                    ttriangle.tidx[1] = 0;
+                    ttriangle.tidx[2] = 4;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // +X
+                    physics.vertices.push_back(Vector(dx, -dy, -dz));
+                    physics.vertices.push_back(Vector(dx, -dy, dz));
+                    physics.vertices.push_back(Vector(dx, dy, dz));
+                    physics.vertices.push_back(Vector(dx, dy, -dz));
+                    physics.vertices.push_back(Vector(dx, 0., 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 5;
+                    ttriangle.tidx[1] = 6;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 6;
+                    ttriangle.tidx[1] = 7;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 7;
+                    ttriangle.tidx[1] = 8;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 8;
+                    ttriangle.tidx[1] = 5;
+                    ttriangle.tidx[2] = 9;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // -Y
+                    physics.vertices.push_back(Vector(0., -dy, 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 5;
+                    ttriangle.tidx[1] = 0;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 0;
+                    ttriangle.tidx[1] = 1;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 1;
+                    ttriangle.tidx[1] = 6;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 6;
+                    ttriangle.tidx[1] = 5;
+                    ttriangle.tidx[2] = 10;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // +Y
+                    physics.vertices.push_back(Vector(0., dy, 0.));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 8;
+                    ttriangle.tidx[1] = 3;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 3;
+                    ttriangle.tidx[1] = 9;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 9;
+                    ttriangle.tidx[1] = 7;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 7;
+                    ttriangle.tidx[1] = 8;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // -Z
+                    physics.vertices.push_back(Vector(0., 0., -dz));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 5;
+                    ttriangle.tidx[1] = 0;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 0;
+                    ttriangle.tidx[1] = 3;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 3;
+                    ttriangle.tidx[1] = 8;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 9;
+                    ttriangle.tidx[1] = 5;
+                    ttriangle.tidx[2] = 11;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // +Z
+                    physics.vertices.push_back(Vector(0., 0., dz));
+
+                    // triangle 1
+                    ttriangle.tidx[0] = 6;
+                    ttriangle.tidx[1] = 1;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 2
+                    ttriangle.tidx[0] = 1;
+                    ttriangle.tidx[1] = 9;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 3
+                    ttriangle.tidx[0] = 9;
+                    ttriangle.tidx[1] = 7;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // triangle 4
+                    ttriangle.tidx[0] = 7;
+                    ttriangle.tidx[1] = 6;
+                    ttriangle.tidx[2] = 12;
+                    ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                    ttriangle.normal = physics.vertices[ttriangle.tidx[2]];
+                    ttriangle.pcell = .8f;
+                    ttriangle.abs = abs;
+                    ttriangle.emi = emi;
+                    physics.triangles.push_back(ttriangle);
+                    physics.area += ttriangle.area;
+
+                    // Decks
+                    for (double ddx=-dx + .1; dx < dx; dx+=.1)
+                    {
+                        physics.vertices.push_back(Vector(-ddx, -dy, -dz));
+                        physics.vertices.push_back(Vector(-ddx, -dy, dz));
+                        physics.vertices.push_back(Vector(-ddx, dy, dz));
+                        physics.vertices.push_back(Vector(-ddx, dy, -dz));
+                        physics.vertices.push_back(Vector(-ddx, 0., 0.));
+
+                        // triangle 1
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 0;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 1;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+
+                        // triangle 2
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 1;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 2;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+
+                        // triangle 3
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 2;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 3;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+
+                        // triangle 4
+                        ttriangle.tidx[0] = (physics.vertices.size()-5) + 3;
+                        ttriangle.tidx[1] = (physics.vertices.size()-5) + 0;
+                        ttriangle.tidx[2] = (physics.vertices.size()-5) + 4;
+                        ttriangle.com = physics.vertices[ttriangle.tidx[0]].cross(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.area = physics.vertices[ttriangle.tidx[0]].area(physics.vertices[ttriangle.tidx[1]]);
+                        ttriangle.normal = (Vector(1., 0., 0.));
+                        physics.triangles.push_back(ttriangle);
+                        physics.area += ttriangle.area;
+                    }
+                }
+                break;
+            case Cube6b:
+                break;
+            }
+
+            for (uint16_t i=0; i<physics.triangles.size(); ++i)
+            {
+                physics.triangles[i].perimeter = (physics.vertices[ttriangle.tidx[0]] - physics.vertices[ttriangle.tidx[1]]).norm();
+                physics.triangles[i].perimeter += (physics.vertices[ttriangle.tidx[1]] - physics.vertices[ttriangle.tidx[2]]).norm();
+                physics.triangles[i].perimeter += (physics.vertices[ttriangle.tidx[2]] - physics.vertices[ttriangle.tidx[0]]).norm();
+                physics.triangles[i].mass = physics.triangles[i].area * physics.mass / physics.area;
+                physics.triangles[i].heat = physics.triangles[i].area * physics.heat / physics.area;
+                physics.triangles[i].hcap = physics.hcap;
+                physics.triangles[i].temp = physics.triangles[i].heat / (physics.triangles[i].mass * physics.triangles[i].hcap);
+                physics.triangles[i].shove = -physics.triangles[i].area * (physics.triangles[i].normal.dot(physics.triangles[i].com)) * physics.triangles[i].com / (physics.triangles[i].com.norm() * physics.triangles[i].com.norm());
+                physics.triangles[i].twist = -physics.triangles[i].area * physics.triangles[i].com.norm() * physics.triangles[i].normal - physics.triangles[i].com.norm() * physics.triangles[i].shove;
+            }
+
+            return physics.triangles.size();
+        }
+
+        int32_t UpdateStructure(physicsstruc &physics)
+        {
+            for (uint16_t i=0; i<physics.triangles.size(); ++i)
+            {
+                physics.triangles[i].mass = physics.triangles[i].area * physics.mass / physics.area;
+                physics.triangles[i].heat = physics.triangles[i].area * physics.heat / physics.area;
+                physics.triangles[i].temp = physics.triangles[i].heat / (physics.triangles[i].mass * physics.triangles[i].hcap);
+            }
+
+            return 0;
+        }
 
     }
 
