@@ -330,7 +330,7 @@ endif()
 # now that the libraries have been compiled let's add the cosmos-core programs
 if(${BUILD_TESTS} MATCHES "YES")
     add_subdirectory(${PROJECT_SOURCE_DIR}/programs/tests)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/programs/unix_tests)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/programs/unit_tests)
     # TODO change if condition to a separate one with only devices
     add_subdirectory(${PROJECT_SOURCE_DIR}/programs/devices)
 endif()
