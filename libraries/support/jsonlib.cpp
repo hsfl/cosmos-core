@@ -259,13 +259,13 @@ cosmosstruc *json_init()
         case JSON_UNIT_ANGLE:
             tunit.name = "deg";
             tunit.type = JSON_UNIT_TYPE_POLY;
-            tunit.p1 = (float)RTOD;
+            tunit.p1 = static_cast<float>(RTOD);
             cinfo->unit[i].push_back(tunit);
             break;
         case JSON_UNIT_ANGULAR_RATE:
             tunit.name = "deg/s";
             tunit.type = JSON_UNIT_TYPE_POLY;
-            tunit.p1 = (float)RTOD;
+            tunit.p1 = static_cast<float>(RTOD);
             cinfo->unit[i].push_back(tunit);
             break;
         case JSON_UNIT_AREA:
@@ -7838,7 +7838,7 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     // Physics structure
     json_addentry("physics_dt", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,dt), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_TIME);
     json_addentry("physics_dtj", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,dtj), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_DATE);
-    json_addentry("physics_mjdbase", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mjdbase), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_DATE);
+    json_addentry("physics_utc", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,utc), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_DATE);
     json_addentry("physics_mjdaccel", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mjdaccel), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_DATE);
     json_addentry("physics_mjddiff", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mjddiff), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_DATE);
     json_addentry("physics_mode", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mode), (uint16_t)JSON_TYPE_INT32, JSON_STRUCT_PHYSICS, cinfo);
@@ -7854,8 +7854,8 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("physics_ftorque_x", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque.x), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_TORQUE);
     json_addentry("physics_ftorque_y", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque.y), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_TORQUE);
     json_addentry("physics_ftorque_z", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,ftorque.z), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_TORQUE);
-    json_addentry("physics_hcap", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,hcap), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo);
-    json_addentry("physics_area", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,area), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_AREA);
+//    json_addentry("physics_hcap", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,hcap), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo);
+//    json_addentry("physics_area", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,area), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_AREA);
     json_addentry("physics_moi", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,moi), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_MOI);
     json_addentry("physics_com", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,com), (uint16_t)JSON_TYPE_RVECTOR, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_LENGTH);
     json_addentry("physics_mass", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,mass), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_MASS);
@@ -7868,9 +7868,9 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_lasteventutc", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.lasteventutc, (uint16_t)JSON_TYPE_DOUBLE, cinfo);
     json_addentry("node_type", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.type, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_state", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.state, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_hcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.hcap, (uint16_t)JSON_TYPE_FLOAT, cinfo);
     json_addentry("node_mass", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.mass, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_MASS);
-    json_addentry("node_area", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.area, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_AREA);
+//    json_addentry("node_hcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.hcap, (uint16_t)JSON_TYPE_FLOAT, cinfo);
+//    json_addentry("node_area", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.area, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_AREA);
     json_addentry("node_moi", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.moi, (uint16_t)JSON_TYPE_RVECTOR, cinfo, JSON_UNIT_MOI);
     json_addentry("node_battcap", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.phys.battcap, (uint16_t)JSON_TYPE_FLOAT, cinfo, JSON_UNIT_CHARGE);
     json_addentry("node_flags", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.flags, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -11266,7 +11266,8 @@ int32_t node_calc(cosmosstruc *cinfo)
     //    double dm, ta, tb, tc;
     //    rvector tv0, tv1, tv2, tv3, dv, sv;
 
-    cinfo->node.phys.hcap = cinfo->node.phys.heat = 0.;
+//    cinfo->node.phys.hcap = 0.;
+    cinfo->node.phys.heat = 0.;
     cinfo->node.phys.mass = 0.;
     cinfo->node.phys.moi = rv_zero();
     cinfo->node.phys.com = rv_zero();
@@ -11282,7 +11283,7 @@ int32_t node_calc(cosmosstruc *cinfo)
         cinfo->pieces[n].heat = cinfo->pieces[n].temp * cinfo->pieces[n].hcap;
         cinfo->node.phys.heat += cinfo->pieces[n].heat;
         cinfo->node.phys.mass += cinfo->pieces[n].mass;
-        cinfo->node.phys.hcap += cinfo->pieces[n].hcap * cinfo->pieces[n].mass;
+//        cinfo->node.phys.hcap += cinfo->pieces[n].hcap * cinfo->pieces[n].mass;
 
     }
 
@@ -11329,7 +11330,7 @@ int32_t node_calc(cosmosstruc *cinfo)
     }
 
     //    cinfo->node.phys.com = rv_smult(1./cinfo->node.phys.mass,cinfo->node.phys.com);
-    cinfo->node.phys.hcap /= cinfo->node.phys.mass;
+//    cinfo->node.phys.hcap /= cinfo->node.phys.mass;
 
     for (size_t n=0; n<cinfo->pieces.size(); n++)
     {
