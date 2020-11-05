@@ -78,14 +78,10 @@ int main(int argc, char **argv)
     string response; // Variable to store agent_002's response
 
     // Start executing the agent
-	agent->cinfo->add_name("Cooler UTC", &agent->cinfo->node.loc.utc);
-
     while (agent->running()) {
 		string target_request_name = "any_body_out_there";
 		cout<<"["<<node_name<<":"<<agent_name<<"] running..."<<endl;
-		agent->cinfo->set_value<double>("Cooler UTC", 99.99);
 		cout<<"\tUTC == "<< agent->cinfo->node.loc.utc <<endl;
-		cout<<"\tCooler UTC == "<< agent->cinfo->get_value<double>("Cooler UTC")<<endl;
         cout<<"\tORBIT == "<< agent->cinfo->node.loc.pos.orbit <<endl;
 
 		// this agent can set his own values ... obvs...  can another agent?

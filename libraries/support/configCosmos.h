@@ -81,7 +81,6 @@ using std::ifstream;
 using std::ofstream;
 #include <iostream>
 using std::cout;
-using std::cerr;
 using std::endl;
 #ifdef COSMOS_WIN_BUILD_MSVC
 #include <io.h> // replaces in some ways unistd for windows
@@ -109,7 +108,6 @@ using std::queue;
 using std::istringstream;
 #include <map>
 using std::map;
-using std::pair;
 
 //#include "support/cosmos-errno.h"
 #include "support/cosmos-defs.h"
@@ -237,8 +235,5 @@ using namespace Cosmos::Support;
 #include <sys/time.h>
 #include <sys/vfs.h>
 #endif // COSMOS_CYGWIN_OS
-
-#include "json11.hpp"
-
 
 #endif // CONFIGCOSMOS_H

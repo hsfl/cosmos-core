@@ -91,19 +91,15 @@ namespace Support
         // Initialize COSMOS data space
         cinfo = json_init();
 
-        if (cinfo == nullptr) {
-			error_value = AGENT_ERROR_JSON_CREATE;
-			shutdown();
-			return;
-		}
+        if (cinfo == nullptr) { return; }
 
         cinfo->agent[0].stateflag = static_cast<uint16_t>(State::INIT);
 
         // Establish subscribe channel
         iretn = subscribe(ntype, AGENTMCAST, AGENTSENDPORT, 1000);
         if (iretn) {
-            error_value = iretn;
             shutdown();
+            error_value = iretn;
             return;
         }
 
@@ -376,6 +372,7 @@ namespace Support
         if (mthread.joinable()) { mthread.join(); }
         Agent::unsubscribe();
         json_destroy(cinfo);
+        cinfo = nullptr;
         return 0;
     }
 
@@ -757,6 +754,7 @@ namespace Support
 			}	
             request[i] = bufferin[i];
         }
+		// JIMNOTE: this is that bastard line!!!
         //request[i] = 0;
 		request.resize(i);
 
@@ -805,7 +803,8 @@ namespace Support
         while (Agent::running()) {
             iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
             if (iretn > 0) {
-                if (!strcmp(mess.meta.beat.proc, "") && mess.adata.empty()) { continue; }
+                if (!strcmp(mess.meta.beat.proc, "") && mess.adata.empty())
+                { continue; }
                 bool agent_found = false;
 
                 for (beatstruc &i : agent_list) {
@@ -817,7 +816,8 @@ namespace Support
                     }
                 }
 
-                if (!agent_found) { agent_list.push_back(mess.meta.beat); }
+                if (!agent_found)
+                { agent_list.push_back(mess.meta.beat); }
 
                 if (mess.meta.type == AgentMessage::REQUEST && strcmp(cinfo->agent[0].beat.proc, "")) {
                     string response;
@@ -1096,9 +1096,11 @@ namespace Support
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
+//        int32_t Agent::req_getvalue(string &request, char* output, Agent* agent)
     int32_t Agent::req_getvalue(string &request, string &output, Agent* agent)
     {
         string jstring;
+
         if (json_of_list(jstring, request, agent->cinfo) != NULL) {
             output = jstring;
             if (output.length() > agent->cinfo->agent[0].beat.bsz) {
@@ -1117,6 +1119,7 @@ namespace Support
  * \param agent Pointer to Cosmos::Agent to use.
  * \return 0, or negative error.
  */
+//        int32_t Agent::req_setvalue(string &request, char* output, Agent* agent)
 	int32_t Agent::req_setvalue(string &request, string &output, Agent* agent) {
         int32_t iretn;
         iretn = json_parse(request, agent->cinfo);

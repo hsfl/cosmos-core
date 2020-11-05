@@ -33,9 +33,9 @@
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
 
-Agent *agent;
-std::string nodename;
-std::string tracknames;
+static Agent *agent;
+static std::string nodename;
+static std::string tracknames;
 struct trackstruc
 {
     targetstruc target;
@@ -46,16 +46,17 @@ struct trackstruc
     bool peaked;
     float highest;
     double startutc;
-    std::mutex *control_mutex;
-    thread *control_thread;
+    //    std::mutex *control_mutex;
     bool running;
 };
-std::vector <trackstruc> track;
+static  vector<thread> control_thread;
+static std::vector <trackstruc> track;
 
-float highest = -RADOF(90.);
-double utcnow;
+static float highest = -RADOF(90.);
+static double utcnow;
 
 void propthread(size_t index);
+void proptarget(size_t index, double utcnow);
 
 int main(int argc, char *argv[])
 {
@@ -85,7 +86,6 @@ int main(int argc, char *argv[])
     default:
         printf("Usage: get_contacts {nodename} [days]");
         exit (1);
-        break;
     }
 
     // Establish the command channel and heartbeat
@@ -128,12 +128,12 @@ int main(int argc, char *argv[])
                             ttrack.target.type = cinfo->node.type;
                             ttrack.target.loc = cinfo->node.loc;
                             ttrack.physics = cinfo->node.phys;
-//                            if (type == NODE_TYPE_SATELLITE)
-//                            {
-//                                printf("Propagating Node %s forward %f seconds\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
-//                                gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
-//                                gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
-//                            }
+                            //                            if (type == NODE_TYPE_SATELLITE)
+                            //                            {
+                            //                                printf("Propagating Node %s forward %f seconds\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                            //                                gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
+                            //                                gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
+                            //                            }
                             track.push_back(ttrack);
                             json_destroy(cinfo);
                         }
@@ -142,32 +142,46 @@ int main(int argc, char *argv[])
             }
         }
     }
-
+    //#pragma omp parallel for
     for (size_t i=0; i<track.size(); ++i)
     {
-        track[i].control_mutex = new std::mutex;
-        track[i].control_mutex->lock();
-        track[i].control_thread = new thread(propthread, i);
+        track[i].physics.mass = 1.;
+        track[i].physics.area = .01;
+        gauss_jackson_init_eci(track[i].gjh, 12, 0, 1., track[i].target.loc.pos.eci.utc, track[i].target.loc.pos.eci, track[i].target.loc.att.icrf, track[i].physics, track[i].target.loc);
+        if (track[i].target.loc.pos.eci.utc >= currentmjd())
+        {
+            printf("Initializing Node %s forward %f seconds\n", track[i].name.c_str(), 86400.*(currentmjd()-track[i].target.loc.pos.eci.utc));
+        }
+        else
+        {
+            printf("Propagating Node %s forward %f seconds\n", track[i].name.c_str(), 86400.*(currentmjd()-track[i].target.loc.pos.eci.utc));
+            gauss_jackson_init_eci(track[i].gjh, 12, 0, 1., track[i].target.loc.pos.eci.utc, track[i].target.loc.pos.eci, track[i].target.loc.att.icrf, track[i].physics, track[i].target.loc);
+            gauss_jackson_propagate(track[i].gjh, track[i].physics, track[i].target.loc, currentmjd());
+        }
+        //        track[i].control_mutex = new std::mutex;
+        //        track[i].control_mutex->lock();
+        //        propthread(i);
+        //        control_thread.push_back(thread([=] { propthread(i); }));
+        //        new thread(propthread, i);
     }
 
     double utc;
     for (utc=currentmjd(); utc<currentmjd()+period; utc+=1./86400)
     {
-        utcnow = utc;
         for (size_t i=0; i<track.size(); ++i)
         {
-            track[i].control_mutex->unlock();
+            proptarget(i, utc);
         }
-        COSMOS_USLEEP(1);
-        for (size_t i=0; i<track.size(); ++i)
-        {
-            track[i].control_mutex->lock();
-        }
-    }
-    for (size_t i=0; i<track.size(); ++i)
-    {
-        track[i].running = false;
-        track[i].control_mutex->unlock();
+        //        COSMOS_USLEEP(1);
+        //        for (size_t i=0; i<track.size(); ++i)
+        //        {
+        //            track[i].control_mutex->lock();
+        //        }
+        //    }
+        //    for (size_t i=0; i<track.size(); ++i)
+        //    {
+        //        track[i].running = false;
+        //        track[i].control_mutex->unlock();
     }
 
 }
@@ -183,7 +197,7 @@ void propthread(size_t index)
 
     while (track[index].running)
     {
-        track[index].control_mutex->lock();
+        //        track[index].control_mutex->lock();
         gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
         update_target(agent->cinfo->node.loc, track[index].target);
         if (track[index].target.elfrom > highest)
@@ -221,7 +235,52 @@ void propthread(size_t index)
             }
             break;
         }
-        track[index].control_mutex->unlock();
+        //        track[index].control_mutex->unlock();
         COSMOS_USLEEP(1);
+    }
+}
+
+void proptarget(size_t index, double utcnow)
+{
+    if (utcnow <= track[index].target.loc.pos.eci.utc)
+    {
+        return;
+    }
+    gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
+    update_target(agent->cinfo->node.loc, track[index].target);
+    if (track[index].target.elfrom > highest)
+    {
+        highest = track[index].target.elfrom;
+    }
+    switch ((uint8_t)track[index].visible)
+    {
+    case 0:
+        if (track[index].target.elfrom > 0.)
+        {
+            track[index].highest = 0.;
+            track[index].startutc = utcnow;
+            track[index].visible = true;
+            track[index].peaked = false;
+            printf("%s %13.5f [ %4.1f %5.1f ] Az %6.1f         AOS0: %s\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.loc.pos.geod.s.lat), DEGOF(track[index].target.loc.pos.geod.s.lon), DEGOF(track[index].target.azfrom), track[index].name.c_str());
+            fflush(stdout);
+        }
+        break;
+    case 1:
+        if (track[index].target.elfrom > track[index].highest)
+        {
+            track[index].highest = track[index].target.elfrom;
+        }
+        else if (!track[index].peaked)
+        {
+            track[index].peaked = true;
+            printf("%s %13.5f [ %4.1f %5.1f ] Az %6.1f             MAX: %4.0f sec %5.1f deg %s\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.loc.pos.geod.s.lat), DEGOF(track[index].target.loc.pos.geod.s.lon), DEGOF(track[index].target.azfrom), 86400.*(utcnow-track[index].startutc), DEGOF(track[index].target.elfrom), track[index].name.c_str());
+        }
+        if (track[index].target.elfrom < 0.)
+        {
+            track[index].visible = false;
+            printf("%s %13.5f [ %4.1f %5.1f ] Az %6.1f     LOS0: %4.0f sec %s\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.loc.pos.geod.s.lat), DEGOF(track[index].target.loc.pos.geod.s.lon), DEGOF(track[index].target.azfrom), 86400.*(utcnow-track[index].startutc), track[index].name.c_str());
+            fflush(stdout);
+        }
+        break;
     }
 }

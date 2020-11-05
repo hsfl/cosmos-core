@@ -265,6 +265,8 @@ struct qfirst
 std::ostream& operator << (std::ostream& out, const qfirst& a);
 std::istream& operator >> (std::istream& out, qfirst& a);
 
+
+
 cvector cv_quaternion2axis(quaternion q);
 void normalize_q(quaternion *q);
 quaternion q_zero();
@@ -317,6 +319,7 @@ quaternion q_change_between_rv(rvector from, rvector to);
 //cvector rotate_q(quaternion q, cvector v);
 //cvector irotate(quaternion q,cvector v); // doesn't exist in .cpp?
 
+
 namespace Cosmos {
     namespace Math {
         namespace Vectors {
@@ -362,6 +365,8 @@ namespace Cosmos {
                 z = cv.z;
                 w = 0.;
             }
+
+
 
             //! X value
             union
@@ -445,11 +450,21 @@ namespace Cosmos {
         Vector unityV(double scale=1.);
         Vector unitzV(double scale=1.);
 
-        class geodeticVector : public Vector {};
+        class geodeticVector : public Vector
+        {
 
-        class sphericalVector : public Vector {};
+        };
 
-        class eulerVector : public Vector {}; 
+        class sphericalVector : public Vector
+        {
+
+        };
+
+        class eulerVector : public Vector
+        {
+
+        };
+
         }
 
 
