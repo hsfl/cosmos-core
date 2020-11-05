@@ -803,7 +803,8 @@ namespace Support
         while (Agent::running()) {
             iretn = Agent::poll(mess, AgentMessage::ALL, 0.);
             if (iretn > 0) {
-                if (!strcmp(mess.meta.beat.proc, "") && mess.adata.empty()) { continue; }
+                if (!strcmp(mess.meta.beat.proc, "") && mess.adata.empty())
+                { continue; }
                 bool agent_found = false;
 
                 for (beatstruc &i : agent_list) {
@@ -815,7 +816,8 @@ namespace Support
                     }
                 }
 
-                if (!agent_found) { agent_list.push_back(mess.meta.beat); }
+                if (!agent_found)
+                { agent_list.push_back(mess.meta.beat); }
 
                 if (mess.meta.type == AgentMessage::REQUEST && strcmp(cinfo->agent[0].beat.proc, "")) {
                     string response;
