@@ -628,7 +628,8 @@ enum
     DEVICE_MODEL_PRKX2SU=4,
     DEVICE_MODEL_LOOPBACK=5,
     DEVICE_MODEL_PROPAGATOR=6,
-    DEVICE_MODEL_DIRECT=7
+    DEVICE_MODEL_DIRECT=7,
+    DEVICE_MODEL_USRP=8
     };
 
 enum
@@ -1715,18 +1716,43 @@ struct bcregstruc : public allstruc
 //! of a larger piece.
 struct trianglestruc
 {
+    //! External facing?
+    bool external = true;
     //! center of mass
     Vector com;
     //! outward facing normal
     Vector normal;
-    //! Area
-    float area;
+    //! Contribution of triangle to linear forces
+    Vector shove;
+    //! Contribution of triangle to angular forces
+    Vector twist;
     //! Index to parent piece
     uint16_t pidx;
     uint16_t tidx[3];
+    //! Energy content in Joules
     float heat;
+    //! Heat Capacity in Joules / (Kg Kelvin)
+    float hcap = 900.;
+    //! Emissivity: 0-1
+    float emi = .9f;
+    //! Absorptivity: 0-1
+    float abs = .9f;
+    //! mass in Kg
+    float mass = 1.;
+    //! Temperature in Kelvin
     float temp;
-    float irradiance;
+    //! Area
+    float area;
+    //! perimeter
+    float perimeter;
+    //! Insolation in Watts/sq m
+    float irradiation;
+    //! Solar cell coverage
+    float pcell = 0.;
+    //! Solar cell base efficiency
+    float ecellbase = .25;
+    //! Solar cell efficiency with temp
+    float ecellslope = 0.;
     vector<vector<size_t>> triangleindex;
 };
 
@@ -1737,20 +1763,21 @@ struct trianglestruc
 struct physicsstruc
 {
     //! Time step in seconds
-    double dt;
+    double dt = 0.;
     //! Time step in Julian days
-    double dtj;
+    double dtj = 0.;
     //! Simulated starting time in MJD
-    double mjdbase;
+    double utc = 0.;
     //! Acceleration factor for simulated time
     double mjdaccel;
     //! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)
     double mjddiff;
-    float heat = 300. * 900. * 1.;
     float hcap = 900.;
     float mass = 1.;
+    float temp = 300.;
+    float heat = 300. * 900. * 1.;
     float area = .001f;
-    float battcap;
+    float battcap = 36000.;
     float battlev;
     float powgen;
     float powuse;
