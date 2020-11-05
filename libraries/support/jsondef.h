@@ -1917,50 +1917,139 @@ struct cosmosstruc
 {
     //! Timestamp for last change to data
     double timestamp;
+
     //! Whether JSON map has been created.
     uint16_t jmapped;
+
     //! JSON Namespace Map matrix. first entry hash, second is items with that hash
     vector<vector<jsonentry> > jmap;
+
     //! JSON Equation Map matrix.
     vector<vector<jsonequation> > emap;
+
     //! JSON Unit Map matrix: first level is for unit type, second level is for all variants (starting with primary).
     vector<vector<unitstruc> > unit;
+
     //! Vector of Equations
     vector<equationstruc> equation;
+
     //! Array of Aliases
     vector<aliasstruc> alias;
+
     //! Structure for summary information in node
     nodestruc node;
+
     //! Vector of all vertexs in node.
     vector <vertexstruc> vertexs;
+
     //! Vector of all vertexs in node.
     vector <vertexstruc> normals;
+
     //! Vector of all faces in node.
     vector <facestruc> faces;
+
     //! Vector of all pieces in node.
     vector<piecestruc> pieces;
+
     //! Wavefront obj structure
     wavefront obj;
+
     //! Vector of all general (common) information for devices (components) in node.
     vector<devicestruc> device;
+
     //! Structure for devices (components) special data in node, by type.
     devspecstruc devspec;
+
     //! Vector of all ports known to node.
     vector<portstruc> port;
+
     //! Single entry vector for agent information.
     vector<agentstruc> agent;
+
     //! Single entry vector for event information.
     vector<eventstruc> event;
+
     //! Vector of all targets known to node.
     vector<targetstruc> target;
+
     //! Single entry vector for user information.
     vector<userstruc> user;
+
     //! Vector of glossary terms for node.
     vector<glossarystruc> glossary;
+
     //! Array of Two Line Elements
     vector<tlestruc> tle;
+
     //! JSON descriptive information
     jsonnode json;
+
+
+	/// Support for Namespace 2.0
+
+	using name_map = map<string,void*>;
+	using name_mapping = pair<string,void*>;
+
+	name_map names;
+
+	bool name_exists(const string& s)	{ return (names.find(s) == names.end()) ? false : true; }
+
+	void print_all_names() const	{
+		name_map::const_iterator it = names.begin();
+		while(it != names.end())	{ cout<<(it++)->first<<endl; }
+	}
+
+	void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
+	//TODO:   add remove_name(..), change_name(..) functions
+	
+	string get_name(void* v)	{
+		name_map::const_iterator it = names.begin();
+		while(it->second != v && it != names.end())	{ it++; }
+		if(it == names.end())	{	cerr<<"address <"<<v<<"> not found!"<<endl; return "";	}
+		return it->first;
+	}
+
+	template<class T>
+	T* get_pointer(const string& s) const	{
+		name_map::const_iterator it = names.find(s);
+		if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return nullptr;	}
+		return (T*)(it->second);
+	}
+
+	template<class T>
+	T get_value(const string& s) const	{
+		// change to static null object?
+		T dummy = T();
+		name_map::const_iterator it = names.find(s);
+		if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return dummy;	}
+		return *get_pointer<T>(s);
+	}
+
+	template<class T>
+	void set_value(const string& s, const T& value) const	{
+		// maybe if not found should be inserted??  hmmm....  ask Eric
+		name_map::const_iterator it = names.find(s);
+		if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return;	}
+		*get_pointer<T>(s) = value;
+	}
+
+	template<class T>
+	void set_json_value(const string& s, const string& json) const /*how is a set function const? lol*/	{
+		get_pointer<T>(s)->from_json(json);
+	}
+
+	template<class T>
+	string get_json(const string& s)	{
+		if(name_exists(s))	{
+			json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
+			return json.dump();
+		} else {
+			return "";
+		}
+	}
+
+	// other namespace member functions??
+
 };
 
 //! @}
