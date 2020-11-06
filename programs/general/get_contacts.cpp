@@ -55,7 +55,7 @@ std::vector <trackstruc> track;
 float highest = -RADOF(90.);
 double utcnow;
 
-void propinit(size_t index);
+void propinit(size_t index, double dt);
 void proptrack(size_t index, double utcnow);
 void propthread(size_t index);
 
@@ -141,7 +141,8 @@ int main(int argc, char *argv[])
 
     for (size_t i=0; i<track.size(); ++i)
     {
-        propinit(i);
+        propinit(i, 10.);
+        propinit(i, 1.);
     }
 
     double utc;
@@ -155,12 +156,12 @@ int main(int argc, char *argv[])
 
 }
 
-void propinit(size_t index)
+void propinit(size_t index, double dt)
 {
     printf("Propagating Node %s forward %f seconds\n", track[index].name.c_str(), 86400.*(currentmjd()-track[index].target.loc.pos.eci.utc));
     track[index].physics.mass = 1.;
     track[index].physics.area = .01;
-    gauss_jackson_init_eci(track[index].gjh, 12, 0, 1., track[index].target.loc.pos.eci.utc, track[index].target.loc.pos.eci, track[index].target.loc.att.icrf, track[index].physics, track[index].target.loc);
+    gauss_jackson_init_eci(track[index].gjh, 12, 0, dt, track[index].target.loc.pos.eci.utc, track[index].target.loc.pos.eci, track[index].target.loc.att.icrf, track[index].physics, track[index].target.loc);
     gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, currentmjd());
     track[index].running = true;
 }

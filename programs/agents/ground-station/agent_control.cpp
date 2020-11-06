@@ -236,19 +236,20 @@ int main(int argc, char *argv[])
     }
 
     // Build up table of our radios
-    myradios.resize(agent->cinfo->devspec.tcv_cnt);
-//    myradios.resize(agent->cinfo->devspec.tcv_cnt+1);
-//    myradios[0].name = "Generic";
-//    myradios[0].info = agent->cinfo->device[agent->cinfo->devspec.tcv[0]].tcv;
-//    myradios[0].otherradioindex = 9999;
-//    myradios[0].beat = agent->find_agent(nodename, myradios[0].name, 3.);
+    radiostruc tradio;
+    tradio.name = "Direct";
+    tradio.info = agent->cinfo->device[agent->cinfo->devspec.tcv[0]].tcv;
+    tradio.otherradioindex = 9999;
+    tradio.beat.utc = 0.;
+    myradios.push_back(tradio);
     for (size_t i=1; i<myradios.size(); ++i)
 	{
-        myradios[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name;
-        myradios[i].info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
-		myradios[i].otherradioindex = 9999;
-        myradios[i].beat = agent->find_agent(nodename, myradios[i].name, 3.);
-	}
+        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name;
+        tradio.info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
+        tradio.otherradioindex = 9999;
+        tradio.beat = agent->find_agent(nodename, tradio.name, 3.);
+        myradios.push_back(tradio);
+    }
 
 	// Build up table of our antennas
     myantennas.resize(agent->cinfo->devspec.ant_cnt);
@@ -293,7 +294,6 @@ int main(int argc, char *argv[])
                     ttrack.physics = cinfo->node.phys;
 
 					// Build up table of radios
-                    radiostruc tradio;
                     for (size_t i=0; i<cinfo->devspec.tcv_cnt; ++i)
                     {
                         tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].all.pidx].name;
