@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
     // Build up table of our radios
     radiostruc tradio;
     tradio.name = "Direct";
-    tradio.info = agent->cinfo->device[agent->cinfo->devspec.tcv[0]].tcv;
+    tradio.info.freq = 0.;
     tradio.otherradioindex = 9999;
     tradio.beat.utc = 0.;
     myradios.push_back(tradio);
