@@ -338,7 +338,7 @@ namespace Cosmos
             }
 
             iretn = Converge();
-            phys->mjdbase = loc->utc;
+            phys->utc = loc->utc;
 
             return iretn;
         }
@@ -441,7 +441,7 @@ namespace Cosmos
                 AttAccel(step[i].loc, *phys);
             }
             iretn = Converge();
-            phys->mjdbase = loc->utc;
+            phys->utc = loc->utc;
             return iretn;
         }
 
@@ -512,7 +512,7 @@ namespace Cosmos
                 AttAccel(step[i].loc, *phys);
             }
             iretn = Converge();
-            phys->mjdbase = loc->utc;
+            phys->utc = loc->utc;
             return iretn;
         }
 
