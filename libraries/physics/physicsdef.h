@@ -149,7 +149,7 @@ typedef struct
 //	//! Time step in Julian days
 //	double dtj;
 //	//! Simulated starting time in MJD
-//	double utc;
+//	double mjdbase;
 //	//! Acceleration factor for simulated time
 //	double mjdaccel;
 //	//! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)

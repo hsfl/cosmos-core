@@ -950,11 +950,10 @@ void simulate_hardware(cosmosstruc *cinfo, vector <locstruc> &locvec)
 */
 void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
 {
-    double speed, density;
-//    double sattemp;
+    double speed, density, sattemp;
     rvector vbody, vplanet;
     double adrag, edot, sdot, vdot, ddrag;
-    double energy=0., efficiency, energyd, dcharge, dheat;
+    double energy, efficiency, energyd, dcharge, dheat;
     double sdheat;
     rvector geov, vec;
 //    rvector unitv, units, unite, dtorque, da;
@@ -1001,12 +1000,12 @@ void simulate_hardware(cosmosstruc *cinfo, locstruc &loc)
     cinfo->node.phys.atorque = cinfo->node.phys.rtorque = Vector();
     cinfo->node.phys.adrag = cinfo->node.phys.rdrag = Vector();
     sdheat = 0;
-//    sattemp = cinfo->node.phys.heat / (cinfo->node.phys.mass * cinfo->node.phys.hcap);
+    sattemp = cinfo->node.phys.heat / (cinfo->node.phys.mass * cinfo->node.phys.hcap);
     for (i=0; i<cinfo->pieces.size(); i++)
     {
         cinfo->pieces[i].heat = cinfo->pieces[i].mass * cinfo->pieces[i].temp * cinfo->pieces[i].hcap;
         energyd = cinfo->node.phys.dt * SIGMA * pow(cinfo->pieces[i].temp,4);
-        dheat = (cinfo->pieces[i].temp-cinfo->node.phys.temp)/100000.*cinfo->pieces[i].heat;
+        dheat = (cinfo->pieces[i].temp-sattemp)/100000.*cinfo->pieces[i].heat;
         cinfo->pieces[i].heat -= dheat;
         sdheat += dheat;
         dheat = cinfo->pieces[i].emi*cinfo->pieces[i].area * energyd;
@@ -1790,7 +1789,7 @@ void orbit_init_tle(int32_t mode,double dt,double utc,cosmosstruc *cinfo)
         simulate_hardware(cinfo, sloc[i]);
         att_accel(cinfo->node.phys, sloc[i]);
     }
-    cinfo->node.phys.utc = loc.utc;
+    cinfo->node.phys.mjdbase = loc.utc;
 
     cinfo->timestamp = currentmjd();
 }
@@ -1890,7 +1889,7 @@ void orbit_init_eci(int32_t mode, double dt, double utc, cartpos ipos, cosmosstr
         simulate_hardware(cinfo, sloc[i]);
         att_accel(cinfo->node.phys, sloc[i]);
     }
-    cinfo->node.phys.utc = loc.utc;
+    cinfo->node.phys.mjdbase = loc.utc;
 
     cinfo->timestamp = currentmjd();
 }
@@ -2037,7 +2036,7 @@ void orbit_init_shape(int32_t mode,double dt,double utc,double altitude,double a
     pos_accel(cinfo->node.phys, sloc[3]);
     simulate_hardware(cinfo, sloc[3]);
     att_accel(cinfo->node.phys, sloc[3]);
-    cinfo->node.phys.utc = loc.utc;
+    cinfo->node.phys.mjdbase = loc.utc;
 
     cinfo->timestamp = currentmjd();
 }
@@ -2459,7 +2458,7 @@ void gauss_jackson_init_tle(gj_handle &gjh, uint32_t order, int32_t mode, double
     loc = gauss_jackson_converge_orbit(gjh, cinfo->node.phys);
     gauss_jackson_converge_hardware(gjh, cinfo->node.phys);
 
-    cinfo->node.phys.utc = loc.utc;
+    cinfo->node.phys.mjdbase = loc.utc;
 
     cinfo->timestamp = currentmjd();
 }
@@ -2614,7 +2613,7 @@ void gauss_jackson_init_eci(gj_handle &gjh, uint32_t order, int32_t mode, double
     }
     loc = gauss_jackson_converge_orbit(gjh, physics);
     gauss_jackson_converge_hardware(gjh, physics);
-    physics.utc = loc.utc;
+    physics.mjdbase = loc.utc;
 }
 
 void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, stkstruc &stk, physicsstruc &physics, locstruc &loc)
@@ -2716,7 +2715,7 @@ void gauss_jackson_init_stk(gj_handle &gjh, uint32_t order, int32_t mode, double
 
     loc = gauss_jackson_converge_orbit(gjh, physics);
     gauss_jackson_converge_hardware(gjh, physics);
-    physics.utc = loc.utc;
+    physics.mjdbase = loc.utc;
 }
 
 void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt, double utc, double altitude, double angle, double hour, locstruc &iloc, physicsstruc &physics, locstruc &loc)
@@ -2756,7 +2755,7 @@ void gauss_jackson_init(gj_handle &gjh, uint32_t order, int32_t mode, double dt,
     att_lvlh(&iloc);
 
     gauss_jackson_init_eci(gjh, order, mode, physics.dt, utc, iloc.pos.eci, iloc.att.icrf, physics, loc);
-    physics.utc = iloc.utc;
+    physics.mjdbase = iloc.utc;
 }
 
 locstruc gauss_jackson_converge_orbit(gj_handle &gjh, physicsstruc &physics)
@@ -3251,7 +3250,7 @@ int orbit_init(int32_t mode, double dt, double utc, string ofile, cosmosstruc *c
     att_accel(cinfo->node.phys, cinfo->node.loc);
     //	groundstations(cinfo,&cinfo->node.loc);
 
-    cinfo->node.phys.utc = cinfo->node.loc.utc;
+    cinfo->node.phys.mjdbase = cinfo->node.loc.utc;
 
     cinfo->timestamp = currentmjd();
     return 0;

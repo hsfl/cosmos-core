@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	cartpos ipos;
 	locstruc tloc, iloc;
 	double localtime;
-	double dt, dp, maxr, minr, mjdnow, utc, mjdlast, tp, cp;
+	double dt, dp, maxr, minr, mjdnow, mjdbase, mjdlast, tp, cp;
 	double radius;
 	double deltas, deltav;
     double rwomg;
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 		exit(1);
 
 	// STK
-	utc = mjdnow = stk.pos[1].utc;
+	mjdbase = mjdnow = stk.pos[1].utc;
 	if ((iretn=stk2eci(mjdnow, stk, ipos)) < 0)
 	{
 		printf("Error: stk2eci()\n");
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 
 	// JERS
 	/*
-utc = mjdnow = 49809.15208333333;
+mjdbase = mjdnow = 49809.15208333333;
 ipos.s.col[0] = 4762230.08;
 ipos.s.col[1] = -165142.097;
 ipos.s.col[2] = 5052273.733;
@@ -118,7 +118,7 @@ ipos.v.col[2] = -5090.863;
 
 	//STK Me
 	/*
-utc = mjdnow = 55593.416666669997;
+mjdbase = mjdnow = 55593.416666669997;
 ipos.s.col[0] = -1354250.647;
 ipos.s.col[1] = 6794489.492;
 ipos.s.col[2] = 153.839;
@@ -129,7 +129,7 @@ ipos.v.col[2] = 7518.530795;
 
 	// STK (Miguel)
 	/*
-utc = mjdnow = 55927.79166667;
+mjdbase = mjdnow = 55927.79166667;
 ipos.s.col[0] = 3905510.;
 ipos.s.col[1] = 5722420.;
 ipos.s.col[2] = -1.03369e-10;
@@ -141,7 +141,7 @@ ipos.v.col[2] = 7518.5;
 	// Midstar
 	/*
 load_lines("midstar.tle",&tle);
-utc = mjdnow = tle.mjd;
+mjdbase = mjdnow = tle.mjd;
 ipos.s.col[0] = 327679.002;
 ipos.s.col[1] = 6866364.173;
 ipos.s.col[2] = -528.566;
@@ -191,7 +191,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 	maxr = 0.;
     minr = 10. * cosmos_data->node.loc.pos.geos.s.r;
 //	cosmos_data->node.loc.pos.geod.s.lat;
-	utc = mjdnow;
+	mjdbase = mjdnow;
 	mjdlast = mjdnow + tp/86400.;
 	cp = 0;
     cosmos_data->device[cosmos_data->devspec.rw[0]].rw.omg = rwomg = 0;
@@ -255,7 +255,7 @@ printf("%f\t%f\t%f\n",ipos.v.col[0],ipos.v.col[1],ipos.v.col[2]);
 			if (deltas > DPI)
                 deltas = length_rv(rv_quaternion2axis(q_smult(-1.,q_fmult(tloc.att.icrf.s,q_conjugate(cosmos_data->node.loc.att.icrf.s)))));
             deltav = length_rv(rv_sub(tloc.att.icrf.v,cosmos_data->node.loc.att.icrf.v));
-            printf("%.15g\t%12.6f\t",cosmos_data->node.utc,1440.*(cosmos_data->node.utc-utc));
+            printf("%.15g\t%12.6f\t",cosmos_data->node.utc,1440.*(cosmos_data->node.utc-mjdbase));
             printf("%.10g\t%.10g\t%.5g\t",DEGOF(cosmos_data->node.loc.pos.geod.s.lat),DEGOF(cosmos_data->node.loc.pos.geod.s.lon),cosmos_data->node.loc.pos.geod.s.h/1000.);
             printf("%.10g\t%.10g\t%.10g\t%.10g\t",cosmos_data->node.loc.att.lvlh.s.d.x,cosmos_data->node.loc.att.lvlh.s.d.y,cosmos_data->node.loc.att.lvlh.s.d.z,cosmos_data->node.loc.att.lvlh.s.w);
             printf("%.10g\t%.10g\t%.10g\t",cosmos_data->node.loc.att.lvlh.v.col[0],cosmos_data->node.loc.att.lvlh.v.col[1],cosmos_data->node.loc.att.lvlh.v.col[2]);
