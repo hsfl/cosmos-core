@@ -43,10 +43,10 @@ int main(int argc, char *argv[])
     gj_handle gjh;
 //    physicsstruc gphys;
 //    locstruc gloc;
-    int32_t iretn;
+//    int32_t iretn;
     vector<tlestruc>lines;
 
-    Physics::State *state;
+//    Physics::State *state;
     Physics::GaussJacksonPositionPropagator *posprop;
     Physics::LVLHAttitudePropagator *attprop;
     Physics::ThermalPropagator *thermprop;
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
             string fname = argv[1];
             if (fname.find(".tle") != string::npos)
             {
-                iretn = load_lines(fname, lines);
+//                iretn = load_lines(fname, lines);
                 posprop->Init(lines);
             }
         }
