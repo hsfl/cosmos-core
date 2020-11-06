@@ -228,12 +228,12 @@ int main(int argc, char *argv[])
     }
     devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
     antindex = agent->cinfo->device[devindex].ant.didx;
-    agent->cinfo->device[devindex].ant.minelev = RADOF(10.);
+    agent->cinfo->device[devindex].ant.minelev = RADOF(5.);
     if (antbase == "sband")
     {
         agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_PRKX2SU;
     }
-    else if (antbase == "yagi")
+    else if (antbase.find("yagi") != string::npos)
     {
         agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_GS232B;
     }
@@ -318,9 +318,13 @@ int main(int argc, char *argv[])
                 break;
             case DEVICE_MODEL_GS232B:
                 iretn = gs232b_get_az_el(current.azim, current.elev);
+                current.azim -= antennaoffset.az;
+                current.elev -= antennaoffset.el;
                 break;
             case DEVICE_MODEL_PRKX2SU:
                 iretn = prkx2su_get_az_el(current.azim, current.elev);
+                current.azim -= antennaoffset.az;
+                current.elev -= antennaoffset.el;
                 break;
             }
             if (iretn < 0)
@@ -329,8 +333,8 @@ int main(int argc, char *argv[])
             }
             else
             {
-                agent->cinfo->device[devindex].ant.azim = current.azim -  antennaoffset.az;
-                agent->cinfo->device[devindex].ant.elev = current.elev -  antennaoffset.el;
+                agent->cinfo->device[devindex].ant.azim = current.azim;
+                agent->cinfo->device[devindex].ant.elev = current.elev;
                 if (antenabled)
                 {
                     if (trackflag)
@@ -350,6 +354,11 @@ int main(int argc, char *argv[])
                     {
                         current.azim = target.azim;
                         current.elev = target.elev;
+                    }
+
+                    if (current.elev < agent->cinfo->device[devindex].ant.minelev)
+                    {
+                        current.elev = agent->cinfo->device[devindex].ant.minelev;
                     }
                     switch (agent->cinfo->device[devindex].all.model)
                     {
@@ -390,15 +399,15 @@ int32_t request_get_state(string &req, string &response, Agent *)
 {
             response = "[";
             response += ' ' + to_mjd(currentmjd());
-            response += ' ' + to_bool(antconnected);
-            response += ' ' + to_bool(antenabled);
-            response += ' ' + to_angle(current.azim);
-            response += ' ' + to_angle(current.elev);
-            response += ' ' + to_angle(current.azim-agent->cinfo->device[devindex].ant.azim, 'D');
-            response += ' ' + to_angle(current.elev-agent->cinfo->device[devindex].ant.elev, 'D');
-            response += ' ' + to_angle(agent->cinfo->device[devindex].ant.azim+antennaoffset.az, 'D');
-            response += ' ' + to_angle(agent->cinfo->device[devindex].ant.elev+antennaoffset.el, 'D');
-            response += ' ' + to_angle(antennaoffset.az + antennaoffset.el, 'D');
+            response += " C:" + to_bool(antconnected);
+            response += " E:" + to_bool(antenabled);
+            response += " Target: " + to_angle(target.azim, 'D');
+            response += ' ' + to_angle(target.elev, 'D');
+            response += " Delta: " + to_angle(target.azim-agent->cinfo->device[devindex].ant.azim, 'D');
+            response += ' ' + to_angle(target.elev-agent->cinfo->device[devindex].ant.elev, 'D');
+            response += " Actual: " + to_angle(current.azim+antennaoffset.az, 'D');
+            response += ' ' + to_angle(current.elev+antennaoffset.el, 'D');
+            response += " Offset: " + to_angle(antennaoffset.az, 'D') + ' ' + to_angle(antennaoffset.el, 'D');
     return (0);
 }
 
@@ -462,9 +471,9 @@ int32_t request_set_azel(string &req, string &response, Agent *)
 
 int32_t request_get_azel(string &req, string &response, Agent *)
 {
-    double az = agent->cinfo->device[devindex].ant.azim;
-    double el = agent->cinfo->device[devindex].ant.elev;
-    response = to_angle(az, 'D') + ' ' + to_angle(el, 'D');
+//    double az = agent->cinfo->device[devindex].ant.azim;
+//    double el = agent->cinfo->device[devindex].ant.elev;
+    response = to_angle(current.azim, 'D') + ' ' + to_angle(current.elev, 'D');
     return (0);
 }
 
