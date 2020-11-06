@@ -36,21 +36,21 @@ int main(int argc, char *argv[])
         if (static_cast<string>("ic9100") == argv[3])
         {
             model = static_cast<uint16_t>(DEVICE_MODEL_IC9100);
-            port = argv[8];
-            radioaddr = stoi(port.substr(port.find(':')+1));
-            port = port.substr(0, port.find(':'));
+            radiodevice = argv[8];
+            radioaddr = stoi(radiodevice.substr(radiodevice.find(':')+1));
+            radiodevice = radiodevice.substr(0, radiodevice.find(':'));
         }
         else if (static_cast<string>("astrodev") == argv[3])
         {
             model = static_cast<uint16_t>(DEVICE_MODEL_ASTRODEV);
-            port = argv[8];
+            radiodevice = argv[8];
         }
         else if (static_cast<string>("usrp") == argv[3])
         {
             model = static_cast<uint16_t>(DEVICE_MODEL_USRP);
-            port = argv[8];
-            radioaddr = stoi(port.substr(port.find(':')+1));
-            port = port.substr(0, port.find(':'));
+            radiodevice = argv[8];
+            radioaddr = stoi(radiodevice.substr(radiodevice.find(':')+1));
+            radiodevice = radiodevice.substr(0, radiodevice.find(':'));
         }
         if (static_cast<string>("txr") == argv[4])
         {
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
         if (model == static_cast<uint16_t>(DEVICE_MODEL_IC9100))
         {
             agent->cinfo->device[deviceindex].all.addr = radioaddr;
-            iretn = json_createport(agent->cinfo, port, PORT_TYPE_RS232);
+            iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
                 agent->cinfo->device[deviceindex].all.portidx = iretn;
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_TS2000))
         {
-            iretn = json_createport(agent->cinfo, port, PORT_TYPE_RS232);
+            iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
                 agent->cinfo->device[deviceindex].all.portidx = iretn;
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_USRP))
         {
             agent->cinfo->device[deviceindex].all.addr = radioaddr;
-            iretn = json_createport(agent->cinfo, port, PORT_TYPE_UDP);
+            iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_UDP);
             if (iretn >= 0)
             {
                 agent->cinfo->device[deviceindex].all.portidx = iretn;
@@ -260,14 +260,14 @@ int main(int argc, char *argv[])
     iretn = ic9100_connect(radiodevice, radioaddr, ic9100);
     if (iretn < 0)
     {
-        printf("Unable to connect to IC9100: %s", cosmos_error_string(iretn).c_str());
+        printf("Unable to connect to IC9100: %s\n", cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
 
     iretn = ic9100_set_channel(ic9100, 0);
     if (iretn < 0)
     {
-        printf("Unable to set IC9100 to Main: %s", cosmos_error_string(iretn).c_str());
+        printf("Unable to set IC9100 to Main: %s\n", cosmos_error_string(iretn).c_str());
         exit(iretn);
     }
 
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
             iretn = ic9100_get_frequency(ic9100);
             if (iretn >= 0)
             {
-                printf("Unable to get IC9100 Frequency: %s", cosmos_error_string(iretn).c_str());
+                printf("Unable to get IC9100 Frequency: %s\n", cosmos_error_string(iretn).c_str());
             }
             else {
                 printf("Frequency: %f Hz\n", ic9100.frequency);
@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
             iretn = ic9100_set_frequency(ic9100, value1);
             if (iretn >= 0)
             {
-                printf("Unable to set IC9100 Frequency: %s", cosmos_error_string(iretn).c_str());
+                printf("Unable to set IC9100 Frequency: %s\n", cosmos_error_string(iretn).c_str());
             }
             else {
                 iretn = ic9100_get_frequency(ic9100);
@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
         iretn = ic9100_get_rfpower(ic9100);
         if (iretn >= 0)
         {
-            printf("Unable to get IC9100 RFPower: %s", cosmos_error_string(iretn).c_str());
+            printf("Unable to get IC9100 RFPower: %s\n", cosmos_error_string(iretn).c_str());
         }
         else {
             printf("RFPower: %f\n", ic9100.rfpower);
