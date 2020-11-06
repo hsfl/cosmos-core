@@ -14,7 +14,7 @@ TEST(SanityCheck, ObviouslyTrue)   { EXPECT_EQ(0.0, 0.0); }
 TEST(cosmosstruc, allocation)   {
 	//cosmosstruc* c = new cosmosstruc();	
 	cosmosstruc* c = json_init();	
-	cout<<"cinfo = <"<<c<<">"<<endl;
+	cout<<"\tcinfo = <"<<c<<">"<<endl;
 	EXPECT_NE(c, nullptr);
 }
 
