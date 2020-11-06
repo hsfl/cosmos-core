@@ -18,5 +18,22 @@ TEST(cosmosstruc, allocation)   {
 	EXPECT_NE(c, nullptr);
 }
 
+TEST(cosmosstruc, init_utc)	{
+	cosmosstruc* c = json_init();
+	EXPECT_DOUBLE_EQ(c->node.loc.utc, 0.0);
+}
+
+TEST(cosmosstruc, get_value)	{
+	cosmosstruc* c = json_init();
+	c->add_name("UTC", &c->node.loc.utc);
+	EXPECT_DOUBLE_EQ(c->get_value<double>("UTC"), 0.0);
+}
+
+TEST(cosmosstruc, set_value)	{
+	cosmosstruc* c = json_init();
+	c->add_name("UTC", &c->node.loc.utc);
+	c->set_value<double>("UTC", 5.432);
+	EXPECT_DOUBLE_EQ(c->get_value<double>("UTC"), 5.432);
+}
 
 #endif
