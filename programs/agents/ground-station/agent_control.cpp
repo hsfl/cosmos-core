@@ -294,18 +294,42 @@ int main(int argc, char *argv[])
 
 					// Build up table of radios
                     ttrack.radios.resize(cinfo->devspec.tcv_cnt);
-					for (size_t i=0; i<ttrack.radios.size(); ++i)
-					{
+                    for (size_t i=0; i<ttrack.radios.size(); ++i)
+                    {
                         ttrack.radios[i].name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].all.pidx].name;
                         ttrack.radios[i].info = cinfo->device[cinfo->devspec.tcv[i]].tcv;
-						ttrack.radios[i].otherradioindex = 9999;
-					}
+                        ttrack.radios[i].otherradioindex = 9999;
+                    }
 
-					if (type == NODE_TYPE_SATELLITE)
+                    ttrack.radios.resize(cinfo->devspec.txr_cnt);
+                    for (size_t i=0; i<ttrack.radios.size(); ++i)
+                    {
+                        ttrack.radios[i].name = cinfo->pieces[cinfo->device[cinfo->devspec.txr[i]].all.pidx].name;
+                        ttrack.radios[i].info = cinfo->device[cinfo->devspec.txr[i]].tcv;
+                        ttrack.radios[i].otherradioindex = 9999;
+                    }
+
+                    ttrack.radios.resize(cinfo->devspec.rxr_cnt);
+                    for (size_t i=0; i<ttrack.radios.size(); ++i)
+                    {
+                        ttrack.radios[i].name = cinfo->pieces[cinfo->device[cinfo->devspec.rxr[i]].all.pidx].name;
+                        ttrack.radios[i].info = cinfo->device[cinfo->devspec.rxr[i]].tcv;
+                        ttrack.radios[i].otherradioindex = 9999;
+                    }
+
+                    if (type == NODE_TYPE_SATELLITE)
 					{
-                        printf("Propagating Node %s forward %f seconds\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                        printf("Propagating Node %s forward ", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
 						gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
-						gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
+                        double tutc = ttrack.target.loc.pos.eci.utc + 60./86400.;
+                        while (tutc < currentmjd())
+                        {
+                            printf("Propagating Node %s forward\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                            gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, tutc);
+                            tutc += 60./86400.;
+                        }
+                        printf("Propagating Node %s forward\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                        gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
 					}
 					track.push_back(ttrack);
                     json_destroy(cinfo);
@@ -337,7 +361,6 @@ int main(int argc, char *argv[])
 			// Build up table of radios
 			ttrack.radios.resize(1);
 			ttrack.radios[0].name = "radio";
-			//					ttrack.radios[0].info;
 			ttrack.radios[0].otherradioindex = 9999;
 
 			gauss_jackson_init_eci(ttrack.gjh, 6, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
@@ -384,7 +407,6 @@ int main(int argc, char *argv[])
                 // Build up table of radios
                 ttrack.radios.resize(1);
                 ttrack.radios[0].name = "radio";
-                //					ttrack.radios[0].info;
                 ttrack.radios[0].otherradioindex = 9999;
 
                 LsFit tfit(3);
