@@ -236,8 +236,12 @@ int main(int argc, char *argv[])
     }
 
     // Build up table of our radios
-    myradios.resize(agent->cinfo->devspec.tcv_cnt);
-	for (size_t i=0; i<myradios.size(); ++i)
+    myradios.resize(agent->cinfo->devspec.tcv_cnt+1);
+    myradios[0].name = "Generic";
+    myradios[0].info = agent->cinfo->device[agent->cinfo->devspec.tcv[0]].tcv;
+    myradios[0].otherradioindex = 9999;
+    myradios[0].beat = agent->find_agent(nodename, myradios[0].name, 3.);
+    for (size_t i=1; i<myradios.size(); ++i)
 	{
         myradios[i].name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name;
         myradios[i].info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;

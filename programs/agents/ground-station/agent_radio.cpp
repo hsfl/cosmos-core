@@ -152,6 +152,7 @@ List of available requests:
 #include "device/general/ts2000_lib.h"
 //#include "device/astrodev/astrodev_lib.h"
 #include "device/general/ic9100_lib.h"
+#include "device/general/usrp_lib.h"
 
 static Agent *agent;
 static std::string nodename="";
@@ -175,6 +176,7 @@ static uint8_t opmode = static_cast<uint8_t>(DEVICE_RADIO_MODE_UNDEF);
 //astrodev_handle astrodev;
 //static ts2000_state ts2000;
 static ic9100_handle ic9100;
+static usrp_handle usrp;
 
 static tcvstruc target;
 static tcvstruc actual;
@@ -221,6 +223,18 @@ int main(int argc, char *argv[])
             model = static_cast<uint16_t>(DEVICE_MODEL_ASTRODEV);
             port = argv[8];
         }
+        else if (static_cast<string>("ic9100") == argv[3])
+        {
+            model = static_cast<uint16_t>(DEVICE_MODEL_USRP);
+            port = argv[8];
+            radioaddr = stoi(port.substr(port.find(':')+1));
+            port = port.substr(0, port.find(':'));
+        }
+        else if (static_cast<string>("ic9100") == argv[3])
+        {
+            model = static_cast<uint16_t>(DEVICE_MODEL_DIRECT);
+        }
+
         if (static_cast<string>("txr") == argv[4])
         {
             radiotype = static_cast<uint16_t>(DeviceType::TXR);
@@ -297,9 +311,8 @@ int main(int argc, char *argv[])
         radioname = argv[1];
         break;
     default:
-        printf("Usage: agent->radio radioname [nodename  [ic9100/astrodev txr/rxr/tcv frequency bandwidth mode device:addr]]");
+        printf("Usage: agent->radio radioname [nodename  [ic9100/astrodev/usrp txr/rxr/tcv frequency bandwidth mode device:addr]]");
         exit (1);
-        break;
     }
 
     // Establish the command channel and heartbeat
@@ -334,20 +347,46 @@ int main(int argc, char *argv[])
             break;
         }
         agent->cinfo->device[deviceindex].all.model = model;
-        if (model == static_cast<uint16_t>(DEVICE_MODEL_IC9100))
-        {
-            agent->cinfo->device[deviceindex].all.addr = radioaddr;
-        }
         agent->cinfo->device[deviceindex].all.type = radiotype;
         agent->cinfo->device[deviceindex].tcv.freq = freq;
         agent->cinfo->device[deviceindex].tcv.band = band;
         agent->cinfo->device[deviceindex].tcv.opmode = opmode;
-        iretn = json_createport(agent->cinfo, port, PORT_TYPE_RS232);
-        if (iretn >= 0)
+
+        if (model == static_cast<uint16_t>(DEVICE_MODEL_IC9100))
         {
-            agent->cinfo->device[deviceindex].all.portidx = iretn;
+            agent->cinfo->device[deviceindex].all.addr = radioaddr;
+            iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
+            if (iretn >= 0)
+            {
+                agent->cinfo->device[deviceindex].all.portidx = iretn;
+            }
         }
-        iretn = json_dump_node(agent->cinfo);
+        else if (model == static_cast<uint16_t>(DEVICE_MODEL_TS2000))
+        {
+            iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
+            if (iretn >= 0)
+            {
+                agent->cinfo->device[deviceindex].all.portidx = iretn;
+            }
+        }
+        else if (model == static_cast<uint16_t>(DEVICE_MODEL_USRP))
+        {
+            agent->cinfo->device[deviceindex].all.addr = radioaddr;
+            iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_UDP);
+            if (iretn >= 0)
+            {
+                agent->cinfo->device[deviceindex].all.portidx = iretn;
+            }
+        }
+        else if (model == static_cast<uint16_t>(DEVICE_MODEL_DIRECT))
+        {
+            agent->cinfo->device[deviceindex].all.addr = radioaddr;
+            iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_SIM);
+            if (iretn >= 0)
+            {
+                agent->cinfo->device[deviceindex].all.portidx = iretn;
+            }
+        }
     }
 
     // Add requests
@@ -380,14 +419,17 @@ int main(int argc, char *argv[])
 
 
     // Look for named radio so we can use the right one
-    for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
+    if (radiotype == 9999)
     {
-        if (!strcmp(argv[2], agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].all.pidx].name))
+        for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
         {
-            deviceindex = agent->cinfo->devspec.rxr[i];
-            radioindex = i;
-            radiotype = static_cast<uint16_t>(DeviceType::RXR);
-            break;
+            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].all.pidx].name))
+            {
+                deviceindex = agent->cinfo->devspec.rxr[i];
+                radioindex = i;
+                radiotype = static_cast<uint16_t>(DeviceType::RXR);
+                break;
+            }
         }
     }
 
@@ -457,6 +499,24 @@ int main(int argc, char *argv[])
         {
             switch (agent->cinfo->device[deviceindex].all.model)
             {
+            case DEVICE_MODEL_DIRECT:
+
+            case DEVICE_MODEL_USRP:
+                iretn = usrp_get_frequency(usrp);
+                if (iretn >= 0)
+                {
+                    usrp.frequency -= freqoffset;
+                    agent->cinfo->device[deviceindex].tcv.freq = usrp.frequency;
+                    if (radioenabled && target.freq != usrp.frequency)
+                    {
+                        iretn = usrp_set_frequency(usrp, target.freq + freqoffset);
+                    }
+                }
+                else
+                {
+                    radioconnected = false;
+                }
+
             case DEVICE_MODEL_LOOPBACK:
                 {
                     agent->cinfo->device[deviceindex].tcv.freq = actual.freq - freqoffset;
