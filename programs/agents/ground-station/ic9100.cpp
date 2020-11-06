@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     case 5:
         value2 = atof(argv[4]);
     case 4:
-        value2 = atof(argv[3]);
+        value1 = atof(argv[3]);
     case 3:
         command = argv[2];
         radioname = argv[1];
