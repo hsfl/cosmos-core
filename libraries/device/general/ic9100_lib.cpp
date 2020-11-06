@@ -238,13 +238,13 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
     }
 
     size_t base = message.size() + 7;
-    if (static_cast <size_t>(base) < base)
+    if (static_cast <size_t>(iretn) < base)
     {
         handle.mut.unlock();
         return IC9100_ERROR_WRITE;
     }
 
-    if (static_cast <size_t>(base) == base)
+    if (static_cast <size_t>(iretn) == base)
     {
         handle.mut.unlock();
         return IC9100_ERROR_ADDR;
