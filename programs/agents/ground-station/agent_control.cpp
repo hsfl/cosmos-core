@@ -239,6 +239,7 @@ int main(int argc, char *argv[])
     radiostruc tradio;
     tradio.name = "Direct";
     tradio.info.freq = 0.;
+    tradio.info.opmode = static_cast<uint16_t>(DEVICE_RADIO_MODE_FMD);
     tradio.otherradioindex = 9999;
     tradio.beat.utc = 0.;
     myradios.push_back(tradio);
@@ -333,7 +334,8 @@ int main(int argc, char *argv[])
                         printf("Propagating Node %s forward %.0f\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
                         gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
                         gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
-					}
+                        fflush(stdout);
+                    }
 					track.push_back(ttrack);
                     json_destroy(cinfo);
 				}
@@ -684,35 +686,39 @@ int32_t request_get_track(string &request, string &response, Agent *)
 
 int32_t request_list_radios(string &request, string &response, Agent *)
 {
-    response = ("My Radios\n");
+    response = ("My Radios");
 	for (size_t i=0; i<myradios.size(); ++i)
     {
-        response += myradios[i].name + ' ' + to_unsigned(myradios[i].otherradioindex) + ' ' + to_double(myradios[i].info.freq) + ' ' + opmode2string(myradios[i].info.opmode);
+        response += '\n' + to_label("Name", myradios[i].name) + ' ' + to_label("Index", myradios[i].otherradioindex) + ' ' + to_label("Freq", myradios[i].info.freq, 9) + ' ' + to_label("Opmode", opmode2string(myradios[i].info.opmode));
 	}
 
-    response += ("Other Radios\n");
+    response += ("Other Radios");
 	for (size_t i=0; i<track[trackindex].radios.size(); ++i)
 	{
-        response += ( to_unsigned(i) + ' ' + track[trackindex].radios[i].name.c_str() + ' ' + to_unsigned(track[trackindex].radios[i].otherradioindex) + ' ' + to_double(track[trackindex].radios[i].info.freq) + ' ' + opmode2string(track[trackindex].radios[i].info.opmode).c_str());
-	}
+        response += '\n' + to_label("Name", track[trackindex].radios[i].name) + ' ' + to_label("Index", track[trackindex].radios[i].otherradioindex) + ' ' + to_label("Freq", track[trackindex].radios[i].info.freq, 9) + ' ' + to_label("Opmode", opmode2string(track[trackindex].radios[i].info.opmode));
+    }
 
 	return 0;
 }
 
 int32_t request_match_radio(string &request, string &response, Agent *)
 {
-	char fromname[41];
-	char toname[41];
+    string fromname;
+    string toname;
 	uint16_t fromi = 9999;
 	uint16_t toi = 9999;
 
-	sscanf(request.c_str(), "match_radio %40s %40s", fromname, toname);
+    size_t firstspace = request.find(' ');
+    size_t lastspace = request.find_last_of(' ');
+
+    fromname = request.substr(firstspace+1, (lastspace-firstspace)-1);
+    toname = request.substr(lastspace+1);
 
 	if (fromname[0] < '0' && fromname[0] > '9')
 	{
 		for (fromi=0; fromi<myradios.size(); ++fromi)
 		{
-			if (!strcmp(myradios[fromi].name.c_str(), fromname))
+            if (myradios[fromi].name == fromname)
 			{
 				break;
 			}
@@ -720,14 +726,14 @@ int32_t request_match_radio(string &request, string &response, Agent *)
 	}
 	else
 	{
-		fromi = atoi(fromname);
+        fromi = stoi(fromname);
 	}
 
 	if (toname[0] < '0' && toname[0] > '9')
 	{
 		for (toi=0; toi<myradios.size(); ++toi)
 		{
-			if (!strcmp(myradios[toi].name.c_str(), toname))
+            if (myradios[toi].name == toname)
 			{
 				break;
 			}
@@ -735,7 +741,7 @@ int32_t request_match_radio(string &request, string &response, Agent *)
 	}
 	else
 	{
-		toi = atoi(toname);
+        toi = stoi(toname);
 	}
 
 	if (fromi < myradios.size() && toi < track[trackindex].radios.size())
@@ -820,15 +826,15 @@ int32_t request_get_state(string &req, string &response, Agent *)
 	}
 	for (size_t i=0; i<myradios.size(); ++i)
 	{
-        response += '{' + myradios[i].name + ' ' + to_double(myradios[i].info.freq) + ' ';
+        response += "{ " + to_label("MyName", myradios[i].name) + ' ' + to_label("Freq", myradios[i].info.freq, 9) + ' ' + to_label("dFreq", myradios[i].dfreq, 5) + ' ';
 		if (myradios[i].otherradioindex != 9999)
 		{
 			size_t idx = myradios[i].otherradioindex;
-            response += '(' + track[trackindex].radios[idx].name + ' ' + to_double(86400. * (currentmjd() - myradios[i].beat.utc), 3) + '}';
+            response += " - " + to_label("OtherName", track[trackindex].radios[idx].name) + ' ' + to_label("Delay", 86400. * (currentmjd() - myradios[i].beat.utc), 3) + " } ";
 		}
 		else
 		{
-            response += ("} ");
+            response += (" } ");
 		}
 	}
 	for (size_t i=0; i<myantennas.size(); ++i)
