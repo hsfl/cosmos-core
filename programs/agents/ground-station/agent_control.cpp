@@ -319,16 +319,16 @@ int main(int argc, char *argv[])
 
                     if (type == NODE_TYPE_SATELLITE)
 					{
-                        printf("Propagating Node %s forward ", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                        printf("Propagating Node %s forward %f\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
 						gauss_jackson_init_eci(ttrack.gjh, 12, 0, 1., ttrack.target.loc.pos.eci.utc, ttrack.target.loc.pos.eci, ttrack.target.loc.att.icrf, ttrack.physics, ttrack.target.loc);
                         double tutc = ttrack.target.loc.pos.eci.utc + 60./86400.;
                         while (tutc < currentmjd())
                         {
-                            printf("Propagating Node %s forward\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                            printf("Propagating Node %s forward %f\r", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
                             gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, tutc);
                             tutc += 60./86400.;
                         }
-                        printf("Propagating Node %s forward\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
+                        printf("Propagating Node %s forward %f\n", ttrack.name.c_str(), 86400.*(currentmjd()-ttrack.target.loc.pos.eci.utc));
                         gauss_jackson_propagate(ttrack.gjh, ttrack.physics, ttrack.target.loc, currentmjd());
 					}
 					track.push_back(ttrack);
