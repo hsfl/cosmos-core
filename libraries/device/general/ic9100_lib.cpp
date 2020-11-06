@@ -41,6 +41,8 @@ int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle)
         return (SERIAL_ERROR_OPEN);
     }
 
+    handle.serial->set_timeout(1.);
+
     handle.address = address;
     iretn = ic9100_check_address(handle);
 
@@ -147,19 +149,19 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
     }
     size_t base = message.size() + 6;
 
-    if (static_cast <size_t>(base) < base)
+    if (static_cast <size_t>(iretn) < base)
     {
         handle.mut.unlock();
         return IC9100_ERROR_WRITE;
     }
 
-    if (static_cast <size_t>(base) == base)
+    if (static_cast <size_t>(iretn) == base)
     {
         handle.mut.unlock();
         return IC9100_ERROR_ADDR;
     }
 
-    if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[static_cast <size_t>(base)-1] != 0xfd)
+    if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[static_cast <size_t>(iretn)-1] != 0xfd)
     {
         handle.mut.unlock();
         return IC9100_ERROR_WRITE;
@@ -180,8 +182,8 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
     else
     {
         base += 5;
-        handle.response.resize(static_cast <size_t>(base)-(base+1));
-        memcpy(static_cast<void *>(handle.response.data()), &buffer[base], static_cast <size_t>(base)-(base+1));
+        handle.response.resize(static_cast <size_t>(iretn)-(base+1));
+        memcpy(static_cast<void *>(handle.response.data()), &buffer[base], static_cast <size_t>(iretn)-(base+1));
         handle.mut.unlock();
         return static_cast <int32_t>(base-(base+1));
     }
@@ -250,7 +252,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
         return IC9100_ERROR_ADDR;
     }
 
-    if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[static_cast <size_t>(base)-1] != 0xfd)
+    if (buffer[base] != 0xfe || buffer[base+1] != 0xfe || buffer[base+2] != 0xe0 || buffer[base+3] != handle.address || buffer[static_cast <size_t>(iretn)-1] != 0xfd)
     {
         handle.mut.unlock();
         return IC9100_ERROR_WRITE;
@@ -271,10 +273,10 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
     else
     {
         base += 6;
-        handle.response.resize(static_cast <size_t>(base)-(base+1));
-        memcpy(static_cast <void *>(handle.response.data()), &buffer[base], static_cast <size_t>(base)-(base+1));
+        handle.response.resize(static_cast <size_t>(iretn)-(base+1));
+        memcpy(static_cast <void *>(handle.response.data()), &buffer[base], static_cast <size_t>(iretn)-(base+1));
         handle.mut.unlock();
-        return static_cast <int32_t>((base)-(base+1));
+        return static_cast <int32_t>((iretn)-(base+1));
     }
 }
 
