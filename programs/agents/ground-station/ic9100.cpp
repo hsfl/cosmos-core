@@ -273,7 +273,7 @@ int main(int argc, char *argv[])
         if (argc == 3)
         {
             iretn = ic9100_get_frequency(ic9100);
-            if (iretn >= 0)
+            if (iretn < 0)
             {
                 printf("Unable to get IC9100 Frequency: %s\n", cosmos_error_string(iretn).c_str());
             }
