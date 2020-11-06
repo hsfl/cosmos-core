@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
         radioname = argv[1];
         break;
     default:
-        printf("Usage: agent->radio radioname [nodename  [ic9100/astrodev txr/rxr/tcv frequency bandwidth mode device:addr]]");
+        printf("Usage: agent->radio radioname [nodename  [ic9100/astrodev txr/rxr/tcv frequency bandwidth mode device:addr]]\n");
         exit (1);
         break;
     }
