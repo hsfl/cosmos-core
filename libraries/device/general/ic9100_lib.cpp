@@ -41,7 +41,7 @@ int32_t ic9100_connect(string device, uint8_t address, ic9100_handle &handle)
         return (SERIAL_ERROR_OPEN);
     }
 
-    handle.serial->set_timeout(1.);
+    handle.serial->set_timeout(.1);
 
     handle.address = address;
     iretn = ic9100_check_address(handle);
