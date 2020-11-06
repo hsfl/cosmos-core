@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
                 printf("Unable to get IC9100 Frequency: %s\n", cosmos_error_string(iretn).c_str());
             }
             else {
-                printf("Frequency: %f Hz\n", ic9100.frequency);
+                printf("Frequency: %.0f Hz\n", ic9100.frequency);
             }
         }
         else {
@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
             }
             else {
                 iretn = ic9100_get_frequency(ic9100);
-                printf("Frequency: %f Hz\n", ic9100.frequency);
+                printf("Frequency: %.0f Hz\n", ic9100.frequency);
             }
         }
     }
