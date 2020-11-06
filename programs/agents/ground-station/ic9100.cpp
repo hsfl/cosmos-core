@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
         exit (1);
     }
 
-    iretn = ic9100_connect(radiodevice, radioaddr, ic9100);
+    iretn = ic9100_connect(agent->cinfo->port[agent->cinfo->device[agent->cinfo->devspec.txr[radioindex]].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, ic9100);
     if (iretn < 0)
     {
         printf("Unable to connect to IC9100: %s\n", cosmos_error_string(iretn).c_str());
