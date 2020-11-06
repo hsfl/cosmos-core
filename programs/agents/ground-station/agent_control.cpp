@@ -522,7 +522,13 @@ int main(int argc, char *argv[])
 						if (mjdnow - myradios[j].beat.utc < 10.)
 						{
 							track[i].radios[idx].dfreq = track[i].radios[idx].info.freq * track[i].target.close / CLIGHT;
-							myradios[j].info.freq = track[i].radios[idx].info.freq + track[i].radios[idx].dfreq;
+                            if (track[i].radios[idx].info.type == static_cast<uint16_t>(DeviceType::TXR))
+                            {
+                                myradios[j].info.freq = track[i].radios[idx].info.freq - track[i].radios[idx].dfreq;
+                            }
+                            else {
+                                myradios[j].info.freq = track[i].radios[idx].info.freq + track[i].radios[idx].dfreq;
+                            }
 							sprintf(request, "set_frequency %f", track[i].radios[idx].info.freq + track[i].radios[idx].dfreq);
                             iretn = agent->send_request(myradios[j].beat, request, output, 5.);
 							sprintf(request, "set_opmode %u", track[i].radios[idx].info.opmode);
