@@ -183,7 +183,7 @@ void proptrack(size_t index, double utcnow)
             track[index].startutc = utcnow;
             track[index].visible = true;
             track[index].peaked = false;
-            printf("%s %13.5f %6.1f         AOS0: %s\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), track[index].name.c_str());
+            printf("%s %13.5f %6.1f         AOS0: %s %.0f\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), track[index].name.c_str(), track[index].target.close);
             fflush(stdout);
         }
         break;
@@ -200,7 +200,7 @@ void proptrack(size_t index, double utcnow)
         if (track[index].target.elfrom < 0.)
         {
             track[index].visible = false;
-            printf("%s %13.5f %6.1f     LOS0: %4.0f sec %s\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), 86400.*(utcnow-track[index].startutc), track[index].name.c_str());
+            printf("%s %13.5f %6.1f     LOS0: %4.0f sec %s %.0f\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), 86400.*(utcnow-track[index].startutc), track[index].name.c_str(), track[index].target.close);
             fflush(stdout);
         }
         break;
