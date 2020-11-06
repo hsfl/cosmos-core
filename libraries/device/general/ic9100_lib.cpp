@@ -185,7 +185,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, vector <uint8_t> me
         handle.response.resize(static_cast <size_t>(iretn)-(base+1));
         memcpy(static_cast<void *>(handle.response.data()), &buffer[base], static_cast <size_t>(iretn)-(base+1));
         handle.mut.unlock();
-        return static_cast <int32_t>(base-(base+1));
+        return iretn - static_cast <int32_t>((base+1));
     }
 
 }
@@ -276,7 +276,7 @@ int32_t ic9100_write(ic9100_handle &handle, uint8_t command, uint8_t subcommand,
         handle.response.resize(static_cast <size_t>(iretn)-(base+1));
         memcpy(static_cast <void *>(handle.response.data()), &buffer[base], static_cast <size_t>(iretn)-(base+1));
         handle.mut.unlock();
-        return static_cast <int32_t>((iretn)-(base+1));
+        return iretn - static_cast <int32_t>((base+1));
     }
 }
 
