@@ -4,6 +4,7 @@
 #include "device/general/usrp_lib.h"
 
 static ic9100_handle ic9100;
+static usrp_handle usrp;
 static Agent *agent;
 static std::string nodename="";
 static std::string radioname;
@@ -310,7 +311,6 @@ int main(int argc, char *argv[])
     }
     else if (agent->cinfo->device[deviceindex].all.model == DEVICE_MODEL_USRP)
     {
-        usrp_handle usrp;
         iretn = usrp_connect(agent->cinfo->port[agent->cinfo->device[agent->cinfo->devspec.txr[radioindex]].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, usrp);
         if (command == "freq")
         {
