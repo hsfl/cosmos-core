@@ -669,7 +669,7 @@ int32_t socket_recvfrom(socket_channel &channel, string &buffer, size_t maxlen, 
     int32_t iretn;
     vector<uint8_t> data;
     iretn = socket_recvfrom(channel, data, maxlen, flags);
-    string str(buffer.begin(), buffer.end());
+    string str(data.begin(), data.end());
     buffer = str;
     return iretn;
 }
