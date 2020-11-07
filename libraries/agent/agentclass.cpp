@@ -743,6 +743,8 @@ namespace Support
         size_t i;
         int32_t iretn;
 
+        process_mutex.lock();
+
         if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG)) {
             printf("Request: [%lu] %s ",bufferin.size(), &bufferin[0]);
             fflush(stdout);
@@ -793,6 +795,9 @@ namespace Support
         if (cinfo->agent[0].stateflag == static_cast <uint16_t>(Agent::State::DEBUG)) {
             printf("[%d] %s\n", iretn, bufferout.data());
         }
+
+        process_mutex.unlock();
+
         return iretn;
     }
 
