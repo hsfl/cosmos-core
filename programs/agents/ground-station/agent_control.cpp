@@ -689,13 +689,13 @@ int32_t request_list_radios(string &request, string &response, Agent *)
     response = ("My Radios");
 	for (size_t i=0; i<myradios.size(); ++i)
     {
-        response += '\n' + to_label("Name", myradios[i].name) + ' ' + to_label("Index", myradios[i].otherradioindex) + ' ' + to_label("Freq", myradios[i].info.freq, 9) + ' ' + to_label("Opmode", opmode2string(myradios[i].info.opmode));
+        response += '\n' + to_signed(i) + ' ' + to_label("Name", myradios[i].name) + ' ' + to_label("OtherIndex", myradios[i].otherradioindex) + ' ' + to_label("Freq", myradios[i].info.freq, 9) + ' ' + to_label("Opmode", opmode2string(myradios[i].info.opmode));
 	}
 
-    response += ("Other Radios");
+    response += ("\nOther Radios");
 	for (size_t i=0; i<track[trackindex].radios.size(); ++i)
 	{
-        response += '\n' + to_label("Name", track[trackindex].radios[i].name) + ' ' + to_label("Index", track[trackindex].radios[i].otherradioindex) + ' ' + to_label("Freq", track[trackindex].radios[i].info.freq, 9) + ' ' + to_label("Opmode", opmode2string(track[trackindex].radios[i].info.opmode));
+        response += '\n' + to_signed(i) + ' ' + to_label("Name", track[trackindex].radios[i].name) + ' ' + to_label("MyIndex", track[trackindex].radios[i].otherradioindex) + ' ' + to_label("Freq", track[trackindex].radios[i].info.freq, 9) + ' ' + to_label("Opmode", opmode2string(track[trackindex].radios[i].info.opmode));
     }
 
 	return 0;
