@@ -94,7 +94,7 @@ struct usrp_handle
 
 int32_t usrp_connect(string device, uint16_t port, usrp_handle &handle);
 int32_t usrp_disconnect(usrp_handle &handle);
-int32_t usrp_send(usrp_handle &handle, string data);
+int32_t usrp_send(usrp_handle &handle, std::string &data);
 uint8_t usrp_byte(vector <uint8_t> response);
 uint8_t usrp_freq2band(double frequency);
 //int32_t usrp_read(usrp_handle &handle, vector <uint8_t> &message);

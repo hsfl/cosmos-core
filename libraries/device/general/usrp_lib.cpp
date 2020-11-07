@@ -54,7 +54,7 @@ int32_t usrp_disconnect(usrp_handle &handle)
     return iretn;
 }
 
-int32_t usrp_send(usrp_handle &handle, string data)
+int32_t usrp_send(usrp_handle &handle, string &data)
 {
     int32_t iretn;
 
