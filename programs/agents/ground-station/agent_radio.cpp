@@ -828,6 +828,26 @@ int32_t connect_radio()
 
     switch (agent->cinfo->device[deviceindex].all.model)
     {
+    case DEVICE_MODEL_USRP:
+        iretn = usrp_connect(radiodevice, radioaddr, usrp);
+        if (iretn < 0)
+        {
+            sprintf(lasterrormessage, "Unable to connect to USRP: %d", iretn);
+            lasterrorcode = iretn;
+            return iretn;
+        }
+        if (!initialized)
+        {
+            initialized = true;
+            iretn = usrp_get_frequency(usrp);
+            if (iretn >= 0)
+            {
+                initial.freq = usrp.frequency;
+            }
+            actual = initial;
+            target = actual;
+        }
+        break;
     case DEVICE_MODEL_LOOPBACK:
         {
             if (!initialized)
