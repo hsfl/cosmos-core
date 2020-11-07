@@ -149,7 +149,7 @@ int32_t usrp_get_frequency(usrp_handle &handle)
 {
     int32_t iretn;
 
-    string data = "downlink_freq";
+    string data = "downlink_freq 0";
 
     iretn = usrp_send(handle, data);
 
@@ -159,7 +159,7 @@ int32_t usrp_set_frequency(usrp_handle &handle, double frequency)
 {
     int32_t iretn = 0;
 
-    string data = "downlink_freq " + to_double(frequency);
+    string data = "downlink_freq " + to_unsigned(frequency);
 
     iretn = usrp_send(handle, data);
     if (iretn < 0)
