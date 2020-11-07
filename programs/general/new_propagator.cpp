@@ -92,10 +92,10 @@ int main(int argc, char *argv[])
         {
 //            double seconds = loc.utc-cmjd;
 //            double distance = norm_rv(rv_sub(loc.pos.geoc.s, cloc.pos.geoc.s));
-            cartpos neweci;
-            lines2eci(loc.utc, lines, neweci);
-            double ecidistance = norm_rv(rv_sub(loc.pos.eci.s, neweci.s));
-            printf("%s %10f %10f %10f %10f %7f %7f %7f\n", mjd2iso8601(loc.utc).c_str(), ecidistance, DEGOF(loc.pos.geod.s.lat), DEGOF(loc.pos.geod.s.lon), loc.pos.geod.s.h, DEGOF(loc.pos.geod.v.lat), DEGOF(loc.pos.geod.v.lon), loc.pos.geod.v.h);
+//            cartpos neweci;
+//            lines2eci(loc.utc, lines, neweci);
+//            double ecidistance = norm_rv(rv_sub(loc.pos.eci.s, neweci.s));
+            printf("%s %10f %10f %10f %7f %7f %7f\n", mjd2iso8601(loc.utc).c_str(),DEGOF(loc.pos.geod.s.lat), DEGOF(loc.pos.geod.s.lon), loc.pos.geod.s.h, DEGOF(loc.pos.geod.v.lat), DEGOF(loc.pos.geod.v.lon), loc.pos.geod.v.h);
             fflush(stdout);
             cloc = loc;
             for (uint16_t i=0; i<6; ++i)
