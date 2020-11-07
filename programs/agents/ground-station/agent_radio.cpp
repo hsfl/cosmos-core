@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
 
 
     // Look for named radio so we can use the right one
-    if (radiotype == 9999)
+    if (radiotype == static_cast<uint16_t>(DeviceType::NONE))
     {
         for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
         {
@@ -433,7 +433,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (radiotype == 9999)
+    if (radiotype == static_cast<uint16_t>(DeviceType::NONE))
     {
         for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
         {
@@ -447,7 +447,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (radiotype == 9999)
+    if (radiotype == static_cast<uint16_t>(DeviceType::NONE))
     {
         for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
         {
@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (radiotype == 9999)
+    if (radiotype == static_cast<uint16_t>(DeviceType::NONE))
     {
         std::cout<<"Exiting " << radioname << " for Node: " << nodename << " no radio found." << std::endl;
         agent->shutdown();
