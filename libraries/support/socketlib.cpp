@@ -664,8 +664,18 @@ vector<socket_channel> socket_find_addresses(NetworkType ntype)
     return (iface);
 }
 
-int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
+int32_t socket_recvfrom(socket_channel &channel, string &buffer, size_t maxlen, int flags)
 {
+    int32_t iretn;
+    vector<uint8_t> data;
+    iretn = socket_recvfrom(channel, data, maxlen, flags);
+    string str(buffer.begin(), buffer.end());
+    buffer = str;
+    return iretn;
+}
+
+int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t maxlen, int flags)
+    {
     int32_t nbytes;
     buffer.resize(maxlen);
     if ((nbytes = recvfrom(channel.cudp, (char *)buffer.data(), maxlen, flags, (struct sockaddr *)&channel.caddr, (socklen_t *)&channel.addrlen)) > 0)
@@ -680,7 +690,7 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     return nbytes;
 }
 
-int32_t socket_sendto(socket_channel &channel, string buffer, int flags)
+int32_t socket_sendto(socket_channel &channel, string &buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     return socket_sendto(channel, data, flags);

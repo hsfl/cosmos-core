@@ -1,6 +1,7 @@
 #include "support/configCosmos.h"
 #include "agent/agentclass.h"
 #include "device/general/ic9100_lib.h"
+#include "device/general/usrp_lib.h"
 
 static ic9100_handle ic9100;
 static Agent *agent;
@@ -254,54 +255,87 @@ int main(int argc, char *argv[])
         exit (1);
     }
 
-    iretn = ic9100_connect(agent->cinfo->port[agent->cinfo->device[agent->cinfo->devspec.txr[radioindex]].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, ic9100);
-    if (iretn < 0)
+    if (agent->cinfo->device[deviceindex].all.model == DEVICE_MODEL_IC9100)
     {
-        printf("Unable to connect to IC9100: %s\n", cosmos_error_string(iretn).c_str());
-        exit(iretn);
-    }
-
-    iretn = ic9100_set_channel(ic9100, 0);
-    if (iretn < 0)
-    {
-        printf("Unable to set IC9100 to Main: %s\n", cosmos_error_string(iretn).c_str());
-        exit(iretn);
-    }
-
-    if (command == "freq")
-    {
-        if (argc == 3)
-        {
-            iretn = ic9100_get_frequency(ic9100);
-            if (iretn < 0)
-            {
-                printf("Unable to get IC9100 Frequency: %s\n", cosmos_error_string(iretn).c_str());
-            }
-            else {
-                printf("Frequency: %.0f Hz\n", ic9100.frequency);
-            }
-        }
-        else {
-            iretn = ic9100_set_frequency(ic9100, value1);
-            if (iretn < 0)
-            {
-                printf("Unable to set IC9100 Frequency: %s\n", cosmos_error_string(iretn).c_str());
-            }
-            else {
-                iretn = ic9100_get_frequency(ic9100);
-                printf("Frequency: %.0f Hz\n", ic9100.frequency);
-            }
-        }
-    }
-    else if (command == "rfpower")
-    {
-        iretn = ic9100_get_rfpower(ic9100);
+        iretn = ic9100_connect(agent->cinfo->port[agent->cinfo->device[agent->cinfo->devspec.txr[radioindex]].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, ic9100);
         if (iretn < 0)
         {
-            printf("Unable to get IC9100 RFPower: %s\n", cosmos_error_string(iretn).c_str());
+            printf("Unable to connect to IC9100: %s\n", cosmos_error_string(iretn).c_str());
+            exit(iretn);
         }
-        else {
-            printf("RFPower: %hhu\n", ic9100.rfpower);
+
+        iretn = ic9100_set_channel(ic9100, 0);
+        if (iretn < 0)
+        {
+            printf("Unable to set IC9100 to Main: %s\n", cosmos_error_string(iretn).c_str());
+            exit(iretn);
+        }
+
+        if (command == "freq")
+        {
+            if (argc == 3)
+            {
+                iretn = ic9100_get_frequency(ic9100);
+                if (iretn < 0)
+                {
+                    printf("Unable to get IC9100 Frequency: %s\n", cosmos_error_string(iretn).c_str());
+                }
+                else {
+                    printf("Frequency: %.0f Hz\n", ic9100.frequency);
+                }
+            }
+            else {
+                iretn = ic9100_set_frequency(ic9100, value1);
+                if (iretn < 0)
+                {
+                    printf("Unable to set IC9100 Frequency: %s\n", cosmos_error_string(iretn).c_str());
+                }
+                else {
+                    iretn = ic9100_get_frequency(ic9100);
+                    printf("Frequency: %.0f Hz\n", ic9100.frequency);
+                }
+            }
+        }
+        else if (command == "rfpower")
+        {
+            iretn = ic9100_get_rfpower(ic9100);
+            if (iretn < 0)
+            {
+                printf("Unable to get IC9100 RFPower: %s\n", cosmos_error_string(iretn).c_str());
+            }
+            else {
+                printf("RFPower: %hhu\n", ic9100.rfpower);
+            }
+        }
+    }
+    else if (agent->cinfo->device[deviceindex].all.model == DEVICE_MODEL_USRP)
+    {
+        usrp_handle usrp;
+        iretn = usrp_connect(agent->cinfo->port[agent->cinfo->device[agent->cinfo->devspec.txr[radioindex]].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, usrp);
+        if (command == "freq")
+        {
+            if (argc == 3)
+            {
+                iretn = usrp_get_frequency(usrp);
+                if (iretn < 0)
+                {
+                    printf("Unable to get USRP Frequency: %s\n", cosmos_error_string(iretn).c_str());
+                }
+                else {
+                    printf("Frequency: %.0f Hz\n", usrp.frequency);
+                }
+            }
+            else {
+                iretn = usrp_set_frequency(usrp, value1);
+                if (iretn < 0)
+                {
+                    printf("Unable to set USRP Frequency: %s\n", cosmos_error_string(iretn).c_str());
+                }
+                else {
+                    iretn = usrp_get_frequency(usrp);
+                    printf("Frequency: %.0f Hz\n", usrp.frequency);
+                }
+            }
         }
     }
 

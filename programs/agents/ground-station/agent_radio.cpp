@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
             switch (agent->cinfo->device[deviceindex].all.model)
             {
             case DEVICE_MODEL_DIRECT:
-
+                break;
             case DEVICE_MODEL_USRP:
                 iretn = usrp_get_frequency(usrp);
                 if (iretn >= 0)

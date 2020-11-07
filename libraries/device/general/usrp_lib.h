@@ -32,7 +32,8 @@
 #define USRP_LIB_H
 
 #include "support/configCosmos.h"
-#include "device/serial/serialclass.h"
+#include "support/socketlib.h"
+#include "support/stringlib.h"
 
 #define USRP_BAUD 19200
 #define USRP_BITS 8
@@ -65,9 +66,9 @@
 
 struct usrp_handle
 {
-    uint8_t address;
     uint8_t channelnum;
-    Serial *serial;
+    socket_channel socket;
+    uint16_t port;
     std::mutex mut;
     vector <uint8_t> response;
     uint8_t freqband;
@@ -91,13 +92,9 @@ struct usrp_handle
     double frequency;
 };
 
-int32_t usrp_connect(string device, uint8_t address, usrp_handle &handle);
+int32_t usrp_connect(string device, uint16_t port, usrp_handle &handle);
 int32_t usrp_disconnect(usrp_handle &handle);
-int32_t usrp_write_header(usrp_handle &handle);
-int32_t usrp_write(usrp_handle &handle, uint8_t command);
-int32_t usrp_write(usrp_handle &handle, uint8_t command, uint8_t subcommand);
-int32_t usrp_write(usrp_handle &handle, uint8_t command, vector <uint8_t> message);
-int32_t usrp_write(usrp_handle &handle, uint8_t command, uint8_t subcommand, vector <uint8_t> message);
+int32_t usrp_send(usrp_handle &handle, string data);
 uint8_t usrp_byte(vector <uint8_t> response);
 uint8_t usrp_freq2band(double frequency);
 //int32_t usrp_read(usrp_handle &handle, vector <uint8_t> &message);
