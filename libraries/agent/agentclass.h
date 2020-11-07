@@ -392,6 +392,8 @@ namespace Cosmos
             thread mthread;
             //! Last error
             int32_t error_value;
+            //! mutex to protect process_request
+            mutex process_mutex;
 
             //! Function in which we generate our time, for the mjd request.
             double (*agent_time_producer)() = currentmjd;
