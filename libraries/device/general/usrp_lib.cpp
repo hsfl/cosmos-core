@@ -159,13 +159,15 @@ int32_t usrp_set_frequency(usrp_handle &handle, double frequency)
 {
     int32_t iretn = 0;
 
-    string data = "downlink_freq " + to_double(handle.frequency);
+    string data = "downlink_freq " + to_double(frequency);
 
     iretn = usrp_send(handle, data);
     if (iretn < 0)
     {
         return iretn;
     }
+
+    frequency = stof(data);
 
     if (frequency < 1.8e6)
     {
