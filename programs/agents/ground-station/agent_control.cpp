@@ -243,10 +243,26 @@ int main(int argc, char *argv[])
     tradio.otherradioindex = 9999;
     tradio.beat.utc = 0.;
     myradios.push_back(tradio);
-    for (size_t i=1; i<myradios.size(); ++i)
-	{
+    for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
+    {
         tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name;
         tradio.info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
+        tradio.otherradioindex = 9999;
+        tradio.beat = agent->find_agent(nodename, tradio.name, 3.);
+        myradios.push_back(tradio);
+    }
+    for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
+    {
+        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].all.pidx].name;
+        tradio.info = agent->cinfo->device[agent->cinfo->devspec.rxr[i]].tcv;
+        tradio.otherradioindex = 9999;
+        tradio.beat = agent->find_agent(nodename, tradio.name, 3.);
+        myradios.push_back(tradio);
+    }
+    for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
+    {
+        tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].all.pidx].name;
+        tradio.info = agent->cinfo->device[agent->cinfo->devspec.txr[i]].tcv;
         tradio.otherradioindex = 9999;
         tradio.beat = agent->find_agent(nodename, tradio.name, 3.);
         myradios.push_back(tradio);

@@ -33,6 +33,7 @@
 
 int main(int argc, char *argv[])
 {
+    int32_t iretn;
     gj_handle gjh;
 //    physicsstruc gphys;
 //    locstruc gloc;
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
             string fname = argv[1];
             if (fname.find(".tle") != string::npos)
             {
-//                iretn = load_lines(fname, lines);
+                iretn = load_lines(fname, lines);
                 posprop->Init(lines);
             }
         }
@@ -82,26 +83,17 @@ int main(int argc, char *argv[])
         posprop->Init();
     }
 
-//    gauss_jackson_init_eci(gjh, 6, 1, 10., loc.utc, loc.pos.eci, loc.att.icrf, gphys, gloc);
-
-//    double cmjd = currentmjd();
     locstruc cloc = loc;
     for (uint16_t hour=0; hour<24; ++hour)
     {
         for (uint16_t minute=0; minute<60; ++minute)
         {
-//            double seconds = loc.utc-cmjd;
-//            double distance = norm_rv(rv_sub(loc.pos.geoc.s, cloc.pos.geoc.s));
-//            cartpos neweci;
-//            lines2eci(loc.utc, lines, neweci);
-//            double ecidistance = norm_rv(rv_sub(loc.pos.eci.s, neweci.s));
             printf("%s %10f %10f %10f %7f %7f %7f\n", mjd2iso8601(loc.utc).c_str(),DEGOF(loc.pos.geod.s.lat), DEGOF(loc.pos.geod.s.lon), loc.pos.geod.s.h, DEGOF(loc.pos.geod.v.lat), DEGOF(loc.pos.geod.v.lon), loc.pos.geod.v.h);
             fflush(stdout);
             cloc = loc;
             for (uint16_t i=0; i<6; ++i)
             {
                 posprop->Propagate();
-//                gauss_jackson_propagate(gjh, gphys, gloc, loc.utc);
                 attprop->Propagate();
                 thermprop->Propagate();
                 elecprop->Propagate();
