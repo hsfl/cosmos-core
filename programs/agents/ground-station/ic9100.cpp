@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 
     if (agent->cinfo->device[deviceindex].all.model == DEVICE_MODEL_IC9100)
     {
-        iretn = ic9100_connect(agent->cinfo->port[agent->cinfo->device[agent->cinfo->devspec.txr[radioindex]].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, ic9100);
+        iretn = ic9100_connect(agent->cinfo->port[agent->cinfo->device[deviceindex].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, ic9100);
         if (iretn < 0)
         {
             printf("Unable to connect to IC9100: %s\n", cosmos_error_string(iretn).c_str());
@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
     }
     else if (agent->cinfo->device[deviceindex].all.model == DEVICE_MODEL_USRP)
     {
-        iretn = usrp_connect(agent->cinfo->port[agent->cinfo->device[agent->cinfo->devspec.txr[radioindex]].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, usrp);
+        iretn = usrp_connect(agent->cinfo->port[agent->cinfo->device[deviceindex].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, usrp);
         if (command == "freq")
         {
             if (argc == 3)
