@@ -836,27 +836,29 @@ int32_t request_get_state(string &req, string &response, Agent *)
 	else
 	{
         response = '[' + to_mjd(currentmjd()) + "] ";
-        response += to_unsigned(trackindex) + ": ";
-        response += track[trackindex].name + ' ';
+        response += track[trackindex].name + '(';
+        response += to_unsigned(trackindex) + ") ";
         response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 3) + ' ';
-        response += to_angle(track[trackindex].target.elfrom, 'D', 3) + "] CxTime: ";
+        response += to_angle(track[trackindex].target.elfrom, 'D', 3) + "] ";
 	}
 	for (size_t i=0; i<myradios.size(); ++i)
 	{
-        response += "{ " + to_label("MyName", myradios[i].name) + ' ' + to_label("Freq", myradios[i].info.freq, 9) + ' ' + to_label("dFreq", myradios[i].dfreq, 5) + ' ';
 		if (myradios[i].otherradioindex != 9999)
 		{
-			size_t idx = myradios[i].otherradioindex;
-            response += " - " + to_label("OtherName", track[trackindex].radios[idx].name) + ' ' + to_label("Delay", 86400. * (currentmjd() - myradios[i].beat.utc), 3) + " } ";
-		}
-		else
-		{
-            response += (" } ");
+            size_t idx = myradios[i].otherradioindex;
+            response += "{ ";
+            response += to_label("GS", myradios[i].name) + ' ';
+            response += to_label("Sat", track[trackindex].radios[idx].name) + ' ';
+            response += to_label("Freq", myradios[i].info.freq, 9) + " (" + to_double(myradios[i].dfreq, 5) + ") ";
+            response += to_label("Delay", 86400. * (myradios[i].beat.utc - currentmjd()), 3) + " } ";
 		}
 	}
 	for (size_t i=0; i<myantennas.size(); ++i)
 	{
-        response += '{' + myantennas[i].name + " (" + to_double(86400. * (currentmjd() - myantennas[i].beat.utc), 3) + ")} ";
+        if (86400. * (currentmjd() - myantennas[i].beat.utc) < 1.)
+        {
+            response += '{' + myantennas[i].name + "} ";
+        }
 	}
 	return (0);
 }

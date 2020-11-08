@@ -6661,7 +6661,7 @@ int32_t json_load_node(string node, jsonnode &json)
             iretn = load_lines(fname, tles);
             if (iretn > 0)
             {
-                if ((iretn=lines2eci(tles[0].utc, tles, eci)) == 0)
+                if ((iretn=lines2eci(currentmjd()-10./1440., tles, eci)) == 0)
                 {
                     json_out_ecipos(json.state, eci);
                 }
