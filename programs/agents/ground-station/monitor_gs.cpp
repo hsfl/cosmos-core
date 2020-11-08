@@ -31,9 +31,10 @@ int main(int argc, char *argv[])
     while (1)
     {
         iretn = query_control();
-        if (iretn)
+        if (iretn >= 0)
         {
             printf("%s\r", control_state.c_str());
+	    fflush(stdout);
         }
         COSMOS_SLEEP(2.);
     }
