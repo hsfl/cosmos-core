@@ -515,7 +515,7 @@ int main(int argc, char *argv[])
                 {
                     radioconnected = false;
                 }
-
+                break;
             case DEVICE_MODEL_LOOPBACK:
                 {
                     agent->cinfo->device[deviceindex].tcv.freq = actual.freq - freqoffset;
