@@ -1366,11 +1366,11 @@ struct rxrstruc : public allstruc
     //! Packet Size
     uint16_t pktsize;
     //! Input Frequency
-    float freq;
+    double freq;
     //! Maximum frequency allowed
-    float maxfreq;
+    double maxfreq;
     //! Minimum frequency allowed
-    float minfreq;
+    double minfreq;
     //! Current RX Power
     float powerin;
     //! Current TX Power
@@ -1399,11 +1399,11 @@ struct txrstruc : public allstruc
     //! Packet Size
     uint16_t pktsize;
     //! Input Frequency
-    float freq;
+    double freq;
     //! Maximum frequency allowed
-    float maxfreq;
+    double maxfreq;
     //! Minimum frequency allowed
-    float minfreq;
+    double minfreq;
     //! Current RX Power
     float powerin;
     //! Current TX Power
@@ -1432,11 +1432,11 @@ struct tcvstruc : public allstruc
     //! Packet Size
     uint16_t pktsize;
     //! Input Frequency
-    float freq;
+    double freq;
     //! Maximum frequency allowed
-    float maxfreq;
+    double maxfreq;
     //! Minimum frequency allowed
-    float minfreq;
+    double minfreq;
     //! Current RX Power
     float powerin;
     //! Current TX Power

@@ -33,9 +33,9 @@
 #include "physics/physicslib.h"
 #include "math/mathlib.h"
 
-Agent *agent;
-std::string nodename;
-std::string tracknames;
+static Agent *agent;
+static std::string nodename;
+static std::string tracknames;
 struct trackstruc
 {
     targetstruc target;
@@ -50,10 +50,11 @@ struct trackstruc
     thread *control_thread;
     bool running;
 };
-std::vector <trackstruc> track;
+static std::vector <trackstruc> track;
 
-float highest = -RADOF(90.);
-double utcnow;
+static float highest = -RADOF(90.);
+static double utcnow;
+static double minelev = RADOF(15.);
 
 void propinit(size_t index, double dt);
 void proptrack(size_t index, double utcnow);
@@ -83,6 +84,11 @@ int main(int argc, char *argv[])
         period = atof(argv[2]);
     case 2:
         nodename = argv[1];
+        if (nodename.find(":") != string::npos)
+        {
+            minelev = RADOF(stof(nodename.substr(nodename.find(":")+1)));
+            nodename = nodename.substr(0, nodename.find(":"));
+        }
         break;
     default:
         printf("Usage: get_contacts {nodename} [days]");
@@ -177,7 +183,7 @@ void proptrack(size_t index, double utcnow)
     switch ((uint8_t)track[index].visible)
     {
     case 0:
-        if (track[index].target.elfrom > 0.)
+        if (track[index].target.elfrom > minelev)
         {
             track[index].highest = 0.;
             track[index].startutc = utcnow;

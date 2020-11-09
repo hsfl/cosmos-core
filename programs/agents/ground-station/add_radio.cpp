@@ -8,14 +8,15 @@ static std::string nodename="";
 static std::string radioname;
 static size_t deviceindex;
 static size_t radioindex = 9999;
-static std::string radiodevice;
+static string radiodevice="";
 static uint16_t radioaddr;
 static bool radioconnected = false;
 static bool radioenabled = false;
 static float freqoffset;
 static string port;
 
-static uint16_t model;
+static uint16_t nodetype = NODE_TYPE_SATELLITE;
+static uint16_t model = DEVICE_MODEL_DIRECT;
 static uint16_t radiotype = static_cast<uint16_t>(DeviceType::NONE);
 static float freq;
 static float band;
@@ -33,6 +34,7 @@ int main(int argc, char *argv[])
     switch (argc)
     {
     case 9:
+        nodetype = NODE_TYPE_GROUNDSTATION;
         if (static_cast<string>("ic9100") == argv[3])
         {
             model = static_cast<uint16_t>(DEVICE_MODEL_IC9100);
@@ -58,6 +60,7 @@ int main(int argc, char *argv[])
             radiodevice = argv[8];
             radiodevice = "";
         }
+    case 8:
         if (static_cast<string>("txr") == argv[4])
         {
             radiotype = static_cast<uint16_t>(DeviceType::TXR);
@@ -132,7 +135,7 @@ int main(int argc, char *argv[])
         radioname = argv[1];
         break;
     default:
-        printf("Usage: add_radio radioname [nodename  [ic9100/astrodev txr/rxr/tcv frequency bandwidth mode device:addr]]\n");
+        printf("Usage: add_radio radioname [nodename  [ic9100/astrodev txr/rxr/tcv frequency bandwidth mode {device:addr}]]\n");
         exit (1);
         break;
     }
@@ -148,6 +151,7 @@ int main(int argc, char *argv[])
 
     if (argc > 6)
     {
+        agent->cinfo->node.type = nodetype;
         switch (radiotype)
         {
         case static_cast<uint16_t>(DeviceType::TXR):

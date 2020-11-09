@@ -829,6 +829,10 @@ int32_t connect_radio()
     switch (agent->cinfo->device[deviceindex].all.model)
     {
     case DEVICE_MODEL_USRP:
+        if (usrp.socket.cudp != 0)
+        {
+            socket_close(&usrp.socket);
+        }
         iretn = usrp_connect(radiodevice, radioaddr, usrp);
         if (iretn < 0)
         {

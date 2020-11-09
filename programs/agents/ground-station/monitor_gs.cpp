@@ -61,6 +61,10 @@ int32_t query_control()
     string response;
     agent->send_request(controlbeat, "get_state", response);
     control_state = response;
+    for (uint16_t i=response.size(); i<200; ++i)
+    {
+        control_state.push_back(' ');
+    }
 
     return 0;
 }

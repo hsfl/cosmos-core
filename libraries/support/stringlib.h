@@ -52,7 +52,7 @@
 vector < string > string_split(string in, string delimeters);
 uint16_t string_parse(char *string, char *word[], uint16_t size);
 int string_cmp(const char *wild, const char *string);
-string to_hex_string(vector <uint8_t> buffer);
+string to_hex_string(vector <uint8_t> buffer, bool ascii=false);
 string to_string(char *value);
 string to_hex(int64_t value, uint16_t digits=0, bool zerofill=false);
 string to_signed(int64_t value, uint16_t digits=0, bool zerofill=false);

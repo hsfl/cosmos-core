@@ -201,11 +201,18 @@ double StringParser::getFieldNumberAsDouble(uint32_t index)
 
 int StringParser::getFieldNumberAsInteger(uint32_t index) { return getFieldNumberAsDouble(index); }
 
-string to_hex_string(vector <uint8_t> buffer) {
+string to_hex_string(vector <uint8_t> buffer, bool ascii) {
     string output;
     output.resize(buffer.size() * 4);
     for (uint16_t i=0; i<buffer.size(); ++i) {
-        sprintf(&output[strlen(output.c_str())], " %02x", buffer[i]);
+        if (ascii && buffer[i] > 31 && buffer[i] < 127)
+        {
+            sprintf(&output[strlen(output.c_str())], " %02x(%c)", buffer[i], buffer[i]);
+        }
+        else
+        {
+            sprintf(&output[strlen(output.c_str())], " %02x", buffer[i]);
+        }
     }
     return output;
 }
@@ -288,7 +295,7 @@ string to_double(double value, uint16_t precision) {
     return output;
 }
 
-string to_mjd(double value) { return to_double(value, 17); }
+string to_mjd(double value) { return to_double(value, 13); }
 
 string to_temperature(double value, char units, uint8_t precision)
 {
