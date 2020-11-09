@@ -675,7 +675,7 @@ int32_t request_set_frequency(string &request, string &response, Agent *)
 {
     //	int32_t iretn;
 
-    sscanf(request.c_str(), "set_frequency %f", &target.freq);
+    sscanf(request.c_str(), "set_frequency %lf", &target.freq);
     return 0;
 }
 
