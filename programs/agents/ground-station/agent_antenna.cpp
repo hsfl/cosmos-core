@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
     }
     devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
     antindex = agent->cinfo->device[devindex].ant.didx;
-//    agent->cinfo->device[devindex].ant.minelev = RADOF(10.);
+    agent->cinfo->device[devindex].ant.minelev = RADOF(5.);
     if (antbase == "sband")
     {
         agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_PRKX2SU;
