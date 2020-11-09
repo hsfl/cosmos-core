@@ -1102,15 +1102,15 @@ union as a ::devicestruc.
 struct allstruc
 {
     //! Enabled?
-    bool enabled;
+    bool enabled=false;
     //! Component Type
     uint16_t type;
     //! Device Model
-    uint16_t model;
+    uint16_t model=0;
     //! Device flag - catch all for any small piece of information that might be device specific
-    uint32_t flag;
+    uint32_t flag=0;
     //! Device specific address
-    uint16_t addr;
+    uint16_t addr=0;
     //! Component Index
     uint16_t cidx;
     //! Device specific index
@@ -1122,23 +1122,23 @@ struct allstruc
     //! Connection information for device.
     uint16_t portidx; // TODO: rename to port_id or port_index
     //! Nominal Amperage
-    float namp; // TODO: rename to nominal current
+    float namp=0.; // TODO: rename to nominal current
     //! Nominal Voltage
-    float nvolt; // TODO: rename to nominal voltage
+    float nvolt=0.; // TODO: rename to nominal voltage
     //! Current Amperage
-    float amp; // TODO: rename to current
+    float amp=0.; // TODO: rename to current
     //! Current Voltage
-    float volt; // TODO: rename to voltage
+    float volt=0.; // TODO: rename to voltage
     //! Current Power
-    float power; // TODO: rename to voltage
+    float power=0.; // TODO: rename to voltage
     //! Total energy usage
-    float energy;
+    float energy=0.;
     //! Current data rate
-    float drate;
+    float drate=0.;
     //! Current Temperature
-    float temp; // TODO: rename to temperature
+    float temp=0.; // TODO: rename to temperature
     //! Device information time stamp
-    double utc;
+    double utc=0.;
 };
 
 // End of Device General structures
