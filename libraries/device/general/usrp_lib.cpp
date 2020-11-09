@@ -153,6 +153,68 @@ int32_t usrp_get_frequency(usrp_handle &handle)
 
     iretn = usrp_send(handle, data);
 
+    handle.frequency = stof(data);
+
+    if (handle.frequency < 1.8e6)
+    {
+        handle.freqband = 14;
+    }
+    else if (handle.frequency < 2.0e6)
+    {
+        handle.freqband = 1;
+    }
+    else if (handle.frequency >= 3.4e6 && handle.frequency < 4.1e6)
+    {
+        handle.freqband = 2;
+    }
+    else if (handle.frequency >= 6.9e6 && handle.frequency < 7.5e6)
+    {
+        handle.freqband = 3;
+    }
+    else if (handle.frequency >= 9.9e6 && handle.frequency < 10.5e6)
+    {
+        handle.freqband = 4;
+    }
+    else if (handle.frequency >= 13.9e6 && handle.frequency < 14.5e6)
+    {
+        handle.freqband = 5;
+    }
+    else if (handle.frequency >= 17.9e6 && handle.frequency < 18.5e6)
+    {
+        handle.freqband = 6;
+    }
+    else if (handle.frequency >= 20.9e6 && handle.frequency < 21.5e6)
+    {
+        handle.freqband = 7;
+    }
+    else if (handle.frequency >= 24.4e6 && handle.frequency < 25.1e6)
+    {
+        handle.freqband = 8;
+    }
+    else if (handle.frequency >= 28.0e6 && handle.frequency < 30.0e6)
+    {
+        handle.freqband = 9;
+    }
+    else if (handle.frequency >= 50.0e6 && handle.frequency <= 54.0e6)
+    {
+        handle.freqband = 10;
+    }
+    else if (handle.frequency >= 108.0e6 && handle.frequency <= 174.0e6)
+    {
+        handle.freqband = 11;
+    }
+    else if (handle.frequency >= 420.0e6 && handle.frequency <= 480.0e6)
+    {
+        handle.freqband = 12;
+    }
+    else if (handle.frequency >= 1240.0e6 && handle.frequency <1320.0e6)
+    {
+        handle.freqband = 13;
+    }
+    else
+    {
+        handle.freqband = 14;
+    }
     return iretn;
 }
 int32_t usrp_set_frequency(usrp_handle &handle, double frequency)
@@ -167,61 +229,61 @@ int32_t usrp_set_frequency(usrp_handle &handle, double frequency)
         return iretn;
     }
 
-    frequency = stof(data);
+    handle.frequency = stof(data);
 
-    if (frequency < 1.8e6)
+    if (handle.frequency < 1.8e6)
     {
         handle.freqband = 14;
     }
-    else if (frequency < 2.0e6)
+    else if (handle.frequency < 2.0e6)
     {
         handle.freqband = 1;
     }
-    else if (frequency >= 3.4e6 && frequency < 4.1e6)
+    else if (handle.frequency >= 3.4e6 && handle.frequency < 4.1e6)
     {
         handle.freqband = 2;
     }
-    else if (frequency >= 6.9e6 && frequency < 7.5e6)
+    else if (handle.frequency >= 6.9e6 && handle.frequency < 7.5e6)
     {
         handle.freqband = 3;
     }
-    else if (frequency >= 9.9e6 && frequency < 10.5e6)
+    else if (handle.frequency >= 9.9e6 && handle.frequency < 10.5e6)
     {
         handle.freqband = 4;
     }
-    else if (frequency >= 13.9e6 && frequency < 14.5e6)
+    else if (handle.frequency >= 13.9e6 && handle.frequency < 14.5e6)
     {
         handle.freqband = 5;
     }
-    else if (frequency >= 17.9e6 && frequency < 18.5e6)
+    else if (handle.frequency >= 17.9e6 && handle.frequency < 18.5e6)
     {
         handle.freqband = 6;
     }
-    else if (frequency >= 20.9e6 && frequency < 21.5e6)
+    else if (handle.frequency >= 20.9e6 && handle.frequency < 21.5e6)
     {
         handle.freqband = 7;
     }
-    else if (frequency >= 24.4e6 && frequency < 25.1e6)
+    else if (handle.frequency >= 24.4e6 && handle.frequency < 25.1e6)
     {
         handle.freqband = 8;
     }
-    else if (frequency >= 28.0e6 && frequency < 30.0e6)
+    else if (handle.frequency >= 28.0e6 && handle.frequency < 30.0e6)
     {
         handle.freqband = 9;
     }
-    else if (frequency >= 50.0e6 && frequency <= 54.0e6)
+    else if (handle.frequency >= 50.0e6 && handle.frequency <= 54.0e6)
     {
         handle.freqband = 10;
     }
-    else if (frequency >= 108.0e6 && frequency <= 174.0e6)
+    else if (handle.frequency >= 108.0e6 && handle.frequency <= 174.0e6)
     {
         handle.freqband = 11;
     }
-    else if (frequency >= 420.0e6 && frequency <= 480.0e6)
+    else if (handle.frequency >= 420.0e6 && handle.frequency <= 480.0e6)
     {
         handle.freqband = 12;
     }
-    else if (frequency >= 1240.0e6 && frequency <1320.0e6)
+    else if (handle.frequency >= 1240.0e6 && handle.frequency <1320.0e6)
     {
         handle.freqband = 13;
     }
@@ -229,7 +291,6 @@ int32_t usrp_set_frequency(usrp_handle &handle, double frequency)
     {
         handle.freqband = 14;
     }
-    handle.frequency = frequency;
 
     return 0;
 }

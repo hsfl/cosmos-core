@@ -505,9 +505,8 @@ int main(int argc, char *argv[])
                 iretn = usrp_get_frequency(usrp);
                 if (iretn >= 0)
                 {
-                    usrp.frequency -= freqoffset;
                     agent->cinfo->device[deviceindex].tcv.freq = usrp.frequency;
-                    if (radioenabled && target.freq != usrp.frequency)
+                    if (radioenabled && (target.freq + freqoffset) != usrp.frequency)
                     {
                         iretn = usrp_set_frequency(usrp, target.freq + freqoffset);
                     }
@@ -543,7 +542,6 @@ int main(int argc, char *argv[])
                 iretn = ic9100_get_frequency(ic9100);
                 if (iretn >= 0)
                 {
-                    ic9100.frequency -= freqoffset;
                     agent->cinfo->device[deviceindex].tcv.freq = ic9100.frequency;
                     /*
                     if (ic9100_freq2band(target.freq) != ic9100.freqband)
@@ -552,7 +550,7 @@ int main(int argc, char *argv[])
                         iretn = ic9100_get_frequency(ic9100);
                     }
 */
-                    if (radioenabled && target.freq != ic9100.frequency)
+                    if (radioenabled && (target.freq + freqoffset) != ic9100.frequency)
                     {
                         iretn = ic9100_set_frequency(ic9100, target.freq + freqoffset);
                     }
@@ -660,8 +658,8 @@ int32_t request_disable(string &req, string &response, Agent *)
 int32_t request_get_state(string &req, string &response, Agent *)
 {
     response = '[' + to_mjd(currentmjd()) + "] Cx: " + to_bool(radioconnected) + " En: " + to_bool(radioenabled);
-    response += " Mode: " + opmode2string(agent->cinfo->device[deviceindex].tcv.opmode) + " TFreq: " + to_double(target.freq);
-    response += " AFreq: " + to_double(agent->cinfo->device[deviceindex].tcv.freq) + " Offset: " + to_double(freqoffset);
+    response += " Mode: " + opmode2string(agent->cinfo->device[deviceindex].tcv.opmode) + " TFreq: " + to_double(target.freq, 9);
+    response += " AFreq: " + to_double(agent->cinfo->device[deviceindex].tcv.freq, 9) + " Offset: " + to_double(freqoffset);
     response += " PowerIn: " + to_double(agent->cinfo->device[deviceindex].tcv.powerin) + " PowerOut: " + to_double(agent->cinfo->device[deviceindex].tcv.powerout);
     response += " MaxPower: " + to_double(agent->cinfo->device[deviceindex].tcv.maxpower);
     return (0);
