@@ -613,7 +613,7 @@ int main(int argc, char *argv[])
                     }
 
                     // Command antennas to park
-                    request = "set_azel 180. 0.";
+                    request = "set_azel 180. 90.";
                     for (size_t j=0; j<myantennas.size(); ++j)
                     {
                         if (mjdnow - myantennas[j].beat.utc < 10.)

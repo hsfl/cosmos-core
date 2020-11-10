@@ -36,7 +36,7 @@
 #include "support/stringlib.h"
 
 static Ax25Handle handle;
-static string device = "127.0.0.1:10003";
+static string device = "127.0.0.1:10001";
 static string device_addr = "127.0.0.1";
 static uint16_t device_port = 10003;
 static string source;
@@ -100,10 +100,10 @@ int main(int argc, char *argv[])
             printf("Packet: [%s %u %s %u %u %u] ", handle.get_destination_callsign().c_str(), handle.get_destination_stationID(), handle.get_source_callsign().c_str(), handle.get_source_stationID(), handle.get_control(), handle.get_protocolID());
             printf("%s\n", to_hex_string(handle.get_packetData(), true).c_str());
         }
-        else
-        {
-            printf("Timeout: [%d] %s\n", iretn, cosmos_error_string(iretn).c_str());
-        }
+//        else
+//        {
+//            printf("Timeout: [%d] %s\n", iretn, cosmos_error_string(iretn).c_str());
+//        }
 
         fflush(stdout);
     }
