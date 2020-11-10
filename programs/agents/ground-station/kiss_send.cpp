@@ -33,7 +33,7 @@
 
 static KissHandle handle("DESTIN", "SOURCE");
 static Serial *shandle;
-static string device ="/dev/ttyUSB0";
+static string device ="/dev/tty_tnc";
 static string source;
 static string destination;
 static vector <uint8_t> message;

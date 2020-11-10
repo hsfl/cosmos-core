@@ -43,6 +43,22 @@ class Ax25Handle
 {
 
 public:
+    struct __attribute__ ((packed)) packet_header
+    {
+        uint8_t destination_callsign[6];
+        uint8_t destination_stationID;
+        uint8_t source_callsign[6];
+        uint8_t source_stationID;
+        uint8_t control = 0x03;
+        uint8_t protocolID = 0xf0;
+    };
+
+    struct packet_content
+    {
+        packet_header header;
+        vector <uint8_t> data;
+    };
+
     Ax25Handle(string dest_call="", string sour_call="", uint8_t dest_stat=0x60, uint8_t sour_stat=0x61, uint8_t cont=0x03, uint8_t prot=0xf0);
 
     void set_destination_callsign(string destination);
@@ -57,35 +73,17 @@ public:
     uint8_t get_control();
     void set_protocolID(uint8_t protocol);
     uint8_t get_protocolID();
-    int set_data(vector <uint8_t> input);
-    vector <uint8_t> get_data();
-    int32_t load_packet();
+    packet_header get_packetHeader();
+    vector <uint8_t> get_packetData();
+    int32_t set_packetData(vector <uint8_t> input);
+    int32_t set_raw_packet(vector <uint8_t> packet);
     int32_t unload_packet();
-    vector <uint8_t> get_packet();
-    bool get_open();
-    int32_t get_error();
-//    Serial *get_serial();
+    int32_t load_packet();
 
-    struct __attribute__ ((packed)) packet_header
-    {
-        uint8_t destination_callsign[6];
-        uint8_t destination_stationID;
-        uint8_t source_callsign[6];
-        uint8_t source_stationID;
-        uint8_t control = 0x03;
-        uint8_t protocolID = 0xf0;
-    };
-
-    struct packet_content
-    {
-        packet_header header;
-        uint8_t data;
-    };
-	
 private:
     packet_header header;
     vector <uint8_t> data;
-    vector <uint8_t> packet;
+    vector <uint8_t> raw_packet;
     int32_t error;
 
     friend std::ostream& operator<<(std::ostream& out, Ax25Handle& K);

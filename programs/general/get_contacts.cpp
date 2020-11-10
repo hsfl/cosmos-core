@@ -66,6 +66,10 @@ int main(int argc, char *argv[])
 
     switch (argc)
     {
+    case 12:
+        tracknames += argv[11];
+    case 11:
+        tracknames += argv[10];
     case 10:
         tracknames += argv[9];
     case 9:

@@ -506,7 +506,7 @@ int main(int argc, char *argv[])
                 if (iretn >= 0)
                 {
                     agent->cinfo->device[deviceindex].tcv.freq = usrp.frequency;
-                    if (radioenabled && (target.freq + freqoffset) != usrp.frequency)
+                    if (radioenabled && (target.freq + freqoffset != usrp.frequency))
                     {
                         iretn = usrp_set_frequency(usrp, target.freq + freqoffset);
                     }
