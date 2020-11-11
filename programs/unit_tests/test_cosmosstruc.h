@@ -31,13 +31,7 @@ TEST(cosmosstruc, json_init_timestamp)	{
 	EXPECT_DOUBLE_EQ(timestamp, current);
 }
 
-// uint16_t jmapped
-TEST(cosmosstruc, json_init_jmapped)	{
-	cosmosstruc* c = json_init();
-	// should equal total number of objects in the map
-	EXPECT_EQ(c->jmapped, JSON_UNIT_COUNT + JSON_MAX_HASH );
-}
-
+// skip jmapped
 // skip jmap
 // skip emap
 
