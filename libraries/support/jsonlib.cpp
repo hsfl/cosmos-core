@@ -56,6 +56,7 @@ static vector <string> device_type_string;
 
 //! @}
 
+
 /*! \ingroup jsonlib
 * \defgroup jsonlib_packet JSON Packet
 * @{
@@ -68,47 +69,10 @@ static vector <string> device_type_string;
 //! \addtogroup jsonlib_functions JSON functions
 //! @{
 
-//! Initialize JSON pointer map
-/*! Create a ::cosmosstruc and use it to assign storage for each of the groups and entries
- * for each of the non Node based elements to the JSON Name Map.
-    \return Pointer to new ::cosmosstruc or nullptr.
-*/
-cosmosstruc* json_init()
-{
-	cosmosstruc* cinfo = nullptr;
-    if ((cinfo = new cosmosstruc()) == nullptr) { return nullptr; }
 
-    // Make sure it's clear
-    //    memset(cinfo, 0, sizeof(cosmosstruc));
 
-    cinfo->jmapped = 0;
-
-	// resize fixed-sized vectors
-    cinfo->unit.resize(JSON_UNIT_COUNT);
-    cinfo->jmap.resize(JSON_MAX_HASH);
-    cinfo->emap.resize(JSON_MAX_HASH);
-    cinfo->glossary.resize(1);
-    cinfo->agent.resize(1);
-    cinfo->event.resize(1);
-    cinfo->user.resize(1);
-
-    // Make sure we aren't running out of memory
-    if (cinfo->unit.size() != JSON_UNIT_COUNT ||
-        cinfo->jmap.size() != JSON_MAX_HASH ||
-        cinfo->emap.size() != JSON_MAX_HASH ||
-    	cinfo->glossary.size() != 1 ||
-        cinfo->agent.size() != 1 ||
-        cinfo->event.size() != 1 ||
-        cinfo->user.size() != 1)
-    {
-        delete cinfo;
-    	cinfo = nullptr;
-        return cinfo;
-    }
-
-	cinfo->node = nodestruc();
-    cinfo->node.phys = physicsstruc();
-	cinfo->devspec = devspecstruc();
+// function to initialize the vector<vector<unitstruc>> unit
+void json_init_unit(cosmosstruc* cinfo)	{
 
     // Create JSON Map unit table
     for (uint16_t i=0; i<cinfo->unit.size(); ++i)
@@ -399,41 +363,85 @@ cosmosstruc* json_init()
             break;
         }
     }
+}
 
-    // Create component names
+void json_init_device_type_string()	{
+    // Create device component names
     device_type_string.clear();
-    device_type_string.resize(static_cast<uint16_t>(DeviceType::COUNT));
-    device_type_string[static_cast <uint16_t>(DeviceType::ANT)] = "ant";
-    device_type_string[static_cast <uint16_t>(DeviceType::BATT)] = "batt";
-    device_type_string[static_cast <uint16_t>(DeviceType::BCREG)] = "bcreg";
-    device_type_string[static_cast <uint16_t>(DeviceType::BUS)] = "bus";
-    device_type_string[static_cast <uint16_t>(DeviceType::CAM)] = "cam";
-    device_type_string[static_cast <uint16_t>(DeviceType::CPU)] = "cpu";
-    device_type_string[static_cast <uint16_t>(DeviceType::DISK)] = "disk";
-    device_type_string[static_cast <uint16_t>(DeviceType::GPS)] = "gps";
-    device_type_string[static_cast <uint16_t>(DeviceType::HTR)] = "htr";
-    device_type_string[static_cast <uint16_t>(DeviceType::IMU)] = "imu";
-    device_type_string[static_cast <uint16_t>(DeviceType::MCC)] = "mcc";
-    device_type_string[static_cast <uint16_t>(DeviceType::MOTR)] = "motr";
-    device_type_string[static_cast <uint16_t>(DeviceType::MTR)] = "mtr";
-    device_type_string[static_cast <uint16_t>(DeviceType::PLOAD)] = "pload";
-    device_type_string[static_cast <uint16_t>(DeviceType::PROP)] = "prop";
-    device_type_string[static_cast <uint16_t>(DeviceType::PSEN)] = "psen";
-    device_type_string[static_cast <uint16_t>(DeviceType::PVSTRG)] = "pvstrg";
-    device_type_string[static_cast <uint16_t>(DeviceType::ROT)] = "rot";
-    device_type_string[static_cast <uint16_t>(DeviceType::RW)] = "rw";
-    device_type_string[static_cast <uint16_t>(DeviceType::RXR)] = "rxr";
-    device_type_string[static_cast <uint16_t>(DeviceType::SSEN)] = "ssen";
-    device_type_string[static_cast <uint16_t>(DeviceType::STT)] = "stt";
-    device_type_string[static_cast <uint16_t>(DeviceType::SUCHI)] = "suchi";
-    device_type_string[static_cast <uint16_t>(DeviceType::SWCH)] = "swch";
-    device_type_string[static_cast <uint16_t>(DeviceType::TCU)] = "tcu";
-    device_type_string[static_cast <uint16_t>(DeviceType::TCV)] = "tcv";
-    device_type_string[static_cast <uint16_t>(DeviceType::TELEM)] = "telem";
-    device_type_string[static_cast <uint16_t>(DeviceType::THST)] = "thst";
-    device_type_string[static_cast <uint16_t>(DeviceType::TNC)] = "tnc";
-    device_type_string[static_cast <uint16_t>(DeviceType::TSEN)] = "tsen";
-    device_type_string[static_cast <uint16_t>(DeviceType::TXR)] = "txr";
+    device_type_string.resize(DeviceType::COUNT);
+    device_type_string[DeviceType::ANT] = "ant";
+    device_type_string[DeviceType::BATT] = "batt";
+    device_type_string[DeviceType::BCREG] = "bcreg";
+    device_type_string[DeviceType::BUS] = "bus";
+    device_type_string[DeviceType::CAM] = "cam";
+    device_type_string[DeviceType::CPU] = "cpu";
+    device_type_string[DeviceType::DISK] = "disk";
+    device_type_string[DeviceType::GPS] = "gps";
+    device_type_string[DeviceType::HTR] = "htr";
+    device_type_string[DeviceType::IMU] = "imu";
+    device_type_string[DeviceType::MCC] = "mcc";
+    device_type_string[DeviceType::MOTR] = "motr";
+    device_type_string[DeviceType::MTR] = "mtr";
+    device_type_string[DeviceType::PLOAD] = "pload";
+    device_type_string[DeviceType::PROP] = "prop";
+    device_type_string[DeviceType::PSEN] = "psen";
+    device_type_string[DeviceType::PVSTRG] = "pvstrg";
+    device_type_string[DeviceType::ROT] = "rot";
+    device_type_string[DeviceType::RW] = "rw";
+    device_type_string[DeviceType::RXR] = "rxr";
+    device_type_string[DeviceType::SSEN] = "ssen";
+    device_type_string[DeviceType::STT] = "stt";
+    device_type_string[DeviceType::SUCHI] = "suchi";
+    device_type_string[DeviceType::SWCH] = "swch";
+    device_type_string[DeviceType::TCU] = "tcu";
+    device_type_string[DeviceType::TCV] = "tcv";
+    device_type_string[DeviceType::TELEM] = "telem";
+    device_type_string[DeviceType::THST] = "thst";
+    device_type_string[DeviceType::TNC] = "tnc";
+    device_type_string[DeviceType::TSEN] = "tsen";
+    device_type_string[DeviceType::TXR] = "txr";
+	return;
+}
+
+//! Initialize JSON pointer map
+/*! Create a ::cosmosstruc and use it to assign storage for each of the groups and entries
+ * for each of the non Node based elements to the JSON Name Map.
+    \return Pointer to new ::cosmosstruc or nullptr.
+*/
+cosmosstruc* json_init()
+{
+	cosmosstruc* cinfo = nullptr;
+    if ((cinfo = new cosmosstruc()) == nullptr) { return nullptr; }
+
+	// resize fixed-sized vectors
+    cinfo->unit.resize(JSON_UNIT_COUNT);
+    cinfo->jmap.resize(JSON_MAX_HASH);
+    cinfo->emap.resize(JSON_MAX_HASH);
+    cinfo->glossary.resize(1);
+    cinfo->agent.resize(1);
+    cinfo->event.resize(1);
+    cinfo->user.resize(1);
+
+    // Make sure we aren't running out of memory
+    if (cinfo->unit.size() != JSON_UNIT_COUNT ||
+        cinfo->jmap.size() != JSON_MAX_HASH ||
+        cinfo->emap.size() != JSON_MAX_HASH ||
+    	cinfo->glossary.size() != 1 ||
+        cinfo->agent.size() != 1 ||
+        cinfo->event.size() != 1 ||
+        cinfo->user.size() != 1)
+    {
+        delete cinfo;
+    	cinfo = nullptr;
+        return cinfo;
+    }
+
+	cinfo->node = nodestruc();
+    cinfo->node.phys = physicsstruc();
+	cinfo->devspec = devspecstruc();
+
+	json_init_unit(cinfo);
+	json_init_device_type_string();
 
     // Here is where we add entries for all the single element names.
     cinfo->node.name[0] = 0;
@@ -561,7 +569,7 @@ int32_t json_create_cpu(string &node_name)
             switch (i)
             {
             case 0:
-                cinfo->device[i].all.type = static_cast <uint16_t>(DeviceType::CPU);
+                cinfo->device[i].all.type = DeviceType::CPU;
                 cinfo->device[i].all.didx = 0;
                 cinfo->device[i].all.portidx = PORT_TYPE_NONE;
                 cinfo->device[i].cpu.maxload = 1.;
@@ -571,7 +579,7 @@ int32_t json_create_cpu(string &node_name)
                 break;
             default:
                 cinfo->device[i].disk.maxgib = 1000.;
-                cinfo->device[i].all.type = static_cast <uint16_t>(DeviceType::DISK);
+                cinfo->device[i].all.type = DeviceType::DISK;
                 cinfo->device[i].all.didx = i-1;
                 cinfo->device[i].all.portidx = cinfo->device[i].all.didx;
                 cinfo->port[cinfo->device[i].all.didx].type = PORT_TYPE_DRIVE;
@@ -642,7 +650,7 @@ int32_t json_create_mcc(string &node_name)
             switch (i)
             {
             case 0:
-                cinfo->device[i].all.type = static_cast <uint16_t>(DeviceType::MCC);
+                cinfo->device[i].all.type = DeviceType::MCC;
                 cinfo->device[i].all.didx = 0;
                 cinfo->device[i].all.portidx = 0;
                 cinfo->device[i].mcc.align = {{0., 0., 0.}, 1.};
@@ -655,7 +663,7 @@ int32_t json_create_mcc(string &node_name)
                 break;
             default:
                 cinfo->device[i].disk.maxgib = 1000.;
-                cinfo->device[i].all.type = static_cast <uint16_t>(DeviceType::DISK);
+                cinfo->device[i].all.type = DeviceType::DISK;
                 cinfo->device[i].all.didx = i-1;
                 cinfo->device[i].all.portidx = cinfo->device[i].all.didx;
                 cinfo->port[cinfo->device[i].all.didx].type = PORT_TYPE_DRIVE;
@@ -806,7 +814,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
     }
     else
     {
-        piece.cidx = static_cast <uint16_t>(DeviceType::NONE);
+        piece.cidx = DeviceType::NONE;
     }
     piece.enabled = true;
     piece.face_cnt = 0;
@@ -7295,7 +7303,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             //Add relevant names to namespace
             json_mappieceentry(i, cinfo);
             // Initialize to no component
-            cinfo->pieces[i].cidx = static_cast <uint16_t>(DeviceType::NONE);
+            cinfo->pieces[i].cidx = DeviceType::NONE;
         }
 
         // Parse data for piece information
@@ -10438,7 +10446,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
 
     jstring.clear();
     // Dump device specific info
-    for (uint16_t i=0; i<static_cast<uint16_t>(DeviceType::COUNT); ++i)
+    for (uint16_t i=0; i<DeviceType::COUNT; ++i)
     {
         // Create Namespace name for Device Specific count
         sprintf(tstring,"device_%s_cnt",device_type_string[i].c_str());
@@ -11667,16 +11675,16 @@ uint16_t device_type_index(string name)
         }
     }
 
-    return static_cast <uint16_t>(DeviceType::NONE);
+    return DeviceType::NONE;
 }
 
 string device_type_name(uint32_t type)
 {
     string result;
-    if (device_type_string.size() < static_cast<uint16_t>(DeviceType::COUNT))
+    if (device_type_string.size() < DeviceType::COUNT)
     {
-        device_type_string.resize(static_cast<uint16_t>(DeviceType::COUNT));
-        for (size_t i=0; i<static_cast<uint16_t>(DeviceType::COUNT); ++i)
+        device_type_string.resize(DeviceType::COUNT);
+        for (size_t i=0; i<DeviceType::COUNT; ++i)
         {
             if (device_type_string[i] == "")
             {
@@ -11685,7 +11693,7 @@ string device_type_name(uint32_t type)
         }
     }
 
-    if (type < static_cast<uint16_t>(DeviceType::COUNT))
+    if (type < DeviceType::COUNT)
     {
         result =  device_type_string[type];
     }

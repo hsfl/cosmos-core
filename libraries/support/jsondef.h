@@ -450,7 +450,7 @@ enum {
 //! \defgroup defs_comp_type Type of Component.
 //! @{
 
-enum class DeviceType : uint16_t {
+enum DeviceType : uint16_t {
     //! Payload
     PLOAD=0,
     //! Elevation and Azimuth Sun Sensor
@@ -1946,7 +1946,7 @@ struct cosmosstruc
     double timestamp;
 
     //! Whether JSON map has been created.
-    uint16_t jmapped;
+    uint16_t jmapped = 0;
 
     //! JSON Namespace Map matrix. first entry hash, second is items with that hash
     vector<vector<jsonentry> > jmap;
