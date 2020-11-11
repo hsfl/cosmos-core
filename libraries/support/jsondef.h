@@ -1729,18 +1729,21 @@ struct nodestruc
     uint16_t type;
     //! Operational state
     uint16_t state;
-    uint16_t vertex_cnt;
-    uint16_t normal_cnt;
-    uint16_t face_cnt;
-    uint16_t piece_cnt;
-    uint16_t device_cnt;
-    uint16_t port_cnt;
-    uint16_t agent_cnt;
-    uint16_t event_cnt;
-    uint16_t target_cnt;
-    uint16_t user_cnt;
-    uint16_t glossary_cnt;
-    uint16_t tle_cnt;
+
+	// actually these are cosmosstruc counts...
+    uint16_t vertex_cnt = 0;
+    uint16_t normal_cnt = 0;
+    uint16_t face_cnt = 0;
+    uint16_t piece_cnt = 0;
+    uint16_t device_cnt = 0;
+    uint16_t port_cnt = 0;
+    uint16_t agent_cnt = 0;
+    uint16_t event_cnt = 0;
+    uint16_t target_cnt = 0;
+    uint16_t user_cnt = 0;
+    uint16_t glossary_cnt = 0;
+    uint16_t tle_cnt = 0;
+
     uint16_t flags;
     int16_t powmode;
     //! Seconds Node will be down

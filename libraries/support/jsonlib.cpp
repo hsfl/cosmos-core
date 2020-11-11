@@ -403,6 +403,11 @@ void json_init_device_type_string()	{
 	return;
 }
 
+void json_init_node(cosmosstruc* cinfo)	{
+	// JIMNOTE: how hard to change to string?
+    cinfo->node.name[0] = 0;
+}
+
 //! Initialize JSON pointer map
 /*! Create a ::cosmosstruc and use it to assign storage for each of the groups and entries
  * for each of the non Node based elements to the JSON Name Map.
@@ -442,21 +447,8 @@ cosmosstruc* json_init()
 
 	json_init_unit(cinfo);
 	json_init_device_type_string();
+	json_init_node(cinfo);
 
-    // Here is where we add entries for all the single element names.
-    cinfo->node.name[0] = 0;
-    cinfo->node.vertex_cnt = 0;
-    cinfo->node.normal_cnt = 0;
-    cinfo->node.face_cnt = 0;
-    cinfo->node.piece_cnt = 0;
-    cinfo->node.device_cnt = 0;
-    cinfo->node.port_cnt = 0;
-    cinfo->node.agent_cnt = 0;
-    cinfo->node.event_cnt = 0;
-    cinfo->node.target_cnt = 0;
-    cinfo->node.user_cnt = 0;
-    cinfo->node.glossary_cnt = 0;
-    cinfo->node.tle_cnt = 0;
     cinfo->timestamp = currentmjd();
 
     int32_t iretn = json_mapbaseentries(cinfo);
