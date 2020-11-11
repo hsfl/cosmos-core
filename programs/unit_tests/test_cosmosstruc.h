@@ -5,12 +5,13 @@
 #include "support/jsonlib.h"
 #include "gtest/gtest.h"
 
-int run_all_tests(int argc, char** argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+//int run_all_tests(int argc, char** argv) {
+    //testing::InitGoogleTest(&argc, argv);
+    //return RUN_ALL_TESTS();
+//}
 
-TEST(SanityCheck, ObviouslyTrue)   { EXPECT_EQ(0.0, 0.0); }
+//TEST(SanityCheck, ObviouslyTrue)   { EXPECT_EQ(0.0, 0.0); }
+
 TEST(cosmosstruc, allocation)   {
 	//cosmosstruc* c = new cosmosstruc();	
 	cosmosstruc* c = json_init();	
