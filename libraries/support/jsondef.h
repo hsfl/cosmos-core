@@ -529,7 +529,7 @@ enum {
     DEVICE_MODEL_PROPAGATOR=6,
     DEVICE_MODEL_USRP=7,
     DEVICE_MODEL_DIRECT=8
-    };
+};
 
 enum {
     DEVICE_RADIO_MODE_AM,
@@ -944,10 +944,16 @@ union eventstruc
  */
 struct userstruc
 {
-    char name[COSMOS_MAX_NAME+1];
-    char node[COSMOS_MAX_NAME+1];
-    char tool[COSMOS_MAX_NAME+1];
-    char cpu[COSMOS_MAX_NAME+1];
+	//to enforce a std::string name length maximum (if necessary) use this code to truncate:
+	//
+	//constexpr std::string::size_type MAX_CHARS = 20 ;
+	//if(whatever_string.size() > MAX_CHARS)	{
+	//	whatever_string = whatever_string.substr(0, MAX_CHARS);
+	//}
+	string name;
+	string node;
+	string tool;
+	string cpu;
 };
 
 //! Glossary structure

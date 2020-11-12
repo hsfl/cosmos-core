@@ -8,7 +8,7 @@
 TEST(cosmosstruc, allocation)   {
 	//cosmosstruc* c = new cosmosstruc();	
 	cosmosstruc* c = json_init();	
-	cout<<"\t\t\t\t\t\t\t\tcinfo = <"<<c<<">"<<endl;
+	cout<<"\t\t\t\t\t\t\tcinfo = <"<<c<<">"<<endl;
 	EXPECT_NE(c, nullptr);
 }
 
@@ -21,7 +21,7 @@ TEST(cosmosstruc, json_init_timestamp)	{
 	cosmosstruc* c = json_init();
 	double timestamp = c->timestamp;
 	double current = currentmjd();
-	cout<<"\t\t\t\t\t\t\t\ttimestamp = "<<setprecision(9)<<fixed<<timestamp<<"\tcurrent = "<<current<<endl;
+	cout<<"\t\t\t\t\t\t\ttimestamp = "<<setprecision(9)<<fixed<<timestamp<<"\tcurrent = "<<current<<endl;
 	stringstream tmp;
 	tmp << setprecision(6) << fixed << timestamp;
 	timestamp = stod(tmp.str());
