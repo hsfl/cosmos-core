@@ -155,7 +155,7 @@
 * Cartesian position structure with three vectors specifying position,
 * velocity and acceleration.
 */
-typedef struct
+struct cartpos
 {
     //! UTC of Position
     double utc;
@@ -168,7 +168,7 @@ typedef struct
 	// TODO: get rid of this kind of stuff?
     //! pass indicator: allows synchronization with other attitude and position values.
     uint32_t pass;
-} cartpos;
+};
 
 std::ostream& operator << (std::ostream& out, const cartpos& a);
 std::istream& operator >> (std::istream& in, cartpos& a);
@@ -177,13 +177,13 @@ std::istream& operator >> (std::istream& in, cartpos& a);
 /*! Cartesian position structure with an additional time element.
         \see ::cartpos
 */
-typedef struct
+struct cposstruc
 {
     //! UTC as Modified Julian Day
     double utc;
     //! Cartesian structure with all elements of position
     cartpos pos;
-} cposstruc;
+};
 
 std::ostream& operator << (std::ostream& out, const cposstruc& a);
 std::istream& operator >> (std::istream& in, cposstruc& a);
@@ -192,7 +192,7 @@ std::istream& operator >> (std::istream& in, cposstruc& a);
 /*! Structure containing 3 geodetic vectors representing position, velocity and acceleration.
         \see ::gvector
 */
-typedef struct
+struct geoidpos
 {
     double utc;
     //! Position vector
@@ -203,7 +203,7 @@ typedef struct
     gvector a;
     //! pass indicator: allows synchronization with other attitude and position values.
     uint32_t pass;
-} geoidpos;
+};
 
 std::ostream& operator << (std::ostream& out, const geoidpos& a);
 std::istream& operator >> (std::istream& in, geoidpos& a);
@@ -212,7 +212,7 @@ std::istream& operator >> (std::istream& in, geoidpos& a);
 /*! Structure containing 3 spherical vectors representing position, velocity and acceleration.
         \see ::svector
 */
-typedef struct
+struct spherpos
 {
     double utc;
     //! Position vector
@@ -223,29 +223,29 @@ typedef struct
     svector a;
     //! pass indicator: allows synchronization with other attitude and position values.
     uint32_t pass;
-} spherpos;
+};
 
 std::ostream& operator << (std::ostream& out, const spherpos& a);
 std::istream& operator >> (std::istream& in, spherpos& a);
 
-typedef struct
+struct aattstruc
 {
     double utc;
     avector s;
     avector v;
     avector a;
-} aattstruc;
+};
 
 std::ostream& operator << (std::ostream& out, const aattstruc& a);
 std::istream& operator >> (std::istream& in, aattstruc& a);
 
-typedef struct
+struct quatatt
 {
     double utc;
     quaternion s;
     rvector v;
     rvector a;
-} quatatt;
+};
 
 std::ostream& operator << (std::ostream& out, const quatatt& a);
 std::istream& operator >> (std::istream& in, quatatt& a);
@@ -254,7 +254,7 @@ std::istream& operator >> (std::istream& in, quatatt& a);
 /*! Full attitude structure (0th, 1st and 2nd derivative), using a Direction Cosine Matrix
  * to present the 0th derivative.
 */
-typedef struct
+struct dcmatt
 {
     double utc;
     //! 0th derivative
@@ -263,7 +263,7 @@ typedef struct
     rvector v;
     //! 2nd derivative
     rvector a;
-} dcmatt;
+};
 
 std::ostream& operator << (std::ostream& out, const dcmatt& a);
 std::istream& operator >> (std::istream& in, dcmatt& a);
@@ -284,7 +284,7 @@ struct qatt
     rvector a;  //ddq
     //! pass indicator: allows synchronization with other attitude and position values.
     uint32_t pass;
-} ;
+};
 
 std::ostream& operator << (std::ostream& out, const qatt& a);
 std::istream& operator >> (std::istream& in, qatt& a);
@@ -292,7 +292,7 @@ std::istream& operator >> (std::istream& in, qatt& a);
 //! Classical elements structure
 /*! Position structure representing the full state vector as classical Keplerian elements.
 */
-typedef struct
+struct kepstruc
 {
     //! UTC time of state vector in MJD
     double utc;
@@ -326,23 +326,23 @@ typedef struct
     //! Mean Motion
     double mm;
     double fa;
-} kepstruc;
+};
 
 std::ostream& operator << (std::ostream& out, const kepstruc& a);
 std::istream& operator >> (std::istream& in, kepstruc& a);
 
-typedef struct
+struct bodypos
 {
     double sepangle;
     double size;
     double radiance;
-} bodypos;
+};
 
 std::ostream& operator << (std::ostream& out, const bodypos& a);
 std::istream& operator << (std::istream& in, bodypos& a);
 
 //! Additional parameters relating to position that need only be calculated once.
-typedef struct
+struct extrapos
 {
     //! Coordinated Universal Time
     double utc;
@@ -371,13 +371,13 @@ typedef struct
     cartpos sun2earth;
     cartpos sun2moon;
     uint16_t closest;
-} extrapos;
+};
 
 std::ostream& operator << (std::ostream& out, const extrapos& a);
 std::istream& operator >> (std::istream& in, extrapos& a);
 
 //! Additional parameters relating to position that need only be calculated once.
-typedef struct
+struct extraatt
 {
     //! Coordinated Universal Time
     double utc;
@@ -385,12 +385,12 @@ typedef struct
     rmatrix j2b;
     //! Transform from Body frame to ICRF
     rmatrix b2j;
-} extraatt;
+};
 
 std::ostream& operator << (std::ostream& out, const extraatt& a);
 std::istream& operator >> (std::istream& in, extraatt& a);
 
-typedef struct
+struct posstruc
 {
     double utc;
     cartpos icrf;
@@ -414,12 +414,12 @@ typedef struct
     rvector bearth;
     //! Decimal Orbit number
     double orbit;
-} posstruc;
+};
 
 std::ostream& operator << (std::ostream& out, const posstruc& a);
 std::istream& operator >> (std::istream& in, posstruc& a);
 
-typedef struct
+struct attstruc
 {
     double utc;
     qatt topo;
@@ -428,12 +428,12 @@ typedef struct
     qatt selc;
     qatt icrf;
     extraatt extra;
-} attstruc;
+};
 
 std::ostream& operator << (std::ostream& out, const attstruc& a);
 std::istream& operator >> (std::istream& in, attstruc& a);
 
-typedef struct
+struct locstruc
 {
     //! Master time for location, in Modified Julian Day
     double utc;
@@ -443,7 +443,7 @@ typedef struct
     attstruc att;
     //! Earth magnetic vector in ITRS for this time and location.
 //    rvector bearth;
-} locstruc;
+};
 
 std::ostream& operator << (std::ostream& out, const locstruc& a);
 std::istream& operator >> (std::istream& in, locstruc& a);
@@ -452,8 +452,10 @@ std::istream& operator >> (std::istream& in, locstruc& a);
 struct tlestruc
 {
     double utc;
+	// JIMNOTE: remove magic number
     char name[25];
     uint16_t snumber;
+	// JIMNOTE: remove magic number
     char id[9];
     //! Drag (1/Earth radii)
     double bstar;
@@ -476,7 +478,7 @@ struct tlestruc
 /*! Structure for holding an array of position structures generated by STK.
         \see ::cposstruc
 */
-typedef struct
+struct stkstruc
 {
     //! Number of positions
     size_t count;
@@ -484,7 +486,7 @@ typedef struct
     double dt;
     //! Array of positions
     cposstruc *pos;
-} stkstruc;
+};
 
 //! @}
 
