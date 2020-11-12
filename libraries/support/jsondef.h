@@ -1002,8 +1002,7 @@ struct equationstruc
 struct targetstruc
 {
     double utc;
-    //char name[COSMOS_MAX_NAME+1];
-    string name;
+    char name[COSMOS_MAX_NAME+1];
     uint16_t type;
     float azfrom;
     float elfrom;
@@ -1146,6 +1145,59 @@ struct allstruc
     float temp; // TODO: rename to temperature
     //! Device information time stamp
     double utc;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "enabled" , enabled },
+            { "type"    , type },
+            { "model"   , model },
+            { "flag"    , static_cast<double>(flag) },
+            { "addr"    , addr },
+            { "cidx"    , cidx },
+            { "didx"    , didx },
+            { "pidx"    , pidx },
+            { "bidx"    , bidx },
+            { "portidx" , portidx },
+            { "namp"    , namp},
+            { "nvolt"   , nvolt },
+            { "amp"     , amp },
+            { "volt"    , volt },
+            { "power"   , power },
+            { "energy"  , energy },
+            { "drate"   , drate },
+            { "temp"    , temp },
+            { "utc"     , utc },
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            enabled = parsed["enabled"].bool_value();
+            type = parsed["type"].number_value();
+            model = parsed["model"].number_value();
+            flag = static_cast<uint32_t>(parsed["flag"].number_value());
+            addr = parsed["addr"].number_value();
+            cidx = parsed["cidx"].number_value();
+            didx = parsed["didx"].number_value();
+            pidx = parsed["pidx"].number_value();
+            bidx = parsed["bidx"].number_value();
+            portidx = parsed["portidx"].number_value();
+            namp = parsed["namp"].number_value();
+            nvolt = parsed["nvolt"].number_value();
+            amp = parsed["amp"].number_value();
+            volt = parsed["volt"].number_value();
+            power = parsed["power"].number_value();
+            energy = parsed["energy"].number_value();
+            drate = parsed["drate"].number_value();
+            temp = parsed["temp"].number_value();
+            utc = parsed["utc"].number_value();
+        }
+        return;
+    }
 };
 
 // End of Device General structures
@@ -1175,6 +1227,25 @@ struct telemstruc : public allstruc
         double vdouble;
         char vstring[COSMOS_MAX_NAME+1];
     };
+
+        // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "type" , type },
+            { "vstring", vstring }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            type = parsed["type"].number_value();
+//  TODO:          vstring = parsed["vstring"].string_value();
+        }
+        return;
+    }
 } ;
 
 //! Payload (PLOAD) structure.
@@ -1190,6 +1261,30 @@ struct ploadstruc : public allstruc
     uint16_t keyidx[MAXPLOADKEYCNT];
     //! Value for each key.
     float keyval[MAXPLOADKEYCNT];
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        vector<float> v_keyval = vector<float>(keyval, keyval+MAXPLOADKEYCNT);
+        return json11::Json::object {
+            { "key_cnt", key_cnt },
+            { "keyidx" , keyidx },
+            { "keyval" , v_keyval }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            key_cnt = parsed["key_cnt"].number_value();
+            auto p_keyidx = parsed["keyidx"].array_items();
+            for(size_t i = 0; i != p_keyidx.size(); ++i) { keyidx[i] = p_keyidx[i].int_value(); }
+            auto p_keyval = parsed["keyval"].array_items();
+            for(size_t i = 0; i != p_keyval.size(); ++i) { keyval[i] = p_keyval[i].number_value(); }
+        }
+        return;
+    }
 };
 
 //! Sun Sensor (SSEN) Sructure
@@ -1203,6 +1298,35 @@ struct ssenstruc : public allstruc
     float qvd;
     float azimuth;
     float elevation;
+
+// Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "align" , align.to_json() },
+            { "qva", qva },
+            { "qvb", qvb },
+            { "qvc", qvc },
+            { "qvd", qvd },
+            { "azimuth", azimuth },
+            { "elevation", elevation },
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            align.from_json(parsed["align"].dump());
+            qva = parsed["qva"].number_value();
+            qvb = parsed["qvb"].number_value();
+            qvc = parsed["qvc"].number_value();
+            qvd = parsed["qvd"].number_value();
+            azimuth = parsed["azimuth"].number_value();
+            elevation = parsed["elevation"].number_value();
+        }
+        return;
+    }
 };
 
 //! Inertial Measurement Unit (IMU) structure
@@ -1224,6 +1348,37 @@ struct imustruc : public allstruc
     rvector mag;
     //! Magnetic field rate change in sensor frame
     rvector bdot;
+    
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "align" , align.to_json() },
+            { "accel" , accel.to_json() },
+            { "theta" , theta.to_json() },
+            { "euler" , euler.to_json() },
+            { "omega" , omega.to_json() },
+            { "alpha" , alpha.to_json() },
+            { "mag"   , mag.to_json() },
+            { "bdot"  , bdot.to_json() }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            align.from_json(parsed["align"].dump());
+            accel.from_json(parsed["accel"].dump());
+            theta.from_json(parsed["theta"].dump());
+            euler.from_json(parsed["euler"].dump());
+            omega.from_json(parsed["omega"].dump());
+            alpha.from_json(parsed["alpha"].dump());
+            mag.from_json(parsed["mag"].dump());
+            bdot.from_json(parsed["bdot"].dump());
+        }
+        return;
+    }
 };
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
@@ -1247,6 +1402,39 @@ struct rwstruc : public allstruc
     float romg;
     //! Requested angular acceleration
     float ralp;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "align" , align.to_json() },
+            { "mom"   , mom.to_json() },
+            { "mxomg" , mxomg },
+            { "mxalp" , mxalp },
+            { "tc"    , tc },
+            { "omg"   , omg },
+            { "alp"   , alp },
+            { "romg"  , romg },
+            { "ralp"  , ralp },
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            align.from_json(parsed["align"].dump());
+            mom.from_json(parsed["mom"].dump());
+            mxomg = parsed["mxomg"].number_value();
+            mxalp = parsed["mxalp"].number_value();
+            tc = parsed["tc"].number_value();
+            omg = parsed["omg"].number_value();
+            alp = parsed["alp"].number_value();
+            romg = parsed["romg"].number_value();
+            ralp = parsed["ralp"].number_value();
+        }
+        return;
+    }
 };
 
 //! Magnetic Torque Rod structure: z axis is aligned with rod.
@@ -1266,6 +1454,37 @@ struct mtrstruc : public allstruc
     float rmom;
     //! Actual Magnetic Moment.
     float mom;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "align" , align.to_json() },
+            //{ "npoly"   , json11::Json::carray_to_vector(npoly) },
+            //{ "ppoly"   , json11::Json::carray_to_vector(ppoly) },
+            { "mxmom"   , mxmom },
+            { "tc"      , tc },
+            { "rmom"    , rmom },
+            { "mom"     , mom },
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            align.from_json(parsed["align"].dump());
+            auto p_npoly = parsed["npoly"].array_items();
+            for(size_t i = 0; i != p_npoly.size(); ++i) { npoly[i] = p_npoly[i].number_value(); }
+            auto p_ppoly = parsed["ppoly"].array_items();
+            for(size_t i = 0; i != p_ppoly.size(); ++i) { ppoly[i] = p_ppoly[i].number_value(); }
+            mxmom = parsed["mxmom"].number_value();
+            tc = parsed["tc"].number_value();
+            rmom = parsed["rmom"].number_value();
+            mom = parsed["mom"].number_value();
+        }
+        return;
+    }
 };
 
 //! CPU information
@@ -1287,6 +1506,33 @@ struct cpustruc : public allstruc
 
     //! Number of reboots
     uint32_t boot_count;
+
+        // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "uptime" , static_cast<double>(uptime) },
+            { "load"   , load },
+            { "maxload", maxload },
+            { "maxgib" , maxgib },
+            { "gib"    , gib },
+            { "boot_count", static_cast<double>(boot_count) },
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            uptime = static_cast<uint32_t>(parsed["uptime"].number_value());
+            load = parsed["load"].number_value();
+            maxload = parsed["maxload"].number_value();
+            maxgib = parsed["maxgib"].number_value();
+            gib = parsed["gib"].number_value();
+            boot_count = static_cast<uint32_t>(parsed["boot_count"].number_value());
+        }
+        return;
+    }
 };
 
 //! Disk information
@@ -1299,6 +1545,27 @@ struct diskstruc : public allstruc
     float gib; // TODO: rename to diskUsed, consider bytes?
     //! Path
     char path[COSMOS_MAX_NAME];
+
+        // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "maxgib" , maxgib },
+            { "gib"    , gib },
+        //    TODO: path
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            maxgib = parsed["maxgib"].number_value();
+            gib = parsed["gib"].number_value();
+            // TODO: path
+        }
+        return;
+    }
 };
 
 // TODO: rename to GpsData
@@ -1336,6 +1603,51 @@ struct gpsstruc : public allstruc
     uint16_t position_type;
     //! Solution Status
     uint16_t solution_status;
+
+        // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "dutc"   , dutc },
+            { "geocs"  , geocs.to_json() },
+            { "geocv"  , geocv.to_json() },
+            { "dgeocs" , dgeocs.to_json() },
+            { "dgeocv" , dgeocv.to_json() },
+            { "geods"  , geods.to_json() },
+            { "geodv"  , geodv.to_json() },
+            { "dgeods" , dgeods.to_json() },
+            { "dgeodv" , dgeodv.to_json() },
+            { "heading", heading },
+            { "sats_used"    , sats_used },
+            { "sats_visible" , sats_visible },
+            { "time_status"  , time_status },
+            { "position_type", position_type },
+            { "solution_status", solution_status }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            dutc = parsed["dutc"].number_value();
+            geocs.from_json(parsed["geocs"].dump());
+            geocv.from_json(parsed["geocv"].dump());
+            dgeocs.from_json(parsed["dgeocs"].dump());
+            dgeocv.from_json(parsed["dgeocv"].dump());
+            geods.from_json(parsed["geods"].dump());
+            geodv.from_json(parsed["geodv"].dump());
+            dgeods.from_json(parsed["dgeods"].dump());
+            dgeodv.from_json(parsed["dgeodv"].dump());
+            heading = parsed["heading"].number_value();
+            sats_used = parsed["sats_used"].int_value();
+            sats_visible = parsed["sats_visible"].int_value();
+            time_status = parsed["time_status"].int_value();
+            position_type = parsed["position_type"].int_value();
+            solution_status = parsed["solution_status"].int_value();
+        }
+        return;
+    }
 };
 
 //! Antenna information
@@ -1359,6 +1671,37 @@ struct antstruc : public allstruc
     float maxazim;
     //! Elevation threshold
     float threshelev;
+
+        // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "align" , align.to_json() },
+            { "azim"  , azim },
+            { "elev"  , elev },
+            { "minelev" , minelev },
+            { "maxelev" , maxelev },
+            { "minazim" , minazim },
+            { "maxazim" , maxazim },
+            { "threshelev" , threshelev }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            align.from_json(parsed["align"].dump());
+            azim = parsed["azim"].number_value();
+            elev = parsed["elev"].number_value();
+            minelev = parsed["minelev"].number_value();
+            maxelev = parsed["maxelev"].number_value();
+            minazim = parsed["minazim"].number_value();
+            maxazim = parsed["maxazim"].number_value();
+            threshelev = parsed["threshelev"].number_value();
+        }
+        return;
+    }
 };
 
 //! Receiver information
@@ -1387,11 +1730,52 @@ struct rxrstruc : public allstruc
     //! Input Filter bandpass
     float band;
     //! Good Packet Percentage
-    double  goodratio;
+    double goodratio;
     //! Last RX time
     double rxutc;
     //! Connection Uptime
     double uptime;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "opmode" , opmode },
+            { "rssi"   , rssi },
+            { "pktsize", pktsize },
+            { "freq"   , freq },
+            { "maxfreq", maxfreq },
+            { "minfreq", minfreq },
+            { "powerin", powerin },
+            { "powerout" , powerout },
+            { "maxpower" , maxpower },
+            { "band"     , band },
+            { "goodratio", goodratio },
+            { "rxutc"  , rxutc },
+            { "uptime" , uptime }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            opmode = parsed["opmode"].int_value();
+            rssi = parsed["rssi"].int_value();
+            pktsize = parsed["pktsize"].int_value();
+            freq = parsed["freq"].number_value();
+            maxfreq = parsed["maxfreq"].number_value();
+            minfreq = parsed["minfreq"].number_value();
+            powerin = parsed["powerin"].number_value();
+            powerout = parsed["powerout"].number_value();
+            maxpower = parsed["maxpower"].number_value();
+            band = parsed["band"].number_value();
+            goodratio = parsed["goodratio"].number_value();
+            rxutc = parsed["rxutc"].number_value();
+            uptime = parsed["uptime"].number_value();
+        }
+        return;
+    }
 };
 
 //! Transmitter information
@@ -1425,6 +1809,47 @@ struct txrstruc : public allstruc
     double txutc;
     //! Connection Uptime
     double uptime;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "opmode" , opmode },
+            { "rssi"   , rssi },
+            { "pktsize", pktsize },
+            { "freq"   , freq },
+            { "maxfreq", maxfreq },
+            { "minfreq", minfreq },
+            { "powerin", powerin },
+            { "powerout" , powerout },
+            { "maxpower" , maxpower },
+            { "band"     , band },
+            { "goodratio", goodratio },
+            { "txutc"  , txutc },
+            { "uptime" , uptime }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            opmode = parsed["opmode"].int_value();
+            rssi = parsed["rssi"].int_value();
+            pktsize = parsed["pktsize"].int_value();
+            freq = parsed["freq"].number_value();
+            maxfreq = parsed["maxfreq"].number_value();
+            minfreq = parsed["minfreq"].number_value();
+            powerin = parsed["powerin"].number_value();
+            powerout = parsed["powerout"].number_value();
+            maxpower = parsed["maxpower"].number_value();
+            band = parsed["band"].number_value();
+            goodratio = parsed["goodratio"].number_value();
+            txutc = parsed["txutc"].number_value();
+            uptime = parsed["uptime"].number_value();
+        }
+        return;
+    }
 };
 
 //! Transceiver information
@@ -1460,6 +1885,49 @@ struct tcvstruc : public allstruc
     double rxutc;
     //! Connection Uptime
     double uptime;
+
+        // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "opmode" , opmode },
+            { "rssi"   , rssi },
+            { "pktsize", pktsize },
+            { "freq"   , freq },
+            { "maxfreq", maxfreq },
+            { "minfreq", minfreq },
+            { "powerin", powerin },
+            { "powerout" , powerout },
+            { "maxpower" , maxpower },
+            { "band"     , band },
+            { "goodratio", goodratio },
+            { "txutc"  , txutc },
+            { "rxutc"  , rxutc },
+            { "uptime" , uptime }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            opmode = parsed["opmode"].int_value();
+            rssi = parsed["rssi"].int_value();
+            pktsize = parsed["pktsize"].int_value();
+            freq = parsed["freq"].number_value();
+            maxfreq = parsed["maxfreq"].number_value();
+            minfreq = parsed["minfreq"].number_value();
+            powerin = parsed["powerin"].number_value();
+            powerout = parsed["powerout"].number_value();
+            maxpower = parsed["maxpower"].number_value();
+            band = parsed["band"].number_value();
+            goodratio = parsed["goodratio"].number_value();
+            txutc = parsed["txutc"].number_value();
+            rxutc = parsed["rxutc"].number_value();
+            uptime = parsed["uptime"].number_value();
+        }
+        return;
+    }
 };
 
 //! PV String (STRG) structure.
@@ -1477,6 +1945,31 @@ struct pvstrgstruc : public allstruc
     float maxpower;
     //! Current power being generated in Watts.
     float power;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "bcidx"  , bcidx },
+            { "effbase", effbase },
+            { "effslope", effslope },
+            { "maxpower", maxpower },
+            { "power"  , power}
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            bcidx = parsed["bcidx"].int_value();
+            effbase = parsed["effbase"].number_value();
+            effslope = parsed["effslope"].number_value();
+            maxpower = parsed["maxpower"].number_value();
+            power = parsed["power"].number_value();
+        }
+        return;
+    }
 };
 
 //! Battery (BATT) structure.
@@ -1496,6 +1989,35 @@ struct battstruc : public allstruc
     float percentage;
     //! Time Remaining
     float time_remaining;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "capacity"  , capacity },
+            { "efficiency", efficiency },
+            { "charge"    , charge },
+            { "r_in"  , r_in },
+            { "r_out" , r_out },
+            { "percentage", percentage },
+            { "time_remaining" , time_remaining }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            capacity = parsed["capacity"].number_value();
+            efficiency = parsed["efficiency"].number_value();
+            charge = parsed["charge"].number_value();
+            r_in = parsed["r_in"].number_value();
+            r_out = parsed["r_out"].number_value();
+            percentage = parsed["percentage"].number_value();
+            time_remaining = parsed["time_remaining"].number_value();
+        }
+        return;
+    }
 };
 
 //! Heater Structure definition
@@ -1506,6 +2028,25 @@ struct htrstruc : public allstruc
     bool state;
     //! Temperature set vertex
     float setvertex;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "state" , state },
+            { "setvertex" , setvertex }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            state = parsed["state"].bool_value();
+            setvertex = parsed["setvertex"].number_value();
+        }
+        return;
+    }
 };
 
 struct motrstruc : public allstruc
@@ -1515,6 +2056,27 @@ struct motrstruc : public allstruc
     //!
     float rat;
     float spd;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "max" , max },
+            { "rat" , rat },
+            { "spd" , spd },
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            max = parsed["max"].number_value();
+            rat = parsed["rat"].number_value();
+            spd = parsed["spd"].number_value();
+        }
+        return;
+    }
 };
 
 struct tsenstruc : public allstruc {};
@@ -1528,6 +2090,27 @@ struct thststruc : public allstruc
     float flw;
     //! Rotation of thrust vector (+z) in to node frame.
     float isp;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "align" , align.to_json() },
+            { "flw"   , flw },
+            { "isp"   , isp }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            align.from_json(parsed["align"].dump());
+            flw = parsed["flw"].number_value();
+            isp = parsed["isp"].number_value();
+        }
+        return;
+    }
 };
 
 //! Propellant Tank (PROP) structure.
@@ -1537,6 +2120,25 @@ struct propstruc : public allstruc
     float cap;
     //! Propellant level in kg
     float lev;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "cap" , cap },
+            { "lev" , lev }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            cap = parsed["cap"].number_value();
+            lev = parsed["lev"].number_value();
+        }
+        return;
+    }
 };
 
 //! Switch Structure definition
@@ -1551,6 +2153,23 @@ struct rotstruc : public allstruc
 {
     //! Angular position
     float angle;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "angle" , angle }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            angle = parsed["angle"].number_value();
+        }
+        return;
+    }
 };
 
 //! Star Tracker (STT) Sructure
@@ -1566,6 +2185,33 @@ struct sttstruc : public allstruc
     //! return code for
     uint16_t retcode;
     uint32_t status;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "align" , align.to_json() },
+            { "att"   , att.to_json() },
+            { "omega" , omega.to_json() },
+            { "alpha" , alpha.to_json() },
+            { "retcode", retcode },
+            { "status" , static_cast<double>(status) }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            align.from_json(parsed["align"].dump());
+            att.from_json(parsed["att"].dump());
+            omega.from_json(parsed["omega"].dump());
+            alpha.from_json(parsed["alpha"].dump());
+            retcode = parsed["retcode"].int_value();
+            status = static_cast<uint32_t>(parsed["status"].number_value());
+        }
+        return;
+    }
 };
 
 //! Motion Capture Camera (MCC) Structure
@@ -1577,6 +2223,29 @@ struct mccstruc : public allstruc
     quaternion q;
     rvector o;
     rvector a;
+
+        // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "align" , align.to_json() },
+            { "q"     , q.to_json() },
+            { "o"     , o.to_json() },
+            { "a"     , a.to_json() }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            align.from_json(parsed["align"].dump());
+            q.from_json(parsed["q"].dump());
+            o.from_json(parsed["o"].dump());
+            a.from_json(parsed["a"].dump());
+        }
+        return;
+    }
 };
 
 //! Torque Rod Control Unit
@@ -1586,18 +2255,72 @@ struct tcustruc : public allstruc
     uint16_t mcnt;
     //! Torque Rod Component indices
     uint16_t mcidx[3];
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "mcnt" , mcnt }//,
+            //{ "mcidx", json11::Json::carray_to_vector(mcidx) }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            mcnt = parsed["mcnt"].int_value();
+            auto p_mcidx = parsed["mcidx"].array_items();
+            for(size_t i = 0; i != p_mcidx.size(); ++i) { mcidx[i] = p_mcidx[i].int_value(); }
+        }
+        return;
+    }
 };
 
 struct busstruc : public allstruc
 {
     //! Watch Dog Timer (MJD)
     float wdt;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "wdt" , wdt }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            wdt = parsed["wdt"].number_value();
+        }
+        return;
+    }
 };
 
 struct psenstruc : public allstruc
 {
     //! Current Pressure
     float press;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "press" , press }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            press = parsed["press"].number_value();
+        }
+        return;
+    }
 };
 
 //! SUCHI Sructure
@@ -1609,6 +2332,28 @@ struct suchistruc : public allstruc
     float press;
     //! Internal temperatures
     float temps[8];
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "align" , align.to_json() },
+            { "press" , press }//,
+            //{ "temps" , json11::Json::carray_to_vector(temps) }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            align.from_json(parsed["align"].dump());
+            press = parsed["press"].number_value();
+            auto p_temps = parsed["temps"].array_items();
+            for(size_t i = 0; i != p_temps.size(); ++i) { temps[i] = p_temps[i].number_value(); }
+        }
+        return;
+    }
 };
 
 struct camstruc : public allstruc
@@ -1618,6 +2363,31 @@ struct camstruc : public allstruc
     float width;
     float height;
     float flength;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "pwidth" , pwidth },
+            { "pheight", pheight },
+            { "width"  , width },
+            { "height" , height },
+            { "flength", flength }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            pwidth = parsed["pwidth"].int_value();
+            pheight = parsed["pheight"].int_value();
+            width = parsed["width"].number_value();
+            height = parsed["height"].number_value();
+            flength = parsed["flength"].number_value();
+        }
+        return;
+    }
 };
 
 //! TNC Structure definition
@@ -1675,6 +2445,42 @@ struct trianglestruc
     //! Solar cell efficiency with temp
     float ecellslope = 0.;
     vector<vector<size_t>> triangleindex;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "external" , external },
+            { "com" , com.to_json() },
+            { "normal" , normal.to_json() },
+            { "shove" , shove.to_json() },
+            { "twist" , twist.to_json() },
+            { "pidx"  , pidx },
+            //{ "tidx"  , json11::Json::carray_to_vector(tidx) },
+            { "heat"  , heat },
+            { "hcap"  , hcap },
+            { "emi"   , emi },
+            { "abs"   , abs },
+            { "mass"  , mass },
+            { "temp"  , temp },
+            { "area"  , area },
+            { "perimeter"   , perimeter },
+            { "irradiation" , irradiation },
+            { "pcell" , pcell },
+            { "ecellbase"   , ecellbase },
+            { "ecellslope"  , ecellslope },
+//  TODO:          { "triangleindex" , triangleindex }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+// TODO:
+        }
+        return;
+    }
 };
 
 //! Physics Simulation Structure
