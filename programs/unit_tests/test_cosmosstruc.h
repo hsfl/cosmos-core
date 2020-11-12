@@ -62,20 +62,34 @@ TEST(cosmosstruc, json_init_node)	{
 	cosmosstruc* c = json_init();
 
 	EXPECT_EQ(string(c->node.name), "");
-	EXPECT_EQ(c->node. vertex_cnt , 0);
-    EXPECT_EQ(c->node. normal_cnt , 0);
-    EXPECT_EQ(c->node. face_cnt , 0);
-    EXPECT_EQ(c->node. piece_cnt , 0);
-    EXPECT_EQ(c->node. device_cnt , 0);
-    EXPECT_EQ(c->node. port_cnt , 0);
-    EXPECT_EQ(c->node. agent_cnt , 0);
-    EXPECT_EQ(c->node. event_cnt , 0);
-    EXPECT_EQ(c->node. target_cnt , 0);
-    EXPECT_EQ(c->node. user_cnt , 0);
-    EXPECT_EQ(c->node. glossary_cnt , 0);
-    EXPECT_EQ(c->node. tle_cnt , 0);
+	EXPECT_EQ(c->node.vertex_cnt , 0);
+    EXPECT_EQ(c->node.normal_cnt , 0);
+    EXPECT_EQ(c->node.face_cnt , 0);
+    EXPECT_EQ(c->node.piece_cnt , 0);
+    EXPECT_EQ(c->node.device_cnt , 0);
+    EXPECT_EQ(c->node.port_cnt , 0);
+    EXPECT_EQ(c->node.agent_cnt , 0);
+    EXPECT_EQ(c->node.event_cnt , 0);
+    EXPECT_EQ(c->node.target_cnt , 0);
+    EXPECT_EQ(c->node.user_cnt , 0);
+    EXPECT_EQ(c->node.glossary_cnt , 0);
+    EXPECT_EQ(c->node.tle_cnt , 0);
 }
 
+TEST(cosmosstruc, json_init_json)	{
+	cosmosstruc* c = json_init();
+	EXPECT_EQ(c->json.name, "");
+	EXPECT_EQ(c->json.node, "");
+	EXPECT_EQ(c->json.state, "");
+	EXPECT_EQ(c->json.utcstart, "");
+	EXPECT_EQ(c->json.vertexs, "");
+	EXPECT_EQ(c->json.faces, "");
+	EXPECT_EQ(c->json.pieces, "");
+	EXPECT_EQ(c->json.devspec, "");
+	EXPECT_EQ(c->json.ports, "");
+	EXPECT_EQ(c->json.targets, "");
+	EXPECT_EQ(c->json.aliases, "");
+}
 
 
 // check all get_value methods

@@ -662,18 +662,18 @@ struct unitstruc
 //! can be loaded from disk, or transferred from another agent.
 struct jsonnode
 {
-    string name;
-    string node;
-    string state;
-    string utcstart;
-    string vertexs;
-    string faces;
-    string pieces;
-    string devgen;
-    string devspec;
-    string ports;
-    string targets;
-    string aliases;
+    string name = "";
+    string node = "";
+    string state = "";
+    string utcstart = "";
+    string vertexs = "";
+    string faces = "";
+    string pieces = "";
+    string devgen = "";
+    string devspec = "";
+    string ports = "";
+    string targets = "";
+    string aliases = "";
 };
 
 //! JSON handle
