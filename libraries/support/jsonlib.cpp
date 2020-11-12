@@ -75,10 +75,12 @@ static vector <string> device_type_string;
 void json_init_unit(cosmosstruc* cinfo)	{
 
     // Create JSON Map unit table
-    for (uint16_t i=0; i<cinfo->unit.size(); ++i)
+    for (uint16_t i=0; i<JSON_UNIT_COUNT; ++i)
     {
         // SI Units
+		cinfo->unit.push_back(vector<unitstruc>());
     	unitstruc tunit;
+
         switch (i)
         {
         case JSON_UNIT_NONE:
@@ -408,6 +410,31 @@ void json_init_node(cosmosstruc* cinfo)	{
     cinfo->node.name[0] = 0;
 }
 
+void json_init_resize(cosmosstruc* cinfo) {
+	// /reserve/resize fixed-sized vectors
+    cinfo->unit.reserve(JSON_UNIT_COUNT);
+    cinfo->jmap.resize(JSON_MAX_HASH);
+    cinfo->emap.resize(JSON_MAX_HASH);
+    cinfo->glossary.resize(1);
+    cinfo->agent.resize(1);
+    cinfo->event.resize(1);
+    cinfo->user.resize(1);
+
+    // Make sure we aren't running out of memory
+    if (
+		cinfo->unit.capacity() < JSON_UNIT_COUNT ||
+        cinfo->jmap.size() != JSON_MAX_HASH ||
+        cinfo->emap.size() != JSON_MAX_HASH ||
+    	cinfo->glossary.size() != 1 ||
+        cinfo->agent.size() != 1 ||
+        cinfo->event.size() != 1 ||
+        cinfo->user.size() != 1)
+    {
+        delete cinfo;
+    	cinfo = nullptr;
+    }
+}
+
 //! Initialize JSON pointer map
 /*! Create a ::cosmosstruc and use it to assign storage for each of the groups and entries
  * for each of the non Node based elements to the JSON Name Map.
@@ -418,35 +445,15 @@ cosmosstruc* json_init()
 	cosmosstruc* cinfo = nullptr;
     if ((cinfo = new cosmosstruc()) == nullptr) { return nullptr; }
 
-	// resize fixed-sized vectors
-    cinfo->unit.resize(JSON_UNIT_COUNT);
-    cinfo->jmap.resize(JSON_MAX_HASH);
-    cinfo->emap.resize(JSON_MAX_HASH);
-    cinfo->glossary.resize(1);
-    cinfo->agent.resize(1);
-    cinfo->event.resize(1);
-    cinfo->user.resize(1);
-
-    // Make sure we aren't running out of memory
-    if (cinfo->unit.size() != JSON_UNIT_COUNT ||
-        cinfo->jmap.size() != JSON_MAX_HASH ||
-        cinfo->emap.size() != JSON_MAX_HASH ||
-    	cinfo->glossary.size() != 1 ||
-        cinfo->agent.size() != 1 ||
-        cinfo->event.size() != 1 ||
-        cinfo->user.size() != 1)
-    {
-        delete cinfo;
-    	cinfo = nullptr;
-        return cinfo;
-    }
-
+	json_init_device_type_string();
+	json_init_resize(cinfo);
+    if (cinfo == nullptr) { return nullptr; }
+// would be nice to have unit test for these three guys
 	cinfo->node = nodestruc();
     cinfo->node.phys = physicsstruc();
 	cinfo->devspec = devspecstruc();
 
 	json_init_unit(cinfo);
-	json_init_device_type_string();
 	json_init_node(cinfo);
 
     cinfo->timestamp = currentmjd();

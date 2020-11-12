@@ -21,7 +21,7 @@ TEST(cosmosstruc, json_init_timestamp)	{
 	cosmosstruc* c = json_init();
 	double timestamp = c->timestamp;
 	double current = currentmjd();
-	cout<<"\t\t\t\t\t\t\t\ttimestamp = "<<timestamp<<"\tcurrent = "<<current<<endl;
+	cout<<"\t\t\t\t\t\t\t\ttimestamp = "<<setprecision(9)<<fixed<<timestamp<<"\tcurrent = "<<current<<endl;
 	stringstream tmp;
 	tmp << setprecision(6) << fixed << timestamp;
 	timestamp = stod(tmp.str());
