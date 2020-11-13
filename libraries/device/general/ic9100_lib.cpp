@@ -1524,10 +1524,10 @@ int32_t ic9100_set_repeater_squelch(ic9100_handle &handle, float frequency)
             switch (j)
             {
             case 0:
-                data[i] += digit;
+                data[2-i] += digit;
                 break;
             case 1:
-                data[i] += digit << 4;
+                data[2-i] += digit << 4;
                 break;
             }
             frequency = truncf(frequency / 10.f);
