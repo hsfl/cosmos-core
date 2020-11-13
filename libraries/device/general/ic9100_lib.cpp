@@ -1537,7 +1537,7 @@ int32_t ic9100_set_repeater_squelch(ic9100_handle &handle, float frequency)
 
     iretn = ic9100_write(handle, 0x1b, 0x00, data);
 
-    return 0;
+    return iretn;
 }
 
 int32_t ic9100_get_repeater_squelch(ic9100_handle &handle)
