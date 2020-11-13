@@ -1514,8 +1514,8 @@ int32_t ic9100_set_repeater_squelch(ic9100_handle &handle, float frequency)
     }
 
     data.resize(4);
-    frequency = truncf(frequency);
-    for (size_t i=0; i<4; ++i)
+    frequency = truncf(frequency * 10.f);
+    for (size_t i=0; i<3; ++i)
     {
         data[i] = 0;
         for (size_t j=0; j<2; ++j)
