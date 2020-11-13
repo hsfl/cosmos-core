@@ -160,6 +160,8 @@ static antstruc current;
 static bool antconnected = false;
 static bool antenabled = false;
 static bool debug;
+static uint16_t rotctlport = 4533;
+static socket_channel rotctlchannel;
 
 // Here are internally provided functions
 //int json_init();
@@ -302,6 +304,17 @@ int main(int argc, char *argv[])
         prkx2su_set_sensitivity(RADOF(.2));
         break;
     }
+
+    // Restore default offsets
+    string offsetname = get_nodedir(nodename) + '/' + antbase + ".offset";
+    FILE *op = fopen(offsetname.c_str(), "r");
+    if (op)
+    {
+        fscanf(op, "%f %f", &antennaoffset.az, &antennaoffset.el);
+    }
+
+    // Establish rotctl support
+    iretn  = socket_open(&rotctlchannel, NetworkType::UDP, "", rotctlport, SOCKET_LISTEN, SOCKET_BLOCKING, 10000);
 
     ElapsedTime et;
 

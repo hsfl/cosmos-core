@@ -550,6 +550,20 @@ enum {
 };
 
 enum {
+    DEVICE_RADIO_MODULATION_ASK,
+    DEVICE_RADIO_MODULATION_BPSK1200,
+    DEVICE_RADIO_MODULATION_BPSK2400,
+    DEVICE_RADIO_MODULATION_BPSK4800,
+    DEVICE_RADIO_MODULATION_BPSK9600,
+    DEVICE_RADIO_MODULATION_AFSK,
+    DEVICE_RADIO_MODULATION_GFSK1200,
+    DEVICE_RADIO_MODULATION_GFSK2400,
+    DEVICE_RADIO_MODULATION_GFSK4800,
+    DEVICE_RADIO_MODULATION_GFSK9600,
+    DEVICE_RADIO_MODULATION_UNDEF
+    };
+
+enum {
     TELEM_TYPE_UINT8,
     TELEM_TYPE_INT8,
     TELEM_TYPE_UINT16,
@@ -1711,6 +1725,8 @@ struct rxrstruc : public allstruc
 {
     //! Operating mode
     uint16_t opmode;
+    //! Data modulation
+    uint16_t modulation;
     //! RSSI
     uint16_t rssi;
     //! Packet Size
@@ -1729,6 +1745,8 @@ struct rxrstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
+    //! repeater squelch tone frequency
+    float squelch_tone;
     //! Good Packet Percentage
     double goodratio;
     //! Last RX time
@@ -1785,6 +1803,8 @@ struct txrstruc : public allstruc
 {
     //! Operating mode
     uint16_t opmode;
+    //! Data modulation
+    uint16_t modulation;
     //! RSSI
     uint16_t rssi;
     //! Packet Size
@@ -1803,6 +1823,8 @@ struct txrstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
+    //! repeater squelch tone frequency
+    float squelch_tone;
     //! Good Packet Percentage
     double  goodratio;
     //! Last TX time
@@ -1859,6 +1881,8 @@ struct tcvstruc : public allstruc
 {
     //! Operating mode
     uint16_t opmode;
+    //! Data modulation
+    uint16_t modulation;
     //! RSSI
     uint16_t rssi;
     //! Packet Size
@@ -1877,6 +1901,8 @@ struct tcvstruc : public allstruc
     float maxpower;
     //! Input Filter bandpass
     float band;
+    //! repeater squelch tone frequency
+    float squelch_tone;
     //! Good Packet Percentage
     double  goodratio;
     //! Last TX time
