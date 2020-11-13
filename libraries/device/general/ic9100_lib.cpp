@@ -1555,16 +1555,16 @@ int32_t ic9100_get_repeater_squelch(ic9100_handle &handle)
         return iretn;
     }
 
-    if (iretn != 4)
+    if (iretn != 3)
     {
         return IC9100_ERROR_OUTOFRANGE;
     }
 
     double frequency = 0.;
-    for (size_t i=0; i<4; ++i)
+    for (size_t i=0; i<3; ++i)
     {
         frequency *= 100.;
-        frequency += 10. * (handle.response[3-i] >> 4) + (handle.response[3-i] % 16);
+        frequency += 10. * (handle.response[2-i] >> 4) + (handle.response[2-i] % 16);
     }
     handle.repeater_squelch = frequency;
 
