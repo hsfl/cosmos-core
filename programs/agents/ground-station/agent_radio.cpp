@@ -426,9 +426,9 @@ int main(int argc, char *argv[])
         exit (iretn);
     if ((iretn=agent->add_request("set_offset",request_set_offset,"set_offset Hz", "sets the radio frequency offset")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_offset",request_set_repeater_squelch,"set_repeater_squelch frequency", "sets the repeater squelch tone frequency (0. = off)")))
+    if ((iretn=agent->add_request("set_repeater_squelch",request_set_repeater_squelch,"set_repeater_squelch frequency", "sets the repeater squelch tone frequency (0. = off)")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_offset",request_get_repeater_squelch,"get_repeater_squelch frequency", "gets the repeater squelch tone frequency (0. = off)")))
+    if ((iretn=agent->add_request("get_repeater_squelch",request_get_repeater_squelch,"get_repeater_squelch frequency", "gets the repeater squelch tone frequency (0. = off)")))
         exit (iretn);
 
 
