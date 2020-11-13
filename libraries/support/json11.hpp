@@ -206,8 +206,8 @@ public:
     bool has_shape(const shape & types, std::string & err) const;
 
     template <class T>
-    static std::vector<T> carray_to_vector(const T* array) {
-        return std::vector<T>(array, array+sizeof(array)/sizeof(array[0]));
+    static std::vector<T> carray_to_vector(const T* array, size_t arraySize) {
+        return std::vector<T>(array, array+arraySize);
     }
 
 private:

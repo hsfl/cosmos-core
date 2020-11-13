@@ -1459,8 +1459,8 @@ struct mtrstruc : public allstruc
     json11::Json to_json() const {
         return json11::Json::object {
             { "align" , align.to_json() },
-            { "npoly"   , json11::Json::carray_to_vector(npoly) },
-            { "ppoly"   , json11::Json::carray_to_vector(ppoly) },
+            { "npoly"   , json11::Json::carray_to_vector(npoly, sizeof(npoly)/sizeof(npoly[0])) },
+            { "ppoly"   , json11::Json::carray_to_vector(ppoly, sizeof(ppoly)/sizeof(ppoly[0])) },
             { "mxmom"   , mxmom },
             { "tc"      , tc },
             { "rmom"    , rmom },
@@ -2260,7 +2260,7 @@ struct tcustruc : public allstruc
     json11::Json to_json() const {
         return json11::Json::object {
             { "mcnt" , mcnt },
-            { "mcidx", json11::Json::carray_to_vector(mcidx) }
+            { "mcidx", json11::Json::carray_to_vector(mcidx, sizeof(mcidx)/sizeof(mcidx[0])) }
         };
     }
 
@@ -2338,7 +2338,7 @@ struct suchistruc : public allstruc
         return json11::Json::object {
             { "align" , align.to_json() },
             { "press" , press },
-            { "temps" , json11::Json::carray_to_vector(temps) }
+            { "temps" , json11::Json::carray_to_vector(temps, sizeof(temps)/sizeof(temps[0])) }
         };
     }
 
@@ -2455,7 +2455,7 @@ struct trianglestruc
             { "shove" , shove.to_json() },
             { "twist" , twist.to_json() },
             { "pidx"  , pidx },
-            { "tidx"  , json11::Json::carray_to_vector(tidx) },
+            { "tidx"  , json11::Json::carray_to_vector(tidx, sizeof(tidx)/sizeof(tidx[0])) },
             { "heat"  , heat },
             { "hcap"  , hcap },
             { "emi"   , emi },
