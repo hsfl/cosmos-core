@@ -1564,9 +1564,9 @@ int32_t ic9100_get_repeater_squelch(ic9100_handle &handle)
     for (size_t i=0; i<3; ++i)
     {
         frequency *= 100.;
-        frequency += 10. * (handle.response[2-i] >> 4) + (handle.response[2-i] % 16);
+        frequency += 10. * (handle.response[i] >> 4) + (handle.response[i] % 16);
     }
-    handle.repeater_squelch = frequency;
+    handle.repeater_squelch = frequency / 10.;
 
     return iretn;
 }
