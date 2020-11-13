@@ -83,6 +83,11 @@ using std::ofstream;
 using std::cout;
 using std::cerr;
 using std::endl;
+#include <sstream>
+using std::stringstream;
+#include <iomanip>
+using std::fixed;
+using std::setprecision;
 #ifdef COSMOS_WIN_BUILD_MSVC
 #include <io.h> // replaces in some ways unistd for windows
 #else

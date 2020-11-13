@@ -53,6 +53,26 @@
 struct rvector
 {
     double col[3];
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        vector<double> v_col = vector<double>(col, col+sizeof(col)/sizeof(col[0]));
+        return json11::Json::object {
+            { "col" , v_col }
+        };
+    }
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            auto p_col = parsed["col"].array_items();
+            for(size_t i = 0; i != p_col.size(); ++i) {
+                col[i] = p_col[i].number_value();
+            }
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const rvector& a);
@@ -84,6 +104,18 @@ public:
     double norm2();
     cvector normalized(double scale=1.);
     double& operator[] (const int index);
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            x = parsed["x"].number_value();
+            y = parsed["y"].number_value();
+            z = parsed["z"].number_value();
+        }
+        return;
+    }
 } ;
 
 //! 3 element spherical vector
@@ -114,6 +146,27 @@ struct gvector
     double lon;
     //! Height in meters
     double h;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "lat" , lat },
+            { "lon" , lon },
+            { "h"   , h }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            lat = parsed["lat"].number_value();
+            lon = parsed["lon"].number_value();
+            h = parsed["h"].number_value();
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const gvector& a);
@@ -131,6 +184,26 @@ struct avector
     double e;
     //! Bank
     double b;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "h" , h },
+            { "e" , e },
+            { "b" , b }
+        };
+    }
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            h = parsed["h"].number_value();
+            e = parsed["e"].number_value();
+            b = parsed["b"].number_value();
+        }
+        return;
+    }
 } ;
 
 std::ostream& operator << (std::ostream& out, const avector& a);
@@ -216,6 +289,24 @@ struct quaternion
     cvector d;
     //! Rotation
     double w;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "d" , json11::Json::object { {"x",d.x},{"y",d.y},{"z",d.z} } },
+            { "w" , w }
+        };
+    }
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            d.from_json(parsed["d"].dump());
+            w = parsed["w"].number_value();
+        }
+        return;
+    }
 } ;
 
 std::ostream& operator << (std::ostream& out, const quaternion& a);
@@ -436,6 +527,29 @@ namespace Cosmos {
 
             bool operator == (const Vector &v2) const; // Compares two vectors
             bool operator != (const Vector &v2) const; // Compares two vectors
+        
+            // Convert class contents to JSON object
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "x" , x },
+                    { "y" , y },
+                    { "z" , z },
+                    { "w" , w }
+                };
+            }
+
+            // Set class contents from JSON string
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    x = parsed["x"].number_value();
+                    y = parsed["y"].number_value();
+                    z = parsed["z"].number_value();
+                    w = parsed["w"].number_value();
+                }
+                return;
+            }
         };
 
         Vector operator * (const double scale, const Vector &v);

@@ -79,7 +79,7 @@ using namespace Cosmos::Math::Quaternions;
 /*! Holds the working variables for one step of an order N Gauss Jackson
  * Integration. A complete integration will require an array of N+2.
 */
-typedef struct
+struct gjstruc
 {
 	locstruc sloc;
 	double a[MAXGJORDER+1];
@@ -90,12 +90,12 @@ typedef struct
 	rvector sb;
 	//	rvector q;
 	rvector tau;
-} gjstruc;
+};
 
 //! Gauss-Jackson integration handle
 /*! Holds all the parameters necessary to run a single instance of a GJ integration.
  */
-typedef struct
+struct gj_handle
 {
     vector< vector<int32_t> > binom;
     vector<double> c;
@@ -109,7 +109,7 @@ typedef struct
 	uint32_t order;
 	uint32_t order2;
     vector<gjstruc> step;
-} gj_handle;
+};
 
 //! Finite Triangle Element
 //! Holds minimum information necessary to use smallest possible triangular element

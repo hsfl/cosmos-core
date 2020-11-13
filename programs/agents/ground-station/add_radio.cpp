@@ -10,9 +10,9 @@ static size_t deviceindex;
 static size_t radioindex = 9999;
 static string radiodevice="";
 static uint16_t radioaddr;
-static bool radioconnected = false;
-static bool radioenabled = false;
-static float freqoffset;
+//static bool radioconnected = false;
+//static bool radioenabled = false;
+//static float freqoffset;
 static string port;
 
 static uint16_t nodetype = NODE_TYPE_SATELLITE;

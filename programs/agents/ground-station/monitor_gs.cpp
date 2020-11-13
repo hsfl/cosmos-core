@@ -40,10 +40,7 @@ int main(int argc, char *argv[])
     }
 }
 
-int32_t query_radios()
-{
-
-}
+int32_t query_radios() { return 0; }
 
 int32_t query_control()
 {
