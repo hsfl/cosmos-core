@@ -8345,6 +8345,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_rxr_cidx",didx, UINT16_MAX, (uint8_t *)&device.rxr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rxr_temp",didx, UINT16_MAX, (uint8_t *)&device.rxr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_rxr_opmode",didx, UINT16_MAX, (uint8_t *)&device.rxr.opmode, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_rxr_modulation",didx, UINT16_MAX, (uint8_t *)&device.rxr.modulation, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rxr_flag",didx, UINT16_MAX, (uint8_t *)&device.rxr.flag, (uint16_t)JSON_TYPE_UINT32, cinfo);
         json_addentry("device_rxr_rssi",didx, UINT16_MAX, (uint8_t *)&device.rxr.rssi, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_rxr_pktsize",didx, UINT16_MAX, (uint8_t *)&device.rxr.pktsize, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -8422,6 +8423,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_tcv_cidx",didx, UINT16_MAX, (uint8_t *)&device.tcv.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_tcv_temp",didx, UINT16_MAX, (uint8_t *)&device.tcv.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_tcv_opmode",didx, UINT16_MAX, (uint8_t *)&device.tcv.opmode, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_tcv_modulation",didx, UINT16_MAX, (uint8_t *)&device.tcv.modulation, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_tcv_flag",didx, UINT16_MAX, (uint8_t *)&device.tcv.flag, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_tcv_rssi",didx, UINT16_MAX, (uint8_t *)&device.tcv.rssi, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_tcv_pktsize",didx, UINT16_MAX, (uint8_t *)&device.tcv.pktsize, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -8477,6 +8479,7 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_txr_cidx",didx, UINT16_MAX, (uint8_t *)&device.txr.cidx, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_txr_temp",didx, UINT16_MAX, (uint8_t *)&device.txr.temp, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_txr_opmode",didx, UINT16_MAX, (uint8_t *)&device.txr.opmode, (uint16_t)JSON_TYPE_UINT16, cinfo);
+        json_addentry("device_txr_modulation",didx, UINT16_MAX, (uint8_t *)&device.txr.modulation, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_txr_flag",didx, UINT16_MAX, (uint8_t *)&device.txr.flag, (uint16_t)JSON_TYPE_UINT32, cinfo);
         json_addentry("device_txr_rssi",didx, UINT16_MAX, (uint8_t *)&device.txr.rssi, (uint16_t)JSON_TYPE_UINT16, cinfo);
         json_addentry("device_txr_pktsize",didx, UINT16_MAX, (uint8_t *)&device.txr.pktsize, (uint16_t)JSON_TYPE_UINT16, cinfo);
@@ -8708,6 +8711,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_rxr_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_opmode",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_rxr_modulation",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_flag",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_rssi",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_rxr_pktsize",didx, UINT16_MAX, cinfo, state);
@@ -8728,6 +8732,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_txr_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_opmode",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_txr_modulation",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_flag",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_rssi",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_txr_pktsize",didx, UINT16_MAX, cinfo, state);
@@ -8748,6 +8753,7 @@ int32_t json_toggledeviceentry(uint16_t didx, DeviceType type, cosmosstruc *cinf
         json_toggleentry("device_tcv_cidx",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_temp",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_opmode",didx, UINT16_MAX, cinfo, state);
+        json_toggleentry("device_tcv_modulation",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_flag",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_rssi",didx, UINT16_MAX, cinfo, state);
         json_toggleentry("device_tcv_pktsize",didx, UINT16_MAX, cinfo, state);
@@ -9610,7 +9616,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
         result += tempstring;
         sprintf(tempstring, ",\"device_rxr_rssi_%03d\"",i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_rxr_freq_%03d\"",i);
+        sprintf(tempstring, ",\"device_rxr_freq_%03d\",\"device_rxr_opmode_%03d\",\"device_rxr_modulation_%03d\"",i,i,i);
         result += tempstring;
         sprintf(tempstring, ",\"device_rxr_band_%03d\"",i);
         result += tempstring;
@@ -9626,7 +9632,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
         result += tempstring;
         sprintf(tempstring, ",\"device_txr_rssi_%03d\"",i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_txr_freq_%03d\"",i);
+        sprintf(tempstring, ",\"device_txr_freq_%03d\",\"device_txr_opmode_%03d\",\"device_txr_modulation_%03d\"",i,i,i);
         result += tempstring;
         sprintf(tempstring, ",\"device_txr_powerout_%03d\"",i);
         result += tempstring;
@@ -9640,7 +9646,7 @@ string json_list_of_soh(cosmosstruc *cinfo)
         result += tempstring;
         sprintf(tempstring, ",\"device_tcv_rssi_%03d\"",i);
         result += tempstring;
-        sprintf(tempstring, ",\"device_tcv_freq_%03d\",\"device_tcv_opmode_%03d\"",i,i);
+        sprintf(tempstring, ",\"device_tcv_freq_%03d\",\"device_tcv_opmode_%03d\",\"device_tcv_modulation_%03d\"",i,i,i);
         result += tempstring;
         sprintf(tempstring, ",\"device_tcv_band_%03d\"",i);
         result += tempstring;
@@ -10546,6 +10552,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"rxr"))
                 {
                     json_out_1d(jstring, "device_rxr_opmode",j, cinfo);
+                    json_out_1d(jstring, "device_rxr_modulation",j, cinfo);
                     json_out_1d(jstring, "device_rxr_rssi",j, cinfo);
                     json_out_1d(jstring, "device_rxr_pktsize",j, cinfo);
                     json_out_1d(jstring, "device_rxr_freq",j, cinfo);
@@ -10564,6 +10571,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"txr"))
                 {
                     json_out_1d(jstring, "device_txr_opmode",j, cinfo);
+                    json_out_1d(jstring, "device_txr_modulation",j, cinfo);
                     json_out_1d(jstring, "device_txr_rssi",j, cinfo);
                     json_out_1d(jstring, "device_txr_pktsize",j, cinfo);
                     json_out_1d(jstring, "device_txr_freq",j, cinfo);
@@ -10582,6 +10590,7 @@ const char *json_devices_specific(string &jstring, cosmosstruc *cinfo)
                 if (!strcmp(device_type_string[i].c_str(),"tcv"))
                 {
                     json_out_1d(jstring, "device_tcv_opmode",j, cinfo);
+                    json_out_1d(jstring, "device_tcv_modulation",j, cinfo);
                     json_out_1d(jstring, "device_tcv_rssi",j, cinfo);
                     json_out_1d(jstring, "device_tcv_pktsize",j, cinfo);
                     json_out_1d(jstring, "device_tcv_freq",j, cinfo);
