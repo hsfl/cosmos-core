@@ -685,6 +685,7 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     }
     else
     {
+        buffer.clear();
         nbytes = -errno;
     }
     return nbytes;
