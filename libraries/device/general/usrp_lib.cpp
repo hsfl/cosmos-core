@@ -152,6 +152,10 @@ int32_t usrp_get_frequency(usrp_handle &handle)
     string data = "downlink_freq 0";
 
     iretn = usrp_send(handle, data);
+    if (iretn < 1)
+    {
+        return  iretn;
+    }
 
     handle.frequency = stof(data);
 
