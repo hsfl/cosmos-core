@@ -607,10 +607,10 @@ int main(int argc, char *argv[])
                 iretn = ic9100_get_repeater_squelch(ic9100);
                 if (iretn >= 0)
                 {
-                    agent->cinfo->device[deviceindex].tcv.opmode = ic9100.opmode;
-                    if (radioenabled && target.opmode != ic9100.opmode)
+                    agent->cinfo->device[deviceindex].tcv.squelch_tone = ic9100.repeater_squelch;
+                    if (radioenabled && target.squelch_tone != ic9100.repeater_squelch)
                     {
-                        iretn = ic9100_set_mode(ic9100, target.opmode);
+                        iretn = ic9100_set_repeater_squelch(ic9100, target.squelch_tone);
                     }
                 }
                 else
