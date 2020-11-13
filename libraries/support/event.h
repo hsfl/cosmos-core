@@ -188,7 +188,7 @@ public:
 		uint32_t flag
 	);
 
-    string generator(longeventstruc event);
+    string generator(eventstruc event);
 
 	// JIMNOTE: this function (condition_true)  needs a look at....
 	// OLDNOTE: seems to return nan from json_equation...  how to use?

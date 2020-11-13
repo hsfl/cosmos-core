@@ -115,8 +115,8 @@ static int32_t newlogperiod = 10, logperiod = 0;
 static double newlogstride_soh = 900. / 86400.;
 static double logstride_soh = 0.;
 
-static vector<shorteventstruc> eventdict;
-static vector<shorteventstruc> events;
+static vector<eventstruc> eventdict;
+static vector<eventstruc> events;
 
 static double cmjd;
 
@@ -274,8 +274,8 @@ int main(int argc, char *argv[])
             calc_events(eventdict, agent->cinfo, events);
             for (uint32_t k=0; k<events.size(); ++k)
             {
-                memcpy(&agent->cinfo->event[0].s,&events[k],sizeof(shorteventstruc));
-                strcpy(agent->cinfo->event[0].l.condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+                memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
+                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
                 log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
             }
         }

@@ -135,9 +135,17 @@ int main(int argc, char *argv[])
     cout << agent->cinfo->node.name << endl;
 
 	string jsp;
-    json_out_name(jsp, const_cast<char *>("node_name"));
-    cout << jsp << endl;
-
+    json_out(jsp, "node_name", agent->cinfo);
+    cout << "<" << jsp << ">" << endl;
+	jsp.clear();
+    json_out(jsp, "event_name", agent->cinfo);
+    cout << "before <" << jsp << ">" << endl;
+	
+	//set_json_value("event_name", "EVENT NAME");
+	strcpy(agent->cinfo->event[0].name, "NEW NAME");
+	jsp.clear();
+    json_out(jsp, "event_name", agent->cinfo);
+    cout << " after <" << jsp << ">" << endl;
 
     // Define the requests that we need for this agent
     if ((iretn=agent->add_request("add",request_add)))

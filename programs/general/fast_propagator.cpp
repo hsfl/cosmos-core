@@ -40,8 +40,8 @@
 
 gj_handle gjh;
 Agent *agent;
-std::vector<shorteventstruc> eventdict;
-std::vector<shorteventstruc> events;
+std::vector<eventstruc> eventdict;
+std::vector<eventstruc> events;
 std::string mainjstring;
 
 void endline(){
@@ -297,8 +297,8 @@ int main(int argc, char* argv[])
         calc_events(eventdict, agent->cinfo, events);
 		for (uint32_t k=0; k<events.size(); ++k)
 		{
-            memcpy(&agent->cinfo->event[0].s,&events[k],sizeof(shorteventstruc));
-            strcpy(agent->cinfo->event[0].l.condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+            memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
+            strcpy(agent->cinfo->event[0].condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
             log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate, json_of_event(mainjstring, agent->cinfo));
 		}
 

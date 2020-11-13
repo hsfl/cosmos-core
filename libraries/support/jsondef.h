@@ -851,111 +851,53 @@ struct agentstruc
     beatstruc beat;
 };
 
-//! Long COSMOS Event structure.
-/*! This is the structure that holds each Event, along with associated
- * resources.
+//! Full COSMOS Event structure
+/*! This is the struct that holds each Event, along with associated
+ * resources and conditions.
  */
-// TODO: use Event class instead, delete this one
-struct longeventstruc
+struct eventstruc
 {
     //! Time event is to start.
-    double utc; //TODO: replace for mjd
+    double utc = 0.; //TODO: replace for mjd
     //! Time event was executed.
-    double utcexec;
+    double utcexec = 0.;
     //! Node for event
-    char node[COSMOS_MAX_NAME+1];
+    char node[COSMOS_MAX_NAME+1] = "";
     //! Name of event.
     // TODO: change char to string
-    char name[COSMOS_MAX_NAME+1];
+    char name[COSMOS_MAX_NAME+1] = "";
     //! User of event.
-    char user[COSMOS_MAX_NAME+1];
+    char user[COSMOS_MAX_NAME+1] = "";
     //! Event flags.
-    uint32_t flag;
+    uint32_t flag = 0;
     //! Event type.
-    uint32_t type;
+    uint32_t type = 0;
     //! Value of condition
-    double value;
+    double value = 0.;
     //! Event initial time consumed.
-    double dtime;
+    double dtime = 0.;
     //! Event continuous time consumed.
-    double ctime;
+    double ctime = 0.;
     //! Event initial energy consumed.
-    float denergy;
+    float denergy = 0.f;
     //! Event continuous energy consumed.
-    float cenergy;
+    float cenergy = 0.f;
     //! Event initial mass consumed.
-    float dmass;
+    float dmass = 0.f;
     //! Event continuous mass consumed.
-    float cmass;
+    float cmass = 0.f;
     //! Event initial bytes consumed.
-    float dbytes;
+    float dbytes = 0.f;
     //! Event continuous bytes consumed.
-    float cbytes;
+    float cbytes = 0.f;
     //! Handle of condition that caused event, NULL if timed event.
     jsonhandle handle;
     //! Event specific data.
-    char data[JSON_MAX_DATA];
+    char data[JSON_MAX_DATA] = "";
     //! Condition that caused event, NULL if timed event.
-    char condition[JSON_MAX_DATA];
+    char condition[JSON_MAX_DATA] = "";
 };
 
-//! Shortened COSMOS Event structure
-/*! This is the structure that holds each Event, along with associated
- * resources, in a shorter format.
- */
-struct shorteventstruc
-{
-    //! Time event is to start.
-    double utc;
-    //! Time event was executed.
-    double utcexec;
-    //! Node for event
-    char node[COSMOS_MAX_NAME+1];
-    //! Name of event.
-    char name[COSMOS_MAX_NAME+1];
-    //! User of event.
-    char user[COSMOS_MAX_NAME+1];
-    //! Event flags.
-    uint32_t flag;
-    //! Event type.
-    uint32_t type;
-    //! Value of condition
-    double value;
-    //! Event initial time consumed.
-    double dtime;
-    //! Event continuous time consumed.
-    double ctime;
-    //! Event initial energy consumed.
-    float denergy;
-    //! Event continuous energy consumed.
-    float cenergy;
-    //! Event initial mass consumed.
-    float dmass;
-    //! Event continuous mass consumed.
-    float cmass;
-    //! Event initial bytes consumed.
-    float dbytes;
-    //! Event continuous bytes consumed.
-    float cbytes;
-    //! Handle of condition that caused event, NULL if timed event.
-    jsonhandle handle;
-    //! Event specific data.
-    char data[COSMOS_MAX_NAME+1];
-};
-
-//! Full COSMOS Event structure
-/*! This is the union that holds each Event, along with associated
- * resources, in both formats.
- */
-union eventstruc
-{
-    shorteventstruc s;
-    longeventstruc l;
-};
-
-//! User structure
-/*! Containing entries unique to each User
- */
 struct userstruc
 {
 	//to enforce a std::string name length maximum (if necessary) use this code to truncate:
@@ -2903,7 +2845,7 @@ struct cosmosstruc
 	}
 
 	template<class T>
-	void set_json_value(const string& s, const string& json) const /*how is a set function const? lol*/	{
+	void set_json_value(const string& s, const string& json) const 	{
 		get_pointer<T>(s)->from_json(json);
 	}
 

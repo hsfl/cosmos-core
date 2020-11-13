@@ -123,8 +123,8 @@ void move_and_compress_beacon();
 //void get_beacon_cpu();
 int32_t get_power_mode();
 
-static vector<shorteventstruc> eventdict;
-static vector<shorteventstruc> events;
+static vector<eventstruc> eventdict;
+static vector<eventstruc> events;
 
 static beatstruc iscbeat;
 
@@ -144,7 +144,7 @@ double delta;
 
 int main(int argc, char *argv[])
 {
-    vector<shorteventstruc> events, eventdict;
+    vector<eventstruc> events, eventdict;
     string incoming_dir, outgoing_dir, temp_dir, immediate_dir;
     string jjstring, myjstring;
     double llogmjd, dlogmjd, clogmjd;
@@ -455,8 +455,8 @@ int main(int argc, char *argv[])
             calc_events(eventdict, agent->cinfo, events);
             for (uint32_t k=0; k<events.size(); ++k)
             {
-                memcpy(&agent->cinfo->event[0].s,&events[k],sizeof(shorteventstruc));
-                strcpy(agent->cinfo->event[0].l.condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+                memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
+                strcpy(agent->cinfo->event[0].condition,agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
                 log_write(agent->cinfo->node.name,DATA_LOG_TYPE_EVENT,logdate_soh, json_of_event(jjstring, agent->cinfo));
             }
         }

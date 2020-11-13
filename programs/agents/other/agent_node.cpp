@@ -72,8 +72,8 @@ int32_t mindex;
 nodestruc *node;
 
 //eventstruc tevent;
-std::vector<shorteventstruc> eventdict;
-std::vector<shorteventstruc> commanddict;
+std::vector<eventstruc> eventdict;
+std::vector<eventstruc> commanddict;
 
 Agent *agent;
 nodestruc statnode;
@@ -283,7 +283,7 @@ void loadephemeris()
 	int j;
 	uint32_t k;
 	double stime, ctime, etime;
-    std::vector<shorteventstruc> events;
+    std::vector<eventstruc> events;
 
 	// Return immediately if we haven't loaded any data
 	if (cache[3].utime > 0.)
@@ -318,8 +318,8 @@ void loadephemeris()
         calc_events(eventdict,  agent->cinfo, events);
 		for (k=0; k<events.size(); ++k)
 		{
-            memcpy(&agent->cinfo->event[0].s,&events[k],sizeof(shorteventstruc));
-            strcpy(agent->cinfo->event[0].l.condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
+            memcpy(&agent->cinfo->event[0],&events[k],sizeof(eventstruc));
+            strcpy(agent->cinfo->event[0].condition, agent->cinfo->emap[events[k].handle.hash][events[k].handle.index].text);
             cache[3+(int)(ctime-stime)].event.push_back(json_of_event(myjstring, agent->cinfo));
 		}
 		cache[3+(int)(ctime-stime)].mjd = (int)ctime;
@@ -518,7 +518,7 @@ int32_t request_next(string &request, string &response, Agent *)
 	case 'd':
 		if (dindex <= commanddict.size())
 		{
-            agent->cinfo->event[0].s = commanddict[dindex];
+            agent->cinfo->event[0] = commanddict[dindex];
             response = (json_of_event(myjstring, agent->cinfo));
 			if (dindex < commanddict.size()-1)
 				++dindex;

@@ -2665,12 +2665,12 @@ int32_t json_out_locstruc(string &jstring,locstruc value)
 
 //! Command event to JSON
 /*! Appends a JSON entry to the current JSON stream for the indicated
- * ::longeventstruc specific to a command event.
+ * ::eventstruc specific to a command event.
     \param jstring Reference to JSON stream.
     \param value The JSON data of the desired variable
     \return  0 if successful, negative error otherwise
 */
-int32_t json_out_commandevent(string &jstring,longeventstruc value)
+int32_t json_out_commandevent(string &jstring,eventstruc value)
 {
     int32_t iretn;
 
@@ -7695,24 +7695,24 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("agent_jitter", UINT16_MAX, UINT16_MAX,offsetof(agentstruc,beat)+offsetof(beatstruc,jitter), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_AGENT, cinfo);
 
     // Event structure
-    json_addentry("event_cbytes", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cbytes), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
-    json_addentry("event_cenergy", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cenergy), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_ENERGY);
-    json_addentry("event_cmass", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,cmass), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_MASS);
-    json_addentry("event_condition", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,condition), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_EVENT, cinfo);
-    json_addentry("event_ctime", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,ctime), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_TIME);
-    json_addentry("event_data", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,data), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
-    json_addentry("event_dbytes", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,dbytes), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
-    json_addentry("event_denergy", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,denergy), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_ENERGY);
-    json_addentry("event_dmass", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,dmass), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_MASS);
-    json_addentry("event_dtime", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,dtime), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_TIME);
-    json_addentry("event_flag", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,flag), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_EVENT, cinfo);
-    json_addentry("event_name", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,name), (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_EVENT, cinfo);
-    json_addentry("event_node", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,node), (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_EVENT, cinfo);
-    json_addentry("event_type", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,type), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_EVENT, cinfo);
-    json_addentry("event_user", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,user), (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_EVENT, cinfo);
-    json_addentry("event_utc", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,utc), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_DATE);
-    json_addentry("event_utcexec", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,utcexec), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_DATE);
-    json_addentry("event_value", UINT16_MAX, UINT16_MAX,offsetof(longeventstruc,value), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo);
+    json_addentry("event_cbytes", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,cbytes), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
+    json_addentry("event_cenergy", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,cenergy), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_ENERGY);
+    json_addentry("event_cmass", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,cmass), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_MASS);
+    json_addentry("event_condition", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,condition), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_EVENT, cinfo);
+    json_addentry("event_ctime", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,ctime), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_TIME);
+    json_addentry("event_data", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,data), (uint16_t)JSON_TYPE_STRING, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
+    json_addentry("event_dbytes", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,dbytes), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_BYTES);
+    json_addentry("event_denergy", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,denergy), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_ENERGY);
+    json_addentry("event_dmass", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,dmass), (uint16_t)JSON_TYPE_FLOAT, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_MASS);
+    json_addentry("event_dtime", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,dtime), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_TIME);
+    json_addentry("event_flag", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,flag), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_EVENT, cinfo);
+    json_addentry("event_name", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,name), (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_EVENT, cinfo);
+    json_addentry("event_node", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,node), (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_EVENT, cinfo);
+    json_addentry("event_type", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,type), (uint16_t)JSON_TYPE_UINT32, JSON_STRUCT_EVENT, cinfo);
+    json_addentry("event_user", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,user), (uint16_t)JSON_TYPE_NAME, JSON_STRUCT_EVENT, cinfo);
+    json_addentry("event_utc", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,utc), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_DATE);
+    json_addentry("event_utcexec", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,utcexec), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo, JSON_UNIT_DATE);
+    json_addentry("event_value", UINT16_MAX, UINT16_MAX,offsetof(eventstruc,value), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_EVENT, cinfo);
 
     // Physics structure
     json_addentry("physics_dt", UINT16_MAX, UINT16_MAX,offsetof(physicsstruc,dt), (uint16_t)JSON_TYPE_DOUBLE, JSON_STRUCT_PHYSICS, cinfo, JSON_UNIT_TIME);
@@ -11594,17 +11594,17 @@ int32_t update_target(locstruc source, targetstruc &target)
 * dictionary is stored as multiple condition based JSON event strings
 * in a file of the specified name, in the cinfo directory of the specified node.
 * The result is a vector of event structures.
- *	\param dict Reference to vector of ::shorteventstruc.
+ *	\param dict Reference to vector of ::eventstruc.
 
     \param cinfo Reference to ::cosmosstruc to use.
  *	\param file Name of dictionary file.
  *	\return Number of items loaded.
 */
-size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cinfo, const char *file)
+size_t load_dictionary(vector<eventstruc> &dict, cosmosstruc *cinfo, const char *file)
 {
     FILE *op;
     char inb[JSON_MAX_DATA];
-    shorteventstruc sevent;
+    eventstruc event;
     jsonhandle handle;
     int32_t iretn;
 
@@ -11616,12 +11616,12 @@ size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cinfo, const 
             json_clear_cosmosstruc(JSON_STRUCT_EVENT, cinfo);
             if (json_parse(inb, cinfo) >= 0)
             {
-                if ((iretn=json_equation_map(cinfo->event[0].l.condition, cinfo, &handle)) < 0)
+                if ((iretn=json_equation_map(cinfo->event[0].condition, cinfo, &handle)) < 0)
                     continue;
-                sevent = cinfo->event[0].s;
-                sevent.utcexec = 0.;
-                sevent.handle = handle;
-                dict.push_back(sevent);
+                event = cinfo->event[0];
+                event.utcexec = 0.;
+                event.handle = handle;
+                dict.push_back(event);
             }
         }
         fclose(op);
@@ -11637,13 +11637,13 @@ size_t load_dictionary(vector<shorteventstruc> &dict, cosmosstruc *cinfo, const 
 * current state of the provided Node. The Event Dictionary will be
 * updated with any new values so that repeating Events can be properly
 * assessed.
-*	\param dictionary Reference to vector of ::shorteventstruc representing event dictionary.
+*	\param dictionary Reference to vector of ::eventstruc representing event dictionary.
 *	\param cmeta Reference to ::cosmosstruc to use.
 *	\param cinfo Reference to ::cosmosstruc to use.
-*	\param events Reference to vector of ::shorteventstruc representing events.
+*	\param events Reference to vector of ::eventstruc representing events.
 *	\return Number of events created.
 */
-size_t calc_events(vector<shorteventstruc> &dictionary, cosmosstruc *cinfo, vector<shorteventstruc> &events)
+size_t calc_events(vector<eventstruc> &dictionary, cosmosstruc *cinfo, vector<eventstruc> &events)
 {
     double value;
     //	const char *cp;
