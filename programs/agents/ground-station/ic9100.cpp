@@ -271,6 +271,7 @@ int main(int argc, char *argv[])
             printf("Unable to set IC9100 to Main: %s\n", cosmos_error_string(iretn).c_str());
             exit(iretn);
         }
+        iretn = ic9100_get_frequency(ic9100);
 
         if (command == "freq")
         {
