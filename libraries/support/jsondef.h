@@ -1473,13 +1473,8 @@ struct mtrstruc : public allstruc
     json11::Json to_json() const {
         return json11::Json::object {
             { "align" , align.to_json() },
-<<<<<<< HEAD
-            { "npoly"   , json11::Json::carray_to_vector(npoly, sizeof(npoly)/sizeof(npoly[0])) },
-            { "ppoly"   , json11::Json::carray_to_vector(ppoly, sizeof(ppoly)/sizeof(ppoly[0])) },
-=======
             //{ "npoly"   , json11::Json::carray_to_vector(npoly) },
             //{ "ppoly"   , json11::Json::carray_to_vector(ppoly) },
->>>>>>> e6f02f4f06c76a0be84cff0344d5b9878ed18309
             { "mxmom"   , mxmom },
             { "tc"      , tc },
             { "rmom"    , rmom },
@@ -2290,13 +2285,8 @@ struct tcustruc : public allstruc
     // Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
-<<<<<<< HEAD
-            { "mcnt" , mcnt },
-            { "mcidx", json11::Json::carray_to_vector(mcidx, sizeof(mcidx)/sizeof(mcidx[0])) }
-=======
             { "mcnt" , mcnt }//,
             //{ "mcidx", json11::Json::carray_to_vector(mcidx) }
->>>>>>> e6f02f4f06c76a0be84cff0344d5b9878ed18309
         };
     }
 
@@ -2373,13 +2363,8 @@ struct suchistruc : public allstruc
     json11::Json to_json() const {
         return json11::Json::object {
             { "align" , align.to_json() },
-<<<<<<< HEAD
-            { "press" , press },
-            { "temps" , json11::Json::carray_to_vector(temps, sizeof(temps)/sizeof(temps[0])) }
-=======
             { "press" , press }//,
             //{ "temps" , json11::Json::carray_to_vector(temps) }
->>>>>>> e6f02f4f06c76a0be84cff0344d5b9878ed18309
         };
     }
 
@@ -2496,11 +2481,7 @@ struct trianglestruc
             { "shove" , shove.to_json() },
             { "twist" , twist.to_json() },
             { "pidx"  , pidx },
-<<<<<<< HEAD
-            { "tidx"  , json11::Json::carray_to_vector(tidx, sizeof(tidx)/sizeof(tidx[0])) },
-=======
             //{ "tidx"  , json11::Json::carray_to_vector(tidx) },
->>>>>>> e6f02f4f06c76a0be84cff0344d5b9878ed18309
             { "heat"  , heat },
             { "hcap"  , hcap },
             { "emi"   , emi },
