@@ -949,6 +949,25 @@ struct equationstruc
     string name;
     // Equation string
     string value;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "name" , name },
+            { "value", value }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            name = parsed["name"].string_value();
+            value = parsed["value"].string_value();
+        }
+        return;
+    }
 };
 
 
@@ -2727,7 +2746,7 @@ struct jsonentry
 struct cosmosstruc
 {
     //! Timestamp for last change to data
-    double timestamp;
+    double timestamp = 0.;
 
     //! Whether JSON map has been created.
     uint16_t jmapped = 0;
@@ -2739,7 +2758,7 @@ struct cosmosstruc
     vector<vector<jsonequation> > emap;
 
     //! JSON Unit Map matrix: first level is for unit type, second level is for all variants (starting with primary).
-    vector<vector<unitstruc> > unit;
+    vector<vector<unitstruc> > unit; // works
 
     //! Vector of Equations
     vector<equationstruc> equation;
@@ -2858,6 +2877,23 @@ struct cosmosstruc
 			return "";
 		}
 	}
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "timestamp" , timestamp }
+		};
+	}
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+			timestamp = parsed["timestamp"].number_value();
+		}
+        return;
+    }
 
 	// other namespace member functions??
 

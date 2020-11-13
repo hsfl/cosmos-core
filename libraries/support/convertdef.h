@@ -168,6 +168,37 @@ struct cartpos
 	// TODO: get rid of this kind of stuff?
     //! pass indicator: allows synchronization with other attitude and position values.
     uint32_t pass;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "s", s },
+            { "v", v },
+            { "a", a },
+            { "pass", static_cast<int>(pass) },
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            utc = parsed["utc"].number_value();
+            s.col[0] = parsed["s"]["col"][0].number_value();
+            s.col[1] = parsed["s"]["col"][1].number_value();
+            s.col[2] = parsed["s"]["col"][2].number_value();
+            v.col[0] = parsed["v"]["col"][0].number_value();
+            v.col[1] = parsed["v"]["col"][1].number_value();
+            v.col[2] = parsed["v"]["col"][2].number_value();
+            a.col[0] = parsed["a"]["col"][0].number_value();
+            a.col[1] = parsed["a"]["col"][1].number_value();
+            a.col[2] = parsed["a"]["col"][2].number_value();
+            pass = parsed["pass"].number_value();
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const cartpos& a);

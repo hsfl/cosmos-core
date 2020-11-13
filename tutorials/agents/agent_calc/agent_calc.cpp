@@ -147,6 +147,25 @@ int main(int argc, char *argv[])
     json_out(jsp, "event_name", agent->cinfo);
     cout << " after <" << jsp << ">" << endl;
 
+// see if we can print out entire cosmosstruc in JSON
+
+	agent->cinfo->add_name("Entire COSMOSSTRUC", agent->cinfo);
+	cout<<"Output:\n\t<"<<agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC")<<">"<<endl;
+/*
+
+	agent->cinfo->add_name("Entire COSMOSSTRUC Unit", &agent->cinfo->unit);
+	cout<<"Output:\n\t<"<<agent->cinfo->get_json<vector<vector<unitstruc>>>("Entire COSMOSSTRUC Unit")<<">"<<endl;
+
+	agent->cinfo->add_name("Entire COSMOSSTRUC Equations", &agent->cinfo->equation);
+	cout<<"Output:\n\t<"<<agent->cinfo->get_json<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
+	equationstruc eq = { "Test Name", "Test Value" };
+	vector<equationstruc> eqs;
+	eqs.push_back(eq);
+	agent->cinfo->set_value<vector<equationstruc>>("Entire COSMOSSTRUC Equations", eqs);
+	cout<<"Output:\n\t<"<<agent->cinfo->get_json<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
+
+*/
+
     // Define the requests that we need for this agent
     if ((iretn=agent->add_request("add",request_add)))
         exit (iretn);
