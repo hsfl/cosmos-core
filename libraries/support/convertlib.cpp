@@ -3641,6 +3641,19 @@ int32_t load_lines(string fname, vector<tlestruc>& lines)
         // Line 1
         if (fgets(ibuf,80,fdes) == nullptr)
             break;
+        uint16_t cs = 0;
+        for (uint16_t i=0; i<68; ++i)
+        {
+            if (ibuf[i] >= '0' && ibuf[i] <= '9')
+            {
+                cs =(cs + (ibuf[i] - '0'));
+            }
+            else if (ibuf[i] == '-')
+            {
+                cs =(cs + 1);
+            }
+        }
+        cs = cs % 10;
         sscanf(&ibuf[2],"%5hu",&tle.snumber);
         sscanf(&ibuf[9],"%6s",tle.id);
         sscanf(&ibuf[18],"%2hu",&year);
@@ -3663,6 +3676,19 @@ int32_t load_lines(string fname, vector<tlestruc>& lines)
         char* ichar = fgets(ibuf,80,fdes);
         if (ichar != NULL)
         {
+            cs = 0;
+            for (uint16_t i=0; i<68; ++i)
+            {
+                if (ichar[i] >= '0' && ichar[i] <= '9')
+                {
+                    cs =(cs + (ichar[i] - '0'));
+                }
+                else if (ichar[i] == '-')
+                {
+                    cs =(cs + 1);
+                }
+            }
+            cs = cs % 10;
             ibuf[68] = 0;
             sscanf(&ibuf[8],"%8lf %8lf %7d %8lf %8lf %11lf%5u",&tle.i,&tle.raan,&ecc,&tle.ap,&tle.ma,&tle.mm,&tle.orbit);
             tle.i = RADOF(tle.i);
