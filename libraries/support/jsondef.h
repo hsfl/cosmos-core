@@ -661,11 +661,11 @@ struct unitstruc
 		string error;
 		json11::Json parsed = json11::Json::parse(s,error);
 		if(error.empty())	{
-			name = parsed["name"].string_value();
-			type = parsed["type"].number_value();
-			p0 = parsed["p0"].number_value();
-			p1 = parsed["p1"].number_value();
-			p2 = parsed["p2"].number_value();
+			if(!parsed["name"].is_null()) name = parsed["name"].string_value();
+			if(!parsed["type"].is_null()) type = parsed["type"].number_value();
+			if(!parsed["p0"].is_null()) p0 = parsed["p0"].number_value();
+			if(!parsed["p1"].is_null()) p1 = parsed["p1"].number_value();
+			if(!parsed["p2"].is_null()) p2 = parsed["p2"].number_value();
 		} else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -965,8 +965,8 @@ struct equationstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            name = parsed["name"].string_value();
-            value = parsed["value"].string_value();
+            if(!parsed["name"].is_null()) name = parsed["name"].string_value();
+            if(!parsed["value"].is_null()) value = parsed["value"].string_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1155,25 +1155,25 @@ struct allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            enabled = parsed["enabled"].bool_value();
-            type = parsed["type"].number_value();
-            model = parsed["model"].number_value();
-            flag = static_cast<uint32_t>(parsed["flag"].number_value());
-            addr = parsed["addr"].number_value();
-            cidx = parsed["cidx"].number_value();
-            didx = parsed["didx"].number_value();
-            pidx = parsed["pidx"].number_value();
-            bidx = parsed["bidx"].number_value();
-            portidx = parsed["portidx"].number_value();
-            namp = parsed["namp"].number_value();
-            nvolt = parsed["nvolt"].number_value();
-            amp = parsed["amp"].number_value();
-            volt = parsed["volt"].number_value();
-            power = parsed["power"].number_value();
-            energy = parsed["energy"].number_value();
-            drate = parsed["drate"].number_value();
-            temp = parsed["temp"].number_value();
-            utc = parsed["utc"].number_value();
+            if(!parsed["enabled"].is_null()) enabled = parsed["enabled"].bool_value();
+            if(!parsed["type"].is_null()) type = parsed["type"].number_value();
+            if(!parsed["model"].is_null()) model = parsed["model"].number_value();
+            if(!parsed["flag"].is_null()) flag = static_cast<uint32_t>(parsed["flag"].number_value());
+            if(!parsed["addr"].is_null()) addr = parsed["addr"].number_value();
+            if(!parsed["cidx"].is_null()) cidx = parsed["cidx"].number_value();
+            if(!parsed["didx"].is_null()) didx = parsed["didx"].number_value();
+            if(!parsed["pidx"].is_null()) pidx = parsed["pidx"].number_value();
+            if(!parsed["bidx"].is_null()) bidx = parsed["bidx"].number_value();
+            if(!parsed["portidx"].is_null()) portidx = parsed["portidx"].number_value();
+            if(!parsed["namp"].is_null()) namp = parsed["namp"].number_value();
+            if(!parsed["nvolt"].is_null()) nvolt = parsed["nvolt"].number_value();
+            if(!parsed["amp"].is_null()) amp = parsed["amp"].number_value();
+            if(!parsed["volt"].is_null()) volt = parsed["volt"].number_value();
+            if(!parsed["power"].is_null()) power = parsed["power"].number_value();
+            if(!parsed["energy"].is_null()) energy = parsed["energy"].number_value();
+            if(!parsed["drate"].is_null()) drate = parsed["drate"].number_value();
+            if(!parsed["temp"].is_null()) temp = parsed["temp"].number_value();
+            if(!parsed["utc"].is_null()) utc = parsed["utc"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1222,7 +1222,7 @@ struct telemstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            type = parsed["type"].number_value();
+            if(!parsed["type"].is_null()) type = parsed["type"].number_value();
 //  TODO:          vstring = parsed["vstring"].string_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -1260,11 +1260,19 @@ struct ploadstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            key_cnt = parsed["key_cnt"].number_value();
-            auto p_keyidx = parsed["keyidx"].array_items();
-            for(size_t i = 0; i != p_keyidx.size(); ++i) { keyidx[i] = p_keyidx[i].int_value(); }
-            auto p_keyval = parsed["keyval"].array_items();
-            for(size_t i = 0; i != p_keyval.size(); ++i) { keyval[i] = p_keyval[i].number_value(); }
+            if(!parsed["key_cnt"].is_null()) key_cnt = parsed["key_cnt"].number_value();
+            if(!parsed["keyidx"].is_null()) {
+                auto p_keyidx = parsed["keyidx"].array_items();
+                for(size_t i = 0; i != p_keyidx.size(); ++i) {
+                    if(!parsed["keyidx"][i].is_null()) keyidx[i] = p_keyidx[i].int_value();
+                }
+            }
+            if(!parsed["keyval"].is_null()) {
+                auto p_keyval = parsed["keyval"].array_items();
+                for(size_t i = 0; i != p_keyval.size(); ++i) {
+                    if(!parsed["keyval"][i].is_null()) keyval[i] = p_keyval[i].number_value();
+                }
+            }
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1302,13 +1310,13 @@ struct ssenstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            align.from_json(parsed["align"].dump());
-            qva = parsed["qva"].number_value();
-            qvb = parsed["qvb"].number_value();
-            qvc = parsed["qvc"].number_value();
-            qvd = parsed["qvd"].number_value();
-            azimuth = parsed["azimuth"].number_value();
-            elevation = parsed["elevation"].number_value();
+            if(!parsed["align"].is_null()) align.from_json(parsed["align"].dump());
+            if(!parsed["qva"].is_null()) qva = parsed["qva"].number_value();
+            if(!parsed["qvb"].is_null()) qvb = parsed["qvb"].number_value();
+            if(!parsed["qvc"].is_null()) qvc = parsed["qvc"].number_value();
+            if(!parsed["qvd"].is_null()) qvd = parsed["qvd"].number_value();
+            if(!parsed["azimuth"].is_null()) azimuth = parsed["azimuth"].number_value();
+            if(!parsed["elevation"].is_null()) elevation = parsed["elevation"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1355,14 +1363,14 @@ struct imustruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            align.from_json(parsed["align"].dump());
-            accel.from_json(parsed["accel"].dump());
-            theta.from_json(parsed["theta"].dump());
-            euler.from_json(parsed["euler"].dump());
-            omega.from_json(parsed["omega"].dump());
-            alpha.from_json(parsed["alpha"].dump());
-            mag.from_json(parsed["mag"].dump());
-            bdot.from_json(parsed["bdot"].dump());
+            if(!parsed["align"].is_null()) align.from_json(parsed["align"].dump());
+            if(!parsed["accel"].is_null()) accel.from_json(parsed["accel"].dump());
+            if(!parsed["theta"].is_null()) theta.from_json(parsed["theta"].dump());
+            if(!parsed["euler"].is_null()) euler.from_json(parsed["euler"].dump());
+            if(!parsed["omega"].is_null()) omega.from_json(parsed["omega"].dump());
+            if(!parsed["alpha"].is_null()) alpha.from_json(parsed["alpha"].dump());
+            if(!parsed["mag"].is_null()) mag.from_json(parsed["mag"].dump());
+            if(!parsed["bdot"].is_null()) bdot.from_json(parsed["bdot"].dump());
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1412,15 +1420,15 @@ struct rwstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            align.from_json(parsed["align"].dump());
-            mom.from_json(parsed["mom"].dump());
-            mxomg = parsed["mxomg"].number_value();
-            mxalp = parsed["mxalp"].number_value();
-            tc = parsed["tc"].number_value();
-            omg = parsed["omg"].number_value();
-            alp = parsed["alp"].number_value();
-            romg = parsed["romg"].number_value();
-            ralp = parsed["ralp"].number_value();
+            if(!parsed["align"].is_null()) align.from_json(parsed["align"].dump());
+            if(!parsed["mom"].is_null()) mom.from_json(parsed["mom"].dump());
+            if(!parsed["mxomg"].is_null()) mxomg = parsed["mxomg"].number_value();
+            if(!parsed["bdmxalpot"].is_null()) mxalp = parsed["mxalp"].number_value();
+            if(!parsed["tc"].is_null()) tc = parsed["tc"].number_value();
+            if(!parsed["omg"].is_null()) omg = parsed["omg"].number_value();
+            if(!parsed["alp"].is_null()) alp = parsed["alp"].number_value();
+            if(!parsed["romg"].is_null()) romg = parsed["romg"].number_value();
+            if(!parsed["ralp"].is_null()) ralp = parsed["ralp"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1464,15 +1472,23 @@ struct mtrstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            align.from_json(parsed["align"].dump());
-            auto p_npoly = parsed["npoly"].array_items();
-            for(size_t i = 0; i != p_npoly.size(); ++i) { npoly[i] = p_npoly[i].number_value(); }
-            auto p_ppoly = parsed["ppoly"].array_items();
-            for(size_t i = 0; i != p_ppoly.size(); ++i) { ppoly[i] = p_ppoly[i].number_value(); }
-            mxmom = parsed["mxmom"].number_value();
-            tc = parsed["tc"].number_value();
-            rmom = parsed["rmom"].number_value();
-            mom = parsed["mom"].number_value();
+            if(!parsed["align"].is_null()) align.from_json(parsed["align"].dump());
+            if(!parsed["npoly"].is_null()) {
+                auto p_npoly = parsed["npoly"].array_items();
+                for(size_t i = 0; i != p_npoly.size(); ++i) {
+                    npoly[i] = p_npoly[i].number_value();
+                }
+            }
+            if(!parsed["ppoly"].is_null()) {
+                auto p_ppoly = parsed["ppoly"].array_items();
+                for(size_t i = 0; i != p_ppoly.size(); ++i) {
+                    ppoly[i] = p_ppoly[i].number_value();
+                }
+            }
+            if(!parsed["mxmom"].is_null()) mxmom = parsed["mxmom"].number_value();
+            if(!parsed["tc"].is_null()) tc = parsed["tc"].number_value();
+            if(!parsed["rmom"].is_null()) rmom = parsed["rmom"].number_value();
+            if(!parsed["mom"].is_null()) mom = parsed["mom"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1517,12 +1533,12 @@ struct cpustruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            uptime = static_cast<uint32_t>(parsed["uptime"].number_value());
-            load = parsed["load"].number_value();
-            maxload = parsed["maxload"].number_value();
-            maxgib = parsed["maxgib"].number_value();
-            gib = parsed["gib"].number_value();
-            boot_count = static_cast<uint32_t>(parsed["boot_count"].number_value());
+            if(!parsed["uptime"].is_null()) uptime = static_cast<uint32_t>(parsed["uptime"].number_value());
+            if(!parsed["load"].is_null()) load = parsed["load"].number_value();
+            if(!parsed["maxload"].is_null()) maxload = parsed["maxload"].number_value();
+            if(!parsed["maxgib"].is_null()) maxgib = parsed["maxgib"].number_value();
+            if(!parsed["gib"].is_null()) gib = parsed["gib"].number_value();
+            if(!parsed["boot_count"].is_null()) boot_count = static_cast<uint32_t>(parsed["boot_count"].number_value());
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1555,8 +1571,8 @@ struct diskstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            maxgib = parsed["maxgib"].number_value();
-            gib = parsed["gib"].number_value();
+            if(!parsed["maxgib"].is_null()) maxgib = parsed["maxgib"].number_value();
+            if(!parsed["gib"].is_null()) gib = parsed["gib"].number_value();
             // TODO: path
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -1627,21 +1643,21 @@ struct gpsstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            dutc = parsed["dutc"].number_value();
-            geocs.from_json(parsed["geocs"].dump());
-            geocv.from_json(parsed["geocv"].dump());
-            dgeocs.from_json(parsed["dgeocs"].dump());
-            dgeocv.from_json(parsed["dgeocv"].dump());
-            geods.from_json(parsed["geods"].dump());
-            geodv.from_json(parsed["geodv"].dump());
-            dgeods.from_json(parsed["dgeods"].dump());
-            dgeodv.from_json(parsed["dgeodv"].dump());
-            heading = parsed["heading"].number_value();
-            sats_used = parsed["sats_used"].int_value();
-            sats_visible = parsed["sats_visible"].int_value();
-            time_status = parsed["time_status"].int_value();
-            position_type = parsed["position_type"].int_value();
-            solution_status = parsed["solution_status"].int_value();
+            if(!parsed["dutc"].is_null()) dutc = parsed["dutc"].number_value();
+            if(!parsed["geocs"].is_null()) geocs.from_json(parsed["geocs"].dump());
+            if(!parsed["geocv"].is_null()) geocv.from_json(parsed["geocv"].dump());
+            if(!parsed["dgeocs"].is_null()) dgeocs.from_json(parsed["dgeocs"].dump());
+            if(!parsed["dgeocv"].is_null()) dgeocv.from_json(parsed["dgeocv"].dump());
+            if(!parsed["geods"].is_null()) geods.from_json(parsed["geods"].dump());
+            if(!parsed["geodv"].is_null()) geodv.from_json(parsed["geodv"].dump());
+            if(!parsed["dgeods"].is_null()) dgeods.from_json(parsed["dgeods"].dump());
+            if(!parsed["dgeodv"].is_null()) dgeodv.from_json(parsed["dgeodv"].dump());
+            if(!parsed["heading"].is_null()) heading = parsed["heading"].number_value();
+            if(!parsed["sats_used"].is_null()) sats_used = parsed["sats_used"].int_value();
+            if(!parsed["sats_visible"].is_null()) sats_visible = parsed["sats_visible"].int_value();
+            if(!parsed["time_status"].is_null()) time_status = parsed["time_status"].int_value();
+            if(!parsed["position_type"].is_null()) position_type = parsed["position_type"].int_value();
+            if(!parsed["solution_status"].is_null()) solution_status = parsed["solution_status"].int_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1690,14 +1706,14 @@ struct antstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            align.from_json(parsed["align"].dump());
-            azim = parsed["azim"].number_value();
-            elev = parsed["elev"].number_value();
-            minelev = parsed["minelev"].number_value();
-            maxelev = parsed["maxelev"].number_value();
-            minazim = parsed["minazim"].number_value();
-            maxazim = parsed["maxazim"].number_value();
-            threshelev = parsed["threshelev"].number_value();
+            if(!parsed["align"].is_null()) align.from_json(parsed["align"].dump());
+            if(!parsed["azim"].is_null()) azim = parsed["azim"].number_value();
+            if(!parsed["elev"].is_null()) elev = parsed["elev"].number_value();
+            if(!parsed["minelev"].is_null()) minelev = parsed["minelev"].number_value();
+            if(!parsed["maxelev"].is_null()) maxelev = parsed["maxelev"].number_value();
+            if(!parsed["minazim"].is_null()) minazim = parsed["minazim"].number_value();
+            if(!parsed["maxazim"].is_null()) maxazim = parsed["maxazim"].number_value();
+            if(!parsed["threshelev"].is_null()) threshelev = parsed["threshelev"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1765,19 +1781,19 @@ struct rxrstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            opmode = parsed["opmode"].int_value();
-            rssi = parsed["rssi"].int_value();
-            pktsize = parsed["pktsize"].int_value();
-            freq = parsed["freq"].number_value();
-            maxfreq = parsed["maxfreq"].number_value();
-            minfreq = parsed["minfreq"].number_value();
-            powerin = parsed["powerin"].number_value();
-            powerout = parsed["powerout"].number_value();
-            maxpower = parsed["maxpower"].number_value();
-            band = parsed["band"].number_value();
-            goodratio = parsed["goodratio"].number_value();
-            rxutc = parsed["rxutc"].number_value();
-            uptime = parsed["uptime"].number_value();
+            if(!parsed["opmode"].is_null()) opmode = parsed["opmode"].int_value();
+            if(!parsed["rssi"].is_null()) rssi = parsed["rssi"].int_value();
+            if(!parsed["pktsize"].is_null()) pktsize = parsed["pktsize"].int_value();
+            if(!parsed["freq"].is_null()) freq = parsed["freq"].number_value();
+            if(!parsed["maxfreq"].is_null()) maxfreq = parsed["maxfreq"].number_value();
+            if(!parsed["minfreq"].is_null()) minfreq = parsed["minfreq"].number_value();
+            if(!parsed["powerin"].is_null()) powerin = parsed["powerin"].number_value();
+            if(!parsed["powerout"].is_null()) powerout = parsed["powerout"].number_value();
+            if(!parsed["maxpower"].is_null()) maxpower = parsed["maxpower"].number_value();
+            if(!parsed["band"].is_null()) band = parsed["band"].number_value();
+            if(!parsed["goodratio"].is_null()) goodratio = parsed["goodratio"].number_value();
+            if(!parsed["rxutc"].is_null()) rxutc = parsed["rxutc"].number_value();
+            if(!parsed["uptime"].is_null()) uptime = parsed["uptime"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1845,19 +1861,19 @@ struct txrstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            opmode = parsed["opmode"].int_value();
-            rssi = parsed["rssi"].int_value();
-            pktsize = parsed["pktsize"].int_value();
-            freq = parsed["freq"].number_value();
-            maxfreq = parsed["maxfreq"].number_value();
-            minfreq = parsed["minfreq"].number_value();
-            powerin = parsed["powerin"].number_value();
-            powerout = parsed["powerout"].number_value();
-            maxpower = parsed["maxpower"].number_value();
-            band = parsed["band"].number_value();
-            goodratio = parsed["goodratio"].number_value();
-            txutc = parsed["txutc"].number_value();
-            uptime = parsed["uptime"].number_value();
+            if(!parsed["opmode"].is_null()) opmode = parsed["opmode"].int_value();
+            if(!parsed["rssi"].is_null()) rssi = parsed["rssi"].int_value();
+            if(!parsed["pktsize"].is_null()) pktsize = parsed["pktsize"].int_value();
+            if(!parsed["freq"].is_null()) freq = parsed["freq"].number_value();
+            if(!parsed["maxfreq"].is_null()) maxfreq = parsed["maxfreq"].number_value();
+            if(!parsed["minfreq"].is_null()) minfreq = parsed["minfreq"].number_value();
+            if(!parsed["powerin"].is_null()) powerin = parsed["powerin"].number_value();
+            if(!parsed["powerout"].is_null()) powerout = parsed["powerout"].number_value();
+            if(!parsed["maxpower"].is_null()) maxpower = parsed["maxpower"].number_value();
+            if(!parsed["band"].is_null()) band = parsed["band"].number_value();
+            if(!parsed["goodratio"].is_null()) goodratio = parsed["goodratio"].number_value();
+            if(!parsed["txutc"].is_null()) txutc = parsed["txutc"].number_value();
+            if(!parsed["uptime"].is_null()) uptime = parsed["uptime"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1928,20 +1944,20 @@ struct tcvstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            opmode = parsed["opmode"].int_value();
-            rssi = parsed["rssi"].int_value();
-            pktsize = parsed["pktsize"].int_value();
-            freq = parsed["freq"].number_value();
-            maxfreq = parsed["maxfreq"].number_value();
-            minfreq = parsed["minfreq"].number_value();
-            powerin = parsed["powerin"].number_value();
-            powerout = parsed["powerout"].number_value();
-            maxpower = parsed["maxpower"].number_value();
-            band = parsed["band"].number_value();
-            goodratio = parsed["goodratio"].number_value();
-            txutc = parsed["txutc"].number_value();
-            rxutc = parsed["rxutc"].number_value();
-            uptime = parsed["uptime"].number_value();
+            if(!parsed["opmode"].is_null()) opmode = parsed["opmode"].int_value();
+            if(!parsed["rssi"].is_null()) rssi = parsed["rssi"].int_value();
+            if(!parsed["pktsize"].is_null()) pktsize = parsed["pktsize"].int_value();
+            if(!parsed["freq"].is_null()) freq = parsed["freq"].number_value();
+            if(!parsed["maxfreq"].is_null()) maxfreq = parsed["maxfreq"].number_value();
+            if(!parsed["minfreq"].is_null()) minfreq = parsed["minfreq"].number_value();
+            if(!parsed["powerin"].is_null()) powerin = parsed["powerin"].number_value();
+            if(!parsed["powerout"].is_null()) powerout = parsed["powerout"].number_value();
+            if(!parsed["maxpower"].is_null()) maxpower = parsed["maxpower"].number_value();
+            if(!parsed["band"].is_null()) band = parsed["band"].number_value();
+            if(!parsed["goodratio"].is_null()) goodratio = parsed["goodratio"].number_value();
+            if(!parsed["txutc"].is_null()) txutc = parsed["txutc"].number_value();
+            if(!parsed["rxutc"].is_null()) rxutc = parsed["rxutc"].number_value();
+            if(!parsed["uptime"].is_null()) uptime = parsed["uptime"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1981,11 +1997,11 @@ struct pvstrgstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            bcidx = parsed["bcidx"].int_value();
-            effbase = parsed["effbase"].number_value();
-            effslope = parsed["effslope"].number_value();
-            maxpower = parsed["maxpower"].number_value();
-            power = parsed["power"].number_value();
+            if(!parsed["bcidx"].is_null()) bcidx = parsed["bcidx"].int_value();
+            if(!parsed["effbase"].is_null()) effbase = parsed["effbase"].number_value();
+            if(!parsed["effslope"].is_null()) effslope = parsed["effslope"].number_value();
+            if(!parsed["maxpower"].is_null()) maxpower = parsed["maxpower"].number_value();
+            if(!parsed["power"].is_null()) power = parsed["power"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2029,13 +2045,13 @@ struct battstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            capacity = parsed["capacity"].number_value();
-            efficiency = parsed["efficiency"].number_value();
-            charge = parsed["charge"].number_value();
-            r_in = parsed["r_in"].number_value();
-            r_out = parsed["r_out"].number_value();
-            percentage = parsed["percentage"].number_value();
-            time_remaining = parsed["time_remaining"].number_value();
+            if(!parsed["capacity"].is_null()) capacity = parsed["capacity"].number_value();
+            if(!parsed["efficiency"].is_null()) efficiency = parsed["efficiency"].number_value();
+            if(!parsed["charge"].is_null()) charge = parsed["charge"].number_value();
+            if(!parsed["r_in"].is_null()) r_in = parsed["r_in"].number_value();
+            if(!parsed["r_out"].is_null()) r_out = parsed["r_out"].number_value();
+            if(!parsed["percentage"].is_null()) percentage = parsed["percentage"].number_value();
+            if(!parsed["time_remaining"].is_null()) time_remaining = parsed["time_remaining"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2065,8 +2081,8 @@ struct htrstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            state = parsed["state"].bool_value();
-            setvertex = parsed["setvertex"].number_value();
+            if(!parsed["state"].is_null()) state = parsed["state"].bool_value();
+            if(!parsed["setvertex"].is_null()) setvertex = parsed["setvertex"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2096,9 +2112,9 @@ struct motrstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            max = parsed["max"].number_value();
-            rat = parsed["rat"].number_value();
-            spd = parsed["spd"].number_value();
+            if(!parsed["max"].is_null()) max = parsed["max"].number_value();
+            if(!parsed["rat"].is_null()) rat = parsed["rat"].number_value();
+            if(!parsed["spd"].is_null()) spd = parsed["spd"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2132,9 +2148,9 @@ struct thststruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            align.from_json(parsed["align"].dump());
-            flw = parsed["flw"].number_value();
-            isp = parsed["isp"].number_value();
+            if(!parsed["align"].is_null()) align.from_json(parsed["align"].dump());
+            if(!parsed["flw"].is_null()) flw = parsed["flw"].number_value();
+            if(!parsed["isp"].is_null()) isp = parsed["isp"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2163,8 +2179,8 @@ struct propstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            cap = parsed["cap"].number_value();
-            lev = parsed["lev"].number_value();
+            if(!parsed["cap"].is_null()) cap = parsed["cap"].number_value();
+            if(!parsed["lev"].is_null()) lev = parsed["lev"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2197,7 +2213,7 @@ struct rotstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            angle = parsed["angle"].number_value();
+            if(!parsed["angle"].is_null()) angle = parsed["angle"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2236,12 +2252,12 @@ struct sttstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            align.from_json(parsed["align"].dump());
-            att.from_json(parsed["att"].dump());
-            omega.from_json(parsed["omega"].dump());
-            alpha.from_json(parsed["alpha"].dump());
-            retcode = parsed["retcode"].int_value();
-            status = static_cast<uint32_t>(parsed["status"].number_value());
+            if(!parsed["align"].is_null()) align.from_json(parsed["align"].dump());
+            if(!parsed["att"].is_null()) att.from_json(parsed["att"].dump());
+            if(!parsed["omega"].is_null()) omega.from_json(parsed["omega"].dump());
+            if(!parsed["alpha"].is_null()) alpha.from_json(parsed["alpha"].dump());
+            if(!parsed["retcode"].is_null()) retcode = parsed["retcode"].int_value();
+            if(!parsed["status"].is_null()) status = static_cast<uint32_t>(parsed["status"].number_value());
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2274,10 +2290,10 @@ struct mccstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            align.from_json(parsed["align"].dump());
-            q.from_json(parsed["q"].dump());
-            o.from_json(parsed["o"].dump());
-            a.from_json(parsed["a"].dump());
+            if(!parsed["align"].is_null()) align.from_json(parsed["align"].dump());
+            if(!parsed["q"].is_null()) q.from_json(parsed["q"].dump());
+            if(!parsed["o"].is_null()) o.from_json(parsed["o"].dump());
+            if(!parsed["a"].is_null()) a.from_json(parsed["a"].dump());
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2306,9 +2322,13 @@ struct tcustruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            mcnt = parsed["mcnt"].int_value();
-            auto p_mcidx = parsed["mcidx"].array_items();
-            for(size_t i = 0; i != p_mcidx.size(); ++i) { mcidx[i] = p_mcidx[i].int_value(); }
+            if(!parsed["mcnt"].is_null()) mcnt = parsed["mcnt"].int_value();
+            if(!parsed["mcidx"].is_null()) {
+                auto p_mcidx = parsed["mcidx"].array_items();
+                for(size_t i = 0; i != p_mcidx.size(); ++i) {
+                    mcidx[i] = p_mcidx[i].int_value();
+                }
+            }
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2333,7 +2353,7 @@ struct busstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            wdt = parsed["wdt"].number_value();
+            if(!parsed["wdt"].is_null()) wdt = parsed["wdt"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2358,7 +2378,7 @@ struct psenstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            press = parsed["press"].number_value();
+            if(!parsed["press"].is_null()) press = parsed["press"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2390,10 +2410,14 @@ struct suchistruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            align.from_json(parsed["align"].dump());
-            press = parsed["press"].number_value();
-            auto p_temps = parsed["temps"].array_items();
-            for(size_t i = 0; i != p_temps.size(); ++i) { temps[i] = p_temps[i].number_value(); }
+            if(!parsed["align"].is_null()) align.from_json(parsed["align"].dump());
+            if(!parsed["press"].is_null()) press = parsed["press"].number_value();
+            if(!parsed["temps"].is_null()) {
+                auto p_temps = parsed["temps"].array_items();
+                for(size_t i = 0; i != p_temps.size(); ++i) {
+                    temps[i] = p_temps[i].number_value();
+                }
+            }
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2425,11 +2449,11 @@ struct camstruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            pwidth = parsed["pwidth"].int_value();
-            pheight = parsed["pheight"].int_value();
-            width = parsed["width"].number_value();
-            height = parsed["height"].number_value();
-            flength = parsed["flength"].number_value();
+            if(!parsed["pwidth"].is_null()) pwidth = parsed["pwidth"].int_value();
+            if(!parsed["pheight"].is_null()) pheight = parsed["pheight"].int_value();
+            if(!parsed["width"].is_null()) width = parsed["width"].number_value();
+            if(!parsed["height"].is_null()) height = parsed["height"].number_value();
+            if(!parsed["flength"].is_null()) flength = parsed["flength"].number_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
