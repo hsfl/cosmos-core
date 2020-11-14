@@ -666,7 +666,9 @@ struct unitstruc
 			p0 = parsed["p0"].number_value();
 			p1 = parsed["p1"].number_value();
 			p2 = parsed["p2"].number_value();
-		}
+		} else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
 		return;
 	}
 };
@@ -965,6 +967,8 @@ struct equationstruc
         if(error.empty()) {
             name = parsed["name"].string_value();
             value = parsed["value"].string_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1170,6 +1174,8 @@ struct allstruc
             drate = parsed["drate"].number_value();
             temp = parsed["temp"].number_value();
             utc = parsed["utc"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1218,6 +1224,8 @@ struct telemstruc : public allstruc
         if(error.empty()) {
             type = parsed["type"].number_value();
 //  TODO:          vstring = parsed["vstring"].string_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1257,6 +1265,8 @@ struct ploadstruc : public allstruc
             for(size_t i = 0; i != p_keyidx.size(); ++i) { keyidx[i] = p_keyidx[i].int_value(); }
             auto p_keyval = parsed["keyval"].array_items();
             for(size_t i = 0; i != p_keyval.size(); ++i) { keyval[i] = p_keyval[i].number_value(); }
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1299,6 +1309,8 @@ struct ssenstruc : public allstruc
             qvd = parsed["qvd"].number_value();
             azimuth = parsed["azimuth"].number_value();
             elevation = parsed["elevation"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1351,6 +1363,8 @@ struct imustruc : public allstruc
             alpha.from_json(parsed["alpha"].dump());
             mag.from_json(parsed["mag"].dump());
             bdot.from_json(parsed["bdot"].dump());
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1407,6 +1421,8 @@ struct rwstruc : public allstruc
             alp = parsed["alp"].number_value();
             romg = parsed["romg"].number_value();
             ralp = parsed["ralp"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1457,6 +1473,8 @@ struct mtrstruc : public allstruc
             tc = parsed["tc"].number_value();
             rmom = parsed["rmom"].number_value();
             mom = parsed["mom"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1505,6 +1523,8 @@ struct cpustruc : public allstruc
             maxgib = parsed["maxgib"].number_value();
             gib = parsed["gib"].number_value();
             boot_count = static_cast<uint32_t>(parsed["boot_count"].number_value());
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1538,6 +1558,8 @@ struct diskstruc : public allstruc
             maxgib = parsed["maxgib"].number_value();
             gib = parsed["gib"].number_value();
             // TODO: path
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1620,6 +1642,8 @@ struct gpsstruc : public allstruc
             time_status = parsed["time_status"].int_value();
             position_type = parsed["position_type"].int_value();
             solution_status = parsed["solution_status"].int_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1674,6 +1698,8 @@ struct antstruc : public allstruc
             minazim = parsed["minazim"].number_value();
             maxazim = parsed["maxazim"].number_value();
             threshelev = parsed["threshelev"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1752,6 +1778,8 @@ struct rxrstruc : public allstruc
             goodratio = parsed["goodratio"].number_value();
             rxutc = parsed["rxutc"].number_value();
             uptime = parsed["uptime"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1830,6 +1858,8 @@ struct txrstruc : public allstruc
             goodratio = parsed["goodratio"].number_value();
             txutc = parsed["txutc"].number_value();
             uptime = parsed["uptime"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1912,6 +1942,8 @@ struct tcvstruc : public allstruc
             txutc = parsed["txutc"].number_value();
             rxutc = parsed["rxutc"].number_value();
             uptime = parsed["uptime"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -1954,6 +1986,8 @@ struct pvstrgstruc : public allstruc
             effslope = parsed["effslope"].number_value();
             maxpower = parsed["maxpower"].number_value();
             power = parsed["power"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2002,6 +2036,8 @@ struct battstruc : public allstruc
             r_out = parsed["r_out"].number_value();
             percentage = parsed["percentage"].number_value();
             time_remaining = parsed["time_remaining"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2031,6 +2067,8 @@ struct htrstruc : public allstruc
         if(error.empty()) {
             state = parsed["state"].bool_value();
             setvertex = parsed["setvertex"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2061,6 +2099,8 @@ struct motrstruc : public allstruc
             max = parsed["max"].number_value();
             rat = parsed["rat"].number_value();
             spd = parsed["spd"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2095,6 +2135,8 @@ struct thststruc : public allstruc
             align.from_json(parsed["align"].dump());
             flw = parsed["flw"].number_value();
             isp = parsed["isp"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2123,6 +2165,8 @@ struct propstruc : public allstruc
         if(error.empty()) {
             cap = parsed["cap"].number_value();
             lev = parsed["lev"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2154,6 +2198,8 @@ struct rotstruc : public allstruc
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
             angle = parsed["angle"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2196,6 +2242,8 @@ struct sttstruc : public allstruc
             alpha.from_json(parsed["alpha"].dump());
             retcode = parsed["retcode"].int_value();
             status = static_cast<uint32_t>(parsed["status"].number_value());
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2230,6 +2278,8 @@ struct mccstruc : public allstruc
             q.from_json(parsed["q"].dump());
             o.from_json(parsed["o"].dump());
             a.from_json(parsed["a"].dump());
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2259,6 +2309,8 @@ struct tcustruc : public allstruc
             mcnt = parsed["mcnt"].int_value();
             auto p_mcidx = parsed["mcidx"].array_items();
             for(size_t i = 0; i != p_mcidx.size(); ++i) { mcidx[i] = p_mcidx[i].int_value(); }
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2282,6 +2334,8 @@ struct busstruc : public allstruc
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
             wdt = parsed["wdt"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2305,6 +2359,8 @@ struct psenstruc : public allstruc
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
             press = parsed["press"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2338,6 +2394,8 @@ struct suchistruc : public allstruc
             press = parsed["press"].number_value();
             auto p_temps = parsed["temps"].array_items();
             for(size_t i = 0; i != p_temps.size(); ++i) { temps[i] = p_temps[i].number_value(); }
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2372,6 +2430,8 @@ struct camstruc : public allstruc
             width = parsed["width"].number_value();
             height = parsed["height"].number_value();
             flength = parsed["flength"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2465,6 +2525,8 @@ struct trianglestruc
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
 // TODO:
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
@@ -2891,7 +2953,9 @@ struct cosmosstruc
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
 			timestamp = parsed["timestamp"].number_value();
-		}
+		} else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
         return;
     }
 
