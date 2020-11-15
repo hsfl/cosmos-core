@@ -2967,16 +2967,26 @@ struct cosmosstruc
     // Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
-            { "timestamp" , timestamp }
+            { "timestamp" , timestamp },
+            { "jmapped" , jmapped },
+            { "unit" , unit }
 		};
 	}
 
     // Set class contents from JSON string
     void from_json(const string& s) {
         string error;
-        json11::Json parsed = json11::Json::parse(s,error);
+        json11::Json p = json11::Json::parse(s,error);
         if(error.empty()) {
-			timestamp = parsed["timestamp"].number_value();
+			string obj(p.object_items().begin()->first);
+ 			if(!p[obj]["timestamp"].is_null())	timestamp = p[obj]["timestamp"].number_value();
+ 			if(!p[obj]["jmapped"].is_null())	jmapped = p[obj]["jmapped"].number_value();
+ 			for(size_t i = 0; i < unit.size(); ++i)	{
+ 				for(size_t j = 0; j < unit[i].size(); ++j)	{
+ 					unit[i][j].from_json(p[obj]["unit"][i][j].dump());
+ 				}
+ 			}
+
 		} else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
