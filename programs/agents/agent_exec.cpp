@@ -580,7 +580,7 @@ int32_t request_get_event(string &request, string &response, Agent *)
     std::ostringstream ss;
 
     if(cmd_queue.get_event_size()==0)	{
-        ss << "[]";
+        ss << "[Empty]";
     }
     else {
         int j;
@@ -615,7 +615,7 @@ int32_t request_get_command(string &request, string &response, Agent *)
     std::ostringstream ss;
 
     if(cmd_queue.get_command_size()==0)	{
-        ss << "the command queue is empty";
+        ss << "[Empty]";
     }
     else {
         int j;

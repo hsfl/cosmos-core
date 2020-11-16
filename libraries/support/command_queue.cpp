@@ -300,8 +300,8 @@ namespace Cosmos
 //                                        ii->already_ran = true;
                                         break;
                                     }
-                                    // else command is non-repeatable
                                 }
+                                // else command is non-repeatable
                                 else
                                 {
                                     run_command(*ii, node_name, logdate_exec);
@@ -313,17 +313,22 @@ namespace Cosmos
                                     commands.erase(ii--);
                                     break;
                                 }
-                                // else command condition is false
                             }
+                            // else command condition is false
                             else
                             {
                                 ii->set_alreadyrun(false);
                             }
-                            // else command is non-conditional
                         }
+                        // else command is non-conditional
                         else
                         {
                             run_command(*ii, node_name, logdate_exec);
+                            events.push_back(*ii);
+                            if (events.size() > 10)
+                            {
+                                events.pop_front();
+                            }
                             commands.erase(ii--);
                         }
                     }
