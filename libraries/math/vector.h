@@ -582,10 +582,10 @@ namespace Cosmos {
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    x = parsed["x"].number_value();
-                    y = parsed["y"].number_value();
-                    z = parsed["z"].number_value();
-                    w = parsed["w"].number_value();
+                    if(!parsed["x"].is_null())	x = parsed["x"].number_value();
+                    if(!parsed["y"].is_null())	y = parsed["y"].number_value();
+                    if(!parsed["z"].is_null())	z = parsed["z"].number_value();
+                    if(!parsed["w"].is_null())	w = parsed["w"].number_value();
                 }
                 return;
             }
@@ -697,10 +697,10 @@ namespace Cosmos {
                 string error;
                 json11::Json parsed = json11::Json::parse(s,error);
                 if(error.empty()) {
-                    x = parsed["x"].number_value();
-                    y = parsed["y"].number_value();
-                    z = parsed["z"].number_value();
-                    w = parsed["w"].number_value();
+                    if(!parsed["x"].is_null())	x = parsed["x"].number_value();
+                    if(!parsed["y"].is_null())	y = parsed["y"].number_value();
+                    if(!parsed["z"].is_null())	z = parsed["z"].number_value();
+                    if(!parsed["w"].is_null())	w = parsed["w"].number_value();
                 }
                 return;
             }

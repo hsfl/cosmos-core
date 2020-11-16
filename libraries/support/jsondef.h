@@ -2521,10 +2521,10 @@ struct trianglestruc
     json11::Json to_json() const {
         return json11::Json::object {
             { "external" , external },
-            { "com" , com.to_json() },
-            { "normal" , normal.to_json() },
-            { "shove" , shove.to_json() },
-            { "twist" , twist.to_json() },
+            { "com" , com },
+            { "normal" , normal },
+            { "shove" , shove },
+            { "twist" , twist },
             { "pidx"  , pidx },
             { "tidx"  , json11::Json::carray_to_vector(tidx, sizeof(tidx)/sizeof(tidx[0])) },
             { "heat"  , heat },
