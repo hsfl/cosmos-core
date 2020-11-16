@@ -2572,6 +2572,7 @@ struct physicsstruc
     double mjdaccel;
     //! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)
     double mjddiff;
+
     float hcap = 900.;
     float mass = 1.;
     float temp = 300.;
@@ -2581,6 +2582,7 @@ struct physicsstruc
     float battlev;
     float powgen;
     float powuse;
+
     //! Simulation mode as listed in \def defs_physics
     int32_t mode;
     Vector ftorque;
@@ -2596,9 +2598,59 @@ struct physicsstruc
     Vector thrust;
     Vector moi = Vector(1.,1.,1.);
     Vector com;
+
     vector <Vector> vertices;
     vector <trianglestruc> triangles;
-} ;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "dt" , dt },
+            { "dtj" , dtj },
+            { "utc" , utc },
+            { "mjdaccel" , mjdaccel },
+            { "mjddiff" , mjddiff },
+            { "hcap" , hcap },
+            { "mass" , mass },
+            { "temp" , temp },
+            { "heat" , heat },
+            { "area" , area },
+            { "battcap" , battcap },
+            { "battlev" , battlev },
+            { "powgen" , powgen },
+            { "powuse" , powuse },
+            { "mode" , mode }
+		};
+	}
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["dt"].is_null())	dt = parsed["dt"].number_value();
+            if(!parsed["dtj"].is_null())	dtj = parsed["dtj"].number_value();
+            if(!parsed["utc"].is_null())	utc = parsed["utc"].number_value();
+            if(!parsed["mjdaccel"].is_null())	mjdaccel = parsed["mjdaccel"].number_value();
+            if(!parsed["mjddiff"].is_null())	mjddiff = parsed["mjddiff"].number_value();
+            if(!parsed["hcap"].is_null())	hcap = parsed["hcap"].number_value();
+            if(!parsed["mass"].is_null())	mass = parsed["mass"].number_value();
+            if(!parsed["temp"].is_null())	temp = parsed["temp"].number_value();
+            if(!parsed["heat"].is_null())	heat = parsed["heat"].number_value();
+            if(!parsed["area"].is_null())	area = parsed["area"].number_value();
+            if(!parsed["battcap"].is_null())	battcap = parsed["battcap"].number_value();
+            if(!parsed["battlev"].is_null())	battlev = parsed["battlev"].number_value();
+            if(!parsed["powgen"].is_null())	powgen = parsed["powgen"].number_value();
+            if(!parsed["powuse"].is_null())	powuse = parsed["powuse"].number_value();
+            if(!parsed["mode"].is_null())	mode = parsed["mode"].int_value();
+        } else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
+
+
+};
 
 //! Node Structure
 //! Structure for storing all information about a Node that never changes, or only
@@ -2682,7 +2734,9 @@ struct nodestruc
             { "range" , range },
             { "utcoffset" , utcoffset },
             { "utc" , utc },
-            { "utcstart" , utcstart }
+            { "utcstart" , utcstart },
+			{ "loc" , loc },
+			{ "phys" , phys }
         };
     }
 
@@ -2721,7 +2775,8 @@ struct nodestruc
             if(!parsed["utcoffset"].is_null())    utc = parsed["utcoffset"].number_value();
             if(!parsed["utc"].is_null())    utc = parsed["utc"].number_value();
             if(!parsed["utcstart"].is_null())    utc = parsed["utcstart"].number_value();
-            //if(!parsed["a"].is_null())      a.from_json(parsed["a"].dump());
+            if(!parsed["loc"].is_null())    loc.from_json(parsed["loc"].dump());
+            if(!parsed["phys"].is_null())    phys.from_json(parsed["phys"].dump());
         } else {
             cerr<<"ERROR = "<<error<<endl;
         }

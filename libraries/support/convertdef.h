@@ -356,6 +356,33 @@ struct qatt
     rvector a;  //ddq
     //! pass indicator: allows synchronization with other attitude and position values.
     uint32_t pass;
+
+  	// Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc }
+            { "s" , s }
+            { "v" , v }
+            { "a" , a }
+            { "pass" , static_cast<int>(pass) }
+		};
+	}
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc = parsed["utc"].number_value();
+            if(!parsed["s"].is_null())    s.from_json(parsed["s"].dump());
+            if(!parsed["v"].is_null())    v.from_json(parsed["v"].dump());
+            if(!parsed["a"].is_null())    a.from_json(parsed["a"].dump());
+            if(!parsed["pass"].is_null())    pass = parsed["pass"].int_value();
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const qatt& a);
@@ -488,6 +515,25 @@ struct posstruc
     double orbit;
 
 	//JIMNOTE  ADD JSON HERE
+  // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc }
+			///  ...
+		};
+	}
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const posstruc& a);
@@ -502,6 +548,24 @@ struct attstruc
     qatt selc;
     qatt icrf;
     extraatt extra;
+  // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc }
+		};
+	}
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const attstruc& a);
@@ -515,8 +579,29 @@ struct locstruc
     posstruc pos;
     //! ::attstruc for this time.
     attstruc att;
-    //! Earth magnetic vector in ITRS for this time and location.
-//    rvector bearth;
+
+  // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "pos" , pos },
+            { "att" , att }
+		};
+	}
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+            if(!parsed["pos"].is_null())    pos.from_json(parsed["pos"].dump());
+            if(!parsed["att"].is_null())    att.from_json(parsed["att"].dump());
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const locstruc& a);
