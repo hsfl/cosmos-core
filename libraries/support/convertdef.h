@@ -176,7 +176,7 @@ struct cartpos
             { "s", s },
             { "v", v },
             { "a", a },
-            { "pass", static_cast<int>(pass) },
+            { "pass", static_cast<int>(pass) }
         };
     }
 
@@ -185,18 +185,14 @@ struct cartpos
         string error;
         json11::Json parsed = json11::Json::parse(js,error);
         if(error.empty()) {
-            utc = parsed["utc"].number_value();
-            s.col[0] = parsed["s"]["col"][0].number_value();
-            s.col[1] = parsed["s"]["col"][1].number_value();
-            s.col[2] = parsed["s"]["col"][2].number_value();
-            v.col[0] = parsed["v"]["col"][0].number_value();
-            v.col[1] = parsed["v"]["col"][1].number_value();
-            v.col[2] = parsed["v"]["col"][2].number_value();
-            a.col[0] = parsed["a"]["col"][0].number_value();
-            a.col[1] = parsed["a"]["col"][1].number_value();
-            a.col[2] = parsed["a"]["col"][2].number_value();
-            pass = parsed["pass"].number_value();
-        }
+            if(!parsed["utc"].is_null())	utc = parsed["utc"].number_value();
+            if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
+            if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
+            if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
+            if(!parsed["pass"].is_null())	pass = parsed["pass"].number_value();
+        } else {
+			cerr<<"ERROR = "<<error<<endl;
+		}
         return;
     }
 };
@@ -214,6 +210,27 @@ struct cposstruc
     double utc;
     //! Cartesian structure with all elements of position
     cartpos pos;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+			{ "utc", utc },
+			{ "pos", pos }
+		};
+	}
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc = parsed["utc"].number_value();
+            if(!parsed["pos"].is_null())    pos.from_json(parsed["pos"].dump());
+        } else {
+			cerr << "ERROR = "<<error<<endl;
+    	}
+        return;
+	}
 };
 
 std::ostream& operator << (std::ostream& out, const cposstruc& a);
@@ -265,6 +282,30 @@ struct aattstruc
     avector s;
     avector v;
     avector a;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "s" , s },
+            { "v" , v },
+            { "a" , a }
+        };
+    }
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())	utc = parsed["utc"].number_value();
+            if(!parsed["s"].is_null())		s.from_json(parsed["s"].dump());
+            if(!parsed["v"].is_null())		v.from_json(parsed["v"].dump());
+            if(!parsed["a"].is_null())		a.from_json(parsed["a"].dump());
+        } else  {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const aattstruc& a);
@@ -445,6 +486,8 @@ struct posstruc
     rvector bearth;
     //! Decimal Orbit number
     double orbit;
+
+	//JIMNOTE  ADD JSON HERE
 };
 
 std::ostream& operator << (std::ostream& out, const posstruc& a);
