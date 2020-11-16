@@ -178,6 +178,7 @@ static uint8_t opmode = static_cast<uint8_t>(DEVICE_RADIO_MODE_UNDEF);
 static ic9100_handle ic9100;
 static usrp_handle usrp;
 
+static uint8_t target_record;
 static tcvstruc target;
 static tcvstruc actual;
 static tcvstruc initial;
@@ -203,6 +204,7 @@ int32_t request_set_modulation(string &request, string &response, Agent *);
 int32_t request_set_maxpower(string &request, string &response, Agent *);
 int32_t request_set_offset(string &request, string &response, Agent *);
 int32_t request_set_repeater_squelch(string &request, string &response, Agent *);
+int32_t request_set_record(string &request, string &response, Agent *);
 
 int32_t connect_radio();
 int32_t disconnect_radio();
@@ -430,6 +432,8 @@ int main(int argc, char *argv[])
         exit (iretn);
     if ((iretn=agent->add_request("get_repeater_squelch",request_get_repeater_squelch,"get_repeater_squelch frequency", "gets the repeater squelch tone frequency (0. = off)")))
         exit (iretn);
+    if ((iretn=agent->add_request("set_record",request_set_record,"get_set_record 0|1", "Turn recording off or on")))
+        exit (iretn);
 
 
     // Look for named radio so we can use the right one
@@ -529,6 +533,16 @@ int main(int argc, char *argv[])
                 {
                     radioconnected = false;
                 }
+
+                iretn = usrp_get_record(usrp);
+                if (iretn >= 0)
+                {
+                    if (radioenabled && (target_record != usrp.record))
+                    {
+                        iretn = usrp_set_record(usrp, target_record);
+                    }
+                }
+
                 break;
             case DEVICE_MODEL_LOOPBACK:
                 {
@@ -874,6 +888,13 @@ int32_t request_set_modulation(string &request, string &response, Agent *)
     char mode[20];
     sscanf(request.c_str(), "set_modulation %s", mode);
     target.modulation = string2modulation(mode);
+
+    return 0;
+}
+
+int32_t request_set_record(string &request, string &response, Agent *)
+{
+    sscanf(request.c_str(), "%*s %hhu", &target_record);
 
     return 0;
 }

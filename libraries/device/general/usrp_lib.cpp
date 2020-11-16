@@ -299,3 +299,42 @@ int32_t usrp_set_frequency(usrp_handle &handle, double frequency)
     return 0;
 }
 
+int32_t usrp_get_record(usrp_handle &handle)
+{
+    int32_t iretn = 0;
+
+    string data = "record 2";
+
+    iretn = usrp_send(handle, data);
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    handle.record = stoi(data);
+    return iretn;
+}
+
+int32_t usrp_set_record(usrp_handle &handle, uint8_t record)
+{
+    int32_t iretn = 0;
+
+    string data;
+    if (record)
+    {
+        data = "record 1";
+        iretn = usrp_send(handle, data);
+    }
+    else {
+        data = "record 0";
+        iretn = usrp_send(handle, data);
+    }
+
+    if (iretn < 0)
+    {
+        return iretn;
+    }
+
+    handle.record = record;
+    return iretn;
+}

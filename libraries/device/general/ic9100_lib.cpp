@@ -1505,12 +1505,20 @@ int32_t ic9100_set_repeater_squelch(ic9100_handle &handle, float frequency)
     if  (frequency == 0.f)
     {
         iretn = ic9100_write(handle, 0x16, 0x42, data);
-        return 0;
+        if (iretn != 1)
+        {
+            return IC9100_ERROR_OUTOFRANGE;
+        }
+        return iretn;
     }
     else
     {
         data[0] = 1;
         iretn = ic9100_write(handle, 0x16, 0x42, data);
+        if (iretn != 1)
+        {
+            return IC9100_ERROR_OUTOFRANGE;
+        }
     }
 
     data.resize(3);
@@ -1544,29 +1552,31 @@ int32_t ic9100_get_repeater_squelch(ic9100_handle &handle)
 {
     int32_t iretn = 0;
 
-    if (iretn < 0)
+    iretn = ic9100_write(handle, 0x16, 0x42);
+    if (iretn != 1)
     {
-        return iretn;
+        return IC9100_ERROR_OUTOFRANGE;
+    }
+
+    if (handle.response[0] == 0)
+    {
+        handle.repeater_squelch = 0.;
+        return 0;
     }
 
     iretn = ic9100_write(handle, 0x1b, 0x00);
-    if (iretn < 0)
-    {
-        return iretn;
-    }
-
     if (iretn != 3)
     {
         return IC9100_ERROR_OUTOFRANGE;
     }
 
-    double frequency = 0.;
+    float frequency = 0.;
     for (size_t i=0; i<3; ++i)
     {
-        frequency *= 100.;
-        frequency += 10. * (handle.response[i] >> 4) + (handle.response[i] % 16);
+        frequency *= 100.f;
+        frequency += 10.f * (handle.response[i] >> 4) + (handle.response[i] % 16);
     }
-    handle.repeater_squelch = frequency / 10.;
+    handle.repeater_squelch = frequency / 10.f;
 
     return iretn;
 }
