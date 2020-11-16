@@ -68,7 +68,7 @@ struct rvector
         if(error.empty()) {
             auto p_col = parsed["col"].array_items();
             for(size_t i = 0; i != p_col.size(); ++i) {
-                col[i] = p_col[i].number_value();
+                if(!p_col[i].is_null())	col[i] = p_col[i].number_value();
             }
         }
         return;
@@ -105,15 +105,26 @@ public:
     cvector normalized(double scale=1.);
     double& operator[] (const int index);
 
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "x" , x },
+            { "y" , y },
+            { "z" , z }
+        };
+    }
+
     // Set class contents from JSON string
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            x = parsed["x"].number_value();
-            y = parsed["y"].number_value();
-            z = parsed["z"].number_value();
-        }
+            if(!parsed["x"].is_null())	x = parsed["x"].number_value();
+            if(!parsed["y"].is_null())	y = parsed["y"].number_value();
+            if(!parsed["z"].is_null())	z = parsed["z"].number_value();
+        } else	{
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
         return;
     }
 } ;
@@ -129,6 +140,29 @@ struct svector
     double lambda;
     //! Radius in meters
     double r;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "phi" , phi },
+            { "lambda" , lambda },
+            { "r"   , r }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!parsed["phi"].is_null())	phi = parsed["phi"].number_value();
+            if(!parsed["lambda"].is_null())	lambda = parsed["lambda"].number_value();
+            if(!parsed["r"].is_null())		r = parsed["r"].number_value();
+        } else	{
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
+        return;
+    }
 } ;
 
 std::ostream& operator << (std::ostream& out, const svector& a);
@@ -161,10 +195,12 @@ struct gvector
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            lat = parsed["lat"].number_value();
-            lon = parsed["lon"].number_value();
-            h = parsed["h"].number_value();
-        }
+            if(!parsed["lat"].is_null())	lat = parsed["lat"].number_value();
+            if(!parsed["lon"].is_null())	lon = parsed["lon"].number_value();
+            if(!parsed["h"].is_null())		h = parsed["h"].number_value();
+        } else	{
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
         return;
     }
 };
@@ -193,15 +229,18 @@ struct avector
             { "b" , b }
         };
     }
+
     // Set class contents from JSON string
     void from_json(const string& s) {
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            h = parsed["h"].number_value();
-            e = parsed["e"].number_value();
-            b = parsed["b"].number_value();
-        }
+            if(!parsed["h"].is_null())	h = parsed["h"].number_value();
+            if(!parsed["e"].is_null())	e = parsed["e"].number_value();
+            if(!parsed["b"].is_null())	b = parsed["b"].number_value();
+        } else	{
+			cerr<<"ERROR = "<<error<<endl;
+		}
         return;
     }
 } ;
@@ -293,7 +332,7 @@ struct quaternion
     // Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
-            { "d" , json11::Json::object { {"x",d.x},{"y",d.y},{"z",d.z} } },
+            { "d" , d },
             { "w" , w }
         };
     }
