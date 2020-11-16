@@ -360,10 +360,10 @@ struct qatt
   	// Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
-            { "utc" , utc }
-            { "s" , s }
-            { "v" , v }
-            { "a" , a }
+            { "utc" , utc },
+            { "s" , s },
+            { "v" , v },
+            { "a" , a },
             { "pass" , static_cast<int>(pass) }
 		};
 	}
