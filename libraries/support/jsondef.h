@@ -2634,16 +2634,6 @@ struct nodestruc
     int16_t powmode;
     //! Seconds Node will be down
     uint32_t downtime;
-    //! Total Heat Capacity
-//    float hcap;
-    //! Total Mass
-//    float mass;
-//    rvector moi;
-//    float area;
-//    float battcap;
-//    float powgen;
-//    float powuse;
-//    float battlev;
     //! Alt/Az/Range info
     float azfrom;
     float elfrom;
@@ -2659,6 +2649,84 @@ struct nodestruc
     //! Location structure
     locstruc loc;
     physicsstruc phys;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "name" , name },
+            { "lastevent" , lastevent },
+            { "lasteventutc" , lasteventutc },
+            { "type" , type },
+            { "state" , state },
+
+            { "vertex_cnt" , vertex_cnt },
+            { "normal_cnt" , normal_cnt },
+            { "face_cnt" , face_cnt },
+            { "piece_cnt" , piece_cnt },
+            { "device_cnt" , device_cnt },
+            { "port_cnt" , port_cnt },
+            { "agent_cnt" , agent_cnt },
+            { "event_cnt" , event_cnt },
+            { "target_cnt" , target_cnt },
+            { "user_cnt" , user_cnt },
+            { "glossary_cnt" , glossary_cnt },
+            { "tle_cnt" , tle_cnt },
+
+            { "flags" , flags },
+            { "powmode" , powmode },
+            { "downtime" , static_cast<int>(downtime) },
+            { "azfrom" , azfrom },
+            { "elfrom" , elfrom },
+            { "azto" , azto },
+            { "elto" , elto },
+            { "range" , range },
+            { "utcoffset" , utcoffset },
+            { "utc" , utc },
+            { "utcstart" , utcstart }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["name"].is_null())			strcpy(name, parsed["name"].string_value().c_str());
+            if(!parsed["lastevent"].is_null())		strcpy(lastevent, parsed["lastevent"].string_value().c_str());
+            if(!parsed["lasteventutc"].is_null())	lasteventutc = parsed["lasteventutc"].number_value();
+            if(!parsed["type"].is_null())	type = parsed["type"].int_value();
+            if(!parsed["state"].is_null())	state = parsed["state"].int_value();
+
+            if(!parsed["vertex_cnt"].is_null())    vertex_cnt = parsed["vertex_cnt"].int_value();
+            if(!parsed["normal_cnt"].is_null())    normal_cnt = parsed["normal_cnt"].int_value();
+            if(!parsed["face_cnt"].is_null())    face_cnt = parsed["face_cnt"].int_value();
+            if(!parsed["piece_cnt"].is_null())    piece_cnt = parsed["piece_cnt"].int_value();
+            if(!parsed["device_cnt"].is_null())    device_cnt = parsed["device_cnt"].int_value();
+            if(!parsed["port_cnt"].is_null())    port_cnt = parsed["port_cnt"].int_value();
+            if(!parsed["agent_cnt"].is_null())    agent_cnt = parsed["agent_cnt"].int_value();
+            if(!parsed["event_cnt"].is_null())    event_cnt = parsed["event_cnt"].int_value();
+            if(!parsed["target_cnt"].is_null())    target_cnt = parsed["target_cnt"].int_value();
+            if(!parsed["user_cnt"].is_null())    user_cnt = parsed["user_cnt"].int_value();
+            if(!parsed["glossary_cnt"].is_null())    glossary_cnt = parsed["glossary_cnt"].int_value();
+            if(!parsed["tle_cnt"].is_null())    tle_cnt = parsed["tle_cnt"].int_value();
+
+            if(!parsed["flags"].is_null())    flags = parsed["flags"].int_value();
+            if(!parsed["powmode"].is_null())    powmode = parsed["powmode"].int_value();
+            if(!parsed["downtime"].is_null())    downtime = parsed["downtime"].int_value();
+            if(!parsed["azfrom"].is_null())    azfrom = parsed["azfrom"].number_value();
+            if(!parsed["elfrom"].is_null())    elfrom = parsed["elfrom"].number_value();
+            if(!parsed["azto"].is_null())    azto = parsed["azto"].number_value();
+            if(!parsed["elto"].is_null())    elto = parsed["elto"].number_value();
+            if(!parsed["range"].is_null())    range = parsed["range"].number_value();
+            if(!parsed["utcoffset"].is_null())    utc = parsed["utcoffset"].number_value();
+            if(!parsed["utc"].is_null())    utc = parsed["utc"].number_value();
+            if(!parsed["utcstart"].is_null())    utc = parsed["utcstart"].number_value();
+            //if(!parsed["a"].is_null())      a.from_json(parsed["a"].dump());
+        } else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 //! Device structure
@@ -2969,7 +3037,9 @@ struct cosmosstruc
         return json11::Json::object {
             { "timestamp" , timestamp },
             { "jmapped" , jmapped },
-            { "unit" , unit }
+            { "unit" , unit },
+            { "equation" , equation },
+            { "node" , node }
 		};
 	}
 
@@ -2983,10 +3053,15 @@ struct cosmosstruc
  			if(!p[obj]["jmapped"].is_null())	jmapped = p[obj]["jmapped"].number_value();
  			for(size_t i = 0; i < unit.size(); ++i)	{
  				for(size_t j = 0; j < unit[i].size(); ++j)	{
+					// SCOTTNOTE: add is_null check here
  					unit[i][j].from_json(p[obj]["unit"][i][j].dump());
  				}
  			}
-
+ 			for(size_t i = 0; i < equation.size(); ++i)	{
+				// SCOTTNOTE: add is_null check here
+ 				equation[i].from_json(p[obj]["equation"][i].dump());
+			}
+ 			if(!p[obj]["node"].is_null())	node.from_json(p[obj]["node"].dump());
 		} else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2994,7 +3069,6 @@ struct cosmosstruc
     }
 
 	// other namespace member functions??
-
 };
 
 //! @}
