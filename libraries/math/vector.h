@@ -127,7 +127,7 @@ public:
 		}
         return;
     }
-} ;
+};
 
 //! 3 element spherical vector
 /*! 3 double precision numbers representing a vector in a spherical
@@ -341,8 +341,8 @@ struct quaternion
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            d.from_json(parsed["d"].dump());
-            w = parsed["w"].number_value();
+            if(!parsed["d"].is_null())	d.from_json(parsed["d"].dump());
+            if(!parsed["w"].is_null())	w = parsed["w"].number_value();
         }
         return;
     }
@@ -681,6 +681,30 @@ namespace Cosmos {
             Vector toEuler();
             Vector irotate(const Vector &v);
             Vector drotate(const Vector &v);
+
+            // Convert class contents to JSON object
+            json11::Json to_json() const {
+                return json11::Json::object {
+                    { "x" , x },
+                    { "y" , y },
+                    { "z" , z },
+                    { "w" , w }
+                };
+            }
+
+            // Set class contents from JSON string
+            void from_json(const string& s) {
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty()) {
+                    x = parsed["x"].number_value();
+                    y = parsed["y"].number_value();
+                    z = parsed["z"].number_value();
+                    w = parsed["w"].number_value();
+                }
+                return;
+            }
+
         };
 
         // declared outside class because it does not need to access members of the class Quaternion
@@ -695,7 +719,7 @@ namespace Cosmos {
         Quaternion drotate_around(int axis, double angle);
         Quaternion eye(double scale = 1.);
 
-        }
+		}
     } // end namespace Math
 } // end namespace COSMOS
 
