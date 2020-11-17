@@ -3195,10 +3195,14 @@ struct cosmosstruc
 	void pretty_form(string& js)    {
 	
     	replace(js, ", ", ",\n");
+    	replace(js, "[]", "E M P T Y   V E C T O R");
+    	replace(js, "{}", "E M P T Y   O B J E C T");
     	replace(js, "{", "{\n");
     	replace(js, "[", "[\n");
     	replace(js, "}", "\n}");
     	replace(js, "]", "\n]");
+    	replace(js, "E M P T Y   V E C T O R", "[]");
+    	replace(js, "E M P T Y   O B J E C T", "{}");
 	
     	// create vector[char position] = # of indents
     	int indent = 0;
@@ -3250,8 +3254,8 @@ struct cosmosstruc
             { "normals" , normals },
 			// ... MORE ... //
 			{ "user" , user },
-			{ "tle" , tle },
-			{ "json" , json }
+			{ "tle" , tle }
+			//{ "json" , json }
 		};
 	}
 
@@ -3291,7 +3295,7 @@ struct cosmosstruc
  			for(size_t i = 0; i < tle.size(); ++i)	{
  				if(!p[obj]["tle"][i].is_null())	tle[i].from_json(p[obj]["tle"][i].dump());
 			}
- 			if(!p[obj]["json"].is_null())	json.from_json(p[obj]["json"].dump());
+ 			//if(!p[obj]["json"].is_null())	json.from_json(p[obj]["json"].dump());
 		} else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
