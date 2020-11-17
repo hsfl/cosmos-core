@@ -690,6 +690,47 @@ struct jsonnode
     string ports = "";
     string targets = "";
     string aliases = "";
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "name" , name },
+            { "node" , node },
+            { "state" , state },
+            { "utcstart" , utcstart },
+            { "vertexs" , vertexs },
+            { "faces" , faces },
+            { "pieces" , pieces },
+            { "devgen" , devgen },
+            { "devspec" , devspec },
+            { "ports" , ports },
+            { "targets" , targets },
+            { "aliases" , aliases }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!parsed["name"].is_null())		name = parsed["name"].string_value();
+            if(!parsed["node"].is_null())		node = parsed["node"].string_value();
+            if(!parsed["state"].is_null())		state = parsed["state"].string_value();
+            if(!parsed["utcstart"].is_null())	utcstart = parsed["utcstart"].string_value();
+            if(!parsed["vertexs"].is_null())	vertexs = parsed["vertexs"].string_value();
+            if(!parsed["faces"].is_null())		faces = parsed["faces"].string_value();
+            if(!parsed["pieces"].is_null())		pieces = parsed["pieces"].string_value();
+            if(!parsed["devgen"].is_null())		devgen = parsed["devgen"].string_value();
+            if(!parsed["devspec"].is_null())	devspec = parsed["devspec"].string_value();
+            if(!parsed["ports"].is_null())		ports = parsed["ports"].string_value();
+            if(!parsed["targets"].is_null())	targets = parsed["targets"].string_value();
+            if(!parsed["aliases"].is_null())	aliases = parsed["aliases"].string_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! JSON handle
@@ -926,6 +967,29 @@ struct glossarystruc
     string description;
     // Glossary entry ::jsonlib_namespace type.
     uint16_t type;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "name" , name },
+            { "description", description },
+            { "type", type }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!parsed["name"].is_null())			name = parsed["name"].string_value();
+            if(!parsed["description"].is_null())	description = parsed["description"].string_value();
+            if(!parsed["type"].is_null())			type = parsed["type"].int_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! Alias structure
@@ -3136,7 +3200,10 @@ struct cosmosstruc
             { "jmapped" , jmapped },
             { "unit" , unit },
             { "equation" , equation },
-            { "node" , node }
+            { "node" , node },
+			// ... MORE ... //
+			{ "tle" , tle },
+			{ "json" , json }
 		};
 	}
 
@@ -3150,7 +3217,6 @@ struct cosmosstruc
  			if(!p[obj]["jmapped"].is_null())	jmapped = p[obj]["jmapped"].number_value();
  			for(size_t i = 0; i < unit.size(); ++i)	{
  				for(size_t j = 0; j < unit[i].size(); ++j)	{
-					// SCOTTNOTE: add is_null check here
  					if(!p[obj]["unit"][i][j].is_null())	unit[i][j].from_json(p[obj]["unit"][i][j].dump());
  				}
  			}
@@ -3158,6 +3224,14 @@ struct cosmosstruc
  				if(!p[obj]["equation"][i].is_null())	equation[i].from_json(p[obj]["equation"][i].dump());
 			}
  			if(!p[obj]["node"].is_null())	node.from_json(p[obj]["node"].dump());
+			// ... MORE ... //
+ 			for(size_t i = 0; i < glossary.size(); ++i)	{
+ 				if(!p[obj]["glossary"][i].is_null())	glossary[i].from_json(p[obj]["glossary"][i].dump());
+			}
+ 			for(size_t i = 0; i < tle.size(); ++i)	{
+ 				if(!p[obj]["tle"][i].is_null())	tle[i].from_json(p[obj]["tle"][i].dump());
+			}
+ 			if(!p[obj]["json"].is_null())	json.from_json(p[obj]["json"].dump());
 		} else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -3165,6 +3239,7 @@ struct cosmosstruc
     }
 
 	// other namespace member functions??
+	// maybe set_json for use with namespace names (calls from_json...)
 };
 
 //! @}

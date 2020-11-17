@@ -710,6 +710,47 @@ struct tlestruc
     //! Mean motion (radians / minute)
     double mm;
     uint32_t orbit;
+
+  // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "name" , name },
+            { "snumber" , snumber },
+            { "id" , id },
+            { "bstar" , bstar },
+            { "i" , i },
+            { "raan" , raan },
+            { "e" , e },
+            { "ap" , ap },
+            { "ma" , ma },
+            { "mm" , mm },
+            { "orbit" , static_cast<int>(orbit) }
+		};
+	}
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+            if(!parsed["name"].is_null())    strcpy(name, parsed["name"].string_value().c_str());
+            if(!parsed["snumber"].is_null())    snumber =  parsed["snumber"].int_value();
+            if(!parsed["id"].is_null())    strcpy(id, parsed["id"].string_value().c_str());
+            if(!parsed["bstar"].is_null())    bstar =  parsed["bstar"].number_value();
+            if(!parsed["i"].is_null())    i =  parsed["i"].number_value();
+            if(!parsed["raan"].is_null())    raan =  parsed["raan"].number_value();
+            if(!parsed["e"].is_null())    e =  parsed["e"].number_value();
+            if(!parsed["ap"].is_null())    ap =  parsed["ap"].number_value();
+            if(!parsed["ma"].is_null())    ma =  parsed["ma"].number_value();
+            if(!parsed["mm"].is_null())    mm =  parsed["mm"].number_value();
+            if(!parsed["orbit"].is_null())    orbit =  parsed["orbit"].int_value();
+		} else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 //! STK positions structure
