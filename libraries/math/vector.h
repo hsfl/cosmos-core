@@ -70,7 +70,9 @@ struct rvector
             for(size_t i = 0; i != p_col.size(); ++i) {
                 if(!p_col[i].is_null())	col[i] = p_col[i].number_value();
             }
-        }
+       	} else	{
+       		cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
         return;
     }
 };
@@ -343,7 +345,9 @@ struct quaternion
         if(error.empty()) {
             if(!parsed["d"].is_null())	d.from_json(parsed["d"].dump());
             if(!parsed["w"].is_null())	w = parsed["w"].number_value();
-        }
+        } else	{
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
         return;
     }
 } ;
@@ -360,7 +364,32 @@ struct qcomplex
     double j;
     double k;
     double r;
-} ;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "i" , i },
+            { "j" , j },
+            { "k" , k },
+            { "r" , r }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!parsed["i"].is_null())	i = parsed["i"].number_value();
+            if(!parsed["j"].is_null())	j = parsed["j"].number_value();
+            if(!parsed["k"].is_null())	k = parsed["k"].number_value();
+            if(!parsed["r"].is_null())	r = parsed["r"].number_value();
+        } else	{
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
+        return;
+    }
+};
 
 std::ostream& operator << (std::ostream& out, const qcomplex& a);
 std::istream& operator >> (std::istream& out, qcomplex& a);
@@ -375,7 +404,32 @@ struct qlast
     double q2; // y
     double q3; // z
     double q4; // w
-} ;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "q1" , q1 },
+            { "q2" , q2 },
+            { "q3" , q3 },
+            { "q4" , q4 }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!parsed["q1"].is_null())	q1 = parsed["q1"].number_value();
+            if(!parsed["q2"].is_null())	q2 = parsed["q2"].number_value();
+            if(!parsed["q3"].is_null())	q3 = parsed["q3"].number_value();
+            if(!parsed["q4"].is_null())	q4 = parsed["q4"].number_value();
+        } else	{
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
+        return;
+    }
+};
 
 std::ostream& operator << (std::ostream& out, const qlast& a);
 std::istream& operator >> (std::istream& out, qlast& a);
@@ -390,7 +444,32 @@ struct qfirst
     double q1; // x
     double q2; // y
     double q3; // z
-} ;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "q0" , q0 },
+            { "q1" , q1 },
+            { "q2" , q2 },
+            { "q3" , q3 }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!parsed["q0"].is_null())	q0 = parsed["q0"].number_value();
+            if(!parsed["q1"].is_null())	q1 = parsed["q1"].number_value();
+            if(!parsed["q2"].is_null())	q2 = parsed["q2"].number_value();
+            if(!parsed["q3"].is_null())	q3 = parsed["q3"].number_value();
+        } else	{
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+		}
+        return;
+    }
+};
 
 std::ostream& operator << (std::ostream& out, const qfirst& a);
 std::istream& operator >> (std::istream& out, qfirst& a);
@@ -586,7 +665,9 @@ namespace Cosmos {
                     if(!parsed["y"].is_null())	y = parsed["y"].number_value();
                     if(!parsed["z"].is_null())	z = parsed["z"].number_value();
                     if(!parsed["w"].is_null())	w = parsed["w"].number_value();
-                }
+        		} else	{
+            		cerr<<"ERROR: <"<<error<<">"<<endl;
+				}
                 return;
             }
         };
@@ -701,7 +782,9 @@ namespace Cosmos {
                     if(!parsed["y"].is_null())	y = parsed["y"].number_value();
                     if(!parsed["z"].is_null())	z = parsed["z"].number_value();
                     if(!parsed["w"].is_null())	w = parsed["w"].number_value();
-                }
+        		} else	{
+            		cerr<<"ERROR: <"<<error<<">"<<endl;
+				}
                 return;
             }
 
