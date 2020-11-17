@@ -68,25 +68,23 @@ int32_t request_change_node_name(string &request, string &response, Agent *agent
 #define MAXBUFFERSIZE 100000 // comm buffer for agents
 
 static Agent *agent; // to access the cosmos data, will change later
-
+/*
 void replace(std::string& str, const std::string& from, const std::string& to) {
-    if(from.empty())
-        return;
+    if(from.empty()) return;
     size_t start_pos = 0;
     while((start_pos = str.find(from, start_pos)) != std::string::npos) {
         str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+        start_pos += to.length();
     }
 }
 
-vector<size_t> find_newlines(string sample)
-{
+vector<size_t> find_newlines(const string& sample) {
     vector<size_t> characterLocations;
     for(size_t i =0; i < sample.size(); i++) if(sample[i] == '\n') characterLocations.push_back(i);
     return characterLocations;
 }
 
-void pretty_print(string& js)	{
+void pretty_form(string& js)	{
 
 	replace(js, ", ", ",\n");
 	replace(js, "{", "{\n");
@@ -108,7 +106,7 @@ void pretty_print(string& js)	{
 	// find position of all '\n' characters
 	vector<size_t> newlines = find_newlines(js);
 
-	// insert the appropriate # of indentations after the '\n' char
+	// insert the appropriate # of indents after the '\n' char
     for(size_t i = newlines.size(); --i!=0; ) {
 		string indent_string;
 		for(size_t j = 0; j < indents[newlines[i]]; ++j)	indent_string += "  ";
@@ -116,7 +114,7 @@ void pretty_print(string& js)	{
 	}
 	return;
 }
-
+*/
 
 int main(int argc, char *argv[])
 {
@@ -238,16 +236,20 @@ string entire = R"(
 agent->cinfo->set_json_value<cosmosstruc>("Entire COSMOSSTRUC", entire);
 
 	//cout<<"Output:\n\t<"<<agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC")<<">"<<endl;
-	string js = agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC");	
-	pretty_print(js);
+	//string js = agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC");	
+	//pretty_form(js);
+	string js = agent->cinfo->get_json_pretty<cosmosstruc>("Entire COSMOSSTRUC");	
 	cout<<"Output:<\n"<<js<<"\n>"<<endl;
-/*
 
+	agent->cinfo->add_name("Entire COSMOSSTRUC Equations", &agent->cinfo->equation);
+	cout<<"Output:\n\t<\n"<<agent->cinfo->get_json<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
+	cout<<"Output:\n\t<\n"<<agent->cinfo->get_json_pretty<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
+
+
+/*
 	agent->cinfo->add_name("Entire COSMOSSTRUC Unit", &agent->cinfo->unit);
 	cout<<"Output:\n\t<"<<agent->cinfo->get_json<vector<vector<unitstruc>>>("Entire COSMOSSTRUC Unit")<<">"<<endl;
 
-	agent->cinfo->add_name("Entire COSMOSSTRUC Equations", &agent->cinfo->equation);
-	cout<<"Output:\n\t<"<<agent->cinfo->get_json<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
 	equationstruc eq = { "Test Name", "Test Value" };
 	vector<equationstruc> eqs;
 	eqs.push_back(eq);

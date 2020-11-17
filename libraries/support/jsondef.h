@@ -2934,6 +2934,12 @@ struct jsonentry
     uint16_t subsystem;
 };
 
+void replace(std::string& str, const std::string& from, const std::string& to);
+
+vector<size_t> find_newlines(const string& sample);
+
+void pretty_form(string& js);
+
 /// JIMNOTE:  this should be depricated -- not used anywhere
 //! JSON pointer map
 /*! The complete JSON offset map consists of an array of ::jsonentry elements, along
@@ -3086,6 +3092,19 @@ struct cosmosstruc
 			return "";
 		}
 	}
+
+	template<class T>
+	string get_json_pretty(const string& s)	{
+		if(name_exists(s))	{
+			json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
+			string pretty = json.dump();
+			pretty_form(pretty);
+			return pretty;
+		} else {
+			return "";
+		}
+	}
+
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
