@@ -627,7 +627,8 @@ struct attstruc
     qatt selc;
     qatt icrf;
     extraatt extra;
-  // Convert class contents to JSON object
+
+  	// Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
             { "utc" , utc }
