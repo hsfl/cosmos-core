@@ -1247,7 +1247,7 @@ struct allstruc
             if(!parsed["enabled"].is_null()) enabled = parsed["enabled"].bool_value();
             if(!parsed["type"].is_null()) type = parsed["type"].int_value();
             if(!parsed["model"].is_null()) model = parsed["model"].int_value();
-            if(!parsed["flag"].is_null()) flag = static_cast<uint32_t>(parsed["flag"].int_value());
+            if(!parsed["flag"].is_null()) flag = parsed["flag"].int_value();
             if(!parsed["addr"].is_null()) addr = parsed["addr"].int_value();
             if(!parsed["cidx"].is_null()) cidx = parsed["cidx"].int_value();
             if(!parsed["didx"].is_null()) didx = parsed["didx"].int_value();
@@ -1667,7 +1667,7 @@ struct diskstruc : public allstruc
         if(error.empty()) {
             if(!parsed["maxgib"].is_null()) maxgib = parsed["maxgib"].number_value();
             if(!parsed["gib"].is_null()) gib = parsed["gib"].number_value();
-            if(!parsed["path"].is_null()) strcpy(path, parsed["gib"].sring_value().c_str());
+            if(!parsed["path"].is_null()) strcpy(path, parsed["gib"].string_value().c_str());
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2363,7 +2363,7 @@ struct sttstruc : public allstruc
             if(!parsed["omega"].is_null()) omega.from_json(parsed["omega"].dump());
             if(!parsed["alpha"].is_null()) alpha.from_json(parsed["alpha"].dump());
             if(!parsed["retcode"].is_null()) retcode = parsed["retcode"].int_value();
-            if(!parsed["status"].is_null()) status = parsed["status"].int();
+            if(!parsed["status"].is_null()) status = parsed["status"].int_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2899,6 +2899,7 @@ information.
 */
 struct devicestruc
 {
+
     union
     {
         allstruc all;

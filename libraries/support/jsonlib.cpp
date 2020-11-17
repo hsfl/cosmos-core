@@ -807,7 +807,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
     piece.volume = .001 / density;
     piece.hcap = hcap;
     piece.hcon = hcon;
-    if (ctype < (DeviceType::COUNT))
+    if (ctype < DeviceType::COUNT)
     {
         piece.cidx = cinfo->device.size();
     }
@@ -820,7 +820,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
     cinfo->pieces.push_back(piece);
     cinfo->node.piece_cnt = static_cast <uint16_t>(cinfo->pieces.size());
 
-    if (ctype < (DeviceType::COUNT))
+    if (ctype < DeviceType::COUNT)
     {
         devicestruc device;
         device.all.pidx = static_cast <uint16_t>(cinfo->pieces.size()) - 1;
