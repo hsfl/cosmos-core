@@ -1209,7 +1209,7 @@ struct telemstruc : public allstruc
         char vstring[COSMOS_MAX_NAME+1];
     };
 
-        // Convert class contents to JSON object
+    // Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
             { "type" , type },
@@ -2935,29 +2935,9 @@ struct jsonentry
 };
 
 void replace(std::string& str, const std::string& from, const std::string& to);
-
 vector<size_t> find_newlines(const string& sample);
-
 void pretty_form(string& js);
 
-/// JIMNOTE:  this should be depricated -- not used anywhere
-//! JSON pointer map
-/*! The complete JSON offset map consists of an array of ::jsonentry elements, along
- * with their count. It also provides a dynamically sized char string, used by
- * the JSON output functions, and an index of its length.
-*/
-//struct jsonmap
-//{
-    ////! Array of entries
-    //vector<vector<jsonentry> > entry;
-//};
-
-//! JSON Name Space structure
-/*! A structure containing an element for every unique name in the COSMOS Name
- * Space. The components of this can then be mapped to the Name Space
- * using calls to ::json_addentry.
-*/
-// TODO: explain primary and secondary data
 struct cosmosstruc
 {
     //! Timestamp for last change to data
