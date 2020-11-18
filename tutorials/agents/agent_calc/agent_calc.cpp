@@ -240,6 +240,8 @@ agent->cinfo->set_json_value<cosmosstruc>("Entire COSMOSSTRUC", entire);
 	//pretty_form(js);
 	string js = agent->cinfo->get_json_pretty<cosmosstruc>("Entire COSMOSSTRUC");	
 	cout<<"Output:<\n"<<js<<"\n>"<<endl;
+	js = agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC");	
+	cout<<"Output:<\n"<<js<<"\n>"<<endl;
 
 	agent->cinfo->add_name("Entire COSMOSSTRUC Equations", &agent->cinfo->equation);
 	cout<<"Output:\n\t<\n"<<agent->cinfo->get_json<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;

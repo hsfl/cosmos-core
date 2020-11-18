@@ -1220,7 +1220,7 @@ struct allstruc
             { "enabled" , enabled },
             { "type"    , type },
             { "model"   , model },
-            { "flag"    , static_cast<double>(flag) },
+            { "flag"    , static_cast<int>(flag) },
             { "addr"    , addr },
             { "cidx"    , cidx },
             { "didx"    , didx },
@@ -2899,7 +2899,6 @@ information.
 */
 struct devicestruc
 {
-
     union
     {
         allstruc all;
@@ -2935,6 +2934,7 @@ struct devicestruc
         tsenstruc tsen;
         txrstruc txr;
     };
+
 };
 
 //! Specific Device structure
@@ -2942,6 +2942,7 @@ struct devicestruc
 */
 struct devspecstruc
 {
+    uint16_t all_cnt;
     uint16_t ant_cnt;
     uint16_t batt_cnt;
     uint16_t bus_cnt;
