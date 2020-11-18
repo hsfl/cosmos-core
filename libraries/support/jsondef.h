@@ -2634,7 +2634,7 @@ struct trianglestruc
     float ecellbase = .25;
     //! Solar cell efficiency with temp
     float ecellslope = 0.;
-    vector<vector<size_t>> triangleindex;
+    vector<vector<uint16_t>> triangleindex;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2658,7 +2658,7 @@ struct trianglestruc
             { "pcell" , pcell },
             { "ecellbase"   , ecellbase },
             { "ecellslope"  , ecellslope },
-			//{ "triangleindex" , triangleindex }
+			{ "triangleindex" , triangleindex }
         };
     }
 
@@ -2667,7 +2667,12 @@ struct trianglestruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-// SCOTTNOTE: 
+            if(!parsed["external"].is_null())	external = parsed["external"].bool_value();
+            if(!parsed["com"].is_null())	com.from_json(parsed["com"].dump());
+            if(!parsed["normal"].is_null())	normal.from_json(parsed["normal"].dump());
+            if(!parsed["shove"].is_null())	shove.from_json(parsed["shove"].dump());
+            if(!parsed["twist"].is_null())	twist.from_json(parsed["twist"].dump());
+// SCOTTNOTE: FINISH!!!!!!!!!!!!!!!!!!!
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2795,9 +2800,9 @@ struct physicsstruc
  			for(size_t i = 0; i < vertices.size(); ++i)	{
  				if(!parsed["vertices"][i].is_null())	vertices[i].from_json(parsed["vertices"][i].dump());
 			}
- 			//for(size_t i = 0; i < triangles.size(); ++i)	{
- 				//if(!parsed["triangles"][i].is_null())	triangles[i].from_json(parsed["triangles"][i].dump());
-			//}
+ 			for(size_t i = 0; i < triangles.size(); ++i)	{
+ 				if(!parsed["triangles"][i].is_null())	triangles[i].from_json(parsed["triangles"][i].dump());
+			}
         } else {
             cerr<<"ERROR = "<<error<<endl;
         }
