@@ -2672,7 +2672,27 @@ struct trianglestruc
             if(!parsed["normal"].is_null())	normal.from_json(parsed["normal"].dump());
             if(!parsed["shove"].is_null())	shove.from_json(parsed["shove"].dump());
             if(!parsed["twist"].is_null())	twist.from_json(parsed["twist"].dump());
-// SCOTTNOTE: FINISH!!!!!!!!!!!!!!!!!!!
+            if(!parsed["pidx"].is_null())	pidx = parsed["pidx"].int_value();
+
+			// array
+
+            if(!parsed["heat"].is_null())	heat = parsed["heat"].number_value();
+            if(!parsed["hcap"].is_null())	hcap = parsed["hcap"].number_value();
+            if(!parsed["emi"].is_null())	emi = parsed["emi"].number_value();
+            if(!parsed["abs"].is_null())	abs = parsed["abs"].number_value();
+            if(!parsed["mass"].is_null())	mass = parsed["mass"].number_value();
+            if(!parsed["temp"].is_null())	temp = parsed["temp"].number_value();
+            if(!parsed["area"].is_null())	area = parsed["area"].number_value();
+            if(!parsed["perimeter"].is_null())	perimeter = parsed["perimeter"].number_value();
+            if(!parsed["irradiation"].is_null())	irradiation = parsed["irradiation"].number_value();
+            if(!parsed["pcell"].is_null())	pcell = parsed["pcell"].number_value();
+            if(!parsed["ecellbase"].is_null())	ecellbase = parsed["ecellbase"].number_value();
+            if(!parsed["ecellslope"].is_null())	ecellslope = parsed["ecellslope"].number_value();
+            for(size_t i = 0; i < triangleindex.size(); ++i) {
+                for(size_t j = 0; j < triangleindex[i].size(); ++j)  {
+                    if(!parsed["triangleindex"][i][j].is_null()) triangleindex[i][j] = parsed["triangleindex"][i][j].number_value();
+                }
+            }
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
