@@ -48,6 +48,7 @@
 //! @{
 
 //! JSON Unit conversion type
+//Namespace 1.0
 enum {
     //! Identity
     JSON_UNIT_TYPE_IDENTITY,
@@ -58,6 +59,7 @@ enum {
 };
 
 //! JSON Unit type
+//Namespace 1.0
 enum {
     //! No units
     JSON_UNIT_NONE,
@@ -136,6 +138,7 @@ enum {
 };
 
 //! JSON Namelist Group
+//Namespace 1.0
 enum {
     //! Absolute pointer
     JSON_STRUCT_ABSOLUTE,
@@ -177,6 +180,7 @@ enum {
 };
 
 //! Constants defining the data types supported in the \ref jsonlib_namespace.
+//Namespace 1.0
 enum {
     //! JSON 8 bit unsigned integer type
     JSON_TYPE_UINT8=1,
@@ -299,6 +303,7 @@ enum {
 };
 
 //! Things to update
+//Namespace 1.0
 enum class JSON_UPDATE : int32_t {
     NONE,
     POS,
@@ -306,6 +311,7 @@ enum class JSON_UPDATE : int32_t {
 };
 
 //! Types of equation operands
+//Namespace 1.0
 enum {
     //! Nothing at all
     JSON_OPERAND_NULL,
@@ -318,6 +324,7 @@ enum {
 };
 
 //! Types of equation operations
+//Namespace 1.0
 enum {
     //! Addition +
     JSON_OPERATION_ADD,
@@ -737,6 +744,7 @@ struct jsonnode
 /*! Structure representing the location of a single JSON Equation or Name in its respective
         hash table.
 */
+//Namespace 1.0
 struct jsonhandle
 {
     // Hash of equation or name
@@ -749,6 +757,7 @@ struct jsonhandle
 /*! Tokenized version of a single JSON object. The token is a handle to the location
  * in the JSON map represented by the string portion, and the value portion stored as a string.
  */
+//Namespace 1.0
 struct jsontoken
 {
     jsonhandle handle;
@@ -761,6 +770,7 @@ struct jsontoken
         of: JSON_OPERAND_NULL, no operand; JSON_OPERAND_EQUATION, another equation;
         JSON_OPERAND_CONSTANT, a constant value; or JSON_OPERAND_NAME, a Namespace name.
 */
+//Namespace 1.0
 struct jsonoperand
 {
     //! JSON Operand Type
@@ -779,6 +789,7 @@ struct jsonoperand
  * - index: Index of this entry in the ::cosmosstruc::jmap.
  * - data: Offset to appropriate storage for this data type.
 */
+//Namespace 1.0
 struct jsonequation
 {
     //! JSON equation text
@@ -1627,12 +1638,12 @@ struct cpustruc : public allstruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-            if(!parsed["uptime"].is_null()) uptime = static_cast<uint32_t>(parsed["uptime"].int_value());
+            if(!parsed["uptime"].is_null()) uptime = parsed["uptime"].int_value();
             if(!parsed["load"].is_null()) load = parsed["load"].number_value();
             if(!parsed["maxload"].is_null()) maxload = parsed["maxload"].number_value();
             if(!parsed["maxgib"].is_null()) maxgib = parsed["maxgib"].number_value();
             if(!parsed["gib"].is_null()) gib = parsed["gib"].number_value();
-            if(!parsed["boot_count"].is_null()) boot_count = static_cast<uint32_t>(parsed["boot_count"].int_value());
+            if(!parsed["boot_count"].is_null()) boot_count = parsed["boot_count"].int_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2647,7 +2658,7 @@ struct trianglestruc
             { "pcell" , pcell },
             { "ecellbase"   , ecellbase },
             { "ecellslope"  , ecellslope },
-//  TODO:          { "triangleindex" , triangleindex }
+			//{ "triangleindex" , triangleindex }
         };
     }
 
@@ -2656,7 +2667,7 @@ struct trianglestruc
         string error;
         json11::Json parsed = json11::Json::parse(s,error);
         if(error.empty()) {
-// TODO:
+// SCOTTNOTE: 
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -2727,7 +2738,23 @@ struct physicsstruc
             { "battlev" , battlev },
             { "powgen" , powgen },
             { "powuse" , powuse },
-            { "mode" , mode }
+            { "mode" , mode },
+
+            { "ftorque" , ftorque },
+            { "atorque" , atorque },
+            { "rtorque" , rtorque },
+            { "gtorque" , gtorque },
+            { "htorque" , htorque },
+            { "hmomentum" , hmomentum },
+            { "ctorque" , ctorque },
+            { "fdrag" , fdrag },
+            { "adrag" , adrag },
+            { "rdrag" , rdrag },
+            { "thrust" , thrust },
+            { "moi" , moi },
+            { "com" , com },
+            { "vertices" , vertices },
+            { "triangles" , triangles }
 		};
 	}
 
@@ -2751,6 +2778,26 @@ struct physicsstruc
             if(!parsed["powgen"].is_null())	powgen = parsed["powgen"].number_value();
             if(!parsed["powuse"].is_null())	powuse = parsed["powuse"].number_value();
             if(!parsed["mode"].is_null())	mode = parsed["mode"].int_value();
+
+            if(!parsed["ftorque"].is_null())	ftorque.from_json(parsed["ftorque"].dump());
+            if(!parsed["atorque"].is_null())	atorque.from_json(parsed["atorque"].dump());
+            if(!parsed["rtorque"].is_null())	rtorque.from_json(parsed["rtorque"].dump());
+            if(!parsed["gtorque"].is_null())	gtorque.from_json(parsed["gtorque"].dump());
+            if(!parsed["htorque"].is_null())	htorque.from_json(parsed["htorque"].dump());
+            if(!parsed["hmomentum"].is_null())	hmomentum.from_json(parsed["hmomentum"].dump());
+            if(!parsed["ctorque"].is_null())	ctorque.from_json(parsed["ctorque"].dump());
+            if(!parsed["fdrag"].is_null())	fdrag.from_json(parsed["fdrag"].dump());
+            if(!parsed["adrag"].is_null())	adrag.from_json(parsed["adrag"].dump());
+            if(!parsed["rdrag"].is_null())	rdrag.from_json(parsed["rdrag"].dump());
+            if(!parsed["thrust"].is_null())	thrust.from_json(parsed["thrust"].dump());
+            if(!parsed["moi"].is_null())	moi.from_json(parsed["moi"].dump());
+            if(!parsed["com"].is_null())	com.from_json(parsed["com"].dump());
+ 			for(size_t i = 0; i < vertices.size(); ++i)	{
+ 				if(!parsed["vertices"][i].is_null())	vertices[i].from_json(parsed["vertices"][i].dump());
+			}
+ 			//for(size_t i = 0; i < triangles.size(); ++i)	{
+ 				//if(!parsed["triangles"][i].is_null())	triangles[i].from_json(parsed["triangles"][i].dump());
+			//}
         } else {
             cerr<<"ERROR = "<<error<<endl;
         }
@@ -3202,8 +3249,8 @@ struct cosmosstruc
     	replace(js, "[", "[\n");
     	replace(js, "}", "\n}");
     	replace(js, "]", "\n]");
-    	replace(js, "E M P T Y   V E C T O R", "[]");
     	replace(js, "E M P T Y   O B J E C T", "{}");
+    	replace(js, "E M P T Y   V E C T O R", "[]");
 	
     	// create vector[char position] = # of indents
     	int indent = 0;
