@@ -170,18 +170,18 @@ int main(int argc, char *argv[])
             radioindex = agent->cinfo->device[deviceindex].tcv.didx;
             break;
         }
-        agent->cinfo->device[deviceindex].all.model = model;
-        agent->cinfo->device[deviceindex].all.type = radiotype;
+        agent->cinfo->device[deviceindex].model = model;
+        agent->cinfo->device[deviceindex].type = radiotype;
         agent->cinfo->device[deviceindex].tcv.freq = freq;
         agent->cinfo->device[deviceindex].tcv.band = band;
         agent->cinfo->device[deviceindex].tcv.opmode = opmode;
         if (model == static_cast<uint16_t>(DEVICE_MODEL_IC9100))
         {
-            agent->cinfo->device[deviceindex].all.addr = radioaddr;
+            agent->cinfo->device[deviceindex].addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].all.portidx = iretn;
+                agent->cinfo->device[deviceindex].portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_TS2000))
@@ -189,16 +189,16 @@ int main(int argc, char *argv[])
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].all.portidx = iretn;
+                agent->cinfo->device[deviceindex].portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_USRP))
         {
-            agent->cinfo->device[deviceindex].all.addr = radioaddr;
+            agent->cinfo->device[deviceindex].addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_UDP);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].all.portidx = iretn;
+                agent->cinfo->device[deviceindex].portidx = iretn;
             }
         }
         iretn = json_dump_node(agent->cinfo);

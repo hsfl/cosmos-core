@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
     cpu_cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-    cpu_didx = agent->cinfo->device[cpu_cidx].all.didx;
+    cpu_didx = agent->cinfo->device[cpu_cidx].didx;
 
     sohstring = "{\"node_downtime\"";
     sohstring += ",\"device_cpu_utc_00" + std::to_string(cpu_didx) + "\"";
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
             exit(1);
         }
         uint16_t cidx = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-//        uint16_t didx = agent->cinfo->device[cidx].all.didx;
+//        uint16_t didx = agent->cinfo->device[cidx].didx;
         strncpy(agent->cinfo->device[cidx].disk.path, dinfo[i].mount.c_str(), COSMOS_MAX_NAME);
         sohstring += ",\"device_disk_utc_00" + std::to_string(cpu_didx) + "\"";
         sohstring += ",\"device_disk_temp_00" + std::to_string(cpu_didx) + "\"";
@@ -194,10 +194,10 @@ int main(int argc, char *argv[])
     agent->debug_level = 0;
     while(agent->running())
     {
-        agent->cinfo->device[cpu_cidx].all.utc = currentmjd();
+        agent->cinfo->device[cpu_cidx].utc = currentmjd();
         if (agent->debug_level)
         {
-            fprintf(agent->get_debug_fd(), "%16.10f ", agent->cinfo->device[cpu_cidx].all.utc);
+            fprintf(agent->get_debug_fd(), "%16.10f ", agent->cinfo->device[cpu_cidx].utc);
         }
         agent->cinfo->node.downtime = get_last_offset();
 

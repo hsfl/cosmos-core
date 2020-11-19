@@ -172,18 +172,18 @@ int main(int argc, char *argv[])
             radioindex = agent->cinfo->device[deviceindex].tcv.didx;
             break;
         }
-        agent->cinfo->device[deviceindex].all.model = model;
-        agent->cinfo->device[deviceindex].all.type = radiotype;
+        agent->cinfo->device[deviceindex].model = model;
+        agent->cinfo->device[deviceindex].type = radiotype;
         agent->cinfo->device[deviceindex].tcv.freq = freq;
         agent->cinfo->device[deviceindex].tcv.band = band;
         agent->cinfo->device[deviceindex].tcv.opmode = opmode;
         if (model == static_cast<uint16_t>(DEVICE_MODEL_IC9100))
         {
-            agent->cinfo->device[deviceindex].all.addr = radioaddr;
+            agent->cinfo->device[deviceindex].addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].all.portidx = iretn;
+                agent->cinfo->device[deviceindex].portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_TS2000))
@@ -191,16 +191,16 @@ int main(int argc, char *argv[])
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_RS232);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].all.portidx = iretn;
+                agent->cinfo->device[deviceindex].portidx = iretn;
             }
         }
         else if (model == static_cast<uint16_t>(DEVICE_MODEL_USRP))
         {
-            agent->cinfo->device[deviceindex].all.addr = radioaddr;
+            agent->cinfo->device[deviceindex].addr = radioaddr;
             iretn = json_createport(agent->cinfo, radiodevice, PORT_TYPE_UDP);
             if (iretn >= 0)
             {
-                agent->cinfo->device[deviceindex].all.portidx = iretn;
+                agent->cinfo->device[deviceindex].portidx = iretn;
             }
         }
         iretn = json_dump_node(agent->cinfo);
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
         {
-            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].all.pidx].name))
+            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].pidx].name))
             {
                 deviceindex = agent->cinfo->devspec.rxr[i];
                 radioindex = i;
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
         {
-            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].all.pidx].name))
+            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].pidx].name))
             {
                 deviceindex = agent->cinfo->devspec.txr[i];
                 radioindex = i;
@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
     {
         for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
         {
-            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].all.pidx].name))
+            if (!strcmp(radioname.c_str(), agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].pidx].name))
             {
                 deviceindex = agent->cinfo->devspec.tcv[i];
                 radioindex = i;
@@ -256,9 +256,9 @@ int main(int argc, char *argv[])
         exit (1);
     }
 
-    if (agent->cinfo->device[deviceindex].all.model == DEVICE_MODEL_IC9100)
+    if (agent->cinfo->device[deviceindex].model == DEVICE_MODEL_IC9100)
     {
-        iretn = ic9100_connect(agent->cinfo->port[agent->cinfo->device[deviceindex].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, ic9100);
+        iretn = ic9100_connect(agent->cinfo->port[agent->cinfo->device[deviceindex].portidx].name, agent->cinfo->device[deviceindex].addr, ic9100);
         if (iretn < 0)
         {
             printf("Unable to connect to IC9100: %s\n", cosmos_error_string(iretn).c_str());
@@ -310,9 +310,9 @@ int main(int argc, char *argv[])
             }
         }
     }
-    else if (agent->cinfo->device[deviceindex].all.model == DEVICE_MODEL_USRP)
+    else if (agent->cinfo->device[deviceindex].model == DEVICE_MODEL_USRP)
     {
-        iretn = usrp_connect(agent->cinfo->port[agent->cinfo->device[deviceindex].all.portidx].name, agent->cinfo->device[deviceindex].all.addr, usrp);
+        iretn = usrp_connect(agent->cinfo->port[agent->cinfo->device[deviceindex].portidx].name, agent->cinfo->device[deviceindex].addr, usrp);
         if (command == "freq")
         {
             if (argc == 3)

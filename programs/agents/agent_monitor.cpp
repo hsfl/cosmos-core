@@ -539,9 +539,9 @@ void collect_data_loop()
 
             for (devicestruc device: agent->cinfo->device)
             {
-                if (device.all.utc > agent->cinfo->node.utc)
+                if (device.utc > agent->cinfo->node.utc)
                 {
-                    agent->cinfo->node.utc = device.all.utc;
+                    agent->cinfo->node.utc = device.utc;
                 }
             }
         }

@@ -2969,13 +2969,13 @@ struct nodestruc
 possible device types, with a generic type for looking up basic
 information.
 */
-struct devicestruc
+struct devicestruc : public allstruc
 {
-///*
+/*
     union
     {
-//*/
-        allstruc all;
+*/
+        //allstruc all;
         antstruc ant;
         battstruc batt;
         bcregstruc bcreg;
@@ -3007,9 +3007,9 @@ struct devicestruc
         tncstruc tnc;
         tsenstruc tsen;
         txrstruc txr;
-///*
+/*
     };
-//*/
+*/
 
 };
 
