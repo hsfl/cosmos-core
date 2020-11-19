@@ -549,6 +549,9 @@ struct extrapos
     cartpos sun2earth;
     cartpos sun2moon;
     uint16_t closest;
+
+
+
 };
 
 std::ostream& operator << (std::ostream& out, const extrapos& a);
@@ -616,12 +619,25 @@ struct posstruc
     //! Decimal Orbit number
     double orbit;
 
-	//SCOTTNOTE:  ADD JSON HERE
   // Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
-            { "utc" , utc }
-			///  ...
+            { "utc" , utc },
+            { "icrf" , icrf },
+            { "eci" , eci },
+            { "sci" , sci },
+            { "geoc" , geoc },
+            { "selc" , selc },
+            { "geod" , geod },
+            { "selg" , selg },
+            { "geos" , geos },
+            //{ "extra" , extra },
+            { "earthsep" , earthsep },
+            { "moonsep" , moonsep },
+            { "sunsize" , sunsize },
+            { "sunradiance" , sunradiance },
+            { "bearth" , bearth },
+            { "orbit" , orbit }
 		};
 	}
 
@@ -630,7 +646,25 @@ struct posstruc
         string error;
         json11::Json parsed = json11::Json::parse(js,error);
         if(error.empty()) {
-            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+            if(!parsed["utc"].is_null())    utc = parsed["utc"].number_value();
+            if(!parsed["icrf"].is_null())   icrf.from_json(parsed["icrf"].dump());
+            if(!parsed["eci"].is_null())    eci.from_json(parsed["eci"].dump());
+            if(!parsed["sci"].is_null())    sci.from_json(parsed["sci"].dump());
+            if(!parsed["geoc"].is_null())   geoc.from_json(parsed["geoc"].dump());
+            if(!parsed["selc"].is_null())   selc.from_json(parsed["selc"].dump());
+            if(!parsed["geod"].is_null())   geod.from_json(parsed["geod"].dump());
+            if(!parsed["selg"].is_null())   selg.from_json(parsed["selg"].dump());
+            if(!parsed["geos"].is_null())   geos.from_json(parsed["geos"].dump());
+            //if(!parsed["extra"].is_null())  extra.from_json(parsed["extra"].dump());
+
+            if(!parsed["earthsep"].is_null())    earthsep = parsed["earthsep"].number_value();
+            if(!parsed["moonsep"].is_null())     moonsep = parsed["moonsep"].number_value();
+            if(!parsed["sunsize"].is_null())     sunsize = parsed["sunsize"].number_value();
+            if(!parsed["sunradiance"].is_null()) sunradiance = parsed["sunradiance"].number_value();
+
+            if(!parsed["bearth"].is_null())   bearth.from_json(parsed["bearth"].dump());
+            if(!parsed["orbit"].is_null())    orbit = parsed["orbit"].number_value();
+
 		} else {
             cerr<<"ERROR = "<<error<<endl;
         }
