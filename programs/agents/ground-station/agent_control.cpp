@@ -152,6 +152,7 @@ static bool trackinit = true;
 struct radiostruc
 {
     string name;
+	uint16_t type;
     tcvstruc info;
     uint16_t otherradioindex;
     beatstruc beat;
@@ -251,6 +252,7 @@ int main(int argc, char *argv[])
     for (size_t i=0; i<agent->cinfo->devspec.tcv_cnt; ++i)
     {
         tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.tcv[i]].pidx].name;
+		tradio.type = DeviceType::TCV;
         tradio.info = agent->cinfo->device[agent->cinfo->devspec.tcv[i]].tcv;
         tradio.basefreq = tradio.info.freq;
         tradio.baseopmode = tradio.info.opmode;
@@ -261,6 +263,7 @@ int main(int argc, char *argv[])
     for (size_t i=0; i<agent->cinfo->devspec.rxr_cnt; ++i)
     {
         tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.rxr[i]].pidx].name;
+		tradio.type = DeviceType::RXR;
         tradio.info = agent->cinfo->device[agent->cinfo->devspec.rxr[i]].tcv;
         tradio.basefreq = tradio.info.freq;
         tradio.baseopmode = tradio.info.opmode;
@@ -271,6 +274,7 @@ int main(int argc, char *argv[])
     for (size_t i=0; i<agent->cinfo->devspec.txr_cnt; ++i)
     {
         tradio.name = agent->cinfo->pieces[agent->cinfo->device[agent->cinfo->devspec.txr[i]].pidx].name;
+		tradio.type = DeviceType::TXR;
         tradio.info = agent->cinfo->device[agent->cinfo->devspec.txr[i]].tcv;
         tradio.basefreq = tradio.info.freq;
         tradio.baseopmode = tradio.info.opmode;
@@ -325,6 +329,7 @@ int main(int argc, char *argv[])
                     for (size_t i=0; i<cinfo->devspec.tcv_cnt; ++i)
                     {
                         tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.tcv[i]].pidx].name;
+						tradio.type = DeviceType::TCV;
                         tradio.info = cinfo->device[cinfo->devspec.tcv[i]].tcv;
                         tradio.otherradioindex = 9999;
                         ttrack.radios.push_back(tradio);
@@ -333,14 +338,16 @@ int main(int argc, char *argv[])
                     for (size_t i=0; i<cinfo->devspec.txr_cnt; ++i)
                     {
                         tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.txr[i]].pidx].name;
+						tradio.type = DeviceType::TXR;
                         tradio.info = cinfo->device[cinfo->devspec.txr[i]].tcv;
                         tradio.otherradioindex = 9999;
-                        ttrack.radios.push_back(tradio);
+						ttrack.radios.push_back(tradio);
                     }
 
                     for (size_t i=0; i<cinfo->devspec.rxr_cnt; ++i)
                     {
                         tradio.name = cinfo->pieces[cinfo->device[cinfo->devspec.rxr[i]].pidx].name;
+						tradio.type = DeviceType::RXR;
                         tradio.info = cinfo->device[cinfo->devspec.rxr[i]].tcv;
                         tradio.otherradioindex = 9999;
                         ttrack.radios.push_back(tradio);
@@ -580,14 +587,13 @@ int main(int argc, char *argv[])
                             {
                                 track[i].radios[idx].dfreq = track[i].radios[idx].info.freq * track[i].target.close / CLIGHT;
                                 myradios[j].dfreq = track[i].radios[idx].dfreq;
-								// JIMNOTE: might need to talk to Eric to fix this
-                                //if (track[i].radios[idx].info.type == static_cast<uint16_t>(DeviceType::TXR))
-                                //{
-                                    //myradios[j].info.freq = track[i].radios[idx].info.freq + track[i].radios[idx].dfreq;
-                                //}
-                                //else {
-                                   	//myradios[j].info.freq = track[i].radios[idx].info.freq - track[i].radios[idx].dfreq;
-                                //}
+                                if (track[i].radios[idx].type == static_cast<uint16_t>(DeviceType::TXR))
+                                {
+                                    myradios[j].info.freq = track[i].radios[idx].info.freq + track[i].radios[idx].dfreq;
+                                }
+                                else {
+									myradios[j].info.freq = track[i].radios[idx].info.freq - track[i].radios[idx].dfreq;
+                                }
                                 sprintf(request, "set_frequency %f", track[i].radios[idx].info.freq + track[i].radios[idx].dfreq);
                                 iretn = agent->send_request(myradios[j].beat, request, output, 5.);
                                 sprintf(request, "set_opmode %u", track[i].radios[idx].info.opmode);
