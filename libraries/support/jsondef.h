@@ -1119,6 +1119,35 @@ struct facestruc
     Vector com;
     Vector normal;
     double area=0.;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "vertex_cnt" , vertex_cnt},
+            { "vertex_idx" , vertex_idx },
+            { "com"    , com },
+            { "normal" , normal },
+            { "area"   , area }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json parsed = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!parsed["vertex_cnt"].is_null()) vertex_cnt = parsed["vertex_cnt"].int_value();
+            for(size_t i = 0; i < vertex_idx.size(); ++i)	{
+ 				if(!parsed["vertex_idx"][i].is_null())	vertex_idx[i] = parsed["vertex_idx"][i].int_value();
+			}
+            if(!parsed["com"].is_null()) com.from_json(parsed["com"].dump());
+            if(!parsed["normal"].is_null()) normal.from_json(parsed["normal"].dump());
+            if(!parsed["area"].is_null()) area = parsed["area"].number_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! Part structure: physical information for each piece of Node
@@ -1174,6 +1203,74 @@ struct piecestruc
     Vector material_diffuse;
     //! Material specular reflective qualities
     Vector material_specular;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "name"    , name },
+            { "enabled" , enabled },
+            { "cidx"    , cidx },
+            { "density" , density },
+            { "mass"    , mass },
+            { "emi"     , emi },
+            { "abs"     , abs },
+            { "hcap"    , hcap },
+            { "hcon"    , hcon },
+            { "dim"     , dim },
+            { "area"    , area },
+            { "volume"  , volume },
+            { "face_cnt", face_cnt },
+            { "face_idx", face_idx },
+            { "com"     , com },
+            { "shove"   , shove },
+            { "twist"   , twist },
+            { "heat"    , heat },
+            { "temp"    , temp },
+            { "insol"   , insol },
+            { "material_density" , material_density },
+            { "material_ambient" , material_ambient },
+            { "material_diffuse" , material_diffuse },
+            { "material_specular", material_specular }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!p["name"].is_null()) strcpy(name, p["name"].string_value().c_str());
+            if(!p["enabled"].is_null()) enabled = p["enabled"].bool_value();
+            if(!p["cidx"].is_null()) cidx = p["cidx"].int_value();
+            if(!p["density"].is_null()) density = p["density"].number_value();
+            if(!p["mass"].is_null()) mass = p["mass"].number_value();
+            if(!p["emi"].is_null()) emi = p["emi"].number_value();
+            if(!p["abs"].is_null()) abs = p["abs"].number_value();
+            if(!p["hcap"].is_null()) hcap = p["hcap"].number_value();
+            if(!p["hcon"].is_null()) hcon = p["hcon"].number_value();
+            if(!p["dim"].is_null()) dim = p["dim"].number_value();
+            if(!p["area"].is_null()) area = p["area"].number_value();
+            if(!p["volume"].is_null()) volume = p["volume"].number_value();
+            if(!p["face_cnt"].is_null()) face_cnt = p["face_cnt"].int_value();
+            if(!p["face_idx"].is_null()) {
+                auto p_face_idx = p["face_idx"].array_items();
+                for(size_t i = 0; i != p_face_idx.size(); ++i) {
+                    if(!p_face_idx[i].is_null()) face_idx[i] = p_face_idx[i].int_value();
+                }
+            }
+            if(!p["com"].is_null()) com.from_json(p["com"].dump());
+            if(!p["shove"].is_null()) shove.from_json(p["shove"].dump());
+            if(!p["twist"].is_null()) twist.from_json(p["twist"].dump());
+            if(!p["heat"].is_null()) heat = p["heat"].number_value();
+            if(!p["temp"].is_null()) temp = p["temp"].number_value();
+            if(!p["insol"].is_null()) insol = p["insol"].number_value();
+            if(!p["material_density"].is_null()) material_density = p["material_density"].number_value();
+            if(!p["material_ambient"].is_null()) material_ambient.from_json(p["material_ambient"].dump());
+            if(!p["material_diffuse"].is_null()) material_diffuse.from_json(p["material_diffuse"].dump());
+            if(!p["material_specular"].is_null()) material_specular.from_json(p["material_specular"].dump());
+        }
+        return;
+    }
 };
 
 // Beginning of Device General structures
@@ -1559,10 +1656,12 @@ struct mtrstruc : public allstruc
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
+        vector<float> v_npoly = vector<float>(npoly, npoly+sizeof(npoly));
+        vector<float> v_ppoly = vector<float>(ppoly, npoly+sizeof(ppoly));
         return json11::Json::object {
             { "align" , align },
-            { "npoly"   , json11::Json::carray_to_vector(npoly, sizeof(npoly)/sizeof(npoly[0])) },
-            { "ppoly"   , json11::Json::carray_to_vector(ppoly, sizeof(ppoly)/sizeof(ppoly[0])) },
+            { "npoly"   , v_npoly },
+            { "ppoly"   , v_ppoly },
             { "mxmom"   , mxmom },
             { "tc"      , tc },
             { "rmom"    , rmom },
@@ -1579,15 +1678,13 @@ struct mtrstruc : public allstruc
             if(!parsed["npoly"].is_null()) {
                 auto p_npoly = parsed["npoly"].array_items();
                 for(size_t i = 0; i != p_npoly.size(); ++i) {
-					// SCOTTNOTE:  check with is_null()
-                    npoly[i] = p_npoly[i].number_value();
+                    if(!p_npoly[i].is_null()) npoly[i] = p_npoly[i].number_value();
                 }
             }
             if(!parsed["ppoly"].is_null()) {
                 auto p_ppoly = parsed["ppoly"].array_items();
                 for(size_t i = 0; i != p_ppoly.size(); ++i) {
-					// SCOTTNOTE:  check with is_null()
-                    ppoly[i] = p_ppoly[i].number_value();
+                    if(!p_ppoly[i].is_null()) ppoly[i] = p_ppoly[i].number_value();
                 }
             }
             if(!parsed["mxmom"].is_null()) mxmom = parsed["mxmom"].number_value();
@@ -2443,8 +2540,7 @@ struct tcustruc : public allstruc
             if(!parsed["mcidx"].is_null()) {
                 auto p_mcidx = parsed["mcidx"].array_items();
                 for(size_t i = 0; i != p_mcidx.size(); ++i) {
-					// SCOTTNOTE: add is_null check
-                    mcidx[i] = p_mcidx[i].int_value();
+                    if(!p_mcidx[i].is_null()) mcidx[i] = p_mcidx[i].int_value();
                 }
             }
         } else {
@@ -2533,8 +2629,7 @@ struct suchistruc : public allstruc
             if(!parsed["temps"].is_null()) {
                 auto p_temps = parsed["temps"].array_items();
                 for(size_t i = 0; i != p_temps.size(); ++i) {
-					// SCOTTNOTE:  add is_null check
-                    temps[i] = p_temps[i].number_value();
+                    if(!p_temps[i].is_null()) temps[i] = p_temps[i].number_value();
                 }
             }
         } else {
@@ -3325,9 +3420,18 @@ struct cosmosstruc
             { "node" , node },
             { "vertexs" , vertexs },
             { "normals" , normals },
-			// ... MORE ... //
-			{ "user" , user },
-			{ "tle" , tle }
+            { "faces" , faces },
+            { "pieces" , pieces },
+            { "obj" , obj },
+            //{ "device" , device },
+            /*{ "devspec" , devspec },
+            { "port" , port },
+            { "agent" , agent },
+            { "event" , event },
+            { "target" , target },
+			{ "user" , user },*/
+            { "glossary" , glossary },
+			{ "tle" , tle },
 			//{ "json" , json }
 		};
 	}
@@ -3337,16 +3441,18 @@ struct cosmosstruc
         string error;
         json11::Json p = json11::Json::parse(s,error);
         if(error.empty()) {
-			string obj(p.object_items().begin()->first);
+			string obj(p.object_items().begin()->first); // NOTE: Should we rename this to something else? We already have a wavefront obj member var
  			if(!p[obj]["timestamp"].is_null())	timestamp = p[obj]["timestamp"].number_value();
  			if(!p[obj]["jmapped"].is_null())	jmapped = p[obj]["jmapped"].number_value();
  			for(size_t i = 0; i < unit.size(); ++i)	{
  				for(size_t j = 0; j < unit[i].size(); ++j)	{
- 					if(!p[obj]["unit"][i][j].is_null())	unit[i][j].from_json(p[obj]["unit"][i][j].dump());
+                    if(!p[obj]["unit"][i][j].is_null()) 
+ 					    unit[i][j].from_json(p[obj]["unit"][i][j].dump());
  				}
  			}
  			for(size_t i = 0; i < equation.size(); ++i)	{
- 				if(!p[obj]["equation"][i].is_null())	equation[i].from_json(p[obj]["equation"][i].dump());
+			    if(!p[obj]["equation"][i].is_null())
+ 				    equation[i].from_json(p[obj]["equation"][i].dump());
 			}
  			if(!p[obj]["node"].is_null())	node.from_json(p[obj]["node"].dump());
  			for(size_t i = 0; i < vertexs.size(); ++i)	{
@@ -3355,10 +3461,26 @@ struct cosmosstruc
  			for(size_t i = 0; i < normals.size(); ++i)	{
  				if(!p[obj]["normals"][i].is_null())	normals[i].from_json(p[obj]["normals"][i].dump());
 			}
-
-			// ... MORE ... //
-
-
+            for(size_t i = 0; i < faces.size(); ++i)	{
+ 				if(!p[obj]["faces"][i].is_null())	faces[i].from_json(p[obj]["faces"][i].dump());
+			}
+            if(!p["obj"].is_null()) cosmosstruc::obj.from_json(p[obj]["obj"].dump());
+// TODO            for(size_t i = 0; i < device.size(); ++i)	{
+ 			//	if(!p[obj]["device"][i].is_null())	device[i].from_json(p[obj]["device"][i].dump());
+			//}
+            /*if(!p[obj]["devspec"].is_null()) devspec.from_json(p[obj]["devspec"].dump());
+            for(size_t i = 0; i < port.size(); ++i)	{
+ 				if(!p[obj]["port"][i].is_null())	port[i].from_json(p[obj]["port"][i].dump());
+			}
+            for(size_t i = 0; i < agent.size(); ++i)	{
+ 				if(!p[obj]["agent"][i].is_null())	agent[i].from_json(p[obj]["agent"][i].dump());
+			}
+            for(size_t i = 0; i < event.size(); ++i)	{
+ 				if(!p[obj]["event"][i].is_null())	event[i].from_json(p[obj]["event"][i].dump());
+			}
+            for(size_t i = 0; i < target.size(); ++i)	{
+ 				if(!p[obj]["target"][i].is_null())	target[i].from_json(p[obj]["target"][i].dump());
+			}*/
  			for(size_t i = 0; i < user.size(); ++i)	{
  				if(!p[obj]["user"][i].is_null())	user[i].from_json(p[obj]["user"][i].dump());
 			}
