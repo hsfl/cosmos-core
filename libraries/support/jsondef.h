@@ -751,6 +751,27 @@ struct jsonhandle
     uint16_t hash;
     // Index within that hash entry
     uint16_t index;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "hash" , hash },
+            { "index", index }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!p["hash"].is_null()) hash = p["hash"].int_value();
+            if(!p["index"].is_null()) index = p["index"].int_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! JSON token
@@ -876,6 +897,49 @@ struct beatstruc
     double jitter = 0.;
     //! Existence Flag (if beat exists then flag is set to true, false otherwise)
     bool exists = false;
+
+        // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc"   , utc },
+            { "node"  , node },
+            { "proc"  , proc },
+            { "ntype" , static_cast<int>(ntype) },
+            { "addr"  , addr },
+            { "port"  , port },
+            { "bsz"   , static_cast<double>(bsz) },
+            { "bprd"  , bprd },
+            { "user"  , user },
+            { "cpu"   , cpu },
+            { "memory", memory },
+            { "jitter", jitter },
+            { "exists", exists }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!p["utc"].is_null()) utc = p["utc"].number_value();
+            if(!p["node"].is_null()) strcpy(node, p["node"].string_value().c_str());
+            if(!p["proc"].is_null()) strcpy(proc, p["proc"].string_value().c_str());
+            if(!p["ntype"].is_null()) ntype = static_cast<NetworkType>(p["ntype"].int_value());
+            if(!p["addr"].is_null()) strcpy(addr, p["addr"].string_value().c_str());
+            if(!p["port"].is_null()) port = p["port"].int_value();
+            if(!p["bsz"].is_null()) bsz = static_cast<uint32_t>(p["bsz"].number_value());
+            if(!p["bprd"].is_null()) bprd = p["bprd"].number_value();
+            if(!p["user"].is_null()) strcpy(user, p["user"].string_value().c_str());
+            if(!p["cpu"].is_null()) cpu = p["cpu"].number_value();
+            if(!p["memory"].is_null()) memory = p["memory"].number_value();
+            if(!p["jitter"].is_null()) jitter = p["jitter"].number_value();
+            if(!p["exists"].is_null()) exists = p["exists"].bool_value();
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! Agent control structure
@@ -903,6 +967,55 @@ struct agentstruc
     vector <agent_request_entry> reqs;
     //! Heartbeat
     beatstruc beat;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+//        vector<uint16_t> v_pub = vector<uint16_t>(pub, pub+AGENTMAXIF);
+        return json11::Json::object {
+            { "client" , client },
+//TODO?            { "sub"    , sub },
+            { "server" , server },
+            { "ifcnt"  , static_cast<double>(ifcnt) },
+//            { "pub"    , v_pub },
+//            { "req"    , req },
+            { "pid"    , pid },
+            { "aprd"   , aprd },
+            { "stateflag" , stateflag },
+//            { "reqs"   , reqs },
+            { "beat"   , beat }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!p["client"].is_null()) client = p["client"].bool_value();
+//TODO?            if(!p["sub"].is_null()) sub.from_json(p["sub"].dump());
+            if(!p["server"].is_null()) server = p["server"].bool_value();
+            if(!p["ifcnt"].is_null()) ifcnt = static_cast<size_t>(p["ifcnt"].number_value());
+            auto p_pub = p["pub"].array_items();
+//            if(!p["pub"].is_null()) {
+//                for(size_t i = 0; i < p_pub.size(); ++i)	{
+// 				    if(!p["pub"][i].is_null())	pub[i].from_json(p["pub"][i].dump());
+//			    }
+//            }
+//            if(!p["req"].is_null()) req.from_json(p["req"].dump());
+            if(!p["pid"].is_null()) pid = p["pid"].int_value();
+            if(!p["aprd"].is_null()) aprd = p["aprd"].number_value();
+            if(!p["stateflag"].is_null()) stateflag = p["stateflag"].int_value();
+//            if(!p["reqs"].is_null()) {
+//                for(size_t i = 0; i < reqs.size(); ++i) {
+//                    if(!p["reqs"][i].is_null()) reqs[i].from_json(p["reqs"][i].dump());
+//                }
+//            }
+            if(!p["beat"].is_null()) beat.from_json(p["beat"].dump());
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! Full COSMOS Event structure
@@ -950,6 +1063,62 @@ struct eventstruc
     char data[JSON_MAX_DATA] = "";
     //! Condition that caused event, NULL if timed event.
     char condition[JSON_MAX_DATA] = "";
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc"   , utc },
+            { "utcexec" , utcexec },
+            { "node"  , node },
+            { "name"  , name },
+            { "user"  , user },
+            { "flag"  , static_cast<double>(flag) },
+            { "type"  , static_cast<double>(type) },
+            { "value" , value },
+            { "dtime" , dtime },
+            { "ctime" , ctime },
+            { "denergy" , denergy },
+            { "cenergy" , cenergy },
+            { "dmass"   , dmass },
+            { "cmass"   , cmass },
+            { "dbytes"  , dbytes },
+            { "cbytes"  , cbytes },
+            { "handle"  , handle },
+            { "data"    , data },
+            { "condition" , condition }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!p["utc"].is_null()) utc = p["utc"].number_value();
+            if(!p["utcexec"].is_null()) utcexec = p["utcexec"].number_value();            
+            if(!p["node"].is_null()) strcpy(node, p["node"].string_value().c_str());
+            if(!p["name"].is_null()) strcpy(name, p["name"].string_value().c_str());
+            if(!p["user"].is_null()) strcpy(user, p["user"].string_value().c_str());
+            if(!p["flag"].is_null()) flag = p["flag"].int_value();
+            if(!p["type"].is_null()) type = static_cast<uint32_t>(p["type"].number_value());
+            if(!p["value"].is_null()) value = p["value"].number_value();
+            if(!p["dtime"].is_null()) dtime = p["dtime"].number_value();
+            if(!p["ctime"].is_null()) ctime = p["ctime"].number_value();
+            if(!p["denergy"].is_null()) denergy = p["denergy"].number_value();
+            if(!p["cenergy"].is_null()) cenergy = p["cenergy"].number_value();
+            if(!p["dmass"].is_null()) dmass = p["dmass"].number_value();
+            if(!p["cmass"].is_null()) cmass = p["cmass"].number_value();
+            if(!p["dbytes"].is_null()) dbytes = p["dbytes"].number_value();
+            if(!p["cbytes"].is_null()) cbytes = p["cbytes"].number_value();
+            if(!p["handle"].is_null()) handle.from_json(p["handle"].dump());
+            if(!p["data"].is_null()) strcpy(data, p["data"].string_value().c_str());
+            if(!p["condition"].is_null()) strcpy(condition, p["condition"].string_value().c_str());
+
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 struct userstruc
@@ -1091,6 +1260,45 @@ struct targetstruc
     double close;
     float min;
     locstruc loc;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc"    , utc },
+            { "name"   , name },
+            { "type"   , type },
+            { "azfrom" , azfrom },
+            { "elfrom" , elfrom },
+            { "azto"   , azto },
+            { "elto"   , elto },
+            { "range"  , range },
+            { "close"  , close },
+            { "min"    , min },
+            { "loc"    , loc }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!p["utc"].is_null()) utc = p["utc"].number_value();
+            if(!p["name"].is_null()) strcpy(name, p["name"].string_value().c_str());
+            if(!p["type"].is_null()) type = p["type"].int_value();
+            if(!p["azfrom"].is_null()) azfrom = p["azfrom"].number_value();
+            if(!p["elfrom"].is_null()) elfrom = p["elfrom"].number_value();
+            if(!p["azto"].is_null()) azto = p["azto"].number_value();
+            if(!p["elto"].is_null()) elto = p["elto"].number_value();
+            if(!p["range"].is_null()) range = p["range"].number_value();
+            if(!p["close"].is_null()) close = p["close"].number_value();
+            if(!p["min"].is_null()) min = p["min"].number_value();
+            if(!p["loc"].is_null()) loc.from_json(p["loc"].dump());
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! Port structure
@@ -1106,6 +1314,27 @@ struct portstruc
     //! Name information for port.
     //!!! Do not make this string
     char name[COSMOS_MAX_DATA+1];
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "type" , type },
+            { "name" , name }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!p["type"].is_null()) type = p["type"].int_value();
+            if(!p["name"].is_null()) strcpy(name, p["name"].string_value().c_str());
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! Point structure: information on each vertex in a face
@@ -1656,8 +1885,8 @@ struct mtrstruc : public allstruc
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
-        vector<float> v_npoly = vector<float>(npoly, npoly+sizeof(npoly));
-        vector<float> v_ppoly = vector<float>(ppoly, npoly+sizeof(ppoly));
+        vector<float> v_npoly = vector<float>(npoly, npoly+sizeof(npoly)/sizeof(npoly[0]));
+        vector<float> v_ppoly = vector<float>(ppoly, npoly+sizeof(ppoly)/sizeof(ppoly[0]));
         return json11::Json::object {
             { "align" , align },
             { "npoly"   , v_npoly },
@@ -2525,9 +2754,10 @@ struct tcustruc : public allstruc
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
+        vector<uint16_t> v_mcidx = vector<uint16_t>(mcidx, mcidx+sizeof(mcidx)/sizeof(mcidx[0]));
         return json11::Json::object {
             { "mcnt" , mcnt },
-            { "mcidx", json11::Json::carray_to_vector(mcidx, sizeof(mcidx)/sizeof(mcidx[0])) }
+            { "mcidx", v_mcidx }
         };
     }
 
@@ -2612,10 +2842,11 @@ struct suchistruc : public allstruc
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
+        vector<float> v_temps = vector<float>(temps, temps+sizeof(temps)/sizeof(temps[0]));
         return json11::Json::object {
             { "align" , align },
             { "press" , press },
-            { "temps" , json11::Json::carray_to_vector(temps, sizeof(temps)/sizeof(temps[0])) }
+            { "temps" , v_temps }
         };
     }
 
@@ -2733,6 +2964,7 @@ struct trianglestruc
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
+        vector<uint16_t> v_tidx = vector<uint16_t>(tidx, tidx+sizeof(tidx)/sizeof(tidx[0]));
         return json11::Json::object {
             { "external" , external },
             { "com" , com },
@@ -2740,7 +2972,7 @@ struct trianglestruc
             { "shove" , shove },
             { "twist" , twist },
             { "pidx"  , pidx },
-            { "tidx"  , json11::Json::carray_to_vector(tidx, sizeof(tidx)/sizeof(tidx[0])) },
+            { "tidx"  , v_tidx },
             { "heat"  , heat },
             { "hcap"  , hcap },
             { "emi"   , emi },
@@ -3177,6 +3409,197 @@ struct devspecstruc
     vector<uint16_t>tnc;
     vector<uint16_t>tsen;
     vector<uint16_t>txr;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "all_cnt", all_cnt },
+            { "ant_cnt", ant_cnt },
+            { "batt_cnt", batt_cnt },
+            { "bus_cnt", bus_cnt },
+            { "cam_cnt", cam_cnt },
+            { "cpu_cnt", cpu_cnt },
+            { "disk_cnt", disk_cnt },
+            { "gps_cnt", gps_cnt },
+            { "htr_cnt", htr_cnt },
+            { "imu_cnt", imu_cnt },
+            { "mcc_cnt", mcc_cnt },
+            { "motr_cnt", motr_cnt },
+            { "mtr_cnt", mtr_cnt },
+            { "pload_cnt", pload_cnt },
+            { "prop_cnt", prop_cnt },
+            { "psen_cnt", psen_cnt },
+            { "bcreg_cnt", bcreg_cnt },
+            { "rot_cnt", rot_cnt },
+            { "rw_cnt", rw_cnt },
+            { "rxr_cnt", rxr_cnt },
+            { "ssen_cnt", ssen_cnt },
+            { "pvstrg_cnt", pvstrg_cnt },
+            { "stt_cnt", stt_cnt },
+            { "suchi_cnt", suchi_cnt },
+            { "swch_cnt", swch_cnt },
+            { "tcu_cnt", tcu_cnt },
+            { "tcv_cnt", tcv_cnt },
+            { "telem_cnt", telem_cnt },
+            { "thst_cnt", thst_cnt },
+            { "tsen_cnt", tsen_cnt },
+            { "tnc_cnt", tnc_cnt },
+            { "txr_cnt", txr_cnt },
+            { "all", all },
+            { "ant", ant },
+            { "ant", batt },
+            { "bcreg", bcreg },
+            { "bus", bus },
+            { "cam", cam },
+            { "cpu", cpu },
+            { "disk", disk },
+            { "gps", gps },
+            { "htr", htr },
+            { "imu", imu },
+            { "mcc", mcc },
+            { "motr", motr },
+            { "mtr", mtr },
+            { "pload", pload },
+            { "prop", prop },
+            { "psen", psen },
+            { "pvstrg", pvstrg },
+            { "rot", rot },
+            { "rw", rw },
+            { "rxr", rxr },
+            { "ssen", ssen },
+            { "stt", stt },
+            { "suchi", suchi },
+            { "swch", swch },
+            { "tcu", tcu },
+            { "tcv", tcv },
+            { "telem", telem },
+            { "thst", thst },
+            { "tnc", tnc },
+            { "tsen", tsen },
+            { "txr", txr }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {
+        string error;
+        json11::Json p = json11::Json::parse(s,error);
+        if(error.empty()) {
+            if(!p["all_cnt"].is_null()) all_cnt = p["all_cnt"].int_value();
+            if(!p["ant_cnt"].is_null()) ant_cnt = p["ant_cnt"].int_value();
+            if(!p["batt_cnt"].is_null()) batt_cnt = p["batt_cnt"].int_value();
+            if(!p["bus_cnt"].is_null()) bus_cnt = p["bus_cnt"].int_value();
+            if(!p["cam_cnt"].is_null()) cam_cnt = p["cam_cnt"].int_value();
+
+            if(!p["cpu_cnt"].is_null()) cpu_cnt = p["cpu_cnt"].int_value();
+            if(!p["disk_cnt"].is_null()) disk_cnt = p["disk_cnt"].int_value();
+            if(!p["gps_cnt"].is_null()) gps_cnt = p["gps_cnt"].int_value();
+            if(!p["htr_cnt"].is_null()) htr_cnt = p["htr_cnt"].int_value();
+            if(!p["imu_cnt"].is_null()) imu_cnt = p["imu_cnt"].int_value();
+
+            if(!p["mcc_cnt"].is_null()) mcc_cnt = p["mcc_cnt"].int_value();
+            if(!p["motr_cnt"].is_null()) motr_cnt = p["motr_cnt"].int_value();
+            if(!p["mtr_cnt"].is_null()) mtr_cnt = p["mtr_cnt"].int_value();
+            if(!p["pload_cnt"].is_null()) pload_cnt = p["pload_cnt"].int_value();
+            if(!p["prop_cnt"].is_null()) prop_cnt = p["prop_cnt"].int_value();
+
+            if(!p["psen_cnt"].is_null()) psen_cnt = p["psen_cnt"].int_value();
+            if(!p["bcreg_cnt"].is_null()) bcreg_cnt = p["bcreg_cnt"].int_value();
+            if(!p["rot_cnt"].is_null()) rot_cnt = p["rot_cnt"].int_value();
+            if(!p["rw_cnt"].is_null()) rw_cnt = p["rw_cnt"].int_value();
+            if(!p["rxr_cnt"].is_null()) rxr_cnt = p["rxr_cnt"].int_value();
+
+            if(!p["ssen_cnt"].is_null()) ssen_cnt = p["ssen_cnt"].int_value();
+            if(!p["pvstrg_cnt"].is_null()) pvstrg_cnt = p["pvstrg_cnt"].int_value();
+            if(!p["stt_cnt"].is_null()) stt_cnt = p["stt_cnt"].int_value();
+            if(!p["suchi_cnt"].is_null()) suchi_cnt = p["suchi_cnt"].int_value();
+            if(!p["swch_cnt"].is_null()) swch_cnt = p["swch_cnt"].int_value();
+
+            if(!p["tcu_cnt"].is_null()) tcu_cnt = p["tcu_cnt"].int_value();
+            if(!p["tcv_cnt"].is_null()) tcv_cnt = p["tcv_cnt"].int_value();
+            if(!p["telem_cnt"].is_null()) telem_cnt = p["telem_cnt"].int_value();
+            if(!p["thst_cnt"].is_null()) thst_cnt = p["thst_cnt"].int_value();
+            if(!p["tsen_cnt"].is_null()) tsen_cnt = p["tsen_cnt"].int_value();
+
+            if(!p["tnc_cnt"].is_null()) tnc_cnt = p["tnc_cnt"].int_value();
+            if(!p["txr_cnt"].is_null()) txr_cnt = p["txr_cnt"].int_value();
+
+            for(size_t i = 0; i < all.size(); ++i)
+                if(!p["all"][i].is_null()) all[i] = p["all"][i].int_value();
+            for(size_t i = 0; i < ant.size(); ++i)
+                if(!p["ant"][i].is_null()) ant[i] = p["ant"][i].int_value();
+            for(size_t i = 0; i < batt.size(); ++i)
+                if(!p["batt"][i].is_null()) batt[i] = p["batt"][i].int_value();
+            for(size_t i = 0; i < bcreg.size(); ++i)
+                if(!p["bcreg"][i].is_null()) bcreg[i] = p["bcreg"][i].int_value();
+            for(size_t i = 0; i < bus.size(); ++i)
+                if(!p["bus"][i].is_null()) bus[i] = p["bus"][i].int_value();
+            
+            for(size_t i = 0; i < cam.size(); ++i)
+                if(!p["cam"][i].is_null()) cam[i] = p["cam"][i].int_value();
+            for(size_t i = 0; i < cpu.size(); ++i)
+                if(!p["cpu"][i].is_null()) cpu[i] = p["cpu"][i].int_value();
+            for(size_t i = 0; i < disk.size(); ++i)
+                if(!p["disk"][i].is_null()) disk[i] = p["disk"][i].int_value();
+            for(size_t i = 0; i < gps.size(); ++i)
+                if(!p["gps"][i].is_null()) gps[i] = p["gps"][i].int_value();
+            for(size_t i = 0; i < htr.size(); ++i)
+                if(!p["htr"][i].is_null()) htr[i] = p["htr"][i].int_value();
+            
+            for(size_t i = 0; i < imu.size(); ++i)
+                if(!p["imu"][i].is_null()) imu[i] = p["imu"][i].int_value();
+            for(size_t i = 0; i < mcc.size(); ++i)
+                if(!p["mcc"][i].is_null()) mcc[i] = p["mcc"][i].int_value();
+            for(size_t i = 0; i < motr.size(); ++i)
+                if(!p["motr"][i].is_null()) motr[i] = p["motr"][i].int_value();
+            for(size_t i = 0; i < mtr.size(); ++i)
+                if(!p["mtr"][i].is_null()) mtr[i] = p["mtr"][i].int_value();
+            for(size_t i = 0; i < pload.size(); ++i)
+                if(!p["pload"][i].is_null()) pload[i] = p["pload"][i].int_value();
+            
+            for(size_t i = 0; i < prop.size(); ++i)
+                if(!p["prop"][i].is_null()) prop[i] = p["prop"][i].int_value();
+            for(size_t i = 0; i < psen.size(); ++i)
+                if(!p["psen"][i].is_null()) psen[i] = p["psen"][i].int_value();
+            for(size_t i = 0; i < pvstrg.size(); ++i)
+                if(!p["pvstrg"][i].is_null()) pvstrg[i] = p["pvstrg"][i].int_value();
+            for(size_t i = 0; i < rot.size(); ++i)
+                if(!p["rot"][i].is_null()) rot[i] = p["rot"][i].int_value();
+            for(size_t i = 0; i < rw.size(); ++i)
+                if(!p["rw"][i].is_null()) rw[i] = p["rw"][i].int_value();
+            
+            for(size_t i = 0; i < rxr.size(); ++i)
+                if(!p["rxr"][i].is_null()) rxr[i] = p["rxr"][i].int_value();
+            for(size_t i = 0; i < ssen.size(); ++i)
+                if(!p["ssen"][i].is_null()) ssen[i] = p["ssen"][i].int_value();
+            for(size_t i = 0; i < stt.size(); ++i)
+                if(!p["stt"][i].is_null()) stt[i] = p["stt"][i].int_value();
+            for(size_t i = 0; i < suchi.size(); ++i)
+                if(!p["suchi"][i].is_null()) suchi[i] = p["suchi"][i].int_value();
+            for(size_t i = 0; i < swch.size(); ++i)
+                if(!p["swch"][i].is_null()) swch[i] = p["swch"][i].int_value();
+            
+            for(size_t i = 0; i < tcu.size(); ++i)
+                if(!p["tcu"][i].is_null()) tcu[i] = p["tcu"][i].int_value();
+            for(size_t i = 0; i < tcv.size(); ++i)
+                if(!p["tcv"][i].is_null()) tcv[i] = p["tcv"][i].int_value();
+            for(size_t i = 0; i < telem.size(); ++i)
+                if(!p["telem"][i].is_null()) telem[i] = p["telem"][i].int_value();
+            for(size_t i = 0; i < thst.size(); ++i)
+                if(!p["thst"][i].is_null()) thst[i] = p["thst"][i].int_value();
+            for(size_t i = 0; i < tnc.size(); ++i)
+                if(!p["tnc"][i].is_null()) tnc[i] = p["tnc"][i].int_value();
+            
+            for(size_t i = 0; i < tsen.size(); ++i)
+                if(!p["tsen"][i].is_null()) tsen[i] = p["tsen"][i].int_value();
+            for(size_t i = 0; i < txr.size(); ++i)
+                if(!p["txr"][i].is_null()) txr[i] = p["txr"][i].int_value();
+            
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! JSON map offset entry
@@ -3428,12 +3851,12 @@ struct cosmosstruc
             { "pieces" , pieces },
             { "obj" , obj },
             //{ "device" , device },
-            /*{ "devspec" , devspec },
+            { "devspec" , devspec },
             { "port" , port },
             { "agent" , agent },
             { "event" , event },
             { "target" , target },
-			{ "user" , user },*/
+			{ "user" , user },
             { "glossary" , glossary },
 			{ "tle" , tle },
 			//{ "json" , json }
@@ -3472,7 +3895,7 @@ struct cosmosstruc
 // TODO            for(size_t i = 0; i < device.size(); ++i)	{
  			//	if(!p[obj]["device"][i].is_null())	device[i].from_json(p[obj]["device"][i].dump());
 			//}
-            /*if(!p[obj]["devspec"].is_null()) devspec.from_json(p[obj]["devspec"].dump());
+            if(!p[obj]["devspec"].is_null()) devspec.from_json(p[obj]["devspec"].dump());
             for(size_t i = 0; i < port.size(); ++i)	{
  				if(!p[obj]["port"][i].is_null())	port[i].from_json(p[obj]["port"][i].dump());
 			}
@@ -3484,7 +3907,7 @@ struct cosmosstruc
 			}
             for(size_t i = 0; i < target.size(); ++i)	{
  				if(!p[obj]["target"][i].is_null())	target[i].from_json(p[obj]["target"][i].dump());
-			}*/
+			}
  			for(size_t i = 0; i < user.size(); ++i)	{
  				if(!p[obj]["user"][i].is_null())	user[i].from_json(p[obj]["user"][i].dump());
 			}
