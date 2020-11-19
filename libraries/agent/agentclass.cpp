@@ -2398,7 +2398,7 @@ acquired.
                 if (debug_fd != nullptr) {
                     fclose(debug_fd);
                 }
-                    debug_fd = stdout;
+                debug_fd = stdout;
                 debug_pathName.clear();
             }
         } else {
