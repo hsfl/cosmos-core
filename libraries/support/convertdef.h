@@ -563,6 +563,29 @@ struct extraatt
     rmatrix j2b;
     //! Transform from Body frame to ICRF
     rmatrix b2j;
+
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "j2b" , j2b },
+            { "b2j" , b2j }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())     utc =  parsed["utc"].number_value();
+            if(!parsed["j2b"].is_null())    j2b.from_json(parsed["j2b"].dump());
+            if(!parsed["b2j"].is_null())    b2j.from_json(parsed["b2j"].dump());
+        } else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const extraatt& a);
@@ -631,7 +654,13 @@ struct attstruc
   	// Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
-            { "utc" , utc }
+            { "utc" , utc },
+            { "topo" , topo },
+            { "lvlh" , lvlh },
+            { "geoc" , geoc },
+            { "selc" , selc },
+            { "icrf" , icrf },
+            { "extra" , extra }
 		};
 	}
 
@@ -640,7 +669,13 @@ struct attstruc
         string error;
         json11::Json parsed = json11::Json::parse(js,error);
         if(error.empty()) {
-            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+            if(!parsed["utc"].is_null())     utc =  parsed["utc"].number_value();
+            if(!parsed["topo"].is_null())    topo.from_json(parsed["utc"].dump());
+            if(!parsed["lvlh"].is_null())    lvlh.from_json(parsed["lvlh"].dump());
+            if(!parsed["geoc"].is_null())    geoc.from_json(parsed["geoc"].dump());
+            if(!parsed["selc"].is_null())    selc.from_json(parsed["selc"].dump());
+            if(!parsed["icrf"].is_null())    icrf.from_json(parsed["icrf"].dump());
+            if(!parsed["extra"].is_null())   extra.from_json(parsed["extra"].dump());
 		} else {
             cerr<<"ERROR = "<<error<<endl;
         }
