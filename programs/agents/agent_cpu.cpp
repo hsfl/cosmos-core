@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
 
+	cout<<"size of devicestruc = "<<sizeof(devicestruc)<<endl;
     if (argc == 2) {
 		agent = new Agent(argv[1], "cpu", 15.);
 	} else {
@@ -220,7 +221,7 @@ int main(int argc, char *argv[])
         // get disk info
         for (size_t i=0; i<agent->cinfo->devspec.disk_cnt; ++i)
         {
-            agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.utc = currentmjd();
+            agent->cinfo->device[agent->cinfo->devspec.disk[i]].utc = currentmjd();
 
             string node_path = agent->cinfo->device[agent->cinfo->devspec.disk[i]].disk.path;
 
@@ -242,7 +243,7 @@ int main(int argc, char *argv[])
             pclose( cmd_pipe );
 
             cputemp.update(currentmjd(), ctemp);
-            agent->cinfo->device[cpu_cidx].cpu.temp = cputemp.eval(currentmjd());
+            agent->cinfo->device[cpu_cidx].temp = cputemp.eval(currentmjd());
         }
 
         if (agent->debug_level)

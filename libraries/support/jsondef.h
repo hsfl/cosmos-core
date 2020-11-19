@@ -1293,7 +1293,7 @@ struct allstruc
  */
 
  //JIMNOTE:  this one needs some JSON work... hmm....
-struct telemstruc : public allstruc
+struct telemstruc 
 {
     //! Data type
     uint16_t type;
@@ -1338,7 +1338,7 @@ struct telemstruc : public allstruc
  * names. You can then set double precision values for these keys in
  * the dynamic structure.
  */
-struct ploadstruc : public allstruc
+struct ploadstruc 
 {
     //! Number of keys being used.
     uint16_t key_cnt;
@@ -1384,7 +1384,7 @@ struct ploadstruc : public allstruc
 };
 
 //! Sun Sensor (SSEN) Sructure
-struct ssenstruc : public allstruc
+struct ssenstruc 
 {
     //! Sensor alignment quaternion.
     quaternion align;
@@ -1428,7 +1428,7 @@ struct ssenstruc : public allstruc
 };
 
 //! Inertial Measurement Unit (IMU) structure
-struct imustruc : public allstruc
+struct imustruc 
 {
     //! alignment quaternion
     quaternion align;
@@ -1482,7 +1482,7 @@ struct imustruc : public allstruc
 };
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
-struct rwstruc : public allstruc
+struct rwstruc 
 {
     //! Rotates vectors from RW frame (axis of rotation = z) to body frame.
     quaternion align;
@@ -1540,7 +1540,7 @@ struct rwstruc : public allstruc
 };
 
 //! Magnetic Torque Rod structure: z axis is aligned with rod.
-struct mtrstruc : public allstruc
+struct mtrstruc 
 {
     //! Rotates vectors from MTR frame to Body frame.
     quaternion align;
@@ -1602,7 +1602,7 @@ struct mtrstruc : public allstruc
 };
 
 //! CPU information
-struct cpustruc : public allstruc
+struct cpustruc 
 {
     // cpu
     //! Seconds CPU has been up
@@ -1652,7 +1652,7 @@ struct cpustruc : public allstruc
 };
 
 //! Disk information
-struct diskstruc : public allstruc
+struct diskstruc 
 {
     // disk
     //! Maximum disk capacity in GiB
@@ -1687,7 +1687,7 @@ struct diskstruc : public allstruc
 };
 
 // TODO: rename to GpsData
-struct gpsstruc : public allstruc
+struct gpsstruc 
 {
     //! UTC time error
     double dutc;
@@ -1773,7 +1773,7 @@ struct gpsstruc : public allstruc
 //! Antenna information
 /*! This structure holds the information concerning antennas.
 */
-struct antstruc : public allstruc
+struct antstruc 
 {
     //! Alignment
     quaternion align;
@@ -1829,7 +1829,7 @@ struct antstruc : public allstruc
 //! Receiver information
 /*! This structure holds the information concerning receivers.
 */
-struct rxrstruc : public allstruc
+struct rxrstruc 
 {
     //! Operating mode
     uint16_t opmode;
@@ -1913,7 +1913,7 @@ struct rxrstruc : public allstruc
 //! Transmitter information
 /*! This structure holds the information concerning transmitters.
 */
-struct txrstruc : public allstruc
+struct txrstruc 
 {
     //! Operating mode
     uint16_t opmode;
@@ -1997,7 +1997,7 @@ struct txrstruc : public allstruc
 //! Transceiver information
 /*! This structure holds the information concerning transceivers.
 */
-struct tcvstruc : public allstruc
+struct tcvstruc 
 {
     //! Operating mode
     uint16_t opmode;
@@ -2085,7 +2085,7 @@ struct tcvstruc : public allstruc
 //! PV String (STRG) structure.
 /*! Efficiency is goven as effbase + effslope * Tkelvin.
 */
-struct pvstrgstruc : public allstruc
+struct pvstrgstruc 
 {
     //! BCREG index
     uint16_t bcidx;
@@ -2127,7 +2127,7 @@ struct pvstrgstruc : public allstruc
 };
 
 //! Battery (BATT) structure.
-struct battstruc : public allstruc
+struct battstruc 
 {
     //! Capacity in amp hours
     float capacity;
@@ -2179,7 +2179,7 @@ struct battstruc : public allstruc
 //! Heater Structure definition
 /*! This structure holds the description of a heaters.
 */
-struct htrstruc : public allstruc
+struct htrstruc 
 {
     bool state;
     //! Temperature set vertex
@@ -2207,7 +2207,7 @@ struct htrstruc : public allstruc
     }
 };
 
-struct motrstruc : public allstruc
+struct motrstruc 
 {
     //! Maximum speed in revolutions per second
     float max;
@@ -2239,10 +2239,10 @@ struct motrstruc : public allstruc
     }
 };
 
-struct tsenstruc : public allstruc {};
+struct tsenstruc  {};
 
 //! Thruster (THST) dynamic structure
-struct thststruc : public allstruc
+struct thststruc 
 {
     //! Flow
     quaternion align;
@@ -2276,7 +2276,7 @@ struct thststruc : public allstruc
 };
 
 //! Propellant Tank (PROP) structure.
-struct propstruc : public allstruc
+struct propstruc 
 {
     //! Propellant capacity in kg
     float cap;
@@ -2308,12 +2308,12 @@ struct propstruc : public allstruc
 //! Switch Structure definition
 /*! This structure holds the description of a switches.
 */
-struct swchstruc : public allstruc {};
+struct swchstruc  {};
 
 //! Rotor Structure definition
 /*! This structure holds the description of a rotors.
 */
-struct rotstruc : public allstruc
+struct rotstruc 
 {
     //! Angular position
     float angle;
@@ -2340,7 +2340,7 @@ struct rotstruc : public allstruc
 
 //! Star Tracker (STT) Sructure
 // TODO: rename to ST
-struct sttstruc : public allstruc
+struct sttstruc 
 {
     //! alignment quaternion
     quaternion align;
@@ -2383,7 +2383,7 @@ struct sttstruc : public allstruc
 };
 
 //! Motion Capture Camera (MCC) Structure
-struct mccstruc : public allstruc
+struct mccstruc 
 {
     //! Sensor alignment quaternion.
     quaternion align;
@@ -2419,7 +2419,7 @@ struct mccstruc : public allstruc
 };
 
 //! Torque Rod Control Unit
-struct tcustruc : public allstruc
+struct tcustruc 
 {
     //! Torque Rod count
     uint16_t mcnt;
@@ -2454,7 +2454,7 @@ struct tcustruc : public allstruc
     }
 };
 
-struct busstruc : public allstruc
+struct busstruc 
 {
     //! Watch Dog Timer (MJD)
     float wdt;
@@ -2479,7 +2479,7 @@ struct busstruc : public allstruc
     }
 };
 
-struct psenstruc : public allstruc
+struct psenstruc 
 {
     //! Current Pressure
     float press;
@@ -2505,7 +2505,7 @@ struct psenstruc : public allstruc
 };
 
 //! SUCHI Sructure
-struct suchistruc : public allstruc
+struct suchistruc 
 {
     //! alignment quaternion
     quaternion align;
@@ -2544,7 +2544,7 @@ struct suchistruc : public allstruc
     }
 };
 
-struct camstruc : public allstruc
+struct camstruc 
 {
     uint16_t pwidth;
     uint16_t pheight;
@@ -2583,12 +2583,12 @@ struct camstruc : public allstruc
 //! TNC Structure definition
 /*! This structure holds the description of a TNC.
 */
-struct tncstruc : public allstruc {};
+struct tncstruc  {};
 
 //! BCREG (PV Regulator) Structure definition
 /*! This structure holds the description of a BCREG.
 */
-struct bcregstruc : public allstruc {};
+struct bcregstruc  {};
 
 // End of Device Specific structures
 

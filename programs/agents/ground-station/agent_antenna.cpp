@@ -229,19 +229,19 @@ int main(int argc, char *argv[])
         exit(iretn);
     }
     devindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-    antindex = agent->cinfo->device[devindex].ant.didx;
+    antindex = agent->cinfo->device[devindex].didx;
     agent->cinfo->device[devindex].ant.minelev = RADOF(5.);
     if (antbase == "sband")
     {
-        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_PRKX2SU;
+        agent->cinfo->device[devindex].model = DEVICE_MODEL_PRKX2SU;
     }
     else if (antbase.find("loop") != string::npos)
     {
-        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_LOOPBACK;
+        agent->cinfo->device[devindex].model = DEVICE_MODEL_LOOPBACK;
     }
     else
     {
-        agent->cinfo->device[devindex].ant.model = DEVICE_MODEL_GS232B;
+        agent->cinfo->device[devindex].model = DEVICE_MODEL_GS232B;
     }
 
     iretn = json_dump_node(agent->cinfo);

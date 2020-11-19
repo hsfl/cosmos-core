@@ -159,17 +159,17 @@ int main(int argc, char *argv[])
         case static_cast<uint16_t>(DeviceType::TXR):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].txr.didx;
+            radioindex = agent->cinfo->device[deviceindex].didx;
             break;
         case static_cast<uint16_t>(DeviceType::RXR):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::RXR);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].rxr.didx;
+            radioindex = agent->cinfo->device[deviceindex].didx;
             break;
         case static_cast<uint16_t>(DeviceType::TCV):
             iretn = json_createpiece(agent->cinfo, radioname, DeviceType::TCV);
             deviceindex = agent->cinfo->pieces[static_cast <uint16_t>(iretn)].cidx;
-            radioindex = agent->cinfo->device[deviceindex].tcv.didx;
+            radioindex = agent->cinfo->device[deviceindex].didx;
             break;
         }
         agent->cinfo->device[deviceindex].model = model;
