@@ -669,7 +669,7 @@ struct unitstruc
 		json11::Json parsed = json11::Json::parse(s,error);
 		if(error.empty())	{
 			if(!parsed["name"].is_null()) name = parsed["name"].string_value();
-			if(!parsed["type"].is_null()) type = parsed["type"].number_value();
+			if(!parsed["type"].is_null()) type = parsed["type"].int_value();
 			if(!parsed["p0"].is_null()) p0 = parsed["p0"].number_value();
 			if(!parsed["p1"].is_null()) p1 = parsed["p1"].number_value();
 			if(!parsed["p2"].is_null()) p2 = parsed["p2"].number_value();
@@ -907,7 +907,7 @@ struct beatstruc
             { "ntype" , static_cast<int>(ntype) },
             { "addr"  , addr },
             { "port"  , port },
-            { "bsz"   , static_cast<double>(bsz) },
+            { "bsz"   , static_cast<int>(bsz) },
             { "bprd"  , bprd },
             { "user"  , user },
             { "cpu"   , cpu },
@@ -928,7 +928,7 @@ struct beatstruc
             if(!p["ntype"].is_null()) ntype = static_cast<NetworkType>(p["ntype"].int_value());
             if(!p["addr"].is_null()) strcpy(addr, p["addr"].string_value().c_str());
             if(!p["port"].is_null()) port = p["port"].int_value();
-            if(!p["bsz"].is_null()) bsz = static_cast<uint32_t>(p["bsz"].number_value());
+            if(!p["bsz"].is_null()) bsz = p["bsz"].int_value();
             if(!p["bprd"].is_null()) bprd = p["bprd"].number_value();
             if(!p["user"].is_null()) strcpy(user, p["user"].string_value().c_str());
             if(!p["cpu"].is_null()) cpu = p["cpu"].number_value();
@@ -975,7 +975,7 @@ struct agentstruc
             { "client" , client },
 //TODO?            { "sub"    , sub },
             { "server" , server },
-            { "ifcnt"  , static_cast<double>(ifcnt) },
+            { "ifcnt"  , static_cast<int>(ifcnt) },
 //            { "pub"    , v_pub },
 //            { "req"    , req },
             { "pid"    , pid },
@@ -1072,8 +1072,8 @@ struct eventstruc
             { "node"  , node },
             { "name"  , name },
             { "user"  , user },
-            { "flag"  , static_cast<double>(flag) },
-            { "type"  , static_cast<double>(type) },
+            { "flag"  , static_cast<int>(flag) },
+            { "type"  , static_cast<int>(type) },
             { "value" , value },
             { "dtime" , dtime },
             { "ctime" , ctime },
@@ -1100,7 +1100,7 @@ struct eventstruc
             if(!p["name"].is_null()) strcpy(name, p["name"].string_value().c_str());
             if(!p["user"].is_null()) strcpy(user, p["user"].string_value().c_str());
             if(!p["flag"].is_null()) flag = p["flag"].int_value();
-            if(!p["type"].is_null()) type = static_cast<uint32_t>(p["type"].number_value());
+            if(!p["type"].is_null()) type = p["type"].int_value();
             if(!p["value"].is_null()) value = p["value"].number_value();
             if(!p["dtime"].is_null()) dtime = p["dtime"].number_value();
             if(!p["ctime"].is_null()) ctime = p["ctime"].number_value();
@@ -1386,8 +1386,6 @@ struct piecestruc
     char name[COSMOS_MAX_NAME+1];
     //! Enabled?
     bool enabled;
-    //! Type of piece from \ref defs_piece.
-    //	uint16_t type;
     //! Component index: -1 if not a Component
     uint16_t cidx;
     //! Density in kg/cu m
@@ -1618,7 +1616,7 @@ struct allstruc
  * Namespace.
  */
 
- //JIMNOTE:  this one needs some JSON work... hmm....
+ //JIMNOTE:  this one needs some JSON work... hmm....  what to do about that union....
 struct telemstruc : public allstruc
 {
     //! Data type
