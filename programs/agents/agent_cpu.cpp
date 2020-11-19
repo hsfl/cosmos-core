@@ -44,7 +44,7 @@
 // flag to turn on/off print
 bool printStatus = true;
 
-int agent_cpu(), create_node();
+//int agent_cpu(), create_node();
 int32_t get_last_offset();
 
 //int32_t request_soh(string &request, string &response, Agent *);
@@ -76,6 +76,7 @@ static string sohstring;
 static ElapsedTime et;
 static DeviceDisk deviceDisk;
 static DeviceCpu deviceCpu;
+
 //static DeviceCpu cpu;
 static uint16_t cpu_cidx;
 static uint16_t cpu_didx;
@@ -86,26 +87,21 @@ int main(int argc, char *argv[])
 {
     int32_t iretn;
 
-    if (argc == 2)
-    {
-        agent = new Agent(argv[1], "cpu", 15.);
-    }
-    else
-    {
-        agent = new Agent("", "cpu", 15.);
-    }
+    if (argc == 2) {
+		agent = new Agent(argv[1], "cpu", 15.);
+	} else {
+		agent = new Agent("", "cpu", 15.);
+	}
 
-    if ((iretn = agent->wait()) < 0)
-    {
+    if ((iretn = agent->wait()) < 0) {
         fprintf(agent->get_debug_fd(), "%16.10f %s Failed to start Agent %s on Node %s Dated %s : %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str(), cosmos_error_string(iretn).c_str());
         exit(iretn);
-    }
-    else
-    {
+    } else {
         fprintf(agent->get_debug_fd(), "%16.10f %s Started Agent %s on Node %s Dated %s\n",currentmjd(), mjd2iso8601(currentmjd()).c_str(), agent->getAgent().c_str(), agent->getNode().c_str(), utc2iso8601(data_ctime(argv[0])).c_str());
     }
 
     iretn = json_createpiece(agent->cinfo, agent->nodeName + "_cpu", DeviceType::CPU);
+
     if (iretn < 0)
     {
         fprintf(agent->get_debug_fd(), "Failed to add CPU %s\n", cosmos_error_string(iretn).c_str());
@@ -187,7 +183,6 @@ int main(int argc, char *argv[])
     agent->add_request("printStatus",request_printStatus,"","print the status data");
     agent->add_request("bootCount",request_bootCount,"","reboot count");
 
-
     et.start();
 
     agent->cinfo->agent[0].aprd = agent->cinfo->agent[0].beat.bprd;
@@ -256,7 +251,6 @@ int main(int argc, char *argv[])
         }
 
         agent->finish_active_loop();
-
     }
 
     agent->shutdown();
@@ -279,13 +273,6 @@ int32_t get_last_offset()
     }
     return offset;
 }
-
-//int agent_cpu()
-//{
-
-//    return 0;
-//}
-
 
 //int32_t request_soh(string &, string &response, Agent *)
 //{

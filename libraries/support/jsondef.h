@@ -3066,8 +3066,10 @@ information.
 */
 struct devicestruc
 {
+///*
     union
     {
+//*/
         allstruc all;
         antstruc ant;
         battstruc batt;
@@ -3100,7 +3102,9 @@ struct devicestruc
         tncstruc tnc;
         tsenstruc tsen;
         txrstruc txr;
+///*
     };
+//*/
 
 };
 
