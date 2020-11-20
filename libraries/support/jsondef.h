@@ -3968,9 +3968,9 @@ struct cosmosstruc
  				if(!p[obj]["faces"][i].is_null())	faces[i].from_json(p[obj]["faces"][i].dump());
 			}
             if(!p["obj"].is_null()) cosmosstruc::obj.from_json(p[obj]["obj"].dump());
-// TODO            for(size_t i = 0; i < device.size(); ++i)	{
- 			//	if(!p[obj]["device"][i].is_null())	device[i].from_json(p[obj]["device"][i].dump());
-			//}
+            for(size_t i = 0; i < device.size(); ++i)	{
+ 				if(!p[obj]["device"][i].is_null())	device[i].from_json(p[obj]["device"][i].dump());
+			}
             if(!p[obj]["devspec"].is_null()) devspec.from_json(p[obj]["devspec"].dump());
             for(size_t i = 0; i < port.size(); ++i)	{
  				if(!p[obj]["port"][i].is_null())	port[i].from_json(p[obj]["port"][i].dump());
