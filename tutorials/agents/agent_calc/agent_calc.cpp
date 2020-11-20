@@ -238,9 +238,13 @@ agent->cinfo->set_json_value<cosmosstruc>("Entire COSMOSSTRUC", entire);
 	//cout<<"Output:\n\t<"<<agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC")<<">"<<endl;
 	//string js = agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC");	
 	//pretty_form(js);
-	string js = agent->cinfo->get_json_pretty<cosmosstruc>("Entire COSMOSSTRUC");	
+	string js = agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC");	
 	cout<<"Output:<\n"<<js<<"\n>"<<endl;
-	js = agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC");	
+
+	devicestruc d;
+	agent->cinfo->device.push_back(d);
+
+	js = agent->cinfo->get_json_pretty<cosmosstruc>("Entire COSMOSSTRUC");	
 	cout<<"Output:<\n"<<js<<"\n>"<<endl;
 
 	agent->cinfo->add_name("Entire COSMOSSTRUC Equations", &agent->cinfo->equation);
