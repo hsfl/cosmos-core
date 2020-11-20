@@ -3372,6 +3372,48 @@ struct devicestruc
             { "txr" , txr }
 		};
 	}
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json p = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!p["ant"].is_null())		ant.from_json(p["ant"].dump());
+            if(!p["batt"].is_null())	batt.from_json(p["batt"].dump());
+            if(!p["bcreg"].is_null())	bcreg.from_json(p["bcreg"].dump());
+            if(!p["bus"].is_null())		bus.from_json(p["bus"].dump());
+            if(!p["cam"].is_null())		cam.from_json(p["cam"].dump());
+            if(!p["cpu"].is_null())		cpu.from_json(p["cpu"].dump());
+            if(!p["disk"].is_null())	disk.from_json(p["disk"].dump());
+            if(!p["gps"].is_null())		gps.from_json(p["gps"].dump());
+            if(!p["htr"].is_null())		htr.from_json(p["htr"].dump());
+            if(!p["imu"].is_null())		imu.from_json(p["imu"].dump());
+            if(!p["mcc"].is_null())		mcc.from_json(p["mcc"].dump());
+            if(!p["motr"].is_null())	motr.from_json(p["motr"].dump());
+            if(!p["mtr"].is_null())		mtr.from_json(p["mtr"].dump());
+            if(!p["pload"].is_null())	pload.from_json(p["pload"].dump());
+            if(!p["prop"].is_null())	prop.from_json(p["prop"].dump());
+            if(!p["psen"].is_null())	psen.from_json(p["psen"].dump());
+            if(!p["pvstrg"].is_null())	pvstrg.from_json(p["pvstrg"].dump());
+            if(!p["rot"].is_null())		rot.from_json(p["rot"].dump());
+            if(!p["rw"].is_null())		rw.from_json(p["rw"].dump());
+            if(!p["rxr"].is_null())		rxr.from_json(p["rxr"].dump());
+            if(!p["ssen"].is_null())	ssen.from_json(p["ssen"].dump());
+            if(!p["stt"].is_null())		stt.from_json(p["stt"].dump());
+            if(!p["suchi"].is_null())	suchi.from_json(p["suchi"].dump());
+            if(!p["swch"].is_null())	swch.from_json(p["swch"].dump());
+            if(!p["tcu"].is_null())		tcu.from_json(p["tcu"].dump());
+            if(!p["tcv"].is_null())		tcv.from_json(p["tcv"].dump());
+            if(!p["telem"].is_null())	telem.from_json(p["telem"].dump());
+            if(!p["thst"].is_null())	thst.from_json(p["thst"].dump());
+            if(!p["tnc"].is_null())		tnc.from_json(p["tnc"].dump());
+            if(!p["tsen"].is_null())	tsen.from_json(p["tsen"].dump());
+            if(!p["txr"].is_null())		txr.from_json(p["txr"].dump());
+        } else {
+            cerr<<"ERROR: <"<<error<<">"<<endl;
+        }
+        return;
+    }
 };
 
 //! Specific Device structure
