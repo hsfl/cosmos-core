@@ -550,8 +550,68 @@ struct extrapos
     cartpos sun2moon;
     uint16_t closest;
 
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "utc" , utc },
+            { "tt" , tt },
+            { "ut" , ut },
+            { "tdb" , tdb },
 
+            { "j2e" , j2e },
+            { "dj2e" , dj2e },
+            { "ddj2e" , ddj2e },
+            { "e2j" , e2j },
+            { "de2j" , de2j },
+            { "dde2j" , dde2j },
+            { "j2t" , j2t },
+            { "j2s" , j2s },
+            { "t2j" , t2j },
+            { "s2j" , s2j },
+            { "s2t" , s2t },
+            { "ds2t" , ds2t },
+            { "t2s" , t2s },
+            { "dt2s" , dt2s },
+            { "sun2earth" , sun2earth },
+            { "sun2moon" , sun2moon },
 
+            { "closest" , closest }
+        };
+    }
+
+    // Set class contents from JSON string
+    void from_json(const string& js) {
+        string error;
+        json11::Json parsed = json11::Json::parse(js,error);
+        if(error.empty()) {
+            if(!parsed["utc"].is_null())     utc =  parsed["utc"].number_value();
+            if(!parsed["tt"].is_null())      tt =  parsed["tt"].number_value();
+            if(!parsed["ut"].is_null())      ut =  parsed["ut"].number_value();
+            if(!parsed["tdb"].is_null())     tdb =  parsed["tdb"].number_value();
+
+            if(!parsed["j2e"].is_null())    j2e.from_json(parsed["j2e"].dump());
+            if(!parsed["dj2e"].is_null())    dj2e.from_json(parsed["dj2e"].dump());
+            if(!parsed["ddj2e"].is_null())    ddj2e.from_json(parsed["ddj2e"].dump());
+            if(!parsed["e2j"].is_null())    e2j.from_json(parsed["e2j"].dump());
+            if(!parsed["de2j"].is_null())    de2j.from_json(parsed["de2j"].dump());
+            if(!parsed["dde2j"].is_null())    dde2j.from_json(parsed["dde2j"].dump());
+            if(!parsed["j2t"].is_null())    j2t.from_json(parsed["j2t"].dump());
+            if(!parsed["j2s"].is_null())    j2s.from_json(parsed["j2s"].dump());
+            if(!parsed["t2j"].is_null())    t2j.from_json(parsed["t2j"].dump());
+            if(!parsed["s2j"].is_null())    s2j.from_json(parsed["s2j"].dump());
+            if(!parsed["s2t"].is_null())    s2t.from_json(parsed["s2t"].dump());
+            if(!parsed["ds2t"].is_null())    ds2t.from_json(parsed["ds2t"].dump());
+            if(!parsed["t2s"].is_null())    t2s.from_json(parsed["t2s"].dump());
+            if(!parsed["dt2s"].is_null())    dt2s.from_json(parsed["dt2s"].dump());
+            if(!parsed["sun2earth"].is_null())    sun2earth.from_json(parsed["sun2earth"].dump());
+            if(!parsed["sun2moon"].is_null())    sun2moon.from_json(parsed["sun2moon"].dump());
+
+            if(!parsed["closest"].is_null())     closest =  parsed["closest"].int_value();
+        } else {
+            cerr<<"ERROR = "<<error<<endl;
+        }
+        return;
+    }
 };
 
 std::ostream& operator << (std::ostream& out, const extrapos& a);
@@ -631,7 +691,7 @@ struct posstruc
             { "geod" , geod },
             { "selg" , selg },
             { "geos" , geos },
-            //{ "extra" , extra },
+            { "extra" , extra },
             { "earthsep" , earthsep },
             { "moonsep" , moonsep },
             { "sunsize" , sunsize },
@@ -655,7 +715,7 @@ struct posstruc
             if(!parsed["geod"].is_null())   geod.from_json(parsed["geod"].dump());
             if(!parsed["selg"].is_null())   selg.from_json(parsed["selg"].dump());
             if(!parsed["geos"].is_null())   geos.from_json(parsed["geos"].dump());
-            //if(!parsed["extra"].is_null())  extra.from_json(parsed["extra"].dump());
+            if(!parsed["extra"].is_null())  extra.from_json(parsed["extra"].dump());
 
             if(!parsed["earthsep"].is_null())    earthsep = parsed["earthsep"].number_value();
             if(!parsed["moonsep"].is_null())     moonsep = parsed["moonsep"].number_value();
