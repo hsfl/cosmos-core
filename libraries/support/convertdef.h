@@ -557,12 +557,15 @@ struct extrapos
             { "tt"    , tt },
             { "ut"    , ut },
             { "tdb"   , tdb },
+
             { "j2e"   , j2e },
             { "dj2e"  , dj2e },
             { "ddj2e" , ddj2e },
+
             { "e2j"   , e2j },
             { "de2j"  , de2j },
             { "dde2j" , dde2j },
+
             { "j2t"   , j2t },
             { "j2s"   , j2s },
             { "t2j"   , t2j },
@@ -571,6 +574,7 @@ struct extrapos
             { "ds2t"  , ds2t },
             { "t2s"   , t2s },
             { "dt2s"  , dt2s },
+            
             { "sun2earth" , sun2earth },
             { "sun2moon"  , sun2moon },
             { "closest"   , closest }
@@ -586,12 +590,15 @@ struct extrapos
             if(!p["tt"].is_null())      tt = p["tt"].number_value();
             if(!p["ut"].is_null())      ut = p["ut"].number_value();
             if(!p["tdb"].is_null())     tdb = p["tdb"].number_value();
+
             if(!p["j2e"].is_null())     j2e.from_json(p["j2e"].dump());
             if(!p["dj2e"].is_null())    dj2e.from_json(p["dj2e"].dump());
             if(!p["ddj2e"].is_null())   ddj2e.from_json(p["ddj2e"].dump());
+           
             if(!p["e2j"].is_null())     e2j.from_json(p["e2j"].dump());
             if(!p["de2j"].is_null())    de2j.from_json(p["de2j"].dump());
             if(!p["dde2j"].is_null())   dde2j.from_json(p["dde2j"].dump());
+           
             if(!p["j2t"].is_null())     j2t.from_json(p["j2t"].dump());
             if(!p["j2s"].is_null())     j2s.from_json(p["j2s"].dump());
             if(!p["t2j"].is_null())     t2j.from_json(p["t2j"].dump());
@@ -600,6 +607,7 @@ struct extrapos
             if(!p["ds2t"].is_null())    ds2t.from_json(p["ds2t"].dump());
             if(!p["t2s"].is_null())     t2s.from_json(p["t2s"].dump());
             if(!p["dt2s"].is_null())    dt2s.from_json(p["dt2s"].dump());
+            
             if(!p["sun2earth"].is_null())   sun2earth.from_json(p["sun2earth"].dump());
             if(!p["sun2moon"].is_null())    sun2moon.from_json(p["sun2moon"].dump());
             if(!p["closest"].is_null()) closest = p["closest"].int_value();
@@ -633,15 +641,15 @@ struct extraatt
     }
 
     // Set class contents from JSON string
-    void from_json(const string& s) {
+    void from_json(const string& js) {
         string error;
-        json11::Json p = json11::Json::parse(s,error);
+        json11::Json parsed = json11::Json::parse(js,error);
         if(error.empty()) {
-            if(!p["utc"].is_null()) utc = p["utc"].number_value();
-            if(!p["j2b"].is_null()) j2b.from_json(p["j2b"].dump());
-            if(!p["b2j"].is_null()) b2j.from_json(p["b2j"].dump());
+            if(!parsed["utc"].is_null())     utc =  parsed["utc"].number_value();
+            if(!parsed["j2b"].is_null())    j2b.from_json(parsed["j2b"].dump());
+            if(!parsed["b2j"].is_null())    b2j.from_json(parsed["b2j"].dump());
         } else {
-            cerr<<"ERROR: <"<<error<<">"<<endl;
+            cerr<<"ERROR = "<<error<<endl;
         }
         return;
     }
@@ -688,6 +696,7 @@ struct posstruc
             { "selg" , selg },
             { "geos" , geos },
             { "extra", extra },
+
             { "earthsep" , earthsep },
             { "moonsep"  , moonsep },
             { "sunsize"  , sunsize },
@@ -702,7 +711,7 @@ struct posstruc
         string error;
         json11::Json parsed = json11::Json::parse(js,error);
         if(error.empty()) {
-            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
+            if(!parsed["utc"].is_null())    utc = parsed["utc"].number_value();
             if(!parsed["icrf"].is_null())   icrf.from_json(parsed["icrf"].dump());
             if(!parsed["eci"].is_null())    eci.from_json(parsed["eci"].dump());
             if(!parsed["sci"].is_null())    sci.from_json(parsed["sci"].dump());
@@ -712,13 +721,16 @@ struct posstruc
             if(!parsed["selg"].is_null())   selg.from_json(parsed["selg"].dump());
             if(!parsed["geos"].is_null())   geos.from_json(parsed["geos"].dump());
             if(!parsed["extra"].is_null())  extra.from_json(parsed["extra"].dump());
-            if(!parsed["earthsep"].is_null())   earthsep = parsed["earthsep"].number_value();
-            if(!parsed["moonsep"].is_null())    moonsep = parsed["moonsep"].number_value();
-            if(!parsed["sunsize"].is_null())    sunsize = parsed["sunsize"].number_value();
-            if(!parsed["sunradiance"].is_null())    sunradiance = parsed["sunradiance"].number_value();
-            if(!parsed["bearth"].is_null())     bearth.from_json(parsed["bearth"].dump());
-            if(!parsed["orbit"].is_null())      orbit = parsed["orbit"].number_value();
-        } else {
+
+            if(!parsed["earthsep"].is_null())    earthsep = parsed["earthsep"].number_value();
+            if(!parsed["moonsep"].is_null())     moonsep = parsed["moonsep"].number_value();
+            if(!parsed["sunsize"].is_null())     sunsize = parsed["sunsize"].number_value();
+            if(!parsed["sunradiance"].is_null()) sunradiance = parsed["sunradiance"].number_value();
+
+            if(!parsed["bearth"].is_null())   bearth.from_json(parsed["bearth"].dump());
+            if(!parsed["orbit"].is_null())    orbit = parsed["orbit"].number_value();
+
+		} else {
             cerr<<"ERROR = "<<error<<endl;
         }
         return;
@@ -747,7 +759,7 @@ struct attstruc
             { "geoc" , geoc },
             { "selc" , selc },
             { "icrf" , icrf },
-            {" extra", extra}
+            { "extra" , extra }
 		};
 	}
 
@@ -756,14 +768,14 @@ struct attstruc
         string error;
         json11::Json parsed = json11::Json::parse(js,error);
         if(error.empty()) {
-            if(!parsed["utc"].is_null())    utc =  parsed["utc"].number_value();
-            if(!parsed["topo"].is_null())   topo.from_json(parsed["topo"].dump());
-            if(!parsed["lvlh"].is_null())   lvlh.from_json(parsed["lvlh"].dump());
-            if(!parsed["geoc"].is_null())   geoc.from_json(parsed["geoc"].dump());
-            if(!parsed["selc"].is_null())   selc.from_json(parsed["selc"].dump());
-            if(!parsed["icrf"].is_null())   icrf.from_json(parsed["icrf"].dump());
-            if(!parsed["extra"].is_null())  extra.from_json(parsed["extra"].dump());
-        } else {
+            if(!parsed["utc"].is_null())     utc =  parsed["utc"].number_value();
+            if(!parsed["topo"].is_null())    topo.from_json(parsed["utc"].dump());
+            if(!parsed["lvlh"].is_null())    lvlh.from_json(parsed["lvlh"].dump());
+            if(!parsed["geoc"].is_null())    geoc.from_json(parsed["geoc"].dump());
+            if(!parsed["selc"].is_null())    selc.from_json(parsed["selc"].dump());
+            if(!parsed["icrf"].is_null())    icrf.from_json(parsed["icrf"].dump());
+            if(!parsed["extra"].is_null())   extra.from_json(parsed["extra"].dump());
+		} else {
             cerr<<"ERROR = "<<error<<endl;
         }
         return;
