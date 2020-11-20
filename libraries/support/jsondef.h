@@ -3336,6 +3336,42 @@ struct devicestruc
     };
 //*/
 
+    // Convert class contents to JSON object
+    json11::Json to_json() const {
+        return json11::Json::object {
+            { "ant" , ant },
+            { "batt" , batt },
+            { "bcreg" , bcreg },
+            { "bus" , bus },
+            { "cam" , cam },
+            { "cpu" , cpu },
+            { "disk" , disk },
+            { "gps" , gps },
+            { "htr" , htr },
+            { "imu" , imu },
+            { "mcc" , mcc },
+            { "motr" , motr },
+            { "mtr" , mtr },
+            { "pload" , pload },
+            { "prop" , prop },
+            { "psen" , psen },
+            { "pvstrg" , pvstrg },
+            { "rot" , rot },
+            { "rw" , rw },
+            { "rxr" , rxr },
+            { "ssen" , ssen },
+            { "stt" , stt },
+            { "suchi" , suchi },
+            { "swch" , swch },
+            { "tcu" , tcu },
+            { "tcv" , tcv },
+            { "telem" , telem },
+            { "thst" , thst },
+            { "tnc" , tnc },
+            { "tsen" , tsen },
+            { "txr" , txr }
+		};
+	}
 };
 
 //! Specific Device structure
@@ -3848,7 +3884,7 @@ struct cosmosstruc
             { "faces" , faces },
             { "pieces" , pieces },
             { "obj" , obj },
-            //{ "device" , device },
+            { "device" , device },
             { "devspec" , devspec },
             { "port" , port },
             { "agent" , agent },
