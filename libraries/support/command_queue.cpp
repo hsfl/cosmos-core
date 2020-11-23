@@ -347,8 +347,9 @@ namespace Cosmos
             Command queue is sorted by utc after loading
 
             \param	temp_dir	Directory where the .queue file will be written
+            \param	name	File where the .queue will be written
         */
-        void CommandQueue::save_commands(string temp_dir)
+        void CommandQueue::save_commands(string temp_dir, string name)
         {
             if (!queue_changed)
             {
@@ -357,10 +358,10 @@ namespace Cosmos
             queue_changed = false;
 
             // Save previous queue
-            rename((temp_dir+".queue").c_str(), (temp_dir+".queue."+(utc2unixdate(currentmjd()))).c_str());
+            rename((temp_dir+name).c_str(), (temp_dir+name+'.'+(utc2unixdate(currentmjd()))).c_str());
 
             // Open the outgoing file
-            FILE *fd = fopen((temp_dir+".queue").c_str(), "w");
+            FILE *fd = fopen((temp_dir+name).c_str(), "w");
             if (fd != NULL)
             {
                 for (Event cmd: commands)
@@ -368,6 +369,41 @@ namespace Cosmos
                     fprintf(fd, "%s\n", cmd.get_event_string().c_str());
                 }
                 fclose(fd);
+            }
+        }
+
+        //!	Restore the queue of Events from a file
+        /*!
+            Commands are taken from the global command queue
+            Command queue is sorted by utc after loading
+
+            \param	temp_dir	Directory where the .queue file will be read from
+            \param	name	File where the .queue will be read from
+        */
+        void CommandQueue::restore_commands(string temp_dir, std::string name)
+        {
+            queue_changed = false;
+
+            // Reload existing queue
+            string infilepath = temp_dir + name;
+            std::ifstream infile(infilepath.c_str());
+            if(infile.is_open())
+            {
+                //file is open for reading commands
+                string line;
+                Event cmd;
+
+                while(std::getline(infile,line))
+                {
+                    //cmd.set_command(line, agent);
+                    cmd.set_command(line);
+
+                    if(cmd.is_command())
+                    {
+                        add_command(cmd);
+                    }
+                }
+                infile.close();
             }
         }
 

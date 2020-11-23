@@ -129,7 +129,15 @@ namespace Cosmos
 
                 \param	temp_dir	Directory where the .queue file will be written
             */
-            void save_commands(string temp_dir);
+            void save_commands(string temp_dir, string name=".queue");
+
+            //!	Restore the queue of Events from a file
+            /*!
+            Save the queue of Events to the file temp_dir/.queue
+
+                \param	temp_dir	Directory where the .queue file will be written
+            */
+            void restore_commands(string temp_dir, string name=".queue");
 
             //! Run the given Event
             /*!
