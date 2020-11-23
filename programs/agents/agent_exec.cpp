@@ -101,6 +101,7 @@ int32_t request_set_logstride_soh(string &request, string &response, Agent *agen
 int32_t request_get_logstride_soh(string &request, string &response, Agent *agent);
 int32_t request_set_logstring(string &request, string &response, Agent *agent);
 int32_t request_get_logstring(string &request, string &response, Agent *agent);
+int32_t request_save_command(string &request, string &response, Agent *);
 
 static string jjstring;
 static string myjstring;
@@ -128,16 +129,21 @@ static vector<eventstruc> events;
 
 static beatstruc iscbeat;
 
-struct boot_flags
+static struct boot_flags
 {
     bool launched : 1;
     bool bootcheck : 1;
     bool deployed : 1;
 } boot_flags;
 
-double correcttime;
-double epsilon;
-double delta;
+static double correcttime;
+static double epsilon;
+static double delta;
+
+static string incoming_dir;
+static string outgoing_dir;
+static string immediate_dir;
+static string temp_dir;
 
 // default node name
 //static string node = "neutron1";
@@ -145,7 +151,6 @@ double delta;
 int main(int argc, char *argv[])
 {
     vector<eventstruc> events, eventdict;
-    string incoming_dir, outgoing_dir, temp_dir, immediate_dir;
     string jjstring, myjstring;
     double llogmjd, dlogmjd, clogmjd;
     int32_t iretn;
@@ -255,38 +260,41 @@ int main(int argc, char *argv[])
         exit (iretn);
     if ((iretn=agent->add_request("getlogstrideexec", request_get_logstride_exec, "", "return how frequently we flush exec log files out of temp directory")))
         exit (iretn);
+    if ((iretn=agent->add_request("savecommand", request_save_command, "{file}", "Save current command list to optional file name (default: .queue)")))
+        exit (iretn);
 
     // Reload existing queue
-    string infilepath = temp_dir + ".queue";
-    std::ifstream infile(infilepath.c_str());
-    if(!infile.is_open())
-    {
-        cout<<"unable to read file <"<<infilepath<<">"<<endl;
-    }
-    else
-    {
-        //file is open for reading commands
-        string line;
-        Event cmd;
-        std::cout << "===\n";
+    cmd_queue.restore_commands(temp_dir);
+//    string infilepath = temp_dir + ".queue";
+//    std::ifstream infile(infilepath.c_str());
+//    if(!infile.is_open())
+//    {
+//        cout<<"unable to read file <"<<infilepath<<">"<<endl;
+//    }
+//    else
+//    {
+//        //file is open for reading commands
+//        string line;
+//        Event cmd;
+//        std::cout << "===\n";
 
-        while(std::getline(infile,line))
-        {
-            //cmd.set_command(line, agent);
-            cmd.set_command(line);
+//        while(std::getline(infile,line))
+//        {
+//            //cmd.set_command(line, agent);
+//            cmd.set_command(line);
 
-            if(cmd.is_command())
-            {
-                cmd_queue.add_command(cmd);
-                printf("Loaded command: %s\n", line.c_str());
-            }
-            else
-            {
-                cout<<"Not a command!"<<endl;
-            }
-        }
-        infile.close();
-    }
+//            if(cmd.is_command())
+//            {
+//                cmd_queue.add_command(cmd);
+//                printf("Loaded command: %s\n", line.c_str());
+//            }
+//            else
+//            {
+//                cout<<"Not a command!"<<endl;
+//            }
+//        }
+//        infile.close();
+//    }
 
     // Establish SOH functions
 
@@ -607,6 +615,20 @@ int32_t request_get_event(string &request, string &response, Agent *)
     }
 
     response = ss.str();
+    return 0;
+}
+
+int32_t request_save_command(string &request, string &response, Agent *)
+{
+    vector<string> args = string_split(request, " ");
+    if (args.size() == 2)
+    {
+        cmd_queue.save_commands(temp_dir, args[1]);
+    }
+    else
+    {
+        cmd_queue.save_commands(temp_dir);
+    }
     return 0;
 }
 
