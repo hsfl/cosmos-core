@@ -1296,7 +1296,7 @@ string utc2iso8601(double utc)
     fd -= ihh / 24.;
     imm = (int32_t)(1440 * fd);
     fd -= imm / 1440.;
-    iss = (int32_t)(86400 * fd + .5);
+    iss = (int32_t)(86400 * fd);
     sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d", iy, im, id, ihh, imm, iss);
 
     return string(buffer);
