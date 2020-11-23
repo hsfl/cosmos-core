@@ -39,6 +39,9 @@ static std::string tracknames;
 struct trackstruc
 {
     targetstruc target;
+    targetstruc aos;
+    targetstruc tca;
+    targetstruc los;
     physicsstruc physics;
     gj_handle gjh;
     std::string name;
@@ -95,9 +98,8 @@ int main(int argc, char *argv[])
         }
         break;
     default:
-        printf("Usage: get_contacts {nodename} [days]");
+        printf("Usage: get_contacts gsname[:minelev] [days [sat1 [sat2 [...]]]]\n");
         exit (1);
-        break;
     }
 
     // Establish the command channel and heartbeat
@@ -139,6 +141,7 @@ int main(int argc, char *argv[])
                             ttrack.peaked = false;
                             ttrack.target.type = cinfo->node.type;
                             ttrack.target.loc = cinfo->node.loc;
+                            ttrack.target.utc = cinfo->node.loc.utc;
                             ttrack.physics = cinfo->node.phys;
                             track.push_back(ttrack);
                             json_destroy(cinfo);
@@ -170,31 +173,34 @@ void propinit(size_t index, double dt)
 {
     printf("Propagating Node %s forward %f seconds\n", track[index].name.c_str(), 86400.*(currentmjd()-track[index].target.loc.pos.eci.utc));
     track[index].physics.mass = 1.;
-    track[index].physics.area = .01;
+    track[index].physics.area = .01f;
     gauss_jackson_init_eci(track[index].gjh, 12, 0, dt, track[index].target.loc.pos.eci.utc, track[index].target.loc.pos.eci, track[index].target.loc.att.icrf, track[index].physics, track[index].target.loc);
     gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, currentmjd());
     track[index].running = true;
+    track[index].tca.elfrom = 0.;
+    track[index].visible = false;
+    track[index].target.utc = track[index].target.loc.utc;
 }
 
 void proptrack(size_t index, double utcnow)
 {
+
     gauss_jackson_propagate(track[index].gjh, track[index].physics, track[index].target.loc, utcnow);
     update_target(agent->cinfo->node.loc, track[index].target);
     if (track[index].target.elfrom > highest)
     {
         highest = track[index].target.elfrom;
     }
-    switch ((uint8_t)track[index].visible)
+    switch (static_cast<uint8_t>(track[index].visible))
     {
     case 0:
-        if (track[index].target.elfrom > minelev)
+        if (track[index].target.elfrom > 0.)
         {
+            track[index].aos = track[index].target;
             track[index].highest = 0.;
             track[index].startutc = utcnow;
             track[index].visible = true;
             track[index].peaked = false;
-            printf("%s %13.5f %6.1f         AOS0: %s %.0f\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), track[index].name.c_str(), track[index].target.close);
-            fflush(stdout);
         }
         break;
     case 1:
@@ -205,13 +211,19 @@ void proptrack(size_t index, double utcnow)
         else if (!track[index].peaked)
         {
             track[index].peaked = true;
-            printf("%s %13.5f %6.1f             MAX: %4.0f sec %5.1f deg %s\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), 86400.*(utcnow-track[index].startutc), DEGOF(track[index].target.elfrom), track[index].name.c_str());
+            track[index].tca = track[index].target;
         }
         if (track[index].target.elfrom < 0.)
         {
+            track[index].los = track[index].target;
             track[index].visible = false;
-            printf("%s %13.5f %6.1f     LOS0: %4.0f sec %s %.0f\n", mjdToGregorian(utcnow).c_str(), utcnow, DEGOF(track[index].target.azfrom), 86400.*(utcnow-track[index].startutc), track[index].name.c_str(), track[index].target.close);
-            fflush(stdout);
+            if (track[index].tca.elfrom >= minelev)
+            {
+                printf("%s %13.5f [%6.1f %6.1f] AOS0: %.0f m/s %s\n", mjdToGregorian(track[index].aos.utc).c_str(), track[index].aos.utc, DEGOF(track[index].aos.azfrom), DEGOF(track[index].aos.elfrom), track[index].aos.close, track[index].name.c_str());
+                printf("%s %13.5f [%6.1f %6.1f] TCA: %4.0f sec %s\n", mjdToGregorian(track[index].tca.utc).c_str(), track[index].tca.utc, DEGOF(track[index].tca.azfrom), DEGOF(track[index].tca.elfrom), 86400.*(utcnow-track[index].startutc), track[index].name.c_str());
+                printf("%s %13.5f [%6.1f %6.1f] LOS0: %4.0f sec %.0f m/s %s\n", mjdToGregorian(track[index].los.utc).c_str(), track[index].los.utc, DEGOF(track[index].los.azfrom), DEGOF(track[index].los.elfrom), 86400.*(utcnow-track[index].startutc), track[index].los.close, track[index].name.c_str());
+                fflush(stdout);
+            }
         }
         break;
     }

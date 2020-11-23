@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
     }
 
     Event event;
-    cout << "Command string:" << endl;
+//    cout << "Command string:" << endl;
 	// JIMNOTE: this could be done in the constructor
 
     cout << event.generator(name, data, utc, condition, flag) << endl << endl;
