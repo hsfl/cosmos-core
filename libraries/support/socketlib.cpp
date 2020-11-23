@@ -302,6 +302,31 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     return 0;
 }
 
+//! Accept TCP Client connection
+//! If ::socket_channel is a TCP connection, accept the next client and make it available
+//! for ::socket_recvfrom call.
+//! \param server ::socket_channel for existing server connection.
+//! \param client ::socket_channel with new client information.
+//! \return Zero or negative error.
+int32_t socket_accept(socket_channel server, socket_channel& client)
+{
+    int32_t iretn=0;
+    if (server.type != NetworkType::TCP)
+    {
+        return SOCKET_ERROR_PROTOCOL;
+    }
+
+    iretn = accept(server.cudp, reinterpret_cast<struct sockaddr *>(&client.caddr), reinterpret_cast<socklen_t *>(&client.addrlen));
+    if (iretn < 0)
+    {
+        return -errno;
+    }
+
+    client.cudp = iretn;
+
+    return iretn;
+}
+
 //! Calculate UDP Checksum
 /*! Calculate UDP Checksum, as detailed in RFC 768, based on the provided IP packet.
  * \param packet IP packet
@@ -691,16 +716,16 @@ int32_t socket_recvfrom(socket_channel &channel, vector<uint8_t> &buffer, size_t
     return nbytes;
 }
 
-int32_t socket_sendto(socket_channel &channel, string &buffer, int flags)
+int32_t socket_sendto(socket_channel &channel, const string buffer, int flags)
 {
     vector<uint8_t> data(buffer.begin(), buffer.end());
     return socket_sendto(channel, data, flags);
 }
 
-int32_t socket_sendto(socket_channel &channel, vector<uint8_t> &buffer, int flags)
+int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int flags)
 {
     int32_t nbytes;
-    if ((nbytes = sendto(channel.cudp, (char *)buffer.data(), buffer.size(), flags, (struct sockaddr *)&channel.caddr, (socklen_t)channel.addrlen)) < 0)
+    if ((nbytes = sendto(channel.cudp, const_cast<uint8_t*>(buffer.data()), buffer.size(), flags, reinterpret_cast<struct sockaddr *>(&channel.caddr), static_cast<socklen_t>(channel.addrlen))) < 0)
     {
         nbytes = -errno;
     }
