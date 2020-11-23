@@ -504,6 +504,8 @@ int main(int argc, char *argv[])
     ElapsedTime et;
 
     // Start main thread
+    agent->cinfo->agent[0].aprd = 1.;
+    agent->start_active_loop();
     while (agent->running())
     {
         double mjdnow = currentmjd() + .1/86400.;
@@ -626,7 +628,7 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        COSMOS_SLEEP(.1);
+        agent->finish_active_loop();
     }
 
     monitor_thread.join();
@@ -883,8 +885,8 @@ int32_t request_get_state(string &req, string &response, Agent *)
         response = '[' + to_mjd(currentmjd()) + "] ";
         response += track[trackindex].name + '(';
         response += to_unsigned(trackindex) + ") ";
-        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 3) + ' ';
-        response += to_angle(track[trackindex].target.elfrom, 'D', 3) + "] ";
+        response += '[' + to_angle(fixangle(track[trackindex].target.azfrom), 'D', 5) + ' ';
+        response += to_angle(track[trackindex].target.elfrom, 'D', 4) + "] ";
     }
     for (size_t i=0; i<myradios.size(); ++i)
     {

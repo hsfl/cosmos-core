@@ -511,6 +511,8 @@ int main(int argc, char *argv[])
 
     iretn = connect_radio();
 
+    agent->cinfo->agent[0].aprd = 5.;
+    agent->start_active_loop();
     while (agent->running())
     {
         if (radioconnected)
@@ -670,14 +672,14 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            COSMOS_SLEEP(1.);
+            agent->finish_active_loop();
         }
         else
         {
             iretn = connect_radio();
             if (iretn < 0)
             {
-                COSMOS_SLEEP(1.);
+                agent->finish_active_loop();
             }
         }
     }
@@ -705,7 +707,7 @@ int32_t request_get_state(string &req, string &response, Agent *)
     response += " Mode: " + opmode2string(agent->cinfo->device[deviceindex].tcv.opmode) + " TFreq: " + to_double(target.freq, 9);
     response += " AFreq: " + to_double(agent->cinfo->device[deviceindex].tcv.freq, 9) + " Offset: " + to_double(freqoffset);
     response += " PowerIn: " + to_double(agent->cinfo->device[deviceindex].tcv.powerin) + " PowerOut: " + to_double(agent->cinfo->device[deviceindex].tcv.powerout);
-    response += " MaxPower: " + to_double(agent->cinfo->device[deviceindex].tcv.maxpower);
+    response += " MaxPower: " + to_double(agent->cinfo->device[deviceindex].tcv.maxpower) + " Record: " + to_unsigned(target_record,1);
     return (0);
 }
 
