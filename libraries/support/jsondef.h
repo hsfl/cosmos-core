@@ -1916,35 +1916,35 @@ struct rxrstruc
 struct txrstruc 
 {
     //! Operating mode
-    uint16_t opmode;
+    uint16_t opmode = 0;
     //! Data modulation
-    uint16_t modulation;
+    uint16_t modulation = 0;
     //! RSSI
-    uint16_t rssi;
+    uint16_t rssi = 0;
     //! Packet Size
-    uint16_t pktsize;
+    uint16_t pktsize = 0;
     //! Input Frequency
-    double freq;
+    double freq = 0.;
     //! Maximum frequency allowed
-    double maxfreq;
+    double maxfreq = 0.;
     //! Minimum frequency allowed
-    double minfreq;
+    double minfreq = 0.;
     //! Current RX Power
-    float powerin;
+    float powerin = 0.f;
     //! Current TX Power
-    float powerout;
+    float powerout = 0.f;
     //! Output Power limit
-    float maxpower;
+    float maxpower = 0.f;
     //! Input Filter bandpass
-    float band;
+    float band = 0.f;
     //! repeater squelch tone frequency
-    float squelch_tone;
+    float squelch_tone = 0.f;
     //! Good Packet Percentage
-    double  goodratio;
+    double  goodratio = 0.;
     //! Last TX time
-    double txutc;
+    double txutc = 0.;
     //! Connection Uptime
-    double uptime;
+    double uptime = 10.;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
