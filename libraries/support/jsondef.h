@@ -1617,7 +1617,7 @@ struct allstruc
  */
 
  //JIMNOTE:  this one needs some JSON work... hmm....  what to do about that union....
-struct telemstruc : public allstruc
+struct telemstruc 
 {
     //! Data type
     uint16_t type;
@@ -1662,7 +1662,7 @@ struct telemstruc : public allstruc
  * names. You can then set double precision values for these keys in
  * the dynamic structure.
  */
-struct ploadstruc : public allstruc
+struct ploadstruc 
 {
     //! Number of keys being used.
     uint16_t key_cnt;
@@ -1708,7 +1708,7 @@ struct ploadstruc : public allstruc
 };
 
 //! Sun Sensor (SSEN) Sructure
-struct ssenstruc : public allstruc
+struct ssenstruc 
 {
     //! Sensor alignment quaternion.
     quaternion align;
@@ -1752,7 +1752,7 @@ struct ssenstruc : public allstruc
 };
 
 //! Inertial Measurement Unit (IMU) structure
-struct imustruc : public allstruc
+struct imustruc 
 {
     //! alignment quaternion
     quaternion align;
@@ -1806,7 +1806,7 @@ struct imustruc : public allstruc
 };
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
-struct rwstruc : public allstruc
+struct rwstruc 
 {
     //! Rotates vectors from RW frame (axis of rotation = z) to body frame.
     quaternion align;
@@ -1864,7 +1864,7 @@ struct rwstruc : public allstruc
 };
 
 //! Magnetic Torque Rod structure: z axis is aligned with rod.
-struct mtrstruc : public allstruc
+struct mtrstruc 
 {
     //! Rotates vectors from MTR frame to Body frame.
     quaternion align;
@@ -1926,7 +1926,7 @@ struct mtrstruc : public allstruc
 };
 
 //! CPU information
-struct cpustruc : public allstruc
+struct cpustruc 
 {
     // cpu
     //! Seconds CPU has been up
@@ -1976,7 +1976,7 @@ struct cpustruc : public allstruc
 };
 
 //! Disk information
-struct diskstruc : public allstruc
+struct diskstruc 
 {
     // disk
     //! Maximum disk capacity in GiB
@@ -2011,7 +2011,7 @@ struct diskstruc : public allstruc
 };
 
 // TODO: rename to GpsData
-struct gpsstruc : public allstruc
+struct gpsstruc 
 {
     //! UTC time error
     double dutc;
@@ -2097,7 +2097,7 @@ struct gpsstruc : public allstruc
 //! Antenna information
 /*! This structure holds the information concerning antennas.
 */
-struct antstruc : public allstruc
+struct antstruc 
 {
     //! Alignment
     quaternion align;
@@ -2153,7 +2153,7 @@ struct antstruc : public allstruc
 //! Receiver information
 /*! This structure holds the information concerning receivers.
 */
-struct rxrstruc : public allstruc
+struct rxrstruc 
 {
     //! Operating mode
     uint16_t opmode;
@@ -2237,38 +2237,38 @@ struct rxrstruc : public allstruc
 //! Transmitter information
 /*! This structure holds the information concerning transmitters.
 */
-struct txrstruc : public allstruc
+struct txrstruc 
 {
     //! Operating mode
-    uint16_t opmode;
+    uint16_t opmode = 0;
     //! Data modulation
-    uint16_t modulation;
+    uint16_t modulation = 0;
     //! RSSI
-    uint16_t rssi;
+    uint16_t rssi = 0;
     //! Packet Size
-    uint16_t pktsize;
+    uint16_t pktsize = 0;
     //! Input Frequency
-    double freq;
+    double freq = 0.;
     //! Maximum frequency allowed
-    double maxfreq;
+    double maxfreq = 0.;
     //! Minimum frequency allowed
-    double minfreq;
+    double minfreq = 0.;
     //! Current RX Power
-    float powerin;
+    float powerin = 0.f;
     //! Current TX Power
-    float powerout;
+    float powerout = 0.f;
     //! Output Power limit
-    float maxpower;
+    float maxpower = 0.f;
     //! Input Filter bandpass
-    float band;
+    float band = 0.f;
     //! repeater squelch tone frequency
-    float squelch_tone;
+    float squelch_tone = 0.f;
     //! Good Packet Percentage
-    double  goodratio;
+    double  goodratio = 0.;
     //! Last TX time
-    double txutc;
+    double txutc = 0.;
     //! Connection Uptime
-    double uptime;
+    double uptime = 10.;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2321,7 +2321,7 @@ struct txrstruc : public allstruc
 //! Transceiver information
 /*! This structure holds the information concerning transceivers.
 */
-struct tcvstruc : public allstruc
+struct tcvstruc 
 {
     //! Operating mode
     uint16_t opmode;
@@ -2409,7 +2409,7 @@ struct tcvstruc : public allstruc
 //! PV String (STRG) structure.
 /*! Efficiency is goven as effbase + effslope * Tkelvin.
 */
-struct pvstrgstruc : public allstruc
+struct pvstrgstruc 
 {
     //! BCREG index
     uint16_t bcidx;
@@ -2451,7 +2451,7 @@ struct pvstrgstruc : public allstruc
 };
 
 //! Battery (BATT) structure.
-struct battstruc : public allstruc
+struct battstruc 
 {
     //! Capacity in amp hours
     float capacity;
@@ -2503,7 +2503,7 @@ struct battstruc : public allstruc
 //! Heater Structure definition
 /*! This structure holds the description of a heaters.
 */
-struct htrstruc : public allstruc
+struct htrstruc 
 {
     bool state;
     //! Temperature set vertex
@@ -2531,7 +2531,7 @@ struct htrstruc : public allstruc
     }
 };
 
-struct motrstruc : public allstruc
+struct motrstruc 
 {
     //! Maximum speed in revolutions per second
     float max;
@@ -2563,10 +2563,16 @@ struct motrstruc : public allstruc
     }
 };
 
-struct tsenstruc : public allstruc {};
+struct tsenstruc  {
+	// Convert class contents to JSON object
+    json11::Json to_json() const { return json11::Json::object {}; }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {};
+};
 
 //! Thruster (THST) dynamic structure
-struct thststruc : public allstruc
+struct thststruc 
 {
     //! Flow
     quaternion align;
@@ -2600,7 +2606,7 @@ struct thststruc : public allstruc
 };
 
 //! Propellant Tank (PROP) structure.
-struct propstruc : public allstruc
+struct propstruc 
 {
     //! Propellant capacity in kg
     float cap;
@@ -2632,12 +2638,18 @@ struct propstruc : public allstruc
 //! Switch Structure definition
 /*! This structure holds the description of a switches.
 */
-struct swchstruc : public allstruc {};
+struct swchstruc  {
+    // Convert class contents to JSON object
+    json11::Json to_json() const { return json11::Json::object {}; }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {};
+};
 
 //! Rotor Structure definition
 /*! This structure holds the description of a rotors.
 */
-struct rotstruc : public allstruc
+struct rotstruc 
 {
     //! Angular position
     float angle;
@@ -2664,7 +2676,7 @@ struct rotstruc : public allstruc
 
 //! Star Tracker (STT) Sructure
 // TODO: rename to ST
-struct sttstruc : public allstruc
+struct sttstruc 
 {
     //! alignment quaternion
     quaternion align;
@@ -2707,7 +2719,7 @@ struct sttstruc : public allstruc
 };
 
 //! Motion Capture Camera (MCC) Structure
-struct mccstruc : public allstruc
+struct mccstruc 
 {
     //! Sensor alignment quaternion.
     quaternion align;
@@ -2743,7 +2755,7 @@ struct mccstruc : public allstruc
 };
 
 //! Torque Rod Control Unit
-struct tcustruc : public allstruc
+struct tcustruc 
 {
     //! Torque Rod count
     uint16_t mcnt;
@@ -2778,7 +2790,7 @@ struct tcustruc : public allstruc
     }
 };
 
-struct busstruc : public allstruc
+struct busstruc 
 {
     //! Watch Dog Timer (MJD)
     float wdt;
@@ -2803,7 +2815,7 @@ struct busstruc : public allstruc
     }
 };
 
-struct psenstruc : public allstruc
+struct psenstruc 
 {
     //! Current Pressure
     float press;
@@ -2829,7 +2841,7 @@ struct psenstruc : public allstruc
 };
 
 //! SUCHI Sructure
-struct suchistruc : public allstruc
+struct suchistruc 
 {
     //! alignment quaternion
     quaternion align;
@@ -2868,7 +2880,7 @@ struct suchistruc : public allstruc
     }
 };
 
-struct camstruc : public allstruc
+struct camstruc 
 {
     uint16_t pwidth;
     uint16_t pheight;
@@ -2907,12 +2919,24 @@ struct camstruc : public allstruc
 //! TNC Structure definition
 /*! This structure holds the description of a TNC.
 */
-struct tncstruc : public allstruc {};
+struct tncstruc  {
+    // Convert class contents to JSON object
+    json11::Json to_json() const { return json11::Json::object {}; }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {};
+};
 
 //! BCREG (PV Regulator) Structure definition
 /*! This structure holds the description of a BCREG.
 */
-struct bcregstruc : public allstruc {};
+struct bcregstruc  {
+    // Convert class contents to JSON object
+    json11::Json to_json() const { return json11::Json::object {}; }
+
+    // Set class contents from JSON string
+    void from_json(const string& s) {};	
+};
 
 // End of Device Specific structures
 
@@ -3294,13 +3318,8 @@ struct nodestruc
 possible device types, with a generic type for looking up basic
 information.
 */
-struct devicestruc
+struct devicestruc : public allstruc
 {
-///*
-    union
-    {
-//*/
-        allstruc all;
         antstruc ant;
         battstruc batt;
         bcregstruc bcreg;
@@ -3332,9 +3351,6 @@ struct devicestruc
         tncstruc tnc;
         tsenstruc tsen;
         txrstruc txr;
-///*
-    };
-//*/
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
