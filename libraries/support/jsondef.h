@@ -1511,43 +1511,43 @@ union as a ::devicestruc.
 struct allstruc
 {
     //! Enabled?
-    bool enabled;
+    bool enabled = true;
     //! Component Type
-    uint16_t type;
+    uint16_t type = 0;
     //! Device Model
-    uint16_t model;
+    uint16_t model = 0;
     //! Device flag - catch all for any small piece of information that might be device specific
-    uint32_t flag;
+    uint32_t flag = 0;
     //! Device specific address
-    uint16_t addr;
+    uint16_t addr = 0;
     //! Component Index
-    uint16_t cidx;
+    uint16_t cidx = 0;
     //! Device specific index
-    uint16_t didx;
+    uint16_t didx = 0;
     //! Piece index
-    uint16_t pidx;
+    uint16_t pidx = 0;
     //! Power Bus index
-    uint16_t bidx;
+    uint16_t bidx = 0;
     //! Connection information for device.
-    uint16_t portidx; // TODO: rename to port_id or port_index
+    uint16_t portidx = 0; // TODO: rename to port_id or port_index
     //! Nominal Amperage
-    float namp; // TODO: rename to nominal current
+    float namp = 0.f; // TODO: rename to nominal current
     //! Nominal Voltage
-    float nvolt; // TODO: rename to nominal voltage
+    float nvolt = 0.f; // TODO: rename to nominal voltage
     //! Current Amperage
-    float amp; // TODO: rename to current
+    float amp = 0.f; // TODO: rename to current
     //! Current Voltage
-    float volt; // TODO: rename to voltage
+    float volt = 0.f; // TODO: rename to voltage
     //! Current Power
-    float power; // TODO: rename to voltage
+    float power = 0.f; // TODO: rename to voltage
     //! Total energy usage
-    float energy;
+    float energy = 0.f;
     //! Current data rate
-    float drate;
+    float drate = 0.f;
     //! Current Temperature
-    float temp; // TODO: rename to temperature
+    float temp = 0.f; // TODO: rename to temperature
     //! Device information time stamp
-    double utc;
+    double utc = 0.;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -3355,6 +3355,26 @@ struct devicestruc : public allstruc
     // Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
+            { "enabled" , enabled },
+            { "type"    , type },
+            { "model"   , model },
+            { "flag"    , static_cast<int>(flag) },
+            { "addr"    , addr },
+            { "cidx"    , cidx },
+            { "didx"    , didx },
+            { "pidx"    , pidx },
+            { "bidx"    , bidx },
+            { "portidx" , portidx },
+            { "namp"    , namp},
+            { "nvolt"   , nvolt },
+            { "amp"     , amp },
+            { "volt"    , volt },
+            { "power"   , power },
+            { "energy"  , energy },
+            { "drate"   , drate },
+            { "temp"    , temp },
+            { "utc"     , utc },
+
             { "ant" , ant },
             { "batt" , batt },
             { "bcreg" , bcreg },
@@ -3394,6 +3414,26 @@ struct devicestruc : public allstruc
         string error;
         json11::Json p = json11::Json::parse(js,error);
         if(error.empty()) {
+           if(!p["enabled"].is_null()) enabled = p["enabled"].bool_value();
+            if(!p["type"].is_null()) type = p["type"].int_value();
+            if(!p["model"].is_null()) model = p["model"].int_value();
+            if(!p["flag"].is_null()) flag = p["flag"].int_value();
+            if(!p["addr"].is_null()) addr = p["addr"].int_value();
+            if(!p["cidx"].is_null()) cidx = p["cidx"].int_value();
+            if(!p["didx"].is_null()) didx = p["didx"].int_value();
+            if(!p["pidx"].is_null()) pidx = p["pidx"].int_value();
+            if(!p["bidx"].is_null()) bidx = p["bidx"].int_value();
+            if(!p["portidx"].is_null()) portidx = p["portidx"].int_value();
+            if(!p["namp"].is_null()) namp = p["namp"].number_value();
+            if(!p["nvolt"].is_null()) nvolt = p["nvolt"].number_value();
+            if(!p["amp"].is_null()) amp = p["amp"].number_value();
+            if(!p["volt"].is_null()) volt = p["volt"].number_value();
+            if(!p["power"].is_null()) power = p["power"].number_value();
+            if(!p["energy"].is_null()) energy = p["energy"].number_value();
+            if(!p["drate"].is_null()) drate = p["drate"].number_value();
+            if(!p["temp"].is_null()) temp = p["temp"].number_value();
+            if(!p["utc"].is_null()) utc = p["utc"].number_value();
+
             if(!p["ant"].is_null())		ant.from_json(p["ant"].dump());
             if(!p["batt"].is_null())	batt.from_json(p["batt"].dump());
             if(!p["bcreg"].is_null())	bcreg.from_json(p["bcreg"].dump());
