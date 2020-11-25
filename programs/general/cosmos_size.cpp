@@ -103,14 +103,6 @@ int main(int argc, char* argv[])
     printf("Users: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(userstruc), count*COSMOS_SIZEOF(userstruc), total);
 
     count = 0;
-    for (size_t i=0; i<myagent->cinfo->glossary.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(glossarystruc);
-    }
-    printf("Glossarys: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(glossarystruc), count*COSMOS_SIZEOF(glossarystruc), total);
-
-    count = 0;
     for (size_t i=0; i<myagent->cinfo->tle.size(); ++i)
     {
         ++count;
@@ -179,14 +171,6 @@ int main(int argc, char* argv[])
         total += COSMOS_SIZEOF(userstruc);
     }
     printf("Users: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(userstruc), count*COSMOS_SIZEOF(userstruc), total);
-
-    count = 0;
-    for (size_t i=0; i<myagent->cinfo->glossary.size(); ++i)
-    {
-        ++count;
-        total += COSMOS_SIZEOF(glossarystruc);
-    }
-    printf("Glossarys: %lu x %ld = %lu : %lu\n", count, COSMOS_SIZEOF(glossarystruc), count*COSMOS_SIZEOF(glossarystruc), total);
 
     count = 0;
     for (size_t i=0; i<myagent->cinfo->tle.size(); ++i)

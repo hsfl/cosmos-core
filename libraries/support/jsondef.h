@@ -162,8 +162,6 @@ enum {
     JSON_STRUCT_USER,
     //! ::portstruc
     JSON_STRUCT_PORT,
-    //! ::glossarystruc
-    JSON_STRUCT_GLOSSARY,
     //! ::tlestruc
     JSON_STRUCT_TLE,
     //! ::aliasstruc
@@ -1159,43 +1157,6 @@ struct userstruc
             if(!parsed["node"].is_null())	node = parsed["node"].string_value();
             if(!parsed["tool"].is_null())	tool = parsed["tool"].string_value();
             if(!parsed["cpu"].is_null())	cpu = parsed["cpu"].string_value();
-        } else {
-            cerr<<"ERROR: <"<<error<<">"<<endl;
-        }
-        return;
-    }
-};
-
-//! Glossary structure
-/*! Contains entries for a glossary of names and matching descriptions
-and types.
-*/
-struct glossarystruc
-{
-    // Glossary entry name.
-    string name = "";
-    // Glossary entry description, to be interpreted based on its type.
-    string description = "";
-    // Glossary entry ::jsonlib_namespace type.
-    uint16_t type = 0;
-
-    // Convert class contents to JSON object
-    json11::Json to_json() const {
-        return json11::Json::object {
-            { "name" , name },
-            { "description", description },
-            { "type", type }
-        };
-    }
-
-    // Set class contents from JSON string
-    void from_json(const string& s) {
-        string error;
-        json11::Json parsed = json11::Json::parse(s,error);
-        if(error.empty()) {
-            if(!parsed["name"].is_null())			name = parsed["name"].string_value();
-            if(!parsed["description"].is_null())	description = parsed["description"].string_value();
-            if(!parsed["type"].is_null())			type = parsed["type"].int_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -3214,7 +3175,6 @@ struct nodestruc
     uint16_t event_cnt = 0;
     uint16_t target_cnt = 0;
     uint16_t user_cnt = 0;
-    uint16_t glossary_cnt = 0;
     uint16_t tle_cnt = 0;
 
     uint16_t flags = 0;
@@ -3256,7 +3216,6 @@ struct nodestruc
             { "event_cnt" , event_cnt },
             { "target_cnt" , target_cnt },
             { "user_cnt" , user_cnt },
-            { "glossary_cnt" , glossary_cnt },
             { "tle_cnt" , tle_cnt },
 
             { "flags" , flags },
@@ -3296,7 +3255,6 @@ struct nodestruc
             if(!parsed["event_cnt"].is_null())    event_cnt = parsed["event_cnt"].int_value();
             if(!parsed["target_cnt"].is_null())    target_cnt = parsed["target_cnt"].int_value();
             if(!parsed["user_cnt"].is_null())    user_cnt = parsed["user_cnt"].int_value();
-            if(!parsed["glossary_cnt"].is_null())    glossary_cnt = parsed["glossary_cnt"].int_value();
             if(!parsed["tle_cnt"].is_null())    tle_cnt = parsed["tle_cnt"].int_value();
 
             if(!parsed["flags"].is_null())    flags = parsed["flags"].int_value();
@@ -3842,9 +3800,6 @@ struct cosmosstruc
     //! Single entry vector for user information.
     vector<userstruc> user;
 
-    //! Vector of glossary terms for node.
-    vector<glossarystruc> glossary;
-
     //! Array of Two Line Elements
     vector<tlestruc> tle;
 
@@ -3888,7 +3843,6 @@ struct cosmosstruc
  		add_name("node.event_cnt", &node.event_cnt);
  		add_name("node.target_cnt", &node.target_cnt);
  		add_name("node.user_cnt", &node.user_cnt);
- 		add_name("node.glossary_cnt", &node.glossary_cnt);
  		add_name("node.tle_cnt", &node.tle_cnt);
  		add_name("node.flags", &node.flags);
  		add_name("node.powmode", &node.powmode);
@@ -4090,7 +4044,6 @@ struct cosmosstruc
             { "event" , event },
             { "target" , target },
 			{ "user" , user },
-            { "glossary" , glossary },
 			{ "tle" , tle },
 			//{ "json" , json }
 		};
@@ -4143,9 +4096,6 @@ struct cosmosstruc
 			}
  			for(size_t i = 0; i < user.size(); ++i)	{
  				if(!p[obj]["user"][i].is_null())	user[i].from_json(p[obj]["user"][i].dump());
-			}
- 			for(size_t i = 0; i < glossary.size(); ++i)	{
- 				if(!p[obj]["glossary"][i].is_null())	glossary[i].from_json(p[obj]["glossary"][i].dump());
 			}
  			for(size_t i = 0; i < tle.size(); ++i)	{
  				if(!p[obj]["tle"][i].is_null())	tle[i].from_json(p[obj]["tle"][i].dump());

@@ -72,7 +72,6 @@ TEST(cosmosstruc, json_init_node)	{
     EXPECT_EQ(c->node.event_cnt , 0);
     EXPECT_EQ(c->node.target_cnt , 0);
     EXPECT_EQ(c->node.user_cnt , 0);
-    EXPECT_EQ(c->node.glossary_cnt , 0);
     EXPECT_EQ(c->node.tle_cnt , 0);
 }
 

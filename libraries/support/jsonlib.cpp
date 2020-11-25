@@ -419,7 +419,6 @@ void json_init_resize(cosmosstruc* cinfo) {
     cinfo->emap.resize(JSON_MAX_HASH);
 
 
-    cinfo->glossary.resize(1);
     cinfo->agent.resize(1);
 
     cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
@@ -433,7 +432,6 @@ void json_init_resize(cosmosstruc* cinfo) {
 		cinfo->unit.capacity() < JSON_UNIT_COUNT ||
         cinfo->jmap.size() != JSON_MAX_HASH ||
         cinfo->emap.size() != JSON_MAX_HASH ||
-    	cinfo->glossary.size() != 1 ||
         cinfo->agent.size() != 1 ||
         cinfo->event.size() != 1 ||
         cinfo->user.size() != 1)
@@ -3169,9 +3167,6 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cinfo
         break;
     case JSON_STRUCT_PORT:
         data =  offset + (uint8_t *)cinfo->port.data();
-        break;
-    case JSON_STRUCT_GLOSSARY:
-        data =  offset + (uint8_t *)cinfo->glossary.data();
         break;
     case JSON_STRUCT_TLE:
         data =  offset + (uint8_t *)cinfo->tle.data();
@@ -6549,9 +6544,6 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo)
     case JSON_STRUCT_TARGET:
         cinfo->target.clear();
         break;
-    case JSON_STRUCT_GLOSSARY:
-        cinfo->glossary.clear();
-        break;
     case JSON_STRUCT_TLE:
         cinfo->tle.clear();
         break;
@@ -7809,7 +7801,6 @@ int32_t json_mapbaseentries(cosmosstruc *cinfo)
     json_addentry("node_agent_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.agent_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_event_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.event_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("node_user_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.user_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
-    json_addentry("node_glossary_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->node.glossary_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_ant_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.ant_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_batt_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.batt_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
     json_addentry("device_bus_cnt", UINT16_MAX, UINT16_MAX, (uint8_t *)&cinfo->devspec.bus_cnt, (uint16_t)JSON_TYPE_UINT16, cinfo);
