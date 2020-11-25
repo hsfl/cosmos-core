@@ -427,18 +427,9 @@ void json_init_resize(cosmosstruc* cinfo) {
     cinfo->user.reserve(MAX_NUMBER_OF_USERS);
     cinfo->user.resize(1);
 
-    // Make sure we aren't running out of memory
-    if (
-		cinfo->unit.capacity() < JSON_UNIT_COUNT ||
-        cinfo->jmap.size() != JSON_MAX_HASH ||
-        cinfo->emap.size() != JSON_MAX_HASH ||
-        cinfo->agent.size() != 1 ||
-        cinfo->event.size() != 1 ||
-        cinfo->user.size() != 1)
-    {
-        delete cinfo;
-    	cinfo = nullptr;
-    }
+    cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
+
+	return;
 }
 
 //! Initialize JSON pointer map
@@ -1071,7 +1062,7 @@ int32_t json_addpiece(cosmosstruc *cinfo, string name, DeviceType ctype, double 
 //! \param cinfo Pointer to cosmosstruc
 //! \param name Name information for port
 //! \param type Port type listed in ::PORT_TYPE.
-int32_t json_createport(cosmosstruc *cinfo, string name, uint16_t type)
+int32_t json_createport(cosmosstruc *cinfo, string name, PORT_TYPE type)
 {
     for (uint16_t i=0; i<cinfo->port.size(); ++i)
     {

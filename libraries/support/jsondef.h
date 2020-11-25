@@ -448,7 +448,10 @@ enum {
 
 //* Maximum number of users
 #define MAX_NUMBER_OF_USERS 20
-#define MAX_NUMBER_OF_EVENTS 20
+//* Maximum number of ports
+#define MAX_NUMBER_OF_PORTS 50
+//* Maximum number of events
+#define MAX_NUMBER_OF_EVENTS 200
 
 //! @}
 //! \ingroup defs
@@ -1257,8 +1260,7 @@ struct targetstruc
 struct portstruc
 {
     //! Type of I/O as listed in ::PORT_TYPE.
-	//JIMNOTE: should this be of PORT_TYPE not uint16_t?
-    uint16_t type = 0;
+    PORT_TYPE type = PORT_TYPE_NONE;
     //! Name information for port.
     //!!! Do not make this string
     char name[COSMOS_MAX_DATA+1] = "";
@@ -1276,7 +1278,7 @@ struct portstruc
         string error;
         json11::Json p = json11::Json::parse(s,error);
         if(error.empty()) {
-            if(!p["type"].is_null()) type = p["type"].int_value();
+            if(!p["type"].is_null()) type = static_cast<PORT_TYPE>(p["type"].int_value());
             if(!p["name"].is_null()) strcpy(name, p["name"].string_value().c_str());
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
@@ -3851,6 +3853,15 @@ struct cosmosstruc
  				add_name(rebasename+".p2", &unit[i][j].p2);
  			}
  		}
+
+ 	// vector<portstruc> port
+ 		add_name("port", &port);
+ 		for(size_t i = 0; i < port.capacity(); ++i)	{
+ 			string basename = "port[" + std::to_string(i) + "]";
+ 			add_name(basename, &port[i]);
+ 			add_name(basename+".type", &port[i].type);
+ 			add_name(basename+".name", &port[i].name);
+ 		}
  
  	// vector<userstruc> user
  		add_name("user", &user);
@@ -3953,7 +3964,9 @@ struct cosmosstruc
 	}
 	
 	void pretty_form(string& js)    {
-	
+
+// JIMNOTE: fix bug with splitting lines over array indices [#]	
+
     	replace(js, ", ", ",\n");
     	replace(js, "[]", "E M P T Y   V E C T O R");
     	replace(js, "{}", "E M P T Y   O B J E C T");
