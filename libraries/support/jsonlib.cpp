@@ -429,6 +429,7 @@ void json_init_resize(cosmosstruc* cinfo) {
 
     cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
 
+	cinfo->tle.reserve(MAX_NUMBER_OF_TLES);
 	return;
 }
 
@@ -7018,10 +7019,7 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
         }
 
 
-        // Work through jmap, enabling each piece for which piece_type has been enabled
-        for (size_t i=0; i<cinfo->node.piece_cnt; i++)
-        {
-            cinfo->pieces[i].enabled = json_checkentry("piece_name", i, UINT16_MAX, cinfo);
+        // Work through jmap, enabling each piece for which piece_type has been enabled = json_checkentry("piece_name", i, UINT16_MAX, cinfo);
         }
 
         // Third: enter information for all devices
@@ -11170,7 +11168,8 @@ int32_t load_target(cosmosstruc *cinfo)
     count = 0;
     if ((op=fopen(fname.c_str(),"r")) != nullptr)
     {
-        cinfo->target.resize(100);
+		//JIMNOTE:  take away this resize
+        cinfo->target.resize(MAX_NUMBER_OF_TARGETS);
         while (count < cinfo->target.size() && fgets(inb,JSON_MAX_DATA,op) != nullptr)
         {
             json_addentry("target_range",count, UINT16_MAX, (ptrdiff_t)offsetof(targetstruc,range)+count*sizeof(targetstruc), (uint16_t)JSON_TYPE_DOUBLE, (uint16_t)JSON_STRUCT_TARGET, cinfo);
@@ -11198,6 +11197,7 @@ int32_t load_target(cosmosstruc *cinfo)
             }
         }
         fclose(op);
+		//JIMNOTE:  take away this resize
         cinfo->target.resize(count);
         return (count);
     }

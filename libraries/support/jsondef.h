@@ -445,13 +445,19 @@ enum {
 //! Maximum number of AGENT requests
 #define AGENTMAXREQUESTCOUNT (AGENTMAXBUILTINCOUNT+AGENTMAXUSERCOUNT)
 
+// some maximums for vector storage inside cosmosstruc
 
-//* Maximum number of users
-#define MAX_NUMBER_OF_USERS 20
 //* Maximum number of ports
-#define MAX_NUMBER_OF_PORTS 50
+#define MAX_NUMBER_OF_PORTS 5
 //* Maximum number of events
-#define MAX_NUMBER_OF_EVENTS 200
+#define MAX_NUMBER_OF_EVENTS 20
+
+//* Maximum number of targets
+#define MAX_NUMBER_OF_TARGETS 15
+//* Maximum number of users
+#define MAX_NUMBER_OF_USERS 10
+//* Maximum number of TLES
+#define MAX_NUMBER_OF_TLES 50
 
 //! @}
 //! \ingroup defs
@@ -1572,18 +1578,18 @@ struct telemstruc
     //! Data type
     uint16_t type = 0;
     //! Union of data
-    union
-    {
-        uint8_t vuint8;
-        int8_t vint8;
-        uint16_t vuint16;
-        int16_t vint16;
-        uint32_t vuint32;
-        int32_t vint32;
-        float vfloat;
-        double vdouble;
-        char vstring[COSMOS_MAX_NAME+1];
-    };
+    //union
+    //{
+        uint8_t vuint8 = 0;
+        int8_t vint8 = 0;
+        uint16_t vuint16 = 0;
+        int16_t vint16 = 0;
+        uint32_t vuint32 = 0;
+        int32_t vint32 = 0;
+        float vfloat = 0.f;
+        double vdouble = 0.f;
+        char vstring[COSMOS_MAX_NAME+1] = "";
+    //};
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -3730,10 +3736,10 @@ struct cosmosstruc
     uint16_t jmapped = 0;
 
     //! JSON Namespace Map matrix. first entry hash, second is items with that hash
-    vector<vector<jsonentry> > jmap;
+    vector<vector<jsonentry> > jmap; // depricate me!
 
     //! JSON Equation Map matrix.
-    vector<vector<jsonequation> > emap;
+    vector<vector<jsonequation> > emap; // depricate me?
 
     //! JSON Unit Map matrix: first level is for unit type, second level is for all variants (starting with primary).
     vector<vector<unitstruc> > unit;
@@ -3862,17 +3868,6 @@ struct cosmosstruc
  			add_name(basename+".type", &port[i].type);
  			add_name(basename+".name", &port[i].name);
  		}
- 
- 	// vector<userstruc> user
- 		add_name("user", &user);
- 		for(size_t i = 0; i < user.capacity(); ++i)	{
- 			string basename = "user[" + std::to_string(i) + "]";
- 			add_name(basename, &user[i]);
- 			add_name(basename+".name", &user[i].name);
- 			add_name(basename+".node", &user[i].node);
- 			add_name(basename+".tool", &user[i].tool);
- 			add_name(basename+".cpu", &user[i].cpu);
- 		}
 
 	// vector<eventstruc> event
 		add_name("event", &event);
@@ -3900,7 +3895,53 @@ struct cosmosstruc
  			add_name(basename+".condition", &event[i].condition);
  		}
 
- 
+	// vector<targetstruc> target 
+ 		add_name("target", &target);
+ 		for(size_t i = 0; i < target.capacity(); ++i)	{
+ 			string basename = "target[" + std::to_string(i) + "]";
+ 			add_name(basename, &target[i]);
+ 			add_name(basename+".utc", &target[i].utc);
+ 			add_name(basename+".name", &target[i].name);
+ 			add_name(basename+".type", &target[i].type);
+ 			add_name(basename+".azfrom", &target[i].azfrom);
+ 			add_name(basename+".elfrom", &target[i].elfrom);
+ 			add_name(basename+".azto", &target[i].azto);
+ 			add_name(basename+".elto", &target[i].elto);
+ 			add_name(basename+".range", &target[i].range);
+ 			add_name(basename+".close", &target[i].close);
+ 			add_name(basename+".min", &target[i].min);
+ 			add_name(basename+".loc", &target[i].loc);
+ 		}
+
+ 	// vector<userstruc> user
+ 		add_name("user", &user);
+ 		for(size_t i = 0; i < user.capacity(); ++i)	{
+ 			string basename = "user[" + std::to_string(i) + "]";
+ 			add_name(basename, &user[i]);
+ 			add_name(basename+".name", &user[i].name);
+ 			add_name(basename+".node", &user[i].node);
+ 			add_name(basename+".tool", &user[i].tool);
+ 			add_name(basename+".cpu", &user[i].cpu);
+ 		}
+
+ 	// vector<tlestruc> tle
+ 		add_name("tle", &tle);
+ 		for(size_t i = 0; i < tle.capacity(); ++i)	{
+ 			string basename = "tle[" + std::to_string(i) + "]";
+ 			add_name(basename, &tle[i]);
+ 			add_name(basename+".utc", &tle[i].utc);
+ 			add_name(basename+".name", &tle[i].name);
+ 			add_name(basename+".snumber", &tle[i].snumber);
+ 			add_name(basename+".id", &tle[i].id);
+ 			add_name(basename+".bstar", &tle[i].bstar);
+ 			add_name(basename+".i", &tle[i].i);
+ 			add_name(basename+".raan", &tle[i].raan);
+ 			add_name(basename+".e", &tle[i].e);
+ 			add_name(basename+".ap", &tle[i].ap);
+ 			add_name(basename+".ma", &tle[i].ma);
+ 			add_name(basename+".mm", &tle[i].mm);
+ 			add_name(basename+".orbit", &tle[i].orbit);
+ 		}
  	}
 
 
