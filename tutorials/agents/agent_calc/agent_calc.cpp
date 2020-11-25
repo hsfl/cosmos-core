@@ -251,7 +251,17 @@ agent->cinfo->set_json_value<cosmosstruc>("Entire COSMOSSTRUC", entire);
 	cout<<"Output:\n\t<\n"<<agent->cinfo->get_json<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
 	cout<<"Output:\n\t<\n"<<agent->cinfo->get_json_pretty<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
 
+	agent->cinfo->add_all_names();
+	agent->cinfo->print_all_names();
+	cout<<agent->cinfo->get_json_pretty<locstruc>("node.loc")<<endl;
 
+	// try to set some shit out of bounds
+	agent->cinfo->set_value<string>("user[9].tool", "OUT OF BOUNDS!!!!");
+	cout<<agent->cinfo->get_json_pretty<vector<userstruc>>("user")<<endl;
+	cout<<agent->cinfo->get_json_pretty<userstruc>("user[9]")<<endl;
+
+
+	cout<<"<"<<agent->cinfo->get_json_pretty<eventstruc>("event[0]")<<">"<<endl;
 /*
 	agent->cinfo->add_name("Entire COSMOSSTRUC Unit", &agent->cinfo->unit);
 	cout<<"Output:\n\t<"<<agent->cinfo->get_json<vector<vector<unitstruc>>>("Entire COSMOSSTRUC Unit")<<">"<<endl;

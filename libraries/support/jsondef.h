@@ -452,6 +452,7 @@ enum {
 
 //* Maximum number of users
 #define MAX_NUMBER_OF_USERS 20
+#define MAX_NUMBER_OF_EVENTS 20
 
 //! @}
 //! \ingroup defs
@@ -947,6 +948,7 @@ struct beatstruc
 };
 
 //! Agent control structure
+// JIMNOTE: take a look at this mess
 struct agentstruc
 {
     //! Client initialized?
@@ -3901,7 +3903,7 @@ struct cosmosstruc
  		add_name("node.utcstart", &node.utcstart);
  		add_name("node.loc", &node.loc);
  		add_name("node.phys", &node.phys);
- 
+
  	// vector<vector<unitstruc>> unit
  		add_name("unit", &unit);
  		for(size_t i = 0; i < unit.size(); ++i)	{
@@ -3928,8 +3930,38 @@ struct cosmosstruc
  			add_name(basename+".tool", &user[i].tool);
  			add_name(basename+".cpu", &user[i].cpu);
  		}
+
+	// vector<eventstruc> event
+		add_name("event", &event);
+ 		for(size_t i = 0; i < event.capacity(); ++i)	{
+ 			string basename = "event[" + std::to_string(i) + "]";
+ 			add_name(basename, &event[i]);
+ 			add_name(basename+".utc", &event[i].utc);
+ 			add_name(basename+".utcexec", &event[i].utcexec);
+ 			add_name(basename+".node", &event[i].node);
+ 			add_name(basename+".name", &event[i].name);
+ 			add_name(basename+".user", &event[i].user);
+ 			add_name(basename+".flag", &event[i].flag);
+ 			add_name(basename+".type", &event[i].type);
+ 			add_name(basename+".value", &event[i].value);
+ 			add_name(basename+".dtime", &event[i].dtime);
+ 			add_name(basename+".ctime", &event[i].ctime);
+ 			add_name(basename+".denergy", &event[i].denergy);
+ 			add_name(basename+".cenergy", &event[i].cenergy);
+ 			add_name(basename+".dmass", &event[i].dmass);
+ 			add_name(basename+".cmass", &event[i].cmass);
+ 			add_name(basename+".dbytes", &event[i].dbytes);
+ 			add_name(basename+".cbytes", &event[i].cbytes);
+ 			add_name(basename+".handle", &event[i].handle);
+ 			add_name(basename+".data", &event[i].data);
+ 			add_name(basename+".condition", &event[i].condition);
+ 		}
+
  
  	}
+
+
+
 
 
 	string get_name(void* v)	{

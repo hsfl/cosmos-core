@@ -417,8 +417,12 @@ void json_init_resize(cosmosstruc* cinfo) {
 
     cinfo->jmap.resize(JSON_MAX_HASH);
     cinfo->emap.resize(JSON_MAX_HASH);
+
+
     cinfo->glossary.resize(1);
     cinfo->agent.resize(1);
+
+    cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
     cinfo->event.resize(1);
 
     cinfo->user.reserve(MAX_NUMBER_OF_USERS);
