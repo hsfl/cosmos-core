@@ -748,7 +748,7 @@ struct jsonnode
 struct jsonhandle
 {
     // Hash of equation or name
-    uint16_t hash;
+    uint16_t hash;  // NOTE: Initializing this 
     // Index within that hash entry
     uint16_t index;
 
@@ -896,7 +896,7 @@ struct beatstruc
     //! Agent heartbeat jitter [sec]
     double jitter = 0.;
     //! Existence Flag (if beat exists then flag is set to true, false otherwise)
-    bool exists = false;
+    bool exists = true;
 
         // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -946,23 +946,23 @@ struct beatstruc
 struct agentstruc
 {
     //! Client initialized?
-    bool client;
+    bool client = true;
     //! Subscription channel (for Client)
     socket_channel sub;
     //! Server initialized?
-    bool server;
+    bool server = true;
     //! Number of network interfaces
-    size_t ifcnt;
+    size_t ifcnt = 0;
     //! Publication channels for each interface (for Server)
     socket_channel pub[AGENTMAXIF];
     //! Request channel (for Server)
     socket_channel req;
     //! Agent process ID
-    int32_t pid;
+    int32_t pid = 0;
     //! Activity period in seconds
-    double aprd;
+    double aprd = 0.;
     //! Agent Running State Flag
-    uint16_t stateflag;
+    uint16_t stateflag = 0;
     //! Agent request list
     vector <agent_request_entry> reqs;
     //! Heartbeat
@@ -1129,10 +1129,10 @@ struct userstruc
 	//if(whatever_string.size() > MAX_CHARS)	{
 	//	whatever_string = whatever_string.substr(0, MAX_CHARS);
 	//}
-	string name;
-	string node;
-	string tool;
-	string cpu;
+	string name = "";
+	string node = "";
+	string tool = "";
+	string cpu = "";
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -1167,11 +1167,11 @@ and types.
 struct glossarystruc
 {
     // Glossary entry name.
-    string name;
+    string name = "";
     // Glossary entry description, to be interpreted based on its type.
-    string description;
+    string description = "";
     // Glossary entry ::jsonlib_namespace type.
-    uint16_t type;
+    uint16_t type = 0;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -1249,16 +1249,16 @@ struct equationstruc
 */
 struct targetstruc
 {
-    double utc;
-    char name[COSMOS_MAX_NAME+1];
-    uint16_t type;
-    float azfrom;
-    float elfrom;
-    float azto;
-    float elto;
-    double range;
-    double close;
-    float min;
+    double utc = 0.;
+    char name[COSMOS_MAX_NAME+1] = "";
+    uint16_t type = 0;
+    float azfrom = 0.f;
+    float elfrom = 0.f;
+    float azto = 0.f;
+    float elto = 0.f;
+    double range = 0.;
+    double close = 0.;
+    float min = 0.f;
     locstruc loc;
 
     // Convert class contents to JSON object
@@ -1310,10 +1310,10 @@ struct portstruc
 {
     //! Type of I/O as listed in ::PORT_TYPE.
 	//JIMNOTE: should this be of PORT_TYPE not uint16_t?
-    uint16_t type;
+    uint16_t type = 0;
     //! Name information for port.
     //!!! Do not make this string
-    char name[COSMOS_MAX_DATA+1];
+    char name[COSMOS_MAX_DATA+1] = "";
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -1343,7 +1343,7 @@ typedef Vector vertexstruc;
 //! Face structure: information on each face of a piece
 struct facestruc
 {
-    uint16_t vertex_cnt;
+    uint16_t vertex_cnt = 0;
     vector <uint16_t> vertex_idx;
     Vector com;
     Vector normal;
@@ -1383,31 +1383,31 @@ struct facestruc
 struct piecestruc
 {
     //! Name of piece
-    char name[COSMOS_MAX_NAME+1];
+    char name[COSMOS_MAX_NAME+1] = "";
     //! Enabled?
-    bool enabled;
+    bool enabled = true;
     //! Component index: -1 if not a Component
-    uint16_t cidx;
+    uint16_t cidx = 0;
     //! Density in kg/cu m
-    float density;
+    float density = 0.f;
     //! Mass in kg
-    float mass;
+    float mass = 0.f;
     //! Emissivity: 0-1
-    float emi;
+    float emi = 0.f;
     //! Absorptivity: 0-1
-    float abs;
+    float abs = 0.f;
     //! Heat capacity in joules per kelvin
-    float hcap;
+    float hcap = 0.f;
     //! Heat conductivity in Watts per meter per kelvin
-    float hcon;
+    float hcon = 0.f;
     //! Dimension in meters: effect is dependent on Part type
-    float dim;
+    float dim = 0.f;
     //! Area in square meters
-    float area;
+    float area = 0.f;
     //! Volume in cubic meters
-    float volume;
+    float volume = 0.f;
     //! Number of faces
-    uint16_t face_cnt;
+    uint16_t face_cnt = 0;
     //! Array of vertices/vertexs
     vector <uint16_t> face_idx;
     //! Centroid of piece
@@ -1417,13 +1417,13 @@ struct piecestruc
     //! Contribution of piece to angular forces
     Vector twist;
     //! Stored thermal energy
-    float heat;
+    float heat = 0.f;
     //! Temperature in Kelvins
-    float temp;
+    float temp = 0.f;
     //! Insolation in Watts/sq m
-    float insol;
+    float insol = 0.f;
     //! Material density (1. - transparency)
-    float material_density;
+    float material_density = 0.f;
     //! Material ambient reflective qualities
     Vector material_ambient;
     //! Material diffuse reflective qualities
@@ -1620,7 +1620,7 @@ struct allstruc
 struct telemstruc 
 {
     //! Data type
-    uint16_t type;
+    uint16_t type = 0;
     //! Union of data
     union
     {
@@ -1665,11 +1665,11 @@ struct telemstruc
 struct ploadstruc 
 {
     //! Number of keys being used.
-    uint16_t key_cnt;
+    uint16_t key_cnt = 0;
     //! Name for each key.
-    uint16_t keyidx[MAXPLOADKEYCNT];
+    uint16_t keyidx[MAXPLOADKEYCNT] = {0};
     //! Value for each key.
-    float keyval[MAXPLOADKEYCNT];
+    float keyval[MAXPLOADKEYCNT] = {0.f};
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -1712,12 +1712,12 @@ struct ssenstruc
 {
     //! Sensor alignment quaternion.
     quaternion align;
-    float qva;
-    float qvb;
-    float qvc;
-    float qvd;
-    float azimuth;
-    float elevation;
+    float qva = 0.f;
+    float qvb = 0.f;
+    float qvc = 0.f;
+    float qvd = 0.f;
+    float azimuth = 0.f;
+    float elevation = 0.f;
 
 // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -1813,19 +1813,19 @@ struct rwstruc
     //! Moments of inertia in RW frame.
     rvector mom;
     //! Maximum omega in radians/second.
-    float mxomg;
+    float mxomg = 0.f;
     //! Maximum alpha in radians/second/second.
-    float mxalp;
+    float mxalp = 0.f;
     //! Acceleration Time Constant
-    float tc;
+    float tc = 0.f;
     //! Current angular velocity
-    float omg;
+    float omg = 0.f;
     //! Current angular acceleration
-    float alp;
+    float alp = 0.f;
     //! Requested angular velocity
-    float romg;
+    float romg = 0.f;
     //! Requested angular acceleration
-    float ralp;
+    float ralp = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -1869,17 +1869,17 @@ struct mtrstruc
     //! Rotates vectors from MTR frame to Body frame.
     quaternion align;
     //! Terms of 6th order polynomial converting negative moment to current
-    float npoly[7];
+    float npoly[7] = {0.f};
     //! Terms of 6th order polynomial converting positive moment to current
-    float ppoly[7];
+    float ppoly[7] = {0.f};
     //! Maxiumum field strength
-    float mxmom;
+    float mxmom = 0.f;
     //! Field Change Time Constant
-    float tc;
+    float tc = 0.f;
     //! Requested Magnetic Moment.
-    float rmom;
+    float rmom = 0.f;
     //! Actual Magnetic Moment.
-    float mom;
+    float mom = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -1930,20 +1930,20 @@ struct cpustruc
 {
     // cpu
     //! Seconds CPU has been up
-    uint32_t uptime;
+    uint32_t uptime = 0;
     //! Current load
-    float load;
+    float load = 0.f;
     //! Maximum load
-    float maxload;
+    float maxload = 0.f;
 
     // memory
     //! Maximum memory capacity in GiB
-    float maxgib;
+    float maxgib = 0.f;
     //! Current memory usage in GiB
-    float gib;
+    float gib = 0.f;
 
     //! Number of reboots
-    uint32_t boot_count;
+    uint32_t boot_count = 0;
 
         // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -1980,11 +1980,11 @@ struct diskstruc
 {
     // disk
     //! Maximum disk capacity in GiB
-    float maxgib;  // TODO: rename to diskSize, consider bytes?
+    float maxgib = 0.f;  // TODO: rename to diskSize, consider bytes?
     //! Current disk usage in GiB
-    float gib; // TODO: rename to diskUsed, consider bytes?
+    float gib = 0.f; // TODO: rename to diskUsed, consider bytes?
     //! Path
-    char path[COSMOS_MAX_NAME];
+    char path[COSMOS_MAX_NAME] = "";
 
         // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2014,7 +2014,7 @@ struct diskstruc
 struct gpsstruc 
 {
     //! UTC time error
-    double dutc;
+    double dutc = 0.;
     //! Geocentric position: x, y, z
     //! ECEF coordinates
     // TODO: rename variables to more meaningfull names like position, velocity
@@ -2034,17 +2034,17 @@ struct gpsstruc
     //! Geodetic velocity error: longitude, latitude, altitude
     gvector dgeodv;
     //! GPS heading
-    float heading;
+    float heading = 0.f;
     //! number of satellites used by GPS receiver
-    uint16_t sats_used;
+    uint16_t sats_used = 0;
     //! number of satellites visible by GPS receiver
-    uint16_t sats_visible;
+    uint16_t sats_visible = 0;
     //! Time Status
-    uint16_t time_status;
+    uint16_t time_status = 0;
     //! Position Type
-    uint16_t position_type;
+    uint16_t position_type = 0;
     //! Solution Status
-    uint16_t solution_status;
+    uint16_t solution_status = 0;
 
         // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2102,19 +2102,19 @@ struct antstruc
     //! Alignment
     quaternion align;
     //! Azimuth;
-    float azim;
+    float azim = 0.f;
     //! Elevation
-    float elev;
+    float elev = 0.f;
     //! Minimum elevation
-    float minelev;
+    float minelev = 0.f;
     //! Maximum elevation
-    float maxelev;
+    float maxelev = 0.f;
     //! Minimum azimuth
-    float minazim;
+    float minazim = 0.f;
     //! Maximum azimuth
-    float maxazim;
+    float maxazim = 0.f;
     //! Elevation threshold
-    float threshelev;
+    float threshelev = 0.f;
 
         // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2156,35 +2156,35 @@ struct antstruc
 struct rxrstruc 
 {
     //! Operating mode
-    uint16_t opmode;
+    uint16_t opmode = 0;
     //! Data modulation
-    uint16_t modulation;
+    uint16_t modulation = 0;
     //! RSSI
-    uint16_t rssi;
+    uint16_t rssi = 0;
     //! Packet Size
-    uint16_t pktsize;
+    uint16_t pktsize = 0;
     //! Input Frequency
-    double freq;
+    double freq = 0.;
     //! Maximum frequency allowed
-    double maxfreq;
+    double maxfreq = 0.;
     //! Minimum frequency allowed
-    double minfreq;
+    double minfreq = 0.;
     //! Current RX Power
-    float powerin;
+    float powerin = 0.f;
     //! Current TX Power
-    float powerout;
+    float powerout = 0.f;
     //! Output Power limit
-    float maxpower;
+    float maxpower = 0.f;
     //! Input Filter bandpass
-    float band;
+    float band = 0.f;
     //! repeater squelch tone frequency
-    float squelch_tone;
+    float squelch_tone = 0.f;
     //! Good Packet Percentage
-    double goodratio;
+    double goodratio = 0.;
     //! Last RX time
-    double rxutc;
+    double rxutc = 0.;
     //! Connection Uptime
-    double uptime;
+    double uptime = 0.;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2324,37 +2324,37 @@ struct txrstruc
 struct tcvstruc 
 {
     //! Operating mode
-    uint16_t opmode;
+    uint16_t opmode = 0;
     //! Data modulation
-    uint16_t modulation;
+    uint16_t modulation = 0;
     //! RSSI
-    uint16_t rssi;
+    uint16_t rssi = 0;
     //! Packet Size
-    uint16_t pktsize;
+    uint16_t pktsize = 0;
     //! Input Frequency
-    double freq;
+    double freq = 0.;
     //! Maximum frequency allowed
-    double maxfreq;
+    double maxfreq = 0.;
     //! Minimum frequency allowed
-    double minfreq;
+    double minfreq = 0.;
     //! Current RX Power
-    float powerin;
+    float powerin = 0.f;
     //! Current TX Power
-    float powerout;
+    float powerout = 0.f;
     //! Output Power limit
-    float maxpower;
+    float maxpower = 0.f;
     //! Input Filter bandpass
-    float band;
+    float band = 0.f;
     //! repeater squelch tone frequency
-    float squelch_tone;
+    float squelch_tone = 0.f;
     //! Good Packet Percentage
-    double  goodratio;
+    double  goodratio = 0.;
     //! Last TX time
-    double txutc;
+    double txutc = 0.;
     //! Last RX time
-    double rxutc;
+    double rxutc = 0.;
     //! Connection Uptime
-    double uptime;
+    double uptime = 0.;
 
         // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2412,15 +2412,15 @@ struct tcvstruc
 struct pvstrgstruc 
 {
     //! BCREG index
-    uint16_t bcidx;
+    uint16_t bcidx = 0;
     //! Efficiency 0th order term
-    float effbase;
+    float effbase = 0.f;
     //! Efficiency 1st order term
-    float effslope;
+    float effslope = 0.f;
     //! Maximum power generation in Watts
-    float maxpower;
+    float maxpower = 0.f;
     //! Current power being generated in Watts.
-    float power;
+    float power = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2454,19 +2454,19 @@ struct pvstrgstruc
 struct battstruc 
 {
     //! Capacity in amp hours
-    float capacity;
+    float capacity = 0.f;
     //! Charge conversion efficiency
-    float efficiency;
+    float efficiency = 0.f;
     //! Charge in amp hours
-    float charge;
+    float charge = 0.f;
     //! Resistance in
-    float r_in;
+    float r_in = 0.f;
     //! Resistance out
-    float r_out;
+    float r_out = 0.f;
     //! Battery Percentage Remaining
-    float percentage;
+    float percentage = 0.f;
     //! Time Remaining
-    float time_remaining;
+    float time_remaining = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2505,9 +2505,9 @@ struct battstruc
 */
 struct htrstruc 
 {
-    bool state;
+    bool state = true;
     //! Temperature set vertex
-    float setvertex;
+    float setvertex = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2534,10 +2534,10 @@ struct htrstruc
 struct motrstruc 
 {
     //! Maximum speed in revolutions per second
-    float max;
+    float max = 0.f;
     //!
-    float rat;
-    float spd;
+    float rat = 0.f;
+    float spd = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2577,9 +2577,9 @@ struct thststruc
     //! Flow
     quaternion align;
     //! Specific Impulse in dynes per kg per second
-    float flw;
+    float flw = 0.f;
     //! Rotation of thrust vector (+z) in to node frame.
-    float isp;
+    float isp = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2609,9 +2609,9 @@ struct thststruc
 struct propstruc 
 {
     //! Propellant capacity in kg
-    float cap;
+    float cap = 0.f;
     //! Propellant level in kg
-    float lev;
+    float lev = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2652,7 +2652,7 @@ struct swchstruc  {
 struct rotstruc 
 {
     //! Angular position
-    float angle;
+    float angle = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2685,8 +2685,8 @@ struct sttstruc
     rvector omega;
     rvector alpha;
     //! return code for
-    uint16_t retcode;
-    uint32_t status;
+    uint16_t retcode = 0;
+    uint32_t status = 0;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2758,9 +2758,9 @@ struct mccstruc
 struct tcustruc 
 {
     //! Torque Rod count
-    uint16_t mcnt;
+    uint16_t mcnt = 0;
     //! Torque Rod Component indices
-    uint16_t mcidx[3];
+    uint16_t mcidx[3] = {0};
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2793,7 +2793,7 @@ struct tcustruc
 struct busstruc 
 {
     //! Watch Dog Timer (MJD)
-    float wdt;
+    float wdt = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2818,7 +2818,7 @@ struct busstruc
 struct psenstruc 
 {
     //! Current Pressure
-    float press;
+    float press = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2846,9 +2846,9 @@ struct suchistruc
     //! alignment quaternion
     quaternion align;
     //! Internal pressure
-    float press;
+    float press = 0.f;
     //! Internal temperatures
-    float temps[8];
+    float temps[8] = {0.f};
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2882,11 +2882,11 @@ struct suchistruc
 
 struct camstruc 
 {
-    uint16_t pwidth;
-    uint16_t pheight;
-    float width;
-    float height;
-    float flength;
+    uint16_t pwidth = 0;
+    uint16_t pheight = 0;
+    float width = 0.f;
+    float height = 0.f;
+    float flength = 0.f;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -2956,32 +2956,32 @@ struct trianglestruc
     //! Contribution of triangle to angular forces
     Vector twist;
     //! Index to parent piece
-    uint16_t pidx;
-    uint16_t tidx[3];
+    uint16_t pidx = 0;
+    uint16_t tidx[3] = {0};
     //! Energy content in Joules
-    float heat;
+    float heat = 0.f;
     //! Heat Capacity in Joules / (Kg Kelvin)
-    float hcap = 900.;
+    float hcap = 900.f;
     //! Emissivity: 0-1
     float emi = .9f;
     //! Absorptivity: 0-1
     float abs = .9f;
     //! mass in Kg
-    float mass = 1.;
+    float mass = 1.f;
     //! Temperature in Kelvin
-    float temp;
+    float temp = 0.f;
     //! Area
-    float area;
+    float area = 0.f;
     //! perimeter
-    float perimeter;
+    float perimeter = 0.f;
     //! Insolation in Watts/sq m
-    float irradiation;
+    float irradiation = 0.f;
     //! Solar cell coverage
-    float pcell = 0.;
+    float pcell = 0.f;
     //! Solar cell base efficiency
-    float ecellbase = .25;
+    float ecellbase = .25f;
     //! Solar cell efficiency with temp
-    float ecellslope = 0.;
+    float ecellslope = 0.f;
     vector<vector<uint16_t>> triangleindex;
 
     // Convert class contents to JSON object
@@ -3062,22 +3062,22 @@ struct physicsstruc
     //! Simulated starting time in MJD
     double utc = 0.;
     //! Acceleration factor for simulated time
-    double mjdaccel;
+    double mjdaccel = 0.;
     //! Offset factor for simulated time (simtime = mjdaccel * realtime + mjddiff)
-    double mjddiff;
+    double mjddiff = 0.;
 
-    float hcap = 900.;
-    float mass = 1.;
-    float temp = 300.;
+    float hcap = 900.f;
+    float mass = 1.f;
+    float temp = 300.f;
     float heat = 300. * 900. * 1.;
     float area = .001f;
-    float battcap = 36000.;
-    float battlev;
-    float powgen;
-    float powuse;
+    float battcap = 36000.f;
+    float battlev = 0.f;
+    float powgen = 0.f;
+    float powuse = 0.f;
 
     //! Simulation mode as listed in \def defs_physics
-    int32_t mode;
+    int32_t mode = 0;
     Vector ftorque;
     Vector atorque;
     Vector rtorque;
@@ -3187,15 +3187,15 @@ struct physicsstruc
 struct nodestruc
 {
     //! Node Name.
-    char name[COSMOS_MAX_NAME+1];
+    char name[COSMOS_MAX_NAME+1] = "";
     //! Last event
-    char lastevent[COSMOS_MAX_NAME+1];
+    char lastevent[COSMOS_MAX_NAME+1] = "";
     //! Last event UTC
-    double lasteventutc;
+    double lasteventutc = 0.;
     //! Node Type as listed in \ref NODE_TYPE.
-    uint16_t type;
+    uint16_t type = 0;
     //! Operational state
-    uint16_t state;
+    uint16_t state = 0;
 
 	// actually these are cosmosstruc counts...
     uint16_t vertex_cnt = 0;
@@ -3211,22 +3211,22 @@ struct nodestruc
     uint16_t glossary_cnt = 0;
     uint16_t tle_cnt = 0;
 
-    uint16_t flags;
-    int16_t powmode;
+    uint16_t flags = 0;
+    int16_t powmode = 0;
     //! Seconds Node will be down
-    uint32_t downtime;
+    uint32_t downtime = 0;
     //! Alt/Az/Range info
-    float azfrom;
-    float elfrom;
-    float azto;
-    float elto;
-    float range;
+    float azfrom = 0.f;
+    float elfrom = 0.f;
+    float azto = 0.f;
+    float elto = 0.f;
+    float range = 0.f;
     //! MJD Offset between system UT and simulated UT
-    double utcoffset;
+    double utcoffset = 0.;
     //! Overall Node time
-    double utc;
+    double utc = 0.;
     //! Mission start time
-    double utcstart;
+    double utcstart = 0.;
     //! Location structure
     locstruc loc;
     physicsstruc phys;
@@ -3477,38 +3477,38 @@ struct devicestruc : public allstruc
 */
 struct devspecstruc
 {
-    uint16_t all_cnt;
-    uint16_t ant_cnt;
-    uint16_t batt_cnt;
-    uint16_t bus_cnt;
-    uint16_t cam_cnt;
-    uint16_t cpu_cnt;
-    uint16_t disk_cnt;
-    uint16_t gps_cnt;
-    uint16_t htr_cnt;
-    uint16_t imu_cnt;
-    uint16_t mcc_cnt;
-    uint16_t motr_cnt;
-    uint16_t mtr_cnt;
-    uint16_t pload_cnt;
-    uint16_t prop_cnt;
-    uint16_t psen_cnt;
-    uint16_t bcreg_cnt;
-    uint16_t rot_cnt;
-    uint16_t rw_cnt;
-    uint16_t rxr_cnt;
-    uint16_t ssen_cnt;
-    uint16_t pvstrg_cnt;
-    uint16_t stt_cnt;
-    uint16_t suchi_cnt;
-    uint16_t swch_cnt;
-    uint16_t tcu_cnt;
-    uint16_t tcv_cnt;
-    uint16_t telem_cnt;
-    uint16_t thst_cnt;
-    uint16_t tsen_cnt;
-    uint16_t tnc_cnt;
-    uint16_t txr_cnt;
+    uint16_t all_cnt = 0;
+    uint16_t ant_cnt = 0;
+    uint16_t batt_cnt = 0;
+    uint16_t bus_cnt = 0;
+    uint16_t cam_cnt = 0;
+    uint16_t cpu_cnt = 0;
+    uint16_t disk_cnt = 0;
+    uint16_t gps_cnt = 0;
+    uint16_t htr_cnt = 0;
+    uint16_t imu_cnt = 0;
+    uint16_t mcc_cnt = 0;
+    uint16_t motr_cnt = 0;
+    uint16_t mtr_cnt = 0;
+    uint16_t pload_cnt = 0;
+    uint16_t prop_cnt = 0;
+    uint16_t psen_cnt = 0;
+    uint16_t bcreg_cnt = 0;
+    uint16_t rot_cnt = 0;
+    uint16_t rw_cnt = 0;
+    uint16_t rxr_cnt = 0;
+    uint16_t ssen_cnt = 0;
+    uint16_t pvstrg_cnt = 0;
+    uint16_t stt_cnt = 0;
+    uint16_t suchi_cnt = 0;
+    uint16_t swch_cnt = 0;
+    uint16_t tcu_cnt = 0;
+    uint16_t tcv_cnt = 0;
+    uint16_t telem_cnt = 0;
+    uint16_t thst_cnt = 0;
+    uint16_t tsen_cnt = 0;
+    uint16_t tnc_cnt = 0;
+    uint16_t txr_cnt = 0;
     vector<uint16_t>all;
     vector<uint16_t>ant;
     vector<uint16_t>batt;
@@ -3743,31 +3743,31 @@ struct devspecstruc
 struct jsonentry
 {
     //! Enabled?
-    bool enabled;
+    bool enabled = true;
     //! JSON Data Type
-    uint16_t type;
+    uint16_t type = 0;
     //! JSON Data Group
-    uint16_t group;
+    uint16_t group = 0;
     //! Name of entry
-    string name;
+    string name = "";
     //! offset to data storage
-    ptrdiff_t offset;
+    ptrdiff_t offset = 0;
     //! pointer to data storage
-    uint8_t* ptr;
+    uint8_t* ptr = 0;
     //! vector of actual data
     vector <uint8_t> data;
     //! Index to JSON Unit Type
-    uint16_t unit_index;
+    uint16_t unit_index = 0;
     //! Index to alert condition in Data Dictionary
-    uint16_t alert_index;
+    uint16_t alert_index = 0;
     //! Index to alarm condition in Data Dictionary
-    uint16_t alarm_index;
+    uint16_t alarm_index = 0;
     //! Index to maximum condition in Data Dictionary
-    uint16_t maximum_index;
+    uint16_t maximum_index = 0;
     //! Index to minimum condition in Data Dictionary
-    uint16_t minimum_index;
+    uint16_t minimum_index = 0;
     //! Index to subsystem
-    uint16_t subsystem;
+    uint16_t subsystem = 0;
 };
 
 void replace(std::string& str, const std::string& from, const std::string& to);
