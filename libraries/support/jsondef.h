@@ -445,17 +445,23 @@ enum {
 //! Maximum number of AGENT requests
 #define AGENTMAXREQUESTCOUNT (AGENTMAXBUILTINCOUNT+AGENTMAXUSERCOUNT)
 
-// some maximums for vector storage inside cosmosstruc
+// Maximums for pre-allocated (and never reallocated) vector storage inside cosmosstruc
+
+//* Maximum number of equations
+#define MAX_NUMBER_OF_EQUATIONS 25
 
 //* Maximum number of ports
 #define MAX_NUMBER_OF_PORTS 5
+
 //* Maximum number of events
 #define MAX_NUMBER_OF_EVENTS 20
 
 //* Maximum number of targets
 #define MAX_NUMBER_OF_TARGETS 15
+
 //* Maximum number of users
 #define MAX_NUMBER_OF_USERS 10
+
 //* Maximum number of TLES
 #define MAX_NUMBER_OF_TLES 50
 
@@ -3811,7 +3817,38 @@ struct cosmosstruc
  	//TODO:   add remove_name(..), change_name(..) functions, match_name(), find_aliases(), etc
  
  	void add_all_names()	{
- 
+
+	// double timestamp 
+ 		add_name("timestamp", &timestamp);
+
+	// uint16_t jmapped
+ 		add_name("jmapped", &jmapped);
+
+ 	// vector<vector<unitstruc>> unit
+ 		add_name("unit", &unit);
+ 		for(size_t i = 0; i < unit.size(); ++i)	{
+ 			string basename = "unit[" + std::to_string(i) + "]";
+ 			add_name(basename, &unit[i]);
+ 			for(size_t j = 0; j < unit[i].size(); ++j)	{
+ 				string rebasename = basename + "[" + std::to_string(j) + "]";
+ 				add_name(rebasename, &unit[i][j]);
+ 				add_name(rebasename+".name", &unit[i][j].name);
+ 				add_name(rebasename+".type", &unit[i][j].type);
+ 				add_name(rebasename+".p0", &unit[i][j].p0);
+ 				add_name(rebasename+".p1", &unit[i][j].p1);
+ 				add_name(rebasename+".p2", &unit[i][j].p2);
+ 			}
+ 		}
+
+ 	// vector<equationstruc> equation
+ 		add_name("equation", &equation);
+ 		for(size_t i = 0; i < equation.capacity(); ++i)	{
+ 			string basename = "equation[" + std::to_string(i) + "]";
+ 			add_name(basename, &equation[i]);
+ 			add_name(basename+".name", &equation[i].name);
+ 			add_name(basename+".value", &equation[i].value);
+ 		}
+
  	// nodestruc node
  		add_name("node", &node);
  		add_name("node.name", &node.name);
@@ -3843,22 +3880,6 @@ struct cosmosstruc
  		add_name("node.utcstart", &node.utcstart);
  		add_name("node.loc", &node.loc);
  		add_name("node.phys", &node.phys);
-
- 	// vector<vector<unitstruc>> unit
- 		add_name("unit", &unit);
- 		for(size_t i = 0; i < unit.size(); ++i)	{
- 			string basename = "unit[" + std::to_string(i) + "]";
- 			add_name(basename, &unit[i]);
- 			for(size_t j = 0; j < unit[i].size(); ++j)	{
- 				string rebasename = basename + "[" + std::to_string(j) + "]";
- 				add_name(rebasename, &unit[i][j]);
- 				add_name(rebasename+".name", &unit[i][j].name);
- 				add_name(rebasename+".type", &unit[i][j].type);
- 				add_name(rebasename+".p0", &unit[i][j].p0);
- 				add_name(rebasename+".p1", &unit[i][j].p1);
- 				add_name(rebasename+".p2", &unit[i][j].p2);
- 			}
- 		}
 
  	// vector<portstruc> port
  		add_name("port", &port);

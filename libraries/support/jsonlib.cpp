@@ -412,20 +412,22 @@ void json_init_node(cosmosstruc* cinfo)	{
 
 void json_init_resize(cosmosstruc* cinfo) {
 	// JIMNOTE: change all to reserve
-	// /reserve/resize fixed-sized vectors
+	// reserve/resize fixed-sized vectors
     cinfo->unit.reserve(JSON_UNIT_COUNT);
 
     cinfo->jmap.resize(JSON_MAX_HASH);
     cinfo->emap.resize(JSON_MAX_HASH);
 
+    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
+    cinfo->user.resize(1);
+
+    cinfo->user.reserve(MAX_NUMBER_OF_EQUATIONS);
 
     cinfo->agent.resize(1);
 
     cinfo->event.reserve(MAX_NUMBER_OF_EVENTS);
     cinfo->event.resize(1);
 
-    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
-    cinfo->user.resize(1);
 
     cinfo->port.reserve(MAX_NUMBER_OF_PORTS);
 
