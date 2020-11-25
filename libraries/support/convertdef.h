@@ -529,37 +529,37 @@ std::istream& operator >> (std::istream& in, qatt& a);
 struct kepstruc
 {
     //! UTC time of state vector in MJD
-    double utc;
+    double utc = 0.;
     //! Orbit number
-    uint32_t orbit;
+    uint32_t orbit = 0;
     //! Orbital Period in seconds
-    double period;
+    double period = 0.;
     //! Semi-Major Axis in meters
-    double a;
+    double a = 0.;
     //! Eccentricity
-    double e;
+    double e = 0.;
     //! Angular Momentum vector
     rvector h;
     //! Solar Beta Angle in radians
-    double beta;
-    double eta;
+    double beta = 0.;
+    double eta = 0.;
     //! Orbital Inclination in radians
-    double i;
+    double i = 0.;
     //! Right Ascension of the Ascending Node in radians
-    double raan;
+    double raan = 0.;
     //! Argument of Perigee
-    double ap;
+    double ap = 0.;
     //! Argument of Latitude
-    double alat;
+    double alat = 0.;
     //! Mean Anomoly
-    double ma;
+    double ma = 0.;
     //! True Anomoly
-    double ta;
+    double ta = 0.;
     //! Eccentric Anomoly
-    double ea;
+    double ea = 0.;
     //! Mean Motion
-    double mm;
-    double fa;
+    double mm = 0.;
+    double fa = 0.;
 };
 
 std::ostream& operator << (std::ostream& out, const kepstruc& a);
