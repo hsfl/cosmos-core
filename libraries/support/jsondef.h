@@ -164,8 +164,6 @@ enum {
     JSON_STRUCT_PORT,
     //! ::tlestruc
     JSON_STRUCT_TLE,
-    //! ::aliasstruc
-    JSON_STRUCT_ALIAS,
     //! ::equationstruc
     JSON_STRUCT_EQUATION,
     //! ::vertexstruc
@@ -699,7 +697,6 @@ struct jsonnode
     string devspec = "";
     string ports = "";
     string targets = "";
-    string aliases = "";
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -715,7 +712,6 @@ struct jsonnode
             { "devspec" , devspec },
             { "ports" , ports },
             { "targets" , targets },
-            { "aliases" , aliases }
         };
     }
 
@@ -735,7 +731,6 @@ struct jsonnode
             if(!parsed["devspec"].is_null())	devspec = parsed["devspec"].string_value();
             if(!parsed["ports"].is_null())		ports = parsed["ports"].string_value();
             if(!parsed["targets"].is_null())	targets = parsed["targets"].string_value();
-            if(!parsed["aliases"].is_null())	aliases = parsed["aliases"].string_value();
         } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
@@ -1162,20 +1157,6 @@ struct userstruc
         }
         return;
     }
-};
-
-//! Alias structure
-/*! Contains the name of an alias and the ::jsonmap entry it vertexs to,
- * stored as a ::jsonhandle.
-*/
-struct aliasstruc
-{
-    // Alias name
-    string name;
-    // Namespace handle
-    jsonhandle handle;
-    //! JSON Data Type
-    uint16_t type;
 };
 
 //! Equation structure
@@ -3753,13 +3734,10 @@ struct cosmosstruc
     vector<vector<jsonequation> > emap;
 
     //! JSON Unit Map matrix: first level is for unit type, second level is for all variants (starting with primary).
-    vector<vector<unitstruc> > unit; // works
+    vector<vector<unitstruc> > unit;
 
     //! Vector of Equations
     vector<equationstruc> equation;
-
-    //! Array of Aliases
-    vector<aliasstruc> alias;
 
     //! Structure for summary information in node
     nodestruc node;

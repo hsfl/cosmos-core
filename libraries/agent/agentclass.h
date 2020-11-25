@@ -113,7 +113,6 @@
 //!     - "devgenjson" - return the JSON representing the contents of devgen.ini.
 //!     - "devspecjson" - return the JSON representing the contents of devspec.ini.
 //!     - "portsjson" - return the JSON representing the contents of ports.ini.
-//!     - "aliasesjson" - return the JSON representing the contents of aliases.ini.
 //!     - "targetsjson" - return the JSON representing the contents of targets.ini.
 //!     - "heartbeat" - Sends a Heartbeat immediatelly.
 //!
@@ -445,7 +444,6 @@ namespace Cosmos
             static int32_t req_devspecjson(string &request, string &response, Agent *agent);
             static int32_t req_portsjson(string &request, string &response, Agent *agent);
             static int32_t req_targetsjson(string &request, string &response, Agent *agent);
-            static int32_t req_aliasesjson(string &request, string &response, Agent *agent);
             static int32_t req_heartbeat(string &request, string &response, Agent *agent);
             static int32_t req_postsoh(string &request, string &response, Agent *agent);
             static int32_t req_utc(string &request, string &response, Agent *agent);

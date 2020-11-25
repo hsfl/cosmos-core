@@ -87,7 +87,6 @@ TEST(cosmosstruc, json_init_json)	{
 	EXPECT_EQ(c->json.devspec, "");
 	EXPECT_EQ(c->json.ports, "");
 	EXPECT_EQ(c->json.targets, "");
-	EXPECT_EQ(c->json.aliases, "");
 }
 
 

@@ -580,7 +580,7 @@ int32_t json_create_cpu(string &node_name)
                 cinfo->device[i].cpu.maxload = 1.;
                 cinfo->device[i].cpu.maxgib = 1.;
                 json_mapdeviceentry(cinfo->device[i], cinfo);
-                json_addentry("cpu_utilization", "(\"device_cpu_load_000\"/\"device_cpu_maxload_000\")", cinfo);
+                //json_addentry("cpu_utilization", "(\"device_cpu_load_000\"/\"device_cpu_maxload_000\")", cinfo);
                 break;
             default:
                 cinfo->device[i].disk.maxgib = 1000.;
@@ -597,7 +597,7 @@ int32_t json_create_cpu(string &node_name)
 #endif
                 json_mapportentry(cinfo->device[i].portidx, cinfo);
                 json_toggleportentry(cinfo->device[i].portidx, cinfo, true);
-                json_addentry("disk_utilization", "(\"device_disk_gib_000\"/\"device_disk_maxgib_000\")", cinfo);
+                //json_addentry("disk_utilization", "(\"device_disk_gib_000\"/\"device_disk_maxgib_000\")", cinfo);
                 break;
             }
             json_mapcompentry(i, cinfo);
@@ -661,7 +661,7 @@ int32_t json_create_mcc(string &node_name)
                 cinfo->device[i].mcc.align = {{0., 0., 0.}, 1.};
                 json_mapdeviceentry(cinfo->device[i], cinfo);
                 json_toggledeviceentry(0, DeviceType::MCC, cinfo, true);
-                json_addentry("mcc_utilization", "(\"device_mcc_load_000\"/\"device_mcc_maxload_000\")", cinfo);
+                //json_addentry("mcc_utilization", "(\"device_mcc_load_000\"/\"device_mcc_maxload_000\")", cinfo);
                 cinfo->port[0].type = PORT_TYPE_ETHERNET;
                 json_mapportentry(cinfo->device[i].portidx, cinfo);
                 json_toggleportentry(cinfo->device[i].portidx, cinfo, true);
@@ -1096,95 +1096,6 @@ int32_t json_createport(cosmosstruc *cinfo, string name, uint16_t type)
     return (static_cast <int32_t>(cinfo->port.size() - 1));
 }
 
-//! Enter an alias into the JSON Namespace.
-/*! See if the provided name is in the Namespace. If so, add an entry
- * for the provided alias that points to the same location.
- * \param alias Name to add as an alias.
- * \param value Either the contents of an equation, a constant, or a Namespace name that
- * should already exist in the Namespace
- * \param cmeta Reference to ::cosmosstruc to use.
- * \return The current number of entries, if successful, otherwise negative error.
-*/
-int32_t json_addentry(string alias, string value, cosmosstruc *cinfo)
-{
-    int32_t iretn;
-    jsonhandle handle;
-    //    uint16_t count = 0;
-    // Add this alias only if it is not already in the map
-    if ((iretn = json_name_map(alias, cinfo, handle)))
-    {
-        jsonentry tentry;
-        tentry.name = alias;
-        aliasstruc talias;
-        talias.name = alias;
-        string val_added = value;
-
-        switch (value[0])
-        {
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-        case '+':
-        case '-':
-        case '.':
-        case '%':
-            // Add a constant as an equation multiplied by 1 (kind of hack-ish).
-            val_added = "(" + value + "*1.)";
-
-        // If it begins with ( then it is an equation, otherwise treat as name
-        case '(':
-            // Add new equation
-            iretn = json_equation_map(val_added, cinfo, &handle);
-            if (iretn < 0)
-            {
-                return iretn;
-            }
-            talias.handle = handle;
-            talias.type = JSON_TYPE_EQUATION;
-            break;
-
-//        case '"': /// TODO: Aliases for just namespace members are not working.
-//            // Strip the quotes away.
-//            val_added.clear();
-//            for (size_t i = 0; i < value.size(); ++i) {
-//                if (value[i] != '"') { val_added += value[i]; }
-//            }
-//        default:
-//            // It is a Namespace name which should only be added if it is in the map
-//            if ((iretn = json_name_map(val_added, cinfo, handle)))
-//            {
-//                return iretn;
-//            }
-//            // Add new alias
-//            talias.handle = handle;
-//            talias.type = cinfo->jmap[handle.hash][handle.index].type;
-//            break;
-        default:
-            return GENERAL_ERROR_UNIMPLEMENTED;
-        }
-        // Place it in the Alias vector and point to it in the map
-        cinfo->alias.push_back(talias);
-        tentry.type = JSON_TYPE_ALIAS;
-        tentry.group = JSON_STRUCT_ALIAS;
-        //tentry.group = JSON_STRUCT_PTR; // Unsure why this change was made...
-        tentry.offset = cinfo->alias.size() - 1;
-        tentry.ptr = (uint8_t *)&cinfo->alias[tentry.offset];
-        iretn = json_addentry(tentry, cinfo);
-        if (iretn < 0)
-        {
-            return iretn;
-        }
-    }
-    return cinfo->jmapped;
-}
-
 //! Enter an entry into the JSON Namespace.
 /*! Enters a ::jsonentry in the JSON Data Name Space.
     \param entry The entry to be entered.
@@ -1598,32 +1509,6 @@ int32_t json_out_type(string &jstring, uint8_t *data, uint16_t type, cosmosstruc
         {
             if ((iretn=json_out_locstruc(jstring,*(locstruc *)data)) != 0)
                 return iretn;
-            break;
-        }
-    case JSON_TYPE_ALIAS:
-        {
-            aliasstruc *aptr = (aliasstruc *)data;
-            switch (aptr->type)
-            {
-            case JSON_TYPE_EQUATION:
-                {
-                    jsonequation *eptr = &cinfo->emap[aptr->handle.hash][aptr->handle.index];
-                    if ((iretn=json_out_double(jstring, json_equation(eptr, cinfo))) != 0)
-                    {
-                        return iretn;
-                    }
-                }
-                break;
-            default:
-                {
-                    jsonentry *eptr = &cinfo->jmap[aptr->handle.hash][aptr->handle.index];
-                    if ((iretn=json_out_type(jstring, eptr->data.data(), eptr->type, cinfo)) != 0)
-                    {
-                        return iretn;
-                    }
-                }
-                break;
-            }
             break;
         }
     case JSON_TYPE_EQUATION:
@@ -3171,9 +3056,6 @@ uint8_t *json_ptr_of_offset(ptrdiff_t offset, uint16_t group, cosmosstruc *cinfo
     case JSON_STRUCT_TLE:
         data =  offset + (uint8_t *)cinfo->tle.data();
         break;
-    case JSON_STRUCT_ALIAS:
-        data = (uint8_t *)&cinfo->alias[(size_t)offset];
-        break;
     case JSON_STRUCT_EQUATION:
         data = (uint8_t *)&cinfo->equation[offset];
         break;
@@ -3691,40 +3573,6 @@ uint32_t json_get_uint(const jsonentry &entry, cosmosstruc *cinfo)
                 value = (uint32_t)json_equation(tpointer, cinfo);
             }
             break;
-        case JSON_TYPE_ALIAS:
-            {
-                aliasstruc *aptr = (aliasstruc *)dptr;
-                switch (aptr->type)
-                {
-                case JSON_TYPE_EQUATION:
-                    {
-                        jsonequation *eptr;
-                        if ((eptr=json_equation_of(aptr->handle, cinfo)) == nullptr)
-                        {
-                            value =  0;
-                        }
-                        else
-                        {
-                            value = json_equation(eptr, cinfo);
-                        }
-                    }
-                    break;
-                default:
-                    {
-                        jsonentry *eptr;
-                        if ((eptr=json_entry_of(aptr->handle, cinfo)) == nullptr)
-                        {
-                            value =  0;
-                        }
-                        else
-                        {
-                            value = json_get_uint(*eptr, cinfo);
-                        }
-                    }
-                    break;
-                }
-            }
-            break;
         }
         return value;
     }
@@ -3909,44 +3757,9 @@ double json_get_double(const jsonentry &entry, cosmosstruc *cinfo)
                 value = (double)json_equation(tpointer, cinfo);
             }
             break;
-        case JSON_TYPE_ALIAS:
-            {
-                aliasstruc *aptr = (aliasstruc *)dptr;
-                switch (aptr->type)
-                {
-                case JSON_TYPE_EQUATION:
-                    {
-                        jsonequation *eptr;
-                        if ((eptr=json_equation_of(aptr->handle, cinfo)) == nullptr)
-                        {
-                            value =  0;
-                        }
-                        else
-                        {
-                            value = json_equation(eptr, cinfo);
-                        }
-                    }
-                    break;
-                default:
-                    {
-                        jsonentry *eptr;
-                        if ((eptr=json_entry_of(aptr->handle, cinfo)) == nullptr)
-                        {
-                            value =  0;
-                        }
-                        else
-                        {
-                            value = json_get_double(*eptr, cinfo);
-                        }
-                    }
-                    break;
-                }
-            }
-            break;
         default:
             value = 0;
         }
-
         return value;
     }
 }
@@ -4040,44 +3853,9 @@ rvector json_get_rvector(const jsonentry &entry, cosmosstruc *cinfo)
                 value.col[0] = (double)json_equation(tpointer, cinfo);
             }
             break;
-        case JSON_TYPE_ALIAS:
-            {
-                aliasstruc *aptr = (aliasstruc *)dptr;
-                switch (aptr->type)
-                {
-                case JSON_TYPE_EQUATION:
-                    {
-                        jsonequation *eptr;
-                        if ((eptr=json_equation_of(aptr->handle, cinfo)) == nullptr)
-                        {
-                            value.col[0] =  0;
-                        }
-                        else
-                        {
-                            value.col[0] = json_equation(eptr, cinfo);
-                        }
-                    }
-                    break;
-                default:
-                    {
-                        jsonentry *eptr;
-                        if ((eptr=json_entry_of(aptr->handle, cinfo)) == nullptr)
-                        {
-                            value.col[0] =  0;
-                        }
-                        else
-                        {
-                            value.col[0] = json_get_double(*eptr, cinfo);
-                        }
-                    }
-                    break;
-                }
-            }
-            break;
         default:
             value.col[0] = 0.;
         }
-
         return value;
     }
 }
@@ -4179,44 +3957,9 @@ quaternion json_get_quaternion(const jsonentry &entry, cosmosstruc *cinfo)
                 value.d.x = (double)json_equation(tpointer, cinfo);
             }
             break;
-        case JSON_TYPE_ALIAS:
-            {
-                aliasstruc *aptr = (aliasstruc *)dptr;
-                switch (aptr->type)
-                {
-                case JSON_TYPE_EQUATION:
-                    {
-                        jsonequation *eptr;
-                        if ((eptr=json_equation_of(aptr->handle, cinfo)) == nullptr)
-                        {
-                            value.d.x =  0;
-                        }
-                        else
-                        {
-                            value.d.x = json_equation(eptr, cinfo);
-                        }
-                    }
-                    break;
-                default:
-                    {
-                        jsonentry *eptr;
-                        if ((eptr=json_entry_of(aptr->handle, cinfo)) == nullptr)
-                        {
-                            value.d.x =  0;
-                        }
-                        else
-                        {
-                            value.d.x = json_get_double(*eptr, cinfo);
-                        }
-                    }
-                    break;
-                }
-            }
-            break;
         default:
             value.d.x = 0.;
         }
-
         return value;
     }
 }
@@ -6547,9 +6290,6 @@ int32_t json_clear_cosmosstruc(int32_t type, cosmosstruc *cinfo)
     case JSON_STRUCT_TLE:
         cinfo->tle.clear();
         break;
-    case JSON_STRUCT_ALIAS:
-        cinfo->alias.clear();
-        break;
     case JSON_STRUCT_EQUATION:
         cinfo->equation.clear();
         break;
@@ -6787,21 +6527,6 @@ int32_t json_load_node(string node, jsonnode &json)
         }
     }
 
-    //! Load alias map
-    fname = nodepath + "/aliases.ini";
-    if ((iretn=stat(fname.c_str(),&fstat)) == 0)
-    {
-        ifs.open(fname);
-        if (ifs.is_open())
-        {
-            ibuf = (char *)calloc(1,fstat.st_size+1);
-            ifs.read(ibuf, fstat.st_size);
-            ifs.close();
-            ibuf[fstat.st_size] = 0;
-            json.aliases=ibuf;
-            free(ibuf);
-        }
-    }
     return 0;
 }
 
@@ -7132,7 +6857,6 @@ int32_t json_pushdevspec(uint16_t cidx, cosmosstruc *cinfo)
 int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
 {
     int32_t iretn;
-    struct stat fstat;
     ifstream ifs;
     string fname;
 
@@ -7414,24 +7138,6 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
                 return iretn;
             }
         }
-
-        //! Load alias map
-        fname = nodepath + "/aliases.ini";
-        if ((iretn=stat(fname.c_str(),&fstat)) == 0)
-        {
-            ifs.open(fname);
-            if (ifs.is_open())
-            {
-                string alias;
-                while (getline(ifs, alias, ' '))
-                {
-                    string cname;
-                    getline(ifs, cname);
-                    json_addentry(alias, cname, cinfo);
-                } ;
-            }
-        }
-
     }
 
     cinfo->json = json;
@@ -7574,15 +7280,12 @@ int32_t json_dump_node(cosmosstruc *cinfo)
     fputs(output.c_str(), file);
     fclose(file);
 
-    // Aliases
-    if (cinfo->alias.size() || cinfo->equation.size())
+    // Equations
+    if (cinfo->equation.size())
     {
-        rename((fileloc+"/aliases.ini").c_str(), (fileloc+"/aliases.ini.old").c_str());
-        file = fopen((fileloc+"/aliases.ini").c_str(), "w");
+        rename((fileloc+"/equations.ini").c_str(), (fileloc+"/equations.ini.old").c_str());
+        file = fopen((fileloc+"/equations.ini").c_str(), "w");
         if (file == nullptr) { return -errno; }
-        for (aliasstruc &alias : cinfo->alias) {
-            fprintf(file, "%s %s\n", alias.name.c_str(), cinfo->emap[alias.handle.hash][alias.handle.index].text);
-        }
         for (equationstruc &equation : cinfo->equation) {
             fprintf(file, "%s %s\n", equation.name.c_str(), equation.value.c_str());
         }
@@ -8114,14 +7817,14 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_cpu_load",didx, UINT16_MAX, (uint8_t *)&device.cpu.load, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_gib",didx, UINT16_MAX, (uint8_t *)&device.cpu.gib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_cpu_boot_count",didx, UINT16_MAX, (uint8_t *)&device.cpu.boot_count, (uint16_t)JSON_TYPE_UINT32, cinfo);
-        char tempbuf1[100];
-        char tempbuf2[100];
-        sprintf(tempbuf1, "cpu_utilization_%03u", didx);
-        sprintf(tempbuf2, "(\"device_cpu_load_%03u\"/\"device_cpu_maxload_%03u\")", didx, didx);
-        json_addentry(tempbuf1, tempbuf2, cinfo);
-        sprintf(tempbuf1, "memory_utilization_%03u", didx);
-        sprintf(tempbuf2, "(\"device_cpu_gib_%03u\"/\"device_cpu_maxgib_%03u\")", didx, didx);
-        json_addentry(tempbuf1, tempbuf2, cinfo);
+        //char tempbuf1[100];
+        //char tempbuf2[100];
+        //sprintf(tempbuf1, "cpu_utilization_%03u", didx);
+        //sprintf(tempbuf2, "(\"device_cpu_load_%03u\"/\"device_cpu_maxload_%03u\")", didx, didx);
+        //json_addentry(tempbuf1, tempbuf2, cinfo);
+        //sprintf(tempbuf1, "memory_utilization_%03u", didx);
+        //sprintf(tempbuf2, "(\"device_cpu_gib_%03u\"/\"device_cpu_maxgib_%03u\")", didx, didx);
+        //json_addentry(tempbuf1, tempbuf2, cinfo);
         }
         break;
     case DeviceType::DISK:
@@ -8131,11 +7834,11 @@ uint16_t json_mapdeviceentry(const devicestruc &device, cosmosstruc *cinfo)
         json_addentry("device_disk_maxgib",didx, UINT16_MAX, (uint8_t *)&device.disk.maxgib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_disk_gib",didx, UINT16_MAX, (uint8_t *)&device.disk.gib, (uint16_t)JSON_TYPE_FLOAT, cinfo);
         json_addentry("device_disk_path",didx, UINT16_MAX, (uint8_t *)&device.disk.path, (uint16_t)JSON_TYPE_NAME, cinfo);
-        char tempbuf1[100];
-        char tempbuf2[100];
-        sprintf(tempbuf1, "disk_utilization_%03u", didx);
-        sprintf(tempbuf2, "(\"device_disk_gib_%03u\"/\"device_disk_maxgib_%03u\")", didx, didx);
-        json_addentry(tempbuf1, tempbuf2, cinfo);
+        //char tempbuf1[100];
+        //char tempbuf2[100];
+        //sprintf(tempbuf1, "disk_utilization_%03u", didx);
+        //sprintf(tempbuf2, "(\"device_disk_gib_%03u\"/\"device_disk_maxgib_%03u\")", didx, didx);
+        //json_addentry(tempbuf1, tempbuf2, cinfo);
         break;
         //! GPS Unit
     case DeviceType::GPS:

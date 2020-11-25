@@ -100,9 +100,6 @@ List of available requests:
         targetsjson
                 return description JSON for Targets
 
-        aliasesjson
-                return description JSON for Aliases
-
         enable enable
                 Enable active control of the radio frequency
 

@@ -98,9 +98,6 @@ List of available requests:
         targetsjson
                 return description JSON for Targets
 
-        aliasesjson
-                return description JSON for Aliases
-
         get_state
                 returns current state
 
