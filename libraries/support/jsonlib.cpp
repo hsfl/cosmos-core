@@ -7018,9 +7018,11 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
             }
         }
 
-
-        // Work through jmap, enabling each piece for which piece_type has been enabled = json_checkentry("piece_name", i, UINT16_MAX, cinfo);
-        }
+		// Work through jmap, enabling each piece for which piece_type has been enabled
+		for (size_t i=0; i<cinfo->node.piece_cnt; i++)
+		{
+			cinfo->pieces[i].enabled = json_checkentry("piece_name", i, UINT16_MAX, cinfo);
+		}
 
         // Third: enter information for all devices
         // Resize, then add entries to map for devices
