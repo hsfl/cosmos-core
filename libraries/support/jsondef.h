@@ -449,6 +449,10 @@ enum {
 //! Maximum number of AGENT requests
 #define AGENTMAXREQUESTCOUNT (AGENTMAXBUILTINCOUNT+AGENTMAXUSERCOUNT)
 
+
+//* Maximum number of users
+#define MAX_NUMBER_OF_USERS 20
+
 //! @}
 //! \ingroup defs
 //! \defgroup defs_comp Constants defining Components.
@@ -3861,8 +3865,73 @@ struct cosmosstruc
 	}
 
 	void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
-	//TODO:   add remove_name(..), change_name(..) functions
-	
+ 	//TODO:   add remove_name(..), change_name(..) functions, match_name(), find_aliases(), etc
+ 
+ 	void add_all_names()	{
+ 
+ 	// nodestruc node
+ 		add_name("node", &node);
+ 		add_name("node.name", &node.name);
+ 		add_name("node.lastevent", &node.lastevent);
+ 		add_name("node.lasteventutc", &node.lasteventutc);
+ 		add_name("node.type", &node.type);
+ 		add_name("node.state", &node.state);
+ 		add_name("node.vertex_cnt", &node.vertex_cnt);
+ 		add_name("node.normal_cnt", &node.normal_cnt);
+ 		add_name("node.face_cnt", &node.face_cnt);
+ 		add_name("node.piece_cnt", &node.piece_cnt);
+ 		add_name("node.device_cnt", &node.device_cnt);
+ 		add_name("node.port_cnt", &node.port_cnt);
+ 		add_name("node.agent_cnt", &node.agent_cnt);
+ 		add_name("node.event_cnt", &node.event_cnt);
+ 		add_name("node.target_cnt", &node.target_cnt);
+ 		add_name("node.user_cnt", &node.user_cnt);
+ 		add_name("node.glossary_cnt", &node.glossary_cnt);
+ 		add_name("node.tle_cnt", &node.tle_cnt);
+ 		add_name("node.flags", &node.flags);
+ 		add_name("node.powmode", &node.powmode);
+ 		add_name("node.downtime", &node.downtime);
+ 		add_name("node.azfrom", &node.azfrom);
+ 		add_name("node.elfrom", &node.elfrom);
+ 		add_name("node.azto", &node.azto);
+ 		add_name("node.elto", &node.elto);
+ 		add_name("node.range", &node.range);
+ 		add_name("node.utcoffset", &node.utcoffset);
+ 		add_name("node.utc", &node.utc);
+ 		add_name("node.utcstart", &node.utcstart);
+ 		add_name("node.loc", &node.loc);
+ 		add_name("node.phys", &node.phys);
+ 
+ 	// vector<vector<unitstruc>> unit
+ 		add_name("unit", &unit);
+ 		for(size_t i = 0; i < unit.size(); ++i)	{
+ 			string basename = "unit[" + std::to_string(i) + "]";
+ 			add_name(basename, &unit[i]);
+ 			for(size_t j = 0; j < unit[i].size(); ++j)	{
+ 				string rebasename = basename + "[" + std::to_string(j) + "]";
+ 				add_name(rebasename, &unit[i][j]);
+ 				add_name(rebasename+".name", &unit[i][j].name);
+ 				add_name(rebasename+".type", &unit[i][j].type);
+ 				add_name(rebasename+".p0", &unit[i][j].p0);
+ 				add_name(rebasename+".p1", &unit[i][j].p1);
+ 				add_name(rebasename+".p2", &unit[i][j].p2);
+ 			}
+ 		}
+ 
+ 	// vector<userstruc> user
+ 		add_name("user", &user);
+ 		for(size_t i = 0; i < user.capacity(); ++i)	{
+ 			string basename = "user[" + std::to_string(i) + "]";
+ 			add_name(basename, &user[i]);
+ 			add_name(basename+".name", &user[i].name);
+ 			add_name(basename+".node", &user[i].node);
+ 			add_name(basename+".tool", &user[i].tool);
+ 			add_name(basename+".cpu", &user[i].cpu);
+ 		}
+ 
+ 	}
+
+
 	string get_name(void* v)	{
 		name_map::const_iterator it = names.begin();
 		while(it->second != v && it != names.end())	{ it++; }

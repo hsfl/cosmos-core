@@ -411,13 +411,17 @@ void json_init_node(cosmosstruc* cinfo)	{
 }
 
 void json_init_resize(cosmosstruc* cinfo) {
+	// JIMNOTE: change all to reserve
 	// /reserve/resize fixed-sized vectors
     cinfo->unit.reserve(JSON_UNIT_COUNT);
+
     cinfo->jmap.resize(JSON_MAX_HASH);
     cinfo->emap.resize(JSON_MAX_HASH);
     cinfo->glossary.resize(1);
     cinfo->agent.resize(1);
     cinfo->event.resize(1);
+
+    cinfo->user.reserve(MAX_NUMBER_OF_USERS);
     cinfo->user.resize(1);
 
     // Make sure we aren't running out of memory
@@ -7135,12 +7139,6 @@ int32_t json_setup_node(jsonnode json, cosmosstruc *cinfo, bool create_flag)
     struct stat fstat;
     ifstream ifs;
     string fname;
-
-//    iretn = json_mapbaseentries(cinfo);
-//    if (iretn < 0)
-//    {
-//        return iretn;
-//    }
 
     if (!cinfo->jmapped)
     {
