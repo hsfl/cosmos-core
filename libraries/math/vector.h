@@ -561,10 +561,10 @@ std::istream& operator >> (std::istream& out, qlast& a);
 */
 struct qfirst
 {
-    double q0; // w
-    double q1; // x
-    double q2; // y
-    double q3; // z
+    double q0 = 0.; // w
+    double q1 = 0.; // x
+    double q2 = 0.; // y
+    double q3 = 0.; // z
 
     qfirst() {}
     qfirst(double tq0, double tq1, double tq2, double tq3) {
