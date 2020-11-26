@@ -398,41 +398,41 @@ int main(int argc, char *argv[])
     }
 
     // Add requests
-    if ((iretn=agent->add_request("enable",request_enable,"enable", "Enable active control of the radio frequency")))
+    if ((iretn=agent->add_request("enable",request_enable,"", "Enable active control of the radio frequency")))
         exit (iretn);
-    if ((iretn=agent->add_request("disable",request_disable,"disable", "Disable active control of the radio frequency")))
+    if ((iretn=agent->add_request("disable",request_disable,"", "Disable active control of the radio frequency")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_state",request_get_state,"get_state", "returns the radio frequency")))
+    if ((iretn=agent->add_request("get_state",request_get_state,"", "returns the radio frequency")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_frequency",request_get_frequency,"get_frequency", "returns the radio frequency")))
+    if ((iretn=agent->add_request("get_frequency",request_get_frequency,"", "returns the radio frequency")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_bandpass",request_get_bandpass,"get_bandpass", "returns the radio filter bandpass")))
+    if ((iretn=agent->add_request("get_bandpass",request_get_bandpass,"", "returns the radio filter bandpass")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_opmode",request_get_opmode,"get_opmode", "returns the radio mode")))
+    if ((iretn=agent->add_request("get_opmode",request_get_opmode,"", "returns the radio mode")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_modulation",request_get_modulation,"get_modulation", "returns the radio mode")))
+    if ((iretn=agent->add_request("get_modulation",request_get_modulation,"", "returns the radio mode")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_powerin",request_get_powerin,"get_powerin", "returns the current RX radio power")))
+    if ((iretn=agent->add_request("get_powerin",request_get_powerin,"", "returns the current RX radio power")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_powerout",request_get_powerout,"get_powerout", "returns the current TX radio power")))
+    if ((iretn=agent->add_request("get_powerout",request_get_powerout,"", "returns the current TX radio power")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_frequency",request_set_frequency,"set_frequency Hz", "sets the radio frequency")))
+    if ((iretn=agent->add_request("set_frequency",request_set_frequency,"Hz", "sets the radio frequency")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_bandpass",request_set_bandpass,"set_bandpass Hz", "sets the radio filter bandpass")))
+    if ((iretn=agent->add_request("set_bandpass",request_set_bandpass,"Hz", "sets the radio filter bandpass")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_opmode",request_set_opmode,"set_opmode {am, amd, fm, fmd, dv, dvd, cw, cwr}", "sets the radio operating mode")))
+    if ((iretn=agent->add_request("set_opmode",request_set_opmode,"{am, amd, fm, fmd, dv, dvd, cw, cwr}", "sets the radio operating mode")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_modulation",request_set_modulation,"set_modulation {ask, bpsk1200, bpsk2400, bpsk4800, bpsk9600, afsk, gfsk1200, gfsk2400, gfsk4800, gfsk9600}", "sets the radio modulation")))
+    if ((iretn=agent->add_request("set_modulation",request_set_modulation,"{ask, bpsk1200, bpsk2400, bpsk4800, bpsk9600, afsk, gfsk1200, gfsk2400, gfsk4800, gfsk9600}", "sets the radio modulation")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_power",request_set_maxpower,"set_maxpower watts", "sets the maximum TX radio power")))
+    if ((iretn=agent->add_request("set_power",request_set_maxpower,"watts", "sets the maximum TX radio power")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_offset",request_set_offset,"set_offset Hz", "sets the radio frequency offset")))
+    if ((iretn=agent->add_request("set_offset",request_set_offset,"Hz", "sets the radio frequency offset")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_repeater_squelch",request_set_repeater_squelch,"set_repeater_squelch frequency", "sets the repeater squelch tone frequency (0. = off)")))
+    if ((iretn=agent->add_request("set_repeater_squelch",request_set_repeater_squelch,"frequency", "sets the repeater squelch tone frequency (0. = off)")))
         exit (iretn);
-    if ((iretn=agent->add_request("get_repeater_squelch",request_get_repeater_squelch,"get_repeater_squelch frequency", "gets the repeater squelch tone frequency (0. = off)")))
+    if ((iretn=agent->add_request("get_repeater_squelch",request_get_repeater_squelch,"", "gets the repeater squelch tone frequency (0. = off)")))
         exit (iretn);
-    if ((iretn=agent->add_request("set_record",request_set_record,"get_set_record 0|1", "Turn recording off or on")))
+    if ((iretn=agent->add_request("set_record",request_set_record,"0|1", "Turn recording off or on")))
         exit (iretn);
 
 
