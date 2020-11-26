@@ -48,7 +48,17 @@ provided for the extra steps necessary for MS Windows.
     \param sndbuf Optional size of buffer for setsockopt SO_SNDBUF.
     \return Zero, or negative error.
 */
-int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *address, uint16_t port, uint16_t role,
+int32_t socket_open(socket_channel* channel, NetworkType ntype, const char *address, uint16_t port, uint16_t role,
+                    bool blocking, uint32_t usectimeo, uint32_t rcvbuf, uint32_t sndbuf)
+{
+    int32_t iretn;
+
+    iretn = socket_open(*channel, ntype, address, port, role, blocking, usectimeo, rcvbuf, sndbuf);
+
+    return iretn;
+}
+
+int32_t socket_open(socket_channel& channel, NetworkType ntype, const char *address, uint16_t port, uint16_t role,
                     bool blocking, uint32_t usectimeo, uint32_t rcvbuf, uint32_t sndbuf)
 {
 //    socklen_t namelen;
@@ -78,7 +88,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     {
     case NetworkType::MULTICAST:
         {
-            if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_IP)) <0)
+            if ((channel.cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_IP)) <0)
             {
                 return (-errno);
             }
@@ -87,7 +97,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     case NetworkType::BROADCAST:
     case NetworkType::UDP:
         {
-            if ((channel->cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) <0)
+            if ((channel.cudp = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) <0)
             {
                 return (-errno);
             }
@@ -95,7 +105,7 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         break;
     case NetworkType::TCP:
         {
-            if ((channel->cudp = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) <0)
+            if ((channel.cudp = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP)) <0)
             {
                 return (-errno);
             }
@@ -110,20 +120,20 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     {
         iretn = 0;
 #ifdef COSMOS_WIN_OS
-        if (ioctlsocket(channel->cudp, FIONBIO, &nonblocking) != 0)
+        if (ioctlsocket(channel.cudp, FIONBIO, &nonblocking) != 0)
         {
             iretn = -WSAGetLastError();
         }
 #else
-        if (fcntl(channel->cudp, F_SETFL,O_NONBLOCK) < 0)
+        if (fcntl(channel.cudp, F_SETFL,O_NONBLOCK) < 0)
         {
             iretn = -errno;
         }
 #endif
         if (iretn < 0)
         {
-            CLOSE_SOCKET(channel->cudp);
-            channel->cudp = iretn;
+            CLOSE_SOCKET(channel.cudp);
+            channel.cudp = iretn;
             return iretn;
         }
     }
@@ -133,73 +143,63 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     {
 #ifdef COSMOS_WIN_OS
         int msectimeo = usectimeo/1000;
-        iretn = setsockopt(channel->cudp,SOL_SOCKET,SO_RCVTIMEO,(const char *)&msectimeo,sizeof(msectimeo));
+        iretn = setsockopt(channel.cudp,SOL_SOCKET,SO_RCVTIMEO,(const char *)&msectimeo,sizeof(msectimeo));
 #else
         struct timeval tv;
         tv.tv_sec = usectimeo/1000000;
         tv.tv_usec = usectimeo%1000000;
-        iretn = setsockopt(channel->cudp,SOL_SOCKET,SO_RCVTIMEO,(char*)&tv,sizeof(tv));
+        iretn = setsockopt(channel.cudp,SOL_SOCKET,SO_RCVTIMEO,(char*)&tv,sizeof(tv));
 #endif
     }
 
-    memset(&channel->caddr,0,sizeof(struct sockaddr_in));
-    channel->caddr.sin_family = AF_INET;
-    channel->caddr.sin_port = htons(port);
+    memset(&channel.caddr,0,sizeof(struct sockaddr_in));
+    channel.caddr.sin_family = AF_INET;
+    channel.caddr.sin_port = htons(port);
 
     switch (role)
     {
     case SOCKET_LISTEN:
 #ifdef COSMOS_MAC_OS
-        if (setsockopt(channel->cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
+        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEPORT,(char*)&on,sizeof(on)) < 0)
 #else
-        if (setsockopt(channel->cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
+        if (setsockopt(channel.cudp,SOL_SOCKET,SO_REUSEADDR,(char*)&on,sizeof(on)) < 0)
 #endif
         {
-            CLOSE_SOCKET(channel->cudp);
-            channel->cudp = -errno;
+            CLOSE_SOCKET(channel.cudp);
+            channel.cudp = -errno;
             return (-errno);
         }
 
         switch (ntype)
         {
         case NetworkType::MULTICAST:
-//            {
-//                channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
-//                if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
-//                {
-//                    CLOSE_SOCKET(channel->cudp);
-//                    channel->cudp = -errno;
-//                    return (-errno);
-//                }
-//            }
-//            break;
         case NetworkType::BROADCAST:
         case NetworkType::UDP:
             {
-                channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
-                if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
+                channel.caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+                if (::bind(channel.cudp,(struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in)) < 0)
                 {
-                    CLOSE_SOCKET(channel->cudp);
-                    channel->cudp = -errno;
+                    CLOSE_SOCKET(channel.cudp);
+                    channel.cudp = -errno;
                     return (-errno);
                 }
             }
             break;
         case NetworkType::TCP:
             {
-                channel->caddr.sin_addr.s_addr = htonl(INADDR_ANY);
-                channel->caddr.sin_port = htons(port);
-                if (::bind(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0)
+                channel.caddr.sin_addr.s_addr = htonl(INADDR_ANY);
+                channel.caddr.sin_port = htons(port);
+                if (::bind(channel.cudp,(struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in)) < 0)
                 {
-                    CLOSE_SOCKET(channel->cudp);
-                    channel->cudp = -errno;
+                    CLOSE_SOCKET(channel.cudp);
+                    channel.cudp = -errno;
                     return (-errno);
                 }
 
-                if (listen(channel->cudp, 1) < 0)
+                if (listen(channel.cudp, 1) < 0)
                 {
-                    CLOSE_SOCKET(channel->cudp);
-                    channel->cudp = -errno;
+                    CLOSE_SOCKET(channel.cudp);
+                    channel.cudp = -errno;
                     return (-errno);
                 }
             }
@@ -216,10 +216,10 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
 //            inte_pton(AF_INET, , &mreq.imr_interface.s_addr);
             //			mreq.imr_multiaddr.s_addr = inet_addr(address);
                         mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-            if (setsockopt(channel->cudp, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
+            if (setsockopt(channel.cudp, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) < 0)
             {
-                CLOSE_SOCKET(channel->cudp);
-                channel->cudp = -errno;
+                CLOSE_SOCKET(channel.cudp);
+                channel.cudp = -errno;
                 return (-errno);
             }
         }
@@ -228,33 +228,33 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
         switch (ntype)
         {
         case NetworkType::BROADCAST:
-            if ((iretn=setsockopt(channel->cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
+            if ((iretn=setsockopt(channel.cudp,SOL_SOCKET,SO_BROADCAST,(char*)&on,sizeof(on))) < 0)
             {
-                CLOSE_SOCKET(channel->cudp);
-                channel->cudp = -errno;
+                CLOSE_SOCKET(channel.cudp);
+                channel.cudp = -errno;
                 return (-errno);
             }
-            channel->caddr.sin_addr.s_addr = 0xffffffff;
+            channel.caddr.sin_addr.s_addr = 0xffffffff;
             break;
         case NetworkType::MULTICAST:
-            inet_pton(AF_INET,address,&channel->caddr.sin_addr);
+            inet_pton(AF_INET,address,&channel.caddr.sin_addr);
             break;
         default:
             return (SOCKET_ERROR_PROTOCOL);
             break;
         }
-        channel->cport = port;
+        channel.cport = port;
         break;
     case SOCKET_TALK:
-        inet_pton(AF_INET,address,&channel->caddr.sin_addr);
-        channel->cport = port;
+        inet_pton(AF_INET,address,&channel.caddr.sin_addr);
+        channel.cport = port;
 
         if (ntype == NetworkType::TCP)
         {
-            if (connect(channel->cudp,(struct sockaddr *)&channel->caddr, sizeof(struct sockaddr_in)) < 0 && errno != EINPROGRESS)
+            if (connect(channel.cudp,(struct sockaddr *)&channel.caddr, sizeof(struct sockaddr_in)) < 0 && errno != EINPROGRESS)
             {
-                CLOSE_SOCKET(channel->cudp);
-                channel->cudp = -errno;
+                CLOSE_SOCKET(channel.cudp);
+                channel.cudp = -errno;
                 return (-errno);
             }
         }
@@ -262,42 +262,42 @@ int32_t socket_open(socket_channel *channel, NetworkType ntype, const char *addr
     }
 
     // Find assigned port, place in cport, and set caddr to requested port
-    channel->baddr = channel->caddr;
-    channel->baddr.sin_addr.s_addr |= 0xff;
+    channel.baddr = channel.caddr;
+    channel.baddr.sin_addr.s_addr |= 0xff;
 
     switch (ntype)
     {
     case NetworkType::TCP:
-        channel->cport = ntohs(channel->caddr.sin_port);
+        channel.cport = ntohs(channel.caddr.sin_port);
         break;
     default:
-        iretn = sendto(channel->cudp, (const char *)nullptr, 0, 0, (struct sockaddr *)&channel->baddr, sizeof(struct sockaddr_in));
-        sockaddr_in taddr = channel->caddr;
+        iretn = sendto(channel.cudp, (const char *)nullptr, 0, 0, (struct sockaddr *)&channel.baddr, sizeof(struct sockaddr_in));
+        sockaddr_in taddr = channel.caddr;
         socklen_t namelen = sizeof(struct sockaddr_in);
-        if ((iretn = getsockname(channel->cudp, (sockaddr*)&channel->caddr, &namelen)) == -1)
+        if ((iretn = getsockname(channel.cudp, (sockaddr*)&channel.caddr, &namelen)) == -1)
         {
-            CLOSE_SOCKET(channel->cudp);
-            channel->cudp = -errno;
+            CLOSE_SOCKET(channel.cudp);
+            channel.cudp = -errno;
             return (-errno);
         }
-        channel->cport = ntohs(channel->caddr.sin_port);
-        channel->caddr = taddr;
+        channel.cport = ntohs(channel.caddr.sin_port);
+        channel.caddr = taddr;
         break;
     }
 
     if (rcvbuf)
     {
-        setsockopt(channel->cudp, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbuf, 4);
+        setsockopt(channel.cudp, SOL_SOCKET, SO_RCVBUF, (char *)&rcvbuf, 4);
     }
 
     if (sndbuf)
     {
-        setsockopt(channel->cudp, SOL_SOCKET, SO_SNDBUF, (char *)&sndbuf, 4);
+        setsockopt(channel.cudp, SOL_SOCKET, SO_SNDBUF, (char *)&sndbuf, 4);
     }
 
-    strncpy(channel->address,address,17);
-    channel->type = ntype;
-    channel->addrlen = sizeof(struct sockaddr_in);
+    strncpy(channel.address,address,17);
+    channel.type = ntype;
+    channel.addrlen = sizeof(struct sockaddr_in);
 
     return 0;
 }
@@ -445,7 +445,16 @@ int32_t socket_set_udp_checksum(vector<uint8_t>& packet)
     return 0;
 }
 
-int32_t socket_blocking(socket_channel *channel, bool blocking)
+int32_t socket_blocking(socket_channel* channel, bool blocking)
+{
+    int32_t iretn;
+
+    iretn = socket_blocking(*channel, blocking);
+
+    return iretn;
+}
+
+int32_t socket_blocking(socket_channel& channel, bool blocking)
 {
     int32_t iretn;
 
@@ -454,12 +463,12 @@ int32_t socket_blocking(socket_channel *channel, bool blocking)
         iretn = 0;
 #ifdef COSMOS_WIN_OS
         unsigned long nonblocking = 1;
-        if (ioctlsocket(channel->cudp, FIONBIO, &nonblocking) != 0)
+        if (ioctlsocket(channel.cudp, FIONBIO, &nonblocking) != 0)
         {
             iretn = -WSAGetLastError();
         }
 #else
-        if (fcntl(channel->cudp, F_SETFL,O_NONBLOCK) < 0)
+        if (fcntl(channel.cudp, F_SETFL,O_NONBLOCK) < 0)
         {
             iretn = -errno;
         }
@@ -470,19 +479,19 @@ int32_t socket_blocking(socket_channel *channel, bool blocking)
         iretn = 0;
 #ifdef COSMOS_WIN_OS
         unsigned long nonblocking = 0;
-        if (ioctlsocket(channel->cudp, FIONBIO, &nonblocking) != 0)
+        if (ioctlsocket(channel.cudp, FIONBIO, &nonblocking) != 0)
         {
             iretn = -WSAGetLastError();
         }
 #else
         int oldfl;
-        if ((oldfl = fcntl(channel->cudp, F_GETFL)) == -1)
+        if ((oldfl = fcntl(channel.cudp, F_GETFL)) == -1)
         {
             iretn = -errno;
         }
         else
         {
-            if (fcntl(channel->cudp, F_SETFL, oldfl & ~O_NONBLOCK) < 0)
+            if (fcntl(channel.cudp, F_SETFL, oldfl & ~O_NONBLOCK) < 0)
             {
                 iretn = -errno;
             }
@@ -497,25 +506,34 @@ int32_t socket_blocking(socket_channel *channel, bool blocking)
     \param channel Pointer to ::socket_channel holding final configuration.
  * \return Zero or negative error.
  */
-int32_t socket_close(socket_channel *channel)
+int32_t socket_close(socket_channel* channel)
+{
+    int32_t iretn;
+
+    iretn = socket_close(*channel);
+
+    return iretn;
+}
+
+int32_t socket_close(socket_channel& channel)
 {
     int32_t iretn = 0;
 
-    if (channel->cudp >= 0)
+    if (channel.cudp >= 0)
     {
 #ifdef COSMOS_WIN_OS
-        if (closesocket(channel->cudp) < 0)
+        if (closesocket(channel.cudp) < 0)
         {
             iretn = -WSAGetLastError();
         }
 #else
-        if (close(channel->cudp) < 0)
+        if (close(channel.cudp) < 0)
         {
             iretn = -errno;
         }
 #endif
-        //    channel->address[0] = 0;
-        channel->cudp = -1;
+        //    channel.address[0] = 0;
+        channel.cudp = -1;
     }
     return iretn;
 }
