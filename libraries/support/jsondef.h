@@ -3279,6 +3279,7 @@ information.
 */
 struct devicestruc : public allstruc
 {
+        allstruc all;
         antstruc ant;
         battstruc batt;
         bcregstruc bcreg;
