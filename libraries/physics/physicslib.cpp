@@ -889,7 +889,7 @@ void hardware_init_eci(cosmosstruc *cinfo, locstruc &loc)
     //! Initialize temperature sensors
 //    for (i=0; i<cinfo->devspec.tsen_cnt; i++)
 //    {
-//        cinfo->device[cinfo->devspec.tsen[i]].tsen.temp = 300.;
+//        cinfo->device[cinfo->devspec.tsen[i]].temp = 300.;
 //    }
 
     //! Reaction Wheels

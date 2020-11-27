@@ -668,32 +668,32 @@ struct unitstruc
     //! 2th derivative term
     float p2 = 0.f;
 
-	// needed to get class contents as JSON object (internal to json11)
-	json11::Json to_json() const {
-		return json11::Json::object {
-			{ "name", name },
-			{ "type", type },
-			{ "p0", p0 },
-			{ "p1", p1 },
-			{ "p2", p2 }
-		};
-	}
+        // needed to get class contents as JSON object (internal to json11)
+        json11::Json to_json() const {
+                return json11::Json::object {
+                        { "name", name },
+                        { "type", type },
+                        { "p0", p0 },
+                        { "p1", p1 },
+                        { "p2", p2 }
+                };
+        }
 
-	// needed to set class contents from JSON string
-	void from_json(const string& s)	{
-		string error;
-		json11::Json parsed = json11::Json::parse(s,error);
-		if(error.empty())	{
-			if(!parsed["name"].is_null()) name = parsed["name"].string_value();
-			if(!parsed["type"].is_null()) type = parsed["type"].int_value();
-			if(!parsed["p0"].is_null()) p0 = parsed["p0"].number_value();
-			if(!parsed["p1"].is_null()) p1 = parsed["p1"].number_value();
-			if(!parsed["p2"].is_null()) p2 = parsed["p2"].number_value();
-		} else {
+        // needed to set class contents from JSON string
+        void from_json(const string& s)	{
+                string error;
+                json11::Json parsed = json11::Json::parse(s,error);
+                if(error.empty())	{
+                        if(!parsed["name"].is_null()) name = parsed["name"].string_value();
+                        if(!parsed["type"].is_null()) type = parsed["type"].int_value();
+                        if(!parsed["p0"].is_null()) p0 = parsed["p0"].number_value();
+                        if(!parsed["p1"].is_null()) p1 = parsed["p1"].number_value();
+                        if(!parsed["p2"].is_null()) p2 = parsed["p2"].number_value();
+                } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
-		return;
-	}
+                return;
+        }
 };
 
 //! JSON Node description strings
@@ -761,7 +761,7 @@ struct jsonnode
 struct jsonhandle
 {
     // Hash of equation or name
-    uint16_t hash;  // NOTE: Initializing this 
+    uint16_t hash;  // NOTE: Initializing this
     // Index within that hash entry
     uint16_t index;
 
@@ -894,7 +894,7 @@ struct beatstruc
     NetworkType ntype = NetworkType::MULTICAST;
     //! Protocol Address
     char addr[18] = {};
-	//! AGENT port
+        //! AGENT port
     uint16_t port = 0;
     //! Transfer buffer size
     uint32_t bsz = 0;
@@ -1109,7 +1109,7 @@ struct eventstruc
         json11::Json p = json11::Json::parse(s,error);
         if(error.empty()) {
             if(!p["utc"].is_null()) utc = p["utc"].number_value();
-            if(!p["utcexec"].is_null()) utcexec = p["utcexec"].number_value();            
+            if(!p["utcexec"].is_null()) utcexec = p["utcexec"].number_value();
             if(!p["node"].is_null()) strcpy(node, p["node"].string_value().c_str());
             if(!p["name"].is_null()) strcpy(name, p["name"].string_value().c_str());
             if(!p["user"].is_null()) strcpy(user, p["user"].string_value().c_str());
@@ -1137,16 +1137,16 @@ struct eventstruc
 
 struct userstruc
 {
-	//to enforce a std::string name length maximum (if necessary) use this code to truncate:
-	//
-	//constexpr std::string::size_type MAX_CHARS = 20 ;
-	//if(whatever_string.size() > MAX_CHARS)	{
-	//	whatever_string = whatever_string.substr(0, MAX_CHARS);
-	//}
-	string name = "";
-	string node = "";
-	string tool = "";
-	string cpu = "";
+        //to enforce a std::string name length maximum (if necessary) use this code to truncate:
+        //
+        //constexpr std::string::size_type MAX_CHARS = 20 ;
+        //if(whatever_string.size() > MAX_CHARS)	{
+        //	whatever_string = whatever_string.substr(0, MAX_CHARS);
+        //}
+        string name = "";
+        string node = "";
+        string tool = "";
+        string cpu = "";
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -1329,8 +1329,8 @@ struct facestruc
         if(error.empty()) {
             if(!parsed["vertex_cnt"].is_null()) vertex_cnt = parsed["vertex_cnt"].int_value();
             for(size_t i = 0; i < vertex_idx.size(); ++i)	{
- 				if(!parsed["vertex_idx"][i].is_null())	vertex_idx[i] = parsed["vertex_idx"][i].int_value();
-			}
+                                if(!parsed["vertex_idx"][i].is_null())	vertex_idx[i] = parsed["vertex_idx"][i].int_value();
+                        }
             if(!parsed["com"].is_null()) com.from_json(parsed["com"].dump());
             if(!parsed["normal"].is_null()) normal.from_json(parsed["normal"].dump());
             if(!parsed["area"].is_null()) area = parsed["area"].number_value();
@@ -1579,7 +1579,7 @@ struct allstruc
  */
 
  //JIMNOTE:  this one needs some JSON work... hmm....  what to do about that union....
-struct telemstruc 
+struct telemstruc
 {
     //! Data type
     uint16_t type = 0;
@@ -1624,7 +1624,7 @@ struct telemstruc
  * names. You can then set double precision values for these keys in
  * the dynamic structure.
  */
-struct ploadstruc 
+struct ploadstruc
 {
     //! Number of keys being used.
     uint16_t key_cnt = 0;
@@ -1670,7 +1670,7 @@ struct ploadstruc
 };
 
 //! Sun Sensor (SSEN) Sructure
-struct ssenstruc 
+struct ssenstruc
 {
     //! Sensor alignment quaternion.
     quaternion align;
@@ -1714,7 +1714,7 @@ struct ssenstruc
 };
 
 //! Inertial Measurement Unit (IMU) structure
-struct imustruc 
+struct imustruc
 {
     //! alignment quaternion
     quaternion align;
@@ -1768,7 +1768,7 @@ struct imustruc
 };
 
 //! Reaction Wheel structure: z axis is aligned with axis of rotation.
-struct rwstruc 
+struct rwstruc
 {
     //! Rotates vectors from RW frame (axis of rotation = z) to body frame.
     quaternion align;
@@ -1826,7 +1826,7 @@ struct rwstruc
 };
 
 //! Magnetic Torque Rod structure: z axis is aligned with rod.
-struct mtrstruc 
+struct mtrstruc
 {
     //! Rotates vectors from MTR frame to Body frame.
     quaternion align;
@@ -1888,7 +1888,7 @@ struct mtrstruc
 };
 
 //! CPU information
-struct cpustruc 
+struct cpustruc
 {
     // cpu
     //! Seconds CPU has been up
@@ -1938,7 +1938,7 @@ struct cpustruc
 };
 
 //! Disk information
-struct diskstruc 
+struct diskstruc
 {
     // disk
     //! Maximum disk capacity in GiB
@@ -1953,7 +1953,7 @@ struct diskstruc
         return json11::Json::object {
             { "maxgib" , maxgib },
             { "gib"    , gib },
-			{ "path"   , path }
+                        { "path"   , path }
         };
     }
 
@@ -1973,7 +1973,7 @@ struct diskstruc
 };
 
 // TODO: rename to GpsData
-struct gpsstruc 
+struct gpsstruc
 {
     //! UTC time error
     double dutc = 0.;
@@ -2059,7 +2059,7 @@ struct gpsstruc
 //! Antenna information
 /*! This structure holds the information concerning antennas.
 */
-struct antstruc 
+struct antstruc
 {
     //! Alignment
     quaternion align;
@@ -2115,7 +2115,7 @@ struct antstruc
 //! Receiver information
 /*! This structure holds the information concerning receivers.
 */
-struct rxrstruc 
+struct rxrstruc
 {
     //! Operating mode
     uint16_t opmode = 0;
@@ -2199,7 +2199,7 @@ struct rxrstruc
 //! Transmitter information
 /*! This structure holds the information concerning transmitters.
 */
-struct txrstruc 
+struct txrstruc
 {
     //! Operating mode
     uint16_t opmode = 0;
@@ -2283,7 +2283,7 @@ struct txrstruc
 //! Transceiver information
 /*! This structure holds the information concerning transceivers.
 */
-struct tcvstruc 
+struct tcvstruc
 {
     //! Operating mode
     uint16_t opmode = 0;
@@ -2371,7 +2371,7 @@ struct tcvstruc
 //! PV String (STRG) structure.
 /*! Efficiency is goven as effbase + effslope * Tkelvin.
 */
-struct pvstrgstruc 
+struct pvstrgstruc
 {
     //! BCREG index
     uint16_t bcidx = 0;
@@ -2413,7 +2413,7 @@ struct pvstrgstruc
 };
 
 //! Battery (BATT) structure.
-struct battstruc 
+struct battstruc
 {
     //! Capacity in amp hours
     float capacity = 0.f;
@@ -2465,7 +2465,7 @@ struct battstruc
 //! Heater Structure definition
 /*! This structure holds the description of a heaters.
 */
-struct htrstruc 
+struct htrstruc
 {
     bool state = true;
     //! Temperature set vertex
@@ -2493,7 +2493,7 @@ struct htrstruc
     }
 };
 
-struct motrstruc 
+struct motrstruc
 {
     //! Maximum speed in revolutions per second
     float max = 0.f;
@@ -2526,7 +2526,7 @@ struct motrstruc
 };
 
 struct tsenstruc  {
-	// Convert class contents to JSON object
+        // Convert class contents to JSON object
     json11::Json to_json() const { return json11::Json::object {}; }
 
     // Set class contents from JSON string
@@ -2534,7 +2534,7 @@ struct tsenstruc  {
 };
 
 //! Thruster (THST) dynamic structure
-struct thststruc 
+struct thststruc
 {
     //! Flow
     quaternion align;
@@ -2568,7 +2568,7 @@ struct thststruc
 };
 
 //! Propellant Tank (PROP) structure.
-struct propstruc 
+struct propstruc
 {
     //! Propellant capacity in kg
     float cap = 0.f;
@@ -2611,7 +2611,7 @@ struct swchstruc  {
 //! Rotor Structure definition
 /*! This structure holds the description of a rotors.
 */
-struct rotstruc 
+struct rotstruc
 {
     //! Angular position
     float angle = 0.f;
@@ -2638,7 +2638,7 @@ struct rotstruc
 
 //! Star Tracker (STT) Sructure
 // TODO: rename to ST
-struct sttstruc 
+struct sttstruc
 {
     //! alignment quaternion
     quaternion align;
@@ -2681,7 +2681,7 @@ struct sttstruc
 };
 
 //! Motion Capture Camera (MCC) Structure
-struct mccstruc 
+struct mccstruc
 {
     //! Sensor alignment quaternion.
     quaternion align;
@@ -2717,7 +2717,7 @@ struct mccstruc
 };
 
 //! Torque Rod Control Unit
-struct tcustruc 
+struct tcustruc
 {
     //! Torque Rod count
     uint16_t mcnt = 0;
@@ -2752,7 +2752,7 @@ struct tcustruc
     }
 };
 
-struct busstruc 
+struct busstruc
 {
     //! Watch Dog Timer (MJD)
     float wdt = 0.f;
@@ -2777,7 +2777,7 @@ struct busstruc
     }
 };
 
-struct psenstruc 
+struct psenstruc
 {
     //! Current Pressure
     float press = 0.f;
@@ -2803,7 +2803,7 @@ struct psenstruc
 };
 
 //! SUCHI Sructure
-struct suchistruc 
+struct suchistruc
 {
     //! alignment quaternion
     quaternion align;
@@ -2842,7 +2842,7 @@ struct suchistruc
     }
 };
 
-struct camstruc 
+struct camstruc
 {
     uint16_t pwidth = 0;
     uint16_t pheight = 0;
@@ -2897,7 +2897,7 @@ struct bcregstruc  {
     json11::Json to_json() const { return json11::Json::object {}; }
 
     // Set class contents from JSON string
-    void from_json(const string& s) {};	
+    void from_json(const string& s) {};
 };
 
 // End of Device Specific structures
@@ -2969,7 +2969,7 @@ struct trianglestruc
             { "pcell" , pcell },
             { "ecellbase"   , ecellbase },
             { "ecellslope"  , ecellslope },
-			{ "triangleindex" , triangleindex }
+                        { "triangleindex" , triangleindex }
         };
     }
 
@@ -2985,7 +2985,7 @@ struct trianglestruc
             if(!parsed["twist"].is_null())	twist.from_json(parsed["twist"].dump());
             if(!parsed["pidx"].is_null())	pidx = parsed["pidx"].int_value();
 
-			// array
+                        // array
 
             if(!parsed["heat"].is_null())	heat = parsed["heat"].number_value();
             if(!parsed["hcap"].is_null())	hcap = parsed["hcap"].number_value();
@@ -3091,8 +3091,8 @@ struct physicsstruc
             { "com" , com },
             { "vertices" , vertices },
             { "triangles" , triangles }
-		};
-	}
+                };
+        }
 
     // Set class contents from JSON string
     void from_json(const string& js) {
@@ -3128,12 +3128,12 @@ struct physicsstruc
             if(!parsed["thrust"].is_null())	thrust.from_json(parsed["thrust"].dump());
             if(!parsed["moi"].is_null())	moi.from_json(parsed["moi"].dump());
             if(!parsed["com"].is_null())	com.from_json(parsed["com"].dump());
- 			for(size_t i = 0; i < vertices.size(); ++i)	{
- 				if(!parsed["vertices"][i].is_null())	vertices[i].from_json(parsed["vertices"][i].dump());
-			}
- 			for(size_t i = 0; i < triangles.size(); ++i)	{
- 				if(!parsed["triangles"][i].is_null())	triangles[i].from_json(parsed["triangles"][i].dump());
-			}
+                        for(size_t i = 0; i < vertices.size(); ++i)	{
+                                if(!parsed["vertices"][i].is_null())	vertices[i].from_json(parsed["vertices"][i].dump());
+                        }
+                        for(size_t i = 0; i < triangles.size(); ++i)	{
+                                if(!parsed["triangles"][i].is_null())	triangles[i].from_json(parsed["triangles"][i].dump());
+                        }
         } else {
             cerr<<"ERROR = "<<error<<endl;
         }
@@ -3159,7 +3159,7 @@ struct nodestruc
     //! Operational state
     uint16_t state = 0;
 
-	// actually these are cosmosstruc counts...
+        // actually these are cosmosstruc counts...
     uint16_t vertex_cnt = 0;
     uint16_t normal_cnt = 0;
     uint16_t face_cnt = 0;
@@ -3224,8 +3224,8 @@ struct nodestruc
             { "utcoffset" , utcoffset },
             { "utc" , utc },
             { "utcstart" , utcstart },
-			{ "loc" , loc },
-			{ "phys" , phys }
+                        { "loc" , loc },
+                        { "phys" , phys }
         };
     }
 
@@ -3365,8 +3365,8 @@ struct devicestruc : public allstruc
             { "tnc" , tnc },
             { "tsen" , tsen },
             { "txr" , txr }
-		};
-	}
+                };
+        }
 
     // Set class contents from JSON string
     void from_json(const string& js) {
@@ -3799,282 +3799,282 @@ struct cosmosstruc
     jsonnode json;
 
 
-	/// Support for Namespace 2.0
+        /// Support for Namespace 2.0
 
-	using name_map = map<string,void*>;
-	using name_mapping = pair<string,void*>;
+        using name_map = map<string,void*>;
+        using name_mapping = pair<string,void*>;
 
-	name_map names;
+        name_map names;
 
-	bool name_exists(const string& s)	{ return (names.find(s) == names.end()) ? false : true; }
+        bool name_exists(const string& s)	{ return (names.find(s) == names.end()) ? false : true; }
 
-	void print_all_names() const	{
-		name_map::const_iterator it = names.begin();
-		while(it != names.end())	{ cout<<(it++)->first<<endl; }
-	}
+        void print_all_names() const	{
+                name_map::const_iterator it = names.begin();
+                while(it != names.end())	{ cout<<(it++)->first<<endl; }
+        }
 
-	void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
- 	//TODO:   add remove_name(..), change_name(..) functions, match_name(), find_aliases(), etc
- 
- 	void add_all_names()	{
+        void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
+        //TODO:   add remove_name(..), change_name(..) functions, match_name(), find_aliases(), etc
 
-	// double timestamp 
- 		add_name("timestamp", &timestamp);
+        void add_all_names()	{
 
-	// uint16_t jmapped
- 		add_name("jmapped", &jmapped);
+        // double timestamp
+                add_name("timestamp", &timestamp);
 
- 	// vector<vector<unitstruc>> unit
- 		add_name("unit", &unit);
- 		for(size_t i = 0; i < unit.size(); ++i)	{
- 			string basename = "unit[" + std::to_string(i) + "]";
- 			add_name(basename, &unit[i]);
- 			for(size_t j = 0; j < unit[i].size(); ++j)	{
- 				string rebasename = basename + "[" + std::to_string(j) + "]";
- 				add_name(rebasename, &unit[i][j]);
- 				add_name(rebasename+".name", &unit[i][j].name);
- 				add_name(rebasename+".type", &unit[i][j].type);
- 				add_name(rebasename+".p0", &unit[i][j].p0);
- 				add_name(rebasename+".p1", &unit[i][j].p1);
- 				add_name(rebasename+".p2", &unit[i][j].p2);
- 			}
- 		}
+        // uint16_t jmapped
+                add_name("jmapped", &jmapped);
 
- 	// vector<equationstruc> equation
- 		add_name("equation", &equation);
- 		for(size_t i = 0; i < equation.capacity(); ++i)	{
- 			string basename = "equation[" + std::to_string(i) + "]";
- 			add_name(basename, &equation[i]);
- 			add_name(basename+".name", &equation[i].name);
- 			add_name(basename+".value", &equation[i].value);
- 		}
+        // vector<vector<unitstruc>> unit
+                add_name("unit", &unit);
+                for(size_t i = 0; i < unit.size(); ++i)	{
+                        string basename = "unit[" + std::to_string(i) + "]";
+                        add_name(basename, &unit[i]);
+                        for(size_t j = 0; j < unit[i].size(); ++j)	{
+                                string rebasename = basename + "[" + std::to_string(j) + "]";
+                                add_name(rebasename, &unit[i][j]);
+                                add_name(rebasename+".name", &unit[i][j].name);
+                                add_name(rebasename+".type", &unit[i][j].type);
+                                add_name(rebasename+".p0", &unit[i][j].p0);
+                                add_name(rebasename+".p1", &unit[i][j].p1);
+                                add_name(rebasename+".p2", &unit[i][j].p2);
+                        }
+                }
 
- 	// nodestruc node
- 		add_name("node", &node);
- 		add_name("node.name", &node.name);
- 		add_name("node.lastevent", &node.lastevent);
- 		add_name("node.lasteventutc", &node.lasteventutc);
- 		add_name("node.type", &node.type);
- 		add_name("node.state", &node.state);
- 		add_name("node.vertex_cnt", &node.vertex_cnt);
- 		add_name("node.normal_cnt", &node.normal_cnt);
- 		add_name("node.face_cnt", &node.face_cnt);
- 		add_name("node.piece_cnt", &node.piece_cnt);
- 		add_name("node.device_cnt", &node.device_cnt);
- 		add_name("node.port_cnt", &node.port_cnt);
- 		add_name("node.agent_cnt", &node.agent_cnt);
- 		add_name("node.event_cnt", &node.event_cnt);
- 		add_name("node.target_cnt", &node.target_cnt);
- 		add_name("node.user_cnt", &node.user_cnt);
- 		add_name("node.tle_cnt", &node.tle_cnt);
- 		add_name("node.flags", &node.flags);
- 		add_name("node.powmode", &node.powmode);
- 		add_name("node.downtime", &node.downtime);
- 		add_name("node.azfrom", &node.azfrom);
- 		add_name("node.elfrom", &node.elfrom);
- 		add_name("node.azto", &node.azto);
- 		add_name("node.elto", &node.elto);
- 		add_name("node.range", &node.range);
- 		add_name("node.utcoffset", &node.utcoffset);
- 		add_name("node.utc", &node.utc);
- 		add_name("node.utcstart", &node.utcstart);
- 		add_name("node.loc", &node.loc);
- 		add_name("node.phys", &node.phys);
+        // vector<equationstruc> equation
+                add_name("equation", &equation);
+                for(size_t i = 0; i < equation.capacity(); ++i)	{
+                        string basename = "equation[" + std::to_string(i) + "]";
+                        add_name(basename, &equation[i]);
+                        add_name(basename+".name", &equation[i].name);
+                        add_name(basename+".value", &equation[i].value);
+                }
 
- 	// vector<portstruc> port
- 		add_name("port", &port);
- 		for(size_t i = 0; i < port.capacity(); ++i)	{
- 			string basename = "port[" + std::to_string(i) + "]";
- 			add_name(basename, &port[i]);
- 			add_name(basename+".type", &port[i].type);
- 			add_name(basename+".name", &port[i].name);
- 		}
+        // nodestruc node
+                add_name("node", &node);
+                add_name("node.name", &node.name);
+                add_name("node.lastevent", &node.lastevent);
+                add_name("node.lasteventutc", &node.lasteventutc);
+                add_name("node.type", &node.type);
+                add_name("node.state", &node.state);
+                add_name("node.vertex_cnt", &node.vertex_cnt);
+                add_name("node.normal_cnt", &node.normal_cnt);
+                add_name("node.face_cnt", &node.face_cnt);
+                add_name("node.piece_cnt", &node.piece_cnt);
+                add_name("node.device_cnt", &node.device_cnt);
+                add_name("node.port_cnt", &node.port_cnt);
+                add_name("node.agent_cnt", &node.agent_cnt);
+                add_name("node.event_cnt", &node.event_cnt);
+                add_name("node.target_cnt", &node.target_cnt);
+                add_name("node.user_cnt", &node.user_cnt);
+                add_name("node.tle_cnt", &node.tle_cnt);
+                add_name("node.flags", &node.flags);
+                add_name("node.powmode", &node.powmode);
+                add_name("node.downtime", &node.downtime);
+                add_name("node.azfrom", &node.azfrom);
+                add_name("node.elfrom", &node.elfrom);
+                add_name("node.azto", &node.azto);
+                add_name("node.elto", &node.elto);
+                add_name("node.range", &node.range);
+                add_name("node.utcoffset", &node.utcoffset);
+                add_name("node.utc", &node.utc);
+                add_name("node.utcstart", &node.utcstart);
+                add_name("node.loc", &node.loc);
+                add_name("node.phys", &node.phys);
 
-	// vector<eventstruc> event
-		add_name("event", &event);
- 		for(size_t i = 0; i < event.capacity(); ++i)	{
- 			string basename = "event[" + std::to_string(i) + "]";
- 			add_name(basename, &event[i]);
- 			add_name(basename+".utc", &event[i].utc);
- 			add_name(basename+".utcexec", &event[i].utcexec);
- 			add_name(basename+".node", &event[i].node);
- 			add_name(basename+".name", &event[i].name);
- 			add_name(basename+".user", &event[i].user);
- 			add_name(basename+".flag", &event[i].flag);
- 			add_name(basename+".type", &event[i].type);
- 			add_name(basename+".value", &event[i].value);
- 			add_name(basename+".dtime", &event[i].dtime);
- 			add_name(basename+".ctime", &event[i].ctime);
- 			add_name(basename+".denergy", &event[i].denergy);
- 			add_name(basename+".cenergy", &event[i].cenergy);
- 			add_name(basename+".dmass", &event[i].dmass);
- 			add_name(basename+".cmass", &event[i].cmass);
- 			add_name(basename+".dbytes", &event[i].dbytes);
- 			add_name(basename+".cbytes", &event[i].cbytes);
- 			add_name(basename+".handle", &event[i].handle);
- 			add_name(basename+".data", &event[i].data);
- 			add_name(basename+".condition", &event[i].condition);
- 		}
+        // vector<portstruc> port
+                add_name("port", &port);
+                for(size_t i = 0; i < port.capacity(); ++i)	{
+                        string basename = "port[" + std::to_string(i) + "]";
+                        add_name(basename, &port[i]);
+                        add_name(basename+".type", &port[i].type);
+                        add_name(basename+".name", &port[i].name);
+                }
 
-	// vector<targetstruc> target 
- 		add_name("target", &target);
- 		for(size_t i = 0; i < target.capacity(); ++i)	{
- 			string basename = "target[" + std::to_string(i) + "]";
- 			add_name(basename, &target[i]);
- 			add_name(basename+".utc", &target[i].utc);
- 			add_name(basename+".name", &target[i].name);
- 			add_name(basename+".type", &target[i].type);
- 			add_name(basename+".azfrom", &target[i].azfrom);
- 			add_name(basename+".elfrom", &target[i].elfrom);
- 			add_name(basename+".azto", &target[i].azto);
- 			add_name(basename+".elto", &target[i].elto);
- 			add_name(basename+".range", &target[i].range);
- 			add_name(basename+".close", &target[i].close);
- 			add_name(basename+".min", &target[i].min);
- 			add_name(basename+".loc", &target[i].loc);
- 		}
+        // vector<eventstruc> event
+                add_name("event", &event);
+                for(size_t i = 0; i < event.capacity(); ++i)	{
+                        string basename = "event[" + std::to_string(i) + "]";
+                        add_name(basename, &event[i]);
+                        add_name(basename+".utc", &event[i].utc);
+                        add_name(basename+".utcexec", &event[i].utcexec);
+                        add_name(basename+".node", &event[i].node);
+                        add_name(basename+".name", &event[i].name);
+                        add_name(basename+".user", &event[i].user);
+                        add_name(basename+".flag", &event[i].flag);
+                        add_name(basename+".type", &event[i].type);
+                        add_name(basename+".value", &event[i].value);
+                        add_name(basename+".dtime", &event[i].dtime);
+                        add_name(basename+".ctime", &event[i].ctime);
+                        add_name(basename+".denergy", &event[i].denergy);
+                        add_name(basename+".cenergy", &event[i].cenergy);
+                        add_name(basename+".dmass", &event[i].dmass);
+                        add_name(basename+".cmass", &event[i].cmass);
+                        add_name(basename+".dbytes", &event[i].dbytes);
+                        add_name(basename+".cbytes", &event[i].cbytes);
+                        add_name(basename+".handle", &event[i].handle);
+                        add_name(basename+".data", &event[i].data);
+                        add_name(basename+".condition", &event[i].condition);
+                }
 
- 	// vector<userstruc> user
- 		add_name("user", &user);
- 		for(size_t i = 0; i < user.capacity(); ++i)	{
- 			string basename = "user[" + std::to_string(i) + "]";
- 			add_name(basename, &user[i]);
- 			add_name(basename+".name", &user[i].name);
- 			add_name(basename+".node", &user[i].node);
- 			add_name(basename+".tool", &user[i].tool);
- 			add_name(basename+".cpu", &user[i].cpu);
- 		}
+        // vector<targetstruc> target
+                add_name("target", &target);
+                for(size_t i = 0; i < target.capacity(); ++i)	{
+                        string basename = "target[" + std::to_string(i) + "]";
+                        add_name(basename, &target[i]);
+                        add_name(basename+".utc", &target[i].utc);
+                        add_name(basename+".name", &target[i].name);
+                        add_name(basename+".type", &target[i].type);
+                        add_name(basename+".azfrom", &target[i].azfrom);
+                        add_name(basename+".elfrom", &target[i].elfrom);
+                        add_name(basename+".azto", &target[i].azto);
+                        add_name(basename+".elto", &target[i].elto);
+                        add_name(basename+".range", &target[i].range);
+                        add_name(basename+".close", &target[i].close);
+                        add_name(basename+".min", &target[i].min);
+                        add_name(basename+".loc", &target[i].loc);
+                }
 
- 	// vector<tlestruc> tle
- 		add_name("tle", &tle);
- 		for(size_t i = 0; i < tle.capacity(); ++i)	{
- 			string basename = "tle[" + std::to_string(i) + "]";
- 			add_name(basename, &tle[i]);
- 			add_name(basename+".utc", &tle[i].utc);
- 			add_name(basename+".name", &tle[i].name);
- 			add_name(basename+".snumber", &tle[i].snumber);
- 			add_name(basename+".id", &tle[i].id);
- 			add_name(basename+".bstar", &tle[i].bstar);
- 			add_name(basename+".i", &tle[i].i);
- 			add_name(basename+".raan", &tle[i].raan);
- 			add_name(basename+".e", &tle[i].e);
- 			add_name(basename+".ap", &tle[i].ap);
- 			add_name(basename+".ma", &tle[i].ma);
- 			add_name(basename+".mm", &tle[i].mm);
- 			add_name(basename+".orbit", &tle[i].orbit);
- 		}
- 	}
+        // vector<userstruc> user
+                add_name("user", &user);
+                for(size_t i = 0; i < user.capacity(); ++i)	{
+                        string basename = "user[" + std::to_string(i) + "]";
+                        add_name(basename, &user[i]);
+                        add_name(basename+".name", &user[i].name);
+                        add_name(basename+".node", &user[i].node);
+                        add_name(basename+".tool", &user[i].tool);
+                        add_name(basename+".cpu", &user[i].cpu);
+                }
 
-
+        // vector<tlestruc> tle
+                add_name("tle", &tle);
+                for(size_t i = 0; i < tle.capacity(); ++i)	{
+                        string basename = "tle[" + std::to_string(i) + "]";
+                        add_name(basename, &tle[i]);
+                        add_name(basename+".utc", &tle[i].utc);
+                        add_name(basename+".name", &tle[i].name);
+                        add_name(basename+".snumber", &tle[i].snumber);
+                        add_name(basename+".id", &tle[i].id);
+                        add_name(basename+".bstar", &tle[i].bstar);
+                        add_name(basename+".i", &tle[i].i);
+                        add_name(basename+".raan", &tle[i].raan);
+                        add_name(basename+".e", &tle[i].e);
+                        add_name(basename+".ap", &tle[i].ap);
+                        add_name(basename+".ma", &tle[i].ma);
+                        add_name(basename+".mm", &tle[i].mm);
+                        add_name(basename+".orbit", &tle[i].orbit);
+                }
+        }
 
 
 
-	string get_name(void* v)	{
-		name_map::const_iterator it = names.begin();
-		while(it->second != v && it != names.end())	{ it++; }
-		if(it == names.end())	{	cerr<<"address <"<<v<<"> not found!"<<endl; return "";	}
-		return it->first;
-	}
 
-	template<class T>
-	T* get_pointer(const string& s) const	{
-		name_map::const_iterator it = names.find(s);
-		if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return nullptr;	}
-		return (T*)(it->second);
-	}
 
-	template<class T>
-	T get_value(const string& s) const	{
-		// change to static null object?
-		T dummy = T();
-		name_map::const_iterator it = names.find(s);
-		if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return dummy;	}
-		return *get_pointer<T>(s);
-	}
+        string get_name(void* v)	{
+                name_map::const_iterator it = names.begin();
+                while(it->second != v && it != names.end())	{ it++; }
+                if(it == names.end())	{	cerr<<"address <"<<v<<"> not found!"<<endl; return "";	}
+                return it->first;
+        }
 
-	template<class T>
-	void set_value(const string& s, const T& value) const	{
-		// maybe if not found should be inserted??  hmmm....  ask Eric
-		name_map::const_iterator it = names.find(s);
-		if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return;	}
-		*get_pointer<T>(s) = value;
-	}
+        template<class T>
+        T* get_pointer(const string& s) const	{
+                name_map::const_iterator it = names.find(s);
+                if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return nullptr;	}
+                return (T*)(it->second);
+        }
 
-	template<class T>
-	void set_json_value(const string& s, const string& json) const 	{
-		get_pointer<T>(s)->from_json(json);
-	}
+        template<class T>
+        T get_value(const string& s) const	{
+                // change to static null object?
+                T dummy = T();
+                name_map::const_iterator it = names.find(s);
+                if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return dummy;	}
+                return *get_pointer<T>(s);
+        }
 
-	template<class T>
-	string get_json(const string& s)	{
-		if(name_exists(s))	{
-			json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
-			return json.dump();
-		} else {
-			return "";
-		}
-	}
+        template<class T>
+        void set_value(const string& s, const T& value) const	{
+                // maybe if not found should be inserted??  hmmm....  ask Eric
+                name_map::const_iterator it = names.find(s);
+                if(it == names.end())	{	cerr<<"name <"<<s<<"> not found!"<<endl; return;	}
+                *get_pointer<T>(s) = value;
+        }
 
-	void replace(std::string& str, const std::string& from, const std::string& to) {
-    	if(from.empty()) return;
-    	size_t start_pos = 0;
-    	while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-        	str.replace(start_pos, from.length(), to);
-        	start_pos += to.length();
-    	}
-    	return;
-	}
-	
-	void pretty_form(string& js)    {
+        template<class T>
+        void set_json_value(const string& s, const string& json) const 	{
+                get_pointer<T>(s)->from_json(json);
+        }
 
-// JIMNOTE: fix bug with splitting lines over array indices [#]	
+        template<class T>
+        string get_json(const string& s)	{
+                if(name_exists(s))	{
+                        json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
+                        return json.dump();
+                } else {
+                        return "";
+                }
+        }
 
-    	replace(js, ", ", ",\n");
-    	replace(js, "[]", "E M P T Y   V E C T O R");
-    	replace(js, "{}", "E M P T Y   O B J E C T");
-    	replace(js, "{", "{\n");
-    	replace(js, "[", "[\n");
-    	replace(js, "}", "\n}");
-    	replace(js, "]", "\n]");
-    	replace(js, "E M P T Y   O B J E C T", "{}");
-    	replace(js, "E M P T Y   V E C T O R", "[]");
-	
-    	// create vector[char position] = # of indents
-    	int indent = 0;
-    	vector<size_t> indents;
-    	for(size_t i = 0; i < js.size(); ++i)   {
-        	if(js[i]=='['){ ++indent;}
-        	if(js[i]=='{'){ ++indent;}
-        	if(js[i]==']'){ --indent; indents[i-1]--;}
-        	if(js[i]=='}'){ --indent; indents[i-1]--;}
-        	indents.push_back(indent);
-    	}
-		
-    	// find position of all '\n' characters
-    	vector<size_t> newlines;
-    	for(size_t i =0; i < js.size(); i++) if(js[i] == '\n') newlines.push_back(i);
-	
-    	// insert the appropriate # of indents after the '\n' char
-    	for(size_t i = newlines.size(); i!=0; ) {
-        	--i;
-        	string indent_string;
-        	for(size_t j = 0; j < indents[newlines[i]]; ++j)    indent_string += "  ";
-        	js.insert(newlines[i]+1, indent_string);
-    	}
-    	return;
-	}
+        void replace(std::string& str, const std::string& from, const std::string& to) {
+        if(from.empty()) return;
+        size_t start_pos = 0;
+        while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+                str.replace(start_pos, from.length(), to);
+                start_pos += to.length();
+        }
+        return;
+        }
 
-	template<class T>
-	string get_json_pretty(const string& s)	{
-		if(name_exists(s))	{
-			json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
-			string pretty = json.dump();
-			pretty_form(pretty);
-			return pretty;
-		} else {
-			return "";
-		}
-	}
+        void pretty_form(string& js)    {
+
+// JIMNOTE: fix bug with splitting lines over array indices [#]
+
+        replace(js, ", ", ",\n");
+        replace(js, "[]", "E M P T Y   V E C T O R");
+        replace(js, "{}", "E M P T Y   O B J E C T");
+        replace(js, "{", "{\n");
+        replace(js, "[", "[\n");
+        replace(js, "}", "\n}");
+        replace(js, "]", "\n]");
+        replace(js, "E M P T Y   O B J E C T", "{}");
+        replace(js, "E M P T Y   V E C T O R", "[]");
+
+        // create vector[char position] = # of indents
+        int indent = 0;
+        vector<size_t> indents;
+        for(size_t i = 0; i < js.size(); ++i)   {
+                if(js[i]=='['){ ++indent;}
+                if(js[i]=='{'){ ++indent;}
+                if(js[i]==']'){ --indent; indents[i-1]--;}
+                if(js[i]=='}'){ --indent; indents[i-1]--;}
+                indents.push_back(indent);
+        }
+
+        // find position of all '\n' characters
+        vector<size_t> newlines;
+        for(size_t i =0; i < js.size(); i++) if(js[i] == '\n') newlines.push_back(i);
+
+        // insert the appropriate # of indents after the '\n' char
+        for(size_t i = newlines.size(); i!=0; ) {
+                --i;
+                string indent_string;
+                for(size_t j = 0; j < indents[newlines[i]]; ++j)    indent_string += "  ";
+                js.insert(newlines[i]+1, indent_string);
+        }
+        return;
+        }
+
+        template<class T>
+        string get_json_pretty(const string& s)	{
+                if(name_exists(s))	{
+                        json11::Json json = json11::Json::object { { s, this->get_value<T>(s) } };
+                        string pretty = json.dump();
+                        pretty_form(pretty);
+                        return pretty;
+                } else {
+                        return "";
+                }
+        }
 
 
     // Convert class contents to JSON object
@@ -4096,72 +4096,72 @@ struct cosmosstruc
             { "agent" , agent },
             { "event" , event },
             { "target" , target },
-			{ "user" , user },
-			{ "tle" , tle },
-			//{ "json" , json }
-		};
-	}
+                        { "user" , user },
+                        { "tle" , tle },
+                        //{ "json" , json }
+                };
+        }
 
     // Set class contents from JSON string
     void from_json(const string& s) {
         string error;
         json11::Json p = json11::Json::parse(s,error);
         if(error.empty()) {
-			string obj(p.object_items().begin()->first); // NOTE: Should we rename this to something else? We already have a wavefront obj member var
- 			if(!p[obj]["timestamp"].is_null())	timestamp = p[obj]["timestamp"].number_value();
- 			if(!p[obj]["jmapped"].is_null())	jmapped = p[obj]["jmapped"].number_value();
- 			for(size_t i = 0; i < unit.size(); ++i)	{
- 				for(size_t j = 0; j < unit[i].size(); ++j)	{
-                    if(!p[obj]["unit"][i][j].is_null()) 
- 					    unit[i][j].from_json(p[obj]["unit"][i][j].dump());
- 				}
- 			}
- 			for(size_t i = 0; i < equation.size(); ++i)	{
-			    if(!p[obj]["equation"][i].is_null())
- 				    equation[i].from_json(p[obj]["equation"][i].dump());
-			}
- 			if(!p[obj]["node"].is_null())	node.from_json(p[obj]["node"].dump());
- 			for(size_t i = 0; i < vertexs.size(); ++i)	{
- 				if(!p[obj]["vertexs"][i].is_null())	vertexs[i].from_json(p[obj]["vertexs"][i].dump());
-			}
- 			for(size_t i = 0; i < normals.size(); ++i)	{
- 				if(!p[obj]["normals"][i].is_null())	normals[i].from_json(p[obj]["normals"][i].dump());
-			}
+                        string obj(p.object_items().begin()->first); // NOTE: Should we rename this to something else? We already have a wavefront obj member var
+                        if(!p[obj]["timestamp"].is_null())	timestamp = p[obj]["timestamp"].number_value();
+                        if(!p[obj]["jmapped"].is_null())	jmapped = p[obj]["jmapped"].number_value();
+                        for(size_t i = 0; i < unit.size(); ++i)	{
+                                for(size_t j = 0; j < unit[i].size(); ++j)	{
+                    if(!p[obj]["unit"][i][j].is_null())
+                                            unit[i][j].from_json(p[obj]["unit"][i][j].dump());
+                                }
+                        }
+                        for(size_t i = 0; i < equation.size(); ++i)	{
+                            if(!p[obj]["equation"][i].is_null())
+                                    equation[i].from_json(p[obj]["equation"][i].dump());
+                        }
+                        if(!p[obj]["node"].is_null())	node.from_json(p[obj]["node"].dump());
+                        for(size_t i = 0; i < vertexs.size(); ++i)	{
+                                if(!p[obj]["vertexs"][i].is_null())	vertexs[i].from_json(p[obj]["vertexs"][i].dump());
+                        }
+                        for(size_t i = 0; i < normals.size(); ++i)	{
+                                if(!p[obj]["normals"][i].is_null())	normals[i].from_json(p[obj]["normals"][i].dump());
+                        }
             for(size_t i = 0; i < faces.size(); ++i)	{
- 				if(!p[obj]["faces"][i].is_null())	faces[i].from_json(p[obj]["faces"][i].dump());
-			}
+                                if(!p[obj]["faces"][i].is_null())	faces[i].from_json(p[obj]["faces"][i].dump());
+                        }
             if(!p["obj"].is_null()) cosmosstruc::obj.from_json(p[obj]["obj"].dump());
             for(size_t i = 0; i < device.size(); ++i)	{
- 				if(!p[obj]["device"][i].is_null())	device[i].from_json(p[obj]["device"][i].dump());
-			}
+                                if(!p[obj]["device"][i].is_null())	device[i].from_json(p[obj]["device"][i].dump());
+                        }
             if(!p[obj]["devspec"].is_null()) devspec.from_json(p[obj]["devspec"].dump());
             for(size_t i = 0; i < port.size(); ++i)	{
- 				if(!p[obj]["port"][i].is_null())	port[i].from_json(p[obj]["port"][i].dump());
-			}
+                                if(!p[obj]["port"][i].is_null())	port[i].from_json(p[obj]["port"][i].dump());
+                        }
             for(size_t i = 0; i < agent.size(); ++i)	{
- 				if(!p[obj]["agent"][i].is_null())	agent[i].from_json(p[obj]["agent"][i].dump());
-			}
+                                if(!p[obj]["agent"][i].is_null())	agent[i].from_json(p[obj]["agent"][i].dump());
+                        }
             for(size_t i = 0; i < event.size(); ++i)	{
- 				if(!p[obj]["event"][i].is_null())	event[i].from_json(p[obj]["event"][i].dump());
-			}
+                                if(!p[obj]["event"][i].is_null())	event[i].from_json(p[obj]["event"][i].dump());
+                        }
             for(size_t i = 0; i < target.size(); ++i)	{
- 				if(!p[obj]["target"][i].is_null())	target[i].from_json(p[obj]["target"][i].dump());
-			}
- 			for(size_t i = 0; i < user.size(); ++i)	{
- 				if(!p[obj]["user"][i].is_null())	user[i].from_json(p[obj]["user"][i].dump());
-			}
- 			for(size_t i = 0; i < tle.size(); ++i)	{
- 				if(!p[obj]["tle"][i].is_null())	tle[i].from_json(p[obj]["tle"][i].dump());
-			}
- 			//if(!p[obj]["json"].is_null())	json.from_json(p[obj]["json"].dump());
-		} else {
+                                if(!p[obj]["target"][i].is_null())	target[i].from_json(p[obj]["target"][i].dump());
+                        }
+                        for(size_t i = 0; i < user.size(); ++i)	{
+                                if(!p[obj]["user"][i].is_null())	user[i].from_json(p[obj]["user"][i].dump());
+                        }
+                        for(size_t i = 0; i < tle.size(); ++i)	{
+                                if(!p[obj]["tle"][i].is_null())	tle[i].from_json(p[obj]["tle"][i].dump());
+                        }
+                        //if(!p[obj]["json"].is_null())	json.from_json(p[obj]["json"].dump());
+                } else {
             cerr<<"ERROR: <"<<error<<">"<<endl;
         }
         return;
     }
 
-	// other namespace member functions??
-	// maybe set_json for use with namespace names (calls from_json...)
+        // other namespace member functions??
+        // maybe set_json for use with namespace names (calls from_json...)
 };
 
 //! @}
