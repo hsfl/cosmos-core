@@ -2880,11 +2880,11 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
     rvector normal, unitv, unitx, unitp, unitp1, unitp2;
     static rvector lunitp1 = {{.1,.1,0.}};
     double angle;
-    uvector utemp;
+    uvector utemp{};
     double dtsave;
     double dtuse;
     rmatrix tskew;
-    uvector tvector1;
+    uvector tvector1{};
     matrix2d tmatrix2;
     rvector tvector;
     vector <locstruc> locvec;
@@ -3297,7 +3297,7 @@ int orbit_propagate(cosmosstruc *cinfo, double utc)
 int update_eci(cosmosstruc *cinfo, double utc, cartpos pos)
 {
     quaternion dsq, q1, q2;
-    uvector utemp;
+    uvector utemp{};
     static rvector unitp1, unitp2, lunitp1;
     rvector unitp, unitx, normal, unitv;
     locstruc tloc;

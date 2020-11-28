@@ -94,11 +94,18 @@ class cvector
 
 public:
     //! X value
-    double x;
+    double x = 0.;
     //! Y value
-    double y;
+    double y = 0.;
     //! Z value
-    double z;
+    double z = 0.;
+
+    cvector() {}
+    cvector(double tx, double ty, double tz) {
+        x = tx;
+        y = ty;
+        z = tz;
+    }
 
     void normalize(double scale=1.);
     double length();
@@ -329,7 +336,13 @@ struct quaternion
     //! Orientation
     cvector d;
     //! Rotation
-    double w;
+    double w = 0.;
+
+    quaternion() {}
+    quaternion(cvector td, double tw) {
+        d = td;
+        w = tw;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {

@@ -3841,7 +3841,7 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
 {
     int32_t index, i, j;
     double findex;
-    uvector t, p, su, vu, au;
+    uvector t{}, p{}, su{}, vu{}, au{};
     rmatrix s, v, a;
 
     findex = ((utc-stk.pos[0].utc)/stk.dt)+.5;
