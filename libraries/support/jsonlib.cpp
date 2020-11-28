@@ -3770,7 +3770,7 @@ double json_get_double(const jsonentry &entry, cosmosstruc *cinfo)
 rvector json_get_rvector(const jsonentry &entry, cosmosstruc *cinfo)
 {
     uint8_t *dptr=nullptr;
-    rvector value={{0., 0., 0.}};
+    rvector value;
 
     dptr = json_ptr_of_entry(entry, cinfo);
     if (dptr == nullptr)

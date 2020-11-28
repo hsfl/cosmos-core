@@ -2878,7 +2878,7 @@ vector <locstruc> gauss_jackson_propagate(gj_handle &gjh, physicsstruc &physics,
     quaternion q1, dsq, q2;
     dem_pixel val;
     rvector normal, unitv, unitx, unitp, unitp1, unitp2;
-    static rvector lunitp1 = {{.1,.1,0.}};
+    static rvector lunitp1 = {.1,.1,0.};
     double angle;
     uvector utemp{};
     double dtsave;

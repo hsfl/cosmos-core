@@ -81,7 +81,7 @@ double gaussian_random(double mean, double stdev)
 quaternion q_drotate_between_rv(rvector from, rvector to)
 {
     uvector rq = {{{0.,0.,0.},0.}};
-    rvector vec1 = {{0.}}, vec2 = {{0.}};
+    rvector vec1, vec2;
 
     normalize_rv(from);
     normalize_rv(to);
@@ -218,7 +218,7 @@ rvector rv_quaternion2axis(quaternion q)
 
 rmatrix rm_quaternion2dcm(quaternion q)
 {
-    rmatrix m = {{{{0.}}}};;
+    rmatrix m;
     double yy, xx, zz, xy, xz, xw, yz, yw, zw;
 
     normalize_q(&q);

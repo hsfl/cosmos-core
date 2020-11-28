@@ -52,7 +52,14 @@
 // it can be used for specific projects that require it
 struct rvector
 {
-    double col[3];
+    double col[3] = {0.};
+
+    rvector() {}
+    rvector(double d0, double d1, double d2) {
+        col[0] = d0;
+        col[1] = d1;
+        col[2] = d2;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
