@@ -191,11 +191,18 @@ std::istream& operator >> (std::istream& out, svector& a);
 struct gvector
 {
     //! Latitude in radians
-    double lat;
+    double lat = 0.;
     //! Longitude in radians
-    double lon;
+    double lon = 0.;
     //! Height in meters
-    double h;
+    double h = 0.;
+
+    gvector() {}
+    gvector(double tlat, double tlon, double th) {
+        lat = tlat;
+        lon = tlon;
+        h = th;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -231,11 +238,18 @@ std::istream& operator >> (std::istream& out, gvector& a);
 struct avector
 {
     //! Heading
-    double h;
+    double h = 0.;
     //! Elevation
-    double e;
+    double e = 0.;
     //! Bank
-    double b;
+    double b = 0.;
+
+    avector() {}
+    avector(double th, double te, double tb) {
+        h = th;
+        e = te;
+        b = tb;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {

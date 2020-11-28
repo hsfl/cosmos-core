@@ -48,7 +48,7 @@ namespace Cosmos
         struct point
         {
             vector <size_t> groups;
-            size_t vertex;
+            size_t vertex = 0;
 
             // Convert class contents to JSON object
             json11::Json to_json() const {
@@ -81,7 +81,7 @@ namespace Cosmos
             vector <size_t> groups;
             vector <vertex> vertices;
             Vector centroid;
-            double length;
+            double length = 0.;
 
             // Convert class contents to JSON object
             json11::Json to_json() const {
@@ -121,7 +121,7 @@ namespace Cosmos
             vector <vertex> vertices;
             Vector com;
             Vector normal;
-            double area;
+            double area = 0.;
 
             // Convert class contents to JSON object
             json11::Json to_json() const {
@@ -159,13 +159,13 @@ namespace Cosmos
 
         struct group
         {
-            string name;
-            size_t materialidx;
+            string name = "";
+            size_t materialidx = 0;
             vector <size_t> pointidx;
             vector <size_t> lineidx;
             vector <size_t> faceidx;
             Vector com;
-            double volume;
+            double volume = 0;
 
             // Convert class contents to JSON object
             json11::Json to_json() const {
@@ -213,8 +213,8 @@ namespace Cosmos
 
         struct material
         {
-            string name;
-            float density;
+            string name = "";
+            float density = 0.f;
             Vector ambient;
             Vector diffuse;
             Vector specular;
@@ -278,7 +278,7 @@ namespace Cosmos
         vector <line> Lines;
         vector <face> Faces;
         vector <group> Groups;
-        string name;
+        string name = "";
 
         // Convert class contents to JSON object
         json11::Json to_json() const {
@@ -345,7 +345,7 @@ namespace Cosmos
         vector <size_t> cGroups;
         void parseobj(string input);
         void parsemtl(string input);
-        string location;
+        string location = "";
     };
 }
 
