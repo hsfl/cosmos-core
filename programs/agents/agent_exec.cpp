@@ -33,7 +33,7 @@
 #include "support/jsonlib.h"
 #include "support/convertlib.h"
 #include "support/datalib.h"
-#include "support/command_queue.h"
+#include "agent/command_queue.h"
 
 #include <iostream>
 #include <iomanip>
@@ -770,30 +770,31 @@ int32_t request_remote_command(string &request, string &response, Agent *)
     }
     else {
         // Redirect error into buffer as well.
-        strcpy(request_re, &request[i]);
-        strcat(request_re, " 2>&1");
+//        strcpy(request_re, &request[i]);
+//        strcat(request_re, " 2>&1");
 
         // Run the process and create a pipe.
-#ifdef COSMOS_WIN_BUILD_MSVC
-        if ((pd=_popen(request_re, "r")) != NULL)
-#else
-        if ((pd=popen(request_re, "r")) != nullptr)
-#endif
-        {
-            response.resize(AGENTMAXBUFFER);
-            iretn = fread(&response[0], 1, AGENTMAXBUFFER-1, pd);
-            response[iretn] = '\0';
-            iretn = 0;
-#ifdef COSMOS_WIN_BUILD_MSVC
-            _pclose(pd);
-#else
-            pclose(pd);
-#endif
-        }
-        else {
-            response[0] = '\0';
-            iretn = 0;
-        }
+        iretn = data_execute(request.substr(request.find(" ") + 1), response);
+//#ifdef COSMOS_WIN_BUILD_MSVC
+//        if ((pd=_popen(request_re, "r")) != NULL)
+//#else
+//        if ((pd=popen(request_re, "r")) != nullptr)
+//#endif
+//        {
+//            response.resize(AGENTMAXBUFFER);
+//            iretn = fread(&response[0], 1, AGENTMAXBUFFER-1, pd);
+//            response[iretn] = '\0';
+//            iretn = 0;
+//#ifdef COSMOS_WIN_BUILD_MSVC
+//            _pclose(pd);
+//#else
+//            pclose(pd);
+//#endif
+//        }
+//        else {
+//            response[0] = '\0';
+//            iretn = 0;
+//        }
     }
 
     return iretn;
@@ -899,24 +900,34 @@ void move_and_compress_beacon () {
 int32_t get_power_mode()
 {
     int32_t powermode = -1;
-    FILE *fp = popen("/cosmos/scripts/power_mode_get", "r");
-    if (fp == nullptr)
-    {
-        return -errno;
-    }
-    char tdata[100];
     uint16_t tindex;
-    if ((fgets(tdata, 100, fp)) == tdata)
+    string tdata;
+    int32_t iretn = data_execute("power_mode_get", tdata);
+    if (sscanf(tdata.c_str(), "%u\n", &tindex) == 1)
     {
-        if (sscanf(tdata, "%u\n", &tindex) == 1)
+        if (tindex > 0)
         {
-            if (tindex > 0)
-            {
-                powermode = tindex;
-            }
+            powermode = tindex;
         }
     }
-    pclose(fp);
+    //    FILE *fp = popen("/cosmos/scripts/power_mode_get", "r");
+//    if (fp == nullptr)
+//    {
+//        return -errno;
+//    }
+//    char tdata[100];
+//    uint16_t tindex;
+//    if ((fgets(tdata, 100, fp)) == tdata)
+//    {
+//        if (sscanf(tdata, "%u\n", &tindex) == 1)
+//        {
+//            if (tindex > 0)
+//            {
+//                powermode = tindex;
+//            }
+//        }
+//    }
+//    pclose(fp);
     return powermode;
 }
 

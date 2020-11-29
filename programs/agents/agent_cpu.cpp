@@ -234,17 +234,26 @@ int main(int argc, char *argv[])
         }
 
         // get temperature
-        FILE *cmd_pipe = popen("/cosmos/scripts/get_cpu_temperature", "r");
-
-        if (cmd_pipe != nullptr)
+        string response;
+        iretn = data_execute("get_cpu_temperature", response);
+        if (iretn > 0)
         {
-            float ctemp;
-            fscanf(cmd_pipe, "%f", &ctemp);
-            pclose( cmd_pipe );
-
+            float ctemp = stof(response);
             cputemp.update(currentmjd(), ctemp);
             agent->cinfo->device[cpu_cidx].temp = cputemp.eval(currentmjd());
         }
+
+//        FILE *cmd_pipe = popen("/cosmos/scripts/get_cpu_temperature", "r");
+
+//        if (cmd_pipe != nullptr)
+//        {
+//            float ctemp;
+//            fscanf(cmd_pipe, "%f", &ctemp);
+//            pclose( cmd_pipe );
+
+//            cputemp.update(currentmjd(), ctemp);
+//            agent->cinfo->device[cpu_cidx].temp = cputemp.eval(currentmjd());
+//        }
 
         if (agent->debug_level)
         {

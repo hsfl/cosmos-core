@@ -181,13 +181,15 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
     vector <info> result;
     info tinfo;
 #ifdef COSMOS_LINUX_OS
-    FILE *fp = popen("/bin/lsblk -fbl -o SIZE,MOUNTPOINT", "r");
-    char tdata[100];
+    string tdata;
     uint64_t tsize;
-    while ((fgets(tdata, 100, fp)) == tdata)
+
+    int32_t iretn = data_execute("lsblk -fbl -o SIZE,MOUNTPOINT", tdata);
+    vector<string> lines = string_split(tdata, "\n");
+    for (string line : lines)
     {
         char tmount[50];
-        if (sscanf(tdata, "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+        if (sscanf(line.c_str(), "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
         {
             tinfo.mount = tmount;
             tinfo.size = tsize;
@@ -196,6 +198,21 @@ vector <DeviceDisk::info> DeviceDisk::getInfo()
             result.push_back(tinfo);
         }
     }
+//    FILE *fp = popen("/bin/lsblk -fbl -o SIZE,MOUNTPOINT", "r");
+//    char tdata[100];
+//    uint64_t tsize;
+//    while ((fgets(tdata, 100, fp)) == tdata)
+//    {
+//        char tmount[50];
+//        if (sscanf(tdata, "%lu %s\n", &tsize, tmount) == 2 && tmount[0] == '/')
+//        {
+//            tinfo.mount = tmount;
+//            tinfo.size = tsize;
+//            tinfo.used = getUsed(tinfo.mount);
+//            tinfo.free = tinfo.size - tinfo.used;
+//            result.push_back(tinfo);
+//        }
+//    }
 #endif
 #ifdef COSMOS_WIN_OS
     getAll();
