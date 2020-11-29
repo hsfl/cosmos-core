@@ -1654,8 +1654,8 @@ double set_local_clock(double utc_to)
             // adjust the time
             iretn = adjtime(&newdelta, &olddelta);
             return 0.;
-        }
 #endif
+        }
 
     }
     return deltat;

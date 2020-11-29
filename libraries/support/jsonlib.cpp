@@ -205,13 +205,13 @@ void json_init_unit(cosmosstruc* cinfo)	{
         case JSON_UNIT_ANGLE:
             tunit.name = "deg";
             tunit.type = JSON_UNIT_TYPE_POLY;
-            tunit.p1 = (float)RTOD;
+            tunit.p1 =  static_cast<float>(RTOD);
             cinfo->unit[i].push_back(tunit);
             break;
         case JSON_UNIT_ANGULAR_RATE:
             tunit.name = "deg/s";
             tunit.type = JSON_UNIT_TYPE_POLY;
-            tunit.p1 = (float)RTOD;
+            tunit.p1 =  static_cast<float>(RTOD);
             cinfo->unit[i].push_back(tunit);
             break;
         case JSON_UNIT_AREA:
@@ -11218,7 +11218,7 @@ int32_t load_target(cosmosstruc *cinfo)
 int32_t update_target(cosmosstruc *cinfo)
 {
     int32_t iretn = 0;
-    rvector topo, dv, ds;
+//    rvector topo, dv, ds;
     for (uint32_t i=0; i<cinfo->target.size(); ++i)
     {
         iretn = update_target(cinfo->target[i].loc, cinfo->target[i]);

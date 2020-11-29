@@ -743,10 +743,14 @@ int32_t socket_sendto(socket_channel &channel, const string buffer, int flags)
 int32_t socket_sendto(socket_channel &channel, const vector<uint8_t> buffer, int flags)
 {
     int32_t nbytes;
+#if defined(COSMOS_WIN_OS)
+    nbytes = sendto(channel.cudp, (const char *)(buffer.data()), buffer.size(), flags, (struct sockaddr *)&channel.caddr, channel.addrlen);
+#else
     if ((nbytes = sendto(channel.cudp, const_cast<uint8_t*>(buffer.data()), buffer.size(), flags, reinterpret_cast<struct sockaddr *>(&channel.caddr), static_cast<socklen_t>(channel.addrlen))) < 0)
     {
         nbytes = -errno;
     }
+#endif
     return nbytes;
 }
 

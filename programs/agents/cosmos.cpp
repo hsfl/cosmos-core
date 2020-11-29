@@ -53,20 +53,20 @@
 const int REQUEST_WAIT_TIME = 2;
 const int SERVER_WAIT_TIME = 6;
 
-//void print_node_list(std::vector<std::string>& nlp) {
+//void print_node_list(vector<string>& nlp) {
 
 //    if(nlp.empty())
 //    {
 //        return;
 //    }
 
-//    for(std::string n: nlp)
+//    for(string n: nlp)
 //    {
 //        printf("    %s\n", n.c_str());
 //    }
 //    return;
 //}
-std::string output;
+string output;
 string node_name = "";
 string agent_name = "";
 
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 {
     int nbytes;
     beatstruc cbeat;
-    std::vector<std::string> nl;
+    vector<string> nl;
     data_list_nodes(nl);
     Agent *agent;
 
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1],"dump"))
         {
             double lmjd = 0., dmjd;
-            std::string channel;
+            string channel;
             Agent::AgentMessage cnum;
             Agent::messstruc message;
             int i;
@@ -252,10 +252,10 @@ int main(int argc, char *argv[])
         if (!strcmp(argv[1],"dump"))
         {
             double lmjd = 0., dmjd;
-            std::string channel;
+            string channel;
             Agent::AgentMessage cnum;
             Agent::messstruc message;
-            std::string header;
+            string header;
             int i;
             locstruc loc;
 
@@ -373,12 +373,12 @@ int main(int argc, char *argv[])
             if(argc == 3)
             {
                 printf("List of available requests:\n");
-                nbytes = agent->send_request(cbeat,(char*)"help", std::ref(output), REQUEST_WAIT_TIME);
+                nbytes = agent->send_request(cbeat,(char*)"help", ref(output), REQUEST_WAIT_TIME);
                 printf("%s [%d]\n", output.c_str(), nbytes);
             }
             else
             {
-                std::string request;
+                string request;
                 request = argv[3];
                 for (size_t i=0; i<(size_t)argc-4; ++i)
                 {
