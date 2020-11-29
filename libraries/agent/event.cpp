@@ -31,7 +31,7 @@
 	\brief Agent support functions
 */
 
-#include "support/event.h"
+#include "agent/event.h"
 
 namespace Cosmos {
 

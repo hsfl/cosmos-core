@@ -51,7 +51,7 @@
 /* ------------------------------ INCLUDES --------------------------- */
 /* ------------------------------------------------------------------- */
 
-#include "support/nrlmsise-00.h"   /* header for nrlmsise-00.h */
+#include "physics/nrlmsise-00.h"   /* header for nrlmsise-00.h */
 #include <cmath>          /* maths functions */
 #include <stdio.h>         /* for error messages. TBD: remove this */
 #include <stdlib.h>        /* for malloc/free */

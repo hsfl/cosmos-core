@@ -34,7 +34,7 @@
 #include "support/jsondef.h"
 #include "support/convertlib.h"
 #include "support/timelib.h"
-#include "support/nrlmsise-00.h"
+#include "physics/nrlmsise-00.h"
 #include "support/datalib.h"
 
 

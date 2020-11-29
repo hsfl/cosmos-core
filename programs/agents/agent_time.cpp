@@ -33,7 +33,7 @@
 #include "support/jsonlib.h"
 #include "support/convertlib.h"
 #include "support/datalib.h"
-#include "support/command_queue.h"
+#include "agent/command_queue.h"
 
 int main(int argc, char *argv[])
 {
