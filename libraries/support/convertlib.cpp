@@ -841,7 +841,7 @@ int32_t pos_eci2geoc(locstruc *loc)
 int32_t pos_eci2geoc(locstruc &loc)
 {
     int32_t iretn;
-    rvector v2 = {{0.}};
+    rvector v2;
 
     // Synchronize time
     if (0. == loc.pos.eci.utc)
@@ -1296,7 +1296,7 @@ int32_t pos_sci2selc(locstruc *loc)
 int32_t pos_sci2selc(locstruc &loc)
 {
     int32_t iretn;
-    rvector v2 = {{0.}};
+    rvector v2;
     rmatrix m1;
 
     // Synchronize time
@@ -1715,7 +1715,7 @@ int32_t att_icrf2selc(locstruc *loc)
 int32_t att_icrf2selc(locstruc &loc)
 {
     int32_t iretn;
-    rmatrix dpm = {{{{0.}}}};
+    rmatrix dpm;
     rvector alpha;
     double radius;
 
@@ -1869,7 +1869,7 @@ int32_t att_planec2lvlh(locstruc *loc)
 int32_t att_planec2lvlh(locstruc &loc)
 {
     quaternion qe_z = {{0.,0.,0.},1.}, qe_y = {{0.,0.,0.},1.}, fqe = {{0.,0.,0.},1.}, rqe = {{0.,0.,0.},1.};
-    rvector lvlh_z = {{0.,0.,1.}}, lvlh_y = {{0.,1.,0.}}, geoc_z = {{0.}}, geoc_y = {{0.}}, alpha = {{0.}};
+    rvector lvlh_z = {0.,0.,1.}, lvlh_y = {0.,1.,0.}, geoc_z = {0.,0.,0.}, geoc_y = {0.,0.,0.}, alpha = {0.,0.,0.};
     qatt *patt;
     cartpos *ppos;
     double radius;
@@ -1949,7 +1949,7 @@ int32_t att_lvlh2planec(locstruc *loc)
 int32_t att_lvlh2planec(locstruc &loc)
 {
     quaternion qe_z = {{0.,0.,0.},1.}, qe_y = {{0.,0.,0.},1.}, fqe = {{0.,0.,0.},1.}, rqe = {{0.,0.,0.},1.};
-    rvector lvlh_z = {{0.,0.,1.}}, lvlh_y = {{0.,1.,0.}}, geoc_z = {{0.}}, geoc_y = {{0.}}, alpha = {{0.}};
+    rvector lvlh_z = {0.,0.,1.}, lvlh_y = {0.,1.,0.}, geoc_z = {0.,0.,0.}, geoc_y = {0.,0.,0.}, alpha = {0.,0.,0.};
     qatt *patt;
     cartpos *ppos;
     double radius;
@@ -2111,7 +2111,7 @@ int32_t att_planec2topo(locstruc *loc)
 int32_t att_planec2topo(locstruc &loc)
 {
     quaternion t2g, t2g_z, t2g_x, g2t;
-    rvector geoc_x={{0.}}, topo_x={{0.}}, alpha;
+    rvector geoc_x, topo_x, alpha;
     qatt *patt;
     cartpos *ppos;
 
@@ -2180,7 +2180,7 @@ int32_t att_topo2planec(locstruc *loc)
 int32_t att_topo2planec(locstruc &loc)
 {
     quaternion t2g, t2g_z, t2g_x, g2t;
-    rvector geoc_x={{0.}}, topo_x={{0.}}, alpha;
+    rvector geoc_x, topo_x, alpha;
     qatt *patt;
     cartpos *ppos;
 
@@ -2660,8 +2660,8 @@ int32_t gcrf2itrs(double utc, rmatrix *rnp, rmatrix *rm, rmatrix *drm, rmatrix *
 {
     double ut1;
     rmatrix nrm[3], ndrm, nddrm;
-    rmatrix pm, nm, sm, pw = {{{{0.}}}};
-    static rmatrix bm = {{{{1.,-0.000273e-8,9.740996e-8}},{{0.000273e-8,1.,1.324146e-8}},{{-9.740996e-8,-1.324146e-8,1.}}}};
+    rmatrix pm, nm, sm, pw;
+    static rmatrix bm = {{1.,-0.000273e-8,9.740996e-8},{0.000273e-8,1.,1.324146e-8},{-9.740996e-8,-1.324146e-8,1.}};
     static rmatrix orm, odrm, oddrm, ornp;
     static double outc = 0.;
     static double realsec = 0.;
@@ -2823,14 +2823,14 @@ int32_t j20002mean(double ep1, rmatrix *pm)
 int32_t gcrf2j2000(rmatrix *rm)
 {
     // Vallado, Seago, Seidelmann: Implementation Issues Surrounding the New IAU Reference System for Astrodynamics
-    static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
+    static rmatrix bm = {{0.99999999999999,-0.0000000707827974,0.0000000805621715},{0.0000000707827948,0.9999999999999969,0.0000000330604145},{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}};
     *rm = bm;
     return 0;
 }
 
 int32_t j20002gcrf(rmatrix *rm)
 {
-    static rmatrix bm = {{{{0.99999999999999,-0.0000000707827974,0.0000000805621715}},{{0.0000000707827948,0.9999999999999969,0.0000000330604145}},{{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}}}};
+    static rmatrix bm = {{0.99999999999999,-0.0000000707827974,0.0000000805621715},{0.0000000707827948,0.9999999999999969,0.0000000330604145},{-0.0000000805621738,-0.0000000330604088,0.9999999999999962}};
     *rm = rm_transpose(bm);
     return 0;
 }
@@ -2877,7 +2877,7 @@ int32_t mean2mean(double ep0, double ep1, rmatrix *pm)
 
 int32_t kep2eci(kepstruc &kep, cartpos &eci)
 {
-    rvector qpos = {{0.}}, qvel = {{0.}};
+    rvector qpos, qvel;
     double s1, s2, s3, c1, c2, c3;
     double xx, xy, xz, yx, yy, yz, zx, zy, zz;
     double sea, cea, sqe;
@@ -2935,7 +2935,7 @@ int32_t eci2kep(cartpos &eci,kepstruc &kep)
 {
     double magr, magv, magn, sme, rdotv, temp;
     double c1, hk, magh;
-    rvector nbar = {{0.}}, ebar = {{0.}}, rsun = {{0.}}, hsat = {{0.}};
+    rvector nbar, ebar, rsun, hsat;
     cartpos earthpos;
 
     kep.utc = eci.utc;
@@ -3032,11 +3032,11 @@ int32_t eci2kep(cartpos &eci,kepstruc &kep)
  */
 int32_t geoc2topo(gvector source, rvector targetgeoc, rvector &topo)
 {
-    rmatrix g2t = {{{{0.}}}};
+    rmatrix g2t;
     double clat, clon, slat, slon;
     double lst, r, c, s;
     double cs, ct, ss, st;
-    rvector sourcegeoc = {{0.}};
+    rvector sourcegeoc;
 
     clon = cos(source.lon);
     slon = sin(source.lon);
@@ -3841,7 +3841,7 @@ int stk2eci(double utc, stkstruc &stk, cartpos &eci)
 {
     int32_t index, i, j;
     double findex;
-    uvector t, p, su, vu, au;
+    uvector t{}, p{}, su{}, vu{}, au{};
     rmatrix s, v, a;
 
     findex = ((utc-stk.pos[0].utc)/stk.dt)+.5;

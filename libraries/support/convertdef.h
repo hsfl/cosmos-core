@@ -158,7 +158,7 @@
 struct cartpos
 {
     //! UTC of Position
-    double utc;
+    double utc = 0.;
     //! Location
     rvector s;
     //! Velocity
@@ -167,7 +167,7 @@ struct cartpos
     rvector a;
 	// TODO: get rid of this kind of stuff?
     //! pass indicator: allows synchronization with other attitude and position values.
-    uint32_t pass;
+    uint32_t pass = 0.;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -207,7 +207,7 @@ std::istream& operator >> (std::istream& in, cartpos& a);
 struct cposstruc
 {
     //! UTC as Modified Julian Day
-    double utc;
+    double utc = 0.;
     //! Cartesian structure with all elements of position
     cartpos pos;
 
@@ -242,7 +242,7 @@ std::istream& operator >> (std::istream& in, cposstruc& a);
 */
 struct geoidpos
 {
-    double utc;
+    double utc = 0.;
     //! Position vector
     gvector s;
     //! Velocity vector
@@ -250,7 +250,7 @@ struct geoidpos
     //! Acceleration vector
     gvector a;
     //! pass indicator: allows synchronization with other attitude and position values.
-    uint32_t pass;
+    uint32_t pass = 0;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -289,7 +289,7 @@ std::istream& operator >> (std::istream& in, geoidpos& a);
 */
 struct spherpos
 {
-    double utc;
+    double utc = 0.;
     //! Position vector
     svector s;
     //! Velocity vector
@@ -297,7 +297,7 @@ struct spherpos
     //! Acceleration vector
     svector a;
     //! pass indicator: allows synchronization with other attitude and position values.
-    uint32_t pass;
+    uint32_t pass = 0;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -332,7 +332,7 @@ std::istream& operator >> (std::istream& in, spherpos& a);
 
 struct aattstruc
 {
-    double utc;
+    double utc = 0.;
     avector s;
     avector v;
     avector a;
@@ -382,7 +382,7 @@ std::istream& operator >> (std::istream& in, quatatt& a);
 */
 struct dcmatt
 {
-    double utc;
+    double utc = 0.;
     //! 0th derivative
     rmatrix s;
     //! 1st derivative
@@ -426,7 +426,7 @@ std::istream& operator >> (std::istream& in, dcmatt& a);
 */
 struct qatt
 {
-    double utc;
+    double utc = 0.;
     //! 0th derivative: Quaternion
     quaternion s; //q
     //! 1st derivative: Omega - angular velocity
@@ -434,7 +434,7 @@ struct qatt
     //! 2nd derivative: Alpha - acceleration
     rvector a;  //ddq
     //! pass indicator: allows synchronization with other attitude and position values.
-    uint32_t pass;
+    uint32_t pass = 0;
 
   	// Convert class contents to JSON object
     json11::Json to_json() const {
@@ -523,13 +523,13 @@ std::istream& operator << (std::istream& in, bodypos& a);
 struct extrapos
 {
     //! Coordinated Universal Time
-    double utc;
+    double utc = 0.;
     //! Terrestrial Time
-    double tt;
+    double tt = 0.;
     //! UT0
-    double ut;
+    double ut = 0.;
     //! Dynamical Barycentric Time
-    double tdb;
+    double tdb = 0.;
     //! Transform from ICRF to Geocentric
     rmatrix j2e;
     rmatrix dj2e;
@@ -548,7 +548,7 @@ struct extrapos
     rmatrix dt2s;
     cartpos sun2earth;
     cartpos sun2moon;
-    uint16_t closest;
+    uint16_t closest = 0;
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -625,7 +625,7 @@ std::istream& operator >> (std::istream& in, extrapos& a);
 struct extraatt
 {
     //! Coordinated Universal Time
-    double utc;
+    double utc = 0.;
     //! Transform from ICRF to Body frame
     rmatrix j2b;
     //! Transform from Body frame to ICRF
@@ -660,7 +660,7 @@ std::istream& operator >> (std::istream& in, extraatt& a);
 
 struct posstruc
 {
-    double utc;
+    double utc = 0.;
     cartpos icrf;
     cartpos eci;
     cartpos sci;
@@ -671,17 +671,17 @@ struct posstruc
     spherpos geos;
     extrapos extra;
     //! Separation between sun/satellite and sun/limbofearth vectors in radians
-    float earthsep;
+    float earthsep = 0.f;
     //! Separation between sun/satellite and sun/limbofmoon vectors in radians
-    float moonsep;
+    float moonsep = 0.f;
     //! Radius of sun in radians
-    float sunsize;
+    float sunsize = 0.f;
     //! Watts per square meter per steradian
-    float sunradiance;
+    float sunradiance = 0.f;
     //! Earth magnetic vector in ITRS for this time and location.
     rvector bearth;
     //! Decimal Orbit number
-    double orbit;
+    double orbit = 0.;
 
   // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -742,7 +742,7 @@ std::istream& operator >> (std::istream& in, posstruc& a);
 
 struct attstruc
 {
-    double utc;
+    double utc = 0.;
     qatt topo;
     qatt lvlh;
     qatt geoc;
@@ -788,7 +788,7 @@ std::istream& operator >> (std::istream& in, attstruc& a);
 struct locstruc
 {
     //! Master time for location, in Modified Julian Day
-    double utc;
+    double utc = 0.;
     //! ::posstruc for this time.
     posstruc pos;
     //! ::attstruc for this time.
@@ -824,27 +824,27 @@ std::istream& operator >> (std::istream& in, locstruc& a);
 //! In units **for** the SGP4 propogator (not NORAD TLE itself).
 struct tlestruc
 {
-    double utc;
+    double utc = 0.;
 	// JIMNOTE: remove magic number
-    char name[25];
-    uint16_t snumber;
+    char name[25] = "";
+    uint16_t snumber = 0;
 	// JIMNOTE: remove magic number
-    char id[9];
+    char id[9] = "";
     //! Drag (1/Earth radii)
-    double bstar;
+    double bstar = 0.;
     //! Inclination (radians)
-    double i;
+    double i = 0.;
     //! Right ascension of ascending node (radians)
-    double raan;
+    double raan = 0.;
     //! Eccentricity (unitless)
-    double e;
+    double e = 0.;
     //! Argument of perigee (radians)
-    double ap;
+    double ap = 0.;
     //! Mean anomaly (radians)
-    double ma;
+    double ma = 0.;
     //! Mean motion (radians / minute)
-    double mm;
-    uint32_t orbit;
+    double mm = 0.;
+    uint32_t orbit = 0;
 
   // Convert class contents to JSON object
     json11::Json to_json() const {

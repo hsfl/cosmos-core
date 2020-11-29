@@ -81,7 +81,7 @@ double gaussian_random(double mean, double stdev)
 quaternion q_drotate_between_rv(rvector from, rvector to)
 {
     uvector rq = {{{0.,0.,0.},0.}};
-    rvector vec1 = {{0.}}, vec2 = {{0.}};
+    rvector vec1, vec2;
 
     normalize_rv(from);
     normalize_rv(to);
@@ -128,7 +128,7 @@ quaternion q_drotate_between_rv(rvector from, rvector to)
 quaternion q_change_around_rv(rvector around, double angle)
 {
     double sa;
-    uvector rq;
+    uvector rq{};
 
     angle /= 2.;
     sa = sin(angle);
@@ -218,7 +218,7 @@ rvector rv_quaternion2axis(quaternion q)
 
 rmatrix rm_quaternion2dcm(quaternion q)
 {
-    rmatrix m = {{{{0.}}}};;
+    rmatrix m;
     double yy, xx, zz, xy, xz, xw, yz, yw, zw;
 
     normalize_q(&q);
@@ -1058,7 +1058,7 @@ double evaluate_poly_jerk(double x, vector<double> parms)
 // TODO: move to LsFit.cpp
 rvector rv_evaluate_poly(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1089,7 +1089,7 @@ rvector rv_evaluate_poly(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1120,7 +1120,7 @@ rvector rv_evaluate_poly_slope(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1151,7 +1151,7 @@ rvector rv_evaluate_poly_accel(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1182,7 +1182,7 @@ rvector rv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 gvector gv_evaluate_poly(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1213,7 +1213,7 @@ gvector gv_evaluate_poly(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 gvector gv_evaluate_poly_slope(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1244,7 +1244,7 @@ gvector gv_evaluate_poly_slope(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 gvector gv_evaluate_poly_accel(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1275,7 +1275,7 @@ gvector gv_evaluate_poly_accel(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 gvector gv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1306,7 +1306,7 @@ gvector gv_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 quaternion q_evaluate_poly(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1337,7 +1337,7 @@ quaternion q_evaluate_poly(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 quaternion q_evaluate_poly_slope(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1368,7 +1368,7 @@ quaternion q_evaluate_poly_slope(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 quaternion q_evaluate_poly_accel(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -1399,7 +1399,7 @@ quaternion q_evaluate_poly_accel(double x, vector< vector<double> > parms)
 // TODO: move to LsFit.cpp
 quaternion q_evaluate_poly_jerk(double x, vector< vector<double> > parms)
 {
-    uvector result;
+    uvector result{};
 
     for (uint16_t ic=0; ic<parms.size(); ++ic)
     {
@@ -2283,7 +2283,7 @@ rvector rotate_q(quaternion q, rvector v)
 */
 cvector drotate(quaternion q, cvector v)
 {
-    uvector qt;
+    uvector qt{};
 
     qt.c = v;
     qt.q.w = 0.0;
@@ -2328,7 +2328,7 @@ rvector transform_q(quaternion q, rvector v)
 */
 cvector irotate(quaternion q, cvector v)
 {
-    uvector qt;
+    uvector qt{};
 
     qt.c = v;
     qt.q.w = 0.0;
@@ -2349,7 +2349,7 @@ cvector irotate(quaternion q, cvector v)
 // and remove dependency of uvector
 quaternion q_change_between_cv(cvector from, cvector to)
 {
-    uvector rq;
+    uvector rq{};
     cvector vec1, vec2;
 
     normalize_cv(from);
@@ -2387,7 +2387,7 @@ quaternion q_change_between_cv(cvector from, cvector to)
 
 quaternion q_change_between_rv(rvector from, rvector to)
 {
-    uvector uvfrom, uvto;
+    uvector uvfrom{}, uvto{};
     quaternion result;
 
     uvfrom.r = from;

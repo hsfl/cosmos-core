@@ -3335,6 +3335,7 @@ struct devicestruc : public allstruc
             { "temp"    , temp },
             { "utc"     , utc },
 
+            { "all" , all },
             { "ant" , ant },
             { "batt" , batt },
             { "bcreg" , bcreg },
@@ -3394,6 +3395,7 @@ struct devicestruc : public allstruc
             if(!p["temp"].is_null()) temp = p["temp"].number_value();
             if(!p["utc"].is_null()) utc = p["utc"].number_value();
 
+            if(!p["all"].is_null())		all.from_json(p["all"].dump());
             if(!p["ant"].is_null())		ant.from_json(p["ant"].dump());
             if(!p["batt"].is_null())	batt.from_json(p["batt"].dump());
             if(!p["bcreg"].is_null())	bcreg.from_json(p["bcreg"].dump());

@@ -52,7 +52,14 @@
 // it can be used for specific projects that require it
 struct rvector
 {
-    double col[3];
+    double col[3] = {0.};
+
+    rvector() {}
+    rvector(double d0, double d1, double d2) {
+        col[0] = d0;
+        col[1] = d1;
+        col[2] = d2;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -94,11 +101,18 @@ class cvector
 
 public:
     //! X value
-    double x;
+    double x = 0.;
     //! Y value
-    double y;
+    double y = 0.;
     //! Z value
-    double z;
+    double z = 0.;
+
+    cvector() {}
+    cvector(double tx, double ty, double tz) {
+        x = tx;
+        y = ty;
+        z = tz;
+    }
 
     void normalize(double scale=1.);
     double length();
@@ -137,11 +151,18 @@ public:
 struct svector
 {
     //! N/S in radians
-    double phi;
+    double phi = 0.;
     //! E/W in radians
-    double lambda;
+    double lambda = 0.;
     //! Radius in meters
-    double r;
+    double r = 0.;
+
+    svector() {}
+    svector(double tphi, double tlambda, double tr) {
+        phi = tphi;
+        lambda = tlambda;
+        r = tr;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -177,11 +198,18 @@ std::istream& operator >> (std::istream& out, svector& a);
 struct gvector
 {
     //! Latitude in radians
-    double lat;
+    double lat = 0.;
     //! Longitude in radians
-    double lon;
+    double lon = 0.;
     //! Height in meters
-    double h;
+    double h = 0.;
+
+    gvector() {}
+    gvector(double tlat, double tlon, double th) {
+        lat = tlat;
+        lon = tlon;
+        h = th;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -217,11 +245,18 @@ std::istream& operator >> (std::istream& out, gvector& a);
 struct avector
 {
     //! Heading
-    double h;
+    double h = 0.;
     //! Elevation
-    double e;
+    double e = 0.;
     //! Bank
-    double b;
+    double b = 0.;
+
+    avector() {}
+    avector(double th, double te, double tb) {
+        h = th;
+        e = te;
+        b = tb;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -329,7 +364,13 @@ struct quaternion
     //! Orientation
     cvector d;
     //! Rotation
-    double w;
+    double w = 0.;
+
+    quaternion() {}
+    quaternion(cvector td, double tw) {
+        d = td;
+        w = tw;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -360,10 +401,18 @@ std::istream& operator >> (std::istream& out, quaternion& a);
 */
 struct qcomplex
 {
-    double i;
-    double j;
-    double k;
-    double r;
+    double i = 0.;
+    double j = 0.;
+    double k = 0.;
+    double r = 0.;
+
+    qcomplex() {}
+    qcomplex(double ti, double tj, double tk, double tr) {
+        i = ti;
+        j = tj;
+        k = tk;
+        r = tr;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -400,10 +449,18 @@ std::istream& operator >> (std::istream& out, qcomplex& a);
 */
 struct qlast
 {
-    double q1; // x
-    double q2; // y
-    double q3; // z
-    double q4; // w
+    double q1 = 0.; // x
+    double q2 = 0.; // y
+    double q3 = 0.; // z
+    double q4 = 0.; // w
+
+    qlast() {}
+    qlast(double tq1, double tq2, double tq3, double tq4) {
+        q1 = tq1;
+        q2 = tq2;
+        q3 = tq3;
+        q4 = tq4;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {
@@ -444,6 +501,14 @@ struct qfirst
     double q1; // x
     double q2; // y
     double q3; // z
+
+    qfirst() {}
+    qfirst(double tq0, double tq1, double tq2, double tq3) {
+        q0 = tq0;
+        q1 = tq1;
+        q2 = tq2;
+        q3 = tq3;
+    }
 
     // Convert class contents to JSON object
     json11::Json to_json() const {

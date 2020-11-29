@@ -42,6 +42,13 @@ struct rmatrix
 {
     rvector row[3];
 
+    rmatrix() {}
+    rmatrix(rvector rv0, rvector rv1, rvector rv2) {
+        row[0] = rv0;
+        row[1] = rv1;
+        row[2] = rv2;
+    }
+
     // Convert class contents to JSON object
     json11::Json to_json() const {
         vector<rvector> v_row = vector<rvector>(row, row+sizeof(row)/sizeof(row[0]));

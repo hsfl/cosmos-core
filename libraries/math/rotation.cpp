@@ -163,7 +163,7 @@ quaternion q_dcm2quaternion_cm(cmatrix dcm)
 */
 rmatrix rm_change_between_rv(rvector from, rvector to)
 {
-    rmatrix m = {{{{0.}}}};
+    rmatrix m;
 
     m = rm_quaternion2dcm(q_drotate_between_rv(from,to));
 
