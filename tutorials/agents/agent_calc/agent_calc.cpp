@@ -173,20 +173,28 @@ int main(int argc, char *argv[])
 
 // hijack agent_calc to demonstrate namespace 2.0
 
-	// printout all namespace 1.0 names
-	size_t n1 = 0;
-    for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i)
-	{
-    		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j)
-			{
-            	cout << "jmap[" << i << "]["<<j<<"] :\t" << agent->cinfo->jmap[i][j].name << endl;
-				n1++;
-			}
-	}
 
 	// verify the counts
+		size_t n1 = 0;
+    	for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i) {
+    		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j) {
+				n1++;
+			}
+		}
 	cout<<"There were "<<n1<<" entries in namespace 1.0 and "<<agent->cinfo->jmapped<<" is the value of jmapped."<<endl;
 
+	cout<<"\nWould you like to see the names from Namespace 1.0? (y/n) : ";
+	char see;
+	cin>>see;
+	if(see == 'Y' || see == 'y')	{
+		cout<<endl;
+		// printout all namespace 1.0 names
+    	for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i) {
+    		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j) {
+           		cout << "jmap[" << i << "]["<<j<<"] :\t" << agent->cinfo->jmap[i][j].name << endl;
+			}
+		}
+	}	
 
 /*	old namespace 1.0 way of getting values with json_out(..)
     cout << agent->cinfo->node.name << endl;
@@ -211,18 +219,25 @@ int main(int argc, char *argv[])
 
 // see if we can print out entire cosmosstruc in JSON
 
-	agent->cinfo->add_name("Entire COSMOSSTRUC", agent->cinfo);
-	cout<<"Output:\n\t<"<<agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC")<<">"<<endl;
+	//agent->cinfo->add_name("Entire COSMOSSTRUC", agent->cinfo);
+	//cout<<"Output:\n\t<"<<agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC")<<">"<<endl;
 
-	cout<<"all done";
-	cout<<"The size of the namespace for cosmosstruc using namespace 2.0 is "<<agent->cinfo->size()<<"."<<endl;
+	//cout<<"all done";
+	//cout<<"The size of the namespace for cosmosstruc using namespace 2.0 is "<<agent->cinfo->size()<<"."<<endl;
 
-	cout<<"For my next trick... I will add all the default names supported by Namespace 2.0"<<endl;
+	cout<<"\nFor my next trick... I will add all the default names supported by Namespace 2.0"<<endl;
 
 	agent->cinfo->add_default_names();
 
-	cout<<"The size of the namespace for cosmosstruc using namespace 2.0 is "<<agent->cinfo->size()<<"."<<endl;
+	cout<<"\nThe size of the namespace for cosmosstruc using namespace 2.0 is "<<agent->cinfo->size()<<"."<<endl;
 
+	cout<<"\nWould you like to see the names from Namespace 2.0? (y/n) : ";
+	cin>>see;
+	if(see == 'Y' || see == 'y')	{
+		// printout all namespace 2.0 names
+		cout<<endl;
+		agent->cinfo->print_all_names();
+	}
 
 
 /*
