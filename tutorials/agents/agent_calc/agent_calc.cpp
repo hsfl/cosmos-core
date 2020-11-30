@@ -171,14 +171,24 @@ int main(int argc, char *argv[])
         cout << "Hello, I am an agent. My name is [null:" << agentname << "]" << endl << endl;
 	}
 
+// hijack agent_calc to demonstrate namespace 2.0
+
+	// printout all namespace 1.0 names
+	size_t n1 = 0;
     for (uint16_t i=0; i<agent->cinfo->jmap.size(); ++i)
 	{
-        if (agent->cinfo->jmap[i].size())
-		{
-            cout << "jmap[" << i << "]:" << agent->cinfo->jmap[i][0].name << endl;
-		}
+    		for (uint16_t j=0; j<agent->cinfo->jmap[i].size(); ++j)
+			{
+            	cout << "jmap[" << i << "]["<<j<<"] :\t" << agent->cinfo->jmap[i][j].name << endl;
+				n1++;
+			}
 	}
 
+	// verify the counts
+	cout<<"There were "<<n1<<" entries in namespace 1.0 and "<<agent->cinfo->jmapped<<" is the value of jmapped."<<endl;
+
+
+/*	old namespace 1.0 way of getting values with json_out(..)
     cout << agent->cinfo->node.name << endl;
 
 	string jsp;
@@ -196,13 +206,26 @@ int main(int argc, char *argv[])
 	cout << " after <" << jsp << ">" << endl;
 
 	agent->cinfo->equation.push_back(equationstruc{ "string1", "string2" });
+*/
+
 
 // see if we can print out entire cosmosstruc in JSON
 
 	agent->cinfo->add_name("Entire COSMOSSTRUC", agent->cinfo);
 	cout<<"Output:\n\t<"<<agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC")<<">"<<endl;
 
+	cout<<"all done";
+	cout<<"The size of the namespace for cosmosstruc using namespace 2.0 is "<<agent->cinfo->size()<<"."<<endl;
 
+	cout<<"For my next trick... I will add all the default names supported by Namespace 2.0"<<endl;
+
+	agent->cinfo->add_default_names();
+
+	cout<<"The size of the namespace for cosmosstruc using namespace 2.0 is "<<agent->cinfo->size()<<"."<<endl;
+
+
+
+/*
 
 	string js = agent->cinfo->get_json<cosmosstruc>("Entire COSMOSSTRUC");	
 	cout<<"Output:<\n"<<js<<"\n>"<<endl;
@@ -217,7 +240,7 @@ int main(int argc, char *argv[])
 	cout<<"Output:\n\t<\n"<<agent->cinfo->get_json<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
 	cout<<"Output:\n\t<\n"<<agent->cinfo->get_json_pretty<vector<equationstruc>>("Entire COSMOSSTRUC Equations")<<">"<<endl;
 
-	agent->cinfo->add_all_names();
+	agent->cinfo->add_default_names();
 	agent->cinfo->print_all_names();
 	//cout<<agent->cinfo->get_json_pretty<locstruc>("node.loc")<<endl;
 
@@ -228,6 +251,7 @@ int main(int argc, char *argv[])
 
 
 	cout<<"<"<<agent->cinfo->get_json_pretty<eventstruc>("event[0]")<<">"<<endl;
+*/
 /*
 	agent->cinfo->add_name("Entire COSMOSSTRUC Unit", &agent->cinfo->unit);
 	cout<<"Output:\n\t<"<<agent->cinfo->get_json<vector<vector<unitstruc>>>("Entire COSMOSSTRUC Unit")<<">"<<endl;

@@ -3811,6 +3811,8 @@ struct cosmosstruc
 
         bool name_exists(const string& s)	{ return (names.find(s) == names.end()) ? false : true; }
 
+		size_t size()	{	return names.size();	}
+
         void print_all_names() const	{
                 name_map::const_iterator it = names.begin();
                 while(it != names.end())	{ cout<<(it++)->first<<endl; }
@@ -3819,7 +3821,7 @@ struct cosmosstruc
         void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
         //TODO:   add remove_name(..), change_name(..) functions, match_name(), find_aliases(), etc
 
-        void add_all_names()	{
+        void add_default_names()	{
 
         // double timestamp
                 add_name("timestamp", &timestamp);
