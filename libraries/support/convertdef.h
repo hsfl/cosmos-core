@@ -846,62 +846,6 @@ struct tlestruc
     double mm = 0.;
     uint32_t orbit = 0;
 
-    /// Support for Namespace 2.0
-    using name_map = map<string,void*>;
-    using name_mapping = pair<string,void*>;
-    name_map names;
-
-    void add_name(const string& s, void* v)	{ names.insert(name_mapping(s,v)); };
-
-    void add_default_names() {
-        // double utc
-        add_name("utc", &utc);
-
-        // JIMNOTE: remove magic number
-        // char name[25]
-        add_name("name", &name);
-        for(size_t i = 0; i < sizeof(name)/sizeof(name[0]); ++i) {
-            string basename = "name[" + std::to_string(i) + "]";
-            add_name(basename, &name[i]);
-        }
-
-        // uint16_t snumber
-        add_name("snumber", &snumber);
-
-        // JIMNOTE: remove magic number
-        // char id[9]
-        add_name("id", &id);
-        for(size_t i = 0; i < sizeof(id)/sizeof(id[0]); ++i) {
-            string basename = "id[" + std::to_string(i) + "]";
-            add_name(basename, &id[i]);
-        }
-
-        // double bstar
-        add_name("bstar", &bstar);
-
-        // double i
-        add_name("i", &i);
-
-        // double raan
-        add_name("raan", &raan);
-
-        // double e
-        add_name("e", &e);
-
-        // double ap
-        add_name("ap", &ap);
-
-        // double ma
-        add_name("ma", &ma);
-
-        // double mm
-        add_name("mm", &mm);
-
-        // uint32_t orbit
-        add_name("orbit", &orbit);
-
-    }
-
   // Convert class contents to JSON object
     json11::Json to_json() const {
         return json11::Json::object {
