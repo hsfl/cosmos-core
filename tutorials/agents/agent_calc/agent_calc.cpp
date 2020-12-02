@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
 
 
 
-	string test_equation = "3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3";
+	string test_equation = "1.23456 + 4.4 * 2. / ( 1 - 555.4321 ) ^ 2 ^ 3";
 
 // first need to be able to read tokens, which is either operator or number (or, later) variable names
 
@@ -363,26 +363,29 @@ int main(int argc, char *argv[])
 
 		// if token is number
 		if(isdigit(*it))	{
-			vector<int> my_numb;
-			my_numb.push_back(*it-'0');
-			while(isdigit(*(it+1)))	{
-				my_numb.push_back(*(it+1)-'0');
-				it++;
-			}
+			vector<int> integer;
+			vector<int> fraction;
+			integer.push_back(*it-'0');
+			while(isdigit(*(it+1)))	{ integer.push_back(*(++it)-'0'); }
+			// if a decimal number
+
+			cout<<"\t\tit = <"<<*(it+1)<<">";
+			if(*(it+1)=='.')	{ ++it; while(isdigit(*(it+1)))	{ fraction.push_back(*(++it)-'0'); } }
+
 			// convert to double and push onto number stack
 
 			//spit out the number
 			double numnum = 0.;
-			//cout<<"number == <";
-			for(size_t i = 0; i < my_numb.size(); ++i)	{
-				numnum += my_numb[i]*1.0 * pow(10, my_numb.size()-i-1);
-				//cout<<my_numb[i];
+			
+			for(size_t i = 0; i < integer.size(); ++i)	{
+				numnum += integer[i]*1.0 * pow(10, integer.size()-i-1);
 			}
-			//cout<<">"<<endl;
-			//cout<<"numnum = <"<<numnum<<">"<<endl;
+			for(size_t i = 0; i < fraction.size(); ++i)	{
+				numnum += fraction[i]*1.0 * pow(10.0, -(i+1.0));
+			}
+
 			output += to_string(numnum) + " ";
 			continue;
-
 		}
 
 		// if token is operator
@@ -407,7 +410,6 @@ int main(int argc, char *argv[])
 			}
 			if(ops.top()=='(')	{ ops.pop(); }
 		}
-
 	} // end char loop
 
 	while(!ops.empty())	{
