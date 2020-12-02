@@ -198,7 +198,26 @@ bool higher(char a, char b)	{
 	return false;
 }
 
-
+void apply_op(stack<char>& ops, stack<double>& answer)	{
+	double b = answer.top();
+	answer.pop();
+	double a = answer.top();
+	answer.pop();
+	switch(ops.top())	{
+		case '+':	answer.push(a+b);
+					break;
+		case '-':	answer.push(a-b);
+					break;
+		case '*':	answer.push(a*b);
+					break;
+		case '/':	answer.push(a/b);
+					break;
+		case '^':	answer.push(pow(a,b));
+					break;
+	}
+	ops.pop();
+	return;
+}
 
 
 int main(int argc, char *argv[])
@@ -405,23 +424,7 @@ int main(int argc, char *argv[])
 					ops.top()!='('
 			)	{
 				output += string(1,ops.top()) + " ";
-			double b = answer.top();
-			answer.pop();
-			double a = answer.top();
-			answer.pop();
-		switch(ops.top())	{
-			case '+':	answer.push(a+b);
-						break;
-			case '-':	answer.push(a-b);
-						break;
-			case '*':	answer.push(a*b);
-						break;
-			case '/':	answer.push(a/b);
-						break;
-			case '^':	answer.push(pow(a,b));
-						break;
-		}
-				ops.pop();
+				apply_op(ops, answer);
 			}
 			ops.push(*it);
 		} else if(*it == '(')	{
@@ -429,23 +432,7 @@ int main(int argc, char *argv[])
 		} else if(*it == ')')	{
 			while(ops.top()!='(')	{
 				output += string(1,ops.top()) + " ";
-			double b = answer.top();
-			answer.pop();
-			double a = answer.top();
-			answer.pop();
-		switch(ops.top())	{
-			case '+':	answer.push(a+b);
-						break;
-			case '-':	answer.push(a-b);
-						break;
-			case '*':	answer.push(a*b);
-						break;
-			case '/':	answer.push(a/b);
-						break;
-			case '^':	answer.push(pow(a,b));
-						break;
-		}
-				ops.pop();
+				apply_op(ops, answer);
 			}
 			if(ops.top()=='(')	{ ops.pop(); }
 		}
@@ -453,23 +440,7 @@ int main(int argc, char *argv[])
 
 	while(!ops.empty())	{
 		output += string(1,ops.top()) + " ";
-			double b = answer.top();
-			answer.pop();
-			double a = answer.top();
-			answer.pop();
-		switch(ops.top())	{
-			case '+':	answer.push(a+b);
-						break;
-			case '-':	answer.push(a-b);
-						break;
-			case '*':	answer.push(a*b);
-						break;
-			case '/':	answer.push(a/b);
-						break;
-			case '^':	answer.push(pow(a,b));
-						break;
-		}
-		ops.pop();
+		apply_op(ops, answer);
 	}
 cout<<"OUTPUT == <"<<output<<">"<<endl;
 
