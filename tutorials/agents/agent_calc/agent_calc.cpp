@@ -116,6 +116,91 @@ void pretty_form(string& js)	{
 }
 */
 
+// has left association?
+bool left(char a)	{
+	if(a == '+')	return true;
+	if(a == '-')	return true;
+	if(a == '*')	return true;
+	if(a == '/')	return true;
+	if(a == '^')	return false;
+
+	return false;
+}
+
+// has equal precedence?
+bool equal(char a, char b)	{
+	if(a == '+' && b == '+')	return true;	
+	if(a == '+' && b == '-')	return true;	
+	if(a == '+' && b == '*')	return false;	
+	if(a == '+' && b == '/')	return false;	
+	if(a == '+' && b == '^')	return false;	
+	
+	if(a == '-' && b == '+')	return true;	
+	if(a == '-' && b == '-')	return true;	
+	if(a == '-' && b == '*')	return false;	
+	if(a == '-' && b == '/')	return false;	
+	if(a == '-' && b == '^')	return false;	
+	
+	if(a == '*' && b == '+')	return false;	
+	if(a == '*' && b == '-')	return false;	
+	if(a == '*' && b == '*')	return true;	
+	if(a == '*' && b == '/')	return true;	
+	if(a == '*' && b == '^')	return false;	
+	
+	if(a == '/' && b == '+')	return false;	
+	if(a == '/' && b == '-')	return false;	
+	if(a == '/' && b == '*')	return true;	
+	if(a == '/' && b == '/')	return true;	
+	if(a == '/' && b == '^')	return false;	
+	
+	if(a == '^' && b == '+')	return false;	
+	if(a == '^' && b == '-')	return false;	
+	if(a == '^' && b == '*')	return false;	
+	if(a == '^' && b == '/')	return false;	
+	if(a == '^' && b == '^')	return true;	
+
+	return false;
+}
+
+// has higher precedence?
+bool higher(char a, char b)	{
+
+	if(a == '+' && b == '+')	return false;	
+	if(a == '+' && b == '-')	return false;	
+	if(a == '+' && b == '*')	return false;	
+	if(a == '+' && b == '/')	return false;	
+	if(a == '+' && b == '^')	return false;	
+	
+	if(a == '-' && b == '+')	return false;	
+	if(a == '-' && b == '-')	return false;	
+	if(a == '-' && b == '*')	return false;	
+	if(a == '-' && b == '/')	return false;	
+	if(a == '-' && b == '^')	return false;	
+	
+	if(a == '*' && b == '+')	return true;	
+	if(a == '*' && b == '-')	return true;	
+	if(a == '*' && b == '*')	return false;	
+	if(a == '*' && b == '/')	return false;	
+	if(a == '*' && b == '^')	return false;	
+	
+	if(a == '/' && b == '+')	return true;	
+	if(a == '/' && b == '-')	return true;	
+	if(a == '/' && b == '*')	return false;	
+	if(a == '/' && b == '/')	return false;	
+	if(a == '/' && b == '^')	return false;	
+	
+	if(a == '^' && b == '+')	return true;	
+	if(a == '^' && b == '-')	return true;	
+	if(a == '^' && b == '*')	return true;	
+	if(a == '^' && b == '/')	return true;	
+	if(a == '^' && b == '^')	return false;	
+
+	return false;
+}
+
+
+
+
 int main(int argc, char *argv[])
 {
     int iretn;
@@ -239,6 +324,98 @@ int main(int argc, char *argv[])
 		agent->cinfo->print_all_names();
 	}
 
+// need support for decimal points
+// need support for negative numbers?
+// need to convert contents of output into a double stack-wise
+
+	cout<<"\nFor my next trick I will try to implement to concept of equations for Namespace 2.0"<<endl;
+	// given a string with parenthesis (), algebraic operators +-*/^, numbers (treated as doubles), and name from the namespace whose value is numbers
+
+	// all results are doubles
+	// ignore whitespace
+
+
+
+	string test_equation = "3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3";
+
+// first need to be able to read tokens, which is either operator or number (or, later) variable names
+
+
+	string str = test_equation;
+
+	// operator stack
+	std::stack<char> ops;
+	// output stack-ish
+	string output = "";
+
+	cout<<"equation = <"<<str<<">"<<endl;
+
+	for(std::string::iterator it = str.begin(); it != str.end(); ++it) {
+							// debug
+							cout<<"OUTPUT=<"<<output<<">     OPERATORS=<";
+							for (std::stack<char> dump = ops; !dump.empty(); dump.pop())
+        						std::cout << dump.top();
+							cout<<">"<<endl;
+
+
+		// skip all whitespace
+		if(*it == ' ') continue;
+
+		// if token is number
+		if(isdigit(*it))	{
+			vector<int> my_numb;
+			my_numb.push_back(*it-'0');
+			while(isdigit(*(it+1)))	{
+				my_numb.push_back(*(it+1)-'0');
+				it++;
+			}
+			// convert to double and push onto number stack
+
+			//spit out the number
+			double numnum = 0.;
+			//cout<<"number == <";
+			for(size_t i = 0; i < my_numb.size(); ++i)	{
+				numnum += my_numb[i]*1.0 * pow(10, my_numb.size()-i-1);
+				//cout<<my_numb[i];
+			}
+			//cout<<">"<<endl;
+			//cout<<"numnum = <"<<numnum<<">"<<endl;
+			output += to_string(numnum) + " ";
+			continue;
+
+		}
+
+		// if token is operator
+		if(*it=='+'||*it=='-'||*it=='*'||*it=='/'||*it=='^')	{
+
+			cout<<"TOCKEM = "<<*it<<endl;
+			// while operators on the stack
+			while(	!ops.empty() &&
+					( higher(ops.top(), *it)  || (equal(ops.top(), *it)  && left(*it) ) ) &&
+					ops.top()!='('
+			)	{
+				output += string(1,ops.top()) + " ";
+				ops.pop();
+			}
+			ops.push(*it);
+		} else if(*it == '(')	{
+			ops.push(*it);
+		} else if(*it == ')')	{
+			while(ops.top()!='(')	{
+				output += string(1,ops.top()) + " ";
+				ops.pop();
+			}
+			if(ops.top()=='(')	{ ops.pop(); }
+		}
+
+	} // end char loop
+
+	while(!ops.empty())	{
+		output += string(1,ops.top()) + " ";
+		ops.pop();
+	}
+
+cout<<"OUTPUT == <"<<output<<">"<<endl;
 
 /*
 

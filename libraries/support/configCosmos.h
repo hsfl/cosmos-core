@@ -100,6 +100,8 @@ using std::string;
 using std::to_string;
 #include <vector>
 using std::vector;
+#include <stack>
+using std::stack;
 #include <deque>
 using std::deque;
 #include <mutex>
